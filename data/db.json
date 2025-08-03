@@ -1,0 +1,1241 @@
+{
+  "people": [
+    {
+      "id": "edoardo",
+      "name": "Edoardo Valentini",
+      "avatar": "https://i.pravatar.cc/150?u=edoardo",
+      "themeColor": "#3b82f6",
+      "budgetStartDate": "25"
+    },
+    {
+      "id": "ivana",
+      "name": "Ivana Piscitelli",
+      "avatar": "https://i.pravatar.cc/150?u=ivana",
+      "themeColor": "#ef4444",
+      "budgetStartDate": "15"
+    }
+  ],
+  "accounts": [
+    {
+      "id": "acc1",
+      "name": "CC Edoardo",
+      "type": "stipendio",
+      "personIds": [
+        "edoardo"
+      ]
+    },
+    {
+      "id": "acc2",
+      "name": "CC Ivana",
+      "type": "stipendio",
+      "personIds": [
+        "ivana"
+      ]
+    },
+    {
+      "id": "acc3",
+      "name": "Contanti Edoardo",
+      "type": "contanti",
+      "personIds": [
+        "edoardo"
+      ]
+    },
+    {
+      "id": "acc4",
+      "name": "Contanti Ivana",
+      "type": "contanti",
+      "personIds": [
+        "ivana"
+      ]
+    },
+    {
+      "id": "acc5",
+      "name": "Risparmi Casa",
+      "type": "risparmi",
+      "personIds": [
+        "edoardo",
+        "ivana"
+      ]
+    },
+    {
+      "id": "acc6",
+      "name": "Risparmi Personali Ivana",
+      "type": "risparmi",
+      "personIds": [
+        "ivana"
+      ]
+    },
+    {
+      "id": "acc7",
+      "name": "Risparmi Personali Edoardo",
+      "type": "risparmi",
+      "personIds": [
+        "edoardo"
+      ]
+    }
+  ],
+  "transactions": [
+    {
+      "id": "88cbb602-ee43-4a07-845b-46ffb6f6a85b",
+      "description": "Regalo Prestinice",
+      "amount": 16.95,
+      "date": "2025-07-30T00:00:00.000Z",
+      "type": "spesa",
+      "category": "regali",
+      "accountId": "acc2",
+      "isReconciled": false
+    },
+    {
+      "id": "0a7aa2c0-d9a1-4ab5-b5c5-1fe01c5cbd23",
+      "description": "Fattura 730",
+      "amount": 30,
+      "date": "2025-07-30T00:00:00.000Z",
+      "type": "spesa",
+      "category": "altro",
+      "accountId": "acc1",
+      "isReconciled": false
+    },
+    {
+      "id": "2dce7620-b9db-4664-8ce1-1880cc672124",
+      "description": "Rata auto",
+      "amount": 401.41,
+      "date": "2025-07-30T00:00:00.000Z",
+      "type": "spesa",
+      "category": "rata_auto",
+      "accountId": "acc1",
+      "isReconciled": false
+    },
+    {
+      "id": "f90960c2-2d03-41b7-9246-81beb363a65f",
+      "description": "Artelatte",
+      "amount": 7.5,
+      "date": "2025-07-28T00:00:00.000Z",
+      "type": "spesa",
+      "category": "cibo_fuori",
+      "accountId": "acc1",
+      "isReconciled": false
+    },
+    {
+      "id": "79c6950e-5d29-419d-ac0d-66edb513c3f7",
+      "description": "Evento Fru",
+      "amount": 12,
+      "date": "2025-07-28T00:00:00.000Z",
+      "type": "spesa",
+      "category": "eventi",
+      "accountId": "acc1",
+      "isReconciled": false
+    },
+    {
+      "id": "8b0ca6e1-000a-4bb7-a88f-9ad1a95ca287",
+      "description": "Evento Fru",
+      "amount": 6,
+      "date": "2025-07-28T00:00:00.000Z",
+      "type": "entrata",
+      "category": "bonifico",
+      "accountId": "acc1",
+      "isReconciled": false
+    },
+    {
+      "id": "67bf509c-6465-43ac-baed-c660683ac7c4",
+      "description": "Evento Fru",
+      "amount": 6,
+      "date": "2025-07-28T00:00:00.000Z",
+      "type": "spesa",
+      "category": "eventi",
+      "accountId": "acc2",
+      "isReconciled": false
+    },
+    {
+      "id": "0f2bbac1-e17d-4e83-b3ad-b770c32dbde9",
+      "description": "Investimenti",
+      "amount": 50,
+      "date": "2025-07-27T00:00:00.000Z",
+      "type": "spesa",
+      "category": "investimenti",
+      "accountId": "acc1",
+      "isReconciled": true,
+      "linkedTransactionId": "c0cbc0ac-66ee-4aef-9003-8362740bd8e3"
+    },
+    {
+      "id": "8b0ca6e1-000a-4bb7-a88f-9ad1a95ca287",
+      "description": "McDonald",
+      "amount": 9.68,
+      "date": "2025-07-27T00:00:00.000Z",
+      "type": "spesa",
+      "category": "cibo_asporto",
+      "accountId": "acc1",
+      "isReconciled": false
+    },
+    {
+      "id": "a8ffa834-078a-4a26-920b-d0f322bd7323",
+      "description": "McDonald",
+      "amount": 9.68,
+      "date": "2025-07-27T00:00:00.000Z",
+      "type": "entrata",
+      "category": "bonifico",
+      "accountId": "acc2",
+      "isReconciled": false
+    },
+    {
+      "id": "c8564fe3-bf04-44a7-a642-1e2f9fc8816a",
+      "description": "Deliveroo",
+      "amount": 27.19,
+      "date": "2025-07-27T00:00:00.000Z",
+      "type": "spesa",
+      "category": "cibo_asporto",
+      "accountId": "acc1",
+      "isReconciled": false
+    },
+    {
+      "id": "6fb9d0e1-cef6-42b1-bbf1-c13cfee2967a",
+      "description": "McDonald",
+      "amount": 23.3,
+      "date": "2025-07-27T00:00:00.000Z",
+      "type": "spesa",
+      "category": "cibo_asporto",
+      "accountId": "acc1",
+      "isReconciled": false
+    },
+    {
+      "id": "8bcadee2-1b89-4b18-9bdd-dd967fa2272b",
+      "description": "Deliveroo",
+      "amount": 6.8,
+      "date": "2025-07-27T00:00:00.000Z",
+      "type": "spesa",
+      "category": "cibo_asporto",
+      "accountId": "acc2",
+      "isReconciled": false
+    },
+    {
+      "id": "479d26eb-f453-497a-a045-d15707467763",
+      "description": "McDonald",
+      "amount": 9.32,
+      "date": "2025-07-27T00:00:00.000Z",
+      "type": "spesa",
+      "category": "cibo_asporto",
+      "accountId": "acc2",
+      "isReconciled": false
+    },
+    {
+      "id": "b42c94ec-9a35-4a58-a6f3-98bb42fa2dd6",
+      "description": "Artelatte",
+      "amount": 7.5,
+      "date": "2025-07-26T00:00:00.000Z",
+      "type": "spesa",
+      "category": "cibo_fuori",
+      "accountId": "acc1",
+      "isReconciled": false
+    },
+    {
+      "id": "ac81743d-e297-4a32-86b9-619c8d514e31",
+      "description": "Acqua e Sapone",
+      "amount": 5.49,
+      "date": "2025-07-26T00:00:00.000Z",
+      "type": "entrata",
+      "category": "bonifico",
+      "accountId": "acc1",
+      "isReconciled": false
+    },
+    {
+      "id": "dd310cc1-ad40-4a37-a655-4a8f390d9d0f",
+      "description": "Acqua e Sapone",
+      "amount": 16.63,
+      "date": "2025-07-26T00:00:00.000Z",
+      "type": "spesa",
+      "category": "spesa",
+      "accountId": "acc1",
+      "isReconciled": false
+    },
+    {
+      "id": "25d44c47-9455-402a-a005-47f0158a43cf",
+      "description": "Spesa",
+      "amount": 68,
+      "date": "2025-07-26T00:00:00.000Z",
+      "type": "entrata",
+      "category": "bonifico",
+      "accountId": "acc1",
+      "isReconciled": false
+    },
+    {
+      "id": "dec132c5-fce5-4a0c-b9e8-6150e5485c29",
+      "description": "Ipercoop",
+      "amount": 204.06,
+      "date": "2025-07-26T00:00:00.000Z",
+      "type": "spesa",
+      "category": "spesa",
+      "accountId": "acc1",
+      "isReconciled": false
+    },
+    {
+      "id": "44507eec-0749-4e14-9717-d9c34ea67b99",
+      "description": "Bolletta Gas",
+      "amount": 74,
+      "date": "2025-07-26T00:00:00.000Z",
+      "type": "spesa",
+      "category": "bolletta_gas",
+      "accountId": "acc1",
+      "isReconciled": false
+    },
+    {
+      "id": "1fe28472-d4ec-43b2-9c2b-dc5d0c630744",
+      "description": "Bolletta Gas",
+      "amount": 37,
+      "date": "2025-07-26T00:00:00.000Z",
+      "type": "entrata",
+      "category": "bonifico",
+      "accountId": "acc1",
+      "isReconciled": false
+    },
+    {
+      "id": "4ca71d95-a67e-45aa-bdc3-37e6eef90f3c",
+      "description": "Artelatte",
+      "amount": 7.5,
+      "date": "2025-07-26T00:00:00.000Z",
+      "type": "entrata",
+      "category": "bonifico",
+      "accountId": "acc2",
+      "isReconciled": false
+    },
+    {
+      "id": "3b945733-9932-4c63-a00c-f09bfa036d5b",
+      "description": "Artelatte",
+      "amount": 15,
+      "date": "2025-07-26T00:00:00.000Z",
+      "type": "spesa",
+      "category": "cibo_fuori",
+      "accountId": "acc2",
+      "isReconciled": false
+    },
+    {
+      "id": "a8eaf2df-202a-44e7-8a5c-4620df7466a0",
+      "description": "Acqua e Sapone",
+      "amount": 5.49,
+      "date": "2025-07-26T00:00:00.000Z",
+      "type": "spesa",
+      "category": "spesa",
+      "accountId": "acc2",
+      "isReconciled": false
+    },
+    {
+      "id": "10a6429b-0724-40b4-a2e8-79ca4a658f47",
+      "description": "Ipercoop",
+      "amount": 68,
+      "date": "2025-07-26T00:00:00.000Z",
+      "type": "spesa",
+      "category": "spesa",
+      "accountId": "acc2",
+      "isReconciled": false
+    },
+    {
+      "id": "3cfe0e50-6273-4aba-be90-1336e14e46f4",
+      "description": "Bolletta Gas",
+      "amount": 37,
+      "date": "2025-07-26T00:00:00.000Z",
+      "type": "spesa",
+      "category": "bolletta_gas",
+      "accountId": "acc2",
+      "isReconciled": false
+    },
+    {
+      "id": "55383ccf-7949-40c7-a498-1fc005607012",
+      "description": "Sushi",
+      "amount": 55,
+      "date": "2025-07-25T00:00:00.000Z",
+      "type": "spesa",
+      "category": "cibo_asporto",
+      "accountId": "acc1",
+      "isReconciled": false
+    },
+    {
+      "id": "1fe28472-d4ec-43b2-9c2b-dc5d0c630744",
+      "description": "Sushi",
+      "amount": 27.5,
+      "date": "2025-07-25T00:00:00.000Z",
+      "type": "entrata",
+      "category": "bonifico",
+      "accountId": "acc1",
+      "isReconciled": false
+    },
+    {
+      "id": "dad6093c-0e93-467c-a7e8-6048000aecc9",
+      "description": "Sushi",
+      "amount": 27.5,
+      "date": "2025-07-25T00:00:00.000Z",
+      "type": "spesa",
+      "category": "cibo_asporto",
+      "accountId": "acc2",
+      "isReconciled": false
+    },
+    {
+      "id": "870d5211-9d35-4298-af01-958511feb6a6",
+      "description": "Soldi Prestati Giovanni",
+      "amount": 30,
+      "date": "2025-07-24T00:00:00.000Z",
+      "type": "spesa",
+      "category": "regali",
+      "accountId": "acc2",
+      "isReconciled": true,
+      "linkedTransactionId": "34ef80b8-87e8-4427-89c8-de384e4f897f"
+    },
+    {
+      "id": "ddc3cac3-4b95-4dc4-be54-c4ee8395ff45",
+      "description": "Insolito",
+      "amount": 19,
+      "date": "2025-07-22T00:00:00.000Z",
+      "type": "spesa",
+      "category": "eventi",
+      "accountId": "acc2",
+      "isReconciled": false
+    },
+    {
+      "id": "99b73a0f-172b-4175-83ad-2405873da278",
+      "description": "Taglio Thor",
+      "amount": 40,
+      "date": "2025-07-22T00:00:00.000Z",
+      "type": "spesa",
+      "category": "taglio_thor",
+      "accountId": "acc2",
+      "isReconciled": false
+    },
+    {
+      "id": "ce7e5ac4-d8d6-4e04-99e1-cf07a4c99a95",
+      "description": "Offerta Pizza",
+      "amount": 13,
+      "date": "2025-07-20T00:00:00.000Z",
+      "type": "spesa",
+      "category": "cibo_asporto",
+      "accountId": "acc2",
+      "isReconciled": false
+    },
+    {
+      "id": "5ecf9294-85ab-470f-984b-11f004d1a3c2",
+      "description": "Aperitivo",
+      "amount": 13,
+      "date": "2025-07-19T00:00:00.000Z",
+      "type": "entrata",
+      "category": "bonifico",
+      "accountId": "acc2",
+      "isReconciled": false
+    },
+    {
+      "id": "6e8528b0-e170-4b06-a232-3b5f4e85d386",
+      "description": "Penny",
+      "amount": 37.37,
+      "date": "2025-07-19T00:00:00.000Z",
+      "type": "spesa",
+      "category": "spesa",
+      "accountId": "acc2",
+      "isReconciled": false
+    },
+    {
+      "id": "2549cdee-bf45-4185-923f-51422eb25560",
+      "description": "Skincare",
+      "amount": 26.9,
+      "date": "2025-07-19T00:00:00.000Z",
+      "type": "spesa",
+      "category": "skincare",
+      "accountId": "acc2",
+      "isReconciled": false
+    },
+    {
+      "id": "7cc7af6c-bb50-4cf8-8fc6-63a0a9f50251",
+      "description": "Medicine",
+      "amount": 22.8,
+      "date": "2025-07-19T00:00:00.000Z",
+      "type": "spesa",
+      "category": "medicine",
+      "accountId": "acc2",
+      "isReconciled": false
+    },
+    {
+      "id": "c1571b3e-f9e0-47dd-8ef3-f4217a1e8113",
+      "description": "Medicine Thor",
+      "amount": 12.5,
+      "date": "2025-07-19T00:00:00.000Z",
+      "type": "spesa",
+      "category": "medicine_thor",
+      "accountId": "acc2",
+      "isReconciled": false
+    },
+    {
+      "id": "7ee024ae-b7fa-447f-af04-4f8c6d3c65c3",
+      "description": "Farmacia",
+      "amount": 18.5,
+      "date": "2025-07-19T00:00:00.000Z",
+      "type": "spesa",
+      "category": "medicine",
+      "accountId": "acc2",
+      "isReconciled": false
+    },
+    {
+      "id": "5ecf9294-85ab-470f-984b-11f004d1a3c2",
+      "description": "Spesa più medicine",
+      "amount": 96.03,
+      "date": "2025-07-19T00:00:00.000Z",
+      "type": "entrata",
+      "category": "bonifico",
+      "accountId": "acc2",
+      "isReconciled": false
+    },
+    {
+      "id": "e2d0f054-09a3-45a1-abed-80d88fc0318a",
+      "description": "Farmacia",
+      "amount": 34.3,
+      "date": "2025-07-19T00:00:00.000Z",
+      "type": "spesa",
+      "category": "medicine",
+      "accountId": "acc2",
+      "isReconciled": false
+    },
+    {
+      "id": "69fe8d7e-d324-4828-9ae1-3f7e758d64eb",
+      "description": "Penny",
+      "amount": 10.75,
+      "date": "2025-07-19T00:00:00.000Z",
+      "type": "spesa",
+      "category": "spesa",
+      "accountId": "acc2",
+      "isReconciled": false
+    },
+    {
+      "id": "ac2f0f6a-b079-4272-ba63-4457f1f45df7",
+      "description": "McDonald",
+      "amount": 10.95,
+      "date": "2025-07-18T00:00:00.000Z",
+      "type": "spesa",
+      "category": "cibo_asporto",
+      "accountId": "acc2",
+      "isReconciled": false
+    },
+    {
+      "id": "45ca9461-7bc3-4269-b340-2e48f7bf927e",
+      "description": "McDonald",
+      "amount": 19.35,
+      "date": "2025-07-18T00:00:00.000Z",
+      "type": "spesa",
+      "category": "cibo_asporto",
+      "accountId": "acc2",
+      "isReconciled": false
+    },
+    {
+      "id": "e1ecac0d-4c3a-4773-a25e-53151698df08",
+      "description": "Bolletta Acqua",
+      "amount": 210.42,
+      "date": "2025-07-16T00:00:00.000Z",
+      "type": "spesa",
+      "category": "bolletta_acqua",
+      "accountId": "acc2",
+      "isReconciled": true,
+      "linkedTransactionId": "33b99ff4-3266-47fe-884b-13d4c1a67fbb"
+    },
+    {
+      "id": "89a2c981-3907-4486-acbb-456a75db0e00",
+      "description": "Deliveroo",
+      "amount": 32.44,
+      "date": "2025-07-15T00:00:00.000Z",
+      "type": "spesa",
+      "category": "cibo_asporto",
+      "accountId": "acc2",
+      "isReconciled": false
+    },
+    {
+      "id": "09332e65-762d-4341-9030-de9d603a3cb9",
+      "description": "Visita Chiaravalloti",
+      "amount": 142,
+      "date": "2025-07-15T00:00:00.000Z",
+      "type": "spesa",
+      "category": "visite_mediche",
+      "accountId": "acc2",
+      "isReconciled": false
+    },
+    {
+      "id": "2c4040de-56cc-448c-8af2-28aa55db6d08",
+      "description": "Stipendio",
+      "amount": 2532,
+      "date": "2025-07-25T00:00:00.000Z",
+      "type": "entrata",
+      "category": "stipendio",
+      "accountId": "acc1",
+      "isReconciled": false
+    },
+    {
+      "id": "cd1389c4-7e28-4d61-a7c3-bf77b8ff9bbe",
+      "description": "Stipendio",
+      "amount": 1643,
+      "date": "2025-07-15T00:00:00.000Z",
+      "type": "entrata",
+      "category": "stipendio",
+      "accountId": "acc2",
+      "isReconciled": false
+    },
+    {
+      "id": "cf4bcf41-d0d9-469a-8208-02fed2de0041",
+      "description": "Spesa",
+      "amount": 42.5,
+      "type": "spesa",
+      "category": "spesa",
+      "accountId": "acc2",
+      "date": "2025-08-02",
+      "isReconciled": false
+    },
+    {
+      "id": "e6a6ddb9-d6e9-4070-afe7-7ce0fa9bd519",
+      "description": "Pizza asporto",
+      "amount": 6,
+      "type": "spesa",
+      "category": "cibo_asporto",
+      "accountId": "acc2",
+      "date": "2025-08-03",
+      "isReconciled": false
+    },
+    {
+      "id": "9634cca0-0eea-4b0e-b3ad-bc41e08c30c5",
+      "description": "Crunchyroll",
+      "amount": 3.24,
+      "type": "spesa",
+      "category": "abbonamenti_tv",
+      "accountId": "acc2",
+      "date": "2025-08-03",
+      "isReconciled": false
+    },
+    {
+      "id": "34ef80b8-87e8-4427-89c8-de384e4f897f",
+      "description": "Rimborso regalo Giovanni",
+      "amount": 30,
+      "type": "entrata",
+      "category": "contanti",
+      "accountId": "acc4",
+      "date": "2025-08-01",
+      "isReconciled": true,
+      "linkedTransactionId": "870d5211-9d35-4298-af01-958511feb6a6"
+    },
+    {
+      "id": "bb53b4f5-48c6-4e26-a948-7ac7f7e07618",
+      "description": "Rimanenza Precedente Stipendio",
+      "amount": 651.52,
+      "type": "entrata",
+      "category": "stipendio",
+      "accountId": "acc2",
+      "date": "2025-07-15",
+      "isReconciled": false
+    },
+    {
+      "id": "097a6093-74d7-4782-b9e9-64d41630c68d",
+      "description": "Risparmi Casa",
+      "amount": 250,
+      "type": "spesa",
+      "category": "trasferimento",
+      "accountId": "acc2",
+      "toAccountId": "acc5",
+      "date": "2025-07-15",
+      "isReconciled": false
+    },
+    {
+      "id": "c0907801-d187-490d-bc75-69884e00f214",
+      "description": "Acqua e Sapone",
+      "amount": 13.44,
+      "type": "spesa",
+      "category": "spesa",
+      "accountId": "acc2",
+      "date": "2025-07-19",
+      "isReconciled": false
+    },
+    {
+      "id": "371b4744-3670-4e81-90a6-bde7cc62707d",
+      "description": "Conad",
+      "amount": 55.6,
+      "type": "spesa",
+      "category": "spesa",
+      "accountId": "acc2",
+      "date": "2025-07-19",
+      "isReconciled": false
+    },
+    {
+      "id": "33b99ff4-3266-47fe-884b-13d4c1a67fbb",
+      "description": "Bolletta Acqua",
+      "amount": 105,
+      "type": "entrata",
+      "category": "bonifico",
+      "accountId": "acc2",
+      "date": "2025-07-19",
+      "isReconciled": true,
+      "linkedTransactionId": "e1ecac0d-4c3a-4773-a25e-53151698df08"
+    },
+    {
+      "id": "3eedfeae-f604-4c43-84f1-c7224d208fb7",
+      "description": "McDonald",
+      "amount": 37.2,
+      "type": "spesa",
+      "category": "cibo_asporto",
+      "accountId": "acc1",
+      "date": "2025-07-30",
+      "isReconciled": false
+    },
+    {
+      "id": "126d8452-c173-4b2e-9a1b-17352af6e0dc",
+      "description": "Regalo Antonio",
+      "amount": 60,
+      "type": "spesa",
+      "category": "regali",
+      "accountId": "acc1",
+      "date": "2025-07-31",
+      "isReconciled": false
+    },
+    {
+      "id": "a08e6eac-fd38-4a4f-b4eb-7356b01e3098",
+      "description": "Ricarica Telefono",
+      "amount": 4.99,
+      "type": "spesa",
+      "category": "ricarica_telefono",
+      "accountId": "acc1",
+      "date": "2025-08-01",
+      "isReconciled": false
+    },
+    {
+      "id": "57f12e3d-2b89-4f50-911d-80bbe3ab9890",
+      "description": "Spesa",
+      "amount": 68,
+      "type": "entrata",
+      "category": "bonifico",
+      "accountId": "acc1",
+      "date": "2025-08-01",
+      "isReconciled": false
+    },
+    {
+      "id": "e1a5c80c-b9f8-40c9-82bc-2017f9192e54",
+      "description": "Libro Bebilù",
+      "amount": 12.9,
+      "type": "spesa",
+      "category": "altro",
+      "accountId": "acc1",
+      "date": "2025-08-01",
+      "isReconciled": false
+    },
+    {
+      "id": "dcdbc91c-1335-4b74-b695-8e55872eaeef",
+      "description": "Spezia Coreana",
+      "amount": 6.98,
+      "type": "spesa",
+      "category": "spesa",
+      "accountId": "acc1",
+      "date": "2025-08-01",
+      "isReconciled": false
+    },
+    {
+      "id": "c0cbc0ac-66ee-4aef-9003-8362740bd8e3",
+      "description": "Investimenti",
+      "amount": 50,
+      "type": "entrata",
+      "category": "bonifico",
+      "accountId": "acc1",
+      "date": "2025-08-02",
+      "isReconciled": true,
+      "linkedTransactionId": "0f2bbac1-e17d-4e83-b3ad-b770c32dbde9"
+    },
+    {
+      "id": "26df1867-71fa-4e4b-92a8-8a6447c1f076",
+      "description": "Spesa",
+      "amount": 85,
+      "type": "spesa",
+      "category": "spesa",
+      "accountId": "acc1",
+      "date": "2025-08-02",
+      "isReconciled": false
+    },
+    {
+      "id": "30806cad-c584-4787-bcac-acbed85704c1",
+      "description": "Spesa",
+      "amount": 42.5,
+      "type": "entrata",
+      "category": "bonifico",
+      "accountId": "acc1",
+      "date": "2025-08-02",
+      "isReconciled": false
+    },
+    {
+      "id": "e7e326ad-6894-4341-8531-c355567a65e4",
+      "description": "Risparmi Casa",
+      "amount": 400,
+      "type": "spesa",
+      "category": "trasferimento",
+      "accountId": "acc1",
+      "date": "2025-08-02",
+      "toAccountId": "acc5",
+      "isReconciled": false
+    },
+    {
+      "id": "04385a67-2499-49b2-b5bf-38c045f778ad",
+      "description": "730 Ivana",
+      "amount": 1310,
+      "type": "entrata",
+      "category": "altro",
+      "accountId": "acc1",
+      "date": "2025-08-01",
+      "isReconciled": false
+    },
+    {
+      "id": "43771415-3a47-428e-b527-f6a47f530ad7",
+      "description": "730 fatto da Pina",
+      "amount": 900,
+      "type": "spesa",
+      "category": "altro",
+      "accountId": "acc1",
+      "date": "2025-08-02",
+      "isReconciled": false
+    },
+    {
+      "id": "a3e71b3d-ecfe-42d0-ad29-299f32b34161",
+      "description": "730 fatto da Pina",
+      "amount": 10,
+      "type": "spesa",
+      "category": "altro",
+      "accountId": "acc1",
+      "date": "2025-08-02",
+      "isReconciled": false
+    },
+    {
+      "id": "a98cab38-e78c-4e26-84d9-1f46d9f14b57",
+      "description": "Pizza San Paolo",
+      "amount": 24,
+      "type": "spesa",
+      "category": "cibo_asporto",
+      "accountId": "acc1",
+      "date": "2025-08-02",
+      "isReconciled": false
+    },
+    {
+      "id": "31b15966-c97d-4691-b1e7-68904a4fc96b",
+      "description": "Crunchyroll",
+      "amount": 6.49,
+      "type": "spesa",
+      "category": "abbonamenti_tv",
+      "accountId": "acc1",
+      "date": "2025-08-02",
+      "isReconciled": false
+    },
+    {
+      "id": "65e37c0f-9bdd-4872-b2a1-b21513466a7d",
+      "description": "Pizza San Paolo",
+      "amount": 6,
+      "type": "entrata",
+      "category": "bonifico",
+      "accountId": "acc1",
+      "date": "2025-08-03",
+      "isReconciled": false
+    },
+    {
+      "id": "e3e8e229-b910-4f98-b199-4bf098932eb1",
+      "description": "Cibo Asporto più Amazon",
+      "amount": 16,
+      "type": "entrata",
+      "category": "bonifico",
+      "accountId": "acc1",
+      "date": "2025-08-03",
+      "isReconciled": false
+    },
+    {
+      "id": "406ab917-cfbc-4af2-a7b7-3cfea176d2bd",
+      "description": "Crunchyroll",
+      "amount": 3.24,
+      "type": "entrata",
+      "category": "bonifico",
+      "accountId": "acc1",
+      "date": "2025-08-03",
+      "isReconciled": false
+    },
+    {
+      "id": "5f4bc520-abd7-43c0-b4dc-bff1440b0269",
+      "description": "Cibo Lido Makai",
+      "amount": 5.5,
+      "type": "spesa",
+      "category": "cibo_fuori",
+      "accountId": "acc1",
+      "date": "2025-08-03",
+      "isReconciled": false
+    },
+    {
+      "id": "7d3b78bf-e09c-492b-b203-8dea42c426e3",
+      "description": "Sushi",
+      "amount": 46.2,
+      "type": "spesa",
+      "category": "cibo_asporto",
+      "accountId": "acc1",
+      "date": "2025-08-03",
+      "isReconciled": false
+    },
+    {
+      "id": "2c6454f9-5a1e-4d98-a173-8e40d44f1cae",
+      "description": "Deliveroo",
+      "amount": 6.8,
+      "type": "entrata",
+      "category": "bonifico",
+      "accountId": "acc1",
+      "date": "2025-07-27",
+      "isReconciled": false
+    },
+    {
+      "id": "f1d12dc9-a80e-4b6a-95fa-5834627f8db5",
+      "description": "McDonald",
+      "amount": 9.32,
+      "type": "entrata",
+      "category": "bonifico",
+      "accountId": "acc1",
+      "date": "2025-07-27",
+      "isReconciled": false
+    },
+    {
+      "id": "ff6ee6a1-8e00-4712-8e72-07a459ab2f8e",
+      "description": "Rimanenza Precedente Stipendio",
+      "amount": 49.05,
+      "type": "entrata",
+      "category": "stipendio",
+      "accountId": "acc1",
+      "date": "2025-07-25",
+      "isReconciled": false
+    },
+    {
+      "id": "1b3c8908-8805-46c7-8453-ea21e1ce2e23",
+      "description": "Risparmi Casa",
+      "amount": 5250,
+      "type": "entrata",
+      "category": "bonifico",
+      "accountId": "acc5",
+      "date": "2025-07-15",
+      "isReconciled": false
+    },
+    {
+      "id": "7d9e3e7b-b917-470e-82a2-ec22ea0a7ed5",
+      "description": "Contanti",
+      "amount": 30,
+      "type": "entrata",
+      "category": "contanti",
+      "accountId": "acc3",
+      "date": "2025-07-25",
+      "isReconciled": false
+    }
+  ],
+  "budgets": [
+    {
+      "id": "bud1",
+      "description": "Spese Necessarie",
+      "categories": [
+        "abbonamenti_necessari",
+        "analisi_mediche",
+        "benzina",
+        "bolletta_acqua",
+        "bolletta_depuratore",
+        "bolletta_gas",
+        "bolletta_luce",
+        "bolletta_tari",
+        "bolletta_tim",
+        "bollo_auto",
+        "cibo_thor",
+        "medicine",
+        "medicine_thor",
+        "rata_auto",
+        "ricarica_telefono",
+        "spesa",
+        "tagliando_auto",
+        "taglio_thor",
+        "veterinario",
+        "visite_mediche"
+      ],
+      "amount": 1300,
+      "period": "monthly",
+      "personId": "edoardo"
+    },
+    {
+      "id": "bud2",
+      "description": "Spese Necessarie",
+      "categories": [
+        "abbonamenti_necessari",
+        "analisi_mediche",
+        "benzina",
+        "bolletta_acqua",
+        "bolletta_depuratore",
+        "bolletta_gas",
+        "bolletta_luce",
+        "bolletta_tari",
+        "bolletta_tim",
+        "bollo_auto",
+        "cibo_thor",
+        "medicine",
+        "medicine_thor",
+        "rata_auto",
+        "ricarica_telefono",
+        "spesa",
+        "tagliando_auto",
+        "taglio_thor",
+        "veterinario",
+        "visite_mediche"
+      ],
+      "amount": 750,
+      "period": "monthly",
+      "personId": "ivana"
+    },
+    {
+      "id": "bud3",
+      "description": "Spese non Necessarie",
+      "categories": [
+        "abbonamenti_tv",
+        "cibo_asporto",
+        "cibo_fuori",
+        "estetista",
+        "haircare",
+        "palestra",
+        "parrucchiere",
+        "skincare",
+        "vestiti",
+        "yuup_thor"
+      ],
+      "amount": 400,
+      "period": "monthly",
+      "personId": "edoardo"
+    },
+    {
+      "id": "bud4",
+      "description": "Spese non Necessarie",
+      "categories": [
+        "abbonamenti_tv",
+        "cibo_asporto",
+        "cibo_fuori",
+        "estetista",
+        "haircare",
+        "palestra",
+        "parrucchiere",
+        "skincare",
+        "vestiti",
+        "yuup_thor"
+      ],
+      "amount": 400,
+      "period": "monthly",
+      "personId": "ivana"
+    },
+    {
+      "id": "bud5",
+      "description": "Spese Personali",
+      "categories": [
+        "eventi",
+        "investimenti",
+        "regali",
+        "risparmi"
+      ],
+      "amount": 150,
+      "period": "monthly",
+      "personId": "edoardo"
+    },
+    {
+      "id": "bud6",
+      "description": "Spese Personali",
+      "categories": [
+        "eventi",
+        "investimenti",
+        "regali",
+        "risparmi"
+      ],
+      "amount": 150,
+      "period": "monthly",
+      "personId": "ivana"
+    }
+  ],
+  "investments": [
+    {
+      "id": "inv1",
+      "personId": "person1",
+      "name": "Tech Giant Inc.",
+      "symbol": "TECH",
+      "quantity": 50,
+      "purchasePrice": 150,
+      "currentPrice": 175.5,
+      "purchaseDate": "2023-01-15T00:00:00.000Z"
+    },
+    {
+      "id": "inv2",
+      "personId": "person1",
+      "name": "Global Health Fund",
+      "symbol": "GHF",
+      "quantity": 100,
+      "purchasePrice": 80.25,
+      "currentPrice": 95.1,
+      "purchaseDate": "2023-03-22T00:00:00.000Z"
+    },
+    {
+      "id": "inv3",
+      "personId": "person2",
+      "name": "Eco Innovate ETF",
+      "symbol": "ECOI",
+      "quantity": 75,
+      "purchasePrice": 120.5,
+      "currentPrice": 110.75,
+      "purchaseDate": "2023-05-10T00:00:00.000Z"
+    },
+    {
+      "id": "inv4",
+      "personId": "person2",
+      "name": "Blue Chip Stocks",
+      "symbol": "BCS",
+      "quantity": 30,
+      "purchasePrice": 300,
+      "currentPrice": 345.2,
+      "purchaseDate": "2022-11-30T00:00:00.000Z"
+    }
+  ],
+  "categories": [
+    {
+      "id": "abbonamenti_necessari",
+      "name": "Abbonamenti Necessari"
+    },
+    {
+      "id": "abbonamenti_tv",
+      "name": "Abbonamenti TV"
+    },
+    {
+      "id": "altro",
+      "name": "Altro"
+    },
+    {
+      "id": "analisi_mediche",
+      "name": "Analisi Mediche"
+    },
+    {
+      "id": "benzina",
+      "name": "Benzina"
+    },
+    {
+      "id": "bolletta_acqua",
+      "name": "Bolletta Acqua"
+    },
+    {
+      "id": "bolletta_depuratore",
+      "name": "Bolletta Depuratore"
+    },
+    {
+      "id": "bolletta_gas",
+      "name": "Bolletta Gas"
+    },
+    {
+      "id": "bolletta_luce",
+      "name": "Bolletta Luce"
+    },
+    {
+      "id": "bolletta_tari",
+      "name": "Bolletta TARI"
+    },
+    {
+      "id": "bolletta_tim",
+      "name": "Bolletta TIM"
+    },
+    {
+      "id": "bollo_auto",
+      "name": "Bollo Auto"
+    },
+    {
+      "id": "bonifico",
+      "name": "Bonifico"
+    },
+    {
+      "id": "cibo_asporto",
+      "name": "Cibo da Asporto"
+    },
+    {
+      "id": "cibo_fuori",
+      "name": "Cibo da Fuori"
+    },
+    {
+      "id": "cibo_thor",
+      "name": "Cibo per Thor"
+    },
+    {
+      "id": "contanti",
+      "name": "Contanti"
+    },
+    {
+      "id": "estetista",
+      "name": "Estetista"
+    },
+    {
+      "id": "eventi",
+      "name": "Eventi"
+    },
+    {
+      "id": "haircare",
+      "name": "Haircare"
+    },
+    {
+      "id": "investimenti",
+      "name": "Investimenti"
+    },
+    {
+      "id": "medicine",
+      "name": "Medicine"
+    },
+    {
+      "id": "medicine_thor",
+      "name": "Medicine per Thor"
+    },
+    {
+      "id": "palestra",
+      "name": "Palestra"
+    },
+    {
+      "id": "parrucchiere",
+      "name": "Parrucchiere"
+    },
+    {
+      "id": "rata_auto",
+      "name": "Rata Auto"
+    },
+    {
+      "id": "regali",
+      "name": "Regali"
+    },
+    {
+      "id": "ricarica_telefono",
+      "name": "Ricarica Telefono"
+    },
+    {
+      "id": "risparmi",
+      "name": "Risparmi"
+    },
+    {
+      "id": "skincare",
+      "name": "Skincare"
+    },
+    {
+      "id": "spesa",
+      "name": "Spesa"
+    },
+    {
+      "id": "stipendio",
+      "name": "Stipendio"
+    },
+    {
+      "id": "tagliando_auto",
+      "name": "Tagliando Auto"
+    },
+    {
+      "id": "taglio_thor",
+      "name": "Taglio per Thor"
+    },
+    {
+      "id": "vestiti",
+      "name": "Vestiti"
+    },
+    {
+      "id": "veterinario",
+      "name": "Veterinario"
+    },
+    {
+      "id": "visite_mediche",
+      "name": "Visite Mediche"
+    },
+    {
+      "id": "trasferimento",
+      "name": "Trasferimento"
+    },
+    {
+      "id": "yuup_thor",
+      "name": "Yuup per Thor"
+    }
+  ]
+}
