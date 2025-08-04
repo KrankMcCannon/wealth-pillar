@@ -1,5 +1,5 @@
 {
-  "name": "zenith-finance-manager",
+  "name": "wealth-pillar-finance-manager",
   "private": true,
   "version": "1.0.0",
   "type": "module",
@@ -25,7 +25,7 @@
     "typescript": "~5.8.2",
     "vite": "^6.2.0"
   },
-  "description": "The most comfortable way to manage personal finance",
+  "description": "Your trusted companion for comprehensive personal finance management",
   "main": "index.js",
   "repository": "https://github.com/KrankMcCannon/wealth-pillar.git",
   "author": "Edoardo Valentini <edoardov.vli@gmail.com>",

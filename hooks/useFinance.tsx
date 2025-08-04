@@ -15,6 +15,7 @@ interface FinanceContextType {
   isLoading: boolean;
   error: string | null;
   addTransaction: (transaction: Omit<Transaction, 'id'>) => Promise<void>;
+  updateTransaction: (transaction: Transaction) => Promise<void>;
   addAccount: (account: Omit<Account, 'id'>) => Promise<void>;
   updateAccount: (account: Account) => Promise<void>;
   addBudget: (budget: Omit<Budget, 'id'>) => Promise<void>;
@@ -23,6 +24,9 @@ interface FinanceContextType {
   getPersonById: (id: string) => Person | undefined;
   getCategoryName: (categoryId: string) => string;
   getEffectiveTransactionAmount: (transaction: Transaction) => number;
+  getRemainingAmount: (transaction: Transaction) => number;
+  hasAvailableAmount: (transaction: Transaction) => boolean;
+  isParentTransaction: (transaction: Transaction) => boolean;
   linkTransactions: (tx1Id: string, tx2Id: string) => Promise<void>;
   updatePerson: (updatedPerson: Person) => Promise<void>;
   addInvestment: (investment: Omit<InvestmentHolding, 'id'>) => Promise<void>;
@@ -47,7 +51,7 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
     try {
       setIsLoading(true);
       setError(null);
-      
+
       const [peopleData, accountsData, transactionsData, budgetsData, investmentsData, categoriesData] = await Promise.all([
         apiService.getPeople(),
         apiService.getAccounts(),
@@ -90,6 +94,7 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
         ...transactionData,
         id: uuidv4(),
         isReconciled: false,
+        createdAt: new Date().toISOString(),
       };
 
       const savedTransaction = await apiService.addTransaction(newTransaction);
@@ -100,7 +105,19 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
       throw err;
     }
   }, []);
-  
+
+  const updateTransaction = useCallback(async (updatedTransaction: Transaction) => {
+    try {
+      const savedTransaction = await apiService.updateTransaction(updatedTransaction);
+      setTransactions(prev => prev.map(tx => 
+        tx.id === savedTransaction.id ? savedTransaction : tx
+      ).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update transaction');
+      throw err;
+    }
+  }, []);
+
   const addAccount = useCallback(async (accountData: Omit<Account, 'id'>) => {
     try {
       const newAccount = await apiService.addAccount({ ...accountData, id: uuidv4() });
@@ -140,7 +157,7 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
       throw err;
     }
   }, []);
-  
+
   const updatePerson = useCallback(async (updatedPerson: Person) => {
     try {
       const savedPerson = await apiService.updatePerson(updatedPerson);
@@ -183,12 +200,12 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
     if (!transaction.isReconciled || !transaction.linkedTransactionId) {
       return transaction.amount;
     }
-    
+
     const linkedTx = transactions.find(tx => tx.id === transaction.linkedTransactionId);
     if (!linkedTx) {
       return transaction.amount;
     }
-    
+
     // Calculate the net effect based on transaction types
     if (transaction.type === TransactionType.SPESA && linkedTx.type === TransactionType.ENTRATA) {
       // Expense reconciled with income
@@ -197,10 +214,92 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
       // Income reconciled with expense
       return Math.max(0, transaction.amount - linkedTx.amount);
     }
-    
+
     // If same type or no reconciliation logic applies, return original amount
     return transaction.amount;
   }, [transactions]);
+
+  // Determine if a transaction is the parent in a reconciled pair
+  const isParentTransaction = useCallback((transaction: Transaction) => {
+    if (!transaction.isReconciled || !transaction.linkedTransactionId) {
+      return false;
+    }
+
+    const linkedTx = transactions.find(tx => tx.id === transaction.linkedTransactionId);
+    if (!linkedTx) {
+      return false;
+    }
+
+    // Rule 1: The transaction with higher amount is always the parent
+    if (transaction.amount !== linkedTx.amount) {
+      return transaction.amount > linkedTx.amount;
+    }
+    
+    // Rule 2: If amounts are equal, compare dates (earlier date = parent)
+    const txDate = new Date(transaction.date);
+    const linkedDate = new Date(linkedTx.date);
+    
+    if (txDate.getTime() !== linkedDate.getTime()) {
+      return txDate <= linkedDate;
+    }
+    
+    // Rule 3: If dates and amounts are equal, use creation timestamp
+    if (transaction.createdAt && linkedTx.createdAt) {
+      const txCreated = new Date(transaction.createdAt);
+      const linkedCreated = new Date(linkedTx.createdAt);
+      
+      if (txCreated.getTime() !== linkedCreated.getTime()) {
+        return txCreated <= linkedCreated;
+      }
+    }
+    
+    // Rule 4: If everything else is equal, use ID comparison for consistency
+    // The transaction with lexicographically smaller ID is considered the parent
+    return transaction.id < linkedTx.id;
+  }, [transactions]);
+
+  // Calculate the remaining amount of a transaction after reconciliation
+  const getRemainingAmount = useCallback((transaction: Transaction) => {
+    if (!transaction.isReconciled || !transaction.linkedTransactionId) {
+      return transaction.amount;
+    }
+
+    const linkedTx = transactions.find(tx => tx.id === transaction.linkedTransactionId);
+    if (!linkedTx) {
+      return transaction.amount;
+    }
+
+    // Only the parent transaction (the one with higher amount or earlier creation) shows remaining amount
+    const isParent = isParentTransaction(transaction);
+    
+    if (isParent) {
+      // Parent transaction: remaining = original amount - linked amount
+      return Math.max(0, transaction.amount - linkedTx.amount);
+    } else {
+      // Child transaction: remaining = 0 (it's fully consumed)
+      return 0;
+    }
+  }, [transactions, isParentTransaction]);
+
+  // Determine which transaction in a reconciled pair has available amount for further reconciliation
+  const hasAvailableAmount = useCallback((transaction: Transaction) => {
+    if (!transaction.isReconciled || !transaction.linkedTransactionId) {
+      return false;
+    }
+
+    const linkedTx = transactions.find(tx => tx.id === transaction.linkedTransactionId);
+    if (!linkedTx) {
+      return false;
+    }
+
+    // Only the parent transaction has available amount, and only if there's a remaining amount > 0
+    if (!isParentTransaction(transaction)) {
+      return false;
+    }
+    
+    // Calculate remaining amount for parent transaction
+    return Math.max(0, transaction.amount - linkedTx.amount) > 0;
+  }, [transactions, isParentTransaction]);
 
   const getCalculatedBalance = useCallback((accountId: string) => {
     const account = accounts.find(acc => acc.id === accountId);
@@ -208,7 +307,7 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
 
     // Iniziamo dal bilancio iniziale dell'account (che dovrebbe essere il bilancio di partenza)
     let initialBalance = 0;
-    
+
     // Calcoliamo il totale delle transazioni per questo account
     // Per i saldi degli account, usiamo SEMPRE l'importo originale delle transazioni
     // La riconciliazione non deve influenzare i movimenti reali di denaro sui conti
@@ -226,7 +325,7 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
           // Se non è né origine né destinazione, non influisce su questo account
           return total;
         }
-        
+
         // Gestione transazioni normali (non trasferimenti)
         if (tx.accountId === accountId) {
           if (tx.type === TransactionType.ENTRATA) {
@@ -235,7 +334,7 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
             return total - tx.amount;
           }
         }
-        
+
         return total;
       }, 0);
 
@@ -246,11 +345,11 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
     try {
       const tx1 = transactions.find(tx => tx.id === tx1Id);
       const tx2 = transactions.find(tx => tx.id === tx2Id);
-      
+
       if (tx1 && tx2) {
         const updatedTx1 = { ...tx1, isReconciled: true, linkedTransactionId: tx2Id };
         const updatedTx2 = { ...tx2, isReconciled: true, linkedTransactionId: tx1Id };
-        
+
         await Promise.all([
           apiService.updateTransaction(updatedTx1),
           apiService.updateTransaction(updatedTx2),
@@ -267,30 +366,34 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
       throw err;
     }
   }, [transactions]);
-  
-  const value = { 
-    people, 
-    selectedPersonId, 
-    selectPerson, 
-    accounts, 
-    transactions, 
-    budgets, 
-    investments, 
+
+  const value = {
+    people,
+    selectedPersonId,
+    selectPerson,
+    accounts,
+    transactions,
+    budgets,
+    investments,
     categories,
     isLoading,
     error,
-    addTransaction, 
+    addTransaction,
+    updateTransaction,
     addAccount,
-    updateAccount, 
+    updateAccount,
     addBudget,
-    updateBudget, 
-    getAccountById, 
-    getPersonById, 
+    updateBudget,
+    getAccountById,
+    getPersonById,
     getCategoryName,
     getEffectiveTransactionAmount,
+    getRemainingAmount,
+    hasAvailableAmount,
+    isParentTransaction,
     getCalculatedBalance,
-    linkTransactions, 
-    updatePerson, 
+    linkTransactions,
+    updatePerson,
     addInvestment,
     refreshData
   };

@@ -912,6 +912,108 @@
       "accountId": "acc3",
       "date": "2025-07-25",
       "isReconciled": false
+    },
+    {
+      "id": "72c87e93-3b8e-4a04-86a1-c6bc48ccd719",
+      "description": "Apple iCloud",
+      "amount": 2.99,
+      "type": "spesa",
+      "category": "abbonamenti_necessari",
+      "accountId": "acc2",
+      "date": "2025-08-04",
+      "isReconciled": false
+    },
+    {
+      "id": "36791bba-a33d-4935-b161-78a75c0f895f",
+      "description": "Sushi",
+      "amount": 13,
+      "type": "spesa",
+      "category": "cibo_asporto",
+      "accountId": "acc2",
+      "date": "2025-08-04",
+      "isReconciled": false
+    },
+    {
+      "id": "d7fdd7a8-0ee5-4946-aadf-8e750203e7e1",
+      "description": "Libro Amazon",
+      "amount": 6.45,
+      "type": "spesa",
+      "category": "regali",
+      "accountId": "acc2",
+      "date": "2025-08-04",
+      "isReconciled": false
+    },
+    {
+      "id": "86ae8d4e-3c23-4a39-958c-03067d4d9503",
+      "description": "Spezia Amazon",
+      "amount": 3.49,
+      "type": "spesa",
+      "category": "spesa",
+      "accountId": "acc2",
+      "date": "2025-08-04",
+      "isReconciled": false
+    },
+    {
+      "id": "611f6d23-0685-4164-8462-3150cc3645ea",
+      "description": "Apple ICloud",
+      "amount": 2.99,
+      "type": "spesa",
+      "category": "abbonamenti_necessari",
+      "accountId": "acc1",
+      "date": "2025-08-04",
+      "isReconciled": true,
+      "linkedTransactionId": "c9e79b9e-e621-4263-9efe-9c682a82203e"
+    },
+    {
+      "id": "c9e79b9e-e621-4263-9efe-9c682a82203e",
+      "description": "Apple iCloud",
+      "amount": 2.99,
+      "type": "entrata",
+      "category": "abbonamenti_necessari",
+      "accountId": "acc1",
+      "date": "2025-08-04",
+      "isReconciled": true,
+      "linkedTransactionId": "611f6d23-0685-4164-8462-3150cc3645ea"
+    },
+    {
+      "id": "f7ac1ee8-30ec-4993-9554-d4d868efc3e3",
+      "description": "Sushi",
+      "amount": 13,
+      "type": "entrata",
+      "category": "cibo_asporto",
+      "accountId": "acc1",
+      "date": "2025-08-04",
+      "isReconciled": false
+    },
+    {
+      "id": "3f3f4f08-a361-4d91-8653-dd5554c75648",
+      "description": "Libro Amazon",
+      "amount": 6.45,
+      "type": "entrata",
+      "category": "regali",
+      "accountId": "acc1",
+      "date": "2025-08-04",
+      "isReconciled": false
+    },
+    {
+      "id": "4e31ba58-ae9b-41c9-8875-9e8eb2855f2f",
+      "description": "Spezia Amazon",
+      "amount": 3.49,
+      "type": "entrata",
+      "category": "spesa",
+      "accountId": "acc1",
+      "date": "2025-08-04",
+      "isReconciled": false
+    },
+    {
+      "id": "f3388bd2-928f-4a69-ab05-69d6ebc04ec9",
+      "description": "Interessi",
+      "amount": 6.73,
+      "type": "entrata",
+      "category": "investimenti",
+      "accountId": "acc5",
+      "date": "2025-08-01",
+      "isReconciled": false
     }
   ],
   "budgets": [

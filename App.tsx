@@ -55,7 +55,7 @@ const App: React.FC = () => {
 
   return (
     <HashRouter>
-      <div 
+      <div
         className="flex h-screen bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200"
         style={{ '--theme-color': themeColor } as React.CSSProperties}
       >

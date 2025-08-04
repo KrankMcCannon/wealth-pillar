@@ -3,7 +3,7 @@ export interface Person {
   name: string;
   avatar: string;
   themeColor: string;
-  budgetStartDate: string; // ISO date string for when this person's monthly budget cycle starts (e.g., "2025-08-01")
+  budgetStartDate: string;
 }
 
 export enum TransactionType {
@@ -11,7 +11,6 @@ export enum TransactionType {
   SPESA = 'spesa',
 }
 
-// Category is now a string ID that corresponds to categories from the database
 export type Category = string;
 
 export interface CategoryOption {
@@ -24,7 +23,7 @@ export interface Account {
   name: string;
   balance: number;
   type: 'checking' | 'savings' | 'cash' | 'investment';
-  personIds: string[]; // Cambiato da personId a personIds array
+  personIds: string[];
 }
 
 export interface Transaction {
@@ -35,15 +34,17 @@ export interface Transaction {
   type: TransactionType;
   category: Category;
   accountId: string;
-  toAccountId?: string; // Solo per trasferimenti tra account
+  toAccountId?: string;
   isReconciled?: boolean;
   linkedTransactionId?: string;
+  remainingAmount?: number; // Importo rimanente dopo riconciliazione
+  createdAt?: string; // Timestamp di creazione per determinare l'ordine
 }
 
 export interface Budget {
   id: string;
-  description: string; // Changed from category to description
-  categories: string[]; // Array of category IDs that belong to this budget
+  description: string;
+  categories: string[];
   amount: number;
   period: 'monthly' | 'annually';
   personId: string;
