@@ -258,9 +258,17 @@ export const Dashboard: React.FC = () => {
     const expenseData = categories
         .filter(cat => !['stipendio', 'rimborso', 'investimenti', 'entrata', 'trasferimento'].includes(cat.id))
         .map(category => {
-            const total = displayedTransactions
-                .filter(t => t.category === category.id && t.type === TransactionType.SPESA)
-                .reduce((sum, t) => sum + getEffectiveTransactionAmount(t), 0);
+            // Crea una funzione di mapping per convertire i nomi delle categorie
+            const categoryId = category.id;
+            const categorySlug = categoryId.toLowerCase().replace(/\s+/g, '_');
+            
+            const categoryTransactions = displayedTransactions
+                .filter(t => {
+                    // Prova sia l'ID originale che la versione slug
+                    return (t.category === categoryId || t.category === categorySlug) && t.type === TransactionType.SPESA;
+                });
+            const total = categoryTransactions.reduce((sum, t) => sum + getEffectiveTransactionAmount(t), 0);
+            
             return { name: category.name, value: total };
         })
         .filter(item => item.value > 0)

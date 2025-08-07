@@ -36,7 +36,8 @@ export interface Transaction {
   accountId: string;
   toAccountId?: string;
   isReconciled?: boolean;
-  linkedTransactionId?: string;
+  parentTransactionId?: string; // Parent transaction for reconciliation
+  linkedTransactionId?: string; // Deprecated - use parentTransactionId instead
   remainingAmount?: number; // Importo rimanente dopo riconciliazione
   createdAt?: string; // Timestamp di creazione per determinare l'ordine
 }
