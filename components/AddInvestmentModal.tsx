@@ -1,154 +1,305 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { memo, useCallback, useMemo, useEffect } from 'react';
 import { useFinance } from '../hooks/useFinance';
+import { useModalForm } from '../hooks/useModalForm';
+import { BaseModal } from './ui/BaseModal';
+import { FormField, Input, Select, ModalActions } from './ui/FormComponents';
 
 interface AddInvestmentModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-export const AddInvestmentModal: React.FC<AddInvestmentModalProps> = ({ isOpen, onClose }) => {
+interface AddInvestmentFormData {
+  name: string;
+  symbol: string;
+  quantity: string;
+  purchasePrice: string;
+  currentPrice: string;
+  purchaseDate: string;
+  personId: string;
+}
+
+export const AddInvestmentModal = memo<AddInvestmentModalProps>(({ isOpen, onClose }) => {
   const { addInvestment, people, selectedPersonId } = useFinance();
 
   const isAllView = selectedPersonId === 'all';
 
-  const [name, setName] = useState('');
-  const [symbol, setSymbol] = useState('');
-  const [quantity, setQuantity] = useState('');
-  const [purchasePrice, setPurchasePrice] = useState('');
-  const [currentPrice, setCurrentPrice] = useState('');
-  const [purchaseDate, setPurchaseDate] = useState(new Date().toISOString().split('T')[0]);
-  const [personId, setPersonId] = useState(isAllView ? (people[0]?.id || '') : selectedPersonId);
-  const [error, setError] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  // Initial form data
+  const initialFormData: AddInvestmentFormData = useMemo(() => ({
+    name: '',
+    symbol: '',
+    quantity: '',
+    purchasePrice: '',
+    currentPrice: '',
+    purchaseDate: new Date().toISOString().split('T')[0],
+    personId: isAllView ? (people[0]?.id || '') : selectedPersonId,
+  }), [isAllView, people, selectedPersonId]);
 
+  const {
+    data,
+    errors,
+    isSubmitting,
+    updateField,
+    setError,
+    clearAllErrors,
+    setSubmitting,
+    resetForm,
+    validateRequired,
+  } = useModalForm({
+    initialData: initialFormData,
+    resetOnClose: true,
+    resetOnOpen: true,
+  });
+
+  // Reset person ID when modal opens or person selection changes
   useEffect(() => {
     if (isOpen) {
-      setName('');
-      setSymbol('');
-      setQuantity('');
-      setPurchasePrice('');
-      setCurrentPrice('');
-      setPurchaseDate(new Date().toISOString().split('T')[0]);
-      setError('');
-      setIsSubmitting(false);
-      setPersonId(isAllView ? (people[0]?.id || '') : selectedPersonId);
+      const newPersonId = isAllView ? (people[0]?.id || '') : selectedPersonId;
+      updateField('personId', newPersonId);
     }
-  }, [isOpen, isAllView, people, selectedPersonId]);
+  }, [isOpen, isAllView, people, selectedPersonId, updateField]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // People options for select
+  const peopleOptions = useMemo(() => 
+    people.map(person => ({
+      value: person.id,
+      label: person.name,
+    }))
+  , [people]);
+
+  // Validation rules
+  const validateForm = useCallback((): boolean => {
+    clearAllErrors();
+
+    if (!validateRequired(['name', 'symbol', 'quantity', 'purchasePrice', 'currentPrice', 'personId', 'purchaseDate'])) {
+      return false;
+    }
+
+    const numQuantity = parseFloat(data.quantity);
+    if (isNaN(numQuantity) || numQuantity <= 0) {
+      setError('quantity', 'Inserisci una quantità valida');
+      return false;
+    }
+
+    const numPurchasePrice = parseFloat(data.purchasePrice);
+    if (isNaN(numPurchasePrice) || numPurchasePrice <= 0) {
+      setError('purchasePrice', 'Inserisci un prezzo di acquisto valido');
+      return false;
+    }
+
+    const numCurrentPrice = parseFloat(data.currentPrice);
+    if (isNaN(numCurrentPrice) || numCurrentPrice <= 0) {
+      setError('currentPrice', 'Inserisci un prezzo corrente valido');
+      return false;
+    }
+
+    return true;
+  }, [data, validateRequired, setError, clearAllErrors]);
+
+  // Submit handler
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !symbol || !quantity || !purchasePrice || !currentPrice || !personId || !purchaseDate) {
-      setError('Please fill out all fields.');
+    
+    if (!validateForm()) {
       return;
     }
 
-    setIsSubmitting(true);
-    setError('');
-
-    const numQuantity = parseFloat(quantity);
-    const numPurchasePrice = parseFloat(purchasePrice);
-    const numCurrentPrice = parseFloat(currentPrice);
-
-    if (isNaN(numQuantity) || isNaN(numPurchasePrice) || isNaN(numCurrentPrice) || numQuantity <= 0 || numPurchasePrice <= 0 || numCurrentPrice < 0) {
-      setError('Please enter valid, positive numbers for quantity and prices.');
-      setIsSubmitting(false);
-      return;
-    }
+    setSubmitting(true);
 
     try {
+      const numQuantity = parseFloat(data.quantity);
+      const numPurchasePrice = parseFloat(data.purchasePrice);
+      const numCurrentPrice = parseFloat(data.currentPrice);
+
       await addInvestment({
-        personId,
-        name,
-        symbol: symbol.toUpperCase(),
+        personId: data.personId,
+        name: data.name,
+        symbol: data.symbol.toUpperCase(),
         quantity: numQuantity,
         purchasePrice: numPurchasePrice,
         currentPrice: numCurrentPrice,
-        purchaseDate,
+        purchaseDate: data.purchaseDate,
       });
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to add investment');
+      setError('submit', err instanceof Error ? err.message : 'Errore durante l\'aggiunta dell\'investimento');
     } finally {
-      setIsSubmitting(false);
+      setSubmitting(false);
     }
-  };
+  }, [validateForm, setSubmitting, data, addInvestment, onClose, setError]);
 
-  if (!isOpen) return null;
+  // Field change handlers
+  const handleNameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    updateField('name', e.target.value);
+  }, [updateField]);
+
+  const handleSymbolChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    updateField('symbol', e.target.value.toUpperCase());
+  }, [updateField]);
+
+  const handleQuantityChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    updateField('quantity', e.target.value);
+  }, [updateField]);
+
+  const handlePurchasePriceChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    updateField('purchasePrice', e.target.value);
+  }, [updateField]);
+
+  const handleCurrentPriceChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    updateField('currentPrice', e.target.value);
+  }, [updateField]);
+
+  const handlePurchaseDateChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    updateField('purchaseDate', e.target.value);
+  }, [updateField]);
+
+  const handlePersonChange = useCallback((value: string) => {
+    updateField('personId', value);
+  }, [updateField]);
+
+  const submitError = errors.submit;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 transition-opacity" onClick={onClose}>
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-8 w-full max-w-lg m-4 transform transition-all" onClick={(e) => e.stopPropagation()}>
-        <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">Aggiungi Nuovo Investimento</h2>
-        {error && <p className="text-red-500 bg-red-100 dark:bg-red-900/50 p-3 rounded-md mb-4">{error}</p>}
-        <form onSubmit={handleSubmit} className="space-y-4">
-
-          {isAllView && (
-            <div>
-              <label htmlFor="inv-person" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Persona</label>
-              <select id="inv-person" value={personId} onChange={e => setPersonId(e.target.value)} className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm dark:bg-gray-700 dark:border-gray-600 focus:ring-blue-500 focus:border-blue-500">
-                {people.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-              </select>
-            </div>
-          )}
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label htmlFor="inv-name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Nome Investimento</label>
-              <input type="text" id="inv-name" value={name} onChange={e => setName(e.target.value)} className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm dark:bg-gray-700 dark:border-gray-600" required />
-            </div>
-            <div>
-              <label htmlFor="inv-symbol" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Simbolo / Ticker</label>
-              <input type="text" id="inv-symbol" value={symbol} onChange={e => setSymbol(e.target.value)} className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm dark:bg-gray-700 dark:border-gray-600" required />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label htmlFor="inv-quantity" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Quantità</label>
-              <input type="number" id="inv-quantity" value={quantity} onChange={e => setQuantity(e.target.value)} className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm dark:bg-gray-700 dark:border-gray-600" required min="0" step="any" />
-            </div>
-            <div>
-              <label htmlFor="inv-purchase-price" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Prezzo di Acquisto</label>
-              <input type="number" id="inv-purchase-price" value={purchasePrice} onChange={e => setPurchasePrice(e.target.value)} className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm dark:bg-gray-700 dark:border-gray-600" required min="0.01" step="0.01" />
-            </div>
-            <div>
-              <label htmlFor="inv-current-price" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Prezzo Attuale</label>
-              <input type="number" id="inv-current-price" value={currentPrice} onChange={e => setCurrentPrice(e.target.value)} className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm dark:bg-gray-700 dark:border-gray-600" required min="0" step="0.01" />
-            </div>
-          </div>
-
-          <div>
-            <label htmlFor="inv-date" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Data di Acquisto</label>
-            <input
-              type="date"
-              id="inv-date"
-              value={purchaseDate}
-              onChange={e => setPurchaseDate(e.target.value)}
-              className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm dark:bg-gray-700 dark:border-gray-600"
-              required
-            />
-          </div>
-
-          <div className="flex justify-end pt-4 space-x-3">
-            <button type="button" onClick={onClose} className="py-2 px-4 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500 transition-colors" disabled={isSubmitting}>Annulla</button>
-            <button
-              type="submit"
-              style={{ backgroundColor: 'var(--theme-color)' }}
-              className="py-2 px-4 text-white rounded-md hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+    <BaseModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Aggiungi Nuovo Investimento"
+    >
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Person selection */}
+        {isAllView && (
+          <FormField
+            label="Persona"
+            error={errors.personId}
+            required
+          >
+            <Select
+              value={data.personId}
+              onValueChange={handlePersonChange}
+              options={peopleOptions}
+              placeholder="Seleziona una persona"
+              error={!!errors.personId}
               disabled={isSubmitting}
-            >
-              {isSubmitting ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Aggiunta in corso...
-                </>
-              ) : (
-                'Aggiungi Investimento'
-              )}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+            />
+          </FormField>
+        )}
+
+        {/* Investment name */}
+        <FormField
+          label="Nome investimento"
+          error={errors.name}
+          required
+        >
+          <Input
+            value={data.name}
+            onChange={handleNameChange}
+            placeholder="es: Azioni Apple"
+            error={!!errors.name}
+            disabled={isSubmitting}
+          />
+        </FormField>
+
+        {/* Symbol */}
+        <FormField
+          label="Simbolo"
+          error={errors.symbol}
+          required
+        >
+          <Input
+            value={data.symbol}
+            onChange={handleSymbolChange}
+            placeholder="es: AAPL"
+            error={!!errors.symbol}
+            disabled={isSubmitting}
+            style={{ textTransform: 'uppercase' }}
+          />
+        </FormField>
+
+        {/* Quantity */}
+        <FormField
+          label="Quantità"
+          error={errors.quantity}
+          required
+        >
+          <Input
+            type="number"
+            value={data.quantity}
+            onChange={handleQuantityChange}
+            placeholder="0"
+            min="0"
+            step="0.01"
+            error={!!errors.quantity}
+            disabled={isSubmitting}
+          />
+        </FormField>
+
+        {/* Purchase price */}
+        <FormField
+          label="Prezzo di acquisto (€)"
+          error={errors.purchasePrice}
+          required
+        >
+          <Input
+            type="number"
+            value={data.purchasePrice}
+            onChange={handlePurchasePriceChange}
+            placeholder="0.00"
+            min="0"
+            step="0.01"
+            error={!!errors.purchasePrice}
+            disabled={isSubmitting}
+          />
+        </FormField>
+
+        {/* Current price */}
+        <FormField
+          label="Prezzo corrente (€)"
+          error={errors.currentPrice}
+          required
+        >
+          <Input
+            type="number"
+            value={data.currentPrice}
+            onChange={handleCurrentPriceChange}
+            placeholder="0.00"
+            min="0"
+            step="0.01"
+            error={!!errors.currentPrice}
+            disabled={isSubmitting}
+          />
+        </FormField>
+
+        {/* Purchase date */}
+        <FormField
+          label="Data di acquisto"
+          error={errors.purchaseDate}
+          required
+        >
+          <Input
+            type="date"
+            value={data.purchaseDate}
+            onChange={handlePurchaseDateChange}
+            error={!!errors.purchaseDate}
+            disabled={isSubmitting}
+          />
+        </FormField>
+
+        {/* Submit error */}
+        {submitError && (
+          <div className="text-red-600 text-sm">{submitError}</div>
+        )}
+
+        {/* Modal actions */}
+        <ModalActions
+          onCancel={onClose}
+          onSubmit={handleSubmit}
+          submitLabel="Aggiungi Investimento"
+          cancelLabel="Annulla"
+          isSubmitting={isSubmitting}
+        />
+      </form>
+    </BaseModal>
   );
-};
+});
+
+AddInvestmentModal.displayName = 'AddInvestmentModal';

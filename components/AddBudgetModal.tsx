@@ -1,5 +1,8 @@
-import React, { useState } from 'react';
+import React, { memo, useCallback, useMemo, useEffect } from 'react';
 import { useFinance } from '../hooks/useFinance';
+import { useModalForm } from '../hooks/useModalForm';
+import { BaseModal } from './ui/BaseModal';
+import { FormField, Input, CheckboxGroup, ModalActions } from './ui/FormComponents';
 
 interface AddBudgetModalProps {
   isOpen: boolean;
@@ -7,154 +10,205 @@ interface AddBudgetModalProps {
   personId: string;
 }
 
-export const AddBudgetModal: React.FC<AddBudgetModalProps> = ({ isOpen, onClose, personId }) => {
+interface BudgetFormData {
+  description: string;
+  amount: string;
+  selectedCategories: string[];
+}
+
+export const AddBudgetModal = memo<AddBudgetModalProps>(({ isOpen, onClose, personId }) => {
   const { addBudget, categories } = useFinance();
-  const [description, setDescription] = useState('');
-  const [amount, setAmount] = useState('');
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [error, setError] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const resetForm = () => {
-    setDescription('');
-    setAmount('');
-    setSelectedCategories([]);
-    setError('');
-    setIsSubmitting(false);
-  };
+  const initialFormData: BudgetFormData = useMemo(() => ({
+    description: '',
+    amount: '',
+    selectedCategories: [],
+  }), []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const {
+    data,
+    errors,
+    isSubmitting,
+    updateField,
+    setError,
+    clearAllErrors,
+    setSubmitting,
+    resetForm,
+    validateRequired,
+  } = useModalForm({
+    initialData: initialFormData,
+    resetOnClose: true,
+    resetOnOpen: true,
+  });
+
+  // Filter categories excluding income categories
+  const expenseCategories = useMemo(() => 
+    categories.filter(cat => 
+      !['stipendio', 'investimenti', 'entrata', 'trasferimento'].includes(cat.id)
+    )
+  , [categories]);
+
+  // Category checkbox options
+  const categoryOptions = useMemo(() => 
+    expenseCategories.map(category => ({
+      id: category.id,
+      label: category.label || category.name,
+      checked: data.selectedCategories.includes(category.id),
+    }))
+  , [expenseCategories, data.selectedCategories]);
+
+  // Reset form when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      resetForm();
+    }
+  }, [isOpen, resetForm]);
+
+  // Validation
+  const validateForm = useCallback((): boolean => {
+    clearAllErrors();
+
+    if (!validateRequired(['description', 'amount'])) {
+      return false;
+    }
+
+    if (data.description.trim().length === 0) {
+      setError('description', 'La descrizione non può essere vuota');
+      return false;
+    }
+
+    const numericAmount = parseFloat(data.amount);
+    if (isNaN(numericAmount) || numericAmount <= 0) {
+      setError('amount', 'Inserisci un importo valido e positivo');
+      return false;
+    }
+
+    if (data.selectedCategories.length === 0) {
+      setError('selectedCategories', 'Seleziona almeno una categoria');
+      return false;
+    }
+
+    return true;
+  }, [data, validateRequired, setError, clearAllErrors]);
+
+  // Submit handler
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!description.trim()) {
-      setError('Description cannot be empty.');
-      return;
-    }
-    if (!amount || parseFloat(amount) <= 0) {
-      setError('Please enter a valid amount.');
-      return;
-    }
-    if (selectedCategories.length === 0) {
-      setError('Please select at least one category.');
+    
+    if (!validateForm()) {
       return;
     }
 
-    setIsSubmitting(true);
-    setError('');
+    setSubmitting(true);
+
     try {
       await addBudget({
-        description: description.trim(),
-        amount: parseFloat(amount),
-        categories: selectedCategories,
+        description: data.description.trim(),
+        amount: parseFloat(data.amount),
+        categories: data.selectedCategories,
         period: 'monthly',
-        personId
+        personId,
       });
-      resetForm();
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to add budget');
+      setError('submit', err instanceof Error ? err.message : 'Errore durante l\'aggiunta del budget');
     } finally {
-      setIsSubmitting(false);
+      setSubmitting(false);
     }
-  };
+  }, [validateForm, setSubmitting, data, addBudget, personId, onClose, setError]);
 
-  const handleCategoryToggle = (categoryId: string) => {
-    setSelectedCategories(prev =>
-      prev.includes(categoryId)
-        ? prev.filter(id => id !== categoryId)
-        : [...prev, categoryId]
-    );
-  };
+  // Field change handlers
+  const handleDescriptionChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    updateField('description', e.target.value);
+  }, [updateField]);
 
-  const handleClose = () => {
-    resetForm();
-    onClose();
-  };
+  const handleAmountChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    updateField('amount', e.target.value);
+  }, [updateField]);
 
-  if (!isOpen) return null;
+  const handleCategoryToggle = useCallback((categoryId: string, checked: boolean) => {
+    const newSelectedCategories = checked
+      ? [...data.selectedCategories, categoryId]
+      : data.selectedCategories.filter(id => id !== categoryId);
+    
+    updateField('selectedCategories', newSelectedCategories);
+  }, [data.selectedCategories, updateField]);
+
+  const submitError = errors.submit;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 transition-opacity" onClick={handleClose}>
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-8 w-full max-w-2xl m-4 transform transition-all max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-        <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">Aggiungi Nuovo Budget</h2>
-        {error && <p className="text-red-500 bg-red-100 dark:bg-red-900/50 p-3 rounded-md mb-4">{error}</p>}
+    <BaseModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Aggiungi Nuovo Budget"
+      error={submitError}
+      maxWidth="2xl"
+    >
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Description */}
+        <FormField
+          label="Descrizione"
+          id="budget-description"
+          error={errors.description}
+          required
+        >
+          <Input
+            type="text"
+            id="budget-description"
+            value={data.description}
+            onChange={handleDescriptionChange}
+            error={!!errors.description}
+            placeholder="es: Spese Essenziali, Intrattenimento, Cura Personale"
+          />
+        </FormField>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label htmlFor="budget-description" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Descrizione</label>
-            <input
-              type="text"
-              id="budget-description"
-              value={description}
-              onChange={e => setDescription(e.target.value)}
-              className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm dark:bg-gray-700 dark:border-gray-600 focus:ring-blue-500 focus:border-blue-500"
-              required
-              placeholder="es: Spese Essenziali, Intrattenimento, Cura Personale"
-            />
-          </div>
+        {/* Amount */}
+        <FormField
+          label="Importo Mensile (€)"
+          id="budget-amount"
+          error={errors.amount}
+          required
+        >
+          <Input
+            type="number"
+            id="budget-amount"
+            value={data.amount}
+            onChange={handleAmountChange}
+            error={!!errors.amount}
+            min="0"
+            step="0.01"
+            placeholder="0.00"
+          />
+        </FormField>
 
-          <div>
-            <label htmlFor="budget-amount" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Importo Mensile (€)</label>
-            <input
-              type="number"
-              id="budget-amount"
-              value={amount}
-              onChange={e => setAmount(e.target.value)}
-              className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm dark:bg-gray-700 dark:border-gray-600 focus:ring-blue-500 focus:border-blue-500"
-              required
-              min="0"
-              step="0.01"
-              placeholder="0.00"
-            />
-          </div>
+        {/* Categories */}
+        <FormField
+          label="Categorie Associate"
+          id="categories-selection"
+          error={errors.selectedCategories}
+          required
+        >
+          <CheckboxGroup
+            options={categoryOptions}
+            onChange={handleCategoryToggle}
+            columns={2}
+            maxHeight="16rem"
+          />
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            Selezionate: {data.selectedCategories.length} categorie
+          </p>
+        </FormField>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Categorie Associate</label>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-64 overflow-y-auto border border-gray-200 dark:border-gray-600 rounded-md p-3">
-              {categories
-                .filter(cat => !['stipendio', 'investimenti', 'entrata', 'trasferimento'].includes(cat.id))
-                .map(category => (
-                  <label key={category.id} className="flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={selectedCategories.includes(category.id)}
-                      onChange={() => handleCategoryToggle(category.id)}
-                      className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 dark:bg-gray-700 dark:border-gray-600 dark:checked:bg-blue-600 dark:checked:border-blue-600"
-                    />
-                    <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">{category.name}</span>
-                  </label>
-                ))}
-            </div>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              Selezionate: {selectedCategories.length} categorie
-            </p>
-          </div>
-
-          <div className="flex justify-end pt-4 space-x-3">
-            <button
-              type="button"
-              onClick={handleClose}
-              className="py-2 px-4 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500 transition-colors"
-              disabled={isSubmitting}
-            >
-              Annulla
-            </button>
-            <button
-              type="submit"
-              className="py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:bg-blue-400 disabled:cursor-not-allowed flex items-center"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Aggiunta in corso...
-                </>
-              ) : (
-                'Aggiungi Budget'
-              )}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+        {/* Actions */}
+        <ModalActions
+          onCancel={onClose}
+          onSubmit={handleSubmit}
+          submitText="Aggiungi Budget"
+          isSubmitting={isSubmitting}
+        />
+      </form>
+    </BaseModal>
   );
-};
+});
+
+AddBudgetModal.displayName = 'AddBudgetModal';

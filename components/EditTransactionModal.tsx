@@ -1,6 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { memo, useCallback, useMemo, useEffect } from 'react';
 import { useFinance } from '../hooks/useFinance';
+import { useModalForm } from '../hooks/useModalForm';
 import { Transaction, TransactionType } from '../types';
+import { BaseModal } from './ui/BaseModal';
+import { FormField, Input, Select, ModalActions } from './ui/FormComponents';
 
 interface EditTransactionModalProps {
   isOpen: boolean;
@@ -8,241 +11,309 @@ interface EditTransactionModalProps {
   transaction: Transaction;
 }
 
-export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({ 
+interface EditTransactionFormData {
+  description: string;
+  amount: string;
+  date: string;
+  type: TransactionType;
+  category: string;
+  accountId: string;
+  toAccountId: string;
+}
+
+export const EditTransactionModal = memo<EditTransactionModalProps>(({ 
   isOpen, 
   onClose, 
   transaction 
 }) => {
-  const { updateTransaction, accounts, categories, people, selectedPersonId } = useFinance();
-  
-  const [description, setDescription] = useState(transaction.description);
-  const [amount, setAmount] = useState(transaction.amount.toString());
-  const [date, setDate] = useState(transaction.date.split('T')[0]);
-  const [type, setType] = useState<TransactionType>(transaction.type);
-  const [category, setCategory] = useState(transaction.category);
-  const [accountId, setAccountId] = useState(transaction.accountId);
-  const [toAccountId, setToAccountId] = useState(transaction.toAccountId || '');
-  
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState('');
+  const { updateTransaction, accounts, categories, selectedPersonId } = useFinance();
 
   const isAllView = selectedPersonId === 'all';
-  const isTransfer = category === 'trasferimento';
 
-  // Reset form when transaction changes
+  // Initial form data from transaction
+  const initialFormData: EditTransactionFormData = useMemo(() => ({
+    description: transaction.description,
+    amount: transaction.amount.toString(),
+    date: transaction.date.split('T')[0],
+    type: transaction.type,
+    category: transaction.category,
+    accountId: transaction.accountId,
+    toAccountId: transaction.toAccountId || '',
+  }), [transaction]);
+
+  const {
+    data,
+    errors,
+    isSubmitting,
+    updateField,
+    setError,
+    clearAllErrors,
+    setSubmitting,
+    resetForm,
+    validateRequired,
+  } = useModalForm({
+    initialData: initialFormData,
+    resetOnClose: false, // We handle reset manually for edit modals
+    resetOnOpen: false,
+  });
+
+  // Reset form data when transaction changes
   useEffect(() => {
-    setDescription(transaction.description);
-    setAmount(transaction.amount.toString());
-    setDate(transaction.date.split('T')[0]);
-    setType(transaction.type);
-    setCategory(transaction.category);
-    setAccountId(transaction.accountId);
-    setToAccountId(transaction.toAccountId || '');
-    setError('');
-  }, [transaction]);
+    if (transaction) {
+      resetForm();
+    }
+  }, [transaction, resetForm]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // Memoized computed values
+  const isTransfer = useMemo(() => 
+    data.category === 'trasferimento'
+  , [data.category]);
+
+  const categoryOptions = useMemo(() => 
+    categories.map(cat => ({
+      value: cat.name,
+      label: cat.label || cat.name,
+    }))
+  , [categories]);
+
+  const accountOptions = useMemo(() => 
+    accounts.map(acc => ({
+      value: acc.id,
+      label: acc.name,
+    }))
+  , [accounts]);
+
+  const transferAccountOptions = useMemo(() => 
+    accounts
+      .filter(acc => acc.id !== data.accountId)
+      .map(acc => ({
+        value: acc.id,
+        label: acc.name,
+      }))
+  , [accounts, data.accountId]);
+
+  const typeOptions = useMemo(() => [
+    { value: TransactionType.ENTRATA, label: 'Entrata' },
+    { value: TransactionType.SPESA, label: 'Spesa' },
+  ], []);
+
+  // Validation rules
+  const validateForm = useCallback((): boolean => {
+    clearAllErrors();
+
+    const requiredFields: Array<keyof EditTransactionFormData> = [
+      'description', 'amount', 'accountId', 'category', 'date'
+    ];
+
+    if (!validateRequired(requiredFields)) {
+      return false;
+    }
+
+    // Amount validation
+    const numericAmount = parseFloat(data.amount);
+    if (isNaN(numericAmount) || numericAmount <= 0) {
+      setError('amount', 'L\'importo deve essere un numero positivo');
+      return false;
+    }
+
+    // Transfer validation
+    if (isTransfer) {
+      if (!data.toAccountId) {
+        setError('toAccountId', 'Seleziona l\'account di destinazione per il trasferimento');
+        return false;
+      }
+      if (data.accountId === data.toAccountId) {
+        setError('toAccountId', 'L\'account di origine e destinazione devono essere diversi');
+        return false;
+      }
+    }
+
+    return true;
+  }, [data, isTransfer, validateRequired, setError, clearAllErrors]);
+
+  // Submit handler
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!description.trim() || !amount.trim() || !date || !category || !accountId) {
-      setError('Tutti i campi sono obbligatori');
+    if (!validateForm()) {
       return;
     }
 
-    if (isTransfer && !toAccountId) {
-      setError('Seleziona l\'account di destinazione per il trasferimento');
-      return;
-    }
-
-    if (isTransfer && accountId === toAccountId) {
-      setError('L\'account di origine e destinazione devono essere diversi');
-      return;
-    }
-
-    const numericAmount = parseFloat(amount);
-    if (isNaN(numericAmount) || numericAmount <= 0) {
-      setError('L\'importo deve essere un numero positivo');
-      return;
-    }
-
-    setIsSubmitting(true);
-    setError('');
+    setSubmitting(true);
 
     try {
       const updatedTransaction: Transaction = {
         ...transaction,
-        description: description.trim(),
-        amount: numericAmount,
-        date: date,
-        type,
-        category,
-        accountId,
-        toAccountId: isTransfer ? toAccountId : undefined,
+        description: data.description.trim(),
+        amount: parseFloat(data.amount),
+        date: data.date,
+        type: data.type,
+        category: data.category,
+        accountId: data.accountId,
+        toAccountId: isTransfer ? data.toAccountId : undefined,
       };
 
       await updateTransaction(updatedTransaction);
       onClose();
     } catch (err) {
-      setError('Errore durante l\'aggiornamento della transazione');
+      setError('submit', err instanceof Error ? err.message : 'Errore durante l\'aggiornamento della transazione');
     } finally {
-      setIsSubmitting(false);
+      setSubmitting(false);
     }
-  };
+  }, [validateForm, setSubmitting, data, isTransfer, transaction, updateTransaction, onClose, setError]);
 
-  if (!isOpen) return null;
+  // Field change handlers
+  const handleFieldChange = useCallback((field: keyof EditTransactionFormData) => 
+    (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+      updateField(field, e.target.value);
+    }
+  , [updateField]);
+
+  const submitError = errors.submit;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
-        <h2 className="text-2xl font-bold mb-4 text-gray-800 dark:text-white">
-          Modifica Transazione
-        </h2>
-        
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {error && (
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-              {error}
-            </div>
-          )}
+    <BaseModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Modifica Transazione"
+      error={submitError}
+      maxWidth="lg"
+    >
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Description */}
+        <FormField
+          label="Descrizione"
+          id="description"
+          error={errors.description}
+          required
+        >
+          <Input
+            type="text"
+            id="description"
+            value={data.description}
+            onChange={handleFieldChange('description')}
+            error={!!errors.description}
+            placeholder="Descrizione della transazione"
+          />
+        </FormField>
 
-          <div>
-            <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Descrizione
-            </label>
-            <input
-              type="text"
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
-            />
-          </div>
-
-          <div>
-            <label htmlFor="amount" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Importo (€)
-            </label>
-            <input
+        {/* Amount and Date */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormField
+            label="Importo (€)"
+            id="amount"
+            error={errors.amount}
+            required
+          >
+            <Input
               type="number"
               id="amount"
+              value={data.amount}
+              onChange={handleFieldChange('amount')}
+              error={!!errors.amount}
+              min="0.01"
               step="0.01"
-              min="0"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
+              placeholder="0.00"
             />
-          </div>
+          </FormField>
 
-          <div>
-            <label htmlFor="date" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Data
-            </label>
-            <input
+          <FormField
+            label="Data"
+            id="date"
+            error={errors.date}
+            required
+          >
+            <Input
               type="date"
               id="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
+              value={data.date}
+              onChange={handleFieldChange('date')}
+              error={!!errors.date}
             />
-          </div>
+          </FormField>
+        </div>
 
-          <div>
-            <label htmlFor="type" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Tipo
-            </label>
-            <select
+        {/* Type and Category */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormField
+            label="Tipo"
+            id="type"
+            error={errors.type}
+            required
+          >
+            <Select
               id="type"
-              value={type}
-              onChange={(e) => setType(e.target.value as TransactionType)}
-              className="w-full p-2 border border-gray-300 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
-              disabled={isTransfer} // I trasferimenti hanno sempre tipo "spesa"
-            >
-              <option value={TransactionType.ENTRATA}>Entrata</option>
-              <option value={TransactionType.SPESA}>Spesa</option>
-            </select>
-          </div>
+              value={data.type}
+              onChange={handleFieldChange('type')}
+              options={typeOptions}
+              error={!!errors.type}
+              disabled={isTransfer}
+            />
+          </FormField>
 
-          <div>
-            <label htmlFor="category" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Categoria
-            </label>
-            <select
+          <FormField
+            label="Categoria"
+            id="category"
+            error={errors.category}
+            required
+          >
+            <Select
               id="category"
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
-            >
-              <option value="">Seleziona categoria</option>
-              {categories.map(cat => (
-                <option key={cat.id} value={cat.id}>{cat.label || cat.name}</option>
-              ))}
-            </select>
-          </div>
+              value={data.category}
+              onChange={handleFieldChange('category')}
+              options={categoryOptions}
+              error={!!errors.category}
+              placeholder="Seleziona categoria"
+            />
+          </FormField>
+        </div>
 
-          <div>
-            <label htmlFor="accountId" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              {isTransfer ? 'Account di origine' : 'Account'}
-            </label>
-            <select
-              id="accountId"
-              value={accountId}
-              onChange={(e) => setAccountId(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
-            >
-              <option value="">Seleziona account</option>
-              {accounts.map(acc => (
-                <option key={acc.id} value={acc.id}>{acc.name}</option>
-              ))}
-            </select>
-          </div>
+        {/* Account Selection */}
+        <FormField
+          label={isTransfer ? 'Account di origine' : 'Account'}
+          id="accountId"
+          error={errors.accountId}
+          required
+        >
+          <Select
+            id="accountId"
+            value={data.accountId}
+            onChange={handleFieldChange('accountId')}
+            options={accountOptions}
+            error={!!errors.accountId}
+            placeholder="Seleziona account"
+          />
+        </FormField>
 
-          {isTransfer && (
-            <div>
-              <label htmlFor="toAccountId" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Account di destinazione
-              </label>
-              <select
-                id="toAccountId"
-                value={toAccountId}
-                onChange={(e) => setToAccountId(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              >
-                <option value="">Seleziona account di destinazione</option>
-                {accounts
-                  .filter(acc => acc.id !== accountId)
-                  .map(acc => (
-                    <option key={acc.id} value={acc.id}>{acc.name}</option>
-                  ))}
-              </select>
-            </div>
-          )}
+        {/* Transfer Destination Account */}
+        {isTransfer && (
+          <FormField
+            label="Account di destinazione"
+            id="toAccountId"
+            error={errors.toAccountId}
+            required
+          >
+            <Select
+              id="toAccountId"
+              value={data.toAccountId}
+              onChange={handleFieldChange('toAccountId')}
+              options={transferAccountOptions}
+              error={!!errors.toAccountId}
+              placeholder="Seleziona account di destinazione"
+            />
+          </FormField>
+        )}
 
-          <div className="flex justify-end space-x-3 pt-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
-              disabled={isSubmitting}
-            >
-              Annulla
-            </button>
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-            >
-              {isSubmitting ? 'Aggiornamento...' : 'Aggiorna'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+        {/* Actions */}
+        <ModalActions
+          onCancel={onClose}
+          onSubmit={handleSubmit}
+          submitText="Aggiorna Transazione"
+          isSubmitting={isSubmitting}
+        />
+      </form>
+    </BaseModal>
   );
-};
+});
+
+EditTransactionModal.displayName = 'EditTransactionModal';

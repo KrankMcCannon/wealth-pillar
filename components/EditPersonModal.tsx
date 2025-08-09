@@ -1,6 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { memo, useCallback, useMemo, useEffect } from 'react';
 import { useFinance } from '../hooks/useFinance';
+import { useModalForm } from '../hooks/useModalForm';
 import { Person } from '../types';
+import { BaseModal } from './ui/BaseModal';
+import { FormField, Input, ModalActions } from './ui/FormComponents';
 
 interface EditPersonModalProps {
   isOpen: boolean;
@@ -8,110 +11,179 @@ interface EditPersonModalProps {
   person: Person | null;
 }
 
-export const EditPersonModal: React.FC<EditPersonModalProps> = ({ isOpen, onClose, person }) => {
-  const { updatePerson } = useFinance();
-  const [name, setName] = useState('');
-  const [avatar, setAvatar] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [themeColor, setThemeColor] = useState('#3b82f6');
-  const [error, setError] = useState('');
+interface EditPersonFormData {
+  name: string;
+  avatar: string;
+  themeColor: string;
+}
 
+export const EditPersonModal = memo<EditPersonModalProps>(({ isOpen, onClose, person }) => {
+  const { updatePerson } = useFinance();
+
+  // Initial form data from person
+  const initialFormData: EditPersonFormData = useMemo(() => ({
+    name: person?.name || '',
+    avatar: person?.avatar || '',
+    themeColor: person?.themeColor || '#3b82f6',
+  }), [person]);
+
+  const {
+    data,
+    errors,
+    isSubmitting,
+    updateField,
+    setError,
+    clearAllErrors,
+    setSubmitting,
+    resetForm,
+    validateRequired,
+  } = useModalForm({
+    initialData: initialFormData,
+    resetOnClose: false, // We handle reset manually for edit modals
+    resetOnOpen: false,
+  });
+
+  // Reset form data when person changes
   useEffect(() => {
     if (person) {
-      setName(person.name);
-      setAvatar(person.avatar);
-      setThemeColor(person.themeColor);
-      setError('');
+      resetForm();
     }
-  }, [person]);
+  }, [person, resetForm]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // Validation rules
+  const validateForm = useCallback((): boolean => {
+    clearAllErrors();
+
+    if (!validateRequired(['name'])) {
+      return false;
+    }
+
+    if (data.name.trim().length === 0) {
+      setError('name', 'Il nome non può essere vuoto');
+      return false;
+    }
+
+    return true;
+  }, [data, validateRequired, setError, clearAllErrors]);
+
+  // Submit handler
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) {
-      setError('Person name cannot be empty.');
+    
+    if (!validateForm() || !person) {
       return;
     }
-    if (person) {
-      setIsSubmitting(true);
-      setError('');
-      try {
-        await updatePerson({ ...person, name, avatar, themeColor });
-        onClose();
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to update person');
-      } finally {
-        setIsSubmitting(false);
-      }
-    }
-  };
 
-  if (!isOpen) return null;
+    setSubmitting(true);
+
+    try {
+      await updatePerson({ 
+        ...person, 
+        name: data.name.trim(), 
+        avatar: data.avatar.trim(), 
+        themeColor: data.themeColor 
+      });
+      onClose();
+    } catch (err) {
+      setError('submit', err instanceof Error ? err.message : 'Errore durante l\'aggiornamento della persona');
+    } finally {
+      setSubmitting(false);
+    }
+  }, [validateForm, setSubmitting, data, person, updatePerson, onClose, setError]);
+
+  // Field change handlers
+  const handleNameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    updateField('name', e.target.value);
+  }, [updateField]);
+
+  const handleAvatarChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    updateField('avatar', e.target.value);
+  }, [updateField]);
+
+  const handleThemeColorChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    updateField('themeColor', e.target.value);
+  }, [updateField]);
+
+  const submitError = errors.submit;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 transition-opacity" onClick={onClose}>
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-8 w-full max-w-lg m-4 transform transition-all" onClick={(e) => e.stopPropagation()}>
-        <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">Modifica Profilo</h2>
-        {error && <p className="text-red-500 bg-red-100 dark:bg-red-900/50 p-3 rounded-md mb-4">{error}</p>}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="person-name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Nome completo</label>
-            <input
-              type="text"
-              id="person-name"
-              value={name}
-              onChange={e => setName(e.target.value)}
-              className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm dark:bg-gray-700 dark:border-gray-600"
-              required
-            />
-          </div>
-          <div>
-            <label htmlFor="person-avatar" className="block text-sm font-medium text-gray-700 dark:text-gray-300">URL Avatar</label>
-            <input
-              type="text"
-              id="person-avatar"
-              value={avatar}
-              onChange={e => setAvatar(e.target.value)}
-              className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm dark:bg-gray-700 dark:border-gray-600"
-            />
-          </div>
-          <div>
-            <label htmlFor="person-theme" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Colore Tema</label>
-            <div className="flex items-center mt-1">
-              <input
-                type="color"
-                id="person-theme"
-                value={themeColor}
-                onChange={e => setThemeColor(e.target.value)}
-                className="p-1 h-10 w-14 block bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 cursor-pointer rounded-lg"
-              />
-              <input
-                type="text"
-                value={themeColor}
-                onChange={(e) => setThemeColor(e.target.value)}
-                className="ml-2 w-full p-2 border border-gray-300 rounded-md shadow-sm dark:bg-gray-700 dark:border-gray-600"
-              />
-            </div>
-          </div>
+    <BaseModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Modifica Profilo"
+    >
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Name field */}
+        <FormField
+          label="Nome completo"
+          error={errors.name}
+          required
+        >
+          <Input
+            value={data.name}
+            onChange={handleNameChange}
+            placeholder="Inserisci il nome completo"
+            error={!!errors.name}
+            disabled={isSubmitting}
+          />
+        </FormField>
 
-          <div className="flex justify-end pt-4 space-x-3">
-            <button type="button" onClick={onClose} className="py-2 px-4 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500 transition-colors" disabled={isSubmitting}>Annulla</button>
-            <button
-              type="submit"
-              className="py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:bg-blue-400 disabled:cursor-not-allowed flex items-center"
+        {/* Avatar field */}
+        <FormField
+          label="URL Avatar"
+          error={errors.avatar}
+        >
+          <Input
+            type="url"
+            value={data.avatar}
+            onChange={handleAvatarChange}
+            placeholder="https://esempio.com/avatar.jpg"
+            error={!!errors.avatar}
+            disabled={isSubmitting}
+          />
+        </FormField>
+
+        {/* Theme color field */}
+        <FormField
+          label="Colore Tema"
+          error={errors.themeColor}
+        >
+          <div className="flex items-center space-x-2">
+            <input
+              type="color"
+              value={data.themeColor}
+              onChange={handleThemeColorChange}
+              className="p-1 h-10 w-14 block bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 cursor-pointer rounded-lg disabled:opacity-50"
               disabled={isSubmitting}
-            >
-              {isSubmitting ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Salvataggio...
-                </>
-              ) : (
-                'Salva modifiche'
-              )}
-            </button>
+            />
+            <Input
+              type="text"
+              value={data.themeColor}
+              onChange={handleThemeColorChange}
+              placeholder="#3b82f6"
+              error={!!errors.themeColor}
+              disabled={isSubmitting}
+              className="flex-1"
+            />
           </div>
-        </form>
-      </div>
-    </div>
+        </FormField>
+
+        {/* Submit error */}
+        {submitError && (
+          <div className="text-red-600 text-sm">{submitError}</div>
+        )}
+
+        {/* Modal actions */}
+        <ModalActions
+          onCancel={onClose}
+          onSubmit={handleSubmit}
+          submitLabel="Salva Modifiche"
+          cancelLabel="Annulla"
+          isSubmitting={isSubmitting}
+        />
+      </form>
+    </BaseModal>
   );
-};
+});
+
+EditPersonModal.displayName = 'EditPersonModal';
