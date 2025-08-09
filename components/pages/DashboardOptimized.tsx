@@ -16,7 +16,7 @@ import { ExpenseChart } from '../dashboard/ExpenseChart';
  * - Logica centralizzata negli hooks
  * - Hook personalizzati per responsività e dati
  */
-export const Dashboard = memo(() => {
+export const DashboardOptimized = memo(() => {
   const {
     selectedPerson,
     accountsWithData,
@@ -68,4 +68,4 @@ export const Dashboard = memo(() => {
   );
 });
 
-Dashboard.displayName = 'Dashboard';
+DashboardOptimized.displayName = 'DashboardOptimized';
