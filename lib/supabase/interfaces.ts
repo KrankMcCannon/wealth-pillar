@@ -24,28 +24,6 @@ export interface IRealtimeRepository<TEntity> {
   subscribeToItem(id: string, callback: (data: TEntity | null) => void): () => void;
 }
 
-// Auth interface
-export interface IAuthService {
-  signIn(email: string, password: string): Promise<any>;
-  signUp(email: string, password: string): Promise<any>;
-  signOut(): Promise<void>;
-  getCurrentUser(): Promise<any>;
-  onAuthStateChange(callback: (user: any) => void): () => void;
-  
-  // Passwordless OTP methods
-  signInWithOTP(email: string): Promise<any>;
-  verifyOTP(email: string, token: string): Promise<any>;
-  
-  // OAuth methods
-  signInWithGoogle(): Promise<any>;
-  
-  // User management
-  linkOTPToAccount(): Promise<any>;
-  updateUserPassword(password: string): Promise<any>;
-  getUserProviders(): Promise<string[]>;
-  getAvailableProviders(): Promise<string[]>;
-}
-
 // Storage interface
 export interface IStorageService {
   upload(bucket: string, path: string, file: File): Promise<string>;
@@ -63,16 +41,5 @@ export class RepositoryError extends Error {
   ) {
     super(message);
     this.name = 'RepositoryError';
-  }
-}
-
-export class AuthError extends Error {
-  constructor(
-    message: string,
-    public code?: string,
-    public details?: any
-  ) {
-    super(message);
-    this.name = 'AuthError';
   }
 }

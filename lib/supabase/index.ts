@@ -9,12 +9,15 @@ export { getSupabaseConfig, testSupabaseConnection, validateSupabaseConfig } fro
 // Client
 export { createSupabaseClient, getSupabaseClient, getSupabaseUrl, isSupabaseConfigured, resetSupabaseClient } from './client';
 
+// Clerk Integration
+export { createClerkSupabaseClient, useClerkSupabaseClient } from './clerkSupabaseClient';
+
 // Types
 export type { Database, Inserts, Tables, Updates } from './database.types';
 
 // Interfaces
 export type {
-  IAuthService, IQueryRepository,
+  IQueryRepository,
   IRealtimeRepository, IRepository, IStorageService
 } from './interfaces';
 
@@ -37,29 +40,24 @@ export type { BudgetFilters } from './repositories/budget.repository';
 export { CategoryRepository } from './repositories/category.repository';
 export type { CategoryFilters } from './repositories/category.repository';
 
-// Services
-export { SupabaseAuthService } from './services/auth.service';
-export { MigrationService, migrationService } from './services/migration.service';
-
 // Import classes for internal use
 import { AccountRepository } from './repositories/account.repository';
 import { BudgetRepository } from './repositories/budget.repository';
 import { CategoryRepository } from './repositories/category.repository';
 import { PersonRepository } from './repositories/person.repository';
 import { TransactionRepository } from './repositories/transaction.repository';
-import { SupabaseAuthService } from './services/auth.service';
 
 // React Hooks
 export {
   useAccounts, useBudgets,
-  useCategories, usePeople, useRealtimeAccounts, useRealtimeTransactions, useSupabaseAuth, useSupabaseRepository,
+  useCategories, usePeople, useRealtimeAccounts, useRealtimeTransactions, useSupabaseRepository,
   useTransactions
 } from './hooks/useSupabase';
 
 export { SupabaseConnectionStatus, useSupabaseConnection } from './hooks/useConnection';
 
 // Errors
-export { AuthError, RepositoryError } from './interfaces';
+export { RepositoryError } from './interfaces';
 
 // Repository Factory (Singleton pattern for repository instances)
 class RepositoryFactory {
@@ -68,7 +66,6 @@ class RepositoryFactory {
   private static personRepo: PersonRepository | null = null;
   private static budgetRepo: BudgetRepository | null = null;
   private static categoryRepo: CategoryRepository | null = null;
-  private static authService: SupabaseAuthService | null = null;
 
   static getTransactionRepository(): TransactionRepository {
     if (!this.transactionRepo) {
@@ -105,13 +102,6 @@ class RepositoryFactory {
     return this.categoryRepo;
   }
 
-  static getAuthService(): SupabaseAuthService {
-    if (!this.authService) {
-      this.authService = new SupabaseAuthService();
-    }
-    return this.authService;
-  }
-
   // Reset all instances (useful for testing)
   static reset(): void {
     this.transactionRepo = null;
@@ -119,7 +109,6 @@ class RepositoryFactory {
     this.personRepo = null;
     this.budgetRepo = null;
     this.categoryRepo = null;
-    this.authService = null;
   }
 }
 
@@ -131,4 +120,3 @@ export const accountRepository = () => RepositoryFactory.getAccountRepository();
 export const personRepository = () => RepositoryFactory.getPersonRepository();
 export const budgetRepository = () => RepositoryFactory.getBudgetRepository();
 export const categoryRepository = () => RepositoryFactory.getCategoryRepository();
-export const authService = () => RepositoryFactory.getAuthService();

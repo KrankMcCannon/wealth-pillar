@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useState, ReactNode, useCallback, useEffect } from 'react';
 import { Person, Account, Transaction, Budget, TransactionType, InvestmentHolding, CategoryOption } from '../types';
-import { SupabaseService } from '../services/supabaseService';
+import { ClerkSupabaseService } from '../services/clerkSupabaseService';
 import { useAuth } from '../contexts/AuthContext';
+import { useClerkSupabaseClient } from '../lib/supabase/clerkSupabaseClient';
 import { v4 as uuidv4 } from 'uuid';
 
 interface FinanceContextType {
@@ -38,7 +39,8 @@ interface FinanceContextType {
 const FinanceContext = createContext<FinanceContextType | undefined>(undefined);
 
 export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const { user, loading: authLoading } = useAuth();
+  const { user, isSignedIn } = useAuth();
+  const client = useClerkSupabaseClient();
   const [people, setPeople] = useState<Person[]>([]);
   const [selectedPersonId, setSelectedPersonId] = useState<string>('all');
   const [accounts, setAccounts] = useState<Account[]>([]);
@@ -49,12 +51,9 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Initialize Supabase service
-  const supabaseService = new SupabaseService();
-
   const loadData = useCallback(async () => {
-    // Non tentare di caricare dati se non c'è un utente autenticato
-    if (!user) {
+    // Non tentare di caricare dati se non c'è client Clerk-Supabase
+    if (!client || !isSignedIn || !user) {
       setIsLoading(false);
       return;
     }
@@ -62,6 +61,9 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
     try {
       setIsLoading(true);
       setError(null);
+
+      // Initialize service with authenticated client
+      const supabaseService = new ClerkSupabaseService(client);
 
       const [peopleData, accountsData, transactionsData, budgetsData, investmentsData, categoriesData] = await Promise.all([
         supabaseService.getPeople(),
@@ -85,14 +87,14 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
     } finally {
       setIsLoading(false);
     }
-  }, [user]);
+  }, [client, isSignedIn, user]);
 
   useEffect(() => {
-    // Solo carica i dati se l'utente è autenticato e l'auth non è in loading
-    if (user && !authLoading) {
+    // Solo carica i dati se l'utente è autenticato e il client è disponibile
+    if (isSignedIn && client && user) {
       loadData();
-    } else if (!authLoading && !user) {
-      // Se l'auth è completato ma non c'è utente, resetta lo stato
+    } else if (!isSignedIn) {
+      // Se non c'è utente, resetta lo stato
       setPeople([]);
       setAccounts([]);
       setTransactions([]);
@@ -102,11 +104,17 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
       setIsLoading(false);
       setError(null);
     }
-  }, [user, authLoading, loadData]);
+  }, [isSignedIn, client, user, loadData]);
 
   const refreshData = useCallback(async () => {
     await loadData();
   }, [loadData]);
+
+  // Helper to get authenticated service
+  const getService = useCallback(() => {
+    if (!client) throw new Error('Client non disponibile');
+    return new ClerkSupabaseService(client);
+  }, [client]);
 
   const selectPerson = useCallback((id: string) => {
     setSelectedPersonId(id);
@@ -121,7 +129,7 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
         createdAt: new Date().toISOString(),
       };
 
-      const savedTransaction = await supabaseService.addTransaction(newTransaction);
+      const savedTransaction = await getService().addTransaction(newTransaction);
       setTransactions(prev => [savedTransaction, ...prev].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
 
     } catch (err) {
@@ -132,7 +140,7 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
 
   const updateTransaction = useCallback(async (updatedTransaction: Transaction) => {
     try {
-      const savedTransaction = await supabaseService.updateTransaction(updatedTransaction);
+      const savedTransaction = await getService().updateTransaction(updatedTransaction);
       setTransactions(prev => prev.map(tx => 
         tx.id === savedTransaction.id ? savedTransaction : tx
       ).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
@@ -144,7 +152,7 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
 
   const addAccount = useCallback(async (accountData: Omit<Account, 'id'>) => {
     try {
-      const newAccount = await supabaseService.addAccount(accountData);
+      const newAccount = await getService().addAccount(accountData);
       setAccounts(prev => [...prev, newAccount]);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to add account');
@@ -154,7 +162,7 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
 
   const updateAccount = useCallback(async (updatedAccount: Account) => {
     try {
-      const savedAccount = await supabaseService.updateAccount(updatedAccount);
+      const savedAccount = await getService().updateAccount(updatedAccount);
       setAccounts(prev => prev.map(acc => (acc.id === savedAccount.id ? savedAccount : acc)));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update account');
@@ -164,7 +172,7 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
 
   const addBudget = useCallback(async (budgetData: Omit<Budget, 'id'>) => {
     try {
-      const newBudget = await supabaseService.addBudget(budgetData);
+      const newBudget = await getService().addBudget(budgetData);
       setBudgets(prev => [...prev, newBudget]);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to add budget');
@@ -174,7 +182,7 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
 
   const updateBudget = useCallback(async (updatedBudget: Budget) => {
     try {
-      const savedBudget = await supabaseService.updateBudget(updatedBudget);
+      const savedBudget = await getService().updateBudget(updatedBudget);
       setBudgets(prev => prev.map(b => (b.id === savedBudget.id ? savedBudget : b)));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update budget');
@@ -184,7 +192,7 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
 
   const updatePerson = useCallback(async (updatedPerson: Person) => {
     try {
-      const savedPerson = await supabaseService.updatePerson(updatedPerson);
+      const savedPerson = await getService().updatePerson(updatedPerson);
       setPeople(prev => prev.map(p => (p.id === savedPerson.id ? savedPerson : p)));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update person');
@@ -198,7 +206,7 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
         ...investmentData,
         id: uuidv4(),
       };
-      const savedInvestment = await supabaseService.addInvestment(newInvestment);
+      const savedInvestment = await getService().addInvestment(newInvestment);
       setInvestments(prev => [...prev, savedInvestment]);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to add investment');
@@ -375,8 +383,8 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
         const updatedTx2 = { ...tx2, isReconciled: true, linkedTransactionId: tx1Id };
 
         await Promise.all([
-          supabaseService.updateTransaction(updatedTx1),
-          supabaseService.updateTransaction(updatedTx2),
+          getService().updateTransaction(updatedTx1),
+          getService().updateTransaction(updatedTx2),
         ]);
 
         setTransactions(prev => prev.map(tx => {

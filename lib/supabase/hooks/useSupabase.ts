@@ -6,8 +6,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
   accountRepository,
-  AuthError,
-  authService,
   budgetRepository,
   categoryRepository,
   personRepository,
@@ -134,103 +132,6 @@ export function useBudgets(autoLoad: boolean = true) {
 
 export function useCategories(autoLoad: boolean = true) {
   return useSupabaseRepository(categoryRepository, autoLoad);
-}
-
-// Auth hook
-export function useSupabaseAuth() {
-  const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const auth = authService();
-
-  const signIn = useCallback(async (email: string, password: string) => {
-    try {
-      setError(null);
-      const result = await auth.signIn(email, password);
-      return result;
-    } catch (err) {
-      if (err instanceof AuthError) {
-        setError(err.message);
-      } else {
-        setError('Sign in failed');
-      }
-      throw err;
-    }
-  }, [auth]);
-
-  const signUp = useCallback(async (email: string, password: string) => {
-    try {
-      setError(null);
-      const result = await auth.signUp(email, password);
-      return result;
-    } catch (err) {
-      if (err instanceof AuthError) {
-        setError(err.message);
-      } else {
-        setError('Sign up failed');
-      }
-      throw err;
-    }
-  }, [auth]);
-
-  const signOut = useCallback(async () => {
-    try {
-      setError(null);
-      await auth.signOut();
-    } catch (err) {
-      if (err instanceof AuthError) {
-        setError(err.message);
-      } else {
-        setError('Sign out failed');
-      }
-      throw err;
-    }
-  }, [auth]);
-
-  const resetPassword = useCallback(async (email: string) => {
-    try {
-      setError(null);
-      await auth.resetPassword(email);
-    } catch (err) {
-      if (err instanceof AuthError) {
-        setError(err.message);
-      } else {
-        setError('Password reset failed');
-      }
-      throw err;
-    }
-  }, [auth]);
-
-  useEffect(() => {
-    // Get initial user
-    auth.getCurrentUser().then(currentUser => {
-      setUser(currentUser);
-      setLoading(false);
-    }).catch(err => {
-      console.error('Failed to get current user:', err);
-      setLoading(false);
-    });
-
-    // Subscribe to auth changes
-    const unsubscribe = auth.onAuthStateChange((newUser) => {
-      setUser(newUser);
-      setLoading(false);
-    });
-
-    return unsubscribe;
-  }, [auth]);
-
-  return {
-    user,
-    loading,
-    error,
-    signIn,
-    signUp,
-    signOut,
-    resetPassword,
-    isAuthenticated: !!user
-  };
 }
 
 // Real-time hooks

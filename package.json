@@ -11,6 +11,7 @@
     "login-and-get-info": "node scripts/login-and-get-info.mjs"
   },
   "dependencies": {
+    "@clerk/clerk-react": "^5.40.0",
     "@supabase/supabase-js": "^2.54.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
