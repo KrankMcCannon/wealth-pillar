@@ -2,6 +2,7 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { HomeIcon, TransactionIcon, InvestmentIcon, SettingsIcon, UserGroupIcon, ChartBarIcon } from './Icons';
 import { useFinance } from '../hooks/useFinance';
+import { useAuth } from '../contexts/AuthContext';
 
 const NavItem: React.FC<{ to: string; children: React.ReactNode }> = ({ to, children }) => {
   const inactiveClass = "text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white";
@@ -76,6 +77,16 @@ const PersonSelector: React.FC = () => {
 
 
 export const Navbar: React.FC = () => {
+  const { signOut, user } = useAuth();
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+    } catch (error) {
+      console.error('Errore durante il logout:', error);
+    }
+  };
+
   return (
     <nav className="w-64 bg-white dark:bg-gray-800 shadow-lg flex flex-col p-4">
       <PersonSelector />
@@ -97,11 +108,24 @@ export const Navbar: React.FC = () => {
           <span className="ml-4 font-medium">Report</span>
         </NavItem>
       </div>
-      <div>
+      <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-4">
         <NavItem to="/settings">
           <SettingsIcon className="w-6 h-6" />
           <span className="ml-4 font-medium">Impostazioni</span>
         </NavItem>
+        
+        {/* User info and logout */}
+        <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+          <div className="text-sm text-gray-600 dark:text-gray-300 mb-2">
+            {user?.email}
+          </div>
+          <button
+            onClick={handleSignOut}
+            className="w-full text-left text-sm text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 font-medium"
+          >
+            Esci
+          </button>
+        </div>
       </div>
     </nav>
   );

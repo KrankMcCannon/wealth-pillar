@@ -9,8 +9,10 @@ import { ReportsPage } from './components/pages/ReportsPage';
 import { AddTransactionModal } from './components/AddTransactionModal';
 import { PlusIcon } from './components/Icons';
 import { useFinance } from './hooks/useFinance';
+import { useAuth } from './contexts/AuthContext';
+import { AuthPage } from './components/pages/AuthPage';
 
-const App: React.FC = () => {
+const AppContent: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { people, selectedPersonId, isLoading, error } = useFinance();
 
@@ -84,6 +86,27 @@ const App: React.FC = () => {
       </div>
     </HashRouter>
   );
+};
+
+const App: React.FC = () => {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-gray-100 dark:bg-gray-900">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-lg text-gray-600 dark:text-gray-400">Caricamento...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <AuthPage />;
+  }
+
+  return <AppContent />;
 };
 
 export default App;
