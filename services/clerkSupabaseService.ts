@@ -166,7 +166,7 @@ async getAccounts(): Promise<Account[]> {
       accountId: tx.account_id,
       toAccountId: tx.to_account_id,
       isReconciled: tx.is_reconciled || false,
-      linkedTransactionId: tx.linked_transaction_id,
+      linkedTransactionId: tx.parent_transaction_id,
       createdAt: tx.created_at,
     }));
   }
@@ -184,7 +184,7 @@ async getAccounts(): Promise<Account[]> {
         account_id: transaction.accountId,
         to_account_id: transaction.toAccountId,
         is_reconciled: transaction.isReconciled,
-        linked_transaction_id: transaction.linkedTransactionId,
+        parent_transaction_id: transaction.linkedTransactionId,
       })
       .select()
       .single();
@@ -201,7 +201,7 @@ async getAccounts(): Promise<Account[]> {
       accountId: data.account_id,
       toAccountId: data.to_account_id,
       isReconciled: data.is_reconciled || false,
-      linkedTransactionId: data.linked_transaction_id,
+      linkedTransactionId: data.parent_transaction_id,
       createdAt: data.created_at,
     };
   }
@@ -218,7 +218,7 @@ async getAccounts(): Promise<Account[]> {
         account_id: transaction.accountId,
         to_account_id: transaction.toAccountId,
         is_reconciled: transaction.isReconciled,
-        linked_transaction_id: transaction.linkedTransactionId,
+        parent_transaction_id: transaction.linkedTransactionId,
       })
       .eq('id', transaction.id)
       .select()
@@ -236,7 +236,7 @@ async getAccounts(): Promise<Account[]> {
       accountId: data.account_id,
       toAccountId: data.to_account_id,
       isReconciled: data.is_reconciled || false,
-      linkedTransactionId: data.linked_transaction_id,
+      linkedTransactionId: data.parent_transaction_id,
       createdAt: data.created_at,
     };
   }

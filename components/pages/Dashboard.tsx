@@ -43,9 +43,9 @@ function BudgetProgress({ budget, transactions, person }: {
     transactions: Transaction[];
     person: Person;
 }) {
-    const { getCategoryName, getEffectiveTransactionAmount, getAccountById, getPersonById } = useFinance();
+    const { getCategoryName, getEffectiveTransactionAmount, getAccountById, getPersonById, getRemainingAmount } = useFinance();
     
-   // Ottieni la persona del budget, non quella passata come parametro
+    // Ottieni la persona del budget, non quella passata come parametro
     const budgetPerson = getPersonById(budget.personId) || person;
     const { periodStart, periodEnd } = getCurrentBudgetPeriod(budgetPerson);
 
@@ -64,7 +64,10 @@ function BudgetProgress({ budget, transactions, person }: {
             
             return isInPeriod && isInCategory;
         })
-        .reduce((sum, t) => sum + getEffectiveTransactionAmount(t), 0);
+        .reduce((sum, t) => {
+            const amount = t.isReconciled ? getRemainingAmount(t) : getEffectiveTransactionAmount(t);
+            return sum + amount;
+        }, 0);
 
     const percentage = budget.amount > 0 ? (currentSpent / budget.amount) * 100 : 0;
     const remaining = budget.amount - currentSpent;
