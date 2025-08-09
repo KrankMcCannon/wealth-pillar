@@ -1,16 +1,16 @@
 import React, { memo, useCallback, useMemo, useEffect } from 'react';
-import { useFinance } from '../hooks/useFinance';
-import { useModalForm } from '../hooks/useModalForm';
-import { TransactionType } from '../types';
-import { BaseModal } from './ui/BaseModal';
-import { FormField, Input, Select, ModalActions } from './ui/FormComponents';
+import { useFinance } from '../../hooks/useFinance';
+import { useModalForm } from '../../hooks/useModalForm';
+import { Transaction, TransactionType } from '../../types';
+import { BaseModal, FormField, Input, Select, ModalActions } from '../ui';
 
-interface AddTransactionModalProps {
+interface EditTransactionModalProps {
   isOpen: boolean;
   onClose: () => void;
+  transaction: Transaction;
 }
 
-interface TransactionFormData {
+interface EditTransactionFormData {
   description: string;
   amount: string;
   date: string;
@@ -18,25 +18,27 @@ interface TransactionFormData {
   category: string;
   accountId: string;
   toAccountId: string;
-  txPersonId: string;
 }
 
-export const AddTransactionModal = memo<AddTransactionModalProps>(({ isOpen, onClose }) => {
-  const { addTransaction, accounts, selectedPersonId, people, categories } = useFinance();
+export const EditTransactionModal = memo<EditTransactionModalProps>(({ 
+  isOpen, 
+  onClose, 
+  transaction 
+}) => {
+  const { updateTransaction, accounts, categories, selectedPersonId } = useFinance();
 
   const isAllView = selectedPersonId === 'all';
 
-  // Initial form data
-  const initialFormData: TransactionFormData = useMemo(() => ({
-    description: '',
-    amount: '',
-    date: new Date().toISOString().split('T')[0],
-    type: TransactionType.SPESA,
-    category: 'altro',
-    accountId: '',
-    toAccountId: '',
-    txPersonId: isAllView ? (people[0]?.id || '') : selectedPersonId,
-  }), [isAllView, people, selectedPersonId]);
+  // Initial form data from transaction
+  const initialFormData: EditTransactionFormData = useMemo(() => ({
+    description: transaction.description,
+    amount: transaction.amount.toString(),
+    date: transaction.date.split('T')[0],
+    type: transaction.type,
+    category: transaction.category,
+    accountId: transaction.accountId,
+    toAccountId: transaction.toAccountId || '',
+  }), [transaction]);
 
   const {
     data,
@@ -50,19 +52,18 @@ export const AddTransactionModal = memo<AddTransactionModalProps>(({ isOpen, onC
     validateRequired,
   } = useModalForm({
     initialData: initialFormData,
-    resetOnClose: true,
-    resetOnOpen: true,
+    resetOnClose: false, // We handle reset manually for edit modals
+    resetOnOpen: false,
   });
 
+  // Reset form data when transaction changes
+  useEffect(() => {
+    if (transaction) {
+      resetForm();
+    }
+  }, [transaction, resetForm]);
+
   // Memoized computed values
-  const currentPersonId = useMemo(() => 
-    isAllView ? data.txPersonId : selectedPersonId
-  , [isAllView, data.txPersonId, selectedPersonId]);
-
-  const personAccounts = useMemo(() => 
-    accounts.filter(acc => acc.personIds.includes(currentPersonId))
-  , [accounts, currentPersonId]);
-
   const isTransfer = useMemo(() => 
     data.category === 'trasferimento'
   , [data.category]);
@@ -75,53 +76,31 @@ export const AddTransactionModal = memo<AddTransactionModalProps>(({ isOpen, onC
   , [categories]);
 
   const accountOptions = useMemo(() => 
-    personAccounts.map(acc => ({
+    accounts.map(acc => ({
       value: acc.id,
       label: acc.name,
     }))
-  , [personAccounts]);
+  , [accounts]);
 
   const transferAccountOptions = useMemo(() => 
-    personAccounts
+    accounts
       .filter(acc => acc.id !== data.accountId)
       .map(acc => ({
         value: acc.id,
         label: acc.name,
       }))
-  , [personAccounts, data.accountId]);
+  , [accounts, data.accountId]);
 
-  const personOptions = useMemo(() => 
-    people.map(person => ({
-      value: person.id,
-      label: person.name,
-    }))
-  , [people]);
-
-  // Reset form when modal opens
-  useEffect(() => {
-    if (isOpen) {
-      resetForm();
-      // Set initial account if available
-      if (personAccounts.length > 0) {
-        updateField('accountId', personAccounts[0].id);
-      }
-    }
-  }, [isOpen, resetForm, personAccounts, updateField]);
-
-  // Update accounts when person changes
-  useEffect(() => {
-    const newAccounts = accounts.filter(acc => acc.personIds.includes(data.txPersonId));
-    if (newAccounts.length > 0 && !newAccounts.some(acc => acc.id === data.accountId)) {
-      updateField('accountId', newAccounts[0].id);
-    }
-  }, [data.txPersonId, accounts, data.accountId, updateField]);
+  const typeOptions = useMemo(() => [
+    { value: TransactionType.ENTRATA, label: 'Entrata' },
+    { value: TransactionType.SPESA, label: 'Spesa' },
+  ], []);
 
   // Validation rules
   const validateForm = useCallback((): boolean => {
     clearAllErrors();
 
-    // Basic required fields validation
-    const requiredFields: Array<keyof TransactionFormData> = [
+    const requiredFields: Array<keyof EditTransactionFormData> = [
       'description', 'amount', 'accountId', 'category', 'date'
     ];
 
@@ -132,18 +111,18 @@ export const AddTransactionModal = memo<AddTransactionModalProps>(({ isOpen, onC
     // Amount validation
     const numericAmount = parseFloat(data.amount);
     if (isNaN(numericAmount) || numericAmount <= 0) {
-      setError('amount', 'Inserisci un importo valido e positivo');
+      setError('amount', 'L\'importo deve essere un numero positivo');
       return false;
     }
 
     // Transfer validation
     if (isTransfer) {
       if (!data.toAccountId) {
-        setError('toAccountId', 'Seleziona un account di destinazione per il trasferimento');
+        setError('toAccountId', 'Seleziona l\'account di destinazione per il trasferimento');
         return false;
       }
       if (data.accountId === data.toAccountId) {
-        setError('toAccountId', 'Gli account di origine e destinazione devono essere diversi');
+        setError('toAccountId', 'L\'account di origine e destinazione devono essere diversi');
         return false;
       }
     }
@@ -162,31 +141,28 @@ export const AddTransactionModal = memo<AddTransactionModalProps>(({ isOpen, onC
     setSubmitting(true);
 
     try {
-      const transactionData: any = {
+      const updatedTransaction: Transaction = {
+        ...transaction,
         description: data.description.trim(),
         amount: parseFloat(data.amount),
+        date: data.date,
         type: data.type,
         category: data.category,
         accountId: data.accountId,
-        date: data.date,
+        toAccountId: isTransfer ? data.toAccountId : undefined,
       };
 
-      // Add toAccountId only for transfers
-      if (isTransfer) {
-        transactionData.toAccountId = data.toAccountId;
-      }
-
-      await addTransaction(transactionData);
+      await updateTransaction(updatedTransaction);
       onClose();
     } catch (err) {
-      setError('submit', err instanceof Error ? err.message : 'Errore durante l\'aggiunta della transazione');
+      setError('submit', err instanceof Error ? err.message : 'Errore durante l\'aggiornamento della transazione');
     } finally {
       setSubmitting(false);
     }
-  }, [validateForm, setSubmitting, data, isTransfer, addTransaction, onClose, setError]);
+  }, [validateForm, setSubmitting, data, isTransfer, transaction, updateTransaction, onClose, setError]);
 
   // Field change handlers
-  const handleFieldChange = useCallback((field: keyof TransactionFormData) => 
+  const handleFieldChange = useCallback((field: keyof EditTransactionFormData) => 
     (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
       updateField(field, e.target.value);
     }
@@ -198,30 +174,11 @@ export const AddTransactionModal = memo<AddTransactionModalProps>(({ isOpen, onC
     <BaseModal
       isOpen={isOpen}
       onClose={onClose}
-      title="Aggiungi nuova transazione"
+      title="Modifica Transazione"
       error={submitError}
       maxWidth="lg"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Person Selection (only in all view) */}
-        {isAllView && (
-          <FormField
-            label="Persona"
-            id="txPersonId"
-            error={errors.txPersonId}
-            required
-          >
-            <Select
-              id="txPersonId"
-              value={data.txPersonId}
-              onChange={handleFieldChange('txPersonId')}
-              options={personOptions}
-              error={!!errors.txPersonId}
-              placeholder="Seleziona persona"
-            />
-          </FormField>
-        )}
-
         {/* Description */}
         <FormField
           label="Descrizione"
@@ -287,10 +244,7 @@ export const AddTransactionModal = memo<AddTransactionModalProps>(({ isOpen, onC
               id="type"
               value={data.type}
               onChange={handleFieldChange('type')}
-              options={[
-                { value: TransactionType.ENTRATA, label: 'Entrata' },
-                { value: TransactionType.SPESA, label: 'Spesa' },
-              ]}
+              options={typeOptions}
               error={!!errors.type}
               disabled={isTransfer}
             />
@@ -353,7 +307,7 @@ export const AddTransactionModal = memo<AddTransactionModalProps>(({ isOpen, onC
         <ModalActions
           onCancel={onClose}
           onSubmit={handleSubmit}
-          submitText="Aggiungi Transazione"
+          submitText="Aggiorna Transazione"
           isSubmitting={isSubmitting}
         />
       </form>
@@ -361,4 +315,4 @@ export const AddTransactionModal = memo<AddTransactionModalProps>(({ isOpen, onC
   );
 });
 
-AddTransactionModal.displayName = 'AddTransactionModal';
+EditTransactionModal.displayName = 'EditTransactionModal';

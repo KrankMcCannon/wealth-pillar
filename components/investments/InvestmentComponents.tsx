@@ -1,8 +1,7 @@
 import React, { memo, useMemo } from 'react';
 import { formatCurrency, formatDate } from '../../constants';
 import { InvestmentHolding } from '../../types';
-import { Card } from '../ui/Card';
-import { SummaryCards } from '../ui/SummaryCards';
+import { Card, SummaryCards } from '../ui';
 
 // Simple arrow icons as SVG components
 const ArrowUpIcon = () => (

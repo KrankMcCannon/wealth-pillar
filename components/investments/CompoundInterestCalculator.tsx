@@ -1,6 +1,5 @@
 import React, { useState, useEffect, memo, useCallback } from 'react';
-import { Card } from '../ui/Card';
-import { FormField, Input } from '../ui/FormComponents';
+import { Card, FormField, Input } from '../ui';
 import { formatCurrency } from '../../constants';
 
 // Simple calculator icon as SVG component

@@ -1,7 +1,6 @@
 import React, { memo } from 'react';
-import { Card } from '../ui/Card';
-import { BudgetProgress } from './BudgetProgress';
-import { RecentTransactionItem } from './RecentTransactionItem';
+import { Card } from '../ui';
+import { BudgetProgress, RecentTransactionItem } from '.';
 import { Budget, Transaction, Person } from '../../types';
 
 /**

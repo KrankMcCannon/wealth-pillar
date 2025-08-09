@@ -1,8 +1,8 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { HomeIcon, TransactionIcon, InvestmentIcon, SettingsIcon, UserGroupIcon, ChartBarIcon } from './Icons';
-import { useFinance } from '../hooks/useFinance';
-import { useAuth } from '../contexts/AuthContext';
+import { HomeIcon, TransactionIcon, InvestmentIcon, SettingsIcon, UserGroupIcon, ChartBarIcon } from '.';
+import { useFinance } from '../../hooks/useFinance';
+import { useAuth } from '../../contexts/AuthContext';
 
 const NavItem: React.FC<{ to: string; children: React.ReactNode }> = ({ to, children }) => {
   const inactiveClass = "text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white";

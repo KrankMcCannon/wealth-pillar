@@ -1,6 +1,6 @@
 import React, { useEffect, useState, memo, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { LoadingState, ErrorState } from '../ui/LoadingComponents';
+import { LoadingState, ErrorState } from '../ui';
 
 interface AuthCallbackState {
   loading: boolean;

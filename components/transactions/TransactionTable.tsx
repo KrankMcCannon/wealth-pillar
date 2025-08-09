@@ -1,6 +1,6 @@
 import React, { memo } from 'react';
 import { Transaction } from '../../types';
-import { TransactionRow } from './TransactionRow';
+import { TransactionRow } from '.';
 
 /**
  * Props per il componente TransactionTable

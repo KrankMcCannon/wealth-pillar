@@ -3,7 +3,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { Transaction, TransactionType } from '../../types';
 import { useFinance } from '../../hooks/useFinance';
 import { useDarkMode, useBreakpoint } from '../../hooks/useCustomHooks/useResponsive';
-import { Card } from '../ui/Card';
+import { Card } from '../ui';
 import { formatCurrency } from '../../constants';
 
 /**

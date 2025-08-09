@@ -1,6 +1,6 @@
 import React, { memo } from 'react';
 import { Transaction } from '../../types';
-import { LinkIcon } from '../Icons';
+import { LinkIcon } from '../common';
 
 /**
  * Props per il componente LinkingStatusBar

@@ -1,6 +1,6 @@
 import React, { memo } from 'react';
-import { Card } from '../ui/Card';
-import { PencilIcon } from '../Icons';
+import { Card } from '../ui';
+import { PencilIcon } from '../common';
 import { Person, Account, Budget } from '../../types';
 import { formatCurrency } from '../../constants';
 

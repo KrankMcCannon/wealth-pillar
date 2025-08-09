@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
-import { Card } from '../ui/Card';
+import { Card } from '../ui';
 import { Transaction } from '../../types';
-import { EditTransactionModal } from '../EditTransactionModal';
+import { EditTransactionModal } from '../modals';
 
 // Importa i componenti ottimizzati
-import { FilterSection } from '../transactions/FilterSection';
-import { LinkingStatusBar } from '../transactions/LinkingStatusBar';
-import { TransactionTable } from '../transactions/TransactionTable';
+import { FilterSection, LinkingStatusBar, TransactionTable } from '../transactions';
 
 // Importa gli hook personalizzati
 import { useTransactionFilters } from '../../hooks/useCustomHooks/transactions/useTransactionFilters';

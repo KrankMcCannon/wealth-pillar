@@ -1,12 +1,10 @@
 import React, { useMemo, useState, memo, useCallback } from 'react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { useFinance } from '../../hooks/useFinance';
 import { usePersonFilter } from '../../hooks/usePersonFilter';
 import { useTransactionFilter } from '../../hooks/useDataFilters';
-import { Card } from '../ui/Card';
-import { PageHeader } from '../ui/PageHeader';
-import { SummaryCards } from '../ui/SummaryCards';
+import { Card, PageHeader, SummaryCards } from '../ui';
 import { TransactionType } from '../../types';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { formatCurrency } from '../../constants';
 
 /**

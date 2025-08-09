@@ -1,6 +1,6 @@
 import React, { memo, useMemo } from 'react';
 import { Transaction, TransactionType } from '../../types';
-import { ArrowDownIcon, ArrowUpIcon, LinkIcon, PencilIcon } from '../Icons';
+import { ArrowDownIcon, ArrowUpIcon, LinkIcon, PencilIcon } from '../common';
 import { formatCurrency, formatDate } from '../../constants';
 import { useFinance } from '../../hooks/useFinance';
 

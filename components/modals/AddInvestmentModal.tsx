@@ -1,8 +1,7 @@
 import React, { memo, useCallback, useMemo, useEffect } from 'react';
-import { useFinance } from '../hooks/useFinance';
-import { useModalForm } from '../hooks/useModalForm';
-import { BaseModal } from './ui/BaseModal';
-import { FormField, Input, Select, ModalActions } from './ui/FormComponents';
+import { useFinance } from '../../hooks/useFinance';
+import { useModalForm } from '../../hooks/useModalForm';
+import { BaseModal, FormField, Input, Select, ModalActions } from '../ui';
 
 interface AddInvestmentModalProps {
   isOpen: boolean;

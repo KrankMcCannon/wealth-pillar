@@ -1,9 +1,8 @@
 import React, { memo, useCallback, useMemo, useEffect } from 'react';
-import { useFinance } from '../hooks/useFinance';
-import { useModalForm } from '../hooks/useModalForm';
-import { Budget } from '../types';
-import { BaseModal } from './ui/BaseModal';
-import { FormField, Input, Select, CheckboxGroup, ModalActions } from './ui/FormComponents';
+import { useFinance } from '../../hooks/useFinance';
+import { useModalForm } from '../../hooks/useModalForm';
+import { Budget } from '../../types';
+import { BaseModal, FormField, Input, Select, CheckboxGroup, ModalActions } from '../ui';
 
 interface EditBudgetModalProps {
   isOpen: boolean;

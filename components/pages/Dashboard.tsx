@@ -1,8 +1,6 @@
 import React, { memo } from 'react';
 import { useDashboardData } from '../../hooks/useCustomHooks/useDashboardData';
-import { AccountCard } from '../dashboard/AccountCard';
-import { BudgetSection, RecentTransactionsSection } from '../dashboard/DashboardSections';
-import { ExpenseChart } from '../dashboard/ExpenseChart';
+import { AccountCard, BudgetSection, ExpenseChart, RecentTransactionsSection } from '../dashboard';
 
 /**
  * Dashboard Component ottimizzato

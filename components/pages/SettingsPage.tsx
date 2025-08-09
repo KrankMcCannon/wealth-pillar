@@ -3,16 +3,18 @@ import { useFinance } from '../../hooks/useFinance';
 import { usePersonFilter } from '../../hooks/usePersonFilter';
 import { useAccountFilter, useBudgetFilter } from '../../hooks/useDataFilters';
 import { useSettingsModals } from '../../hooks/useSettingsModals';
-import { PageHeader } from '../ui/PageHeader';
+import { PageHeader } from '../ui';
 import { 
   UserProfileSection, 
   AccountManagementSection, 
   BudgetManagementSection 
-} from '../settings/SettingsComponents';
-import { EditAccountModal } from '../EditAccountModal';
-import { AddAccountModal } from '../AddAccountModal';
-import { EditPersonModal } from '../EditPersonModal';
-import { EditBudgetModal } from '../EditBudgetModal';
+} from '../settings';
+import { 
+  EditAccountModal, 
+  AddAccountModal, 
+  EditPersonModal, 
+  EditBudgetModal 
+} from '../modals';
 
 /**
  * Pagina Impostazioni ottimizzata

@@ -1,5 +1,5 @@
 import React, { memo } from 'react';
-import { Card } from '../ui/Card';
+import { Card } from '../ui';
 import { Account } from '../../types';
 import { formatCurrency } from '../../constants';
 

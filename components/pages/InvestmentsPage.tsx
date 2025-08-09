@@ -1,10 +1,9 @@
 import React, { useState, memo, useCallback } from 'react';
 import { usePersonFilter } from '../../hooks/usePersonFilter';
 import { useInvestmentFilter } from '../../hooks/useDataFilters';
-import { PageHeader } from '../ui/PageHeader';
-import { PortfolioSummary, InvestmentTable } from '../investments/InvestmentComponents';
-import { CompoundInterestCalculator } from '../investments/CompoundInterestCalculator';
-import { AddInvestmentModal } from '../AddInvestmentModal';
+import { PageHeader } from '../ui';
+import { CompoundInterestCalculator, PortfolioSummary, InvestmentTable } from '../investments';
+import { AddInvestmentModal } from '../modals';
 
 // Simple plus icon as SVG component
 const PlusIcon = () => (

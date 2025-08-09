@@ -1,9 +1,8 @@
 import React, { memo, useCallback, useMemo, useEffect } from 'react';
-import { useFinance } from '../hooks/useFinance';
-import { useModalForm } from '../hooks/useModalForm';
-import { Person } from '../types';
-import { BaseModal } from './ui/BaseModal';
-import { FormField, Input, ModalActions } from './ui/FormComponents';
+import { useFinance } from '../../hooks/useFinance';
+import { useModalForm } from '../../hooks/useModalForm';
+import { Person } from '../../types';
+import { BaseModal, FormField, Input, ModalActions } from '../ui';
 
 interface EditPersonModalProps {
   isOpen: boolean;
