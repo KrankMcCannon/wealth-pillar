@@ -6,6 +6,7 @@ import { TransactionsPage } from './components/pages/TransactionsPage';
 import { InvestmentsPage } from './components/pages/InvestmentsPage';
 import { SettingsPage } from './components/pages/SettingsPage';
 import { ReportsPage } from './components/pages/ReportsPage';
+import { AuthCallbackPage } from './components/pages/AuthCallbackPage';
 import { AddTransactionModal } from './components/AddTransactionModal';
 import { PlusIcon } from './components/Icons';
 import { useFinance } from './hooks/useFinance';
@@ -71,6 +72,7 @@ const AppContent: React.FC = () => {
               <Route path="/investments" element={<InvestmentsPage />} />
               <Route path="/reports" element={<ReportsPage />} />
               <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/auth/callback" element={<AuthCallbackPage />} />
             </Routes>
           </div>
         </main>
@@ -90,6 +92,9 @@ const AppContent: React.FC = () => {
 
 const App: React.FC = () => {
   const { user, loading } = useAuth();
+
+  // Debug logging
+  console.log('App render - User:', user?.email, 'Loading:', loading);
 
   if (loading) {
     return (

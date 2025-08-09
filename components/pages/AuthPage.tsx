@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { AuthForm } from '../AuthForm';
+import { MultiAuthForm } from '../MultiAuthForm';
 
 export const AuthPage: React.FC = () => {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -8,5 +8,5 @@ export const AuthPage: React.FC = () => {
     setIsSignUp(!isSignUp);
   };
 
-  return <AuthForm onToggleMode={toggleMode} isSignUp={isSignUp} />;
+  return <MultiAuthForm onToggleSignUpMode={toggleMode} isSignUp={isSignUp} />;
 };

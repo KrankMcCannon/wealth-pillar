@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, ReactNode, useCallback, useEffect } from 'react';
 import { Person, Account, Transaction, Budget, TransactionType, InvestmentHolding, CategoryOption } from '../types';
 import { SupabaseService } from '../services/supabaseService';
+import { useAuth } from '../contexts/AuthContext';
 import { v4 as uuidv4 } from 'uuid';
 
 interface FinanceContextType {
@@ -37,6 +38,7 @@ interface FinanceContextType {
 const FinanceContext = createContext<FinanceContextType | undefined>(undefined);
 
 export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const { user, loading: authLoading } = useAuth();
   const [people, setPeople] = useState<Person[]>([]);
   const [selectedPersonId, setSelectedPersonId] = useState<string>('all');
   const [accounts, setAccounts] = useState<Account[]>([]);
@@ -51,6 +53,12 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
   const supabaseService = new SupabaseService();
 
   const loadData = useCallback(async () => {
+    // Non tentare di caricare dati se non c'è un utente autenticato
+    if (!user) {
+      setIsLoading(false);
+      return;
+    }
+
     try {
       setIsLoading(true);
       setError(null);
@@ -77,11 +85,24 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [user]);
 
   useEffect(() => {
-    loadData();
-  }, [loadData]);
+    // Solo carica i dati se l'utente è autenticato e l'auth non è in loading
+    if (user && !authLoading) {
+      loadData();
+    } else if (!authLoading && !user) {
+      // Se l'auth è completato ma non c'è utente, resetta lo stato
+      setPeople([]);
+      setAccounts([]);
+      setTransactions([]);
+      setBudgets([]);
+      setInvestments([]);
+      setCategories([]);
+      setIsLoading(false);
+      setError(null);
+    }
+  }, [user, authLoading, loadData]);
 
   const refreshData = useCallback(async () => {
     await loadData();

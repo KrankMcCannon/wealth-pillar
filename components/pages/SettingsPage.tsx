@@ -7,6 +7,7 @@ import { EditAccountModal } from '../EditAccountModal';
 import { AddAccountModal } from '../AddAccountModal';
 import { EditPersonModal } from '../EditPersonModal';
 import { EditBudgetModal } from '../EditBudgetModal';
+import { AuthSettingsCard } from '../AuthSettingsCard';
 import { formatCurrency } from '../../constants';
 
 export const SettingsPage: React.FC = () => {
@@ -53,6 +54,9 @@ export const SettingsPage: React.FC = () => {
         <>
             <div className="space-y-8">
                 <h1 className="text-3xl font-bold text-gray-800 dark:text-white">Impostazioni</h1>
+
+                {/* Sezione Autenticazione */}
+                <AuthSettingsCard />
 
                 <Card>
                     <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-white">Profilo Utente</h2>

@@ -130,4 +130,159 @@ export class SupabaseAuthService implements IAuthService {
       throw new AuthError('Unexpected error during email update', 'UNKNOWN_ERROR', error);
     }
   }
+
+  // Passwordless OTP methods
+  async signInWithOTP(email: string): Promise<any> {
+    try {
+      const { data, error } = await this.supabase.auth.signInWithOtp({
+        email,
+        options: {
+          shouldCreateUser: true,
+          emailRedirectTo: `${window.location.origin}/auth/callback`
+        }
+      });
+
+      if (error) {
+        throw new AuthError('Failed to send OTP', error.message, error);
+      }
+
+      return data;
+    } catch (error) {
+      if (error instanceof AuthError) throw error;
+      throw new AuthError('Unexpected error during OTP sign in', 'UNKNOWN_ERROR', error);
+    }
+  }
+
+  async verifyOTP(email: string, token: string): Promise<any> {
+    try {
+      const { data, error } = await this.supabase.auth.verifyOtp({
+        email,
+        token,
+        type: 'email'
+      });
+
+      if (error) {
+        throw new AuthError('Failed to verify OTP', error.message, error);
+      }
+
+      return data;
+    } catch (error) {
+      if (error instanceof AuthError) throw error;
+      throw new AuthError('Unexpected error during OTP verification', 'UNKNOWN_ERROR', error);
+    }
+  }
+
+  // OAuth methods
+  async signInWithGoogle(): Promise<any> {
+    try {
+      const { data, error } = await this.supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent'
+          }
+        }
+      });
+
+      if (error) {
+        throw new AuthError('Failed to sign in with Google', error.message, error);
+      }
+
+      return data;
+    } catch (error) {
+      if (error instanceof AuthError) throw error;
+      throw new AuthError('Unexpected error during Google sign in', 'UNKNOWN_ERROR', error);
+    }
+  }
+
+  // User management methods
+  async linkOTPToAccount(): Promise<any> {
+    try {
+      const { data: { user } } = await this.supabase.auth.getUser();
+      
+      if (!user) {
+        throw new AuthError('User must be logged in to link OTP', 'USER_NOT_FOUND');
+      }
+
+      // OTP è già collegato di default per tutti gli utenti Supabase
+      return { success: true, message: 'OTP is now available for your account' };
+    } catch (error) {
+      if (error instanceof AuthError) throw error;
+      throw new AuthError('Unexpected error during OTP linking', 'UNKNOWN_ERROR', error);
+    }
+  }
+
+  async updateUserPassword(password: string): Promise<any> {
+    try {
+      const { data, error } = await this.supabase.auth.updateUser({
+        password
+      });
+
+      if (error) {
+        throw new AuthError('Failed to set password', error.message, error);
+      }
+
+      return data;
+    } catch (error) {
+      if (error instanceof AuthError) throw error;
+      throw new AuthError('Unexpected error during password update', 'UNKNOWN_ERROR', error);
+    }
+  }
+
+  async getUserProviders(): Promise<string[]> {
+    try {
+      const { data: { user } } = await this.supabase.auth.getUser();
+      
+      if (!user) {
+        return [];
+      }
+
+      const providers: string[] = [];
+      
+      // Verifica i provider realmente usati dall'utente
+      if (user.app_metadata?.providers) {
+        user.app_metadata.providers.forEach((provider: string) => {
+          if (provider === 'email') {
+            // Se l'utente si è registrato con email/password
+            if (user.user_metadata?.password_set !== false) {
+              providers.push('password');
+            }
+            // Se l'utente si è registrato solo con OTP (senza password)
+            if (user.user_metadata?.password_set === false || 
+                user.email_confirmed_at && !user.user_metadata?.password_set) {
+              providers.push('otp');
+            }
+          } else {
+            // Provider OAuth (google, github, etc.)
+            providers.push(provider);
+          }
+        });
+      }
+      
+      // Caso speciale: se l'utente ha una password ma non è nei provider, aggiungila
+      if (user.user_metadata?.password_set && !providers.includes('password')) {
+        providers.push('password');
+      }
+      
+      return [...new Set(providers)]; // Rimuovi duplicati
+    } catch (error) {
+      console.error('Error getting user providers:', error);
+      return [];
+    }
+  }
+
+  async getAvailableProviders(): Promise<string[]> {
+    try {
+      const currentProviders = await this.getUserProviders();
+      const allPossibleProviders = ['password', 'otp'];
+      
+      // Restituisci solo i provider che non sono già attivi
+      return allPossibleProviders.filter(provider => !currentProviders.includes(provider));
+    } catch (error) {
+      console.error('Error getting available providers:', error);
+      return [];
+    }
+  }
 }

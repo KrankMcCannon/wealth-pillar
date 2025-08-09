@@ -31,6 +31,19 @@ export interface IAuthService {
   signOut(): Promise<void>;
   getCurrentUser(): Promise<any>;
   onAuthStateChange(callback: (user: any) => void): () => void;
+  
+  // Passwordless OTP methods
+  signInWithOTP(email: string): Promise<any>;
+  verifyOTP(email: string, token: string): Promise<any>;
+  
+  // OAuth methods
+  signInWithGoogle(): Promise<any>;
+  
+  // User management
+  linkOTPToAccount(): Promise<any>;
+  updateUserPassword(password: string): Promise<any>;
+  getUserProviders(): Promise<string[]>;
+  getAvailableProviders(): Promise<string[]>;
 }
 
 // Storage interface
