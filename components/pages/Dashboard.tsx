@@ -271,18 +271,20 @@ export const Dashboard: React.FC = () => {
     const expenseData = categories
         .filter(cat => !['stipendio', 'rimborso', 'investimenti', 'entrata', 'trasferimento'].includes(cat.id))
         .map(category => {
-            // Crea una funzione di mapping per convertire i nomi delle categorie
-            const categoryId = category.id;
-            const categorySlug = categoryId.toLowerCase().replace(/\s+/g, '_');
-            
+            // Trova le transazioni che appartengono a questa categoria
             const categoryTransactions = displayedTransactions
                 .filter(t => {
-                    // Prova sia l'ID originale che la versione slug
-                    return (t.category === categoryId || t.category === categorySlug) && t.type === TransactionType.SPESA;
+                    // Confronto diretto tra il nome della categoria e la categoria della transazione
+                    return t.category === category.name && t.type === TransactionType.SPESA;
                 });
-            const total = categoryTransactions.reduce((sum, t) => sum + getEffectiveTransactionAmount(t), 0);
+                
+            // Calcola il totale per il grafico delle spese usando l'importo effettivo reale
+            const total = categoryTransactions.reduce((sum, t) => {
+                const amount = getEffectiveTransactionAmount(t);
+                return sum + amount;
+            }, 0);
             
-            return { name: category.name, value: total };
+            return { name: category.label || category.name, value: total };
         })
         .filter(item => item.value > 0)
         .sort((a, b) => b.value - a.value); // Ordina per valore decrescente

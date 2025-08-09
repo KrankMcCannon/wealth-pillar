@@ -182,7 +182,7 @@ export const AddTransactionModal: React.FC<AddTransactionModalProps> = ({ isOpen
             <div>
               <label htmlFor="category" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Categoria</label>
               <select id="category" value={category} onChange={e => setCategory(e.target.value)} className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm dark:bg-gray-700 dark:border-gray-600 focus:ring-blue-500 focus:border-blue-500">
-                {categories.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
+                {categories.map(cat => <option key={cat.id} value={cat.name}>{cat.label || cat.name}</option>)}
               </select>
             </div>
             <div>

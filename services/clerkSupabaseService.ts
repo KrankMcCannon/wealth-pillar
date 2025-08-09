@@ -323,6 +323,7 @@ async getAccounts(): Promise<Account[]> {
     return (data || []).map(category => ({
       id: category.id,
       name: category.name,
+      label: category.label,
     }));
   }
 

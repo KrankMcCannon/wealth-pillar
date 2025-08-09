@@ -179,7 +179,7 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
             >
               <option value="">Seleziona categoria</option>
               {categories.map(cat => (
-                <option key={cat.id} value={cat.id}>{cat.name}</option>
+                <option key={cat.id} value={cat.id}>{cat.label || cat.name}</option>
               ))}
             </select>
           </div>

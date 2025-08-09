@@ -223,8 +223,8 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
   }, [people]);
 
   const getCategoryName = useCallback((categoryId: string) => {
-    const category = categories.find(c => c.id === categoryId);
-    return category ? category.name : categoryId;
+    const category = categories.find(c => c.name === categoryId);
+    return category ? (category.label || category.name) : categoryId;
   }, [categories]);
 
   // Calculate the effective amount of a transaction considering reconciliation
