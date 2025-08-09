@@ -112,9 +112,26 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
 
   // Helper to get authenticated service
   const getService = useCallback(() => {
-    if (!client) throw new Error('Client non disponibile');
+    if (!client) {
+      throw new Error('Sessione non disponibile. Effettua nuovamente il login.');
+    }
+    if (!isSignedIn) {
+      throw new Error('Utente non autenticato. Effettua il login.');
+    }
     return new ClerkSupabaseService(client);
-  }, [client]);
+  }, [client, isSignedIn]);
+
+  // Helper to safely get service with better error handling
+  const getServiceSafely = useCallback(async (): Promise<ClerkSupabaseService> => {
+    if (!client && isSignedIn) {
+      for (let i = 0; i < 30; i++) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+        if (client) break;
+      }
+    }
+    
+    return getService();
+  }, [client, isSignedIn, getService]);
 
   const selectPerson = useCallback((id: string) => {
     setSelectedPersonId(id);
@@ -122,6 +139,8 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
 
   const addTransaction = useCallback(async (transactionData: Omit<Transaction, 'id'>) => {
     try {
+      const service = await getServiceSafely();
+
       const newTransaction: Transaction = {
         ...transactionData,
         id: uuidv4(),
@@ -129,18 +148,19 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
         createdAt: new Date().toISOString(),
       };
 
-      const savedTransaction = await getService().addTransaction(newTransaction);
+      const savedTransaction = await service.addTransaction(newTransaction);
       setTransactions(prev => [savedTransaction, ...prev].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
 
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to add transaction');
       throw err;
     }
-  }, []);
+  }, [getServiceSafely]);
 
   const updateTransaction = useCallback(async (updatedTransaction: Transaction) => {
     try {
-      const savedTransaction = await getService().updateTransaction(updatedTransaction);
+      const service = await getServiceSafely();
+      const savedTransaction = await service.updateTransaction(updatedTransaction);
       setTransactions(prev => prev.map(tx => 
         tx.id === savedTransaction.id ? savedTransaction : tx
       ).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
@@ -148,71 +168,77 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
       setError(err instanceof Error ? err.message : 'Failed to update transaction');
       throw err;
     }
-  }, []);
+  }, [getServiceSafely]);
 
   const addAccount = useCallback(async (accountData: Omit<Account, 'id'>) => {
     try {
-      const newAccount = await getService().addAccount(accountData);
+      const service = await getServiceSafely();
+      const newAccount = await service.addAccount(accountData);
       setAccounts(prev => [...prev, newAccount]);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to add account');
       throw err;
     }
-  }, []);
+  }, [getServiceSafely]);
 
   const updateAccount = useCallback(async (updatedAccount: Account) => {
     try {
-      const savedAccount = await getService().updateAccount(updatedAccount);
+      const service = await getServiceSafely();
+      const savedAccount = await service.updateAccount(updatedAccount);
       setAccounts(prev => prev.map(acc => (acc.id === savedAccount.id ? savedAccount : acc)));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update account');
       throw err;
     }
-  }, []);
+  }, [getServiceSafely]);
 
   const addBudget = useCallback(async (budgetData: Omit<Budget, 'id'>) => {
     try {
-      const newBudget = await getService().addBudget(budgetData);
+      const service = await getServiceSafely();
+      const newBudget = await service.addBudget(budgetData);
       setBudgets(prev => [...prev, newBudget]);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to add budget');
       throw err;
     }
-  }, []);
+  }, [getServiceSafely]);
 
   const updateBudget = useCallback(async (updatedBudget: Budget) => {
     try {
-      const savedBudget = await getService().updateBudget(updatedBudget);
+      const service = await getServiceSafely();
+      const savedBudget = await service.updateBudget(updatedBudget);
       setBudgets(prev => prev.map(b => (b.id === savedBudget.id ? savedBudget : b)));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update budget');
       throw err;
     }
-  }, []);
+  }, [getServiceSafely]);
 
   const updatePerson = useCallback(async (updatedPerson: Person) => {
     try {
-      const savedPerson = await getService().updatePerson(updatedPerson);
+      const service = await getServiceSafely();
+      const savedPerson = await service.updatePerson(updatedPerson);
       setPeople(prev => prev.map(p => (p.id === savedPerson.id ? savedPerson : p)));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update person');
       throw err;
     }
-  }, []);
+  }, [getServiceSafely]);
 
   const addInvestment = useCallback(async (investmentData: Omit<InvestmentHolding, 'id'>) => {
     try {
+      const service = await getServiceSafely();
       const newInvestment: InvestmentHolding = {
         ...investmentData,
         id: uuidv4(),
       };
-      const savedInvestment = await getService().addInvestment(newInvestment);
+      const savedInvestment = await service.addInvestment(newInvestment);
       setInvestments(prev => [...prev, savedInvestment]);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to add investment');
       throw err;
     }
-  }, []);
+  }, [getServiceSafely]);
 
   const getAccountById = useCallback((id: string) => {
     return accounts.find(acc => acc.id === id);
@@ -375,6 +401,7 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
 
   const linkTransactions = useCallback(async (tx1Id: string, tx2Id: string) => {
     try {
+      const service = await getServiceSafely();
       const tx1 = transactions.find(tx => tx.id === tx1Id);
       const tx2 = transactions.find(tx => tx.id === tx2Id);
 
@@ -383,8 +410,8 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
         const updatedTx2 = { ...tx2, isReconciled: true, linkedTransactionId: tx1Id };
 
         await Promise.all([
-          getService().updateTransaction(updatedTx1),
-          getService().updateTransaction(updatedTx2),
+          service.updateTransaction(updatedTx1),
+          service.updateTransaction(updatedTx2),
         ]);
 
         setTransactions(prev => prev.map(tx => {
@@ -397,7 +424,7 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
       setError(err instanceof Error ? err.message : 'Failed to link transactions');
       throw err;
     }
-  }, [transactions]);
+  }, [transactions, getServiceSafely]);
 
   const value = {
     people,

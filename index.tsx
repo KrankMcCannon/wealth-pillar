@@ -2,7 +2,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
-import { FinanceProvider } from './hooks/useFinance';
 import { AuthProvider } from './contexts/AuthContext';
 import { ClerkProvider } from '@clerk/clerk-react';
 
@@ -22,9 +21,7 @@ root.render(
   <React.StrictMode>
     <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
       <AuthProvider>
-        <FinanceProvider>
-          <App />
-        </FinanceProvider>
+        <App />
       </AuthProvider>
     </ClerkProvider>
   </React.StrictMode>

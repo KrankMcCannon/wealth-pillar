@@ -8,9 +8,9 @@ import { SettingsPage } from './components/pages/SettingsPage';
 import { ReportsPage } from './components/pages/ReportsPage';
 import { AddTransactionModal } from './components/AddTransactionModal';
 import { PlusIcon } from './components/Icons';
-import { useFinance } from './hooks/useFinance';
+import { useFinance, FinanceProvider } from './hooks/useFinance';
 import { useAuth } from './contexts/AuthContext';
-import { SignIn, SignUp } from '@clerk/clerk-react';
+import { SignIn } from '@clerk/clerk-react';
 
 const AppContent: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -90,9 +90,6 @@ const AppContent: React.FC = () => {
 const App: React.FC = () => {
   const { user, isLoaded, isSignedIn } = useAuth();
 
-  // Debug logging
-  console.log('App render - User:', user?.primaryEmailAddress?.emailAddress, 'IsLoaded:', isLoaded, 'IsSignedIn:', isSignedIn);
-
   if (!isLoaded) {
     return (
       <div className="flex items-center justify-center h-screen bg-gray-100 dark:bg-gray-900">
@@ -122,7 +119,11 @@ const App: React.FC = () => {
     );
   }
 
-  return <AppContent />;
+  return (
+    <FinanceProvider>
+      <AppContent />
+    </FinanceProvider>
+  );
 };
 
 export default App;
