@@ -7,13 +7,12 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "server": "json-server --watch data/db.json --port 3001 --host localhost",
-    "start": "npm run dev"
+    "start": "npm run dev",
+    "login-and-get-info": "node scripts/login-and-get-info.mjs"
   },
   "dependencies": {
-    "@google/genai": "^1.12.0",
+    "@clerk/clerk-react": "^5.40.0",
     "@supabase/supabase-js": "^2.54.0",
-    "json-server": "^1.0.0-beta.3",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-is": "^18.2.0",

@@ -4,6 +4,13 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import { FinanceProvider } from './hooks/useFinance';
 import { AuthProvider } from './contexts/AuthContext';
+import { ClerkProvider } from '@clerk/clerk-react';
+
+const PUBLISHABLE_KEY = (import.meta as any).env.VITE_CLERK_PUBLISHABLE_KEY;
+
+if (!PUBLISHABLE_KEY) {
+  throw new Error("Missing Publishable Key");
+}
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -13,10 +20,12 @@ if (!rootElement) {
 const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
-    <AuthProvider>
-      <FinanceProvider>
-        <App />
-      </FinanceProvider>
-    </AuthProvider>
+    <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
+      <AuthProvider>
+        <FinanceProvider>
+          <App />
+        </FinanceProvider>
+      </AuthProvider>
+    </ClerkProvider>
   </React.StrictMode>
 );

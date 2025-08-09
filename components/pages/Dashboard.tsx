@@ -43,18 +43,31 @@ function BudgetProgress({ budget, transactions, person }: {
     transactions: Transaction[];
     person: Person;
 }) {
-    const { periodStart, periodEnd } = getCurrentBudgetPeriod(person);
-    const { getCategoryName, getEffectiveTransactionAmount } = useFinance();
+    const { getCategoryName, getEffectiveTransactionAmount, getAccountById, getPersonById, getRemainingAmount } = useFinance();
+    
+    // Ottieni la persona del budget, non quella passata come parametro
+    const budgetPerson = getPersonById(budget.personId) || person;
+    const { periodStart, periodEnd } = getCurrentBudgetPeriod(budgetPerson);
 
     const currentSpent = transactions
         .filter(t => {
             if (t.type !== 'spesa') return false;
-            if (t.category === 'trasferimento') return false; // Esclude i trasferimenti dal budget
+            if (t.category === 'trasferimento') return false;
+            
+            // Verifica che la transazione appartenga alla persona del budget
+            const account = getAccountById(t.accountId);
+            if (!account?.personIds?.includes?.(budget.personId)) return false;
+            
             const transactionDate = new Date(t.date);
-            return transactionDate >= periodStart && transactionDate <= periodEnd &&
-                budget.categories.includes(t.category);
+            const isInPeriod = transactionDate >= periodStart && transactionDate <= periodEnd;
+            const isInCategory = budget.categories.includes(t.category);
+            
+            return isInPeriod && isInCategory;
         })
-        .reduce((sum, t) => sum + getEffectiveTransactionAmount(t), 0);
+        .reduce((sum, t) => {
+            const amount = t.isReconciled ? getRemainingAmount(t) : getEffectiveTransactionAmount(t);
+            return sum + amount;
+        }, 0);
 
     const percentage = budget.amount > 0 ? (currentSpent / budget.amount) * 100 : 0;
     const remaining = budget.amount - currentSpent;
@@ -258,18 +271,20 @@ export const Dashboard: React.FC = () => {
     const expenseData = categories
         .filter(cat => !['stipendio', 'rimborso', 'investimenti', 'entrata', 'trasferimento'].includes(cat.id))
         .map(category => {
-            // Crea una funzione di mapping per convertire i nomi delle categorie
-            const categoryId = category.id;
-            const categorySlug = categoryId.toLowerCase().replace(/\s+/g, '_');
-            
+            // Trova le transazioni che appartengono a questa categoria
             const categoryTransactions = displayedTransactions
                 .filter(t => {
-                    // Prova sia l'ID originale che la versione slug
-                    return (t.category === categoryId || t.category === categorySlug) && t.type === TransactionType.SPESA;
+                    // Confronto diretto tra il nome della categoria e la categoria della transazione
+                    return t.category === category.name && t.type === TransactionType.SPESA;
                 });
-            const total = categoryTransactions.reduce((sum, t) => sum + getEffectiveTransactionAmount(t), 0);
+                
+            // Calcola il totale per il grafico delle spese usando l'importo effettivo reale
+            const total = categoryTransactions.reduce((sum, t) => {
+                const amount = getEffectiveTransactionAmount(t);
+                return sum + amount;
+            }, 0);
             
-            return { name: category.name, value: total };
+            return { name: category.label || category.name, value: total };
         })
         .filter(item => item.value > 0)
         .sort((a, b) => b.value - a.value); // Ordina per valore decrescente
@@ -311,17 +326,16 @@ export const Dashboard: React.FC = () => {
                 <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-white">Panoramica Budget Mensile</h2>
                 <div className="space-y-4">
                     {displayedBudgets.length > 0 ? displayedBudgets.map(budget => {
-                        const person = isAllView ? getPersonById(budget.personId) : null;
-                        const budgetTransactions = isAllView
-                            ? transactions.filter(t => {
-                                const account = getAccountById(t.accountId);
-                                return account?.personIds.includes(budget.personId);
-                            })
-                            : displayedTransactions;
+                        // Nel caso della vista "all", non duplicare i budget
+                        const budgetPerson = getPersonById(budget.personId);
                         return (
                             <div key={budget.id}>
-                                {person && <h3 className="text-lg font-medium text-blue-600 dark:text-blue-400 mb-2">{person.name}</h3>}
-                                <BudgetProgress budget={budget} transactions={budgetTransactions} person={person || selectedPerson!} />
+                                {isAllView && budgetPerson && <h3 className="text-lg font-medium text-blue-600 dark:text-blue-400 mb-2">{budgetPerson.name}</h3>}
+                                <BudgetProgress 
+                                    budget={budget} 
+                                    transactions={transactions} 
+                                    person={budgetPerson || selectedPerson!} 
+                                />
                             </div>
                         );
                     }) : (

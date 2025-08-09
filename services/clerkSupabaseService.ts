@@ -1,25 +1,24 @@
-import { getSupabaseClient } from '../lib/supabase/client';
+/**
+ * Clerk-Supabase Integration Service
+ * Bridges Clerk authentication with Supabase database using official Clerk integration
+ */
+
+import { SupabaseClient } from '@supabase/supabase-js';
+import type { Database } from '../lib/supabase/database.types';
 import { Account, Budget, CategoryOption, InvestmentHolding, Person, Transaction } from '../types';
 
-export class SupabaseService {
-  private supabase = getSupabaseClient();
+export class ClerkSupabaseService {
+  private client: SupabaseClient<Database>;
 
-  // Helper per ottenere l'utente corrente
-  private async getCurrentUserId(): Promise<string> {
-    const { data: { user } } = await this.supabase.auth.getUser();
-    if (!user) {
-      throw new Error('Utente non autenticato');
-    }
-    return user.id;
+  constructor(client: SupabaseClient<Database>) {
+    this.client = client;
   }
 
   // People
   async getPeople(): Promise<Person[]> {
-    const userId = await this.getCurrentUserId();
-    const { data, error } = await this.supabase
+    const { data, error } = await this.client
       .from('people')
       .select('*')
-      .eq('user_id', userId)
       .order('name');
 
     if (error) throw new Error(`Errore caricamento persone: ${error.message}`);
@@ -34,8 +33,7 @@ export class SupabaseService {
   }
 
   async updatePerson(person: Person): Promise<Person> {
-    const userId = await this.getCurrentUserId();
-    const { data, error } = await this.supabase
+    const { data, error } = await this.client
       .from('people')
       .update({
         name: person.name,
@@ -44,7 +42,6 @@ export class SupabaseService {
         budget_start_date: parseInt(person.budgetStartDate),
       })
       .eq('id', person.id)
-      .eq('user_id', userId)
       .select()
       .single();
 
@@ -60,40 +57,62 @@ export class SupabaseService {
   }
 
   // Accounts
-  async getAccounts(): Promise<Account[]> {
-    const userId = await this.getCurrentUserId();
-    const { data, error } = await this.supabase
+async getAccounts(): Promise<Account[]> {
+    const { data, error } = await this.client
       .from('accounts')
       .select('*')
-      .eq('user_id', userId)
       .order('name');
 
     if (error) throw new Error(`Errore caricamento account: ${error.message}`);
 
-    return (data || []).map(account => ({
-      id: account.id,
-      name: account.name,
-      type: account.type,
-      balance: parseFloat(account.balance || '0'),
-      personIds: account.person_ids || [],
-    }));
+    return (data || []).map(account => {
+      // Parse person_ids safely from potentially malformed JSON
+      let personIds: string[] = [];
+      try {
+        if (account.person_ids) {
+          // Handle different formats that might come from database
+          if (Array.isArray(account.person_ids)) {
+            personIds = account.person_ids;
+          } else if (typeof account.person_ids === 'string') {
+            // Clean up malformed JSON strings
+            let cleanJson = account.person_ids;
+            // Remove extra quotes and brackets
+            cleanJson = cleanJson.replace(/^"/, '').replace(/"$/, '');
+            cleanJson = cleanJson.replace(/}]$/, ']');
+            cleanJson = cleanJson.replace(/^{/, '[');
+            cleanJson = cleanJson.replace(/\\"/g, '"');
+            
+            personIds = JSON.parse(cleanJson);
+          }
+        }
+      } catch (error) {
+        console.error(`Error parsing person_ids for account ${account.name}:`, account.person_ids, error);
+        personIds = [];
+      }
+
+      return {
+        id: account.id,
+        name: account.name,
+        type: account.type,
+        balance: parseFloat(account.balance || '0'),
+        personIds: personIds,
+      };
+    });
   }
 
   async addAccount(account: Omit<Account, 'id'>): Promise<Account> {
-    const userId = await this.getCurrentUserId();
-    const { data, error } = await this.supabase
+    const { data, error } = await this.client
       .from('accounts')
       .insert({
         name: account.name,
         type: account.type,
         balance: account.balance,
         person_ids: account.personIds,
-        user_id: userId,
       })
       .select()
       .single();
 
-    if (error) throw new Error(`Errore creazione account: ${error.message}`);
+    if (error) throw new Error(`Errore aggiunta account: ${error.message}`);
 
     return {
       id: data.id,
@@ -105,8 +124,7 @@ export class SupabaseService {
   }
 
   async updateAccount(account: Account): Promise<Account> {
-    const userId = await this.getCurrentUserId();
-    const { data, error } = await this.supabase
+    const { data, error } = await this.client
       .from('accounts')
       .update({
         name: account.name,
@@ -115,7 +133,6 @@ export class SupabaseService {
         person_ids: account.personIds,
       })
       .eq('id', account.id)
-      .eq('user_id', userId)
       .select()
       .single();
 
@@ -132,35 +149,33 @@ export class SupabaseService {
 
   // Transactions
   async getTransactions(): Promise<Transaction[]> {
-    const userId = await this.getCurrentUserId();
-    const { data, error } = await this.supabase
+    const { data, error } = await this.client
       .from('transactions')
       .select('*')
-      .eq('user_id', userId)
       .order('date', { ascending: false });
 
     if (error) throw new Error(`Errore caricamento transazioni: ${error.message}`);
 
-    return (data || []).map(transaction => ({
-      id: transaction.id,
-      description: transaction.description,
-      amount: parseFloat(transaction.amount),
-      date: transaction.date,
-      type: transaction.type,
-      category: transaction.category,
-      accountId: transaction.account_id,
-      toAccountId: transaction.to_account_id,
-      isReconciled: transaction.is_reconciled || false,
-      linkedTransactionId: transaction.parent_transaction_id,
-      createdAt: transaction.created_at,
+    return (data || []).map(tx => ({
+      id: tx.id,
+      description: tx.description,
+      amount: parseFloat(tx.amount),
+      date: tx.date,
+      type: tx.type,
+      category: tx.category,
+      accountId: tx.account_id,
+      toAccountId: tx.to_account_id,
+      isReconciled: tx.is_reconciled || false,
+      linkedTransactionId: tx.parent_transaction_id,
+      createdAt: tx.created_at,
     }));
   }
 
   async addTransaction(transaction: Transaction): Promise<Transaction> {
-    const userId = await this.getCurrentUserId();
-    const { data, error } = await this.supabase
+    const { data, error } = await this.client
       .from('transactions')
       .insert({
+        id: transaction.id,
         description: transaction.description,
         amount: transaction.amount,
         date: transaction.date,
@@ -168,14 +183,13 @@ export class SupabaseService {
         category: transaction.category,
         account_id: transaction.accountId,
         to_account_id: transaction.toAccountId,
-        is_reconciled: transaction.isReconciled || false,
+        is_reconciled: transaction.isReconciled,
         parent_transaction_id: transaction.linkedTransactionId,
-        user_id: userId,
       })
       .select()
       .single();
 
-    if (error) throw new Error(`Errore creazione transazione: ${error.message}`);
+    if (error) throw new Error(`Errore aggiunta transazione: ${error.message}`);
 
     return {
       id: data.id,
@@ -193,8 +207,7 @@ export class SupabaseService {
   }
 
   async updateTransaction(transaction: Transaction): Promise<Transaction> {
-    const userId = await this.getCurrentUserId();
-    const { data, error } = await this.supabase
+    const { data, error } = await this.client
       .from('transactions')
       .update({
         description: transaction.description,
@@ -204,11 +217,10 @@ export class SupabaseService {
         category: transaction.category,
         account_id: transaction.accountId,
         to_account_id: transaction.toAccountId,
-        is_reconciled: transaction.isReconciled || false,
+        is_reconciled: transaction.isReconciled,
         parent_transaction_id: transaction.linkedTransactionId,
       })
       .eq('id', transaction.id)
-      .eq('user_id', userId)
       .select()
       .single();
 
@@ -231,11 +243,9 @@ export class SupabaseService {
 
   // Budgets
   async getBudgets(): Promise<Budget[]> {
-    const userId = await this.getCurrentUserId();
-    const { data, error } = await this.supabase
+    const { data, error } = await this.client
       .from('budgets')
       .select('*')
-      .eq('user_id', userId)
       .order('description');
 
     if (error) throw new Error(`Errore caricamento budget: ${error.message}`);
@@ -251,8 +261,7 @@ export class SupabaseService {
   }
 
   async addBudget(budget: Omit<Budget, 'id'>): Promise<Budget> {
-    const userId = await this.getCurrentUserId();
-    const { data, error } = await this.supabase
+    const { data, error } = await this.client
       .from('budgets')
       .insert({
         description: budget.description,
@@ -260,12 +269,11 @@ export class SupabaseService {
         amount: budget.amount,
         period: budget.period,
         person_id: budget.personId,
-        user_id: userId,
       })
       .select()
       .single();
 
-    if (error) throw new Error(`Errore creazione budget: ${error.message}`);
+    if (error) throw new Error(`Errore aggiunta budget: ${error.message}`);
 
     return {
       id: data.id,
@@ -278,8 +286,7 @@ export class SupabaseService {
   }
 
   async updateBudget(budget: Budget): Promise<Budget> {
-    const userId = await this.getCurrentUserId();
-    const { data, error } = await this.supabase
+    const { data, error } = await this.client
       .from('budgets')
       .update({
         description: budget.description,
@@ -289,7 +296,6 @@ export class SupabaseService {
         person_id: budget.personId,
       })
       .eq('id', budget.id)
-      .eq('user_id', userId)
       .select()
       .single();
 
@@ -307,69 +313,28 @@ export class SupabaseService {
 
   // Categories
   async getCategories(): Promise<CategoryOption[]> {
-    const userId = await this.getCurrentUserId();
-    const { data, error } = await this.supabase
+    const { data, error } = await this.client
       .from('categories')
       .select('*')
-      .eq('user_id', userId)
       .order('name');
 
     if (error) throw new Error(`Errore caricamento categorie: ${error.message}`);
 
     return (data || []).map(category => ({
-      id: category.name, // Usiamo il name come ID per compatibilità
+      id: category.id,
       name: category.name,
+      label: category.label,
     }));
   }
 
   // Investments (placeholder - da implementare se necessario)
   async getInvestments(): Promise<InvestmentHolding[]> {
-    // Per ora restituiamo array vuoto
-    // In futuro puoi creare una tabella investments se necessario
+    // Per ora ritorniamo un array vuoto
     return [];
   }
 
-  async addInvestment(investment: Omit<InvestmentHolding, 'id'>): Promise<InvestmentHolding> {
-    // Placeholder per compatibilità
-    throw new Error('Investments non ancora implementati in Supabase');
-  }
-
-  // Link transactions
-  async linkTransactions(tx1Id: string, tx2Id: string): Promise<void> {
-    const userId = await this.getCurrentUserId();
-    
-    // Prima verifichiamo che entrambe le transazioni appartengano all'utente corrente
-    const { data: tx1, error: tx1Error } = await this.supabase
-      .from('transactions')
-      .select('id')
-      .eq('id', tx1Id)
-      .eq('user_id', userId)
-      .single();
-
-    if (tx1Error || !tx1) {
-      throw new Error('Transazione principale non trovata o non autorizzata');
-    }
-
-    const { data: tx2, error: tx2Error } = await this.supabase
-      .from('transactions')
-      .select('id')
-      .eq('id', tx2Id)
-      .eq('user_id', userId)
-      .single();
-
-    if (tx2Error || !tx2) {
-      throw new Error('Transazione secondaria non trovata o non autorizzata');
-    }
-
-    // Ora eseguiamo il collegamento
-    const { error } = await this.supabase
-      .from('transactions')
-      .update({ parent_transaction_id: tx1Id })
-      .eq('id', tx2Id)
-      .eq('user_id', userId);
-
-    if (error) throw new Error(`Errore collegamento transazioni: ${error.message}`);
+  async addInvestment(investment: InvestmentHolding): Promise<InvestmentHolding> {
+    // Per ora ritorniamo l'investimento così com'è
+    return investment;
   }
 }
-
-export const supabaseService = new SupabaseService();

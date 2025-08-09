@@ -72,61 +72,72 @@ const PersonSelector: React.FC = () => {
         )}
       </NavLink>
     </div>
-  )
-}
-
+  );
+};
 
 export const Navbar: React.FC = () => {
-  const { signOut, user } = useAuth();
+  const { user, signOut } = useAuth();
 
   const handleSignOut = async () => {
     try {
       await signOut();
     } catch (error) {
-      console.error('Errore durante il logout:', error);
+      console.error('Error signing out:', error);
     }
   };
 
   return (
-    <nav className="w-64 bg-white dark:bg-gray-800 shadow-lg flex flex-col p-4">
+    <nav className="bg-white dark:bg-gray-800 shadow-sm border-r border-gray-200 dark:border-gray-700 w-64 min-h-screen p-4">
       <PersonSelector />
-      <div className="flex-1">
-        <NavItem to="/dashboard">
-          <HomeIcon className="w-6 h-6" />
-          <span className="ml-4 font-medium">Dashboard</span>
-        </NavItem>
-        <NavItem to="/transactions">
-          <TransactionIcon className="w-6 h-6" />
-          <span className="ml-4 font-medium">Transazioni</span>
-        </NavItem>
-        <NavItem to="/investments">
-          <InvestmentIcon className="w-6 h-6" />
-          <span className="ml-4 font-medium">Investimenti</span>
-        </NavItem>
-        <NavItem to="/reports">
-          <ChartBarIcon className="w-6 h-6" />
-          <span className="ml-4 font-medium">Report</span>
-        </NavItem>
-      </div>
-      <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-4">
-        <NavItem to="/settings">
-          <SettingsIcon className="w-6 h-6" />
-          <span className="ml-4 font-medium">Impostazioni</span>
+      
+      <div className="space-y-2">
+        <NavItem to="/">
+          <HomeIcon className="w-5 h-5 mr-3" />
+          Dashboard
         </NavItem>
         
-        {/* User info and logout */}
-        <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-          <div className="text-sm text-gray-600 dark:text-gray-300 mb-2">
-            {user?.email}
+        <NavItem to="/transactions">
+          <TransactionIcon className="w-5 h-5 mr-3" />
+          Transazioni
+        </NavItem>
+        
+        <NavItem to="/investments">
+          <InvestmentIcon className="w-5 h-5 mr-3" />
+          Investimenti
+        </NavItem>
+        
+        <NavItem to="/reports">
+          <ChartBarIcon className="w-5 h-5 mr-3" />
+          Report
+        </NavItem>
+        
+        <NavItem to="/settings">
+          <SettingsIcon className="w-5 h-5 mr-3" />
+          Impostazioni
+        </NavItem>
+      </div>
+
+      {user && (
+        <div className="mt-8 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <div className="flex items-center mb-4">
+            <div className="flex-1">
+              <p className="text-sm font-medium text-gray-900 dark:text-white">
+                {user.firstName} {user.lastName}
+              </p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                {user.primaryEmailAddress?.emailAddress}
+              </p>
+            </div>
           </div>
+          
           <button
             onClick={handleSignOut}
-            className="w-full text-left text-sm text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 font-medium"
+            className="w-full text-left p-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
           >
             Esci
           </button>
         </div>
-      </div>
+      )}
     </nav>
   );
 };

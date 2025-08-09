@@ -10,7 +10,7 @@ import { AddTransactionModal } from './components/AddTransactionModal';
 import { PlusIcon } from './components/Icons';
 import { useFinance } from './hooks/useFinance';
 import { useAuth } from './contexts/AuthContext';
-import { AuthPage } from './components/pages/AuthPage';
+import { SignIn, SignUp } from '@clerk/clerk-react';
 
 const AppContent: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -64,9 +64,8 @@ const AppContent: React.FC = () => {
         <Navbar />
         <main className="flex-1 flex flex-col overflow-hidden">
           <div className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 dark:bg-gray-900 p-4 sm:p-6 md:p-8">
-            <Routes>
-              <Route path="/" element={<Navigate to="/dashboard" replace />} />
-              <Route path="/dashboard" element={<Dashboard />} />
+                        <Routes>
+              <Route path="/" element={<Dashboard />} />
               <Route path="/transactions" element={<TransactionsPage />} />
               <Route path="/investments" element={<InvestmentsPage />} />
               <Route path="/reports" element={<ReportsPage />} />
@@ -89,9 +88,12 @@ const AppContent: React.FC = () => {
 };
 
 const App: React.FC = () => {
-  const { user, loading } = useAuth();
+  const { user, isLoaded, isSignedIn } = useAuth();
 
-  if (loading) {
+  // Debug logging
+  console.log('App render - User:', user?.primaryEmailAddress?.emailAddress, 'IsLoaded:', isLoaded, 'IsSignedIn:', isSignedIn);
+
+  if (!isLoaded) {
     return (
       <div className="flex items-center justify-center h-screen bg-gray-100 dark:bg-gray-900">
         <div className="text-center">
@@ -102,8 +104,22 @@ const App: React.FC = () => {
     );
   }
 
-  if (!user) {
-    return <AuthPage />;
+  if (!isSignedIn) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md w-full space-y-8">
+          <div className="text-center">
+            <h2 className="mt-6 text-3xl font-extrabold text-gray-900 dark:text-white">
+              Wealth Pillar
+            </h2>
+            <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+              Accedi al tuo account
+            </p>
+          </div>
+          <SignIn routing="hash" />
+        </div>
+      </div>
+    );
   }
 
   return <AppContent />;

@@ -23,10 +23,9 @@ export const getSupabaseClient = (): SupabaseClient<Database> => {
       config.anonKey,
       {
         auth: {
-          persistSession: true,
-          autoRefreshToken: true,
-          detectSessionInUrl: true,
-          storage: typeof window !== 'undefined' ? window.localStorage : undefined
+          persistSession: false,
+          autoRefreshToken: false,
+          detectSessionInUrl: false
         },
         realtime: {
           params: {
@@ -40,13 +39,6 @@ export const getSupabaseClient = (): SupabaseClient<Database> => {
         }
       }
     );
-
-    // Add connection monitoring in development
-    if (process.env.NODE_ENV === 'development') {
-      supabaseInstance.auth.onAuthStateChange((event, session) => {
-        console.log('🔐 Auth state changed:', event, session?.user?.email);
-      });
-    }
   }
 
   return supabaseInstance;
