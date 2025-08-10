@@ -1,7 +1,10 @@
 import React, { createContext, useContext, ReactNode, useMemo, useCallback } from 'react';
 import { useUser, useAuth as useClerkAuth } from '@clerk/clerk-react';
+import { ServiceError } from '../lib/supabase/services/base-service';
 
-// Tipizzazione forte per il context (principio Interface Segregation)
+/**
+ * Type Definitions (Interface Segregation Principle)
+ */
 interface AuthUser {
   id: string;
   emailAddress: string;
@@ -20,13 +23,68 @@ interface AuthContextType {
   signIn: () => void;
 }
 
-// Context con tipizzazione forte e valore di default
+/**
+ * User Transformation Utilities (DRY & SRP Principles)
+ * Single Responsibility: Only handles user data transformation
+ */
+class UserTransformationService {
+  /**
+   * Transform Clerk user to internal AuthUser format
+   * Follows SRP: single transformation responsibility
+   */
+  static transformClerkUser(clerkUser: any): AuthUser | null {
+    if (!clerkUser) return null;
+
+    try {
+      const emailAddress = clerkUser.primaryEmailAddress?.emailAddress || '';
+      const firstName = clerkUser.firstName || undefined;
+      const lastName = clerkUser.lastName || undefined;
+      const fullName = this.buildFullName(firstName, lastName);
+
+      return {
+        id: clerkUser.id,
+        emailAddress,
+        firstName,
+        lastName,
+        imageUrl: clerkUser.imageUrl || undefined,
+        fullName
+      };
+    } catch (error) {
+      throw new ServiceError(
+        'Failed to transform user data',
+        'USER_TRANSFORMATION_ERROR',
+        error as Error
+      );
+    }
+  }
+
+  /**
+   * Build full name with proper null handling
+   * Follows SRP: single name building responsibility
+   */
+  private static buildFullName(firstName?: string, lastName?: string): string | undefined {
+    const parts = [firstName, lastName].filter(Boolean);
+    return parts.length > 0 ? parts.join(' ') : undefined;
+  }
+
+  /**
+   * Validate user data integrity
+   * Follows SRP: single validation responsibility
+   */
+  static validateUser(user: AuthUser): boolean {
+    return !!(user?.id && user?.emailAddress);
+  }
+}
+
+/**
+ * Context Creation with strong typing
+ */
 const AuthContext = createContext<AuthContextType | null>(null);
 
 /**
- * Hook ottimizzato per accesso al context di autenticazione
- * Principio SRP: Singola responsabilità di fornire dati auth
- * Principio DIP: Dipende dall'astrazione del context
+ * Custom Hook for accessing Auth Context (SRP & DIP Principles)
+ * Single Responsibility: Only provides auth context access
+ * Dependency Inversion: Depends on AuthContext abstraction
  */
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
@@ -39,50 +97,34 @@ export const useAuth = (): AuthContextType => {
 };
 
 /**
- * Hook per trasformare i dati utente Clerk in formato applicazione
- * Principio SRP: Single Responsibility - solo trasformazione dati
+ * Custom Hook for User Transformation (SRP Principle)
+ * Single Responsibility: Only transforms Clerk user data
  */
 const useAuthUser = (clerkUser: any): AuthUser | null => {
-  return useMemo(() => {
-    if (!clerkUser) return null;
-
-    const emailAddress = clerkUser.primaryEmailAddress?.emailAddress || '';
-    const firstName = clerkUser.firstName || undefined;
-    const lastName = clerkUser.lastName || undefined;
-    const fullName = [firstName, lastName].filter(Boolean).join(' ') || undefined;
-
-    return {
-      id: clerkUser.id,
-      emailAddress,
-      firstName,
-      lastName,
-      imageUrl: clerkUser.imageUrl || undefined,
-      fullName
-    };
-  }, [clerkUser]);
+  return useMemo(() => UserTransformationService.transformClerkUser(clerkUser), [clerkUser]);
 };
 
 /**
- * Provider ottimizzato seguendo principi SOLID
- * - SRP: Gestisce solo l'autenticazione
- * - OCP: Estendibile per nuove funzionalità auth
- * - DIP: Dipende da astrazioni (Clerk hooks)
- * - DRY: Riutilizza logica comune
+ * Auth Provider optimized with SOLID principles
+ * - SRP: Manages only authentication state
+ * - OCP: Extensible for new auth features
+ * - DIP: Depends on Clerk abstractions
+ * - DRY: Reuses common auth logic
  */
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { user: clerkUser, isLoaded } = useUser();
   const { signOut, isSignedIn } = useClerkAuth();
 
-  // Hook personalizzato per trasformazione utente
+  // Transform user data using custom hook (SRP principle)
   const user = useAuthUser(clerkUser);
 
-  // Callback memoizzato per sign in (principio DRY)
+  // Memoized sign-in callback (DRY principle)
   const signIn = useCallback(() => {
-    // Implementazione per sign in se necessaria
+    // Implementation for sign in if needed
     console.log('Sign in functionality');
   }, []);
 
-  // Memoizzazione completa del value per performance (principio DRY)
+  // Memoized context value for performance optimization (DRY principle)
   const value = useMemo<AuthContextType>(() => ({
     user,
     isLoaded,

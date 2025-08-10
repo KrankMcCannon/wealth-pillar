@@ -1,4 +1,5 @@
 import { useCallback, useMemo } from 'react';
+import { CategoryUtils } from '../../lib/utils/category.utils';
 import { Account, InvestmentHolding, Transaction } from '../../types';
 import { useFinance } from '../core/useFinance';
 
@@ -81,7 +82,7 @@ export const useTransactionFilter = (selectedPersonId: string) => {
     let belongsToUser = account?.personIds.includes(personId) || false;
 
     // Per i trasferimenti, include anche se l'account di destinazione appartiene all'utente
-    if (transaction.category === 'trasferimento' && transaction.toAccountId) {
+    if (CategoryUtils.isTransfer(transaction) && transaction.toAccountId) {
       const toAccount = getAccountById(transaction.toAccountId);
       belongsToUser = belongsToUser || (toAccount?.personIds.includes(personId) || false);
     }
@@ -102,7 +103,7 @@ export const useTransactionFilter = (selectedPersonId: string) => {
       transactions: items,
       entrateCount: entrate.length,
       speseCount: spese.length,
-      trasferimentiCount: items.filter(t => t.category === 'trasferimento').length,
+      trasferimentiCount: CategoryUtils.countByCategory(items, 'trasferimento'),
     };
   }, [filterResult]);
 
@@ -285,7 +286,7 @@ export const useAdvancedFilters = () => {
     filterByType,
     
     // Utility per ottenere valori unici
-    getUniqueCategories: () => [...new Set(transactions.map(t => t.category))],
+    getUniqueCategories: () => CategoryUtils.getUniqueCategories(transactions),
     getUniqueAccountTypes: () => [...new Set(accounts.map(a => a.type))],
     getUniqueTransactionTypes: () => [...new Set(transactions.map(t => t.type))],
   };

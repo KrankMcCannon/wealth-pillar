@@ -5,6 +5,7 @@
  */
 
 import { SupabaseClient } from '@supabase/supabase-js';
+import { CategoryUtils } from '../../../lib/utils/category.utils';
 import type { Database } from '../types/database.types';
 
 // Repositories
@@ -140,7 +141,7 @@ export class FinanceService {
 
     return transactions.reduce((acc, transaction) => {
       // Gestione trasferimenti
-      if (transaction.category === 'trasferimento') {
+      if (CategoryUtils.isCategoryTransfer(transaction.category)) {
         if (transaction.accountId === account.id) {
           // Account di origine: sottrai
           return acc - transaction.amount;

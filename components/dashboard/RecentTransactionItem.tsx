@@ -2,6 +2,7 @@ import React, { memo, useMemo } from 'react';
 import { Transaction, TransactionType } from '../../types';
 import { useFinance } from '../../hooks';
 import { formatCurrency } from '../../constants';
+import { CategoryUtils } from '../../lib/utils/category.utils';
 
 /**
  * Props per RecentTransactionItem
@@ -33,7 +34,7 @@ export const RecentTransactionItem = memo<RecentTransactionItemProps>(({
 
   // Memoized calculations per ottimizzare le performance
   const transactionData = useMemo(() => {
-    const isTransfer = transaction.category === 'trasferimento';
+    const isTransfer = CategoryUtils.isTransfer(transaction);
     const isIncome = transaction.type === TransactionType.ENTRATA;
     const remainingAmount = getRemainingAmount(transaction);
     const isParent = isParentTransaction(transaction);

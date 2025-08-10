@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { getInitialDateRange } from '../../../constants';
+import { CATEGORY_CONSTANTS, CategoryUtils } from '../../../lib/utils/category.utils';
 import { TransactionType } from '../../../types';
 import { useFinance } from '../../core/useFinance';
 
@@ -21,7 +22,7 @@ export const useTransactionFilters = () => {
   // Stati per i filtri
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState<'all' | TransactionType>('all');
-  const [categoryFilter, setCategoryFilter] = useState<'all' | string>('all');
+  const [categoryFilter, setCategoryFilter] = useState<'all' | string>(CATEGORY_CONSTANTS.ALL_CATEGORIES);
   const [dateRange, setDateRange] = useState(() => getInitialDateRange(selectedPersonId, people));
 
   const isAllView = selectedPersonId === 'all';
@@ -41,7 +42,7 @@ export const useTransactionFilters = () => {
           let belongsToUser = account?.personIds.includes(selectedPersonId);
 
           // Per i trasferimenti, include anche se l'account di destinazione appartiene all'utente
-          if (t.category === 'trasferimento' && t.toAccountId) {
+          if (CategoryUtils.isTransfer(t) && t.toAccountId) {
             const toAccount = getAccountById(t.toAccountId);
             belongsToUser = belongsToUser || (toAccount?.personIds.includes(selectedPersonId) || false);
           }
@@ -54,7 +55,7 @@ export const useTransactionFilters = () => {
 
   // Categorie disponibili per il filtro
   const availableCategories = useMemo(() => {
-    return [...new Set(personTransactions.map(t => t.category))].sort();
+    return CategoryUtils.getUniqueCategories(personTransactions);
   }, [personTransactions]);
 
   // Transazioni filtrate con tutti i criteri
@@ -73,8 +74,8 @@ export const useTransactionFilters = () => {
       filtered = filtered.filter(t => t.type === typeFilter);
     }
 
-    if (categoryFilter !== 'all') {
-      filtered = filtered.filter(t => t.category === categoryFilter);
+    if (categoryFilter !== CATEGORY_CONSTANTS.ALL_CATEGORIES) {
+      filtered = CategoryUtils.filterByCategory(filtered, categoryFilter);
     }
 
     if (searchTerm.trim() !== '') {
@@ -112,13 +113,13 @@ export const useTransactionFilters = () => {
   const resetFilters = () => {
     setSearchTerm('');
     setTypeFilter('all');
-    setCategoryFilter('all');
+    setCategoryFilter(CATEGORY_CONSTANTS.ALL_CATEGORIES);
     const resetDateRange = getInitialDateRange(selectedPersonId, people);
     setDateRange(resetDateRange);
   };
 
   // Verifica se ci sono filtri attivi
-  const hasActiveFilters = searchTerm || typeFilter !== 'all' || categoryFilter !== 'all';
+  const hasActiveFilters = searchTerm || typeFilter !== 'all' || categoryFilter !== CATEGORY_CONSTANTS.ALL_CATEGORIES;
 
   return {
     // Stati

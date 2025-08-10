@@ -2,6 +2,7 @@ import React, { memo, useMemo } from 'react';
 import { Budget, Transaction, Person, TransactionType } from '../../types';
 import { useFinance } from '../../hooks';
 import { formatCurrency, getCurrentBudgetPeriod } from '../../constants';
+import { CategoryUtils } from '../../lib/utils/category.utils';
 
 /**
  * Props per BudgetProgress
@@ -39,7 +40,7 @@ export const BudgetProgress = memo<BudgetProgressProps>(({ budget, transactions,
                 const isInPeriod = txDate >= periodStart && txDate <= periodEnd;
                 const isInCategory = budget.categories.includes(t.category);
                 const isSpesa = t.type === TransactionType.SPESA;
-                const isTransfer = t.category === 'trasferimento';
+                const isTransfer = CategoryUtils.isTransfer(t);
                 return isInPeriod && isInCategory && isSpesa && !isTransfer && isInAccount;
             })
             .reduce((sum, t) => {

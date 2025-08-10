@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { CategoryUtils } from '../../../lib/utils/category.utils';
 import { Transaction } from '../../../types';
 import { useFinance } from '../../core/useFinance';
 
@@ -47,11 +48,10 @@ export const useTransactionLinking = () => {
     if (!linkingTx) return false;
     
     const isThisLinkingTx = linkingTx.id === transaction.id;
-    const isTransfer = transaction.category === 'trasferimento';
     const isDifferentType = linkingTx.type !== transaction.type;
     const isNotReconciled = !transaction.isReconciled;
     
-    return !isThisLinkingTx && isDifferentType && isNotReconciled && !isTransfer;
+    return !isThisLinkingTx && isDifferentType && isNotReconciled && CategoryUtils.canBeLinked(transaction);
   };
 
   /**

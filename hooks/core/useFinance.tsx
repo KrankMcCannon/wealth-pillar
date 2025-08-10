@@ -1,9 +1,35 @@
 import React, { createContext, useContext, useState, ReactNode, useCallback, useEffect } from 'react';
 import { Person, Account, Transaction, Budget, TransactionType, InvestmentHolding, CategoryOption, Category } from '../../types';
-import { ClerkSupabaseService } from '../../lib/supabase/services/clerk-supabase.service';
+import { ServiceFactory } from '../../lib/supabase/services/service-factory';
+import { ServiceError } from '../../lib/supabase/services/base-service';
 import { useAuth } from '../../contexts/AuthContext';
 import { useClerkSupabaseClient } from '../../lib/supabase/client/clerk-supabase.client';
+import { CategoryUtils } from '../../lib/utils/category.utils';
 import { v4 as uuidv4 } from 'uuid';
+
+/**
+ * Error handling utilities following DRY principle
+ */
+const handleAsyncError = <T extends any[], R>(
+  fn: (...args: T) => Promise<R>,
+  errorMessage: string
+) => {
+  return async (...args: T): Promise<R> => {
+    try {
+      return await fn(...args);
+    } catch (err) {
+      const error = err instanceof ServiceError 
+        ? err 
+        : new ServiceError(
+            err instanceof Error ? err.message : errorMessage,
+            'UNKNOWN_ERROR',
+            err as Error
+          );
+      console.error(errorMessage, err);
+      throw error;
+    }
+  };
+};
 
 interface FinanceContextType {
   people: Person[];
@@ -24,7 +50,7 @@ interface FinanceContextType {
   updateBudget: (budget: Budget) => Promise<void>;
   getAccountById: (id: string) => Account | undefined;
   getPersonById: (id: string) => Person | undefined;
-  getCategoryName: (category: string | null) => string;
+  getCategoryName: (categoryOrId: string | Category | null) => string;
   getEffectiveTransactionAmount: (transaction: Transaction) => number;
   getRemainingAmount: (transaction: Transaction) => number;
   hasAvailableAmount: (transaction: Transaction) => boolean;
@@ -52,60 +78,68 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  const loadData = useCallback(async () => {
-    // Non tentare di caricare dati se non c'è client Clerk-Supabase
-    if (!client || !isSignedIn || !user) {
-      setIsLoading(false);
-      return;
-    }
+  /**
+   * Data Loading with error handling (DRY principle)
+   */
+  const loadData = useCallback(
+    handleAsyncError(async () => {
+      if (!client || !isSignedIn || !user) {
+        setIsLoading(false);
+        return;
+      }
 
-    try {
       setIsLoading(true);
       setError(null);
 
-      // Initialize service with authenticated client
-      const supabaseService = new ClerkSupabaseService(client);
+      const financeService = ServiceFactory.createFinanceService(client);
+      
+      // Load all data using individual services
+      const [people, accounts, transactions, budgets, categories] = await Promise.all([
+        financeService.people.getAll(),
+        financeService.accounts.getAll(),
+        financeService.transactions.getAll(),
+        financeService.budgets.getAll(),
+        financeService.categories.getAll()
+      ]);
 
-      // Usa il nuovo metodo ottimizzato loadAllData per ridurre le chiamate
-      const data = await supabaseService.loadAllData();
-
-      setPeople(data.people);
-      setAccounts(data.accounts);
-      setTransactions(data.transactions); // Già ordinato dal servizio
-      setBudgets(data.budgets);
-      setInvestments(data.investments);
-      setCategories(data.categories);
-
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load data');
-      console.error('Error loading data:', err);
-    } finally {
+      setPeople(people);
+      setAccounts(accounts);
+      setTransactions(transactions);
+      setBudgets(budgets);
+      setInvestments([]); // TODO: Implement investments service
+      setCategories(categories);
       setIsLoading(false);
-    }
-  }, [client, isSignedIn, user]);
+    }, 'Failed to load data'),
+    [client, isSignedIn, user]
+  );
+
+  /**
+   * State reset utility (DRY principle)
+   */
+  const resetState = useCallback(() => {
+    setPeople([]);
+    setAccounts([]);
+    setTransactions([]);
+    setBudgets([]);
+    setInvestments([]);
+    setCategories([]);
+    setIsLoading(false);
+    setError(null);
+  }, []);
 
   useEffect(() => {
-    // Solo carica i dati se l'utente è autenticato e il client è disponibile
     if (isSignedIn && client && user) {
       loadData();
     } else if (!isSignedIn) {
-      // Se non c'è utente, resetta lo stato
-      setPeople([]);
-      setAccounts([]);
-      setTransactions([]);
-      setBudgets([]);
-      setInvestments([]);
-      setCategories([]);
-      setIsLoading(false);
-      setError(null);
+      resetState();
     }
-  }, [isSignedIn, client, user, loadData]);
+  }, [isSignedIn, client, user, loadData, resetState]);
 
   const refreshData = useCallback(async () => {
     await loadData();
   }, [loadData]);
 
-  // Helper to get authenticated service
+  // Helper to get authenticated service using Factory Pattern
   const getService = useCallback(() => {
     if (!client) {
       throw new Error('Sessione non disponibile. Effettua nuovamente il login.');
@@ -113,11 +147,11 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
     if (!isSignedIn) {
       throw new Error('Utente non autenticato. Effettua il login.');
     }
-    return new ClerkSupabaseService(client);
+    return ServiceFactory.createFinanceService(client);
   }, [client, isSignedIn]);
 
   // Helper to safely get service with better error handling
-  const getServiceSafely = useCallback(async (): Promise<ClerkSupabaseService> => {
+  const getServiceSafely = useCallback(async () => {
     if (!client && isSignedIn) {
       for (let i = 0; i < 30; i++) {
         await new Promise(resolve => setTimeout(resolve, 100));
@@ -132,10 +166,12 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
     setSelectedPersonId(id);
   }, []);
 
-  const addTransaction = useCallback(async (transactionData: Omit<Transaction, 'id'>) => {
-    try {
+  /**
+   * CRUD Operations with unified error handling (DRY principle)
+   */
+  const addTransaction = useCallback(
+    handleAsyncError(async (transactionData: Omit<Transaction, 'id'>) => {
       const service = await getServiceSafely();
-
       const newTransaction: Transaction = {
         ...transactionData,
         id: uuidv4(),
@@ -143,85 +179,74 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
         createdAt: new Date().toISOString(),
       };
 
-      const savedTransaction = await service.addTransaction(newTransaction);
-      setTransactions(prev => [savedTransaction, ...prev].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+      const savedTransaction = await service.transactions.create(newTransaction);
+      setTransactions(prev => [savedTransaction, ...prev].sort((a, b) => 
+        new Date(b.date).getTime() - new Date(a.date).getTime()
+      ));
+    }, 'Failed to add transaction'),
+    [getServiceSafely]
+  );
 
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to add transaction');
-      throw err;
-    }
-  }, [getServiceSafely]);
-
-  const updateTransaction = useCallback(async (updatedTransaction: Transaction) => {
-    try {
+  const updateTransaction = useCallback(
+    handleAsyncError(async (updatedTransaction: Transaction) => {
       const service = await getServiceSafely();
-      const savedTransaction = await service.updateTransaction(updatedTransaction);
+      const savedTransaction = await service.transactions.update(updatedTransaction.id, updatedTransaction);
       setTransactions(prev => prev.map(tx => 
         tx.id === savedTransaction.id ? savedTransaction : tx
       ).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update transaction');
-      throw err;
-    }
-  }, [getServiceSafely]);
+    }, 'Failed to update transaction'),
+    [getServiceSafely]
+  );
 
-  const addAccount = useCallback(async (accountData: Omit<Account, 'id'>) => {
-    try {
+  const addAccount = useCallback(
+    handleAsyncError(async (accountData: Omit<Account, 'id'>) => {
       const service = await getServiceSafely();
       const newAccount = await service.addAccount(accountData);
       setAccounts(prev => [...prev, newAccount]);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to add account');
-      throw err;
-    }
-  }, [getServiceSafely]);
+    }, 'Failed to add account'),
+    [getServiceSafely]
+  );
 
-  const updateAccount = useCallback(async (updatedAccount: Account) => {
-    try {
+  const updateAccount = useCallback(
+    handleAsyncError(async (updatedAccount: Account) => {
       const service = await getServiceSafely();
       const savedAccount = await service.updateAccount(updatedAccount);
-      setAccounts(prev => prev.map(acc => (acc.id === savedAccount.id ? savedAccount : acc)));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update account');
-      throw err;
-    }
-  }, [getServiceSafely]);
+      setAccounts(prev => prev.map(acc => 
+        acc.id === savedAccount.id ? savedAccount : acc
+      ));
+    }, 'Failed to update account'),
+    [getServiceSafely]
+  );
 
-  const addBudget = useCallback(async (budgetData: Omit<Budget, 'id'>) => {
-    try {
+  const addBudget = useCallback(
+    handleAsyncError(async (budgetData: Omit<Budget, 'id'>) => {
       const service = await getServiceSafely();
       const newBudget = await service.addBudget(budgetData);
       setBudgets(prev => [...prev, newBudget]);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to add budget');
-      throw err;
-    }
-  }, [getServiceSafely]);
+    }, 'Failed to add budget'),
+    [getServiceSafely]
+  );
 
-  const updateBudget = useCallback(async (updatedBudget: Budget) => {
-    try {
+  const updateBudget = useCallback(
+    handleAsyncError(async (updatedBudget: Budget) => {
       const service = await getServiceSafely();
       const savedBudget = await service.updateBudget(updatedBudget);
-      setBudgets(prev => prev.map(b => (b.id === savedBudget.id ? savedBudget : b)));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update budget');
-      throw err;
-    }
-  }, [getServiceSafely]);
+      setBudgets(prev => prev.map(b => b.id === savedBudget.id ? savedBudget : b));
+    }, 'Failed to update budget'),
+    [getServiceSafely]
+  );
 
-  const updatePerson = useCallback(async (updatedPerson: Person) => {
-    try {
+  const updatePerson = useCallback(
+    handleAsyncError(async (updatedPerson: Person) => {
       const service = await getServiceSafely();
       const savedPerson = await service.updatePerson(updatedPerson);
-      setPeople(prev => prev.map(p => (p.id === savedPerson.id ? savedPerson : p)));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update person');
-      throw err;
-    }
-  }, [getServiceSafely]);
+      setPeople(prev => prev.map(p => p.id === savedPerson.id ? savedPerson : p));
+    }, 'Failed to update person'),
+    [getServiceSafely]
+  );
 
-  const addInvestment = useCallback(async (investmentData: Omit<InvestmentHolding, 'id'>) => {
-    try {
+  const addInvestment = useCallback(
+    handleAsyncError(async (investmentData: Omit<InvestmentHolding, 'id'>) => {
       const service = await getServiceSafely();
       const newInvestment: InvestmentHolding = {
         ...investmentData,
@@ -229,12 +254,13 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
       };
       const savedInvestment = await service.addInvestment(newInvestment);
       setInvestments(prev => [...prev, savedInvestment]);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to add investment');
-      throw err;
-    }
-  }, [getServiceSafely]);
+    }, 'Failed to add investment'),
+    [getServiceSafely]
+  );
 
+  /**
+   * Lookup Functions (SRP principle)
+   */
   const getAccountById = useCallback((id: string) => {
     return accounts.find(acc => acc.id === id);
   }, [accounts]);
@@ -243,219 +269,86 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
     return people.find(p => p.id === id);
   }, [people]);
 
-  const getCategoryName = useCallback((category: string | null): string => {
-    if (!category) return '';
-
-    const foundCategory = categories.find(c => c.name === category);
-    return foundCategory?.label || foundCategory?.name || category;
+  /**
+   * Business Logic Functions using utility classes (SRP principle)
+   */
+  const getCategoryName = useCallback((categoryOrId: string | Category | null) => {
+    return CategoryUtils.getCategoryDisplayName(categoryOrId, categories);
   }, [categories]);
 
-  // Calculate the effective amount of a transaction considering reconciliation
   const getEffectiveTransactionAmount = useCallback((transaction: Transaction) => {
-    if (!transaction.isReconciled || !transaction.linkedTransactionId) {
-      return transaction.amount;
-    }
-
     const linkedTx = transactions.find(tx => tx.id === transaction.linkedTransactionId);
-    if (!linkedTx) {
+    // Utilizziamo la logica del TransactionService
+    if (!transaction.isReconciled || !linkedTx) {
       return transaction.amount;
     }
 
-    // Calculate the net effect based on transaction types
+    // Logic per calcolare l'importo effettivo basato sui tipi di transazione
     if (transaction.type === TransactionType.SPESA && linkedTx.type === TransactionType.ENTRATA) {
-      // Expense reconciled with income
       return Math.max(0, transaction.amount - linkedTx.amount);
     } else if (transaction.type === TransactionType.ENTRATA && linkedTx.type === TransactionType.SPESA) {
-      // Income reconciled with expense
       return Math.max(0, transaction.amount - linkedTx.amount);
     }
 
-    // If same type or no reconciliation logic applies, return original amount
     return transaction.amount;
   }, [transactions]);
 
-  // Determine if a transaction is the parent in a reconciled pair
-  const isParentTransaction = useCallback((transaction: Transaction) => {
-    if (!transaction.isReconciled || !transaction.linkedTransactionId) {
-      return false;
-    }
-
-    const linkedTx = transactions.find(tx => tx.id === transaction.linkedTransactionId);
-    if (!linkedTx) {
-      return false;
-    }
-
-    // Rule 1: The transaction with higher amount is always the parent
-    if (transaction.amount !== linkedTx.amount) {
-      return transaction.amount > linkedTx.amount;
-    }
-    
-    // Rule 2: If amounts are equal, compare dates (earlier date = parent)
-    const txDate = new Date(transaction.date);
-    const linkedDate = new Date(linkedTx.date);
-    
-    if (txDate.getTime() !== linkedDate.getTime()) {
-      return txDate <= linkedDate;
-    }
-    
-    // Rule 3: If dates and amounts are equal, use creation timestamp
-    if (transaction.createdAt && linkedTx.createdAt) {
-      const txCreated = new Date(transaction.createdAt);
-      const linkedCreated = new Date(linkedTx.createdAt);
-      
-      if (txCreated.getTime() !== linkedCreated.getTime()) {
-        return txCreated <= linkedCreated;
-      }
-    }
-    
-    // Rule 4: If everything else is equal, use ID comparison for consistency
-    // The transaction with lexicographically smaller ID is considered the parent
-    return transaction.id < linkedTx.id;
-  }, [transactions]);
-
-  // Calculate the remaining amount of a transaction after reconciliation
   const getRemainingAmount = useCallback((transaction: Transaction) => {
-    if (!transaction.isReconciled || !transaction.linkedTransactionId) {
-      return transaction.amount;
-    }
+    // Utilizziamo direttamente la proprietà esistente
+    return transaction.remainingAmount ?? transaction.amount;
+  }, []);
 
-    const linkedTx = transactions.find(tx => tx.id === transaction.linkedTransactionId);
-    if (!linkedTx) {
-      return transaction.amount;
-    }
-
-    // Only the parent transaction (the one with higher amount or earlier creation) shows remaining amount
-    const isParent = isParentTransaction(transaction);
-    
-    if (isParent) {
-      // Parent transaction: remaining = original amount - linked amount
-      return Math.max(0, transaction.amount - linkedTx.amount);
-    } else {
-      // Child transaction: remaining = 0 (it's fully consumed)
-      return 0;
-    }
-  }, [transactions, isParentTransaction]);
-
-  // Determine which transaction in a reconciled pair has available amount for further reconciliation
   const hasAvailableAmount = useCallback((transaction: Transaction) => {
-    if (!transaction.isReconciled || !transaction.linkedTransactionId) {
-      return false;
-    }
+    const remaining = getRemainingAmount(transaction);
+    return remaining > 0;
+  }, [getRemainingAmount]);
 
+  const isParentTransaction = useCallback((transaction: Transaction) => {
     const linkedTx = transactions.find(tx => tx.id === transaction.linkedTransactionId);
-    if (!linkedTx) {
-      return false;
-    }
-
-    // Only the parent transaction has available amount, and only if there's a remaining amount > 0
-    if (!isParentTransaction(transaction)) {
-      return false;
-    }
     
-    // Calculate remaining amount for parent transaction
-    return Math.max(0, transaction.amount - linkedTx.amount) > 0;
-  }, [transactions, isParentTransaction]);
+    // Use TransactionService.isParentTransaction instead of duplicating logic
+    const service = getService();
+    return service.transactions.isParentTransaction(transaction, linkedTx);
+  }, [transactions, getService]);
 
-  const getCalculatedBalance = useCallback(async (accountId: string): Promise<number> => {
-    try {
-      const service = await getServiceSafely();
-      return await service.getCalculatedBalance(accountId);
-    } catch (err) {
-      // Fallback al calcolo locale se il servizio non è disponibile
-      const account = accounts.find(acc => acc.id === accountId);
-      if (!account) return 0;
-
-      // Calcolo locale come backup
-      let initialBalance = 0;
-      const transactionTotal = transactions
-        .reduce((total, tx) => {
-          // Assicuriamoci che amount sia un numero
-          const amount = typeof tx.amount === 'number' ? tx.amount : parseFloat(tx.amount) || 0;
-          
-          if (tx.category === 'trasferimento') {
-            if (tx.accountId === accountId) {
-              return total - amount;
-            } else if (tx.toAccountId === accountId) {
-              return total + amount;
-            }
-            return total;
-          }
-
-          if (tx.accountId === accountId) {
-            if (tx.type === TransactionType.ENTRATA) {
-              return total + amount;
-            } else {
-              return total - amount;
-            }
-          }
-
-          return total;
-        }, 0);
-
-      return initialBalance + transactionTotal;
-    }
-  }, [accounts, transactions, getServiceSafely]);
-
-  const getCalculatedBalanceSync = useCallback((accountId: string): number => {
+  const getCalculatedBalanceSync = useCallback((accountId: string) => {
     const account = accounts.find(acc => acc.id === accountId);
     if (!account) return 0;
+    
+    const accountTransactions = transactions.filter(tx => 
+      tx.accountId === accountId || tx.toAccountId === accountId
+    );
+    
+    // Use FinanceService.calculateAccountBalance instead of duplicating logic
+    const service = getService();
+    return service.calculateAccountBalance(account, accountTransactions);
+  }, [accounts, transactions, getService]);
 
-    // Calcolo locale sincrono
-    let initialBalance = 0;
-    const transactionTotal = transactions
-      .reduce((total, tx) => {
-        // Assicuriamoci che amount sia un numero
-        const amount = typeof tx.amount === 'number' ? tx.amount : parseFloat(tx.amount) || 0;
-        
-        if (tx.category === 'trasferimento') {
-          if (tx.accountId === accountId) {
-            return total - amount;
-          } else if (tx.toAccountId === accountId) {
-            return total + amount;
-          }
-          return total;
-        }
-
-        if (tx.accountId === accountId) {
-          if (tx.type === TransactionType.ENTRATA) {
-            return total + amount;
-          } else {
-            return total - amount;
-          }
-        }
-
-        return total;
-      }, 0);
-
-    return initialBalance + transactionTotal;
-  }, [accounts, transactions]);
-
-  const linkTransactions = useCallback(async (tx1Id: string, tx2Id: string) => {
-    try {
-      const service = await getServiceSafely();
-      const tx1 = transactions.find(tx => tx.id === tx1Id);
-      const tx2 = transactions.find(tx => tx.id === tx2Id);
-
-      if (tx1 && tx2) {
-        const updatedTx1 = { ...tx1, isReconciled: true, linkedTransactionId: tx2Id };
-        const updatedTx2 = { ...tx2, isReconciled: true, linkedTransactionId: tx1Id };
-
-        await Promise.all([
-          service.updateTransaction(updatedTx1),
-          service.updateTransaction(updatedTx2),
-        ]);
-
-        setTransactions(prev => prev.map(tx => {
-          if (tx.id === tx1Id) return updatedTx1;
-          if (tx.id === tx2Id) return updatedTx2;
-          return tx;
-        }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+  const getCalculatedBalance = useCallback(
+    handleAsyncError(async (accountId: string) => {
+      try {
+        const service = await getServiceSafely();
+        return await service.getCalculatedBalance(accountId);
+      } catch (err) {
+        // Fallback to local calculation using the same logic as getCalculatedBalanceSync
+        return getCalculatedBalanceSync(accountId);
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to link transactions');
-      throw err;
-    }
-  }, [transactions, getServiceSafely]);
+    }, 'Failed to calculate balance'),
+    [getCalculatedBalanceSync, getServiceSafely]
+  );
+
+  const linkTransactions = useCallback(
+    handleAsyncError(async (tx1Id: string, tx2Id: string) => {
+      const service = await getServiceSafely();
+      
+      // Use existing TransactionService.linkTransactions method instead of duplicating logic
+      await service.transactions.linkTransactions(tx1Id, tx2Id);
+      
+      // Refresh data to get updated transactions
+      await loadData();
+    }, 'Failed to link transactions'),
+    [getServiceSafely, loadData]
+  );
 
   const value = {
     people,

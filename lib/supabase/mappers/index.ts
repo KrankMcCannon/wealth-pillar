@@ -5,11 +5,9 @@
  */
 
 export { AccountMapper, accountMapper } from './AccountMapper';
+export { BaseMapper, MappingError } from './BaseMapper';
 export { BudgetMapper, budgetMapper } from './BudgetMapper';
-export { CategoryMapper, categoryMapper } from './CategoryMapper';
+// CategoryMapper removed - use CategoryRepository mapping instead
 export { PersonMapper, personMapper } from './PersonMapper';
 export { TransactionMapper, transactionMapper } from './TransactionMapper';
-
-// Base mapper exports
-export { BaseMapper, MappingError } from './BaseMapper';
 

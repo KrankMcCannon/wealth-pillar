@@ -3,6 +3,7 @@ import { Transaction, TransactionType } from '../../types';
 import { ArrowDownIcon, ArrowUpIcon, LinkIcon, PencilIcon } from '../common';
 import { formatCurrency, formatDate } from '../../constants';
 import { useFinance } from '../../hooks';
+import { CategoryUtils } from '../../lib/utils/category.utils';
 
 /**
  * Props per il componente TransactionRow
@@ -47,7 +48,7 @@ export const TransactionRow = memo<TransactionRowProps>(({
   // Memoizza i calcoli complessi
   const transactionData = useMemo(() => {
     const isIncome = transaction.type === TransactionType.ENTRATA;
-    const isTransfer = transaction.category === 'trasferimento';
+    const isTransfer = CategoryUtils.isTransfer(transaction);
     const toAccount = isTransfer && transaction.toAccountId ? getAccountById(transaction.toAccountId) : null;
     const remainingAmount = getRemainingAmount(transaction);
     const isParent = isParentTransaction(transaction);

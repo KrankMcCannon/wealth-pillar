@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { CategoryUtils } from '../../../lib/utils/category.utils';
 import { TransactionType } from '../../../types';
 import { useFinance } from '../../core/useFinance';
 import { useTransactionFilter } from '../../data/useDataFilters';
@@ -22,7 +23,7 @@ export const useAnnualReports = (selectedPersonId: string, selectedYear: number)
   // Calcola il riepilogo annuale
   const annualSummary = useMemo(() => {
     return yearlyTransactions
-      .filter(tx => tx.category !== 'trasferimento') // Esclude i trasferimenti dai report
+      .filter(tx => !CategoryUtils.isTransfer(tx)) // Esclude i trasferimenti dai report
       .reduce((acc, tx) => {
         const effectiveAmount = getEffectiveTransactionAmount(tx);
         if (tx.type === TransactionType.ENTRATA) {

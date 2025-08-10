@@ -2,6 +2,7 @@ import React, { memo, useCallback, useMemo, useEffect } from 'react';
 import { useFinance, useModalForm } from '../../hooks';
 import { TransactionType } from '../../types';
 import { BaseModal, FormField, Input, Select, ModalActions } from '../ui';
+import { CategoryUtils, CATEGORY_CONSTANTS } from '../../lib/utils/category.utils';
 
 interface AddTransactionModalProps {
   isOpen: boolean;
@@ -30,7 +31,7 @@ export const AddTransactionModal = memo<AddTransactionModalProps>(({ isOpen, onC
     amount: '',
     date: new Date().toISOString().split('T')[0],
     type: TransactionType.SPESA,
-    category: 'altro',
+    category: CATEGORY_CONSTANTS.DEFAULT_CATEGORY,
     accountId: '',
     toAccountId: '',
     txPersonId: isAllView ? (people[0]?.id || '') : selectedPersonId,
@@ -62,14 +63,11 @@ export const AddTransactionModal = memo<AddTransactionModalProps>(({ isOpen, onC
   , [accounts, currentPersonId]);
 
   const isTransfer = useMemo(() => 
-    data.category === 'trasferimento'
+    CategoryUtils.isTransfer({ category: data.category } as any)
   , [data.category]);
 
   const categoryOptions = useMemo(() => 
-    categories.map(cat => ({
-      value: cat.name,
-      label: cat.label || cat.name,
-    }))
+    CategoryUtils.toSelectOptions(categories)
   , [categories]);
 
   const accountOptions = useMemo(() => 
@@ -136,12 +134,9 @@ export const AddTransactionModal = memo<AddTransactionModalProps>(({ isOpen, onC
 
     // Transfer validation
     if (isTransfer) {
-      if (!data.toAccountId) {
-        setError('toAccountId', 'Seleziona un account di destinazione per il trasferimento');
-        return false;
-      }
-      if (data.accountId === data.toAccountId) {
-        setError('toAccountId', 'Gli account di origine e destinazione devono essere diversi');
+      const transferError = CategoryUtils.validateTransferData(data);
+      if (transferError) {
+        setError('toAccountId', transferError);
         return false;
       }
     }

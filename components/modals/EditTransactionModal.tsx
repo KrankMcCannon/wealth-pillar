@@ -2,6 +2,7 @@ import React, { memo, useCallback, useMemo, useEffect } from 'react';
 import { useFinance, useModalForm } from '../../hooks';
 import { Transaction, TransactionType } from '../../types';
 import { BaseModal, FormField, Input, Select, ModalActions } from '../ui';
+import { CategoryUtils } from '../../lib/utils/category.utils';
 
 interface EditTransactionModalProps {
   isOpen: boolean;
@@ -64,14 +65,11 @@ export const EditTransactionModal = memo<EditTransactionModalProps>(({
 
   // Memoized computed values
   const isTransfer = useMemo(() => 
-    data.category === 'trasferimento'
+    CategoryUtils.isTransfer({ category: data.category } as any)
   , [data.category]);
 
   const categoryOptions = useMemo(() => 
-    categories.map(cat => ({
-      value: cat.name,
-      label: cat.label || cat.name,
-    }))
+    CategoryUtils.toSelectOptions(categories)
   , [categories]);
 
   const accountOptions = useMemo(() => 
@@ -116,12 +114,9 @@ export const EditTransactionModal = memo<EditTransactionModalProps>(({
 
     // Transfer validation
     if (isTransfer) {
-      if (!data.toAccountId) {
-        setError('toAccountId', 'Seleziona l\'account di destinazione per il trasferimento');
-        return false;
-      }
-      if (data.accountId === data.toAccountId) {
-        setError('toAccountId', 'L\'account di origine e destinazione devono essere diversi');
+      const transferError = CategoryUtils.validateTransferData(data);
+      if (transferError) {
+        setError('toAccountId', transferError);
         return false;
       }
     }
