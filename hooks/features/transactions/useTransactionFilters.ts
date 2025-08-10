@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { getInitialDateRange } from '../../../constants';
 import { TransactionType } from '../../../types';
-import { useFinance } from '../../useFinance';
+import { useFinance } from '../../core/useFinance';
 
 /**
  * Hook personalizzato per gestire filtri e ricerca delle transazioni

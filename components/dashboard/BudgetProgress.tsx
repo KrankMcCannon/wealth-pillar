@@ -1,6 +1,6 @@
 import React, { memo, useMemo } from 'react';
 import { Budget, Transaction, Person, TransactionType } from '../../types';
-import { useFinance } from '../../hooks/useFinance';
+import { useFinance } from '../../hooks';
 import { formatCurrency, getCurrentBudgetPeriod } from '../../constants';
 
 /**

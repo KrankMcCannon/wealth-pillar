@@ -2,13 +2,8 @@ import React, { useState } from 'react';
 import { Card } from '../ui';
 import { Transaction } from '../../types';
 import { EditTransactionModal } from '../modals';
-
-// Importa i componenti ottimizzati
 import { FilterSection, LinkingStatusBar, TransactionTable } from '../transactions';
-
-// Importa gli hook personalizzati
-import { useTransactionFilters } from '../../hooks/useCustomHooks/transactions/useTransactionFilters';
-import { useTransactionLinking } from '../../hooks/useCustomHooks/transactions/useTransactionLinking';
+import { useTransactionFilters, useTransactionLinking } from '../../hooks';
 
 /**
  * TransactionsPage ottimizzata seguendo i principi SOLID e DRY

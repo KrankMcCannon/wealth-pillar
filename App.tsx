@@ -4,7 +4,7 @@ import { Navbar } from './components/common';
 import { Dashboard, TransactionsPage, InvestmentsPage, SettingsPage, ReportsPage } from './components/pages';
 import { AddTransactionModal } from './components/modals';
 import { PlusIcon } from './components/common';
-import { useFinance, FinanceProvider } from './hooks/useFinance';
+import { useFinance, FinanceProvider } from './hooks/core/useFinance';
 import { useAuth } from './contexts/AuthContext';
 import { SignIn } from '@clerk/clerk-react';
 

@@ -1,8 +1,7 @@
 import React, { memo, useMemo } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { Transaction, TransactionType } from '../../types';
-import { useFinance } from '../../hooks/useFinance';
-import { useDarkMode, useBreakpoint } from '../../hooks/useCustomHooks/useResponsive';
+import { useDarkMode, useFinance, useBreakpoint } from '../../hooks';
 import { Card } from '../ui';
 import { formatCurrency } from '../../constants';
 

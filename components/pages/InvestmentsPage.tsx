@@ -1,6 +1,5 @@
-import React, { useState, memo, useCallback } from 'react';
-import { usePersonFilter } from '../../hooks/usePersonFilter';
-import { useInvestmentFilter } from '../../hooks/useDataFilters';
+import React, { memo } from 'react';
+import { useInvestmentFilter, useInvestmentModals, usePersonFilter } from '../../hooks';
 import { PageHeader } from '../ui';
 import { CompoundInterestCalculator, PortfolioSummary, InvestmentTable } from '../investments';
 import { AddInvestmentModal } from '../modals';
@@ -11,23 +10,6 @@ const PlusIcon = () => (
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
   </svg>
 );
-
-/**
- * Hook per gestire lo stato dei modali
- * Principio SRP: Single Responsibility - gestisce solo lo stato dei modali
- */
-const useInvestmentModals = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
-  const openModal = useCallback(() => setIsModalOpen(true), []);
-  const closeModal = useCallback(() => setIsModalOpen(false), []);
-
-  return {
-    isModalOpen,
-    openModal,
-    closeModal,
-  };
-};
 
 /**
  * Componente per il pulsante di aggiunta investimento
@@ -49,7 +31,7 @@ AddInvestmentButton.displayName = 'AddInvestmentButton';
 /**
  * Pagina Investimenti ottimizzata
  * Principio SRP: Single Responsibility - gestisce solo la visualizzazione degli investimenti
- * Principio DRY: Don't Repeat Yourself - usa componenti riutilizzabili
+ * Principio DRY: Don't Repeat Yourself - usa componenti riutilizzabili e hook centralizzati
  * Principio OCP: Open/Closed - estendibile per nuovi tipi di investimenti
  */
 export const InvestmentsPage = memo(() => {

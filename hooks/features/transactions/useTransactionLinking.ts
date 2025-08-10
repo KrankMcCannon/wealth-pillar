@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Transaction } from '../../../types';
-import { useFinance } from '../../useFinance';
+import { useFinance } from '../../core/useFinance';
 
 /**
  * Hook personalizzato per gestire la riconciliazione delle transazioni

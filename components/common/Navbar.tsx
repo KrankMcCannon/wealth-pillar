@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { HomeIcon, TransactionIcon, InvestmentIcon, SettingsIcon, UserGroupIcon, ChartBarIcon } from '.';
-import { useFinance } from '../../hooks/useFinance';
+import { useFinance } from '../../hooks';
 import { useAuth } from '../../contexts/AuthContext';
 
 const NavItem: React.FC<{ to: string; children: React.ReactNode }> = ({ to, children }) => {
@@ -125,7 +125,7 @@ export const Navbar: React.FC = () => {
                 {user.firstName} {user.lastName}
               </p>
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                {user.primaryEmailAddress?.emailAddress}
+                {user.emailAddress}
               </p>
             </div>
           </div>

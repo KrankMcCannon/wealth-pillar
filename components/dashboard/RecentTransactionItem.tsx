@@ -1,6 +1,6 @@
 import React, { memo, useMemo } from 'react';
 import { Transaction, TransactionType } from '../../types';
-import { useFinance } from '../../hooks/useFinance';
+import { useFinance } from '../../hooks';
 import { formatCurrency } from '../../constants';
 
 /**

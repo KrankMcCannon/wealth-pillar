@@ -1,8 +1,8 @@
 import React, { createContext, useContext, useState, ReactNode, useCallback, useEffect } from 'react';
-import { Person, Account, Transaction, Budget, TransactionType, InvestmentHolding, CategoryOption } from '../types';
-import { ClerkSupabaseService } from '../services/clerkSupabaseService';
-import { useAuth } from '../contexts/AuthContext';
-import { useClerkSupabaseClient } from '../lib/supabase/clerkSupabaseClient';
+import { Person, Account, Transaction, Budget, TransactionType, InvestmentHolding, CategoryOption } from '../../types';
+import { ClerkSupabaseService } from '../../services/clerkSupabaseService';
+import { useAuth } from '../../contexts/AuthContext';
+import { useClerkSupabaseClient } from '../../lib/supabase/clerkSupabaseClient';
 import { v4 as uuidv4 } from 'uuid';
 
 interface FinanceContextType {

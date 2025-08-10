@@ -1,9 +1,12 @@
 import React, { memo } from 'react';
-import { useFinance } from '../../hooks/useFinance';
-import { usePersonFilter } from '../../hooks/usePersonFilter';
-import { useAccountFilter, useBudgetFilter } from '../../hooks/useDataFilters';
-import { useSettingsModals } from '../../hooks/useSettingsModals';
 import { PageHeader } from '../ui';
+import {
+  useAccountFilter,
+  useBudgetFilter,
+  useFinance,
+  usePersonFilter,
+  useSettingsModals,
+} from '../../hooks';
 import { 
   UserProfileSection, 
   AccountManagementSection, 

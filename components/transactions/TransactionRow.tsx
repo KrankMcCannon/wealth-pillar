@@ -2,7 +2,7 @@ import React, { memo, useMemo } from 'react';
 import { Transaction, TransactionType } from '../../types';
 import { ArrowDownIcon, ArrowUpIcon, LinkIcon, PencilIcon } from '../common';
 import { formatCurrency, formatDate } from '../../constants';
-import { useFinance } from '../../hooks/useFinance';
+import { useFinance } from '../../hooks';
 
 /**
  * Props per il componente TransactionRow

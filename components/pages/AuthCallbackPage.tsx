@@ -1,77 +1,6 @@
-import React, { useEffect, useState, memo, useCallback } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
+import React, { memo, useCallback } from 'react';
+import { useAuthCallback } from '../../hooks';
 import { LoadingState, ErrorState } from '../ui';
-
-interface AuthCallbackState {
-  loading: boolean;
-  error: string | null;
-  success: boolean;
-}
-
-/**
- * Hook per gestire la logica del callback di autenticazione
- * Principio SRP: Single Responsibility - gestisce solo la logica del callback auth
- */
-const useAuthCallback = () => {
-  const [state, setState] = useState<AuthCallbackState>({
-    loading: true,
-    error: null,
-    success: false,
-  });
-  const { user } = useAuth();
-
-  const handleAuthCallback = useCallback(async () => {
-    try {
-      // Supabase gestisce automaticamente il callback OAuth
-      // Verifica se l'URL contiene parametri di errore
-      const urlParams = new URLSearchParams(window.location.search);
-      const errorParam = urlParams.get('error');
-      const errorDescription = urlParams.get('error_description');
-
-      if (errorParam) {
-        setState({
-          loading: false,
-          error: errorDescription || 'Errore durante l\'autenticazione',
-          success: false,
-        });
-        return;
-      }
-
-      // Attendi che l'utente sia caricato
-      setTimeout(() => {
-        if (user) {
-          setState({
-            loading: false,
-            error: null,
-            success: true,
-          });
-          // Reindirizza alla dashboard
-          window.location.href = '/';
-        } else {
-          // Se non c'è utente dopo 3 secondi, c'è stato un errore
-          setState({
-            loading: false,
-            error: 'Autenticazione non riuscita',
-            success: false,
-          });
-        }
-      }, 3000);
-
-    } catch (err) {
-      setState({
-        loading: false,
-        error: 'Si è verificato un errore durante l\'autenticazione',
-        success: false,
-      });
-    }
-  }, [user]);
-
-  useEffect(() => {
-    handleAuthCallback();
-  }, [handleAuthCallback]);
-
-  return state;
-};
 
 /**
  * Componente per il successo dell'autenticazione
@@ -98,6 +27,7 @@ AuthSuccessState.displayName = 'AuthSuccessState';
  * Pagina callback di autenticazione ottimizzata
  * Principio SRP: Single Responsibility - gestisce solo la logica di callback
  * Principio OCP: Open/Closed - estendibile per altri provider auth
+ * Principio DRY: Usa hook centralizzato per logica auth
  */
 export const AuthCallbackPage = memo(() => {
   const { loading, error, success } = useAuthCallback();

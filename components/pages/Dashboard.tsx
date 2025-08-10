@@ -1,5 +1,5 @@
 import React, { memo } from 'react';
-import { useDashboardData } from '../../hooks/useCustomHooks/useDashboardData';
+import { useDashboardData } from '../../hooks';
 import { AccountCard, BudgetSection, ExpenseChart, RecentTransactionsSection } from '../dashboard';
 
 /**

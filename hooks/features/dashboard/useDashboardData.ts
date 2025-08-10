@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useFinance } from '../useFinance';
+import { useFinance } from '../../core/useFinance';
 
 /**
  * Hook personalizzato per la logica del Dashboard

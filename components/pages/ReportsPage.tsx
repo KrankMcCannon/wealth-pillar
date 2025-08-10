@@ -1,91 +1,8 @@
-import React, { useMemo, useState, memo, useCallback } from 'react';
+import React, { memo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { useFinance } from '../../hooks/useFinance';
-import { usePersonFilter } from '../../hooks/usePersonFilter';
-import { useTransactionFilter } from '../../hooks/useDataFilters';
+import { useAnnualReports, useFinance, usePersonFilter, useYearSelection } from '../../hooks';
 import { Card, PageHeader, SummaryCards } from '../ui';
-import { TransactionType } from '../../types';
 import { formatCurrency } from '../../constants';
-
-/**
- * Hook per gestire la logica dei report annuali
- * Principio SRP: Single Responsibility - gestisce solo i calcoli dei report
- */
-const useAnnualReports = (selectedPersonId: string, selectedYear: number) => {
-  const { getEffectiveTransactionAmount } = useFinance();
-  const { transactions } = useTransactionFilter(selectedPersonId);
-
-  const yearlyTransactions = useMemo(() => {
-    return transactions
-      .filter(t => new Date(t.date).getFullYear() === selectedYear)
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  }, [transactions, selectedYear]);
-
-  const annualSummary = useMemo(() => {
-    return yearlyTransactions
-      .filter(tx => tx.category !== 'trasferimento') // Esclude i trasferimenti dai report
-      .reduce((acc, tx) => {
-        const effectiveAmount = getEffectiveTransactionAmount(tx);
-        if (tx.type === TransactionType.ENTRATA) {
-          acc.entrata += effectiveAmount;
-        } else {
-          acc.spesa += effectiveAmount;
-        }
-        return acc;
-      }, { entrata: 0, spesa: 0 });
-  }, [yearlyTransactions, getEffectiveTransactionAmount]);
-
-  const monthlyData = useMemo(() => {
-    const months = Array.from({ length: 12 }, (_, i) => i);
-    return months.map(monthIndex => {
-      const monthName = new Date(0, monthIndex).toLocaleString('it-IT', { month: 'short' });
-      const monthTransactions = yearlyTransactions.filter(t => new Date(t.date).getMonth() === monthIndex);
-
-      const totals = monthTransactions.reduce((acc, tx) => {
-        const effectiveAmount = getEffectiveTransactionAmount(tx);
-        if (tx.type === TransactionType.ENTRATA) {
-          acc.entrata += effectiveAmount;
-        } else {
-          acc.spesa += effectiveAmount;
-        }
-        return acc;
-      }, { entrata: 0, spesa: 0 });
-
-      return {
-        name: monthName,
-        ...totals
-      };
-    });
-  }, [yearlyTransactions, getEffectiveTransactionAmount]);
-
-  const netBalance = annualSummary.entrata - annualSummary.spesa;
-
-  return {
-    yearlyTransactions,
-    annualSummary,
-    monthlyData,
-    netBalance,
-  };
-};
-
-/**
- * Hook per gestire la selezione degli anni disponibili
- * Principio SRP: Single Responsibility - gestisce solo la logica degli anni
- */
-const useYearSelection = (transactions: any[]) => {
-  const availableYears = useMemo(() => {
-    const years = new Set(transactions.map(t => new Date(t.date).getFullYear()));
-    return Array.from(years).sort((a, b) => b - a);
-  }, [transactions]);
-
-  const [selectedYear, setSelectedYear] = useState(availableYears[0] || new Date().getFullYear());
-
-  return {
-    availableYears,
-    selectedYear,
-    setSelectedYear,
-  };
-};
 
 /**
  * Componente per la selezione dell'anno
@@ -96,17 +13,25 @@ const YearSelector = memo<{
   selectedYear: number;
   onYearChange: (year: number) => void;
 }>(({ availableYears, selectedYear, onYearChange }) => (
-  <div>
-    <label htmlFor="year-select" className="sr-only">Seleziona anno</label>
-    <select
-      id="year-select"
-      value={selectedYear}
-      onChange={(e) => onYearChange(Number(e.target.value))}
-      className="p-2 border border-gray-300 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-    >
-      {availableYears.map(year => <option key={year} value={year}>{year}</option>)}
-    </select>
-  </div>
+  <Card>
+    <div className="p-4">
+      <label htmlFor="year-select" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        Seleziona Anno
+      </label>
+      <select
+        id="year-select"
+        value={selectedYear}
+        onChange={(e) => onYearChange(parseInt(e.target.value))}
+        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+      >
+        {availableYears.map(year => (
+          <option key={year} value={year}>
+            {year}
+          </option>
+        ))}
+      </select>
+    </div>
+  </Card>
 ));
 
 YearSelector.displayName = 'YearSelector';
@@ -116,36 +41,61 @@ YearSelector.displayName = 'YearSelector';
  * Principio SRP: Single Responsibility - gestisce solo la visualizzazione del grafico
  */
 const MonthlyChart = memo<{
-  data: any[];
-  hasData: boolean;
-  year: number;
-}>(({ data, hasData, year }) => (
+  data: Array<{ name: string; entrata: number; spesa: number }>;
+  selectedPersonId: string;
+}>(({ data, selectedPersonId }) => (
   <Card>
-    <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-white">Dettaglio mensile</h2>
-    {hasData ? (
-      <ResponsiveContainer width="100%" height={400}>
-        <BarChart data={data} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
-          <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.2} />
-          <XAxis dataKey="name" />
-          <YAxis tickFormatter={(value) => formatCurrency(value as number)} />
-          <Tooltip
-            contentStyle={{
-              backgroundColor: 'rgba(31, 41, 55, 0.8)',
-              borderColor: '#4b5563',
-              color: '#f3f4f6'
-            }}
-            formatter={(value: number) => formatCurrency(value)}
-          />
-          <Legend />
-          <Bar dataKey="entrata" fill="#22c55e" name="Entrata" />
-          <Bar dataKey="spesa" fill="#ef4444" name="Spesa" />
-        </BarChart>
-      </ResponsiveContainer>
-    ) : (
-      <p className="text-center text-gray-500 dark:text-gray-400 py-10">
-        Nessuna transazione registrata per il {year}.
-      </p>
-    )}
+    <div className="p-6">
+      <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">
+        Trend Mensile {new Date().getFullYear()}
+      </h3>
+      <div className="h-80">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+            <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+            <XAxis 
+              dataKey="name" 
+              tick={{ fontSize: 12 }}
+              stroke="currentColor"
+              className="text-gray-600 dark:text-gray-400"
+            />
+            <YAxis 
+              tick={{ fontSize: 12 }}
+              stroke="currentColor"
+              className="text-gray-600 dark:text-gray-400"
+              tickFormatter={(value) => formatCurrency(value)}
+            />
+            <Tooltip 
+              formatter={(value: number, name: string) => [
+                formatCurrency(value), 
+                name === 'entrata' ? 'Entrate' : 'Spese'
+              ]}
+              labelStyle={{ color: 'var(--text-primary)' }}
+              contentStyle={{
+                backgroundColor: 'var(--bg-secondary)',
+                border: '1px solid var(--border-color)',
+                borderRadius: '8px'
+              }}
+            />
+            <Legend 
+              formatter={(value) => value === 'entrata' ? 'Entrate' : 'Spese'}
+            />
+            <Bar 
+              dataKey="entrata" 
+              fill="#10B981" 
+              name="entrata"
+              radius={[2, 2, 0, 0]}
+            />
+            <Bar 
+              dataKey="spesa" 
+              fill="#EF4444" 
+              name="spesa"
+              radius={[2, 2, 0, 0]}
+            />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
   </Card>
 ));
 
@@ -154,69 +104,74 @@ MonthlyChart.displayName = 'MonthlyChart';
 /**
  * Pagina Report ottimizzata
  * Principio SRP: Single Responsibility - gestisce solo la visualizzazione dei report
- * Principio DRY: Don't Repeat Yourself - usa componenti riutilizzabili
  * Principio OCP: Open/Closed - estendibile per nuovi tipi di report
+ * Principio DRY: Don't Repeat Yourself - usa hook centralizzati e componenti riutilizzabili
  */
-const ReportsPage = memo(() => {
-  const { transactions } = useFinance();
+export const ReportsPage = memo(() => {
   const { selectedPersonId, selectedPerson } = usePersonFilter();
-  
+  const { transactions } = useFinance();
   const { availableYears, selectedYear, setSelectedYear } = useYearSelection(transactions);
-  const { annualSummary, monthlyData, netBalance, yearlyTransactions } = useAnnualReports(selectedPersonId, selectedYear);
+  const { yearlyTransactions, annualSummary, monthlyData, netBalance } = useAnnualReports(
+    selectedPersonId, 
+    selectedYear
+  );
 
-  const handleYearChange = useCallback((year: number) => {
-    setSelectedYear(year);
-  }, [setSelectedYear]);
-
-  // Configurazione delle cards di riepilogo
-  const summaryCardsData = useMemo(() => [
+  const summaryCardsData = [
     {
-      title: 'Entrate totali',
+      title: 'Entrate Totali',
       value: formatCurrency(annualSummary.entrata),
-      color: 'green' as 'green',
+      change: undefined,
+      trend: 'up' as const,
+      color: 'green'
     },
     {
-      title: 'Spese totali',
+      title: 'Spese Totali',
       value: formatCurrency(annualSummary.spesa),
-      color: 'red' as 'red',
+      change: undefined,
+      trend: 'down' as const,
+      color: 'red'
     },
     {
-      title: 'Saldo netto',
+      title: 'Bilancio Netto',
       value: formatCurrency(netBalance),
-      color: netBalance >= 0 ? 'blue' as 'blue' : 'yellow' as 'yellow',
+      change: undefined,
+      trend: netBalance >= 0 ? 'up' as const : 'down' as const,
+      color: netBalance >= 0 ? 'green' : 'red'
     },
-  ], [annualSummary, netBalance]);
+    {
+      title: 'Transazioni',
+      value: yearlyTransactions.length.toString(),
+      change: undefined,
+      trend: 'neutral' as const,
+      color: 'blue'
+    }
+  ];
 
-  const pageTitle = selectedPerson 
-    ? `Report finanziario di ${selectedPerson.name}` 
-    : 'Report finanziario generale';
+  const handleYearChange = (year: number) => {
+    setSelectedYear(year);
+  };
 
   return (
-    <div className="space-y-8">
-      <PageHeader title={pageTitle}>
-        <YearSelector
-          availableYears={availableYears}
-          selectedYear={selectedYear}
-          onYearChange={handleYearChange}
-        />
-      </PageHeader>
+    <div className="space-y-6">
+      <PageHeader 
+        title={`Report Finanziari${selectedPerson ? ` - ${selectedPerson.name}` : ''}`}
+        subtitle={`Anno ${selectedYear}`}
+      />
 
-      <Card>
-        <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-white">
-          Panoramica annuale - {selectedYear}
-        </h2>
-        <SummaryCards cards={summaryCardsData} />
-      </Card>
+      <YearSelector
+        availableYears={availableYears}
+        selectedYear={selectedYear}
+        onYearChange={handleYearChange}
+      />
+
+      <SummaryCards cards={summaryCardsData} />
 
       <MonthlyChart
         data={monthlyData}
-        hasData={yearlyTransactions.length > 0}
-        year={selectedYear}
+        selectedPersonId={selectedPersonId}
       />
     </div>
   );
 });
 
 ReportsPage.displayName = 'ReportsPage';
-
-export { ReportsPage };

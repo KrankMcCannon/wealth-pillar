@@ -1,6 +1,5 @@
 import React, { memo, useCallback, useMemo, useEffect } from 'react';
-import { useFinance } from '../../hooks/useFinance';
-import { useModalForm } from '../../hooks/useModalForm';
+import { useFinance, useModalForm } from '../../hooks';
 import { BaseModal, FormField, Input, Select, CheckboxGroup, ModalActions } from '../ui';
 
 interface AddAccountModalProps {
