@@ -1,8 +1,8 @@
 import React, { createContext, useContext, useState, ReactNode, useCallback, useEffect } from 'react';
-import { Person, Account, Transaction, Budget, TransactionType, InvestmentHolding, CategoryOption } from '../../types';
-import { ClerkSupabaseService } from '../../services/clerkSupabaseService';
+import { Person, Account, Transaction, Budget, TransactionType, InvestmentHolding, CategoryOption, Category } from '../../types';
+import { ClerkSupabaseService } from '../../lib/supabase/services/clerk-supabase.service';
 import { useAuth } from '../../contexts/AuthContext';
-import { useClerkSupabaseClient } from '../../lib/supabase/clerkSupabaseClient';
+import { useClerkSupabaseClient } from '../../lib/supabase/client/clerk-supabase.client';
 import { v4 as uuidv4 } from 'uuid';
 
 interface FinanceContextType {
@@ -24,7 +24,7 @@ interface FinanceContextType {
   updateBudget: (budget: Budget) => Promise<void>;
   getAccountById: (id: string) => Account | undefined;
   getPersonById: (id: string) => Person | undefined;
-  getCategoryName: (categoryId: string) => string;
+  getCategoryName: (category: string | null) => string;
   getEffectiveTransactionAmount: (transaction: Transaction) => number;
   getRemainingAmount: (transaction: Transaction) => number;
   hasAvailableAmount: (transaction: Transaction) => boolean;
@@ -33,7 +33,8 @@ interface FinanceContextType {
   updatePerson: (updatedPerson: Person) => Promise<void>;
   addInvestment: (investment: Omit<InvestmentHolding, 'id'>) => Promise<void>;
   refreshData: () => Promise<void>;
-  getCalculatedBalance: (accountId: string) => number;
+  getCalculatedBalance: (accountId: string) => Promise<number>;
+  getCalculatedBalanceSync: (accountId: string) => number;
 }
 
 const FinanceContext = createContext<FinanceContextType | undefined>(undefined);
@@ -65,21 +66,15 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
       // Initialize service with authenticated client
       const supabaseService = new ClerkSupabaseService(client);
 
-      const [peopleData, accountsData, transactionsData, budgetsData, investmentsData, categoriesData] = await Promise.all([
-        supabaseService.getPeople(),
-        supabaseService.getAccounts(),
-        supabaseService.getTransactions(),
-        supabaseService.getBudgets(),
-        supabaseService.getInvestments(),
-        supabaseService.getCategories(),
-      ]);
+      // Usa il nuovo metodo ottimizzato loadAllData per ridurre le chiamate
+      const data = await supabaseService.loadAllData();
 
-      setPeople(peopleData);
-      setAccounts(accountsData);
-      setTransactions(transactionsData.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
-      setBudgets(budgetsData);
-      setInvestments(investmentsData);
-      setCategories(categoriesData);
+      setPeople(data.people);
+      setAccounts(data.accounts);
+      setTransactions(data.transactions); // Già ordinato dal servizio
+      setBudgets(data.budgets);
+      setInvestments(data.investments);
+      setCategories(data.categories);
 
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load data');
@@ -248,9 +243,11 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
     return people.find(p => p.id === id);
   }, [people]);
 
-  const getCategoryName = useCallback((categoryId: string) => {
-    const category = categories.find(c => c.name === categoryId);
-    return category ? (category.label || category.name) : categoryId;
+  const getCategoryName = useCallback((category: string | null): string => {
+    if (!category) return '';
+
+    const foundCategory = categories.find(c => c.name === category);
+    return foundCategory?.label || foundCategory?.name || category;
   }, [categories]);
 
   // Calculate the effective amount of a transaction considering reconciliation
@@ -359,37 +356,71 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
     return Math.max(0, transaction.amount - linkedTx.amount) > 0;
   }, [transactions, isParentTransaction]);
 
-  const getCalculatedBalance = useCallback((accountId: string) => {
+  const getCalculatedBalance = useCallback(async (accountId: string): Promise<number> => {
+    try {
+      const service = await getServiceSafely();
+      return await service.getCalculatedBalance(accountId);
+    } catch (err) {
+      // Fallback al calcolo locale se il servizio non è disponibile
+      const account = accounts.find(acc => acc.id === accountId);
+      if (!account) return 0;
+
+      // Calcolo locale come backup
+      let initialBalance = 0;
+      const transactionTotal = transactions
+        .reduce((total, tx) => {
+          // Assicuriamoci che amount sia un numero
+          const amount = typeof tx.amount === 'number' ? tx.amount : parseFloat(tx.amount) || 0;
+          
+          if (tx.category === 'trasferimento') {
+            if (tx.accountId === accountId) {
+              return total - amount;
+            } else if (tx.toAccountId === accountId) {
+              return total + amount;
+            }
+            return total;
+          }
+
+          if (tx.accountId === accountId) {
+            if (tx.type === TransactionType.ENTRATA) {
+              return total + amount;
+            } else {
+              return total - amount;
+            }
+          }
+
+          return total;
+        }, 0);
+
+      return initialBalance + transactionTotal;
+    }
+  }, [accounts, transactions, getServiceSafely]);
+
+  const getCalculatedBalanceSync = useCallback((accountId: string): number => {
     const account = accounts.find(acc => acc.id === accountId);
     if (!account) return 0;
 
-    // Iniziamo dal bilancio iniziale dell'account (che dovrebbe essere il bilancio di partenza)
+    // Calcolo locale sincrono
     let initialBalance = 0;
-
-    // Calcoliamo il totale delle transazioni per questo account
-    // Per i saldi degli account, usiamo SEMPRE l'importo originale delle transazioni
-    // La riconciliazione non deve influenzare i movimenti reali di denaro sui conti
     const transactionTotal = transactions
       .reduce((total, tx) => {
-        // Gestione trasferimenti
+        // Assicuriamoci che amount sia un numero
+        const amount = typeof tx.amount === 'number' ? tx.amount : parseFloat(tx.amount) || 0;
+        
         if (tx.category === 'trasferimento') {
           if (tx.accountId === accountId) {
-            // Account di origine del trasferimento: sottrai l'importo
-            return total - tx.amount;
+            return total - amount;
           } else if (tx.toAccountId === accountId) {
-            // Account di destinazione del trasferimento: aggiungi l'importo
-            return total + tx.amount;
+            return total + amount;
           }
-          // Se non è né origine né destinazione, non influisce su questo account
           return total;
         }
 
-        // Gestione transazioni normali (non trasferimenti)
         if (tx.accountId === accountId) {
           if (tx.type === TransactionType.ENTRATA) {
-            return total + tx.amount;
+            return total + amount;
           } else {
-            return total - tx.amount;
+            return total - amount;
           }
         }
 
@@ -451,6 +482,7 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
     hasAvailableAmount,
     isParentTransaction,
     getCalculatedBalance,
+    getCalculatedBalanceSync,
     linkTransactions,
     updatePerson,
     addInvestment,

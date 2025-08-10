@@ -16,7 +16,7 @@ export type Category = string;
 export interface CategoryOption {
   id: string;
   name: string;
-  label?: string;
+  label: string;
 }
 
 export interface Account {

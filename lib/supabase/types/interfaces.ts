@@ -3,6 +3,10 @@
  * Following SOLID principles - Interface Segregation and Dependency Inversion
  */
 
+// Filter and Sort types
+export type FilterType = 'eq' | 'neq' | 'gt' | 'gte' | 'lt' | 'lte' | 'like' | 'ilike' | 'in' | 'is' | 'not';
+export type SortType = 'asc' | 'desc';
+
 // Generic repository interface
 export interface IRepository<TEntity, TId = string> {
   findAll(): Promise<TEntity[]>;

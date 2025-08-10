@@ -26,7 +26,7 @@ import {
  * Principio OCP: Open/Closed - estendibile per nuove sezioni di impostazioni
  */
 export const SettingsPage = memo(() => {
-  const { people, getPersonById, getCalculatedBalance } = useFinance();
+  const { people, getPersonById, getCalculatedBalanceSync } = useFinance();
   const { selectedPersonId, isAllView, getPersonName } = usePersonFilter();
   const { accounts } = useAccountFilter(selectedPersonId);
   const { budgets } = useBudgetFilter(selectedPersonId);
@@ -79,7 +79,7 @@ export const SettingsPage = memo(() => {
           onEditAccount={openEditAccountModal}
           onAddAccount={openAddAccountModal}
           getPersonName={getPersonName}
-          getCalculatedBalance={getCalculatedBalance}
+          getCalculatedBalanceSync={getCalculatedBalanceSync}
         />
 
         <BudgetManagementSection

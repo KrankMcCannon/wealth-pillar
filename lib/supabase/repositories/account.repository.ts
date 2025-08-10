@@ -4,7 +4,8 @@
  */
 
 import { Account } from '../../../types';
-import { BaseSupabaseRepository } from '../base-repository';
+import { accountMapper } from '../mappers';
+import { BaseSupabaseRepository } from './base.repository';
 
 export interface AccountFilters {
   personId?: string;
@@ -17,23 +18,11 @@ export class AccountRepository extends BaseSupabaseRepository<Account, AccountFi
   }
 
   protected mapToEntity(data: any): Account {
-    return {
-      id: data.id,
-      name: data.name,
-      balance: data.initial_balance, // We'll calculate current balance separately
-      type: data.type,
-      personIds: data.person_ids || []
-    };
+    return accountMapper.toEntity(data);
   }
 
   protected mapFromEntity(entity: Account): any {
-    return {
-      id: entity.id,
-      name: entity.name,
-      initial_balance: entity.balance,
-      type: entity.type,
-      person_ids: entity.personIds
-    };
+    return accountMapper.toDatabase(entity);
   }
 
   protected buildFilters(filters: AccountFilters) {

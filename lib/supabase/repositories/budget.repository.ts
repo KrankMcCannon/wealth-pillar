@@ -4,7 +4,7 @@
  */
 
 import { Budget } from '../../../types';
-import { BaseSupabaseRepository } from '../base-repository';
+import { BaseSupabaseRepository } from './base.repository';
 
 export interface BudgetFilters {
   personId?: string;

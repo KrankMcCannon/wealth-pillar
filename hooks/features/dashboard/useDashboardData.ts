@@ -15,7 +15,7 @@ export const useDashboardData = () => {
     getAccountById, 
     selectedPersonId, 
     getPersonById, 
-    getCalculatedBalance 
+    getCalculatedBalanceSync
   } = useFinance();
 
   // Memoized data filtering per ottimizzare le performance
@@ -67,7 +67,7 @@ export const useDashboardData = () => {
       const personNames = dashboardData.isAllView
         ? acc.personIds.map(id => getPersonById(id)?.name).filter(Boolean).join(', ')
         : undefined;
-      const calculatedBalance = getCalculatedBalance(acc.id);
+      const calculatedBalance = getCalculatedBalanceSync(acc.id);
       
       return {
         account: acc,
@@ -75,7 +75,7 @@ export const useDashboardData = () => {
         personName: personNames
       };
     });
-  }, [dashboardData.displayedAccounts, dashboardData.isAllView, getPersonById, getCalculatedBalance]);
+  }, [dashboardData.displayedAccounts, dashboardData.isAllView, getPersonById, getCalculatedBalanceSync]);
 
   // Budget data with person information
   const budgetsWithData = useMemo(() => {

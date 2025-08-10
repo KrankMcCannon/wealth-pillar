@@ -3,8 +3,8 @@
  * Implements Repository Pattern with error handling
  */
 
-import { getSupabaseClient } from './client';
-import { IQueryRepository, IRealtimeRepository, IRepository, RepositoryError } from './interfaces';
+import { getSupabaseClient } from '../client/supabase.client';
+import { IQueryRepository, IRealtimeRepository, IRepository, RepositoryError } from '../types/interfaces';
 
 export abstract class BaseSupabaseRepository<TEntity, TFilters = any> 
   implements IRepository<TEntity>, IQueryRepository<TEntity, TFilters>, IRealtimeRepository<TEntity> {

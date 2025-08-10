@@ -4,8 +4,8 @@
  */
 
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { getSupabaseConfig } from './config';
-import type { Database } from './database.types';
+import { getSupabaseConfig } from '../../config';
+import type { Database } from '../types/database.types';
 
 // Singleton instance
 let supabaseInstance: SupabaseClient<Database> | null = null;

@@ -4,7 +4,8 @@
  */
 
 import { Transaction, TransactionType } from '../../../types';
-import { BaseSupabaseRepository } from '../base-repository';
+import { transactionMapper } from '../mappers';
+import { BaseSupabaseRepository } from './base.repository';
 
 export interface TransactionFilters {
   accountId?: string;
@@ -23,33 +24,11 @@ export class TransactionRepository extends BaseSupabaseRepository<Transaction, T
   }
 
   protected mapToEntity(data: any): Transaction {
-    return {
-      id: data.id,
-      description: data.description,
-      amount: data.amount,
-      type: data.type as TransactionType,
-      category: data.category,
-      date: data.date,
-      accountId: data.account_id,
-      toAccountId: data.to_account_id,
-      isReconciled: data.is_reconciled || false,
-      parentTransactionId: data.parent_transaction_id
-    };
+    return transactionMapper.toEntity(data);
   }
 
   protected mapFromEntity(entity: Transaction): any {
-    return {
-      id: entity.id,
-      description: entity.description,
-      amount: entity.amount,
-      type: entity.type,
-      category: entity.category,
-      date: entity.date,
-      account_id: entity.accountId,
-      to_account_id: entity.toAccountId,
-      is_reconciled: entity.isReconciled,
-      parent_transaction_id: entity.parentTransactionId
-    };
+    return transactionMapper.toDatabase(entity);
   }
 
   protected buildFilters(filters: TransactionFilters) {

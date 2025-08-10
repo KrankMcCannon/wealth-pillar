@@ -21,7 +21,7 @@ interface AccountManagementProps {
   onEditAccount: (account: Account) => void;
   onAddAccount: () => void;
   getPersonName: (id: string) => string;
-  getCalculatedBalance: (accountId: string) => number;
+  getCalculatedBalanceSync: (accountId: string) => number;
 }
 
 /**
@@ -86,7 +86,7 @@ export const AccountManagementSection = memo<AccountManagementProps>(({
   onEditAccount,
   onAddAccount,
   getPersonName,
-  getCalculatedBalance,
+  getCalculatedBalanceSync,
 }) => (
   <Card>
     <div className="flex justify-between items-center mb-4">
@@ -122,7 +122,7 @@ export const AccountManagementSection = memo<AccountManagementProps>(({
                 {isAllView && <td className="py-4 px-4 text-gray-600 dark:text-gray-400">{personNames || 'N/D'}</td>}
                 <td className="py-4 px-4 text-gray-600 dark:text-gray-400 capitalize">{account.type}</td>
                 <td className="py-4 px-4 text-right font-mono text-gray-800 dark:text-gray-200">
-                  {formatCurrency(getCalculatedBalance(account.id))}
+                  {formatCurrency(getCalculatedBalanceSync(account.id))}
                 </td>
                 <td className="py-4 px-4 text-center">
                   <button

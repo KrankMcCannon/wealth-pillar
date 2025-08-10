@@ -4,7 +4,7 @@
  */
 
 import { CategoryOption } from '../../../types';
-import { BaseSupabaseRepository } from '../base-repository';
+import { BaseSupabaseRepository } from './base.repository';
 
 export interface CategoryFilters {
   name?: string;
@@ -18,14 +18,16 @@ export class CategoryRepository extends BaseSupabaseRepository<CategoryOption, C
   protected mapToEntity(data: any): CategoryOption {
     return {
       id: data.id,
-      name: data.name
+      name: data.name,
+      label: data.label
     };
   }
 
   protected mapFromEntity(entity: CategoryOption): any {
     return {
       id: entity.id,
-      name: entity.name
+      name: entity.name,
+      label: entity.label
     };
   }
 

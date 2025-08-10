@@ -62,7 +62,7 @@ export const testSupabaseConnection = async (): Promise<{
   details?: any;
 }> => {
   try {
-    const { getSupabaseClient } = await import('./client');
+    const { getSupabaseClient } = await import('../supabase/client');
     const supabase = getSupabaseClient();
     
     // Test basic connection with a simple query

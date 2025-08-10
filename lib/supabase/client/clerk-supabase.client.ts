@@ -7,8 +7,8 @@
 import { useSession, useUser } from '@clerk/clerk-react';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { useMemo } from 'react';
-import { getSupabaseConfig } from './config';
-import type { Database } from './database.types';
+import { getSupabaseConfig } from '../../config';
+import type { Database } from '../types/database.types';
 
 /**
  * Create a Clerk-authenticated Supabase client

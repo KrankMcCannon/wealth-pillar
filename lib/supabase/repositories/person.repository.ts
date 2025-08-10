@@ -4,7 +4,7 @@
  */
 
 import { Person } from '../../../types';
-import { BaseSupabaseRepository } from '../base-repository';
+import { BaseSupabaseRepository } from './base.repository';
 
 export interface PersonFilters {
   name?: string;
