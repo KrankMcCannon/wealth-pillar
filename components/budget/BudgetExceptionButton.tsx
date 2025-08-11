@@ -23,22 +23,22 @@ export const BudgetExceptionButton = memo<BudgetExceptionButtonProps>(({
   }
 
   const [showModal, setShowModal] = useState(false);
-  const [selectedPersonId, setSelectedPersonId] = useState(defaultPersonId || '');
+  const [selectedPersonId, setSelectedPersonId] = useState(defaultPersonId || people[0]?.id || '');
   const [exceptionDate, setExceptionDate] = useState('');
   const [exceptionReason, setExceptionReason] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Trova la persona selezionata
-  const selectedPerson = people.find(p => p.id === selectedPersonId);
+  const selectedPerson = people.find(p => p.id === selectedPersonId) || people[0];
 
-  // Hook per gestire le eccezioni (solo se c'è una persona selezionata)
+  // Hook per gestire le eccezioni
   const {
     canAddException,
     addBudgetException,
     previewExceptionPeriod,
     hasActiveException
   } = useBudgetExceptions({ 
-    person: selectedPerson! 
+    person: selectedPerson
   });
 
   // Reset del form quando si chiude il modale

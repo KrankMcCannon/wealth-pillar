@@ -40,8 +40,8 @@ export const useDashboardData = () => {
           return account?.personIds.includes(selectedPersonId);
         });
 
-    // Recent transactions (last 10) - usando TransactionUtils
-    const recentTransactions = TransactionUtils.getRecentTransactions(displayedTransactions, 10);
+    // Recent transactions (last 5) - usando TransactionUtils
+    const recentTransactions = TransactionUtils.getRecentTransactions(displayedTransactions, 5);
 
     return {
       isAllView,

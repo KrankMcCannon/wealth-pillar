@@ -1,5 +1,6 @@
 import React, { memo } from 'react';
 import { useDashboardData } from '../../hooks';
+import { useFinance } from '../../hooks';
 import { AccountCard, BudgetSection, ExpenseChart, RecentTransactionsSection } from '../dashboard';
 
 /**
@@ -25,6 +26,8 @@ export const Dashboard = memo(() => {
     isAllView
   } = useDashboardData();
 
+  const { people } = useFinance();
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -48,6 +51,7 @@ export const Dashboard = memo(() => {
       <BudgetSection
         budgetsWithData={budgetsWithData}
         transactions={displayedTransactions}
+        people={people}
         isAllView={isAllView}
       />
 
