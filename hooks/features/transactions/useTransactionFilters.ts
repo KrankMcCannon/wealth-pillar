@@ -110,6 +110,11 @@ export const useTransactionFilters = () => {
     getCategoryName
   ]);
 
+  // Raggruppa le transazioni filtrate per data
+  const groupedTransactions = useMemo(() => {
+    return TransactionUtils.getGroupedTransactionsByDate(filteredTransactions);
+  }, [filteredTransactions]);
+
   // Funzione per resettare tutti i filtri
   const resetFilters = () => {
     setSearchTerm('');
@@ -140,6 +145,7 @@ export const useTransactionFilters = () => {
     personTransactions,
     availableCategories,
     filteredTransactions,
+    groupedTransactions,
     
     // Utilities
     resetFilters,

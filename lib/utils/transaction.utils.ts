@@ -83,6 +83,38 @@ export class TransactionUtils {
   static calculateTotal(transactions: Transaction[]): number {
     return transactions.reduce((sum, t) => sum + t.amount, 0);
   }
+
+  /**
+   * Group transactions by date
+   * @param transactions Array of transactions to group
+   * @returns Object with date as key and array of transactions as value
+   */
+  static groupByDate(transactions: Transaction[]): Record<string, Transaction[]> {
+    return transactions.reduce((groups, transaction) => {
+      const date = transaction.date.split('T')[0]; // Extract YYYY-MM-DD from ISO string
+      if (!groups[date]) {
+        groups[date] = [];
+      }
+      groups[date].push(transaction);
+      return groups;
+    }, {} as Record<string, Transaction[]>);
+  }
+
+  /**
+   * Get grouped transactions sorted by date (most recent first)
+   * @param transactions Array of transactions to group and sort
+   * @returns Array of objects with date and transactions
+   */
+  static getGroupedTransactionsByDate(transactions: Transaction[]): Array<{ date: string; transactions: Transaction[] }> {
+    const grouped = this.groupByDate(transactions);
+    
+    return Object.entries(grouped)
+      .map(([date, txs]) => ({
+        date,
+        transactions: this.sortByDateDesc(txs) // Sort transactions within each group
+      }))
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()); // Sort groups by date desc
+  }
 }
 
 /**

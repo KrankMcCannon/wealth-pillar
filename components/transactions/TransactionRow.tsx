@@ -19,6 +19,7 @@ interface TransactionRowProps {
   onLinkClick: (tx: Transaction) => void;
   onSelectToLink: (txId: string) => void;
   onEditClick: (tx: Transaction) => void;
+  showDate?: boolean; // Nuovo prop opzionale per mostrare/nascondere la colonna data
 }
 
 /**
@@ -36,7 +37,8 @@ export const TransactionRow = memo<TransactionRowProps>(({
   isLinkable,
   onLinkClick,
   onSelectToLink,
-  onEditClick
+  onEditClick,
+  showDate = true // Default a true per mantenere compatibilità con altri usi
 }) => {
   const { getCategoryName, getAccountById, getPersonById } = useFinance();
 
@@ -103,7 +105,7 @@ export const TransactionRow = memo<TransactionRowProps>(({
   return (
     <tr className={rowClasses} onClick={handleRowClick}>
       {/* Descrizione e account */}
-      <td className="py-3 px-4">
+      <td className="w-2/5 py-3 px-4">
         <div className="flex items-center">
           {/* Cerchio con iniziali e freccia sporgente (stesso design di RecentTransactionItem) */}
           <div className="relative mr-3">
@@ -132,13 +134,13 @@ export const TransactionRow = memo<TransactionRowProps>(({
 
       {/* Persona (solo in vista All) */}
       {isAllView && (
-        <td className="py-3 px-4 text-gray-600 dark:text-gray-400">
+        <td className="w-1/6 py-3 px-4 text-gray-600 dark:text-gray-400">
           {personName}
         </td>
       )}
 
       {/* Importo */}
-      <td className={`py-3 px-4 font-mono text-right ${isTransfer ? 'text-blue-600 dark:text-blue-400' :
+      <td className={`w-1/6 py-3 px-4 font-mono text-right ${isTransfer ? 'text-blue-600 dark:text-blue-400' :
           isIncome ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
         }`}>
         <div className="flex flex-col items-end">
@@ -160,17 +162,19 @@ export const TransactionRow = memo<TransactionRowProps>(({
       </td>
 
       {/* Categoria */}
-      <td className="py-3 px-4 text-gray-600 dark:text-gray-400">
+      <td className="w-1/6 py-3 px-4 text-gray-600 dark:text-gray-400">
         {getCategoryName(transaction.category)}
       </td>
 
-      {/* Data */}
-      <td className="py-3 px-4 text-gray-600 dark:text-gray-400">
-        {formatDate(transaction.date)}
-      </td>
+      {/* Data (solo se showDate è true) */}
+      {showDate && (
+        <td className="w-1/6 py-3 px-4 text-gray-600 dark:text-gray-400">
+          {formatDate(transaction.date)}
+        </td>
+      )}
 
       {/* Stato e azioni */}
-      <td className="py-3 px-4 text-center">
+      <td className="w-1/6 py-3 px-4 text-center">
         <div className="flex items-center justify-center space-x-2">
           {/* Stato riconciliazione */}
           {transaction.isReconciled ? (

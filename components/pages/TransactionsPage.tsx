@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Card } from '../ui';
 import { Transaction } from '../../types';
 import { EditTransactionModal } from '../modals';
-import { FilterSection, LinkingStatusBar, TransactionTable } from '../transactions';
+import { FilterSection, LinkingStatusBar, TransactionGroupedTable } from '../transactions';
 import { useTransactionFilters, useTransactionLinking } from '../../hooks';
 
 /**
@@ -28,6 +28,7 @@ export const TransactionsPage: React.FC = () => {
     setDateRange,
     availableCategories,
     filteredTransactions,
+    groupedTransactions,
     resetFilters,
     hasActiveFilters,
     getAccountById,
@@ -91,10 +92,10 @@ export const TransactionsPage: React.FC = () => {
         </Card>
       )}
 
-      {/* Tabella delle transazioni */}
+      {/* Gruppi di transazioni raggruppate per data */}
       <Card>
-        <TransactionTable
-          transactions={filteredTransactions}
+        <TransactionGroupedTable
+          groupedTransactions={groupedTransactions}
           isAllView={isAllView}
           isLinkingMode={isLinkingMode}
           linkingTx={linkingTx}
