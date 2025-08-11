@@ -1,138 +1,35 @@
-import React, { memo, useCallback, useMemo, useEffect } from 'react';
-import { useFinance, useModalForm } from '../../hooks';
+import React, { memo } from 'react';
 import { BaseModal, FormField, Input, Select, CheckboxGroup, ModalActions } from '../ui';
+import { useAddAccount } from '../../hooks/features/accounts/useAddAccount';
 
 interface AddAccountModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-interface AccountFormData {
-  name: string;
-  type: 'checking' | 'savings' | 'cash' | 'investment';
-  selectedPersonIds: string[];
-}
-
+/**
+ * Componente presentazionale per aggiunta account
+ * Tutta la logica è delegata al hook useAddAccount
+ */
 export const AddAccountModal = memo<AddAccountModalProps>(({ isOpen, onClose }) => {
-  const { addAccount, people } = useFinance();
-
-  const initialFormData: AccountFormData = useMemo(() => ({
-    name: '',
-    type: 'checking',
-    selectedPersonIds: [],
-  }), []);
-
   const {
     data,
     errors,
     isSubmitting,
-    updateField,
-    setError,
-    clearAllErrors,
-    setSubmitting,
-    resetForm,
-    validateRequired,
-  } = useModalForm({
-    initialData: initialFormData,
-    resetOnClose: true,
-    resetOnOpen: true,
-  });
-
-  // Account type options
-  const accountTypeOptions = useMemo(() => [
-    { value: 'stipendio', label: 'Stipendio' },
-    { value: 'risparmi', label: 'Risparmi' },
-    { value: 'contanti', label: 'Contanti' },
-    { value: 'investimenti', label: 'Investimenti' },
-  ], []);
-
-  // People checkbox options
-  const peopleOptions = useMemo(() => 
-    people.map(person => ({
-      id: person.id,
-      label: person.name,
-      checked: data.selectedPersonIds.includes(person.id),
-    }))
-  , [people, data.selectedPersonIds]);
-
-  // Reset form when modal opens
-  useEffect(() => {
-    if (isOpen) {
-      resetForm();
-    }
-  }, [isOpen, resetForm]);
-
-  // Validation
-  const validateForm = useCallback((): boolean => {
-    clearAllErrors();
-
-    if (!validateRequired(['name'])) {
-      return false;
-    }
-
-    if (data.name.trim().length === 0) {
-      setError('name', 'Il nome del conto non può essere vuoto');
-      return false;
-    }
-
-    if (data.selectedPersonIds.length === 0) {
-      setError('selectedPersonIds', 'Seleziona almeno una persona per questo conto');
-      return false;
-    }
-
-    return true;
-  }, [data, validateRequired, setError, clearAllErrors]);
-
-  // Submit handler
-  const handleSubmit = useCallback(async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!validateForm()) {
-      return;
-    }
-
-    setSubmitting(true);
-
-    try {
-      await addAccount({
-        name: data.name.trim(),
-        type: data.type,
-        personIds: data.selectedPersonIds,
-        balance: 0, // Default balance
-      });
-      onClose();
-    } catch (err) {
-      setError('submit', err instanceof Error ? err.message : 'Errore durante l\'aggiunta del conto');
-    } finally {
-      setSubmitting(false);
-    }
-  }, [validateForm, setSubmitting, data, addAccount, onClose, setError]);
-
-  // Field change handlers
-  const handleNameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    updateField('name', e.target.value);
-  }, [updateField]);
-
-  const handleTypeChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-    updateField('type', e.target.value);
-  }, [updateField]);
-
-  const handlePersonToggle = useCallback((personId: string, checked: boolean) => {
-    const newSelectedIds = checked
-      ? [...data.selectedPersonIds, personId]
-      : data.selectedPersonIds.filter(id => id !== personId);
-    
-    updateField('selectedPersonIds', newSelectedIds);
-  }, [data.selectedPersonIds, updateField]);
-
-  const submitError = errors.submit;
+    canSubmit,
+    accountTypeOptions,
+    peopleOptions,
+    handleSubmit,
+    handleNameChange,
+    handleTypeChange,
+    handlePersonToggle,
+  } = useAddAccount({ onClose });
 
   return (
     <BaseModal
       isOpen={isOpen}
       onClose={onClose}
       title="Aggiungi nuovo conto"
-      error={submitError}
       maxWidth="lg"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -149,6 +46,7 @@ export const AddAccountModal = memo<AddAccountModalProps>(({ isOpen, onClose }) 
             value={data.name}
             onChange={handleNameChange}
             error={!!errors.name}
+            disabled={isSubmitting}
             placeholder="es: Conto Risparmio Condiviso"
           />
         </FormField>
@@ -166,6 +64,7 @@ export const AddAccountModal = memo<AddAccountModalProps>(({ isOpen, onClose }) 
             onChange={handleTypeChange}
             options={accountTypeOptions}
             error={!!errors.type}
+            disabled={isSubmitting}
           />
         </FormField>
 
@@ -178,7 +77,8 @@ export const AddAccountModal = memo<AddAccountModalProps>(({ isOpen, onClose }) 
         >
           <CheckboxGroup
             options={peopleOptions}
-            onChange={handlePersonToggle}
+            onToggle={handlePersonToggle}
+            disabled={isSubmitting}
             columns={1}
           />
           {data.selectedPersonIds.length > 0 && (
@@ -188,12 +88,19 @@ export const AddAccountModal = memo<AddAccountModalProps>(({ isOpen, onClose }) 
           )}
         </FormField>
 
+        {/* Submit error */}
+        {errors.general && (
+          <div className="text-red-600 text-sm">{errors.general}</div>
+        )}
+
         {/* Actions */}
         <ModalActions
           onCancel={onClose}
           onSubmit={handleSubmit}
-          submitText="Aggiungi Conto"
+          submitLabel="Aggiungi Conto"
+          cancelLabel="Annulla"
           isSubmitting={isSubmitting}
+          disabled={!canSubmit}
         />
       </form>
     </BaseModal>

@@ -1,8 +1,8 @@
-import React, { memo, useMemo } from 'react';
-import { Transaction, TransactionType } from '../../types';
+import React, { memo } from 'react';
+import { Transaction } from '../../types';
 import { useFinance } from '../../hooks';
 import { formatCurrency } from '../../constants';
-import { CategoryUtils } from '../../lib/utils/category.utils';
+import { useTransactionDisplay } from '../../hooks/ui/useTransactionDisplay';
 
 /**
  * Props per RecentTransactionItem
@@ -25,32 +25,10 @@ export const RecentTransactionItem = memo<RecentTransactionItemProps>(({
   personName, 
   isAllView 
 }) => {
-  const { 
-    getCategoryName, 
-    getRemainingAmount, 
-    hasAvailableAmount, 
-    isParentTransaction 
-  } = useFinance();
-
-  // Memoized calculations per ottimizzare le performance
-  const transactionData = useMemo(() => {
-    const isTransfer = CategoryUtils.isTransfer(transaction);
-    const isIncome = transaction.type === TransactionType.ENTRATA;
-    const remainingAmount = getRemainingAmount(transaction);
-    const isParent = isParentTransaction(transaction);
-    const showRemainingAmount = transaction.isReconciled && remainingAmount > 0;
-    const shouldBlurTransaction = transaction.isReconciled && (!isParent || remainingAmount === 0);
-
-    return {
-      isTransfer,
-      isIncome,
-      remainingAmount,
-      isParent,
-      showRemainingAmount,
-      shouldBlurTransaction,
-      categoryName: getCategoryName(transaction.category)
-    };
-  }, [transaction, getCategoryName, getRemainingAmount, hasAvailableAmount, isParentTransaction]);
+  const { hasAvailableAmount } = useFinance();
+  
+  // Usa il nuovo hook centralizzato per i calcoli della transazione
+  const transactionData = useTransactionDisplay(transaction);
 
   const getIconColor = () => {
     if (transactionData.isTransfer) return 'text-blue-500';

@@ -1,9 +1,9 @@
 import React, { memo, useMemo } from 'react';
-import { Transaction, TransactionType } from '../../types';
+import { Transaction } from '../../types';
 import { ArrowDownIcon, ArrowUpIcon, LinkIcon, PencilIcon } from '../common';
 import { formatCurrency, formatDate } from '../../constants';
 import { useFinance } from '../../hooks';
-import { CategoryUtils } from '../../lib/utils/category.utils';
+import { useTransactionDisplay } from '../../hooks/ui/useTransactionDisplay';
 
 /**
  * Props per il componente TransactionRow
@@ -38,37 +38,14 @@ export const TransactionRow = memo<TransactionRowProps>(({
   onSelectToLink,
   onEditClick
 }) => {
-  const { 
-    getCategoryName, 
-    getAccountById, 
-    getRemainingAmount, 
-    isParentTransaction 
-  } = useFinance();
-
-  // Memoizza i calcoli complessi
-  const transactionData = useMemo(() => {
-    const isIncome = transaction.type === TransactionType.ENTRATA;
-    const isTransfer = CategoryUtils.isTransfer(transaction);
-    const toAccount = isTransfer && transaction.toAccountId ? getAccountById(transaction.toAccountId) : null;
-    const remainingAmount = getRemainingAmount(transaction);
-    const isParent = isParentTransaction(transaction);
-    const showRemainingAmount = transaction.isReconciled && isParent;
-    const shouldBlurTransaction = transaction.isReconciled && (!isParent || remainingAmount === 0);
-
-    return {
-      isIncome,
-      isTransfer,
-      toAccount,
-      remainingAmount,
-      isParent,
-      showRemainingAmount,
-      shouldBlurTransaction
-    };
-  }, [transaction, getAccountById, getRemainingAmount, isParentTransaction]);
+  const { getCategoryName } = useFinance();
+  
+  // Utilizza il hook centralizzato per eliminare duplicazioni
+  const transactionDisplayData = useTransactionDisplay(transaction);
 
   // Memoizza le classi CSS
   const rowClasses = useMemo(() => {
-    const { isTransfer, shouldBlurTransaction } = transactionData;
+    const { isTransfer, shouldBlurTransaction } = transactionDisplayData;
     
     return [
       "border-b border-gray-200 dark:border-gray-700",
@@ -82,7 +59,7 @@ export const TransactionRow = memo<TransactionRowProps>(({
       isLinkable ? 'cursor-pointer hover:bg-green-100 dark:hover:bg-green-900/50 opacity-100' : '',
       isLinkingMode && !isLinkable && !isThisLinkingTx ? 'opacity-30' : ''
     ].join(' ');
-  }, [transactionData, transaction.isReconciled, isLinkingMode, isThisLinkingTx, isLinkable]);
+  }, [transactionDisplayData, transaction.isReconciled, isLinkingMode, isThisLinkingTx, isLinkable]);
 
   const handleRowClick = () => {
     if (isLinkable) {
@@ -90,7 +67,7 @@ export const TransactionRow = memo<TransactionRowProps>(({
     }
   };
 
-  const { isIncome, isTransfer, toAccount, remainingAmount, showRemainingAmount } = transactionData;
+  const { isIncome, isTransfer, toAccount, remainingAmount, showRemainingAmount } = transactionDisplayData;
 
   return (
     <tr className={rowClasses} onClick={handleRowClick}>

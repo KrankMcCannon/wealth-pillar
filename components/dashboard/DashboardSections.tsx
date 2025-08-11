@@ -46,11 +46,7 @@ export const BudgetSection = memo<BudgetSectionProps>(({
                 {person.name}
               </h3>
             )}
-            <BudgetProgress 
-              budget={budget} 
-              transactions={transactions} 
-              person={person} 
-            />
+            <BudgetProgress budget={budget} />
           </div>
         ))
       ) : (

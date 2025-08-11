@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { useFinance } from '../../core/useFinance';
+import { TransactionUtils } from '../../../lib/utils/transaction.utils';
 
 /**
  * Hook personalizzato per la logica del Dashboard
@@ -39,10 +40,8 @@ export const useDashboardData = () => {
           return account?.personIds.includes(selectedPersonId);
         });
 
-    // Recent transactions (last 10)
-    const recentTransactions = displayedTransactions
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-      .slice(0, 10);
+    // Recent transactions (last 10) - usando TransactionUtils
+    const recentTransactions = TransactionUtils.getRecentTransactions(displayedTransactions, 10);
 
     return {
       isAllView,

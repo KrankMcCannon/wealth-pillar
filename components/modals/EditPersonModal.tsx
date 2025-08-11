@@ -1,7 +1,7 @@
-import React, { memo, useCallback, useMemo, useEffect } from 'react';
-import { useFinance, useModalForm } from '../../hooks';
+import React, { memo } from 'react';
 import { Person } from '../../types';
 import { BaseModal, FormField, Input, ModalActions } from '../ui';
+import { useEditPerson } from '../../hooks/features/settings/useEditPerson';
 
 interface EditPersonModalProps {
   isOpen: boolean;
@@ -9,100 +9,21 @@ interface EditPersonModalProps {
   person: Person | null;
 }
 
-interface EditPersonFormData {
-  name: string;
-  avatar: string;
-  themeColor: string;
-}
-
+/**
+ * Componente presentazionale per editing persone
+ * Tutta la logica è delegata al hook useEditPerson
+ */
 export const EditPersonModal = memo<EditPersonModalProps>(({ isOpen, onClose, person }) => {
-  const { updatePerson } = useFinance();
-
-  // Initial form data from person
-  const initialFormData: EditPersonFormData = useMemo(() => ({
-    name: person?.name || '',
-    avatar: person?.avatar || '',
-    themeColor: person?.themeColor || '#3b82f6',
-  }), [person]);
-
   const {
     data,
     errors,
     isSubmitting,
-    updateField,
-    setError,
-    clearAllErrors,
-    setSubmitting,
-    resetForm,
-    validateRequired,
-  } = useModalForm({
-    initialData: initialFormData,
-    resetOnClose: false, // We handle reset manually for edit modals
-    resetOnOpen: false,
-  });
-
-  // Reset form data when person changes
-  useEffect(() => {
-    if (person) {
-      resetForm();
-    }
-  }, [person, resetForm]);
-
-  // Validation rules
-  const validateForm = useCallback((): boolean => {
-    clearAllErrors();
-
-    if (!validateRequired(['name'])) {
-      return false;
-    }
-
-    if (data.name.trim().length === 0) {
-      setError('name', 'Il nome non può essere vuoto');
-      return false;
-    }
-
-    return true;
-  }, [data, validateRequired, setError, clearAllErrors]);
-
-  // Submit handler
-  const handleSubmit = useCallback(async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!validateForm() || !person) {
-      return;
-    }
-
-    setSubmitting(true);
-
-    try {
-      await updatePerson({ 
-        ...person, 
-        name: data.name.trim(), 
-        avatar: data.avatar.trim(), 
-        themeColor: data.themeColor 
-      });
-      onClose();
-    } catch (err) {
-      setError('submit', err instanceof Error ? err.message : 'Errore durante l\'aggiornamento della persona');
-    } finally {
-      setSubmitting(false);
-    }
-  }, [validateForm, setSubmitting, data, person, updatePerson, onClose, setError]);
-
-  // Field change handlers
-  const handleNameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    updateField('name', e.target.value);
-  }, [updateField]);
-
-  const handleAvatarChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    updateField('avatar', e.target.value);
-  }, [updateField]);
-
-  const handleThemeColorChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    updateField('themeColor', e.target.value);
-  }, [updateField]);
-
-  const submitError = errors.submit;
+    handleSubmit,
+    handleNameChange,
+    handleAvatarChange,
+    handleThemeColorChange,
+    canSubmit
+  } = useEditPerson({ person, onClose });
 
   return (
     <BaseModal
@@ -167,8 +88,8 @@ export const EditPersonModal = memo<EditPersonModalProps>(({ isOpen, onClose, pe
         </FormField>
 
         {/* Submit error */}
-        {submitError && (
-          <div className="text-red-600 text-sm">{submitError}</div>
+        {errors.general && (
+          <div className="text-red-600 text-sm">{errors.general}</div>
         )}
 
         {/* Modal actions */}
@@ -178,10 +99,10 @@ export const EditPersonModal = memo<EditPersonModalProps>(({ isOpen, onClose, pe
           submitLabel="Salva Modifiche"
           cancelLabel="Annulla"
           isSubmitting={isSubmitting}
+          disabled={!canSubmit}
         />
       </form>
     </BaseModal>
   );
 });
-
 EditPersonModal.displayName = 'EditPersonModal';

@@ -1,7 +1,8 @@
-import React, { memo, useMemo } from 'react';
+import React, { memo } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
-import { Transaction, TransactionType } from '../../types';
-import { useDarkMode, useFinance, useBreakpoint } from '../../hooks';
+import { Transaction } from '../../types';
+import { useDarkMode, useBreakpoint } from '../../hooks';
+import { useExpenseChart } from '../../hooks/features/dashboard/useExpenseChart';
 import { Card } from '../ui';
 import { formatCurrency } from '../../constants';
 
@@ -14,47 +15,15 @@ interface ExpenseChartProps {
 }
 
 /**
- * Componente ExpenseChart ottimizzato
- * Principio SRP: Single Responsibility - gestisce solo la visualizzazione del grafico spese
- * Principio DRY: Don't Repeat Yourself - logica riutilizzabile
+ * Componente ExpenseChart presentazionale
+ * Tutta la logica di calcolo è delegata al hook useExpenseChart
  */
 export const ExpenseChart = memo<ExpenseChartProps>(({ transactions, selectedPersonId }) => {
-  const { getCategoryName, getEffectiveTransactionAmount } = useFinance();
+  const { expenseData, totalExpenses, hasExpenses, COLORS } = useExpenseChart({ transactions });
   const isDarkMode = useDarkMode();
   const { isMobile } = useBreakpoint();
 
-  // Palette colori moderna e accessibile
-  const COLORS = [
-    '#6366F1', '#EC4899', '#10B981', '#F59E0B', '#8B5CF6', '#06B6D4',
-    '#EF4444', '#84CC16', '#F97316', '#14B8A6', '#3B82F6', '#F43F5E'
-  ];
-
-  // Memoized expense data calculation
-  const expenseData = useMemo(() => {
-    const expenseTransactions = transactions.filter(t => t.type === TransactionType.SPESA);
-    
-    if (expenseTransactions.length === 0) return [];
-
-    const categoryTotals = expenseTransactions.reduce((acc, transaction) => {
-      const categoryName = getCategoryName(transaction.category);
-      const amount = getEffectiveTransactionAmount(transaction);
-      
-      if (!acc[categoryName]) {
-        acc[categoryName] = 0;
-      }
-      acc[categoryName] += amount;
-      return acc;
-    }, {} as Record<string, number>);
-
-    return Object.entries(categoryTotals)
-      .map(([name, value]) => ({ name, value: value as number }))
-      .sort((a, b) => b.value - a.value)
-      .slice(0, 10); // Top 10 categorie
-  }, [transactions, getCategoryName, getEffectiveTransactionAmount]);
-
-  const totalExpenses = expenseData.reduce((sum, item) => sum + item.value, 0);
-
-  if (expenseData.length === 0) {
+  if (!hasExpenses) {
     return (
       <Card>
         <div className="flex items-center justify-between mb-6">

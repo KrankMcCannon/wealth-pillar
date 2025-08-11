@@ -1,198 +1,38 @@
-import React, { memo, useCallback, useMemo, useEffect } from 'react';
-import { useFinance, useModalForm } from '../../hooks';
-import { TransactionType } from '../../types';
+import React, { memo } from 'react';
 import { BaseModal, FormField, Input, Select, ModalActions } from '../ui';
-import { CategoryUtils, CATEGORY_CONSTANTS } from '../../lib/utils/category.utils';
+import { useAddTransaction } from '../../hooks/features/transactions/useAddTransaction';
 
 interface AddTransactionModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-interface TransactionFormData {
-  description: string;
-  amount: string;
-  date: string;
-  type: TransactionType;
-  category: string;
-  accountId: string;
-  toAccountId: string;
-  txPersonId: string;
-}
-
+/**
+ * Componente presentazionale per aggiunta transazioni
+ * Tutta la logica è delegata al hook useAddTransaction
+ */
 export const AddTransactionModal = memo<AddTransactionModalProps>(({ isOpen, onClose }) => {
-  const { addTransaction, accounts, selectedPersonId, people, categories } = useFinance();
-
-  const isAllView = selectedPersonId === 'all';
-
-  // Initial form data
-  const initialFormData: TransactionFormData = useMemo(() => ({
-    description: '',
-    amount: '',
-    date: new Date().toISOString().split('T')[0],
-    type: TransactionType.SPESA,
-    category: CATEGORY_CONSTANTS.DEFAULT_CATEGORY,
-    accountId: '',
-    toAccountId: '',
-    txPersonId: isAllView ? (people[0]?.id || '') : selectedPersonId,
-  }), [isAllView, people, selectedPersonId]);
-
   const {
     data,
     errors,
     isSubmitting,
-    updateField,
-    setError,
-    clearAllErrors,
-    setSubmitting,
-    resetForm,
-    validateRequired,
-  } = useModalForm({
-    initialData: initialFormData,
-    resetOnClose: true,
-    resetOnOpen: true,
-  });
-
-  // Memoized computed values
-  const currentPersonId = useMemo(() => 
-    isAllView ? data.txPersonId : selectedPersonId
-  , [isAllView, data.txPersonId, selectedPersonId]);
-
-  const personAccounts = useMemo(() => 
-    accounts.filter(acc => acc.personIds.includes(currentPersonId))
-  , [accounts, currentPersonId]);
-
-  const isTransfer = useMemo(() => 
-    CategoryUtils.isTransfer({ category: data.category } as any)
-  , [data.category]);
-
-  const categoryOptions = useMemo(() => 
-    CategoryUtils.toSelectOptions(categories)
-  , [categories]);
-
-  const accountOptions = useMemo(() => 
-    personAccounts.map(acc => ({
-      value: acc.id,
-      label: acc.name,
-    }))
-  , [personAccounts]);
-
-  const transferAccountOptions = useMemo(() => 
-    personAccounts
-      .filter(acc => acc.id !== data.accountId)
-      .map(acc => ({
-        value: acc.id,
-        label: acc.name,
-      }))
-  , [personAccounts, data.accountId]);
-
-  const personOptions = useMemo(() => 
-    people.map(person => ({
-      value: person.id,
-      label: person.name,
-    }))
-  , [people]);
-
-  // Reset form when modal opens
-  useEffect(() => {
-    if (isOpen) {
-      resetForm();
-      // Set initial account if available
-      if (personAccounts.length > 0) {
-        updateField('accountId', personAccounts[0].id);
-      }
-    }
-  }, [isOpen, resetForm, personAccounts, updateField]);
-
-  // Update accounts when person changes
-  useEffect(() => {
-    const newAccounts = accounts.filter(acc => acc.personIds.includes(data.txPersonId));
-    if (newAccounts.length > 0 && !newAccounts.some(acc => acc.id === data.accountId)) {
-      updateField('accountId', newAccounts[0].id);
-    }
-  }, [data.txPersonId, accounts, data.accountId, updateField]);
-
-  // Validation rules
-  const validateForm = useCallback((): boolean => {
-    clearAllErrors();
-
-    // Basic required fields validation
-    const requiredFields: Array<keyof TransactionFormData> = [
-      'description', 'amount', 'accountId', 'category', 'date'
-    ];
-
-    if (!validateRequired(requiredFields)) {
-      return false;
-    }
-
-    // Amount validation
-    const numericAmount = parseFloat(data.amount);
-    if (isNaN(numericAmount) || numericAmount <= 0) {
-      setError('amount', 'Inserisci un importo valido e positivo');
-      return false;
-    }
-
-    // Transfer validation
-    if (isTransfer) {
-      const transferError = CategoryUtils.validateTransferData(data);
-      if (transferError) {
-        setError('toAccountId', transferError);
-        return false;
-      }
-    }
-
-    return true;
-  }, [data, isTransfer, validateRequired, setError, clearAllErrors]);
-
-  // Submit handler
-  const handleSubmit = useCallback(async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!validateForm()) {
-      return;
-    }
-
-    setSubmitting(true);
-
-    try {
-      const transactionData: any = {
-        description: data.description.trim(),
-        amount: parseFloat(data.amount),
-        type: data.type,
-        category: data.category,
-        accountId: data.accountId,
-        date: data.date,
-      };
-
-      // Add toAccountId only for transfers
-      if (isTransfer) {
-        transactionData.toAccountId = data.toAccountId;
-      }
-
-      await addTransaction(transactionData);
-      onClose();
-    } catch (err) {
-      setError('submit', err instanceof Error ? err.message : 'Errore durante l\'aggiunta della transazione');
-    } finally {
-      setSubmitting(false);
-    }
-  }, [validateForm, setSubmitting, data, isTransfer, addTransaction, onClose, setError]);
-
-  // Field change handlers
-  const handleFieldChange = useCallback((field: keyof TransactionFormData) => 
-    (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-      updateField(field, e.target.value);
-    }
-  , [updateField]);
-
-  const submitError = errors.submit;
+    canSubmit,
+    isAllView,
+    isTransfer,
+    categoryOptions,
+    accountOptions,
+    transferAccountOptions,
+    personOptions,
+    typeOptions,
+    handleSubmit,
+    handleFieldChange,
+  } = useAddTransaction({ onClose });
 
   return (
     <BaseModal
       isOpen={isOpen}
       onClose={onClose}
       title="Aggiungi nuova transazione"
-      error={submitError}
       maxWidth="lg"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -210,6 +50,7 @@ export const AddTransactionModal = memo<AddTransactionModalProps>(({ isOpen, onC
               onChange={handleFieldChange('txPersonId')}
               options={personOptions}
               error={!!errors.txPersonId}
+              disabled={isSubmitting}
               placeholder="Seleziona persona"
             />
           </FormField>
@@ -228,6 +69,7 @@ export const AddTransactionModal = memo<AddTransactionModalProps>(({ isOpen, onC
             value={data.description}
             onChange={handleFieldChange('description')}
             error={!!errors.description}
+            disabled={isSubmitting}
             placeholder="Descrizione della transazione"
           />
         </FormField>
@@ -246,7 +88,8 @@ export const AddTransactionModal = memo<AddTransactionModalProps>(({ isOpen, onC
               value={data.amount}
               onChange={handleFieldChange('amount')}
               error={!!errors.amount}
-              min="0.01"
+              disabled={isSubmitting}
+              min="0"
               step="0.01"
               placeholder="0.00"
             />
@@ -264,6 +107,7 @@ export const AddTransactionModal = memo<AddTransactionModalProps>(({ isOpen, onC
               value={data.date}
               onChange={handleFieldChange('date')}
               error={!!errors.date}
+              disabled={isSubmitting}
             />
           </FormField>
         </div>
@@ -280,12 +124,10 @@ export const AddTransactionModal = memo<AddTransactionModalProps>(({ isOpen, onC
               id="type"
               value={data.type}
               onChange={handleFieldChange('type')}
-              options={[
-                { value: TransactionType.ENTRATA, label: 'Entrata' },
-                { value: TransactionType.SPESA, label: 'Spesa' },
-              ]}
+              options={typeOptions}
               error={!!errors.type}
-              disabled={isTransfer}
+              disabled={isSubmitting}
+              placeholder="Seleziona tipo"
             />
           </FormField>
 
@@ -301,12 +143,13 @@ export const AddTransactionModal = memo<AddTransactionModalProps>(({ isOpen, onC
               onChange={handleFieldChange('category')}
               options={categoryOptions}
               error={!!errors.category}
+              disabled={isSubmitting}
               placeholder="Seleziona categoria"
             />
           </FormField>
         </div>
 
-        {/* Account Selection */}
+        {/* Account */}
         <FormField
           label={isTransfer ? 'Account di origine' : 'Account'}
           id="accountId"
@@ -319,11 +162,12 @@ export const AddTransactionModal = memo<AddTransactionModalProps>(({ isOpen, onC
             onChange={handleFieldChange('accountId')}
             options={accountOptions}
             error={!!errors.accountId}
+            disabled={isSubmitting}
             placeholder="Seleziona account"
           />
         </FormField>
 
-        {/* Transfer Destination Account */}
+        {/* To Account (only for transfers) */}
         {isTransfer && (
           <FormField
             label="Account di destinazione"
@@ -337,17 +181,25 @@ export const AddTransactionModal = memo<AddTransactionModalProps>(({ isOpen, onC
               onChange={handleFieldChange('toAccountId')}
               options={transferAccountOptions}
               error={!!errors.toAccountId}
-              placeholder="Seleziona account di destinazione"
+              disabled={isSubmitting}
+              placeholder="Seleziona account destinazione"
             />
           </FormField>
         )}
 
-        {/* Actions */}
+        {/* Submit error */}
+        {errors.general && (
+          <div className="text-red-600 text-sm">{errors.general}</div>
+        )}
+
+        {/* Modal actions */}
         <ModalActions
           onCancel={onClose}
           onSubmit={handleSubmit}
-          submitText="Aggiungi Transazione"
+          submitLabel="Aggiungi Transazione"
+          cancelLabel="Annulla"
           isSubmitting={isSubmitting}
+          disabled={!canSubmit}
         />
       </form>
     </BaseModal>

@@ -42,8 +42,7 @@ YearSelector.displayName = 'YearSelector';
  */
 const MonthlyChart = memo<{
   data: Array<{ name: string; entrata: number; spesa: number }>;
-  selectedPersonId: string;
-}>(({ data, selectedPersonId }) => (
+}>(({ data }) => (
   <Card>
     <div className="p-6">
       <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">

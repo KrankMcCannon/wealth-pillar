@@ -10,6 +10,7 @@ export { useFinance } from './core/useFinance';
 export * from './ui/useModal';
 export * from './ui/useModalForm';
 export * from './ui/useResponsive';
+export * from './ui/useTransactionDisplay';
 
 // === Data Hooks ===
 // Hook per gestione e filtro dei dati
@@ -24,11 +25,15 @@ export * from './data/useSettings';
 export * from './features/auth/useAuthCallback';
 
 // Dashboard
-export * from './features/dashboard/useDashboardData';
+// Features - Dashboard
+export { useDashboardData } from './features/dashboard/useDashboardData';
+export { useExpenseChart } from './features/dashboard/useExpenseChart';
 
 // Investimenti
-export * from './features/investments/useCompoundInterest';
-export * from './features/investments/useInvestmentModals';
+// Features - Investments
+export { useCompoundInterest } from './features/investments/useCompoundInterest';
+export { useInvestmentModals } from './features/investments/useInvestmentModals';
+export { usePortfolioSummary, useInvestmentRow } from './features/investments/useInvestmentCalculations';
 
 // Report e Analisi
 export * from './features/reports/useReportsData';
@@ -36,6 +41,24 @@ export * from './features/reports/useReportsData';
 // Transazioni
 export * from './features/transactions/useTransactionFilters';
 export * from './features/transactions/useTransactionLinking';
+
+// Features - Accounts
+export { useAddAccount } from './features/accounts/useAddAccount';
+export { useEditAccount } from './features/accounts/useEditAccount';
+
+// Features - Budgets
+export { useAddBudget } from './features/budgets/useAddBudget';
+
+// Features - Investments
+export { useAddInvestment } from './features/investments/useAddInvestment';
+
+// Features - Settings
+export { useEditBudget } from './features/settings/useEditBudget';
+export { useEditPerson } from './features/settings/useEditPerson';
+
+// Features - Transactions
+export { useAddTransaction } from './features/transactions/useAddTransaction';
+export { useEditTransaction } from './features/transactions/useEditTransaction';
 
 // === Utility Hooks ===
 // Hook di utilità generale

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode, useCallback, useEffect } from 'react';
-import { Person, Account, Transaction, Budget, TransactionType, InvestmentHolding, CategoryOption, Category } from '../../types';
+import { Person, Account, Transaction, Budget, InvestmentHolding, CategoryOption, Category } from '../../types';
 import { ServiceFactory } from '../../lib/supabase/services/service-factory';
 import { ServiceError } from '../../lib/supabase/services/base-service';
 import { useAuth } from '../../contexts/AuthContext';
@@ -191,9 +191,10 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
     handleAsyncError(async (updatedTransaction: Transaction) => {
       const service = await getServiceSafely();
       const savedTransaction = await service.transactions.update(updatedTransaction.id, updatedTransaction);
-      setTransactions(prev => prev.map(tx => 
-        tx.id === savedTransaction.id ? savedTransaction : tx
-      ).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+      setTransactions(prev => 
+        prev.map(tx => tx.id === savedTransaction.id ? savedTransaction : tx)
+          .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      );
     }, 'Failed to update transaction'),
     [getServiceSafely]
   );
@@ -278,20 +279,9 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
 
   const getEffectiveTransactionAmount = useCallback((transaction: Transaction) => {
     const linkedTx = transactions.find(tx => tx.id === transaction.linkedTransactionId);
-    // Utilizziamo la logica del TransactionService
-    if (!transaction.isReconciled || !linkedTx) {
-      return transaction.amount;
-    }
-
-    // Logic per calcolare l'importo effettivo basato sui tipi di transazione
-    if (transaction.type === TransactionType.SPESA && linkedTx.type === TransactionType.ENTRATA) {
-      return Math.max(0, transaction.amount - linkedTx.amount);
-    } else if (transaction.type === TransactionType.ENTRATA && linkedTx.type === TransactionType.SPESA) {
-      return Math.max(0, transaction.amount - linkedTx.amount);
-    }
-
-    return transaction.amount;
-  }, [transactions]);
+    const service = getService();
+    return service.transactions.getEffectiveAmount(transaction, linkedTx);
+  }, [transactions, getService]);
 
   const getRemainingAmount = useCallback((transaction: Transaction) => {
     // Utilizziamo direttamente la proprietà esistente

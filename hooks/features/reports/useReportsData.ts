@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react';
 import { CategoryUtils } from '../../../lib/utils/category.utils';
+import { TransactionUtils } from '../../../lib/utils/transaction.utils';
 import { TransactionType } from '../../../types';
 import { useFinance } from '../../core/useFinance';
-import { useTransactionFilter } from '../../data/useDataFilters';
 
 /**
  * Hook per gestire la logica dei report annuali
@@ -10,15 +10,33 @@ import { useTransactionFilter } from '../../data/useDataFilters';
  * Principio DRY: Don't Repeat Yourself - centralizza la logica di analisi
  */
 export const useAnnualReports = (selectedPersonId: string, selectedYear: number) => {
-  const { getEffectiveTransactionAmount } = useFinance();
-  const { transactions } = useTransactionFilter(selectedPersonId);
+  const { getEffectiveTransactionAmount, transactions, getAccountById } = useFinance();
+  
+  // Filtra transazioni per persona usando la stessa logica di useTransactionFilters
+  const personTransactions = useMemo(() => {
+    const isAllView = selectedPersonId === 'all';
+    const filtered = isAllView
+      ? transactions
+      : transactions.filter(t => {
+          const account = getAccountById(t.accountId);
+          let belongsToUser = account?.personIds.includes(selectedPersonId);
+
+          // Per i trasferimenti, include anche se l'account di destinazione appartiene all'utente
+          if (CategoryUtils.isTransfer(t) && t.toAccountId) {
+            const toAccount = getAccountById(t.toAccountId);
+            belongsToUser = belongsToUser || (toAccount?.personIds.includes(selectedPersonId) || false);
+          }
+
+          return belongsToUser;
+        });
+
+    return TransactionUtils.sortByDateDesc(filtered);
+  }, [transactions, selectedPersonId, getAccountById]);
 
   // Filtra le transazioni per l'anno selezionato
   const yearlyTransactions = useMemo(() => {
-    return transactions
-      .filter(t => new Date(t.date).getFullYear() === selectedYear)
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  }, [transactions, selectedYear]);
+    return personTransactions.filter(t => new Date(t.date).getFullYear() === selectedYear);
+  }, [personTransactions, selectedYear]);
 
   // Calcola il riepilogo annuale
   const annualSummary = useMemo(() => {

@@ -1,7 +1,8 @@
-import React, { memo, useMemo } from 'react';
+import React, { memo } from 'react';
 import { formatCurrency, formatDate } from '../../constants';
 import { InvestmentHolding } from '../../types';
 import { Card, SummaryCards } from '../ui';
+import { usePortfolioSummary, useInvestmentRow } from '../../hooks';
 
 // Simple arrow icons as SVG components
 const ArrowUpIcon = () => (
@@ -21,42 +22,11 @@ interface PortfolioSummaryProps {
 }
 
 /**
- * Componente per il riepilogo del portafoglio
- * Principio SRP: Single Responsibility - gestisce solo il riepilogo del portafoglio
+ * Componente presentazionale per il riepilogo del portafoglio
+ * Tutta la logica di calcolo è delegata al hook usePortfolioSummary
  */
 export const PortfolioSummary = memo<PortfolioSummaryProps>(({ holdings }) => {
-  const { totalValue, totalCost, totalGainLoss, gainLossPercent } = useMemo(() => {
-    const summary = holdings.reduce((acc, h) => {
-      acc.totalValue += h.quantity * h.currentPrice;
-      acc.totalCost += h.quantity * h.purchasePrice;
-      return acc;
-    }, { totalValue: 0, totalCost: 0 });
-
-    const totalGainLoss = summary.totalValue - summary.totalCost;
-    const gainLossPercent = summary.totalCost > 0 ? (totalGainLoss / summary.totalCost) * 100 : 0;
-
-    return { ...summary, totalGainLoss, gainLossPercent };
-  }, [holdings]);
-
-  const isGain = totalGainLoss >= 0;
-
-  const summaryCards = useMemo(() => [
-    {
-      title: 'Valore Totale Portafoglio',
-      value: formatCurrency(totalValue),
-      color: 'blue' as 'blue',
-    },
-    {
-      title: 'Guadagno / Perdita Totale',
-      value: formatCurrency(totalGainLoss),
-      color: (isGain ? 'green' : 'red') as ('green' | 'red'),
-    },
-    {
-      title: 'Rendimento Portafoglio',
-      value: `${gainLossPercent.toFixed(2)}%`,
-      color: (isGain ? 'green' : 'red') as ('green' | 'red'),
-    },
-  ], [totalValue, totalGainLoss, gainLossPercent, isGain]);
+  const { summaryCards } = usePortfolioSummary({ holdings });
 
   return <SummaryCards cards={summaryCards} />;
 });
@@ -69,13 +39,11 @@ interface InvestmentRowProps {
 }
 
 /**
- * Componente per una riga di investimento
- * Principio SRP: Single Responsibility - gestisce solo la visualizzazione di una riga
+ * Componente presentazionale per una riga di investimento
+ * Tutta la logica di calcolo è delegata al hook useInvestmentRow
  */
 export const InvestmentRow = memo<InvestmentRowProps>(({ holding, personName }) => {
-  const value = holding.quantity * holding.currentPrice;
-  const gainLoss = (holding.currentPrice - holding.purchasePrice) * holding.quantity;
-  const isGain = gainLoss >= 0;
+  const { value, gainLoss, isGain, gainLossPercent } = useInvestmentRow({ holding });
 
   return (
     <tr className="border-b border-gray-200 dark:border-gray-700">

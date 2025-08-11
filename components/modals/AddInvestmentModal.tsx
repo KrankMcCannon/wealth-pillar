@@ -1,161 +1,33 @@
-import React, { memo, useCallback, useMemo, useEffect } from 'react';
-import { useFinance, useModalForm } from '../../hooks';
+import React, { memo } from 'react';
 import { BaseModal, FormField, Input, Select, ModalActions } from '../ui';
+import { useAddInvestment } from '../../hooks/features/investments/useAddInvestment';
 
 interface AddInvestmentModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-interface AddInvestmentFormData {
-  name: string;
-  symbol: string;
-  quantity: string;
-  purchasePrice: string;
-  currentPrice: string;
-  purchaseDate: string;
-  personId: string;
-}
-
+/**
+ * Componente presentazionale per aggiunta investimenti
+ * Tutta la logica è delegata al hook useAddInvestment
+ */
 export const AddInvestmentModal = memo<AddInvestmentModalProps>(({ isOpen, onClose }) => {
-  const { addInvestment, people, selectedPersonId } = useFinance();
-
-  const isAllView = selectedPersonId === 'all';
-
-  // Initial form data
-  const initialFormData: AddInvestmentFormData = useMemo(() => ({
-    name: '',
-    symbol: '',
-    quantity: '',
-    purchasePrice: '',
-    currentPrice: '',
-    purchaseDate: new Date().toISOString().split('T')[0],
-    personId: isAllView ? (people[0]?.id || '') : selectedPersonId,
-  }), [isAllView, people, selectedPersonId]);
-
   const {
     data,
     errors,
     isSubmitting,
-    updateField,
-    setError,
-    clearAllErrors,
-    setSubmitting,
-    resetForm,
-    validateRequired,
-  } = useModalForm({
-    initialData: initialFormData,
-    resetOnClose: true,
-    resetOnOpen: true,
-  });
-
-  // Reset person ID when modal opens or person selection changes
-  useEffect(() => {
-    if (isOpen) {
-      const newPersonId = isAllView ? (people[0]?.id || '') : selectedPersonId;
-      updateField('personId', newPersonId);
-    }
-  }, [isOpen, isAllView, people, selectedPersonId, updateField]);
-
-  // People options for select
-  const peopleOptions = useMemo(() => 
-    people.map(person => ({
-      value: person.id,
-      label: person.name,
-    }))
-  , [people]);
-
-  // Validation rules
-  const validateForm = useCallback((): boolean => {
-    clearAllErrors();
-
-    if (!validateRequired(['name', 'symbol', 'quantity', 'purchasePrice', 'currentPrice', 'personId', 'purchaseDate'])) {
-      return false;
-    }
-
-    const numQuantity = parseFloat(data.quantity);
-    if (isNaN(numQuantity) || numQuantity <= 0) {
-      setError('quantity', 'Inserisci una quantità valida');
-      return false;
-    }
-
-    const numPurchasePrice = parseFloat(data.purchasePrice);
-    if (isNaN(numPurchasePrice) || numPurchasePrice <= 0) {
-      setError('purchasePrice', 'Inserisci un prezzo di acquisto valido');
-      return false;
-    }
-
-    const numCurrentPrice = parseFloat(data.currentPrice);
-    if (isNaN(numCurrentPrice) || numCurrentPrice <= 0) {
-      setError('currentPrice', 'Inserisci un prezzo corrente valido');
-      return false;
-    }
-
-    return true;
-  }, [data, validateRequired, setError, clearAllErrors]);
-
-  // Submit handler
-  const handleSubmit = useCallback(async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!validateForm()) {
-      return;
-    }
-
-    setSubmitting(true);
-
-    try {
-      const numQuantity = parseFloat(data.quantity);
-      const numPurchasePrice = parseFloat(data.purchasePrice);
-      const numCurrentPrice = parseFloat(data.currentPrice);
-
-      await addInvestment({
-        personId: data.personId,
-        name: data.name,
-        symbol: data.symbol.toUpperCase(),
-        quantity: numQuantity,
-        purchasePrice: numPurchasePrice,
-        currentPrice: numCurrentPrice,
-        purchaseDate: data.purchaseDate,
-      });
-      onClose();
-    } catch (err) {
-      setError('submit', err instanceof Error ? err.message : 'Errore durante l\'aggiunta dell\'investimento');
-    } finally {
-      setSubmitting(false);
-    }
-  }, [validateForm, setSubmitting, data, addInvestment, onClose, setError]);
-
-  // Field change handlers
-  const handleNameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    updateField('name', e.target.value);
-  }, [updateField]);
-
-  const handleSymbolChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    updateField('symbol', e.target.value.toUpperCase());
-  }, [updateField]);
-
-  const handleQuantityChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    updateField('quantity', e.target.value);
-  }, [updateField]);
-
-  const handlePurchasePriceChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    updateField('purchasePrice', e.target.value);
-  }, [updateField]);
-
-  const handleCurrentPriceChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    updateField('currentPrice', e.target.value);
-  }, [updateField]);
-
-  const handlePurchaseDateChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    updateField('purchaseDate', e.target.value);
-  }, [updateField]);
-
-  const handlePersonChange = useCallback((value: string) => {
-    updateField('personId', value);
-  }, [updateField]);
-
-  const submitError = errors.submit;
+    canSubmit,
+    peopleOptions,
+    isAllView,
+    handleSubmit,
+    handleNameChange,
+    handleSymbolChange,
+    handleQuantityChange,
+    handlePurchasePriceChange,
+    handleCurrentPriceChange,
+    handlePurchaseDateChange,
+    handlePersonChange,
+  } = useAddInvestment({ onClose });
 
   return (
     <BaseModal
@@ -164,7 +36,7 @@ export const AddInvestmentModal = memo<AddInvestmentModalProps>(({ isOpen, onClo
       title="Aggiungi Nuovo Investimento"
     >
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Person selection */}
+        {/* Person Selection (only in all view) */}
         {isAllView && (
           <FormField
             label="Persona"
@@ -173,16 +45,16 @@ export const AddInvestmentModal = memo<AddInvestmentModalProps>(({ isOpen, onClo
           >
             <Select
               value={data.personId}
-              onValueChange={handlePersonChange}
+              onChange={handlePersonChange}
               options={peopleOptions}
-              placeholder="Seleziona una persona"
               error={!!errors.personId}
               disabled={isSubmitting}
+              placeholder="Seleziona persona"
             />
           </FormField>
         )}
 
-        {/* Investment name */}
+        {/* Investment Name */}
         <FormField
           label="Nome investimento"
           error={errors.name}
@@ -231,7 +103,7 @@ export const AddInvestmentModal = memo<AddInvestmentModalProps>(({ isOpen, onClo
           />
         </FormField>
 
-        {/* Purchase price */}
+        {/* Purchase Price */}
         <FormField
           label="Prezzo di acquisto (€)"
           error={errors.purchasePrice}
@@ -249,7 +121,7 @@ export const AddInvestmentModal = memo<AddInvestmentModalProps>(({ isOpen, onClo
           />
         </FormField>
 
-        {/* Current price */}
+        {/* Current Price */}
         <FormField
           label="Prezzo corrente (€)"
           error={errors.currentPrice}
@@ -267,7 +139,7 @@ export const AddInvestmentModal = memo<AddInvestmentModalProps>(({ isOpen, onClo
           />
         </FormField>
 
-        {/* Purchase date */}
+        {/* Purchase Date */}
         <FormField
           label="Data di acquisto"
           error={errors.purchaseDate}
@@ -283,8 +155,8 @@ export const AddInvestmentModal = memo<AddInvestmentModalProps>(({ isOpen, onClo
         </FormField>
 
         {/* Submit error */}
-        {submitError && (
-          <div className="text-red-600 text-sm">{submitError}</div>
+        {errors.general && (
+          <div className="text-red-600 text-sm">{errors.general}</div>
         )}
 
         {/* Modal actions */}
@@ -294,6 +166,7 @@ export const AddInvestmentModal = memo<AddInvestmentModalProps>(({ isOpen, onClo
           submitLabel="Aggiungi Investimento"
           cancelLabel="Annulla"
           isSubmitting={isSubmitting}
+          disabled={!canSubmit}
         />
       </form>
     </BaseModal>

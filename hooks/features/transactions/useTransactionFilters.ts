@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { getInitialDateRange } from '../../../constants';
 import { CATEGORY_CONSTANTS, CategoryUtils } from '../../../lib/utils/category.utils';
+import { TransactionUtils } from '../../../lib/utils/transaction.utils';
 import { TransactionType } from '../../../types';
 import { useFinance } from '../../core/useFinance';
 
@@ -50,7 +51,7 @@ export const useTransactionFilters = () => {
           return belongsToUser;
         });
 
-    return filtered.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    return TransactionUtils.sortByDateDesc(filtered);
   }, [transactions, selectedPersonId, getAccountById, isAllView]);
 
   // Categorie disponibili per il filtro
@@ -60,24 +61,23 @@ export const useTransactionFilters = () => {
 
   // Transazioni filtrate con tutti i criteri
   const filteredTransactions = useMemo(() => {
-    const start = new Date(dateRange.startDate);
-    start.setUTCHours(0, 0, 0, 0);
-    const end = new Date(dateRange.endDate);
-    end.setUTCHours(23, 59, 59, 999);
+    let filtered = personTransactions;
 
-    let filtered = personTransactions.filter(t => {
-      const txDate = new Date(t.date);
-      return txDate >= start && txDate <= end;
-    });
-
+    // Applica filtri sequenzialmente usando TransactionUtils
     if (typeFilter !== 'all') {
-      filtered = filtered.filter(t => t.type === typeFilter);
+      filtered = TransactionUtils.filterByType(filtered, typeFilter);
     }
 
     if (categoryFilter !== CATEGORY_CONSTANTS.ALL_CATEGORIES) {
       filtered = CategoryUtils.filterByCategory(filtered, categoryFilter);
     }
 
+    // Date range filter
+    const start = new Date(dateRange.startDate);
+    const end = new Date(dateRange.endDate);
+    filtered = TransactionUtils.filterByDateRange(filtered, start, end);
+
+    // Search filter (combinato con filtro specifico app)
     if (searchTerm.trim() !== '') {
       const lowercasedFilter = searchTerm.toLowerCase();
       filtered = filtered.filter(t => {
@@ -86,6 +86,7 @@ export const useTransactionFilters = () => {
           ? account.personIds.map(id => getPersonById(id)?.name).filter(Boolean).join(' ')
           : '';
         const categoryName = getCategoryName(t.category);
+        
         return (
           t.description.toLowerCase().includes(lowercasedFilter) ||
           t.category.toLowerCase().includes(lowercasedFilter) ||
@@ -96,7 +97,7 @@ export const useTransactionFilters = () => {
       });
     }
 
-    return filtered.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    return TransactionUtils.sortByDateDesc(filtered);
   }, [
     personTransactions, 
     typeFilter, 

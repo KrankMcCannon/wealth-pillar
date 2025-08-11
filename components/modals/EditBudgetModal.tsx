@@ -1,7 +1,7 @@
-import React, { memo, useCallback, useMemo, useEffect } from 'react';
-import { useFinance, useModalForm } from '../../hooks';
+import React, { memo } from 'react';
 import { Budget } from '../../types';
 import { BaseModal, FormField, Input, Select, CheckboxGroup, ModalActions } from '../ui';
+import { useEditBudget } from '../../hooks/features/settings/useEditBudget';
 
 interface EditBudgetModalProps {
   isOpen: boolean;
@@ -9,166 +9,28 @@ interface EditBudgetModalProps {
   budget: Budget | null;
 }
 
-interface EditBudgetFormData {
-  description: string;
-  amount: string;
-  selectedCategories: string[];
-  budgetStartDay: string;
-}
-
+/**
+ * Componente presentazionale per editing budget
+ * Tutta la logica è delegata al hook useEditBudget
+ */
 export const EditBudgetModal = memo<EditBudgetModalProps>(({ isOpen, onClose, budget }) => {
-  const { updateBudget, categories, getPersonById, updatePerson } = useFinance();
-
-  // Initial form data from budget
-  const initialFormData: EditBudgetFormData = useMemo(() => {
-    if (!budget) {
-      return {
-        description: '',
-        amount: '',
-        selectedCategories: [],
-        budgetStartDay: '1',
-      };
-    }
-
-    const person = getPersonById(budget.personId);
-    return {
-      description: budget.description,
-      amount: budget.amount.toString(),
-      selectedCategories: budget.categories,
-      budgetStartDay: person?.budgetStartDate || '1',
-    };
-  }, [budget, getPersonById]);
-
   const {
     data,
     errors,
     isSubmitting,
-    updateField,
-    setError,
-    clearAllErrors,
-    setSubmitting,
-    resetForm,
-    validateRequired,
-  } = useModalForm({
-    initialData: initialFormData,
-    resetOnClose: false, // We handle reset manually for edit modals
-    resetOnOpen: false,
-  });
+    canSubmit,
+    categoryOptions,
+    budgetStartDayOptions,
+    handleSubmit,
+    handleDescriptionChange,
+    handleAmountChange,
+    handleBudgetStartDayChange,
+    handleCategoryToggle,
+  } = useEditBudget({ budget, onClose });
 
-  // Reset form data when budget changes
-  useEffect(() => {
-    if (budget) {
-      resetForm();
-    }
-  }, [budget, resetForm]);
-
-  // Category checkbox options
-  const categoryOptions = useMemo(() => 
-    categories.map(category => ({
-      id: category.id,
-      label: category.label || category.name,
-      checked: data.selectedCategories.includes(category.id),
-    }))
-  , [categories, data.selectedCategories]);
-
-  // Budget start day options (1-28)
-  const budgetStartDayOptions = useMemo(() => 
-    Array.from({ length: 28 }, (_, i) => ({
-      value: (i + 1).toString(),
-      label: `Giorno ${i + 1}`,
-    }))
-  , []);
-
-  // Validation rules
-  const validateForm = useCallback((): boolean => {
-    clearAllErrors();
-
-    if (!validateRequired(['description', 'amount'])) {
-      return false;
-    }
-
-    if (data.description.trim().length === 0) {
-      setError('description', 'La descrizione non può essere vuota');
-      return false;
-    }
-
-    const amountValue = parseFloat(data.amount);
-    if (isNaN(amountValue) || amountValue <= 0) {
-      setError('amount', 'Inserisci un importo valido');
-      return false;
-    }
-
-    if (data.selectedCategories.length === 0) {
-      setError('selectedCategories', 'Seleziona almeno una categoria');
-      return false;
-    }
-
-    return true;
-  }, [data, validateRequired, setError, clearAllErrors]);
-
-  // Submit handler
-  const handleSubmit = useCallback(async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!validateForm() || !budget) {
-      return;
-    }
-
-    try {
-      // Validate budget start day
-      const startDay = parseInt(data.budgetStartDay);
-      if (isNaN(startDay) || startDay < 1 || startDay > 28) {
-        setError('budgetStartDay', 'Inserisci un giorno valido tra 1 e 28');
-        return;
-      }
-
-      // Update the budget
-      await updateBudget({
-        ...budget,
-        description: data.description.trim(),
-        amount: parseFloat(data.amount),
-        categories: data.selectedCategories
-      });
-
-      // Update the person's budget start date if it changed
-      const person = getPersonById(budget.personId);
-      if (person && person.budgetStartDate !== data.budgetStartDay) {
-        await updatePerson({
-          ...person,
-          budgetStartDate: data.budgetStartDay
-        });
-      }
-
-      onClose();
-    } catch (err) {
-      setError('submit', err instanceof Error ? err.message : 'Errore durante l\'aggiornamento del budget');
-    } finally {
-      setSubmitting(false);
-    }
-  }, [validateForm, setSubmitting, data, budget, updateBudget, getPersonById, updatePerson, onClose, setError]);
-
-  // Field change handlers
-  const handleDescriptionChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    updateField('description', e.target.value);
-  }, [updateField]);
-
-  const handleAmountChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    updateField('amount', e.target.value);
-  }, [updateField]);
-
-  const handleBudgetStartDayChange = useCallback((value: string) => {
-    updateField('budgetStartDay', value);
-  }, [updateField]);
-
-  const handleCategoryToggle = useCallback((categoryId: string, checked: boolean) => {
-    const newSelectedCategories = checked
-      ? [...data.selectedCategories, categoryId]
-      : data.selectedCategories.filter(id => id !== categoryId);
-    
-    updateField('selectedCategories', newSelectedCategories);
-  }, [data.selectedCategories, updateField]);
-
-  const submitError = errors.submit;
+  if (!budget) {
+    return null;
+  }
 
   return (
     <BaseModal
@@ -186,7 +48,7 @@ export const EditBudgetModal = memo<EditBudgetModalProps>(({ isOpen, onClose, bu
           <Input
             value={data.description}
             onChange={handleDescriptionChange}
-            placeholder="es: Spese essenziali"
+            placeholder="Inserisci la descrizione del budget"
             error={!!errors.description}
             disabled={isSubmitting}
           />
@@ -194,17 +56,17 @@ export const EditBudgetModal = memo<EditBudgetModalProps>(({ isOpen, onClose, bu
 
         {/* Amount field */}
         <FormField
-          label="Importo"
+          label="Importo Limite (€)"
           error={errors.amount}
           required
         >
           <Input
             type="number"
+            step="0.01"
+            min="0"
             value={data.amount}
             onChange={handleAmountChange}
             placeholder="0.00"
-            min="0"
-            step="0.01"
             error={!!errors.amount}
             disabled={isSubmitting}
           />
@@ -212,21 +74,21 @@ export const EditBudgetModal = memo<EditBudgetModalProps>(({ isOpen, onClose, bu
 
         {/* Budget start day field */}
         <FormField
-          label="Giorno di inizio budget"
+          label="Giorno di Inizio Budget"
           error={errors.budgetStartDay}
           required
         >
           <Select
             value={data.budgetStartDay}
-            onValueChange={handleBudgetStartDayChange}
-            options={budgetStartDayOptions}
-            placeholder="Seleziona il giorno"
+            onChange={handleBudgetStartDayChange}
             error={!!errors.budgetStartDay}
             disabled={isSubmitting}
+            options={budgetStartDayOptions}
+            placeholder="Seleziona giorno"
           />
         </FormField>
 
-        {/* Categories selection */}
+        {/* Categories field */}
         <FormField
           label="Categorie"
           error={errors.selectedCategories}
@@ -236,21 +98,23 @@ export const EditBudgetModal = memo<EditBudgetModalProps>(({ isOpen, onClose, bu
             options={categoryOptions}
             onToggle={handleCategoryToggle}
             disabled={isSubmitting}
+            error={!!errors.selectedCategories}
           />
         </FormField>
 
         {/* Submit error */}
-        {submitError && (
-          <div className="text-red-600 text-sm">{submitError}</div>
+        {errors.general && (
+          <div className="text-red-600 text-sm">{errors.general}</div>
         )}
 
         {/* Modal actions */}
         <ModalActions
           onCancel={onClose}
           onSubmit={handleSubmit}
-          submitLabel="Aggiorna Budget"
+          submitLabel="Salva Modifiche"
           cancelLabel="Annulla"
           isSubmitting={isSubmitting}
+          disabled={!canSubmit}
         />
       </form>
     </BaseModal>

@@ -1,74 +1,25 @@
-import React, { memo, useMemo } from 'react';
-import { Budget, Transaction, Person, TransactionType } from '../../types';
-import { useFinance } from '../../hooks';
-import { formatCurrency, getCurrentBudgetPeriod } from '../../constants';
-import { CategoryUtils } from '../../lib/utils/category.utils';
+import React, { memo } from 'react';
+import type { Budget } from '../../types';
+import { formatCurrency, formatDate } from '../../constants';
+import { useBudgetProgress } from '../../hooks/features/dashboard/useBudgetProgress';
 
 /**
  * Props per BudgetProgress
  */
 interface BudgetProgressProps {
     budget: Budget;
-    transactions: Transaction[];
-    person: Person;
 }
 
 /**
- * Componente BudgetProgress ottimizzato
- * Principio SRP: Single Responsibility - gestisce solo la visualizzazione del progresso budget
- * Principio DRY: Don't Repeat Yourself - logica riutilizzabile
+ * Componente UI puro per visualizzare il progresso di un budget
+ * Separazione responsabilità: solo presentazione, logica delegata all'hook
  */
-export const BudgetProgress = memo<BudgetProgressProps>(({ budget, transactions, person }) => {
-    const {
-        getCategoryName,
-        getEffectiveTransactionAmount,
-        getPersonById,
-        getAccountById,
-        getRemainingAmount
-    } = useFinance();
+export const BudgetProgress = memo<BudgetProgressProps>(({ budget }) => {
+    const { budgetData, budgetStatus } = useBudgetProgress(budget);
 
-    // Memoized calculations per ottimizzare le performance
-    const budgetData = useMemo(() => {
-        const budgetPerson = getPersonById(budget.personId) || person;
-        const { periodStart, periodEnd } = getCurrentBudgetPeriod(budgetPerson);
-
-        const currentSpent = transactions
-            .filter(t => {
-                const account = getAccountById(t.accountId);
-                const isInAccount = account.personIds.includes(budget.personId);
-                const txDate = new Date(t.date);
-                const isInPeriod = txDate >= periodStart && txDate <= periodEnd;
-                const isInCategory = budget.categories.includes(t.category);
-                const isSpesa = t.type === TransactionType.SPESA;
-                const isTransfer = CategoryUtils.isTransfer(t);
-                return isInPeriod && isInCategory && isSpesa && !isTransfer && isInAccount;
-            })
-            .reduce((sum, t) => {
-                const amount = t.isReconciled ? getRemainingAmount(t) : getEffectiveTransactionAmount(t);
-                return sum + amount;
-            }, 0);
-
-        const percentage = budget.amount > 0 ? (currentSpent / budget.amount) * 100 : 0;
-        const remaining = budget.amount - currentSpent;
-
-        return {
-            currentSpent,
-            percentage,
-            remaining,
-            periodStart,
-            periodEnd,
-            categoryNames: budget.categories.map(catId => getCategoryName(catId)).join(', ')
-        };
-    }, [budget, transactions, person, getCategoryName, getEffectiveTransactionAmount, getPersonById, getRemainingAmount]);
-
-    const formatDate = (date: Date) =>
-        date.toLocaleDateString('it-IT', { day: 'numeric', month: 'short' });
-
-    const getProgressColor = () => {
-        if (budgetData.percentage > 100) return 'bg-red-500';
-        if (budgetData.percentage > 80) return 'bg-yellow-500';
-        return 'bg-green-500';
-    };
+    if (!budgetData || !budgetStatus) {
+        return null;
+    }
 
     return (
         <div className="space-y-2">
@@ -92,7 +43,7 @@ export const BudgetProgress = memo<BudgetProgressProps>(({ budget, transactions,
 
             <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                 <div
-                    className={`h-2 rounded-full transition-all duration-300 ${getProgressColor()}`}
+                    className={`h-2 rounded-full transition-all duration-300 ${budgetData.progressColor}`}
                     style={{ width: `${Math.min(budgetData.percentage, 100)}%` }}
                 />
             </div>
@@ -102,9 +53,13 @@ export const BudgetProgress = memo<BudgetProgressProps>(({ budget, transactions,
                 <span>{budgetData.percentage.toFixed(1)}%</span>
             </div>
 
-            <div className="text-xs text-gray-500 dark:text-gray-400">
-                Categorie: {budgetData.categoryNames}
-            </div>
+            {budgetStatus.isNearLimit && (
+                <div className={`text-xs font-medium ${
+                    budgetStatus.isOverspent ? 'text-red-600' : 'text-orange-600'
+                }`}>
+                    {budgetStatus.statusMessage}
+                </div>
+            )}
         </div>
     );
 });
