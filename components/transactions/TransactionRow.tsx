@@ -1,6 +1,6 @@
 import React, { memo, useMemo } from 'react';
 import { Transaction } from '../../types';
-import { ArrowDownIcon, ArrowUpIcon, LinkIcon, PencilIcon } from '../common';
+import { LinkIcon, PencilIcon } from '../common';
 import { formatCurrency, formatDate } from '../../constants';
 import { useFinance } from '../../hooks';
 import { useTransactionDisplay } from '../../hooks/ui/useTransactionDisplay';
@@ -38,20 +38,51 @@ export const TransactionRow = memo<TransactionRowProps>(({
   onSelectToLink,
   onEditClick
 }) => {
-  const { getCategoryName } = useFinance();
-  
+  const { getCategoryName, getAccountById, getPersonById } = useFinance();
+
   // Utilizza il hook centralizzato per eliminare duplicazioni
   const transactionDisplayData = useTransactionDisplay(transaction);
+
+  // Calcola le iniziali della persona (stesso metodo di RecentTransactionItem)
+  const getPersonInitials = () => {
+    const account = getAccountById(transaction.accountId);
+    if (!account || account.personIds.length === 0) return '?';
+
+    const person = getPersonById(account.personIds[0]);
+    if (!person) return '?';
+
+    return person.name
+      .split(' ')
+      .map(word => word.charAt(0))
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  const getIconColor = () => {
+    if (transactionDisplayData.isTransfer) return 'text-blue-500';
+    return transactionDisplayData.isIncome ? 'text-green-500' : 'text-red-500';
+  };
+
+  const getBackgroundColor = () => {
+    if (transactionDisplayData.isTransfer) return 'bg-blue-100 dark:bg-blue-900';
+    return transactionDisplayData.isIncome ? 'bg-green-100 dark:bg-green-900' : 'bg-red-100 dark:bg-red-900';
+  };
+
+  const getDirectionArrow = () => {
+    if (transactionDisplayData.isTransfer) return '⇄'; // Freccia bidirezionale più elegante
+    return transactionDisplayData.isIncome ? '→' : '←';
+  };
 
   // Memoizza le classi CSS
   const rowClasses = useMemo(() => {
     const { isTransfer, shouldBlurTransaction } = transactionDisplayData;
-    
+
     return [
       "border-b border-gray-200 dark:border-gray-700",
       // Colori di background per distinguere le transazioni
-      isTransfer ? 'bg-blue-50 dark:bg-blue-900/20' : 
-      transaction.isReconciled ? 'bg-green-50 dark:bg-green-900/20' : '',
+      isTransfer ? 'bg-blue-50 dark:bg-blue-900/20' :
+        transaction.isReconciled ? 'bg-green-50 dark:bg-green-900/20' : '',
       // Blur per transazioni collegate o principali completamente riconciliate
       shouldBlurTransaction ? 'opacity-60' : '',
       isLinkingMode ? 'transition-opacity duration-300' : '',
@@ -67,31 +98,33 @@ export const TransactionRow = memo<TransactionRowProps>(({
     }
   };
 
-  const { isIncome, isTransfer, toAccount, remainingAmount, showRemainingAmount } = transactionDisplayData;
+  const { isIncome, isTransfer, transferData, remainingAmount, showRemainingAmount } = transactionDisplayData;
 
   return (
     <tr className={rowClasses} onClick={handleRowClick}>
       {/* Descrizione e account */}
       <td className="py-3 px-4">
         <div className="flex items-center">
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 ${
-            isTransfer ? 'bg-blue-100 dark:bg-blue-900' :
-            isIncome ? 'bg-green-100 dark:bg-green-900' : 'bg-red-100 dark:bg-red-900'
-          }`}>
-            {isTransfer ?
-              <span className="text-blue-500 text-lg">⇄</span> :
-              isIncome ? 
-                <ArrowDownIcon className="w-5 h-5 text-green-500" /> : 
-                <ArrowUpIcon className="w-5 h-5 text-red-500" />
-            }
+          {/* Cerchio con iniziali e freccia sporgente (stesso design di RecentTransactionItem) */}
+          <div className="relative mr-3">
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${getBackgroundColor()}`}>
+              <span className="text-xs font-bold text-gray-800 dark:text-white">
+                {getPersonInitials()}
+              </span>
+            </div>
+            {/* Freccia sporgente alla base */}
+            <div className={`absolute -right-1 -bottom-1 w-4 h-4 rounded-full flex items-center justify-center ${getBackgroundColor()} border border-white dark:border-gray-800`}>
+              <span className={`text-xs ${getIconColor()}`}>
+                {getDirectionArrow()}
+              </span>
+            </div>
           </div>
           <div>
             <p className="font-medium text-gray-900 dark:text-gray-100">{transaction.description}</p>
             <p className="text-sm text-gray-500 dark:text-gray-400">
               {isTransfer ?
-                `${accountName} → ${toAccount?.name || 'Account sconosciuto'}` :
-                accountName
-              }
+                `${accountName} → ${transferData.toAccount.name || 'Account sconosciuto'}` :
+                accountName}
             </p>
           </div>
         </div>
@@ -105,21 +138,19 @@ export const TransactionRow = memo<TransactionRowProps>(({
       )}
 
       {/* Importo */}
-      <td className={`py-3 px-4 font-mono text-right ${
-        isTransfer ? 'text-blue-600 dark:text-blue-400' :
-        isIncome ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
-      }`}>
+      <td className={`py-3 px-4 font-mono text-right ${isTransfer ? 'text-blue-600 dark:text-blue-400' :
+          isIncome ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+        }`}>
         <div className="flex flex-col items-end">
           <span>
             {isTransfer ? '' : (isIncome ? '+' : '-')} {formatCurrency(transaction.amount)}
           </span>
           {showRemainingAmount && (
-            <span className={`text-xs font-medium ${
-              remainingAmount > 0 
-                ? 'text-orange-600 dark:text-orange-400' 
+            <span className={`text-xs font-medium ${remainingAmount > 0
+                ? 'text-orange-600 dark:text-orange-400'
                 : 'text-gray-500 dark:text-gray-400'
-            }`}>
-              {remainingAmount > 0 
+              }`}>
+              {remainingAmount > 0
                 ? `Disponibile: ${formatCurrency(remainingAmount)}`
                 : 'Completamente riconciliato'
               }

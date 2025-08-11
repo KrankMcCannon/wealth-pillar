@@ -56,7 +56,7 @@ export const RecentTransactionItem = memo<RecentTransactionItemProps>(({
   };
 
   const getDirectionArrow = () => {
-    if (transactionData.isTransfer) return '↔️';
+    if (transactionData.isTransfer) return '⇄'; // Freccia bidirezionale più elegante
     return transactionData.isIncome ? '→' : '←';
   };
 
@@ -77,8 +77,8 @@ export const RecentTransactionItem = memo<RecentTransactionItemProps>(({
               {getPersonInitials()}
             </span>
           </div>
-          {/* Freccia sporgente */}
-          <div className={`absolute -right-1 -top-1 w-5 h-5 rounded-full flex items-center justify-center ${getBackgroundColor()} border border-white dark:border-gray-800`}>
+          {/* Freccia sporgente alla base */}
+          <div className={`absolute -right-1 -bottom-1 w-5 h-5 rounded-full flex items-center justify-center ${getBackgroundColor()} border border-white dark:border-gray-800`}>
             <span className={`text-xs ${getIconColor()}`}>
               {getDirectionArrow()}
             </span>
