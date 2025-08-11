@@ -284,9 +284,24 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
   }, [transactions, getService]);
 
   const getRemainingAmount = useCallback((transaction: Transaction) => {
-    // Utilizziamo direttamente la proprietà esistente
-    return transaction.remainingAmount ?? transaction.amount;
-  }, []);
+    if (!transaction.isReconciled) {
+      return transaction.amount;
+    }
+
+    // Se la transazione ha un remainingAmount esplicitamente salvato, usa quello
+    if (transaction.remainingAmount !== undefined) {
+      return transaction.remainingAmount;
+    }
+
+    // Altrimenti, calcola l'importo rimanente basato sulla transazione collegata
+    const linkedTx = transactions.find(tx => tx.id === transaction.linkedTransactionId);
+    if (!linkedTx) {
+      return transaction.amount;
+    }
+
+    // Per transazioni riconciliate, calcola la differenza
+    return Math.abs(transaction.amount) - Math.abs(linkedTx.amount);
+  }, [transactions]);
 
   const hasAvailableAmount = useCallback((transaction: Transaction) => {
     const remaining = getRemainingAmount(transaction);

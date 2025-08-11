@@ -4,7 +4,7 @@
  */
 
 import { v4 as uuidv4 } from 'uuid';
-import { Transaction, TransactionType } from '../../../types';
+import { Transaction } from '../../../types';
 import { TransactionFilters, TransactionRepository } from '../repositories/transaction.repository';
 import { BaseService, ServiceError } from './base-service';
 
@@ -107,17 +107,17 @@ export class TransactionService extends BaseService<Transaction, TransactionFilt
    */
   getEffectiveAmount(transaction: Transaction, linkedTransaction?: Transaction): number {
     if (!transaction.isReconciled || !linkedTransaction) {
-      return transaction.amount;
+      return Math.abs(transaction.amount);
     }
 
-    // Logic per calcolare l'importo effettivo basato sui tipi di transazione
-    if (transaction.type === TransactionType.SPESA && linkedTransaction.type === TransactionType.ENTRATA) {
-      return Math.max(0, transaction.amount - linkedTransaction.amount);
-    } else if (transaction.type === TransactionType.ENTRATA && linkedTransaction.type === TransactionType.SPESA) {
-      return Math.max(0, transaction.amount - linkedTransaction.amount);
+    // Se la transazione ha un remainingAmount salvato, usa quello
+    if (transaction.remainingAmount !== undefined) {
+      return Math.abs(transaction.remainingAmount);
     }
 
-    return transaction.amount;
+    // Altrimenti calcola l'importo effettivo come differenza
+    const remainingAmount = Math.abs(transaction.amount) - Math.abs(linkedTransaction.amount);
+    return Math.max(0, remainingAmount);
   }
 
   /**

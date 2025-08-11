@@ -8,7 +8,7 @@ import { useFinance } from '../../core/useFinance';
  * Separare la logica business dalla presentazione UI
  */
 export const useBudgetProgress = (budget: Budget) => {
-  const { transactions, people, getAccountById } = useFinance();
+  const { transactions, people, getAccountById, getEffectiveTransactionAmount } = useFinance();
 
   // Trova la persona associata al budget
   const budgetPerson = useMemo(() => 
@@ -24,9 +24,10 @@ export const useBudgetProgress = (budget: Budget) => {
       budget,
       transactions,
       budgetPerson,
-      getAccountById
+      getAccountById,
+      getEffectiveTransactionAmount
     );
-  }, [budget, transactions, budgetPerson, getAccountById]);
+  }, [budget, transactions, budgetPerson, getAccountById, getEffectiveTransactionAmount]);
 
   // Status helpers derivati
   const budgetStatus = useMemo(() => {

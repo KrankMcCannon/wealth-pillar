@@ -1,5 +1,6 @@
 import { getCurrentBudgetPeriod } from '../../constants';
 import type { Account, Budget, Person, Transaction } from '../../types';
+import { TransactionType } from '../../types';
 
 /**
  * Interface per i dati calcolati del budget
@@ -42,7 +43,7 @@ export class BudgetUtils {
       const isForBudgetPerson = account?.personIds.includes(budget.personId) || false;
       
       // Include solo transazioni di spesa (non entrate)
-      const isExpense = transaction.amount < 0;
+      const isExpense = transaction.type === TransactionType.SPESA;
       
       return isInPeriod && isInBudgetCategories && isForBudgetPerson && isExpense;
     });
@@ -56,7 +57,8 @@ export class BudgetUtils {
     budget: Budget,
     periodStart: Date,
     periodEnd: Date,
-    getAccountById: (id: string) => Account | undefined
+    getAccountById: (id: string) => Account | undefined,
+    getEffectiveTransactionAmount?: (transaction: Transaction) => number
   ): number {
     const relevantTransactions = BudgetUtils.filterTransactionsForBudget(
       transactions,
@@ -66,9 +68,12 @@ export class BudgetUtils {
       getAccountById
     );
 
-    return Math.abs(
-      relevantTransactions.reduce((total, transaction) => total + transaction.amount, 0)
-    );
+    return relevantTransactions.reduce((total, transaction) => {
+      const amount = getEffectiveTransactionAmount 
+        ? getEffectiveTransactionAmount(transaction)
+        : transaction.amount;
+      return total + Math.abs(amount);
+    }, 0);
   }
 
   /**
@@ -102,7 +107,8 @@ export class BudgetUtils {
     budget: Budget,
     transactions: Transaction[],
     budgetPerson: Person,
-    getAccountById: (id: string) => Account | undefined
+    getAccountById: (id: string) => Account | undefined,
+    getEffectiveTransactionAmount?: (transaction: Transaction) => number
   ): BudgetCalculationData {
     const { periodStart, periodEnd } = getCurrentBudgetPeriod(budgetPerson);
     
@@ -111,7 +117,8 @@ export class BudgetUtils {
       budget,
       periodStart,
       periodEnd,
-      getAccountById
+      getAccountById,
+      getEffectiveTransactionAmount
     );
     
     const percentage = BudgetUtils.calculateBudgetPercentage(currentSpent, budget.amount);
