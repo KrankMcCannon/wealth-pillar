@@ -9,6 +9,7 @@ import { Budget, Transaction, Person } from '../../types';
 interface BudgetSectionProps {
   budgetsWithData: Array<{ budget: Budget; person: Person }>;
   transactions: Transaction[];
+  people: Person[];
   isAllView: boolean;
 }
 
@@ -31,32 +32,22 @@ interface RecentTransactionsSectionProps {
 export const BudgetSection = memo<BudgetSectionProps>(({ 
   budgetsWithData, 
   transactions, 
+  people,
   isAllView 
-}) => (
-  <Card>
-    <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-white">
-      Panoramica Budget Mensile
-    </h2>
-    <div className="space-y-4">
-      {budgetsWithData.length > 0 ? (
-        budgetsWithData.map(({ budget, person }) => (
-          <div key={budget.id}>
-            {isAllView && (
-              <h3 className="text-lg font-medium text-blue-600 dark:text-blue-400 mb-2">
-                {person.name}
-              </h3>
-            )}
-            <BudgetProgress budget={budget} />
-          </div>
-        ))
-      ) : (
-        <p className="text-gray-500 dark:text-gray-400">
-          Nessun budget mensile trovato.
-        </p>
-      )}
-    </div>
-  </Card>
-));
+}) => {
+  // Estrai solo i budget dall'array budgetsWithData
+  const budgets = budgetsWithData.map(({ budget }) => budget);
+  
+  return (
+    <Card>
+      <BudgetProgress 
+        budgets={budgets}
+        people={people}
+        selectedPersonId={!isAllView ? budgetsWithData[0]?.person.id : undefined}
+      />
+    </Card>
+  );
+});
 
 /**
  * Componente RecentTransactionsSection ottimizzato

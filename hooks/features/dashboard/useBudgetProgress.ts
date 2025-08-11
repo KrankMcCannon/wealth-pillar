@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { BudgetUtils, type BudgetCalculationData } from '../../../lib/utils';
-import type { Budget } from '../../../types';
+import type { Budget, Transaction } from '../../../types';
 import { useFinance } from '../../core/useFinance';
 
 /**
@@ -29,6 +29,19 @@ export const useBudgetProgress = (budget: Budget) => {
     );
   }, [budget, transactions, budgetPerson, getAccountById, getEffectiveTransactionAmount]);
 
+  // Calcola le transazioni associate al budget
+  const associatedTransactions = useMemo((): Transaction[] => {
+    if (!budgetPerson || !budgetData) return [];
+
+    return BudgetUtils.filterTransactionsForBudget(
+      transactions,
+      budget,
+      budgetData.periodStart,
+      budgetData.periodEnd,
+      getAccountById
+    );
+  }, [budget, transactions, budgetPerson, budgetData, getAccountById]);
+
   // Status helpers derivati
   const budgetStatus = useMemo(() => {
     if (!budgetData) return null;
@@ -43,6 +56,7 @@ export const useBudgetProgress = (budget: Budget) => {
   return {
     budgetData,
     budgetStatus,
-    budgetPerson
+    budgetPerson,
+    associatedTransactions
   };
 };

@@ -32,8 +32,8 @@ export { useExpenseChart } from './features/dashboard/useExpenseChart';
 // Investimenti
 // Features - Investments
 export { useCompoundInterest } from './features/investments/useCompoundInterest';
+export { useInvestmentRow, usePortfolioSummary } from './features/investments/useInvestmentCalculations';
 export { useInvestmentModals } from './features/investments/useInvestmentModals';
-export { usePortfolioSummary, useInvestmentRow } from './features/investments/useInvestmentCalculations';
 
 // Report e Analisi
 export * from './features/reports/useReportsData';
@@ -48,6 +48,12 @@ export { useEditAccount } from './features/accounts/useEditAccount';
 
 // Features - Budgets
 export { useAddBudget } from './features/budgets/useAddBudget';
+
+// Features - Budget (Exceptions)
+// Features - Budget
+export { useBudgetData } from './features/budget/useBudgetData';
+export { useBudgetExceptions } from './features/budget/useBudgetExceptions';
+export { useBudgetTransactions } from './features/budget/useBudgetTransactions';
 
 // Features - Investments
 export { useAddInvestment } from './features/investments/useAddInvestment';

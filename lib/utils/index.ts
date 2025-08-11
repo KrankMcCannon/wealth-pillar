@@ -13,4 +13,7 @@ export * from './transaction.utils';
 export * from './transaction-form-validator.utils';
 
 // Budget utilities
-export * from './budget.utils';
+export { BudgetExceptionUtils } from './budget-exception.utils';
+export { BudgetUtils } from './budget.utils';
+export type { BudgetCalculationData } from './budget.utils';
+

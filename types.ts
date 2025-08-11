@@ -1,9 +1,17 @@
+export interface BudgetPeriodException {
+  id: string;
+  exceptionDate: string; // Data eccezionale (es. "2025-08-11")
+  reason?: string; // Motivo dell'eccezione (es. "Stipendio anticipato")
+  createdAt: string; // Timestamp di creazione
+}
+
 export interface Person {
   id: string;
   name: string;
   avatar: string;
   themeColor: string;
   budgetStartDate: string;
+  budgetExceptions?: BudgetPeriodException[]; // Eccezioni temporanee al budget
 }
 
 export enum TransactionType {
