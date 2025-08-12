@@ -21,7 +21,8 @@ export class PersonRepository extends BaseSupabaseRepository<Person, PersonFilte
       name: data.name,
       avatar: data.avatar || '',
       themeColor: data.theme_color || '#3B82F6',
-      budgetStartDate: data.budget_start_date
+      budgetStartDate: data.budget_start_date,
+      budgetPeriods: data.budget_periods || []
     };
   }
 
@@ -31,7 +32,8 @@ export class PersonRepository extends BaseSupabaseRepository<Person, PersonFilte
       name: entity.name,
       avatar: entity.avatar,
       theme_color: entity.themeColor,
-      budget_start_date: entity.budgetStartDate
+      budget_start_date: entity.budgetStartDate,
+      budget_periods: entity.budgetPeriods || []
     };
   }
 

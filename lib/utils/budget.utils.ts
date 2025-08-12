@@ -136,7 +136,7 @@ export class BudgetUtils {
       periodStart,
       periodEnd,
       progressColor,
-      isCompleted: currentPeriod.isCompleted
+      isCompleted: currentPeriod?.isCompleted ?? false
     };
   }
 

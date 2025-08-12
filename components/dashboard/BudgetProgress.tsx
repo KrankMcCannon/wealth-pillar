@@ -83,7 +83,7 @@ export const BudgetProgress = memo<BudgetProgressProps>(({
                 <h2 className="text-xl font-semibold text-gray-800 dark:text-white">
                     Panoramica Budget
                     {selectedPersonData && ` - ${selectedPersonData.person.name}`}
-                    {isReportMode && selectedPeriod && ` - ${BudgetPeriodsUtils.formatPeriodDate(selectedPeriod.referenceDate)}`}
+                    {isReportMode && selectedPeriod && ` - ${BudgetPeriodsUtils.formatPeriodDate(selectedPeriod.startDate, selectedPeriod.endDate)}`}
                 </h2>
                 
                 {!isReportMode ? (
@@ -96,9 +96,9 @@ export const BudgetProgress = memo<BudgetProgressProps>(({
                         {/* Selettore Periodi Budget */}
                         {availablePeriods && availablePeriods.length > 1 && (
                             <select
-                                value={selectedPeriod?.referenceDate || ''}
+                                value={selectedPeriod?.startDate || ''}
                                 onChange={(e) => {
-                                    const period = availablePeriods.find(p => p.referenceDate === e.target.value);
+                                    const period = availablePeriods.find(p => p.startDate === e.target.value);
                                     if (period) {
                                         onPeriodChange?.(period);
                                     }
@@ -106,8 +106,8 @@ export const BudgetProgress = memo<BudgetProgressProps>(({
                                 className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                             >
                                 {availablePeriods.map(period => (
-                                    <option key={period.referenceDate} value={period.referenceDate}>
-                                        {BudgetPeriodsUtils.formatPeriodDate(period.referenceDate)}
+                                    <option key={period.startDate} value={period.startDate}>
+                                        {BudgetPeriodsUtils.formatPeriodDate(period.startDate, period.endDate)}
                                     </option>
                                 ))}
                             </select>

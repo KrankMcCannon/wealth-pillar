@@ -24,6 +24,10 @@ export const BudgetPeriodButton = memo<BudgetPeriodButtonProps>(({
   const [showModal, setShowModal] = useState(false);
   const [selectedPersonId, setSelectedPersonId] = useState(defaultPersonId || people[0]?.id || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [completionDate, setCompletionDate] = useState(() => {
+    // Imposta la data di oggi come default
+    return new Date().toISOString().split('T')[0];
+  });
 
   // Trova la persona selezionata
   const selectedPerson = people.find(p => p.id === selectedPersonId) || people[0];
@@ -34,9 +38,11 @@ export const BudgetPeriodButton = memo<BudgetPeriodButtonProps>(({
     completedPeriods,
     canCompletePeriod,
     completePeriod,
+    createNewPeriod,
     removePeriod,
     periodStats,
-    formatPeriodDate
+    formatPeriodDate,
+    isLoading
   } = useBudgetPeriods({ 
     person: selectedPerson
   });
@@ -44,18 +50,24 @@ export const BudgetPeriodButton = memo<BudgetPeriodButtonProps>(({
   // Reset del form quando si chiude il modale
   const handleClose = useCallback(() => {
     setShowModal(false);
+    // Reset della data di completamento alla data di oggi
+    const today = new Date().toISOString().split('T')[0];
+    setCompletionDate(today);
     if (!defaultPersonId) {
       setSelectedPersonId('');
     }
   }, [defaultPersonId]);
 
-  // Handler per completare il periodo
+  // Handler per completare il periodo con la data selezionata
   const handleCompletePeriod = useCallback(async () => {
-    if (!canCompletePeriod) return;
+    if (!canCompletePeriod || !completionDate) return;
 
     setIsSubmitting(true);
     try {
-      await completePeriod();
+      await completePeriod(completionDate);
+      // Reset della data di completamento alla data di oggi dopo il completamento
+      const today = new Date().toISOString().split('T')[0];
+      setCompletionDate(today);
       // Non chiudere il modale per permettere di vedere i risultati
     } catch (error) {
       console.error('Errore nel completare il periodo:', error);
@@ -63,7 +75,7 @@ export const BudgetPeriodButton = memo<BudgetPeriodButtonProps>(({
     } finally {
       setIsSubmitting(false);
     }
-  }, [canCompletePeriod, completePeriod]);
+  }, [canCompletePeriod, completePeriod, completionDate]);
 
   // Handler per rimuovere un periodo completato
   const handleRemovePeriod = useCallback(async (referenceDate: string) => {
@@ -132,30 +144,73 @@ export const BudgetPeriodButton = memo<BudgetPeriodButtonProps>(({
               <div>
                 <span className="text-gray-600 dark:text-gray-400">Periodo:</span>
                 <p className="font-medium text-gray-900 dark:text-white">
-                  {currentPeriod ? formatPeriodDate(currentPeriod.referenceDate) : 'Nessun periodo attivo'}
+                  {currentPeriod ? formatPeriodDate(currentPeriod.startDate, currentPeriod.endDate) : 'Nessun periodo attivo'}
                 </p>
               </div>
               <div>
                 <span className="text-gray-600 dark:text-gray-400">Stato:</span>
                 <p className="font-medium text-gray-900 dark:text-white">
-                  {currentPeriod?.isCompleted ? 'Completato' : 'In corso'}
+                  {currentPeriod ? (currentPeriod.isCompleted ? 'Completato' : 'In corso') : 'Inattivo'}
                 </p>
               </div>
             </div>
 
+            {/* Azione per iniziare un nuovo periodo quando non ce n'è uno attivo */}
+            {!currentPeriod && (
+              <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                <div className="space-y-4">
+                  <div>
+                    <label htmlFor="start-date" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Seleziona la data di inizio del nuovo periodo
+                    </label>
+                    <input
+                      type="date"
+                      id="start-date"
+                      value={completionDate}
+                      onChange={(e) => setCompletionDate(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      required
+                    />
+                  </div>
+                  <button
+                    onClick={() => createNewPeriod(completionDate)}
+                    disabled={!completionDate || isLoading}
+                    className="w-full px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors disabled:cursor-not-allowed"
+                  >
+                    {isLoading ? 'Creazione...' : 'Inizia Nuovo Periodo'}
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* Azione per completare il periodo */}
             {canCompletePeriod && (
               <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                <button
-                  onClick={handleCompletePeriod}
-                  disabled={isSubmitting}
-                  className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isSubmitting ? 'Completando...' : '✅ Completa Periodo e Passa al Successivo'}
-                </button>
-                <p className="mt-2 text-xs text-gray-600 dark:text-gray-400">
-                  Questa azione segnerà il periodo corrente come completato e permetterà di iniziare il periodo successivo.
-                </p>
+                <div className="space-y-4">
+                  <div>
+                    <label htmlFor="completion-date" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Seleziona la data di chiusura del periodo
+                    </label>
+                    <input
+                      type="date"
+                      id="completion-date"
+                      value={completionDate}
+                      onChange={(e) => setCompletionDate(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      required
+                    />
+                  </div>
+                  <button
+                    onClick={handleCompletePeriod}
+                    disabled={isSubmitting || !completionDate}
+                    className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isSubmitting ? 'Completando...' : '✅ Completa Periodo'}
+                  </button>
+                  <p className="text-xs text-gray-600 dark:text-gray-400">
+                    Seleziona la data di chiusura e clicca per completare il periodo corrente.
+                  </p>
+                </div>
               </div>
             )}
           </div>
@@ -201,7 +256,7 @@ export const BudgetPeriodButton = memo<BudgetPeriodButtonProps>(({
                   >
                     <div>
                       <div className="font-medium text-green-800 dark:text-green-200">
-                        {formatPeriodDate(period.referenceDate)}
+                        {formatPeriodDate(period.startDate, period.endDate)}
                       </div>
                       <div className="text-sm text-green-600 dark:text-green-400">
                         Periodo completato

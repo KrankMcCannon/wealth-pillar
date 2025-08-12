@@ -1,5 +1,6 @@
 export interface BudgetPeriodData {
-  referenceDate: string; // Data di riferimento del periodo (es. "2025-07-15")
+  startDate: string; // Data di inizio del periodo (es. "2025-07-01")
+  endDate?: string; // Data di fine del periodo (es. "2025-07-31") - opzionale finché non completato
   isCompleted: boolean; // Se il periodo è stato marcato come completato
 }
 

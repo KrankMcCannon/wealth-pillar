@@ -24,7 +24,7 @@ import { PersonService } from './person.service';
 import { TransactionService } from './transaction.service';
 
 // Types
-import { Account, InvestmentHolding, Transaction } from '../../../types';
+import { Account, InvestmentHolding, Person, Transaction } from '../../../types';
 
 export class FinanceService {
   // Service instances
@@ -215,5 +215,12 @@ export class FinanceService {
       totalBudgets: budgets.length,
       totalBudgetAmount: totalBudget,
     };
+  }
+
+  /**
+   * Aggiorna una persona esistente
+   */
+  async updatePerson(updatedPerson: Person): Promise<Person> {
+    return await this.people.update(updatedPerson.id, updatedPerson);
   }
 }

@@ -41,12 +41,10 @@ export const useBudgetPeriods = ({ person }: UseBudgetPeriodsProps) => {
   }, [currentPeriod]);
 
   // Marca il periodo corrente come completato
-  const completePeriod = useCallback(async (referenceDate?: string) => {
-    const dateToComplete = referenceDate || currentPeriod.referenceDate;
-    
+  const completePeriod = useCallback(async (endDate: string) => {
     setIsLoading(true);
     try {
-      const updatedPeriods = BudgetPeriodsUtils.markPeriodAsCompleted(person, dateToComplete);
+      const updatedPeriods = BudgetPeriodsUtils.markPeriodAsCompleted(person, endDate);
       
       const updatedPerson: Person = {
         ...person,
@@ -54,16 +52,19 @@ export const useBudgetPeriods = ({ person }: UseBudgetPeriodsProps) => {
       };
 
       await updatePerson(updatedPerson);
+    } catch (error) {
+      console.error('Error in completePeriod:', error);
+      throw error;
     } finally {
       setIsLoading(false);
     }
   }, [person, currentPeriod, updatePerson]);
 
   // Crea un nuovo periodo
-  const createNewPeriod = useCallback(async (referenceDate: string) => {
+  const createNewPeriod = useCallback(async (startDate: string) => {
     setIsLoading(true);
     try {
-      const updatedPeriods = BudgetPeriodsUtils.createNewPeriod(person, referenceDate);
+      const updatedPeriods = BudgetPeriodsUtils.createNewPeriod(person, startDate);
       
       const updatedPerson: Person = {
         ...person,
@@ -77,15 +78,15 @@ export const useBudgetPeriods = ({ person }: UseBudgetPeriodsProps) => {
   }, [person, updatePerson]);
 
   // Formatta data per display
-  const formatPeriodDate = useCallback((referenceDate: string) => {
-    return BudgetPeriodsUtils.formatPeriodDate(referenceDate);
+  const formatPeriodDate = useCallback((startDate: string, endDate?: string) => {
+    return BudgetPeriodsUtils.formatPeriodDate(startDate, endDate);
   }, []);
 
   // Rimuove un periodo dal database
-  const removePeriod = useCallback(async (referenceDate: string) => {
+  const removePeriod = useCallback(async (startDate: string) => {
     setIsLoading(true);
     try {
-      const updatedPeriods = budgetPeriods.filter(p => p.referenceDate !== referenceDate);
+      const updatedPeriods = budgetPeriods.filter(p => p.startDate !== startDate);
       
       const updatedPerson: Person = {
         ...person,
