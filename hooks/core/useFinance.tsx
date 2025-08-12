@@ -278,7 +278,7 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
   }, [categories]);
 
   const getEffectiveTransactionAmount = useCallback((transaction: Transaction) => {
-    const linkedTx = transactions.find(tx => tx.id === transaction.linkedTransactionId);
+    const linkedTx = transactions.find(tx => tx.id === transaction.parentTransactionId);
     const service = getService();
     return service.transactions.getEffectiveAmount(transaction, linkedTx);
   }, [transactions, getService]);
@@ -294,7 +294,7 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
 
     // Altrimenti, calcola l'importo rimanente basato sulla transazione collegata
-    const linkedTx = transactions.find(tx => tx.id === transaction.linkedTransactionId);
+    const linkedTx = transactions.find(tx => tx.id === transaction.parentTransactionId);
     if (!linkedTx) {
       return transaction.amount;
     }
@@ -309,7 +309,7 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
   }, [getRemainingAmount]);
 
   const isParentTransaction = useCallback((transaction: Transaction) => {
-    const linkedTx = transactions.find(tx => tx.id === transaction.linkedTransactionId);
+    const linkedTx = transactions.find(tx => tx.id === transaction.parentTransactionId);
     
     // Use TransactionService.isParentTransaction instead of duplicating logic
     const service = getService();

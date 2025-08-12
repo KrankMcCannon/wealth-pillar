@@ -11,21 +11,30 @@ export interface Database {
         Row: {
           id: string;
           name: string;
+          avatar: string;
+          theme_color: string;
           budget_start_date: string;
+          budget_periods: any[] | null; // JSON array di BudgetPeriodData
           created_at: string;
           updated_at: string;
         };
         Insert: {
           id?: string;
           name: string;
+          avatar?: string;
+          theme_color?: string;
           budget_start_date: string;
+          budget_periods?: any[] | null;
           created_at?: string;
           updated_at?: string;
         };
         Update: {
           id?: string;
           name?: string;
+          avatar?: string;
+          theme_color?: string;
           budget_start_date?: string;
+          budget_periods?: any[] | null;
           updated_at?: string;
         };
       };
@@ -33,7 +42,8 @@ export interface Database {
         Row: {
           id: string;
           name: string;
-          type: 'savings' | 'checking' | 'credit' | 'investment';
+          type: 'stipendio' | 'risparmio' | 'contanti' | 'investimenti';
+          balance: number;
           initial_balance: number;
           person_ids: string[];
           created_at: string;
@@ -42,7 +52,8 @@ export interface Database {
         Insert: {
           id?: string;
           name: string;
-          type: 'savings' | 'checking' | 'credit' | 'investment';
+          type: 'stipendio' | 'risparmio' | 'contanti' | 'investimenti';
+          balance?: number;
           initial_balance: number;
           person_ids: string[];
           created_at?: string;
@@ -51,7 +62,8 @@ export interface Database {
         Update: {
           id?: string;
           name?: string;
-          type?: 'savings' | 'checking' | 'credit' | 'investment';
+          type?: 'stipendio' | 'risparmio' | 'contanti' | 'investimenti';
+          balance?: number;
           initial_balance?: number;
           person_ids?: string[];
           updated_at?: string;
@@ -69,6 +81,8 @@ export interface Database {
           to_account_id: string | null;
           is_reconciled: boolean;
           parent_transaction_id: string | null;
+          linked_transaction_id: string | null; // Deprecated field
+          remaining_amount: number | null;
           created_at: string;
           updated_at: string;
         };
@@ -83,6 +97,8 @@ export interface Database {
           to_account_id?: string | null;
           is_reconciled?: boolean;
           parent_transaction_id?: string | null;
+          linked_transaction_id?: string | null;
+          remaining_amount?: number | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -97,14 +113,17 @@ export interface Database {
           to_account_id?: string | null;
           is_reconciled?: boolean;
           parent_transaction_id?: string | null;
+          linked_transaction_id?: string | null;
+          remaining_amount?: number | null;
           updated_at?: string;
         };
       };
       budgets: {
         Row: {
           id: string;
+          description: string;
           amount: number;
-          period: 'monthly' | 'yearly';
+          period: 'monthly' | 'annually';
           categories: string[];
           person_id: string;
           created_at: string;
@@ -112,8 +131,9 @@ export interface Database {
         };
         Insert: {
           id?: string;
+          description?: string;
           amount: number;
-          period: 'monthly' | 'yearly';
+          period: 'monthly' | 'annually';
           categories: string[];
           person_id: string;
           created_at?: string;
@@ -121,8 +141,9 @@ export interface Database {
         };
         Update: {
           id?: string;
+          description?: string;
           amount?: number;
-          period?: 'monthly' | 'yearly';
+          period?: 'monthly' | 'annually';
           categories?: string[];
           person_id?: string;
           updated_at?: string;
@@ -144,6 +165,43 @@ export interface Database {
         Update: {
           id?: string;
           name?: string;
+          updated_at?: string;
+        };
+      };
+      investment_holdings: {
+        Row: {
+          id: string;
+          person_id: string;
+          name: string;
+          symbol: string;
+          quantity: number;
+          purchase_price: number;
+          current_price: number;
+          purchase_date: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          person_id: string;
+          name: string;
+          symbol: string;
+          quantity: number;
+          purchase_price: number;
+          current_price: number;
+          purchase_date: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          person_id?: string;
+          name?: string;
+          symbol?: string;
+          quantity?: number;
+          purchase_price?: number;
+          current_price?: number;
+          purchase_date?: string;
           updated_at?: string;
         };
       };

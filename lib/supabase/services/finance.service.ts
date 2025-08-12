@@ -184,8 +184,8 @@ export class FinanceService {
         ? accounts.find(acc => acc.id === transaction.toAccountId)
         : undefined;
       
-      const linkedTransaction = transaction.linkedTransactionId
-        ? transactions.find(tx => tx.id === transaction.linkedTransactionId)
+      const linkedTransaction = transaction.parentTransactionId
+        ? transactions.find(tx => tx.id === transaction.parentTransactionId)
         : undefined;
 
       return {

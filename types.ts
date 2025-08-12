@@ -1,8 +1,6 @@
-export interface BudgetPeriodException {
-  id: string;
-  exceptionDate: string; // Data eccezionale (es. "2025-08-11")
-  reason?: string; // Motivo dell'eccezione (es. "Stipendio anticipato")
-  createdAt: string; // Timestamp di creazione
+export interface BudgetPeriodData {
+  referenceDate: string; // Data di riferimento del periodo (es. "2025-07-15")
+  isCompleted: boolean; // Se il periodo è stato marcato come completato
 }
 
 export interface Person {
@@ -11,7 +9,7 @@ export interface Person {
   avatar: string;
   themeColor: string;
   budgetStartDate: string;
-  budgetExceptions?: BudgetPeriodException[]; // Eccezioni temporanee al budget
+  budgetPeriods?: BudgetPeriodData[]; // Periodi di budget con stato di completamento
 }
 
 export enum TransactionType {
@@ -31,7 +29,7 @@ export interface Account {
   id: string;
   name: string;
   balance: number;
-  type: 'checking' | 'savings' | 'cash' | 'investment';
+  type: 'stipendio' | 'risparmio' | 'contanti' | 'investimenti';
   personIds: string[];
 }
 
@@ -46,7 +44,6 @@ export interface Transaction {
   toAccountId?: string;
   isReconciled?: boolean;
   parentTransactionId?: string; // Parent transaction for reconciliation
-  linkedTransactionId?: string; // Deprecated - use parentTransactionId instead
   remainingAmount?: number; // Importo rimanente dopo riconciliazione
   createdAt?: string; // Timestamp di creazione per determinare l'ordine
 }

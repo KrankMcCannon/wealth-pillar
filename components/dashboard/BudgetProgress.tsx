@@ -1,11 +1,11 @@
 import React, { memo, useState } from 'react';
-import type { Budget, Person } from '../../types';
+import type { Budget, Person, BudgetPeriodData } from '../../types';
 import { formatCurrency, formatDate } from '../../constants';
 import { useBudgetData } from '../../hooks/features/budget/useBudgetData';
-import { BudgetExceptionButton } from '../budget/BudgetExceptionButton';
+import { BudgetPeriodButton } from '../budget/BudgetPeriodButton';
 import { ChevronDownIcon, ChevronUpIcon } from '../common/Icons';
 import { useFinance } from '../../hooks/core/useFinance';
-import { CategoryUtils } from '../../lib/utils/category.utils';
+import { CategoryUtils, BudgetPeriodsUtils } from '../../lib/utils';
 
 /**
  * Props per BudgetProgress
@@ -14,6 +14,10 @@ interface BudgetProgressProps {
     budgets: Budget[];
     people: Person[];
     selectedPersonId?: string;
+    isReportMode?: boolean; // Nuovo prop per modalità report
+    availablePeriods?: BudgetPeriodData[]; // Periodi di budget disponibili
+    selectedPeriod?: BudgetPeriodData; // Periodo selezionato
+    onPeriodChange?: (period: BudgetPeriodData) => void; // Callback cambio periodo
 }
 
 /**
@@ -23,7 +27,11 @@ interface BudgetProgressProps {
 export const BudgetProgress = memo<BudgetProgressProps>(({
     budgets,
     people,
-    selectedPersonId
+    selectedPersonId,
+    isReportMode = false,
+    availablePeriods = [],
+    selectedPeriod,
+    onPeriodChange
 }) => {
     const { categories: categoryOptions } = useFinance();
     const { budgetDataByPerson, selectedPersonData, hasData } = useBudgetData({
@@ -38,6 +46,17 @@ export const BudgetProgress = memo<BudgetProgressProps>(({
             <div className="text-center py-8">
                 <p className="text-gray-500 dark:text-gray-400">
                     Nessun budget trovato.
+                </p>
+            </div>
+        );
+    }
+
+    // In modalità report, mostra placeholder se non c'è un periodo selezionato
+    if (isReportMode && !selectedPeriod) {
+        return (
+            <div className="text-center py-8">
+                <p className="text-gray-500 dark:text-gray-400">
+                    Seleziona un periodo per visualizzare i dati del budget.
                 </p>
             </div>
         );
@@ -59,16 +78,42 @@ export const BudgetProgress = memo<BudgetProgressProps>(({
 
     return (
         <div className="space-y-6">
-            {/* Header con bottone eccezioni globale */}
+            {/* Header con bottone eccezioni globale o selettori mese/anno */}
             <div className="flex justify-between items-center">
                 <h2 className="text-xl font-semibold text-gray-800 dark:text-white">
                     Panoramica Budget
                     {selectedPersonData && ` - ${selectedPersonData.person.name}`}
+                    {isReportMode && selectedPeriod && ` - ${BudgetPeriodsUtils.formatPeriodDate(selectedPeriod.referenceDate)}`}
                 </h2>
-                <BudgetExceptionButton
-                    people={people}
-                    defaultPersonId={selectedPersonId}
-                />
+                
+                {!isReportMode ? (
+                    <BudgetPeriodButton
+                        people={people}
+                        defaultPersonId={selectedPersonId}
+                    />
+                ) : (
+                    <div className="flex gap-3 items-center">
+                        {/* Selettore Periodi Budget */}
+                        {availablePeriods && availablePeriods.length > 1 && (
+                            <select
+                                value={selectedPeriod?.referenceDate || ''}
+                                onChange={(e) => {
+                                    const period = availablePeriods.find(p => p.referenceDate === e.target.value);
+                                    if (period) {
+                                        onPeriodChange?.(period);
+                                    }
+                                }}
+                                className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            >
+                                {availablePeriods.map(period => (
+                                    <option key={period.referenceDate} value={period.referenceDate}>
+                                        {BudgetPeriodsUtils.formatPeriodDate(period.referenceDate)}
+                                    </option>
+                                ))}
+                            </select>
+                        )}
+                    </div>
+                )}
             </div>
 
             {/* Budget per persona */}
@@ -80,9 +125,9 @@ export const BudgetProgress = memo<BudgetProgressProps>(({
                             <h3 className="text-lg font-medium text-blue-600 dark:text-blue-400">
                                 {personData.person.name}
                             </h3>
-                            {personData.hasActiveException && (
+                            {personData.hasCompletedPeriods && (
                                 <span className="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full">
-                                    📅 Eccezione attiva
+                                    📅 Periodi completati
                                 </span>
                             )}
                         </div>
@@ -156,10 +201,9 @@ export const BudgetProgress = memo<BudgetProgressProps>(({
                                         <span>{data.percentage.toFixed(1)}%</span>
                                     </div>
 
-                                    {data.hasException && (
-                                        <div className="text-xs text-blue-600 dark:text-blue-400 font-medium mt-2">
-                                            📅 Periodo eccezionale
-                                            {data.exceptionReason && `: ${data.exceptionReason}`}
+                                    {data.isCompleted && (
+                                        <div className="text-xs text-green-600 dark:text-green-400 font-medium mt-2">
+                                            ✅ Periodo completato
                                         </div>
                                     )}
 

@@ -3,7 +3,7 @@ import { useFinance, useModalForm } from '../../';
 
 interface AccountFormData {
   name: string;
-  type: 'checking' | 'savings' | 'cash' | 'investment';
+  type: 'stipendio' | 'risparmio' | 'contanti' | 'investimenti';
   selectedPersonIds: string[];
 }
 
@@ -20,7 +20,7 @@ export const useAddAccount = ({ onClose }: UseAddAccountProps) => {
 
   const initialFormData: AccountFormData = useMemo(() => ({
     name: '',
-    type: 'checking',
+    type: 'stipendio',
     selectedPersonIds: [],
   }), []);
 

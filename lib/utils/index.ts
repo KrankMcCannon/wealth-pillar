@@ -13,7 +13,7 @@ export * from './transaction.utils';
 export * from './transaction-form-validator.utils';
 
 // Budget utilities
-export { BudgetExceptionUtils } from './budget-exception.utils';
+export { BudgetPeriodsUtils } from './budget-periods.utils';
 export { BudgetUtils } from './budget.utils';
 export type { BudgetCalculationData } from './budget.utils';
 

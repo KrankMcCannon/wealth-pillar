@@ -49,11 +49,14 @@ export { useEditAccount } from './features/accounts/useEditAccount';
 // Features - Budgets
 export { useAddBudget } from './features/budgets/useAddBudget';
 
-// Features - Budget (Exceptions)
 // Features - Budget
 export { useBudgetData } from './features/budget/useBudgetData';
-export { useBudgetExceptions } from './features/budget/useBudgetExceptions';
+export { useBudgetPeriods } from './features/budget/useBudgetPeriods';
 export { useBudgetTransactions } from './features/budget/useBudgetTransactions';
+
+// Features - Reports
+export { useBudgetHistory } from './features/reports/useBudgetHistory';
+export { useAnnualReports } from './features/reports/useReportsData';
 
 // Features - Investments
 export { useAddInvestment } from './features/investments/useAddInvestment';

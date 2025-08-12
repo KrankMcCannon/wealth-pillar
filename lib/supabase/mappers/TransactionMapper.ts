@@ -34,7 +34,6 @@ export class TransactionMapper extends BaseMapper<Transaction, TransactionDataba
         accountId: dbRow.account_id,
         toAccountId: dbRow.to_account_id || undefined,
         isReconciled: dbRow.is_reconciled || false,
-        linkedTransactionId: dbRow.parent_transaction_id || undefined,
         parentTransactionId: dbRow.parent_transaction_id || undefined,
         createdAt: dbRow.created_at,
       };
@@ -59,7 +58,7 @@ export class TransactionMapper extends BaseMapper<Transaction, TransactionDataba
         account_id: entity.accountId,
         to_account_id: entity.toAccountId || null,
         is_reconciled: entity.isReconciled,
-        parent_transaction_id: entity.linkedTransactionId || entity.parentTransactionId || null,
+        parent_transaction_id: entity.parentTransactionId || null,
       };
     } catch (error) {
       throw new MappingError(

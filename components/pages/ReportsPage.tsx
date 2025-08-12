@@ -1,8 +1,11 @@
-import React, { memo } from 'react';
+import React, { memo, useState, useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { useAnnualReports, useFinance, usePersonFilter, useYearSelection } from '../../hooks';
 import { Card, PageHeader, SummaryCards } from '../ui';
+import { BudgetProgress } from '../dashboard';
 import { formatCurrency } from '../../constants';
+import { BudgetPeriodsUtils, CategoryUtils } from '../../lib/utils';
+import type { BudgetPeriodData } from '../../types';
 
 /**
  * Componente per la selezione dell'anno
@@ -42,25 +45,50 @@ YearSelector.displayName = 'YearSelector';
  */
 const MonthlyChart = memo<{
   data: Array<{ name: string; entrata: number; spesa: number }>;
-}>(({ data }) => (
+  selectedYear: number;
+}>(({ data, selectedYear }) => (
   <Card>
     <div className="p-6">
-      <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">
-        Trend Mensile {new Date().getFullYear()}
-      </h3>
-      <div className="h-80">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
+        <div>
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+            Trend Finanziario Mensile
+          </h3>
+          <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+            Confronto entrate e spese per l'anno {selectedYear}
+          </p>
+        </div>
+        <div className="mt-4 sm:mt-0 flex space-x-4">
+          <div className="flex items-center">
+            <div className="w-3 h-3 bg-green-500 rounded mr-2"></div>
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Entrate</span>
+          </div>
+          <div className="flex items-center">
+            <div className="w-3 h-3 bg-red-500 rounded mr-2"></div>
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Spese</span>
+          </div>
+        </div>
+      </div>
+      
+      <div className="h-96 w-full">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-            <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+          <BarChart 
+            data={data} 
+            margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+            barCategoryGap="20%"
+          >
+            <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
             <XAxis 
               dataKey="name" 
-              tick={{ fontSize: 12 }}
-              stroke="currentColor"
+              tick={{ fontSize: 12, fill: 'currentColor' }}
+              axisLine={{ stroke: 'currentColor', opacity: 0.3 }}
+              tickLine={{ stroke: 'currentColor', opacity: 0.3 }}
               className="text-gray-600 dark:text-gray-400"
             />
             <YAxis 
-              tick={{ fontSize: 12 }}
-              stroke="currentColor"
+              tick={{ fontSize: 12, fill: 'currentColor' }}
+              axisLine={{ stroke: 'currentColor', opacity: 0.3 }}
+              tickLine={{ stroke: 'currentColor', opacity: 0.3 }}
               className="text-gray-600 dark:text-gray-400"
               tickFormatter={(value) => formatCurrency(value)}
             />
@@ -69,27 +97,30 @@ const MonthlyChart = memo<{
                 formatCurrency(value), 
                 name === 'entrata' ? 'Entrate' : 'Spese'
               ]}
-              labelStyle={{ color: 'var(--text-primary)' }}
+              labelFormatter={(label) => `${label} ${selectedYear}`}
               contentStyle={{
-                backgroundColor: 'var(--bg-secondary)',
-                border: '1px solid var(--border-color)',
-                borderRadius: '8px'
+                backgroundColor: 'rgb(255 255 255 / 0.95)',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgb(229 231 235)',
+                borderRadius: '12px',
+                boxShadow: '0 10px 25px -5px rgb(0 0 0 / 0.1), 0 4px 6px -2px rgb(0 0 0 / 0.05)',
+                color: '#374151'
               }}
-            />
-            <Legend 
-              formatter={(value) => value === 'entrata' ? 'Entrate' : 'Spese'}
+              cursor={{ fill: 'rgba(156, 163, 175, 0.1)' }}
             />
             <Bar 
               dataKey="entrata" 
               fill="#10B981" 
               name="entrata"
-              radius={[2, 2, 0, 0]}
+              radius={[4, 4, 0, 0]}
+              maxBarSize={60}
             />
             <Bar 
               dataKey="spesa" 
               fill="#EF4444" 
               name="spesa"
-              radius={[2, 2, 0, 0]}
+              radius={[4, 4, 0, 0]}
+              maxBarSize={60}
             />
           </BarChart>
         </ResponsiveContainer>
@@ -108,12 +139,53 @@ MonthlyChart.displayName = 'MonthlyChart';
  */
 export const ReportsPage = memo(() => {
   const { selectedPersonId, selectedPerson } = usePersonFilter();
-  const { transactions } = useFinance();
+  const { transactions, budgets, people, getAccountById } = useFinance();
   const { availableYears, selectedYear, setSelectedYear } = useYearSelection(transactions);
   const { yearlyTransactions, annualSummary, monthlyData, netBalance } = useAnnualReports(
     selectedPersonId, 
     selectedYear
   );
+
+  // Stati per il selettore del BudgetProgress
+  const [selectedBudgetPeriod, setSelectedBudgetPeriod] = useState<BudgetPeriodData | undefined>(undefined);
+
+  // Calcola i periodi di budget disponibili dal database della persona
+  const availableBudgetPeriods = useMemo(() => {
+    if (selectedPersonId === 'all') {
+      // Per la vista "all", usa i periodi della prima persona con budgetStartDate
+      const firstPersonWithBudget = people.find(person => person.budgetStartDate);
+      if (!firstPersonWithBudget) {
+        return [];
+      }
+
+      return BudgetPeriodsUtils.getBudgetPeriodsFromDatabase(firstPersonWithBudget);
+    } else {
+      // Per persona specifica, usa i suoi periodi dal database
+      const selectedPerson = people.find(p => p.id === selectedPersonId);
+      if (!selectedPerson || !selectedPerson.budgetStartDate) {
+        return [];
+      }
+
+      return BudgetPeriodsUtils.getBudgetPeriodsFromDatabase(selectedPerson);
+    }
+  }, [selectedPersonId, people]);
+
+  // Imposta il periodo corrente come default se non c'è selezione
+  React.useEffect(() => {
+    if (!selectedBudgetPeriod && availableBudgetPeriods.length > 0) {
+      // Prendi il periodo più recente come default
+      setSelectedBudgetPeriod(availableBudgetPeriods[0]);
+    }
+  }, [availableBudgetPeriods, selectedBudgetPeriod]);
+
+  // Aggiorna il periodo quando cambia la selezione della persona
+  React.useEffect(() => {
+    if (availableBudgetPeriods.length > 0) {
+      setSelectedBudgetPeriod(availableBudgetPeriods[0]);
+    } else {
+      setSelectedBudgetPeriod(undefined);
+    }
+  }, [selectedPersonId]);
 
   const summaryCardsData = [
     {
@@ -150,6 +222,19 @@ export const ReportsPage = memo(() => {
     setSelectedYear(year);
   };
 
+  const handleBudgetPeriodChange = (period: BudgetPeriodData) => {
+    setSelectedBudgetPeriod(period);
+  };
+
+  // Trova la persona di riferimento per i periodi di budget
+  const budgetReferencePerson = useMemo(() => {
+    if (selectedPersonId === 'all') {
+      return people.find(person => person.budgetStartDate);
+    } else {
+      return people.find(p => p.id === selectedPersonId);
+    }
+  }, [selectedPersonId, people]);
+
   return (
     <div className="space-y-6">
       <PageHeader 
@@ -167,8 +252,43 @@ export const ReportsPage = memo(() => {
 
       <MonthlyChart
         data={monthlyData}
-        selectedPersonId={selectedPersonId}
+        selectedYear={selectedYear}
       />
+
+      {/* Storico Budget */}
+      <Card>
+        <div className="p-6">
+          <div className="mb-6">
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+              Storico Budget {selectedYear}
+              {budgetReferencePerson && (
+                <span className="text-base font-normal text-gray-600 dark:text-gray-400 ml-2">
+                  (Periodi di {budgetReferencePerson.name})
+                </span>
+              )}
+            </h3>
+            <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+              Panoramica completa dei budget con transazioni e categorie associate
+            </p>
+          </div>
+          
+          {budgets.length > 0 ? (
+            <BudgetProgress 
+              budgets={budgets}
+              people={people}
+              selectedPersonId={selectedPersonId !== 'all' ? selectedPersonId : undefined}
+              isReportMode={true}
+              availablePeriods={availableBudgetPeriods}
+              selectedPeriod={selectedBudgetPeriod}
+              onPeriodChange={handleBudgetPeriodChange}
+            />
+          ) : (
+            <div className="text-center py-10 text-gray-500 dark:text-gray-400">
+              Nessun budget configurato per l'anno selezionato.
+            </div>
+          )}
+        </div>
+      </Card>
     </div>
   );
 });

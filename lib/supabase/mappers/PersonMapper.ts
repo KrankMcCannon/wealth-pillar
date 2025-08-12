@@ -3,7 +3,7 @@
  * Gestisce la conversione tra Person entity e database row
  */
 
-import { Person } from '../../../types';
+import { BudgetPeriodData, Person } from '../../../types';
 import { BaseMapper, MappingError } from './BaseMapper';
 
 interface PersonDatabaseRow {
@@ -12,6 +12,7 @@ interface PersonDatabaseRow {
   avatar?: string | null;
   theme_color?: string | null;
   budget_start_date: number | string;
+  budget_periods?: any; // Array di BudgetPeriodData objects
   created_at?: string;
   updated_at?: string;
 }
@@ -25,6 +26,7 @@ export class PersonMapper extends BaseMapper<Person, PersonDatabaseRow> {
         avatar: dbRow.avatar || '',
         themeColor: dbRow.theme_color || undefined,
         budgetStartDate: dbRow.budget_start_date.toString(),
+        budgetPeriods: this.safeParseArray<BudgetPeriodData>(dbRow.budget_periods),
       };
     } catch (error) {
       throw new MappingError(
@@ -43,6 +45,7 @@ export class PersonMapper extends BaseMapper<Person, PersonDatabaseRow> {
         avatar: entity.avatar || null,
         theme_color: entity.themeColor || null,
         budget_start_date: parseInt(entity.budgetStartDate),
+        budget_periods: entity.budgetPeriods || [],
       };
     } catch (error) {
       throw new MappingError(

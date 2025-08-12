@@ -20,7 +20,7 @@ interface PersonBudgetData {
   budgets: BudgetWithData[];
   totalSpent: number;
   totalBudgetAmount: number;
-  hasActiveException: boolean;
+  hasCompletedPeriods: boolean;
 }
 
 /**
@@ -47,7 +47,7 @@ export const useBudgetData = ({ budgets, selectedPersonId }: UseBudgetDataProps)
           budgets: [],
           totalSpent: 0,
           totalBudgetAmount: 0,
-          hasActiveException: false
+          hasCompletedPeriods: false
         });
       }
 
@@ -84,7 +84,7 @@ export const useBudgetData = ({ budgets, selectedPersonId }: UseBudgetDataProps)
       personData.budgets.push(budgetWithData);
       personData.totalSpent += budgetData.currentSpent;
       personData.totalBudgetAmount += budget.amount;
-      personData.hasActiveException = personData.hasActiveException || budgetData.hasException;
+      personData.hasCompletedPeriods = personData.hasCompletedPeriods || budgetData.isCompleted;
     });
 
     return Array.from(personMap.values());

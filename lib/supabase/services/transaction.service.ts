@@ -68,8 +68,8 @@ export class TransactionService extends BaseService<Transaction, TransactionFilt
 
     // Aggiorna entrambe le transazioni
     await Promise.all([
-      this.update(tx1Id, { isReconciled: true, linkedTransactionId: tx2Id }),
-      this.update(tx2Id, { isReconciled: true, linkedTransactionId: tx1Id })
+      this.update(tx1Id, { isReconciled: true, parentTransactionId: tx2Id }),
+      this.update(tx2Id, { isReconciled: true, parentTransactionId: tx1Id })
     ]);
   }
 
@@ -82,20 +82,20 @@ export class TransactionService extends BaseService<Transaction, TransactionFilt
       throw new ServiceError('Transazione non trovata', 'NOT_FOUND');
     }
 
-    if (!tx.isReconciled || !tx.linkedTransactionId) {
+    if (!tx.isReconciled || !tx.parentTransactionId) {
       throw new ServiceError('La transazione non è riconciliata', 'NOT_RECONCILED');
     }
 
-    const linkedTx = await this.getById(tx.linkedTransactionId);
+    const linkedTx = await this.getById(tx.parentTransactionId);
     
     // Aggiorna entrambe le transazioni
     const updates = [
-      this.update(txId, { isReconciled: false, linkedTransactionId: undefined })
+      this.update(txId, { isReconciled: false, parentTransactionId: undefined })
     ];
 
     if (linkedTx) {
       updates.push(
-        this.update(linkedTx.id, { isReconciled: false, linkedTransactionId: undefined })
+        this.update(linkedTx.id, { isReconciled: false, parentTransactionId: undefined })
       );
     }
 

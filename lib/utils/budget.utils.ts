@@ -1,6 +1,7 @@
+import { getCurrentBudgetPeriod } from '../../constants';
 import type { Account, Budget, Person, Transaction } from '../../types';
 import { TransactionType } from '../../types';
-import { BudgetExceptionUtils } from './budget-exception.utils';
+import { BudgetPeriodsUtils } from './budget-periods.utils';
 
 /**
  * Interface per i dati calcolati del budget
@@ -12,8 +13,7 @@ export interface BudgetCalculationData {
   periodStart: Date;
   periodEnd: Date;
   progressColor: string;
-  hasException: boolean;
-  exceptionReason?: string;
+  isCompleted: boolean; // Se il periodo corrente è stato marcato come completato
 }
 
 /**
@@ -112,9 +112,9 @@ export class BudgetUtils {
     getAccountById: (id: string) => Account | undefined,
     getEffectiveTransactionAmount?: (transaction: Transaction) => number
   ): BudgetCalculationData {
-    // Usa le eccezioni se presenti, altrimenti il periodo normale
-    const budgetPeriodData = BudgetExceptionUtils.getCurrentBudgetPeriodWithExceptions(budgetPerson);
-    const { periodStart, periodEnd, hasException, exception } = budgetPeriodData;
+    // Usa il periodo corrente dalla nuova gestione dei periodi
+    const currentPeriod = BudgetPeriodsUtils.getCurrentPeriod(budgetPerson);
+    const { periodStart, periodEnd } = getCurrentBudgetPeriod(budgetPerson);
     
     const currentSpent = BudgetUtils.calculateCurrentSpent(
       transactions,
@@ -136,8 +136,7 @@ export class BudgetUtils {
       periodStart,
       periodEnd,
       progressColor,
-      hasException,
-      exceptionReason: exception?.reason
+      isCompleted: currentPeriod.isCompleted
     };
   }
 
