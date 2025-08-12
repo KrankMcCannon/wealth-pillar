@@ -1,4 +1,5 @@
 import { BudgetPeriodData, Person } from '../../types';
+import { DateUtils } from './date.utils';
 
 /**
  * Utility per gestire i periodi di budget di una persona
@@ -28,6 +29,7 @@ export class BudgetPeriodsUtils {
 
   /**
    * Marca il periodo corrente come completato con la data di fine specificata
+   * e crea automaticamente il periodo successivo
    */
   static markPeriodAsCompleted(
     person: Person, 
@@ -40,26 +42,87 @@ export class BudgetPeriodsUtils {
       return periods;
     }
 
+    let updatedPeriods = [...periods];
+
     // Se il periodo corrente non esiste nella lista (è stato creato al volo)
     const existingPeriodIndex = periods.findIndex(p => p.startDate === currentPeriod.startDate);
     
     if (existingPeriodIndex === -1) {
       // Aggiungi il nuovo periodo completato con start e end date in un unico oggetto
-      return [...periods, {
+      updatedPeriods.push({
         startDate: currentPeriod.startDate,
         endDate,
         isCompleted: true
-      }].sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
+      });
     } else {
       // Aggiorna il periodo esistente aggiungendo la data di fine
-      const updatedPeriods = [...periods];
       updatedPeriods[existingPeriodIndex] = {
         ...currentPeriod,
         endDate,
         isCompleted: true
       };
-      return updatedPeriods.sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
     }
+
+    // Crea automaticamente il periodo successivo
+    const nextPeriodStartDate = this.calculateNextPeriodStartDate(person, endDate);
+    if (nextPeriodStartDate) {
+      updatedPeriods.push({
+        startDate: nextPeriodStartDate,
+        isCompleted: false
+      });
+    }
+
+    return updatedPeriods.sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
+  }
+
+  /**
+   * Calcola la data di fine di un periodo in corso basata su budgetStartDate
+   * con gestione automatica dei giorni festivi
+   */
+  static calculatePeriodEndDate(person: Person, periodStartDate: string): string {
+    if (!person.budgetStartDate) {
+      // Fallback: 30 giorni dopo l'inizio del periodo
+      const start = new Date(periodStartDate);
+      const end = new Date(start.getTime() + 30 * 24 * 60 * 60 * 1000);
+      return DateUtils.toISODate(end);
+    }
+
+    const startDay = parseInt(person.budgetStartDate);
+    const periodStart = new Date(periodStartDate);
+    
+    // Calcola il budgetStartDate del mese successivo al periodo corrente
+    const nextPeriodStartRaw = new Date(
+      periodStart.getFullYear(), 
+      periodStart.getMonth() + 1, 
+      startDay
+    );
+    
+    // La data di fine è il giorno PRIMA del budgetStartDate del mese successivo
+    const endDateRaw = new Date(nextPeriodStartRaw.getTime() - 24 * 60 * 60 * 1000);
+    
+    // Aggiusta questa data al giorno lavorativo precedente se cade su festivo/weekend
+    const endDate = DateUtils.moveToPreviousWorkingDay(endDateRaw);
+
+    return DateUtils.toISODate(endDate);
+  }
+
+  /**
+   * Calcola la data di inizio del periodo successivo basata su budgetStartDate
+   */
+  static calculateNextPeriodStartDate(person: Person, currentEndDate: string): string | null {
+    if (!person.budgetStartDate) {
+      return null;
+    }
+
+    const endDate = new Date(currentEndDate);
+    const startDay = parseInt(person.budgetStartDate);
+    
+    // Il periodo successivo inizia il giorno dopo la fine del periodo corrente,
+    // ma seguendo il pattern del budgetStartDate del mese successivo, aggiustato al giorno lavorativo precedente
+    const nextPeriodRaw = new Date(endDate.getFullYear(), endDate.getMonth() + 1, startDay);
+    const nextPeriodAdjusted = DateUtils.moveToPreviousWorkingDay(nextPeriodRaw);
+    
+    return DateUtils.toISODate(nextPeriodAdjusted);
   }
 
   /**
@@ -128,5 +191,28 @@ export class BudgetPeriodsUtils {
     return allPeriods.sort((a, b) => 
       new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
     );
+  }
+
+  /**
+   * Calcola la data di inizio del primo periodo basata su budgetStartDate
+   */
+  static calculateFirstPeriodStartDate(budgetStartDay: number): string {
+    const today = new Date();
+    const currentMonth = today.getMonth();
+    const currentYear = today.getFullYear();
+    let periodStartDate: Date;
+    
+    if (today.getDate() <= budgetStartDay) {
+      // Il giorno di inizio budget di questo mese non è ancora passato
+      periodStartDate = new Date(currentYear, currentMonth, budgetStartDay);
+    } else {
+      // Il giorno di inizio budget di questo mese è già passato, inizia dal mese prossimo
+      periodStartDate = new Date(currentYear, currentMonth + 1, budgetStartDay);
+    }
+    
+    // Aggiusta al giorno lavorativo precedente
+    const adjustedStartDate = DateUtils.moveToPreviousWorkingDay(periodStartDate);
+    
+    return DateUtils.toISODate(adjustedStartDate);
   }
 }

@@ -1,4 +1,6 @@
 import { Person } from "./types";
+import { BudgetPeriodsUtils } from "./lib/utils/budget-periods.utils";
+import { DateUtils } from "./lib/utils/date.utils";
 
 export const formatCurrency = (amount: number, options: {
   showSign?: boolean;
@@ -52,23 +54,29 @@ export const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString('it-IT', { year: 'numeric', month: 'short', day: 'numeric' });
 };
 
-// Helper function to get the previous working day if the date falls on weekend
-export const getPreviousWorkingDay = (date: Date): Date => {
-  const day = date.getDay(); // 0 = Sunday, 6 = Saturday
-  if (day === 0) { // Sunday
-    const newDate = new Date(date);
-    newDate.setDate(date.getDate() - 2); // Go to Friday
-    return newDate;
-  } else if (day === 6) { // Saturday
-    const newDate = new Date(date);
-    newDate.setDate(date.getDate() - 1); // Go to Friday
-    return newDate;
-  }
-  return date; // It's already a working day
-};
-
 // Helper function to calculate the current budget period for a person
 export const getCurrentBudgetPeriod = (person: Person) => {
+  // Prova prima a usare i periodi salvati nel database
+  const currentPeriod = BudgetPeriodsUtils.getCurrentPeriod(person);
+  
+  if (currentPeriod) {
+    // Se esiste un periodo corrente salvato, utilizzalo
+    const periodStart = new Date(currentPeriod.startDate);
+    
+    let periodEnd: Date;
+    if (currentPeriod.endDate) {
+      // Se il periodo è completato, usa la data di fine salvata
+      periodEnd = new Date(currentPeriod.endDate);
+    } else {
+      // Se il periodo è in corso, calcola la data di fine presunta
+      const endDateString = BudgetPeriodsUtils.calculatePeriodEndDate(person, currentPeriod.startDate);
+      periodEnd = new Date(endDateString);
+    }
+    
+    return { periodStart, periodEnd };
+  }
+  
+  // Fallback al calcolo tradizionale se non ci sono periodi salvati
   const today = new Date();
   const currentYear = today.getFullYear();
   const currentMonth = today.getMonth();
@@ -81,44 +89,28 @@ export const getCurrentBudgetPeriod = (person: Person) => {
   if (currentDay >= budgetStartDay) {
     // We're in the current budget period
     periodStart = new Date(currentYear, currentMonth, budgetStartDay);
-    periodStart = getPreviousWorkingDay(periodStart);
+    periodStart = DateUtils.moveToPreviousWorkingDay(periodStart);
 
     // Calculate end date (day before next period start)
     const nextPeriodStart = new Date(currentYear, currentMonth + 1, budgetStartDay);
-    const nextPeriodStartAdjusted = getPreviousWorkingDay(nextPeriodStart);
-    periodEnd = new Date(nextPeriodStartAdjusted);
-    periodEnd.setDate(periodEnd.getDate() - 1);
+    // La data di fine è il giorno prima dell'inizio del periodo successivo
+    periodEnd = new Date(nextPeriodStart.getTime() - 24 * 60 * 60 * 1000);
+    // Aggiusta solo se la data di fine cade in un festivo/weekend
+    periodEnd = DateUtils.moveToPreviousWorkingDay(periodEnd);
   } else {
     // We're still in the previous budget period
     periodStart = new Date(currentYear, currentMonth - 1, budgetStartDay);
-    periodStart = getPreviousWorkingDay(periodStart);
+    periodStart = DateUtils.moveToPreviousWorkingDay(periodStart);
 
     // End date is day before current period start
     const currentPeriodStart = new Date(currentYear, currentMonth, budgetStartDay);
-    const currentPeriodStartAdjusted = getPreviousWorkingDay(currentPeriodStart);
-    periodEnd = new Date(currentPeriodStartAdjusted);
-    periodEnd.setDate(periodEnd.getDate() - 1);
+    // La data di fine è il giorno prima dell'inizio del periodo corrente
+    periodEnd = new Date(currentPeriodStart.getTime() - 24 * 60 * 60 * 1000);
+    // Aggiusta solo se la data di fine cade in un festivo/weekend
+    periodEnd = DateUtils.moveToPreviousWorkingDay(periodEnd);
   }
 
   return { periodStart, periodEnd };
-};
-
-export const getPreviewDate = (budgetStartDay: string) => {
-  if (!budgetStartDay) return null;
-
-  const today = new Date();
-  const currentYear = today.getFullYear();
-  const currentMonth = today.getMonth();
-  const startDay = parseInt(budgetStartDay);
-
-  // Calculate next budget start date
-  let nextStart = new Date(currentYear, currentMonth, startDay);
-  if (nextStart <= today) {
-    nextStart = new Date(currentYear, currentMonth + 1, startDay);
-  }
-
-  const adjustedDate = getPreviousWorkingDay(nextStart);
-  return adjustedDate;
 };
 
 // Helper function to format date without timezone issues
@@ -143,15 +135,32 @@ export const getInitialDateRange = (selectedPersonId: string, people: Person[]) 
       endDate: formatDateLocal(endOfMonth),
     };
   } else {
-    // For single person view, use their budget period
+    // For single person view, use their current budget period from database
     const selectedPerson = people.find(p => p.id === selectedPersonId);
     if (selectedPerson && selectedPerson.budgetStartDate) {
-      const { periodStart, periodEnd } = getCurrentBudgetPeriod(selectedPerson);
-
-      return {
-        startDate: formatDateLocal(periodStart),
-        endDate: formatDateLocal(periodEnd),
-      };
+      const currentPeriod = BudgetPeriodsUtils.getCurrentPeriod(selectedPerson);
+      
+      if (currentPeriod) {
+        const startDate = formatDateLocal(new Date(currentPeriod.startDate));
+        
+        let endDate: string;
+        if (currentPeriod.endDate) {
+          // Periodo completato, usa la data di fine salvata
+          endDate = formatDateLocal(new Date(currentPeriod.endDate));
+        } else {
+          // Periodo in corso, calcola la data di fine presunta con utility centralizzata
+          endDate = BudgetPeriodsUtils.calculatePeriodEndDate(selectedPerson, currentPeriod.startDate);
+        }
+        
+        return { startDate, endDate };
+      } else {
+        // Fallback al calcolo tradizionale se non ci sono periodi salvati
+        const { periodStart, periodEnd } = getCurrentBudgetPeriod(selectedPerson);
+        return {
+          startDate: formatDateLocal(periodStart),
+          endDate: formatDateLocal(periodEnd),
+        };
+      }
     } else {
       // Fallback to month view if no budget start date
       const today = new Date();

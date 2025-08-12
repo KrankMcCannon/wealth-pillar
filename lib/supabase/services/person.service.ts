@@ -5,6 +5,7 @@
 
 import { v4 as uuidv4 } from 'uuid';
 import { Person } from '../../../types';
+import { BudgetPeriodsUtils } from '../../utils/budget-periods.utils';
 import { PersonFilters, PersonRepository } from '../repositories/person.repository';
 import { BaseService, ServiceError } from './base-service';
 
@@ -21,6 +22,21 @@ export class PersonService extends BaseService<Person, PersonFilters> {
       ...personData,
       id: uuidv4(),
     };
+
+    // Crea automaticamente il primo periodo budget se budgetStartDate è specificato
+    if (personWithId.budgetStartDate) {
+      // Usa la utility centralizzata per calcolare la data di inizio del primo periodo
+      const startDate = BudgetPeriodsUtils.calculateFirstPeriodStartDate(
+        parseInt(personWithId.budgetStartDate)
+      );
+      
+      personWithId.budgetPeriods = [{
+        startDate,
+        isCompleted: false
+      }];
+    } else {
+      personWithId.budgetPeriods = [];
+    }
 
     return await this.create(personWithId);
   }

@@ -3,6 +3,9 @@
  * Shared utility functions and helpers
  */
 
+// Date utilities
+export * from './date.utils';
+
 // Category utilities
 export * from './category.utils';
 

@@ -114,7 +114,28 @@ export class BudgetUtils {
   ): BudgetCalculationData {
     // Usa il periodo corrente dalla nuova gestione dei periodi
     const currentPeriod = BudgetPeriodsUtils.getCurrentPeriod(budgetPerson);
-    const { periodStart, periodEnd } = getCurrentBudgetPeriod(budgetPerson);
+    
+    let periodStart: Date;
+    let periodEnd: Date;
+    
+    if (currentPeriod) {
+      // Usa le date del periodo salvato nel database
+      periodStart = new Date(currentPeriod.startDate);
+      
+      if (currentPeriod.endDate) {
+        // Periodo completato, usa la data di fine salvata
+        periodEnd = new Date(currentPeriod.endDate);
+      } else {
+        // Periodo in corso, calcola la data di fine presunta usando la utility centralizzata
+        const endDateString = BudgetPeriodsUtils.calculatePeriodEndDate(budgetPerson, currentPeriod.startDate);
+        periodEnd = new Date(endDateString);
+      }
+    } else {
+      // Fallback al calcolo tradizionale se non ci sono periodi salvati
+      const { periodStart: fallbackStart, periodEnd: fallbackEnd } = getCurrentBudgetPeriod(budgetPerson);
+      periodStart = fallbackStart;
+      periodEnd = fallbackEnd;
+    }
     
     const currentSpent = BudgetUtils.calculateCurrentSpent(
       transactions,

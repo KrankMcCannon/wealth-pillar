@@ -2,6 +2,7 @@ import React, { memo, useState, useCallback } from 'react';
 import { Person } from '../../types';
 import { BaseModal, ModalActions } from '../ui';
 import { useBudgetPeriods } from '../../hooks/features/budget/useBudgetPeriods';
+import { DateUtils } from '../../lib/utils';
 
 interface BudgetPeriodButtonProps {
   people?: Person[];
@@ -58,6 +59,25 @@ export const BudgetPeriodButton = memo<BudgetPeriodButtonProps>(({
     }
   }, [defaultPersonId]);
 
+    // Handler per gestire il cambio della data di completamento
+  const handleDateChange = useCallback((dateString: string) => {
+    const selectedDate = new Date(dateString);
+    
+    // Se la data selezionata cade in un festivo o weekend, sposta al giorno lavorativo precedente
+    if (DateUtils.isHoliday(selectedDate)) {
+      const adjustedDate = DateUtils.moveToPreviousWorkingDay(selectedDate);
+      const adjustedDateString = DateUtils.toISODate(adjustedDate);
+      setCompletionDate(adjustedDateString);
+      
+      // Potresti aggiungere qui una notifica toast o un alert più elegante
+      setTimeout(() => {
+        alert(`Data spostata al ${adjustedDate.toLocaleDateString('it-IT')} (giorno lavorativo precedente)`);
+      }, 100);
+    } else {
+      setCompletionDate(dateString);
+    }
+  }, []);
+
   // Handler per completare il periodo con la data selezionata
   const handleCompletePeriod = useCallback(async () => {
     if (!canCompletePeriod || !completionDate) return;
@@ -68,14 +88,13 @@ export const BudgetPeriodButton = memo<BudgetPeriodButtonProps>(({
       // Reset della data di completamento alla data di oggi dopo il completamento
       const today = new Date().toISOString().split('T')[0];
       setCompletionDate(today);
-      // Non chiudere il modale per permettere di vedere i risultati
+      handleClose();
     } catch (error) {
-      console.error('Errore nel completare il periodo:', error);
-      // TODO: Mostrare messaggio di errore all'utente
+      console.error('Errore nel completamento del periodo:', error);
     } finally {
       setIsSubmitting(false);
     }
-  }, [canCompletePeriod, completePeriod, completionDate]);
+  }, [canCompletePeriod, completionDate, completePeriod, handleClose]);
 
   // Handler per rimuovere un periodo completato
   const handleRemovePeriod = useCallback(async (referenceDate: string) => {
@@ -167,7 +186,7 @@ export const BudgetPeriodButton = memo<BudgetPeriodButtonProps>(({
                       type="date"
                       id="start-date"
                       value={completionDate}
-                      onChange={(e) => setCompletionDate(e.target.value)}
+                      onChange={(e) => handleDateChange(e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                       required
                     />
@@ -195,7 +214,7 @@ export const BudgetPeriodButton = memo<BudgetPeriodButtonProps>(({
                       type="date"
                       id="completion-date"
                       value={completionDate}
-                      onChange={(e) => setCompletionDate(e.target.value)}
+                      onChange={(e) => handleDateChange(e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                       required
                     />
