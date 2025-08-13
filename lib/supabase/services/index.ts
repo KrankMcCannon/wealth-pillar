@@ -9,6 +9,7 @@ export { BudgetService } from './budget.service';
 export { CategoryService } from './category.service';
 export { ClerkSupabaseService } from './clerk-supabase.service';
 export { FinanceService } from './finance.service';
+export { GroupsService } from './groups.service';
 export { PersonService } from './person.service';
 export { ServiceFactory } from './service-factory';
 export { TransactionService } from './transaction.service';

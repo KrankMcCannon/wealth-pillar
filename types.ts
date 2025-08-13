@@ -4,6 +4,16 @@ export interface BudgetPeriodData {
   isCompleted: boolean; // Se il periodo è stato marcato come completato
 }
 
+export interface Group {
+  id: string;
+  name: string;
+  description?: string;
+  userId: string; // ID del proprietario del gruppo (utente Clerk che l'ha creato)
+  isActive: boolean; // Se il gruppo è attivo
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Person {
   id: string;
   name: string;
@@ -11,6 +21,10 @@ export interface Person {
   themeColor: string;
   budgetStartDate: string;
   budgetPeriods?: BudgetPeriodData[]; // Periodi di budget con stato di completamento
+  groupId: string; // ID del gruppo a cui appartiene la persona (obbligatorio)
+  role: 'owner' | 'admin' | 'member'; // Ruolo della persona nel gruppo (obbligatorio)
+  createdAt: string;
+  updatedAt: string;
 }
 
 export enum TransactionType {
@@ -32,6 +46,7 @@ export interface Account {
   balance: number;
   type: 'stipendio' | 'risparmio' | 'contanti' | 'investimenti';
   personIds: string[];
+  groupId: string; // Associazione al gruppo
 }
 
 export interface Transaction {
@@ -56,6 +71,7 @@ export interface Budget {
   amount: number;
   period: 'monthly' | 'annually';
   personId: string;
+  groupId: string; // Associazione al gruppo
 }
 
 export interface InvestmentHolding {
@@ -67,4 +83,5 @@ export interface InvestmentHolding {
     purchasePrice: number;
     currentPrice: number;
     purchaseDate: string; // ISO 8601 format
+    groupId: string; // Associazione al gruppo
 }

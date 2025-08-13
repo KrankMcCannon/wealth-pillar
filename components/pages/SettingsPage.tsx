@@ -6,12 +6,14 @@ import {
   useFinance,
   usePersonFilter,
   useSettingsModals,
+  useGroups,
 } from '../../hooks';
 import { 
   UserProfileSection, 
   AccountManagementSection, 
   BudgetManagementSection 
 } from '../settings';
+import { GroupSettings } from '../groups';
 import { 
   EditAccountModal, 
   AddAccountModal, 
@@ -30,6 +32,15 @@ export const SettingsPage = memo(() => {
   const { selectedPersonId, isAllView, getPersonName } = usePersonFilter();
   const { accounts } = useAccountFilter(selectedPersonId);
   const { budgets } = useBudgetFilter(selectedPersonId);
+  
+  // Hook per la gestione dei gruppi
+  const {
+    currentGroup,
+    isLoading: groupsLoading,
+    canManageGroup,
+    updateGroup,
+    deleteGroup,
+  } = useGroups();
   
   const {
     // Stati modali
@@ -58,6 +69,17 @@ export const SettingsPage = memo(() => {
     closeEditBudgetModal,
   } = useSettingsModals();
 
+  // Handlers per le azioni del gruppo
+  const handleUpdateGroup = async (updates: { name?: string; description?: string }) => {
+    if (!currentGroup) return;
+    await updateGroup(currentGroup.id, updates);
+  };
+
+  const handleDeleteGroup = async () => {
+    if (!currentGroup) return;
+    await deleteGroup(currentGroup.id);
+  };
+
   // Filtra le persone in base alla vista corrente
   const displayedPeople = isAllView
     ? people
@@ -71,6 +93,15 @@ export const SettingsPage = memo(() => {
         <UserProfileSection
           people={displayedPeople}
           onEditPerson={openEditPersonModal}
+        />
+
+        {/* Sezione Gestione Gruppo */}
+        <GroupSettings
+          group={currentGroup}
+          isLoading={groupsLoading}
+          canManageGroup={canManageGroup()}
+          onUpdateGroup={handleUpdateGroup}
+          onDeleteGroup={handleDeleteGroup}
         />
 
         <AccountManagementSection

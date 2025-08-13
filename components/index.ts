@@ -18,6 +18,12 @@ export * from './transactions';
 // Investimenti  
 export * from './investments';
 
+// Budget
+export * from './budget';
+
+// Gruppi
+export * from './groups';
+
 // Impostazioni
 export * from './settings';
 

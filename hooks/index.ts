@@ -5,6 +5,10 @@
 // Hook fondamentali per la gestione dei dati principali
 export { useFinance } from './core/useFinance';
 
+// === Features Hooks ===
+// Hook per funzionalità specifiche
+export * from './features/groups';
+
 // === UI Hooks ===
 // Hook per gestione interfaccia utente e interazioni
 export * from './ui/useModal';

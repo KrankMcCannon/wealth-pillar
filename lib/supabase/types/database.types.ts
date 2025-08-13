@@ -7,6 +7,34 @@
 export interface Database {
   public: {
     Tables: {
+      groups: {
+        Row: {
+          id: string;
+          name: string;
+          description: string | null;
+          user_id: string; // Clerk user ID del proprietario
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          description?: string | null;
+          user_id: string;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          description?: string | null;
+          user_id?: string;
+          is_active?: boolean;
+          updated_at?: string;
+        };
+      };
       people: {
         Row: {
           id: string;
@@ -15,6 +43,8 @@ export interface Database {
           theme_color: string;
           budget_start_date: string;
           budget_periods: any[] | null; // JSON array di BudgetPeriodData
+          group_id: string;
+          role: 'owner' | 'admin' | 'member';
           created_at: string;
           updated_at: string;
         };
@@ -25,6 +55,8 @@ export interface Database {
           theme_color?: string;
           budget_start_date: string;
           budget_periods?: any[] | null;
+          group_id: string;
+          role?: 'owner' | 'admin' | 'member';
           created_at?: string;
           updated_at?: string;
         };
@@ -35,6 +67,8 @@ export interface Database {
           theme_color?: string;
           budget_start_date?: string;
           budget_periods?: any[] | null;
+          group_id?: string;
+          role?: 'owner' | 'admin' | 'member';
           updated_at?: string;
         };
       };
@@ -46,6 +80,7 @@ export interface Database {
           balance: number;
           initial_balance: number;
           person_ids: string[];
+          group_id: string;
           created_at: string;
           updated_at: string;
         };
@@ -56,6 +91,7 @@ export interface Database {
           balance?: number;
           initial_balance: number;
           person_ids: string[];
+          group_id: string;
           created_at?: string;
           updated_at?: string;
         };
@@ -66,6 +102,7 @@ export interface Database {
           balance?: number;
           initial_balance?: number;
           person_ids?: string[];
+          group_id?: string;
           updated_at?: string;
         };
       };
@@ -178,6 +215,7 @@ export interface Database {
           purchase_price: number;
           current_price: number;
           purchase_date: string;
+          group_id: string;
           created_at: string;
           updated_at: string;
         };
@@ -190,6 +228,7 @@ export interface Database {
           purchase_price: number;
           current_price: number;
           purchase_date: string;
+          group_id: string;
           created_at?: string;
           updated_at?: string;
         };
