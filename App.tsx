@@ -1,14 +1,10 @@
 import React, { useState } from 'react';
-import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { Navbar } from './components/Navbar';
-import { Dashboard } from './components/pages/Dashboard';
-import { TransactionsPage } from './components/pages/TransactionsPage';
-import { InvestmentsPage } from './components/pages/InvestmentsPage';
-import { SettingsPage } from './components/pages/SettingsPage';
-import { ReportsPage } from './components/pages/ReportsPage';
-import { AddTransactionModal } from './components/AddTransactionModal';
-import { PlusIcon } from './components/Icons';
-import { useFinance, FinanceProvider } from './hooks/useFinance';
+import { HashRouter, Routes, Route } from 'react-router-dom';
+import { Navbar } from './components/common';
+import { Dashboard, TransactionsPage, InvestmentsPage, SettingsPage, ReportsPage } from './components/pages';
+import { AddTransactionModal } from './components/modals';
+import { PlusIcon } from './components/common';
+import { useFinance, FinanceProvider } from './hooks/core/useFinance';
 import { useAuth } from './contexts/AuthContext';
 import { SignIn } from '@clerk/clerk-react';
 
@@ -64,7 +60,7 @@ const AppContent: React.FC = () => {
         <Navbar />
         <main className="flex-1 flex flex-col overflow-hidden">
           <div className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 dark:bg-gray-900 p-4 sm:p-6 md:p-8">
-                        <Routes>
+            <Routes>
               <Route path="/" element={<Dashboard />} />
               <Route path="/transactions" element={<TransactionsPage />} />
               <Route path="/investments" element={<InvestmentsPage />} />

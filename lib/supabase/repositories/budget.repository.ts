@@ -4,11 +4,13 @@
  */
 
 import { Budget } from '../../../types';
-import { BaseSupabaseRepository } from '../base-repository';
+import { RepositoryError } from '../types/interfaces';
+import { BaseSupabaseRepository } from './base.repository';
 
 export interface BudgetFilters {
   personId?: string;
   period?: Budget['period'];
+  groupId?: string; // Filtro per gruppo tramite person
 }
 
 export class BudgetRepository extends BaseSupabaseRepository<Budget, BudgetFilters> {
@@ -48,6 +50,61 @@ export class BudgetRepository extends BaseSupabaseRepository<Budget, BudgetFilte
       }
       return query;
     };
+  }
+
+  /**
+   * Override per gestire il filtro di gruppo tramite query in due step
+   */
+  async findByFilters(filters: BudgetFilters): Promise<Budget[]> {
+    if (filters.groupId) {
+      try {
+        // Prima otteniamo gli ID delle persone del gruppo
+        const { data: people, error: peopleError } = await this.supabase
+          .from('people')
+          .select('id')
+          .eq('group_id', filters.groupId);
+
+        if (peopleError) {
+          throw new RepositoryError(`Failed to fetch people for group filter`, peopleError.code, peopleError);
+        }
+
+        if (!people || people.length === 0) {
+          // Se non ci sono persone nel gruppo, non ci sono budget
+          return [];
+        }
+
+        const personIds = people.map(person => person.id);
+
+        // Ora otteniamo i budget per queste persone
+        const { data, error } = await this.supabase
+          .from(this.tableName)
+          .select('*')
+          .in('person_id', personIds);
+
+        if (error) {
+          throw new RepositoryError(`Failed to fetch ${this.tableName} with groupId filter`, error.code, error);
+        }
+
+        // Mappiamo i risultati e applichiamo gli altri filtri
+        let budgets = (data || []).map(item => this.mapToEntity(item));
+        
+        // Applica gli altri filtri manualmente
+        if (filters.personId) {
+          budgets = budgets.filter(b => b.personId === filters.personId);
+        }
+        if (filters.period) {
+          budgets = budgets.filter(b => b.period === filters.period);
+        }
+
+        return budgets;
+      } catch (error) {
+        if (error instanceof RepositoryError) throw error;
+        throw new RepositoryError(`Unexpected error in findByFilters with groupId for ${this.tableName}`, 'UNKNOWN_ERROR', error);
+      }
+    }
+
+    // Usa l'implementazione base per gli altri filtri
+    return super.findByFilters(filters);
   }
 
   // Domain-specific methods
