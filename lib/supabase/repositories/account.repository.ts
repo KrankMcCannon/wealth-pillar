@@ -10,6 +10,7 @@ import { BaseSupabaseRepository } from './base.repository';
 export interface AccountFilters {
   personId?: string;
   type?: Account['type'];
+  groupId?: string; // Filtro per gruppo
 }
 
 export class AccountRepository extends BaseSupabaseRepository<Account, AccountFilters> {
@@ -27,6 +28,9 @@ export class AccountRepository extends BaseSupabaseRepository<Account, AccountFi
 
   protected buildFilters(filters: AccountFilters) {
     return (query: any) => {
+      if (filters.groupId) {
+        query = query.eq('group_id', filters.groupId);
+      }
       if (filters.personId) {
         query = query.contains('person_ids', [filters.personId]);
       }

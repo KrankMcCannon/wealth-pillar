@@ -110,6 +110,50 @@ export class GroupsService {
   }
 
   /**
+   * Ottiene il gruppo corrente dell'utente autenticato
+   * Metodo di utilità per ottenere l'ID del gruppo per il filtraggio
+   */
+  async getCurrentUserGroupId(): Promise<string | null> {
+    try {
+      if (!this.userId) {
+        throw new ServiceError('User not authenticated', 'AUTH_REQUIRED');
+      }
+
+      // Prima prova a vedere se l'utente ha un gruppo come proprietario
+      const { data: ownedGroup, error: ownedError } = await this.client
+        .from('groups')
+        .select('id')
+        .eq('user_id', this.userId)
+        .eq('is_active', true)
+        .maybeSingle();
+
+      if (ownedError && ownedError.code !== 'PGRST116') {
+        throw new ServiceError('Failed to fetch owned group', 'FETCH_GROUP_ERROR', ownedError);
+      }
+
+      if (ownedGroup) {
+        return ownedGroup.id;
+      }
+
+      // Se non è proprietario, cerca se è membro di qualche gruppo
+      const { data: person, error: personError } = await this.client
+        .from('people')
+        .select('group_id')
+        .eq('id', this.userId) // Assumendo che person.id = user.id
+        .maybeSingle();
+
+      if (personError && personError.code !== 'PGRST116') {
+        throw new ServiceError('Failed to fetch user person data', 'FETCH_PERSON_ERROR', personError);
+      }
+
+      return person?.group_id || null;
+    } catch (error) {
+      this.handleError(error, 'getCurrentUserGroupId');
+      throw error;
+    }
+  }
+
+  /**
    * Ottiene un singolo gruppo per ID con validazione proprietario
    */
   async getGroupById(groupId: string): Promise<Group | null> {

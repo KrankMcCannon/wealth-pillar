@@ -101,21 +101,13 @@ export const useAddTransaction = ({ onClose }: UseAddTransactionProps) => {
     { value: TransactionType.SPESA, label: 'Spesa' },
   ], []);
 
-  // Reset form when modal opens
-  useEffect(() => {
-    // Set initial account if available
-    if (personAccounts.length > 0) {
-      updateField('accountId', personAccounts[0].id);
-    }
-  }, [personAccounts, updateField]);
-
   // Update accounts when person changes
   useEffect(() => {
     const newAccounts = accounts.filter(acc => acc.personIds.includes(data.txPersonId));
     if (newAccounts.length > 0 && !newAccounts.some(acc => acc.id === data.accountId)) {
       updateField('accountId', newAccounts[0].id);
     }
-  }, [data.txPersonId, accounts, data.accountId, updateField]);
+  }, [data.txPersonId, accounts, updateField]);
 
   // Validation rules
   const validateForm = useCallback((): boolean => {

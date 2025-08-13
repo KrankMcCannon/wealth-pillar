@@ -37,7 +37,6 @@ export const SettingsPage = memo(() => {
   const {
     currentGroup,
     isLoading: groupsLoading,
-    canManageGroup,
     updateGroup,
     deleteGroup,
   } = useGroups();
@@ -99,7 +98,6 @@ export const SettingsPage = memo(() => {
         <GroupSettings
           group={currentGroup}
           isLoading={groupsLoading}
-          canManageGroup={canManageGroup()}
           onUpdateGroup={handleUpdateGroup}
           onDeleteGroup={handleDeleteGroup}
         />

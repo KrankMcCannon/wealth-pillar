@@ -28,26 +28,32 @@ export class ServiceFactory {
   }
 
   /**
-   * Crea o restituisce un'istanza singleton di FinanceService
+   * Crea o restituisce un'istanza singleton di FinanceService con userId
    */
-  static createFinanceService(client: SupabaseClient<Database>): FinanceService {
-    const key = `finance_${this.getClientKey(client)}`;
+  static createFinanceService(
+    client: SupabaseClient<Database>, 
+    userId?: string
+  ): FinanceService {
+    const key = `finance_${this.getClientKey(client)}_${userId || 'no-user'}`;
     
     if (!this.instances.has(key)) {
-      this.instances.set(key, new FinanceService(client));
+      this.instances.set(key, new FinanceService(client, userId));
     }
     
     return this.instances.get(key);
   }
 
   /**
-   * Crea o restituisce un'istanza singleton di ClerkSupabaseService
+   * Crea o restituisce un'istanza singleton di ClerkSupabaseService con userId
    */
-  static createClerkSupabaseService(client: SupabaseClient<Database>): ClerkSupabaseService {
-    const key = `clerk_${this.getClientKey(client)}`;
+  static createClerkSupabaseService(
+    client: SupabaseClient<Database>, 
+    userId?: string
+  ): ClerkSupabaseService {
+    const key = `clerk_${this.getClientKey(client)}_${userId || 'no-user'}`;
     
     if (!this.instances.has(key)) {
-      this.instances.set(key, new ClerkSupabaseService(client));
+      this.instances.set(key, new ClerkSupabaseService(client, userId));
     }
     
     return this.instances.get(key);

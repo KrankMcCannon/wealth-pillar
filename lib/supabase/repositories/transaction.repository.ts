@@ -5,6 +5,7 @@
 
 import { Transaction, TransactionType } from '../../../types';
 import { transactionMapper } from '../mappers';
+import { RepositoryError } from '../types/interfaces';
 import { BaseSupabaseRepository } from './base.repository';
 
 export interface TransactionFilters {
@@ -16,6 +17,7 @@ export interface TransactionFilters {
   dateTo?: string;
   isReconciled?: boolean;
   parentTransactionId?: string;
+  groupId?: string; // Filtro per gruppo tramite account
 }
 
 export class TransactionRepository extends BaseSupabaseRepository<Transaction, TransactionFilters> {
@@ -56,6 +58,76 @@ export class TransactionRepository extends BaseSupabaseRepository<Transaction, T
       }
       return query;
     };
+  }
+
+  /**
+   * Override per gestire il filtro di gruppo tramite query in due step
+   */
+  async findByFilters(filters: TransactionFilters): Promise<Transaction[]> {
+    if (filters.groupId) {
+      try {
+        // Prima otteniamo gli ID degli account del gruppo
+        const { data: accounts, error: accountsError } = await this.supabase
+          .from('accounts')
+          .select('id')
+          .eq('group_id', filters.groupId);
+
+        if (accountsError) {
+          throw new RepositoryError(`Failed to fetch accounts for group filter`, accountsError.code, accountsError);
+        }
+
+        if (!accounts || accounts.length === 0) {
+          // Se non ci sono account nel gruppo, non ci sono transazioni
+          return [];
+        }
+
+        const accountIds = accounts.map(acc => acc.id);
+
+        // Ora otteniamo le transazioni per questi account
+        const { data, error } = await this.supabase
+          .from(this.tableName)
+          .select('*')
+          .in('account_id', accountIds);
+
+        if (error) {
+          throw new RepositoryError(`Failed to fetch ${this.tableName} with groupId filter`, error.code, error);
+        }
+
+        // Mappiamo i risultati e applichiamo gli altri filtri
+        let transactions = (data || []).map(item => this.mapToEntity(item));
+        
+        // Applica gli altri filtri manualmente
+        if (filters.accountId) {
+          transactions = transactions.filter(t => t.accountId === filters.accountId);
+        }
+        if (filters.type) {
+          transactions = transactions.filter(t => t.type === filters.type);
+        }
+        if (filters.category) {
+          transactions = transactions.filter(t => t.category === filters.category);
+        }
+        if (filters.dateFrom) {
+          transactions = transactions.filter(t => t.date >= filters.dateFrom!);
+        }
+        if (filters.dateTo) {
+          transactions = transactions.filter(t => t.date <= filters.dateTo!);
+        }
+        if (filters.isReconciled !== undefined) {
+          transactions = transactions.filter(t => t.isReconciled === filters.isReconciled);
+        }
+        if (filters.parentTransactionId) {
+          transactions = transactions.filter(t => t.parentTransactionId === filters.parentTransactionId);
+        }
+
+        return transactions;
+      } catch (error) {
+        if (error instanceof RepositoryError) throw error;
+        throw new RepositoryError(`Unexpected error in findByFilters with groupId for ${this.tableName}`, 'UNKNOWN_ERROR', error);
+      }
+    }
+
+    // Usa l'implementazione base per gli altri filtri
+    return super.findByFilters(filters);
   }
 
   // Domain-specific methods

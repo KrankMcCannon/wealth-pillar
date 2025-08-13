@@ -8,6 +8,7 @@ import { BaseSupabaseRepository } from './base.repository';
 
 export interface PersonFilters {
   name?: string;
+  groupId?: string; // Filtro per gruppo
 }
 
 export class PersonRepository extends BaseSupabaseRepository<Person, PersonFilters> {
@@ -22,7 +23,11 @@ export class PersonRepository extends BaseSupabaseRepository<Person, PersonFilte
       avatar: data.avatar || '',
       themeColor: data.theme_color || '#3B82F6',
       budgetStartDate: data.budget_start_date,
-      budgetPeriods: data.budget_periods || []
+      budgetPeriods: data.budget_periods || [],
+      groupId: data.group_id,
+      role: data.role || 'member',
+      createdAt: data.created_at,
+      updatedAt: data.updated_at
     };
   }
 
@@ -33,12 +38,19 @@ export class PersonRepository extends BaseSupabaseRepository<Person, PersonFilte
       avatar: entity.avatar,
       theme_color: entity.themeColor,
       budget_start_date: entity.budgetStartDate,
-      budget_periods: entity.budgetPeriods || []
+      budget_periods: entity.budgetPeriods || [],
+      group_id: entity.groupId,
+      role: entity.role,
+      created_at: entity.createdAt,
+      updated_at: entity.updatedAt
     };
   }
 
   protected buildFilters(filters: PersonFilters) {
     return (query: any) => {
+      if (filters.groupId) {
+        query = query.eq('group_id', filters.groupId);
+      }
       if (filters.name) {
         query = query.ilike('name', `%${filters.name}%`);
       }

@@ -91,23 +91,17 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
       setIsLoading(true);
       setError(null);
 
-      const financeService = ServiceFactory.createFinanceService(client);
+      const financeService = ServiceFactory.createFinanceService(client, user.id);
       
-      // Load all data using individual services
-      const [people, accounts, transactions, budgets, categories] = await Promise.all([
-        financeService.people.getAll(),
-        financeService.accounts.getAll(),
-        financeService.transactions.getAll(),
-        financeService.budgets.getAll(),
-        financeService.categories.getAll()
-      ]);
+      // Load all data filtered by user group
+      const data = await financeService.loadAllData();
 
-      setPeople(people);
-      setAccounts(accounts);
-      setTransactions(transactions);
-      setBudgets(budgets);
-      setInvestments([]); // TODO: Implement investments service
-      setCategories(categories);
+      setPeople(data.people);
+      setAccounts(data.accounts);
+      setTransactions(data.transactions);
+      setBudgets(data.budgets);
+      setInvestments(data.investments);
+      setCategories(data.categories);
       setIsLoading(false);
     }, 'Failed to load data'),
     [client, isSignedIn, user]
@@ -147,8 +141,11 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
     if (!isSignedIn) {
       throw new Error('Utente non autenticato. Effettua il login.');
     }
-    return ServiceFactory.createFinanceService(client);
-  }, [client, isSignedIn]);
+    if (!user) {
+      throw new Error('Informazioni utente non disponibili.');
+    }
+    return ServiceFactory.createFinanceService(client, user.id);
+  }, [client, isSignedIn, user]);
 
   // Helper to safely get service with better error handling
   const getServiceSafely = useCallback(async () => {

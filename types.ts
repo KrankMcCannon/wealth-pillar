@@ -71,7 +71,6 @@ export interface Budget {
   amount: number;
   period: 'monthly' | 'annually';
   personId: string;
-  groupId: string; // Associazione al gruppo
 }
 
 export interface InvestmentHolding {

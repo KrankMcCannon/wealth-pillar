@@ -28,13 +28,9 @@ interface UseGroupsResult {
   createGroup: (data: CreateGroupData) => Promise<Group | null>;
   updateGroup: (groupId: string, updates: Partial<Group>) => Promise<boolean>;
   deleteGroup: (groupId: string) => Promise<boolean>;
-  removeMember: (personId: string) => Promise<boolean>;
-  updateMemberRole: (personId: string, role: 'owner' | 'admin' | 'member') => Promise<boolean>;
 
   // Utilities
   hasActiveGroup: () => Promise<boolean>;
-  canManageGroup: () => boolean;
-  refresh: () => Promise<void>;
   setCurrentGroup: (group: GroupWithMemberCount | null) => void;
 }
 
@@ -121,25 +117,6 @@ export const useGroups = (): UseGroupsResult => {
   }, [user?.id, supabaseClient, currentGroup, getGroupsService, handleError, clearError]);
 
   /**
-   * Carica i membri del gruppo corrente
-   */
-  const loadGroupMembers = useCallback(async (groupId: string) => {
-    try {
-      setIsLoading(true);
-      clearError();
-      
-      const service = getGroupsService();
-      const groupMembers = await service.getGroupMembers(groupId);
-      
-      setMembers(groupMembers);
-    } catch (error) {
-      handleError(error, 'loadGroupMembers');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [getGroupsService, handleError, clearError]);
-
-  /**
    * Crea un nuovo gruppo
    */
   const createGroup = useCallback(async (data: CreateGroupData): Promise<Group | null> => {
@@ -215,56 +192,6 @@ export const useGroups = (): UseGroupsResult => {
   }, [currentGroup?.id, getGroupsService, handleError, clearError, loadGroups]);
 
   /**
-   * Rimuove un membro dal gruppo
-   */
-  const removeMember = useCallback(async (personId: string): Promise<boolean> => {
-    try {
-      setIsLoading(true);
-      clearError();
-      
-      const service = getGroupsService();
-      await service.removeMemberFromGroup(personId);
-      
-      // Refresh dei membri dopo la rimozione
-      if (currentGroup) {
-        await loadGroupMembers(currentGroup.id);
-      }
-      
-      return true;
-    } catch (error) {
-      handleError(error, 'removeMember');
-      return false;
-    } finally {
-      setIsLoading(false);
-    }
-  }, [currentGroup, getGroupsService, handleError, clearError, loadGroupMembers]);
-
-  /**
-   * Aggiorna il ruolo di un membro
-   */
-  const updateMemberRole = useCallback(async (personId: string, role: 'owner' | 'admin' | 'member'): Promise<boolean> => {
-    try {
-      setIsLoading(true);
-      clearError();
-      
-      const service = getGroupsService();
-      await service.updateMemberRole(personId, role);
-      
-      // Refresh dei membri dopo l'aggiornamento
-      if (currentGroup) {
-        await loadGroupMembers(currentGroup.id);
-      }
-      
-      return true;
-    } catch (error) {
-      handleError(error, 'updateMemberRole');
-      return false;
-    } finally {
-      setIsLoading(false);
-    }
-  }, [currentGroup, getGroupsService, handleError, clearError, loadGroupMembers]);
-
-  /**
    * Controlla se l'utente ha un gruppo attivo
    */
   const hasActiveGroup = useCallback(async (): Promise<boolean> => {
@@ -276,37 +203,6 @@ export const useGroups = (): UseGroupsResult => {
       return false;
     }
   }, [getGroupsService]);
-
-  /**
-   * Controlla se l'utente può gestire il gruppo corrente
-   * Logica di business: solo il proprietario può gestire
-   */
-  const canManageGroup = useCallback((): boolean => {
-    if (!currentGroup || !user?.id) return false;
-    return currentGroup.user_id === user.id;
-  }, [currentGroup, user?.id]);
-
-  /**
-   * Refresh completo dei dati
-   */
-  const refresh = useCallback(async () => {
-    await loadGroups();
-    if (currentGroup) {
-      await loadGroupMembers(currentGroup.id);
-    }
-  }, [loadGroups, loadGroupMembers, currentGroup]);
-
-  /**
-   * Setter per il gruppo corrente con caricamento membri
-   */
-  const setCurrentGroupWithMembers = useCallback((group: GroupWithMemberCount | null) => {
-    setCurrentGroup(group);
-    if (group) {
-      loadGroupMembers(group.id);
-    } else {
-      setMembers([]);
-    }
-  }, [loadGroupMembers]);
 
   // Effect per caricare i gruppi quando l'utente è disponibile
   useEffect(() => {
@@ -328,13 +224,9 @@ export const useGroups = (): UseGroupsResult => {
     createGroup,
     updateGroup,
     deleteGroup,
-    removeMember,
-    updateMemberRole,
 
     // Utilities
     hasActiveGroup,
-    canManageGroup,
-    refresh,
-    setCurrentGroup: setCurrentGroupWithMembers
+    setCurrentGroup,
   };
 };

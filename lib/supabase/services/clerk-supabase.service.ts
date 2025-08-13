@@ -17,8 +17,11 @@ import { FinanceService } from './finance.service';
 export class ClerkSupabaseService {
   private financeService: FinanceService;
 
-  constructor(private client: SupabaseClient<Database>) {
-    this.financeService = new FinanceService(client);
+  constructor(
+    private client: SupabaseClient<Database>,
+    private userId?: string // User ID da Clerk per l'isolamento dati
+  ) {
+    this.financeService = new FinanceService(client, userId);
   }
 
   /**
