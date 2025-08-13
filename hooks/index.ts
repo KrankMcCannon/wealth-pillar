@@ -25,8 +25,12 @@ export * from './data/useSettings';
 // === Features Hooks ===
 // Hook organizzati per funzionalità specifiche
 
-// Autenticazione
-export * from './features/auth/useAuthCallback';
+// Features - Auth
+export { useAuthCallback } from './features/auth/useAuthCallback';
+
+// Features - Onboarding
+export { useOnboarding } from './features/onboarding/useOnboarding';
+export { useOnboardingState } from './features/onboarding/useOnboardingState';
 
 // Dashboard
 // Features - Dashboard

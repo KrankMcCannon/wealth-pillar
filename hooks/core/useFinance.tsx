@@ -57,6 +57,7 @@ interface FinanceContextType {
   isParentTransaction: (transaction: Transaction) => boolean;
   linkTransactions: (tx1Id: string, tx2Id: string) => Promise<void>;
   updatePerson: (updatedPerson: Person) => Promise<void>;
+  addPerson: (personData: Omit<Person, 'id'>) => Promise<Person>;
   addInvestment: (investment: Omit<InvestmentHolding, 'id'>) => Promise<void>;
   refreshData: () => Promise<void>;
   getCalculatedBalance: (accountId: string) => Promise<number>;
@@ -243,6 +244,16 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
     [getServiceSafely]
   );
 
+  const addPerson = useCallback(
+    handleAsyncError(async (personData: Omit<Person, 'id'>) => {
+      const service = await getServiceSafely();
+      const newPerson = await service.people.createPerson(personData);
+      setPeople(prev => [...prev, newPerson]);
+      return newPerson;
+    }, 'Failed to add person'),
+    [getServiceSafely]
+  );
+
   const addInvestment = useCallback(
     handleAsyncError(async (investmentData: Omit<InvestmentHolding, 'id'>) => {
       const service = await getServiceSafely();
@@ -380,6 +391,7 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
     getCalculatedBalanceSync,
     linkTransactions,
     updatePerson,
+    addPerson,
     addInvestment,
     refreshData
   };
