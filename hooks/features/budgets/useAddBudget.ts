@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 import { useFinance, useModalForm } from '../../';
+import { validateBudgetForm } from '../../utils/validators';
 
 interface BudgetFormData {
     description: string;
@@ -34,21 +35,18 @@ export const useAddBudget = ({ personId, onClose }: UseAddBudgetProps) => {
         clearAllErrors,
         setSubmitting,
         resetForm,
-        validateRequired,
     } = useModalForm({
         initialData: initialFormData,
         resetOnClose: true,
         resetOnOpen: true,
     });
 
-    // Filter categories excluding income categories
     const expenseCategories = useMemo(() =>
         categories.filter(cat =>
             !['stipendio', 'investimenti', 'entrata', 'trasferimento'].includes(cat.id)
         )
         , [categories]);
 
-    // Category checkbox options
     const categoryOptions = useMemo(() =>
         expenseCategories.map(category => ({
             id: category.id,
@@ -57,34 +55,19 @@ export const useAddBudget = ({ personId, onClose }: UseAddBudgetProps) => {
         }))
         , [expenseCategories, data.selectedCategories]);
 
-    // Validation
     const validateForm = useCallback((): boolean => {
         clearAllErrors();
+        const errorsObj = validateBudgetForm({
+            description: data.description,
+            amount: data.amount,
+            selectedCategories: data.selectedCategories,
+        });
+        Object.entries(errorsObj).forEach(([field, message]) => {
+            setError(field as any, message as string);
+        });
+        return Object.keys(errorsObj).length === 0;
+    }, [data, clearAllErrors, setError]);
 
-        if (!validateRequired(['description', 'amount'])) {
-            return false;
-        }
-
-        if (data.description.trim().length === 0) {
-            setError('description', 'La descrizione non può essere vuota');
-            return false;
-        }
-
-        const numericAmount = parseFloat(data.amount);
-        if (isNaN(numericAmount) || numericAmount <= 0) {
-            setError('amount', 'Inserisci un importo valido e positivo');
-            return false;
-        }
-
-        if (data.selectedCategories.length === 0) {
-            setError('selectedCategories', 'Seleziona almeno una categoria');
-            return false;
-        }
-
-        return true;
-    }, [data, validateRequired, setError, clearAllErrors]);
-
-    // Submit handler
     const handleSubmit = useCallback(async (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -110,7 +93,6 @@ export const useAddBudget = ({ personId, onClose }: UseAddBudgetProps) => {
         }
     }, [validateForm, setSubmitting, data, addBudget, personId, onClose, setError]);
 
-    // Field change handlers
     const handleDescriptionChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         updateField('description', e.target.value);
     }, [updateField]);
@@ -127,17 +109,16 @@ export const useAddBudget = ({ personId, onClose }: UseAddBudgetProps) => {
         updateField('selectedCategories', newSelectedCategories);
     }, [data.selectedCategories, updateField]);
 
-    // Reset form when needed
     const handleReset = useCallback(() => {
         resetForm();
     }, [resetForm]);
 
-    // Check if form can be submitted
     const canSubmit = useMemo(() => {
-        return data.description.trim().length > 0 &&
-            data.amount.trim().length > 0 &&
-            parseFloat(data.amount) > 0 &&
-            data.selectedCategories.length > 0;
+        return Object.keys(validateBudgetForm({
+            description: data.description,
+            amount: data.amount,
+            selectedCategories: data.selectedCategories,
+        })).length === 0;
     }, [data]);
 
     return {

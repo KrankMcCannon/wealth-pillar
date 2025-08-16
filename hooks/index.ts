@@ -1,106 +1,69 @@
-// === Indice Centralizzato degli Hook ===
-// Struttura riorganizzata seguendo principi di Clean Architecture
-
 // === Core Hooks ===
-// Hook fondamentali per la gestione dei dati principali
 export { useFinance } from './core/useFinance';
 
-// === Features Hooks ===
-// Hook per funzionalità specifiche
-export * from './features/groups';
-
 // === UI Hooks ===
-// Hook per gestione interfaccia utente e interazioni
-export * from './ui/useModal';
-export * from './ui/useModalForm';
-export * from './ui/useResponsive';
-export * from './ui/useTransactionDisplay';
+export { useModal, useModalWithData, useMultipleModals } from './ui/useModal';
+export { useAccountForm, useModalForm, usePersonForm } from './ui/useModalForm';
+export { useBreakpoint, useDarkMode, useMediaQuery, useResponsive, useWindowSize } from './ui/useResponsive';
+export { useTransactionDisplay } from './ui/useTransactionDisplay';
 
 // === Data Hooks ===
-// Hook per gestione e filtro dei dati
-export * from './data/useDataFilters';
-export * from './data/usePersonFilter';
-export * from './data/useSettings';
+export { useAccountFilter, useAdvancedFilters, useAllFilters, useBudgetFilter, useInvestmentFilter, useTransactionFilter } from './data/useDataFilters';
+export { usePersonFilter, usePersonStats, usePersonValidation } from './data/usePersonFilter';
+export { useAccountModals, useBudgetModals, usePersonModals, useSettingsModals } from './data/useSettings';
 
 // === Features Hooks ===
-// Hook organizzati per funzionalità specifiche
+// Accounts
+export { useAddAccount } from './features/accounts/useAddAccount';
+export { useEditAccount } from './features/accounts/useEditAccount';
 
-// Features - Auth
+// Auth
 export { useAuthCallback } from './features/auth/useAuthCallback';
 
-// Features - Onboarding
-export { useOnboarding } from './features/onboarding/useOnboarding';
-export { useOnboardingState } from './features/onboarding/useOnboardingState';
+// Budgets
+export { useAddBudget } from './features/budgets/useAddBudget';
+export { useBudgetData } from './features/budgets/useBudgetData';
+export { useBudgetPeriodButton } from './features/budgets/useBudgetPeriodButton';
+export { useBudgetPeriods } from './features/budgets/useBudgetPeriods';
+export { useBudgetProgress } from './features/budgets/useBudgetProgress';
+export { useBudgetTransactions } from './features/budgets/useBudgetTransactions';
 
 // Dashboard
-// Features - Dashboard
 export { useDashboardData } from './features/dashboard/useDashboardData';
 export { useExpenseChart } from './features/dashboard/useExpenseChart';
 
-// Investimenti
-// Features - Investments
+// Groups
+export { useGroups } from './features/groups/useGroups';
+export { useGroupSettings } from './features/groups/useGroupSettings';
+
+// Investments
+export { useAddInvestment } from './features/investments/useAddInvestment';
 export { useCompoundInterest } from './features/investments/useCompoundInterest';
 export { useInvestmentRow, usePortfolioSummary } from './features/investments/useInvestmentCalculations';
 export { useInvestmentModals } from './features/investments/useInvestmentModals';
 
-// Report e Analisi
-export * from './features/reports/useReportsData';
+// Onboarding
+export { useOnboarding } from './features/onboarding/useOnboarding';
+export { useOnboardingState } from './features/onboarding/useOnboardingState';
 
-// Transazioni
-export * from './features/transactions/useTransactionFilters';
-export * from './features/transactions/useTransactionLinking';
-
-// Features - Accounts
-export { useAddAccount } from './features/accounts/useAddAccount';
-export { useEditAccount } from './features/accounts/useEditAccount';
-
-// Features - Budgets
-export { useAddBudget } from './features/budgets/useAddBudget';
-
-// Features - Budget
-export { useBudgetData } from './features/budget/useBudgetData';
-export { useBudgetPeriods } from './features/budget/useBudgetPeriods';
-export { useBudgetTransactions } from './features/budget/useBudgetTransactions';
-
-// Features - Reports
+// Reports
 export { useBudgetHistory } from './features/reports/useBudgetHistory';
-export { useAnnualReports } from './features/reports/useReportsData';
+export { useAnnualReports, useYearSelection } from './features/reports/useReportsData';
+export { useReportsPage } from './features/reports/useReportsPage';
 
-// Features - Investments
-export { useAddInvestment } from './features/investments/useAddInvestment';
-
-// Features - Settings
+// Settings
 export { useEditBudget } from './features/settings/useEditBudget';
 export { useEditPerson } from './features/settings/useEditPerson';
 
-// Features - Transactions
+// Transactions
 export { useAddTransaction } from './features/transactions/useAddTransaction';
 export { useEditTransaction } from './features/transactions/useEditTransaction';
+export { useTransactionFilters } from './features/transactions/useTransactionFilters';
+export { useTransactionLinking } from './features/transactions/useTransactionLinking';
+export { useTransactionRowClasses, useTransactionVisual } from './features/transactions/useTransactionVisual';
 
 // === Utility Hooks ===
 // Hook di utilità generale
-export * from './utils/useAsync';
-
-/**
- * === Guida alla Nuova Struttura ===
- * 
- * /hooks/
- * ├── /core/           - Hook fondamentali (useFinance, etc.)
- * ├── /ui/             - Hook per UI (modali, responsive, form)
- * ├── /data/           - Hook per gestione dati (filtri, persone, settings)
- * ├── /features/       - Hook per funzionalità specifiche
- * │   ├── /auth/       - Autenticazione
- * │   ├── /dashboard/  - Dashboard
- * │   ├── /investments/- Investimenti
- * │   ├── /reports/    - Report e analisi
- * │   └── /transactions/ - Transazioni
- * └── /utils/          - Hook di utilità generale
- * 
- * Principi di organizzazione:
- * - ✅ Separazione per responsabilità (core, ui, data, features)
- * - ✅ Raggruppamento logico delle funzionalità
- * - ✅ Struttura scalabile per nuove features
- * - ✅ Import chiari e ordinati
- * - ✅ Facilità di manutenzione e debugging
- */
+export { useAsync } from './utils/useAsync';
+export { validateAccountForm, validateBudgetForm, validateEditBudgetForm, validatePersonForm } from './utils/validators';
 

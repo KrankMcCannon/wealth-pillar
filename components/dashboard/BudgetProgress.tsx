@@ -1,11 +1,10 @@
-import React, { memo, useState } from 'react';
+import React, { memo } from 'react';
 import type { Budget, Person, BudgetPeriodData } from '../../types';
 import { formatCurrency, formatDate } from '../../constants';
-import { useBudgetData } from '../../hooks/features/budget/useBudgetData';
 import { BudgetPeriodButton } from '../budget/BudgetPeriodButton';
 import { ChevronDownIcon, ChevronUpIcon } from '../common/Icons';
-import { useFinance } from '../../hooks/core/useFinance';
 import { CategoryUtils, BudgetPeriodsUtils } from '../../lib/utils';
+import { useBudgetProgress } from '../../hooks/features/budgets/useBudgetProgress';
 
 /**
  * Props per BudgetProgress
@@ -14,10 +13,10 @@ interface BudgetProgressProps {
     budgets: Budget[];
     people: Person[];
     selectedPersonId?: string;
-    isReportMode?: boolean; // Nuovo prop per modalità report
-    availablePeriods?: BudgetPeriodData[]; // Periodi di budget disponibili
-    selectedPeriod?: BudgetPeriodData; // Periodo selezionato
-    onPeriodChange?: (period: BudgetPeriodData) => void; // Callback cambio periodo
+    isReportMode?: boolean;
+    availablePeriods?: BudgetPeriodData[];
+    selectedPeriod?: BudgetPeriodData;
+    onPeriodChange?: (period: BudgetPeriodData) => void;
 }
 
 /**
@@ -33,13 +32,17 @@ export const BudgetProgress = memo<BudgetProgressProps>(({
     selectedPeriod,
     onPeriodChange
 }) => {
-    const { categories: categoryOptions } = useFinance();
-    const { budgetDataByPerson, selectedPersonData, hasData } = useBudgetData({
+    const {
+        categoryOptions,
+        selectedPersonData,
+        hasData,
+        expandedBudgets,
+        toggleBudgetExpansion,
+        dataToRender
+    } = useBudgetProgress({
         budgets,
         selectedPersonId
     });
-
-    const [expandedBudgets, setExpandedBudgets] = useState<Set<string>>(new Set());
 
     if (!hasData) {
         return (
@@ -51,7 +54,6 @@ export const BudgetProgress = memo<BudgetProgressProps>(({
         );
     }
 
-    // In modalità report, mostra placeholder se non c'è un periodo selezionato
     if (isReportMode && !selectedPeriod) {
         return (
             <div className="text-center py-8">
@@ -61,20 +63,6 @@ export const BudgetProgress = memo<BudgetProgressProps>(({
             </div>
         );
     }
-
-    const toggleBudgetExpansion = (budgetId: string) => {
-        setExpandedBudgets(prev => {
-            const newSet = new Set(prev);
-            if (newSet.has(budgetId)) {
-                newSet.delete(budgetId);
-            } else {
-                newSet.add(budgetId);
-            }
-            return newSet;
-        });
-    };
-
-    const dataToRender = selectedPersonData ? [selectedPersonData] : budgetDataByPerson;
 
     return (
         <div className="space-y-6">

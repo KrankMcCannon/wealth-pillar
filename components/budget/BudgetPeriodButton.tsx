@@ -1,115 +1,49 @@
-import React, { memo, useState, useCallback } from 'react';
+import React, { memo } from 'react';
 import { Person } from '../../types';
 import { BaseModal, ModalActions } from '../ui';
-import { useBudgetPeriods } from '../../hooks/features/budget/useBudgetPeriods';
-import { DateUtils } from '../../lib/utils';
+import { useBudgetPeriodButton } from '../../hooks/features/budgets/useBudgetPeriodButton';
 
 interface BudgetPeriodButtonProps {
   people?: Person[];
-  defaultPersonId?: string;
 }
 
 /**
  * Componente per gestire i periodi di budget
  * Permette di completare il periodo corrente e passare al successivo
  */
-export const BudgetPeriodButton = memo<BudgetPeriodButtonProps>(({ 
+export const BudgetPeriodButton = memo<BudgetPeriodButtonProps>(({
   people = [],
-  defaultPersonId 
 }) => {
-  // Controllo di sicurezza per people
-  if (!Array.isArray(people) || people.length === 0) {
-    return null;
-  }
-
-  const [showModal, setShowModal] = useState(false);
-  const [selectedPersonId, setSelectedPersonId] = useState(defaultPersonId || people[0]?.id || '');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [completionDate, setCompletionDate] = useState(() => {
-    // Imposta la data di oggi come default
-    return new Date().toISOString().split('T')[0];
-  });
-
-  // Trova la persona selezionata
-  const selectedPerson = people.find(p => p.id === selectedPersonId) || people[0];
-
-  // Hook per gestire i periodi
   const {
+    hasPeople,
+    showModal,
+    openModal,
+    closeModal,
+    selectedPersonId,
+    setSelectedPersonId,
+    selectedPerson,
+    isSubmitting,
+    completionDate,
+    handleDateChange,
+    handleCreateNewPeriod,
+    handleCompletePeriod,
+    handleRemovePeriod,
+    personOptions,
     currentPeriod,
     completedPeriods,
     canCompletePeriod,
-    completePeriod,
-    createNewPeriod,
-    removePeriod,
     periodStats,
     formatPeriodDate,
-    isLoading
-  } = useBudgetPeriods({ 
-    person: selectedPerson
+    isLoading,
+  } = useBudgetPeriodButton({
+    people,
+    defaultPersonId: people[0]?.id || ''
   });
 
-  // Reset del form quando si chiude il modale
-  const handleClose = useCallback(() => {
-    setShowModal(false);
-    // Reset della data di completamento alla data di oggi
-    const today = new Date().toISOString().split('T')[0];
-    setCompletionDate(today);
-    if (!defaultPersonId) {
-      setSelectedPersonId('');
-    }
-  }, [defaultPersonId]);
-
-    // Handler per gestire il cambio della data di completamento
-  const handleDateChange = useCallback((dateString: string) => {
-    const selectedDate = new Date(dateString);
-    
-    // Se la data selezionata cade in un festivo o weekend, sposta al giorno lavorativo precedente
-    if (DateUtils.isHoliday(selectedDate)) {
-      const adjustedDate = DateUtils.moveToPreviousWorkingDay(selectedDate);
-      const adjustedDateString = DateUtils.toISODate(adjustedDate);
-      setCompletionDate(adjustedDateString);
-      
-      // Potresti aggiungere qui una notifica toast o un alert più elegante
-      setTimeout(() => {
-        alert(`Data spostata al ${adjustedDate.toLocaleDateString('it-IT')} (giorno lavorativo precedente)`);
-      }, 100);
-    } else {
-      setCompletionDate(dateString);
-    }
-  }, []);
-
-  // Handler per completare il periodo con la data selezionata
-  const handleCompletePeriod = useCallback(async () => {
-    if (!canCompletePeriod || !completionDate) return;
-
-    setIsSubmitting(true);
-    try {
-      await completePeriod(completionDate);
-      // Reset della data di completamento alla data di oggi dopo il completamento
-      const today = new Date().toISOString().split('T')[0];
-      setCompletionDate(today);
-      handleClose();
-    } catch (error) {
-      console.error('Errore nel completamento del periodo:', error);
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, [canCompletePeriod, completionDate, completePeriod, handleClose]);
-
-  // Handler per rimuovere un periodo completato
-  const handleRemovePeriod = useCallback(async (referenceDate: string) => {
-    try {
-      await removePeriod(referenceDate);
-    } catch (error) {
-      console.error('Errore nella rimozione del periodo:', error);
-    }
-  }, [removePeriod]);
-
-  // Opzioni per il select delle persone
-  const personOptions = people.map(person => ({
-    value: person.id,
-    label: person.name
-  }));
+  // Controllo di sicurezza per people
+  if (!hasPeople) {
+    return null;
+  }
 
   // Se c'è solo una persona e non ci sono periodi da gestire, non mostrare il bottone
   if (people.length === 1 && !canCompletePeriod && completedPeriods.length === 0) {
@@ -119,16 +53,16 @@ export const BudgetPeriodButton = memo<BudgetPeriodButtonProps>(({
   return (
     <>
       <button
-        onClick={() => setShowModal(true)}
+        onClick={openModal}
         className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 transition-colors shadow-sm"
         title="Gestisci periodi di budget"
       >
-        📅 Gestisci Periodi Budget
+        Gestisci Periodi Budget
       </button>
 
       <BaseModal
         isOpen={showModal}
-        onClose={handleClose}
+        onClose={closeModal}
         title={`Gestione Periodi Budget - ${selectedPerson?.name}`}
         maxWidth="3xl"
       >
@@ -136,7 +70,10 @@ export const BudgetPeriodButton = memo<BudgetPeriodButtonProps>(({
           {/* Selector persona se ci sono più persone */}
           {people.length > 1 && (
             <div>
-              <label htmlFor="person-select" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label
+                htmlFor="person-select"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              >
                 Seleziona Persona
               </label>
               <select
@@ -145,7 +82,7 @@ export const BudgetPeriodButton = memo<BudgetPeriodButtonProps>(({
                 onChange={(e) => setSelectedPersonId(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               >
-                {personOptions.map(option => (
+                {personOptions.map((option) => (
                   <option key={option.value} value={option.value}>
                     {option.label}
                   </option>
@@ -192,7 +129,7 @@ export const BudgetPeriodButton = memo<BudgetPeriodButtonProps>(({
                     />
                   </div>
                   <button
-                    onClick={() => createNewPeriod(completionDate)}
+                    onClick={handleCreateNewPeriod}
                     disabled={!completionDate || isLoading}
                     className="w-full px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors disabled:cursor-not-allowed"
                   >
@@ -296,7 +233,7 @@ export const BudgetPeriodButton = memo<BudgetPeriodButtonProps>(({
         </div>
 
         <ModalActions
-          onCancel={handleClose}
+          onCancel={closeModal}
           cancelLabel="Chiudi"
           showSubmit={false}
         />

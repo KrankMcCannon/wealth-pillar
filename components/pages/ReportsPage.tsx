@@ -1,11 +1,9 @@
-import React, { memo, useState, useMemo } from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { useAnnualReports, useFinance, usePersonFilter, useYearSelection } from '../../hooks';
+import React, { memo } from 'react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { useReportsPage } from '../../hooks';
 import { Card, PageHeader, SummaryCards } from '../ui';
 import { BudgetProgress } from '../dashboard';
 import { formatCurrency } from '../../constants';
-import { BudgetPeriodsUtils, CategoryUtils } from '../../lib/utils';
-import type { BudgetPeriodData } from '../../types';
 
 /**
  * Componente per la selezione dell'anno
@@ -138,102 +136,21 @@ MonthlyChart.displayName = 'MonthlyChart';
  * Principio DRY: Don't Repeat Yourself - usa hook centralizzati e componenti riutilizzabili
  */
 export const ReportsPage = memo(() => {
-  const { selectedPersonId, selectedPerson } = usePersonFilter();
-  const { transactions, budgets, people, getAccountById } = useFinance();
-  const { availableYears, selectedYear, setSelectedYear } = useYearSelection(transactions);
-  const { yearlyTransactions, annualSummary, monthlyData, netBalance } = useAnnualReports(
-    selectedPersonId, 
-    selectedYear
-  );
-
-  // Stati per il selettore del BudgetProgress
-  const [selectedBudgetPeriod, setSelectedBudgetPeriod] = useState<BudgetPeriodData | undefined>(undefined);
-
-  // Calcola i periodi di budget disponibili dal database della persona
-  const availableBudgetPeriods = useMemo(() => {
-    if (selectedPersonId === 'all') {
-      // Per la vista "all", usa i periodi della prima persona con budgetStartDate
-      const firstPersonWithBudget = people.find(person => person.budgetStartDate);
-      if (!firstPersonWithBudget) {
-        return [];
-      }
-
-      return BudgetPeriodsUtils.getBudgetPeriodsFromDatabase(firstPersonWithBudget);
-    } else {
-      // Per persona specifica, usa i suoi periodi dal database
-      const selectedPerson = people.find(p => p.id === selectedPersonId);
-      if (!selectedPerson || !selectedPerson.budgetStartDate) {
-        return [];
-      }
-
-      return BudgetPeriodsUtils.getBudgetPeriodsFromDatabase(selectedPerson);
-    }
-  }, [selectedPersonId, people]);
-
-  // Imposta il periodo corrente come default se non c'è selezione
-  React.useEffect(() => {
-    if (!selectedBudgetPeriod && availableBudgetPeriods.length > 0) {
-      // Prendi il periodo più recente come default
-      setSelectedBudgetPeriod(availableBudgetPeriods[0]);
-    }
-  }, [availableBudgetPeriods, selectedBudgetPeriod]);
-
-  // Aggiorna il periodo quando cambia la selezione della persona
-  React.useEffect(() => {
-    if (availableBudgetPeriods.length > 0) {
-      setSelectedBudgetPeriod(availableBudgetPeriods[0]);
-    } else {
-      setSelectedBudgetPeriod(undefined);
-    }
-  }, [selectedPersonId]);
-
-  const summaryCardsData = [
-    {
-      title: 'Entrate Totali',
-      value: formatCurrency(annualSummary.entrata),
-      change: undefined,
-      trend: 'up' as const,
-      color: 'green'
-    },
-    {
-      title: 'Spese Totali',
-      value: formatCurrency(annualSummary.spesa),
-      change: undefined,
-      trend: 'down' as const,
-      color: 'red'
-    },
-    {
-      title: 'Bilancio Netto',
-      value: formatCurrency(netBalance),
-      change: undefined,
-      trend: netBalance >= 0 ? 'up' as const : 'down' as const,
-      color: netBalance >= 0 ? 'green' : 'red'
-    },
-    {
-      title: 'Transazioni',
-      value: yearlyTransactions.length.toString(),
-      change: undefined,
-      trend: 'neutral' as const,
-      color: 'blue'
-    }
-  ];
-
-  const handleYearChange = (year: number) => {
-    setSelectedYear(year);
-  };
-
-  const handleBudgetPeriodChange = (period: BudgetPeriodData) => {
-    setSelectedBudgetPeriod(period);
-  };
-
-  // Trova la persona di riferimento per i periodi di budget
-  const budgetReferencePerson = useMemo(() => {
-    if (selectedPersonId === 'all') {
-      return people.find(person => person.budgetStartDate);
-    } else {
-      return people.find(p => p.id === selectedPersonId);
-    }
-  }, [selectedPersonId, people]);
+  const {
+    selectedPersonId,
+    selectedPerson,
+    availableYears,
+    selectedYear,
+    monthlyData,
+    summaryCardsData,
+    availableBudgetPeriods,
+    selectedBudgetPeriod,
+    budgetReferencePerson,
+    handleYearChange,
+    handleBudgetPeriodChange,
+    budgets,
+    people
+  } = useReportsPage();
 
   return (
     <div className="space-y-6">

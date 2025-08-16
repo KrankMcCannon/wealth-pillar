@@ -17,14 +17,14 @@ const handleAsyncError = <T extends any[], R>(
   return async (...args: T): Promise<R> => {
     try {
       return await fn(...args);
-    } catch (err) {
-      const error = err instanceof ServiceError 
-        ? err 
+    } catch (err: unknown) {
+      const error = err instanceof ServiceError
+        ? err
         : new ServiceError(
-            err instanceof Error ? err.message : errorMessage,
-            'UNKNOWN_ERROR',
-            err as Error
-          );
+          err instanceof Error ? err.message : errorMessage,
+          'UNKNOWN_ERROR',
+          err as Error
+        );
       console.error(errorMessage, err);
       throw error;
     }
@@ -42,9 +42,9 @@ interface FinanceContextType {
   categories: CategoryOption[];
   isLoading: boolean;
   error: string | null;
-  addTransaction: (transaction: Omit<Transaction, 'id'>) => Promise<void>;
+  addTransaction: (transaction: Omit<Transaction, 'id' | 'isReconciled' | 'createdAt'>) => Promise<void>;
   updateTransaction: (transaction: Transaction) => Promise<void>;
-  addAccount: (account: Omit<Account, 'id'>) => Promise<void>;
+  addAccount: (account: Omit<Account, 'id' | 'balance'>) => Promise<void>;
   updateAccount: (account: Account) => Promise<void>;
   addBudget: (budget: Omit<Budget, 'id'>) => Promise<void>;
   updateBudget: (budget: Budget) => Promise<void>;
@@ -79,24 +79,16 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  /**
-   * Data Loading with error handling (DRY principle)
-   */
   const loadData = useCallback(
     handleAsyncError(async () => {
       if (!client || !isSignedIn || !user) {
         setIsLoading(false);
         return;
       }
-
       setIsLoading(true);
       setError(null);
-
       const financeService = ServiceFactory.createFinanceService(client, user.id);
-      
-      // Load all data filtered by user group
       const data = await financeService.loadAllData();
-
       setPeople(data.people);
       setAccounts(data.accounts);
       setTransactions(data.transactions);
@@ -109,8 +101,8 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
   );
 
   /**
-   * State reset utility (DRY principle)
-   */
+  * State reset utility (DRY principle)
+  */
   const resetState = useCallback(() => {
     setPeople([]);
     setAccounts([]);
@@ -151,12 +143,11 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
   // Helper to safely get service with better error handling
   const getServiceSafely = useCallback(async () => {
     if (!client && isSignedIn) {
-      for (let i = 0; i < 30; i++) {
+      for (let i = 0; i < 30; i) {
         await new Promise(resolve => setTimeout(resolve, 100));
         if (client) break;
       }
     }
-    
     return getService();
   }, [client, isSignedIn, getService]);
 
@@ -165,10 +156,10 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
   }, []);
 
   /**
-   * CRUD Operations with unified error handling (DRY principle)
-   */
+* CRUD Operations with unified error handling (DRY principle)
+*/
   const addTransaction = useCallback(
-    handleAsyncError(async (transactionData: Omit<Transaction, 'id'>) => {
+    handleAsyncError(async (transactionData: Omit<Transaction, 'id' | 'isReconciled' | 'createdAt'>) => {
       const service = await getServiceSafely();
       const newTransaction: Transaction = {
         ...transactionData,
@@ -176,9 +167,8 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
         isReconciled: false,
         createdAt: new Date().toISOString(),
       };
-
       const savedTransaction = await service.transactions.create(newTransaction);
-      setTransactions(prev => [savedTransaction, ...prev].sort((a, b) => 
+      setTransactions(prev => [savedTransaction, ...prev].sort((a, b) =>
         new Date(b.date).getTime() - new Date(a.date).getTime()
       ));
     }, 'Failed to add transaction'),
@@ -189,7 +179,7 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
     handleAsyncError(async (updatedTransaction: Transaction) => {
       const service = await getServiceSafely();
       const savedTransaction = await service.transactions.update(updatedTransaction.id, updatedTransaction);
-      setTransactions(prev => 
+      setTransactions(prev =>
         prev.map(tx => tx.id === savedTransaction.id ? savedTransaction : tx)
           .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
       );
@@ -198,7 +188,7 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
   );
 
   const addAccount = useCallback(
-    handleAsyncError(async (accountData: Omit<Account, 'id'>) => {
+    handleAsyncError(async (accountData: Omit<Account, 'id' | 'balance'>) => {
       const service = await getServiceSafely();
       const newAccount = await service.addAccount(accountData);
       setAccounts(prev => [...prev, newAccount]);
@@ -210,7 +200,7 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
     handleAsyncError(async (updatedAccount: Account) => {
       const service = await getServiceSafely();
       const savedAccount = await service.updateAccount(updatedAccount);
-      setAccounts(prev => prev.map(acc => 
+      setAccounts(prev => prev.map(acc =>
         acc.id === savedAccount.id ? savedAccount : acc
       ));
     }, 'Failed to update account'),
@@ -268,8 +258,8 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
   );
 
   /**
-   * Lookup Functions (SRP principle)
-   */
+ * Lookup Functions (SRP principle)
+ */
   const getAccountById = useCallback((id: string) => {
     return accounts.find(acc => acc.id === id);
   }, [accounts]);
@@ -279,8 +269,8 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
   }, [people]);
 
   /**
-   * Business Logic Functions using utility classes (SRP principle)
-   */
+ * Business Logic Functions using utility classes (SRP principle)
+ */
   const getCategoryName = useCallback((categoryOrId: string | Category | null) => {
     return CategoryUtils.getCategoryDisplayName(categoryOrId, categories);
   }, [categories]);
@@ -295,19 +285,13 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
     if (!transaction.isReconciled) {
       return transaction.amount;
     }
-
-    // Se la transazione ha un remainingAmount esplicitamente salvato, usa quello
     if (transaction.remainingAmount !== undefined) {
       return transaction.remainingAmount;
     }
-
-    // Altrimenti, calcola l'importo rimanente basato sulla transazione collegata
     const linkedTx = transactions.find(tx => tx.id === transaction.parentTransactionId);
     if (!linkedTx) {
       return transaction.amount;
     }
-
-    // Per transazioni riconciliate, calcola la differenza
     return Math.abs(transaction.amount) - Math.abs(linkedTx.amount);
   }, [transactions]);
 
@@ -318,8 +302,6 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
 
   const isParentTransaction = useCallback((transaction: Transaction) => {
     const linkedTx = transactions.find(tx => tx.id === transaction.parentTransactionId);
-    
-    // Use TransactionService.isParentTransaction instead of duplicating logic
     const service = getService();
     return service.transactions.isParentTransaction(transaction, linkedTx);
   }, [transactions, getService]);
@@ -327,12 +309,9 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
   const getCalculatedBalanceSync = useCallback((accountId: string) => {
     const account = accounts.find(acc => acc.id === accountId);
     if (!account) return 0;
-    
-    const accountTransactions = transactions.filter(tx => 
+    const accountTransactions = transactions.filter(tx =>
       tx.accountId === accountId || tx.toAccountId === accountId
     );
-    
-    // Use FinanceService.calculateAccountBalance instead of duplicating logic
     const service = getService();
     return service.calculateAccountBalance(account, accountTransactions);
   }, [accounts, transactions, getService]);
@@ -343,7 +322,6 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
         const service = await getServiceSafely();
         return await service.getCalculatedBalance(accountId);
       } catch (err) {
-        // Fallback to local calculation using the same logic as getCalculatedBalanceSync
         return getCalculatedBalanceSync(accountId);
       }
     }, 'Failed to calculate balance'),
@@ -353,17 +331,13 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
   const linkTransactions = useCallback(
     handleAsyncError(async (tx1Id: string, tx2Id: string) => {
       const service = await getServiceSafely();
-      
-      // Use existing TransactionService.linkTransactions method instead of duplicating logic
       await service.transactions.linkTransactions(tx1Id, tx2Id);
-      
-      // Refresh data to get updated transactions
       await loadData();
     }, 'Failed to link transactions'),
     [getServiceSafely, loadData]
   );
 
-  const value = {
+  const value: FinanceContextType = {
     people,
     selectedPersonId,
     selectPerson,
@@ -393,10 +367,14 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
     updatePerson,
     addPerson,
     addInvestment,
-    refreshData
+    refreshData,
   };
 
-  return <FinanceContext.Provider value={value}>{children}</FinanceContext.Provider>;
+  return (
+    <FinanceContext.Provider value={value}>
+      {children}
+    </FinanceContext.Provider>
+  );
 };
 
 export const useFinance = (): FinanceContextType => {

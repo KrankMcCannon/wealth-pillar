@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 import { useFinance, useModalForm } from '../../';
+import { validateAccountForm } from '../../utils/validators';
 
 interface AccountFormData {
   name: string;
@@ -33,14 +34,12 @@ export const useAddAccount = ({ onClose }: UseAddAccountProps) => {
     clearAllErrors,
     setSubmitting,
     resetForm,
-    validateRequired,
   } = useModalForm({
     initialData: initialFormData,
     resetOnClose: true,
     resetOnOpen: true,
   });
 
-  // Account type options
   const accountTypeOptions = useMemo(() => [
     { value: 'stipendio', label: 'Stipendio' },
     { value: 'risparmi', label: 'Risparmi' },
@@ -48,40 +47,29 @@ export const useAddAccount = ({ onClose }: UseAddAccountProps) => {
     { value: 'investimenti', label: 'Investimenti' },
   ], []);
 
-  // People checkbox options
-  const peopleOptions = useMemo(() => 
+  const peopleOptions = useMemo(() =>
     people.map(person => ({
       id: person.id,
       label: person.name,
       checked: data.selectedPersonIds.includes(person.id),
     }))
-  , [people, data.selectedPersonIds]);
+    , [people, data.selectedPersonIds]);
 
-  // Validation
   const validateForm = useCallback((): boolean => {
     clearAllErrors();
+    const errorsObj = validateAccountForm({
+      name: data.name,
+      selectedPersonIds: data.selectedPersonIds,
+    });
+    Object.entries(errorsObj).forEach(([field, message]) => {
+      setError(field as any, message as string);
+    });
+    return Object.keys(errorsObj).length === 0;
+  }, [data, clearAllErrors, setError]);
 
-    if (!validateRequired(['name'])) {
-      return false;
-    }
-
-    if (data.name.trim().length === 0) {
-      setError('name', 'Il nome del conto non può essere vuoto');
-      return false;
-    }
-
-    if (data.selectedPersonIds.length === 0) {
-      setError('selectedPersonIds', 'Seleziona almeno una persona per questo conto');
-      return false;
-    }
-
-    return true;
-  }, [data, validateRequired, setError, clearAllErrors]);
-
-  // Submit handler
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
@@ -93,7 +81,7 @@ export const useAddAccount = ({ onClose }: UseAddAccountProps) => {
         name: data.name.trim(),
         type: data.type,
         personIds: data.selectedPersonIds,
-        balance: 0, // Default balance
+        groupId: null,
       });
       onClose();
     } catch (err) {
@@ -103,7 +91,6 @@ export const useAddAccount = ({ onClose }: UseAddAccountProps) => {
     }
   }, [validateForm, setSubmitting, data, addAccount, onClose, setError]);
 
-  // Field change handlers
   const handleNameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     updateField('name', e.target.value);
   }, [updateField]);
@@ -116,19 +103,19 @@ export const useAddAccount = ({ onClose }: UseAddAccountProps) => {
     const newSelectedIds = checked
       ? [...data.selectedPersonIds, personId]
       : data.selectedPersonIds.filter(id => id !== personId);
-    
+
     updateField('selectedPersonIds', newSelectedIds);
   }, [data.selectedPersonIds, updateField]);
 
-  // Reset form when needed
   const handleReset = useCallback(() => {
     resetForm();
   }, [resetForm]);
 
-  // Check if form can be submitted
   const canSubmit = useMemo(() => {
-    return data.name.trim().length > 0 && 
-           data.selectedPersonIds.length > 0;
+    return Object.keys(validateAccountForm({
+      name: data.name,
+      selectedPersonIds: data.selectedPersonIds,
+    })).length === 0;
   }, [data]);
 
   return {
@@ -137,11 +124,11 @@ export const useAddAccount = ({ onClose }: UseAddAccountProps) => {
     errors,
     isSubmitting,
     canSubmit,
-    
+
     // Computed values
     accountTypeOptions,
     peopleOptions,
-    
+
     // Event handlers
     handleSubmit,
     handleNameChange,
