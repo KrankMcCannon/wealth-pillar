@@ -4,6 +4,14 @@ import { BudgetPeriodsUtils } from '../../../lib/utils';
 import type { BudgetPeriodData } from '../../../types';
 import { useAnnualReports, useFinance, usePersonFilter, useYearSelection } from '../../index';
 
+enum SummaryCardsColor {
+  GREEN = 'green',
+  RED = 'red',
+  BLUE = 'blue',
+  YELLOW = 'yellow',
+  GRAY = 'gray',
+}
+
 /**
  * Hook encapsulating all state and derived values for the ReportsPage.
  * This hook centralises the logic for selecting years, budget periods and
@@ -68,28 +76,28 @@ export const useReportsPage = () => {
         value: formatCurrency(annualSummary.entrata),
         change: undefined,
         trend: 'up' as const,
-        color: 'green',
+        color: SummaryCardsColor.GREEN,
       },
       {
         title: 'Spese Totali',
         value: formatCurrency(annualSummary.spesa),
         change: undefined,
         trend: 'down' as const,
-        color: 'red',
+        color: SummaryCardsColor.RED,
       },
       {
         title: 'Bilancio Netto',
         value: formatCurrency(netBalance),
         change: undefined,
         trend: netBalance >= 0 ? ('up' as const) : ('down' as const),
-        color: netBalance >= 0 ? 'green' : 'red',
+        color: netBalance >= 0 ? SummaryCardsColor.GREEN : SummaryCardsColor.RED,
       },
       {
         title: 'Transazioni',
         value: yearlyTransactions.length.toString(),
         change: undefined,
         trend: 'neutral' as const,
-        color: 'blue',
+        color: SummaryCardsColor.BLUE,
       },
     ],
     [annualSummary, netBalance, yearlyTransactions],

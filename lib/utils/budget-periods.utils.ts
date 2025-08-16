@@ -130,21 +130,25 @@ export class BudgetPeriodsUtils {
    */
   static createNewPeriod(
     person: Person, 
-    startDate: string
+    startDates: string[]
   ): BudgetPeriodData[] {
     const periods = this.getBudgetPeriodsFromDatabase(person);
-    
-    // Controlla se un periodo con questa data di inizio esiste già
-    const periodExists = periods.some(p => p.startDate === startDate);
-    if (periodExists) {
-      return periods;
+    const newPeriods: BudgetPeriodData[] = [];
+
+    for (const startDate of startDates) {
+      // Controlla se un periodo con questa data di inizio esiste già
+      const periodExists = periods.some(p => p.startDate === startDate);
+      if (!periodExists) {
+        newPeriods.push({
+          startDate,
+          isCompleted: false
+        });
+      }
     }
 
-    // Aggiunge il nuovo periodo
-    const newPeriods = [...periods, {
-      startDate,
-      isCompleted: false
-    }];
+    if (newPeriods.length === 0) {
+      return periods;
+    }
 
     return newPeriods.sort((a, b) => 
       new Date(a.startDate).getTime() - new Date(b.startDate).getTime()

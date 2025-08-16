@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import { memo } from 'react';
 import { Account } from '../../types';
 import { BaseModal, FormField, Input, CheckboxGroup, ModalActions } from '../ui';
 import { useEditAccount } from '../../hooks/features/accounts/useEditAccount';
@@ -11,7 +11,6 @@ interface EditAccountModalProps {
 
 /**
  * Componente presentazionale per editing account
- * Tutta la logica è delegata al hook useEditAccount
  */
 export const EditAccountModal = memo<EditAccountModalProps>(({ isOpen, onClose, account }) => {
   const {
@@ -34,6 +33,7 @@ export const EditAccountModal = memo<EditAccountModalProps>(({ isOpen, onClose, 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Account name field */}
         <FormField
+          id="name"
           label="Nome conto"
           error={errors.name}
           required
@@ -49,14 +49,14 @@ export const EditAccountModal = memo<EditAccountModalProps>(({ isOpen, onClose, 
 
         {/* People selection */}
         <FormField
+          id="people"
           label="Associa persone"
           error={errors.selectedPersonIds}
           required
         >
           <CheckboxGroup
             options={peopleOptions}
-            onToggle={handlePersonToggle}
-            disabled={isSubmitting}
+            onChange={handlePersonToggle}
           />
         </FormField>
 
@@ -69,10 +69,10 @@ export const EditAccountModal = memo<EditAccountModalProps>(({ isOpen, onClose, 
         <ModalActions
           onCancel={onClose}
           onSubmit={handleSubmit}
-          submitLabel="Aggiorna Conto"
-          cancelLabel="Annulla"
+          submitText="Aggiorna Conto"
+          cancelText="Annulla"
           isSubmitting={isSubmitting}
-          disabled={!canSubmit}
+          submitDisabled={!canSubmit}
         />
       </form>
     </BaseModal>

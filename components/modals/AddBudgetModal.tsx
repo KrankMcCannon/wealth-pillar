@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import { memo } from 'react';
 import { BaseModal, FormField, Input, CheckboxGroup, ModalActions } from '../ui';
 import { useAddBudget } from '../../hooks/features/budgets/useAddBudget';
 
@@ -10,7 +10,6 @@ interface AddBudgetModalProps {
 
 /**
  * Componente presentazionale per aggiunta budget
- * Tutta la logica è delegata al hook useAddBudget
  */
 export const AddBudgetModal = memo<AddBudgetModalProps>(({ isOpen, onClose, personId }) => {
   const {
@@ -80,8 +79,7 @@ export const AddBudgetModal = memo<AddBudgetModalProps>(({ isOpen, onClose, pers
         >
           <CheckboxGroup
             options={categoryOptions}
-            onToggle={handleCategoryToggle}
-            disabled={isSubmitting}
+            onChange={handleCategoryToggle}
             columns={2}
             maxHeight="16rem"
           />
@@ -99,10 +97,10 @@ export const AddBudgetModal = memo<AddBudgetModalProps>(({ isOpen, onClose, pers
         <ModalActions
           onCancel={onClose}
           onSubmit={handleSubmit}
-          submitLabel="Aggiungi Budget"
-          cancelLabel="Annulla"
+          submitText="Aggiungi Budget"
+          cancelText="Annulla"
           isSubmitting={isSubmitting}
-          disabled={!canSubmit}
+          submitDisabled={!canSubmit}
         />
       </form>
     </BaseModal>

@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import { memo } from 'react';
 import { Budget } from '../../types';
 import { BaseModal, FormField, Input, Select, CheckboxGroup, ModalActions } from '../ui';
 import { useEditBudget } from '../../hooks/features/settings/useEditBudget';
@@ -11,7 +11,6 @@ interface EditBudgetModalProps {
 
 /**
  * Componente presentazionale per editing budget
- * Tutta la logica è delegata al hook useEditBudget
  */
 export const EditBudgetModal = memo<EditBudgetModalProps>(({ isOpen, onClose, budget }) => {
   const {
@@ -41,6 +40,7 @@ export const EditBudgetModal = memo<EditBudgetModalProps>(({ isOpen, onClose, bu
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Description field */}
         <FormField
+          id="description"
           label="Descrizione"
           error={errors.description}
           required
@@ -56,6 +56,7 @@ export const EditBudgetModal = memo<EditBudgetModalProps>(({ isOpen, onClose, bu
 
         {/* Amount field */}
         <FormField
+          id="amount"
           label="Importo Limite (€)"
           error={errors.amount}
           required
@@ -74,6 +75,7 @@ export const EditBudgetModal = memo<EditBudgetModalProps>(({ isOpen, onClose, bu
 
         {/* Budget start day field */}
         <FormField
+          id="budgetStartDay"
           label="Giorno di Inizio Budget"
           error={errors.budgetStartDay}
           required
@@ -90,15 +92,14 @@ export const EditBudgetModal = memo<EditBudgetModalProps>(({ isOpen, onClose, bu
 
         {/* Categories field */}
         <FormField
+          id="categories"
           label="Categorie"
           error={errors.selectedCategories}
           required
         >
           <CheckboxGroup
             options={categoryOptions}
-            onToggle={handleCategoryToggle}
-            disabled={isSubmitting}
-            error={!!errors.selectedCategories}
+            onChange={handleCategoryToggle}
           />
         </FormField>
 
@@ -111,10 +112,10 @@ export const EditBudgetModal = memo<EditBudgetModalProps>(({ isOpen, onClose, bu
         <ModalActions
           onCancel={onClose}
           onSubmit={handleSubmit}
-          submitLabel="Salva Modifiche"
-          cancelLabel="Annulla"
+          submitText="Salva Modifiche"
+          cancelText="Annulla"
           isSubmitting={isSubmitting}
-          disabled={!canSubmit}
+          submitDisabled={!canSubmit}
         />
       </form>
     </BaseModal>

@@ -44,6 +44,10 @@ export { useInvestmentModals } from './features/investments/useInvestmentModals'
 
 // Onboarding
 export { useOnboarding } from './features/onboarding/useOnboarding';
+export { useOnboardingAccountsForm } from './features/onboarding/useOnboardingAccountsForm';
+export { useOnboardingBudgetsForm } from './features/onboarding/useOnboardingBudgetsForm';
+export { useOnboardingGroupForm } from './features/onboarding/useOnboardingGroupForm';
+export { useOnboardingPeopleForm } from './features/onboarding/useOnboardingPeopleForm';
 export { useOnboardingState } from './features/onboarding/useOnboardingState';
 
 // Reports

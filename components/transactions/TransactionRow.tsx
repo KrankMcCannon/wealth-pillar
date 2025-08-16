@@ -1,13 +1,10 @@
-import React, { memo } from 'react';
+import { memo } from 'react';
 import { Transaction } from '../../types';
 import { LinkIcon, PencilIcon } from '../common';
 import { formatCurrency, formatDate } from '../../constants';
 import { useTransactionVisual, useTransactionRowClasses } from '../../hooks/features/transactions/useTransactionVisual';
 import { useFinance } from '../../hooks/core/useFinance';
 
-/**
- * Props per il componente TransactionRow
- */
 interface TransactionRowProps {
   transaction: Transaction;
   accountName: string;
@@ -19,13 +16,11 @@ interface TransactionRowProps {
   onLinkClick: (tx: Transaction) => void;
   onSelectToLink: (txId: string) => void;
   onEditClick: (tx: Transaction) => void;
-  showDate?: boolean; // Nuovo prop opzionale per mostrare/nascondere la colonna data
+  showDate?: boolean;
 }
 
 /**
- * Componente ottimizzato per la riga della transazione
- * Principio SRP: Single Responsibility - gestisce solo la visualizzazione di una transazione
- * Principio DRY: Don't Repeat Yourself - logica riutilizzabile memoizzata
+ * Componente per la riga della transazione
  */
 export const TransactionRow = memo<TransactionRowProps>(({
   transaction,
@@ -36,7 +31,6 @@ export const TransactionRow = memo<TransactionRowProps>(({
   isThisLinkingTx,
   isLinkable,
   onLinkClick,
-  onSelectToLink,
   onEditClick,
   showDate = true,
 }) => {

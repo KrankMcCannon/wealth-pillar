@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import { memo } from 'react';
 import { SparklesIcon } from '../common/Icons';
 
 interface OnboardingCompletedStepProps {
@@ -7,11 +7,8 @@ interface OnboardingCompletedStepProps {
 
 /**
  * Step finale: Configurazione completata
- * Principio SRP: Single Responsibility - gestisce solo la schermata di completamento
  */
-export const OnboardingCompletedStep = memo<OnboardingCompletedStepProps>(({ 
-  onComplete 
-}) => {
+export const OnboardingCompletedStep = memo<OnboardingCompletedStepProps>(({ onComplete }) => {
   return (
     <div className="text-center space-y-8">
       {/* Icona di successo */}

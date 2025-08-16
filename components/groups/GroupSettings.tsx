@@ -1,10 +1,4 @@
-/**
- * GroupSettings Component - Solo UI
- * Componente per la gestione delle impostazioni del gruppo
- * Segue principi SOLID: Solo responsabilità di rendering
- */
-
-import React from 'react';
+import { memo } from 'react';
 import type { GroupWithMemberCount } from '../../lib/supabase/services/groups.service';
 import { useGroupSettings } from '../../hooks/features/groups/useGroupSettings';
 
@@ -16,14 +10,16 @@ interface GroupSettingsProps {
     className?: string;
 }
 
-export const GroupSettings: React.FC<GroupSettingsProps> = ({
+/**
+ * GroupSettings Component
+ */
+export const GroupSettings = memo<GroupSettingsProps>(({
     group,
     isLoading,
     onUpdateGroup,
     onDeleteGroup,
     className = ''
 }) => {
-
     const {
         isEditing,
         setIsEditing,
@@ -207,4 +203,4 @@ export const GroupSettings: React.FC<GroupSettingsProps> = ({
             )}
         </div>
     );
-};
+});

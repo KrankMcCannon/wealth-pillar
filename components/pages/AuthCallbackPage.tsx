@@ -1,10 +1,9 @@
-import React, { memo, useCallback } from 'react';
+import { memo, useCallback } from 'react';
 import { useAuthCallback } from '../../hooks';
 import { LoadingState, ErrorState } from '../ui';
 
 /**
  * Componente per il successo dell'autenticazione
- * Principio SRP: Single Responsibility - gestisce solo la visualizzazione del successo
  */
 const AuthSuccessState = memo(() => (
   <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
@@ -24,10 +23,7 @@ const AuthSuccessState = memo(() => (
 AuthSuccessState.displayName = 'AuthSuccessState';
 
 /**
- * Pagina callback di autenticazione ottimizzata
- * Principio SRP: Single Responsibility - gestisce solo la logica di callback
- * Principio OCP: Open/Closed - estendibile per altri provider auth
- * Principio DRY: Usa hook centralizzato per logica auth
+ * Pagina callback di autenticazione
  */
 export const AuthCallbackPage = memo(() => {
   const { loading, error, success } = useAuthCallback();
@@ -55,7 +51,6 @@ export const AuthCallbackPage = memo(() => {
     return <AuthSuccessState />;
   }
 
-  // Fallback state (shouldn't reach here)
   return <LoadingState message="Completamento autenticazione..." />;
 });
 

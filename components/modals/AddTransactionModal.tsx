@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import { memo } from 'react';
 import { BaseModal, FormField, Input, Select, ModalActions } from '../ui';
 import { useAddTransaction } from '../../hooks/features/transactions/useAddTransaction';
 
@@ -9,7 +9,6 @@ interface AddTransactionModalProps {
 
 /**
  * Componente presentazionale per aggiunta transazioni
- * Tutta la logica è delegata al hook useAddTransaction
  */
 export const AddTransactionModal = memo<AddTransactionModalProps>(({ isOpen, onClose }) => {
   const {
@@ -196,10 +195,10 @@ export const AddTransactionModal = memo<AddTransactionModalProps>(({ isOpen, onC
         <ModalActions
           onCancel={onClose}
           onSubmit={handleSubmit}
-          submitLabel="Aggiungi Transazione"
-          cancelLabel="Annulla"
+          submitText="Aggiungi Transazione"
+          cancelText="Annulla"
           isSubmitting={isSubmitting}
-          disabled={!canSubmit}
+          submitDisabled={!canSubmit}
         />
       </form>
     </BaseModal>

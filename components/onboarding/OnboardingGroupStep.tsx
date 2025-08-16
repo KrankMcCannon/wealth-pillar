@@ -1,6 +1,7 @@
-import React, { memo, useCallback, useState } from 'react';
+import React, { memo } from 'react';
 import { FormField, Input, ModalActions } from '../ui';
 import { OnboardingGroup } from '../../hooks/features/onboarding/useOnboarding';
+import { useOnboardingGroupForm } from '../../hooks/features/onboarding/useOnboardingGroupForm';
 
 interface OnboardingGroupStepProps {
   onNext: (group: OnboardingGroup) => Promise<void>;
@@ -10,76 +11,15 @@ interface OnboardingGroupStepProps {
 
 /**
  * Step 1: Creazione del gruppo
- * Principio SRP: Single Responsibility - gestisce solo la creazione del gruppo
  */
-export const OnboardingGroupStep = memo<OnboardingGroupStepProps>(({ 
-  onNext, 
-  isLoading, 
-  error 
-}) => {
-  const [groupData, setGroupData] = useState<OnboardingGroup>({
-    name: '',
-    description: '',
-  });
-  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+export const OnboardingGroupStep = memo<OnboardingGroupStepProps>(({ onNext, isLoading, error }) => {
+  const { groupData, validationErrors, handleFieldChange, validateForm, canSubmit } = useOnboardingGroupForm();
 
-  /**
-   * Validazione del form
-   */
-  const validateForm = useCallback((): boolean => {
-    const errors: Record<string, string> = {};
-
-    if (!groupData.name.trim()) {
-      errors.name = 'Il nome del gruppo è obbligatorio';
-    } else if (groupData.name.trim().length < 2) {
-      errors.name = 'Il nome deve contenere almeno 2 caratteri';
-    }
-
-    setValidationErrors(errors);
-    return Object.keys(errors).length === 0;
-  }, [groupData]);
-
-  /**
-   * Gestisce l'invio del form
-   */
-  const handleSubmit = useCallback(async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!validateForm()) {
-      return;
-    }
-
-    await onNext({
-      name: groupData.name.trim(),
-      description: groupData.description?.trim() || undefined,
-    });
-  }, [groupData, validateForm, onNext]);
-
-  /**
-   * Gestisce i cambiamenti nei campi
-   */
-  const handleFieldChange = useCallback((field: keyof OnboardingGroup) => 
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      setGroupData(prev => ({
-        ...prev,
-        [field]: e.target.value,
-      }));
-      
-      // Pulisce l'errore quando l'utente inizia a digitare
-      if (validationErrors[field]) {
-        setValidationErrors(prev => {
-          const newErrors = { ...prev };
-          delete newErrors[field];
-          return newErrors;
-        });
-      }
-    }
-  , [validationErrors]);
-
-  /**
-   * Controlla se il form può essere inviato
-   */
-  const canSubmit = groupData.name.trim().length > 0;
+    if (!validateForm()) return;
+    await onNext({ name: groupData.name.trim(), description: groupData.description?.trim() || undefined });
+  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -95,6 +35,7 @@ export const OnboardingGroupStep = memo<OnboardingGroupStepProps>(({
 
       {/* Nome del gruppo */}
       <FormField
+        id="group_name"
         label="Nome del gruppo"
         error={validationErrors.name}
         required
@@ -112,6 +53,7 @@ export const OnboardingGroupStep = memo<OnboardingGroupStepProps>(({
 
       {/* Descrizione (opzionale) */}
       <FormField
+        id="group_description"
         label="Descrizione (opzionale)"
         error={validationErrors.description}
       >
@@ -134,12 +76,12 @@ export const OnboardingGroupStep = memo<OnboardingGroupStepProps>(({
 
       {/* Azioni */}
       <ModalActions
-        onCancel={() => {}} // Non mostriamo il pulsante cancel nel primo step
+        onCancel={() => {}}
         onSubmit={handleSubmit}
-        submitLabel="Crea gruppo e continua"
+        submitText="Crea gruppo e continua"
         isSubmitting={isLoading}
-        disabled={!canSubmit}
-        showCancel={false} // Nascondiamo il pulsante cancel
+        submitDisabled={!canSubmit}
+        showCancel={false}
       />
     </form>
   );

@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import { memo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useReportsPage } from '../../hooks';
 import { Card, PageHeader, SummaryCards } from '../ui';
@@ -7,7 +7,6 @@ import { formatCurrency } from '../../constants';
 
 /**
  * Componente per la selezione dell'anno
- * Principio SRP: Single Responsibility - gestisce solo il selector dell'anno
  */
 const YearSelector = memo<{
   availableYears: number[];
@@ -130,10 +129,7 @@ const MonthlyChart = memo<{
 MonthlyChart.displayName = 'MonthlyChart';
 
 /**
- * Pagina Report ottimizzata
- * Principio SRP: Single Responsibility - gestisce solo la visualizzazione dei report
- * Principio OCP: Open/Closed - estendibile per nuovi tipi di report
- * Principio DRY: Don't Repeat Yourself - usa hook centralizzati e componenti riutilizzabili
+ * Pagina Report
  */
 export const ReportsPage = memo(() => {
   const {

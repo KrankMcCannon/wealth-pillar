@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import { memo } from 'react';
 import { Card } from '../ui';
 import { Account } from '../../types';
 import { formatCurrency } from '../../constants';
@@ -13,9 +13,7 @@ interface AccountCardProps {
 }
 
 /**
- * Componente AccountCard ottimizzato
- * Principio SRP: Single Responsibility - gestisce solo la visualizzazione di un account
- * Principio DRY: Don't Repeat Yourself - riutilizzabile
+ * Componente AccountCard
  */
 export const AccountCard = memo<AccountCardProps>(({ account, balance, personName }) => (
   <Card>

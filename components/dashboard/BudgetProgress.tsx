@@ -73,11 +73,10 @@ export const BudgetProgress = memo<BudgetProgressProps>(({
                     {selectedPersonData && ` - ${selectedPersonData.person.name}`}
                     {isReportMode && selectedPeriod && ` - ${BudgetPeriodsUtils.formatPeriodDate(selectedPeriod.startDate, selectedPeriod.endDate)}`}
                 </h2>
-                
+
                 {!isReportMode ? (
                     <BudgetPeriodButton
                         people={people}
-                        defaultPersonId={selectedPersonId}
                     />
                 ) : (
                     <div className="flex gap-3 items-center">
@@ -135,10 +134,10 @@ export const BudgetProgress = memo<BudgetProgressProps>(({
                             <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                                 <div
                                     className={`h-2 rounded-full transition-all duration-300 ${personData.totalSpent > personData.totalBudgetAmount
-                                            ? 'bg-red-500'
-                                            : personData.totalSpent > personData.totalBudgetAmount * 0.8
-                                                ? 'bg-orange-500'
-                                                : 'bg-green-500'
+                                        ? 'bg-red-500'
+                                        : personData.totalSpent > personData.totalBudgetAmount * 0.8
+                                            ? 'bg-orange-500'
+                                            : 'bg-green-500'
                                         }`}
                                     style={{
                                         width: `${Math.min(
@@ -164,7 +163,7 @@ export const BudgetProgress = memo<BudgetProgressProps>(({
                                             {budget.description}
                                         </h4>
                                         <span className="text-sm text-gray-600 dark:text-gray-400">
-                                            {formatDate(data.periodStart)} - {formatDate(data.periodEnd)}
+                                            {formatDate(data.periodStart.toISOString())} - {formatDate(data.periodEnd.toISOString())}
                                         </span>
                                     </div>
 
@@ -228,18 +227,18 @@ export const BudgetProgress = memo<BudgetProgressProps>(({
                                                             return bCount - aCount; // Ordinamento decrescente
                                                         })
                                                         .map(category => (
-                                                        <div
-                                                            key={category}
-                                                            className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700 rounded-lg"
-                                                        >
-                                                            <span className="text-sm text-gray-700 dark:text-gray-300">
-                                                                {CategoryUtils.getCategoryDisplayName(category, categoryOptions)}
-                                                            </span>
-                                                            <span className="text-xs text-gray-500 dark:text-gray-400">
-                                                                {transactions.filter(t => t.category === category).length} tx
-                                                            </span>
-                                                        </div>
-                                                    ))}
+                                                            <div
+                                                                key={category}
+                                                                className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700 rounded-lg"
+                                                            >
+                                                                <span className="text-sm text-gray-700 dark:text-gray-300">
+                                                                    {CategoryUtils.getCategoryDisplayName(category, categoryOptions)}
+                                                                </span>
+                                                                <span className="text-xs text-gray-500 dark:text-gray-400">
+                                                                    {transactions.filter(t => t.category === category).length} tx
+                                                                </span>
+                                                            </div>
+                                                        ))}
                                                 </div>
                                             </div>
 

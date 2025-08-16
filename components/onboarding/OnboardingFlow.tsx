@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import { memo } from 'react';
 import { useOnboarding, OnboardingStep } from '../../hooks/features/onboarding/useOnboarding';
 import { BaseModal } from '../ui';
 import {
@@ -36,23 +36,15 @@ OnboardingProgress.displayName = 'OnboardingProgress';
 
 /**
  * Componente principale per il flow di onboarding
- * Principio SRP: Single Responsibility - gestisce solo l'orchestrazione del flow
- * Principio OCP: Open/Closed - facilmente estendibile per nuovi step
  */
 export const OnboardingFlow = memo<OnboardingFlowProps>(({ isOpen, onComplete }) => {
   const onboarding = useOnboarding();
 
-  /**
-   * Gestisce il completamento dell'onboarding
-   */
   const handleComplete = () => {
     onboarding.resetOnboarding();
     onComplete();
   };
 
-  /**
-   * Renderizza lo step corrente
-   */
   const renderCurrentStep = () => {
     switch (onboarding.currentStep) {
       case OnboardingStep.GROUP:
@@ -110,9 +102,6 @@ export const OnboardingFlow = memo<OnboardingFlowProps>(({ isOpen, onComplete })
     }
   };
 
-  /**
-   * Determina il titolo del modale in base allo step corrente
-   */
   const getModalTitle = () => {
     switch (onboarding.currentStep) {
       case OnboardingStep.GROUP:
@@ -130,14 +119,11 @@ export const OnboardingFlow = memo<OnboardingFlowProps>(({ isOpen, onComplete })
     }
   };
 
-  /**
-   * Determina la larghezza massima del modale
-   */
   const getModalMaxWidth = () => {
     switch (onboarding.currentStep) {
       case OnboardingStep.ACCOUNTS:
       case OnboardingStep.BUDGETS:
-        return '4xl';
+        return '2xl';
       default:
         return 'lg';
     }
@@ -146,18 +132,16 @@ export const OnboardingFlow = memo<OnboardingFlowProps>(({ isOpen, onComplete })
   return (
     <BaseModal
       isOpen={isOpen}
-      onClose={() => {}} // Non permettiamo la chiusura durante l'onboarding
+      onClose={() => {}}
       title={getModalTitle()}
       maxWidth={getModalMaxWidth()}
-      showCloseButton={false} // Nascondiamo il pulsante di chiusura
+      showCloseButton={false}
     >
       <div className="space-y-6">
-        {/* Progress bar - nascondiamo solo per il step completato */}
         {onboarding.currentStep !== OnboardingStep.COMPLETED && (
           <OnboardingProgress progress={onboarding.progress} />
         )}
 
-        {/* Step corrente */}
         {renderCurrentStep()}
       </div>
     </BaseModal>

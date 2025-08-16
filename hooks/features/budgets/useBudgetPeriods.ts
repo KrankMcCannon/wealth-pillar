@@ -61,11 +61,11 @@ export const useBudgetPeriods = ({ person }: UseBudgetPeriodsProps) => {
   }, [person, currentPeriod, updatePerson]);
 
   // Crea un nuovo periodo
-  const createNewPeriod = useCallback(async (startDate: string) => {
+  const createNewPeriod = useCallback(async (startDates: string[]) => {
     setIsLoading(true);
     try {
-      const updatedPeriods = BudgetPeriodsUtils.createNewPeriod(person, startDate);
-      
+      const updatedPeriods = BudgetPeriodsUtils.createNewPeriod(person, startDates);
+
       const updatedPerson: Person = {
         ...person,
         budgetPeriods: updatedPeriods

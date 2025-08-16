@@ -12,8 +12,6 @@ interface SummaryCardsProps {
 
 /**
  * Componente per visualizzare cards di riepilogo
- * Principio SRP: Single Responsibility - gestisce solo la visualizzazione di cards sommario
- * Principio DRY: Don't Repeat Yourself - evita duplicazione delle cards
  */
 export const SummaryCards = memo<SummaryCardsProps>(({ cards }) => {
   const getColorClasses = (color: string = 'gray') => {

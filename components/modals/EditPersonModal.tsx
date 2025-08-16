@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import { memo } from 'react';
 import { Person } from '../../types';
 import { BaseModal, FormField, Input, ModalActions } from '../ui';
 import { useEditPerson } from '../../hooks/features/settings/useEditPerson';
@@ -11,7 +11,6 @@ interface EditPersonModalProps {
 
 /**
  * Componente presentazionale per editing persone
- * Tutta la logica è delegata al hook useEditPerson
  */
 export const EditPersonModal = memo<EditPersonModalProps>(({ isOpen, onClose, person }) => {
   const {
@@ -34,6 +33,7 @@ export const EditPersonModal = memo<EditPersonModalProps>(({ isOpen, onClose, pe
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Name field */}
         <FormField
+          id="name"
           label="Nome completo"
           error={errors.name}
           required
@@ -49,6 +49,7 @@ export const EditPersonModal = memo<EditPersonModalProps>(({ isOpen, onClose, pe
 
         {/* Avatar field */}
         <FormField
+          id="avatar"
           label="URL Avatar"
           error={errors.avatar}
         >
@@ -64,6 +65,7 @@ export const EditPersonModal = memo<EditPersonModalProps>(({ isOpen, onClose, pe
 
         {/* Theme color field */}
         <FormField
+          id="themeColor"
           label="Colore Tema"
           error={errors.themeColor}
         >
@@ -96,10 +98,10 @@ export const EditPersonModal = memo<EditPersonModalProps>(({ isOpen, onClose, pe
         <ModalActions
           onCancel={onClose}
           onSubmit={handleSubmit}
-          submitLabel="Salva Modifiche"
-          cancelLabel="Annulla"
+          submitText="Salva Modifiche"
+          cancelText="Annulla"
           isSubmitting={isSubmitting}
-          disabled={!canSubmit}
+          submitDisabled={!canSubmit}
         />
       </form>
     </BaseModal>

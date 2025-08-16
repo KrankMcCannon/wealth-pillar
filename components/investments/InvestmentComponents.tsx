@@ -1,21 +1,9 @@
-import React, { memo } from 'react';
+import { memo } from 'react';
 import { formatCurrency, formatDate } from '../../constants';
 import { InvestmentHolding } from '../../types';
 import { Card, SummaryCards } from '../ui';
 import { usePortfolioSummary, useInvestmentRow } from '../../hooks';
-
-// Simple arrow icons as SVG components
-const ArrowUpIcon = () => (
-  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-    <path fillRule="evenodd" d="M3.293 9.707a1 1 0 010-1.414l6-6a1 1 0 011.414 0l6 6a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L4.707 9.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
-  </svg>
-);
-
-const ArrowDownIcon = () => (
-  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-    <path fillRule="evenodd" d="M16.707 10.293a1 1 0 010 1.414l-6 6a1 1 0 01-1.414 0l-6-6a1 1 0 111.414-1.414L9 14.586V3a1 1 0 012 0v11.586l4.293-4.293a1 1 0 011.414 0z" clipRule="evenodd" />
-  </svg>
-);
+import { ArrowDownIcon, ArrowUpIcon } from '../common';
 
 interface PortfolioSummaryProps {
   holdings: InvestmentHolding[];
@@ -23,7 +11,6 @@ interface PortfolioSummaryProps {
 
 /**
  * Componente presentazionale per il riepilogo del portafoglio
- * Tutta la logica di calcolo è delegata al hook usePortfolioSummary
  */
 export const PortfolioSummary = memo<PortfolioSummaryProps>(({ holdings }) => {
   const { summaryCards } = usePortfolioSummary({ holdings });
@@ -40,7 +27,6 @@ interface InvestmentRowProps {
 
 /**
  * Componente presentazionale per una riga di investimento
- * Tutta la logica di calcolo è delegata al hook useInvestmentRow
  */
 export const InvestmentRow = memo<InvestmentRowProps>(({ holding, personName }) => {
   const { value, gainLoss, isGain, gainLossPercent } = useInvestmentRow({ holding });
@@ -77,7 +63,6 @@ interface InvestmentTableProps {
 
 /**
  * Componente per la tabella degli investimenti
- * Principio SRP: Single Responsibility - gestisce solo la tabella degli investimenti
  */
 export const InvestmentTable = memo<InvestmentTableProps>(({ holdings, isAllView, getPersonName }) => (
   <Card className="overflow-x-auto">

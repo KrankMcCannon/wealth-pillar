@@ -13,7 +13,7 @@ export interface BudgetCalculationData {
   periodStart: Date;
   periodEnd: Date;
   progressColor: string;
-  isCompleted: boolean; // Se il periodo corrente è stato marcato come completato
+  isCompleted: boolean;
 }
 
 /**

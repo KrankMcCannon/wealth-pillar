@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import { memo } from 'react';
 import { BaseModal, FormField, Input, Select, ModalActions } from '../ui';
 import { useAddInvestment } from '../../hooks/features/investments/useAddInvestment';
 
@@ -9,7 +9,6 @@ interface AddInvestmentModalProps {
 
 /**
  * Componente presentazionale per aggiunta investimenti
- * Tutta la logica è delegata al hook useAddInvestment
  */
 export const AddInvestmentModal = memo<AddInvestmentModalProps>(({ isOpen, onClose }) => {
   const {
@@ -39,6 +38,7 @@ export const AddInvestmentModal = memo<AddInvestmentModalProps>(({ isOpen, onClo
         {/* Person Selection (only in all view) */}
         {isAllView && (
           <FormField
+            id="personId"
             label="Persona"
             error={errors.personId}
             required
@@ -56,6 +56,7 @@ export const AddInvestmentModal = memo<AddInvestmentModalProps>(({ isOpen, onClo
 
         {/* Investment Name */}
         <FormField
+          id="name"
           label="Nome investimento"
           error={errors.name}
           required
@@ -71,6 +72,7 @@ export const AddInvestmentModal = memo<AddInvestmentModalProps>(({ isOpen, onClo
 
         {/* Symbol */}
         <FormField
+          id="symbol"
           label="Simbolo"
           error={errors.symbol}
           required
@@ -87,6 +89,7 @@ export const AddInvestmentModal = memo<AddInvestmentModalProps>(({ isOpen, onClo
 
         {/* Quantity */}
         <FormField
+          id="quantity"
           label="Quantità"
           error={errors.quantity}
           required
@@ -105,6 +108,7 @@ export const AddInvestmentModal = memo<AddInvestmentModalProps>(({ isOpen, onClo
 
         {/* Purchase Price */}
         <FormField
+          id="purchasePrice"
           label="Prezzo di acquisto (€)"
           error={errors.purchasePrice}
           required
@@ -123,6 +127,7 @@ export const AddInvestmentModal = memo<AddInvestmentModalProps>(({ isOpen, onClo
 
         {/* Current Price */}
         <FormField
+          id="currentPrice"
           label="Prezzo corrente (€)"
           error={errors.currentPrice}
           required
@@ -141,6 +146,7 @@ export const AddInvestmentModal = memo<AddInvestmentModalProps>(({ isOpen, onClo
 
         {/* Purchase Date */}
         <FormField
+          id="purchaseDate"
           label="Data di acquisto"
           error={errors.purchaseDate}
           required
@@ -163,10 +169,10 @@ export const AddInvestmentModal = memo<AddInvestmentModalProps>(({ isOpen, onClo
         <ModalActions
           onCancel={onClose}
           onSubmit={handleSubmit}
-          submitLabel="Aggiungi Investimento"
-          cancelLabel="Annulla"
+          submitText="Aggiungi Investimento"
+          cancelText="Annulla"
           isSubmitting={isSubmitting}
-          disabled={!canSubmit}
+          submitDisabled={!canSubmit}
         />
       </form>
     </BaseModal>

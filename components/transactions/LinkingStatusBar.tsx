@@ -1,10 +1,7 @@
-import React, { memo } from 'react';
+import { memo } from 'react';
 import { Transaction } from '../../types';
 import { LinkIcon } from '../common';
 
-/**
- * Props per il componente LinkingStatusBar
- */
 interface LinkingStatusBarProps {
   linkingTx: Transaction;
   onCancelLink: () => void;
@@ -12,7 +9,6 @@ interface LinkingStatusBarProps {
 
 /**
  * Componente per la barra di stato durante la riconciliazione
- * Principio SRP: Single Responsibility - gestisce solo l'UI del linking status
  */
 export const LinkingStatusBar = memo<LinkingStatusBarProps>(({
   linkingTx,

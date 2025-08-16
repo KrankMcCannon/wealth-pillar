@@ -8,8 +8,6 @@ interface PageHeaderProps {
 
 /**
  * Componente Header per le pagine
- * Principio SRP: Single Responsibility - gestisce solo l'header delle pagine
- * Principio DRY: Don't Repeat Yourself - evita duplicazione dell'header
  */
 export const PageHeader = memo<PageHeaderProps>(({ title, subtitle, children }) => (
   <div className="flex justify-between items-start mb-8">

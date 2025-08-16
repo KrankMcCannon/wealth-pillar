@@ -21,7 +21,6 @@ const maxWidthClasses = {
 
 /**
  * Componente base per tutte le modali
- * Implementa il principio DRY centralizzando la logica comune
  */
 export const BaseModal = memo<BaseModalProps>(({
   isOpen,
@@ -33,7 +32,6 @@ export const BaseModal = memo<BaseModalProps>(({
   showCloseButton = true,
   closeOnBackdropClick = true,
 }) => {
-  // Handle escape key
   const handleKeyDown = useCallback((event: KeyboardEvent) => {
     if (event.key === 'Escape' && isOpen) {
       onClose();
@@ -43,7 +41,6 @@ export const BaseModal = memo<BaseModalProps>(({
   useEffect(() => {
     if (isOpen) {
       document.addEventListener('keydown', handleKeyDown);
-      // Prevent body scroll when modal is open
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = 'unset';

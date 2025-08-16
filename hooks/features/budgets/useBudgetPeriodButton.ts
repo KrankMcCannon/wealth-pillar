@@ -96,11 +96,11 @@ export const useBudgetPeriodButton = (options: Options) => {
    * while the operation is in progress, and resets it after completion or error.
    * After successful creation, it closes the modal.
    */
-  const handleCreateNewPeriod = useCallback(async () => {
+  const handleCreateNewPeriod = useCallback(async (startDates: string[]) => {
     if (!selectedPersonId) return;
     setIsSubmitting(true);
     try {
-      await createNewPeriod();
+      await createNewPeriod(startDates);
       closeModal();
     } catch (error) {
       console.error('Errore nella creazione del nuovo periodo:', error);
@@ -129,13 +129,13 @@ export const useBudgetPeriodButton = (options: Options) => {
   }, [canCompletePeriod, completionDate, completePeriod, closeModal]);
 
   /**
-   * Remove a completed budget period identified by its reference date. Errors
+   * Remove a completed budget period identified by its start date. Errors
    * are logged to the console.
    */
   const handleRemovePeriod = useCallback(
-    async (referenceDate: string) => {
+    async (startDate: string) => {
       try {
-        await removePeriod(referenceDate);
+        await removePeriod(startDate);
       } catch (error) {
         console.error('Errore nella rimozione del periodo:', error);
       }

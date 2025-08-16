@@ -1,4 +1,6 @@
-// Export di tutti i modali
+/*
+* Export di tutti i modali
+*/
 export { AddAccountModal } from './AddAccountModal';
 export { AddBudgetModal } from './AddBudgetModal';
 export { AddInvestmentModal } from './AddInvestmentModal';

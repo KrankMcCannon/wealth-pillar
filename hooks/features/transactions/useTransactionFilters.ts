@@ -20,7 +20,6 @@ export const useTransactionFilters = () => {
     getCategoryName 
   } = useFinance();
 
-  // Stati per i filtri
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState<'all' | TransactionType>('all');
   const [categoryFilter, setCategoryFilter] = useState<'all' | string>(CATEGORY_CONSTANTS.ALL_CATEGORIES);
@@ -125,7 +124,7 @@ export const useTransactionFilters = () => {
   };
 
   // Verifica se ci sono filtri attivi
-  const hasActiveFilters = searchTerm || typeFilter !== 'all' || categoryFilter !== CATEGORY_CONSTANTS.ALL_CATEGORIES;
+  const hasActiveFilters = !!searchTerm || typeFilter !== 'all' || categoryFilter !== CATEGORY_CONSTANTS.ALL_CATEGORIES;
 
   return {
     // Stati

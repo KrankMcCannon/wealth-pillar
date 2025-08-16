@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import { memo } from 'react';
 import { Transaction } from '../../types';
 import { formatCurrency, formatDate } from '../../constants';
 import { useTransactionVisual } from '../../hooks/features/transactions/useTransactionVisual';
@@ -14,9 +14,7 @@ interface RecentTransactionItemProps {
 }
 
 /**
- * Componente RecentTransactionItem ottimizzato
- * Principio SRP: Single Responsibility - gestisce solo la visualizzazione di una transazione
- * Principio DRY: Don't Repeat Yourself - logica riutilizzabile
+ * Componente RecentTransactionItem
  */
 export const RecentTransactionItem = memo<RecentTransactionItemProps>(({ transaction, accountName }) => {
   const {

@@ -64,7 +64,7 @@ export const BudgetPeriodButton = memo<BudgetPeriodButtonProps>(({
         isOpen={showModal}
         onClose={closeModal}
         title={`Gestione Periodi Budget - ${selectedPerson?.name}`}
-        maxWidth="3xl"
+        maxWidth="2xl"
       >
         <div className="space-y-6">
           {/* Selector persona se ci sono più persone */}
@@ -129,7 +129,7 @@ export const BudgetPeriodButton = memo<BudgetPeriodButtonProps>(({
                     />
                   </div>
                   <button
-                    onClick={handleCreateNewPeriod}
+                    onClick={() => handleCreateNewPeriod(selectedPerson.budgetPeriods.length > 0 ? selectedPerson.budgetPeriods.map(p => p.startDate) : [currentPeriod.startDate])}
                     disabled={!completionDate || isLoading}
                     className="w-full px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white rounded-lg font-medium transition-colors disabled:cursor-not-allowed"
                   >
@@ -207,7 +207,7 @@ export const BudgetPeriodButton = memo<BudgetPeriodButtonProps>(({
               <div className="space-y-2 max-h-48 overflow-y-auto">
                 {completedPeriods.map(period => (
                   <div
-                    key={period.referenceDate}
+                    key={period.startDate}
                     className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800"
                   >
                     <div>
@@ -219,7 +219,7 @@ export const BudgetPeriodButton = memo<BudgetPeriodButtonProps>(({
                       </div>
                     </div>
                     <button
-                      onClick={() => handleRemovePeriod(period.referenceDate)}
+                      onClick={() => handleRemovePeriod(period.startDate)}
                       className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 text-sm font-medium"
                       title="Rimuovi periodo"
                     >
@@ -234,8 +234,7 @@ export const BudgetPeriodButton = memo<BudgetPeriodButtonProps>(({
 
         <ModalActions
           onCancel={closeModal}
-          cancelLabel="Chiudi"
-          showSubmit={false}
+          cancelText="Chiudi"
         />
       </BaseModal>
     </>

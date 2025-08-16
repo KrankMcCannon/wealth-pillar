@@ -1,7 +1,8 @@
-import React, { memo, useCallback, useState, useMemo } from 'react';
+import React, { memo } from 'react';
 import { FormField, Input, ModalActions } from '../ui';
 import { PlusIcon, TrashIcon } from '../common/Icons';
 import { OnboardingAccount, OnboardingPerson } from '../../hooks/features/onboarding/useOnboarding';
+import { useOnboardingAccountsForm } from '../../hooks/features/onboarding/useOnboardingAccountsForm';
 
 interface OnboardingAccountsStepProps {
   people: OnboardingPerson[];
@@ -13,154 +14,19 @@ interface OnboardingAccountsStepProps {
 
 /**
  * Step 3: Creazione degli account per ogni persona
- * Principio SRP: Single Responsibility - gestisce solo la creazione degli account
  */
-export const OnboardingAccountsStep = memo<OnboardingAccountsStepProps>(({ 
-  people, 
-  onNext, 
-  onBack, 
-  isLoading, 
-  error 
-}) => {
-  // Inizializza un account per ogni persona
-  const [accounts, setAccounts] = useState<OnboardingAccount[]>(
-    people.map(person => ({
-      name: '',
-      type: 'stipendio' as const,
-      personId: person.name, // Usa il nome come ID temporaneo
-    }))
-  );
-  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+export const OnboardingAccountsStep = memo<OnboardingAccountsStepProps>(({ people, onNext, onBack, isLoading, error }) => {
+  const {
+    accountsByPerson,
+    accountTypes, validationErrors, addAccount,
+    removeAccount, updateAccount, validateForm, canSubmit, validAccounts
+  } = useOnboardingAccountsForm(people);
 
-  /**
-   * Tipi di account disponibili
-   */
-  const accountTypes = [
-    { value: 'stipendio', label: 'Stipendio' },
-    { value: 'risparmio', label: 'Risparmio' },
-    { value: 'contanti', label: 'Contanti' },
-    { value: 'investimenti', label: 'Investimenti' },
-  ] as const;
-
-  /**
-   * Validazione del form
-   */
-  const validateForm = useCallback((): boolean => {
-    const errors: Record<string, string> = {};
-
-    // Controlla che ogni persona abbia almeno un account
-    people.forEach((person) => {
-      const personAccounts = accounts.filter(acc => acc.personId === person.name);
-      if (personAccounts.length === 0) {
-        errors[`person_${person.name}_accounts`] = `${person.name} deve avere almeno un account`;
-        return;
-      }
-
-      // Controlla che tutti gli account abbiano un nome
-      personAccounts.forEach((account, index) => {
-        if (!account.name.trim()) {
-          errors[`account_${person.name}_${index}_name`] = 'Il nome del conto è obbligatorio';
-        }
-      });
-
-      // Controlla che non ci siano nomi duplicati per la stessa persona
-      const accountNames = personAccounts.map(acc => acc.name.trim().toLowerCase());
-      const duplicates = accountNames.filter((name, index) => 
-        name && accountNames.indexOf(name) !== index
-      );
-      if (duplicates.length > 0) {
-        errors[`person_${person.name}_duplicates`] = `${person.name} ha account con nomi duplicati`;
-      }
-    });
-
-    setValidationErrors(errors);
-    return Object.keys(errors).length === 0;
-  }, [people, accounts]);
-
-  /**
-   * Gestisce l'invio del form
-   */
-  const handleSubmit = useCallback((e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!validateForm()) {
-      return;
-    }
-
-    const validAccounts = accounts
-      .filter(account => account.name.trim().length > 0)
-      .map(account => ({
-        ...account,
-        name: account.name.trim(),
-      }));
-
+    if (!validateForm()) return;
     onNext(validAccounts);
-  }, [accounts, validateForm, onNext]);
-
-  /**
-   * Aggiunge un nuovo account per una persona
-   */
-  const addAccount = useCallback((personName: string) => {
-    setAccounts(prev => [
-      ...prev,
-      {
-        name: '',
-        type: 'stipendio' as const,
-        personId: personName,
-      }
-    ]);
-  }, []);
-
-  /**
-   * Rimuove un account
-   */
-  const removeAccount = useCallback((accountIndex: number) => {
-    setAccounts(prev => prev.filter((_, index) => index !== accountIndex));
-  }, []);
-
-  /**
-   * Aggiorna i dati di un account
-   */
-  const updateAccount = useCallback((accountIndex: number, field: keyof OnboardingAccount, value: string) => {
-    setAccounts(prev => prev.map((account, index) => 
-      index === accountIndex 
-        ? { ...account, [field]: value }
-        : account
-    ));
-
-    // Pulisce l'errore quando l'utente inizia a digitare
-    const errorKey = `account_${accounts[accountIndex]?.personId}_${accountIndex}_${field}`;
-    if (validationErrors[errorKey]) {
-      setValidationErrors(prev => {
-        const newErrors = { ...prev };
-        delete newErrors[errorKey];
-        return newErrors;
-      });
-    }
-  }, [accounts, validationErrors]);
-
-  /**
-   * Raggruppa gli account per persona
-   */
-  const accountsByPerson = useMemo(() => {
-    return people.map(person => ({
-      person,
-      accounts: accounts
-        .map((account, index) => ({ ...account, index }))
-        .filter(account => account.personId === person.name),
-    }));
-  }, [people, accounts]);
-
-  /**
-   * Controlla se il form può essere inviato
-   */
-  const canSubmit = useMemo(() => {
-    return people.every(person => {
-      const personAccounts = accounts.filter(acc => acc.personId === person.name);
-      return personAccounts.length > 0 && 
-             personAccounts.every(acc => acc.name.trim().length > 0);
-    });
-  }, [people, accounts]);
+  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -220,6 +86,7 @@ export const OnboardingAccountsStep = memo<OnboardingAccountsStepProps>(({
                 <div key={account.index} className="flex items-end gap-4">
                   <div className="flex-1">
                     <FormField
+                      id={`account_${person.name}_${account.index}_name`}
                       label="Nome del conto"
                       error={validationErrors[`account_${person.name}_${account.index}_name`]}
                       required
@@ -236,7 +103,7 @@ export const OnboardingAccountsStep = memo<OnboardingAccountsStepProps>(({
                   </div>
 
                   <div className="flex-1">
-                    <FormField label="Tipo di conto" required>
+                    <FormField id={`account_${person.name}_${account.index}_type`} label="Tipo di conto" required>
                       <select
                         value={account.type}
                         onChange={(e) => updateAccount(account.index, 'type', e.target.value)}
@@ -293,10 +160,10 @@ export const OnboardingAccountsStep = memo<OnboardingAccountsStepProps>(({
       <ModalActions
         onCancel={onBack}
         onSubmit={handleSubmit}
-        submitLabel="Continua con i budget"
+        submitText="Continua con i budget"
         isSubmitting={isLoading}
-        disabled={!canSubmit}
-        cancelLabel="Indietro"
+        submitDisabled={!canSubmit}
+        cancelText="Indietro"
       />
     </form>
   );
