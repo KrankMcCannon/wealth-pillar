@@ -1,6 +1,6 @@
-import { useMemo } from 'react';
-import { useFinance } from '../../';
-import { Transaction, TransactionType } from '../../../types';
+import { useMemo } from "react";
+import { useFinance } from "../../";
+import { Transaction, TransactionType } from "../../../types";
 
 interface UseExpenseChartProps {
   transactions: Transaction[];
@@ -15,14 +15,19 @@ export const useExpenseChart = ({ transactions }: UseExpenseChartProps) => {
 
   // Memoized expense data calculation
   const expenseData = useMemo(() => {
-    const expenseTransactions = transactions.filter(t => t.type === TransactionType.SPESA);
-    
+    const expenseTransactions = transactions.filter((t) => t.type === TransactionType.SPESA);
+
     if (expenseTransactions.length === 0) return [];
 
     const categoryTotals = expenseTransactions.reduce((acc, transaction) => {
       const categoryName = getCategoryName(transaction.category);
       const amount = getEffectiveTransactionAmount(transaction);
-      
+
+      // Escludi le categorie "Altro" e "Trasferimento"
+      if (categoryName === "Altro" || categoryName === "Trasferimento") {
+        return acc;
+      }
+
       if (!acc[categoryName]) {
         acc[categoryName] = 0;
       }
@@ -44,8 +49,18 @@ export const useExpenseChart = ({ transactions }: UseExpenseChartProps) => {
 
   // Palette colori moderna e accessibile
   const COLORS = [
-    '#6366F1', '#EC4899', '#10B981', '#F59E0B', '#8B5CF6', '#06B6D4',
-    '#EF4444', '#84CC16', '#F97316', '#14B8A6', '#3B82F6', '#F43F5E'
+    "#6366F1",
+    "#EC4899",
+    "#10B981",
+    "#F59E0B",
+    "#8B5CF6",
+    "#06B6D4",
+    "#EF4444",
+    "#84CC16",
+    "#F97316",
+    "#14B8A6",
+    "#3B82F6",
+    "#F43F5E",
   ];
 
   return {

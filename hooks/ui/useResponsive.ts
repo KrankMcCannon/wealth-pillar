@@ -54,7 +54,7 @@ const DEFAULT_BREAKPOINTS: BreakpointConfig = {
  * Principio DRY: Don't Repeat Yourself - logica SSR-safe
  * Performance: Debounced resize events
  */
-export const useWindowSize = (debounceMs = 150): WindowSizeInfo => {
+export const useWindowSize = (debounceMs = 100): WindowSizeInfo => {
   // SSR-safe initial state
   const getInitialSize = (): Omit<WindowSizeInfo, "aspectRatio" | "orientation" | "isSmallScreen"> => ({
     width: typeof window !== "undefined" ? window.innerWidth : 1024,

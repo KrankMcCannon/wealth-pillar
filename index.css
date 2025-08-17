@@ -1,0 +1,283 @@
+@import "tailwindcss";
+
+/* Custom styles for mobile-first responsive design */
+
+/* Smooth scrolling for mobile */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Better touch targets for mobile */
+button,
+[role="button"],
+input[type="button"],
+input[type="submit"],
+input[type="reset"] {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Improved focus states for accessibility */
+button:focus,
+input:focus,
+select:focus,
+textarea:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Custom scrollbar for webkit browsers */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* Dark mode scrollbar */
+.dark ::-webkit-scrollbar-thumb {
+  background: #4b5563;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #6b7280;
+}
+
+/* Mobile-specific improvements */
+@media (max-width: 768px) {
+  /* Reduce padding on mobile */
+  .mobile-padding {
+    padding: 1rem;
+  }
+
+  /* Better text sizing for mobile */
+  .mobile-text {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+  }
+
+  /* Improved touch targets */
+  .mobile-touch-target {
+    min-height: 48px;
+    min-width: 48px;
+  }
+
+  /* Better spacing for mobile */
+  .mobile-space-y > * + * {
+    margin-top: 1rem;
+  }
+
+  /* Improved card shadows for mobile */
+  .mobile-card {
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  }
+}
+
+/* Tablet-specific improvements */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .tablet-padding {
+    padding: 1.5rem;
+  }
+
+  .tablet-text {
+    font-size: 1rem;
+    line-height: 1.5rem;
+  }
+}
+
+/* Desktop-specific improvements */
+@media (min-width: 1025px) {
+  .desktop-padding {
+    padding: 2rem;
+  }
+
+  .desktop-text {
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+  }
+}
+
+/* Animation utilities */
+.fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.slide-in-left {
+  animation: slideInLeft 0.3s ease-out;
+}
+
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+/* Loading states */
+.loading-skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Dark mode loading skeleton */
+.dark .loading-skeleton {
+  background: linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%);
+  background-size: 200% 100%;
+}
+
+/* Improved form elements */
+.form-input {
+  @apply w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors;
+}
+
+.form-select {
+  @apply w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors appearance-none;
+}
+
+.form-button {
+  @apply px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+/* Responsive typography */
+.text-responsive-xs {
+  font-size: 0.75rem;
+  line-height: 1rem;
+}
+
+.text-responsive-sm {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+.text-responsive-base {
+  font-size: 1rem;
+  line-height: 1.5rem;
+}
+
+.text-responsive-lg {
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+}
+
+.text-responsive-xl {
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+}
+
+.text-responsive-2xl {
+  font-size: 1.5rem;
+  line-height: 2rem;
+}
+
+.text-responsive-3xl {
+  font-size: 1.875rem;
+  line-height: 2.25rem;
+}
+
+@media (min-width: 768px) {
+  .text-responsive-xs {
+    font-size: 0.75rem;
+  }
+
+  .text-responsive-sm {
+    font-size: 0.875rem;
+  }
+
+  .text-responsive-base {
+    font-size: 1rem;
+  }
+
+  .text-responsive-lg {
+    font-size: 1.125rem;
+  }
+
+  .text-responsive-xl {
+    font-size: 1.25rem;
+  }
+
+  .text-responsive-2xl {
+    font-size: 1.5rem;
+  }
+
+  .text-responsive-3xl {
+    font-size: 1.875rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .text-responsive-2xl {
+    font-size: 1.875rem;
+  }
+
+  .text-responsive-3xl {
+    font-size: 2.25rem;
+  }
+}
+
+/* Utility classes for responsive spacing */
+.space-responsive-y > * + * {
+  margin-top: 1rem;
+}
+
+@media (min-width: 768px) {
+  .space-responsive-y > * + * {
+    margin-top: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .space-responsive-y > * + * {
+    margin-top: 2rem;
+  }
+}
+
+/* Safe area insets for mobile devices */
+.safe-area-top {
+  padding-top: env(safe-area-inset-top);
+}
+
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.safe-area-left {
+  padding-left: env(safe-area-inset-left);
+}
+
+.safe-area-right {
+  padding-right: env(safe-area-inset-right);
+}

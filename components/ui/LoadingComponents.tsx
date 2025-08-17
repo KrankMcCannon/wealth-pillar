@@ -89,7 +89,7 @@ export const ErrorState = memo<ErrorStateProps>(({
         {onRetry && (
           <button
             onClick={onRetry}
-            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+            className="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white px-4 py-3 sm:py-2 rounded-lg text-sm font-medium transition-colors"
           >
             {retryLabel}
           </button>

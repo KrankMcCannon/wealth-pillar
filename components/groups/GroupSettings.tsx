@@ -138,33 +138,33 @@ export const GroupSettings = memo<GroupSettingsProps>(({
                 {/* Actions */}
                 <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
                     {isEditing ? (
-                        <div className="flex space-x-3">
+                        <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3">
                             <button
                                 onClick={handleSave}
                                 disabled={!formData.name.trim()}
-                                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                className="w-full sm:w-auto px-4 py-3 sm:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
                             >
                                 Salva
                             </button>
                             <button
                                 onClick={handleCancel}
-                                className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                                className="w-full sm:w-auto px-4 py-3 sm:py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-medium"
                             >
                                 Annulla
                             </button>
                         </div>
                     ) : (
-                        <div className="flex justify-between">
+                        <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:justify-between">
                             <button
                                 onClick={() => setIsEditing(true)}
-                                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                                className="w-full sm:w-auto px-4 py-3 sm:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
                             >
                                 Modifica il mio gruppo
                             </button>
 
                             <button
                                 onClick={() => setShowDeleteConfirm(true)}
-                                className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+                                className="w-full sm:w-auto px-4 py-3 sm:py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
                             >
                                 Elimina il mio gruppo
                             </button>
@@ -175,25 +175,25 @@ export const GroupSettings = memo<GroupSettingsProps>(({
 
             {/* Delete confirmation modal */}
             {showDeleteConfirm && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4">
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-lg p-4 sm:p-6 max-w-md w-full">
                         <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
                             Conferma eliminazione
                         </h3>
-                        <p className="text-gray-600 dark:text-gray-400 mb-6">
+                        <p className="text-gray-600 dark:text-gray-400 mb-6 text-sm sm:text-base">
                             Sei sicuro di voler eliminare il tuo gruppo "{group.name}"?
                             Questa azione non può essere annullata e tutti i dati associati al gruppo verranno rimossi.
                         </p>
-                        <div className="flex space-x-3">
+                        <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3">
                             <button
                                 onClick={handleDelete}
-                                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+                                className="w-full sm:flex-1 px-4 py-3 sm:py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
                             >
                                 Elimina
                             </button>
                             <button
                                 onClick={() => setShowDeleteConfirm(false)}
-                                className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                                className="w-full sm:flex-1 px-4 py-3 sm:py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-medium"
                             >
                                 Annulla
                             </button>

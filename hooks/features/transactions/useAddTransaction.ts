@@ -1,8 +1,8 @@
-import React, { useCallback, useEffect, useMemo } from 'react';
-import { useFinance, useModalForm } from '../../';
-import { CATEGORY_CONSTANTS, CategoryUtils } from '../../../lib/utils/category.utils';
-import { TransactionFormValidator } from '../../../lib/utils/transaction-form-validator.utils';
-import { TransactionType } from '../../../types';
+import React, { useCallback, useEffect, useMemo } from "react";
+import { useFinance, useModalForm } from "../../";
+import { CATEGORY_CONSTANTS, CategoryUtils } from "../../../lib/utils/category.utils";
+import { TransactionFormValidator } from "../../../lib/utils/transaction-form-validator.utils";
+import { TransactionType } from "../../../types";
 
 interface TransactionFormData {
   description: string;
@@ -24,21 +24,24 @@ interface UseAddTransactionProps {
  * Estrae tutta la business logic dal componente UI
  */
 export const useAddTransaction = ({ onClose }: UseAddTransactionProps) => {
-  const { addTransaction, accounts, selectedPersonId, people, categories } = useFinance();
+  const { addTransaction, accounts, selectedPersonId, people, categories, getCalculatedBalanceSync } = useFinance();
 
-  const isAllView = selectedPersonId === 'all';
+  const isAllView = selectedPersonId === "all";
 
   // Initial form data
-  const initialFormData: TransactionFormData = useMemo(() => ({
-    description: '',
-    amount: '',
-    date: new Date().toISOString().split('T')[0],
-    type: TransactionType.SPESA,
-    category: CATEGORY_CONSTANTS.DEFAULT_CATEGORY,
-    accountId: '',
-    toAccountId: '',
-    txPersonId: isAllView ? (people[0]?.id || '') : selectedPersonId,
-  }), [isAllView, people, selectedPersonId]);
+  const initialFormData: TransactionFormData = useMemo(
+    () => ({
+      description: "",
+      amount: "",
+      date: new Date().toISOString().split("T")[0],
+      type: TransactionType.SPESA,
+      category: CATEGORY_CONSTANTS.DEFAULT_CATEGORY,
+      accountId: "",
+      toAccountId: "",
+      txPersonId: isAllView ? people[0]?.id || "" : selectedPersonId,
+    }),
+    [isAllView, people, selectedPersonId]
+  );
 
   const {
     data,
@@ -57,116 +60,136 @@ export const useAddTransaction = ({ onClose }: UseAddTransactionProps) => {
   });
 
   // Memoized computed values
-  const currentPersonId = useMemo(() => 
-    isAllView ? data.txPersonId : selectedPersonId
-  , [isAllView, data.txPersonId, selectedPersonId]);
+  const currentPersonId = useMemo(
+    () => (isAllView ? data.txPersonId : selectedPersonId),
+    [isAllView, data.txPersonId, selectedPersonId]
+  );
 
-  const personAccounts = useMemo(() => 
-    accounts.filter(acc => acc.personIds.includes(currentPersonId))
-  , [accounts, currentPersonId]);
+  const personAccounts = useMemo(
+    () => accounts.filter((acc) => acc.personIds.includes(currentPersonId)),
+    [accounts, currentPersonId]
+  );
 
-  const isTransfer = useMemo(() => 
-    CategoryUtils.isTransfer({ category: data.category } as any)
-  , [data.category]);
+  const isTransfer = useMemo(() => CategoryUtils.isTransfer({ category: data.category } as any), [data.category]);
 
-  const categoryOptions = useMemo(() => 
-    CategoryUtils.toSelectOptions(categories)
-  , [categories]);
+  const categoryOptions = useMemo(() => CategoryUtils.toSelectOptions(categories), [categories]);
 
-  const accountOptions = useMemo(() => 
-    personAccounts.map(acc => ({
-      value: acc.id,
-      label: acc.name,
-    }))
-  , [personAccounts]);
+  const accountOptions = useMemo(
+    () =>
+      personAccounts
+        .map((acc) => ({
+          value: acc.id,
+          label: acc.name,
+          balance: getCalculatedBalanceSync(acc.id),
+        }))
+        .sort((a, b) => b.balance - a.balance) // Ordina dal maggiore al minore
+        .map(({ value, label }) => ({ value, label })),
+    [personAccounts, getCalculatedBalanceSync]
+  );
 
-  const transferAccountOptions = useMemo(() => 
-    personAccounts
-      .filter(acc => acc.id !== data.accountId)
-      .map(acc => ({
-        value: acc.id,
-        label: acc.name,
-      }))
-  , [personAccounts, data.accountId]);
+  const transferAccountOptions = useMemo(
+    () =>
+      personAccounts
+        .filter((acc) => acc.id !== data.accountId)
+        .map((acc) => ({
+          value: acc.id,
+          label: acc.name,
+          balance: getCalculatedBalanceSync(acc.id),
+        }))
+        .sort((a, b) => b.balance - a.balance) // Ordina dal maggiore al minore
+        .map(({ value, label }) => ({ value, label })),
+    [personAccounts, data.accountId, getCalculatedBalanceSync]
+  );
 
-  const personOptions = useMemo(() => 
-    people.map(person => ({
-      value: person.id,
-      label: person.name,
-    }))
-  , [people]);
+  const personOptions = useMemo(
+    () =>
+      people.map((person) => ({
+        value: person.id,
+        label: person.name,
+      })),
+    [people]
+  );
 
-  const typeOptions = useMemo(() => [
-    { value: TransactionType.ENTRATA, label: 'Entrata' },
-    { value: TransactionType.SPESA, label: 'Spesa' },
-  ], []);
+  const typeOptions = useMemo(
+    () => [
+      { value: TransactionType.ENTRATA, label: "Entrata" },
+      { value: TransactionType.SPESA, label: "Spesa" },
+    ],
+    []
+  );
 
   // Update accounts when person changes
   useEffect(() => {
-    const newAccounts = accounts.filter(acc => acc.personIds.includes(data.txPersonId));
-    if (newAccounts.length > 0 && !newAccounts.some(acc => acc.id === data.accountId)) {
-      updateField('accountId', newAccounts[0].id);
+    const newAccounts = accounts.filter((acc) => acc.personIds.includes(data.txPersonId));
+    if (newAccounts.length > 0 && !newAccounts.some((acc) => acc.id === data.accountId)) {
+      updateField("accountId", newAccounts[0].id);
     }
   }, [data.txPersonId, accounts, updateField]);
 
   // Validation rules
   const validateForm = useCallback((): boolean => {
-    return TransactionFormValidator.validateTransactionForm(
-      data,
-      isTransfer,
-      { setError, validateRequired, clearAllErrors }
-    );
+    return TransactionFormValidator.validateTransactionForm(data, isTransfer, {
+      setError,
+      validateRequired,
+      clearAllErrors,
+    });
   }, [data, isTransfer, setError, validateRequired, clearAllErrors]);
 
   // Submit handler
-  const handleSubmit = useCallback(async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!validateForm()) {
-      return;
-    }
+  const handleSubmit = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
 
-    setSubmitting(true);
-
-    try {
-      const transactionData: any = {
-        description: data.description.trim(),
-        amount: parseFloat(data.amount),
-        type: data.type,
-        category: data.category,
-        accountId: data.accountId,
-        date: data.date,
-      };
-
-      // Add toAccountId only for transfers
-      if (isTransfer) {
-        transactionData.toAccountId = data.toAccountId;
+      if (!validateForm()) {
+        return;
       }
 
-      await addTransaction(transactionData);
-      onClose();
-    } catch (err) {
-      setError('general', err instanceof Error ? err.message : 'Errore durante l\'aggiunta della transazione');
-    } finally {
-      setSubmitting(false);
-    }
-  }, [validateForm, setSubmitting, data, isTransfer, addTransaction, onClose, setError]);
+      setSubmitting(true);
+
+      try {
+        const transactionData: any = {
+          description: data.description.trim(),
+          amount: parseFloat(data.amount),
+          type: data.type,
+          category: data.category,
+          accountId: data.accountId,
+          date: data.date,
+        };
+
+        // Add toAccountId only for transfers
+        if (isTransfer) {
+          transactionData.toAccountId = data.toAccountId;
+        }
+
+        await addTransaction(transactionData);
+        onClose();
+      } catch (err) {
+        setError("general", err instanceof Error ? err.message : "Errore durante l'aggiunta della transazione");
+      } finally {
+        setSubmitting(false);
+      }
+    },
+    [validateForm, setSubmitting, data, isTransfer, addTransaction, onClose, setError]
+  );
 
   // Field change handlers
-  const handleFieldChange = useCallback((field: keyof TransactionFormData) => 
-    (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleFieldChange = useCallback(
+    (field: keyof TransactionFormData) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
       updateField(field, e.target.value);
-    }
-  , [updateField]);
+    },
+    [updateField]
+  );
 
   // Check if form can be submitted
   const canSubmit = useMemo(() => {
-    return data.description.trim().length > 0 && 
-           data.amount.trim().length > 0 && 
-           parseFloat(data.amount) > 0 &&
-           data.accountId.length > 0 &&
-           (!isTransfer || data.toAccountId.length > 0) &&
-           data.category.length > 0;
+    return (
+      data.description.trim().length > 0 &&
+      data.amount.trim().length > 0 &&
+      parseFloat(data.amount) > 0 &&
+      data.accountId.length > 0 &&
+      (!isTransfer || data.toAccountId.length > 0) &&
+      data.category.length > 0
+    );
   }, [data, isTransfer]);
 
   return {
@@ -175,7 +198,7 @@ export const useAddTransaction = ({ onClose }: UseAddTransactionProps) => {
     errors,
     isSubmitting,
     canSubmit,
-    
+
     // Computed values
     isAllView,
     isTransfer,
@@ -184,7 +207,7 @@ export const useAddTransaction = ({ onClose }: UseAddTransactionProps) => {
     transferAccountOptions,
     personOptions,
     typeOptions,
-    
+
     // Event handlers
     handleSubmit,
     handleFieldChange,

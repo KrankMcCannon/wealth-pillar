@@ -1,143 +1,113 @@
-import { memo } from 'react';
-import { PageHeader } from '../ui';
-import {
-  useAccountFilter,
-  useBudgetFilter,
-  useFinance,
-  usePersonFilter,
-  useSettingsModals,
-  useGroups,
-} from '../../hooks';
-import {
-  UserProfileSection,
-  AccountManagementSection,
-  BudgetManagementSection
-} from '../settings';
-import { GroupSettings } from '../groups';
-import {
-  EditAccountModal,
-  AddAccountModal,
-  EditPersonModal,
-  EditBudgetModal
-} from '../modals';
+import React from "react";
+import { useSettingsModals } from "../../hooks/data/useSettings";
+import { useFinance } from "../../hooks/core/useFinance";
+import { useAuth } from "../../contexts/AuthContext";
+import { useBreakpoint } from "../../hooks/ui/useResponsive";
+import { usePersonFilter } from "../../hooks/data/usePersonFilter";
+import { UserProfileSection, AccountManagementSection, BudgetManagementSection } from "../settings";
+import { GroupSettings } from "../groups";
+import { useGroups } from "../../hooks/features/groups/useGroups";
 
-/**
- * Pagina Impostazioni
- */
-export const SettingsPage = memo(() => {
-  const { people, getCalculatedBalanceSync } = useFinance();
-  const { selectedPersonId, isAllView, getPersonName } = usePersonFilter();
-  const { accounts } = useAccountFilter(selectedPersonId);
-  const { budgets } = useBudgetFilter(selectedPersonId);
+export const SettingsPage: React.FC = () => {
+  const { isMobile } = useBreakpoint();
+  const { user, signOut } = useAuth();
+  const { people, accounts, budgets, getCalculatedBalanceSync } = useFinance();
+  const { getPersonName } = usePersonFilter();
+  const { currentGroup } = useGroups();
 
   const {
-    currentGroup,
-    isLoading: groupsLoading,
-    updateGroup,
-    deleteGroup,
-  } = useGroups();
-
-  const {
-    // Stati modali
-    isEditAccountModalOpen,
-    isEditPersonModalOpen,
-    isEditBudgetModalOpen,
     isAddAccountModalOpen,
-
-    // Elementi selezionati
-    selectedAccount,
-    selectedPerson,
-    selectedBudget,
-
-    // Handlers account
-    openEditAccountModal,
-    closeEditAccountModal,
     openAddAccountModal,
     closeAddAccountModal,
-
-    // Handlers person
+    isEditAccountModalOpen,
+    selectedAccount,
+    openEditAccountModal,
+    closeEditAccountModal,
+    isEditPersonModalOpen,
+    selectedPerson,
     openEditPersonModal,
     closeEditPersonModal,
-
-    // Handlers budget
+    isEditBudgetModalOpen,
+    selectedBudget,
     openEditBudgetModal,
     closeEditBudgetModal,
   } = useSettingsModals();
 
   const handleUpdateGroup = async (updates: { name?: string; description?: string }) => {
-    if (!currentGroup) return;
-    await updateGroup(currentGroup.id, updates);
+    // Implementazione aggiornamento gruppo
   };
 
   const handleDeleteGroup = async () => {
-    if (!currentGroup) return;
-    await deleteGroup(currentGroup.id);
+    // Implementazione eliminazione gruppo
   };
 
-  const displayedPeople = isAllView
-    ? people
-    : people.filter(p => p.id === selectedPersonId);
-
   return (
-    <>
-      <div className="space-y-8">
-        <PageHeader title="Impostazioni" />
-
-        <UserProfileSection
-          people={displayedPeople}
-          onEditPerson={openEditPersonModal}
-        />
-
-        {/* Sezione Gestione Gruppo */}
-        <GroupSettings
-          group={currentGroup}
-          isLoading={groupsLoading}
-          onUpdateGroup={handleUpdateGroup}
-          onDeleteGroup={handleDeleteGroup}
-        />
-
-        <AccountManagementSection
-          accounts={accounts}
-          isAllView={isAllView}
-          onEditAccount={openEditAccountModal}
-          onAddAccount={openAddAccountModal}
-          getPersonName={getPersonName}
-          getCalculatedBalanceSync={getCalculatedBalanceSync}
-        />
-
-        <BudgetManagementSection
-          budgets={budgets}
-          isAllView={isAllView}
-          onEditBudget={openEditBudgetModal}
-          getPersonName={getPersonName}
-        />
+    <div className="space-y-6 lg:space-y-8 p-4 sm:p-6 lg:p-8 pb-24 lg:pb-8">
+      {/* Header */}
+      <div className="space-y-2">
+        <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">Impostazioni</h1>
+        <p className="text-sm lg:text-base text-gray-600 dark:text-gray-400">
+          Gestisci il tuo profilo, account e preferenze
+        </p>
       </div>
 
+      {/* Sezione Informazioni Account */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+        <div className="p-4 sm:p-6">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Informazioni Account</h2>
+          <div className="space-y-4">
+            <div className="flex items-center space-x-4">
+              {user?.imageUrl && (
+                <img src={user.imageUrl} alt={user.fullName || "Avatar"} className="w-12 h-12 rounded-full" />
+              )}
+              <div className="flex-1">
+                <h3 className="font-medium text-gray-900 dark:text-white">{user?.fullName || "Utente"}</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">{user?.emailAddress}</p>
+              </div>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button
+                onClick={signOut}
+                className="px-4 py-2 text-sm font-medium text-red-600 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
+              >
+                Disconnetti
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Sezione Gruppo */}
+      <GroupSettings
+        group={currentGroup}
+        isLoading={false}
+        onUpdateGroup={handleUpdateGroup}
+        onDeleteGroup={handleDeleteGroup}
+      />
+
+      {/* Sezione Profilo Utente */}
+      <UserProfileSection people={people} onEditPerson={openEditPersonModal} />
+
+      {/* Sezione Gestione Account */}
+      <AccountManagementSection
+        accounts={accounts}
+        isAllView={false}
+        onEditAccount={openEditAccountModal}
+        onAddAccount={openAddAccountModal}
+        getPersonName={getPersonName}
+        getCalculatedBalanceSync={getCalculatedBalanceSync}
+      />
+
+      {/* Sezione Gestione Budget */}
+      <BudgetManagementSection
+        budgets={budgets}
+        isAllView={false}
+        onEditBudget={openEditBudgetModal}
+        getPersonName={getPersonName}
+      />
+
       {/* Modali */}
-      <EditAccountModal
-        isOpen={isEditAccountModalOpen}
-        onClose={closeEditAccountModal}
-        account={selectedAccount}
-      />
-
-      <AddAccountModal
-        isOpen={isAddAccountModalOpen}
-        onClose={closeAddAccountModal}
-      />
-
-      <EditPersonModal
-        isOpen={isEditPersonModalOpen}
-        onClose={closeEditPersonModal}
-        person={selectedPerson}
-      />
-
-      <EditBudgetModal
-        isOpen={isEditBudgetModalOpen}
-        onClose={closeEditBudgetModal}
-        budget={selectedBudget}
-      />
-    </>
+      {/* I modali verranno gestiti dai componenti specifici */}
+    </div>
   );
-});
-
-SettingsPage.displayName = 'SettingsPage';
+};

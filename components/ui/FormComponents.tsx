@@ -106,24 +106,24 @@ export const CheckboxGroup = memo<CheckboxGroupProps>(({
 }) => {
   const gridCols = {
     1: 'grid-cols-1',
-    2: 'grid-cols-1 md:grid-cols-2',
-    3: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
+    2: 'grid-cols-1 sm:grid-cols-2',
+    3: 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3',
   };
 
   return (
     <div 
-      className={`grid ${gridCols[columns]} gap-2 border border-gray-200 dark:border-gray-600 rounded-md p-3 overflow-y-auto`}
+      className={`grid ${gridCols[columns]} gap-3 sm:gap-2 border border-gray-200 dark:border-gray-600 rounded-lg sm:rounded-md p-4 sm:p-3 overflow-y-auto`}
       style={{ maxHeight }}
     >
       {options.map(option => (
-        <label key={option.id} className="flex items-center">
+        <label key={option.id} className="flex items-center p-2 sm:p-0 rounded-lg sm:rounded-none hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
           <input
             type="checkbox"
             checked={option.checked}
             onChange={(e) => onChange(option.id, e.target.checked)}
-            className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 dark:bg-gray-700 dark:border-gray-600 dark:checked:bg-blue-600 dark:checked:border-blue-600"
+            className="w-5 h-5 sm:w-4 sm:h-4 rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 dark:bg-gray-700 dark:border-gray-600 dark:checked:bg-blue-600 dark:checked:border-blue-600"
           />
-          <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">
+          <span className="ml-3 sm:ml-2 text-sm sm:text-sm text-gray-700 dark:text-gray-300">
             {option.label}
           </span>
         </label>
@@ -155,23 +155,23 @@ export const ModalActions = memo<ModalActionsProps>(({
   showCancel = true,
   submitButtonStyle,
 }) => (
-  <div className="flex justify-end pt-6 space-x-3 border-t border-gray-200 dark:border-gray-600 mt-6">
+  <div className="flex flex-col sm:flex-row sm:justify-end pt-4 sm:pt-6 space-y-3 sm:space-y-0 sm:space-x-3 border-t border-gray-200 dark:border-gray-600 mt-4 sm:mt-6">
     {showCancel && (
       <button
         type="button"
         onClick={onCancel}
-      className="py-2 px-4 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500 transition-colors"
-      disabled={isSubmitting}
-    >
-      {cancelText}
-    </button>
+        className="w-full sm:w-auto py-3 sm:py-2 px-4 bg-gray-200 text-gray-800 rounded-lg sm:rounded-md hover:bg-gray-300 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500 transition-colors text-sm sm:text-base font-medium"
+        disabled={isSubmitting}
+      >
+        {cancelText}
+      </button>
     )}
     {onSubmit && (
       <button
         type="submit"
         onClick={onSubmit}
         disabled={isSubmitting || submitDisabled}
-        className="py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:bg-blue-400 disabled:cursor-not-allowed flex items-center"
+        className="w-full sm:w-auto py-3 sm:py-2 px-4 bg-blue-600 text-white rounded-lg sm:rounded-md hover:bg-blue-700 transition-colors disabled:bg-blue-400 disabled:cursor-not-allowed flex items-center justify-center text-sm sm:text-base font-medium"
         style={submitButtonStyle}
       >
         {isSubmitting ? (

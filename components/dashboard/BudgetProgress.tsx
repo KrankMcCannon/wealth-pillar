@@ -63,11 +63,11 @@ export const BudgetProgress = memo<BudgetProgressProps>(
     }
 
     return (
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6 overflow-hidden">
         {/* Header con controlli */}
-        <div className="flex justify-between items-center">
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-3 sm:space-y-0">
+          <div className="flex-1 min-w-0">
+            <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white truncate">
               {isReportMode && periodDisplayInfo.personName
                 ? `Budget di ${periodDisplayInfo.personName}`
                 : selectedPersonId === "all"
@@ -76,7 +76,7 @@ export const BudgetProgress = memo<BudgetProgressProps>(
                 ? `Budget di ${selectedPersonData.person.name}`
                 : "Budget"}
             </h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 truncate">
               {isReportMode && periodDisplayInfo.periodLabel
                 ? `Periodo: ${periodDisplayInfo.periodLabel}`
                 : selectedPersonId === "all"
@@ -86,7 +86,11 @@ export const BudgetProgress = memo<BudgetProgressProps>(
           </div>
 
           {/* Pulsante gestione periodi (solo se non in modalità report) */}
-          {!isReportMode && <BudgetPeriodButton people={people} />}
+          {!isReportMode && (
+            <div className="flex-shrink-0">
+              <BudgetPeriodButton people={people} />
+            </div>
+          )}
         </div>
 
         {/* Selettore periodi (solo in modalità report) */}
