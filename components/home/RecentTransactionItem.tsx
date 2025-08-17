@@ -17,7 +17,7 @@ interface RecentTransactionItemProps {
  * Componente RecentTransactionItem
  */
 export const RecentTransactionItem = memo<RecentTransactionItemProps>(({ transaction, accountName }) => {
-  const { transactionData, personInitials, iconColor, backgroundColor, directionArrow, amountColor } =
+  const { transactionData, personAvatarIcon, personInitials, iconColor, backgroundColor, directionArrow, amountColor } =
     useTransactionVisual(transaction);
   const { categories, hasAvailableAmount } = useFinance();
 
@@ -32,10 +32,16 @@ export const RecentTransactionItem = memo<RecentTransactionItemProps>(({ transac
       } ${transactionData.shouldBlurTransaction ? "opacity-60" : ""}`}
     >
       <div className="flex items-center flex-1 min-w-0">
-        {/* Cerchio con iniziali e freccia sporgente */}
+        {/* Cerchio con avatar/iniziali e freccia sporgente */}
         <div className="relative flex-shrink-0">
-          <div className={`w-8 h-8 lg:w-10 lg:h-10 rounded-full flex items-center justify-center ${backgroundColor}`}>
-            <span className="text-xs font-bold text-gray-800 dark:text-white">{personInitials}</span>
+          <div
+            className={`w-8 h-8 lg:w-10 lg:h-10 rounded-full flex items-center justify-center ${backgroundColor} overflow-hidden`}
+          >
+            {personAvatarIcon ? (
+              <span className="text-base lg:text-lg font-bold text-gray-800 dark:text-white">{personAvatarIcon}</span>
+            ) : (
+              <span className="text-base lg:text-lg font-bold text-gray-800 dark:text-white">{personInitials}</span>
+            )}
           </div>
           {/* Freccia sporgente alla base */}
           <div

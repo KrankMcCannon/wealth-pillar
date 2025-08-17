@@ -161,7 +161,7 @@ export const Navbar: React.FC = () => {
       <div className="space-y-2">
         <NavItem to="/">
           <HomeIcon className="w-5 h-5 mr-3" />
-          Dashboard
+          Home
         </NavItem>
 
         <NavItem to="/transactions">

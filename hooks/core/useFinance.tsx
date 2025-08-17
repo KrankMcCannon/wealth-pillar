@@ -38,6 +38,7 @@ interface FinanceContextType {
   error: string | null;
   addTransaction: (transaction: Omit<Transaction, "id" | "isReconciled" | "createdAt">) => Promise<void>;
   updateTransaction: (transaction: Transaction) => Promise<void>;
+  deleteTransaction: (transactionId: string) => Promise<void>;
   addAccount: (account: Omit<Account, "id">) => Promise<void>;
   updateAccount: (account: Account) => Promise<void>;
   addBudget: (budget: Omit<Budget, "id">) => Promise<void>;
@@ -179,6 +180,15 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
           .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
       );
     }, "Failed to update transaction"),
+    [getServiceSafely]
+  );
+
+  const deleteTransaction = useCallback(
+    handleAsyncError(async (transactionId: string) => {
+      const service = await getServiceSafely();
+      await service.transactions.delete(transactionId);
+      setTransactions((prev) => prev.filter((tx) => tx.id !== transactionId));
+    }, "Failed to delete transaction"),
     [getServiceSafely]
   );
 
@@ -372,6 +382,7 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
     error,
     addTransaction,
     updateTransaction,
+    deleteTransaction,
     addAccount,
     updateAccount,
     addBudget,

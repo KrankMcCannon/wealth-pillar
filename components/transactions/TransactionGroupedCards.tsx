@@ -11,6 +11,7 @@ interface TransactionGroupedCardsProps {
   onLinkClick: (tx: Transaction) => void;
   onSelectToLink: (txId: string) => void;
   onEditClick: (tx: Transaction) => void;
+  onDeleteClick?: (tx: Transaction) => void;
   getAccountById: (id: string) => any;
   getPersonById: (id: string) => any;
   isTransactionLinkable: (tx: Transaction) => boolean;
@@ -29,6 +30,7 @@ export const TransactionGroupedCards = memo<TransactionGroupedCardsProps>(
     onLinkClick,
     onSelectToLink,
     onEditClick,
+    onDeleteClick,
     getAccountById,
     getPersonById,
     isTransactionLinkable,
@@ -103,6 +105,7 @@ export const TransactionGroupedCards = memo<TransactionGroupedCardsProps>(
                     onLinkClick={onLinkClick}
                     onSelectToLink={onSelectToLink}
                     onEditClick={onEditClick}
+                    onDeleteClick={onDeleteClick}
                   />
                 );
               })}

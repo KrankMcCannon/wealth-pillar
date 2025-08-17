@@ -107,7 +107,7 @@ export class PeriodFilteringService {
   static shouldShowBudget(budget: Budget, options: PeriodFilteringOptions, people: Person[]): boolean {
     const { selectedPeriod, selectedPersonId, isReportMode } = options;
 
-    // In modalità normale (dashboard), mostra tutti i budget della persona selezionata
+    // In modalità normale (home), mostra tutti i budget della persona selezionata
     if (!isReportMode) {
       if (!selectedPersonId || selectedPersonId === "all") {
         return true;

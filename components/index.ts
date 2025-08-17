@@ -1,29 +1,29 @@
 // Componenti UI di base
-export * from './ui';
+export * from "./ui";
 
 // Componenti comuni condivisi
-export * from './common';
+export * from "./common";
 
 // Modali
-export * from './modals';
+export * from "./modals";
 
-// Dashboard
-export * from './dashboard';
+// Home
+export * from "./home";
 
 // Transazioni
-export * from './transactions';
+export * from "./transactions";
 
-// Investimenti  
-export * from './investments';
+// Investimenti
+export * from "./investments";
 
 // Budget
-export * from './budget';
+export * from "./budget";
 
 // Gruppi
-export * from './groups';
+export * from "./groups";
 
 // Impostazioni
-export * from './settings';
+export * from "./settings";
 
 // Pagine
-export * from './pages';
+export * from "./pages";

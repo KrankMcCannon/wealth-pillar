@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ResponsiveLayout } from "./components/common";
-import { Dashboard, TransactionsPage, InvestmentsPage, SettingsPage, ReportsPage } from "./components/pages";
+import { Home, TransactionsPage, InvestmentsPage, SettingsPage, ReportsPage } from "./components/pages";
 import { AddTransactionModal } from "./components/modals";
 import { OnboardingFlow } from "./components/onboarding";
 import { PlusIcon } from "./components/common";
@@ -67,7 +67,7 @@ const AppContent: React.FC = () => {
       <div style={{ "--theme-color": themeColor } as React.CSSProperties}>
         <ResponsiveLayout>
           <Routes>
-            <Route path="/" element={<Dashboard />} />
+            <Route path="/" element={<Home />} />
             <Route path="/transactions" element={<TransactionsPage />} />
             <Route path="/investments" element={<InvestmentsPage />} />
             <Route path="/reports" element={<ReportsPage />} />

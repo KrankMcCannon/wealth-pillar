@@ -2,7 +2,7 @@ import { memo } from "react";
 import { Card } from "../ui";
 import { PencilIcon } from "../common";
 import { Person, Account, Budget } from "../../types";
-import { formatCurrency } from "../../constants";
+import { formatCurrency, getPersonAvatarIcon } from "../../constants";
 
 interface UserProfileSectionProps {
   people: Person[];
@@ -39,7 +39,9 @@ export const UserProfileSection = memo<UserProfileSectionProps>(({ people, onEdi
           className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg"
         >
           <div className="flex items-center">
-            <img src={person.avatar} alt={person.name} className="w-12 h-12 rounded-full" />
+            <div className="w-12 h-12 rounded-full flex items-center justify-center bg-gray-100 dark:bg-gray-700">
+              <span className="text-lg font-bold text-gray-800 dark:text-white">{getPersonAvatarIcon(person)}</span>
+            </div>
             <div className="ml-4">
               <p className="font-semibold text-lg text-gray-900 dark:text-white">{person.name}</p>
               <div className="flex items-center mt-1">

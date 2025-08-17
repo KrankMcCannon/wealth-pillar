@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from 'react';
-import { useAuth } from '../../../contexts/AuthContext';
+import { useCallback, useEffect, useState } from "react";
+import { useAuth } from "../../../contexts/AuthContext";
 
 interface AuthCallbackState {
   loading: boolean;
@@ -28,13 +28,13 @@ export const useAuthCallback = () => {
     try {
       // Verifica se l'URL contiene parametri di errore
       const urlParams = new URLSearchParams(window.location.search);
-      const errorParam = urlParams.get('error');
-      const errorDescription = urlParams.get('error_description');
+      const errorParam = urlParams.get("error");
+      const errorDescription = urlParams.get("error_description");
 
       if (errorParam) {
         setState({
           loading: false,
-          error: errorDescription || 'Errore durante l\'autenticazione',
+          error: errorDescription || "Errore durante l'autenticazione",
           success: false,
         });
         return;
@@ -48,22 +48,21 @@ export const useAuthCallback = () => {
             error: null,
             success: true,
           });
-          // Reindirizza alla dashboard
-          window.location.href = '/';
+          // Reindirizza alla home
+          window.location.href = "/";
         } else {
           // Se non c'è utente dopo 3 secondi, c'è stato un errore
           setState({
             loading: false,
-            error: 'Autenticazione non riuscita',
+            error: "Autenticazione non riuscita",
             success: false,
           });
         }
       }, 3000);
-
     } catch (err) {
       setState({
         loading: false,
-        error: 'Errore durante l\'autenticazione',
+        error: "Errore durante l'autenticazione",
         success: false,
       });
     }

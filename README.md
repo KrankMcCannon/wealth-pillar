@@ -64,7 +64,7 @@ Wealth Pillar è stato completamente ridisegnato con un approccio **mobile-first
 
 ### 🎨 Componenti Responsive
 
-- **Dashboard**: Grid adattivo per account e metriche
+- **Home**: Grid adattivo per account e metriche
 - **Transazioni**: Vista a cards su mobile, tabella su desktop
 - **Budget**: Cards espandibili con layout ottimizzato per mobile
 - **Filtri**: Form responsive con layout a colonne adattivo
@@ -121,7 +121,7 @@ Il server dati sarà disponibile su `http://localhost:3001`
 
 ### Gestione Quotidiana
 
-- **Dashboard**: Monitora bilanci e spese dal pannello principale
+- **Home**: Monitora bilanci e spese dal pannello principale
 - **Transazioni**: Aggiungi, modifica e riconcilia le transazioni
 - **Budget**: Imposta e monitora i budget mensili per categoria
 - **Investimenti**: Traccia il portfolio di investimenti

@@ -1,7 +1,8 @@
 import { memo } from "react";
 import { Person } from "../../types";
-import { BaseModal, FormField, Input, ModalActions } from "../ui";
+import { BaseModal, FormField, Input, ModalActions, AvatarSelector } from "../ui";
 import { useEditPerson } from "../../hooks/features/settings/useEditPerson";
+import { useFinance } from "../../hooks/core/useFinance";
 
 interface EditPersonModalProps {
   isOpen: boolean;
@@ -13,6 +14,7 @@ interface EditPersonModalProps {
  * Componente presentazionale per editing persone
  */
 export const EditPersonModal = memo<EditPersonModalProps>(({ isOpen, onClose, person }) => {
+  const { people } = useFinance();
   const {
     data,
     errors,
@@ -41,16 +43,19 @@ export const EditPersonModal = memo<EditPersonModalProps>(({ isOpen, onClose, pe
         </FormField>
 
         {/* Avatar field */}
-        <FormField id="avatar" label="URL Avatar" error={errors.avatar}>
-          <Input
-            type="url"
-            value={data.avatar}
-            onChange={handleAvatarChange}
-            placeholder="https://esempio.com/avatar.jpg"
-            error={!!errors.avatar}
-            disabled={isSubmitting}
-          />
-        </FormField>
+        <AvatarSelector
+          people={people}
+          selectedAvatarId={data.avatar}
+          onAvatarSelect={(avatarId) => {
+            // Simula un evento per handleAvatarChange
+            const mockEvent = {
+              target: { value: avatarId },
+            } as React.ChangeEvent<HTMLInputElement>;
+            handleAvatarChange(mockEvent);
+          }}
+          currentPersonId={person?.id}
+          disabled={isSubmitting}
+        />
 
         {/* Theme color field */}
         <FormField id="themeColor" label="Colore Tema" error={errors.themeColor}>

@@ -42,6 +42,7 @@ export const TransactionsPage: React.FC = () => {
     isThisLinkingTransaction,
   } = useTransactionLinking();
   const [editingTx, setEditingTx] = useState<Transaction | null>(null);
+  const { deleteTransaction } = useFinance();
 
   const handleEditTransaction = (tx: Transaction) => {
     setEditingTx(tx);
@@ -49,6 +50,16 @@ export const TransactionsPage: React.FC = () => {
 
   const handleCloseEditModal = () => {
     setEditingTx(null);
+  };
+
+  const handleDeleteTransaction = (tx: Transaction) => {
+    if (
+      window.confirm(
+        `Sei sicuro di voler eliminare la transazione "${tx.description}"? Questa azione non può essere annullata.`
+      )
+    ) {
+      deleteTransaction(tx.id);
+    }
   };
 
   return (
@@ -124,6 +135,7 @@ export const TransactionsPage: React.FC = () => {
           onLinkClick={handleStartLink}
           onSelectToLink={handleSelectToLink}
           onEditClick={handleEditTransaction}
+          onDeleteClick={handleDeleteTransaction}
           getAccountById={getAccountById}
           getPersonById={getPersonById}
           isTransactionLinkable={isTransactionLinkable}

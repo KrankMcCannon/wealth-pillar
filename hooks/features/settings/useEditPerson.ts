@@ -11,7 +11,7 @@ import { validatePersonForm } from "../../utils/validators";
 
 interface EditPersonFormData {
   name: string;
-  avatar: string;
+  avatar: string; // ID dell'avatar predefinito o URL personalizzato
   themeColor: string;
 }
 

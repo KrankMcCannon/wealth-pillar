@@ -3,11 +3,9 @@ import { useFinance } from "../../core/useFinance";
 import { TransactionUtils } from "../../../lib/utils/transaction.utils";
 
 /**
- * Hook personalizzato per la logica del Dashboard
- * Principio SRP: Single Responsibility - gestisce solo la logica dei dati del dashboard
- * Principio DRY: Don't Repeat Yourself - centralizza la logica riutilizzabile
+ * Hook per la logica del Home
  */
-export const useDashboardData = () => {
+export const useHomeData = () => {
   const {
     people,
     accounts,
@@ -20,7 +18,7 @@ export const useDashboardData = () => {
   } = useFinance();
 
   // Memoized data filtering per ottimizzare le performance
-  const dashboardData = useMemo(() => {
+  const homeData = useMemo(() => {
     const isAllView = selectedPersonId === "all";
     const selectedPerson = people.find((p) => p.id === selectedPersonId);
 
@@ -51,9 +49,9 @@ export const useDashboardData = () => {
 
   // Account calculations with person names
   const accountsWithData = useMemo(() => {
-    return dashboardData.displayedAccounts
+    return homeData.displayedAccounts
       .map((acc) => {
-        const personNames = dashboardData.isAllView
+        const personNames = homeData.isAllView
           ? acc.personIds
               .map((id) => getPersonById(id)?.name)
               .filter(Boolean)
@@ -68,27 +66,27 @@ export const useDashboardData = () => {
         };
       })
       .sort((a, b) => b.balance - a.balance); // Ordina dal maggiore al minore
-  }, [dashboardData.displayedAccounts, dashboardData.isAllView, getPersonById, getCalculatedBalanceSync]);
+  }, [homeData.displayedAccounts, homeData.isAllView, getPersonById, getCalculatedBalanceSync]);
 
   // Budget data with person information
   const budgetsWithData = useMemo(() => {
-    return dashboardData.displayedBudgets.map((budget) => {
+    return homeData.displayedBudgets.map((budget) => {
       const budgetPerson = getPersonById(budget.personId);
       return {
         budget,
-        person: budgetPerson || dashboardData.selectedPerson!,
+        person: budgetPerson || homeData.selectedPerson!,
       };
     });
-  }, [dashboardData.displayedBudgets, getPersonById, dashboardData.selectedPerson]);
+  }, [homeData.displayedBudgets, getPersonById, homeData.selectedPerson]);
 
   // Recent transactions with account and person names
   const recentTransactionsWithData = useMemo(() => {
-    return dashboardData.recentTransactions.map((transaction) => {
+    return homeData.recentTransactions.map((transaction) => {
       const account = getAccountById(transaction.accountId);
       const accountName = account ? account.name : "Conto sconosciuto";
 
       let personName: string | undefined;
-      if (dashboardData.isAllView && account) {
+      if (homeData.isAllView && account) {
         const transactionPerson = account.personIds.map((id) => getPersonById(id)).filter(Boolean)[0];
         personName = transactionPerson?.name;
       }
@@ -99,10 +97,10 @@ export const useDashboardData = () => {
         personName,
       };
     });
-  }, [dashboardData.recentTransactions, dashboardData.isAllView, getAccountById, getPersonById]);
+  }, [homeData.recentTransactions, homeData.isAllView, getAccountById, getPersonById]);
 
   return {
-    ...dashboardData,
+    ...homeData,
     accountsWithData,
     budgetsWithData,
     recentTransactionsWithData,

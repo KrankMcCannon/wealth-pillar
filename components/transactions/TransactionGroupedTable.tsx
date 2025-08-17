@@ -12,6 +12,7 @@ interface TransactionGroupedTableProps {
   onLinkClick: (tx: Transaction) => void;
   onSelectToLink: (txId: string) => void;
   onEditClick: (tx: Transaction) => void;
+  onDeleteClick?: (tx: Transaction) => void;
   getAccountById: (id: string) => any;
   getPersonById: (id: string) => any;
   isTransactionLinkable: (tx: Transaction) => boolean;
@@ -30,6 +31,7 @@ export const TransactionGroupedTable = memo<TransactionGroupedTableProps>(
     onLinkClick,
     onSelectToLink,
     onEditClick,
+    onDeleteClick,
     getAccountById,
     getPersonById,
     isTransactionLinkable,
@@ -57,6 +59,7 @@ export const TransactionGroupedTable = memo<TransactionGroupedTableProps>(
           onLinkClick={onLinkClick}
           onSelectToLink={onSelectToLink}
           onEditClick={onEditClick}
+          onDeleteClick={onDeleteClick}
           getAccountById={getAccountById}
           getPersonById={getPersonById}
           isTransactionLinkable={isTransactionLinkable}
@@ -79,6 +82,7 @@ export const TransactionGroupedTable = memo<TransactionGroupedTableProps>(
             onLinkClick={onLinkClick}
             onSelectToLink={onSelectToLink}
             onEditClick={onEditClick}
+            onDeleteClick={onDeleteClick}
             getAccountById={getAccountById}
             getPersonById={getPersonById}
             isTransactionLinkable={isTransactionLinkable}

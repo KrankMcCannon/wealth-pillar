@@ -31,9 +31,9 @@ export {
   useBudgetForm,
 } from "./features/budgets";
 
-// Feature hooks - Dashboard
-export { useDashboardData } from "./features/dashboard/useDashboardData";
-export { useExpenseChart } from "./features/dashboard/useExpenseChart";
+// Feature hooks - Home
+export { useHomeData } from "./features/home/useHomeData";
+export { useExpenseChart } from "./features/home/useExpenseChart";
 
 // Feature hooks - Groups
 export { useGroups } from "./features/groups/useGroups";

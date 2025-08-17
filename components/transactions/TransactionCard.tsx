@@ -1,9 +1,10 @@
 import { memo } from "react";
 import { Transaction } from "../../types";
-import { LinkIcon, PencilIcon } from "../common";
+import { LinkIcon, PencilIcon, TrashIcon } from "../common";
 import { formatCurrency, formatDate } from "../../constants";
 import { useTransactionVisual, useTransactionRowClasses } from "../../hooks/features/transactions/useTransactionVisual";
 import { useFinance } from "../../hooks/core/useFinance";
+import { DropdownMenu } from "../ui";
 
 interface TransactionCardProps {
   transaction: Transaction;
@@ -16,6 +17,7 @@ interface TransactionCardProps {
   onLinkClick: (tx: Transaction) => void;
   onSelectToLink: (txId: string) => void;
   onEditClick: (tx: Transaction) => void;
+  onDeleteClick?: (tx: Transaction) => void;
 }
 
 /**
@@ -33,11 +35,11 @@ export const TransactionCard = memo<TransactionCardProps>(
     onLinkClick,
     onSelectToLink,
     onEditClick,
+    onDeleteClick,
   }) => {
-    const { transactionData, personInitials, iconColor, backgroundColor, directionArrow } =
+    const { transactionData, personAvatarIcon, personInitials, iconColor, backgroundColor, directionArrow } =
       useTransactionVisual(transaction);
 
-    // Applica le stesse classi di blur e oscuramento del desktop
     const cardClasses = useTransactionRowClasses({
       transaction,
       transactionData,
@@ -78,10 +80,16 @@ export const TransactionCard = memo<TransactionCardProps>(
       >
         {/* Header con avatar e descrizione */}
         <div className="flex items-start space-x-3">
-          {/* Cerchio con iniziali e freccia sporgente */}
+          {/* Cerchio con avatar/iniziali e freccia sporgente */}
           <div className="relative flex-shrink-0">
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${backgroundColor}`}>
-              <span className="text-sm font-bold text-gray-800 dark:text-white">{personInitials}</span>
+            <div
+              className={`w-10 h-10 rounded-full flex items-center justify-center ${backgroundColor} overflow-hidden`}
+            >
+              {personAvatarIcon ? (
+                <span className="text-lg font-bold text-gray-800 dark:text-white">{personAvatarIcon}</span>
+              ) : (
+                <span className="text-lg font-bold text-gray-800 dark:text-white">{personInitials}</span>
+              )}
             </div>
             {/* Freccia sporgente alla base */}
             <div
@@ -144,30 +152,35 @@ export const TransactionCard = memo<TransactionCardProps>(
 
           {/* Azioni */}
           {!isLinkingMode && (
-            <div className="flex space-x-2">
-              {!transaction.isReconciled && !isTransfer && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onLinkClick(transaction);
-                  }}
-                  className="p-2 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/50 rounded-lg transition-colors"
-                  title="Riconcilia transazione"
-                >
-                  <LinkIcon className="w-4 h-4" />
-                </button>
-              )}
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onEditClick(transaction);
-                }}
-                className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                title="Modifica transazione"
-              >
-                <PencilIcon className="w-4 h-4" />
-              </button>
-            </div>
+            <DropdownMenu
+              items={[
+                ...(!transaction.isReconciled && !isTransfer
+                  ? [
+                      {
+                        label: "Riconcilia transazione",
+                        onClick: () => onLinkClick(transaction),
+                        icon: <LinkIcon className="w-4 h-4" />,
+                        className: "text-blue-600 dark:text-blue-400",
+                      },
+                    ]
+                  : []),
+                {
+                  label: "Modifica transazione",
+                  onClick: () => onEditClick(transaction),
+                  icon: <PencilIcon className="w-4 h-4" />,
+                },
+                ...(onDeleteClick
+                  ? [
+                      {
+                        label: "Elimina transazione",
+                        onClick: () => onDeleteClick(transaction),
+                        icon: <TrashIcon className="w-4 h-4" />,
+                        className: "text-red-600 dark:text-red-400",
+                      },
+                    ]
+                  : []),
+              ]}
+            />
           )}
         </div>
       </div>

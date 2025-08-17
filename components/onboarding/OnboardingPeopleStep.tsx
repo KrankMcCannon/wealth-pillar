@@ -1,5 +1,5 @@
 import React, { memo } from "react";
-import { FormField, Input, ModalActions } from "../ui";
+import { FormField, Input, ModalActions, AvatarSelector } from "../ui";
 import { PlusIcon, TrashIcon } from "../common/Icons";
 import type { OnboardingPerson } from "../../types";
 import { useOnboardingPeopleForm } from "../../hooks/features/onboarding/useOnboardingPeopleForm";
@@ -24,6 +24,7 @@ export const OnboardingPeopleStep = memo<OnboardingPeopleStepProps>(
       addPerson,
       removePerson,
       handlePersonChange,
+      handleAvatarSelect,
       validateForm,
       canSubmit,
       validPeople,
@@ -80,6 +81,27 @@ export const OnboardingPeopleStep = memo<OnboardingPeopleStepProps>(
                       disabled={isLoading}
                     />
                   </FormField>
+
+                  {/* Avatar */}
+                  <div className="sm:col-span-2 lg:col-span-1">
+                    <AvatarSelector
+                      people={people.map((p, i) => ({
+                        id: `temp_${i}`,
+                        name: p.name,
+                        avatar: p.avatar,
+                        themeColor: p.themeColor,
+                        budgetStartDate: p.budgetStartDate,
+                        groupId: "",
+                        role: "member" as const,
+                        createdAt: "",
+                        updatedAt: "",
+                      }))}
+                      selectedAvatarId={person.avatar}
+                      onAvatarSelect={(avatarId) => handleAvatarSelect(index, avatarId)}
+                      currentPersonId={`temp_${index}`}
+                      disabled={isLoading}
+                    />
+                  </div>
 
                   {/* Colore tema */}
                   <FormField id={`person_${index}_themeColor`} label="Colore tema">

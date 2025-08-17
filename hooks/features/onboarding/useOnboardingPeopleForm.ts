@@ -94,6 +94,22 @@ export const useOnboardingPeopleForm = (initialPeople: OnboardingPerson[] = []) 
   }, []);
 
   /**
+   * Gestisce la selezione dell'avatar per una persona specifica
+   */
+  const handleAvatarSelect = useCallback((index: number, avatarId: string) => {
+    setPeople((prev) => prev.map((person, i) => (i === index ? { ...person, avatar: avatarId } : person)));
+
+    // Pulisci errori per questo campo
+    const errorKey = `person_${index}_avatar`;
+    setValidationErrors((prev) => {
+      if (!prev[errorKey]) return prev;
+      const newErrors = { ...prev };
+      delete newErrors[errorKey];
+      return newErrors;
+    });
+  }, []);
+
+  /**
    * Valida tutti i dati delle persone
    */
   const validateForm = useCallback((): boolean => {
@@ -126,6 +142,11 @@ export const useOnboardingPeopleForm = (initialPeople: OnboardingPerson[] = []) 
       if (!person.themeColor || !person.themeColor.match(/^#[0-9A-Fa-f]{6}$/)) {
         errors[`person_${index}_themeColor`] = "Colore tema non valido";
       }
+
+      // Validazione avatar
+      if (!person.avatar) {
+        errors[`person_${index}_avatar`] = "Seleziona un avatar";
+      }
     });
 
     setValidationErrors(errors);
@@ -136,21 +157,19 @@ export const useOnboardingPeopleForm = (initialPeople: OnboardingPerson[] = []) 
    * Controlla se il form può essere sottomesso
    */
   const canSubmit = useMemo(() => {
-    return people.some((person) => person.name.trim().length > 0);
+    return people.some((person) => person.name.trim().length > 0 && person.avatar);
   }, [people]);
 
   /**
-   * Persone valide (con nome compilato) pronte per l'invio
+   * Persone valide (con nome compilato e avatar selezionato) pronte per l'invio
    */
   const validPeople = useMemo(() => {
     return people
-      .filter((person) => person.name.trim().length > 0)
+      .filter((person) => person.name.trim().length > 0 && person.avatar)
       .map((person) => ({
         ...person,
         name: person.name.trim(),
-        avatar:
-          person.avatar ||
-          `https://ui-avatars.com/api/?name=${encodeURIComponent(person.name.trim())}&background=0D8ABC&color=fff`,
+        avatar: person.avatar, // Usa direttamente l'ID dell'avatar predefinito
       }));
   }, [people]);
 
@@ -173,6 +192,7 @@ export const useOnboardingPeopleForm = (initialPeople: OnboardingPerson[] = []) 
     addPerson,
     removePerson,
     handlePersonChange,
+    handleAvatarSelect,
     validateForm,
     canSubmit,
     validPeople,

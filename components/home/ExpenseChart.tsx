@@ -2,7 +2,7 @@ import { memo } from "react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { Transaction } from "../../types";
 import { useDarkMode, useBreakpoint } from "../../hooks";
-import { useExpenseChart } from "../../hooks/features/dashboard/useExpenseChart";
+import { useExpenseChart } from "../../hooks/features/home/useExpenseChart";
 import { Card } from "../ui";
 import { formatCurrency } from "../../constants";
 

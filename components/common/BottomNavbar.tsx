@@ -8,7 +8,7 @@ interface BottomNavbarProps {
 
 export const BottomNavbar: React.FC<BottomNavbarProps> = ({ className = "" }) => {
   const navItems = [
-    { to: "/", icon: HomeIcon, label: "Dashboard" },
+    { to: "/", icon: HomeIcon, label: "Home" },
     { to: "/transactions", icon: TransactionIcon, label: "Transazioni" },
     { to: "/investments", icon: InvestmentIcon, label: "Investimenti" },
     { to: "/reports", icon: ChartBarIcon, label: "Report" },
