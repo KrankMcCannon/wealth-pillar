@@ -74,7 +74,7 @@ export const AddTransactionModal = memo<AddTransactionModalProps>(({ isOpen, onC
         </FormField>
 
         {/* Amount and Date */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <FormField
             label="Importo (€)"
             id="amount"
@@ -112,7 +112,7 @@ export const AddTransactionModal = memo<AddTransactionModalProps>(({ isOpen, onC
         </div>
 
         {/* Type and Category */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <FormField
             label="Tipo"
             id="type"

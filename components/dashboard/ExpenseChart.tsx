@@ -1,10 +1,10 @@
-import { memo } from 'react';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
-import { Transaction } from '../../types';
-import { useDarkMode, useBreakpoint } from '../../hooks';
-import { useExpenseChart } from '../../hooks/features/dashboard/useExpenseChart';
-import { Card } from '../ui';
-import { formatCurrency } from '../../constants';
+import { memo } from "react";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
+import { Transaction } from "../../types";
+import { useDarkMode, useBreakpoint } from "../../hooks";
+import { useExpenseChart } from "../../hooks/features/dashboard/useExpenseChart";
+import { Card } from "../ui";
+import { formatCurrency } from "../../constants";
 
 /**
  * Props per ExpenseChart
@@ -25,22 +25,28 @@ export const ExpenseChart = memo<ExpenseChartProps>(({ transactions }) => {
     return (
       <Card>
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold text-gray-800 dark:text-white">
-            Ripartizione Spese
-          </h2>
+          <h2 className="text-xl font-semibold text-gray-800 dark:text-white">Ripartizione Spese</h2>
         </div>
         <div className="flex flex-col items-center justify-center py-16 text-gray-500 dark:text-gray-400">
           <div className="w-20 h-20 bg-gradient-to-br from-blue-100 to-purple-100 dark:from-gray-700 dark:to-gray-600 rounded-full flex items-center justify-center mb-6 shadow-lg">
-            <svg className="w-10 h-10 text-blue-500 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            <svg
+              className="w-10 h-10 text-blue-500 dark:text-blue-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+              />
             </svg>
           </div>
-          <h3 className="text-lg font-semibold mb-2 text-gray-700 dark:text-gray-300">
-            Nessuna spesa registrata
-          </h3>
+          <h3 className="text-lg font-semibold mb-2 text-gray-700 dark:text-gray-300">Nessuna spesa registrata</h3>
           <p className="text-sm text-center max-w-md">
-            Non ci sono spese da visualizzare per il periodo selezionato.
-            Aggiungi alcune transazioni per vedere la ripartizione delle spese.
+            Non ci sono spese da visualizzare per il periodo selezionato. Aggiungi alcune transazioni per vedere la
+            ripartizione delle spese.
           </p>
         </div>
       </Card>
@@ -49,14 +55,10 @@ export const ExpenseChart = memo<ExpenseChartProps>(({ transactions }) => {
 
   return (
     <Card>
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-semibold text-gray-800 dark:text-white">
-          Ripartizione Spese
-        </h2>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 lg:mb-6 space-y-2 sm:space-y-0">
+        <h2 className="text-lg lg:text-xl font-semibold text-gray-800 dark:text-white">Ripartizione Spese</h2>
         <div className="text-sm text-gray-500 dark:text-gray-400">
-          <span className="font-medium">
-            {formatCurrency(totalExpenses)} totale
-          </span>
+          <span className="font-medium">{formatCurrency(totalExpenses)} totale</span>
         </div>
       </div>
 
@@ -65,11 +67,7 @@ export const ExpenseChart = memo<ExpenseChartProps>(({ transactions }) => {
           {/* Grafico a torta centrato */}
           <div className="flex justify-center">
             <div className="relative w-full max-w-md">
-              <ResponsiveContainer
-                width="100%"
-                height={isMobile ? 280 : 320}
-                className="mx-auto"
-              >
+              <ResponsiveContainer width="100%" height={isMobile ? 280 : 320} className="mx-auto">
                 <PieChart>
                   <Pie
                     data={expenseData}
@@ -89,35 +87,35 @@ export const ExpenseChart = memo<ExpenseChartProps>(({ transactions }) => {
                         key={`cell-${index}`}
                         fill={COLORS[index % COLORS.length]}
                         style={{
-                          filter: 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1))',
-                          transition: 'all 0.3s ease'
+                          filter: "drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1))",
+                          transition: "all 0.3s ease",
                         }}
                       />
                     ))}
                   </Pie>
                   <Tooltip
-                    formatter={(value: number) => [formatCurrency(value), 'Spesa']}
+                    formatter={(value: number) => [formatCurrency(value), "Spesa"]}
                     contentStyle={{
-                      backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.96)' : 'rgba(31, 41, 55, 0.96)',
-                      color: isDarkMode ? '#1f2937' : '#f9fafb',
-                      border: isDarkMode ? '1px solid #e5e7eb' : '1px solid #374151',
-                      borderRadius: '12px',
+                      backgroundColor: isDarkMode ? "rgba(255, 255, 255, 0.96)" : "rgba(31, 41, 55, 0.96)",
+                      color: isDarkMode ? "#1f2937" : "#f9fafb",
+                      border: isDarkMode ? "1px solid #e5e7eb" : "1px solid #374151",
+                      borderRadius: "12px",
                       boxShadow: isDarkMode
-                        ? '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05)'
-                        : '0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1)',
-                      backdropFilter: 'blur(16px)',
-                      fontSize: '14px',
-                      padding: '12px 16px',
-                      fontWeight: '500'
+                        ? "0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05)"
+                        : "0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1)",
+                      backdropFilter: "blur(16px)",
+                      fontSize: "14px",
+                      padding: "12px 16px",
+                      fontWeight: "500",
                     }}
                     labelStyle={{
-                      fontWeight: '600',
-                      marginBottom: '4px',
-                      color: isDarkMode ? '#374151' : '#f3f4f6'
+                      fontWeight: "600",
+                      marginBottom: "4px",
+                      color: isDarkMode ? "#374151" : "#f3f4f6",
                     }}
                     itemStyle={{
-                      color: isDarkMode ? '#6b7280' : '#d1d5db',
-                      fontWeight: '500'
+                      color: isDarkMode ? "#6b7280" : "#d1d5db",
+                      fontWeight: "500",
                     }}
                   />
                 </PieChart>
@@ -126,13 +124,13 @@ export const ExpenseChart = memo<ExpenseChartProps>(({ transactions }) => {
           </div>
 
           {/* Lista categorie dettagliata */}
-          <div className="grid grid-cols-1 gap-3">
+          <div className="grid grid-cols-1 gap-2 lg:gap-3">
             {expenseData.map((item, index) => {
-              const percentage = ((item.value / totalExpenses) * 100);
+              const percentage = (item.value / totalExpenses) * 100;
               return (
                 <div
                   key={item.name}
-                  className="group flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/30 rounded-lg border border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-all duration-200"
+                  className="group flex items-center justify-between p-2 lg:p-3 bg-gray-50 dark:bg-gray-700/30 rounded-lg border border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-all duration-200"
                 >
                   <div className="flex items-center flex-1 min-w-0">
                     <div
@@ -140,16 +138,16 @@ export const ExpenseChart = memo<ExpenseChartProps>(({ transactions }) => {
                       style={{ backgroundColor: COLORS[index % COLORS.length] }}
                     />
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-medium text-gray-900 dark:text-gray-100 truncate">
+                      <p className="text-xs lg:text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
                         {item.name}
                       </p>
                       <div className="flex items-center mt-1">
-                        <div className="w-12 bg-gray-200 dark:bg-gray-600 rounded-full h-1 mr-1">
+                        <div className="w-8 lg:w-12 bg-gray-200 dark:bg-gray-600 rounded-full h-1 mr-1">
                           <div
                             className="h-1 rounded-full transition-all duration-500"
                             style={{
                               width: `${percentage}%`,
-                              backgroundColor: COLORS[index % COLORS.length]
+                              backgroundColor: COLORS[index % COLORS.length],
                             }}
                           />
                         </div>
@@ -160,7 +158,7 @@ export const ExpenseChart = memo<ExpenseChartProps>(({ transactions }) => {
                     </div>
                   </div>
                   <div className="text-right ml-2">
-                    <p className="text-xs font-bold text-gray-900 dark:text-gray-100">
+                    <p className="text-xs lg:text-sm font-bold text-gray-900 dark:text-gray-100">
                       {formatCurrency(item.value)}
                     </p>
                   </div>
@@ -174,4 +172,4 @@ export const ExpenseChart = memo<ExpenseChartProps>(({ transactions }) => {
   );
 });
 
-ExpenseChart.displayName = 'ExpenseChart';
+ExpenseChart.displayName = "ExpenseChart";

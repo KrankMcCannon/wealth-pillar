@@ -66,28 +66,28 @@ export const BaseModal = memo<BaseModalProps>(({
 
   return (
     <div 
-      className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 transition-opacity p-4"
+      className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 transition-opacity p-2 sm:p-4"
       onClick={handleBackdropClick}
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-title"
     >
       <div 
-        className={`bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full ${maxWidthClasses[maxWidth]} max-h-[90vh] overflow-y-auto transform transition-all`}
+        className={`bg-white dark:bg-gray-800 rounded-xl sm:rounded-lg shadow-xl p-4 sm:p-6 w-full ${maxWidthClasses[maxWidth]} max-h-[95vh] sm:max-h-[90vh] overflow-y-auto transform transition-all`}
         onClick={handleContentClick}
       >
         {/* Header */}
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex justify-between items-center mb-4 sm:mb-6">
           <h2 
             id="modal-title"
-            className="text-2xl font-bold text-gray-900 dark:text-white"
+            className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white pr-4"
           >
             {title}
           </h2>
           {showCloseButton && (
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors p-2 -m-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
               aria-label="Chiudi modale"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -99,7 +99,7 @@ export const BaseModal = memo<BaseModalProps>(({
 
         {/* Error Display */}
         {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+          <div className="bg-red-100 border border-red-400 text-red-700 px-3 py-2 sm:px-4 sm:py-3 rounded-lg sm:rounded mb-4 text-sm sm:text-base">
             {error}
           </div>
         )}

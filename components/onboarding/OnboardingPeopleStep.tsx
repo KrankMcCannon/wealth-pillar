@@ -51,9 +51,9 @@ export const OnboardingPeopleStep = memo<OnboardingPeopleStepProps>(
         <div className="space-y-4">
           {people.map((person, index) => (
             <div key={index} className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
-              <div className="flex items-center gap-4">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-4">
                 {/* Colore tema */}
-                <div className="flex-shrink-0">
+                <div className="flex-shrink-0 self-center sm:self-auto">
                   <div
                     className="w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold"
                     style={{ backgroundColor: person.themeColor }}
@@ -63,7 +63,7 @@ export const OnboardingPeopleStep = memo<OnboardingPeopleStepProps>(
                 </div>
 
                 {/* Campi della persona */}
-                <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                   {/* Nome */}
                   <FormField
                     id={`person_${index}_name`}
@@ -119,7 +119,7 @@ export const OnboardingPeopleStep = memo<OnboardingPeopleStepProps>(
                   <button
                     type="button"
                     onClick={() => removePerson(index)}
-                    className="flex-shrink-0 p-2 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 rounded-full hover:bg-red-100 dark:hover:bg-red-900/50 transition-colors"
+                    className="flex-shrink-0 p-3 sm:p-2 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/50 transition-colors"
                     disabled={isLoading}
                   >
                     <TrashIcon className="w-5 h-5" />
@@ -134,7 +134,7 @@ export const OnboardingPeopleStep = memo<OnboardingPeopleStepProps>(
         <button
           type="button"
           onClick={addPerson}
-          className="w-full py-3 px-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg text-gray-600 dark:text-gray-400 hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400 transition-colors flex items-center justify-center gap-2"
+          className="w-full py-4 sm:py-3 px-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg text-gray-600 dark:text-gray-400 hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400 transition-colors flex items-center justify-center gap-2 font-medium"
           disabled={isLoading}
         >
           <PlusIcon className="w-5 h-5" />

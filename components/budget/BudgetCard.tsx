@@ -72,7 +72,7 @@ export const BudgetCard = memo<BudgetCardProps>(
 
     return (
       <div
-        className={`bg-white dark:bg-gray-800 rounded-lg border transition-all duration-200 p-4 ${
+        className={`bg-white dark:bg-gray-800 rounded-lg border transition-all duration-200 p-3 lg:p-4 ${
           isExpanded
             ? "border-blue-300 dark:border-blue-600 shadow-md"
             : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
@@ -80,9 +80,13 @@ export const BudgetCard = memo<BudgetCardProps>(
       >
         {/* Header della card */}
         <div className="flex justify-between items-start mb-3">
-          <div className="flex-1">
-            <h4 className="font-medium text-gray-800 dark:text-white">{budget.description}</h4>
-            <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">Categorie: {categoryLabels.join(", ")}</div>
+          <div className="flex-1 min-w-0">
+            <h4 className="font-medium text-gray-800 dark:text-white text-sm lg:text-base truncate">
+              {budget.description}
+            </h4>
+            <div className="text-xs lg:text-sm text-gray-600 dark:text-gray-400 mt-1 truncate">
+              Categorie: {categoryLabels.join(", ")}
+            </div>
             {/* Date del periodo budget */}
             <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
               Periodo: {formatDate(data.periodStart.toISOString())} - {formatDate(data.periodEnd.toISOString())}
@@ -92,7 +96,7 @@ export const BudgetCard = memo<BudgetCardProps>(
 
         {/* Barra di progresso */}
         <div className="mb-3">
-          <div className="flex justify-between text-sm mb-1">
+          <div className="flex flex-col sm:flex-row sm:justify-between text-xs lg:text-sm mb-1 space-y-1 sm:space-y-0">
             <span className={getAmountColor(data.currentSpent)}>Speso: {formatCurrency(data.currentSpent)}</span>
             <span className={getAmountColor(data.remaining, true)}>Rimanente: {formatCurrency(data.remaining)}</span>
           </div>
@@ -133,27 +137,29 @@ export const BudgetCard = memo<BudgetCardProps>(
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-4">
               {/* Colonna sinistra: Statistiche per categoria */}
               <div>
-                <h5 className="font-medium text-gray-800 dark:text-white mb-3 text-sm">
+                <h5 className="font-medium text-gray-800 dark:text-white mb-3 text-xs lg:text-sm">
                   Spese per Categoria ({categoryStats.length})
                 </h5>
                 {categoryStats.length > 0 ? (
                   <div className="space-y-2">
                     {categoryStats.map(({ category, count, total }) => (
-                      <div key={category} className="flex justify-between items-center text-sm">
-                        <div className="flex items-center space-x-2">
-                          <span className="text-gray-700 dark:text-gray-300">
+                      <div key={category} className="flex justify-between items-center text-xs lg:text-sm">
+                        <div className="flex items-center space-x-1 lg:space-x-2 flex-1 min-w-0">
+                          <span className="text-gray-700 dark:text-gray-300 truncate">
                             {CategoryUtils.getCategoryDisplayName(category, allCategories)}
                           </span>
-                          <span className="text-gray-500 dark:text-gray-400 text-xs">
+                          <span className="text-gray-500 dark:text-gray-400 text-xs flex-shrink-0">
                             ({count} {count === 1 ? "transazione" : "transazioni"})
                           </span>
                         </div>
-                        <span className="font-medium text-red-600 dark:text-red-400">{formatCurrency(total)}</span>
+                        <span className="font-medium text-red-600 dark:text-red-400 ml-2 flex-shrink-0">
+                          {formatCurrency(total)}
+                        </span>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                  <p className="text-xs lg:text-sm text-gray-500 dark:text-gray-400">
                     Nessuna transazione trovata per le categorie di questo budget.
                   </p>
                 )}
