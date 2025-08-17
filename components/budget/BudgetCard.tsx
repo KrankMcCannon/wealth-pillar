@@ -96,7 +96,7 @@ export const BudgetCard = memo<BudgetCardProps>(
 
         {/* Barra di progresso */}
         <div className="mb-3">
-          <div className="flex flex-col sm:flex-row sm:justify-between text-xs lg:text-sm mb-1 space-y-1 sm:space-y-0">
+          <div className="flex justify-between text-xs lg:text-sm mb-1">
             <span className={getAmountColor(data.currentSpent)}>Speso: {formatCurrency(data.currentSpent)}</span>
             <span className={getAmountColor(data.remaining, true)}>Rimanente: {formatCurrency(data.remaining)}</span>
           </div>

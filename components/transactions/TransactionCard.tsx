@@ -65,9 +65,11 @@ export const TransactionCard = memo<TransactionCardProps>(
 
     return (
       <div
-        className={`bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 space-y-3 transition-all duration-300 ${cardClasses} ${
+        className={`rounded-lg border border-gray-200 dark:border-gray-700 p-4 space-y-3 transition-all duration-300 ${cardClasses} ${
           isThisLinkingTx ? "ring-2 ring-blue-500" : ""
-        } ${isLinkable && !isLinkingMode ? "hover:border-blue-300 dark:hover:border-blue-600" : ""}`}
+        } ${isLinkable && !isLinkingMode ? "hover:border-blue-300 dark:hover:border-blue-600" : ""} ${
+          !isTransfer ? "bg-white dark:bg-gray-800" : ""
+        }`}
         onClick={() => {
           if (isLinkingMode && isLinkable) {
             onSelectToLink(transaction.id);
