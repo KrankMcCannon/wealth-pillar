@@ -1,10 +1,7 @@
-import React, { memo } from 'react';
+import { memo } from 'react';
 import { Transaction } from '../../types';
 import { TransactionDateGroup } from './TransactionDateGroup';
 
-/**
- * Props per il componente TransactionGroupedTable
- */
 interface TransactionGroupedTableProps {
   groupedTransactions: Array<{ date: string; transactions: Transaction[] }>;
   isAllView: boolean;
@@ -21,8 +18,6 @@ interface TransactionGroupedTableProps {
 
 /**
  * Componente per la visualizzazione raggruppata delle transazioni per data
- * Principio SRP: Single Responsibility - gestisce solo la visualizzazione dei gruppi
- * Principio DRY: Don't Repeat Yourself - riutilizza TransactionDateGroup per ogni gruppo
  */
 export const TransactionGroupedTable = memo<TransactionGroupedTableProps>(({
   groupedTransactions,

@@ -1,7 +1,7 @@
-import { getCurrentBudgetPeriod } from '../../constants';
-import type { Account, Budget, Person, Transaction } from '../../types';
-import { TransactionType } from '../../types';
-import { BudgetPeriodsUtils } from './budget-periods.utils';
+import { getCurrentBudgetPeriod } from "../../constants";
+import type { Account, Budget, Person, Transaction, BudgetPeriodData } from "../../types";
+import { TransactionType } from "../../types";
+import { BudgetPeriodsUtils } from "./budget-periods.utils";
 
 /**
  * Interface per i dati calcolati del budget
@@ -13,7 +13,7 @@ export interface BudgetCalculationData {
   periodStart: Date;
   periodEnd: Date;
   progressColor: string;
-  isCompleted: boolean; // Se il periodo corrente è stato marcato come completato
+  isCompleted: boolean;
 }
 
 /**
@@ -31,22 +31,22 @@ export class BudgetUtils {
     periodEnd: Date,
     getAccountById: (id: string) => Account | undefined
   ): Transaction[] {
-    return transactions.filter(transaction => {
+    return transactions.filter((transaction) => {
       const transactionDate = new Date(transaction.date);
-      
+
       // Verifica se la transazione è nel periodo del budget
       const isInPeriod = transactionDate >= periodStart && transactionDate <= periodEnd;
-      
+
       // Verifica se la transazione appartiene alle categorie del budget
       const isInBudgetCategories = budget.categories.includes(transaction.category);
-      
+
       // Verifica se la transazione appartiene alla persona del budget
       const account = getAccountById(transaction.accountId);
       const isForBudgetPerson = account?.personIds.includes(budget.personId) || false;
-      
+
       // Include solo transazioni di spesa (non entrate)
       const isExpense = transaction.type === TransactionType.SPESA;
-      
+
       return isInPeriod && isInBudgetCategories && isForBudgetPerson && isExpense;
     });
   }
@@ -71,9 +71,7 @@ export class BudgetUtils {
     );
 
     return relevantTransactions.reduce((total, transaction) => {
-      const amount = getEffectiveTransactionAmount 
-        ? getEffectiveTransactionAmount(transaction)
-        : transaction.amount;
+      const amount = getEffectiveTransactionAmount ? getEffectiveTransactionAmount(transaction) : transaction.amount;
       return total + Math.abs(amount);
     }, 0);
   }
@@ -96,10 +94,58 @@ export class BudgetUtils {
    * Determina il colore della progress bar basato sulla percentuale
    */
   static getProgressColor(percentage: number): string {
-    if (percentage >= 100) return 'bg-red-500';
-    if (percentage >= 80) return 'bg-orange-500';
-    if (percentage >= 60) return 'bg-yellow-500';
-    return 'bg-green-500';
+    if (percentage >= 100) return "bg-red-500";
+    if (percentage >= 80) return "bg-orange-500";
+    if (percentage >= 60) return "bg-yellow-500";
+    return "bg-green-500";
+  }
+
+  /**
+   * Calcola tutti i dati necessari per visualizzare il progresso di un budget per un periodo specifico
+   */
+  static calculateBudgetDataForPeriod(
+    budget: Budget,
+    transactions: Transaction[],
+    budgetPerson: Person,
+    selectedPeriod: BudgetPeriodData,
+    getAccountById: (id: string) => Account | undefined,
+    getEffectiveTransactionAmount?: (transaction: Transaction) => number
+  ): BudgetCalculationData {
+    // Usa le date del periodo selezionato invece del periodo corrente
+    const periodStart = new Date(selectedPeriod.startDate);
+    let periodEnd: Date;
+
+    if (selectedPeriod.endDate) {
+      // Periodo completato, usa la data di fine salvata
+      periodEnd = new Date(selectedPeriod.endDate);
+    } else {
+      // Periodo in corso, calcola la data di fine presunta
+      const endDateString = BudgetPeriodsUtils.calculatePeriodEndDate(budgetPerson, selectedPeriod.startDate);
+      periodEnd = new Date(endDateString);
+    }
+
+    const currentSpent = BudgetUtils.calculateCurrentSpent(
+      transactions,
+      budget,
+      periodStart,
+      periodEnd,
+      getAccountById,
+      getEffectiveTransactionAmount
+    );
+
+    const percentage = BudgetUtils.calculateBudgetPercentage(currentSpent, budget.amount);
+    const remaining = BudgetUtils.calculateRemainingAmount(budget.amount, currentSpent);
+    const progressColor = BudgetUtils.getProgressColor(percentage);
+
+    return {
+      currentSpent,
+      percentage,
+      remaining,
+      periodStart,
+      periodEnd,
+      progressColor,
+      isCompleted: selectedPeriod.isCompleted,
+    };
   }
 
   /**
@@ -114,14 +160,14 @@ export class BudgetUtils {
   ): BudgetCalculationData {
     // Usa il periodo corrente dalla nuova gestione dei periodi
     const currentPeriod = BudgetPeriodsUtils.getCurrentPeriod(budgetPerson);
-    
+
     let periodStart: Date;
     let periodEnd: Date;
-    
+
     if (currentPeriod) {
       // Usa le date del periodo salvato nel database
       periodStart = new Date(currentPeriod.startDate);
-      
+
       if (currentPeriod.endDate) {
         // Periodo completato, usa la data di fine salvata
         periodEnd = new Date(currentPeriod.endDate);
@@ -136,7 +182,7 @@ export class BudgetUtils {
       periodStart = fallbackStart;
       periodEnd = fallbackEnd;
     }
-    
+
     const currentSpent = BudgetUtils.calculateCurrentSpent(
       transactions,
       budget,
@@ -145,7 +191,7 @@ export class BudgetUtils {
       getAccountById,
       getEffectiveTransactionAmount
     );
-    
+
     const percentage = BudgetUtils.calculateBudgetPercentage(currentSpent, budget.amount);
     const remaining = BudgetUtils.calculateRemainingAmount(budget.amount, currentSpent);
     const progressColor = BudgetUtils.getProgressColor(percentage);
@@ -157,7 +203,7 @@ export class BudgetUtils {
       periodStart,
       periodEnd,
       progressColor,
-      isCompleted: currentPeriod?.isCompleted ?? false
+      isCompleted: currentPeriod?.isCompleted ?? false,
     };
   }
 
@@ -179,9 +225,9 @@ export class BudgetUtils {
    * Ottiene il messaggio di stato del budget
    */
   static getBudgetStatusMessage(percentage: number): string {
-    if (percentage >= 100) return 'Budget superato';
-    if (percentage >= 80) return 'Budget quasi esaurito';
-    if (percentage >= 60) return 'Budget in corso';
-    return 'Budget sotto controllo';
+    if (percentage >= 100) return "Budget superato";
+    if (percentage >= 80) return "Budget quasi esaurito";
+    if (percentage >= 60) return "Budget in corso";
+    return "Budget sotto controllo";
   }
 }

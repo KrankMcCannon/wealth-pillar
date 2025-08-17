@@ -1,30 +1,24 @@
-import React, { createContext, useContext, useState, ReactNode, useCallback, useEffect } from 'react';
-import { Person, Account, Transaction, Budget, InvestmentHolding, CategoryOption, Category } from '../../types';
-import { ServiceFactory } from '../../lib/supabase/services/service-factory';
-import { ServiceError } from '../../lib/supabase/services/base-service';
-import { useAuth } from '../../contexts/AuthContext';
-import { useClerkSupabaseClient } from '../../lib/supabase/client/clerk-supabase.client';
-import { CategoryUtils } from '../../lib/utils/category.utils';
-import { v4 as uuidv4 } from 'uuid';
+import React, { createContext, useContext, useState, ReactNode, useCallback, useEffect } from "react";
+import { Person, Account, Transaction, Budget, InvestmentHolding, CategoryOption, Category } from "../../types";
+import { ServiceFactory } from "../../lib/supabase/services/service-factory";
+import { ServiceError } from "../../lib/supabase/services/base-service";
+import { useAuth } from "../../contexts/AuthContext";
+import { useClerkSupabaseClient } from "../../lib/supabase/client/clerk-supabase.client";
+import { CategoryUtils } from "../../lib/utils/category.utils";
+import { v4 as uuidv4 } from "uuid";
 
 /**
  * Error handling utilities following DRY principle
  */
-const handleAsyncError = <T extends any[], R>(
-  fn: (...args: T) => Promise<R>,
-  errorMessage: string
-) => {
+const handleAsyncError = <T extends any[], R>(fn: (...args: T) => Promise<R>, errorMessage: string) => {
   return async (...args: T): Promise<R> => {
     try {
       return await fn(...args);
-    } catch (err) {
-      const error = err instanceof ServiceError 
-        ? err 
-        : new ServiceError(
-            err instanceof Error ? err.message : errorMessage,
-            'UNKNOWN_ERROR',
-            err as Error
-          );
+    } catch (err: unknown) {
+      const error =
+        err instanceof ServiceError
+          ? err
+          : new ServiceError(err instanceof Error ? err.message : errorMessage, "UNKNOWN_ERROR", err as Error);
       console.error(errorMessage, err);
       throw error;
     }
@@ -42,11 +36,11 @@ interface FinanceContextType {
   categories: CategoryOption[];
   isLoading: boolean;
   error: string | null;
-  addTransaction: (transaction: Omit<Transaction, 'id'>) => Promise<void>;
+  addTransaction: (transaction: Omit<Transaction, "id" | "isReconciled" | "createdAt">) => Promise<void>;
   updateTransaction: (transaction: Transaction) => Promise<void>;
-  addAccount: (account: Omit<Account, 'id'>) => Promise<void>;
+  addAccount: (account: Omit<Account, "id">) => Promise<void>;
   updateAccount: (account: Account) => Promise<void>;
-  addBudget: (budget: Omit<Budget, 'id'>) => Promise<void>;
+  addBudget: (budget: Omit<Budget, "id">) => Promise<void>;
   updateBudget: (budget: Budget) => Promise<void>;
   getAccountById: (id: string) => Account | undefined;
   getPersonById: (id: string) => Person | undefined;
@@ -57,7 +51,8 @@ interface FinanceContextType {
   isParentTransaction: (transaction: Transaction) => boolean;
   linkTransactions: (tx1Id: string, tx2Id: string) => Promise<void>;
   updatePerson: (updatedPerson: Person) => Promise<void>;
-  addInvestment: (investment: Omit<InvestmentHolding, 'id'>) => Promise<void>;
+  addPerson: (personData: Omit<Person, "id">) => Promise<Person>;
+  addInvestment: (investment: Omit<InvestmentHolding, "id">) => Promise<void>;
   refreshData: () => Promise<void>;
   getCalculatedBalance: (accountId: string) => Promise<number>;
   getCalculatedBalanceSync: (accountId: string) => number;
@@ -69,7 +64,7 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
   const { user, isSignedIn } = useAuth();
   const client = useClerkSupabaseClient();
   const [people, setPeople] = useState<Person[]>([]);
-  const [selectedPersonId, setSelectedPersonId] = useState<string>('all');
+  const [selectedPersonId, setSelectedPersonId] = useState<string>("all");
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [budgets, setBudgets] = useState<Budget[]>([]);
@@ -78,24 +73,16 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  /**
-   * Data Loading with error handling (DRY principle)
-   */
   const loadData = useCallback(
     handleAsyncError(async () => {
       if (!client || !isSignedIn || !user) {
         setIsLoading(false);
         return;
       }
-
       setIsLoading(true);
       setError(null);
-
       const financeService = ServiceFactory.createFinanceService(client, user.id);
-      
-      // Load all data filtered by user group
       const data = await financeService.loadAllData();
-
       setPeople(data.people);
       setAccounts(data.accounts);
       setTransactions(data.transactions);
@@ -103,7 +90,7 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
       setInvestments(data.investments);
       setCategories(data.categories);
       setIsLoading(false);
-    }, 'Failed to load data'),
+    }, "Failed to load data"),
     [client, isSignedIn, user]
   );
 
@@ -136,13 +123,13 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
   // Helper to get authenticated service using Factory Pattern
   const getService = useCallback(() => {
     if (!client) {
-      throw new Error('Sessione non disponibile. Effettua nuovamente il login.');
+      throw new Error("Sessione non disponibile. Effettua nuovamente il login.");
     }
     if (!isSignedIn) {
-      throw new Error('Utente non autenticato. Effettua il login.');
+      throw new Error("Utente non autenticato. Effettua il login.");
     }
     if (!user) {
-      throw new Error('Informazioni utente non disponibili.');
+      throw new Error("Informazioni utente non disponibili.");
     }
     return ServiceFactory.createFinanceService(client, user.id);
   }, [client, isSignedIn, user]);
@@ -150,12 +137,11 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
   // Helper to safely get service with better error handling
   const getServiceSafely = useCallback(async () => {
     if (!client && isSignedIn) {
-      for (let i = 0; i < 30; i++) {
-        await new Promise(resolve => setTimeout(resolve, 100));
+      for (let i = 0; i < 30; i) {
+        await new Promise((resolve) => setTimeout(resolve, 100));
         if (client) break;
       }
     }
-    
     return getService();
   }, [client, isSignedIn, getService]);
 
@@ -167,7 +153,7 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
    * CRUD Operations with unified error handling (DRY principle)
    */
   const addTransaction = useCallback(
-    handleAsyncError(async (transactionData: Omit<Transaction, 'id'>) => {
+    handleAsyncError(async (transactionData: Omit<Transaction, "id" | "isReconciled" | "createdAt">) => {
       const service = await getServiceSafely();
       const newTransaction: Transaction = {
         ...transactionData,
@@ -175,12 +161,11 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
         isReconciled: false,
         createdAt: new Date().toISOString(),
       };
-
       const savedTransaction = await service.transactions.create(newTransaction);
-      setTransactions(prev => [savedTransaction, ...prev].sort((a, b) => 
-        new Date(b.date).getTime() - new Date(a.date).getTime()
-      ));
-    }, 'Failed to add transaction'),
+      setTransactions((prev) =>
+        [savedTransaction, ...prev].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      );
+    }, "Failed to add transaction"),
     [getServiceSafely]
   );
 
@@ -188,49 +173,48 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
     handleAsyncError(async (updatedTransaction: Transaction) => {
       const service = await getServiceSafely();
       const savedTransaction = await service.transactions.update(updatedTransaction.id, updatedTransaction);
-      setTransactions(prev => 
-        prev.map(tx => tx.id === savedTransaction.id ? savedTransaction : tx)
+      setTransactions((prev) =>
+        prev
+          .map((tx) => (tx.id === savedTransaction.id ? savedTransaction : tx))
           .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
       );
-    }, 'Failed to update transaction'),
+    }, "Failed to update transaction"),
     [getServiceSafely]
   );
 
   const addAccount = useCallback(
-    handleAsyncError(async (accountData: Omit<Account, 'id'>) => {
+    handleAsyncError(async (accountData: Omit<Account, "id">) => {
       const service = await getServiceSafely();
-      const newAccount = await service.addAccount(accountData);
-      setAccounts(prev => [...prev, newAccount]);
-    }, 'Failed to add account'),
+      const newAccount = await service.accounts.createAccount(accountData);
+      setAccounts((prev) => [...prev, newAccount]);
+    }, "Failed to add account"),
     [getServiceSafely]
   );
 
   const updateAccount = useCallback(
     handleAsyncError(async (updatedAccount: Account) => {
       const service = await getServiceSafely();
-      const savedAccount = await service.updateAccount(updatedAccount);
-      setAccounts(prev => prev.map(acc => 
-        acc.id === savedAccount.id ? savedAccount : acc
-      ));
-    }, 'Failed to update account'),
+      const savedAccount = await service.accounts.update(updatedAccount.id, updatedAccount);
+      setAccounts((prev) => prev.map((acc) => (acc.id === savedAccount.id ? savedAccount : acc)));
+    }, "Failed to update account"),
     [getServiceSafely]
   );
 
   const addBudget = useCallback(
-    handleAsyncError(async (budgetData: Omit<Budget, 'id'>) => {
+    handleAsyncError(async (budgetData: Omit<Budget, "id">) => {
       const service = await getServiceSafely();
-      const newBudget = await service.addBudget(budgetData);
-      setBudgets(prev => [...prev, newBudget]);
-    }, 'Failed to add budget'),
+      const newBudget = await service.budgets.createBudget(budgetData);
+      setBudgets((prev) => [...prev, newBudget]);
+    }, "Failed to add budget"),
     [getServiceSafely]
   );
 
   const updateBudget = useCallback(
     handleAsyncError(async (updatedBudget: Budget) => {
       const service = await getServiceSafely();
-      const savedBudget = await service.updateBudget(updatedBudget);
-      setBudgets(prev => prev.map(b => b.id === savedBudget.id ? savedBudget : b));
-    }, 'Failed to update budget'),
+      const savedBudget = await service.budgets.update(updatedBudget.id, updatedBudget);
+      setBudgets((prev) => prev.map((b) => (b.id === savedBudget.id ? savedBudget : b)));
+    }, "Failed to update budget"),
     [getServiceSafely]
   );
 
@@ -238,121 +222,144 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
     handleAsyncError(async (updatedPerson: Person) => {
       const service = await getServiceSafely();
       const savedPerson = await service.updatePerson(updatedPerson);
-      setPeople(prev => prev.map(p => p.id === savedPerson.id ? savedPerson : p));
-    }, 'Failed to update person'),
+      setPeople((prev) => prev.map((p) => (p.id === savedPerson.id ? savedPerson : p)));
+    }, "Failed to update person"),
+    [getServiceSafely]
+  );
+
+  const addPerson = useCallback(
+    handleAsyncError(async (personData: Omit<Person, "id">) => {
+      const service = await getServiceSafely();
+      const newPerson = await service.people.createPerson(personData);
+      setPeople((prev) => [...prev, newPerson]);
+      return newPerson;
+    }, "Failed to add person"),
     [getServiceSafely]
   );
 
   const addInvestment = useCallback(
-    handleAsyncError(async (investmentData: Omit<InvestmentHolding, 'id'>) => {
-      const service = await getServiceSafely();
+    handleAsyncError(async (investmentData: Omit<InvestmentHolding, "id">) => {
+      // TODO: Implementare quando il service supporta gli investimenti
+      console.warn("addInvestment not implemented yet");
       const newInvestment: InvestmentHolding = {
         ...investmentData,
         id: uuidv4(),
       };
-      const savedInvestment = await service.addInvestment(newInvestment);
-      setInvestments(prev => [...prev, savedInvestment]);
-    }, 'Failed to add investment'),
-    [getServiceSafely]
+      setInvestments((prev) => [...prev, newInvestment]);
+    }, "Failed to add investment"),
+    []
   );
 
   /**
    * Lookup Functions (SRP principle)
    */
-  const getAccountById = useCallback((id: string) => {
-    return accounts.find(acc => acc.id === id);
-  }, [accounts]);
+  const getAccountById = useCallback(
+    (id: string) => {
+      return accounts.find((acc) => acc.id === id);
+    },
+    [accounts]
+  );
 
-  const getPersonById = useCallback((id: string) => {
-    return people.find(p => p.id === id);
-  }, [people]);
+  const getPersonById = useCallback(
+    (id: string) => {
+      return people.find((p) => p.id === id);
+    },
+    [people]
+  );
 
   /**
    * Business Logic Functions using utility classes (SRP principle)
    */
-  const getCategoryName = useCallback((categoryOrId: string | Category | null) => {
-    return CategoryUtils.getCategoryDisplayName(categoryOrId, categories);
-  }, [categories]);
+  const getCategoryName = useCallback(
+    (categoryOrId: string | Category | null) => {
+      return CategoryUtils.getCategoryDisplayName(categoryOrId, categories);
+    },
+    [categories]
+  );
 
-  const getEffectiveTransactionAmount = useCallback((transaction: Transaction) => {
-    const linkedTx = transactions.find(tx => tx.id === transaction.parentTransactionId);
-    const service = getService();
-    return service.transactions.getEffectiveAmount(transaction, linkedTx);
-  }, [transactions, getService]);
+  const getEffectiveTransactionAmount = useCallback(
+    (transaction: Transaction) => {
+      const linkedTx = transactions.find((tx) => tx.id === transaction.parentTransactionId);
+      const service = getService();
+      return service.transactions.getEffectiveAmount(transaction, linkedTx);
+    },
+    [transactions, getService]
+  );
 
-  const getRemainingAmount = useCallback((transaction: Transaction) => {
-    if (!transaction.isReconciled) {
-      return transaction.amount;
-    }
+  const getRemainingAmount = useCallback(
+    (transaction: Transaction) => {
+      if (!transaction.isReconciled) {
+        return transaction.amount;
+      }
+      if (transaction.remainingAmount !== undefined) {
+        return transaction.remainingAmount;
+      }
+      const linkedTx = transactions.find((tx) => tx.id === transaction.parentTransactionId);
+      if (!linkedTx) {
+        return transaction.amount;
+      }
+      return Math.abs(transaction.amount) - Math.abs(linkedTx.amount);
+    },
+    [transactions]
+  );
 
-    // Se la transazione ha un remainingAmount esplicitamente salvato, usa quello
-    if (transaction.remainingAmount !== undefined) {
-      return transaction.remainingAmount;
-    }
+  const hasAvailableAmount = useCallback(
+    (transaction: Transaction) => {
+      const remaining = getRemainingAmount(transaction);
+      return remaining > 0;
+    },
+    [getRemainingAmount]
+  );
 
-    // Altrimenti, calcola l'importo rimanente basato sulla transazione collegata
-    const linkedTx = transactions.find(tx => tx.id === transaction.parentTransactionId);
-    if (!linkedTx) {
-      return transaction.amount;
-    }
+  const isParentTransaction = useCallback(
+    (transaction: Transaction) => {
+      const linkedTx = transactions.find((tx) => tx.id === transaction.parentTransactionId);
+      const service = getService();
+      return service.transactions.isParentTransaction(transaction, linkedTx);
+    },
+    [transactions, getService]
+  );
 
-    // Per transazioni riconciliate, calcola la differenza
-    return Math.abs(transaction.amount) - Math.abs(linkedTx.amount);
-  }, [transactions]);
-
-  const hasAvailableAmount = useCallback((transaction: Transaction) => {
-    const remaining = getRemainingAmount(transaction);
-    return remaining > 0;
-  }, [getRemainingAmount]);
-
-  const isParentTransaction = useCallback((transaction: Transaction) => {
-    const linkedTx = transactions.find(tx => tx.id === transaction.parentTransactionId);
-    
-    // Use TransactionService.isParentTransaction instead of duplicating logic
-    const service = getService();
-    return service.transactions.isParentTransaction(transaction, linkedTx);
-  }, [transactions, getService]);
-
-  const getCalculatedBalanceSync = useCallback((accountId: string) => {
-    const account = accounts.find(acc => acc.id === accountId);
-    if (!account) return 0;
-    
-    const accountTransactions = transactions.filter(tx => 
-      tx.accountId === accountId || tx.toAccountId === accountId
-    );
-    
-    // Use FinanceService.calculateAccountBalance instead of duplicating logic
-    const service = getService();
-    return service.calculateAccountBalance(account, accountTransactions);
-  }, [accounts, transactions, getService]);
+  const getCalculatedBalanceSync = useCallback(
+    (accountId: string) => {
+      const account = accounts.find((acc) => acc.id === accountId);
+      if (!account) return 0;
+      const accountTransactions = transactions.filter(
+        (tx) => tx.accountId === accountId || tx.toAccountId === accountId
+      );
+      const service = getService();
+      return service.calculateAccountBalance(account, accountTransactions);
+    },
+    [accounts, transactions, getService]
+  );
 
   const getCalculatedBalance = useCallback(
     handleAsyncError(async (accountId: string) => {
       try {
         const service = await getServiceSafely();
-        return await service.getCalculatedBalance(accountId);
+        const account = accounts.find((acc) => acc.id === accountId);
+        if (!account) return 0;
+        const accountTransactions = transactions.filter(
+          (tx) => tx.accountId === accountId || tx.toAccountId === accountId
+        );
+        return service.calculateAccountBalance(account, accountTransactions);
       } catch (err) {
-        // Fallback to local calculation using the same logic as getCalculatedBalanceSync
         return getCalculatedBalanceSync(accountId);
       }
-    }, 'Failed to calculate balance'),
-    [getCalculatedBalanceSync, getServiceSafely]
+    }, "Failed to calculate balance"),
+    [getCalculatedBalanceSync, getServiceSafely, accounts, transactions]
   );
 
   const linkTransactions = useCallback(
     handleAsyncError(async (tx1Id: string, tx2Id: string) => {
       const service = await getServiceSafely();
-      
-      // Use existing TransactionService.linkTransactions method instead of duplicating logic
       await service.transactions.linkTransactions(tx1Id, tx2Id);
-      
-      // Refresh data to get updated transactions
       await loadData();
-    }, 'Failed to link transactions'),
+    }, "Failed to link transactions"),
     [getServiceSafely, loadData]
   );
 
-  const value = {
+  const value: FinanceContextType = {
     people,
     selectedPersonId,
     selectPerson,
@@ -380,8 +387,9 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
     getCalculatedBalanceSync,
     linkTransactions,
     updatePerson,
+    addPerson,
     addInvestment,
-    refreshData
+    refreshData,
   };
 
   return <FinanceContext.Provider value={value}>{children}</FinanceContext.Provider>;
@@ -390,7 +398,7 @@ export const FinanceProvider: React.FC<{ children: ReactNode }> = ({ children })
 export const useFinance = (): FinanceContextType => {
   const context = useContext(FinanceContext);
   if (context === undefined) {
-    throw new Error('useFinance must be used within a FinanceProvider');
+    throw new Error("useFinance must be used within a FinanceProvider");
   }
   return context;
 };

@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo } from 'react';
 import { useFinance, useModalForm } from '../../';
 import { Account } from '../../../types';
+import { validateAccountForm } from '../../utils/validators';
 
 interface EditAccountFormData {
   name: string;
@@ -34,54 +35,41 @@ export const useEditAccount = ({ account, onClose }: UseEditAccountProps) => {
     clearAllErrors,
     setSubmitting,
     resetForm,
-    validateRequired,
   } = useModalForm({
     initialData: initialFormData,
-    resetOnClose: false, // We handle reset manually for edit modals
+    resetOnClose: false,
     resetOnOpen: false,
   });
 
-  // Reset form data when account changes
   useEffect(() => {
     if (account) {
       resetForm();
     }
   }, [account, resetForm]);
 
-  // People checkbox options
-  const peopleOptions = useMemo(() => 
+  const peopleOptions = useMemo(() =>
     people.map(person => ({
       id: person.id,
       label: person.name,
       checked: data.selectedPersonIds.includes(person.id),
     }))
-  , [people, data.selectedPersonIds]);
+    , [people, data.selectedPersonIds]);
 
-  // Validation rules
   const validateForm = useCallback((): boolean => {
     clearAllErrors();
+    const errorsObj = validateAccountForm({
+      name: data.name,
+      selectedPersonIds: data.selectedPersonIds,
+    });
+    Object.entries(errorsObj).forEach(([field, message]) => {
+      setError(field as any, message as string);
+    });
+    return Object.keys(errorsObj).length === 0;
+  }, [data, clearAllErrors, setError]);
 
-    if (!validateRequired(['name'])) {
-      return false;
-    }
-
-    if (data.name.trim().length === 0) {
-      setError('name', 'Il nome del conto non può essere vuoto');
-      return false;
-    }
-
-    if (data.selectedPersonIds.length === 0) {
-      setError('selectedPersonIds', 'Seleziona almeno una persona per questo conto');
-      return false;
-    }
-
-    return true;
-  }, [data, validateRequired, setError, clearAllErrors]);
-
-  // Submit handler
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm() || !account) {
       return;
     }
@@ -89,10 +77,10 @@ export const useEditAccount = ({ account, onClose }: UseEditAccountProps) => {
     setSubmitting(true);
 
     try {
-      await updateAccount({ 
-        ...account, 
-        name: data.name.trim(), 
-        personIds: data.selectedPersonIds 
+      await updateAccount({
+        ...account,
+        name: data.name.trim(),
+        personIds: data.selectedPersonIds
       });
       onClose();
     } catch (err) {
@@ -102,7 +90,6 @@ export const useEditAccount = ({ account, onClose }: UseEditAccountProps) => {
     }
   }, [validateForm, setSubmitting, data, account, updateAccount, onClose, setError]);
 
-  // Field change handlers
   const handleNameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     updateField('name', e.target.value);
   }, [updateField]);
@@ -111,15 +98,16 @@ export const useEditAccount = ({ account, onClose }: UseEditAccountProps) => {
     const newSelectedIds = checked
       ? [...data.selectedPersonIds, personId]
       : data.selectedPersonIds.filter(id => id !== personId);
-    
+
     updateField('selectedPersonIds', newSelectedIds);
   }, [data.selectedPersonIds, updateField]);
 
-  // Check if form can be submitted
   const canSubmit = useMemo(() => {
-    return data.name.trim().length > 0 && 
-           data.selectedPersonIds.length > 0;
-  }, [data]);
+    return account !== null && Object.keys(validateAccountForm({
+      name: data.name,
+      selectedPersonIds: data.selectedPersonIds,
+    })).length === 0;
+  }, [data, account]);
 
   return {
     // Form state
@@ -127,10 +115,10 @@ export const useEditAccount = ({ account, onClose }: UseEditAccountProps) => {
     errors,
     isSubmitting,
     canSubmit,
-    
+
     // Computed values
     peopleOptions,
-    
+
     // Event handlers
     handleSubmit,
     handleNameChange,

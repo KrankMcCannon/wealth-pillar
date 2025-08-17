@@ -3,19 +3,26 @@ import { HashRouter, Routes, Route } from 'react-router-dom';
 import { Navbar } from './components/common';
 import { Dashboard, TransactionsPage, InvestmentsPage, SettingsPage, ReportsPage } from './components/pages';
 import { AddTransactionModal } from './components/modals';
+import { OnboardingFlow } from './components/onboarding';
 import { PlusIcon } from './components/common';
 import { useFinance, FinanceProvider } from './hooks/core/useFinance';
+import { useOnboardingState } from './hooks';
 import { useAuth } from './contexts/AuthContext';
 import { SignIn } from '@clerk/clerk-react';
 
 const AppContent: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { people, selectedPersonId, isLoading, error } = useFinance();
+  const { 
+    isLoading: onboardingLoading, 
+    needsOnboarding, 
+    completeOnboarding 
+  } = useOnboardingState();
 
   const selectedPerson = people.find(p => p.id === selectedPersonId);
   const themeColor = selectedPerson?.themeColor || '#2563eb'; // Default to blue-600
 
-  if (isLoading) {
+  if (isLoading || onboardingLoading) {
     return (
       <div className="flex items-center justify-center h-screen bg-gray-100 dark:bg-gray-900">
         <div className="text-center">
@@ -48,6 +55,16 @@ const AppContent: React.FC = () => {
           </button>
         </div>
       </div>
+    );
+  }
+
+  // Mostra l'onboarding se necessario
+  if (needsOnboarding) {
+    return (
+      <OnboardingFlow
+        isOpen={true}
+        onComplete={completeOnboarding}
+      />
     );
   }
 

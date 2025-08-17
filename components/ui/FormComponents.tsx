@@ -136,11 +136,12 @@ CheckboxGroup.displayName = 'CheckboxGroup';
 
 export interface ModalActionsProps {
   onCancel: () => void;
-  onSubmit?: () => void;
+  onSubmit?: (e: React.FormEvent) => void;
   submitText?: string;
   cancelText?: string;
   isSubmitting?: boolean;
   submitDisabled?: boolean;
+  showCancel?: boolean;
   submitButtonStyle?: React.CSSProperties;
 }
 
@@ -151,17 +152,20 @@ export const ModalActions = memo<ModalActionsProps>(({
   cancelText = 'Annulla',
   isSubmitting = false,
   submitDisabled = false,
+  showCancel = true,
   submitButtonStyle,
 }) => (
   <div className="flex justify-end pt-6 space-x-3 border-t border-gray-200 dark:border-gray-600 mt-6">
-    <button
-      type="button"
-      onClick={onCancel}
+    {showCancel && (
+      <button
+        type="button"
+        onClick={onCancel}
       className="py-2 px-4 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500 transition-colors"
       disabled={isSubmitting}
     >
       {cancelText}
     </button>
+    )}
     {onSubmit && (
       <button
         type="submit"

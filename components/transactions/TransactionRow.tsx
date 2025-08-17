@@ -1,13 +1,10 @@
-import React, { memo, useMemo } from 'react';
+import { memo } from 'react';
 import { Transaction } from '../../types';
 import { LinkIcon, PencilIcon } from '../common';
 import { formatCurrency, formatDate } from '../../constants';
-import { useFinance } from '../../hooks';
-import { useTransactionDisplay } from '../../hooks/ui/useTransactionDisplay';
+import { useTransactionVisual, useTransactionRowClasses } from '../../hooks/features/transactions/useTransactionVisual';
+import { useFinance } from '../../hooks/core/useFinance';
 
-/**
- * Props per il componente TransactionRow
- */
 interface TransactionRowProps {
   transaction: Transaction;
   accountName: string;
@@ -19,13 +16,11 @@ interface TransactionRowProps {
   onLinkClick: (tx: Transaction) => void;
   onSelectToLink: (txId: string) => void;
   onEditClick: (tx: Transaction) => void;
-  showDate?: boolean; // Nuovo prop opzionale per mostrare/nascondere la colonna data
+  showDate?: boolean;
 }
 
 /**
- * Componente ottimizzato per la riga della transazione
- * Principio SRP: Single Responsibility - gestisce solo la visualizzazione di una transazione
- * Principio DRY: Don't Repeat Yourself - logica riutilizzabile memoizzata
+ * Componente per la riga della transazione
  */
 export const TransactionRow = memo<TransactionRowProps>(({
   transaction,
@@ -36,88 +31,49 @@ export const TransactionRow = memo<TransactionRowProps>(({
   isThisLinkingTx,
   isLinkable,
   onLinkClick,
-  onSelectToLink,
   onEditClick,
-  showDate = true // Default a true per mantenere compatibilità con altri usi
+  showDate = true,
 }) => {
-  const { getCategoryName, getAccountById, getPersonById } = useFinance();
+  const {
+    transactionData,
+    personInitials,
+    iconColor,
+    backgroundColor,
+    directionArrow,
+  } = useTransactionVisual(transaction);
+  const rowClasses = useTransactionRowClasses({
+    transaction,
+    transactionData,
+    isLinkingMode,
+    isThisLinkingTx,
+    isLinkable
+  });
+  const { getCategoryName } = useFinance();
 
-  // Utilizza il hook centralizzato per eliminare duplicazioni
-  const transactionDisplayData = useTransactionDisplay(transaction);
-
-  // Calcola le iniziali della persona (stesso metodo di RecentTransactionItem)
-  const getPersonInitials = () => {
-    const account = getAccountById(transaction.accountId);
-    if (!account || account.personIds.length === 0) return '?';
-
-    const person = getPersonById(account.personIds[0]);
-    if (!person) return '?';
-
-    return person.name
-      .split(' ')
-      .map(word => word.charAt(0))
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
-  };
-
-  const getIconColor = () => {
-    if (transactionDisplayData.isTransfer) return 'text-blue-500';
-    return transactionDisplayData.isIncome ? 'text-green-500' : 'text-red-500';
-  };
-
-  const getBackgroundColor = () => {
-    if (transactionDisplayData.isTransfer) return 'bg-blue-100 dark:bg-blue-900';
-    return transactionDisplayData.isIncome ? 'bg-green-100 dark:bg-green-900' : 'bg-red-100 dark:bg-red-900';
-  };
-
-  const getDirectionArrow = () => {
-    if (transactionDisplayData.isTransfer) return '⇄'; // Freccia bidirezionale più elegante
-    return transactionDisplayData.isIncome ? '→' : '←';
-  };
-
-  // Memoizza le classi CSS
-  const rowClasses = useMemo(() => {
-    const { isTransfer, shouldBlurTransaction } = transactionDisplayData;
-
-    return [
-      "border-b border-gray-200 dark:border-gray-700",
-      // Colori di background per distinguere le transazioni
-      isTransfer ? 'bg-blue-50 dark:bg-blue-900/20' :
-        transaction.isReconciled ? 'bg-green-50 dark:bg-green-900/20' : '',
-      // Blur per transazioni collegate o principali completamente riconciliate
-      shouldBlurTransaction ? 'opacity-60' : '',
-      isLinkingMode ? 'transition-opacity duration-300' : '',
-      isThisLinkingTx ? 'bg-blue-100 dark:bg-blue-900/50' : '',
-      isLinkable ? 'cursor-pointer hover:bg-green-100 dark:hover:bg-green-900/50 opacity-100' : '',
-      isLinkingMode && !isLinkable && !isThisLinkingTx ? 'opacity-30' : ''
-    ].join(' ');
-  }, [transactionDisplayData, transaction.isReconciled, isLinkingMode, isThisLinkingTx, isLinkable]);
-
-  const handleRowClick = () => {
-    if (isLinkable) {
-      onSelectToLink(transaction.id);
-    }
-  };
-
-  const { isIncome, isTransfer, transferData, remainingAmount, showRemainingAmount } = transactionDisplayData;
+  const {
+    isTransfer,
+    isIncome,
+    showRemainingAmount,
+    remainingAmount,
+    transferData
+  } = transactionData;
 
   return (
-    <tr className={rowClasses} onClick={handleRowClick}>
+    <tr className={rowClasses}>
       {/* Descrizione e account */}
       <td className="w-2/5 py-3 px-4">
         <div className="flex items-center">
           {/* Cerchio con iniziali e freccia sporgente (stesso design di RecentTransactionItem) */}
           <div className="relative mr-3">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${getBackgroundColor()}`}>
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${backgroundColor}`}>
               <span className="text-xs font-bold text-gray-800 dark:text-white">
-                {getPersonInitials()}
+                {personInitials}
               </span>
             </div>
             {/* Freccia sporgente alla base */}
-            <div className={`absolute -right-1 -bottom-1 w-4 h-4 rounded-full flex items-center justify-center ${getBackgroundColor()} border border-white dark:border-gray-800`}>
-              <span className={`text-xs ${getIconColor()}`}>
-                {getDirectionArrow()}
+            <div className={`absolute -right-1 -bottom-1 w-4 h-4 rounded-full flex items-center justify-center ${backgroundColor} border border-white dark:border-gray-800`}>
+              <span className={`text-xs ${iconColor}`}>
+                {directionArrow}
               </span>
             </div>
           </div>
@@ -141,7 +97,7 @@ export const TransactionRow = memo<TransactionRowProps>(({
 
       {/* Importo */}
       <td className={`w-1/6 py-3 px-4 font-mono text-right ${isTransfer ? 'text-blue-600 dark:text-blue-400' :
-          isIncome ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+        isIncome ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
         }`}>
         <div className="flex flex-col items-end">
           <span>
@@ -149,8 +105,8 @@ export const TransactionRow = memo<TransactionRowProps>(({
           </span>
           {showRemainingAmount && (
             <span className={`text-xs font-medium ${remainingAmount > 0
-                ? 'text-orange-600 dark:text-orange-400'
-                : 'text-gray-500 dark:text-gray-400'
+              ? 'text-orange-600 dark:text-orange-400'
+              : 'text-gray-500 dark:text-gray-400'
               }`}>
               {remainingAmount > 0
                 ? `Disponibile: ${formatCurrency(remainingAmount)}`

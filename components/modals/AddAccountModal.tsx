@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import { memo } from 'react';
 import { BaseModal, FormField, Input, Select, CheckboxGroup, ModalActions } from '../ui';
 import { useAddAccount } from '../../hooks/features/accounts/useAddAccount';
 
@@ -9,7 +9,6 @@ interface AddAccountModalProps {
 
 /**
  * Componente presentazionale per aggiunta account
- * Tutta la logica è delegata al hook useAddAccount
  */
 export const AddAccountModal = memo<AddAccountModalProps>(({ isOpen, onClose }) => {
   const {
@@ -77,8 +76,7 @@ export const AddAccountModal = memo<AddAccountModalProps>(({ isOpen, onClose }) 
         >
           <CheckboxGroup
             options={peopleOptions}
-            onToggle={handlePersonToggle}
-            disabled={isSubmitting}
+            onChange={handlePersonToggle}
             columns={1}
           />
           {data.selectedPersonIds.length > 0 && (
@@ -97,10 +95,10 @@ export const AddAccountModal = memo<AddAccountModalProps>(({ isOpen, onClose }) 
         <ModalActions
           onCancel={onClose}
           onSubmit={handleSubmit}
-          submitLabel="Aggiungi Conto"
-          cancelLabel="Annulla"
+          submitText="Aggiungi Conto"
+          cancelText="Annulla"
           isSubmitting={isSubmitting}
-          disabled={!canSubmit}
+          submitDisabled={!canSubmit}
         />
       </form>
     </BaseModal>

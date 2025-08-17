@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import { memo } from 'react';
 import { PageHeader } from '../ui';
 import {
   useAccountFilter,
@@ -8,67 +8,62 @@ import {
   useSettingsModals,
   useGroups,
 } from '../../hooks';
-import { 
-  UserProfileSection, 
-  AccountManagementSection, 
-  BudgetManagementSection 
+import {
+  UserProfileSection,
+  AccountManagementSection,
+  BudgetManagementSection
 } from '../settings';
 import { GroupSettings } from '../groups';
-import { 
-  EditAccountModal, 
-  AddAccountModal, 
-  EditPersonModal, 
-  EditBudgetModal 
+import {
+  EditAccountModal,
+  AddAccountModal,
+  EditPersonModal,
+  EditBudgetModal
 } from '../modals';
 
 /**
- * Pagina Impostazioni ottimizzata
- * Principio SRP: Single Responsibility - gestisce solo il layout e la coordinazione dei componenti
- * Principio DRY: Don't Repeat Yourself - usa hook e componenti riutilizzabili
- * Principio OCP: Open/Closed - estendibile per nuove sezioni di impostazioni
+ * Pagina Impostazioni
  */
 export const SettingsPage = memo(() => {
   const { people, getCalculatedBalanceSync } = useFinance();
   const { selectedPersonId, isAllView, getPersonName } = usePersonFilter();
   const { accounts } = useAccountFilter(selectedPersonId);
   const { budgets } = useBudgetFilter(selectedPersonId);
-  
-  // Hook per la gestione dei gruppi
+
   const {
     currentGroup,
     isLoading: groupsLoading,
     updateGroup,
     deleteGroup,
   } = useGroups();
-  
+
   const {
     // Stati modali
     isEditAccountModalOpen,
     isEditPersonModalOpen,
     isEditBudgetModalOpen,
     isAddAccountModalOpen,
-    
+
     // Elementi selezionati
     selectedAccount,
     selectedPerson,
     selectedBudget,
-    
+
     // Handlers account
     openEditAccountModal,
     closeEditAccountModal,
     openAddAccountModal,
     closeAddAccountModal,
-    
+
     // Handlers person
     openEditPersonModal,
     closeEditPersonModal,
-    
+
     // Handlers budget
     openEditBudgetModal,
     closeEditBudgetModal,
   } = useSettingsModals();
 
-  // Handlers per le azioni del gruppo
   const handleUpdateGroup = async (updates: { name?: string; description?: string }) => {
     if (!currentGroup) return;
     await updateGroup(currentGroup.id, updates);
@@ -79,7 +74,6 @@ export const SettingsPage = memo(() => {
     await deleteGroup(currentGroup.id);
   };
 
-  // Filtra le persone in base alla vista corrente
   const displayedPeople = isAllView
     ? people
     : people.filter(p => p.id === selectedPersonId);
@@ -125,18 +119,18 @@ export const SettingsPage = memo(() => {
         onClose={closeEditAccountModal}
         account={selectedAccount}
       />
-      
+
       <AddAccountModal
         isOpen={isAddAccountModalOpen}
         onClose={closeAddAccountModal}
       />
-      
+
       <EditPersonModal
         isOpen={isEditPersonModalOpen}
         onClose={closeEditPersonModal}
         person={selectedPerson}
       />
-      
+
       <EditBudgetModal
         isOpen={isEditBudgetModalOpen}
         onClose={closeEditBudgetModal}

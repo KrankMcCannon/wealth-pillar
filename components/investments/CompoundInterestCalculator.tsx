@@ -1,18 +1,11 @@
-import React, { memo } from 'react';
+import { memo } from 'react';
 import { Card, FormField, Input } from '../ui';
 import { formatCurrency } from '../../constants';
 import { useCompoundInterest } from '../../hooks';
-
-// Simple calculator icon as SVG component
-const CalculatorIcon = () => (
-  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 002 2v14a2 2 0 002 2z" />
-  </svg>
-);
+import { CalculatorIcon } from '../common';
 
 /**
  * Componente per i controlli di input del calcolatore
- * Principio SRP: Single Responsibility - gestisce solo gli input
  */
 const CalculatorInputs = memo<{
   principal: number;
@@ -23,14 +16,14 @@ const CalculatorInputs = memo<{
   setYears: (value: number) => void;
   compoundsPerYear: number;
   setCompoundsPerYear: (value: number) => void;
-}>(({ 
-  principal, setPrincipal, 
-  rate, setRate, 
-  years, setYears, 
-  compoundsPerYear, setCompoundsPerYear 
+}>(({
+  principal, setPrincipal,
+  rate, setRate,
+  years, setYears,
+  compoundsPerYear, setCompoundsPerYear
 }) => (
   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-    <FormField label="Capitale Iniziale (€)">
+    <FormField id='principal' label="Capitale Iniziale (€)">
       <Input
         type="number"
         value={principal}
@@ -40,7 +33,7 @@ const CalculatorInputs = memo<{
       />
     </FormField>
 
-    <FormField label="Tasso di Interesse Annuo (%)">
+    <FormField id='rate' label="Tasso di Interesse Annuo (%)">
       <Input
         type="number"
         value={rate}
@@ -50,7 +43,7 @@ const CalculatorInputs = memo<{
       />
     </FormField>
 
-    <FormField label="Periodo (anni)">
+    <FormField id='years' label="Periodo (anni)">
       <Input
         type="number"
         value={years}
@@ -60,7 +53,7 @@ const CalculatorInputs = memo<{
       />
     </FormField>
 
-    <FormField label="Capitalizzazioni per Anno">
+    <FormField id='compoundsPerYear' label="Capitalizzazioni per Anno">
       <select
         value={compoundsPerYear}
         onChange={(e) => setCompoundsPerYear(Number(e.target.value))}
@@ -79,7 +72,6 @@ CalculatorInputs.displayName = 'CalculatorInputs';
 
 /**
  * Componente per visualizzare i risultati del calcolo
- * Principio SRP: Single Responsibility - visualizza solo i risultati
  */
 const CalculatorResults = memo<{
   futureValue: number;
@@ -116,10 +108,7 @@ const CalculatorResults = memo<{
 CalculatorResults.displayName = 'CalculatorResults';
 
 /**
- * Calcolatore di Interesse Composto ottimizzato
- * Principio SRP: Single Responsibility - gestisce solo la visualizzazione del calcolatore
- * Principio OCP: Open/Closed - estendibile per nuovi tipi di calcolo
- * Principio DRY: Don't Repeat Yourself - usa hook centralizzato e componenti riutilizzabili
+ * Calcolatore di Interesse Composto
  */
 export const CompoundInterestCalculator = memo(() => {
   const {
@@ -170,7 +159,7 @@ export const CompoundInterestCalculator = memo(() => {
             A = P(1 + r/n)^(nt)
           </p>
           <p className="text-xs text-gray-500 dark:text-gray-500 mt-2">
-            Dove: A = importo finale, P = capitale iniziale, r = tasso di interesse, 
+            Dove: A = importo finale, P = capitale iniziale, r = tasso di interesse,
             n = numero di capitalizzazioni per anno, t = tempo in anni
           </p>
         </div>

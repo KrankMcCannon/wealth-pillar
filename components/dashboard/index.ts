@@ -1,4 +1,6 @@
-// Export di tutti i componenti del dashboard
+/**
+ * Dashboard components exports
+ */
 export { AccountCard } from './AccountCard';
 export { BudgetProgress } from './BudgetProgress';
 export * from './DashboardSections';

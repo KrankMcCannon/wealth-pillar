@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import { memo } from 'react';
 import { Card } from '../ui';
 import { BudgetProgress, RecentTransactionItem } from '.';
 import { Budget, Transaction, Person } from '../../types';
@@ -20,27 +20,22 @@ interface RecentTransactionsSectionProps {
   recentTransactionsWithData: Array<{
     transaction: Transaction;
     accountName: string;
-    personName?: string;
   }>;
-  isAllView: boolean;
 }
 
 /**
- * Componente BudgetSection ottimizzato
- * Principio SRP: Single Responsibility - gestisce solo la sezione budget
+ * Componente BudgetSection
  */
-export const BudgetSection = memo<BudgetSectionProps>(({ 
-  budgetsWithData, 
-  transactions, 
+export const BudgetSection = memo<BudgetSectionProps>(({
+  budgetsWithData,
   people,
-  isAllView 
+  isAllView
 }) => {
-  // Estrai solo i budget dall'array budgetsWithData
   const budgets = budgetsWithData.map(({ budget }) => budget);
-  
+
   return (
     <Card>
-      <BudgetProgress 
+      <BudgetProgress
         budgets={budgets}
         people={people}
         selectedPersonId={!isAllView ? budgetsWithData[0]?.person.id : undefined}
@@ -50,26 +45,20 @@ export const BudgetSection = memo<BudgetSectionProps>(({
 });
 
 /**
- * Componente RecentTransactionsSection ottimizzato
- * Principio SRP: Single Responsibility - gestisce solo la sezione transazioni recenti
+ * Componente RecentTransactionsSection
  */
-export const RecentTransactionsSection = memo<RecentTransactionsSectionProps>(({ 
-  recentTransactionsWithData, 
-  isAllView 
-}) => (
+export const RecentTransactionsSection = memo<RecentTransactionsSectionProps>(({ recentTransactionsWithData }) => (
   <Card>
     <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-white">
       Transazioni Recenti
     </h2>
     {recentTransactionsWithData.length > 0 ? (
       <ul className="space-y-2">
-        {recentTransactionsWithData.map(({ transaction, accountName, personName }) => (
+        {recentTransactionsWithData.map(({ transaction, accountName }) => (
           <RecentTransactionItem
             key={transaction.id}
             transaction={transaction}
             accountName={accountName}
-            personName={personName}
-            isAllView={isAllView}
           />
         ))}
       </ul>

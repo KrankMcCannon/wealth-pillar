@@ -1,11 +1,8 @@
-import React, { memo } from 'react';
+import { memo } from 'react';
 import { Transaction } from '../../types';
 import { formatDate } from '../../constants';
 import { TransactionRow } from './TransactionRow';
 
-/**
- * Props per il componente TransactionDateGroup
- */
 interface TransactionDateGroupProps {
   date: string;
   transactions: Transaction[];
@@ -23,15 +20,12 @@ interface TransactionDateGroupProps {
 
 /**
  * Componente per visualizzare un gruppo di transazioni per data
- * Principio SRP: Single Responsibility - gestisce solo la visualizzazione di un gruppo
- * Principio DRY: Don't Repeat Yourself - riutilizza TransactionRow per ogni transazione
  */
 export const TransactionDateGroup = memo<TransactionDateGroupProps>(({
   date,
   transactions,
   isAllView,
   isLinkingMode,
-  linkingTx,
   onLinkClick,
   onSelectToLink,
   onEditClick,
@@ -40,7 +34,6 @@ export const TransactionDateGroup = memo<TransactionDateGroupProps>(({
   isTransactionLinkable,
   isThisLinkingTransaction
 }) => {
-  // Formatta la data per la visualizzazione
   const formattedDate = formatDate(date);
 
   return (

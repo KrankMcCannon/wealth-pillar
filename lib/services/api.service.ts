@@ -1,13 +1,13 @@
-import { Account, Budget, CategoryOption, InvestmentHolding, Person, Transaction } from '../types';
+import { Account, Budget, CategoryOption, InvestmentHolding, Person, Transaction } from "../../types";
 
-const API_BASE_URL = 'http://localhost:3001';
+const API_BASE_URL = "http://localhost:3001";
 
 class ApiService {
   private async request<T>(endpoint: string, options?: RequestInit): Promise<T> {
     try {
       const response = await fetch(`${API_BASE_URL}${endpoint}`, {
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           ...options?.headers,
         },
         ...options,
@@ -26,88 +26,88 @@ class ApiService {
 
   // People
   async getPeople(): Promise<Person[]> {
-    return this.request<Person[]>('/people');
+    return this.request<Person[]>("/people");
   }
 
   async updatePerson(person: Person): Promise<Person> {
     return this.request<Person>(`/people/${person.id}`, {
-      method: 'PUT',
+      method: "PUT",
       body: JSON.stringify(person),
     });
   }
 
   // Accounts
   async getAccounts(): Promise<Account[]> {
-    return this.request<Account[]>('/accounts');
+    return this.request<Account[]>("/accounts");
   }
 
   async addAccount(account: Account): Promise<Account> {
-    return this.request<Account>('/accounts', {
-      method: 'POST',
+    return this.request<Account>("/accounts", {
+      method: "POST",
       body: JSON.stringify(account),
     });
   }
 
   async updateAccount(account: Account): Promise<Account> {
     return this.request<Account>(`/accounts/${account.id}`, {
-      method: 'PUT',
+      method: "PUT",
       body: JSON.stringify(account),
     });
   }
 
   // Transactions
   async getTransactions(): Promise<Transaction[]> {
-    return this.request<Transaction[]>('/transactions?_sort=date&_order=desc');
+    return this.request<Transaction[]>("/transactions?_sort=date&_order=desc");
   }
 
-  async addTransaction(transaction: Omit<Transaction, 'id'>): Promise<Transaction> {
-    return this.request<Transaction>('/transactions', {
-      method: 'POST',
+  async addTransaction(transaction: Omit<Transaction, "id">): Promise<Transaction> {
+    return this.request<Transaction>("/transactions", {
+      method: "POST",
       body: JSON.stringify(transaction),
     });
   }
 
   async updateTransaction(transaction: Transaction): Promise<Transaction> {
     return this.request<Transaction>(`/transactions/${transaction.id}`, {
-      method: 'PUT',
+      method: "PUT",
       body: JSON.stringify(transaction),
     });
   }
 
   // Budgets
   async getBudgets(): Promise<Budget[]> {
-    return this.request<Budget[]>('/budgets');
+    return this.request<Budget[]>("/budgets");
   }
 
   async addBudget(budget: Budget): Promise<Budget> {
-    return this.request<Budget>('/budgets', {
-      method: 'POST',
+    return this.request<Budget>("/budgets", {
+      method: "POST",
       body: JSON.stringify(budget),
     });
   }
 
   async updateBudget(budget: Budget): Promise<Budget> {
     return this.request<Budget>(`/budgets/${budget.id}`, {
-      method: 'PUT',
+      method: "PUT",
       body: JSON.stringify(budget),
     });
   }
 
   // Investments
   async getInvestments(): Promise<InvestmentHolding[]> {
-    return this.request<InvestmentHolding[]>('/investments');
+    return this.request<InvestmentHolding[]>("/investments");
   }
 
-  async addInvestment(investment: Omit<InvestmentHolding, 'id'>): Promise<InvestmentHolding> {
-    return this.request<InvestmentHolding>('/investments', {
-      method: 'POST',
+  async addInvestment(investment: Omit<InvestmentHolding, "id">): Promise<InvestmentHolding> {
+    return this.request<InvestmentHolding>("/investments", {
+      method: "POST",
       body: JSON.stringify(investment),
     });
   }
 
   // Categories
   async getCategories(): Promise<CategoryOption[]> {
-    return this.request<CategoryOption[]>('/categories');
+    return this.request<CategoryOption[]>("/categories");
   }
 }
 

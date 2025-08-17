@@ -117,6 +117,7 @@ export const useAddInvestment = ({ onClose }: UseAddInvestmentProps) => {
         purchasePrice: numPurchasePrice,
         currentPrice: numCurrentPrice,
         purchaseDate: data.purchaseDate,
+        groupId: isAllView ? null : selectedPersonId,
       });
       onClose();
     } catch (err) {

@@ -1,4 +1,6 @@
-// Export di tutti i componenti degli investimenti
+/*
+* Export dei componenti degli investimenti
+*/
 export { CompoundInterestCalculator } from './CompoundInterestCalculator';
-export * from './InvestmentComponents';
+export { InvestmentTable, PortfolioSummary } from './InvestmentComponents';
 

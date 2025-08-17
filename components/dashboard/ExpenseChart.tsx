@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import { memo } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { Transaction } from '../../types';
 import { useDarkMode, useBreakpoint } from '../../hooks';
@@ -11,14 +11,12 @@ import { formatCurrency } from '../../constants';
  */
 interface ExpenseChartProps {
   transactions: Transaction[];
-  selectedPersonId: string;
 }
 
 /**
- * Componente ExpenseChart presentazionale
- * Tutta la logica di calcolo è delegata al hook useExpenseChart
+ * Componente ExpenseChart
  */
-export const ExpenseChart = memo<ExpenseChartProps>(({ transactions, selectedPersonId }) => {
+export const ExpenseChart = memo<ExpenseChartProps>(({ transactions }) => {
   const { expenseData, totalExpenses, hasExpenses, COLORS } = useExpenseChart({ transactions });
   const isDarkMode = useDarkMode();
   const { isMobile } = useBreakpoint();
@@ -41,7 +39,7 @@ export const ExpenseChart = memo<ExpenseChartProps>(({ transactions, selectedPer
             Nessuna spesa registrata
           </h3>
           <p className="text-sm text-center max-w-md">
-            Non ci sono spese da visualizzare per il periodo selezionato. 
+            Non ci sono spese da visualizzare per il periodo selezionato.
             Aggiungi alcune transazioni per vedere la ripartizione delle spese.
           </p>
         </div>
@@ -67,18 +65,18 @@ export const ExpenseChart = memo<ExpenseChartProps>(({ transactions, selectedPer
           {/* Grafico a torta centrato */}
           <div className="flex justify-center">
             <div className="relative w-full max-w-md">
-              <ResponsiveContainer 
-                width="100%" 
+              <ResponsiveContainer
+                width="100%"
                 height={isMobile ? 280 : 320}
                 className="mx-auto"
               >
                 <PieChart>
-                  <Pie 
-                    data={expenseData} 
-                    dataKey="value" 
-                    nameKey="name" 
-                    cx="50%" 
-                    cy="50%" 
+                  <Pie
+                    data={expenseData}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
                     innerRadius={isMobile ? 50 : 70}
                     outerRadius={isMobile ? 100 : 130}
                     paddingAngle={3}
@@ -87,8 +85,8 @@ export const ExpenseChart = memo<ExpenseChartProps>(({ transactions, selectedPer
                     stroke="none"
                   >
                     {expenseData.map((_, index) => (
-                      <Cell 
-                        key={`cell-${index}`} 
+                      <Cell
+                        key={`cell-${index}`}
                         fill={COLORS[index % COLORS.length]}
                         style={{
                           filter: 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1))',
@@ -97,22 +95,22 @@ export const ExpenseChart = memo<ExpenseChartProps>(({ transactions, selectedPer
                       />
                     ))}
                   </Pie>
-                  <Tooltip 
+                  <Tooltip
                     formatter={(value: number) => [formatCurrency(value), 'Spesa']}
                     contentStyle={{
                       backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.96)' : 'rgba(31, 41, 55, 0.96)',
                       color: isDarkMode ? '#1f2937' : '#f9fafb',
                       border: isDarkMode ? '1px solid #e5e7eb' : '1px solid #374151',
                       borderRadius: '12px',
-                      boxShadow: isDarkMode 
-                        ? '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05)' 
+                      boxShadow: isDarkMode
+                        ? '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05)'
                         : '0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1)',
                       backdropFilter: 'blur(16px)',
                       fontSize: '14px',
                       padding: '12px 16px',
                       fontWeight: '500'
                     }}
-                    labelStyle={{ 
+                    labelStyle={{
                       fontWeight: '600',
                       marginBottom: '4px',
                       color: isDarkMode ? '#374151' : '#f3f4f6'
@@ -132,12 +130,12 @@ export const ExpenseChart = memo<ExpenseChartProps>(({ transactions, selectedPer
             {expenseData.map((item, index) => {
               const percentage = ((item.value / totalExpenses) * 100);
               return (
-                <div 
+                <div
                   key={item.name}
                   className="group flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/30 rounded-lg border border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-all duration-200"
                 >
                   <div className="flex items-center flex-1 min-w-0">
-                    <div 
+                    <div
                       className="w-3 h-3 rounded-full mr-2 flex-shrink-0 shadow-sm"
                       style={{ backgroundColor: COLORS[index % COLORS.length] }}
                     />
@@ -147,9 +145,9 @@ export const ExpenseChart = memo<ExpenseChartProps>(({ transactions, selectedPer
                       </p>
                       <div className="flex items-center mt-1">
                         <div className="w-12 bg-gray-200 dark:bg-gray-600 rounded-full h-1 mr-1">
-                          <div 
+                          <div
                             className="h-1 rounded-full transition-all duration-500"
-                            style={{ 
+                            style={{
                               width: `${percentage}%`,
                               backgroundColor: COLORS[index % COLORS.length]
                             }}

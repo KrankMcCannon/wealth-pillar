@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import { memo } from 'react';
 import { Transaction } from '../../types';
 import { BaseModal, FormField, Input, Select, ModalActions } from '../ui';
 import { useEditTransaction } from '../../hooks/features/transactions/useEditTransaction';
@@ -11,7 +11,6 @@ interface EditTransactionModalProps {
 
 /**
  * Componente presentazionale per editing transazioni
- * Tutta la logica è delegata al hook useEditTransaction
  */
 export const EditTransactionModal = memo<EditTransactionModalProps>(({ 
   isOpen, 
@@ -47,6 +46,7 @@ export const EditTransactionModal = memo<EditTransactionModalProps>(({
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Description field */}
         <FormField
+          id="transaction-description"
           label="Descrizione"
           error={errors.description}
           required
@@ -62,6 +62,7 @@ export const EditTransactionModal = memo<EditTransactionModalProps>(({
 
         {/* Amount field */}
         <FormField
+          id="transaction-amount"
           label="Importo (€)"
           error={errors.amount}
           required
@@ -80,6 +81,7 @@ export const EditTransactionModal = memo<EditTransactionModalProps>(({
 
         {/* Date field */}
         <FormField
+          id="transaction-date"
           label="Data"
           error={errors.date}
           required
@@ -95,6 +97,7 @@ export const EditTransactionModal = memo<EditTransactionModalProps>(({
 
         {/* Type field */}
         <FormField
+          id="transaction-type"
           label="Tipo"
           error={errors.type}
           required
@@ -111,6 +114,7 @@ export const EditTransactionModal = memo<EditTransactionModalProps>(({
 
         {/* Category field */}
         <FormField
+          id="transaction-category"
           label="Categoria"
           error={errors.category}
           required
@@ -127,6 +131,7 @@ export const EditTransactionModal = memo<EditTransactionModalProps>(({
 
         {/* Account field */}
         <FormField
+          id="transaction-account"
           label="Conto"
           error={errors.accountId}
           required
@@ -144,6 +149,7 @@ export const EditTransactionModal = memo<EditTransactionModalProps>(({
         {/* To Account field - shown only for transfers */}
         {showToAccount && (
           <FormField
+            id="transaction-to-account"
             label="Conto Destinazione"
             error={errors.toAccountId}
             required
@@ -168,10 +174,10 @@ export const EditTransactionModal = memo<EditTransactionModalProps>(({
         <ModalActions
           onCancel={onClose}
           onSubmit={handleSubmit}
-          submitLabel="Salva Modifiche"
-          cancelLabel="Annulla"
+          submitText="Salva Modifiche"
+          cancelText="Annulla"
           isSubmitting={isSubmitting}
-          disabled={!canSubmit}
+          submitDisabled={!canSubmit}
         />
       </form>
     </BaseModal>

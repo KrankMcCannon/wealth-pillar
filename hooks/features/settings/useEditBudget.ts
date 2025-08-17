@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo } from 'react';
 import { useFinance, useModalForm } from '../../';
 import { Budget } from '../../../types';
+import { validateEditBudgetForm } from '../../utils/validators';
 
 interface EditBudgetFormData {
   description: string;
@@ -50,7 +51,6 @@ export const useEditBudget = ({ budget, onClose }: UseEditBudgetProps) => {
     clearAllErrors,
     setSubmitting,
     resetForm,
-    validateRequired,
   } = useModalForm({
     initialData: initialFormData,
     resetOnClose: false,
@@ -64,59 +64,38 @@ export const useEditBudget = ({ budget, onClose }: UseEditBudgetProps) => {
     }
   }, [budget, resetForm]);
 
-  // Computed values
-  const categoryOptions = useMemo(() => 
+  const categoryOptions = useMemo(() =>
     categories.map(category => ({
       id: category.id,
       label: category.label || category.name,
       checked: data.selectedCategories.includes(category.id),
     }))
-  , [categories, data.selectedCategories]);
+    , [categories, data.selectedCategories]);
 
-  const budgetStartDayOptions = useMemo(() => 
+  const budgetStartDayOptions = useMemo(() =>
     Array.from({ length: 28 }, (_, i) => ({
       value: (i + 1).toString(),
       label: `Giorno ${i + 1}`,
     }))
-  , []);
+    , []);
 
-  // Validation
   const validateForm = useCallback((): boolean => {
     clearAllErrors();
+    const errorsObj = validateEditBudgetForm({
+      description: data.description,
+      amount: data.amount,
+      selectedCategories: data.selectedCategories,
+      budgetStartDay: data.budgetStartDay,
+    });
+    Object.entries(errorsObj).forEach(([field, message]) => {
+      setError(field as any, message as string);
+    });
+    return Object.keys(errorsObj).length === 0;
+  }, [data, clearAllErrors, setError]);
 
-    if (!validateRequired(['description', 'amount'])) {
-      return false;
-    }
-
-    if (data.description.trim().length === 0) {
-      setError('description', 'La descrizione non può essere vuota');
-      return false;
-    }
-
-    const amount = parseFloat(data.amount);
-    if (isNaN(amount) || amount <= 0) {
-      setError('amount', 'L\'importo deve essere un numero positivo');
-      return false;
-    }
-
-    if (data.selectedCategories.length === 0) {
-      setError('selectedCategories', 'Seleziona almeno una categoria');
-      return false;
-    }
-
-    const startDay = parseInt(data.budgetStartDay);
-    if (isNaN(startDay) || startDay < 1 || startDay > 28) {
-      setError('budgetStartDay', 'Il giorno di inizio deve essere tra 1 e 28');
-      return false;
-    }
-
-    return true;
-  }, [data, validateRequired, setError, clearAllErrors]);
-
-  // Submit handler
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm() || !budget) {
       return;
     }
@@ -124,7 +103,6 @@ export const useEditBudget = ({ budget, onClose }: UseEditBudgetProps) => {
     setSubmitting(true);
 
     try {
-      // Update budget
       const updatedBudget: Budget = {
         ...budget,
         description: data.description.trim(),
@@ -134,7 +112,6 @@ export const useEditBudget = ({ budget, onClose }: UseEditBudgetProps) => {
 
       await updateBudget(updatedBudget);
 
-      // Update person's budget start date if changed
       const person = getPersonById(budget.personId);
       if (person && person.budgetStartDate !== data.budgetStartDay) {
         await updatePerson({
@@ -152,7 +129,6 @@ export const useEditBudget = ({ budget, onClose }: UseEditBudgetProps) => {
     }
   }, [validateForm, setSubmitting, data, budget, updateBudget, getPersonById, updatePerson, onClose, setError]);
 
-  // Field change handlers
   const handleDescriptionChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     updateField('description', e.target.value);
   }, [updateField]);
@@ -174,13 +150,14 @@ export const useEditBudget = ({ budget, onClose }: UseEditBudgetProps) => {
     }
   }, [data.selectedCategories, updateField]);
 
-  // Check if form can be submitted
   const canSubmit = useMemo(() => {
-    return data.description.trim().length > 0 && 
-           data.amount.trim().length > 0 && 
-           parseFloat(data.amount) > 0 &&
-           data.selectedCategories.length > 0;
-  }, [data]);
+    return budget !== null && Object.keys(validateEditBudgetForm({
+      description: data.description,
+      amount: data.amount,
+      selectedCategories: data.selectedCategories,
+      budgetStartDay: data.budgetStartDay,
+    })).length === 0;
+  }, [data, budget]);
 
   return {
     // Form state
@@ -188,11 +165,11 @@ export const useEditBudget = ({ budget, onClose }: UseEditBudgetProps) => {
     errors,
     isSubmitting,
     canSubmit,
-    
+
     // Computed values
     categoryOptions,
     budgetStartDayOptions,
-    
+
     // Event handlers
     handleSubmit,
     handleDescriptionChange,

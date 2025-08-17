@@ -1,20 +1,14 @@
-import React, { memo } from 'react';
+import { memo } from 'react';
 import { Card } from '../ui';
 import { PencilIcon } from '../common';
 import { Person, Account, Budget } from '../../types';
 import { formatCurrency } from '../../constants';
 
-/**
- * Props per la sezione Profilo Utente
- */
 interface UserProfileSectionProps {
   people: Person[];
   onEditPerson: (person: Person) => void;
 }
 
-/**
- * Props per la sezione Gestione Conti
- */
 interface AccountManagementProps {
   accounts: Account[];
   isAllView: boolean;
@@ -24,9 +18,6 @@ interface AccountManagementProps {
   getCalculatedBalanceSync: (accountId: string) => number;
 }
 
-/**
- * Props per la sezione Gestione Budget
- */
 interface BudgetManagementProps {
   budgets: Budget[];
   isAllView: boolean;
@@ -36,7 +27,6 @@ interface BudgetManagementProps {
 
 /**
  * Componente per la sezione Profilo Utente
- * Principio SRP: Single Responsibility - gestisce solo la visualizzazione dei profili utente
  */
 export const UserProfileSection = memo<UserProfileSectionProps>(({
   people,
@@ -78,7 +68,6 @@ UserProfileSection.displayName = 'UserProfileSection';
 
 /**
  * Componente per la sezione Gestione Conti
- * Principio SRP: Single Responsibility - gestisce solo la visualizzazione dei conti
  */
 export const AccountManagementSection = memo<AccountManagementProps>(({
   accounts,
@@ -146,7 +135,6 @@ AccountManagementSection.displayName = 'AccountManagementSection';
 
 /**
  * Componente per la sezione Gestione Budget
- * Principio SRP: Single Responsibility - gestisce solo la visualizzazione dei budget
  */
 export const BudgetManagementSection = memo<BudgetManagementProps>(({
   budgets,

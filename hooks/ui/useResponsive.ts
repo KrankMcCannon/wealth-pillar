@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
+import { useEffect, useState, useMemo, useCallback, useRef } from "react";
 
 /**
  * Configurazione breakpoint personalizzabili
@@ -19,7 +19,7 @@ export interface WindowSizeInfo {
   width: number;
   height: number;
   aspectRatio: number;
-  orientation: 'portrait' | 'landscape';
+  orientation: "portrait" | "landscape";
   isSmallScreen: boolean;
 }
 
@@ -32,7 +32,7 @@ export interface BreakpointInfo {
   isTablet: boolean;
   isDesktop: boolean;
   isLarge: boolean;
-  currentBreakpoint: 'mobile' | 'tablet' | 'desktop' | 'large';
+  currentBreakpoint: "mobile" | "tablet" | "desktop" | "large";
   width: number;
   height: number;
 }
@@ -56,16 +56,16 @@ const DEFAULT_BREAKPOINTS: BreakpointConfig = {
  */
 export const useWindowSize = (debounceMs = 150): WindowSizeInfo => {
   // SSR-safe initial state
-  const getInitialSize = (): Omit<WindowSizeInfo, 'aspectRatio' | 'orientation' | 'isSmallScreen'> => ({
-    width: typeof window !== 'undefined' ? window.innerWidth : 1024,
-    height: typeof window !== 'undefined' ? window.innerHeight : 768,
+  const getInitialSize = (): Omit<WindowSizeInfo, "aspectRatio" | "orientation" | "isSmallScreen"> => ({
+    width: typeof window !== "undefined" ? window.innerWidth : 1024,
+    height: typeof window !== "undefined" ? window.innerHeight : 768,
   });
 
   const [windowSize, setWindowSize] = useState(getInitialSize);
-  const debounceTimeoutRef = useRef<NodeJS.Timeout>();
+  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (typeof window === "undefined") return;
 
     const handleResize = () => {
       if (debounceTimeoutRef.current) {
@@ -83,10 +83,10 @@ export const useWindowSize = (debounceMs = 150): WindowSizeInfo => {
     // Set initial size
     handleResize();
 
-    window.addEventListener('resize', handleResize, { passive: true });
-    
+    window.addEventListener("resize", handleResize, { passive: true });
+
     return () => {
-      window.removeEventListener('resize', handleResize);
+      window.removeEventListener("resize", handleResize);
       if (debounceTimeoutRef.current) {
         clearTimeout(debounceTimeoutRef.current);
       }
@@ -97,7 +97,7 @@ export const useWindowSize = (debounceMs = 150): WindowSizeInfo => {
   const enhancedWindowSize = useMemo<WindowSizeInfo>(() => {
     const { width, height } = windowSize;
     const aspectRatio = width / height;
-    const orientation = width > height ? 'landscape' : 'portrait';
+    const orientation = width > height ? "landscape" : "portrait";
     const isSmallScreen = width < DEFAULT_BREAKPOINTS.mobile;
 
     return {
@@ -119,28 +119,30 @@ export const useWindowSize = (debounceMs = 150): WindowSizeInfo => {
  */
 export const useDarkMode = () => {
   const [isDarkMode, setIsDarkMode] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    
-    return document.documentElement.classList.contains('dark') || 
-           window.matchMedia('(prefers-color-scheme: dark)').matches;
+    if (typeof window === "undefined") return false;
+
+    return (
+      document.documentElement.classList.contains("dark") || window.matchMedia("(prefers-color-scheme: dark)").matches
+    );
   });
 
-  const observerRef = useRef<MutationObserver>();
-  const mediaQueryRef = useRef<MediaQueryList>();
+  const observerRef = useRef<MutationObserver | null>(null);
+  const mediaQueryRef = useRef<MediaQueryList | null>(null);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (typeof window === "undefined") return;
 
     const checkDarkMode = () => {
-      const isDark = document.documentElement.classList.contains('dark') || 
-                    window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const isDark =
+        document.documentElement.classList.contains("dark") ||
+        window.matchMedia("(prefers-color-scheme: dark)").matches;
       setIsDarkMode(isDark);
     };
 
     // Observer per cambiamenti della classe dark
     observerRef.current = new MutationObserver((mutations) => {
       for (const mutation of mutations) {
-        if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+        if (mutation.type === "attributes" && mutation.attributeName === "class") {
           checkDarkMode();
           break;
         }
@@ -149,15 +151,15 @@ export const useDarkMode = () => {
 
     observerRef.current.observe(document.documentElement, {
       attributes: true,
-      attributeFilter: ['class'],
+      attributeFilter: ["class"],
     });
 
     // Media query listener per preferenze sistema
-    mediaQueryRef.current = window.matchMedia('(prefers-color-scheme: dark)');
+    mediaQueryRef.current = window.matchMedia("(prefers-color-scheme: dark)");
     const handleMediaChange = () => checkDarkMode();
-    
+
     if (mediaQueryRef.current.addEventListener) {
-      mediaQueryRef.current.addEventListener('change', handleMediaChange);
+      mediaQueryRef.current.addEventListener("change", handleMediaChange);
     } else {
       // Fallback per browser più vecchi
       mediaQueryRef.current.addListener(handleMediaChange);
@@ -168,10 +170,10 @@ export const useDarkMode = () => {
       if (observerRef.current) {
         observerRef.current.disconnect();
       }
-      
+
       if (mediaQueryRef.current) {
         if (mediaQueryRef.current.removeEventListener) {
-          mediaQueryRef.current.removeEventListener('change', handleMediaChange);
+          mediaQueryRef.current.removeEventListener("change", handleMediaChange);
         } else {
           mediaQueryRef.current.removeListener(handleMediaChange);
         }
@@ -184,9 +186,9 @@ export const useDarkMode = () => {
    * Principio SRP: Single Responsibility - solo toggle tema
    */
   const toggleDarkMode = useCallback(() => {
-    if (typeof document === 'undefined') return;
-    
-    document.documentElement.classList.toggle('dark');
+    if (typeof document === "undefined") return;
+
+    document.documentElement.classList.toggle("dark");
   }, []);
 
   /**
@@ -194,12 +196,12 @@ export const useDarkMode = () => {
    * Principio SRP: Single Responsibility - solo set tema
    */
   const setDarkMode = useCallback((enabled: boolean) => {
-    if (typeof document === 'undefined') return;
-    
+    if (typeof document === "undefined") return;
+
     if (enabled) {
-      document.documentElement.classList.add('dark');
+      document.documentElement.classList.add("dark");
     } else {
-      document.documentElement.classList.remove('dark');
+      document.documentElement.classList.remove("dark");
     }
   }, []);
 
@@ -217,12 +219,15 @@ export const useDarkMode = () => {
  */
 export const useBreakpoint = (customBreakpoints?: Partial<BreakpointConfig>): BreakpointInfo => {
   const { width, height } = useWindowSize();
-  
+
   // Memoizza la configurazione dei breakpoint
-  const breakpoints = useMemo(() => ({
-    ...DEFAULT_BREAKPOINTS,
-    ...customBreakpoints,
-  }), [customBreakpoints]);
+  const breakpoints = useMemo(
+    () => ({
+      ...DEFAULT_BREAKPOINTS,
+      ...customBreakpoints,
+    }),
+    [customBreakpoints]
+  );
 
   // Calcola le informazioni sui breakpoint
   const breakpointInfo = useMemo<BreakpointInfo>(() => {
@@ -231,11 +236,11 @@ export const useBreakpoint = (customBreakpoints?: Partial<BreakpointConfig>): Br
     const isDesktop = width >= breakpoints.tablet && width < (breakpoints.large || Infinity);
     const isLarge = breakpoints.large ? width >= breakpoints.large : false;
 
-    let currentBreakpoint: BreakpointInfo['currentBreakpoint'];
-    if (isMobile) currentBreakpoint = 'mobile';
-    else if (isTablet) currentBreakpoint = 'tablet';
-    else if (isLarge) currentBreakpoint = 'large';
-    else currentBreakpoint = 'desktop';
+    let currentBreakpoint: BreakpointInfo["currentBreakpoint"];
+    if (isMobile) currentBreakpoint = "mobile";
+    else if (isTablet) currentBreakpoint = "tablet";
+    else if (isLarge) currentBreakpoint = "large";
+    else currentBreakpoint = "desktop";
 
     return {
       isMobile,
@@ -258,12 +263,12 @@ export const useBreakpoint = (customBreakpoints?: Partial<BreakpointConfig>): Br
  */
 export const useMediaQuery = (query: string): boolean => {
   const [matches, setMatches] = useState(() => {
-    if (typeof window === 'undefined') return false;
+    if (typeof window === "undefined") return false;
     return window.matchMedia(query).matches;
   });
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (typeof window === "undefined") return;
 
     const mediaQuery = window.matchMedia(query);
     const handler = (event: MediaQueryListEvent) => setMatches(event.matches);
@@ -273,8 +278,8 @@ export const useMediaQuery = (query: string): boolean => {
 
     // Add listener
     if (mediaQuery.addEventListener) {
-      mediaQuery.addEventListener('change', handler);
-      return () => mediaQuery.removeEventListener('change', handler);
+      mediaQuery.addEventListener("change", handler);
+      return () => mediaQuery.removeEventListener("change", handler);
     } else {
       // Fallback per browser più vecchi
       mediaQuery.addListener(handler);
@@ -291,13 +296,16 @@ export const useMediaQuery = (query: string): boolean => {
  */
 export const useOrientation = () => {
   const { width, height, orientation } = useWindowSize();
-  
-  const orientationInfo = useMemo(() => ({
-    orientation,
-    isPortrait: orientation === 'portrait',
-    isLandscape: orientation === 'landscape',
-    aspectRatio: width / height,
-  }), [orientation, width, height]);
+
+  const orientationInfo = useMemo(
+    () => ({
+      orientation,
+      isPortrait: orientation === "portrait",
+      isLandscape: orientation === "landscape",
+      aspectRatio: width / height,
+    }),
+    [orientation, width, height]
+  );
 
   return orientationInfo;
 };
@@ -320,26 +328,25 @@ export const useResponsive = (customBreakpoints?: Partial<BreakpointConfig>) => 
   return {
     // Window size info
     windowSize,
-    
+
     // Breakpoint info
     breakpoint,
-    
+
     // Dark mode
     darkMode,
-    
+
     // Orientation
     orientation,
-    
+
     // Convenience flags
     isMobileOrTablet,
     isDesktopOrLarge,
-    
+
     // Convenience functions
-    isBreakpoint: (bp: 'mobile' | 'tablet' | 'desktop' | 'large') => 
-      breakpoint.currentBreakpoint === bp,
-    
-    isAtLeast: (bp: 'mobile' | 'tablet' | 'desktop' | 'large') => {
-      const order = ['mobile', 'tablet', 'desktop', 'large'];
+    isBreakpoint: (bp: "mobile" | "tablet" | "desktop" | "large") => breakpoint.currentBreakpoint === bp,
+
+    isAtLeast: (bp: "mobile" | "tablet" | "desktop" | "large") => {
+      const order = ["mobile", "tablet", "desktop", "large"];
       const currentIndex = order.indexOf(breakpoint.currentBreakpoint);
       const targetIndex = order.indexOf(bp);
       return currentIndex >= targetIndex;

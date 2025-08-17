@@ -7,11 +7,11 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "start": "npm run dev",
-    "login-and-get-info": "node scripts/login-and-get-info.mjs"
+    "start": "npm run dev"
   },
   "dependencies": {
     "@clerk/clerk-react": "^5.40.0",
+    "@clerk/shared": "^3.21.0",
     "@supabase/supabase-js": "^2.54.0",
     "firebase": "^12.1.0",
     "react": "^19.1.1",
@@ -23,6 +23,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.14.0",
+    "@types/react": "^19.1.10",
     "typescript": "~5.8.2",
     "vite": "^6.2.0"
   },

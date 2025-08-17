@@ -1,7 +1,7 @@
 import React, { memo } from 'react';
 import { Transaction } from '../../types';
 import { formatCurrency, formatDate } from '../../constants';
-import { useBudgetTransactions } from '../../hooks/features/budget/useBudgetTransactions';
+import { useBudgetTransactions } from '../../hooks/features/budgets/useBudgetTransactions';
 
 interface BudgetTransactionsProps {
   transactions: Transaction[];

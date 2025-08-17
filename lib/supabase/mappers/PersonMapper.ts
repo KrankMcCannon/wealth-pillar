@@ -3,8 +3,8 @@
  * Gestisce la conversione tra Person entity e database row
  */
 
-import { BudgetPeriodData, Person } from '../../../types';
-import { BaseMapper, MappingError } from './BaseMapper';
+import { BudgetPeriodData, Person } from "../../../types";
+import { BaseMapper, MappingError } from "./BaseMapper";
 
 interface PersonDatabaseRow {
   id: string;
@@ -13,28 +13,26 @@ interface PersonDatabaseRow {
   theme_color?: string | null;
   budget_start_date: number | string;
   budget_periods?: any; // Array di BudgetPeriodData objects
+  group_id?: string | null;
+  role?: string | null;
   created_at?: string;
   updated_at?: string;
 }
 
 export class PersonMapper extends BaseMapper<Person, PersonDatabaseRow> {
   toEntity(dbRow: PersonDatabaseRow): Person {
-    try {
-      return {
-        id: dbRow.id,
-        name: dbRow.name,
-        avatar: dbRow.avatar || '',
-        themeColor: dbRow.theme_color || undefined,
-        budgetStartDate: dbRow.budget_start_date.toString(),
-        budgetPeriods: this.safeParseArray<BudgetPeriodData>(dbRow.budget_periods),
-      };
-    } catch (error) {
-      throw new MappingError(
-        `Failed to map person from database: ${error}`,
-        dbRow,
-        'Person'
-      );
-    }
+    return {
+      id: dbRow.id,
+      name: dbRow.name,
+      avatar: dbRow.avatar || "",
+      themeColor: dbRow.theme_color || "#3B82F6",
+      budgetStartDate: dbRow.budget_start_date.toString(),
+      budgetPeriods: this.safeParseArray<BudgetPeriodData>(dbRow.budget_periods, []),
+      groupId: dbRow.group_id || "",
+      role: (dbRow.role as "owner" | "admin" | "member") || "member",
+      createdAt: dbRow.created_at || new Date().toISOString(),
+      updatedAt: dbRow.updated_at || new Date().toISOString(),
+    };
   }
 
   toDatabase(entity: Person): Partial<PersonDatabaseRow> {
@@ -48,11 +46,7 @@ export class PersonMapper extends BaseMapper<Person, PersonDatabaseRow> {
         budget_periods: entity.budgetPeriods || [],
       };
     } catch (error) {
-      throw new MappingError(
-        `Failed to map person to database: ${error}`,
-        entity,
-        'PersonDatabaseRow'
-      );
+      throw new MappingError(`Failed to map person to database: ${error}`, entity, "PersonDatabaseRow");
     }
   }
 }

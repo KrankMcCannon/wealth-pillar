@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import { memo } from 'react';
 
 interface LoadingSpinnerProps {
   size?: 'sm' | 'md' | 'lg';
@@ -7,9 +7,7 @@ interface LoadingSpinnerProps {
 }
 
 /**
- * Componente Loading Spinner riutilizzabile
- * Principio SRP: Single Responsibility - gestisce solo la visualizzazione del loading
- * Principio DRY: Don't Repeat Yourself - evita duplicazione degli spinner
+ * Componente Loading Spinner
  */
 export const LoadingSpinner = memo<LoadingSpinnerProps>(({ 
   size = 'md', 
@@ -48,7 +46,6 @@ interface LoadingStateProps {
 
 /**
  * Componente per stati di loading completi
- * Principio SRP: Single Responsibility - gestisce solo gli stati di loading delle pagine
  */
 export const LoadingState = memo<LoadingStateProps>(({ 
   message = 'Caricamento...', 
@@ -73,7 +70,6 @@ interface ErrorStateProps {
 
 /**
  * Componente per stati di errore
- * Principio SRP: Single Responsibility - gestisce solo la visualizzazione degli errori
  */
 export const ErrorState = memo<ErrorStateProps>(({ 
   title = 'Errore', 

@@ -1,19 +1,10 @@
-import React, { memo } from 'react';
+import { memo } from 'react';
 import { useDashboardData } from '../../hooks';
 import { useFinance } from '../../hooks';
 import { AccountCard, BudgetSection, ExpenseChart, RecentTransactionsSection } from '../dashboard';
 
-/**
- * Dashboard Component ottimizzato
- * Principi SOLID applicati:
- * - SRP: Single Responsibility - ogni componente ha una responsabilità specifica
- * - OCP: Open/Closed - facilmente estendibile con nuove sezioni
- * - DIP: Dependency Inversion - dipende da astrazioni (hooks)
- * 
- * Principi DRY applicati:
- * - Componenti riutilizzabili
- * - Logica centralizzata negli hooks
- * - Hook personalizzati per responsività e dati
+/*
+ * Dashboard Component
  */
 export const Dashboard = memo(() => {
   const {
@@ -22,7 +13,6 @@ export const Dashboard = memo(() => {
     budgetsWithData,
     recentTransactionsWithData,
     displayedTransactions,
-    selectedPersonId,
     isAllView
   } = useDashboardData();
 
@@ -58,13 +48,11 @@ export const Dashboard = memo(() => {
       {/* Expense Chart */}
       <ExpenseChart
         transactions={displayedTransactions}
-        selectedPersonId={selectedPersonId}
       />
 
       {/* Recent Transactions */}
       <RecentTransactionsSection
         recentTransactionsWithData={recentTransactionsWithData}
-        isAllView={isAllView}
       />
     </div>
   );

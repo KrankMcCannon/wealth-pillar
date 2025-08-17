@@ -1,102 +1,92 @@
-// === Indice Centralizzato degli Hook ===
-// Struttura riorganizzata seguendo principi di Clean Architecture
+// Core hooks
+export { useFinance } from "./core/useFinance";
 
-// === Core Hooks ===
-// Hook fondamentali per la gestione dei dati principali
-export { useFinance } from './core/useFinance';
+// Data hooks
+export {
+  useTransactionFilter,
+  useAccountFilter,
+  useBudgetFilter,
+  useInvestmentFilter,
+  useAllFilters,
+  useAdvancedFilters,
+} from "./data/useDataFilters";
+export { usePersonFilter, usePersonValidation, usePersonStats } from "./data/usePersonFilter";
+export { useSettingsModals, useAccountModals, usePersonModals, useBudgetModals } from "./data/useSettings";
 
-// === Features Hooks ===
-// Hook per funzionalità specifiche
-export * from './features/groups';
+// Feature hooks - Accounts
+export { useAddAccount } from "./features/accounts/useAddAccount";
+export { useEditAccount } from "./features/accounts/useEditAccount";
 
-// === UI Hooks ===
-// Hook per gestione interfaccia utente e interazioni
-export * from './ui/useModal';
-export * from './ui/useModalForm';
-export * from './ui/useResponsive';
-export * from './ui/useTransactionDisplay';
+// Feature hooks - Auth
+export { useAuthCallback } from "./features/auth/useAuthCallback";
 
-// === Data Hooks ===
-// Hook per gestione e filtro dei dati
-export * from './data/useDataFilters';
-export * from './data/usePersonFilter';
-export * from './data/useSettings';
+// Feature hooks - Budgets
+export {
+  useBudgetState,
+  useBudgetPeriods,
+  useBudgetPeriodButton,
+  useBudgetTransactions,
+  useBudgetProgress,
+  useAddBudget,
+  useBudgetForm,
+} from "./features/budgets";
 
-// === Features Hooks ===
-// Hook organizzati per funzionalità specifiche
+// Feature hooks - Dashboard
+export { useDashboardData } from "./features/dashboard/useDashboardData";
+export { useExpenseChart } from "./features/dashboard/useExpenseChart";
 
-// Autenticazione
-export * from './features/auth/useAuthCallback';
+// Feature hooks - Groups
+export { useGroups } from "./features/groups/useGroups";
+export { useGroupSettings } from "./features/groups/useGroupSettings";
 
-// Dashboard
-// Features - Dashboard
-export { useDashboardData } from './features/dashboard/useDashboardData';
-export { useExpenseChart } from './features/dashboard/useExpenseChart';
+// Feature hooks - Investments
+export { useAddInvestment } from "./features/investments/useAddInvestment";
+export { useCompoundInterest } from "./features/investments/useCompoundInterest";
+export { usePortfolioSummary, useInvestmentRow } from "./features/investments/useInvestmentCalculations";
+export { useInvestmentModals } from "./features/investments/useInvestmentModals";
 
-// Investimenti
-// Features - Investments
-export { useCompoundInterest } from './features/investments/useCompoundInterest';
-export { useInvestmentRow, usePortfolioSummary } from './features/investments/useInvestmentCalculations';
-export { useInvestmentModals } from './features/investments/useInvestmentModals';
+// Feature hooks - Onboarding
+export { useOnboarding, OnboardingStep } from "./features/onboarding/useOnboarding";
+export { useOnboardingAccountsForm } from "./features/onboarding/useOnboardingAccountsForm";
+export { useOnboardingBudgetsForm } from "./features/onboarding/useOnboardingBudgetsForm";
+export { useOnboardingGroupForm } from "./features/onboarding/useOnboardingGroupForm";
+export { useOnboardingPeopleForm } from "./features/onboarding/useOnboardingPeopleForm";
+export { useOnboardingState } from "./features/onboarding/useOnboardingState";
 
-// Report e Analisi
-export * from './features/reports/useReportsData';
+// Feature hooks - Reports
+export { useBudgetHistory } from "./features/reports/useBudgetHistory";
+export { useAnnualReports, useYearSelection } from "./features/reports/useReportsData";
+export { useReportsPage } from "./features/reports/useReportsPage";
 
-// Transazioni
-export * from './features/transactions/useTransactionFilters';
-export * from './features/transactions/useTransactionLinking';
+// Feature hooks - Settings
+export { useEditBudget } from "./features/settings/useEditBudget";
+export { useEditPerson } from "./features/settings/useEditPerson";
 
-// Features - Accounts
-export { useAddAccount } from './features/accounts/useAddAccount';
-export { useEditAccount } from './features/accounts/useEditAccount';
+// Feature hooks - Transactions
+export { useAddTransaction } from "./features/transactions/useAddTransaction";
+export { useEditTransaction } from "./features/transactions/useEditTransaction";
+export { useTransactionFilters } from "./features/transactions/useTransactionFilters";
+export { useTransactionLinking } from "./features/transactions/useTransactionLinking";
+export { useTransactionVisual, useTransactionRowClasses } from "./features/transactions/useTransactionVisual";
 
-// Features - Budgets
-export { useAddBudget } from './features/budgets/useAddBudget';
+// UI hooks
+export { useModal, useMultipleModals, useModalWithData } from "./ui/useModal";
+export { useModalForm, useAccountForm, usePersonForm } from "./ui/useModalForm";
+export {
+  useResponsive,
+  useBreakpoint,
+  useWindowSize,
+  useDarkMode,
+  useMediaQuery,
+  useOrientation,
+} from "./ui/useResponsive";
+export { useTransactionDisplay } from "./ui/useTransactionDisplay";
 
-// Features - Budget
-export { useBudgetData } from './features/budget/useBudgetData';
-export { useBudgetPeriods } from './features/budget/useBudgetPeriods';
-export { useBudgetTransactions } from './features/budget/useBudgetTransactions';
-
-// Features - Reports
-export { useBudgetHistory } from './features/reports/useBudgetHistory';
-export { useAnnualReports } from './features/reports/useReportsData';
-
-// Features - Investments
-export { useAddInvestment } from './features/investments/useAddInvestment';
-
-// Features - Settings
-export { useEditBudget } from './features/settings/useEditBudget';
-export { useEditPerson } from './features/settings/useEditPerson';
-
-// Features - Transactions
-export { useAddTransaction } from './features/transactions/useAddTransaction';
-export { useEditTransaction } from './features/transactions/useEditTransaction';
-
-// === Utility Hooks ===
-// Hook di utilità generale
-export * from './utils/useAsync';
-
-/**
- * === Guida alla Nuova Struttura ===
- * 
- * /hooks/
- * ├── /core/           - Hook fondamentali (useFinance, etc.)
- * ├── /ui/             - Hook per UI (modali, responsive, form)
- * ├── /data/           - Hook per gestione dati (filtri, persone, settings)
- * ├── /features/       - Hook per funzionalità specifiche
- * │   ├── /auth/       - Autenticazione
- * │   ├── /dashboard/  - Dashboard
- * │   ├── /investments/- Investimenti
- * │   ├── /reports/    - Report e analisi
- * │   └── /transactions/ - Transazioni
- * └── /utils/          - Hook di utilità generale
- * 
- * Principi di organizzazione:
- * - ✅ Separazione per responsabilità (core, ui, data, features)
- * - ✅ Raggruppamento logico delle funzionalità
- * - ✅ Struttura scalabile per nuove features
- * - ✅ Import chiari e ordinati
- * - ✅ Facilità di manutenzione e debugging
- */
-
+// Utility hooks
+export { useAsync, useCrud, useLoadingState } from "./utils/useAsync";
+export {
+  validateAccountForm,
+  validateBudgetForm,
+  validateEditBudgetForm,
+  validatePersonForm,
+} from "./utils/validators";

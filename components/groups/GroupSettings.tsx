@@ -1,11 +1,6 @@
-/**
- * GroupSettings Component - Solo UI
- * Componente per la gestione delle impostazioni del gruppo
- * Segue principi SOLID: Solo responsabilità di rendering
- */
-
-import React, { useState } from 'react';
+import { memo } from 'react';
 import type { GroupWithMemberCount } from '../../lib/supabase/services/groups.service';
+import { useGroupSettings } from '../../hooks/features/groups/useGroupSettings';
 
 interface GroupSettingsProps {
     group: GroupWithMemberCount | null;
@@ -15,52 +10,31 @@ interface GroupSettingsProps {
     className?: string;
 }
 
-export const GroupSettings: React.FC<GroupSettingsProps> = ({
+/**
+ * GroupSettings Component
+ */
+export const GroupSettings = memo<GroupSettingsProps>(({
     group,
     isLoading,
     onUpdateGroup,
     onDeleteGroup,
     className = ''
 }) => {
-    const [isEditing, setIsEditing] = useState(false);
-    const [formData, setFormData] = useState({
-        name: group?.name || '',
-        description: group?.description || ''
-    });
-    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-
-    // Update form data when group changes
-    React.useEffect(() => {
-        if (group) {
-            setFormData({
-                name: group.name,
-                description: group.description || ''
-            });
-        }
-    }, [group]);
-
-    const handleSave = () => {
-        if (!formData.name.trim()) return;
-
-        onUpdateGroup({
-            name: formData.name.trim(),
-            description: formData.description.trim() || undefined
-        });
-        setIsEditing(false);
-    };
-
-    const handleCancel = () => {
-        setFormData({
-            name: group?.name || '',
-            description: group?.description || ''
-        });
-        setIsEditing(false);
-    };
-
-    const handleDelete = () => {
-        onDeleteGroup();
-        setShowDeleteConfirm(false);
-    };
+    const {
+        isEditing,
+        setIsEditing,
+        formData,
+        setFormData,
+        showDeleteConfirm,
+        setShowDeleteConfirm,
+        handleSave,
+        handleCancel,
+        handleDelete,
+    } = useGroupSettings(
+        group,
+        onUpdateGroup,
+        onDeleteGroup
+    );
 
     if (isLoading) {
         return (
@@ -229,4 +203,4 @@ export const GroupSettings: React.FC<GroupSettingsProps> = ({
             )}
         </div>
     );
-};
+});

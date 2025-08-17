@@ -1,5 +1,3 @@
-// Export principali per tutti i componenti organizzati logicamente
-
 // Componenti UI di base
 export * from './ui';
 

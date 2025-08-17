@@ -69,16 +69,16 @@ export const useGroups = (): UseGroupsResult => {
 
   /**
    * Carica tutti i gruppi dell'utente corrente
-   * Riutilizza logica di loading state esistente
+   * Evita di inizializzare automaticamente per ridurre chiamate duplicate
    */
   const loadGroups = useCallback(async () => {
     if (!user?.id) {
-      console.error('User ID not available, skipping groups loading');
+      console.log('User ID not available, skipping groups loading');
       return;
     }
 
     if (!supabaseClient) {
-      console.error('Supabase client not available yet, skipping groups loading');
+      console.log('Supabase client not available yet, skipping groups loading');
       return;
     }
 
@@ -87,15 +87,7 @@ export const useGroups = (): UseGroupsResult => {
       clearError();
       
       const service = getGroupsService();
-      let userGroups = await service.getUserGroups();
-      
-      // Se non ci sono gruppi, prova a inizializzarne uno automaticamente
-      if (userGroups.length === 0) {
-        const initializedGroup = await service.initializeUserGroup();
-        if (initializedGroup) {
-          userGroups = [initializedGroup];
-        }
-      }
+      const userGroups = await service.getUserGroups();
       
       setGroups(userGroups);
       
@@ -106,7 +98,7 @@ export const useGroups = (): UseGroupsResult => {
     } catch (error) {
       // Gestione specifica degli errori di autenticazione
       if (error.message?.includes('not authenticated')) {
-        console.error('Authentication error, will retry when session is ready');
+        console.log('Authentication error, will retry when session is ready');
         setError(null); // Non mostrare errore all'utente per problemi temporanei di auth
       } else {
         handleError(error, 'loadGroups');

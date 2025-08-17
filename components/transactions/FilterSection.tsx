@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import { memo } from 'react';
 import { TransactionType } from '../../types';
 
 /**
@@ -21,8 +21,6 @@ interface FilterSectionProps {
 
 /**
  * Componente per la sezione filtri delle transazioni
- * Principio SRP: Single Responsibility - gestisce solo l'UI dei filtri
- * Principio OCP: Open/Closed - facilmente estendibile per nuovi tipi di filtro
  */
 export const FilterSection = memo<FilterSectionProps>(({
   searchTerm,

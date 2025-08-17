@@ -110,6 +110,36 @@ export class GroupsService {
   }
 
   /**
+   * Controlla se l'utente ha almeno un gruppo attivo
+   * Metodo leggero per controlli di onboarding
+   */
+  async hasAnyGroup(): Promise<boolean> {
+    try {
+      if (!this.userId) {
+        return false;
+      }
+
+      const { data, error } = await this.client
+        .from('groups')
+        .select('id')
+        .eq('user_id', this.userId)
+        .eq('is_active', true)
+        .limit(1)
+        .single();
+
+      if (error && error.code !== 'PGRST116') { // PGRST116 = no rows found
+        console.error('Error checking for groups:', error);
+        return false;
+      }
+
+      return !!data;
+    } catch (error) {
+      console.error('Error in hasAnyGroup:', error);
+      return false;
+    }
+  }
+
+  /**
    * Ottiene il gruppo corrente dell'utente autenticato
    * Metodo di utilità per ottenere l'ID del gruppo per il filtraggio
    */
