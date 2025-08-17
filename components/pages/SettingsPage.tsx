@@ -1,15 +1,14 @@
-import React from "react";
+import { memo } from "react";
 import { useSettingsModals } from "../../hooks/data/useSettings";
 import { useFinance } from "../../hooks/core/useFinance";
 import { useAuth } from "../../contexts/AuthContext";
-import { useBreakpoint } from "../../hooks/ui/useResponsive";
 import { usePersonFilter } from "../../hooks/data/usePersonFilter";
 import { UserProfileSection, AccountManagementSection, BudgetManagementSection } from "../settings";
 import { GroupSettings } from "../groups";
 import { useGroups } from "../../hooks/features/groups/useGroups";
+import { AddAccountModal, EditAccountModal, EditPersonModal, EditBudgetModal } from "../modals";
 
-export const SettingsPage: React.FC = () => {
-  const { isMobile } = useBreakpoint();
+export const SettingsPage = memo(() => {
   const { user, signOut } = useAuth();
   const { people, accounts, budgets, getCalculatedBalanceSync } = useFinance();
   const { getPersonName } = usePersonFilter();
@@ -107,7 +106,13 @@ export const SettingsPage: React.FC = () => {
       />
 
       {/* Modali */}
-      {/* I modali verranno gestiti dai componenti specifici */}
+      <AddAccountModal isOpen={isAddAccountModalOpen} onClose={closeAddAccountModal} />
+
+      <EditAccountModal isOpen={isEditAccountModalOpen} onClose={closeEditAccountModal} account={selectedAccount} />
+
+      <EditPersonModal isOpen={isEditPersonModalOpen} onClose={closeEditPersonModal} person={selectedPerson} />
+
+      <EditBudgetModal isOpen={isEditBudgetModalOpen} onClose={closeEditBudgetModal} budget={selectedBudget} />
     </div>
   );
-};
+});
