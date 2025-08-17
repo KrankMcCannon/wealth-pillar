@@ -94,3 +94,29 @@ export interface InvestmentHolding {
   purchaseDate: string; // ISO 8601 format
   groupId: string; // Associazione al gruppo
 }
+
+// Onboarding types
+export interface OnboardingGroup {
+  name: string;
+  description?: string;
+}
+
+export interface OnboardingPerson {
+  name: string;
+  avatar: string;
+  themeColor: string;
+  budgetStartDate: string;
+}
+
+export interface OnboardingAccount {
+  name: string;
+  type: "stipendio" | "risparmio" | "contanti" | "investimenti";
+  personId: string;
+}
+
+export interface OnboardingBudget {
+  description: string;
+  amount: number;
+  categories: string[];
+  personId: string;
+}

@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, useEffect } from "react";
 import { useAuth } from "../../../contexts/AuthContext";
 import { useClerkSupabaseClient } from "../../../lib/supabase/client";
 import { ServiceFactory } from "../../../lib/supabase/services/service-factory";
@@ -6,30 +6,11 @@ import { Person } from "../../../types";
 import { useFinance } from "../../core/useFinance";
 import { useGroups } from "../groups/useGroups";
 
-export interface OnboardingGroup {
-  name: string;
-  description?: string;
-}
-
-export interface OnboardingPerson {
-  name: string;
-  avatar: string;
-  themeColor: string;
-  budgetStartDate: string;
-}
-
-export interface OnboardingAccount {
-  name: string;
-  type: "stipendio" | "risparmio" | "contanti" | "investimenti";
-  personId: string;
-}
-
-export interface OnboardingBudget {
-  description: string;
-  amount: number;
-  categories: string[];
-  personId: string;
-}
+// Importiamo i tipi dal file centrale
+import type { OnboardingGroup, OnboardingPerson, OnboardingAccount, OnboardingBudget } from "../../../types";
+import { OnboardingService, OnboardingData } from "../../../lib/services/onboarding.service";
+import { useOnboardingCompletion } from "./useOnboardingCompletion";
+import { useOnboardingPersistence } from "./useOnboardingPersistence";
 
 export enum OnboardingStep {
   GROUP = "group",
@@ -54,6 +35,7 @@ interface OnboardingState {
  * Hook per gestire il flow di onboarding completo
  * Principio SRP: Single Responsibility - gestisce solo il flow di onboarding
  * Principio OCP: Open/Closed - facilmente estendibile per nuovi step
+ * Principio DIP: Dependency Inversion - dipende da astrazioni (hooks compositi)
  */
 export const useOnboarding = () => {
   const [state, setState] = useState<OnboardingState>({
@@ -71,6 +53,44 @@ export const useOnboarding = () => {
   const { addAccount, addBudget, addPerson, updatePerson, refreshData } = useFinance();
   const client = useClerkSupabaseClient();
   const { user } = useAuth();
+
+  // Hook compositi per funzionalità specifiche
+  const completion = useOnboardingCompletion();
+  const persistence = useOnboardingPersistence(user?.id);
+
+  /**
+   * Ripristina lo stato da una sessione precedente se disponibile
+   */
+  useEffect(() => {
+    if (persistence.isHydrated && persistence.hasPersistedState()) {
+      const savedState = persistence.loadOnboardingState();
+      if (savedState) {
+        setState((prev) => ({
+          ...prev,
+          currentStep: savedState.currentStep,
+          group: savedState.group,
+          people: savedState.people,
+          accounts: savedState.accounts,
+          budgets: savedState.budgets,
+        }));
+      }
+    }
+  }, [persistence]);
+
+  /**
+   * Salva lo stato automaticamente ad ogni cambiamento significativo
+   */
+  useEffect(() => {
+    if (persistence.isHydrated && user?.id) {
+      persistence.createStateSnapshot({
+        currentStep: state.currentStep,
+        group: state.group,
+        people: state.people,
+        accounts: state.accounts,
+        budgets: state.budgets,
+      });
+    }
+  }, [state.currentStep, state.group, state.people, state.accounts, state.budgets, persistence, user?.id]);
 
   /**
    * Gestisce il passaggio al step successivo
@@ -265,62 +285,58 @@ export const useOnboarding = () => {
   );
 
   /**
-   * Completa l'onboarding salvando tutti i dati
+   * Completa l'onboarding usando il hook di completamento
    */
   const completeOnboarding = useCallback(async () => {
     setState((prev) => ({ ...prev, isLoading: true, error: null }));
 
-    try {
-      if (!client || !user?.id) {
-        throw new Error("Client o utente non disponibile");
-      }
+    // Prepara i dati per il completamento
+    const onboardingData: OnboardingData = {
+      group: state.group!,
+      people: state.people,
+      accounts: state.accounts,
+      budgets: state.budgets,
+    };
 
-      // Ottieni il groupId dell'utente corrente
-      const financeService = ServiceFactory.createFinanceService(client, user.id);
-      const groupId = await financeService.getUserGroupId();
-
-      if (!groupId) {
-        throw new Error("Nessun gruppo attivo trovato");
-      }
-
-      // Crea tutti gli account
-      for (const accountData of state.accounts) {
-        await addAccount({
-          name: accountData.name,
-          type: accountData.type,
-          personIds: [accountData.personId],
-          balance: 0,
-          groupId,
-        });
-      }
-
-      // Crea tutti i budget
-      for (const budgetData of state.budgets) {
-        await addBudget({
-          description: budgetData.description,
-          amount: budgetData.amount,
-          categories: budgetData.categories,
-          personId: budgetData.personId,
-          period: "monthly",
-        });
-      }
-
-      // Aggiorna i dati dell'applicazione
-      await refreshData();
-
+    // Valida i dati prima del completamento
+    const validation = OnboardingService.validateCompleteOnboarding(onboardingData);
+    if (!validation.isValid) {
       setState((prev) => ({
         ...prev,
-        currentStep: OnboardingStep.COMPLETED,
         isLoading: false,
+        error: `Errori di validazione: ${Object.values(validation.errors).join(", ")}`,
       }));
+      return;
+    }
+
+    try {
+      const result = await completion.completeOnboarding(onboardingData);
+
+      if (result.success) {
+        setState((prev) => ({
+          ...prev,
+          currentStep: OnboardingStep.COMPLETED,
+          isLoading: false,
+          error: null,
+        }));
+
+        // Rimuovi lo stato salvato una volta completato con successo
+        persistence.clearOnboardingState();
+      } else {
+        setState((prev) => ({
+          ...prev,
+          isLoading: false,
+          error: result.error || "Errore durante il completamento",
+        }));
+      }
     } catch (error) {
       setState((prev) => ({
         ...prev,
         isLoading: false,
-        error: error instanceof Error ? error.message : "Errore nel completamento dell'onboarding",
+        error: error instanceof Error ? error.message : "Errore sconosciuto",
       }));
     }
-  }, [state.accounts, state.budgets, addAccount, addBudget, refreshData, client, user]);
+  }, [state, completion, persistence]);
 
   /**
    * Reset dell'onboarding
@@ -336,48 +352,71 @@ export const useOnboarding = () => {
       isLoading: false,
       error: null,
     });
-  }, []);
+
+    // Pulisce anche la persistenza e lo stato di completamento
+    persistence.clearOnboardingState();
+    completion.resetCompletion();
+  }, [persistence, completion]);
 
   /**
-   * Controlla se lo step corrente può essere completato
+   * Controlla se lo step corrente può essere completato usando il service
    */
   const canCompleteCurrentStep = useMemo(() => {
     switch (state.currentStep) {
       case OnboardingStep.GROUP:
-        return state.group !== null;
+        return OnboardingService.validateGroupStep(state.group).canProceed;
       case OnboardingStep.PEOPLE:
-        return state.people.length > 0;
+        return OnboardingService.validatePeopleStep(state.people).canProceed;
       case OnboardingStep.ACCOUNTS:
-        return state.accounts.length > 0;
+        return OnboardingService.validateAccountsStep(state.accounts, state.people).canProceed;
       case OnboardingStep.BUDGETS:
-        return state.budgets.length > 0 && state.budgets.length === state.people.length;
+        return OnboardingService.validateBudgetsStep(state.budgets, state.people).canProceed;
       default:
         return false;
     }
   }, [state]);
 
   /**
-   * Progresso dell'onboarding (percentuale)
+   * Progresso dell'onboarding (percentuale) usando il service
    */
   const progress = useMemo(() => {
-    const steps = [
-      OnboardingStep.GROUP,
-      OnboardingStep.PEOPLE,
-      OnboardingStep.ACCOUNTS,
-      OnboardingStep.BUDGETS,
-      OnboardingStep.COMPLETED,
-    ];
-    const currentIndex = steps.indexOf(state.currentStep);
-    return ((currentIndex + 1) / steps.length) * 100;
+    return OnboardingService.calculateProgress(state.currentStep);
   }, [state.currentStep]);
 
+  /**
+   * Crea un riepilogo dei dati per la fase di completamento
+   */
+  const getCompletionData = useCallback((): OnboardingData | undefined => {
+    if (!state.group) return undefined;
+
+    return {
+      group: state.group,
+      people: state.people,
+      accounts: state.accounts,
+      budgets: state.budgets,
+    };
+  }, [state]);
+
   return {
-    // Stato
+    // Stato principale
     ...state,
     canCompleteCurrentStep,
     progress,
 
-    // Azioni
+    // Stato dei hook compositi
+    completion: {
+      isLoading: completion.isLoading,
+      isCompleted: completion.isCompleted,
+      error: completion.error,
+      progress: completion.progress,
+      currentOperation: completion.currentOperation,
+    },
+    persistence: {
+      isHydrated: persistence.isHydrated,
+      hasPersistedState: persistence.hasPersistedState(),
+    },
+
+    // Azioni principali
     goToNextStep,
     goToPreviousStep,
     saveGroup,
@@ -386,5 +425,8 @@ export const useOnboarding = () => {
     saveBudgets,
     completeOnboarding,
     resetOnboarding,
+
+    // Utilità
+    getCompletionData,
   };
 };

@@ -1,159 +1,214 @@
-import { useCallback, useMemo, useState } from 'react';
-import { validateAccountForm, ValidationErrors } from '../../utils/validators';
-import type { OnboardingAccount, OnboardingPerson } from './useOnboarding';
+import { useCallback, useMemo, useState } from "react";
+import type { OnboardingAccount, OnboardingPerson } from "../../../types";
 
 /**
- * Hook to manage the accounts creation step of the onboarding flow.
- * It handles one or more accounts per person, validation, addition
- * and removal operations. By extracting these responsibilities into
- * a dedicated hook, the UI component remains declarative and DRY.
+ * Hook per gestire il form degli account nell'onboarding
+ * Principio SRP: Si occupa solo della gestione degli account
+ * Principio DRY: Centralizza la logica di validazione degli account
  */
 export const useOnboardingAccountsForm = (people: OnboardingPerson[]) => {
-    // Initialize an empty account for each person by default
-    const [accounts, setAccounts] = useState<OnboardingAccount[]>(
-        people.map(person => ({
-            name: '',
-            type: 'stipendio',
-            personId: person.name,
-        }))
-    );
+  // Inizializza con un account per ogni persona
+  const [accounts, setAccounts] = useState<OnboardingAccount[]>(() => {
+    return people.map((person) => ({
+      name: "",
+      type: "stipendio" as const,
+      personId: person.name, // Usiamo il nome come ID temporaneo
+    }));
+  });
 
-    const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
-    // Define the available account types once
-    const accountTypes = [
-        { value: 'stipendio', label: 'Stipendio' },
-        { value: 'risparmio', label: 'Risparmio' },
-        { value: 'contanti', label: 'Contanti' },
-        { value: 'investimenti', label: 'Investimenti' },
-    ] as const;
+  // Tipi di account disponibili
+  const accountTypes = [
+    { value: "stipendio", label: "Conto Stipendio" },
+    { value: "risparmio", label: "Conto Risparmio" },
+    { value: "contanti", label: "Contanti" },
+    { value: "investimenti", label: "Investimenti" },
+  ];
 
-    /**
-    * Add a new account for a given person. Uses the person's name as a
-    * temporary identifier until real IDs are created later.
-    */
-    const addAccount = useCallback((personName: string) => {
-        setAccounts(prev => [
-            ...prev,
-            {
-                name: '',
-                type: 'stipendio',
-                personId: personName,
-            },
-        ]);
-    }, []);
+  /**
+   * Raggruppa gli account per persona e restituisce array di oggetti per il componente
+   */
+  const accountsByPerson = useMemo(() => {
+    return people.map((person) => {
+      const personAccounts = accounts
+        .map((account, globalIndex) => ({ ...account, index: globalIndex })) // Usa indice globale
+        .filter((account) => account.personId === person.name);
 
-    /**
-     * Remove an account by its index. Does not restrict removal to at least one
-     * per person, but validation will flag persons without accounts.
-     */
-    const removeAccount = useCallback((accountIndex: number) => {
-        setAccounts(prev => prev.filter((_, index) => index !== accountIndex));
-    }, []);
+      return {
+        person,
+        accounts: personAccounts,
+      };
+    });
+  }, [people, accounts]);
 
-    /**
-    * Update an account's field by index. Clears any existing error on that
-    * field. Accepts partial fields using keyof OnboardingAccount.
-    */
-    const updateAccount = useCallback(
-        (accountIndex: number, field: keyof OnboardingAccount, value: string) => {
-            setAccounts(prev =>
-                prev.map((account, index) => (index === accountIndex ? { ...account, [field]: value } : account))
-            );
-            // Remove error for this specific field if present
-            const account = accounts[accountIndex];
-            if (!account) return;
-            const errorKey = `account_${account.personId}_${accountIndex}_${field}`;
-            setValidationErrors(prev => {
-                if (!prev[errorKey]) return prev;
-                const newErrors = { ...prev };
-                delete newErrors[errorKey];
-                return newErrors;
-            });
-        },
-        [accounts]
-    );
-
-    /**
-     * Validate the accounts form. Ensures each person has at least one
-     * account, each account has a name, and there are no duplicates
-     * within a person's accounts. Sets validation errors and returns
-     * true if the form is valid.
-     */
-    const validateForm = useCallback((): boolean => {
-        let errors: ValidationErrors = {};
-        people.forEach(person => {
-            const personAccounts = accounts.filter(acc => acc.personId === person.name);
-            personAccounts.forEach((account, index) => {
-                const accountErrors = validateAccountForm({
-                    name: account.name,
-                    selectedPersonIds: [account.personId]
-                });
-                Object.keys(accountErrors).forEach(key => {
-                    errors[`account_${person.name}_${index}_${key}`] = accountErrors[key];
-                });
-            });
-            // Must have at least one account
-            if (personAccounts.length === 0) {
-                errors[`person_${person.name}_accounts`] = `${person.name} deve avere almeno un account`;
-            }
-            // No duplicate names within the same person
-            const names = personAccounts.map(acc => acc.name.trim().toLowerCase()).filter(Boolean);
-            const duplicates = names.filter((name, index) => names.indexOf(name) !== index);
-            if (duplicates.length > 0) {
-                errors[`person_${person.name}_duplicates`] = `${person.name} ha account con nomi duplicati`;
-            }
-        });
-        setValidationErrors(errors);
-        return Object.keys(errors).length === 0;
-    }, [people, accounts]);
-
-    /**
-     * Derive accounts grouped by person. Adds an index property to each
-     * account entry to support editing and removal.
-     */
-    const accountsByPerson = useMemo(() => {
-        return people.map(person => ({
-            person,
-            accounts: accounts
-                .map((account, index) => ({ ...account, index }))
-                .filter(account => account.personId === person.name),
-        }));
-    }, [people, accounts]);
-
-    /**
-    * Determine whether the form can be submitted. Every person must
-    * have at least one account, and every account must have a non-empty name.
-    */
-    const canSubmit = useMemo(() => {
-        return people.every(person => {
-            const personAccounts = accounts.filter(acc => acc.personId === person.name);
-            return (
-                personAccounts.length > 0 && personAccounts.every(acc => acc.name.trim().length > 0)
-            );
-        });
-    }, [people, accounts]);
-
-    /**
-     * Transform accounts to trimmed values and exclude entries without names.
-     */
-    const validAccounts = useMemo(() => {
-        return accounts
-            .filter(acc => acc.name.trim().length > 0)
-            .map(acc => ({ ...acc, name: acc.name.trim() }));
-    }, [accounts]);
-
-    return {
-        accounts,
-        setAccounts,
-        validationErrors,
-        accountTypes,
-        addAccount,
-        removeAccount,
-        updateAccount,
-        validateForm,
-        accountsByPerson,
-        canSubmit,
-        validAccounts,
+  /**
+   * Aggiunge un nuovo account per una persona specifica
+   */
+  const addAccount = useCallback((personId: string) => {
+    const newAccount: OnboardingAccount = {
+      name: "",
+      type: "stipendio",
+      personId,
     };
+
+    setAccounts((prev) => [...prev, newAccount]);
+  }, []);
+
+  /**
+   * Rimuove un account specifico usando l'indice globale
+   */
+  const removeAccountByGlobalIndex = useCallback(
+    (globalIndex: number) => {
+      const accountToRemove = accounts[globalIndex];
+      if (!accountToRemove) return;
+
+      const personAccounts = accounts.filter((acc) => acc.personId === accountToRemove.personId);
+      if (personAccounts.length <= 1) return; // Mantieni almeno un account per persona
+
+      setAccounts((prev) => prev.filter((_, index) => index !== globalIndex));
+
+      // Rimuovi errori associati
+      const localIndex = personAccounts.findIndex((acc) => acc === accountToRemove);
+      setValidationErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[`${accountToRemove.personId}_account_${localIndex}_name`];
+        delete newErrors[`${accountToRemove.personId}_account_${localIndex}_type`];
+        return newErrors;
+      });
+    },
+    [accounts]
+  );
+
+  /**
+   * Rimuove un account specifico (compatibilità con componente)
+   */
+  const removeAccount = useCallback(
+    (accountIndex: number) => {
+      removeAccountByGlobalIndex(accountIndex);
+    },
+    [removeAccountByGlobalIndex]
+  );
+
+  /**
+   * Aggiorna un campo di un account specifico usando l'indice globale
+   */
+  const updateAccountByGlobalIndex = useCallback(
+    (globalIndex: number, field: keyof Omit<OnboardingAccount, "personId">, value: string) => {
+      setAccounts((prev) =>
+        prev.map((account, index) => (index === globalIndex ? { ...account, [field]: value } : account))
+      );
+
+      // Pulisci errori per questo campo
+      const account = accounts[globalIndex];
+      if (account) {
+        const personAccounts = accounts.filter((acc) => acc.personId === account.personId);
+        const localIndex = personAccounts.findIndex((acc) => acc === account);
+        const errorKey = `${account.personId}_account_${localIndex}_${field}`;
+        setValidationErrors((prev) => {
+          if (!prev[errorKey]) return prev;
+          const newErrors = { ...prev };
+          delete newErrors[errorKey];
+          return newErrors;
+        });
+      }
+    },
+    [accounts]
+  );
+
+  /**
+   * Aggiorna un campo di un account specifico (compatibilità con componente)
+   */
+  const updateAccount = useCallback(
+    (accountIndex: number, field: keyof Omit<OnboardingAccount, "personId">, value: string) => {
+      updateAccountByGlobalIndex(accountIndex, field, value);
+    },
+    [updateAccountByGlobalIndex]
+  );
+
+  /**
+   * Valida tutti gli account
+   */
+  const validateForm = useCallback((): boolean => {
+    const errors: Record<string, string> = {};
+
+    people.forEach((person) => {
+      const personAccounts = accounts.filter((acc) => acc.personId === person.name);
+
+      if (personAccounts.length === 0) {
+        errors[`${person.name}_no_accounts`] = `${person.name} deve avere almeno un account`;
+        return;
+      }
+
+      personAccounts.forEach((account, index) => {
+        const nameKey = `${person.name}_account_${index}_name`;
+        const typeKey = `${person.name}_account_${index}_type`;
+
+        // Validazione nome account
+        if (!account.name?.trim()) {
+          errors[nameKey] = "Il nome dell'account è obbligatorio";
+        } else if (account.name.trim().length < 2) {
+          errors[nameKey] = "Il nome dell'account deve essere di almeno 2 caratteri";
+        } else if (account.name.trim().length > 30) {
+          errors[nameKey] = "Il nome dell'account non può superare i 30 caratteri";
+        }
+
+        // Validazione tipo account
+        if (!account.type) {
+          errors[typeKey] = "Il tipo di account è obbligatorio";
+        }
+
+        // Controllo duplicati nomi account per la stessa persona
+        const duplicateInSamePerson = personAccounts.find(
+          (otherAccount, otherIndex) =>
+            otherIndex !== index &&
+            otherAccount.name.trim().toLowerCase() === account.name.trim().toLowerCase() &&
+            account.name.trim() !== ""
+        );
+
+        if (duplicateInSamePerson) {
+          errors[nameKey] = "Nome account già utilizzato per questa persona";
+        }
+      });
+    });
+
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  }, [accounts, people]);
+
+  /**
+   * Controlla se il form può essere sottomesso
+   */
+  const canSubmit = useMemo(() => {
+    // Ogni persona deve avere almeno un account con nome valido
+    return people.every((person) => {
+      const personAccounts = accounts.filter((acc) => acc.personId === person.name);
+      return personAccounts.length > 0 && personAccounts.some((acc) => acc.name.trim().length > 0);
+    });
+  }, [accounts, people]);
+
+  /**
+   * Account validi pronti per l'invio
+   */
+  const validAccounts = useMemo(() => {
+    return accounts
+      .filter((account) => account.name.trim().length > 0)
+      .map((account) => ({
+        ...account,
+        name: account.name.trim(),
+      }));
+  }, [accounts]);
+
+  return {
+    accounts,
+    accountsByPerson,
+    accountTypes,
+    validationErrors,
+    addAccount,
+    removeAccount,
+    updateAccount,
+    validateForm,
+    canSubmit,
+    validAccounts,
+  };
 };

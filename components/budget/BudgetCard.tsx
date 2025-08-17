@@ -1,7 +1,9 @@
-import React, { memo, useMemo } from "react";
-import { Budget, Person, Transaction } from "../../types";
-import { formatCurrency } from "../../constants";
+import { memo, useMemo } from "react";
+import { Budget, Transaction } from "../../types";
+import { formatCurrency, formatDate } from "../../constants";
 import { ChevronDownIcon, ChevronUpIcon } from "../common/Icons";
+import { CategoryUtils } from "../../lib/utils/category.utils";
+import { useFinance } from "../../hooks";
 
 interface BudgetCardProps {
   budget: Budget;
@@ -26,6 +28,8 @@ interface BudgetCardProps {
  */
 export const BudgetCard = memo<BudgetCardProps>(
   ({ budget, data, transactions, categories, isExpanded, onToggleExpansion }) => {
+    const { categories: allCategories } = useFinance();
+
     // Calcola le statistiche per categoria
     const categoryStats = useMemo(() => {
       const stats = new Map<string, { count: number; total: number }>();
@@ -48,6 +52,24 @@ export const BudgetCard = memo<BudgetCardProps>(
         .sort((a, b) => b.total - a.total);
     }, [transactions, categories]);
 
+    // Converti i name delle categorie in label per la visualizzazione
+    const categoryLabels = useMemo(() => {
+      return categories.map((category) => CategoryUtils.getCategoryDisplayName(category, allCategories));
+    }, [categories, allCategories]);
+
+    // Funzione per determinare il colore dell'importo basato sul progresso
+    const getAmountColor = (amount: number, isRemaining: boolean = false) => {
+      if (data.percentage >= 100) {
+        return isRemaining ? "text-red-600 dark:text-red-400" : "text-red-600 dark:text-red-400";
+      } else if (data.percentage >= 80) {
+        return isRemaining ? "text-orange-600 dark:text-orange-400" : "text-orange-600 dark:text-orange-400";
+      } else if (data.percentage >= 60) {
+        return isRemaining ? "text-yellow-600 dark:text-yellow-400" : "text-yellow-600 dark:text-yellow-400";
+      } else {
+        return isRemaining ? "text-green-600 dark:text-green-400" : "text-gray-600 dark:text-gray-400";
+      }
+    };
+
     return (
       <div
         className={`bg-white dark:bg-gray-800 rounded-lg border transition-all duration-200 p-4 ${
@@ -60,17 +82,19 @@ export const BudgetCard = memo<BudgetCardProps>(
         <div className="flex justify-between items-start mb-3">
           <div className="flex-1">
             <h4 className="font-medium text-gray-800 dark:text-white">{budget.description}</h4>
-            <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-              Categorie: {categories.join(", ")} • {transactions.length} transazioni
+            <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">Categorie: {categoryLabels.join(", ")}</div>
+            {/* Date del periodo budget */}
+            <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              Periodo: {formatDate(data.periodStart.toISOString())} - {formatDate(data.periodEnd.toISOString())}
             </div>
           </div>
         </div>
 
         {/* Barra di progresso */}
         <div className="mb-3">
-          <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-1">
-            <span>Speso: {formatCurrency(data.currentSpent)}</span>
-            <span>Rimanente: {formatCurrency(data.remaining)}</span>
+          <div className="flex justify-between text-sm mb-1">
+            <span className={getAmountColor(data.currentSpent)}>Speso: {formatCurrency(data.currentSpent)}</span>
+            <span className={getAmountColor(data.remaining, true)}>Rimanente: {formatCurrency(data.remaining)}</span>
           </div>
 
           <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mb-2">
@@ -81,8 +105,8 @@ export const BudgetCard = memo<BudgetCardProps>(
           </div>
 
           <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
-            <span>Budget: {formatCurrency(budget.amount)}</span>
-            <span>{data.percentage.toFixed(1)}%</span>
+            <span className="font-medium">Budget: {formatCurrency(budget.amount)}</span>
+            <span className={`font-medium ${getAmountColor(data.percentage)}`}>{data.percentage.toFixed(1)}%</span>
           </div>
         </div>
 
@@ -95,20 +119,10 @@ export const BudgetCard = memo<BudgetCardProps>(
         <div className="flex justify-center">
           <button
             onClick={onToggleExpansion}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-100 dark:bg-blue-900 hover:bg-blue-200 dark:hover:bg-blue-800 rounded-md transition-colors text-sm font-medium text-blue-700 dark:text-blue-300"
-            title={isExpanded ? "Nascondi dettagli" : "Mostra dettagli"}
+            className="flex items-center space-x-1 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
           >
-            {isExpanded ? (
-              <>
-                <ChevronUpIcon className="w-4 h-4" />
-                Nascondi Dettagli
-              </>
-            ) : (
-              <>
-                <ChevronDownIcon className="w-4 h-4" />
-                Mostra Dettagli
-              </>
-            )}
+            <span>{isExpanded ? "Nascondi dettagli" : "Mostra dettagli"}</span>
+            {isExpanded ? <ChevronUpIcon className="w-4 h-4" /> : <ChevronDownIcon className="w-4 h-4" />}
           </button>
         </div>
 
@@ -127,12 +141,14 @@ export const BudgetCard = memo<BudgetCardProps>(
                     {categoryStats.map(({ category, count, total }) => (
                       <div key={category} className="flex justify-between items-center text-sm">
                         <div className="flex items-center space-x-2">
-                          <span className="text-gray-700 dark:text-gray-300">{category}</span>
+                          <span className="text-gray-700 dark:text-gray-300">
+                            {CategoryUtils.getCategoryDisplayName(category, allCategories)}
+                          </span>
                           <span className="text-gray-500 dark:text-gray-400 text-xs">
                             ({count} {count === 1 ? "transazione" : "transazioni"})
                           </span>
                         </div>
-                        <span className="font-medium text-gray-800 dark:text-white">{formatCurrency(total)}</span>
+                        <span className="font-medium text-red-600 dark:text-red-400">{formatCurrency(total)}</span>
                       </div>
                     ))}
                   </div>
@@ -158,16 +174,12 @@ export const BudgetCard = memo<BudgetCardProps>(
                         <div className="flex-1 min-w-0">
                           <div className="text-gray-700 dark:text-gray-300 truncate">{tx.description}</div>
                           <div className="text-xs text-gray-500 dark:text-gray-400">
-                            {new Date(tx.date).toLocaleDateString("it-IT")} • {tx.category}
+                            {formatDate(tx.date)} • {CategoryUtils.getCategoryDisplayName(tx.category, allCategories)}
                           </div>
                         </div>
                         <div className="ml-2 text-right">
-                          <div
-                            className={`font-medium ${
-                              tx.amount < 0 ? "text-red-600 dark:text-red-400" : "text-green-600 dark:text-green-400"
-                            }`}
-                          >
-                            {formatCurrency(Math.abs(tx.amount))}
+                          <div className="font-medium text-red-600 dark:text-red-400">
+                            -{formatCurrency(Math.abs(tx.amount))}
                           </div>
                         </div>
                       </div>

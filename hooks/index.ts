@@ -46,14 +46,7 @@ export { usePortfolioSummary, useInvestmentRow } from "./features/investments/us
 export { useInvestmentModals } from "./features/investments/useInvestmentModals";
 
 // Feature hooks - Onboarding
-export {
-  useOnboarding,
-  OnboardingStep,
-  type OnboardingGroup,
-  type OnboardingPerson,
-  type OnboardingAccount,
-  type OnboardingBudget,
-} from "./features/onboarding/useOnboarding";
+export { useOnboarding, OnboardingStep } from "./features/onboarding/useOnboarding";
 export { useOnboardingAccountsForm } from "./features/onboarding/useOnboardingAccountsForm";
 export { useOnboardingBudgetsForm } from "./features/onboarding/useOnboardingBudgetsForm";
 export { useOnboardingGroupForm } from "./features/onboarding/useOnboardingGroupForm";

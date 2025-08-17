@@ -1,72 +1,82 @@
-import React, { useCallback, useMemo, useState } from 'react';
-import { validatePersonForm, ValidationErrors } from '../../utils/validators';
-import type { OnboardingGroup } from './useOnboarding';
+import { useCallback } from "react";
+import { useOnboardingForm, OnboardingValidators, type ValidationRule } from "./useOnboardingForm";
+import type { OnboardingGroup } from "../../../types";
 
 /**
- * Hook to manage the group creation step of the onboarding flow.
- * Encapsulates form state, validation and submission logic to keep
- * the UI component focused solely on rendering. This promotes
- * single responsibility and reusability across different onboarding
- * implementations.
+ * Hook specifico per il form di creazione gruppo
+ * Principio SRP: Si occupa solo della validazione e gestione del form gruppo
+ * Principio DRY: Usa il framework generico di form
  */
 export const useOnboardingGroupForm = (initialData?: Partial<OnboardingGroup>) => {
-    const [groupData, setGroupData] = useState<OnboardingGroup>({
-        name: initialData?.name ?? '',
-        description: initialData?.description ?? '',
-    });
+  const initialGroup: OnboardingGroup = {
+    name: initialData?.name ?? "",
+    description: initialData?.description ?? "",
+  };
 
-    const [validationErrors, setValidationErrors] = useState<ValidationErrors<OnboardingGroup>>({});
+  // Regole di validazione specifiche per il gruppo
+  const validationRules: ValidationRule<OnboardingGroup>[] = [
+    {
+      field: "name",
+      validator: OnboardingValidators.required("Nome gruppo"),
+    },
+    {
+      field: "name",
+      validator: OnboardingValidators.minLength("Nome gruppo", 2),
+    },
+  ];
 
-    /**
-    * Validate the group form. Uses the generic Validators to enforce
-    * required and minimum length rules. Updates the validationErrors
-    * state and returns true if the form is valid.
-    */
-    const validateForm = useCallback((): boolean => {
-        const errors: ValidationErrors<OnboardingGroup> = {};
-        const nameErrors = validatePersonForm({ name: groupData.name });
-        if (nameErrors.name) {
-            errors.name = nameErrors.name;
-        }
-        setValidationErrors(errors);
-        return Object.keys(errors).length === 0;
-    }, [groupData]);
+  const {
+    data: groupData,
+    errors: validationErrors,
+    isValid,
+    isDirty,
+    updateField,
+    validateForm,
+    resetForm,
+    clearErrors,
+  } = useOnboardingForm({
+    initialData: initialGroup,
+    validationRules,
+    customValidation: (data) => {
+      const errors: Record<string, string> = {};
 
-    /**
-     * Handle field changes by updating the local state and clearing
-     * validation errors for that field. Returned as a curried function
-     * to be used directly in input handlers.
-     */
-    const handleFieldChange = useCallback(
-        (field: keyof OnboardingGroup) => (e: React.ChangeEvent<HTMLInputElement>) => {
-            const value = e.target.value;
-            setGroupData(prev => ({ ...prev, [field]: value }));
-            if (validationErrors[field]) {
-                setValidationErrors(prev => {
-                    const newErrors = { ...prev };
-                    delete newErrors[field];
-                    return newErrors;
-                });
-            }
-        },
-        [validationErrors]
-    );
+      // Validazione personalizzata se necessaria
+      if (data.name && data.name.trim().length > 50) {
+        errors.name = "Il nome del gruppo non può superare i 50 caratteri";
+      }
 
-    /**
-     * Whether the form has enough data to be submitted. We allow submission
-     * only when the name field is not empty. Use useMemo to avoid
-     * recalculating on each render.
-     */
-    const canSubmit = useMemo(() => {
-        return groupData.name.trim().length > 0;
-    }, [groupData.name]);
+      if (data.description && data.description.trim().length > 200) {
+        errors.description = "La descrizione non può superare i 200 caratteri";
+      }
 
-    return {
-        groupData,
-        setGroupData,
-        validationErrors,
-        validateForm,
-        handleFieldChange,
-        canSubmit,
-    };
+      return errors;
+    },
+  });
+
+  /**
+   * Handler per il cambio di campo ottimizzato per input
+   */
+  const handleFieldChange = useCallback(
+    (field: keyof OnboardingGroup) => (e: React.ChangeEvent<HTMLInputElement>) => {
+      updateField(field, e.target.value);
+    },
+    [updateField]
+  );
+
+  /**
+   * Validazione completa e controllo se il form può essere sottomesso
+   */
+  const canSubmit = isValid && groupData.name.trim().length > 0;
+
+  return {
+    groupData,
+    validationErrors,
+    isValid,
+    isDirty,
+    canSubmit,
+    handleFieldChange,
+    validateForm,
+    resetForm,
+    clearErrors,
+  };
 };

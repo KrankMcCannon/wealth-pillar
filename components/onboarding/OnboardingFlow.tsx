@@ -1,13 +1,21 @@
-import { memo } from 'react';
-import { useOnboarding, OnboardingStep } from '../../hooks/features/onboarding/useOnboarding';
-import { BaseModal } from '../ui';
+import { memo } from "react";
+import { useOnboarding } from "../../hooks/features/onboarding/useOnboarding";
+
+export enum OnboardingStep {
+  GROUP = "group",
+  PEOPLE = "people",
+  ACCOUNTS = "accounts",
+  BUDGETS = "budgets",
+  COMPLETED = "completed",
+}
+import { BaseModal } from "../ui";
 import {
-    OnboardingGroupStep,
-    OnboardingPeopleStep,
-    OnboardingAccountsStep,
-    OnboardingBudgetsStep,
-    OnboardingCompletedStep
-} from './';
+  OnboardingGroupStep,
+  OnboardingPeopleStep,
+  OnboardingAccountsStep,
+  OnboardingBudgetsStep,
+  OnboardingCompletedStep,
+} from "./";
 
 interface OnboardingFlowProps {
   isOpen: boolean;
@@ -24,7 +32,7 @@ const OnboardingProgress = memo<{ progress: number }>(({ progress }) => (
       <span>{Math.round(progress)}%</span>
     </div>
     <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-      <div 
+      <div
         className="bg-blue-600 h-2 rounded-full transition-all duration-300 ease-out"
         style={{ width: `${progress}%` }}
       />
@@ -32,7 +40,7 @@ const OnboardingProgress = memo<{ progress: number }>(({ progress }) => (
   </div>
 ));
 
-OnboardingProgress.displayName = 'OnboardingProgress';
+OnboardingProgress.displayName = "OnboardingProgress";
 
 /**
  * Componente principale per il flow di onboarding
@@ -63,7 +71,7 @@ export const OnboardingFlow = memo<OnboardingFlowProps>(({ isOpen, onComplete })
             onBack={onboarding.goToPreviousStep}
             isLoading={onboarding.isLoading}
             error={onboarding.error}
-            groupName={onboarding.group?.name || ''}
+            groupName={onboarding.group?.name || ""}
           />
         );
 
@@ -94,6 +102,10 @@ export const OnboardingFlow = memo<OnboardingFlowProps>(({ isOpen, onComplete })
         return (
           <OnboardingCompletedStep
             onComplete={handleComplete}
+            completedData={onboarding.getCompletionData()}
+            isLoading={onboarding.completion.isLoading}
+            progress={onboarding.completion.progress}
+            currentOperation={onboarding.completion.currentOperation}
           />
         );
 
@@ -105,17 +117,17 @@ export const OnboardingFlow = memo<OnboardingFlowProps>(({ isOpen, onComplete })
   const getModalTitle = () => {
     switch (onboarding.currentStep) {
       case OnboardingStep.GROUP:
-        return 'Benvenuto in Wealth Pillar!';
+        return "Benvenuto in Wealth Pillar!";
       case OnboardingStep.PEOPLE:
-        return 'Aggiungi le persone al tuo gruppo';
+        return "Aggiungi le persone al tuo gruppo";
       case OnboardingStep.ACCOUNTS:
-        return 'Crea i conti per le persone';
+        return "Crea i conti per le persone";
       case OnboardingStep.BUDGETS:
-        return 'Imposta i budget';
+        return "Imposta i budget";
       case OnboardingStep.COMPLETED:
-        return 'Configurazione completata!';
+        return "Configurazione completata!";
       default:
-        return 'Configurazione iniziale';
+        return "Configurazione iniziale";
     }
   };
 
@@ -123,9 +135,9 @@ export const OnboardingFlow = memo<OnboardingFlowProps>(({ isOpen, onComplete })
     switch (onboarding.currentStep) {
       case OnboardingStep.ACCOUNTS:
       case OnboardingStep.BUDGETS:
-        return '2xl';
+        return "2xl";
       default:
-        return 'lg';
+        return "lg";
     }
   };
 
@@ -138,9 +150,7 @@ export const OnboardingFlow = memo<OnboardingFlowProps>(({ isOpen, onComplete })
       showCloseButton={false}
     >
       <div className="space-y-6">
-        {onboarding.currentStep !== OnboardingStep.COMPLETED && (
-          <OnboardingProgress progress={onboarding.progress} />
-        )}
+        {onboarding.currentStep !== OnboardingStep.COMPLETED && <OnboardingProgress progress={onboarding.progress} />}
 
         {renderCurrentStep()}
       </div>
@@ -148,4 +158,4 @@ export const OnboardingFlow = memo<OnboardingFlowProps>(({ isOpen, onComplete })
   );
 });
 
-OnboardingFlow.displayName = 'OnboardingFlow';
+OnboardingFlow.displayName = "OnboardingFlow";
