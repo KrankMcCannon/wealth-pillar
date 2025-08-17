@@ -1,36 +1,41 @@
-import React, { useCallback, useMemo } from "react";
-import { useFinance, useModalForm } from "../../";
+import { useCallback, useMemo } from "react";
+import { useModalForm } from "../../ui/useModalForm";
 import { BudgetService, BudgetFormData } from "../../../lib/services/budget.service";
+import { useFinance } from "../../core/useFinance";
 
-interface UseAddBudgetProps {
+interface UseBudgetFormOptions {
+  initialData?: Partial<BudgetFormData>;
   personId: string;
   onClose: () => void;
+  onSubmit: (data: BudgetFormData) => Promise<void>;
 }
 
 /**
- * Hook semplificato per aggiungere budget
- * Utilizza BudgetService per validazione e logica
+ * Hook riutilizzabile per i form dei budget
+ * Gestisce validazione, stato e handlers comuni
  */
-export const useAddBudget = ({ personId, onClose }: UseAddBudgetProps) => {
-  const { addBudget, categories } = useFinance();
+export const useBudgetForm = (options: UseBudgetFormOptions) => {
+  const { initialData, personId, onClose, onSubmit } = options;
+  const { categories } = useFinance();
 
-  const initialFormData: BudgetFormData = useMemo(
+  const defaultFormData: BudgetFormData = useMemo(
     () => ({
       description: "",
       amount: 0,
       categories: [],
       personId,
+      ...initialData,
     }),
-    [personId]
+    [personId, initialData]
   );
 
   const { data, errors, isSubmitting, updateField, setError, clearAllErrors, setSubmitting, resetForm } = useModalForm({
-    initialData: initialFormData,
+    initialData: defaultFormData,
     resetOnClose: true,
     resetOnOpen: true,
   });
 
-  // Filtra categorie di spesa
+  // Categorie di spesa filtrate
   const expenseCategories = useMemo(
     () => categories.filter((cat) => !["stipendio", "investimenti", "entrata", "trasferimento"].includes(cat.id)),
     [categories]
@@ -47,7 +52,7 @@ export const useAddBudget = ({ personId, onClose }: UseAddBudgetProps) => {
     [expenseCategories, data.categories]
   );
 
-  // Validazione usando BudgetService
+  // Validazione
   const validateForm = useCallback((): boolean => {
     clearAllErrors();
     const errorsObj = BudgetService.validateBudgetData(data);
@@ -57,7 +62,7 @@ export const useAddBudget = ({ personId, onClose }: UseAddBudgetProps) => {
     return Object.keys(errorsObj).length === 0;
   }, [data, clearAllErrors, setError]);
 
-  // Submit form
+  // Submit
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
@@ -69,21 +74,15 @@ export const useAddBudget = ({ personId, onClose }: UseAddBudgetProps) => {
       setSubmitting(true);
 
       try {
-        await addBudget({
-          description: data.description.trim(),
-          amount: data.amount,
-          categories: data.categories,
-          period: "monthly",
-          personId,
-        });
+        await onSubmit(data);
         onClose();
       } catch (err) {
-        setError("general", err instanceof Error ? err.message : "Errore durante l'aggiunta del budget");
+        setError("general", err instanceof Error ? err.message : "Errore durante il salvataggio");
       } finally {
         setSubmitting(false);
       }
     },
-    [validateForm, setSubmitting, data, addBudget, personId, onClose, setError]
+    [validateForm, setSubmitting, data, onSubmit, onClose, setError]
   );
 
   // Handlers per i campi

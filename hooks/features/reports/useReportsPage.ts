@@ -1,15 +1,15 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { formatCurrency } from '../../../constants';
-import { BudgetPeriodsUtils } from '../../../lib/utils';
-import type { BudgetPeriodData } from '../../../types';
-import { useAnnualReports, useFinance, usePersonFilter, useYearSelection } from '../../index';
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { formatCurrency } from "../../../constants";
+import { BudgetPeriodsUtils } from "../../../lib/utils";
+import type { BudgetPeriodData } from "../../../types";
+import { useAnnualReports, useFinance, usePersonFilter, useYearSelection } from "../../index";
 
 enum SummaryCardsColor {
-  GREEN = 'green',
-  RED = 'red',
-  BLUE = 'blue',
-  YELLOW = 'yellow',
-  GRAY = 'gray',
+  GREEN = "green",
+  RED = "red",
+  BLUE = "blue",
+  YELLOW = "yellow",
+  GRAY = "gray",
 }
 
 /**
@@ -28,7 +28,7 @@ export const useReportsPage = () => {
   // Annual reports for the selected person and year
   const { yearlyTransactions, annualSummary, monthlyData, netBalance } = useAnnualReports(
     selectedPersonId,
-    selectedYear,
+    selectedYear
   );
 
   // Budget period selection state
@@ -36,13 +36,26 @@ export const useReportsPage = () => {
 
   // Compute available budget periods based on the selected person
   const availableBudgetPeriods = useMemo(() => {
-    if (selectedPersonId === 'all') {
-      // In "all" view, use the first person with a budgetStartDate
-      const firstPersonWithBudget = people.find((person) => person.budgetStartDate);
-      if (!firstPersonWithBudget) {
-        return [] as BudgetPeriodData[];
-      }
-      return BudgetPeriodsUtils.getBudgetPeriodsFromDatabase(firstPersonWithBudget);
+    if (selectedPersonId === "all") {
+      // In "all" view, collect all periods from all people with budgets
+      const allPeriods: BudgetPeriodData[] = [];
+      const processedPeriods = new Set<string>(); // Per evitare duplicati
+
+      people.forEach((person) => {
+        if (person.budgetStartDate) {
+          const personPeriods = BudgetPeriodsUtils.getBudgetPeriodsFromDatabase(person);
+          personPeriods.forEach((period) => {
+            const periodKey = `${period.startDate}-${period.endDate || "ongoing"}`;
+            if (!processedPeriods.has(periodKey)) {
+              allPeriods.push(period);
+              processedPeriods.add(periodKey);
+            }
+          });
+        }
+      });
+
+      // Ordina per data di inizio
+      return allPeriods.sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
     } else {
       const selPerson = people.find((p) => p.id === selectedPersonId);
       if (!selPerson || !selPerson.budgetStartDate) {
@@ -52,55 +65,52 @@ export const useReportsPage = () => {
     }
   }, [selectedPersonId, people]);
 
-  // Default budget period selection when available periods change or no period selected
+  // Simple period management - no competing useEffects
   useEffect(() => {
-    if (!selectedBudgetPeriod && availableBudgetPeriods.length > 0) {
-      setSelectedBudgetPeriod(availableBudgetPeriods[0]);
-    }
-  }, [availableBudgetPeriods, selectedBudgetPeriod]);
-
-  // Reset budget period when person selection changes
-  useEffect(() => {
-    if (availableBudgetPeriods.length > 0) {
-      setSelectedBudgetPeriod(availableBudgetPeriods[0]);
-    } else {
+    if (availableBudgetPeriods.length === 0) {
       setSelectedBudgetPeriod(undefined);
+      return;
     }
-  }, [selectedPersonId]);
+
+    // Only set first period if no period is selected
+    if (!selectedBudgetPeriod) {
+      setSelectedBudgetPeriod(availableBudgetPeriods[0]);
+    }
+  }, [availableBudgetPeriods]); // Remove selectedBudgetPeriod from deps to avoid loops
 
   // Build summary cards data
   const summaryCardsData = useMemo(
     () => [
       {
-        title: 'Entrate Totali',
+        title: "Entrate Totali",
         value: formatCurrency(annualSummary.entrata),
         change: undefined,
-        trend: 'up' as const,
+        trend: "up" as const,
         color: SummaryCardsColor.GREEN,
       },
       {
-        title: 'Spese Totali',
+        title: "Spese Totali",
         value: formatCurrency(annualSummary.spesa),
         change: undefined,
-        trend: 'down' as const,
+        trend: "down" as const,
         color: SummaryCardsColor.RED,
       },
       {
-        title: 'Bilancio Netto',
+        title: "Bilancio Netto",
         value: formatCurrency(netBalance),
         change: undefined,
-        trend: netBalance >= 0 ? ('up' as const) : ('down' as const),
+        trend: netBalance >= 0 ? ("up" as const) : ("down" as const),
         color: netBalance >= 0 ? SummaryCardsColor.GREEN : SummaryCardsColor.RED,
       },
       {
-        title: 'Transazioni',
+        title: "Transazioni",
         value: yearlyTransactions.length.toString(),
         change: undefined,
-        trend: 'neutral' as const,
+        trend: "neutral" as const,
         color: SummaryCardsColor.BLUE,
       },
     ],
-    [annualSummary, netBalance, yearlyTransactions],
+    [annualSummary, netBalance, yearlyTransactions]
   );
 
   /**
@@ -110,23 +120,22 @@ export const useReportsPage = () => {
     (year: number) => {
       setSelectedYear(year);
     },
-    [setSelectedYear],
+    [setSelectedYear]
   );
 
   /**
    * Handle budget period selection change.
    */
-  const handleBudgetPeriodChange = useCallback(
-    (period: BudgetPeriodData) => {
-      setSelectedBudgetPeriod(period);
-    },
-    [],
-  );
+  const handleBudgetPeriodChange = useCallback((period: BudgetPeriodData) => {
+    setSelectedBudgetPeriod(period);
+  }, []);
 
   // Determine the person referenced in the budget history header
   const budgetReferencePerson = useMemo(() => {
-    if (selectedPersonId === 'all') {
-      return people.find((person) => person.budgetStartDate);
+    if (selectedPersonId === "all") {
+      // In modalità 'all', mostra il numero di persone con budget
+      const peopleWithBudgets = people.filter((person) => person.budgetStartDate);
+      return peopleWithBudgets.length > 0 ? { name: `${peopleWithBudgets.length} persone` } : null;
     }
     return people.find((p) => p.id === selectedPersonId);
   }, [selectedPersonId, people]);

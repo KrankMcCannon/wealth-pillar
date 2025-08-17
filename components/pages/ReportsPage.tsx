@@ -1,9 +1,9 @@
-import { memo } from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { useReportsPage } from '../../hooks';
-import { Card, PageHeader, SummaryCards } from '../ui';
-import { BudgetProgress } from '../dashboard';
-import { formatCurrency } from '../../constants';
+import { memo } from "react";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { useReportsPage } from "../../hooks";
+import { Card, PageHeader, SummaryCards } from "../ui";
+import { BudgetProgress } from "../budget";
+import { formatCurrency } from "../../constants";
 
 /**
  * Componente per la selezione dell'anno
@@ -24,7 +24,7 @@ const YearSelector = memo<{
         onChange={(e) => onYearChange(parseInt(e.target.value))}
         className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
       >
-        {availableYears.map(year => (
+        {availableYears.map((year) => (
           <option key={year} value={year}>
             {year}
           </option>
@@ -34,7 +34,7 @@ const YearSelector = memo<{
   </Card>
 ));
 
-YearSelector.displayName = 'YearSelector';
+YearSelector.displayName = "YearSelector";
 
 /**
  * Componente per il grafico mensile
@@ -48,9 +48,7 @@ const MonthlyChart = memo<{
     <div className="p-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
         <div>
-          <h3 className="text-xl font-bold text-gray-900 dark:text-white">
-            Trend Finanziario Mensile
-          </h3>
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white">Trend Finanziario Mensile</h3>
           <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
             Confronto entrate e spese per l'anno {selectedYear}
           </p>
@@ -66,59 +64,43 @@ const MonthlyChart = memo<{
           </div>
         </div>
       </div>
-      
+
       <div className="h-96 w-full">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart 
-            data={data} 
-            margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
-            barCategoryGap="20%"
-          >
+          <BarChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 20 }} barCategoryGap="20%">
             <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
-            <XAxis 
-              dataKey="name" 
-              tick={{ fontSize: 12, fill: 'currentColor' }}
-              axisLine={{ stroke: 'currentColor', opacity: 0.3 }}
-              tickLine={{ stroke: 'currentColor', opacity: 0.3 }}
+            <XAxis
+              dataKey="name"
+              tick={{ fontSize: 12, fill: "currentColor" }}
+              axisLine={{ stroke: "currentColor", opacity: 0.3 }}
+              tickLine={{ stroke: "currentColor", opacity: 0.3 }}
               className="text-gray-600 dark:text-gray-400"
             />
-            <YAxis 
-              tick={{ fontSize: 12, fill: 'currentColor' }}
-              axisLine={{ stroke: 'currentColor', opacity: 0.3 }}
-              tickLine={{ stroke: 'currentColor', opacity: 0.3 }}
+            <YAxis
+              tick={{ fontSize: 12, fill: "currentColor" }}
+              axisLine={{ stroke: "currentColor", opacity: 0.3 }}
+              tickLine={{ stroke: "currentColor", opacity: 0.3 }}
               className="text-gray-600 dark:text-gray-400"
               tickFormatter={(value) => formatCurrency(value)}
             />
-            <Tooltip 
+            <Tooltip
               formatter={(value: number, name: string) => [
-                formatCurrency(value), 
-                name === 'entrata' ? 'Entrate' : 'Spese'
+                formatCurrency(value),
+                name === "entrata" ? "Entrate" : "Spese",
               ]}
               labelFormatter={(label) => `${label} ${selectedYear}`}
               contentStyle={{
-                backgroundColor: 'rgb(255 255 255 / 0.95)',
-                backdropFilter: 'blur(10px)',
-                border: '1px solid rgb(229 231 235)',
-                borderRadius: '12px',
-                boxShadow: '0 10px 25px -5px rgb(0 0 0 / 0.1), 0 4px 6px -2px rgb(0 0 0 / 0.05)',
-                color: '#374151'
+                backgroundColor: "rgb(255 255 255 / 0.95)",
+                backdropFilter: "blur(10px)",
+                border: "1px solid rgb(229 231 235)",
+                borderRadius: "12px",
+                boxShadow: "0 10px 25px -5px rgb(0 0 0 / 0.1), 0 4px 6px -2px rgb(0 0 0 / 0.05)",
+                color: "#374151",
               }}
-              cursor={{ fill: 'rgba(156, 163, 175, 0.1)' }}
+              cursor={{ fill: "rgba(156, 163, 175, 0.1)" }}
             />
-            <Bar 
-              dataKey="entrata" 
-              fill="#10B981" 
-              name="entrata"
-              radius={[4, 4, 0, 0]}
-              maxBarSize={60}
-            />
-            <Bar 
-              dataKey="spesa" 
-              fill="#EF4444" 
-              name="spesa"
-              radius={[4, 4, 0, 0]}
-              maxBarSize={60}
-            />
+            <Bar dataKey="entrata" fill="#10B981" name="entrata" radius={[4, 4, 0, 0]} maxBarSize={60} />
+            <Bar dataKey="spesa" fill="#EF4444" name="spesa" radius={[4, 4, 0, 0]} maxBarSize={60} />
           </BarChart>
         </ResponsiveContainer>
       </div>
@@ -126,7 +108,7 @@ const MonthlyChart = memo<{
   </Card>
 ));
 
-MonthlyChart.displayName = 'MonthlyChart';
+MonthlyChart.displayName = "MonthlyChart";
 
 /**
  * Pagina Report
@@ -145,28 +127,21 @@ export const ReportsPage = memo(() => {
     handleYearChange,
     handleBudgetPeriodChange,
     budgets,
-    people
+    people,
   } = useReportsPage();
 
   return (
     <div className="space-y-6">
-      <PageHeader 
-        title={`Report Finanziari${selectedPerson ? ` - ${selectedPerson.name}` : ''}`}
+      <PageHeader
+        title={`Report Finanziari${selectedPerson ? ` - ${selectedPerson.name}` : ""}`}
         subtitle={`Anno ${selectedYear}`}
       />
 
-      <YearSelector
-        availableYears={availableYears}
-        selectedYear={selectedYear}
-        onYearChange={handleYearChange}
-      />
+      <YearSelector availableYears={availableYears} selectedYear={selectedYear} onYearChange={handleYearChange} />
 
       <SummaryCards cards={summaryCardsData} />
 
-      <MonthlyChart
-        data={monthlyData}
-        selectedYear={selectedYear}
-      />
+      <MonthlyChart data={monthlyData} selectedYear={selectedYear} />
 
       {/* Storico Budget */}
       <Card>
@@ -176,20 +151,43 @@ export const ReportsPage = memo(() => {
               Storico Budget {selectedYear}
               {budgetReferencePerson && (
                 <span className="text-base font-normal text-gray-600 dark:text-gray-400 ml-2">
-                  (Periodi di {budgetReferencePerson.name})
+                  {typeof budgetReferencePerson === "string"
+                    ? `(Periodi di ${budgetReferencePerson})`
+                    : `(Periodi di ${budgetReferencePerson.name})`}
                 </span>
               )}
             </h3>
             <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
               Panoramica completa dei budget con transazioni e categorie associate
+              {selectedBudgetPeriod && (
+                <span className="block mt-1">
+                  <strong>Periodo selezionato:</strong>{" "}
+                  {new Date(selectedBudgetPeriod.startDate).toLocaleDateString("it-IT", {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric",
+                  })}
+                  {selectedBudgetPeriod.endDate && (
+                    <>
+                      {" "}
+                      -{" "}
+                      {new Date(selectedBudgetPeriod.endDate).toLocaleDateString("it-IT", {
+                        day: "numeric",
+                        month: "long",
+                        year: "numeric",
+                      })}
+                    </>
+                  )}
+                </span>
+              )}
             </p>
           </div>
-          
+
           {budgets.length > 0 ? (
-            <BudgetProgress 
+            <BudgetProgress
               budgets={budgets}
               people={people}
-              selectedPersonId={selectedPersonId !== 'all' ? selectedPersonId : undefined}
+              selectedPersonId={selectedPersonId}
               isReportMode={true}
               availablePeriods={availableBudgetPeriods}
               selectedPeriod={selectedBudgetPeriod}
@@ -206,4 +204,4 @@ export const ReportsPage = memo(() => {
   );
 });
 
-ReportsPage.displayName = 'ReportsPage';
+ReportsPage.displayName = "ReportsPage";

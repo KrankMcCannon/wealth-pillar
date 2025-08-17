@@ -1,33 +1,35 @@
-import { useCallback, useState } from 'react';
-import type { Budget } from '../../../types';
-import { useFinance } from '../../core/useFinance';
-import { useBudgetData } from './useBudgetData';
+import { useCallback, useState } from "react";
+import type { Budget, BudgetPeriodData } from "../../../types";
+import { useFinance } from "../../core/useFinance";
+import { useBudgetState } from "./useBudgetState";
 
 /**
- * Hook that encapsulates state and derived data used by the BudgetProgress
- * component. It manages expansion of individual budgets and delegates
- * calculation of per-person budget data to the existing useBudgetData hook.
+ * Hook semplificato per il BudgetProgress
+ * Utilizza useBudgetState per i dati e gestisce solo l'UI state
  */
 interface Options {
   budgets: Budget[];
   selectedPersonId?: string;
+  isReportMode?: boolean;
+  selectedPeriod?: BudgetPeriodData;
 }
 
 export const useBudgetProgress = (options: Options) => {
-  const { budgets, selectedPersonId } = options;
+  const { budgets, selectedPersonId, isReportMode = false, selectedPeriod } = options;
   const { categories: categoryOptions } = useFinance();
-  const { budgetDataByPerson, selectedPersonData, hasData } = useBudgetData({
+
+  // Usa il nuovo hook centralizzato per i dati
+  const { budgetDataByPerson, selectedPersonData, hasData } = useBudgetState({
     budgets,
     selectedPersonId,
+    isReportMode,
+    selectedPeriod,
   });
-  // Track which budgets are expanded in the UI
+
+  // Gestione espansione budget (solo UI state)
   const [expandedBudgets, setExpandedBudgets] = useState<Set<string>>(new Set());
 
-  /**
-   * Toggle the expansion of a budget card. Uses a Set to track IDs of
-   * expanded budgets, ensuring constant-time lookup and mutation. Wrapped in
-   * useCallback to prevent unnecessary re-renders when passed to children.
-   */
+  // Toggle espansione budget
   const toggleBudgetExpansion = useCallback((budgetId: string) => {
     setExpandedBudgets((prev) => {
       const newSet = new Set(prev);
@@ -40,7 +42,7 @@ export const useBudgetProgress = (options: Options) => {
     });
   }, []);
 
-  // Data to render: either single selected person or all persons
+  // Dati da renderizzare
   const dataToRender = selectedPersonData ? [selectedPersonData] : budgetDataByPerson;
 
   return {

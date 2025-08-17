@@ -1,6 +1,7 @@
-import { memo } from 'react';
-import { BaseModal, FormField, Input, CheckboxGroup, ModalActions } from '../ui';
-import { useAddBudget } from '../../hooks/features/budgets/useAddBudget';
+import { memo } from "react";
+import { BaseModal, FormField, Input, CheckboxGroup, ModalActions } from "../ui";
+import { useBudgetForm } from "../../hooks/features/budgets/useBudgetForm";
+import { useFinance } from "../../hooks/core/useFinance";
 
 interface AddBudgetModalProps {
   isOpen: boolean;
@@ -10,8 +11,11 @@ interface AddBudgetModalProps {
 
 /**
  * Componente presentazionale per aggiunta budget
+ * Utilizza il hook riutilizzabile useBudgetForm
  */
 export const AddBudgetModal = memo<AddBudgetModalProps>(({ isOpen, onClose, personId }) => {
+  const { addBudget } = useFinance();
+
   const {
     data,
     errors,
@@ -22,23 +26,25 @@ export const AddBudgetModal = memo<AddBudgetModalProps>(({ isOpen, onClose, pers
     handleDescriptionChange,
     handleAmountChange,
     handleCategoryToggle,
-  } = useAddBudget({ personId, onClose });
+  } = useBudgetForm({
+    personId,
+    onClose,
+    onSubmit: async (formData) => {
+      await addBudget({
+        description: formData.description.trim(),
+        amount: formData.amount,
+        categories: formData.categories,
+        period: "monthly",
+        personId: formData.personId,
+      });
+    },
+  });
 
   return (
-    <BaseModal
-      isOpen={isOpen}
-      onClose={onClose}
-      title="Aggiungi Nuovo Budget"
-      maxWidth="2xl"
-    >
+    <BaseModal isOpen={isOpen} onClose={onClose} title="Aggiungi Nuovo Budget" maxWidth="2xl">
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Description */}
-        <FormField
-          label="Descrizione"
-          id="budget-description"
-          error={errors.description}
-          required
-        >
+        <FormField label="Descrizione" id="budget-description" error={errors.description} required>
           <Input
             type="text"
             id="budget-description"
@@ -51,16 +57,11 @@ export const AddBudgetModal = memo<AddBudgetModalProps>(({ isOpen, onClose, pers
         </FormField>
 
         {/* Amount */}
-        <FormField
-          label="Importo Mensile (€)"
-          id="budget-amount"
-          error={errors.amount}
-          required
-        >
+        <FormField label="Importo Mensile (€)" id="budget-amount" error={errors.amount} required>
           <Input
             type="number"
             id="budget-amount"
-            value={data.amount}
+            value={data.amount || ""}
             onChange={handleAmountChange}
             error={!!errors.amount}
             disabled={isSubmitting}
@@ -71,27 +72,15 @@ export const AddBudgetModal = memo<AddBudgetModalProps>(({ isOpen, onClose, pers
         </FormField>
 
         {/* Categories */}
-        <FormField
-          label="Categorie Associate"
-          id="categories-selection"
-          error={errors.selectedCategories}
-          required
-        >
-          <CheckboxGroup
-            options={categoryOptions}
-            onChange={handleCategoryToggle}
-            columns={2}
-            maxHeight="16rem"
-          />
+        <FormField label="Categorie Associate" id="categories-selection" error={errors.categories} required>
+          <CheckboxGroup options={categoryOptions} onChange={handleCategoryToggle} columns={2} maxHeight="16rem" />
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-            Selezionate: {data.selectedCategories.length} categorie
+            Selezionate: {data.categories.length} categorie
           </p>
         </FormField>
 
         {/* Submit error */}
-        {errors.general && (
-          <div className="text-red-600 text-sm">{errors.general}</div>
-        )}
+        {errors.general && <div className="text-red-600 text-sm">{errors.general}</div>}
 
         {/* Actions */}
         <ModalActions
@@ -107,4 +96,4 @@ export const AddBudgetModal = memo<AddBudgetModalProps>(({ isOpen, onClose, pers
   );
 });
 
-AddBudgetModal.displayName = 'AddBudgetModal';
+AddBudgetModal.displayName = "AddBudgetModal";

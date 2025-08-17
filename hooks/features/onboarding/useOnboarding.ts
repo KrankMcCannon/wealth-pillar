@@ -1,10 +1,10 @@
-import { useCallback, useMemo, useState } from 'react';
-import { useAuth } from '../../../contexts/AuthContext';
-import { useClerkSupabaseClient } from '../../../lib/supabase/client';
-import { ServiceFactory } from '../../../lib/supabase/services/service-factory';
-import { Person } from '../../../types';
-import { useFinance } from '../../core/useFinance';
-import { useGroups } from '../groups/useGroups';
+import { useCallback, useMemo, useState } from "react";
+import { useAuth } from "../../../contexts/AuthContext";
+import { useClerkSupabaseClient } from "../../../lib/supabase/client";
+import { ServiceFactory } from "../../../lib/supabase/services/service-factory";
+import { Person } from "../../../types";
+import { useFinance } from "../../core/useFinance";
+import { useGroups } from "../groups/useGroups";
 
 export interface OnboardingGroup {
   name: string;
@@ -20,7 +20,7 @@ export interface OnboardingPerson {
 
 export interface OnboardingAccount {
   name: string;
-  type: 'stipendio' | 'risparmio' | 'contanti' | 'investimenti';
+  type: "stipendio" | "risparmio" | "contanti" | "investimenti";
   personId: string;
 }
 
@@ -32,11 +32,11 @@ export interface OnboardingBudget {
 }
 
 export enum OnboardingStep {
-  GROUP = 'group',
-  PEOPLE = 'people',
-  ACCOUNTS = 'accounts',
-  BUDGETS = 'budgets',
-  COMPLETED = 'completed'
+  GROUP = "group",
+  PEOPLE = "people",
+  ACCOUNTS = "accounts",
+  BUDGETS = "budgets",
+  COMPLETED = "completed",
 }
 
 interface OnboardingState {
@@ -76,11 +76,11 @@ export const useOnboarding = () => {
    * Gestisce il passaggio al step successivo
    */
   const goToNextStep = useCallback(() => {
-    setState(prev => {
+    setState((prev) => {
       const steps = Object.values(OnboardingStep);
       const currentIndex = steps.indexOf(prev.currentStep);
       const nextIndex = Math.min(currentIndex + 1, steps.length - 1);
-      
+
       return {
         ...prev,
         currentStep: steps[nextIndex],
@@ -93,11 +93,11 @@ export const useOnboarding = () => {
    * Gestisce il passaggio al step precedente
    */
   const goToPreviousStep = useCallback(() => {
-    setState(prev => {
+    setState((prev) => {
       const steps = Object.values(OnboardingStep);
       const currentIndex = steps.indexOf(prev.currentStep);
       const prevIndex = Math.max(currentIndex - 1, 0);
-      
+
       return {
         ...prev,
         currentStep: steps[prevIndex],
@@ -110,157 +110,169 @@ export const useOnboarding = () => {
    * Salva i dati del gruppo
    * Prima controlla se l'utente ha già un gruppo, altrimenti ne crea uno nuovo
    */
-  const saveGroup = useCallback(async (groupData: OnboardingGroup) => {
-    setState(prev => ({ ...prev, isLoading: true, error: null }));
-    
-    try {
-      // Prima controlla se l'utente ha già gruppi caricati
-      if (groups.length > 0) {
-        // Usa il gruppo esistente
-        console.log('Using existing group:', groups[0]);
-        setState(prev => ({
+  const saveGroup = useCallback(
+    async (groupData: OnboardingGroup) => {
+      setState((prev) => ({ ...prev, isLoading: true, error: null }));
+
+      try {
+        // Prima controlla se l'utente ha già gruppi caricati
+        if (groups.length > 0) {
+          // Usa il gruppo esistente
+          console.log("Using existing group:", groups[0]);
+          setState((prev) => ({
+            ...prev,
+            group: {
+              name: groups[0].name,
+              description: groups[0].description || undefined,
+            },
+            isLoading: false,
+          }));
+          goToNextStep();
+          return;
+        }
+
+        // Se non ha gruppi, crea un nuovo gruppo
+        const createdGroup = await createGroup(groupData);
+        if (createdGroup) {
+          setState((prev) => ({
+            ...prev,
+            group: groupData,
+            isLoading: false,
+          }));
+          goToNextStep();
+        } else {
+          throw new Error("Errore nella creazione del gruppo");
+        }
+      } catch (error) {
+        setState((prev) => ({
           ...prev,
-          group: {
-            name: groups[0].name,
-            description: groups[0].description || undefined
-          },
           isLoading: false,
+          error: error instanceof Error ? error.message : "Errore nella creazione del gruppo",
         }));
-        goToNextStep();
-        return;
       }
-      
-      // Se non ha gruppi, crea un nuovo gruppo
-      const createdGroup = await createGroup(groupData);
-      if (createdGroup) {
-        setState(prev => ({
-          ...prev,
-          group: groupData,
-          isLoading: false,
-        }));
-        goToNextStep();
-      } else {
-        throw new Error('Errore nella creazione del gruppo');
-      }
-    } catch (error) {
-      setState(prev => ({
-        ...prev,
-        isLoading: false,
-        error: error instanceof Error ? error.message : 'Errore nella creazione del gruppo',
-      }));
-    }
-  }, [createGroup, goToNextStep, groups]);
+    },
+    [createGroup, goToNextStep, groups]
+  );
 
   /**
    * Salva i dati delle persone creando le persone reali nel database
    */
-  const savePeople = useCallback(async (peopleData: OnboardingPerson[]) => {
-    setState(prev => ({ ...prev, isLoading: true, error: null }));
-    
-    try {
-      if (!client || !user?.id) {
-        throw new Error('Client o utente non disponibile');
+  const savePeople = useCallback(
+    async (peopleData: OnboardingPerson[]) => {
+      setState((prev) => ({ ...prev, isLoading: true, error: null }));
+
+      try {
+        if (!client || !user?.id) {
+          throw new Error("Client o utente non disponibile");
+        }
+
+        // Ottieni il groupId dell'utente corrente
+        const financeService = ServiceFactory.createFinanceService(client, user.id);
+        const groupId = await financeService.getUserGroupId();
+
+        if (!groupId) {
+          throw new Error("Nessun gruppo attivo trovato");
+        }
+
+        // Crea le persone nel database
+        const createdPeople: Person[] = [];
+        for (const personData of peopleData) {
+          const newPerson = await addPerson({
+            name: personData.name,
+            avatar: personData.avatar,
+            themeColor: personData.themeColor,
+            budgetStartDate: personData.budgetStartDate,
+            groupId,
+            role: "member", // Ruolo di default
+            budgetPeriods: [],
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          });
+          createdPeople.push(newPerson);
+        }
+
+        setState((prev) => ({
+          ...prev,
+          people: peopleData,
+          createdPeople,
+          isLoading: false,
+          error: null,
+        }));
+        goToNextStep();
+      } catch (error) {
+        setState((prev) => ({
+          ...prev,
+          isLoading: false,
+          error: error instanceof Error ? error.message : "Errore nella creazione delle persone",
+        }));
       }
-
-      // Ottieni il groupId dell'utente corrente
-      const financeService = ServiceFactory.createFinanceService(client, user.id);
-      const groupId = await financeService.getUserGroupId();
-
-      if (!groupId) {
-        throw new Error('Nessun gruppo attivo trovato');
-      }
-
-      // Crea le persone nel database
-      const createdPeople: Person[] = [];
-      for (const personData of peopleData) {
-        const newPerson = await addPerson({
-          name: personData.name,
-          avatar: personData.avatar,
-          themeColor: personData.themeColor,
-          budgetStartDate: personData.budgetStartDate,
-          groupId,
-          role: 'member', // Ruolo di default
-          budgetPeriods: [],
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        });
-        createdPeople.push(newPerson);
-      }
-
-      setState(prev => ({
-        ...prev,
-        people: peopleData,
-        createdPeople,
-        isLoading: false,
-        error: null,
-      }));
-      goToNextStep();
-    } catch (error) {
-      setState(prev => ({
-        ...prev,
-        isLoading: false,
-        error: error instanceof Error ? error.message : 'Errore nella creazione delle persone',
-      }));
-    }
-  }, [addPerson, client, user, goToNextStep]);
+    },
+    [addPerson, client, user, goToNextStep]
+  );
 
   /**
    * Salva i dati degli account associandoli alle persone create
    */
-  const saveAccounts = useCallback((accountsData: OnboardingAccount[]) => {
-    // Mappa gli account alle persone reali usando il nome come chiave
-    const mappedAccounts = accountsData.map(account => {
-      const realPerson = state.createdPeople.find(p => p.name === account.personId);
-      if (!realPerson) {
-        throw new Error(`Persona non trovata: ${account.personId}`);
-      }
-      return {
-        ...account,
-        personId: realPerson.id, // Usa l'ID reale della persona
-      };
-    });
+  const saveAccounts = useCallback(
+    (accountsData: OnboardingAccount[]) => {
+      // Mappa gli account alle persone reali usando il nome come chiave
+      const mappedAccounts = accountsData.map((account) => {
+        const realPerson = state.createdPeople.find((p) => p.name === account.personId);
+        if (!realPerson) {
+          throw new Error(`Persona non trovata: ${account.personId}`);
+        }
+        return {
+          ...account,
+          personId: realPerson.id, // Usa l'ID reale della persona
+        };
+      });
 
-    setState(prev => ({
-      ...prev,
-      accounts: mappedAccounts,
-      error: null,
-    }));
-    goToNextStep();
-  }, [state.createdPeople, goToNextStep]);
+      setState((prev) => ({
+        ...prev,
+        accounts: mappedAccounts,
+        error: null,
+      }));
+      goToNextStep();
+    },
+    [state.createdPeople, goToNextStep]
+  );
 
   /**
    * Salva i dati dei budget associandoli alle persone create
    */
-  const saveBudgets = useCallback((budgetsData: OnboardingBudget[]) => {
-    // Mappa i budget alle persone reali usando il nome come chiave
-    const mappedBudgets = budgetsData.map(budget => {
-      const realPerson = state.createdPeople.find(p => p.name === budget.personId);
-      if (!realPerson) {
-        throw new Error(`Persona non trovata: ${budget.personId}`);
-      }
-      return {
-        ...budget,
-        personId: realPerson.id, // Usa l'ID reale della persona
-      };
-    });
+  const saveBudgets = useCallback(
+    (budgetsData: OnboardingBudget[]) => {
+      // Mappa i budget alle persone reali usando il nome come chiave
+      const mappedBudgets = budgetsData.map((budget) => {
+        const realPerson = state.createdPeople.find((p) => p.name === budget.personId);
+        if (!realPerson) {
+          throw new Error(`Persona non trovata: ${budget.personId}`);
+        }
+        return {
+          ...budget,
+          personId: realPerson.id, // Usa l'ID reale della persona
+        };
+      });
 
-    setState(prev => ({
-      ...prev,
-      budgets: mappedBudgets,
-      error: null,
-    }));
-    goToNextStep();
-  }, [state.createdPeople, goToNextStep]);
+      setState((prev) => ({
+        ...prev,
+        budgets: mappedBudgets,
+        error: null,
+      }));
+      goToNextStep();
+    },
+    [state.createdPeople, goToNextStep]
+  );
 
   /**
    * Completa l'onboarding salvando tutti i dati
    */
   const completeOnboarding = useCallback(async () => {
-    setState(prev => ({ ...prev, isLoading: true, error: null }));
+    setState((prev) => ({ ...prev, isLoading: true, error: null }));
 
     try {
       if (!client || !user?.id) {
-        throw new Error('Client o utente non disponibile');
+        throw new Error("Client o utente non disponibile");
       }
 
       // Ottieni il groupId dell'utente corrente
@@ -268,9 +280,9 @@ export const useOnboarding = () => {
       const groupId = await financeService.getUserGroupId();
 
       if (!groupId) {
-        throw new Error('Nessun gruppo attivo trovato');
+        throw new Error("Nessun gruppo attivo trovato");
       }
-      
+
       // Crea tutti gli account
       for (const accountData of state.accounts) {
         await addAccount({
@@ -289,24 +301,23 @@ export const useOnboarding = () => {
           amount: budgetData.amount,
           categories: budgetData.categories,
           personId: budgetData.personId,
-          period: 'monthly',
+          period: "monthly",
         });
       }
 
       // Aggiorna i dati dell'applicazione
       await refreshData();
 
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         currentStep: OnboardingStep.COMPLETED,
         isLoading: false,
       }));
-
     } catch (error) {
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         isLoading: false,
-        error: error instanceof Error ? error.message : 'Errore nel completamento dell\'onboarding',
+        error: error instanceof Error ? error.message : "Errore nel completamento dell'onboarding",
       }));
     }
   }, [state.accounts, state.budgets, addAccount, addBudget, refreshData, client, user]);
@@ -339,8 +350,7 @@ export const useOnboarding = () => {
       case OnboardingStep.ACCOUNTS:
         return state.accounts.length > 0;
       case OnboardingStep.BUDGETS:
-        return state.budgets.length > 0 && 
-               state.budgets.length === state.people.length;
+        return state.budgets.length > 0 && state.budgets.length === state.people.length;
       default:
         return false;
     }
@@ -355,7 +365,7 @@ export const useOnboarding = () => {
       OnboardingStep.PEOPLE,
       OnboardingStep.ACCOUNTS,
       OnboardingStep.BUDGETS,
-      OnboardingStep.COMPLETED
+      OnboardingStep.COMPLETED,
     ];
     const currentIndex = steps.indexOf(state.currentStep);
     return ((currentIndex + 1) / steps.length) * 100;
