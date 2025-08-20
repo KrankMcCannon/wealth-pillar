@@ -13,6 +13,7 @@ interface TransactionGroupedTableProps {
   onSelectToLink: (txId: string) => void;
   onEditClick: (tx: Transaction) => void;
   onDeleteClick?: (tx: Transaction) => void;
+  onAdvancedReconciliationClick?: (tx: Transaction) => void;
   getAccountById: (id: string) => any;
   getPersonById: (id: string) => any;
   isTransactionLinkable: (tx: Transaction) => boolean;
@@ -36,6 +37,7 @@ export const TransactionGroupedTable = memo<TransactionGroupedTableProps>(
     getPersonById,
     isTransactionLinkable,
     isThisLinkingTransaction,
+    onAdvancedReconciliationClick,
   }) => {
     const { isMobile, isTablet } = useBreakpoint();
     const isMobileView = isMobile || isTablet;
@@ -60,6 +62,7 @@ export const TransactionGroupedTable = memo<TransactionGroupedTableProps>(
           onSelectToLink={onSelectToLink}
           onEditClick={onEditClick}
           onDeleteClick={onDeleteClick}
+          onAdvancedReconciliationClick={onAdvancedReconciliationClick}
           getAccountById={getAccountById}
           getPersonById={getPersonById}
           isTransactionLinkable={isTransactionLinkable}
@@ -83,6 +86,7 @@ export const TransactionGroupedTable = memo<TransactionGroupedTableProps>(
             onSelectToLink={onSelectToLink}
             onEditClick={onEditClick}
             onDeleteClick={onDeleteClick}
+            onAdvancedReconciliationClick={onAdvancedReconciliationClick}
             getAccountById={getAccountById}
             getPersonById={getPersonById}
             isTransactionLinkable={isTransactionLinkable}

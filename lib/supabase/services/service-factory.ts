@@ -5,9 +5,13 @@
  */
 
 import { SupabaseClient } from '@supabase/supabase-js';
+import { ReconciliationGroupRepository } from '../repositories/reconciliation-group.repository';
+import { TransactionRepository } from '../repositories/transaction.repository';
 import type { Database } from '../types/database.types';
 import { ClerkSupabaseService } from './clerk-supabase.service';
 import { FinanceService } from './finance.service';
+import { ReconciliationService } from './reconciliation.service';
+import { TransactionService } from './transaction.service';
 
 /**
  * Service Factory per la creazione centralizzata dei servizi
@@ -60,6 +64,35 @@ export class ServiceFactory {
   }
 
   /**
+   * Crea o restituisce un'istanza singleton di TransactionService
+   */
+  static createTransactionService(): TransactionService {
+    const key = 'transaction';
+    
+    if (!this.instances.has(key)) {
+      const transactionRepository = new TransactionRepository();
+      this.instances.set(key, new TransactionService(transactionRepository));
+    }
+    
+    return this.instances.get(key);
+  }
+
+  /**
+   * Crea o restituisce un'istanza singleton di ReconciliationService
+   */
+  static createReconciliationService(): ReconciliationService {
+    const key = 'reconciliation';
+    
+    if (!this.instances.has(key)) {
+      const reconciliationRepository = new ReconciliationGroupRepository();
+      const transactionRepository = new TransactionRepository();
+      this.instances.set(key, new ReconciliationService(reconciliationRepository, transactionRepository));
+    }
+    
+    return this.instances.get(key);
+  }
+
+  /**
    * Pulisce la cache delle istanze (utile per test o reset)
    */
   static clearCache(): void {
@@ -69,8 +102,12 @@ export class ServiceFactory {
   /**
    * Rimuove un'istanza specifica dalla cache
    */
-  static removeInstance(type: 'finance' | 'clerk', client: SupabaseClient<Database>): void {
-    const key = `${type}_${this.getClientKey(client)}`;
-    this.instances.delete(key);
+  static removeInstance(type: 'finance' | 'clerk' | 'transaction' | 'reconciliation', client?: SupabaseClient<Database>): void {
+    if (type === 'reconciliation' || type === 'transaction') {
+      this.instances.delete(type);
+    } else if (client) {
+      const key = `${type}_${this.getClientKey(client)}`;
+      this.instances.delete(key);
+    }
   }
 }

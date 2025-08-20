@@ -1,7 +1,6 @@
 import React, { memo } from 'react';
 import { Transaction } from '../../types';
 import { formatCurrency, formatDate } from '../../constants';
-import { useBudgetTransactions } from '../../hooks/features/budgets/useBudgetTransactions';
 
 interface BudgetTransactionsProps {
   transactions: Transaction[];
@@ -18,9 +17,8 @@ export const BudgetTransactions = memo<BudgetTransactionsProps>(({
   budgetAmount, 
   currentSpent 
 }) => {
-  const { transactionsWithData, totalSpent, transactionCount } = useBudgetTransactions({ 
-    transactions 
-  });
+  const transactionCount = transactions.length;
+  const totalSpent = transactions.reduce((sum, t) => sum + Math.abs(t.amount), 0);
 
   if (transactionCount === 0) {
     return (
@@ -57,7 +55,7 @@ export const BudgetTransactions = memo<BudgetTransactionsProps>(({
 
       {/* Lista transazioni */}
       <div className="space-y-2">
-        {transactionsWithData.map((transaction) => (
+        {transactions.map((transaction) => (
           <div
             key={transaction.id}
             className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors"
@@ -68,7 +66,7 @@ export const BudgetTransactions = memo<BudgetTransactionsProps>(({
                   {transaction.description}
                 </div>
                 <div className="text-sm text-gray-600 dark:text-gray-400">
-                  {transaction.accountName} • {transaction.category}
+                  {transaction.category}
                 </div>
                 <div className="text-xs text-gray-500 dark:text-gray-500 mt-1">
                   {formatDate(transaction.date)}
@@ -76,13 +74,8 @@ export const BudgetTransactions = memo<BudgetTransactionsProps>(({
               </div>
               <div className="text-right">
                 <div className="font-medium text-red-600 dark:text-red-400">
-                  -{formatCurrency(transaction.effectiveAmount)}
+                  -{formatCurrency(Math.abs(transaction.amount))}
                 </div>
-                {transaction.effectiveAmount !== transaction.amount && (
-                  <div className="text-xs text-gray-500 dark:text-gray-500">
-                    (Orig: {formatCurrency(transaction.amount)})
-                  </div>
-                )}
               </div>
             </div>
           </div>

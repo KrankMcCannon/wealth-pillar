@@ -2,7 +2,7 @@ import React, { memo } from "react";
 import { FormField, Input, ModalActions } from "../ui";
 import { PlusIcon, TrashIcon } from "../common/Icons";
 import type { OnboardingAccount, OnboardingPerson } from "../../types";
-import { useOnboardingAccountsForm } from "../../hooks/features/onboarding/useOnboardingAccountsForm";
+import { useOnboarding } from "../../hooks";
 
 interface OnboardingAccountsStepProps {
   people: OnboardingPerson[];
@@ -18,16 +18,18 @@ interface OnboardingAccountsStepProps {
 export const OnboardingAccountsStep = memo<OnboardingAccountsStepProps>(
   ({ people, onNext, onBack, isLoading, error }) => {
     const {
-      accountsByPerson,
-      accountTypes,
-      validationErrors,
-      addAccount,
-      removeAccount,
-      updateAccount,
-      validateForm,
-      canSubmit,
-      validAccounts,
-    } = useOnboardingAccountsForm(people);
+      accountsForm: {
+        accountsByPerson,
+        accountTypes,
+        validationErrors,
+        addAccount,
+        removeAccount,
+        updateAccount,
+        validateForm,
+        canSubmit,
+        validAccounts,
+      },
+    } = useOnboarding();
 
     const handleSubmit = (e: React.FormEvent) => {
       e.preventDefault();

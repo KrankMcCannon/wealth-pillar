@@ -1,7 +1,7 @@
 import React, { memo } from "react";
 import { FormField, Input, ModalActions } from "../ui";
 import type { OnboardingGroup } from "../../types";
-import { useOnboardingGroupForm } from "../../hooks/features/onboarding/useOnboardingGroupForm";
+import { useOnboarding } from "../../hooks";
 
 interface OnboardingGroupStepProps {
   onNext: (group: OnboardingGroup) => Promise<void>;
@@ -13,7 +13,15 @@ interface OnboardingGroupStepProps {
  * Step 1: Creazione del gruppo
  */
 export const OnboardingGroupStep = memo<OnboardingGroupStepProps>(({ onNext, isLoading, error }) => {
-  const { groupData, validationErrors, handleFieldChange, validateForm, canSubmit } = useOnboardingGroupForm();
+  const {
+    groupForm: {
+      groupData,
+      validationErrors,
+      handleFieldChange,
+      validateForm,
+      canSubmit,
+    },
+  } = useOnboarding();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

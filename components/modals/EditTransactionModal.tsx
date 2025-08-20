@@ -1,7 +1,7 @@
 import { memo } from 'react';
 import { Transaction } from '../../types';
 import { BaseModal, FormField, Input, Select, ModalActions } from '../ui';
-import { useEditTransaction } from '../../hooks/features/transactions/useEditTransaction';
+import { useTransactions } from '../../hooks';
 
 interface EditTransactionModalProps {
   isOpen: boolean;
@@ -18,24 +18,24 @@ export const EditTransactionModal = memo<EditTransactionModalProps>(({
   transaction 
 }) => {
   const {
-    data,
-    errors,
-    isSubmitting,
-    canSubmit,
-    accountOptions,
-    categoryOptions,
-    transferAccountOptions,
-    typeOptions,
-    showToAccount,
-    handleSubmit,
-    handleDescriptionChange,
-    handleAmountChange,
-    handleDateChange,
-    handleTypeChange,
-    handleCategoryChange,
-    handleAccountChange,
-    handleToAccountChange,
-  } = useEditTransaction({ transaction, onClose });
+    editTransactionForm: {
+      data,
+      errors,
+      isSubmitting,
+      canSubmit,
+      accountOptions,
+      categoryOptions,
+      transferAccountOptions,
+      typeOptions,
+      showToAccount,
+      updateField,
+      handleSubmit,
+    },
+  } = useTransactions();
+
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    await handleSubmit(e, transaction, onClose);
+  };
 
   return (
     <BaseModal
@@ -43,7 +43,7 @@ export const EditTransactionModal = memo<EditTransactionModalProps>(({
       onClose={onClose}
       title="Modifica Transazione"
     >
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleFormSubmit} className="space-y-6">
         {/* Description field */}
         <FormField
           id="transaction-description"
@@ -53,7 +53,7 @@ export const EditTransactionModal = memo<EditTransactionModalProps>(({
         >
           <Input
             value={data.description}
-            onChange={handleDescriptionChange}
+            onChange={(e) => updateField('description', e.target.value)}
             placeholder="Inserisci la descrizione"
             error={!!errors.description}
             disabled={isSubmitting}
@@ -72,7 +72,7 @@ export const EditTransactionModal = memo<EditTransactionModalProps>(({
             step="0.01"
             min="0"
             value={data.amount}
-            onChange={handleAmountChange}
+            onChange={(e) => updateField('amount', Number(e.target.value))}
             placeholder="0.00"
             error={!!errors.amount}
             disabled={isSubmitting}
@@ -89,7 +89,7 @@ export const EditTransactionModal = memo<EditTransactionModalProps>(({
           <Input
             type="date"
             value={data.date}
-            onChange={handleDateChange}
+            onChange={(e) => updateField('date', e.target.value)}
             error={!!errors.date}
             disabled={isSubmitting}
           />
@@ -104,7 +104,7 @@ export const EditTransactionModal = memo<EditTransactionModalProps>(({
         >
           <Select
             value={data.type}
-            onChange={handleTypeChange}
+            onChange={(e) => updateField('type', e.target.value)}
             error={!!errors.type}
             disabled={isSubmitting}
             options={typeOptions}
@@ -121,7 +121,7 @@ export const EditTransactionModal = memo<EditTransactionModalProps>(({
         >
           <Select
             value={data.category}
-            onChange={handleCategoryChange}
+            onChange={(e) => updateField('category', e.target.value)}
             error={!!errors.category}
             disabled={isSubmitting}
             options={categoryOptions}
@@ -138,7 +138,7 @@ export const EditTransactionModal = memo<EditTransactionModalProps>(({
         >
           <Select
             value={data.accountId}
-            onChange={handleAccountChange}
+            onChange={(e) => updateField('accountId', e.target.value)}
             error={!!errors.accountId}
             disabled={isSubmitting}
             options={accountOptions}
@@ -156,7 +156,7 @@ export const EditTransactionModal = memo<EditTransactionModalProps>(({
           >
             <Select
               value={data.toAccountId}
-              onChange={handleToAccountChange}
+              onChange={(e) => updateField('toAccountId', e.target.value)}
               error={!!errors.toAccountId}
               disabled={isSubmitting}
               options={transferAccountOptions}
@@ -173,7 +173,7 @@ export const EditTransactionModal = memo<EditTransactionModalProps>(({
         {/* Modal actions */}
         <ModalActions
           onCancel={onClose}
-          onSubmit={handleSubmit}
+          onSubmit={handleFormSubmit}
           submitText="Salva Modifiche"
           cancelText="Annulla"
           isSubmitting={isSubmitting}

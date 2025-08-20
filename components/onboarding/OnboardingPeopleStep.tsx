@@ -2,7 +2,7 @@ import React, { memo } from "react";
 import { FormField, Input, ModalActions, AvatarSelector } from "../ui";
 import { PlusIcon, TrashIcon } from "../common/Icons";
 import type { OnboardingPerson } from "../../types";
-import { useOnboardingPeopleForm } from "../../hooks/features/onboarding/useOnboardingPeopleForm";
+import { useOnboarding } from "../../hooks";
 
 interface OnboardingPeopleStepProps {
   onNext: (people: OnboardingPerson[]) => void;
@@ -18,17 +18,19 @@ interface OnboardingPeopleStepProps {
 export const OnboardingPeopleStep = memo<OnboardingPeopleStepProps>(
   ({ onNext, onBack, isLoading, error, groupName }) => {
     const {
-      people,
-      availableColors,
-      validationErrors,
-      addPerson,
-      removePerson,
-      handlePersonChange,
-      handleAvatarSelect,
-      validateForm,
-      canSubmit,
-      validPeople,
-    } = useOnboardingPeopleForm();
+      peopleForm: {
+        people,
+        availableColors,
+        validationErrors,
+        addPerson,
+        removePerson,
+        handlePersonChange,
+        handleAvatarSelect,
+        validateForm,
+        canSubmit,
+        validPeople,
+      },
+    } = useOnboarding();
 
     const handleSubmit = (e: React.FormEvent) => {
       e.preventDefault();

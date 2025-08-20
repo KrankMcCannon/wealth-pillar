@@ -2,7 +2,7 @@ import { memo } from 'react';
 import { formatCurrency, formatDate } from '../../constants';
 import { InvestmentHolding } from '../../types';
 import { Card, SummaryCards } from '../ui';
-import { usePortfolioSummary, useInvestmentRow } from '../../hooks';
+import { useInvestments } from '../../hooks';
 import { ArrowDownIcon, ArrowUpIcon } from '../common';
 
 interface PortfolioSummaryProps {
@@ -13,7 +13,26 @@ interface PortfolioSummaryProps {
  * Componente presentazionale per il riepilogo del portafoglio
  */
 export const PortfolioSummary = memo<PortfolioSummaryProps>(({ holdings }) => {
-  const { summaryCards } = usePortfolioSummary({ holdings });
+  const { portfolioMetrics } = useInvestments();
+  
+  const summaryCards = [
+    {
+      title: "Valore Totale",
+      value: formatCurrency(portfolioMetrics.totalValue),
+      change: portfolioMetrics.totalReturn > 0 ? `+${portfolioMetrics.totalReturn.toFixed(2)}%` : `${portfolioMetrics.totalReturn.toFixed(2)}%`,
+      isPositive: portfolioMetrics.totalReturn >= 0,
+    },
+    {
+      title: "Costo Totale",
+      value: formatCurrency(portfolioMetrics.totalCost),
+    },
+    {
+      title: "Guadagno/Perdita",
+      value: formatCurrency(portfolioMetrics.totalGainLoss),
+      change: `${portfolioMetrics.totalReturn.toFixed(2)}%`,
+      isPositive: portfolioMetrics.totalGainLoss >= 0,
+    }
+  ];
 
   return <SummaryCards cards={summaryCards} />;
 });
@@ -29,7 +48,9 @@ interface InvestmentRowProps {
  * Componente presentazionale per una riga di investimento
  */
 export const InvestmentRow = memo<InvestmentRowProps>(({ holding, personName }) => {
-  const { value, gainLoss, isGain, gainLossPercent } = useInvestmentRow({ holding });
+  const value = holding.quantity * holding.currentPrice;
+  const gainLoss = value - (holding.quantity * holding.purchasePrice);
+  const isGain = gainLoss >= 0;
 
   return (
     <tr className="border-b border-gray-200 dark:border-gray-700">

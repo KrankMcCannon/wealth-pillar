@@ -1,19 +1,23 @@
 import React, { useState } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { ResponsiveLayout } from "./components/common";
+import { ResponsiveLayout, ScrollToTop } from "./components/common";
 import { Home, TransactionsPage, InvestmentsPage, SettingsPage, ReportsPage } from "./components/pages";
 import { AddTransactionModal } from "./components/modals";
 import { OnboardingFlow } from "./components/onboarding";
 import { PlusIcon } from "./components/common";
 import { useFinance, FinanceProvider } from "./hooks/core/useFinance";
-import { useOnboardingState } from "./hooks";
+import { useOnboarding } from "./hooks";
 import { useAuth } from "./contexts/AuthContext";
 import { SignIn } from "@clerk/clerk-react";
 
 const AppContent: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { people, selectedPersonId, isLoading, error } = useFinance();
-  const { isLoading: onboardingLoading, needsOnboarding, completeOnboarding } = useOnboardingState();
+  const { user } = useAuth();
+  const { state, completeOnboarding, isStateLoaded } = useOnboarding();
+  
+  const needsOnboarding = user && !state.isCompleted && isStateLoaded;
+  const onboardingLoading = !isStateLoaded;
 
   const selectedPerson = people.find((p) => p.id === selectedPersonId);
   const themeColor = selectedPerson?.themeColor || "#2563eb"; // Default to blue-600
@@ -65,6 +69,7 @@ const AppContent: React.FC = () => {
   return (
     <BrowserRouter>
       <div style={{ "--theme-color": themeColor } as React.CSSProperties}>
+        <ScrollToTop />
         <ResponsiveLayout>
           <Routes>
             <Route path="/" element={<Home />} />

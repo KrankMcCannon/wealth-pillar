@@ -1,92 +1,53 @@
 // Core hooks
 export { useFinance } from "./core/useFinance";
 
-// Data hooks
+// === CONSOLIDATED HOOKS ===
+
+// Entity Management (Accounts, Budgets, People)
+export { useAccountManagement, useBudgetManagement, usePersonManagement } from "./entities/useEntityManagement";
+
+// Feature Consolidations
+export { useBudgets, BudgetPeriod } from "./features/useBudgets";
+export { useTransactions } from "./features/useTransactions";
+export { useInvestments } from "./features/useInvestments";
+export { useOnboarding, OnboardingStep } from "./features/useOnboarding";
+export { useReports, ReportType } from "./features/useReports";
+
+// === SPECIALIZED HOOKS ===
+// Specialized hooks that remain separate for specific use cases
+
+// Data filters (still useful for specific use cases)
 export {
-  useTransactionFilter,
-  useAccountFilter,
-  useBudgetFilter,
-  useInvestmentFilter,
-  useAllFilters,
-  useAdvancedFilters,
+    useAccountFilter, useAdvancedFilters, useAllFilters, useBudgetFilter,
+    useInvestmentFilter, useTransactionFilter
 } from "./data/useDataFilters";
-export { usePersonFilter, usePersonValidation, usePersonStats } from "./data/usePersonFilter";
-export { useSettingsModals, useAccountModals, usePersonModals, useBudgetModals } from "./data/useSettings";
+export { usePersonFilter, usePersonStats, usePersonValidation } from "./data/usePersonFilter";
+export { useAccountModals, useBudgetModals, usePersonModals, useSettingsModals } from "./data/useSettings";
 
-// Feature hooks - Accounts
-export { useAddAccount } from "./features/accounts/useAddAccount";
-export { useEditAccount } from "./features/accounts/useEditAccount";
-
-// Feature hooks - Auth
+// Specialized feature hooks
 export { useAuthCallback } from "./features/auth/useAuthCallback";
-
-// Feature hooks - Budgets
-export {
-  useBudgetState,
-  useBudgetPeriods,
-  useBudgetPeriodButton,
-  useBudgetTransactions,
-  useBudgetProgress,
-  useAddBudget,
-  useBudgetForm,
-} from "./features/budgets";
-
-// Feature hooks - Home
-export { useHomeData } from "./features/home/useHomeData";
-export { useExpenseChart } from "./features/home/useExpenseChart";
-
-// Feature hooks - Groups
 export { useGroups } from "./features/groups/useGroups";
 export { useGroupSettings } from "./features/groups/useGroupSettings";
-
-// Feature hooks - Investments
-export { useAddInvestment } from "./features/investments/useAddInvestment";
-export { useCompoundInterest } from "./features/investments/useCompoundInterest";
-export { usePortfolioSummary, useInvestmentRow } from "./features/investments/useInvestmentCalculations";
-export { useInvestmentModals } from "./features/investments/useInvestmentModals";
-
-// Feature hooks - Onboarding
-export { useOnboarding, OnboardingStep } from "./features/onboarding/useOnboarding";
-export { useOnboardingAccountsForm } from "./features/onboarding/useOnboardingAccountsForm";
-export { useOnboardingBudgetsForm } from "./features/onboarding/useOnboardingBudgetsForm";
-export { useOnboardingGroupForm } from "./features/onboarding/useOnboardingGroupForm";
-export { useOnboardingPeopleForm } from "./features/onboarding/useOnboardingPeopleForm";
-export { useOnboardingState } from "./features/onboarding/useOnboardingState";
-
-// Feature hooks - Reports
-export { useBudgetHistory } from "./features/reports/useBudgetHistory";
-export { useAnnualReports, useYearSelection } from "./features/reports/useReportsData";
-export { useReportsPage } from "./features/reports/useReportsPage";
-
-// Feature hooks - Settings
-export { useEditBudget } from "./features/settings/useEditBudget";
-export { useEditPerson } from "./features/settings/useEditPerson";
-
-// Feature hooks - Transactions
-export { useAddTransaction } from "./features/transactions/useAddTransaction";
-export { useEditTransaction } from "./features/transactions/useEditTransaction";
-export { useTransactionFilters } from "./features/transactions/useTransactionFilters";
-export { useTransactionLinking } from "./features/transactions/useTransactionLinking";
-export { useTransactionVisual, useTransactionRowClasses } from "./features/transactions/useTransactionVisual";
+export { useExpenseChart } from "./features/home/useExpenseChart";
+export { useHomeData } from "./features/home/useHomeData";
+export { useReconciliation } from "./features/transactions/useReconciliation";
 
 // UI hooks
-export { useModal, useMultipleModals, useModalWithData } from "./ui/useModal";
-export { useModalForm, useAccountForm, usePersonForm } from "./ui/useModalForm";
+export { useModal, useModalWithData, useMultipleModals } from "./ui/useModal";
+export { useAccountForm, useModalForm, usePersonForm } from "./ui/useModalForm";
 export {
-  useResponsive,
-  useBreakpoint,
-  useWindowSize,
-  useDarkMode,
-  useMediaQuery,
-  useOrientation,
+    useBreakpoint, useDarkMode,
+    useMediaQuery,
+    useOrientation, useResponsive, useWindowSize
 } from "./ui/useResponsive";
 export { useTransactionDisplay } from "./ui/useTransactionDisplay";
 
 // Utility hooks
 export { useAsync, useCrud, useLoadingState } from "./utils/useAsync";
 export {
-  validateAccountForm,
-  validateBudgetForm,
-  validateEditBudgetForm,
-  validatePersonForm,
+    validateAccountForm,
+    validateBudgetForm,
+    validateEditBudgetForm,
+    validatePersonForm
 } from "./utils/validators";
+

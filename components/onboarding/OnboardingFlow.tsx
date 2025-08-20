@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { useOnboarding } from "../../hooks/features/onboarding/useOnboarding";
+import { useOnboarding } from "../../hooks";
 
 export enum OnboardingStep {
   GROUP = "group",

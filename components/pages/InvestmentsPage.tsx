@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { usePersonFilter, useInvestmentFilter, useInvestmentModals } from "../../hooks";
+import { usePersonFilter, useInvestmentFilter, useInvestments } from "../../hooks";
 import { useBreakpoint } from "../../hooks/ui/useResponsive";
 import { useFinance } from "../../hooks/core/useFinance";
 import { PortfolioSummary, InvestmentTable, CompoundInterestCalculator } from "../investments";
@@ -14,7 +14,7 @@ export const InvestmentsPage = memo(() => {
   const { selectedPersonId, isAllView, getPersonName, people } = usePersonFilter();
   const { selectPerson } = useFinance();
   const { investments } = useInvestmentFilter(selectedPersonId);
-  const { isModalOpen, openModal, closeModal } = useInvestmentModals();
+  const { isAddModalOpen, openAddModal, closeAddModal } = useInvestments();
 
   return (
     <div className="space-y-6 lg:space-y-8 p-2 sm:p-4 lg:p-6 xl:p-8 pb-24 lg:pb-8 overflow-hidden">
@@ -28,7 +28,7 @@ export const InvestmentsPage = memo(() => {
             </p>
           </div>
           <button
-            onClick={openModal}
+            onClick={openAddModal}
             className="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 transition-colors shadow-sm"
           >
             Aggiungi Investimento
@@ -68,7 +68,7 @@ export const InvestmentsPage = memo(() => {
 
       <CompoundInterestCalculator />
 
-      <AddInvestmentModal isOpen={isModalOpen} onClose={closeModal} />
+      <AddInvestmentModal isOpen={isAddModalOpen} onClose={closeAddModal} />
     </div>
   );
 });

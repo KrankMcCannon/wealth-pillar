@@ -1,7 +1,7 @@
 import { memo } from 'react';
 import { Budget } from '../../types';
 import { BaseModal, FormField, Input, Select, CheckboxGroup, ModalActions } from '../ui';
-import { useEditBudget } from '../../hooks/features/settings/useEditBudget';
+import { useBudgetManagement } from '../../hooks';
 
 interface EditBudgetModalProps {
   isOpen: boolean;
@@ -20,12 +20,14 @@ export const EditBudgetModal = memo<EditBudgetModalProps>(({ isOpen, onClose, bu
     canSubmit,
     categoryOptions,
     budgetStartDayOptions,
+    updateField,
     handleSubmit,
-    handleDescriptionChange,
-    handleAmountChange,
-    handleBudgetStartDayChange,
     handleCategoryToggle,
-  } = useEditBudget({ budget, onClose });
+  } = useBudgetManagement(budget);
+
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    await handleSubmit(e, onClose);
+  };
 
   if (!budget) {
     return null;
@@ -37,7 +39,7 @@ export const EditBudgetModal = memo<EditBudgetModalProps>(({ isOpen, onClose, bu
       onClose={onClose}
       title="Modifica Budget"
     >
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleFormSubmit} className="space-y-6">
         {/* Description field */}
         <FormField
           id="description"
@@ -47,7 +49,7 @@ export const EditBudgetModal = memo<EditBudgetModalProps>(({ isOpen, onClose, bu
         >
           <Input
             value={data.description}
-            onChange={handleDescriptionChange}
+            onChange={(e) => updateField('description', e.target.value)}
             placeholder="Inserisci la descrizione del budget"
             error={!!errors.description}
             disabled={isSubmitting}
@@ -66,7 +68,7 @@ export const EditBudgetModal = memo<EditBudgetModalProps>(({ isOpen, onClose, bu
             step="0.01"
             min="0"
             value={data.amount}
-            onChange={handleAmountChange}
+            onChange={(e) => updateField('amount', Number(e.target.value))}
             placeholder="0.00"
             error={!!errors.amount}
             disabled={isSubmitting}
@@ -82,7 +84,7 @@ export const EditBudgetModal = memo<EditBudgetModalProps>(({ isOpen, onClose, bu
         >
           <Select
             value={data.budgetStartDay}
-            onChange={handleBudgetStartDayChange}
+            onChange={(e) => updateField('budgetStartDay', Number(e.target.value))}
             error={!!errors.budgetStartDay}
             disabled={isSubmitting}
             options={budgetStartDayOptions}
@@ -111,7 +113,7 @@ export const EditBudgetModal = memo<EditBudgetModalProps>(({ isOpen, onClose, bu
         {/* Modal actions */}
         <ModalActions
           onCancel={onClose}
-          onSubmit={handleSubmit}
+          onSubmit={handleFormSubmit}
           submitText="Salva Modifiche"
           cancelText="Annulla"
           isSubmitting={isSubmitting}

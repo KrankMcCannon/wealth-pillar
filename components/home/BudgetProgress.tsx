@@ -1,10 +1,9 @@
-import React, { memo } from "react";
+import React, { memo, useState } from "react";
 import type { Budget, Person, BudgetPeriodData } from "../../types";
 import { BudgetPeriodButton } from "../budget/BudgetPeriodButton";
 import { BudgetList } from "../budget/BudgetList";
 import { BudgetPeriodSelector } from "../budget/BudgetPeriodSelector";
-import { PeriodFilteringService } from "../../lib/services";
-import { useBudgetProgress } from "../../hooks/features/budgets/useBudgetProgress";
+import { useBudgets } from "../../hooks";
 
 /**
  * Props per BudgetProgress
@@ -33,20 +32,22 @@ export const BudgetProgress = memo<BudgetProgressProps>(
     selectedPeriod,
     onPeriodChange,
   }) => {
-    const { selectedPersonData, hasData, expandedBudgets, toggleBudgetExpansion, dataToRender } = useBudgetProgress({
-      budgets,
-      selectedPersonId,
-      isReportMode,
-      selectedPeriod,
-    });
+    const { budgets: budgetProgress } = useBudgets();
+    const [expandedBudgets, setExpandedBudgets] = useState<Set<string>>(new Set());
+    
+    const toggleBudgetExpansion = (budgetId: string) => {
+      setExpandedBudgets(prev => {
+        const newSet = new Set(prev);
+        if (newSet.has(budgetId)) {
+          newSet.delete(budgetId);
+        } else {
+          newSet.add(budgetId);
+        }
+        return newSet;
+      });
+    };
 
-    // Ottieni informazioni sul periodo e persona per la UI
-    const periodDisplayInfo =
-      isReportMode && selectedPeriod
-        ? PeriodFilteringService.getPeriodDisplayInfo(selectedPeriod, people)
-        : { personName: undefined, periodLabel: undefined };
-
-    if (!hasData) {
+    if (budgetProgress.length === 0) {
       return (
         <div className="text-center py-8">
           <p className="text-gray-500 dark:text-gray-400">Nessun budget trovato.</p>
@@ -68,20 +69,10 @@ export const BudgetProgress = memo<BudgetProgressProps>(
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-3 sm:space-y-0">
           <div className="flex-1 min-w-0">
             <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white truncate">
-              {isReportMode && periodDisplayInfo.personName
-                ? `Budget di ${periodDisplayInfo.personName}`
-                : selectedPersonId === "all"
-                ? "Budget Globali"
-                : selectedPersonData
-                ? `Budget di ${selectedPersonData.person.name}`
-                : "Budget"}
+              Budget Progress
             </h3>
             <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 truncate">
-              {isReportMode && periodDisplayInfo.periodLabel
-                ? `Periodo: ${periodDisplayInfo.periodLabel}`
-                : selectedPersonId === "all"
-                ? "Monitoraggio spese e progresso budget per tutte le persone"
-                : "Monitoraggio spese e progresso budget"}
+              Monitoraggio spese e progresso budget
             </p>
           </div>
 
@@ -103,27 +94,12 @@ export const BudgetProgress = memo<BudgetProgressProps>(
           />
         )}
 
-        {/* Lista budget per persona */}
-        {dataToRender.map((personData) => (
-          <div key={personData.person.id} className="space-y-4">
-            {/* Header persona */}
-            <div className="border-b border-gray-200 dark:border-gray-700 pb-2">
-              <h4 className="font-medium text-gray-800 dark:text-white">
-                {personData.person.name}
-                <span className="text-sm text-gray-500 dark:text-gray-400 ml-2">
-                  ({personData.budgets.length} budget)
-                </span>
-              </h4>
-            </div>
-
-            {/* Lista budget */}
-            <BudgetList
-              budgets={personData.budgets}
-              expandedBudgets={expandedBudgets}
-              onToggleBudgetExpansion={toggleBudgetExpansion}
-            />
-          </div>
-        ))}
+        {/* Lista budget */}
+        <BudgetList
+          budgets={budgetProgress}
+          expandedBudgets={expandedBudgets}
+          onToggleBudgetExpansion={toggleBudgetExpansion}
+        />
       </div>
     );
   }

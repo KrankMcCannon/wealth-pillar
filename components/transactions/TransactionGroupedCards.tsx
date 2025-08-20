@@ -12,6 +12,7 @@ interface TransactionGroupedCardsProps {
   onSelectToLink: (txId: string) => void;
   onEditClick: (tx: Transaction) => void;
   onDeleteClick?: (tx: Transaction) => void;
+  onAdvancedReconciliationClick?: (tx: Transaction) => void;
   getAccountById: (id: string) => any;
   getPersonById: (id: string) => any;
   isTransactionLinkable: (tx: Transaction) => boolean;
@@ -26,11 +27,11 @@ export const TransactionGroupedCards = memo<TransactionGroupedCardsProps>(
     groupedTransactions,
     isAllView,
     isLinkingMode,
-    linkingTx,
     onLinkClick,
     onSelectToLink,
     onEditClick,
     onDeleteClick,
+    onAdvancedReconciliationClick,
     getAccountById,
     getPersonById,
     isTransactionLinkable,
@@ -106,6 +107,7 @@ export const TransactionGroupedCards = memo<TransactionGroupedCardsProps>(
                     onSelectToLink={onSelectToLink}
                     onEditClick={onEditClick}
                     onDeleteClick={onDeleteClick}
+                    onAdvancedReconciliationClick={onAdvancedReconciliationClick}
                   />
                 );
               })}

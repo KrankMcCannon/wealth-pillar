@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import { BaseModal, FormField, Input, Select, ModalActions } from '../ui';
-import { useAddInvestment } from '../../hooks/features/investments/useAddInvestment';
+import { useInvestments } from '../../hooks';
 
 interface AddInvestmentModalProps {
   isOpen: boolean;
@@ -12,21 +12,21 @@ interface AddInvestmentModalProps {
  */
 export const AddInvestmentModal = memo<AddInvestmentModalProps>(({ isOpen, onClose }) => {
   const {
-    data,
-    errors,
-    isSubmitting,
-    canSubmit,
-    peopleOptions,
-    isAllView,
-    handleSubmit,
-    handleNameChange,
-    handleSymbolChange,
-    handleQuantityChange,
-    handlePurchasePriceChange,
-    handleCurrentPriceChange,
-    handlePurchaseDateChange,
-    handlePersonChange,
-  } = useAddInvestment({ onClose });
+    investmentForm: {
+      data,
+      errors,
+      isSubmitting,
+      canSubmit,
+      peopleOptions,
+      isAllView,
+      updateField,
+      handleSubmit,
+    },
+  } = useInvestments();
+
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    await handleSubmit(e, onClose);
+  };
 
   return (
     <BaseModal
@@ -34,7 +34,7 @@ export const AddInvestmentModal = memo<AddInvestmentModalProps>(({ isOpen, onClo
       onClose={onClose}
       title="Aggiungi Nuovo Investimento"
     >
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleFormSubmit} className="space-y-6">
         {/* Person Selection (only in all view) */}
         {isAllView && (
           <FormField
@@ -45,7 +45,7 @@ export const AddInvestmentModal = memo<AddInvestmentModalProps>(({ isOpen, onClo
           >
             <Select
               value={data.personId}
-              onChange={handlePersonChange}
+              onChange={(e) => updateField('personId', e.target.value)}
               options={peopleOptions}
               error={!!errors.personId}
               disabled={isSubmitting}
@@ -63,7 +63,7 @@ export const AddInvestmentModal = memo<AddInvestmentModalProps>(({ isOpen, onClo
         >
           <Input
             value={data.name}
-            onChange={handleNameChange}
+            onChange={(e) => updateField('name', e.target.value)}
             placeholder="es: Azioni Apple"
             error={!!errors.name}
             disabled={isSubmitting}
@@ -79,7 +79,7 @@ export const AddInvestmentModal = memo<AddInvestmentModalProps>(({ isOpen, onClo
         >
           <Input
             value={data.symbol}
-            onChange={handleSymbolChange}
+            onChange={(e) => updateField('symbol', e.target.value.toUpperCase())}
             placeholder="es: AAPL"
             error={!!errors.symbol}
             disabled={isSubmitting}
@@ -97,7 +97,7 @@ export const AddInvestmentModal = memo<AddInvestmentModalProps>(({ isOpen, onClo
           <Input
             type="number"
             value={data.quantity}
-            onChange={handleQuantityChange}
+            onChange={(e) => updateField('quantity', Number(e.target.value))}
             placeholder="0"
             min="0"
             step="0.01"
@@ -116,7 +116,7 @@ export const AddInvestmentModal = memo<AddInvestmentModalProps>(({ isOpen, onClo
           <Input
             type="number"
             value={data.purchasePrice}
-            onChange={handlePurchasePriceChange}
+            onChange={(e) => updateField('purchasePrice', Number(e.target.value))}
             placeholder="0.00"
             min="0"
             step="0.01"
@@ -135,7 +135,7 @@ export const AddInvestmentModal = memo<AddInvestmentModalProps>(({ isOpen, onClo
           <Input
             type="number"
             value={data.currentPrice}
-            onChange={handleCurrentPriceChange}
+            onChange={(e) => updateField('currentPrice', Number(e.target.value))}
             placeholder="0.00"
             min="0"
             step="0.01"
@@ -154,7 +154,7 @@ export const AddInvestmentModal = memo<AddInvestmentModalProps>(({ isOpen, onClo
           <Input
             type="date"
             value={data.purchaseDate}
-            onChange={handlePurchaseDateChange}
+            onChange={(e) => updateField('purchaseDate', e.target.value)}
             error={!!errors.purchaseDate}
             disabled={isSubmitting}
           />
@@ -168,7 +168,7 @@ export const AddInvestmentModal = memo<AddInvestmentModalProps>(({ isOpen, onClo
         {/* Modal actions */}
         <ModalActions
           onCancel={onClose}
-          onSubmit={handleSubmit}
+          onSubmit={handleFormSubmit}
           submitText="Aggiungi Investimento"
           cancelText="Annulla"
           isSubmitting={isSubmitting}

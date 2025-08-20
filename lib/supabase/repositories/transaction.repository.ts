@@ -25,6 +25,11 @@ export class TransactionRepository extends BaseSupabaseRepository<Transaction, T
     super('transactions');
   }
 
+  // Alias per il metodo findById della classe base
+  async getById(id: string): Promise<Transaction | null> {
+    return this.findById(id);
+  }
+
   protected mapToEntity(data: any): Transaction {
     return transactionMapper.toEntity(data);
   }

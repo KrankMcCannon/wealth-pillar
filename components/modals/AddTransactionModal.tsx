@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import { BaseModal, FormField, Input, Select, ModalActions } from '../ui';
-import { useAddTransaction } from '../../hooks/features/transactions/useAddTransaction';
+import { useTransactions } from '../../hooks';
 
 interface AddTransactionModalProps {
   isOpen: boolean;
@@ -12,20 +12,31 @@ interface AddTransactionModalProps {
  */
 export const AddTransactionModal = memo<AddTransactionModalProps>(({ isOpen, onClose }) => {
   const {
-    data,
-    errors,
-    isSubmitting,
-    canSubmit,
-    isAllView,
-    isTransfer,
-    categoryOptions,
-    accountOptions,
-    transferAccountOptions,
-    personOptions,
-    typeOptions,
-    handleSubmit,
-    handleFieldChange,
-  } = useAddTransaction({ onClose });
+    transactionForm: {
+      data,
+      errors,
+      isSubmitting,
+      canSubmit,
+      isAllView,
+      isTransfer,
+      categoryOptions,
+      accountOptions,
+      transferAccountOptions,
+      personOptions,
+      typeOptions,
+      updateField,
+      handleSubmit,
+    },
+  } = useTransactions();
+
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    await handleSubmit(e, onClose);
+  };
+
+  const handleFieldChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const value = e.target.type === 'number' ? Number(e.target.value) : e.target.value;
+    updateField(field, value);
+  };
 
   return (
     <BaseModal
@@ -34,7 +45,7 @@ export const AddTransactionModal = memo<AddTransactionModalProps>(({ isOpen, onC
       title="Aggiungi nuova transazione"
       maxWidth="lg"
     >
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleFormSubmit} className="space-y-4">
         {/* Person Selection (only in all view) */}
         {isAllView && (
           <FormField
@@ -194,7 +205,7 @@ export const AddTransactionModal = memo<AddTransactionModalProps>(({ isOpen, onC
         {/* Modal actions */}
         <ModalActions
           onCancel={onClose}
-          onSubmit={handleSubmit}
+          onSubmit={handleFormSubmit}
           submitText="Aggiungi Transazione"
           cancelText="Annulla"
           isSubmitting={isSubmitting}

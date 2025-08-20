@@ -74,6 +74,28 @@ export interface Transaction {
   createdAt?: string; // Timestamp di creazione per determinare l'ordine
 }
 
+// Nuove interfacce per la riconciliazione avanzata
+export interface ReconciliationAllocation {
+  targetTransactionId: string;
+  amount: number;
+  personId?: string; // Per riconciliazione multi-persona
+}
+
+export interface MultiTransactionReconciliation {
+  sourceTransactionId: string;
+  allocations: ReconciliationAllocation[];
+  totalAllocatedAmount: number;
+  remainingAmount: number;
+}
+
+export interface ReconciliationGroup {
+  id: string;
+  sourceTransactionId: string;
+  allocations: ReconciliationAllocation[];
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Budget {
   id: string;
   description: string;

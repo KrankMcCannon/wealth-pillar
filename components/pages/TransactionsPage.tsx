@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { useTransactionFilters, useTransactionLinking } from "../../hooks";
 import { Transaction } from "../../types";
 import { useBreakpoint } from "../../hooks/ui/useResponsive";
 import { usePersonFilter } from "../../hooks/data/usePersonFilter";
@@ -7,6 +6,7 @@ import { useFinance } from "../../hooks/core/useFinance";
 import { Card } from "../ui";
 import { FilterSection, LinkingStatusBar, TransactionGroupedTable } from "../transactions";
 import { EditTransactionModal } from "../modals";
+import { useTransactions } from '../../hooks';
 
 /**
  * TransactionsPage
@@ -31,8 +31,6 @@ export const TransactionsPage: React.FC = () => {
     getAccountById,
     getPersonById,
     getCategoryName,
-  } = useTransactionFilters();
-  const {
     isLinkingMode,
     linkingTx,
     handleStartLink,
@@ -40,7 +38,7 @@ export const TransactionsPage: React.FC = () => {
     handleCancelLink,
     isTransactionLinkable,
     isThisLinkingTransaction,
-  } = useTransactionLinking();
+  } = useTransactions();
   const [editingTx, setEditingTx] = useState<Transaction | null>(null);
   const { deleteTransaction } = useFinance();
 

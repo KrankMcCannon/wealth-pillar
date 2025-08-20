@@ -1,7 +1,7 @@
 import { memo } from 'react';
 import { Account } from '../../types';
 import { BaseModal, FormField, Input, CheckboxGroup, ModalActions } from '../ui';
-import { useEditAccount } from '../../hooks/features/accounts/useEditAccount';
+import { useAccountManagement } from '../../hooks';
 
 interface EditAccountModalProps {
   isOpen: boolean;
@@ -19,10 +19,14 @@ export const EditAccountModal = memo<EditAccountModalProps>(({ isOpen, onClose, 
     isSubmitting,
     canSubmit,
     peopleOptions,
+    updateField,
     handleSubmit,
-    handleNameChange,
     handlePersonToggle,
-  } = useEditAccount({ account, onClose });
+  } = useAccountManagement(account);
+
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    await handleSubmit(e, onClose);
+  };
 
   return (
     <BaseModal
@@ -30,7 +34,7 @@ export const EditAccountModal = memo<EditAccountModalProps>(({ isOpen, onClose, 
       onClose={onClose}
       title="Modifica Conto"
     >
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleFormSubmit} className="space-y-6">
         {/* Account name field */}
         <FormField
           id="name"
@@ -40,7 +44,7 @@ export const EditAccountModal = memo<EditAccountModalProps>(({ isOpen, onClose, 
         >
           <Input
             value={data.name}
-            onChange={handleNameChange}
+            onChange={(e) => updateField('name', e.target.value)}
             placeholder="Inserisci il nome del conto"
             error={!!errors.name}
             disabled={isSubmitting}
@@ -68,7 +72,7 @@ export const EditAccountModal = memo<EditAccountModalProps>(({ isOpen, onClose, 
         {/* Modal actions */}
         <ModalActions
           onCancel={onClose}
-          onSubmit={handleSubmit}
+          onSubmit={handleFormSubmit}
           submitText="Aggiorna Conto"
           cancelText="Annulla"
           isSubmitting={isSubmitting}

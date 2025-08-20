@@ -244,6 +244,34 @@ export interface Database {
           updated_at?: string;
         };
       };
+      reconciliation_groups: {
+        Row: {
+          id: string;
+          source_transaction_id: string;
+          allocations: any[]; // JSON array di ReconciliationAllocation
+          total_allocated_amount: number;
+          remaining_amount: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          source_transaction_id: string;
+          allocations: any[]; // JSON array di ReconciliationAllocation
+          total_allocated_amount: number;
+          remaining_amount: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          source_transaction_id?: string;
+          allocations?: any[]; // JSON array di ReconciliationAllocation
+          total_allocated_amount?: number;
+          remaining_amount?: number;
+          updated_at?: string;
+        };
+      };
     };
     Views: {
       [_ in never]: never;

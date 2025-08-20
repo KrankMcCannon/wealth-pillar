@@ -1,6 +1,6 @@
 import { memo } from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { useReportsPage } from "../../hooks";
+import { useReports } from "../../hooks";
 import { Card, SummaryCards } from "../ui";
 import { BudgetProgress } from "../budget";
 import { formatCurrency } from "../../constants";
@@ -131,7 +131,7 @@ export const ReportsPage = memo(() => {
     handleBudgetPeriodChange,
     budgets,
     people,
-  } = useReportsPage();
+  } = useReports();
   const { selectPerson } = useFinance();
 
   // Aggiungi il calcolo del netto ai dati mensili per il grafico mobile

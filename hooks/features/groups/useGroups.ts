@@ -9,10 +9,10 @@ import { useUser } from '@clerk/clerk-react';
 import { useCallback, useEffect, useState } from 'react';
 import { useClerkSupabaseClient } from '../../../lib/supabase/client';
 import type {
-    CreateGroupData,
-    Group,
-    GroupWithMemberCount,
-    Person
+  CreateGroupData,
+  Group,
+  GroupWithMemberCount,
+  Person
 } from '../../../lib/supabase/services/groups.service';
 import { GroupsService } from '../../../lib/supabase/services/groups.service';
 
@@ -85,12 +85,12 @@ export const useGroups = (): UseGroupsResult => {
     try {
       setIsLoading(true);
       clearError();
-      
+
       const service = getGroupsService();
       const userGroups = await service.getUserGroups();
-      
+
       setGroups(userGroups);
-      
+
       // Se non c'è un gruppo corrente ma ci sono gruppi, seleziona il primo
       if (!currentGroup && userGroups.length > 0) {
         setCurrentGroup(userGroups[0]);
@@ -115,13 +115,13 @@ export const useGroups = (): UseGroupsResult => {
     try {
       setIsLoading(true);
       clearError();
-      
+
       const service = getGroupsService();
       const newGroup = await service.createGroup(data);
-      
+
       // Refresh dei gruppi dopo la creazione
       await loadGroups();
-      
+
       return newGroup;
     } catch (error) {
       handleError(error, 'createGroup');
@@ -138,13 +138,13 @@ export const useGroups = (): UseGroupsResult => {
     try {
       setIsLoading(true);
       clearError();
-      
+
       const service = getGroupsService();
       await service.updateGroup(groupId, updates);
-      
+
       // Refresh dei gruppi dopo l'aggiornamento
       await loadGroups();
-      
+
       return true;
     } catch (error) {
       handleError(error, 'updateGroup');
@@ -161,19 +161,19 @@ export const useGroups = (): UseGroupsResult => {
     try {
       setIsLoading(true);
       clearError();
-      
+
       const service = getGroupsService();
       await service.deleteGroup(groupId);
-      
+
       // Reset del gruppo corrente se era quello eliminato
       if (currentGroup?.id === groupId) {
         setCurrentGroup(null);
         setMembers([]);
       }
-      
+
       // Refresh dei gruppi dopo l'eliminazione
       await loadGroups();
-      
+
       return true;
     } catch (error) {
       handleError(error, 'deleteGroup');

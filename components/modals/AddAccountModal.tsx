@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import { BaseModal, FormField, Input, Select, CheckboxGroup, ModalActions } from '../ui';
-import { useAddAccount } from '../../hooks/features/accounts/useAddAccount';
+import { useAccountManagement } from '../../hooks';
 
 interface AddAccountModalProps {
   isOpen: boolean;
@@ -18,11 +18,14 @@ export const AddAccountModal = memo<AddAccountModalProps>(({ isOpen, onClose }) 
     canSubmit,
     accountTypeOptions,
     peopleOptions,
+    updateField,
     handleSubmit,
-    handleNameChange,
-    handleTypeChange,
     handlePersonToggle,
-  } = useAddAccount({ onClose });
+  } = useAccountManagement();
+
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    await handleSubmit(e, onClose);
+  };
 
   return (
     <BaseModal
@@ -31,7 +34,7 @@ export const AddAccountModal = memo<AddAccountModalProps>(({ isOpen, onClose }) 
       title="Aggiungi nuovo conto"
       maxWidth="lg"
     >
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleFormSubmit} className="space-y-4">
         {/* Account Name */}
         <FormField
           label="Nome conto"
@@ -43,7 +46,7 @@ export const AddAccountModal = memo<AddAccountModalProps>(({ isOpen, onClose }) 
             type="text"
             id="account-name"
             value={data.name}
-            onChange={handleNameChange}
+            onChange={(e) => updateField('name', e.target.value)}
             error={!!errors.name}
             disabled={isSubmitting}
             placeholder="es: Conto Risparmio Condiviso"
@@ -60,7 +63,7 @@ export const AddAccountModal = memo<AddAccountModalProps>(({ isOpen, onClose }) 
           <Select
             id="account-type"
             value={data.type}
-            onChange={handleTypeChange}
+            onChange={(e) => updateField('type', e.target.value)}
             options={accountTypeOptions}
             error={!!errors.type}
             disabled={isSubmitting}
@@ -94,7 +97,7 @@ export const AddAccountModal = memo<AddAccountModalProps>(({ isOpen, onClose }) 
         {/* Actions */}
         <ModalActions
           onCancel={onClose}
-          onSubmit={handleSubmit}
+          onSubmit={handleFormSubmit}
           submitText="Aggiungi Conto"
           cancelText="Annulla"
           isSubmitting={isSubmitting}

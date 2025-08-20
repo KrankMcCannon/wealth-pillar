@@ -1,7 +1,6 @@
 import { memo } from "react";
 import { BaseModal, FormField, Input, CheckboxGroup, ModalActions } from "../ui";
-import { useBudgetForm } from "../../hooks/features/budgets/useBudgetForm";
-import { useFinance } from "../../hooks/core/useFinance";
+import { useBudgets } from "../../hooks";
 
 interface AddBudgetModalProps {
   isOpen: boolean;
@@ -14,42 +13,33 @@ interface AddBudgetModalProps {
  * Utilizza il hook riutilizzabile useBudgetForm
  */
 export const AddBudgetModal = memo<AddBudgetModalProps>(({ isOpen, onClose, personId }) => {
-  const { addBudget } = useFinance();
-
   const {
-    data,
-    errors,
-    isSubmitting,
-    canSubmit,
-    categoryOptions,
-    handleSubmit,
-    handleDescriptionChange,
-    handleAmountChange,
-    handleCategoryToggle,
-  } = useBudgetForm({
-    personId,
-    onClose,
-    onSubmit: async (formData) => {
-      await addBudget({
-        description: formData.description.trim(),
-        amount: formData.amount,
-        categories: formData.categories,
-        period: "monthly",
-        personId: formData.personId,
-      });
+    budgetForm: {
+      data,
+      errors,
+      isSubmitting,
+      canSubmit,
+      categoryOptions,
+      updateField,
+      handleSubmit,
+      handleCategoryToggle,
     },
-  });
+  } = useBudgets();
+
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    await handleSubmit(e, { personId }, onClose);
+  };
 
   return (
     <BaseModal isOpen={isOpen} onClose={onClose} title="Aggiungi Nuovo Budget" maxWidth="2xl">
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleFormSubmit} className="space-y-6">
         {/* Description */}
         <FormField label="Descrizione" id="budget-description" error={errors.description} required>
           <Input
             type="text"
             id="budget-description"
             value={data.description}
-            onChange={handleDescriptionChange}
+            onChange={(e) => updateField('description', e.target.value)}
             error={!!errors.description}
             disabled={isSubmitting}
             placeholder="es: Spese Essenziali, Intrattenimento, Cura Personale"
@@ -62,7 +52,7 @@ export const AddBudgetModal = memo<AddBudgetModalProps>(({ isOpen, onClose, pers
             type="number"
             id="budget-amount"
             value={data.amount || ""}
-            onChange={handleAmountChange}
+            onChange={(e) => updateField('amount', Number(e.target.value))}
             error={!!errors.amount}
             disabled={isSubmitting}
             min="0"
@@ -85,7 +75,7 @@ export const AddBudgetModal = memo<AddBudgetModalProps>(({ isOpen, onClose, pers
         {/* Actions */}
         <ModalActions
           onCancel={onClose}
-          onSubmit={handleSubmit}
+          onSubmit={handleFormSubmit}
           submitText="Aggiungi Budget"
           cancelText="Annulla"
           isSubmitting={isSubmitting}

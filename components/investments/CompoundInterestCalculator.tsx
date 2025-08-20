@@ -1,7 +1,7 @@
 import { memo } from 'react';
 import { Card, FormField, Input } from '../ui';
 import { formatCurrency } from '../../constants';
-import { useCompoundInterest } from '../../hooks';
+import { useInvestments } from '../../hooks';
 import { CalculatorIcon } from '../common';
 
 /**
@@ -111,18 +111,11 @@ CalculatorResults.displayName = 'CalculatorResults';
  * Calcolatore di Interesse Composto
  */
 export const CompoundInterestCalculator = memo(() => {
-  const {
-    principal, setPrincipal,
-    rate, setRate,
-    years, setYears,
-    compoundsPerYear, setCompoundsPerYear,
-    futureValue,
-    calculateGain,
-    calculateReturnPercentage
-  } = useCompoundInterest();
+  const { compoundCalculation, updateCalculationParam } = useInvestments();
+  const { principal, annualRate, years, compoundingFrequency, result } = compoundCalculation;
 
-  const gain = calculateGain();
-  const returnPercentage = calculateReturnPercentage();
+  const gain = result.totalInterest;
+  const returnPercentage = principal > 0 ? (gain / principal) * 100 : 0;
 
   return (
     <Card>
@@ -136,17 +129,17 @@ export const CompoundInterestCalculator = memo(() => {
 
         <CalculatorInputs
           principal={principal}
-          setPrincipal={setPrincipal}
-          rate={rate}
-          setRate={setRate}
+          setPrincipal={(value) => updateCalculationParam('principal', value)}
+          rate={annualRate}
+          setRate={(value) => updateCalculationParam('annualRate', value)}
           years={years}
-          setYears={setYears}
-          compoundsPerYear={compoundsPerYear}
-          setCompoundsPerYear={setCompoundsPerYear}
+          setYears={(value) => updateCalculationParam('years', value)}
+          compoundsPerYear={compoundingFrequency}
+          setCompoundsPerYear={(value) => updateCalculationParam('compoundingFrequency', value)}
         />
 
         <CalculatorResults
-          futureValue={futureValue}
+          futureValue={result.futureValue}
           gain={gain}
           returnPercentage={returnPercentage}
         />

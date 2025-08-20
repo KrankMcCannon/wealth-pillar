@@ -1,7 +1,7 @@
 import React, { memo } from "react";
 import { FormField, Input, ModalActions } from "../ui";
 import type { OnboardingBudget, OnboardingPerson } from "../../types";
-import { useOnboardingBudgetsForm } from "../../hooks/features/onboarding/useOnboardingBudgetsForm";
+import { useOnboarding } from "../../hooks";
 
 interface OnboardingBudgetsStepProps {
   people: OnboardingPerson[];
@@ -18,15 +18,17 @@ interface OnboardingBudgetsStepProps {
 export const OnboardingBudgetsStep = memo<OnboardingBudgetsStepProps>(
   ({ people, onNext, onBack, onComplete, isLoading, error }) => {
     const {
-      budgetsByPerson,
-      expenseCategories,
-      validationErrors,
-      updateBudget,
-      handleCategoryToggle,
-      validateForm,
-      canSubmit,
-      validBudgets,
-    } = useOnboardingBudgetsForm(people);
+      budgetsForm: {
+        budgetsByPerson,
+        expenseCategories,
+        validationErrors,
+        updateBudget,
+        handleCategoryToggle,
+        validateForm,
+        canSubmit,
+        validBudgets,
+      },
+    } = useOnboarding();
 
     const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();

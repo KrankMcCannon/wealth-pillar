@@ -13,6 +13,7 @@ interface TransactionDateGroupProps {
   onSelectToLink: (txId: string) => void;
   onEditClick: (tx: Transaction) => void;
   onDeleteClick?: (tx: Transaction) => void;
+  onAdvancedReconciliationClick?: (tx: Transaction) => void;
   getAccountById: (id: string) => any;
   getPersonById: (id: string) => any;
   isTransactionLinkable: (tx: Transaction) => boolean;
@@ -36,6 +37,7 @@ export const TransactionDateGroup = memo<TransactionDateGroupProps>(
     getPersonById,
     isTransactionLinkable,
     isThisLinkingTransaction,
+    onAdvancedReconciliationClick,
   }) => {
     const formattedDate = formatDate(date);
 
@@ -90,14 +92,15 @@ export const TransactionDateGroup = memo<TransactionDateGroupProps>(
                     onLinkClick={onLinkClick}
                     onSelectToLink={onSelectToLink}
                     onEditClick={onEditClick}
+                    onAdvancedReconciliationClick={onAdvancedReconciliationClick}
                     onDeleteClick={onDeleteClick}
                     showDate={false}
                   />
                 );
               })}
             </tbody>
-          </table>
-        </div>
+          </table >
+        </div >
       </div>
     );
   }

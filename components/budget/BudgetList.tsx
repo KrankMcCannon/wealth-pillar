@@ -1,9 +1,21 @@
 import React, { memo } from "react";
 import { BudgetCard } from "./BudgetCard";
-import { BudgetWithCalculatedData } from "../../hooks/features/budgets/useBudgetState";
+import { Budget, Transaction } from "../../types";
+
+interface BudgetProgress {
+  budget: Budget;
+  spent: number;
+  remaining: number;
+  percentage: number;
+  isOverspent: boolean;
+  transactions: Transaction[];
+  daysInPeriod: number;
+  daysRemaining: number;
+  projectedSpend: number;
+}
 
 interface BudgetListProps {
-  budgets: BudgetWithCalculatedData[];
+  budgets: BudgetProgress[];
   expandedBudgets: Set<string>;
   onToggleBudgetExpansion: (budgetId: string) => void;
 }
@@ -23,15 +35,23 @@ export const BudgetList = memo<BudgetListProps>(({ budgets, expandedBudgets, onT
 
   return (
     <div className="space-y-4">
-      {budgets.map(({ budget, data, transactions, categories }) => (
+      {budgets.map((budgetProgress) => (
         <BudgetCard
-          key={budget.id}
-          budget={budget}
-          data={data}
-          transactions={transactions}
-          categories={categories}
-          isExpanded={expandedBudgets.has(budget.id)}
-          onToggleExpansion={() => onToggleBudgetExpansion(budget.id)}
+          key={budgetProgress.budget.id}
+          budget={budgetProgress.budget}
+          data={{
+            currentSpent: budgetProgress.spent,
+            percentage: budgetProgress.percentage,
+            remaining: budgetProgress.remaining,
+            periodStart: new Date(),
+            periodEnd: new Date(),
+            progressColor: budgetProgress.isOverspent ? 'red' : 'green',
+            isCompleted: budgetProgress.percentage >= 100,
+          }}
+          transactions={budgetProgress.transactions}
+          categories={budgetProgress.budget.categories}
+          isExpanded={expandedBudgets.has(budgetProgress.budget.id)}
+          onToggleExpansion={() => onToggleBudgetExpansion(budgetProgress.budget.id)}
         />
       ))}
     </div>

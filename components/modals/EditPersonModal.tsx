@@ -1,8 +1,7 @@
 import { memo } from "react";
 import { Person } from "../../types";
 import { BaseModal, FormField, Input, ModalActions, AvatarSelector } from "../ui";
-import { useEditPerson } from "../../hooks/features/settings/useEditPerson";
-import { useFinance } from "../../hooks/core/useFinance";
+import { usePersonManagement } from "../../hooks";
 
 interface EditPersonModalProps {
   isOpen: boolean;
@@ -14,28 +13,30 @@ interface EditPersonModalProps {
  * Componente presentazionale per editing persone
  */
 export const EditPersonModal = memo<EditPersonModalProps>(({ isOpen, onClose, person }) => {
-  const { people } = useFinance();
   const {
+    people,
     data,
     errors,
     isSubmitting,
-    handleSubmit,
-    handleNameChange,
-    handleAvatarChange,
-    handleThemeColorChange,
-    handleHexColorChange,
     canSubmit,
     colorValidation,
-  } = useEditPerson({ person, onClose });
+    updateField,
+    handleSubmit,
+    handleHexColorChange,
+  } = usePersonManagement(person);
+
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    await handleSubmit(e, onClose);
+  };
 
   return (
     <BaseModal isOpen={isOpen} onClose={onClose} title="Modifica Profilo">
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleFormSubmit} className="space-y-6">
         {/* Name field */}
         <FormField id="name" label="Nome completo" error={errors.name} required>
           <Input
             value={data.name}
-            onChange={handleNameChange}
+            onChange={(e) => updateField('name', e.target.value)}
             placeholder="Inserisci il nome completo"
             error={!!errors.name}
             disabled={isSubmitting}
@@ -47,11 +48,7 @@ export const EditPersonModal = memo<EditPersonModalProps>(({ isOpen, onClose, pe
           people={people}
           selectedAvatarId={data.avatar}
           onAvatarSelect={(avatarId) => {
-            // Simula un evento per handleAvatarChange
-            const mockEvent = {
-              target: { value: avatarId },
-            } as React.ChangeEvent<HTMLInputElement>;
-            handleAvatarChange(mockEvent);
+            updateField('avatar', avatarId);
           }}
           currentPersonId={person?.id}
           disabled={isSubmitting}
@@ -64,7 +61,7 @@ export const EditPersonModal = memo<EditPersonModalProps>(({ isOpen, onClose, pe
               <input
                 type="color"
                 value={data.themeColor}
-                onChange={handleThemeColorChange}
+                onChange={(e) => updateField('themeColor', e.target.value)}
                 className="absolute inset-0 w-full h-full cursor-pointer opacity-0 disabled:opacity-0"
                 disabled={isSubmitting}
                 aria-label="Seleziona colore tema"
@@ -110,7 +107,7 @@ export const EditPersonModal = memo<EditPersonModalProps>(({ isOpen, onClose, pe
         {/* Modal actions */}
         <ModalActions
           onCancel={onClose}
-          onSubmit={handleSubmit}
+          onSubmit={handleFormSubmit}
           submitText="Salva Modifiche"
           cancelText="Annulla"
           isSubmitting={isSubmitting}
