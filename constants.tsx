@@ -1,6 +1,7 @@
 import { Person } from "./types";
 import { BudgetPeriodsUtils } from "./lib/utils/budget-periods.utils";
 import { DateUtils } from "./lib/utils/date.utils";
+export { formatCurrency } from "./lib/utils/currency.utils";
 
 // Avatar predefiniti per il mondo della finanza
 export const FINANCE_AVATARS = [
@@ -75,57 +76,6 @@ export const getPersonAvatarIcon = (person: Person) => {
 // Helper per verificare se un avatar è predefinito
 export const isPredefinedAvatar = (avatar: string) => {
   return FINANCE_AVATARS.some((a) => a.id === avatar);
-};
-
-export const formatCurrency = (
-  amount: number,
-  options: {
-    showSign?: boolean;
-    compact?: boolean;
-  } = {}
-) => {
-  try {
-    // Handle compact notation for large numbers
-    if (options.compact && Math.abs(amount) >= 1000) {
-      const absAmount = Math.abs(amount);
-      let value: number;
-      let suffix: string;
-
-      if (absAmount >= 1000000) {
-        value = absAmount / 1000000;
-        suffix = "M";
-      } else {
-        value = absAmount / 1000;
-        suffix = "K";
-      }
-
-      const formatted = new Intl.NumberFormat("it-IT", {
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 1,
-      }).format(value);
-
-      const sign = amount < 0 ? "-" : options.showSign && amount > 0 ? "+" : "";
-      return `${sign}€${formatted}${suffix}`;
-    }
-
-    // Standard formatting
-    const formatter = new Intl.NumberFormat("it-IT", {
-      style: "currency",
-      currency: "EUR",
-    });
-
-    const formatted = formatter.format(Math.abs(amount));
-
-    if (options.showSign) {
-      const sign = amount >= 0 ? "+" : "-";
-      return `${sign}${formatted}`;
-    }
-
-    return amount < 0 ? `-${formatted}` : formatted;
-  } catch (error) {
-    console.error("Currency formatting error:", error);
-    return `€${amount.toFixed(2)}`;
-  }
 };
 
 export const formatDate = (dateString: string) => {

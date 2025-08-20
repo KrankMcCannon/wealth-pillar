@@ -20,3 +20,6 @@ export { BudgetPeriodsUtils } from './budget-periods.utils';
 export { BudgetUtils } from './budget.utils';
 export type { BudgetCalculationData } from './budget.utils';
 
+// Currency utilities
+export * from './currency.utils';
+
