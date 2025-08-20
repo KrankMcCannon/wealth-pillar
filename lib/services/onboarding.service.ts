@@ -1,15 +1,4 @@
-import {
-  Person,
-  Account,
-  Budget,
-  Group,
-  OnboardingGroup,
-  OnboardingPerson,
-  OnboardingAccount,
-  OnboardingBudget,
-} from "../../types";
-import { BudgetPeriodsUtils } from "../utils";
-import { GroupsService } from "../supabase/services/groups.service";
+import { Person, Account, OnboardingGroup, OnboardingPerson, OnboardingAccount, OnboardingBudget } from "../../types";
 
 export interface OnboardingData {
   group: OnboardingGroup;
@@ -77,7 +66,7 @@ export class OnboardingService {
     const errors: string[] = [];
     const names = new Set<string>();
 
-    people.forEach((person, index) => {
+    people.forEach((person) => {
       const trimmedName = person.name?.trim();
 
       if (!trimmedName) {

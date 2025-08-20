@@ -58,7 +58,7 @@ export const BudgetCard = memo<BudgetCardProps>(
     }, [categories, allCategories]);
 
     // Funzione per determinare il colore dell'importo basato sul progresso
-    const getAmountColor = (amount: number, isRemaining: boolean = false) => {
+    const getAmountColor = (isRemaining: boolean = false) => {
       if (data.percentage >= 100) {
         return isRemaining ? "text-red-600 dark:text-red-400" : "text-red-600 dark:text-red-400";
       } else if (data.percentage >= 80) {
@@ -97,8 +97,8 @@ export const BudgetCard = memo<BudgetCardProps>(
         {/* Barra di progresso */}
         <div className="mb-3">
           <div className="flex justify-between text-xs lg:text-sm mb-1">
-            <span className={getAmountColor(data.currentSpent)}>Speso: {formatCurrency(data.currentSpent)}</span>
-            <span className={getAmountColor(data.remaining, true)}>Rimanente: {formatCurrency(data.remaining)}</span>
+            <span className={getAmountColor(false)}>Speso: {formatCurrency(data.currentSpent)}</span>
+            <span className={getAmountColor(true)}>Rimanente: {formatCurrency(data.remaining)}</span>
           </div>
 
           <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mb-2">
@@ -110,7 +110,7 @@ export const BudgetCard = memo<BudgetCardProps>(
 
           <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
             <span className="font-medium">Budget: {formatCurrency(budget.amount)}</span>
-            <span className={`font-medium ${getAmountColor(data.percentage)}`}>{data.percentage.toFixed(1)}%</span>
+            <span className={`font-medium ${getAmountColor(false)}`}>{data.percentage.toFixed(1)}%</span>
           </div>
         </div>
 

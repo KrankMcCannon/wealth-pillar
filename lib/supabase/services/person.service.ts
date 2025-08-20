@@ -5,7 +5,7 @@
 
 import { v4 as uuidv4 } from 'uuid';
 import { Person } from '../../../types';
-import { BudgetPeriodsUtils } from '../../utils/budget-periods.utils';
+import { BudgetPeriodsUtils } from '../../utils/budget';
 import { PersonFilters, PersonRepository } from '../repositories/person.repository';
 import { BaseService, ServiceError } from './base-service';
 
@@ -27,6 +27,7 @@ export class PersonService extends BaseService<Person, PersonFilters> {
     if (personWithId.budgetStartDate) {
       // Usa la utility centralizzata per calcolare la data di inizio del primo periodo
       const startDate = BudgetPeriodsUtils.calculateFirstPeriodStartDate(
+        personWithId,
         parseInt(personWithId.budgetStartDate)
       );
       

@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
-import { Account, Budget, InvestmentHolding, Transaction } from '../../types';
+import { Account, Budget, InvestmentHolding } from '../../types';
 import { useFinance } from '../core/useFinance';
 
 /**
@@ -89,7 +89,6 @@ export const useReports = () => {
     accounts, 
     budgets, 
     investments, 
-    people,
     getAccountById 
   } = useFinance();
 

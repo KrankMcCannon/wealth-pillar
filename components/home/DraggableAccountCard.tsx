@@ -24,7 +24,7 @@ interface DraggableAccountCardProps {
 export const DraggableAccountCard = memo<DraggableAccountCardProps>(
   ({ accountData, index, isDragging, isDragOver, onDragStart, onDragEnd, onDragOver, onDrop }) => {
     const cardRef = useRef<HTMLDivElement>(null);
-    const { isMobile, isTablet } = useBreakpoint();
+    const { isMobile } = useBreakpoint();
 
     const handleDragStart = (e: React.DragEvent) => {
       e.dataTransfer.effectAllowed = "move";

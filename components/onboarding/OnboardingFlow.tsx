@@ -1,13 +1,5 @@
 import { memo } from "react";
-import { useOnboarding } from "../../hooks";
-
-export enum OnboardingStep {
-  GROUP = "group",
-  PEOPLE = "people",
-  ACCOUNTS = "accounts",
-  BUDGETS = "budgets",
-  COMPLETED = "completed",
-}
+import { useOnboarding, OnboardingStep } from "../../hooks";
 import { BaseModal } from "../ui";
 import {
   OnboardingGroupStep,
@@ -48,111 +40,85 @@ OnboardingProgress.displayName = "OnboardingProgress";
 export const OnboardingFlow = memo<OnboardingFlowProps>(({ isOpen, onComplete }) => {
   const onboarding = useOnboarding();
 
-  const handleComplete = () => {
-    onboarding.resetOnboarding();
-    onComplete();
-  };
-
-  const renderCurrentStep = () => {
-    switch (onboarding.currentStep) {
-      case OnboardingStep.GROUP:
-        return (
-          <OnboardingGroupStep
-            onNext={onboarding.saveGroup}
-            isLoading={onboarding.isLoading}
-            error={onboarding.error}
-          />
-        );
-
-      case OnboardingStep.PEOPLE:
-        return (
-          <OnboardingPeopleStep
-            onNext={onboarding.savePeople}
-            onBack={onboarding.goToPreviousStep}
-            isLoading={onboarding.isLoading}
-            error={onboarding.error}
-            groupName={onboarding.group?.name || ""}
-          />
-        );
-
-      case OnboardingStep.ACCOUNTS:
-        return (
-          <OnboardingAccountsStep
-            people={onboarding.people}
-            onNext={onboarding.saveAccounts}
-            onBack={onboarding.goToPreviousStep}
-            isLoading={onboarding.isLoading}
-            error={onboarding.error}
-          />
-        );
-
-      case OnboardingStep.BUDGETS:
-        return (
-          <OnboardingBudgetsStep
-            people={onboarding.people}
-            onNext={onboarding.saveBudgets}
-            onBack={onboarding.goToPreviousStep}
-            onComplete={onboarding.completeOnboarding}
-            isLoading={onboarding.isLoading}
-            error={onboarding.error}
-          />
-        );
-
-      case OnboardingStep.COMPLETED:
-        return (
-          <OnboardingCompletedStep
-            onComplete={handleComplete}
-            completedData={onboarding.getCompletionData()}
-            isLoading={onboarding.completion.isLoading}
-            progress={onboarding.completion.progress}
-            currentOperation={onboarding.completion.currentOperation}
-          />
-        );
-
-      default:
-        return null;
-    }
-  };
-
   const getModalTitle = () => {
     switch (onboarding.currentStep) {
       case OnboardingStep.GROUP:
-        return "Benvenuto in Wealth Pillar!";
+        return 'Configura il tuo gruppo';
       case OnboardingStep.PEOPLE:
-        return "Aggiungi le persone al tuo gruppo";
+        return 'Aggiungi le persone al gruppo';
       case OnboardingStep.ACCOUNTS:
-        return "Crea i conti per le persone";
+        return 'Crea i conti';
       case OnboardingStep.BUDGETS:
-        return "Imposta i budget";
-      case OnboardingStep.COMPLETED:
-        return "Configurazione completata!";
+        return 'Imposta i budget';
+      case OnboardingStep.COMPLETION:
+        return 'Configurazione completata!';
       default:
-        return "Configurazione iniziale";
+        return 'Configurazione iniziale';
     }
   };
 
-  const getModalMaxWidth = () => {
-    switch (onboarding.currentStep) {
-      case OnboardingStep.ACCOUNTS:
-      case OnboardingStep.BUDGETS:
-        return "2xl";
-      default:
-        return "lg";
-    }
-  };
+  const isCompletion = onboarding.currentStep === OnboardingStep.COMPLETION;
 
   return (
     <BaseModal
       isOpen={isOpen}
       onClose={() => {}}
       title={getModalTitle()}
-      maxWidth={getModalMaxWidth()}
+      maxWidth={onboarding.currentStep === OnboardingStep.ACCOUNTS || onboarding.currentStep === OnboardingStep.BUDGETS ? '2xl' : 'lg'}
       showCloseButton={false}
     >
       <div className="space-y-6">
-        {onboarding.currentStep !== OnboardingStep.COMPLETED && <OnboardingProgress progress={onboarding.progress} />}
+        {!isCompletion && <OnboardingProgress progress={onboarding.progressPercentage} />} 
 
-        {renderCurrentStep()}
+        {(() => {
+          switch (onboarding.currentStep) {
+            case OnboardingStep.GROUP:
+              return (
+                <OnboardingGroupStep
+                  onNext={async () => { onboarding.handleGroupSubmit(); }}
+                  isLoading={false}
+                  error={null}
+                />
+              );
+            case OnboardingStep.PEOPLE:
+              return (
+                <OnboardingPeopleStep
+                  onNext={() => { const ok = onboarding.savePersonForm(); if (ok) onboarding.goToNextStep(); }}
+                  onBack={onboarding.goToPreviousStep}
+                  isLoading={false}
+                  error={null}
+                  groupName={onboarding.state.groupName}
+                />
+              );
+            case OnboardingStep.ACCOUNTS:
+              return (
+                <OnboardingAccountsStep
+                  people={onboarding.state.people as any}
+                  onNext={() => { const ok = onboarding.saveAccountForm(); if (ok) onboarding.goToNextStep(); }}
+                  onBack={onboarding.goToPreviousStep}
+                  isLoading={false}
+                  error={null}
+                />
+              );
+            case OnboardingStep.BUDGETS:
+              return (
+                <OnboardingBudgetsStep
+                  people={onboarding.state.people as any}
+                  onNext={() => { const ok = onboarding.saveBudgetForm(); return ok; }}
+                  onBack={onboarding.goToPreviousStep}
+                  onComplete={async () => { await onboarding.completeOnboarding(); onComplete(); }}
+                  isLoading={false}
+                  error={null}
+                />
+              );
+            case OnboardingStep.COMPLETION:
+              return (
+                <OnboardingCompletedStep onComplete={onComplete} />
+              );
+            default:
+              return null;
+          }
+        })()}
       </div>
     </BaseModal>
   );

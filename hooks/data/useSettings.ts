@@ -52,7 +52,7 @@ export const useSettingsModals = () => {
     isModalOpen, 
     openModal, 
     closeModal 
-  } = useMultipleModals([SettingsModalType.ADD_ACCOUNT]);
+  } = useMultipleModals();
 
   // Hook specializzati per editing con dati
   const accountModal = useEntityModal<Account>();

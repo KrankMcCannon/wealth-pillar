@@ -1,6 +1,5 @@
 import React, { memo } from "react";
-import { FormField, Input, ModalActions } from "../ui";
-import { PlusIcon, TrashIcon } from "../common/Icons";
+import { FormField, Input, ModalActions, CheckboxGroup, Select } from "../ui";
 import type { OnboardingAccount, OnboardingPerson } from "../../types";
 import { useOnboarding } from "../../hooks";
 
@@ -15,164 +14,46 @@ interface OnboardingAccountsStepProps {
 /**
  * Step 3: Creazione degli account per ogni persona
  */
-export const OnboardingAccountsStep = memo<OnboardingAccountsStepProps>(
-  ({ people, onNext, onBack, isLoading, error }) => {
-    const {
-      accountsForm: {
-        accountsByPerson,
-        accountTypes,
-        validationErrors,
-        addAccount,
-        removeAccount,
-        updateAccount,
-        validateForm,
-        canSubmit,
-        validAccounts,
-      },
-    } = useOnboarding();
+export const OnboardingAccountsStep = memo<OnboardingAccountsStepProps>(({ onNext, onBack, isLoading }) => {
+  const { state, accountForm, availableAccountTypes, peopleOptions, saveAccountForm, removeAccount, handlePersonToggleForAccount } = useOnboarding();
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onNext(state.accounts as OnboardingAccount[]);
+  };
 
-    const handleSubmit = (e: React.FormEvent) => {
-      e.preventDefault();
-      if (!validateForm()) return;
-      onNext(validAccounts);
-    };
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <FormField id="acc_name" label="Nome conto" error={accountForm.errors.name} required>
+          <Input value={accountForm.data.name} onChange={(e) => accountForm.updateField('name', e.target.value)} error={!!accountForm.errors.name} disabled={isLoading} />
+        </FormField>
+        <FormField id="acc_type" label="Tipo" required>
+          <Select value={accountForm.data.type} onChange={(e) => accountForm.updateField('type', e.target.value)} options={availableAccountTypes.map(t => ({ value: t.value, label: t.label }))} disabled={isLoading} />
+        </FormField>
+      </div>
+      <FormField id="acc_people" label="Persone collegate" error={accountForm.errors.selectedPersonIds} required>
+        <CheckboxGroup options={peopleOptions} onChange={handlePersonToggleForAccount} columns={2} />
+      </FormField>
+      <div className="flex space-x-2">
+        <button type="button" onClick={() => saveAccountForm()} className="px-3 py-2 text-sm bg-blue-600 text-white rounded-lg disabled:bg-blue-400" disabled={isLoading}>Aggiungi Conto</button>
+        <button type="button" onClick={() => accountForm.resetForm()} className="px-3 py-2 text-sm bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-lg">Reset</button>
+      </div>
 
-    return (
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Descrizione */}
-        <div className="text-center mb-8">
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Crea i conti per ogni persona</h3>
-          <p className="text-gray-600 dark:text-gray-400">
-            Ogni persona deve avere almeno un conto. Puoi aggiungerne altri in seguito.
-          </p>
-        </div>
-
-        {/* Account per ogni persona */}
-        <div className="space-y-8">
-          {accountsByPerson.map(({ person, accounts: personAccounts }) => (
-            <div key={person.name} className="border border-gray-200 dark:border-gray-700 rounded-lg p-6">
-              <div className="flex items-center mb-4">
-                <div
-                  className="w-10 h-10 rounded-full flex items-center justify-center text-white font-medium mr-3"
-                  style={{ backgroundColor: person.themeColor }}
-                >
-                  {person.avatar || person.name.charAt(0).toUpperCase()}
-                </div>
-                <div>
-                  <h4 className="text-lg font-medium text-gray-900 dark:text-white">
-                    {person.name}
-                    {people.length === 1 && (
-                      <span className="ml-2 text-sm text-gray-500 dark:text-gray-400">(persona selezionata)</span>
-                    )}
-                  </h4>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    {personAccounts.length} {personAccounts.length === 1 ? "conto" : "conti"}
-                  </p>
-                </div>
-              </div>
-
-              {/* Errore per persona senza account */}
-              {validationErrors[`person_${person.name}_accounts`] && (
-                <div className="text-red-600 dark:text-red-400 text-sm mb-4">
-                  {validationErrors[`person_${person.name}_accounts`]}
-                </div>
-              )}
-
-              {/* Errore per account duplicati */}
-              {validationErrors[`person_${person.name}_duplicates`] && (
-                <div className="text-red-600 dark:text-red-400 text-sm mb-4">
-                  {validationErrors[`person_${person.name}_duplicates`]}
-                </div>
-              )}
-
-              {/* Lista account per questa persona */}
-              <div className="space-y-4">
-                {personAccounts.map((account) => (
-                  <div key={account.index} className="flex flex-col sm:flex-row sm:items-end gap-3 sm:gap-4">
-                    <div className="flex-1">
-                      <FormField
-                        id={`account_${person.name}_${account.index}_name`}
-                        label="Nome del conto"
-                        error={validationErrors[`account_${person.name}_${account.index}_name`]}
-                        required
-                      >
-                        <Input
-                          type="text"
-                          value={account.name}
-                          onChange={(e) => updateAccount(account.index, "name", e.target.value)}
-                          placeholder="es: Conto corrente, Risparmi..."
-                          error={!!validationErrors[`account_${person.name}_${account.index}_name`]}
-                          disabled={isLoading}
-                        />
-                      </FormField>
-                    </div>
-
-                    <div className="flex-1">
-                      <FormField id={`account_${person.name}_${account.index}_type`} label="Tipo di conto" required>
-                        <select
-                          value={account.type}
-                          onChange={(e) => updateAccount(account.index, "type", e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg sm:rounded-md focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                          disabled={isLoading}
-                        >
-                          {accountTypes.map((type) => (
-                            <option key={type.value} value={type.value}>
-                              {type.label}
-                            </option>
-                          ))}
-                        </select>
-                      </FormField>
-                    </div>
-
-                    {/* Pulsante rimuovi (solo se ha più di un account) */}
-                    {personAccounts.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => removeAccount(account.index)}
-                        className="self-end p-3 sm:p-2 text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-                        disabled={isLoading}
-                        title="Rimuovi account"
-                      >
-                        <TrashIcon className="w-5 h-5" />
-                      </button>
-                    )}
-                  </div>
-                ))}
-
-                {/* Pulsante aggiungi account */}
-                <button
-                  type="button"
-                  onClick={() => addAccount(person.name)}
-                  className="flex items-center justify-center w-full sm:w-auto py-3 sm:py-2 px-4 text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 text-sm font-medium border border-blue-200 dark:border-blue-700 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
-                  disabled={isLoading}
-                >
-                  <PlusIcon className="w-4 h-4 mr-2" />
-                  Aggiungi altro conto
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Errore generale */}
-        {error && (
-          <div className="text-red-600 dark:text-red-400 text-sm bg-red-50 dark:bg-red-900/20 p-3 rounded-lg">
-            {error}
+      <div className="space-y-2">
+        {state.accounts.map((a, idx) => (
+          <div key={a.id || idx} className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+            <div className="text-sm text-gray-800 dark:text-gray-200">{a.name} • {a.type}</div>
+            <button type="button" onClick={() => removeAccount(idx)} className="px-2 py-1 text-xs bg-red-600 text-white rounded">Rimuovi</button>
           </div>
+        ))}
+        {state.accounts.length === 0 && (
+          <div className="text-sm text-gray-500 dark:text-gray-400">Nessun conto aggiunto</div>
         )}
+      </div>
 
-        {/* Azioni */}
-        <ModalActions
-          onCancel={onBack}
-          onSubmit={handleSubmit}
-          submitText="Continua con i budget"
-          isSubmitting={isLoading}
-          submitDisabled={!canSubmit}
-          cancelText="Indietro"
-        />
-      </form>
-    );
-  }
-);
+      <ModalActions onCancel={onBack} onSubmit={handleSubmit} submitText="Continua con i budget" isSubmitting={isLoading} />
+    </form>
+  );
+});
 
 OnboardingAccountsStep.displayName = "OnboardingAccountsStep";

@@ -1,5 +1,5 @@
 import { Person } from "./types";
-import { BudgetPeriodsUtils } from "./lib/utils/budget-periods.utils";
+import { BudgetPeriodsUtils } from "./lib/utils/budget";
 import { DateUtils } from "./lib/utils/date.utils";
 
 // Avatar predefiniti per il mondo della finanza

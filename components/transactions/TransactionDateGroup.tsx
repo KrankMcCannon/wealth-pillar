@@ -1,6 +1,7 @@
 import { memo } from "react";
 import { Transaction } from "../../types";
 import { formatDate } from "../../constants";
+import { GroupHeader } from "./GroupHeader";
 import { TransactionRow } from "./TransactionRow";
 
 interface TransactionDateGroupProps {
@@ -44,9 +45,7 @@ export const TransactionDateGroup = memo<TransactionDateGroupProps>(
     return (
       <div className="mb-6">
         {/* Header del gruppo con data */}
-        <div className="mb-3">
-          <h3 className="text-lg font-bold text-gray-800 dark:text-white">{formattedDate}</h3>
-        </div>
+        <GroupHeader title={formattedDate} count={transactions.length} variant="simple" />
 
         {/* Tabella delle transazioni per questo giorno */}
         <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">

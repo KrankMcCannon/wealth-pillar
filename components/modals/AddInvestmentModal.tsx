@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import { BaseModal, FormField, Input, Select, ModalActions } from '../ui';
-import { useInvestments } from '../../hooks';
+import { useInvestments, usePersonFilter } from '../../hooks';
 
 interface AddInvestmentModalProps {
   isOpen: boolean;
@@ -11,21 +11,13 @@ interface AddInvestmentModalProps {
  * Componente presentazionale per aggiunta investimenti
  */
 export const AddInvestmentModal = memo<AddInvestmentModalProps>(({ isOpen, onClose }) => {
-  const {
-    investmentForm: {
-      data,
-      errors,
-      isSubmitting,
-      canSubmit,
-      peopleOptions,
-      isAllView,
-      updateField,
-      handleSubmit,
-    },
-  } = useInvestments();
+  const { isAllView } = usePersonFilter();
+  const { investmentForm, saveInvestmentForm, peopleOptions } = useInvestments();
+  const { data, errors, isSubmitting, isValid, updateField } = investmentForm;
 
   const handleFormSubmit = async (e: React.FormEvent) => {
-    await handleSubmit(e, onClose);
+    e.preventDefault();
+    await saveInvestmentForm(onClose);
   };
 
   return (
@@ -46,7 +38,7 @@ export const AddInvestmentModal = memo<AddInvestmentModalProps>(({ isOpen, onClo
             <Select
               value={data.personId}
               onChange={(e) => updateField('personId', e.target.value)}
-              options={peopleOptions}
+              options={peopleOptions.map(p => ({ value: p.id, label: p.label }))}
               error={!!errors.personId}
               disabled={isSubmitting}
               placeholder="Seleziona persona"
@@ -172,7 +164,7 @@ export const AddInvestmentModal = memo<AddInvestmentModalProps>(({ isOpen, onClo
           submitText="Aggiungi Investimento"
           cancelText="Annulla"
           isSubmitting={isSubmitting}
-          submitDisabled={!canSubmit}
+          submitDisabled={!isValid}
         />
       </form>
     </BaseModal>

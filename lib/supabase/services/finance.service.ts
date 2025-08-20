@@ -6,7 +6,6 @@
 
 import { SupabaseClient } from '@supabase/supabase-js';
 import { CategoryUtils } from '../../../lib/utils/category.utils';
-import { TransactionUtils } from '../../../lib/utils/transaction.utils';
 import type { Database } from '../types/database.types';
 
 // Repositories
@@ -268,14 +267,8 @@ export class FinanceService {
       this.categories.getAll(), // Le categorie non sono filtrate per gruppo
     ]);
 
-    return {
-      people,
-      accounts,
-      transactions: TransactionUtils.sortByDateDesc(transactions),
-      budgets,
-      investments,
-      categories
-    };
+    const sortedTransactions = [...transactions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    return { people, accounts, transactions: sortedTransactions, budgets, investments, categories };
   }
 
   /**
@@ -314,7 +307,9 @@ export class FinanceService {
       this._transactions.getTransactionsByAccount(accountId)
     );
     const transactionArrays = await Promise.all(transactionPromises);
-    const transactions = TransactionUtils.sortByDateDesc(transactionArrays.flat());
+    const transactions = transactionArrays
+      .flat()
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
     return {
       person,

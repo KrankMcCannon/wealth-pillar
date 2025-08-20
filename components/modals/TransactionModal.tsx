@@ -1,78 +1,65 @@
 import { memo } from 'react';
+import { Transaction, TransactionType } from '../../types';
 import { BaseModal, FormField, Input, Select, ModalActions } from '../ui';
 import { useTransactions } from '../../hooks';
+import { useFinance } from '../../hooks/core/useFinance';
+import { CategoryUtils } from '../../lib/utils/category.utils';
 
-interface AddTransactionModalProps {
+interface BaseProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-/**
- * Componente presentazionale per aggiunta transazioni
- */
-export const AddTransactionModal = memo<AddTransactionModalProps>(({ isOpen, onClose }) => {
-  const {
-    transactionForm: {
-      data,
-      errors,
-      isSubmitting,
-      canSubmit,
-      isAllView,
-      isTransfer,
-      categoryOptions,
-      accountOptions,
-      transferAccountOptions,
-      personOptions,
-      typeOptions,
-      updateField,
-      handleSubmit,
-    },
-  } = useTransactions();
+interface EditProps extends BaseProps {
+  transaction: Transaction;
+}
 
-  const handleFormSubmit = async (e: React.FormEvent) => {
-    await handleSubmit(e, onClose);
+type TransactionModalProps = BaseProps | EditProps;
+
+/**
+ * Unified modal for Add/Edit Transaction
+ * Decides add vs edit by presence of `transaction` prop.
+ */
+export const TransactionModal = memo<TransactionModalProps>((props) => {
+  const isEdit = 'transaction' in props && !!props.transaction;
+  const { useTransactionForm } = useTransactions();
+  const { accounts, categories } = useFinance();
+
+  const form = useTransactionForm(isEdit ? (props as EditProps).transaction : undefined);
+
+  const { data, errors, isSubmitting, isValid, updateField, handleSubmit } = form;
+
+  const typeOptions = [
+    { value: TransactionType.ENTRATA, label: 'Entrata' },
+    { value: TransactionType.SPESA, label: 'Spesa' },
+  ];
+
+  const categoryOptions = CategoryUtils.toSelectOptions(categories);
+  const accountOptions = accounts.map(a => ({ value: a.id, label: a.name }));
+  const isTransfer = CategoryUtils.isCategoryTransfer(data.category);
+  const transferAccountOptions = accounts
+    .filter(a => a.id !== data.accountId)
+    .map(a => ({ value: a.id, label: a.name }));
+
+  const handleFormSubmit = async () => {
+    await handleSubmit(props.onClose);
   };
 
   const handleFieldChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const value = e.target.type === 'number' ? Number(e.target.value) : e.target.value;
-    updateField(field, value);
+    (updateField as any)(field as any, value);
   };
 
   return (
     <BaseModal
-      isOpen={isOpen}
-      onClose={onClose}
-      title="Aggiungi nuova transazione"
+      isOpen={props.isOpen}
+      onClose={props.onClose}
+      title={isEdit ? 'Modifica Transazione' : 'Aggiungi nuova transazione'}
       maxWidth="lg"
     >
       <form onSubmit={handleFormSubmit} className="space-y-4">
-        {/* Person Selection (only in all view) */}
-        {isAllView && (
-          <FormField
-            label="Persona"
-            id="txPersonId"
-            error={errors.txPersonId}
-            required
-          >
-            <Select
-              id="txPersonId"
-              value={data.txPersonId}
-              onChange={handleFieldChange('txPersonId')}
-              options={personOptions}
-              error={!!errors.txPersonId}
-              disabled={isSubmitting}
-              placeholder="Seleziona persona"
-            />
-          </FormField>
-        )}
-
         {/* Description */}
-        <FormField
-          label="Descrizione"
-          id="description"
-          error={errors.description}
-          required
-        >
+        <FormField label="Descrizione" id="description" error={errors.description} required>
           <Input
             type="text"
             id="description"
@@ -86,12 +73,7 @@ export const AddTransactionModal = memo<AddTransactionModalProps>(({ isOpen, onC
 
         {/* Amount and Date */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <FormField
-            label="Importo (€)"
-            id="amount"
-            error={errors.amount}
-            required
-          >
+          <FormField label="Importo (€)" id="amount" error={errors.amount} required>
             <Input
               type="number"
               id="amount"
@@ -105,12 +87,7 @@ export const AddTransactionModal = memo<AddTransactionModalProps>(({ isOpen, onC
             />
           </FormField>
 
-          <FormField
-            label="Data"
-            id="date"
-            error={errors.date}
-            required
-          >
+          <FormField label="Data" id="date" error={errors.date} required>
             <Input
               type="date"
               id="date"
@@ -124,12 +101,7 @@ export const AddTransactionModal = memo<AddTransactionModalProps>(({ isOpen, onC
 
         {/* Type and Category */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <FormField
-            label="Tipo"
-            id="type"
-            error={errors.type}
-            required
-          >
+          <FormField label="Tipo" id="type" error={errors.type} required>
             <Select
               id="type"
               value={data.type}
@@ -141,12 +113,7 @@ export const AddTransactionModal = memo<AddTransactionModalProps>(({ isOpen, onC
             />
           </FormField>
 
-          <FormField
-            label="Categoria"
-            id="category"
-            error={errors.category}
-            required
-          >
+          <FormField label="Categoria" id="category" error={errors.category} required>
             <Select
               id="category"
               value={data.category}
@@ -161,7 +128,7 @@ export const AddTransactionModal = memo<AddTransactionModalProps>(({ isOpen, onC
 
         {/* Account */}
         <FormField
-          label={isTransfer ? 'Account di origine' : 'Account'}
+          label={!isEdit && isTransfer ? 'Account di origine' : 'Account'}
           id="accountId"
           error={errors.accountId}
           required
@@ -202,18 +169,21 @@ export const AddTransactionModal = memo<AddTransactionModalProps>(({ isOpen, onC
           <div className="text-red-600 text-sm">{errors.general}</div>
         )}
 
-        {/* Modal actions */}
+        {/* Actions */}
         <ModalActions
-          onCancel={onClose}
+          onCancel={props.onClose}
           onSubmit={handleFormSubmit}
-          submitText="Aggiungi Transazione"
+          submitText={isEdit ? 'Salva Modifiche' : 'Aggiungi Transazione'}
           cancelText="Annulla"
           isSubmitting={isSubmitting}
-          submitDisabled={!canSubmit}
+          submitDisabled={!isValid}
         />
       </form>
     </BaseModal>
   );
 });
 
-AddTransactionModal.displayName = 'AddTransactionModal';
+TransactionModal.displayName = 'TransactionModal';
+
+// Backwards compatible named exports
+export { TransactionModal as AddTransactionModal, TransactionModal as EditTransactionModal };

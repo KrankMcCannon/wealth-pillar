@@ -12,11 +12,12 @@ import { SignIn } from "@clerk/clerk-react";
 
 const AppContent: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { people, selectedPersonId, isLoading, error } = useFinance();
+  const { people, accounts, selectedPersonId, isLoading, error } = useFinance();
   const { user } = useAuth();
   const { state, completeOnboarding, isStateLoaded } = useOnboarding();
   
-  const needsOnboarding = user && !state.isCompleted && isStateLoaded;
+  // Show onboarding only if not completed AND no data exists yet
+  const needsOnboarding = user && !state.isCompleted && isStateLoaded && people.length === 0 && accounts.length === 0;
   const onboardingLoading = !isStateLoaded;
 
   const selectedPerson = people.find((p) => p.id === selectedPersonId);
@@ -97,7 +98,7 @@ const AppContent: React.FC = () => {
 };
 
 const App: React.FC = () => {
-  const { user, isLoaded, isSignedIn } = useAuth();
+  const { isLoaded, isSignedIn } = useAuth();
 
   if (!isLoaded) {
     return (

@@ -1,10 +1,10 @@
 import { memo } from "react";
-import { Transaction } from "../../types";
-import { LinkIcon, PencilIcon, TrashIcon, ChevronDownIcon } from "../common";
-import { formatCurrency, formatDate } from "../../constants";
-import { useTransactions } from "../../hooks";
-import { DropdownMenu } from "../ui";
+import { Transaction, TransactionType } from "../../types";
+import { formatDate } from "../../constants";
+import { useFinance } from "../../hooks/core/useFinance";
+import { TransactionActionMenu } from './TransactionActionMenu';
 import { ReconciliationModal } from "./ReconciliationModal";
+import { TransactionAmount, TransactionStatusChip, TransactionAvatar } from './TransactionVisuals';
 import { useReconciliation } from "../../hooks/features/transactions/useReconciliation";
 
 interface TransactionRowProps {
@@ -41,9 +41,13 @@ export const TransactionRow = memo<TransactionRowProps>(
     onAdvancedReconciliationClick,
     showDate = true,
   }) => {
-    const { getTransactionVisual, getCategoryName } = useTransactions();
-    const { transactionData, personAvatarIcon, personInitials, iconColor, backgroundColor, directionArrow } = getTransactionVisual(transaction);
-    const { isTransfer, isIncome, showRemainingAmount, remainingAmount, transferData } = transactionData;
+    const { getCategoryName } = useFinance();
+    const isTransfer = transaction.category === 'trasferimento';
+    const isIncome = transaction.type === TransactionType.ENTRATA;
+    const showRemainingAmount = false;
+    const remainingAmount = 0;
+    const personInitials = personName ? personName.charAt(0).toUpperCase() : '?';
+    
     
     // Hook per la riconciliazione
     const {
@@ -80,55 +84,7 @@ export const TransactionRow = memo<TransactionRowProps>(
     };
 
     // Menu items per le azioni
-    const getMenuItems = () => {
-      const items = [];
-
-      // Aggiungi opzione per mostrare transazioni riconciliate se esistono
-      if (reconciliation && reconciliation.allocations.length > 0) {
-        const count = reconciliation.allocations.length;
-        const reconciledText = count === 1 
-          ? 'Mostra transazione riconciliata' 
-          : `Mostra ${count} transazioni riconciliate`;
-        
-        items.push({
-          label: reconciledText,
-          onClick: () => {
-            // TODO: Implementare visualizzazione transazioni riconciliate
-            console.log('Mostra transazioni riconciliate:', reconciliation);
-          },
-          icon: <ChevronDownIcon className="w-4 h-4" />,
-          className: "text-blue-600 dark:text-blue-400",
-        });
-      }
-
-      // Aggiungi opzioni di riconciliazione se non è riconciliata
-      if (!transaction.isReconciled && !isTransfer) {
-        items.push({
-          label: "Riconcilia",
-          onClick: () => openReconciliationModal(transaction),
-          icon: <LinkIcon className="w-4 h-4" />,
-          className: "text-purple-600 dark:text-purple-400",
-        });
-      }
-
-      // Aggiungi opzioni standard
-      items.push({
-        label: "Modifica transazione",
-        onClick: () => onEditClick(transaction),
-        icon: <PencilIcon className="w-4 h-4" />,
-      });
-
-      if (onDeleteClick) {
-        items.push({
-          label: "Elimina transazione",
-          onClick: () => onDeleteClick(transaction),
-          icon: <TrashIcon className="w-4 h-4" />,
-          className: "text-red-600 dark:text-red-400",
-        });
-      }
-
-      return items;
-    };
+    const reconciliationCount = reconciliation ? reconciliation.allocations.length : 0;
 
     return (
       <>
@@ -136,26 +92,13 @@ export const TransactionRow = memo<TransactionRowProps>(
           {/* Descrizione e account */}
           <td className="w-2/5 py-3 px-4">
             <div className="flex items-center">
-              {/* Cerchio con iniziali e freccia sporgente */}
-              <div className="relative mr-3">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${backgroundColor} overflow-hidden`}>
-                  <span className="text-xs font-bold text-gray-800 dark:text-white">
-                    {personInitials}
-                  </span>
-                </div>
-                {/* Freccia sporgente alla base */}
-                <div className={`absolute -right-1 -bottom-1 w-4 h-4 rounded-full flex items-center justify-center ${backgroundColor} border border-white dark:border-gray-800`}>
-                  <span className={`text-xs ${iconColor}`}>
-                    {directionArrow}
-                  </span>
-                </div>
+              <div className="mr-3">
+                <TransactionAvatar initials={personInitials} isIncome={isIncome} isTransfer={isTransfer} />
               </div>
               <div>
                 <p className="font-medium text-gray-900 dark:text-gray-100">{transaction.description}</p>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  {isTransfer ?
-                    `${accountName} → ${transferData.toAccount.name || 'Account sconosciuto'}` :
-                    accountName}
+                  {accountName}
                 </p>
               </div>
             </div>
@@ -169,20 +112,16 @@ export const TransactionRow = memo<TransactionRowProps>(
           )}
 
           {/* Importo */}
-          <td className={`w-1/6 py-3 px-4 font-mono text-right ${isTransfer ? 'text-blue-600 dark:text-blue-400' :
-            isIncome ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
-            }`}>
-            <div className="flex flex-col items-end">
-              <span>
-                {isTransfer ? '' : (isIncome ? '+' : '-')} {formatCurrency(transaction.amount)}
-              </span>
-              {/* Mostra importo rimanente solo se non è completamente riconciliata */}
-              {showRemainingAmount && !isFullyReconciled(transaction) && remainingAmount > 0 && (
-                <span className="text-xs font-medium text-orange-600 dark:text-orange-400">
-                  Disponibile: {formatCurrency(remainingAmount)}
-                </span>
-              )}
-            </div>
+          <td className={`w-1/6 py-3 px-4`}>
+            <TransactionAmount
+              amount={transaction.amount}
+              isTransfer={isTransfer}
+              isIncome={isIncome}
+              remainingAmount={remainingAmount}
+              showRemainingAmount={showRemainingAmount}
+              fullyReconciled={isFullyReconciled(transaction)}
+              align="right"
+            />
           </td>
 
           {/* Categoria */}
@@ -201,23 +140,21 @@ export const TransactionRow = memo<TransactionRowProps>(
           <td className="w-1/6 py-3 px-4 text-center">
             <div className="flex items-center justify-center space-x-2">
               {/* Stato riconciliazione */}
-              {transaction.isReconciled ? (
-                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                  isFullyReconciled(transaction)
-                    ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300'
-                    : 'bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300'
-                }`}>
-                  {isFullyReconciled(transaction) ? '✓ Completamente riconciliato' : '✓ Parzialmente riconciliato'}
-                </span>
-              ) : (
-                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
-                  Aperto
-                </span>
-              )}
+              <TransactionStatusChip
+                isReconciled={!!transaction.isReconciled}
+                fullyReconciled={isFullyReconciled(transaction)}
+              />
 
               {/* Azioni */}
               {!isLinkingMode && (
-                <DropdownMenu items={getMenuItems()} />
+                <TransactionActionMenu
+                  transaction={transaction}
+                  isTransfer={isTransfer}
+                  reconciliationCount={reconciliationCount}
+                  onOpenReconcile={openReconciliationModal}
+                  onEdit={onEditClick}
+                  onDelete={onDeleteClick}
+                />
               )}
             </div>
           </td>

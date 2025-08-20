@@ -1,7 +1,6 @@
 import { memo } from "react";
 import { Transaction, TransactionType } from "../../types";
 import { formatCurrency, formatDate } from "../../constants";
-import { useTransactions } from "../../hooks";
 import { CategoryUtils } from "../../lib/utils/category.utils";
 import { useFinance } from "../../hooks/core/useFinance";
 
@@ -17,7 +16,6 @@ interface RecentTransactionItemProps {
  * Componente RecentTransactionItem
  */
 export const RecentTransactionItem = memo<RecentTransactionItemProps>(({ transaction, accountName }) => {
-  const { getTransactionRowClasses } = useTransactions();
   const { categories } = useFinance();
   
   const isIncome = transaction.type === TransactionType.ENTRATA;

@@ -1,4 +1,4 @@
-import React, { memo } from "react";
+import { memo } from "react";
 import { BudgetCard } from "./BudgetCard";
 import { Budget, Transaction } from "../../types";
 

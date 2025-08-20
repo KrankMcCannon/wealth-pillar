@@ -104,15 +104,15 @@ export abstract class BaseService<TEntity, TFilters = any> {
   }
 
   // Hooks per validazioni specifiche - da implementare nelle classi derivate
-  protected async validateForCreate(entity: Omit<TEntity, 'id' | 'created_at' | 'updated_at'>): Promise<void> {
+  protected async validateForCreate(_entity: Omit<TEntity, 'id' | 'created_at' | 'updated_at'>): Promise<void> {
     // Default: nessuna validazione
   }
 
-  protected async validateForUpdate(id: string, entity: Partial<TEntity>): Promise<void> {
+  protected async validateForUpdate(_id: string, _entity: Partial<TEntity>): Promise<void> {
     // Default: nessuna validazione
   }
 
-  protected async validateForDelete(id: string): Promise<void> {
+  protected async validateForDelete(_id: string): Promise<void> {
     // Default: nessuna validazione
   }
 }

@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { FINANCE_AVATARS, getAvailableAvatars } from "../../constants";
+import { getAvailableAvatars } from "../../constants";
 import { Person } from "../../types";
 
 interface AvatarSelectorProps {

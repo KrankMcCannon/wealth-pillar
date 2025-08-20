@@ -66,7 +66,7 @@ export const testSupabaseConnection = async (): Promise<{
     const supabase = getSupabaseClient();
     
     // Test basic connection with a simple query
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('categories')
       .select('count')
       .limit(1);

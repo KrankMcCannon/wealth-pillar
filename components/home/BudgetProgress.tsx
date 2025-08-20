@@ -1,4 +1,4 @@
-import React, { memo, useState } from "react";
+import { memo, useState } from "react";
 import type { Budget, Person, BudgetPeriodData } from "../../types";
 import { BudgetPeriodButton } from "../budget/BudgetPeriodButton";
 import { BudgetList } from "../budget/BudgetList";
@@ -24,7 +24,6 @@ interface BudgetProgressProps {
  */
 export const BudgetProgress = memo<BudgetProgressProps>(
   ({
-    budgets,
     people,
     selectedPersonId,
     isReportMode = false,

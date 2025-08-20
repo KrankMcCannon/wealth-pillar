@@ -1,4 +1,5 @@
 import { memo } from "react";
+import { StepHeader } from './StepHeader';
 import { SparklesIcon } from "../common/Icons";
 import { OnboardingData } from "../../lib/services/onboarding.service";
 
@@ -47,6 +48,7 @@ export const OnboardingCompletedStep = memo<OnboardingCompletedStepProps>(
 
     return (
       <div className="text-center space-y-8">
+        <StepHeader title="Configurazione completata!" subtitle="Tutto pronto! Puoi iniziare a usare l'app." />
         {/* Icona di successo */}
         <div className="flex justify-center">
           <div className="w-24 h-24 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center">

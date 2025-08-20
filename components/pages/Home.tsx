@@ -1,8 +1,8 @@
 import { memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useHomeData } from "../../hooks/features/home/useHomeData";
-import { useAccountOrdering } from "../../hooks/features/home/useAccountOrdering";
-import { usePersonFilter } from "../../hooks/data/usePersonFilter";
+import { useHomeData } from "../../hooks";
+import { useAccountOrdering } from "../../hooks";
+import { usePersonFilter } from "../../hooks";
 import { useBreakpoint } from "../../hooks/ui/useResponsive";
 import { DraggableAccountCard, BudgetProgress, ExpenseChart, RecentTransactionItem } from "../home";
 import { useFinance } from "../../hooks/core/useFinance";

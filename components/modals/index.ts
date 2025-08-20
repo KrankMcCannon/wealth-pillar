@@ -1,12 +1,11 @@
 /*
 * Export di tutti i modali
 */
-export { AddAccountModal } from './AddAccountModal';
-export { AddBudgetModal } from './AddBudgetModal';
+export { AddAccountModal } from './AccountModal';
+export { AddBudgetModal } from './BudgetModal';
 export { AddInvestmentModal } from './AddInvestmentModal';
-export { AddTransactionModal } from './AddTransactionModal';
-export { EditAccountModal } from './EditAccountModal';
-export { EditBudgetModal } from './EditBudgetModal';
+export { AddTransactionModal } from './TransactionModal';
+export { EditAccountModal } from './AccountModal';
+export { EditBudgetModal } from './BudgetModal';
 export { EditPersonModal } from './EditPersonModal';
-export { EditTransactionModal } from './EditTransactionModal';
-
+export { EditTransactionModal } from './TransactionModal';

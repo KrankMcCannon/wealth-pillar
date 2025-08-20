@@ -18,36 +18,37 @@ export { useReports, ReportType } from "./features/useReports";
 
 // Data filters (still useful for specific use cases)
 export {
-    useAccountFilter, useAdvancedFilters, useAllFilters, useBudgetFilter,
-    useInvestmentFilter, useTransactionFilter
+  useAccountFilter,
+  useAdvancedFilters,
+  useAllFilters,
+  useBudgetFilter,
+  useInvestmentFilter,
+  useTransactionFilter,
 } from "./data/useDataFilters";
-export { usePersonFilter, usePersonStats, usePersonValidation } from "./data/usePersonFilter";
+export { usePersonFilter, usePersonStats, usePersonValidation } from "./data/useDataFilters";
 export { useAccountModals, useBudgetModals, usePersonModals, useSettingsModals } from "./data/useSettings";
 
 // Specialized feature hooks
 export { useAuthCallback } from "./features/auth/useAuthCallback";
 export { useGroups } from "./features/groups/useGroups";
 export { useGroupSettings } from "./features/groups/useGroupSettings";
-export { useExpenseChart } from "./features/home/useExpenseChart";
-export { useHomeData } from "./features/home/useHomeData";
+export { useExpenseChart, useHomeData, useAccountOrdering } from "./features/home/home.hooks";
 export { useReconciliation } from "./features/transactions/useReconciliation";
 
 // UI hooks
 export { useModal, useModalWithData, useMultipleModals } from "./ui/useModal";
 export { useAccountForm, useModalForm, usePersonForm } from "./ui/useModalForm";
 export {
-    useBreakpoint, useDarkMode,
-    useMediaQuery,
-    useOrientation, useResponsive, useWindowSize
+  useBreakpoint,
+  useDarkMode,
+  useMediaQuery,
+  useOrientation,
+  useResponsive,
+  useWindowSize,
 } from "./ui/useResponsive";
-export { useTransactionDisplay } from "./ui/useTransactionDisplay";
-
-// Utility hooks
-export { useAsync, useCrud, useLoadingState } from "./utils/useAsync";
 export {
-    validateAccountForm,
-    validateBudgetForm,
-    validateEditBudgetForm,
-    validatePersonForm
+  validateAccountForm,
+  validateBudgetForm,
+  validateEditBudgetForm,
+  validatePersonForm,
 } from "./utils/validators";
-

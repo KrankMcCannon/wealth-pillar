@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import { memo } from 'react';
 import { Transaction } from '../../types';
 import { formatCurrency, formatDate } from '../../constants';
 

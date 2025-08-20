@@ -29,7 +29,6 @@ export const useTransactions = () => {
     accounts, 
     addTransaction, 
     updateTransaction, 
-    deleteTransaction,
     getAccountById 
   } = useFinance();
 

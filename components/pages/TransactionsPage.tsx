@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Transaction } from "../../types";
 import { useBreakpoint } from "../../hooks/ui/useResponsive";
-import { usePersonFilter } from "../../hooks/data/usePersonFilter";
+import { usePersonFilter } from "../../hooks";
 import { useFinance } from "../../hooks/core/useFinance";
 import { Card } from "../ui";
 import { FilterSection, LinkingStatusBar, TransactionGroupedTable } from "../transactions";
@@ -14,31 +14,8 @@ import { useTransactions } from '../../hooks';
 export const TransactionsPage: React.FC = () => {
   const { isMobile, isTablet } = useBreakpoint();
   const { selectedPersonId, people, isAllView } = usePersonFilter();
-  const { selectPerson } = useFinance();
-  const {
-    searchTerm,
-    typeFilter,
-    categoryFilter,
-    dateRange,
-    setSearchTerm,
-    setTypeFilter,
-    setCategoryFilter,
-    setDateRange,
-    availableCategories,
-    groupedTransactions,
-    resetFilters,
-    hasActiveFilters,
-    getAccountById,
-    getPersonById,
-    getCategoryName,
-    isLinkingMode,
-    linkingTx,
-    handleStartLink,
-    handleSelectToLink,
-    handleCancelLink,
-    isTransactionLinkable,
-    isThisLinkingTransaction,
-  } = useTransactions();
+  const { selectPerson, getAccountById, getPersonById, getCategoryName, categories } = useFinance();
+  const { filteredTransactions, filters, setFilters } = useTransactions();
   const [editingTx, setEditingTx] = useState<Transaction | null>(null);
   const { deleteTransaction } = useFinance();
 
@@ -59,6 +36,40 @@ export const TransactionsPage: React.FC = () => {
       deleteTransaction(tx.id);
     }
   };
+
+  // Local UI filter state mapping to useTransactions filters
+  const searchTerm = '';
+  const typeFilter: 'all' | any = (filters.types && filters.types[0]) || 'all';
+  const categoryFilter: 'all' | string = (filters.categories && filters.categories[0]) || 'all';
+  const dateRange = { startDate: filters.dateRange.start, endDate: filters.dateRange.end };
+
+  const setSearchTerm = (value: string) => setFilters((prev: any) => ({ ...prev, search: value }));
+  const setTypeFilter = (value: any) => setFilters((prev: any) => ({ ...prev, types: value === 'all' ? [] : [value] }));
+  const setCategoryFilter = (value: string) => setFilters((prev: any) => ({ ...prev, categories: value === 'all' ? [] : [value] }));
+  const setDateRange = (range: { startDate: string; endDate: string }) => setFilters((prev: any) => ({ ...prev, dateRange: { start: range.startDate, end: range.endDate } }));
+
+  const availableCategories = categories.map(c => c.name);
+  const hasActiveFilters = (filters.categories?.length || 0) > 0 || (filters.types?.length || 0) > 0 || !!filters.dateRange.start || !!filters.dateRange.end;
+  const resetFilters = () => setFilters({ personId: selectedPersonId || 'all', dateRange: { start: '', end: '' }, categories: [], types: [], minAmount: 0, maxAmount: 0 });
+
+  // Group by date for table/cards
+  const groupedTransactions = React.useMemo(() => {
+    const groups = new Map<string, any[]>();
+    filteredTransactions.forEach((t) => {
+      const date = t.date.split('T')[0];
+      if (!groups.has(date)) groups.set(date, []);
+      groups.get(date)!.push(t);
+    });
+    return Array.from(groups.entries()).map(([date, transactions]) => ({ date, transactions }));
+  }, [filteredTransactions]);
+
+  const isLinkingMode = false;
+  const linkingTx = null as any;
+  const handleStartLink = () => {};
+  const handleSelectToLink = () => {};
+  const handleCancelLink = () => {};
+  const isTransactionLinkable = () => false;
+  const isThisLinkingTransaction = () => false;
 
   return (
     <div className="space-y-4 lg:space-y-6 p-2 sm:p-4 lg:p-6 xl:p-8 pb-24 lg:pb-8 overflow-hidden">

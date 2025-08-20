@@ -1,10 +1,9 @@
-import { memo } from "react";
-import { usePersonFilter, useInvestmentFilter, useInvestments } from "../../hooks";
+import { memo, useState } from "react";
+import { usePersonFilter, useInvestmentFilter } from "../../hooks";
 import { useBreakpoint } from "../../hooks/ui/useResponsive";
 import { useFinance } from "../../hooks/core/useFinance";
 import { PortfolioSummary, InvestmentTable, CompoundInterestCalculator } from "../investments";
 import { AddInvestmentModal } from "../modals";
-import { PlusIcon } from "../common";
 
 /**
  * Pagina Investimenti
@@ -14,7 +13,9 @@ export const InvestmentsPage = memo(() => {
   const { selectedPersonId, isAllView, getPersonName, people } = usePersonFilter();
   const { selectPerson } = useFinance();
   const { investments } = useInvestmentFilter(selectedPersonId);
-  const { isAddModalOpen, openAddModal, closeAddModal } = useInvestments();
+  const [isAddModalOpen, setAddModalOpen] = useState(false);
+  const openAddModal = () => setAddModalOpen(true);
+  const closeAddModal = () => setAddModalOpen(false);
 
   return (
     <div className="space-y-6 lg:space-y-8 p-2 sm:p-4 lg:p-6 xl:p-8 pb-24 lg:pb-8 overflow-hidden">

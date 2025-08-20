@@ -2,7 +2,7 @@ import { memo } from "react";
 import { useSettingsModals } from "../../hooks/data/useSettings";
 import { useFinance } from "../../hooks/core/useFinance";
 import { useAuth } from "../../contexts/AuthContext";
-import { usePersonFilter } from "../../hooks/data/usePersonFilter";
+import { usePersonFilter } from "../../hooks";
 import { UserProfileSection, AccountManagementSection, BudgetManagementSection } from "../settings";
 import { GroupSettings } from "../groups";
 import { useGroups } from "../../hooks/features/groups/useGroups";

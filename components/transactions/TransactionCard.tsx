@@ -1,10 +1,11 @@
 import { memo } from "react";
 import { Transaction } from "../../types";
-import { LinkIcon, PencilIcon, TrashIcon, ChevronDownIcon } from "../common";
-import { formatCurrency, formatDate } from "../../constants";
-import { useTransactions } from "../../hooks";
-import { DropdownMenu } from "../ui";
+import { formatDate } from "../../constants";
+import { useFinance } from "../../hooks/core/useFinance";
+import { TransactionType } from "../../types";
+import { TransactionActionMenu } from './TransactionActionMenu';
 import { ReconciliationModal } from "./ReconciliationModal";
+import { TransactionAmount, TransactionStatusChip, TransactionAvatar } from './TransactionVisuals';
 import { useReconciliation } from "../../hooks/features/transactions/useReconciliation";
 
 interface TransactionCardProps {
@@ -40,9 +41,14 @@ export const TransactionCard = memo<TransactionCardProps>(
     onDeleteClick,
     onAdvancedReconciliationClick,
   }) => {
-    const { getTransactionVisual, getCategoryName } = useTransactions();
-    const { transactionData, personAvatarIcon, personInitials, iconColor, backgroundColor, directionArrow } = getTransactionVisual(transaction);
-    const { isTransfer, isIncome, showRemainingAmount, remainingAmount, transferData } = transactionData;
+    const { getCategoryName } = useFinance();
+    const isTransfer = transaction.category === 'trasferimento';
+    const isIncome = transaction.type === TransactionType.ENTRATA;
+    const showRemainingAmount = false;
+    const remainingAmount = 0;
+    const transferData: any = { toAccount: { name: '' } };
+    const personInitials = personName ? personName.charAt(0).toUpperCase() : '?';
+    
 
     // Hook per la riconciliazione
     const {
@@ -78,71 +84,10 @@ export const TransactionCard = memo<TransactionCardProps>(
       return `${baseClasses} bg-white dark:bg-gray-800`;
     };
 
-    const getStatusColor = () => {
-      if (transaction.isReconciled) {
-        return isFullyReconciled(transaction)
-          ? "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300"
-          : "bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300";
-      }
-      return "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300";
-    };
-
-    const getAmountColor = () => {
-      if (isTransfer) return "text-blue-600 dark:text-blue-400";
-      if (isIncome) return "text-green-600 dark:text-green-400";
-      return "text-red-600 dark:text-red-400";
-    };
+    // visuals moved to TransactionVisuals (DRY)
 
     // Menu items per le azioni
-    const getMenuItems = () => {
-      const items = [];
-
-      // Aggiungi opzione per mostrare transazioni riconciliate se esistono
-      if (reconciliation && reconciliation.allocations.length > 0) {
-        const count = reconciliation.allocations.length;
-        const reconciledText = count === 1 
-          ? 'Mostra transazione riconciliata' 
-          : `Mostra ${count} transazioni riconciliate`;
-        
-        items.push({
-          label: reconciledText,
-          onClick: () => {
-            // TODO: Implementare visualizzazione transazioni riconciliate
-            console.log('Mostra transazioni riconciliate:', reconciliation);
-          },
-          icon: <ChevronDownIcon className="w-4 h-4" />,
-          className: "text-blue-600 dark:text-blue-400",
-        });
-      }
-
-      // Aggiungi opzioni di riconciliazione se non è riconciliata
-      if (!transaction.isReconciled && !isTransfer) {
-        items.push({
-          label: "Riconcilia",
-          onClick: () => openReconciliationModal(transaction),
-          icon: <LinkIcon className="w-4 h-4" />,
-          className: "text-purple-600 dark:text-purple-400",
-        });
-      }
-
-      // Aggiungi opzioni standard
-      items.push({
-        label: "Modifica transazione",
-        onClick: () => onEditClick(transaction),
-        icon: <PencilIcon className="w-4 h-4" />,
-      });
-
-      if (onDeleteClick) {
-        items.push({
-          label: "Elimina transazione",
-          onClick: () => onDeleteClick(transaction),
-          icon: <TrashIcon className="w-4 h-4" />,
-          className: "text-red-600 dark:text-red-400",
-        });
-      }
-
-      return items;
-    };
+    const reconciliationCount = reconciliation ? reconciliation.allocations.length : 0;
 
     return (
       <>
@@ -157,23 +102,7 @@ export const TransactionCard = memo<TransactionCardProps>(
           {/* Header con avatar e descrizione */}
           <div className="flex items-start space-x-3">
             {/* Cerchio con avatar/iniziali e freccia sporgente */}
-            <div className="relative flex-shrink-0">
-              <div
-                className={`w-10 h-10 rounded-full flex items-center justify-center ${backgroundColor} overflow-hidden`}
-              >
-                {personAvatarIcon ? (
-                  <span className="text-lg font-bold text-gray-800 dark:text-white">{personAvatarIcon}</span>
-                ) : (
-                  <span className="text-lg font-bold text-gray-800 dark:text-white">{personInitials}</span>
-                )}
-              </div>
-              {/* Freccia sporgente alla base */}
-              <div
-                className={`absolute -right-1 -bottom-1 w-5 h-5 rounded-full flex items-center justify-center ${backgroundColor} border border-white dark:border-gray-800`}
-              >
-                <span className={`text-xs ${iconColor}`}>{directionArrow}</span>
-              </div>
-            </div>
+            <TransactionAvatar initials={personInitials} isIncome={isIncome} isTransfer={isTransfer} />
 
             {/* Contenuto principale */}
             <div className="flex-1 min-w-0">
@@ -194,15 +123,15 @@ export const TransactionCard = memo<TransactionCardProps>(
 
                 {/* Importo */}
                 <div className="flex-shrink-0 ml-3 text-right">
-                  <p className={`text-sm font-semibold ${getAmountColor()}`}>
-                    {isTransfer ? "" : isIncome ? "+" : "-"} {formatCurrency(transaction.amount)}
-                  </p>
-                  {/* Mostra importo rimanente solo se non è completamente riconciliata */}
-                  {showRemainingAmount && !isFullyReconciled(transaction) && remainingAmount > 0 && (
-                    <p className="text-xs font-medium text-orange-600 dark:text-orange-400">
-                      Disponibile: {formatCurrency(remainingAmount)}
-                    </p>
-                  )}
+                  <TransactionAmount
+                    amount={transaction.amount}
+                    isTransfer={isTransfer}
+                    isIncome={isIncome}
+                    remainingAmount={remainingAmount}
+                    showRemainingAmount={showRemainingAmount}
+                    fullyReconciled={isFullyReconciled(transaction)}
+                    align="right"
+                  />
                 </div>
               </div>
 
@@ -219,16 +148,21 @@ export const TransactionCard = memo<TransactionCardProps>(
 
                 {/* Stato e azioni */}
                 <div className="flex items-center space-x-2">
-                  <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor()}`}>
-                    {transaction.isReconciled 
-                      ? (isFullyReconciled(transaction) ? '✓ Completamente riconciliato' : '✓ Parzialmente riconciliato')
-                      : 'Aperto'
-                    }
-                  </span>
+                  <TransactionStatusChip
+                    isReconciled={!!transaction.isReconciled}
+                    fullyReconciled={isFullyReconciled(transaction)}
+                  />
 
                   {/* Azioni */}
                   {!isLinkingMode && (
-                    <DropdownMenu items={getMenuItems()} />
+                    <TransactionActionMenu
+                      transaction={transaction}
+                      isTransfer={isTransfer}
+                      reconciliationCount={reconciliationCount}
+                      onOpenReconcile={openReconciliationModal}
+                      onEdit={onEditClick}
+                      onDelete={onDeleteClick}
+                    />
                   )}
                 </div>
               </div>

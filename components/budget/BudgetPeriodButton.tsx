@@ -1,5 +1,5 @@
-import React, { memo } from "react";
-import { useBudgets, BudgetPeriod } from "../../hooks";
+import { memo } from "react";
+import { useBudgets } from "../../hooks";
 
 interface BudgetPeriodButtonProps {
   people?: any[];
@@ -10,7 +10,7 @@ interface BudgetPeriodButtonProps {
  * Permette di cambiare il periodo visualizzato
  */
 export const BudgetPeriodButton = memo<BudgetPeriodButtonProps>(({ people = [] }) => {
-  const { budgetState, navigatePeriod, getPeriodLabel } = useBudgets();
+  const { navigatePeriod, getPeriodLabel } = useBudgets();
 
   if (people.length === 0) {
     return null;

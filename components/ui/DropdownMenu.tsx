@@ -16,7 +16,7 @@ interface DropdownMenuProps {
   disabled?: boolean;
 }
 
-export const DropdownMenu: React.FC<DropdownMenuProps> = ({ items, trigger, className = "", disabled = false }) => {
+export const DropdownMenu: React.FC<DropdownMenuProps> = ({ items, trigger, disabled = false }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
   const triggerRef = useRef<HTMLButtonElement>(null);

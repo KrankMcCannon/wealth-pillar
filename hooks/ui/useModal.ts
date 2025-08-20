@@ -27,7 +27,7 @@ export const useModal = (initialState = false) => {
  * Principio SRP: Single Responsibility - gestisce lo stato di multiple modali
  * Principio DRY: Don't Repeat Yourself - evita la duplicazione di logica
  */
-export const useMultipleModals = <T extends string>(modalNames: T[]) => {
+export const useMultipleModals = <T extends string>() => {
   const [openModals, setOpenModals] = useState<Set<T>>(new Set());
 
   const openModal = useCallback((modalName: T) => {

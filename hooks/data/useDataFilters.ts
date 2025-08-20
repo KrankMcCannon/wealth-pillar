@@ -236,7 +236,7 @@ export const useAllFilters = (selectedPersonId: string) => {
  * Principio SRP: Single Responsibility - filtri avanzati
  */
 export const useAdvancedFilters = () => {
-  const { transactions, accounts, budgets, investments } = useFinance();
+  const { transactions, accounts } = useFinance();
 
   const filterByDateRange = useCallback((
     items: Transaction[],
@@ -290,4 +290,70 @@ export const useAdvancedFilters = () => {
     getUniqueAccountTypes: () => [...new Set(accounts.map(a => a.type))],
     getUniqueTransactionTypes: () => [...new Set(transactions.map(t => t.type))],
   };
+};
+
+// ==== Person Filters merged here to reduce files ====
+import { Person } from '../../types';
+
+interface PersonFilterResult {
+  selectedPersonId: string;
+  isAllView: boolean;
+  selectedPerson: Person | null;
+  people: Person[];
+  getPersonName: (personId: string) => string;
+  getPersonById: (personId: string) => Person | undefined;
+  isPersonSelected: (personId: string) => boolean;
+  getPersonDisplayName: (person: Person) => string;
+  canEditPerson: (personId: string) => boolean;
+}
+
+export const usePersonFilter = (): PersonFilterResult => {
+  const { selectedPersonId, people, getPersonById } = useFinance();
+  const isAllView = useMemo(() => selectedPersonId === 'all', [selectedPersonId]);
+  const selectedPerson = useMemo(() => {
+    if (isAllView) return null;
+    const person = people.find(p => p.id === selectedPersonId);
+    if (!person) return null;
+    return person;
+  }, [isAllView, people, selectedPersonId]);
+
+  const getPersonName = useCallback((personId: string): string => {
+    if (personId === 'all') return 'Tutte le persone';
+    const person = getPersonById(personId);
+    return person?.name || 'Sconosciuto';
+  }, [getPersonById]);
+
+  const isPersonSelected = useCallback((personId: string) => selectedPersonId === personId, [selectedPersonId]);
+  const getPersonDisplayName = useCallback((person: Person) => person.name || 'Nome non disponibile', []);
+  const canEditPerson = useCallback((personId: string) => personId !== 'all' && !!getPersonById(personId), [getPersonById]);
+
+  return { selectedPersonId, isAllView, selectedPerson, people, getPersonName, getPersonById, isPersonSelected, getPersonDisplayName, canEditPerson };
+};
+
+export const usePersonValidation = () => {
+  const { people, getPersonById } = usePersonFilter();
+  const validatePersonExists = useCallback((personId: string) => personId === 'all' || !!getPersonById(personId), [getPersonById]);
+  const validatePersonName = useCallback((name: string): string | null => {
+    if (!name || name.trim().length === 0) return 'Il nome è obbligatorio';
+    if (name.trim().length < 2) return 'Il nome deve contenere almeno 2 caratteri';
+    const existingPerson = people.find(p => p.name.toLowerCase().trim() === name.toLowerCase().trim());
+    return existingPerson ? 'Una persona con questo nome esiste già' : null;
+  }, [people]);
+  const validatePersonId = useCallback((personId: string): string | null => {
+    if (!personId) return 'ID persona è obbligatorio';
+    if (personId === 'all') return null;
+    if (!validatePersonExists(personId)) return 'Persona non trovata';
+    return null;
+  }, [validatePersonExists]);
+  return { validatePersonExists, validatePersonName, validatePersonId };
+};
+
+export const usePersonStats = () => {
+  const { people, selectedPersonId, isAllView } = usePersonFilter();
+  return useMemo(() => ({
+    totalPeople: people.length,
+    hasMultiplePeople: people.length > 1,
+    isViewingAll: isAllView,
+    selectedPersonIndex: isAllView ? -1 : people.findIndex(p => p.id === selectedPersonId),
+  }), [people, selectedPersonId, isAllView]);
 };

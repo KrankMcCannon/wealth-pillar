@@ -1,14 +1,7 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
-import {
-  HomeIcon,
-  TransactionIcon,
-  InvestmentIcon,
-  SettingsIcon,
-  UserGroupIcon,
-  ChartBarIcon,
-  XMarkIcon,
-} from "./Icons";
+import { UserGroupIcon, XMarkIcon } from "./Icons";
+import { NAV_ITEMS } from "./nav.config";
 import { useFinance } from "../../hooks";
 import { useAuth } from "../../contexts/AuthContext";
 
@@ -158,15 +151,7 @@ const PersonSelector: React.FC = () => {
 };
 
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, className = "" }) => {
-  const { user, signOut } = useAuth();
-
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-    } catch (error) {
-      console.error("Error signing out:", error);
-    }
-  };
+  useAuth();
 
   return (
     <>
@@ -198,32 +183,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, className = "
         <PersonSelector />
 
         <div className="space-y-2">
-          <NavItem to="/">
-            <HomeIcon className="w-5 h-5 mr-3" />
-            Home
-          </NavItem>
-
-          <NavItem to="/transactions">
-            <TransactionIcon className="w-5 h-5 mr-3" />
-            Transazioni
-          </NavItem>
-
-          <NavItem to="/investments">
-            <InvestmentIcon className="w-5 h-5 mr-3" />
-            Investimenti
-          </NavItem>
-
-          <NavItem to="/reports">
-            <ChartBarIcon className="w-5 h-5 mr-3" />
-            Report
-          </NavItem>
-
-          <NavItem to="/settings">
-            <SettingsIcon className="w-5 h-5 mr-3" />
-            Impostazioni
-          </NavItem>
+          {NAV_ITEMS.map(({ to, label, Icon }) => (
+            <NavItem key={to} to={to}>
+              <Icon className="w-5 h-5 mr-3" />
+              {label}
+            </NavItem>
+          ))}
         </div>
-      </aside>
+     </aside>
     </>
   );
 };

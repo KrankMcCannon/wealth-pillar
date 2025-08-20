@@ -296,10 +296,9 @@ export const useInvestments = () => {
   });
 
   const calculateCompoundInterest = useCallback((params: Omit<CompoundInterestCalculation, 'result'>) => {
-    const { principal, annualRate, compoundingFrequency, years, monthlyContribution } = params;
+    const { principal, annualRate, years, monthlyContribution } = params;
     
     const monthlyRate = annualRate / 100 / 12;
-    const totalMonths = years * 12;
     
     let balance = principal;
     const yearlyBreakdown: any[] = [];
