@@ -224,14 +224,14 @@ export const dummyAccounts: AccountWithBalance[] = [
 ];
 
 export const dummyBudgets: BudgetWithSpent[] = [
-  createBudget('bdg_1', 'Budget Spese Quotidiane', 950, 'monthly', ['Alimentari', 'Trasporti'], 'person_1'),
-  createBudget('bdg_2', 'Budget Intrattenimento & Svago', 450, 'monthly', ['Intrattenimento', 'Shopping'], 'person_1'),
-  createBudget('bdg_3', 'Budget Salute & Benessere', 280, 'monthly', ['Salute'], 'person_2'),
-  createBudget('bdg_4', 'Budget Casa & Bollette', 650, 'monthly', ['Bollette', 'Casa & Giardino'], 'person_1'),
-  createBudget('bdg_5', 'Budget Educazione & Crescita', 400, 'monthly', ['Educazione'], 'person_1'),
-  createBudget('bdg_6', 'Budget Viaggi', 1200, 'monthly', ['Viaggi'], 'person_1'),
-  createBudget('bdg_7', 'Budget Risparmio Annuale', 15000, 'annually', [], 'person_1'),
-  createBudget('bdg_8', 'Budget Giovani - Luca', 150, 'monthly', ['Shopping', 'Intrattenimento'], 'person_3')
+  createBudget('bdg_1', 'Budget Spese Quotidiane', 950, 'monthly', ['Alimentari', 'Trasporti'], 'person_1', dummyTransactions),
+  createBudget('bdg_2', 'Budget Intrattenimento & Svago', 450, 'monthly', ['Intrattenimento', 'Shopping'], 'person_1', dummyTransactions),
+  createBudget('bdg_3', 'Budget Salute & Benessere', 280, 'monthly', ['Salute'], 'person_2', dummyTransactions),
+  createBudget('bdg_4', 'Budget Casa & Bollette', 650, 'monthly', ['Bollette', 'Casa & Giardino'], 'person_1', dummyTransactions),
+  createBudget('bdg_5', 'Budget Educazione & Crescita', 400, 'monthly', ['Educazione'], 'person_1', dummyTransactions),
+  createBudget('bdg_6', 'Budget Viaggi', 1200, 'monthly', ['Viaggi'], 'person_1', dummyTransactions),
+  createBudget('bdg_7', 'Budget Risparmio Annuale', 15000, 'annually', [], 'person_1', dummyTransactions),
+  createBudget('bdg_8', 'Budget Giovani - Luca', 150, 'monthly', ['Shopping', 'Intrattenimento'], 'person_3', dummyTransactions)
 ];
 
 export const dashboardBankAccounts: DashboardBankAccount[] = dummyAccounts.slice(0, 4).map((acc, index) => ({
@@ -255,7 +255,7 @@ export const dashboardBudgets: DashboardBudget[] = dummyBudgets.slice(0, 4).map(
   spent: budget.spent_amount || 0,
   color: getBudgetColor(budget.percentage_used || 0),
   icon: getBudgetIcon(budget.description),
-  categories: budget.categories.map(getCategoryStats)
+  categories: budget.categories.map(category => getCategoryStats(category, dummyTransactions))
 }));
 
 export const upcomingTransactions: UpcomingTransaction[] = [
@@ -486,7 +486,7 @@ const categoryColors: Record<string, string> = {
   'Viaggi': '#06b6d4'
 };
 
-export const expenseData: ExpenseData[] = generateExpenseData(categoryColors);
+export const expenseData: ExpenseData[] = generateExpenseData(categoryColors, dummyTransactions);
 
 export const incomeData: IncomeData[] = generateIncomeData();
 

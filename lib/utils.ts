@@ -1,6 +1,5 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
-import { dummyTransactions } from "./dummy-data"
 import { BudgetData, BudgetPeriodData, BudgetWithSpent, DailyExpenseData, ExpenseData, FilterState, IncomeData, InvestmentHolding, MemberData, Plan, PlanType, TransactionPageTransaction, TransactionWithAccount } from "./types"
 
 export function cn(...inputs: ClassValue[]) {
@@ -642,9 +641,10 @@ export const createBudget = (
   amount: number,
   period: 'monthly' | 'annually',
   categories: string[],
-  personId: string
+  personId: string,
+  transactions: TransactionWithAccount[]
 ): BudgetWithSpent => {
-  const spent = Math.round(calculateBudgetSpent(dummyTransactions, categories) * 100) / 100;
+  const spent = Math.round(calculateBudgetSpent(transactions, categories) * 100) / 100;
   const remaining = Math.round((amount - spent) * 100) / 100;
   const percentage = Math.round((spent / amount) * 10000) / 100;
 
@@ -663,12 +663,12 @@ export const createBudget = (
   };
 };
 
-export const getCategoryStats = (category: string) => {
-  const transactions = dummyTransactions.filter(t => t.category === category && t.type === 'spesa');
+export const getCategoryStats = (category: string, transactions: TransactionWithAccount[]) => {
+  const categoryTransactions = transactions.filter((t: TransactionWithAccount) => t.category === category && t.type === 'spesa');
   return {
     name: category,
-    transactions: transactions.length,
-    amount: Math.round(transactions.reduce((sum, t) => sum + t.amount, 0) * 100) / 100
+    transactions: categoryTransactions.length,
+    amount: Math.round(categoryTransactions.reduce((sum: number, t: TransactionWithAccount) => sum + t.amount, 0) * 100) / 100
   };
 };
 
@@ -716,10 +716,10 @@ export const generateDailyExpenses = (): DailyExpenseData[] => {
   }));
 };
 
-export const generateExpenseData = (categoryColors: Record<string, string>): ExpenseData[] => {
-  const categoryTotals = dummyTransactions
-    .filter(t => t.type === 'spesa')
-    .reduce((acc, t) => {
+export const generateExpenseData = (categoryColors: Record<string, string>, transactions: TransactionWithAccount[]): ExpenseData[] => {
+  const categoryTotals = transactions
+    .filter((t: TransactionWithAccount) => t.type === 'spesa')
+    .reduce((acc: Record<string, number>, t: TransactionWithAccount) => {
       acc[t.category] = (acc[t.category] || 0) + t.amount;
       return acc;
     }, {} as Record<string, number>);
@@ -727,7 +727,7 @@ export const generateExpenseData = (categoryColors: Record<string, string>): Exp
   return Object.entries(categoryTotals)
     .map(([category, amount]) => ({
       category,
-      amount: Math.round(amount * 100) / 100,
+      amount: Math.round((amount as number) * 100) / 100,
       color: categoryColors[category] || '#6b7280'
     }))
     .sort((a, b) => b.amount - a.amount);
