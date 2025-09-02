@@ -1,116 +1,45 @@
 "use client";
 
-import { ShoppingCart, Home, Wifi, CreditCard, Building2, PiggyBank, User, Settings, Bell, ChevronRight } from "lucide-react";
+import { Home, Wifi, CreditCard, Building2, PiggyBank, User, Settings, Bell, ChevronRight, Users } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import BottomNavigation from "@/components/bottom-navigation";
+import {
+  currentUser,
+  currentUserPlan,
+  membersData,
+  upcomingTransactionsData
+} from "@/lib/dummy-data";
+import {
+  formatCurrency,
+  getPlanBadgeColor,
+  getMemberDataById,
+  canManageGroup,
+  convertMemberDataToBankAccounts,
+  convertMemberDataToBudgets
+} from "@/lib/utils";
+import { AccountTypeMap } from "@/lib/types";
 
 export default function DashboardPage() {
-  const [expandedAccount, setExpandedAccount] = useState<number | null>(null);
   const router = useRouter();
+  const [expandedAccount, setExpandedAccount] = useState<string | null>(null);
+  const [selectedGroupFilter, setSelectedGroupFilter] = useState<string>("all");
 
-  const bankAccounts = [
-    {
-      id: 1,
-      name: "Checking",
-      type: "Current Account",
-      owner: "Alex Morgan",
-      balance: 12450.50,
-      icon: Building2,
-      color: "bg-blue-500"
-    },
-    {
-      id: 2,
-      name: "Savings",
-      type: "Savings Account",
-      owner: "Alex Morgan",
-      balance: 35820.00,
-      icon: PiggyBank,
-      color: "bg-green-500"
-    },
-    {
-      id: 3,
-      name: "Credit Card",
-      type: "Credit Card",
-      owner: "Alex Morgan",
-      balance: -2100.30,
-      icon: CreditCard,
-      color: "bg-red-500"
-    }
-  ];
+  const planBadgeColor = getPlanBadgeColor(currentUserPlan.type);
+  const planInfo = {
+    name: currentUserPlan.name,
+    color: planBadgeColor.split(' ')[1]
+  };
 
+  const currentMemberData = getMemberDataById(membersData, selectedGroupFilter);
+  const bankAccounts = convertMemberDataToBankAccounts(currentMemberData);
+  const budgets = convertMemberDataToBudgets(currentMemberData, selectedGroupFilter);
+  const upcomingTransactions = upcomingTransactionsData[selectedGroupFilter as keyof typeof upcomingTransactionsData] || [];
   const totalBalance = bankAccounts.reduce((sum, account) => sum + account.balance, 0);
 
-  const budgets = [
-    {
-      id: 1,
-      name: "Groceries",
-      amount: 500,
-      spent: 350,
-      color: "bg-green-500",
-      icon: "🛒",
-      categories: [
-        { name: "Supermarket", transactions: 12, amount: 280 },
-        { name: "Restaurants", transactions: 5, amount: 70 }
-      ]
-    },
-    {
-      id: 2,
-      name: "Entertainment",
-      amount: 300,
-      spent: 250,
-      color: "bg-yellow-500",
-      icon: "🎬",
-      categories: [
-        { name: "Movies", transactions: 4, amount: 120 },
-        { name: "Concerts", transactions: 2, amount: 130 }
-      ]
-    },
-    {
-      id: 3,
-      name: "Shopping",
-      amount: 800,
-      spent: 400,
-      color: "bg-blue-500",
-      icon: "🛍️",
-      categories: [
-        { name: "Clothing", transactions: 8, amount: 300 },
-        { name: "Electronics", transactions: 3, amount: 100 }
-      ]
-    }
-  ];
-
-  // Upcoming transactions for the next 3 days
-  const upcomingTransactions = [
-    {
-      id: 1,
-      title: "Rent Payment",
-      bankAccount: "Checking",
-      daysRemaining: 1,
-      amount: 1200,
-      icon: Home
-    },
-    {
-      id: 2,
-      title: "Internet Bill",
-      bankAccount: "Checking", 
-      daysRemaining: 2,
-      amount: 50,
-      icon: Wifi
-    },
-    {
-      id: 3,
-      title: "Grocery Shopping",
-      bankAccount: "Credit Card",
-      daysRemaining: 3,
-      amount: 120,
-      icon: ShoppingCart
-    }
-  ];
-
-  const handleAccountClick = (id: number) => {
+  const handleAccountClick = (id: string) => {
     setExpandedAccount(expandedAccount === id ? null : id);
   };
 
@@ -126,8 +55,8 @@ export default function DashboardPage() {
                 <User className="h-5 w-5 text-[#7578EC]" />
               </div>
               <div className="flex flex-col">
-                <p className="text-sm font-semibold text-gray-900">Alex Morgan</p>
-                <p className="text-xs text-gray-500">Premium Plan</p>
+                <p className="text-sm font-semibold text-gray-900">{currentUser.name}</p>
+                <p className={`text-xs ${planInfo.color}`}>{planInfo.name}</p>
               </div>
             </div>
 
@@ -136,12 +65,40 @@ export default function DashboardPage() {
               <button className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-[#EFF2FE] hover:bg-[#7578EC]/10 transition-colors">
                 <Bell className="h-5 w-5 text-[#7578EC]" />
               </button>
-              <button className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-[#EFF2FE] hover:bg-[#7578EC]/10 transition-colors">
+              <button
+                className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-[#EFF2FE] hover:bg-[#7578EC]/10 transition-colors"
+                onClick={() => router.push('/settings')}
+              >
                 <Settings className="h-5 w-5 text-[#7578EC]" />
               </button>
             </div>
           </div>
         </header>
+
+        {/* Group Selector - Only for superadmin and admin */}
+        {canManageGroup(currentUserPlan.type) && (
+          <section className="bg-[#F8FAFC] px-4 py-3 border-b border-gray-200">
+            <div className="flex items-center gap-3 mb-2">
+              <Users className="h-4 w-4 text-[#7578EC]" />
+              <h3 className="text-sm font-medium text-gray-700">Visualizza Dati per:</h3>
+            </div>
+            <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+              {[{ id: 'all', name: 'Tutti i Membri', avatar: '👥' }, ...membersData].map((member) => (
+                <button
+                  key={member.id}
+                  onClick={() => setSelectedGroupFilter(member.id)}
+                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${selectedGroupFilter === member.id
+                      ? "bg-[#7578EC] text-white"
+                      : "bg-white text-gray-700 hover:bg-gray-100"
+                    }`}
+                >
+                  <span className="text-sm">{member.avatar}</span>
+                  {member.name}
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
 
         <main className="pb-16">
           {/* Total Balance Section - Different Background */}
@@ -149,9 +106,9 @@ export default function DashboardPage() {
             {/* Total Balance and Bank Accounts Count */}
             <div className="flex items-end justify-between mb-3">
               <div>
-                <p className="text-sm text-gray-500 mb-1">Total Balance</p>
+                <p className="text-sm text-gray-500 mb-1">Saldo Totale</p>
                 <p className={`text-3xl font-bold ${totalBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  ${Math.abs(totalBalance).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                  {formatCurrency(Math.abs(totalBalance))}
                 </p>
               </div>
               <div className="flex items-center gap-2">
@@ -164,7 +121,13 @@ export default function DashboardPage() {
             <div className="overflow-x-auto scrollbar-hide">
               <div className="flex gap-3 pb-2">
                 {bankAccounts.map((account) => {
-                  const IconComponent = account.icon;
+                  // Map icon names to components
+                  const iconMap = {
+                    "Building2": Building2,
+                    "PiggyBank": PiggyBank,
+                    "CreditCard": CreditCard
+                  };
+                  const IconComponent = iconMap[account.icon as keyof typeof iconMap] || Building2;
 
                   return (
                     <Card
@@ -177,20 +140,20 @@ export default function DashboardPage() {
                         <div className={`flex size-10 items-center justify-center rounded-full ${account.color} bg-opacity-10`}>
                           <IconComponent className={`h-5 w-5 ${account.color.replace('bg-', 'text-')}`} />
                         </div>
-                        
+
                         {/* Center - Title and Type */}
-                        <div className="flex flex-col items-center text-center flex-1 mx-3">
+                        <div className="flex flex-col flex-1 mx-3">
                           <h3 className="font-semibold text-gray-900 text-sm">{account.name}</h3>
-                          <p className="text-xs text-gray-500">{account.type}</p>
+                          <p className="text-xs text-gray-500">{AccountTypeMap[account.type as keyof typeof AccountTypeMap] || account.type}</p>
                         </div>
-                        
+
                         {/* Right - Amount */}
                         <div className="flex flex-col text-right">
                           <p className={`text-base font-bold ${account.balance < 0 ? 'text-red-600' : 'text-green-600'}`}>
-                            ${Math.abs(account.balance).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                            {formatCurrency(Math.abs(account.balance))}
                           </p>
                           {account.balance < 0 && (
-                            <p className="text-xs text-red-500 font-medium">DEBT</p>
+                            <p className="text-xs text-red-500 font-medium">DEBITO</p>
                           )}
                         </div>
                       </div>
@@ -209,23 +172,42 @@ export default function DashboardPage() {
             {/* Budget Section */}
             <section className="mb-6">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold tracking-tight text-gray-900">Budgets</h2>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
+                <h2 className="text-xl font-bold tracking-tight text-gray-900">Budget</h2>
+                <Button
+                  variant="ghost"
+                  size="sm"
                   className="text-sm font-medium text-[#7578EC] hover:text-[#7578EC] hover:bg-[#7578EC]/10"
-                  onClick={() => router.push('/budgets')}
+                  onClick={() => {
+                    const params = new URLSearchParams();
+                    if (selectedGroupFilter !== 'all') {
+                      params.set('member', selectedGroupFilter);
+                    }
+                    const url = params.toString() ? `/budgets?${params.toString()}` : '/budgets';
+                    router.push(url);
+                  }}
                 >
-                  Go to
+                  Vai a
                   <ChevronRight className="ml-1 h-4 w-4" />
                 </Button>
               </div>
-              
-              <Card className="bg-white shadow-sm border border-gray-200 py-0">
-                <div className="divide-y divide-gray-100">
-                  {budgets.map((budget) => {
+
+              {budgets.length > 0 ? (
+                <Card className="bg-white shadow-sm border border-gray-200 py-0">
+                  <div className="divide-y divide-gray-100">
+                    {budgets.map((budget) => {
                     return (
-                      <div key={budget.id} className="px-4 py-3 hover:bg-gray-50 transition-colors duration-200">
+                      <div
+                        key={budget.id}
+                        className="px-4 py-3 hover:bg-gray-50 transition-colors duration-200 cursor-pointer"
+                        onClick={() => {
+                          const params = new URLSearchParams();
+                          params.set('budget', budget.id);
+                          if (selectedGroupFilter !== 'all') {
+                            params.set('member', selectedGroupFilter);
+                          }
+                          router.push(`/budgets?${params.toString()}`);
+                        }}
+                      >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3 flex-1">
                             <div className={`flex size-10 items-center justify-center rounded-full ${budget.color} bg-opacity-10`}>
@@ -234,42 +216,60 @@ export default function DashboardPage() {
                             <div className="flex-1">
                               <h3 className="font-semibold text-gray-900">{budget.name}</h3>
                               <p className="text-sm text-gray-500">
-                                ${budget.spent} of ${budget.amount}
+                                {formatCurrency(budget.spent)} di {formatCurrency(budget.amount)}
                               </p>
                             </div>
                           </div>
                           <div className="text-right">
                             <p className={`text-sm font-semibold ${(budget.amount - budget.spent) <= 0 ? 'text-red-600' : 'text-green-600'}`}>
-                              ${(budget.amount - budget.spent).toFixed(0)} left
+                              {(budget.amount - budget.spent) <= 0 ? 'Budget superato' : `${formatCurrency(budget.amount - budget.spent)} rimanenti`}
                             </p>
                           </div>
                         </div>
                       </div>
                     );
-                  })}
+                    })}
+                  </div>
+                </Card>
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-gray-500">Nessun budget trovato</p>
                 </div>
-              </Card>
+              )}
             </section>
 
             {/* Upcoming Transactions Section */}
             <section className="mb-6">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold tracking-tight text-gray-900">Upcoming Transactions</h2>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
+                <h2 className="text-xl font-bold tracking-tight text-gray-900">Transazioni Programmate</h2>
+                <Button
+                  variant="ghost"
+                  size="sm"
                   className="text-sm font-medium text-[#7578EC] hover:text-[#7578EC] hover:bg-[#7578EC]/10"
-                  onClick={() => router.push('/transactions?from=dashboard&tab=recurrent')}
+                  onClick={() => {
+                    const params = new URLSearchParams();
+                    params.set('from', 'dashboard');
+                    params.set('tab', 'recurrent');
+                    if (selectedGroupFilter !== 'all') {
+                      params.set('member', selectedGroupFilter);
+                    }
+                    router.push(`/transactions?${params.toString()}`);
+                  }}
                 >
-                  Go to
+                  Vai a
                   <ChevronRight className="ml-1 h-4 w-4" />
                 </Button>
               </div>
-              
+
               <div className="space-y-3">
                 {upcomingTransactions.map((transaction) => {
-                  const IconComponent = transaction.icon;
-                  
+                  // Map icon names to components
+                  const iconMap = {
+                    "Home": Home,
+                    "Wifi": Wifi
+                  };
+                  const IconComponent = iconMap[transaction.icon as keyof typeof iconMap] || Home;
+
                   return (
                     <Card key={transaction.id} className="bg-white shadow-sm border border-gray-200 py-0">
                       <div className="p-3">
@@ -280,12 +280,12 @@ export default function DashboardPage() {
                             </div>
                             <div className="flex-1">
                               <h3 className="font-semibold text-gray-900">{transaction.title}</h3>
-                              <p className="text-sm text-gray-500">{transaction.bankAccount} • {transaction.daysRemaining} days remaining</p>
+                              <p className="text-sm text-gray-500">{transaction.bankAccount} • {transaction.daysRemaining} giorni rimanenti</p>
                             </div>
                           </div>
                           <div className="text-right ml-4">
                             <p className="text-lg font-bold text-red-600">
-                              -${transaction.amount.toLocaleString('en-US')}
+                              -{formatCurrency(transaction.amount)}
                             </p>
                           </div>
                         </div>

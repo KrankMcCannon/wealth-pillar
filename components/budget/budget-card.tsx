@@ -2,41 +2,8 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { BudgetWithSpent, BudgetPeriods } from "@/lib/types";
-import { getBudgetPeriod } from "@/lib/dummy-data";
-
-interface BudgetCardProps {
-  budget: BudgetWithSpent;
-  variant?: 'compact' | 'detailed';
-  className?: string;
-}
-
-const getCategoryIcon = (category: string) => {
-  const icons: Record<string, string> = {
-    'Alimentari': '🍽️',
-    'Trasporti': '🚗',
-    'Intrattenimento': '🎬',
-    'Shopping': '🛍️',
-    'Salute': '💊',
-    'Bollette': '⚡',
-    'Casa': '🏠',
-    'Risparmio': '💰',
-  };
-  return icons[category] || '📄';
-};
-
-const getProgressColor = (percentage: number) => {
-  if (percentage >= 100) return 'bg-finance-negative';
-  if (percentage >= 80) return 'bg-finance-warning';
-  if (percentage >= 60) return 'bg-deep-ocean-blue';
-  return 'bg-finance-positive';
-};
-
-const getStatusColor = (percentage: number) => {
-  if (percentage >= 100) return 'text-finance-negative bg-finance-negative-subtle';
-  if (percentage >= 80) return 'text-finance-warning bg-finance-warning-subtle';
-  return 'text-finance-positive bg-finance-positive-subtle';
-};
+import { BudgetPeriods, BudgetCardProps } from "@/lib/types";
+import { getBudgetPeriod, getCategoryIcon, getProgressColor, getStatusColor } from "@/lib/utils";
 
 export function BudgetCard({ budget, variant = 'compact', className = '' }: BudgetCardProps) {
   const period = getBudgetPeriod(budget);
