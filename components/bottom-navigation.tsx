@@ -47,7 +47,6 @@ export default function BottomNavigation() {
               }`}
             >
               <IconComponent className="h-5 w-5" />
-              <span className="text-xs font-medium">{item.label}</span>
             </Link>
           );
         })}

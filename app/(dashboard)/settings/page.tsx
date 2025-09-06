@@ -5,28 +5,26 @@ import { useMemo } from "react";
 import BottomNavigation from "../../../components/bottom-navigation";
 import {
   currentUser,
-  currentUserPlan,
-  groupMembers
+  dummyUsers
 } from "@/lib/dummy-data";
 import {
-  formatDate,
-  getPlanBadgeColor,
+  formatDate
 } from "@/lib/utils";
 
 export default function SettingsPage() {
   const router = useRouter();
 
   const planBadgeColor = useMemo(() => {
-    return getPlanBadgeColor(currentUserPlan.type);
+    return 'text-purple-600';
   }, []);
 
   const planInfo = useMemo(() => {
     return {
-      name: currentUserPlan.name,
-      color: planBadgeColor.split(' ')[1],
-      bgColor: planBadgeColor.split(' ')[0]
+      name: 'Premium Plan',
+      color: 'text-purple-600',
+      bgColor: 'bg-purple-100'
     };
-  }, [planBadgeColor]);
+  }, []);
 
   return (
     <div className="relative flex size-full min-h-[100dvh] flex-col justify-between overflow-x-hidden" style={{ fontFamily: '"Spline Sans", "Noto Sans", sans-serif', backgroundColor: '#F8FAFC' }}>
@@ -84,7 +82,7 @@ export default function SettingsPage() {
                 </div>
                 <div className="flex items-center justify-between py-2">
                   <span className="text-sm text-gray-700">Telefono</span>
-                  <span className="text-sm text-gray-900">{currentUser.phone}</span>
+                  <span className="text-sm text-gray-900">+39 123 456 789</span>
                 </div>
                 <div className="flex items-center justify-between py-2">
                   <span className="text-sm text-gray-700">Piano</span>
@@ -98,12 +96,10 @@ export default function SettingsPage() {
                      currentUser.role === 'member' ? 'Membro' : currentUser.role}
                   </span>
                 </div>
-                {currentUser.groupName && (
-                  <div className="flex items-center justify-between py-2">
-                    <span className="text-sm text-gray-700">Gruppo</span>
-                    <span className="text-sm text-gray-900">{currentUser.groupName}</span>
-                  </div>
-                )}
+                <div className="flex items-center justify-between py-2">
+                  <span className="text-sm text-gray-700">Gruppo</span>
+                  <span className="text-sm text-gray-900">Famiglia Rossi</span>
+                </div>
               </div>
             </div>
           </section>
@@ -117,7 +113,7 @@ export default function SettingsPage() {
                   <svg fill="currentColor" height="16px" viewBox="0 0 256 256" width="16px" xmlns="http://www.w3.org/2000/svg">
                     <path d="M117.25,157.92a60,60,0,1,0-66.5,0A95.83,95.83,0,0,0,3.53,195.63a8,8,0,1,0,13.4,8.74,80,80,0,0,1,134.14,0,8,8,0,0,0,13.4-8.74A95.83,95.83,0,0,0,117.25,157.92ZM40,108a44,44,0,1,1,44,44A44.05,44.05,0,0,1,40,108Zm210.27,98.63a8,8,0,0,1-11.29-.89,64.05,64.05,0,0,0-85,0,8,8,0,0,1-10.4-12.18,80.08,80.08,0,0,1,112.76,0A8,8,0,0,1,250.27,206.63ZM172,120a44,44,0,1,1-16.34-33.89,8,8,0,0,1-11.32-11.32A60,60,0,1,0,172,120Z"></path>
                   </svg>
-                  <span>{groupMembers.length} membri</span>
+                  <span>{dummyUsers.length} membri</span>
                 </div>
               </div>
 
@@ -125,10 +121,10 @@ export default function SettingsPage() {
               <div className="bg-white rounded-xl shadow-sm overflow-hidden mb-4">
                 <div className="p-4 border-b border-gray-100">
                   <h3 className="text-sm font-medium text-gray-900">Membri del Gruppo</h3>
-                  <p className="text-xs text-gray-500 mt-1">{currentUser.groupName}</p>
+                  <p className="text-xs text-gray-500 mt-1">Famiglia Rossi</p>
                 </div>
                 <div className="divide-y divide-gray-100">
-                  {groupMembers.map((member) => (
+                  {dummyUsers.map((member) => (
                     <div key={member.id} className="p-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-sm font-bold">
@@ -149,7 +145,7 @@ export default function SettingsPage() {
                           </span>
                         </div>
                         <p className="text-xs text-gray-500 mt-1">
-                          Iscritto il {formatDate(member.joinDate)}
+                          Iscritto il {formatDate(member.created_at.toISOString())}
                         </p>
                       </div>
                     </div>

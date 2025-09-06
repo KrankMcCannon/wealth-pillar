@@ -11,22 +11,21 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import BottomNavigation from "../../../components/bottom-navigation";
 import {
-  currentUserPlan,
-  membersData,
-  upcomingTransactionsList,
-  recurrentTransactions
+  currentUser,
+  dummyUsers,
+  dummyTransactions,
+  dummyCategoryIcons
 } from "@/lib/dummy-data";
 import {
-  getMemberDataById,
-  filterTransactions,
-  canManageGroup,
+  formatCurrency,
   parseFiltersFromUrl,
+  filterTransactions,
   applySearchFilter,
   getTotalForSection,
-  formatCurrency,
-  formatDateLabel
+  formatDateLabel,
+  isAdmin
 } from "@/lib/utils";
-import { FilterState, CommonCategories, CategoryIcons } from "@/lib/types";
+import { FilterState } from "@/lib/types";
 
 function TransactionsContent() {
   const router = useRouter();
@@ -47,14 +46,13 @@ function TransactionsContent() {
     setFilters(prev => ({ ...prev, member: value }));
   };
 
-  // Get current member data with improved logic
-  const currentMemberData = useMemo(() => {
-    return getMemberDataById(membersData, selectedGroupFilter);
-  }, [selectedGroupFilter]);
-
+  // Get filtered transactions based on selected group filter
   const allTransactions = useMemo(() => {
-    return currentMemberData?.transactions || [];
-  }, [currentMemberData]);
+    if (selectedGroupFilter === 'all') {
+      return dummyTransactions;
+    }
+    return dummyTransactions.filter(tx => tx.user_id === selectedGroupFilter);
+  }, [selectedGroupFilter]);
 
   const filteredTransactions = useMemo(() => {
     return filterTransactions(allTransactions, filters);
@@ -98,18 +96,23 @@ function TransactionsContent() {
     };
   }, [filteredTransactions, searchQuery]);
 
-  // Use centralized recurrent transaction data
+  // Get recurring transactions
   const filteredRecurrentData = useMemo(() => {
+    const recurringTxs = dummyTransactions.filter(tx => 
+      tx.frequency === 'weekly' || tx.frequency === 'biweekly' || tx.frequency === 'yearly'
+    );
+
     if (selectedGroupFilter === 'all') {
       return {
-        upcoming: upcomingTransactionsList,
-        recurrent: recurrentTransactions
+        upcoming: recurringTxs,
+        recurrent: recurringTxs
       };
     }
 
+    const filtered = recurringTxs.filter(tx => tx.user_id === selectedGroupFilter);
     return {
-      upcoming: upcomingTransactionsList.filter(t => t.memberId === selectedGroupFilter),
-      recurrent: recurrentTransactions.filter(t => t.memberId === selectedGroupFilter)
+      upcoming: filtered,
+      recurrent: filtered
     };
   }, [selectedGroupFilter]);
 
@@ -281,14 +284,14 @@ function TransactionsContent() {
       </header>
 
       {/* Group Selector - Only for superadmin and admin */}
-      {canManageGroup(currentUserPlan.type) && (
+      {isAdmin(currentUser) && (
         <section className="bg-[#F8FAFC] px-4 py-3 border-b border-gray-200">
           <div className="flex items-center gap-3 mb-2">
             <Users className="h-4 w-4 text-[#7578EC]" />
             <h3 className="text-sm font-medium text-gray-700">Visualizza Transazioni per:</h3>
           </div>
           <div className="flex gap-2 overflow-x-auto scrollbar-hide">
-            {[{ id: 'all', name: 'Tutti i Membri', avatar: '👥' }, ...membersData].map((member) => (
+            {[{ id: 'all', name: 'Tutti i Membri', avatar: '👥' }, ...dummyUsers].map((member) => (
               <button
                 key={member.id}
                 onClick={() => {
@@ -321,7 +324,7 @@ function TransactionsContent() {
                 <div className="flex gap-2">
                   {searchParams.get('member') && searchParams.get('member') !== 'all' && (
                     <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-blue-300">
-                      Membro: {membersData.find(m => m.id === searchParams.get('member'))?.name || searchParams.get('member')}
+                      Membro: {dummyUsers.find(m => m.id === searchParams.get('member'))?.name || searchParams.get('member')}
                     </Badge>
                   )}
                   {searchParams.get('category') && (
@@ -419,9 +422,9 @@ function TransactionsContent() {
                     <div className="grid grid-cols-2 gap-2">
                       {[
                         { name: "Tutte le Categorie", icon: "📋" },
-                        ...CommonCategories.slice(0, 5).map(cat => ({
+                        ...Object.keys(dummyCategoryIcons).slice(0, 5).map(cat => ({
                           name: cat,
-                          icon: CategoryIcons[cat] || "📊"
+                          icon: dummyCategoryIcons[cat] || "📊"
                         }))
                       ].map((category) => (
                         <Button
@@ -484,14 +487,14 @@ function TransactionsContent() {
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
                             <div className="flex size-12 items-center justify-center rounded-full bg-[#EFF2FE] text-[#7578EC]">
-                              <span className="text-lg">{transaction.icon}</span>
+                              <span className="text-lg">{dummyCategoryIcons[transaction.category] || "💳"}</span>
                             </div>
                             <div className="flex-1">
-                              <h3 className="font-semibold text-gray-900">{transaction.title}</h3>
+                              <h3 className="font-semibold text-gray-900">{transaction.description}</h3>
                               <div className="flex items-center gap-2 text-sm text-gray-500">
                                 <span>{transaction.category}</span>
                                 <span>•</span>
-                                <span>{transaction.account}</span>
+                                <span>{transaction.account_id}</span>
                               </div>
                             </div>
                           </div>
@@ -542,17 +545,17 @@ function TransactionsContent() {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div className="flex size-12 items-center justify-center rounded-full bg-orange-100 text-orange-600">
-                          <span className="text-lg">{transaction.icon}</span>
+                          <span className="text-lg">{dummyCategoryIcons[transaction.category] || "💳"}</span>
                         </div>
                         <div className="flex-1">
-                          <h3 className="font-semibold text-gray-900">{transaction.title}</h3>
+                          <h3 className="font-semibold text-gray-900">{transaction.description}</h3>
                           <div className="flex items-center gap-2 text-sm text-gray-500">
                             <Calendar className="h-4 w-4" />
                             <span className="font-medium text-orange-600">
-                              {transaction.daysLeft} giorn{transaction.daysLeft !== 1 ? 'i' : 'o'} rimasti
+                              Ricorrente • {transaction.frequency}
                             </span>
                             <span>•</span>
-                            <span>{transaction.account}</span>
+                            <span>{transaction.account_id}</span>
                           </div>
                         </div>
                       </div>
@@ -588,14 +591,14 @@ function TransactionsContent() {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div className="flex size-12 items-center justify-center rounded-full bg-blue-100 text-blue-600">
-                          <span className="text-lg">{transaction.icon}</span>
+                          <span className="text-lg">{dummyCategoryIcons[transaction.category] || "💳"}</span>
                         </div>
                         <div className="flex-1">
-                          <h3 className="font-semibold text-gray-900">{transaction.title}</h3>
+                          <h3 className="font-semibold text-gray-900">{transaction.description}</h3>
                           <div className="flex items-center gap-2 text-sm text-gray-500">
-                            <span>Prossimo: {new Date(transaction.nextDate).toLocaleDateString('it-IT')}</span>
+                            <span>Ricorrente • {transaction.frequency}</span>
                             <span>•</span>
-                            <span>{transaction.account}</span>
+                            <span>{transaction.account_id}</span>
                           </div>
                         </div>
                       </div>
