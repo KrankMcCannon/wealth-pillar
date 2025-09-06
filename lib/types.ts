@@ -1,6 +1,6 @@
 export type RoleType = 'superadmin' | 'admin' | 'member';
 export type AccountType = 'payroll' | 'savings' | 'cash' | 'investments';
-export type TransactionType = 'income' | 'expense';
+export type TransactionType = 'income' | 'expense' | 'recurrent' | 'transfer';
 export type TransactionStatusType = 'not_reconciled' | 'partly_reconciled' | 'reconciled';
 export type TransactionFrequencyType = 'weekly' | 'biweekly' | 'monthly' | 'yearly';
 export type BudgetType = 'monthly' | 'annually';
@@ -68,7 +68,8 @@ export interface Transaction {
   to_account_id: string | null;
   status: TransactionStatusType;
   linked_transaction_ids: string[] | [];
-  frequency: TransactionFrequencyType;
+  frequency?: TransactionFrequencyType;
+  next_due_date?: Date;
   created_at: Date;
   updated_at: Date;
 }

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, MoreVertical, Plus, Filter, Clock, RotateCcw, Calendar, Search, Users } from "lucide-react";
+import { ArrowLeft, MoreVertical, Plus, Filter, Clock, RotateCcw, Search } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -10,8 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import BottomNavigation from "../../../components/bottom-navigation";
+import UserSelector from "@/components/user-selector";
 import {
-  currentUser,
   dummyUsers,
   dummyTransactions,
   dummyCategoryIcons
@@ -23,7 +23,11 @@ import {
   applySearchFilter,
   getTotalForSection,
   formatDateLabel,
-  isAdmin
+  formatDueDate,
+  groupUpcomingTransactionsByDaysRemaining,
+  getCategoryLabel,
+  getAccountName,
+  truncateText,
 } from "@/lib/utils";
 import { FilterState } from "@/lib/types";
 
@@ -99,19 +103,16 @@ function TransactionsContent() {
   // Get recurring transactions
   const filteredRecurrentData = useMemo(() => {
     const recurringTxs = dummyTransactions.filter(tx => 
-      tx.frequency === 'weekly' || tx.frequency === 'biweekly' || tx.frequency === 'yearly'
+      tx.frequency && (tx.frequency === 'weekly' || tx.frequency === 'biweekly' || tx.frequency === 'monthly' || tx.frequency === 'yearly')
     );
 
-    if (selectedGroupFilter === 'all') {
-      return {
-        upcoming: recurringTxs,
-        recurrent: recurringTxs
-      };
-    }
-
-    const filtered = recurringTxs.filter(tx => tx.user_id === selectedGroupFilter);
+    const filtered = selectedGroupFilter === 'all' ? recurringTxs : recurringTxs.filter(tx => tx.user_id === selectedGroupFilter);
+    
+    // Group upcoming transactions by days remaining
+    const upcomingGrouped = groupUpcomingTransactionsByDaysRemaining(filtered);
+    
     return {
-      upcoming: filtered,
+      upcomingGrouped,
       recurrent: filtered
     };
   }, [selectedGroupFilter]);
@@ -225,41 +226,41 @@ function TransactionsContent() {
   };
 
   return (
-    <div className="relative flex size-full min-h-[100dvh] flex-col" style={{ fontFamily: '"Spline Sans", "Noto Sans", sans-serif', backgroundColor: '#F8FAFC' }}>
+    <div className="relative flex size-full min-h-[100dvh] flex-col bg-gradient-to-br from-slate-50 via-white to-slate-100" style={{ fontFamily: '"Inter", "SF Pro Display", system-ui, sans-serif' }}>
       {/* Header */}
-      <header className="sticky top-0 z-10 bg-[#F8FAFC]/80 p-4 pb-2 backdrop-blur-sm">
+      <header className="sticky top-0 z-20 bg-white/70 backdrop-blur-xl border-b border-slate-200/50 px-3 sm:px-4 py-2 sm:py-3 shadow-sm">
         <div className="flex items-center justify-between">
           {/* Left - Back button */}
           <Button
             variant="ghost"
             size="sm"
-            className="hover:bg-[#7578EC]/10 text-[#7578EC]"
+            className="hover:bg-[#7578EC]/10 text-[#7578EC] hover:text-[#7578EC] rounded-xl transition-all duration-200 p-2 sm:p-3 min-w-[44px] min-h-[44px] flex items-center justify-center group hover:scale-105"
             onClick={handleBackClick}
           >
-            <ArrowLeft className="h-5 w-5" />
+            <ArrowLeft className="h-5 w-5 sm:h-6 sm:w-6 group-hover:-translate-x-0.5 transition-transform duration-200" />
           </Button>
 
           {/* Center - Title */}
-          <h1 className="text-xl font-bold tracking-tight text-gray-900">Transazioni</h1>
+          <h1 className="text-lg sm:text-xl font-bold tracking-tight bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">Transazioni</h1>
 
           {/* Right - Menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="hover:bg-[#7578EC]/10 text-[#7578EC]">
-                <MoreVertical className="h-5 w-5" />
+              <Button variant="ghost" size="sm" className="hover:bg-[#7578EC]/10 text-[#7578EC] hover:text-[#7578EC] rounded-xl transition-all duration-200 p-2 sm:p-3 min-w-[44px] min-h-[44px] flex items-center justify-center group hover:scale-105">
+                <MoreVertical className="h-5 w-5 group-hover:rotate-90 transition-transform duration-300" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent
               align="end"
-              className="w-56 bg-white/95 backdrop-blur-md border border-gray-200/60 shadow-xl rounded-xl p-2"
-              sideOffset={8}
+              className="w-60 bg-white/95 backdrop-blur-xl border border-slate-200/50 shadow-2xl rounded-2xl p-3 animate-in slide-in-from-top-2 duration-200"
+              sideOffset={12}
             >
-              <DropdownMenuItem className="text-sm font-medium text-gray-700 hover:bg-[#7578EC]/10 hover:text-[#7578EC] rounded-lg px-3 py-2.5 cursor-pointer transition-colors">
-                <Plus className="mr-2 h-4 w-4" />
+              <DropdownMenuItem className="text-sm font-semibold text-slate-700 hover:bg-[#7578EC]/10 hover:text-[#7578EC] rounded-xl px-3 py-3 cursor-pointer transition-all duration-200 group">
+                <Plus className="mr-3 h-4 w-4 group-hover:scale-110 transition-transform duration-200" />
                 Aggiungi Transazione
               </DropdownMenuItem>
-              <DropdownMenuItem className="text-sm font-medium text-gray-700 hover:bg-[#7578EC]/10 hover:text-[#7578EC] rounded-lg px-3 py-2.5 cursor-pointer transition-colors">
-                <RotateCcw className="mr-2 h-4 w-4" />
+              <DropdownMenuItem className="text-sm font-semibold text-slate-700 hover:bg-[#7578EC]/10 hover:text-[#7578EC] rounded-xl px-3 py-3 cursor-pointer transition-all duration-200 group">
+                <RotateCcw className="mr-3 h-4 w-4 group-hover:rotate-180 transition-transform duration-200" />
                 Aggiungi Transazione Ricorrente
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -267,14 +268,14 @@ function TransactionsContent() {
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex gap-1 mt-4 bg-white/50 backdrop-blur-sm rounded-xl p-1">
+        <div className="flex gap-2 mt-4 p-1.5 bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-200/50 shadow-lg">
           {[{ key: "Transactions", label: "Transazioni" }, { key: "Recurrent", label: "Ricorrenti" }].map((tab) => (
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`flex-1 py-2.5 px-4 text-sm font-medium rounded-lg transition-all duration-200 ${activeTab === tab.key
-                ? "bg-[#7578EC] text-white shadow-sm"
-                : "text-gray-600 hover:text-gray-900 hover:bg-white/50"
+              className={`flex-1 py-3 px-6 text-sm font-semibold rounded-xl transition-all duration-300 group ${activeTab === tab.key
+                ? "bg-[#7578EC] text-white shadow-lg shadow-[#7578EC]/25 scale-[1.02]"
+                : "text-slate-600 hover:text-slate-900 hover:bg-white/70 hover:shadow-md"
                 }`}
             >
               {tab.label}
@@ -283,37 +284,13 @@ function TransactionsContent() {
         </div>
       </header>
 
-      {/* Group Selector - Only for superadmin and admin */}
-      {isAdmin(currentUser) && (
-        <section className="bg-[#F8FAFC] px-4 py-3 border-b border-gray-200">
-          <div className="flex items-center gap-3 mb-2">
-            <Users className="h-4 w-4 text-[#7578EC]" />
-            <h3 className="text-sm font-medium text-gray-700">Visualizza Transazioni per:</h3>
-          </div>
-          <div className="flex gap-2 overflow-x-auto scrollbar-hide">
-            {[{ id: 'all', name: 'Tutti i Membri', avatar: '👥' }, ...dummyUsers].map((member) => (
-              <button
-                key={member.id}
-                onClick={() => {
-                  setFilters(prev => ({ ...prev, member: member.id }));
-                }}
-                className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${selectedGroupFilter === member.id
-                    ? "bg-[#7578EC] text-white"
-                    : "bg-white text-gray-700 hover:bg-gray-100"
-                  }`}
-              >
-                <span className="text-sm">{member.avatar}</span>
-                {member.name}
-              </button>
-            ))}
-          </div>
-        </section>
-      )}
+      <UserSelector 
+        selectedGroupFilter={selectedGroupFilter}
+        onGroupFilterChange={(groupId) => setFilters(prev => ({ ...prev, member: groupId }))}
+        className="bg-[#F8FAFC] border-gray-200"
+      />
 
-      {/* Divider Line */}
-      <div className="h-px bg-gray-200 mx-4"></div>
-
-      <main className="flex-1 p-4 space-y-6 pb-20">
+      <main className="flex-1 p-3 space-y-6 pb-20">
         {/* Active Filters Display - Show when coming from budgets */}
         {(searchParams.get('from') === 'budgets' && (searchParams.get('member') || searchParams.get('category'))) && (
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
@@ -350,79 +327,88 @@ function TransactionsContent() {
           </div>
         )}
 
-        {/* Search and Filter System */}
+        {/* Modern Search and Filter System */}
         {activeTab === "Transactions" && (
           <div className="flex items-center gap-3">
-            {/* Search Bar */}
+            {/* Enhanced Search Bar */}
             <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[#7578EC] z-10" />
               <Input
                 type="text"
                 placeholder="Cerca transazioni..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="rounded-full pl-10 bg-white border-gray-200 focus:border-[#7578EC] focus:ring-[#7578EC]/20 h-10"
+                className="rounded-2xl pl-12 pr-4 py-3 bg-white/80 backdrop-blur-sm border border-slate-200/50 focus:border-[#7578EC]/60 focus:ring-4 focus:ring-[#7578EC]/10 h-12 text-slate-700 placeholder:text-slate-400 shadow-lg shadow-slate-200/30 transition-all duration-300 hover:shadow-xl hover:shadow-slate-200/40"
               />
             </div>
 
-            {/* Rounded Filter Button */}
+            {/* Enhanced Filter Button */}
             <Dialog open={isFilterModalOpen} onOpenChange={setIsFilterModalOpen}>
               <DialogTrigger asChild>
                 <Button
                   variant="outline"
-                  className={`rounded-full border-gray-200 hover:bg-[#7578EC]/10 hover:border-[#7578EC]/40 w-10 h-10 p-0 ${(selectedFilter !== "All" || selectedCategory !== "Tutte le Categorie" || searchQuery !== "")
-                      ? "bg-[#7578EC] text-white hover:bg-[#7578EC]/90"
-                      : "bg-white"
+                  className={`rounded-2xl border-slate-200/50 hover:bg-[#7578EC]/10 hover:border-[#7578EC]/40 w-12 h-12 p-0 shadow-lg shadow-slate-200/30 hover:shadow-xl hover:shadow-slate-200/40 transition-all duration-300 hover:scale-105 group ${(selectedFilter !== "All" || selectedCategory !== "Tutte le Categorie" || searchQuery !== "")
+                      ? "bg-gradient-to-r from-[#7578EC] to-[#6366F1] text-white hover:from-[#6366F1] hover:to-[#7578EC] border-transparent shadow-[#7578EC]/30"
+                      : "bg-white/80 backdrop-blur-sm"
                     }`}
                 >
                   <Filter
-                    className={`h-4 w-4 ${(selectedFilter !== "All" || selectedCategory !== "Tutte le Categorie" || searchQuery !== "")
-                        ? "fill-current"
-                        : ""
+                    className={`h-5 w-5 transition-all duration-200 group-hover:rotate-12 ${(selectedFilter !== "All" || selectedCategory !== "Tutte le Categorie" || searchQuery !== "")
+                        ? "fill-current drop-shadow-sm"
+                        : "text-slate-600"
                       }`}
                   />
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-md bg-white">
+              <DialogContent className="sm:max-w-lg bg-white/95 backdrop-blur-xl border border-slate-200/50 shadow-2xl rounded-3xl">
                 <DialogHeader>
-                  <DialogTitle className="flex items-center gap-2">
-                    <Filter className="h-5 w-5 text-[#7578EC]" />
+                  <DialogTitle className="flex items-center gap-3 text-xl font-bold text-slate-900">
+                    <div className="flex items-center justify-center w-10 h-10 rounded-2xl bg-gradient-to-br from-[#7578EC]/10 to-[#6366F1]/10 border border-[#7578EC]/20">
+                      <Filter className="h-5 w-5 text-[#7578EC]" />
+                    </div>
                     Filtra Transazioni
                   </DialogTitle>
                 </DialogHeader>
 
-                <div className="space-y-6 pt-4">
-                  {/* Transaction Type Filter */}
-                  <div className="space-y-3">
-                    <h4 className="text-sm font-medium text-gray-700">Tipo Transazione</h4>
-                    <div className="grid grid-cols-3 gap-2">
-                      {[{ key: "All", label: "Tutti" }, { key: "Income", label: "Entrate" }, { key: "Expenses", label: "Spese" }].map((type) => (
+                <div className="space-y-8 pt-6">
+                  {/* Enhanced Transaction Type Filter */}
+                  <div className="space-y-4">
+                    <h4 className="text-base font-semibold text-slate-800 flex items-center gap-2">
+                      <span className="text-xl">🏷️</span>
+                      Tipo Transazione
+                    </h4>
+                    <div className="grid grid-cols-3 gap-3">
+                      {[{ key: "All", label: "Tutti", icon: "📊", color: "slate" }, { key: "Income", label: "Entrate", icon: "💚", color: "green" }, { key: "Expenses", label: "Spese", icon: "💸", color: "red" }].map((type) => (
                         <Button
                           key={type.key}
                           variant={selectedFilter === type.key ? "default" : "outline"}
-                          size="sm"
+                          size="default"
                           onClick={() => setSelectedFilter(type.key)}
-                          className={selectedFilter === type.key
-                            ? "bg-[#7578EC] hover:bg-[#7578EC]/90 text-white"
-                            : "bg-white hover:bg-[#7578EC]/10 hover:text-[#7578EC]"
-                          }
+                          className={`rounded-2xl py-4 px-3 transition-all duration-300 hover:scale-105 group ${
+                            selectedFilter === type.key
+                              ? "bg-gradient-to-r from-[#7578EC] to-[#6366F1] hover:from-[#6366F1] hover:to-[#7578EC] text-white shadow-lg shadow-[#7578EC]/30 border-transparent"
+                              : "bg-white/80 backdrop-blur-sm hover:bg-[#7578EC]/10 hover:text-[#7578EC] border-slate-200/50 hover:border-[#7578EC]/40 hover:shadow-lg hover:shadow-slate-200/50"
+                          }`}
                         >
-                          {type.key === "All" && "📊"}
-                          {type.key === "Income" && "💚"}
-                          {type.key === "Expenses" && "💸"}
-                          <span className="ml-1">{type.label}</span>
+                          <div className="flex flex-col items-center gap-2">
+                            <span className={`text-lg transition-transform duration-200 group-hover:scale-110 ${selectedFilter === type.key ? 'drop-shadow-sm' : ''}`}>{type.icon}</span>
+                            <span className="text-sm font-semibold">{type.label}</span>
+                          </div>
                         </Button>
                       ))}
                     </div>
                   </div>
 
-                  {/* Category Filter */}
-                  <div className="space-y-3">
-                    <h4 className="text-sm font-medium text-gray-700">Categoria</h4>
-                    <div className="grid grid-cols-2 gap-2">
+                  {/* Enhanced Category Filter */}
+                  <div className="space-y-4">
+                    <h4 className="text-base font-semibold text-slate-800 flex items-center gap-2">
+                      <span className="text-xl">🎯</span>
+                      Categoria
+                    </h4>
+                    <div className="grid grid-cols-2 gap-3 max-h-64 overflow-y-auto">
                       {[
                         { name: "Tutte le Categorie", icon: "📋" },
-                        ...Object.keys(dummyCategoryIcons).slice(0, 5).map(cat => ({
+                        ...Object.keys(dummyCategoryIcons).slice(0, 7).map(cat => ({
                           name: cat,
                           icon: dummyCategoryIcons[cat] || "📊"
                         }))
@@ -430,33 +416,37 @@ function TransactionsContent() {
                         <Button
                           key={category.name}
                           variant={selectedCategory === category.name ? "default" : "outline"}
-                          size="sm"
+                          size="default"
                           onClick={() => setSelectedCategory(category.name)}
-                          className={`justify-start ${selectedCategory === category.name
-                            ? "bg-[#7578EC] hover:bg-[#7578EC]/90 text-white"
-                            : "bg-white hover:bg-[#7578EC]/10 hover:text-[#7578EC]"
-                            }`}
+                          className={`justify-start py-3 px-4 rounded-2xl transition-all duration-300 hover:scale-105 group ${
+                            selectedCategory === category.name
+                              ? "bg-gradient-to-r from-[#7578EC] to-[#6366F1] hover:from-[#6366F1] hover:to-[#7578EC] text-white shadow-lg shadow-[#7578EC]/30 border-transparent"
+                              : "bg-white/80 backdrop-blur-sm hover:bg-[#7578EC]/10 hover:text-[#7578EC] border-slate-200/50 hover:border-[#7578EC]/40 hover:shadow-lg hover:shadow-slate-200/50"
+                          }`}
                         >
-                          <span className="mr-2">{category.icon}</span>
-                          {category.name}
+                          <span className={`mr-3 text-lg transition-transform duration-200 group-hover:scale-110 ${selectedCategory === category.name ? 'drop-shadow-sm' : ''}`}>{category.icon}</span>
+                          <span className="font-medium truncate">{category.name}</span>
                         </Button>
                       ))}
                     </div>
                   </div>
 
-                  {/* Reset Filters Button */}
-                  <div className="pt-2 border-t">
+                  {/* Enhanced Reset Filters Button */}
+                  <div className="pt-4 border-t border-slate-200/50">
                     <Button
                       variant="ghost"
-                      size="sm"
+                      size="default"
                       onClick={() => {
                         setSelectedFilter("All");
                         setSelectedCategory("Tutte le Categorie");
                         setSearchQuery("");
                       }}
-                      className="w-full text-gray-600 hover:text-[#7578EC] hover:bg-[#7578EC]/10"
+                      className="w-full py-3 px-4 rounded-2xl text-slate-600 hover:text-[#7578EC] hover:bg-[#7578EC]/10 font-semibold transition-all duration-300 hover:scale-105 group border border-slate-200/50 hover:border-[#7578EC]/40 hover:shadow-md"
                     >
-                      Ripristina Tutti i Filtri
+                      <div className="flex items-center justify-center gap-2">
+                        <span className="text-lg group-hover:rotate-180 transition-transform duration-300">🔄</span>
+                        <span>Ripristina Tutti i Filtri</span>
+                      </div>
                     </Button>
                   </div>
                 </div>
@@ -471,7 +461,7 @@ function TransactionsContent() {
             {processedTransactionData.dayGroups.length > 0 ? (
               processedTransactionData.dayGroups.map((dayGroup) => (
                 <section key={dayGroup.date}>
-                  <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center justify-between mb-2">
                     <h2 className="text-lg font-bold tracking-tight text-gray-900">{dayGroup.dateLabel}</h2>
                     <div className="flex items-center gap-2">
                       <span className="text-sm text-gray-500">Totale:</span>
@@ -483,23 +473,26 @@ function TransactionsContent() {
 
                   <div className="space-y-3">
                     {dayGroup.transactions.map((transaction) => (
-                      <Card key={transaction.id} className="p-3 bg-white shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200">
+                      <Card key={transaction.id} className="p-3 mb-2 bg-white/80 backdrop-blur-sm shadow-lg shadow-slate-200/50 border border-white/50 hover:shadow-xl hover:shadow-slate-200/60 transition-all duration-300 rounded-2xl group cursor-pointer hover:scale-[1.01]">
                         <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className="flex size-12 items-center justify-center rounded-full bg-[#EFF2FE] text-[#7578EC]">
-                              <span className="text-lg">{dummyCategoryIcons[transaction.category] || "💳"}</span>
+                          <div className="flex items-center gap-3 flex-1 min-w-0">
+                            <div className="flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#7578EC]/10 to-[#7578EC]/5 text-[#7578EC] shadow-md shadow-slate-200/30 group-hover:shadow-lg transition-all duration-200 shrink-0">
+                              <span className="text-base">{dummyCategoryIcons[transaction.category] || "💳"}</span>
                             </div>
-                            <div className="flex-1">
-                              <h3 className="font-semibold text-gray-900">{transaction.description}</h3>
-                              <div className="flex items-center gap-2 text-sm text-gray-500">
-                                <span>{transaction.category}</span>
-                                <span>•</span>
-                                <span>{transaction.account_id}</span>
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-semibold text-slate-900 group-hover:text-slate-800 transition-colors truncate text-sm mb-1">{transaction.description}</h3>
+                              <div className="space-y-0.5">
+                                <div className="text-xs text-gray-600">
+                                  {truncateText(getAccountName(transaction.account_id), 20)}
+                                </div>
+                                <div className="text-xs text-gray-500">
+                                  {getCategoryLabel(transaction.category)}
+                                </div>
                               </div>
                             </div>
                           </div>
                           <div className="text-right">
-                            <p className={`text-lg font-bold ${transaction.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
+                            <p className={`text-base font-bold ${transaction.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
                               {formatCurrency(transaction.type === 'income' ? transaction.amount : -transaction.amount)}
                             </p>
                           </div>
@@ -529,46 +522,58 @@ function TransactionsContent() {
 
             {/* Upcoming Payments Section */}
             <section>
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center justify-between mb-2">
                 <h2 className="text-lg font-bold tracking-tight text-gray-900 flex items-center gap-2">
                   <Clock className="h-5 w-5 text-orange-500" />
                   In Scadenza
                 </h2>
                 <Badge className="bg-orange-100 text-orange-700 border-orange-200">
-                  {filteredRecurrentData.upcoming.length} pagamenti
+                  {Object.values(filteredRecurrentData.upcomingGrouped).flat().length} pagamenti
                 </Badge>
               </div>
 
-              <div className="space-y-3">
-                {filteredRecurrentData.upcoming.map((transaction) => (
-                  <Card key={transaction.id} className="p-3 bg-gradient-to-r from-orange-50 to-white border border-orange-100 hover:shadow-md transition-shadow duration-200">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="flex size-12 items-center justify-center rounded-full bg-orange-100 text-orange-600">
-                          <span className="text-lg">{dummyCategoryIcons[transaction.category] || "💳"}</span>
-                        </div>
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-gray-900">{transaction.description}</h3>
-                          <div className="flex items-center gap-2 text-sm text-gray-500">
-                            <Calendar className="h-4 w-4" />
-                            <span className="font-medium text-orange-600">
-                              Ricorrente • {transaction.frequency}
-                            </span>
-                            <span>•</span>
-                            <span>{transaction.account_id}</span>
+              <div className="space-y-6">
+                {Object.entries(filteredRecurrentData.upcomingGrouped).map(([groupName, transactions]) => (
+                  <div key={groupName}>
+                    <h3 className="text-sm font-semibold text-orange-700 mb-3 flex items-center gap-2">
+                      <span className="w-2 h-2 bg-orange-500 rounded-full"></span>
+                      {groupName} ({transactions.length})
+                    </h3>
+                    <div className="space-y-2">
+                      {transactions.map((transaction) => (
+                        <Card key={transaction.id} className="p-3 bg-gradient-to-r from-orange-50/80 via-white/80 to-white/60 backdrop-blur-sm border border-orange-200/50 hover:shadow-xl hover:shadow-orange-200/30 transition-all duration-300 rounded-2xl group cursor-pointer hover:scale-[1.01] hover:bg-gradient-to-r hover:from-orange-50 hover:via-white hover:to-white">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3 flex-1 min-w-0">
+                              <div className="flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-orange-100 to-orange-50 text-orange-600 shadow-md shadow-orange-200/30 group-hover:shadow-lg group-hover:shadow-orange-200/40 transition-all duration-300 shrink-0 border border-orange-200/50">
+                                <span className="text-base">{dummyCategoryIcons[transaction.category] || "💳"}</span>
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <h3 className="font-semibold text-slate-900 group-hover:text-slate-800 transition-colors truncate text-sm mb-1">{transaction.description}</h3>
+                                <div className="space-y-0.5">
+                                  <div className="text-xs text-gray-600">
+                                    {truncateText(getAccountName(transaction.account_id), 20)}
+                                  </div>
+                                  {transaction.next_due_date && (
+                                    <div className="text-xs text-orange-600 font-medium">
+                                      {formatDueDate(transaction.next_due_date)}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-base font-bold text-orange-600 mb-1">
+                                {formatCurrency(-transaction.amount)}
+                              </p>
+                              <Badge variant="outline" className="text-xs border-orange-200/70 text-orange-700 bg-orange-50/50 font-medium px-2 py-1">
+                                {transaction.frequency ? `${transaction.frequency}` : 'Una volta'}
+                              </Badge>
+                            </div>
                           </div>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-lg font-bold text-orange-600">
-                          {formatCurrency(-transaction.amount)}
-                        </p>
-                        <Badge variant="outline" className="text-xs border-orange-200 text-orange-700">
-                          {transaction.category}
-                        </Badge>
-                      </div>
+                        </Card>
+                      ))}
                     </div>
-                  </Card>
+                  </div>
                 ))}
               </div>
             </section>
@@ -587,27 +592,25 @@ function TransactionsContent() {
 
               <div className="space-y-3">
                 {filteredRecurrentData.recurrent.map((transaction) => (
-                  <Card key={transaction.id} className="p-3 bg-gradient-to-r from-blue-50 to-white border border-blue-100 hover:shadow-md transition-shadow duration-200">
+                  <Card key={transaction.id} className="p-4 bg-gradient-to-r from-blue-50/80 via-white/80 to-white/60 backdrop-blur-sm border border-blue-200/50 hover:shadow-xl hover:shadow-blue-200/30 transition-all duration-300 rounded-2xl group cursor-pointer hover:scale-[1.01] hover:bg-gradient-to-r hover:from-blue-50 hover:via-white hover:to-white">
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="flex size-12 items-center justify-center rounded-full bg-blue-100 text-blue-600">
-                          <span className="text-lg">{dummyCategoryIcons[transaction.category] || "💳"}</span>
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
+                        <div className="flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-100 to-blue-50 text-blue-600 shadow-md shadow-blue-200/30 group-hover:shadow-lg group-hover:shadow-blue-200/40 transition-all duration-300 shrink-0 border border-blue-200/50">
+                          <span className="text-base">{dummyCategoryIcons[transaction.category] || "💳"}</span>
                         </div>
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-gray-900">{transaction.description}</h3>
-                          <div className="flex items-center gap-2 text-sm text-gray-500">
-                            <span>Ricorrente • {transaction.frequency}</span>
-                            <span>•</span>
-                            <span>{transaction.account_id}</span>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold text-slate-900 group-hover:text-slate-800 transition-colors truncate text-sm mb-1">{transaction.description}</h3>
+                          <div className="text-xs text-gray-600">
+                            {truncateText(getAccountName(transaction.account_id), 20)}
                           </div>
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="text-lg font-bold text-blue-600">
+                        <p className="text-base font-bold text-blue-600 mb-1">
                           {formatCurrency(transaction.amount)}
                         </p>
-                        <Badge variant="outline" className="text-xs border-blue-200 text-blue-700">
-                          {transaction.frequency}
+                        <Badge variant="outline" className="text-xs border-blue-200/70 text-blue-700 bg-blue-50/50 font-medium px-2 py-1">
+                          {transaction.frequency || 'Una volta'}
                         </Badge>
                       </div>
                     </div>

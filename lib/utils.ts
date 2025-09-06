@@ -26,7 +26,7 @@ export const formatCurrency = (amount: number): string => {
       maximumFractionDigits: 2
     }).format(amount);
   } catch {
-    return `€ ${amount.toFixed(2).replace('.', ',')}`;
+    return `€ ${(amount || 0).toFixed(2).replace('.', ',')}`;
   }
 }
 
@@ -34,7 +34,7 @@ export const formatPercentage = (value: number): string => {
   if (isNaN(value) || !isFinite(value)) {
     return '0.00%';
   }
-  return `${Math.round(value * 100) / 100}%`;
+  return `${(Math.round(value * 100) / 100).toFixed(2)}%`;
 }
 
 export const formatDate = (dateString: string): string => {
@@ -216,7 +216,7 @@ export const getFilteredBudgets = (userId?: string): Budget[] => {
 
 export const getRecurringTransactions = (userId?: string): Transaction[] => {
   const allRecurring = dummyTransactions.filter(tx => 
-    tx.frequency === 'weekly' || tx.frequency === 'biweekly' || tx.frequency === 'yearly'
+    tx.frequency && (tx.frequency === 'weekly' || tx.frequency === 'biweekly' || tx.frequency === 'monthly' || tx.frequency === 'yearly')
   );
   
   if (userId && userId !== 'all') {
@@ -248,12 +248,12 @@ export const parseFiltersFromUrl = (searchParams: URLSearchParams): FilterState 
 export const filterTransactions = (transactions: Transaction[], filters: FilterState): Transaction[] => {
   return transactions.filter(transaction => {
     // Filter by category
-    if (filters.category && transaction.category !== filters.category) {
+    if (filters.category && filters.category !== 'all' && transaction.category !== filters.category) {
       return false;
     }
 
     // Filter by type
-    if (filters.type && transaction.type !== filters.type) {
+    if (filters.type && filters.type !== 'all' && transaction.type !== filters.type) {
       return false;
     }
 
@@ -305,4 +305,155 @@ export const formatDateLabel = (date: string): string => {
   } catch {
     return formatDate(date);
   }
+};
+
+export const formatDueDate = (dueDate: Date): string => {
+  try {
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    const daysDiff = Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    
+    if (daysDiff === 0) {
+      return 'Oggi';
+    } else if (daysDiff === 1) {
+      return 'Domani';
+    } else if (daysDiff < 7) {
+      return `Tra ${daysDiff} giorni`;
+    } else {
+      return formatDate(dueDate.toISOString().split('T')[0]);
+    }
+  } catch {
+    return 'Data non valida';
+  }
+};
+
+export const getDaysUntilDue = (dueDate: Date): number => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const due = new Date(dueDate);
+  due.setHours(0, 0, 0, 0);
+  
+  return Math.ceil((due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+};
+
+export const groupUpcomingTransactionsByDaysRemaining = (transactions: Transaction[]): Record<string, Transaction[]> => {
+  const grouped: Record<string, Transaction[]> = {};
+  
+  transactions
+    .filter(tx => tx.next_due_date && tx.frequency)
+    .forEach(transaction => {
+      if (!transaction.next_due_date) return;
+      
+      const daysUntil = getDaysUntilDue(transaction.next_due_date);
+      let groupKey: string;
+      let sortOrder: number;
+      
+      if (daysUntil === 0) {
+        groupKey = 'Oggi';
+        sortOrder = 0;
+      } else if (daysUntil === 1) {
+        groupKey = 'Domani';
+        sortOrder = 1;
+      } else if (daysUntil <= 7) {
+        groupKey = 'Prossimi 7 giorni';
+        sortOrder = 2;
+      } else if (daysUntil <= 15) {
+        groupKey = 'Prossime 2 settimane';
+        sortOrder = 3;
+      } else {
+        groupKey = 'Più di 2 settimane';
+        sortOrder = 4;
+      }
+      
+      if (!grouped[groupKey]) {
+        grouped[groupKey] = [];
+      }
+      grouped[groupKey].push({ ...transaction, _sortOrder: sortOrder } as Transaction & { _sortOrder: number });
+    });
+  
+  // Sort each group by due date (earliest first)
+  Object.keys(grouped).forEach(key => {
+    grouped[key].sort((a, b) => {
+      if (!a.next_due_date || !b.next_due_date) return 0;
+      return a.next_due_date.getTime() - b.next_due_date.getTime();
+    });
+  });
+  
+  // Convert to ordered object with groups sorted by urgency
+  const orderedGroupKeys = Object.keys(grouped).sort((a, b) => {
+    const aTransaction = grouped[a][0] as Transaction & { _sortOrder: number };
+    const bTransaction = grouped[b][0] as Transaction & { _sortOrder: number };
+    return aTransaction._sortOrder - bTransaction._sortOrder;
+  });
+  
+  const orderedGrouped: Record<string, Transaction[]> = {};
+  orderedGroupKeys.forEach(key => {
+    orderedGrouped[key] = grouped[key].map(tx => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { _sortOrder, ...cleanTx } = tx as Transaction & { _sortOrder: number };
+      return cleanTx;
+    });
+  });
+  
+  return orderedGrouped;
+};
+
+// Category labels mapping
+export const categoryLabels: Record<string, string> = {
+  'parrucchiere': 'Parrucchiere',
+  'trasferimento': 'Trasferimento',
+  'altro': 'Altro',
+  'bonifico': 'Bonifico',
+  'abbonamenti_tv': 'Abbonamenti TV',
+  'veterinario': 'Veterinario',
+  'bollo_auto': 'Bollo Auto',
+  'contanti': 'Contanti',
+  'cibo_fuori': 'Ristoranti',
+  'investimenti': 'Investimenti',
+  'yuup_thor': 'Yuup',
+  'palestra': 'Palestra',
+  'spesa': 'Spesa',
+  'bolletta_acqua': 'Bolletta Acqua',
+  'medicine_thor': 'Medicine',
+  'bolletta_tari': 'Bolletta TARI',
+  'medicine': 'Medicine',
+  'ricarica_telefono': 'Ricarica Telefono',
+  'regali': 'Regali',
+  'bolletta_tim': 'Bolletta TIM',
+  'estetista': 'Estetista',
+  'tagliando_auto': 'Tagliando Auto',
+  'stipendio': 'Stipendio',
+  'vestiti': 'Vestiti',
+  'visite_mediche': 'Visite Mediche',
+  'risparmi': 'Risparmi',
+  'skincare': 'Skincare',
+  'haircare': 'Haircare',
+  'taglio_thor': 'Taglio',
+  'cibo_thor': 'Cibo',
+  'eventi': 'Eventi',
+  'rata_auto': 'Rata Auto',
+  'bolletta_gas': 'Bolletta Gas',
+  'bolletta_depuratore': 'Bolletta Depuratore',
+  'analisi_mediche': 'Analisi Mediche',
+  'bolletta_luce': 'Bolletta Luce',
+  'abbonamenti_necessari': 'Abbonamenti',
+  'cibo_asporto': 'Cibo Asporto',
+  'benzina': 'Benzina',
+  'assicurazione': 'Assicurazione'
+};
+
+export const getCategoryLabel = (categoryKey: string): string => {
+  return categoryLabels[categoryKey] || categoryKey.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+};
+
+export const getAccountName = (accountId: string): string => {
+  const account = dummyAccounts.find(acc => acc.id === accountId);
+  return account?.name || accountId;
+};
+
+export const truncateText = (text: string, maxLength: number = 20): string => {
+  if (text.length <= maxLength) return text;
+  return text.substring(0, maxLength) + '...';
 };

@@ -5,15 +5,15 @@ import { useState, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import BottomNavigation from "@/components/bottom-navigation";
+import UserSelector from "@/components/user-selector";
 import {
   currentUser,
-  dummyUsers,
   dummyCategoryIcons
 } from "@/lib/dummy-data";
 import {
   formatCurrency,
-  isAdmin,
   getUserAccountBalance,
   getAllAccountsBalance,
   getFilteredBudgets,
@@ -74,41 +74,25 @@ export default function DashboardPage() {
 
             {/* Right - Settings and Notifications */}
             <div className="flex items-center gap-1 sm:gap-2">
-              <Button variant="ghost" size="sm" className="hover:bg-slate-100 text-slate-600 hover:text-slate-800 rounded-xl transition-all duration-200 p-2 sm:p-3 min-w-[44px] min-h-[44px] flex items-center justify-center">
-                <Bell className="h-4 w-4 sm:h-5 sm:w-5" />
+              <Button variant="ghost" size="sm" className="hover:bg-[#7578EC]/10 text-[#7578EC] hover:text-[#7578EC] rounded-xl transition-all duration-200 p-2 sm:p-3 min-w-[44px] min-h-[44px] flex items-center justify-center group hover:scale-105 hover:shadow-md shadow-[#7578EC]/20">
+                <Bell className="h-4 w-4 sm:h-5 sm:w-5 group-hover:animate-pulse" />
               </Button>
               <Button
                 variant="ghost"
                 size="sm"
-                className="hover:bg-slate-100 text-slate-600 hover:text-slate-800 rounded-xl transition-all duration-200 p-2 sm:p-3 min-w-[44px] min-h-[44px] flex items-center justify-center"
+                className="hover:bg-[#7578EC]/10 text-[#7578EC] hover:text-[#7578EC] rounded-xl transition-all duration-200 p-2 sm:p-3 min-w-[44px] min-h-[44px] flex items-center justify-center group hover:scale-105 hover:shadow-md shadow-[#7578EC]/20"
                 onClick={() => router.push('/settings')}
               >
-                <Settings className="h-4 w-4 sm:h-5 sm:w-5" />
+                <Settings className="h-4 w-4 sm:h-5 sm:w-5 group-hover:rotate-90 transition-transform duration-300" />
               </Button>
             </div>
           </div>
         </header>
 
-        {/* Group Selector - Only for superadmin and admin */}
-        {isAdmin(currentUser) && (
-          <section className="bg-white/60 backdrop-blur-sm px-3 sm:px-4 py-3 sm:py-4 border-b border-slate-200/50">
-            <div className="flex gap-2 overflow-x-auto scrollbar-hide">
-              {[{ id: 'all', name: 'Tutti i Membri', avatar: '👥' }, ...dummyUsers].map((member) => (
-                <button
-                  key={member.id}
-                  onClick={() => handleGroupFilterChange(member.id)}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${selectedGroupFilter === member.id
-                      ? "bg-[#7578EC] text-white"
-                      : "bg-white text-gray-700 hover:bg-gray-100"
-                    }`}
-                >
-                  <span className="text-sm">{member.avatar}</span>
-                  {member.name}
-                </button>
-              ))}
-            </div>
-          </section>
-        )}
+        <UserSelector 
+          selectedGroupFilter={selectedGroupFilter}
+          onGroupFilterChange={handleGroupFilterChange}
+        />
 
         <main className="pb-16">
           {/* Total Balance Section - Different Background */}
@@ -150,7 +134,9 @@ export default function DashboardPage() {
 
                         {/* Center - Title and Type */}
                         <div className="flex flex-col flex-1 mx-3">
-                          <h3 className="font-semibold text-gray-900 text-sm">{account.name}</h3>
+                          <h3 className="font-semibold text-gray-900 text-sm truncate">
+                            {account.name.length > 17 ? `${account.name.substring(0, 17)}...` : account.name}
+                          </h3>
                           <p className="text-xs text-gray-500">{AccountTypeMap[account.type] || account.type}</p>
                         </div>
 
@@ -183,7 +169,7 @@ export default function DashboardPage() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="text-sm font-medium text-[#7578EC] hover:text-[#7578EC] hover:bg-[#7578EC]/10"
+                  className="text-sm font-semibold text-[#7578EC] hover:text-white hover:bg-[#7578EC] rounded-xl transition-all duration-300 px-4 py-2.5 group shadow-sm hover:shadow-md hover:shadow-[#7578EC]/25 border border-[#7578EC]/20 hover:border-[#7578EC] hover:scale-105"
                   onClick={() => {
                     const params = new URLSearchParams();
                     if (selectedGroupFilter !== 'all') {
@@ -193,8 +179,8 @@ export default function DashboardPage() {
                     router.push(url);
                   }}
                 >
-                  Vai a
-                  <ChevronRight className="ml-1 h-4 w-4" />
+                  <span>Vai a</span>
+                  <ChevronRight className="ml-1.5 h-4 w-4 group-hover:translate-x-1 transition-all duration-300" />
                 </Button>
               </div>
 
@@ -304,7 +290,7 @@ export default function DashboardPage() {
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-sm font-semibold text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-2xl transition-all duration-200 px-4 py-2 min-h-[44px] border border-slate-200 hover:border-slate-300 hover:shadow-md group"
+                className="text-sm font-semibold text-[#7578EC] hover:text-white hover:bg-[#7578EC] rounded-xl transition-all duration-300 px-4 py-2.5 min-h-[44px] group shadow-sm hover:shadow-md hover:shadow-[#7578EC]/25 border border-[#7578EC]/20 hover:border-[#7578EC] hover:scale-105"
                 onClick={() => {
                   const params = new URLSearchParams();
                   params.set('from', 'dashboard');
@@ -315,8 +301,8 @@ export default function DashboardPage() {
                   router.push(`/transactions?${params.toString()}`);
                 }}
               >
-                <span className="mr-2">Vai a</span>
-                <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform duration-200" />
+                <span className="mr-1.5">Vai a</span>
+                <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-all duration-300" />
               </Button>
             </div>
 
@@ -332,19 +318,24 @@ export default function DashboardPage() {
                           <span className="text-base sm:text-lg">{categoryIcon}</span>
                         </div>
                         <div className="flex-1 min-w-0 pr-2">
-                          <h3 className="font-bold text-sm sm:text-base text-slate-800 group-hover:text-slate-900 transition-colors truncate max-w-[140px] sm:max-w-[200px]">
+                          <h3 className="font-bold text-sm text-slate-800 group-hover:text-slate-900 transition-colors truncate mb-1">
                             {transaction.description.length > 18 ? `${transaction.description.substring(0, 18)}...` : transaction.description}
                           </h3>
-                          <p className="text-xs sm:text-sm text-slate-500 font-medium">Ricorrente • {transaction.frequency}</p>
+                          <p className="text-xs text-slate-600 font-medium">
+                            {transaction.type === 'income' ? 'Entrata' : 'Spesa'}
+                          </p>
                         </div>
                       </div>
                       <div className="text-right flex-shrink-0 ml-2">
-                        <p className={`text-sm sm:text-lg font-bold ${transaction.type === 'income'
+                        <p className={`text-sm font-bold mb-1 ${transaction.type === 'income'
                             ? 'bg-gradient-to-r from-emerald-600 to-emerald-500 bg-clip-text text-transparent'
                             : 'bg-gradient-to-r from-rose-600 to-rose-500 bg-clip-text text-transparent'
                           } whitespace-nowrap`}>
                           {transaction.type === 'expense' ? '-' : '+'}{formatCurrency(transaction.amount)}
                         </p>
+                        <Badge variant="outline" className="text-xs border-slate-200/70 text-slate-700 bg-slate-50/50 font-medium px-2 py-1">
+                          {transaction.frequency ? `${transaction.frequency}` : 'Una volta'}
+                        </Badge>
                       </div>
                     </div>
                   </Card>

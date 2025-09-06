@@ -99,12 +99,35 @@ const createTransaction = (
   to_account_id: string | null,
   linked_transaction_ids: string[] | [],
   status: 'not_reconciled' | 'partly_reconciled' | 'reconciled' = 'not_reconciled',
-  frequency: 'weekly' | 'biweekly' | 'monthly' | 'yearly' = 'monthly',
+  frequency?: 'weekly' | 'biweekly' | 'monthly' | 'yearly',
   days_ago: number = 1
 ): Transaction => {
   const date = new Date();
   date.setDate(date.getDate() - days_ago);
   const created_at = getRandomDate(new Date(date.getTime() - 3600000), date);
+
+  // Calculate next due date for recurring transactions
+  let next_due_date: Date | undefined;
+  if (frequency) {
+    const nextDue = new Date();
+    const randomDaysOffset = Math.floor(Math.random() * 15) + 1; // 1-15 days from now
+    
+    switch (frequency) {
+      case 'weekly':
+        nextDue.setDate(nextDue.getDate() + randomDaysOffset % 7);
+        break;
+      case 'biweekly':
+        nextDue.setDate(nextDue.getDate() + randomDaysOffset % 14);
+        break;
+      case 'monthly':
+        nextDue.setDate(nextDue.getDate() + randomDaysOffset);
+        break;
+      case 'yearly':
+        nextDue.setDate(nextDue.getDate() + randomDaysOffset + Math.floor(Math.random() * 30));
+        break;
+    }
+    next_due_date = nextDue;
+  }
 
   return {
     id,
@@ -118,7 +141,8 @@ const createTransaction = (
     to_account_id,
     linked_transaction_ids,
     status,
-    frequency,
+    ...(frequency && { frequency }),
+    ...(next_due_date && { next_due_date }),
     created_at: created_at,
     updated_at: created_at
   };
@@ -254,7 +278,8 @@ export const dummyCategories: Category[] = [
   createCategory('cat_36', 'bolletta_luce'),
   createCategory('cat_37', 'abbonamenti_necessari'),
   createCategory('cat_38', 'cibo_asporto'),
-  createCategory('cat_39', 'benzina')
+  createCategory('cat_39', 'benzina'),
+  createCategory('cat_40', 'assicurazione')
 ];
 
 export const dummyCategoryIcons: Record<string, string> = {
@@ -278,6 +303,7 @@ export const dummyCategoryIcons: Record<string, string> = {
   'ricarica_telefono': '📱',
   'regali': '🎁',
   'bolletta_tim': '📞',
+  'assicurazione': '🛡️',
   'estetista': '💅',
   'tagliando_auto': '🔧',
   'stipendio': '💰',
@@ -355,31 +381,62 @@ export const dummyCategoryColors: Record<string, string> = {
   // Altri/varie (tonalità neutre)
   'altro': '#6b7280',
   'eventi': '#f59e0b',
-  'stipendio': '#10b981'
+  'stipendio': '#10b981',
+  'assicurazione': '#3b82f6'
 };
 
 export const dummyTransactions: Transaction[] = [
+  // RECURRING TRANSACTIONS - Monthly
   createTransaction('trx_1', 'Stipendio Mensile', 2200.00, 'income', 'stipendio', 'user_1', 'acc_1', null, [], 'not_reconciled', 'monthly', 2),
-  createTransaction('trx_2', 'Esselunga Spesa Settimanale', getRandomAmount(90, 180), 'expense', 'spesa', 'user_1', 'acc_1', null, [], 'not_reconciled', 'monthly', 3),
-  createTransaction('trx_3', 'Mercato Locale Frutta', getRandomAmount(15, 35), 'expense', 'spesa', 'user_2', 'acc_1', null, [], 'not_reconciled', 'monthly', 6),
-  createTransaction('trx_4', 'Carburante Shell', getRandomAmount(45, 75), 'expense', 'rata_auto', 'user_1', 'acc_3', null, [], 'not_reconciled', 'monthly', 2),
   createTransaction('trx_5', 'Abbonamento ATM Mensile', 39.00, 'expense', 'benzina', 'user_2', 'acc_1', null, [], 'not_reconciled', 'monthly', 4),
-  createTransaction('trx_6', 'Parcheggio Centro', getRandomAmount(3, 8), 'expense', 'bolletta_tim', 'user_1', 'acc_3', null, [], 'not_reconciled', 'monthly', 1),
   createTransaction('trx_7', 'Bolletta Elettrica Enel', getRandomAmount(85, 120), 'expense', 'bolletta_acqua', 'user_2', 'acc_1', null, [], 'not_reconciled', 'monthly', 5),
   createTransaction('trx_8', 'Internet Fastweb', 29.90, 'expense', 'visite_mediche', 'user_1', 'acc_1', null, [], 'not_reconciled', 'monthly', 15),
   createTransaction('trx_9', 'Telefono Vodafone', 24.90, 'expense', 'estetista', 'user_2', 'acc_1', null, [], 'not_reconciled', 'monthly', 12),
-  createTransaction('trx_10', 'Cinema UCI', getRandomAmount(18, 32), 'expense', 'abbonamenti_tv', 'user_1', 'acc_3', null, [], 'not_reconciled', 'monthly', 6),
   createTransaction('trx_11', 'Spotify Premium', 9.99, 'expense', 'abbonamenti_necessari', 'user_2', 'acc_3', null, [], 'not_reconciled', 'monthly', 7),
-  createTransaction('trx_12', 'Aperitivo Bar Centrale', getRandomAmount(18, 28), 'expense', 'cibo_fuori', 'user_1', 'acc_3', null, [], 'not_reconciled', 'monthly', 2),
-  createTransaction('trx_13', 'Amazon - Elettronica', getRandomAmount(45, 180), 'expense', 'spesa', 'user_2', 'acc_3', null, [], 'not_reconciled', 'monthly', 8),
-  createTransaction('trx_14', 'Decathlon - Sport', getRandomAmount(35, 90), 'expense', 'spesa', 'user_1', 'acc_3', null, [], 'not_reconciled', 'monthly', 20),
-  createTransaction('trx_15', 'Libreria Mondadori', getRandomAmount(15, 35), 'expense', 'spesa', 'user_2', 'acc_3', null, [], 'not_reconciled', 'monthly', 9),
-  createTransaction('trx_16', 'Dentista Dr. Bianchi', 120.00, 'expense', 'medicine', 'user_1', 'acc_1', null, [], 'not_reconciled', 'monthly', 12),
   createTransaction('trx_17', 'Palestra Virgin Active', 89.00, 'expense', 'medicine', 'user_2', 'acc_1', null, [], 'not_reconciled', 'monthly', 1),
-  createTransaction('trx_18', 'Leroy Merlin - Giardino', getRandomAmount(45, 120), 'expense', 'cibo_asporto', 'user_1', 'acc_1', null, [], 'not_reconciled', 'monthly', 25),
-  createTransaction('trx_19', 'Bricocenter - Riparazioni', getRandomAmount(25, 85), 'expense', 'cibo_asporto', 'user_2', 'acc_1', null, [], 'not_reconciled', 'monthly', 11),
-  createTransaction('trx_20', 'Udemy - Corsi Online', 89.99, 'expense', 'veterinario', 'user_1', 'acc_3', null, [], 'not_reconciled', 'monthly', 22),
-  createTransaction('trx_21', 'Booking.com - Hotel Roma', getRandomAmount(180, 280), 'expense', 'cibo_fuori', 'user_2', 'acc_3', null, [], 'not_reconciled', 'monthly', 45),
+  
+  // RECURRING TRANSACTIONS - Weekly
+  createTransaction('trx_22', 'Spesa Settimanale Esselunga', getRandomAmount(40, 80), 'expense', 'spesa', 'user_1', 'acc_1', null, [], 'not_reconciled', 'weekly', 1),
+  createTransaction('trx_23', 'Piscina Settimanale', 25.00, 'expense', 'abbonamenti_necessari', 'user_2', 'acc_1', null, [], 'not_reconciled', 'weekly', 2),
+  createTransaction('trx_24', 'Caffè Bar Centrale', getRandomAmount(8, 15), 'expense', 'cibo_fuori', 'user_1', 'acc_3', null, [], 'not_reconciled', 'weekly', 3),
+  createTransaction('trx_25', 'Edicola Giornale', 2.50, 'expense', 'abbonamenti_necessari', 'user_2', 'acc_3', null, [], 'not_reconciled', 'weekly', 1),
+  
+  // RECURRING TRANSACTIONS - Biweekly
+  createTransaction('trx_26', 'Parrucchiere', getRandomAmount(35, 55), 'expense', 'estetista', 'user_1', 'acc_1', null, [], 'not_reconciled', 'biweekly', 7),
+  createTransaction('trx_27', 'Lavanderia', getRandomAmount(15, 25), 'expense', 'cibo_asporto', 'user_2', 'acc_1', null, [], 'not_reconciled', 'biweekly', 14),
+  createTransaction('trx_28', 'Psicologo', 80.00, 'expense', 'visite_mediche', 'user_1', 'acc_1', null, [], 'not_reconciled', 'biweekly', 21),
+  
+  // RECURRING TRANSACTIONS - Yearly
+  createTransaction('trx_29', 'Assicurazione Auto', 850.00, 'expense', 'assicurazione', 'user_1', 'acc_1', null, [], 'not_reconciled', 'yearly', 90),
+  createTransaction('trx_30', 'Bonus Annuale', 1500.00, 'income', 'stipendio', 'user_1', 'acc_1', null, [], 'not_reconciled', 'yearly', 180),
+  createTransaction('trx_31', 'Tasse Casa', 1200.00, 'expense', 'bolletta_acqua', 'user_2', 'acc_1', null, [], 'not_reconciled', 'yearly', 120),
+  createTransaction('trx_32', 'Vacanze Estive', getRandomAmount(800, 1500), 'expense', 'cibo_fuori', 'user_2', 'acc_3', null, [], 'not_reconciled', 'yearly', 200),
+  
+  // ONE-TIME TRANSACTIONS (no frequency)
+  createTransaction('trx_2', 'Esselunga Spesa Grande', getRandomAmount(90, 180), 'expense', 'spesa', 'user_1', 'acc_1', null, [], 'not_reconciled', undefined, 3),
+  createTransaction('trx_3', 'Mercato Locale Frutta', getRandomAmount(15, 35), 'expense', 'spesa', 'user_2', 'acc_1', null, [], 'not_reconciled', undefined, 6),
+  createTransaction('trx_4', 'Carburante Shell', getRandomAmount(45, 75), 'expense', 'rata_auto', 'user_1', 'acc_3', null, [], 'not_reconciled', undefined, 2),
+  createTransaction('trx_6', 'Parcheggio Centro', getRandomAmount(3, 8), 'expense', 'bolletta_tim', 'user_1', 'acc_3', null, [], 'not_reconciled', undefined, 1),
+  createTransaction('trx_10', 'Cinema UCI', getRandomAmount(18, 32), 'expense', 'abbonamenti_tv', 'user_1', 'acc_3', null, [], 'not_reconciled', undefined, 6),
+  createTransaction('trx_12', 'Aperitivo Bar Centrale', getRandomAmount(18, 28), 'expense', 'cibo_fuori', 'user_1', 'acc_3', null, [], 'not_reconciled', undefined, 2),
+  createTransaction('trx_13', 'Amazon - Elettronica', getRandomAmount(45, 180), 'expense', 'spesa', 'user_2', 'acc_3', null, [], 'not_reconciled', undefined, 8),
+  createTransaction('trx_14', 'Decathlon - Sport', getRandomAmount(35, 90), 'expense', 'spesa', 'user_1', 'acc_3', null, [], 'not_reconciled', undefined, 20),
+  createTransaction('trx_15', 'Libreria Mondadori', getRandomAmount(15, 35), 'expense', 'spesa', 'user_2', 'acc_3', null, [], 'not_reconciled', undefined, 9),
+  createTransaction('trx_16', 'Dentista Dr. Bianchi', 120.00, 'expense', 'medicine', 'user_1', 'acc_1', null, [], 'not_reconciled', undefined, 12),
+  createTransaction('trx_18', 'Leroy Merlin - Giardino', getRandomAmount(45, 120), 'expense', 'cibo_asporto', 'user_1', 'acc_1', null, [], 'not_reconciled', undefined, 25),
+  createTransaction('trx_19', 'Bricocenter - Riparazioni', getRandomAmount(25, 85), 'expense', 'cibo_asporto', 'user_2', 'acc_1', null, [], 'not_reconciled', undefined, 11),
+  createTransaction('trx_20', 'Udemy - Corsi Online', 89.99, 'expense', 'veterinario', 'user_1', 'acc_3', null, [], 'not_reconciled', undefined, 22),
+  createTransaction('trx_21', 'Booking.com - Hotel Roma', getRandomAmount(180, 280), 'expense', 'cibo_fuori', 'user_2', 'acc_3', null, [], 'not_reconciled', undefined, 45),
+  createTransaction('trx_33', 'McDonald\'s', getRandomAmount(12, 25), 'expense', 'cibo_asporto', 'user_1', 'acc_3', null, [], 'not_reconciled', undefined, 0),
+  createTransaction('trx_34', 'Bonifico da Genitore', 300.00, 'income', 'stipendio', 'user_2', 'acc_1', null, [], 'not_reconciled', undefined, 0),
+  createTransaction('trx_35', 'Farmacia', getRandomAmount(15, 45), 'expense', 'medicine', 'user_1', 'acc_1', null, [], 'not_reconciled', undefined, 1),
+  createTransaction('trx_36', 'Metro Giornaliero', 15.00, 'expense', 'benzina', 'user_2', 'acc_1', null, [], 'not_reconciled', undefined, 2),
+  
+  // Additional recent one-time transactions
+  createTransaction('trx_37', 'Ristorante Il Convivio', getRandomAmount(45, 85), 'expense', 'cibo_fuori', 'user_1', 'acc_3', null, [], 'not_reconciled', undefined, 3),
+  createTransaction('trx_38', 'Benzina Q8', getRandomAmount(50, 80), 'expense', 'benzina', 'user_2', 'acc_1', null, [], 'not_reconciled', undefined, 5),
+  createTransaction('trx_39', 'Supermercato Conad', getRandomAmount(35, 65), 'expense', 'spesa', 'user_1', 'acc_1', null, [], 'not_reconciled', undefined, 4),
+  createTransaction('trx_40', 'Regalo Compleanno', getRandomAmount(25, 60), 'expense', 'regali', 'user_2', 'acc_3', null, [], 'not_reconciled', undefined, 8),
 ];
 
 export const dummyInvestmentHoldings: InvestmentHolding[] = [
@@ -396,7 +453,7 @@ export const dummyInvestmentHoldings: InvestmentHolding[] = [
 export const dummyAccounts: Account[] = [
   createAccount('acc_1', 'Conto Corrente Principale', 'payroll', ['user_1', 'user_2'], 'group_1'),
   createAccount('acc_2', 'Conto Risparmio', 'savings', ['user_1', 'user_2'], 'group_1'),
-  createAccount('acc_4', 'Portafoglio Investimenti', 'investments', ['user_1', 'user_2'], 'group_1'),
+  createAccount('acc_3', 'Portafoglio Investimenti', 'investments', ['user_1', 'user_2'], 'group_1'),
 ];
 
 export const dummyBudgets: Budget[] = [

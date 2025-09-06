@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, MoreVertical, TrendingUp, TrendingDown, Users } from "lucide-react";
+import { ArrowLeft, MoreVertical, TrendingUp, TrendingDown } from "lucide-react";
 import { useState, Suspense, useMemo, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import BottomNavigation from "@/components/bottom-navigation";
+import UserSelector from "@/components/user-selector";
 import {
   formatCurrency,
   formatDate,
@@ -156,30 +157,10 @@ function BudgetsContent() {
         </div>
       </header>
 
-      {/* Group Selector - Only for superadmin and admin */}
-      {isAdmin(currentUser) && (
-        <section className="bg-white/60 backdrop-blur-sm px-3 sm:px-4 py-3 sm:py-4 border-b border-slate-200/50">
-          <div className="flex items-center gap-3 mb-2">
-            <Users className="h-4 w-4 text-[#7578EC]" />
-            <h3 className="text-sm font-medium text-gray-700">Visualizza Budget per:</h3>
-          </div>
-          <div className="flex gap-2 overflow-x-auto scrollbar-hide">
-            {[{ id: 'all', name: 'Tutti i Membri', avatar: '👥' }, ...dummyUsers].map((user) => (
-              <button
-                key={user.id}
-                onClick={() => handleUserChange(user.id)}
-                className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${selectedUser === user.id
-                  ? "bg-[#7578EC] text-white"
-                  : "bg-white text-gray-700 hover:bg-gray-100"
-                  }`}
-              >
-                <span className="text-sm">{user.avatar}</span>
-                {user.name}
-              </button>
-            ))}
-          </div>
-        </section>
-      )}
+      <UserSelector 
+        selectedGroupFilter={selectedUser}
+        onGroupFilterChange={handleUserChange}
+      />
 
       {/* Divider Line */}
       <div className="h-px bg-gray-200 mx-4"></div>
