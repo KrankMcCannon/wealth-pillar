@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Budget } from "@/lib/types";
@@ -7,15 +8,45 @@ import { formatCurrency, getBudgetProgress, getBalanceSpent } from "@/lib/utils"
 
 interface BudgetCardProps {
   budget: Budget;
-  variant?: 'compact' | 'full';
   className?: string;
 }
 
-export function BudgetCard({ budget, variant = 'compact', className = '' }: BudgetCardProps) {
-  const progress = getBudgetProgress(budget);
-  const spent = getBalanceSpent(budget);
+export function BudgetCard({ budget, className = '' }: BudgetCardProps) {
+  const [progress, setProgress] = useState<number>(0);
+  const [spent, setSpent] = useState<number>(0);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    const loadBudgetData = async () => {
+      try {
+        const [progressValue, spentValue] = await Promise.all([
+          getBudgetProgress(budget),
+          getBalanceSpent(budget)
+        ]);
+        setProgress(progressValue);
+        setSpent(spentValue);
+      } catch (error) {
+        console.error('Error loading budget data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadBudgetData();
+  }, [budget]);
+
   const remaining = budget.amount - spent;
   const isOverBudget = progress > 100;
+
+  if (loading) {
+    return (
+      <Card className={`${className}`}>
+        <CardContent className="flex items-center justify-center py-8">
+          <div className="text-sm text-muted-foreground">Caricamento...</div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className={`${className}`}>

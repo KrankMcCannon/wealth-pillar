@@ -1,21 +1,44 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { ArrowLeft, User, Mail, Phone, Globe, Bell, Shield, Trash2, Users, Plus, BarChart3, CreditCard, ChevronRight } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import BottomNavigation from "../../../components/bottom-navigation";
-import {
-  currentUser,
-  dummyUsers
-} from "@/lib/dummy-data";
+import { userService } from "@/lib/api";
+import { User as UserType } from "@/lib/types";
 import {
   formatDate
 } from "@/lib/utils";
 
 export default function SettingsPage() {
   const router = useRouter();
+  const [currentUser, setCurrentUser] = useState<UserType | null>(null);
+  const [users, setUsers] = useState<UserType[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Load data from API
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        const usersData = await userService.getAll();
+        setUsers(usersData);
+        
+        // Set current user as first user for demo purposes
+        if (usersData.length > 0) {
+          setCurrentUser(usersData[0]);
+        }
+      } catch (error) {
+        console.error('Failed to load user data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, []);
 
   const planInfo = useMemo(() => {
     return {
@@ -24,6 +47,24 @@ export default function SettingsPage() {
       bgColor: 'bg-purple-100'
     };
   }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#7578EC]"></div>
+      </div>
+    );
+  }
+
+  if (!currentUser) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <p className="text-gray-500">Nessun utente trovato</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative flex size-full min-h-[100dvh] flex-col bg-gradient-to-br from-slate-50 via-white to-slate-100" style={{ fontFamily: '"Inter", "SF Pro Display", system-ui, sans-serif' }}>
@@ -123,7 +164,7 @@ export default function SettingsPage() {
                 <h2 className="text-xl font-bold tracking-tight bg-gradient-to-r from-slate-900 to-slate-600 bg-clip-text text-transparent">Gestione Gruppo</h2>
                 <div className="flex items-center gap-2 px-3 py-1.5 bg-[#7578EC]/10 rounded-full">
                   <Users className="h-4 w-4 text-[#7578EC]" />
-                  <span className="text-sm font-semibold text-[#7578EC]">{dummyUsers.length} membri</span>
+                  <span className="text-sm font-semibold text-[#7578EC]">{users.length} membri</span>
                 </div>
               </div>
 
@@ -134,7 +175,7 @@ export default function SettingsPage() {
                   <p className="text-xs text-slate-500 mt-0.5">Famiglia Rossi</p>
                 </div>
                 <div className="divide-y divide-slate-100/50">
-                  {dummyUsers.map((member) => (
+                  {users.map((member: UserType) => (
                     <div key={member.id} className="p-3 flex items-center justify-between hover:bg-slate-50/50 transition-all duration-200">
                       <div className="flex items-center gap-3 flex-1 min-w-0">
                         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#7578EC] to-blue-600 flex items-center justify-center text-white text-sm font-bold shadow-md shrink-0">

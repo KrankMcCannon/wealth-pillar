@@ -1,0 +1,806 @@
+{
+  "groups": [
+    {
+      "id": "group_1",
+      "name": "Famiglia Valentini",
+      "description": "Gruppo familiare per la gestione delle finanze domestiche",
+      "user_ids": [
+        "user_1"
+      ],
+      "plan": {
+        "type": "premium",
+        "name": "Abbonamento Premium"
+      },
+      "is_active": true,
+      "created_at": "2024-09-06T20:00:00.000Z",
+      "updated_at": "2024-09-06T20:00:00.000Z"
+    }
+  ],
+  "users": [
+    {
+      "id": "user_1",
+      "name": "Edoardo Valentini",
+      "email": "edoardo.valentini@example.com",
+      "avatar": "👨‍💼",
+      "theme_color": "#3B82F6",
+      "budget_start_date": 1,
+      "budget_periods": [],
+      "group_id": "group_1",
+      "role": "admin",
+      "created_at": "2024-09-06T20:00:00.000Z",
+      "updated_at": "2024-09-06T20:00:00.000Z"
+    },
+    {
+      "id": "user_2",
+      "name": "Ivana Piscitelli",
+      "email": "ivana.piscitelli@example.com",
+      "avatar": "👩‍💼",
+      "theme_color": "#10B981",
+      "budget_start_date": 15,
+      "budget_periods": [],
+      "group_id": "group_1",
+      "role": "member",
+      "created_at": "2024-08-22T20:00:00.000Z",
+      "updated_at": "2024-08-22T20:00:00.000Z"
+    }
+  ],
+  "categories": [
+    {
+      "id": "cat_1",
+      "label": "Parrucchiere",
+      "key": "parrucchiere",
+      "created_at": "2024-09-07T20:00:00.000Z",
+      "updated_at": "2024-09-07T20:00:00.000Z",
+      "icon": "Scissors",
+      "color": "#ec4899"
+    },
+    {
+      "id": "cat_2",
+      "label": "Trasferimento",
+      "key": "trasferimento",
+      "created_at": "2024-09-07T20:00:00.000Z",
+      "updated_at": "2024-09-07T20:00:00.000Z",
+      "icon": "ArrowUpRight",
+      "color": "#059669"
+    },
+    {
+      "id": "cat_3",
+      "label": "Altro",
+      "key": "altro",
+      "created_at": "2024-09-07T20:00:00.000Z",
+      "updated_at": "2024-09-07T20:00:00.000Z",
+      "icon": "FileText",
+      "color": "#6b7280"
+    },
+    {
+      "id": "cat_4",
+      "label": "Bonifico",
+      "key": "bonifico",
+      "created_at": "2024-09-07T20:00:00.000Z",
+      "updated_at": "2024-09-07T20:00:00.000Z",
+      "icon": "Building2",
+      "color": "#047857"
+    },
+    {
+      "id": "cat_5",
+      "label": "Abbonamenti Tv",
+      "key": "abbonamenti_tv",
+      "created_at": "2024-09-07T20:00:00.000Z",
+      "updated_at": "2024-09-07T20:00:00.000Z",
+      "icon": "Tv",
+      "color": "#1e40af"
+    },
+    {
+      "id": "cat_6",
+      "label": "Veterinario",
+      "key": "veterinario",
+      "created_at": "2024-09-07T20:00:00.000Z",
+      "updated_at": "2024-09-07T20:00:00.000Z",
+      "icon": "Heart",
+      "color": "#075985"
+    },
+    {
+      "id": "cat_7",
+      "label": "Bollo Auto",
+      "key": "bollo_auto",
+      "created_at": "2024-09-07T20:00:00.000Z",
+      "updated_at": "2024-09-07T20:00:00.000Z",
+      "icon": "Car",
+      "color": "#7c3aed"
+    },
+    {
+      "id": "cat_8",
+      "label": "Contanti",
+      "key": "contanti",
+      "created_at": "2024-09-07T20:00:00.000Z",
+      "updated_at": "2024-09-07T20:00:00.000Z",
+      "icon": "Banknote",
+      "color": "#065f46"
+    },
+    {
+      "id": "cat_9",
+      "label": "Cibo Fuori",
+      "key": "cibo_fuori",
+      "created_at": "2024-09-07T20:00:00.000Z",
+      "updated_at": "2024-09-07T20:00:00.000Z",
+      "icon": "UtensilsCrossed",
+      "color": "#16a34a"
+    },
+    {
+      "id": "cat_10",
+      "label": "Investimenti",
+      "key": "investimenti",
+      "created_at": "2024-09-07T20:00:00.000Z",
+      "updated_at": "2024-09-07T20:00:00.000Z",
+      "icon": "TrendingUp",
+      "color": "#064e3b"
+    },
+    {
+      "id": "cat_11",
+      "label": "Yuup Thor",
+      "key": "yuup_thor",
+      "created_at": "2024-09-07T20:00:00.000Z",
+      "updated_at": "2024-09-07T20:00:00.000Z",
+      "icon": "Heart",
+      "color": "#3730a3"
+    },
+    {
+      "id": "cat_12",
+      "label": "Palestra",
+      "key": "palestra",
+      "created_at": "2024-09-07T20:00:00.000Z",
+      "updated_at": "2024-09-07T20:00:00.000Z",
+      "icon": "Dumbbell",
+      "color": "#0369a1"
+    },
+    {
+      "id": "cat_13",
+      "label": "Spesa",
+      "key": "spesa",
+      "created_at": "2024-09-07T20:00:00.000Z",
+      "updated_at": "2024-09-07T20:00:00.000Z",
+      "icon": "ShoppingBasket",
+      "color": "#14532d"
+    },
+    {
+      "id": "cat_14",
+      "label": "Bolletta Acqua",
+      "key": "bolletta_acqua",
+      "created_at": "2024-09-07T20:00:00.000Z",
+      "updated_at": "2024-09-07T20:00:00.000Z",
+      "icon": "Droplets",
+      "color": "#dc2626"
+    },
+    {
+      "id": "cat_15",
+      "label": "Medicine Thor",
+      "key": "medicine_thor",
+      "created_at": "2024-09-07T20:00:00.000Z",
+      "updated_at": "2024-09-07T20:00:00.000Z",
+      "icon": "Pill",
+      "color": "#0e7490"
+    },
+    {
+      "id": "cat_16",
+      "label": "Bolletta Tari",
+      "key": "bolletta_tari",
+      "created_at": "2024-09-07T20:00:00.000Z",
+      "updated_at": "2024-09-07T20:00:00.000Z",
+      "icon": "Trash2",
+      "color": "#b91c1c"
+    },
+    {
+      "id": "cat_17",
+      "label": "Medicine",
+      "key": "medicine",
+      "created_at": "2024-09-07T20:00:00.000Z",
+      "updated_at": "2024-09-07T20:00:00.000Z",
+      "icon": "Pill",
+      "color": "#0891b2"
+    },
+    {
+      "id": "cat_18",
+      "label": "Ricarica Telefono",
+      "key": "ricarica_telefono",
+      "created_at": "2024-09-07T20:00:00.000Z",
+      "updated_at": "2024-09-07T20:00:00.000Z",
+      "icon": "Smartphone",
+      "color": "#4338ca"
+    },
+    {
+      "id": "cat_19",
+      "label": "Regali",
+      "key": "regali",
+      "created_at": "2024-09-07T20:00:00.000Z",
+      "updated_at": "2024-09-07T20:00:00.000Z",
+      "icon": "Gift",
+      "color": "#1d4ed8"
+    },
+    {
+      "id": "cat_20",
+      "label": "Bolletta Tim",
+      "key": "bolletta_tim",
+      "created_at": "2024-09-07T20:00:00.000Z",
+      "updated_at": "2024-09-07T20:00:00.000Z",
+      "icon": "Phone",
+      "color": "#991b1b"
+    },
+    {
+      "id": "cat_21",
+      "label": "Estetista",
+      "key": "estetista",
+      "created_at": "2024-09-07T20:00:00.000Z",
+      "updated_at": "2024-09-07T20:00:00.000Z",
+      "icon": "Sparkles",
+      "color": "#f472b6"
+    },
+    {
+      "id": "cat_22",
+      "label": "Tagliando Auto",
+      "key": "tagliando_auto",
+      "created_at": "2024-09-07T20:00:00.000Z",
+      "updated_at": "2024-09-07T20:00:00.000Z",
+      "icon": "Wrench",
+      "color": "#6d28d9"
+    },
+    {
+      "id": "cat_23",
+      "label": "Stipendio",
+      "key": "stipendio",
+      "created_at": "2024-09-07T20:00:00.000Z",
+      "updated_at": "2024-09-07T20:00:00.000Z",
+      "icon": "DollarSign",
+      "color": "#10b981"
+    },
+    {
+      "id": "cat_24",
+      "label": "Vestiti",
+      "key": "vestiti",
+      "created_at": "2024-09-07T20:00:00.000Z",
+      "updated_at": "2024-09-07T20:00:00.000Z",
+      "icon": "Shirt",
+      "color": "#2563eb"
+    },
+    {
+      "id": "cat_25",
+      "label": "Visite Mediche",
+      "key": "visite_mediche",
+      "created_at": "2024-09-07T20:00:00.000Z",
+      "updated_at": "2024-09-07T20:00:00.000Z",
+      "icon": "Stethoscope",
+      "color": "#155e75"
+    },
+    {
+      "id": "cat_26",
+      "label": "Risparmi",
+      "key": "risparmi",
+      "created_at": "2024-09-07T20:00:00.000Z",
+      "updated_at": "2024-09-07T20:00:00.000Z",
+      "icon": "PiggyBank",
+      "color": "#022c22"
+    },
+    {
+      "id": "cat_27",
+      "label": "Skincare",
+      "key": "skincare",
+      "created_at": "2024-09-07T20:00:00.000Z",
+      "updated_at": "2024-09-07T20:00:00.000Z",
+      "icon": "Package",
+      "color": "#d946ef"
+    },
+    {
+      "id": "cat_28",
+      "label": "Haircare",
+      "key": "haircare",
+      "created_at": "2024-09-07T20:00:00.000Z",
+      "updated_at": "2024-09-07T20:00:00.000Z",
+      "icon": "Package",
+      "color": "#c084fc"
+    },
+    {
+      "id": "cat_29",
+      "label": "Taglio Thor",
+      "key": "taglio_thor",
+      "created_at": "2024-09-07T20:00:00.000Z",
+      "updated_at": "2024-09-07T20:00:00.000Z",
+      "icon": "Scissors",
+      "color": "#a855f7"
+    },
+    {
+      "id": "cat_30",
+      "label": "Cibo Thor",
+      "key": "cibo_thor",
+      "created_at": "2024-09-07T20:00:00.000Z",
+      "updated_at": "2024-09-07T20:00:00.000Z",
+      "icon": "ChefHat",
+      "color": "#166534"
+    },
+    {
+      "id": "cat_31",
+      "label": "Eventi",
+      "key": "eventi",
+      "created_at": "2024-09-07T20:00:00.000Z",
+      "updated_at": "2024-09-07T20:00:00.000Z",
+      "icon": "PartyPopper",
+      "color": "#f59e0b"
+    },
+    {
+      "id": "cat_32",
+      "label": "Rata Auto",
+      "key": "rata_auto",
+      "created_at": "2024-09-07T20:00:00.000Z",
+      "updated_at": "2024-09-07T20:00:00.000Z",
+      "icon": "CreditCard",
+      "color": "#166534"
+    },
+    {
+      "id": "cat_33",
+      "label": "Bolletta Gas",
+      "key": "bolletta_gas",
+      "created_at": "2024-09-07T20:00:00.000Z",
+      "updated_at": "2024-09-07T20:00:00.000Z",
+      "icon": "Flame",
+      "color": "#7f1d1d"
+    },
+    {
+      "id": "cat_34",
+      "label": "Bolletta Depuratore",
+      "key": "bolletta_depuratore",
+      "created_at": "2024-09-07T20:00:00.000Z",
+      "updated_at": "2024-09-07T20:00:00.000Z",
+      "icon": "Activity",
+      "color": "#3b82f6"
+    },
+    {
+      "id": "cat_35",
+      "label": "Analisi Mediche",
+      "key": "analisi_mediche",
+      "created_at": "2024-09-07T20:00:00.000Z",
+      "updated_at": "2024-09-07T20:00:00.000Z",
+      "icon": "Activity",
+      "color": "#0c4a6e"
+    },
+    {
+      "id": "cat_36",
+      "label": "Bolletta Luce",
+      "key": "bolletta_luce",
+      "created_at": "2024-09-07T20:00:00.000Z",
+      "updated_at": "2024-09-07T20:00:00.000Z",
+      "icon": "Zap",
+      "color": "#fbbf24"
+    },
+    {
+      "id": "cat_37",
+      "label": "Abbonamenti Necessari",
+      "key": "abbonamenti_necessari",
+      "created_at": "2024-09-07T20:00:00.000Z",
+      "updated_at": "2024-09-07T20:00:00.000Z",
+      "icon": "Wifi",
+      "color": "#1e3a8a"
+    },
+    {
+      "id": "cat_38",
+      "label": "Cibo Asporto",
+      "key": "cibo_asporto",
+      "created_at": "2024-09-07T20:00:00.000Z",
+      "updated_at": "2024-09-07T20:00:00.000Z",
+      "icon": "Coffee",
+      "color": "#15803d"
+    },
+    {
+      "id": "cat_39",
+      "label": "Benzina",
+      "key": "benzina",
+      "created_at": "2024-09-07T20:00:00.000Z",
+      "updated_at": "2024-09-07T20:00:00.000Z",
+      "icon": "Fuel",
+      "color": "#5b21b6"
+    },
+    {
+      "id": "cat_40",
+      "label": "Assicurazione",
+      "key": "assicurazione",
+      "created_at": "2024-09-07T20:00:00.000Z",
+      "updated_at": "2024-09-07T20:00:00.000Z",
+      "icon": "FileText",
+      "color": "#3b82f6"
+    }
+  ],
+  "accounts": [
+    {
+      "id": "acc_1",
+      "name": "Revolut Edoardo",
+      "type": "payroll",
+      "user_ids": [
+        "user_1"
+      ],
+      "group_id": "group_1",
+      "created_at": "2024-09-06T20:00:00.000Z",
+      "updated_at": "2024-09-06T20:00:00.000Z"
+    },
+    {
+      "id": "acc_2",
+      "name": "Contanti",
+      "type": "cash",
+      "user_ids": [
+        "user_1"
+      ],
+      "group_id": "group_1",
+      "created_at": "2024-09-06T20:00:00.000Z",
+      "updated_at": "2024-09-06T20:00:00.000Z"
+    },
+    {
+      "id": "acc_3",
+      "name": "Revolut Ivana",
+      "type": "payroll",
+      "user_ids": [
+        "user_2"
+      ],
+      "group_id": "group_1",
+      "created_at": "2024-09-06T20:00:00.000Z",
+      "updated_at": "2024-09-06T20:00:00.000Z"
+    },
+    {
+      "id": "acc_4",
+      "name": "Contanti",
+      "type": "cash",
+      "user_ids": [
+        "user_2"
+      ],
+      "group_id": "group_1",
+      "created_at": "2024-09-06T20:00:00.000Z",
+      "updated_at": "2024-09-06T20:00:00.000Z"
+    },
+    {
+      "id": "acc_5",
+      "name": "Risparmio Casa",
+      "type": "savings",
+      "user_ids": [
+        "user_1",
+        "user_2"
+      ],
+      "group_id": "group_1",
+      "created_at": "2024-09-06T20:00:00.000Z",
+      "updated_at": "2024-09-06T20:00:00.000Z"
+    }
+  ],
+  "transactions": [
+    {
+      "id": "trx_1",
+      "description": "Esselunga Spesa Grande",
+      "amount": 135.5,
+      "type": "expense",
+      "category": "spesa",
+      "date": "2025-09-07T20:26:00.000Z",
+      "user_id": "user_1",
+      "account_id": "acc_1",
+      "to_account_id": null,
+      "status": "not_reconciled",
+      "linked_transaction_ids": [],
+      "frequency": "once",
+      "created_at": "2024-09-04T20:00:00.000Z",
+      "updated_at": "2025-09-07T14:45:26.266Z"
+    },
+    {
+      "id": "trx_2",
+      "description": "McDonald's",
+      "amount": 18.75,
+      "type": "expense",
+      "category": "cibo_asporto",
+      "date": "2025-09-06T05:36:00.000Z",
+      "user_id": "user_1",
+      "account_id": "acc_1",
+      "to_account_id": null,
+      "status": "not_reconciled",
+      "linked_transaction_ids": [],
+      "frequency": "once",
+      "created_at": "2024-09-07T20:00:00.000Z",
+      "updated_at": "2025-09-07T14:45:26.266Z"
+    },
+    {
+      "id": "trx_3",
+      "description": "Parcheggio Centro",
+      "amount": 5.5,
+      "type": "expense",
+      "category": "bolletta_tim",
+      "date": "2025-09-05T11:29:00.000Z",
+      "user_id": "user_1",
+      "account_id": "acc_1",
+      "to_account_id": null,
+      "status": "not_reconciled",
+      "linked_transaction_ids": [],
+      "frequency": "once",
+      "created_at": "2024-09-06T20:00:00.000Z",
+      "updated_at": "2025-09-07T14:45:26.266Z"
+    },
+    {
+      "id": "trx_4",
+      "description": "Bonifico da Genitore",
+      "amount": 300,
+      "type": "income",
+      "category": "stipendio",
+      "date": "2025-09-04T08:19:00.000Z",
+      "user_id": "user_2",
+      "account_id": "acc_3",
+      "to_account_id": null,
+      "status": "not_reconciled",
+      "linked_transaction_ids": [],
+      "frequency": "once",
+      "created_at": "2024-09-07T20:00:00.000Z",
+      "updated_at": "2025-09-07T14:45:26.266Z"
+    },
+    {
+      "id": "trx_5",
+      "description": "Mercato Locale Frutta",
+      "amount": 25.3,
+      "type": "expense",
+      "category": "spesa",
+      "date": "2025-09-04T06:39:00.000Z",
+      "user_id": "user_2",
+      "account_id": "acc_1",
+      "to_account_id": null,
+      "status": "not_reconciled",
+      "linked_transaction_ids": [],
+      "frequency": "once",
+      "created_at": "2024-09-01T20:00:00.000Z",
+      "updated_at": "2025-09-07T14:45:26.266Z"
+    },
+    {
+      "id": "trx_6",
+      "description": "Stipendio Mensile",
+      "amount": 2200,
+      "type": "income",
+      "category": "stipendio",
+      "date": "2025-09-01T22:32:00.000Z",
+      "user_id": "user_1",
+      "account_id": "acc_1",
+      "to_account_id": null,
+      "status": "not_reconciled",
+      "linked_transaction_ids": [],
+      "frequency": "monthly",
+      "next_due_date": "2025-10-12T10:13:00.000Z",
+      "created_at": "2024-09-05T20:00:00.000Z",
+      "updated_at": "2025-09-07T14:45:26.266Z"
+    },
+    {
+      "id": "trx_7",
+      "description": "Abbonamento ATM Mensile",
+      "amount": 39,
+      "type": "expense",
+      "category": "benzina",
+      "date": "2025-08-15T10:41:00.000Z",
+      "user_id": "user_2",
+      "account_id": "acc_1",
+      "to_account_id": null,
+      "status": "not_reconciled",
+      "linked_transaction_ids": [],
+      "frequency": "monthly",
+      "next_due_date": "2025-10-01T11:52:00.000Z",
+      "created_at": "2024-09-03T20:00:00.000Z",
+      "updated_at": "2025-09-07T14:45:26.266Z"
+    },
+    {
+      "id": "trx_8",
+      "description": "Carburante Shell",
+      "amount": 62.4,
+      "type": "expense",
+      "category": "rata_auto",
+      "date": "2025-08-12T02:43:00.000Z",
+      "user_id": "user_1",
+      "account_id": "acc_1",
+      "to_account_id": null,
+      "status": "not_reconciled",
+      "linked_transaction_ids": [],
+      "frequency": "once",
+      "created_at": "2024-09-05T20:00:00.000Z",
+      "updated_at": "2025-09-07T14:45:26.266Z"
+    }
+  ],
+  "budgets": [
+    {
+      "id": "bdg_1",
+      "description": "Spese Necessarie",
+      "amount": 1500,
+      "type": "monthly",
+      "icon": "ShoppingBasket",
+      "categories": [
+        "veterinario",
+        "bollo_auto",
+        "yuup_thor",
+        "spesa",
+        "bolletta_acqua",
+        "medicine_thor",
+        "bolletta_tari",
+        "medicine",
+        "ricarica_telefono",
+        "bolletta_tim",
+        "tagliando_auto",
+        "visite_mediche",
+        "taglio_thor",
+        "cibo_thor",
+        "rata_auto",
+        "bolletta_gas",
+        "bolletta_depuratore",
+        "analisi_mediche",
+        "bolletta_luce",
+        "benzina",
+        "abbonamenti_necessari"
+      ],
+      "user_id": "user_1",
+      "created_at": "2024-09-06T20:00:00.000Z",
+      "updated_at": "2024-09-06T20:00:00.000Z"
+    },
+    {
+      "id": "bdg_2",
+      "description": "Spese non Necessarie",
+      "amount": 750,
+      "type": "monthly",
+      "icon": "PartyPopper",
+      "categories": [
+        "abbonamenti_tv",
+        "parrucchiere",
+        "cibo_fuori",
+        "palestra",
+        "estetista",
+        "vestiti",
+        "skincare",
+        "haircare",
+        "cibo_asporto"
+      ],
+      "user_id": "user_1",
+      "created_at": "2024-09-06T20:00:00.000Z",
+      "updated_at": "2024-09-06T20:00:00.000Z"
+    },
+    {
+      "id": "bdg_3",
+      "description": "Spese Personali",
+      "amount": 250,
+      "type": "monthly",
+      "icon": "Stethoscope",
+      "categories": [
+        "investimenti",
+        "regali",
+        "eventi"
+      ],
+      "user_id": "user_1",
+      "created_at": "2024-09-06T20:00:00.000Z",
+      "updated_at": "2024-09-06T20:00:00.000Z"
+    },
+    {
+      "id": "bdg_4",
+      "description": "Spese Necessarie",
+      "amount": 1500,
+      "type": "monthly",
+      "icon": "ShoppingBasket",
+      "categories": [
+        "veterinario",
+        "bollo_auto",
+        "yuup_thor",
+        "spesa",
+        "bolletta_acqua",
+        "medicine_thor",
+        "bolletta_tari",
+        "medicine",
+        "ricarica_telefono",
+        "bolletta_tim",
+        "tagliando_auto",
+        "visite_mediche",
+        "taglio_thor",
+        "cibo_thor",
+        "rata_auto",
+        "bolletta_gas",
+        "bolletta_depuratore",
+        "analisi_mediche",
+        "bolletta_luce",
+        "benzina",
+        "abbonamenti_necessari"
+      ],
+      "user_id": "user_2",
+      "created_at": "2024-09-06T20:00:00.000Z",
+      "updated_at": "2024-09-06T20:00:00.000Z"
+    },
+    {
+      "id": "bdg_5",
+      "description": "Spese non Necessarie",
+      "amount": 750,
+      "type": "monthly",
+      "icon": "PartyPopper",
+      "categories": [
+        "abbonamenti_tv",
+        "parrucchiere",
+        "cibo_fuori",
+        "palestra",
+        "estetista",
+        "vestiti",
+        "skincare",
+        "haircare",
+        "cibo_asporto"
+      ],
+      "user_id": "user_2",
+      "created_at": "2024-09-06T20:00:00.000Z",
+      "updated_at": "2024-09-06T20:00:00.000Z"
+    },
+    {
+      "id": "bdg_6",
+      "description": "Spese Personali",
+      "amount": 250,
+      "type": "monthly",
+      "icon": "Stethoscope",
+      "categories": [
+        "investimenti",
+        "regali",
+        "eventi"
+      ],
+      "user_id": "user_2",
+      "created_at": "2024-09-06T20:00:00.000Z",
+      "updated_at": "2024-09-06T20:00:00.000Z"
+    }
+  ],
+  "investments": [
+    {
+      "id": "inv_1",
+      "user_id": "user_1",
+      "name": "Apple Inc.",
+      "symbol": "AAPL",
+      "quantity": 25,
+      "purchase_price": 150.25,
+      "current_price": 189.75,
+      "purchase_date": "2023-06-15T00:00:00.000Z",
+      "group_id": "group_1",
+      "created_at": "2024-09-06T20:00:00.000Z",
+      "updated_at": "2024-09-06T20:00:00.000Z"
+    },
+    {
+      "id": "inv_2",
+      "user_id": "user_1",
+      "name": "Vanguard S&P 500 ETF",
+      "symbol": "VOO",
+      "quantity": 18,
+      "purchase_price": 380,
+      "current_price": 445.3,
+      "purchase_date": "2023-03-20T00:00:00.000Z",
+      "group_id": "group_1",
+      "created_at": "2024-09-06T20:00:00.000Z",
+      "updated_at": "2024-09-06T20:00:00.000Z"
+    },
+    {
+      "id": "inv_3",
+      "user_id": "user_2",
+      "name": "Microsoft Corporation",
+      "symbol": "MSFT",
+      "quantity": 12,
+      "purchase_price": 280.75,
+      "current_price": 398.85,
+      "purchase_date": "2023-04-10T00:00:00.000Z",
+      "group_id": "group_1",
+      "created_at": "2024-09-06T20:00:00.000Z",
+      "updated_at": "2024-09-06T20:00:00.000Z"
+    },
+    {
+      "id": "inv_4",
+      "user_id": "user_1",
+      "name": "Tesla Inc.",
+      "symbol": "TSLA",
+      "quantity": 8,
+      "purchase_price": 220,
+      "current_price": 198.25,
+      "purchase_date": "2023-09-05T00:00:00.000Z",
+      "group_id": "group_1",
+      "created_at": "2024-09-06T20:00:00.000Z",
+      "updated_at": "2024-09-06T20:00:00.000Z"
+    },
+    {
+      "id": "inv_5",
+      "user_id": "user_1",
+      "name": "NVIDIA Corporation",
+      "symbol": "NVDA",
+      "quantity": 5,
+      "purchase_price": 425,
+      "current_price": 675.5,
+      "purchase_date": "2023-11-12T00:00:00.000Z",
+      "group_id": "group_1",
+      "created_at": "2024-09-06T20:00:00.000Z",
+      "updated_at": "2024-09-06T20:00:00.000Z"
+    }
+  ]
+}

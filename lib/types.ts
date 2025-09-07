@@ -2,7 +2,7 @@ export type RoleType = 'superadmin' | 'admin' | 'member';
 export type AccountType = 'payroll' | 'savings' | 'cash' | 'investments';
 export type TransactionType = 'income' | 'expense' | 'recurrent' | 'transfer';
 export type TransactionStatusType = 'not_reconciled' | 'partly_reconciled' | 'reconciled';
-export type TransactionFrequencyType = 'weekly' | 'biweekly' | 'monthly' | 'yearly';
+export type TransactionFrequencyType = 'once' | 'weekly' | 'biweekly' | 'monthly' | 'yearly';
 export type BudgetType = 'monthly' | 'annually';
 export type PlanType = 'premium' | 'free';
 export type LoadingState = 'idle' | 'loading' | 'success' | 'error';
@@ -84,7 +84,7 @@ export interface Budget {
   description: string;
   amount: number;
   type: BudgetType;
-  icon: string;
+  icon?: string;
   categories: string[];
   user_id: string;
   created_at: Date;
@@ -95,6 +95,8 @@ export interface Category {
   id: string;
   label: string;
   key: string;
+  icon: string;
+  color: string;
   created_at: Date;
   updated_at: Date;
 }

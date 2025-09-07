@@ -2,72 +2,112 @@
 
 import { useState, useEffect, Suspense, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, MoreVertical, Plus, Filter, Clock, RotateCcw, Search } from "lucide-react";
-import { Card } from "@/components/ui/card";
+import { ArrowLeft, MoreVertical, Plus, Clock, RotateCcw, Search, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import BottomNavigation from "../../../components/bottom-navigation";
 import UserSelector from "@/components/user-selector";
+import { TransactionCard } from "@/components/transaction-card";
+import { FilterDialog } from "@/components/filter-dialog";
+import { SectionHeader } from "@/components/section-header";
+import { useTransactionFilters } from "@/hooks/useTransactionFilters";
 import {
-  dummyUsers,
-  dummyTransactions,
-  dummyCategoryIcons
-} from "@/lib/dummy-data";
+  userService,
+  transactionService,
+  categoryService,
+  accountService
+} from "@/lib/api";
 import {
   formatCurrency,
-  parseFiltersFromUrl,
-  filterTransactions,
-  applySearchFilter,
   getTotalForSection,
   formatDateLabel,
-  formatDueDate,
-  groupUpcomingTransactionsByDaysRemaining,
-  getCategoryLabel,
-  getAccountName,
-  truncateText,
+  groupUpcomingTransactionsByDaysRemaining
 } from "@/lib/utils";
-import { FilterState } from "@/lib/types";
+import { Transaction, User, Category } from "@/lib/types";
 
 function TransactionsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState("Transactions");
-  const [searchQuery, setSearchQuery] = useState("");
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
-  const [selectedFilter, setSelectedFilter] = useState("All");
-  const [selectedCategory, setSelectedCategory] = useState("Tutte le Categorie");
+  
+  // API State
+  const [allTransactions, setAllTransactions] = useState<Transaction[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [accountNames, setAccountNames] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(true);
 
-  // Initialize filters from URL parameters
-  const [filters, setFilters] = useState<FilterState>(() => {
-    return parseFiltersFromUrl(searchParams);
-  });
+  // Use custom hook for filter management
+  const {
+    searchQuery,
+    setSearchQuery,
+    selectedFilter,
+    setSelectedFilter,
+    selectedCategory,
+    setSelectedCategory,
+    selectedGroupFilter,
+    setSelectedGroupFilter,
+    filteredTransactions,
+    filteredByUser,
+    resetFilters,
+    hasActiveFilters
+  } = useTransactionFilters(allTransactions);
 
-  const selectedGroupFilter = filters.member || 'all';
-  const setSelectedGroupFilter = (value: string) => {
-    setFilters(prev => ({ ...prev, member: value }));
-  };
+  // Load data from API
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        const [transactionsData, usersData, categoriesData] = await Promise.all([
+          transactionService.getAll(),
+          userService.getAll(),
+          categoryService.getAll()
+        ]);
+        
+        setAllTransactions(transactionsData);
+        setUsers(usersData);
+        setCategories(categoriesData);
+        
+        // Load account names for all unique account IDs
+        const uniqueAccountIds = [...new Set(transactionsData.map(tx => tx.account_id))];
+        const accountNamesMap: Record<string, string> = {};
+        await Promise.all(
+          uniqueAccountIds.map(async (accountId) => {
+            try {
+              const account = await accountService.getById(accountId);
+              accountNamesMap[accountId] = account?.name || accountId;
+            } catch (error) {
+              console.error(`Error fetching account name for ${accountId}:`, error);
+              accountNamesMap[accountId] = accountId;
+            }
+          })
+        );
+        setAccountNames(accountNamesMap);
+        
+        // Set current user as first user for demo purposes
+        if (usersData.length > 0) {
+          setCurrentUser(usersData[0]);
+        }
+      } catch (error) {
+        console.error('Failed to load data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  // Get filtered transactions based on selected group filter
-  const allTransactions = useMemo(() => {
-    if (selectedGroupFilter === 'all') {
-      return dummyTransactions;
-    }
-    return dummyTransactions.filter(tx => tx.user_id === selectedGroupFilter);
-  }, [selectedGroupFilter]);
+    loadData();
+  }, []);
 
-  const filteredTransactions = useMemo(() => {
-    return filterTransactions(allTransactions, filters);
-  }, [allTransactions, filters]);
+  // This logic is now handled by the useTransactionFilters hook
 
   // Optimized data processing with useMemo
   const processedTransactionData = useMemo(() => {
-    const searchFiltered = applySearchFilter(searchQuery, filteredTransactions);
-
     // Sort transactions by date (newest first)
-    const sortedTransactions = [...searchFiltered].sort((a, b) =>
+    const sortedTransactions = [...filteredTransactions].sort((a, b) =>
       new Date(b.date).getTime() - new Date(a.date).getTime()
     );
 
@@ -98,15 +138,15 @@ function TransactionsContent() {
       dayGroups,
       allTotal: getTotalForSection(sortedTransactions)
     };
-  }, [filteredTransactions, searchQuery]);
+  }, [filteredTransactions]);
 
   // Get recurring transactions
   const filteredRecurrentData = useMemo(() => {
-    const recurringTxs = dummyTransactions.filter(tx => 
+    const recurringTxs = filteredByUser.filter((tx: Transaction) => 
       tx.frequency && (tx.frequency === 'weekly' || tx.frequency === 'biweekly' || tx.frequency === 'monthly' || tx.frequency === 'yearly')
     );
 
-    const filtered = selectedGroupFilter === 'all' ? recurringTxs : recurringTxs.filter(tx => tx.user_id === selectedGroupFilter);
+    const filtered = selectedGroupFilter === 'all' ? recurringTxs : recurringTxs.filter((tx: Transaction) => tx.user_id === selectedGroupFilter);
     
     // Group upcoming transactions by days remaining
     const upcomingGrouped = groupUpcomingTransactionsByDaysRemaining(filtered);
@@ -115,95 +155,15 @@ function TransactionsContent() {
       upcomingGrouped,
       recurrent: filtered
     };
-  }, [selectedGroupFilter]);
+  }, [selectedGroupFilter, filteredByUser]);
 
   // Check if we came from a specific source and set initial state
   useEffect(() => {
-    // Sync UI state with URL filters
-    if (filters.category && filters.category !== 'all') {
-      setSelectedCategory(filters.category.charAt(0).toUpperCase() + filters.category.slice(1));
-    } else {
-      setSelectedCategory("Tutte le Categorie");
-    }
-
-    if (filters.type && filters.type !== 'all') {
-      setSelectedFilter(filters.type.charAt(0).toUpperCase() + filters.type.slice(1));
-    } else {
-      setSelectedFilter("All");
-    }
-
     const tab = searchParams.get('tab');
     if (tab === 'upcoming' || tab === 'recurrent') {
       setActiveTab('Recurrent');
     }
-  }, [filters, searchParams]);
-
-  // Update filters when URL changes
-  useEffect(() => {
-    const urlFilters = parseFiltersFromUrl(searchParams);
-    setFilters(urlFilters);
   }, [searchParams]);
-
-  // Update URL when filters change
-  useEffect(() => {
-    const params = new URLSearchParams();
-
-    if (filters.member && filters.member !== 'all') {
-      params.set('member', filters.member);
-    }
-
-    if (filters.category && filters.category !== 'all') {
-      params.set('category', encodeURIComponent(filters.category));
-    }
-
-    if (filters.type && filters.type !== 'all') {
-      params.set('type', filters.type);
-    }
-
-    if (filters.dateRange && filters.dateRange !== 'all') {
-      params.set('dateRange', filters.dateRange);
-    }
-
-    if (filters.minAmount) {
-      params.set('minAmount', filters.minAmount);
-    }
-
-    if (filters.maxAmount) {
-      params.set('maxAmount', filters.maxAmount);
-    }
-
-    if (searchParams.get('from')) {
-      params.set('from', searchParams.get('from')!);
-    }
-
-    if (searchParams.get('budget')) {
-      params.set('budget', searchParams.get('budget')!);
-    }
-
-    const newUrl = params.toString() ? `/transactions?${params.toString()}` : '/transactions';
-
-    const currentPath = window.location.pathname;
-    const currentSearch = window.location.search;
-    const currentUrl = currentPath + currentSearch;
-
-    if (currentUrl !== newUrl) {
-      router.replace(newUrl, { scroll: false });
-    }
-  }, [filters, searchParams, router]);
-
-  // Sync selectedFilter and selectedCategory with filters
-  useEffect(() => {
-    const expectedType = selectedFilter === "All" ? 'all' : selectedFilter.toLowerCase();
-    const expectedCategory = selectedCategory === "Tutte le Categorie" ? 'all' : selectedCategory.toLowerCase();
-
-    if (filters.type !== expectedType || filters.category !== expectedCategory) {
-      setFilters(prev => ({
-        ...prev,
-        type: expectedType,
-        category: expectedCategory
-      }));
-    }
-  }, [selectedFilter, selectedCategory, filters.type, filters.category]);
 
   const handleBackClick = () => {
     const from = searchParams.get('from');
@@ -227,6 +187,12 @@ function TransactionsContent() {
 
   return (
     <div className="relative flex size-full min-h-[100dvh] flex-col bg-gradient-to-br from-slate-50 via-white to-slate-100" style={{ fontFamily: '"Inter", "SF Pro Display", system-ui, sans-serif' }}>
+      {loading ? (
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+      ) : (
+        <>
       {/* Header */}
       <header className="sticky top-0 z-20 bg-white/70 backdrop-blur-xl border-b border-slate-200/50 px-3 sm:px-4 py-2 sm:py-3 shadow-sm">
         <div className="flex items-center justify-between">
@@ -234,7 +200,7 @@ function TransactionsContent() {
           <Button
             variant="ghost"
             size="sm"
-            className="hover:bg-[#7578EC]/10 text-[#7578EC] hover:text-[#7578EC] rounded-xl transition-all duration-200 p-2 sm:p-3 min-w-[44px] min-h-[44px] flex items-center justify-center group hover:scale-105"
+            className="hover:bg-primary/10 text-primary hover:text-primary rounded-xl transition-all duration-200 p-2 sm:p-3 min-w-[44px] min-h-[44px] flex items-center justify-center group hover:scale-105"
             onClick={handleBackClick}
           >
             <ArrowLeft className="h-5 w-5 sm:h-6 sm:w-6 group-hover:-translate-x-0.5 transition-transform duration-200" />
@@ -246,7 +212,7 @@ function TransactionsContent() {
           {/* Right - Menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="hover:bg-[#7578EC]/10 text-[#7578EC] hover:text-[#7578EC] rounded-xl transition-all duration-200 p-2 sm:p-3 min-w-[44px] min-h-[44px] flex items-center justify-center group hover:scale-105">
+              <Button variant="ghost" size="sm" className="hover:bg-primary/10 text-primary hover:text-primary rounded-xl transition-all duration-200 p-2 sm:p-3 min-w-[44px] min-h-[44px] flex items-center justify-center group hover:scale-105">
                 <MoreVertical className="h-5 w-5 group-hover:rotate-90 transition-transform duration-300" />
               </Button>
             </DropdownMenuTrigger>
@@ -255,11 +221,11 @@ function TransactionsContent() {
               className="w-60 bg-white/95 backdrop-blur-xl border border-slate-200/50 shadow-2xl rounded-2xl p-3 animate-in slide-in-from-top-2 duration-200"
               sideOffset={12}
             >
-              <DropdownMenuItem className="text-sm font-semibold text-slate-700 hover:bg-[#7578EC]/10 hover:text-[#7578EC] rounded-xl px-3 py-3 cursor-pointer transition-all duration-200 group">
+              <DropdownMenuItem className="text-sm font-semibold text-slate-700 hover:bg-primary/10 hover:text-primary rounded-xl px-3 py-3 cursor-pointer transition-all duration-200 group">
                 <Plus className="mr-3 h-4 w-4 group-hover:scale-110 transition-transform duration-200" />
                 Aggiungi Transazione
               </DropdownMenuItem>
-              <DropdownMenuItem className="text-sm font-semibold text-slate-700 hover:bg-[#7578EC]/10 hover:text-[#7578EC] rounded-xl px-3 py-3 cursor-pointer transition-all duration-200 group">
+              <DropdownMenuItem className="text-sm font-semibold text-slate-700 hover:bg-primary/10 hover:text-primary rounded-xl px-3 py-3 cursor-pointer transition-all duration-200 group">
                 <RotateCcw className="mr-3 h-4 w-4 group-hover:rotate-180 transition-transform duration-200" />
                 Aggiungi Transazione Ricorrente
               </DropdownMenuItem>
@@ -274,8 +240,8 @@ function TransactionsContent() {
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
               className={`flex-1 py-3 px-6 text-sm font-semibold rounded-xl transition-all duration-300 group ${activeTab === tab.key
-                ? "bg-[#7578EC] text-white shadow-lg shadow-[#7578EC]/25 scale-[1.02]"
-                : "text-slate-600 hover:text-slate-900 hover:bg-white/70 hover:shadow-md"
+                ? "bg-gradient-to-r from-[hsl(var(--color-primary))] to-[hsl(var(--color-secondary))] text-white shadow-lg shadow-[hsl(var(--color-primary))]/25 scale-[1.02]"
+                : "text-slate-700 hover:text-slate-900 hover:bg-white hover:shadow-md"
                 }`}
             >
               {tab.label}
@@ -285,8 +251,10 @@ function TransactionsContent() {
       </header>
 
       <UserSelector 
+        users={users}
+        currentUser={currentUser}
         selectedGroupFilter={selectedGroupFilter}
-        onGroupFilterChange={(groupId) => setFilters(prev => ({ ...prev, member: groupId }))}
+        onGroupFilterChange={setSelectedGroupFilter}
         className="bg-[#F8FAFC] border-gray-200"
       />
 
@@ -301,7 +269,7 @@ function TransactionsContent() {
                 <div className="flex gap-2">
                   {searchParams.get('member') && searchParams.get('member') !== 'all' && (
                     <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-blue-300">
-                      Membro: {dummyUsers.find(m => m.id === searchParams.get('member'))?.name || searchParams.get('member')}
+                      Membro: {users.find((m: User) => m.id === searchParams.get('member'))?.name || searchParams.get('member')}
                     </Badge>
                   )}
                   {searchParams.get('category') && (
@@ -316,7 +284,7 @@ function TransactionsContent() {
                 size="sm"
                 onClick={() => {
                   setSelectedGroupFilter('all');
-                  setSelectedCategory('Tutte le Categorie');
+                  resetFilters();
                   router.replace('/transactions');
                 }}
                 className="text-blue-600 hover:text-blue-800 hover:bg-blue-100"
@@ -332,126 +300,31 @@ function TransactionsContent() {
           <div className="flex items-center gap-3">
             {/* Enhanced Search Bar */}
             <div className="flex-1 relative">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[#7578EC] z-10" />
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-primary z-10" />
               <Input
                 type="text"
                 placeholder="Cerca transazioni..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="rounded-2xl pl-12 pr-4 py-3 bg-white/80 backdrop-blur-sm border border-slate-200/50 focus:border-[#7578EC]/60 focus:ring-4 focus:ring-[#7578EC]/10 h-12 text-slate-700 placeholder:text-slate-400 shadow-lg shadow-slate-200/30 transition-all duration-300 hover:shadow-xl hover:shadow-slate-200/40"
+                className="rounded-2xl pl-12 pr-4 py-3 bg-white/80 backdrop-blur-sm border border-slate-200/50 focus:border-primary/60 focus:ring-4 focus:ring-primary/10 h-12 text-slate-700 placeholder:text-slate-400 shadow-lg shadow-slate-200/30 transition-all duration-300 hover:shadow-xl hover:shadow-slate-200/40"
               />
             </div>
 
             {/* Enhanced Filter Button */}
-            <Dialog open={isFilterModalOpen} onOpenChange={setIsFilterModalOpen}>
-              <DialogTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={`rounded-2xl border-slate-200/50 hover:bg-[#7578EC]/10 hover:border-[#7578EC]/40 w-12 h-12 p-0 shadow-lg shadow-slate-200/30 hover:shadow-xl hover:shadow-slate-200/40 transition-all duration-300 hover:scale-105 group ${(selectedFilter !== "All" || selectedCategory !== "Tutte le Categorie" || searchQuery !== "")
-                      ? "bg-gradient-to-r from-[#7578EC] to-[#6366F1] text-white hover:from-[#6366F1] hover:to-[#7578EC] border-transparent shadow-[#7578EC]/30"
-                      : "bg-white/80 backdrop-blur-sm"
-                    }`}
-                >
-                  <Filter
-                    className={`h-5 w-5 transition-all duration-200 group-hover:rotate-12 ${(selectedFilter !== "All" || selectedCategory !== "Tutte le Categorie" || searchQuery !== "")
-                        ? "fill-current drop-shadow-sm"
-                        : "text-slate-600"
-                      }`}
-                  />
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-lg bg-white/95 backdrop-blur-xl border border-slate-200/50 shadow-2xl rounded-3xl">
-                <DialogHeader>
-                  <DialogTitle className="flex items-center gap-3 text-xl font-bold text-slate-900">
-                    <div className="flex items-center justify-center w-10 h-10 rounded-2xl bg-gradient-to-br from-[#7578EC]/10 to-[#6366F1]/10 border border-[#7578EC]/20">
-                      <Filter className="h-5 w-5 text-[#7578EC]" />
-                    </div>
-                    Filtra Transazioni
-                  </DialogTitle>
-                </DialogHeader>
-
-                <div className="space-y-8 pt-6">
-                  {/* Enhanced Transaction Type Filter */}
-                  <div className="space-y-4">
-                    <h4 className="text-base font-semibold text-slate-800 flex items-center gap-2">
-                      <span className="text-xl">🏷️</span>
-                      Tipo Transazione
-                    </h4>
-                    <div className="grid grid-cols-3 gap-3">
-                      {[{ key: "All", label: "Tutti", icon: "📊", color: "slate" }, { key: "Income", label: "Entrate", icon: "💚", color: "green" }, { key: "Expenses", label: "Spese", icon: "💸", color: "red" }].map((type) => (
-                        <Button
-                          key={type.key}
-                          variant={selectedFilter === type.key ? "default" : "outline"}
-                          size="default"
-                          onClick={() => setSelectedFilter(type.key)}
-                          className={`rounded-2xl py-4 px-3 transition-all duration-300 hover:scale-105 group ${
-                            selectedFilter === type.key
-                              ? "bg-gradient-to-r from-[#7578EC] to-[#6366F1] hover:from-[#6366F1] hover:to-[#7578EC] text-white shadow-lg shadow-[#7578EC]/30 border-transparent"
-                              : "bg-white/80 backdrop-blur-sm hover:bg-[#7578EC]/10 hover:text-[#7578EC] border-slate-200/50 hover:border-[#7578EC]/40 hover:shadow-lg hover:shadow-slate-200/50"
-                          }`}
-                        >
-                          <div className="flex flex-col items-center gap-2">
-                            <span className={`text-lg transition-transform duration-200 group-hover:scale-110 ${selectedFilter === type.key ? 'drop-shadow-sm' : ''}`}>{type.icon}</span>
-                            <span className="text-sm font-semibold">{type.label}</span>
-                          </div>
-                        </Button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Enhanced Category Filter */}
-                  <div className="space-y-4">
-                    <h4 className="text-base font-semibold text-slate-800 flex items-center gap-2">
-                      <span className="text-xl">🎯</span>
-                      Categoria
-                    </h4>
-                    <div className="grid grid-cols-2 gap-3 max-h-64 overflow-y-auto">
-                      {[
-                        { name: "Tutte le Categorie", icon: "📋" },
-                        ...Object.keys(dummyCategoryIcons).slice(0, 7).map(cat => ({
-                          name: cat,
-                          icon: dummyCategoryIcons[cat] || "📊"
-                        }))
-                      ].map((category) => (
-                        <Button
-                          key={category.name}
-                          variant={selectedCategory === category.name ? "default" : "outline"}
-                          size="default"
-                          onClick={() => setSelectedCategory(category.name)}
-                          className={`justify-start py-3 px-4 rounded-2xl transition-all duration-300 hover:scale-105 group ${
-                            selectedCategory === category.name
-                              ? "bg-gradient-to-r from-[#7578EC] to-[#6366F1] hover:from-[#6366F1] hover:to-[#7578EC] text-white shadow-lg shadow-[#7578EC]/30 border-transparent"
-                              : "bg-white/80 backdrop-blur-sm hover:bg-[#7578EC]/10 hover:text-[#7578EC] border-slate-200/50 hover:border-[#7578EC]/40 hover:shadow-lg hover:shadow-slate-200/50"
-                          }`}
-                        >
-                          <span className={`mr-3 text-lg transition-transform duration-200 group-hover:scale-110 ${selectedCategory === category.name ? 'drop-shadow-sm' : ''}`}>{category.icon}</span>
-                          <span className="font-medium truncate">{category.name}</span>
-                        </Button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Enhanced Reset Filters Button */}
-                  <div className="pt-4 border-t border-slate-200/50">
-                    <Button
-                      variant="ghost"
-                      size="default"
-                      onClick={() => {
-                        setSelectedFilter("All");
-                        setSelectedCategory("Tutte le Categorie");
-                        setSearchQuery("");
-                      }}
-                      className="w-full py-3 px-4 rounded-2xl text-slate-600 hover:text-[#7578EC] hover:bg-[#7578EC]/10 font-semibold transition-all duration-300 hover:scale-105 group border border-slate-200/50 hover:border-[#7578EC]/40 hover:shadow-md"
-                    >
-                      <div className="flex items-center justify-center gap-2">
-                        <span className="text-lg group-hover:rotate-180 transition-transform duration-300">🔄</span>
-                        <span>Ripristina Tutti i Filtri</span>
-                      </div>
-                    </Button>
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
+            <FilterDialog
+              isOpen={isFilterModalOpen}
+              onOpenChange={setIsFilterModalOpen}
+              selectedFilter={selectedFilter}
+              selectedCategory={selectedCategory}
+              categories={categories}
+              onFilterChange={setSelectedFilter}
+              onCategoryChange={setSelectedCategory}
+              onReset={() => {
+                resetFilters();
+                setSearchQuery("");
+              }}
+              hasActiveFilters={hasActiveFilters}
+            />
           </div>
         )}
 
@@ -473,31 +346,12 @@ function TransactionsContent() {
 
                   <div className="space-y-3">
                     {dayGroup.transactions.map((transaction) => (
-                      <Card key={transaction.id} className="p-3 mb-2 bg-white/80 backdrop-blur-sm shadow-lg shadow-slate-200/50 border border-white/50 hover:shadow-xl hover:shadow-slate-200/60 transition-all duration-300 rounded-2xl group cursor-pointer hover:scale-[1.01]">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3 flex-1 min-w-0">
-                            <div className="flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#7578EC]/10 to-[#7578EC]/5 text-[#7578EC] shadow-md shadow-slate-200/30 group-hover:shadow-lg transition-all duration-200 shrink-0">
-                              <span className="text-base">{dummyCategoryIcons[transaction.category] || "💳"}</span>
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <h3 className="font-semibold text-slate-900 group-hover:text-slate-800 transition-colors truncate text-sm mb-1">{transaction.description}</h3>
-                              <div className="space-y-0.5">
-                                <div className="text-xs text-gray-600">
-                                  {truncateText(getAccountName(transaction.account_id), 20)}
-                                </div>
-                                <div className="text-xs text-gray-500">
-                                  {getCategoryLabel(transaction.category)}
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <p className={`text-base font-bold ${transaction.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
-                              {formatCurrency(transaction.type === 'income' ? transaction.amount : -transaction.amount)}
-                            </p>
-                          </div>
-                        </div>
-                      </Card>
+                      <TransactionCard
+                        key={transaction.id}
+                        transaction={transaction}
+                        accountNames={accountNames}
+                        variant="default"
+                      />
                     ))}
                   </div>
                 </section>
@@ -522,15 +376,15 @@ function TransactionsContent() {
 
             {/* Upcoming Payments Section */}
             <section>
-              <div className="flex items-center justify-between mb-2">
-                <h2 className="text-lg font-bold tracking-tight text-gray-900 flex items-center gap-2">
-                  <Clock className="h-5 w-5 text-orange-500" />
-                  In Scadenza
-                </h2>
-                <Badge className="bg-orange-100 text-orange-700 border-orange-200">
-                  {Object.values(filteredRecurrentData.upcomingGrouped).flat().length} pagamenti
-                </Badge>
-              </div>
+              <SectionHeader
+                title="In Scadenza"
+                icon={Clock}
+                iconClassName="text-orange-500"
+                badge={{
+                  text: `${Object.values(filteredRecurrentData.upcomingGrouped).flat().length} pagamenti`,
+                  className: "bg-orange-100 text-orange-700 border-orange-200"
+                }}
+              />
 
               <div className="space-y-6">
                 {Object.entries(filteredRecurrentData.upcomingGrouped).map(([groupName, transactions]) => (
@@ -541,36 +395,12 @@ function TransactionsContent() {
                     </h3>
                     <div className="space-y-2">
                       {transactions.map((transaction) => (
-                        <Card key={transaction.id} className="p-3 bg-gradient-to-r from-orange-50/80 via-white/80 to-white/60 backdrop-blur-sm border border-orange-200/50 hover:shadow-xl hover:shadow-orange-200/30 transition-all duration-300 rounded-2xl group cursor-pointer hover:scale-[1.01] hover:bg-gradient-to-r hover:from-orange-50 hover:via-white hover:to-white">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3 flex-1 min-w-0">
-                              <div className="flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-orange-100 to-orange-50 text-orange-600 shadow-md shadow-orange-200/30 group-hover:shadow-lg group-hover:shadow-orange-200/40 transition-all duration-300 shrink-0 border border-orange-200/50">
-                                <span className="text-base">{dummyCategoryIcons[transaction.category] || "💳"}</span>
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <h3 className="font-semibold text-slate-900 group-hover:text-slate-800 transition-colors truncate text-sm mb-1">{transaction.description}</h3>
-                                <div className="space-y-0.5">
-                                  <div className="text-xs text-gray-600">
-                                    {truncateText(getAccountName(transaction.account_id), 20)}
-                                  </div>
-                                  {transaction.next_due_date && (
-                                    <div className="text-xs text-orange-600 font-medium">
-                                      {formatDueDate(transaction.next_due_date)}
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-base font-bold text-orange-600 mb-1">
-                                {formatCurrency(-transaction.amount)}
-                              </p>
-                              <Badge variant="outline" className="text-xs border-orange-200/70 text-orange-700 bg-orange-50/50 font-medium px-2 py-1">
-                                {transaction.frequency ? `${transaction.frequency}` : 'Una volta'}
-                              </Badge>
-                            </div>
-                          </div>
-                        </Card>
+                        <TransactionCard
+                          key={transaction.id}
+                          transaction={transaction}
+                          accountNames={accountNames}
+                          variant="upcoming"
+                        />
                       ))}
                     </div>
                   </div>
@@ -580,41 +410,25 @@ function TransactionsContent() {
 
             {/* Regular Recurring Transactions Section */}
             <section>
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-bold tracking-tight text-gray-900 flex items-center gap-2">
-                  <RotateCcw className="h-5 w-5 text-blue-500" />
-                  Abbonamenti e Pagamenti Ricorrenti
-                </h2>
-                <Badge className="bg-blue-100 text-blue-700 border-blue-200">
-                  {filteredRecurrentData.recurrent.length} attivi
-                </Badge>
-              </div>
+              <SectionHeader
+                title="Abbonamenti e Pagamenti Ricorrenti"
+                icon={RotateCcw}
+                iconClassName="text-blue-500"
+                badge={{
+                  text: `${filteredRecurrentData.recurrent.length} attivi`,
+                  className: "bg-blue-100 text-blue-700 border-blue-200"
+                }}
+                className="mb-4"
+              />
 
               <div className="space-y-3">
                 {filteredRecurrentData.recurrent.map((transaction) => (
-                  <Card key={transaction.id} className="p-4 bg-gradient-to-r from-blue-50/80 via-white/80 to-white/60 backdrop-blur-sm border border-blue-200/50 hover:shadow-xl hover:shadow-blue-200/30 transition-all duration-300 rounded-2xl group cursor-pointer hover:scale-[1.01] hover:bg-gradient-to-r hover:from-blue-50 hover:via-white hover:to-white">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3 flex-1 min-w-0">
-                        <div className="flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-100 to-blue-50 text-blue-600 shadow-md shadow-blue-200/30 group-hover:shadow-lg group-hover:shadow-blue-200/40 transition-all duration-300 shrink-0 border border-blue-200/50">
-                          <span className="text-base">{dummyCategoryIcons[transaction.category] || "💳"}</span>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold text-slate-900 group-hover:text-slate-800 transition-colors truncate text-sm mb-1">{transaction.description}</h3>
-                          <div className="text-xs text-gray-600">
-                            {truncateText(getAccountName(transaction.account_id), 20)}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-base font-bold text-blue-600 mb-1">
-                          {formatCurrency(transaction.amount)}
-                        </p>
-                        <Badge variant="outline" className="text-xs border-blue-200/70 text-blue-700 bg-blue-50/50 font-medium px-2 py-1">
-                          {transaction.frequency || 'Una volta'}
-                        </Badge>
-                      </div>
-                    </div>
-                  </Card>
+                  <TransactionCard
+                    key={transaction.id}
+                    transaction={transaction}
+                    accountNames={accountNames}
+                    variant="recurring"
+                  />
                 ))}
               </div>
             </section>
@@ -623,6 +437,8 @@ function TransactionsContent() {
       </main>
 
       <BottomNavigation />
+        </>
+      )}
     </div>
   );
 }

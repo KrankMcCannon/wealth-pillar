@@ -1,22 +1,41 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import BottomNavigation from "../../../components/bottom-navigation";
-import { dummyInvestmentHoldings } from "@/lib/dummy-data";
+import { investmentService } from "@/lib/api";
 import { formatCurrency } from "@/lib/utils";
 import { EnhancedHolding, PortfolioData, type InvestmentHolding } from "@/lib/types";
 
 export default function InvestmentsPage() {
   const router = useRouter();
+  const [investments, setInvestments] = useState<InvestmentHolding[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Load data from API
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        const investmentsData = await investmentService.getAll();
+        setInvestments(investmentsData);
+      } catch (error) {
+        console.error('Failed to load investments:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, []);
 
   // Memoized calculations for portfolio data
   const portfolioData: PortfolioData = useMemo(() => {
-    const totalValue = dummyInvestmentHoldings.reduce((sum: number, holding: InvestmentHolding) => {
+    const totalValue = investments.reduce((sum: number, holding: InvestmentHolding) => {
       return sum + (holding.quantity * holding.current_price);
     }, 0);
     
-    const totalCost = dummyInvestmentHoldings.reduce((sum: number, holding: InvestmentHolding) => {
+    const totalCost = investments.reduce((sum: number, holding: InvestmentHolding) => {
       return sum + (holding.quantity * holding.purchase_price);
     }, 0);
     
@@ -27,7 +46,7 @@ export default function InvestmentsPage() {
       totalValue,
       gainLoss,
       gainLossPercent,
-      holdings: dummyInvestmentHoldings.map((holding: InvestmentHolding): EnhancedHolding => {
+      holdings: investments.map((holding: InvestmentHolding): EnhancedHolding => {
         const currentValue = holding.quantity * holding.current_price;
         const purchaseValue = holding.quantity * holding.purchase_price;
         const individualGain = currentValue - purchaseValue;
@@ -41,10 +60,16 @@ export default function InvestmentsPage() {
         };
       })
     };
-  }, []);
+  }, [investments]);
 
   return (
     <div className="relative flex size-full min-h-[100dvh] flex-col justify-between overflow-x-hidden" style={{fontFamily: '"Spline Sans", "Noto Sans", sans-serif', backgroundColor: '#F8FAFC'}}>
+      {loading ? (
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#7578EC]"></div>
+        </div>
+      ) : (
+        <>
       <div>
         {/* Header */}
         <header className="sticky top-0 z-10 bg-[#F8FAFC]/80 p-4 pb-2 backdrop-blur-sm">
@@ -202,6 +227,8 @@ export default function InvestmentsPage() {
 
       {/* Bottom Navigation */}
       <BottomNavigation />
+        </>
+      )}
     </div>
   );
 }

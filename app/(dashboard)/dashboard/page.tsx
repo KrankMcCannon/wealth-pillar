@@ -1,51 +1,155 @@
 "use client";
 
-import { CreditCard, Building2, User, Settings, Bell, ChevronRight } from "lucide-react";
-import { useState, useMemo, useCallback } from "react";
+import { CreditCard, Building2, Settings, Bell, ChevronRight } from "lucide-react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import BottomNavigation from "@/components/bottom-navigation";
 import UserSelector from "@/components/user-selector";
+import { CategoryIcon, iconSizes } from '@/lib/icons';
 import {
-  currentUser,
-  dummyCategoryIcons
-} from "@/lib/dummy-data";
+  userService,
+  budgetService,
+  categoryService,
+  apiHelpers
+} from "@/lib/api";
 import {
   formatCurrency,
-  getUserAccountBalance,
-  getAllAccountsBalance,
-  getFilteredBudgets,
+  getAccountBalance,
+  getFilteredAccounts,
+  getBudgetBalance,
+  getBudgetProgress,
   getRecurringTransactions,
-  getAccountsWithBalance,
-  getBalanceSpent
+  formatFrequency as formatFreq
 } from "@/lib/utils";
-import { AccountTypeMap, Account, Budget, Transaction } from "@/lib/types";
+import { AccountTypeMap, Account, Budget, Transaction, User, Category } from "@/lib/types";
+import {
+  saveSelectedUser,
+  getInitialSelectedUser
+} from "@/lib/persistent-user-selection";
 
 export default function DashboardPage() {
   const router = useRouter();
   const [expandedAccount, setExpandedAccount] = useState<string | null>(null);
   const [selectedGroupFilter, setSelectedGroupFilter] = useState<string>("all");
+  const [bankAccounts, setBankAccounts] = useState<Account[]>([]);
+  const [budgets, setBudgets] = useState<Budget[]>([]);
+  const [upcomingTransactions, setUpcomingTransactions] = useState<Transaction[]>([]);
+  const [totalBalance, setTotalBalance] = useState<number>(0);
+  const [users, setUsers] = useState<User[]>([]);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [accountBalances, setAccountBalances] = useState<{ [key: string]: number }>({});
+  const [budgetData, setBudgetData] = useState<{ id: string; spent: number; remaining: number; progress: number }[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
-  const bankAccounts = useMemo((): Account[] => {
-    return getAccountsWithBalance(selectedGroupFilter);
-  }, [selectedGroupFilter]);
+  // Initialize user selection on first load
+  useEffect(() => {
+    const initializeUser = async () => {
+      try {
+        const user = await apiHelpers.getCurrentUser();
+        setCurrentUser(user);
+        const initialUser = getInitialSelectedUser(user, null);
+        setSelectedGroupFilter(initialUser);
+        setUsers([user]); // Set initial users
+      } catch (err) {
+        console.error('Error initializing user:', err);
+      }
+    };
 
-  const budgets = useMemo((): Budget[] => {
-    return getFilteredBudgets(selectedGroupFilter);
-  }, [selectedGroupFilter]);
+    initializeUser();
+  }, []);
 
-  const upcomingTransactions = useMemo((): Transaction[] => {
-    return getRecurringTransactions(selectedGroupFilter);
-  }, [selectedGroupFilter]);
+  // Load data when selectedGroupFilter changes
+  useEffect(() => {
+    // Skip if we don't have a current user yet
+    if (!currentUser) return;
 
-  const totalBalance = useMemo(() => {
-    if (selectedGroupFilter === "all") {
-      return getAllAccountsBalance();
-    }
-    return getUserAccountBalance(selectedGroupFilter);
-  }, [selectedGroupFilter]);
+    let isMounted = true;
+    const controller = new AbortController();
+
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Use the current selectedGroupFilter from the dependency
+        const userFilterForAPI = selectedGroupFilter === 'all' ? undefined : selectedGroupFilter;
+
+        // Load all data in parallel using real API services
+        const [budgetsData, usersData, categoriesData, filteredAccounts, recurringTransactions] = await Promise.all([
+          budgetService.getAll(),
+          userService.getAll(),
+          categoryService.getAll(),
+          getFilteredAccounts(userFilterForAPI),
+          getRecurringTransactions(userFilterForAPI)
+        ]);
+
+        if (!isMounted) return;
+
+        // Filter budgets by user
+        const userBudgets = selectedGroupFilter === 'all' 
+          ? budgetsData 
+          : budgetsData.filter(b => b.user_id === selectedGroupFilter);
+
+        setBankAccounts(filteredAccounts);
+        setBudgets(userBudgets);
+        setUpcomingTransactions(recurringTransactions);
+        setUsers(usersData);
+        setCategories(categoriesData);
+
+        // Calculate account balances in parallel
+        const balancePromises = filteredAccounts.map(async (account) => ({
+          id: account.id,
+          balance: await getAccountBalance(account.id)
+        }));
+        
+        const balanceResults = await Promise.all(balancePromises);
+        if (!isMounted) return;
+        
+        const balances = balanceResults.reduce((acc, { id, balance }) => {
+          acc[id] = balance;
+          return acc;
+        }, {} as { [key: string]: number });
+        
+        setAccountBalances(balances);
+        setTotalBalance(Object.values(balances).reduce((sum, balance) => sum + balance, 0));
+
+        // Calculate budget data efficiently
+        const budgetPromises = userBudgets.map(async (budget) => {
+          const [remaining, progress] = await Promise.all([
+            getBudgetBalance(budget),
+            getBudgetProgress(budget)
+          ]);
+          const spent = budget.amount - remaining;
+          return { id: budget.id, spent, remaining, progress };
+        });
+        
+        const budgetResults = await Promise.all(budgetPromises);
+        if (!isMounted) return;
+        setBudgetData(budgetResults);
+
+      } catch (err) {
+        if (!isMounted) return;
+        setError(err instanceof Error ? err.message : 'Errore nel caricamento dei dati');
+        console.error('Error loading dashboard data:', err);
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadData();
+    
+    return () => {
+      isMounted = false;
+      controller.abort();
+    };
+  }, [selectedGroupFilter, currentUser]);
 
   const handleAccountClick = useCallback((id: string) => {
     setExpandedAccount(expandedAccount === id ? null : id);
@@ -53,7 +157,59 @@ export default function DashboardPage() {
 
   const handleGroupFilterChange = useCallback((groupId: string) => {
     setSelectedGroupFilter(groupId);
+    saveSelectedUser(groupId);
   }, []);
+
+  // Memoized helper functions for performance
+  const getBudgetStatus = useCallback((progress: number) => {
+    if (progress >= 100) return { color: 'rose', label: 'Superato', textColor: 'text-rose-600' };
+    if (progress >= 80) return { color: 'amber', label: 'Attenzione', textColor: 'text-amber-600' };
+    return { color: 'emerald', label: 'In regola', textColor: 'text-emerald-600' };
+  }, []);
+
+  const getBudgetProgressColor = useCallback((progress: number) => {
+    if (progress >= 100) return 'bg-gradient-to-r from-rose-500 to-rose-600';
+    if (progress >= 80) return 'bg-gradient-to-r from-amber-400 to-amber-500';
+    return 'bg-gradient-to-r from-emerald-400 to-emerald-500';
+  }, []);
+
+  const getStatusDotColor = useCallback((progress: number) => {
+    if (progress >= 100) return 'bg-rose-500';
+    if (progress >= 80) return 'bg-amber-500';
+    return 'bg-emerald-500';
+  }, []);
+
+  // Memoized category lookup for performance
+  const categoryMap = useMemo(() => {
+    return categories.reduce((acc, cat) => {
+      acc[cat.id] = cat;
+      acc[cat.key] = cat;
+      return acc;
+    }, {} as { [key: string]: Category });
+  }, [categories]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#7578EC] mx-auto mb-4"></div>
+          <p className="text-gray-600">Caricamento dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="text-red-500 mb-4">⚠️</div>
+          <p className="text-red-600 mb-4">{error}</p>
+          <Button onClick={() => window.location.reload()}>Riprova</Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative flex size-full min-h-[100dvh] flex-col bg-gradient-to-br from-slate-50 via-white to-slate-100" style={{ fontFamily: '"Inter", "SF Pro Display", system-ui, sans-serif' }}>
@@ -64,10 +220,12 @@ export default function DashboardPage() {
             {/* Left - User Profile */}
             <div className="flex items-center gap-2 sm:gap-3">
               <div className="flex size-9 sm:size-10 shrink-0 items-center justify-center rounded-xl sm:rounded-2xl bg-gradient-to-br from-[#7578EC]/10 to-[#7578EC]/5 shadow-sm">
-                <User className="h-4 w-4 sm:h-5 sm:w-5 text-[#7578EC]" />
+                <Settings className="h-4 w-4 sm:h-5 sm:w-5 text-[#7578EC]" />
               </div>
               <div className="flex flex-col">
-                <p className="text-sm sm:text-base font-bold tracking-tight bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">{currentUser.name}</p>
+                <p className="text-sm sm:text-base font-bold tracking-tight bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
+                  {currentUser?.name || 'Utente'}
+                </p>
                 <p className="text-xs sm:text-sm font-semibold text-[#7578EC]">Premium Plan</p>
               </div>
             </div>
@@ -89,7 +247,9 @@ export default function DashboardPage() {
           </div>
         </header>
 
-        <UserSelector 
+        <UserSelector
+          users={users}
+          currentUser={currentUser}
           selectedGroupFilter={selectedGroupFilter}
           onGroupFilterChange={handleGroupFilterChange}
         />
@@ -115,10 +275,7 @@ export default function DashboardPage() {
             <div className="overflow-x-auto scrollbar-hide">
               <div className="flex gap-3 pb-2">
                 {bankAccounts.map((account: Account) => {
-                  const IconComponent = Building2;
-                  const accountBalance = selectedGroupFilter === 'all'
-                    ? getAllAccountsBalance() / bankAccounts.length
-                    : getUserAccountBalance(selectedGroupFilter);
+                  const accountBalance = accountBalances[account.id] || 0;
 
                   return (
                     <Card
@@ -129,7 +286,7 @@ export default function DashboardPage() {
                       <div className="flex items-center justify-between">
                         {/* Left - Icon */}
                         <div className="flex size-10 items-center justify-center rounded-full bg-blue-100">
-                          <IconComponent className="h-5 w-5 text-blue-600" />
+                          <Building2 className="h-5 w-5 text-blue-600" />
                         </div>
 
                         {/* Center - Title and Type */}
@@ -188,8 +345,8 @@ export default function DashboardPage() {
                 <Card className="bg-white shadow-sm border border-gray-200 py-0">
                   <div className="divide-y divide-gray-100">
                     {budgets.map((budget: Budget) => {
-                      const spent = getBalanceSpent(budget);
-                      const remaining = budget.amount - spent;
+                      const budgetInfo = budgetData.find(b => b.id === budget.id);
+                      const remaining = budgetInfo?.remaining || budget.amount;
 
                       return (
                         <div
@@ -207,43 +364,27 @@ export default function DashboardPage() {
                           <div className="flex items-center justify-between mb-4">
                             <div className="flex items-center gap-3 flex-1">
                               <div className="flex size-11 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-500/10 to-purple-600/5 shadow-lg border border-purple-100/50">
-                                <span className="text-xl">{budget.icon}</span>
+                                <CategoryIcon
+                                  categoryKey={budget.categories?.[0] || 'altro'}
+                                  size={iconSizes.lg}
+                                  className="text-purple-600"
+                                />
                               </div>
                               <div className="flex-1">
                                 <h3 className="font-bold text-slate-900 text-base truncate max-w-[100px] sm:max-w-[120px] mb-1">
                                   {budget.description.length > 15 ? `${budget.description.substring(0, 15)}...` : budget.description}
                                 </h3>
                                 <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-slate-100/80 w-fit">
-                                  <div 
-                                    className={`w-2 h-2 rounded-full ${
-                                      (remaining / budget.amount) * 100 <= 0 
-                                        ? 'bg-rose-500' :
-                                      (remaining / budget.amount) * 100 <= 20 
-                                        ? 'bg-amber-500' :
-                                        'bg-emerald-500'
-                                    }`}
-                                  />
-                                  <span className={`text-xs font-bold ${
-                                    (remaining / budget.amount) * 100 <= 0 
-                                      ? 'text-rose-700' :
-                                    (remaining / budget.amount) * 100 <= 20 
-                                      ? 'text-amber-700' :
-                                      'text-emerald-700'
-                                  }`}>
-                                    {Math.round((remaining / budget.amount) * 100)}%
+                                  <div className={`w-2 h-2 rounded-full ${getStatusDotColor(budgetInfo?.progress || 0)}`} />
+                                  <span className={`text-xs font-bold ${getBudgetStatus(budgetInfo?.progress || 0).textColor}`}>
+                                    {Math.round(100 - (budgetInfo?.progress || 0))}%
                                   </span>
                                 </div>
                               </div>
                             </div>
-                            
+
                             <div className="text-right flex-shrink-0 ml-2">
-                              <p className={`text-sm font-bold ${
-                                (remaining / budget.amount) * 100 <= 0 
-                                  ? 'text-rose-600' :
-                                (remaining / budget.amount) * 100 <= 20 
-                                  ? 'text-amber-600' :
-                                  'text-emerald-600'
-                              }`}>
+                              <p className={`text-sm font-bold ${getBudgetStatus(budgetInfo?.progress || 0).textColor}`}>
                                 {formatCurrency(remaining)}
                               </p>
                               <p className="text-xs text-slate-500 font-medium">
@@ -251,19 +392,13 @@ export default function DashboardPage() {
                               </p>
                             </div>
                           </div>
-                          
+
                           {/* Progress Bar */}
                           <div className="relative">
                             <div className="w-full h-3 rounded-full bg-gradient-to-r from-slate-100 to-slate-200 shadow-inner overflow-hidden">
                               <div
-                                className={`h-3 rounded-full transition-all duration-1000 ease-out shadow-sm relative ${
-                                  (remaining / budget.amount) * 100 <= 0 
-                                    ? 'bg-gradient-to-r from-rose-500 to-rose-600' :
-                                  (remaining / budget.amount) * 100 <= 20 
-                                    ? 'bg-gradient-to-r from-amber-400 to-amber-500' :
-                                    'bg-gradient-to-r from-emerald-400 to-emerald-500'
-                                }`}
-                                style={{ width: `${Math.min((spent / budget.amount) * 100, 100)}%` }}
+                                className={`h-3 rounded-full transition-all duration-1000 ease-out shadow-sm relative ${getBudgetProgressColor(budgetInfo?.progress || 0)}`}
+                                style={{ width: `${Math.min(budgetInfo?.progress || 0, 100)}%` }}
                               >
                                 <div className="absolute inset-0 bg-gradient-to-t from-white/20 to-transparent rounded-full"></div>
                               </div>
@@ -308,14 +443,15 @@ export default function DashboardPage() {
 
             <div className="space-y-3 sm:space-y-4">
               {upcomingTransactions.length > 0 ? upcomingTransactions.map((transaction: Transaction) => {
-                const categoryIcon = dummyCategoryIcons[transaction.category] || '💳';
-
                 return (
                   <Card key={transaction.id} className="p-3 bg-white/80 backdrop-blur-sm shadow-lg shadow-slate-200/50 border border-white/50 hover:shadow-xl hover:shadow-slate-200/60 transition-all duration-300 rounded-xl sm:rounded-2xl group active:scale-[0.98] cursor-pointer">
                     <div className="flex items-center justify-between group-hover:transform group-hover:scale-[1.01] transition-transform duration-200">
                       <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
                         <div className="flex size-10 sm:size-12 shrink-0 items-center justify-center rounded-xl sm:rounded-2xl bg-gradient-to-br from-[#7578EC]/10 to-[#7578EC]/5 shadow-sm group-hover:shadow-md transition-all duration-200">
-                          <span className="text-base sm:text-lg">{categoryIcon}</span>
+                          <CategoryIcon
+                            categoryKey={categoryMap[transaction.category]?.key || transaction.category || 'altro'}
+                            size={iconSizes.md}
+                          />
                         </div>
                         <div className="flex-1 min-w-0 pr-2">
                           <h3 className="font-bold text-sm text-slate-800 group-hover:text-slate-900 transition-colors truncate mb-1">
@@ -328,13 +464,13 @@ export default function DashboardPage() {
                       </div>
                       <div className="text-right flex-shrink-0 ml-2">
                         <p className={`text-sm font-bold mb-1 ${transaction.type === 'income'
-                            ? 'bg-gradient-to-r from-emerald-600 to-emerald-500 bg-clip-text text-transparent'
-                            : 'bg-gradient-to-r from-rose-600 to-rose-500 bg-clip-text text-transparent'
+                          ? 'bg-gradient-to-r from-emerald-600 to-emerald-500 bg-clip-text text-transparent'
+                          : 'bg-gradient-to-r from-rose-600 to-rose-500 bg-clip-text text-transparent'
                           } whitespace-nowrap`}>
                           {transaction.type === 'expense' ? '-' : '+'}{formatCurrency(transaction.amount)}
                         </p>
-                        <Badge variant="outline" className="text-xs border-slate-200/70 text-slate-700 bg-slate-50/50 font-medium px-2 py-1">
-                          {transaction.frequency ? `${transaction.frequency}` : 'Una volta'}
+                        <Badge variant="secondary" className="text-xs">
+                          {formatFreq(transaction.frequency)}
                         </Badge>
                       </div>
                     </div>

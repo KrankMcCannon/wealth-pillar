@@ -68,6 +68,10 @@ html.dark {
   --color-destructive: 0 65% 65%;
   --color-destructive-foreground: 0 0% 100%;
   
+  /* Warning - Amber color for financial warnings */
+  --color-warning: 45 85% 60%;
+  --color-warning-foreground: 0 0% 100%;
+  
   /* UI Elements */
   --color-border: 60 5% 25%; /* Subtle borders */
   --color-input: 60 5% 18%;
@@ -89,6 +93,18 @@ html.dark {
   --color-sidebar-accent-foreground: 237 51% 75%;
   --color-sidebar-border: 60 5% 25%;
   --color-sidebar-ring: 237 51% 70%;
+  
+  /* Category Colors - Organized by theme (adjusted for dark mode) */
+  --category-utilities-blue: 190 75% 60%;
+  --category-utilities-red: 10 60% 65%;
+  --category-transportation-purple: 260 51% 65%;
+  --category-transportation-orange: 20 75% 60%;
+  --category-health-cyan: 190 75% 60%;
+  --category-health-teal: 170 55% 55%;
+  --category-beauty-pink: 280 51% 65%;
+  --category-food-green: 120 45% 55%;
+  --category-shopping-purple: 250 65% 65%;
+  --category-shopping-orange: 30 65% 65%;
 }
 
 /* Light Mode - Modern Liquid Glass Palette */
@@ -121,6 +137,10 @@ html.light {
   --color-destructive: 0 70% 50%;
   --color-destructive-foreground: 0 0% 100%;
   
+  /* Warning - Amber color for financial warnings */
+  --color-warning: 45 85% 55%;
+  --color-warning-foreground: 0 0% 100%;
+  
   /* UI Elements */
   --color-border: 60 9% 75%; /* Subtle borders */
   --color-input: 60 9% 85%;
@@ -142,6 +162,18 @@ html.light {
   --color-sidebar-accent-foreground: 237 51% 60%;
   --color-sidebar-border: 60 9% 75%;
   --color-sidebar-ring: 237 51% 55%;
+  
+  /* Category Colors - Organized by theme */
+  --category-utilities-blue: 190 80% 50%;
+  --category-utilities-red: 10 65% 55%;
+  --category-transportation-purple: 260 51% 55%;
+  --category-transportation-orange: 20 80% 50%;
+  --category-health-cyan: 190 80% 50%;
+  --category-health-teal: 170 60% 45%;
+  --category-beauty-pink: 280 51% 55%;
+  --category-food-green: 120 50% 45%;
+  --category-shopping-purple: 250 70% 55%;
+  --category-shopping-orange: 30 70% 55%;
 }
 
 /* Custom utility classes for financial indicators */
@@ -205,7 +237,7 @@ html.light {
   }
   
   .text-finance-warning {
-    color: hsl(45 85% 55%); /* Complementary amber */
+    color: hsl(var(--color-warning));
   }
   
   .text-finance-neutral {
@@ -221,7 +253,7 @@ html.light {
   }
   
   .bg-finance-warning {
-    background-color: hsl(45 85% 55%);
+    background-color: hsl(var(--color-warning));
   }
   
   .bg-finance-neutral {
@@ -238,7 +270,7 @@ html.light {
   }
   
   .bg-finance-warning-subtle {
-    background-color: hsl(45 85% 55% / 0.15);
+    background-color: hsl(var(--color-warning) / 0.15);
   }
   
   /* Interactive states with liquid glass */
@@ -296,13 +328,13 @@ html.light {
   }
   
   .bg-warning-glass {
-    background: linear-gradient(135deg, hsl(45 85% 55% / 0.8), hsl(45 85% 55% / 0.6));
+    background: linear-gradient(135deg, hsl(var(--color-warning) / 0.8), hsl(var(--color-warning) / 0.6));
     backdrop-filter: blur(20px);
-    border: 1px solid hsl(45 85% 55% / 0.3);
+    border: 1px solid hsl(var(--color-warning) / 0.3);
   }
   
   .text-warning-glass {
-    color: hsl(45 85% 55%);
+    color: hsl(var(--color-warning));
   }
   
   /* Liquid Glass Animation Effects */

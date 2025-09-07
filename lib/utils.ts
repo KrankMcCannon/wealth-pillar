@@ -1,6 +1,11 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { dummyAccounts, dummyBudgets, dummyTransactions, dummyUsers } from "./dummy-data";
+import {
+  accountService,
+  budgetService,
+  transactionService,
+  userService
+} from "./api";
 import {
   Account,
   Budget,
@@ -53,185 +58,214 @@ export const formatDate = (dateString: string): string => {
   }
 }
 
-export const getMondayFirstDayIndex = (dateString: string): number => {
-  const date = new Date(dateString)
-  const jsDay = date.getDay() // 0=Dom ... 6=Sab
-  return jsDay === 0 ? 6 : jsDay - 1 // Lun=0 ... Dom=6
-}
+const convertToMondayIndex = (jsDay: number): number => jsDay === 0 ? 6 : jsDay - 1;
 
 export const isAdmin = (user: User): boolean => {
   return user.role !== 'member';
 };
 
-export const getExpenseTransactions = (user: User): Transaction[] => {
-  return dummyTransactions.filter((transaction) => transaction.user_id === user.id && transaction.type === 'expense');
+export const getTransactionsByType = async (userId: string, type: 'expense' | 'income'): Promise<Transaction[]> => {
+  const transactions = await transactionService.getByUserId(userId);
+  return transactions.filter(tx => tx.type === type);
 };
 
-export const getIncomeTransactions = (user: User): Transaction[] => {
-  return dummyTransactions.filter((transaction) => transaction.user_id === user.id && transaction.type === 'income');
-};
+export const getExpenseTransactions = (user: User) => getTransactionsByType(user.id, 'expense');
+export const getIncomeTransactions = (user: User) => getTransactionsByType(user.id, 'income');
 
-export const getBalanceSpent = (budget: Budget): number => {
-  const user_transactions = dummyTransactions.filter((transaction) => transaction.user_id === budget.user_id);
-  const spent = user_transactions
-    .filter((transaction) => transaction.type === 'expense' && budget.categories.includes(transaction.category))
-    .reduce((total, transaction) => total + transaction.amount, 0);
+const getBudgetSpent = async (budget: Budget): Promise<number> => {
+  const transactions = await transactionService.getByUserId(budget.user_id);
+  const spent = transactions
+    .filter(tx => tx.type === 'expense' && budget.categories.includes(tx.category))
+    .reduce((total, tx) => total + tx.amount, 0);
   return Math.round(spent * 100) / 100;
 };
 
-export const getBudgetBalance = (budget: Budget): number => {
-  const user_transactions = dummyTransactions.filter((transaction) => transaction.user_id === budget.user_id);
-  const spent = user_transactions
-    .filter((transaction) => transaction.type === 'expense' && budget.categories.includes(transaction.category))
-    .reduce((total, transaction) => total + transaction.amount, 0);
+export const getBalanceSpent = getBudgetSpent;
+
+export const getBudgetBalance = async (budget: Budget): Promise<number> => {
+  const spent = await getBudgetSpent(budget);
   return Math.round((budget.amount - spent) * 100) / 100;
-}
-
-export const getBudgetProgress = (budget: Budget): number => {
-  const balance = getBudgetBalance(budget);
-  const spent = budget.amount - balance;
-  const progress = (spent / budget.amount) * 100;
-  return Math.round(Math.min(Math.max(progress, 0), 100) * 100) / 100;
 };
 
-export const getUserBudgets = (user: User): Budget[] => {
-  return dummyBudgets.filter((budget) => budget.user_id === user.id);
+export const getBudgetProgress = async (budget: Budget): Promise<number> => {
+  const spent = await getBudgetSpent(budget);
+  const progress = Math.min(Math.max((spent / budget.amount) * 100, 0), 100);
+  return Math.round(progress * 100) / 100;
 };
 
-export const getUserTransactions = (user: User): Transaction[] => {
-  return dummyTransactions.filter((transaction) => transaction.user_id === user.id);
-}
+export const getUserBudgets = (user: User) => budgetService.getByUserId(user.id);
+export const getUserTransactions = (user: User) => transactionService.getByUserId(user.id);
 
-export const getDynamicChartData = (budget: Budget) => {
-  const user = dummyUsers.find((user) => user.id === budget.user_id);
-  if (!user) return {
-    expense: [0],
-    income: [0],
-    dailyExpenses: [],
-    dailyIncome: [],
-    categories: [],
-    incomeTypes: []
-  };
+export const getDynamicChartData = async (budget: Budget) => {
+  try {
+    const user = await userService.getById(budget.user_id);
+    if (!user) return {
+      expense: [0],
+      income: [0],
+      dailyExpenses: [],
+      dailyIncome: [],
+      categories: [],
+      incomeTypes: []
+    };
 
-  const expenses = getExpenseTransactions(user);
-  const income = getIncomeTransactions(user);
+    const [expenses, income] = await Promise.all([
+      getExpenseTransactions(user),
+      getIncomeTransactions(user)
+    ]);
 
-  const budgetExpenses = expenses.filter(tx => budget.categories.includes(tx.category));
-  const totalExpense = budgetExpenses.reduce((total, tx) => total + tx.amount, 0);
-  const totalIncome = income.reduce((total, tx) => total + tx.amount, 0);
+    const budgetExpenses = expenses.filter(tx => budget.categories.includes(tx.category));
+    const totalExpense = budgetExpenses.reduce((total, tx) => total + tx.amount, 0);
+    const totalIncome = income.reduce((total, tx) => total + tx.amount, 0);
 
-  const dayNames = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'];
-  const allCategories = Array.from(new Set(budgetExpenses.map(tx => tx.category)));
-  const allIncomeTypes = Array.from(new Set(income.map(tx => tx.category)));
-  
-  const dailyExpenseData: { [day: string]: { [category: string]: number } } = {};
-  dayNames.forEach(day => {
-    dailyExpenseData[day] = {};
-    allCategories.forEach(category => {
-      dailyExpenseData[day][category] = 0;
+    const dayNames = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'];
+    const allCategories = Array.from(new Set(budgetExpenses.map(tx => tx.category)));
+    const allIncomeTypes = Array.from(new Set(income.map(tx => tx.category)));
+
+    const dailyExpenseData: { [day: string]: { [category: string]: number } } = {};
+    dayNames.forEach(day => {
+      dailyExpenseData[day] = {};
+      allCategories.forEach(category => {
+        dailyExpenseData[day][category] = 0;
+      });
     });
-  });
 
-  budgetExpenses.forEach(transaction => {
-    const dayIndex = transaction.date.getDay(); // 0 = Domenica, 1 = Lunedì, ...
-    // Convert Sunday-based (0-6) to Monday-based (0-6): Sunday becomes 6, Monday becomes 0
-    const mondayBasedIndex = dayIndex === 0 ? 6 : dayIndex - 1;
-    const dayName = dayNames[mondayBasedIndex];
-    
-    if (dayName && dailyExpenseData[dayName] && transaction.category) {
-      dailyExpenseData[dayName][transaction.category] += transaction.amount;
-    }
-  });
+    budgetExpenses.forEach(transaction => {
+      const dayIndex = convertToMondayIndex(transaction.date.getDay());
+      const dayName = dayNames[dayIndex];
 
-  // Daily income data
-  const dailyIncomeData: { [day: string]: { [type: string]: number } } = {};
-  dayNames.forEach(day => {
-    dailyIncomeData[day] = {};
-    allIncomeTypes.forEach(type => {
-      dailyIncomeData[day][type] = 0;
+      if (dayName && dailyExpenseData[dayName] && transaction.category) {
+        dailyExpenseData[dayName][transaction.category] += transaction.amount;
+      }
     });
-  });
 
-  income.forEach(transaction => {
-    const dayIndex = transaction.date.getDay();
-    // Convert Sunday-based (0-6) to Monday-based (0-6): Sunday becomes 6, Monday becomes 0
-    const mondayBasedIndex = dayIndex === 0 ? 6 : dayIndex - 1;
-    const dayName = dayNames[mondayBasedIndex];
-    
-    if (dayName && dailyIncomeData[dayName] && transaction.category) {
-      dailyIncomeData[dayName][transaction.category] += transaction.amount;
-    }
-  });
-
-  const dailyExpenses = dayNames.map(day => {
-    const dayData: { [key: string]: number | string } = { day };
-    allCategories.forEach(category => {
-      const amount = dailyExpenseData[day][category];
-      dayData[category] = Math.round(amount * 100) / 100;
+    // Daily income data
+    const dailyIncomeData: { [day: string]: { [type: string]: number } } = {};
+    dayNames.forEach(day => {
+      dailyIncomeData[day] = {};
+      allIncomeTypes.forEach(type => {
+        dailyIncomeData[day][type] = 0;
+      });
     });
-    return dayData;
-  });
 
-  const dailyIncome = dayNames.map(day => {
-    const dayData: { [key: string]: number | string } = { day };
-    allIncomeTypes.forEach(type => {
-      const amount = dailyIncomeData[day][type];
-      dayData[type] = Math.round(amount * 100) / 100;
+    income.forEach(transaction => {
+      const dayIndex = convertToMondayIndex(transaction.date.getDay());
+      const dayName = dayNames[dayIndex];
+
+      if (dayName && dailyIncomeData[dayName] && transaction.category) {
+        dailyIncomeData[dayName][transaction.category] += transaction.amount;
+      }
     });
-    return dayData;
-  });
 
-  return {
-    expense: [totalExpense],
-    income: [totalIncome],
-    dailyExpenses,
-    dailyIncome,
-    categories: allCategories,
-    incomeTypes: allIncomeTypes
-  };
-};
+    const dailyExpenses = dayNames.map(day => {
+      const dayData: { [key: string]: number | string } = { day };
+      allCategories.forEach(category => {
+        const amount = dailyExpenseData[day][category];
+        dayData[category] = Math.round(amount * 100) / 100;
+      });
+      return dayData;
+    });
 
-export const getUserAccountBalance = (userId: string): number => {
-  const user = dummyUsers.find(u => u.id === userId);
-  if (!user) return 0;
-  
-  const userTransactions = getUserTransactions(user);
-  return Math.round(userTransactions.reduce((total, tx) => {
-    return tx.type === 'income' ? total + tx.amount : total - tx.amount;
-  }, 0) * 100) / 100;
-};
+    const dailyIncome = dayNames.map(day => {
+      const dayData: { [key: string]: number | string } = { day };
+      allIncomeTypes.forEach(type => {
+        const amount = dailyIncomeData[day][type];
+        dayData[type] = Math.round(amount * 100) / 100;
+      });
+      return dayData;
+    });
 
-export const getAllAccountsBalance = (): number => {
-  return Math.round(dummyUsers.reduce((total, user) => {
-    return total + getUserAccountBalance(user.id);
-  }, 0) * 100) / 100;
-};
-
-export const getFilteredBudgets = (userId?: string): Budget[] => {
-  if (userId && userId !== 'all') {
-    return dummyBudgets.filter(budget => budget.user_id === userId);
+    return {
+      expense: [totalExpense],
+      income: [totalIncome],
+      dailyExpenses,
+      dailyIncome,
+      categories: allCategories,
+      incomeTypes: allIncomeTypes
+    };
+  } catch (error) {
+    console.error('Error fetching chart data:', error);
+    return {
+      expense: [0],
+      income: [0],
+      dailyExpenses: [],
+      dailyIncome: [],
+      categories: [],
+      incomeTypes: []
+    };
   }
-  return dummyBudgets;
 };
 
-export const getRecurringTransactions = (userId?: string): Transaction[] => {
-  const allRecurring = dummyTransactions.filter(tx => 
-    tx.frequency && (tx.frequency === 'weekly' || tx.frequency === 'biweekly' || tx.frequency === 'monthly' || tx.frequency === 'yearly')
+const calculateBalance = (transactions: Transaction[]): number => {
+  const balance = transactions.reduce((total, tx) => 
+    tx.type === 'income' ? total + tx.amount : total - tx.amount, 0
   );
-  
-  if (userId && userId !== 'all') {
-    return allRecurring.filter(tx => tx.user_id === userId).slice(0, 5);
-  }
-  
-  return allRecurring.slice(0, 5);
+  return Math.round(balance * 100) / 100;
 };
 
-export const getAccountsWithBalance = (userId?: string): Account[] => {
-  if (userId && userId !== 'all') {
-    return dummyAccounts.filter((account: Account) => account.user_ids.includes(userId));
+export const getUserAccountBalance = async (userId: string): Promise<number> => {
+  try {
+    const transactions = await transactionService.getByUserId(userId);
+    return calculateBalance(transactions);
+  } catch {
+    return 0;
   }
-  return dummyAccounts;
 };
+
+export const getAllAccountsBalance = async (): Promise<number> => {
+  try {
+    const users = await userService.getAll();
+    const balances = await Promise.all(users.map(user => getUserAccountBalance(user.id)));
+    return Math.round(balances.reduce((total, balance) => total + balance, 0) * 100) / 100;
+  } catch {
+    return 0;
+  }
+};
+
+export const getAccountBalance = async (accountId: string): Promise<number> => {
+  try {
+    const transactions = await transactionService.getByAccountId(accountId);
+    return calculateBalance(transactions);
+  } catch {
+    return 0;
+  }
+};
+
+export const getFilteredAccounts = async (userId?: string): Promise<Account[]> => {
+  try {
+    if (!userId || userId === 'all') return accountService.getAll();
+    return accountService.getByUserId(userId);
+  } catch {
+    return [];
+  }
+};
+
+export const getFilteredBudgets = async (userId?: string): Promise<Budget[]> => {
+  try {
+    return userId && userId !== 'all' ? budgetService.getByUserId(userId) : budgetService.getAll();
+  } catch {
+    return [];
+  }
+};
+
+export const getRecurringTransactions = async (userId?: string): Promise<Transaction[]> => {
+  try {
+    const allTransactions = await transactionService.getAll();
+    const recurring = allTransactions.filter(tx => 
+      tx.frequency && tx.frequency !== 'once' && 
+      ['weekly', 'biweekly', 'monthly', 'yearly'].includes(tx.frequency)
+    );
+    
+    const filtered = userId && userId !== 'all' 
+      ? recurring.filter(tx => tx.user_id === userId) 
+      : recurring;
+    
+    return filtered.slice(0, 5);
+  } catch {
+    return [];
+  }
+};
+
+export const getAccountsWithBalance = getFilteredAccounts;
 
 export const parseFiltersFromUrl = (searchParams: URLSearchParams): FilterState => {
   return {
@@ -282,11 +316,7 @@ export const applySearchFilter = (searchQuery: string, transactions: Transaction
   );
 };
 
-export const getTotalForSection = (transactions: Transaction[]): number => {
-  return Math.round(transactions.reduce((sum, tx) => {
-    return tx.type === 'income' ? sum + tx.amount : sum - tx.amount;
-  }, 0) * 100) / 100;
-};
+export const getTotalForSection = calculateBalance;
 
 export const formatDateLabel = (date: string): string => {
   try {
@@ -346,7 +376,7 @@ export const groupUpcomingTransactionsByDaysRemaining = (transactions: Transacti
     .forEach(transaction => {
       if (!transaction.next_due_date) return;
       
-      const daysUntil = getDaysUntilDue(transaction.next_due_date);
+      const daysUntil = getDaysUntilDue(new Date(transaction.next_due_date));
       let groupKey: string;
       let sortOrder: number;
       
@@ -377,7 +407,7 @@ export const groupUpcomingTransactionsByDaysRemaining = (transactions: Transacti
   Object.keys(grouped).forEach(key => {
     grouped[key].sort((a, b) => {
       if (!a.next_due_date || !b.next_due_date) return 0;
-      return a.next_due_date.getTime() - b.next_due_date.getTime();
+      return new Date(a.next_due_date).getTime() - new Date(b.next_due_date).getTime();
     });
   });
   
@@ -448,12 +478,28 @@ export const getCategoryLabel = (categoryKey: string): string => {
   return categoryLabels[categoryKey] || categoryKey.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 };
 
-export const getAccountName = (accountId: string): string => {
-  const account = dummyAccounts.find(acc => acc.id === accountId);
-  return account?.name || accountId;
+export const getAccountName = async (accountId: string): Promise<string> => {
+  try {
+    const account = await accountService.getById(accountId);
+    return account?.name || accountId;
+  } catch {
+    return accountId;
+  }
 };
 
-export const truncateText = (text: string, maxLength: number = 20): string => {
-  if (text.length <= maxLength) return text;
-  return text.substring(0, maxLength) + '...';
+export const truncateText = (text: string, maxLength = 20): string => 
+  text.length <= maxLength ? text : `${text.substring(0, maxLength)}...`;
+
+export const formatFrequency = (frequency?: string): string => {
+  if (!frequency) return 'Una volta';
+
+  const frequencyMap: { [key: string]: string } = {
+    'once': 'Una volta',
+    'weekly': 'Settimanale',
+    'biweekly': 'Bisettimanale',
+    'monthly': 'Mensile',
+    'yearly': 'Annuale'
+  };
+
+  return frequencyMap[frequency] || frequency;
 };
