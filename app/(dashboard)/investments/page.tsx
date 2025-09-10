@@ -3,13 +3,19 @@
 import { useMemo, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import BottomNavigation from "../../../components/bottom-navigation";
-import { investmentService } from "@/lib/api";
+import { SectionHeader } from "@/components/section-header";
+import UserSelector from "@/components/user-selector";
+import { investmentService, userService } from "@/lib/api";
 import { formatCurrency } from "@/lib/utils";
-import { EnhancedHolding, PortfolioData, type InvestmentHolding } from "@/lib/types";
+import { BarChart3, PieChart } from "lucide-react";
+import { EnhancedHolding, PortfolioData, type InvestmentHolding, User } from "@/lib/types";
 
 export default function InvestmentsPage() {
   const router = useRouter();
   const [investments, setInvestments] = useState<InvestmentHolding[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [selectedGroupFilter, setSelectedGroupFilter] = useState<string>('all');
   const [loading, setLoading] = useState(true);
 
   // Load data from API
@@ -17,8 +23,17 @@ export default function InvestmentsPage() {
     const loadData = async () => {
       try {
         setLoading(true);
-        const investmentsData = await investmentService.getAll();
+        const [investmentsData, usersData] = await Promise.all([
+          investmentService.getAll(),
+          userService.getAll()
+        ]);
         setInvestments(investmentsData);
+        setUsers(usersData);
+        
+        // Set current user as first user for demo purposes
+        if (usersData.length > 0) {
+          setCurrentUser(usersData[0]);
+        }
       } catch (error) {
         console.error('Failed to load investments:', error);
       } finally {
@@ -86,6 +101,13 @@ export default function InvestmentsPage() {
             <div className="size-10"></div>
           </div>
         </header>
+
+        <UserSelector
+          users={users}
+          currentUser={currentUser}
+          selectedGroupFilter={selectedGroupFilter}
+          onGroupFilterChange={setSelectedGroupFilter}
+        />
 
         <main className="p-4 pb-24">
           {/* Portfolio Summary */}
@@ -159,10 +181,14 @@ export default function InvestmentsPage() {
 
           {/* Holdings */}
           <section>
-            <div className="flex items-center justify-between px-4 pb-3 pt-5">
-              <h2 className="text-xl font-bold tracking-tight text-gray-900">Le Tue Partecipazioni</h2>
+            <SectionHeader
+              title="Le Tue Partecipazioni"
+              icon={PieChart}
+              iconClassName="text-blue-600"
+              className="px-4 pb-3 pt-5"
+            >
               <button className="text-sm font-medium text-[#7578EC]">Visualizza Tutte</button>
-            </div>
+            </SectionHeader>
             <div className="space-y-3">
               {portfolioData.holdings.length > 0 ? (
                 portfolioData.holdings.map((holding: EnhancedHolding, index: number) => (
@@ -199,7 +225,12 @@ export default function InvestmentsPage() {
           {/* Performance insight */}
           <section className="mt-8">
             <div className="rounded-2xl bg-gradient-to-r from-[#7578EC] to-[#EC4899] p-6 text-white">
-              <h3 className="text-lg font-bold mb-2">Performance del Portafoglio</h3>
+              <SectionHeader
+                title="Performance del Portafoglio"
+                icon={BarChart3}
+                iconClassName="text-white"
+                className="mb-2 text-white"
+              />
               <div className="flex items-center gap-4">
                 <div className={`text-3xl font-bold ${portfolioData.gainLoss >= 0 ? '' : 'text-red-200'}`}>
                   {portfolioData.gainLoss >= 0 ? '+' : ''}{portfolioData.gainLossPercent.toFixed(1)}%

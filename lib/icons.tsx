@@ -58,7 +58,7 @@ export const designSystemColors = {
   warning: 'hsl(var(--color-warning))',
   error: 'hsl(var(--color-destructive))',
   info: 'hsl(var(--color-secondary))', // Using secondary color for info
-  neutral: 'hsl(var(--color-muted-foreground))',
+  neutral: 'hsl(var(--color-primary))',
 };
 
 // Modern icon mapping - Category-based line-art icons
@@ -218,7 +218,7 @@ export const CategoryIcon: React.FC<CategoryIconProps> = ({
     icon={categoryKey}
     size={size}
     className={className}
-    color={getSemanticColor(categoryKey)}
+    color={className.includes('text-') ? undefined : getSemanticColor(categoryKey)}
   />
 );
 

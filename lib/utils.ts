@@ -359,6 +359,42 @@ export const formatDueDate = (dueDate: Date): string => {
   }
 };
 
+// Calculate the next due date for a recurrent transaction
+export const calculateNextDueDate = (transactionDate: Date, frequency: string): Date => {
+  const baseDate = new Date(transactionDate);
+  const today = new Date();
+  
+  // Start from the transaction date and find the next occurrence
+  const nextDate = new Date(baseDate);
+  
+  while (nextDate <= today) {
+    switch (frequency) {
+      case 'weekly':
+        nextDate.setDate(nextDate.getDate() + 7);
+        break;
+      case 'biweekly':
+        nextDate.setDate(nextDate.getDate() + 14);
+        break;
+      case 'monthly':
+        nextDate.setMonth(nextDate.getMonth() + 1);
+        break;
+      case 'yearly':
+        nextDate.setFullYear(nextDate.getFullYear() + 1);
+        break;
+      default:
+        // For 'once' or unknown frequencies, return the original date
+        return baseDate;
+    }
+  }
+  
+  return nextDate;
+};
+
+// Italian pluralization helper
+export const pluralize = (count: number, singular: string, plural: string): string => {
+  return count === 1 ? `${count} ${singular}` : `${count} ${plural}`;
+};
+
 export const getDaysUntilDue = (dueDate: Date): number => {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -372,13 +408,18 @@ export const groupUpcomingTransactionsByDaysRemaining = (transactions: Transacti
   const grouped: Record<string, Transaction[]> = {};
   
   transactions
-    .filter(tx => tx.next_due_date && tx.frequency)
+    .filter(tx => tx.frequency && tx.frequency !== 'once')
     .forEach(transaction => {
-      if (!transaction.next_due_date) return;
+      if (!transaction.frequency || transaction.frequency === 'once') return;
       
-      const daysUntil = getDaysUntilDue(new Date(transaction.next_due_date));
-      let groupKey: string;
-      let sortOrder: number;
+      const nextDueDate = calculateNextDueDate(transaction.date, transaction.frequency);
+      const daysUntil = getDaysUntilDue(nextDueDate);
+      
+      // Only include transactions due within the next 7 days
+      if (daysUntil > 7) return;
+      
+      let groupKey: string = '';
+      let sortOrder: number = 999;
       
       if (daysUntil === 0) {
         groupKey = 'Oggi';
@@ -386,15 +427,12 @@ export const groupUpcomingTransactionsByDaysRemaining = (transactions: Transacti
       } else if (daysUntil === 1) {
         groupKey = 'Domani';
         sortOrder = 1;
-      } else if (daysUntil <= 7) {
-        groupKey = 'Prossimi 7 giorni';
+      } else if (daysUntil <= 3) {
+        groupKey = 'Prossimi 3 giorni';
         sortOrder = 2;
-      } else if (daysUntil <= 15) {
-        groupKey = 'Prossime 2 settimane';
+      } else if (daysUntil <= 7) {
+        groupKey = 'Questa settimana';
         sortOrder = 3;
-      } else {
-        groupKey = 'Più di 2 settimane';
-        sortOrder = 4;
       }
       
       if (!grouped[groupKey]) {
@@ -406,8 +444,10 @@ export const groupUpcomingTransactionsByDaysRemaining = (transactions: Transacti
   // Sort each group by due date (earliest first)
   Object.keys(grouped).forEach(key => {
     grouped[key].sort((a, b) => {
-      if (!a.next_due_date || !b.next_due_date) return 0;
-      return new Date(a.next_due_date).getTime() - new Date(b.next_due_date).getTime();
+      if (!a.frequency || !b.frequency || a.frequency === 'once' || b.frequency === 'once') return 0;
+      const aDueDate = calculateNextDueDate(a.date, a.frequency);
+      const bDueDate = calculateNextDueDate(b.date, b.frequency);
+      return aDueDate.getTime() - bDueDate.getTime();
     });
   });
   

@@ -18,11 +18,10 @@ export default function UserSelector({
   onGroupFilterChange,
   className = ""
 }: UserSelectorProps) {
-  if (!currentUser || currentUser.role !== 'admin') {
+  if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'superadmin')) {
     return null;
   }
 
-  // Funzione per scegliere l'icona appropriata per ogni utente
   const getUserIcon = (userId: string, index: number) => {
     const userIcons = [UserIcon, Crown, Star, Heart];
     if (userId === 'all') return Users;

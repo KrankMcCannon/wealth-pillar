@@ -48,8 +48,8 @@ html.dark {
   --color-popover: 60 5% 15%;
   --color-popover-foreground: 60 5% 90%;
   
-  /* Primary - Lighter Slate Blue for dark mode */
-  --color-primary: 237 51% 70%; /* #8B95D6 */
+  /* Primary - Lighter version for dark mode */
+  --color-primary: 239 67% 75%; /* Lighter RGB(118, 120, 228) */
   --color-primary-foreground: 60 5% 10%; /* Dark text on primary */
   
   /* Secondary - Lighter Steel Blue */
@@ -75,24 +75,24 @@ html.dark {
   /* UI Elements */
   --color-border: 60 5% 25%; /* Subtle borders */
   --color-input: 60 5% 18%;
-  --color-ring: 237 51% 70%; /* Same as primary */
+  --color-ring: 239 67% 75%; /* Same as primary */
   
   /* Chart colors - Dark mode variants */
-  --color-chart-1: 237 51% 70%; /* #8B95D6 */
+  --color-chart-1: 239 67% 75%; /* Lighter RGB(118, 120, 228) */
   --color-chart-2: 204 43% 68%; /* #80B5D6 */
   --color-chart-3: 162 44% 70%; /* #85D8C4 */
-  --color-chart-4: 237 51% 60%; /* Darker slate */
+  --color-chart-4: 239 67% 65%; /* Darker palette color */
   --color-chart-5: 204 43% 58%; /* Darker steel */
   
   /* Sidebar */
   --color-sidebar: 60 5% 12%; /* Slightly different from bg */
   --color-sidebar-foreground: 60 5% 90%;
-  --color-sidebar-primary: 237 51% 70%; /* #8B95D6 */
+  --color-sidebar-primary: 239 67% 75%; /* Lighter RGB(118, 120, 228) */
   --color-sidebar-primary-foreground: 60 5% 10%;
   --color-sidebar-accent: 60 5% 22%;
   --color-sidebar-accent-foreground: 237 51% 75%;
   --color-sidebar-border: 60 5% 25%;
-  --color-sidebar-ring: 237 51% 70%;
+  --color-sidebar-ring: 239 67% 75%;
   
   /* Category Colors - Organized by theme (adjusted for dark mode) */
   --category-utilities-blue: 190 75% 60%;
@@ -117,8 +117,8 @@ html.light {
   --color-popover: 0 0% 98%;
   --color-popover-foreground: 60 5% 20%;
   
-  /* Primary - Slate Blue */
-  --color-primary: 237 51% 55%; /* #6670BC */
+  /* Primary - Palette Color */
+  --color-primary: 239 67% 68%; /* RGB(118, 120, 228) = #7678E4 */
   --color-primary-foreground: 0 0% 100%; /* White text on primary */
   
   /* Secondary - Steel Blue */
@@ -144,24 +144,24 @@ html.light {
   /* UI Elements */
   --color-border: 60 9% 75%; /* Subtle borders */
   --color-input: 60 9% 85%;
-  --color-ring: 237 51% 55%; /* Same as primary */
+  --color-ring: 239 67% 68%; /* Same as primary */
   
   /* Chart colors - Light mode variants */
-  --color-chart-1: 237 51% 55%; /* #6670BC */
+  --color-chart-1: 239 67% 68%; /* RGB(118, 120, 228) */
   --color-chart-2: 204 43% 58%; /* #669BBC */
   --color-chart-3: 162 44% 60%; /* #6BBEB4 */
-  --color-chart-4: 237 51% 45%; /* Darker slate */
+  --color-chart-4: 239 67% 58%; /* Darker palette color */
   --color-chart-5: 204 43% 48%; /* Darker steel */
   
   /* Sidebar */
   --color-sidebar: 60 9% 92%; /* Lighter than bg */
   --color-sidebar-foreground: 60 5% 20%;
-  --color-sidebar-primary: 237 51% 55%; /* #6670BC */
+  --color-sidebar-primary: 239 67% 68%; /* RGB(118, 120, 228) */
   --color-sidebar-primary-foreground: 0 0% 100%;
   --color-sidebar-accent: 60 9% 85%;
   --color-sidebar-accent-foreground: 237 51% 60%;
   --color-sidebar-border: 60 9% 75%;
-  --color-sidebar-ring: 237 51% 55%;
+  --color-sidebar-ring: 239 67% 68%;
   
   /* Category Colors - Organized by theme */
   --category-utilities-blue: 190 80% 50%;
@@ -444,4 +444,27 @@ html.light {
 
 .border-sidebar-border {
   border-color: hsl(var(--color-sidebar-border)) !important;
+}
+
+/* Budget-specific utilities for consistent styling */
+.budget-icon {
+  color: hsl(var(--color-primary)) !important;
+}
+
+.budget-text {
+  color: hsl(var(--color-primary)) !important;
+}
+
+.budget-button-text {
+  font-size: 0.75rem !important; /* 12px */
+  color: hsl(var(--color-primary)) !important;
+}
+
+/* Toggle switch utilities for settings page */
+.toggle-switch {
+  background-color: hsl(var(--color-primary)) !important;
+}
+
+.peer:checked ~ .toggle-bg {
+  background-color: hsl(var(--color-primary)) !important;
 }

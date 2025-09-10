@@ -13,6 +13,7 @@ interface SectionHeaderProps {
   };
   subtitle?: string;
   className?: string;
+  children?: React.ReactNode;
 }
 
 export function SectionHeader({ 
@@ -21,7 +22,8 @@ export function SectionHeader({
   iconClassName = "",
   badge,
   subtitle,
-  className = ""
+  className = "",
+  children
 }: SectionHeaderProps) {
   return (
     <div className={`flex items-center justify-between mb-2 ${className}`}>
@@ -38,6 +40,11 @@ export function SectionHeader({
         <Badge className={badge.className}>
           {badge.text}
         </Badge>
+      )}
+      {children && (
+        <div className="flex items-center gap-2">
+          {children}
+        </div>
       )}
     </div>
   );

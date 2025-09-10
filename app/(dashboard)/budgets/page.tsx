@@ -14,17 +14,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import BottomNavigation from "@/components/bottom-navigation";
 import UserSelector from "@/components/user-selector";
+import { SectionHeader } from "@/components/section-header";
+import { GroupedTransactionCard } from "@/components/grouped-transaction-card";
 import {
   budgetService,
   transactionService,
   userService,
   categoryService,
+  accountService,
   apiHelpers
 } from "@/lib/api";
 import {
   formatCurrency
 } from "@/lib/utils";
-import { Budget, Transaction, Category, User } from "@/lib/types";
+import { Budget, Transaction, Category, User, Account } from "@/lib/types";
 import {
   saveSelectedUser,
   getInitialSelectedUser
@@ -86,6 +89,7 @@ function BudgetsContent() {
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [allTransactions, setAllTransactions] = useState<Transaction[]>([]);
   const [users, setUsers] = useState<User[]>([]);
+  const [accounts, setAccounts] = useState<Account[]>([]);
   const [userMap, setUserMap] = useState<{ [key: string]: string }>({});
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -104,17 +108,19 @@ function BudgetsContent() {
         setSelectedUser(initialUser);
 
         // Fetch all data
-        const [budgetsData, transactionsData, usersData, categoriesData] = await Promise.all([
+        const [budgetsData, transactionsData, usersData, categoriesData, accountsData] = await Promise.all([
           budgetService.getAll(),
           transactionService.getAll(),
           userService.getAll(),
-          categoryService.getAll()
+          categoryService.getAll(),
+          accountService.getAll()
         ]);
 
         setBudgets(budgetsData);
         setAllTransactions(transactionsData);
         setCategories(categoriesData);
         setUsers(usersData);
+        setAccounts(accountsData);
 
         // Create user lookup map for backward compatibility
         const userLookupMap: { [key: string]: string } = {};
@@ -361,6 +367,14 @@ function BudgetsContent() {
       .slice(0, 10);
   }, [selectedBudget, selectedUser, allTransactions]);
 
+  const accountNames = useMemo(() => {
+    const names: Record<string, string> = {};
+    accounts.forEach(account => {
+      names[account.id] = account.name;
+    });
+    return names;
+  }, [accounts]);
+
   const availableBudgets = useMemo(() => 
     getBudgetsForUser(budgets, selectedUser), 
     [selectedUser, budgets]
@@ -449,19 +463,15 @@ function BudgetsContent() {
         </div>
       </header>
 
-      {/* Only show UserSelector for admin and superadmin users */}
-      {currentUser && (currentUser.role === 'superadmin' || currentUser.role === 'admin') && (
-        <>
-          <UserSelector
-            users={users}
-            currentUser={currentUser}
-            selectedGroupFilter={selectedUser}
-            onGroupFilterChange={handleUserChange}
-          />
-          {/* Divider Line */}
-          <div className="h-px bg-gray-200 mx-4"></div>
-        </>
-      )}
+      <UserSelector
+        users={users}
+        currentUser={currentUser}
+        selectedGroupFilter={selectedUser}
+        onGroupFilterChange={handleUserChange}
+      />
+
+      {/* Divider Line */}
+      <div className="h-px bg-gray-200 mx-4"></div>
 
       <main className="flex-1 p-3 sm:p-4 space-y-6 sm:space-y-8 pb-20 sm:pb-24">
         {loading ? (
@@ -477,10 +487,11 @@ function BudgetsContent() {
             {/* Budget Selector */}
             <section className="bg-white/80 backdrop-blur-sm px-4 sm:px-6 py-5 sm:py-6 shadow-xl shadow-slate-200/50 rounded-2xl sm:rounded-3xl border border-white/50">
               <div className="flex flex-col sm:flex-row justify-between items-start gap-4 sm:gap-0 mb-6">
-                <div className="space-y-1 sm:space-y-2">
-                  <h2 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-slate-900 to-slate-600 bg-clip-text text-transparent">Panoramica Budget</h2>
-                  <p className="text-xs sm:text-sm text-slate-500 font-medium">Seleziona un budget per visualizzare i dettagli</p>
-                </div>
+                <SectionHeader
+                  title="Panoramica Budget"
+                  subtitle="Seleziona un budget per visualizzare i dettagli"
+                  className="space-y-1 sm:space-y-2"
+                />
                 <Select value={selectedBudget?.id} onValueChange={handleBudgetChange}>
                   <SelectTrigger className="w-full sm:w-48 h-12 sm:h-11 bg-white border border-slate-200 shadow-lg shadow-slate-200/50 rounded-2xl px-4 hover:border-slate-300 focus:border-slate-400 focus:ring-4 focus:ring-slate-100 transition-all text-sm font-medium">
                     <SelectValue placeholder="Seleziona budget" className="font-semibold text-slate-700" />
@@ -532,7 +543,7 @@ function BudgetsContent() {
                       {formatCurrency(budgetBalance)}
                     </p>
                   </div>
-                  <p className="text-xs sm:text-sm font-medium text-slate-500">
+                  <p className="text-xs sm:text-sm font-medium">
                     di <span className="font-bold text-slate-700">{formatCurrency(selectedBudget.amount)}</span> pianificati
                   </p>
                 </div>
@@ -602,7 +613,7 @@ function BudgetsContent() {
                         <p className={`text-xl sm:text-3xl font-bold bg-gradient-to-r ${unifiedChartData.gradientColors} bg-clip-text text-transparent`}>
                           {formatCurrency(unifiedChartData.total)}
                         </p>
-                        <p className="text-xs text-slate-500 font-semibold uppercase tracking-wide">Questo periodo</p>
+                        <p className="text-xs font-semibold uppercase tracking-wide">Questo periodo</p>
                       </div>
                     </div>
 
@@ -697,7 +708,7 @@ function BudgetsContent() {
                         <p className={`text-xl sm:text-3xl font-bold bg-gradient-to-r ${unifiedChartData.gradientColors} bg-clip-text text-transparent`}>
                           {formatCurrency(unifiedChartData.total)}
                         </p>
-                        <p className="text-xs text-slate-500 font-semibold uppercase tracking-wide">Questo periodo</p>
+                        <p className="text-xs font-semibold uppercase tracking-wide">Questo periodo</p>
                       </div>
                     </div>
 
@@ -785,46 +796,19 @@ function BudgetsContent() {
 
             {/* Total Transactions Section */}
             <section>
-              <div className="flex items-center justify-between mb-4 sm:mb-6">
-                <h3 className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-slate-900 to-slate-600 bg-clip-text text-transparent">Transazioni Recenti</h3>
-              </div>
+              <SectionHeader
+                title="Transazioni Recenti"
+                className="mb-4 sm:mb-6"
+              />
 
               <div className="space-y-3 sm:space-y-4">
                 {budgetTransactions.length > 0 ? (
-                  budgetTransactions.map((transaction) => {
-                    return (
-                      <Card key={transaction.id} className="px-4 sm:px-6 py-3 sm:py-4 bg-white/80 backdrop-blur-sm shadow-lg shadow-slate-200/50 border border-white/50 hover:shadow-xl hover:shadow-slate-200/60 transition-all duration-300 rounded-xl sm:rounded-2xl group active:scale-[0.98] cursor-pointer">
-                        <div className="flex items-center justify-between group-hover:transform group-hover:scale-[1.01] transition-transform duration-200">
-                          <div className="flex items-center gap-2 sm:gap-3">
-                            <div className="flex size-10 sm:size-12 items-center justify-center rounded-xl sm:rounded-2xl bg-slate-100 border border-slate-200 shadow-md shadow-slate-200/30 group-hover:shadow-lg transition-all duration-200 shrink-0">
-                              <CategoryIcon
-                                categoryKey={transaction.category}
-                                size={iconSizes.sm}
-                                                                className="text-slate-600"
-                              />
-                            </div>
-                            <div className="space-y-0.5 sm:space-y-1 min-w-0 flex-1 pr-2">
-                              <h4 className="font-bold text-sm sm:text-base text-slate-800 group-hover:text-slate-900 transition-colors truncate max-w-[140px] sm:max-w-[200px]">
-                                {transaction.description.length > 18 ? `${transaction.description.substring(0, 18)}...` : transaction.description}
-                              </h4>
-                              <p className="text-xs sm:text-sm text-slate-500 font-medium truncate">{new Date(transaction.date).toLocaleDateString('it-IT', {
-                                day: '2-digit',
-                                month: '2-digit',
-                                year: 'numeric'
-                              })}</p>
-                            </div>
-                          </div>
-                          <div className="text-right flex-shrink-0 ml-2">
-                            <p className={`text-sm sm:text-xl font-bold whitespace-nowrap ${
-                              transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
-                            }`}>
-                              {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}
-                            </p>
-                          </div>
-                        </div>
-                      </Card>
-                    );
-                  })
+                  <GroupedTransactionCard 
+                    transactions={budgetTransactions}
+                    accountNames={accountNames}
+                    variant="regular"
+                    showHeader={true}
+                  />
                 ) : (
                   <div className="text-center py-8">
                     <p className="text-gray-500">Nessuna transazione trovata per questo budget</p>

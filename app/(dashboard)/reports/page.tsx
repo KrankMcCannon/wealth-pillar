@@ -1,8 +1,50 @@
 "use client";
 
 import BottomNavigation from "../../../components/bottom-navigation";
+import { SectionHeader } from "@/components/section-header";
+import UserSelector from "@/components/user-selector";
+import { Calendar, PieChart, Target, Download, Clock } from "lucide-react";
+import { useState, useEffect } from "react";
+import { userService } from "@/lib/api";
+import { User } from "@/lib/types";
+import { SectionHeader } from "@/components/section-header";
 
 export default function ReportsPage() {
+  const [users, setUsers] = useState<User[]>([]);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [selectedGroupFilter, setSelectedGroupFilter] = useState<string>('all');
+  const [loading, setLoading] = useState(true);
+
+  // Load data from API
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        const usersData = await userService.getAll();
+        setUsers(usersData);
+        
+        // Set current user as first user for demo purposes
+        if (usersData.length > 0) {
+          setCurrentUser(usersData[0]);
+        }
+      } catch (error) {
+        console.error('Failed to load user data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#7578EC]"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="relative flex size-full min-h-[100dvh] flex-col justify-between overflow-x-hidden" style={{fontFamily: '"Spline Sans", "Noto Sans", sans-serif', backgroundColor: '#F8FAFC'}}>
       <div>
@@ -19,10 +61,22 @@ export default function ReportsPage() {
           </div>
         </header>
 
+        <UserSelector
+          users={users}
+          currentUser={currentUser}
+          selectedGroupFilter={selectedGroupFilter}
+          onGroupFilterChange={setSelectedGroupFilter}
+        />
+
         <main className="p-4 pb-24">
           {/* Monthly Overview */}
           <section className="mb-6">
-            <h2 className="text-lg font-bold text-gray-900 mb-4">Monthly Overview</h2>
+            <SectionHeader
+              title="Monthly Overview"
+              icon={Calendar}
+              iconClassName="text-blue-600"
+              className="mb-4"
+            />
             <div className="bg-white rounded-xl p-6 shadow-sm">
               <div className="grid grid-cols-2 gap-4 mb-6">
                 <div className="text-center">
@@ -46,7 +100,12 @@ export default function ReportsPage() {
 
           {/* Spending by Category */}
           <section className="mb-6">
-            <h2 className="text-lg font-bold text-gray-900 mb-4">Spending by Category</h2>
+            <SectionHeader
+              title="Spending by Category"
+              icon={PieChart}
+              iconClassName="text-green-600"
+              className="mb-4"
+            />
             <div className="space-y-3">
               <div className="bg-white rounded-xl p-4 shadow-sm">
                 <div className="flex items-center justify-between mb-2">
@@ -122,7 +181,12 @@ export default function ReportsPage() {
 
           {/* Savings Progress */}
           <section className="mb-6">
-            <h2 className="text-lg font-bold text-gray-900 mb-4">Savings Progress</h2>
+            <SectionHeader
+              title="Savings Progress"
+              icon={Target}
+              iconClassName="text-emerald-600"
+              className="mb-4"
+            />
             <div className="bg-white rounded-xl p-6 shadow-sm">
               <div className="flex items-center justify-between mb-4">
                 <span className="text-sm font-medium text-gray-800">Annual Goal</span>
@@ -140,7 +204,12 @@ export default function ReportsPage() {
 
           {/* Quick Actions */}
           <section>
-            <h2 className="text-lg font-bold text-gray-900 mb-4">Quick Actions</h2>
+            <SectionHeader
+              title="Quick Actions"
+              icon={Clock}
+              iconClassName="text-purple-600"
+              className="mb-4"
+            />
             <div className="grid grid-cols-2 gap-4">
               <button className="flex flex-col items-center gap-2 bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
                 <div className="flex size-12 items-center justify-center rounded-full bg-[#7578EC] text-white">

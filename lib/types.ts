@@ -69,7 +69,6 @@ export interface Transaction {
   status: TransactionStatusType;
   linked_transaction_ids: string[] | [];
   frequency?: TransactionFrequencyType;
-  next_due_date?: Date;
   created_at: Date;
   updated_at: Date;
 }
