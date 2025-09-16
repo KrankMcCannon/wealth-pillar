@@ -1,5 +1,5 @@
 import { getCurrentBudgetPeriod } from "../../constants";
-import type { Account, Budget, Person, Transaction, BudgetPeriodData } from "../../types";
+import type { Account, Budget, BudgetPeriodData, Person, Transaction } from "../../types";
 import { TransactionType } from "../../types";
 import { BudgetPeriodsUtils } from "./budget-periods.utils";
 
@@ -44,10 +44,7 @@ export class BudgetUtils {
       const account = getAccountById(transaction.accountId);
       const isForBudgetPerson = account?.personIds.includes(budget.personId) || false;
 
-      // Include solo transazioni di spesa (non entrate)
-      const isExpense = transaction.type === TransactionType.SPESA;
-
-      return isInPeriod && isInBudgetCategories && isForBudgetPerson && isExpense;
+      return isInPeriod && isInBudgetCategories && isForBudgetPerson;
     });
   }
 
@@ -68,7 +65,7 @@ export class BudgetUtils {
       periodStart,
       periodEnd,
       getAccountById
-    );
+    ).filter(transaction => transaction.type === TransactionType.SPESA);
 
     return relevantTransactions.reduce((total, transaction) => {
       const amount = getEffectiveTransactionAmount ? getEffectiveTransactionAmount(transaction) : transaction.amount;
@@ -77,17 +74,61 @@ export class BudgetUtils {
   }
 
   /**
+   * Calcola la disponibilità del budget considerando sia spese che entrate
+   */
+  static calculateBudgetAvailability(
+    transactions: Transaction[],
+    budget: Budget,
+    periodStart: Date,
+    periodEnd: Date,
+    getAccountById: (id: string) => Account | undefined,
+    getEffectiveTransactionAmount?: (transaction: Transaction) => number
+  ): number {
+    // Filtra le spese che appartengono alle categorie del budget
+    const expenseTransactions = transactions.filter((transaction) => {
+      const transactionDate = new Date(transaction.date);
+      const isInPeriod = transactionDate >= periodStart && transactionDate <= periodEnd;
+      const isInBudgetCategories = budget.categories.includes(transaction.category);
+      const account = getAccountById(transaction.accountId);
+      const isForBudgetPerson = account?.personIds.includes(budget.personId) || false;
+      const isExpense = transaction.type === TransactionType.SPESA;
+
+      return isInPeriod && isInBudgetCategories && isForBudgetPerson && isExpense;
+    });
+
+    // Filtra le entrate che appartengono alle categorie del budget
+    const incomeTransactions = transactions.filter((transaction) => {
+      const transactionDate = new Date(transaction.date);
+      const isInPeriod = transactionDate >= periodStart && transactionDate <= periodEnd;
+      const isInBudgetCategories = budget.categories.includes(transaction.category);
+      const account = getAccountById(transaction.accountId);
+      const isForBudgetPerson = account?.personIds.includes(budget.personId) || false;
+      const isIncome = transaction.type === TransactionType.ENTRATA;
+
+      return isInPeriod && isInBudgetCategories && isForBudgetPerson && isIncome;
+    });
+
+    // Calcola il totale delle spese
+    const totalExpenses = expenseTransactions.reduce((total, transaction) => {
+      const amount = getEffectiveTransactionAmount ? getEffectiveTransactionAmount(transaction) : transaction.amount;
+      return total + Math.abs(amount);
+    }, 0);
+
+    // Calcola il totale delle entrate
+    const totalIncome = incomeTransactions.reduce((total, transaction) => {
+      const amount = getEffectiveTransactionAmount ? getEffectiveTransactionAmount(transaction) : transaction.amount;
+      return total + Math.abs(amount);
+    }, 0);
+
+    // Disponibilità = Budget iniziale + entrate - spese
+    return budget.amount + totalIncome - totalExpenses;
+  }
+
+  /**
    * Calcola la percentuale di utilizzo del budget
    */
   static calculateBudgetPercentage(currentSpent: number, budgetAmount: number): number {
     return budgetAmount > 0 ? (currentSpent / budgetAmount) * 100 : 0;
-  }
-
-  /**
-   * Calcola l'importo rimanente del budget
-   */
-  static calculateRemainingAmount(budgetAmount: number, currentSpent: number): number {
-    return budgetAmount - currentSpent;
   }
 
   /**
@@ -133,14 +174,21 @@ export class BudgetUtils {
       getEffectiveTransactionAmount
     );
 
+    const budgetAvailability = BudgetUtils.calculateBudgetAvailability(
+      transactions,
+      budget,
+      periodStart,
+      periodEnd,
+      getAccountById,
+      getEffectiveTransactionAmount
+    );
     const percentage = BudgetUtils.calculateBudgetPercentage(currentSpent, budget.amount);
-    const remaining = BudgetUtils.calculateRemainingAmount(budget.amount, currentSpent);
     const progressColor = BudgetUtils.getProgressColor(percentage);
 
     return {
       currentSpent,
       percentage,
-      remaining,
+      remaining: budgetAvailability,
       periodStart,
       periodEnd,
       progressColor,
@@ -192,14 +240,21 @@ export class BudgetUtils {
       getEffectiveTransactionAmount
     );
 
+    const budgetAvailability = BudgetUtils.calculateBudgetAvailability(
+      transactions,
+      budget,
+      periodStart,
+      periodEnd,
+      getAccountById,
+      getEffectiveTransactionAmount
+    );
     const percentage = BudgetUtils.calculateBudgetPercentage(currentSpent, budget.amount);
-    const remaining = BudgetUtils.calculateRemainingAmount(budget.amount, currentSpent);
     const progressColor = BudgetUtils.getProgressColor(percentage);
 
     return {
       currentSpent,
       percentage,
-      remaining,
+      remaining: budgetAvailability,
       periodStart,
       periodEnd,
       progressColor,
