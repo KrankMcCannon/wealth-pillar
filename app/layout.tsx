@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Spline_Sans } from "next/font/google";
 import "./globals.css";
+import { QueryClientProvider } from '@/components/providers/query-client-provider';
 
 const splineSans = Spline_Sans({
   variable: "--font-spline-sans",
@@ -29,7 +30,9 @@ export default function RootLayout({
         }}
         suppressHydrationWarning={true}
       >
-        {children}
+        <QueryClientProvider>
+          {children}
+        </QueryClientProvider>
       </body>
     </html>
   );

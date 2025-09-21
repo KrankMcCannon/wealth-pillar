@@ -1,6 +1,7 @@
 import {
   Account,
   Budget,
+  BudgetPeriod,
   Category,
   Group,
   InvestmentHolding,
@@ -145,12 +146,18 @@ export const transactionService = {
     apiClient.get<Transaction[]>(`/transactions?type=${type}`),
   getByCategory: (category: string): Promise<Transaction[]> =>
     apiClient.get<Transaction[]>(`/transactions?category=${category}`),
-  create: (transaction: Omit<Transaction, 'id' | 'created_at' | 'updated_at'>): Promise<Transaction> =>
-    apiClient.post<Transaction>('/transactions', {
+  create: (transaction: Omit<Transaction, 'id'>): Promise<Transaction> => {
+    const nowIso = new Date().toISOString();
+    const withTimestamps = {
+      created_at: (transaction as Transaction).created_at ?? nowIso,
+      updated_at: (transaction as Transaction).updated_at ?? nowIso,
+    };
+    return apiClient.post<Transaction>('/transactions', {
       ...transaction,
       id: generateId('trx'),
-      ...generateTimestamps(),
-    }),
+      ...withTimestamps,
+    });
+  },
   update: (id: string, transaction: Partial<Transaction>): Promise<Transaction> =>
     apiClient.patch<Transaction>(`/transactions/${id}`, {
       ...transaction,
@@ -212,6 +219,82 @@ export const investmentService = {
       updated_at: new Date().toISOString(),
     }),
   delete: (id: string): Promise<void> => apiClient.delete<void>(`/investments/${id}`),
+};
+
+export const budgetPeriodService = {
+  // Derive from users.budget_periods (no direct /budgetPeriods endpoint)
+  getAll: async (): Promise<BudgetPeriod[]> => {
+    const users = await userService.getAll();
+    return users.flatMap((u) => (u.budget_periods || []).map((p) => ({ ...p, user_id: p.user_id || u.id })));
+  },
+  getById: async (id: string): Promise<BudgetPeriod> => {
+    const all = await budgetPeriodService.getAll();
+    const found = all.find((p) => p.id === id);
+    if (!found) throw new Error('BudgetPeriod not found');
+    return found;
+  },
+  getByBudgetId: async (budgetId: string): Promise<BudgetPeriod[]> => {
+    const all = await budgetPeriodService.getAll();
+    return all.filter((p) => p.budget_id === budgetId);
+  },
+  getByUserId: async (userId: string): Promise<BudgetPeriod[]> => {
+    const user = await userService.getById(userId);
+    return user.budget_periods || [];
+  },
+  getActivePeriods: async (userId?: string): Promise<BudgetPeriod[]> => {
+    if (userId) {
+      const periods = await budgetPeriodService.getByUserId(userId);
+      return periods.filter((p) => p.is_active);
+    }
+    const all = await budgetPeriodService.getAll();
+    return all.filter((p) => p.is_active);
+  },
+  getCurrentPeriod: async (budgetId: string): Promise<BudgetPeriod | null> => {
+    const all = await budgetPeriodService.getByBudgetId(budgetId);
+    return all.find((p) => p.budget_id === budgetId && p.is_active && (p.end_date === null || p.end_date === undefined)) || null;
+  },
+  create: async (period: Omit<BudgetPeriod, 'id' | 'created_at' | 'updated_at'>): Promise<BudgetPeriod> => {
+    const id = generateId('bdp');
+    const timestamps = generateTimestamps();
+    const newPeriod: BudgetPeriod = { id, ...period, ...timestamps } as BudgetPeriod;
+    const user = await userService.getById(period.user_id);
+    const list = [...(user.budget_periods || []), newPeriod];
+    await userService.update(user.id, { budget_periods: list });
+    return newPeriod;
+  },
+  update: async (id: string, period: Partial<BudgetPeriod>): Promise<BudgetPeriod> => {
+    const users = await userService.getAll();
+    const owner = users.find((u) => (u.budget_periods || []).some((p) => p.id === id));
+    if (!owner) throw new Error('BudgetPeriod owner not found');
+    const updatedList = (owner.budget_periods || []).map((p) => (p.id === id ? { ...p, ...period, updated_at: new Date().toISOString() } : p));
+    await userService.update(owner.id, { budget_periods: updatedList });
+    const updated = updatedList.find((p) => p.id === id)!;
+    return updated as BudgetPeriod;
+  },
+  delete: async (id: string): Promise<void> => {
+    const users = await userService.getAll();
+    const owner = users.find((u) => (u.budget_periods || []).some((p) => p.id === id));
+    if (!owner) return;
+    const filtered = (owner.budget_periods || []).filter((p) => p.id !== id);
+    await userService.update(owner.id, { budget_periods: filtered });
+  },
+  endCurrentPeriod: async (budgetId: string): Promise<BudgetPeriod> => {
+    const current = await budgetPeriodService.getCurrentPeriod(budgetId);
+    if (!current) throw new Error('No active period found');
+    return budgetPeriodService.update(current.id, { end_date: new Date().toISOString(), is_active: false });
+  },
+  startNewPeriod: async (budgetId: string, userId: string): Promise<BudgetPeriod> => {
+    return budgetPeriodService.create({
+      budget_id: budgetId,
+      user_id: userId,
+      start_date: new Date().toISOString(),
+      end_date: null,
+      total_spent: 0,
+      total_saved: 0,
+      category_spending: {},
+      is_active: true,
+    });
+  },
 };
 
 // Helper functions for common operations

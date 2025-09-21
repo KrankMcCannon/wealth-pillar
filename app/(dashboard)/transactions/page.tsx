@@ -13,13 +13,12 @@ import { GroupedTransactionCard } from "@/components/grouped-transaction-card";
 import { FilterDialog } from "@/components/filter-dialog";
 import { SectionHeader } from "@/components/section-header";
 import TabNavigation from "@/components/tab-navigation";
-import { useTransactionFilters } from "@/hooks/useTransactionFilters";
 import {
-  userService,
-  transactionService,
-  categoryService,
-  accountService
-} from "@/lib/api";
+  useTransactions,
+  useCategories,
+  useAccounts,
+  useUserSelection
+} from "@/hooks";
 import {
   formatCurrency,
   getTotalForSection,
@@ -27,7 +26,7 @@ import {
   groupUpcomingTransactionsByDaysRemaining,
   pluralize
 } from "@/lib/utils";
-import { Transaction, User, Category } from "@/lib/types";
+import type { Transaction, User } from "@/lib/types";
 
 function TransactionsContent() {
   const router = useRouter();
@@ -35,79 +34,92 @@ function TransactionsContent() {
   const [activeTab, setActiveTab] = useState("Transactions");
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
 
-  const [allTransactions, setAllTransactions] = useState<Transaction[]>([]);
-  const [users, setUsers] = useState<User[]>([]);
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [categories, setCategories] = useState<Category[]>([]);
   const [accountNames, setAccountNames] = useState<Record<string, string>>({});
-  const [loading, setLoading] = useState(true);
 
+  const { data: transactions = [], isLoading: txLoading } = useTransactions();
+  const { data: categories = [], isLoading: categoriesLoading } = useCategories();
+  const { data: accounts = [], isLoading: accountsLoading } = useAccounts();
+
+  // Use centralized user selection
   const {
-    searchQuery,
-    setSearchQuery,
-    selectedFilter,
-    setSelectedFilter,
-    selectedCategory,
-    setSelectedCategory,
+    currentUser,
     selectedGroupFilter,
-    setSelectedGroupFilter,
-    filteredTransactions,
-    filteredByUser,
-    resetFilters,
-    hasActiveFilters
-  } = useTransactionFilters(allTransactions);
+    users,
+    updateGroupFilter,
+    isLoading: userSelectionLoading
+  } = useUserSelection();
+
+  // State for filtering
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedFilter, setSelectedFilter] = useState<string>("all");
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+
+  // Filter transactions based on current filters
+  const filteredTransactions = useMemo(() => {
+    let filtered = transactions;
+
+    // Search filter
+    if (searchQuery) {
+      filtered = filtered.filter(tx =>
+        tx.description.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    // Category filter
+    if (selectedCategory !== "all") {
+      filtered = filtered.filter(tx => tx.category === selectedCategory);
+    }
+
+    // User filter
+    if (selectedGroupFilter !== "all") {
+      filtered = filtered.filter(tx => tx.user_id === selectedGroupFilter);
+    }
+
+    // Type filter
+    if (selectedFilter !== "all") {
+      filtered = filtered.filter(tx => tx.type === selectedFilter);
+    }
+
+    return filtered;
+  }, [transactions, searchQuery, selectedCategory, selectedGroupFilter, selectedFilter]);
+
+  const hasActiveFilters = searchQuery !== "" || selectedFilter !== "all" || selectedCategory !== "all" || selectedGroupFilter !== "all";
+
+  const resetFilters = () => {
+    setSearchQuery("");
+    setSelectedFilter("all");
+    setSelectedCategory("all");
+    updateGroupFilter("all");
+  };
 
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        setLoading(true);
-        const [transactionsData, usersData, categoriesData] = await Promise.all([
-          transactionService.getAll(),
-          userService.getAll(),
-          categoryService.getAll()
-        ]);
-
-        setAllTransactions(transactionsData);
-        setUsers(usersData);
-        setCategories(categoriesData);
-
-        const uniqueAccountIds = [...new Set(transactionsData.map(tx => tx.account_id))];
-        const accountNamesMap: Record<string, string> = {};
-        await Promise.all(
-          uniqueAccountIds.map(async (accountId) => {
-            try {
-              const account = await accountService.getById(accountId);
-              accountNamesMap[accountId] = account?.name || accountId;
-            } catch (error) {
-              console.error(`Error fetching account name for ${accountId}:`, error);
-              accountNamesMap[accountId] = accountId;
-            }
-          })
-        );
-        setAccountNames(accountNamesMap);
-
-        if (usersData.length > 0) {
-          setCurrentUser(usersData[0]);
-        }
-      } catch (error) {
-        console.error('Failed to load data:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadData();
-  }, []);
+    // Build account names map
+    if (accounts && accounts.length > 0) {
+      const names: Record<string, string> = {};
+      accounts.forEach(a => { names[a.id] = a.name; });
+      setAccountNames(names);
+    }
+  }, [accounts]);
 
   const processedTransactionData = useMemo(() => {
-    const sortedTransactions = [...filteredTransactions].sort((a, b) =>
-      new Date(b.date).getTime() - new Date(a.date).getTime()
-    );
+    const safeParse = (d: string | Date) => {
+      const dt = new Date(d);
+      return isNaN(dt.getTime()) ? null : dt;
+    };
+
+    const sortedTransactions = [...filteredTransactions]
+      .filter(t => !!safeParse(t.date))
+      .sort((a, b) => {
+        const da = safeParse(a.date)!;
+        const db = safeParse(b.date)!;
+        return db.getTime() - da.getTime();
+      });
 
     const groupedByDay: Record<string, typeof filteredTransactions> = {};
 
     sortedTransactions.forEach(transaction => {
-      const date = new Date(transaction.date);
+      const date = safeParse(transaction.date);
+      if (!date) return;
       const dateKey = date.toISOString().split('T')[0];
 
       if (!groupedByDay[dateKey]) {
@@ -132,11 +144,11 @@ function TransactionsContent() {
   }, [filteredTransactions]);
 
   const filteredRecurrentData = useMemo(() => {
-    const recurringTxs = filteredByUser.filter((tx: Transaction) =>
+    const allRecurringTxs = filteredTransactions.filter((tx: Transaction) =>
       tx.frequency && (tx.frequency === 'weekly' || tx.frequency === 'biweekly' || tx.frequency === 'monthly' || tx.frequency === 'yearly')
     );
 
-    const filtered = selectedGroupFilter === 'all' ? recurringTxs : recurringTxs.filter((tx: Transaction) => tx.user_id === selectedGroupFilter);
+    const filtered = selectedGroupFilter === 'all' ? allRecurringTxs : allRecurringTxs.filter((tx: Transaction) => tx.user_id === selectedGroupFilter);
 
     const upcomingGrouped = groupUpcomingTransactionsByDaysRemaining(filtered);
 
@@ -144,7 +156,7 @@ function TransactionsContent() {
       upcomingGrouped,
       recurrent: filtered
     };
-  }, [selectedGroupFilter, filteredByUser]);
+  }, [selectedGroupFilter, filteredTransactions]);
 
   useEffect(() => {
     const tab = searchParams.get('tab');
@@ -175,7 +187,7 @@ function TransactionsContent() {
 
   return (
     <div className="relative flex size-full min-h-[100dvh] flex-col bg-gradient-to-br from-slate-50 via-white to-slate-100" style={{ fontFamily: '"Inter", "SF Pro Display", system-ui, sans-serif' }}>
-      {loading ? (
+      {txLoading || userSelectionLoading || categoriesLoading || accountsLoading ? (
         <div className="flex items-center justify-center min-h-screen">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         </div>
@@ -226,7 +238,7 @@ function TransactionsContent() {
             users={users}
             currentUser={currentUser}
             selectedGroupFilter={selectedGroupFilter}
-            onGroupFilterChange={setSelectedGroupFilter}
+            onGroupFilterChange={updateGroupFilter}
             className="bg-[#F8FAFC] border-gray-200"
           />
 
@@ -243,6 +255,7 @@ function TransactionsContent() {
           </div>
 
           <main className="flex-1 p-3 space-y-6 pb-20">
+
             {/* Active Filters Display - Show when coming from budgets */}
             {(searchParams.get('from') === 'budgets' && (searchParams.get('member') || searchParams.get('category'))) && (
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
@@ -267,7 +280,7 @@ function TransactionsContent() {
                     variant="ghost"
                     size="sm"
                     onClick={() => {
-                      setSelectedGroupFilter('all');
+                      updateGroupFilter('all');
                       resetFilters();
                       router.replace('/transactions');
                     }}
@@ -412,6 +425,7 @@ function TransactionsContent() {
               </div>
             )}
           </main>
+
 
           <BottomNavigation />
         </>

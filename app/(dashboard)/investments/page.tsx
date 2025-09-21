@@ -1,59 +1,60 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import BottomNavigation from "../../../components/bottom-navigation";
 import { SectionHeader } from "@/components/section-header";
 import UserSelector from "@/components/user-selector";
-import { investmentService, userService } from "@/lib/api";
+import { useInvestments, usePortfolioData, useUserSelection } from "@/hooks";
 import { formatCurrency } from "@/lib/utils";
 import { BarChart3, PieChart } from "lucide-react";
-import { EnhancedHolding, PortfolioData, type InvestmentHolding, User } from "@/lib/types";
+import { EnhancedHolding, PortfolioData, type InvestmentHolding } from "@/lib/types";
 
 export default function InvestmentsPage() {
   const router = useRouter();
-  const [investments, setInvestments] = useState<InvestmentHolding[]>([]);
-  const [users, setUsers] = useState<User[]>([]);
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [selectedGroupFilter, setSelectedGroupFilter] = useState<string>('all');
-  const [loading, setLoading] = useState(true);
+  const { data: investments = [], isLoading: investmentsLoading } = useInvestments();
 
-  // Load data from API
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        setLoading(true);
-        const [investmentsData, usersData] = await Promise.all([
-          investmentService.getAll(),
-          userService.getAll()
-        ]);
-        setInvestments(investmentsData);
-        setUsers(usersData);
-        
-        // Set current user as first user for demo purposes
-        if (usersData.length > 0) {
-          setCurrentUser(usersData[0]);
-        }
-      } catch (error) {
-        console.error('Failed to load investments:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  // Use centralized user selection
+  const {
+    currentUser,
+    selectedGroupFilter,
+    users,
+    updateGroupFilter,
+    isLoading: userSelectionLoading
+  } = useUserSelection();
 
-    loadData();
-  }, []);
+  // Get portfolio data for the selected user
+  const { data: portfolioDataFromApi, isLoading: portfolioLoading } = usePortfolioData(
+    selectedGroupFilter === 'all' ? (currentUser?.id || '') : selectedGroupFilter
+  );
+
+
+  // Filter investments based on selected user/group
+  const filteredInvestments = useMemo(() => {
+    if (!currentUser) return [];
+
+    if (selectedGroupFilter === 'all') {
+      return investments;
+    }
+
+    return investments.filter(investment => investment.user_id === selectedGroupFilter);
+  }, [investments, selectedGroupFilter, currentUser]);
 
   // Memoized calculations for portfolio data
   const portfolioData: PortfolioData = useMemo(() => {
-    const totalValue = investments.reduce((sum: number, holding: InvestmentHolding) => {
+    // Use API data if available, otherwise calculate from filtered investments
+    if (portfolioDataFromApi && selectedGroupFilter !== 'all') {
+      return portfolioDataFromApi;
+    }
+
+    const totalValue = filteredInvestments.reduce((sum: number, holding: InvestmentHolding) => {
       return sum + (holding.quantity * holding.current_price);
     }, 0);
-    
-    const totalCost = investments.reduce((sum: number, holding: InvestmentHolding) => {
+
+    const totalCost = filteredInvestments.reduce((sum: number, holding: InvestmentHolding) => {
       return sum + (holding.quantity * holding.purchase_price);
     }, 0);
-    
+
     const gainLoss = totalValue - totalCost;
     const gainLossPercent = totalCost > 0 ? (gainLoss / totalCost) * 100 : 0;
 
@@ -61,12 +62,12 @@ export default function InvestmentsPage() {
       totalValue,
       gainLoss,
       gainLossPercent,
-      holdings: investments.map((holding: InvestmentHolding): EnhancedHolding => {
+      holdings: filteredInvestments.map((holding: InvestmentHolding): EnhancedHolding => {
         const currentValue = holding.quantity * holding.current_price;
         const purchaseValue = holding.quantity * holding.purchase_price;
         const individualGain = currentValue - purchaseValue;
         const individualGainPercent = purchaseValue > 0 ? (individualGain / purchaseValue) * 100 : 0;
-        
+
         return {
           ...holding,
           currentValue,
@@ -75,11 +76,56 @@ export default function InvestmentsPage() {
         };
       })
     };
-  }, [investments]);
+  }, [filteredInvestments, portfolioDataFromApi, selectedGroupFilter]);
+
+  // Helper function to determine asset type based on symbol
+  const getAssetType = (symbol: string): 'stock' | 'crypto' => {
+    const cryptoSymbols = ['BTC', 'ETH', 'ADA', 'DOT', 'SOL', 'MATIC', 'LINK', 'UNI'];
+    return cryptoSymbols.includes(symbol.toUpperCase()) ? 'crypto' : 'stock';
+  };
+
+  // Calculate breakdown by asset type
+  const assetBreakdown = useMemo(() => {
+    const stocksValue = filteredInvestments
+      .filter(holding => getAssetType(holding.symbol) === 'stock')
+      .reduce((sum, holding) => sum + (holding.quantity * holding.current_price), 0);
+
+    const cryptoValue = filteredInvestments
+      .filter(holding => getAssetType(holding.symbol) === 'crypto')
+      .reduce((sum, holding) => sum + (holding.quantity * holding.current_price), 0);
+
+    const stocksCost = filteredInvestments
+      .filter(holding => getAssetType(holding.symbol) === 'stock')
+      .reduce((sum, holding) => sum + (holding.quantity * holding.purchase_price), 0);
+
+    const cryptoCost = filteredInvestments
+      .filter(holding => getAssetType(holding.symbol) === 'crypto')
+      .reduce((sum, holding) => sum + (holding.quantity * holding.purchase_price), 0);
+
+    const stocksGainPercent = stocksCost > 0 ? ((stocksValue - stocksCost) / stocksCost) * 100 : 0;
+    const cryptoGainPercent = cryptoCost > 0 ? ((cryptoValue - cryptoCost) / cryptoCost) * 100 : 0;
+
+    const totalValue = portfolioData.totalValue;
+    const stocksPercentage = totalValue > 0 ? (stocksValue / totalValue) * 100 : 0;
+    const cryptoPercentage = totalValue > 0 ? (cryptoValue / totalValue) * 100 : 0;
+
+    return {
+      stocks: {
+        value: stocksValue,
+        percentage: stocksPercentage,
+        gainPercent: stocksGainPercent
+      },
+      crypto: {
+        value: cryptoValue,
+        percentage: cryptoPercentage,
+        gainPercent: cryptoGainPercent
+      }
+    };
+  }, [filteredInvestments, portfolioData.totalValue]);
 
   return (
     <div className="relative flex size-full min-h-[100dvh] flex-col justify-between overflow-x-hidden" style={{fontFamily: '"Spline Sans", "Noto Sans", sans-serif', backgroundColor: '#F8FAFC'}}>
-      {loading ? (
+      {investmentsLoading || userSelectionLoading || portfolioLoading ? (
         <div className="flex items-center justify-center min-h-screen">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#7578EC]"></div>
         </div>
@@ -106,7 +152,7 @@ export default function InvestmentsPage() {
           users={users}
           currentUser={currentUser}
           selectedGroupFilter={selectedGroupFilter}
-          onGroupFilterChange={setSelectedGroupFilter}
+          onGroupFilterChange={updateGroupFilter}
         />
 
         <main className="p-4 pb-24">
@@ -146,14 +192,16 @@ export default function InvestmentsPage() {
                   </svg>
                 </div>
               </div>
-              <p className="mt-2 text-2xl font-bold text-gray-900">$32,450</p>
+              <p className="mt-2 text-2xl font-bold text-gray-900">{formatCurrency(assetBreakdown.stocks.value)}</p>
               <div className="mt-4">
                 <div className="flex justify-between text-sm font-medium text-gray-500">
-                  <span>67% del portafoglio</span>
-                  <span className="text-green-600">+12%</span>
+                  <span>{Math.round(assetBreakdown.stocks.percentage)}% del portafoglio</span>
+                  <span className={assetBreakdown.stocks.gainPercent >= 0 ? 'text-green-600' : 'text-red-600'}>
+                    {assetBreakdown.stocks.gainPercent >= 0 ? '+' : ''}{assetBreakdown.stocks.gainPercent.toFixed(1)}%
+                  </span>
                 </div>
                 <div className="mt-2 h-2 w-full rounded-full bg-gray-200">
-                  <div className="h-2 rounded-full bg-blue-500" style={{width: '67%'}}></div>
+                  <div className="h-2 rounded-full bg-blue-500" style={{width: `${Math.round(assetBreakdown.stocks.percentage)}%`}}></div>
                 </div>
               </div>
             </div>
@@ -166,14 +214,16 @@ export default function InvestmentsPage() {
                   </svg>
                 </div>
               </div>
-              <p className="mt-2 text-2xl font-bold text-gray-900">$15,820</p>
+              <p className="mt-2 text-2xl font-bold text-gray-900">{formatCurrency(assetBreakdown.crypto.value)}</p>
               <div className="mt-4">
                 <div className="flex justify-between text-sm font-medium text-gray-500">
-                  <span>33% del portafoglio</span>
-                  <span className="text-red-600">-3%</span>
+                  <span>{Math.round(assetBreakdown.crypto.percentage)}% del portafoglio</span>
+                  <span className={assetBreakdown.crypto.gainPercent >= 0 ? 'text-green-600' : 'text-red-600'}>
+                    {assetBreakdown.crypto.gainPercent >= 0 ? '+' : ''}{assetBreakdown.crypto.gainPercent.toFixed(1)}%
+                  </span>
                 </div>
                 <div className="mt-2 h-2 w-full rounded-full bg-gray-200">
-                  <div className="h-2 rounded-full bg-orange-500" style={{width: '33%'}}></div>
+                  <div className="h-2 rounded-full bg-orange-500" style={{width: `${Math.round(assetBreakdown.crypto.percentage)}%`}}></div>
                 </div>
               </div>
             </div>

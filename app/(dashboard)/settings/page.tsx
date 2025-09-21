@@ -1,19 +1,18 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useMemo, useState, useEffect } from "react";
+import { useMemo } from "react";
 import { ArrowLeft, User, UserCircle, Mail, Phone, Globe, Bell, Shield, Trash2, Users, Plus, BarChart3, CreditCard, ChevronRight, Settings } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import BottomNavigation from "../../../components/bottom-navigation";
 import { SectionHeader } from "@/components/section-header";
-import { userService } from "@/lib/api";
+import { useAccounts, useTransactions, useUserSelection } from "@/hooks";
 import { User as UserType } from "@/lib/types";
 import {
   formatDate
 } from "@/lib/utils";
 
-// Funzione per renderizzare le icone avatar dinamicamente
 const renderAvatarIcon = (iconName: string) => {
   const iconProps = { className: "h-5 w-5" };
   
@@ -29,39 +28,49 @@ const renderAvatarIcon = (iconName: string) => {
 
 export default function SettingsPage() {
   const router = useRouter();
-  const [currentUser, setCurrentUser] = useState<UserType | null>(null);
-  const [users, setUsers] = useState<UserType[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: accounts = [] } = useAccounts();
+  const { data: transactions = [] } = useTransactions();
 
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        setLoading(true);
-        const usersData = await userService.getAll();
-        setUsers(usersData);
+  // Use centralized user selection
+  const {
+    currentUser,
+    users,
+    isLoading: usersLoading
+  } = useUserSelection();
 
-        if (usersData.length > 0) {
-          setCurrentUser(usersData[0]);
-        }
-      } catch (error) {
-        console.error('Failed to load user data:', error);
-      } finally {
-        setLoading(false);
-      }
+
+  const userStats = useMemo(() => {
+    if (!currentUser) return { accountCount: 0, transactionCount: 0 };
+
+    const userAccounts = accounts.filter(account =>
+      account.user_ids.includes(currentUser.id)
+    );
+    const userTransactions = transactions.filter(transaction =>
+      transaction.user_id === currentUser.id
+    );
+
+    return {
+      accountCount: userAccounts.length,
+      transactionCount: userTransactions.length
     };
-
-    loadData();
-  }, []);
+  }, [currentUser, accounts, transactions]);
 
   const planInfo = useMemo(() => {
+    if (!currentUser?.group_id) {
+      return {
+        name: 'Base Plan',
+        color: 'text-gray-600',
+        bgColor: 'bg-gray-100'
+      };
+    }
     return {
       name: 'Premium Plan',
       color: 'text-primary',
       bgColor: 'bg-primary/10'
     };
-  }, []);
+  }, [currentUser?.group_id]);
 
-  if (loading) {
+  if (usersLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -126,6 +135,12 @@ export default function SettingsPage() {
                           Sviluppatore
                         </div>
                       )}
+                      <div className="px-3 py-1.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-600 whitespace-nowrap">
+                        {userStats.accountCount} Account
+                      </div>
+                      <div className="px-3 py-1.5 rounded-full text-xs font-semibold bg-green-50 text-green-600 whitespace-nowrap">
+                        {userStats.transactionCount} Transazioni
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -158,7 +173,7 @@ export default function SettingsPage() {
                   </div>
                   <div className="flex-1">
                     <span className="text-sm font-semibold text-[#7678e4] block mb-0.5">Telefono</span>
-                    <p className="text-sm text-slate-700">+39 123 456 789</p>
+                    <p className="text-sm text-slate-700">Non specificato</p>
                   </div>
                 </div>
                 
@@ -193,7 +208,7 @@ export default function SettingsPage() {
               <Card className="gap-0 pt-3 pb-0 bg-white/95 backdrop-blur-sm shadow-xl shadow-[#7678e4]/15 border-0 rounded-2xl overflow-hidden mb-4">
                 <div className="px-4 py-3 bg-gradient-to-r from-[#7678e4]/8 via-white to-[#7678e4]/8">
                   <h3 className="text-sm font-semibold text-[#7678e4]">Membri del Gruppo</h3>
-                  <p className="text-xs mt-0.5 text-slate-700">Famiglia Rossi</p>
+                  <p className="text-xs mt-0.5 text-slate-700">{users.length} {users.length === 1 ? 'membro' : 'membri'}</p>
                 </div>
                 <div className="divide-y divide-[#7678e4]/8">
                   {users.map((member: UserType) => (
@@ -211,10 +226,12 @@ export default function SettingsPage() {
                         <div className={`px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center justify-center shadow-sm ${
                           member.role === "admin"
                             ? "bg-[#7678e4]/15 text-[#7678e4]"
+                            : member.role === "superadmin"
+                            ? "bg-amber-50 text-amber-700"
                             : "bg-emerald-50 text-emerald-700"
                           }`}>
                           <span className="capitalize whitespace-nowrap">
-                            {member.role === 'admin' ? 'Admin' : 'Membro'}
+                            {member.role === 'superadmin' ? 'Dev' : member.role === 'admin' ? 'Admin' : 'Membro'}
                           </span>
                         </div>
                         <p className="text-xs mt-1 truncate">

@@ -130,7 +130,7 @@ export const getDynamicChartData = async (budget: Budget) => {
     });
 
     budgetExpenses.forEach(transaction => {
-      const dayIndex = convertToMondayIndex(transaction.date.getDay());
+      const dayIndex = convertToMondayIndex(new Date(transaction.date).getDay());
       const dayName = dayNames[dayIndex];
 
       if (dayName && dailyExpenseData[dayName] && transaction.category) {
@@ -148,7 +148,7 @@ export const getDynamicChartData = async (budget: Budget) => {
     });
 
     income.forEach(transaction => {
-      const dayIndex = convertToMondayIndex(transaction.date.getDay());
+      const dayIndex = convertToMondayIndex(new Date(transaction.date).getDay());
       const dayName = dayNames[dayIndex];
 
       if (dayName && dailyIncomeData[dayName] && transaction.category) {
@@ -196,9 +196,13 @@ export const getDynamicChartData = async (budget: Budget) => {
 };
 
 const calculateBalance = (transactions: Transaction[]): number => {
-  const balance = transactions.reduce((total, tx) => 
-    tx.type === 'income' ? total + tx.amount : total - tx.amount, 0
-  );
+  // User-level balance: income - expense; ignore transfers (net zero across accounts)
+  const balance = transactions.reduce((total, tx) => {
+    if (tx.type === 'income') return total + tx.amount;
+    if (tx.type === 'expense') return total - tx.amount;
+    // transfer ignored at user level
+    return total;
+  }, 0);
   return Math.round(balance * 100) / 100;
 };
 
@@ -223,8 +227,19 @@ export const getAllAccountsBalance = async (): Promise<number> => {
 
 export const getAccountBalance = async (accountId: string): Promise<number> => {
   try {
-    const transactions = await transactionService.getByAccountId(accountId);
-    return calculateBalance(transactions);
+    const all = await transactionService.getAll();
+    const related = all.filter(t => t.account_id === accountId || t.to_account_id === accountId);
+    const balance = related.reduce((sum, t) => {
+      if (t.to_account_id) {
+        if (t.account_id === accountId) return sum - t.amount;
+        if (t.to_account_id === accountId) return sum + t.amount;
+        return sum;
+      }
+      if (t.type === 'income') return sum + t.amount;
+      if (t.type === 'expense') return sum - t.amount;
+      return sum;
+    }, 0);
+    return Math.round(balance * 100) / 100;
   } catch {
     return 0;
   }
@@ -360,7 +375,7 @@ export const formatDueDate = (dueDate: Date): string => {
 };
 
 // Calculate the next due date for a recurrent transaction
-export const calculateNextDueDate = (transactionDate: Date, frequency: string): Date => {
+export const calculateNextDueDate = (transactionDate: string | Date, frequency: string): Date => {
   const baseDate = new Date(transactionDate);
   const today = new Date();
   

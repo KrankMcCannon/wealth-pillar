@@ -3,41 +3,104 @@
 import BottomNavigation from "../../../components/bottom-navigation";
 import { SectionHeader } from "@/components/section-header";
 import UserSelector from "@/components/user-selector";
-import { Calendar, PieChart, Target, Download, Clock } from "lucide-react";
-import { useState, useEffect } from "react";
-import { userService } from "@/lib/api";
-import { User } from "@/lib/types";
-import { SectionHeader } from "@/components/section-header";
+import { Calendar, PieChart, Target, Clock } from "lucide-react";
+import { useMemo } from "react";
+import { useTransactions, useUserSelection } from "@/hooks";
+import { formatCurrency } from "@/lib/utils";
 
 export default function ReportsPage() {
-  const [users, setUsers] = useState<User[]>([]);
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [selectedGroupFilter, setSelectedGroupFilter] = useState<string>('all');
-  const [loading, setLoading] = useState(true);
+  const { data: transactions = [], isLoading: transactionsLoading } = useTransactions();
 
-  // Load data from API
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        setLoading(true);
-        const usersData = await userService.getAll();
-        setUsers(usersData);
-        
-        // Set current user as first user for demo purposes
-        if (usersData.length > 0) {
-          setCurrentUser(usersData[0]);
-        }
-      } catch (error) {
-        console.error('Failed to load user data:', error);
-      } finally {
-        setLoading(false);
-      }
+  // Use centralized user selection
+  const {
+    currentUser,
+    selectedGroupFilter,
+    users,
+    updateGroupFilter,
+    isLoading: userSelectionLoading
+  } = useUserSelection();
+
+
+  // Calculate real financial data based on selected user/group filter
+  const financialData = useMemo(() => {
+    if (!currentUser) return null;
+
+    // Filter transactions based on selected group filter
+    const filteredTransactions = selectedGroupFilter === 'all'
+      ? transactions
+      : transactions.filter(tx => tx.user_id === selectedGroupFilter);
+
+    // Calculate current month data
+    const currentDate = new Date();
+    const currentMonth = currentDate.getMonth();
+    const currentYear = currentDate.getFullYear();
+
+    const currentMonthTransactions = filteredTransactions.filter(tx => {
+      const txDate = new Date(tx.date);
+      return txDate.getMonth() === currentMonth && txDate.getFullYear() === currentYear;
+    });
+
+    const totalIncome = currentMonthTransactions
+      .filter(tx => tx.type === 'income')
+      .reduce((sum, tx) => sum + tx.amount, 0);
+
+    const totalExpenses = currentMonthTransactions
+      .filter(tx => tx.type === 'expense')
+      .reduce((sum, tx) => sum + tx.amount, 0);
+
+    const netSavings = totalIncome - totalExpenses;
+
+    // Calculate expenses by category
+    const expensesByCategory = currentMonthTransactions
+      .filter(tx => tx.type === 'expense')
+      .reduce((acc, tx) => {
+        acc[tx.category] = (acc[tx.category] || 0) + tx.amount;
+        return acc;
+      }, {} as Record<string, number>);
+
+    // Convert to array and sort by amount
+    const categoryData = Object.entries(expensesByCategory)
+      .map(([category, amount]) => ({
+        category,
+        amount,
+        percentage: totalExpenses > 0 ? (amount / totalExpenses) * 100 : 0
+      }))
+      .sort((a, b) => b.amount - a.amount)
+      .slice(0, 5); // Top 5 categories
+
+    // Calculate annual savings progress
+    const yearStart = new Date(currentYear, 0, 1);
+    const yearTransactions = filteredTransactions.filter(tx => {
+      const txDate = new Date(tx.date);
+      return txDate >= yearStart;
+    });
+
+    const yearIncome = yearTransactions
+      .filter(tx => tx.type === 'income')
+      .reduce((sum, tx) => sum + tx.amount, 0);
+
+    const yearExpenses = yearTransactions
+      .filter(tx => tx.type === 'expense')
+      .reduce((sum, tx) => sum + tx.amount, 0);
+
+    const yearSavings = yearIncome - yearExpenses;
+    const savingsGoal = 15000; // This could come from user preferences
+    const savingsProgress = Math.min((yearSavings / savingsGoal) * 100, 100);
+
+    return {
+      totalIncome,
+      totalExpenses,
+      netSavings,
+      categoryData,
+      yearSavings,
+      savingsGoal,
+      savingsProgress
     };
+  }, [currentUser, transactions, selectedGroupFilter]);
 
-    loadData();
-  }, []);
+  const isLoading = userSelectionLoading || transactionsLoading;
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#7578EC]"></div>
@@ -65,7 +128,7 @@ export default function ReportsPage() {
           users={users}
           currentUser={currentUser}
           selectedGroupFilter={selectedGroupFilter}
-          onGroupFilterChange={setSelectedGroupFilter}
+          onGroupFilterChange={updateGroupFilter}
         />
 
         <main className="p-4 pb-24">
@@ -81,19 +144,29 @@ export default function ReportsPage() {
               <div className="grid grid-cols-2 gap-4 mb-6">
                 <div className="text-center">
                   <p className="text-sm text-gray-600 mb-1">Total Income</p>
-                  <p className="text-2xl font-bold text-green-600">$8,250</p>
-                  <p className="text-xs text-green-600">+15% vs last month</p>
+                  <p className="text-2xl font-bold text-green-600">
+                    {financialData ? formatCurrency(financialData.totalIncome) : '€0'}
+                  </p>
+                  <p className="text-xs text-green-600">This month</p>
                 </div>
                 <div className="text-center">
                   <p className="text-sm text-gray-600 mb-1">Total Expenses</p>
-                  <p className="text-2xl font-bold text-red-600">$5,420</p>
-                  <p className="text-xs text-red-600">+8% vs last month</p>
+                  <p className="text-2xl font-bold text-red-600">
+                    {financialData ? formatCurrency(financialData.totalExpenses) : '€0'}
+                  </p>
+                  <p className="text-xs text-red-600">This month</p>
                 </div>
               </div>
               <div className="text-center">
                 <p className="text-sm text-gray-600 mb-1">Net Savings</p>
-                <p className="text-3xl font-bold text-blue-600">$2,830</p>
-                <p className="text-xs text-blue-600">+22% vs last month</p>
+                <p className={`text-3xl font-bold ${
+                  financialData && financialData.netSavings >= 0
+                    ? 'text-blue-600'
+                    : 'text-red-600'
+                }`}>
+                  {financialData ? formatCurrency(financialData.netSavings) : '€0'}
+                </p>
+                <p className="text-xs text-gray-600">This month</p>
               </div>
             </div>
           </section>
@@ -107,75 +180,47 @@ export default function ReportsPage() {
               className="mb-4"
             />
             <div className="space-y-3">
-              <div className="bg-white rounded-xl p-4 shadow-sm">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-3">
-                    <div className="w-4 h-4 rounded-full bg-blue-500"></div>
-                    <span className="text-sm font-medium text-gray-800">Housing</span>
-                  </div>
-                  <span className="text-sm font-bold text-gray-900">$1,200</span>
+              {financialData && financialData.categoryData.length > 0 ? (
+                financialData.categoryData.map((category, index) => {
+                  const colors = [
+                    { bg: 'bg-blue-500', text: 'text-blue-500' },
+                    { bg: 'bg-green-500', text: 'text-green-500' },
+                    { bg: 'bg-yellow-500', text: 'text-yellow-500' },
+                    { bg: 'bg-purple-500', text: 'text-purple-500' },
+                    { bg: 'bg-red-500', text: 'text-red-500' }
+                  ];
+                  const color = colors[index % colors.length];
+
+                  return (
+                    <div key={category.category} className="bg-white rounded-xl p-4 shadow-sm">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-4 h-4 rounded-full ${color.bg}`}></div>
+                          <span className="text-sm font-medium text-gray-800 capitalize">
+                            {category.category}
+                          </span>
+                        </div>
+                        <span className="text-sm font-bold text-gray-900">
+                          {formatCurrency(category.amount)}
+                        </span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div
+                          className={`${color.bg} h-2 rounded-full`}
+                          style={{ width: `${Math.round(category.percentage)}%` }}
+                        ></div>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {Math.round(category.percentage)}% of total expenses
+                      </p>
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="bg-white rounded-xl p-6 shadow-sm text-center">
+                  <p className="text-gray-500">No expense data available for this month</p>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div className="bg-blue-500 h-2 rounded-full" style={{width: '35%'}}></div>
-                </div>
-                <p className="text-xs text-gray-500 mt-1">35% of total expenses</p>
-              </div>
-              
-              <div className="bg-white rounded-xl p-4 shadow-sm">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-3">
-                    <div className="w-4 h-4 rounded-full bg-green-500"></div>
-                    <span className="text-sm font-medium text-gray-800">Groceries</span>
-                  </div>
-                  <span className="text-sm font-bold text-gray-900">$850</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div className="bg-green-500 h-2 rounded-full" style={{width: '25%'}}></div>
-                </div>
-                <p className="text-xs text-gray-500 mt-1">25% of total expenses</p>
-              </div>
-              
-              <div className="bg-white rounded-xl p-4 shadow-sm">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-3">
-                    <div className="w-4 h-4 rounded-full bg-yellow-500"></div>
-                    <span className="text-sm font-medium text-gray-800">Transportation</span>
-                  </div>
-                  <span className="text-sm font-bold text-gray-900">$680</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div className="bg-yellow-500 h-2 rounded-full" style={{width: '20%'}}></div>
-                </div>
-                <p className="text-xs text-gray-500 mt-1">20% of total expenses</p>
-              </div>
-              
-              <div className="bg-white rounded-xl p-4 shadow-sm">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-3">
-                    <div className="w-4 h-4 rounded-full bg-purple-500"></div>
-                    <span className="text-sm font-medium text-gray-800">Entertainment</span>
-                  </div>
-                  <span className="text-sm font-bold text-gray-900">$450</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div className="bg-purple-500 h-2 rounded-full" style={{width: '13%'}}></div>
-                </div>
-                <p className="text-xs text-gray-500 mt-1">13% of total expenses</p>
-              </div>
-              
-              <div className="bg-white rounded-xl p-4 shadow-sm">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-3">
-                    <div className="w-4 h-4 rounded-full bg-red-500"></div>
-                    <span className="text-sm font-medium text-gray-800">Other</span>
-                  </div>
-                  <span className="text-sm font-bold text-gray-900">$240</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div className="bg-red-500 h-2 rounded-full" style={{width: '7%'}}></div>
-                </div>
-                <p className="text-xs text-gray-500 mt-1">7% of total expenses</p>
-              </div>
+              )}
             </div>
           </section>
 
@@ -190,14 +235,33 @@ export default function ReportsPage() {
             <div className="bg-white rounded-xl p-6 shadow-sm">
               <div className="flex items-center justify-between mb-4">
                 <span className="text-sm font-medium text-gray-800">Annual Goal</span>
-                <span className="text-sm font-bold text-gray-900">$15,000</span>
+                <span className="text-sm font-bold text-gray-900">
+                  {financialData ? formatCurrency(financialData.savingsGoal) : '€15,000'}
+                </span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-3 mb-2">
-                <div className="bg-green-500 h-3 rounded-full" style={{width: '68%'}}></div>
+                <div
+                  className={`h-3 rounded-full ${
+                    financialData && financialData.yearSavings >= 0
+                      ? 'bg-green-500'
+                      : 'bg-red-500'
+                  }`}
+                  style={{
+                    width: `${financialData ? Math.max(0, Math.min(100, financialData.savingsProgress)) : 0}%`
+                  }}
+                ></div>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">$10,200 saved</span>
-                <span className="text-gray-600">68% complete</span>
+                <span className={`font-medium ${
+                  financialData && financialData.yearSavings >= 0
+                    ? 'text-green-600'
+                    : 'text-red-600'
+                }`}>
+                  {financialData ? formatCurrency(financialData.yearSavings) : '€0'} saved
+                </span>
+                <span className="text-gray-600">
+                  {financialData ? Math.round(financialData.savingsProgress) : 0}% complete
+                </span>
               </div>
             </div>
           </section>

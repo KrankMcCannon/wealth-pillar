@@ -6,7 +6,7 @@ import {
 } from '@/lib/icons';
 import { ArrowLeft, MoreVertical, TrendingUp, ShoppingCart } from "lucide-react";
 import { useState, Suspense, useMemo, useCallback, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -16,24 +16,19 @@ import BottomNavigation from "@/components/bottom-navigation";
 import UserSelector from "@/components/user-selector";
 import { SectionHeader } from "@/components/section-header";
 import { GroupedTransactionCard } from "@/components/grouped-transaction-card";
+import { formatCurrency } from "@/lib/utils";
 import {
-  budgetService,
-  transactionService,
-  userService,
-  categoryService,
-  accountService,
-  apiHelpers
-} from "@/lib/api";
-import {
-  formatCurrency
-} from "@/lib/utils";
-import { Budget, Transaction, Category, User, Account } from "@/lib/types";
-import {
-  saveSelectedUser,
-  getInitialSelectedUser
-} from "@/lib/persistent-user-selection";
+  useBudgets,
+  useTransactions,
+  useCategories,
+  useAccounts,
+  useCurrentBudgetPeriod,
+  useUserSelection
+} from "@/hooks";
+import type { Budget, Transaction } from "@/lib/types";
+import { BudgetPeriodInfo } from "@/components/budget-period-info";
+import { BudgetPeriodManager } from "@/components/budget-period-manager";
 
-// Helper functions following DRY principles
 const createAggregatedBudget = (budgets: Budget[], userId: string): Budget => {
   const targetBudgets = userId === 'all' ? budgets : budgets.filter(b => b.user_id === userId);
   return {
@@ -62,18 +57,26 @@ const getBudgetsForUser = (budgets: Budget[], userId: string): Budget[] => {
 };
 
 const filterTransactionsByBudget = (transactions: Transaction[], budget: Budget, selectedUser: string): Transaction[] => {
+  // Base: only expenses in the budget's categories
   let filtered = transactions.filter(transaction =>
     transaction.type === 'expense' &&
     budget.categories.includes(transaction.category)
   );
 
-  if (selectedUser !== 'all' && !budget.id.startsWith('all_budgets_')) {
-    filtered = filtered.filter(t => t.user_id === selectedUser);
-  } else if (budget.id.startsWith('all_budgets_')) {
+  // For non-aggregated budgets, always scope to the budget owner
+  if (!budget.id.startsWith('all_budgets_')) {
+    filtered = filtered.filter(t => t.user_id === budget.user_id);
+  } else {
+    // Aggregated budgets: optionally scope by embedded user in id
     const userId = budget.id.replace('all_budgets_', '');
     if (userId !== 'all') {
       filtered = filtered.filter(t => t.user_id === userId);
     }
+  }
+
+  // If a specific user is selected and budget is not aggregated, selection must match owner anyway
+  if (selectedUser !== 'all' && !budget.id.startsWith('all_budgets_')) {
+    filtered = filtered.filter(t => t.user_id === selectedUser);
   }
 
   return filtered;
@@ -81,75 +84,62 @@ const filterTransactionsByBudget = (transactions: Transaction[], budget: Budget,
 
 function BudgetsContent() {
   const router = useRouter();
-  const searchParams = useSearchParams();
 
-  const [selectedUser, setSelectedUser] = useState<string>('all');
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [selectedBudget, setSelectedBudget] = useState<Budget | null>(null);
-  const [budgets, setBudgets] = useState<Budget[]>([]);
-  const [allTransactions, setAllTransactions] = useState<Transaction[]>([]);
-  const [users, setUsers] = useState<User[]>([]);
-  const [accounts, setAccounts] = useState<Account[]>([]);
+  const { data: budgets = [], isLoading: budgetsLoading } = useBudgets();
+  const { data: allTransactions = [], isLoading: txLoading } = useTransactions();
+  const { data: accounts = [], isLoading: accountsLoading } = useAccounts();
+
+  // Use centralized user selection
+  const {
+    currentUser,
+    selectedGroupFilter: selectedUser,
+    users,
+    updateGroupFilter: updateSelectedUser,
+    isLoading: userSelectionLoading
+  } = useUserSelection();
   const [userMap, setUserMap] = useState<{ [key: string]: string }>({});
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: categories = [], isLoading: categoriesLoading } = useCategories();
   const [activeTab, setActiveTab] = useState('expenses');
 
+  const { data: currentBudgetPeriod, isLoading: periodLoading } = useCurrentBudgetPeriod(selectedBudget?.id || '');
+
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const user = await apiHelpers.getCurrentUser();
-        setCurrentUser(user);
+    const userLookupMap: { [key: string]: string } = {};
+    users?.forEach(user => { userLookupMap[user.id] = user.name; });
+    setUserMap(userLookupMap);
 
-        // Get initial user selection with persistence and validation
-        const urlSelectedUser = searchParams.get('selectedUser');
-        const initialUser = getInitialSelectedUser(user, urlSelectedUser);
-        setSelectedUser(initialUser);
+    const initialBudgets = getBudgetsForUser(budgets, selectedUser);
+    if (initialBudgets.length > 0) {
+      setSelectedBudget(initialBudgets[0]);
+    }
+  }, [users, budgets, selectedUser]);
 
-        // Fetch all data
-        const [budgetsData, transactionsData, usersData, categoriesData, accountsData] = await Promise.all([
-          budgetService.getAll(),
-          transactionService.getAll(),
-          userService.getAll(),
-          categoryService.getAll(),
-          accountService.getAll()
-        ]);
-
-        setBudgets(budgetsData);
-        setAllTransactions(transactionsData);
-        setCategories(categoriesData);
-        setUsers(usersData);
-        setAccounts(accountsData);
-
-        // Create user lookup map for backward compatibility
-        const userLookupMap: { [key: string]: string } = {};
-        usersData.forEach(user => {
-          userLookupMap[user.id] = user.name;
-        });
-        setUserMap(userLookupMap);
-
-        // Set initial selected budget using DRY helper
-        const initialBudgets = getBudgetsForUser(budgetsData, initialUser);
-        if (initialBudgets.length > 0) {
-          setSelectedBudget(initialBudgets[0]);
-        }
-      } catch (error) {
-        console.error('Error fetching budget data:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [searchParams]);
-
-  // Calculate budget spent amount
   const getBudgetSpent = useCallback((budget: Budget): number => {
     if (!budget) return 0;
     const relevantTransactions = filterTransactionsByBudget(allTransactions, budget, selectedUser);
-    return relevantTransactions.reduce((total, transaction) => total + transaction.amount, 0);
-  }, [allTransactions, selectedUser]);
+
+    // Restrict to current budget period dates when available
+    const parse = (d: string | Date | null | undefined) => {
+      if (!d) return null;
+      const dt = new Date(d);
+      return isNaN(dt.getTime()) ? null : dt;
+    };
+
+    let periodFiltered = relevantTransactions;
+    if (currentBudgetPeriod && currentBudgetPeriod.budget_id === budget.id) {
+      const start = parse(currentBudgetPeriod.start_date);
+      const end = currentBudgetPeriod.end_date ? parse(currentBudgetPeriod.end_date) : new Date();
+      if (start && end) {
+        periodFiltered = relevantTransactions.filter(t => {
+          const td = parse(t.date);
+          return !!td && td >= start && td <= end;
+        });
+      }
+    }
+
+    return periodFiltered.reduce((total, transaction) => total + transaction.amount, 0);
+  }, [allTransactions, selectedUser, currentBudgetPeriod]);
 
   const budgetBalance = useMemo(() => {
     if (!selectedBudget) return 0;
@@ -194,9 +184,14 @@ function BudgetsContent() {
     const weekAgo = new Date(today);
     weekAgo.setDate(today.getDate() - 6);
 
+    const safeParse = (d: string | Date) => {
+      const dt = new Date(d);
+      return isNaN(dt.getTime()) ? null : dt;
+    };
+
     const recentTransactions = relevantTransactions.filter(t => {
-      const transactionDate = new Date(t.date);
-      return transactionDate >= weekAgo && transactionDate <= today;
+      const transactionDate = safeParse(t.date);
+      return transactionDate && transactionDate >= weekAgo && transactionDate <= today;
     });
 
     // Create daily data structure
@@ -211,8 +206,8 @@ function BudgetsContent() {
       const dayStr = date.toLocaleDateString('it-IT', { weekday: 'short' });
 
       const dayTransactions = recentTransactions.filter(t => {
-        const tDate = new Date(t.date);
-        return tDate.toDateString() === date.toDateString();
+        const tDate = safeParse(t.date);
+        return !!tDate && tDate.toDateString() === date.toDateString();
       });
 
       // Process expenses
@@ -257,7 +252,6 @@ function BudgetsContent() {
     };
   }, [selectedBudget, allTransactions, selectedUser]);
 
-  // Helper functions to get category data from database
   const getCategoryColor = useCallback((categoryKey: string): string => {
     const category = categories.find(cat => cat.key === categoryKey);
     return category?.color || '#6b7280';
@@ -274,17 +268,15 @@ function BudgetsContent() {
   }, []);
 
   const getIncomeIcon = useCallback((categoryKey: string): React.ReactElement => {
-    // Usa CategoryIcon component per icone line-art
     return (
       <CategoryIcon
         categoryKey={categoryKey}
         size={iconSizes.sm}
-                className="text-emerald-600"
+        className="text-emerald-600"
       />
     );
   }, []);
 
-  // Unified chart configuration based on active tab
   const unifiedChartData = useMemo(() => {
     if (!selectedBudget) {
       return {
@@ -388,22 +380,8 @@ function BudgetsContent() {
   }, [availableBudgets]);
 
   const handleUserChange = useCallback((userId: string) => {
-    setSelectedUser(userId);
+    updateSelectedUser(userId);
 
-    // Save to localStorage for persistence across pages
-    saveSelectedUser(userId);
-
-    // Also update URL for immediate feedback and browser history
-    const params = new URLSearchParams(window.location.search);
-    if (userId === 'all') {
-      params.delete('selectedUser');
-    } else {
-      params.set('selectedUser', userId);
-    }
-
-    // Update URL without page reload
-    const newUrl = `${window.location.pathname}${params.toString() ? '?' + params.toString() : ''}`;
-    window.history.replaceState({}, '', newUrl);
     // Update budget selection using DRY helper
     const newAvailableBudgets = getBudgetsForUser(budgets, userId);
     if (newAvailableBudgets.length > 0) {
@@ -411,7 +389,7 @@ function BudgetsContent() {
     } else {
       setSelectedBudget(null);
     }
-  }, [budgets]);
+  }, [budgets, updateSelectedUser]);
 
   return (
     <div className="relative flex size-full min-h-[100dvh] flex-col bg-gradient-to-br from-slate-50 via-white to-slate-100" style={{ fontFamily: '"Inter", "SF Pro Display", system-ui, sans-serif' }}>
@@ -458,6 +436,21 @@ function BudgetsContent() {
                 <span className="mr-2">🏷️</span>
                 Aggiungi Nuova Categoria
               </DropdownMenuItem>
+              {selectedBudget && (
+                <BudgetPeriodManager
+                  budget={selectedBudget}
+                  currentPeriod={currentBudgetPeriod || null}
+                  trigger={
+                    <DropdownMenuItem
+                      className="text-sm font-medium text-gray-700 hover:bg-primary/10 hover:text-primary rounded-lg px-3 py-2.5 cursor-pointer transition-colors"
+                      onSelect={(e) => e.preventDefault()}
+                    >
+                      <span className="mr-2">📅</span>
+                      Gestisci Periodi
+                    </DropdownMenuItem>
+                  }
+                />
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -474,7 +467,7 @@ function BudgetsContent() {
       <div className="h-px bg-gray-200 mx-4"></div>
 
       <main className="flex-1 p-3 sm:p-4 space-y-6 sm:space-y-8 pb-20 sm:pb-24">
-        {loading ? (
+        {budgetsLoading || txLoading || userSelectionLoading || accountsLoading || categoriesLoading || periodLoading ? (
           <div className="flex items-center justify-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
           </div>
@@ -581,6 +574,17 @@ function BudgetsContent() {
                   </div>
                   <div className="absolute inset-0 rounded-2xl bg-gradient-to-t from-white/20 to-transparent pointer-events-none"></div>
                 </div>
+
+                {/* Budget Period Information */}
+                {currentBudgetPeriod && (
+                  <div className="mt-6 pt-6 border-t border-slate-200">
+                    <BudgetPeriodInfo
+                      period={currentBudgetPeriod}
+                      showSpending={true}
+                      className=""
+                    />
+                  </div>
+                )}
               </div>
             </section>
 

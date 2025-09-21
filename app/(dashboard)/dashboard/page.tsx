@@ -1,7 +1,7 @@
 "use client";
 
-import { CreditCard, Settings, Bell, ChevronRight } from "lucide-react";
-import { useState, useCallback, useEffect } from "react";
+import { CreditCard, Settings, Bell, ChevronRight, AlertTriangle } from "lucide-react";
+import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,188 +11,125 @@ import { SectionHeader } from "@/components/section-header";
 import { GroupedTransactionCard } from "@/components/grouped-transaction-card";
 import { BudgetCard } from "@/components/budget-card";
 import { BankAccountCard } from "@/components/bank-account-card";
-import {
-  userService,
-  budgetService,
-  apiHelpers,
-  accountService
-} from "@/lib/api";
-import {
-  formatCurrency,
-  getAccountBalance,
-  getFilteredAccounts,
-  getBudgetBalance,
-  getBudgetProgress,
-  getRecurringTransactions,
-} from "@/lib/utils";
-import { Account, Budget, Transaction, User } from "@/lib/types";
-import {
-  saveSelectedUser,
-  getInitialSelectedUser
-} from "@/lib/persistent-user-selection";
+import ErrorBoundary, { QueryErrorFallback, FinancialLoadingSkeleton } from "@/components/error-boundary";
+import { formatCurrency } from "@/lib/utils";
+import type { Account, Budget } from "@/lib/types";
+import { useDashboardData } from "@/hooks/useDashboard";
+import { useUserSelection } from "@/hooks";
 
 export default function DashboardPage() {
   const router = useRouter();
   const [expandedAccount, setExpandedAccount] = useState<string | null>(null);
-  const [selectedGroupFilter, setSelectedGroupFilter] = useState<string>("all");
-  const [bankAccounts, setBankAccounts] = useState<Account[]>([]);
-  const [budgets, setBudgets] = useState<Budget[]>([]);
-  const [upcomingTransactions, setUpcomingTransactions] = useState<Transaction[]>([]);
-  const [totalBalance, setTotalBalance] = useState<number>(0);
-  const [users, setUsers] = useState<User[]>([]);
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [accountBalances, setAccountBalances] = useState<{ [key: string]: number }>({});
-  const [budgetData, setBudgetData] = useState<{ id: string; spent: number; remaining: number; progress: number }[]>([]);
-  const [error, setError] = useState<string | null>(null);
-  const [accountNames, setAccountNames] = useState<Record<string, string>>({});
 
-  useEffect(() => {
-    const initializeUser = async () => {
-      try {
-        const user = await apiHelpers.getCurrentUser();
-        setCurrentUser(user);
-        const initialUser = getInitialSelectedUser(user, null);
-        setSelectedGroupFilter(initialUser);
-        setUsers([user]);
-      } catch (err) {
-        console.error('Error initializing user:', err);
-      }
-    };
+  // Use centralized user selection
+  const {
+    currentUser,
+    selectedGroupFilter,
+    users,
+    updateGroupFilter,
+    isLoading: userSelectionLoading
+  } = useUserSelection();
 
-    initializeUser();
-  }, []);
-
-  useEffect(() => {
-    if (!currentUser) return;
-
-    let isMounted = true;
-    const controller = new AbortController();
-
-    const loadData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        const userFilterForAPI = selectedGroupFilter === 'all' ? undefined : selectedGroupFilter;
-
-        const [budgetsData, usersData, filteredAccounts, recurringTransactions] = await Promise.all([
-          budgetService.getAll(),
-          userService.getAll(),
-          getFilteredAccounts(userFilterForAPI),
-          getRecurringTransactions(userFilterForAPI)
-        ]);
-
-        if (!isMounted) return;
-
-        const userBudgets = selectedGroupFilter === 'all' 
-          ? budgetsData 
-          : budgetsData.filter(b => b.user_id === selectedGroupFilter);
-
-        setBankAccounts(filteredAccounts);
-        setBudgets(userBudgets);
-        setUpcomingTransactions(recurringTransactions);
-        setUsers(usersData);
-
-        const uniqueAccountIds = [...new Set(recurringTransactions.map(tx => tx.account_id))];
-        const accountNamesMap: Record<string, string> = {};
-        await Promise.all(
-          uniqueAccountIds.map(async (accountId) => {
-            try {
-              const account = await accountService.getById(accountId);
-              accountNamesMap[accountId] = account?.name || accountId;
-            } catch (error) {
-              console.error(`Error fetching account name for ${accountId}:`, error);
-              accountNamesMap[accountId] = accountId;
-            }
-          })
-        );
-        setAccountNames(accountNamesMap);
-
-        const balancePromises = filteredAccounts.map(async (account) => ({
-          id: account.id,
-          balance: await getAccountBalance(account.id)
-        }));
-        
-        const balanceResults = await Promise.all(balancePromises);
-        if (!isMounted) return;
-        
-        const balances = balanceResults.reduce((acc, { id, balance }) => {
-          acc[id] = balance;
-          return acc;
-        }, {} as { [key: string]: number });
-        
-        setAccountBalances(balances);
-        setTotalBalance(Object.values(balances).reduce((sum, balance) => sum + balance, 0));
-
-        const budgetPromises = userBudgets.map(async (budget) => {
-          const [remaining, progress] = await Promise.all([
-            getBudgetBalance(budget),
-            getBudgetProgress(budget)
-          ]);
-          const spent = budget.amount - remaining;
-          return { id: budget.id, spent, remaining, progress };
-        });
-        
-        const budgetResults = await Promise.all(budgetPromises);
-        if (!isMounted) return;
-        setBudgetData(budgetResults);
-
-      } catch (err) {
-        if (!isMounted) return;
-        setError(err instanceof Error ? err.message : 'Errore nel caricamento dei dati');
-        console.error('Error loading dashboard data:', err);
-      } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
-      }
-    };
-
-    loadData();
-    
-    return () => {
-      isMounted = false;
-      controller.abort();
-    };
-  }, [selectedGroupFilter, currentUser]);
+  const {
+    accounts: bankAccounts,
+    budgets,
+    upcomingTransactions,
+    accountBalances,
+    totalBalance,
+    budgetData,
+    budgetPeriodsMap,
+    accountNames,
+    isLoading,
+    isError,
+    errors,
+  } = useDashboardData(selectedGroupFilter);
 
   const handleAccountClick = useCallback((id: string) => {
     setExpandedAccount(expandedAccount === id ? null : id);
   }, [expandedAccount]);
 
-  const handleGroupFilterChange = useCallback((groupId: string) => {
-    setSelectedGroupFilter(groupId);
-    saveSelectedUser(groupId);
-  }, []);
 
-
-  if (loading) {
+  // Enhanced loading state with skeleton
+  if (isLoading || userSelectionLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#7578EC] mx-auto mb-4"></div>
-          <p className="text-gray-600">Caricamento dashboard...</p>
+      <div className="relative flex size-full min-h-[100dvh] flex-col bg-gradient-to-br from-slate-50 via-white to-slate-100" style={{ fontFamily: '"Inter", "SF Pro Display", system-ui, sans-serif' }}>
+        {/* Header skeleton */}
+        <header className="sticky top-0 z-20 bg-white/70 backdrop-blur-xl border-b border-slate-200/50 px-3 sm:px-4 py-2 sm:py-3 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="flex size-9 sm:size-10 shrink-0 items-center justify-center rounded-xl sm:rounded-2xl bg-gradient-to-br from-[#7578EC]/10 to-[#7578EC]/5 shadow-sm animate-pulse">
+                <div className="h-4 w-4 sm:h-5 sm:w-5 bg-gray-300 rounded"></div>
+              </div>
+              <div className="flex flex-col space-y-2">
+                <div className="h-4 bg-gray-300 rounded w-24 animate-pulse"></div>
+                <div className="h-3 bg-gray-300 rounded w-16 animate-pulse"></div>
+              </div>
+            </div>
+            <div className="flex items-center gap-1 sm:gap-2">
+              <div className="w-10 h-10 bg-gray-300 rounded-xl animate-pulse"></div>
+              <div className="w-10 h-10 bg-gray-300 rounded-xl animate-pulse"></div>
+            </div>
+          </div>
+        </header>
+
+        {/* User selector skeleton */}
+        <div className="p-4 bg-white border-b">
+          <div className="h-12 bg-gray-300 rounded-lg animate-pulse"></div>
         </div>
+
+        {/* Content skeleton */}
+        <main className="pb-16 p-4">
+          <FinancialLoadingSkeleton type="dashboard" />
+        </main>
+
+        <BottomNavigation />
       </div>
     );
   }
 
-  if (error) {
+  // Enhanced error handling
+  if (isError && errors.length > 0) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="text-red-500 mb-4">⚠️</div>
-          <p className="text-red-600 mb-4">{error}</p>
-          <Button onClick={() => window.location.reload()}>Riprova</Button>
-        </div>
+      <div className="relative flex size-full min-h-[100dvh] flex-col bg-gradient-to-br from-slate-50 via-white to-slate-100">
+        <header className="sticky top-0 z-20 bg-white/70 backdrop-blur-xl border-b border-slate-200/50 px-3 sm:px-4 py-2 sm:py-3 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="flex size-9 sm:size-10 shrink-0 items-center justify-center rounded-xl sm:rounded-2xl bg-gradient-to-br from-red-500/10 to-red-500/5 shadow-sm">
+                <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5 text-red-500" />
+              </div>
+              <div className="flex flex-col">
+                <p className="text-sm sm:text-base font-bold tracking-tight text-red-600">
+                  Errore di Connessione
+                </p>
+                <p className="text-xs sm:text-sm font-semibold text-red-500">Dati non disponibili</p>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <main className="flex-1 flex items-center justify-center p-4">
+          <QueryErrorFallback
+            error={errors[0]}
+            reset={() => window.location.reload()}
+            title="Errore nel caricamento della dashboard"
+            description="Si è verificato un errore durante il caricamento dei dati finanziari. Verifica la connessione internet e riprova."
+          />
+        </main>
+
+        <BottomNavigation />
       </div>
     );
   }
 
   return (
-    <div className="relative flex size-full min-h-[100dvh] flex-col bg-gradient-to-br from-slate-50 via-white to-slate-100" style={{ fontFamily: '"Inter", "SF Pro Display", system-ui, sans-serif' }}>
-      <div>
+    <ErrorBoundary
+      onError={(error, errorInfo) => {
+        console.error('Dashboard Error:', error, errorInfo);
+        // Here you could send to error reporting service
+      }}
+    >
+      <div className="relative flex size-full min-h-[100dvh] flex-col bg-gradient-to-br from-slate-50 via-white to-slate-100" style={{ fontFamily: '"Inter", "SF Pro Display", system-ui, sans-serif' }}>
+        <div>
         {/* Header */}
         <header className="sticky top-0 z-20 bg-white/70 backdrop-blur-xl border-b border-slate-200/50 px-3 sm:px-4 py-2 sm:py-3 shadow-sm">
           <div className="flex items-center justify-between">
@@ -230,7 +167,7 @@ export default function DashboardPage() {
           users={users}
           currentUser={currentUser}
           selectedGroupFilter={selectedGroupFilter}
-          onGroupFilterChange={handleGroupFilterChange}
+          onGroupFilterChange={updateGroupFilter}
         />
 
         <main className="pb-16">
@@ -303,12 +240,19 @@ export default function DashboardPage() {
                   <div className="divide-y divide-gray-100">
                     {budgets.map((budget: Budget) => {
                       const budgetInfo = budgetData.find(b => b.id === budget.id);
+                      const mappedBudgetInfo = budgetInfo ? {
+                        id: budgetInfo.id,
+                        spent: budgetInfo.spent,
+                        remaining: budgetInfo.remaining,
+                        progress: budgetInfo.percentage
+                      } : undefined;
 
                       return (
                         <BudgetCard
                           key={budget.id}
                           budget={budget}
-                          budgetInfo={budgetInfo}
+                          budgetInfo={mappedBudgetInfo}
+                          currentPeriod={budgetPeriodsMap[budget.id] || null}
                           onClick={() => {
                             const params = new URLSearchParams();
                             params.set('budget', budget.id);
@@ -371,7 +315,8 @@ export default function DashboardPage() {
         </main>
 
         <BottomNavigation />
+        </div>
       </div>
-    </div>
+    </ErrorBoundary>
   );
 }

@@ -28,8 +28,8 @@ export interface Group {
   user_ids: string[];
   plan: Plan;
   is_active: boolean;
-  created_at: Date;
-  updated_at: Date;
+  created_at: string | Date;
+  updated_at: string | Date;
 }
 
 export interface User {
@@ -39,11 +39,11 @@ export interface User {
   avatar: string;
   theme_color: string;
   budget_start_date: number;
-  budget_periods: BudgetPeriod[] | null;
   group_id: string;
   role: RoleType;
-  created_at: Date;
-  updated_at: Date;
+  budget_periods: BudgetPeriod[];
+  created_at: string | Date;
+  updated_at: string | Date;
 }
 
 export interface Account {
@@ -52,8 +52,8 @@ export interface Account {
   type: AccountType;
   user_ids: string[];
   group_id: string;
-  created_at: Date;
-  updated_at: Date;
+  created_at: string | Date;
+  updated_at: string | Date;
 }
 
 export interface Transaction {
@@ -62,20 +62,30 @@ export interface Transaction {
   amount: number;
   type: TransactionType;
   category: string;
-  date: Date;
+  date: string | Date;
   user_id: string;
   account_id: string;
-  to_account_id: string | null;
+  to_account_id?: string | null;
   status: TransactionStatusType;
-  linked_transaction_ids: string[] | [];
+  linked_transaction_ids?: string[] | [];
   frequency?: TransactionFrequencyType;
-  created_at: Date;
-  updated_at: Date;
+  group_id?: string;
+  created_at: string | Date;
+  updated_at: string | Date;
 }
 
 export interface BudgetPeriod {
-  start_date: Date;
-  end_date: Date;
+  id: string;
+  budget_id: string;
+  user_id: string;
+  start_date: string | Date;
+  end_date: string | Date | null;
+  total_spent: number;
+  total_saved: number;
+  category_spending: Record<string, number>;
+  is_active: boolean;
+  created_at: string | Date;
+  updated_at: string | Date;
 }
 
 export interface Budget {
@@ -86,8 +96,8 @@ export interface Budget {
   icon?: string;
   categories: string[];
   user_id: string;
-  created_at: Date;
-  updated_at: Date;
+  created_at: string | Date;
+  updated_at: string | Date;
 }
 
 export interface Category {
@@ -96,8 +106,8 @@ export interface Category {
   key: string;
   icon: string;
   color: string;
-  created_at: Date;
-  updated_at: Date;
+  created_at: string | Date;
+  updated_at: string | Date;
 }
 
 export interface InvestmentHolding {
@@ -108,10 +118,10 @@ export interface InvestmentHolding {
   quantity: number;
   purchase_price: number;
   current_price: number;
-  purchase_date: Date;
+  purchase_date: string | Date;
   group_id: string;
-  created_at: Date;
-  updated_at: Date;
+  created_at: string | Date;
+  updated_at: string | Date;
 }
 
 export interface EnhancedHolding extends InvestmentHolding {
@@ -139,7 +149,7 @@ export interface FilterState {
 
 export const AccountTypeMap: Record<AccountType, string> = {
   'payroll': 'Conto Corrente',
-  'savings': 'Conto Risparmio', 
+  'savings': 'Conto Risparmio',
   'cash': 'Contanti',
   'investments': 'Investimenti'
 };

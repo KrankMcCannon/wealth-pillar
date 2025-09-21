@@ -2,7 +2,8 @@
 
 import { CategoryIcon, iconSizes } from '@/lib/icons';
 import { formatCurrency } from "@/lib/utils";
-import { Budget } from "@/lib/types";
+import { Budget, BudgetPeriod } from "@/lib/types";
+import { BudgetPeriodInfo } from "@/components/budget-period-info";
 
 interface BudgetCardProps {
   budget: Budget;
@@ -12,10 +13,11 @@ interface BudgetCardProps {
     remaining: number;
     progress: number;
   };
+  currentPeriod?: BudgetPeriod | null;
   onClick: () => void;
 }
 
-export function BudgetCard({ budget, budgetInfo, onClick }: BudgetCardProps) {
+export function BudgetCard({ budget, budgetInfo, currentPeriod, onClick }: BudgetCardProps) {
   const getBudgetStatus = (progress: number) => {
     if (progress >= 100) return { color: 'rose', label: 'Superato', textColor: 'text-rose-600' };
     if (progress >= 80) return { color: 'amber', label: 'Attenzione', textColor: 'text-amber-600' };
@@ -85,6 +87,17 @@ export function BudgetCard({ budget, budgetInfo, onClick }: BudgetCardProps) {
         </div>
         <div className="absolute inset-0 rounded-full bg-gradient-to-t from-black/5 to-transparent pointer-events-none"></div>
       </div>
+
+      {/* Budget Period Info */}
+      {currentPeriod && (
+        <div className="mt-3 pt-3 border-t border-slate-100">
+          <BudgetPeriodInfo
+            period={currentPeriod}
+            showSpending={false}
+            className="text-xs"
+          />
+        </div>
+      )}
     </div>
   );
 }
