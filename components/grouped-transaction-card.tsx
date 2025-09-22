@@ -3,7 +3,7 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CategoryIcon, iconSizes } from "@/lib/icons";
-import { formatCurrency, getCategoryLabel, truncateText, formatDueDate, calculateNextDueDate, pluralize } from "@/lib/utils";
+import { formatCurrency, getCategoryLabel, truncateText, pluralize } from "@/lib/utils";
 import { Transaction } from "@/lib/types";
 
 interface GroupedTransactionCardProps {
@@ -58,14 +58,10 @@ export function GroupedTransactionCard({
   };
 
   const getDaysUntilDue = (transaction: Transaction): number => {
+    // Legacy support for displaying recurring transaction info
+    // In the new architecture, this information comes from RecurringTransactionSeries
     if (!transaction.frequency || transaction.frequency === 'once') return Infinity;
-    const nextDueDate = calculateNextDueDate(transaction.date, transaction.frequency);
-    const now = new Date();
-    now.setHours(0, 0, 0, 0);
-    const dueDate = new Date(nextDueDate);
-    dueDate.setHours(0, 0, 0, 0);
-    const diffTime = dueDate.getTime() - now.getTime();
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return 0; // Default for display purposes
   };
 
   const getTransactionAmountColor = (transaction: Transaction) => {
@@ -184,7 +180,7 @@ export function GroupedTransactionCard({
                 </p>
                 {variant === 'recurrent' && transaction.frequency && transaction.frequency !== 'once' && (
                   <p className={`text-xs mt-0.5 font-medium ${getTransactionAmountColor(transaction)}`}>
-                    {formatDueDate(calculateNextDueDate(transaction.date, transaction.frequency))}
+                    Serie ricorrente - {transaction.frequency}
                   </p>
                 )}
               </div>

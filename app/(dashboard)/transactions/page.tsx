@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, MoreVertical, Plus, Clock, RotateCcw, Search, Filter } from "lucide-react";
+import { ArrowLeft, MoreVertical, Plus, Search, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -11,8 +11,9 @@ import BottomNavigation from "../../../components/bottom-navigation";
 import UserSelector from "@/components/user-selector";
 import { GroupedTransactionCard } from "@/components/grouped-transaction-card";
 import { FilterDialog } from "@/components/filter-dialog";
-import { SectionHeader } from "@/components/section-header";
+import { TransactionForm } from "@/components/transaction-form";
 import TabNavigation from "@/components/tab-navigation";
+import { RecurringSeriesSection } from "@/components/recurring-series-section";
 import {
   useTransactions,
   useCategories,
@@ -23,16 +24,17 @@ import {
   formatCurrency,
   getTotalForSection,
   formatDateLabel,
-  groupUpcomingTransactionsByDaysRemaining,
   pluralize
 } from "@/lib/utils";
-import type { Transaction, User } from "@/lib/types";
+import type { User } from "@/lib/types";
 
 function TransactionsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState("Transactions");
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+  const [isTransactionFormOpen, setIsTransactionFormOpen] = useState(false);
+  const [transactionFormType, setTransactionFormType] = useState<"expense">("expense");
 
   const [accountNames, setAccountNames] = useState<Record<string, string>>({});
 
@@ -48,6 +50,7 @@ function TransactionsContent() {
     updateGroupFilter,
     isLoading: userSelectionLoading
   } = useUserSelection();
+
 
   // State for filtering
   const [searchQuery, setSearchQuery] = useState("");
@@ -143,20 +146,6 @@ function TransactionsContent() {
     };
   }, [filteredTransactions]);
 
-  const filteredRecurrentData = useMemo(() => {
-    const allRecurringTxs = filteredTransactions.filter((tx: Transaction) =>
-      tx.frequency && (tx.frequency === 'weekly' || tx.frequency === 'biweekly' || tx.frequency === 'monthly' || tx.frequency === 'yearly')
-    );
-
-    const filtered = selectedGroupFilter === 'all' ? allRecurringTxs : allRecurringTxs.filter((tx: Transaction) => tx.user_id === selectedGroupFilter);
-
-    const upcomingGrouped = groupUpcomingTransactionsByDaysRemaining(filtered);
-
-    return {
-      upcomingGrouped,
-      recurrent: filtered
-    };
-  }, [selectedGroupFilter, filteredTransactions]);
 
   useEffect(() => {
     const tab = searchParams.get('tab');
@@ -221,14 +210,17 @@ function TransactionsContent() {
                   className="w-60 bg-white/95 backdrop-blur-xl border border-slate-200/50 shadow-2xl rounded-2xl p-3 animate-in slide-in-from-top-2 duration-200"
                   sideOffset={12}
                 >
-                  <DropdownMenuItem className="text-sm font-semibold text-slate-700 hover:bg-primary/10 hover:text-primary rounded-xl px-3 py-3 cursor-pointer transition-all duration-200 group">
+                  <DropdownMenuItem
+                    className="text-sm font-semibold text-slate-700 hover:bg-primary/10 hover:text-primary rounded-xl px-3 py-3 cursor-pointer transition-all duration-200 group"
+                    onClick={() => {
+                      setTransactionFormType("expense");
+                      setIsTransactionFormOpen(true);
+                    }}
+                  >
                     <Plus className="mr-3 h-4 w-4 group-hover:scale-110 transition-transform duration-200" />
                     Aggiungi Transazione
                   </DropdownMenuItem>
-                  <DropdownMenuItem className="text-sm font-semibold text-slate-700 hover:bg-primary/10 hover:text-primary rounded-xl px-3 py-3 cursor-pointer transition-all duration-200 group">
-                    <RotateCcw className="mr-3 h-4 w-4 group-hover:rotate-180 transition-transform duration-200" />
-                    Aggiungi Transazione Ricorrente
-                  </DropdownMenuItem>
+                  {/* Ricorrente non è più un tipo: usa la frequenza nel form */}
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
@@ -368,66 +360,26 @@ function TransactionsContent() {
 
             {/* Recurrent Tab */}
             {activeTab === "Recurrent" && (
-              <div className="space-y-6">
-
-                {/* Upcoming Payments Section */}
-                <section>
-                  <SectionHeader
-                    title="In Scadenza"
-                    icon={Clock}
-                    iconClassName="text-orange-500"
-                    badge={{
-                      text: pluralize(Object.values(filteredRecurrentData.upcomingGrouped).flat().length, 'pagamento', 'pagamenti'),
-                      className: "bg-orange-100 text-orange-700 border-orange-200"
-                    }}
-                  />
-
-                  <div className="space-y-6">
-                    {Object.entries(filteredRecurrentData.upcomingGrouped).map(([groupName, transactions]) => (
-                      <div key={groupName}>
-                        <div className="flex items-center gap-2 mb-3 px-2">
-                          <span className="w-2 h-2 bg-orange-500 rounded-full"></span>
-                          <h3 className="text-sm font-semibold text-orange-700">
-                            {groupName} ({transactions.length})
-                          </h3>
-                        </div>
-                        <GroupedTransactionCard
-                          transactions={transactions}
-                          accountNames={accountNames}
-                          variant="recurrent"
-                          context="due"
-                        />
-                      </div>
-                    ))}
-                  </div>
-                </section>
-
-                {/* Regular Recurring Transactions Section */}
-                <section>
-                  <SectionHeader
-                    title="Abbonamenti e Pagamenti Ricorrenti"
-                    icon={RotateCcw}
-                    iconClassName="text-blue-500"
-                    badge={{
-                      text: pluralize(filteredRecurrentData.recurrent.length, 'attivo', 'attivi'),
-                      className: "bg-blue-100 text-blue-700 border-blue-200"
-                    }}
-                    className="mb-4"
-                  />
-
-                  <GroupedTransactionCard
-                    transactions={filteredRecurrentData.recurrent}
-                    accountNames={accountNames}
-                    variant="recurrent"
-                    context="informative"
-                  />
-                </section>
-              </div>
+              <RecurringSeriesSection
+                selectedUserId={selectedGroupFilter}
+                className="bg-white/80 backdrop-blur-sm border border-slate-200/50 shadow-lg shadow-slate-200/30"
+                showStats={true}
+                maxItems={10}
+                showActions={true}
+              />
             )}
           </main>
 
 
           <BottomNavigation />
+
+          {/* Transaction Form */}
+          <TransactionForm
+            isOpen={isTransactionFormOpen}
+            onOpenChange={setIsTransactionFormOpen}
+            initialType={transactionFormType}
+            selectedUserId={selectedGroupFilter !== 'all' ? selectedGroupFilter : ''}
+          />
         </>
       )}
     </div>

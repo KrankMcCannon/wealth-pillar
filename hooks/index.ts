@@ -8,11 +8,10 @@ export {
   useAccountsByUser, useActiveBudgetPeriods, useBudget,
   useBudgetPeriods,
   useBudgetPeriodsByUser, useBudgets,
-  useBudgetsByUser, useCategories, useCreateBudget, useCreateTransaction, useCurrentBudgetPeriod, useCurrentUser, useDeleteTransaction, useInvestments,
+  useBudgetsByUser, useCategories, useCreateBudget, useCreateBudgetPeriod, useCreateTransaction, useCurrentBudgetPeriod, useCurrentUser, useDeleteTransaction, useEndBudgetPeriod, useInvestments,
   useInvestmentsByUser,
-  usePortfolioData, useTransactions, useTransactionsByAccount, useTransactionsByUser, useTransactionsWithFilters,
-  useUpcomingTransactions, useUpdateBudget, useUpdateTransaction, useUser, useUsers,
-  useStartBudgetPeriod, useEndBudgetPeriod, useCreateBudgetPeriod, useUpdateBudgetPeriod
+  usePortfolioData, useStartBudgetPeriod, useTransactions, useTransactionsByAccount, useTransactionsByUser, useTransactionsWithFilters,
+  useUpcomingTransactions, useUpdateBudget, useUpdateBudgetPeriod, useUpdateTransaction, useUser, useUsers
 } from './use-query-hooks';
 
 // Dashboard-specific composite hooks
@@ -30,3 +29,16 @@ export {
 export {
   useUserSelection
 } from './useUserSelection';
+
+// Recurring Transaction Series management (new architecture)
+export {
+  useActiveRecurringSeries, useCreateRecurringSeries, useDeleteRecurringSeries, useExecuteRecurringSeries, usePauseRecurringSeries, useRecurringSeries,
+  useRecurringSeriesById,
+  useRecurringSeriesByUser, useRecurringSeriesStats, useResumeRecurringSeries, useUpcomingRecurringSeries, useUpdateRecurringSeries
+} from './use-recurring-series';
+
+// Recurring execution and reconciliation
+export {
+  useDryRunExecution, useExecuteAllDueSeries, useMissedExecutions, useSeriesReconciliation, useSeriesTransactions
+} from './use-recurring-execution';
+

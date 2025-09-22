@@ -1,12 +1,13 @@
 import {
-  Account,
-  Budget,
-  BudgetPeriod,
-  Category,
-  Group,
-  InvestmentHolding,
-  Transaction,
-  User,
+    Account,
+    Budget,
+    BudgetPeriod,
+    Category,
+    Group,
+    InvestmentHolding,
+    RecurringTransactionSeries,
+    Transaction,
+    User,
 } from './types';
 
 // Base URL for json-server API
@@ -234,8 +235,9 @@ export const budgetPeriodService = {
     return found;
   },
   getByBudgetId: async (budgetId: string): Promise<BudgetPeriod[]> => {
-    const all = await budgetPeriodService.getAll();
-    return all.filter((p) => p.budget_id === budgetId);
+    // Since budget periods are now user-level, we need to find the budget's user first
+    const budget = await budgetService.getById(budgetId);
+    return await budgetPeriodService.getByUserId(budget.user_id);
   },
   getByUserId: async (userId: string): Promise<BudgetPeriod[]> => {
     const user = await userService.getById(userId);
@@ -250,8 +252,10 @@ export const budgetPeriodService = {
     return all.filter((p) => p.is_active);
   },
   getCurrentPeriod: async (budgetId: string): Promise<BudgetPeriod | null> => {
-    const all = await budgetPeriodService.getByBudgetId(budgetId);
-    return all.find((p) => p.budget_id === budgetId && p.is_active && (p.end_date === null || p.end_date === undefined)) || null;
+    // Get the user's active period since periods are now user-level
+    const budget = await budgetService.getById(budgetId);
+    const periods = await budgetPeriodService.getByUserId(budget.user_id);
+    return periods.find((p) => p.is_active) || null;
   },
   create: async (period: Omit<BudgetPeriod, 'id' | 'created_at' | 'updated_at'>): Promise<BudgetPeriod> => {
     const id = generateId('bdp');
@@ -278,14 +282,14 @@ export const budgetPeriodService = {
     const filtered = (owner.budget_periods || []).filter((p) => p.id !== id);
     await userService.update(owner.id, { budget_periods: filtered });
   },
-  endCurrentPeriod: async (budgetId: string): Promise<BudgetPeriod> => {
-    const current = await budgetPeriodService.getCurrentPeriod(budgetId);
+  endCurrentPeriod: async (userId: string): Promise<BudgetPeriod> => {
+    const periods = await budgetPeriodService.getByUserId(userId);
+    const current = periods.find(p => p.is_active);
     if (!current) throw new Error('No active period found');
     return budgetPeriodService.update(current.id, { end_date: new Date().toISOString(), is_active: false });
   },
-  startNewPeriod: async (budgetId: string, userId: string): Promise<BudgetPeriod> => {
+  startNewPeriod: async (userId: string): Promise<BudgetPeriod> => {
     return budgetPeriodService.create({
-      budget_id: budgetId,
       user_id: userId,
       start_date: new Date().toISOString(),
       end_date: null,
@@ -296,6 +300,141 @@ export const budgetPeriodService = {
     });
   },
 };
+
+export const recurringTransactionSeriesService = {
+  getAll: (): Promise<RecurringTransactionSeries[]> =>
+    apiClient.get<RecurringTransactionSeries[]>('/recurring_transaction_series'),
+
+  getById: (id: string): Promise<RecurringTransactionSeries> =>
+    apiClient.get<RecurringTransactionSeries>(`/recurring_transaction_series/${id}`),
+
+  getByUserId: (userId: string): Promise<RecurringTransactionSeries[]> =>
+    apiClient.get<RecurringTransactionSeries[]>(`/recurring_transaction_series?user_id=${userId}`),
+
+  getActive: (userId?: string): Promise<RecurringTransactionSeries[]> => {
+    const baseQuery = '/recurring_transaction_series?is_active=true&is_paused=false';
+    const query = userId ? `${baseQuery}&user_id=${userId}` : baseQuery;
+    return apiClient.get<RecurringTransactionSeries[]>(query);
+  },
+
+  getByType: (type: string, userId?: string): Promise<RecurringTransactionSeries[]> => {
+    let query = `/recurring_transaction_series?type=${type}`;
+    if (userId) query += `&user_id=${userId}`;
+    return apiClient.get<RecurringTransactionSeries[]>(query);
+  },
+
+  getDueWithinDays: async (days: number, userId?: string): Promise<RecurringTransactionSeries[]> => {
+    const targetDate = new Date();
+    targetDate.setDate(targetDate.getDate() + days);
+
+    const allActive = await recurringTransactionSeriesService.getActive(userId);
+
+    return allActive.filter(series => {
+      const nextDue = new Date(series.next_due_date);
+      return nextDue <= targetDate;
+    });
+  },
+
+  create: (series: Omit<RecurringTransactionSeries, 'id'>): Promise<RecurringTransactionSeries> => {
+    const nowIso = new Date().toISOString();
+    const withTimestamps = {
+      created_at: nowIso,
+      updated_at: nowIso,
+      total_executions: 0,
+      failed_executions: 0,
+      is_active: true,
+      is_paused: false,
+      auto_execute: false,
+      notify_before_days: 1,
+    };
+
+    return apiClient.post<RecurringTransactionSeries>('/recurring_transaction_series', {
+      ...series,
+      id: generateId('rts'),
+      ...withTimestamps,
+    });
+  },
+
+  update: (id: string, series: Partial<RecurringTransactionSeries>): Promise<RecurringTransactionSeries> =>
+    apiClient.patch<RecurringTransactionSeries>(`/recurring_transaction_series/${id}`, {
+      ...series,
+      updated_at: new Date().toISOString(),
+    }),
+
+  delete: (id: string): Promise<void> =>
+    apiClient.delete<void>(`/recurring_transaction_series/${id}`),
+
+  // Utility methods for managing series
+  pause: (id: string, pauseUntil?: Date): Promise<RecurringTransactionSeries> =>
+    recurringTransactionSeriesService.update(id, {
+      is_paused: true,
+      pause_until: pauseUntil?.toISOString() || null,
+    }),
+
+  resume: (id: string): Promise<RecurringTransactionSeries> =>
+    recurringTransactionSeriesService.update(id, {
+      is_paused: false,
+      pause_until: null,
+    }),
+
+  execute: async (id: string): Promise<Transaction> => {
+    // Get the series
+    const series = await recurringTransactionSeriesService.getById(id);
+
+    // Create the transaction
+    const nowIso = new Date().toISOString();
+    const transaction = await transactionService.create({
+      description: series.description,
+      amount: series.amount,
+      type: series.type,
+      category: series.category,
+      date: nowIso,
+      user_id: series.user_id,
+      account_id: series.account_id,
+      to_account_id: series.to_account_id,
+      recurring_series_id: series.id,
+      group_id: series.group_id,
+      frequency: series.frequency,
+      created_at: nowIso,
+      updated_at: nowIso,
+    });
+
+    // Update the series execution tracking
+    await recurringTransactionSeriesService.update(id, {
+      last_executed_date: new Date().toISOString(),
+      total_executions: series.total_executions + 1,
+      next_due_date: calculateNextDueDate(new Date(), series.frequency).toISOString(),
+    });
+
+    return transaction;
+  },
+};
+
+// Helper function to calculate next due date
+function calculateNextDueDate(currentDate: Date, frequency: string): Date {
+  const nextDate = new Date(currentDate);
+
+  switch (frequency) {
+    case 'weekly':
+      nextDate.setDate(nextDate.getDate() + 7);
+      break;
+    case 'biweekly':
+      nextDate.setDate(nextDate.getDate() + 14);
+      break;
+    case 'monthly':
+      nextDate.setMonth(nextDate.getMonth() + 1);
+      break;
+    case 'yearly':
+      nextDate.setFullYear(nextDate.getFullYear() + 1);
+      break;
+    default:
+      // For 'once' or unknown frequencies, return far future date
+      nextDate.setFullYear(nextDate.getFullYear() + 100);
+      break;
+  }
+
+  return nextDate;
+}
 
 // Helper functions for common operations
 export const apiHelpers = {

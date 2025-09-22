@@ -51,6 +51,27 @@ export const queryKeys = {
     userId || 'all'
   ] as const,
 
+  // Recurring Transaction Series queries
+  recurringSeries: () => [...queryKeys.all, 'recurring-series'] as const,
+  recurringSeriesById: (id: string) => [...queryKeys.recurringSeries(), id] as const,
+  recurringSeriesByUser: (userId: string) => [...queryKeys.recurringSeries(), 'user', userId] as const,
+  activeRecurringSeries: (userId?: string) => [
+    ...queryKeys.recurringSeries(),
+    'active',
+    userId || 'all'
+  ] as const,
+  upcomingRecurringSeries: (days: number, userId?: string) => [
+    ...queryKeys.recurringSeries(),
+    'upcoming',
+    days,
+    userId || 'all'
+  ] as const,
+  recurringSeriesStats: (userId?: string) => [
+    ...queryKeys.recurringSeries(),
+    'stats',
+    userId || 'all'
+  ] as const,
+
   // Budget-related queries
   budgets: () => [...queryKeys.all, 'budgets'] as const,
   budget: (id: string) => [...queryKeys.budgets(), id] as const,

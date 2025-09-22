@@ -3,7 +3,7 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CategoryIcon, iconSizes } from "@/lib/icons";
-import { formatCurrency, getCategoryLabel, truncateText, formatDueDate, calculateNextDueDate } from "@/lib/utils";
+import { formatCurrency, getCategoryLabel, truncateText } from "@/lib/utils";
 import { Transaction } from "@/lib/types";
 
 interface TransactionCardProps {
@@ -79,7 +79,7 @@ export function TransactionCard({
               )}
               {variant === 'recurrent' && transaction.frequency && transaction.frequency !== 'once' && (
                 <div className="text-xs text-blue-600 font-medium">
-                  {formatDueDate(calculateNextDueDate(transaction.date, transaction.frequency))}
+                  Serie ricorrente - {transaction.frequency}
                 </div>
               )}
             </div>

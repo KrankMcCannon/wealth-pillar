@@ -1,7 +1,6 @@
 export type RoleType = 'superadmin' | 'admin' | 'member';
 export type AccountType = 'payroll' | 'savings' | 'cash' | 'investments';
-export type TransactionType = 'income' | 'expense' | 'recurrent' | 'transfer';
-export type TransactionStatusType = 'not_reconciled' | 'partly_reconciled' | 'reconciled';
+export type TransactionType = 'income' | 'expense' | 'transfer';
 export type TransactionFrequencyType = 'once' | 'weekly' | 'biweekly' | 'monthly' | 'yearly';
 export type BudgetType = 'monthly' | 'annually';
 export type PlanType = 'premium' | 'free';
@@ -66,17 +65,64 @@ export interface Transaction {
   user_id: string;
   account_id: string;
   to_account_id?: string | null;
-  status: TransactionStatusType;
-  linked_transaction_ids?: string[] | [];
   frequency?: TransactionFrequencyType;
+  recurring_series_id?: string | null; // Link to recurring series if this transaction is generated from one
   group_id?: string;
+  created_at: string | Date;
+  updated_at: string | Date;
+}
+
+/**
+ * RecurringTransactionSeries - Template for recurring transactions
+ * This entity represents the configuration for recurring transactions,
+ * while individual Transaction records represent the actual executed transactions.
+ */
+export interface RecurringTransactionSeries {
+  id: string;
+  name: string; // User-friendly name like "Netflix Subscription", "Salary", etc.
+  description: string; // Transaction description that will be used for generated transactions
+  amount: number;
+  type: TransactionType;
+  category: string;
+  frequency: TransactionFrequencyType; // Required for recurring series
+  user_id: string;
+  account_id: string;
+  to_account_id?: string | null; // For transfer-type recurring transactions
+
+  // Scheduling configuration
+  start_date: string | Date; // When this series becomes active
+  end_date?: string | Date | null; // Optional end date
+  next_due_date: string | Date; // Next expected transaction date
+
+  // Schedule-specific settings
+  day_of_month?: number; // For monthly/yearly (1-31)
+  day_of_week?: number; // For weekly (0=Sunday, 6=Saturday)
+  month_of_year?: number; // For yearly (1-12)
+
+  // Status and metadata
+  is_active: boolean;
+  is_paused: boolean; // Temporarily disabled
+  pause_until?: string | Date | null; // Resume after this date
+
+  // Execution tracking
+  last_executed_date?: string | Date | null;
+  total_executions: number; // Count of transactions generated
+  failed_executions: number; // Count of failed auto-executions
+
+  // Notifications and automation
+  auto_execute: boolean; // Whether to automatically create transactions
+  notify_before_days: number; // Days before due date to send notification
+
+  // Grouping and organization
+  tags?: string[]; // Optional tags for organization
+  group_id?: string;
+
   created_at: string | Date;
   updated_at: string | Date;
 }
 
 export interface BudgetPeriod {
   id: string;
-  budget_id: string;
   user_id: string;
   start_date: string | Date;
   end_date: string | Date | null;

@@ -26,13 +26,28 @@
       "budget_start_date": 27,
       "budget_periods": [
         {
-          "endDate": "2025-08-25",
-          "startDate": "2025-07-25",
-          "isCompleted": true
+          "id": "bdp_1758480562115",
+          "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
+          "start_date": "2025-07-25",
+          "end_date": "2025-08-25",
+          "total_spent": 0,
+          "total_saved": 0,
+          "category_spending": {},
+          "is_active": false,
+          "created_at": "2025-09-21T20:49:22.115926Z",
+          "updated_at": "2025-09-21T20:49:22.115931Z"
         },
         {
-          "startDate": "2025-08-26",
-          "isCompleted": false
+          "id": "bdp_1758480562117",
+          "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
+          "start_date": "2025-08-26",
+          "end_date": null,
+          "total_spent": 0,
+          "total_saved": 0,
+          "category_spending": {},
+          "is_active": true,
+          "created_at": "2025-09-21T20:49:22.117191Z",
+          "updated_at": "2025-09-21T20:49:22.117193Z"
         }
       ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
@@ -49,18 +64,40 @@
       "budget_start_date": 15,
       "budget_periods": [
         {
-          "endDate": "2025-08-10",
-          "startDate": "2025-07-14",
-          "isCompleted": true
+          "id": "bdp_1758480562118",
+          "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
+          "start_date": "2025-07-14",
+          "end_date": "2025-08-10",
+          "total_spent": 0,
+          "total_saved": 0,
+          "category_spending": {},
+          "is_active": false,
+          "created_at": "2025-09-21T20:49:22.118452Z",
+          "updated_at": "2025-09-21T20:49:22.118454Z"
         },
         {
-          "endDate": "2025-09-14",
-          "startDate": "2025-08-11",
-          "isCompleted": true
+          "id": "bdp_1758480562119",
+          "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
+          "start_date": "2025-08-11",
+          "end_date": "2025-09-14",
+          "total_spent": 0,
+          "total_saved": 0,
+          "category_spending": {},
+          "is_active": false,
+          "created_at": "2025-09-21T20:49:22.119712Z",
+          "updated_at": "2025-09-21T20:49:22.119715Z"
         },
         {
-          "startDate": "2025-09-15",
-          "isCompleted": false
+          "id": "bdp_1758480562120",
+          "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
+          "start_date": "2025-09-15",
+          "end_date": null,
+          "total_spent": 0,
+          "total_saved": 0,
+          "category_spending": {},
+          "is_active": true,
+          "created_at": "2025-09-21T20:49:22.120973Z",
+          "updated_at": "2025-09-21T20:49:22.120974Z"
         }
       ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
@@ -513,8 +550,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "0e531da6-b417-44ff-b215-ade7b1e74f36",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-13 09:40:45.30242+00",
       "updated_at": "2025-09-13 09:40:45.30242+00"
@@ -529,8 +564,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-06 08:12:20.999926+00",
       "updated_at": "2025-09-06 08:12:20.999926+00"
@@ -545,8 +578,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-29 20:20:56.509504+00",
       "updated_at": "2025-08-29 20:20:56.509504+00"
@@ -561,10 +592,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "84d7bb52-460e-4283-81b4-db2f2b22b27d"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-14 08:54:18.047259+00",
       "updated_at": "2025-09-14 09:07:07.279602+00"
@@ -579,10 +606,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "49f9aef0-8a4f-4b0a-8247-bdc4eba4aefa"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-13 09:47:12.914442+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -597,8 +620,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-06 08:15:23.026795+00",
       "updated_at": "2025-09-06 08:15:23.026795+00"
@@ -613,10 +634,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "d5578015-f8df-454a-9bb2-4b7a7e8e5291"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-09 09:37:19.430676+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -631,8 +648,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-29 20:19:58.533379+00",
       "updated_at": "2025-08-29 20:19:58.533379+00"
@@ -647,8 +662,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:27.734005+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -663,8 +676,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-29 20:17:19.30594+00",
       "updated_at": "2025-08-29 20:17:19.30594+00"
@@ -679,8 +690,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:24.995114+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -695,8 +704,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-29 20:28:07.62946+00",
       "updated_at": "2025-08-29 20:28:07.62946+00"
@@ -711,8 +718,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-29 20:12:51.277194+00",
       "updated_at": "2025-08-29 20:12:51.277194+00"
@@ -727,8 +732,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "838e0d1b-d60e-4a09-bd49-6b1301b6c009",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-14 10:22:53.681449+00",
       "updated_at": "2025-09-14 10:22:53.681449+00"
@@ -743,8 +746,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-29 20:21:30.644116+00",
       "updated_at": "2025-08-29 20:21:30.644116+00"
@@ -759,8 +760,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:25.69922+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -775,8 +774,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-20 18:16:24.774225+00",
       "updated_at": "2025-09-20 18:16:24.774225+00"
@@ -791,8 +788,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-29 20:09:39.299731+00",
       "updated_at": "2025-08-29 20:09:39.299731+00"
@@ -807,8 +802,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:25.325263+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -823,8 +816,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-14 08:55:12.49774+00",
       "updated_at": "2025-09-14 08:55:12.49774+00"
@@ -833,14 +824,12 @@
       "id": "12fb49cc-2583-4c8b-a1f1-d14f4dcebb49",
       "description": "Risparmi Casa",
       "amount": 400,
-      "type": "expense",
+      "type": "transfer",
       "category": "trasferimento",
       "date": "2025-08-02T00:00:00.000Z",
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": "838e0d1b-d60e-4a09-bd49-6b1301b6c009",
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:28.120551+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -855,10 +844,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "553f123f-8abf-434f-9ed1-5ea13236112d"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-13 09:52:00.487107+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -873,10 +858,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "82168fa2-2d91-4ab5-a084-8303f1d705b1"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-14 08:54:44.930414+00",
       "updated_at": "2025-09-14 09:07:21.048629+00"
@@ -891,10 +872,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "bb598d3f-19a6-4bc6-b18c-6545d539e686"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-14 09:01:13.926344+00",
       "updated_at": "2025-09-14 09:08:44.790855+00"
@@ -909,8 +886,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:28.739795+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -925,8 +900,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-22 19:07:17.45204+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -941,8 +914,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:24.86828+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -957,13 +928,10 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "8d3a365b-1496-4c6f-bc5f-c198abf87165"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-14 08:51:04.350799+00",
-      "updated_at": "2025-09-14 09:05:53.229737+00"
+      "updated_at": "2025-09-14 09:05:53.229737+00",
+      "frequency": "monthly"
     },
     {
       "id": "16eae7a7-dbef-40dc-ba3d-04f1a63c6fa8",
@@ -975,8 +943,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:25.90247+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -991,8 +957,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-29 20:16:41.186824+00",
       "updated_at": "2025-08-29 20:16:41.186824+00"
@@ -1007,8 +971,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-22 14:43:29.589618+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -1023,10 +985,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "b5e98647-9fb5-4726-aaf6-b9646bddddf2"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-13 10:05:41.788126+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -1041,10 +999,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "ce3e9879-5d59-4a92-93bf-76bd2aee2298"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-14 09:01:41.404133+00",
       "updated_at": "2025-09-14 09:09:31.227581+00"
@@ -1059,10 +1013,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "429101bf-4b88-44ea-9ae3-68077ba96fd0"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-14 08:52:42.142859+00",
       "updated_at": "2025-09-14 09:06:12.114238+00"
@@ -1077,8 +1027,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:27.667798+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -1093,8 +1041,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:27.390909+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -1109,10 +1055,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "e36197df-9b6e-4cb1-94c7-aafaca5e7356"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-09 09:36:12.751913+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -1127,8 +1069,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-20 18:17:21.904707+00",
       "updated_at": "2025-09-20 18:17:21.904707+00"
@@ -1143,8 +1083,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "79d63229-f275-4636-9466-22b66f23e751",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-29 20:26:41.104762+00",
       "updated_at": "2025-08-30 06:32:56.975352+00"
@@ -1159,8 +1097,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-22 14:42:36.120304+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -1175,8 +1111,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-22 14:44:13.608744+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -1191,8 +1125,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-29 20:11:50.355176+00",
       "updated_at": "2025-08-29 20:11:50.355176+00"
@@ -1207,10 +1139,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "630ffc7e-397a-41cd-af72-e220d9c7d70a"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-29 20:08:38.483084+00",
       "updated_at": "2025-08-30 06:39:15.200722+00"
@@ -1225,10 +1153,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "2887279f-ba3d-4721-baa0-295591505595"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-10 06:03:27.971647+00",
       "updated_at": "2025-09-10 06:04:18.992221+00"
@@ -1237,14 +1161,12 @@
       "id": "1f43732e-a7e6-43f6-8265-8bf38202501b",
       "description": "Risparmi",
       "amount": 50,
-      "type": "income",
+      "type": "transfer",
       "category": "trasferimento",
       "date": "2025-08-27T00:00:00.000Z",
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": "838e0d1b-d60e-4a09-bd49-6b1301b6c009",
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-29 20:23:07.960548+00",
       "updated_at": "2025-08-29 20:23:07.960548+00"
@@ -1259,8 +1181,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-20 18:19:36.059573+00",
       "updated_at": "2025-09-20 18:19:36.059573+00"
@@ -1275,8 +1195,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-13 09:52:34.643065+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -1291,8 +1209,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-29 20:15:06.429369+00",
       "updated_at": "2025-08-29 20:15:06.429369+00"
@@ -1307,8 +1223,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-29 20:13:45.059071+00",
       "updated_at": "2025-08-29 20:13:45.059071+00"
@@ -1323,8 +1237,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:25.257921+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -1339,11 +1251,10 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-13 10:07:13.279764+00",
-      "updated_at": "2025-08-24 17:31:59.844678+00"
+      "updated_at": "2025-08-24 17:31:59.844678+00",
+      "frequency": "monthly"
     },
     {
       "id": "2304c345-9990-4ec4-81ac-4678e1b3c787",
@@ -1355,8 +1266,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:28.873292+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -1371,8 +1280,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:28.253165+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -1387,8 +1294,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-10 06:11:29.431594+00",
       "updated_at": "2025-09-10 06:11:29.431594+00"
@@ -1403,8 +1308,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-13 10:04:35.462659+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -1419,8 +1322,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-06 08:10:42.023141+00",
       "updated_at": "2025-09-06 08:10:42.023141+00"
@@ -1435,8 +1336,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-19 19:33:11.654783+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -1451,8 +1350,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-06 12:01:35.941527+00",
       "updated_at": "2025-09-06 12:01:35.941527+00"
@@ -1467,8 +1364,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-20 18:18:45.314499+00",
       "updated_at": "2025-09-20 18:18:45.314499+00"
@@ -1483,10 +1378,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "1f16ce65-87e0-4bca-af14-8cf7179186b6"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-10 06:03:50.719126+00",
       "updated_at": "2025-09-10 06:04:18.965095+00"
@@ -1501,27 +1392,23 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:27.596868+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
     },
     {
       "id": "2a599ae5-ba80-4faa-b749-d99a39bc0d8b",
-      "description": "McDonalds,7.50,spesa,cibo_asporto,2025-08-05,f5977c4b-a5c6-4d29-bf94-243367d2e232,,false,,2025-08-10 08:42:59.213564+00,2025-08-24 17:31:59.844678+00,0.00,7.50",
-      "amount": null,
+      "description": "McDonald",
+      "amount": 7.5,
       "type": "expense",
-      "category": "",
-      "date": "T00:00:00.000Z",
+      "category": "cibo_asporto",
+      "date": "2025-08-05T00:00:00.000Z",
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
-      "account_id": "",
+      "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
-      "created_at": "",
-      "updated_at": ""
+      "created_at": "2025-08-10T08:42:59.213564+00",
+      "updated_at": "2025-08-24T17:31:59.844678+00"
     },
     {
       "id": "2b8ac303-eb5b-4cf2-bbb9-9e19a34c4e4d",
@@ -1533,8 +1420,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-11 09:10:22.644154+00",
       "updated_at": "2025-09-11 09:10:22.644154+00"
@@ -1549,10 +1434,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "a9a88b86-4d4c-4149-80b4-3b21b9cf893f"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-14 08:47:33.549879+00",
       "updated_at": "2025-09-14 09:05:14.027146+00"
@@ -1567,10 +1448,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "8dfc1504-4c8b-409e-ba4c-d65a48d21d9d"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-14 08:53:39.472093+00",
       "updated_at": "2025-09-14 09:06:51.981398+00"
@@ -1585,8 +1462,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:24.793009+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -1601,10 +1476,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "5217b678-d585-4444-b66b-82451cf3db44"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-24 07:56:11.606+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -1619,8 +1490,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:24.585776+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -1635,13 +1504,10 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "50dcbc37-69a6-4127-a89f-799b87fd968f"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:29.541601+00",
-      "updated_at": "2025-08-24 17:31:59.844678+00"
+      "updated_at": "2025-08-24 17:31:59.844678+00",
+      "frequency": "monthly"
     },
     {
       "id": "3030b03d-53f2-4063-a8eb-2fdf46ce9af6",
@@ -1653,8 +1519,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:24.100546+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -1669,8 +1533,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-13 10:09:04.469718+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -1685,10 +1547,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "d69ef04e-b1bc-40c2-b7f0-8ec621066b5e"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-13 10:28:44.179373+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -1703,10 +1561,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "b28715c6-4076-43f0-82c4-b4af0a0f93ae"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-09 09:38:07.57179+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -1721,10 +1575,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "92b8d708-04b3-4dca-a866-bbbd9a197784"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:26.583991+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -1739,8 +1589,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:23.960765+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -1755,13 +1603,10 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "bde31264-a07c-42f5-bb28-202e9d23af3f"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-14 08:58:42.128622+00",
-      "updated_at": "2025-09-14 09:07:59.602546+00"
+      "updated_at": "2025-09-14 09:07:59.602546+00",
+      "frequency": "monthly"
     },
     {
       "id": "36680681-8b8d-4f90-bd41-093174027b47",
@@ -1773,13 +1618,10 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "a3564810-0f46-41b2-9271-3d1038d546eb"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-14 08:57:07.335195+00",
-      "updated_at": "2025-09-14 09:08:25.576894+00"
+      "updated_at": "2025-09-14 09:08:25.576894+00",
+      "frequency": "monthly"
     },
     {
       "id": "3859e8db-072d-4780-9db9-08ef17a44352",
@@ -1791,10 +1633,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "5507331a-80c2-4741-9f0a-437287c96def"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-14 08:52:27.378436+00",
       "updated_at": "2025-09-14 09:06:22.78604+00"
@@ -1809,15 +1647,13 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-30 08:57:38.279484+00",
       "updated_at": "2025-08-30 08:57:38.279484+00"
     },
     {
       "id": "39ed33ab-e9be-4455-ad4f-9b649ac5e83c",
-      "description": "iCloud iPhone",
+      "description": "Apple iCloud",
       "amount": 2.99,
       "type": "income",
       "category": "abbonamenti_necessari",
@@ -1825,13 +1661,10 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "b414e28e-6644-451b-a5c2-b54f8d05971b"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-14 08:53:17.417567+00",
-      "updated_at": "2025-09-14 09:06:42.479089+00"
+      "updated_at": "2025-09-14 09:06:42.479089+00",
+      "frequency": "monthly"
     },
     {
       "id": "3b689b75-fbae-4638-a83e-740db87eb2e3",
@@ -1843,8 +1676,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-11 06:23:35.374031+00",
       "updated_at": "2025-09-11 06:23:35.374031+00"
@@ -1859,8 +1690,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "838e0d1b-d60e-4a09-bd49-6b1301b6c009",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-14 10:23:09.240757+00",
       "updated_at": "2025-09-14 10:23:09.240757+00"
@@ -1875,10 +1704,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "1854948f-fdf9-4aec-baf6-2b689071dd60"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-14 08:50:39.803871+00",
       "updated_at": "2025-09-14 09:06:12.115846+00"
@@ -1893,8 +1718,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:24.727027+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -1909,8 +1732,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-13 09:53:02.432509+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -1925,8 +1746,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-14 09:02:17.61715+00",
       "updated_at": "2025-09-14 09:02:17.61715+00"
@@ -1941,11 +1760,10 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-11 06:25:19.341544+00",
-      "updated_at": "2025-09-11 06:25:19.341544+00"
+      "updated_at": "2025-09-11 06:25:19.341544+00",
+      "frequency": "monthly"
     },
     {
       "id": "45b2512c-0921-401b-8bdf-96742107974c",
@@ -1957,10 +1775,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "90484859-eae0-45b4-9df4-ce4fcdf584fa"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-13 09:51:05.19953+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -1975,8 +1789,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:23.537816+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -1991,8 +1803,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-29 19:33:41.579726+00",
       "updated_at": "2025-08-29 19:33:41.579726+00"
@@ -2007,8 +1817,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-16 08:28:31.010492+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -2023,8 +1831,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:28.390639+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -2039,10 +1845,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "042ca611-3e0c-47e2-a8a3-a9a28fb18339"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-13 09:46:10.759239+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -2057,10 +1859,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "0e531da6-b417-44ff-b215-ade7b1e74f36",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "9ede1d5e-89e8-4ce6-8264-8dab835902d1"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:27.135486+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -2075,11 +1873,10 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:27.063164+00",
-      "updated_at": "2025-08-24 17:31:59.844678+00"
+      "updated_at": "2025-08-24 17:31:59.844678+00",
+      "frequency": "monthly"
     },
     {
       "id": "4b162d7e-05b9-4086-b9a1-78946cc90f53",
@@ -2091,8 +1888,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:25.060855+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -2107,8 +1902,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-14 10:21:46.513213+00",
       "updated_at": "2025-09-14 10:21:46.513213+00"
@@ -2117,14 +1910,12 @@
       "id": "4c6625e2-9365-484a-a1cc-ac15e5986c11",
       "description": "Risparmi casa",
       "amount": 50,
-      "type": "expense",
+      "type": "transfer",
       "category": "trasferimento",
       "date": "2025-08-13T00:00:00.000Z",
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": "838e0d1b-d60e-4a09-bd49-6b1301b6c009",
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-13 10:14:01.048037+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -2139,10 +1930,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "594dd01f-8310-4752-921c-adf9319a4728"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-13 10:27:36.719212+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -2157,8 +1944,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-20 18:16:53.441029+00",
       "updated_at": "2025-09-20 18:16:53.441029+00"
@@ -2173,8 +1958,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:25.836041+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -2189,10 +1972,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "88971375-2997-4a34-a9f8-a3b0281c8b71"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-16 08:25:17.430099+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -2207,8 +1986,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-18 18:38:12.665746+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -2217,16 +1994,12 @@
       "id": "4edc3bf6-1084-436c-8e35-755fb770ec10",
       "description": "Investimenti",
       "amount": 50,
-      "type": "expense",
+      "type": "transfer",
       "category": "investimenti",
       "date": "2025-07-27T00:00:00.000Z",
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
-      "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "92c1236f-534d-4722-a5b7-3f2f8b1f5b62"
-      ],
+      "to_account_id": "838e0d1b-d60e-4a09-bd49-6b1301b6c009",
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:24.027795+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -2241,8 +2014,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-17 18:32:03.186323+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -2257,13 +2028,10 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "2ff751bd-4baa-4e84-808c-5ca9a0f8739c"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:29.477722+00",
-      "updated_at": "2025-08-24 17:31:59.844678+00"
+      "updated_at": "2025-08-24 17:31:59.844678+00",
+      "frequency": "monthly"
     },
     {
       "id": "5217b678-d585-4444-b66b-82451cf3db44",
@@ -2275,10 +2043,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "2ee68b51-9368-4109-9423-8581941af227"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-24 08:01:58.861184+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -2293,10 +2057,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "906fe3dc-44b0-4c14-9f35-926970fc248e"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-13 09:49:05.897133+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -2311,10 +2071,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "cc505993-346d-4b26-8f7b-3084f4673e34"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-13 10:06:44.651565+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -2329,10 +2085,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "3859e8db-072d-4780-9db9-08ef17a44352"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-14 08:51:41.214922+00",
       "updated_at": "2025-09-14 09:06:22.782513+00"
@@ -2347,10 +2099,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "12fe6977-c925-4302-a2f8-915e58a038c0"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-13 09:49:31.312152+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -2365,11 +2113,10 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-06 08:11:16.05765+00",
-      "updated_at": "2025-09-06 08:11:16.05765+00"
+      "updated_at": "2025-09-06 08:11:16.05765+00",
+      "frequency": "monthly"
     },
     {
       "id": "560a0ec2-d9e5-4150-90fc-ab49a46e1c32",
@@ -2381,8 +2128,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:23.621888+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -2397,8 +2142,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-10 09:17:15.504983+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -2413,10 +2156,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "760c90ee-4180-4006-9f4b-cc46b1aaabc1"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-16 08:24:53.635177+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -2431,13 +2170,10 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "f77a6b37-674a-47f0-9af2-36fbf08dc046"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-14 08:49:28.10582+00",
-      "updated_at": "2025-09-14 09:05:35.78122+00"
+      "updated_at": "2025-09-14 09:05:35.78122+00",
+      "frequency": "monthly"
     },
     {
       "id": "57bd50ad-abc3-41f5-83fa-7f210bca845d",
@@ -2449,8 +2185,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-13 09:42:04.890487+00",
       "updated_at": "2025-09-13 09:42:04.890487+00"
@@ -2465,8 +2199,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:26.438548+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -2481,8 +2213,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:27.327319+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -2497,10 +2227,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "4cf10692-f1ff-422a-8122-bd8ebaa757a3"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-13 09:55:32.881962+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -2515,8 +2241,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:29.610988+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -2531,8 +2255,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:29.271138+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -2547,8 +2269,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-13 10:11:04.777676+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -2563,8 +2283,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:24.51705+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -2579,8 +2297,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-14 08:48:27.679342+00",
       "updated_at": "2025-09-14 08:48:27.679342+00"
@@ -2595,10 +2311,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "daa7a00e-e0e4-4b4e-9ded-1ceea4c634ec"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-10 05:58:47.173051+00",
       "updated_at": "2025-09-10 06:07:36.455794+00"
@@ -2613,13 +2325,10 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "d36e2dc4-0850-425c-aa7a-2d56998b54bd"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-13 09:48:31.307706+00",
-      "updated_at": "2025-08-24 17:31:59.844678+00"
+      "updated_at": "2025-08-24 17:31:59.844678+00",
+      "frequency": "monthly"
     },
     {
       "id": "60d76859-3bd6-4a35-87b9-6e844ceb0398",
@@ -2631,8 +2340,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-14 09:03:10.562082+00",
       "updated_at": "2025-09-14 09:03:10.562082+00"
@@ -2647,10 +2354,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "dcb09521-eaf5-45ed-a63f-bcc5420cad19"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-14 08:57:50.559321+00",
       "updated_at": "2025-09-14 09:08:10.606289+00"
@@ -2665,8 +2368,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-27 19:38:55.215272+00",
       "updated_at": "2025-08-27 19:38:55.215272+00"
@@ -2676,13 +2377,11 @@
       "description": "Investimenti",
       "amount": 6,
       "type": "expense",
-      "category": "altro",
+      "category": "investimenti",
       "date": "2025-08-06T00:00:00.000Z",
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "838e0d1b-d60e-4a09-bd49-6b1301b6c009",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-13 09:57:07.590672+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -2697,8 +2396,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:24.38088+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -2713,10 +2410,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "1ef15643-e855-407b-94d5-dd6d116cace3"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-29 20:08:49.557777+00",
       "updated_at": "2025-08-30 06:39:15.202734+00"
@@ -2731,8 +2424,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-13 09:47:49.303821+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -2747,8 +2438,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:24.240154+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -2763,8 +2452,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-11 06:24:48.359134+00",
       "updated_at": "2025-09-11 06:24:48.359134+00"
@@ -2779,10 +2466,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "8cbc5235-e44e-481d-a7b5-072d38b573db"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-14 08:58:22.301015+00",
       "updated_at": "2025-09-14 09:07:39.199313+00"
@@ -2797,10 +2480,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "a17d0be1-3c0a-4752-bcf3-d022cb8ae4e6"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-14 09:00:37.121509+00",
       "updated_at": "2025-09-14 09:09:08.004409+00"
@@ -2815,8 +2494,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:27.991533+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -2831,8 +2508,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-19 19:34:32.534999+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -2847,8 +2522,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-29 20:15:38.739395+00",
       "updated_at": "2025-08-29 20:15:38.739395+00"
@@ -2863,10 +2536,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "86a5eff1-9835-4d50-aa1e-968a205201eb"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-16 08:21:58.88875+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -2881,8 +2550,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-29 20:20:37.198389+00",
       "updated_at": "2025-08-29 20:20:37.198389+00"
@@ -2897,10 +2564,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "737179a1-5a6c-4320-b05a-93e7862e85f5"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-10 05:56:10.004315+00",
       "updated_at": "2025-09-10 06:01:12.484637+00"
@@ -2915,8 +2578,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-16 08:29:06.974867+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -2931,8 +2592,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:24.655949+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -2947,10 +2606,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "710d711a-473b-432f-8fcb-003568908538"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-10 06:00:11.227667+00",
       "updated_at": "2025-09-10 06:01:12.457811+00"
@@ -2965,8 +2620,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:26.931034+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -2981,8 +2634,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:28.323077+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -2997,8 +2648,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-13 10:29:58.324143+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -3013,8 +2662,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-14 08:56:19.384917+00",
       "updated_at": "2025-09-14 08:56:19.384917+00"
@@ -3029,8 +2676,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "0e531da6-b417-44ff-b215-ade7b1e74f36",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-13 10:12:08.83231+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -3045,10 +2690,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "56f44cb4-ed33-459e-a818-261892de4628"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-16 08:26:17.786863+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -3063,10 +2704,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "797535a1-2335-4419-a583-893ebd3f3cdf"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-14 08:52:06.194921+00",
       "updated_at": "2025-09-14 09:06:31.88863+00"
@@ -3081,8 +2718,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-20 18:16:36.411033+00",
       "updated_at": "2025-09-20 18:16:36.411033+00"
@@ -3097,8 +2732,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:28.532639+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -3113,8 +2746,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-29 20:17:37.462308+00",
       "updated_at": "2025-08-29 20:17:37.462308+00"
@@ -3129,8 +2760,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:23.757788+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -3145,10 +2774,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "76d48f5b-58f6-42c7-8b29-6b69a049f143"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-14 08:52:16.475348+00",
       "updated_at": "2025-09-14 09:06:31.887181+00"
@@ -3163,10 +2788,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "c274c928-cdc1-4b77-ab03-00f97d46950e"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-16 08:24:18.56932+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -3181,8 +2802,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-09 20:09:50.169938+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -3197,8 +2816,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-14 08:49:59.175939+00",
       "updated_at": "2025-09-14 08:49:59.175939+00"
@@ -3213,8 +2830,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-13 10:11:30.194338+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -3229,8 +2844,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "838e0d1b-d60e-4a09-bd49-6b1301b6c009",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:29.069118+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -3245,8 +2858,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-29 19:32:56.433015+00",
       "updated_at": "2025-08-29 19:32:56.433015+00"
@@ -3261,8 +2872,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:24.448878+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -3277,8 +2886,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:25.1933+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -3293,10 +2900,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "131effa6-3d3e-479e-a029-2939134337f1"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-14 08:55:27.681166+00",
       "updated_at": "2025-09-14 09:07:21.047046+00"
@@ -3311,8 +2914,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:23.891225+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -3327,8 +2928,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-11 06:24:08.349305+00",
       "updated_at": "2025-09-11 06:24:08.349305+00"
@@ -3343,8 +2942,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-29 20:15:51.436048+00",
       "updated_at": "2025-08-29 20:15:51.436048+00"
@@ -3359,8 +2956,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-14 08:59:10.786119+00",
       "updated_at": "2025-09-14 08:59:10.786119+00"
@@ -3375,10 +2970,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "02cf246f-4834-4b92-85f4-9fe511712701"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-14 08:54:30.080617+00",
       "updated_at": "2025-09-14 09:07:07.27984+00"
@@ -3393,8 +2984,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-29 20:12:32.054418+00",
       "updated_at": "2025-08-29 20:12:32.054418+00"
@@ -3409,8 +2998,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:26.517717+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -3425,10 +3012,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "6d0810a7-72a1-44a3-a09f-92caf47ea35c"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-16 08:22:53.151649+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -3443,8 +3026,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:27.797777+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -3459,11 +3040,10 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-29 20:19:34.930393+00",
-      "updated_at": "2025-08-29 20:19:34.930393+00"
+      "updated_at": "2025-08-29 20:19:34.930393+00",
+      "frequency": "monthly"
     },
     {
       "id": "88971375-2997-4a34-a9f8-a3b0281c8b71",
@@ -3475,10 +3055,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "4e14601d-2254-45a1-9592-2240afc6b370"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-16 08:26:41.69873+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -3493,10 +3069,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "655d6423-4f75-487c-96a9-0906002d6254"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-14 08:58:16.225388+00",
       "updated_at": "2025-09-14 09:07:39.199313+00"
@@ -3511,13 +3083,10 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "16e57f06-8fbc-4daf-8480-81523f4ee3de"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-14 08:51:22.714263+00",
-      "updated_at": "2025-09-14 09:05:53.233527+00"
+      "updated_at": "2025-09-14 09:05:53.233527+00",
+      "frequency": "monthly"
     },
     {
       "id": "8d6570a1-34f2-4532-9d48-6501ee12d74e",
@@ -3529,8 +3098,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:26.040282+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -3545,8 +3112,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-13 10:03:45.554097+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -3561,10 +3126,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "2bc0031e-48c1-490e-a9b2-38368825537c"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-14 08:53:55.739204+00",
       "updated_at": "2025-09-14 09:06:51.981146+00"
@@ -3579,8 +3140,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:29.001816+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -3595,8 +3154,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:25.971108+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -3611,8 +3168,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-13 10:08:10.144022+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -3627,10 +3182,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "e71aa018-d794-483f-b673-5e4a6b66fb6c"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-14 09:00:04.011892+00",
       "updated_at": "2025-09-14 09:09:00.786489+00"
@@ -3645,10 +3196,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "45b2512c-0921-401b-8bdf-96742107974c"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-13 09:48:51.660264+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -3663,8 +3210,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "0e531da6-b417-44ff-b215-ade7b1e74f36",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-10 06:00:32.310031+00",
       "updated_at": "2025-09-10 06:00:32.310031+00"
@@ -3679,10 +3224,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "52ad95d0-ae1d-4c8e-b067-736e5ab25d58"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-13 09:50:38.501428+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -3697,8 +3238,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-06 08:13:46.167267+00",
       "updated_at": "2025-09-06 08:13:46.167267+00"
@@ -3713,8 +3252,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-13 09:49:20.100732+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -3729,10 +3266,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "32b920c3-292a-4263-a780-3f8a32e0720a"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:27.46222+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -3741,16 +3274,12 @@
       "id": "92c1236f-534d-4722-a5b7-3f2f8b1f5b62",
       "description": "Investimenti",
       "amount": 50,
-      "type": "income",
-      "category": "bonifico",
+      "type": "transfer",
+      "category": "investimenti",
       "date": "2025-08-02T00:00:00.000Z",
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
-      "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
-      "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "4edc3bf6-1084-436c-8e35-755fb770ec10"
-      ],
+      "account_id": "838e0d1b-d60e-4a09-bd49-6b1301b6c009",
+      "to_account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:27.925284+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -3765,8 +3294,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-13 09:53:35.147216+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -3781,8 +3308,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:26.861888+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -3797,11 +3322,10 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:29.205004+00",
-      "updated_at": "2025-08-24 17:31:59.844678+00"
+      "updated_at": "2025-08-24 17:31:59.844678+00",
+      "frequency": "monthly"
     },
     {
       "id": "98710711-d394-4b64-bf58-2e46699f1aec",
@@ -3813,8 +3337,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-29 20:15:21.273202+00",
       "updated_at": "2025-08-29 20:15:21.273202+00"
@@ -3829,8 +3351,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-29 20:10:50.749606+00",
       "updated_at": "2025-08-29 20:10:50.749606+00"
@@ -3845,8 +3365,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-13 10:07:47.035901+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -3861,8 +3379,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-14 08:57:30.270864+00",
       "updated_at": "2025-09-14 08:57:30.270864+00"
@@ -3877,11 +3393,10 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-13 10:08:32.150009+00",
-      "updated_at": "2025-08-24 17:31:59.844678+00"
+      "updated_at": "2025-08-24 17:31:59.844678+00",
+      "frequency": "monthly"
     },
     {
       "id": "99adebd4-d314-4581-a71a-7af9802ccce3",
@@ -3893,8 +3408,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-29 20:22:46.104797+00",
       "updated_at": "2025-08-29 20:22:46.104797+00"
@@ -3909,8 +3422,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-14 07:56:51.328668+00",
       "updated_at": "2025-09-20 18:15:29.41409+00"
@@ -3925,8 +3436,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-13 09:43:13.001532+00",
       "updated_at": "2025-09-13 09:43:13.001532+00"
@@ -3941,8 +3450,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:25.631631+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -3957,8 +3464,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-14 09:02:53.644272+00",
       "updated_at": "2025-09-14 09:02:53.644272+00"
@@ -3973,8 +3478,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "838e0d1b-d60e-4a09-bd49-6b1301b6c009",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:29.810711+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -3983,14 +3486,12 @@
       "id": "9dd27b6b-26b7-4ca7-841f-90cc3861e7c5",
       "description": "Prelievo",
       "amount": 100,
-      "type": "income",
+      "type": "transfer",
       "category": "trasferimento",
       "date": "2025-08-23T00:00:00.000Z",
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": "79d63229-f275-4636-9466-22b66f23e751",
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-29 20:19:07.606952+00",
       "updated_at": "2025-08-29 20:19:07.606952+00"
@@ -4005,10 +3506,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "a3680626-1661-424f-93c4-60b811aef4da"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-10 09:19:18.082989+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -4023,11 +3520,10 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-11 06:22:55.434089+00",
-      "updated_at": "2025-09-11 06:22:55.434089+00"
+      "updated_at": "2025-09-11 06:22:55.434089+00",
+      "frequency": "monthly"
     },
     {
       "id": "9ede1d5e-89e8-4ce6-8264-8dab835902d1",
@@ -4039,10 +3535,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "4ab97bb9-141c-4a63-91b7-c46e16200bdc"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:25.566983+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -4057,8 +3549,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-14 08:55:48.030556+00",
       "updated_at": "2025-09-14 08:55:48.030556+00"
@@ -4073,8 +3563,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:29.678343+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -4089,8 +3577,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-13 09:43:54.508169+00",
       "updated_at": "2025-09-13 09:43:54.508169+00"
@@ -4105,8 +3591,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-20 18:18:58.143129+00",
       "updated_at": "2025-09-20 18:18:58.143129+00"
@@ -4121,8 +3605,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-29 20:23:23.830998+00",
       "updated_at": "2025-08-29 20:23:23.830998+00"
@@ -4137,10 +3619,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "6561f910-f068-405b-b6f4-8d5c8396aa54"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-14 08:59:44.329922+00",
       "updated_at": "2025-09-14 09:09:08.017669+00"
@@ -4155,8 +3633,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:25.772175+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -4171,8 +3647,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:27.202126+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -4187,10 +3661,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "d8472cf4-ade2-4d08-b90a-b8e4ec759b8f"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-14 08:47:00.478791+00",
       "updated_at": "2025-09-14 09:04:55.085046+00"
@@ -4205,13 +3675,10 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "36680681-8b8d-4f90-bd41-093174027b47"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-14 08:56:56.957994+00",
-      "updated_at": "2025-09-14 09:08:25.571166+00"
+      "updated_at": "2025-09-14 09:08:25.571166+00",
+      "frequency": "monthly"
     },
     {
       "id": "a3680626-1661-424f-93c4-60b811aef4da",
@@ -4223,10 +3690,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "9eaa5ff0-c327-4712-981f-f15ba2400e77"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-10 09:19:48.518968+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -4241,8 +3704,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:27.860789+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -4257,8 +3718,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:26.729078+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -4273,8 +3732,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:28.672564+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -4289,8 +3746,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:26.240418+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -4305,8 +3760,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-14 10:22:07.3949+00",
       "updated_at": "2025-09-14 10:22:07.3949+00"
@@ -4321,8 +3774,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:28.608038+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -4337,8 +3788,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-14 08:56:38.013304+00",
       "updated_at": "2025-09-14 08:56:38.013304+00"
@@ -4353,8 +3802,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-16 08:29:16.044832+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -4369,10 +3816,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "2b9e3b02-4769-432f-9118-80d4c48423da"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-14 08:47:14.548578+00",
       "updated_at": "2025-09-14 09:05:14.038211+00"
@@ -4387,8 +3830,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:24.168084+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -4403,8 +3844,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-10 09:02:43.206343+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -4419,11 +3858,10 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:23.691685+00",
-      "updated_at": "2025-08-24 17:31:59.844678+00"
+      "updated_at": "2025-08-24 17:31:59.844678+00",
+      "frequency": "monthly"
     },
     {
       "id": "ab4e7f4d-ee88-46a7-90ff-30bcf1d927db",
@@ -4435,11 +3873,10 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-29 20:13:14.808331+00",
-      "updated_at": "2025-08-29 20:13:14.808331+00"
+      "updated_at": "2025-08-29 20:13:14.808331+00",
+      "frequency": "monthly"
     },
     {
       "id": "abac8f1c-a370-4545-894c-8adbd6394d7b",
@@ -4451,8 +3888,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:27.529811+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -4467,8 +3902,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-10 05:57:45.045634+00",
       "updated_at": "2025-09-10 05:57:45.045634+00"
@@ -4483,8 +3916,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-14 09:00:59.958502+00",
       "updated_at": "2025-09-14 09:00:59.958502+00"
@@ -4499,10 +3930,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "f648fee9-b8c9-4561-bee8-aebb586e902c"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-24 07:59:24.829503+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -4517,8 +3944,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-20 18:16:07.106144+00",
       "updated_at": "2025-09-20 18:16:07.106144+00"
@@ -4533,10 +3958,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "f0091e2c-2cfc-44b7-aef6-4fb2e94a34f2"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-29 20:29:09.193321+00",
       "updated_at": "2025-08-30 06:38:29.186777+00"
@@ -4551,8 +3972,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-06 08:12:00.49383+00",
       "updated_at": "2025-09-06 08:12:00.49383+00"
@@ -4567,10 +3986,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "c7c25cd8-e358-4cca-97a4-e37b2d420424"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-13 09:46:39.366615+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -4585,11 +4000,10 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-06 08:13:02.540891+00",
-      "updated_at": "2025-09-06 08:13:02.540891+00"
+      "updated_at": "2025-09-06 08:13:02.540891+00",
+      "frequency": "monthly"
     },
     {
       "id": "b0327a76-419f-4428-8dd2-e9afd6415261",
@@ -4601,8 +4015,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:26.792183+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -4617,8 +4029,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-29 20:11:04.247207+00",
       "updated_at": "2025-08-29 20:11:04.247207+00"
@@ -4633,8 +4043,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-20 18:19:13.233104+00",
       "updated_at": "2025-09-20 18:19:13.233104+00"
@@ -4649,8 +4057,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-27 19:39:38.753291+00",
       "updated_at": "2025-08-27 19:39:38.753291+00"
@@ -4665,8 +4071,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:25.496193+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -4681,10 +4085,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "327839f6-1414-4cda-876c-0dec7e1e4625"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-09 09:37:53.332146+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -4699,15 +4099,13 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-14 09:02:33.296132+00",
       "updated_at": "2025-09-14 09:02:33.296132+00"
     },
     {
       "id": "b414e28e-6644-451b-a5c2-b54f8d05971b",
-      "description": "iCloud iPhone",
+      "description": "Apple iCloud",
       "amount": 2.99,
       "type": "expense",
       "category": "abbonamenti_necessari",
@@ -4715,13 +4113,10 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "39ed33ab-e9be-4455-ad4f-9b649ac5e83c"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-14 08:53:12.683228+00",
-      "updated_at": "2025-09-14 09:06:42.480971+00"
+      "updated_at": "2025-09-14 09:06:42.480971+00",
+      "frequency": "monthly"
     },
     {
       "id": "b496f7b4-7969-4816-8d80-47a949b33587",
@@ -4733,8 +4128,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-13 09:53:58.313571+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -4749,10 +4142,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "170d098a-e31c-4856-b7af-121617b66a70"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-13 10:10:22.778697+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -4767,11 +4156,10 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-29 20:16:17.221957+00",
-      "updated_at": "2025-08-29 20:16:17.221957+00"
+      "updated_at": "2025-08-29 20:16:17.221957+00",
+      "frequency": "monthly"
     },
     {
       "id": "b8fc7e2a-f16b-4b45-ac59-24987f4f1419",
@@ -4783,8 +4171,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-29 20:11:31.548687+00",
       "updated_at": "2025-08-29 20:11:31.548687+00"
@@ -4799,10 +4185,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "1391e0a5-1730-4de8-8f5b-1d64970ac876"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-14 08:59:24.224853+00",
       "updated_at": "2025-09-14 09:08:44.788864+00"
@@ -4817,8 +4199,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:28.80822+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -4833,8 +4213,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:29.335602+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -4849,17 +4227,14 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "341019ec-83e9-47e5-87a7-b1116e5dcf25"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-14 08:58:46.198438+00",
-      "updated_at": "2025-09-14 09:07:59.596802+00"
+      "updated_at": "2025-09-14 09:07:59.596802+00",
+      "frequency": "monthly"
     },
     {
       "id": "bf896d13-1f9e-419f-8b09-8af775fe0a3e",
-      "description": "Rata Auto",
+      "description": "Rata auto",
       "amount": 401.41,
       "type": "expense",
       "category": "rata_auto",
@@ -4867,11 +4242,10 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-14 08:48:56.829012+00",
-      "updated_at": "2025-09-14 08:48:56.829012+00"
+      "updated_at": "2025-09-14 08:48:56.829012+00",
+      "frequency": "monthly"
     },
     {
       "id": "c0836f1e-7e15-4aa5-a01f-ca063cc7f1b9",
@@ -4883,8 +4257,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:28.056433+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -4899,10 +4271,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "7a6cf38f-15f5-4ffe-a2aa-3a1d70fd6934"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-16 08:24:05.574273+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -4917,8 +4285,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:24.313556+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -4933,8 +4299,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-29 20:21:09.426126+00",
       "updated_at": "2025-08-29 20:21:09.426126+00"
@@ -4949,8 +4313,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-29 20:12:14.825465+00",
       "updated_at": "2025-08-29 20:12:14.825465+00"
@@ -4965,11 +4327,10 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-24 08:01:13.854932+00",
-      "updated_at": "2025-08-24 17:31:59.844678+00"
+      "updated_at": "2025-08-24 17:31:59.844678+00",
+      "frequency": "monthly"
     },
     {
       "id": "c7c25cd8-e358-4cca-97a4-e37b2d420424",
@@ -4981,10 +4342,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "adfccda9-f430-4dfc-b1ff-eb5c4d905cb4"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-13 09:45:39.508201+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -4999,10 +4356,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "52ffa7ab-07a3-49b8-b63d-bb404531c7f4"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-13 10:09:44.292181+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -5011,14 +4364,12 @@
       "id": "cc9c0703-2564-4df7-8051-bdfd87e8f268",
       "description": "Risparmi Casa",
       "amount": 250,
-      "type": "expense",
+      "type": "transfer",
       "category": "trasferimento",
       "date": "2025-07-15T00:00:00.000Z",
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": "838e0d1b-d60e-4a09-bd49-6b1301b6c009",
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:27.265666+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -5033,8 +4384,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:26.104591+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -5049,10 +4398,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "17a5f72c-339a-4bf3-8beb-7736b27ee6ab"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-14 09:03:35.33284+00",
       "updated_at": "2025-09-14 09:09:31.231582+00"
@@ -5067,8 +4412,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-06 08:10:14.326888+00",
       "updated_at": "2025-09-06 08:10:14.326888+00"
@@ -5083,11 +4426,10 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-06 08:09:42.039572+00",
-      "updated_at": "2025-09-06 08:09:42.039572+00"
+      "updated_at": "2025-09-06 08:09:42.039572+00",
+      "frequency": "monthly"
     },
     {
       "id": "cf4fe4f2-2fa7-4255-ba2d-11ffd1cd16b6",
@@ -5099,11 +4441,10 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-29 20:20:14.960633+00",
-      "updated_at": "2025-08-29 20:20:14.960633+00"
+      "updated_at": "2025-08-29 20:20:14.960633+00",
+      "frequency": "monthly"
     },
     {
       "id": "d0484031-1410-4be3-ab32-efddd4e7dfdf",
@@ -5115,8 +4456,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-29 20:21:23.714513+00",
       "updated_at": "2025-08-29 20:21:23.714513+00"
@@ -5131,8 +4470,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "79d63229-f275-4636-9466-22b66f23e751",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:29.134888+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -5147,13 +4484,10 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "60b87154-4ae9-4e9e-a0b0-6725c2ecf43b"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-13 09:51:31.705084+00",
-      "updated_at": "2025-08-24 17:31:59.844678+00"
+      "updated_at": "2025-08-24 17:31:59.844678+00",
+      "frequency": "monthly"
     },
     {
       "id": "d37428fe-75c5-458e-87ae-57ee8297d4c4",
@@ -5165,8 +4499,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-20 18:20:02.104569+00",
       "updated_at": "2025-09-20 18:20:02.104569+00"
@@ -5181,11 +4513,10 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:28.46655+00",
-      "updated_at": "2025-08-24 17:31:59.844678+00"
+      "updated_at": "2025-08-24 17:31:59.844678+00",
+      "frequency": "monthly"
     },
     {
       "id": "d49781e0-f02c-4513-88c0-9753d86cd76a",
@@ -5197,10 +4528,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "dbaa9a48-0940-4fd5-935f-83ad81527e2d"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-16 08:23:24.484103+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -5215,10 +4542,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "0972f8fe-84ea-4943-9cf2-c6a172fd8d66"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-09 09:37:03.316135+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -5233,10 +4556,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "325cbae1-9743-4933-8ad7-7b8073d5e2ea"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-13 10:25:29.520036+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -5251,10 +4570,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "db3aaadd-ecb2-4ef0-a021-d15ccac15592"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-13 09:54:59.27095+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -5269,8 +4584,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:26.306298+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -5285,10 +4598,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "a2af106e-e1a6-4319-8322-6246b5f81b7f"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-14 08:48:04.697298+00",
       "updated_at": "2025-09-14 09:04:55.087653+00"
@@ -5303,8 +4612,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:26.660484+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -5319,8 +4626,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-13 10:06:10.92668+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -5335,10 +4640,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "5e6d2154-0443-4473-8267-2299551dc1b3"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-10 05:57:17.961733+00",
       "updated_at": "2025-09-10 06:08:56.459771+00"
@@ -5353,10 +4654,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "d6d149d7-d6bc-439c-95cc-4c31b34e079a"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-13 09:55:09.735743+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -5371,10 +4668,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "d49781e0-f02c-4513-88c0-9753d86cd76a"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-16 08:22:28.890729+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -5389,8 +4682,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "79d63229-f275-4636-9466-22b66f23e751",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-29 20:27:06.217341+00",
       "updated_at": "2025-08-29 20:27:06.217341+00"
@@ -5405,10 +4696,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "614f9c00-b84f-47ba-92f7-51a5f2aa3764"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-14 08:57:57.214031+00",
       "updated_at": "2025-09-14 09:08:10.604936+00"
@@ -5423,8 +4710,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:26.371652+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -5439,8 +4724,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:29.746088+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -5455,8 +4738,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:26.172646+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -5471,10 +4752,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "1c0aad59-c4d8-47fe-b521-5948d040bde3"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-09 09:35:43.733207+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -5489,8 +4766,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:28.938671+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -5505,8 +4780,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:25.393121+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -5521,8 +4794,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-20 18:19:48.42231+00",
       "updated_at": "2025-09-20 18:19:48.42231+00"
@@ -5537,8 +4808,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-29 20:14:01.135265+00",
       "updated_at": "2025-08-29 20:14:01.135265+00"
@@ -5553,10 +4822,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "8f5d1e1a-da80-470b-85a7-8d69b156a0ea"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-14 09:00:21.707059+00",
       "updated_at": "2025-09-14 09:09:00.792424+00"
@@ -5571,8 +4836,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:28.189269+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -5587,29 +4850,24 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "f8deef23-d079-4903-911d-b8806e55467e"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-13 09:49:56.480071+00",
-      "updated_at": "2025-08-24 17:31:59.844678+00"
+      "updated_at": "2025-08-24 17:31:59.844678+00",
+      "frequency": "monthly"
     },
     {
       "id": "ea18d710-b396-4ce1-9e44-b756d6ad6fde",
-      "description": "McDonalds,9.50,spesa,cibo_fuori,2025-08-10,f5977c4b-a5c6-4d29-bf94-243367d2e232,,false,,2025-08-10 09:04:05.018995+00,2025-08-24 17:31:59.844678+00,0.00,9.50",
-      "amount": null,
+      "description": "McDonalds",
+      "amount": 9.5,
       "type": "expense",
-      "category": "",
-      "date": "T00:00:00.000Z",
+      "category": "cibo_fuori",
+      "date": "2025-08-10T00:00:00.000Z",
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
-      "account_id": "",
+      "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
-      "created_at": "",
-      "updated_at": ""
+      "created_at": "2025-08-10T09:04:05.018995+00",
+      "updated_at": "2025-08-24T17:31:59.844678+00"
     },
     {
       "id": "ecbdddf8-e3e7-46c6-9e29-645e045bc207",
@@ -5621,8 +4879,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-24 08:04:28.248951+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -5637,8 +4893,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-29 20:23:45.807241+00",
       "updated_at": "2025-08-29 20:28:29.490683+00"
@@ -5653,8 +4907,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:24.932889+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -5669,8 +4921,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:25.126532+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -5685,10 +4935,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "adce2daf-1446-4b52-9db8-30499d3318fd"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-29 20:24:03.797156+00",
       "updated_at": "2025-08-30 06:38:29.176707+00"
@@ -5703,8 +4949,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-29 20:14:48.944462+00",
       "updated_at": "2025-08-29 20:14:48.944462+00"
@@ -5719,8 +4963,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-06 08:15:48.770397+00",
       "updated_at": "2025-09-06 08:15:48.770397+00"
@@ -5735,8 +4977,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-16 08:28:15.514816+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -5751,10 +4991,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "ad395268-0574-413e-a01c-6dded40afae1"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-19 06:09:18.295774+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -5769,13 +5005,10 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "573dc4e4-a88c-4b22-915c-30ccb8ea65d5"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-14 08:50:20.721075+00",
-      "updated_at": "2025-09-14 09:05:35.771903+00"
+      "updated_at": "2025-09-14 09:05:35.771903+00",
+      "frequency": "monthly"
     },
     {
       "id": "f78f6c7e-d787-4750-b8bb-38ec317f76ee",
@@ -5787,8 +5020,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-20 18:17:08.246601+00",
       "updated_at": "2025-09-20 18:17:08.246601+00"
@@ -5803,13 +5034,10 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "reconciled",
-      "linked_transaction_ids": [
-        "ea17e030-2d4d-4e84-a262-9710aeeb8fe9"
-      ],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-13 09:48:09.419462+00",
-      "updated_at": "2025-08-24 17:31:59.844678+00"
+      "updated_at": "2025-08-24 17:31:59.844678+00",
+      "frequency": "monthly"
     },
     {
       "id": "f936298a-90a2-44eb-837f-17bbe899cd16",
@@ -5821,8 +5049,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:29.399522+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -5837,8 +5063,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-29 20:16:53.21108+00",
       "updated_at": "2025-08-29 20:16:53.21108+00"
@@ -5853,8 +5077,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:27.000211+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -5869,8 +5091,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-16 08:25:46.762646+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -5885,8 +5105,6 @@
       "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
       "account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-07 20:22:23.824032+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -5901,8 +5119,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-20 18:17:36.85803+00",
       "updated_at": "2025-09-20 18:18:16.422062+00"
@@ -5917,8 +5133,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-09-20 18:17:47.520157+00",
       "updated_at": "2025-09-20 18:18:25.495566+00"
@@ -5933,8 +5147,6 @@
       "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
       "account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
       "to_account_id": null,
-      "status": "not_reconciled",
-      "linked_transaction_ids": [],
       "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
       "created_at": "2025-08-16 08:28:47.167609+00",
       "updated_at": "2025-08-24 17:31:59.844678+00"
@@ -6031,7 +5243,6 @@
       "type": "monthly",
       "categories": [
         "eventi",
-        "investimenti",
         "regali",
         "risparmi"
       ],
@@ -6046,7 +5257,6 @@
       "type": "monthly",
       "categories": [
         "eventi",
-        "investimenti",
         "regali",
         "risparmi"
       ],
@@ -6076,5 +5286,147 @@
       "updated_at": "2025-08-09 19:51:46.203816+00"
     }
   ],
-  "investments": []
+  "investments": [],
+  "recurring_transaction_series": [
+    {
+      "id": "rts_1758480562120",
+      "name": "Netflix Subscription",
+      "description": "Netflix Monthly Subscription",
+      "amount": 15.99,
+      "type": "expense",
+      "category": "entertainment",
+      "frequency": "monthly",
+      "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
+      "account_id": "b2c59e9c-c6c2-4c3a-b8f4-e7e7b8c9d0e1",
+      "start_date": "2025-01-01T00:00:00.000Z",
+      "next_due_date": "2025-09-27T00:00:00.000Z",
+      "day_of_month": 27,
+      "is_active": true,
+      "is_paused": false,
+      "last_executed_date": "2025-08-27T00:00:00.000Z",
+      "total_executions": 8,
+      "failed_executions": 0,
+      "auto_execute": false,
+      "notify_before_days": 2,
+      "tags": [
+        "streaming",
+        "entertainment"
+      ],
+      "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
+      "created_at": "2025-01-01T00:00:00.000Z",
+      "updated_at": "2025-09-22T08:11:01.428Z"
+    },
+    {
+      "id": "rts_1758480562121",
+      "name": "Gym Membership",
+      "description": "Monthly Gym Subscription",
+      "amount": 45,
+      "type": "expense",
+      "category": "health",
+      "frequency": "monthly",
+      "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
+      "account_id": "b2c59e9c-c6c2-4c3a-b8f4-e7e7b8c9d0e1",
+      "start_date": "2025-01-15T00:00:00.000Z",
+      "next_due_date": "2025-09-15T00:00:00.000Z",
+      "day_of_month": 15,
+      "is_active": true,
+      "is_paused": false,
+      "last_executed_date": "2025-08-15T00:00:00.000Z",
+      "total_executions": 8,
+      "failed_executions": 0,
+      "auto_execute": true,
+      "notify_before_days": 3,
+      "tags": [
+        "health",
+        "fitness"
+      ],
+      "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
+      "created_at": "2025-01-15T00:00:00.000Z",
+      "updated_at": "2025-08-15T00:00:00.000Z"
+    },
+    {
+      "id": "rts_1758480562122",
+      "name": "Salary Income",
+      "description": "Monthly Salary",
+      "amount": 3500,
+      "type": "income",
+      "category": "income",
+      "frequency": "monthly",
+      "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
+      "account_id": "b2c59e9c-c6c2-4c3a-b8f4-e7e7b8c9d0e1",
+      "start_date": "2025-01-01T00:00:00.000Z",
+      "next_due_date": "2025-09-25T00:00:00.000Z",
+      "day_of_month": 25,
+      "is_active": true,
+      "is_paused": false,
+      "last_executed_date": "2025-08-25T00:00:00.000Z",
+      "total_executions": 8,
+      "failed_executions": 0,
+      "auto_execute": true,
+      "notify_before_days": 1,
+      "tags": [
+        "salary",
+        "work"
+      ],
+      "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
+      "created_at": "2025-01-01T00:00:00.000Z",
+      "updated_at": "2025-08-25T00:00:00.000Z"
+    },
+    {
+      "id": "rts_1758480562123",
+      "name": "Rent Payment",
+      "description": "Monthly Apartment Rent",
+      "amount": 1200,
+      "type": "expense",
+      "category": "housing",
+      "frequency": "monthly",
+      "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
+      "account_id": "b2c59e9c-c6c2-4c3a-b8f4-e7e7b8c9d0e1",
+      "start_date": "2025-01-01T00:00:00.000Z",
+      "next_due_date": "2025-10-01T00:00:00.000Z",
+      "day_of_month": 1,
+      "is_active": true,
+      "is_paused": false,
+      "last_executed_date": "2025-09-01T00:00:00.000Z",
+      "total_executions": 9,
+      "failed_executions": 0,
+      "auto_execute": true,
+      "notify_before_days": 5,
+      "tags": [
+        "housing",
+        "rent"
+      ],
+      "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
+      "created_at": "2025-01-01T00:00:00.000Z",
+      "updated_at": "2025-09-01T00:00:00.000Z"
+    },
+    {
+      "id": "rts_1758480562124",
+      "name": "Coffee Subscription",
+      "description": "Weekly Coffee Delivery",
+      "amount": 12.5,
+      "type": "expense",
+      "category": "food",
+      "frequency": "weekly",
+      "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
+      "account_id": "b2c59e9c-c6c2-4c3a-b8f4-e7e7b8c9d0e1",
+      "start_date": "2025-01-06T00:00:00.000Z",
+      "next_due_date": "2025-09-23T00:00:00.000Z",
+      "day_of_week": 1,
+      "is_active": true,
+      "is_paused": false,
+      "last_executed_date": "2025-09-16T00:00:00.000Z",
+      "total_executions": 37,
+      "failed_executions": 1,
+      "auto_execute": false,
+      "notify_before_days": 1,
+      "tags": [
+        "coffee",
+        "subscription"
+      ],
+      "group_id": "0021a4c8-62bc-4ff1-a5aa-ddee837733a8",
+      "created_at": "2025-01-06T00:00:00.000Z",
+      "updated_at": "2025-09-16T00:00:00.000Z"
+    }
+  ]
 }

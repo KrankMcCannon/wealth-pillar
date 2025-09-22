@@ -122,11 +122,9 @@ export const useUpcomingTransactions = (userId?: string) => {
         ? await transactionService.getByUserId(userId)
         : await transactionService.getAll();
 
-      // Filter for upcoming/recurring transactions
+      // Filter for upcoming/recurring transactions based on frequency and type expense only
       return transactions.filter(
-        (transaction) =>
-          transaction.type === 'recurrent' ||
-          (transaction.frequency && transaction.frequency !== 'once')
+        (transaction) => transaction.type === 'expense' && transaction.frequency && transaction.frequency !== 'once'
       );
     },
     staleTime: 2 * 60 * 1000, // 2 minutes for upcoming transactions
@@ -359,17 +357,15 @@ export const useStartBudgetPeriod = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ budgetId, userId }: { budgetId: string; userId: string }) =>
-      budgetPeriodService.startNewPeriod(budgetId, userId),
+    mutationFn: ({ userId }: { userId: string }) =>
+      budgetPeriodService.startNewPeriod(userId),
     onSuccess: (data) => {
       // Invalidate budget periods queries
       queryClient.invalidateQueries({ queryKey: queryKeys.budgetPeriods() });
       queryClient.invalidateQueries({ queryKey: queryKeys.budgetPeriodsByUser(data.user_id) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.currentBudgetPeriod(data.budget_id) });
       queryClient.invalidateQueries({ queryKey: queryKeys.activeBudgetPeriods() });
 
-      // Invalidate related budget and dashboard queries
-      queryClient.invalidateQueries({ queryKey: queryKeys.budget(data.budget_id) });
+      // Invalidate dashboard queries
       queryClient.invalidateQueries({ queryKey: queryKeys.dashboard() });
     },
   });
@@ -379,17 +375,15 @@ export const useEndBudgetPeriod = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (budgetId: string) =>
-      budgetPeriodService.endCurrentPeriod(budgetId),
+    mutationFn: (userId: string) =>
+      budgetPeriodService.endCurrentPeriod(userId),
     onSuccess: (data) => {
       // Invalidate budget periods queries
       queryClient.invalidateQueries({ queryKey: queryKeys.budgetPeriods() });
       queryClient.invalidateQueries({ queryKey: queryKeys.budgetPeriodsByUser(data.user_id) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.currentBudgetPeriod(data.budget_id) });
       queryClient.invalidateQueries({ queryKey: queryKeys.activeBudgetPeriods() });
 
-      // Invalidate related budget and dashboard queries
-      queryClient.invalidateQueries({ queryKey: queryKeys.budget(data.budget_id) });
+      // Invalidate dashboard queries
       queryClient.invalidateQueries({ queryKey: queryKeys.dashboard() });
     },
   });
@@ -405,9 +399,6 @@ export const useCreateBudgetPeriod = () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.budgetPeriods() });
       queryClient.invalidateQueries({ queryKey: queryKeys.budgetPeriodsByUser(data.user_id) });
       queryClient.invalidateQueries({ queryKey: queryKeys.activeBudgetPeriods() });
-
-      // Update cache with new period
-      queryClient.setQueryData(queryKeys.currentBudgetPeriod(data.budget_id), data);
     },
   });
 };
@@ -425,7 +416,6 @@ export const useUpdateBudgetPeriod = () => {
       // Invalidate related queries
       queryClient.invalidateQueries({ queryKey: queryKeys.budgetPeriods() });
       queryClient.invalidateQueries({ queryKey: queryKeys.budgetPeriodsByUser(data.user_id) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.currentBudgetPeriod(data.budget_id) });
     },
   });
 };

@@ -11,6 +11,8 @@ import {
   Budget,
   FilterState,
   Transaction,
+  TransactionFrequencyType,
+  TransactionType,
   User
 } from "./types";
 
@@ -72,25 +74,82 @@ export const getTransactionsByType = async (userId: string, type: 'expense' | 'i
 export const getExpenseTransactions = (user: User) => getTransactionsByType(user.id, 'expense');
 export const getIncomeTransactions = (user: User) => getTransactionsByType(user.id, 'income');
 
+// Transaction type checking utilities
+const isTransferLike = (tx: Transaction): boolean => {
+  return tx.type === 'transfer' || tx.category === 'trasferimento' || !!tx.to_account_id;
+};
+
+const isValidTransaction = (tx: Transaction): boolean => {
+  return tx.amount !== null && tx.account_id !== "" && !isNaN(new Date(tx.date).getTime());
+};
+
+const isWithinDateRange = (txDate: Date, startDate: Date, endDate?: Date): boolean => {
+  const end = endDate || new Date();
+  return txDate >= startDate && txDate <= end;
+};
+
+/**
+ * Calculate budget spending for the active budget period
+ */
 const getBudgetSpent = async (budget: Budget): Promise<number> => {
   const transactions = await transactionService.getByUserId(budget.user_id);
-  const spent = transactions
-    .filter(tx => tx.type === 'expense' && budget.categories.includes(tx.category))
-    .reduce((total, tx) => total + tx.amount, 0);
-  return Math.round(spent * 100) / 100;
+  const users = await userService.getAll();
+  const user = users.find(u => u.id === budget.user_id);
+
+  if (!user) return 0;
+
+  const { start, end } = getActivePeriodDates(user);
+  return calculateBudgetSpent(transactions, budget, start || undefined, end || undefined);
 };
 
 export const getBalanceSpent = getBudgetSpent;
 
+/**
+ * Calculate remaining budget balance for the active period
+ */
 export const getBudgetBalance = async (budget: Budget): Promise<number> => {
   const spent = await getBudgetSpent(budget);
   return Math.round((budget.amount - spent) * 100) / 100;
 };
 
+/**
+ * Calculate budget progress percentage for the active period (can exceed 100%)
+ */
 export const getBudgetProgress = async (budget: Budget): Promise<number> => {
   const spent = await getBudgetSpent(budget);
-  const progress = Math.min(Math.max((spent / budget.amount) * 100, 0), 100);
+  const progress = budget.amount > 0 ? (spent / budget.amount) * 100 : 0;
   return Math.round(progress * 100) / 100;
+};
+
+/**
+ * Get budget spending breakdown by category for the active period
+ */
+export const getBudgetCategorySpending = async (budget: Budget): Promise<Record<string, number>> => {
+  const transactions = await transactionService.getByUserId(budget.user_id);
+  const users = await userService.getAll();
+  const user = users.find(u => u.id === budget.user_id);
+
+  if (!user) return {};
+
+  const { start, end } = getActivePeriodDates(user);
+  const relevantTransactions = getBudgetTransactions(transactions, budget, start || undefined, end || undefined);
+
+  // Calculate spending by category
+  const categorySpending: Record<string, number> = {};
+  budget.categories.forEach(category => {
+    const categoryTotal = relevantTransactions
+      .filter(tx => tx.category === category)
+      .reduce((sum, tx) => {
+        if (tx.type === 'expense') return sum + tx.amount;
+        if (tx.type === 'income') return sum - tx.amount;
+        return sum;
+      }, 0);
+    if (categoryTotal !== 0) {
+      categorySpending[category] = Math.round(categoryTotal * 100) / 100;
+    }
+  });
+
+  return categorySpending;
 };
 
 export const getUserBudgets = (user: User) => budgetService.getByUserId(user.id);
@@ -195,6 +254,7 @@ export const getDynamicChartData = async (budget: Budget) => {
   }
 };
 
+// Centralized transaction calculation utilities
 const calculateBalance = (transactions: Transaction[]): number => {
   // User-level balance: income - expense; ignore transfers (net zero across accounts)
   const balance = transactions.reduce((total, tx) => {
@@ -204,6 +264,94 @@ const calculateBalance = (transactions: Transaction[]): number => {
     return total;
   }, 0);
   return Math.round(balance * 100) / 100;
+};
+
+// Centralized account balance calculation with transfer handling
+export const calculateAccountBalance = (accountId: string, transactions: Transaction[]): number => {
+  const related = transactions.filter(t =>
+    (t.account_id === accountId || t.to_account_id === accountId) &&
+    isValidTransaction(t)
+  );
+
+  const balance = related.reduce((sum, t) => {
+    // Handle transfer transactions with proper double-entry logic
+    if (t.to_account_id && t.type === 'transfer') {
+      if (t.account_id === accountId) return sum - t.amount; // outflow from source account
+      if (t.to_account_id === accountId) return sum + t.amount; // inflow to destination account
+      return sum;
+    }
+
+    // Handle regular income/expense transactions
+    if (t.account_id === accountId) {
+      if (t.type === 'income') return sum + t.amount;
+      if (t.type === 'expense') return sum - t.amount;
+    }
+
+    return sum;
+  }, 0);
+
+  return Math.round(balance * 100) / 100;
+};
+
+// Centralized budget transaction filtering
+export const getBudgetTransactions = (
+  transactions: Transaction[],
+  budget: Budget,
+  periodStart?: Date,
+  periodEnd?: Date
+): Transaction[] => {
+  return transactions.filter(tx => {
+    // Basic filtering
+    if (!isValidTransaction(tx) || isTransferLike(tx)) return false;
+    if (tx.user_id !== budget.user_id) return false;
+    if (!budget.categories.includes(tx.category)) return false;
+    if (tx.type !== 'expense' && tx.type !== 'income') return false;
+
+    // Date filtering if period is specified
+    if (periodStart) {
+      const txDate = new Date(tx.date);
+      return isWithinDateRange(txDate, periodStart, periodEnd);
+    }
+
+    return true;
+  });
+};
+
+// Centralized budget spent calculation
+export const calculateBudgetSpent = (
+  transactions: Transaction[],
+  budget: Budget,
+  periodStart?: Date,
+  periodEnd?: Date
+): number => {
+  const relevantTransactions = getBudgetTransactions(transactions, budget, periodStart, periodEnd);
+
+  const spent = relevantTransactions.reduce((total, tx) => {
+    if (tx.type === 'expense') return total + tx.amount;
+    if (tx.type === 'income') return total - tx.amount;
+    return total;
+  }, 0);
+
+  return Math.round(spent * 100) / 100;
+};
+
+// Get active period dates for a user
+export const getActivePeriodDates = (user: User): { start: Date | null; end: Date | null } => {
+  const activePeriod = user.budget_periods?.find(period => period.is_active);
+
+  if (activePeriod) {
+    return {
+      start: new Date(activePeriod.start_date),
+      end: activePeriod.end_date ? new Date(activePeriod.end_date) : new Date()
+    };
+  }
+
+  // Fallback to current month
+  const now = new Date();
+  return {
+    start: new Date(now.getFullYear(), now.getMonth(), 1),
+    end: new Date(now.getFullYear(), now.getMonth() + 1, 0)
+  };
 };
 
 export const getUserAccountBalance = async (userId: string): Promise<number> => {
@@ -227,19 +375,8 @@ export const getAllAccountsBalance = async (): Promise<number> => {
 
 export const getAccountBalance = async (accountId: string): Promise<number> => {
   try {
-    const all = await transactionService.getAll();
-    const related = all.filter(t => t.account_id === accountId || t.to_account_id === accountId);
-    const balance = related.reduce((sum, t) => {
-      if (t.to_account_id) {
-        if (t.account_id === accountId) return sum - t.amount;
-        if (t.to_account_id === accountId) return sum + t.amount;
-        return sum;
-      }
-      if (t.type === 'income') return sum + t.amount;
-      if (t.type === 'expense') return sum - t.amount;
-      return sum;
-    }, 0);
-    return Math.round(balance * 100) / 100;
+    const transactions = await transactionService.getAll();
+    return calculateAccountBalance(accountId, transactions);
   } catch {
     return 0;
   }
@@ -257,24 +394,6 @@ export const getFilteredAccounts = async (userId?: string): Promise<Account[]> =
 export const getFilteredBudgets = async (userId?: string): Promise<Budget[]> => {
   try {
     return userId && userId !== 'all' ? budgetService.getByUserId(userId) : budgetService.getAll();
-  } catch {
-    return [];
-  }
-};
-
-export const getRecurringTransactions = async (userId?: string): Promise<Transaction[]> => {
-  try {
-    const allTransactions = await transactionService.getAll();
-    const recurring = allTransactions.filter(tx => 
-      tx.frequency && tx.frequency !== 'once' && 
-      ['weekly', 'biweekly', 'monthly', 'yearly'].includes(tx.frequency)
-    );
-    
-    const filtered = userId && userId !== 'all' 
-      ? recurring.filter(tx => tx.user_id === userId) 
-      : recurring;
-    
-    return filtered.slice(0, 5);
   } catch {
     return [];
   }
@@ -374,115 +493,10 @@ export const formatDueDate = (dueDate: Date): string => {
   }
 };
 
-// Calculate the next due date for a recurrent transaction
-export const calculateNextDueDate = (transactionDate: string | Date, frequency: string): Date => {
-  const baseDate = new Date(transactionDate);
-  const today = new Date();
-  
-  // Start from the transaction date and find the next occurrence
-  const nextDate = new Date(baseDate);
-  
-  while (nextDate <= today) {
-    switch (frequency) {
-      case 'weekly':
-        nextDate.setDate(nextDate.getDate() + 7);
-        break;
-      case 'biweekly':
-        nextDate.setDate(nextDate.getDate() + 14);
-        break;
-      case 'monthly':
-        nextDate.setMonth(nextDate.getMonth() + 1);
-        break;
-      case 'yearly':
-        nextDate.setFullYear(nextDate.getFullYear() + 1);
-        break;
-      default:
-        // For 'once' or unknown frequencies, return the original date
-        return baseDate;
-    }
-  }
-  
-  return nextDate;
-};
 
 // Italian pluralization helper
 export const pluralize = (count: number, singular: string, plural: string): string => {
   return count === 1 ? `${count} ${singular}` : `${count} ${plural}`;
-};
-
-export const getDaysUntilDue = (dueDate: Date): number => {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const due = new Date(dueDate);
-  due.setHours(0, 0, 0, 0);
-  
-  return Math.ceil((due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-};
-
-export const groupUpcomingTransactionsByDaysRemaining = (transactions: Transaction[]): Record<string, Transaction[]> => {
-  const grouped: Record<string, Transaction[]> = {};
-  
-  transactions
-    .filter(tx => tx.frequency && tx.frequency !== 'once')
-    .forEach(transaction => {
-      if (!transaction.frequency || transaction.frequency === 'once') return;
-      
-      const nextDueDate = calculateNextDueDate(transaction.date, transaction.frequency);
-      const daysUntil = getDaysUntilDue(nextDueDate);
-      
-      // Only include transactions due within the next 7 days
-      if (daysUntil > 7) return;
-      
-      let groupKey: string = '';
-      let sortOrder: number = 999;
-      
-      if (daysUntil === 0) {
-        groupKey = 'Oggi';
-        sortOrder = 0;
-      } else if (daysUntil === 1) {
-        groupKey = 'Domani';
-        sortOrder = 1;
-      } else if (daysUntil <= 3) {
-        groupKey = 'Prossimi 3 giorni';
-        sortOrder = 2;
-      } else if (daysUntil <= 7) {
-        groupKey = 'Questa settimana';
-        sortOrder = 3;
-      }
-      
-      if (!grouped[groupKey]) {
-        grouped[groupKey] = [];
-      }
-      grouped[groupKey].push({ ...transaction, _sortOrder: sortOrder } as Transaction & { _sortOrder: number });
-    });
-  
-  // Sort each group by due date (earliest first)
-  Object.keys(grouped).forEach(key => {
-    grouped[key].sort((a, b) => {
-      if (!a.frequency || !b.frequency || a.frequency === 'once' || b.frequency === 'once') return 0;
-      const aDueDate = calculateNextDueDate(a.date, a.frequency);
-      const bDueDate = calculateNextDueDate(b.date, b.frequency);
-      return aDueDate.getTime() - bDueDate.getTime();
-    });
-  });
-  
-  // Convert to ordered object with groups sorted by urgency
-  const orderedGroupKeys = Object.keys(grouped).sort((a, b) => {
-    const aTransaction = grouped[a][0] as Transaction & { _sortOrder: number };
-    const bTransaction = grouped[b][0] as Transaction & { _sortOrder: number };
-    return aTransaction._sortOrder - bTransaction._sortOrder;
-  });
-  
-  const orderedGrouped: Record<string, Transaction[]> = {};
-  orderedGroupKeys.forEach(key => {
-    orderedGrouped[key] = grouped[key].map(tx => {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { _sortOrder, ...cleanTx } = tx as Transaction & { _sortOrder: number };
-      return cleanTx;
-    });
-  });
-  
-  return orderedGrouped;
 };
 
 // Category labels mapping
@@ -542,8 +556,40 @@ export const getAccountName = async (accountId: string): Promise<string> => {
   }
 };
 
-export const truncateText = (text: string, maxLength = 20): string => 
+export const truncateText = (text: string, maxLength = 20): string =>
   text.length <= maxLength ? text : `${text.substring(0, maxLength)}...`;
+
+/**
+ * Creates a proper transfer transaction with double-entry bookkeeping
+ * This function creates a single transfer transaction with proper to_account_id
+ * The balance calculation logic will handle both sides of the transfer
+ */
+export const createTransferTransaction = async (
+  fromAccountId: string,
+  toAccountId: string,
+  amount: number,
+  description: string,
+  userId: string,
+  groupId?: string,
+  date?: string
+): Promise<Transaction> => {
+  const transferData = {
+    amount,
+    description,
+    type: 'transfer' as TransactionType,
+    category: 'trasferimento',
+    date: date || new Date().toISOString(),
+    user_id: userId,
+    account_id: fromAccountId,
+    to_account_id: toAccountId,
+    frequency: 'once' as TransactionFrequencyType,
+    group_id: groupId,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  };
+
+  return await transactionService.create(transferData);
+};
 
 export const formatFrequency = (frequency?: string): string => {
   if (!frequency) return 'Una volta';

@@ -16,71 +16,33 @@ import BottomNavigation from "@/components/bottom-navigation";
 import UserSelector from "@/components/user-selector";
 import { SectionHeader } from "@/components/section-header";
 import { GroupedTransactionCard } from "@/components/grouped-transaction-card";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, getTotalForSection, formatDateLabel, pluralize } from "@/lib/utils";
 import {
   useBudgets,
   useTransactions,
   useCategories,
   useAccounts,
-  useCurrentBudgetPeriod,
+  useBudgetPeriods,
   useUserSelection
 } from "@/hooks";
-import type { Budget, Transaction } from "@/lib/types";
+import type { Budget } from "@/lib/types";
 import { BudgetPeriodInfo } from "@/components/budget-period-info";
 import { BudgetPeriodManager } from "@/components/budget-period-manager";
-
-const createAggregatedBudget = (budgets: Budget[], userId: string): Budget => {
-  const targetBudgets = userId === 'all' ? budgets : budgets.filter(b => b.user_id === userId);
-  return {
-    id: `all_budgets_${userId}`,
-    description: 'Tutti i Budget',
-    amount: targetBudgets.reduce((sum, budget) => sum + budget.amount, 0),
-    type: 'monthly' as const,
-    categories: [...new Set(targetBudgets.flatMap(budget => budget.categories))],
-    user_id: userId,
-    created_at: new Date(),
-    updated_at: new Date()
-  };
-};
+import {
+  getBudgetTransactions,
+  calculateBudgetSpent,
+  getActivePeriodDates
+} from "@/lib/utils";
 
 const getBudgetsForUser = (budgets: Budget[], userId: string): Budget[] => {
   if (userId === 'all') {
-    return budgets.length > 1 
-      ? [createAggregatedBudget(budgets, 'all'), ...budgets]
-      : budgets;
+    return budgets;
   }
-  
+
   const userBudgets = budgets.filter(budget => budget.user_id === userId);
-  return userBudgets.length > 1
-    ? [createAggregatedBudget(budgets, userId), ...userBudgets]
-    : userBudgets;
+  return userBudgets;
 };
 
-const filterTransactionsByBudget = (transactions: Transaction[], budget: Budget, selectedUser: string): Transaction[] => {
-  // Base: only expenses in the budget's categories
-  let filtered = transactions.filter(transaction =>
-    transaction.type === 'expense' &&
-    budget.categories.includes(transaction.category)
-  );
-
-  // For non-aggregated budgets, always scope to the budget owner
-  if (!budget.id.startsWith('all_budgets_')) {
-    filtered = filtered.filter(t => t.user_id === budget.user_id);
-  } else {
-    // Aggregated budgets: optionally scope by embedded user in id
-    const userId = budget.id.replace('all_budgets_', '');
-    if (userId !== 'all') {
-      filtered = filtered.filter(t => t.user_id === userId);
-    }
-  }
-
-  // If a specific user is selected and budget is not aggregated, selection must match owner anyway
-  if (selectedUser !== 'all' && !budget.id.startsWith('all_budgets_')) {
-    filtered = filtered.filter(t => t.user_id === selectedUser);
-  }
-
-  return filtered;
-};
 
 function BudgetsContent() {
   const router = useRouter();
@@ -102,7 +64,7 @@ function BudgetsContent() {
   const { data: categories = [], isLoading: categoriesLoading } = useCategories();
   const [activeTab, setActiveTab] = useState('expenses');
 
-  const { data: currentBudgetPeriod, isLoading: periodLoading } = useCurrentBudgetPeriod(selectedBudget?.id || '');
+  const { data: allBudgetPeriods = [], isLoading: periodLoading } = useBudgetPeriods();
 
   useEffect(() => {
     const userLookupMap: { [key: string]: string } = {};
@@ -115,31 +77,23 @@ function BudgetsContent() {
     }
   }, [users, budgets, selectedUser]);
 
+  const getCurrentPeriodForUser = useCallback((userId: string) => {
+    return allBudgetPeriods.find(period => period.user_id === userId && period.is_active);
+  }, [allBudgetPeriods]);
+
   const getBudgetSpent = useCallback((budget: Budget): number => {
     if (!budget) return 0;
-    const relevantTransactions = filterTransactionsByBudget(allTransactions, budget, selectedUser);
 
-    // Restrict to current budget period dates when available
-    const parse = (d: string | Date | null | undefined) => {
-      if (!d) return null;
-      const dt = new Date(d);
-      return isNaN(dt.getTime()) ? null : dt;
-    };
+    // Find the user for period information
+    const user = users?.find(u => u.id === budget.user_id);
+    if (!user) return 0;
 
-    let periodFiltered = relevantTransactions;
-    if (currentBudgetPeriod && currentBudgetPeriod.budget_id === budget.id) {
-      const start = parse(currentBudgetPeriod.start_date);
-      const end = currentBudgetPeriod.end_date ? parse(currentBudgetPeriod.end_date) : new Date();
-      if (start && end) {
-        periodFiltered = relevantTransactions.filter(t => {
-          const td = parse(t.date);
-          return !!td && td >= start && td <= end;
-        });
-      }
-    }
+    // Get period dates using centralized function
+    const { start, end } = getActivePeriodDates(user);
 
-    return periodFiltered.reduce((total, transaction) => total + transaction.amount, 0);
-  }, [allTransactions, selectedUser, currentBudgetPeriod]);
+    // Use centralized function for calculation
+    return calculateBudgetSpent(allTransactions, budget, start || undefined, end || undefined);
+  }, [allTransactions, users]);
 
   const budgetBalance = useMemo(() => {
     if (!selectedBudget) return 0;
@@ -168,15 +122,13 @@ function BudgetsContent() {
 
     // Filter transactions based on selected user and budget categories
     let relevantTransactions = allTransactions;
-    if (selectedUser !== 'all' && !selectedBudget.id.startsWith('all_budgets_')) {
+
+    // Always scope to the budget owner
+    relevantTransactions = relevantTransactions.filter(t => t.user_id === selectedBudget.user_id);
+
+    // If a specific user is selected, filter by that user
+    if (selectedUser !== 'all') {
       relevantTransactions = relevantTransactions.filter(t => t.user_id === selectedUser);
-    } else if (selectedBudget.id.startsWith('all_budgets_')) {
-      // For aggregated budgets, filter by the specific user (unless it's all_budgets_all)
-      const userId = selectedBudget.id.replace('all_budgets_', '');
-      if (userId !== 'all') {
-        relevantTransactions = relevantTransactions.filter(t => t.user_id === userId);
-      }
-      // If userId === 'all', include all transactions (no additional filtering)
     }
 
     // Get transactions from the last 7 days
@@ -354,10 +306,69 @@ function BudgetsContent() {
 
   const budgetTransactions = useMemo(() => {
     if (!selectedBudget) return [];
-    return filterTransactionsByBudget(allTransactions, selectedBudget, selectedUser)
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-      .slice(0, 10);
-  }, [selectedBudget, selectedUser, allTransactions]);
+
+    // Find the user for period information
+    const user = users?.find(u => u.id === selectedBudget.user_id);
+    if (!user) return [];
+
+    // Get period dates using centralized function
+    const { start, end } = getActivePeriodDates(user);
+
+    // Use centralized function to get all budget transactions for the period
+    const periodTransactions = getBudgetTransactions(
+      allTransactions,
+      selectedBudget,
+      start || undefined,
+      end || undefined
+    );
+
+    // Filter by selected user if not 'all'
+    const filteredTransactions = selectedUser !== 'all'
+      ? periodTransactions.filter(t => t.user_id === selectedUser)
+      : periodTransactions;
+
+    // Sort by date (most recent first) and return ALL transactions (no slice limit)
+    return filteredTransactions
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  }, [selectedBudget, selectedUser, allTransactions, users]);
+
+  const processedBudgetTransactions = useMemo(() => {
+    const safeParse = (d: string | Date) => {
+      const dt = new Date(d);
+      return isNaN(dt.getTime()) ? null : dt;
+    };
+
+    const sorted = [...budgetTransactions]
+      .filter(t => !!safeParse(t.date))
+      .sort((a, b) => {
+        const da = safeParse(a.date)!;
+        const db = safeParse(b.date)!;
+        return db.getTime() - da.getTime();
+      });
+
+    const groupedByDay: Record<string, typeof sorted> = {};
+    sorted.forEach(tx => {
+      const d = safeParse(tx.date);
+      if (!d) return;
+      const key = d.toISOString().split('T')[0];
+      if (!groupedByDay[key]) groupedByDay[key] = [];
+      groupedByDay[key].push(tx);
+    });
+
+    const dayGroups = Object.entries(groupedByDay)
+      .sort(([a], [b]) => new Date(b).getTime() - new Date(a).getTime())
+      .map(([date, transactions]) => ({
+        date,
+        transactions,
+        total: getTotalForSection(transactions),
+        dateLabel: formatDateLabel(date)
+      }));
+
+    return {
+      dayGroups,
+      allTotal: getTotalForSection(sorted)
+    };
+  }, [budgetTransactions]);
 
   const accountNames = useMemo(() => {
     const names: Record<string, string> = {};
@@ -439,7 +450,7 @@ function BudgetsContent() {
               {selectedBudget && (
                 <BudgetPeriodManager
                   budget={selectedBudget}
-                  currentPeriod={currentBudgetPeriod || null}
+                  currentPeriod={getCurrentPeriodForUser(selectedBudget.user_id) || null}
                   trigger={
                     <DropdownMenuItem
                       className="text-sm font-medium text-gray-700 hover:bg-primary/10 hover:text-primary rounded-lg px-3 py-2.5 cursor-pointer transition-colors"
@@ -576,10 +587,10 @@ function BudgetsContent() {
                 </div>
 
                 {/* Budget Period Information */}
-                {currentBudgetPeriod && (
+                {selectedBudget && getCurrentPeriodForUser(selectedBudget.user_id) && (
                   <div className="mt-6 pt-6 border-t border-slate-200">
                     <BudgetPeriodInfo
-                      period={currentBudgetPeriod}
+                      period={getCurrentPeriodForUser(selectedBudget.user_id)!}
                       showSpending={true}
                       className=""
                     />
@@ -617,7 +628,9 @@ function BudgetsContent() {
                         <p className={`text-xl sm:text-3xl font-bold bg-gradient-to-r ${unifiedChartData.gradientColors} bg-clip-text text-transparent`}>
                           {formatCurrency(unifiedChartData.total)}
                         </p>
-                        <p className="text-xs font-semibold uppercase tracking-wide">Questo periodo</p>
+                        <p className="text-xs font-semibold uppercase tracking-wide">
+                          {selectedBudget && getCurrentPeriodForUser(selectedBudget.user_id) ? 'Periodo Budget' : 'Ultimo periodo'}
+                        </p>
                       </div>
                     </div>
 
@@ -712,7 +725,9 @@ function BudgetsContent() {
                         <p className={`text-xl sm:text-3xl font-bold bg-gradient-to-r ${unifiedChartData.gradientColors} bg-clip-text text-transparent`}>
                           {formatCurrency(unifiedChartData.total)}
                         </p>
-                        <p className="text-xs font-semibold uppercase tracking-wide">Questo periodo</p>
+                        <p className="text-xs font-semibold uppercase tracking-wide">
+                          {selectedBudget && getCurrentPeriodForUser(selectedBudget.user_id) ? 'Periodo Budget' : 'Ultimo periodo'}
+                        </p>
                       </div>
                     </div>
 
@@ -798,21 +813,39 @@ function BudgetsContent() {
               </Card>
             </section>
 
-            {/* Total Transactions Section */}
+            {/* Budget Period Transactions Section */}
             <section>
               <SectionHeader
-                title="Transazioni Recenti"
+                title={`Transazioni del Periodo Budget${selectedBudget && getCurrentPeriodForUser(selectedBudget.user_id) ? ` (${new Date(getCurrentPeriodForUser(selectedBudget.user_id)!.start_date).toLocaleDateString('it-IT')} - ${getCurrentPeriodForUser(selectedBudget.user_id)!.end_date ? new Date(getCurrentPeriodForUser(selectedBudget.user_id)!.end_date!).toLocaleDateString('it-IT') : 'Oggi'})` : ''}`}
+                subtitle={`${budgetTransactions.length} ${budgetTransactions.length === 1 ? 'transazione trovata' : 'transazioni trovate'} per questo budget`}
                 className="mb-4 sm:mb-6"
               />
 
-              <div className="space-y-3 sm:space-y-4">
-                {budgetTransactions.length > 0 ? (
-                  <GroupedTransactionCard 
-                    transactions={budgetTransactions}
-                    accountNames={accountNames}
-                    variant="regular"
-                    showHeader={true}
-                  />
+              <div className="space-y-6">
+                {processedBudgetTransactions.dayGroups.length > 0 ? (
+                  processedBudgetTransactions.dayGroups.map((dayGroup) => (
+                    <section key={dayGroup.date}>
+                      <div className="flex items-center justify-between mb-2 px-1">
+                        <h2 className="text-lg font-bold tracking-tight text-gray-900">{dayGroup.dateLabel}</h2>
+                        <div className="text-right">
+                          <div className="flex items-center gap-2 justify-end">
+                            <span className="text-sm text-gray-500">Totale:</span>
+                            <span className={`text-sm font-bold ${dayGroup.total >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                              {formatCurrency(dayGroup.total)}
+                            </span>
+                          </div>
+                          <div className="text-xs text-gray-500 mt-0.5">
+                            {pluralize(dayGroup.transactions.length, 'transazione', 'transazioni')}
+                          </div>
+                        </div>
+                      </div>
+                      <GroupedTransactionCard
+                        transactions={dayGroup.transactions}
+                        accountNames={accountNames}
+                        variant="regular"
+                      />
+                    </section>
+                  ))
                 ) : (
                   <div className="text-center py-8">
                     <p className="text-gray-500">Nessuna transazione trovata per questo budget</p>

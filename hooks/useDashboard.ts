@@ -16,11 +16,18 @@ import type {
   Transaction,
   User,
 } from '@/lib/types';
+import {
+  calculateAccountBalance,
+  calculateBudgetSpent,
+  getActivePeriodDates,
+  getBudgetTransactions
+} from '@/lib/utils';
 import { useQueries, useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
+import { useUpcomingRecurringSeries } from '@/hooks';
 
 /**
- * Enhanced dashboard data type with computed values
+ * Enhanced dashboard data type with user-grouped budget data
  */
 interface DashboardData {
   users: User[];
@@ -38,6 +45,32 @@ interface DashboardData {
     remaining: number;
     percentage: number;
     categories: string[];
+    userId: string;
+    userName: string;
+    activePeriod: BudgetPeriod | undefined;
+    periodStart: string | null;
+    periodEnd: string | null;
+    transactionCount: number;
+  }>;
+  budgetsByUser: Record<string, {
+    user: User;
+    budgets: Array<{
+      id: string;
+      description: string;
+      amount: number;
+      spent: number;
+      remaining: number;
+      percentage: number;
+      categories: string[];
+      transactionCount: number;
+    }>;
+    activePeriod: BudgetPeriod | undefined;
+    periodStart: string | null;
+    periodEnd: string | null;
+    totalBudget: number;
+    totalSpent: number;
+    totalRemaining: number;
+    overallPercentage: number;
   }>;
   budgetPeriodsMap: Record<string, BudgetPeriod>;
   accountNames: Record<string, string>;
@@ -58,6 +91,9 @@ interface DashboardData {
  * - Real-time budget calculations
  */
 export const useDashboardData = (selectedGroupFilter: string = 'all'): DashboardData => {
+  // Get upcoming recurring series using the new architecture
+  const { data: upcomingSeries = [] } = useUpcomingRecurringSeries(7, selectedGroupFilter !== 'all' ? selectedGroupFilter : undefined);
+
   // Parallel queries for optimal performance
   const queries = useQueries({
     queries: [
@@ -98,11 +134,6 @@ export const useDashboardData = (selectedGroupFilter: string = 'all'): Dashboard
 
   // Compute derived data with memoization for performance
   const computedData = useMemo(() => {
-    const parseDate = (d: string | Date | undefined | null): Date | null => {
-      if (!d) return null;
-      const dt = new Date(d);
-      return isNaN(dt.getTime()) ? null : dt;
-    };
     // Extract data with fallbacks
     const users = usersQuery.data || [];
     const allAccounts = accountsQuery.data || [];
@@ -147,27 +178,10 @@ export const useDashboardData = (selectedGroupFilter: string = 'all'): Dashboard
 
     const filteredData = getFilteredData();
 
-    // Calculate account balances (shared accounts include all related transactions)
+    // Calculate account balances using centralized function
     const accountBalances: Record<string, number> = {};
     filteredData.accounts.forEach(account => {
-      const accountTransactions = allTransactions.filter(
-        t => t.account_id === account.id || t.to_account_id === account.id
-      );
-
-      const balance = accountTransactions.reduce((sum, t) => {
-        // If this transaction explicitly moves between accounts, treat via to_account_id/account_id, regardless of type
-        if (t.to_account_id) {
-          if (t.account_id === account.id) return sum - t.amount; // outflow
-          if (t.to_account_id === account.id) return sum + t.amount; // inflow
-          return sum;
-        }
-        // Otherwise fallback to income/expense semantics
-        if (t.type === 'income') return sum + t.amount;
-        if (t.type === 'expense') return sum - t.amount;
-        return sum;
-      }, 0);
-
-      accountBalances[account.id] = balance;
+      accountBalances[account.id] = calculateAccountBalance(account.id, allTransactions);
     });
 
     // Calculate total balance
@@ -182,129 +196,150 @@ export const useDashboardData = (selectedGroupFilter: string = 'all'): Dashboard
       accountNames[account.id] = account.name;
     });
 
-    // Dev-only diagnostics: account balance breakdown
-    if (process.env.NODE_ENV === 'development') {
-      try {
-        const accountDiagnostics = filteredData.accounts.map((account) => {
-          const rel = allTransactions.filter(
-            t => t.account_id === account.id || t.to_account_id === account.id
-          );
-          const income = rel.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
-          const expense = rel.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
-          const transferOut = rel.filter(t => t.type === 'transfer' && t.account_id === account.id).reduce((s, t) => s + t.amount, 0);
-          const transferIn = rel.filter(t => t.type === 'transfer' && t.to_account_id === account.id).reduce((s, t) => s + t.amount, 0);
-          const balanceCalc = income - expense - transferOut + transferIn;
-          return {
-            account: account.name,
-            income,
-            expense: -expense,
-            transfer_out: -transferOut,
-            transfer_in: transferIn,
-            balance_calc: balanceCalc,
-            balance_shown: accountBalances[account.id] || 0,
-            tx_count: rel.length,
-          };
-        });
-        // Collapse group to avoid noise unless needed
-        // eslint-disable-next-line no-console
-        console.groupCollapsed('[DEV] Account balance diagnostics');
-        // eslint-disable-next-line no-console
-        console.table(accountDiagnostics);
-        // eslint-disable-next-line no-console
-        console.groupEnd();
-      } catch (_) {
-        // ignore diagnostics errors
-      }
-    }
-
-    // Calculate budget data with spending analysis
+    // Calculate budget data with user-level period awareness using centralized functions
     const budgetData = filteredData.budgets.map(budget => {
-      // Find active budget period
-      const activePeriod = filteredData.budgetPeriods.find(
-        period => period.budget_id === budget.id && period.is_active
+      // Find the user for this budget
+      const user = users.find(u => u.id === budget.user_id);
+      if (!user) {
+        return {
+          id: budget.id,
+          description: budget.description,
+          amount: budget.amount,
+          spent: 0,
+          remaining: budget.amount,
+          percentage: 0,
+          categories: budget.categories,
+          userId: budget.user_id,
+          userName: 'Unknown User',
+          activePeriod: undefined,
+          periodStart: null,
+          periodEnd: null,
+          transactionCount: 0,
+        };
+      }
+
+      // Get period dates using centralized function
+      const { start: currentPeriodStart, end: currentPeriodEnd } = getActivePeriodDates(user);
+      const activePeriod = user.budget_periods?.find(period => period.is_active);
+
+      // Use centralized function to get relevant transactions
+      const relevantTransactions = getBudgetTransactions(
+        allTransactions,
+        budget,
+        currentPeriodStart || undefined,
+        currentPeriodEnd || undefined
       );
 
-      // Calculate spending for budget categories
-      // Always scope transactions to the budget owner to avoid cross-user mixing
-      const budgetTransactions = allTransactions.filter(
-        transaction =>
-          transaction.user_id === budget.user_id &&
-          budget.categories.includes(transaction.category) &&
-          transaction.type === 'expense'
+      // Calculate spent using centralized function
+      const spent = calculateBudgetSpent(
+        allTransactions,
+        budget,
+        currentPeriodStart || undefined,
+        currentPeriodEnd || undefined
       );
 
-      // If we have an active period, filter by period dates
-      const relevantTransactions = activePeriod
-        ? budgetTransactions.filter(transaction => {
-            const transactionDate = parseDate(transaction.date);
-            const periodStart = parseDate(activePeriod.start_date);
-            const periodEnd = activePeriod.end_date ? parseDate(activePeriod.end_date) : new Date();
-            if (!transactionDate || !periodStart || !periodEnd) return false;
-            return transactionDate >= periodStart && transactionDate <= (periodEnd as Date);
-          })
-        : budgetTransactions;
+      // Calculate remaining and percentage (can exceed 100% when over budget)
+      const remaining = Math.round((budget.amount - spent) * 100) / 100; // Can be negative when over budget
+      const percentage = budget.amount > 0 ? Math.round((spent / budget.amount) * 100 * 100) / 100 : 0; // Can exceed 100%
 
-      const spent = relevantTransactions.reduce(
-        (sum, transaction) => sum + transaction.amount,
-        0
-      );
-
-      const remaining = Math.max(0, budget.amount - spent);
-      const percentage = budget.amount > 0 ? (spent / budget.amount) * 100 : 0;
-
-      const result = {
+      return {
         id: budget.id,
         description: budget.description,
         amount: budget.amount,
         spent,
         remaining,
-        percentage: Math.min(100, percentage),
+        percentage,
         categories: budget.categories,
+        userId: budget.user_id,
+        userName: user.name || 'Unknown User',
+        activePeriod,
+        periodStart: currentPeriodStart?.toISOString() || null,
+        periodEnd: currentPeriodEnd?.toISOString() || null,
+        transactionCount: relevantTransactions.length,
       } as const;
-
-      // Dev-only diagnostics: budget breakdown
-      if (process.env.NODE_ENV === 'development') {
-        try {
-          const periodLabel = activePeriod
-            ? `${new Date(activePeriod.start_date as any).toISOString().slice(0,10)} → ${(activePeriod.end_date ? new Date(activePeriod.end_date as any) : new Date()).toISOString().slice(0,10)}`
-            : 'no-active-period';
-          const diag = {
-            budget: budget.description,
-            owner: budget.user_id,
-            period: periodLabel,
-            tx_count: relevantTransactions.length,
-            spent,
-            planned: budget.amount,
-            percentage: Math.round(Math.min(100, percentage)),
-          };
-          // eslint-disable-next-line no-console
-          console.groupCollapsed('[DEV] Budget diagnostics');
-          // eslint-disable-next-line no-console
-          console.table([diag]);
-          // eslint-disable-next-line no-console
-          console.groupEnd();
-        } catch (_) {
-          // ignore diagnostics errors
-        }
-      }
-
-      return result;
     });
 
-    // Create budget periods map for quick lookup
+    // Create budgets grouped by user for better organization
+    const budgetsByUser: Record<string, {
+      user: User;
+      budgets: Array<{
+        id: string;
+        description: string;
+        amount: number;
+        spent: number;
+        remaining: number;
+        percentage: number;
+        categories: string[];
+        transactionCount: number;
+      }>;
+      activePeriod: BudgetPeriod | undefined;
+      periodStart: string | null;
+      periodEnd: string | null;
+      totalBudget: number;
+      totalSpent: number;
+      totalRemaining: number;
+      overallPercentage: number;
+    }> = {};
+
+    users.forEach(user => {
+      const userBudgets = budgetData.filter(b => b.userId === user.id);
+
+      if (userBudgets.length > 0) {
+        // Get user's active period using centralized function
+        const userActivePeriod = user.budget_periods?.find(p => p.is_active);
+
+        const totalBudget = userBudgets.reduce((sum, b) => sum + b.amount, 0);
+        const totalSpent = userBudgets.reduce((sum, b) => sum + b.spent, 0);
+        const totalRemaining = totalBudget - totalSpent;
+        const overallPercentage = totalBudget > 0 ? Math.round((totalSpent / totalBudget) * 100 * 100) / 100 : 0;
+
+        budgetsByUser[user.id] = {
+          user,
+          budgets: userBudgets.map(b => ({
+            id: b.id,
+            description: b.description,
+            amount: b.amount,
+            spent: b.spent,
+            remaining: b.remaining,
+            percentage: b.percentage,
+            categories: b.categories,
+            transactionCount: b.transactionCount,
+          })),
+          activePeriod: userActivePeriod,
+          periodStart: userActivePeriod ? new Date(userActivePeriod.start_date).toISOString() : null,
+          periodEnd: userActivePeriod?.end_date ? new Date(userActivePeriod.end_date).toISOString() : null,
+          totalBudget,
+          totalSpent,
+          totalRemaining,
+          overallPercentage,
+        };
+      }
+    });
+
+    // Create budget periods map for quick lookup (by user_id since periods are user-level)
     const budgetPeriodsMap: Record<string, BudgetPeriod> = {};
     filteredData.budgetPeriods.forEach(period => {
       if (period.is_active) {
-        budgetPeriodsMap[period.budget_id] = period;
+        budgetPeriodsMap[period.user_id] = period;
       }
     });
 
-    // Get upcoming/recurring transactions
-    const upcomingTransactions = filteredData.transactions.filter(
-      transaction =>
-        transaction.type === 'recurrent' ||
-        (transaction.frequency && transaction.frequency !== 'once')
-    );
+    // Create upcoming transactions from recurring series data
+    const upcomingTransactions: Transaction[] = upcomingSeries.map(series => ({
+      id: `upcoming_${series.id}`,
+      user_id: series.user_id,
+      account_id: series.account_id,
+      amount: series.amount,
+      type: series.type,
+      category: series.category,
+      description: series.description,
+      date: series.next_due_date,
+      frequency: series.frequency,
+      status: 'pending' as const,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      recurring_series_id: series.id
+    }));
 
     return {
       users,
@@ -315,6 +350,7 @@ export const useDashboardData = (selectedGroupFilter: string = 'all'): Dashboard
       accountBalances,
       totalBalance,
       budgetData,
+      budgetsByUser,
       budgetPeriodsMap,
       accountNames,
     };
@@ -324,6 +360,7 @@ export const useDashboardData = (selectedGroupFilter: string = 'all'): Dashboard
     transactionsQuery.data,
     budgetsQuery.data,
     selectedGroupFilter,
+    upcomingSeries,
   ]);
 
   // Comprehensive loading and error state management

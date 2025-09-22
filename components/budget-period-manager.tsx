@@ -33,8 +33,8 @@ export function BudgetPeriodManager({ budget, currentPeriod, trigger }: BudgetPe
   const startPeriodMutation = useStartBudgetPeriod();
   const endPeriodMutation = useEndBudgetPeriod();
 
-  // Filter periods for this specific budget
-  const budgetPeriods = allPeriods.filter((period: BudgetPeriod) => period.budget_id === budget.id);
+  // Get periods for this budget's user (periods are now user-level)
+  const budgetPeriods = allPeriods.filter((period: BudgetPeriod) => period.user_id === budget.user_id);
 
   const formatDate = (date: Date | string | null) => {
     if (!date) return null;
@@ -49,7 +49,6 @@ export function BudgetPeriodManager({ budget, currentPeriod, trigger }: BudgetPe
   const handleStartNewPeriod = async () => {
     try {
       await startPeriodMutation.mutateAsync({
-        budgetId: budget.id,
         userId: budget.user_id,
       });
       setIsOpen(false);
@@ -62,7 +61,7 @@ export function BudgetPeriodManager({ budget, currentPeriod, trigger }: BudgetPe
     if (!currentPeriod) return;
 
     try {
-      await endPeriodMutation.mutateAsync(budget.id);
+      await endPeriodMutation.mutateAsync(budget.user_id);
       setIsOpen(false);
     } catch (error) {
       console.error('Error ending current period:', error);

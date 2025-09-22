@@ -1,16 +1,15 @@
 "use client";
 
-import { CreditCard, Settings, Bell, ChevronRight, AlertTriangle } from "lucide-react";
+import { CreditCard, Settings, Bell, AlertTriangle } from "lucide-react";
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import BottomNavigation from "@/components/bottom-navigation";
 import UserSelector from "@/components/user-selector";
 import { SectionHeader } from "@/components/section-header";
-import { GroupedTransactionCard } from "@/components/grouped-transaction-card";
 import { BudgetCard } from "@/components/budget-card";
 import { BankAccountCard } from "@/components/bank-account-card";
+import { RecurringSeriesSection } from "@/components/recurring-series-section";
 import ErrorBoundary, { QueryErrorFallback, FinancialLoadingSkeleton } from "@/components/error-boundary";
 import { formatCurrency } from "@/lib/utils";
 import type { Account, Budget } from "@/lib/types";
@@ -33,12 +32,9 @@ export default function DashboardPage() {
   const {
     accounts: bankAccounts,
     budgets,
-    upcomingTransactions,
     accountBalances,
     totalBalance,
-    budgetData,
-    budgetPeriodsMap,
-    accountNames,
+    budgetsByUser,
     isLoading,
     isError,
     errors,
@@ -190,18 +186,33 @@ export default function DashboardPage() {
             {/* Horizontal Bank Accounts Slider */}
             <div className="overflow-x-auto scrollbar-hide">
               <div className="flex gap-3 pb-2">
-                {bankAccounts.map((account: Account) => {
-                  const accountBalance = accountBalances[account.id] || 0;
+                {bankAccounts
+                  .filter((account: Account) => {
+                    // Show shared accounts only when 'all members' is selected
+                    if (selectedGroupFilter === 'all') {
+                      return true; // Show all accounts including shared ones
+                    } else {
+                      return account.user_ids.includes(selectedGroupFilter);
+                    }
+                  })
+                  .sort((a: Account, b: Account) => {
+                    // Sort by balance (highest to lowest)
+                    const balanceA = accountBalances[a.id] || 0;
+                    const balanceB = accountBalances[b.id] || 0;
+                    return balanceB - balanceA;
+                  })
+                  .map((account: Account) => {
+                    const accountBalance = accountBalances[account.id] || 0;
 
-                  return (
-                    <BankAccountCard
-                      key={account.id}
-                      account={account}
-                      accountBalance={accountBalance}
-                      onClick={() => handleAccountClick(account.id)}
-                    />
-                  );
-                })}
+                    return (
+                      <BankAccountCard
+                        key={account.id}
+                        account={account}
+                        accountBalance={accountBalance}
+                        onClick={() => handleAccountClick(account.id)}
+                      />
+                    );
+                  })}
               </div>
             </div>
           </section>
@@ -216,56 +227,84 @@ export default function DashboardPage() {
               <SectionHeader
                 title="Budget"
                 className="mb-3"
-              >
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-xs font-medium text-primary hover:text-white hover:bg-primary rounded-xl transition-all duration-300 px-3 py-2 group shadow-sm hover:shadow-md hover:shadow-primary/25 hover:scale-105"
-                  onClick={() => {
-                    const params = new URLSearchParams();
-                    if (selectedGroupFilter !== 'all') {
-                      params.set('member', selectedGroupFilter);
-                    }
-                    const url = params.toString() ? `/budgets?${params.toString()}` : '/budgets';
-                    router.push(url);
-                  }}
-                >
-                  <span className="budget-button-text">Vai a</span>
-                  <ChevronRight className="ml-1.5 h-3 w-3 budget-icon group-hover:translate-x-1 transition-all duration-300" />
-                </Button>
-              </SectionHeader>
+              />
 
-              {budgets.length > 0 ? (
-                <Card className="bg-white shadow-sm border border-gray-200 py-0">
-                  <div className="divide-y divide-gray-100">
-                    {budgets.map((budget: Budget) => {
-                      const budgetInfo = budgetData.find(b => b.id === budget.id);
-                      const mappedBudgetInfo = budgetInfo ? {
-                        id: budgetInfo.id,
-                        spent: budgetInfo.spent,
-                        remaining: budgetInfo.remaining,
-                        progress: budgetInfo.percentage
-                      } : undefined;
+              {Object.keys(budgetsByUser).length > 0 ? (
+                <div className="space-y-4">
+                  {Object.values(budgetsByUser)
+                    .sort((a, b) => b.totalBudget - a.totalBudget)
+                    .map((userBudgetGroup) => {
+                    const { user, budgets: userBudgets, activePeriod, periodStart, periodEnd, totalBudget, totalSpent, overallPercentage } = userBudgetGroup;
 
-                      return (
-                        <BudgetCard
-                          key={budget.id}
-                          budget={budget}
-                          budgetInfo={mappedBudgetInfo}
-                          currentPeriod={budgetPeriodsMap[budget.id] || null}
-                          onClick={() => {
-                            const params = new URLSearchParams();
-                            params.set('budget', budget.id);
-                            if (selectedGroupFilter !== 'all') {
-                              params.set('member', selectedGroupFilter);
-                            }
-                            router.push(`/budgets?${params.toString()}`);
-                          }}
-                        />
-                      );
-                    })}
-                  </div>
-                </Card>
+                    return (
+                      <div key={user.id} className="bg-white shadow-sm border border-gray-200 rounded-lg overflow-hidden">
+                        {/* User Header with Period Info */}
+                        <div className="bg-gradient-to-r from-slate-50 to-slate-100 px-4 py-3 border-b border-gray-200">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <div className="flex size-8 items-center justify-center rounded-lg bg-gradient-to-br from-[#7578EC]/10 to-[#7578EC]/5">
+                                <span className="text-sm font-bold text-[#7578EC]">
+                                  {user.name.charAt(0).toUpperCase()}
+                                </span>
+                              </div>
+                              <div>
+                                <h3 className="font-semibold text-slate-900">{user.name}</h3>
+                                {activePeriod && periodStart && (
+                                  <p className="text-xs text-slate-600">
+                                    {new Date(periodStart).toLocaleDateString('it-IT', { day: '2-digit', month: 'short' })} -
+                                    {periodEnd ? new Date(periodEnd).toLocaleDateString('it-IT', { day: '2-digit', month: 'short' }) : 'In corso'}
+                                    {activePeriod.is_active && <span className="ml-2 text-green-600 font-medium">• Attivo</span>}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-sm font-semibold text-slate-900">
+                                {formatCurrency(totalSpent)} / {formatCurrency(totalBudget)}
+                              </div>
+                              <div className={`text-xs font-medium ${overallPercentage > 100 ? 'text-red-600' : overallPercentage > 75 ? 'text-yellow-600' : 'text-green-600'}`}>
+                                {overallPercentage.toFixed(1)}%
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* User's Budgets */}
+                        <div className="divide-y divide-gray-100">
+                          {userBudgets
+                            .sort((a, b) => b.amount - a.amount)
+                            .map((budgetInfo) => {
+                            const budget = budgets.find((b: Budget) => b.id === budgetInfo.id);
+                            if (!budget) return null;
+
+                            const mappedBudgetInfo = {
+                              id: budgetInfo.id,
+                              spent: budgetInfo.spent,
+                              remaining: budgetInfo.remaining,
+                              progress: budgetInfo.percentage
+                            };
+
+                            return (
+                              <BudgetCard
+                                key={budget.id}
+                                budget={budget}
+                                budgetInfo={mappedBudgetInfo}
+                                onClick={() => {
+                                  const params = new URLSearchParams();
+                                  params.set('budget', budget.id);
+                                  if (selectedGroupFilter !== 'all') {
+                                    params.set('member', selectedGroupFilter);
+                                  }
+                                  router.push(`/budgets?${params.toString()}`);
+                                }}
+                              />
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               ) : (
                 <div className="text-center py-8">
                   <p className="text-gray-500">Nessun budget trovato</p>
@@ -274,44 +313,14 @@ export default function DashboardPage() {
             </section>
           </div>
 
-          {/* Upcoming Transactions Section */}
-          <section className="bg-white/80 backdrop-blur-sm p-3 shadow-xl shadow-slate-200/50 rounded-2xl sm:rounded-3xl border border-white/50">
-            <SectionHeader
-              title="Transazioni Programmate"
-              className="mb-3"
-            >
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-xs font-medium text-primary hover:text-white hover:bg-primary rounded-xl transition-all duration-300 px-3 py-2 group shadow-sm hover:shadow-md hover:shadow-primary/25 hover:scale-105"
-                onClick={() => {
-                  const params = new URLSearchParams();
-                  params.set('from', 'dashboard');
-                  params.set('tab', 'recurrent');
-                  if (selectedGroupFilter !== 'all') {
-                    params.set('member', selectedGroupFilter);
-                  }
-                  router.push(`/transactions?${params.toString()}`);
-                }}
-              >
-                <span>Vai a</span>
-                <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-all duration-300" />
-              </Button>
-            </SectionHeader>
-
-            {upcomingTransactions.length > 0 ? (
-              <GroupedTransactionCard
-                transactions={upcomingTransactions}
-                accountNames={accountNames}
-                variant="recurrent"
-                context="informative"
-              />
-            ) : (
-              <div className="text-center py-8">
-                <p className="text-primary/70">Nessuna transazione ricorrente</p>
-              </div>
-            )}
-          </section>
+          {/* Recurring Series Section */}
+          <RecurringSeriesSection
+            selectedUserId={selectedGroupFilter}
+            className="bg-white/80 backdrop-blur-sm shadow-xl shadow-slate-200/50 rounded-2xl sm:rounded-3xl border border-white/50"
+            showStats={false}
+            maxItems={5}
+            showActions={false}
+          />
         </main>
 
         <BottomNavigation />
