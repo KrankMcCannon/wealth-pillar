@@ -56,7 +56,7 @@ export async function GET(request: NextRequest) {
           .eq('id', userContext.userId)
           .single();
 
-        const adminGroupId = adminUserResponse.data?.group_id;
+        const adminGroupId = adminUserResponse.error ? null : (adminUserResponse.data as { group_id: string }).group_id;
         if (adminGroupId) {
           // Get all users in the same group and their budgets
           const groupUsersResponse = await supabaseServer
@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
             .eq('group_id', adminGroupId);
 
           if (groupUsersResponse.data && groupUsersResponse.data.length > 0) {
-            const groupUserIds = groupUsersResponse.data.map(user => user.id);
+            const groupUserIds = (groupUsersResponse.data as { id: string }[]).map(user => user.id);
             query = query.in('user_id', groupUserIds);
           } else {
             // Fallback: admin's own budgets

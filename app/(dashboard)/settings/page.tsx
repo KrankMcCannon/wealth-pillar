@@ -37,7 +37,7 @@ export default function SettingsPage() {
   // Use user selection with permissions
   const {
     currentUser,
-    visibleUsers: users,
+    users,
     isLoading: usersLoading,
     userStats,
   } = useUserSelection();
@@ -207,7 +207,7 @@ export default function SettingsPage() {
               <Card className="gap-0 pt-3 pb-0 bg-white/95 backdrop-blur-sm shadow-xl shadow-[#7678e4]/15 border-0 rounded-2xl overflow-hidden mb-4">
                 <div className="px-4 py-3 bg-gradient-to-r from-[#7678e4]/8 via-white to-[#7678e4]/8">
                   <h3 className="text-sm font-semibold text-[#7678e4]">Membri del Gruppo</h3>
-                  <p className="text-xs mt-0.5 text-slate-700">{userStats.visibleUsers} {userStats.visibleUsers === 1 ? 'membro visibile' : 'membri visibili'}</p>
+                  <p className="text-xs mt-0.5 text-slate-700">{userStats.viewableUsers} {userStats.viewableUsers === 1 ? 'membro visibile' : 'membri visibili'}</p>
                 </div>
                 <div className="divide-y divide-[#7678e4]/8">
                   {users.map((member: UserType) => (

@@ -69,7 +69,7 @@ export async function GET(request: NextRequest) {
         .eq('id', userContext.userId)
         .single()) as { data: { group_id: string } | null; error: unknown };
 
-      const userGroupId = userResponse.data?.group_id;
+      const userGroupId = userResponse.error ? null : (userResponse.data as { group_id: string }).group_id;
 
       if (userId && userId !== userContext.userId) {
         // Specific user requested - ensure it's in the same group
@@ -83,7 +83,7 @@ export async function GET(request: NextRequest) {
           .eq('group_id', userGroupId);
 
         if (groupUsersResponse.data && groupUsersResponse.data.length > 0) {
-          const groupUserIds = groupUsersResponse.data.map(user => user.id);
+          const groupUserIds = (groupUsersResponse.data as { id: string }[]).map(user => user.id);
           query = query.in('user_id', groupUserIds);
         } else {
           // Fallback: admin's own transactions

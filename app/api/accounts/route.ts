@@ -20,7 +20,12 @@ export async function GET(request: NextRequest) {
       .eq('id', user.userId)
       .single();
 
-    const userGroupId = userResponse.data?.group_id;
+    if (userResponse.error) {
+      console.error('Error fetching user:', userResponse.error);
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    const userGroupId = (userResponse.data as { group_id: string }).group_id;
 
     // Role-based filtering logic
     const isAdmin = user.role === 'admin' || user.role === 'superadmin';

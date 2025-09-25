@@ -23,7 +23,7 @@ export async function GET() {
         .eq('id', userContext.userId)
         .single();
 
-      const adminGroupId = adminUserResponse.data?.group_id;
+      const adminGroupId = adminUserResponse.error ? null : (adminUserResponse.data as { group_id: string }).group_id;
       if (adminGroupId) {
         query = query.eq('group_id', adminGroupId);
       } else {
