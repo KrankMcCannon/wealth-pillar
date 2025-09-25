@@ -1,11 +1,10 @@
-/**
- * Export di tutti i componenti UI
- */
-export { BaseModal } from "./BaseModal";
-export { Card } from "./Card";
-export { FormField, Input, Select, CheckboxGroup, ModalActions } from "./FormComponents";
-export { LoadingSpinner, LoadingState, ErrorState } from "./LoadingComponents";
-export { PageHeader } from "./PageHeader";
-export { SummaryCards } from "./SummaryCards";
-export { AvatarSelector } from "./AvatarSelector";
-export { DropdownMenu } from "./DropdownMenu";
+export { Badge } from "./badge"
+export { Button } from "./button"
+export { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "./card"
+export { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "./dialog"
+export { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuPortal, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuShortcut, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger } from "./dropdown-menu"
+export { Input } from "./input"
+export { Label } from "./label"
+export { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectScrollDownButton, SelectScrollUpButton, SelectSeparator, SelectTrigger, SelectValue } from "./select"
+export { ThemeToggle } from "./theme-toggle"
+
