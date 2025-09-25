@@ -47,3 +47,5 @@ CLAUDE.md
 
 # Clerk
 /.clerk/
+# Local Netlify folder
+.netlify
