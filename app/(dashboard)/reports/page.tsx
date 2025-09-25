@@ -14,9 +14,9 @@ export default function ReportsPage() {
   // Use centralized user selection
   const {
     currentUser,
-    selectedGroupFilter,
+    selectedViewUserId,
     users,
-    updateGroupFilter,
+    updateViewUserId,
     isLoading: userSelectionLoading
   } = useUserSelection();
 
@@ -26,9 +26,9 @@ export default function ReportsPage() {
     if (!currentUser) return null;
 
     // Filter transactions based on selected group filter
-    const filteredTransactions = selectedGroupFilter === 'all'
+    const filteredTransactions = selectedViewUserId === 'all'
       ? transactions
-      : transactions.filter(tx => tx.user_id === selectedGroupFilter);
+      : transactions.filter(tx => tx.user_id === selectedViewUserId);
 
     // Calculate current month data
     const currentDate = new Date();
@@ -96,7 +96,7 @@ export default function ReportsPage() {
       savingsGoal,
       savingsProgress
     };
-  }, [currentUser, transactions, selectedGroupFilter]);
+  }, [currentUser, transactions, selectedViewUserId]);
 
   const isLoading = userSelectionLoading || transactionsLoading;
 
@@ -127,8 +127,8 @@ export default function ReportsPage() {
         <UserSelector
           users={users}
           currentUser={currentUser}
-          selectedGroupFilter={selectedGroupFilter}
-          onGroupFilterChange={updateGroupFilter}
+          selectedGroupFilter={selectedViewUserId}
+          onGroupFilterChange={updateViewUserId}
         />
 
         <main className="p-4 pb-24">

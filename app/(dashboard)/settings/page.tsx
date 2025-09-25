@@ -7,11 +7,14 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import BottomNavigation from "../../../components/bottom-navigation";
 import { SectionHeader } from "@/components/section-header";
-import { useAccounts, useTransactions, useUserSelection } from "@/hooks";
+import { useAccounts, useTransactions } from "@/hooks";
+import { useUserSelection } from "@/hooks";
 import { User as UserType } from "@/lib/types";
 import {
   formatDate
 } from "@/lib/utils";
+import { PermissionGuard } from "@/components/permissions/permission-guard";
+import { RoleBadge } from "@/components/permissions/role-badge";
 
 const renderAvatarIcon = (iconName: string) => {
   const iconProps = { className: "h-5 w-5" };
@@ -31,15 +34,15 @@ export default function SettingsPage() {
   const { data: accounts = [] } = useAccounts();
   const { data: transactions = [] } = useTransactions();
 
-  // Use centralized user selection
+  // Use user selection with permissions
   const {
     currentUser,
-    users,
-    isLoading: usersLoading
+    visibleUsers: users,
+    isLoading: usersLoading,
+    userStats,
   } = useUserSelection();
 
-
-  const userStats = useMemo(() => {
+  const activityStats = useMemo(() => {
     if (!currentUser) return { accountCount: 0, transactionCount: 0 };
 
     const userAccounts = accounts.filter(account =>
@@ -130,16 +133,12 @@ export default function SettingsPage() {
                       <div className="px-3 py-1.5 rounded-full text-xs font-semibold bg-[#7678e4]/15 text-[#7678e4] whitespace-nowrap">
                         {planInfo.name}
                       </div>
-                      {currentUser.role === "superadmin" && (
-                        <div className="px-3 py-1.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-600 whitespace-nowrap">
-                          Sviluppatore
-                        </div>
-                      )}
+                      <RoleBadge size="sm" variant="subtle" />
                       <div className="px-3 py-1.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-600 whitespace-nowrap">
-                        {userStats.accountCount} Account
+                        {activityStats.accountCount} Account
                       </div>
                       <div className="px-3 py-1.5 rounded-full text-xs font-semibold bg-green-50 text-green-600 whitespace-nowrap">
-                        {userStats.transactionCount} Transazioni
+                        {activityStats.transactionCount} Transazioni
                       </div>
                     </div>
                   </div>
@@ -190,8 +189,8 @@ export default function SettingsPage() {
             </Card>
           </section>
 
-          {/* Group Management Section - Only for superadmin and admin */}
-          {(currentUser.role === "superadmin" || currentUser.role === "admin") && (
+          {/* Group Management Section - Permission-based visibility */}
+          <PermissionGuard requireFeature="user_management">
             <section>
               <SectionHeader
                 title="Gestione Gruppo"
@@ -200,7 +199,7 @@ export default function SettingsPage() {
               >
                 <div className="flex items-center gap-2 px-3 py-1.5 bg-[#7678e4]/10 rounded-full">
                   <Users className="h-4 w-4 text-[#7678e4]" />
-                  <span className="text-sm font-semibold text-[#7678e4]">{users.length} membri</span>
+                  <span className="text-sm font-semibold text-[#7678e4]">{userStats.totalUsers} membri</span>
                 </div>
               </SectionHeader>
 
@@ -208,7 +207,7 @@ export default function SettingsPage() {
               <Card className="gap-0 pt-3 pb-0 bg-white/95 backdrop-blur-sm shadow-xl shadow-[#7678e4]/15 border-0 rounded-2xl overflow-hidden mb-4">
                 <div className="px-4 py-3 bg-gradient-to-r from-[#7678e4]/8 via-white to-[#7678e4]/8">
                   <h3 className="text-sm font-semibold text-[#7678e4]">Membri del Gruppo</h3>
-                  <p className="text-xs mt-0.5 text-slate-700">{users.length} {users.length === 1 ? 'membro' : 'membri'}</p>
+                  <p className="text-xs mt-0.5 text-slate-700">{userStats.visibleUsers} {userStats.visibleUsers === 1 ? 'membro visibile' : 'membri visibili'}</p>
                 </div>
                 <div className="divide-y divide-[#7678e4]/8">
                   {users.map((member: UserType) => (
@@ -223,17 +222,7 @@ export default function SettingsPage() {
                         </div>
                       </div>
                       <div className="text-right shrink-0 ml-3">
-                        <div className={`px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center justify-center shadow-sm ${
-                          member.role === "admin"
-                            ? "bg-[#7678e4]/15 text-[#7678e4]"
-                            : member.role === "superadmin"
-                            ? "bg-amber-50 text-amber-700"
-                            : "bg-emerald-50 text-emerald-700"
-                          }`}>
-                          <span className="capitalize whitespace-nowrap">
-                            {member.role === 'superadmin' ? 'Dev' : member.role === 'admin' ? 'Admin' : 'Membro'}
-                          </span>
-                        </div>
+                        <RoleBadge role={member.role} size="sm" variant="subtle" />
                         <p className="text-xs mt-1 truncate">
                           {(() => {
                             try {
@@ -296,7 +285,7 @@ export default function SettingsPage() {
                 </button>
               </Card>
             </section>
-          )}
+          </PermissionGuard>
 
           {/* Preferences */}
           <section>

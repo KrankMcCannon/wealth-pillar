@@ -45,9 +45,9 @@ function TransactionsContent() {
   // Use centralized user selection
   const {
     currentUser,
-    selectedGroupFilter,
+    selectedViewUserId,
     users,
-    updateGroupFilter,
+    updateViewUserId,
     isLoading: userSelectionLoading
   } = useUserSelection();
 
@@ -74,8 +74,8 @@ function TransactionsContent() {
     }
 
     // User filter
-    if (selectedGroupFilter !== "all") {
-      filtered = filtered.filter(tx => tx.user_id === selectedGroupFilter);
+    if (selectedViewUserId !== "all") {
+      filtered = filtered.filter(tx => tx.user_id === selectedViewUserId);
     }
 
     // Type filter
@@ -84,15 +84,15 @@ function TransactionsContent() {
     }
 
     return filtered;
-  }, [transactions, searchQuery, selectedCategory, selectedGroupFilter, selectedFilter]);
+  }, [transactions, searchQuery, selectedCategory, selectedViewUserId, selectedFilter]);
 
-  const hasActiveFilters = searchQuery !== "" || selectedFilter !== "all" || selectedCategory !== "all" || selectedGroupFilter !== "all";
+  const hasActiveFilters = searchQuery !== "" || selectedFilter !== "all" || selectedCategory !== "all" || selectedViewUserId !== "all";
 
   const resetFilters = () => {
     setSearchQuery("");
     setSelectedFilter("all");
     setSelectedCategory("all");
-    updateGroupFilter("all");
+    updateViewUserId("all");
   };
 
   useEffect(() => {
@@ -160,8 +160,8 @@ function TransactionsContent() {
       router.push('/dashboard');
     } else if (from === 'budgets') {
       const params = new URLSearchParams();
-      if (selectedGroupFilter !== 'all') {
-        params.set('member', selectedGroupFilter);
+      if (selectedViewUserId !== 'all') {
+        params.set('member', selectedViewUserId);
       }
       const budgetParam = searchParams.get('budget');
       if (budgetParam && budgetParam !== 'all') {
@@ -229,8 +229,8 @@ function TransactionsContent() {
           <UserSelector
             users={users}
             currentUser={currentUser}
-            selectedGroupFilter={selectedGroupFilter}
-            onGroupFilterChange={updateGroupFilter}
+            selectedGroupFilter={selectedViewUserId}
+            onGroupFilterChange={updateViewUserId}
             className="bg-[#F8FAFC] border-gray-200"
           />
 
@@ -272,7 +272,7 @@ function TransactionsContent() {
                     variant="ghost"
                     size="sm"
                     onClick={() => {
-                      updateGroupFilter('all');
+                      updateViewUserId('all');
                       resetFilters();
                       router.replace('/transactions');
                     }}
@@ -361,7 +361,7 @@ function TransactionsContent() {
             {/* Recurrent Tab */}
             {activeTab === "Recurrent" && (
               <RecurringSeriesSection
-                selectedUserId={selectedGroupFilter}
+                selectedUserId={selectedViewUserId}
                 className="bg-white/80 backdrop-blur-sm border border-slate-200/50 shadow-lg shadow-slate-200/30"
                 showStats={true}
                 maxItems={10}
@@ -378,7 +378,7 @@ function TransactionsContent() {
             isOpen={isTransactionFormOpen}
             onOpenChange={setIsTransactionFormOpen}
             initialType={transactionFormType}
-            selectedUserId={selectedGroupFilter !== 'all' ? selectedGroupFilter : ''}
+            selectedUserId={selectedViewUserId !== 'all' ? selectedViewUserId : ''}
           />
         </>
       )}

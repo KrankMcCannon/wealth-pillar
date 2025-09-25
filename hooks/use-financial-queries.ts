@@ -4,7 +4,7 @@ import {
   budgetPeriodService,
   budgetService,
   transactionService,
-} from '@/lib/api';
+} from '@/lib/api-client';
 import { queryKeys } from '@/lib/query-keys';
 import type { Transaction } from '@/lib/types';
 import { calculateAccountBalance } from '@/lib/utils';
@@ -46,48 +46,25 @@ export const useFinancialSummary = (userId?: string, timeRange?: { start: Date; 
   return useQuery({
     queryKey: [...queryKeys.financial(), 'summary', userId || 'all', timeRange],
     queryFn: async () => {
-      const transactions = userId
-        ? await transactionService.getByUserId(userId)
-        : await transactionService.getAll();
+      const dateRange = timeRange ? {
+        start: timeRange.start.toISOString(),
+        end: timeRange.end.toISOString()
+      } : undefined;
 
-      const filteredTransactions = timeRange
-        ? transactions.filter(t => {
-            const transactionDate = new Date(t.date);
-            return transactionDate >= timeRange.start && transactionDate <= timeRange.end;
-          })
-        : transactions;
+      const summary = await transactionService.getFinancialSummary(userId, dateRange);
 
-      const income = filteredTransactions
-        .filter(t => t.type === 'income')
-        .reduce((sum, t) => sum + t.amount, 0);
-
-      const expenses = filteredTransactions
-        .filter(t => t.type === 'expense')
-        .reduce((sum, t) => sum + t.amount, 0);
-
-      const transfers = filteredTransactions
-        .filter(t => t.type === 'transfer')
-        .reduce((sum, t) => sum + t.amount, 0);
-
-      const netIncome = income - expenses;
-      const savingsRate = income > 0 ? ((income - expenses) / income) * 100 : 0;
-
-      // Category breakdown
-      const categoryBreakdown = filteredTransactions
-        .filter(t => t.type === 'expense')
-        .reduce((acc, t) => {
-          acc[t.category] = (acc[t.category] || 0) + t.amount;
-          return acc;
-        }, {} as Record<string, number>);
+      // Add additional computed values for backward compatibility
+      const savingsRate = summary.totalIncome > 0 ?
+        ((summary.totalIncome - summary.totalExpenses) / summary.totalIncome) * 100 : 0;
 
       return {
-        income,
-        expenses,
-        transfers,
-        netIncome,
-        savingsRate,
-        categoryBreakdown,
-        transactionCount: filteredTransactions.length,
+        income: summary.totalIncome,
+        expenses: summary.totalExpenses,
+        transfers: summary.totalTransfers,
+        netIncome: summary.netIncome,
+        savingsRate: Math.round(savingsRate * 100) / 100,
+        categoryBreakdown: summary.expensesByCategory,
+        transactionCount: Object.keys(summary.expensesByCategory).length,
         timeRange,
       };
     },

@@ -5,7 +5,7 @@ import {
   budgetService,
   transactionService,
   userService
-} from "./api";
+} from "./api-client";
 import {
   Account,
   Budget,
@@ -274,15 +274,15 @@ export const calculateAccountBalance = (accountId: string, transactions: Transac
   );
 
   const balance = related.reduce((sum, t) => {
-    // Handle transfer transactions with proper double-entry logic
-    if (t.to_account_id && t.type === 'transfer') {
+    // Handle transfer transactions (both type='transfer' and category='trasferimento' with to_account_id)
+    if (t.to_account_id && (t.type === 'transfer' || t.category === 'trasferimento')) {
       if (t.account_id === accountId) return sum - t.amount; // outflow from source account
       if (t.to_account_id === accountId) return sum + t.amount; // inflow to destination account
       return sum;
     }
 
-    // Handle regular income/expense transactions
-    if (t.account_id === accountId) {
+    // Handle regular income/expense transactions (only for account_id, not to_account_id)
+    if (t.account_id === accountId && !t.to_account_id) {
       if (t.type === 'income') return sum + t.amount;
       if (t.type === 'expense') return sum - t.amount;
     }
@@ -346,11 +346,27 @@ export const getActivePeriodDates = (user: User): { start: Date | null; end: Dat
     };
   }
 
-  // Fallback to current month
+  // Fallback: create period based on user's budget_start_date
   const now = new Date();
+  const budgetStartDay = user.budget_start_date || 1;
+
+  // Calculate current budget period based on user's start day
+  let periodStart: Date;
+  let periodEnd: Date;
+
+  if (now.getDate() >= budgetStartDay) {
+    // We're in the current month's budget period
+    periodStart = new Date(now.getFullYear(), now.getMonth(), budgetStartDay);
+    periodEnd = new Date(now.getFullYear(), now.getMonth() + 1, budgetStartDay - 1);
+  } else {
+    // We're in the previous month's budget period
+    periodStart = new Date(now.getFullYear(), now.getMonth() - 1, budgetStartDay);
+    periodEnd = new Date(now.getFullYear(), now.getMonth(), budgetStartDay - 1);
+  }
+
   return {
-    start: new Date(now.getFullYear(), now.getMonth(), 1),
-    end: new Date(now.getFullYear(), now.getMonth() + 1, 0)
+    start: periodStart,
+    end: periodEnd
   };
 };
 

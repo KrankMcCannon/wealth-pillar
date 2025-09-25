@@ -19,6 +19,7 @@
   "users": [
     {
       "id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
+      "clerk_id": "user_edoardo_test_id",
       "name": "Edoardo",
       "email": "edoardo@example.com",
       "avatar": "money",
@@ -57,6 +58,7 @@
     },
     {
       "id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
+      "clerk_id": "user_ivana_test_id",
       "name": "Ivana",
       "email": "ivana@example.com",
       "avatar": "beach",

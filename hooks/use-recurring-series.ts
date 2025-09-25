@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { recurringTransactionSeriesService } from '@/lib/api';
+import { recurringTransactionService } from '@/lib/api-client';
 import { queryKeys } from '@/lib/query-keys';
 import type { RecurringTransactionSeries } from '@/lib/types';
 
@@ -9,7 +9,7 @@ import type { RecurringTransactionSeries } from '@/lib/types';
 export const useRecurringSeries = () => {
   return useQuery({
     queryKey: queryKeys.recurringSeries(),
-    queryFn: recurringTransactionSeriesService.getAll,
+    queryFn: recurringTransactionService.getAll,
     staleTime: 2 * 60 * 1000, // 2 minutes
   });
 };
@@ -17,7 +17,7 @@ export const useRecurringSeries = () => {
 export const useRecurringSeriesById = (id: string) => {
   return useQuery({
     queryKey: queryKeys.recurringSeriesById(id),
-    queryFn: () => recurringTransactionSeriesService.getById(id),
+    queryFn: () => recurringTransactionService.getById(id),
     enabled: !!id,
   });
 };
@@ -25,7 +25,7 @@ export const useRecurringSeriesById = (id: string) => {
 export const useRecurringSeriesByUser = (userId: string) => {
   return useQuery({
     queryKey: queryKeys.recurringSeriesByUser(userId),
-    queryFn: () => recurringTransactionSeriesService.getByUserId(userId),
+    queryFn: () => recurringTransactionService.getByUserId(userId),
     enabled: !!userId,
     staleTime: 2 * 60 * 1000,
   });
@@ -34,7 +34,7 @@ export const useRecurringSeriesByUser = (userId: string) => {
 export const useActiveRecurringSeries = (userId?: string) => {
   return useQuery({
     queryKey: queryKeys.activeRecurringSeries(userId),
-    queryFn: () => recurringTransactionSeriesService.getActive(userId),
+    queryFn: () => recurringTransactionService.getActive(userId),
     staleTime: 30 * 1000, // 30 seconds for active series
   });
 };
@@ -42,7 +42,7 @@ export const useActiveRecurringSeries = (userId?: string) => {
 export const useUpcomingRecurringSeries = (days: number, userId?: string) => {
   return useQuery({
     queryKey: queryKeys.upcomingRecurringSeries(days, userId),
-    queryFn: () => recurringTransactionSeriesService.getDueWithinDays(days, userId),
+    queryFn: () => recurringTransactionService.getDueWithinDays(days, userId),
     staleTime: 30 * 1000,
   });
 };
@@ -53,7 +53,7 @@ export const useCreateRecurringSeries = () => {
 
   return useMutation({
     mutationFn: (series: Omit<RecurringTransactionSeries, 'id'>) =>
-      recurringTransactionSeriesService.create(series),
+      recurringTransactionService.create(series),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.recurringSeries() });
       queryClient.invalidateQueries({ queryKey: queryKeys.activeRecurringSeries() });
@@ -66,7 +66,7 @@ export const useUpdateRecurringSeries = () => {
 
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<RecurringTransactionSeries> }) =>
-      recurringTransactionSeriesService.update(id, data),
+      recurringTransactionService.update(id, data),
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.recurringSeries() });
       queryClient.invalidateQueries({ queryKey: queryKeys.recurringSeriesById(id) });
@@ -79,7 +79,7 @@ export const useDeleteRecurringSeries = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) => recurringTransactionSeriesService.delete(id),
+    mutationFn: (id: string) => recurringTransactionService.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.recurringSeries() });
       queryClient.invalidateQueries({ queryKey: queryKeys.activeRecurringSeries() });
@@ -92,7 +92,7 @@ export const usePauseRecurringSeries = () => {
 
   return useMutation({
     mutationFn: ({ id, pauseUntil }: { id: string; pauseUntil?: Date }) =>
-      recurringTransactionSeriesService.pause(id, pauseUntil),
+      recurringTransactionService.pause(id, pauseUntil),
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.recurringSeriesById(id) });
       queryClient.invalidateQueries({ queryKey: queryKeys.activeRecurringSeries() });
@@ -104,7 +104,7 @@ export const useResumeRecurringSeries = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) => recurringTransactionSeriesService.resume(id),
+    mutationFn: (id: string) => recurringTransactionService.resume(id),
     onSuccess: (_, id) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.recurringSeriesById(id) });
       queryClient.invalidateQueries({ queryKey: queryKeys.activeRecurringSeries() });
@@ -116,7 +116,7 @@ export const useExecuteRecurringSeries = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) => recurringTransactionSeriesService.execute(id),
+    mutationFn: (id: string) => recurringTransactionService.execute(id),
     onSuccess: (_, id) => {
       // Invalidate both recurring series and transactions
       queryClient.invalidateQueries({ queryKey: queryKeys.recurringSeriesById(id) });
@@ -130,39 +130,33 @@ export const useExecuteRecurringSeries = () => {
 export const useRecurringSeriesStats = (userId?: string) => {
   return useQuery({
     queryKey: queryKeys.recurringSeriesStats(userId),
-    queryFn: async () => {
-      const series = await recurringTransactionSeriesService.getActive(userId);
-
-      const stats = {
-        totalActiveSeries: series.length,
-        totalExpenseSeries: series.filter(s => s.type === 'expense').length,
-        totalIncomeSeries: series.filter(s => s.type === 'income').length,
-        totalMonthlyImpact: series.reduce((sum, s) => {
-          // Convert all frequencies to monthly equivalent
-          let monthlyAmount = s.amount;
-          switch (s.frequency) {
-            case 'weekly':
-              monthlyAmount = s.amount * 4.33; // Average weeks per month
-              break;
-            case 'biweekly':
-              monthlyAmount = s.amount * 2.17; // Average biweeks per month
-              break;
-            case 'yearly':
-              monthlyAmount = s.amount / 12;
-              break;
-            // monthly stays as is
-          }
-          return sum + (s.type === 'expense' ? -monthlyAmount : monthlyAmount);
-        }, 0),
-        averageAmount: series.length > 0 ? series.reduce((sum, s) => sum + s.amount, 0) / series.length : 0,
-        nextDueDateSeries: series
-          .filter(s => s.next_due_date)
-          .sort((a, b) => new Date(a.next_due_date).getTime() - new Date(b.next_due_date).getTime())
-          .slice(0, 3),
-      };
-
-      return stats;
-    },
+    queryFn: () => recurringTransactionService.getStats(userId),
     staleTime: 60 * 1000, // 1 minute
+  });
+};
+
+// New advanced analytics hooks
+export const useRecurringSeriesDashboard = (userId?: string) => {
+  return useQuery({
+    queryKey: [...queryKeys.recurringSeries(), 'dashboard', userId].filter(Boolean),
+    queryFn: () => recurringTransactionService.getDashboardData(userId),
+    staleTime: 30 * 1000, // 30 seconds for dashboard data
+  });
+};
+
+export const useRecurringSeriesReconciliation = (seriesId: string) => {
+  return useQuery({
+    queryKey: [...queryKeys.recurringSeriesById(seriesId), 'reconciliation'],
+    queryFn: () => recurringTransactionService.getReconciliation(seriesId),
+    enabled: !!seriesId,
+    staleTime: 60 * 1000, // 1 minute
+  });
+};
+
+export const useMissedExecutions = () => {
+  return useQuery({
+    queryKey: [...queryKeys.recurringSeries(), 'missed'],
+    queryFn: () => recurringTransactionService.findMissedExecutions(),
+    staleTime: 2 * 60 * 1000, // 2 minutes
   });
 };

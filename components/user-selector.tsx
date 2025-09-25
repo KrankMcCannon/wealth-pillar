@@ -7,7 +7,7 @@ interface UserSelectorProps {
   users: User[];
   currentUser: User | null;
   selectedGroupFilter: string;
-  onGroupFilterChange: (groupId: string) => void;
+  onGroupFilterChange: (userId: string) => void;
   className?: string;
 }
 

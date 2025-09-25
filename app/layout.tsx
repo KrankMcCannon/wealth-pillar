@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Spline_Sans } from "next/font/google";
 import "./globals.css";
+import { ClerkProvider } from '@clerk/nextjs';
 import { QueryClientProvider } from '@/components/providers/query-client-provider';
 
 const splineSans = Spline_Sans({
@@ -20,20 +21,22 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="light">
-      <body
-        className={`${splineSans.variable} antialiased min-h-screen`}
-        style={{
-          fontFamily: '"Spline Sans", "Noto Sans", sans-serif',
-          backgroundColor: '#F8FAFC',
-          color: '#1F2937'
-        }}
-        suppressHydrationWarning={true}
-      >
-        <QueryClientProvider>
-          {children}
-        </QueryClientProvider>
-      </body>
-    </html>
+    <ClerkProvider>
+      <html lang="en" className="light">
+        <body
+          className={`${splineSans.variable} antialiased min-h-screen`}
+          style={{
+            fontFamily: '"Spline Sans", "Noto Sans", sans-serif',
+            backgroundColor: '#F8FAFC',
+            color: '#1F2937'
+          }}
+          suppressHydrationWarning={true}
+        >
+          <QueryClientProvider>
+            {children}
+          </QueryClientProvider>
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }

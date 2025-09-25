@@ -9,7 +9,7 @@ import {
   investmentService,
   transactionService,
   userService,
-} from '@/lib/api';
+} from '@/lib/api-client';
 import { queryKeys, queryKeyUtils } from '@/lib/query-keys';
 import type {
   Budget,
@@ -117,17 +117,25 @@ export const useTransactionsWithFilters = (filters: Record<string, unknown>) => 
 export const useUpcomingTransactions = (userId?: string) => {
   return useQuery({
     queryKey: queryKeys.upcomingTransactions(userId),
-    queryFn: async () => {
-      const transactions = userId
-        ? await transactionService.getByUserId(userId)
-        : await transactionService.getAll();
-
-      // Filter for upcoming/recurring transactions based on frequency and type expense only
-      return transactions.filter(
-        (transaction) => transaction.type === 'expense' && transaction.frequency && transaction.frequency !== 'once'
-      );
-    },
+    queryFn: () => transactionService.getUpcomingTransactions(userId),
     staleTime: 2 * 60 * 1000, // 2 minutes for upcoming transactions
+  });
+};
+
+// New advanced transaction hooks
+export const useFinancialSummary = (userId?: string, dateRange?: { start: string; end: string }) => {
+  return useQuery({
+    queryKey: [...queryKeys.transactions(), 'summary', userId, dateRange].filter(Boolean),
+    queryFn: () => transactionService.getFinancialSummary(userId, dateRange),
+    staleTime: 60 * 1000, // 1 minute
+  });
+};
+
+export const useSpendingTrends = (userId?: string, days: number = 30) => {
+  return useQuery({
+    queryKey: [...queryKeys.transactions(), 'trends', userId, days],
+    queryFn: () => transactionService.getSpendingTrends(userId, days),
+    staleTime: 60 * 1000, // 1 minute
   });
 };
 
@@ -180,7 +188,8 @@ export const useBudgetPeriodsByUser = (userId: string) => {
 export const useActiveBudgetPeriods = (userId?: string) => {
   return useQuery({
     queryKey: queryKeys.activeBudgetPeriods(userId),
-    queryFn: () => budgetPeriodService.getActivePeriods(userId),
+    queryFn: () => budgetPeriodService.getActivePeriods(userId!),
+    enabled: !!userId,
     staleTime: 1 * 60 * 1000,
   });
 };
@@ -191,6 +200,25 @@ export const useCurrentBudgetPeriod = (budgetId: string) => {
     queryFn: () => budgetPeriodService.getCurrentPeriod(budgetId),
     enabled: !!budgetId,
     staleTime: 1 * 60 * 1000,
+  });
+};
+
+// New advanced budget hooks
+export const useBudgetAnalysis = (budgetId: string) => {
+  return useQuery({
+    queryKey: [...queryKeys.budget(budgetId), 'analysis'],
+    queryFn: () => budgetService.getBudgetAnalysis(budgetId),
+    enabled: !!budgetId,
+    staleTime: 30 * 1000, // 30 seconds for budget analysis
+  });
+};
+
+export const useBudgetsWithStatus = (userId: string) => {
+  return useQuery({
+    queryKey: [...queryKeys.budgetsByUser(userId), 'with-status'],
+    queryFn: () => budgetService.getBudgetsByUserWithStatus(userId),
+    enabled: !!userId,
+    staleTime: 60 * 1000, // 1 minute
   });
 };
 
@@ -219,7 +247,7 @@ export const useInvestments = () => {
 export const useInvestmentsByUser = (userId: string) => {
   return useQuery({
     queryKey: queryKeys.investmentsByUser(userId),
-    queryFn: () => investmentService.getByUserId(userId),
+    queryFn: () => investmentService.getByUserId(),
     enabled: !!userId,
     staleTime: 2 * 60 * 1000,
   });
@@ -229,7 +257,7 @@ export const usePortfolioData = (userId: string) => {
   return useQuery({
     queryKey: queryKeys.portfolioData(userId),
     queryFn: async (): Promise<PortfolioData> => {
-      const holdings = await investmentService.getByUserId(userId);
+      const holdings = await investmentService.getByUserId();
 
       // Calculate enhanced portfolio data
       const enhancedHoldings: EnhancedHolding[] = holdings.map((holding) => {
@@ -380,10 +408,31 @@ export const useEndBudgetPeriod = () => {
     onSuccess: (data) => {
       // Invalidate budget periods queries
       queryClient.invalidateQueries({ queryKey: queryKeys.budgetPeriods() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.budgetPeriodsByUser(data.user_id) });
+      if (data) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.budgetPeriodsByUser(data.user_id) });
+      }
       queryClient.invalidateQueries({ queryKey: queryKeys.activeBudgetPeriods() });
 
       // Invalidate dashboard queries
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard() });
+    },
+  });
+};
+
+// New bulk operations hook
+export const useBulkTransactionOperations = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (operations: Array<{
+      type: 'create' | 'update' | 'delete';
+      id?: string;
+      data?: Partial<Transaction>;
+    }>) => transactionService.bulkOperations(operations),
+    onSuccess: () => {
+      // Invalidate all transaction-related queries
+      queryClient.invalidateQueries({ queryKey: queryKeys.transactions() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.financial() });
       queryClient.invalidateQueries({ queryKey: queryKeys.dashboard() });
     },
   });
@@ -393,7 +442,10 @@ export const useCreateBudgetPeriod = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: budgetPeriodService.create,
+    mutationFn: ({ userId, budgetPeriod }: {
+      userId: string;
+      budgetPeriod: Omit<BudgetPeriod, 'id' | 'created_at' | 'updated_at'>;
+    }) => budgetPeriodService.create(userId, budgetPeriod),
     onSuccess: (data) => {
       // Invalidate budget periods queries
       queryClient.invalidateQueries({ queryKey: queryKeys.budgetPeriods() });
@@ -407,8 +459,8 @@ export const useUpdateBudgetPeriod = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<BudgetPeriod> }) =>
-      budgetPeriodService.update(id, data),
+    mutationFn: ({ userId, id, data }: { userId: string; id: string; data: Partial<BudgetPeriod> }) =>
+      budgetPeriodService.update(userId, id, data),
     onSuccess: (data) => {
       // Update specific budget period in cache
       queryClient.setQueryData(queryKeys.budgetPeriod(data.id), data);

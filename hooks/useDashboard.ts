@@ -7,7 +7,7 @@ import {
   categoryService,
   transactionService,
   userService,
-} from '@/lib/api';
+} from '@/lib/api-client';
 import { queryKeys } from '@/lib/query-keys';
 import type {
   Account,
@@ -90,11 +90,14 @@ interface DashboardData {
  * - Optimistic loading states
  * - Real-time budget calculations
  */
-export const useDashboardData = (selectedGroupFilter: string = 'all'): DashboardData => {
+export const useDashboardData = (selectedViewUserId: string = 'all', currentUser: User | null = null): DashboardData => {
   // Get upcoming recurring series using the new architecture
-  const { data: upcomingSeries = [] } = useUpcomingRecurringSeries(7, selectedGroupFilter !== 'all' ? selectedGroupFilter : undefined);
+  const { data: upcomingSeries = [] } = useUpcomingRecurringSeries(7, selectedViewUserId !== 'all' ? selectedViewUserId : undefined);
 
   // Parallel queries for optimal performance
+  // Determine query parameters based on user selection
+  const isSpecificUserSelected = selectedViewUserId !== 'all' && selectedViewUserId !== currentUser?.id;
+
   const queries = useQueries({
     queries: [
       {
@@ -103,18 +106,28 @@ export const useDashboardData = (selectedGroupFilter: string = 'all'): Dashboard
         staleTime: 5 * 60 * 1000, // 5 minutes
       },
       {
-        queryKey: queryKeys.accounts(),
-        queryFn: accountService.getAll,
+        queryKey: isSpecificUserSelected
+          ? queryKeys.accountsByUser(selectedViewUserId)
+          : queryKeys.accounts(),
+        queryFn: isSpecificUserSelected
+          ? () => accountService.getByUserId(selectedViewUserId)
+          : accountService.getAll,
         staleTime: 2 * 60 * 1000, // 2 minutes
       },
       {
         queryKey: queryKeys.transactions(),
         queryFn: transactionService.getAll,
         staleTime: 30 * 1000, // 30 seconds
+        // Always load all transactions for proper account balance calculations
+        // User filtering happens in the data processing, not in the API call
       },
       {
-        queryKey: queryKeys.budgets(),
-        queryFn: budgetService.getAll,
+        queryKey: isSpecificUserSelected
+          ? queryKeys.budgetsByUser(selectedViewUserId)
+          : queryKeys.budgets(),
+        queryFn: isSpecificUserSelected
+          ? () => budgetService.getByUserId(selectedViewUserId)
+          : budgetService.getAll,
         staleTime: 2 * 60 * 1000,
       },
       {
@@ -142,43 +155,107 @@ export const useDashboardData = (selectedGroupFilter: string = 'all'): Dashboard
     const allBudgetPeriods = users.flatMap(u => (u as User).budget_periods || []);
     // Categories are fetched for potential future use but not currently utilized in dashboard calculations
 
-    // Determine current user (first user for demo purposes)
-    const currentUser = users[0] || null;
-
-    // Filter data based on selected group filter
+    // Filter data based on user role and selected view user
     const getFilteredData = () => {
-      if (selectedGroupFilter === 'all') {
+      const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'superadmin';
+      const isMember = currentUser?.role === 'member';
+
+      if (isMember) {
+        // Member vede sempre e solo i propri dati
+        const userAccounts = allAccounts.filter(account =>
+          account.user_ids.includes(currentUser?.id || '')
+        );
+        const userTransactions = allTransactions.filter(transaction =>
+          transaction.user_id === currentUser?.id
+        );
+        const userBudgets = allBudgets.filter(budget =>
+          budget.user_id === currentUser?.id
+        );
+        const userBudgetPeriods = allBudgetPeriods.filter(period =>
+          period.user_id === currentUser?.id
+        );
+
         return {
-          accounts: allAccounts,
-          transactions: allTransactions,
-          budgets: allBudgets,
-          budgetPeriods: allBudgetPeriods,
+          accounts: userAccounts,
+          transactions: userTransactions,
+          budgets: userBudgets,
+          budgetPeriods: userBudgetPeriods,
         };
+      } else if (isAdmin) {
+        // Admin può vedere dati specifici in base alla selezione
+        if (selectedViewUserId === 'all') {
+          // Vista di tutti i dati del gruppo
+          const groupAccounts = allAccounts.filter(account =>
+            account.group_id === currentUser.group_id
+          );
+          const groupTransactions = allTransactions.filter(transaction =>
+            transaction.group_id === currentUser.group_id
+          );
+          const groupBudgets = allBudgets.filter(budget => {
+            const budgetUser = users.find(u => u.id === budget.user_id);
+            return budgetUser?.group_id === currentUser.group_id;
+          });
+          const groupBudgetPeriods = allBudgetPeriods.filter(period => {
+            const periodUser = users.find(u => u.id === period.user_id);
+            return periodUser?.group_id === currentUser.group_id;
+          });
+
+          return {
+            accounts: groupAccounts,
+            transactions: groupTransactions,
+            budgets: groupBudgets,
+            budgetPeriods: groupBudgetPeriods,
+          };
+        } else {
+          // Vista di un utente specifico
+          const selectedUser = users.find(u => u.id === selectedViewUserId);
+          if (!selectedUser || selectedUser.group_id !== currentUser.group_id) {
+            // Utente non valido o non nello stesso gruppo - mostra dati vuoti
+            return {
+              accounts: [],
+              transactions: [],
+              budgets: [],
+              budgetPeriods: [],
+            };
+          }
+
+          // Dati dell'utente selezionato
+          const userAccounts = allAccounts.filter(account =>
+            account.user_ids.includes(selectedViewUserId)
+          );
+          const userTransactions = allTransactions.filter(transaction =>
+            transaction.user_id === selectedViewUserId
+          );
+          const userBudgets = allBudgets.filter(budget =>
+            budget.user_id === selectedViewUserId
+          );
+          const userBudgetPeriods = allBudgetPeriods.filter(period =>
+            period.user_id === selectedViewUserId
+          );
+
+          return {
+            accounts: userAccounts,
+            transactions: userTransactions,
+            budgets: userBudgets,
+            budgetPeriods: userBudgetPeriods,
+          };
+        }
       }
 
-      // Filter by specific user
-      const accounts = allAccounts.filter(account =>
-        account.user_ids.includes(selectedGroupFilter)
-      );
-
-      const transactions = allTransactions.filter(transaction =>
-        transaction.user_id === selectedGroupFilter
-      );
-
-      const budgets = allBudgets.filter(budget =>
-        budget.user_id === selectedGroupFilter
-      );
-
-      const budgetPeriods = allBudgetPeriods.filter(period =>
-        period.user_id === selectedGroupFilter
-      );
-
-      return { accounts, transactions, budgets, budgetPeriods };
+      // Fallback - nessun dato se non autenticato
+      return {
+        accounts: [],
+        transactions: [],
+        budgets: [],
+        budgetPeriods: [],
+      };
     };
 
     const filteredData = getFilteredData();
 
-    // Calculate account balances using centralized function
+    // Calculate account balances using ALL transactions (not filtered)
+    // Account balances must include all transactions that affect the account,
+    // including transfers from other users in the group
     const accountBalances: Record<string, number> = {};
     filteredData.accounts.forEach(account => {
       accountBalances[account.id] = calculateAccountBalance(account.id, allTransactions);
@@ -222,17 +299,17 @@ export const useDashboardData = (selectedGroupFilter: string = 'all'): Dashboard
       const { start: currentPeriodStart, end: currentPeriodEnd } = getActivePeriodDates(user);
       const activePeriod = user.budget_periods?.find(period => period.is_active);
 
-      // Use centralized function to get relevant transactions
+      // Use centralized function to get relevant transactions (using filtered transactions)
       const relevantTransactions = getBudgetTransactions(
-        allTransactions,
+        filteredData.transactions,
         budget,
         currentPeriodStart || undefined,
         currentPeriodEnd || undefined
       );
 
-      // Calculate spent using centralized function
+      // Calculate spent using centralized function (using filtered transactions)
       const spent = calculateBudgetSpent(
-        allTransactions,
+        filteredData.transactions,
         budget,
         currentPeriodStart || undefined,
         currentPeriodEnd || undefined
@@ -359,8 +436,9 @@ export const useDashboardData = (selectedGroupFilter: string = 'all'): Dashboard
     accountsQuery.data,
     transactionsQuery.data,
     budgetsQuery.data,
-    selectedGroupFilter,
     upcomingSeries,
+    currentUser,
+    selectedViewUserId,
   ]);
 
   // Comprehensive loading and error state management

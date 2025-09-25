@@ -2,14 +2,8 @@
  * Recurring Execution Service
  *
  * Gestisce l'esecuzione automatica delle transazioni ricorrenti.
- * Questo servizio dovrebbe essere eseguito quotidianamente per:
- * 1. Identificare le serie ricorrenti in scadenza
- * 2. Creare automaticamente le transazioni
- * 3. Aggiornare il next_due_date
- * 4. Mantenere il collegamento per la riconciliazione
  */
-
-import { recurringTransactionSeriesService, transactionService } from './api';
+import { recurringTransactionService, transactionService } from './api-client';
 import type { RecurringTransactionSeries, Transaction } from './types';
 
 export interface ExecutionResult {
@@ -57,10 +51,10 @@ class RecurringExecutionService {
 
     try {
       // Ottieni tutte le serie attive
-      const activeSeries = await recurringTransactionSeriesService.getActive();
+      const activeSeries = await recurringTransactionService.getActive();
 
       // Filtra le serie che sono in scadenza o in ritardo
-      const dueSeries = activeSeries.filter(series => {
+      const dueSeries = activeSeries.filter((series: RecurringTransactionSeries) => {
         const nextDue = new Date(series.next_due_date);
         const now = new Date();
         const daysDiff = Math.ceil((nextDue.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
@@ -72,7 +66,7 @@ class RecurringExecutionService {
       // Filtra per auto_execute se non è forceExecute
       const seriesToExecute = forceExecute
         ? dueSeries
-        : dueSeries.filter(series => series.auto_execute);
+        : dueSeries.filter((series: RecurringTransactionSeries) => series.auto_execute);
 
       result.summary.totalProcessed = seriesToExecute.length;
 
@@ -100,7 +94,7 @@ class RecurringExecutionService {
           // Aggiorna il conteggio dei fallimenti nella serie
           if (!dryRun) {
             try {
-              await recurringTransactionSeriesService.update(series.id, {
+              await recurringTransactionService.update(series.id, {
                 failed_executions: series.failed_executions + 1
               });
             } catch (updateError) {
@@ -140,15 +134,13 @@ class RecurringExecutionService {
         recurring_series_id: series.id, // IMPORTANTE: collegamento per riconciliazione
         group_id: series.group_id,
         frequency: series.frequency,
-        created_at: nowIso,
-        updated_at: nowIso,
       });
 
       // Calcola la prossima data di scadenza
       const nextDueDate = this.calculateNextDueDate(series);
 
       // Aggiorna la serie con i nuovi dati di esecuzione
-      await recurringTransactionSeriesService.update(series.id, {
+      await recurringTransactionService.update(series.id, {
         last_executed_date: nowIso,
         total_executions: series.total_executions + 1,
         next_due_date: nextDueDate.toISOString(),
@@ -220,11 +212,11 @@ class RecurringExecutionService {
   async getSeriesReconciliation(seriesId: string) {
     try {
       const [series, transactions] = await Promise.all([
-        recurringTransactionSeriesService.getById(seriesId),
+        recurringTransactionService.getById(seriesId),
         this.getTransactionsBySeries(seriesId)
       ]);
 
-      const totalPaid = transactions.reduce((sum, tx) => sum + tx.amount, 0);
+      const totalPaid = transactions.reduce((sum: number, tx: Transaction) => sum + tx.amount, 0);
       const expectedAmount = series.amount * series.total_executions;
       const missedPayments = series.total_executions - transactions.length;
 
@@ -253,7 +245,7 @@ class RecurringExecutionService {
    */
   async findMissedExecutions() {
     try {
-      const activeSeries = await recurringTransactionSeriesService.getActive();
+      const activeSeries = await recurringTransactionService.getActive();
       const missedSeries = [];
 
       for (const series of activeSeries) {

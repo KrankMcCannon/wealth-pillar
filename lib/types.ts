@@ -41,6 +41,7 @@ export interface User {
   group_id: string;
   role: RoleType;
   budget_periods: BudgetPeriod[];
+  clerk_id?: string; // Clerk user ID for authentication integration
   created_at: string | Date;
   updated_at: string | Date;
 }

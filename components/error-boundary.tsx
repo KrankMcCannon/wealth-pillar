@@ -105,8 +105,7 @@ export const QueryErrorFallback: React.FC<{
   reset: () => void;
   title?: string;
   description?: string;
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-}> = ({ error, reset, title, description }) => {
+}> = ({ reset, title, description }) => {
   return (
     <div className="p-4 text-center">
       <div className="inline-flex items-center justify-center w-12 h-12 bg-orange-50 rounded-full mb-4">

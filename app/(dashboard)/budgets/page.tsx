@@ -34,13 +34,22 @@ import {
   getActivePeriodDates
 } from "@/lib/utils";
 
-const getBudgetsForUser = (budgets: Budget[], userId: string): Budget[] => {
-  if (userId === 'all') {
-    return budgets;
+const getBudgetsForUser = (budgets: Budget[], userId: string, currentUser: { id: string; role: string; group_id: string } | null, users: { id: string; group_id: string }[]): Budget[] => {
+  if (userId === 'all' && (currentUser?.role === 'admin' || currentUser?.role === 'superadmin')) {
+    // Admin sees all budgets from users in their group
+    return budgets.filter(budget => {
+      const budgetUser = users?.find(u => u.id === budget.user_id);
+      return budgetUser?.group_id === currentUser?.group_id;
+    });
   }
 
-  const userBudgets = budgets.filter(budget => budget.user_id === userId);
-  return userBudgets;
+  if (userId === 'all') {
+    // Fallback for non-admin users - show their own budgets
+    return budgets.filter(budget => budget.user_id === currentUser?.id);
+  }
+
+  // Specific user selected
+  return budgets.filter(budget => budget.user_id === userId);
 };
 
 
@@ -55,9 +64,9 @@ function BudgetsContent() {
   // Use centralized user selection
   const {
     currentUser,
-    selectedGroupFilter: selectedUser,
+    selectedViewUserId,
     users,
-    updateGroupFilter: updateSelectedUser,
+    updateViewUserId,
     isLoading: userSelectionLoading
   } = useUserSelection();
   const [userMap, setUserMap] = useState<{ [key: string]: string }>({});
@@ -67,15 +76,29 @@ function BudgetsContent() {
   const { data: allBudgetPeriods = [], isLoading: periodLoading } = useBudgetPeriods();
 
   useEffect(() => {
-    const userLookupMap: { [key: string]: string } = {};
-    users?.forEach(user => { userLookupMap[user.id] = user.name; });
-    setUserMap(userLookupMap);
-
-    const initialBudgets = getBudgetsForUser(budgets, selectedUser);
-    if (initialBudgets.length > 0) {
-      setSelectedBudget(initialBudgets[0]);
+    // Update user map only if changed (avoid re-renders loop)
+    const nextMap: { [key: string]: string } = {};
+    users?.forEach(user => { nextMap[user.id] = user.name; });
+    const sameSize = Object.keys(nextMap).length === Object.keys(userMap).length;
+    const sameEntries = sameSize && Object.keys(nextMap).every(k => userMap[k] === nextMap[k]);
+    if (!sameEntries) {
+      setUserMap(nextMap);
     }
-  }, [users, budgets, selectedUser]);
+  }, [users, userMap]);
+
+  // Separate effect for budget initialization to avoid dependency loops
+  useEffect(() => {
+    // Only run if we have the necessary data
+    if (!budgets || !users || !currentUser) return;
+
+    const availableBudgets = getBudgetsForUser(budgets, selectedViewUserId, currentUser, users);
+    const first = availableBudgets[0];
+
+    // Only update if we don't have a selected budget or it's not in the available budgets
+    if (!selectedBudget || !availableBudgets.some(b => b.id === selectedBudget.id)) {
+      setSelectedBudget(first || null);
+    }
+  }, [budgets, selectedViewUserId, currentUser, users, selectedBudget]);
 
   const getCurrentPeriodForUser = useCallback((userId: string) => {
     return allBudgetPeriods.find(period => period.user_id === userId && period.is_active);
@@ -127,8 +150,8 @@ function BudgetsContent() {
     relevantTransactions = relevantTransactions.filter(t => t.user_id === selectedBudget.user_id);
 
     // If a specific user is selected, filter by that user
-    if (selectedUser !== 'all') {
-      relevantTransactions = relevantTransactions.filter(t => t.user_id === selectedUser);
+    if (selectedViewUserId !== 'all') {
+      relevantTransactions = relevantTransactions.filter(t => t.user_id === selectedViewUserId);
     }
 
     // Get transactions from the last 7 days
@@ -180,16 +203,16 @@ function BudgetsContent() {
       dailyIncome.push(incomeData);
     }
 
-    const expenseAmounts = dailyExpenses.map(day => {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { day: _, ...amounts } = day;
-      return Object.values(amounts).reduce((sum: number, val) => sum + (val as number), 0);
+    const expenseAmounts = dailyExpenses.map((day) => {
+      return Object.entries(day)
+        .filter(([key]) => key !== 'day')
+        .reduce((sum: number, [, val]) => sum + (val as number), 0);
     });
 
-    const incomeAmounts = dailyIncome.map(day => {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { day: _, ...amounts } = day;
-      return Object.values(amounts).reduce((sum: number, val) => sum + (val as number), 0);
+    const incomeAmounts = dailyIncome.map((day) => {
+      return Object.entries(day)
+        .filter(([key]) => key !== 'day')
+        .reduce((sum: number, [, val]) => sum + (val as number), 0);
     });
 
     return {
@@ -202,7 +225,7 @@ function BudgetsContent() {
       categories: Array.from(categories),
       incomeTypes: Array.from(incomeTypes)
     };
-  }, [selectedBudget, allTransactions, selectedUser]);
+  }, [selectedBudget, allTransactions, selectedViewUserId]);
 
   const getCategoryColor = useCallback((categoryKey: string): string => {
     const category = categories.find(cat => cat.key === categoryKey);
@@ -323,14 +346,14 @@ function BudgetsContent() {
     );
 
     // Filter by selected user if not 'all'
-    const filteredTransactions = selectedUser !== 'all'
-      ? periodTransactions.filter(t => t.user_id === selectedUser)
+    const filteredTransactions = selectedViewUserId !== 'all'
+      ? periodTransactions.filter(t => t.user_id === selectedViewUserId)
       : periodTransactions;
 
     // Sort by date (most recent first) and return ALL transactions (no slice limit)
     return filteredTransactions
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  }, [selectedBudget, selectedUser, allTransactions, users]);
+  }, [selectedBudget, selectedViewUserId, allTransactions, users]);
 
   const processedBudgetTransactions = useMemo(() => {
     const safeParse = (d: string | Date) => {
@@ -378,9 +401,9 @@ function BudgetsContent() {
     return names;
   }, [accounts]);
 
-  const availableBudgets = useMemo(() => 
-    getBudgetsForUser(budgets, selectedUser), 
-    [selectedUser, budgets]
+  const availableBudgets = useMemo(() =>
+    getBudgetsForUser(budgets, selectedViewUserId, currentUser, users || []),
+    [selectedViewUserId, budgets, currentUser, users]
   );
 
   const handleBudgetChange = useCallback((value: string) => {
@@ -390,17 +413,6 @@ function BudgetsContent() {
     }
   }, [availableBudgets]);
 
-  const handleUserChange = useCallback((userId: string) => {
-    updateSelectedUser(userId);
-
-    // Update budget selection using DRY helper
-    const newAvailableBudgets = getBudgetsForUser(budgets, userId);
-    if (newAvailableBudgets.length > 0) {
-      setSelectedBudget(newAvailableBudgets[0]);
-    } else {
-      setSelectedBudget(null);
-    }
-  }, [budgets, updateSelectedUser]);
 
   return (
     <div className="relative flex size-full min-h-[100dvh] flex-col bg-gradient-to-br from-slate-50 via-white to-slate-100" style={{ fontFamily: '"Inter", "SF Pro Display", system-ui, sans-serif' }}>
@@ -414,8 +426,8 @@ function BudgetsContent() {
             className="hover:bg-slate-100 text-slate-600 hover:text-slate-800 rounded-xl transition-all duration-200 p-2 sm:p-3 min-w-[44px] min-h-[44px] flex items-center justify-center"
             onClick={() => {
               const params = new URLSearchParams();
-              if (selectedUser !== 'all') {
-                params.set('selectedUser', selectedUser);
+              if (selectedViewUserId !== 'all') {
+                params.set('selectedViewUserId', selectedViewUserId);
               }
               const dashboardUrl = `/dashboard${params.toString() ? '?' + params.toString() : ''}`;
               router.push(dashboardUrl);
@@ -470,8 +482,8 @@ function BudgetsContent() {
       <UserSelector
         users={users}
         currentUser={currentUser}
-        selectedGroupFilter={selectedUser}
-        onGroupFilterChange={handleUserChange}
+        selectedGroupFilter={selectedViewUserId}
+        onGroupFilterChange={updateViewUserId}
       />
 
       {/* Divider Line */}
@@ -518,7 +530,7 @@ function BudgetsContent() {
                             <span className="group-hover:font-semibold transition-all duration-200 truncate">
                               {budget.description}
                             </span>
-                            {selectedUser === 'all' && userMap[budget.user_id] && (
+                            {selectedViewUserId === 'all' && userMap[budget.user_id] && (
                               <span className="text-xs text-gray-500 flex-shrink-0">({userMap[budget.user_id]})</span>
                             )}
                           </div>
@@ -639,11 +651,14 @@ function BudgetsContent() {
                       {unifiedChartData.data.map((dayData: { [key: string]: number | string }, index: number) => {
                         const { day, ...amounts } = dayData;
                         const total = Object.values(amounts).reduce((sum: number, val) => sum + (val as number), 0);
-                        const maxTotal = Math.max(...unifiedChartData.data.map((d: { [key: string]: number | string }) => {
-                          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                          const { day: _, ...amounts } = d;
-                          return Object.values(amounts).reduce((sum: number, val) => sum + (val as number), 0);
-                        }), 1);
+                        const maxTotal = Math.max(
+                          ...unifiedChartData.data.map((d: { [key: string]: number | string }) =>
+                            Object.entries(d)
+                              .filter(([key]) => key !== 'day')
+                              .reduce((sum: number, [, val]) => sum + (val as number), 0)
+                          ),
+                          1
+                        );
                         const barHeight = maxTotal > 0 ? Math.max((total / maxTotal) * 70, 16) : 16;
 
                         return (
@@ -736,11 +751,14 @@ function BudgetsContent() {
                       {unifiedChartData.data.map((dayData: { [key: string]: number | string }, index: number) => {
                         const { day, ...amounts } = dayData;
                         const total = Object.values(amounts).reduce((sum: number, val) => sum + (val as number), 0);
-                        const maxTotal = Math.max(...unifiedChartData.data.map((d: { [key: string]: number | string }) => {
-                          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                          const { day: _, ...amounts } = d;
-                          return Object.values(amounts).reduce((sum: number, val) => sum + (val as number), 0);
-                        }), 1);
+                        const maxTotal = Math.max(
+                          ...unifiedChartData.data.map((d: { [key: string]: number | string }) =>
+                            Object.entries(d)
+                              .filter(([key]) => key !== 'day')
+                              .reduce((sum: number, [, val]) => sum + (val as number), 0)
+                          ),
+                          1
+                        );
                         const barHeight = maxTotal > 0 ? Math.max((total / maxTotal) * 70, 16) : 16;
 
                         return (
@@ -863,8 +881,8 @@ function BudgetsContent() {
                     onClick={() => {
                       const params = new URLSearchParams();
                       params.set('from', 'budgets');
-                      if (selectedUser !== 'all') {
-                        params.set('member', selectedUser);
+                      if (selectedViewUserId !== 'all') {
+                        params.set('member', selectedViewUserId);
                       }
                       if (selectedBudget && selectedBudget.id) {
                         params.set('budget', selectedBudget.id);

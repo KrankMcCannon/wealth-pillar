@@ -17,15 +17,15 @@ export default function InvestmentsPage() {
   // Use centralized user selection
   const {
     currentUser,
-    selectedGroupFilter,
+    selectedViewUserId,
     users,
-    updateGroupFilter,
+    updateViewUserId,
     isLoading: userSelectionLoading
   } = useUserSelection();
 
   // Get portfolio data for the selected user
   const { data: portfolioDataFromApi, isLoading: portfolioLoading } = usePortfolioData(
-    selectedGroupFilter === 'all' ? (currentUser?.id || '') : selectedGroupFilter
+    selectedViewUserId === 'all' ? (currentUser?.id || '') : selectedViewUserId
   );
 
 
@@ -33,17 +33,17 @@ export default function InvestmentsPage() {
   const filteredInvestments = useMemo(() => {
     if (!currentUser) return [];
 
-    if (selectedGroupFilter === 'all') {
+    if (selectedViewUserId === 'all') {
       return investments;
     }
 
-    return investments.filter(investment => investment.user_id === selectedGroupFilter);
-  }, [investments, selectedGroupFilter, currentUser]);
+    return investments.filter(investment => investment.user_id === selectedViewUserId);
+  }, [investments, selectedViewUserId, currentUser]);
 
   // Memoized calculations for portfolio data
   const portfolioData: PortfolioData = useMemo(() => {
     // Use API data if available, otherwise calculate from filtered investments
-    if (portfolioDataFromApi && selectedGroupFilter !== 'all') {
+    if (portfolioDataFromApi && selectedViewUserId !== 'all') {
       return portfolioDataFromApi;
     }
 
@@ -76,7 +76,7 @@ export default function InvestmentsPage() {
         };
       })
     };
-  }, [filteredInvestments, portfolioDataFromApi, selectedGroupFilter]);
+  }, [filteredInvestments, portfolioDataFromApi, selectedViewUserId]);
 
   // Helper function to determine asset type based on symbol
   const getAssetType = (symbol: string): 'stock' | 'crypto' => {
@@ -151,8 +151,8 @@ export default function InvestmentsPage() {
         <UserSelector
           users={users}
           currentUser={currentUser}
-          selectedGroupFilter={selectedGroupFilter}
-          onGroupFilterChange={updateGroupFilter}
+          selectedGroupFilter={selectedViewUserId}
+          onGroupFilterChange={updateViewUserId}
         />
 
         <main className="p-4 pb-24">

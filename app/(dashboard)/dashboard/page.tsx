@@ -23,9 +23,9 @@ export default function DashboardPage() {
   // Use centralized user selection
   const {
     currentUser,
-    selectedGroupFilter,
+    selectedViewUserId,
     users,
-    updateGroupFilter,
+    updateViewUserId,
     isLoading: userSelectionLoading
   } = useUserSelection();
 
@@ -38,7 +38,7 @@ export default function DashboardPage() {
     isLoading,
     isError,
     errors,
-  } = useDashboardData(selectedGroupFilter);
+  } = useDashboardData(selectedViewUserId, currentUser);
 
   const handleAccountClick = useCallback((id: string) => {
     setExpandedAccount(expandedAccount === id ? null : id);
@@ -162,8 +162,8 @@ export default function DashboardPage() {
         <UserSelector
           users={users}
           currentUser={currentUser}
-          selectedGroupFilter={selectedGroupFilter}
-          onGroupFilterChange={updateGroupFilter}
+          selectedGroupFilter={selectedViewUserId}
+          onGroupFilterChange={updateViewUserId}
         />
 
         <main className="pb-16">
@@ -187,14 +187,6 @@ export default function DashboardPage() {
             <div className="overflow-x-auto scrollbar-hide">
               <div className="flex gap-3 pb-2">
                 {bankAccounts
-                  .filter((account: Account) => {
-                    // Show shared accounts only when 'all members' is selected
-                    if (selectedGroupFilter === 'all') {
-                      return true; // Show all accounts including shared ones
-                    } else {
-                      return account.user_ids.includes(selectedGroupFilter);
-                    }
-                  })
                   .sort((a: Account, b: Account) => {
                     // Sort by balance (highest to lowest)
                     const balanceA = accountBalances[a.id] || 0;
@@ -292,8 +284,8 @@ export default function DashboardPage() {
                                 onClick={() => {
                                   const params = new URLSearchParams();
                                   params.set('budget', budget.id);
-                                  if (selectedGroupFilter !== 'all') {
-                                    params.set('member', selectedGroupFilter);
+                                  if (selectedViewUserId !== 'all') {
+                                    params.set('member', selectedViewUserId);
                                   }
                                   router.push(`/budgets?${params.toString()}`);
                                 }}
@@ -315,7 +307,7 @@ export default function DashboardPage() {
 
           {/* Recurring Series Section */}
           <RecurringSeriesSection
-            selectedUserId={selectedGroupFilter}
+            selectedUserId={selectedViewUserId}
             className="bg-white/80 backdrop-blur-sm shadow-xl shadow-slate-200/50 rounded-2xl sm:rounded-3xl border border-white/50"
             showStats={false}
             maxItems={5}
