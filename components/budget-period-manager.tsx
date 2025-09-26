@@ -1,40 +1,62 @@
 "use client";
 
-import { useState } from "react";
-import { Calendar, Clock, Play, Square, History, AlertCircle } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Clock, Play, Save, History, AlertCircle, TrendingUp, TrendingDown, Activity, Calendar, Users, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, calculateUserFinancialTotals } from "@/lib/utils";
 import type { Budget, BudgetPeriod } from "@/lib/types";
 import {
-  useBudgetPeriods,
   useStartBudgetPeriod,
-  useEndBudgetPeriod
+  useEndBudgetPeriod,
+  useBudgetPeriods,
+  useUsers,
+  useBudgets,
+  useTransactions
 } from "@/hooks";
 
 interface BudgetPeriodManagerProps {
   budget: Budget;
   currentPeriod: BudgetPeriod | null;
   trigger: React.ReactNode;
+  onSuccess?: () => void;
 }
 
-export function BudgetPeriodManager({ budget, currentPeriod, trigger }: BudgetPeriodManagerProps) {
+export function BudgetPeriodManager({ budget, currentPeriod, trigger, onSuccess }: BudgetPeriodManagerProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const { data: allPeriods = [], isLoading } = useBudgetPeriods();
+  const [isActionPending, setIsActionPending] = useState(false);
+  const [endDate, setEndDate] = useState<string>('');
+
   const startPeriodMutation = useStartBudgetPeriod();
   const endPeriodMutation = useEndBudgetPeriod();
+  const { data: allPeriods = [] } = useBudgetPeriods();
+  const { data: users = [] } = useUsers();
+  const { data: allBudgets = [] } = useBudgets();
+  const { data: allTransactions = [] } = useTransactions();
 
-  // Get periods for this budget's user (periods are now user-level)
-  const budgetPeriods = allPeriods.filter((period: BudgetPeriod) => period.user_id === budget.user_id);
+  // Reset action pending state when mutations complete
+  useEffect(() => {
+    if (!startPeriodMutation.isPending && !endPeriodMutation.isPending) {
+      setIsActionPending(false);
+    }
+  }, [startPeriodMutation.isPending, endPeriodMutation.isPending]);
+
+  // Reset state when modal opens/closes
+  useEffect(() => {
+    if (!isOpen) {
+      setIsActionPending(false);
+    }
+  }, [isOpen]);
 
   const formatDate = (date: Date | string | null) => {
     if (!date) return null;
@@ -46,201 +68,259 @@ export function BudgetPeriodManager({ budget, currentPeriod, trigger }: BudgetPe
     });
   };
 
+  // Calcola il numero di periodi chiusi per l'utente
+  const getClosedPeriodsCount = () => {
+    return allPeriods.filter((period: BudgetPeriod) =>
+      period.user_id === (budget.user_id) && (!period.is_active || period.end_date)
+    ).length;
+  };
+
+  // Calcola i totali spese e risparmi del periodo corrente
+  const calculatePeriodTotals = () => {
+    const user = users.find(u => u.id === budget.user_id);
+    if (!user) return { totalSpent: 0, totalSaved: 0 };
+
+    const userBudgets = allBudgets.filter(b => b.user_id === budget.user_id);
+    const totals = calculateUserFinancialTotals(user, userBudgets, allTransactions);
+
+    return {
+      totalSpent: totals.totalSpent || 0,
+      totalSaved: totals.totalSaved || 0
+    };
+  };
+
   const handleStartNewPeriod = async () => {
+    setIsActionPending(true);
     try {
       await startPeriodMutation.mutateAsync({
         userId: budget.user_id,
       });
-      setIsOpen(false);
+      setIsActionPending(false);
+      setIsOpen(false); // Close modal after successful creation
+      onSuccess?.(); // Call the callback to close dropdown
     } catch (error) {
       console.error('Error starting new period:', error);
+      setIsActionPending(false);
     }
   };
 
   const handleEndCurrentPeriod = async () => {
-    if (!currentPeriod) return;
+    if (!currentPeriod || !endDate) return;
 
+    setIsActionPending(true);
     try {
-      await endPeriodMutation.mutateAsync(budget.user_id);
-      setIsOpen(false);
+      const parsed = new Date(endDate);
+      if (!isNaN(parsed.getTime())) {
+        parsed.setHours(23, 59, 59, 999);
+      }
+      const endDateIso = isNaN(parsed.getTime()) ? undefined : parsed.toISOString();
+
+      await endPeriodMutation.mutateAsync({
+        userId: budget.user_id,
+        endDate: endDateIso
+      });
+      setIsActionPending(false);
+      setEndDate(''); // Reset end date
+      onSuccess?.(); // Call the callback to close dropdown
     } catch (error) {
       console.error('Error ending current period:', error);
+      setIsActionPending(false);
     }
   };
 
   const isActivePeriod = currentPeriod?.is_active && !currentPeriod?.end_date;
-  const historicalPeriods = budgetPeriods.filter((p: BudgetPeriod) => !p.is_active || p.end_date);
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         {trigger}
       </DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <History className="h-5 w-5 text-primary" />
-            Gestione Periodi Budget
+      <DialogContent className="p-4 gap-0 max-w-[95vw] w-full sm:max-w-2xl max-h-[85vh] sm:max-h-[90vh] flex flex-col bg-white/95 backdrop-blur-xl border border-[#7578EC]/20 shadow-2xl rounded-2xl sm:rounded-3xl">
+        <DialogHeader className="p-4 pb-3 border-b border-[#7578EC]/15">
+          <DialogTitle className="flex items-center gap-2 text-lg sm:text-xl font-bold bg-gradient-to-r text-black bg-clip-text">
+            <div className="p-2 bg-gradient-to-br from-[#7578EC] to-[#7578EC]/80 rounded-lg shadow-md shadow-[#7578EC]/20">
+              <History className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+            </div>
+            <span className="bg-gradient-to-r text-black bg-clip-text">
+              Gestione Periodi
+            </span>
           </DialogTitle>
-          <DialogDescription>
-            Gestisci i periodi del budget &quot;{budget.description}&quot;
-          </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div className="flex-1 p-4 pt-3 space-y-4 overflow-y-auto scrollbar-thin min-h-0">
+          {/* User Info Section */}
+          <div className="liquid-glass rounded-xl p-3 border border-[#7578EC]/20">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 bg-gradient-to-br from-[#7578EC]/10 to-[#7578EC]/5 rounded-lg">
+                  <Users className="h-4 w-4 text-[#7578EC]" />
+                </div>
+                <span className="text-sm font-bold text-black">
+                  {users.find(user => user.id === budget.user_id)?.name || 'Utente non trovato'}
+                </span>
+              </div>
+              <div className="flex items-center gap-1 text-xs text-black/60 bg-[#7578EC]/10 px-2 py-1 rounded-full">
+                <History className="h-3 w-3 text-[#7578EC]/70" />
+                <span>
+                  {getClosedPeriodsCount() === 1
+                    ? `${getClosedPeriodsCount()} periodo chiuso`
+                    : `${getClosedPeriodsCount()} periodi chiusi`
+                  }
+                </span>
+              </div>
+            </div>
+          </div>
+
           {/* Current Period Status */}
-          <div className="bg-slate-50 rounded-xl p-4">
-            <h3 className="font-semibold text-slate-900 mb-3 flex items-center gap-2">
-              <Clock className="h-4 w-4" />
-              Periodo Corrente
-            </h3>
+          <div className="liquid-glass rounded-xl p-4 border border-[#7578EC]/20">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="p-1.5 bg-gradient-to-br from-[#7578EC]/10 to-[#7578EC]/5 rounded-lg">
+                <Clock className="h-4 w-4 text-[#7578EC]" />
+              </div>
+              <h3 className="text-base font-bold bg-gradient-to-r text-black bg-clip-text">
+                Periodo Corrente
+              </h3>
+            </div>
 
             {isActivePeriod ? (
               <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-slate-600">
+                {/* Period Status Header */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <span className="text-sm font-medium text-black">
                     Iniziato il {formatDate(currentPeriod.start_date)}
                   </span>
-                  <Badge variant="default" className="text-xs">
-                    <Clock className="h-3 w-3 mr-1" />
+                  <Badge className="bg-gradient-to-r from-[#7578EC] to-[#7578EC]/90 text-white shadow-sm self-start sm:self-auto">
+                    <Activity className="h-3 w-3 mr-1" />
                     In corso
                   </Badge>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="bg-white rounded-lg px-3 py-2">
-                    <p className="text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1">
-                      Speso
-                    </p>
-                    <p className="text-sm font-bold text-slate-900">
-                      {formatCurrency(currentPeriod.total_spent)}
+                {/* Financial Metrics */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="bg-gradient-to-br from-[#DC2626]/5 to-[#DC2626]/10 backdrop-blur-sm rounded-lg p-3 border border-[#DC2626]/20 hover:shadow-md transition-all duration-200">
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <TrendingDown className="h-3 w-3 text-[#DC2626]" />
+                      <p className="text-xs font-bold text-[#DC2626] uppercase tracking-wide">
+                        Speso
+                      </p>
+                    </div>
+                    <p className="text-base sm:text-lg font-bold text-[#DC2626]">
+                      {formatCurrency(calculatePeriodTotals().totalSpent)}
                     </p>
                   </div>
-                  <div className="bg-emerald-50 rounded-lg px-3 py-2">
-                    <p className="text-xs font-semibold text-emerald-700 uppercase tracking-wide mb-1">
-                      Risparmiato
-                    </p>
-                    <p className="text-sm font-bold text-emerald-600">
-                      {formatCurrency(currentPeriod.total_saved)}
+                  <div className="bg-gradient-to-br from-[#6BBEB4]/10 to-[#6BBEB4]/20 rounded-lg p-3 border border-[#6BBEB4]/30 hover:shadow-md transition-all duration-200">
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <TrendingUp className="h-3 w-3 text-[#6BBEB4]" />
+                      <p className="text-xs font-bold text-[#6BBEB4] uppercase tracking-wide">
+                        Risparmiato
+                      </p>
+                    </div>
+                    <p className="text-base sm:text-lg font-bold text-[#6BBEB4]">
+                      {formatCurrency(calculatePeriodTotals().totalSaved)}
                     </p>
                   </div>
                 </div>
 
+                {/* End Date Selection */}
+                <div className="space-y-2">
+                  <Label htmlFor="end-date" className="text-sm font-medium text-black">
+                    Data di Fine Periodo
+                  </Label>
+                  <div className="relative">
+                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#7578EC]" />
+                    <Input
+                      id="end-date"
+                      type="date"
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
+                      min={currentPeriod?.start_date ? new Date(currentPeriod.start_date).toISOString().split('T')[0] : ''}
+                      className="pl-10 border-[#7578EC]/30 focus:border-[#7578EC] focus:ring-[#7578EC]/20"
+                    />
+                  </div>
+                </div>
+
+                {/* Period Totals (when end date is selected) */}
+                {endDate && currentPeriod && (
+                  <div className="space-y-3 p-3 bg-gradient-to-br from-[#7578EC]/5 to-[#7578EC]/10 rounded-lg border border-[#7578EC]/20">
+                    <div className="flex items-center gap-2">
+                      <Target className="h-4 w-4 text-[#7578EC]" />
+                      <h4 className="text-sm font-bold text-black">Riepilogo Periodo</h4>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="text-center p-2 bg-[#DC2626]/10 rounded-md border border-[#DC2626]/20">
+                        <p className="text-xs font-bold text-[#DC2626] uppercase tracking-wide mb-0.5">Speso Totale</p>
+                        <p className="text-sm font-bold text-[#DC2626]">
+                          {formatCurrency(calculatePeriodTotals().totalSpent)}
+                        </p>
+                      </div>
+                      <div className="text-center p-2 bg-[#6BBEB4]/10 rounded-md border border-[#6BBEB4]/20">
+                        <p className="text-xs font-bold text-[#6BBEB4] uppercase tracking-wide mb-0.5">Risparmiato</p>
+                        <p className="text-sm font-bold text-[#6BBEB4]">
+                          {formatCurrency(calculatePeriodTotals().totalSaved)}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 <Button
                   onClick={handleEndCurrentPeriod}
-                  disabled={endPeriodMutation.isPending}
-                  size="sm"
+                  disabled={isActionPending || !endDate}
+                  size="default"
                   variant="outline"
-                  className="w-full border-red-200 text-red-700 hover:bg-red-50"
+                  className="w-full h-10 gradient-primary text-white transition-all duration-200 hover:opacity-90 active:scale-[.98] font-semibold rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <Square className="h-4 w-4 mr-2" />
-                  {endPeriodMutation.isPending ? 'Terminando...' : 'Termina Periodo'}
+                  {isActionPending ? (
+                    <>
+                      <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-2" />
+                      Salvando...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-3 w-3 mr-2" />
+                      Salva Periodo
+                    </>
+                  )}
                 </Button>
               </div>
             ) : (
               <div className="space-y-3">
-                <Alert>
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>
-                    Nessun periodo attivo. Inizia un nuovo periodo per tracciare le spese.
+                {/* Alert */}
+                <Alert className="border-[#7578EC]/30 bg-gradient-to-r from-[#7578EC]/10 to-[#7578EC]/5">
+                  <AlertCircle className="h-4 w-4 text-[#7578EC]" />
+                  <AlertDescription className="text-black font-medium">
+                    Nessun periodo attivo. Inizia un nuovo periodo per tracciare le spese del budget.
                   </AlertDescription>
                 </Alert>
 
+                {/* Start Button */}
                 <Button
                   onClick={handleStartNewPeriod}
-                  disabled={startPeriodMutation.isPending}
-                  size="sm"
-                  className="w-full"
+                  disabled={isActionPending}
+                  size="default"
+                  className="w-full h-10 gradient-primary text-white transition-all duration-200 hover:opacity-90 active:scale-[.98] font-semibold rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <Play className="h-4 w-4 mr-2" />
-                  {startPeriodMutation.isPending ? 'Iniziando...' : 'Inizia Nuovo Periodo'}
+                  {isActionPending ? (
+                    <>
+                      <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-2" />
+                      Iniziando...
+                    </>
+                  ) : (
+                    <>
+                      <Play className="h-3 w-3 mr-2" />
+                      Inizia Nuovo Periodo
+                    </>
+                  )}
                 </Button>
               </div>
             )}
           </div>
 
-          {/* Historical Periods */}
-          <div>
-            <h3 className="font-semibold text-slate-900 mb-3 flex items-center gap-2">
-              <Calendar className="h-4 w-4" />
-              Storico Periodi ({historicalPeriods.length})
-            </h3>
-
-            {isLoading ? (
-              <div className="flex items-center justify-center py-8">
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-              </div>
-            ) : historicalPeriods.length > 0 ? (
-              <div className="space-y-3 max-h-64 overflow-y-auto">
-                {historicalPeriods
-                  .sort((a: BudgetPeriod, b: BudgetPeriod) => new Date(b.start_date).getTime() - new Date(a.start_date).getTime())
-                  .map((period: BudgetPeriod) => (
-                    <div
-                      key={period.id}
-                      className="bg-white border border-slate-200 rounded-xl p-4 hover:shadow-sm transition-shadow"
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <Calendar className="h-3 w-3 text-slate-500" />
-                          <span className="text-sm font-medium text-slate-700">
-                            {formatDate(period.start_date)} - {formatDate(period.end_date)}
-                          </span>
-                        </div>
-                        <Badge variant="secondary" className="text-xs">
-                          Concluso
-                        </Badge>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className="text-center">
-                          <p className="text-xs text-slate-600">Speso</p>
-                          <p className="text-sm font-semibold text-slate-900">
-                            {formatCurrency(period.total_spent)}
-                          </p>
-                        </div>
-                        <div className="text-center">
-                          <p className="text-xs text-emerald-700">Risparmiato</p>
-                          <p className="text-sm font-semibold text-emerald-600">
-                            {formatCurrency(period.total_saved)}
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* Top spending categories */}
-                      {period.category_spending && Object.keys(period.category_spending).length > 0 && (
-                        <div className="mt-3 pt-3 border-t border-slate-100">
-                          <p className="text-xs font-semibold text-slate-600 uppercase tracking-wide mb-2">
-                            Principali Categorie
-                          </p>
-                          <div className="space-y-1">
-                            {Object.entries(period.category_spending as Record<string, number>)
-                              .sort(([, a], [, b]) => (b as number) - (a as number))
-                              .slice(0, 3)
-                              .map(([category, amount]: [string, number]) => (
-                                <div key={category} className="flex items-center justify-between">
-                                  <span className="text-xs text-slate-600 capitalize">
-                                    {category.replace(/_/g, ' ')}
-                                  </span>
-                                  <span className="text-xs font-semibold text-slate-900">
-                                    {formatCurrency(amount)}
-                                  </span>
-                                </div>
-                              ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-              </div>
-            ) : (
-              <div className="text-center py-8 text-slate-500">
-                <Calendar className="h-8 w-8 mx-auto mb-2 text-slate-400" />
-                <p className="text-sm">Nessun periodo storico disponibile</p>
-              </div>
-            )}
-          </div>
         </div>
       </DialogContent>
     </Dialog>
   );
 }
+
+// Export with displayName for debugging
+BudgetPeriodManager.displayName = "BudgetPeriodManager";

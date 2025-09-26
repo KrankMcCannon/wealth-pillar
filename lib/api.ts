@@ -1033,13 +1033,13 @@ export const budgetPeriodService = {
     return budgetPeriodService.create(userId, newPeriod);
   },
 
-  endCurrentPeriod: async (userId: string): Promise<BudgetPeriod | null> => {
+  endCurrentPeriod: async (userId: string, endDate?: string): Promise<BudgetPeriod | null> => {
     const currentPeriod = await budgetPeriodService.getCurrentPeriod(userId);
     if (!currentPeriod) return null;
 
     return budgetPeriodService.update(userId, currentPeriod.id, {
       is_active: false,
-      end_date: new Date().toISOString()
+      end_date: endDate || new Date().toISOString()
     });
   },
 };

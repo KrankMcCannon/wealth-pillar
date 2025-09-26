@@ -84,22 +84,38 @@ const isValidTransaction = (tx: Transaction): boolean => {
 };
 
 const isWithinDateRange = (txDate: Date, startDate: Date, endDate?: Date): boolean => {
-  const end = endDate || new Date();
-  return txDate >= startDate && txDate <= end;
+  // Normalize all dates to start of day for comparison
+  const txDateNormalized = new Date(txDate);
+  txDateNormalized.setHours(0, 0, 0, 0);
+
+  const startDateNormalized = new Date(startDate);
+  startDateNormalized.setHours(0, 0, 0, 0);
+
+  if (!endDate) {
+    // If no end date, only check if transaction is on or after start date
+    return txDateNormalized >= startDateNormalized;
+  }
+
+  const endDateNormalized = new Date(endDate);
+  endDateNormalized.setHours(23, 59, 59, 999); // End of day
+
+  return txDateNormalized >= startDateNormalized && txDateNormalized <= endDateNormalized;
 };
 
 /**
  * Calculate budget spending for the active budget period
+ * Centralized via calculateUserFinancialTotals to keep logic DRY
  */
 const getBudgetSpent = async (budget: Budget): Promise<number> => {
-  const transactions = await transactionService.getByUserId(budget.user_id);
-  const users = await userService.getAll();
-  const user = users.find(u => u.id === budget.user_id);
+  const [transactions, user] = await Promise.all([
+    transactionService.getByUserId(budget.user_id),
+    userService.getById(budget.user_id)
+  ]);
 
   if (!user) return 0;
 
-  const { start, end } = getActivePeriodDates(user);
-  return calculateBudgetSpent(transactions, budget, start || undefined, end || undefined);
+  const totals = calculateUserFinancialTotals(user, [budget], transactions);
+  return totals.totalSpent;
 };
 
 export const getBalanceSpent = getBudgetSpent;
@@ -108,17 +124,28 @@ export const getBalanceSpent = getBudgetSpent;
  * Calculate remaining budget balance for the active period
  */
 export const getBudgetBalance = async (budget: Budget): Promise<number> => {
-  const spent = await getBudgetSpent(budget);
-  return Math.round((budget.amount - spent) * 100) / 100;
+  const [transactions, user] = await Promise.all([
+    transactionService.getByUserId(budget.user_id),
+    userService.getById(budget.user_id)
+  ]);
+  if (!user) return 0;
+  const totals = calculateUserFinancialTotals(user, [budget], transactions);
+  const remaining = totals.totalBudget - totals.totalSpent; // can be negative when overspent
+  return Math.round(remaining * 100) / 100;
 };
 
 /**
  * Calculate budget progress percentage for the active period (can exceed 100%)
  */
 export const getBudgetProgress = async (budget: Budget): Promise<number> => {
-  const spent = await getBudgetSpent(budget);
-  const progress = budget.amount > 0 ? (spent / budget.amount) * 100 : 0;
-  return Math.round(progress * 100) / 100;
+  const [transactions, user] = await Promise.all([
+    transactionService.getByUserId(budget.user_id),
+    userService.getById(budget.user_id)
+  ]);
+  if (!user) return 0;
+  const totals = calculateUserFinancialTotals(user, [budget], transactions);
+  const progress = budget.amount > 0 ? (totals.totalSpent / budget.amount) * 100 : 0;
+  return Math.round(progress * 100) / 100; // can exceed 100%
 };
 
 /**
@@ -340,10 +367,16 @@ export const getActivePeriodDates = (user: User): { start: Date | null; end: Dat
   const activePeriod = user.budget_periods?.find(period => period.is_active);
 
   if (activePeriod) {
-    return {
-      start: new Date(activePeriod.start_date),
-      end: activePeriod.end_date ? new Date(activePeriod.end_date) : new Date()
-    };
+    const start = new Date(activePeriod.start_date);
+    start.setHours(0, 0, 0, 0); // Normalize to start of day
+
+    let end = null;
+    if (activePeriod.end_date) {
+      end = new Date(activePeriod.end_date);
+      end.setHours(23, 59, 59, 999); // Normalize to end of day
+    }
+
+    return { start, end };
   }
 
   // Fallback: create period based on user's budget_start_date
@@ -619,4 +652,66 @@ export const formatFrequency = (frequency?: string): string => {
   };
 
   return frequencyMap[frequency] || frequency;
+};
+
+/**
+ * Calculates user's total financial metrics from all budget periods
+ * Follows DRY principle - reusable across dashboard, budget page, and modal
+ * Follows Single Responsibility Principle - only calculates financial totals
+ *
+ * @param user - User object with budget_periods
+ * @param budgets - Array of user's budgets (optional, for current budget calculations)
+ * @param transactions - Array of transactions (optional, for current period calculations)
+ * @returns Object with totalSpent, totalSaved, and totalBudget
+ */
+export const calculateUserFinancialTotals = (
+  user: User,
+  budgets: Budget[] = [],
+  transactions: Transaction[] = []
+): {
+  totalSpent: number;
+  totalSaved: number;
+  totalBudget: number;
+  totalFromPeriods: number; // kept for backward compatibility; always 0 (no historical refs)
+  totalFromBudgets: number;
+} => {
+  if (!user) {
+    return {
+      totalSpent: 0,
+      totalSaved: 0,
+      totalBudget: 0,
+      totalFromPeriods: 0,
+      totalFromBudgets: 0
+    };
+  }
+
+  // Only consider CURRENT period data (no references to previous periods)
+  const userBudgets = budgets.filter(budget => budget.user_id === user.id);
+  const totalBudget = userBudgets.reduce((sum, budget) => sum + (budget.amount || 0), 0);
+
+  const { start, end } = getActivePeriodDates(user);
+
+  const totalFromBudgets = (transactions.length > 0 && userBudgets.length > 0)
+    ? userBudgets.reduce((sum, budget) => {
+        const spent = calculateBudgetSpent(
+          transactions,
+          budget,
+          start || undefined,
+          end || undefined
+        );
+        return sum + spent;
+      }, 0)
+    : 0;
+
+  // Saved = available (budget total) - spent
+  const totalSpent = totalFromBudgets;
+  const totalSaved = Math.max(0, Math.round((totalBudget - totalFromBudgets) * 100) / 100);
+
+  return {
+    totalSpent: Math.round(totalSpent * 100) / 100,
+    totalSaved,
+    totalBudget: Math.round(totalBudget * 100) / 100,
+    totalFromPeriods: 0,
+    totalFromBudgets: Math.round(totalFromBudgets * 100) / 100,
+  };
 };

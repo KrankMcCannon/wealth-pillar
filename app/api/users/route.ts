@@ -10,7 +10,6 @@ export async function GET() {
       .select('*')
       .order('created_at', { ascending: false });
 
-    const isAdmin = userContext.role === 'admin' || userContext.role === 'superadmin';
 
     if (userContext.role === 'superadmin') {
       // Superadmin sees all users

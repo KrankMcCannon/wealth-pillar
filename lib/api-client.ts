@@ -1,17 +1,16 @@
 /**
  * Client-side API Service using Next.js API Routes (Server-side)
- * Following SOLID and DRY principles with enhanced security and performance
  */
 import type {
-  User,
-  Group,
   Account,
-  Transaction,
   Budget,
   BudgetPeriod,
   Category,
-  RecurringTransactionSeries,
+  Group,
   InvestmentHolding,
+  RecurringTransactionSeries,
+  Transaction,
+  User,
 } from './types';
 
 // API configuration:
@@ -454,8 +453,13 @@ export const budgetPeriodService = {
     apiClient.get<BudgetPeriod | null>(`/budget-periods/current/${budgetId}`),
   startNewPeriod: (userId: string): Promise<BudgetPeriod> =>
     apiClient.post<BudgetPeriod>('/budget-periods', { userId }),
-  endCurrentPeriod: (userId: string): Promise<BudgetPeriod | null> =>
-    apiClient.post<BudgetPeriod | null>('/budget-periods/end', { userId }),
+  endCurrentPeriod: (userId: string, endDate?: string): Promise<BudgetPeriod | null> =>
+    apiClient.post<BudgetPeriod | null>('/budget-periods/end', {
+      userId,
+      endDate,
+      user_id: userId,
+      end_date: endDate,
+    }),
   create: (userId: string, budgetPeriod: Omit<BudgetPeriod, 'id' | 'created_at' | 'updated_at'>): Promise<BudgetPeriod> =>
     apiClient.post<BudgetPeriod>('/budget-periods', { userId, ...budgetPeriod }),
   update: (userId: string, id: string, data: Partial<BudgetPeriod>): Promise<BudgetPeriod> =>

@@ -173,7 +173,7 @@ export const useDashboardPrefetch = (currentUser: User | null, allUsers: User[] 
           // This is a simplified cleanup - in a real app you'd want more sophisticated logic
           queryClient.removeQueries({
             predicate: query => {
-              const queryAge = Date.now() - (query.dataUpdatedAt || 0);
+              const queryAge = Date.now() - (query.state.dataUpdatedAt || 0);
               return queryAge > 5 * 60 * 1000; // 5 minutes
             },
           });

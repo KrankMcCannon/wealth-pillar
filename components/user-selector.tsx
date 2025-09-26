@@ -25,11 +25,6 @@ const UserSelector = memo(({
   className = "",
   isLoading = false
 }: UserSelectorProps) => {
-  // Early return for non-admin users
-  if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'superadmin')) {
-    return null;
-  }
-
   // Memoized icon selection
   const getUserIcon = useCallback((userId: string, index: number) => {
     const userIcons = [UserIcon, Crown, Star, Heart];
@@ -60,6 +55,11 @@ const UserSelector = memo(({
       onGroupFilterChange(memberId);
     }
   }, [selectedGroupFilter, onGroupFilterChange]);
+
+  // Early return for non-admin users
+  if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'superadmin')) {
+    return null;
+  }
 
   // Loading state
   if (isLoading) {

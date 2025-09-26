@@ -1,15 +1,15 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
-import { useMemo } from 'react';
-import { queryKeys } from '@/lib/query-keys';
 import { budgetService, categoryService } from '@/lib/api-client';
-import type { User, Budget, Transaction, BudgetPeriod } from '@/lib/types';
+import { queryKeys } from '@/lib/query-keys';
+import type { Budget, Transaction, User, BudgetPeriod } from '@/lib/types';
 import {
   calculateBudgetSpent,
-  getBudgetTransactions,
-  getActivePeriodDates
+  getActivePeriodDates,
+  getBudgetTransactions
 } from '@/lib/utils';
+import { useQuery } from '@tanstack/react-query';
+import { useMemo } from 'react';
 
 /**
  * Budget-specific dashboard hook - handles budget calculations separately
@@ -45,6 +45,22 @@ export const useDashboardBudgets = (
   });
 
   // Optimized budget calculations with role-based filtering
+  type BudgetItem = {
+    id: string;
+    description: string;
+    amount: number;
+    spent: number;
+    remaining: number;
+    percentage: number;
+    categories: string[];
+    userId: string;
+    userName: string;
+    activePeriod?: BudgetPeriod;
+    periodStart: string | null;
+    periodEnd: string | null;
+    transactionCount: number;
+  };
+
   const budgetData = useMemo(() => {
     if (!budgetsQuery.data || !users.length) {
       return {
@@ -56,7 +72,6 @@ export const useDashboardBudgets = (
     }
 
     const allBudgets = budgetsQuery.data;
-    const allBudgetPeriods = users.flatMap(u => u.budget_periods || []);
 
     // Filter budgets based on user role and selection
     const getFilteredBudgets = (): Budget[] => {
@@ -90,7 +105,7 @@ export const useDashboardBudgets = (
     const filteredBudgets = getFilteredBudgets();
 
     // Calculate budget data efficiently
-    const budgetDataArray = filteredBudgets.map(budget => {
+    const budgetDataArray = filteredBudgets.map<BudgetItem | null>(budget => {
       const user = users.find(u => u.id === budget.user_id);
       if (!user) return null;
 
@@ -114,7 +129,7 @@ export const useDashboardBudgets = (
       const remaining = Math.round((budget.amount - spent) * 100) / 100;
       const percentage = budget.amount > 0 ? Math.round((spent / budget.amount) * 100 * 100) / 100 : 0;
 
-      return {
+      const item: BudgetItem = {
         id: budget.id,
         description: budget.description,
         amount: budget.amount,
@@ -129,11 +144,12 @@ export const useDashboardBudgets = (
         periodEnd: periodEnd?.toISOString() || null,
         transactionCount: relevantTransactions.length,
       };
-    }).filter(Boolean);
+      return item;
+    }).filter((b): b is BudgetItem => Boolean(b));
 
     // Group budgets by user for UI organization
     const budgetsByUser = users.reduce((acc, user) => {
-      const userBudgets = budgetDataArray.filter(b => b?.userId === user.id);
+      const userBudgets: BudgetItem[] = budgetDataArray.filter(b => b.userId === user.id);
 
       if (userBudgets.length > 0) {
         const userActivePeriod = user.budget_periods?.find(p => p.is_active);
@@ -145,16 +161,16 @@ export const useDashboardBudgets = (
         acc[user.id] = {
           user,
           budgets: userBudgets.map(b => ({
-            id: b!.id,
-            description: b!.description,
-            amount: b!.amount,
-            spent: b!.spent,
-            remaining: b!.remaining,
-            percentage: b!.percentage,
-            categories: b!.categories,
-            transactionCount: b!.transactionCount,
+            id: b.id,
+            description: b.description,
+            amount: b.amount,
+            spent: b.spent,
+            remaining: b.remaining,
+            percentage: b.percentage,
+            categories: b.categories,
+            transactionCount: b.transactionCount,
           })),
-          activePeriod: userActivePeriod,
+          activePeriod: userActivePeriod || undefined,
           periodStart: userActivePeriod ? new Date(userActivePeriod.start_date).toISOString() : null,
           periodEnd: userActivePeriod?.end_date ? new Date(userActivePeriod.end_date).toISOString() : null,
           totalBudget,
@@ -165,7 +181,26 @@ export const useDashboardBudgets = (
       }
 
       return acc;
-    }, {} as Record<string, any>);
+    }, {} as Record<string, {
+      user: User;
+      budgets: Array<{
+        id: string;
+        description: string;
+        amount: number;
+        spent: number;
+        remaining: number;
+        percentage: number;
+        categories: string[];
+        transactionCount: number;
+      }>;
+      activePeriod: BudgetPeriod | undefined;
+      periodStart: string | null;
+      periodEnd: string | null;
+      totalBudget: number;
+      totalSpent: number;
+      totalRemaining: number;
+      overallPercentage: number;
+    }>);
 
     return {
       budgets: filteredBudgets,

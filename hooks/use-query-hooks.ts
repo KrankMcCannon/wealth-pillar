@@ -403,8 +403,8 @@ export const useEndBudgetPeriod = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (userId: string) =>
-      budgetPeriodService.endCurrentPeriod(userId),
+    mutationFn: ({ userId, endDate }: { userId: string; endDate?: string }) =>
+      budgetPeriodService.endCurrentPeriod(userId, endDate),
     onSuccess: (data) => {
       // Invalidate budget periods queries
       queryClient.invalidateQueries({ queryKey: queryKeys.budgetPeriods() });

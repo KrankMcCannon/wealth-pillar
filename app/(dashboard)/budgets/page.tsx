@@ -29,8 +29,8 @@ import type { Budget } from "@/lib/types";
 import { BudgetPeriodManager } from "@/components/budget-period-manager";
 import {
   getBudgetTransactions,
-  calculateBudgetSpent,
-  getActivePeriodDates
+  getActivePeriodDates,
+  calculateUserFinancialTotals
 } from "@/lib/utils";
 
 const getBudgetsForUser = (budgets: Budget[], userId: string, currentUser: { id: string; role: string; group_id: string } | null, users: { id: string; group_id: string }[]): Budget[] => {
@@ -56,6 +56,7 @@ function BudgetsContent() {
   const router = useRouter();
 
   const [selectedBudget, setSelectedBudget] = useState<Budget | null>(null);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const { data: budgets = [], isLoading: budgetsLoading } = useBudgets();
   const { data: allTransactions = [], isLoading: txLoading } = useTransactions();
   const { data: accounts = [] } = useAccounts();
@@ -102,30 +103,23 @@ function BudgetsContent() {
     return allBudgetPeriods.find(period => period.user_id === userId && period.is_active);
   }, [allBudgetPeriods]);
 
-  const getBudgetSpent = useCallback((budget: Budget): number => {
-    if (!budget) return 0;
-
-    // Find the user for period information
-    const user = users?.find(u => u.id === budget.user_id);
-    if (!user) return 0;
-
-    // Get period dates using centralized function
-    const { start, end } = getActivePeriodDates(user);
-
-    // Use centralized function for calculation
-    return calculateBudgetSpent(allTransactions, budget, start || undefined, end || undefined);
-  }, [allTransactions, users]);
+  const budgetTotals = useMemo(() => {
+    if (!selectedBudget) return null;
+    const owner = users?.find(u => u.id === selectedBudget.user_id);
+    if (!owner) return null;
+    return calculateUserFinancialTotals(owner, [selectedBudget], allTransactions);
+  }, [selectedBudget, users, allTransactions]);
 
   const budgetBalance = useMemo(() => {
-    if (!selectedBudget) return 0;
-    return selectedBudget.amount - getBudgetSpent(selectedBudget);
-  }, [selectedBudget, getBudgetSpent]);
+    if (!selectedBudget || !budgetTotals) return 0;
+    return Math.round((selectedBudget.amount - budgetTotals.totalSpent) * 100) / 100;
+  }, [selectedBudget, budgetTotals]);
 
   const budgetProgress = useMemo(() => {
-    if (!selectedBudget) return 0;
-    const spent = getBudgetSpent(selectedBudget);
-    return Math.round((spent / selectedBudget.amount) * 100);
-  }, [selectedBudget, getBudgetSpent]);
+    if (!selectedBudget || !budgetTotals) return 0;
+    const spent = budgetTotals.totalSpent;
+    return Math.round(((spent / selectedBudget.amount) * 100));
+  }, [selectedBudget, budgetTotals]);
 
   const chartData = useMemo(() => {
     if (!selectedBudget) {
@@ -451,7 +445,7 @@ function BudgetsContent() {
           <h1 className="text-lg font-bold tracking-tight text-slate-900">Budget</h1>
 
           {/* Right - Three dots menu */}
-          <DropdownMenu>
+          <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="sm" className="hover:bg-slate-100 text-slate-600 hover:text-slate-800 rounded-xl transition-all duration-200 p-2 min-w-[40px] min-h-[40px] flex items-center justify-center">
                 <MoreVertical className="h-5 w-5" />
@@ -474,6 +468,7 @@ function BudgetsContent() {
                 <BudgetPeriodManager
                   budget={selectedBudget}
                   currentPeriod={getCurrentPeriodForUser(selectedBudget.user_id) || null}
+                  onSuccess={() => setIsDropdownOpen(false)}
                   trigger={
                     <DropdownMenuItem
                       className="text-sm font-medium text-slate-700 hover:bg-[#7578EC]/10 hover:text-[#7578EC] rounded-lg px-3 py-2.5 cursor-pointer transition-colors"
@@ -608,8 +603,12 @@ function BudgetsContent() {
                     <div className="bg-white/40 rounded-lg">
                       {(() => {
                         const period = getCurrentPeriodForUser(selectedBudget.user_id)!;
-                        const spentAmount = getBudgetSpent(selectedBudget);
-                        const savedAmount = Math.max(0, selectedBudget.amount - spentAmount);
+                        const owner = users?.find(u => u.id === selectedBudget.user_id) || null;
+                        const totals = owner
+                          ? calculateUserFinancialTotals(owner, [selectedBudget], allTransactions)
+                          : { totalSpent: 0, totalSaved: 0, totalBudget: 0, totalFromPeriods: 0, totalFromBudgets: 0 };
+                        const spentAmount = totals.totalSpent;
+                        const savedAmount = totals.totalSaved;
 
                         return (
                           <div className="space-y-3">
