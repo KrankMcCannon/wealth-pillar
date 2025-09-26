@@ -25,10 +25,22 @@ export {
   useAccountBalance, useBudgetPerformance, useBulkTransactionOperations, useFinancialSummary, useOptimisticTransaction, useTransactionTrends
 } from './use-financial-queries';
 
-// Centralized user selection
+// Dashboard hooks
+export {
+  useDashboardCore
+} from './useDashboardCore';
+
+export {
+  useDashboardBudgets
+} from './useDashboardBudgets';
+
 export {
   useUserSelection
 } from './useUserSelection';
+
+export {
+  useDashboardPrefetch
+} from './useDashboardPrefetch';
 
 // Recurring Transaction Series management (new architecture)
 export {

@@ -1,39 +1,57 @@
 'use client';
 
-import { User } from '@/lib/types';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { useAuth } from './useAuth';
-// Removed useUserManagementPermissions - using simple role-based logic
 import { userService } from '@/lib/api-client';
+import { queryKeys } from '@/lib/query-keys';
+import { User } from '@/lib/types';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useAuth } from './useAuth';
 
-// Manteniamo localStorage solo per le preferenze UI (non per sicurezza)
+// UI Preferences with intelligent caching
 const UI_PREFERENCES_KEY = 'ui_preferences';
+const USER_CACHE_KEY = 'user_cache';
 
 interface UIPreferences {
-  selectedViewUserId: string; // ID dell'utente di cui visualizzare i dati (solo per admin)
-  lastViewedUserId?: string; // Solo per UX, non per sicurezza
+  selectedViewUserId: string;
+  lastViewedUserId?: string;
+  cacheTimestamp?: number;
 }
 
+interface UserCacheEntry {
+  userId: string;
+  timestamp: number;
+  hasData: boolean;
+}
+
+/**
+ * User selection hook with intelligent caching
+ * Implements cache-first strategy to eliminate redundant loads
+ */
 export const useUserSelection = () => {
   const { user: authUser, isAuthenticated, isLoading: authLoading } = useAuth();
+  const queryClient = useQueryClient();
 
-  // Stato locale - separato tra autenticazione e visualizzazione
+  // Local state with cache awareness
   const [selectedViewUserId, setSelectedViewUserId] = useState<string>('all');
-  const [uiPreferences, setUiPreferences] = useState<UIPreferences>({ selectedViewUserId: 'all' });
+  const [userCache, setUserCache] = useState<UserCacheEntry[]>([]);
 
-  // Query utenti basata sui ruoli - semplificata
+  // Users query with intelligent prefetching
   const { data: allUsers = [], isLoading: usersLoading } = useQuery({
-    queryKey: ['users', authUser?.id, authUser?.role],
+    queryKey: queryKeys.users(),
     queryFn: async () => {
       if (!isAuthenticated || !authUser) return [];
 
-      // Superadmin può vedere tutti
+      // Check if data is already in React Query cache
+      const cachedData = queryClient.getQueryData(queryKeys.users());
+      if (cachedData && Array.isArray(cachedData) && cachedData.length > 0) {
+        return cachedData as User[];
+      }
+
+      // Fetch based on role with queries
       if (authUser.role === 'superadmin') {
         return await userService.getAll();
       }
 
-      // Admin può vedere il gruppo
       if (authUser.role === 'admin') {
         const allUsers = await userService.getAll();
         return allUsers.filter(user =>
@@ -41,123 +59,180 @@ export const useUserSelection = () => {
         );
       }
 
-      // Member vede solo se stesso
+      // Member sees only themselves
       return [authUser].filter(Boolean) as User[];
     },
     enabled: isAuthenticated && !!authUser,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 10 * 60 * 1000, // Increased stale time for users
+    gcTime: 30 * 60 * 1000, // Keep in cache for 30 minutes
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 
-  // Utente attualmente selezionato (sempre l'utente autenticato per sicurezza)
+  // Current user computation (memoized)
   const currentUser = useMemo(() => {
     if (!authUser || !allUsers.length) return null;
-
-    // Trova l'utente autenticato nella lista
-    const authenticatedUser = allUsers.find(user =>
+    return allUsers.find(user =>
       user.clerk_id === authUser.clerk_id || user.id === authUser.id
-    );
-
-    return authenticatedUser || null;
+    ) || null;
   }, [authUser, allUsers]);
 
-  // Utenti visualizzabili dall'admin - i member non hanno questa funzionalità
+  // Viewable users (admin-only feature)
   const viewableUsers = useMemo((): User[] => {
-    if (!allUsers.length) return [];
-
-    const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'superadmin';
-
-    // Solo admin/superadmin possono visualizzare dati di altri utenti
-    if (!isAdmin) {
-      return []; // I member non vedono altri utenti
-    }
-
-    return allUsers; // Admin vedono tutti gli utenti del gruppo
+    if (!allUsers.length || !currentUser) return [];
+    const isAdmin = currentUser.role === 'admin' || currentUser.role === 'superadmin';
+    return isAdmin ? allUsers : [];
   }, [allUsers, currentUser]);
 
-  // L'utente di cui visualizzare i dati (solo per admin)
+  // Current viewing user
   const viewingUser = useMemo((): User | null => {
     const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'superadmin';
 
-    // I member visualizzano sempre i propri dati
-    if (!isAdmin) {
-      return currentUser;
-    }
+    if (!isAdmin) return currentUser;
+    if (selectedViewUserId === 'all') return null;
 
-    // Se è selezionato "all", l'admin non sta visualizzando un utente specifico
-    if (selectedViewUserId === 'all') {
-      return null; // Vista aggregata
-    }
-
-    // Trova l'utente specifico che l'admin vuole visualizzare
     return allUsers.find(user => user.id === selectedViewUserId) || null;
   }, [selectedViewUserId, allUsers, currentUser]);
 
-  // Carica preferenze UI da localStorage
+  // Load preferences and cache data
   useEffect(() => {
-    const savedPreferences = localStorage.getItem(UI_PREFERENCES_KEY);
-    if (savedPreferences) {
-      try {
+    if (typeof window === 'undefined') return;
+
+    try {
+      // Load UI preferences
+      const savedPreferences = localStorage.getItem(UI_PREFERENCES_KEY);
+      if (savedPreferences) {
         const prefs = JSON.parse(savedPreferences) as UIPreferences;
-        setUiPreferences(prefs);
-        setSelectedViewUserId(prefs.selectedViewUserId || 'all');
-      } catch (error) {
-        console.warn('Errore caricamento preferenze UI:', error);
+        // Only restore if not too old (24 hours)
+        if (!prefs.cacheTimestamp || Date.now() - prefs.cacheTimestamp < 24 * 60 * 60 * 1000) {
+          setSelectedViewUserId(prefs.selectedViewUserId || 'all');
+        }
       }
+
+      // Load user cache data
+      const savedCache = localStorage.getItem(USER_CACHE_KEY);
+      if (savedCache) {
+        const cache = JSON.parse(savedCache) as UserCacheEntry[];
+        // Filter out stale entries (older than 1 hour)
+        const validCache = cache.filter(entry =>
+          Date.now() - entry.timestamp < 60 * 60 * 1000
+        );
+        setUserCache(validCache);
+      }
+    } catch (error) {
+      console.warn('Error loading user preferences:', error);
     }
   }, []);
 
-  // Salva preferenze UI
+  // Save preferences with timestamp
   const saveUIPreferences = useCallback((prefs: Partial<UIPreferences>) => {
-    const newPrefs = { ...uiPreferences, ...prefs };
-    setUiPreferences(newPrefs);
-    localStorage.setItem(UI_PREFERENCES_KEY, JSON.stringify(newPrefs));
-  }, [uiPreferences]);
+    try {
+      const savedPrefs = localStorage.getItem(UI_PREFERENCES_KEY);
+      const currentPrefs = savedPrefs ? JSON.parse(savedPrefs) : {};
 
-  // Aggiorna visualizzazione utente (solo per admin/superadmin)
+      const newPrefs = {
+        ...currentPrefs,
+        ...prefs,
+        cacheTimestamp: Date.now()
+      };
+
+      localStorage.setItem(UI_PREFERENCES_KEY, JSON.stringify(newPrefs));
+    } catch (error) {
+      console.warn('Error saving UI preferences:', error);
+    }
+  }, []);
+
+  // Update user cache entry
+  const updateUserCache = useCallback((userId: string, hasData: boolean) => {
+    setUserCache(prev => {
+      const filtered = prev.filter(entry => entry.userId !== userId);
+      const newEntry: UserCacheEntry = {
+        userId,
+        timestamp: Date.now(),
+        hasData,
+      };
+
+      const updated = [...filtered, newEntry];
+
+      // Persist to localStorage
+      try {
+        localStorage.setItem(USER_CACHE_KEY, JSON.stringify(updated));
+      } catch (error) {
+        console.warn('Error saving user cache:', error);
+      }
+
+      return updated;
+    });
+  }, []);
+
+  // User switch with intelligent cache management
   const updateViewUserId = useCallback((userId: string) => {
     const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'superadmin';
-    if (isAdmin) {
-      setSelectedViewUserId(userId);
-      saveUIPreferences({ selectedViewUserId: userId });
+    if (!isAdmin) return;
+
+    // Check if we have cached data for this user
+    const cacheEntry = userCache.find(entry => entry.userId === userId);
+    const hasCachedData = cacheEntry && cacheEntry.hasData &&
+      (Date.now() - cacheEntry.timestamp < 30 * 60 * 1000); // 30 min cache
+
+    // If switching from 'all' to specific user or vice versa, we might need to prefetch
+    if (!hasCachedData && userId !== 'all') {
+      // Prefetch data for this user
+      queryClient.prefetchQuery({
+        queryKey: queryKeys.accountsByUser(userId),
+        queryFn: () => import('@/lib/api-client').then(({ accountService }) =>
+          accountService.getByUserId(userId)
+        ),
+        staleTime: 2 * 60 * 1000,
+      });
+
+      queryClient.prefetchQuery({
+        queryKey: queryKeys.budgetsByUser(userId),
+        queryFn: () => import('@/lib/api-client').then(({ budgetService }) =>
+          budgetService.getByUserId(userId)
+        ),
+        staleTime: 2 * 60 * 1000,
+      });
     }
-  }, [saveUIPreferences, currentUser]);
 
-  // Ottieni ID dell'utente da visualizzare
-  const getViewingUserId = useCallback(() => {
-    return viewingUser?.id || null;
-  }, [viewingUser]);
+    setSelectedViewUserId(userId);
+    saveUIPreferences({ selectedViewUserId: userId });
 
-  // ID utente effettivo per le query (sempre l'utente autenticato)
-  const getEffectiveUserId = useCallback(() => {
-    return currentUser?.id || '';
-  }, [currentUser]);
+    // Update cache entry
+    updateUserCache(userId, true);
+  }, [currentUser, userCache, queryClient, saveUIPreferences, updateUserCache]);
 
-  // Ottieni lista gruppi disponibili (solo per admin/superadmin)
-  const availableGroups = useMemo(() => {
-    const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'superadmin';
-    if (!isAdmin) return [];
+  // Prefetch data for likely next selections
+  const prefetchNextUser = useCallback(() => {
+    if (!viewableUsers.length || viewableUsers.length <= 1) return;
 
-    const groups = allUsers.reduce((acc, user) => {
-      if (user.group_id && !acc.find(g => g.id === user.group_id)) {
-        acc.push({
-          id: user.group_id,
-          name: `Gruppo ${user.group_id.slice(-6)}`, // Nome semplificato
-        });
-      }
-      return acc;
-    }, [] as Array<{ id: string; name: string }>);
+    const currentIndex = selectedViewUserId === 'all'
+      ? -1
+      : viewableUsers.findIndex(u => u.id === selectedViewUserId);
 
-    return groups;
-  }, [allUsers, currentUser]);
+    const nextUser = viewableUsers[currentIndex + 1] || viewableUsers[0];
 
-  // Funzioni di utilità per controlli di permesso - semplificato
-  const canViewUser = useCallback((userId: string) => {
-    const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'superadmin';
-    if (!isAdmin) return false;
-    return viewableUsers.some(user => user.id === userId);
-  }, [currentUser, viewableUsers]);
+    if (nextUser) {
+      // Prefetch next user's data
+      queryClient.prefetchQuery({
+        queryKey: queryKeys.accountsByUser(nextUser.id),
+        queryFn: () => import('@/lib/api-client').then(({ accountService }) =>
+          accountService.getByUserId(nextUser.id)
+        ),
+        staleTime: 2 * 60 * 1000,
+      });
+    }
+  }, [viewableUsers, selectedViewUserId, queryClient]);
 
-  // Statistiche utente
+  // Auto-prefetch on mount
+  useEffect(() => {
+    if (viewableUsers.length > 1) {
+      const timeoutId = setTimeout(prefetchNextUser, 1000); // Prefetch after 1 second
+      return () => clearTimeout(timeoutId);
+    }
+  }, [prefetchNextUser, viewableUsers.length]);
+
+  // Statistics and utility functions
   const userStats = useMemo(() => {
     const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'superadmin';
     return {
@@ -165,61 +240,72 @@ export const useUserSelection = () => {
       viewableUsers: viewableUsers.length,
       hasMultipleUsers: viewableUsers.length > 1,
       canSwitchUsers: isAdmin && viewableUsers.length > 1,
+      cachedUsers: userCache.filter(entry =>
+        Date.now() - entry.timestamp < 30 * 60 * 1000
+      ).length,
     };
-  }, [allUsers.length, viewableUsers.length, currentUser]);
+  }, [allUsers.length, viewableUsers.length, currentUser, userCache]);
 
-  // Pulizia al logout
+  // Permission checks
+  const canViewUser = useCallback((userId: string) => {
+    const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'superadmin';
+    if (!isAdmin) return false;
+    return viewableUsers.some(user => user.id === userId);
+  }, [currentUser, viewableUsers]);
+
+  // Cleanup function
   const clearSelection = useCallback(() => {
     setSelectedViewUserId('all');
-    setUiPreferences({ selectedViewUserId: 'all' });
-    localStorage.removeItem(UI_PREFERENCES_KEY);
+    setUserCache([]);
+    try {
+      localStorage.removeItem(UI_PREFERENCES_KEY);
+      localStorage.removeItem(USER_CACHE_KEY);
+    } catch (error) {
+      console.warn('Error clearing cache:', error);
+    }
   }, []);
 
-  // Stato di caricamento combinato
+  // Combined loading state
   const isLoading = authLoading || usersLoading;
 
-  // Controlli di autorizzazione
+  // Role checks
   const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'superadmin';
   const isSuperAdmin = currentUser?.role === 'superadmin';
 
   return {
-    // Utente autenticato (l'identità reale)
+    // Core user data
     currentUser,
-
-    // Utente di cui visualizzare i dati (solo per admin)
     viewingUser,
+    users: allUsers,
+    viewableUsers,
 
-    // Liste utenti
-    users: allUsers, // Tutti gli utenti accessibili
-    viewableUsers, // Utenti di cui l'admin può visualizzare i dati
-
-    // Filtri di visualizzazione (solo per admin)
+    // Selection state
     selectedViewUserId,
-    availableGroups,
 
-    // Stato
+    // Loading and auth states
     isLoading,
     isAuthenticated,
     authUser,
 
-    // Statistiche
+    // Statistics
     userStats,
 
-    // Controlli ruoli
+    // Role checks
     isAdmin,
     isSuperAdmin,
     canViewUser,
 
-    // Azioni
+    // Actions
     updateViewUserId,
     clearSelection,
+    prefetchNextUser,
 
-    // Utilità
-    getEffectiveUserId, // Sempre l'utente autenticato
-    getViewingUserId,   // L'utente di cui stiamo visualizzando i dati
+    // Utility functions
+    getEffectiveUserId: () => currentUser?.id || '',
+    getViewingUserId: () => viewingUser?.id || null,
 
-    // UI Preferences (non critiche per sicurezza)
-    uiPreferences,
+    // Cache management
+    updateUserCache,
   };
 };
 

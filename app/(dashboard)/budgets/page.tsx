@@ -26,7 +26,6 @@ import {
   useUserSelection
 } from "@/hooks";
 import type { Budget } from "@/lib/types";
-import { BudgetPeriodInfo } from "@/components/budget-period-info";
 import { BudgetPeriodManager } from "@/components/budget-period-manager";
 import {
   getBudgetTransactions,
@@ -59,9 +58,8 @@ function BudgetsContent() {
   const [selectedBudget, setSelectedBudget] = useState<Budget | null>(null);
   const { data: budgets = [], isLoading: budgetsLoading } = useBudgets();
   const { data: allTransactions = [], isLoading: txLoading } = useTransactions();
-  const { data: accounts = [], isLoading: accountsLoading } = useAccounts();
+  const { data: accounts = [] } = useAccounts();
 
-  // Use centralized user selection
   const {
     currentUser,
     selectedViewUserId,
@@ -70,7 +68,7 @@ function BudgetsContent() {
     isLoading: userSelectionLoading
   } = useUserSelection();
   const [userMap, setUserMap] = useState<{ [key: string]: string }>({});
-  const { data: categories = [], isLoading: categoriesLoading } = useCategories();
+  const { data: categories = [] } = useCategories();
   const [activeTab, setActiveTab] = useState('expenses');
 
   const { data: allBudgetPeriods = [], isLoading: periodLoading } = useBudgetPeriods();
@@ -401,10 +399,23 @@ function BudgetsContent() {
     return names;
   }, [accounts]);
 
-  const availableBudgets = useMemo(() =>
-    getBudgetsForUser(budgets, selectedViewUserId, currentUser, users || []),
-    [selectedViewUserId, budgets, currentUser, users]
-  );
+  const availableBudgets = useMemo(() => {
+    const filtered = getBudgetsForUser(budgets, selectedViewUserId, currentUser, users || []);
+
+    // Sort budgets by owner first, then alphabetically by budget name
+    return filtered.sort((a, b) => {
+      const ownerA = userMap[a.user_id] || '';
+      const ownerB = userMap[b.user_id] || '';
+
+      // First sort by owner name
+      if (ownerA !== ownerB) {
+        return ownerA.localeCompare(ownerB, 'it');
+      }
+
+      // If same owner, sort by budget description alphabetically
+      return a.description.localeCompare(b.description, 'it');
+    });
+  }, [selectedViewUserId, budgets, currentUser, users, userMap]);
 
   const handleBudgetChange = useCallback((value: string) => {
     const budget = availableBudgets.find((b) => b.id === value);
@@ -417,13 +428,13 @@ function BudgetsContent() {
   return (
     <div className="relative flex size-full min-h-[100dvh] flex-col bg-gradient-to-br from-slate-50 via-white to-slate-100" style={{ fontFamily: '"Inter", "SF Pro Display", system-ui, sans-serif' }}>
       {/* Header */}
-      <header className="sticky top-0 z-20 bg-white/70 backdrop-blur-xl border-b border-slate-200/50 px-3 sm:px-4 py-2 sm:py-3 shadow-sm">
+      <header className="sticky top-0 z-20 bg-white/80 backdrop-blur-xl border-b border-slate-200/50 px-4 py-3 shadow-sm">
         <div className="flex items-center justify-between">
           {/* Left - Back button */}
           <Button
             variant="ghost"
             size="sm"
-            className="hover:bg-slate-100 text-slate-600 hover:text-slate-800 rounded-xl transition-all duration-200 p-2 sm:p-3 min-w-[44px] min-h-[44px] flex items-center justify-center"
+            className="hover:bg-slate-100 text-slate-600 hover:text-slate-800 rounded-xl transition-all duration-200 p-2 min-w-[40px] min-h-[40px] flex items-center justify-center"
             onClick={() => {
               const params = new URLSearchParams();
               if (selectedViewUserId !== 'all') {
@@ -433,31 +444,31 @@ function BudgetsContent() {
               router.push(dashboardUrl);
             }}
           >
-            <ArrowLeft className="h-5 w-5 sm:h-6 sm:w-6" />
+            <ArrowLeft className="h-5 w-5" />
           </Button>
 
           {/* Center - Title */}
-          <h1 className="text-lg sm:text-xl font-bold tracking-tight bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">Budget</h1>
+          <h1 className="text-lg font-bold tracking-tight text-slate-900">Budget</h1>
 
           {/* Right - Three dots menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="hover:bg-slate-100 text-slate-600 hover:text-slate-800 rounded-xl transition-all duration-200 p-2 sm:p-3 min-w-[44px] min-h-[44px] flex items-center justify-center">
-                <MoreVertical className="h-5 w-5 sm:h-6 sm:w-6" />
+              <Button variant="ghost" size="sm" className="hover:bg-slate-100 text-slate-600 hover:text-slate-800 rounded-xl transition-all duration-200 p-2 min-w-[40px] min-h-[40px] flex items-center justify-center">
+                <MoreVertical className="h-5 w-5" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent
               align="end"
-              className="w-60 bg-white/95 backdrop-blur-xl border border-slate-200/50 shadow-2xl rounded-2xl p-3 animate-in slide-in-from-top-2 duration-200"
-              sideOffset={12}
+              className="w-56 bg-white/95 backdrop-blur-xl border border-slate-200/50 shadow-xl rounded-xl p-2 animate-in slide-in-from-top-2 duration-200"
+              sideOffset={8}
             >
-              <DropdownMenuItem className="text-sm font-medium text-gray-700 hover:bg-primary/10 hover:text-primary rounded-lg px-3 py-2.5 cursor-pointer transition-colors">
+              <DropdownMenuItem className="text-sm font-medium text-slate-700 hover:bg-[#7578EC]/10 hover:text-[#7578EC] rounded-lg px-3 py-2.5 cursor-pointer transition-colors">
                 <span className="mr-2">💰</span>
-                Aggiungi Nuovo Budget
+                Nuovo Budget
               </DropdownMenuItem>
-              <DropdownMenuItem className="text-sm font-medium text-gray-700 hover:bg-primary/10 hover:text-primary rounded-lg px-3 py-2.5 cursor-pointer transition-colors">
+              <DropdownMenuItem className="text-sm font-medium text-slate-700 hover:bg-[#7578EC]/10 hover:text-[#7578EC] rounded-lg px-3 py-2.5 cursor-pointer transition-colors">
                 <span className="mr-2">🏷️</span>
-                Aggiungi Nuova Categoria
+                Nuova Categoria
               </DropdownMenuItem>
               {selectedBudget && (
                 <BudgetPeriodManager
@@ -465,7 +476,7 @@ function BudgetsContent() {
                   currentPeriod={getCurrentPeriodForUser(selectedBudget.user_id) || null}
                   trigger={
                     <DropdownMenuItem
-                      className="text-sm font-medium text-gray-700 hover:bg-primary/10 hover:text-primary rounded-lg px-3 py-2.5 cursor-pointer transition-colors"
+                      className="text-sm font-medium text-slate-700 hover:bg-[#7578EC]/10 hover:text-[#7578EC] rounded-lg px-3 py-2.5 cursor-pointer transition-colors"
                       onSelect={(e) => e.preventDefault()}
                     >
                       <span className="mr-2">📅</span>
@@ -479,59 +490,73 @@ function BudgetsContent() {
         </div>
       </header>
 
-      <UserSelector
-        users={users}
-        currentUser={currentUser}
-        selectedGroupFilter={selectedViewUserId}
-        onGroupFilterChange={updateViewUserId}
-      />
+      {/* Only show UserSelector when data is available */}
+      {!userSelectionLoading && (
+        <UserSelector
+          users={users}
+          currentUser={currentUser}
+          selectedGroupFilter={selectedViewUserId}
+          onGroupFilterChange={updateViewUserId}
+        />
+      )}
 
       {/* Divider Line */}
       <div className="h-px bg-gray-200 mx-4"></div>
 
-      <main className="flex-1 p-3 sm:p-4 space-y-6 sm:space-y-8 pb-20 sm:pb-24">
-        {budgetsLoading || txLoading || userSelectionLoading || accountsLoading || categoriesLoading || periodLoading ? (
-          <div className="flex items-center justify-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <main className="flex-1 p-3 sm:p-4 space-y-4 sm:space-y-6 pb-20 sm:pb-24">
+        {/* Progressive loading - show content as soon as we have essential data */}
+        {userSelectionLoading || budgetsLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#7578EC]"></div>
           </div>
         ) : !selectedBudget ? (
-          <div className="text-center py-8">
-            <p className="text-gray-500">Nessun budget disponibile</p>
+          <div className="text-center py-12">
+            <div className="w-16 h-16 bg-[#7578EC]/10 rounded-2xl flex items-center justify-center mb-4 mx-auto">
+              <ShoppingCart className="w-8 h-8 text-[#7578EC]" />
+            </div>
+            <h3 className="text-lg font-semibold text-slate-900 mb-2">Nessun budget disponibile</h3>
+            <p className="text-slate-600 text-sm">Crea il tuo primo budget per iniziare</p>
           </div>
         ) : (
           <>
             {/* Budget Selector */}
-            <section className="bg-white/80 backdrop-blur-sm px-4 sm:px-6 py-5 sm:py-6 shadow-xl shadow-slate-200/50 rounded-2xl sm:rounded-3xl border border-white/50">
-              <div className="flex flex-col sm:flex-row justify-between items-start gap-4 sm:gap-0 mb-6">
+            <section className="bg-white/90 backdrop-blur-sm px-4 py-4 sm:px-6 sm:py-6 shadow-lg shadow-slate-200/40 rounded-xl sm:rounded-2xl border border-slate-200/50">
+              {/* Section Header */}
+              <div className="mb-4">
                 <SectionHeader
-                  title="Panoramica Budget"
-                  subtitle="Seleziona un budget per visualizzare i dettagli"
-                  className="space-y-1 sm:space-y-2"
+                  title="Budget"
+                  subtitle="Seleziona per visualizzare i dettagli"
+                  className="space-y-1"
                 />
+              </div>
+
+              {/* Budget Selector */}
+              <div className="mb-4">
                 <Select value={selectedBudget?.id} onValueChange={handleBudgetChange}>
-                  <SelectTrigger className="w-full sm:w-48 h-12 sm:h-11 bg-white border border-slate-200 shadow-lg shadow-slate-200/50 rounded-2xl px-4 hover:border-slate-300 focus:border-slate-400 focus:ring-4 focus:ring-slate-100 transition-all text-sm font-medium">
-                    <SelectValue placeholder="Seleziona budget" className="font-semibold text-slate-700" />
+                  <SelectTrigger className="w-full h-12 bg-white border border-slate-200 shadow-sm rounded-xl px-4 hover:border-[#7578EC]/40 focus:border-[#7578EC] focus:ring-2 focus:ring-[#7578EC]/20 transition-all text-sm font-medium">
+                    <SelectValue placeholder="Seleziona budget" className="font-medium text-slate-700" />
                   </SelectTrigger>
-                  <SelectContent className="bg-white/95 backdrop-blur-md border border-gray-200/60 shadow-xl rounded-xl min-w-52">
+                  <SelectContent className="bg-white/95 backdrop-blur-md border border-slate-200/60 shadow-xl rounded-xl min-w-[320px]">
                     {availableBudgets.map((budget) => (
                       <SelectItem
                         key={budget.id}
                         value={budget.id}
-                        className="hover:bg-primary/10 hover:text-primary rounded-lg p-3 cursor-pointer transition-colors font-medium relative"
+                        className="hover:bg-[#7578EC]/10 hover:text-[#7578EC] rounded-lg px-7 cursor-pointer transition-colors font-medium"
                       >
-                        <div className="flex items-center gap-3 w-full px-3">
-                          <div className="flex items-center justify-center w-6 h-6 rounded-lg bg-secondary/20 flex-shrink-0">
+                        <div className="flex items-center gap-3 w-full">
+                          <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-[#7578EC]/10 flex-shrink-0">
                             <CategoryIcon
                               categoryKey={budget.categories[0] || 'altro'}
                               size={iconSizes.sm}
+                              className="text-[#7578EC]"
                             />
                           </div>
                           <div className="flex items-center gap-2 flex-1 min-w-0">
-                            <span className="group-hover:font-semibold transition-all duration-200 truncate">
+                            <span className="font-semibold truncate text-slate-800">
                               {budget.description}
                             </span>
                             {selectedViewUserId === 'all' && userMap[budget.user_id] && (
-                              <span className="text-xs text-gray-500 flex-shrink-0">({userMap[budget.user_id]})</span>
+                              <span className="text-xs text-slate-500 flex-shrink-0">({userMap[budget.user_id]})</span>
                             )}
                           </div>
                         </div>
@@ -541,87 +566,142 @@ function BudgetsContent() {
                 </Select>
               </div>
 
-              {/* Current Budget Display */}
-              <div className="text-center mb-6 sm:mb-8">
-                <div className="flex items-center justify-center gap-2 sm:gap-3 mb-3 sm:mb-4">
-                  <div className="flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 rounded-2xl shadow-lg bg-slate-100">
-                    <CategoryIcon
-                      categoryKey={selectedBudget.categories[0] || 'altro'}
-                      size={iconSizes.xl}
-                                                                />
+              {/* Current Budget Display - Horizontal Layout */}
+              <div className="mb-4">
+                <div className="bg-gradient-to-br from-slate-50 to-slate-100/80 rounded-xl p-4">
+                  {/* Budget Icon and Name */}
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-[#7578EC]/10 to-[#7578EC]/5 shadow-sm">
+                      <CategoryIcon
+                        categoryKey={selectedBudget.categories[0] || 'altro'}
+                        size={iconSizes.lg}
+                        className="text-[#7578EC]"
+                      />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-slate-900 leading-tight">{selectedBudget.description}</h3>
+                      <p className="text-xs text-slate-500 font-medium">Budget attivo</p>
+                    </div>
                   </div>
-                  <h3 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">{selectedBudget.description}</h3>
-                </div>
-                <div className="space-y-2 sm:space-y-3">
-                  <div className="inline-block px-3 sm:px-4 py-2 bg-slate-50 rounded-2xl">
-                    <p className="text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1">Importo Disponibile</p>
-                    <p className={`text-2xl sm:text-4xl font-bold tracking-tight ${budgetBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {formatCurrency(budgetBalance)}
-                    </p>
+
+                  {/* Financial Info - 2 Column Layout */}
+                  <div className="grid grid-cols-2 gap-4 mb-4">
+                    {/* Available Amount */}
+                    <div className="text-center p-3 bg-white/60 rounded-lg">
+                      <p className="text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1">Disponibile</p>
+                      <p className={`text-xl sm:text-2xl font-bold tracking-tight ${budgetBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        {formatCurrency(budgetBalance)}
+                      </p>
+                    </div>
+
+                    {/* Total Budget */}
+                    <div className="text-center p-3 bg-white/60 rounded-lg">
+                      <p className="text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1">Totale</p>
+                      <p className="text-xl sm:text-2xl font-bold tracking-tight text-slate-700">
+                        {formatCurrency(selectedBudget.amount)}
+                      </p>
+                    </div>
                   </div>
-                  <p className="text-xs sm:text-sm font-medium">
-                    di <span className="font-bold text-slate-700">{formatCurrency(selectedBudget.amount)}</span> pianificati
-                  </p>
+
+                  {/* Budget Period Info - Full Width */}
+                  {!periodLoading && selectedBudget && getCurrentPeriodForUser(selectedBudget.user_id) && (
+                    <div className="bg-white/40 rounded-lg">
+                      {(() => {
+                        const period = getCurrentPeriodForUser(selectedBudget.user_id)!;
+                        const spentAmount = getBudgetSpent(selectedBudget);
+                        const savedAmount = Math.max(0, selectedBudget.amount - spentAmount);
+
+                        return (
+                          <div className="space-y-3">
+                            {/* Period Header */}
+                            <div className="text-center border-b border-slate-200/50 pb-2">
+                              <p className="text-xs font-semibold text-slate-600 uppercase tracking-wide">Periodo Budget</p>
+                              <p className="text-sm font-medium text-slate-700">
+                                {new Date(period.start_date).toLocaleDateString('it-IT')} - {period.end_date ? new Date(period.end_date).toLocaleDateString('it-IT') : 'In corso'}
+                              </p>
+                            </div>
+
+                            {/* Spent and Saved Grid */}
+                            <div className="grid grid-cols-2 gap-4">
+                              <div className="text-center">
+                                <p className="text-xs font-semibold text-red-600 uppercase tracking-wide mb-1">Speso</p>
+                                <p className="text-lg font-bold text-red-600">
+                                  {formatCurrency(spentAmount)}
+                                </p>
+                              </div>
+                              <div className="text-center">
+                                <p className="text-xs font-semibold text-green-600 uppercase tracking-wide mb-1">Risparmiato</p>
+                                <p className="text-lg font-bold text-green-600">
+                                  {formatCurrency(savedAmount)}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  )}
                 </div>
               </div>
 
-              {/* Progress Bar */}
-              <div className="space-y-4">
+              {/* Progress Section - Integrated */}
+              <div className="bg-white/60 rounded-xl space-y-3">
                 <div className="flex justify-between items-center">
                   <div className="flex items-center gap-2">
                     <div className={`w-2 h-2 rounded-full ${
                       budgetProgress >= 100 ? 'bg-red-500' :
-                      budgetProgress >= 80 ? 'bg-yellow-500' :
+                      budgetProgress >= 80 ? 'bg-amber-500' :
                       'bg-green-500'
                     }`}></div>
-                    <span className="text-sm font-semibold text-slate-700">Spesi: {formatCurrency(getBudgetSpent(selectedBudget))}</span>
+                    <span className="text-sm font-semibold text-slate-700">
+                      Progresso Budget
+                    </span>
                   </div>
-                  <div className="px-3 py-1 bg-slate-100 rounded-full">
-                    <span className={`text-xs font-bold ${
-                      budgetProgress >= 100 ? 'text-red-600' :
-                      budgetProgress >= 80 ? 'text-yellow-600' :
-                      'text-green-600'
-                    }`}>{budgetProgress}% utilizzati</span>
-                  </div>
+                  <span className={`text-xl font-bold ${
+                    budgetProgress >= 100 ? 'text-red-600' :
+                    budgetProgress >= 80 ? 'text-amber-600' :
+                    'text-green-600'
+                  }`}>{budgetProgress}%</span>
                 </div>
+
                 <div className="relative">
-                  <div className="w-full h-4 rounded-2xl bg-gradient-to-r from-slate-100 to-slate-200 shadow-inner">
+                  <div className="w-full h-3 rounded-full bg-slate-200">
                     <div
-                      className={`h-4 rounded-2xl transition-all duration-1000 ease-out shadow-lg ${
-                        budgetProgress >= 100 ? 'bg-red-500' :
-                        budgetProgress >= 80 ? 'bg-yellow-500' :
-                          'bg-green-500'
-                        }`}
+                      className={`h-3 rounded-full transition-all duration-700 ease-out ${
+                        budgetProgress >= 100 ? 'bg-gradient-to-r from-red-500 to-red-600' :
+                        budgetProgress >= 80 ? 'bg-gradient-to-r from-amber-400 to-amber-500' :
+                        'bg-gradient-to-r from-green-400 to-green-500'
+                      }`}
                       style={{ width: `${Math.min(budgetProgress, 100)}%` }}
                     />
                   </div>
-                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-t from-white/20 to-transparent pointer-events-none"></div>
                 </div>
 
-                {/* Budget Period Information */}
-                {selectedBudget && getCurrentPeriodForUser(selectedBudget.user_id) && (
-                  <div className="mt-6 pt-6 border-t border-slate-200">
-                    <BudgetPeriodInfo
-                      period={getCurrentPeriodForUser(selectedBudget.user_id)!}
-                      showSpending={true}
-                      className=""
-                    />
-                  </div>
-                )}
+                {/* Status Text */}
+                <div className="text-center">
+                  <p className="text-xs text-slate-600">
+                    {budgetProgress >= 100 ? '⚠️ Budget superato' :
+                     budgetProgress >= 80 ? '⚠️ Attenzione, quasi esaurito' :
+                     '✅ Budget sotto controllo'}
+                  </p>
+                </div>
               </div>
+
             </section>
 
-            {/* Charts with Tabs */}
+            {/* Charts with Tabs - Only show when transaction data is loaded */}
+            {!txLoading && (
             <section>
-              <Card className="p-4 sm:p-6 bg-white/80 backdrop-blur-sm shadow-xl shadow-slate-200/50 rounded-2xl sm:rounded-3xl border border-white/50">
+              <Card className="p-4 sm:p-5 bg-white/90 backdrop-blur-sm shadow-lg shadow-slate-200/40 rounded-xl sm:rounded-2xl border border-slate-200/50">
                 <Tabs defaultValue="expenses" onValueChange={setActiveTab} className="w-full">
-                  <TabsList className="grid w-full grid-cols-2 mb-6 bg-slate-100/80 backdrop-blur-sm border border-slate-200/50 shadow-sm rounded-2xl p-1">
-                    <TabsTrigger value="expenses" className="flex items-center justify-center gap-2 text-sm font-semibold text-slate-600 data-[state=active]:bg-gradient-to-r data-[state=active]:from-rose-500 data-[state=active]:to-rose-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-rose-200/50 rounded-xl transition-all duration-200">
-                      <ShoppingCart className="h-4 w-4 text-white" />
-                      Uscite
+                  <TabsList className="grid w-full grid-cols-2 mb-4 bg-slate-100/80 backdrop-blur-sm border border-slate-200/50 shadow-sm rounded-xl p-1">
+                    <TabsTrigger value="expenses" className="flex items-center justify-center gap-1.5 text-sm font-semibold text-slate-600 data-[state=active]:bg-gradient-to-r data-[state=active]:from-rose-500 data-[state=active]:to-rose-600 data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:shadow-rose-200/40 rounded-lg transition-all duration-200 py-2">
+                      <ShoppingCart className="h-4 w-4" />
+                      <span className="hidden xs:inline">Uscite</span>
+                      <span className="xs:hidden">Spese</span>
                     </TabsTrigger>
-                    <TabsTrigger value="income" className="flex items-center justify-center gap-2 text-sm font-semibold text-slate-600 data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-emerald-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-emerald-200/50 rounded-xl transition-all duration-200">
-                      <TrendingUp className="h-4 w-4 text-white" />
+                    <TabsTrigger value="income" className="flex items-center justify-center gap-1.5 text-sm font-semibold text-slate-600 data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-emerald-600 data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:shadow-emerald-200/40 rounded-lg transition-all duration-200 py-2">
+                      <TrendingUp className="h-4 w-4" />
                       Entrate
                     </TabsTrigger>
                   </TabsList>
@@ -629,19 +709,19 @@ function BudgetsContent() {
                   {/* Unified Chart Content */}
                   <TabsContent value="expenses" className="space-y-4">
                     {/* Header */}
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 mb-4 sm:mb-6">
-                      <div className="flex items-center gap-2 sm:gap-3">
-                        <div className={`p-2 sm:p-3 bg-gradient-to-br ${unifiedChartData.iconBg} rounded-xl sm:rounded-2xl shadow-lg ${unifiedChartData.iconShadow}`}>
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
+                      <div className="flex items-center gap-3">
+                        <div className={`p-2.5 bg-gradient-to-br ${unifiedChartData.iconBg} rounded-xl shadow-md ${unifiedChartData.iconShadow}`}>
                           {unifiedChartData.icon}
                         </div>
-                        <h3 className="text-base sm:text-lg font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">{unifiedChartData.title}</h3>
+                        <div>
+                          <h3 className="text-base font-bold text-slate-900">{unifiedChartData.title}</h3>
+                          <p className="text-xs text-slate-500 font-medium">Ultimi 7 giorni</p>
+                        </div>
                       </div>
-                      <div className="text-left sm:text-right space-y-1">
-                        <p className={`text-xl sm:text-3xl font-bold bg-gradient-to-r ${unifiedChartData.gradientColors} bg-clip-text text-transparent`}>
+                      <div className="text-left sm:text-right">
+                        <p className={`text-xl sm:text-2xl font-bold bg-gradient-to-r ${unifiedChartData.gradientColors} bg-clip-text text-transparent`}>
                           {formatCurrency(unifiedChartData.total)}
-                        </p>
-                        <p className="text-xs font-semibold uppercase tracking-wide">
-                          {selectedBudget && getCurrentPeriodForUser(selectedBudget.user_id) ? 'Periodo Budget' : 'Ultimo periodo'}
                         </p>
                       </div>
                     </div>
@@ -729,19 +809,19 @@ function BudgetsContent() {
 
                   <TabsContent value="income" className="space-y-4">
                     {/* Header */}
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 mb-4 sm:mb-6">
-                      <div className="flex items-center gap-2 sm:gap-3">
-                        <div className={`p-2 sm:p-3 bg-gradient-to-br ${unifiedChartData.iconBg} rounded-xl sm:rounded-2xl shadow-lg ${unifiedChartData.iconShadow}`}>
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
+                      <div className="flex items-center gap-3">
+                        <div className={`p-2.5 bg-gradient-to-br ${unifiedChartData.iconBg} rounded-xl shadow-md ${unifiedChartData.iconShadow}`}>
                           {unifiedChartData.icon}
                         </div>
-                        <h3 className="text-base sm:text-lg font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">{unifiedChartData.title}</h3>
+                        <div>
+                          <h3 className="text-base font-bold text-slate-900">{unifiedChartData.title}</h3>
+                          <p className="text-xs text-slate-500 font-medium">Ultimi 7 giorni</p>
+                        </div>
                       </div>
-                      <div className="text-left sm:text-right space-y-1">
-                        <p className={`text-xl sm:text-3xl font-bold bg-gradient-to-r ${unifiedChartData.gradientColors} bg-clip-text text-transparent`}>
+                      <div className="text-left sm:text-right">
+                        <p className={`text-xl sm:text-2xl font-bold bg-gradient-to-r ${unifiedChartData.gradientColors} bg-clip-text text-transparent`}>
                           {formatCurrency(unifiedChartData.total)}
-                        </p>
-                        <p className="text-xs font-semibold uppercase tracking-wide">
-                          {selectedBudget && getCurrentPeriodForUser(selectedBudget.user_id) ? 'Periodo Budget' : 'Ultimo periodo'}
                         </p>
                       </div>
                     </div>
@@ -830,13 +910,18 @@ function BudgetsContent() {
                 </Tabs>
               </Card>
             </section>
+            )}
 
-            {/* Budget Period Transactions Section */}
+            {/* Budget Period Transactions Section - Only show when data is loaded */}
+            {!txLoading && (
             <section>
               <SectionHeader
-                title={`Transazioni del Periodo Budget${selectedBudget && getCurrentPeriodForUser(selectedBudget.user_id) ? ` (${new Date(getCurrentPeriodForUser(selectedBudget.user_id)!.start_date).toLocaleDateString('it-IT')} - ${getCurrentPeriodForUser(selectedBudget.user_id)!.end_date ? new Date(getCurrentPeriodForUser(selectedBudget.user_id)!.end_date!).toLocaleDateString('it-IT') : 'Oggi'})` : ''}`}
-                subtitle={`${budgetTransactions.length} ${budgetTransactions.length === 1 ? 'transazione trovata' : 'transazioni trovate'} per questo budget`}
-                className="mb-4 sm:mb-6"
+                title="Transazioni Budget"
+                subtitle={selectedBudget && getCurrentPeriodForUser(selectedBudget.user_id) ?
+                  `${new Date(getCurrentPeriodForUser(selectedBudget.user_id)!.start_date).toLocaleDateString('it-IT')} - ${getCurrentPeriodForUser(selectedBudget.user_id)!.end_date ? new Date(getCurrentPeriodForUser(selectedBudget.user_id)!.end_date!).toLocaleDateString('it-IT') : 'Oggi'}` :
+                  `${budgetTransactions.length} ${budgetTransactions.length === 1 ? 'transazione' : 'transazioni'}`
+                }
+                className="mb-4"
               />
 
               <div className="space-y-6">
@@ -877,7 +962,7 @@ function BudgetsContent() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="text-sm font-semibold text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-2xl transition-all duration-200 px-6 py-3 min-h-[44px] border border-slate-200 hover:border-slate-300 hover:shadow-md group"
+                    className="text-sm font-semibold text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition-all duration-200 px-5 py-2.5 min-h-[40px] border border-slate-200 hover:border-slate-300 hover:shadow-sm group"
                     onClick={() => {
                       const params = new URLSearchParams();
                       params.set('from', 'budgets');
@@ -891,12 +976,13 @@ function BudgetsContent() {
                       router.push(`/transactions?${params.toString()}`);
                     }}
                   >
-                    <span className="mr-2">Visualizza Tutte</span>
-                    <span className="group-hover:translate-x-1 transition-transform duration-200">→</span>
+                    <span className="mr-2">Vedi tutte</span>
+                    <span className="group-hover:translate-x-0.5 transition-transform duration-200">→</span>
                   </Button>
                 </div>
               )}
             </section>
+            )}
           </>
         )}
       </main>
