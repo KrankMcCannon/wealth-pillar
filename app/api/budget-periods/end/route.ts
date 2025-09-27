@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseServer, ServerDatabaseError, validateUserContext } from '@/lib/supabase-server';
+import { supabaseServer, validateUserContext } from '@/lib/supabase-server';
+import { withErrorHandler, APIError, ErrorCode } from '@/lib/api-errors';
 import type { Database } from '@/lib/database.types';
 import type { SupabaseUpdateBuilder } from '@/lib/supabase-types';
 
@@ -15,8 +16,7 @@ type Period = {
   total_spent?: number;
 };
 
-export async function POST(request: NextRequest) {
-  try {
+async function endBudgetPeriod(request: NextRequest) {
     const { userId: callerId, role } = await validateUserContext();
 
     const body = await request.json().catch(() => ({}));
@@ -24,14 +24,18 @@ export async function POST(request: NextRequest) {
     const endDateRaw: string | undefined = body.endDate || body.end_date;
 
     if (!targetUserId) {
-      return NextResponse.json({ error: 'userId is required' }, { status: 400 });
+      throw new APIError(
+        ErrorCode.MISSING_FIELDS,
+        'Il campo userId è obbligatorio.',
+        { missingFields: ['userId'] }
+      );
     }
 
     // Basic permission: allow self, or admins
     const isSelf = callerId === targetUserId;
     const isAdmin = role === 'admin' || role === 'superadmin';
     if (!isSelf && !isAdmin) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      throw new APIError(ErrorCode.PERMISSION_DENIED);
     }
 
     // Load user and budget periods
@@ -42,7 +46,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (userError || !userData) {
-      throw new ServerDatabaseError('User not found', 'NOT_FOUND');
+      throw new APIError(ErrorCode.USER_NOT_FOUND);
     }
 
     const user = userData as Pick<Database['public']['Tables']['users']['Row'], 'id' | 'budget_periods'>;
@@ -93,8 +97,20 @@ export async function POST(request: NextRequest) {
         .eq('user_id', targetUserId),
     ]);
 
-    if (budgetsError) throw new ServerDatabaseError('Failed to fetch budgets', 'DB_ERROR');
-    if (txError) throw new ServerDatabaseError('Failed to fetch transactions', 'DB_ERROR');
+    if (budgetsError) {
+      throw new APIError(
+        ErrorCode.DB_QUERY_ERROR,
+        'Errore durante il recupero dei budget.',
+        budgetsError
+      );
+    }
+    if (txError) {
+      throw new APIError(
+        ErrorCode.DB_QUERY_ERROR,
+        'Errore durante il recupero delle transazioni.',
+        txError
+      );
+    }
 
     const budgets = (budgetsData || []) as BudgetRow[];
     const transactions = ((txData || []) as TransactionRow[])
@@ -142,16 +158,15 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (updateResponse.error) {
-      throw new ServerDatabaseError('Failed to update budget periods', 'DB_UPDATE_ERROR');
+      throw new APIError(
+        ErrorCode.DB_QUERY_ERROR,
+        'Errore durante l\'aggiornamento dei periodi di budget.',
+        updateResponse.error
+      );
     }
 
     // Return updated period with user id
     return NextResponse.json({ data: { ...updated, user_id: targetUserId } });
-  } catch (error: unknown) {
-    if (error instanceof ServerDatabaseError) {
-      return NextResponse.json({ error: error.message, code: error.code }, { status: 400 });
-    }
-    console.error('POST /api/budget-periods/end error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-  }
 }
+
+export const POST = withErrorHandler(endBudgetPeriod);

@@ -1,12 +1,17 @@
 /**
  * Server-side API Routes for Transactions
- * Follows SOLID and DRY principles with comprehensive validation and performance optimization
  */
+import {
+  APIError,
+  createMissingFieldError,
+  createValidationError,
+  ErrorCode,
+  withErrorHandler,
+} from '@/lib/api-errors';
 import type { Database } from '@/lib/database.types';
 import {
   applyDateFilter,
   handleServerResponse,
-  ServerDatabaseError,
   supabaseServer,
   validateResourceAccess,
   validateUserContext,
@@ -21,8 +26,7 @@ type Transaction = Database['public']['Tables']['transactions']['Row'];
  * GET /api/transactions
  * Retrieve transactions with advanced filtering and pagination
  */
-export async function GET(request: NextRequest) {
-  try {
+async function getTransactions(request: NextRequest) {
     const userContext = await validateUserContext();
 
     const searchParams = request.nextUrl.searchParams;
@@ -48,7 +52,10 @@ export async function GET(request: NextRequest) {
     };
 
     // Validate resource access
-    await validateResourceAccess(userContext.userId, 'transaction');
+    const hasAccess = await validateResourceAccess(userContext.userId, 'transaction');
+    if (!hasAccess) {
+      throw new APIError(ErrorCode.PERMISSION_DENIED);
+    }
 
     // Build query with proper security
     let query = supabaseServer
@@ -118,47 +125,31 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       data: transactions,
     });
-
-  } catch (error) {
-    console.error('GET /api/transactions error:', error);
-
-    if (error instanceof ServerDatabaseError) {
-      return NextResponse.json(
-        { error: error.message, code: error.code },
-        { status: error.code === 'AUTH_ERROR' ? 401 : 400 }
-      );
-    }
-
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
-  }
 }
+
+export const GET = withErrorHandler(getTransactions);
 
 /**
  * POST /api/transactions
  * Create a new transaction with validation
  */
-export async function POST(request: NextRequest) {
-  try {
+async function createTransaction(request: NextRequest) {
     const userContext = await validateUserContext();
 
     const body = await request.json();
 
     // Validate required fields
     const requiredFields = ['description', 'amount', 'type', 'category', 'date', 'account_id'];
-    for (const field of requiredFields) {
-      if (!body[field]) {
-        throw new ServerDatabaseError(
-          `Missing required field: ${field}`,
-          'VALIDATION_ERROR'
-        );
-      }
+    const missingFields = requiredFields.filter(field => !body[field]);
+    if (missingFields.length > 0) {
+      throw createMissingFieldError(missingFields);
     }
 
     // Validate account access
-    await validateResourceAccess(userContext.userId, 'account', body.account_id);
+    const hasAccountAccess = await validateResourceAccess(userContext.userId, 'account', body.account_id);
+    if (!hasAccountAccess) {
+      throw new APIError(ErrorCode.PERMISSION_DENIED);
+    }
 
     // Prepare transaction data
     const transactionData: Database['public']['Tables']['transactions']['Insert'] = {
@@ -177,17 +168,15 @@ export async function POST(request: NextRequest) {
 
     // Validate amount is positive
     if (transactionData.amount <= 0) {
-      throw new ServerDatabaseError(
-        'Amount must be positive',
-        'VALIDATION_ERROR'
-      );
+      throw createValidationError('amount', transactionData.amount);
     }
 
     // Validate transfer has to_account_id
     if (transactionData.type === 'transfer' && !transactionData.to_account_id) {
-      throw new ServerDatabaseError(
-        'Transfer transactions require to_account_id',
-        'VALIDATION_ERROR'
+      throw new APIError(
+        ErrorCode.VALIDATION_ERROR,
+        'Le transazioni di trasferimento richiedono un conto di destinazione.',
+        { type: transactionData.type, to_account_id: transactionData.to_account_id }
       );
     }
 
@@ -203,30 +192,15 @@ export async function POST(request: NextRequest) {
     const transaction = handleServerResponse(response);
 
     return NextResponse.json({ data: transaction }, { status: 201 });
-
-  } catch (error) {
-    console.error('POST /api/transactions error:', error);
-
-    if (error instanceof ServerDatabaseError) {
-      return NextResponse.json(
-        { error: error.message, code: error.code },
-        { status: error.code === 'AUTH_ERROR' ? 401 : 400 }
-      );
-    }
-
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
-  }
 }
+
+export const POST = withErrorHandler(createTransaction);
 
 /**
  * PATCH /api/transactions (bulk operations)
  * Handle multiple transaction operations in a single request
  */
-export async function PATCH(request: NextRequest) {
-  try {
+async function bulkUpdateTransactions(request: NextRequest) {
     const userContext = await validateUserContext();
 
     const body = await request.json();
@@ -237,9 +211,10 @@ export async function PATCH(request: NextRequest) {
     }>;
 
     if (!Array.isArray(operations) || operations.length === 0) {
-      throw new ServerDatabaseError(
-        'Operations array is required',
-        'VALIDATION_ERROR'
+      throw new APIError(
+        ErrorCode.VALIDATION_ERROR,
+        'È richiesto un array di operazioni valido.',
+        { operations }
       );
     }
 
@@ -248,8 +223,7 @@ export async function PATCH(request: NextRequest) {
     // Note: Supabase doesn't support explicit transactions in this context
     // We'll process operations sequentially for consistency
 
-    try {
-      for (const operation of operations) {
+    for (const operation of operations) {
         switch (operation.type) {
           case 'create':
             if (!operation.data) continue;
@@ -276,7 +250,10 @@ export async function PATCH(request: NextRequest) {
             if (!operation.id || !operation.data) continue;
 
             // Validate access
-            await validateResourceAccess(userContext.userId, 'transaction', operation.id);
+            const hasUpdateAccess = await validateResourceAccess(userContext.userId, 'transaction', operation.id);
+            if (!hasUpdateAccess) {
+              throw new APIError(ErrorCode.PERMISSION_DENIED);
+            }
 
             const updateResponse = await (supabaseServer
               .from('transactions') as unknown as SupabaseUpdateBuilder<
@@ -297,7 +274,10 @@ export async function PATCH(request: NextRequest) {
             if (!operation.id) continue;
 
             // Validate access
-            await validateResourceAccess(userContext.userId, 'transaction', operation.id);
+            const hasDeleteAccess = await validateResourceAccess(userContext.userId, 'transaction', operation.id);
+            if (!hasDeleteAccess) {
+              throw new APIError(ErrorCode.PERMISSION_DENIED);
+            }
 
             await supabaseServer
               .from('transactions')
@@ -305,34 +285,16 @@ export async function PATCH(request: NextRequest) {
               .eq('id', operation.id);
             break;
         }
-      }
-
-      return NextResponse.json({
-        data: results,
-        summary: {
-          totalProcessed: operations.length,
-          successfulOperations: results.length,
-          failedOperations: operations.length - results.length,
-        },
-      });
-
-    } catch (innerError) {
-      throw innerError;
     }
 
-  } catch (error) {
-    console.error('PATCH /api/transactions error:', error);
-
-    if (error instanceof ServerDatabaseError) {
-      return NextResponse.json(
-        { error: error.message, code: error.code },
-        { status: error.code === 'AUTH_ERROR' ? 401 : 400 }
-      );
-    }
-
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
-  }
+    return NextResponse.json({
+      data: results,
+      summary: {
+        totalProcessed: operations.length,
+        successfulOperations: results.length,
+        failedOperations: operations.length - results.length,
+      },
+    });
 }
+
+export const PATCH = withErrorHandler(bulkUpdateTransactions);

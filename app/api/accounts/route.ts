@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseServer, ServerDatabaseError, validateUserContext } from '@/lib/supabase-server';
+import { supabaseServer, validateUserContext } from '@/lib/supabase-server';
+import { withErrorHandler, APIError, ErrorCode } from '@/lib/api-errors';
 
-export async function GET(request: NextRequest) {
-  try {
+async function getAccounts(request: NextRequest) {
     const user = await validateUserContext();
     const searchParams = request.nextUrl.searchParams;
     const userId = searchParams.get('userId');
@@ -21,8 +21,11 @@ export async function GET(request: NextRequest) {
       .single();
 
     if (userResponse.error) {
-      console.error('Error fetching user:', userResponse.error);
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      throw new APIError(
+        ErrorCode.USER_NOT_FOUND,
+        'Utente non trovato nel sistema.',
+        userResponse.error
+      );
     }
 
     const userGroupId = (userResponse.data as { group_id: string }).group_id;
@@ -47,14 +50,16 @@ export async function GET(request: NextRequest) {
     }
 
     const response = await query;
-    if (response.error) throw new ServerDatabaseError('Failed to fetch accounts', 'DB_ERROR');
+    if (response.error) {
+      throw new APIError(
+        ErrorCode.DB_QUERY_ERROR,
+        'Errore durante il recupero degli account.',
+        response.error
+      );
+    }
 
     return NextResponse.json({ data: response.data ?? [] });
-  } catch (error) {
-    if (error instanceof ServerDatabaseError) {
-      return NextResponse.json({ error: error.message, code: error.code }, { status: 400 });
-    }
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-  }
 }
+
+export const GET = withErrorHandler(getAccounts);
 

@@ -8,8 +8,14 @@ import {
   handleServerResponse,
   validateUserContext,
   validateResourceAccess,
-  ServerDatabaseError,
 } from '@/lib/supabase-server';
+import {
+  withErrorHandler,
+  APIError,
+  ErrorCode,
+  createMissingFieldError,
+  createValidationError,
+} from '@/lib/api-errors';
 import type { Database } from '@/lib/database.types';
 import type { SupabaseInsertBuilder } from '@/lib/supabase-types';
 
@@ -19,8 +25,7 @@ import type { SupabaseInsertBuilder } from '@/lib/supabase-types';
  * GET /api/recurring-transactions
  * Retrieve recurring transactions with filtering options
  */
-export async function GET(request: NextRequest) {
-  try {
+async function getRecurringTransactions(request: NextRequest) {
     const userContext = await validateUserContext();
 
     const searchParams = request.nextUrl.searchParams;
@@ -34,7 +39,10 @@ export async function GET(request: NextRequest) {
     const sortOrder = (searchParams.get('sortOrder') as 'asc' | 'desc') || 'desc';
 
     // Validate resource access
-    await validateResourceAccess(userContext.userId, 'recurring_series');
+    const hasAccess = await validateResourceAccess(userContext.userId, 'recurring_series');
+    if (!hasAccess) {
+      throw new APIError(ErrorCode.PERMISSION_DENIED);
+    }
 
     // Build query
     let query = supabaseServer
@@ -77,77 +85,59 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json(result);
-
-  } catch (error) {
-    console.error('GET /api/recurring-transactions error:', error);
-
-    if (error instanceof ServerDatabaseError) {
-      return NextResponse.json(
-        { error: error.message, code: error.code },
-        { status: error.code === 'AUTH_ERROR' ? 401 : 400 }
-      );
-    }
-
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
-  }
 }
 
 /**
  * POST /api/recurring-transactions
  * Create a new recurring transaction series
  */
-export async function POST(request: NextRequest) {
-  try {
+async function createRecurringTransaction(request: NextRequest) {
     const userContext = await validateUserContext();
 
     const body = await request.json();
 
     // Validate required fields
     const requiredFields = ['name', 'description', 'amount', 'type', 'category', 'frequency', 'account_id', 'start_date', 'next_due_date'];
-    for (const field of requiredFields) {
-      if (!body[field]) {
-        throw new ServerDatabaseError(
-          `Missing required field: ${field}`,
-          'VALIDATION_ERROR'
-        );
-      }
+    const missingFields = requiredFields.filter(field => !body[field]);
+    if (missingFields.length > 0) {
+      throw createMissingFieldError(missingFields);
     }
 
     // Validate amount is positive
     if (parseFloat(body.amount) <= 0) {
-      throw new ServerDatabaseError(
-        'Amount must be positive',
-        'VALIDATION_ERROR'
-      );
+      throw createValidationError('amount', body.amount);
     }
 
     // Validate type
     if (!['income', 'expense', 'transfer'].includes(body.type)) {
-      throw new ServerDatabaseError(
-        'Type must be income, expense, or transfer',
-        'VALIDATION_ERROR'
+      throw new APIError(
+        ErrorCode.VALIDATION_ERROR,
+        'Il tipo deve essere "income", "expense" o "transfer".',
+        { type: body.type }
       );
     }
 
     // Validate frequency
     if (!['once', 'weekly', 'biweekly', 'monthly', 'yearly'].includes(body.frequency)) {
-      throw new ServerDatabaseError(
-        'Invalid frequency value',
-        'VALIDATION_ERROR'
+      throw new APIError(
+        ErrorCode.VALIDATION_ERROR,
+        'La frequenza deve essere valida.',
+        { frequency: body.frequency }
       );
     }
 
     // Validate account access
-    await validateResourceAccess(userContext.userId, 'account', body.account_id);
+    const hasAccountAccess = await validateResourceAccess(userContext.userId, 'account', body.account_id);
+    if (!hasAccountAccess) {
+      throw new APIError(ErrorCode.PERMISSION_DENIED);
+    }
 
     // Validate transfer has to_account_id
     if (body.type === 'transfer' && !body.to_account_id) {
-      throw new ServerDatabaseError(
-        'Transfer transactions require to_account_id',
-        'VALIDATION_ERROR'
+      throw new APIError(
+        ErrorCode.VALIDATION_ERROR,
+        'Le transazioni ricorrenti di trasferimento richiedono un conto di destinazione.',
+        { type: body.type, to_account_id: body.to_account_id }
       );
     }
 
@@ -191,23 +181,10 @@ export async function POST(request: NextRequest) {
     const series = handleServerResponse(response);
 
     return NextResponse.json({ data: series }, { status: 201 });
-
-  } catch (error) {
-    console.error('POST /api/recurring-transactions error:', error);
-
-    if (error instanceof ServerDatabaseError) {
-      return NextResponse.json(
-        { error: error.message, code: error.code },
-        { status: error.code === 'AUTH_ERROR' ? 401 : 400 }
-      );
-    }
-
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
-  }
 }
+
+export const GET = withErrorHandler(getRecurringTransactions);
+export const POST = withErrorHandler(createRecurringTransaction);
 
 /**
  * Helper function to get recurring transaction statistics

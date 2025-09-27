@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
-import { supabaseServer, ServerDatabaseError, validateUserContext } from '@/lib/supabase-server';
+import { supabaseServer, validateUserContext } from '@/lib/supabase-server';
+import { withErrorHandler, APIError, ErrorCode } from '@/lib/api-errors';
 
-export async function GET() {
-  try {
+async function getUsers() {
     const userContext = await validateUserContext();
 
     let query = supabaseServer
@@ -35,13 +35,15 @@ export async function GET() {
     }
 
     const response = await query;
-    if (response.error) throw new ServerDatabaseError('Failed to fetch users', 'DB_ERROR');
+    if (response.error) {
+      throw new APIError(
+        ErrorCode.DB_QUERY_ERROR,
+        'Errore durante il recupero degli utenti.',
+        response.error
+      );
+    }
 
     return NextResponse.json({ data: response.data ?? [] });
-  } catch (error) {
-    if (error instanceof ServerDatabaseError) {
-      return NextResponse.json({ error: error.message, code: error.code }, { status: 400 });
-    }
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-  }
 }
+
+export const GET = withErrorHandler(getUsers);

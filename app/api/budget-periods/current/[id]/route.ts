@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseServer, ServerDatabaseError, validateUserContext } from '@/lib/supabase-server';
+import { supabaseServer, validateUserContext } from '@/lib/supabase-server';
+import { withErrorHandler, APIError, ErrorCode } from '@/lib/api-errors';
 
-export async function GET(_: NextRequest, context: { params: Promise<{ id: string }> }) {
-  try {
+async function getCurrentBudgetPeriod(_: NextRequest, context: { params: Promise<{ id: string }> }) {
     await validateUserContext();
     const { id } = await context.params;
 
@@ -13,7 +13,13 @@ export async function GET(_: NextRequest, context: { params: Promise<{ id: strin
       .eq('id', id)
       .single();
 
-    if (userResp.error) throw new ServerDatabaseError('Failed to fetch user budget periods', 'DB_ERROR');
+    if (userResp.error) {
+      throw new APIError(
+        ErrorCode.DB_QUERY_ERROR,
+        'Errore durante il recupero del periodo di budget corrente.',
+        userResp.error
+      );
+    }
     type Period = {
       id: string;
       user_id?: string;
@@ -32,10 +38,6 @@ export async function GET(_: NextRequest, context: { params: Promise<{ id: strin
       : [];
     const current: Period | null = list.find((p) => p.is_active) || null;
     return NextResponse.json({ data: current });
-  } catch (error) {
-    if (error instanceof ServerDatabaseError) {
-      return NextResponse.json({ error: error.message, code: error.code }, { status: 400 });
-    }
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-  }
 }
+
+export const GET = withErrorHandler(getCurrentBudgetPeriod);

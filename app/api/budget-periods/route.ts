@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseServer, ServerDatabaseError, validateUserContext } from '@/lib/supabase-server';
+import { supabaseServer, validateUserContext } from '@/lib/supabase-server';
+import { withErrorHandler, APIError, ErrorCode } from '@/lib/api-errors';
 import type { Database } from '@/lib/database.types';
 import type { SupabaseUpdateBuilder } from '@/lib/supabase-types';
 
-export async function GET(request: NextRequest) {
-  try {
+async function getBudgetPeriods(request: NextRequest) {
     await validateUserContext();
     const params = request.nextUrl.searchParams;
     const userId = params.get('userId');
@@ -18,7 +18,13 @@ export async function GET(request: NextRequest) {
     if (userId) userQuery = userQuery.eq('id', userId);
 
     const userResp = await userQuery;
-    if (userResp.error) throw new ServerDatabaseError('Failed to fetch users for budget periods', 'DB_ERROR');
+    if (userResp.error) {
+      throw new APIError(
+        ErrorCode.DB_QUERY_ERROR,
+        'Errore durante il recupero dei periodi di budget.',
+        userResp.error
+      );
+    }
 
     type Period = {
       id: string;
@@ -46,30 +52,27 @@ export async function GET(request: NextRequest) {
     );
 
     return NextResponse.json({ data: filtered });
-  } catch (error) {
-    if (error instanceof ServerDatabaseError) {
-      return NextResponse.json({ error: error.message, code: error.code }, { status: 400 });
-    }
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-  }
 }
 
-export async function POST(request: NextRequest) {
-  try {
+async function createBudgetPeriod(request: NextRequest) {
     const { userId: callerId, role } = await validateUserContext();
 
     const body = await request.json().catch(() => ({}));
     const targetUserId: string | undefined = body.userId || body.user_id;
 
     if (!targetUserId) {
-      return NextResponse.json({ error: 'userId is required' }, { status: 400 });
+      throw new APIError(
+        ErrorCode.MISSING_FIELDS,
+        'Il campo userId è obbligatorio.',
+        { missingFields: ['userId'] }
+      );
     }
 
     // Basic permission: allow self, or admins
     const isSelf = callerId === targetUserId;
     const isAdmin = role === 'admin' || role === 'superadmin';
     if (!isSelf && !isAdmin) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      throw new APIError(ErrorCode.PERMISSION_DENIED);
     }
 
     // Load user and budget periods
@@ -80,7 +83,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (userError || !userData) {
-      throw new ServerDatabaseError('User not found', 'NOT_FOUND');
+      throw new APIError(ErrorCode.USER_NOT_FOUND);
     }
 
     type Period = {
@@ -101,7 +104,11 @@ export async function POST(request: NextRequest) {
     // Check if there's already an active period
     const hasActivePeriod = periods.some(p => p.is_active);
     if (hasActivePeriod) {
-      return NextResponse.json({ error: 'An active period already exists' }, { status: 400 });
+      throw new APIError(
+        ErrorCode.RESOURCE_CONFLICT,
+        'Esiste già un periodo di budget attivo.',
+        { hasActivePeriod: true }
+      );
     }
 
     // Calculate start date: day after the most recent period's end date, or today if no previous periods
@@ -153,16 +160,16 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (updateResponse.error) {
-      throw new ServerDatabaseError('Failed to update budget periods', 'DB_UPDATE_ERROR');
+      throw new APIError(
+        ErrorCode.DB_QUERY_ERROR,
+        'Errore durante l\'aggiornamento dei periodi di budget.',
+        updateResponse.error
+      );
     }
 
     // Return new period with user id
     return NextResponse.json({ data: { ...newPeriod, user_id: targetUserId } });
-  } catch (error: unknown) {
-    if (error instanceof ServerDatabaseError) {
-      return NextResponse.json({ error: error.message, code: error.code }, { status: 400 });
-    }
-    console.error('POST /api/budget-periods error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-  }
 }
+
+export const GET = withErrorHandler(getBudgetPeriods);
+export const POST = withErrorHandler(createBudgetPeriod);

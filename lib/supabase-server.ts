@@ -4,6 +4,7 @@
  */
 import { createClient } from '@supabase/supabase-js';
 import { auth, currentUser } from '@clerk/nextjs/server';
+import { APIError, ErrorCode, mapSupabaseError } from '@/lib/api-errors';
 import type { Database } from './database.types';
 
 // Server-side client with service role (full access)
@@ -25,19 +26,6 @@ export const supabaseServer = createClient<Database>(
   }
 );
 
-/**
- * Enhanced error handling for server operations
- */
-export class ServerDatabaseError extends Error {
-  constructor(
-    message: string,
-    public code: string,
-    public details?: unknown
-  ) {
-    super(message);
-    this.name = 'ServerDatabaseError';
-  }
-}
 
 /**
  * Server-side database response handler
@@ -47,19 +35,11 @@ export function handleServerResponse<T>(response: {
   error: unknown;
 }): T {
   if (response.error) {
-    const error = response.error as { message?: string; code?: string; details?: unknown };
-    throw new ServerDatabaseError(
-      error.message || 'Database operation failed',
-      error.code || 'UNKNOWN_ERROR',
-      error.details
-    );
+    throw mapSupabaseError(response.error);
   }
 
   if (response.data === null) {
-    throw new ServerDatabaseError(
-      'No data returned from database',
-      'NO_DATA_ERROR'
-    );
+    throw new APIError(ErrorCode.RESOURCE_NOT_FOUND);
   }
 
   return response.data;
@@ -76,7 +56,7 @@ export async function validateUserContext(): Promise<{
   // Prefer Clerk session from request cookies (no need for explicit Bearer)
   const { userId: clerkUserId } = await auth();
   if (!clerkUserId) {
-    throw new ServerDatabaseError('Authentication required', 'AUTH_ERROR');
+    throw new APIError(ErrorCode.AUTH_REQUIRED);
   }
 
   // Get user details from database mapped by Clerk ID

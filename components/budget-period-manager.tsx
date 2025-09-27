@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Clock, Play, Save, History, AlertCircle, TrendingUp, TrendingDown, Activity, Calendar, Users, Target } from "lucide-react";
+import { Clock, Play, Save, History, AlertCircle, TrendingUp, TrendingDown, Activity, Calendar, Users, Target, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -9,7 +9,6 @@ import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
@@ -135,17 +134,28 @@ export function BudgetPeriodManager({ budget, currentPeriod, trigger, onSuccess 
       <DialogTrigger asChild>
         {trigger}
       </DialogTrigger>
-      <DialogContent className="p-4 gap-0 max-w-[95vw] w-full sm:max-w-2xl max-h-[85vh] sm:max-h-[90vh] flex flex-col bg-white/95 backdrop-blur-xl border border-[#7578EC]/20 shadow-2xl rounded-2xl sm:rounded-3xl">
-        <DialogHeader className="p-4 pb-3 border-b border-[#7578EC]/15">
-          <DialogTitle className="flex items-center gap-2 text-lg sm:text-xl font-bold bg-gradient-to-r text-black bg-clip-text">
-            <div className="p-2 bg-gradient-to-br from-[#7578EC] to-[#7578EC]/80 rounded-lg shadow-md shadow-[#7578EC]/20">
-              <History className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+      <DialogContent className="p-0 gap-0 max-w-[95vw] w-full sm:max-w-2xl max-h-[85vh] sm:max-h-[90vh] flex flex-col bg-white border border-[#7578EC]/20 shadow-2xl rounded-2xl" showCloseButton={false}>
+        <DialogTitle className="sr-only">Gestione Periodi Budget</DialogTitle>
+
+        {/* Custom Header with Close Button */}
+        <div className="bg-gradient-to-r from-[#7578EC] to-[#669BBC] p-4 rounded-t-2xl">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 bg-white/20 rounded-lg">
+                <History className="h-4 w-4 text-white" />
+              </div>
+              <h2 className="text-lg font-bold text-white">Gestione Periodi</h2>
             </div>
-            <span className="bg-gradient-to-r text-black bg-clip-text">
-              Gestione Periodi
-            </span>
-          </DialogTitle>
-        </DialogHeader>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsOpen(false)}
+              className="w-7 h-7 p-0 rounded-full bg-white/20 hover:bg-white/30 text-white"
+            >
+              <X className="h-3 w-3" />
+            </Button>
+          </div>
+        </div>
 
         <div className="flex-1 p-4 pt-3 space-y-4 overflow-y-auto scrollbar-thin min-h-0">
           {/* User Info Section */}

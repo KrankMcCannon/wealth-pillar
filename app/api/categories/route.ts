@@ -1,21 +1,24 @@
 import { NextResponse } from 'next/server';
-import { supabaseServer, ServerDatabaseError, validateUserContext } from '@/lib/supabase-server';
+import { supabaseServer, validateUserContext } from '@/lib/supabase-server';
+import { withErrorHandler, APIError, ErrorCode } from '@/lib/api-errors';
 
-export async function GET() {
-  try {
+async function getCategories() {
     await validateUserContext();
     const response = await supabaseServer
       .from('categories')
       .select('*')
       .order('created_at', { ascending: false });
 
-    if (response.error) throw new ServerDatabaseError('Failed to fetch categories', 'DB_ERROR');
-    return NextResponse.json({ data: response.data ?? [] });
-  } catch (error) {
-    if (error instanceof ServerDatabaseError) {
-      return NextResponse.json({ error: error.message, code: error.code }, { status: 400 });
+    if (response.error) {
+      throw new APIError(
+        ErrorCode.DB_QUERY_ERROR,
+        'Errore durante il recupero delle categorie.',
+        response.error
+      );
     }
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-  }
+
+    return NextResponse.json({ data: response.data ?? [] });
 }
+
+export const GET = withErrorHandler(getCategories);
 

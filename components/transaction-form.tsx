@@ -5,13 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { CategoryIcon, iconSizes } from "@/lib/icons";
 import { useCreateTransaction, useCategories, useAccounts, useUsers } from "@/hooks";
 import type { TransactionType, TransactionFrequencyType } from "@/lib/types";
-import { User, Calendar, CreditCard, ArrowRightLeft, TrendingUp, Minus, Plus, Repeat } from "lucide-react";
+import { CreditCard, ArrowRightLeft, Minus, Plus, X } from "lucide-react";
 
 interface TransactionFormProps {
   isOpen: boolean;
@@ -124,288 +122,216 @@ export function TransactionForm({ isOpen, onOpenChange, initialType = "expense",
     }
   };
 
-  const getTypeColor = (type: TransactionType) => {
-    switch (type) {
-      case 'expense': return 'from-red-500 to-red-600';
-      case 'income': return 'from-emerald-500 to-emerald-600';
-      case 'transfer': return 'from-blue-500 to-blue-600';
-      default: return 'from-slate-500 to-slate-600';
-    }
-  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white/95 backdrop-blur-xl border border-slate-200/50 shadow-2xl rounded-3xl">
-        <DialogHeader className="text-center pb-4">
-          <DialogTitle className="text-xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
-            Aggiungi Transazione
-          </DialogTitle>
-          <p className="text-xs text-slate-600 mt-1">Inserisci i dettagli della tua nuova transazione</p>
-        </DialogHeader>
+      <DialogContent className="w-[98vw] max-w-sm max-h-[90vh] p-0 gap-0 bg-white border-0 shadow-xl rounded-xl overflow-hidden" showCloseButton={false}>
+        <DialogTitle className="sr-only">Aggiungi Transazione</DialogTitle>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Transaction Type Selection */}
-          <div className="space-y-2">
-            <Label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-              <CreditCard className="h-4 w-4" />
-              Tipo di Transazione
-            </Label>
-            <div className="grid grid-cols-3 gap-2">
-              {(['expense', 'income', 'transfer'] as TransactionType[]).map((type) => (
-                <Button
-                  key={type}
-                  type="button"
-                  variant={formData.type === type ? "default" : "outline"}
-                  className={`h-12 flex items-center justify-center gap-2 rounded-xl transition-all duration-200 ${
-                    formData.type === type
-                      ? `bg-gradient-to-r ${getTypeColor(type)} text-white shadow-lg`
-                      : 'hover:bg-slate-50 border-slate-200 text-slate-700'
-                  }`}
-                  onClick={() => setFormData(prev => ({ ...prev, type, category: "" }))}
-                >
-                  {getTypeIcon(type)}
-                  <span className="text-sm font-medium">
-                    {type === 'expense' ? 'Spesa' : type === 'income' ? 'Entrata' : 'Trasferimento'}
-                  </span>
-                </Button>
-              ))}
-            </div>
+        {/* Compact Header */}
+        <div className="bg-gradient-to-r from-[#7578EC] to-[#669BBC] p-3">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-bold text-white">Transazione</h2>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onOpenChange(false)}
+              className="w-7 h-7 p-0 rounded-full bg-white/20 hover:bg-white/30 text-white"
+            >
+              <X className="h-3 w-3" />
+            </Button>
           </div>
+        </div>
 
-          {/* User Selection */}
-          <div className="space-y-2">
-            <Label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-              <User className="h-4 w-4" />
-              Utente
-            </Label>
-            <Select value={formData.user_id} onValueChange={(value) => setFormData(prev => ({ ...prev, user_id: value, account_id: "" }))}>
-              <SelectTrigger className="h-12 bg-white border-slate-200 shadow-sm rounded-xl hover:border-slate-300 focus:border-slate-400 focus:ring-4 focus:ring-slate-100 transition-all">
-                <SelectValue placeholder="Seleziona utente" />
-              </SelectTrigger>
-              <SelectContent className="bg-white/95 backdrop-blur-md border border-slate-200/60 shadow-xl rounded-xl">
-                {sortedUsers.map((user) => (
-                  <SelectItem key={user.id} value={user.id} className="hover:bg-slate-50 rounded-lg py-3 px-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
-                        <User className="h-4 w-4 text-slate-600" />
-                      </div>
-                      <span className="font-medium text-slate-700">{user.name}</span>
-                    </div>
-                  </SelectItem>
+        {/* Compact Content */}
+        <div className="p-3 space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Type Selection - Compact Pills */}
+            <div>
+              <Label className="text-xs font-bold text-black mb-2 block">Tipo</Label>
+              <div className="grid grid-cols-3 gap-2">
+                {(['expense', 'income', 'transfer'] as TransactionType[]).map((type) => (
+                  <Button
+                    key={type}
+                    type="button"
+                    variant="ghost"
+                    className={`h-10 text-xs rounded-lg transition-all ${
+                      formData.type === type
+                        ? 'bg-[#7578EC] text-white'
+                        : 'bg-white border border-[#7578EC]/20 text-black hover:bg-[#7578EC]/5'
+                    }`}
+                    onClick={() => setFormData(prev => ({ ...prev, type, category: "" }))}
+                  >
+                    {getTypeIcon(type)}
+                    <span className="ml-1">
+                      {type === 'expense' ? 'Spesa' : type === 'income' ? 'Entrata' : 'Trasf.'}
+                    </span>
+                  </Button>
                 ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-
-          {/* Description and Amount - Side by Side */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-3">
-              <Label className="text-sm font-semibold text-slate-700">Descrizione</Label>
-              <Input
-                value={formData.description}
-                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                placeholder="Es. Spesa supermercato"
-                className="h-12 bg-white border-slate-200 shadow-sm rounded-xl hover:border-slate-300 focus:border-slate-400 focus:ring-4 focus:ring-slate-100 transition-all"
-                required
-              />
+              </div>
             </div>
-            <div className="space-y-3">
-              <Label className="text-sm font-semibold text-slate-700">Importo (€)</Label>
-              <div className="relative">
+
+            {/* User Selection - Compact */}
+            <div>
+              <Label className="text-xs font-bold text-black mb-1 block">Utente</Label>
+              <Select value={formData.user_id} onValueChange={(value) => setFormData(prev => ({ ...prev, user_id: value, account_id: "" }))}>
+                <SelectTrigger className="h-9 bg-white border border-[#7578EC]/20 rounded-lg text-black text-sm">
+                  <SelectValue placeholder="Scegli utente" />
+                </SelectTrigger>
+                <SelectContent className="bg-white border border-[#7578EC]/20 rounded-lg">
+                  {sortedUsers.map((user) => (
+                    <SelectItem key={user.id} value={user.id} className="text-black hover:bg-[#7578EC]/5">
+                      {user.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+
+            {/* Description and Amount - Compact */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs font-bold text-black mb-1 block">Descrizione</Label>
+                <Input
+                  value={formData.description}
+                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                  placeholder="Es. Spesa"
+                  className="h-9 bg-white border border-[#7578EC]/20 rounded-lg text-black text-sm"
+                  required
+                />
+              </div>
+              <div>
+                <Label className="text-xs font-bold text-black mb-1 block">Importo (€)</Label>
                 <Input
                   type="number"
                   step="0.01"
                   value={formData.amount}
                   onChange={(e) => setFormData(prev => ({ ...prev, amount: e.target.value }))}
                   placeholder="0.00"
-                  className="h-12 bg-white border-slate-200 shadow-sm rounded-xl hover:border-slate-300 focus:border-slate-400 focus:ring-4 focus:ring-slate-100 transition-all pl-12 text-right font-semibold"
+                  className="h-9 bg-white border border-[#7578EC]/20 rounded-lg text-black text-sm text-right font-bold"
                   required
                 />
-                <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-500 font-medium">
-                  €
-                </div>
               </div>
             </div>
-          </div>
 
-          {/* Category (not for transfers) */}
-          {formData.type !== 'transfer' && (
-            <div className="space-y-2">
-              <Label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                <div className="w-4 h-4 rounded bg-gradient-to-br from-orange-400 to-orange-500" />
-                Categoria
-              </Label>
-              <Select value={formData.category} onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}>
-                <SelectTrigger className="h-12 bg-white border-slate-200 shadow-sm rounded-xl hover:border-slate-300 focus:border-slate-400 focus:ring-4 focus:ring-slate-100 transition-all">
-                  <SelectValue placeholder="Seleziona categoria" />
-                </SelectTrigger>
-                <SelectContent className="bg-white/95 backdrop-blur-md border border-slate-200/60 shadow-xl rounded-xl max-h-60">
-                  {sortedCategories.map((category) => (
-                    <SelectItem key={category.key} value={category.key} className="hover:bg-slate-50 rounded-lg py-3 px-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: category.color + '20' }}>
+            {/* Category - Compact */}
+            {formData.type !== 'transfer' && (
+              <div>
+                <Label className="text-xs font-bold text-black mb-1 block">Categoria</Label>
+                <Select value={formData.category} onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}>
+                  <SelectTrigger className="h-9 bg-white border border-[#7578EC]/20 rounded-lg text-black text-sm">
+                    <SelectValue placeholder="Scegli categoria" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white border border-[#7578EC]/20 rounded-lg max-h-48">
+                    {sortedCategories.map((category) => (
+                      <SelectItem key={category.key} value={category.key} className="text-black hover:bg-[#7578EC]/5">
+                        <div className="flex items-center gap-2">
                           <CategoryIcon categoryKey={category.key} size={iconSizes.sm} />
+                          <span className="text-sm">{category.label}</span>
                         </div>
-                        <span className="font-medium text-slate-700">{category.label}</span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {/* Date and Frequency - Compact Grid */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs font-bold text-black mb-1 block">Data</Label>
+                <Input
+                  type="date"
+                  value={formData.date}
+                  onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
+                  className="h-9 bg-white border border-[#7578EC]/20 rounded-lg text-black text-sm"
+                  required
+                />
+              </div>
+              <div>
+                <Label className="text-xs font-bold text-black mb-1 block">Frequenza</Label>
+                <Select value={formData.frequency} onValueChange={(value) => setFormData(prev => ({ ...prev, frequency: value as TransactionFrequencyType }))}>
+                  <SelectTrigger className="h-9 bg-white border border-[#7578EC]/20 rounded-lg text-black text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white border border-[#7578EC]/20 rounded-lg">
+                    <SelectItem value="once" className="text-black hover:bg-[#7578EC]/5">Una tantum</SelectItem>
+                    <SelectItem value="weekly" className="text-black hover:bg-[#7578EC]/5">Settimanale</SelectItem>
+                    <SelectItem value="biweekly" className="text-black hover:bg-[#7578EC]/5">Quindicinale</SelectItem>
+                    <SelectItem value="monthly" className="text-black hover:bg-[#7578EC]/5">Mensile</SelectItem>
+                    <SelectItem value="yearly" className="text-black hover:bg-[#7578EC]/5">Annuale</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Account - Compact */}
+            <div>
+              <Label className="text-xs font-bold text-black mb-1 block">
+                {formData.type === 'transfer' ? 'Conto Origine' : 'Conto'}
+              </Label>
+              <Select value={formData.account_id} onValueChange={(value) => setFormData(prev => ({ ...prev, account_id: value }))}>
+                <SelectTrigger className="h-9 bg-white border border-[#7578EC]/20 rounded-lg text-black text-sm">
+                  <SelectValue placeholder="Scegli conto" />
+                </SelectTrigger>
+                <SelectContent className="bg-white border border-[#7578EC]/20 rounded-lg">
+                  {userAccounts.map((account) => (
+                    <SelectItem key={account.id} value={account.id} className="text-black hover:bg-[#7578EC]/5">
+                      <div className="flex items-center gap-2">
+                        <CreditCard className="h-3 w-3" />
+                        <span className="text-sm">{account.name}</span>
                       </div>
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
-          )}
 
-          {/* Date and Frequency - Side by Side */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                <Calendar className="h-4 w-4" />
-                Data
-              </Label>
-              <Input
-                type="date"
-                value={formData.date}
-                onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
-                className="h-12 bg-white border-slate-200 shadow-sm rounded-xl hover:border-slate-300 focus:border-slate-400 focus:ring-4 focus:ring-slate-100 transition-all"
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                <Repeat className="h-4 w-4" />
-                Frequenza
-              </Label>
-              <Select value={formData.frequency} onValueChange={(value) => setFormData(prev => ({ ...prev, frequency: value as TransactionFrequencyType }))}>
-                <SelectTrigger className="h-12 bg-white border-slate-200 shadow-sm rounded-xl hover:border-slate-300 focus:border-slate-400 focus:ring-4 focus:ring-slate-100 transition-all">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-white/95 backdrop-blur-md border border-slate-200/60 shadow-xl rounded-xl">
-                  <SelectItem value="once" className="hover:bg-slate-50 rounded-lg py-2 px-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-2 h-2 rounded-full bg-slate-400" />
-                      <span>Una tantum</span>
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="weekly" className="hover:bg-slate-50 rounded-lg py-2 px-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-2 h-2 rounded-full bg-blue-400" />
-                      <span>Settimanale</span>
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="biweekly" className="hover:bg-slate-50 rounded-lg py-2 px-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-2 h-2 rounded-full bg-green-400" />
-                      <span>Quindicinale</span>
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="monthly" className="hover:bg-slate-50 rounded-lg py-2 px-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-2 h-2 rounded-full bg-purple-400" />
-                      <span>Mensile</span>
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="yearly" className="hover:bg-slate-50 rounded-lg py-2 px-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-2 h-2 rounded-full bg-orange-400" />
-                      <span>Annuale</span>
-                    </div>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <Separator className="my-4" />
-
-          {/* Account */}
-          <div className="space-y-2">
-            <Label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-              <CreditCard className="h-4 w-4" />
-              {formData.type === 'transfer' ? 'Conto di Origine' : 'Conto'}
-            </Label>
-            <Select value={formData.account_id} onValueChange={(value) => setFormData(prev => ({ ...prev, account_id: value }))}>
-              <SelectTrigger className="h-12 bg-white border-slate-200 shadow-sm rounded-xl hover:border-slate-300 focus:border-slate-400 focus:ring-4 focus:ring-slate-100 transition-all">
-                <SelectValue placeholder="Seleziona conto" />
-              </SelectTrigger>
-              <SelectContent className="bg-white/95 backdrop-blur-md border border-slate-200/60 shadow-xl rounded-xl">
-                {userAccounts.map((account) => (
-                  <SelectItem key={account.id} value={account.id} className="hover:bg-slate-50 rounded-lg py-3 px-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center">
-                        <CreditCard className="h-4 w-4 text-blue-600" />
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="font-medium text-slate-700">{account.name}</span>
-                        <Badge variant="secondary" className="text-xs w-fit mt-1 capitalize">{account.type}</Badge>
-                      </div>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* To Account (only for transfers) */}
-          {formData.type === 'transfer' && (
-            <div className="space-y-2">
-              <Label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                <ArrowRightLeft className="h-4 w-4" />
-                Conto di Destinazione
-              </Label>
-              <Select value={formData.to_account_id} onValueChange={(value) => setFormData(prev => ({ ...prev, to_account_id: value }))}>
-                <SelectTrigger className="h-12 bg-white border-slate-200 shadow-sm rounded-xl hover:border-slate-300 focus:border-slate-400 focus:ring-4 focus:ring-slate-100 transition-all">
-                  <SelectValue placeholder="Seleziona conto di destinazione" />
-                </SelectTrigger>
-                <SelectContent className="bg-white/95 backdrop-blur-md border border-slate-200/60 shadow-xl rounded-xl">
-                  {transferAccounts.map((account) => (
-                    <SelectItem key={account.id} value={account.id} className="hover:bg-slate-50 rounded-lg py-3 px-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-green-100 to-green-200 flex items-center justify-center">
-                          <CreditCard className="h-4 w-4 text-green-600" />
+            {/* Transfer Destination - Compact */}
+            {formData.type === 'transfer' && (
+              <div>
+                <Label className="text-xs font-bold text-black mb-1 block">Conto Destinazione</Label>
+                <Select value={formData.to_account_id} onValueChange={(value) => setFormData(prev => ({ ...prev, to_account_id: value }))}>
+                  <SelectTrigger className="h-9 bg-white border border-[#7578EC]/20 rounded-lg text-black text-sm">
+                    <SelectValue placeholder="Scegli destinazione" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white border border-[#7578EC]/20 rounded-lg">
+                    {transferAccounts.map((account) => (
+                      <SelectItem key={account.id} value={account.id} className="text-black hover:bg-[#7578EC]/5">
+                        <div className="flex items-center gap-2">
+                          <ArrowRightLeft className="h-3 w-3" />
+                          <span className="text-sm">{account.name}</span>
                         </div>
-                        <div className="flex flex-col">
-                          <span className="font-medium text-slate-700">{account.name}</span>
-                          <Badge variant="secondary" className="text-xs w-fit mt-1 capitalize">{account.type}</Badge>
-                        </div>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
 
-          {/* Buttons */}
-          <div className="flex gap-3 pt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              className="flex-1 h-12 rounded-xl border-slate-200 hover:bg-slate-50 transition-all duration-200 font-medium"
-            >
-              Annulla
-            </Button>
+          </form>
+
+          {/* Single Action Button */}
+          <div className="pt-4 border-t border-[#7578EC]/10">
             <Button
               type="submit"
-              className="flex-1 h-12 bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white shadow-lg hover:shadow-xl rounded-xl transition-all duration-200 font-semibold"
+              onClick={handleSubmit}
+              className="w-full h-10 bg-gradient-to-r from-[#7578EC] to-[#669BBC] text-white rounded-lg text-sm font-bold"
               disabled={createTransactionMutation.isPending}
             >
               {createTransactionMutation.isPending ? (
                 <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <div className="w-3 h-3 border border-white/30 border-t-white rounded-full animate-spin" />
                   <span>Salvando...</span>
                 </div>
               ) : (
-                <div className="flex items-center gap-2">
-                  <TrendingUp className="h-4 w-4" />
-                  <span>Salva Transazione</span>
-                </div>
+                <span>Salva Transazione</span>
               )}
             </Button>
           </div>
-        </form>
+        </div>
       </DialogContent>
     </Dialog>
   );

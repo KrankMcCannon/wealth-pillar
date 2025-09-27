@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { withErrorHandler, APIError, ErrorCode } from '@/lib/api-errors';
 
 const UPSTREAM_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
@@ -8,6 +9,14 @@ async function proxy(
 ) {
   const { path } = await context.params;
   const joined = path?.join('/') ?? '';
+
+  if (!UPSTREAM_BASE) {
+    throw new APIError(
+      ErrorCode.EXTERNAL_SERVICE_ERROR,
+      'Servizio upstream non configurato.',
+      { upstream_base: UPSTREAM_BASE }
+    );
+  }
 
   const url = new URL(request.url);
   const target = new URL(`${UPSTREAM_BASE}/${joined}${url.search}`);
@@ -37,7 +46,25 @@ async function proxy(
     }
   }
 
-  const res = await fetch(target, init);
+  let res: Response;
+  try {
+    res = await fetch(target, init);
+  } catch (error) {
+    throw new APIError(
+      ErrorCode.EXTERNAL_SERVICE_ERROR,
+      'Errore di connessione al servizio upstream.',
+      { target: target.toString(), error: error instanceof Error ? error.message : 'Unknown error' }
+    );
+  }
+
+  if (!res.ok && res.status >= 500) {
+    throw new APIError(
+      ErrorCode.EXTERNAL_SERVICE_ERROR,
+      'Il servizio upstream ha restituito un errore.',
+      { status: res.status, statusText: res.statusText }
+    );
+  }
+
   const resHeaders = new Headers(res.headers);
 
   // Stream or JSON-forward based on content type
@@ -51,4 +78,14 @@ async function proxy(
   return new NextResponse(buffer, { status: res.status, headers: resHeaders });
 }
 
-export { proxy as GET, proxy as POST, proxy as PATCH, proxy as PUT, proxy as DELETE, proxy as OPTIONS, proxy as HEAD };
+const wrappedProxy = withErrorHandler(proxy);
+
+export {
+  wrappedProxy as GET,
+  wrappedProxy as POST,
+  wrappedProxy as PATCH,
+  wrappedProxy as PUT,
+  wrappedProxy as DELETE,
+  wrappedProxy as OPTIONS,
+  wrappedProxy as HEAD
+};
