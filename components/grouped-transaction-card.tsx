@@ -13,15 +13,17 @@ interface GroupedTransactionCardProps {
   showHeader?: boolean;
   totalAmount?: number;
   context?: 'due' | 'informative'; // New context parameter
+  onEditTransaction?: (transaction: Transaction) => void; // Callback for editing
 }
 
-export function GroupedTransactionCard({ 
-  transactions, 
-  accountNames, 
+export function GroupedTransactionCard({
+  transactions,
+  accountNames,
   variant = 'regular',
   showHeader = false,
   totalAmount,
-  context = 'informative'
+  context = 'informative',
+  onEditTransaction
 }: GroupedTransactionCardProps) {
   if (!transactions.length) return null;
 
@@ -135,37 +137,38 @@ export function GroupedTransactionCard({
       {/* Compact Transactions List */}
       <div className="divide-y divide-slate-100/50">
         {transactions.map((transaction, index) => (
-          <div 
+          <div
             key={transaction.id || index}
-            className="px-3 py-2 hover:bg-slate-50/30 transition-colors duration-200 cursor-pointer group"
+            className="px-3 py-2 hover:bg-white/80 transition-colors duration-200 group relative cursor-pointer"
+            onClick={() => onEditTransaction?.(transaction)}
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5 flex-1 min-w-0">
                 <div className={`flex size-8 items-center justify-center rounded-lg bg-gradient-to-br ${getTransactionIconColor(transaction)} shadow-sm group-hover:shadow-md transition-all duration-200 shrink-0`}>
-                  <CategoryIcon 
-                    categoryKey={transaction.category} 
+                  <CategoryIcon
+                    categoryKey={transaction.category}
                     size={iconSizes.xs}
                   />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h4 className="font-medium text-slate-900 group-hover:text-slate-800 transition-colors truncate text-sm">
+                  <h4 className="font-medium text-black group-hover:text-black/80 transition-colors truncate text-sm">
                     {transaction.description}
                   </h4>
                   <div className="flex items-center gap-1.5 mt-0.5">
-                    <span className="text-xs text-gray-600">
+                    <span className="text-xs text-black/60">
                       {truncateText(accountNames[transaction.account_id] || transaction.account_id, 12)}
                     </span>
                     {variant === 'regular' && (
                       <>
-                        <span className="text-xs text-gray-400">•</span>
-                        <span className="text-xs text-gray-500">
+                        <span className="text-xs text-black/40">•</span>
+                        <span className="text-xs text-black/50">
                           {getCategoryLabel(transaction.category)}
                         </span>
                       </>
                     )}
                     {variant === 'recurrent' && transaction.frequency && (
                       <>
-                        <span className="text-xs text-gray-400">•</span>
+                        <span className="text-xs text-black/40">•</span>
                         <Badge variant="outline" className={`text-xs ${getTransactionBadgeColor(transaction)} font-medium px-1 py-0 scale-75 origin-left`}>
                           {transaction.frequency}
                         </Badge>
@@ -174,15 +177,17 @@ export function GroupedTransactionCard({
                   </div>
                 </div>
               </div>
-              <div className="text-right ml-2">
-                <p className={`text-sm font-bold ${getTransactionAmountColor(transaction)}`}>
-                  {formatTransactionAmount(transaction)}
-                </p>
-                {variant === 'recurrent' && transaction.frequency && transaction.frequency !== 'once' && (
-                  <p className={`text-xs mt-0.5 font-medium ${getTransactionAmountColor(transaction)}`}>
-                    Serie ricorrente - {transaction.frequency}
+
+              {/* Amount */}
+              <div className="text-right">
+                  <p className={`text-sm font-bold ${getTransactionAmountColor(transaction)}`}>
+                    {formatTransactionAmount(transaction)}
                   </p>
-                )}
+                  {variant === 'recurrent' && transaction.frequency && transaction.frequency !== 'once' && (
+                    <p className={`text-xs mt-0.5 font-medium ${getTransactionAmountColor(transaction)}`}>
+                      Serie ricorrente - {transaction.frequency}
+                    </p>
+                  )}
               </div>
             </div>
           </div>

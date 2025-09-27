@@ -26,7 +26,7 @@ import {
   formatDateLabel,
   pluralize
 } from "@/lib/utils";
-import type { User } from "@/lib/types";
+import type { User, Transaction } from "@/lib/types";
 
 function TransactionsContent() {
   const router = useRouter();
@@ -34,7 +34,9 @@ function TransactionsContent() {
   const [activeTab, setActiveTab] = useState("Transactions");
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [isTransactionFormOpen, setIsTransactionFormOpen] = useState(false);
-  const [transactionFormType, setTransactionFormType] = useState<"expense">("expense");
+  const [transactionFormType, setTransactionFormType] = useState<"expense" | "income" | "transfer">("expense");
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
+  const [transactionFormMode, setTransactionFormMode] = useState<'create' | 'edit'>('create');
 
   const [accountNames, setAccountNames] = useState<Record<string, string>>({});
 
@@ -93,6 +95,19 @@ function TransactionsContent() {
     setSelectedFilter("all");
     setSelectedCategory("all");
     updateViewUserId("all");
+  };
+
+  const handleEditTransaction = (transaction: Transaction) => {
+    setEditingTransaction(transaction);
+    setTransactionFormMode('edit');
+    setIsTransactionFormOpen(true);
+  };
+
+  const handleCreateTransaction = (type: "expense" | "income" | "transfer" = "expense") => {
+    setEditingTransaction(null);
+    setTransactionFormMode('create');
+    setTransactionFormType(type);
+    setIsTransactionFormOpen(true);
   };
 
   useEffect(() => {
@@ -212,10 +227,7 @@ function TransactionsContent() {
                 >
                   <DropdownMenuItem
                     className="text-sm font-semibold text-slate-700 hover:bg-primary/10 hover:text-primary rounded-xl px-3 py-3 cursor-pointer transition-all duration-200 group"
-                    onClick={() => {
-                      setTransactionFormType("expense");
-                      setIsTransactionFormOpen(true);
-                    }}
+                    onClick={() => handleCreateTransaction("expense")}
                   >
                     <Plus className="mr-3 h-4 w-4 group-hover:scale-110 transition-transform duration-200" />
                     Aggiungi Transazione
@@ -341,6 +353,7 @@ function TransactionsContent() {
                         transactions={dayGroup.transactions}
                         accountNames={accountNames}
                         variant="regular"
+                        onEditTransaction={handleEditTransaction}
                       />
                     </section>
                   ))
@@ -379,6 +392,8 @@ function TransactionsContent() {
             onOpenChange={setIsTransactionFormOpen}
             initialType={transactionFormType}
             selectedUserId={selectedViewUserId !== 'all' ? selectedViewUserId : ''}
+            transaction={editingTransaction || undefined}
+            mode={transactionFormMode}
           />
         </>
       )}

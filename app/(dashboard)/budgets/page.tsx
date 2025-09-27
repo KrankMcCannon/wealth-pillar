@@ -16,6 +16,7 @@ import BottomNavigation from "@/components/bottom-navigation";
 import UserSelector from "@/components/user-selector";
 import { SectionHeader } from "@/components/section-header";
 import { GroupedTransactionCard } from "@/components/grouped-transaction-card";
+import { TransactionForm } from "@/components/transaction-form";
 import { formatCurrency, getTotalForSection, formatDateLabel, pluralize } from "@/lib/utils";
 import {
   useBudgets,
@@ -25,7 +26,7 @@ import {
   useBudgetPeriods,
   useUserSelection
 } from "@/hooks";
-import type { Budget } from "@/lib/types";
+import type { Budget, Transaction } from "@/lib/types";
 import { BudgetPeriodManager } from "@/components/budget-period-manager";
 import {
   getBudgetTransactions,
@@ -57,6 +58,9 @@ function BudgetsContent() {
 
   const [selectedBudget, setSelectedBudget] = useState<Budget | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isTransactionFormOpen, setIsTransactionFormOpen] = useState(false);
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
+  const [transactionFormMode, setTransactionFormMode] = useState<'create' | 'edit'>('edit');
   const { data: budgets = [], isLoading: budgetsLoading } = useBudgets();
   const { data: allTransactions = [], isLoading: txLoading } = useTransactions();
   const { data: accounts = [] } = useAccounts();
@@ -73,6 +77,12 @@ function BudgetsContent() {
   const [activeTab, setActiveTab] = useState('expenses');
 
   const { data: allBudgetPeriods = [], isLoading: periodLoading } = useBudgetPeriods();
+
+  const handleEditTransaction = (transaction: Transaction) => {
+    setEditingTransaction(transaction);
+    setTransactionFormMode('edit');
+    setIsTransactionFormOpen(true);
+  };
 
   useEffect(() => {
     // Update user map only if changed (avoid re-renders loop)
@@ -945,6 +955,7 @@ function BudgetsContent() {
                         transactions={dayGroup.transactions}
                         accountNames={accountNames}
                         variant="regular"
+                        onEditTransaction={handleEditTransaction}
                       />
                     </section>
                   ))
@@ -987,6 +998,15 @@ function BudgetsContent() {
       </main>
 
       <BottomNavigation />
+
+      {/* Transaction Form */}
+      <TransactionForm
+        isOpen={isTransactionFormOpen}
+        onOpenChange={setIsTransactionFormOpen}
+        selectedUserId={selectedViewUserId !== 'all' ? selectedViewUserId : ''}
+        transaction={editingTransaction || undefined}
+        mode={transactionFormMode}
+      />
     </div>
   );
 }
