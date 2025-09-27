@@ -6,18 +6,8 @@ import {
   transactionService,
 } from '@/lib/api-client';
 import { queryKeys } from '@/lib/query-keys';
-import type { Transaction } from '@/lib/types';
 import { calculateAccountBalance } from '@/lib/utils';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-
-// Types for bulk operations
-type CreateTransactionData = Omit<Transaction, 'id'>;
-type UpdateTransactionData = Partial<Omit<Transaction, 'id' | 'created_at' | 'updated_at'>>;
-
-type BulkOperation =
-  | { type: 'create'; data: CreateTransactionData; id?: never }
-  | { type: 'update'; data: UpdateTransactionData; id: string }
-  | { type: 'delete'; data?: never; id: string };
+import { useQuery } from '@tanstack/react-query';
 
 /**
  * Financial-specific query hooks for advanced use cases
@@ -36,39 +26,6 @@ export const useAccountBalance = (accountId: string) => {
     enabled: !!accountId,
     staleTime: 15 * 1000, // 15 seconds for real-time balance
     refetchInterval: 30 * 1000, // Refetch every 30 seconds
-  });
-};
-
-/**
- * Comprehensive financial summary with smart caching
- */
-export const useFinancialSummary = (userId?: string, timeRange?: { start: Date; end: Date }) => {
-  return useQuery({
-    queryKey: [...queryKeys.financial(), 'summary', userId || 'all', timeRange],
-    queryFn: async () => {
-      const dateRange = timeRange ? {
-        start: timeRange.start.toISOString(),
-        end: timeRange.end.toISOString()
-      } : undefined;
-
-      const summary = await transactionService.getFinancialSummary(userId, dateRange);
-
-      // Add additional computed values for backward compatibility
-      const savingsRate = summary.totalIncome > 0 ?
-        ((summary.totalIncome - summary.totalExpenses) / summary.totalIncome) * 100 : 0;
-
-      return {
-        income: summary.totalIncome,
-        expenses: summary.totalExpenses,
-        transfers: summary.totalTransfers,
-        netIncome: summary.netIncome,
-        savingsRate: Math.round(savingsRate * 100) / 100,
-        categoryBreakdown: summary.expensesByCategory,
-        transactionCount: Object.keys(summary.expensesByCategory).length,
-        timeRange,
-      };
-    },
-    staleTime: 1 * 60 * 1000, // 1 minute
   });
 };
 
@@ -256,115 +213,5 @@ export const useTransactionTrends = (userId?: string, days: number = 30) => {
       };
     },
     staleTime: 2 * 60 * 1000, // 2 minutes
-  });
-};
-
-/**
- * Optimistic transaction creation with rollback
- */
-export const useOptimisticTransaction = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: transactionService.create,
-
-    // Optimistic update
-    onMutate: async (newTransaction) => {
-      // Cancel any outgoing re-fetches
-      await queryClient.cancelQueries({ queryKey: queryKeys.transactions() });
-
-      // Snapshot the previous value
-      const previousTransactions = queryClient.getQueryData(queryKeys.transactions());
-
-      // Optimistically update to the new value
-      const optimisticTransaction = {
-        ...newTransaction,
-        id: `temp_${Date.now()}`,
-        created_at: new Date(),
-        updated_at: new Date(),
-      };
-
-      queryClient.setQueryData(queryKeys.transactions(), (old: Transaction[] = []) => [
-        optimisticTransaction,
-        ...old,
-      ]);
-
-      // Update account balance optimistically
-      if (newTransaction.account_id) {
-        queryClient.setQueryData(
-          queryKeys.accountBalance(newTransaction.account_id),
-          (oldBalance: number = 0) => {
-            return newTransaction.type === 'income'
-              ? oldBalance + newTransaction.amount
-              : oldBalance - newTransaction.amount;
-          }
-        );
-      }
-
-      return { previousTransactions, optimisticTransaction };
-    },
-
-    // On error, rollback
-    onError: (_, newTransaction, context) => {
-      if (context?.previousTransactions) {
-        queryClient.setQueryData(queryKeys.transactions(), context.previousTransactions);
-      }
-
-      // Revert account balance
-      if (newTransaction.account_id && context?.optimisticTransaction) {
-        queryClient.invalidateQueries({
-          queryKey: queryKeys.accountBalance(newTransaction.account_id)
-        });
-      }
-    },
-
-    // Always refetch after error or success
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.transactions() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.financial() });
-    },
-  });
-};
-
-/**
- * Bulk transaction operations with progress tracking
- */
-export const useBulkTransactionOperations = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (operations: BulkOperation[]) => {
-      const results = [];
-
-      for (const operation of operations) {
-        switch (operation.type) {
-          case 'create':
-            results.push(await transactionService.create(operation.data));
-            break;
-          case 'update':
-            if (operation.id) {
-              results.push(await transactionService.update(operation.id, operation.data));
-            }
-            break;
-          case 'delete':
-            if (operation.id) {
-              await transactionService.delete(operation.id);
-              results.push({ id: operation.id, deleted: true });
-            }
-            break;
-        }
-      }
-
-      return results;
-    },
-
-    onSuccess: () => {
-      // Invalidate all transaction-related queries
-      queryClient.invalidateQueries({ queryKey: queryKeys.transactions() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.accounts() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.budgets() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.financial() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard() });
-    },
   });
 };

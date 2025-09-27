@@ -1,14 +1,6 @@
 'use client';
 
-import {
-  accountService,
-  budgetPeriodService,
-  budgetService,
-  categoryService,
-  transactionService,
-  userService,
-} from '@/lib/api-client';
-import { queryKeys } from '@/lib/query-keys';
+import { useAccounts, useAccountsByUser, useBudgets, useBudgetsByUser, useCategories, useTransactions, useUpcomingRecurringSeries, useUsers } from '@/hooks';
 import type {
   Account,
   Budget,
@@ -22,9 +14,7 @@ import {
   getActivePeriodDates,
   getBudgetTransactions
 } from '@/lib/utils';
-import { useQueries, useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
-import { useUpcomingRecurringSeries } from '@/hooks';
 
 /**
  * Enhanced dashboard data type with user-grouped budget data
@@ -98,52 +88,21 @@ export const useDashboardData = (selectedViewUserId: string = 'all', currentUser
   // Determine query parameters based on user selection
   const isSpecificUserSelected = selectedViewUserId !== 'all' && selectedViewUserId !== currentUser?.id;
 
-  const queries = useQueries({
-    queries: [
-      {
-        queryKey: queryKeys.users(),
-        queryFn: userService.getAll,
-        staleTime: 5 * 60 * 1000, // 5 minutes
-      },
-      {
-        queryKey: isSpecificUserSelected
-          ? queryKeys.accountsByUser(selectedViewUserId)
-          : queryKeys.accounts(),
-        queryFn: isSpecificUserSelected
-          ? () => accountService.getByUserId(selectedViewUserId)
-          : accountService.getAll,
-        staleTime: 2 * 60 * 1000, // 2 minutes
-      },
-      {
-        queryKey: queryKeys.transactions(),
-        queryFn: transactionService.getAll,
-        staleTime: 30 * 1000, // 30 seconds
-        // Always load all transactions for proper account balance calculations
-        // User filtering happens in the data processing, not in the API call
-      },
-      {
-        queryKey: isSpecificUserSelected
-          ? queryKeys.budgetsByUser(selectedViewUserId)
-          : queryKeys.budgets(),
-        queryFn: isSpecificUserSelected
-          ? () => budgetService.getByUserId(selectedViewUserId)
-          : budgetService.getAll,
-        staleTime: 2 * 60 * 1000,
-      },
-      {
-        queryKey: queryKeys.categories(),
-        queryFn: categoryService.getAll,
-        staleTime: 10 * 60 * 1000, // 10 minutes
-      },
-    ],
-  });
+  // Use centralized hooks to apply consistent query logic
+  const usersQuery = useUsers();
+  const transactionsQuery = useTransactions();
 
-  const [
-    usersQuery,
-    accountsQuery,
-    transactionsQuery,
-    budgetsQuery,
-  ] = queries;
+  // Call hooks unconditionally and select results to respect rules-of-hooks
+  const accountsAllQuery = useAccounts();
+  const accountsByUserQuery = useAccountsByUser(isSpecificUserSelected ? selectedViewUserId : '');
+  const accountsQuery = isSpecificUserSelected ? accountsByUserQuery : accountsAllQuery;
+
+  const budgetsAllQuery = useBudgets();
+  const budgetsByUserQuery = useBudgetsByUser(isSpecificUserSelected ? selectedViewUserId : '');
+  const budgetsQuery = isSpecificUserSelected ? budgetsByUserQuery : budgetsAllQuery;
+
+  // Categories are fetched for potential future use
+  const categoriesQuery = useCategories();
 
   // Compute derived data with memoization for performance
   const computedData = useMemo(() => {
@@ -410,7 +369,7 @@ export const useDashboardData = (selectedViewUserId: string = 'all', currentUser
       type: series.type,
       category: series.category,
       description: series.description,
-      date: series.next_due_date,
+      date: series.due_date,
       frequency: series.frequency,
       status: 'pending' as const,
       created_at: new Date().toISOString(),
@@ -442,16 +401,29 @@ export const useDashboardData = (selectedViewUserId: string = 'all', currentUser
   ]);
 
   // Comprehensive loading and error state management
-  const isLoading = queries.some(query => query.isLoading);
-  const isError = queries.some(query => query.isError);
+  const isLoading = (
+    usersQuery.isLoading ||
+    accountsQuery.isLoading ||
+    transactionsQuery.isLoading ||
+    budgetsQuery.isLoading ||
+    categoriesQuery.isLoading
+  );
+  const isError = (
+    usersQuery.isError ||
+    accountsQuery.isError ||
+    transactionsQuery.isError ||
+    budgetsQuery.isError ||
+    categoriesQuery.isError
+  );
 
   // Collect errors from failed queries
-  const errors = queries
-    .map((query, index) => {
-      const queryNames = ['users', 'accounts', 'transactions', 'budgets', 'categories'];
-      return query.isError ? { query: queryNames[index], error: query.error } : null;
-    })
-    .filter(Boolean) as Array<{ query: string; error: unknown }>;
+  const errors = [
+    usersQuery.isError ? { query: 'users', error: usersQuery.error } : null,
+    accountsQuery.isError ? { query: 'accounts', error: accountsQuery.error } : null,
+    transactionsQuery.isError ? { query: 'transactions', error: transactionsQuery.error } : null,
+    budgetsQuery.isError ? { query: 'budgets', error: budgetsQuery.error } : null,
+    categoriesQuery.isError ? { query: 'categories', error: categoriesQuery.error } : null,
+  ].filter(Boolean) as Array<{ query: string; error: unknown }>;
 
   return {
     ...computedData,
@@ -459,32 +431,6 @@ export const useDashboardData = (selectedViewUserId: string = 'all', currentUser
     isError,
     errors,
   };
-};
-
-/**
- * Hook for prefetching dashboard data
- * Useful for optimizing navigation and user experience
- */
-export const usePrefetchDashboard = () => {
-  // This hook can be used in layouts or navigation components
-  // to prefetch dashboard data before the user navigates to it
-  return useQuery({
-    queryKey: queryKeys.dashboard(),
-    queryFn: async () => {
-      // Prefetch all dashboard dependencies
-      await Promise.all([
-        userService.getAll(),
-        accountService.getAll(),
-        transactionService.getAll(),
-        budgetService.getAll(),
-        budgetPeriodService.getAll(),
-        categoryService.getAll(),
-      ]);
-      return true;
-    },
-    enabled: false, // Manual prefetching
-    staleTime: Infinity, // Keep prefetched data fresh
-  });
 };
 
 export default useDashboardData;

@@ -69,7 +69,7 @@ export function SeriesReconciliationView({
   return (
     <Card className={`p-6 ${className}`}>
       <SectionHeader
-        title={`Riconciliazione: ${series.name}`}
+        title={`Riconciliazione: ${series.description}`}
         subtitle={`Storico delle esecuzioni e pagamenti effettuati`}
         className="mb-6"
       />
@@ -218,19 +218,9 @@ export function SeriesReconciliationView({
                 </div>
 
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Ultima esecuzione:</span>
-                  <span className="font-semibold">
-                    {series.last_executed_date
-                      ? new Date(series.last_executed_date).toLocaleDateString('it-IT')
-                      : 'Mai'
-                    }
-                  </span>
-                </div>
-
-                <div className="flex justify-between items-center">
                   <span className="text-gray-600">Prossima prevista:</span>
                   <span className="font-semibold text-blue-600">
-                    {new Date(series.next_due_date).toLocaleDateString('it-IT')}
+                    {new Date(series.due_date).toLocaleDateString('it-IT')}
                   </span>
                 </div>
 
@@ -239,13 +229,6 @@ export function SeriesReconciliationView({
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600">Frequenza:</span>
                   <span className="font-semibold">{series.frequency}</span>
-                </div>
-
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Esecuzioni fallite:</span>
-                  <span className={`font-semibold ${series.failed_executions > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                    {series.failed_executions}
-                  </span>
                 </div>
               </div>
             </div>

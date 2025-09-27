@@ -80,43 +80,23 @@ export interface Transaction {
  */
 export interface RecurringTransactionSeries {
   id: string;
-  name: string; // User-friendly name like "Netflix Subscription", "Salary", etc.
-  description: string; // Transaction description that will be used for generated transactions
+  description: string;
   amount: number;
   type: TransactionType;
   category: string;
-  frequency: TransactionFrequencyType; // Required for recurring series
+  frequency: TransactionFrequencyType;
   user_id: string;
   account_id: string;
-  to_account_id?: string | null; // For transfer-type recurring transactions
+  transaction_ids?: string[]; // elenco id transazioni generate
 
-  // Scheduling configuration
-  start_date: string | Date; // When this series becomes active
-  end_date?: string | Date | null; // Optional end date
-  next_due_date: string | Date; // Next expected transaction date
+  // Pianificazione
+  start_date: string | Date;
+  end_date?: string | Date | null;
+  due_date: string | Date;
 
-  // Schedule-specific settings
-  day_of_month?: number; // For monthly/yearly (1-31)
-  day_of_week?: number; // For weekly (0=Sunday, 6=Saturday)
-  month_of_year?: number; // For yearly (1-12)
-
-  // Status and metadata
+  // Stato e conteggio esecuzioni generate
   is_active: boolean;
-  is_paused: boolean; // Temporarily disabled
-  pause_until?: string | Date | null; // Resume after this date
-
-  // Execution tracking
-  last_executed_date?: string | Date | null;
-  total_executions: number; // Count of transactions generated
-  failed_executions: number; // Count of failed auto-executions
-
-  // Notifications and automation
-  auto_execute: boolean; // Whether to automatically create transactions
-  notify_before_days: number; // Days before due date to send notification
-
-  // Grouping and organization
-  tags?: string[]; // Optional tags for organization
-  group_id?: string;
+  total_executions: number;
 
   created_at: string | Date;
   updated_at: string | Date;

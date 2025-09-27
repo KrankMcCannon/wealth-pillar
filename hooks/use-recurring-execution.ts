@@ -17,6 +17,7 @@ export const useExecuteAllDueSeries = () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.recurringSeries() });
       queryClient.invalidateQueries({ queryKey: queryKeys.transactions() });
       queryClient.invalidateQueries({ queryKey: queryKeys.activeRecurringSeries() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.upcomingTransactions() });
       queryClient.invalidateQueries({ queryKey: queryKeys.financial() });
       queryClient.invalidateQueries({ queryKey: queryKeys.dashboard() });
     },

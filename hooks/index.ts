@@ -16,14 +16,16 @@ export {
 
 // Dashboard-specific composite hooks
 export {
-  useDashboardData,
-  usePrefetchDashboard
+  useDashboardData
 } from './useDashboard';
 
-// Advanced financial analysis hooks
+// Advanced financial analysis hooks (no legacy mutations)
 export {
-  useAccountBalance, useBudgetPerformance, useBulkTransactionOperations, useFinancialSummary, useOptimisticTransaction, useTransactionTrends
+  useAccountBalance, useBudgetPerformance, useTransactionTrends
 } from './use-financial-queries';
+
+// Prefer the centralized financial summary from use-query-hooks
+export { useFinancialSummary } from './use-query-hooks';
 
 // Dashboard hooks
 export {
@@ -54,3 +56,5 @@ export {
   useDryRunExecution, useExecuteAllDueSeries, useMissedExecutions, useSeriesReconciliation, useSeriesTransactions
 } from './use-recurring-execution';
 
+// Cache utilities to apply consistent invalidation logic
+export { transactionCacheUtils } from './use-query-hooks';

@@ -60,13 +60,13 @@ async function getRecurringTransactions(request: NextRequest) {
 
     // Apply filters
     if (activeOnly) {
-      query = query.eq('is_active', true).eq('is_paused', false);
+      query = query.eq('is_active', true);
     }
 
     if (dueWithinDays) {
       const targetDate = new Date();
       targetDate.setDate(targetDate.getDate() + parseInt(dueWithinDays));
-      query = query.lte('next_due_date', targetDate.toISOString());
+      query = query.lte('due_date', targetDate.toISOString());
     }
 
     // Apply pagination
@@ -97,7 +97,7 @@ async function createRecurringTransaction(request: NextRequest) {
     const body = await request.json();
 
     // Validate required fields
-    const requiredFields = ['name', 'description', 'amount', 'type', 'category', 'frequency', 'account_id', 'start_date', 'next_due_date'];
+    const requiredFields = ['description', 'amount', 'type', 'category', 'frequency', 'account_id', 'start_date', 'due_date'];
     const missingFields = requiredFields.filter(field => !body[field]);
     if (missingFields.length > 0) {
       throw createMissingFieldError(missingFields);
@@ -132,17 +132,7 @@ async function createRecurringTransaction(request: NextRequest) {
       throw new APIError(ErrorCode.PERMISSION_DENIED);
     }
 
-    // Validate transfer has to_account_id
-    if (body.type === 'transfer' && !body.to_account_id) {
-      throw new APIError(
-        ErrorCode.VALIDATION_ERROR,
-        'Le transazioni ricorrenti di trasferimento richiedono un conto di destinazione.',
-        { type: body.type, to_account_id: body.to_account_id }
-      );
-    }
-
     const seriesData = {
-      name: body.name,
       description: body.description,
       amount: parseFloat(body.amount),
       type: body.type,
@@ -150,23 +140,12 @@ async function createRecurringTransaction(request: NextRequest) {
       frequency: body.frequency,
       user_id: body.user_id || userContext.userId,
       account_id: body.account_id,
-      to_account_id: body.to_account_id || null,
       start_date: body.start_date,
       end_date: body.end_date || null,
-      next_due_date: body.next_due_date,
-      day_of_month: body.day_of_month || null,
-      day_of_week: body.day_of_week || null,
-      month_of_year: body.month_of_year || null,
+      due_date: body.due_date,
       is_active: body.is_active !== undefined ? body.is_active : true,
-      is_paused: body.is_paused !== undefined ? body.is_paused : false,
-      pause_until: body.pause_until || null,
-      last_executed_date: body.last_executed_date || null,
       total_executions: body.total_executions || 0,
-      failed_executions: body.failed_executions || 0,
-      auto_execute: body.auto_execute !== undefined ? body.auto_execute : false,
-      notify_before_days: body.notify_before_days || 3,
-      tags: body.tags || null,
-      group_id: body.group_id || null,
+      transaction_ids: Array.isArray(body.transaction_ids) ? body.transaction_ids : [],
     };
 
     const response = await (supabaseServer
@@ -197,8 +176,7 @@ async function getRecurringTransactionStats(userId?: string) {
     let query = supabaseServer
       .from('recurring_transactions')
       .select('*')
-      .eq('is_active', true)
-      .eq('is_paused', false);
+      .eq('is_active', true);
 
     if (userId) {
       query = query.eq('user_id', userId);
@@ -208,10 +186,10 @@ async function getRecurringTransactionStats(userId?: string) {
     const series = handleServerResponse<RecurringRow[]>(response);
 
     type SeriesType = {
-      type: 'income' | 'expense' | 'transfer';
       amount: number;
       frequency: string;
-      next_due_date?: string;
+      due_date?: string;
+      type: 'income' | 'expense' | 'transfer';
     };
 
     const stats = {
@@ -233,12 +211,15 @@ async function getRecurringTransactionStats(userId?: string) {
             break;
           // monthly stays as is
         }
-        return sum + (s.type === 'expense' ? -monthlyAmount : monthlyAmount);
+        // Somma positiva per income, negativa per expense, neutra per transfer
+        if (s.type === 'income') return sum + monthlyAmount;
+        if (s.type === 'expense') return sum - monthlyAmount;
+        return sum; // transfer
       }, 0),
       averageAmount: series.length > 0 ? series.reduce((sum: number, s: SeriesType) => sum + s.amount, 0) / series.length : 0,
       nextDueDateSeries: series
-        .filter((s: SeriesType) => s.next_due_date)
-        .sort((a: SeriesType, b: SeriesType) => new Date(a.next_due_date!).getTime() - new Date(b.next_due_date!).getTime())
+        .filter((s: SeriesType) => s.due_date)
+        .sort((a: SeriesType, b: SeriesType) => new Date(a.due_date!).getTime() - new Date(b.due_date!).getTime())
         .slice(0, 3),
       overdueCount: 0,
       upcomingCount: 0,
@@ -247,8 +228,8 @@ async function getRecurringTransactionStats(userId?: string) {
     // Calculate overdue and upcoming counts
     const now = new Date();
     series.forEach((s: SeriesType) => {
-      if (s.next_due_date) {
-        const dueDate = new Date(s.next_due_date);
+      if (s.due_date) {
+        const dueDate = new Date(s.due_date);
         if (dueDate < now) {
           stats.overdueCount++;
         } else if (dueDate.getTime() - now.getTime() <= 7 * 24 * 60 * 60 * 1000) { // Within 7 days

@@ -12,12 +12,14 @@ import { useDashboardCore } from "@/hooks/useDashboardCore";
 import { useDashboardBudgets } from "@/hooks/useDashboardBudgets";
 import { useUserSelection } from "@/hooks/useUserSelection";
 import { useDashboardPrefetch } from "@/hooks/useDashboardPrefetch";
+import type { RecurringTransactionSeries } from "@/lib/types";
 
 // Lazy load heavy components
 const UserSelector = lazy(() => import("@/components/user-selector"));
 const BalanceSection = lazy(() => import("@/components/dashboard/balance-section"));
 const BudgetSection = lazy(() => import("@/components/dashboard/budget-section"));
 const RecurringSeriesSection = lazy(() => import("@/components/recurring-series-section"));
+const RecurringSeriesForm = lazy(() => import("@/components/recurring-series-form").then(module => ({ default: module.RecurringSeriesForm })));
 
 // Import skeletons
 import {
@@ -34,6 +36,9 @@ import {
 export default function DashboardPage() {
   const router = useRouter();
   const [expandedAccount, setExpandedAccount] = useState<string | null>(null);
+  const [isRecurringFormOpen, setIsRecurringFormOpen] = useState(false);
+  const [editingSeries, setEditingSeries] = useState<RecurringTransactionSeries | null>(null);
+  const [recurringFormMode, setRecurringFormMode] = useState<'create' | 'edit'>('create');
 
   // User selection
   const {
@@ -78,6 +83,18 @@ export default function DashboardPage() {
   const handleAccountClick = useCallback((id: string) => {
     setExpandedAccount(expandedAccount === id ? null : id);
   }, [expandedAccount]);
+
+  const handleCreateRecurringSeries = useCallback(() => {
+    setEditingSeries(null);
+    setRecurringFormMode('create');
+    setIsRecurringFormOpen(true);
+  }, []);
+
+  const handleEditRecurringSeries = useCallback((series: RecurringTransactionSeries) => {
+    setEditingSeries(series);
+    setRecurringFormMode('edit');
+    setIsRecurringFormOpen(true);
+  }, []);
 
   const handleUserChange = useCallback((userId: string) => {
     // Update cache before switching
@@ -233,12 +250,25 @@ export default function DashboardPage() {
                 showStats={false}
                 maxItems={5}
                 showActions={false}
+                onCreateRecurringSeries={handleCreateRecurringSeries}
+                onEditRecurringSeries={handleEditRecurringSeries}
               />
             )}
           </Suspense>
         </main>
 
         <BottomNavigation />
+
+        {/* Recurring Series Form */}
+        <Suspense fallback={null}>
+          <RecurringSeriesForm
+            isOpen={isRecurringFormOpen}
+            onOpenChange={setIsRecurringFormOpen}
+            selectedUserId={selectedViewUserId !== 'all' ? selectedViewUserId : currentUser?.id}
+            series={editingSeries ?? undefined}
+            mode={recurringFormMode}
+          />
+        </Suspense>
       </div>
     </ErrorBoundary>
   );

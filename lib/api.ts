@@ -546,23 +546,21 @@ export const recurringTransactionService = {
       .from('recurring_transactions')
       .select('*')
       .eq('is_active', true)
-      .eq('is_paused', false)
-      .lte('next_due_date', targetDate.toISOString());
+      .lte('due_date', targetDate.toISOString());
 
     if (userId) {
       query = query.eq('user_id', userId);
     }
 
-    const response = await query.order('next_due_date', { ascending: true });
+    const response = await query.order('due_date', { ascending: true });
 
     if (response.error) throw new Error(response.error.message);
     return response.data || [];
   },
 
-  pause: async (id: string, pauseUntil?: Date): Promise<RecurringTransactionSeries> => {
+  pause: async (id: string): Promise<RecurringTransactionSeries> => {
     const updateData: Partial<RecurringTransactionSeries> = {
-      is_paused: true,
-      pause_until: pauseUntil ? pauseUntil.toISOString() : null,
+      is_active: false,
     };
 
     return apiClient.update<RecurringTransactionSeries>('recurring_transactions', id, updateData);
@@ -570,8 +568,7 @@ export const recurringTransactionService = {
 
   resume: async (id: string): Promise<RecurringTransactionSeries> => {
     const updateData: Partial<RecurringTransactionSeries> = {
-      is_paused: false,
-      pause_until: null,
+      is_active: true,
     };
 
     return apiClient.update<RecurringTransactionSeries>('recurring_transactions', id, updateData);
@@ -589,10 +586,10 @@ export const recurringTransactionService = {
       date: new Date().toISOString(),
       user_id: series.user_id,
       account_id: series.account_id,
-      to_account_id: series.to_account_id,
+      to_account_id: null,
       frequency: series.frequency,
       recurring_series_id: series.id,
-      group_id: series.group_id,
+      group_id: undefined,
     };
 
     const transaction = await transactionService.create(newTransaction);
@@ -600,9 +597,8 @@ export const recurringTransactionService = {
     // Update the series execution stats and next due date
     const nextDueDate = calculateNextDueDate(series);
     await recurringTransactionService.update(id, {
-      last_executed_date: new Date().toISOString(),
       total_executions: series.total_executions + 1,
-      next_due_date: nextDueDate.toISOString(),
+      due_date: nextDueDate.toISOString(),
     });
 
     return transaction;
@@ -650,8 +646,8 @@ export const recurringTransactionService = {
       }, 0),
       averageAmount: series.length > 0 ? series.reduce((sum, s) => sum + s.amount, 0) / series.length : 0,
       nextDueDateSeries: series
-        .filter(s => s.next_due_date)
-        .sort((a, b) => new Date(a.next_due_date).getTime() - new Date(b.next_due_date).getTime())
+        .filter(s => s.due_date)
+        .sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime())
         .slice(0, 3),
       overdueCount: 0,
       upcomingCount: 0
@@ -660,8 +656,8 @@ export const recurringTransactionService = {
     // Calculate overdue and upcoming counts
     const now = new Date();
     series.forEach(s => {
-      if (s.next_due_date) {
-        const dueDate = new Date(s.next_due_date);
+      if (s.due_date) {
+        const dueDate = new Date(s.due_date);
         if (dueDate < now) {
           stats.overdueCount++;
         } else if (dueDate.getTime() - now.getTime() <= 7 * 24 * 60 * 60 * 1000) { // Within 7 days
@@ -751,14 +747,14 @@ export const recurringTransactionService = {
     const weekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
 
     const upcomingSeries = series.filter(s => {
-      if (!s.next_due_date) return false;
-      const dueDate = new Date(s.next_due_date);
+      if (!s.due_date) return false;
+      const dueDate = new Date(s.due_date);
       return dueDate >= now && dueDate <= weekFromNow;
     });
 
     const overdueSeries = series.filter(s => {
-      if (!s.next_due_date) return false;
-      const dueDate = new Date(s.next_due_date);
+      if (!s.due_date) return false;
+      const dueDate = new Date(s.due_date);
       return dueDate < now;
     });
 
@@ -802,7 +798,7 @@ export const recurringTransactionService = {
 
 // Helper function to calculate next due date
 function calculateNextDueDate(series: RecurringTransactionSeries): Date {
-  const currentDate = new Date(series.next_due_date);
+  const currentDate = new Date(series.due_date);
 
   switch (series.frequency) {
     case 'weekly':
@@ -813,16 +809,9 @@ function calculateNextDueDate(series: RecurringTransactionSeries): Date {
       break;
     case 'monthly':
       currentDate.setMonth(currentDate.getMonth() + 1);
-      if (series.day_of_month) {
-        currentDate.setDate(series.day_of_month);
-      }
       break;
     case 'yearly':
       currentDate.setFullYear(currentDate.getFullYear() + 1);
-      if (series.month_of_year && series.day_of_month) {
-        currentDate.setMonth(series.month_of_year - 1);
-        currentDate.setDate(series.day_of_month);
-      }
       break;
     default:
       // For 'once', don't update the date

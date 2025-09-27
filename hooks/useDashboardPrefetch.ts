@@ -74,13 +74,15 @@ export const useDashboardPrefetch = (currentUser: User | null, allUsers: User[] 
       ];
 
       await Promise.allSettled(commonPrefetchPromises);
-    } catch (error) {
-      console.warn('Common data prefetch failed:', error);
+    } catch (_error) {
+      console.warn('Common data prefetch failed:', _error);
     }
   }, [queryClient, currentUser]);
 
   // Smart prefetch strategy based on user role and context
-  const smartPrefetch = useCallback(async (currentUserId?: string) => {
+  const smartPrefetch = useCallback(async (_currentUserId?: string) => {
+    // mark param as used (lint)
+    void _currentUserId;
     if (!currentUser) return;
 
     const isAdmin = currentUser.role === 'admin' || currentUser.role === 'superadmin';
@@ -146,8 +148,8 @@ export const useDashboardPrefetch = (currentUser: User | null, allUsers: User[] 
         queryFn: transactionService.getAll,
         staleTime: 30 * 1000,
       });
-    } catch (error) {
-      console.warn('Cache warmup failed:', error);
+    } catch (_error) {
+      console.warn('Cache warmup failed:', _error);
     }
   }, [queryClient, currentUser]);
 
@@ -177,7 +179,7 @@ export const useDashboardPrefetch = (currentUser: User | null, allUsers: User[] 
               return queryAge > 5 * 60 * 1000; // 5 minutes
             },
           });
-        } catch (error) {
+        } catch {
           // Ignore cleanup errors
         }
       }

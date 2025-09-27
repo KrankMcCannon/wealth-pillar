@@ -38,17 +38,17 @@ export function RecurringExecutionManager({
 
   // Filter for today's due series
   const todayDueSeries = upcomingSeries.filter(series => {
-    const nextDue = new Date(series.next_due_date);
+    const nextDue = new Date(series.due_date);
     const today = new Date();
     const diffDays = Math.ceil((nextDue.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-    return diffDays === 0 && series.auto_execute;
+    return diffDays === 0;
   });
 
   const overdueSeries = upcomingSeries.filter(series => {
-    const nextDue = new Date(series.next_due_date);
+    const nextDue = new Date(series.due_date);
     const today = new Date();
     const diffDays = Math.ceil((nextDue.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-    return diffDays < 0 && series.auto_execute;
+    return diffDays < 0;
   });
 
   const handleDryRun = async () => {
@@ -131,7 +131,7 @@ export function RecurringExecutionManager({
             {todayDueSeries.map((series) => (
               <div key={series.id} className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
                 <div className="flex-1">
-                  <div className="font-medium text-gray-900">{series.name}</div>
+                  <div className="font-medium text-gray-900">{series.description}</div>
                   <div className="text-sm text-gray-600">{series.description}</div>
                 </div>
                 <div className="text-right">
@@ -175,14 +175,14 @@ export function RecurringExecutionManager({
 
           <div className="grid gap-3 mb-4">
             {overdueSeries.slice(0, 3).map((series) => {
-              const nextDue = new Date(series.next_due_date);
+              const nextDue = new Date(series.due_date);
               const today = new Date();
               const daysOverdue = Math.abs(Math.ceil((nextDue.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)));
 
               return (
                 <div key={series.id} className="flex items-center justify-between p-3 bg-red-50 rounded-lg border border-red-200">
                   <div className="flex-1">
-                    <div className="font-medium text-gray-900">{series.name}</div>
+                    <div className="font-medium text-gray-900">{series.description}</div>
                     <div className="text-sm text-red-600">{daysOverdue} giorni in ritardo</div>
                   </div>
                   <div className="text-right">

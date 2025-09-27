@@ -55,8 +55,9 @@ export const useCreateRecurringSeries = () => {
     mutationFn: (series: Omit<RecurringTransactionSeries, 'id'>) =>
       recurringTransactionService.create(series),
     onSuccess: () => {
+      // invalidate all recurring series related caches (active, upcoming, stats)
       queryClient.invalidateQueries({ queryKey: queryKeys.recurringSeries() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.activeRecurringSeries() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard() });
     },
   });
 };
@@ -70,7 +71,7 @@ export const useUpdateRecurringSeries = () => {
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.recurringSeries() });
       queryClient.invalidateQueries({ queryKey: queryKeys.recurringSeriesById(id) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.activeRecurringSeries() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard() });
     },
   });
 };
@@ -91,8 +92,8 @@ export const usePauseRecurringSeries = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, pauseUntil }: { id: string; pauseUntil?: Date }) =>
-      recurringTransactionService.pause(id, pauseUntil),
+    mutationFn: ({ id }: { id: string; pauseUntil?: Date }) =>
+      recurringTransactionService.pause(id),
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.recurringSeriesById(id) });
       queryClient.invalidateQueries({ queryKey: queryKeys.activeRecurringSeries() });
@@ -122,6 +123,9 @@ export const useExecuteRecurringSeries = () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.recurringSeriesById(id) });
       queryClient.invalidateQueries({ queryKey: queryKeys.transactions() });
       queryClient.invalidateQueries({ queryKey: queryKeys.recurringSeries() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.upcomingTransactions() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.financial() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard() });
     },
   });
 };

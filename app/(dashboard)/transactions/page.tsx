@@ -12,8 +12,10 @@ import UserSelector from "@/components/user-selector";
 import { GroupedTransactionCard } from "@/components/grouped-transaction-card";
 import { FilterDialog } from "@/components/filter-dialog";
 import { TransactionForm } from "@/components/transaction-form";
+import { RecurringSeriesForm } from "@/components/recurring-series-form";
 import TabNavigation from "@/components/tab-navigation";
 import { RecurringSeriesSection } from "@/components/recurring-series-section";
+import type { RecurringTransactionSeries } from "@/lib/types";
 import {
   useTransactions,
   useCategories,
@@ -34,9 +36,12 @@ function TransactionsContent() {
   const [activeTab, setActiveTab] = useState("Transactions");
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [isTransactionFormOpen, setIsTransactionFormOpen] = useState(false);
+  const [isRecurringFormOpen, setIsRecurringFormOpen] = useState(false);
   const [transactionFormType, setTransactionFormType] = useState<"expense" | "income" | "transfer">("expense");
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [transactionFormMode, setTransactionFormMode] = useState<'create' | 'edit'>('create');
+  const [editingSeries, setEditingSeries] = useState<RecurringTransactionSeries | null>(null);
+  const [recurringFormMode, setRecurringFormMode] = useState<'create' | 'edit'>('create');
 
   const [accountNames, setAccountNames] = useState<Record<string, string>>({});
 
@@ -108,6 +113,18 @@ function TransactionsContent() {
     setTransactionFormMode('create');
     setTransactionFormType(type);
     setIsTransactionFormOpen(true);
+  };
+
+  const handleCreateRecurringSeries = () => {
+    setEditingSeries(null);
+    setRecurringFormMode('create');
+    setIsRecurringFormOpen(true);
+  };
+
+  const handleEditRecurringSeries = (series: RecurringTransactionSeries) => {
+    setEditingSeries(series);
+    setRecurringFormMode('edit');
+    setIsRecurringFormOpen(true);
   };
 
   useEffect(() => {
@@ -379,6 +396,8 @@ function TransactionsContent() {
                 showStats={true}
                 maxItems={10}
                 showActions={true}
+                onCreateRecurringSeries={handleCreateRecurringSeries}
+                onEditRecurringSeries={handleEditRecurringSeries}
               />
             )}
           </main>
@@ -394,6 +413,13 @@ function TransactionsContent() {
             selectedUserId={selectedViewUserId !== 'all' ? selectedViewUserId : ''}
             transaction={editingTransaction || undefined}
             mode={transactionFormMode}
+          />
+          <RecurringSeriesForm
+            isOpen={isRecurringFormOpen}
+            onOpenChange={setIsRecurringFormOpen}
+            selectedUserId={selectedViewUserId !== 'all' ? selectedViewUserId : currentUser?.id}
+            series={editingSeries ?? undefined}
+            mode={recurringFormMode}
           />
         </>
       )}

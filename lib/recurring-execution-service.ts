@@ -34,7 +34,6 @@ class RecurringExecutionService {
   async executeAllDue(options: ExecutionOptions = {}): Promise<ExecutionResult> {
     const {
       dryRun = false,
-      forceExecute = false,
       maxDaysOverdue = 7
     } = options;
 
@@ -55,7 +54,7 @@ class RecurringExecutionService {
 
       // Filtra le serie che sono in scadenza o in ritardo
       const dueSeries = activeSeries.filter((series: RecurringTransactionSeries) => {
-        const nextDue = new Date(series.next_due_date);
+        const nextDue = new Date(series.due_date);
         const now = new Date();
         const daysDiff = Math.ceil((nextDue.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
 
@@ -63,10 +62,8 @@ class RecurringExecutionService {
         return daysDiff <= 0 && daysDiff >= -maxDaysOverdue;
       });
 
-      // Filtra per auto_execute se non è forceExecute
-      const seriesToExecute = forceExecute
-        ? dueSeries
-        : dueSeries.filter((series: RecurringTransactionSeries) => series.auto_execute);
+      // Non c'è più auto_execute: se non forzi, esegui tutte quelle dovute
+      const seriesToExecute = dueSeries;
 
       result.summary.totalProcessed = seriesToExecute.length;
 
@@ -74,7 +71,7 @@ class RecurringExecutionService {
       for (const series of seriesToExecute) {
         try {
           if (dryRun) {
-            console.log(`[DRY RUN] Would execute series: ${series.name} (${series.id})`);
+            console.log(`[DRY RUN] Would execute series: ${series.description} (${series.id})`);
             result.summary.successfulExecutions++;
             result.summary.totalAmount += series.amount;
           } else {
@@ -86,21 +83,10 @@ class RecurringExecutionService {
         } catch (error) {
           result.failed.push({
             seriesId: series.id,
-            seriesName: series.name,
+            seriesName: series.description,
             error: error instanceof Error ? error.message : 'Unknown error'
           });
           result.summary.failedExecutions++;
-
-          // Aggiorna il conteggio dei fallimenti nella serie
-          if (!dryRun) {
-            try {
-              await recurringTransactionService.update(series.id, {
-                failed_executions: series.failed_executions + 1
-              });
-            } catch (updateError) {
-              console.error(`Failed to update failed_executions for series ${series.id}:`, updateError);
-            }
-          }
         }
       }
 
@@ -115,9 +101,9 @@ class RecurringExecutionService {
    */
   private async executeSeries(series: RecurringTransactionSeries): Promise<Transaction> {
     try {
-      // Verifica che la serie sia ancora attiva e non in pausa
-      if (!series.is_active || series.is_paused) {
-        throw new Error(`Series ${series.name} is not active or is paused`);
+      // Verifica che la serie sia ancora attiva
+      if (!series.is_active) {
+        throw new Error(`Series ${series.description} is not active`);
       }
 
       // Crea la transazione
@@ -130,9 +116,8 @@ class RecurringExecutionService {
         date: nowIso,
         user_id: series.user_id,
         account_id: series.account_id,
-        to_account_id: series.to_account_id,
+        to_account_id: null,
         recurring_series_id: series.id, // IMPORTANTE: collegamento per riconciliazione
-        group_id: series.group_id,
         frequency: series.frequency,
       });
 
@@ -141,14 +126,14 @@ class RecurringExecutionService {
 
       // Aggiorna la serie con i nuovi dati di esecuzione
       await recurringTransactionService.update(series.id, {
-        last_executed_date: nowIso,
         total_executions: series.total_executions + 1,
-        next_due_date: nextDueDate.toISOString(),
+        due_date: nextDueDate.toISOString(),
+        transaction_ids: [...(series.transaction_ids ?? []), transaction.id],
       });
 
       return transaction;
     } catch (error) {
-      throw new Error(`Failed to execute series ${series.name}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Failed to execute series ${series.description}: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -156,7 +141,7 @@ class RecurringExecutionService {
    * Calcola la prossima data di scadenza basata sulla frequenza
    */
   private calculateNextDueDate(series: RecurringTransactionSeries): Date {
-    const currentDue = new Date(series.next_due_date);
+    const currentDue = new Date(series.due_date);
     const nextDate = new Date(currentDue);
 
     switch (series.frequency) {
@@ -167,23 +152,10 @@ class RecurringExecutionService {
         nextDate.setDate(nextDate.getDate() + 14);
         break;
       case 'monthly':
-        // Per i pagamenti mensili, mantieni il giorno del mese se specificato
-        if (series.day_of_month) {
-          nextDate.setMonth(nextDate.getMonth() + 1);
-          nextDate.setDate(series.day_of_month);
-        } else {
-          nextDate.setMonth(nextDate.getMonth() + 1);
-        }
+        nextDate.setMonth(nextDate.getMonth() + 1);
         break;
       case 'yearly':
-        // Per i pagamenti annuali, mantieni il giorno e mese se specificati
-        if (series.day_of_month && series.month_of_year) {
-          nextDate.setFullYear(nextDate.getFullYear() + 1);
-          nextDate.setMonth(series.month_of_year - 1); // Month is 0-indexed
-          nextDate.setDate(series.day_of_month);
-        } else {
-          nextDate.setFullYear(nextDate.getFullYear() + 1);
-        }
+        nextDate.setFullYear(nextDate.getFullYear() + 1);
         break;
       default:
         throw new Error(`Unsupported frequency: ${series.frequency}`);

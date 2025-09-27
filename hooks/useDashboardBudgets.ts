@@ -1,14 +1,12 @@
 'use client';
 
-import { budgetService, categoryService } from '@/lib/api-client';
-import { queryKeys } from '@/lib/query-keys';
-import type { Budget, Transaction, User, BudgetPeriod } from '@/lib/types';
+import { useBudgets, useBudgetsByUser, useCategories } from '@/hooks';
+import type { Budget, BudgetPeriod, Transaction, User } from '@/lib/types';
 import {
   calculateBudgetSpent,
   getActivePeriodDates,
   getBudgetTransactions
 } from '@/lib/utils';
-import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
 /**
@@ -20,29 +18,16 @@ export const useDashboardBudgets = (
   currentUser: User | null,
   users: User[] = [],
   transactions: Transaction[] = [],
-  enabled: boolean = true
+  _enabled: boolean = true
 ) => {
   // Budget query with intelligent caching
-  const budgetsQuery = useQuery({
-    queryKey: selectedUserId !== 'all' && selectedUserId !== currentUser?.id
-      ? queryKeys.budgetsByUser(selectedUserId)
-      : queryKeys.budgets(),
-    queryFn: selectedUserId !== 'all' && selectedUserId !== currentUser?.id
-      ? () => budgetService.getByUserId(selectedUserId)
-      : budgetService.getAll,
-    staleTime: 2 * 60 * 1000,
-    refetchOnWindowFocus: false,
-    enabled: enabled && !!currentUser,
-  });
+  const isSpecificUserSelected = selectedUserId !== 'all' && selectedUserId !== currentUser?.id;
+  const budgetsAllQuery = useBudgets();
+  const budgetsByUserQuery = useBudgetsByUser(isSpecificUserSelected ? selectedUserId : '');
+  const budgetsQuery = isSpecificUserSelected ? budgetsByUserQuery : budgetsAllQuery;
 
   // Categories for budget categorization
-  const categoriesQuery = useQuery({
-    queryKey: queryKeys.categories(),
-    queryFn: categoryService.getAll,
-    staleTime: 10 * 60 * 1000,
-    refetchOnWindowFocus: false,
-    enabled: enabled && !!currentUser,
-  });
+  const categoriesQuery = useCategories();
 
   // Optimized budget calculations with role-based filtering
   type BudgetItem = {
@@ -62,7 +47,7 @@ export const useDashboardBudgets = (
   };
 
   const budgetData = useMemo(() => {
-    if (!budgetsQuery.data || !users.length) {
+    if (!_enabled || !budgetsQuery.data || !users.length) {
       return {
         budgets: [],
         budgetsByUser: {},
@@ -208,7 +193,7 @@ export const useDashboardBudgets = (
       budgetData: budgetDataArray,
       hasData: filteredBudgets.length > 0,
     };
-  }, [budgetsQuery.data, users, transactions, currentUser, selectedUserId]);
+  }, [budgetsQuery.data, users, transactions, currentUser, selectedUserId, _enabled]);
 
   return {
     ...budgetData,

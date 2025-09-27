@@ -328,16 +328,14 @@ export const recurringTransactionService = {
     return apiClient.get<RecurringTransactionSeries[]>('/recurring-transactions', params);
   },
 
-  pause: (id: string, pauseUntil?: Date): Promise<RecurringTransactionSeries> =>
+  pause: (id: string): Promise<RecurringTransactionSeries> =>
     apiClient.patch<RecurringTransactionSeries>(`/recurring-transactions/${id}`, {
-      is_paused: true,
-      pause_until: pauseUntil ? pauseUntil.toISOString() : null,
+      is_active: false,
     }),
 
   resume: (id: string): Promise<RecurringTransactionSeries> =>
     apiClient.patch<RecurringTransactionSeries>(`/recurring-transactions/${id}`, {
-      is_paused: false,
-      pause_until: null,
+      is_active: true,
     }),
 
   execute: (id: string): Promise<Transaction> =>

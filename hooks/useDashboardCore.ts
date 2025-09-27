@@ -1,11 +1,9 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
-import { queryKeys } from '@/lib/query-keys';
-import { userService, accountService, transactionService } from '@/lib/api-client';
-import type { User, Account, Transaction } from '@/lib/types';
+import type { User, Account } from '@/lib/types';
 import { calculateAccountBalance } from '@/lib/utils';
+import { useUsers, useAccounts, useAccountsByUser, useTransactions } from '@/hooks';
 
 /**
  * Core dashboard data hook - handles essential data with optimized loading
@@ -13,34 +11,16 @@ import { calculateAccountBalance } from '@/lib/utils';
  */
 export const useDashboardCore = (selectedUserId: string = 'all', currentUser: User | null) => {
   // Users query - highest priority, shortest stale time
-  const usersQuery = useQuery({
-    queryKey: queryKeys.users(),
-    queryFn: userService.getAll,
-    staleTime: 5 * 60 * 1000,
-    refetchOnWindowFocus: false,
-  });
+  const usersQuery = useUsers();
 
-  // Accounts query - critical for balance display
-  const accountsQuery = useQuery({
-    queryKey: selectedUserId !== 'all' && selectedUserId !== currentUser?.id
-      ? queryKeys.accountsByUser(selectedUserId)
-      : queryKeys.accounts(),
-    queryFn: selectedUserId !== 'all' && selectedUserId !== currentUser?.id
-      ? () => accountService.getByUserId(selectedUserId)
-      : accountService.getAll,
-    staleTime: 2 * 60 * 1000,
-    refetchOnWindowFocus: false,
-    enabled: !!currentUser, // Only fetch when user is authenticated
-  });
+  // Accounts: call hooks unconditionally, select the appropriate result
+  const isSpecificUserSelected = selectedUserId !== 'all' && selectedUserId !== currentUser?.id;
+  const accountsAllQuery = useAccounts();
+  const accountsByUserQuery = useAccountsByUser(isSpecificUserSelected ? selectedUserId : '');
+  const accountsQuery = isSpecificUserSelected ? accountsByUserQuery : accountsAllQuery;
 
   // Transactions query - for balance calculations
-  const transactionsQuery = useQuery({
-    queryKey: queryKeys.transactions(),
-    queryFn: transactionService.getAll,
-    staleTime: 30 * 1000,
-    refetchOnWindowFocus: false,
-    enabled: !!currentUser,
-  });
+  const transactionsQuery = useTransactions();
 
   // Computed core data with optimized memoization
   const coreData = useMemo(() => {
