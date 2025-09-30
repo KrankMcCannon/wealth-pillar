@@ -156,10 +156,29 @@ function BudgetsContent() {
       relevantTransactions = relevantTransactions.filter(t => t.user_id === selectedViewUserId);
     }
 
-    // Get transactions from the last 7 days
+    // Get budget period start date or use 30 days ago
+    const currentPeriod = getCurrentPeriodForUser(selectedBudget.user_id);
     const today = new Date();
-    const weekAgo = new Date(today);
-    weekAgo.setDate(today.getDate() - 6);
+    today.setHours(0, 0, 0, 0); // Normalize to midnight
+
+    const startDate = currentPeriod?.start_date
+      ? (() => {
+          const d = new Date(currentPeriod.start_date);
+          d.setHours(0, 0, 0, 0); // Normalize to midnight
+          return d;
+        })()
+      : (() => {
+          const d = new Date(today);
+          d.setDate(today.getDate() - 29);
+          d.setHours(0, 0, 0, 0); // Normalize to midnight
+          return d;
+        })();
+
+    // Calculate 30 days from start date
+    const endDate = new Date(startDate);
+    endDate.setDate(startDate.getDate() + 29);
+    endDate.setHours(23, 59, 59, 999); // End of day
+    const displayEndDate = endDate > today ? today : endDate;
 
     const safeParse = (d: string | Date) => {
       const dt = new Date(d);
@@ -168,7 +187,7 @@ function BudgetsContent() {
 
     const recentTransactions = relevantTransactions.filter(t => {
       const transactionDate = safeParse(t.date);
-      return transactionDate && transactionDate >= weekAgo && transactionDate <= today;
+      return transactionDate && transactionDate >= startDate && transactionDate <= displayEndDate;
     });
 
     // Create daily data structure
@@ -177,10 +196,25 @@ function BudgetsContent() {
     const categories = new Set<string>();
     const incomeTypes = new Set<string>();
 
-    for (let i = 6; i >= 0; i--) {
-      const date = new Date(today);
-      date.setDate(today.getDate() - i);
-      const dayStr = date.toLocaleDateString('it-IT', { weekday: 'short' });
+    // Calculate number of days to display (always 30 days from budget start)
+    const todayNormalized = new Date();
+    todayNormalized.setHours(0, 0, 0, 0);
+    const daysToShow = 30;
+
+    for (let i = 0; i < daysToShow; i++) {
+      const date = new Date(startDate.getTime());
+      date.setDate(date.getDate() + i);
+
+      // Show month only on first day or when month changes
+      const prevDate = i > 0 ? new Date(startDate.getTime()) : null;
+      if (prevDate) {
+        prevDate.setDate(prevDate.getDate() + (i - 1));
+      }
+
+      const showMonth = i === 0 || !prevDate || date.getMonth() !== prevDate.getMonth();
+      const dayStr = showMonth
+        ? date.toLocaleDateString('it-IT', { day: 'numeric', month: 'short' })
+        : date.toLocaleDateString('it-IT', { day: 'numeric' });
 
       const dayTransactions = recentTransactions.filter(t => {
         const tDate = safeParse(t.date);
@@ -227,7 +261,7 @@ function BudgetsContent() {
       categories: Array.from(categories),
       incomeTypes: Array.from(incomeTypes)
     };
-  }, [selectedBudget, allTransactions, selectedViewUserId]);
+  }, [selectedBudget, allTransactions, selectedViewUserId, getCurrentPeriodForUser]);
 
   const getCategoryColor = useCallback((categoryKey: string): string => {
     const category = categories.find(cat => cat.key === categoryKey);
@@ -574,80 +608,93 @@ function BudgetsContent() {
               {/* Current Budget Display - Horizontal Layout */}
               <div className="mb-4">
                 <div className="bg-gradient-to-br from-slate-50 to-slate-100/80 rounded-xl p-4">
-                  {/* Budget Icon and Name */}
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-[#7578EC]/10 to-[#7578EC]/5 shadow-sm">
-                      <CategoryIcon
-                        categoryKey={selectedBudget.categories[0] || 'altro'}
-                        size={iconSizes.lg}
-                        className="text-[#7578EC]"
-                      />
+                  {/* Budget Icon, Name and Period */}
+                  <div className="flex items-center justify-between gap-3 mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-[#7578EC]/10 to-[#7578EC]/5 shadow-sm">
+                        <CategoryIcon
+                          categoryKey={selectedBudget.categories[0] || 'altro'}
+                          size={iconSizes.lg}
+                          className="text-[#7578EC]"
+                        />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-bold text-slate-900 leading-tight">{selectedBudget.description}</h3>
+                        <p className="text-xs text-slate-500 font-medium">Budget attivo</p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="text-lg font-bold text-slate-900 leading-tight">{selectedBudget.description}</h3>
-                      <p className="text-xs text-slate-500 font-medium">Budget attivo</p>
-                    </div>
-                  </div>
-
-                  {/* Financial Info - 2 Column Layout */}
-                  <div className="grid grid-cols-2 gap-4 mb-4">
-                    {/* Available Amount */}
-                    <div className="text-center p-3 bg-white/60 rounded-lg">
-                      <p className="text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1">Disponibile</p>
-                      <p className={`text-xl sm:text-2xl font-bold tracking-tight ${budgetBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                        {formatCurrency(budgetBalance)}
-                      </p>
-                    </div>
-
-                    {/* Total Budget */}
-                    <div className="text-center p-3 bg-white/60 rounded-lg">
-                      <p className="text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1">Totale</p>
-                      <p className="text-xl sm:text-2xl font-bold tracking-tight text-slate-700">
-                        {formatCurrency(selectedBudget.amount)}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Budget Period Info - Full Width */}
-                  {!periodLoading && selectedBudget && getCurrentPeriodForUser(selectedBudget.user_id) && (
-                    <div className="bg-white/40 rounded-lg">
-                      {(() => {
-                        const period = getCurrentPeriodForUser(selectedBudget.user_id)!;
-                        const owner = users?.find(u => u.id === selectedBudget.user_id) || null;
-                        const totals = owner
-                          ? calculateUserFinancialTotals(owner, [selectedBudget], allTransactions)
-                          : { totalSpent: 0, totalSaved: 0, totalBudget: 0, totalFromPeriods: 0, totalFromBudgets: 0 };
-                        const spentAmount = totals.totalSpent;
-                        const savedAmount = totals.totalSaved;
-
-                        return (
-                          <div className="space-y-3">
-                            {/* Period Header */}
-                            <div className="text-center border-b border-slate-200/50 pb-2">
-                              <p className="text-xs font-semibold text-slate-600 uppercase tracking-wide">Periodo Budget</p>
-                              <p className="text-sm font-medium text-slate-700">
-                                {new Date(period.start_date).toLocaleDateString('it-IT')} - {period.end_date ? new Date(period.end_date).toLocaleDateString('it-IT') : 'In corso'}
+                    {/* Budget Period Date */}
+                    {!periodLoading && selectedBudget && getCurrentPeriodForUser(selectedBudget.user_id) && (
+                      <div className="text-right">
+                        {(() => {
+                          const period = getCurrentPeriodForUser(selectedBudget.user_id)!;
+                          return (
+                            <>
+                              <p className="text-xs font-semibold text-slate-600 uppercase tracking-wide">Periodo</p>
+                              <p className="text-xs font-medium text-slate-700 whitespace-nowrap">
+                                {new Date(period.start_date).toLocaleDateString('it-IT', { day: 'numeric', month: 'short' })} - {period.end_date ? new Date(period.end_date).toLocaleDateString('it-IT', { day: 'numeric', month: 'short' }) : 'In corso'}
                               </p>
-                            </div>
+                            </>
+                          );
+                        })()}
+                      </div>
+                    )}
+                  </div>
 
-                            {/* Spent and Saved Grid */}
-                            <div className="grid grid-cols-2 gap-4">
-                              <div className="text-center">
-                                <p className="text-xs font-semibold text-red-600 uppercase tracking-wide mb-1">Speso</p>
-                                <p className="text-lg font-bold text-red-600">
-                                  {formatCurrency(spentAmount)}
-                                </p>
-                              </div>
-                              <div className="text-center">
-                                <p className="text-xs font-semibold text-green-600 uppercase tracking-wide mb-1">Risparmiato</p>
-                                <p className="text-lg font-bold text-green-600">
-                                  {formatCurrency(savedAmount)}
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })()}
+                  {/* Financial Info - 3 Column Layout */}
+                  {!periodLoading && selectedBudget && getCurrentPeriodForUser(selectedBudget.user_id) ? (
+                    <div className="grid grid-cols-3 gap-3">
+                      {/* Available Amount */}
+                      <div className="text-center p-3 bg-white/60 rounded-lg">
+                        <p className="text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1">Disponibile</p>
+                        <p className={`text-lg sm:text-xl font-bold tracking-tight ${budgetBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          {formatCurrency(budgetBalance)}
+                        </p>
+                      </div>
+
+                      {/* Spent Amount */}
+                      <div className="text-center p-3 bg-white/60 rounded-lg">
+                        {(() => {
+                          const owner = users?.find(u => u.id === selectedBudget.user_id) || null;
+                          const totals = owner
+                            ? calculateUserFinancialTotals(owner, [selectedBudget], allTransactions)
+                            : { totalSpent: 0, totalSaved: 0, totalBudget: 0, totalFromPeriods: 0, totalFromBudgets: 0 };
+                          return (
+                            <>
+                              <p className="text-xs font-semibold text-red-600 uppercase tracking-wide mb-1">Speso</p>
+                              <p className="text-lg sm:text-xl font-bold tracking-tight text-red-600">
+                                {formatCurrency(totals.totalSpent)}
+                              </p>
+                            </>
+                          );
+                        })()}
+                      </div>
+
+                      {/* Total Budget */}
+                      <div className="text-center p-3 bg-white/60 rounded-lg">
+                        <p className="text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1">Totale</p>
+                        <p className="text-lg sm:text-xl font-bold tracking-tight text-slate-700">
+                          {formatCurrency(selectedBudget.amount)}
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-2 gap-4">
+                      {/* Available Amount */}
+                      <div className="text-center p-3 bg-white/60 rounded-lg">
+                        <p className="text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1">Disponibile</p>
+                        <p className={`text-xl sm:text-2xl font-bold tracking-tight ${budgetBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          {formatCurrency(budgetBalance)}
+                        </p>
+                      </div>
+
+                      {/* Total Budget */}
+                      <div className="text-center p-3 bg-white/60 rounded-lg">
+                        <p className="text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1">Totale</p>
+                        <p className="text-xl sm:text-2xl font-bold tracking-tight text-slate-700">
+                          {formatCurrency(selectedBudget.amount)}
+                        </p>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -698,25 +745,11 @@ function BudgetsContent() {
 
             </section>
 
-            {/* Charts with Tabs - Only show when transaction data is loaded */}
+            {/* Expense Chart - Only show when transaction data is loaded */}
             {!txLoading && (
             <section>
               <Card className="p-4 sm:p-5 bg-white/90 backdrop-blur-sm shadow-lg shadow-slate-200/40 rounded-xl sm:rounded-2xl border border-slate-200/50">
-                <Tabs defaultValue="expenses" onValueChange={setActiveTab} className="w-full">
-                  <TabsList className="grid w-full grid-cols-2 mb-4 bg-slate-100/80 backdrop-blur-sm border border-slate-200/50 shadow-sm rounded-xl p-1">
-                    <TabsTrigger value="expenses" className="flex items-center justify-center gap-1.5 text-sm font-semibold text-slate-600 data-[state=active]:bg-gradient-to-r data-[state=active]:from-rose-500 data-[state=active]:to-rose-600 data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:shadow-rose-200/40 rounded-lg transition-all duration-200 py-2">
-                      <ShoppingCart className="h-4 w-4" />
-                      <span className="hidden xs:inline">Uscite</span>
-                      <span className="xs:hidden">Spese</span>
-                    </TabsTrigger>
-                    <TabsTrigger value="income" className="flex items-center justify-center gap-1.5 text-sm font-semibold text-slate-600 data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-emerald-600 data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:shadow-emerald-200/40 rounded-lg transition-all duration-200 py-2">
-                      <TrendingUp className="h-4 w-4" />
-                      Entrate
-                    </TabsTrigger>
-                  </TabsList>
-
-                  {/* Unified Chart Content */}
-                  <TabsContent value="expenses" className="space-y-4">
+                <div className="space-y-4">
                     {/* Header */}
                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
                       <div className="flex items-center gap-3">
@@ -725,198 +758,140 @@ function BudgetsContent() {
                         </div>
                         <div>
                           <h3 className="text-base font-bold text-slate-900">{unifiedChartData.title}</h3>
-                          <p className="text-xs text-slate-500 font-medium">Ultimi 7 giorni</p>
+                          <p className="text-xs text-slate-500 font-medium">Ultimi 30 giorni</p>
                         </div>
                       </div>
                       <div className="text-left sm:text-right">
                         <p className={`text-xl sm:text-2xl font-bold bg-gradient-to-r ${unifiedChartData.gradientColors} bg-clip-text text-transparent`}>
                           {formatCurrency(unifiedChartData.total)}
                         </p>
+                        {selectedBudget && (
+                          <p className="text-xs text-slate-500 font-medium mt-1">
+                            {((unifiedChartData.total / selectedBudget.amount) * 100).toFixed(1)}% del budget
+                          </p>
+                        )}
                       </div>
                     </div>
 
-                    {/* Unified Bar Chart */}
-                    <div className="flex items-end justify-between gap-1 px-1 h-28 sm:h-36 bg-gray-50 rounded-xl" style={{ paddingTop: '8px' }}>
-                      {unifiedChartData.data.map((dayData: { [key: string]: number | string }, index: number) => {
-                        const { day, ...amounts } = dayData;
-                        const total = Object.values(amounts).reduce((sum: number, val) => sum + (val as number), 0);
-                        const maxTotal = Math.max(
-                          ...unifiedChartData.data.map((d: { [key: string]: number | string }) =>
-                            Object.entries(d)
-                              .filter(([key]) => key !== 'day')
-                              .reduce((sum: number, [, val]) => sum + (val as number), 0)
-                          ),
-                          1
-                        );
-                        const barHeight = maxTotal > 0 ? Math.max((total / maxTotal) * 70, 16) : 16;
-
-                        return (
-                          <div key={index} className="flex flex-col items-center flex-1 min-w-0">
-                            <div className="w-full flex flex-col justify-end" style={{ height: '88px' }}>
-                              <div
-                                className="w-full flex flex-col rounded-t overflow-hidden shadow-sm min-h-[16px] bg-gray-100"
-                                style={{ height: `${barHeight}px` }}
-                              >
-                                {total > 0 ? (
-                                  unifiedChartData.dataKeys.map((key: string) => {
-                                    const amount = amounts[key] as number || 0;
-                                    if (amount === 0) return null;
-                                    return (
-                                      <div
-                                        key={key}
-                                        style={{
-                                          height: `${(amount / total) * 100}%`,
-                                          backgroundColor: (unifiedChartData.colors as { [key: string]: string })[key] || '#6b7280'
-                                        }}
-                                        title={`${key}: ${formatCurrency(amount)}`}
-                                      />
-                                    );
-                                  })
-                                ) : (
-                                  <div
-                                    className="w-full bg-gray-300 rounded-t"
-                                    style={{ height: '16px' }}
-                                    title={unifiedChartData.emptyMessage}
-                                  />
-                                )}
-                              </div>
-                            </div>
-                            <span className="text-sm font-medium text-gray-600 mt-2">{day as string}</span>
+                    {/* Line Chart */}
+                    <div className="relative h-48 sm:h-56 bg-gradient-to-b from-gray-50 to-white rounded-xl p-4 pl-12">
+                      {/* Y-axis labels */}
+                      <div className="absolute left-0 top-4 bottom-4 flex flex-col-reverse justify-between text-[10px] text-slate-500 font-medium pr-2">
+                        {[0, 25, 50, 75, 100].map((percent) => (
+                          <div key={percent} className="leading-none">
+                            {percent}%
                           </div>
-                        );
-                      })}
-                    </div>
-
-                    {/* Unified Legend */}
-                    <div className={`flex flex-wrap gap-3 justify-start pt-4 border-t ${unifiedChartData.legendBorder}`}>
-                      {unifiedChartData.dataKeys.slice(0, activeTab === 'income' ? 6 : 8).map((key: string) => {
-                        const icon = activeTab === 'income'
-                          ? getIncomeIcon(key)
-                          : getCategoryIcon(key);
-                        const label = key.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
-                        return (
-                          <div key={key} className="flex items-center gap-1.5">
-                            <div
-                              className="w-3 h-3 rounded-full shadow-sm"
-                              style={{ backgroundColor: activeTab === 'income' ? '#10b981' : (unifiedChartData.colors as { [key: string]: string })[key] || '#6b7280' }}
-                            />
-                            <div className="flex items-center gap-1">
-                              {icon}
-                              <span className="text-xs font-medium text-gray-700">{label}</span>
-                            </div>
-                          </div>
-                        );
-                      })}
-                      {unifiedChartData.dataKeys.length > (activeTab === 'income' ? 6 : 8) && (
-                        <div className="flex items-center gap-1.5">
-                          <div className="w-3 h-3 rounded-full shadow-sm bg-gray-400" />
-                          <span className="text-xs font-medium text-gray-700">+{unifiedChartData.dataKeys.length - (activeTab === 'income' ? 6 : 8)} {activeTab === 'income' ? 'altri' : 'altre'}</span>
-                        </div>
-                      )}
-                    </div>
-                  </TabsContent>
-
-                  <TabsContent value="income" className="space-y-4">
-                    {/* Header */}
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
-                      <div className="flex items-center gap-3">
-                        <div className={`p-2.5 bg-gradient-to-br ${unifiedChartData.iconBg} rounded-xl shadow-md ${unifiedChartData.iconShadow}`}>
-                          {unifiedChartData.icon}
-                        </div>
-                        <div>
-                          <h3 className="text-base font-bold text-slate-900">{unifiedChartData.title}</h3>
-                          <p className="text-xs text-slate-500 font-medium">Ultimi 7 giorni</p>
-                        </div>
+                        ))}
                       </div>
-                      <div className="text-left sm:text-right">
-                        <p className={`text-xl sm:text-2xl font-bold bg-gradient-to-r ${unifiedChartData.gradientColors} bg-clip-text text-transparent`}>
-                          {formatCurrency(unifiedChartData.total)}
-                        </p>
+                      <svg className="w-full h-full" viewBox="0 0 350 200" preserveAspectRatio="none">
+                        {/* Grid lines */}
+                        {[0, 25, 50, 75, 100].map((percent) => (
+                          <line
+                            key={percent}
+                            x1="0"
+                            y1={200 - (percent * 2)}
+                            x2="350"
+                            y2={200 - (percent * 2)}
+                            stroke="#e5e7eb"
+                            strokeWidth="1"
+                            opacity="0.5"
+                          />
+                        ))}
+
+                        {/* Line for cumulative amounts */}
+                        {(() => {
+                          const todayNormalized = new Date();
+                          todayNormalized.setHours(0, 0, 0, 0);
+
+                          // Calculate cumulative amounts for each day
+                          let cumulativeTotal = 0;
+                          const cumulativeData = unifiedChartData.data.map((dayData: { [key: string]: number | string }, index: number) => {
+                            const { day, ...amounts } = dayData;
+                            const dayTotal = Object.values(amounts).reduce((sum: number, val) => sum + (val as number), 0);
+                            cumulativeTotal += dayTotal;
+
+                            // Calculate the date for this index
+                            const currentPeriod = getCurrentPeriodForUser(selectedBudget.user_id);
+                            const startDate = currentPeriod?.start_date
+                              ? new Date(currentPeriod.start_date)
+                              : new Date(todayNormalized.getTime() - 29 * 24 * 60 * 60 * 1000);
+                            startDate.setHours(0, 0, 0, 0);
+
+                            const dateForIndex = new Date(startDate);
+                            dateForIndex.setDate(dateForIndex.getDate() + index);
+
+                            return { day, cumulative: cumulativeTotal, date: dateForIndex, isFuture: dateForIndex > todayNormalized };
+                          });
+
+                          // Filter to only include days up to today for the line
+                          const dataUpToToday = cumulativeData.filter(d => !d.isFuture);
+
+                          // Use budget amount as the max (100%)
+                          const maxAmount = selectedBudget?.amount || 1;
+
+                          const points = dataUpToToday.map((data, index: number) => {
+                            const percentage = (data.cumulative / maxAmount) * 100;
+                            const cappedPercentage = Math.min(percentage, 100); // Cap at 100%
+                            const originalIndex = cumulativeData.indexOf(data);
+                            const x = (originalIndex / (cumulativeData.length - 1)) * 350;
+                            const y = 200 - ((cappedPercentage / 100) * 180);
+                            return `${x},${y}`;
+                          }).join(' ');
+
+                          const pathD = dataUpToToday.map((data, index: number) => {
+                            const percentage = (data.cumulative / maxAmount) * 100;
+                            const cappedPercentage = Math.min(percentage, 100);
+                            const originalIndex = cumulativeData.indexOf(data);
+                            const x = (originalIndex / (cumulativeData.length - 1)) * 350;
+                            const y = 200 - ((cappedPercentage / 100) * 180);
+                            return index === 0 ? `M ${x} ${y}` : `L ${x} ${y}`;
+                          }).join(' ');
+
+                          // Get the last point's X coordinate to close the gradient properly
+                          const lastDataIndex = dataUpToToday.length > 0 ? cumulativeData.indexOf(dataUpToToday[dataUpToToday.length - 1]) : 0;
+                          const lastX = (lastDataIndex / (cumulativeData.length - 1)) * 350;
+
+                          return (
+                            <>
+                              {/* Gradient fill under line */}
+                              <defs>
+                                <linearGradient id="lineGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                                  <stop offset="0%" style={{ stopColor: '#7578EC', stopOpacity: 0.3 }} />
+                                  <stop offset="100%" style={{ stopColor: '#7578EC', stopOpacity: 0 }} />
+                                </linearGradient>
+                              </defs>
+                              <path
+                                d={`${pathD} L ${lastX} 200 L 0 200 Z`}
+                                fill="url(#lineGradient)"
+                              />
+
+                              {/* Main line with sharp angles */}
+                              <polyline
+                                points={points}
+                                fill="none"
+                                stroke="#7578EC"
+                                strokeWidth="3"
+                                strokeLinecap="butt"
+                                strokeLinejoin="miter"
+                              />
+                            </>
+                          );
+                        })()}
+                      </svg>
+
+                      {/* X-axis labels - Show only every 3rd day */}
+                      <div className="flex justify-between mt-2 px-1">
+                        {unifiedChartData.data.map((dayData: { [key: string]: number | string }, index: number) => {
+                          const showLabel = index === 0 || index === unifiedChartData.data.length - 1 || index % 3 === 0;
+                          return (
+                            <span key={index} className={`text-xs font-semibold ${showLabel ? 'text-slate-600' : 'text-transparent'}`}>
+                              {showLabel ? dayData.day as string : '·'}
+                            </span>
+                          );
+                        })}
                       </div>
                     </div>
-
-                    {/* Unified Bar Chart */}
-                    <div className="flex items-end justify-between gap-1 px-1 h-28 sm:h-36 bg-gray-50 rounded-xl" style={{ paddingTop: '8px' }}>
-                      {unifiedChartData.data.map((dayData: { [key: string]: number | string }, index: number) => {
-                        const { day, ...amounts } = dayData;
-                        const total = Object.values(amounts).reduce((sum: number, val) => sum + (val as number), 0);
-                        const maxTotal = Math.max(
-                          ...unifiedChartData.data.map((d: { [key: string]: number | string }) =>
-                            Object.entries(d)
-                              .filter(([key]) => key !== 'day')
-                              .reduce((sum: number, [, val]) => sum + (val as number), 0)
-                          ),
-                          1
-                        );
-                        const barHeight = maxTotal > 0 ? Math.max((total / maxTotal) * 70, 16) : 16;
-
-                        return (
-                          <div key={index} className="flex flex-col items-center flex-1 min-w-0">
-                            <div className="w-full flex flex-col justify-end" style={{ height: '88px' }}>
-                              <div
-                                className="w-full flex flex-col rounded-t overflow-hidden shadow-sm min-h-[16px] bg-gray-100"
-                                style={{ height: `${barHeight}px` }}
-                              >
-                                {total > 0 ? (
-                                  unifiedChartData.dataKeys.map((key: string) => {
-                                    const amount = amounts[key] as number || 0;
-                                    if (amount === 0) return null;
-                                    return (
-                                      <div
-                                        key={key}
-                                        style={{
-                                          height: `${(amount / total) * 100}%`,
-                                          backgroundColor: (unifiedChartData.colors as { [key: string]: string })[key] || '#6b7280'
-                                        }}
-                                        title={`${key}: ${formatCurrency(amount)}`}
-                                      />
-                                    );
-                                  })
-                                ) : (
-                                  <div
-                                    className="w-full bg-gray-300 rounded-t"
-                                    style={{ height: '16px' }}
-                                    title={unifiedChartData.emptyMessage}
-                                  />
-                                )}
-                              </div>
-                            </div>
-                            <span className="text-sm font-medium text-gray-600 mt-2">{day as string}</span>
-                          </div>
-                        );
-                      })}
-                    </div>
-
-                    {/* Unified Legend */}
-                    <div className={`flex flex-wrap gap-3 justify-start pt-4 border-t ${unifiedChartData.legendBorder}`}>
-                      {unifiedChartData.dataKeys.slice(0, activeTab === 'income' ? 6 : 8).map((key: string) => {
-                        const icon = activeTab === 'income'
-                          ? getIncomeIcon(key)
-                          : getCategoryIcon(key);
-                        const label = key.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
-                        return (
-                          <div key={key} className="flex items-center gap-1.5">
-                            <div
-                              className="w-3 h-3 rounded-full shadow-sm"
-                              style={{ backgroundColor: activeTab === 'income' ? '#10b981' : (unifiedChartData.colors as { [key: string]: string })[key] || '#6b7280' }}
-                            />
-                            <div className="flex items-center gap-1">
-                              {icon}
-                              <span className="text-xs font-medium text-gray-700">{label}</span>
-                            </div>
-                          </div>
-                        );
-                      })}
-                      {unifiedChartData.dataKeys.length > (activeTab === 'income' ? 6 : 8) && (
-                        <div className="flex items-center gap-1.5">
-                          <div className="w-3 h-3 rounded-full shadow-sm bg-gray-400" />
-                          <span className="text-xs font-medium text-gray-700">+{unifiedChartData.dataKeys.length - (activeTab === 'income' ? 6 : 8)} {activeTab === 'income' ? 'altri' : 'altre'}</span>
-                        </div>
-                      )}
-                    </div>
-                  </TabsContent>
-
-                </Tabs>
+                </div>
               </Card>
             </section>
             )}
