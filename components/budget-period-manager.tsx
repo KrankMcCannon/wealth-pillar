@@ -237,7 +237,7 @@ export function BudgetPeriodManager({ budget, currentPeriod, trigger, onSuccess 
                   <Label htmlFor="end-date" className="text-sm font-medium text-black">
                     Data di Fine Periodo
                   </Label>
-                  <div className="relative">
+                  <div className="relative w-full">
                     <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#7578EC] pointer-events-none z-10" />
                     <Input
                       id="end-date"
@@ -245,7 +245,7 @@ export function BudgetPeriodManager({ budget, currentPeriod, trigger, onSuccess 
                       value={endDate}
                       onChange={(e) => setEndDate(e.target.value)}
                       min={currentPeriod?.start_date ? new Date(currentPeriod.start_date).toISOString().split('T')[0] : ''}
-                      className="pl-10 pr-3 border-[#7578EC]/30 focus:border-[#7578EC] focus:ring-[#7578EC]/20 [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-0 [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+                      className="w-full pl-10 pr-3 border-[#7578EC]/30 focus:border-[#7578EC] focus:ring-[#7578EC]/20 [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-0 [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:cursor-pointer"
                       style={{ position: 'relative' }}
                     />
                   </div>

@@ -315,15 +315,15 @@ export function RecurringSeriesForm({ isOpen, onOpenChange, selectedUserId, seri
                   </SelectContent>
                 </Select>
               </div>
-              <div>
+              <div className="min-w-0">
                 <Label className="text-xs font-bold text-black mb-1 block">Data addebito</Label>
-                <div className="relative">
+                <div className="relative w-full">
                   <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-3 w-3 text-[#7578EC] pointer-events-none z-10" />
                   <Input
                     type="date"
                     value={formData.due_date}
                     onChange={(e) => setFormData(prev => ({ ...prev, due_date: e.target.value }))}
-                    className="h-9 pl-9 pr-3 bg-white border border-[#7578EC]/20 rounded-lg text-black text-sm [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-0 [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+                    className="h-9 w-full pl-9 pr-3 bg-white border border-[#7578EC]/20 rounded-lg text-black text-sm [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-0 [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:cursor-pointer"
                     style={{ position: 'relative' }}
                     required
                   />
@@ -333,29 +333,29 @@ export function RecurringSeriesForm({ isOpen, onOpenChange, selectedUserId, seri
 
             {/* Periodo (inizio/fine) */}
             <div className="grid grid-cols-2 gap-3">
-              <div>
+              <div className="min-w-0">
                 <Label className="text-xs font-bold text-black mb-1 block">Data inizio</Label>
-                <div className="relative">
+                <div className="relative w-full">
                   <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-3 w-3 text-[#7578EC] pointer-events-none z-10" />
                   <Input
                     type="date"
                     value={formData.start_date}
                     onChange={(e) => setFormData(prev => ({ ...prev, start_date: e.target.value }))}
-                    className="h-9 pl-9 pr-3 bg-white border border-[#7578EC]/20 rounded-lg text-black text-sm [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-0 [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+                    className="h-9 w-full pl-9 pr-3 bg-white border border-[#7578EC]/20 rounded-lg text-black text-sm [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-0 [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:cursor-pointer"
                     style={{ position: 'relative' }}
                     required
                   />
                 </div>
               </div>
-              <div>
+              <div className="min-w-0">
                 <Label className="text-xs font-bold text-black mb-1 block">Data fine (opzionale)</Label>
-                <div className="relative">
+                <div className="relative w-full">
                   <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-3 w-3 text-[#7578EC] pointer-events-none z-10" />
                   <Input
                     type="date"
                     value={formData.end_date}
                     onChange={(e) => { setFormData(prev => ({ ...prev, end_date: e.target.value })); setErrors(prev => ({ ...prev, end_date: '' })); }}
-                    className={`h-9 pl-9 pr-3 bg-white ${errors.end_date ? 'border-2 border-red-500' : 'border border-[#7578EC]/20'} rounded-lg text-black text-sm [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-0 [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:cursor-pointer`}
+                    className={`h-9 w-full pl-9 pr-3 bg-white ${errors.end_date ? 'border-2 border-red-500' : 'border border-[#7578EC]/20'} rounded-lg text-black text-sm [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-0 [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:cursor-pointer`}
                     style={{ position: 'relative' }}
                   />
                 </div>
