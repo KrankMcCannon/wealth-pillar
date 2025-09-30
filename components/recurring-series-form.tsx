@@ -35,6 +35,8 @@ export function RecurringSeriesForm({ isOpen, onOpenChange, selectedUserId, seri
     is_active: true,
   });
 
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
   const { data: categories = [] } = useCategories();
   const { data: accounts = [] } = useAccounts();
   const { data: users = [] } = useUsers();
@@ -48,9 +50,34 @@ export function RecurringSeriesForm({ isOpen, onOpenChange, selectedUserId, seri
 
   useEffect(() => {
     if (selectedUserId) {
-      setFormData(prev => ({ ...prev, user_id: selectedUserId }));
+      const selectedUser = users.find(user => user.id === selectedUserId);
+      setFormData(prev => ({
+        ...prev,
+        user_id: selectedUserId,
+        // Prefill account_id with user's default account if available and account belongs to user
+        account_id: selectedUser?.default_account_id &&
+                    accounts.some(acc => acc.id === selectedUser.default_account_id && acc.user_ids.includes(selectedUserId))
+                    ? selectedUser.default_account_id
+                    : prev.account_id
+      }));
     }
-  }, [selectedUserId]);
+  }, [selectedUserId, users, accounts]);
+
+  // Prefill default account when user changes in form (only if no account selected yet)
+  useEffect(() => {
+    if (formData.user_id && !formData.account_id && mode === 'create') {
+      const selectedUser = users.find(user => user.id === formData.user_id);
+      if (selectedUser?.default_account_id) {
+        const defaultAccount = accounts.find(acc =>
+          acc.id === selectedUser.default_account_id &&
+          acc.user_ids.includes(formData.user_id)
+        );
+        if (defaultAccount) {
+          setFormData(prev => ({ ...prev, account_id: defaultAccount.id }));
+        }
+      }
+    }
+  }, [formData.user_id, formData.account_id, users, accounts, mode]);
 
   useEffect(() => {
     if (mode === 'edit' && series) {
@@ -82,6 +109,35 @@ export function RecurringSeriesForm({ isOpen, onOpenChange, selectedUserId, seri
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Clear previous errors
+    const newErrors: Record<string, string> = {};
+
+    // Validation
+    if (!formData.user_id) {
+      newErrors.user_id = 'Seleziona un utente';
+    }
+    if (!formData.description.trim()) {
+      newErrors.description = 'Inserisci una descrizione';
+    }
+    if (!formData.amount || parseFloat(formData.amount) <= 0) {
+      newErrors.amount = 'Inserisci un importo valido';
+    }
+    if (!formData.category) {
+      newErrors.category = 'Seleziona una categoria';
+    }
+    if (!formData.account_id) {
+      newErrors.account_id = 'Seleziona un conto';
+    }
+    if (formData.end_date && new Date(formData.end_date) < new Date(formData.start_date)) {
+      newErrors.end_date = 'La data di fine deve essere successiva alla data di inizio';
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
     try {
       const base = {
         description: formData.description,
@@ -160,8 +216,8 @@ export function RecurringSeriesForm({ isOpen, onOpenChange, selectedUserId, seri
             {/* Utente */}
             <div>
               <Label className="text-xs font-bold text-black mb-1 block">Utente</Label>
-              <Select value={formData.user_id} onValueChange={(value) => setFormData(prev => ({ ...prev, user_id: value, account_id: "" }))}>
-                <SelectTrigger className="h-9 bg-white border border-[#7578EC]/20 rounded-lg text-black text-sm">
+              <Select value={formData.user_id} onValueChange={(value) => { setFormData(prev => ({ ...prev, user_id: value, account_id: "" })); setErrors(prev => ({ ...prev, user_id: '' })); }}>
+                <SelectTrigger className={`h-9 bg-white ${errors.user_id ? 'border-2 border-red-500' : 'border border-[#7578EC]/20'} rounded-lg text-black text-sm`}>
                   <SelectValue placeholder="Scegli utente" />
                 </SelectTrigger>
                 <SelectContent className="bg-white border border-[#7578EC]/20 rounded-lg">
@@ -172,6 +228,7 @@ export function RecurringSeriesForm({ isOpen, onOpenChange, selectedUserId, seri
                   ))}
                 </SelectContent>
               </Select>
+              {errors.user_id && <p className="text-xs text-red-500 mt-1">{errors.user_id}</p>}
             </div>
 
             {/* Descrizione e Importo */}
@@ -180,11 +237,12 @@ export function RecurringSeriesForm({ isOpen, onOpenChange, selectedUserId, seri
                 <Label className="text-xs font-bold text-black mb-1 block">Descrizione</Label>
                 <Input
                   value={formData.description}
-                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                  onChange={(e) => { setFormData(prev => ({ ...prev, description: e.target.value })); setErrors(prev => ({ ...prev, description: '' })); }}
                   placeholder="Es. Abbonamento Netflix"
-                  className="h-9 bg-white border border-[#7578EC]/20 rounded-lg text-black text-sm"
+                  className={`h-9 bg-white ${errors.description ? 'border-2 border-red-500' : 'border border-[#7578EC]/20'} rounded-lg text-black text-sm`}
                   required
                 />
+                {errors.description && <p className="text-xs text-red-500 mt-1">{errors.description}</p>}
               </div>
               <div>
                 <Label className="text-xs font-bold text-black mb-1 block">Importo (€)</Label>
@@ -192,19 +250,20 @@ export function RecurringSeriesForm({ isOpen, onOpenChange, selectedUserId, seri
                   type="number"
                   step="0.01"
                   value={formData.amount}
-                  onChange={(e) => setFormData(prev => ({ ...prev, amount: e.target.value }))}
+                  onChange={(e) => { setFormData(prev => ({ ...prev, amount: e.target.value })); setErrors(prev => ({ ...prev, amount: '' })); }}
                   placeholder="0.00"
-                  className="h-9 bg-white border border-[#7578EC]/20 rounded-lg text-black text-sm text-right font-bold"
+                  className={`h-9 bg-white ${errors.amount ? 'border-2 border-red-500' : 'border border-[#7578EC]/20'} rounded-lg text-black text-sm text-right font-bold`}
                   required
                 />
+                {errors.amount && <p className="text-xs text-red-500 mt-1">{errors.amount}</p>}
               </div>
             </div>
 
             {/* Categoria */}
             <div>
               <Label className="text-xs font-bold text-black mb-1 block">Categoria</Label>
-              <Select value={formData.category} onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}>
-                <SelectTrigger className="h-9 bg-white border border-[#7578EC]/20 rounded-lg text-black text-sm">
+              <Select value={formData.category} onValueChange={(value) => { setFormData(prev => ({ ...prev, category: value })); setErrors(prev => ({ ...prev, category: '' })); }}>
+                <SelectTrigger className={`h-9 bg-white ${errors.category ? 'border-2 border-red-500' : 'border border-[#7578EC]/20'} rounded-lg text-black text-sm`}>
                   <SelectValue placeholder="Scegli categoria" />
                 </SelectTrigger>
                 <SelectContent className="bg-white border border-[#7578EC]/20 rounded-lg max-h-48">
@@ -217,6 +276,7 @@ export function RecurringSeriesForm({ isOpen, onOpenChange, selectedUserId, seri
                   ))}
                 </SelectContent>
               </Select>
+              {errors.category && <p className="text-xs text-red-500 mt-1">{errors.category}</p>}
             </div>
 
             {/* Frequenza e Data addebito */}
@@ -241,7 +301,8 @@ export function RecurringSeriesForm({ isOpen, onOpenChange, selectedUserId, seri
                   type="date"
                   value={formData.due_date}
                   onChange={(e) => setFormData(prev => ({ ...prev, due_date: e.target.value }))}
-                  className="h-9 bg-white border border-[#7578EC]/20 rounded-lg text-black text-sm"
+                  className="h-9 bg-white border border-[#7578EC]/20 rounded-lg text-black text-sm [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-3 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+                  style={{ position: 'relative' }}
                   required
                 />
               </div>
@@ -255,7 +316,8 @@ export function RecurringSeriesForm({ isOpen, onOpenChange, selectedUserId, seri
                   type="date"
                   value={formData.start_date}
                   onChange={(e) => setFormData(prev => ({ ...prev, start_date: e.target.value }))}
-                  className="h-9 bg-white border border-[#7578EC]/20 rounded-lg text-black text-sm"
+                  className="h-9 bg-white border border-[#7578EC]/20 rounded-lg text-black text-sm [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-3 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+                  style={{ position: 'relative' }}
                   required
                 />
               </div>
@@ -264,17 +326,19 @@ export function RecurringSeriesForm({ isOpen, onOpenChange, selectedUserId, seri
                 <Input
                   type="date"
                   value={formData.end_date}
-                  onChange={(e) => setFormData(prev => ({ ...prev, end_date: e.target.value }))}
-                  className="h-9 bg-white border border-[#7578EC]/20 rounded-lg text-black text-sm"
+                  onChange={(e) => { setFormData(prev => ({ ...prev, end_date: e.target.value })); setErrors(prev => ({ ...prev, end_date: '' })); }}
+                  className={`h-9 bg-white ${errors.end_date ? 'border-2 border-red-500' : 'border border-[#7578EC]/20'} rounded-lg text-black text-sm [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-3 [&::-webkit-calendar-picker-indicator]:cursor-pointer`}
+                  style={{ position: 'relative' }}
                 />
+                {errors.end_date && <p className="text-xs text-red-500 mt-1">{errors.end_date}</p>}
               </div>
             </div>
 
             {/* Conto */}
             <div>
               <Label className="text-xs font-bold text-black mb-1 block">Conto</Label>
-              <Select value={formData.account_id} onValueChange={(value) => setFormData(prev => ({ ...prev, account_id: value }))}>
-                <SelectTrigger className="h-9 bg-white border border-[#7578EC]/20 rounded-lg text-black text-sm">
+              <Select value={formData.account_id} onValueChange={(value) => { setFormData(prev => ({ ...prev, account_id: value })); setErrors(prev => ({ ...prev, account_id: '' })); }}>
+                <SelectTrigger className={`h-9 bg-white ${errors.account_id ? 'border-2 border-red-500' : 'border border-[#7578EC]/20'} rounded-lg text-black text-sm`}>
                   <SelectValue placeholder="Scegli conto" />
                 </SelectTrigger>
                 <SelectContent className="bg-white border border-[#7578EC]/20 rounded-lg">
@@ -288,6 +352,7 @@ export function RecurringSeriesForm({ isOpen, onOpenChange, selectedUserId, seri
                   ))}
                 </SelectContent>
               </Select>
+              {errors.account_id && <p className="text-xs text-red-500 mt-1">{errors.account_id}</p>}
             </div>
 
             {/* Attiva/Disattiva */}

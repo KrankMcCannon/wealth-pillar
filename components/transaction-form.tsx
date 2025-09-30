@@ -33,6 +33,8 @@ export function TransactionForm({ isOpen, onOpenChange, initialType = "expense",
     frequency: "once" as TransactionFrequencyType,
   });
 
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
   const { data: categories = [] } = useCategories();
   const { data: accounts = [] } = useAccounts();
   const { data: users = [] } = useUsers();
@@ -55,11 +57,34 @@ export function TransactionForm({ isOpen, onOpenChange, initialType = "expense",
   const createTransactionMutation = useCreateTransaction();
   const updateTransactionMutation = useUpdateTransaction();
 
+  // Prefill user and default account when selectedUserId prop changes
   useEffect(() => {
-    if (selectedUserId) {
-      setFormData(prev => ({ ...prev, user_id: selectedUserId }));
+    if (selectedUserId && mode === 'create') {
+      setFormData(prev => ({
+        ...prev,
+        user_id: selectedUserId,
+        account_id: '', // Reset account when user changes via prop
+      }));
     }
-  }, [selectedUserId]);
+  }, [selectedUserId, mode]);
+
+  // Prefill default account when user is selected and we have accounts loaded
+  useEffect(() => {
+    if (formData.user_id && mode === 'create' && users.length > 0 && accounts.length > 0) {
+      const selectedUser = users.find(user => user.id === formData.user_id);
+
+      if (selectedUser?.default_account_id) {
+        const defaultAccount = accounts.find(acc =>
+          acc.id === selectedUser.default_account_id &&
+          acc.user_ids.includes(formData.user_id)
+        );
+
+        if (defaultAccount && !formData.account_id) {
+          setFormData(prev => ({ ...prev, account_id: defaultAccount.id }));
+        }
+      }
+    }
+  }, [formData.user_id, users, accounts, mode, formData.account_id]);
 
   // Populate form when editing
   useEffect(() => {
@@ -80,6 +105,37 @@ export function TransactionForm({ isOpen, onOpenChange, initialType = "expense",
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Clear previous errors
+    const newErrors: Record<string, string> = {};
+
+    // Validation
+    if (!formData.user_id) {
+      newErrors.user_id = 'Seleziona un utente';
+    }
+    if (!formData.description.trim()) {
+      newErrors.description = 'Inserisci una descrizione';
+    }
+    if (!formData.amount || parseFloat(formData.amount) <= 0) {
+      newErrors.amount = 'Inserisci un importo valido';
+    }
+    if (formData.type !== 'transfer' && !formData.category) {
+      newErrors.category = 'Seleziona una categoria';
+    }
+    if (!formData.account_id) {
+      newErrors.account_id = 'Seleziona un conto';
+    }
+    if (formData.type === 'transfer' && !formData.to_account_id) {
+      newErrors.to_account_id = 'Seleziona un conto di destinazione';
+    }
+    if (formData.type === 'transfer' && formData.account_id === formData.to_account_id) {
+      newErrors.to_account_id = 'Il conto origine e destinazione devono essere diversi';
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
 
     try {
       const selectedUser = users.find(user => user.id === formData.user_id);
@@ -218,8 +274,8 @@ export function TransactionForm({ isOpen, onOpenChange, initialType = "expense",
             {/* User Selection - Compact */}
             <div>
               <Label className="text-xs font-bold text-black mb-1 block">Utente</Label>
-              <Select value={formData.user_id} onValueChange={(value) => setFormData(prev => ({ ...prev, user_id: value, account_id: "" }))}>
-                <SelectTrigger className="h-9 bg-white border border-[#7578EC]/20 rounded-lg text-black text-sm">
+              <Select value={formData.user_id} onValueChange={(value) => { setFormData(prev => ({ ...prev, user_id: value, account_id: "" })); setErrors(prev => ({ ...prev, user_id: '' })); }}>
+                <SelectTrigger className={`h-9 bg-white rounded-lg text-black text-sm ${errors.user_id ? 'border-2 border-red-500' : 'border border-[#7578EC]/20'}`}>
                   <SelectValue placeholder="Scegli utente" />
                 </SelectTrigger>
                 <SelectContent className="bg-white border border-[#7578EC]/20 rounded-lg">
@@ -230,6 +286,7 @@ export function TransactionForm({ isOpen, onOpenChange, initialType = "expense",
                   ))}
                 </SelectContent>
               </Select>
+              {errors.user_id && <p className="text-xs text-red-500 mt-1">{errors.user_id}</p>}
             </div>
 
 
@@ -239,11 +296,12 @@ export function TransactionForm({ isOpen, onOpenChange, initialType = "expense",
                 <Label className="text-xs font-bold text-black mb-1 block">Descrizione</Label>
                 <Input
                   value={formData.description}
-                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                  onChange={(e) => { setFormData(prev => ({ ...prev, description: e.target.value })); setErrors(prev => ({ ...prev, description: '' })); }}
                   placeholder="Es. Spesa"
-                  className="h-9 bg-white border border-[#7578EC]/20 rounded-lg text-black text-sm"
+                  className={`h-9 bg-white rounded-lg text-black text-sm ${errors.description ? 'border-2 border-red-500' : 'border border-[#7578EC]/20'}`}
                   required
                 />
+                {errors.description && <p className="text-xs text-red-500 mt-1">{errors.description}</p>}
               </div>
               <div>
                 <Label className="text-xs font-bold text-black mb-1 block">Importo (€)</Label>
@@ -251,11 +309,12 @@ export function TransactionForm({ isOpen, onOpenChange, initialType = "expense",
                   type="number"
                   step="0.01"
                   value={formData.amount}
-                  onChange={(e) => setFormData(prev => ({ ...prev, amount: e.target.value }))}
+                  onChange={(e) => { setFormData(prev => ({ ...prev, amount: e.target.value })); setErrors(prev => ({ ...prev, amount: '' })); }}
                   placeholder="0.00"
-                  className="h-9 bg-white border border-[#7578EC]/20 rounded-lg text-black text-sm text-right font-bold"
+                  className={`h-9 bg-white rounded-lg text-black text-sm text-right font-bold ${errors.amount ? 'border-2 border-red-500' : 'border border-[#7578EC]/20'}`}
                   required
                 />
+                {errors.amount && <p className="text-xs text-red-500 mt-1">{errors.amount}</p>}
               </div>
             </div>
 
@@ -263,8 +322,8 @@ export function TransactionForm({ isOpen, onOpenChange, initialType = "expense",
             {formData.type !== 'transfer' && (
               <div>
                 <Label className="text-xs font-bold text-black mb-1 block">Categoria</Label>
-                <Select value={formData.category} onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}>
-                  <SelectTrigger className="h-9 bg-white border border-[#7578EC]/20 rounded-lg text-black text-sm">
+                <Select value={formData.category} onValueChange={(value) => { setFormData(prev => ({ ...prev, category: value })); setErrors(prev => ({ ...prev, category: '' })); }}>
+                  <SelectTrigger className={`h-9 bg-white rounded-lg text-black text-sm ${errors.category ? 'border-2 border-red-500' : 'border border-[#7578EC]/20'}`}>
                     <SelectValue placeholder="Scegli categoria" />
                   </SelectTrigger>
                   <SelectContent className="bg-white border border-[#7578EC]/20 rounded-lg max-h-48">
@@ -278,6 +337,7 @@ export function TransactionForm({ isOpen, onOpenChange, initialType = "expense",
                     ))}
                   </SelectContent>
                 </Select>
+                {errors.category && <p className="text-xs text-red-500 mt-1">{errors.category}</p>}
               </div>
             )}
 
@@ -289,7 +349,8 @@ export function TransactionForm({ isOpen, onOpenChange, initialType = "expense",
                   type="date"
                   value={formData.date}
                   onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
-                  className="h-9 bg-white border border-[#7578EC]/20 rounded-lg text-black text-sm"
+                  className="h-9 bg-white border border-[#7578EC]/20 rounded-lg text-black text-sm [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-3 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+                  style={{ position: 'relative' }}
                   required
                 />
               </div>
@@ -315,29 +376,36 @@ export function TransactionForm({ isOpen, onOpenChange, initialType = "expense",
               <Label className="text-xs font-bold text-black mb-1 block">
                 {formData.type === 'transfer' ? 'Conto Origine' : 'Conto'}
               </Label>
-              <Select value={formData.account_id} onValueChange={(value) => setFormData(prev => ({ ...prev, account_id: value }))}>
-                <SelectTrigger className="h-9 bg-white border border-[#7578EC]/20 rounded-lg text-black text-sm">
+              <Select value={formData.account_id} onValueChange={(value) => { setFormData(prev => ({ ...prev, account_id: value })); setErrors(prev => ({ ...prev, account_id: '' })); }}>
+                <SelectTrigger className={`h-9 bg-white rounded-lg text-black text-sm ${errors.account_id ? 'border-2 border-red-500' : 'border border-[#7578EC]/20'}`}>
                   <SelectValue placeholder="Scegli conto" />
                 </SelectTrigger>
                 <SelectContent className="bg-white border border-[#7578EC]/20 rounded-lg">
-                  {userAccounts.map((account) => (
-                    <SelectItem key={account.id} value={account.id} className="text-black hover:bg-[#7578EC]/5">
-                      <div className="flex items-center gap-2">
-                        <CreditCard className="h-3 w-3" />
-                        <span className="text-sm">{account.name}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
+                  {userAccounts.length === 0 ? (
+                    <div className="px-3 py-2 text-sm text-gray-500">
+                      {formData.user_id ? 'Nessun conto disponibile' : 'Seleziona prima un utente'}
+                    </div>
+                  ) : (
+                    userAccounts.map((account) => (
+                      <SelectItem key={account.id} value={account.id} className="text-black hover:bg-[#7578EC]/5">
+                        <div className="flex items-center gap-2">
+                          <CreditCard className="h-3 w-3" />
+                          <span className="text-sm">{account.name}</span>
+                        </div>
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
+              {errors.account_id && <p className="text-xs text-red-500 mt-1">{errors.account_id}</p>}
             </div>
 
             {/* Transfer Destination - Compact */}
             {formData.type === 'transfer' && (
               <div>
                 <Label className="text-xs font-bold text-black mb-1 block">Conto Destinazione</Label>
-                <Select value={formData.to_account_id} onValueChange={(value) => setFormData(prev => ({ ...prev, to_account_id: value }))}>
-                  <SelectTrigger className="h-9 bg-white border border-[#7578EC]/20 rounded-lg text-black text-sm">
+                <Select value={formData.to_account_id} onValueChange={(value) => { setFormData(prev => ({ ...prev, to_account_id: value })); setErrors(prev => ({ ...prev, to_account_id: '' })); }}>
+                  <SelectTrigger className={`h-9 bg-white rounded-lg text-black text-sm ${errors.to_account_id ? 'border-2 border-red-500' : 'border border-[#7578EC]/20'}`}>
                     <SelectValue placeholder="Scegli destinazione" />
                   </SelectTrigger>
                   <SelectContent className="bg-white border border-[#7578EC]/20 rounded-lg">
@@ -351,6 +419,7 @@ export function TransactionForm({ isOpen, onOpenChange, initialType = "expense",
                     ))}
                   </SelectContent>
                 </Select>
+                {errors.to_account_id && <p className="text-xs text-red-500 mt-1">{errors.to_account_id}</p>}
               </div>
             )}
 

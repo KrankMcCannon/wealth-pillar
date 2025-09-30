@@ -42,6 +42,7 @@ export interface User {
   role: RoleType;
   budget_periods: BudgetPeriod[];
   clerk_id?: string; // Clerk user ID for authentication integration
+  default_account_id?: string; // Optional default bank account for prefilling forms
   created_at: string | Date;
   updated_at: string | Date;
 }
