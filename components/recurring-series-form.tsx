@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAccounts, useCategories, useCreateRecurringSeries, useUpdateRecurringSeries, useUsers } from "@/hooks";
 import type { RecurringTransactionSeries, TransactionFrequencyType, TransactionType } from "@/lib/types";
-import { Minus, Plus, X, CreditCard } from "lucide-react";
+import { Minus, Plus, X, CreditCard, Calendar } from "lucide-react";
 
 type Mode = 'create' | 'edit';
 
@@ -96,6 +96,26 @@ export function RecurringSeriesForm({ isOpen, onOpenChange, selectedUserId, seri
       });
     }
   }, [mode, series]);
+
+  // Reset form when modal closes
+  useEffect(() => {
+    if (!isOpen && mode === 'create') {
+      setFormData({
+        description: "",
+        amount: "",
+        type: 'expense',
+        category: "",
+        frequency: 'monthly',
+        user_id: selectedUserId || "",
+        account_id: "",
+        start_date: new Date().toISOString().split('T')[0],
+        end_date: "",
+        due_date: new Date().toISOString().split('T')[0],
+        is_active: true,
+      });
+      setErrors({});
+    }
+  }, [isOpen, mode, selectedUserId]);
 
   const userAccounts = useMemo(() => sortedAccounts.filter(a => a.user_ids.includes(formData.user_id)), [sortedAccounts, formData.user_id]);
 
@@ -297,14 +317,17 @@ export function RecurringSeriesForm({ isOpen, onOpenChange, selectedUserId, seri
               </div>
               <div>
                 <Label className="text-xs font-bold text-black mb-1 block">Data addebito</Label>
-                <Input
-                  type="date"
-                  value={formData.due_date}
-                  onChange={(e) => setFormData(prev => ({ ...prev, due_date: e.target.value }))}
-                  className="h-9 bg-white border border-[#7578EC]/20 rounded-lg text-black text-sm [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-3 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
-                  style={{ position: 'relative' }}
-                  required
-                />
+                <div className="relative">
+                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-3 w-3 text-[#7578EC] pointer-events-none z-10" />
+                  <Input
+                    type="date"
+                    value={formData.due_date}
+                    onChange={(e) => setFormData(prev => ({ ...prev, due_date: e.target.value }))}
+                    className="h-9 pl-9 pr-3 bg-white border border-[#7578EC]/20 rounded-lg text-black text-sm [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-0 [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+                    style={{ position: 'relative' }}
+                    required
+                  />
+                </div>
               </div>
             </div>
 
@@ -312,24 +335,30 @@ export function RecurringSeriesForm({ isOpen, onOpenChange, selectedUserId, seri
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label className="text-xs font-bold text-black mb-1 block">Data inizio</Label>
-                <Input
-                  type="date"
-                  value={formData.start_date}
-                  onChange={(e) => setFormData(prev => ({ ...prev, start_date: e.target.value }))}
-                  className="h-9 bg-white border border-[#7578EC]/20 rounded-lg text-black text-sm [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-3 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
-                  style={{ position: 'relative' }}
-                  required
-                />
+                <div className="relative">
+                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-3 w-3 text-[#7578EC] pointer-events-none z-10" />
+                  <Input
+                    type="date"
+                    value={formData.start_date}
+                    onChange={(e) => setFormData(prev => ({ ...prev, start_date: e.target.value }))}
+                    className="h-9 pl-9 pr-3 bg-white border border-[#7578EC]/20 rounded-lg text-black text-sm [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-0 [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+                    style={{ position: 'relative' }}
+                    required
+                  />
+                </div>
               </div>
               <div>
                 <Label className="text-xs font-bold text-black mb-1 block">Data fine (opzionale)</Label>
-                <Input
-                  type="date"
-                  value={formData.end_date}
-                  onChange={(e) => { setFormData(prev => ({ ...prev, end_date: e.target.value })); setErrors(prev => ({ ...prev, end_date: '' })); }}
-                  className={`h-9 bg-white ${errors.end_date ? 'border-2 border-red-500' : 'border border-[#7578EC]/20'} rounded-lg text-black text-sm [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-3 [&::-webkit-calendar-picker-indicator]:cursor-pointer`}
-                  style={{ position: 'relative' }}
-                />
+                <div className="relative">
+                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-3 w-3 text-[#7578EC] pointer-events-none z-10" />
+                  <Input
+                    type="date"
+                    value={formData.end_date}
+                    onChange={(e) => { setFormData(prev => ({ ...prev, end_date: e.target.value })); setErrors(prev => ({ ...prev, end_date: '' })); }}
+                    className={`h-9 pl-9 pr-3 bg-white ${errors.end_date ? 'border-2 border-red-500' : 'border border-[#7578EC]/20'} rounded-lg text-black text-sm [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-0 [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:cursor-pointer`}
+                    style={{ position: 'relative' }}
+                  />
+                </div>
                 {errors.end_date && <p className="text-xs text-red-500 mt-1">{errors.end_date}</p>}
               </div>
             </div>

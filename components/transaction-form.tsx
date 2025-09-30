@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { CategoryIcon, iconSizes } from "@/lib/icons";
 import { useCreateTransaction, useUpdateTransaction, useCategories, useAccounts, useUsers } from "@/hooks";
 import type { TransactionType, TransactionFrequencyType, Transaction } from "@/lib/types";
-import { CreditCard, ArrowRightLeft, Minus, Plus, X } from "lucide-react";
+import { CreditCard, ArrowRightLeft, Minus, Plus, X, Calendar } from "lucide-react";
 
 interface TransactionFormProps {
   isOpen: boolean;
@@ -102,6 +102,24 @@ export function TransactionForm({ isOpen, onOpenChange, initialType = "expense",
       });
     }
   }, [mode, transaction]);
+
+  // Reset form when modal closes
+  useEffect(() => {
+    if (!isOpen && mode === 'create') {
+      setFormData({
+        description: "",
+        amount: "",
+        type: initialType,
+        category: "",
+        date: new Date().toISOString().split('T')[0],
+        user_id: selectedUserId || "",
+        account_id: "",
+        to_account_id: "",
+        frequency: "once",
+      });
+      setErrors({});
+    }
+  }, [isOpen, mode, initialType, selectedUserId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -345,14 +363,17 @@ export function TransactionForm({ isOpen, onOpenChange, initialType = "expense",
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label className="text-xs font-bold text-black mb-1 block">Data</Label>
-                <Input
-                  type="date"
-                  value={formData.date}
-                  onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
-                  className="h-9 bg-white border border-[#7578EC]/20 rounded-lg text-black text-sm [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-3 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
-                  style={{ position: 'relative' }}
-                  required
-                />
+                <div className="relative">
+                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-3 w-3 text-[#7578EC] pointer-events-none z-10" />
+                  <Input
+                    type="date"
+                    value={formData.date}
+                    onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
+                    className="h-9 pl-9 pr-3 bg-white border border-[#7578EC]/20 rounded-lg text-black text-sm [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-0 [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+                    style={{ position: 'relative' }}
+                    required
+                  />
+                </div>
               </div>
               <div>
                 <Label className="text-xs font-bold text-black mb-1 block">Frequenza</Label>
