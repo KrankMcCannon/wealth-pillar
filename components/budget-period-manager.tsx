@@ -139,19 +139,19 @@ export function BudgetPeriodManager({ budget, currentPeriod, trigger, onSuccess 
         <DialogTitle className="sr-only">Gestione Periodi Budget</DialogTitle>
 
         {/* Custom Header with Close Button */}
-        <div className="bg-gradient-to-r from-[#7578EC] to-[#669BBC] p-4 rounded-t-2xl">
+        <div className="bg-[#7578EC] p-4 rounded-t-2xl shadow-sm">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="p-1.5 bg-white/20 rounded-lg">
                 <History className="h-4 w-4 text-white" />
               </div>
-              <h2 className="text-lg font-bold text-white">Gestione Periodi</h2>
+              <h2 className="text-lg font-bold text-white">Gestione Periodi Budget</h2>
             </div>
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setIsOpen(false)}
-              className="w-7 h-7 p-0 rounded-full bg-white/20 hover:bg-white/30 text-white"
+              className="w-7 h-7 p-0 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors"
             >
               <X className="h-3 w-3" />
             </Button>
@@ -160,10 +160,10 @@ export function BudgetPeriodManager({ budget, currentPeriod, trigger, onSuccess 
 
         <div className="flex-1 p-4 pt-3 space-y-4 overflow-y-auto scrollbar-thin min-h-0">
           {/* User Info Section */}
-          <div className="liquid-glass rounded-xl p-3 border border-[#7578EC]/20">
+          <div className="bg-slate-50 rounded-xl p-3 border border-[#7578EC]/20">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
-                <div className="p-1.5 bg-gradient-to-br from-[#7578EC]/10 to-[#7578EC]/5 rounded-lg">
+                <div className="p-1.5 bg-[#7578EC]/10 rounded-lg">
                   <Users className="h-4 w-4 text-[#7578EC]" />
                 </div>
                 <span className="text-sm font-bold text-black">
@@ -183,12 +183,12 @@ export function BudgetPeriodManager({ budget, currentPeriod, trigger, onSuccess 
           </div>
 
           {/* Current Period Status */}
-          <div className="liquid-glass rounded-xl p-4 border border-[#7578EC]/20">
+          <div className="bg-white rounded-xl p-4 border border-[#7578EC]/20 shadow-sm">
             <div className="flex items-center gap-2 mb-3">
-              <div className="p-1.5 bg-gradient-to-br from-[#7578EC]/10 to-[#7578EC]/5 rounded-lg">
+              <div className="p-1.5 bg-[#7578EC]/10 rounded-lg">
                 <Clock className="h-4 w-4 text-[#7578EC]" />
               </div>
-              <h3 className="text-base font-bold bg-gradient-to-r text-black bg-clip-text">
+              <h3 className="text-base font-bold text-black">
                 Periodo Corrente
               </h3>
             </div>
@@ -200,7 +200,7 @@ export function BudgetPeriodManager({ budget, currentPeriod, trigger, onSuccess 
                   <span className="text-sm font-medium text-black">
                     Iniziato il {formatDate(currentPeriod.start_date)}
                   </span>
-                  <Badge className="bg-gradient-to-r from-[#7578EC] to-[#7578EC]/90 text-white shadow-sm self-start sm:self-auto">
+                  <Badge className="bg-[#7578EC] text-white shadow-sm self-start sm:self-auto">
                     <Activity className="h-3 w-3 mr-1" />
                     In corso
                   </Badge>
@@ -208,7 +208,7 @@ export function BudgetPeriodManager({ budget, currentPeriod, trigger, onSuccess 
 
                 {/* Financial Metrics */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="bg-gradient-to-br from-[#DC2626]/5 to-[#DC2626]/10 backdrop-blur-sm rounded-lg p-3 border border-[#DC2626]/20 hover:shadow-md transition-all duration-200">
+                  <div className="bg-[#DC2626]/10 rounded-lg p-3 border border-[#DC2626]/20 hover:shadow-md transition-all duration-200">
                     <div className="flex items-center gap-1.5 mb-1">
                       <TrendingDown className="h-3 w-3 text-[#DC2626]" />
                       <p className="text-xs font-bold text-[#DC2626] uppercase tracking-wide">
@@ -219,7 +219,7 @@ export function BudgetPeriodManager({ budget, currentPeriod, trigger, onSuccess 
                       {formatCurrency(calculatePeriodTotals().totalSpent)}
                     </p>
                   </div>
-                  <div className="bg-gradient-to-br from-[#6BBEB4]/10 to-[#6BBEB4]/20 rounded-lg p-3 border border-[#6BBEB4]/30 hover:shadow-md transition-all duration-200">
+                  <div className="bg-[#6BBEB4]/15 rounded-lg p-3 border border-[#6BBEB4]/30 hover:shadow-md transition-all duration-200">
                     <div className="flex items-center gap-1.5 mb-1">
                       <TrendingUp className="h-3 w-3 text-[#6BBEB4]" />
                       <p className="text-xs font-bold text-[#6BBEB4] uppercase tracking-wide">
@@ -253,7 +253,7 @@ export function BudgetPeriodManager({ budget, currentPeriod, trigger, onSuccess 
 
                 {/* Period Totals (when end date is selected) */}
                 {endDate && currentPeriod && (
-                  <div className="space-y-3 p-3 bg-gradient-to-br from-[#7578EC]/5 to-[#7578EC]/10 rounded-lg border border-[#7578EC]/20">
+                  <div className="space-y-3 p-3 bg-[#7578EC]/8 rounded-lg border border-[#7578EC]/20">
                     <div className="flex items-center gap-2">
                       <Target className="h-4 w-4 text-[#7578EC]" />
                       <h4 className="text-sm font-bold text-black">Riepilogo Periodo</h4>
@@ -265,7 +265,7 @@ export function BudgetPeriodManager({ budget, currentPeriod, trigger, onSuccess 
                           {formatCurrency(calculatePeriodTotals().totalSpent)}
                         </p>
                       </div>
-                      <div className="text-center p-2 bg-[#6BBEB4]/10 rounded-md border border-[#6BBEB4]/20">
+                      <div className="text-center p-2 bg-[#6BBEB4]/15 rounded-md border border-[#6BBEB4]/20">
                         <p className="text-xs font-bold text-[#6BBEB4] uppercase tracking-wide mb-0.5">Risparmiato</p>
                         <p className="text-sm font-bold text-[#6BBEB4]">
                           {formatCurrency(calculatePeriodTotals().totalSaved)}
@@ -280,7 +280,7 @@ export function BudgetPeriodManager({ budget, currentPeriod, trigger, onSuccess 
                   disabled={isActionPending || !endDate}
                   size="default"
                   variant="outline"
-                  className="w-full h-10 gradient-primary text-white transition-all duration-200 hover:opacity-90 active:scale-[.98] font-semibold rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full h-10 bg-[#7578EC] hover:bg-[#7578EC]/90 text-white transition-all duration-200 active:scale-[.98] font-semibold rounded-lg shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isActionPending ? (
                     <>
@@ -298,7 +298,7 @@ export function BudgetPeriodManager({ budget, currentPeriod, trigger, onSuccess 
             ) : (
               <div className="space-y-3">
                 {/* Alert */}
-                <Alert className="border-[#7578EC]/30 bg-gradient-to-r from-[#7578EC]/10 to-[#7578EC]/5">
+                <Alert className="border-[#7578EC]/30 bg-[#7578EC]/8">
                   <AlertCircle className="h-4 w-4 text-[#7578EC]" />
                   <AlertDescription className="text-black font-medium">
                     Nessun periodo attivo. Inizia un nuovo periodo per tracciare le spese del budget.
@@ -310,7 +310,7 @@ export function BudgetPeriodManager({ budget, currentPeriod, trigger, onSuccess 
                   onClick={handleStartNewPeriod}
                   disabled={isActionPending}
                   size="default"
-                  className="w-full h-10 gradient-primary text-white transition-all duration-200 hover:opacity-90 active:scale-[.98] font-semibold rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full h-10 bg-[#7578EC] hover:bg-[#7578EC]/90 text-white transition-all duration-200 active:scale-[.98] font-semibold rounded-lg shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isActionPending ? (
                     <>

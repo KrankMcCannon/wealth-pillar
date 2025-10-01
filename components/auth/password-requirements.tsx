@@ -25,9 +25,9 @@ export function PasswordRequirements({ password }: { password: string }) {
   const { results } = getRequirementsStatus(password);
 
   return (
-    <ul className="mt-1 grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+    <ul className="grid grid-cols-2 gap-x-3 gap-y-0.5 text-xs">
       {REQUIREMENTS.map((req, i) => (
-        <li key={req.label} className="flex items-center gap-2">
+        <li key={req.label} className="flex items-center gap-1.5">
           <AnimatePresence mode="popLayout" initial={false}>
             {results[i] ? (
               <motion.span
@@ -38,7 +38,7 @@ export function PasswordRequirements({ password }: { password: string }) {
                 transition={{ type: 'spring', stiffness: 350, damping: 16 }}
                 className="inline-flex"
               >
-                <CheckCircle2 className="h-3.5 w-3.5 text-[hsl(var(--color-accent))]" />
+                <CheckCircle2 className="h-3 w-3 text-[hsl(var(--color-accent))]" />
               </motion.span>
             ) : (
               <motion.span
@@ -48,11 +48,11 @@ export function PasswordRequirements({ password }: { password: string }) {
                 exit={{ scale: 0.9, opacity: 0.8 }}
                 className="inline-flex"
               >
-                <Circle className="h-3.5 w-3.5 text-[color:var(--text-secondary)]" />
+                <Circle className="h-3 w-3 text-gray-400" />
               </motion.span>
             )}
           </AnimatePresence>
-          <span className={results[i] ? 'text-[color:var(--text-primary)]' : 'text-[color:var(--text-secondary)]'}>{req.label}</span>
+          <span className={results[i] ? 'text-gray-900 font-medium' : 'text-gray-500'}>{req.label}</span>
         </li>
       ))}
     </ul>

@@ -14,6 +14,7 @@ import {
 } from "@/lib/utils";
 import { PermissionGuard } from "@/components/permissions/permission-guard";
 import { RoleBadge } from "@/components/permissions/role-badge";
+import { PageLoader } from "@/components/page-loader";
 
 const renderAvatarIcon = (iconName: string) => {
   const iconProps = { className: "h-5 w-5" };
@@ -73,11 +74,7 @@ export default function SettingsPage() {
   }, [currentUser?.group_id]);
 
   if (usersLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
+    return <PageLoader message="Caricamento impostazioni..." />;
   }
 
   if (!currentUser) {

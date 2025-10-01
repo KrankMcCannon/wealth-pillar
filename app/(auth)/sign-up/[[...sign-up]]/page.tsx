@@ -18,12 +18,12 @@ export default function Page() {
   const { step, email, password, firstName, lastName, code, error, loading, setEmail, setPassword, setFirstName, setLastName, setCode, setStep, submitCredentials, submitVerification, resendVerificationCode, oauth } = useSignUpController();
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center bg-[hsl(var(--color-background))] py-12 px-4 sm:px-6 lg:px-8 overflow-hidden">
-      <div className="pointer-events-none absolute -top-24 -left-24 h-72 w-72 rounded-full blur-3xl opacity-30" style={{ background: 'radial-gradient(closest-side, hsl(var(--color-primary)) 0%, transparent 65%)' }} />
-      <div className="pointer-events-none absolute -bottom-24 -right-24 h-72 w-72 rounded-full blur-3xl opacity-30" style={{ background: 'radial-gradient(closest-side, hsl(var(--color-secondary)) 0%, transparent 65%)' }} />
-      <AuthCard title="Crea il tuo account" subtitle="Inizia a gestire le tue finanze con Wealth Pillar">
+    <>
+      <div className="pointer-events-none fixed -top-24 -left-24 h-72 w-72 rounded-full blur-3xl opacity-15 bg-[hsl(var(--color-primary))]" />
+      <div className="pointer-events-none fixed -bottom-24 -right-24 h-72 w-72 rounded-full blur-3xl opacity-15 bg-[hsl(var(--color-secondary))]" />
+      <AuthCard title="Crea il tuo account" subtitle="Inizia a gestire le tue finanze">
         {error && (
-          <div className="mb-4 rounded-xl bg-red-50 p-3 text-sm text-red-700 border border-red-200 shadow-sm">{error}</div>
+          <div className="mb-2 rounded-lg bg-red-50 p-2 text-xs text-red-700 border border-red-200">{error}</div>
         )}
 
         <AnimatePresence mode="wait">
@@ -31,51 +31,51 @@ export default function Page() {
           <motion.form
             key="credentials"
             onSubmit={submitCredentials}
-            className="space-y-4"
+            className="space-y-2"
             initial={{ opacity: 0, x: 24 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -24 }}
             transition={{ type: 'spring', stiffness: 260, damping: 24 }}
           >
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <Label htmlFor="firstName">Nome</Label>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1">
+                <Label htmlFor="firstName" className="text-xs font-medium text-gray-900">Nome</Label>
                 <div className="relative">
-                  <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[color:var(--text-secondary)]" />
-                  <Input id="firstName" autoComplete="given-name" placeholder="Mario" value={firstName} onChange={(e) => setFirstName(e.target.value)} className="pl-9" />
+                  <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[hsl(var(--color-primary))]/60" />
+                  <Input id="firstName" autoComplete="given-name" placeholder="Mario" value={firstName} onChange={(e) => setFirstName(e.target.value)} className="pl-9 h-9 text-sm bg-white border-[hsl(var(--color-primary))]/20 focus:border-[hsl(var(--color-primary))] focus:ring-[hsl(var(--color-primary))]/20" />
                 </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="lastName">Cognome</Label>
+              <div className="space-y-1">
+                <Label htmlFor="lastName" className="text-xs font-medium text-gray-900">Cognome</Label>
                 <div className="relative">
-                  <Input id="lastName" autoComplete="family-name" placeholder="Rossi" value={lastName} onChange={(e) => setLastName(e.target.value)} />
+                  <Input id="lastName" autoComplete="family-name" placeholder="Rossi" value={lastName} onChange={(e) => setLastName(e.target.value)} className="h-9 text-sm bg-white border-[hsl(var(--color-primary))]/20 focus:border-[hsl(var(--color-primary))] focus:ring-[hsl(var(--color-primary))]/20" />
                 </div>
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+            <div className="space-y-1">
+              <Label htmlFor="email" className="text-xs font-medium text-gray-900">Email</Label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[color:var(--text-secondary)]" />
-                <Input id="email" type="email" autoComplete="email" placeholder="name@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required className="pl-9" />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[hsl(var(--color-primary))]/60" />
+                <Input id="email" type="email" autoComplete="email" placeholder="name@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required className="pl-9 h-9 text-sm bg-white border-[hsl(var(--color-primary))]/20 focus:border-[hsl(var(--color-primary))] focus:ring-[hsl(var(--color-primary))]/20" />
               </div>
               <EmailSuggestions value={email} onSelect={setEmail} />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+            <div className="space-y-1">
+              <Label htmlFor="password" className="text-xs font-medium text-gray-900">Password</Label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[color:var(--text-secondary)]" />
-                <PasswordInput id="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required className="pl-9" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[hsl(var(--color-primary))]/60" />
+                <PasswordInput id="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required className="h-9 text-sm bg-white border-[hsl(var(--color-primary))]/20 focus:border-[hsl(var(--color-primary))] focus:ring-[hsl(var(--color-primary))]/20" />
               </div>
               <PasswordStrength password={password} />
               <PasswordRequirements password={password} />
             </div>
 
-            <Button type="submit" disabled={loading || scorePassword(password) < 3 || !getRequirementsStatus(password).meetsAll} className="w-full gradient-primary text-white transition-all duration-200 hover:opacity-90 active:scale-[.98]">
+            <Button type="submit" disabled={loading || scorePassword(password) < 3 || !getRequirementsStatus(password).meetsAll} className="w-full h-9 bg-[hsl(var(--color-primary))] hover:bg-[hsl(var(--color-primary))]/90 text-white transition-all duration-200 active:scale-[.98] shadow-md text-sm font-medium">
               {loading ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
                   Registrazione in corso
                 </>
               ) : (
@@ -83,19 +83,21 @@ export default function Page() {
               )}
             </Button>
 
-            <div className="flex items-center gap-3 py-2">
-              <div className="h-px bg-[hsl(var(--color-border))] flex-1" />
-              <span className="text-xs text-[color:var(--text-secondary)]">oppure</span>
-              <div className="h-px bg-[hsl(var(--color-border))] flex-1" />
+            <div className="flex items-center gap-3 py-1">
+              <div className="h-px bg-[hsl(var(--color-primary))]/20 flex-1" />
+              <span className="text-xs text-gray-500 font-medium">oppure</span>
+              <div className="h-px bg-[hsl(var(--color-primary))]/20 flex-1" />
             </div>
 
-            <GoogleButton onClick={oauth.google} className="w-full transition-all duration-200 hover:opacity-90 active:scale-[.98]" />
-            <AppleButton onClick={oauth.apple} className="w-full transition-all duration-200 hover:opacity-90 active:scale-[.98]" />
-            <GitHubButton onClick={oauth.github} className="w-full transition-all duration-200 hover:opacity-90 active:scale-[.98]" />
+            <div className="space-y-1.5">
+              <GoogleButton onClick={oauth.google} className="w-full h-9 transition-all duration-200 hover:opacity-95 active:scale-[.98] text-sm" />
+              <AppleButton onClick={oauth.apple} className="w-full h-9 transition-all duration-200 hover:opacity-95 active:scale-[.98] text-sm" />
+              <GitHubButton onClick={oauth.github} className="w-full h-9 transition-all duration-200 hover:opacity-95 active:scale-[.98] text-sm" />
+            </div>
 
-            <div className="text-center text-sm text-[color:var(--text-secondary)]">
+            <div className="text-center text-xs text-gray-600 pt-1">
               Hai già un account?{' '}
-              <Link className="text-[hsl(var(--color-primary))] hover:underline" href="/sign-in">
+              <Link className="text-[hsl(var(--color-primary))] hover:text-[hsl(var(--color-primary))]/80 font-semibold" href="/sign-in">
                 Accedi
               </Link>
             </div>
@@ -106,23 +108,23 @@ export default function Page() {
           <motion.form
             key="verify"
             onSubmit={submitVerification}
-            className="space-y-4"
+            className="space-y-3"
             initial={{ opacity: 0, x: 24 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -24 }}
             transition={{ type: 'spring', stiffness: 260, damping: 24 }}
           >
-            <p className="text-sm text-[color:var(--text-secondary)]">Abbiamo inviato un codice a {email}. Inseriscilo per completare la registrazione.</p>
+            <p className="text-xs text-gray-600">Abbiamo inviato un codice a {email}. Inseriscilo per completare la registrazione.</p>
 
-            <div className="space-y-2">
-              <Label htmlFor="code">Codice di verifica</Label>
-              <Input id="code" value={code} onChange={(e) => setCode(e.target.value)} placeholder="123456" />
+            <div className="space-y-1">
+              <Label htmlFor="code" className="text-xs font-medium text-gray-900">Codice di verifica</Label>
+              <Input id="code" value={code} onChange={(e) => setCode(e.target.value)} placeholder="123456" className="h-9 text-sm bg-white border-[hsl(var(--color-primary))]/20 focus:border-[hsl(var(--color-primary))] focus:ring-[hsl(var(--color-primary))]/20" />
             </div>
 
-            <Button type="submit" disabled={loading} className="w-full gradient-primary text-white transition-all duration-200 hover:opacity-90 active:scale-[.98]">
+            <Button type="submit" disabled={loading} className="w-full h-9 bg-[hsl(var(--color-primary))] hover:bg-[hsl(var(--color-primary))]/90 text-white transition-all duration-200 active:scale-[.98] shadow-md text-sm font-medium">
               {loading ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
                   Verifica in corso
                 </>
               ) : (
@@ -130,11 +132,11 @@ export default function Page() {
               )}
             </Button>
 
-            <div className="flex items-center justify-between text-sm text-[color:var(--text-secondary)]">
-              <button type="button" className="text-[hsl(var(--color-primary))] hover:underline" onClick={() => setStep('credentials')}>
+            <div className="flex items-center justify-between text-xs text-gray-600">
+              <button type="button" className="text-[hsl(var(--color-primary))] hover:text-[hsl(var(--color-primary))]/80 font-medium" onClick={() => setStep('credentials')}>
                 Torna indietro
               </button>
-              <button type="button" className="text-[hsl(var(--color-primary))] hover:underline" onClick={resendVerificationCode}>
+              <button type="button" className="text-[hsl(var(--color-primary))] hover:text-[hsl(var(--color-primary))]/80 font-medium" onClick={resendVerificationCode}>
                 Reinvia codice
               </button>
             </div>
@@ -142,6 +144,6 @@ export default function Page() {
         )}
         </AnimatePresence>
       </AuthCard>
-    </div>
+    </>
   );
 }

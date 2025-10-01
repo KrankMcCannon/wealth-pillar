@@ -7,6 +7,7 @@ import { Calendar, PieChart, Target, Clock } from "lucide-react";
 import { useMemo } from "react";
 import { useTransactions, useUserSelection } from "@/hooks";
 import { formatCurrency } from "@/lib/utils";
+import { PageLoader } from "@/components/page-loader";
 
 export default function ReportsPage() {
   const { data: transactions = [], isLoading: transactionsLoading } = useTransactions();
@@ -98,14 +99,9 @@ export default function ReportsPage() {
     };
   }, [currentUser, transactions, selectedViewUserId]);
 
-  const isLoading = userSelectionLoading || transactionsLoading;
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#7578EC]"></div>
-      </div>
-    );
+  // Show loader if any data is loading
+  if (userSelectionLoading || transactionsLoading) {
+    return <PageLoader message="Caricamento report..." />;
   }
 
   return (

@@ -4,14 +4,13 @@ import {
   CategoryIcon,
   iconSizes
 } from '@/lib/icons';
-import { ArrowLeft, MoreVertical, TrendingUp, ShoppingCart } from "lucide-react";
+import { ArrowLeft, MoreVertical, ShoppingCart } from "lucide-react";
 import { useState, Suspense, useMemo, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import BottomNavigation from "@/components/bottom-navigation";
 import UserSelector from "@/components/user-selector";
 import { SectionHeader } from "@/components/section-header";
@@ -33,6 +32,7 @@ import {
   getActivePeriodDates,
   calculateUserFinancialTotals
 } from "@/lib/utils";
+import { PageLoader } from "@/components/page-loader";
 
 const getBudgetsForUser = (budgets: Budget[], userId: string, currentUser: { id: string; role: string; group_id: string } | null, users: { id: string; group_id: string }[]): Budget[] => {
   if (userId === 'all' && (currentUser?.role === 'admin' || currentUser?.role === 'superadmin')) {
@@ -51,7 +51,6 @@ const getBudgetsForUser = (budgets: Budget[], userId: string, currentUser: { id:
   // Specific user selected
   return budgets.filter(budget => budget.user_id === userId);
 };
-
 
 function BudgetsContent() {
   const router = useRouter();
@@ -74,7 +73,6 @@ function BudgetsContent() {
   } = useUserSelection();
   const [userMap, setUserMap] = useState<{ [key: string]: string }>({});
   const { data: categories = [] } = useCategories();
-  const [activeTab, setActiveTab] = useState('expenses');
 
   const { data: allBudgetPeriods = [], isLoading: periodLoading } = useBudgetPeriods();
 
@@ -268,26 +266,6 @@ function BudgetsContent() {
     return category?.color || '#6b7280';
   }, [categories]);
 
-  const getCategoryIcon = useCallback((categoryKey: string): React.ReactElement => {
-    return (
-      <CategoryIcon
-        categoryKey={categoryKey}
-        size={iconSizes.xs}
-        className="text-slate-600"
-      />
-    );
-  }, []);
-
-  const getIncomeIcon = useCallback((categoryKey: string): React.ReactElement => {
-    return (
-      <CategoryIcon
-        categoryKey={categoryKey}
-        size={iconSizes.sm}
-        className="text-emerald-600"
-      />
-    );
-  }, []);
-
   const unifiedChartData = useMemo(() => {
     if (!selectedBudget) {
       return {
@@ -303,65 +281,24 @@ function BudgetsContent() {
       };
     }
 
-    switch (activeTab) {
-      case 'expenses':
-        const expenseColors: { [key: string]: string } = {};
-        chartData.categories.forEach(category => {
-          expenseColors[category] = getCategoryColor(category);
-        });
-        return {
-          data: chartData.dailyExpenses,
-          dataKeys: chartData.categories,
-          total: chartData.expense.reduce((sum: number, val: number) => sum + val, 0),
-          title: 'Uscite per Categoria',
-          icon: <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5 text-white drop-shadow-sm" />,
-          colors: expenseColors,
-          emptyMessage: 'Nessuna spesa per questo giorno',
-          legendBorder: 'border-red-100',
-          gradientColors: 'from-rose-500 to-rose-600',
-          iconBg: 'from-rose-500 to-rose-600',
-          iconShadow: 'shadow-rose-200/50'
-        };
-      case 'income':
-        const incomeColors: { [key: string]: string } = {};
-        chartData.incomeTypes.forEach((type, index) => {
-          const colors = ['#16a34a', '#22c55e', '#4ade80'];
-          incomeColors[type] = colors[index % colors.length] || '#16a34a';
-        });
-        return {
-          data: chartData.dailyIncome,
-          dataKeys: chartData.incomeTypes,
-          total: chartData.income.reduce((sum: number, val: number) => sum + val, 0),
-          title: 'Entrate per Tipo',
-          icon: <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-white" />,
-          colors: incomeColors,
-          emptyMessage: 'Nessuna entrata per questo giorno',
-          legendBorder: 'border-green-100',
-          gradientColors: 'from-emerald-500 to-emerald-600',
-          iconBg: 'from-emerald-500 to-emerald-600',
-          iconShadow: 'shadow-emerald-200/50'
-        };
-      default:
-        const defaultIncomeColors: { [key: string]: string } = {};
-        chartData.incomeTypes.forEach((type, index) => {
-          const colors = ['#16a34a', '#22c55e', '#4ade80'];
-          defaultIncomeColors[type] = colors[index % colors.length] || '#16a34a';
-        });
-        return {
-          data: chartData.dailyIncome,
-          dataKeys: chartData.incomeTypes,
-          total: chartData.income.reduce((sum: number, val: number) => sum + val, 0),
-          title: 'Entrate per Tipo',
-          icon: <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-white" />,
-          colors: defaultIncomeColors,
-          emptyMessage: 'Nessuna entrata per questo giorno',
-          legendBorder: 'border-green-100',
-          gradientColors: 'from-emerald-500 to-emerald-600',
-          iconBg: 'from-emerald-500 to-emerald-600',
-          iconShadow: 'shadow-emerald-200/50'
-        };
-    }
-  }, [activeTab, chartData, selectedBudget, getCategoryColor]);
+    const expenseColors: { [key: string]: string } = {};
+    chartData.categories.forEach(category => {
+      expenseColors[category] = getCategoryColor(category);
+    });
+    return {
+      data: chartData.dailyExpenses,
+      dataKeys: chartData.categories,
+      total: chartData.expense.reduce((sum: number, val: number) => sum + val, 0),
+      title: 'Uscite per Categoria',
+      icon: <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5 text-white drop-shadow-sm" />,
+      colors: expenseColors,
+      emptyMessage: 'Nessuna spesa per questo giorno',
+      legendBorder: 'border-red-100',
+      gradientColors: 'from-rose-500 to-rose-600',
+      iconBg: 'from-rose-500 to-rose-600',
+      iconShadow: 'shadow-rose-200/50'
+    };
+  }, [chartData, selectedBudget, getCategoryColor]);
 
   const budgetTransactions = useMemo(() => {
     if (!selectedBudget) return [];
@@ -462,6 +399,10 @@ function BudgetsContent() {
     }
   }, [availableBudgets]);
 
+  // Show loader if any data is loading
+  if (budgetsLoading || txLoading || userSelectionLoading || periodLoading) {
+    return <PageLoader message="Caricamento budget..." />;
+  }
 
   return (
     <div className="relative flex size-full min-h-[100dvh] flex-col bg-gradient-to-br from-slate-50 via-white to-slate-100" style={{ fontFamily: '"Inter", "SF Pro Display", system-ui, sans-serif' }}>
@@ -748,53 +689,64 @@ function BudgetsContent() {
             {/* Expense Chart - Only show when transaction data is loaded */}
             {!txLoading && (
             <section>
-              <Card className="p-4 sm:p-5 bg-white/90 backdrop-blur-sm shadow-lg shadow-slate-200/40 rounded-xl sm:rounded-2xl border border-slate-200/50">
-                <div className="space-y-4">
-                    {/* Header */}
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
-                      <div className="flex items-center gap-3">
-                        <div className={`p-2.5 bg-gradient-to-br ${unifiedChartData.iconBg} rounded-xl shadow-md ${unifiedChartData.iconShadow}`}>
-                          {unifiedChartData.icon}
-                        </div>
-                        <div>
-                          <h3 className="text-base font-bold text-slate-900">{unifiedChartData.title}</h3>
-                          <p className="text-xs text-slate-500 font-medium">Ultimi 30 giorni</p>
-                        </div>
-                      </div>
-                      <div className="text-left sm:text-right">
-                        <p className={`text-xl sm:text-2xl font-bold bg-gradient-to-r ${unifiedChartData.gradientColors} bg-clip-text text-transparent`}>
+              <Card className="p-0 bg-white shadow-sm rounded-2xl border border-slate-100 overflow-hidden">
+                    {/* Header with amount and comparison */}
+                    <div className="px-6 pt-5 pb-2 flex items-start justify-between">
+                      <div>
+                        <p className="text-xs text-slate-600 mb-1">Hai speso</p>
+                        <p className="text-2xl font-bold text-slate-900">
                           {formatCurrency(unifiedChartData.total)}
                         </p>
-                        {selectedBudget && (
-                          <p className="text-xs text-slate-500 font-medium mt-1">
-                            {((unifiedChartData.total / selectedBudget.amount) * 100).toFixed(1)}% del budget
-                          </p>
-                        )}
                       </div>
+                      {(() => {
+                        // Calculate previous period comparison
+                        const currentPeriod = getCurrentPeriodForUser(selectedBudget.user_id);
+                        if (!currentPeriod?.start_date) return null;
+
+                        const currentStart = new Date(currentPeriod.start_date);
+                        const previousStart = new Date(currentStart);
+                        previousStart.setDate(previousStart.getDate() - 30);
+                        const previousEnd = new Date(currentStart);
+                        previousEnd.setDate(previousEnd.getDate() - 1);
+
+                        // Filter previous transactions - always use the budget's user
+                        const previousTransactions = allTransactions.filter(t => {
+                          const txDate = new Date(t.date);
+                          return t.type === 'expense' &&
+                                 selectedBudget.categories.includes(t.category) &&
+                                 t.user_id === selectedBudget.user_id &&
+                                 txDate >= previousStart && txDate <= previousEnd;
+                        });
+
+                        const previousTotal = previousTransactions.reduce((sum, t) => sum + t.amount, 0);
+                        const difference = unifiedChartData.total - previousTotal;
+                        const isHigher = difference > 0;
+
+                        if (previousTotal === 0) return null;
+
+                        return (
+                          <div className={`px-3 py-1.5 rounded-lg ${isHigher ? 'bg-red-50' : 'bg-green-50'}`}>
+                            <p className={`text-sm font-semibold ${isHigher ? 'text-red-600' : 'text-green-600'}`}>
+                              {isHigher ? '+' : ''}{formatCurrency(difference)}
+                            </p>
+                          </div>
+                        );
+                      })()}
                     </div>
 
-                    {/* Line Chart */}
-                    <div className="relative h-48 sm:h-56 bg-gradient-to-b from-gray-50 to-white rounded-xl p-4 pl-12">
-                      {/* Y-axis labels */}
-                      <div className="absolute left-0 top-4 bottom-4 flex flex-col-reverse justify-between text-[10px] text-slate-500 font-medium pr-2">
-                        {[0, 25, 50, 75, 100].map((percent) => (
-                          <div key={percent} className="leading-none">
-                            {percent}%
-                          </div>
-                        ))}
-                      </div>
-                      <svg className="w-full h-full" viewBox="0 0 350 200" preserveAspectRatio="none">
-                        {/* Grid lines */}
-                        {[0, 25, 50, 75, 100].map((percent) => (
+                    {/* Revolut-style Line Chart */}
+                    <div className="relative h-48 bg-white px-6 pb-8">
+                      <svg className="w-full h-full" viewBox="0 0 350 180" preserveAspectRatio="none">
+                        {/* Subtle horizontal grid lines */}
+                        {[25, 50, 75].map((percent) => (
                           <line
                             key={percent}
                             x1="0"
-                            y1={200 - (percent * 2)}
+                            y1={180 - (percent * 1.8)}
                             x2="350"
-                            y2={200 - (percent * 2)}
-                            stroke="#e5e7eb"
+                            y2={180 - (percent * 1.8)}
+                            stroke="#f1f5f9"
                             strokeWidth="1"
-                            opacity="0.5"
                           />
                         ))}
 
@@ -823,75 +775,110 @@ function BudgetsContent() {
                             return { day, cumulative: cumulativeTotal, date: dateForIndex, isFuture: dateForIndex > todayNormalized };
                           });
 
-                          // Filter to only include days up to today for the line
-                          const dataUpToToday = cumulativeData.filter(d => !d.isFuture);
-
                           // Use budget amount as the max (100%)
                           const maxAmount = selectedBudget?.amount || 1;
 
-                          const points = dataUpToToday.map((data, index: number) => {
-                            const percentage = (data.cumulative / maxAmount) * 100;
-                            const cappedPercentage = Math.min(percentage, 100); // Cap at 100%
-                            const originalIndex = cumulativeData.indexOf(data);
-                            const x = (originalIndex / (cumulativeData.length - 1)) * 350;
-                            const y = 200 - ((cappedPercentage / 100) * 180);
-                            return `${x},${y}`;
-                          }).join(' ');
-
-                          const pathD = dataUpToToday.map((data, index: number) => {
+                          // Create smooth curve path using cubic bezier - start from day 1
+                          const points = cumulativeData.map((data, index: number) => {
                             const percentage = (data.cumulative / maxAmount) * 100;
                             const cappedPercentage = Math.min(percentage, 100);
-                            const originalIndex = cumulativeData.indexOf(data);
-                            const x = (originalIndex / (cumulativeData.length - 1)) * 350;
-                            const y = 200 - ((cappedPercentage / 100) * 180);
-                            return index === 0 ? `M ${x} ${y}` : `L ${x} ${y}`;
+                            const x = (index / 29) * 350; // 30 days (0-29)
+                            const y = 180 - ((cappedPercentage / 100) * 170);
+                            return { x, y, isFuture: data.isFuture };
+                          });
+
+                          // Only draw line up to today
+                          const pointsUpToToday = points.filter(p => !p.isFuture);
+
+                          // Create smooth path with cubic bezier curves - only up to today
+                          const pathD = pointsUpToToday.map((point, index) => {
+                            if (index === 0) return `M ${point.x} ${point.y}`;
+
+                            const prevPoint = pointsUpToToday[index - 1];
+                            const controlX1 = prevPoint.x + (point.x - prevPoint.x) / 3;
+                            const controlY1 = prevPoint.y;
+                            const controlX2 = prevPoint.x + (point.x - prevPoint.x) * 2 / 3;
+                            const controlY2 = point.y;
+
+                            return `C ${controlX1} ${controlY1}, ${controlX2} ${controlY2}, ${point.x} ${point.y}`;
                           }).join(' ');
 
-                          // Get the last point's X coordinate to close the gradient properly
-                          const lastDataIndex = dataUpToToday.length > 0 ? cumulativeData.indexOf(dataUpToToday[dataUpToToday.length - 1]) : 0;
-                          const lastX = (lastDataIndex / (cumulativeData.length - 1)) * 350;
+                          const lastPoint = pointsUpToToday[pointsUpToToday.length - 1];
 
                           return (
                             <>
-                              {/* Gradient fill under line */}
+                              {/* Subtle gradient fill under line */}
                               <defs>
                                 <linearGradient id="lineGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                                  <stop offset="0%" style={{ stopColor: '#7578EC', stopOpacity: 0.3 }} />
+                                  <stop offset="0%" style={{ stopColor: '#7578EC', stopOpacity: 0.08 }} />
                                   <stop offset="100%" style={{ stopColor: '#7578EC', stopOpacity: 0 }} />
                                 </linearGradient>
                               </defs>
                               <path
-                                d={`${pathD} L ${lastX} 200 L 0 200 Z`}
+                                d={`${pathD} L ${lastPoint.x} 180 L 0 180 Z`}
                                 fill="url(#lineGradient)"
                               />
 
-                              {/* Main line with sharp angles */}
-                              <polyline
-                                points={points}
+                              {/* Main smooth line */}
+                              <path
+                                d={pathD}
                                 fill="none"
                                 stroke="#7578EC"
-                                strokeWidth="3"
-                                strokeLinecap="butt"
-                                strokeLinejoin="miter"
+                                strokeWidth="2.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+
+                              {/* Dot at the end of line */}
+                              <circle
+                                cx={lastPoint.x}
+                                cy={lastPoint.y}
+                                r="4"
+                                fill="#7578EC"
                               />
                             </>
                           );
                         })()}
                       </svg>
 
-                      {/* X-axis labels - Show only every 3rd day */}
-                      <div className="flex justify-between mt-2 px-1">
-                        {unifiedChartData.data.map((dayData: { [key: string]: number | string }, index: number) => {
-                          const showLabel = index === 0 || index === unifiedChartData.data.length - 1 || index % 3 === 0;
-                          return (
-                            <span key={index} className={`text-xs font-semibold ${showLabel ? 'text-slate-600' : 'text-transparent'}`}>
-                              {showLabel ? dayData.day as string : '·'}
-                            </span>
-                          );
-                        })}
+                      {/* Day numbers at bottom */}
+                      <div className="relative px-1 mt-2 pb-2">
+                        <div className="flex justify-between" style={{ width: '100%' }}>
+                          {(() => {
+                            const currentPeriod = getCurrentPeriodForUser(selectedBudget.user_id);
+                            const startDate = currentPeriod?.start_date
+                              ? new Date(currentPeriod.start_date)
+                              : new Date(new Date().getTime() - 29 * 24 * 60 * 60 * 1000);
+                            startDate.setHours(0, 0, 0, 0);
+
+                            // Show actual day of month for every 5 days with equal spacing + last day
+                            return Array.from({ length: 30 }).map((_, index) => {
+                              const currentDate = new Date(startDate);
+                              currentDate.setDate(startDate.getDate() + index);
+                              const dayOfMonth = currentDate.getDate();
+                              // Show day 0, 5, 10, 15, 20, 25 (every 5 days from start) and always show last day (29)
+                              const showDay = index % 5 === 0 || index === 29;
+                              // Calculate exact position based on index
+                              const position = (index / 29) * 100;
+
+                              return (
+                                <span
+                                  key={index}
+                                  className={`text-xs font-medium tabular-nums absolute ${showDay ? 'text-slate-600' : 'text-transparent'}`}
+                                  style={{
+                                    left: `${position}%`,
+                                    transform: 'translateX(-50%)',
+                                    fontVariantNumeric: 'tabular-nums'
+                                  }}
+                                >
+                                  {dayOfMonth}
+                                </span>
+                              );
+                            });
+                          })()}
+                        </div>
                       </div>
                     </div>
-                </div>
               </Card>
             </section>
             )}

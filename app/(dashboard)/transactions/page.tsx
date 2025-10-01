@@ -29,6 +29,7 @@ import {
   pluralize
 } from "@/lib/utils";
 import type { User, Transaction } from "@/lib/types";
+import { PageLoader } from "@/components/page-loader";
 
 function TransactionsContent() {
   const router = useRouter();
@@ -206,13 +207,13 @@ function TransactionsContent() {
     }
   };
 
+  // Show loader if any data is loading
+  if (txLoading || userSelectionLoading || categoriesLoading || accountsLoading) {
+    return <PageLoader message="Caricamento transazioni..." />;
+  }
+
   return (
     <div className="relative flex size-full min-h-[100dvh] flex-col bg-gradient-to-br from-slate-50 via-white to-slate-100" style={{ fontFamily: '"Inter", "SF Pro Display", system-ui, sans-serif' }}>
-      {txLoading || userSelectionLoading || categoriesLoading || accountsLoading ? (
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        </div>
-      ) : (
         <>
           {/* Header */}
           <header className="sticky top-0 z-20 bg-white/70 backdrop-blur-xl border-b border-slate-200/50 px-3 sm:px-4 py-2 sm:py-3 shadow-sm">
@@ -422,7 +423,6 @@ function TransactionsContent() {
             mode={recurringFormMode}
           />
         </>
-      )}
     </div>
   );
 }

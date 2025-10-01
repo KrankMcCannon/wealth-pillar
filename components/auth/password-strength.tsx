@@ -29,13 +29,13 @@ export function PasswordStrength({ password }: PasswordStrengthProps) {
   ];
 
   return (
-    <div className="space-y-1.5">
+    <div className="space-y-1">
       <div className="grid grid-cols-4 gap-1">
         {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className={cn('h-1.5 rounded-full bg-[hsl(var(--color-border))]', i < score ? colors[Math.max(0, score - 1)] : undefined)} />
+          <div key={i} className={cn('h-1 rounded-full bg-[hsl(var(--color-border))]', i < score ? colors[Math.max(0, score - 1)] : undefined)} />
         ))}
       </div>
-      <div className="text-xs text-[color:var(--text-secondary)]">Sicurezza password: <span className="font-medium">{labels[score]}</span></div>
+      <div className="text-xs text-gray-600">Sicurezza: <span className="font-semibold text-gray-900">{labels[score]}</span></div>
     </div>
   );
 }

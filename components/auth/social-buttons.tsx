@@ -11,7 +11,11 @@ type Props = {
 
 export function GoogleButton({ onClick, children = 'Continua con Google', className }: Props) {
   return (
-    <Button type="button" variant="outline" onClick={onClick} className={className}>
+    <Button
+      type="button"
+      onClick={onClick}
+      className={`bg-white hover:bg-[hsl(var(--color-primary))]/5 text-gray-900 border border-[hsl(var(--color-primary))]/20 hover:border-[hsl(var(--color-primary))]/40 transition-all shadow-sm ${className}`}
+    >
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" className="h-4 w-4 mr-2">
         <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303C33.602,32.657,29.166,36,24,36c-6.627,0-12-5.373-12-12 s5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.201,6.053,29.326,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"/>
         <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,16.108,18.961,14,24,14c3.059,0,5.842,1.154,7.961,3.039 l5.657-5.657C34.201,6.053,29.326,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"/>
@@ -25,8 +29,12 @@ export function GoogleButton({ onClick, children = 'Continua con Google', classN
 
 export function AppleButton({ onClick, children = 'Continua con Apple', className }: Props) {
   return (
-    <Button type="button" variant="outline" onClick={onClick} className={className}>
-      <Apple className="h-4 w-4 mr-2" />
+    <Button
+      type="button"
+      onClick={onClick}
+      className={`bg-white hover:bg-[hsl(var(--color-secondary))]/5 text-gray-900 border border-[hsl(var(--color-secondary))]/20 hover:border-[hsl(var(--color-secondary))]/40 transition-all shadow-sm ${className}`}
+    >
+      <Apple className="h-4 w-4 mr-2 text-[hsl(var(--color-secondary))]" />
       {children}
     </Button>
   );
@@ -34,8 +42,12 @@ export function AppleButton({ onClick, children = 'Continua con Apple', classNam
 
 export function GitHubButton({ onClick, children = 'Continua con GitHub', className }: Props) {
   return (
-    <Button type="button" variant="outline" onClick={onClick} className={className}>
-      <Github className="h-4 w-4 mr-2" />
+    <Button
+      type="button"
+      onClick={onClick}
+      className={`bg-white hover:bg-[hsl(var(--color-accent))]/5 text-gray-900 border border-[hsl(var(--color-accent))]/20 hover:border-[hsl(var(--color-accent))]/40 transition-all shadow-sm ${className}`}
+    >
+      <Github className="h-4 w-4 mr-2 text-[hsl(var(--color-accent))]" />
       {children}
     </Button>
   );

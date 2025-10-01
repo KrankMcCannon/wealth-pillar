@@ -14,71 +14,73 @@ export default function Page() {
   const { email, password, error, loading, setEmail, setPassword, handleSubmit, oauth } = useSignInController();
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center bg-[hsl(var(--color-background))] py-12 px-4 sm:px-6 lg:px-8 overflow-hidden">
-      <div className="pointer-events-none absolute -top-24 -left-24 h-72 w-72 rounded-full blur-3xl opacity-30" style={{ background: 'radial-gradient(closest-side, hsl(var(--color-primary)) 0%, transparent 65%)' }} />
-      <div className="pointer-events-none absolute -bottom-24 -right-24 h-72 w-72 rounded-full blur-3xl opacity-30" style={{ background: 'radial-gradient(closest-side, hsl(var(--color-secondary)) 0%, transparent 65%)' }} />
-      <AuthCard title="Accedi al tuo account" subtitle="Gestisci le tue finanze con Wealth Pillar">
+    <>
+      <div className="pointer-events-none fixed -top-24 -left-24 h-72 w-72 rounded-full blur-3xl opacity-15 bg-[hsl(var(--color-primary))]" />
+      <div className="pointer-events-none fixed -bottom-24 -right-24 h-72 w-72 rounded-full blur-3xl opacity-15 bg-[hsl(var(--color-secondary))]" />
+      <AuthCard title="Accedi al tuo account" subtitle="Gestisci le tue finanze">
         {error && (
-          <div className="mb-4 rounded-xl bg-red-50 p-3 text-sm text-red-700 border border-red-200 shadow-sm">{error}</div>
+          <div className="mb-2 rounded-lg bg-red-50 p-2 text-xs text-red-700 border border-red-200">{error}</div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-2">
 
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+          <div className="space-y-1">
+            <Label htmlFor="email" className="text-xs font-medium text-gray-900">Email</Label>
             <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[color:var(--text-secondary)]" />
-              <Input id="email" type="email" placeholder="name@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required className="pl-9" />
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[hsl(var(--color-primary))]/60" />
+              <Input id="email" type="email" placeholder="name@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required className="pl-9 h-9 text-sm bg-white border-[hsl(var(--color-primary))]/20 focus:border-[hsl(var(--color-primary))] focus:ring-[hsl(var(--color-primary))]/20" />
             </div>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+          <div className="space-y-1">
+            <Label htmlFor="password" className="text-xs font-medium text-gray-900">Password</Label>
             <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[color:var(--text-secondary)]" />
-              <PasswordInput id="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required className="pl-9" />
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[hsl(var(--color-primary))]/60" />
+              <PasswordInput id="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required className="h-9 text-sm bg-white border-[hsl(var(--color-primary))]/20 focus:border-[hsl(var(--color-primary))] focus:ring-[hsl(var(--color-primary))]/20" />
             </div>
           </div>
 
-          <div className="flex items-center justify-between py-1">
-            <label className="inline-flex items-center gap-2 text-xs text-[color:var(--text-secondary)] cursor-pointer select-none">
-              <input type="checkbox" className="size-4 rounded border-[hsl(var(--color-border))] align-middle" />
+          <div className="flex items-center justify-between">
+            <label className="inline-flex items-center gap-1.5 text-xs text-gray-600 cursor-pointer select-none">
+              <input type="checkbox" className="size-3 rounded border-[hsl(var(--color-primary))]/30 text-[hsl(var(--color-primary))] focus:ring-[hsl(var(--color-primary))]/20 align-middle" />
               Ricordami
             </label>
-            <Link href="/forgot-password" className="text-xs text-[hsl(var(--color-primary))] hover:underline">Password dimenticata?</Link>
+            <Link href="/forgot-password" className="text-xs text-[hsl(var(--color-primary))] hover:text-[hsl(var(--color-primary))]/80 font-medium">Password dimenticata?</Link>
           </div>
 
-          <Button type="submit" disabled={loading} className="w-full gradient-primary text-white transition-all duration-200 hover:opacity-90 active:scale-[.98]">
+          <Button type="submit" disabled={loading} className="w-full h-9 bg-[hsl(var(--color-primary))] hover:bg-[hsl(var(--color-primary))]/90 text-white transition-all duration-200 active:scale-[.98] shadow-md text-sm font-medium">
             {loading ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
                 Accesso in corso
               </>
             ) : (
               <>
-                <LogIn className="mr-2 h-4 w-4" />
+                <LogIn className="mr-2 h-3.5 w-3.5" />
                 Accedi
               </>
             )}
           </Button>
 
-          <div className="flex items-center gap-3 py-2">
-            <div className="h-px bg-[hsl(var(--color-border))] flex-1" />
-            <span className="text-xs text-[color:var(--text-secondary)]">oppure</span>
-            <div className="h-px bg-[hsl(var(--color-border))] flex-1" />
+          <div className="flex items-center gap-3 py-1">
+            <div className="h-px bg-[hsl(var(--color-primary))]/20 flex-1" />
+            <span className="text-xs text-gray-500 font-medium">oppure</span>
+            <div className="h-px bg-[hsl(var(--color-primary))]/20 flex-1" />
           </div>
 
-          <GoogleButton onClick={oauth.google} className="w-full transition-all duration-200 hover:opacity-90 active:scale-[.98]" />
-          <AppleButton onClick={oauth.apple} className="w-full transition-all duration-200 hover:opacity-90 active:scale-[.98]" />
-          <GitHubButton onClick={oauth.github} className="w-full transition-all duration-200 hover:opacity-90 active:scale-[.98]" />
+          <div className="space-y-1.5">
+            <GoogleButton onClick={oauth.google} className="w-full h-9 transition-all duration-200 hover:opacity-95 active:scale-[.98] text-sm" />
+            <AppleButton onClick={oauth.apple} className="w-full h-9 transition-all duration-200 hover:opacity-95 active:scale-[.98] text-sm" />
+            <GitHubButton onClick={oauth.github} className="w-full h-9 transition-all duration-200 hover:opacity-95 active:scale-[.98] text-sm" />
+          </div>
 
-          <div className="text-center text-sm text-[color:var(--text-secondary)]">
+          <div className="text-center text-xs text-gray-600 pt-1">
             Non hai un account?{' '}
-            <Link className="text-[hsl(var(--color-primary))] hover:underline" href="/sign-up">
+            <Link className="text-[hsl(var(--color-primary))] hover:text-[hsl(var(--color-primary))]/80 font-semibold" href="/sign-up">
               Registrati
             </Link>
           </div>
         </form>
       </AuthCard>
-    </div>
+    </>
   );
 }

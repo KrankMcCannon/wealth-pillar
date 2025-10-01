@@ -13,6 +13,7 @@ import { useDashboardBudgets } from "@/hooks/useDashboardBudgets";
 import { useUserSelection } from "@/hooks/useUserSelection";
 import { useDashboardPrefetch } from "@/hooks/useDashboardPrefetch";
 import type { RecurringTransactionSeries } from "@/lib/types";
+import { PageLoader } from "@/components/page-loader";
 
 // Lazy load heavy components
 const UserSelector = lazy(() => import("@/components/user-selector"));
@@ -108,10 +109,15 @@ export default function DashboardPage() {
     prefetchNext(userId);
   }, [selectedViewUserId, updateViewUserId, updateUserCache, hasCoreData, prefetchNext]);
 
-  // Enhanced loading states - progressive loading
-  const showInitialLoading = userSelectionLoading || coreLoading.isInitialLoading;
+  // Enhanced loading states - show loader until all critical data is ready
+  const showInitialLoading = userSelectionLoading || coreLoading.isInitialLoading || budgetsLoading;
   const showPartialContent = !showInitialLoading && hasCoreData;
   const isFullyLoaded = coreLoading.isFullyLoaded && !budgetsLoading;
+
+  // Show full page loader during initial load
+  if (showInitialLoading) {
+    return <PageLoader message="Caricamento dashboard..." />;
+  }
 
   // Critical error handling (blocks entire dashboard)
   if (coreErrors.criticalError) {
@@ -200,60 +206,54 @@ export default function DashboardPage() {
           </header>
         </Suspense>
 
-        {/* User Selector - Progressive Loading */}
+        {/* User Selector */}
         <Suspense fallback={<UserSelectorSkeleton />}>
           <UserSelector
             users={users}
             currentUser={currentUser}
             selectedGroupFilter={selectedViewUserId}
             onGroupFilterChange={handleUserChange}
-            isLoading={userSelectionLoading}
+            isLoading={false}
           />
         </Suspense>
 
         <main className="pb-16">
-          {/* Balance Section - High Priority */}
+          {/* Balance Section */}
           <Suspense fallback={<BalanceSectionSkeleton />}>
-            {showPartialContent && (
-              <BalanceSection
-                accounts={accounts}
-                accountBalances={accountBalances}
-                totalBalance={totalBalance}
-                onAccountClick={handleAccountClick}
-                isLoading={coreLoading.accounts}
-              />
-            )}
+            <BalanceSection
+              accounts={accounts}
+              accountBalances={accountBalances}
+              totalBalance={totalBalance}
+              onAccountClick={handleAccountClick}
+              isLoading={false}
+            />
           </Suspense>
 
           <div className="h-px bg-gray-200 mx-4"></div>
 
-          {/* Budget Section - Secondary Priority */}
+          {/* Budget Section */}
           <div className="bg-[#F8FAFC]">
             <Suspense fallback={<BudgetSectionSkeleton />}>
-              {showPartialContent && (
-                <BudgetSection
-                  budgetsByUser={budgetsByUser}
-                  budgets={budgets}
-                  selectedViewUserId={selectedViewUserId}
-                  isLoading={budgetsLoading || !hasBudgetData}
-                />
-              )}
+              <BudgetSection
+                budgetsByUser={budgetsByUser}
+                budgets={budgets}
+                selectedViewUserId={selectedViewUserId}
+                isLoading={false}
+              />
             </Suspense>
           </div>
 
-          {/* Recurring Series Section - Lower Priority */}
+          {/* Recurring Series Section */}
           <Suspense fallback={<RecurringSeriesSkeleton />}>
-            {isFullyLoaded && (
-              <RecurringSeriesSection
-                selectedUserId={selectedViewUserId}
-                className="bg-white/80 backdrop-blur-sm shadow-lg shadow-slate-200/30 rounded-xl border border-white/50 mx-4 mb-4"
-                showStats={false}
-                maxItems={5}
-                showActions={false}
-                onCreateRecurringSeries={handleCreateRecurringSeries}
-                onEditRecurringSeries={handleEditRecurringSeries}
-              />
-            )}
+            <RecurringSeriesSection
+              selectedUserId={selectedViewUserId}
+              className="bg-white/80 backdrop-blur-sm shadow-lg shadow-slate-200/30 rounded-xl border border-white/50 mx-4 mb-4"
+              showStats={false}
+              maxItems={5}
+              showActions={false}
+              onCreateRecurringSeries={handleCreateRecurringSeries}
+              onEditRecurringSeries={handleEditRecurringSeries}
+            />
           </Suspense>
         </main>
 

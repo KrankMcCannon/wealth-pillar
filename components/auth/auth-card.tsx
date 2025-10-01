@@ -11,20 +11,20 @@ type AuthCardProps = {
 
 export function AuthCard({ title, subtitle, children }: AuthCardProps) {
   return (
-    <div className="w-full max-w-md space-y-6">
-      <div className="text-center">
-        <h2 className="mt-2 text-3xl font-extrabold text-gradient tracking-tight">{title}</h2>
-        {subtitle && (
-          <p className="mt-2 text-sm text-[color:var(--text-secondary)]">{subtitle}</p>
-        )}
-      </div>
-
+    <div className="w-full max-w-md mx-auto px-4">
       <motion.div
-        className="rounded-2xl liquid-glass p-6 shadow-xl"
+        className="rounded-2xl bg-white p-5 shadow-xl border border-[hsl(var(--color-primary))]/20"
         initial={{ y: 12, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ type: 'spring', stiffness: 260, damping: 20, mass: 0.7 }}
       >
+        <div className="text-center mb-3">
+          <div className="text-[hsl(var(--color-primary))] text-xl font-bold tracking-tight">Wealth Pillar</div>
+          <h2 className="text-xl font-bold text-gray-900 tracking-tight mt-0.5">{title}</h2>
+          {subtitle && (
+            <p className="mt-0.5 text-xs text-gray-600">{subtitle}</p>
+          )}
+        </div>
         <AnimatePresence mode="wait">{children}</AnimatePresence>
       </motion.div>
     </div>

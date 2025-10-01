@@ -247,14 +247,14 @@ export function TransactionForm({ isOpen, onOpenChange, initialType = "expense",
         <DialogTitle className="sr-only">{mode === 'edit' ? 'Modifica Transazione' : 'Aggiungi Transazione'}</DialogTitle>
 
         {/* Compact Header */}
-        <div className="bg-gradient-to-r from-[#7578EC] to-[#669BBC] p-3">
+        <div className="bg-[#7578EC] p-3 shadow-sm">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold text-white">{mode === 'edit' ? 'Modifica' : 'Nuova'}</h2>
+            <h2 className="text-lg font-bold text-white">{mode === 'edit' ? 'Modifica Transazione' : 'Nuova Transazione'}</h2>
             <Button
               variant="ghost"
               size="sm"
               onClick={() => onOpenChange(false)}
-              className="w-7 h-7 p-0 rounded-full bg-white/20 hover:bg-white/30 text-white"
+              className="w-7 h-7 p-0 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors"
             >
               <X className="h-3 w-3" />
             </Button>
@@ -452,7 +452,7 @@ export function TransactionForm({ isOpen, onOpenChange, initialType = "expense",
             <Button
               type="submit"
               onClick={handleSubmit}
-              className="w-full h-10 bg-gradient-to-r from-[#7578EC] to-[#669BBC] text-white rounded-lg text-sm font-bold"
+              className="w-full h-10 bg-[#7578EC] hover:bg-[#7578EC]/90 text-white rounded-lg text-sm font-bold shadow-sm transition-colors"
               disabled={createTransactionMutation.isPending || updateTransactionMutation.isPending}
             >
               {(createTransactionMutation.isPending || updateTransactionMutation.isPending) ? (
@@ -461,7 +461,7 @@ export function TransactionForm({ isOpen, onOpenChange, initialType = "expense",
                   <span>Salvando...</span>
                 </div>
               ) : (
-                <span>{mode === 'edit' ? 'Aggiorna' : 'Salva'}</span>
+                <span>{mode === 'edit' ? 'Aggiorna Transazione' : 'Salva Transazione'}</span>
               )}
             </Button>
           </div>

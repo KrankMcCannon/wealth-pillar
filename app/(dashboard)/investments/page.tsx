@@ -9,6 +9,7 @@ import { useInvestments, usePortfolioData, useUserSelection } from "@/hooks";
 import { formatCurrency } from "@/lib/utils";
 import { BarChart3, PieChart } from "lucide-react";
 import { EnhancedHolding, PortfolioData, type InvestmentHolding } from "@/lib/types";
+import { PageLoader } from "@/components/page-loader";
 
 export default function InvestmentsPage() {
   const router = useRouter();
@@ -123,14 +124,14 @@ export default function InvestmentsPage() {
     };
   }, [filteredInvestments, portfolioData.totalValue]);
 
+  // Show loader if any data is loading
+  if (investmentsLoading || userSelectionLoading || portfolioLoading) {
+    return <PageLoader message="Caricamento investimenti..." />;
+  }
+
   return (
     <div className="relative flex size-full min-h-[100dvh] flex-col justify-between overflow-x-hidden" style={{fontFamily: '"Spline Sans", "Noto Sans", sans-serif', backgroundColor: '#F8FAFC'}}>
-      {investmentsLoading || userSelectionLoading || portfolioLoading ? (
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#7578EC]"></div>
-        </div>
-      ) : (
-        <>
+      <>
       <div>
         {/* Header */}
         <header className="sticky top-0 z-10 bg-[#F8FAFC]/80 p-4 pb-2 backdrop-blur-sm">
@@ -308,8 +309,7 @@ export default function InvestmentsPage() {
 
       {/* Bottom Navigation */}
       <BottomNavigation />
-        </>
-      )}
+      </>
     </div>
   );
 }

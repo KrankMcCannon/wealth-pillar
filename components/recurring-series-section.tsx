@@ -84,16 +84,34 @@ export function RecurringSeriesSection({
 
   return (
     <div className={`rounded-xl ${className}`}>
-      {limitedSeries.map((series, index) => (
-        <RecurringSeriesCard
-          key={series.id}
-          series={series}
-          showActions={showActions}
-          onEdit={onEditRecurringSeries}
-          className={index > 0 ? "mt-2" : ""}
-        />
-      ))}
+      {/* Title Section */}
+      <div className="px-4 pt-4 pb-3 border-b border-slate-200/50">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="flex size-8 items-center justify-center rounded-xl bg-[hsl(var(--color-primary))]/10">
+              <svg className="w-4 h-4 text-[hsl(var(--color-primary))]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-slate-900 tracking-tight">Transazioni Ricorrenti</h3>
+              <p className="text-xs text-slate-600">{displayedSeries.length} {displayedSeries.length === 1 ? 'serie attiva' : 'serie attive'}</p>
+            </div>
+          </div>
+        </div>
+      </div>
 
+      {/* Series List */}
+      <div className="p-2 space-y-2">
+        {limitedSeries.map((series) => (
+          <RecurringSeriesCard
+            key={series.id}
+            series={series}
+            showActions={showActions}
+            onEdit={onEditRecurringSeries}
+          />
+        ))}
+      </div>
     </div>
   );
 }
