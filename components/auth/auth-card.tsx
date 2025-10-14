@@ -1,6 +1,6 @@
 'use client';
 
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import type { ReactNode } from 'react';
 
 type AuthCardProps = {
@@ -25,7 +25,7 @@ export function AuthCard({ title, subtitle, children }: AuthCardProps) {
             <p className="mt-0.5 text-xs text-gray-600">{subtitle}</p>
           )}
         </div>
-        <AnimatePresence mode="wait">{children}</AnimatePresence>
+        {children}
       </motion.div>
     </div>
   );

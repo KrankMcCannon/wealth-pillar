@@ -6,6 +6,8 @@ const isPublicRoute = createRouteMatcher([
   '/sign-in(.*)',
   '/sign-up(.*)',
   '/api/webhooks(.*)',
+  '/sign-in/sso-callback',
+  '/sign-up/sso-callback',
 ]);
 
 const isAdminRoute = createRouteMatcher([

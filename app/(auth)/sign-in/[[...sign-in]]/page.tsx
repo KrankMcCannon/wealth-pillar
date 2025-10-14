@@ -1,7 +1,8 @@
 "use client";
 
 import Link from 'next/link';
-import { Loader2, Mail, Lock, LogIn } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
+import { Loader2, Mail, Lock, LogIn, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,17 +10,33 @@ import { GoogleButton, AppleButton, GitHubButton } from '@/components/auth/socia
 import { useSignInController } from '@/hooks/useSignInController';
 import AuthCard from '@/components/auth/auth-card';
 import PasswordInput from '@/components/auth/password-input';
+import { useEffect, useState } from 'react';
 
 export default function Page() {
+  const searchParams = useSearchParams();
   const { email, password, error, loading, setEmail, setPassword, handleSubmit, oauth } = useSignInController();
+
+  // Handle OAuth errors from URL params
+  const [oauthError, setOauthError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const errorParam = searchParams.get('error');
+    if (errorParam === 'oauth-failed') {
+      setOauthError('Errore durante l\'autenticazione social. Riprova o usa email/password.');
+    }
+  }, [searchParams]);
 
   return (
     <>
       <div className="pointer-events-none fixed -top-24 -left-24 h-72 w-72 rounded-full blur-3xl opacity-15 bg-[hsl(var(--color-primary))]" />
       <div className="pointer-events-none fixed -bottom-24 -right-24 h-72 w-72 rounded-full blur-3xl opacity-15 bg-[hsl(var(--color-secondary))]" />
+
       <AuthCard title="Accedi al tuo account" subtitle="Gestisci le tue finanze">
-        {error && (
-          <div className="mb-2 rounded-lg bg-red-50 p-2 text-xs text-red-700 border border-red-200">{error}</div>
+        {(error || oauthError) && (
+          <div className="mb-2 rounded-lg bg-red-50 p-2 text-xs text-red-700 border border-red-200 flex items-start gap-2">
+            <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+            <span>{error || oauthError}</span>
+          </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-2">

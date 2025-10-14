@@ -1,8 +1,8 @@
 'use client';
 
-import { useUser, useAuth as useClerkAuth } from '@clerk/nextjs';
+import { AuthUser, getUserByClerkId } from '@/lib/auth';
+import { useAuth as useClerkAuth, useUser } from '@clerk/nextjs';
 import { useEffect, useState } from 'react';
-import { AuthUser, getUserByClerkId, createUserInDatabase } from '@/lib/auth';
 
 export interface UseAuthReturn {
   // User data
@@ -11,7 +11,7 @@ export interface UseAuthReturn {
   isLoading: boolean;
 
   // Clerk auth functions
-  signOut: () => void;
+  signOut: () => Promise<void>;
 
   // Role checking
   isAdmin: boolean;
@@ -32,35 +32,14 @@ export const useAuth = (): UseAuthReturn => {
         if (clerkUser) {
           try {
             // Try to get existing user from Supabase (by clerk_id or email)
-            let user = await getUserByClerkId(clerkUser.id, clerkUser.emailAddresses[0]?.emailAddress);
+            const user = await getUserByClerkId(clerkUser.id, clerkUser.emailAddresses[0]?.emailAddress);
 
-            // If user doesn't exist, try to create it in Supabase
+            // If user doesn't exist, they need to complete onboarding first
             if (!user) {
-              user = await createUserInDatabase({
-                clerk_id: clerkUser.id,
-                email: clerkUser.emailAddresses[0]?.emailAddress || '',
-                name: clerkUser.firstName && clerkUser.lastName
-                  ? `${clerkUser.firstName} ${clerkUser.lastName}`
-                  : clerkUser.username || clerkUser.emailAddresses[0]?.emailAddress || 'User',
-                avatar: clerkUser.imageUrl || '',
-              });
-            }
-
-            // If user doesn't exist in database, create a fallback user
-            if (!user) {
-              const now = new Date().toISOString();
-              user = {
-                id: clerkUser.id,
-                clerk_id: clerkUser.id,
-                email: clerkUser.emailAddresses[0]?.emailAddress || '',
-                name: clerkUser.firstName && clerkUser.lastName
-                  ? `${clerkUser.firstName} ${clerkUser.lastName}`
-                  : clerkUser.username || clerkUser.emailAddresses[0]?.emailAddress || 'User',
-                avatar: clerkUser.imageUrl || '',
-                role: 'member',
-                created_at: now,
-                updated_at: now,
-              };
+              console.warn('User not found in database. User needs to complete onboarding.');
+              setAuthUser(null);
+              setIsLoading(false);
+              return;
             }
 
             setAuthUser(user);
@@ -81,9 +60,9 @@ export const useAuth = (): UseAuthReturn => {
   // Permission checks are centralized in usePermissions; kept minimal here.
 
   // Sign out function that clears both Clerk and local state
-  const signOut = () => {
+  const signOut = async () => {
     setAuthUser(null);
-    clerkSignOut();
+    await clerkSignOut();
   };
 
   return {

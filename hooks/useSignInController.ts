@@ -34,33 +34,52 @@ export function useSignInController() {
     }
   }, [isLoaded, email, password, router, setActive, signIn]);
 
-  // OAuth helpers
+  // FIXED: OAuth helpers using proper embedded flow
+  // Uses window.location for OAuth to stay within app layout
   const oauth = {
     google: async () => {
       if (!isLoaded) return;
+      setLoading(true);
       try {
-        await signIn.authenticateWithRedirect({ strategy: 'oauth_google', redirectUrl: '/sign-in', redirectUrlComplete: '/dashboard' });
+        await signIn.authenticateWithRedirect({
+          strategy: 'oauth_google',
+          redirectUrl: `${window.location.origin}/sign-in/sso-callback`,
+          redirectUrlComplete: `${window.location.origin}/dashboard`,
+        });
       } catch (err: unknown) {
         const clerkMsg = (err as { errors?: Array<{ message?: string }> })?.errors?.[0]?.message;
         setError(clerkMsg ?? 'Errore durante il login con Google');
+        setLoading(false);
       }
     },
     apple: async () => {
       if (!isLoaded) return;
+      setLoading(true);
       try {
-        await signIn.authenticateWithRedirect({ strategy: 'oauth_apple', redirectUrl: '/sign-in', redirectUrlComplete: '/dashboard' });
+        await signIn.authenticateWithRedirect({
+          strategy: 'oauth_apple',
+          redirectUrl: `${window.location.origin}/sign-in/sso-callback`,
+          redirectUrlComplete: `${window.location.origin}/dashboard`,
+        });
       } catch (err: unknown) {
         const clerkMsg = (err as { errors?: Array<{ message?: string }> })?.errors?.[0]?.message;
         setError(clerkMsg ?? 'Errore durante il login con Apple');
+        setLoading(false);
       }
     },
     github: async () => {
       if (!isLoaded) return;
+      setLoading(true);
       try {
-        await signIn.authenticateWithRedirect({ strategy: 'oauth_github', redirectUrl: '/sign-in', redirectUrlComplete: '/dashboard' });
+        await signIn.authenticateWithRedirect({
+          strategy: 'oauth_github',
+          redirectUrl: `${window.location.origin}/sign-in/sso-callback`,
+          redirectUrlComplete: `${window.location.origin}/dashboard`,
+        });
       } catch (err: unknown) {
         const clerkMsg = (err as { errors?: Array<{ message?: string }> })?.errors?.[0]?.message;
         setError(clerkMsg ?? 'Errore durante il login con GitHub');
+        setLoading(false);
       }
     },
   };

@@ -1,13 +1,14 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useMemo } from "react";
-import { ArrowLeft, User, UserCircle, Mail, Phone, Globe, Bell, Shield, Trash2, Users, Plus, BarChart3, CreditCard, ChevronRight, Settings } from "lucide-react";
+import { useMemo, useState } from "react";
+import { ArrowLeft, User, UserCircle, Mail, Phone, Globe, Bell, Shield, Trash2, Users, Plus, BarChart3, CreditCard, ChevronRight, Settings, LogOut } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import BottomNavigation from "../../../components/bottom-navigation";
 import { SectionHeader } from "@/components/section-header";
 import { useAccounts, useTransactions, useUserSelection } from "@/hooks";
+import { useAuth } from "@/hooks/useAuth";
 import { User as UserType } from "@/lib/types";
 import {
   formatDate
@@ -33,6 +34,8 @@ export default function SettingsPage() {
   const router = useRouter();
   const { data: accounts = [] } = useAccounts();
   const { data: transactions = [] } = useTransactions();
+  const { signOut } = useAuth();
+  const [isSigningOut, setIsSigningOut] = useState(false);
 
   // Use user selection with permissions
   const {
@@ -72,6 +75,22 @@ export default function SettingsPage() {
       bgColor: 'bg-primary/10'
     };
   }, [currentUser?.group_id]);
+
+  // Sign out handler
+  const handleSignOut = async () => {
+    setIsSigningOut(true);
+    try {
+      // Wait for Clerk to complete sign-out before redirecting
+      await signOut();
+      // Add small delay to ensure Clerk's session is fully cleared
+      await new Promise(resolve => setTimeout(resolve, 100));
+      // Navigate to sign-in page
+      window.location.href = '/sign-in';
+    } catch (error) {
+      console.error('Error signing out:', error);
+      setIsSigningOut(false);
+    }
+  };
 
   if (usersLoading) {
     return <PageLoader message="Caricamento impostazioni..." />;
@@ -436,6 +455,25 @@ export default function SettingsPage() {
                   <div className="flex-1 min-w-0">
                     <span className="text-sm font-semibold text-[#7678e4]">Autenticazione a Due Fattori</span>
                     <p className="text-xs text-slate-700 truncate">Aggiungi sicurezza extra</p>
+                  </div>
+                </div>
+                <ChevronRight className="h-4 w-4 text-slate-400 group-hover:text-[#7678e4] group-hover:translate-x-0.5 transition-all duration-200 shrink-0" />
+              </button>
+
+              <div className="h-px bg-[#7678e4]/10"></div>
+
+              <button
+                onClick={handleSignOut}
+                disabled={isSigningOut}
+                className="flex items-center justify-between p-3 w-full text-left hover:bg-[#7678e4]/8 transition-all duration-200 group disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <div className="flex size-10 items-center justify-center rounded-xl bg-[#7678e4]/15 text-[#7678e4] group-hover:scale-105 transition-transform duration-200 shadow-sm">
+                    <LogOut className="h-5 w-5" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <span className="text-sm font-semibold text-[#7678e4]">{isSigningOut ? 'Disconnessione...' : 'Esci dall\'Account'}</span>
+                    <p className="text-xs text-slate-700 truncate">Disconnetti dal tuo account</p>
                   </div>
                 </div>
                 <ChevronRight className="h-4 w-4 text-slate-400 group-hover:text-[#7678e4] group-hover:translate-x-0.5 transition-all duration-200 shrink-0" />

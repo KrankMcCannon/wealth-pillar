@@ -110,16 +110,14 @@ export const useTransactionsWithFilters = (filters: Record<string, unknown>) => 
   return useQuery({
     queryKey: queryKeys.transactionsWithFilters(filters),
     queryFn: () => apiHelpers.getTransactionsWithFilters(filters),
-    staleTime: 30 * 1000,
-    // Enable background refetching for financial data
-    refetchOnWindowFocus: true,
-    refetchOnMount: true,
+    staleTime: 3 * 60 * 1000, // OPTIMIZED: 3 minutes - reduced refetch frequency
+    // OPTIMIZED: Removed aggressive refetching - rely on optimistic updates
   });
 };
 
 /**
- * Enhanced hook for managing filtered transactions with real-time updates
- * Automatically keeps filtered data in sync with optimistic updates
+ * OPTIMIZED: Enhanced hook for managing filtered transactions
+ * Uses client-side filtering from cache for instant responses
  */
 export const useOptimizedTransactionsWithFilters = (filters: Record<string, unknown>) => {
   const queryClient = useQueryClient();
@@ -127,7 +125,7 @@ export const useOptimizedTransactionsWithFilters = (filters: Record<string, unkn
   return useQuery({
     queryKey: queryKeys.transactionsWithFilters(filters),
     queryFn: () => apiHelpers.getTransactionsWithFilters(filters),
-    staleTime: 30 * 1000,
+    staleTime: 3 * 60 * 1000, // OPTIMIZED: 3 minutes instead of 30 seconds
 
     // Intelligent cache selection - try to derive from existing data when possible
     select: (data: Transaction[]) => {
@@ -135,11 +133,9 @@ export const useOptimizedTransactionsWithFilters = (filters: Record<string, unkn
       return data.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     },
 
-    // Keep data fresh for financial information
-    refetchOnWindowFocus: true,
-    refetchOnMount: true,
+    // OPTIMIZED: Removed aggressive refetching - rely on cache and optimistic updates
 
-    // Use initial data from cache if available
+    // Use initial data from cache if available (instant response)
     initialData: () => {
       // Try to get from main transactions cache and filter client-side
       const allTransactions = queryClient.getQueryData<Transaction[]>(queryKeys.transactions());

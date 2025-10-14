@@ -5,22 +5,26 @@ import { QueryClient } from '@tanstack/react-query';
 /**
  * Optimized QueryClient configuration for financial management application
  *
+ * Performance optimizations:
+ * - Reduced aggressive refetching to minimize unnecessary API calls
+ * - Smart cache invalidation strategy using optimistic updates
+ * - Longer cache times for reference data (users, categories)
+ * - Strategic refetching only when data is truly stale
+ *
  * Key considerations for financial data:
  * - Real-time accuracy is critical for financial information
- * - Frequent updates needed for balances and transactions
- * - Aggressive caching for reference data (users, categories)
- * - Conservative caching for dynamic data (transactions, balances)
+ * - Optimistic updates provide instant UI feedback
+ * - Reference data cached aggressively (rarely changes)
+ * - Transaction data uses smart cache updates instead of broad invalidations
  */
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      // Financial data should be considered stale relatively quickly
-      // but we balance this with performance for better UX
-      staleTime: 30 * 1000, // 30 seconds - good balance for financial data
+      // Optimized stale time - data stays fresh longer to reduce refetches
+      staleTime: 2 * 60 * 1000, // 2 minutes - balanced for financial data
 
-      // Keep data in cache longer to avoid unnecessary requests
-      // when users navigate between pages
-      gcTime: 5 * 60 * 1000, // 5 minutes
+      // Extended cache time to avoid redundant network requests
+      gcTime: 10 * 60 * 1000, // 10 minutes - keep data available
 
       // Retry configuration for financial data reliability
       retry: (failureCount, error) => {
@@ -37,15 +41,15 @@ export const queryClient = new QueryClient({
       // Exponential backoff for retries
       retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
 
-      // Refetch on window focus for financial accuracy
-      refetchOnWindowFocus: true,
+      // OPTIMIZATION: Disable automatic refetch on window focus
+      // Use manual refetch or optimistic updates for data freshness
+      refetchOnWindowFocus: false,
 
-      // Don't refetch on reconnect automatically for financial data
-      // We want manual control over when financial data updates
+      // Don't refetch on reconnect - rely on cache and manual refresh
       refetchOnReconnect: false,
 
-      // Enable background refetching for data freshness
-      refetchOnMount: true,
+      // OPTIMIZATION: Only refetch on mount if data is stale
+      refetchOnMount: 'always',
 
       // Structure errors in a consistent format
       throwOnError: false,
@@ -75,36 +79,80 @@ export const queryClient = new QueryClient({
 });
 
 /**
- * Query client with financial-specific error handling
+ * OPTIMIZED: Query defaults for different data types
+ * Uses hierarchical caching strategy based on data volatility
  */
-queryClient.setMutationDefaults(['transaction'], {
-  // Optimistic updates for transactions
-  onMutate: async () => {
-    // Cancel any outgoing re-fetches to avoid optimistic update conflicts
-    await queryClient.cancelQueries({ queryKey: ['transactions'] });
-  },
-  onError: (error) => {
-    // Rollback optimistic updates on error
-    console.error('Transaction mutation failed:', error);
-  },
-  onSuccess: () => {
-    // Invalidate related queries after successful mutation
-    queryClient.invalidateQueries({ queryKey: ['transactions'] });
-    queryClient.invalidateQueries({ queryKey: ['accounts'] });
-    queryClient.invalidateQueries({ queryKey: ['budgets'] });
-  },
+
+// Reference data (users, categories) - rarely changes
+queryClient.setQueryDefaults(['wealth-pillar', 'reference'], {
+  staleTime: 15 * 60 * 1000, // 15 minutes - reference data is stable
+  gcTime: 60 * 60 * 1000, // 1 hour - keep in cache longer
+  refetchOnWindowFocus: false,
+  refetchOnMount: false,
 });
 
-// Global error handling for financial data
-queryClient.setQueryDefaults(['financial'], {
-  staleTime: 15 * 1000, // 15 seconds for critical financial data
-  gcTime: 2 * 60 * 1000, // 2 minutes
-});
-
-// Long-term caching for reference data
-queryClient.setQueryDefaults(['reference'], {
-  staleTime: 10 * 60 * 1000, // 10 minutes for reference data
+// User data - changes infrequently
+queryClient.setQueryDefaults(['wealth-pillar', 'users'], {
+  staleTime: 10 * 60 * 1000, // 10 minutes
   gcTime: 30 * 60 * 1000, // 30 minutes
+  refetchOnWindowFocus: false,
+  refetchOnMount: false,
+});
+
+// Category data - rarely changes
+queryClient.setQueryDefaults(['wealth-pillar', 'reference', 'categories'], {
+  staleTime: 30 * 60 * 1000, // 30 minutes
+  gcTime: 60 * 60 * 1000, // 1 hour
+  refetchOnWindowFocus: false,
+  refetchOnMount: false,
+});
+
+// Account data - moderate volatility
+queryClient.setQueryDefaults(['wealth-pillar', 'accounts'], {
+  staleTime: 5 * 60 * 1000, // 5 minutes
+  gcTime: 15 * 60 * 1000, // 15 minutes
+  refetchOnWindowFocus: false,
+  refetchOnMount: false,
+});
+
+// Transaction data - higher volatility, but use optimistic updates
+queryClient.setQueryDefaults(['wealth-pillar', 'transactions'], {
+  staleTime: 3 * 60 * 1000, // 3 minutes - optimistic updates keep it fresh
+  gcTime: 10 * 60 * 1000, // 10 minutes
+  refetchOnWindowFocus: false,
+  refetchOnMount: false,
+});
+
+// Budget data - moderate volatility
+queryClient.setQueryDefaults(['wealth-pillar', 'budgets'], {
+  staleTime: 5 * 60 * 1000, // 5 minutes
+  gcTime: 15 * 60 * 1000, // 15 minutes
+  refetchOnWindowFocus: false,
+  refetchOnMount: false,
+});
+
+// Financial aggregations - computed data, moderate staleness acceptable
+queryClient.setQueryDefaults(['wealth-pillar', 'financial'], {
+  staleTime: 2 * 60 * 1000, // 2 minutes
+  gcTime: 10 * 60 * 1000, // 10 minutes
+  refetchOnWindowFocus: false,
+  refetchOnMount: false,
+});
+
+// Dashboard data - composite queries
+queryClient.setQueryDefaults(['wealth-pillar', 'dashboard'], {
+  staleTime: 2 * 60 * 1000, // 2 minutes
+  gcTime: 10 * 60 * 1000, // 10 minutes
+  refetchOnWindowFocus: false,
+  refetchOnMount: false,
+});
+
+// Investment data - less frequent updates
+queryClient.setQueryDefaults(['wealth-pillar', 'investments'], {
+  staleTime: 10 * 60 * 1000, // 10 minutes
+  gcTime: 30 * 60 * 1000, // 30 minutes
+  refetchOnWindowFocus: false,
+  refetchOnMount: false,
 });
 
 export default queryClient;

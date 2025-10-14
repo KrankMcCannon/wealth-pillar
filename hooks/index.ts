@@ -1,18 +1,29 @@
 /**
  * Wealth Pillar React Query Hooks
+ * OPTIMIZED: Using performance-enhanced mutation hooks
  */
 
-// Core query hooks for basic data fetching
+// Core query hooks for basic data fetching (read-only operations)
 export {
   useAccount, useAccounts,
   useAccountsByUser, useActiveBudgetPeriods, useBudget,
   useBudgetPeriods,
   useBudgetPeriodsByUser, useBudgets,
-  useBudgetsByUser, useCategories, useCreateBudget, useCreateBudgetPeriod, useCreateTransaction, useCurrentBudgetPeriod, useCurrentUser, useDeleteTransaction, useEndBudgetPeriod, useInvestments,
+  useBudgetsByUser, useCategories, useCurrentBudgetPeriod, useCurrentUser, useInvestments,
   useInvestmentsByUser,
-  usePortfolioData, useStartBudgetPeriod, useTransactions, useTransactionsByAccount, useTransactionsByUser, useTransactionsWithFilters,
-  useUpcomingTransactions, useUpdateBudget, useUpdateBudgetPeriod, useUpdateTransaction, useUser, useUsers
+  usePortfolioData, useTransactions, useTransactionsByAccount, useTransactionsByUser, useTransactionsWithFilters,
+  useUpcomingTransactions, useUser, useUsers
 } from './use-query-hooks';
+
+// OPTIMIZED: Transaction mutations with reduced invalidations
+export {
+  useCreateTransaction, useDeleteTransaction, useUpdateTransaction
+} from './use-transaction-mutations';
+
+// OPTIMIZED: Budget mutations with reduced invalidations
+export {
+  useCreateBudget, useCreateBudgetPeriod, useEndBudgetPeriod, useStartBudgetPeriod, useUpdateBudget, useUpdateBudgetPeriod
+} from './use-budget-mutations';
 
 // Dashboard-specific composite hooks
 export {

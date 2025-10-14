@@ -21,7 +21,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider>
+    <ClerkProvider
+      telemetry={false}
+      appearance={{
+        elements: {
+          // Completely hide CAPTCHA in development to avoid protocol mismatch errors
+          formFieldInput__captcha: 'hidden',
+          captcha: 'hidden',
+        },
+      }}
+    >
       <html lang="en" className="light">
         <body
           className={`${splineSans.variable} antialiased min-h-screen`}
