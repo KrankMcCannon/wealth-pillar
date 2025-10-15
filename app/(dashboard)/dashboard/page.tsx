@@ -68,7 +68,6 @@ export default function DashboardPage() {
     budgets,
     budgetsByUser,
     isLoading: budgetsLoading,
-    hasData: hasBudgetData,
   } = useDashboardBudgets(
     selectedViewUserId,
     currentUser,
@@ -111,8 +110,6 @@ export default function DashboardPage() {
 
   // Enhanced loading states - show loader until all critical data is ready
   const showInitialLoading = userSelectionLoading || coreLoading.isInitialLoading || budgetsLoading;
-  const showPartialContent = !showInitialLoading && hasCoreData;
-  const isFullyLoaded = coreLoading.isFullyLoaded && !budgetsLoading;
 
   // Show full page loader during initial load
   if (showInitialLoading) {

@@ -1,7 +1,8 @@
-import { NextResponse } from 'next/server';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { APIError, ErrorCode, withErrorHandler } from '@/lib/api-errors';
 import { supabaseServer, validateUserContext } from '@/lib/supabase-server';
-import { withErrorHandler, APIError, ErrorCode } from '@/lib/api-errors';
 import { currentUser } from '@clerk/nextjs/server';
+import { NextResponse } from 'next/server';
 
 async function getUsers() {
     const userContext = await validateUserContext();
