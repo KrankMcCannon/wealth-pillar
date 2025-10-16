@@ -22,9 +22,9 @@ export default function TabNavigation({
   const getContainerStyles = () => {
     switch (variant) {
       case 'pills':
-        return "flex gap-2 p-1.5 bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-200/50 shadow-lg";
+        return "flex gap-2 p-1.5 bg-white rounded-2xl border border-gray-200 shadow-lg";
       case 'modern':
-        return "flex gap-2 p-1.5 bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-200/50 shadow-lg";
+        return "flex gap-2 p-1.5 bg-white rounded-2xl border border-gray-200 shadow-lg";
       default:
         return "flex border-b border-gray-200 px-4 gap-8 pb-1";
     }
@@ -37,14 +37,14 @@ export default function TabNavigation({
       case 'pills':
         return `flex-1 py-2 px-4 text-sm font-semibold rounded-xl transition-all duration-300 ${
           isActive
-            ? "bg-gradient-to-r from-[hsl(var(--color-primary))] to-[hsl(var(--color-secondary))] text-white shadow-lg shadow-[hsl(var(--color-primary))]/25 scale-[1.02]"
-            : "text-slate-700 hover:text-slate-900 hover:bg-white hover:shadow-md"
+            ? "bg-[hsl(var(--color-primary))] text-white shadow-lg"
+            : "text-gray-700 hover:text-gray-900 hover:bg-white hover:shadow-md"
         }`;
       case 'modern':
         return `flex-1 py-3 px-6 text-sm font-semibold rounded-xl transition-all duration-300 group ${
           isActive
-            ? "bg-gradient-to-r from-[hsl(var(--color-primary))] to-[hsl(var(--color-secondary))] text-white shadow-lg shadow-[hsl(var(--color-primary))]/25 scale-[1.02]"
-            : "text-slate-700 hover:text-slate-900 hover:bg-white hover:shadow-md"
+            ? "bg-[hsl(var(--color-primary))] text-white shadow-lg"
+            : "text-gray-700 hover:text-gray-900 hover:bg-white hover:shadow-md"
         }`;
       default:
         return `flex flex-col items-center justify-center border-b-2 pb-[13px] pt-4 flex-1 transition-colors ${

@@ -1,7 +1,8 @@
 'use client';
 
 import { useBudgets, useBudgetsByUser, useCategories } from '@/hooks';
-import type { Budget, BudgetPeriod, Transaction, User } from '@/lib/types';
+import { filterDataByUserRole } from '@/lib/role-based-filters';
+import type { BudgetPeriod, Transaction, User } from '@/lib/types';
 import {
   calculateBudgetSpent,
   getActivePeriodDates,
@@ -58,36 +59,10 @@ export const useDashboardBudgets = (
 
     const allBudgets = budgetsQuery.data;
 
-    // Filter budgets based on user role and selection
-    const getFilteredBudgets = (): Budget[] => {
-      if (!currentUser) return [];
-
-      const isMember = currentUser.role === 'member';
-      const isAdmin = currentUser.role === 'admin' || currentUser.role === 'superadmin';
-
-      if (isMember) {
-        return allBudgets.filter(budget => budget.user_id === currentUser.id);
-      }
-
-      if (isAdmin) {
-        if (selectedUserId === 'all') {
-          return allBudgets.filter(budget => {
-            const budgetUser = users.find(u => u.id === budget.user_id);
-            return budgetUser?.group_id === currentUser.group_id;
-          });
-        } else {
-          const selectedUser = users.find(u => u.id === selectedUserId);
-          if (!selectedUser || selectedUser.group_id !== currentUser.group_id) {
-            return [];
-          }
-          return allBudgets.filter(budget => budget.user_id === selectedUserId);
-        }
-      }
-
-      return [];
-    };
-
-    const filteredBudgets = getFilteredBudgets();
+    // Filter budgets using centralized role-based filtering
+    const filteredBudgets = currentUser
+      ? filterDataByUserRole(allBudgets, currentUser, selectedUserId)
+      : [];
 
     // Calculate budget data efficiently
     const budgetDataArray = filteredBudgets.map<BudgetItem | null>(budget => {

@@ -3,6 +3,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { recurringTransactionService } from '@/lib/api-client';
 import { queryKeys } from '@/lib/query-keys';
+import { QUERY_STALE_TIMES } from '@/lib/query-config';
 import type { RecurringTransactionSeries } from '@/lib/types';
 
 // Basic CRUD hooks for RecurringTransactionSeries
@@ -10,7 +11,7 @@ export const useRecurringSeries = () => {
   return useQuery({
     queryKey: queryKeys.recurringSeries(),
     queryFn: recurringTransactionService.getAll,
-    staleTime: 2 * 60 * 1000, // 2 minutes
+    staleTime: QUERY_STALE_TIMES.recurringSeries,
   });
 };
 
@@ -19,6 +20,7 @@ export const useRecurringSeriesById = (id: string) => {
     queryKey: queryKeys.recurringSeriesById(id),
     queryFn: () => recurringTransactionService.getById(id),
     enabled: !!id,
+    staleTime: QUERY_STALE_TIMES.recurringSeries,
   });
 };
 
@@ -27,7 +29,7 @@ export const useRecurringSeriesByUser = (userId: string) => {
     queryKey: queryKeys.recurringSeriesByUser(userId),
     queryFn: () => recurringTransactionService.getByUserId(userId),
     enabled: !!userId,
-    staleTime: 2 * 60 * 1000,
+    staleTime: QUERY_STALE_TIMES.recurringSeries,
   });
 };
 
@@ -35,7 +37,7 @@ export const useActiveRecurringSeries = (userId?: string) => {
   return useQuery({
     queryKey: queryKeys.activeRecurringSeries(userId),
     queryFn: () => recurringTransactionService.getActive(userId),
-    staleTime: 30 * 1000, // 30 seconds for active series
+    staleTime: QUERY_STALE_TIMES.recurringSeries,
   });
 };
 
@@ -43,7 +45,7 @@ export const useUpcomingRecurringSeries = (days: number, userId?: string) => {
   return useQuery({
     queryKey: queryKeys.upcomingRecurringSeries(days, userId),
     queryFn: () => recurringTransactionService.getDueWithinDays(days, userId),
-    staleTime: 30 * 1000,
+    staleTime: QUERY_STALE_TIMES.upcomingTransactions,
   });
 };
 
@@ -135,7 +137,7 @@ export const useRecurringSeriesStats = (userId?: string) => {
   return useQuery({
     queryKey: queryKeys.recurringSeriesStats(userId),
     queryFn: () => recurringTransactionService.getStats(userId),
-    staleTime: 60 * 1000, // 1 minute
+    staleTime: QUERY_STALE_TIMES.recurringStats,
   });
 };
 
@@ -144,7 +146,7 @@ export const useRecurringSeriesDashboard = (userId?: string) => {
   return useQuery({
     queryKey: [...queryKeys.recurringSeries(), 'dashboard', userId].filter(Boolean),
     queryFn: () => recurringTransactionService.getDashboardData(userId),
-    staleTime: 30 * 1000, // 30 seconds for dashboard data
+    staleTime: QUERY_STALE_TIMES.recurringDashboard,
   });
 };
 
@@ -153,7 +155,7 @@ export const useRecurringSeriesReconciliation = (seriesId: string) => {
     queryKey: [...queryKeys.recurringSeriesById(seriesId), 'reconciliation'],
     queryFn: () => recurringTransactionService.getReconciliation(seriesId),
     enabled: !!seriesId,
-    staleTime: 60 * 1000, // 1 minute
+    staleTime: QUERY_STALE_TIMES.recurringSeries,
   });
 };
 
@@ -161,6 +163,6 @@ export const useMissedExecutions = () => {
   return useQuery({
     queryKey: [...queryKeys.recurringSeries(), 'missed'],
     queryFn: () => recurringTransactionService.findMissedExecutions(),
-    staleTime: 2 * 60 * 1000, // 2 minutes
+    staleTime: QUERY_STALE_TIMES.recurringSeries,
   });
 };

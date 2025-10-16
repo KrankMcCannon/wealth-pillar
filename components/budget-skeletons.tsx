@@ -10,7 +10,7 @@ const shimmerBase = "relative overflow-hidden before:absolute before:inset-0 bef
 export const BudgetCardSkeleton = () => (
   <div className={`p-4 rounded-xl border border-slate-200 bg-white ${shimmerBase}`}>
     <div className="flex items-center gap-3 mb-3">
-      <div className="w-10 h-10 bg-gradient-to-br from-[#7578EC]/10 to-[#7578EC]/5 rounded-xl" />
+      <div className="w-10 h-10 bg-[#7578EC]/10 rounded-xl" />
       <div className="flex-1">
         <div className="h-4 bg-slate-200 rounded w-2/3 mb-2" />
         <div className="flex items-center gap-2">
@@ -86,7 +86,7 @@ export const TransactionListSkeleton = () => (
 );
 
 export const BudgetPageSkeleton = () => (
-  <div className="flex flex-col min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
+  <div className="flex flex-col min-h-screen bg-white">
     {/* Header skeleton */}
     <header className="sticky top-0 z-20 bg-white/80 backdrop-blur-xl border-b border-slate-200/50 px-4 py-3 shadow-sm">
       <div className="flex items-center justify-between">

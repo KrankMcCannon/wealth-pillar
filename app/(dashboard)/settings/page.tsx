@@ -120,7 +120,7 @@ export default function SettingsPage() {
             >
               <ArrowLeft className="h-5 w-5 sm:h-6 sm:w-6" />
             </Button>
-            <h1 className="text-lg sm:text-xl font-bold tracking-tight text-[#7678e4]">Impostazioni</h1>
+            <h1 className="text-lg sm:text-xl font-bold tracking-tight text-black">Impostazioni</h1>
             <div className="min-w-[44px] min-h-[44px]"></div>
           </div>
         </header>

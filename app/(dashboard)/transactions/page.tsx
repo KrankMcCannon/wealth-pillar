@@ -20,7 +20,8 @@ import {
   useTransactions,
   useCategories,
   useAccounts,
-  useUserSelection
+  useUserSelection,
+  useDeleteTransaction
 } from "@/hooks";
 import {
   formatCurrency,
@@ -49,6 +50,7 @@ function TransactionsContent() {
   const { data: transactions = [], isLoading: txLoading } = useTransactions();
   const { data: categories = [], isLoading: categoriesLoading } = useCategories();
   const { data: accounts = [], isLoading: accountsLoading } = useAccounts();
+  const deleteTransactionMutation = useDeleteTransaction();
 
   // Use centralized user selection
   const {
@@ -107,6 +109,17 @@ function TransactionsContent() {
     setEditingTransaction(transaction);
     setTransactionFormMode('edit');
     setIsTransactionFormOpen(true);
+  };
+
+  const handleDeleteTransaction = async (transactionId: string) => {
+    if (confirm('Sei sicuro di voler eliminare questa transazione?')) {
+      try {
+        await deleteTransactionMutation.mutateAsync(transactionId);
+      } catch (error) {
+        console.error('Failed to delete transaction:', error);
+        alert('Errore durante l\'eliminazione della transazione');
+      }
+    }
   };
 
   const handleCreateTransaction = (type: "expense" | "income" | "transfer" = "expense") => {
@@ -372,6 +385,7 @@ function TransactionsContent() {
                         accountNames={accountNames}
                         variant="regular"
                         onEditTransaction={handleEditTransaction}
+                        onDeleteTransaction={handleDeleteTransaction}
                       />
                     </section>
                   ))

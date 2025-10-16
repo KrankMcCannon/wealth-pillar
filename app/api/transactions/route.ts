@@ -66,8 +66,40 @@ async function getTransactions(request: NextRequest) {
     const isAdmin = userContext.role === 'admin' || userContext.role === 'superadmin';
 
     if (userContext.role === 'member') {
-      // Members see only their own transactions
-      query = query.eq('user_id', userContext.userId);
+      // Members:
+      // - If requesting by accountId and they have access to that account, allow all tx for that account
+      // - If includeSharedAccountTransactions flag is set, get ALL transactions for their accessible accounts (for balance calculations)
+      // - Otherwise, restrict to their own transactions
+      const includeShared = searchParams.get('includeSharedAccountTransactions') === 'true';
+      
+      if (accountId) {
+        const hasAccountAccess = await validateResourceAccess(userContext.userId, 'account', accountId);
+        if (!hasAccountAccess) {
+          throw new APIError(ErrorCode.PERMISSION_DENIED);
+        }
+        // Do not add user_id filter here; we'll filter by account below (including to_account_id)
+      } else if (includeShared) {
+        // For balance calculations: fetch ALL transactions for accounts the member has access to
+        const memberAccountsResponse = await supabaseServer
+          .from('accounts')
+          .select('id')
+          .contains('user_ids', [userContext.userId]);
+        
+        const memberAccounts = handleServerResponse<Array<{ id: string }>>(memberAccountsResponse);
+        const accountIds = memberAccounts.map(a => a.id);
+        
+        if (accountIds.length > 0) {
+          // Get all transactions where account_id OR to_account_id matches any of the member's accounts
+          query = query.or(
+            accountIds.map(id => `account_id.eq.${id},to_account_id.eq.${id}`).join(',')
+          );
+        } else {
+          // No accounts, return empty
+          query = query.eq('user_id', 'no-match');
+        }
+      } else {
+        query = query.eq('user_id', userContext.userId);
+      }
     } else if (isAdmin) {
       // Get admin's group_id for group-level access
       const userResponse = (await supabaseServer
@@ -106,7 +138,10 @@ async function getTransactions(request: NextRequest) {
     }
 
     // Apply additional filters
-    if (accountId) query = query.eq('account_id', accountId);
+    if (accountId) {
+      // Include transactions where the account is either source or destination (for transfers)
+      query = query.or(`account_id.eq.${accountId},to_account_id.eq.${accountId}`);
+    }
     if (type) {
       query = query.eq('type', type);
     }
@@ -138,9 +173,12 @@ async function createTransaction(request: NextRequest) {
 
     const body = await request.json();
 
-    // Validate required fields
-    const requiredFields = ['description', 'amount', 'type', 'category', 'date', 'account_id'];
-    const missingFields = requiredFields.filter(field => !body[field]);
+    // Validate required fields (category is not required for transfers)
+    const baseRequiredFields = ['description', 'amount', 'type', 'date', 'account_id'] as const;
+    const requiredFields = body.type === 'transfer'
+      ? baseRequiredFields
+      : ([...baseRequiredFields, 'category'] as const);
+    const missingFields = (requiredFields as readonly string[]).filter(field => !body[field]);
     if (missingFields.length > 0) {
       throw createMissingFieldError(missingFields);
     }
@@ -156,7 +194,8 @@ async function createTransaction(request: NextRequest) {
       description: body.description,
       amount: parseFloat(body.amount),
       type: body.type,
-      category: body.category,
+      // Default category for transfers to satisfy NOT NULL constraint
+      category: body.type === 'transfer' ? (body.category || 'transfer') : body.category,
       date: body.date,
       user_id: body.user_id || userContext.userId,
       account_id: body.account_id,

@@ -1,9 +1,9 @@
 'use client';
 
-import { useMemo } from 'react';
-import type { User, Account } from '@/lib/types';
+import { useAccounts, useAccountsByUser, useTransactions, useTransactionsForBalances, useUsers } from '@/hooks';
+import type { Account, User } from '@/lib/types';
 import { calculateAccountBalance } from '@/lib/utils';
-import { useUsers, useAccounts, useAccountsByUser, useTransactions } from '@/hooks';
+import { useMemo } from 'react';
 
 /**
  * Core dashboard data hook - handles essential data with optimized loading
@@ -19,34 +19,44 @@ export const useDashboardCore = (selectedUserId: string = 'all', currentUser: Us
   const accountsByUserQuery = useAccountsByUser(isSpecificUserSelected ? selectedUserId : '');
   const accountsQuery = isSpecificUserSelected ? accountsByUserQuery : accountsAllQuery;
 
-  // Transactions query - for balance calculations
+  // Transactions query - for balance calculations, use the hook that includes shared account transactions
+  // Members will get ALL transactions from shared accounts for accurate balance calculations
+  const transactionsForBalancesQuery = useTransactionsForBalances();
+  // Regular transactions for display (filtered by user for members)
   const transactionsQuery = useTransactions();
 
   // Computed core data with optimized memoization
   const coreData = useMemo(() => {
     const users = usersQuery.data || [];
     const allAccounts = accountsQuery.data || [];
+    // Use transactions that include shared account data for balance calculations
+    const allTransactionsForBalances = transactionsForBalancesQuery.data || [];
+    // Use regular filtered transactions for other purposes
     const allTransactions = transactionsQuery.data || [];
 
-    // Apply user-based filtering (extracted to separate function for reusability)
+    // Filter accounts by role and selection
+    // Note: Accounts use user_ids (array) for shared accounts, requiring custom logic
     const getFilteredAccounts = (): Account[] => {
       if (!currentUser) return [];
 
-      const isMember = currentUser.role === 'member';
-      const isAdmin = currentUser.role === 'admin' || currentUser.role === 'superadmin';
+      const role = currentUser.role;
 
-      if (isMember) {
+      // Member: only see accounts they're included in
+      if (role === 'member') {
         return allAccounts.filter(account =>
           account.user_ids.includes(currentUser.id)
         );
       }
 
-      if (isAdmin) {
+      // Admin/Superadmin: see group or specific user accounts
+      if (role === 'admin' || role === 'superadmin') {
         if (selectedUserId === 'all') {
+          // Show all accounts in the group
           return allAccounts.filter(account =>
             account.group_id === currentUser.group_id
           );
         } else {
+          // Show accounts for specific user (with group permission check)
           const selectedUser = users.find(u => u.id === selectedUserId);
           if (!selectedUser || selectedUser.group_id !== currentUser.group_id) {
             return [];
@@ -62,9 +72,14 @@ export const useDashboardCore = (selectedUserId: string = 'all', currentUser: Us
 
     const filteredAccounts = getFilteredAccounts();
 
-    // Calculate balances efficiently
-    const accountBalances = filteredAccounts.reduce((acc, account) => {
-      acc[account.id] = calculateAccountBalance(account.id, allTransactions);
+    // Deduplicate accounts by ID to prevent counting shared accounts multiple times
+    const uniqueAccounts = Array.from(
+      new Map(filteredAccounts.map(account => [account.id, account])).values()
+    );
+
+    // Calculate balances efficiently - use allTransactionsForBalances for accurate shared account balances
+    const accountBalances = uniqueAccounts.reduce((acc, account) => {
+      acc[account.id] = calculateAccountBalance(account.id, allTransactionsForBalances);
       return acc;
     }, {} as Record<string, number>);
 
@@ -75,16 +90,17 @@ export const useDashboardCore = (selectedUserId: string = 'all', currentUser: Us
 
     return {
       users,
-      accounts: filteredAccounts,
+      accounts: uniqueAccounts,
       transactions: allTransactions,
       accountBalances,
       totalBalance,
-      hasData: filteredAccounts.length > 0,
+      hasData: uniqueAccounts.length > 0,
     };
   }, [
     usersQuery.data,
     accountsQuery.data,
     transactionsQuery.data,
+    transactionsForBalancesQuery.data,
     currentUser,
     selectedUserId,
   ]);
@@ -93,17 +109,17 @@ export const useDashboardCore = (selectedUserId: string = 'all', currentUser: Us
   const loadingState = {
     users: usersQuery.isLoading,
     accounts: accountsQuery.isLoading,
-    transactions: transactionsQuery.isLoading,
+    transactions: transactionsQuery.isLoading || transactionsForBalancesQuery.isLoading,
     isInitialLoading: usersQuery.isLoading || accountsQuery.isLoading,
-    isFullyLoaded: !usersQuery.isLoading && !accountsQuery.isLoading && !transactionsQuery.isLoading,
+    isFullyLoaded: !usersQuery.isLoading && !accountsQuery.isLoading && !transactionsQuery.isLoading && !transactionsForBalancesQuery.isLoading,
   };
 
   // Enhanced error handling
   const errorState = {
     users: usersQuery.error,
     accounts: accountsQuery.error,
-    transactions: transactionsQuery.error,
-    hasErrors: usersQuery.isError || accountsQuery.isError || transactionsQuery.isError,
+    transactions: transactionsQuery.error || transactionsForBalancesQuery.error,
+    hasErrors: usersQuery.isError || accountsQuery.isError || transactionsQuery.isError || transactionsForBalancesQuery.isError,
     criticalError: usersQuery.isError || accountsQuery.isError, // Core data errors
   };
 

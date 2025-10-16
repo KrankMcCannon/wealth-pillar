@@ -10,15 +10,14 @@ import {
   transactionService,
   userService,
 } from '@/lib/api-client';
+import { QUERY_STALE_TIMES } from '@/lib/query-config';
 import { queryKeys, queryKeyUtils } from '@/lib/query-keys';
 import type {
-  Budget,
-  BudgetPeriod,
   EnhancedHolding,
   PortfolioData,
   Transaction,
 } from '@/lib/types';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 /**
  * User-related query hooks
@@ -27,7 +26,7 @@ export const useUsers = () => {
   return useQuery({
     queryKey: queryKeys.users(),
     queryFn: userService.getAll,
-    staleTime: 5 * 60 * 1000, // 5 minutes - users don't change often
+    staleTime: QUERY_STALE_TIMES.users,
   });
 };
 
@@ -36,7 +35,7 @@ export const useUser = (id: string) => {
     queryKey: queryKeys.user(id),
     queryFn: () => userService.getById(id),
     enabled: !!id,
-    staleTime: 5 * 60 * 1000,
+    staleTime: QUERY_STALE_TIMES.users,
   });
 };
 
@@ -44,7 +43,7 @@ export const useCurrentUser = () => {
   return useQuery({
     queryKey: [...queryKeys.users(), 'current'],
     queryFn: apiHelpers.getCurrentUser,
-    staleTime: 5 * 60 * 1000,
+    staleTime: QUERY_STALE_TIMES.users,
   });
 };
 
@@ -55,7 +54,7 @@ export const useAccounts = () => {
   return useQuery({
     queryKey: queryKeys.accounts(),
     queryFn: accountService.getAll,
-    staleTime: 2 * 60 * 1000, // 2 minutes
+    staleTime: QUERY_STALE_TIMES.accounts,
   });
 };
 
@@ -64,7 +63,7 @@ export const useAccountsByUser = (userId: string) => {
     queryKey: queryKeys.accountsByUser(userId),
     queryFn: () => accountService.getByUserId(userId),
     enabled: !!userId,
-    staleTime: 2 * 60 * 1000,
+    staleTime: QUERY_STALE_TIMES.accounts,
   });
 };
 
@@ -73,7 +72,7 @@ export const useAccount = (id: string) => {
     queryKey: queryKeys.account(id),
     queryFn: () => accountService.getById(id),
     enabled: !!id,
-    staleTime: 2 * 60 * 1000,
+    staleTime: QUERY_STALE_TIMES.accounts,
   });
 };
 
@@ -84,7 +83,7 @@ export const useTransactions = () => {
   return useQuery({
     queryKey: queryKeys.transactions(),
     queryFn: transactionService.getAll,
-    staleTime: 30 * 1000, // 30 seconds - financial data should be fresh
+    staleTime: QUERY_STALE_TIMES.transactions,
   });
 };
 
@@ -93,7 +92,7 @@ export const useTransactionsByUser = (userId: string) => {
     queryKey: queryKeys.transactionsByUser(userId),
     queryFn: () => transactionService.getByUserId(userId),
     enabled: !!userId,
-    staleTime: 30 * 1000,
+    staleTime: QUERY_STALE_TIMES.transactions,
   });
 };
 
@@ -102,7 +101,28 @@ export const useTransactionsByAccount = (accountId: string) => {
     queryKey: queryKeys.transactionsByAccount(accountId),
     queryFn: () => transactionService.getByAccountId(accountId),
     enabled: !!accountId,
-    staleTime: 30 * 1000,
+    staleTime: QUERY_STALE_TIMES.transactions,
+  });
+};
+
+/**
+ * Hook for fetching ALL transactions including from shared accounts
+ * Used for balance calculations - members need to see full balances
+ * but not necessarily all transaction details in lists
+ */
+export const useTransactionsForBalances = () => {
+  return useQuery({
+    queryKey: [...queryKeys.transactions(), 'for-balances'],
+    queryFn: async () => {
+      const response = await fetch('/api/transactions?includeSharedAccountTransactions=true');
+      if (!response.ok) {
+        throw new Error('Failed to fetch transactions for balances');
+      }
+      const result = await response.json();
+      // API returns { data: Transaction[] }, so extract the data array
+      return result.data || [];
+    },
+    staleTime: QUERY_STALE_TIMES.transactions,
   });
 };
 
@@ -141,27 +161,24 @@ export const useOptimizedTransactionsWithFilters = (filters: Record<string, unkn
       const allTransactions = queryClient.getQueryData<Transaction[]>(queryKeys.transactions());
       if (!allTransactions) return undefined;
 
-      // Apply basic filters client-side for immediate response
-      let filtered = allTransactions;
+      // OPTIMIZED: Single-pass filtering - O(n) instead of O(6n)
+      // Pre-compute date comparisons outside the loop
+      const startDate = filters.startDate ? new Date(filters.startDate as string) : null;
+      const endDate = filters.endDate ? new Date(filters.endDate as string) : null;
 
-      if (filters.userId) {
-        filtered = filtered.filter(tx => tx.user_id === filters.userId);
-      }
-      if (filters.accountId) {
-        filtered = filtered.filter(tx => tx.account_id === filters.accountId);
-      }
-      if (filters.category) {
-        filtered = filtered.filter(tx => tx.category === filters.category);
-      }
-      if (filters.type) {
-        filtered = filtered.filter(tx => tx.type === filters.type);
-      }
-      if (filters.startDate) {
-        filtered = filtered.filter(tx => new Date(tx.date) >= new Date(filters.startDate as string));
-      }
-      if (filters.endDate) {
-        filtered = filtered.filter(tx => new Date(tx.date) <= new Date(filters.endDate as string));
-      }
+      const filtered = allTransactions.filter(tx => {
+        // Early exit pattern - fail fast on first mismatch
+        if (filters.userId && tx.user_id !== filters.userId) return false;
+        if (filters.accountId && tx.account_id !== filters.accountId) return false;
+        if (filters.category && tx.category !== filters.category) return false;
+        if (filters.type && tx.type !== filters.type) return false;
+
+        // Date checks with pre-computed dates
+        if (startDate && new Date(tx.date) < startDate) return false;
+        if (endDate && new Date(tx.date) > endDate) return false;
+
+        return true;
+      });
 
       return filtered.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     },
@@ -178,7 +195,7 @@ export const useUpcomingTransactions = (userId?: string) => {
   return useQuery({
     queryKey: queryKeys.upcomingTransactions(userId),
     queryFn: () => transactionService.getUpcomingTransactions(userId),
-    staleTime: 2 * 60 * 1000, // 2 minutes for upcoming transactions
+    staleTime: QUERY_STALE_TIMES.upcomingTransactions,
   });
 };
 
@@ -187,7 +204,7 @@ export const useFinancialSummary = (userId?: string, dateRange?: { start: string
   return useQuery({
     queryKey: [...queryKeys.transactions(), 'summary', userId, dateRange].filter(Boolean),
     queryFn: () => transactionService.getFinancialSummary(userId, dateRange),
-    staleTime: 60 * 1000, // 1 minute
+    staleTime: QUERY_STALE_TIMES.financialSummary,
   });
 };
 
@@ -195,7 +212,7 @@ export const useSpendingTrends = (userId?: string, days: number = 30) => {
   return useQuery({
     queryKey: [...queryKeys.transactions(), 'trends', userId, days],
     queryFn: () => transactionService.getSpendingTrends(userId, days),
-    staleTime: 60 * 1000, // 1 minute
+    staleTime: QUERY_STALE_TIMES.spendingTrends,
   });
 };
 
@@ -206,7 +223,7 @@ export const useBudgets = () => {
   return useQuery({
     queryKey: queryKeys.budgets(),
     queryFn: budgetService.getAll,
-    staleTime: 2 * 60 * 1000,
+    staleTime: QUERY_STALE_TIMES.budgets,
   });
 };
 
@@ -215,7 +232,7 @@ export const useBudgetsByUser = (userId: string) => {
     queryKey: queryKeys.budgetsByUser(userId),
     queryFn: () => budgetService.getByUserId(userId),
     enabled: !!userId,
-    staleTime: 2 * 60 * 1000,
+    staleTime: QUERY_STALE_TIMES.budgets,
   });
 };
 
@@ -224,7 +241,7 @@ export const useBudget = (id: string) => {
     queryKey: queryKeys.budget(id),
     queryFn: () => budgetService.getById(id),
     enabled: !!id,
-    staleTime: 2 * 60 * 1000,
+    staleTime: QUERY_STALE_TIMES.budgets,
   });
 };
 
@@ -232,7 +249,7 @@ export const useBudgetPeriods = () => {
   return useQuery({
     queryKey: queryKeys.budgetPeriods(),
     queryFn: budgetPeriodService.getAll,
-    staleTime: 1 * 60 * 1000, // 1 minute for budget periods
+    staleTime: QUERY_STALE_TIMES.budgetPeriods,
   });
 };
 
@@ -241,7 +258,7 @@ export const useBudgetPeriodsByUser = (userId: string) => {
     queryKey: queryKeys.budgetPeriodsByUser(userId),
     queryFn: () => budgetPeriodService.getByUserId(userId),
     enabled: !!userId,
-    staleTime: 1 * 60 * 1000,
+    staleTime: QUERY_STALE_TIMES.budgetPeriods,
   });
 };
 
@@ -250,7 +267,7 @@ export const useActiveBudgetPeriods = (userId?: string) => {
     queryKey: queryKeys.activeBudgetPeriods(userId),
     queryFn: () => budgetPeriodService.getActivePeriods(userId!),
     enabled: !!userId,
-    staleTime: 1 * 60 * 1000,
+    staleTime: QUERY_STALE_TIMES.budgetPeriods,
   });
 };
 
@@ -259,7 +276,7 @@ export const useCurrentBudgetPeriod = (budgetId: string) => {
     queryKey: queryKeys.currentBudgetPeriod(budgetId),
     queryFn: () => budgetPeriodService.getCurrentPeriod(budgetId),
     enabled: !!budgetId,
-    staleTime: 1 * 60 * 1000,
+    staleTime: QUERY_STALE_TIMES.budgetPeriods,
   });
 };
 
@@ -269,7 +286,7 @@ export const useBudgetAnalysis = (budgetId: string) => {
     queryKey: [...queryKeys.budget(budgetId), 'analysis'],
     queryFn: () => budgetService.getBudgetAnalysis(budgetId),
     enabled: !!budgetId,
-    staleTime: 30 * 1000, // 30 seconds for budget analysis
+    staleTime: QUERY_STALE_TIMES.budgetAnalysis,
   });
 };
 
@@ -278,7 +295,7 @@ export const useBudgetsWithStatus = (userId: string) => {
     queryKey: [...queryKeys.budgetsByUser(userId), 'with-status'],
     queryFn: () => budgetService.getBudgetsByUserWithStatus(userId),
     enabled: !!userId,
-    staleTime: 60 * 1000, // 1 minute
+    staleTime: QUERY_STALE_TIMES.budgets,
   });
 };
 
@@ -289,7 +306,7 @@ export const useCategories = () => {
   return useQuery({
     queryKey: queryKeys.categories(),
     queryFn: categoryService.getAll,
-    staleTime: 10 * 60 * 1000, // 10 minutes - categories rarely change
+    staleTime: QUERY_STALE_TIMES.categories,
   });
 };
 
@@ -400,7 +417,7 @@ export const useInvestments = () => {
   return useQuery({
     queryKey: queryKeys.investments(),
     queryFn: investmentService.getAll,
-    staleTime: 2 * 60 * 1000,
+    staleTime: QUERY_STALE_TIMES.investments,
   });
 };
 
@@ -409,7 +426,7 @@ export const useInvestmentsByUser = (userId: string) => {
     queryKey: queryKeys.investmentsByUser(userId),
     queryFn: () => investmentService.getByUserId(),
     enabled: !!userId,
-    staleTime: 2 * 60 * 1000,
+    staleTime: QUERY_STALE_TIMES.investments,
   });
 };
 
@@ -449,759 +466,18 @@ export const usePortfolioData = (userId: string) => {
       };
     },
     enabled: !!userId,
-    staleTime: 1 * 60 * 1000, // 1 minute for investment data
+    staleTime: QUERY_STALE_TIMES.portfolioData,
   });
 };
 
 /**
  * Mutation hooks for financial operations
  */
-export const useCreateTransaction = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: transactionService.create,
-
-    // Optimistic update for immediate UI response
-    onMutate: async (newTransactionData) => {
-      // Cancel outgoing queries to prevent race conditions
-      await queryClient.cancelQueries({ queryKey: queryKeys.transactions() });
-      await queryClient.cancelQueries({ queryKey: queryKeys.transactionsByUser(newTransactionData.user_id) });
-      await queryClient.cancelQueries({ queryKey: queryKeys.transactionsByAccount(newTransactionData.account_id) });
-
-      // Snapshot previous values for rollback
-      const previousTransactions = queryClient.getQueryData<Transaction[]>(queryKeys.transactions());
-      const previousUserTransactions = queryClient.getQueryData<Transaction[]>(
-        queryKeys.transactionsByUser(newTransactionData.user_id)
-      );
-      const previousAccountTransactions = queryClient.getQueryData<Transaction[]>(
-        queryKeys.transactionsByAccount(newTransactionData.account_id)
-      );
-
-      // Create optimistic transaction with temporary ID
-      const optimisticTransaction: Transaction = {
-        ...newTransactionData,
-        id: `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      } as Transaction;
-
-      // Helper function to add transaction to sorted list
-      const addToSortedList = (list: Transaction[] | undefined) => {
-        if (!list) return [optimisticTransaction];
-        return [optimisticTransaction, ...list].sort((a, b) =>
-          new Date(b.date).getTime() - new Date(a.date).getTime()
-        );
-      };
-
-      // Apply optimistic updates to all relevant caches
-      queryClient.setQueryData(queryKeys.transactions(), addToSortedList(previousTransactions));
-      queryClient.setQueryData(
-        queryKeys.transactionsByUser(newTransactionData.user_id),
-        addToSortedList(previousUserTransactions)
-      );
-      queryClient.setQueryData(
-        queryKeys.transactionsByAccount(newTransactionData.account_id),
-        addToSortedList(previousAccountTransactions)
-      );
-
-      // Update filtered queries if they exist in cache
-      queryClient.getQueriesData({ queryKey: [...queryKeys.transactions(), 'filtered'] })
-        .forEach(([queryKey, data]) => {
-          if (data && Array.isArray(data)) {
-            queryClient.setQueryData(queryKey, addToSortedList(data as Transaction[]));
-          }
-        });
-
-      return {
-        previousTransactions,
-        previousUserTransactions,
-        previousAccountTransactions,
-        optimisticTransaction,
-      };
-    },
-
-    onError: (err, variables, context) => {
-      // Rollback all optimistic updates on error
-      if (context?.previousTransactions) {
-        queryClient.setQueryData(queryKeys.transactions(), context.previousTransactions);
-      }
-      if (context?.previousUserTransactions) {
-        queryClient.setQueryData(
-          queryKeys.transactionsByUser(variables.user_id),
-          context.previousUserTransactions
-        );
-      }
-      if (context?.previousAccountTransactions) {
-        queryClient.setQueryData(
-          queryKeys.transactionsByAccount(variables.account_id),
-          context.previousAccountTransactions
-        );
-      }
-
-      // Rollback filtered queries
-      queryClient.getQueriesData({ queryKey: [...queryKeys.transactions(), 'filtered'] })
-        .forEach(([queryKey]) => {
-          queryClient.invalidateQueries({ queryKey });
-        });
-    },
-    onSuccess: (newTransaction, variables, context) => {
-      // Helper function to replace optimistic transaction with real data
-      const replaceOptimisticTransaction = (list: Transaction[] | undefined) => {
-        if (!list) return [newTransaction];
-
-        // Remove the optimistic transaction and add the real one
-        const withoutOptimistic = list.filter(tx =>
-          !tx.id.startsWith('temp-') || tx.id !== context?.optimisticTransaction?.id
-        );
-
-        // Check if real transaction already exists (avoid duplicates)
-        const existingIndex = withoutOptimistic.findIndex(tx => tx.id === newTransaction.id);
-        if (existingIndex >= 0) {
-          withoutOptimistic[existingIndex] = newTransaction;
-          return withoutOptimistic.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-        }
-
-        return [newTransaction, ...withoutOptimistic].sort((a, b) =>
-          new Date(b.date).getTime() - new Date(a.date).getTime()
-        );
-      };
-
-      // Update all transaction caches with real data
-      queryClient.setQueryData(queryKeys.transactions(), replaceOptimisticTransaction);
-      queryClient.setQueryData(
-        queryKeys.transactionsByUser(newTransaction.user_id),
-        replaceOptimisticTransaction
-      );
-      queryClient.setQueryData(
-        queryKeys.transactionsByAccount(newTransaction.account_id),
-        replaceOptimisticTransaction
-      );
-
-      // Update individual transaction cache
-      queryClient.setQueryData(queryKeys.transaction(newTransaction.id), newTransaction);
-
-      // Update filtered queries
-      queryClient.getQueriesData({ queryKey: [...queryKeys.transactions(), 'filtered'] })
-        .forEach(([queryKey, data]) => {
-          if (data && Array.isArray(data)) {
-            queryClient.setQueryData(queryKey, replaceOptimisticTransaction(data as Transaction[]));
-          }
-        });
-
-      // Invalidate aggregated and dashboard queries for consistency
-      const invalidationKeys = queryKeyUtils.invalidateAfterTransaction(newTransaction);
-      invalidationKeys.forEach((key) => {
-        queryClient.invalidateQueries({ queryKey: key });
-      });
-
-      // Handle recurring transactions - invalidate recurring series queries
-      if (newTransaction.frequency && newTransaction.frequency !== 'once') {
-        queryClient.invalidateQueries({ queryKey: queryKeys.recurringSeries() });
-        queryClient.invalidateQueries({ queryKey: queryKeys.activeRecurringSeries(newTransaction.user_id) });
-        queryClient.invalidateQueries({ queryKey: queryKeys.activeRecurringSeries() });
-      }
-
-      // Invalidate upcoming transactions if this affects future dates
-      queryClient.invalidateQueries({ queryKey: queryKeys.upcomingTransactions() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.upcomingTransactions(newTransaction.user_id) });
-    },
-
-    onSettled: () => {
-      // Ensure fresh data on next request regardless of success/error
-      queryClient.invalidateQueries({ queryKey: queryKeys.financial() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard() });
-    },
-  });
-};
-
-export const useUpdateTransaction = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<Transaction> }) =>
-      transactionService.update(id, data),
-
-    // Comprehensive optimistic update for immediate UI response
-    onMutate: async ({ id, data }) => {
-      // Get the current transaction to know which caches to update
-      const currentTransaction = queryClient.getQueryData<Transaction>(queryKeys.transaction(id));
-      const currentTransactions = queryClient.getQueryData<Transaction[]>(queryKeys.transactions());
-      const originalTransaction = currentTransactions?.find(tx => tx.id === id) || currentTransaction;
-
-      if (!originalTransaction) {
-        // If we don't have the original transaction, we can't do optimistic updates safely
-        return { previousData: null };
-      }
-
-      // Cancel outgoing queries to prevent race conditions
-      await queryClient.cancelQueries({ queryKey: queryKeys.transactions() });
-      await queryClient.cancelQueries({ queryKey: queryKeys.transaction(id) });
-      await queryClient.cancelQueries({ queryKey: queryKeys.transactionsByUser(originalTransaction.user_id) });
-      await queryClient.cancelQueries({ queryKey: queryKeys.transactionsByAccount(originalTransaction.account_id) });
-
-      // If the update changes user_id or account_id, we need to handle moving between caches
-      const newUserId = data.user_id || originalTransaction.user_id;
-      const newAccountId = data.account_id || originalTransaction.account_id;
-      const userChanged = newUserId !== originalTransaction.user_id;
-      const accountChanged = newAccountId !== originalTransaction.account_id;
-
-      if (userChanged) {
-        await queryClient.cancelQueries({ queryKey: queryKeys.transactionsByUser(newUserId) });
-      }
-      if (accountChanged) {
-        await queryClient.cancelQueries({ queryKey: queryKeys.transactionsByAccount(newAccountId) });
-      }
-
-      // Snapshot previous values for rollback
-      const previousTransactions = queryClient.getQueryData<Transaction[]>(queryKeys.transactions());
-      const previousUserTransactions = queryClient.getQueryData<Transaction[]>(
-        queryKeys.transactionsByUser(originalTransaction.user_id)
-      );
-      const previousAccountTransactions = queryClient.getQueryData<Transaction[]>(
-        queryKeys.transactionsByAccount(originalTransaction.account_id)
-      );
-      const previousNewUserTransactions = userChanged ? queryClient.getQueryData<Transaction[]>(
-        queryKeys.transactionsByUser(newUserId)
-      ) : null;
-      const previousNewAccountTransactions = accountChanged ? queryClient.getQueryData<Transaction[]>(
-        queryKeys.transactionsByAccount(newAccountId)
-      ) : null;
-
-      // Create optimistically updated transaction
-      const optimisticTransaction: Transaction = {
-        ...originalTransaction,
-        ...data,
-        updated_at: new Date().toISOString(),
-      };
-
-      // Helper function to update transaction in list
-      const updateInList = (list: Transaction[] | undefined) => {
-        if (!list) return [];
-        return list
-          .map(tx => tx.id === id ? optimisticTransaction : tx)
-          .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-      };
-
-      // Helper function to remove transaction from list
-      const removeFromList = (list: Transaction[] | undefined) => {
-        if (!list) return [];
-        return list.filter(tx => tx.id !== id);
-      };
-
-      // Helper function to add transaction to list
-      const addToList = (list: Transaction[] | undefined) => {
-        if (!list) return [optimisticTransaction];
-        return [optimisticTransaction, ...list]
-          .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-      };
-
-      // Update main transactions list
-      queryClient.setQueryData(queryKeys.transactions(), updateInList(previousTransactions));
-
-      // Update individual transaction cache
-      queryClient.setQueryData(queryKeys.transaction(id), optimisticTransaction);
-
-      // Update user-specific transactions
-      if (userChanged) {
-        // Remove from old user's list
-        queryClient.setQueryData(
-          queryKeys.transactionsByUser(originalTransaction.user_id),
-          removeFromList(previousUserTransactions)
-        );
-        // Add to new user's list
-        queryClient.setQueryData(
-          queryKeys.transactionsByUser(newUserId),
-          addToList(previousNewUserTransactions || undefined)
-        );
-      } else {
-        // Update in same user's list
-        queryClient.setQueryData(
-          queryKeys.transactionsByUser(originalTransaction.user_id),
-          updateInList(previousUserTransactions)
-        );
-      }
-
-      // Update account-specific transactions
-      if (accountChanged) {
-        // Remove from old account's list
-        queryClient.setQueryData(
-          queryKeys.transactionsByAccount(originalTransaction.account_id),
-          removeFromList(previousAccountTransactions)
-        );
-        // Add to new account's list
-        queryClient.setQueryData(
-          queryKeys.transactionsByAccount(newAccountId),
-          addToList(previousNewAccountTransactions || undefined)
-        );
-      } else {
-        // Update in same account's list
-        queryClient.setQueryData(
-          queryKeys.transactionsByAccount(originalTransaction.account_id),
-          updateInList(previousAccountTransactions)
-        );
-      }
-
-      // Update filtered queries
-      queryClient.getQueriesData({ queryKey: [...queryKeys.transactions(), 'filtered'] })
-        .forEach(([queryKey, data]) => {
-          if (data && Array.isArray(data)) {
-            queryClient.setQueryData(queryKey, updateInList(data as Transaction[]));
-          }
-        });
-
-      return {
-        previousTransactions,
-        previousUserTransactions,
-        previousAccountTransactions,
-        previousNewUserTransactions,
-        previousNewAccountTransactions,
-        originalTransaction,
-        userChanged,
-        accountChanged,
-        newUserId,
-        newAccountId,
-      };
-    },
-
-    // Rollback optimistic updates on error
-    onError: (err, variables, context) => {
-      if (!context || context.previousData === null) return;
-
-      const { id } = variables;
-      const {
-        previousTransactions,
-        previousUserTransactions,
-        previousAccountTransactions,
-        previousNewUserTransactions,
-        previousNewAccountTransactions,
-        originalTransaction,
-        userChanged,
-        accountChanged,
-        newUserId,
-        newAccountId,
-      } = context;
-
-      // Rollback all cache updates
-      if (previousTransactions) {
-        queryClient.setQueryData(queryKeys.transactions(), previousTransactions);
-      }
-
-      if (originalTransaction) {
-        queryClient.setQueryData(queryKeys.transaction(id), originalTransaction);
-
-        if (previousUserTransactions) {
-          queryClient.setQueryData(
-            queryKeys.transactionsByUser(originalTransaction.user_id),
-            previousUserTransactions
-          );
-        }
-
-        if (previousAccountTransactions) {
-          queryClient.setQueryData(
-            queryKeys.transactionsByAccount(originalTransaction.account_id),
-            previousAccountTransactions
-          );
-        }
-
-        if (userChanged && previousNewUserTransactions) {
-          queryClient.setQueryData(
-            queryKeys.transactionsByUser(newUserId),
-            previousNewUserTransactions
-          );
-        }
-
-        if (accountChanged && previousNewAccountTransactions) {
-          queryClient.setQueryData(
-            queryKeys.transactionsByAccount(newAccountId),
-            previousNewAccountTransactions
-          );
-        }
-      }
-
-      // Rollback filtered queries by invalidating them
-      queryClient.getQueriesData({ queryKey: [...queryKeys.transactions(), 'filtered'] })
-        .forEach(([queryKey]) => {
-          queryClient.invalidateQueries({ queryKey });
-        });
-    },
-    onSuccess: (updatedTransaction, variables, context) => {
-      if (!context || context.previousData === null) {
-        // Fallback: if we couldn't do optimistic updates, update caches now
-        queryClient.setQueryData(queryKeys.transaction(updatedTransaction.id), updatedTransaction);
-        queryClient.invalidateQueries({ queryKey: queryKeys.transactions() });
-        queryClient.invalidateQueries({ queryKey: queryKeys.transactionsByUser(updatedTransaction.user_id) });
-        queryClient.invalidateQueries({ queryKey: queryKeys.transactionsByAccount(updatedTransaction.account_id) });
-        return;
-      }
-
-      const { originalTransaction, userChanged, accountChanged } = context;
-
-      // Helper function to ensure updated transaction is in list
-      const ensureUpdatedInList = (list: Transaction[] | undefined) => {
-        if (!list) return [updatedTransaction];
-        const existingIndex = list.findIndex(tx => tx.id === updatedTransaction.id);
-        if (existingIndex >= 0) {
-          const updated = [...list];
-          updated[existingIndex] = updatedTransaction;
-          return updated.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-        }
-        return [updatedTransaction, ...list]
-          .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-      };
-
-      // Update all caches with the real server response
-      queryClient.setQueryData(queryKeys.transaction(updatedTransaction.id), updatedTransaction);
-      queryClient.setQueryData(queryKeys.transactions(), ensureUpdatedInList);
-
-      // Handle user changes
-      if (userChanged && originalTransaction) {
-        // Remove from old user's cache (if it wasn't optimistically updated correctly)
-        queryClient.setQueryData(
-          queryKeys.transactionsByUser(originalTransaction.user_id),
-          (oldData: Transaction[] | undefined) => {
-            if (!oldData) return [];
-            return oldData.filter(tx => tx.id !== updatedTransaction.id);
-          }
-        );
-        // Ensure it's in new user's cache
-        queryClient.setQueryData(
-          queryKeys.transactionsByUser(updatedTransaction.user_id),
-          ensureUpdatedInList
-        );
-      } else {
-        // Update in same user's cache
-        queryClient.setQueryData(
-          queryKeys.transactionsByUser(updatedTransaction.user_id),
-          ensureUpdatedInList
-        );
-      }
-
-      // Handle account changes
-      if (accountChanged && originalTransaction) {
-        // Remove from old account's cache
-        queryClient.setQueryData(
-          queryKeys.transactionsByAccount(originalTransaction.account_id),
-          (oldData: Transaction[] | undefined) => {
-            if (!oldData) return [];
-            return oldData.filter(tx => tx.id !== updatedTransaction.id);
-          }
-        );
-        // Ensure it's in new account's cache
-        queryClient.setQueryData(
-          queryKeys.transactionsByAccount(updatedTransaction.account_id),
-          ensureUpdatedInList
-        );
-      } else {
-        // Update in same account's cache
-        queryClient.setQueryData(
-          queryKeys.transactionsByAccount(updatedTransaction.account_id),
-          ensureUpdatedInList
-        );
-      }
-
-      // Update filtered queries
-      queryClient.getQueriesData({ queryKey: [...queryKeys.transactions(), 'filtered'] })
-        .forEach(([queryKey, data]) => {
-          if (data && Array.isArray(data)) {
-            queryClient.setQueryData(queryKey, ensureUpdatedInList(data as Transaction[]));
-          }
-        });
-
-      // Invalidate aggregated queries for consistency
-      const invalidationKeys = queryKeyUtils.invalidateAfterTransaction(updatedTransaction);
-      invalidationKeys.forEach((key) => {
-        queryClient.invalidateQueries({ queryKey: key });
-      });
-
-      // Handle recurring transaction updates
-      if (updatedTransaction.frequency && updatedTransaction.frequency !== 'once') {
-        queryClient.invalidateQueries({ queryKey: queryKeys.recurringSeries() });
-        queryClient.invalidateQueries({ queryKey: queryKeys.activeRecurringSeries(updatedTransaction.user_id) });
-        queryClient.invalidateQueries({ queryKey: queryKeys.activeRecurringSeries() });
-      }
-
-      // If the update changed the user or account, invalidate additional related queries
-      if (userChanged && originalTransaction) {
-        const oldInvalidationKeys = queryKeyUtils.invalidateAfterTransaction(originalTransaction);
-        oldInvalidationKeys.forEach((key) => {
-          queryClient.invalidateQueries({ queryKey: key });
-        });
-      }
-
-      // Invalidate upcoming transactions
-      queryClient.invalidateQueries({ queryKey: queryKeys.upcomingTransactions() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.upcomingTransactions(updatedTransaction.user_id) });
-    },
-
-    onSettled: () => {
-      // Ensure fresh data on next request
-      queryClient.invalidateQueries({ queryKey: queryKeys.financial() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard() });
-    },
-  });
-};
-
-export const useDeleteTransaction = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: transactionService.delete,
-
-    // Optimistic update for immediate UI response
-    onMutate: async (deletedId: string) => {
-      // Get the transaction to be deleted to know which caches to update
-      const transactionToDelete = queryClient.getQueryData<Transaction>(queryKeys.transaction(deletedId)) ||
-        queryClient.getQueryData<Transaction[]>(queryKeys.transactions())?.find(tx => tx.id === deletedId);
-
-      if (!transactionToDelete) {
-        // If we can't find the transaction, we can't do optimistic updates safely
-        return { previousData: null };
-      }
-
-      // Cancel outgoing queries to prevent race conditions
-      await queryClient.cancelQueries({ queryKey: queryKeys.transactions() });
-      await queryClient.cancelQueries({ queryKey: queryKeys.transaction(deletedId) });
-      await queryClient.cancelQueries({ queryKey: queryKeys.transactionsByUser(transactionToDelete.user_id) });
-      await queryClient.cancelQueries({ queryKey: queryKeys.transactionsByAccount(transactionToDelete.account_id) });
-
-      // Snapshot previous values for rollback
-      const previousTransactions = queryClient.getQueryData<Transaction[]>(queryKeys.transactions());
-      const previousUserTransactions = queryClient.getQueryData<Transaction[]>(
-        queryKeys.transactionsByUser(transactionToDelete.user_id)
-      );
-      const previousAccountTransactions = queryClient.getQueryData<Transaction[]>(
-        queryKeys.transactionsByAccount(transactionToDelete.account_id)
-      );
-      const previousTransaction = queryClient.getQueryData<Transaction>(queryKeys.transaction(deletedId));
-
-      // Helper function to remove transaction from list
-      const removeFromList = (list: Transaction[] | undefined) => {
-        if (!list) return [];
-        return list.filter(tx => tx.id !== deletedId);
-      };
-
-      // Apply optimistic deletions to all relevant caches
-      queryClient.setQueryData(queryKeys.transactions(), removeFromList(previousTransactions));
-      queryClient.setQueryData(
-        queryKeys.transactionsByUser(transactionToDelete.user_id),
-        removeFromList(previousUserTransactions)
-      );
-      queryClient.setQueryData(
-        queryKeys.transactionsByAccount(transactionToDelete.account_id),
-        removeFromList(previousAccountTransactions)
-      );
-
-      // Remove from individual transaction cache
-      queryClient.removeQueries({ queryKey: queryKeys.transaction(deletedId) });
-
-      // Update filtered queries
-      queryClient.getQueriesData({ queryKey: [...queryKeys.transactions(), 'filtered'] })
-        .forEach(([queryKey, data]) => {
-          if (data && Array.isArray(data)) {
-            queryClient.setQueryData(queryKey, removeFromList(data as Transaction[]));
-          }
-        });
-
-      return {
-        previousTransactions,
-        previousUserTransactions,
-        previousAccountTransactions,
-        previousTransaction,
-        transactionToDelete,
-      };
-    },
-
-    // Rollback optimistic updates on error
-    onError: (err, deletedId, context) => {
-      if (!context || context.previousData === null) return;
-
-      const {
-        previousTransactions,
-        previousUserTransactions,
-        previousAccountTransactions,
-        previousTransaction,
-        transactionToDelete,
-      } = context;
-
-      // Rollback all cache updates
-      if (previousTransactions) {
-        queryClient.setQueryData(queryKeys.transactions(), previousTransactions);
-      }
-
-      if (transactionToDelete) {
-        if (previousUserTransactions) {
-          queryClient.setQueryData(
-            queryKeys.transactionsByUser(transactionToDelete.user_id),
-            previousUserTransactions
-          );
-        }
-
-        if (previousAccountTransactions) {
-          queryClient.setQueryData(
-            queryKeys.transactionsByAccount(transactionToDelete.account_id),
-            previousAccountTransactions
-          );
-        }
-      }
-
-      if (previousTransaction) {
-        queryClient.setQueryData(queryKeys.transaction(deletedId), previousTransaction);
-      }
-
-      // Rollback filtered queries by invalidating them
-      queryClient.getQueriesData({ queryKey: [...queryKeys.transactions(), 'filtered'] })
-        .forEach(([queryKey]) => {
-          queryClient.invalidateQueries({ queryKey });
-        });
-    },
-
-    onSuccess: (_, deletedId, context) => {
-      // Remove from individual transaction cache (confirm deletion)
-      queryClient.removeQueries({ queryKey: queryKeys.transaction(deletedId) });
-
-      // If we had context, we already did optimistic updates
-      // Just need to ensure consistency with aggregated data
-      if (context && context.previousData !== null && context.transactionToDelete) {
-        const { transactionToDelete } = context;
-
-        // Invalidate aggregated queries for consistency
-        const invalidationKeys = queryKeyUtils.invalidateAfterTransaction(transactionToDelete);
-        invalidationKeys.forEach((key) => {
-          queryClient.invalidateQueries({ queryKey: key });
-        });
-
-        // Handle recurring transaction deletions
-        if (transactionToDelete.frequency && transactionToDelete.frequency !== 'once') {
-          queryClient.invalidateQueries({ queryKey: queryKeys.recurringSeries() });
-          queryClient.invalidateQueries({ queryKey: queryKeys.activeRecurringSeries(transactionToDelete.user_id) });
-          queryClient.invalidateQueries({ queryKey: queryKeys.activeRecurringSeries() });
-        }
-
-        // Invalidate upcoming transactions
-        queryClient.invalidateQueries({ queryKey: queryKeys.upcomingTransactions() });
-        queryClient.invalidateQueries({ queryKey: queryKeys.upcomingTransactions(transactionToDelete.user_id) });
-      } else {
-        // Fallback: if we couldn't do optimistic updates, invalidate everything
-        queryClient.invalidateQueries({ queryKey: queryKeys.transactions() });
-        queryClient.invalidateQueries({ queryKey: queryKeys.financial() });
-        queryClient.invalidateQueries({ queryKey: queryKeys.dashboard() });
-      }
-    },
-
-    onSettled: () => {
-      // Ensure fresh data on next request
-      queryClient.invalidateQueries({ queryKey: queryKeys.financial() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard() });
-    },
-  });
-};
-
-export const useCreateBudget = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: budgetService.create,
-    onSuccess: (data) => {
-      const invalidationKeys = queryKeyUtils.invalidateAfterBudget(data);
-      invalidationKeys.forEach((key) => {
-        queryClient.invalidateQueries({ queryKey: key });
-      });
-    },
-  });
-};
-
-export const useUpdateBudget = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<Budget> }) =>
-      budgetService.update(id, data),
-    onSuccess: (data) => {
-      queryClient.setQueryData(queryKeys.budget(data.id), data);
-
-      const invalidationKeys = queryKeyUtils.invalidateAfterBudget(data);
-      invalidationKeys.forEach((key) => {
-        queryClient.invalidateQueries({ queryKey: key });
-      });
-    },
-  });
-};
 
 /**
- * Budget Period mutation hooks
+ * Mutation hooks for financial operations
+ * NOTE: Transaction and Budget mutations have been moved to dedicated optimized hooks:
+ * - useCreateTransaction, useUpdateTransaction, useDeleteTransaction -> /hooks/use-transaction-mutations.ts
+ * - useCreateBudget, useUpdateBudget, useDeleteBudget -> /hooks/use-budget-mutations.ts
+ * - useCreateBudgetPeriod, useUpdateBudgetPeriod, useStartBudgetPeriod, useEndBudgetPeriod -> /hooks/use-budget-mutations.ts
  */
-export const useStartBudgetPeriod = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ userId }: { userId: string }) =>
-      budgetPeriodService.startNewPeriod(userId),
-    onSuccess: (data) => {
-      // Invalidate budget periods queries
-      queryClient.invalidateQueries({ queryKey: queryKeys.budgetPeriods() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.budgetPeriodsByUser(data.user_id) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.activeBudgetPeriods() });
-
-      // Invalidate dashboard queries
-      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard() });
-    },
-  });
-};
-
-export const useEndBudgetPeriod = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ userId, endDate }: { userId: string; endDate?: string }) =>
-      budgetPeriodService.endCurrentPeriod(userId, endDate),
-    onSuccess: (data) => {
-      // Invalidate budget periods queries
-      queryClient.invalidateQueries({ queryKey: queryKeys.budgetPeriods() });
-      if (data) {
-        queryClient.invalidateQueries({ queryKey: queryKeys.budgetPeriodsByUser(data.user_id) });
-      }
-      queryClient.invalidateQueries({ queryKey: queryKeys.activeBudgetPeriods() });
-
-      // Invalidate dashboard queries
-      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard() });
-
-      // Invalidate transaction-related queries as budget period changes affect calculations
-      queryClient.invalidateQueries({ queryKey: queryKeys.financial() });
-    },
-  });
-};
-
-export const useCreateBudgetPeriod = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ userId, budgetPeriod }: {
-      userId: string;
-      budgetPeriod: Omit<BudgetPeriod, 'id' | 'created_at' | 'updated_at'>;
-    }) => budgetPeriodService.create(userId, budgetPeriod),
-    onSuccess: (data) => {
-      // Invalidate budget periods queries
-      queryClient.invalidateQueries({ queryKey: queryKeys.budgetPeriods() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.budgetPeriodsByUser(data.user_id) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.activeBudgetPeriods() });
-    },
-  });
-};
-
-export const useUpdateBudgetPeriod = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ userId, id, data }: { userId: string; id: string; data: Partial<BudgetPeriod> }) =>
-      budgetPeriodService.update(userId, id, data),
-    onSuccess: (data) => {
-      // Update specific budget period in cache
-      queryClient.setQueryData(queryKeys.budgetPeriod(data.id), data);
-
-      // Invalidate related queries
-      queryClient.invalidateQueries({ queryKey: queryKeys.budgetPeriods() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.budgetPeriodsByUser(data.user_id) });
-    },
-  });
-};

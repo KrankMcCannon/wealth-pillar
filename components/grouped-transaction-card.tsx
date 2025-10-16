@@ -2,6 +2,8 @@
 
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Trash2 } from "lucide-react";
 import { CategoryIcon, iconSizes } from "@/lib/icons";
 import { formatCurrency, getCategoryLabel, truncateText, pluralize } from "@/lib/utils";
 import { Transaction } from "@/lib/types";
@@ -14,6 +16,7 @@ interface GroupedTransactionCardProps {
   totalAmount?: number;
   context?: 'due' | 'informative'; // New context parameter
   onEditTransaction?: (transaction: Transaction) => void; // Callback for editing
+  onDeleteTransaction?: (transactionId: string) => void; // Callback for deleting
 }
 
 export function GroupedTransactionCard({
@@ -23,7 +26,8 @@ export function GroupedTransactionCard({
   showHeader = false,
   totalAmount,
   context = 'informative',
-  onEditTransaction
+  onEditTransaction,
+  onDeleteTransaction
 }: GroupedTransactionCardProps) {
   if (!transactions.length) return null;
 
@@ -139,11 +143,13 @@ export function GroupedTransactionCard({
         {transactions.map((transaction, index) => (
           <div
             key={transaction.id || index}
-            className="px-3 py-2 hover:bg-white/80 transition-colors duration-200 group relative cursor-pointer"
-            onClick={() => onEditTransaction?.(transaction)}
+            className="px-3 py-2 hover:bg-white/80 transition-colors duration-200 group relative"
           >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5 flex-1 min-w-0">
+            <div className="flex items-center justify-between gap-2">
+              <div
+                className="flex items-center gap-2.5 flex-1 min-w-0 cursor-pointer"
+                onClick={() => onEditTransaction?.(transaction)}
+              >
                 <div className={`flex size-8 items-center justify-center rounded-lg bg-gradient-to-br ${getTransactionIconColor(transaction)} shadow-sm group-hover:shadow-md transition-all duration-200 shrink-0`}>
                   <CategoryIcon
                     categoryKey={transaction.category}
@@ -178,8 +184,24 @@ export function GroupedTransactionCard({
                 </div>
               </div>
 
-              {/* Amount */}
-              <div className="text-right">
+              {/* Amount and Delete Button */}
+              <div className="flex items-center gap-2">
+                {/* Delete Button - visible on hover */}
+                {onDeleteTransaction && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-50 hover:text-red-600"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDeleteTransaction(transaction.id);
+                    }}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                )}
+
+                <div className="text-right">
                   <p className={`text-sm font-bold ${getTransactionAmountColor(transaction)}`}>
                     {formatTransactionAmount(transaction)}
                   </p>
@@ -188,6 +210,7 @@ export function GroupedTransactionCard({
                       Serie ricorrente - {transaction.frequency}
                     </p>
                   )}
+                </div>
               </div>
             </div>
           </div>

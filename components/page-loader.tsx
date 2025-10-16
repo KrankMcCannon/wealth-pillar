@@ -5,7 +5,7 @@ interface PageLoaderProps {
 
 export function PageLoader({ message = 'Caricamento...', submessage = 'Attendere prego' }: PageLoaderProps) {
   return (
-    <div className="relative flex size-full min-h-[100dvh] flex-col bg-gradient-to-br from-slate-50 via-white to-slate-100">
+    <div className="relative flex size-full min-h-[100dvh] flex-col bg-white">
       <div className="flex-1 flex items-center justify-center">
         <div className="text-center">
           <div className="flex size-16 items-center justify-center rounded-2xl bg-[hsl(var(--color-primary))]/10 mx-auto mb-4 animate-pulse">

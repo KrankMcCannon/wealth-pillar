@@ -12,6 +12,7 @@ export {
   useBudgetsByUser, useCategories, useCurrentBudgetPeriod, useCurrentUser, useInvestments,
   useInvestmentsByUser,
   usePortfolioData, useTransactions, useTransactionsByAccount, useTransactionsByUser, useTransactionsWithFilters,
+  useTransactionsForBalances,
   useUpcomingTransactions, useUser, useUsers
 } from './use-query-hooks';
 
@@ -22,7 +23,7 @@ export {
 
 // OPTIMIZED: Budget mutations with reduced invalidations
 export {
-  useCreateBudget, useCreateBudgetPeriod, useEndBudgetPeriod, useStartBudgetPeriod, useUpdateBudget, useUpdateBudgetPeriod
+  useCreateBudget, useCreateBudgetPeriod, useDeleteBudget, useEndBudgetPeriod, useStartBudgetPeriod, useUpdateBudget, useUpdateBudgetPeriod
 } from './use-budget-mutations';
 
 // Dashboard-specific composite hooks
@@ -51,10 +52,6 @@ export {
   useUserSelection
 } from './useUserSelection';
 
-export {
-  useDashboardPrefetch
-} from './useDashboardPrefetch';
-
 // Recurring Transaction Series management (new architecture)
 export {
   useActiveRecurringSeries, useCreateRecurringSeries, useDeleteRecurringSeries, useExecuteRecurringSeries, usePauseRecurringSeries, useRecurringSeries,
@@ -64,8 +61,11 @@ export {
 
 // Recurring execution and reconciliation
 export {
-  useDryRunExecution, useExecuteAllDueSeries, useMissedExecutions, useSeriesReconciliation, useSeriesTransactions
+  useDryRunExecution, useExecuteAllDueSeries, useSeriesReconciliation, useSeriesTransactions
 } from './use-recurring-execution';
+
+// Missed executions is now in use-recurring-series
+export { useMissedExecutions } from './use-recurring-series';
 
 // Cache utilities to apply consistent invalidation logic
 export { transactionCacheUtils } from './use-query-hooks';

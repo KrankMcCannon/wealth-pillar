@@ -245,8 +245,7 @@ export function BudgetPeriodManager({ budget, currentPeriod, trigger, onSuccess 
                       value={endDate}
                       onChange={(e) => setEndDate(e.target.value)}
                       min={currentPeriod?.start_date ? new Date(currentPeriod.start_date).toISOString().split('T')[0] : ''}
-                      className="w-full pl-10 pr-3 border-[#7578EC]/30 focus:border-[#7578EC] focus:ring-[#7578EC]/20 [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-0 [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:cursor-pointer"
-                      style={{ position: 'relative' }}
+                      className="w-full pl-10 pr-8 border-[#7578EC]/30 focus:border-[#7578EC] focus:ring-[#7578EC]/20 [&::-webkit-calendar-picker-indicator]:opacity-0"
                     />
                   </div>
                 </div>

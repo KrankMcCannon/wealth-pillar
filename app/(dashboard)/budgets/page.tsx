@@ -23,15 +23,15 @@ import {
   useCategories,
   useAccounts,
   useBudgetPeriods,
-  useUserSelection
+  useUserSelection,
+  useDeleteBudget,
+  useDeleteTransaction
 } from "@/hooks";
 import type { Budget, Transaction } from "@/lib/types";
 import { BudgetPeriodManager } from "@/components/budget-period-manager";
-import {
-  getBudgetTransactions,
-  getActivePeriodDates,
-  calculateUserFinancialTotals
-} from "@/lib/utils";
+import { BudgetForm } from "@/components/budget-form";
+import { CategoryForm } from "@/components/category-form";
+import { getActivePeriodDates, getBudgetTransactions, calculateUserFinancialTotals } from "@/lib/utils";
 import { PageLoader } from "@/components/page-loader";
 
 const getBudgetsForUser = (budgets: Budget[], userId: string, currentUser: { id: string; role: string; group_id: string } | null, users: { id: string; group_id: string }[]): Budget[] => {
@@ -60,7 +60,13 @@ function BudgetsContent() {
   const [isTransactionFormOpen, setIsTransactionFormOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [transactionFormMode, setTransactionFormMode] = useState<'create' | 'edit'>('edit');
+  const [isBudgetFormOpen, setIsBudgetFormOpen] = useState(false);
+  const [isCategoryFormOpen, setIsCategoryFormOpen] = useState(false);
+  const [editingBudget, setEditingBudget] = useState<Budget | null>(null);
+  const [budgetFormMode, setBudgetFormMode] = useState<'create' | 'edit'>('create');
   const { data: budgets = [], isLoading: budgetsLoading } = useBudgets();
+  const deleteBudgetMutation = useDeleteBudget();
+  const deleteTransactionMutation = useDeleteTransaction();
   const { data: allTransactions = [], isLoading: txLoading } = useTransactions();
   const { data: accounts = [] } = useAccounts();
 
@@ -80,6 +86,40 @@ function BudgetsContent() {
     setEditingTransaction(transaction);
     setTransactionFormMode('edit');
     setIsTransactionFormOpen(true);
+  };
+
+  const handleEditBudget = (budget: Budget) => {
+    setEditingBudget(budget);
+    setBudgetFormMode('edit');
+    setIsBudgetFormOpen(true);
+  };
+
+  const handleDeleteBudget = async (budgetId: string) => {
+    if (confirm('Sei sicuro di voler eliminare questo budget?')) {
+      try {
+        await deleteBudgetMutation.mutateAsync(budgetId);
+        // If deleted budget was selected, reset to first available budget
+        if (selectedBudget?.id === budgetId) {
+          const availableBudgets = getBudgetsForUser(budgets, selectedViewUserId, currentUser, users || []);
+          const remainingBudgets = availableBudgets.filter(b => b.id !== budgetId);
+          setSelectedBudget(remainingBudgets[0] || null);
+        }
+      } catch (error) {
+        console.error('Failed to delete budget:', error);
+        alert('Errore durante l\'eliminazione del budget');
+      }
+    }
+  };
+
+  const handleDeleteTransaction = async (transactionId: string) => {
+    if (confirm('Sei sicuro di voler eliminare questa transazione?')) {
+      try {
+        await deleteTransactionMutation.mutateAsync(transactionId);
+      } catch (error) {
+        console.error('Failed to delete transaction:', error);
+        alert('Errore durante l\'eliminazione della transazione');
+      }
+    }
   };
 
   useEffect(() => {
@@ -441,11 +481,25 @@ function BudgetsContent() {
               className="w-56 bg-white/95 backdrop-blur-xl border border-slate-200/50 shadow-xl rounded-xl p-2 animate-in slide-in-from-top-2 duration-200"
               sideOffset={8}
             >
-              <DropdownMenuItem className="text-sm font-medium text-slate-700 hover:bg-[#7578EC]/10 hover:text-[#7578EC] rounded-lg px-3 py-2.5 cursor-pointer transition-colors">
+              <DropdownMenuItem
+                className="text-sm font-medium text-slate-700 hover:bg-[#7578EC]/10 hover:text-[#7578EC] rounded-lg px-3 py-2.5 cursor-pointer transition-colors"
+                onSelect={() => {
+                  setEditingBudget(null);
+                  setBudgetFormMode('create');
+                  setIsBudgetFormOpen(true);
+                  setIsDropdownOpen(false);
+                }}
+              >
                 <span className="mr-2">💰</span>
                 Nuovo Budget
               </DropdownMenuItem>
-              <DropdownMenuItem className="text-sm font-medium text-slate-700 hover:bg-[#7578EC]/10 hover:text-[#7578EC] rounded-lg px-3 py-2.5 cursor-pointer transition-colors">
+              <DropdownMenuItem
+                className="text-sm font-medium text-slate-700 hover:bg-[#7578EC]/10 hover:text-[#7578EC] rounded-lg px-3 py-2.5 cursor-pointer transition-colors"
+                onSelect={() => {
+                  setIsCategoryFormOpen(true);
+                  setIsDropdownOpen(false);
+                }}
+              >
                 <span className="mr-2">🏷️</span>
                 Nuova Categoria
               </DropdownMenuItem>
@@ -559,8 +613,34 @@ function BudgetsContent() {
                           className="text-[#7578EC]"
                         />
                       </div>
-                      <div>
-                        <h3 className="text-lg font-bold text-slate-900 leading-tight">{selectedBudget.description}</h3>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-lg font-bold text-slate-900 leading-tight">{selectedBudget.description}</h3>
+                          {/* Budget Actions Dropdown */}
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm" className="h-6 w-6 p-0 hover:bg-[#7578EC]/10 rounded-lg">
+                                <MoreVertical className="h-4 w-4 text-slate-600" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="start" className="w-48 bg-white/95 backdrop-blur-xl border border-slate-200/50 shadow-xl rounded-xl p-2">
+                              <DropdownMenuItem
+                                className="text-sm font-medium text-slate-700 hover:bg-[#7578EC]/10 hover:text-[#7578EC] rounded-lg px-3 py-2.5 cursor-pointer transition-colors"
+                                onSelect={() => handleEditBudget(selectedBudget)}
+                              >
+                                <span className="mr-2">✏️</span>
+                                Modifica Budget
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                className="text-sm font-medium text-red-600 hover:bg-red-50 hover:text-red-700 rounded-lg px-3 py-2.5 cursor-pointer transition-colors"
+                                onSelect={() => handleDeleteBudget(selectedBudget.id)}
+                              >
+                                <span className="mr-2">🗑️</span>
+                                Elimina Budget
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
                         <p className="text-xs text-slate-500 font-medium">Budget attivo</p>
                       </div>
                     </div>
@@ -918,6 +998,7 @@ function BudgetsContent() {
                         accountNames={accountNames}
                         variant="regular"
                         onEditTransaction={handleEditTransaction}
+                        onDeleteTransaction={handleDeleteTransaction}
                       />
                     </section>
                   ))
@@ -968,6 +1049,28 @@ function BudgetsContent() {
         selectedUserId={selectedViewUserId !== 'all' ? selectedViewUserId : ''}
         transaction={editingTransaction || undefined}
         mode={transactionFormMode}
+      />
+
+      {/* Budget Form */}
+      <BudgetForm
+        isOpen={isBudgetFormOpen}
+        onOpenChange={(open) => {
+          setIsBudgetFormOpen(open);
+          if (!open) {
+            setEditingBudget(null);
+            setBudgetFormMode('create');
+          }
+        }}
+        selectedUserId={selectedViewUserId !== 'all' ? selectedViewUserId : undefined}
+        budget={editingBudget || undefined}
+        mode={budgetFormMode}
+      />
+
+      {/* Category Form */}
+      <CategoryForm
+        isOpen={isCategoryFormOpen}
+        onOpenChange={setIsCategoryFormOpen}
+        mode="create"
       />
     </div>
   );

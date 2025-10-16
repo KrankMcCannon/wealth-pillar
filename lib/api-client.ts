@@ -152,6 +152,7 @@ export const userService = {
   delete: (id: string): Promise<void> => apiClient.delete<void>(`/users/${id}`),
 };
 
+// TODO: Implement group management feature - reserved for future implementation
 export const groupService = {
   getAll: (): Promise<Group[]> => apiClient.get<Group[]>('/groups'),
   getById: (id: string): Promise<Group> => apiClient.get<Group>(`/groups/${id}`),
@@ -240,13 +241,6 @@ export const transactionService = {
       weeklyAverage: number;
     }>('/transactions/trends', params);
   },
-
-  bulkOperations: (operations: Array<{
-    type: 'create' | 'update' | 'delete';
-    id?: string;
-    data?: Partial<Transaction>;
-  }>): Promise<Transaction[]> =>
-    apiClient.patch<Transaction[]>('/transactions', { operations }),
 };
 
 export const budgetService = {
@@ -300,7 +294,6 @@ export const budgetService = {
 
 export const categoryService = {
   getAll: (): Promise<Category[]> => apiClient.get<Category[]>('/categories'),
-  getById: (id: string): Promise<Category> => apiClient.get<Category>(`/categories/${id}`),
   create: (category: Omit<Category, 'id' | 'created_at' | 'updated_at'>): Promise<Category> =>
     apiClient.post<Category>('/categories', category),
   update: (id: string, category: Partial<Category>): Promise<Category> =>
@@ -425,19 +418,11 @@ export const recurringTransactionService = {
   },
 };
 
-// Investment service (stub implementation for now)
+// Investment service (stub - to be implemented)
+// TODO: Implement investment holdings feature
 export const investmentService = {
   getAll: (): Promise<InvestmentHolding[]> => Promise.resolve([]),
   getByUserId: (): Promise<InvestmentHolding[]> => Promise.resolve([]),
-  create: (): Promise<InvestmentHolding> => {
-    throw new Error('Investment holdings not implemented yet');
-  },
-  update: (): Promise<InvestmentHolding> => {
-    throw new Error('Investment holdings not implemented yet');
-  },
-  delete: (): Promise<void> => {
-    throw new Error('Investment holdings not implemented yet');
-  },
 };
 
 // Budget Period Service (simplified for now)

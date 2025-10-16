@@ -407,3 +407,74 @@ export const useEndBudgetPeriod = () => {
     },
   });
 };
+
+/**
+ * Optimized Delete Budget Hook
+ */
+export const useDeleteBudget = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: budgetService.delete,
+
+    onMutate: async (deletedId: string) => {
+      // Get the budget to be deleted
+      const budgetToDelete = queryClient.getQueryData<Budget>(queryKeys.budget(deletedId)) ||
+        queryClient.getQueryData<Budget[]>(queryKeys.budgets())?.find(b => b.id === deletedId);
+
+      if (!budgetToDelete) {
+        return { previousData: null };
+      }
+
+      // Cancel outgoing queries
+      await queryClient.cancelQueries({ queryKey: queryKeys.budgets() });
+      await queryClient.cancelQueries({ queryKey: queryKeys.budget(deletedId) });
+      await queryClient.cancelQueries({ queryKey: queryKeys.budgetsByUser(budgetToDelete.user_id) });
+
+      // Create snapshots
+      const previousData = {
+        budgetToDelete,
+        budgets: createOptimisticSnapshot<Budget[]>(queryClient, queryKeys.budgets()),
+        userBudgets: createOptimisticSnapshot<Budget[]>(
+          queryClient,
+          queryKeys.budgetsByUser(budgetToDelete.user_id)
+        ),
+      };
+
+      // OPTIMIZATION: Optimistic removal from cache
+      updateBudgetInCache(queryClient, budgetToDelete, 'delete');
+
+      return { previousData };
+    },
+
+    onError: (err, deletedId, context) => {
+      if (!context || context.previousData === null) return;
+
+      const { previousData } = context;
+
+      // Rollback deletion
+      rollbackOptimisticUpdate(queryClient, queryKeys.budgets(), previousData.budgets);
+      rollbackOptimisticUpdate(
+        queryClient,
+        queryKeys.budgetsByUser(previousData.budgetToDelete.user_id),
+        previousData.userBudgets
+      );
+      queryClient.setQueryData(
+        queryKeys.budget(deletedId),
+        previousData.budgetToDelete
+      );
+    },
+
+    onSuccess: (_, deletedId, context) => {
+      if (context && context.previousData) {
+        const { budgetToDelete } = context.previousData;
+
+        // OPTIMIZATION: Confirm deletion in cache
+        queryClient.removeQueries({ queryKey: queryKeys.budget(deletedId) });
+
+        // OPTIMIZATION: Selective invalidation for computed data
+        invalidateBudgetComputedData(queryClient, budgetToDelete);
+      }
+    },
+  });
+};

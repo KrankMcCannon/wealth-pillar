@@ -11,7 +11,6 @@ import ErrorBoundary, { QueryErrorFallback } from "@/components/error-boundary";
 import { useDashboardCore } from "@/hooks/useDashboardCore";
 import { useDashboardBudgets } from "@/hooks/useDashboardBudgets";
 import { useUserSelection } from "@/hooks/useUserSelection";
-import { useDashboardPrefetch } from "@/hooks/useDashboardPrefetch";
 import type { RecurringTransactionSeries } from "@/lib/types";
 import { PageLoader } from "@/components/page-loader";
 
@@ -76,9 +75,6 @@ export default function DashboardPage() {
     hasCoreData
   );
 
-  // Prefetching strategies
-  const { prefetchNextSelection: prefetchNext } = useDashboardPrefetch(currentUser, users);
-
   // Memoized callbacks
   const handleAccountClick = useCallback((id: string) => {
     setExpandedAccount(expandedAccount === id ? null : id);
@@ -103,10 +99,7 @@ export default function DashboardPage() {
     }
 
     updateViewUserId(userId);
-
-    // Prefetch next likely selection
-    prefetchNext(userId);
-  }, [selectedViewUserId, updateViewUserId, updateUserCache, hasCoreData, prefetchNext]);
+  }, [selectedViewUserId, updateViewUserId, updateUserCache, hasCoreData]);
 
   // Enhanced loading states - show loader until all critical data is ready
   const showInitialLoading = userSelectionLoading || coreLoading.isInitialLoading || budgetsLoading;

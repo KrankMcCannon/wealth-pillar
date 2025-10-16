@@ -5,6 +5,7 @@ import {
   budgetService,
   transactionService,
 } from '@/lib/api-client';
+import { QUERY_STALE_TIMES } from '@/lib/query-config';
 import { queryKeys } from '@/lib/query-keys';
 import { calculateAccountBalance } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
@@ -15,6 +16,7 @@ import { useQuery } from '@tanstack/react-query';
 
 /**
  * Real-time balance tracking with optimistic updates
+ * Uses window focus refetching instead of aggressive polling
  */
 export const useAccountBalance = (accountId: string) => {
   return useQuery({
@@ -24,8 +26,9 @@ export const useAccountBalance = (accountId: string) => {
       return calculateAccountBalance(accountId, transactions);
     },
     enabled: !!accountId,
-    staleTime: 15 * 1000, // 15 seconds for real-time balance
-    refetchInterval: 30 * 1000, // Refetch every 30 seconds
+    staleTime: QUERY_STALE_TIMES.accountBalances,
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
   });
 };
 
@@ -140,7 +143,8 @@ export const useBudgetPerformance = (budgetId: string) => {
       };
     },
     enabled: !!budgetId,
-    staleTime: 30 * 1000, // 30 seconds for budget performance
+    staleTime: QUERY_STALE_TIMES.budgetAnalysis,
+    refetchOnWindowFocus: true,
   });
 };
 
@@ -212,6 +216,7 @@ export const useTransactionTrends = (userId?: string, days: number = 30) => {
         timeframe: { days, cutoffDate },
       };
     },
-    staleTime: 2 * 60 * 1000, // 2 minutes
+    staleTime: QUERY_STALE_TIMES.spendingTrends,
+    refetchOnWindowFocus: true,
   });
 };

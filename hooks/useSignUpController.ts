@@ -79,7 +79,7 @@ export function useSignUpController() {
     } finally {
       setLoading(false);
     }
-  }, [email, isLoaded, firstName, lastName, password, signUp]);
+  }, [email, isLoaded, firstName, lastName, password, signUp, username]);
 
   const submitVerification = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();

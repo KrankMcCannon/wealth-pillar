@@ -44,15 +44,6 @@ export const useSeriesReconciliation = (seriesId: string) => {
   });
 };
 
-// Hook per trovare serie con esecuzioni mancanti
-export const useMissedExecutions = () => {
-  return useQuery({
-    queryKey: [...queryKeys.recurringSeries(), 'missed-executions'],
-    queryFn: () => recurringExecutionService.findMissedExecutions(),
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
-};
-
 // Hook per simulare l'esecuzione (dry run)
 export const useDryRunExecution = () => {
   return useMutation({

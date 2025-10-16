@@ -193,7 +193,7 @@ export function RecurringSeriesForm({ isOpen, onOpenChange, selectedUserId, seri
         <DialogTitle className="sr-only">{mode === 'edit' ? 'Modifica Serie Ricorrente' : 'Nuova Serie Ricorrente'}</DialogTitle>
 
         {/* Header */}
-        <div className="bg-gradient-to-r from-[#7578EC] to-[#669BBC] p-3">
+        <div className="bg-[#7578EC] p-3">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-bold text-white">{mode === 'edit' ? 'Modifica Serie' : 'Nuova Serie'}</h2>
             <Button
@@ -323,8 +323,7 @@ export function RecurringSeriesForm({ isOpen, onOpenChange, selectedUserId, seri
                     type="date"
                     value={formData.due_date}
                     onChange={(e) => setFormData(prev => ({ ...prev, due_date: e.target.value }))}
-                    className="h-9 w-full pl-9 pr-3 bg-white border border-[#7578EC]/20 rounded-lg text-black text-sm [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-0 [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:cursor-pointer"
-                    style={{ position: 'relative' }}
+                    className="h-9 w-full pl-9 pr-8 bg-white border border-[#7578EC]/20 rounded-lg text-black text-sm [&::-webkit-calendar-picker-indicator]:opacity-0"
                     required
                   />
                 </div>
@@ -341,8 +340,7 @@ export function RecurringSeriesForm({ isOpen, onOpenChange, selectedUserId, seri
                     type="date"
                     value={formData.start_date}
                     onChange={(e) => setFormData(prev => ({ ...prev, start_date: e.target.value }))}
-                    className="h-9 w-full pl-9 pr-3 bg-white border border-[#7578EC]/20 rounded-lg text-black text-sm [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-0 [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:cursor-pointer"
-                    style={{ position: 'relative' }}
+                    className="h-9 w-full pl-9 pr-8 bg-white border border-[#7578EC]/20 rounded-lg text-black text-sm [&::-webkit-calendar-picker-indicator]:opacity-0"
                     required
                   />
                 </div>
@@ -355,8 +353,7 @@ export function RecurringSeriesForm({ isOpen, onOpenChange, selectedUserId, seri
                     type="date"
                     value={formData.end_date}
                     onChange={(e) => { setFormData(prev => ({ ...prev, end_date: e.target.value })); setErrors(prev => ({ ...prev, end_date: '' })); }}
-                    className={`h-9 w-full pl-9 pr-3 bg-white ${errors.end_date ? 'border-2 border-red-500' : 'border border-[#7578EC]/20'} rounded-lg text-black text-sm [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-0 [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:cursor-pointer`}
-                    style={{ position: 'relative' }}
+                    className={`h-9 w-full pl-9 pr-8 bg-white ${errors.end_date ? 'border-2 border-red-500' : 'border border-[#7578EC]/20'} rounded-lg text-black text-sm [&::-webkit-calendar-picker-indicator]:opacity-0`}
                   />
                 </div>
                 {errors.end_date && <p className="text-xs text-red-500 mt-1">{errors.end_date}</p>}
@@ -402,7 +399,7 @@ export function RecurringSeriesForm({ isOpen, onOpenChange, selectedUserId, seri
             <Button
               type="submit"
               onClick={handleSubmit}
-              className="w-full h-10 bg-gradient-to-r from-[#7578EC] to-[#669BBC] text-white rounded-lg text-sm font-bold"
+              className="w-full h-10 bg-[#7578EC] text-white rounded-lg text-sm font-bold hover:bg-[#7578EC]/90 transition-all"
               disabled={createSeriesMutation.isPending || updateSeriesMutation.isPending}
             >
               {(createSeriesMutation.isPending || updateSeriesMutation.isPending) ? (
@@ -422,4 +419,3 @@ export function RecurringSeriesForm({ isOpen, onOpenChange, selectedUserId, seri
 }
 
 export default RecurringSeriesForm;
-
