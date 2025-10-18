@@ -74,11 +74,6 @@ export const getTransactionsByType = async (userId: string, type: 'expense' | 'i
 export const getExpenseTransactions = (user: User) => getTransactionsByType(user.id, 'expense');
 export const getIncomeTransactions = (user: User) => getTransactionsByType(user.id, 'income');
 
-// Transaction type checking utilities
-const isTransferLike = (tx: Transaction): boolean => {
-  return tx.type === 'transfer' || tx.category === 'trasferimento' || !!tx.to_account_id;
-};
-
 const isValidTransaction = (tx: Transaction): boolean => {
   return tx.amount !== null && tx.account_id !== "" && !isNaN(new Date(tx.date).getTime());
 };
@@ -287,6 +282,7 @@ const calculateBalance = (transactions: Transaction[]): number => {
   const balance = transactions.reduce((total, tx) => {
     if (tx.type === 'income') return total + tx.amount;
     if (tx.type === 'expense') return total - tx.amount;
+    if (tx.type === 'transfer') return total - tx.amount;
     // transfer ignored at user level
     return total;
   }, 0);
@@ -329,10 +325,9 @@ export const getBudgetTransactions = (
 ): Transaction[] => {
   return transactions.filter(tx => {
     // Basic filtering
-    if (!isValidTransaction(tx) || isTransferLike(tx)) return false;
+    if (!isValidTransaction(tx)) return false;
     if (tx.user_id !== budget.user_id) return false;
     if (!budget.categories.includes(tx.category)) return false;
-    if (tx.type !== 'expense' && tx.type !== 'income') return false;
 
     // Date filtering if period is specified
     if (periodStart) {
@@ -354,7 +349,7 @@ export const calculateBudgetSpent = (
   const relevantTransactions = getBudgetTransactions(transactions, budget, periodStart, periodEnd);
 
   const spent = relevantTransactions.reduce((total, tx) => {
-    if (tx.type === 'expense') return total + tx.amount;
+    if (tx.type === 'expense' || tx.type === 'transfer') return total + tx.amount;
     if (tx.type === 'income') return total - tx.amount;
     return total;
   }, 0);

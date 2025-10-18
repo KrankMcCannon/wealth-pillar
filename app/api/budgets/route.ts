@@ -213,7 +213,6 @@ async function getBudgetAnalysisData(budgetId: string, userId: string) {
   const transactionsResponse = await supabaseServer
     .from('transactions')
     .select('amount, category')
-    .eq('type', 'expense')
     .eq('user_id', userId)
     .gte('date', (currentPeriod as BudgetPeriod).start_date)
     .lte('date', (currentPeriod as BudgetPeriod).end_date || new Date().toISOString())
@@ -221,12 +220,17 @@ async function getBudgetAnalysisData(budgetId: string, userId: string) {
 
   const transactions = handleServerResponse<TxnForBudget[]>(transactionsResponse);
 
+  // Exclude transfers from spending calculations
+  const expenseTransactions = transactions.filter(t => t.category !== 'transfer');
+
   // Calculate spending by category
   const categorySpending: Record<string, { spent: number; budgeted: number; remaining: number; percentage: number }> = {};
-  const budgetPerCategory = budget.amount / budget.categories.length;
+  const budgetPerCategory = budget.amount / budget.categories.filter(c => c !== 'transfer').length;
 
   budget.categories.forEach((category: string) => {
-    const spent = transactions
+    if (category === 'transfer') return;
+
+    const spent = expenseTransactions
       .filter((t: TxnForBudget) => t.category === category)
       .reduce((sum: number, t: TxnForBudget) => sum + t.amount, 0);
 
@@ -241,7 +245,7 @@ async function getBudgetAnalysisData(budgetId: string, userId: string) {
     };
   });
 
-  const totalSpent = Math.round(transactions.reduce((sum: number, t: TxnForBudget) => sum + t.amount, 0) * 100) / 100;
+  const totalSpent = Math.round(expenseTransactions.reduce((sum: number, t: TxnForBudget) => sum + t.amount, 0) * 100) / 100;
   const remainingBudget = Math.round((budget.amount - totalSpent) * 100) / 100;
   const isOverBudget = totalSpent > budget.amount;
   const percentage = budget.amount > 0 ? (totalSpent / budget.amount) * 100 : 0;

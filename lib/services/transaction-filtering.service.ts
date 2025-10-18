@@ -7,7 +7,7 @@
  * Previous: O(6n) - 6 sequential .filter() calls in components
  */
 
-import type { Transaction, User, Budget } from '@/lib/types';
+import type { Budget, Transaction, User } from '@/lib/types';
 
 /**
  * Transaction filter criteria
@@ -129,13 +129,6 @@ function isValidTransaction(tx: Transaction): boolean {
 }
 
 /**
- * Helper: Check if transaction is transfer-like
- */
-function isTransferLike(tx: Transaction): boolean {
-  return tx.type === 'transfer' || tx.category === 'trasferimento' || !!tx.to_account_id;
-}
-
-/**
  * Helper: Check if transaction date is within range
  */
 function isWithinDateRange(txDate: Date, startDate: Date, endDate?: Date | null): boolean {
@@ -176,10 +169,9 @@ export function filterByBudgetScope(
 ): Transaction[] {
   return transactions.filter(tx => {
     // Basic filtering (matches getBudgetTransactions)
-    if (!isValidTransaction(tx) || isTransferLike(tx)) return false;
+    if (!isValidTransaction(tx)) return false;
     if (tx.user_id !== budget.user_id) return false;
     if (!budget.categories.includes(tx.category)) return false;
-    if (tx.type !== 'expense' && tx.type !== 'income') return false;
 
     // Date filtering if period is specified
     if (periodDates?.start) {

@@ -145,7 +145,7 @@ export function prepareCategoryChartData(
   const categoryTotals = new Map<string, number>();
 
   for (const tx of transactions) {
-    if (tx.type === 'expense' && categories.includes(tx.category)) {
+    if ((tx.type === 'expense' || tx.type === 'transfer') && categories.includes(tx.category)) {
       categoryTotals.set(
         tx.category,
         (categoryTotals.get(tx.category) || 0) + tx.amount

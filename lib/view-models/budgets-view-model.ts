@@ -4,21 +4,21 @@
  * Follows MVVM pattern - separates complex budget calculations from presentation
  */
 
-import { filterByBudgetScope } from '@/lib/services/transaction-filtering.service';
+import {
+  calculatePeriodComparison,
+  prepareCategoryChartData,
+  prepareLineChartData,
+  type CategoryChartData,
+  type LineChartData
+} from '@/lib/services/chart-data.service';
 import { groupTransactionsByDay, type DayGroup } from '@/lib/services/data-grouping.service';
 import {
   calculateBudgetProgress,
   calculateDaysRemaining,
   type BudgetProgress
 } from '@/lib/services/financial-calculations.service';
-import {
-  prepareLineChartData,
-  prepareCategoryChartData,
-  calculatePeriodComparison,
-  type LineChartData,
-  type CategoryChartData
-} from '@/lib/services/chart-data.service';
-import type { Budget, Transaction, BudgetPeriod } from '@/lib/types';
+import { filterByBudgetScope } from '@/lib/services/transaction-filtering.service';
+import type { Budget, BudgetPeriod, Transaction } from '@/lib/types';
 
 /**
  * Budget info (simplified budget data)
@@ -113,10 +113,10 @@ export function createBudgetsViewModel(
   );
 
   // ========================================
-  // Step 2: Calculate total spent (expenses - income)
+  // Step 2: Calculate total spent (expenses, transfers - income)
   // ========================================
   const totalSpent = budgetTransactions.reduce((sum, tx) => {
-    if (tx.type === 'expense') return sum + tx.amount;
+    if (tx.type === 'expense' || tx.type === 'transfer') return sum + tx.amount;
     if (tx.type === 'income') return sum - tx.amount;
     return sum;
   }, 0);
@@ -212,10 +212,13 @@ export function createBudgetsViewModel(
       }
     );
 
+    const currentSpendingTransactions = budgetTransactions.filter(tx => tx.type === 'expense' || tx.type === 'transfer');
+    const previousSpendingTransactions = previousTransactions.filter(tx => tx.type === 'expense' || tx.type === 'transfer');
+
     periodComparison = calculatePeriodComparison(
-      budgetTransactions,
-      previousTransactions,
-      'expense'
+      currentSpendingTransactions,
+      previousSpendingTransactions,
+      'all'
     );
   }
 
