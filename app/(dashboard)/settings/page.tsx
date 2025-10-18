@@ -1,25 +1,20 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
 import { ArrowLeft, User, UserCircle, Mail, Phone, Globe, Bell, Shield, Trash2, Users, Plus, BarChart3, CreditCard, ChevronRight, Settings, LogOut } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import BottomNavigation from "../../../components/bottom-navigation";
 import { SectionHeader } from "@/components/section-header";
-import { useAccounts, useTransactions, useUserSelection } from "@/hooks";
-import { useAuth } from "@/hooks/useAuth";
 import { User as UserType } from "@/lib/types";
-import {
-  formatDate
-} from "@/lib/utils";
+import { formatDate } from "@/lib/utils";
 import { PermissionGuard } from "@/components/permissions/permission-guard";
 import { RoleBadge } from "@/components/permissions/role-badge";
 import { PageLoader } from "@/components/page-loader";
+import { useSettingsController } from "@/hooks/controllers/useSettingsController";
 
 const renderAvatarIcon = (iconName: string) => {
   const iconProps = { className: "h-5 w-5" };
-  
+
   switch (iconName) {
     case 'User':
       return <User {...iconProps} />;
@@ -31,68 +26,20 @@ const renderAvatarIcon = (iconName: string) => {
 };
 
 export default function SettingsPage() {
-  const router = useRouter();
-  const { data: accounts = [] } = useAccounts();
-  const { data: transactions = [] } = useTransactions();
-  const { signOut } = useAuth();
-  const [isSigningOut, setIsSigningOut] = useState(false);
-
-  // Use user selection with permissions
+  // Controller orchestrates all business logic
   const {
     currentUser,
     users,
-    isLoading: usersLoading,
     userStats,
-  } = useUserSelection();
+    activityStats,
+    planInfo,
+    isSigningOut,
+    isLoading,
+    handleBackClick,
+    handleSignOut,
+  } = useSettingsController();
 
-  const activityStats = useMemo(() => {
-    if (!currentUser) return { accountCount: 0, transactionCount: 0 };
-
-    const userAccounts = accounts.filter(account =>
-      account.user_ids.includes(currentUser.id)
-    );
-    const userTransactions = transactions.filter(transaction =>
-      transaction.user_id === currentUser.id
-    );
-
-    return {
-      accountCount: userAccounts.length,
-      transactionCount: userTransactions.length
-    };
-  }, [currentUser, accounts, transactions]);
-
-  const planInfo = useMemo(() => {
-    if (!currentUser?.group_id) {
-      return {
-        name: 'Base Plan',
-        color: 'text-gray-600',
-        bgColor: 'bg-gray-100'
-      };
-    }
-    return {
-      name: 'Premium Plan',
-      color: 'text-primary',
-      bgColor: 'bg-primary/10'
-    };
-  }, [currentUser?.group_id]);
-
-  // Sign out handler
-  const handleSignOut = async () => {
-    setIsSigningOut(true);
-    try {
-      // Wait for Clerk to complete sign-out before redirecting
-      await signOut();
-      // Add small delay to ensure Clerk's session is fully cleared
-      await new Promise(resolve => setTimeout(resolve, 100));
-      // Navigate to sign-in page
-      window.location.href = '/sign-in';
-    } catch (error) {
-      console.error('Error signing out:', error);
-      setIsSigningOut(false);
-    }
-  };
-
-  if (usersLoading) {
+  if (isLoading) {
     return <PageLoader message="Caricamento impostazioni..." />;
   }
 
@@ -116,7 +63,7 @@ export default function SettingsPage() {
               variant="ghost"
               size="sm"
               className="hover:bg-[#7678e4]/10 text-[#7678e4] hover:text-[#7678e4]/80 rounded-xl transition-all duration-200 p-2 sm:p-3 min-w-[44px] min-h-[44px] flex items-center justify-center"
-              onClick={() => router.push('/dashboard')}
+              onClick={handleBackClick}
             >
               <ArrowLeft className="h-5 w-5 sm:h-6 sm:w-6" />
             </Button>

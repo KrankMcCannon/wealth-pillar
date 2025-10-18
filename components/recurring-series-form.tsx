@@ -300,8 +300,8 @@ export function RecurringSeriesForm({ isOpen, onOpenChange, selectedUserId, seri
             </div>
 
             {/* Frequenza e Data addebito */}
-            <div className="grid grid-cols-2 gap-3">
-              <div>
+            <div className="grid grid-cols-2 gap-3 overflow-hidden">
+              <div className="min-w-0 max-w-full overflow-hidden">
                 <Label className="text-xs font-bold text-black mb-1 block">Frequenza</Label>
                 <Select value={formData.frequency} onValueChange={(value) => setFormData(prev => ({ ...prev, frequency: value as TransactionFrequencyType }))}>
                   <SelectTrigger className="h-9 bg-white border border-[#7578EC]/20 rounded-lg text-black text-sm">
@@ -315,15 +315,15 @@ export function RecurringSeriesForm({ isOpen, onOpenChange, selectedUserId, seri
                   </SelectContent>
                 </Select>
               </div>
-              <div className="min-w-0">
+              <div className="min-w-0 max-w-full overflow-hidden">
                 <Label className="text-xs font-bold text-black mb-1 block">Data addebito</Label>
-                <div className="relative w-full">
+                <div className="relative w-full max-w-full">
                   <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-3 w-3 text-[#7578EC] pointer-events-none z-10" />
                   <Input
                     type="date"
                     value={formData.due_date}
                     onChange={(e) => setFormData(prev => ({ ...prev, due_date: e.target.value }))}
-                    className="h-9 w-full pl-9 pr-8 bg-white border border-[#7578EC]/20 rounded-lg text-black text-sm [&::-webkit-calendar-picker-indicator]:opacity-0"
+                    className="h-9 w-full max-w-full pl-9 pr-8 bg-white border border-[#7578EC]/20 rounded-lg text-black text-sm [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-date-and-time-value]:text-ellipsis [&::-webkit-date-and-time-value]:overflow-hidden"
                     required
                   />
                 </div>
@@ -331,29 +331,29 @@ export function RecurringSeriesForm({ isOpen, onOpenChange, selectedUserId, seri
             </div>
 
             {/* Periodo (inizio/fine) */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="min-w-0">
+            <div className="grid grid-cols-2 gap-3 overflow-hidden">
+              <div className="min-w-0 max-w-full overflow-hidden">
                 <Label className="text-xs font-bold text-black mb-1 block">Data inizio</Label>
-                <div className="relative w-full">
+                <div className="relative w-full max-w-full">
                   <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-3 w-3 text-[#7578EC] pointer-events-none z-10" />
                   <Input
                     type="date"
                     value={formData.start_date}
                     onChange={(e) => setFormData(prev => ({ ...prev, start_date: e.target.value }))}
-                    className="h-9 w-full pl-9 pr-8 bg-white border border-[#7578EC]/20 rounded-lg text-black text-sm [&::-webkit-calendar-picker-indicator]:opacity-0"
+                    className="h-9 w-full max-w-full pl-9 pr-8 bg-white border border-[#7578EC]/20 rounded-lg text-black text-sm [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-date-and-time-value]:text-ellipsis [&::-webkit-date-and-time-value]:overflow-hidden"
                     required
                   />
                 </div>
               </div>
-              <div className="min-w-0">
+              <div className="min-w-0 max-w-full overflow-hidden">
                 <Label className="text-xs font-bold text-black mb-1 block">Data fine (opzionale)</Label>
-                <div className="relative w-full">
+                <div className="relative w-full max-w-full">
                   <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-3 w-3 text-[#7578EC] pointer-events-none z-10" />
                   <Input
                     type="date"
                     value={formData.end_date}
                     onChange={(e) => { setFormData(prev => ({ ...prev, end_date: e.target.value })); setErrors(prev => ({ ...prev, end_date: '' })); }}
-                    className={`h-9 w-full pl-9 pr-8 bg-white ${errors.end_date ? 'border-2 border-red-500' : 'border border-[#7578EC]/20'} rounded-lg text-black text-sm [&::-webkit-calendar-picker-indicator]:opacity-0`}
+                    className={`h-9 w-full max-w-full pl-9 pr-8 bg-white ${errors.end_date ? 'border-2 border-red-500' : 'border border-[#7578EC]/20'} rounded-lg text-black text-sm [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-date-and-time-value]:text-ellipsis [&::-webkit-date-and-time-value]:overflow-hidden`}
                   />
                 </div>
                 {errors.end_date && <p className="text-xs text-red-500 mt-1">{errors.end_date}</p>}

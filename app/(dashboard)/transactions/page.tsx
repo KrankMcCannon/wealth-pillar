@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense, useMemo } from "react";
+import { Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, MoreVertical, Plus, Search, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -15,213 +15,54 @@ import { TransactionForm } from "@/components/transaction-form";
 import { RecurringSeriesForm } from "@/components/recurring-series-form";
 import TabNavigation from "@/components/tab-navigation";
 import { RecurringSeriesSection } from "@/components/recurring-series-section";
-import type { RecurringTransactionSeries } from "@/lib/types";
-import {
-  useTransactions,
-  useCategories,
-  useAccounts,
-  useUserSelection,
-  useDeleteTransaction
-} from "@/hooks";
-import {
-  formatCurrency,
-  getTotalForSection,
-  formatDateLabel,
-  pluralize
-} from "@/lib/utils";
-import type { User, Transaction } from "@/lib/types";
+import { useTransactionsController } from "@/hooks/controllers/useTransactionsController";
+import { formatCurrency, pluralize } from "@/lib/utils";
+import type { User } from "@/lib/types";
 import { PageLoader } from "@/components/page-loader";
 
 function TransactionsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [activeTab, setActiveTab] = useState("Transactions");
-  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
-  const [isTransactionFormOpen, setIsTransactionFormOpen] = useState(false);
-  const [isRecurringFormOpen, setIsRecurringFormOpen] = useState(false);
-  const [transactionFormType, setTransactionFormType] = useState<"expense" | "income" | "transfer">("expense");
-  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
-  const [transactionFormMode, setTransactionFormMode] = useState<'create' | 'edit'>('create');
-  const [editingSeries, setEditingSeries] = useState<RecurringTransactionSeries | null>(null);
-  const [recurringFormMode, setRecurringFormMode] = useState<'create' | 'edit'>('create');
 
-  const [accountNames, setAccountNames] = useState<Record<string, string>>({});
-
-  const { data: transactions = [], isLoading: txLoading } = useTransactions();
-  const { data: categories = [], isLoading: categoriesLoading } = useCategories();
-  const { data: accounts = [], isLoading: accountsLoading } = useAccounts();
-  const deleteTransactionMutation = useDeleteTransaction();
-
-  // Use centralized user selection
+  // Controller orchestrates all business logic
   const {
+    viewModel,
+    categories,
+    users,
     currentUser,
     selectedViewUserId,
-    users,
+    activeTab,
+    searchQuery,
+    selectedFilter,
+    selectedCategory,
+    isFilterModalOpen,
+    isTransactionFormOpen,
+    transactionFormType,
+    editingTransaction,
+    transactionFormMode,
+    isRecurringFormOpen,
+    editingSeries,
+    recurringFormMode,
+    isLoading,
+    setActiveTab,
+    setSearchQuery,
+    setSelectedFilter,
+    setSelectedCategory,
+    setIsFilterModalOpen,
+    setIsTransactionFormOpen,
+    setIsRecurringFormOpen,
     updateViewUserId,
-    isLoading: userSelectionLoading
-  } = useUserSelection();
+    handleEditTransaction,
+    handleDeleteTransaction,
+    handleCreateTransaction,
+    handleCreateRecurringSeries,
+    handleEditRecurringSeries,
+    resetFilters,
+    handleBackClick
+  } = useTransactionsController();
 
-
-  // State for filtering
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedFilter, setSelectedFilter] = useState<string>("all");
-  const [selectedCategory, setSelectedCategory] = useState<string>("all");
-
-  // Filter transactions based on current filters
-  const filteredTransactions = useMemo(() => {
-    let filtered = transactions;
-
-    // Search filter
-    if (searchQuery) {
-      filtered = filtered.filter(tx =>
-        tx.description.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-
-    // Category filter
-    if (selectedCategory !== "all") {
-      filtered = filtered.filter(tx => tx.category === selectedCategory);
-    }
-
-    // User filter
-    if (selectedViewUserId !== "all") {
-      filtered = filtered.filter(tx => tx.user_id === selectedViewUserId);
-    }
-
-    // Type filter
-    if (selectedFilter !== "all") {
-      filtered = filtered.filter(tx => tx.type === selectedFilter);
-    }
-
-    return filtered;
-  }, [transactions, searchQuery, selectedCategory, selectedViewUserId, selectedFilter]);
-
-  const hasActiveFilters = searchQuery !== "" || selectedFilter !== "all" || selectedCategory !== "all" || selectedViewUserId !== "all";
-
-  const resetFilters = () => {
-    setSearchQuery("");
-    setSelectedFilter("all");
-    setSelectedCategory("all");
-    updateViewUserId("all");
-  };
-
-  const handleEditTransaction = (transaction: Transaction) => {
-    setEditingTransaction(transaction);
-    setTransactionFormMode('edit');
-    setIsTransactionFormOpen(true);
-  };
-
-  const handleDeleteTransaction = async (transactionId: string) => {
-    if (confirm('Sei sicuro di voler eliminare questa transazione?')) {
-      try {
-        await deleteTransactionMutation.mutateAsync(transactionId);
-      } catch (error) {
-        console.error('Failed to delete transaction:', error);
-        alert('Errore durante l\'eliminazione della transazione');
-      }
-    }
-  };
-
-  const handleCreateTransaction = (type: "expense" | "income" | "transfer" = "expense") => {
-    setEditingTransaction(null);
-    setTransactionFormMode('create');
-    setTransactionFormType(type);
-    setIsTransactionFormOpen(true);
-  };
-
-  const handleCreateRecurringSeries = () => {
-    setEditingSeries(null);
-    setRecurringFormMode('create');
-    setIsRecurringFormOpen(true);
-  };
-
-  const handleEditRecurringSeries = (series: RecurringTransactionSeries) => {
-    setEditingSeries(series);
-    setRecurringFormMode('edit');
-    setIsRecurringFormOpen(true);
-  };
-
-  useEffect(() => {
-    // Build account names map
-    if (accounts && accounts.length > 0) {
-      const names: Record<string, string> = {};
-      accounts.forEach(a => { names[a.id] = a.name; });
-      setAccountNames(names);
-    }
-  }, [accounts]);
-
-  const processedTransactionData = useMemo(() => {
-    const safeParse = (d: string | Date) => {
-      const dt = new Date(d);
-      return isNaN(dt.getTime()) ? null : dt;
-    };
-
-    const sortedTransactions = [...filteredTransactions]
-      .filter(t => !!safeParse(t.date))
-      .sort((a, b) => {
-        const da = safeParse(a.date)!;
-        const db = safeParse(b.date)!;
-        return db.getTime() - da.getTime();
-      });
-
-    const groupedByDay: Record<string, typeof filteredTransactions> = {};
-
-    sortedTransactions.forEach(transaction => {
-      const date = safeParse(transaction.date);
-      if (!date) return;
-      const dateKey = date.toISOString().split('T')[0];
-
-      if (!groupedByDay[dateKey]) {
-        groupedByDay[dateKey] = [];
-      }
-      groupedByDay[dateKey].push(transaction);
-    });
-
-    const dayGroups = Object.entries(groupedByDay)
-      .sort(([a], [b]) => new Date(b).getTime() - new Date(a).getTime())
-      .map(([date, transactions]) => ({
-        date,
-        transactions,
-        total: getTotalForSection(transactions),
-        dateLabel: formatDateLabel(date)
-      }));
-
-    return {
-      dayGroups,
-      allTotal: getTotalForSection(sortedTransactions)
-    };
-  }, [filteredTransactions]);
-
-
-  useEffect(() => {
-    const tab = searchParams.get('tab');
-    if (tab === 'upcoming' || tab === 'recurrent') {
-      setActiveTab('Recurrent');
-    }
-  }, [searchParams]);
-
-  const handleBackClick = () => {
-    const from = searchParams.get('from');
-    if (from === 'dashboard') {
-      router.push('/dashboard');
-    } else if (from === 'budgets') {
-      const params = new URLSearchParams();
-      if (selectedViewUserId !== 'all') {
-        params.set('member', selectedViewUserId);
-      }
-      const budgetParam = searchParams.get('budget');
-      if (budgetParam && budgetParam !== 'all') {
-        params.set('budget', budgetParam);
-      }
-      const url = params.toString() ? `/budgets?${params.toString()}` : '/budgets';
-      router.push(url);
-    } else {
-      router.back();
-    }
-  };
-
-  // Show loader if any data is loading
-  if (txLoading || userSelectionLoading || categoriesLoading || accountsLoading) {
+  // Show loader while data is loading
+  if (isLoading) {
     return <PageLoader message="Caricamento transazioni..." />;
   }
 
@@ -355,7 +196,7 @@ function TransactionsContent() {
                     resetFilters();
                     setSearchQuery("");
                   }}
-                  hasActiveFilters={hasActiveFilters}
+                  hasActiveFilters={viewModel.hasActiveFilters}
                 />
               </div>
             )}
@@ -363,8 +204,8 @@ function TransactionsContent() {
             {/* Transactions Tab */}
             {activeTab === "Transactions" && (
               <div className="space-y-6">
-                {processedTransactionData.dayGroups.length > 0 ? (
-                  processedTransactionData.dayGroups.map((dayGroup) => (
+                {viewModel.groupedByDay.length > 0 ? (
+                  viewModel.groupedByDay.map((dayGroup) => (
                     <section key={dayGroup.date}>
                       <div className="flex items-center justify-between mb-2 px-1">
                         <h2 className="text-lg font-bold tracking-tight text-gray-900">{dayGroup.dateLabel}</h2>
@@ -382,7 +223,7 @@ function TransactionsContent() {
                       </div>
                       <GroupedTransactionCard
                         transactions={dayGroup.transactions}
-                        accountNames={accountNames}
+                        accountNames={viewModel.accountNamesMap}
                         variant="regular"
                         onEditTransaction={handleEditTransaction}
                         onDeleteTransaction={handleDeleteTransaction}

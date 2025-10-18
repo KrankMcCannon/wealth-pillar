@@ -1,18 +1,12 @@
 "use client";
 
-import { Suspense, useCallback, useState, lazy } from "react";
+import { Suspense, lazy } from "react";
 import { Settings, Bell, AlertTriangle } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import BottomNavigation from "@/components/bottom-navigation";
 import ErrorBoundary, { QueryErrorFallback } from "@/components/error-boundary";
-
-// Optimized imports with lazy loading
-import { useDashboardCore } from "@/hooks/useDashboardCore";
-import { useDashboardBudgets } from "@/hooks/useDashboardBudgets";
-import { useUserSelection } from "@/hooks/useUserSelection";
-import type { RecurringTransactionSeries } from "@/lib/types";
 import { PageLoader } from "@/components/page-loader";
+import { useDashboardController } from "@/hooks/controllers/useDashboardController";
 
 // Lazy load heavy components
 const UserSelector = lazy(() => import("@/components/user-selector"));
@@ -34,75 +28,29 @@ import {
  * Dashboard Page
  */
 export default function DashboardPage() {
-  const router = useRouter();
-  const [expandedAccount, setExpandedAccount] = useState<string | null>(null);
-  const [isRecurringFormOpen, setIsRecurringFormOpen] = useState(false);
-  const [editingSeries, setEditingSeries] = useState<RecurringTransactionSeries | null>(null);
-  const [recurringFormMode, setRecurringFormMode] = useState<'create' | 'edit'>('create');
-
-  // User selection
+  // Controller orchestrates all business logic
   const {
     currentUser,
     selectedViewUserId,
     users,
-    updateViewUserId,
-    isLoading: userSelectionLoading,
-    updateUserCache,
-  } = useUserSelection();
-
-  // Core dashboard data (users, accounts, transactions)
-  const {
-    users: coreUsers,
     accounts,
-    transactions,
     accountBalances,
     totalBalance,
-    loading: coreLoading,
-    errors: coreErrors,
-    hasData: hasCoreData,
-  } = useDashboardCore(selectedViewUserId, currentUser);
-
-  // Budget data (loaded separately for better performance)
-  const {
     budgets,
     budgetsByUser,
-    isLoading: budgetsLoading,
-  } = useDashboardBudgets(
-    selectedViewUserId,
-    currentUser,
-    coreUsers,
-    transactions,
-    hasCoreData
-  );
-
-  // Memoized callbacks
-  const handleAccountClick = useCallback((id: string) => {
-    setExpandedAccount(expandedAccount === id ? null : id);
-  }, [expandedAccount]);
-
-  const handleCreateRecurringSeries = useCallback(() => {
-    setEditingSeries(null);
-    setRecurringFormMode('create');
-    setIsRecurringFormOpen(true);
-  }, []);
-
-  const handleEditRecurringSeries = useCallback((series: RecurringTransactionSeries) => {
-    setEditingSeries(series);
-    setRecurringFormMode('edit');
-    setIsRecurringFormOpen(true);
-  }, []);
-
-  const handleUserChange = useCallback((userId: string) => {
-    // Update cache before switching
-    if (selectedViewUserId !== 'all') {
-      updateUserCache(selectedViewUserId, hasCoreData);
-    }
-
-    updateViewUserId(userId);
-  }, [selectedViewUserId, updateViewUserId, updateUserCache, hasCoreData]);
-
-  // Enhanced loading states - show loader until all critical data is ready
-  const showInitialLoading = userSelectionLoading || coreLoading.isInitialLoading || budgetsLoading;
+    isRecurringFormOpen,
+    editingSeries,
+    recurringFormMode,
+    showInitialLoading,
+    hasCriticalError,
+    criticalErrorDetail,
+    setIsRecurringFormOpen,
+    handleAccountClick,
+    handleCreateRecurringSeries,
+    handleEditRecurringSeries,
+    handleUserChange,
+    handleNavigateToSettings,
+  } = useDashboardController();
 
   // Show full page loader during initial load
   if (showInitialLoading) {
@@ -110,7 +58,7 @@ export default function DashboardPage() {
   }
 
   // Critical error handling (blocks entire dashboard)
-  if (coreErrors.criticalError) {
+  if (hasCriticalError) {
     return (
       <div className="relative flex size-full min-h-[100dvh] flex-col bg-gradient-to-br from-slate-50 via-white to-slate-100">
         <header className="sticky top-0 z-20 bg-white/70 backdrop-blur-xl border-b border-slate-200/50 px-3 sm:px-4 py-2 sm:py-3 shadow-sm">
@@ -133,7 +81,7 @@ export default function DashboardPage() {
 
         <main className="flex-1 flex items-center justify-center p-4">
           <QueryErrorFallback
-            error={coreErrors.users || coreErrors.accounts}
+            error={criticalErrorDetail}
             reset={() => window.location.reload()}
             title="Errore nel caricamento della dashboard"
             description="Si è verificato un errore durante il caricamento dei dati finanziari. Verifica la connessione internet e riprova."
@@ -187,7 +135,7 @@ export default function DashboardPage() {
                   variant="ghost"
                   size="sm"
                   className="hover:bg-[#7578EC]/10 text-[#7578EC] rounded-xl transition-all duration-200 p-2 min-w-[40px] min-h-[40px] flex items-center justify-center group hover:scale-105"
-                  onClick={() => router.push('/settings')}
+                  onClick={handleNavigateToSettings}
                 >
                   <Settings className="h-4 w-4 group-hover:rotate-90 transition-transform duration-300" />
                 </Button>

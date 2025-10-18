@@ -1,131 +1,29 @@
 "use client";
 
-import { useMemo } from "react";
-import { useRouter } from "next/navigation";
 import BottomNavigation from "../../../components/bottom-navigation";
 import { SectionHeader } from "@/components/section-header";
 import UserSelector from "@/components/user-selector";
-import { useInvestments, usePortfolioData, useUserSelection } from "@/hooks";
 import { formatCurrency } from "@/lib/utils";
 import { BarChart3, PieChart } from "lucide-react";
-import { EnhancedHolding, PortfolioData, type InvestmentHolding } from "@/lib/types";
+import type { EnhancedHolding } from "@/lib/types";
 import { PageLoader } from "@/components/page-loader";
+import { useInvestmentsController } from "@/hooks/controllers/useInvestmentsController";
 
 export default function InvestmentsPage() {
-  const router = useRouter();
-  const { data: investments = [], isLoading: investmentsLoading } = useInvestments();
-
-  // Use centralized user selection
+  // Controller orchestrates all business logic
   const {
     currentUser,
     selectedViewUserId,
     users,
+    portfolioData,
+    assetBreakdown,
+    isLoading,
     updateViewUserId,
-    isLoading: userSelectionLoading
-  } = useUserSelection();
+    handleBackClick,
+  } = useInvestmentsController();
 
-  // Get portfolio data for the selected user
-  const { data: portfolioDataFromApi, isLoading: portfolioLoading } = usePortfolioData(
-    selectedViewUserId === 'all' ? (currentUser?.id || '') : selectedViewUserId
-  );
-
-
-  // Filter investments based on selected user/group
-  const filteredInvestments = useMemo(() => {
-    if (!currentUser) return [];
-
-    if (selectedViewUserId === 'all') {
-      return investments;
-    }
-
-    return investments.filter(investment => investment.user_id === selectedViewUserId);
-  }, [investments, selectedViewUserId, currentUser]);
-
-  // Memoized calculations for portfolio data
-  const portfolioData: PortfolioData = useMemo(() => {
-    // Use API data if available, otherwise calculate from filtered investments
-    if (portfolioDataFromApi && selectedViewUserId !== 'all') {
-      return portfolioDataFromApi;
-    }
-
-    const totalValue = filteredInvestments.reduce((sum: number, holding: InvestmentHolding) => {
-      return sum + (holding.quantity * holding.current_price);
-    }, 0);
-
-    const totalCost = filteredInvestments.reduce((sum: number, holding: InvestmentHolding) => {
-      return sum + (holding.quantity * holding.purchase_price);
-    }, 0);
-
-    const gainLoss = totalValue - totalCost;
-    const gainLossPercent = totalCost > 0 ? (gainLoss / totalCost) * 100 : 0;
-
-    return {
-      totalValue,
-      gainLoss,
-      gainLossPercent,
-      holdings: filteredInvestments.map((holding: InvestmentHolding): EnhancedHolding => {
-        const currentValue = holding.quantity * holding.current_price;
-        const purchaseValue = holding.quantity * holding.purchase_price;
-        const individualGain = currentValue - purchaseValue;
-        const individualGainPercent = purchaseValue > 0 ? (individualGain / purchaseValue) * 100 : 0;
-
-        return {
-          ...holding,
-          currentValue,
-          gainLoss: individualGain,
-          gainLossPercent: individualGainPercent
-        };
-      })
-    };
-  }, [filteredInvestments, portfolioDataFromApi, selectedViewUserId]);
-
-  // Helper function to determine asset type based on symbol
-  const getAssetType = (symbol: string): 'stock' | 'crypto' => {
-    const cryptoSymbols = ['BTC', 'ETH', 'ADA', 'DOT', 'SOL', 'MATIC', 'LINK', 'UNI'];
-    return cryptoSymbols.includes(symbol.toUpperCase()) ? 'crypto' : 'stock';
-  };
-
-  // Calculate breakdown by asset type
-  const assetBreakdown = useMemo(() => {
-    const stocksValue = filteredInvestments
-      .filter(holding => getAssetType(holding.symbol) === 'stock')
-      .reduce((sum, holding) => sum + (holding.quantity * holding.current_price), 0);
-
-    const cryptoValue = filteredInvestments
-      .filter(holding => getAssetType(holding.symbol) === 'crypto')
-      .reduce((sum, holding) => sum + (holding.quantity * holding.current_price), 0);
-
-    const stocksCost = filteredInvestments
-      .filter(holding => getAssetType(holding.symbol) === 'stock')
-      .reduce((sum, holding) => sum + (holding.quantity * holding.purchase_price), 0);
-
-    const cryptoCost = filteredInvestments
-      .filter(holding => getAssetType(holding.symbol) === 'crypto')
-      .reduce((sum, holding) => sum + (holding.quantity * holding.purchase_price), 0);
-
-    const stocksGainPercent = stocksCost > 0 ? ((stocksValue - stocksCost) / stocksCost) * 100 : 0;
-    const cryptoGainPercent = cryptoCost > 0 ? ((cryptoValue - cryptoCost) / cryptoCost) * 100 : 0;
-
-    const totalValue = portfolioData.totalValue;
-    const stocksPercentage = totalValue > 0 ? (stocksValue / totalValue) * 100 : 0;
-    const cryptoPercentage = totalValue > 0 ? (cryptoValue / totalValue) * 100 : 0;
-
-    return {
-      stocks: {
-        value: stocksValue,
-        percentage: stocksPercentage,
-        gainPercent: stocksGainPercent
-      },
-      crypto: {
-        value: cryptoValue,
-        percentage: cryptoPercentage,
-        gainPercent: cryptoGainPercent
-      }
-    };
-  }, [filteredInvestments, portfolioData.totalValue]);
-
-  // Show loader if any data is loading
-  if (investmentsLoading || userSelectionLoading || portfolioLoading) {
+  // Show loader while data is loading
+  if (isLoading) {
     return <PageLoader message="Caricamento investimenti..." />;
   }
 
@@ -136,9 +34,9 @@ export default function InvestmentsPage() {
         {/* Header */}
         <header className="sticky top-0 z-10 bg-[#F8FAFC]/80 p-4 pb-2 backdrop-blur-sm">
           <div className="flex items-center justify-between">
-            <button 
+            <button
               className="text-[#1F2937] flex size-10 shrink-0 items-center justify-center rounded-full hover:bg-[#EFF2FE] transition-colors"
-              onClick={() => router.push('/dashboard')}
+              onClick={handleBackClick}
             >
               <svg fill="currentColor" height="24px" viewBox="0 0 256 256" width="24px" xmlns="http://www.w3.org/2000/svg">
                 <path d="M224,128a8,8,0,0,1-8,8H59.31l58.35,58.34a8,8,0,0,1-11.32,11.32l-72-72a8,8,0,0,1,0-11.32l72-72a8,8,0,0,1,11.32,11.32L59.31,120H216A8,8,0,0,1,224,128Z"></path>

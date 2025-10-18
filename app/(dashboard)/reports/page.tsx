@@ -4,103 +4,24 @@ import BottomNavigation from "../../../components/bottom-navigation";
 import { SectionHeader } from "@/components/section-header";
 import UserSelector from "@/components/user-selector";
 import { Calendar, PieChart, Target, Clock } from "lucide-react";
-import { useMemo } from "react";
-import { useTransactions, useUserSelection } from "@/hooks";
 import { formatCurrency } from "@/lib/utils";
 import { PageLoader } from "@/components/page-loader";
+import { useReportsController } from "@/hooks/controllers/useReportsController";
 
 export default function ReportsPage() {
-  const { data: transactions = [], isLoading: transactionsLoading } = useTransactions();
-
-  // Use centralized user selection
+  // Controller orchestrates all business logic
   const {
     currentUser,
     selectedViewUserId,
     users,
+    financialData,
+    isLoading,
     updateViewUserId,
-    isLoading: userSelectionLoading
-  } = useUserSelection();
+    handleBackClick,
+  } = useReportsController();
 
-
-  // Calculate real financial data based on selected user/group filter
-  const financialData = useMemo(() => {
-    if (!currentUser) return null;
-
-    // Filter transactions based on selected group filter
-    const filteredTransactions = selectedViewUserId === 'all'
-      ? transactions
-      : transactions.filter(tx => tx.user_id === selectedViewUserId);
-
-    // Calculate current month data
-    const currentDate = new Date();
-    const currentMonth = currentDate.getMonth();
-    const currentYear = currentDate.getFullYear();
-
-    const currentMonthTransactions = filteredTransactions.filter(tx => {
-      const txDate = new Date(tx.date);
-      return txDate.getMonth() === currentMonth && txDate.getFullYear() === currentYear;
-    });
-
-    const totalIncome = currentMonthTransactions
-      .filter(tx => tx.type === 'income')
-      .reduce((sum, tx) => sum + tx.amount, 0);
-
-    const totalExpenses = currentMonthTransactions
-      .filter(tx => tx.type === 'expense')
-      .reduce((sum, tx) => sum + tx.amount, 0);
-
-    const netSavings = totalIncome - totalExpenses;
-
-    // Calculate expenses by category
-    const expensesByCategory = currentMonthTransactions
-      .filter(tx => tx.type === 'expense')
-      .reduce((acc, tx) => {
-        acc[tx.category] = (acc[tx.category] || 0) + tx.amount;
-        return acc;
-      }, {} as Record<string, number>);
-
-    // Convert to array and sort by amount
-    const categoryData = Object.entries(expensesByCategory)
-      .map(([category, amount]) => ({
-        category,
-        amount,
-        percentage: totalExpenses > 0 ? (amount / totalExpenses) * 100 : 0
-      }))
-      .sort((a, b) => b.amount - a.amount)
-      .slice(0, 5); // Top 5 categories
-
-    // Calculate annual savings progress
-    const yearStart = new Date(currentYear, 0, 1);
-    const yearTransactions = filteredTransactions.filter(tx => {
-      const txDate = new Date(tx.date);
-      return txDate >= yearStart;
-    });
-
-    const yearIncome = yearTransactions
-      .filter(tx => tx.type === 'income')
-      .reduce((sum, tx) => sum + tx.amount, 0);
-
-    const yearExpenses = yearTransactions
-      .filter(tx => tx.type === 'expense')
-      .reduce((sum, tx) => sum + tx.amount, 0);
-
-    const yearSavings = yearIncome - yearExpenses;
-    const savingsGoal = 15000; // This could come from user preferences
-    const savingsProgress = Math.min((yearSavings / savingsGoal) * 100, 100);
-
-    return {
-      totalIncome,
-      totalExpenses,
-      netSavings,
-      categoryData,
-      yearSavings,
-      savingsGoal,
-      savingsProgress
-    };
-  }, [currentUser, transactions, selectedViewUserId]);
-
-  // Show loader if any data is loading
-  if (userSelectionLoading || transactionsLoading) {
+  // Show loader while data is loading
+  if (isLoading) {
     return <PageLoader message="Caricamento report..." />;
   }
 
@@ -110,7 +31,10 @@ export default function ReportsPage() {
         {/* Header */}
         <header className="sticky top-0 z-10 bg-[#F8FAFC]/80 p-4 pb-2 backdrop-blur-sm">
           <div className="flex items-center justify-between">
-            <button className="text-[#1F2937] flex size-10 shrink-0 items-center justify-center rounded-full hover:bg-[#EFF2FE] transition-colors">
+            <button
+              className="text-[#1F2937] flex size-10 shrink-0 items-center justify-center rounded-full hover:bg-[#EFF2FE] transition-colors"
+              onClick={handleBackClick}
+            >
               <svg fill="currentColor" height="24px" viewBox="0 0 256 256" width="24px" xmlns="http://www.w3.org/2000/svg">
                 <path d="M224,128a8,8,0,0,1-8,8H59.31l58.35,58.34a8,8,0,0,1-11.32,11.32l-72-72a8,8,0,0,1,0-11.32l72-72a8,8,0,0,1,11.32,11.32L59.31,120H216A8,8,0,0,1,224,128Z"></path>
               </svg>

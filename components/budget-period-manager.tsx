@@ -233,11 +233,11 @@ export function BudgetPeriodManager({ budget, currentPeriod, trigger, onSuccess 
                 </div>
 
                 {/* End Date Selection */}
-                <div className="space-y-2">
+                <div className="space-y-2 overflow-hidden">
                   <Label htmlFor="end-date" className="text-sm font-medium text-black">
                     Data di Fine Periodo
                   </Label>
-                  <div className="relative w-full">
+                  <div className="relative w-full max-w-full">
                     <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#7578EC] pointer-events-none z-10" />
                     <Input
                       id="end-date"
@@ -245,7 +245,7 @@ export function BudgetPeriodManager({ budget, currentPeriod, trigger, onSuccess 
                       value={endDate}
                       onChange={(e) => setEndDate(e.target.value)}
                       min={currentPeriod?.start_date ? new Date(currentPeriod.start_date).toISOString().split('T')[0] : ''}
-                      className="w-full pl-10 pr-8 border-[#7578EC]/30 focus:border-[#7578EC] focus:ring-[#7578EC]/20 [&::-webkit-calendar-picker-indicator]:opacity-0"
+                      className="w-full max-w-full pl-10 pr-8 border-[#7578EC]/30 focus:border-[#7578EC] focus:ring-[#7578EC]/20 [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-date-and-time-value]:text-ellipsis [&::-webkit-date-and-time-value]:overflow-hidden"
                     />
                   </div>
                 </div>

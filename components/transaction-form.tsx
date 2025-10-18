@@ -360,21 +360,21 @@ export function TransactionForm({ isOpen, onOpenChange, initialType = "expense",
             )}
 
             {/* Date and Frequency - Compact Grid */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="min-w-0">
+            <div className="grid grid-cols-2 gap-3 overflow-hidden">
+              <div className="min-w-0 max-w-full overflow-hidden">
                 <Label className="text-xs font-bold text-black mb-1 block">Data</Label>
-                <div className="relative w-full">
+                <div className="relative w-full max-w-full">
                   <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-3 w-3 text-[#7578EC] pointer-events-none z-10" />
                   <Input
                     type="date"
                     value={formData.date}
                     onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
-                    className="h-9 w-full pl-9 pr-8 bg-white border border-[#7578EC]/20 rounded-lg text-black text-sm [&::-webkit-calendar-picker-indicator]:opacity-0"
+                    className="h-9 w-full max-w-full pl-9 pr-8 bg-white border border-[#7578EC]/20 rounded-lg text-black text-sm [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-date-and-time-value]:text-ellipsis [&::-webkit-date-and-time-value]:overflow-hidden"
                     required
                   />
                 </div>
               </div>
-              <div>
+              <div className="min-w-0 max-w-full overflow-hidden">
                 <Label className="text-xs font-bold text-black mb-1 block">Frequenza</Label>
                 <Select value={formData.frequency} onValueChange={(value) => setFormData(prev => ({ ...prev, frequency: value as TransactionFrequencyType }))}>
                   <SelectTrigger className="h-9 bg-white border border-[#7578EC]/20 rounded-lg text-black text-sm">
