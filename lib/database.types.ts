@@ -195,6 +195,7 @@ export interface Database {
           icon: string | null;
           categories: string[];
           user_id: string;
+          group_id: string;
           created_at: string;
           updated_at: string;
         };
@@ -206,6 +207,7 @@ export interface Database {
           icon?: string | null;
           categories: string[];
           user_id: string;
+          group_id: string;
           created_at?: string;
           updated_at?: string;
         };
@@ -217,6 +219,7 @@ export interface Database {
           icon?: string | null;
           categories?: string[];
           user_id?: string;
+          group_id?: string;
           created_at?: string;
           updated_at?: string;
         };

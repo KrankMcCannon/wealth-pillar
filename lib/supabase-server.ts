@@ -52,6 +52,7 @@ export async function validateUserContext(): Promise<{
   userId: string;
   email: string;
   role: string;
+  group_id: string;
 }> {
   // Prefer Clerk session from request cookies (no need for explicit Bearer)
   const { userId: clerkUserId } = await auth();
@@ -62,15 +63,16 @@ export async function validateUserContext(): Promise<{
   // Get user details from database mapped by Clerk ID
   const userResponse = (await supabaseServer
     .from('users')
-    .select('id, email, role')
+    .select('id, email, role, group_id')
     .eq('clerk_id', clerkUserId)
-    .single()) as { data: { id: string; email: string; role: string } | null; error: unknown };
+    .single()) as { data: { id: string; email: string; role: string; group_id: string } | null; error: unknown };
 
   if (!userResponse.error && userResponse.data) {
     return {
       userId: userResponse.data.id,
       email: userResponse.data.email,
       role: userResponse.data.role,
+      group_id: userResponse.data.group_id,
     };
   }
 
@@ -80,14 +82,15 @@ export async function validateUserContext(): Promise<{
   if (email) {
     const byEmail = (await supabaseServer
       .from('users')
-      .select('id, email, role')
+      .select('id, email, role, group_id')
       .eq('email', email)
-      .single()) as { data: { id: string; email: string; role: string } | null; error: unknown };
+      .single()) as { data: { id: string; email: string; role: string; group_id: string } | null; error: unknown };
     if (byEmail.data) {
       return {
         userId: byEmail.data.id,
         email: byEmail.data.email,
         role: byEmail.data.role,
+        group_id: byEmail.data.group_id,
       };
     }
   }
@@ -97,6 +100,7 @@ export async function validateUserContext(): Promise<{
     userId: clerkUserId,
     email: email || '',
     role: 'member',
+    group_id: '',
   };
 }
 
@@ -149,12 +153,14 @@ export async function validateResourceAccess(
     case 'budget':
       const budgetResponse = (await supabaseServer
         .from('budgets')
-        .select('user_id')
+        .select('user_id, group_id')
         .eq('id', resourceId)
-        .single()) as { data: { user_id: string } | null; error: unknown };
+        .single()) as { data: { user_id: string; group_id: string } | null; error: unknown };
 
       if (budgetResponse.error || !budgetResponse.data) return false;
-      return budgetResponse.data.user_id === userId;
+
+      return budgetResponse.data.user_id === userId ||
+             (!!group_id && budgetResponse.data.group_id === group_id);
 
     case 'account':
       const accountResponse = (await supabaseServer

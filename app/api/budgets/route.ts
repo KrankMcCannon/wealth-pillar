@@ -157,6 +157,7 @@ async function createBudget(request: NextRequest) {
       icon: body.icon || null,
       categories: body.categories,
       user_id: body.user_id || userContext.userId,
+      group_id: userContext.group_id,
     };
 
     const response = await (supabaseServer
