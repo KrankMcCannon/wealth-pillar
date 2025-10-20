@@ -1,20 +1,20 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import type { Budget, BudgetType } from "@/lib/types";
-import {
-  validateForm,
-  validateFieldByName,
-  type ValidationErrors,
-  budgetValidationSchema,
-} from "@/lib/services/form-validation.service";
+import { useCreateBudget, useUpdateBudget } from "@/hooks/use-budget-mutations";
 import {
   createFormState,
-  formStateToPayload,
-  sanitizeFormState,
   isDirty as isFormDirty,
+  sanitizeFormState
 } from "@/lib/services/form-state.service";
-import { useCreateBudget, useUpdateBudget } from "@/hooks/use-budget-mutations";
+import {
+  budgetValidationSchema,
+  validateFieldByName,
+  validateForm,
+  type ValidationErrors,
+} from "@/lib/services/form-validation.service";
+import type { Budget, BudgetType } from "@/lib/types";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 export type BudgetFormMode = "create" | "edit";
 
@@ -126,7 +126,6 @@ export function useBudgetFormController(
     }
 
     const sanitized = sanitizeFormState(form);
-    const payload = formStateToPayload(sanitized, mode);
     const amountNum = typeof sanitized.amount === "string" ? parseFloat(sanitized.amount) : (sanitized.amount as any);
 
     if (mode === "edit" && initialBudget) {

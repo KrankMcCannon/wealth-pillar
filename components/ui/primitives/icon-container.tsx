@@ -20,7 +20,7 @@ import {
 } from "@/lib/ui-variants";
 
 export interface IconContainerProps
-  extends React.HTMLAttributes<HTMLDivElement>,
+  extends Omit<React.HTMLAttributes<HTMLDivElement>, "color">,
     IconContainerVariants {
   /** Icon element to display */
   children: React.ReactNode;

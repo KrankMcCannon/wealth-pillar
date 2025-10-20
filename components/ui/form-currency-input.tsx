@@ -61,8 +61,6 @@ export function FormCurrencyInput({
   max,
   decimals = 2,
 }: FormCurrencyInputProps) {
-  const [isFocused, setIsFocused] = React.useState(false);
-
   // Convert value to string for input
   const stringValue = typeof value === "number" ? value.toString() : value;
 
@@ -104,8 +102,6 @@ export function FormCurrencyInput({
 
   // Handle blur - format the value
   const handleBlur = () => {
-    setIsFocused(false);
-
     if (stringValue === "" || stringValue === ".") {
       onChange("");
       return;
@@ -133,7 +129,6 @@ export function FormCurrencyInput({
         inputMode="decimal"
         value={stringValue}
         onChange={handleChange}
-        onFocus={() => setIsFocused(true)}
         onBlur={handleBlur}
         disabled={disabled}
         placeholder={placeholder}

@@ -90,10 +90,6 @@ export function FormCheckboxGroup({
     filteredOptions.length > 0 &&
     filteredOptions.every((opt) => value.includes(opt.value));
 
-  // Check if some options are selected
-  const someSelected =
-    value.length > 0 && value.length < filteredOptions.length;
-
   // Handle individual checkbox toggle
   const handleToggle = (optionValue: string) => {
     if (disabled) return;

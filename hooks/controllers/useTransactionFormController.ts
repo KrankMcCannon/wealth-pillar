@@ -1,22 +1,22 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import type { Transaction, TransactionFrequencyType, TransactionType } from "@/lib/types";
-import {
-  validateForm,
-  validateFieldByName,
-  type ValidationErrors,
-  transactionValidationSchema,
-  validateTransferTransaction,
-} from "@/lib/services/form-validation.service";
+import { useAccounts, useCreateTransaction, useUpdateTransaction, useUsers } from "@/hooks";
 import {
   createFormState,
   formatDateForForm,
-  formStateToPayload,
-  sanitizeFormState,
   isDirty as isFormDirty,
+  sanitizeFormState
 } from "@/lib/services/form-state.service";
-import { useCreateTransaction, useUpdateTransaction, useUsers, useAccounts } from "@/hooks";
+import {
+  transactionValidationSchema,
+  validateFieldByName,
+  validateForm,
+  validateTransferTransaction,
+  type ValidationErrors,
+} from "@/lib/services/form-validation.service";
+import type { Transaction, TransactionFrequencyType, TransactionType } from "@/lib/types";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 export type TransactionFormMode = "create" | "edit";
 
@@ -200,7 +200,6 @@ export function useTransactionFormController(
 
     // Build payload
     const sanitized = sanitizeFormState(form);
-    const payload = formStateToPayload(sanitized, mode);
 
     // Enrich payload with numeric amount and ISO date
     const amountNum = typeof sanitized.amount === "string" ? parseFloat(sanitized.amount) : (sanitized.amount as any);

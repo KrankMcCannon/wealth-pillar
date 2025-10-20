@@ -52,10 +52,30 @@ export interface IconPickerProps {
 // ICON CATEGORIES
 // ============================================================================
 
-const ICON_CATEGORIES = {
+interface IconCategory {
+  label: string;
+  icons: string[];
+}
+
+type IconCategoriesType = {
+  all: IconCategory;
+  finance: IconCategory;
+  shopping: IconCategory;
+  transport: IconCategory;
+  home: IconCategory;
+  health: IconCategory;
+  entertainment: IconCategory;
+  work: IconCategory;
+  utilities: IconCategory;
+  nature: IconCategory;
+  people: IconCategory;
+  misc: IconCategory;
+};
+
+const ICON_CATEGORIES: IconCategoriesType = {
   all: {
     label: "Tutti",
-    icons: [] as string[], // Will be populated dynamically
+    icons: [], // Will be populated dynamically
   },
   finance: {
     label: "Finanza",
@@ -131,14 +151,14 @@ const ICON_CATEGORIES = {
       "Compass", "Globe", "Package", "Box", "Archive", "Trash",
     ],
   },
-} as const;
+};
 
 // Populate "all" category with all icons
 ICON_CATEGORIES.all.icons = Object.values(ICON_CATEGORIES)
   .filter(cat => cat.label !== "Tutti")
   .flatMap(cat => cat.icons);
 
-type CategoryKey = keyof typeof ICON_CATEGORIES;
+type CategoryKey = keyof IconCategoriesType;
 
 // ============================================================================
 // COMPONENT

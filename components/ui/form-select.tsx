@@ -71,8 +71,6 @@ export function FormSelect({
   placeholder = "Seleziona...",
   disabled = false,
   className,
-  showEmpty = false,
-  emptyLabel = "Nessuna selezione",
   renderIcon,
 }: FormSelectProps) {
   return (

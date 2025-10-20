@@ -1,20 +1,20 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import type { Category } from "@/lib/types";
-import {
-  validateForm,
-  validateFieldByName,
-  type ValidationErrors,
-  categoryValidationSchema,
-} from "@/lib/services/form-validation.service";
+import { useCreateCategory, useUpdateCategory } from "@/hooks/use-category-mutations";
 import {
   createFormState,
-  formStateToPayload,
-  sanitizeFormState,
   isDirty as isFormDirty,
+  sanitizeFormState
 } from "@/lib/services/form-state.service";
-import { useCreateCategory, useUpdateCategory } from "@/hooks/use-category-mutations";
+import {
+  categoryValidationSchema,
+  validateFieldByName,
+  validateForm,
+  type ValidationErrors,
+} from "@/lib/services/form-validation.service";
+import type { Category } from "@/lib/types";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 export type CategoryFormMode = "create" | "edit";
 
@@ -108,7 +108,6 @@ export function useCategoryFormController(
     }
 
     const sanitized = sanitizeFormState(form);
-    const payload = formStateToPayload(sanitized, mode);
 
     if (mode === "edit" && initialCategory) {
       await updateMutation.mutateAsync({

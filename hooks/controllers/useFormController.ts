@@ -1,9 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { createFormState, formStateToPayload, isDirty as isFormDirty, sanitizeFormState } from "@/lib/services/form-state.service";
 import type { ValidationErrors, ValidationSchema } from "@/lib/services/form-validation.service";
-import { validateForm, validateFieldByName } from "@/lib/services/form-validation.service";
-import { createFormState, formStateToPayload, sanitizeFormState, isDirty as isFormDirty } from "@/lib/services/form-state.service";
+import { validateFieldByName, validateForm } from "@/lib/services/form-validation.service";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 export type GenericFormMode = "create" | "edit";
 

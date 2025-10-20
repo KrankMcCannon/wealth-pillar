@@ -1,21 +1,21 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import type { RecurringTransactionSeries, TransactionFrequencyType, TransactionType } from "@/lib/types";
-import {
-  validateForm,
-  validateFieldByName,
-  type ValidationErrors,
-  recurringSeriesValidationSchema,
-  validateDateRange,
-} from "@/lib/services/form-validation.service";
+import { useCreateRecurringSeries, useUpdateRecurringSeries } from "@/hooks";
 import {
   createFormState,
-  formStateToPayload,
-  sanitizeFormState,
   isDirty as isFormDirty,
+  sanitizeFormState
 } from "@/lib/services/form-state.service";
-import { useCreateRecurringSeries, useUpdateRecurringSeries } from "@/hooks";
+import {
+  recurringSeriesValidationSchema,
+  validateDateRange,
+  validateFieldByName,
+  validateForm,
+  type ValidationErrors,
+} from "@/lib/services/form-validation.service";
+import type { RecurringTransactionSeries, TransactionFrequencyType, TransactionType } from "@/lib/types";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 export type RecurringFormMode = "create" | "edit";
 
@@ -144,7 +144,6 @@ export function useRecurringSeriesFormController(
     }
 
     const sanitized = sanitizeFormState(form);
-    const payload = formStateToPayload(sanitized, mode);
     const amountNum = typeof sanitized.amount === "string" ? parseFloat(sanitized.amount) : (sanitized.amount as any);
 
     const base = {
