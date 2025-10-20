@@ -51,7 +51,7 @@ export function Sidebar() {
             <h1 className="text-xl font-bold text-gradient tracking-tight">
               Wealth Pillar
             </h1>
-            <p className="text-xs text-muted-foreground -mt-1">
+            <p className="text-xs text-primary/70 -mt-1">
               Financial Intelligence
             </p>
           </div>
@@ -89,7 +89,7 @@ export function Sidebar() {
             <div className="flex-1">
               <p className={cn(
                 "font-medium",
-                pathname === item.href ? "text-white" : "text-foreground"
+                pathname === item.href ? "text-white" : "text-primary"
               )}>
                 {item.title}
               </p>
@@ -97,7 +97,7 @@ export function Sidebar() {
                 "text-xs mt-0.5",
                 pathname === item.href 
                   ? "text-white/70" 
-                  : "text-muted-foreground"
+                  : "text-primary/70"
               )}>
                 {item.description}
               </p>
@@ -108,10 +108,10 @@ export function Sidebar() {
       
       <div className="p-4 border-t border-border">
         <div className="liquid-glass-subtle p-4 rounded-2xl text-center border border-sidebar-border/30 hover-glass">
-          <p className="text-xs font-medium text-muted-foreground mb-1">
+          <p className="text-xs font-medium text-primary/70 mb-1">
             Wealth Pillar Pro
           </p>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-primary/70">
             v2.1.0 • Build 2024.1
           </p>
         </div>

@@ -47,7 +47,7 @@ export function RecurringSeriesSection({
     return (
       <div className={`animate-pulse space-y-2 ${className}`}>
         {[1, 2, 3].map((i) => (
-          <div key={i} className="h-16 bg-gradient-to-r from-slate-100 to-slate-50 rounded-xl"></div>
+          <div key={i} className="h-16 bg-gradient-to-r from-muted to-card rounded-xl"></div>
         ))}
       </div>
     );
@@ -56,19 +56,19 @@ export function RecurringSeriesSection({
   if (displayedSeries.length === 0) {
     return (
       <div className={`p-6 ${className}`}>
-        <div className="text-center py-8 text-slate-500">
-          <div className="flex size-16 items-center justify-center rounded-2xl bg-gradient-to-br from-[#7578EC]/10 to-[#7578EC]/5 mx-auto mb-4">
-            <svg className="w-8 h-8 text-[#7578EC]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="text-center py-8 text-primary/70">
+          <div className="flex size-16 items-center justify-center rounded-2xl bg-primary/10 mx-auto mb-4">
+            <svg className="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
             </svg>
           </div>
-          <p className="font-medium text-slate-900">Nessuna serie ricorrente trovata</p>
+          <p className="font-medium text-primary">Nessuna serie ricorrente trovata</p>
           <p className="text-sm mt-1">
             Le serie ricorrenti configurate appariranno qui
           </p>
           {onCreateRecurringSeries && (
             <button
-              className="mt-4 px-4 py-2 bg-white/80 border border-slate-200/50 text-slate-700 hover:bg-[#7578EC]/10 hover:text-[#7578EC] hover:border-[#7578EC]/30 transition-all duration-200 rounded-xl shadow-sm text-sm font-medium"
+              className="mt-4 px-4 py-2 bg-card border border-primary/20 text-primary hover:bg-primary/5 transition-all duration-200 rounded-xl shadow-sm text-sm font-medium"
               onClick={onCreateRecurringSeries}
             >
               <svg className="w-4 h-4 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -85,17 +85,17 @@ export function RecurringSeriesSection({
   return (
     <div className={`rounded-xl ${className}`}>
       {/* Title Section */}
-      <div className="px-4 pt-4 pb-3 border-b border-slate-200/50">
+      <div className="px-4 pt-4 pb-3 border-b border-primary/20">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="flex size-8 items-center justify-center rounded-xl bg-[hsl(var(--color-primary))]/10">
-              <svg className="w-4 h-4 text-[hsl(var(--color-primary))]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="flex size-8 items-center justify-center rounded-xl bg-primary/10">
+              <svg className="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
               </svg>
             </div>
             <div>
-              <h3 className="text-base font-bold text-slate-900 tracking-tight">Transazioni Ricorrenti</h3>
-              <p className="text-xs text-slate-600">{displayedSeries.length} {displayedSeries.length === 1 ? 'serie attiva' : 'serie attive'}</p>
+              <h3 className="text-base font-bold tracking-tight">Transazioni Ricorrenti</h3>
+              <p className="text-xs">{displayedSeries.length} {displayedSeries.length === 1 ? 'serie attiva' : 'serie attive'}</p>
             </div>
           </div>
         </div>

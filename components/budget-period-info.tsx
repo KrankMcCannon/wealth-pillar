@@ -15,7 +15,7 @@ export function BudgetPeriodInfo({ period, className = "", showSpending = true }
   if (!period) {
     return (
       <div className={`text-center py-2 ${className}`}>
-        <p className="text-xs text-slate-500">Nessun periodo attivo</p>
+        <p className="text-xs text-primary/70">Nessun periodo attivo</p>
       </div>
     );
   }
@@ -39,8 +39,8 @@ export function BudgetPeriodInfo({ period, className = "", showSpending = true }
       {/* Period Status and Dates */}
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <Calendar className="h-3 w-3 text-slate-500" />
-          <span className="text-xs font-medium text-slate-700">
+          <Calendar className="h-3 w-3 text-primary/70" />
+          <span className="text-xs font-medium text-primary/70">
             {startDate} {endDate ? `- ${endDate}` : '- in corso'}
           </span>
         </div>
@@ -63,20 +63,20 @@ export function BudgetPeriodInfo({ period, className = "", showSpending = true }
       {/* Spending Summary */}
       {showSpending && (
         <div className="grid grid-cols-2 gap-3">
-          <div className="bg-slate-50 rounded-lg px-3 py-2">
-            <p className="text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1">
+          <div className="bg-primary/5 rounded-lg px-3 py-2 border border-primary/10">
+            <p className="text-xs font-semibold text-primary/70 uppercase tracking-wide mb-1">
               Speso
             </p>
-            <p className="text-sm font-bold text-slate-900">
+            <p className="text-sm font-bold text-destructive">
               {formatCurrency(period.total_spent)}
             </p>
           </div>
 
-          <div className="bg-emerald-50 rounded-lg px-3 py-2">
-            <p className="text-xs font-semibold text-emerald-700 uppercase tracking-wide mb-1">
+          <div className="bg-primary/5 rounded-lg px-3 py-2 border border-primary/10">
+            <p className="text-xs font-semibold text-primary/70 uppercase tracking-wide mb-1">
               Risparmiato
             </p>
-            <p className="text-sm font-bold text-emerald-600">
+            <p className="text-sm font-bold text-accent">
               {formatCurrency(period.total_saved)}
             </p>
           </div>
@@ -85,8 +85,8 @@ export function BudgetPeriodInfo({ period, className = "", showSpending = true }
 
       {/* Category Breakdown (if available) */}
       {period.category_spending && Object.keys(period.category_spending).length > 0 && (
-        <div className="pt-2 border-t border-slate-100">
-          <p className="text-xs font-semibold text-slate-600 uppercase tracking-wide mb-2">
+        <div className="pt-2 border-t border-primary/10">
+          <p className="text-xs font-semibold text-primary/70 uppercase tracking-wide mb-2">
             Principali Categorie
           </p>
           <div className="space-y-1">
@@ -95,10 +95,10 @@ export function BudgetPeriodInfo({ period, className = "", showSpending = true }
               .slice(0, 3)
               .map(([category, amount]) => (
                 <div key={category} className="flex items-center justify-between">
-                  <span className="text-xs text-slate-600 capitalize">
+                  <span className="text-xs text-primary/70 capitalize">
                     {category.replace(/_/g, ' ')}
                   </span>
-                  <span className="text-xs font-semibold text-slate-900">
+                  <span className="text-xs font-semibold text-primary">
                     {formatCurrency(amount)}
                   </span>
                 </div>

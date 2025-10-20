@@ -87,7 +87,7 @@ export function useSettingsController() {
     if (!currentUser?.group_id) {
       return {
         name: 'Base Plan',
-        color: 'text-gray-600',
+        color: 'text-primary/70',
         bgColor: 'bg-gray-100'
       };
     }

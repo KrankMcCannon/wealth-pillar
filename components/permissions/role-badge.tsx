@@ -36,32 +36,32 @@ export const RoleBadge: React.FC<RoleBadgeProps> = ({
     switch (roleType) {
       case 'superadmin':
         return {
-          color: 'amber',
+          color: 'primary',
           bgClass: variant === 'outline'
-            ? 'border-amber-200 text-amber-800 bg-transparent hover:bg-amber-50'
+            ? 'border-primary/30 text-primary bg-transparent hover:bg-primary/5'
             : variant === 'subtle'
-            ? 'bg-amber-50 text-amber-700 border-amber-100'
-            : 'bg-amber-100 text-amber-800 border-amber-200',
+            ? 'bg-primary/10 text-primary border-primary/20'
+            : 'bg-primary/10 text-primary border-primary/20',
           icon: Crown,
         };
       case 'admin':
         return {
-          color: 'blue',
+          color: 'primary',
           bgClass: variant === 'outline'
-            ? 'border-blue-200 text-blue-800 bg-transparent hover:bg-blue-50'
+            ? 'border-primary/30 text-primary bg-transparent hover:bg-primary/5'
             : variant === 'subtle'
-            ? 'bg-blue-50 text-blue-700 border-blue-100'
-            : 'bg-blue-100 text-blue-800 border-blue-200',
+            ? 'bg-primary/10 text-primary border-primary/20'
+            : 'bg-primary/10 text-primary border-primary/20',
           icon: Shield,
         };
       default:
         return {
-          color: 'green',
+          color: 'primary',
           bgClass: variant === 'outline'
-            ? 'border-green-200 text-green-800 bg-transparent hover:bg-green-50'
+            ? 'border-primary/30 text-primary bg-transparent hover:bg-primary/5'
             : variant === 'subtle'
-            ? 'bg-green-50 text-green-700 border-green-100'
-            : 'bg-green-100 text-green-800 border-green-200',
+            ? 'bg-primary/10 text-primary border-primary/20'
+            : 'bg-primary/10 text-primary border-primary/20',
           icon: User,
         };
     }
@@ -118,17 +118,17 @@ export const PermissionLevelIndicator: React.FC<PermissionLevelIndicatorProps> =
   const configs = {
     low: {
       label: 'Limitato',
-      color: 'bg-gray-200',
+      color: 'bg-primary/20',
       dots: 1,
     },
     medium: {
       label: 'Standard',
-      color: 'bg-blue-400',
+      color: 'bg-primary/40',
       dots: 2,
     },
     high: {
       label: 'Completo',
-      color: 'bg-amber-400',
+      color: 'bg-primary/60',
       dots: 3,
     },
   };
@@ -145,14 +145,14 @@ export const PermissionLevelIndicator: React.FC<PermissionLevelIndicatorProps> =
             className={cn(
               'rounded-full transition-colors',
               dotSize,
-              index < config.dots ? config.color : 'bg-gray-200'
+              index < config.dots ? config.color : 'bg-primary/20'
             )}
           />
         ))}
       </div>
       {showLabel && (
         <span className={cn(
-          'font-medium text-gray-700',
+          'font-medium text-primary',
           size === 'sm' ? 'text-xs' : 'text-sm'
         )}>
           {config.label}

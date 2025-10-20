@@ -3,6 +3,7 @@
 import { Suspense, lazy } from "react";
 import { Settings, Bell, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { IconContainer, Text } from "@/components/ui/primitives";
 import BottomNavigation from "@/components/bottom-navigation";
 import ErrorBoundary, { QueryErrorFallback } from "@/components/error-boundary";
 import { PageLoader } from "@/components/page-loader";
@@ -60,20 +61,20 @@ export default function DashboardPage() {
   // Critical error handling (blocks entire dashboard)
   if (hasCriticalError) {
     return (
-      <div className="relative flex size-full min-h-[100dvh] flex-col bg-gradient-to-br from-slate-50 via-white to-slate-100">
-        <header className="sticky top-0 z-20 bg-white/70 backdrop-blur-xl border-b border-slate-200/50 px-3 sm:px-4 py-2 sm:py-3 shadow-sm">
+      <div className="relative flex size-full min-h-[100dvh] flex-col bg-card">
+        <header className="sticky top-0 z-20 bg-card/70 backdrop-blur-xl border-b border-primary/20 px-3 sm:px-4 py-2 sm:py-3 shadow-sm">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 sm:gap-3">
-              <div className="flex size-9 sm:size-10 shrink-0 items-center justify-center rounded-xl sm:rounded-2xl bg-gradient-to-br from-red-500/10 to-red-500/5 shadow-sm">
-                <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5 text-red-500" />
-              </div>
+              <IconContainer size="md" color="destructive" className="rounded-xl sm:rounded-2xl">
+                <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5" />
+              </IconContainer>
               <div className="flex flex-col">
-                <p className="text-sm sm:text-base font-bold tracking-tight text-red-600">
+                <Text variant="heading" size="sm" className="sm:text-base text-destructive">
                   Errore di Connessione
-                </p>
-                <p className="text-xs sm:text-sm font-semibold text-red-500">
+                </Text>
+                <Text variant="emphasis" size="xs" className="sm:text-sm text-destructive">
                   Dati non disponibili
-                </p>
+                </Text>
               </div>
             </div>
           </div>
@@ -100,25 +101,25 @@ export default function DashboardPage() {
       }}
     >
       <div
-        className="relative flex size-full min-h-[100dvh] flex-col bg-gradient-to-br from-slate-50 via-white to-slate-100"
+        className="relative flex size-full min-h-[100dvh] flex-col bg-card"
         style={{ fontFamily: '"Inter", "SF Pro Display", system-ui, sans-serif' }}
       >
         {/* Mobile-First Header */}
         <Suspense fallback={<DashboardHeaderSkeleton />}>
-          <header className="sticky top-0 z-20 bg-white/80 backdrop-blur-xl border-b border-slate-200/50 px-4 py-3 shadow-sm">
+          <header className="sticky top-0 z-20 bg-card/80 backdrop-blur-xl border-b border-primary/20 px-4 py-3 shadow-sm">
             <div className="flex items-center justify-between">
               {/* Left - User Profile */}
               <div className="flex items-center gap-3">
-                <div className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#7578EC]/10 to-[#7578EC]/5 shadow-sm">
-                  <Settings className="h-4 w-4 text-[#7578EC]" />
-                </div>
+                <IconContainer size="sm" color="primary" className="rounded-xl">
+                  <Settings className="h-4 w-4" />
+                </IconContainer>
                 <div className="flex flex-col">
-                  <p className="text-sm font-bold tracking-tight bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
+                  <Text variant="heading" size="sm">
                     {currentUser?.name || 'Utente'}
-                  </p>
-                  <p className="text-xs font-semibold text-[#7578EC]">
+                  </Text>
+                  <Text variant="muted" size="xs" className="font-semibold">
                     Premium Plan
-                  </p>
+                  </Text>
                 </div>
               </div>
 
@@ -127,14 +128,14 @@ export default function DashboardPage() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="hover:bg-[#7578EC]/10 text-[#7578EC] rounded-xl transition-all duration-200 p-2 min-w-[40px] min-h-[40px] flex items-center justify-center group hover:scale-105"
+                  className="hover:bg-primary/8 text-primary rounded-xl transition-all duration-200 p-2 min-w-[40px] min-h-[40px] flex items-center justify-center group hover:scale-[1.02]"
                 >
                   <Bell className="h-4 w-4 group-hover:animate-pulse" />
                 </Button>
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="hover:bg-[#7578EC]/10 text-[#7578EC] rounded-xl transition-all duration-200 p-2 min-w-[40px] min-h-[40px] flex items-center justify-center group hover:scale-105"
+                  className="hover:bg-primary/8 text-primary rounded-xl transition-all duration-200 p-2 min-w-[40px] min-h-[40px] flex items-center justify-center group hover:scale-[1.02]"
                   onClick={handleNavigateToSettings}
                 >
                   <Settings className="h-4 w-4 group-hover:rotate-90 transition-transform duration-300" />
@@ -167,7 +168,7 @@ export default function DashboardPage() {
             />
           </Suspense>
 
-          <div className="h-px bg-gray-200 mx-4"></div>
+          <div className="h-px bg-muted mx-4"></div>
 
           {/* Budget Section */}
           <div className="bg-[#F8FAFC]">
@@ -185,7 +186,7 @@ export default function DashboardPage() {
           <Suspense fallback={<RecurringSeriesSkeleton />}>
             <RecurringSeriesSection
               selectedUserId={selectedViewUserId}
-              className="bg-white/80 backdrop-blur-sm shadow-lg shadow-slate-200/30 rounded-xl border border-white/50 mx-4 mb-4"
+              className="bg-card/80 backdrop-blur-sm shadow-lg shadow-muted/30 rounded-xl border border-white/50 mx-4 mb-4"
               showStats={false}
               maxItems={5}
               showActions={false}

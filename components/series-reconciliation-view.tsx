@@ -37,10 +37,10 @@ export function SeriesReconciliationView({
     return (
       <Card className={`p-6 ${className}`}>
         <div className="animate-pulse">
-          <div className="h-6 bg-gray-200 rounded w-1/2 mb-4"></div>
+          <div className="h-6 bg-muted rounded w-1/2 mb-4"></div>
           <div className="space-y-3">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-16 bg-gray-100 rounded"></div>
+              <div key={i} className="h-16 bg-muted rounded"></div>
             ))}
           </div>
         </div>
@@ -51,11 +51,11 @@ export function SeriesReconciliationView({
   if (!reconciliation) {
     return (
       <Card className={`p-6 ${className}`}>
-        <div className="text-center py-8 text-slate-500">
-          <div className="flex size-16 items-center justify-center rounded-2xl bg-gradient-to-br from-red-500/10 to-red-500/5 mx-auto mb-4">
-            <AlertTriangle className="w-8 h-8 text-red-500" />
+        <div className="text-center py-8 text-muted-foreground">
+          <div className="flex size-16 items-center justify-center rounded-2xl bg-destructive/10 mx-auto mb-4">
+            <AlertTriangle className="w-8 h-8 text-destructive" />
           </div>
-          <p className="font-medium text-slate-900">Errore nel caricamento dei dati di riconciliazione</p>
+          <p className="font-medium text-foreground">Errore nel caricamento dei dati di riconciliazione</p>
         </div>
       </Card>
     );
@@ -76,47 +76,47 @@ export function SeriesReconciliationView({
 
       {/* Status Overview */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div className={`p-4 rounded-lg border-2 ${isHealthy ? 'bg-green-50 border-green-200' : 'bg-yellow-50 border-yellow-200'}`}>
+        <div className={`p-4 rounded-lg border-2 ${isHealthy ? 'bg-primary/10 border-primary/20' : 'bg-warning/10 border-warning/20'}`}>
           <div className="flex items-center gap-2 mb-2">
             {isHealthy ? (
-              <CheckCircle className="w-5 h-5 text-green-600" />
+              <CheckCircle className="w-5 h-5 text-primary" />
             ) : (
-              <AlertTriangle className="w-5 h-5 text-yellow-600" />
+              <AlertTriangle className="w-5 h-5 text-warning" />
             )}
-            <span className={`font-medium ${isHealthy ? 'text-green-800' : 'text-yellow-800'}`}>
+            <span className={`font-medium ${isHealthy ? 'text-primary' : 'text-warning'}`}>
               Stato Serie
             </span>
           </div>
-          <div className={`text-2xl font-bold ${isHealthy ? 'text-green-700' : 'text-yellow-700'}`}>
+          <div className={`text-2xl font-bold ${isHealthy ? 'text-primary' : 'text-warning'}`}>
             {successRate.toFixed(1)}%
           </div>
-          <div className={`text-sm ${isHealthy ? 'text-green-600' : 'text-yellow-600'}`}>
+          <div className={`text-sm ${isHealthy ? 'text-primary' : 'text-warning'}`}>
             Tasso di successo
           </div>
         </div>
 
-        <div className="p-4 rounded-lg border-2 bg-blue-50 border-blue-200">
+        <div className="p-4 rounded-lg border-2 bg-primary/5 border-primary/20">
           <div className="flex items-center gap-2 mb-2">
-            <Calendar className="w-5 h-5 text-blue-600" />
-            <span className="font-medium text-blue-800">Esecuzioni</span>
+            <Calendar className="w-5 h-5 text-primary" />
+            <span className="font-medium text-primary">Esecuzioni</span>
           </div>
-          <div className="text-2xl font-bold text-blue-700">
+          <div className="text-2xl font-bold text-primary">
             {summary.actualExecutions}/{summary.expectedExecutions}
           </div>
-          <div className="text-sm text-blue-600">
+          <div className="text-sm text-primary">
             Effettuate/Previste
           </div>
         </div>
 
-        <div className="p-4 rounded-lg border-2 bg-gray-50 border-gray-200">
+        <div className="p-4 rounded-lg border-2 bg-primary/5 border-primary/20">
           <div className="flex items-center gap-2 mb-2">
-            <DollarSign className="w-5 h-5 text-gray-600" />
-            <span className="font-medium text-gray-800">Importo Totale</span>
+            <DollarSign className="w-5 h-5 text-primary/70" />
+            <span className="font-medium text-primary">Importo Totale</span>
           </div>
-          <div className="text-2xl font-bold text-gray-700">
+          <div className="text-2xl font-bold text-primary">
             {formatCurrency(summary.totalPaid)}
           </div>
-          <div className="text-sm text-gray-600">
+          <div className="text-sm text-primary/70">
             Pagato finora
           </div>
         </div>
@@ -124,12 +124,12 @@ export function SeriesReconciliationView({
 
       {/* Issues Alert */}
       {hasIssues && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+        <div className="mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
           <div className="flex items-center gap-2 mb-2">
-            <XCircle className="w-5 h-5 text-red-600" />
-            <span className="font-medium text-red-800">Problemi Rilevati</span>
+            <XCircle className="w-5 h-5 text-destructive" />
+            <span className="font-medium text-destructive">Problemi Rilevati</span>
           </div>
-          <ul className="text-sm text-red-700 space-y-1">
+          <ul className="text-sm text-destructive space-y-1">
             {summary.missedPayments > 0 && (
               <li>• {summary.missedPayments} pagamenti mancanti</li>
             )}
@@ -156,43 +156,43 @@ export function SeriesReconciliationView({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Financial Summary */}
             <div className="space-y-4">
-              <h3 className="font-semibold text-gray-900 border-b pb-2">Riepilogo Finanziario</h3>
+              <h3 className="font-semibold text-primary border-b border-primary/20 pb-2">Riepilogo Finanziario</h3>
 
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Importo per esecuzione:</span>
+                  <span>Importo per esecuzione:</span>
                   <span className="font-semibold">{formatCurrency(series.amount)}</span>
                 </div>
 
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Esecuzioni previste:</span>
+                  <span>Esecuzioni previste:</span>
                   <span className="font-semibold">{summary.expectedExecutions}</span>
                 </div>
 
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Totale previsto:</span>
+                  <span>Totale previsto:</span>
                   <span className="font-semibold">{formatCurrency(summary.expectedTotal)}</span>
                 </div>
 
                 <hr />
 
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Esecuzioni effettuate:</span>
-                  <span className="font-semibold text-blue-600">{summary.actualExecutions}</span>
+                  <span className="text-primary/70">Esecuzioni effettuate:</span>
+                  <span className="font-semibold text-primary">{summary.actualExecutions}</span>
                 </div>
 
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Totale pagato:</span>
-                  <span className="font-semibold text-blue-600">{formatCurrency(summary.totalPaid)}</span>
+                  <span className="text-primary/70">Totale pagato:</span>
+                  <span className="font-semibold text-primary">{formatCurrency(summary.totalPaid)}</span>
                 </div>
 
                 <hr />
 
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Differenza:</span>
+                  <span className="text-primary/70">Differenza:</span>
                   <span className={`font-semibold ${
-                    summary.difference === 0 ? 'text-green-600' :
-                    summary.difference > 0 ? 'text-orange-600' : 'text-red-600'
+                    summary.difference === 0 ? 'text-accent' :
+                    summary.difference > 0 ? 'text-warning' : 'text-destructive'
                   }`}>
                     {summary.difference === 0 ? 'Nessuna' : formatCurrency(Math.abs(summary.difference))}
                     {summary.difference > 0 && ' (eccesso)'}
@@ -204,11 +204,11 @@ export function SeriesReconciliationView({
 
             {/* Execution Timeline */}
             <div className="space-y-4">
-              <h3 className="font-semibold text-gray-900 border-b pb-2">Timeline Esecuzioni</h3>
+              <h3 className="font-semibold text-primary border-b border-primary/20 pb-2">Timeline Esecuzioni</h3>
 
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Prima esecuzione:</span>
+                  <span className="text-primary/70">Prima esecuzione:</span>
                   <span className="font-semibold">
                     {transactions.length > 0
                       ? new Date(transactions[transactions.length - 1].date).toLocaleDateString('it-IT')
@@ -218,8 +218,8 @@ export function SeriesReconciliationView({
                 </div>
 
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Prossima prevista:</span>
-                  <span className="font-semibold text-blue-600">
+                  <span className="text-primary/70">Prossima prevista:</span>
+                  <span className="font-semibold text-primary">
                     {new Date(series.due_date).toLocaleDateString('it-IT')}
                   </span>
                 </div>
@@ -227,7 +227,7 @@ export function SeriesReconciliationView({
                 <hr />
 
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Frequenza:</span>
+                  <span className="text-primary/70">Frequenza:</span>
                   <span className="font-semibold">{series.frequency}</span>
                 </div>
               </div>
@@ -238,8 +238,8 @@ export function SeriesReconciliationView({
         <TabsContent value="transactions" className="mt-6">
           <div className="space-y-4">
             <div className="flex justify-between items-center">
-              <h3 className="font-semibold text-gray-900">Transazioni Generate</h3>
-              <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+              <h3 className="font-semibold text-primary">Transazioni Generate</h3>
+              <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20">
                 {transactions.length} transazioni
               </Badge>
             </div>
@@ -249,31 +249,31 @@ export function SeriesReconciliationView({
                 {transactions
                   .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
                   .map((transaction) => (
-                    <div key={transaction.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border">
+                    <div key={transaction.id} className="flex items-center justify-between p-4 bg-card rounded-lg border border-primary/20">
                       <div className="flex items-center gap-3">
                         <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                          transaction.type === 'income' ? 'bg-green-100' : 'bg-red-100'
+                          transaction.type === 'income' ? 'bg-accent/10' : 'bg-destructive/10'
                         }`}>
                           {transaction.type === 'income' ? (
-                            <TrendingUp className="w-5 h-5 text-green-600" />
+                            <TrendingUp className="w-5 h-5 text-accent" />
                           ) : (
-                            <TrendingDown className="w-5 h-5 text-red-600" />
+                            <TrendingDown className="w-5 h-5 text-destructive" />
                           )}
                         </div>
                         <div>
-                          <div className="font-medium text-gray-900">{transaction.description}</div>
-                          <div className="text-sm text-gray-600">
+                          <div className="font-medium text-primary">{transaction.description}</div>
+                          <div className="text-sm text-primary/70">
                             {new Date(transaction.date).toLocaleDateString('it-IT')} • {transaction.category}
                           </div>
                         </div>
                       </div>
                       <div className="text-right">
                         <div className={`font-semibold ${
-                          transaction.type === 'income' ? 'text-green-600' : 'text-gray-900'
+                          transaction.type === 'income' ? 'text-accent' : 'text-destructive'
                         }`}>
                           {formatCurrency(transaction.amount)}
                         </div>
-                        <div className="text-xs text-gray-500">
+                        <div className="text-xs text-primary/70">
                           ID: {transaction.id.slice(-8)}
                         </div>
                       </div>
@@ -281,8 +281,8 @@ export function SeriesReconciliationView({
                   ))}
               </div>
             ) : (
-              <div className="text-center py-8 text-gray-500">
-                <Calendar className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+              <div className="text-center py-8 text-primary/70">
+                <Calendar className="w-12 h-12 mx-auto mb-3 text-primary/30" />
                 <p>Nessuna transazione generata</p>
                 <p className="text-sm mt-1">
                   Le transazioni generate da questa serie appariranno qui

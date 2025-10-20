@@ -69,3 +69,5 @@ export { useMissedExecutions } from './use-recurring-series';
 
 // Cache utilities to apply consistent invalidation logic
 export { transactionCacheUtils } from './use-query-hooks';
+
+export * from './use-media-query';

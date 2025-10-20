@@ -1,42 +1,247 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+/* ============================================================================
+   MODERN CSS ARCHITECTURE - TAILWIND V4 + SHADCN/UI (2025)
+   Following OKLCH color space for better perceptual uniformity
+   ============================================================================ */
+
 @custom-variant dark (&:is(.dark *));
 
+/* ============================================================================
+   @THEME - Design System Tokens
+   Using Tailwind v4's new @theme directive for centralized token management
+   ============================================================================ */
+
 @theme {
-  --radius: 1rem;
+  /* Typography */
   --font-sans: var(--font-spline-sans);
-  
-  /* Design System Colors */
-  --primary-color: #7578EC;
-  --background-color: #F8FAFC;
-  --card-color: #FFFFFF;
-  --secondary-color: #EFF2FE;
-  --text-primary: #1F2937;
-  --text-secondary: #6B7280;
-  
-  /* Modern shadow system */
-  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+
+  /* Border Radius System */
+  --radius: 1rem;
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+
+  /* Shadow System - Modern elevation layers */
+  --shadow-xs: 0 1px 2px 0 oklch(0% 0 0 / 0.05);
+  --shadow-sm: 0 1px 3px 0 oklch(0% 0 0 / 0.1), 0 1px 2px 0 oklch(0% 0 0 / 0.06);
+  --shadow-md: 0 4px 6px -1px oklch(0% 0 0 / 0.1), 0 2px 4px -1px oklch(0% 0 0 / 0.06);
+  --shadow-lg: 0 10px 15px -3px oklch(0% 0 0 / 0.1), 0 4px 6px -2px oklch(0% 0 0 / 0.05);
+  --shadow-xl: 0 20px 25px -5px oklch(0% 0 0 / 0.1), 0 10px 10px -5px oklch(0% 0 0 / 0.04);
+  --shadow-2xl: 0 25px 50px -12px oklch(0% 0 0 / 0.25);
+
+  /* ============================================================================
+     OKLCH COLOR PALETTE - LIGHT MODE
+     Perceptually uniform color space for better accessibility
+     Format: OKLCH(Lightness Chroma Hue)
+     ============================================================================ */
+
+  /* Base Colors - Light beige theme */
+  --color-background: oklch(0.94 0.008 90);       /* Warm light background */
+  --color-foreground: oklch(0.25 0.015 90);       /* Dark text, high contrast */
+
+  /* Card System - Soft white that doesn't strain eyes */
+  --color-card: oklch(0.985 0.003 90);             /* Warm soft white for cards/modals */
+  --color-card-foreground: oklch(0.28 0.015 90);   /* Card text */
+
+  /* Popover - Same soft white */
+  --color-popover: oklch(0.985 0.003 90);
+  --color-popover-foreground: oklch(0.28 0.015 90);
+
+  /* Primary - Wealth Pillar Brand Purple (#7678E4) */
+  --color-primary: oklch(0.595 0.178 270);         /* Rich purple, brand color */
+  --color-primary-foreground: oklch(1 0 0);        /* Pure white text */
+
+  /* Secondary - Steel Blue (#669BBC) */
+  --color-secondary: oklch(0.68 0.08 235);         /* Professional steel blue */
+  --color-secondary-foreground: oklch(1 0 0);      /* White text */
+
+  /* Accent - Light Purple (lighter shade of primary for highlights) */
+  --color-accent: oklch(0.68 0.16 270);            /* Light purple for hover/selection */
+  --color-accent-foreground: oklch(1 0 0);         /* White text */
+
+  /* Muted - Subtle UI elements */
+  --color-muted: oklch(0.88 0.008 90);             /* Soft neutral background */
+  --color-muted-foreground: oklch(0.45 0.015 90);  /* Muted text */
+
+  /* Destructive - Error states */
+  --color-destructive: oklch(0.55 0.22 25);        /* Vibrant red */
+  --color-destructive-foreground: oklch(1 0 0);    /* White text */
+
+  /* Warning - Financial alerts */
+  --color-warning: oklch(0.75 0.15 85);            /* Amber warning */
+  --color-warning-foreground: oklch(0.15 0.02 90); /* Dark text */
+
+  /* Success - Positive financial states (using primary purple family) */
+  --color-success: oklch(0.65 0.16 270);           /* Purple success (brand consistency) */
+  --color-success-foreground: oklch(1 0 0);        /* White text */
+
+  /* UI Elements */
+  --color-border: oklch(0.85 0.008 90);            /* Subtle borders */
+  --color-input: oklch(0.98 0.004 90);             /* Soft white for inputs - not tiring */
+  --color-ring: oklch(0.595 0.178 270);            /* Focus ring, same as primary */
+
+  /* Chart Colors - Data visualization palette (primary purple family) */
+  --color-chart-1: oklch(0.595 0.178 270);         /* Primary purple */
+  --color-chart-2: oklch(0.68 0.16 270);           /* Light purple */
+  --color-chart-3: oklch(0.78 0.15 270);           /* Lighter purple */
+  --color-chart-4: oklch(0.55 0.16 270);           /* Darker purple variant */
+  --color-chart-5: oklch(0.50 0.18 270);           /* Darkest purple variant */
+
+  /* ============================================================================
+     SEMANTIC TOKENS - Centralized UI System (2025)
+     Generate utility classes automatically for consistent theming
+     ============================================================================ */
+
+  /* Semantic Text Colors - Auto-generate text-* utilities */
+  --color-text-primary: var(--color-primary);
+  --color-text-heading: var(--color-primary);
+  --color-text-body: var(--color-foreground);
+  --color-text-muted: var(--color-muted-foreground);
+  --color-text-subtle: oklch(0.55 0.015 90);
+  --color-text-emphasis: var(--color-foreground);
+
+  /* Semantic Background Colors - Auto-generate bg-* utilities */
+  --color-bg-soft: var(--color-card);
+  --color-bg-subtle: var(--color-muted);
+  --color-bg-hover: var(--color-accent);
+  --color-bg-elevated: var(--color-card);
+
+  /* Semantic Interactive States */
+  --color-interactive-hover: var(--color-accent);
+  --color-interactive-active: var(--color-primary);
+  --color-interactive-disabled: var(--color-muted);
+
+  /* Sidebar (for future use) */
+  --color-sidebar: oklch(0.96 0.008 90);
+  --color-sidebar-foreground: oklch(0.28 0.015 90);
+  --color-sidebar-primary: oklch(0.595 0.178 270);
+  --color-sidebar-primary-foreground: oklch(1 0 0);
+  --color-sidebar-accent: oklch(0.92 0.008 90);
+  --color-sidebar-accent-foreground: oklch(0.595 0.178 270);
+  --color-sidebar-border: oklch(0.85 0.008 90);
+  --color-sidebar-ring: oklch(0.595 0.178 270);
+
+  /* Category Colors - Financial categorization (Light Mode) */
+  --category-utilities-blue: oklch(0.60 0.15 240);
+  --category-utilities-red: oklch(0.60 0.18 30);
+  --category-transportation-purple: oklch(0.58 0.16 290);
+  --category-transportation-orange: oklch(0.65 0.16 55);
+  --category-health-cyan: oklch(0.65 0.12 210);
+  --category-health-teal: oklch(0.60 0.12 190);
+  --category-beauty-pink: oklch(0.65 0.15 330);
+  --category-food-green: oklch(0.60 0.14 140);
+  --category-shopping-purple: oklch(0.60 0.18 285);
+  --category-shopping-orange: oklch(0.68 0.15 60);
 }
 
-/* Base styles */
+/* ============================================================================
+   DARK MODE - OKLCH COLOR PALETTE
+   Adjusted luminance for dark backgrounds
+   ============================================================================ */
+
+html.dark {
+  /* Base Colors - Dark charcoal theme */
+  --color-background: oklch(0.18 0.008 90);       /* Deep charcoal background */
+  --color-foreground: oklch(0.95 0.008 90);       /* Light text */
+
+  /* Card System - Soft dark that doesn't strain eyes */
+  --color-card: oklch(0.24 0.006 90);             /* Slightly lighter than background, warmer */
+  --color-card-foreground: oklch(0.92 0.008 90);  /* Card text */
+
+  /* Popover - Same soft dark */
+  --color-popover: oklch(0.24 0.006 90);
+  --color-popover-foreground: oklch(0.92 0.008 90);
+
+  /* Primary - Lighter for dark backgrounds */
+  --color-primary: oklch(0.72 0.168 270);         /* Lighter purple for visibility */
+  --color-primary-foreground: oklch(0.15 0.015 90); /* Dark text on light button */
+
+  /* Secondary - Lighter Steel Blue */
+  --color-secondary: oklch(0.75 0.08 235);        /* Brighter steel blue */
+  --color-secondary-foreground: oklch(0.15 0.015 90);
+
+  /* Accent - Lighter Purple (lighter shade of primary for highlights) */
+  --color-accent: oklch(0.78 0.15 270);           /* Lighter purple for hover/selection */
+  --color-accent-foreground: oklch(0.15 0.015 90);
+
+  /* Muted */
+  --color-muted: oklch(0.28 0.008 90);
+  --color-muted-foreground: oklch(0.72 0.008 90);
+
+  /* Destructive */
+  --color-destructive: oklch(0.65 0.22 25);       /* Softer red for dark mode */
+  --color-destructive-foreground: oklch(1 0 0);
+
+  /* Warning */
+  --color-warning: oklch(0.78 0.15 85);           /* Brighter amber */
+  --color-warning-foreground: oklch(0.15 0.02 90);
+
+  /* Success - Positive financial states (using primary purple family) */
+  --color-success: oklch(0.72 0.15 270);           /* Purple success (brand consistency) */
+  --color-success-foreground: oklch(1 0 0);
+
+  /* UI Elements */
+  --color-border: oklch(0.32 0.008 90);
+  --color-input: oklch(0.26 0.006 90);             /* Soft dark for inputs - not tiring */
+  --color-ring: oklch(0.72 0.168 270);
+
+  /* Chart Colors - Adjusted for dark mode (primary purple family) */
+  --color-chart-1: oklch(0.72 0.168 270);          /* Light purple */
+  --color-chart-2: oklch(0.78 0.15 270);           /* Lighter purple */
+  --color-chart-3: oklch(0.82 0.13 270);           /* Lightest purple */
+  --color-chart-4: oklch(0.65 0.16 270);           /* Medium purple */
+  --color-chart-5: oklch(0.60 0.17 270);           /* Darker purple */
+
+  /* Sidebar */
+  --color-sidebar: oklch(0.20 0.008 90);
+  --color-sidebar-foreground: oklch(0.92 0.008 90);
+  --color-sidebar-primary: oklch(0.72 0.168 270);
+  --color-sidebar-primary-foreground: oklch(0.15 0.015 90);
+  --color-sidebar-accent: oklch(0.28 0.008 90);
+  --color-sidebar-accent-foreground: oklch(0.72 0.168 270);
+  --color-sidebar-border: oklch(0.32 0.008 90);
+  --color-sidebar-ring: oklch(0.72 0.168 270);
+
+  /* Category Colors - Adjusted for dark mode visibility */
+  --category-utilities-blue: oklch(0.68 0.15 240);
+  --category-utilities-red: oklch(0.68 0.18 30);
+  --category-transportation-purple: oklch(0.66 0.16 290);
+  --category-transportation-orange: oklch(0.72 0.16 55);
+  --category-health-cyan: oklch(0.72 0.12 210);
+  --category-health-teal: oklch(0.68 0.12 190);
+  --category-beauty-pink: oklch(0.72 0.15 330);
+  --category-food-green: oklch(0.68 0.14 140);
+  --category-shopping-purple: oklch(0.68 0.18 285);
+  --category-shopping-orange: oklch(0.75 0.15 60);
+}
+
+/* ============================================================================
+   BASE STYLES
+   ============================================================================ */
+
 * {
   box-sizing: border-box;
 }
 
 html {
   scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
-  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-family: var(--font-sans), var(--font-geist-sans), system-ui, -apple-system, sans-serif;
   line-height: 1.6;
+  background-color: oklch(var(--color-background));
+  color: oklch(var(--color-foreground));
 }
+
+/* ============================================================================
+   HIDE DEVELOPMENT ARTIFACTS
+   ============================================================================ */
 
 /* Hide Cloudflare CAPTCHA in development to avoid protocol mismatch errors */
 iframe[src*="challenges.cloudflare.com"],
@@ -54,17 +259,11 @@ div[data-turnstile],
   opacity: 0 !important;
 }
 
-/* Shimmer animation for loading skeletons */
-@keyframes shimmer {
-  0% {
-    transform: translateX(-100%);
-  }
-  100% {
-    transform: translateX(100%);
-  }
-}
+/* ============================================================================
+   SCROLLBAR SYSTEM
+   Modern, minimal scrollbars
+   ============================================================================ */
 
-/* Smooth scrollbar styles */
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -76,11 +275,12 @@ div[data-turnstile],
 
 .scrollbar-thin {
   scrollbar-width: thin;
-  scrollbar-color: #cbd5e1 transparent;
+  scrollbar-color: oklch(0.75 0.01 90) transparent;
 }
 
 .scrollbar-thin::-webkit-scrollbar {
   width: 6px;
+  height: 6px;
 }
 
 .scrollbar-thin::-webkit-scrollbar-track {
@@ -88,327 +288,238 @@ div[data-turnstile],
 }
 
 .scrollbar-thin::-webkit-scrollbar-thumb {
-  background-color: #cbd5e1;
+  background-color: oklch(0.75 0.01 90);
   border-radius: 3px;
 }
 
 .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-  background-color: #94a3b8;
+  background-color: oklch(0.65 0.02 90);
 }
 
-/* Dark Mode - Modern Liquid Glass Palette */
-html.dark {
-  /* Base colors - Dark charcoal theme */
-  --color-background: 60 5% 10%; /* #1A1A18 */
-  --color-foreground: 60 5% 95%; /* Light text */
-  --color-card: 60 5% 15%; /* Slightly lighter than bg */
-  --color-card-foreground: 60 5% 90%; /* Card text */
-  --color-popover: 60 5% 15%;
-  --color-popover-foreground: 60 5% 90%;
-  
-  /* Primary - Lighter version for dark mode */
-  --color-primary: 239 67% 75%; /* Lighter RGB(118, 120, 228) */
-  --color-primary-foreground: 60 5% 10%; /* Dark text on primary */
-  
-  /* Secondary - Lighter Steel Blue */
-  --color-secondary: 204 43% 68%; /* #80B5D6 */
-  --color-secondary-foreground: 60 5% 10%;
-  
-  /* Muted - Subtle variations */
-  --color-muted: 60 5% 20%;
-  --color-muted-foreground: 60 5% 70%;
-  
-  /* Accent - Lighter Mint Green */
-  --color-accent: 162 44% 70%; /* #85D8C4 */
-  --color-accent-foreground: 60 5% 10%;
-  
-  /* Destructive - Warmer red for dark mode */
-  --color-destructive: 0 65% 65%;
-  --color-destructive-foreground: 0 0% 100%;
-  
-  /* Warning - Amber color for financial warnings */
-  --color-warning: 45 85% 60%;
-  --color-warning-foreground: 0 0% 100%;
-  
-  /* UI Elements */
-  --color-border: 60 5% 25%; /* Subtle borders */
-  --color-input: 60 5% 18%;
-  --color-ring: 239 67% 75%; /* Same as primary */
-  
-  /* Chart colors - Dark mode variants */
-  --color-chart-1: 239 67% 75%; /* Lighter RGB(118, 120, 228) */
-  --color-chart-2: 204 43% 68%; /* #80B5D6 */
-  --color-chart-3: 162 44% 70%; /* #85D8C4 */
-  --color-chart-4: 239 67% 65%; /* Darker palette color */
-  --color-chart-5: 204 43% 58%; /* Darker steel */
-  
-  /* Sidebar */
-  --color-sidebar: 60 5% 12%; /* Slightly different from bg */
-  --color-sidebar-foreground: 60 5% 90%;
-  --color-sidebar-primary: 239 67% 75%; /* Lighter RGB(118, 120, 228) */
-  --color-sidebar-primary-foreground: 60 5% 10%;
-  --color-sidebar-accent: 60 5% 22%;
-  --color-sidebar-accent-foreground: 237 51% 75%;
-  --color-sidebar-border: 60 5% 25%;
-  --color-sidebar-ring: 239 67% 75%;
-  
-  /* Category Colors - Organized by theme (adjusted for dark mode) */
-  --category-utilities-blue: 190 75% 60%;
-  --category-utilities-red: 10 60% 65%;
-  --category-transportation-purple: 260 51% 65%;
-  --category-transportation-orange: 20 75% 60%;
-  --category-health-cyan: 190 75% 60%;
-  --category-health-teal: 170 55% 55%;
-  --category-beauty-pink: 280 51% 65%;
-  --category-food-green: 120 45% 55%;
-  --category-shopping-purple: 250 65% 65%;
-  --category-shopping-orange: 30 65% 65%;
+html.dark .scrollbar-thin {
+  scrollbar-color: oklch(0.35 0.01 90) transparent;
 }
 
-/* Light Mode - Modern Liquid Glass Palette */
-html.light {
-  /* Base colors - Light beige theme */
-  --color-background: 60 9% 89%; /* #E2E2DE */
-  --color-foreground: 60 5% 15%; /* Dark text */
-  --color-card: 0 0% 98%; /* Almost white with subtle warmth */
-  --color-card-foreground: 60 5% 20%; /* Card text */
-  --color-popover: 0 0% 98%;
-  --color-popover-foreground: 60 5% 20%;
-  
-  /* Primary - Palette Color */
-  --color-primary: 239 67% 68%; /* RGB(118, 120, 228) = #7678E4 */
-  --color-primary-foreground: 0 0% 100%; /* White text on primary */
-  
-  /* Secondary - Steel Blue */
-  --color-secondary: 204 43% 58%; /* #669BBC */
-  --color-secondary-foreground: 0 0% 100%;
-  
-  /* Muted - Subtle variations */
-  --color-muted: 60 9% 80%; /* Lighter than background */
-  --color-muted-foreground: 60 5% 40%;
-  
-  /* Accent - Mint Green */
-  --color-accent: 162 44% 60%; /* #6BBEB4 */
-  --color-accent-foreground: 0 0% 100%;
-  
-  /* Destructive - Warmer red for light mode */
-  --color-destructive: 0 70% 50%;
-  --color-destructive-foreground: 0 0% 100%;
-  
-  /* Warning - Amber color for financial warnings */
-  --color-warning: 45 85% 55%;
-  --color-warning-foreground: 0 0% 100%;
-  
-  /* UI Elements */
-  --color-border: 60 9% 75%; /* Subtle borders */
-  --color-input: 60 9% 85%;
-  --color-ring: 239 67% 68%; /* Same as primary */
-  
-  /* Chart colors - Light mode variants */
-  --color-chart-1: 239 67% 68%; /* RGB(118, 120, 228) */
-  --color-chart-2: 204 43% 58%; /* #669BBC */
-  --color-chart-3: 162 44% 60%; /* #6BBEB4 */
-  --color-chart-4: 239 67% 58%; /* Darker palette color */
-  --color-chart-5: 204 43% 48%; /* Darker steel */
-  
-  /* Sidebar */
-  --color-sidebar: 60 9% 92%; /* Lighter than bg */
-  --color-sidebar-foreground: 60 5% 20%;
-  --color-sidebar-primary: 239 67% 68%; /* RGB(118, 120, 228) */
-  --color-sidebar-primary-foreground: 0 0% 100%;
-  --color-sidebar-accent: 60 9% 85%;
-  --color-sidebar-accent-foreground: 237 51% 60%;
-  --color-sidebar-border: 60 9% 75%;
-  --color-sidebar-ring: 239 67% 68%;
-  
-  /* Category Colors - Organized by theme */
-  --category-utilities-blue: 190 80% 50%;
-  --category-utilities-red: 10 65% 55%;
-  --category-transportation-purple: 260 51% 55%;
-  --category-transportation-orange: 20 80% 50%;
-  --category-health-cyan: 190 80% 50%;
-  --category-health-teal: 170 60% 45%;
-  --category-beauty-pink: 280 51% 55%;
-  --category-food-green: 120 50% 45%;
-  --category-shopping-purple: 250 70% 55%;
-  --category-shopping-orange: 30 70% 55%;
+html.dark .scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: oklch(0.35 0.01 90);
 }
 
-/* Custom utility classes for financial indicators */
+html.dark .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background-color: oklch(0.45 0.02 90);
+}
+
+/* ============================================================================
+   CUSTOM UTILITY CLASSES
+   Financial-specific and modern effects
+   ============================================================================ */
+
 @layer utilities {
-  /* Liquid Glass Effects */
+  /* ========================================================================
+     LIQUID GLASS EFFECTS - Signature Wealth Pillar aesthetic
+     ======================================================================== */
+
   .liquid-glass {
-    background: hsl(var(--color-card) / 0.6);
+    background: oklch(var(--color-card) / 0.6);
     backdrop-filter: blur(20px) saturate(1.5);
-    border: 1px solid hsl(var(--color-border) / 0.3);
-    box-shadow: 
-      0 8px 32px hsl(var(--color-primary) / 0.15),
-      inset 0 1px 0 hsl(0 0% 100% / 0.2),
-      inset 0 -1px 0 hsl(0 0% 0% / 0.1);
+    border: 1px solid oklch(var(--color-border) / 0.3);
+    box-shadow:
+      0 8px 32px oklch(var(--color-primary) / 0.15),
+      inset 0 1px 0 oklch(1 0 0 / 0.2),
+      inset 0 -1px 0 oklch(0 0 0 / 0.1);
   }
-  
+
   .liquid-glass-strong {
-    background: hsl(var(--color-card) / 0.8);
+    background: oklch(var(--color-card) / 0.8);
     backdrop-filter: blur(25px) saturate(1.8);
-    border: 1px solid hsl(var(--color-border) / 0.4);
-    box-shadow: 
-      0 12px 48px hsl(var(--color-primary) / 0.2),
-      inset 0 1px 0 hsl(0 0% 100% / 0.3),
-      inset 0 -1px 0 hsl(0 0% 0% / 0.15);
+    border: 1px solid oklch(var(--color-border) / 0.4);
+    box-shadow:
+      0 12px 48px oklch(var(--color-primary) / 0.2),
+      inset 0 1px 0 oklch(1 0 0 / 0.3),
+      inset 0 -1px 0 oklch(0 0 0 / 0.15);
   }
-  
+
   .liquid-glass-subtle {
-    background: hsl(var(--color-background) / 0.4);
+    background: oklch(var(--color-background) / 0.4);
     backdrop-filter: blur(15px) saturate(1.2);
-    border: 1px solid hsl(var(--color-border) / 0.2);
-    box-shadow: 
-      0 4px 24px hsl(var(--color-primary) / 0.1),
-      inset 0 1px 0 hsl(0 0% 100% / 0.15);
+    border: 1px solid oklch(var(--color-border) / 0.2);
+    box-shadow:
+      0 4px 24px oklch(var(--color-primary) / 0.1),
+      inset 0 1px 0 oklch(1 0 0 / 0.15);
   }
-  
+
+  /* ========================================================================
+     GRADIENT SYSTEM - Using OKLCH for smooth transitions
+     All gradients use primary purple family for brand consistency
+     ======================================================================== */
+
   .gradient-primary {
-    background: linear-gradient(135deg, hsl(var(--color-primary)), hsl(var(--color-secondary)));
+    background: linear-gradient(135deg,
+      oklch(var(--color-primary)),
+      oklch(var(--color-accent))
+    );
   }
-  
+
   .gradient-success {
-    background: linear-gradient(135deg, hsl(var(--color-accent)), hsl(var(--color-accent) / 0.8));
+    background: linear-gradient(135deg,
+      oklch(var(--color-primary)),
+      oklch(var(--color-primary) / 0.8)
+    );
   }
-  
+
   .gradient-danger {
-    background: linear-gradient(135deg, hsl(var(--color-destructive)), hsl(var(--color-destructive) / 0.8));
+    background: linear-gradient(135deg,
+      oklch(var(--color-destructive)),
+      oklch(var(--color-destructive) / 0.8)
+    );
   }
-  
+
   .text-gradient {
-    background: linear-gradient(135deg, hsl(var(--color-primary)), hsl(var(--color-secondary)), hsl(var(--color-accent)));
+    background: linear-gradient(135deg,
+      oklch(var(--color-primary)),
+      oklch(var(--color-accent)),
+      oklch(0.78 0.15 270)
+    );
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
   }
-  
-  /* Financial Colors - New Palette Based */
+
+  /* ========================================================================
+     FINANCIAL COLORS - Semantic color system for financial data
+     Using primary purple for positive states to maintain brand consistency
+     ======================================================================== */
+
+  /* Text Colors */
   .text-finance-positive {
-    color: hsl(var(--color-accent)); /* Mint Green - success */
+    color: oklch(var(--color-primary));     /* Primary purple for income/gains */
   }
-  
+
   .text-finance-negative {
-    color: hsl(var(--color-destructive)); /* Red for losses */
+    color: oklch(var(--color-destructive)); /* Red for losses/expenses */
   }
-  
+
   .text-finance-warning {
-    color: hsl(var(--color-warning));
+    color: oklch(var(--color-warning));     /* Amber for warnings */
   }
-  
+
   .text-finance-neutral {
-    color: hsl(var(--color-secondary)); /* Steel Blue - neutral */
+    color: oklch(var(--color-secondary));   /* Steel blue for neutral */
   }
-  
+
+  /* Background Colors */
   .bg-finance-positive {
-    background-color: hsl(var(--color-accent));
+    background-color: oklch(var(--color-primary));
   }
-  
+
   .bg-finance-negative {
-    background-color: hsl(var(--color-destructive));
+    background-color: oklch(var(--color-destructive));
   }
-  
+
   .bg-finance-warning {
-    background-color: hsl(var(--color-warning));
+    background-color: oklch(var(--color-warning));
   }
-  
+
   .bg-finance-neutral {
-    background-color: hsl(var(--color-secondary));
+    background-color: oklch(var(--color-secondary));
   }
-  
-  /* Subtle backgrounds for financial data */
+
+  /* Subtle Backgrounds */
   .bg-finance-positive-subtle {
-    background-color: hsl(var(--color-accent) / 0.15);
+    background-color: oklch(var(--color-primary) / 0.15);
   }
-  
+
   .bg-finance-negative-subtle {
-    background-color: hsl(var(--color-destructive) / 0.15);
+    background-color: oklch(var(--color-destructive) / 0.15);
   }
-  
+
   .bg-finance-warning-subtle {
-    background-color: hsl(var(--color-warning) / 0.15);
+    background-color: oklch(var(--color-warning) / 0.15);
   }
-  
-  /* Interactive states with liquid glass */
+
+  /* ========================================================================
+     INTERACTIVE STATES - Hover, focus, active
+     ======================================================================== */
+
   .hover-lift:hover {
     transform: translateY(-4px) scale(1.02);
-    box-shadow: 
-      0 20px 40px hsl(var(--color-primary) / 0.25),
-      0 8px 32px hsl(var(--color-primary) / 0.15);
+    box-shadow:
+      0 20px 40px oklch(var(--color-primary) / 0.25),
+      0 8px 32px oklch(var(--color-primary) / 0.15);
   }
-  
+
   .hover-glow:hover {
-    box-shadow: 
-      0 0 30px hsl(var(--color-primary) / 0.4),
-      0 0 60px hsl(var(--color-primary) / 0.2);
+    box-shadow:
+      0 0 30px oklch(var(--color-primary) / 0.4),
+      0 0 60px oklch(var(--color-primary) / 0.2);
     backdrop-filter: blur(25px) saturate(2);
   }
-  
+
   .hover-glass:hover {
-    background: hsl(var(--color-card) / 0.9);
+    background: oklch(var(--color-card) / 0.9);
     backdrop-filter: blur(30px) saturate(2);
-    border-color: hsl(var(--color-primary) / 0.4);
+    border-color: oklch(var(--color-primary) / 0.4);
     transform: translateY(-2px);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
-  
-  /* New Palette - Specific Colors */
+
+  /* ========================================================================
+     GLASS VARIANTS - Color-specific glass effects
+     Primary purple used for brand consistency
+     ======================================================================== */
+
   .bg-primary-glass {
-    background: linear-gradient(135deg, hsl(var(--color-primary) / 0.8), hsl(var(--color-primary) / 0.6));
+    background: linear-gradient(135deg,
+      oklch(var(--color-primary) / 0.8),
+      oklch(var(--color-primary) / 0.6)
+    );
     backdrop-filter: blur(20px);
-    border: 1px solid hsl(var(--color-primary) / 0.3);
+    border: 1px solid oklch(var(--color-primary) / 0.3);
   }
-  
-  .text-primary-glass {
-    color: hsl(var(--color-primary));
-  }
-  
+
   .bg-accent-glass {
-    background: linear-gradient(135deg, hsl(var(--color-accent) / 0.8), hsl(var(--color-accent) / 0.6));
+    background: linear-gradient(135deg,
+      oklch(var(--color-accent) / 0.8),
+      oklch(var(--color-accent) / 0.6)
+    );
     backdrop-filter: blur(20px);
-    border: 1px solid hsl(var(--color-accent) / 0.3);
+    border: 1px solid oklch(var(--color-accent) / 0.3);
   }
-  
-  .text-accent-glass {
-    color: hsl(var(--color-accent));
-  }
-  
-  .bg-secondary-glass {
-    background: linear-gradient(135deg, hsl(var(--color-secondary) / 0.8), hsl(var(--color-secondary) / 0.6));
+
+  .bg-success-glass {
+    background: linear-gradient(135deg,
+      oklch(var(--color-primary) / 0.7),
+      oklch(var(--color-primary) / 0.5)
+    );
     backdrop-filter: blur(20px);
-    border: 1px solid hsl(var(--color-secondary) / 0.3);
+    border: 1px solid oklch(var(--color-primary) / 0.3);
   }
-  
-  .text-secondary-glass {
-    color: hsl(var(--color-secondary));
-  }
-  
+
   .bg-warning-glass {
-    background: linear-gradient(135deg, hsl(var(--color-warning) / 0.8), hsl(var(--color-warning) / 0.6));
+    background: linear-gradient(135deg,
+      oklch(var(--color-warning) / 0.8),
+      oklch(var(--color-warning) / 0.6)
+    );
     backdrop-filter: blur(20px);
-    border: 1px solid hsl(var(--color-warning) / 0.3);
+    border: 1px solid oklch(var(--color-warning) / 0.3);
   }
-  
-  .text-warning-glass {
-    color: hsl(var(--color-warning));
-  }
-  
-  /* Liquid Glass Animation Effects */
+
+  /* ========================================================================
+     ANIMATION UTILITIES - Micro-interactions
+     ======================================================================== */
+
   .liquid-float {
     animation: liquid-float 6s ease-in-out infinite;
   }
-  
+
   .liquid-pulse {
     animation: liquid-pulse 4s ease-in-out infinite;
   }
-  
+
   .liquid-shimmer {
     position: relative;
     overflow: hidden;
   }
-  
+
   .liquid-shimmer::before {
     content: '';
     position: absolute;
@@ -419,110 +530,115 @@ html.light {
     background: linear-gradient(
       90deg,
       transparent,
-      hsl(var(--color-primary) / 0.2),
+      oklch(var(--color-primary) / 0.2),
       transparent
     );
     animation: shimmer 3s infinite;
   }
-  
-  /* Morphing card effects */
+
+  /* Morphing card with 3D effect */
   .morph-card {
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     will-change: transform, box-shadow, backdrop-filter;
   }
-  
+
   .morph-card:hover {
     transform: translateY(-8px) rotateX(2deg);
-    box-shadow: 
-      0 24px 48px hsl(var(--color-primary) / 0.3),
-      0 12px 24px hsl(var(--color-primary) / 0.2);
+    box-shadow:
+      0 24px 48px oklch(var(--color-primary) / 0.3),
+      0 12px 24px oklch(var(--color-primary) / 0.2);
     backdrop-filter: blur(30px) saturate(2.5);
   }
 }
 
-/* Keyframe Animations */
+/* ============================================================================
+   KEYFRAME ANIMATIONS
+   ============================================================================ */
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
 @keyframes liquid-float {
-  0%, 100% { transform: translateY(0px) rotate(0deg); }
-  33% { transform: translateY(-10px) rotate(1deg); }
-  66% { transform: translateY(-5px) rotate(-1deg); }
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  33% {
+    transform: translateY(-10px) rotate(1deg);
+  }
+  66% {
+    transform: translateY(-5px) rotate(-1deg);
+  }
 }
 
 @keyframes liquid-pulse {
-  0%, 100% { 
-    box-shadow: 0 8px 32px hsl(var(--color-primary) / 0.15);
+  0%, 100% {
+    box-shadow: 0 8px 32px oklch(var(--color-primary) / 0.15);
     backdrop-filter: blur(20px) saturate(1.5);
   }
-  50% { 
-    box-shadow: 0 12px 48px hsl(var(--color-primary) / 0.25);
+  50% {
+    box-shadow: 0 12px 48px oklch(var(--color-primary) / 0.25);
     backdrop-filter: blur(25px) saturate(2);
   }
 }
 
-@keyframes shimmer {
-  0% { left: -100%; }
-  100% { left: 100%; }
+/* ============================================================================
+   CENTRALIZED UI SYSTEM - Custom @utility Directives (2025)
+   Reusable atomic components for consistent styling
+   ============================================================================ */
+
+@utility icon-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 1rem;
+  box-shadow: 0 4px 6px -1px oklch(0% 0 0 / 0.1);
+  background: linear-gradient(135deg,
+    oklch(var(--color-primary) / 0.2),
+    oklch(var(--color-primary) / 0.1)
+  );
+  color: oklch(var(--color-primary));
 }
 
-/* Force application of new color system */
-.bg-background {
-  background-color: hsl(var(--color-background)) !important;
+@utility icon-container-sm {
+  width: 2rem;
+  height: 2rem;
 }
 
-.bg-card {
-  background-color: hsl(var(--color-card)) !important;
+@utility icon-container-md {
+  width: 2.75rem;
+  height: 2.75rem;
 }
 
-.bg-sidebar {
-  background-color: hsl(var(--color-sidebar)) !important;
+@utility icon-container-lg {
+  width: 3.5rem;
+  height: 3.5rem;
 }
 
-.bg-muted {
-  background-color: hsl(var(--color-muted)) !important;
+@utility card-soft {
+  background-color: oklch(var(--color-bg-soft));
+  border: 1px solid oklch(var(--color-border));
+  border-radius: 1rem;
+  box-shadow: 0 1px 3px 0 oklch(0% 0 0 / 0.1);
+  backdrop-filter: blur(20px);
 }
 
-.text-foreground {
-  color: hsl(var(--color-foreground)) !important;
+@utility text-heading {
+  color: oklch(var(--color-text-heading));
+  font-weight: 700;
+  letter-spacing: -0.025em;
 }
 
-.text-card-foreground {
-  color: hsl(var(--color-card-foreground)) !important;
+@utility text-body {
+  color: oklch(var(--color-text-body));
 }
 
-.text-sidebar-foreground {
-  color: hsl(var(--color-sidebar-foreground)) !important;
-}
-
-.text-muted-foreground {
-  color: hsl(var(--color-muted-foreground)) !important;
-}
-
-.border-border {
-  border-color: hsl(var(--color-border)) !important;
-}
-
-.border-sidebar-border {
-  border-color: hsl(var(--color-sidebar-border)) !important;
-}
-
-/* Budget-specific utilities for consistent styling */
-.budget-icon {
-  color: hsl(var(--color-primary)) !important;
-}
-
-.budget-text {
-  color: hsl(var(--color-primary)) !important;
-}
-
-.budget-button-text {
-  font-size: 0.75rem !important; /* 12px */
-  color: hsl(var(--color-primary)) !important;
-}
-
-/* Toggle switch utilities for settings page */
-.toggle-switch {
-  background-color: hsl(var(--color-primary)) !important;
-}
-
-.peer:checked ~ .toggle-bg {
-  background-color: hsl(var(--color-primary)) !important;
+@utility text-subtle {
+  color: oklch(var(--color-text-subtle));
+  font-size: 0.875rem;
 }

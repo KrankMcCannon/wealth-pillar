@@ -93,11 +93,11 @@ export function RecurringExecutionManager({
           subtitle="Nessuna transazione in scadenza oggi"
           className="mb-4"
         />
-        <div className="text-center py-8 text-slate-500">
-          <div className="flex size-16 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500/10 to-emerald-500/5 mx-auto mb-4">
-            <CheckCircle className="w-8 h-8 text-emerald-500" />
+        <div className="text-center py-8">
+          <div className="flex size-16 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5 mx-auto mb-4">
+            <CheckCircle className="w-8 h-8 text-primary" />
           </div>
-          <p className="font-medium text-slate-900">Tutte le transazioni sono aggiornate</p>
+          <p className="font-medium text-foreground">Tutte le transazioni sono aggiornate</p>
           <p className="text-sm mt-1">
             Non ci sono serie ricorrenti da eseguire oggi
           </p>
@@ -118,35 +118,35 @@ export function RecurringExecutionManager({
       {todayDueSeries.length > 0 && (
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
-              <Clock className="w-5 h-5 text-[#7578EC]" />
+            <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+              <Clock className="w-5 h-5 text-primary" />
               In Scadenza Oggi
             </h3>
-            <Badge variant="outline" className="bg-[#7578EC]/10 text-[#7578EC] border-[#7578EC]/30">
+            <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30">
               {todayDueSeries.length} serie
             </Badge>
           </div>
 
           <div className="grid gap-3 mb-4">
             {todayDueSeries.map((series) => (
-              <div key={series.id} className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
+              <div key={series.id} className="flex items-center justify-between p-3 bg-primary/10 rounded-lg border border-primary/20">
                 <div className="flex-1">
-                  <div className="font-medium text-gray-900">{series.description}</div>
-                  <div className="text-sm text-gray-600">{series.description}</div>
+                  <div className="font-medium text-foreground">{series.description}</div>
+                  <div className="text-sm">{series.description}</div>
                 </div>
                 <div className="text-right">
-                  <div className={`font-semibold ${series.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
+                  <div className={`font-semibold ${series.type === 'income' ? 'text-primary' : 'text-destructive'}`}>
                     {formatCurrency(series.amount)}
                   </div>
-                  <div className="text-xs text-gray-500">{series.frequency}</div>
+                  <div className="text-xs">{series.frequency}</div>
                 </div>
               </div>
             ))}
           </div>
 
-          <div className="flex items-center justify-between p-3 bg-blue-100 rounded-lg border border-blue-300">
-            <span className="font-semibold text-blue-900">Impatto Totale:</span>
-            <span className={`font-bold text-lg ${totalDueAmount >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+          <div className="flex items-center justify-between p-3 bg-primary/15 rounded-lg border border-primary/30">
+            <span className="font-semibold text-primary">Impatto Totale:</span>
+            <span className={`font-bold text-lg ${totalDueAmount >= 0 ? 'text-primary' : 'text-destructive'}`}>
               {formatCurrency(Math.abs(totalDueAmount))}
             </span>
           </div>
@@ -157,18 +157,18 @@ export function RecurringExecutionManager({
       {overdueSeries.length > 0 && (
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5 text-red-500" />
+            <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-destructive" />
               In Ritardo
             </h3>
-            <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
+            <Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/30">
               {overdueSeries.length} serie
             </Badge>
           </div>
 
-          <Alert className="mb-4 border-red-200 bg-red-50">
-            <AlertTriangle className="h-4 w-4 text-red-600" />
-            <AlertDescription className="text-red-800">
+          <Alert className="mb-4 border-destructive/20 bg-destructive/10">
+            <AlertTriangle className="h-4 w-4 text-destructive" />
+            <AlertDescription className="text-destructive">
               Ci sono {overdueSeries.length} serie ricorrenti in ritardo che dovrebbero essere eseguite.
             </AlertDescription>
           </Alert>
@@ -180,13 +180,13 @@ export function RecurringExecutionManager({
               const daysOverdue = Math.abs(Math.ceil((nextDue.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)));
 
               return (
-                <div key={series.id} className="flex items-center justify-between p-3 bg-red-50 rounded-lg border border-red-200">
+                <div key={series.id} className="flex items-center justify-between p-3 bg-destructive/10 rounded-lg border border-destructive/20">
                   <div className="flex-1">
-                    <div className="font-medium text-gray-900">{series.description}</div>
-                    <div className="text-sm text-red-600">{daysOverdue} giorni in ritardo</div>
+                    <div className="font-medium text-foreground">{series.description}</div>
+                    <div className="text-sm text-destructive">{daysOverdue} giorni in ritardo</div>
                   </div>
                   <div className="text-right">
-                    <div className={`font-semibold ${series.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
+                    <div className={`font-semibold ${series.type === 'income' ? 'text-primary' : 'text-destructive'}`}>
                       {formatCurrency(series.amount)}
                     </div>
                   </div>
@@ -196,7 +196,7 @@ export function RecurringExecutionManager({
           </div>
 
           {overdueSeries.length > 3 && (
-            <div className="text-sm text-gray-600 mb-4">
+            <div className="text-sm mb-4">
               ... e altre {overdueSeries.length - 3} serie in ritardo
             </div>
           )}
@@ -218,7 +218,7 @@ export function RecurringExecutionManager({
         <Button
           onClick={handleExecuteAll}
           disabled={executeAllMutation.isPending}
-          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
+          className="flex items-center gap-2"
         >
           <CheckCircle className="w-4 h-4" />
           {executeAllMutation.isPending ? 'Eseguendo...' : 'Esegui Tutte'}
@@ -227,52 +227,52 @@ export function RecurringExecutionManager({
 
       {/* Execution Result */}
       {lastExecutionResult && (
-        <div className="border rounded-lg p-4 bg-gray-50">
+        <div className="border rounded-lg p-4 bg-primary/5 border-primary/20">
           <h4 className="font-semibold mb-3 flex items-center gap-2">
             {lastExecutionResult.type === 'dry-run' ? (
-              <AlertTriangle className="w-4 h-4 text-yellow-500" />
+              <AlertTriangle className="w-4 h-4 text-warning" />
             ) : (
-              <CheckCircle className="w-4 h-4 text-green-500" />
+              <CheckCircle className="w-4 h-4 text-accent" />
             )}
             {lastExecutionResult.type === 'dry-run' ? 'Risultato Simulazione' : 'Risultato Esecuzione'}
           </h4>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
             <div>
-              <div className="font-medium text-gray-900">
+              <div className="font-medium text-primary">
                 {lastExecutionResult.result.summary.totalProcessed}
               </div>
-              <div className="text-gray-600">Serie Processate</div>
+              <div className="text-primary/70">Serie Processate</div>
             </div>
             <div>
-              <div className="font-medium text-green-600">
+              <div className="font-medium text-accent">
                 {lastExecutionResult.result.summary.successfulExecutions}
               </div>
-              <div className="text-gray-600">Successi</div>
+              <div className="text-primary/70">Successi</div>
             </div>
             <div>
-              <div className="font-medium text-red-600">
+              <div className="font-medium text-destructive">
                 {lastExecutionResult.result.summary.failedExecutions}
               </div>
-              <div className="text-gray-600">Fallimenti</div>
+              <div className="text-primary/70">Fallimenti</div>
             </div>
             <div>
-              <div className="font-medium text-blue-600">
+              <div className="font-medium text-primary">
                 {formatCurrency(Math.abs(lastExecutionResult.result.summary.totalAmount))}
               </div>
-              <div className="text-gray-600">Importo Totale</div>
+              <div className="text-primary/70">Importo Totale</div>
             </div>
           </div>
 
           {lastExecutionResult.result.failed.length > 0 && (
             <div className="mt-4">
-              <h5 className="font-medium text-red-700 mb-2">Esecuzioni Fallite:</h5>
+              <h5 className="font-medium text-destructive mb-2">Esecuzioni Fallite:</h5>
               <div className="space-y-2">
                 {lastExecutionResult.result.failed.map((failure, index: number) => (
                   <div key={index} className="flex items-center gap-2 text-sm">
-                    <XCircle className="w-4 h-4 text-red-500" />
+                    <XCircle className="w-4 h-4 text-destructive" />
                     <span className="font-medium">{failure.seriesName}:</span>
-                    <span className="text-red-600">{failure.error}</span>
+                    <span className="text-destructive">{failure.error}</span>
                   </div>
                 ))}
               </div>

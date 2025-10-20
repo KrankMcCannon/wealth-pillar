@@ -49,6 +49,7 @@ export function useTransactionsController() {
   // ========================================
   const [activeTab, setActiveTab] = useState("Transactions");
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const [selectedFilter, setSelectedFilter] = useState<string>("all");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
@@ -73,13 +74,26 @@ export function useTransactionsController() {
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
 
   // ========================================
+  // EFFECTS - Debounce search query
+  // ========================================
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 300);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [searchQuery]);
+
+  // ========================================
   // BUSINESS LOGIC - View Model Creation
   // ========================================
   const viewModel = useMemo(
     () => createTransactionsViewModel(
       transactions,
       {
-        searchQuery,
+        searchQuery: debouncedSearchQuery,
         selectedFilter,
         selectedCategory,
         selectedUserId: selectedViewUserId
@@ -87,7 +101,7 @@ export function useTransactionsController() {
       accounts,
       currentUser
     ),
-    [transactions, searchQuery, selectedFilter, selectedCategory, selectedViewUserId, accounts, currentUser]
+    [transactions, debouncedSearchQuery, selectedFilter, selectedCategory, selectedViewUserId, accounts, currentUser]
   );
 
   // ========================================

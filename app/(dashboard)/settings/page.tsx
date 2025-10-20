@@ -47,22 +47,22 @@ export default function SettingsPage() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <p className="text-gray-500">Nessun utente trovato</p>
+          <p>Nessun utente trovato</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="relative flex size-full min-h-[100dvh] flex-col bg-gradient-to-br from-primary/5 via-white to-primary/10" style={{ fontFamily: '"Inter", "SF Pro Display", system-ui, sans-serif' }}>
+    <div className="relative flex size-full min-h-[100dvh] flex-col bg-card" style={{ fontFamily: '"Inter", "SF Pro Display", system-ui, sans-serif' }}>
       <div>
         {/* Header */}
-        <header className="sticky top-0 z-20 bg-white/70 backdrop-blur-xl border-b border-slate-200/50 shadow-sm px-3 sm:px-4 py-2 sm:py-3">
+        <header className="sticky top-0 z-20 bg-card/70 backdrop-blur-xl border-b border-primary/20 shadow-sm px-3 sm:px-4 py-2 sm:py-3">
           <div className="flex items-center justify-between">
             <Button
               variant="ghost"
               size="sm"
-              className="hover:bg-[#7678e4]/10 text-[#7678e4] hover:text-[#7678e4]/80 rounded-xl transition-all duration-200 p-2 sm:p-3 min-w-[44px] min-h-[44px] flex items-center justify-center"
+              className="text-primary hover:bg-primary hover:text-white rounded-xl transition-all duration-200 p-2 sm:p-3 min-w-[44px] min-h-[44px] flex items-center justify-center"
               onClick={handleBackClick}
             >
               <ArrowLeft className="h-5 w-5 sm:h-6 sm:w-6" />
@@ -82,11 +82,11 @@ export default function SettingsPage() {
               className="mb-4"
             />
             
-            <Card className="gap-0 p-0 bg-white/95 backdrop-blur-sm shadow-xl shadow-[#7678e4]/15 border-0 rounded-2xl overflow-hidden">
+            <Card className="gap-0 p-0 bg-card/95 backdrop-blur-sm shadow-xl shadow-[#7678e4]/15 border-0 rounded-2xl overflow-hidden">
               {/* User Info Header */}
-              <div className="flex items-center justify-between px-2 py-4 bg-gradient-to-r from-[#7678e4]/8 via-white to-[#7678e4]/8">
+              <div className="flex items-center justify-between px-2 py-4 bg-card">
                 <div className="flex items-center gap-4 flex-1 min-w-0">
-                  <div className="size-16 rounded-2xl bg-gradient-to-br from-[#7678e4] via-[#7678e4] to-[#7678e4]/90 flex items-center justify-center text-white text-xl font-bold shadow-lg shadow-[#7678e4]/30 shrink-0">
+                  <div className="size-16 rounded-2xl bg-primary flex items-center justify-center text-white text-xl font-bold shadow-lg shadow-[#7678e4]/30 shrink-0">
                     {currentUser.name.split(' ').map(n => n[0]).join('')}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -96,10 +96,10 @@ export default function SettingsPage() {
                         {planInfo.name}
                       </div>
                       <RoleBadge size="sm" variant="subtle" />
-                      <div className="px-3 py-1.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-600 whitespace-nowrap">
+                      <div className="px-3 py-1.5 rounded-full text-xs font-semibold bg-primary/10 text-primary whitespace-nowrap">
                         {activityStats.accountCount} Account
                       </div>
-                      <div className="px-3 py-1.5 rounded-full text-xs font-semibold bg-green-50 text-green-600 whitespace-nowrap">
+                      <div className="px-3 py-1.5 rounded-full text-xs font-semibold bg-primary/10 text-primary whitespace-nowrap">
                         {activityStats.transactionCount} Transazioni
                       </div>
                     </div>
@@ -119,32 +119,32 @@ export default function SettingsPage() {
               {/* Profile Details */}
               <div className="divide-y divide-[#7678e4]/8">
                 <div className="flex items-center gap-3 p-3 hover:bg-[#7678e4]/8 transition-colors duration-200 group">
-                  <div className="flex size-10 items-center justify-center rounded-xl bg-[#7678e4]/15 text-[#7678e4] shadow-sm group-hover:scale-105 transition-transform duration-200">
+                  <div className="flex size-10 items-center justify-center rounded-xl bg-[#7678e4]/15 text-[#7678e4] shadow-sm group-hover:scale-[1.02] transition-transform duration-200">
                     <Mail className="h-5 w-5" />
                   </div>
                   <div className="flex-1">
                     <span className="text-sm font-semibold text-[#7678e4] block mb-0.5">Email</span>
-                    <p className="text-sm text-slate-700">{currentUser.email}</p>
+                    <p className="text-sm">{currentUser.email}</p>
                   </div>
                 </div>
                 
                 <div className="flex items-center gap-3 p-3 hover:bg-[#7678e4]/8 transition-colors duration-200 group">
-                  <div className="flex size-10 items-center justify-center rounded-xl bg-[#7678e4]/15 text-[#7678e4] shadow-sm group-hover:scale-105 transition-transform duration-200">
+                  <div className="flex size-10 items-center justify-center rounded-xl bg-[#7678e4]/15 text-[#7678e4] shadow-sm group-hover:scale-[1.02] transition-transform duration-200">
                     <Phone className="h-5 w-5" />
                   </div>
                   <div className="flex-1">
                     <span className="text-sm font-semibold text-[#7678e4] block mb-0.5">Telefono</span>
-                    <p className="text-sm text-slate-700">Non specificato</p>
+                    <p className="text-sm">Non specificato</p>
                   </div>
                 </div>
                 
                 <div className="flex items-center gap-3 p-3 hover:bg-[#7678e4]/8 transition-colors duration-200 group">
-                  <div className="flex size-10 items-center justify-center rounded-xl bg-[#7678e4]/15 text-[#7678e4] shadow-sm group-hover:scale-105 transition-transform duration-200">
+                  <div className="flex size-10 items-center justify-center rounded-xl bg-[#7678e4]/15 text-[#7678e4] shadow-sm group-hover:scale-[1.02] transition-transform duration-200">
                     <User className="h-5 w-5" />
                   </div>
                   <div className="flex-1">
                     <span className="text-sm font-semibold text-[#7678e4] block mb-0.5">Ruolo</span>
-                    <p className="text-sm text-slate-700 capitalize">{currentUser.role}</p>
+                    <p className="text-sm capitalize">{currentUser.role}</p>
                   </div>
                 </div>
               </div>
@@ -166,21 +166,21 @@ export default function SettingsPage() {
               </SectionHeader>
 
               {/* Group Members List */}
-              <Card className="gap-0 pt-3 pb-0 bg-white/95 backdrop-blur-sm shadow-xl shadow-[#7678e4]/15 border-0 rounded-2xl overflow-hidden mb-4">
-                <div className="px-4 py-3 bg-gradient-to-r from-[#7678e4]/8 via-white to-[#7678e4]/8">
+              <Card className="gap-0 pt-3 pb-0 bg-card/95 backdrop-blur-sm shadow-xl shadow-[#7678e4]/15 border-0 rounded-2xl overflow-hidden mb-4">
+                <div className="px-4 py-3 bg-card">
                   <h3 className="text-sm font-semibold text-[#7678e4]">Membri del Gruppo</h3>
-                  <p className="text-xs mt-0.5 text-slate-700">{userStats.viewableUsers} {userStats.viewableUsers === 1 ? 'membro visibile' : 'membri visibili'}</p>
+                  <p className="text-xs mt-0.5">{userStats.viewableUsers} {userStats.viewableUsers === 1 ? 'membro visibile' : 'membri visibili'}</p>
                 </div>
                 <div className="divide-y divide-[#7678e4]/8">
                   {users.map((member: UserType) => (
                     <div key={member.id} className="p-3 flex items-center justify-between hover:bg-[#7678e4]/8 transition-all duration-200">
                       <div className="flex items-center gap-3 flex-1 min-w-0">
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#7678e4] to-[#7678e4]/80 flex items-center justify-center text-white shadow-sm shrink-0">
+                        <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-white shadow-sm shrink-0">
                           {renderAvatarIcon(member.avatar)}
                         </div>
                         <div className="flex-1 min-w-0">
                           <h4 className="text-sm font-semibold text-[#7678e4] truncate">{member.name}</h4>
-                          <p className="text-xs text-slate-700 truncate">{member.email}</p>
+                          <p className="text-xs truncate">{member.email}</p>
                         </div>
                       </div>
                       <div className="text-right shrink-0 ml-3">
@@ -202,48 +202,48 @@ export default function SettingsPage() {
               </Card>
 
               {/* Group Actions */}
-              <Card className="gap-0 p-0 bg-white/95 backdrop-blur-sm shadow-xl shadow-[#7678e4]/15 border-0 rounded-2xl overflow-hidden">
+              <Card className="gap-0 p-0 bg-card/95 backdrop-blur-sm shadow-xl shadow-[#7678e4]/15 border-0 rounded-2xl overflow-hidden">
                 <button className="flex items-center justify-between p-3 w-full text-left hover:bg-[#7678e4]/8 transition-all duration-200 group">
                   <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <div className="flex size-10 items-center justify-center rounded-xl bg-[#7678e4]/15 text-[#7678e4] group-hover:scale-105 transition-transform duration-200 shadow-sm">
+                    <div className="flex size-10 items-center justify-center rounded-xl bg-[#7678e4]/15 text-[#7678e4] group-hover:scale-[1.02] transition-transform duration-200 shadow-sm">
                       <Plus className="h-5 w-5" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <span className="text-sm font-semibold text-[#7678e4]">Invita Membro</span>
-                      <p className="text-xs text-slate-700 truncate">Invia invito per unirsi al gruppo</p>
+                      <p className="text-xs truncate">Invia invito per unirsi al gruppo</p>
                     </div>
                   </div>
-                  <ChevronRight className="h-4 w-4 text-slate-400 group-hover:text-[#7678e4] group-hover:translate-x-0.5 transition-all duration-200 shrink-0" />
+                  <ChevronRight className="h-4 w-4 group-hover:text-primary group-hover:translate-x-0.5 transition-all duration-200 shrink-0" />
                 </button>
 
                 <div className="h-px bg-[#7678e4]/10"></div>
 
                 <button className="flex items-center justify-between p-3 w-full text-left hover:bg-[#7678e4]/8 transition-all duration-200 group">
                   <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <div className="flex size-10 items-center justify-center rounded-xl bg-[#7678e4]/15 text-[#7678e4] group-hover:scale-105 transition-transform duration-200 shadow-sm">
+                    <div className="flex size-10 items-center justify-center rounded-xl bg-[#7678e4]/15 text-[#7678e4] group-hover:scale-[1.02] transition-transform duration-200 shadow-sm">
                       <BarChart3 className="h-5 w-5" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <span className="text-sm font-semibold text-[#7678e4]">Analisi Gruppo</span>
-                      <p className="text-xs text-slate-700 truncate">Visualizza analisi spese combinate</p>
+                      <p className="text-xs truncate">Visualizza analisi spese combinate</p>
                     </div>
                   </div>
-                  <ChevronRight className="h-4 w-4 text-slate-400 group-hover:text-[#7678e4] group-hover:translate-x-0.5 transition-all duration-200 shrink-0" />
+                  <ChevronRight className="h-4 w-4 group-hover:text-primary group-hover:translate-x-0.5 transition-all duration-200 shrink-0" />
                 </button>
 
                 <div className="h-px bg-[#7678e4]/10"></div>
 
                 <button className="flex items-center justify-between p-3 w-full text-left hover:bg-[#7678e4]/8 transition-all duration-200 group">
                   <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <div className="flex size-10 items-center justify-center rounded-xl bg-[#7678e4]/15 text-[#7678e4] group-hover:scale-105 transition-transform duration-200 shadow-sm">
+                    <div className="flex size-10 items-center justify-center rounded-xl bg-[#7678e4]/15 text-[#7678e4] group-hover:scale-[1.02] transition-transform duration-200 shadow-sm">
                       <CreditCard className="h-5 w-5" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <span className="text-sm font-semibold text-[#7678e4]">Impostazioni Abbonamento</span>
-                      <p className="text-xs text-slate-700 truncate">Gestisci fatturazione e abbonamento gruppo</p>
+                      <p className="text-xs truncate">Gestisci fatturazione e abbonamento gruppo</p>
                     </div>
                   </div>
-                  <ChevronRight className="h-4 w-4 text-slate-400 group-hover:text-[#7678e4] group-hover:translate-x-0.5 transition-all duration-200 shrink-0" />
+                  <ChevronRight className="h-4 w-4 group-hover:text-primary group-hover:translate-x-0.5 transition-all duration-200 shrink-0" />
                 </button>
               </Card>
             </section>
@@ -257,44 +257,44 @@ export default function SettingsPage() {
               iconClassName="text-[#7678e4]"
               className="mb-4"
             />
-            <Card className="gap-0 p-0 bg-white/95 backdrop-blur-sm shadow-xl shadow-[#7678e4]/15 border-0 rounded-2xl overflow-hidden">
+            <Card className="gap-0 p-0 bg-card/95 backdrop-blur-sm shadow-xl shadow-[#7678e4]/15 border-0 rounded-2xl overflow-hidden">
               <div className="flex items-center justify-between p-3 hover:bg-[#7678e4]/8 transition-all duration-200 group">
                 <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <div className="flex size-10 items-center justify-center rounded-xl bg-[#7678e4]/15 text-[#7678e4] group-hover:scale-105 transition-transform duration-200 shadow-sm">
+                  <div className="flex size-10 items-center justify-center rounded-xl bg-[#7678e4]/15 text-[#7678e4] group-hover:scale-[1.02] transition-transform duration-200 shadow-sm">
                     <CreditCard className="h-5 w-5" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <span className="text-sm font-semibold text-[#7678e4]">Valuta</span>
-                    <p className="text-xs text-slate-700">EUR - Euro</p>
+                    <p className="text-xs">EUR - Euro</p>
                   </div>
                 </div>
-                <Button variant="ghost" size="sm" className="text-[#7678e4] hover:bg-[#7678e4]/10 transition-all duration-200 shrink-0">Cambia</Button>
+                <Button variant="ghost" size="sm" className="text-[#7678e4] hover:bg-primary/8 transition-all duration-200 shrink-0">Cambia</Button>
               </div>
 
               <div className="flex items-center justify-between p-3 hover:bg-[#7678e4]/8 transition-all duration-200 group">
                 <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <div className="flex size-10 items-center justify-center rounded-xl bg-[#7678e4]/15 text-[#7678e4] group-hover:scale-105 transition-transform duration-200 shadow-sm">
+                  <div className="flex size-10 items-center justify-center rounded-xl bg-[#7678e4]/15 text-[#7678e4] group-hover:scale-[1.02] transition-transform duration-200 shadow-sm">
                     <Globe className="h-5 w-5" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <span className="text-sm font-semibold text-[#7678e4]">Lingua</span>
-                    <p className="text-xs text-slate-700">Italiano</p>
+                    <p className="text-xs">Italiano</p>
                   </div>
                 </div>
-                <Button variant="ghost" size="sm" className="text-[#7678e4] hover:bg-[#7678e4]/10 transition-all duration-200 shrink-0">Cambia</Button>
+                <Button variant="ghost" size="sm" className="text-[#7678e4] hover:bg-primary/8 transition-all duration-200 shrink-0">Cambia</Button>
               </div>
 
               <div className="flex items-center justify-between p-3 hover:bg-[#7678e4]/8 transition-all duration-200 group">
                 <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <div className="flex size-10 items-center justify-center rounded-xl bg-[#7678e4]/15 text-[#7678e4] group-hover:scale-105 transition-transform duration-200 shadow-sm">
+                  <div className="flex size-10 items-center justify-center rounded-xl bg-[#7678e4]/15 text-[#7678e4] group-hover:scale-[1.02] transition-transform duration-200 shadow-sm">
                     <Globe className="h-5 w-5" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <span className="text-sm font-semibold text-[#7678e4]">Fuso Orario</span>
-                    <p className="text-xs text-slate-700 truncate">UTC+1 (Ora Italiana)</p>
+                    <p className="text-xs truncate">UTC+1 (Ora Italiana)</p>
                   </div>
                 </div>
-                <Button variant="ghost" size="sm" className="text-[#7678e4] hover:bg-[#7678e4]/10 transition-all duration-200 shrink-0">Cambia</Button>
+                <Button variant="ghost" size="sm" className="text-[#7678e4] hover:bg-primary/8 transition-all duration-200 shrink-0">Cambia</Button>
               </div>
             </Card>
           </section>
@@ -307,7 +307,7 @@ export default function SettingsPage() {
               iconClassName="text-[#7678e4]"
               className="mb-4"
             />
-            <Card className="gap-0 p-0 bg-white/95 backdrop-blur-sm shadow-xl shadow-[#7678e4]/15 border-0 rounded-2xl overflow-hidden">
+            <Card className="gap-0 p-0 bg-card/95 backdrop-blur-sm shadow-xl shadow-[#7678e4]/15 border-0 rounded-2xl overflow-hidden">
               <div className="flex items-center justify-between p-3 hover:bg-[#7678e4]/8 transition-all duration-200">
                 <div className="flex items-center gap-3 flex-1 min-w-0">
                   <div className="flex size-10 items-center justify-center rounded-xl bg-[#7678e4]/15 text-[#7678e4] shadow-sm">
@@ -315,14 +315,14 @@ export default function SettingsPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <span className="text-sm font-semibold text-[#7678e4]">Notifiche Push</span>
-                    <p className="text-xs text-slate-700 truncate">Ricevi notifiche sulle transazioni</p>
+                    <p className="text-xs truncate">Ricevi notifiche sulle transazioni</p>
                   </div>
                 </div>
                 <div className="relative shrink-0">
                   <input type="checkbox" className="sr-only peer" id="push-notifications" defaultChecked />
                   <label htmlFor="push-notifications" className="flex items-center cursor-pointer">
-                    <div className="relative w-12 h-6 bg-slate-200 peer-checked:bg-[#7678e4] rounded-full transition-colors duration-200 shadow-inner">
-                      <div className="absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-200 ease-in-out peer-checked:translate-x-6 shadow-md"></div>
+                    <div className="relative w-12 h-6 bg-muted peer-checked:bg-[#7678e4] rounded-full transition-colors duration-200 shadow-inner">
+                      <div className="absolute left-1 top-1 bg-card w-4 h-4 rounded-full transition-transform duration-200 ease-in-out peer-checked:translate-x-6 shadow-md"></div>
                     </div>
                   </label>
                 </div>
@@ -335,14 +335,14 @@ export default function SettingsPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <span className="text-sm font-semibold text-[#7678e4]">Notifiche Email</span>
-                    <p className="text-xs text-slate-700 truncate">Ricevi rapporti settimanali</p>
+                    <p className="text-xs truncate">Ricevi rapporti settimanali</p>
                   </div>
                 </div>
                 <div className="relative shrink-0">
                   <input type="checkbox" className="sr-only peer" id="email-notifications" />
                   <label htmlFor="email-notifications" className="flex items-center cursor-pointer">
-                    <div className="relative w-12 h-6 bg-slate-200 peer-checked:bg-[#7678e4] rounded-full transition-colors duration-200 shadow-inner">
-                      <div className="absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-200 ease-in-out peer-checked:translate-x-6 shadow-md"></div>
+                    <div className="relative w-12 h-6 bg-muted peer-checked:bg-[#7678e4] rounded-full transition-colors duration-200 shadow-inner">
+                      <div className="absolute left-1 top-1 bg-card w-4 h-4 rounded-full transition-transform duration-200 ease-in-out peer-checked:translate-x-6 shadow-md"></div>
                     </div>
                   </label>
                 </div>
@@ -355,14 +355,14 @@ export default function SettingsPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <span className="text-sm font-semibold text-[#7678e4]">Avvisi Budget</span>
-                    <p className="text-xs text-slate-700 truncate">Avvisa quando superi il budget</p>
+                    <p className="text-xs truncate">Avvisa quando superi il budget</p>
                   </div>
                 </div>
                 <div className="relative shrink-0">
                   <input type="checkbox" className="sr-only peer" id="budget-alerts" defaultChecked />
                   <label htmlFor="budget-alerts" className="flex items-center cursor-pointer">
-                    <div className="relative w-12 h-6 bg-slate-200 peer-checked:bg-[#7678e4] rounded-full transition-colors duration-200 shadow-inner">
-                      <div className="absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-200 ease-in-out peer-checked:translate-x-6 shadow-md"></div>
+                    <div className="relative w-12 h-6 bg-muted peer-checked:bg-[#7678e4] rounded-full transition-colors duration-200 shadow-inner">
+                      <div className="absolute left-1 top-1 bg-card w-4 h-4 rounded-full transition-transform duration-200 ease-in-out peer-checked:translate-x-6 shadow-md"></div>
                     </div>
                   </label>
                 </div>
@@ -378,33 +378,33 @@ export default function SettingsPage() {
               iconClassName="text-[#7678e4]"
               className="mb-4"
             />
-            <Card className="gap-0 p-0 bg-white/95 backdrop-blur-sm shadow-xl shadow-[#7678e4]/15 border-0 rounded-2xl overflow-hidden">
+            <Card className="gap-0 p-0 bg-card/95 backdrop-blur-sm shadow-xl shadow-[#7678e4]/15 border-0 rounded-2xl overflow-hidden">
               <button className="flex items-center justify-between p-3 w-full text-left hover:bg-[#7678e4]/8 transition-all duration-200 group">
                 <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <div className="flex size-10 items-center justify-center rounded-xl bg-[#7678e4]/15 text-[#7678e4] group-hover:scale-105 transition-transform duration-200 shadow-sm">
+                  <div className="flex size-10 items-center justify-center rounded-xl bg-[#7678e4]/15 text-[#7678e4] group-hover:scale-[1.02] transition-transform duration-200 shadow-sm">
                     <Shield className="h-5 w-5" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <span className="text-sm font-semibold text-[#7678e4]">Cambia Password</span>
-                    <p className="text-xs text-slate-700 truncate">Aggiorna la tua password</p>
+                    <p className="text-xs truncate">Aggiorna la tua password</p>
                   </div>
                 </div>
-                <ChevronRight className="h-4 w-4 text-slate-400 group-hover:text-[#7678e4] group-hover:translate-x-0.5 transition-all duration-200 shrink-0" />
+                <ChevronRight className="h-4 w-4 group-hover:text-primary group-hover:translate-x-0.5 transition-all duration-200 shrink-0" />
               </button>
 
               <div className="h-px bg-[#7678e4]/10"></div>
 
               <button className="flex items-center justify-between p-3 w-full text-left hover:bg-[#7678e4]/8 transition-all duration-200 group">
                 <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <div className="flex size-10 items-center justify-center rounded-xl bg-[#7678e4]/15 text-[#7678e4] group-hover:scale-105 transition-transform duration-200 shadow-sm">
+                  <div className="flex size-10 items-center justify-center rounded-xl bg-[#7678e4]/15 text-[#7678e4] group-hover:scale-[1.02] transition-transform duration-200 shadow-sm">
                     <Shield className="h-5 w-5" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <span className="text-sm font-semibold text-[#7678e4]">Autenticazione a Due Fattori</span>
-                    <p className="text-xs text-slate-700 truncate">Aggiungi sicurezza extra</p>
+                    <p className="text-xs truncate">Aggiungi sicurezza extra</p>
                   </div>
                 </div>
-                <ChevronRight className="h-4 w-4 text-slate-400 group-hover:text-[#7678e4] group-hover:translate-x-0.5 transition-all duration-200 shrink-0" />
+                <ChevronRight className="h-4 w-4 group-hover:text-primary group-hover:translate-x-0.5 transition-all duration-200 shrink-0" />
               </button>
 
               <div className="h-px bg-[#7678e4]/10"></div>
@@ -415,15 +415,15 @@ export default function SettingsPage() {
                 className="flex items-center justify-between p-3 w-full text-left hover:bg-[#7678e4]/8 transition-all duration-200 group disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <div className="flex size-10 items-center justify-center rounded-xl bg-[#7678e4]/15 text-[#7678e4] group-hover:scale-105 transition-transform duration-200 shadow-sm">
+                  <div className="flex size-10 items-center justify-center rounded-xl bg-[#7678e4]/15 text-[#7678e4] group-hover:scale-[1.02] transition-transform duration-200 shadow-sm">
                     <LogOut className="h-5 w-5" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <span className="text-sm font-semibold text-[#7678e4]">{isSigningOut ? 'Disconnessione...' : 'Esci dall\'Account'}</span>
-                    <p className="text-xs text-slate-700 truncate">Disconnetti dal tuo account</p>
+                    <p className="text-xs truncate">Disconnetti dal tuo account</p>
                   </div>
                 </div>
-                <ChevronRight className="h-4 w-4 text-slate-400 group-hover:text-[#7678e4] group-hover:translate-x-0.5 transition-all duration-200 shrink-0" />
+                <ChevronRight className="h-4 w-4 group-hover:text-primary group-hover:translate-x-0.5 transition-all duration-200 shrink-0" />
               </button>
             </Card>
           </section>
@@ -436,10 +436,10 @@ export default function SettingsPage() {
               iconClassName="text-red-600"
               className="mb-4"
             />
-            <Card className="gap-0 p-0 bg-white/95 backdrop-blur-sm shadow-xl shadow-red-500/15 border-0 rounded-2xl overflow-hidden">
+            <Card className="gap-0 p-0 bg-card/95 backdrop-blur-sm shadow-xl shadow-red-500/15 border-0 rounded-2xl overflow-hidden">
               <button className="flex items-center justify-between p-3 w-full text-left hover:bg-red-50/50 transition-all duration-200 text-red-600 group">
                 <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <div className="flex size-10 items-center justify-center rounded-xl bg-red-100 text-red-600 group-hover:scale-105 transition-transform duration-200 shadow-sm">
+                  <div className="flex size-10 items-center justify-center rounded-xl bg-red-100 text-red-600 group-hover:scale-[1.02] transition-transform duration-200 shadow-sm">
                     <Trash2 className="h-5 w-5" />
                   </div>
                   <div className="flex-1 min-w-0">

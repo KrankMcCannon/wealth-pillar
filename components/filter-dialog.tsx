@@ -2,8 +2,14 @@
 
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Filter } from "lucide-react";
+import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
+import { Filter, Search } from "lucide-react";
 import { Category } from "@/lib/types";
+import { useMediaQuery } from "@/hooks/use-media-query";
+import { useState } from "react";
+import { Input } from "./ui/input";
+import { CategoryIcon, iconSizes } from "@/lib/icons";
+import { cn } from "@/lib/utils";
 
 interface FilterDialogProps {
   isOpen: boolean;
@@ -18,134 +24,161 @@ interface FilterDialogProps {
 }
 
 const TRANSACTION_TYPES = [
-  { key: "All", label: "Tutti", icon: "📊", color: "slate" },
-  { key: "Income", label: "Entrate", icon: "💚", color: "green" },
-  { key: "Expenses", label: "Spese", icon: "💸", color: "red" }
+  { key: "All", label: "Tutti" },
+  { key: "Income", label: "Entrate" },
+  { key: "Expenses", label: "Spese" }
 ];
 
-export function FilterDialog({
-  isOpen,
-  onOpenChange,
+function FilterDialogContent({
   selectedFilter,
   selectedCategory,
   categories,
   onFilterChange,
   onCategoryChange,
   onReset,
-  hasActiveFilters
-}: FilterDialogProps) {
+  onOpenChange
+}: Omit<FilterDialogProps, 'isOpen' | 'hasActiveFilters'> & { onOpenChange: (open: boolean) => void }) {
+  const [categorySearch, setCategorySearch] = useState("");
+
+  const filteredCategories = categories.filter(cat => cat.label.toLowerCase().includes(categorySearch.toLowerCase()));
+
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogTrigger asChild>
-        <Button
-          variant="outline"
-          className={`rounded-2xl border-slate-200/50 hover:bg-primary/10 hover:border-primary/40 w-12 h-12 p-0 shadow-lg shadow-slate-200/30 hover:shadow-xl hover:shadow-slate-200/40 transition-all duration-300 hover:scale-105 group ${
-            hasActiveFilters
-              ? "bg-gradient-to-r from-primary to-secondary text-white hover:from-secondary hover:to-primary border-transparent shadow-primary/30"
-              : "bg-white/80 backdrop-blur-sm"
-          }`}
-        >
-          <Filter
-            className={`h-5 w-5 transition-all duration-200 group-hover:rotate-12 ${
-              hasActiveFilters
-                ? "fill-current drop-shadow-sm"
-                : "text-slate-600"
-            }`}
-          />
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-lg bg-white/95 backdrop-blur-xl border border-slate-200/50 shadow-2xl rounded-3xl">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-3 text-xl font-bold text-slate-900">
-            <div className="flex items-center justify-center w-10 h-10 rounded-2xl bg-gradient-to-br from-primary/10 to-secondary/10 border border-primary/20">
-              <Filter className="h-5 w-5 text-primary" />
-            </div>
-            Filtra Transazioni
-          </DialogTitle>
-        </DialogHeader>
-
-        <div className="space-y-8 pt-6">
-          {/* Transaction Type Filter */}
-          <div className="space-y-4">
-            <h4 className="text-base font-semibold text-slate-800 flex items-center gap-2">
-              <span className="text-xl">🏷️</span>
-              Tipo Transazione
-            </h4>
-            <div className="grid grid-cols-3 gap-3">
-              {TRANSACTION_TYPES.map((type) => (
-                <Button
-                  key={type.key}
-                  variant={selectedFilter === type.key ? "default" : "outline"}
-                  size="default"
-                  onClick={() => onFilterChange(type.key)}
-                  className={`rounded-2xl py-4 px-3 transition-all duration-300 hover:scale-105 group ${
-                    selectedFilter === type.key
-                      ? "bg-gradient-to-r from-primary to-secondary hover:from-secondary hover:to-primary text-white shadow-lg shadow-primary/30 border-transparent"
-                      : "bg-white/80 backdrop-blur-sm hover:bg-primary/10 hover:text-primary border-slate-200/50 hover:border-primary/40 hover:shadow-lg hover:shadow-slate-200/50"
-                  }`}
-                >
-                  <div className="flex flex-col items-center gap-2">
-                    <span className={`text-lg transition-transform duration-200 group-hover:scale-110 ${selectedFilter === type.key ? 'drop-shadow-sm' : ''}`}>
-                      {type.icon}
-                    </span>
-                    <span className="text-sm font-semibold">{type.label}</span>
-                  </div>
-                </Button>
-              ))}
-            </div>
-          </div>
-
-          {/* Category Filter */}
-          <div className="space-y-4">
-            <h4 className="text-base font-semibold text-slate-800 flex items-center gap-2">
-              <span className="text-xl">🎯</span>
-              Categoria
-            </h4>
-            <div className="grid grid-cols-2 gap-3 max-h-64 overflow-y-auto">
-              {[
-                { name: "Tutte le Categorie", key: "all", icon: "FileText" },
-                ...categories.slice(0, 7).map(cat => ({
-                  name: cat.label,
-                  key: cat.key,
-                  icon: cat.icon || "FileText"
-                }))
-              ].map((category) => (
-                <Button
-                  key={category.name}
-                  variant={selectedCategory === category.name ? "default" : "outline"}
-                  size="default"
-                  onClick={() => onCategoryChange(category.name)}
-                  className={`justify-start py-3 px-4 rounded-2xl transition-all duration-300 hover:scale-105 group ${
-                    selectedCategory === category.name
-                      ? "bg-gradient-to-r from-primary to-secondary hover:from-secondary hover:to-primary text-white shadow-lg shadow-primary/30 border-transparent"
-                      : "bg-white/80 backdrop-blur-sm hover:bg-primary/10 hover:text-primary border-slate-200/50 hover:border-primary/40 hover:shadow-lg hover:shadow-slate-200/50"
-                  }`}
-                >
-                  <span className={`mr-3 text-lg transition-transform duration-200 group-hover:scale-110 ${selectedCategory === category.name ? 'drop-shadow-sm' : ''}`}>
-                    {category.icon}
-                  </span>
-                  <span className="font-medium truncate">{category.name}</span>
-                </Button>
-              ))}
-            </div>
-          </div>
-
-          {/* Reset Button */}
-          <div className="pt-4 border-t border-slate-200/50">
-            <Button
-              variant="ghost"
-              size="default"
-              onClick={onReset}
-              className="w-full py-3 px-4 rounded-2xl text-slate-600 hover:text-primary hover:bg-primary/10 font-semibold transition-all duration-300 hover:scale-105 group border border-slate-200/50 hover:border-primary/40 hover:shadow-md"
-            >
-              <div className="flex items-center justify-center gap-2">
-                <span className="text-lg group-hover:rotate-180 transition-transform duration-300">🔄</span>
-                <span>Ripristina Tutti i Filtri</span>
-              </div>
-            </Button>
+    <div className="flex flex-col h-full bg-card">
+      <div className="flex-1 p-4 space-y-6">
+        {/* Transaction Type Filter */}
+        <div className="space-y-3">
+        <h4 className="text-sm font-medium text-foreground">Tipo</h4>
+          <div className="grid grid-cols-3 gap-2">
+            {TRANSACTION_TYPES.map((type) => (
+              <Button
+                key={type.key}
+                variant={selectedFilter === type.key ? "default" : "outline"}
+                size="lg"
+                onClick={() => { onFilterChange(type.key); }}
+                className={cn(
+                  "rounded-xl transition-all duration-200 text-sm font-semibold",
+                  selectedFilter === type.key
+                    ? "bg-primary text-primary-foreground shadow-md"
+                    : "bg-card text-foreground border border-primary/20 hover:bg-primary/5 hover:text-primary"
+                )}
+              >
+                {type.label}
+              </Button>
+            ))}
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
+
+        {/* Category Filter */}
+        <div className="space-y-3">
+        <h4 className="text-sm font-medium text-foreground">Categoria</h4>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Cerca categoria..."
+              value={categorySearch}
+              onChange={(e) => setCategorySearch(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto scrollbar-thin">
+            {[
+              { label: "Tutte", key: "all", icon: "FileText" },
+              ...filteredCategories
+            ].map((category) => (
+              <Button
+                key={category.key}
+                variant={selectedCategory === category.key ? "default" : "outline"}
+                size="lg"
+                onClick={() => { onCategoryChange(category.key); }}
+                className={cn(
+                  "rounded-xl transition-all duration-200 text-sm font-semibold flex items-center justify-start gap-2",
+                  selectedCategory === category.key
+                    ? "bg-primary text-primary-foreground shadow-md"
+                    : "bg-card text-foreground border border-primary/20 hover:bg-primary/5 hover:text-primary"
+                )}
+              >
+                <CategoryIcon categoryKey={category.key} size={iconSizes.sm} />
+                <span>{category.label}</span>
+              </Button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Footer with Reset and Apply buttons */}
+      <div className="p-4 flex items-center gap-2 border-t border-primary/20 bg-card rounded-b-2xl">
+        <Button
+          variant="outline"
+          size="lg"
+          onClick={() => { onReset(); onOpenChange(false); }}
+          className="flex-1 bg-card text-primary border-primary/30 hover:bg-primary/5 rounded-xl"
+        >
+          Reset
+        </Button>
+        <Button
+          size="lg"
+          onClick={() => onOpenChange(false)}
+          className="flex-1 bg-primary text-primary-foreground shadow-md hover:bg-primary/90 rounded-xl"
+        >
+          Applica
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+export function FilterDialog(props: FilterDialogProps) {
+  const isDesktop = useMediaQuery("(min-width: 768px)");
+
+  // Unified filter button styling for both mobile and desktop
+  const filterButtonClasses = cn(
+    "rounded-2xl w-12 h-12 p-0 transition-all duration-300 group",
+    "hover:scale-105 active:scale-95",
+    props.hasActiveFilters
+      ? "gradient-primary text-primary-foreground shadow-lg border-transparent hover-glow"
+      : "liquid-glass-subtle border-primary/20 hover:border-primary/40"
+  );
+
+  const filterIconClasses = cn(
+    "h-5 w-5 transition-all duration-200 group-hover:rotate-12",
+    props.hasActiveFilters
+      ? "fill-current drop-shadow-sm"
+      : "text-primary/70 group-hover:text-primary"
+  );
+
+  if (isDesktop) {
+    return (
+      <Dialog open={props.isOpen} onOpenChange={props.onOpenChange}>
+        <DialogTrigger asChild>
+          <Button variant="outline" className={filterButtonClasses}>
+            <Filter className={filterIconClasses} />
+          </Button>
+        </DialogTrigger>
+        <DialogContent className="sm:max-w-md border-primary/20 shadow-2xl rounded-3xl p-0 bg-white">
+          <DialogHeader className="p-4 border-b border-primary/20">
+            <DialogTitle className="text-lg font-semibold text-primary">
+              Filtri
+            </DialogTitle>
+          </DialogHeader>
+          <FilterDialogContent {...props} />
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  return (
+    <Drawer open={props.isOpen} onOpenChange={props.onOpenChange}>
+      <DrawerTrigger asChild>
+        <Button variant="outline" className={filterButtonClasses}>
+          <Filter className={filterIconClasses} />
+        </Button>
+      </DrawerTrigger>
+      <DrawerContent className="border-t-0 rounded-3xl bg-card liquid-glass-strong">
+        <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-muted" />
+        <div className="p-0">
+          <FilterDialogContent {...props} />
+        </div>
+      </DrawerContent>
+    </Drawer>
   );
 }

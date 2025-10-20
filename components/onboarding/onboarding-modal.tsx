@@ -36,12 +36,12 @@ export default function OnboardingModal({ onComplete, loading = false, error = n
         className="w-full max-w-md mx-4 bg-white rounded-2xl shadow-2xl p-6"
       >
         <div className="text-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Completa il tuo profilo</h2>
-          <p className="text-sm text-gray-600">Configura il tuo gruppo e il primo conto</p>
+          <h2 className="text-2xl font-bold text-primary mb-2">Completa il tuo profilo</h2>
+          <p className="text-sm text-primary/70">Configura il tuo gruppo e il primo conto</p>
         </div>
 
         {error && (
-          <div className="mb-4 rounded-lg bg-red-50 p-3 text-xs text-red-700 border border-red-200 flex items-start gap-2">
+          <div className="mb-4 rounded-lg bg-destructive/10 p-3 text-xs text-destructive border border-destructive/30 flex items-start gap-2">
             <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
             <span>{error}</span>
           </div>
@@ -49,8 +49,8 @@ export default function OnboardingModal({ onComplete, loading = false, error = n
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="groupName" className="text-sm font-medium text-gray-900 flex items-center gap-2">
-              <Building2 className="h-4 w-4 text-[hsl(var(--color-primary))]" />
+            <Label htmlFor="groupName" className="text-sm font-medium text-primary flex items-center gap-2">
+              <Building2 className="h-4 w-4 text-primary" />
               Nome del gruppo
             </Label>
             <Input
@@ -60,15 +60,15 @@ export default function OnboardingModal({ onComplete, loading = false, error = n
               value={groupName}
               onChange={(e) => setGroupName(e.target.value)}
               required
-              className="h-10 text-sm bg-white border-[hsl(var(--color-primary))]/20 focus:border-[hsl(var(--color-primary))] focus:ring-[hsl(var(--color-primary))]/20"
+              className="h-10 text-sm bg-white border-primary/20 focus:border-primary focus:ring-primary/20"
               disabled={loading}
             />
-            <p className="text-xs text-gray-500">Il nome del tuo gruppo familiare o organizzazione</p>
+            <p className="text-xs text-primary/70">Il nome del tuo gruppo familiare o organizzazione</p>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="accountName" className="text-sm font-medium text-gray-900 flex items-center gap-2">
-              <Wallet className="h-4 w-4 text-[hsl(var(--color-primary))]" />
+            <Label htmlFor="accountName" className="text-sm font-medium text-primary flex items-center gap-2">
+              <Wallet className="h-4 w-4 text-primary" />
               Nome del conto
             </Label>
             <Input
@@ -78,14 +78,14 @@ export default function OnboardingModal({ onComplete, loading = false, error = n
               value={accountName}
               onChange={(e) => setAccountName(e.target.value)}
               required
-              className="h-10 text-sm bg-white border-[hsl(var(--color-primary))]/20 focus:border-[hsl(var(--color-primary))] focus:ring-[hsl(var(--color-primary))]/20"
+              className="h-10 text-sm bg-white border-primary/20 focus:border-primary focus:ring-primary/20"
               disabled={loading}
             />
-            <p className="text-xs text-gray-500">Il tuo primo conto bancario o portafoglio</p>
+            <p className="text-xs text-primary/70">Il tuo primo conto bancario o portafoglio</p>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="initialBalance" className="text-sm font-medium text-gray-900">
+            <Label htmlFor="initialBalance" className="text-sm font-medium text-primary">
               Saldo iniziale (€)
             </Label>
             <Input
@@ -96,16 +96,16 @@ export default function OnboardingModal({ onComplete, loading = false, error = n
               placeholder="0.00"
               value={initialBalance}
               onChange={(e) => setInitialBalance(e.target.value)}
-              className="h-10 text-sm bg-white border-[hsl(var(--color-primary))]/20 focus:border-[hsl(var(--color-primary))] focus:ring-[hsl(var(--color-primary))]/20"
+              className="h-10 text-sm bg-white border-primary/20 focus:border-primary focus:ring-primary/20"
               disabled={loading}
             />
-            <p className="text-xs text-gray-500">Il saldo attuale del tuo conto (opzionale)</p>
+            <p className="text-xs text-primary/70">Il saldo attuale del tuo conto (opzionale)</p>
           </div>
 
           <Button
             type="submit"
             disabled={loading || !groupName.trim() || !accountName.trim()}
-            className="w-full h-10 bg-[hsl(var(--color-primary))] hover:bg-[hsl(var(--color-primary))]/90 text-white transition-all duration-200 active:scale-[.98] shadow-md text-sm font-medium"
+            className="w-full h-10 bg-primary hover:bg-primary/90 text-white transition-all duration-200 active:scale-[.98] shadow-md text-sm font-medium"
           >
             {loading ? (
               <>

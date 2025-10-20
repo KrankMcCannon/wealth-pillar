@@ -1,6 +1,7 @@
 "use client";
 
 import { Badge } from "@/components/ui/badge";
+import { Text } from "@/components/ui/primitives";
 import { LucideIcon } from "lucide-react";
 
 interface SectionHeaderProps {
@@ -28,12 +29,19 @@ export function SectionHeader({
   return (
     <div className={`flex items-center justify-between mb-2 ${className}`}>
       <div className="flex-1">
-        <h2 className="text-lg font-bold tracking-tight text-gray-900 flex items-center gap-2">
+        <Text
+          variant="heading"
+          size="lg"
+          as="h2"
+          className="flex items-center gap-2"
+        >
           {Icon && <Icon className={`h-5 w-5 ${iconClassName}`} />}
           {title}
-        </h2>
+        </Text>
         {subtitle && (
-          <p className="text-sm text-gray-600 mt-1">{subtitle}</p>
+          <Text variant="muted" size="sm" className="mt-1">
+            {subtitle}
+          </Text>
         )}
       </div>
       {badge && (

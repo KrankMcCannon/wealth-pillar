@@ -37,30 +37,30 @@ export function GroupedTransactionCard({
         if (context === 'due') {
           // For due context, we'll determine background based on most urgent transaction
           const mostUrgentDays = Math.min(...transactions.map(tx => getDaysUntilDue(tx)));
-          if (mostUrgentDays <= 1) return "py-0 bg-gradient-to-r from-red-50/80 via-red-50/60 to-white/80 backdrop-blur-sm border border-red-200/50 hover:shadow-xl hover:shadow-red-200/30";
-          if (mostUrgentDays <= 3) return "py-0 bg-gradient-to-r from-orange-50/80 via-orange-50/60 to-white/80 backdrop-blur-sm border border-orange-200/50 hover:shadow-xl hover:shadow-orange-200/30";
-          if (mostUrgentDays <= 7) return "py-0 bg-gradient-to-r from-amber-50/80 via-amber-50/60 to-white/80 backdrop-blur-sm border border-amber-200/50 hover:shadow-xl hover:shadow-amber-200/30";
-          return "py-0 bg-gradient-to-r from-blue-50/80 via-blue-50/60 to-white/80 backdrop-blur-sm border border-blue-200/50 hover:shadow-xl hover:shadow-blue-200/30";
+          if (mostUrgentDays <= 1) return "py-0 bg-gradient-to-r from-destructive/10 via-destructive/5 to-card backdrop-blur-sm border border-destructive/30 hover:shadow-xl hover:shadow-destructive/20";
+          if (mostUrgentDays <= 3) return "py-0 bg-gradient-to-r from-warning/10 via-warning/5 to-card backdrop-blur-sm border border-warning/30 hover:shadow-xl hover:shadow-warning/20";
+          if (mostUrgentDays <= 7) return "py-0 bg-gradient-to-r from-warning/10 via-warning/5 to-card backdrop-blur-sm border border-warning/30 hover:shadow-xl hover:shadow-warning/20";
+          return "py-0 bg-gradient-to-r from-primary/10 via-card to-card backdrop-blur-sm border border-primary/20 hover:shadow-xl hover:shadow-primary/20";
         } else {
-          return "py-0 bg-gradient-to-r from-blue-50/80 via-white/80 to-white/60 backdrop-blur-sm border border-blue-200/50 hover:shadow-xl hover:shadow-blue-200/30";
+          return "py-0 bg-gradient-to-r from-primary/10 via-card to-card backdrop-blur-sm border border-primary/20 hover:shadow-xl hover:shadow-primary/20";
         }
       default:
-        return "py-0 bg-white/90 backdrop-blur-sm border border-slate-200/50 shadow-lg hover:shadow-xl transition-all duration-300";
+        return "py-0 bg-card backdrop-blur-sm border border-primary/20 shadow-lg hover:shadow-xl transition-all duration-300";
     }
   };
 
   const getSectionHeaderStyles = () => {
     switch (variant) {
       case 'recurrent':
-        return "bg-gradient-to-r from-blue-50 to-blue-100/50 border-b border-blue-200/50";
+        return "bg-gradient-to-r from-primary/10 to-card border-b border-primary/20";
       default:
-        return "bg-gradient-to-r from-slate-50 to-gray-50 border-b border-slate-200/50";
+        return "bg-gradient-to-r from-card to-primary/5 border-b border-primary/20";
     }
   };
 
   const getTotalAmountColor = () => {
-    if (variant === 'recurrent') return 'text-blue-700';
-    return (totalAmount || 0) >= 0 ? 'text-green-600' : 'text-red-600';
+    if (variant === 'recurrent') return 'text-primary';
+    return (totalAmount || 0) >= 0 ? 'text-primary' : 'text-destructive';
   };
 
   const getDaysUntilDue = (transaction: Transaction): number => {
@@ -72,45 +72,45 @@ export function GroupedTransactionCard({
 
   const getTransactionAmountColor = (transaction: Transaction) => {
     if (variant === 'recurrent') {
-      // In due context, use urgency colors; in informative context, use standard blue
+      // In due context, use urgency colors; in informative context, use standard purple
       if (context === 'due') {
         const daysUntilDue = getDaysUntilDue(transaction);
-        if (daysUntilDue <= 1) return 'text-red-600'; // Due today/tomorrow
-        if (daysUntilDue <= 3) return 'text-orange-600'; // Due in 2-3 days
-        if (daysUntilDue <= 7) return 'text-amber-600'; // Due this week
-        return 'text-blue-600'; // Normal
+        if (daysUntilDue <= 1) return 'text-destructive'; // Due today/tomorrow
+        if (daysUntilDue <= 3) return 'text-warning'; // Due in 2-3 days
+        if (daysUntilDue <= 7) return 'text-warning/80'; // Due this week
+        return 'text-primary'; // Normal
       } else {
-        return 'text-blue-600'; // Standard blue for informative context
+        return 'text-primary'; // Standard primary for informative context
       }
     }
-    return transaction.type === 'income' ? 'text-green-600' : 'text-red-600';
+    return transaction.type === 'income' ? 'text-primary' : 'text-destructive';
   };
 
   const getTransactionIconColor = (transaction: Transaction) => {
     if (variant === 'recurrent') {
       if (context === 'due') {
         const daysUntilDue = getDaysUntilDue(transaction);
-        if (daysUntilDue <= 1) return 'from-red-500/20 to-red-500/10 text-red-600'; // Due today/tomorrow
-        if (daysUntilDue <= 3) return 'from-orange-500/20 to-orange-500/10 text-orange-600'; // Due in 2-3 days
-        if (daysUntilDue <= 7) return 'from-amber-500/20 to-amber-500/10 text-amber-600'; // Due this week
-        return 'from-blue-500/20 to-blue-500/10 text-blue-600'; // Normal
+        if (daysUntilDue <= 1) return 'from-destructive/20 to-destructive/10 text-destructive'; // Due today/tomorrow
+        if (daysUntilDue <= 3) return 'from-warning/20 to-warning/10 text-warning'; // Due in 2-3 days
+        if (daysUntilDue <= 7) return 'from-warning/15 to-warning/5 text-warning/80'; // Due this week
+        return 'from-primary/20 to-primary/10 text-primary'; // Normal
       } else {
-        return 'from-blue-500/20 to-blue-500/10 text-blue-600'; // Standard blue for informative context
+        return 'from-primary/20 to-primary/10 text-primary'; // Standard primary for informative context
       }
     }
-    return 'from-primary/10 to-primary/5 text-primary';
+    return 'from-primary/20 to-primary/10 text-primary';
   };
 
   const getTransactionBadgeColor = (transaction: Transaction) => {
     if (variant === 'recurrent') {
       if (context === 'due') {
         const daysUntilDue = getDaysUntilDue(transaction);
-        if (daysUntilDue <= 1) return 'border-red-200/70 text-red-700 bg-red-50/50'; // Due today/tomorrow
-        if (daysUntilDue <= 3) return 'border-orange-200/70 text-orange-700 bg-orange-50/50'; // Due in 2-3 days
-        if (daysUntilDue <= 7) return 'border-amber-200/70 text-amber-700 bg-amber-50/50'; // Due this week
-        return 'border-blue-200/70 text-blue-700 bg-blue-50/50'; // Normal
+        if (daysUntilDue <= 1) return 'border-destructive/30 text-destructive bg-destructive/10'; // Due today/tomorrow
+        if (daysUntilDue <= 3) return 'border-warning/30 text-warning bg-warning/10'; // Due in 2-3 days
+        if (daysUntilDue <= 7) return 'border-warning/20 text-warning/80 bg-warning/5'; // Due this week
+        return 'border-primary/20 text-primary bg-primary/10'; // Normal
       } else {
-        return 'border-blue-200/70 text-blue-700 bg-blue-50/50'; // Standard blue for informative context
+        return 'border-primary/20 text-primary bg-primary/10'; // Standard primary for informative context
       }
     }
     return '';
@@ -139,11 +139,11 @@ export function GroupedTransactionCard({
       )}
 
       {/* Compact Transactions List */}
-      <div className="divide-y divide-slate-100/50">
+      <div className="divide-y divide-primary/10">
         {transactions.map((transaction, index) => (
           <div
             key={transaction.id || index}
-            className="px-3 py-2 hover:bg-white/80 transition-colors duration-200 group relative"
+            className="px-3 py-2 hover:bg-accent/10 transition-colors duration-200 group relative"
           >
             <div className="flex items-center justify-between gap-2">
               <div
@@ -157,24 +157,24 @@ export function GroupedTransactionCard({
                   />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h4 className="font-medium text-black group-hover:text-black/80 transition-colors truncate text-sm">
+                  <h4 className="font-medium transition-colors truncate text-sm">
                     {transaction.description}
                   </h4>
                   <div className="flex items-center gap-1.5 mt-0.5">
-                    <span className="text-xs text-black/60">
+                    <span className="text-xs text-foreground/60">
                       {truncateText(accountNames[transaction.account_id] || transaction.account_id, 12)}
                     </span>
                     {variant === 'regular' && (
                       <>
-                        <span className="text-xs text-black/40">•</span>
-                        <span className="text-xs text-black/50">
+                        <span className="text-xs text-primary/40">•</span>
+                        <span className="text-xs text-foreground/50">
                           {getCategoryLabel(transaction.category)}
                         </span>
                       </>
                     )}
                     {variant === 'recurrent' && transaction.frequency && (
                       <>
-                        <span className="text-xs text-black/40">•</span>
+                        <span className="text-xs text-primary/40">•</span>
                         <Badge variant="outline" className={`text-xs ${getTransactionBadgeColor(transaction)} font-medium px-1 py-0 scale-75 origin-left`}>
                           {transaction.frequency}
                         </Badge>
@@ -191,7 +191,7 @@ export function GroupedTransactionCard({
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-50 hover:text-red-600"
+                    className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive/10 hover:text-destructive"
                     onClick={(e) => {
                       e.stopPropagation();
                       onDeleteTransaction(transaction.id);

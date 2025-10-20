@@ -48,11 +48,11 @@ export function PasswordRequirements({ password }: { password: string }) {
                 exit={{ scale: 0.9, opacity: 0.8 }}
                 className="inline-flex"
               >
-                <Circle className="h-3 w-3 text-gray-400" />
+                <Circle className="h-3 w-3 text-primary/50" />
               </motion.span>
             )}
           </AnimatePresence>
-          <span className={results[i] ? 'text-gray-900 font-medium' : 'text-gray-500'}>{req.label}</span>
+          <span className={results[i] ? 'text-primary font-medium' : 'text-primary/70'}>{req.label}</span>
         </li>
       ))}
     </ul>

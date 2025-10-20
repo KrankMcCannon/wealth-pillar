@@ -107,8 +107,12 @@ export const useDashboardBudgets = (
       return item;
     }).filter((b): b is BudgetItem => Boolean(b));
 
-    // Group budgets by user for UI organization
-    const budgetsByUser = users.reduce((acc, user) => {
+    // Get unique user IDs from filtered budgets only
+    const filteredUserIds = new Set(budgetDataArray.map(b => b.userId));
+    const filteredUsers = users.filter(u => filteredUserIds.has(u.id));
+
+    // Group budgets by user for UI organization - only include users with budgets in filtered data
+    const budgetsByUser = filteredUsers.reduce((acc, user) => {
       const userBudgets: BudgetItem[] = budgetDataArray.filter(b => b.userId === user.id);
 
       if (userBudgets.length > 0) {

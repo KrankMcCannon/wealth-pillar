@@ -35,7 +35,7 @@ export function PasswordStrength({ password }: PasswordStrengthProps) {
           <div key={i} className={cn('h-1 rounded-full bg-[hsl(var(--color-border))]', i < score ? colors[Math.max(0, score - 1)] : undefined)} />
         ))}
       </div>
-      <div className="text-xs text-gray-600">Sicurezza: <span className="font-semibold text-gray-900">{labels[score]}</span></div>
+      <div className="text-xs text-primary/70">Sicurezza: <span className="font-semibold text-primary">{labels[score]}</span></div>
     </div>
   );
 }

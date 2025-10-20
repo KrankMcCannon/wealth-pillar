@@ -57,24 +57,24 @@ export default function InvestmentsPage() {
         <main className="p-4 pb-24">
           {/* Portfolio Summary */}
           <div className="flex gap-4 overflow-x-auto pb-4 -mx-4 px-4 mb-6">
-            <div className="flex w-64 shrink-0 flex-col rounded-2xl bg-white p-4 shadow-sm">
+            <div className="flex w-64 shrink-0 flex-col rounded-2xl bg-card p-4 shadow-sm">
               <div className="flex items-start justify-between">
-                <p className="text-base font-bold text-gray-800">Portafoglio Totale</p>
-                <div className="text-gray-400">
+                <p className="text-base font-bold">Portafoglio Totale</p>
+                <div>
                   <svg fill="currentColor" height="24px" viewBox="0 0 256 256" width="24px" xmlns="http://www.w3.org/2000/svg">
                     <path d="M140,128a12,12,0,1,1-12-12A12,12,0,0,1,140,128Zm-52-12a12,12,0,1,0,12,12A12,12,0,0,0,88,116Zm104,0a12,12,0,1,0,12,12A12,12,0,0,0,192,116Z"></path>
                   </svg>
                 </div>
               </div>
-              <p className="mt-2 text-2xl font-bold text-gray-900">{formatCurrency(portfolioData.totalValue)}</p>
+              <p className="mt-2 text-2xl font-bold">{formatCurrency(portfolioData.totalValue)}</p>
               <div className="mt-4">
-                <div className="flex justify-between text-sm font-medium text-gray-500">
+                <div className="flex justify-between text-sm font-medium">
                   <span>{portfolioData.gainLoss >= 0 ? '+' : ''}{formatCurrency(Math.abs(portfolioData.gainLoss))}</span>
-                  <span className={portfolioData.gainLoss >= 0 ? 'text-green-600' : 'text-red-600'}>
+                  <span className={portfolioData.gainLoss >= 0 ? 'text-primary' : 'text-destructive'}>
                     {portfolioData.gainLoss >= 0 ? '+' : ''}{portfolioData.gainLossPercent.toFixed(1)}%
                   </span>
                 </div>
-                <div className="mt-2 h-2 w-full rounded-full bg-gray-200">
+                <div className="mt-2 h-2 w-full rounded-full bg-muted">
                   <div 
                     className={`h-2 rounded-full ${portfolioData.gainLoss >= 0 ? 'bg-green-500' : 'bg-red-500'}`} 
                     style={{width: `${Math.min(Math.abs(portfolioData.gainLossPercent), 100)}%`}}
@@ -82,46 +82,46 @@ export default function InvestmentsPage() {
                 </div>
               </div>
             </div>
-            <div className="flex w-64 shrink-0 flex-col rounded-2xl bg-white p-4 shadow-sm">
+            <div className="flex w-64 shrink-0 flex-col rounded-2xl bg-card p-4 shadow-sm">
               <div className="flex items-start justify-between">
-                <p className="text-base font-bold text-gray-800">Azioni</p>
-                <div className="text-gray-400">
+                <p className="text-base font-bold">Azioni</p>
+                <div>
                   <svg fill="currentColor" height="24px" viewBox="0 0 256 256" width="24px" xmlns="http://www.w3.org/2000/svg">
                     <path d="M140,128a12,12,0,1,1-12-12A12,12,0,0,1,140,128Zm-52-12a12,12,0,1,0,12,12A12,12,0,0,0,88,116Zm104,0a12,12,0,1,0,12,12A12,12,0,0,0,192,116Z"></path>
                   </svg>
                 </div>
               </div>
-              <p className="mt-2 text-2xl font-bold text-gray-900">{formatCurrency(assetBreakdown.stocks.value)}</p>
+              <p className="mt-2 text-2xl font-bold">{formatCurrency(assetBreakdown.stocks.value)}</p>
               <div className="mt-4">
-                <div className="flex justify-between text-sm font-medium text-gray-500">
+                <div className="flex justify-between text-sm font-medium">
                   <span>{Math.round(assetBreakdown.stocks.percentage)}% del portafoglio</span>
-                  <span className={assetBreakdown.stocks.gainPercent >= 0 ? 'text-green-600' : 'text-red-600'}>
+                  <span className={assetBreakdown.stocks.gainPercent >= 0 ? 'text-primary' : 'text-destructive'}>
                     {assetBreakdown.stocks.gainPercent >= 0 ? '+' : ''}{assetBreakdown.stocks.gainPercent.toFixed(1)}%
                   </span>
                 </div>
-                <div className="mt-2 h-2 w-full rounded-full bg-gray-200">
-                  <div className="h-2 rounded-full bg-blue-500" style={{width: `${Math.round(assetBreakdown.stocks.percentage)}%`}}></div>
+                <div className="mt-2 h-2 w-full rounded-full bg-muted">
+                  <div className="h-2 rounded-full bg-primary" style={{width: `${Math.round(assetBreakdown.stocks.percentage)}%`}}></div>
                 </div>
               </div>
             </div>
-            <div className="flex w-64 shrink-0 flex-col rounded-2xl bg-white p-4 shadow-sm">
+            <div className="flex w-64 shrink-0 flex-col rounded-2xl bg-card p-4 shadow-sm">
               <div className="flex items-start justify-between">
-                <p className="text-base font-bold text-gray-800">Crypto</p>
-                <div className="text-gray-400">
+                <p className="text-base font-bold">Crypto</p>
+                <div>
                   <svg fill="currentColor" height="24px" viewBox="0 0 256 256" width="24px" xmlns="http://www.w3.org/2000/svg">
                     <path d="M140,128a12,12,0,1,1-12-12A12,12,0,0,1,140,128Zm-52-12a12,12,0,1,0,12,12A12,12,0,0,0,88,116Zm104,0a12,12,0,1,0,12,12A12,12,0,0,0,192,116Z"></path>
                   </svg>
                 </div>
               </div>
-              <p className="mt-2 text-2xl font-bold text-gray-900">{formatCurrency(assetBreakdown.crypto.value)}</p>
+              <p className="mt-2 text-2xl font-bold">{formatCurrency(assetBreakdown.crypto.value)}</p>
               <div className="mt-4">
-                <div className="flex justify-between text-sm font-medium text-gray-500">
+                <div className="flex justify-between text-sm font-medium">
                   <span>{Math.round(assetBreakdown.crypto.percentage)}% del portafoglio</span>
-                  <span className={assetBreakdown.crypto.gainPercent >= 0 ? 'text-green-600' : 'text-red-600'}>
+                  <span className={assetBreakdown.crypto.gainPercent >= 0 ? 'text-primary' : 'text-destructive'}>
                     {assetBreakdown.crypto.gainPercent >= 0 ? '+' : ''}{assetBreakdown.crypto.gainPercent.toFixed(1)}%
                   </span>
                 </div>
-                <div className="mt-2 h-2 w-full rounded-full bg-gray-200">
+                <div className="mt-2 h-2 w-full rounded-full bg-muted">
                   <div className="h-2 rounded-full bg-orange-500" style={{width: `${Math.round(assetBreakdown.crypto.percentage)}%`}}></div>
                 </div>
               </div>
@@ -133,7 +133,7 @@ export default function InvestmentsPage() {
             <SectionHeader
               title="Le Tue Partecipazioni"
               icon={PieChart}
-              iconClassName="text-blue-600"
+              iconClassName="text-primary"
               className="px-4 pb-3 pt-5"
             >
               <button className="text-sm font-medium text-[#7578EC]">Visualizza Tutte</button>
@@ -141,21 +141,21 @@ export default function InvestmentsPage() {
             <div className="space-y-3">
               {portfolioData.holdings.length > 0 ? (
                 portfolioData.holdings.map((holding: EnhancedHolding, index: number) => (
-                  <div key={holding.id || index} className="flex items-center justify-between gap-4 rounded-2xl bg-white p-4 shadow-sm">
+                  <div key={holding.id || index} className="flex items-center justify-between gap-4 rounded-2xl bg-card p-4 shadow-sm">
                     <div className="flex items-center gap-4">
-                      <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-600">
+                      <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary">
                         <svg fill="currentColor" height="24px" viewBox="0 0 256 256" width="24px" xmlns="http://www.w3.org/2000/svg">
                           <path d="M232,208a8,8,0,0,1-8,8H32a8,8,0,0,1-8-8V48a8,8,0,0,1,16,0v94.37L90.73,98a8,8,0,0,1,10.07-.38l58.81,44.11L218.73,90a8,8,0,1,1,10.54,12l-64,56a8,8,0,0,1-10.07.38L96.39,114.29,40,163.63V200H224A8,8,0,0,1,232,208Z"></path>
                         </svg>
                       </div>
                       <div className="flex-1">
                         <div className="flex justify-between items-center mb-1">
-                          <p className="text-base font-medium text-gray-800">{holding.symbol}</p>
-                          <span className="text-sm font-medium text-gray-600">{formatCurrency(holding.currentValue)}</span>
+                          <p className="text-base font-medium">{holding.symbol}</p>
+                          <span className="text-sm font-medium">{formatCurrency(holding.currentValue)}</span>
                         </div>
                         <div className="flex items-center justify-between">
-                          <span className="text-sm text-gray-500">{holding.name} • {holding.quantity} azioni</span>
-                          <span className={`text-sm font-medium ${holding.gainLoss >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          <span className="text-sm">{holding.name} • {holding.quantity} azioni</span>
+                          <span className={`text-sm font-medium ${holding.gainLoss >= 0 ? 'text-primary' : 'text-destructive'}`}>
                             {holding.gainLoss >= 0 ? '+' : ''}{holding.gainLossPercent.toFixed(1)}%
                           </span>
                         </div>
@@ -165,7 +165,7 @@ export default function InvestmentsPage() {
                 ))
               ) : (
                 <div className="text-center py-8">
-                  <p className="text-gray-500">Nessuna partecipazione trovata</p>
+                  <p>Nessuna partecipazione trovata</p>
                 </div>
               )}
             </div>
@@ -173,7 +173,7 @@ export default function InvestmentsPage() {
 
           {/* Performance insight */}
           <section className="mt-8">
-            <div className="rounded-2xl bg-gradient-to-r from-[#7578EC] to-[#EC4899] p-6 text-white">
+            <div className="rounded-2xl bg-primary p-6 text-white">
               <SectionHeader
                 title="Performance del Portafoglio"
                 icon={BarChart3}
@@ -186,9 +186,9 @@ export default function InvestmentsPage() {
                 </div>
                 <div className="flex-1">
                   <p className="text-sm opacity-90 mb-1">Questo mese</p>
-                  <div className="w-full h-2 bg-white/30 rounded-full">
+                  <div className="w-full h-2 bg-card/30 rounded-full">
                     <div 
-                      className="h-2 bg-white rounded-full" 
+                      className="h-2 bg-card rounded-full" 
                       style={{width: `${Math.min(Math.abs(portfolioData.gainLossPercent), 100)}%`}}
                     ></div>
                   </div>

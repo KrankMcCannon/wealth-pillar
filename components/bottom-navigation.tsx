@@ -31,7 +31,7 @@ export default function BottomNavigation() {
   ];
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-2 safe-area-pb">
+    <div className="fixed bottom-0 left-0 right-0 bg-card border-t border-primary/20 px-4 py-2 safe-area-pb">
       <div className="flex items-center justify-around">
         {navItems.map((item) => {
           const isActive = pathname === item.href;
@@ -42,8 +42,8 @@ export default function BottomNavigation() {
               href={item.href}
               className={`flex flex-col items-center gap-1 py-2 px-3 rounded-lg transition-colors ${
                 isActive
-                  ? "bg-[#7578EC] text-white"
-                  : "text-gray-500 hover:text-[#7578EC]"
+                  ? "bg-primary text-primary-foreground"
+                  : "text-primary/70 hover:text-primary"
               }`}
             >
               <IconComponent className="h-5 w-5" />

@@ -1,9 +1,8 @@
 'use client';
 
 import { Play, Pause, Settings } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { formatCurrency } from '@/lib/utils';
+import { IconContainer, Text, StatusBadge, Amount } from '@/components/ui/primitives';
 import type { RecurringTransactionSeries } from '@/lib/types';
 import { CategoryIcon, iconSizes } from '@/lib/icons';
 import { useExecuteRecurringSeries, usePauseRecurringSeries, useResumeRecurringSeries } from '@/hooks';
@@ -80,33 +79,34 @@ export function RecurringSeriesCard({
   const isDueSoon = daysUntilDue <= 3;
 
   const getCardStyles = () => {
-    // Final styles without spacing issues
-    const baseStyles = "p-3 bg-white rounded-xl";
+    const baseStyles = "p-3 bg-card rounded-xl";
     if (!series.is_active) {
-      return `${baseStyles} border border-slate-200/60 opacity-60`;
+      return `${baseStyles} border border-primary/20 opacity-60`;
     }
     if (isOverdue) {
-      return `${baseStyles} border border-red-200/70 hover:border-red-300/80`;
+      return `${baseStyles} border border-destructive/30 hover:border-destructive/40`;
     }
     if (isDueToday) {
-      return `${baseStyles} border border-orange-200/70 hover:border-orange-300/80`;
+      return `${baseStyles} border border-warning/40 hover:border-warning/50`;
     }
     if (isDueSoon) {
-      return `${baseStyles} border border-amber-200/70 hover:border-amber-300/80`;
+      return `${baseStyles} border border-warning/30 hover:border-warning/40`;
     }
-    return `${baseStyles} border border-slate-200/60 hover:border-slate-300/60`;
+    return `${baseStyles} border border-primary/20 hover:border-primary/30`;
   };
 
-  const getAmountColor = () => {
-    if (!series.is_active) return 'text-gray-500';
-    if (isOverdue) return 'text-red-600';
-    if (isDueToday) return 'text-orange-600';
-    if (isDueSoon) return 'text-amber-600';
-    return 'text-blue-600';
+  const getIconColor = (): "primary" | "warning" | "destructive" | "muted" => {
+    if (!series.is_active) return 'muted';
+    if (isOverdue) return 'destructive';
+    if (isDueToday || isDueSoon) return 'warning';
+    return 'primary';
   };
 
-  const getAmountValue = () => {
-    return formatCurrency(series.type === 'income' ? series.amount : -series.amount);
+  const getAmountType = (): "income" | "expense" | "neutral" => {
+    if (!series.is_active) return 'neutral';
+    if (isOverdue) return 'expense';
+    if (isDueToday || isDueSoon) return series.type === 'income' ? 'income' : 'expense';
+    return series.type === 'income' ? 'income' : 'expense';
   };
 
   return (
@@ -116,53 +116,50 @@ export function RecurringSeriesCard({
     >
       <div className="flex items-center gap-3 flex-1 min-w-0">
         {/* Icon */}
-        <div className={`flex size-10 items-center justify-center rounded-lg shrink-0 ${
-          !series.is_active ? 'bg-slate-100' :
-          isOverdue ? 'bg-red-50 border border-red-100' :
-          isDueToday ? 'bg-orange-50 border border-orange-100' :
-          isDueSoon ? 'bg-amber-50 border border-amber-100' :
-          'bg-blue-50 border border-blue-100'
-        }`}>
+        <IconContainer size="md" color={getIconColor()} className="rounded-lg shrink-0">
           <CategoryIcon
             categoryKey={series.category}
             size={iconSizes.sm}
-            className={
-              !series.is_active ? 'text-slate-400' :
-              isOverdue ? 'text-red-600' :
-              isDueToday ? 'text-orange-600' :
-              isDueSoon ? 'text-amber-600' : 'text-blue-600'
-            }
           />
-        </div>
+        </IconContainer>
 
         {/* Content */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-0.5">
-            <h3 className="font-semibold text-slate-900 group-hover:text-slate-800 transition-colors truncate text-sm">
+            <Text
+              variant="heading"
+              size="sm"
+              as="h3"
+              className="group-hover:text-primary/80 transition-colors truncate"
+            >
               {series.description}
-            </h3>
+            </Text>
             {!series.is_active && (
-              <Badge variant="outline" className="text-xs bg-slate-50 text-slate-600 border-slate-300">
+              <StatusBadge status="info" size="sm">
                 Pausata
-              </Badge>
+              </StatusBadge>
             )}
           </div>
           <div className="space-y-0.5">
-            <div className="text-xs text-slate-600 font-medium">
+            <Text variant="muted" size="xs" className="font-medium">
               {getFrequencyLabel(series.frequency)}
-            </div>
-            <div className="text-xs text-slate-500">
+            </Text>
+            <Text variant="muted" size="xs">
               Prossima: {getDueDateLabel(daysUntilDue)}
-            </div>
+            </Text>
           </div>
         </div>
       </div>
 
       {/* Amount and Actions */}
       <div className="flex flex-col items-end gap-1.5 shrink-0">
-        <div className={`font-bold text-base ${getAmountColor()}`}>
-          {getAmountValue()}
-        </div>
+        <Amount
+          type={getAmountType()}
+          size="md"
+          emphasis="strong"
+        >
+          {series.type === 'income' ? series.amount : -series.amount}
+        </Amount>
         {showActions && (
           <div className="flex items-center gap-0.5">
             {series.is_active ? (
@@ -171,53 +168,53 @@ export function RecurringSeriesCard({
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-6 w-6 p-0 hover:bg-emerald-50 rounded-md transition-all duration-200"
+                    className="h-6 w-6 p-0 hover:bg-primary/8 rounded-md transition-all duration-200"
                     onClick={(e) => {
                       e.stopPropagation();
                       handleExecute();
                     }}
                     disabled={executeSeriesMutation.isPending}
                   >
-                    <Play className="h-3 w-3 text-emerald-600" />
+                    <Play className="h-3 w-3 text-accent" />
                   </Button>
                 )}
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-6 w-6 p-0 hover:bg-amber-50 rounded-md transition-all duration-200"
+                className="h-6 w-6 p-0 hover:bg-warning/10 rounded-md transition-all duration-200"
                   onClick={(e) => {
                     e.stopPropagation();
                     handlePause();
                   }}
                   disabled={pauseSeriesMutation.isPending}
                 >
-                  <Pause className="h-3 w-3 text-amber-600" />
+                  <Pause className="h-3 w-3 text-warning" />
                 </Button>
               </>
             ) : (
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-6 w-6 p-0 hover:bg-blue-50 rounded-md transition-all duration-200"
+                className="h-6 w-6 p-0 hover:bg-primary/5 rounded-md transition-all duration-200"
                 onClick={(e) => {
                   e.stopPropagation();
                   handleResume();
                 }}
                 disabled={resumeSeriesMutation.isPending}
               >
-                <Play className="h-3 w-3 text-blue-600" />
+                <Play className="h-3 w-3 text-primary" />
               </Button>
             )}
             <Button
               variant="ghost"
               size="sm"
-              className="h-6 w-6 p-0 hover:bg-slate-50 rounded-md transition-all duration-200"
+              className="h-6 w-6 p-0 hover:bg-accent rounded-md transition-all duration-200"
               onClick={(e) => {
                 e.stopPropagation();
                 handleEdit();
               }}
             >
-              <Settings className="h-3 w-3 text-slate-600" />
+              <Settings className="h-3 w-3 text-primary/70" />
             </Button>
           </div>
         )}

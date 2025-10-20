@@ -1,8 +1,8 @@
 "use client";
 
 import { Card } from "@/components/ui/card";
+import { IconContainer, Text, Amount } from "@/components/ui/primitives";
 import { Building2 } from "lucide-react";
-import { formatCurrency } from "@/lib/utils";
 import { Account, AccountTypeMap } from "@/lib/types";
 
 interface BankAccountCardProps {
@@ -14,30 +14,43 @@ interface BankAccountCardProps {
 export function BankAccountCard({ account, accountBalance, onClick }: BankAccountCardProps) {
   return (
     <Card
-      className="px-3 py-2 min-w-[180px] flex-shrink-0 bg-gradient-to-br from-gray-50 to-white border border-gray-200 hover:shadow-md transition-shadow duration-200 cursor-pointer"
+      className="px-3 py-2 min-w-[180px] flex-shrink-0 bg-card border border-primary/20 hover:shadow-md hover:border-primary/40 transition-all duration-200 cursor-pointer"
       onClick={onClick}
     >
       <div className="flex items-center justify-between">
         {/* Left - Icon */}
-        <div className="flex size-10 items-center justify-center rounded-full bg-gradient-to-br from-primary/10 to-primary/5 shadow-lg">
-          <Building2 className="h-5 w-5 budget-icon" />
-        </div>
+        <IconContainer size="md" color="primary" className="rounded-full">
+          <Building2 className="h-5 w-5" />
+        </IconContainer>
 
         {/* Center - Title and Type */}
         <div className="flex flex-col flex-1 mx-3">
-          <h3 className="font-semibold text-slate-900 text-sm truncate max-w-[140px] sm:max-w-[160px]">
+          <Text
+            variant="emphasis"
+            size="sm"
+            as="h3"
+            className="truncate max-w-[140px] sm:max-w-[160px]"
+          >
             {account.name}
-          </h3>
-          <p className="text-xs text-gray-500">{AccountTypeMap[account.type] || account.type}</p>
+          </Text>
+          <Text variant="muted" size="xs">
+            {AccountTypeMap[account.type] || account.type}
+          </Text>
         </div>
 
         {/* Right - Amount */}
         <div className="flex flex-col text-right">
-          <p className={`text-sm font-bold ${accountBalance < 0 ? 'text-red-600' : 'text-green-600'}`}>
-            {accountBalance < 0 ? '-' : ''}{formatCurrency(Math.abs(accountBalance))}
-          </p>
+          <Amount
+            type={accountBalance < 0 ? 'expense' : 'income'}
+            size="sm"
+            emphasis="strong"
+          >
+            {Math.abs(accountBalance)}
+          </Amount>
           {accountBalance < 0 && (
-            <p className="text-xs text-red-500 font-medium">DEBITO</p>
+            <Text variant="muted" size="xs" className="text-destructive/80 font-medium">
+              DEBITO
+            </Text>
           )}
         </div>
       </div>

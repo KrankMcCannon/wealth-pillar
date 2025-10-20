@@ -64,15 +64,15 @@ const UserSelector = memo(({
   // Loading state
   if (isLoading) {
     return (
-      <section className={`bg-white/80 backdrop-blur-xl p-2 border-b border-slate-200/50 shadow-sm ${className}`}>
+      <section className={`bg-card/80 backdrop-blur-xl p-2 border-b border-primary/20 shadow-sm ${className}`}>
         <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
           {[1, 2, 3].map((i) => (
             <div
               key={i}
-              className="flex-shrink-0 flex items-center gap-3 p-2 rounded-2xl bg-gradient-to-r from-slate-100 to-slate-50 border border-slate-200/50 min-w-[120px] animate-pulse"
+              className="flex-shrink-0 flex items-center gap-3 p-2 rounded-2xl bg-gradient-to-r from-primary/10 to-white border border-primary/20 min-w-[120px] animate-pulse"
             >
-              <div className="w-6 h-6 bg-[#7578EC]/20 rounded-full"></div>
-              <div className="w-16 h-4 bg-slate-200 rounded"></div>
+          <div className="w-6 h-6 bg-primary/20 rounded-full"></div>
+          <div className="w-16 h-4 bg-primary/20 rounded"></div>
             </div>
           ))}
         </div>
@@ -81,12 +81,11 @@ const UserSelector = memo(({
   }
 
   return (
-    <section className={`bg-white/80 backdrop-blur-xl py-3 border-b border-slate-200/50 shadow-sm ${className}`}>
+    <section className={`bg-card/80 backdrop-blur-xl py-3 border-b border-primary/20 shadow-sm ${className}`}>
       <div
-        className="flex items-center gap-2 overflow-x-auto scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-transparent hover:scrollbar-thumb-slate-400 scrollbar-thumb-rounded-full pl-4"
+        className="flex items-center gap-2 overflow-x-auto scrollbar-thin scrollbar-thumb-muted-foreground/30 scrollbar-track-transparent hover:scrollbar-thumb-muted-foreground/50 scrollbar-thumb-rounded-full pl-4"
         style={{
           scrollbarWidth: 'thin',
-          scrollbarColor: '#cbd5e1 transparent',
           height: '44px', // Altezza fissa per il container
         }}
       >
@@ -100,11 +99,11 @@ const UserSelector = memo(({
               onClick={() => handleMemberClick(member.id)}
               className={`
                 flex-shrink-0 flex items-center gap-2 px-3 py-2 rounded-2xl text-sm font-semibold
-                whitespace-nowrap transition-all duration-300 group hover:scale-105
+                whitespace-nowrap transition-all duration-300 group hover:scale-[1.02]
                 focus:outline-none
                 ${isSelected
-                  ? "bg-gradient-to-r from-[#7578EC] to-[#6366F1] text-white shadow-lg shadow-[#7578EC]/30 scale-105"
-                  : "bg-white/90 backdrop-blur-sm text-slate-700 hover:bg-white hover:text-[#7578EC] hover:shadow-md hover:shadow-slate-200/50"
+                  ? "bg-primary text-white shadow-lg shadow-primary/30 scale-105"
+                  : "bg-primary/10 backdrop-blur-sm text-primary hover:bg-primary/12 hover:text-primary hover:shadow-sm hover:shadow-primary/10"
                 }
               `}
               disabled={isLoading}
@@ -113,15 +112,15 @@ const UserSelector = memo(({
             >
               <div className={`
                 flex items-center justify-center w-5 h-5 rounded-full
-                transition-all duration-200 group-hover:scale-110
+                transition-all duration-200 group-hover:scale-105
                 ${isSelected
                   ? 'bg-white/20 backdrop-blur-sm'
-                  : 'bg-[#7578EC]/10'
+                  : 'bg-primary/20'
                 }
               `}>
                 <IconComponent
                   className={`w-3.5 h-3.5 transition-colors duration-200 ${
-                    isSelected ? 'text-white' : 'text-[#7578EC]'
+                    isSelected ? 'text-white' : 'text-primary'
                   }`}
                 />
               </div>
@@ -132,7 +131,7 @@ const UserSelector = memo(({
 
               {/* Hover indicator only for non-selected */}
               {!isSelected && (
-                <div className="w-0 h-2 bg-[#7578EC]/40 rounded-full transition-all duration-300 group-hover:w-2 flex-shrink-0" />
+                <div className="w-0 h-2 bg-primary/40 rounded-full transition-all duration-300 group-hover:w-2 flex-shrink-0" />
               )}
             </button>
           );
@@ -147,8 +146,8 @@ const UserSelector = memo(({
               key={index}
               className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
                 index === membersList.findIndex(m => m.id === selectedGroupFilter)
-                  ? 'bg-[#7578EC] w-4'
-                  : 'bg-slate-300'
+                  ? 'bg-primary w-4'
+                  : 'bg-muted-foreground/30'
               }`}
             />
           ))}

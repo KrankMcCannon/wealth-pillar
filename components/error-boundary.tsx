@@ -51,25 +51,25 @@ class ErrorBoundaryClass extends React.Component<ErrorBoundaryProps, ErrorBounda
 const DefaultErrorFallback: React.FC<{ error?: Error; reset: () => void }> = ({ error, reset }) => {
   return (
     <div className="min-h-[400px] flex items-center justify-center p-4">
-      <Card className="max-w-md w-full p-6 text-center bg-white shadow-lg border border-red-100">
+      <Card className="max-w-md w-full p-6 text-center bg-card shadow-lg border border-destructive/20">
         <div className="flex justify-center mb-4">
-          <div className="p-3 bg-red-50 rounded-full">
-            <AlertTriangle className="h-8 w-8 text-red-500" />
+          <div className="p-3 bg-destructive/10 rounded-full">
+            <AlertTriangle className="h-8 w-8 text-destructive" />
           </div>
         </div>
 
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">
+        <h2 className="text-xl font-semibold text-foreground mb-2">
           Errore nel caricamento
         </h2>
 
-        <p className="text-gray-600 mb-6">
+        <p className="mb-6">
           Si è verificato un errore durante il caricamento dei dati finanziari.
           I tuoi dati sono al sicuro.
         </p>
 
         {error && process.env.NODE_ENV === 'development' && (
-          <div className="bg-gray-50 p-3 rounded-lg mb-4 text-left">
-            <p className="text-sm font-mono text-gray-700 break-all">
+          <div className="bg-muted p-3 rounded-lg mb-4 text-left">
+            <p className="text-sm font-mono text-foreground break-all">
               {error.message}
             </p>
           </div>
@@ -78,7 +78,7 @@ const DefaultErrorFallback: React.FC<{ error?: Error; reset: () => void }> = ({ 
         <div className="space-y-3">
           <Button
             onClick={reset}
-            className="w-full bg-[#7578EC] hover:bg-[#6366EC] text-white"
+            className="w-full bg-primary hover:bg-primary/90 text-white"
           >
             <RefreshCw className="h-4 w-4 mr-2" />
             Riprova
@@ -108,15 +108,15 @@ export const QueryErrorFallback: React.FC<{
 }> = ({ reset, title, description }) => {
   return (
     <div className="p-4 text-center">
-      <div className="inline-flex items-center justify-center w-12 h-12 bg-orange-50 rounded-full mb-4">
-        <AlertTriangle className="h-6 w-6 text-orange-500" />
+      <div className="inline-flex items-center justify-center w-12 h-12 bg-warning/10 rounded-full mb-4">
+        <AlertTriangle className="h-6 w-6 text-warning" />
       </div>
 
-      <h3 className="text-lg font-medium text-gray-900 mb-2">
+      <h3 className="text-lg font-medium text-foreground mb-2">
         {title || 'Errore nei dati'}
       </h3>
 
-      <p className="text-gray-600 mb-4 max-w-sm mx-auto">
+      <p className="mb-4 max-w-sm mx-auto">
         {description || 'Non è stato possibile caricare i dati. Verifica la connessione e riprova.'}
       </p>
 
@@ -124,7 +124,7 @@ export const QueryErrorFallback: React.FC<{
         onClick={reset}
         size="sm"
         variant="outline"
-        className="hover:bg-[#7578EC] hover:text-white transition-colors"
+        className="hover:bg-primary hover:text-primary-foreground transition-colors"
       >
         <RefreshCw className="h-4 w-4 mr-2" />
         Riprova
@@ -145,16 +145,16 @@ export const FinancialLoadingSkeleton: React.FC<{
         return (
           <div className="space-y-3">
             {[...Array(5)].map((_, i) => (
-              <div key={i} className="bg-white p-4 rounded-lg border animate-pulse">
+              <div key={i} className="bg-card p-4 rounded-lg border animate-pulse">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-gray-200 rounded-full"></div>
+                    <div className="w-10 h-10 bg-muted rounded-full"></div>
                     <div className="space-y-2">
-                      <div className="h-4 bg-gray-200 rounded w-24"></div>
-                      <div className="h-3 bg-gray-200 rounded w-16"></div>
+                      <div className="h-4 bg-muted rounded w-24"></div>
+                      <div className="h-3 bg-muted rounded w-16"></div>
                     </div>
                   </div>
-                  <div className="h-6 bg-gray-200 rounded w-20"></div>
+                  <div className="h-6 bg-muted rounded w-20"></div>
                 </div>
               </div>
             ))}
@@ -165,13 +165,13 @@ export const FinancialLoadingSkeleton: React.FC<{
         return (
           <div className="space-y-4">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="bg-white p-4 rounded-lg border animate-pulse">
+              <div key={i} className="bg-card p-4 rounded-lg border animate-pulse">
                 <div className="flex justify-between items-center mb-3">
-                  <div className="h-5 bg-gray-200 rounded w-32"></div>
-                  <div className="h-5 bg-gray-200 rounded w-16"></div>
+                  <div className="h-5 bg-muted rounded w-32"></div>
+                  <div className="h-5 bg-muted rounded w-16"></div>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2 mb-2"></div>
-                <div className="h-4 bg-gray-200 rounded w-24"></div>
+                <div className="w-full bg-muted rounded-full h-2 mb-2"></div>
+                <div className="h-4 bg-muted rounded w-24"></div>
               </div>
             ))}
           </div>
@@ -181,12 +181,12 @@ export const FinancialLoadingSkeleton: React.FC<{
         return (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="bg-white p-4 rounded-lg border animate-pulse">
+              <div key={i} className="bg-card p-4 rounded-lg border animate-pulse">
                 <div className="flex items-center justify-between mb-3">
-                  <div className="h-5 bg-gray-200 rounded w-24"></div>
-                  <div className="w-8 h-8 bg-gray-200 rounded"></div>
+                  <div className="h-5 bg-muted rounded w-24"></div>
+                  <div className="w-8 h-8 bg-muted rounded"></div>
                 </div>
-                <div className="h-7 bg-gray-200 rounded w-32"></div>
+                <div className="h-7 bg-muted rounded w-32"></div>
               </div>
             ))}
           </div>
@@ -196,19 +196,19 @@ export const FinancialLoadingSkeleton: React.FC<{
         return (
           <div className="space-y-6">
             {/* Balance section */}
-            <div className="bg-white p-6 rounded-lg shadow-sm animate-pulse">
-              <div className="h-6 bg-gray-200 rounded w-32 mb-4"></div>
-              <div className="h-8 bg-gray-200 rounded w-48"></div>
+            <div className="bg-card p-6 rounded-lg shadow-sm animate-pulse">
+              <div className="h-6 bg-muted rounded w-32 mb-4"></div>
+              <div className="h-8 bg-muted rounded w-48"></div>
             </div>
 
             {/* Accounts section */}
             <div className="animate-pulse">
-              <div className="h-6 bg-gray-200 rounded w-24 mb-4"></div>
+              <div className="h-6 bg-muted rounded w-24 mb-4"></div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {[...Array(3)].map((_, i) => (
-                  <div key={i} className="bg-white p-4 rounded-lg border">
-                    <div className="h-5 bg-gray-200 rounded w-24 mb-2"></div>
-                    <div className="h-6 bg-gray-200 rounded w-32"></div>
+                  <div key={i} className="bg-card p-4 rounded-lg border">
+                    <div className="h-5 bg-muted rounded w-24 mb-2"></div>
+                    <div className="h-6 bg-muted rounded w-32"></div>
                   </div>
                 ))}
               </div>
@@ -216,12 +216,12 @@ export const FinancialLoadingSkeleton: React.FC<{
 
             {/* Budget section */}
             <div className="animate-pulse">
-              <div className="h-6 bg-gray-200 rounded w-20 mb-4"></div>
+              <div className="h-6 bg-muted rounded w-20 mb-4"></div>
               <div className="space-y-3">
                 {[...Array(2)].map((_, i) => (
-                  <div key={i} className="bg-white p-4 rounded-lg border">
-                    <div className="h-5 bg-gray-200 rounded w-28 mb-3"></div>
-                    <div className="w-full bg-gray-200 rounded-full h-2"></div>
+                  <div key={i} className="bg-card p-4 rounded-lg border">
+                    <div className="h-5 bg-muted rounded w-28 mb-3"></div>
+                    <div className="w-full bg-muted rounded-full h-2"></div>
                   </div>
                 ))}
               </div>

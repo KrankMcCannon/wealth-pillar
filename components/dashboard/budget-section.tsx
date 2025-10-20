@@ -54,26 +54,26 @@ export const BudgetSection = ({
 
   if (budgetEntries.length === 0) {
     return (
-      <section className="bg-[#F8FAFC] px-3 pt-3">
+      <section className="bg-card px-3 pt-3">
         <SectionHeader
           title="Budget"
           subtitle="Monitora le tue spese per categoria"
           className="mb-3"
         />
 
-        <div className="bg-white rounded-2xl p-8 text-center border border-slate-200/60 shadow-sm">
-          <div className="flex size-16 items-center justify-center rounded-2xl bg-gradient-to-br from-[#7578EC]/10 to-[#7578EC]/5 mx-auto mb-4 shadow-sm">
-            <div className="w-8 h-8 rounded-lg bg-[#7578EC]/20 flex items-center justify-center">
-              <span className="text-[#7578EC] font-bold text-lg">€</span>
+        <div className="bg-card rounded-2xl p-8 text-center border border-primary/20 shadow-sm">
+          <div className="flex size-16 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5 mx-auto mb-4 shadow-sm">
+            <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
+              <span className="text-primary font-bold text-lg">€</span>
             </div>
           </div>
-          <h3 className="font-semibold text-slate-900 mb-2">Nessun budget configurato</h3>
-          <p className="text-sm text-slate-600 mb-4 max-w-sm mx-auto">
+          <h3 className="font-semibold text-primary mb-2">Nessun budget configurato</h3>
+          <p className="text-sm text-foreground/70 mb-4 max-w-sm mx-auto">
             Crea dei budget per monitorare le tue spese e tenere sotto controllo le finanze familiari
           </p>
           <button
             onClick={() => router.push('/budgets')}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#7578EC] to-[#6366F1] text-white rounded-xl font-medium text-sm hover:shadow-lg hover:shadow-[#7578EC]/25 transition-all duration-300 hover:scale-105"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl font-medium text-sm hover:shadow-lg hover:shadow-primary/25 transition-all duration-300 hover:scale-105"
           >
             Crea Budget
           </button>
@@ -83,7 +83,7 @@ export const BudgetSection = ({
   }
 
   return (
-    <section className="bg-[#F8FAFC] px-4 py-4">
+    <section className="bg-card px-4 py-4">
       <SectionHeader
         title="Budget"
         subtitle={`${budgetEntries.length} ${budgetEntries.length === 1 ? 'utente' : 'utenti'} con budget attivi`}
@@ -108,25 +108,25 @@ export const BudgetSection = ({
             return (
               <div
                 key={user.id}
-                className="bg-white shadow-sm border border-gray-200 rounded-xl overflow-hidden transform transition-all duration-300 hover:shadow-md hover:shadow-slate-200/50 hover:scale-[1.01]"
+                className="bg-card shadow-sm border border-primary/20 rounded-xl overflow-hidden transform transition-all duration-300 hover:shadow-md hover:shadow-primary/20 hover:scale-[1.01]"
                 style={{
                   animationDelay: `${index * 150}ms`,
                 }}
               >
                 {/* Mobile-First Compact User Header */}
-                <div className="bg-gradient-to-r from-slate-50 via-white to-slate-50 p-3 border-b border-gray-200">
+                <div className="bg-card p-3 border-b border-primary/20">
                   {/* User Info Row */}
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
-                      <div className="flex size-7 items-center justify-center rounded-lg bg-gradient-to-br from-[#7578EC]/10 to-[#7578EC]/5 shadow-sm">
-                        <span className="text-xs font-bold text-[#7578EC]">
+                      <div className="flex size-7 items-center justify-center rounded-lg bg-gradient-to-br from-primary/10 to-primary/5 shadow-sm">
+                        <span className="text-xs font-bold text-primary">
                           {user.name.charAt(0).toUpperCase()}
                         </span>
                       </div>
                       <div>
-                        <h3 className="text-sm font-semibold text-slate-900">{user.name}</h3>
+                        <h3 className="text-sm font-semibold">{user.name}</h3>
                         {activePeriod && periodStart && (
-                          <div className="text-xs text-slate-500">
+                          <div className="text-xs">
                             {new Date(periodStart).toLocaleDateString('it-IT', { day: 'numeric', month: 'short' })} -{' '}
                             {periodEnd ? new Date(periodEnd).toLocaleDateString('it-IT', { day: 'numeric', month: 'short' }) : 'In corso'}
                           </div>
@@ -137,43 +137,43 @@ export const BudgetSection = ({
                     {/* Budget Amount - Right Side */}
                     <div className="text-right">
                       <div className="text-sm font-bold">
-                        <span className={overallPercentage > 100 ? 'text-red-600' : 'text-slate-900'}>
+                        <span className={overallPercentage > 100 ? 'text-destructive' : 'text-primary'}>
                           {formatCurrency(totalSpent)}
                         </span>
-                        <span className="text-slate-400 font-normal"> / </span>
-                        <span className="text-slate-600">{formatCurrency(totalBudget)}</span>
+                        <span className="text-primary/50 font-normal"> / </span>
+                        <span>{formatCurrency(totalBudget)}</span>
                       </div>
                     </div>
                   </div>
 
                   {/* Progress Bar with Inline Percentage */}
                   <div className="flex items-center gap-2">
-                    <div className="flex-1 bg-slate-200 rounded-full h-2">
+                    <div className="flex-1 bg-primary/10 rounded-full h-2">
                       <div
                         className={`h-2 rounded-full transition-all duration-500 ${
                           overallPercentage > 100
-                            ? 'bg-gradient-to-r from-red-500 to-red-600'
+                            ? 'bg-destructive'
                             : overallPercentage > 75
-                            ? 'bg-gradient-to-r from-amber-400 to-amber-500'
-                            : 'bg-gradient-to-r from-green-400 to-green-500'
+                            ? 'bg-warning'
+                            : 'bg-accent'
                         }`}
                         style={{ width: `${Math.min(overallPercentage, 100)}%` }}
                       ></div>
                     </div>
-                    <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-slate-100/80">
+                    <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-primary/10">
                       <div className={`w-1.5 h-1.5 rounded-full ${
                         overallPercentage > 100
-                          ? 'bg-rose-500'
+                          ? 'bg-destructive'
                           : overallPercentage > 75
-                          ? 'bg-amber-500'
-                          : 'bg-emerald-500'
+                          ? 'bg-warning'
+                          : 'bg-accent'
                       }`} />
                       <span className={`text-xs font-bold ${
                         overallPercentage > 100
-                          ? 'text-rose-600'
+                          ? 'text-destructive'
                           : overallPercentage > 75
-                          ? 'text-amber-600'
-                          : 'text-emerald-600'
+                          ? 'text-warning'
+                          : 'text-accent'
                       }`}>
                         {Math.round(overallPercentage)}%
                       </span>
@@ -182,7 +182,7 @@ export const BudgetSection = ({
                 </div>
 
                 {/* User's Budget Cards */}
-                <div className="divide-y divide-gray-100">
+                <div className="divide-y divide-primary/10">
                   {userBudgets
                     .sort((a, b) => b.amount - a.amount)
                     .map((budgetInfo, budgetIndex) => {
@@ -199,7 +199,7 @@ export const BudgetSection = ({
                       return (
                         <div
                           key={budget.id}
-                          className="transform transition-all duration-200 hover:bg-slate-50/50"
+                          className="transform transition-all duration-200 hover:bg-primary/5"
                           style={{
                             animationDelay: `${(index * 150) + (budgetIndex * 100)}ms`,
                           }}
@@ -207,14 +207,14 @@ export const BudgetSection = ({
                           <Suspense fallback={
                             <div className="px-3 py-2 animate-pulse">
                               <div className="flex items-center gap-3">
-                                <div className="w-11 h-11 bg-slate-200 rounded-2xl"></div>
+                                <div className="w-11 h-11 bg-muted rounded-2xl"></div>
                                 <div className="flex-1">
-                                  <div className="h-4 bg-slate-200 rounded w-24 mb-1"></div>
-                                  <div className="h-3 bg-slate-200 rounded w-16"></div>
+                                  <div className="h-4 bg-muted rounded w-24 mb-1"></div>
+                                  <div className="h-3 bg-muted rounded w-16"></div>
                                 </div>
                                 <div className="text-right">
-                                  <div className="h-4 bg-slate-200 rounded w-20 mb-1"></div>
-                                  <div className="h-3 bg-slate-200 rounded w-12"></div>
+                                  <div className="h-4 bg-muted rounded w-20 mb-1"></div>
+                                  <div className="h-3 bg-muted rounded w-12"></div>
                                 </div>
                               </div>
                             </div>

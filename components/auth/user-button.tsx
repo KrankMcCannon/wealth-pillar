@@ -56,7 +56,7 @@ export function UserButton({ showName = false, variant = 'default' }: UserButton
           {showName && (
             <div className="flex flex-col items-start text-left">
               <span className="text-sm font-medium">{user.name}</span>
-              <span className="text-xs text-muted-foreground capitalize">{user.role}</span>
+              <span className="text-xs capitalize">{user.role}</span>
             </div>
           )}
         </Button>
@@ -66,10 +66,10 @@ export function UserButton({ showName = false, variant = 'default' }: UserButton
         <DropdownMenuLabel>
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-medium leading-none">{user.name}</p>
-            <p className="text-xs leading-none text-muted-foreground">
+            <p className="text-xs leading-none">
               {user.email}
             </p>
-            <p className="text-xs leading-none text-muted-foreground capitalize">
+            <p className="text-xs leading-none capitalize">
               Ruolo: {user.role}
             </p>
           </div>
@@ -89,7 +89,7 @@ export function UserButton({ showName = false, variant = 'default' }: UserButton
         <DropdownMenuSeparator />
 
         <DropdownMenuItem
-          className="text-red-600 focus:text-red-600"
+          className="text-destructive focus:text-destructive"
           onClick={() => signOut()}
         >
           <LogOut className="mr-2 h-4 w-4" />
