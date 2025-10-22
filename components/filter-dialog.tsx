@@ -44,9 +44,9 @@ function FilterDialogContent({
 
   return (
     <div className="flex flex-col h-full bg-card">
-      <div className="flex-1 p-4 space-y-6">
+      <div className="flex-1 p-4 space-y-4 overflow-y-auto">
         {/* Transaction Type Filter */}
-        <div className="space-y-3">
+        <div className="space-y-2">
         <h4 className="text-sm font-medium text-foreground">Tipo</h4>
           <div className="grid grid-cols-3 gap-2">
             {TRANSACTION_TYPES.map((type) => (
@@ -69,7 +69,7 @@ function FilterDialogContent({
         </div>
 
         {/* Category Filter */}
-        <div className="space-y-3">
+        <div className="space-y-2">
         <h4 className="text-sm font-medium text-foreground">Categoria</h4>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -80,7 +80,7 @@ function FilterDialogContent({
               className="pl-9"
             />
           </div>
-          <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto scrollbar-thin">
+          <div className="grid grid-cols-2 gap-2 max-h-36 overflow-y-auto scrollbar-thin">
             {[
               { label: "Tutte", key: "all", icon: "FileText" },
               ...filteredCategories
@@ -106,7 +106,7 @@ function FilterDialogContent({
       </div>
 
       {/* Footer with Reset and Apply buttons */}
-      <div className="p-4 flex items-center gap-2 border-t border-primary/20 bg-card rounded-b-2xl">
+      <div className="p-3 flex items-center gap-2 border-t border-border bg-card rounded-b-2xl flex-shrink-0">
         <Button
           variant="outline"
           size="lg"
@@ -154,13 +154,15 @@ export function FilterDialog(props: FilterDialogProps) {
             <Filter className={filterIconClasses} />
           </Button>
         </DialogTrigger>
-        <DialogContent className="sm:max-w-md border-primary/20 shadow-2xl rounded-3xl p-0 bg-white">
-          <DialogHeader className="p-4 border-b border-primary/20">
-            <DialogTitle className="text-lg font-semibold text-primary">
+        <DialogContent className="sm:max-w-md max-h-[75vh] border border-border shadow-xl rounded-3xl p-0 bg-card overflow-hidden flex flex-col">
+          <DialogHeader className="px-4 py-3 border-b border-border flex-shrink-0">
+            <DialogTitle className="text-lg font-semibold text-foreground">
               Filtri
             </DialogTitle>
           </DialogHeader>
-          <FilterDialogContent {...props} />
+          <div className="flex-1 overflow-y-auto">
+            <FilterDialogContent {...props} />
+          </div>
         </DialogContent>
       </Dialog>
     );
@@ -173,9 +175,8 @@ export function FilterDialog(props: FilterDialogProps) {
           <Filter className={filterIconClasses} />
         </Button>
       </DrawerTrigger>
-      <DrawerContent className="border-t-0 rounded-3xl bg-card liquid-glass-strong">
-        <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-muted" />
-        <div className="p-0">
+      <DrawerContent className="rounded-t-3xl bg-card shadow-xl max-h-[70vh] overflow-hidden flex flex-col">
+        <div className="p-0 flex-1 overflow-y-auto">
           <FilterDialogContent {...props} />
         </div>
       </DrawerContent>

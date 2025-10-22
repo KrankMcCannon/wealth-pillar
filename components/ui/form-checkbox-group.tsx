@@ -72,7 +72,7 @@ export function FormCheckboxGroup({
   searchPlaceholder = "Cerca...",
   showSelectAll = true,
   renderIcon,
-  maxHeight = "300px",
+  maxHeight = "200px",
 }: FormCheckboxGroupProps) {
   const [searchQuery, setSearchQuery] = React.useState("");
 
@@ -125,17 +125,17 @@ export function FormCheckboxGroup({
   };
 
   return (
-    <div className={cn("space-y-3", className)}>
+    <div className={cn("flex flex-col gap-2 max-h-fit", className)}>
       {/* Search */}
       {showSearch && (
-        <div className="relative">
+        <div className="relative flex-shrink-0">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary/50" />
           <Input
             type="text"
             placeholder={searchPlaceholder}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 bg-card border-primary/20"
+            className="pl-10 bg-card border-primary/20 text-sm"
             disabled={disabled}
           />
         </div>
@@ -143,7 +143,7 @@ export function FormCheckboxGroup({
 
       {/* Select All/None Buttons */}
       {showSelectAll && filteredOptions.length > 0 && (
-        <div className="flex items-center gap-2 text-sm">
+        <div className="flex items-center gap-2 text-sm flex-shrink-0">
           <button
             type="button"
             onClick={handleSelectAll}
@@ -153,7 +153,7 @@ export function FormCheckboxGroup({
               allSelected && "font-semibold"
             )}
           >
-            {allSelected ? "Deseleziona tutto" : "Seleziona tutto"}
+            {allSelected ? "Deseleziona" : "Seleziona"}
           </button>
           {value.length > 0 && (
             <>
@@ -164,12 +164,12 @@ export function FormCheckboxGroup({
                 disabled={disabled}
                 className="text-foreground/70 hover:text-primary hover:underline disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Deseleziona tutto
+                Deseleziona
               </button>
             </>
           )}
-          <span className="ml-auto text-foreground/70">
-            {value.length} / {options.length} selezionati
+          <span className="ml-auto text-foreground/70 text-xs">
+            {value.length}/{options.length}
           </span>
         </div>
       )}
@@ -177,42 +177,44 @@ export function FormCheckboxGroup({
       {/* Checkbox List */}
       <div
         className={cn(
-          "space-y-2 overflow-y-auto pr-2",
+          "flex-1 min-h-0 overflow-y-auto space-y-2 pr-1",
           "scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent"
         )}
         style={{ maxHeight }}
       >
         {filteredOptions.length === 0 ? (
           <p className="text-sm text-foreground/70 text-center py-4">
-            Nessun risultato trovato
+            Nessun risultato
           </p>
         ) : (
           filteredOptions.map((option) => (
             <div
               key={option.value}
               className={cn(
-                "flex items-center space-x-3 p-3 rounded-lg",
+                "flex items-center space-x-2 p-3 rounded-lg",
                 "border border-primary/10 bg-card",
                 "hover:bg-primary/5 transition-colors",
                 option.disabled && "opacity-50 cursor-not-allowed"
               )}
+              style={{ contentVisibility: 'auto' }}
             >
               <Checkbox
                 id={`checkbox-${option.value}`}
                 checked={value.includes(option.value)}
                 onCheckedChange={() => handleToggle(option.value)}
                 disabled={disabled || option.disabled}
+                className="shrink-0"
               />
               <Label
                 htmlFor={`checkbox-${option.value}`}
                 className={cn(
-                  "flex items-center gap-2 flex-1 cursor-pointer",
+                  "flex items-center gap-2 flex-1 cursor-pointer text-sm",
                   (disabled || option.disabled) && "cursor-not-allowed"
                 )}
               >
                 {renderIcon && renderIcon(option)}
                 {option.icon && <span>{option.icon}</span>}
-                <span className="text-sm font-medium">{option.label}</span>
+                <span className="font-medium">{option.label}</span>
               </Label>
             </div>
           ))

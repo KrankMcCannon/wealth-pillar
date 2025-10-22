@@ -68,10 +68,10 @@ export function BudgetForm({
         />
       }
     >
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <ModalContent>
-          <ModalSection>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <form onSubmit={handleSubmit} className="space-y-2">
+        <ModalContent className="gap-2">
+          <ModalSection className="gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {/* Utente (if not forced) */}
               {!selectedUserId && (
                 <FormField label="Utente" required error={controller.errors.user_id}>
@@ -105,7 +105,7 @@ export function BudgetForm({
             </div>
           </ModalSection>
 
-          <ModalSection>
+          <ModalSection className="gap-2">
             {/* Descrizione */}
             <FormField label="Descrizione" required error={controller.errors.description}>
               <Input
@@ -116,14 +116,15 @@ export function BudgetForm({
             </FormField>
           </ModalSection>
 
-          <ModalSection title="Categorie">
-            <FormField label="Seleziona categorie" required error={controller.errors.categories as any}>
+          <ModalSection className="gap-1 flex-shrink-0">
+            <FormField label="Seleziona categorie" required error={controller.errors.categories as any} className="space-y-1">
               <FormCheckboxGroup
                 value={controller.form.categories}
                 onChange={(vals) => controller.setField('categories', vals)}
                 options={categoryOptions}
                 showSearch
                 showSelectAll
+                maxHeight="200px"
               />
             </FormField>
           </ModalSection>

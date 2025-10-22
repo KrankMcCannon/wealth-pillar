@@ -30,16 +30,15 @@ const DrawerContent = React.forwardRef<
       {...props}
     >
       <motion.div
-        initial={{ y: "100%" }}
-        animate={{ y: 0 }}
-        exit={{ y: "100%" }}
+        initial={{ scale: 0.95, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.95, opacity: 0 }}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
         className={cn(
-          "fixed inset-x-0 bottom-0 z-50 mt-24 flex h-auto flex-col rounded-t-3xl border border-primary/20 bg-card/95 liquid-glass-strong",
+          "fixed top-[50%] left-[50%] z-50 flex h-auto w-[90%] max-w-[90%] max-h-[70vh] flex-col rounded-2xl border border-border bg-card shadow-xl translate-x-[-50%] translate-y-[-50%] overflow-hidden",
           className
         )}
       >
-        <div className="mx-auto mt-4 h-2 w-[100px] rounded-full bg-primary/40" />
         {children}
       </motion.div>
     </DialogContent>

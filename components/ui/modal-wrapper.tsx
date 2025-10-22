@@ -24,20 +24,7 @@ import { cn } from "@/lib/utils";
  * Modal Wrapper Component
  *
  * Unified modal component that automatically switches between Dialog (desktop)
- * and Drawer (mobile) based on screen size. Provides consistent modal behavior
- * across the application.
- *
- * @example
- * ```tsx
- * <ModalWrapper
- *   isOpen={isOpen}
- *   onOpenChange={setIsOpen}
- *   title="Create Transaction"
- *   description="Add a new transaction to your account"
- * >
- *   <FormContent />
- * </ModalWrapper>
- * ```
+ * and Drawer (mobile) based on screen size.
  */
 
 // ============================================================================
@@ -122,23 +109,23 @@ export function ModalWrapper({
         <DialogContent
           className={cn(
             getMaxWidthClass(),
-            "p-0 rounded-2xl border border-primary/20 bg-card shadow-2xl",
+            "p-0",
             className
           )}
           showCloseButton={showCloseButton && !isLoading}
         >
-          <DialogHeader className="rounded-t-2xl p-5 bg-card border-b border-primary/20">
+          <DialogHeader className="rounded-t-2xl px-5 py-4 bg-card border-b border-border flex-shrink-0">
             <DialogTitle className="text-lg font-semibold text-foreground">
               {title}
             </DialogTitle>
             {description && (
-              <DialogDescription className="text-sm text-muted-foreground">
+              <DialogDescription className="text-sm text-muted-foreground mt-1">
                 {description}
               </DialogDescription>
             )}
           </DialogHeader>
 
-          <div className={cn("space-y-4 px-6 py-5 text-foreground", contentClassName)}>
+          <div className={cn("px-6 py-4 text-foreground flex-1 overflow-y-auto", contentClassName)}>
             {isLoading ? (
               <div className="flex items-center justify-center py-8">
                 <div className="liquid-pulse size-8 rounded-full bg-primary/20" />
@@ -152,7 +139,7 @@ export function ModalWrapper({
           </div>
 
           {footer && !isLoading && (
-            <DialogFooter className="px-6 py-4 border-t border-primary/20 bg-card rounded-b-2xl">
+            <DialogFooter className="px-6 py-4 border-t border-border bg-card rounded-b-2xl flex-shrink-0">
               {footer}
             </DialogFooter>
           )}
@@ -166,25 +153,22 @@ export function ModalWrapper({
     <Drawer open={isOpen} onOpenChange={handleOpenChange}>
       <DrawerContent
         className={cn(
-          "rounded-t-3xl max-h-[95vh] p-0 border-t border-primary/20 bg-card",
+          "p-0",
           className
         )}
       >
-        {/* Drawer handle */}
-        <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-primary/30 mt-4" />
-
-        <DrawerHeader className="text-left bg-card px-4 py-4 border-b border-primary/20">
+        <DrawerHeader className="text-left bg-card px-4 py-3 border-b border-border flex-shrink-0">
           <DrawerTitle className="text-lg font-semibold text-foreground">
             {title}
           </DrawerTitle>
           {description && (
-            <DrawerDescription className="text-sm text-muted-foreground">
+            <DrawerDescription className="text-sm text-muted-foreground mt-1">
               {description}
             </DrawerDescription>
           )}
         </DrawerHeader>
 
-        <div className={cn("px-4 pb-4 overflow-y-auto text-foreground", contentClassName)}>
+        <div className={cn("px-4 py-3 text-foreground flex-1 overflow-y-auto", contentClassName)}>
           {isLoading ? (
             <div className="flex items-center justify-center py-8">
               <div className="liquid-pulse size-8 rounded-full bg-primary/20" />
@@ -198,7 +182,7 @@ export function ModalWrapper({
         </div>
 
         {footer && !isLoading && (
-          <DrawerFooter className="pt-4 border-t border-primary/20 bg-card rounded-full">{footer}</DrawerFooter>
+          <DrawerFooter className="pt-3 pb-4 px-4 border-t border-border bg-card flex-shrink-0">{footer}</DrawerFooter>
         )}
       </DrawerContent>
     </Drawer>
@@ -219,7 +203,7 @@ export function ModalContent({
   children: React.ReactNode;
   className?: string;
 }) {
-  return <div className={cn("space-y-4", className)}>{children}</div>;
+  return <div className={cn("flex flex-col gap-2", className)}>{children}</div>;
 }
 
 /**
@@ -235,9 +219,9 @@ export function ModalSection({
   className?: string;
 }) {
   return (
-    <div className={cn("space-y-3", className)}>
+    <div className={cn("flex flex-col gap-1.5", className)}>
       {title && (
-        <h4 className="text-sm font-medium">{title}</h4>
+        <h4 className="text-xs font-semibold text-foreground/80 uppercase tracking-wide flex-shrink-0">{title}</h4>
       )}
       {children}
     </div>
