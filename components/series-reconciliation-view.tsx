@@ -252,10 +252,10 @@ export function SeriesReconciliationView({
                     <div key={transaction.id} className="flex items-center justify-between p-4 bg-card rounded-lg border border-primary/20">
                       <div className="flex items-center gap-3">
                         <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                          transaction.type === 'income' ? 'bg-accent/10' : 'bg-destructive/10'
+                          transaction.type === 'income' ? 'bg-success/10' : 'bg-destructive/10'
                         }`}>
                           {transaction.type === 'income' ? (
-                            <TrendingUp className="w-5 h-5 text-accent" />
+                            <TrendingUp className="w-5 h-5 text-success" />
                           ) : (
                             <TrendingDown className="w-5 h-5 text-destructive" />
                           )}
@@ -269,7 +269,7 @@ export function SeriesReconciliationView({
                       </div>
                       <div className="text-right">
                         <div className={`font-semibold ${
-                          transaction.type === 'income' ? 'text-accent' : 'text-destructive'
+                          transaction.type === 'income' ? 'text-success' : 'text-destructive'
                         }`}>
                           {formatCurrency(transaction.amount)}
                         </div>

@@ -14,7 +14,7 @@ interface BankAccountCardProps {
 export function BankAccountCard({ account, accountBalance, onClick }: BankAccountCardProps) {
   return (
     <Card
-      className="px-3 py-2 min-w-[180px] flex-shrink-0 bg-card border border-primary/20 hover:shadow-md hover:border-primary/40 transition-all duration-200 cursor-pointer"
+      className="px-3 py-2 min-w-[180px] flex-shrink-0 bg-card border border-primary/20 hover:shadow-lg hover:border-primary/40 transition-all duration-200 cursor-pointer shadow-sm"
       onClick={onClick}
     >
       <div className="flex items-center justify-between">

@@ -86,7 +86,7 @@ export const BudgetSection = ({
     <section className="bg-card px-4 py-4">
       <SectionHeader
         title="Budget"
-        subtitle={`${budgetEntries.length} ${budgetEntries.length === 1 ? 'utente' : 'utenti'} con budget attivi`}
+        subtitle={budgetEntries.length > 1 ? `${budgetEntries.length} utenti con budget attivi` : undefined}
         className="mb-3"
       />
 
@@ -108,7 +108,7 @@ export const BudgetSection = ({
             return (
               <div
                 key={user.id}
-                className="bg-card shadow-sm border border-primary/20 rounded-xl overflow-hidden transform transition-all duration-300 hover:shadow-md hover:shadow-primary/20 hover:scale-[1.01]"
+                className="bg-card shadow-sm border border-primary/20 rounded-xl overflow-hidden"
                 style={{
                   animationDelay: `${index * 150}ms`,
                 }}
@@ -185,7 +185,7 @@ export const BudgetSection = ({
                 <div className="divide-y divide-primary/10">
                   {userBudgets
                     .sort((a, b) => b.amount - a.amount)
-                    .map((budgetInfo, budgetIndex) => {
+                    .map((budgetInfo) => {
                       const budget = budgets.find((b: Budget) => b.id === budgetInfo.id);
                       if (!budget) return null;
 
@@ -197,14 +197,9 @@ export const BudgetSection = ({
                       };
 
                       return (
-                        <div
+                        <Suspense 
                           key={budget.id}
-                          className="transform transition-all duration-200 hover:bg-primary/5"
-                          style={{
-                            animationDelay: `${(index * 150) + (budgetIndex * 100)}ms`,
-                          }}
-                        >
-                          <Suspense fallback={
+                          fallback={
                             <div className="px-3 py-2 animate-pulse">
                               <div className="flex items-center gap-3">
                                 <div className="w-11 h-11 bg-muted rounded-2xl"></div>
@@ -219,20 +214,19 @@ export const BudgetSection = ({
                               </div>
                             </div>
                           }>
-                            <BudgetCard
-                              budget={budget}
-                              budgetInfo={mappedBudgetInfo}
-                              onClick={() => {
-                                const params = new URLSearchParams();
-                                params.set('budget', budget.id);
-                                if (selectedViewUserId !== 'all') {
-                                  params.set('member', selectedViewUserId);
-                                }
-                                router.push(`/budgets?${params.toString()}`);
-                              }}
-                            />
-                          </Suspense>
-                        </div>
+                          <BudgetCard
+                            budget={budget}
+                            budgetInfo={mappedBudgetInfo}
+                            onClick={() => {
+                              const params = new URLSearchParams();
+                              params.set('budget', budget.id);
+                              if (selectedViewUserId !== 'all') {
+                                params.set('member', selectedViewUserId);
+                              }
+                              router.push(`/budgets?${params.toString()}`);
+                            }}
+                          />
+                        </Suspense>
                       );
                     })}
                 </div>

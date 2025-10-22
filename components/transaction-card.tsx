@@ -24,7 +24,7 @@ export function TransactionCard({
   const getCardStyles = () => {
     switch (variant) {
       case 'recurrent':
-        return "p-4 bg-gradient-to-r from-primary/10 via-card/80 to-card/60 backdrop-blur-sm border border-primary/20 hover:shadow-xl hover:shadow-primary/20";
+        return "p-4 bg-primary/10 backdrop-blur-sm border border-primary/20 hover:shadow-xl hover:shadow-primary/20";
       default:
         return "p-3 mb-2 bg-card/80 backdrop-blur-sm shadow-lg border border-border hover:shadow-xl";
     }

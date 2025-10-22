@@ -94,7 +94,7 @@ export function RecurringExecutionManager({
           className="mb-4"
         />
         <div className="text-center py-8">
-          <div className="flex size-16 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5 mx-auto mb-4">
+          <div className="flex size-16 items-center justify-center rounded-2xl bg-primary/10 mx-auto mb-4">
             <CheckCircle className="w-8 h-8 text-primary" />
           </div>
           <p className="font-medium text-foreground">Tutte le transazioni sono aggiornate</p>
@@ -135,7 +135,7 @@ export function RecurringExecutionManager({
                   <div className="text-sm">{series.description}</div>
                 </div>
                 <div className="text-right">
-                  <div className={`font-semibold ${series.type === 'income' ? 'text-primary' : 'text-destructive'}`}>
+                  <div className={`font-semibold ${series.type === 'income' ? 'text-success' : 'text-destructive'}`}>
                     {formatCurrency(series.amount)}
                   </div>
                   <div className="text-xs">{series.frequency}</div>
@@ -146,7 +146,7 @@ export function RecurringExecutionManager({
 
           <div className="flex items-center justify-between p-3 bg-primary/15 rounded-lg border border-primary/30">
             <span className="font-semibold text-primary">Impatto Totale:</span>
-            <span className={`font-bold text-lg ${totalDueAmount >= 0 ? 'text-primary' : 'text-destructive'}`}>
+            <span className={`font-bold text-lg ${totalDueAmount >= 0 ? 'text-success' : 'text-destructive'}`}>
               {formatCurrency(Math.abs(totalDueAmount))}
             </span>
           </div>
@@ -186,7 +186,7 @@ export function RecurringExecutionManager({
                     <div className="text-sm text-destructive">{daysOverdue} giorni in ritardo</div>
                   </div>
                   <div className="text-right">
-                    <div className={`font-semibold ${series.type === 'income' ? 'text-primary' : 'text-destructive'}`}>
+                    <div className={`font-semibold ${series.type === 'income' ? 'text-success' : 'text-destructive'}`}>
                       {formatCurrency(series.amount)}
                     </div>
                   </div>

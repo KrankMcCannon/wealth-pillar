@@ -31,6 +31,14 @@ export function BudgetCard({ budget, budgetInfo, onClick }: BudgetCardProps) {
     <div
       className="px-3 py-2 hover:bg-accent/10 transition-colors duration-200 cursor-pointer"
       onClick={onClick}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onClick();
+        }
+      }}
     >
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-3 flex-1">
@@ -69,7 +77,7 @@ export function BudgetCard({ budget, budgetInfo, onClick }: BudgetCardProps) {
           <Text
             variant="emphasis"
             size="sm"
-            className={getStatusVariant(budgetInfo?.progress || 0) === 'success' ? 'text-primary' : getStatusVariant(budgetInfo?.progress || 0) === 'warning' ? 'text-warning' : 'text-destructive'}
+            className={getStatusVariant(budgetInfo?.progress || 0) === 'success' ? 'text-success' : getStatusVariant(budgetInfo?.progress || 0) === 'warning' ? 'text-warning' : 'text-destructive'}
           >
             {formatCurrency(remaining)}
           </Text>
@@ -85,11 +93,8 @@ export function BudgetCard({ budget, budgetInfo, onClick }: BudgetCardProps) {
           <div
             className={progressFillVariants({ status: getStatusVariant(budgetInfo?.progress || 0) })}
             style={{ width: `${Math.min(budgetInfo?.progress || 0, 100)}%` }}
-          >
-            <div className="absolute inset-0 bg-gradient-to-t from-white/20 to-transparent rounded-full"></div>
-          </div>
+          />
         </div>
-        <div className="absolute inset-0 rounded-full bg-gradient-to-t from-black/5 to-transparent pointer-events-none"></div>
       </div>
 
     </div>

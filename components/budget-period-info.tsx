@@ -72,11 +72,11 @@ export function BudgetPeriodInfo({ period, className = "", showSpending = true }
             </p>
           </div>
 
-          <div className="bg-primary/5 rounded-lg px-3 py-2 border border-primary/10">
-            <p className="text-xs font-semibold text-primary/70 uppercase tracking-wide mb-1">
+          <div className="bg-success/5 rounded-lg px-3 py-2 border border-success/10">
+            <p className="text-xs font-semibold text-success/70 uppercase tracking-wide mb-1">
               Risparmiato
             </p>
-            <p className="text-sm font-bold text-accent">
+            <p className="text-sm font-bold text-success">
               {formatCurrency(period.total_saved)}
             </p>
           </div>

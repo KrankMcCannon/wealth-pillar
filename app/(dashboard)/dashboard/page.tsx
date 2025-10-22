@@ -161,6 +161,7 @@ export default function DashboardPage() {
           <Suspense fallback={<BalanceSectionSkeleton />}>
             <BalanceSection
               accounts={accounts}
+              users={users}
               accountBalances={accountBalances}
               totalBalance={totalBalance}
               onAccountClick={handleAccountClick}

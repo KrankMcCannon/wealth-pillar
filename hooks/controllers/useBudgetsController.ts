@@ -12,24 +12,24 @@
 
 'use client';
 
-import { useState, useCallback, useMemo, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import {
-  useBudgets,
-  useTransactions,
-  useCategories,
   useAccounts,
   useBudgetPeriods,
-  useUserSelection,
+  useBudgets,
+  useCategories,
   useDeleteBudget,
-  useDeleteTransaction
+  useDeleteTransaction,
+  useTransactions,
+  useUserSelection
 } from '@/hooks';
-import { createBudgetsViewModel } from '@/lib/view-models/budgets-view-model';
 import {
-  createUserNamesMap,
-  createAccountNamesMap
+  createAccountNamesMap,
+  createUserNamesMap
 } from '@/lib/services/data-grouping.service';
 import type { Budget, Transaction } from '@/lib/types';
+import { createBudgetsViewModel } from '@/lib/view-models/budgets-view-model';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 /**
  * Filter budgets based on user role and selection
@@ -59,6 +59,7 @@ function getBudgetsForUser(
 
 export function useBudgetsController() {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   // ========================================
   // DATA FETCHING (Read-only queries)
@@ -164,13 +165,27 @@ export function useBudgetsController() {
     if (!budgets || !users || !currentUser) return;
 
     const available = getBudgetsForUser(budgets, selectedViewUserId, currentUser, users);
+    
+    // Check if there's a budget ID in the URL
+    const budgetIdFromUrl = searchParams.get('budget');
+    
+    if (budgetIdFromUrl) {
+      // Try to find and select the budget from URL
+      const budgetFromUrl = available.find(b => b.id === budgetIdFromUrl);
+      if (budgetFromUrl && (!selectedBudget || selectedBudget.id !== budgetIdFromUrl)) {
+        console.log('Selecting budget from URL:', budgetFromUrl.description);
+        setSelectedBudget(budgetFromUrl);
+        return;
+      }
+    }
+    
     const first = available[0];
 
     // Only update if we don't have a selected budget or it's not in the available budgets
     if (!selectedBudget || !available.some(b => b.id === selectedBudget.id)) {
       setSelectedBudget(first || null);
     }
-  }, [budgets, selectedViewUserId, currentUser, users, selectedBudget]);
+  }, [budgets, selectedViewUserId, currentUser, users, selectedBudget, searchParams]);
 
   // ========================================
   // ACTION HANDLERS

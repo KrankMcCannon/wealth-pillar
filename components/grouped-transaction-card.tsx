@@ -37,12 +37,12 @@ export function GroupedTransactionCard({
         if (context === 'due') {
           // For due context, we'll determine background based on most urgent transaction
           const mostUrgentDays = Math.min(...transactions.map(tx => getDaysUntilDue(tx)));
-          if (mostUrgentDays <= 1) return "py-0 bg-gradient-to-r from-destructive/10 via-destructive/5 to-card backdrop-blur-sm border border-destructive/30 hover:shadow-xl hover:shadow-destructive/20";
-          if (mostUrgentDays <= 3) return "py-0 bg-gradient-to-r from-warning/10 via-warning/5 to-card backdrop-blur-sm border border-warning/30 hover:shadow-xl hover:shadow-warning/20";
-          if (mostUrgentDays <= 7) return "py-0 bg-gradient-to-r from-warning/10 via-warning/5 to-card backdrop-blur-sm border border-warning/30 hover:shadow-xl hover:shadow-warning/20";
-          return "py-0 bg-gradient-to-r from-primary/10 via-card to-card backdrop-blur-sm border border-primary/20 hover:shadow-xl hover:shadow-primary/20";
+          if (mostUrgentDays <= 1) return "py-0 bg-destructive/10 backdrop-blur-sm border border-destructive/30 hover:shadow-xl hover:shadow-destructive/20";
+          if (mostUrgentDays <= 3) return "py-0 bg-warning/10 backdrop-blur-sm border border-warning/30 hover:shadow-xl hover:shadow-warning/20";
+          if (mostUrgentDays <= 7) return "py-0 bg-warning/10 backdrop-blur-sm border border-warning/30 hover:shadow-xl hover:shadow-warning/20";
+          return "py-0 bg-primary/10 backdrop-blur-sm border border-primary/20 hover:shadow-xl hover:shadow-primary/20";
         } else {
-          return "py-0 bg-gradient-to-r from-primary/10 via-card to-card backdrop-blur-sm border border-primary/20 hover:shadow-xl hover:shadow-primary/20";
+          return "py-0 bg-primary/10 backdrop-blur-sm border border-primary/20 hover:shadow-xl hover:shadow-primary/20";
         }
       default:
         return "py-0 bg-card backdrop-blur-sm border border-primary/20 shadow-lg hover:shadow-xl transition-all duration-300";
@@ -52,9 +52,9 @@ export function GroupedTransactionCard({
   const getSectionHeaderStyles = () => {
     switch (variant) {
       case 'recurrent':
-        return "bg-gradient-to-r from-primary/10 to-card border-b border-primary/20";
+        return "bg-primary/10 border-b border-primary/20";
       default:
-        return "bg-gradient-to-r from-card to-primary/5 border-b border-primary/20";
+        return "bg-primary/5 border-b border-primary/20";
     }
   };
 
@@ -83,22 +83,22 @@ export function GroupedTransactionCard({
         return 'text-primary'; // Standard primary for informative context
       }
     }
-    return transaction.type === 'income' ? 'text-primary' : 'text-destructive';
+    return transaction.type === 'income' ? 'text-success' : 'text-destructive';
   };
 
   const getTransactionIconColor = (transaction: Transaction) => {
     if (variant === 'recurrent') {
       if (context === 'due') {
         const daysUntilDue = getDaysUntilDue(transaction);
-        if (daysUntilDue <= 1) return 'from-destructive/20 to-destructive/10 text-destructive'; // Due today/tomorrow
-        if (daysUntilDue <= 3) return 'from-warning/20 to-warning/10 text-warning'; // Due in 2-3 days
-        if (daysUntilDue <= 7) return 'from-warning/15 to-warning/5 text-warning/80'; // Due this week
-        return 'from-primary/20 to-primary/10 text-primary'; // Normal
+        if (daysUntilDue <= 1) return 'bg-destructive/10 text-destructive'; // Due today/tomorrow
+        if (daysUntilDue <= 3) return 'bg-warning/10 text-warning'; // Due in 2-3 days
+        if (daysUntilDue <= 7) return 'bg-warning/5 text-warning/80'; // Due this week
+        return 'bg-primary/10 text-primary'; // Normal
       } else {
-        return 'from-primary/20 to-primary/10 text-primary'; // Standard primary for informative context
+        return 'bg-primary/10 text-primary'; // Standard primary for informative context
       }
     }
-    return 'from-primary/20 to-primary/10 text-primary';
+    return 'bg-primary/10 text-primary';
   };
 
   const getTransactionBadgeColor = (transaction: Transaction) => {
@@ -150,7 +150,7 @@ export function GroupedTransactionCard({
                 className="flex items-center gap-2.5 flex-1 min-w-0 cursor-pointer"
                 onClick={() => onEditTransaction?.(transaction)}
               >
-                <div className={`flex size-8 items-center justify-center rounded-lg bg-gradient-to-br ${getTransactionIconColor(transaction)} shadow-sm group-hover:shadow-md transition-all duration-200 shrink-0`}>
+                <div className={`flex size-8 items-center justify-center rounded-lg ${getTransactionIconColor(transaction)} shadow-sm group-hover:shadow-md transition-all duration-200 shrink-0`}>
                   <CategoryIcon
                     categoryKey={transaction.category}
                     size={iconSizes.xs}

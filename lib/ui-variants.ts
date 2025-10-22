@@ -116,12 +116,12 @@ export const iconContainerVariants = cva(
         xl: "size-16",
       },
       color: {
-        primary: "bg-gradient-to-br from-primary/20 to-primary/10 text-primary",
-        warning: "bg-gradient-to-br from-warning/20 to-warning/10 text-warning",
-        destructive: "bg-gradient-to-br from-destructive/20 to-destructive/10 text-destructive",
-        success: "bg-gradient-to-br from-primary/20 to-primary/10 text-primary",
-        muted: "bg-gradient-to-br from-muted/20 to-muted/10 text-muted-foreground",
-        accent: "bg-gradient-to-br from-accent/20 to-accent/10 text-primary",
+        primary: "bg-primary/10 text-primary",
+        warning: "bg-warning/10 text-warning",
+        destructive: "bg-destructive/10 text-destructive",
+        success: "bg-success/10 text-success",
+        muted: "bg-muted/20 text-muted-foreground",
+        accent: "bg-accent/10 text-primary",
       },
     },
     defaultVariants: {
@@ -151,7 +151,7 @@ export const statusBadgeVariants = cva(
   {
     variants: {
       status: {
-        success: "bg-primary/10 text-primary border border-primary/20",
+        success: "bg-success/10 text-success border border-success/20",
         warning: "bg-warning/10 text-warning border border-warning/20",
         danger: "bg-destructive/10 text-destructive border border-destructive/20",
         neutral: "bg-muted text-muted-foreground border border-border",
@@ -189,7 +189,7 @@ export const financialButtonVariants = cva(
   {
     variants: {
       intent: {
-        income: "bg-primary text-primary-foreground hover:bg-primary/90",
+        income: "bg-success text-success-foreground hover:bg-success/90 shadow-success/20",
         expense: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
         transfer: "bg-secondary text-secondary-foreground hover:bg-secondary/90",
         neutral: "bg-muted text-foreground hover:bg-muted/80",
@@ -226,10 +226,10 @@ export const progressBarVariants = cva(
   {
     variants: {
       status: {
-        success: "bg-gradient-to-r from-primary/10 to-primary/5",
-        warning: "bg-gradient-to-r from-warning/10 to-warning/5",
-        danger: "bg-gradient-to-r from-destructive/10 to-destructive/5",
-        neutral: "bg-gradient-to-r from-muted to-muted/50",
+        success: "bg-primary/20",
+        warning: "bg-primary/20",
+        danger: "bg-primary/20",
+        neutral: "bg-primary/20",
       },
     },
     defaultVariants: {
@@ -243,10 +243,10 @@ export const progressFillVariants = cva(
   {
     variants: {
       status: {
-        success: "bg-gradient-to-r from-primary to-primary/80",
-        warning: "bg-gradient-to-r from-warning to-warning/80",
-        danger: "bg-gradient-to-r from-destructive to-destructive/80",
-        neutral: "bg-gradient-to-r from-muted-foreground to-muted-foreground/80",
+        success: "bg-success shadow-lg shadow-success/20",
+        warning: "bg-warning",
+        danger: "bg-destructive",
+        neutral: "bg-muted-foreground",
       },
     },
     defaultVariants: {
@@ -316,7 +316,7 @@ export const transactionCardVariants = cva(
 export const amountVariants = cva("font-bold tabular-nums", {
   variants: {
     type: {
-      income: "text-primary",
+      income: "text-success",
       expense: "text-destructive",
       transfer: "text-secondary",
       balance: "text-foreground",

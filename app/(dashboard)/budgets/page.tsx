@@ -213,51 +213,57 @@ function BudgetsContent() {
 
               {/* Current Budget Display - Horizontal Layout */}
               <div className="mb-4">
-                <div className="bg-primary/10 rounded-xl p-4">
+                <div className="bg-primary/10 rounded-xl p-4 relative">
+                  {/* Budget Actions Dropdown - Top Right Corner */}
+                  <div className="absolute top-3 right-3">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="h-8 w-8 p-0 hover:bg-primary/20 rounded-lg transition-colors"
+                          title="Azioni Budget"
+                        >
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-48 bg-card/95 backdrop-blur-xl border border-border/50 shadow-xl rounded-xl p-2">
+                        <DropdownMenuItem
+                          className="text-sm font-medium hover:bg-primary/8 hover:text-primary rounded-lg px-3 py-2.5 cursor-pointer transition-colors"
+                          onSelect={() => handleEditBudget(selectedBudget)}
+                        >
+                          <span className="mr-2">✏️</span>
+                          Modifica Budget
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="text-sm font-medium text-destructive hover:bg-red-50 hover:text-red-700 rounded-lg px-3 py-2.5 cursor-pointer transition-colors"
+                          onSelect={() => handleDeleteBudget(selectedBudget.id)}
+                        >
+                          <span className="mr-2">🗑️</span>
+                          Elimina Budget
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+
                   {/* Budget Icon, Name and Period */}
-                  <div className="flex items-center justify-between gap-3 mb-4">
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-primary/10 shadow-sm">
+                  <div className="flex items-center justify-between gap-3 mb-4 pr-10">
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-primary/10 shadow-sm flex-shrink-0">
                         <CategoryIcon
                           categoryKey={selectedBudget.categories[0] || 'altro'}
                           size={iconSizes.lg}
                           className="text-[#7578EC]"
                         />
                       </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <h3 className="text-lg font-bold leading-tight">{selectedBudget.description}</h3>
-                          {/* Budget Actions Dropdown */}
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm" className="h-6 w-6 p-0 hover:bg-primary/8 rounded-lg">
-                                <MoreVertical className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="start" className="w-48 bg-card/95 backdrop-blur-xl border border-border/50 shadow-xl rounded-xl p-2">
-                              <DropdownMenuItem
-                                className="text-sm font-medium hover:bg-primary/8 hover:text-primary rounded-lg px-3 py-2.5 cursor-pointer transition-colors"
-                                onSelect={() => handleEditBudget(selectedBudget)}
-                              >
-                                <span className="mr-2">✏️</span>
-                                Modifica Budget
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                className="text-sm font-medium text-destructive hover:bg-red-50 hover:text-red-700 rounded-lg px-3 py-2.5 cursor-pointer transition-colors"
-                                onSelect={() => handleDeleteBudget(selectedBudget.id)}
-                              >
-                                <span className="mr-2">🗑️</span>
-                                Elimina Budget
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-lg font-bold leading-tight truncate">{selectedBudget.description}</h3>
                         <p className="text-xs font-medium">Budget attivo</p>
                       </div>
                     </div>
                     {/* Budget Period Date */}
                     {selectedBudget && getCurrentPeriodForUser(selectedBudget.user_id) && (
-                      <div className="text-right">
+                      <div className="text-right flex-shrink-0">
                         {(() => {
                           const period = getCurrentPeriodForUser(selectedBudget.user_id)!;
                           return (
