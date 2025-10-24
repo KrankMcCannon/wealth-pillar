@@ -3,14 +3,9 @@
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Loader2, Mail, Lock, LogIn, AlertCircle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { GoogleButton, AppleButton, GitHubButton } from '@/components/auth/social-buttons';
-import { useSignInController } from '@/hooks/useSignInController';
-import AuthCard from '@/components/auth/auth-card';
-import PasswordInput from '@/components/auth/password-input';
 import { useEffect, useState } from 'react';
+import { AppleButton, AuthCard, GitHubButton, GoogleButton, PasswordInput, useSignInController } from '@/features/auth';
+import { Button, Input, Label } from '@/components/ui';
 
 export default function Page() {
   const searchParams = useSearchParams();

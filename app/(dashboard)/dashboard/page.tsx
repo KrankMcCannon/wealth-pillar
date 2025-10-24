@@ -1,29 +1,16 @@
 "use client";
 
-import { Suspense, lazy } from "react";
+import { Suspense } from "react";
 import { Settings, Bell, AlertTriangle } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { IconContainer, Text } from "@/components/ui/primitives";
-import BottomNavigation from "@/components/bottom-navigation";
-import ErrorBoundary, { QueryErrorFallback } from "@/components/error-boundary";
-import { PageLoader } from "@/components/page-loader";
-import { useDashboardController } from "@/hooks/controllers/useDashboardController";
-
-// Lazy load heavy components
-const UserSelector = lazy(() => import("@/components/user-selector"));
-const BalanceSection = lazy(() => import("@/components/dashboard/balance-section"));
-const BudgetSection = lazy(() => import("@/components/dashboard/budget-section"));
-const RecurringSeriesSection = lazy(() => import("@/components/recurring-series-section"));
-const RecurringSeriesForm = lazy(() => import("@/components/recurring-series-form").then(module => ({ default: module.RecurringSeriesForm })));
-
-// Import skeletons
-import {
-  DashboardHeaderSkeleton,
-  UserSelectorSkeleton,
-  BalanceSectionSkeleton,
-  BudgetSectionSkeleton,
-  RecurringSeriesSkeleton
-} from "@/components/dashboard/dashboard-skeleton";
+import BottomNavigation from "@/components/layout/bottom-navigation";
+import { PageLoader, QueryErrorFallback } from "@/components/shared";
+import ErrorBoundary from "@/components/shared/error-boundary";
+import { Button, IconContainer, Text } from "@/components/ui";
+import { BalanceSectionSkeleton, BudgetSectionSkeleton, DashboardHeaderSkeleton, RecurringSeriesSkeleton, useDashboardController, UserSelectorSkeleton } from "@/features/dashboard";
+import UserSelector from "@/components/shared/user-selector";
+import { BalanceSection } from "@/features/accounts";
+import { BudgetSection } from "@/features/budgets";
+import { RecurringSeriesForm, RecurringSeriesSection } from "@/features/recurring";
 
 /**
  * Dashboard Page

@@ -3,19 +3,11 @@
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Loader2, Mail, Lock, User as UserIcon, AlertCircle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { GoogleButton, AppleButton, GitHubButton } from '@/components/auth/social-buttons';
-import AuthCard from '@/components/auth/auth-card';
 import { motion, AnimatePresence } from 'framer-motion';
-import PasswordInput from '@/components/auth/password-input';
-import PasswordStrength, { scorePassword } from '@/components/auth/password-strength';
-import PasswordRequirements, { getRequirementsStatus } from '@/components/auth/password-requirements';
-import { useSignUpController } from '@/hooks/useSignUpController';
-import EmailSuggestions from '@/components/auth/email-suggestions';
-import OnboardingModal from '@/components/onboarding/onboarding-modal';
 import { useEffect, useState } from 'react';
+import OnboardingModal from '@/components/shared/onboarding-modal';
+import { AppleButton, AuthCard, EmailSuggestions, getRequirementsStatus, GitHubButton, GoogleButton, PasswordInput, PasswordRequirements, PasswordStrength, scorePassword, useSignUpController } from '@/features/auth';
+import { Button, Input, Label } from '@/components/ui';
 
 export default function Page() {
   const searchParams = useSearchParams();

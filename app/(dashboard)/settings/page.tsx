@@ -1,16 +1,14 @@
 "use client";
 
+import { SectionHeader } from "@/components/layout";
+import BottomNavigation from "@/components/layout/bottom-navigation";
+import { PageLoader } from "@/components/shared";
+import { Button, Card } from "@/components/ui";
+import { useSettingsController } from "@/features/dashboard/hooks/use-settings-controller";
+import PermissionGuard from "@/features/permissions/components/permission-guard";
+import RoleBadge from "@/features/permissions/components/role-badge";
+import { formatDate } from "@/lib";
 import { ArrowLeft, User, UserCircle, Mail, Phone, Globe, Bell, Shield, Trash2, Users, Plus, BarChart3, CreditCard, ChevronRight, Settings, LogOut } from "lucide-react";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import BottomNavigation from "../../../components/bottom-navigation";
-import { SectionHeader } from "@/components/section-header";
-import { User as UserType } from "@/lib/types";
-import { formatDate } from "@/lib/utils";
-import { PermissionGuard } from "@/components/permissions/permission-guard";
-import { RoleBadge } from "@/components/permissions/role-badge";
-import { PageLoader } from "@/components/page-loader";
-import { useSettingsController } from "@/hooks/controllers/useSettingsController";
 
 const renderAvatarIcon = (iconName: string) => {
   const iconProps = { className: "h-5 w-5" };
@@ -172,7 +170,7 @@ export default function SettingsPage() {
                   <p className="text-xs mt-0.5">{userStats.viewableUsers} {userStats.viewableUsers === 1 ? 'membro visibile' : 'membri visibili'}</p>
                 </div>
                 <div className="divide-y divide-[#7678e4]/8">
-                  {users.map((member: UserType) => (
+                  {users.map((member) => (
                     <div key={member.id} className="p-3 flex items-center justify-between hover:bg-[#7678e4]/8 transition-all duration-200">
                       <div className="flex items-center gap-3 flex-1 min-w-0">
                         <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-white shadow-sm shrink-0">

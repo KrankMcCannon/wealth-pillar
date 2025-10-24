@@ -1,12 +1,11 @@
 "use client";
 
+import { PageLoader } from "@/components/shared";
+import { AccountCard } from "@/features/accounts";
+import { useDashboardController } from "@/features/dashboard";
+import { Account, formatCurrency } from "@/lib";
 import { ArrowLeft, Plus, CreditCard, TrendingUp, TrendingDown } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useDashboardController } from "@/hooks/controllers/useDashboardController";
-import { BankAccountCard } from "@/components/bank-account-card";
-import { formatCurrency } from "@/lib/utils";
-import { PageLoader } from "@/components/page-loader";
-import type { Account } from "@/lib/types";
 
 /**
  * Bank Accounts Detail Page
@@ -122,7 +121,7 @@ export default function AccountsPage() {
             
             return (
               <div key={account.id} className="w-full">
-                <BankAccountCard
+                <AccountCard
                   account={account}
                   accountBalance={accountBalance}
                   onClick={() => {/* TODO: Open account detail */}}

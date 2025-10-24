@@ -2,17 +2,9 @@
  * Server-side API Route for Transaction Spending Trends
  * Analyzes daily and category-based spending patterns
  */
+
+import { APIError, ErrorCode, handleServerResponse, supabaseServer, validateUserContext, withErrorHandler } from '@/lib';
 import { NextRequest, NextResponse } from 'next/server';
-import {
-  supabaseServer,
-  handleServerResponse,
-  validateUserContext,
-} from '@/lib/supabase-server';
-import {
-  withErrorHandler,
-  APIError,
-  ErrorCode,
-} from '@/lib/api-errors';
 
 /**
  * GET /api/transactions/trends

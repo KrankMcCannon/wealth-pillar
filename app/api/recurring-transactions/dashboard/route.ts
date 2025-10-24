@@ -2,18 +2,9 @@
  * Server-side API Route for Recurring Transactions Dashboard
  * Provides optimized dashboard view of recurring series with status categorization
  */
+
+import { APIError, Database, ErrorCode, handleServerResponse, supabaseServer, validateUserContext, withErrorHandler } from '@/lib';
 import { NextRequest, NextResponse } from 'next/server';
-import {
-  supabaseServer,
-  handleServerResponse,
-  validateUserContext,
-} from '@/lib/supabase-server';
-import {
-  withErrorHandler,
-  APIError,
-  ErrorCode,
-} from '@/lib/api-errors';
-import type { Database } from '@/lib/database.types';
 
 type RecurringSeries = Database['public']['Tables']['recurring_transactions']['Row'];
 

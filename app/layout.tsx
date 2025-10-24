@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { Spline_Sans } from "next/font/google";
-import "./globals.css";
 import { ClerkProvider } from '@clerk/nextjs';
-import { QueryClientProvider } from '@/components/providers/query-client-provider';
+import { QueryClientProvider } from "@/providers/query-client-provider";
+import "./globals.css";
 
 const splineSans = Spline_Sans({
   variable: "--font-spline-sans",

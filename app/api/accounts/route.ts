@@ -1,6 +1,5 @@
+import { APIError, ErrorCode, supabaseServer, validateUserContext, withErrorHandler } from '@/lib';
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseServer, validateUserContext } from '@/lib/supabase-server';
-import { withErrorHandler, APIError, ErrorCode } from '@/lib/api-errors';
 
 async function getAccounts(request: NextRequest) {
     const user = await validateUserContext();

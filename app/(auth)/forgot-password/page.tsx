@@ -1,16 +1,10 @@
 "use client";
 
 import { Loader2, Mail, Lock } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import Link from 'next/link';
-import { usePasswordResetController } from '@/hooks/usePasswordResetController';
-import AuthCard from '@/components/auth/auth-card';
 import { motion, AnimatePresence } from 'framer-motion';
-import PasswordInput from '@/components/auth/password-input';
-import PasswordRequirements, { getRequirementsStatus } from '@/components/auth/password-requirements';
-import PasswordStrength from '@/components/auth/password-strength';
+import { AuthCard, getRequirementsStatus, PasswordInput, PasswordRequirements, PasswordStrength, usePasswordResetController } from '@/features/auth';
+import { Button, Input, Label } from '@/components/ui';
 
 export default function Page() {
   const { step, email, code, password, error, loading, setEmail, setCode, setPassword, requestCode, verifyCode, submitNewPassword, resendCode, setStep } = usePasswordResetController();

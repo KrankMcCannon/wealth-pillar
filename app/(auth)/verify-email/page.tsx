@@ -1,13 +1,10 @@
 "use client";
 
 import { Loader2, Mail } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import Link from 'next/link';
-import { useEmailVerificationController } from '@/hooks/useEmailVerificationController';
-import AuthCard from '@/components/auth/auth-card';
 import { motion, AnimatePresence } from 'framer-motion';
+import { AuthCard, useEmailVerificationController } from '@/features/auth';
+import { Button, Input, Label } from '@/components/ui';
 
 export default function Page() {
   const { step, code, error, loading, setCode, setStep, requestCode, verifyCode, resend } = useEmailVerificationController();

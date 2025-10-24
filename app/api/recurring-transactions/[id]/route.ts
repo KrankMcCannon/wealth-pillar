@@ -1,19 +1,8 @@
 /**
  * Server-side API Routes for Individual Recurring Transactions (Series)
  */
-import {
-  APIError,
-  ErrorCode,
-  createValidationError,
-  withErrorHandler,
-} from '@/lib/api-errors';
-import type { Database } from '@/lib/database.types';
-import {
-  handleServerResponse,
-  supabaseServer,
-  validateResourceAccess,
-  validateUserContext,
-} from '@/lib/supabase-server';
+
+import { APIError, createValidationError, Database, ErrorCode, handleServerResponse, supabaseServer, validateResourceAccess, validateUserContext, withErrorHandler } from '@/lib';
 import { NextRequest, NextResponse } from 'next/server';
 
 type RouteContext<T = Record<string, string>> = {

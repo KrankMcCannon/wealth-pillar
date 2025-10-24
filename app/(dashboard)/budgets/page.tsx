@@ -1,23 +1,17 @@
 "use client";
 
-import { CategoryIcon, iconSizes } from '@/lib/icons';
+import { SectionHeader } from "@/components/layout";
+import BottomNavigation from "@/components/layout/bottom-navigation";
+import { PageLoader } from "@/components/shared";
+import UserSelector from "@/components/shared/user-selector";
+import { Button, Card, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, Select, SelectContent, SelectItem, SelectTrigger } from "@/components/ui";
+import { BudgetForm, BudgetPeriodManager } from "@/features/budgets";
+import { CategoryForm } from "@/features/categories";
+import { GroupedTransactionCard, TransactionForm } from "@/features/transactions";
+import { CategoryIcon, formatCurrency, iconSizes, pluralize } from "@/lib";
 import { ArrowLeft, MoreVertical, ShoppingCart } from "lucide-react";
 import { Suspense } from "react";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select";
-import BottomNavigation from "@/components/bottom-navigation";
-import UserSelector from "@/components/user-selector";
-import { SectionHeader } from "@/components/section-header";
-import { GroupedTransactionCard } from "@/components/grouped-transaction-card";
-import { TransactionForm } from "@/components/transaction-form";
-import { formatCurrency, pluralize } from "@/lib/utils";
-import { BudgetPeriodManager } from "@/components/budget-period-manager";
-import { BudgetForm } from "@/components/budget-form";
-import { CategoryForm } from "@/components/category-form";
-import { PageLoader } from "@/components/page-loader";
-import { useBudgetsController } from "@/hooks/controllers/useBudgetsController";
+import { useBudgetsController } from "@/features/budgets";
 
 function BudgetsContent() {
   // Controller orchestrates all business logic

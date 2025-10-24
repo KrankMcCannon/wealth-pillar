@@ -2,23 +2,11 @@
  * Server-side API Routes for Budgets
  * Follows SOLID and DRY principles with comprehensive validation and performance optimization
  */
+
+import { APIError, Budget, createMissingFieldError, createValidationError, Database, ErrorCode, handleServerResponse, supabaseServer, validateResourceAccess, validateUserContext, withErrorHandler } from '@/lib';
+import { SupabaseInsertBuilder } from '@/lib/types/supabase';
 import { NextRequest, NextResponse } from 'next/server';
-import {
-  supabaseServer,
-  handleServerResponse,
-  validateUserContext,
-  validateResourceAccess,
-} from '@/lib/supabase-server';
-import {
-  withErrorHandler,
-  APIError,
-  ErrorCode,
-  createMissingFieldError,
-  createValidationError,
-} from '@/lib/api-errors';
-import type { Budget } from '@/lib/types';
-import type { Database } from '@/lib/database.types';
-import type { SupabaseInsertBuilder } from '@/lib/supabase-types';
+
 
 /**
  * GET /api/budgets

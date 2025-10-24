@@ -1,5 +1,5 @@
+import { APIError, ErrorCode, withErrorHandler } from '@/lib';
 import { NextRequest, NextResponse } from 'next/server';
-import { withErrorHandler, APIError, ErrorCode } from '@/lib/api-errors';
 
 const UPSTREAM_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
@@ -81,11 +81,6 @@ async function proxy(
 const wrappedProxy = withErrorHandler(proxy);
 
 export {
-  wrappedProxy as GET,
-  wrappedProxy as POST,
-  wrappedProxy as PATCH,
-  wrappedProxy as PUT,
-  wrappedProxy as DELETE,
-  wrappedProxy as OPTIONS,
-  wrappedProxy as HEAD
+  wrappedProxy as DELETE, wrappedProxy as GET, wrappedProxy as HEAD, wrappedProxy as OPTIONS, wrappedProxy as PATCH, wrappedProxy as POST, wrappedProxy as PUT
 };
+

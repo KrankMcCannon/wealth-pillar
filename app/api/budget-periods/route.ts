@@ -1,8 +1,6 @@
+import { APIError, Database, ErrorCode, supabaseServer, validateUserContext, withErrorHandler } from '@/lib';
+import { SupabaseUpdateBuilder } from '@/lib/types/supabase';
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseServer, validateUserContext } from '@/lib/supabase-server';
-import { withErrorHandler, APIError, ErrorCode } from '@/lib/api-errors';
-import type { Database } from '@/lib/database.types';
-import type { SupabaseUpdateBuilder } from '@/lib/supabase-types';
 
 async function getBudgetPeriods(request: NextRequest) {
     await validateUserContext();

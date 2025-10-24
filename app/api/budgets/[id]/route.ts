@@ -1,20 +1,9 @@
 /**
  * Server-side API Routes for Single Budget (by ID)
  */
-import {
-  APIError,
-  ErrorCode,
-  createValidationError,
-  withErrorHandler,
-} from '@/lib/api-errors';
-import type { Database } from '@/lib/database.types';
-import {
-  handleServerResponse,
-  supabaseServer,
-  validateResourceAccess,
-  validateUserContext,
-} from '@/lib/supabase-server';
-import type { SupabaseUpdateBuilder } from '@/lib/supabase-types';
+
+import { APIError, createValidationError, Database, ErrorCode, handleServerResponse, supabaseServer, validateResourceAccess, validateUserContext, withErrorHandler } from '@/lib';
+import { SupabaseUpdateBuilder } from '@/lib/types/supabase';
 import { NextRequest, NextResponse } from 'next/server';
 
 /**

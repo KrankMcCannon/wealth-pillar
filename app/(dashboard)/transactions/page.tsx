@@ -2,23 +2,15 @@
 
 import { Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, MoreVertical, Plus, Search, Filter } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import BottomNavigation from "../../../components/bottom-navigation";
-import UserSelector from "@/components/user-selector";
-import { GroupedTransactionCard } from "@/components/grouped-transaction-card";
-import { FilterDialog } from "@/components/filter-dialog";
-import { TransactionForm } from "@/components/transaction-form";
-import { RecurringSeriesForm } from "@/components/recurring-series-form";
-import TabNavigation from "@/components/tab-navigation";
-import { RecurringSeriesSection } from "@/components/recurring-series-section";
-import { useTransactionsController } from "@/hooks/controllers/useTransactionsController";
-import { formatCurrency, pluralize } from "@/lib/utils";
-import type { User } from "@/lib/types";
-import { PageLoader } from "@/components/page-loader";
+import { ArrowLeft, MoreVertical, Plus, Search, Filter, Badge } from "lucide-react";
+import BottomNavigation from "@/components/layout/bottom-navigation";
+import { PageLoader } from "@/components/shared";
+import TabNavigation from "@/components/shared/tab-navigation";
+import UserSelector from "@/components/shared/user-selector";
+import { Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, Input } from "@/components/ui";
+import { RecurringSeriesSection, RecurringSeriesForm } from "@/features/recurring";
+import { useTransactionsController, FilterDialog, GroupedTransactionCard, TransactionForm } from "@/features/transactions";
+import { User, formatCurrency, pluralize } from "@/lib";
 
 function TransactionsContent() {
   const router = useRouter();

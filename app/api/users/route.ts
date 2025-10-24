@@ -1,6 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { APIError, ErrorCode, withErrorHandler } from '@/lib/api-errors';
-import { supabaseServer, validateUserContext } from '@/lib/supabase-server';
+import { APIError, ErrorCode, supabaseServer, validateUserContext, withErrorHandler } from '@/lib';
 import { currentUser } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 

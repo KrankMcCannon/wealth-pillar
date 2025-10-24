@@ -1,13 +1,12 @@
 "use client";
 
-import BottomNavigation from "../../../components/bottom-navigation";
-import { SectionHeader } from "@/components/section-header";
-import UserSelector from "@/components/user-selector";
-import { formatCurrency } from "@/lib/utils";
+import { SectionHeader } from "@/components/layout";
+import BottomNavigation from "@/components/layout/bottom-navigation";
+import { PageLoader } from "@/components/shared";
+import UserSelector from "@/components/shared/user-selector";
+import { useInvestmentsController } from "@/features/dashboard/hooks/use-investments-controller";
+import { formatCurrency, EnhancedHolding } from "@/lib";
 import { BarChart3, PieChart } from "lucide-react";
-import type { EnhancedHolding } from "@/lib/types";
-import { PageLoader } from "@/components/page-loader";
-import { useInvestmentsController } from "@/hooks/controllers/useInvestmentsController";
 
 export default function InvestmentsPage() {
   // Controller orchestrates all business logic

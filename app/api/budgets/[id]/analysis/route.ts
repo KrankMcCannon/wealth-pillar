@@ -2,18 +2,8 @@
  * Server-side API Route for Budget Analysis
  * Provides detailed budget breakdown with current period metrics
  */
-import {
-  APIError,
-  ErrorCode,
-  withErrorHandler,
-} from '@/lib/api-errors';
-import type { Database } from '@/lib/database.types';
-import {
-  handleServerResponse,
-  supabaseServer,
-  validateResourceAccess,
-  validateUserContext,
-} from '@/lib/supabase-server';
+
+import { APIError, Database, ErrorCode, handleServerResponse, supabaseServer, validateResourceAccess, validateUserContext, withErrorHandler } from '@/lib';
 import { NextRequest, NextResponse } from 'next/server';
 
 type RouteContext<T = Record<string, string>> = {

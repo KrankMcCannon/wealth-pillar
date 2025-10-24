@@ -1,12 +1,12 @@
 "use client";
 
-import BottomNavigation from "../../../components/bottom-navigation";
-import { SectionHeader } from "@/components/section-header";
-import UserSelector from "@/components/user-selector";
+import { SectionHeader } from "@/components/layout";
+import BottomNavigation from "@/components/layout/bottom-navigation";
+import { PageLoader } from "@/components/shared";
+import UserSelector from "@/components/shared/user-selector";
+import { useReportsController } from "@/features/dashboard/hooks/use-reports-controller";
+import { formatCurrency } from "@/lib";
 import { Calendar, PieChart, Target, Clock } from "lucide-react";
-import { formatCurrency } from "@/lib/utils";
-import { PageLoader } from "@/components/page-loader";
-import { useReportsController } from "@/hooks/controllers/useReportsController";
 
 export default function ReportsPage() {
   // Controller orchestrates all business logic
