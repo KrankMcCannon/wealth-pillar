@@ -2,7 +2,8 @@
  * Server-side API Routes for Individual Transactions
  */
 
-import { APIError, createValidationError, Database, ErrorCode, withErrorHandler } from '@/src/lib';
+import { APIError, createValidationError, ErrorCode, withErrorHandler } from '@/src/lib/api';
+import type { Database } from '@/src/lib/database';
 import { handleServerResponse, supabaseServer, validateResourceAccess, validateUserContext } from '@/src/lib/database/supabase-server';
 import { NextRequest, NextResponse } from 'next/server';
 

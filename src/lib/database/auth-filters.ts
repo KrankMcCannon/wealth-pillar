@@ -95,29 +95,39 @@ export function isSuperAdmin(userRole: 'member' | 'admin' | 'superadmin'): boole
  * query = await applyUserFilter(query, userContext, requestedUserId);
  * const { data } = await query;
  */
-export async function applyUserFilter(
+export function applyUserFilter(
   query: any, // SupabaseQueryBuilder type
   userContext: UserContext,
-  specificUserId?: string | null
+  specificUserId?: string | null,
+  options?: { userColumn?: string; groupColumn?: string; strategy?: 'group' | 'user' }
 ) {
+  const userColumn = options?.userColumn ?? 'user_id';
+  const groupColumn = options?.groupColumn ?? 'group_id';
+  const strategy = options?.strategy ?? 'group';
+
   // Members always see only their own data
   if (userContext.role === 'member') {
-    return query.eq('user_id', userContext.userId);
+    return query.eq(userColumn, userContext.userId);
   }
 
   // Admin logic
   if (isAdmin(userContext.role)) {
     // If specific user requested, show only that user's data
     if (specificUserId && specificUserId !== userContext.userId) {
-      return query.eq('user_id', specificUserId);
+      return query.eq(userColumn, specificUserId);
     }
 
-    // Default: show all data for users in same group
-    return await applyGroupFilter(query, userContext.userId);
+    // Default: show all data for users in same group when supported
+    if (strategy === 'group' && userContext.group_id) {
+      return query.eq(groupColumn, userContext.group_id);
+    }
+
+    // Fallback: filter to the admin's own data when table doesn't support group filtering
+    return query.eq(userColumn, userContext.userId);
   }
 
   // Fallback (should not happen if validateUserContext works)
-  return query.eq('user_id', userContext.userId);
+  return query.eq(userColumn, userContext.userId);
 }
 
 /**
@@ -132,46 +142,7 @@ export async function applyUserFilter(
  *
  * @internal Used by applyUserFilter, not typically called directly
  */
-async function applyGroupFilter(query: any, adminUserId: string) {
-  try {
-    // Get admin's group
-    const adminUserResponse = await supabaseServer
-      .from('users')
-      .select('group_id')
-      .eq('id', adminUserId)
-      .single();
-
-    if (adminUserResponse.error) {
-      // Fallback to admin's own data
-      return query.eq('user_id', adminUserId);
-    }
-
-    const groupId = (adminUserResponse.data as { group_id: string }).group_id;
-    if (!groupId) {
-      // Fallback to admin's own data
-      return query.eq('user_id', adminUserId);
-    }
-
-    // Get all users in group
-    const groupUsersResponse = await supabaseServer
-      .from('users')
-      .select('id')
-      .eq('group_id', groupId);
-
-    if (groupUsersResponse.error || !groupUsersResponse.data || groupUsersResponse.data.length === 0) {
-      // Fallback to admin's own data
-      return query.eq('user_id', adminUserId);
-    }
-
-    // Apply filter for all group users
-    const groupUserIds = (groupUsersResponse.data as { id: string }[]).map(user => user.id);
-    return query.in('user_id', groupUserIds);
-  } catch (error) {
-    // Fallback on any error
-    console.error('Error applying group filter:', error);
-    return query.eq('user_id', adminUserId);
-  }
-}
+// Note: legacy async group filter removed in favor of direct group_id filtering in applyUserFilter
 
 /**
  * Cache for group membership queries (request-scoped)

@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { budgetPeriodService, budgetService, transactionService } from '../api';
+import { budgetPeriodService, budgetService, transactionService } from '../api/client';
 import { QUERY_STALE_TIMES, queryKeys } from '../query';
 import { calculateAccountBalance } from '../utils';
 

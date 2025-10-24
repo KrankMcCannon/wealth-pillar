@@ -3,7 +3,8 @@
  * Follows SOLID and DRY principles with comprehensive validation and performance optimization
  */
 
-import { APIError, createMissingFieldError, createValidationError, Database, ErrorCode, withErrorHandler } from '@/src/lib';
+import { APIError, createMissingFieldError, createValidationError, ErrorCode, withErrorHandler } from '@/src/lib/api';
+import type { Database } from '@/src/lib/database';
 import { applyUserFilter } from '@/src/lib/database/auth-filters';
 import { handleServerResponse, supabaseServer, validateResourceAccess, validateUserContext } from '@/src/lib/database/supabase-server';
 import { SupabaseInsertBuilder } from '@/src/lib/types/supabase';
@@ -40,7 +41,8 @@ async function getRecurringTransactions(request: NextRequest) {
       .select('*');
 
     // Apply centralized role-based user filtering
-    query = await applyUserFilter(query, userContext, userId);
+    // Note: recurring_transactions table has no group_id; use per-user filtering strategy
+    query = applyUserFilter(query, userContext, userId, { strategy: 'user' });
 
     // Apply filters
     if (activeOnly) {

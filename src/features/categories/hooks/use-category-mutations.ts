@@ -8,7 +8,8 @@
 'use client';
 
 import { useGenericMutation } from '@/src/lib/hooks';
-import { Category, categoryService, queryKeys } from '@/src/lib';
+import { Category, queryKeys } from '@/src/lib';
+import { categoryService } from '@/src/lib/api/client';
 
 /**
  * Create a new category

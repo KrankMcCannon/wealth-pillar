@@ -2,7 +2,8 @@
  * Server-side API Routes for Single Budget (by ID)
  */
 
-import { APIError, createValidationError, Database, ErrorCode, withErrorHandler } from '@/src/lib';
+import { APIError, createValidationError, ErrorCode, withErrorHandler } from '@/src/lib/api';
+import type { Database } from '@/src/lib/database';
 import { handleServerResponse, supabaseServer, validateResourceAccess, validateUserContext } from '@/src/lib/database/supabase-server';
 import { SupabaseUpdateBuilder } from '@/src/lib/types/supabase';
 import { NextRequest, NextResponse } from 'next/server';

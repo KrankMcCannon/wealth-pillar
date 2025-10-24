@@ -3,7 +3,8 @@
  * Provides optimized dashboard view of recurring series with status categorization
  */
 
-import { APIError, Database, ErrorCode, withErrorHandler } from '@/src/lib';
+import { APIError, ErrorCode, withErrorHandler } from '@/src/lib/api';
+import type { Database } from '@/src/lib/database';
 import { handleServerResponse, supabaseServer, validateUserContext } from '@/src/lib/database/supabase-server';
 import { NextRequest, NextResponse } from 'next/server';
 

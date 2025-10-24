@@ -1,5 +1,6 @@
 import { supabaseServer, validateUserContext } from '@/src/lib/database/supabase-server';
-import { APIError, Database, ErrorCode, withErrorHandler } from '@/src/lib';
+import { APIError, ErrorCode, withErrorHandler } from '@/src/lib/api';
+import type { Database } from '@/src/lib/database';
 import { SupabaseUpdateBuilder } from '@/src/lib/types/supabase';
 import { NextRequest, NextResponse } from 'next/server';
 

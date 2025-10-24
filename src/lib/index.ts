@@ -4,7 +4,6 @@
  */
 
 // API Layer
-export * from "./api";
 
 // Database Layer
 export * from "./database";

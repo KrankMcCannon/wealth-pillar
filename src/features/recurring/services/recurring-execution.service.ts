@@ -4,7 +4,8 @@
  * Gestisce l'esecuzione automatica delle transazioni ricorrenti.
  */
 
-import { RecurringTransactionSeries, recurringTransactionService, Transaction, transactionService } from '@/src/lib';
+import { RecurringTransactionSeries, Transaction } from '@/src/lib';
+import { recurringTransactionService, transactionService } from '@/src/lib/api/client';
 
 export interface ExecutionResult {
   executed: Transaction[];

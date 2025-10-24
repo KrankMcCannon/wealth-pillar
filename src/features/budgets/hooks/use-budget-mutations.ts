@@ -13,7 +13,8 @@
 
 'use client';
 
-import { Budget, BudgetPeriod, budgetPeriodService, budgetService, invalidateBudgetComputedData, queryKeys, updateBudgetInCache, updateBudgetPeriodInCache } from '@/src/lib';
+import { Budget, BudgetPeriod, invalidateBudgetComputedData, queryKeys, updateBudgetInCache, updateBudgetPeriodInCache } from '@/src/lib';
+import { budgetPeriodService, budgetService } from '@/src/lib/api/client';
 import { useGenericMutation } from '@/src/lib/hooks';
 
 /**

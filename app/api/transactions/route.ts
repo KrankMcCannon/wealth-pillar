@@ -100,8 +100,8 @@ async function getTransactions(request: NextRequest) {
         query = query.eq('user_id', userContext.userId);
       }
     } else {
-      // Apply centralized role-based filtering for admins
-      query = await applyUserFilter(query, userContext, userId);
+      // Apply centralized role-based filtering for admins (no await)
+      query = applyUserFilter(query, userContext, userId);
     }
 
     // Apply additional filters

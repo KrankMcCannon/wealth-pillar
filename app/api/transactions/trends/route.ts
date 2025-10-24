@@ -3,7 +3,7 @@
  * Analyzes daily and category-based spending patterns
  */
 
-import { APIError, ErrorCode, withErrorHandler } from '@/src/lib';
+import { APIError, ErrorCode, withErrorHandler } from '@/src/lib/api';
 import { handleServerResponse, supabaseServer, validateUserContext } from '@/src/lib/database/supabase-server';
 import { NextRequest, NextResponse } from 'next/server';
 

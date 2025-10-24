@@ -13,8 +13,8 @@
 'use client';
 
 import { useDeleteTransaction } from '@/src/features/transactions';
-import { Budget, createAccountNamesMap, createUserNamesMap, Transaction, useAccounts, useBudgetPeriods, useBudgets, useCategories, useTransactions, useUserSelection } from '@/src/lib';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { Budget, createAccountNamesMap, createUserNamesMap, Transaction, useAccounts, useBudgetAnalysis, useBudgetPeriods, useBudgets, useCategories, useTransactions, useUserSelection } from '@/src/lib';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createBudgetsViewModel } from '../services/budgets-view-model';
 import { useDeleteBudget } from './use-budget-mutations';
@@ -48,6 +48,7 @@ function getBudgetsForUser(
 export function useBudgetsController() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const pathname = usePathname();
 
   // ========================================
   // DATA FETCHING (Read-only queries)
@@ -121,6 +122,9 @@ export function useBudgetsController() {
       currentPeriod || null
     );
   }, [selectedBudget, allTransactions, currentPeriod]);
+
+  // Centralized hook for server-side budget analysis (optional consumption in UI)
+  const { data: budgetAnalysis, isLoading: isBudgetAnalysisLoading } = useBudgetAnalysis(selectedBudget?.id || '');
 
   // Create lookup maps
   const userNamesMap = useMemo(() => {
@@ -237,10 +241,16 @@ export function useBudgetsController() {
 
   const handleBudgetSelect = useCallback((budgetId: string) => {
     const budget = availableBudgets.find(b => b.id === budgetId);
-    if (budget) {
-      setSelectedBudget(budget);
-    }
-  }, [availableBudgets]);
+    if (!budget) return;
+
+    // Update local selection
+    setSelectedBudget(budget);
+
+    // Reflect selection in URL to enable deep-linking and centralized hooks
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('budget', budgetId);
+    router.push(`${pathname}?${params.toString()}`);
+  }, [availableBudgets, pathname, router, searchParams]);
 
   const handleBackClick = useCallback(() => {
     router.push('/dashboard');
@@ -270,6 +280,8 @@ export function useBudgetsController() {
 
     // Selected Budget
     selectedBudget,
+    budgetAnalysis,
+    isBudgetAnalysisLoading,
 
     // UI State
     isDropdownOpen,

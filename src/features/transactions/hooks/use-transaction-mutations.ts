@@ -14,7 +14,8 @@
 'use client';
 
 import { useGenericMutation } from '@/src/lib/hooks';
-import { invalidateTransactionComputedData, queryKeys, transactionService, updateTransactionInCache } from '@/src/lib';
+import { invalidateTransactionComputedData, queryKeys, updateTransactionInCache } from '@/src/lib';
+import { transactionService } from '@/src/lib/api/client';
 import type { Transaction } from '@/src/lib/types';
 
 /**

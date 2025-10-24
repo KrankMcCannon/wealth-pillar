@@ -3,7 +3,8 @@
  * Compares expected vs actual executions for a specific series
  */
 
-import { APIError, Database, ErrorCode, withErrorHandler } from '@/src/lib';
+import { APIError, ErrorCode, withErrorHandler } from '@/src/lib/api';
+import type { Database } from '@/src/lib/database';
 import { handleServerResponse, supabaseServer, validateResourceAccess, validateUserContext } from '@/src/lib/database/supabase-server';
 import { NextRequest, NextResponse } from 'next/server';
 

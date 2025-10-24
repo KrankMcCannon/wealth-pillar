@@ -4,7 +4,7 @@ import { useAuth } from '@/src/features/auth';
 import { User } from '@/src/lib/types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { userService } from '../api';
+import { userService } from '../api/client';
 import { queryKeys } from '../query';
 
 // UI Preferences with intelligent caching
@@ -180,7 +180,7 @@ export const useUserSelection = () => {
       // Prefetch data for this user
       queryClient.prefetchQuery({
         queryKey: queryKeys.accountsByUser(userId),
-        queryFn: () => import('@/lib/api').then(({ accountService }) =>
+        queryFn: () => import('@/lib/api/client').then(({ accountService }) =>
           accountService.getByUserId(userId)
         ),
         staleTime: 2 * 60 * 1000,
@@ -188,7 +188,7 @@ export const useUserSelection = () => {
 
       queryClient.prefetchQuery({
         queryKey: queryKeys.budgetsByUser(userId),
-        queryFn: () => import('@/lib/api').then(({ budgetService }) =>
+        queryFn: () => import('@/lib/api/client').then(({ budgetService }) =>
           budgetService.getByUserId(userId)
         ),
         staleTime: 2 * 60 * 1000,
@@ -216,7 +216,7 @@ export const useUserSelection = () => {
       // Prefetch next user's data
       queryClient.prefetchQuery({
         queryKey: queryKeys.accountsByUser(nextUser.id),
-        queryFn: () => import('@/lib/api').then(({ accountService }) =>
+        queryFn: () => import('@/lib/api/client').then(({ accountService }) =>
           accountService.getByUserId(nextUser.id)
         ),
         staleTime: 2 * 60 * 1000,

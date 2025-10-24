@@ -1,4 +1,4 @@
-import { APIError, ErrorCode, withErrorHandler } from '@/src/lib';
+import { APIError, ErrorCode, withErrorHandler } from '@/src/lib/api';
 import { applyUserFilter } from '@/src/lib/database/auth-filters';
 import { supabaseServer, validateUserContext } from '@/src/lib/database/supabase-server';
 import { currentUser } from '@clerk/nextjs/server';
@@ -12,8 +12,8 @@ async function getUsers() {
       .select('*')
       .order('created_at', { ascending: false });
 
-    // Apply centralized role-based user filtering
-    query = await applyUserFilter(query, userContext);
+    // Apply centralized role-based user filtering (users table uses 'id' as user column)
+    query = applyUserFilter(query, userContext, undefined, { userColumn: 'id' });
 
     const response = await query;
     if (response.error) {

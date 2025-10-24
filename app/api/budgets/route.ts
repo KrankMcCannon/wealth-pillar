@@ -3,7 +3,8 @@
  * Follows SOLID and DRY principles with comprehensive validation and performance optimization
  */
 
-import { APIError, Budget, createMissingFieldError, createValidationError, ErrorCode, withErrorHandler } from '@/src/lib';
+import { APIError, createMissingFieldError, createValidationError, ErrorCode, withErrorHandler } from '@/src/lib/api';
+import type { Budget } from '@/src/lib/types';
 import type { Database } from '@/src/lib/database';
 import { applyUserFilter } from '@/src/lib/database/auth-filters';
 import { handleServerResponse, supabaseServer, validateResourceAccess, validateUserContext } from '@/src/lib/database/supabase-server';
@@ -19,7 +20,8 @@ async function getBudgets(request: NextRequest) {
     const userContext = await validateUserContext();
 
     const searchParams = request.nextUrl.searchParams;
-    const userId = searchParams.get('userId') || userContext.userId;
+    // Only pass specific user when explicitly requested; otherwise allow role-based filtering
+    const userId = searchParams.get('userId') || undefined;
     const includeAnalysis = searchParams.get('includeAnalysis') === 'true';
 
     // Sorting options (removed pagination)
@@ -37,8 +39,8 @@ async function getBudgets(request: NextRequest) {
       .from('budgets')
       .select('*');
 
-    // Apply centralized role-based filtering
-    query = await applyUserFilter(query, userContext, userId);
+    // Apply centralized role-based filtering (no await to avoid executing the query prematurely)
+    query = applyUserFilter(query, userContext, userId);
 
     // Apply sorting (no pagination)
     query = query.order(sortBy, { ascending: sortOrder === 'asc' });

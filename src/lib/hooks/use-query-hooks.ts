@@ -6,7 +6,7 @@ import type {
   Transaction,
 } from '@/src/lib/types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { accountService, apiHelpers, budgetPeriodService, budgetService, categoryService, investmentService, transactionService, userService } from '../api';
+import { accountService, apiHelpers, budgetPeriodService, budgetService, categoryService, investmentService, transactionService, userService } from '../api/client';
 import { QUERY_STALE_TIMES, queryKeys, queryKeyUtils } from '../query';
 
 /**
