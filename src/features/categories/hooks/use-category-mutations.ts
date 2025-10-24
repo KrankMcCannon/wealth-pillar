@@ -21,14 +21,11 @@ export const useCreateCategory = () => {
     mutationFn: categoryService.create,
 
     onSuccess: (newCategory) => {
-      // Update categories cache
+      // Update categories cache directly - no need to invalidate since we've updated it
       queryClient.setQueryData<Category[]>(
         queryKeys.categories(),
         (oldCategories = []) => [...oldCategories, newCategory]
       );
-
-      // Invalidate any queries that depend on categories
-      queryClient.invalidateQueries({ queryKey: queryKeys.categories() });
     },
   });
 };
@@ -44,7 +41,7 @@ export const useUpdateCategory = () => {
       categoryService.update(id, data),
 
     onSuccess: (updatedCategory) => {
-      // Update categories cache
+      // Update categories cache directly - no need to invalidate since we've updated it
       queryClient.setQueryData<Category[]>(
         queryKeys.categories(),
         (oldCategories = []) =>
@@ -52,9 +49,6 @@ export const useUpdateCategory = () => {
             cat.id === updatedCategory.id ? updatedCategory : cat
           )
       );
-
-      // Invalidate any queries that depend on categories
-      queryClient.invalidateQueries({ queryKey: queryKeys.categories() });
     },
   });
 };
@@ -69,15 +63,12 @@ export const useDeleteCategory = () => {
     mutationFn: categoryService.delete,
 
     onSuccess: (_, deletedId) => {
-      // Update categories cache
+      // Update categories cache directly - no need to invalidate since we've updated it
       queryClient.setQueryData<Category[]>(
         queryKeys.categories(),
         (oldCategories = []) =>
           oldCategories.filter((cat) => cat.id !== deletedId)
       );
-
-      // Invalidate any queries that depend on categories
-      queryClient.invalidateQueries({ queryKey: queryKeys.categories() });
     },
   });
 };

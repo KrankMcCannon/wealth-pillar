@@ -48,8 +48,10 @@ export const queryClient = new QueryClient({
       // Don't refetch on reconnect - rely on cache and manual refresh
       refetchOnReconnect: false,
 
-      // OPTIMIZATION: Only refetch on mount if data is stale
-      refetchOnMount: 'always',
+      // OPTIMIZATION: Don't refetch on mount by default
+      // Specific data types can override via setQueryDefaults if needed
+      // This reduces unnecessary API calls when returning to cached pages
+      refetchOnMount: false,
 
       // Structure errors in a consistent format
       throwOnError: false,

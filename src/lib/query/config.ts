@@ -15,10 +15,10 @@
  * - Volatile data: Real-time or frequently changing - 15-30 seconds
  */
 export const QUERY_STALE_TIMES = {
-  // Reference data (changes rarely)
-  users: 5 * 60 * 1000,        // 5 minutes
-  categories: 10 * 60 * 1000,  // 10 minutes
-  groups: 5 * 60 * 1000,       // 5 minutes
+  // Reference data (changes rarely) - optimized longer cache times
+  users: 5 * 60 * 1000,        // 5 minutes (user data rarely changes in session)
+  categories: 15 * 60 * 1000,  // 15 minutes (increased from 10 - categories rarely change)
+  groups: 10 * 60 * 1000,      // 10 minutes (increased from 5 - groups rarely change)
 
   // Financial core data (changes frequently)
   transactions: 30 * 1000,      // 30 seconds
@@ -37,9 +37,9 @@ export const QUERY_STALE_TIMES = {
   recurringDashboard: 1 * 60 * 1000,   // 1 minute
   recurringStats: 1 * 60 * 1000,       // 1 minute
 
-  // Investment data (updates less frequently)
-  investments: 2 * 60 * 1000,          // 2 minutes
-  portfolioData: 1 * 60 * 1000,        // 1 minute
+  // Investment data (updates less frequently - optimized)
+  investments: 5 * 60 * 1000,          // 5 minutes (increased from 2 - investment data changes less frequently)
+  portfolioData: 5 * 60 * 1000,        // 5 minutes (increased from 1 - portfolio data changes less frequently)
 
   // Dashboard and aggregated views
   dashboard: 1 * 60 * 1000,            // 1 minute

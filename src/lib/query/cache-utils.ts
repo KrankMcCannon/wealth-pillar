@@ -11,7 +11,7 @@
  */
 
 import type { QueryClient } from '@tanstack/react-query';
-import { Budget, BudgetPeriod, Transaction } from '../types';
+import { Budget, BudgetPeriod, RecurringTransactionSeries, Transaction } from '../types';
 import { queryKeys } from './keys';
 
 /**
@@ -264,6 +264,75 @@ export const rollbackOptimisticUpdate = <T>(
 ) => {
   if (snapshot !== undefined) {
     queryClient.setQueryData(queryKey, snapshot);
+  }
+};
+
+/**
+ * Smart cache update for recurring transaction series
+ * Updates all relevant caches without triggering unnecessary refetches
+ * Only invalidates dashboard and upcoming queries which depend on series state
+ */
+export const updateRecurringSeriesInCache = (
+  queryClient: QueryClient,
+  series: RecurringTransactionSeries,
+  operation: 'create' | 'update' | 'delete'
+) => {
+  // Helper to update series in a list
+  const updateList = (list: RecurringTransactionSeries[] | undefined): RecurringTransactionSeries[] => {
+    if (!list) return operation === 'create' ? [series] : [];
+
+    if (operation === 'delete') {
+      return list.filter(s => s.id !== series.id);
+    }
+
+    if (operation === 'update') {
+      const exists = list.some(s => s.id === series.id);
+      if (exists) {
+        return list.map(s => s.id === series.id ? series : s);
+      }
+    }
+
+    if (operation === 'create') {
+      return [series, ...list];
+    }
+
+    return list;
+  };
+
+  // Update main recurring series cache
+  queryClient.setQueryData<RecurringTransactionSeries[]>(
+    queryKeys.recurringSeries(),
+    updateList
+  );
+
+  // Update by user cache if applicable
+  if (series.user_id) {
+    queryClient.setQueryData<RecurringTransactionSeries[]>(
+      queryKeys.recurringSeriesByUser(series.user_id),
+      updateList
+    );
+  }
+
+  // Update individual series cache
+  queryClient.setQueryData<RecurringTransactionSeries>(
+    queryKeys.recurringSeriesById(series.id),
+    operation === 'delete' ? undefined : series
+  );
+
+  // Only invalidate queries that depend on series state changes
+  // Skip active/upcoming queries unless the series is inactive/active state changed
+  if (operation !== 'update' || !series.is_active) {
+    queryClient.invalidateQueries({ queryKey: queryKeys.activeRecurringSeries() });
+    // Invalidate all upcoming queries (with any days/userId combinations)
+    queryClient.invalidateQueries({
+      queryKey: [...queryKeys.recurringSeries(), 'upcoming'],
+      exact: false
+    });
+  }
+
+  // Always invalidate dashboard since it may display recurring series info
+  if (operation !== 'delete') {
+    queryClient.invalidateQueries({ queryKey: queryKeys.dashboard() });
   }
 };
 
