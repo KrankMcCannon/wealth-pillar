@@ -3,7 +3,8 @@
  * Follows SOLID and DRY principles with comprehensive validation and performance optimization
  */
 
-import { APIError, createMissingFieldError, createValidationError, Database, ErrorCode, handleServerResponse, supabaseServer, validateResourceAccess, validateUserContext, withErrorHandler } from '@/src/lib';
+import { APIError, createMissingFieldError, createValidationError, Database, ErrorCode, withErrorHandler } from '@/src/lib';
+import { handleServerResponse, supabaseServer, validateResourceAccess, validateUserContext } from '@/src/lib/database/supabase-server';
 import { SupabaseInsertBuilder } from '@/src/lib/types/supabase';
 import { NextRequest, NextResponse } from 'next/server';
 

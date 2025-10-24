@@ -21,15 +21,26 @@ Avatar.displayName = 'Avatar';
 
 type AvatarImageProps = Omit<React.ComponentProps<typeof Image>, 'fill'> & {
   alt?: string;
+  priority?: boolean;
 };
 
-const AvatarImage = ({ className, alt = '', ...props }: AvatarImageProps) => (
+const AvatarImage = ({
+  className,
+  alt = '',
+  priority = false,
+  ...props
+}: AvatarImageProps) => (
   <Image
     alt={alt}
     className={cn('aspect-square h-full w-full object-cover', className)}
     sizes={props.sizes ?? '40px'}
     // Use fill to cover the avatar container
     fill
+    // Load with low priority by default (lazy loading)
+    // Set priority=true for above-the-fold avatars
+    priority={priority}
+    // Optimize quality and size for avatars
+    quality={85}
     {...props}
   />
 );

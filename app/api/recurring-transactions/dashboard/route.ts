@@ -3,7 +3,8 @@
  * Provides optimized dashboard view of recurring series with status categorization
  */
 
-import { APIError, Database, ErrorCode, handleServerResponse, supabaseServer, validateUserContext, withErrorHandler } from '@/src/lib';
+import { APIError, Database, ErrorCode, withErrorHandler } from '@/src/lib';
+import { handleServerResponse, supabaseServer, validateUserContext } from '@/src/lib/database/supabase-server';
 import { NextRequest, NextResponse } from 'next/server';
 
 type RecurringSeries = Database['public']['Tables']['recurring_transactions']['Row'];

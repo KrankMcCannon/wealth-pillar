@@ -1,7 +1,10 @@
 import { Budget, Transaction, User } from "../types";
 
-export const formatDate = (dateString: string): string => {
+export const formatDate = (dateString: string | Date | null | undefined): string => {
   try {
+    if (!dateString) {
+      return 'Data non disponibile';
+    }
     const date = new Date(dateString);
     if (isNaN(date.getTime())) {
       return 'Data non valida';

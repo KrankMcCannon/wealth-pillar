@@ -42,6 +42,7 @@ export function UserButton({ showName = false, variant = 'default' }: UserButton
               src={user.avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.name)}`}
               alt={user.name}
               sizes="32px"
+              priority={false}
             />
           </Avatar>
           {showName && (

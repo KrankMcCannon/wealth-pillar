@@ -3,7 +3,8 @@
  * Aggregates financial data: income, expenses, transfers, and spending by category
  */
 
-import { APIError, ErrorCode, handleServerResponse, supabaseServer, validateUserContext, withErrorHandler } from '@/src/lib';
+import { APIError, ErrorCode, withErrorHandler } from '@/src/lib';
+import { handleServerResponse, supabaseServer, validateUserContext } from '@/src/lib/database/supabase-server';
 import { NextRequest, NextResponse } from 'next/server';
 
 /**
