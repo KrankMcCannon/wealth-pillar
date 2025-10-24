@@ -1,4 +1,5 @@
-import { APIError, ErrorCode, supabaseServer, validateUserContext, withErrorHandler } from '@/src/lib';
+import { APIError, ErrorCode, withErrorHandler } from '@/src/lib';
+import { supabaseServer, validateUserContext } from '@/src/lib/database/supabase-server';
 import { NextRequest, NextResponse } from 'next/server';
 
 async function getCurrentBudgetPeriod(_: NextRequest, context: { params: Promise<{ id: string }> }) {

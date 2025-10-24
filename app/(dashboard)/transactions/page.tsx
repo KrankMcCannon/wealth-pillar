@@ -2,15 +2,16 @@
 
 import { Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, MoreVertical, Plus, Search, Filter, Badge } from "lucide-react";
-import BottomNavigation from "@/components/layout/bottom-navigation";
-import { PageLoader } from "@/components/shared";
-import TabNavigation from "@/components/shared/tab-navigation";
-import UserSelector from "@/components/shared/user-selector";
-import { Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, Input } from "@/components/ui";
-import { RecurringSeriesSection, RecurringSeriesForm } from "@/features/recurring";
-import { useTransactionsController, FilterDialog, GroupedTransactionCard, TransactionForm } from "@/features/transactions";
-import { User, formatCurrency, pluralize } from "@/lib";
+import { ArrowLeft, MoreVertical, Plus, Search, Filter } from "lucide-react";
+import { Badge } from '@/src/components/ui';
+import BottomNavigation from "@/src/components/layout/bottom-navigation";
+import { PageLoader } from "@/src/components/shared";
+import TabNavigation from "@/src/components/shared/tab-navigation";
+import UserSelector from "@/src/components/shared/user-selector";
+import { Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, Input } from "@/src/components/ui";
+import { RecurringSeriesSection, RecurringSeriesForm } from "@/src/features/recurring";
+import { useTransactionsController, FilterDialog, GroupedTransactionCard, TransactionForm } from "@/src/features/transactions";
+import { User, formatCurrency, pluralize } from "@/src/lib";
 
 function TransactionsContent() {
   const router = useRouter();

@@ -6,5 +6,4 @@
  */
 
 export * from "./supabase-client";
-// supabase-server is server-only and should NOT be exported here
 export * from "./types";
