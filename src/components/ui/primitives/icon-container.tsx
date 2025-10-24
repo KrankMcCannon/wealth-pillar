@@ -13,7 +13,7 @@
  */
 
 import * as React from "react";
-import { cn, iconContainerVariants, IconContainerVariants } from "@/lib"
+import { cn, iconContainerVariants, IconContainerVariants } from '@/src/lib';
 
 export interface IconContainerProps
   extends Omit<React.HTMLAttributes<HTMLDivElement>, "color">,

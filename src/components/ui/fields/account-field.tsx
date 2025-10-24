@@ -4,7 +4,7 @@
 
 "use client";
 
-import { useAccounts } from "@/lib";
+import { useAccounts } from '@/src/lib';
 import { useMemo } from "react";
 import { FormField } from "../form-field";
 import { FormSelect } from "../form-select";

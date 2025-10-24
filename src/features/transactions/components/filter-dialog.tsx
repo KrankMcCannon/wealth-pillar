@@ -1,7 +1,7 @@
 "use client";
 
-import { Button, Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Drawer, DrawerContent, DrawerTrigger, Input } from "@/components/ui";
-import { Category, CategoryIcon, cn, iconSizes, useMediaQuery } from "@/lib";
+import { Button, Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Drawer, DrawerContent, DrawerTrigger, Input } from '@/src/components/ui';
+import { Category, CategoryIcon, cn, iconSizes, useMediaQuery } from '@/src/lib';
 import { Filter, Search } from "lucide-react";
 import { useState, useEffect } from "react";
 

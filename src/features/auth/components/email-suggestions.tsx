@@ -1,6 +1,6 @@
 'use client';
 
-import { cn } from "@/lib";
+import { cn } from '@/src/lib';
 
 type Props = {
   value: string;

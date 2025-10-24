@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { Clock, History, TrendingUp, TrendingDown, Activity, Users, Target } from "lucide-react";
-import { Budget, BudgetPeriod, calculateUserFinancialTotals, formatCurrency, useBudgetPeriods, useBudgets, useTransactions, useUsers } from "@/lib";
+import { Budget, BudgetPeriod, calculateUserFinancialTotals, formatCurrency, useBudgetPeriods, useBudgets, useTransactions, useUsers } from "@/src/lib";
+import { formatDate } from "@/src/lib/utils/shared";
 import { useEndBudgetPeriod, useStartBudgetPeriod } from "../hooks/use-budget-mutations";
-import { Alert, AlertDescription, Badge, FormActions, FormDatePicker, FormField, ModalContent, ModalSection, ModalWrapper } from "@/components/ui";
+import { Alert, AlertDescription, Badge, FormActions, FormDatePicker, FormField, ModalContent, ModalSection, ModalWrapper } from "@/src/components/ui";
 
 interface BudgetPeriodManagerProps {
   budget: Budget;
@@ -39,16 +40,6 @@ export function BudgetPeriodManager({ budget, currentPeriod, trigger, onSuccess 
       setEndDate(''); // Reset end date input
     }
   }, [isOpen]);
-
-  const formatDate = (date: Date | string | null) => {
-    if (!date) return null;
-    const d = new Date(date);
-    return d.toLocaleDateString('it-IT', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric'
-    });
-  };
 
   // Calcola il numero di periodi chiusi per l'utente
   const getClosedPeriodsCount = () => {

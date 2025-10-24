@@ -1,6 +1,6 @@
 'use client';
 
-import { queryKeys } from '@/lib';
+import { queryKeys } from '@/src/lib';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import recurringExecutionService, { ExecutionOptions } from '../services/recurring-execution.service';
 

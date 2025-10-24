@@ -6,8 +6,8 @@
  * Performance: O(n) Map-based grouping instead of O(n²) array operations
  */
 
-import type { Budget, Transaction, User } from '@/lib/types';
-import { calculateBalance, formatDateLabel } from '@/lib/utils';
+import type { Budget, Transaction, User } from '@/src/lib/types';
+import { calculateBalance, formatDateLabel } from '@/src/lib/utils';
 
 /**
  * Day group structure for transactions

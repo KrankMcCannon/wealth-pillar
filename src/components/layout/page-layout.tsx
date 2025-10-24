@@ -4,7 +4,7 @@
 
 "use client";
 
-import { cn } from "@/lib"
+import { cn } from '@/src/lib';
 
 interface PageLayoutProps {
   children: React.ReactNode;

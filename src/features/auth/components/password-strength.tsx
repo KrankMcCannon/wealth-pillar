@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "@/lib";
+import { cn } from '@/src/lib';
 
 export type PasswordStrengthProps = {
   password: string;

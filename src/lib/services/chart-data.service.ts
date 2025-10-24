@@ -9,7 +9,7 @@
  * - Category breakdown charts
  */
 
-import type { Transaction, Budget } from '@/lib/types';
+import type { Transaction, Budget } from '@/src/lib/types';
 import { calculateCumulativeSpending } from './financial-calculations.service';
 
 /**

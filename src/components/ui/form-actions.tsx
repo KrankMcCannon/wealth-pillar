@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { Loader2 } from "lucide-react";
-import { cn } from "@/lib";
+import { cn } from '@/src/lib';;
 import { Button } from "./button";
 
 /**

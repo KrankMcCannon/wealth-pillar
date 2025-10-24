@@ -1,6 +1,6 @@
 "use client";
 
-import { createFormState, isDirty as isFormDirty, recurringSeriesValidationSchema, RecurringTransactionSeries, sanitizeFormState, TransactionFrequencyType, TransactionType, validateDateRange, validateFieldByName, validateForm, ValidationErrors } from "@/lib";
+import { createFormState, isDirty as isFormDirty, recurringSeriesValidationSchema, RecurringTransactionSeries, sanitizeFormState, TransactionFrequencyType, TransactionType, validateDateRange, validateFieldByName, validateForm, ValidationErrors } from '@/src/lib';
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useCreateRecurringSeries, useUpdateRecurringSeries } from "./use-recurring-series";
 

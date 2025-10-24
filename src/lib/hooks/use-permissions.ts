@@ -1,7 +1,7 @@
 'use client';
 
-import { useAuth } from '@/features/auth';
-import type { Account, Budget, InvestmentHolding, Transaction, User } from '@/lib/types';
+import { useAuth } from '@/src/features/auth';
+import type { Account, Budget, InvestmentHolding, Transaction, User } from '@/src/lib/types';
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { ACTIONS, authorizationService, createPermissionChecker, RESOURCE_TYPES, ResourceContext, ResourceType } from '../auth';

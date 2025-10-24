@@ -12,8 +12,8 @@
 
 'use client';
 
-import { useAuth } from '@/features/auth';
-import { useAccounts, useTransactions, useUserSelection } from '@/lib';
+import { useAuth } from '@/src/features/auth';
+import { useAccounts, useTransactions, useUserSelection } from '@/src/lib';
 import { useRouter } from 'next/navigation';
 import { useCallback, useMemo, useState } from 'react';
 

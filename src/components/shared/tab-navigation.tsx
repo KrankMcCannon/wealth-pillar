@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "@/lib"
+import { cn } from '@/src/lib';
 
 interface TabNavigationProps {
   tabs: Array<{

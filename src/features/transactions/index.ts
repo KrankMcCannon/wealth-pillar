@@ -3,7 +3,7 @@
  */
 
 // Components
-export * from "./components/transaction-card";
+export { TransactionCard } from "@/src/components/cards";
 export * from "./components/transaction-form";
 export * from "./components/grouped-transaction-card";
 export * from "./components/filter-dialog";

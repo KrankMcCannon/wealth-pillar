@@ -1,6 +1,6 @@
 "use client";
 
-import { Card } from "@/components/ui";
+import { Card } from '@/src/components/ui';
 
 /**
  * Modern skeleton components with shimmer effects

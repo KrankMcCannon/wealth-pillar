@@ -1,6 +1,6 @@
 "use client";
 
-import { Category, categoryValidationSchema, createFormState, isDirty as isFormDirty, sanitizeFormState, validateFieldByName, validateForm, ValidationErrors } from "@/lib";
+import { Category, categoryValidationSchema, createFormState, isDirty as isFormDirty, sanitizeFormState, validateFieldByName, validateForm, ValidationErrors } from '@/src/lib';
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useCreateCategory, useUpdateCategory } from "./use-category-mutations";
 

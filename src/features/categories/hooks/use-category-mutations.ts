@@ -8,7 +8,7 @@
 
 'use client';
 
-import { Category, categoryService, queryKeys } from '@/lib';
+import { Category, categoryService, queryKeys } from '@/src/lib';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 /**

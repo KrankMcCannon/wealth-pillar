@@ -4,7 +4,7 @@
  * Follows DRY principle - eliminates duplicate calculation logic
  */
 
-import { Budget, BudgetPeriod, Transaction, User } from "@/lib";
+import { Budget, BudgetPeriod, Transaction, User } from '@/src/lib';
 
 export interface BudgetWithMetrics extends Budget {
   spent: number;

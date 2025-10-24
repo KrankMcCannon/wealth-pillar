@@ -2,10 +2,10 @@
 
 import { Suspense } from 'react';
 import { useRouter } from 'next/navigation';
-import { Budget, BudgetPeriod, formatCurrency, User } from '@/lib';
-import { BudgetSectionSkeleton } from '@/features/dashboard';
-import { SectionHeader } from '@/components/layout';
-import { BudgetCard } from './budget-card';
+import { Budget, BudgetPeriod, formatCurrency, User } from '@/src/lib';
+import { BudgetSectionSkeleton } from '@/src/features/dashboard';
+import { SectionHeader } from '@/src/components/layout';
+import { BudgetCard } from '@/src/components/cards';
 
 interface BudgetSectionProps {
   budgetsByUser: Record<string, {

@@ -1,8 +1,8 @@
 "use client";
 
-import { Category, cn } from "@/lib";
+import { Category, cn } from '@/src/lib';
 import useCategoryFormController from "../hooks/use-category-form-controller";
-import { FormActions, FormField, IconPicker, Input, ModalContent, ModalSection, ModalWrapper } from "@/components/ui";
+import { FormActions, FormField, IconPicker, Input, ModalContent, ModalSection, ModalWrapper } from '@/src/components/ui';
 
 interface CategoryFormProps {
   isOpen: boolean;

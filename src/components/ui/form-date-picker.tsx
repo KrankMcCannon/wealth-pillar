@@ -4,7 +4,7 @@ import * as React from "react";
 import { format, parse, isValid, subDays, startOfWeek, startOfMonth, startOfYear } from "date-fns";
 import { it } from "date-fns/locale";
 import { Calendar as CalendarIcon, X } from "lucide-react";
-import { cn } from "@/lib";
+import { cn } from '@/src/lib';;
 import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 import { Input } from "./input";
 import { Button } from "./button";

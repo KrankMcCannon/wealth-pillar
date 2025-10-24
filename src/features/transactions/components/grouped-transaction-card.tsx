@@ -1,7 +1,7 @@
 "use client";
 
-import { Badge, Button, Card } from "@/components/ui";
-import { CategoryIcon, formatCurrency, getCategoryLabel, iconSizes, pluralize, Transaction, truncateText } from "@/lib";
+import { Badge, Button, Card } from '@/src/components/ui';
+import { CategoryIcon, formatCurrency, getCategoryLabel, iconSizes, pluralize, Transaction, truncateText } from '@/src/lib';
 import { Trash2 } from "lucide-react";
 
 interface GroupedTransactionCardProps {

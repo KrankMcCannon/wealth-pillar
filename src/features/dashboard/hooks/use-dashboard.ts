@@ -1,7 +1,7 @@
 'use client';
 
-import { useUpcomingRecurringSeries } from '@/features/recurring';
-import { Account, Budget, BudgetPeriod, calculateAccountBalance, calculateBudgetSpent, filterDataByUserRole, getActivePeriodDates, getBudgetTransactions, Transaction, useAccounts, useAccountsByUser, useBudgets, useBudgetsByUser, useCategories, User, useTransactions, useUsers } from '@/lib';
+import { useUpcomingRecurringSeries } from '@/src/features/recurring';
+import { Account, Budget, BudgetPeriod, calculateAccountBalance, calculateBudgetSpent, filterDataByUserRole, getActivePeriodDates, getBudgetTransactions, Transaction, useAccounts, useAccountsByUser, useBudgets, useBudgetsByUser, useCategories, User, useTransactions, useUsers } from '@/src/lib';
 import { useMemo } from 'react';
 
 /**

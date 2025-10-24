@@ -3,7 +3,7 @@
  */
 
 // Components
-export * from "./components/account-card";
+export { AccountCard } from "@/src/components/cards";
 export * from "./components/balance-section";
 
 // Hooks (to be added)

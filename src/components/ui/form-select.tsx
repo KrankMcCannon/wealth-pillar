@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./select";
-import { cn } from "@/lib";
+import { cn } from '@/src/lib';
 
 /**
  * Form Select Component

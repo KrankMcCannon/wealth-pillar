@@ -2,7 +2,7 @@
 
 import { memo, useCallback, useMemo } from 'react';
 import { Users, User as UserIcon, Crown, Star, Heart } from "lucide-react";
-import { User } from '@/lib';
+import { User } from '@/src/lib';
 
 interface UserSelectorProps {
   users: User[];

@@ -22,9 +22,9 @@
 "use client";
 
 import * as React from "react";
-import { cn } from "@/lib"
+import { cn } from '@/src/lib';
 import { IconContainer } from "../primitives";
-import { Text } from "@/components/ui";
+import { Text } from '@/src/components/ui';
 
 export interface ListItemProps {
   /** Icon component to display */

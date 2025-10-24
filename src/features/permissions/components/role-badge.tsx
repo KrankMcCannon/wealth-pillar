@@ -1,7 +1,7 @@
 'use client';
 
-import { Badge } from '@/components/ui';
-import { cn, useRoleBasedUI } from '@/lib';
+import { Badge } from '@/src/components/ui';
+import { cn, useRoleBasedUI } from '@/src/lib';
 import { Shield, Crown, User } from 'lucide-react';
 
 interface RoleBadgeProps {

@@ -4,10 +4,10 @@ import { useState } from 'react';
 import { ExecutionResult } from '../services/recurring-execution.service';
 import { useDryRunExecution, useExecuteAllDueSeries } from '../hooks/use-recurring-execution';
 import { useMissedExecutions, useUpcomingRecurringSeries } from '../hooks/use-recurring-series';
-import { Alert, AlertDescription, Badge, Button, Card } from '@/components/ui';
-import { SectionHeader } from '@/components/layout';
+import { Alert, AlertDescription, Badge, Button, Card } from '@/src/components/ui';
+import { SectionHeader } from '@/src/components/layout';
 import { AlertTriangle, CheckCircle, Clock, Play, XCircle } from 'lucide-react';
-import { formatCurrency } from '@/lib';
+import { formatCurrency } from '@/src/lib';
 
 interface RecurringExecutionManagerProps {
   selectedUserId?: string;

@@ -4,7 +4,7 @@
 
 "use client";
 
-import { cn } from "@/lib";
+import { cn } from '@/src/lib';
 
 interface DashboardGridProps {
   children: React.ReactNode;

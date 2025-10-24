@@ -15,8 +15,8 @@
 "use client";
 
 import * as React from "react";
-import { Separator, Text } from "@/components/ui";
-import { cn } from "@/lib";
+import { Separator, Text } from '@/src/components/ui';
+import { cn } from '@/src/lib';
 
 export interface FormSectionProps {
   /** Section title */

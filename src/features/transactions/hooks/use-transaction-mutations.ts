@@ -14,8 +14,8 @@
 
 'use client';
 
-import { createOptimisticSnapshot, invalidateTransactionComputedData, queryKeys, rollbackOptimisticUpdate, transactionService, updateTransactionInCache } from '@/lib';
-import type { Transaction } from '@/lib/types';
+import { createOptimisticSnapshot, invalidateTransactionComputedData, queryKeys, rollbackOptimisticUpdate, transactionService, updateTransactionInCache } from '@/src/lib';
+import type { Transaction } from '@/src/lib/types';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 /**

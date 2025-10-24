@@ -1,6 +1,6 @@
 'use client';
 
-import { QUERY_STALE_TIMES, queryKeys, RecurringTransactionSeries, recurringTransactionService } from '@/lib';
+import { QUERY_STALE_TIMES, queryKeys, RecurringTransactionSeries, recurringTransactionService } from '@/src/lib';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 // Basic CRUD hooks for RecurringTransactionSeries

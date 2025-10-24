@@ -12,7 +12,7 @@
 
 'use client';
 
-import { useTransactions, useUserSelection } from '@/lib';
+import { useTransactions, useUserSelection } from '@/src/lib';
 import { useRouter } from 'next/navigation';
 import { useCallback, useMemo } from 'react';
 

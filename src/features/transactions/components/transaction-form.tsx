@@ -1,9 +1,9 @@
 "use client";
 
-import { Transaction, TransactionType, useAccounts } from "@/lib";
+import { Transaction, TransactionType, useAccounts } from '@/src/lib';
 import { useMemo } from "react";
 import useTransactionFormController from "../hooks/use-transaction-form-controller";
-import { AccountField, AmountField, CategoryField, DateField, FormActions, FormField, FormSelect, Input, ModalContent, ModalSection, ModalWrapper, sortSelectOptions, toSelectOptions, UserField } from "@/components/ui";
+import { AccountField, AmountField, CategoryField, DateField, FormActions, FormField, FormSelect, Input, ModalContent, ModalSection, ModalWrapper, sortSelectOptions, toSelectOptions, UserField } from '@/src/components/ui';
 
 interface TransactionFormProps {
   isOpen: boolean;

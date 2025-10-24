@@ -1,7 +1,8 @@
 "use client";
 
-import { Badge } from "@/components/ui";
-import { BudgetPeriod, formatCurrency } from "@/lib";
+import { Badge } from "@/src/components/ui";
+import { BudgetPeriod, formatCurrency } from "@/src/lib";
+import { formatDate } from "@/src/lib/utils/shared";
 import { Calendar, Clock } from "lucide-react";
 
 interface BudgetPeriodInfoProps {
@@ -18,16 +19,6 @@ export function BudgetPeriodInfo({ period, className = "", showSpending = true }
       </div>
     );
   }
-
-  const formatDate = (date: Date | string | null) => {
-    if (!date) return null;
-    const d = new Date(date);
-    return d.toLocaleDateString('it-IT', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric'
-    });
-  };
 
   const isCurrentPeriod = period.is_active && !period.end_date;
   const startDate = formatDate(period.start_date);

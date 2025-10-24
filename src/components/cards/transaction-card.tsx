@@ -8,8 +8,8 @@
 
 "use client";
 
-import { Amount, DomainCard, StatusBadge } from "@/components/ui";
-import { CategoryIcon, cn, getCategoryLabel, iconSizes, Transaction, truncateText } from "@/lib";
+import { Amount, DomainCard, StatusBadge } from "@/src/components/ui";
+import { CategoryIcon, cn, getCategoryLabel, iconSizes, Transaction, truncateText } from "@/src/lib";
 
 interface TransactionCardProps {
   transaction: Transaction;

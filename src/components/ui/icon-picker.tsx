@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import * as icons from "lucide-react";
-import { cn } from "@/lib";
+import { cn } from '@/src/lib';
 import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 import { Button } from "./button";
 import { Input } from "./input";

@@ -13,7 +13,7 @@
 
 'use client';
 
-import { Budget, BudgetPeriod, budgetPeriodService, budgetService, createOptimisticSnapshot, invalidateBudgetComputedData, queryKeys, rollbackOptimisticUpdate, updateBudgetInCache, updateBudgetPeriodInCache } from '@/lib';
+import { Budget, BudgetPeriod, budgetPeriodService, budgetService, createOptimisticSnapshot, invalidateBudgetComputedData, queryKeys, rollbackOptimisticUpdate, updateBudgetInCache, updateBudgetPeriodInCache } from '@/src/lib';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 /**

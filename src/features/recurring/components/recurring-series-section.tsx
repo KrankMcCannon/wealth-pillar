@@ -1,8 +1,8 @@
 'use client';
 
-import { RecurringTransactionSeries } from "@/lib";
+import { RecurringTransactionSeries } from "@/src/lib";
 import { useRecurringSeries, useRecurringSeriesByUser } from "../hooks/use-recurring-series";
-import SeriesCard from "./series-card";
+import { SeriesCard } from "@/src/components/cards";
 
 interface RecurringSeriesSectionProps {
   selectedUserId?: string;

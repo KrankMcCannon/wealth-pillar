@@ -1,9 +1,9 @@
 "use client";
 
-import { Budget, useCategories } from "@/lib";
+import { Budget, useCategories } from '@/src/lib';
 import { useMemo } from "react";
 import useBudgetFormController from "../hooks/use-budget-form-controller";
-import { AmountField, FormActions, FormCheckboxGroup, FormField, FormSelect, Input, ModalContent, ModalSection, ModalWrapper, sortCheckboxOptions, toCheckboxOptions, UserField } from "@/components/ui";
+import { AmountField, FormActions, FormCheckboxGroup, FormField, FormSelect, Input, ModalContent, ModalSection, ModalWrapper, sortCheckboxOptions, toCheckboxOptions, UserField } from '@/src/components/ui';
 
 interface BudgetFormProps {
   isOpen: boolean;

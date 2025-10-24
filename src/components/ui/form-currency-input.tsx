@@ -3,7 +3,7 @@
 import * as React from "react";
 import { Euro } from "lucide-react";
 import { Input } from "./input";
-import { cn } from "@/lib";
+import { cn } from '@/src/lib';;
 
 /**
  * Form Currency Input Component

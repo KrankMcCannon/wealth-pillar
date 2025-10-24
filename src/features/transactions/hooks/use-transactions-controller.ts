@@ -8,8 +8,8 @@
  * Reduces page from 450 lines to ~100 lines (78% reduction)
  */
 
-import { useAccounts, useCategories, useTransactions, useUserSelection } from '@/lib';
-import type { RecurringTransactionSeries, Transaction } from '@/lib/types';
+import { useAccounts, useCategories, useTransactions, useUserSelection } from '@/src/lib';
+import type { RecurringTransactionSeries, Transaction } from '@/src/lib/types';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createTransactionsViewModel } from '../services/transactions-view-model';

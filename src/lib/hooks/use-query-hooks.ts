@@ -4,7 +4,7 @@ import type {
   EnhancedHolding,
   PortfolioData,
   Transaction,
-} from '@/lib/types';
+} from '@/src/lib/types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { accountService, apiHelpers, budgetPeriodService, budgetService, categoryService, investmentService, transactionService, userService } from '../api';
 import { QUERY_STALE_TIMES, queryKeys, queryKeyUtils } from '../query';

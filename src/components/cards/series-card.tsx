@@ -8,10 +8,10 @@
 
 'use client';
 
-import { CategoryIcon, cn, iconSizes, RecurringTransactionSeries } from '@/lib';
+import { CategoryIcon, cn, iconSizes, RecurringTransactionSeries } from '@/src/lib';
 import { Play, Pause, Settings } from 'lucide-react';
-import { useExecuteRecurringSeries, usePauseRecurringSeries, useResumeRecurringSeries } from '../hooks/use-recurring-series';
-import { Amount, Button, Card, IconContainer, StatusBadge, Text } from '@/components/ui';
+import { useExecuteRecurringSeries, usePauseRecurringSeries, useResumeRecurringSeries } from '@/src/features/recurring/hooks/use-recurring-series';
+import { Amount, Button, Card, IconContainer, StatusBadge, Text } from '@/src/components/ui';
 
 interface SeriesCardProps {
   series: RecurringTransactionSeries;

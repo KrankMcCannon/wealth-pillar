@@ -4,7 +4,7 @@
 
 "use client";
 
-import { cn } from "@/lib";
+import { cn } from '@/src/lib';;
 import { Filter } from "lucide-react";
 import { Button } from "./button";
 

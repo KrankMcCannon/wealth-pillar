@@ -12,8 +12,8 @@
 
 'use client';
 
-import { useDeleteTransaction } from '@/features/transactions';
-import { Budget, createAccountNamesMap, createUserNamesMap, Transaction, useAccounts, useBudgetPeriods, useBudgets, useCategories, useTransactions, useUserSelection } from '@/lib';
+import { useDeleteTransaction } from '@/src/features/transactions';
+import { Budget, createAccountNamesMap, createUserNamesMap, Transaction, useAccounts, useBudgetPeriods, useBudgets, useCategories, useTransactions, useUserSelection } from '@/src/lib';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createBudgetsViewModel } from '../services/budgets-view-model';

@@ -1,7 +1,7 @@
 'use client';
 
-import { useAuth } from '@/features/auth';
-import { User } from '@/lib/types';
+import { useAuth } from '@/src/features/auth';
+import { User } from '@/src/lib/types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { userService } from '../api';

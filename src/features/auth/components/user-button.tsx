@@ -3,7 +3,7 @@
 import { UserButton as ClerkUserButton } from '@clerk/nextjs';
 import { LogOut, Settings, User } from 'lucide-react';
 import { useAuth } from '../hooks/use-auth';
-import { Avatar, AvatarImage, Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui';
+import { Avatar, AvatarImage, Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/src/components/ui';
 
 interface UserButtonProps {
   showName?: boolean;

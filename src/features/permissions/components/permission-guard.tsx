@@ -1,6 +1,6 @@
 'use client';
 
-import { usePermissions, useRoleBasedUI } from '@/lib';
+import { usePermissions, useRoleBasedUI } from '@/src/lib';
 import { ReactNode } from 'react';
 
 interface PermissionGuardProps {

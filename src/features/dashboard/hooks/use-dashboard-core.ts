@@ -1,6 +1,6 @@
 'use client';
 
-import { Account, calculateAccountBalance, useAccounts, useAccountsByUser, User, useTransactions, useTransactionsForBalances, useUsers } from '@/lib';
+import { Account, calculateAccountBalance, useAccounts, useAccountsByUser, User, useTransactions, useTransactionsForBalances, useUsers } from '@/src/lib';
 import { useMemo } from 'react';
 
 /**

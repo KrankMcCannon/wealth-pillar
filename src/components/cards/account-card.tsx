@@ -7,8 +7,8 @@
 
 "use client";
 
-import { Amount, DomainCard, Text } from "@/components/ui";
-import { Account, AccountTypeMap } from "@/lib";
+import { Amount, DomainCard, Text } from "@/src/components/ui";
+import { Account, AccountTypeMap } from "@/src/lib";
 import { Building2 } from "lucide-react";
 
 interface AccountCardProps {

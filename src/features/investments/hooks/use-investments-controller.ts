@@ -12,7 +12,7 @@
 
 'use client';
 
-import { EnhancedHolding, InvestmentHolding, PortfolioData, useInvestments, usePortfolioData, useUserSelection } from '@/lib';
+import { EnhancedHolding, InvestmentHolding, PortfolioData, useInvestments, usePortfolioData, useUserSelection } from '@/src/lib';
 import { useRouter } from 'next/navigation';
 import { useCallback, useMemo } from 'react';
 

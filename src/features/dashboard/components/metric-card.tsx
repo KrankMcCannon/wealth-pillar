@@ -4,8 +4,8 @@
 
 "use client";
 
-import { Amount, Card, IconContainer, Text } from "@/components/ui";
-import { cn } from "@/lib";
+import { Amount, Card, IconContainer, Text } from '@/src/components/ui';
+import { cn } from '@/src/lib';
 
 interface MetricCardProps {
   label: string;

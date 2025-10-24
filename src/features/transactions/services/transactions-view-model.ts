@@ -8,13 +8,13 @@ import {
   filterTransactions,
   filterByUserScope,
   hasActiveFilters as checkActiveFilters
-} from '@/lib/services/transaction-filtering.service';
+} from '@/src/lib/services/transaction-filtering.service';
 import {
   groupTransactionsByDay,
   createAccountNamesMap,
   type DayGroup
-} from '@/lib/services/data-grouping.service';
-import type { Transaction, Account, User } from '@/lib/types';
+} from '@/src/lib/services/data-grouping.service';
+import type { Transaction, Account, User } from '@/src/lib/types';
 
 /**
  * Transaction filter state

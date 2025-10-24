@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
-import { Input } from '@/components/ui';
-import { cn } from '@/lib';
+import { Input } from '@/src/components/ui';
+import { cn } from '@/src/lib';
 
 type PasswordInputProps = React.ComponentProps<typeof Input> & {
   wrapperClassName?: string;

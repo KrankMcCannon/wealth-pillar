@@ -6,7 +6,7 @@
  * All calculations include proper rounding and safety checks
  */
 
-import type { Transaction, Budget, InvestmentHolding } from '@/lib/types';
+import type { Transaction, Budget, InvestmentHolding } from '@/src/lib/types';
 
 /**
  * Budget progress data

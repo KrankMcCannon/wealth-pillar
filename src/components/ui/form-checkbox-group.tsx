@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { Search } from "lucide-react";
-import { cn } from "@/lib";
+import { cn } from '@/src/lib';;
 import { Input } from "./input";
 import { Checkbox } from "./checkbox";
 import { Label } from "./label";

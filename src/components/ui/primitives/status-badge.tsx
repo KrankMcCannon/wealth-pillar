@@ -16,7 +16,7 @@
  */
 
 import * as React from "react";
-import { cn, statusBadgeVariants, StatusBadgeVariants } from "@/lib"
+import { cn, statusBadgeVariants, StatusBadgeVariants } from '@/src/lib';
 
 export interface StatusBadgeProps
   extends React.HTMLAttributes<HTMLDivElement>,

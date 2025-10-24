@@ -2,10 +2,10 @@
 
 import { useState } from 'react';
 import { Calendar, CheckCircle, XCircle, AlertTriangle, DollarSign, TrendingUp, TrendingDown } from 'lucide-react';
-import { formatCurrency, RecurringTransactionSeries } from '@/lib';
+import { formatCurrency, RecurringTransactionSeries } from '@/src/lib';
 import { useSeriesReconciliation, useSeriesTransactions } from '../hooks/use-recurring-execution';
-import { Badge, Card, Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui';
-import { SectionHeader } from '@/components/layout';
+import { Badge, Card, Tabs, TabsContent, TabsList, TabsTrigger } from '@/src/components/ui';
+import { SectionHeader } from '@/src/components/layout';
 
 interface SeriesReconciliationViewProps {
   series: RecurringTransactionSeries;

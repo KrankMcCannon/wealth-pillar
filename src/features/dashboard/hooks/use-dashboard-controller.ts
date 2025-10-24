@@ -14,7 +14,7 @@
 
 'use client';
 
-import { RecurringTransactionSeries, useUserSelection } from '@/lib';
+import { RecurringTransactionSeries, useUserSelection } from '@/src/lib';
 import { useRouter } from 'next/navigation';
 import { useCallback, useState } from 'react';
 import useDashboardBudgets from './use-dashboard-budgets';

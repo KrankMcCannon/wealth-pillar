@@ -179,7 +179,7 @@ export interface IPermissionChecker<ResourceEntity = unknown> {
 }
 
 // Main authorization service
-import type { Account, User as AppUser, Budget, Group, InvestmentHolding, Transaction } from '@/lib/types';
+import type { Account, User as AppUser, Budget, Group, InvestmentHolding, Transaction } from '@/src/lib/types';
 type ResourceEntity = Transaction | Account | Budget | InvestmentHolding | AppUser | Group;
 
 export class AuthorizationService implements IPermissionChecker<ResourceEntity> {

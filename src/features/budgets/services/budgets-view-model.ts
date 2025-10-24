@@ -4,7 +4,7 @@
  * Follows MVVM pattern - separates complex budget calculations from presentation
  */
 
-import { Budget, BudgetPeriod, BudgetProgress, calculateBudgetProgress, calculateDaysRemaining, calculatePeriodComparison, CategoryChartData, DayGroup, filterByBudgetScope, groupTransactionsByDay, LineChartData, prepareCategoryChartData, prepareLineChartData, Transaction } from "@/lib";
+import { Budget, BudgetPeriod, BudgetProgress, calculateBudgetProgress, calculateDaysRemaining, calculatePeriodComparison, CategoryChartData, DayGroup, filterByBudgetScope, groupTransactionsByDay, LineChartData, prepareCategoryChartData, prepareLineChartData, Transaction } from '@/src/lib';
 
 /**
  * Budget info (simplified budget data)

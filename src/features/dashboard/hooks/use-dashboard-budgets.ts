@@ -1,6 +1,6 @@
 'use client';
 
-import { BudgetPeriod, calculateBudgetSpent, filterDataByUserRole, getActivePeriodDates, getBudgetTransactions, Transaction, useBudgets, useBudgetsByUser, useCategories, User } from '@/lib';
+import { BudgetPeriod, calculateBudgetSpent, filterDataByUserRole, getActivePeriodDates, getBudgetTransactions, Transaction, useBudgets, useBudgetsByUser, useCategories, User } from '@/src/lib';
 import { useMemo } from 'react';
 
 /**

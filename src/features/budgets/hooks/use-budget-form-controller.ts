@@ -1,6 +1,6 @@
 "use client";
 
-import { Budget, BudgetType, budgetValidationSchema, createFormState, isDirty as isFormDirty, sanitizeFormState, validateFieldByName, validateForm, ValidationErrors } from "@/lib";
+import { Budget, BudgetType, budgetValidationSchema, createFormState, isDirty as isFormDirty, sanitizeFormState, validateFieldByName, validateForm, ValidationErrors } from '@/src/lib';
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useCreateBudget, useUpdateBudget } from "./use-budget-mutations";
 

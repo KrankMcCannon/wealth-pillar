@@ -5,7 +5,7 @@
 "use client";
 
 import { Text } from "../ui";
-import { cn } from "@/lib"
+import { cn } from '@/src/lib';
 
 interface PageHeaderProps {
   title: string;

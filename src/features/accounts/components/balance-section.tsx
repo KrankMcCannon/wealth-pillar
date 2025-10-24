@@ -3,9 +3,9 @@
 import { Suspense } from 'react';
 import { CreditCard, ArrowRight } from "lucide-react";
 import { useRouter } from 'next/navigation';
-import { Account, formatCurrency, User } from '@/lib';
-import { BalanceSectionSkeleton } from '@/features/dashboard';
-import { AccountCard } from './account-card';
+import { Account, formatCurrency, User } from '@/src/lib';
+import { BalanceSectionSkeleton } from '@/src/features/dashboard';
+import { AccountCard } from '@/src/components/cards';
 
 interface BalanceSectionProps {
   accounts: Account[];

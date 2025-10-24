@@ -1,6 +1,6 @@
 "use client";
 
-import { cn, useMediaQuery } from "@/lib";
+import { cn, useMediaQuery } from '@/src/lib';
 import * as React from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "./dialog";
 import { Drawer, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle } from "./drawer";

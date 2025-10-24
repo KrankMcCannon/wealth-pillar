@@ -1,8 +1,8 @@
 "use client";
 
-import { RecurringTransactionSeries, TransactionType } from "@/lib";
+import { RecurringTransactionSeries, TransactionType } from '@/src/lib';
 import useRecurringSeriesFormController from "../hooks/use-recurring-series-form-controller";
-import { AccountField, AmountField, CategoryField, DateField, FormActions, FormField, FormSelect, Input, ModalContent, ModalSection, ModalWrapper, UserField } from "@/components/ui";
+import { AccountField, AmountField, CategoryField, DateField, FormActions, FormField, FormSelect, Input, ModalContent, ModalSection, ModalWrapper, UserField } from '@/src/components/ui';
 
 type Mode = 'create' | 'edit';
 

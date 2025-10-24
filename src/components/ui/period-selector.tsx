@@ -6,7 +6,7 @@
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "./button";
-import { Text } from "@/components/ui";
+import { Text } from '@/src/components/ui';
 
 interface Period {
   id: string;

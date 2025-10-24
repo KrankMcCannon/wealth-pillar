@@ -1,6 +1,6 @@
 'use client';
 
-import { Button } from '@/components/ui';
+import { Button } from '@/src/components/ui';
 import { Apple, Github } from 'lucide-react';
 
 type Props = {

@@ -7,7 +7,7 @@
  * Previous: O(6n) - 6 sequential .filter() calls in components
  */
 
-import type { Budget, Transaction, User } from '@/lib/types';
+import type { Budget, Transaction, User } from '@/src/lib/types';
 
 /**
  * Transaction filter criteria

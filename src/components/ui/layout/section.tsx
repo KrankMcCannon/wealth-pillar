@@ -22,8 +22,8 @@
 "use client";
 
 import * as React from "react";
-import { cn } from "@/lib"
-import { Text } from "@/components/ui";
+import { cn } from '@/src/lib';
+import { Text } from '@/src/components/ui';
 
 export interface SectionProps {
   /** Section title */

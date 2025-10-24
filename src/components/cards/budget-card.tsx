@@ -8,8 +8,8 @@
 
 "use client";
 
-import { IconContainer, StatusBadge, Text } from "@/components/ui";
-import { Budget, CategoryIcon, formatCurrency, iconSizes, progressBarVariants, progressFillVariants } from "@/lib";
+import { IconContainer, StatusBadge, Text } from "@/src/components/ui";
+import { Budget, CategoryIcon, formatCurrency, iconSizes, progressBarVariants, progressFillVariants } from "@/src/lib";
 
 interface BudgetCardProps {
   budget: Budget;

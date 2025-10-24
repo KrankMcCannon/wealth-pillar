@@ -3,7 +3,7 @@
 import * as React from "react";
 import { Dialog, DialogPortal, DialogOverlay, DialogContent, DialogTitle, DialogDescription, DialogClose, DialogTrigger } from "@radix-ui/react-dialog";
 import { motion } from "framer-motion";
-import { cn } from "@/lib"
+import { cn } from '@/src/lib';
 
 const Drawer = Dialog;
 const DrawerTrigger = DialogTrigger;
