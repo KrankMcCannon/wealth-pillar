@@ -2,7 +2,7 @@
 
 import { Badge } from "@/src/components/ui";
 import { BudgetPeriod, formatCurrency } from "@/src/lib";
-import { formatDate } from "@/src/lib/utils/shared";
+import { formatDate } from "@/src/lib/utils/date";
 import { Calendar, Clock } from "lucide-react";
 
 interface BudgetPeriodInfoProps {

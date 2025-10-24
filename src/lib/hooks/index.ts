@@ -9,3 +9,4 @@ export * from "./use-card-actions";
 export * from "./use-media-query";
 export * from "./use-permissions";
 export * from "./use-form-controller";
+export * from "./use-generic-mutation";

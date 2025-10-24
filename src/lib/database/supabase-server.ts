@@ -5,6 +5,7 @@
 import { auth, currentUser } from '@clerk/nextjs/server';
 import { createClient } from '@supabase/supabase-js';
 import { APIError, ErrorCode, mapSupabaseError } from '../api';
+import type { UserContext } from '../types';
 import { Database } from './types';
 
 // Server-side client with service role (full access)
@@ -48,12 +49,7 @@ export function handleServerResponse<T>(response: {
 /**
  * Validate user authentication and get user context
  */
-export async function validateUserContext(): Promise<{
-  userId: string;
-  email: string;
-  role: string;
-  group_id: string;
-}> {
+export async function validateUserContext(): Promise<UserContext> {
   // Prefer Clerk session from request cookies (no need for explicit Bearer)
   const { userId: clerkUserId } = await auth();
   if (!clerkUserId) {
@@ -71,7 +67,7 @@ export async function validateUserContext(): Promise<{
     return {
       userId: userResponse.data.id,
       email: userResponse.data.email,
-      role: userResponse.data.role,
+      role: userResponse.data.role as 'member' | 'admin' | 'superadmin',
       group_id: userResponse.data.group_id,
     };
   }
@@ -89,7 +85,7 @@ export async function validateUserContext(): Promise<{
       return {
         userId: byEmail.data.id,
         email: byEmail.data.email,
-        role: byEmail.data.role,
+        role: byEmail.data.role as 'member' | 'admin' | 'superadmin',
         group_id: byEmail.data.group_id,
       };
     }
@@ -99,7 +95,7 @@ export async function validateUserContext(): Promise<{
   return {
     userId: clerkUserId,
     email: email || '',
-    role: 'member',
+    role: 'member' as const,
     group_id: '',
   };
 }

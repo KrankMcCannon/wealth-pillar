@@ -1,23 +1,5 @@
+import { formatDate } from ".";
 import { Budget, Transaction, User } from "../types";
-
-export const formatDate = (dateString: string | Date | null | undefined): string => {
-  try {
-    if (!dateString) {
-      return 'Data non disponibile';
-    }
-    const date = new Date(dateString);
-    if (isNaN(date.getTime())) {
-      return 'Data non valida';
-    }
-    return date.toLocaleDateString('it-IT', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    });
-  } catch {
-    return 'Data non valida';
-  }
-}
 
 export const formatDateLabel = (date: string): string => {
   try {

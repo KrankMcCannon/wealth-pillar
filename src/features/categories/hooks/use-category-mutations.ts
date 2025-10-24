@@ -1,74 +1,60 @@
 /**
- * Category Mutation Hooks
+ * Category Mutation Hooks (Refactored with Generic Factory)
  *
- * Follows SOLID principles:
- * - Single Responsibility: Each hook handles one mutation type
- * - DRY: Uses centralized cache update utilities
+ * These hooks were refactored to use the generic mutation factory.
+ * The factory handles optimistic updates, snapshots, and rollback automatically.
  */
 
 'use client';
 
+import { useGenericMutation } from '@/src/lib/hooks';
 import { Category, categoryService, queryKeys } from '@/src/lib';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 /**
- * Create Category Hook
+ * Create a new category
  */
-export const useCreateCategory = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: categoryService.create,
-
-    onSuccess: (newCategory) => {
-      // Update categories cache directly - no need to invalidate since we've updated it
-      queryClient.setQueryData<Category[]>(
-        queryKeys.categories(),
-        (oldCategories = []) => [...oldCategories, newCategory]
-      );
-    },
-  });
-};
+export const useCreateCategory = () =>
+  useGenericMutation<Category, Omit<Category, 'id' | 'created_at' | 'updated_at'>>(
+    categoryService.create,
+    {
+      cacheKeys: () => [queryKeys.categories()],
+      cacheUpdateFn: (qc, category) => {
+        qc.setQueryData<Category[]>(
+          queryKeys.categories(),
+          (oldCategories = []) => [...oldCategories, category]
+        );
+      },
+      operation: 'create',
+    }
+  );
 
 /**
- * Update Category Hook
+ * Update an existing category
  */
-export const useUpdateCategory = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<Category> }) =>
-      categoryService.update(id, data),
-
-    onSuccess: (updatedCategory) => {
-      // Update categories cache directly - no need to invalidate since we've updated it
-      queryClient.setQueryData<Category[]>(
-        queryKeys.categories(),
-        (oldCategories = []) =>
-          oldCategories.map((cat) =>
-            cat.id === updatedCategory.id ? updatedCategory : cat
-          )
-      );
-    },
-  });
-};
+export const useUpdateCategory = () =>
+  useGenericMutation<Category, { id: string; data: Partial<Category> }>(
+    ({ id, data }) => categoryService.update(id, data),
+    {
+      cacheKeys: () => [queryKeys.categories()],
+      cacheUpdateFn: (qc, category) => {
+        qc.setQueryData<Category[]>(
+          queryKeys.categories(),
+          (oldCategories = []) =>
+            oldCategories.map((cat) => (cat.id === category.id ? category : cat))
+        );
+      },
+      operation: 'update',
+    }
+  );
 
 /**
- * Delete Category Hook
+ * Delete a category
  */
-export const useDeleteCategory = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: categoryService.delete,
-
-    onSuccess: (_, deletedId) => {
-      // Update categories cache directly - no need to invalidate since we've updated it
-      queryClient.setQueryData<Category[]>(
-        queryKeys.categories(),
-        (oldCategories = []) =>
-          oldCategories.filter((cat) => cat.id !== deletedId)
-      );
+export const useDeleteCategory = () =>
+  useGenericMutation<void, string>(categoryService.delete, {
+    cacheKeys: () => [queryKeys.categories()],
+    cacheUpdateFn: () => {
+      // For delete, invalidate to refresh
     },
+    operation: 'delete',
   });
-};

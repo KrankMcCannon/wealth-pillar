@@ -9,6 +9,7 @@ import {
   withErrorHandler,
 } from '@/src/lib/api';
 import type { Database } from '@/src/lib/database';
+import { applyUserFilter } from '@/src/lib/database/auth-filters';
 import {
   applyDateFilter,
   handleServerResponse,
@@ -62,16 +63,14 @@ async function getTransactions(request: NextRequest) {
       .from('transactions')
       .select('*');
 
-    // Apply user/group filtering based on permissions
-    const isAdmin = userContext.role === 'admin' || userContext.role === 'superadmin';
-
+    // Handle member-specific account filtering
     if (userContext.role === 'member') {
       // Members:
       // - If requesting by accountId and they have access to that account, allow all tx for that account
       // - If includeSharedAccountTransactions flag is set, get ALL transactions for their accessible accounts (for balance calculations)
       // - Otherwise, restrict to their own transactions
       const includeShared = searchParams.get('includeSharedAccountTransactions') === 'true';
-      
+
       if (accountId) {
         const hasAccountAccess = await validateResourceAccess(userContext.userId, 'account', accountId);
         if (!hasAccountAccess) {
@@ -84,10 +83,10 @@ async function getTransactions(request: NextRequest) {
           .from('accounts')
           .select('id')
           .contains('user_ids', [userContext.userId]);
-        
+
         const memberAccounts = handleServerResponse<Array<{ id: string }>>(memberAccountsResponse);
         const accountIds = memberAccounts.map(a => a.id);
-        
+
         if (accountIds.length > 0) {
           // Get all transactions where account_id OR to_account_id matches any of the member's accounts
           query = query.or(
@@ -100,41 +99,9 @@ async function getTransactions(request: NextRequest) {
       } else {
         query = query.eq('user_id', userContext.userId);
       }
-    } else if (isAdmin) {
-      // Get admin's group_id for group-level access
-      const userResponse = (await supabaseServer
-        .from('users')
-        .select('group_id')
-        .eq('id', userContext.userId)
-        .single()) as { data: { group_id: string } | null; error: unknown };
-
-      const userGroupId = userResponse.error ? null : (userResponse.data as { group_id: string }).group_id;
-
-      if (userId && userId !== userContext.userId) {
-        // Specific user requested - ensure it's in the same group
-        query = query.eq('user_id', userId);
-      } else if (!userId && userGroupId) {
-        // No specific user requested: admin wants all group transactions
-        // Get all users in the same group and their transactions
-        const groupUsersResponse = await supabaseServer
-          .from('users')
-          .select('id')
-          .eq('group_id', userGroupId);
-
-        if (groupUsersResponse.data && groupUsersResponse.data.length > 0) {
-          const groupUserIds = (groupUsersResponse.data as { id: string }[]).map(user => user.id);
-          query = query.in('user_id', groupUserIds);
-        } else {
-          // Fallback: admin's own transactions
-          query = query.eq('user_id', userContext.userId);
-        }
-      } else {
-        // Fallback: admin's own transactions
-        query = query.eq('user_id', userContext.userId);
-      }
     } else {
-      // Fallback: own transactions
-      query = query.eq('user_id', userContext.userId);
+      // Apply centralized role-based filtering for admins
+      query = await applyUserFilter(query, userContext, userId);
     }
 
     // Apply additional filters

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Clock, History, TrendingUp, TrendingDown, Activity, Users, Target } from "lucide-react";
 import { Budget, BudgetPeriod, calculateUserFinancialTotals, formatCurrency, useBudgetPeriods, useBudgets, useTransactions, useUsers } from "@/src/lib";
-import { formatDate } from "@/src/lib/utils/shared";
+import { formatDate } from "@/src/lib/utils/date";
 import { useEndBudgetPeriod, useStartBudgetPeriod } from "../hooks/use-budget-mutations";
 import { Alert, AlertDescription, Badge, FormActions, FormDatePicker, FormField, ModalContent, ModalSection, ModalWrapper } from "@/src/components/ui";
 

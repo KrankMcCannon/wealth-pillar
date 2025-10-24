@@ -7,7 +7,7 @@
  */
 
 import type { Budget, Transaction, User } from '@/src/lib/types';
-import { calculateBalance, formatDateLabel } from '@/src/lib/utils';
+import { calculateBalance, formatDateLabel, safeParseDate } from '@/src/lib/utils';
 
 /**
  * Day group structure for transactions
@@ -33,7 +33,7 @@ export function groupTransactionsByDay(
 ): DayGroup[] {
   // Validate and filter valid dates
   const validTransactions = transactions.filter(tx => {
-    const date = safeParseDatee(tx.date);
+    const date = safeParseDate(tx.date);
     return date !== null;
   });
 
@@ -222,20 +222,6 @@ export function createUserNamesMap(
 }
 
 /**
- * Safe date parsing with null return for invalid dates
- * Prevents crashes from malformed data
- *
- * @param dateInput - Date string or Date object
- * @returns Date object or null if invalid
- */
-export function safeParseDate(dateInput: string | Date | unknown): Date | null {
-  if (!dateInput) return null;
-
-  const date = new Date(dateInput as string | Date);
-  return isNaN(date.getTime()) ? null : date;
-}
-
-/**
  * Chunk array into smaller arrays of specified size
  * Useful for pagination and batching
  *
@@ -251,11 +237,4 @@ export function chunkArray<T>(items: T[], size: number): T[][] {
     chunks.push(items.slice(i, i + size));
   }
   return chunks;
-}
-
-/**
- * Safe date parsing (typo fix in line 36)
- */
-function safeParseDatee(dateInput: string | Date | unknown): Date | null {
-  return safeParseDate(dateInput);
 }

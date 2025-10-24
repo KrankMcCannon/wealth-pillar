@@ -8,6 +8,17 @@ export type LoadingState = 'idle' | 'loading' | 'success' | 'error';
 export type SortOrder = 'asc' | 'desc';
 export type ViewMode = 'list' | 'grid' | 'chart';
 
+/**
+ * User context from server-side authentication
+ * Contains authenticated user information from Clerk
+ */
+export interface UserContext {
+  userId: string;
+  email: string;
+  role: RoleType;
+  group_id: string;
+}
+
 export interface AppError {
   code: string;
   message: string;

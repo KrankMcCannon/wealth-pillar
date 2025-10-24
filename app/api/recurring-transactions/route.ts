@@ -4,6 +4,7 @@
  */
 
 import { APIError, createMissingFieldError, createValidationError, Database, ErrorCode, withErrorHandler } from '@/src/lib';
+import { applyUserFilter } from '@/src/lib/database/auth-filters';
 import { handleServerResponse, supabaseServer, validateResourceAccess, validateUserContext } from '@/src/lib/database/supabase-server';
 import { SupabaseInsertBuilder } from '@/src/lib/types/supabase';
 import { NextRequest, NextResponse } from 'next/server';
@@ -38,14 +39,8 @@ async function getRecurringTransactions(request: NextRequest) {
       .from('recurring_transactions')
       .select('*');
 
-    // Apply user filtering
-    if (userContext.role === 'member') {
-      query = query.eq('user_id', userContext.userId);
-    } else if (userId && userId !== userContext.userId) {
-      query = query.eq('user_id', userId);
-    } else {
-      query = query.eq('user_id', userContext.userId);
-    }
+    // Apply centralized role-based user filtering
+    query = await applyUserFilter(query, userContext, userId);
 
     // Apply filters
     if (activeOnly) {

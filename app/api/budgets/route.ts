@@ -5,6 +5,7 @@
 
 import { APIError, Budget, createMissingFieldError, createValidationError, ErrorCode, withErrorHandler } from '@/src/lib';
 import type { Database } from '@/src/lib/database';
+import { applyUserFilter } from '@/src/lib/database/auth-filters';
 import { handleServerResponse, supabaseServer, validateResourceAccess, validateUserContext } from '@/src/lib/database/supabase-server';
 import type { SupabaseInsertBuilder } from '@/src/lib/types/supabase';
 import { NextRequest, NextResponse } from 'next/server';
@@ -36,48 +37,8 @@ async function getBudgets(request: NextRequest) {
       .from('budgets')
       .select('*');
 
-    // Apply user filtering based on permissions
-    const isAdmin = userContext.role === 'admin' || userContext.role === 'superadmin';
-
-    if (userContext.role === 'member') {
-      // Members see only their own budgets
-      query = query.eq('user_id', userContext.userId);
-    } else if (isAdmin) {
-      if (userId && userId !== userContext.userId) {
-        // Specific user requested
-        query = query.eq('user_id', userId);
-      } else {
-        // Default for admin: show all budgets from users in their group
-        const adminUserResponse = await supabaseServer
-          .from('users')
-          .select('group_id')
-          .eq('id', userContext.userId)
-          .single();
-
-        const adminGroupId = adminUserResponse.error ? null : (adminUserResponse.data as { group_id: string }).group_id;
-        if (adminGroupId) {
-          // Get all users in the same group and their budgets
-          const groupUsersResponse = await supabaseServer
-            .from('users')
-            .select('id')
-            .eq('group_id', adminGroupId);
-
-          if (groupUsersResponse.data && groupUsersResponse.data.length > 0) {
-            const groupUserIds = (groupUsersResponse.data as { id: string }[]).map(user => user.id);
-            query = query.in('user_id', groupUserIds);
-          } else {
-            // Fallback: admin's own budgets
-            query = query.eq('user_id', userContext.userId);
-          }
-        } else {
-          // Fallback: admin's own budgets
-          query = query.eq('user_id', userContext.userId);
-        }
-      }
-    } else {
-      // Fallback: own budgets
-      query = query.eq('user_id', userContext.userId);
-    }
+    // Apply centralized role-based filtering
+    query = await applyUserFilter(query, userContext, userId);
 
     // Apply sorting (no pagination)
     query = query.order(sortBy, { ascending: sortOrder === 'asc' });

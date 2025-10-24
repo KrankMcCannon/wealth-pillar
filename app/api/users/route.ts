@@ -1,4 +1,5 @@
 import { APIError, ErrorCode, withErrorHandler } from '@/src/lib';
+import { applyUserFilter } from '@/src/lib/database/auth-filters';
 import { supabaseServer, validateUserContext } from '@/src/lib/database/supabase-server';
 import { currentUser } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
@@ -11,29 +12,8 @@ async function getUsers() {
       .select('*')
       .order('created_at', { ascending: false });
 
-
-    if (userContext.role === 'superadmin') {
-      // Superadmin sees all users
-      // No additional filtering needed
-    } else if (userContext.role === 'admin') {
-      // Admin sees users in their group
-      const adminUserResponse = await supabaseServer
-        .from('users')
-        .select('group_id')
-        .eq('id', userContext.userId)
-        .single();
-
-      const adminGroupId = adminUserResponse.error ? null : (adminUserResponse.data as { group_id: string }).group_id;
-      if (adminGroupId) {
-        query = query.eq('group_id', adminGroupId);
-      } else {
-        // Fallback: admin sees only themselves
-        query = query.eq('id', userContext.userId);
-      }
-    } else {
-      // Members see only themselves
-      query = query.eq('id', userContext.userId);
-    }
+    // Apply centralized role-based user filtering
+    query = await applyUserFilter(query, userContext);
 
     const response = await query;
     if (response.error) {

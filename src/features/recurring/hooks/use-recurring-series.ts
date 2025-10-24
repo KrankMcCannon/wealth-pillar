@@ -1,7 +1,8 @@
 'use client';
 
-import { QUERY_STALE_TIMES, queryKeys, RecurringTransactionSeries, recurringTransactionService, updateRecurringSeriesInCache } from '@/src/lib';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { QUERY_STALE_TIMES, queryKeys, RecurringTransactionSeries, recurringTransactionService, Transaction, updateRecurringSeriesInCache } from '@/src/lib';
+import { useGenericMutation } from '@/src/lib/hooks';
+import { useQuery } from '@tanstack/react-query';
 
 // Basic CRUD hooks for RecurringTransactionSeries
 export const useRecurringSeries = () => {
@@ -46,88 +47,90 @@ export const useUpcomingRecurringSeries = (days: number, userId?: string) => {
   });
 };
 
-// Mutation hooks
-export const useCreateRecurringSeries = () => {
-  const queryClient = useQueryClient();
+// Mutation hooks (refactored with generic factory)
 
-  return useMutation({
-    mutationFn: (series: Omit<RecurringTransactionSeries, 'id'>) =>
-      recurringTransactionService.create(series),
-    onSuccess: (newSeries) => {
-      // Smart cache update - only invalidates necessary queries
-      updateRecurringSeriesInCache(queryClient, newSeries, 'create');
-    },
-  });
-};
+export const useCreateRecurringSeries = () =>
+  useGenericMutation<RecurringTransactionSeries, Omit<RecurringTransactionSeries, 'id'>>(
+    (series) => recurringTransactionService.create(series),
+    {
+      cacheKeys: () => [queryKeys.recurringSeries()],
+      cacheUpdateFn: updateRecurringSeriesInCache,
+      operation: 'create',
+    }
+  );
 
-export const useUpdateRecurringSeries = () => {
-  const queryClient = useQueryClient();
+export const useUpdateRecurringSeries = () =>
+  useGenericMutation<
+    RecurringTransactionSeries,
+    { id: string; data: Partial<RecurringTransactionSeries> }
+  >(
+    ({ id, data }) => recurringTransactionService.update(id, data),
+    {
+      cacheKeys: (vars) => [queryKeys.recurringSeries(), queryKeys.recurringSeriesById(vars.id)],
+      cacheUpdateFn: updateRecurringSeriesInCache,
+      operation: 'update',
+    }
+  );
 
-  return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<RecurringTransactionSeries> }) =>
-      recurringTransactionService.update(id, data),
-    onSuccess: (updatedSeries) => {
-      // Smart cache update - only invalidates necessary queries
-      updateRecurringSeriesInCache(queryClient, updatedSeries, 'update');
-    },
-  });
-};
+export const useDeleteRecurringSeries = () =>
+  useGenericMutation<void, string>(
+    (id) => recurringTransactionService.delete(id),
+    {
+      cacheKeys: () => [queryKeys.recurringSeries()],
+      cacheUpdateFn: () => {
+        // Deletion handled by invalidation
+      },
+      operation: 'delete',
+    }
+  );
 
-export const useDeleteRecurringSeries = () => {
-  const queryClient = useQueryClient();
+export const usePauseRecurringSeries = () =>
+  useGenericMutation<RecurringTransactionSeries, { id: string; pauseUntil?: Date }>(
+    ({ id }) => recurringTransactionService.pause(id),
+    {
+      cacheKeys: (vars) => [
+        queryKeys.recurringSeries(),
+        queryKeys.recurringSeriesById(vars.id),
+        queryKeys.activeRecurringSeries(),
+      ],
+      cacheUpdateFn: updateRecurringSeriesInCache,
+      operation: 'update',
+    }
+  );
 
-  return useMutation({
-    mutationFn: (id: string) => recurringTransactionService.delete(id),
-    onSuccess: (_, seriesId) => {
-      // Create a mock series object with just the ID for cache removal
-      const deletedSeries = { id: seriesId } as RecurringTransactionSeries;
-      // Smart cache update - only invalidates necessary queries
-      updateRecurringSeriesInCache(queryClient, deletedSeries, 'delete');
-    },
-  });
-};
+export const useResumeRecurringSeries = () =>
+  useGenericMutation<RecurringTransactionSeries, string>(
+    (id) => recurringTransactionService.resume(id),
+    {
+      cacheKeys: (id) => [
+        queryKeys.recurringSeries(),
+        queryKeys.recurringSeriesById(id),
+        queryKeys.activeRecurringSeries(),
+      ],
+      cacheUpdateFn: updateRecurringSeriesInCache,
+      operation: 'update',
+    }
+  );
 
-export const usePauseRecurringSeries = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ id }: { id: string; pauseUntil?: Date }) =>
-      recurringTransactionService.pause(id),
-    onSuccess: (pausedSeries) => {
-      // Smart cache update - updates paused series state
-      updateRecurringSeriesInCache(queryClient, pausedSeries, 'update');
-    },
-  });
-};
-
-export const useResumeRecurringSeries = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (id: string) => recurringTransactionService.resume(id),
-    onSuccess: (resumedSeries) => {
-      // Smart cache update - updates resumed series state
-      updateRecurringSeriesInCache(queryClient, resumedSeries, 'update');
-    },
-  });
-};
-
-export const useExecuteRecurringSeries = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (id: string) => recurringTransactionService.execute(id),
-    onSuccess: (_, id) => {
-      // Invalidate both recurring series and transactions
-      queryClient.invalidateQueries({ queryKey: queryKeys.recurringSeriesById(id) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.transactions() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.recurringSeries() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.upcomingTransactions() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.financial() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard() });
-    },
-  });
-};
+export const useExecuteRecurringSeries = () =>
+  useGenericMutation<Transaction, string>(
+    (id) => recurringTransactionService.execute(id),
+    {
+      cacheKeys: (id) => [queryKeys.recurringSeries(), queryKeys.recurringSeriesById(id)],
+      cacheUpdateFn: () => {
+        // Execution creates new transaction, invalidate all related
+      },
+      invalidateFn: (qc) => {
+        // Invalidate all affected queries
+        qc.invalidateQueries({ queryKey: queryKeys.transactions() });
+        qc.invalidateQueries({ queryKey: queryKeys.recurringSeries() });
+        qc.invalidateQueries({ queryKey: queryKeys.upcomingTransactions() });
+        qc.invalidateQueries({ queryKey: queryKeys.financial() });
+        qc.invalidateQueries({ queryKey: queryKeys.dashboard() });
+      },
+      operation: 'create',
+    }
+  );
 
 // Statistics and analytics hooks
 export const useRecurringSeriesStats = (userId?: string) => {
