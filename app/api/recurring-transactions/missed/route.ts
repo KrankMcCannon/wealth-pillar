@@ -3,7 +3,7 @@
  * Identifies recurring series with missed payment opportunities
  */
 
-import { APIError, Database, ErrorCode, handleServerResponse, supabaseServer, validateUserContext, withErrorHandler } from '@/lib';
+import { APIError, Database, ErrorCode, handleServerResponse, supabaseServer, validateUserContext, withErrorHandler } from '@/src/lib';
 import { NextRequest, NextResponse } from 'next/server';
 
 type RecurringSeries = Database['public']['Tables']['recurring_transactions']['Row'];

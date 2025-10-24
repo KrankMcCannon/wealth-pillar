@@ -1,4 +1,4 @@
-import { APIError, ErrorCode, supabaseServer, validateUserContext, withErrorHandler } from '@/lib';
+import { APIError, ErrorCode, supabaseServer, validateUserContext, withErrorHandler } from '@/src/lib';
 import { NextRequest, NextResponse } from 'next/server';
 
 async function getAccounts(request: NextRequest) {

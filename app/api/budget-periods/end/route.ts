@@ -1,5 +1,5 @@
-import { APIError, Database, ErrorCode, supabaseServer, validateUserContext, withErrorHandler } from '@/lib';
-import { SupabaseUpdateBuilder } from '@/lib/types/supabase';
+import { APIError, Database, ErrorCode, supabaseServer, validateUserContext, withErrorHandler } from '@/src/lib';
+import { SupabaseUpdateBuilder } from '@/src/lib/types/supabase';
 import { NextRequest, NextResponse } from 'next/server';
 
 type Period = {

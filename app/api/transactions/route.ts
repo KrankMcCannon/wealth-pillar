@@ -7,8 +7,8 @@ import {
   createValidationError,
   ErrorCode,
   withErrorHandler,
-} from '@/lib/api-errors';
-import type { Database } from '@/lib/database.types';
+} from '@/src/lib/api';
+import type { Database } from '@/src/lib/types';
 import {
   applyDateFilter,
   handleServerResponse,
@@ -16,8 +16,8 @@ import {
   validateResourceAccess,
   validateUserContext,
   type DateFilterOptions,
-} from '@/lib/supabase-server';
-import type { SupabaseInsertBuilder, SupabaseUpdateBuilder } from '@/lib/supabase-types';
+} from '@/src/lib/database/supabase-server';
+import type { SupabaseInsertBuilder, SupabaseUpdateBuilder } from '@/src/lib/database';
 import { NextRequest, NextResponse } from 'next/server';
 
 type Transaction = Database['public']['Tables']['transactions']['Row'];

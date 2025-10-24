@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * Card Action Hooks
  *

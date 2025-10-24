@@ -1,4 +1,4 @@
-import { APIError, ErrorCode, withErrorHandler } from '@/lib';
+import { APIError, ErrorCode, withErrorHandler } from '@/src/lib';
 import { NextRequest, NextResponse } from 'next/server';
 
 const UPSTREAM_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';

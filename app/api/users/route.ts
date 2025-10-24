@@ -1,4 +1,4 @@
-import { APIError, ErrorCode, supabaseServer, validateUserContext, withErrorHandler } from '@/lib';
+import { APIError, ErrorCode, supabaseServer, validateUserContext, withErrorHandler } from '@/src/lib';
 import { currentUser } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 

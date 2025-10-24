@@ -2,7 +2,7 @@
  * Server-side API Routes for Individual Recurring Transactions (Series)
  */
 
-import { APIError, createValidationError, Database, ErrorCode, handleServerResponse, supabaseServer, validateResourceAccess, validateUserContext, withErrorHandler } from '@/lib';
+import { APIError, createValidationError, Database, ErrorCode, handleServerResponse, supabaseServer, validateResourceAccess, validateUserContext, withErrorHandler } from '@/src/lib';
 import { NextRequest, NextResponse } from 'next/server';
 
 type RouteContext<T = Record<string, string>> = {

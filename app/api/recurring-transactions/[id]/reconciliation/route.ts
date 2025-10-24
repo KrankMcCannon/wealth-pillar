@@ -3,7 +3,7 @@
  * Compares expected vs actual executions for a specific series
  */
 
-import { APIError, Database, ErrorCode, handleServerResponse, supabaseServer, validateResourceAccess, validateUserContext, withErrorHandler } from '@/lib';
+import { APIError, Database, ErrorCode, handleServerResponse, supabaseServer, validateResourceAccess, validateUserContext, withErrorHandler } from '@/src/lib';
 import { NextRequest, NextResponse } from 'next/server';
 
 type RouteContext<T = Record<string, string>> = {

@@ -3,7 +3,7 @@
  * Provides detailed budget breakdown with current period metrics
  */
 
-import { APIError, Database, ErrorCode, handleServerResponse, supabaseServer, validateResourceAccess, validateUserContext, withErrorHandler } from '@/lib';
+import { APIError, Database, ErrorCode, handleServerResponse, supabaseServer, validateResourceAccess, validateUserContext, withErrorHandler } from '@/src/lib';
 import { NextRequest, NextResponse } from 'next/server';
 
 type RouteContext<T = Record<string, string>> = {
