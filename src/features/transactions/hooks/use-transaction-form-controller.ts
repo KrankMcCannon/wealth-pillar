@@ -116,12 +116,12 @@ export function useTransactionFormController(
   const [initialSnapshot, setInitialSnapshot] = useState<TransactionFormState>(initialFormState);
   const [errors, setErrors] = useState<ValidationErrors<TransactionFormState>>({});
 
-  // Reset controller when options change significantly (e.g., switching edit target)
+  // Reset controller only when the edited transaction actually changes (by ID)
   useEffect(() => {
     setForm(initialFormState);
     setInitialSnapshot(initialFormState);
     setErrors({});
-  }, [initialFormState]);
+  }, [mode, initialTransaction?.id, initialType, selectedUserId, initialFormState]);
 
   const isSubmitting = createMutation.isPending || updateMutation.isPending;
   const isDirty = isFormDirty(form, initialSnapshot);
