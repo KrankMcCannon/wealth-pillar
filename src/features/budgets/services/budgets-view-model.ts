@@ -88,9 +88,21 @@ export function createBudgetsViewModel(
   // ========================================
   // Step 1: Filter transactions by budget scope
   // ========================================
-  const periodDates = currentPeriod
-    ? { start: currentPeriod.start_date, end: currentPeriod.end_date }
-    : undefined;
+  // Normalize period dates same way as dashboard (getActivePeriodDates)
+  let periodDates: { start: Date | string; end: Date | string | null } | undefined;
+
+  if (currentPeriod) {
+    const start = new Date(currentPeriod.start_date);
+    start.setHours(0, 0, 0, 0); // Normalize to start of day
+
+    let end: Date | null = null;
+    if (currentPeriod.end_date) {
+      end = new Date(currentPeriod.end_date);
+      end.setHours(23, 59, 59, 999); // Normalize to end of day
+    }
+
+    periodDates = { start, end };
+  }
 
   const budgetTransactions = filterByBudgetScope(
     allTransactions,

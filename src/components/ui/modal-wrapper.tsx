@@ -99,7 +99,7 @@ export function ModalWrapper({
           )}
           showCloseButton={showCloseButton && !isLoading}
         >
-          <DialogHeader className="rounded-t-2xl px-5 py-4 bg-card border-b border-border flex-shrink-0">
+          <DialogHeader className="rounded-t-2xl px-5 py-4 bg-card border-b border-border shrink-0">
             <DialogTitle className="text-lg font-semibold text-foreground">
               {title}
             </DialogTitle>
@@ -124,7 +124,7 @@ export function ModalWrapper({
           </div>
 
           {footer && !isLoading && (
-            <DialogFooter className="px-6 py-4 border-t border-border bg-card rounded-b-2xl flex-shrink-0">
+            <DialogFooter className="px-6 py-4 border-t border-border bg-card rounded-b-2xl shrink-0">
               {footer}
             </DialogFooter>
           )}
@@ -142,7 +142,7 @@ export function ModalWrapper({
           className
         )}
       >
-        <DrawerHeader className="text-left bg-card px-4 py-3 border-b border-border flex-shrink-0">
+        <DrawerHeader className="text-left bg-card px-4 py-3 border-b border-border shrink-0">
           <DrawerTitle className="text-lg font-semibold text-foreground">
             {title}
           </DrawerTitle>
@@ -167,7 +167,7 @@ export function ModalWrapper({
         </div>
 
         {footer && !isLoading && (
-          <DrawerFooter className="pt-3 pb-4 px-4 border-t border-border bg-card flex-shrink-0">{footer}</DrawerFooter>
+          <DrawerFooter className="pt-3 pb-4 px-4 border-t border-border bg-card shrink-0">{footer}</DrawerFooter>
         )}
       </DrawerContent>
     </Drawer>
@@ -206,7 +206,7 @@ export function ModalSection({
   return (
     <div className={cn("flex flex-col gap-1.5", className)}>
       {title && (
-        <h4 className="text-xs font-semibold text-foreground/80 uppercase tracking-wide flex-shrink-0">{title}</h4>
+        <h4 className="text-xs font-semibold text-foreground/80 uppercase tracking-wide shrink-0">{title}</h4>
       )}
       {children}
     </div>

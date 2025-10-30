@@ -72,7 +72,7 @@ export function BudgetDisplayCard({
         <div className={budgetStyles.budgetDisplay.headerContent}>
           <div className={budgetStyles.budgetDisplay.iconContainer}>
             <CategoryIcon
-              categoryKey={budget.categories[0] || 'altro'}
+              categoryKey={(budget.categories && budget.categories.length > 0) ? budget.categories[0] : 'altro'}
               size={iconSizes.lg}
               className="text-[#7578EC]"
             />
