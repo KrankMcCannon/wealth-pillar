@@ -7,7 +7,7 @@
 import { useUsers } from '@/src/lib';
 import { useMemo } from "react";
 import { FormField } from "../form-field";
-import { FormSelect } from "../form-select";
+import { FormSelect, sortSelectOptions } from "../form-select";
 
 interface UserFieldProps {
   value: string;
@@ -27,7 +27,9 @@ export function UserField({
   const { data: users = [] } = useUsers();
 
   const options = useMemo(() =>
-    users.map(u => ({ value: u.id, label: u.name })),
+    sortSelectOptions(
+      users.map(u => ({ value: u.id, label: u.name }))
+    ),
     [users]
   );
 

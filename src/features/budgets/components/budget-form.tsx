@@ -1,7 +1,7 @@
 "use client";
 
 import { Budget, useCategories } from '@/src/lib';
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import useBudgetFormController from "../hooks/use-budget-form-controller";
 import { AmountField, FormActions, FormCheckboxGroup, FormField, FormSelect, Input, ModalContent, ModalSection, ModalWrapper, sortCheckboxOptions, toCheckboxOptions, UserField } from '@/src/components/ui';
 
@@ -28,34 +28,50 @@ export function BudgetForm({
     [categories]
   );
 
+  // Reset form when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      controller.reset();
+    }
+  }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const title = mode === 'edit' ? 'Modifica Budget' : 'Nuovo Budget';
   const description = mode === 'edit' ? 'Aggiorna i dettagli del budget' : 'Crea un nuovo budget';
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    await controller.submit();
-    if (!controller.isSubmitting && Object.keys(controller.errors).length === 0) {
-      onOpenChange(false);
+  const handleSubmit = async (e?: React.FormEvent | React.MouseEvent) => {
+    if (e) {
+      e.preventDefault?.();
+    }
+    try {
+      await controller.submit();
+      // Close modal if submission succeeded (no actual errors, just undefined values)
+      const hasActualErrors = Object.values(controller.errors).some(err => err !== undefined);
+      if (!controller.isSubmitting && !hasActualErrors) {
+        onOpenChange(false);
+      }
+    } catch (err) {
+      console.error('[BudgetForm] Submit error:', err);
     }
   };
 
   return (
-    <ModalWrapper
-      isOpen={isOpen}
-      onOpenChange={onOpenChange}
-      title={title}
-      description={description}
-      maxWidth="md"
-      footer={
-        <FormActions
-          submitType="submit"
-          submitLabel={mode === 'edit' ? 'Salva' : 'Crea Budget'}
-          onCancel={() => onOpenChange(false)}
-          isSubmitting={controller.isSubmitting}
-        />
-      }
-    >
-      <form onSubmit={handleSubmit} className="space-y-2">
+    <form className="space-y-2">
+      <ModalWrapper
+        isOpen={isOpen}
+        onOpenChange={onOpenChange}
+        title={title}
+        description={description}
+        maxWidth="md"
+        footer={
+          <FormActions
+            submitType="button"
+            submitLabel={mode === 'edit' ? 'Salva' : 'Crea Budget'}
+            onSubmit={handleSubmit}
+            onCancel={() => onOpenChange(false)}
+            isSubmitting={controller.isSubmitting}
+          />
+        }
+      >
         <ModalContent className="gap-2">
           <ModalSection className="gap-2">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -99,7 +115,7 @@ export function BudgetForm({
             </FormField>
           </ModalSection>
 
-          <ModalSection className="gap-1 flex-shrink-0">
+          <ModalSection className="gap-1 shrink-0">
             <FormField label="Seleziona categorie" required error={controller.errors.categories as any} className="space-y-1">
               <FormCheckboxGroup
                 value={controller.form.categories}
@@ -112,7 +128,7 @@ export function BudgetForm({
             </FormField>
           </ModalSection>
         </ModalContent>
-      </form>
-    </ModalWrapper>
+      </ModalWrapper>
+    </form>
   );
 }

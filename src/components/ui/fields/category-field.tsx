@@ -7,7 +7,7 @@
 import { useCategories } from '@/src/lib';
 import { useMemo } from "react";
 import { FormField } from "../form-field";
-import { FormSelect } from "../form-select";
+import { FormSelect, sortSelectOptions } from "../form-select";
 
 interface CategoryFieldProps {
   value: string;
@@ -27,7 +27,9 @@ export function CategoryField({
   const { data: categories = [] } = useCategories();
 
   const options = useMemo(() =>
-    categories.map(c => ({ value: c.key, label: c.label })),
+    sortSelectOptions(
+      categories.map(c => ({ value: c.key, label: c.label }))
+    ),
     [categories]
   );
 

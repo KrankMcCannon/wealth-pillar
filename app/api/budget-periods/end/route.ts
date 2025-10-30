@@ -119,19 +119,39 @@ async function endBudgetPeriod(request: NextRequest) {
     // Calculate totals per budget and aggregated category spending
     const totalBudget = budgets.reduce((sum, b) => sum + (b.amount || 0), 0);
 
-    let totalSpent = 0;
-    for (const b of budgets) {
-      const relevant = transactions.filter(t => (t.type === 'expense' || t.type === 'income') && b.categories.includes(t.category));
-      const spentForBudget = relevant.reduce((sum, t) => {
-        if (t.type === 'expense') return sum + (t.amount || 0);
-        if (t.type === 'income') return sum - (t.amount || 0);
-        return sum;
-      }, 0);
-      totalSpent += spentForBudget;
+    // Calculate total actual spending (ALL expenses, not just budgeted)
+    let totalActualSpent = 0;
+    for (const t of transactions) {
+      if (t.type === 'expense') {
+        totalActualSpent += (t.amount || 0);
+      } else if (t.type === 'income') {
+        totalActualSpent -= (t.amount || 0);
+      }
     }
 
-    totalSpent = Math.round(totalSpent * 100) / 100;
-    const totalSaved = Math.max(0, Math.round((totalBudget - totalSpent) * 100) / 100);
+    // Calculate spending on budgeted categories (to determine savings from budget perspective)
+    let totalBudgetedSpent = 0;
+    const budgetedCategories = new Set<string>();
+    for (const b of budgets) {
+      if (Array.isArray(b.categories)) {
+        for (const cat of b.categories) {
+          budgetedCategories.add(cat);
+        }
+      }
+    }
+
+    for (const t of transactions) {
+      if (budgetedCategories.has(t.category)) {
+        if (t.type === 'expense') {
+          totalBudgetedSpent += (t.amount || 0);
+        } else if (t.type === 'income') {
+          totalBudgetedSpent -= (t.amount || 0);
+        }
+      }
+    }
+
+    const totalSpent = Math.round(totalActualSpent * 100) / 100;
+    const totalSaved = Math.round((totalBudget - totalBudgetedSpent) * 100) / 100;
 
     const updated: Period = {
       ...period,
@@ -144,6 +164,25 @@ async function endBudgetPeriod(request: NextRequest) {
 
     const nextPeriods = [...periods];
     nextPeriods[activeIdx] = updated;
+
+    // Auto-create new active period starting after the closed period
+    const newPeriodStartDate = new Date(endDate);
+    newPeriodStartDate.setDate(newPeriodStartDate.getDate() + 1);
+    newPeriodStartDate.setHours(0, 0, 0, 0);
+
+    const newPeriod: Period = {
+      id: `period_${Date.now()}`,
+      user_id: targetUserId,
+      start_date: newPeriodStartDate.toISOString(),
+      end_date: null,
+      is_active: true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      total_spent: 0,
+      total_saved: 0,
+    };
+
+    nextPeriods.push(newPeriod);
 
     const updatePayload: Database['public']['Tables']['users']['Update'] = {
       budget_periods: nextPeriods as unknown,

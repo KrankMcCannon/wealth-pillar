@@ -1,7 +1,7 @@
 "use client";
 
 import { Transaction, TransactionType, useAccounts } from '@/src/lib';
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import useTransactionFormController from "../hooks/use-transaction-form-controller";
 import { AccountField, AmountField, CategoryField, DateField, FormActions, FormField, FormSelect, Input, ModalContent, ModalSection, ModalWrapper, sortSelectOptions, toSelectOptions, UserField } from '@/src/components/ui';
 
@@ -31,6 +31,13 @@ export function TransactionForm({
     initialTransaction: transaction || null,
   });
 
+  // Reset form when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      controller.reset();
+    }
+  }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Filter accounts based on selected user for destination account in transfers
   const filteredAccounts = useMemo(() => {
     if (!controller.form.user_id || controller.form.user_id === "all") {
@@ -47,31 +54,40 @@ export function TransactionForm({
   const title = mode === "edit" ? "Modifica transazione" : "Nuova transazione";
   const description = mode === "edit" ? "Aggiorna i dettagli della transazione" : "Aggiungi una nuova transazione";
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    await controller.submit();
-    if (!controller.isSubmitting && Object.keys(controller.errors).length === 0) {
-      onOpenChange(false);
+  const handleSubmit = async (e?: React.FormEvent | React.MouseEvent) => {
+    if (e) {
+      e.preventDefault?.();
+    }
+    try {
+      await controller.submit();
+      // Close modal if submission succeeded (no actual errors, just undefined values)
+      const hasActualErrors = Object.values(controller.errors).some(err => err !== undefined);
+      if (!controller.isSubmitting && !hasActualErrors) {
+        onOpenChange(false);
+      }
+    } catch (err) {
+      console.error('[TransactionForm] Submit error:', err);
     }
   };
 
   return (
-    <ModalWrapper
-      isOpen={isOpen}
-      onOpenChange={onOpenChange}
-      title={title}
-      description={description}
-      maxWidth="md"
-      footer={
-        <FormActions
-          submitType="submit"
-          submitLabel={mode === "edit" ? "Aggiorna" : "Crea"}
-          onCancel={() => onOpenChange(false)}
-          isSubmitting={controller.isSubmitting}
-        />
-      }
-    >
-      <form onSubmit={handleSubmit} className="space-y-4">
+    <form className="space-y-4">
+      <ModalWrapper
+        isOpen={isOpen}
+        onOpenChange={onOpenChange}
+        title={title}
+        description={description}
+        maxWidth="md"
+        footer={
+          <FormActions
+            submitType="button"
+            submitLabel={mode === "edit" ? "Aggiorna" : "Crea"}
+            onSubmit={handleSubmit}
+            onCancel={() => onOpenChange(false)}
+            isSubmitting={controller.isSubmitting}
+          />
+        }
+      >
         <ModalContent>
           <ModalSection>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -158,8 +174,8 @@ export function TransactionForm({
             </FormField>
           </ModalSection>
         </ModalContent>
-      </form>
-    </ModalWrapper>
+      </ModalWrapper>
+    </form>
   );
 }
 

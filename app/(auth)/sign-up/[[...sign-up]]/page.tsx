@@ -6,12 +6,12 @@ import { Loader2, Mail, Lock, User as UserIcon, AlertCircle } from 'lucide-react
 import { motion, AnimatePresence } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import OnboardingModal from '@/components/shared/onboarding-modal';
-import { AppleButton, AuthCard, EmailSuggestions, getRequirementsStatus, GitHubButton, GoogleButton, PasswordInput, PasswordRequirements, PasswordStrength, scorePassword, useSignUpController } from '@/features/auth';
+import { AppleButton, AuthCard, EmailSuggestions, getRequirementsStatus, GitHubButton, GoogleButton, PasswordInput, PasswordRequirements, PasswordStrength, scorePassword, useSignUpState, authStyles } from '@/features/auth';
 import { Button, Input, Label } from '@/components/ui';
 
 export default function Page() {
   const searchParams = useSearchParams();
-  const { step, email, password, firstName, lastName, username, code, error, loading, setEmail, setPassword, setFirstName, setLastName, setUsername, setCode, setStep, submitCredentials, submitVerification, resendVerificationCode, completeOnboarding, oauth } = useSignUpController();
+  const { state, actions } = useSignUpState();
 
   // Handle OAuth errors from URL params
   const [oauthError, setOauthError] = useState<string | null>(null);
@@ -25,84 +25,84 @@ export default function Page() {
 
   return (
     <>
-      <div className="pointer-events-none fixed -top-24 -left-24 h-72 w-72 rounded-full blur-3xl opacity-15 bg-[hsl(var(--color-primary))]" />
-      <div className="pointer-events-none fixed -bottom-24 -right-24 h-72 w-72 rounded-full blur-3xl opacity-15 bg-[hsl(var(--color-secondary))]" />
+      <div className={authStyles.page.bgBlobTop} />
+      <div className={authStyles.page.bgBlobBottom} />
 
-      {step === 'onboarding' && (
+      {state.step === 'onboarding' && (
         <OnboardingModal
-          onComplete={completeOnboarding}
-          loading={loading}
-          error={error}
+          onComplete={actions.completeOnboarding}
+          loading={state.loading}
+          error={state.error}
         />
       )}
 
       <AuthCard title="Crea il tuo account" subtitle="Inizia a gestire le tue finanze">
-        {(error || oauthError) && (
-          <div className="mb-2 rounded-lg bg-red-50 p-2 text-xs text-red-700 border border-red-200 flex items-start gap-2">
-            <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
-            <span>{error || oauthError}</span>
+        {(state.error || oauthError) && (
+          <div className={authStyles.error.container}>
+            <AlertCircle className={authStyles.error.icon} />
+            <span className={authStyles.error.text}>{state.error || oauthError}</span>
           </div>
         )}
 
         <AnimatePresence mode="wait">
-        {step === 'credentials' && (
+        {state.step === 'credentials' && (
           <motion.form
             key="credentials"
-            onSubmit={submitCredentials}
-            className="space-y-2"
+            onSubmit={actions.submitCredentials}
+            className={authStyles.form.container}
             initial={{ opacity: 0, x: 24 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -24 }}
             transition={{ type: 'spring', stiffness: 260, damping: 24 }}
           >
-            <div className="grid grid-cols-2 gap-2">
-              <div className="space-y-1">
-                <Label htmlFor="firstName" className="text-xs font-medium text-gray-900">Nome</Label>
-                <div className="relative">
-                  <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[hsl(var(--color-primary))]/60" />
-                  <Input id="firstName" autoComplete="given-name" placeholder="Mario" value={firstName} onChange={(e) => setFirstName(e.target.value)} className="pl-9 h-9 text-sm bg-white border-[hsl(var(--color-primary))]/20 focus:border-[hsl(var(--color-primary))] focus:ring-[hsl(var(--color-primary))]/20" />
+            <div className={authStyles.form.twoColumnGrid}>
+              <div className={authStyles.form.fieldGroup}>
+                <Label htmlFor="firstName" className={authStyles.label.base}>Nome</Label>
+                <div className={authStyles.input.wrapper}>
+                  <UserIcon className={authStyles.input.icon} />
+                  <Input id="firstName" autoComplete="given-name" placeholder="Mario" value={state.firstName} onChange={(e) => actions.setFirstName(e.target.value)} className={`${authStyles.input.field} pl-9`} />
                 </div>
               </div>
-              <div className="space-y-1">
-                <Label htmlFor="lastName" className="text-xs font-medium text-gray-900">Cognome</Label>
-                <div className="relative">
-                  <Input id="lastName" autoComplete="family-name" placeholder="Rossi" value={lastName} onChange={(e) => setLastName(e.target.value)} className="h-9 text-sm bg-white border-[hsl(var(--color-primary))]/20 focus:border-[hsl(var(--color-primary))] focus:ring-[hsl(var(--color-primary))]/20" />
+              <div className={authStyles.form.fieldGroup}>
+                <Label htmlFor="lastName" className={authStyles.label.base}>Cognome</Label>
+                <div className={authStyles.input.wrapper}>
+                  <Input id="lastName" autoComplete="family-name" placeholder="Rossi" value={state.lastName} onChange={(e) => actions.setLastName(e.target.value)} className={authStyles.input.field} />
                 </div>
               </div>
             </div>
 
-            <div className="space-y-1">
-              <Label htmlFor="email" className="text-xs font-medium text-gray-900">Email</Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[hsl(var(--color-primary))]/60" />
-                <Input id="email" type="email" autoComplete="email" placeholder="name@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required className="pl-9 h-9 text-sm bg-white border-[hsl(var(--color-primary))]/20 focus:border-[hsl(var(--color-primary))] focus:ring-[hsl(var(--color-primary))]/20" />
+            <div className={authStyles.form.fieldGroup}>
+              <Label htmlFor="email" className={authStyles.label.base}>Email</Label>
+              <div className={authStyles.input.wrapper}>
+                <Mail className={authStyles.input.icon} />
+                <Input id="email" type="email" autoComplete="email" placeholder="name@example.com" value={state.email} onChange={(e) => actions.setEmail(e.target.value)} required className={`${authStyles.input.field} pl-9`} />
               </div>
-              <EmailSuggestions value={email} onSelect={setEmail} />
+              <EmailSuggestions value={state.email} onSelect={actions.setEmail} />
             </div>
 
-            <div className="space-y-1">
-              <Label htmlFor="username" className="text-xs font-medium text-gray-900">Username (opzionale)</Label>
-              <div className="relative">
-                <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[hsl(var(--color-primary))]/60" />
-                <Input id="username" autoComplete="username" placeholder="username" value={username} onChange={(e) => setUsername(e.target.value)} className="pl-9 h-9 text-sm bg-white border-[hsl(var(--color-primary))]/20 focus:border-[hsl(var(--color-primary))] focus:ring-[hsl(var(--color-primary))]/20" />
+            <div className={authStyles.form.fieldGroup}>
+              <Label htmlFor="username" className={authStyles.label.base}>Username (opzionale)</Label>
+              <div className={authStyles.input.wrapper}>
+                <UserIcon className={authStyles.input.icon} />
+                <Input id="username" autoComplete="username" placeholder="username" value={state.username} onChange={(e) => actions.setUsername(e.target.value)} className={`${authStyles.input.field} pl-9`} />
               </div>
-              <p className="text-xs text-gray-500 mt-0.5">Se vuoto, useremo la parte prima della @ della tua email</p>
+              <p className={authStyles.label.base}>Se vuoto, useremo la parte prima della @ della tua email</p>
             </div>
 
-            <div className="space-y-1">
-              <Label htmlFor="password" className="text-xs font-medium text-gray-900">Password</Label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[hsl(var(--color-primary))]/60" />
-                <PasswordInput id="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required className="h-9 text-sm bg-white border-[hsl(var(--color-primary))]/20 focus:border-[hsl(var(--color-primary))] focus:ring-[hsl(var(--color-primary))]/20" />
+            <div className={authStyles.form.fieldGroup}>
+              <Label htmlFor="password" className={authStyles.label.base}>Password</Label>
+              <div className={authStyles.input.wrapper}>
+                <Lock className={authStyles.input.icon} />
+                <PasswordInput id="password" placeholder="••••••••" value={state.password} onChange={(e) => actions.setPassword(e.target.value)} required className={authStyles.password.field} />
               </div>
-              <PasswordStrength password={password} />
-              <PasswordRequirements password={password} />
+              <PasswordStrength password={state.password} />
+              <PasswordRequirements password={state.password} />
             </div>
 
-            <Button type="submit" disabled={loading || scorePassword(password) < 3 || !getRequirementsStatus(password).meetsAll} className="w-full h-9 bg-[hsl(var(--color-primary))] hover:bg-[hsl(var(--color-primary))]/90 text-white transition-all duration-200 active:scale-[.98] shadow-md text-sm font-medium">
-              {loading ? (
+            <Button type="submit" disabled={state.loading || scorePassword(state.password) < 3 || !getRequirementsStatus(state.password).meetsAll} className={authStyles.button.primary}>
+              {state.loading ? (
                 <>
-                  <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
+                  <Loader2 className={authStyles.button.icon} />
                   Registrazione in corso
                 </>
               ) : (
@@ -110,48 +110,48 @@ export default function Page() {
               )}
             </Button>
 
-            <div className="flex items-center gap-3 py-1">
-              <div className="h-px bg-[hsl(var(--color-primary))]/20 flex-1" />
-              <span className="text-xs text-gray-500 font-medium">oppure</span>
-              <div className="h-px bg-[hsl(var(--color-primary))]/20 flex-1" />
+            <div className={authStyles.divider.container}>
+              <div className={authStyles.divider.line} />
+              <span className={authStyles.divider.text}>oppure</span>
+              <div className={authStyles.divider.line} />
             </div>
 
-            <div className="space-y-1.5">
-              <GoogleButton onClick={oauth.google} className="w-full h-9 transition-all duration-200 hover:opacity-95 active:scale-[.98] text-sm" />
-              <AppleButton onClick={oauth.apple} className="w-full h-9 transition-all duration-200 hover:opacity-95 active:scale-[.98] text-sm" />
-              <GitHubButton onClick={oauth.github} className="w-full h-9 transition-all duration-200 hover:opacity-95 active:scale-[.98] text-sm" />
+            <div className={authStyles.socialButtons.container}>
+              <GoogleButton onClick={actions.handleGoogleSignUp} className={authStyles.socialButtons.button} />
+              <AppleButton onClick={actions.handleAppleSignUp} className={authStyles.socialButtons.button} />
+              <GitHubButton onClick={actions.handleGitHubSignUp} className={authStyles.socialButtons.button} />
             </div>
 
-            <div className="text-center text-xs text-gray-600 pt-1">
+            <div className={authStyles.toggle.container}>
               Hai già un account?{' '}
-              <Link className="text-[hsl(var(--color-primary))] hover:text-[hsl(var(--color-primary))]/80 font-semibold" href="/sign-in">
+              <Link className={authStyles.toggle.link} href="/sign-in">
                 Accedi
               </Link>
             </div>
           </motion.form>
         )}
 
-        {step === 'verify' && (
+        {state.step === 'verify' && (
           <motion.form
             key="verify"
-            onSubmit={submitVerification}
-            className="space-y-3"
+            onSubmit={actions.submitVerification}
+            className={authStyles.verification.container}
             initial={{ opacity: 0, x: 24 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -24 }}
             transition={{ type: 'spring', stiffness: 260, damping: 24 }}
           >
-            <p className="text-xs text-gray-600">Abbiamo inviato un codice a {email}. Inseriscilo per completare la registrazione.</p>
+            <p className={authStyles.verification.infoText}>Abbiamo inviato un codice a {state.email}. Inseriscilo per completare la registrazione.</p>
 
-            <div className="space-y-1">
-              <Label htmlFor="code" className="text-xs font-medium text-gray-900">Codice di verifica</Label>
-              <Input id="code" value={code} onChange={(e) => setCode(e.target.value)} placeholder="123456" className="h-9 text-sm bg-white border-[hsl(var(--color-primary))]/20 focus:border-[hsl(var(--color-primary))] focus:ring-[hsl(var(--color-primary))]/20" />
+            <div className={authStyles.form.fieldGroup}>
+              <Label htmlFor="code" className={authStyles.label.base}>Codice di verifica</Label>
+              <Input id="code" value={state.code} onChange={(e) => actions.setCode(e.target.value)} placeholder="123456" className={authStyles.input.field} />
             </div>
 
-            <Button type="submit" disabled={loading} className="w-full h-9 bg-[hsl(var(--color-primary))] hover:bg-[hsl(var(--color-primary))]/90 text-white transition-all duration-200 active:scale-[.98] shadow-md text-sm font-medium">
-              {loading ? (
+            <Button type="submit" disabled={state.loading} className={authStyles.button.primary}>
+              {state.loading ? (
                 <>
-                  <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
+                  <Loader2 className={authStyles.button.icon} />
                   Verifica in corso
                 </>
               ) : (
@@ -159,11 +159,11 @@ export default function Page() {
               )}
             </Button>
 
-            <div className="flex items-center justify-between text-xs text-gray-600">
-              <button type="button" className="text-[hsl(var(--color-primary))] hover:text-[hsl(var(--color-primary))]/80 font-medium" onClick={() => setStep('credentials')}>
+            <div className={authStyles.verification.actions}>
+              <button type="button" className={authStyles.toggle.link} onClick={() => actions.setStep('credentials')}>
                 Torna indietro
               </button>
-              <button type="button" className="text-[hsl(var(--color-primary))] hover:text-[hsl(var(--color-primary))]/80 font-medium" onClick={resendVerificationCode}>
+              <button type="button" className={authStyles.toggle.link} onClick={actions.resendVerificationCode}>
                 Reinvia codice
               </button>
             </div>

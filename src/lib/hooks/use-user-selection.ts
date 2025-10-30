@@ -39,7 +39,9 @@ export const useUserSelection = () => {
   const { data: allUsers = [], isLoading: usersLoading } = useQuery({
     queryKey: queryKeys.users(),
     queryFn: async () => {
-      if (!isAuthenticated || !authUser) return [];
+      if (!isAuthenticated || !authUser) {
+        return [];
+      }
 
       // Check if data is already in React Query cache
       const cachedData = queryClient.getQueryData(queryKeys.users());
@@ -49,14 +51,16 @@ export const useUserSelection = () => {
 
       // Fetch based on role with queries
       if (authUser.role === 'superadmin') {
-        return await userService.getAll();
+        const result = await userService.getAll();
+        return result;
       }
 
       if (authUser.role === 'admin') {
-        const allUsers = await userService.getAll();
-        return allUsers.filter(user =>
+        const result = await userService.getAll();
+        const filtered = result.filter(user =>
           user.group_id === authUser.group_id || user.id === authUser.id
         );
+        return filtered;
       }
 
       // Member sees only themselves
@@ -71,17 +75,27 @@ export const useUserSelection = () => {
 
   // Current user computation (memoized)
   const currentUser = useMemo(() => {
-    if (!authUser || !allUsers.length) return null;
-    return allUsers.find(user =>
+    if (!authUser || !allUsers.length) {
+      return null;
+    }
+
+    const found = allUsers.find(user =>
       user.clerk_id === authUser.clerk_id || user.id === authUser.id
     ) || null;
+
+    return found;
   }, [authUser, allUsers]);
 
   // Viewable users (admin-only feature)
   const viewableUsers = useMemo((): User[] => {
-    if (!allUsers.length || !currentUser) return [];
+    if (!allUsers.length || !currentUser) {
+      return [];
+    }
+
     const isAdmin = currentUser.role === 'admin' || currentUser.role === 'superadmin';
-    return isAdmin ? allUsers : [];
+    const result = isAdmin ? allUsers : [];
+
+    return result;
   }, [allUsers, currentUser]);
 
   // Current viewing user
@@ -235,7 +249,7 @@ export const useUserSelection = () => {
   // Statistics and utility functions
   const userStats = useMemo(() => {
     const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'superadmin';
-    return {
+    const stats = {
       totalUsers: allUsers.length,
       viewableUsers: viewableUsers.length,
       hasMultipleUsers: viewableUsers.length > 1,
@@ -244,6 +258,8 @@ export const useUserSelection = () => {
         Date.now() - entry.timestamp < 30 * 60 * 1000
       ).length,
     };
+
+    return stats;
   }, [allUsers.length, viewableUsers.length, currentUser, userCache]);
 
   // Permission checks

@@ -1,6 +1,7 @@
 "use client";
 
 import { RecurringTransactionSeries, TransactionType } from '@/src/lib';
+import { useEffect } from 'react';
 import useRecurringSeriesFormController from "../hooks/use-recurring-series-form-controller";
 import { AccountField, AmountField, CategoryField, DateField, FormActions, FormField, FormSelect, Input, ModalContent, ModalSection, ModalWrapper, UserField } from '@/src/components/ui';
 
@@ -17,34 +18,50 @@ interface RecurringSeriesFormProps {
 export function RecurringSeriesForm({ isOpen, onOpenChange, selectedUserId, series, mode = 'create' }: RecurringSeriesFormProps) {
   const controller = useRecurringSeriesFormController({ mode, selectedUserId, initialSeries: series || null });
 
+  // Reset form when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      controller.reset();
+    }
+  }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const title = mode === 'edit' ? 'Modifica Serie Ricorrente' : 'Nuova Serie Ricorrente';
   const description = mode === 'edit' ? 'Aggiorna la serie ricorrente' : 'Configura una nuova serie ricorrente';
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    await controller.submit();
-    if (!controller.isSubmitting && Object.keys(controller.errors).length === 0) {
-      onOpenChange(false);
+  const handleSubmit = async (e?: React.FormEvent | React.MouseEvent) => {
+    if (e) {
+      e.preventDefault?.();
+    }
+    try {
+      await controller.submit();
+      // Close modal if submission succeeded (no actual errors, just undefined values)
+      const hasActualErrors = Object.values(controller.errors).some(err => err !== undefined);
+      if (!controller.isSubmitting && !hasActualErrors) {
+        onOpenChange(false);
+      }
+    } catch (err) {
+      console.error('[RecurringSeriesForm] Submit error:', err);
     }
   };
 
   return (
-    <ModalWrapper
-      isOpen={isOpen}
-      onOpenChange={onOpenChange}
-      title={title}
-      description={description}
-      maxWidth="md"
-      footer={
-        <FormActions
-          submitType="submit"
-          submitLabel={mode === 'edit' ? 'Salva' : 'Crea Serie'}
-          onCancel={() => onOpenChange(false)}
-          isSubmitting={controller.isSubmitting}
-        />
-      }
-    >
-      <form onSubmit={handleSubmit} className="space-y-4">
+    <form className="space-y-4">
+      <ModalWrapper
+        isOpen={isOpen}
+        onOpenChange={onOpenChange}
+        title={title}
+        description={description}
+        maxWidth="md"
+        footer={
+          <FormActions
+            submitType="button"
+            submitLabel={mode === 'edit' ? 'Salva' : 'Crea Serie'}
+            onSubmit={handleSubmit}
+            onCancel={() => onOpenChange(false)}
+            isSubmitting={controller.isSubmitting}
+          />
+        }
+      >
         <ModalContent>
           <ModalSection>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -143,8 +160,8 @@ export function RecurringSeriesForm({ isOpen, onOpenChange, selectedUserId, seri
             </FormField>
           </ModalSection>
         </ModalContent>
-      </form>
-    </ModalWrapper>
+      </ModalWrapper>
+    </form>
   );
 }
 

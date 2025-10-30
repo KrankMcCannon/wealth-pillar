@@ -13,7 +13,6 @@ export * from "./components/budget-skeletons";
 // Hooks
 export * from "./hooks/use-budget-form-controller";
 export * from "./hooks/use-budget-mutations";
-export * from "./hooks/use-budgets-controller";
 
 // Services
 export * from "./services/budget-calculations.service";

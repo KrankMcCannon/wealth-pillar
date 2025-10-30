@@ -17,6 +17,7 @@ import {
 import type { Transaction, TransactionFrequencyType, TransactionType } from "@/src/lib/types";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useCreateTransaction, useUpdateTransaction } from "./use-transaction-mutations";
+import { getCategoryForTransactionType } from "./use-transaction-form-logic";
 
 export type TransactionFormMode = "create" | "edit";
 
@@ -105,6 +106,7 @@ export function useTransactionFormController(
         type: initialType,
         user_id: selectedUserId || "",
         account_id: defaultAccountId,
+        category: getCategoryForTransactionType(initialType, ""),
       },
       {
         ...defaultState,
@@ -116,12 +118,12 @@ export function useTransactionFormController(
   const [initialSnapshot, setInitialSnapshot] = useState<TransactionFormState>(initialFormState);
   const [errors, setErrors] = useState<ValidationErrors<TransactionFormState>>({});
 
-  // Reset controller when options change significantly (e.g., switching edit target)
+  // Reset controller only when the edited transaction actually changes (by ID)
   useEffect(() => {
     setForm(initialFormState);
     setInitialSnapshot(initialFormState);
     setErrors({});
-  }, [initialFormState]);
+  }, [mode, initialTransaction?.id, initialType, selectedUserId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const isSubmitting = createMutation.isPending || updateMutation.isPending;
   const isDirty = isFormDirty(form, initialSnapshot);
@@ -145,6 +147,11 @@ export function useTransactionFormController(
           // Also clear to_account_id for transfers
           next.to_account_id = "";
         }
+      }
+
+      // When type changes to transfer, automatically set category to "trasferimento"
+      if (key === "type") {
+        next.category = getCategoryForTransactionType(value as string, prev.category);
       }
 
       return next;

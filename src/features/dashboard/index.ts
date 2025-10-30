@@ -1,15 +1,16 @@
 /**
  * Dashboard Feature - Public API
+ * Organized exports for components, hooks, services, and theme
  */
 
 // Components
-export * from "./components/dashboard-grid";
-export * from "./components/metric-card";
-export * from "./components/stats-section";
-export * from "./components/dashboard-skeleton";
+export * from "./components";
 
 // Hooks
-export * from "./hooks/use-dashboard-controller";
-export * from "./hooks/use-dashboard-core";
-export * from "./hooks/use-dashboard-budgets";
-export * from "./hooks/use-dashboard";
+export * from "./hooks";
+
+// Services
+export * from "./services";
+
+// Theme
+export * from "./theme";

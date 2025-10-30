@@ -2,25 +2,27 @@
 
 import { PageLoader } from "@/components/shared";
 import { AccountCard } from "@/features/accounts";
-import { useDashboardController } from "@/features/dashboard";
+import { useDashboardData } from "@/features/dashboard";
+import { useUserSelection } from "@/src/lib";
 import { Account, formatCurrency } from "@/lib";
 import { ArrowLeft, Plus, CreditCard, TrendingUp, TrendingDown } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 /**
  * Bank Accounts Detail Page
- * 
+ *
  * Shows all bank accounts with detailed information
  * Following ARCHITECTURE.md patterns for page structure
  */
 export default function AccountsPage() {
   const router = useRouter();
-  const {
-    accounts,
-    accountBalances,
-    totalBalance,
-    showInitialLoading,
-  } = useDashboardController();
+  const { currentUser, selectedViewUserId } = useUserSelection();
+  const data = useDashboardData(selectedViewUserId, currentUser);
+
+  const accounts = data.accounts.data;
+  const accountBalances = data.accountBalances;
+  const totalBalance = data.totalBalance;
+  const showInitialLoading = data.isLoading && !data.hasCoreData;
 
   if (showInitialLoading) {
     return <PageLoader />;

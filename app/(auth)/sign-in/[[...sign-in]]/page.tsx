@@ -4,12 +4,12 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Loader2, Mail, Lock, LogIn, AlertCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { AppleButton, AuthCard, GitHubButton, GoogleButton, PasswordInput, useSignInController } from '@/features/auth';
+import { AppleButton, AuthCard, GitHubButton, GoogleButton, PasswordInput, useSignInState, authStyles } from '@/features/auth';
 import { Button, Input, Label } from '@/components/ui';
 
 export default function Page() {
   const searchParams = useSearchParams();
-  const { email, password, error, loading, setEmail, setPassword, handleSubmit, oauth } = useSignInController();
+  const { state, actions } = useSignInState();
 
   // Handle OAuth errors from URL params
   const [oauthError, setOauthError] = useState<string | null>(null);
@@ -23,46 +23,46 @@ export default function Page() {
 
   return (
     <>
-      <div className="pointer-events-none fixed -top-24 -left-24 h-72 w-72 rounded-full blur-3xl opacity-15 bg-[hsl(var(--color-primary))]" />
-      <div className="pointer-events-none fixed -bottom-24 -right-24 h-72 w-72 rounded-full blur-3xl opacity-15 bg-[hsl(var(--color-secondary))]" />
+      <div className={authStyles.page.bgBlobTop} />
+      <div className={authStyles.page.bgBlobBottom} />
 
       <AuthCard title="Accedi al tuo account" subtitle="Gestisci le tue finanze">
-        {(error || oauthError) && (
-          <div className="mb-2 rounded-lg bg-red-50 p-2 text-xs text-red-700 border border-red-200 flex items-start gap-2">
-            <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
-            <span>{error || oauthError}</span>
+        {(state.error || oauthError) && (
+          <div className={authStyles.error.container}>
+            <AlertCircle className={authStyles.error.icon} />
+            <span className={authStyles.error.text}>{state.error || oauthError}</span>
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-2">
+        <form onSubmit={actions.handleSubmit} className={authStyles.form.container}>
 
-          <div className="space-y-1">
-            <Label htmlFor="email" className="text-xs font-medium text-gray-900">Email</Label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[hsl(var(--color-primary))]/60" />
-              <Input id="email" type="email" placeholder="name@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required className="pl-9 h-9 text-sm bg-white border-[hsl(var(--color-primary))]/20 focus:border-[hsl(var(--color-primary))] focus:ring-[hsl(var(--color-primary))]/20" />
+          <div className={authStyles.form.fieldGroup}>
+            <Label htmlFor="email" className={authStyles.label.base}>Email</Label>
+            <div className={authStyles.input.wrapper}>
+              <Mail className={authStyles.input.icon} />
+              <Input id="email" type="email" placeholder="name@example.com" value={state.email} onChange={(e) => actions.setEmail(e.target.value)} required className={authStyles.input.field} />
             </div>
           </div>
-          <div className="space-y-1">
-            <Label htmlFor="password" className="text-xs font-medium text-gray-900">Password</Label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[hsl(var(--color-primary))]/60" />
-              <PasswordInput id="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required className="h-9 text-sm bg-white border-[hsl(var(--color-primary))]/20 focus:border-[hsl(var(--color-primary))] focus:ring-[hsl(var(--color-primary))]/20" />
+          <div className={authStyles.form.fieldGroup}>
+            <Label htmlFor="password" className={authStyles.label.base}>Password</Label>
+            <div className={authStyles.input.wrapper}>
+              <Lock className={authStyles.input.icon} />
+              <PasswordInput id="password" placeholder="••••••••" value={state.password} onChange={(e) => actions.setPassword(e.target.value)} required className={authStyles.password.field} />
             </div>
           </div>
 
           <div className="flex items-center justify-between">
-            <label className="inline-flex items-center gap-1.5 text-xs text-gray-600 cursor-pointer select-none">
-              <input type="checkbox" className="size-3 rounded border-[hsl(var(--color-primary))]/30 text-[hsl(var(--color-primary))] focus:ring-[hsl(var(--color-primary))]/20 align-middle" />
+            <label className={authStyles.checkbox.label}>
+              <input type="checkbox" className={authStyles.checkbox.input} />
               Ricordami
             </label>
-            <Link href="/forgot-password" className="text-xs text-[hsl(var(--color-primary))] hover:text-[hsl(var(--color-primary))]/80 font-medium">Password dimenticata?</Link>
+            <Link href="/forgot-password" className={authStyles.forgotPassword.link}>Password dimenticata?</Link>
           </div>
 
-          <Button type="submit" disabled={loading} className="w-full h-9 bg-[hsl(var(--color-primary))] hover:bg-[hsl(var(--color-primary))]/90 text-white transition-all duration-200 active:scale-[.98] shadow-md text-sm font-medium">
-            {loading ? (
+          <Button type="submit" disabled={state.loading} className={authStyles.button.primary}>
+            {state.loading ? (
               <>
-                <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
+                <Loader2 className={authStyles.button.icon} />
                 Accesso in corso
               </>
             ) : (
@@ -73,21 +73,21 @@ export default function Page() {
             )}
           </Button>
 
-          <div className="flex items-center gap-3 py-1">
-            <div className="h-px bg-[hsl(var(--color-primary))]/20 flex-1" />
-            <span className="text-xs text-gray-500 font-medium">oppure</span>
-            <div className="h-px bg-[hsl(var(--color-primary))]/20 flex-1" />
+          <div className={authStyles.divider.container}>
+            <div className={authStyles.divider.line} />
+            <span className={authStyles.divider.text}>oppure</span>
+            <div className={authStyles.divider.line} />
           </div>
 
-          <div className="space-y-1.5">
-            <GoogleButton onClick={oauth.google} className="w-full h-9 transition-all duration-200 hover:opacity-95 active:scale-[.98] text-sm" />
-            <AppleButton onClick={oauth.apple} className="w-full h-9 transition-all duration-200 hover:opacity-95 active:scale-[.98] text-sm" />
-            <GitHubButton onClick={oauth.github} className="w-full h-9 transition-all duration-200 hover:opacity-95 active:scale-[.98] text-sm" />
+          <div className={authStyles.socialButtons.container}>
+            <GoogleButton onClick={actions.handleGoogleSignIn} className={authStyles.socialButtons.button} />
+            <AppleButton onClick={actions.handleAppleSignIn} className={authStyles.socialButtons.button} />
+            <GitHubButton onClick={actions.handleGitHubSignIn} className={authStyles.socialButtons.button} />
           </div>
 
-          <div className="text-center text-xs text-gray-600 pt-1">
+          <div className={authStyles.toggle.container}>
             Non hai un account?{' '}
-            <Link className="text-[hsl(var(--color-primary))] hover:text-[hsl(var(--color-primary))]/80 font-semibold" href="/sign-up">
+            <Link className={authStyles.toggle.link} href="/sign-up">
               Registrati
             </Link>
           </div>
