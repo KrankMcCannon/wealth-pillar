@@ -38,7 +38,7 @@ export function UserSelectorSkeleton() {
         {[...Array(3)].map((_, i) => (
           <div
             key={i}
-            className="flex-shrink-0 h-8 w-20 bg-muted rounded-full animate-pulse"
+            className="shrink-0 h-8 w-20 bg-muted rounded-full animate-pulse"
           />
         ))}
       </div>

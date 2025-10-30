@@ -1,9 +1,28 @@
 /**
  * Accounts Feature - Public API
+ * Exports all account-related components, styles, and business logic
  */
 
-// Components
+// Components - Basic
 export { AccountCard } from "@/src/components/cards";
-export * from "./components/balance-section";
 
-// Hooks (to be added)
+// Components - Accounts Detail Page
+export { AccountHeader } from "./components/AccountHeader";
+export { TotalBalanceCard } from "./components/TotalBalanceCard";
+export { AccountsList } from "./components/AccountsList";
+
+// Components - Dashboard Balance Section
+export { BalanceSection } from "./components/balance-section";
+export { AccountSlider } from "./components/AccountSlider";
+export { AccountSliderCard } from "./components/AccountSliderCard";
+export { TotalBalanceLink } from "./components/TotalBalanceLink";
+
+// Skeleton Components
+export * from "./components/account-skeletons";
+
+// Theme - Styles and Design Tokens
+export { accountStyles, accountColors, accountSpacing, accountComponents, accountStatus } from "./theme";
+
+// Services - Business Logic and View Models
+export { createAccountsViewModel, getDefaultAccountsViewModel } from "./services";
+export type { AccountsViewModel, BalanceSectionViewModel } from "./services";

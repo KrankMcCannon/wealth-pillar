@@ -241,7 +241,7 @@ function BudgetsContent() {
 
 export default function BudgetsPage() {
   return (
-    <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Caricamento...</div>}>
+    <Suspense fallback={<BudgetSelectorSkeleton />}>
       <BudgetsContent />
     </Suspense>
   );

@@ -17,6 +17,3 @@ export {
   RecurringSeriesSkeleton,
   DashboardPageSkeleton,
 } from './dashboard-skeletons';
-
-// Legacy skeleton (kept for backward compatibility)
-export * from './dashboard-skeleton';
