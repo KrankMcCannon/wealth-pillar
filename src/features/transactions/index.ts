@@ -58,9 +58,6 @@ export {
   useDeleteTransaction,
 } from './hooks/use-transaction-mutations';
 
-// Deprecated: useTransactionsController - use useTransactionsData + useTransactionsState instead
-export { useTransactionsController } from './hooks/use-transactions-controller';
-
 // ====================================
 // Services
 // ====================================

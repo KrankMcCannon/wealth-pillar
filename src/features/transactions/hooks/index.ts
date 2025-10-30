@@ -24,6 +24,3 @@ export {
   useUpdateTransaction,
   useDeleteTransaction,
 } from './use-transaction-mutations';
-
-// Deprecated: useTransactionsController - use useTransactionsData + useTransactionsState instead
-export { useTransactionsController } from './use-transactions-controller';

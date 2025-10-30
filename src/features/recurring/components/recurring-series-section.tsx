@@ -44,7 +44,7 @@ export function RecurringSeriesSection({
     return (
       <div className={`animate-pulse space-y-2 ${className}`}>
         {[1, 2, 3].map((i) => (
-          <div key={i} className="h-16 bg-gradient-to-r from-muted to-card rounded-xl"></div>
+          <div key={i} className="h-16 bg-linear-to-r from-muted to-card rounded-xl"></div>
         ))}
       </div>
     );

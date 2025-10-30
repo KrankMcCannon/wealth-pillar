@@ -10,6 +10,5 @@ export type { BudgetsDataState, BudgetsDataSection } from './useBudgetsData';
 export { useBudgetsState } from './useBudgetsState';
 export type { BudgetsPageState, BudgetsPageActions } from './useBudgetsState';
 
-// Keep existing hooks for backward compatibility (they may be used elsewhere)
-export { useBudgetsController } from './use-budgets-controller';
+// Form controller
 export { useBudgetFormController } from './use-budget-form-controller';
