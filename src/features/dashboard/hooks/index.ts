@@ -15,6 +15,5 @@ export type { DashboardPageState, DashboardPageActions } from './useDashboardSta
 export { useDashboardCore } from './use-dashboard-core';
 export { default as useDashboardBudgets } from './use-dashboard-budgets';
 export { useReportsController } from './use-reports-controller';
-export { useSettingsController } from './use-settings-controller';
 export { useInvestmentsController } from './use-investments-controller';
 export { default as useDashboard } from './use-dashboard';

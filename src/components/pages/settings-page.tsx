@@ -3,30 +3,38 @@
 import { SectionHeader } from "@/src/components/layout";
 import BottomNavigation from "@/src/components/layout/bottom-navigation";
 import { PageLoader } from "@/src/components/shared";
-import { useSettingsController } from "@/src/features/dashboard/hooks/use-settings-controller";
+import { useSettingsData } from "@/src/features/settings/hooks/useSettingsData";
+import { useSettingsState } from "@/src/features/settings/hooks/useSettingsState";
+import { createSettingsViewModel } from "@/src/features/settings/services";
+import { settingsStyles } from "@/src/features/settings/theme";
 import { ArrowLeft, BarChart3, Bell, ChevronRight, CreditCard, Globe, LogOut, Mail, Phone, Plus, Settings, Shield, Trash2, User, Users } from "lucide-react";
 import { Button, Card } from "../ui";
 import { PermissionGuard, RoleBadge } from "@/features/permissions";
 import { formatDate } from "@/lib";
 
 export function SettingsPage() {
-  const {
-    currentUser,
-    users,
-    userStats,
-    activityStats,
-    planInfo,
-    isSigningOut,
-    isLoading,
-    handleBackClick,
-    handleSignOut,
-  } = useSettingsController();
+  // Data fetching
+  const data = useSettingsData();
 
-  if (isLoading) {
+  // UI state and actions
+  const { state, actions } = useSettingsState();
+
+  // Create view model from raw data
+  const viewModel = createSettingsViewModel(
+    data.currentUser,
+    data.users.data,
+    data.accounts.data,
+    data.transactions.data
+  );
+
+  // Loading state
+  const showInitialLoading = data.isLoading && !data.currentUser;
+
+  if (showInitialLoading) {
     return <PageLoader message="Caricamento impostazioni..." />;
   }
 
-  if (!currentUser) {
+  if (!viewModel.currentUser) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
@@ -36,26 +44,30 @@ export function SettingsPage() {
     );
   }
 
+  // Extract view model data for easier access
+  const { currentUser, users, activityStats, planInfo } = viewModel;
+  const userStats = data.userStats || { totalUsers: 0, viewableUsers: 0 };
+
 return (
-    <div className="relative flex size-full min-h-[100dvh] flex-col bg-card" style={{ fontFamily: '"Inter", "SF Pro Display", system-ui, sans-serif' }}>
+    <div className="relative flex size-full min-h-dvh flex-col bg-card" style={{ fontFamily: '"Inter", "SF Pro Display", system-ui, sans-serif' }}>
       <div>
         {/* Header */}
-        <header className="sticky top-0 z-20 bg-card/70 backdrop-blur-xl border-b border-primary/20 shadow-sm px-3 sm:px-4 py-2 sm:py-3">
-          <div className="flex items-center justify-between">
+        <header className={settingsStyles.header.container}>
+          <div className={settingsStyles.header.inner}>
             <Button
               variant="ghost"
               size="sm"
-              className="text-primary hover:bg-primary hover:text-white rounded-xl transition-all duration-200 p-2 sm:p-3 min-w-[44px] min-h-[44px] flex items-center justify-center"
-              onClick={handleBackClick}
+              className={settingsStyles.header.button}
+              onClick={actions.handleBackClick}
             >
               <ArrowLeft className="h-5 w-5 sm:h-6 sm:w-6" />
             </Button>
-            <h1 className="text-lg sm:text-xl font-bold tracking-tight text-black">Impostazioni</h1>
-            <div className="min-w-[44px] min-h-[44px]"></div>
+            <h1 className={settingsStyles.header.title}>Impostazioni</h1>
+            <div className={settingsStyles.header.spacer}></div>
           </div>
         </header>
 
-        <main className="px-3 sm:px-4 py-4 pb-20 space-y-6">
+        <main className={settingsStyles.main.container}>
           {/* Profile Section */}
           <section>
             <SectionHeader
@@ -169,14 +181,7 @@ return (
                       <div className="text-right shrink-0 ml-3">
                         <RoleBadge role={member.role} size="sm" variant="subtle" />
                         <p className="text-xs mt-1 truncate">
-                          {(() => {
-                            try {
-                              const dateStr = typeof member.created_at === 'string' ? member.created_at : member.created_at?.toISOString?.() || '';
-                              return formatDate(dateStr);
-                            } catch {
-                              return 'Data non disponibile';
-                            }
-                          })()}
+                          {formatDate(member.createdAt)}
                         </p>
                       </div>
                     </div>
@@ -393,8 +398,8 @@ return (
               <div className="h-px bg-[#7678e4]/10"></div>
 
               <button
-                onClick={handleSignOut}
-                disabled={isSigningOut}
+                onClick={actions.handleSignOut}
+                disabled={state.isSigningOut}
                 className="flex items-center justify-between p-3 w-full text-left hover:bg-[#7678e4]/8 transition-all duration-200 group disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -402,7 +407,7 @@ return (
                     <LogOut className="h-5 w-5" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <span className="text-sm font-semibold text-[#7678e4]">{isSigningOut ? 'Disconnessione...' : 'Esci dall\'Account'}</span>
+                    <span className="text-sm font-semibold text-[#7678e4]">{state.isSigningOut ? 'Disconnessione...' : 'Esci dall\'Account'}</span>
                     <p className="text-xs truncate">Disconnetti dal tuo account</p>
                   </div>
                 </div>
