@@ -121,7 +121,7 @@ export function useTransactionFormController(
     setForm(initialFormState);
     setInitialSnapshot(initialFormState);
     setErrors({});
-  }, [mode, initialTransaction?.id, initialType, selectedUserId, initialFormState]);
+  }, [mode, initialTransaction?.id, initialType, selectedUserId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const isSubmitting = createMutation.isPending || updateMutation.isPending;
   const isDirty = isFormDirty(form, initialSnapshot);

@@ -54,7 +54,7 @@ export function BudgetSelector({
               <div className={budgetStyles.selector.itemContent}>
                 <div className={budgetStyles.selector.itemIcon}>
                   <CategoryIcon
-                    categoryKey={selectedBudget.categories[0] || 'altro'}
+                    categoryKey={selectedBudget.categories?.[0] || 'altro'}
                     size={iconSizes.sm}
                     className={budgetStyles.selector.itemIconContent}
                   />
@@ -77,7 +77,7 @@ export function BudgetSelector({
                 <div className={budgetStyles.selector.itemContent}>
                   <div className={budgetStyles.selector.itemIcon}>
                     <CategoryIcon
-                      categoryKey={budget.categories[0] || 'altro'}
+                      categoryKey={budget.categories?.[0] || 'altro'}
                       size={iconSizes.sm}
                       className={budgetStyles.selector.itemIconContent}
                     />

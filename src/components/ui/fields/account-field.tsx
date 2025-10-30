@@ -7,7 +7,7 @@
 import { useAccounts } from '@/src/lib';
 import { useMemo } from "react";
 import { FormField } from "../form-field";
-import { FormSelect } from "../form-select";
+import { FormSelect, sortSelectOptions } from "../form-select";
 
 interface AccountFieldProps {
   value: string;
@@ -34,7 +34,9 @@ export function AccountField({
       ? accounts.filter(a => a.user_ids?.includes(userId))
       : accounts;
 
-    return filteredAccounts.map(a => ({ value: a.id, label: a.name }));
+    return sortSelectOptions(
+      filteredAccounts.map(a => ({ value: a.id, label: a.name }))
+    );
   }, [accounts, userId]);
 
   return (

@@ -48,18 +48,18 @@ export const updateTransactionInCache = (
   };
 
   // Update main transactions cache
-  queryClient.setQueryData(queryKeys.transactions(), updateList);
+  queryClient.setQueryData(queryKeys.transactions(), (prev: Transaction[] | undefined) => updateList(prev));
 
   // Update user-specific cache
   queryClient.setQueryData(
     queryKeys.transactionsByUser(transaction.user_id),
-    updateList
+    (prev: Transaction[] | undefined) => updateList(prev)
   );
 
   // Update account-specific cache
   queryClient.setQueryData(
     queryKeys.transactionsByAccount(transaction.account_id),
-    updateList
+    (prev: Transaction[] | undefined) => updateList(prev)
   );
 
   // Update individual transaction cache
@@ -144,12 +144,12 @@ export const updateBudgetInCache = (
   };
 
   // Update main budgets cache
-  queryClient.setQueryData(queryKeys.budgets(), updateList);
+  queryClient.setQueryData(queryKeys.budgets(), (prev: Budget[] | undefined) => updateList(prev));
 
   // Update user-specific budget cache
   queryClient.setQueryData(
     queryKeys.budgetsByUser(budget.user_id),
-    updateList
+    (prev: Budget[] | undefined) => updateList(prev)
   );
 
   // Update individual budget cache
@@ -221,12 +221,12 @@ export const updateBudgetPeriodInCache = (
   };
 
   // Update main budget periods cache
-  queryClient.setQueryData(queryKeys.budgetPeriods(), updateList);
+  queryClient.setQueryData(queryKeys.budgetPeriods(), (prev: BudgetPeriod[] | undefined) => updateList(prev));
 
   // Update user-specific budget period cache
   queryClient.setQueryData(
     queryKeys.budgetPeriodsByUser(budgetPeriod.user_id),
-    updateList
+    (prev: BudgetPeriod[] | undefined) => updateList(prev)
   );
 
   // Update individual budget period cache
@@ -302,14 +302,14 @@ export const updateRecurringSeriesInCache = (
   // Update main recurring series cache
   queryClient.setQueryData<RecurringTransactionSeries[]>(
     queryKeys.recurringSeries(),
-    updateList
+    (prev) => updateList(prev)
   );
 
   // Update by user cache if applicable
   if (series.user_id) {
     queryClient.setQueryData<RecurringTransactionSeries[]>(
       queryKeys.recurringSeriesByUser(series.user_id),
-      updateList
+      (prev) => updateList(prev)
     );
   }
 

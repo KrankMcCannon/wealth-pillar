@@ -1,6 +1,7 @@
 "use client";
 
 import { Category, cn } from '@/src/lib';
+import { useEffect } from 'react';
 import useCategoryFormController from "../hooks/use-category-form-controller";
 import { FormActions, FormField, IconPicker, Input, ModalContent, ModalSection, ModalWrapper } from '@/src/components/ui';
 
@@ -34,34 +35,50 @@ const COLOR_PALETTE = [
 export function CategoryForm({ isOpen, onOpenChange, category, mode = 'create' }: CategoryFormProps) {
   const controller = useCategoryFormController({ mode, initialCategory: category || null });
 
+  // Reset form when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      controller.reset();
+    }
+  }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const title = mode === 'edit' ? 'Modifica Categoria' : 'Nuova Categoria';
   const description = mode === 'edit' ? 'Aggiorna i dettagli della categoria' : 'Crea una nuova categoria';
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    await controller.submit();
-    if (!controller.isSubmitting && Object.keys(controller.errors).length === 0) {
-      onOpenChange(false);
+  const handleSubmit = async (e?: React.FormEvent | React.MouseEvent) => {
+    if (e) {
+      e.preventDefault?.();
+    }
+    try {
+      await controller.submit();
+      // Close modal if submission succeeded (no actual errors, just undefined values)
+      const hasActualErrors = Object.values(controller.errors).some(err => err !== undefined);
+      if (!controller.isSubmitting && !hasActualErrors) {
+        onOpenChange(false);
+      }
+    } catch (err) {
+      console.error('[CategoryForm] Submit error:', err);
     }
   };
 
   return (
-    <ModalWrapper
-      isOpen={isOpen}
-      onOpenChange={onOpenChange}
-      title={title}
-      description={description}
-      maxWidth="sm"
-      footer={
-        <FormActions
-          submitType="submit"
-          submitLabel={mode === 'edit' ? 'Salva' : 'Crea Categoria'}
-          onCancel={() => onOpenChange(false)}
-          isSubmitting={controller.isSubmitting}
-        />
-      }
-    >
-      <form onSubmit={handleSubmit} className="space-y-4">
+    <form className="space-y-4">
+      <ModalWrapper
+        isOpen={isOpen}
+        onOpenChange={onOpenChange}
+        title={title}
+        description={description}
+        maxWidth="sm"
+        footer={
+          <FormActions
+            submitType="button"
+            submitLabel={mode === 'edit' ? 'Salva' : 'Crea Categoria'}
+            onSubmit={handleSubmit}
+            onCancel={() => onOpenChange(false)}
+            isSubmitting={controller.isSubmitting}
+          />
+        }
+      >
         <ModalContent>
           <ModalSection>
             <FormField label="Etichetta" required error={controller.errors.label}>
@@ -134,7 +151,7 @@ export function CategoryForm({ isOpen, onOpenChange, category, mode = 'create' }
             </FormField>
           </ModalSection>
         </ModalContent>
-      </form>
-    </ModalWrapper>
+      </ModalWrapper>
+    </form>
   );
 }

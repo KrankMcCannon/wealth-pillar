@@ -3,6 +3,7 @@
 import * as React from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./select";
 import { cn } from '@/src/lib';
+import { Search } from "lucide-react";
 
 /**
  * Form Select Component
@@ -67,8 +68,28 @@ export function FormSelect({
   className,
   renderIcon,
 }: FormSelectProps) {
+  const [searchValue, setSearchValue] = React.useState("");
+
+  // Filter options based on search value
+  const filteredOptions = React.useMemo(() => {
+    if (!searchValue) return options;
+
+    const lowerSearch = searchValue.toLowerCase();
+    return options.filter((option) =>
+      option.label.toLowerCase().includes(lowerSearch) ||
+      option.value.toLowerCase().includes(lowerSearch)
+    );
+  }, [searchValue, options]);
+
+  // Reset search when dropdown closes
+  const handleOpenChange = (isOpen: boolean) => {
+    if (!isOpen) {
+      setSearchValue("");
+    }
+  };
+
   return (
-    <Select value={value} onValueChange={onValueChange} disabled={disabled}>
+    <Select value={value} onValueChange={onValueChange} disabled={disabled} onOpenChange={handleOpenChange}>
       <SelectTrigger
         className={cn(
           "bg-card border-primary/20 focus:ring-2 focus:ring-primary/20",
@@ -77,20 +98,53 @@ export function FormSelect({
       >
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
-      <SelectContent className="max-h-[300px]">
-        {options.map((option) => (
-          <SelectItem
-            key={option.value}
-            value={option.value}
-            disabled={option.disabled}
-          >
-            <div className="flex items-center gap-2">
-              {renderIcon && renderIcon(option)}
-              {option.icon && <span>{option.icon}</span>}
-              <span>{option.label}</span>
+      <SelectContent className="max-h-[300px] p-0">
+        {/* Search Input */}
+        <div className="sticky top-0 border-b border-primary/10 bg-popover p-2 z-10">
+          <div className="relative">
+            <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-primary/40 pointer-events-none" />
+            <input
+              type="text"
+              placeholder="Cerca..."
+              value={searchValue}
+              onChange={(e) => setSearchValue(e.target.value)}
+              onKeyDown={(e) => {
+                // Prevent Select's keyboard navigation
+                e.stopPropagation();
+              }}
+              onClick={(e) => e.stopPropagation()}
+              onMouseDown={(e) => e.stopPropagation()}
+              autoFocus
+              className={cn(
+                "w-full pl-8 pr-3 py-2 text-sm rounded border border-primary/20 bg-card text-primary placeholder:text-primary/40",
+                "focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+              )}
+            />
+          </div>
+        </div>
+
+        {/* Options List */}
+        <div className="px-2 py-1">
+          {filteredOptions.length === 0 ? (
+            <div className="py-6 text-center text-sm text-primary/50">
+              Nessun risultato trovato
             </div>
-          </SelectItem>
-        ))}
+          ) : (
+            filteredOptions.map((option) => (
+              <SelectItem
+                key={option.value}
+                value={option.value}
+                disabled={option.disabled}
+              >
+                <div className="flex items-center gap-2">
+                  {renderIcon && renderIcon(option)}
+                  {option.icon && <span>{option.icon}</span>}
+                  <span>{option.label}</span>
+                </div>
+              </SelectItem>
+            ))
+          )}
+        </div>
       </SelectContent>
     </Select>
   );
