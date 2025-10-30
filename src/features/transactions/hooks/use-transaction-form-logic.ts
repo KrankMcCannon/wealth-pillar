@@ -105,7 +105,7 @@ export function validateTransferAccounts(
   }
 
   // Source and destination must be different
-  if (accountId && toAccountId && accountId === toAccountId) {
+  if (accountId && accountId === toAccountId) {
     return 'Il conto origine e destinazione devono essere diversi';
   }
 
