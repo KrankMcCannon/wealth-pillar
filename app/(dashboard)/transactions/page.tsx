@@ -235,7 +235,7 @@ function TransactionsContent() {
         isOpen={state.isTransactionFormOpen}
         onOpenChange={actions.setIsTransactionFormOpen}
         initialType={state.transactionFormType}
-        selectedUserId={selectedViewUserId !== 'all' ? selectedViewUserId : ''}
+        selectedUserId={selectedViewUserId !== 'all' ? selectedViewUserId : currentUser?.id}
         transaction={state.editingTransaction || undefined}
         mode={state.transactionFormMode}
       />

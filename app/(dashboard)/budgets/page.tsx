@@ -217,7 +217,7 @@ function BudgetsContent() {
       <TransactionForm
         isOpen={state.isTransactionFormOpen}
         onOpenChange={actions.setIsTransactionFormOpen}
-        selectedUserId={selectedViewUserId !== 'all' ? selectedViewUserId : ''}
+        selectedUserId={selectedViewUserId !== 'all' ? selectedViewUserId : currentUser?.id}
         transaction={state.editingTransaction || undefined}
         mode={state.transactionFormMode}
       />
@@ -225,7 +225,7 @@ function BudgetsContent() {
       <BudgetForm
         isOpen={state.isBudgetFormOpen}
         onOpenChange={actions.setIsBudgetFormOpen}
-        selectedUserId={selectedViewUserId !== 'all' ? selectedViewUserId : undefined}
+        selectedUserId={selectedViewUserId !== 'all' ? selectedViewUserId : currentUser?.id}
         budget={state.editingBudget || undefined}
         mode={state.budgetFormMode}
       />
