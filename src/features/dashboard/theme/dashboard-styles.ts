@@ -182,7 +182,7 @@ export function getBudgetStatusStyle(percentage: number): {
     return {
       barClass: 'bg-green-500',
       statusClass: 'text-green-600',
-      statusText: 'In Budge',
+      statusText: 'In Budget',
     };
   } else if (percentage <= 90) {
     return {

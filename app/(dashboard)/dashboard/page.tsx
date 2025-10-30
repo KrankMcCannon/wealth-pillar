@@ -28,7 +28,7 @@ import { RecurringSeriesForm, RecurringSeriesSection } from "@/features/recurrin
  */
 export default function DashboardPage() {
   // User selection hook
-  const { currentUser, selectedViewUserId, users, updateViewUserId } = useUserSelection();
+  const { currentUser, selectedViewUserId, updateViewUserId } = useUserSelection();
 
   // Data fetching with progressive loading
   const data = useDashboardData(selectedViewUserId, currentUser);
