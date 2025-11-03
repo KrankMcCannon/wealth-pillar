@@ -108,34 +108,34 @@ export function useBudgetsData(): BudgetsDataState {
   return {
     // Essential data with loading states
     budgets: {
-      data: budgetsQuery.data || [],
+      data: budgetsQuery.data || [], // Always array, never undefined
       isLoading: budgetsQuery.isLoading,
       error: budgetsQuery.error,
     },
     transactions: {
-      data: transactionsQuery.data || [],
+      data: transactionsQuery.data || [], // Always array, never undefined
       isLoading: transactionsQuery.isLoading,
       error: transactionsQuery.error,
     },
     users: {
-      data: users || [],
+      data: users || [], // Always array, never undefined
       isLoading: userSelectionLoading,
       error: undefined,
     },
     periods: {
-      data: periodsQuery.data || [],
+      data: periodsQuery.data || [], // Always array, never undefined
       isLoading: periodsQuery.isLoading,
       error: periodsQuery.error,
     },
 
     // Reference data
     categories: {
-      data: (categoriesQuery.data as any) || [],
+      data: (categoriesQuery.data as any) || [], // Always array, never undefined
       isLoading: categoriesQuery.isLoading,
       error: categoriesQuery.error,
     },
     accounts: {
-      data: accountsQuery.data || [],
+      data: accountsQuery.data || [], // Always array, never undefined
       isLoading: accountsQuery.isLoading,
       error: accountsQuery.error,
     },

@@ -175,7 +175,7 @@ export function formatTransactionPayload(formData: {
   date: string;
   to_account_id: string | null;
 } {
-  const amount = typeof formData.amount === 'string' ? parseFloat(formData.amount) : formData.amount;
+  const amount = typeof formData.amount === 'string' ? Number.parseFloat(formData.amount) : formData.amount;
   const date = new Date(formData.date).toISOString();
   const to_account_id = formData.type === 'transfer' ? (formData.to_account_id || null) : null;
 

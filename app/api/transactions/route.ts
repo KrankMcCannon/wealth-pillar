@@ -140,11 +140,8 @@ async function createTransaction(request: NextRequest) {
 
     const body = await request.json();
 
-    // Validate required fields (category is not required for transfers)
-    const baseRequiredFields = ['description', 'amount', 'type', 'date', 'account_id'] as const;
-    const requiredFields = body.type === 'transfer'
-      ? baseRequiredFields
-      : ([...baseRequiredFields, 'category'] as const);
+    // Validate required fields
+    const requiredFields = ['description', 'amount', 'type', 'category', 'date', 'account_id'] as const;
     const missingFields = (requiredFields as readonly string[]).filter(field => !body[field]);
     if (missingFields.length > 0) {
       throw createMissingFieldError(missingFields);
@@ -161,8 +158,7 @@ async function createTransaction(request: NextRequest) {
       description: body.description,
       amount: parseFloat(body.amount),
       type: body.type,
-      // Default category for transfers to satisfy NOT NULL constraint
-      category: body.type === 'transfer' ? (body.category || 'transfer') : body.category,
+      category: body.category,
       date: body.date,
       user_id: body.user_id || userContext.userId,
       account_id: body.account_id,

@@ -17,7 +17,7 @@ interface AccountCardProps {
   onClick: () => void;
 }
 
-export function AccountCard({ account, accountBalance, onClick }: AccountCardProps) {
+export function AccountCard({ account, accountBalance, onClick }: Readonly<AccountCardProps>) {
   const isNegative = accountBalance < 0;
 
   // Primary content: Balance amount
@@ -49,7 +49,7 @@ export function AccountCard({ account, accountBalance, onClick }: AccountCardPro
       secondaryContent={secondaryContent}
       variant="interactive"
       onClick={onClick}
-      className="min-w-[180px] flex-shrink-0"
+      className="min-w-[180px] shrink-0"
       testId={`account-card-${account.id}`}
     />
   );

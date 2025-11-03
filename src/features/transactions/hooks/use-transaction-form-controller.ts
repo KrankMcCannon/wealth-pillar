@@ -17,7 +17,6 @@ import {
 import type { Transaction, TransactionFrequencyType, TransactionType } from "@/src/lib/types";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useCreateTransaction, useUpdateTransaction } from "./use-transaction-mutations";
-import { getCategoryForTransactionType } from "./use-transaction-form-logic";
 
 export type TransactionFormMode = "create" | "edit";
 
@@ -82,7 +81,7 @@ export function useTransactionFormController(
           amount: initialTransaction.amount?.toString?.() ?? "",
           type: initialTransaction.type,
           category: initialTransaction.category,
-          date: formatDateForForm(initialTransaction.date as Date | string),
+          date: formatDateForForm(initialTransaction.date),
           user_id: initialTransaction.user_id,
           account_id: initialTransaction.account_id,
           to_account_id: initialTransaction.to_account_id || "",
@@ -106,7 +105,7 @@ export function useTransactionFormController(
         type: initialType,
         user_id: selectedUserId || "",
         account_id: defaultAccountId,
-        category: getCategoryForTransactionType(initialType, ""),
+        category: "",
       },
       {
         ...defaultState,
@@ -147,11 +146,6 @@ export function useTransactionFormController(
           // Also clear to_account_id for transfers
           next.to_account_id = "";
         }
-      }
-
-      // When type changes to transfer, automatically set category to "trasferimento"
-      if (key === "type") {
-        next.category = getCategoryForTransactionType(value as string, prev.category);
       }
 
       return next;
@@ -209,7 +203,7 @@ export function useTransactionFormController(
     const sanitized = sanitizeFormState(form);
 
     // Enrich payload with numeric amount and ISO date
-    const amountNum = typeof sanitized.amount === "string" ? parseFloat(sanitized.amount) : (sanitized.amount as any);
+    const amountNum = typeof sanitized.amount === "string" ? Number.parseFloat(sanitized.amount) : (sanitized.amount as any);
     const dateIso = sanitized.date ? new Date(sanitized.date).toISOString() : new Date().toISOString();
 
     // Resolve group_id from selected user
@@ -240,7 +234,7 @@ export function useTransactionFormController(
       id,
       description: sanitized.description,
       amount: amountNum,
-      type: sanitized.type as TransactionType,
+      type: sanitized.type,
       category: sanitized.category,
       date: dateIso,
       user_id: sanitized.user_id,

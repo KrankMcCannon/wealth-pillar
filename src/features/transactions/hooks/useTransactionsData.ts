@@ -106,22 +106,22 @@ export function useTransactionsData(): TransactionsDataState {
 
   return {
     transactions: {
-      data: transactionsQuery.data || [],
+      data: transactionsQuery.data || [], // Always array, never undefined
       isLoading: transactionsQuery.isLoading,
       error: transactionsQuery.error,
     },
     categories: {
-      data: categoriesQuery.data || [],
+      data: categoriesQuery.data || [], // Always array, never undefined
       isLoading: categoriesQuery.isLoading,
       error: categoriesQuery.error,
     },
     accounts: {
-      data: accountsQuery.data || [],
+      data: accountsQuery.data || [], // Always array, never undefined
       isLoading: accountsQuery.isLoading,
       error: accountsQuery.error,
     },
     users: {
-      data: users || [],
+      data: users || [], // Always array, never undefined
       isLoading: userSelectionLoading,
       error: undefined,
     },

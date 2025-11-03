@@ -22,12 +22,14 @@ interface BalanceSectionProps {
  * Displays default accounts slider and total balance link on dashboard
  *
  * Orchestrates multiple sub-components:
- * - AccountSlider: Horizontal scrollable account cards
- * - TotalBalanceLink: Clickable total balance card
+ * - AccountSlider: Horizontal scrollable account cards with skeleton while loading
+ * - TotalBalanceLink: Clickable total balance card with skeleton while loading
  *
  * Uses view model for business logic:
  * - Filtering default accounts
  * - Sorting by balance
+ *
+ * Shows internal skeleton while loading - resilient pattern
  */
 export const BalanceSection = ({
   accounts,
@@ -35,16 +37,19 @@ export const BalanceSection = ({
   accountBalances,
   totalBalance,
   onAccountClick,
-  isLoading
+  isLoading = false
 }: BalanceSectionProps) => {
-  // Create view model with business logic (must be before conditional)
+  // Create view model with business logic
   const viewModel = useMemo(
     () => getDefaultAccountsViewModel(accounts, users, accountBalances),
     [accounts, users, accountBalances]
   );
 
-  // Show skeleton while loading
-  if (isLoading) {
+  // Show skeleton only if actively loading AND no data received yet
+  // With placeholderData, empty array exists immediately, so check both conditions
+  const isInitialLoading = isLoading && (!accounts || accounts.length === 0);
+
+  if (isInitialLoading) {
     return <BalanceSectionSkeleton />;
   }
 

@@ -69,7 +69,7 @@ const UserSelector = memo(({
           {[1, 2, 3].map((i) => (
             <div
               key={i}
-              className="flex-shrink-0 flex items-center gap-3 p-2 rounded-2xl bg-gradient-to-r from-primary/10 to-white border border-primary/20 min-w-[120px] animate-pulse"
+              className="shrink-0 flex items-center gap-3 p-2 rounded-2xl bg-linear-to-r from-primary/10 to-white border border-primary/20 min-w-[120px] animate-pulse"
             >
           <div className="w-6 h-6 bg-primary/20 rounded-full"></div>
           <div className="w-16 h-4 bg-primary/20 rounded"></div>
@@ -98,7 +98,7 @@ const UserSelector = memo(({
               key={member.id}
               onClick={() => handleMemberClick(member.id)}
               className={`
-                flex-shrink-0 flex items-center gap-2 px-3 py-2 rounded-2xl text-sm font-semibold
+                shrink-0 flex items-center gap-2 px-3 py-2 rounded-2xl text-sm font-semibold
                 whitespace-nowrap transition-all duration-300 group hover:scale-[1.02]
                 focus:outline-none
                 ${isSelected
@@ -131,7 +131,7 @@ const UserSelector = memo(({
 
               {/* Hover indicator only for non-selected */}
               {!isSelected && (
-                <div className="w-0 h-2 bg-primary/40 rounded-full transition-all duration-300 group-hover:w-2 flex-shrink-0" />
+                <div className="w-0 h-2 bg-primary/40 rounded-full transition-all duration-300 group-hover:w-2 shrink-0" />
               )}
             </button>
           );

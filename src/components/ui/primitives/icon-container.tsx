@@ -28,7 +28,7 @@ export function IconContainer({
   className,
   children,
   ...props
-}: IconContainerProps) {
+}: Readonly<IconContainerProps>) {
   return (
     <div
       className={cn(iconContainerVariants({ size, color }), className)}

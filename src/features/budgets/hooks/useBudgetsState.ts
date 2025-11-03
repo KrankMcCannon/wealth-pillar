@@ -56,7 +56,6 @@ export interface BudgetsPageActions {
   // Budget form
   handleEditBudget: (budget: Budget) => void;
   handleCreateBudget: () => void;
-  handleDeleteBudget: (budgetId: string) => void;
   setIsBudgetFormOpen: (open: boolean) => void;
 
   // Category form
@@ -152,15 +151,6 @@ export function useBudgetsState() {
     setIsBudgetFormOpen(true);
   }, []);
 
-  const handleDeleteBudget = useCallback((budgetId: string) => {
-    // Trigger delete via mutation
-    if (confirm('Sei sicuro di voler eliminare questo budget?')) {
-      // Call mutation - handled via mutation hook elsewhere
-      // For now, just close the form
-      setIsBudgetFormOpen(false);
-    }
-  }, []);
-
   const handleCreateCategory = useCallback(() => {
     setIsCategoryFormOpen(true);
   }, []);
@@ -189,7 +179,6 @@ export function useBudgetsState() {
     setIsTransactionFormOpen,
     handleEditBudget,
     handleCreateBudget,
-    handleDeleteBudget,
     setIsBudgetFormOpen,
     handleCreateCategory,
     setIsCategoryFormOpen,

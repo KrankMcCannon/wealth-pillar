@@ -31,8 +31,8 @@ export function Amount({
   className,
   children,
   ...props
-}: AmountProps) {
-  const value = typeof children === "number" ? children : parseFloat(children);
+}: Readonly<AmountProps>) {
+  const value = typeof children === "number" ? children : Number.parseFloat(children);
   const formatted = currency ? formatCurrency(value) : value.toFixed(2);
 
   return (

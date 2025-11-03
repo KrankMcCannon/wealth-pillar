@@ -30,6 +30,13 @@ export function BudgetCard({ budget, budgetInfo, onClick }: BudgetCardProps) {
     return 'success';
   };
 
+  // Get text color class based on status
+  const getTextColorClass = (status: "success" | "warning" | "danger"): string => {
+    if (status === 'success') return 'text-success';
+    if (status === 'warning') return 'text-warning';
+    return 'text-destructive';
+  };
+
   const remaining = budgetInfo?.remaining || budget.amount;
   const progress = budgetInfo?.progress || 0;
   const status = getStatusVariant(progress);
@@ -37,17 +44,9 @@ export function BudgetCard({ budget, budgetInfo, onClick }: BudgetCardProps) {
   // Custom subtitle with status badge (rendered inline without DomainCard subtitle slot)
   // We'll use a custom implementation for this specific case
   return (
-    <div
-      className="px-3 py-2 hover:bg-accent/10 transition-colors duration-200 cursor-pointer"
+    <button
+      className="px-3 py-2 hover:bg-accent/10 transition-colors duration-200 cursor-pointer w-full text-left"
       onClick={onClick}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          onClick();
-        }
-      }}
       data-testid={`budget-card-${budget.id}`}
     >
       <div className="flex items-center justify-between mb-2">
@@ -65,7 +64,7 @@ export function BudgetCard({ budget, budgetInfo, onClick }: BudgetCardProps) {
             <Text
               variant="heading"
               size="sm"
-              className="truncate max-w-[140px] sm:max-w-[160px] mb-1"
+              className="truncate max-w-[140px] sm:max-w-40 mb-1"
             >
               {budget.description}
             </Text>
@@ -82,16 +81,12 @@ export function BudgetCard({ budget, budgetInfo, onClick }: BudgetCardProps) {
           </div>
         </div>
 
-        <div className="text-right flex-shrink-0 ml-2">
+        <div className="text-right shrink-0 ml-2">
           {/* Remaining amount */}
           <Text
             variant="emphasis"
             size="sm"
-            className={
-              status === 'success' ? 'text-success' :
-              status === 'warning' ? 'text-warning' :
-              'text-destructive'
-            }
+            className={getTextColorClass(status)}
           >
             {formatCurrency(remaining)}
           </Text>
@@ -110,6 +105,6 @@ export function BudgetCard({ budget, budgetInfo, onClick }: BudgetCardProps) {
           />
         </div>
       </div>
-    </div>
+    </button>
   );
 }

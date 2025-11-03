@@ -16,7 +16,7 @@ export interface TransactionFilters {
   searchQuery?: string;
   category?: string;
   type?: 'income' | 'expense' | 'transfer' | 'all';
-  userId?: string | 'all';
+  userId?: string;
   accountId?: string;
   startDate?: string | Date;
   endDate?: string | Date;
@@ -96,7 +96,7 @@ export function filterTransactions(
 export function filterByUserScope(
   transactions: Transaction[],
   currentUser: User | null,
-  selectedUserId: string | 'all'
+  selectedUserId: string
 ): Transaction[] {
   if (!currentUser) return [];
 
@@ -125,7 +125,7 @@ export function filterByUserScope(
  * Helper: Check if transaction is valid
  */
 function isValidTransaction(tx: Transaction): boolean {
-  return tx.amount !== null && tx.account_id !== "" && !isNaN(new Date(tx.date).getTime());
+  return tx.amount !== null && tx.account_id !== "" && !Number.isNaN(new Date(tx.date).getTime());
 }
 
 /**
@@ -256,7 +256,7 @@ export function filterByType(
  */
 export function hasActiveFilters(filters: TransactionFilters): boolean {
   return !!(
-    (filters.searchQuery && filters.searchQuery.trim()) ||
+    filters.searchQuery?.trim() ||
     (filters.category && filters.category !== 'all') ||
     (filters.type && filters.type !== 'all') ||
     (filters.userId && filters.userId !== 'all') ||

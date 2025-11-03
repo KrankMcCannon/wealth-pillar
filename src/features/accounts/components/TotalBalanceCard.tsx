@@ -9,11 +9,47 @@ import { CreditCard, TrendingUp, TrendingDown } from 'lucide-react';
 import { formatCurrency } from '@/lib';
 import { accountStyles } from '../theme/account-styles';
 
+const shimmerBase = "relative overflow-hidden before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_2s_infinite] before:bg-gradient-to-r before:from-transparent before:via-white/60 before:to-transparent";
+
+/**
+ * Skeleton for balance card
+ */
+function TotalBalanceCardSkeleton() {
+  return (
+    <div className={accountStyles.balanceCard.container}>
+      <div className={`${accountStyles.balanceCard.card} ${shimmerBase}`}>
+        {/* Header */}
+        <div className={accountStyles.balanceCard.header}>
+          <div>
+            <div className="h-3 w-20 bg-muted rounded mb-2" />
+            <div className="h-8 w-32 bg-muted rounded" />
+          </div>
+          <div className="w-14 h-14 bg-muted rounded-full" />
+        </div>
+
+        {/* Statistics grid */}
+        <div className={accountStyles.balanceCard.statsGrid}>
+          {new Array(3).fill(null).map((_, i) => (
+            <div key={i} className="bg-primary/5 rounded-lg p-3 border border-primary/10 space-y-2">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="w-4 h-4 bg-muted rounded" />
+                <div className="h-2 w-12 bg-muted rounded" />
+              </div>
+              <div className="h-5 w-8 bg-muted rounded" />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 interface TotalBalanceCardProps {
   totalBalance: number;
   totalAccounts: number;
   positiveAccounts: number;
   negativeAccounts: number;
+  isLoading?: boolean;
 }
 
 export const TotalBalanceCard = ({
@@ -21,7 +57,12 @@ export const TotalBalanceCard = ({
   totalAccounts,
   positiveAccounts,
   negativeAccounts,
+  isLoading = false,
 }: TotalBalanceCardProps) => {
+  if (isLoading) {
+    return <TotalBalanceCardSkeleton />;
+  }
+
   const isPositive = totalBalance >= 0;
 
   return (

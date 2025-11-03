@@ -15,6 +15,13 @@ export const metadata: Metadata = {
   description: "Piattaforma completa per la gestione delle finanze personali e familiari",
 };
 
+/**
+ * Root Layout
+ *
+ * Provides authentication context via Clerk and TanStack Query provider for the entire app.
+ * SSR hydration with server-scoped QueryClient is implemented in dashboard layouts
+ * to avoid issues with static prerendering.
+ */
 export default function RootLayout({
   children,
 }: Readonly<{

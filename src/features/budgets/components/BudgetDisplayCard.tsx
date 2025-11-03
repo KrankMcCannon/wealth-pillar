@@ -21,15 +21,13 @@ export interface BudgetDisplayCardProps {
   budget: Budget;
   period: BudgetPeriod | null;
   onEdit: (budget: Budget) => void;
-  onDelete: (budgetId: string) => void;
 }
 
 export function BudgetDisplayCard({
   budget,
   period,
   onEdit,
-  onDelete,
-}: BudgetDisplayCardProps) {
+}: Readonly<BudgetDisplayCardProps>) {
   return (
     <div className={budgetStyles.budgetDisplay.container}>
       {/* Budget Actions Dropdown - Top Right Corner */}
@@ -53,15 +51,8 @@ export function BudgetDisplayCard({
               className="text-sm font-medium hover:bg-primary/8 hover:text-primary rounded-lg px-3 py-2.5 cursor-pointer transition-colors"
               onSelect={() => onEdit(budget)}
             >
-              <span className="mr-2">✏️</span>
+              <span className="mr-2">✏️</span>{' '}
               Modifica Budget
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              className="text-sm font-medium text-destructive hover:bg-red-50 hover:text-red-700 rounded-lg px-3 py-2.5 cursor-pointer transition-colors"
-              onSelect={() => onDelete(budget.id)}
-            >
-              <span className="mr-2">🗑️</span>
-              Elimina Budget
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

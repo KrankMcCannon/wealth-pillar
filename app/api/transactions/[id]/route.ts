@@ -41,7 +41,7 @@ const buildUpdateData = (body: Record<string, unknown>): TransactionUpdate => {
 
   // Type-safe conditional assignment
   if (body.description !== undefined) updateData.description = body.description as string;
-  if (body.amount !== undefined) updateData.amount = parseFloat(String(body.amount));
+  if (body.amount !== undefined) updateData.amount = Number.parseFloat(String(body.amount));
   if (body.type !== undefined) updateData.type = body.type as TransactionUpdate['type'];
   if (body.category !== undefined) updateData.category = body.category as string;
   if (body.date !== undefined) updateData.date = body.date as string;

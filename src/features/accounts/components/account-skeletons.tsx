@@ -43,7 +43,7 @@ export function BalanceCardSkeleton() {
 
         {/* Statistics grid */}
         <div className="grid grid-cols-3 gap-3 mt-6">
-          {[...Array(3)].map((_, i) => (
+          {Array.from({ length: 3 }).map((_, i) => (
             <div key={i} className="bg-primary/5 rounded-lg p-3 border border-primary/10 space-y-2">
               <div className="flex items-center gap-2 mb-1">
                 <div className="w-4 h-4 bg-muted rounded" />
@@ -66,7 +66,7 @@ export function AccountListSkeleton() {
     <div className="px-4">
       <div className="h-5 w-32 bg-muted rounded animate-pulse mb-4" />
       <div className="space-y-3">
-        {[...Array(3)].map((_, i) => (
+        {Array.from({ length: 3 }).map((_, i) => (
           <div key={i} className={`p-4 rounded-lg border border-primary/20 bg-card ${shimmerBase}`}>
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-3 flex-1">
@@ -95,10 +95,10 @@ export function BalanceSectionSliderSkeleton() {
   return (
     <div className="overflow-x-auto scrollbar-hide mb-4">
       <div className="flex gap-3 pb-2">
-        {[...Array(3)].map((_, i) => (
+        {Array.from({ length: 3 }).map((_, i) => (
           <div
             key={i}
-            className="flex-shrink-0 w-60 h-24 bg-primary/10 rounded-lg animate-pulse border border-primary/20"
+            className="shrink-0 w-60 h-24 bg-primary/10 rounded-lg animate-pulse border border-primary/20"
           />
         ))}
       </div>

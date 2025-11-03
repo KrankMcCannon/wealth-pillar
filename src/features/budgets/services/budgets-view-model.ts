@@ -143,15 +143,18 @@ export function createBudgetsViewModel(
     dailyBurnRate = daysElapsed > 0 ? totalSpent / daysElapsed : 0;
     projectedSpending = dailyBurnRate * (daysElapsed + daysRemaining);
 
+    let endDateString: string | null = null;
+    if (currentPeriod.end_date) {
+      endDateString = typeof currentPeriod.end_date === 'string'
+        ? currentPeriod.end_date
+        : currentPeriod.end_date.toISOString();
+    }
+
     periodInfo = {
       startDate: typeof currentPeriod.start_date === 'string'
         ? currentPeriod.start_date
         : currentPeriod.start_date.toISOString(),
-      endDate: currentPeriod.end_date
-        ? (typeof currentPeriod.end_date === 'string'
-          ? currentPeriod.end_date
-          : currentPeriod.end_date.toISOString())
-        : null,
+      endDate: endDateString,
       daysRemaining,
       daysElapsed,
       isActive: currentPeriod.is_active,

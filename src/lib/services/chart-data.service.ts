@@ -9,7 +9,7 @@
  * - Category breakdown charts
  */
 
-import type { Transaction, Budget } from '@/src/lib/types';
+import type { Budget, Transaction } from '@/src/lib/types';
 import { calculateCumulativeSpending } from './financial-calculations.service';
 
 /**
@@ -76,17 +76,25 @@ export function prepareLineChartData(
   // Transform to chart coordinates
   const chartWidth = 350;
   const chartHeight = 180;
-  const maxValue = budget.amount;
+  const maxValue = budget.amount || 1; // Prevent division by zero
 
   const data: LineChartDataPoint[] = cumulative.map((point, index) => {
     const percentage = (point.cumulative / maxValue) * 100;
     const cappedPercentage = Math.min(percentage, 100);
+    
+    // Prevent division by zero for x coordinate
+    const xPosition = periodDays > 1 
+      ? (index / (periodDays - 1)) * chartWidth 
+      : chartWidth / 2;
+    
+    // Calculate y position with safety checks
+    const yPosition = chartHeight - ((cappedPercentage / 100) * 170); // 170 = chartHeight - padding
 
     return {
       day: point.day,
       value: point.cumulative,
-      x: (index / (periodDays - 1)) * chartWidth,
-      y: chartHeight - ((cappedPercentage / 100) * 170), // 170 = chartHeight - padding
+      x: xPosition,
+      y: Number.isNaN(yPosition) ? chartHeight : yPosition,
       isFuture: point.isFuture
     };
   });
@@ -98,7 +106,7 @@ export function prepareLineChartData(
   return {
     data,
     maxValue,
-    currentTotal: pointsUpToToday[pointsUpToToday.length - 1]?.cumulative || 0,
+    currentTotal: pointsUpToToday.at(-1)?.cumulative || 0,
     pathD
   };
 }
@@ -234,16 +242,8 @@ export function prepareDailyIncomeData(
   startDate: Date
 ): DailyExpenseData[] {
   const dailyData: DailyExpenseData[] = [];
-  const incomeCategories = new Set<string>();
 
-  // First pass: find all income categories
-  for (const tx of transactions) {
-    if (tx.type === 'income') {
-      incomeCategories.add(tx.category);
-    }
-  }
-
-  // Second pass: group by day
+  // Group by day
   for (let i = 0; i < periodDays; i++) {
     const date = new Date(startDate);
     date.setDate(date.getDate() + i);
@@ -323,9 +323,12 @@ export function calculatePeriodComparison(
     .reduce((sum, tx) => sum + tx.amount, 0);
 
   const difference = currentTotal - previousTotal;
-  const percentageChange = previousTotal > 0
-    ? ((difference / previousTotal) * 100)
-    : (currentTotal > 0 ? 100 : 0);
+  let percentageChange: number;
+  if (previousTotal > 0) {
+    percentageChange = (difference / previousTotal) * 100;
+  } else {
+    percentageChange = currentTotal > 0 ? 100 : 0;
+  }
 
   return {
     currentTotal: Math.round(currentTotal * 100) / 100,
@@ -367,7 +370,7 @@ export function prepareSpendingTrendData(
 
     const weekExpenses = expenses.filter(tx => {
       const txDate = new Date(tx.date);
-      const dayIndex = Math.floor((txDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+      const dayIndex = Math.floor((txDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
       return dayIndex >= weekStart && dayIndex < weekEnd;
     });
 

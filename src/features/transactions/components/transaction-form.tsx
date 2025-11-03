@@ -21,7 +21,7 @@ export function TransactionForm({
   selectedUserId,
   transaction,
   mode = "create",
-}: TransactionFormProps) {
+}: Readonly<TransactionFormProps>) {
   const { data: accounts = [] } = useAccounts();
 
   const controller = useTransactionFormController({
@@ -135,15 +135,13 @@ export function TransactionForm({
                 </FormField>
               )}
 
-              {/* Categoria (non per trasferimenti) */}
-              {controller.form.type !== "transfer" && (
-                <CategoryField
-                  value={controller.form.category}
-                  onChange={(v) => controller.setField("category", v)}
-                  error={controller.errors.category}
-                  required
-                />
-              )}
+              {/* Categoria */}
+              <CategoryField
+                value={controller.form.category}
+                onChange={(v) => controller.setField("category", v)}
+                error={controller.errors.category}
+                required
+              />
 
               {/* Importo */}
               <AmountField

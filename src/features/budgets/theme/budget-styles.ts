@@ -12,6 +12,8 @@
 
 import { budgetComponents, budgetSpacing, budgetStatus } from './budget-tokens';
 
+export type BudgetStatus = 'safe' | 'warning' | 'danger';
+
 export const budgetStyles = {
   // ====================================
   // Page-level styles
@@ -204,7 +206,7 @@ export const budgetStyles = {
 /**
  * Get styles based on budget status
  */
-export function getStatusStyles(status: 'safe' | 'warning' | 'danger') {
+export function getStatusStyles(status: BudgetStatus) {
   return budgetStatus[status];
 }
 
@@ -222,7 +224,7 @@ export function getMetricsItemStyles(isNegative?: boolean) {
 /**
  * Get progress indicator styles based on status
  */
-export function getProgressIndicatorStyles(status: 'safe' | 'warning' | 'danger') {
+export function getProgressIndicatorStyles(status: BudgetStatus) {
   const baseStyles = budgetStyles.progress.indicator;
   const statusStyles = {
     safe: budgetStyles.progress.indicatorSafe,
@@ -235,7 +237,7 @@ export function getProgressIndicatorStyles(status: 'safe' | 'warning' | 'danger'
 /**
  * Get progress bar fill styles based on status
  */
-export function getProgressBarFillStyles(status: 'safe' | 'warning' | 'danger', percentage: number) {
+export function getProgressBarFillStyles(status: BudgetStatus, percentage: number) {
   const baseStyles = budgetStyles.progress.barFill;
   const statusStyles = {
     safe: budgetStyles.progress.barFillSafe,

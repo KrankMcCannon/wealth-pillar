@@ -24,7 +24,7 @@ export function BudgetChart({
   chartData,
   periodComparison,
   periodInfo,
-}: BudgetChartProps) {
+}: Readonly<BudgetChartProps>) {
   return (
     <section>
       <Card className={budgetStyles.chart.card}>
@@ -75,9 +75,11 @@ export function BudgetChart({
             {/* Line for cumulative amounts */}
             {chartData.pathD && chartData.data.length > 0 && (() => {
               const visiblePoints = chartData.data.filter((p) => !p.isFuture);
-              const lastPoint = visiblePoints[visiblePoints.length - 1];
+              const lastPoint = visiblePoints.at(-1);
 
-              if (!lastPoint) return null;
+              if (!lastPoint || typeof lastPoint.x !== 'number' || typeof lastPoint.y !== 'number') {
+                return null;
+              }
 
               return (
                 <>

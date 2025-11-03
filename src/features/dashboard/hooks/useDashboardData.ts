@@ -11,13 +11,13 @@
 import {
   Account,
   calculateAccountBalance,
+  Transaction,
   useAccounts,
   useAccountsByUser,
+  User,
   useTransactions,
   useTransactionsForBalances,
   useUsers,
-  User,
-  Transaction,
 } from '@/src/lib';
 import { useMemo } from 'react';
 import useDashboardBudgets from './use-dashboard-budgets';
@@ -72,8 +72,8 @@ export function isSectionReady(section: DashboardDataSection<unknown>): boolean 
  * Returns individual loading states for each data section
  */
 export function useDashboardData(
-  selectedViewUserId: string = 'all',
-  currentUser: User | null
+  currentUser: User | null,
+  selectedViewUserId: string = 'all'
 ): DashboardDataState {
   // Core data queries - essential for rendering
   const usersQuery = useUsers();
@@ -192,27 +192,27 @@ export function useDashboardData(
 
   return {
     users: {
-      data: coreData.users,
+      data: coreData.users || [], // Always array, never undefined
       isLoading: usersQuery.isLoading,
       error: usersQuery.error,
     },
     accounts: {
-      data: coreData.accounts,
+      data: coreData.accounts || [], // Always array, never undefined
       isLoading: accountsQuery.isLoading,
       error: accountsQuery.error,
     },
     transactions: {
-      data: coreData.transactions,
+      data: coreData.transactions || [], // Always array, never undefined
       isLoading: transactionsQuery.isLoading,
       error: transactionsQuery.error,
     },
     budgets: {
-      data: budgetsData.budgets as unknown[],
+      data: (budgetsData.budgets as unknown[]) || [], // Always array, never undefined
       isLoading: budgetsData.isLoading,
       error: undefined,
     },
     budgetsByUser: {
-      data: budgetsData.budgetsByUser,
+      data: budgetsData.budgetsByUser || {}, // Always object, never undefined
       isLoading: budgetsData.isLoading,
       error: undefined,
     },

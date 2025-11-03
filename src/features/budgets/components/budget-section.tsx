@@ -45,11 +45,14 @@ export const BudgetSection = ({
 }: BudgetSectionProps) => {
   const router = useRouter();
 
-  if (isLoading) {
+  // Show skeleton only if actively loading AND no data received yet
+  // With placeholderData, empty object exists immediately, so check both conditions
+  const budgetEntries = Object.values(budgetsByUser);
+  const isInitialLoading = isLoading && budgetEntries.length === 0;
+
+  if (isInitialLoading) {
     return <BudgetSectionSkeleton />;
   }
-
-  const budgetEntries = Object.values(budgetsByUser);
 
   if (budgetEntries.length === 0) {
     return (
@@ -61,7 +64,7 @@ export const BudgetSection = ({
         />
 
         <div className="bg-card rounded-2xl p-8 text-center border border-primary/20 shadow-sm">
-          <div className="flex size-16 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5 mx-auto mb-4 shadow-sm">
+          <div className="flex size-16 items-center justify-center rounded-2xl bg-linear-to-br from-primary/10 to-primary/5 mx-auto mb-4 shadow-sm">
             <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
               <span className="text-primary font-bold text-lg">€</span>
             </div>
@@ -117,7 +120,7 @@ export const BudgetSection = ({
                   {/* User Info Row */}
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
-                      <div className="flex size-7 items-center justify-center rounded-lg bg-gradient-to-br from-primary/10 to-primary/5 shadow-sm">
+                      <div className="flex size-7 items-center justify-center rounded-lg bg-linear-to-br from-primary/10 to-primary/5 shadow-sm">
                         <span className="text-xs font-bold text-primary">
                           {user.name.charAt(0).toUpperCase()}
                         </span>
@@ -149,31 +152,23 @@ export const BudgetSection = ({
                   <div className="flex items-center gap-2">
                     <div className="flex-1 bg-primary/10 rounded-full h-2">
                       <div
-                        className={`h-2 rounded-full transition-all duration-500 ${
-                          overallPercentage > 100
-                            ? 'bg-destructive'
-                            : overallPercentage > 75
-                            ? 'bg-warning'
-                            : 'bg-accent'
-                        }`}
+                        className={`h-2 rounded-full transition-all duration-500 ${(() => {
+                          if (overallPercentage > 100) return 'bg-destructive';
+                          if (overallPercentage > 75) return 'bg-warning';
+                          return 'bg-accent';
+                        })()}`}
                         style={{ width: `${Math.min(overallPercentage, 100)}%` }}
                       ></div>
                     </div>
                     <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-primary/10">
-                      <div className={`w-1.5 h-1.5 rounded-full ${
-                        overallPercentage > 100
-                          ? 'bg-destructive'
-                          : overallPercentage > 75
-                          ? 'bg-warning'
-                          : 'bg-accent'
-                      }`} />
-                      <span className={`text-xs font-bold ${
-                        overallPercentage > 100
-                          ? 'text-destructive'
-                          : overallPercentage > 75
-                          ? 'text-warning'
-                          : 'text-accent'
-                      }`}>
+                      <div className={`w-1.5 h-1.5 rounded-full ${(() => {
+                        if (overallPercentage > 100) return 'bg-destructive';
+                        if (overallPercentage > 75) return 'bg-warning';
+                        return 'bg-accent';
+                      })()}`} />
+                      <span className={`text-xs font-bold ${(() => {
+                        return 'text-accent';
+                      })()}`}>
                         {Math.round(overallPercentage)}%
                       </span>
                     </div>

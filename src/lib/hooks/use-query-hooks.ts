@@ -17,6 +17,7 @@ export const useUsers = () => {
     queryKey: queryKeys.users(),
     queryFn: userService.getAll,
     staleTime: QUERY_STALE_TIMES.users,
+    placeholderData: [], // Instant cache hit during initial load - prevents undefined
   });
 };
 
@@ -45,6 +46,7 @@ export const useAccounts = () => {
     queryKey: queryKeys.accounts(),
     queryFn: accountService.getAll,
     staleTime: QUERY_STALE_TIMES.accounts,
+    placeholderData: [], // Instant cache hit during initial load - prevents undefined
   });
 };
 
@@ -54,6 +56,7 @@ export const useAccountsByUser = (userId: string) => {
     queryFn: () => accountService.getByUserId(userId),
     enabled: !!userId,
     staleTime: QUERY_STALE_TIMES.accounts,
+    placeholderData: [], // Instant cache hit during initial load - prevents undefined
   });
 };
 
@@ -74,6 +77,7 @@ export const useTransactions = () => {
     queryKey: queryKeys.transactions(),
     queryFn: transactionService.getAll,
     staleTime: QUERY_STALE_TIMES.transactions,
+    placeholderData: [], // Instant cache hit during initial load - prevents undefined
   });
 };
 
@@ -113,6 +117,7 @@ export const useTransactionsForBalances = () => {
       return result.data || [];
     },
     staleTime: QUERY_STALE_TIMES.transactions,
+    placeholderData: [], // Instant cache hit during initial load - prevents undefined
   });
 };
 
@@ -214,6 +219,7 @@ export const useBudgets = () => {
     queryKey: queryKeys.budgets(),
     queryFn: budgetService.getAll,
     staleTime: QUERY_STALE_TIMES.budgets,
+    placeholderData: [], // Instant cache hit during initial load - prevents undefined
   });
 };
 
@@ -240,6 +246,7 @@ export const useBudgetPeriods = () => {
     queryKey: queryKeys.budgetPeriods(),
     queryFn: budgetPeriodService.getAll,
     staleTime: QUERY_STALE_TIMES.budgetPeriods,
+    placeholderData: [], // Instant cache hit during initial load - prevents undefined
   });
 };
 
@@ -297,6 +304,7 @@ export const useCategories = () => {
     queryKey: queryKeys.categories(),
     queryFn: categoryService.getAll,
     staleTime: QUERY_STALE_TIMES.categories,
+    placeholderData: [], // Instant cache hit during initial load - prevents undefined
   });
 };
 

@@ -96,17 +96,17 @@ export function useSettingsData(): SettingsDataState {
 
   return {
     users: {
-      data: sortedUsers,
+      data: sortedUsers || [], // Always array, never undefined
       isLoading: usersLoading,
       error: null,
     },
     accounts: {
-      data: accountsQuery.data || [],
+      data: accountsQuery.data || [], // Always array, never undefined
       isLoading: accountsQuery.isLoading,
       error: accountsQuery.error,
     },
     transactions: {
-      data: transactionsQuery.data || [],
+      data: transactionsQuery.data || [], // Always array, never undefined
       isLoading: transactionsQuery.isLoading,
       error: transactionsQuery.error,
     },

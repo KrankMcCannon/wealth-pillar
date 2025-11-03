@@ -1,22 +1,21 @@
-import { lazy, Suspense } from 'react';
-import { PageLoader } from '@/src/components/shared';
-
-// Lazy load Settings page component to reduce initial bundle
-const SettingsPageComponent = lazy(() =>
-  import('@/src/components/pages/settings-page').then(mod => ({
-    default: mod.SettingsPage
-  }))
-);
+'use client';
 
 /**
- * Settings Page - Lazy loaded for performance optimization
- * This splits the Settings feature from the initial page bundle
- * Reduces initial JS by ~50KB (Settings is a large page)
+ * Settings Page
+ * Simple client component wrapper for loading skeleton and content
+ *
+ * All data fetching happens client-side with parallel execution
+ * Loading skeleton displayed immediately for fast perceived performance
  */
+
+import { Suspense } from 'react';
+import SettingsContent from './settings-content';
+import { PageLoader } from '@/src/components/shared';
+
 export default function SettingsPage() {
   return (
     <Suspense fallback={<PageLoader message="Caricamento impostazioni..." />}>
-      <SettingsPageComponent />
+      <SettingsContent />
     </Suspense>
   );
 }
