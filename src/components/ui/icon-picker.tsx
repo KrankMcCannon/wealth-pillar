@@ -164,7 +164,7 @@ export function IconPicker({
   value,
   onChange,
   className,
-}: IconPickerProps) {
+}: Readonly<IconPickerProps>) {
   const [isOpen, setIsOpen] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState("");
   const [selectedCategory, setSelectedCategory] = React.useState<CategoryKey>("all");
@@ -206,14 +206,14 @@ export function IconPicker({
   const renderIconGrid = (iconsList: string[]) => {
     if (iconsList.length === 0) {
       return (
-        <div className="flex items-center justify-center min-h-[300px] py-8 text-center text-sm text-muted-foreground">
+        <div className="flex items-center justify-center min-h-[250px] sm:min-h-[300px] py-8 text-center text-sm text-muted-foreground">
           Nessuna icona trovata
         </div>
       );
     }
 
     return (
-      <div className="grid grid-cols-6 gap-2 p-3 pb-6">
+      <div className="grid grid-cols-5 sm:grid-cols-6 gap-2 p-3 pb-6">
         {iconsList.map((iconName) => {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const iconRecord = icons as any;
@@ -267,16 +267,15 @@ export function IconPicker({
         </PopoverTrigger>
         
         <PopoverContent
-          className="w-[400px] p-0 bg-card"
+          className="w-[90vw] sm:w-[400px] max-w-[calc(100vw-32px)] p-0 bg-card max-h-[70vh] flex flex-col"
           align="start"
           side="bottom"
           sideOffset={5}
-          collisionPadding={10}
-          role="dialog"
+          collisionPadding={16}
           aria-label="Selettore icone"
         >
           {/* Search Input - Fixed at top */}
-          <div className="p-3 border-b border-primary/20 bg-card/50 backdrop-blur-sm">
+          <div className="p-3 border-b border-primary/20 bg-card/50 backdrop-blur-sm shrink-0">
             <Input
               placeholder="Cerca icona..."
               value={searchQuery}
@@ -284,14 +283,13 @@ export function IconPicker({
               className="h-9 bg-card"
               autoFocus={false}
               aria-label="Cerca icona per nome"
-              role="searchbox"
             />
           </div>
 
           {/* Category Tabs */}
-          <Tabs value={selectedCategory} onValueChange={(v) => setSelectedCategory(v as CategoryKey)}>
+          <Tabs value={selectedCategory} onValueChange={(v) => setSelectedCategory(v as CategoryKey)} className="flex flex-col min-w-0">
             {/* Horizontal scrollable tabs */}
-            <div className="border-b border-primary/20 bg-card/30 backdrop-blur-sm">
+            <div className="border-b border-primary/20 bg-card/30 backdrop-blur-sm shrink-0">
               <ScrollArea className="w-full whitespace-nowrap">
                 <TabsList
                   className="inline-flex h-10 w-full justify-start rounded-none bg-transparent p-0"
@@ -312,12 +310,12 @@ export function IconPicker({
             </div>
 
             {/* Tab Contents - All share same scrollable grid */}
-            <div role="status" aria-live="polite" className="sr-only">
+            <output aria-live="polite" className="sr-only">
               {filteredIcons.length > 0
                 ? `${filteredIcons.length} icone disponibili`
                 : "Nessuna icona trovata"}
-            </div>
-            <div className="h-[300px] overflow-y-auto overflow-x-hidden" aria-label="Lista icone">
+            </output>
+            <div className="overflow-y-auto overflow-x-hidden min-h-[250px] sm:h-[300px]" aria-label="Lista icone">
               {renderIconGrid(filteredIcons)}
             </div>
           </Tabs>

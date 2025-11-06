@@ -13,6 +13,7 @@
 'use client';
 
 import { useTransactions, useUserSelection } from '@/src/lib';
+import { Transaction } from '@/lib/types';
 import { useRouter } from 'next/navigation';
 import { useCallback, useMemo } from 'react';
 
@@ -36,6 +37,7 @@ interface FinancialData {
   yearSavings: number;
   savingsGoal: number;
   savingsProgress: number;
+  transactions: Transaction[];
 }
 
 export function useReportsController() {
@@ -131,7 +133,8 @@ export function useReportsController() {
       categoryData,
       yearSavings,
       savingsGoal,
-      savingsProgress
+      savingsProgress,
+      transactions: filteredTransactions
     };
   }, [currentUser, transactions, selectedViewUserId]);
 

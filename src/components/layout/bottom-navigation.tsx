@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, CreditCard, Bot, TrendingUp } from "lucide-react";
+import { Home, CreditCard, TrendingUp, BarChart3 } from "lucide-react";
 
 export default function BottomNavigation() {
   const pathname = usePathname();
@@ -19,14 +19,14 @@ export default function BottomNavigation() {
       label: "Transactions"
     },
     {
-      href: "/ai-assistant",
-      icon: Bot,
-      label: "AI Assistant"
-    },
-    {
       href: "/investments",
       icon: TrendingUp,
       label: "Investments"
+    },
+    {
+      href: "/reports",
+      icon: BarChart3,
+      label: "Reports"
     }
   ];
 

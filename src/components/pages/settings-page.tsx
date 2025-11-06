@@ -76,28 +76,28 @@ export function SettingsPage() {
             <SectionHeader
               title="Profilo"
               icon={User}
-              iconClassName="text-[#7678e4]"
+              iconClassName="text-primary"
               className="mb-4"
             />
 
-            <Card className="gap-0 p-0 bg-card/95 backdrop-blur-sm shadow-xl shadow-[#7678e4]/15 border-0 rounded-2xl overflow-hidden">
+            <Card className={settingsStyles.card.container}>
               {/* User Info Header */}
-              <div className="flex items-center justify-between px-2 py-4 bg-card">
-                <div className="flex items-center gap-4 flex-1 min-w-0">
-                  <div className="size-16 rounded-2xl bg-primary flex items-center justify-center text-white text-xl font-bold shadow-lg shadow-[#7678e4]/30 shrink-0">
+              <div className={settingsStyles.profile.header}>
+                <div className={settingsStyles.profile.container}>
+                  <div className={settingsStyles.profile.avatar}>
                     {currentUser.name.split(' ').map(n => n[0]).join('')}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-xl font-bold text-[#7678e4] mb-1 truncate">{currentUser.name}</h3>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <div className="px-3 py-1.5 rounded-full text-xs font-semibold bg-[#7678e4]/15 text-[#7678e4] whitespace-nowrap">
+                  <div className={settingsStyles.profile.info}>
+                    <h3 className={settingsStyles.profile.name}>{currentUser.name}</h3>
+                    <div className={settingsStyles.profile.badges}>
+                      <div className={settingsStyles.profile.badge}>
                         {planInfo.name}
                       </div>
                       <RoleBadge size="sm" variant="subtle" />
-                      <div className="px-3 py-1.5 rounded-full text-xs font-semibold bg-primary/10 text-primary whitespace-nowrap">
+                      <div className={settingsStyles.profile.badge}>
                         {activityStats.accountCount} Account
                       </div>
-                      <div className="px-3 py-1.5 rounded-full text-xs font-semibold bg-primary/10 text-primary whitespace-nowrap">
+                      <div className={settingsStyles.profile.badge}>
                         {activityStats.transactionCount} Transazioni
                       </div>
                     </div>
@@ -107,7 +107,7 @@ export function SettingsPage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="hover:bg-[#7678e4] hover:text-white transition-all duration-200 border-0 bg-[#7678e4]/10 text-[#7678e4] rounded-xl px-4 py-2 font-medium shadow-sm hover:shadow-lg hover:shadow-[#7678e4]/25 whitespace-nowrap"
+                    className={settingsStyles.profile.editButton}
                   >
                     Modifica
                   </Button>
@@ -115,34 +115,34 @@ export function SettingsPage() {
               </div>
 
               {/* Profile Details */}
-              <div className="divide-y divide-[#7678e4]/8">
-                <div className="flex items-center gap-3 p-3 hover:bg-[#7678e4]/8 transition-colors duration-200 group">
-                  <div className="flex size-10 items-center justify-center rounded-xl bg-[#7678e4]/15 text-[#7678e4] shadow-sm group-hover:scale-[1.02] transition-transform duration-200">
-                    <Mail className="h-5 w-5" />
+              <div className={settingsStyles.profileDetails.container}>
+                <div className={settingsStyles.profileDetails.item}>
+                  <div className={settingsStyles.profileDetails.iconContainer}>
+                    <Mail className={settingsStyles.profileDetails.icon} />
                   </div>
-                  <div className="flex-1">
-                    <span className="text-sm font-semibold text-[#7678e4] block mb-0.5">Email</span>
-                    <p className="text-sm">{currentUser.email}</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3 p-3 hover:bg-[#7678e4]/8 transition-colors duration-200 group">
-                  <div className="flex size-10 items-center justify-center rounded-xl bg-[#7678e4]/15 text-[#7678e4] shadow-sm group-hover:scale-[1.02] transition-transform duration-200">
-                    <Phone className="h-5 w-5" />
-                  </div>
-                  <div className="flex-1">
-                    <span className="text-sm font-semibold text-[#7678e4] block mb-0.5">Telefono</span>
-                    <p className="text-sm">Non specificato</p>
+                  <div className={settingsStyles.profileDetails.content}>
+                    <span className={settingsStyles.profileDetails.label}>Email</span>
+                    <p className={settingsStyles.profileDetails.value}>{currentUser.email}</p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 p-3 hover:bg-[#7678e4]/8 transition-colors duration-200 group">
-                  <div className="flex size-10 items-center justify-center rounded-xl bg-[#7678e4]/15 text-[#7678e4] shadow-sm group-hover:scale-[1.02] transition-transform duration-200">
-                    <User className="h-5 w-5" />
+                <div className={settingsStyles.profileDetails.item}>
+                  <div className={settingsStyles.profileDetails.iconContainer}>
+                    <Phone className={settingsStyles.profileDetails.icon} />
                   </div>
-                  <div className="flex-1">
-                    <span className="text-sm font-semibold text-[#7678e4] block mb-0.5">Ruolo</span>
-                    <p className="text-sm capitalize">{currentUser.role}</p>
+                  <div className={settingsStyles.profileDetails.content}>
+                    <span className={settingsStyles.profileDetails.label}>Telefono</span>
+                    <p className={settingsStyles.profileDetails.value}>Non specificato</p>
+                  </div>
+                </div>
+
+                <div className={settingsStyles.profileDetails.item}>
+                  <div className={settingsStyles.profileDetails.iconContainer}>
+                    <User className={settingsStyles.profileDetails.icon} />
+                  </div>
+                  <div className={settingsStyles.profileDetails.content}>
+                    <span className={settingsStyles.profileDetails.label}>Ruolo</span>
+                    <p className={settingsStyles.profileDetails.value}>{currentUser.role}</p>
                   </div>
                 </div>
               </div>
@@ -155,35 +155,35 @@ export function SettingsPage() {
               <SectionHeader
                 title="Gestione Gruppo"
                 icon={Users}
-                iconClassName="text-[#7678e4]"
+                iconClassName="text-primary"
               >
-                <div className="flex items-center gap-2 px-3 py-1.5 bg-[#7678e4]/10 rounded-full">
-                  <Users className="h-4 w-4 text-[#7678e4]" />
-                  <span className="text-sm font-semibold text-[#7678e4]">{userStats.totalUsers} membri</span>
+                <div className={settingsStyles.sectionHeader.badge}>
+                  <Users className={settingsStyles.sectionHeader.badgeIcon} />
+                  <span className={settingsStyles.sectionHeader.badgeText}>{userStats.totalUsers} membri</span>
                 </div>
               </SectionHeader>
 
               {/* Group Members List */}
-              <Card className="gap-0 pt-3 pb-0 bg-card/95 backdrop-blur-sm shadow-xl shadow-[#7678e4]/15 border-0 rounded-2xl overflow-hidden mb-4">
-                <div className="px-4 py-3 bg-card">
-                  <h3 className="text-sm font-semibold text-[#7678e4]">Membri del Gruppo</h3>
-                  <p className="text-xs mt-0.5">{userStats.viewableUsers} {userStats.viewableUsers === 1 ? 'membro visibile' : 'membri visibili'}</p>
+              <Card className={settingsStyles.card.container + ' pt-3 pb-0 mb-4'}>
+                <div className={settingsStyles.groupManagement.header}>
+                  <h3 className={settingsStyles.groupManagement.title}>Membri del Gruppo</h3>
+                  <p className={settingsStyles.groupManagement.subtitle}>{userStats.viewableUsers} {userStats.viewableUsers === 1 ? 'membro visibile' : 'membri visibili'}</p>
                 </div>
-                <div className="divide-y divide-[#7678e4]/8">
+                <div className={settingsStyles.groupManagement.list}>
                   {users.map((member) => (
-                    <div key={member.id} className="p-3 flex items-center justify-between hover:bg-[#7678e4]/8 transition-all duration-200">
-                      <div className="flex items-center gap-3 flex-1 min-w-0">
-                        <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-white shadow-sm shrink-0">
-                          <User className="h-5 w-5" />
+                    <div key={member.id} className={settingsStyles.groupManagement.item}>
+                      <div className={settingsStyles.groupManagement.memberLeft}>
+                        <div className={settingsStyles.groupManagement.memberAvatar}>
+                          <User className={settingsStyles.profileDetails.icon} />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h4 className="text-sm font-semibold text-[#7678e4] truncate">{member.name}</h4>
-                          <p className="text-xs truncate">{member.email}</p>
+                          <h4 className={settingsStyles.groupManagement.memberName}>{member.name}</h4>
+                          <p className={settingsStyles.groupManagement.memberEmail}>{member.email}</p>
                         </div>
                       </div>
-                      <div className="text-right shrink-0 ml-3">
+                      <div className={settingsStyles.groupManagement.memberRight}>
                         <RoleBadge role={member.role} size="sm" variant="subtle" />
-                        <p className="text-xs mt-1 truncate">
+                        <p className={settingsStyles.groupManagement.memberDate}>
                           {formatDate(member.createdAt)}
                         </p>
                       </div>
@@ -193,48 +193,48 @@ export function SettingsPage() {
               </Card>
 
               {/* Group Actions */}
-              <Card className="gap-0 p-0 bg-card/95 backdrop-blur-sm shadow-xl shadow-[#7678e4]/15 border-0 rounded-2xl overflow-hidden">
-                <button className="flex items-center justify-between p-3 w-full text-left hover:bg-[#7678e4]/8 transition-all duration-200 group">
-                  <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <div className="flex size-10 items-center justify-center rounded-xl bg-[#7678e4]/15 text-[#7678e4] group-hover:scale-[1.02] transition-transform duration-200 shadow-sm">
-                      <Plus className="h-5 w-5" />
+              <Card className={settingsStyles.card.container}>
+                <button className={settingsStyles.actionButton.container}>
+                  <div className={settingsStyles.actionButton.content}>
+                    <div className={settingsStyles.actionButton.iconContainer}>
+                      <Plus className={settingsStyles.actionButton.icon} />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <span className="text-sm font-semibold text-[#7678e4]">Invita Membro</span>
-                      <p className="text-xs truncate">Invia invito per unirsi al gruppo</p>
+                    <div className="flex-1 min-w-0 ml-3">
+                      <span className={settingsStyles.actionButton.title}>Invita Membro</span>
+                      <p className={settingsStyles.actionButton.subtitle}>Invia invito per unirsi al gruppo</p>
                     </div>
                   </div>
-                  <ChevronRight className="h-4 w-4 group-hover:text-primary group-hover:translate-x-0.5 transition-all duration-200 shrink-0" />
+                  <ChevronRight className={settingsStyles.actionButton.chevron} />
                 </button>
 
-                <div className="h-px bg-[#7678e4]/10"></div>
+                <div className={settingsStyles.card.dividerLine}></div>
 
-                <button className="flex items-center justify-between p-3 w-full text-left hover:bg-[#7678e4]/8 transition-all duration-200 group">
-                  <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <div className="flex size-10 items-center justify-center rounded-xl bg-[#7678e4]/15 text-[#7678e4] group-hover:scale-[1.02] transition-transform duration-200 shadow-sm">
-                      <BarChart3 className="h-5 w-5" />
+                <button className={settingsStyles.actionButton.container}>
+                  <div className={settingsStyles.actionButton.content}>
+                    <div className={settingsStyles.actionButton.iconContainer}>
+                      <BarChart3 className={settingsStyles.actionButton.icon} />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <span className="text-sm font-semibold text-[#7678e4]">Analisi Gruppo</span>
-                      <p className="text-xs truncate">Visualizza analisi spese combinate</p>
+                    <div className="flex-1 min-w-0 ml-3">
+                      <span className={settingsStyles.actionButton.title}>Analisi Gruppo</span>
+                      <p className={settingsStyles.actionButton.subtitle}>Visualizza analisi spese combinate</p>
                     </div>
                   </div>
-                  <ChevronRight className="h-4 w-4 group-hover:text-primary group-hover:translate-x-0.5 transition-all duration-200 shrink-0" />
+                  <ChevronRight className={settingsStyles.actionButton.chevron} />
                 </button>
 
-                <div className="h-px bg-[#7678e4]/10"></div>
+                <div className={settingsStyles.card.dividerLine}></div>
 
-                <button className="flex items-center justify-between p-3 w-full text-left hover:bg-[#7678e4]/8 transition-all duration-200 group">
-                  <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <div className="flex size-10 items-center justify-center rounded-xl bg-[#7678e4]/15 text-[#7678e4] group-hover:scale-[1.02] transition-transform duration-200 shadow-sm">
-                      <CreditCard className="h-5 w-5" />
+                <button className={settingsStyles.actionButton.container}>
+                  <div className={settingsStyles.actionButton.content}>
+                    <div className={settingsStyles.actionButton.iconContainer}>
+                      <CreditCard className={settingsStyles.actionButton.icon} />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <span className="text-sm font-semibold text-[#7678e4]">Impostazioni Abbonamento</span>
-                      <p className="text-xs truncate">Gestisci fatturazione e abbonamento gruppo</p>
+                    <div className="flex-1 min-w-0 ml-3">
+                      <span className={settingsStyles.actionButton.title}>Impostazioni Abbonamento</span>
+                      <p className={settingsStyles.actionButton.subtitle}>Gestisci fatturazione e abbonamento gruppo</p>
                     </div>
                   </div>
-                  <ChevronRight className="h-4 w-4 group-hover:text-primary group-hover:translate-x-0.5 transition-all duration-200 shrink-0" />
+                  <ChevronRight className={settingsStyles.actionButton.chevron} />
                 </button>
               </Card>
             </section>
@@ -245,47 +245,47 @@ export function SettingsPage() {
             <SectionHeader
               title="Preferenze"
               icon={Settings}
-              iconClassName="text-[#7678e4]"
+              iconClassName="text-primary"
               className="mb-4"
             />
-            <Card className="gap-0 p-0 bg-card/95 backdrop-blur-sm shadow-xl shadow-[#7678e4]/15 border-0 rounded-2xl overflow-hidden">
-              <div className="flex items-center justify-between p-3 hover:bg-[#7678e4]/8 transition-all duration-200 group">
+            <Card className={settingsStyles.card.container}>
+              <div className={settingsStyles.preference.container}>
                 <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <div className="flex size-10 items-center justify-center rounded-xl bg-[#7678e4]/15 text-[#7678e4] group-hover:scale-[1.02] transition-transform duration-200 shadow-sm">
-                    <CreditCard className="h-5 w-5" />
+                  <div className={settingsStyles.preference.iconContainer}>
+                    <CreditCard className={settingsStyles.preference.icon} />
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <span className="text-sm font-semibold text-[#7678e4]">Valuta</span>
-                    <p className="text-xs">EUR - Euro</p>
+                  <div className={settingsStyles.preference.content}>
+                    <span className={settingsStyles.preference.label}>Valuta</span>
+                    <p className={settingsStyles.preference.value}>EUR - Euro</p>
                   </div>
                 </div>
-                <Button variant="ghost" size="sm" className="text-[#7678e4] hover:bg-primary/8 transition-all duration-200 shrink-0">Cambia</Button>
+                <Button variant="ghost" size="sm" className={settingsStyles.preference.button}>Cambia</Button>
               </div>
 
-              <div className="flex items-center justify-between p-3 hover:bg-[#7678e4]/8 transition-all duration-200 group">
+              <div className={settingsStyles.preference.container}>
                 <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <div className="flex size-10 items-center justify-center rounded-xl bg-[#7678e4]/15 text-[#7678e4] group-hover:scale-[1.02] transition-transform duration-200 shadow-sm">
-                    <Globe className="h-5 w-5" />
+                  <div className={settingsStyles.preference.iconContainer}>
+                    <Globe className={settingsStyles.preference.icon} />
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <span className="text-sm font-semibold text-[#7678e4]">Lingua</span>
-                    <p className="text-xs">Italiano</p>
+                  <div className={settingsStyles.preference.content}>
+                    <span className={settingsStyles.preference.label}>Lingua</span>
+                    <p className={settingsStyles.preference.value}>Italiano</p>
                   </div>
                 </div>
-                <Button variant="ghost" size="sm" className="text-[#7678e4] hover:bg-primary/8 transition-all duration-200 shrink-0">Cambia</Button>
+                <Button variant="ghost" size="sm" className={settingsStyles.preference.button}>Cambia</Button>
               </div>
 
-              <div className="flex items-center justify-between p-3 hover:bg-[#7678e4]/8 transition-all duration-200 group">
+              <div className={settingsStyles.preference.container}>
                 <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <div className="flex size-10 items-center justify-center rounded-xl bg-[#7678e4]/15 text-[#7678e4] group-hover:scale-[1.02] transition-transform duration-200 shadow-sm">
-                    <Globe className="h-5 w-5" />
+                  <div className={settingsStyles.preference.iconContainer}>
+                    <Globe className={settingsStyles.preference.icon} />
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <span className="text-sm font-semibold text-[#7678e4]">Fuso Orario</span>
-                    <p className="text-xs truncate">UTC+1 (Ora Italiana)</p>
+                  <div className={settingsStyles.preference.content}>
+                    <span className={settingsStyles.preference.label}>Fuso Orario</span>
+                    <p className={settingsStyles.preference.value}>UTC+1 (Ora Italiana)</p>
                   </div>
                 </div>
-                <Button variant="ghost" size="sm" className="text-[#7678e4] hover:bg-primary/8 transition-all duration-200 shrink-0">Cambia</Button>
+                <Button variant="ghost" size="sm" className={settingsStyles.preference.button}>Cambia</Button>
               </div>
             </Card>
           </section>
@@ -295,68 +295,68 @@ export function SettingsPage() {
             <SectionHeader
               title="Notifiche"
               icon={Bell}
-              iconClassName="text-[#7678e4]"
+              iconClassName="text-primary"
               className="mb-4"
             />
-            <Card className="gap-0 p-0 bg-card/95 backdrop-blur-sm shadow-xl shadow-[#7678e4]/15 border-0 rounded-2xl overflow-hidden">
-              <div className="flex items-center justify-between p-3 hover:bg-[#7678e4]/8 transition-all duration-200">
+            <Card className={settingsStyles.card.container}>
+              <div className={settingsStyles.notification.container}>
                 <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <div className="flex size-10 items-center justify-center rounded-xl bg-[#7678e4]/15 text-[#7678e4] shadow-sm">
-                    <Bell className="h-5 w-5" />
+                  <div className={settingsStyles.preference.iconContainer}>
+                    <Bell className={settingsStyles.preference.icon} />
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <span className="text-sm font-semibold text-[#7678e4]">Notifiche Push</span>
-                    <p className="text-xs truncate">Ricevi notifiche sulle transazioni</p>
+                  <div className={settingsStyles.preference.content}>
+                    <span className={settingsStyles.preference.label}>Notifiche Push</span>
+                    <p className={settingsStyles.preference.value}>Ricevi notifiche sulle transazioni</p>
                   </div>
                 </div>
-                <div className="relative shrink-0">
-                  <input type="checkbox" className="sr-only peer" id="push-notifications" defaultChecked />
-                  <label htmlFor="push-notifications" className="flex items-center cursor-pointer">
+                <div className={settingsStyles.notification.toggle.wrapper}>
+                  <input type="checkbox" className={settingsStyles.notification.toggle.input} id="push-notifications" defaultChecked />
+                  <label htmlFor="push-notifications" className={settingsStyles.notification.toggle.label}>
                     <span className="sr-only">Attiva notifiche push</span>
-                    <div className="relative w-12 h-6 bg-muted peer-checked:bg-[#7678e4] rounded-full transition-colors duration-200 shadow-inner">
-                      <div className="absolute left-1 top-1 bg-card w-4 h-4 rounded-full transition-transform duration-200 ease-in-out peer-checked:translate-x-6 shadow-md"></div>
+                    <div className={settingsStyles.notification.toggle.track}>
+                      <div className={settingsStyles.notification.toggle.thumb}></div>
                     </div>
                   </label>
                 </div>
               </div>
 
-              <div className="flex items-center justify-between p-3 hover:bg-[#7678e4]/8 transition-all duration-200">
+              <div className={settingsStyles.notification.container}>
                 <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <div className="flex size-10 items-center justify-center rounded-xl bg-[#7678e4]/15 text-[#7678e4] shadow-sm">
-                    <Mail className="h-5 w-5" />
+                  <div className={settingsStyles.preference.iconContainer}>
+                    <Mail className={settingsStyles.preference.icon} />
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <span className="text-sm font-semibold text-[#7678e4]">Notifiche Email</span>
-                    <p className="text-xs truncate">Ricevi rapporti settimanali</p>
+                  <div className={settingsStyles.preference.content}>
+                    <span className={settingsStyles.preference.label}>Notifiche Email</span>
+                    <p className={settingsStyles.preference.value}>Ricevi rapporti settimanali</p>
                   </div>
                 </div>
-                <div className="relative shrink-0">
-                  <input type="checkbox" className="sr-only peer" id="email-notifications" />
-                  <label htmlFor="email-notifications" className="flex items-center cursor-pointer">
+                <div className={settingsStyles.notification.toggle.wrapper}>
+                  <input type="checkbox" className={settingsStyles.notification.toggle.input} id="email-notifications" />
+                  <label htmlFor="email-notifications" className={settingsStyles.notification.toggle.label}>
                     <span className="sr-only">Attiva notifiche email</span>
-                    <div className="relative w-12 h-6 bg-muted peer-checked:bg-[#7678e4] rounded-full transition-colors duration-200 shadow-inner">
-                      <div className="absolute left-1 top-1 bg-card w-4 h-4 rounded-full transition-transform duration-200 ease-in-out peer-checked:translate-x-6 shadow-md"></div>
+                    <div className={settingsStyles.notification.toggle.track}>
+                      <div className={settingsStyles.notification.toggle.thumb}></div>
                     </div>
                   </label>
                 </div>
               </div>
 
-              <div className="flex items-center justify-between p-3 hover:bg-[#7678e4]/8 transition-all duration-200">
+              <div className={settingsStyles.notification.container}>
                 <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <div className="flex size-10 items-center justify-center rounded-xl bg-[#7678e4]/15 text-[#7678e4] shadow-sm">
-                    <Bell className="h-5 w-5" />
+                  <div className={settingsStyles.preference.iconContainer}>
+                    <Bell className={settingsStyles.preference.icon} />
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <span className="text-sm font-semibold text-[#7678e4]">Avvisi Budget</span>
-                    <p className="text-xs truncate">Avvisa quando superi il budget</p>
+                  <div className={settingsStyles.preference.content}>
+                    <span className={settingsStyles.preference.label}>Avvisi Budget</span>
+                    <p className={settingsStyles.preference.value}>Avvisa quando superi il budget</p>
                   </div>
                 </div>
-                <div className="relative shrink-0">
-                  <input type="checkbox" className="sr-only peer" id="budget-alerts" defaultChecked />
-                  <label htmlFor="budget-alerts" className="flex items-center cursor-pointer">
+                <div className={settingsStyles.notification.toggle.wrapper}>
+                  <input type="checkbox" className={settingsStyles.notification.toggle.input} id="budget-alerts" defaultChecked />
+                  <label htmlFor="budget-alerts" className={settingsStyles.notification.toggle.label}>
                     <span className="sr-only">Attiva avvisi budget</span>
-                    <div className="relative w-12 h-6 bg-muted peer-checked:bg-[#7678e4] rounded-full transition-colors duration-200 shadow-inner">
-                      <div className="absolute left-1 top-1 bg-card w-4 h-4 rounded-full transition-transform duration-200 ease-in-out peer-checked:translate-x-6 shadow-md"></div>
+                    <div className={settingsStyles.notification.toggle.track}>
+                      <div className={settingsStyles.notification.toggle.thumb}></div>
                     </div>
                   </label>
                 </div>
@@ -369,58 +369,58 @@ export function SettingsPage() {
             <SectionHeader
               title="Sicurezza"
               icon={Shield}
-              iconClassName="text-[#7678e4]"
+              iconClassName="text-primary"
               className="mb-4"
             />
-            <Card className="gap-0 p-0 bg-card/95 backdrop-blur-sm shadow-xl shadow-[#7678e4]/15 border-0 rounded-2xl overflow-hidden">
+            <Card className={settingsStyles.card.container}>
               <button
                 onClick={() => router.push('/forgot-password')}
-                className="flex items-center justify-between p-3 w-full text-left hover:bg-[#7678e4]/8 transition-all duration-200 group"
+                className={settingsStyles.security.container}
               >
                 <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <div className="flex size-10 items-center justify-center rounded-xl bg-[#7678e4]/15 text-[#7678e4] group-hover:scale-[1.02] transition-transform duration-200 shadow-sm">
-                    <Shield className="h-5 w-5" />
+                  <div className={settingsStyles.security.iconContainer}>
+                    <Shield className={settingsStyles.security.icon} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <span className="text-sm font-semibold text-[#7678e4]">Cambia Password</span>
-                    <p className="text-xs truncate">Aggiorna la tua password</p>
+                    <span className={settingsStyles.security.title}>Cambia Password</span>
+                    <p className={settingsStyles.security.subtitle}>Aggiorna la tua password</p>
                   </div>
                 </div>
-                <ChevronRight className="h-4 w-4 group-hover:text-primary group-hover:translate-x-0.5 transition-all duration-200 shrink-0" />
+                <ChevronRight className={settingsStyles.security.chevron} />
               </button>
 
-              <div className="h-px bg-[#7678e4]/10"></div>
+              <div className={settingsStyles.card.dividerLine}></div>
 
-              <button className="flex items-center justify-between p-3 w-full text-left hover:bg-[#7678e4]/8 transition-all duration-200 group">
+              <button className={settingsStyles.security.container}>
                 <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <div className="flex size-10 items-center justify-center rounded-xl bg-[#7678e4]/15 text-[#7678e4] group-hover:scale-[1.02] transition-transform duration-200 shadow-sm">
-                    <Shield className="h-5 w-5" />
+                  <div className={settingsStyles.security.iconContainer}>
+                    <Shield className={settingsStyles.security.icon} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <span className="text-sm font-semibold text-[#7678e4]">Autenticazione a Due Fattori</span>
-                    <p className="text-xs truncate">Aggiungi sicurezza extra</p>
+                    <span className={settingsStyles.security.title}>Autenticazione a Due Fattori</span>
+                    <p className={settingsStyles.security.subtitle}>Aggiungi sicurezza extra</p>
                   </div>
                 </div>
-                <ChevronRight className="h-4 w-4 group-hover:text-primary group-hover:translate-x-0.5 transition-all duration-200 shrink-0" />
+                <ChevronRight className={settingsStyles.security.chevron} />
               </button>
 
-              <div className="h-px bg-[#7678e4]/10"></div>
+              <div className={settingsStyles.card.dividerLine}></div>
 
               <button
                 onClick={actions.handleSignOut}
                 disabled={state.isSigningOut}
-                className="flex items-center justify-between p-3 w-full text-left hover:bg-[#7678e4]/8 transition-all duration-200 group disabled:opacity-50 disabled:cursor-not-allowed"
+                className={settingsStyles.security.container}
               >
                 <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <div className="flex size-10 items-center justify-center rounded-xl bg-[#7678e4]/15 text-[#7678e4] group-hover:scale-[1.02] transition-transform duration-200 shadow-sm">
-                    <LogOut className="h-5 w-5" />
+                  <div className={settingsStyles.security.iconContainer}>
+                    <LogOut className={settingsStyles.security.icon} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <span className="text-sm font-semibold text-[#7678e4]">{state.isSigningOut ? 'Disconnessione...' : 'Esci dall\'Account'}</span>
-                    <p className="text-xs truncate">Disconnetti dal tuo account</p>
+                    <span className={settingsStyles.security.title}>{state.isSigningOut ? 'Disconnessione...' : 'Esci dall\'Account'}</span>
+                    <p className={settingsStyles.security.subtitle}>Disconnetti dal tuo account</p>
                   </div>
                 </div>
-                <ChevronRight className="h-4 w-4 group-hover:text-primary group-hover:translate-x-0.5 transition-all duration-200 shrink-0" />
+                <ChevronRight className={settingsStyles.security.chevron} />
               </button>
             </Card>
           </section>
@@ -433,18 +433,18 @@ export function SettingsPage() {
               iconClassName="text-red-600"
               className="mb-4"
             />
-            <Card className="gap-0 p-0 bg-card/95 backdrop-blur-sm shadow-xl shadow-red-500/15 border-0 rounded-2xl overflow-hidden">
-              <button className="flex items-center justify-between p-3 w-full text-left hover:bg-red-50/50 transition-all duration-200 text-red-600 group">
+            <Card className={settingsStyles.accountActions.container}>
+              <button className={settingsStyles.accountActions.button}>
                 <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <div className="flex size-10 items-center justify-center rounded-xl bg-red-100 text-red-600 group-hover:scale-[1.02] transition-transform duration-200 shadow-sm">
-                    <Trash2 className="h-5 w-5" />
+                  <div className={settingsStyles.accountActions.iconContainer}>
+                    <Trash2 className={settingsStyles.accountActions.icon} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <span className="text-sm font-semibold text-red-700">Elimina Account</span>
-                    <p className="text-xs text-red-500 truncate">Elimina permanentemente il tuo account</p>
+                    <span className={settingsStyles.accountActions.title}>Elimina Account</span>
+                    <p className={settingsStyles.accountActions.subtitle}>Elimina permanentemente il tuo account</p>
                   </div>
                 </div>
-                <ChevronRight className="h-4 w-4 text-red-400 group-hover:text-red-600 group-hover:translate-x-0.5 transition-all duration-200 shrink-0" />
+                <ChevronRight className={settingsStyles.accountActions.chevron} />
               </button>
             </Card>
           </section>

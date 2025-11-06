@@ -1,14 +1,23 @@
 "use client";
 
-import { SectionHeader } from "@/src/components/layout";
+import React from "react";
 import BottomNavigation from "@/src/components/layout/bottom-navigation";
 import { PageLoader } from "@/src/components/shared";
 import UserSelector from "@/src/components/shared/user-selector";
 import { useReportsController } from "@/src/features/dashboard/hooks/use-reports-controller";
-import { formatCurrency } from "@/src/lib";
-import { Calendar, PieChart, Target, Clock } from "lucide-react";
+import { useCategories } from "@/src/lib/hooks/use-query-hooks";
+import {
+  SpendingOverviewCard,
+  CategoryBreakdownSection,
+  SavingsGoalCard,
+  reportsStyles,
+} from "@/features/reports";
+import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
+import { Button } from "@/src/components/ui";
 
 export function ReportsPage() {
+  const [currentMonth, setCurrentMonth] = React.useState(new Date());
+
   // Controller orchestrates all business logic
   const {
     currentUser,
@@ -20,30 +29,135 @@ export function ReportsPage() {
     handleBackClick,
   } = useReportsController();
 
+  // Fetch categories
+  const { data: categories = [] } = useCategories();
+
+  // Create a map of category keys to labels
+  const categoryLabelMap = React.useMemo(() => {
+    return categories.reduce(
+      (acc, cat) => {
+        acc[cat.key] = cat.label;
+        return acc;
+      },
+      {} as Record<string, string>
+    );
+  }, [categories]);
+
   // Show loader while data is loading
   if (isLoading) {
     return <PageLoader message="Caricamento report..." />;
   }
 
+  if (!financialData) {
+    return <PageLoader message="Nessun dato disponibile..." />;
+  }
+
+  // Get all transactions (already filtered by user in controller)
+  const allTransactions = financialData.transactions || [];
+
+  // Filter transactions for the selected month
+  const monthStart = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
+  const monthEnd = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0, 23, 59, 59);
+
+  const currentMonthTransactions = allTransactions.filter(t => {
+    const txDate = new Date(t.date);
+    return txDate >= monthStart && txDate <= monthEnd;
+  });
+
+  // Calculate current month metrics
+  const totalIncome = currentMonthTransactions
+    .filter(t => t.type === 'income' || t.category === 'stipendio')
+    .reduce((sum, t) => sum + t.amount, 0);
+
+  const totalExpenses = currentMonthTransactions
+    .filter(t => t.type === 'expense')
+    .reduce((sum, t) => sum + t.amount, 0);
+
+  const netSavings = totalIncome - totalExpenses;
+  const savingsRate = totalIncome > 0 ? (netSavings / totalIncome) * 100 : 0;
+
+  // Calculate category breakdown for current month
+  const expensesByCategory = currentMonthTransactions
+    .filter(t => t.type === 'expense')
+    .reduce((acc, t) => {
+      acc[t.category] = (acc[t.category] || 0) + t.amount;
+      return acc;
+    }, {} as Record<string, number>);
+
+  const categoryBreakdown = Object.entries(expensesByCategory)
+    .map(([categoryKey, spent]) => ({
+      category: categoryLabelMap[categoryKey] || categoryKey,
+      spent,
+      percentage: totalExpenses > 0 ? (spent / totalExpenses) * 100 : 0,
+      trend: 'stable' as const,
+      trendPercent: 0,
+    }))
+    .sort((a, b) => b.spent - a.spent);
+
+  // Calculate yearly savings from "risparmi" category (year to date)
+  const yearStart = new Date(new Date().getFullYear(), 0, 1);
+  const today = new Date();
+
+  // Get all transactions with "risparmi" category from year to date
+  const yearSavingsTransactions = allTransactions.filter(t => {
+    const txDate = new Date(t.date);
+    return t.category === 'risparmi' && txDate >= yearStart && txDate <= today;
+  });
+
+  // Sum all risparmi transactions (each transaction counts as income towards the goal)
+  const yearSavingsTotal = yearSavingsTransactions.reduce(
+    (sum, t) => sum + t.amount,
+    0
+  );
+
+  // Calculate improved savings metrics
+  const dayOfYear = Math.floor((Date.now() - yearStart.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+  const daysInYear = 365;
+
+  // Monthly average based on actual days elapsed
+  const monthlyAverage = yearSavingsTotal / (dayOfYear / 30);
+
+  // Projected yearly based on current pace
+  const projectedYearly = (yearSavingsTotal / dayOfYear) * daysInYear;
+
+  // Total to reach to hit the goal
+  const savingsGoal = 15000;
+  const totalToReach = Math.max(0, savingsGoal - yearSavingsTotal);
+
+  // Monthly target needed to reach goal
+  const monthsRemaining = Math.max(1, Math.ceil((daysInYear - dayOfYear) / 30));
+  const monthlyTargetToReachGoal = totalToReach > 0 ? totalToReach / monthsRemaining : 0;
+
+  const handlePreviousMonth = () => {
+    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1));
+  };
+
+  const handleNextMonth = () => {
+    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
+  };
+
+  const monthLabel = currentMonth.toLocaleDateString("it-IT", { month: "long", year: "numeric" });
+
   return (
-    <div className="relative flex size-full min-h-[100dvh] flex-col justify-between overflow-x-hidden" style={{fontFamily: '"Spline Sans", "Noto Sans", sans-serif', backgroundColor: '#F8FAFC'}}>
+    <div className={reportsStyles.page.container} style={reportsStyles.page.style}>
       <div>
         {/* Header */}
-        <header className="sticky top-0 z-10 bg-[#F8FAFC]/80 p-4 pb-2 backdrop-blur-sm">
-          <div className="flex items-center justify-between">
-            <button
-              className="text-[#1F2937] flex size-10 shrink-0 items-center justify-center rounded-full hover:bg-[#EFF2FE] transition-colors"
+        <header className={reportsStyles.header.container}>
+          <div className={reportsStyles.header.inner}>
+            <Button
+              variant="ghost"
+              size="sm"
+              className={reportsStyles.header.button}
               onClick={handleBackClick}
             >
-              <svg fill="currentColor" height="24px" viewBox="0 0 256 256" width="24px" xmlns="http://www.w3.org/2000/svg">
-                <path d="M224,128a8,8,0,0,1-8,8H59.31l58.35,58.34a8,8,0,0,1-11.32,11.32l-72-72a8,8,0,0,1,0-11.32l72-72a8,8,0,0,1,11.32,11.32L59.31,120H216A8,8,0,0,1,224,128Z"></path>
-              </svg>
-            </button>
-            <h1 className="text-[#1F2937] text-xl font-bold leading-tight tracking-[-0.015em] flex-1 text-center">Reports</h1>
-            <div className="size-10"></div>
+              <ArrowLeft className="h-5 w-5 sm:h-6 sm:w-6" />
+            </Button>
+            <h1 className={reportsStyles.header.title}>Rapporti</h1>
+            <div className={reportsStyles.header.spacer}></div>
           </div>
         </header>
 
+        {/* User Selector */}
         <UserSelector
           users={users}
           currentUser={currentUser}
@@ -51,168 +165,66 @@ export function ReportsPage() {
           onGroupFilterChange={updateViewUserId}
         />
 
-        <main className="p-4 pb-24">
-          {/* Monthly Overview */}
-          <section className="mb-6">
-            <SectionHeader
-              title="Monthly Overview"
-              icon={Calendar}
-              iconClassName="text-primary"
-              className="mb-4"
-            />
-            <div className="bg-card rounded-xl p-6 shadow-sm">
-              <div className="grid grid-cols-2 gap-4 mb-6">
-                <div className="text-center">
-                  <p className="text-sm mb-1">Total Income</p>
-                  <p className="text-2xl font-bold text-primary">
-                    {financialData ? formatCurrency(financialData.totalIncome) : '€0'}
-                  </p>
-                  <p className="text-xs text-primary">This month</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-sm mb-1">Total Expenses</p>
-                  <p className="text-2xl font-bold text-red-600">
-                    {financialData ? formatCurrency(financialData.totalExpenses) : '€0'}
-                  </p>
-                  <p className="text-xs text-red-600">This month</p>
-                </div>
-              </div>
-              <div className="text-center">
-                <p className="text-sm mb-1">Net Savings</p>
-                <p className={`text-3xl font-bold ${
-                  financialData && financialData.netSavings >= 0
-                    ? 'text-primary'
-                    : 'text-red-600'
-                }`}>
-                  {financialData ? formatCurrency(financialData.netSavings) : '€0'}
-                </p>
-                <p className="text-xs">This month</p>
-              </div>
-            </div>
-          </section>
+        {/* Month Selector - Under User Selector */}
+        <div className="flex items-center justify-center gap-3 px-3 sm:px-4 py-3 border-b border-primary/10">
+          <Button
+            variant="ghost"
+            size="sm"
+            className={reportsStyles.header.button}
+            onClick={handlePreviousMonth}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <span className="text-sm font-semibold text-black capitalize min-w-[150px] text-center">
+            {monthLabel}
+          </span>
+          <Button
+            variant="ghost"
+            size="sm"
+            className={reportsStyles.header.button}
+            onClick={handleNextMonth}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
 
-          {/* Spending by Category */}
-          <section className="mb-6">
-            <SectionHeader
-              title="Spending by Category"
-              icon={PieChart}
-              iconClassName="text-primary"
-              className="mb-4"
-            />
-            <div className="space-y-3">
-              {financialData && financialData.categoryData.length > 0 ? (
-                financialData.categoryData.map((category, index) => {
-                  const colors = [
-                    { bg: 'bg-primary', text: 'text-blue-500' },
-                    { bg: 'bg-primary', text: 'text-green-500' },
-                    { bg: 'bg-yellow-500', text: 'text-yellow-500' },
-                    { bg: 'bg-purple-500', text: 'text-purple-500' },
-                    { bg: 'bg-red-500', text: 'text-red-500' }
-                  ];
-                  const color = colors[index % colors.length];
-
-                  return (
-                    <div key={category.category} className="bg-card rounded-xl p-4 shadow-sm">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-3">
-                          <div className={`w-4 h-4 rounded-full ${color.bg}`}></div>
-                          <span className="text-sm font-medium capitalize">
-                            {category.category}
-                          </span>
-                        </div>
-                        <span className="text-sm font-bold">
-                          {formatCurrency(category.amount)}
-                        </span>
-                      </div>
-                      <div className="w-full bg-muted rounded-full h-2">
-                        <div
-                          className={`${color.bg} h-2 rounded-full`}
-                          style={{ width: `${Math.round(category.percentage)}%` }}
-                        ></div>
-                      </div>
-                      <p className="text-xs mt-1">
-                        {Math.round(category.percentage)}% of total expenses
-                      </p>
-                    </div>
-                  );
-                })
-              ) : (
-                <div className="bg-card rounded-xl p-6 shadow-sm text-center">
-                  <p>No expense data available for this month</p>
-                </div>
-              )}
-            </div>
-          </section>
-
-          {/* Savings Progress */}
-          <section className="mb-6">
-            <SectionHeader
-              title="Savings Progress"
-              icon={Target}
-              iconClassName="text-emerald-600"
-              className="mb-4"
-            />
-            <div className="bg-card rounded-xl p-6 shadow-sm">
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-sm font-medium">Annual Goal</span>
-                <span className="text-sm font-bold">
-                  {financialData ? formatCurrency(financialData.savingsGoal) : '€15,000'}
-                </span>
-              </div>
-              <div className="w-full bg-muted rounded-full h-3 mb-2">
-                <div
-                  className={`h-3 rounded-full ${
-                    financialData && financialData.yearSavings >= 0
-                      ? 'bg-primary'
-                      : 'bg-red-500'
-                  }`}
-                  style={{
-                    width: `${financialData ? Math.max(0, Math.min(100, financialData.savingsProgress)) : 0}%`
-                  }}
-                ></div>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className={`font-medium ${
-                  financialData && financialData.yearSavings >= 0
-                    ? 'text-primary'
-                    : 'text-red-600'
-                }`}>
-                  {financialData ? formatCurrency(financialData.yearSavings) : '€0'} saved
-                </span>
-                <span>
-                  {financialData ? Math.round(financialData.savingsProgress) : 0}% complete
-                </span>
-              </div>
-            </div>
-          </section>
-
-          {/* Quick Actions */}
+        <main className={reportsStyles.main.container}>
+          {/* Spending Overview */}
           <section>
-            <SectionHeader
-              title="Quick Actions"
-              icon={Clock}
-              iconClassName="text-purple-600"
-              className="mb-4"
+            <SpendingOverviewCard
+              income={totalIncome}
+              expenses={totalExpenses}
+              netSavings={netSavings}
+              savingsRate={savingsRate}
             />
-            <div className="grid grid-cols-2 gap-4">
-              <button className="flex flex-col items-center gap-2 bg-card rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
-                <div className="flex size-12 items-center justify-center rounded-full bg-[#7578EC] text-white">
-                  <svg fill="currentColor" height="24px" viewBox="0 0 256 256" width="24px" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M216,40H136V24a8,8,0,0,0-16,0V40H40A16,16,0,0,0,24,56V176a16,16,0,0,0,16,16H79.36L57.75,219a8,8,0,0,0,12.5,10l29.59-37h56.32l29.59,37a8,8,0,1,0,12.5-10l-21.61-27H216a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40Zm0,136H40V56H216V176ZM104,120v24a8,8,0,0,1-16,0V120a8,8,0,0,1,16,0Zm32-16v40a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Zm32-16v56a8,8,0,0,1-16,0V88a8,8,0,0,1,16,0Z"></path>
-                  </svg>
-                </div>
-                <span className="text-sm font-medium">Export Report</span>
-              </button>
+          </section>
 
-              <button className="flex flex-col items-center gap-2 bg-card rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
-                <div className="flex size-12 items-center justify-center rounded-full bg-primary text-white">
-                  <svg fill="currentColor" height="24px" viewBox="0 0 256 256" width="24px" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm48-88a8,8,0,0,1-8,8H128a8,8,0,0,1-8-8V88a8,8,0,0,1,16,0v32h32A8,8,0,0,1,176,128Z"></path>
-                  </svg>
-                </div>
-                <span className="text-sm font-medium">Set Goals</span>
-              </button>
+          {/* Category Breakdown - First 5 */}
+          <section>
+            <div className={reportsStyles.sectionHeader.container}>
+              <h2 className={reportsStyles.sectionHeader.title}>Spesa per categoria</h2>
+              <p className={reportsStyles.sectionHeader.subtitle}>Top 5</p>
             </div>
+            <CategoryBreakdownSection
+              categories={categoryBreakdown.slice(0, 5)}
+              isLoading={isLoading}
+            />
+          </section>
+
+          {/* Savings Goal */}
+          <section>
+            <div className={reportsStyles.sectionHeader.container}>
+              <h2 className={reportsStyles.sectionHeader.title}>Obiettivi di risparmio</h2>
+              <p className={reportsStyles.sectionHeader.subtitle}>Progresso annuale</p>
+            </div>
+            <SavingsGoalCard
+              currentSavings={yearSavingsTotal}
+              savingsGoal={savingsGoal}
+              projectedYearEnd={projectedYearly}
+              projectedMonthly={monthlyAverage}
+              monthlyTarget={monthlyTargetToReachGoal}
+              totalToReach={totalToReach}
+            />
           </section>
         </main>
       </div>
