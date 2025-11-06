@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2, Mail, Lock, AlertCircle } from 'lucide-react';
+import { Loader2, Mail, Lock, AlertCircle, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AuthCard, getRequirementsStatus, PasswordInput, PasswordRequirements, PasswordStrength, usePasswordResetState, authStyles } from '@/features/auth';
@@ -9,12 +9,28 @@ import { Button, Input, Label } from '@/components/ui';
 export default function Page() {
   const { state, actions } = usePasswordResetState();
 
+  const backButton = (
+    <Link href="/sign-in">
+      <button
+        type="button"
+        className="p-1 text-[hsl(var(--color-primary))] hover:text-[hsl(var(--color-primary))]/80 hover:bg-[hsl(var(--color-primary))]/5 rounded-md transition-colors"
+        title="Torna indietro"
+      >
+        <ArrowLeft className="h-5 w-5" />
+      </button>
+    </Link>
+  );
+
   return (
     <>
       <div className={authStyles.page.bgBlobTop} />
       <div className={authStyles.page.bgBlobBottom} />
 
-      <AuthCard title="Recupera la password" subtitle="Ricevi un codice via email e imposta una nuova password">
+      <AuthCard
+        title="Recupera la password"
+        subtitle="Ricevi un codice via email e imposta una nuova password"
+        backButton={state.step === 'request' ? backButton : undefined}
+      >
         {state.error && (
           <div className={authStyles.error.container}>
             <AlertCircle className={authStyles.error.icon} />
@@ -50,9 +66,9 @@ export default function Page() {
               <Label htmlFor="code" className={authStyles.label.base}>Codice ricevuto via email</Label>
               <Input id="code" placeholder="123456" value={state.code} onChange={(e) => actions.setCode(e.target.value)} className={authStyles.input.field} />
             </div>
-            <div className="flex items-center justify-between gap-3">
+            <div className={authStyles.actions.container}>
               <Button type="button" variant="outline" onClick={() => actions.setStep('request')}>Torna indietro</Button>
-              <div className="flex items-center gap-3">
+              <div className={authStyles.actions.group}>
                 <button type="button" className={authStyles.toggle.link} onClick={actions.resendCode}>Reinvia codice</button>
                 <Button type="submit" disabled={state.loading} className={authStyles.button.primary}>
                   {state.loading ? (<><Loader2 className={authStyles.button.icon} /> Verifica...</>) : 'Verifica codice'}
@@ -73,7 +89,7 @@ export default function Page() {
               <PasswordStrength password={state.password} />
               <PasswordRequirements password={state.password} />
             </div>
-            <div className="flex items-center justify-between gap-3">
+            <div className={authStyles.actions.container}>
               <Button type="button" variant="outline" onClick={() => actions.setStep('verify')}>Torna indietro</Button>
               <Button type="submit" disabled={state.loading || !getRequirementsStatus(state.password).meetsAll} className={authStyles.button.primary}>
                 {state.loading ? (<><Loader2 className={authStyles.button.icon} /> Salvataggio...</>) : 'Salva nuova password'}

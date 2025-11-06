@@ -51,9 +51,10 @@ export default function Page() {
             </div>
           </div>
 
-          <div className="flex items-center justify-between">
+          <div className={authStyles.actions.row}>
             <label className={authStyles.checkbox.label}>
               <input type="checkbox" className={authStyles.checkbox.input} />
+              {' '}
               Ricordami
             </label>
             <Link href="/forgot-password" className={authStyles.forgotPassword.link}>Password dimenticata?</Link>

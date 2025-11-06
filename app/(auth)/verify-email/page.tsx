@@ -42,9 +42,9 @@ export default function Page() {
               <Label htmlFor="code" className={authStyles.label.base}>Codice di verifica</Label>
               <Input id="code" placeholder="123456" value={state.code} onChange={(e) => actions.setCode(e.target.value)} className={authStyles.input.field} />
             </div>
-            <div className="flex items-center justify-between gap-3">
+            <div className={authStyles.actions.container}>
               <Button type="button" variant="outline" onClick={() => actions.setStep('request')}>Torna indietro</Button>
-              <div className="flex items-center gap-3">
+              <div className={authStyles.actions.group}>
                 <button type="button" className={authStyles.toggle.link} onClick={actions.resend}>Reinvia codice</button>
                 <Button type="submit" disabled={state.loading} className={authStyles.button.primary}>
                   {state.loading ? (<><Loader2 className={authStyles.button.icon} /> Verifica...</>) : 'Verifica' }

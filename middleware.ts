@@ -5,6 +5,8 @@ const isPublicRoute = createRouteMatcher([
   '/',
   '/sign-in(.*)',
   '/sign-up(.*)',
+  '/forgot-password(.*)',
+  '/verify-email(.*)',
   '/api/webhooks(.*)',
   '/sign-in/sso-callback',
   '/sign-up/sso-callback',
@@ -29,8 +31,8 @@ export default clerkMiddleware(async (auth, req) => {
     return NextResponse.redirect(new URL('/sign-in', req.url));
   }
 
-  // If user is authenticated but trying to access auth pages
-  if (userId && (pathname.startsWith('/sign-in') || pathname.startsWith('/sign-up'))) {
+  // If user is authenticated but trying to access auth pages (except password recovery and email verification)
+  if (userId && (pathname.startsWith('/sign-in') || pathname.startsWith('/sign-up')) && !pathname.startsWith('/forgot-password') && !pathname.startsWith('/verify-email')) {
     return NextResponse.redirect(new URL('/dashboard', req.url));
   }
 

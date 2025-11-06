@@ -53,7 +53,7 @@ export const authStyles = {
 
   // Primary button
   button: {
-    primary: 'w-full h-9 bg-[hsl(var(--color-primary))] hover:bg-[hsl(var(--color-primary))]/90 text-white transition-all duration-200 active:scale-[.98] shadow-md text-sm font-medium',
+    primary: 'w-full h-9 bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-200 active:scale-[.98] shadow-md text-sm font-medium',
     icon: 'mr-2 h-3.5 w-3.5 animate-spin',
   },
 
@@ -81,6 +81,13 @@ export const authStyles = {
     infoText: 'text-xs text-gray-600',
     container: 'space-y-3',
     actions: 'flex items-center justify-between text-xs text-gray-600',
+  },
+
+  // Action buttons container
+  actions: {
+    container: 'flex items-center justify-between gap-3',
+    group: 'flex items-center gap-3',
+    row: 'flex items-center justify-between',
   },
 
   // Password input specific

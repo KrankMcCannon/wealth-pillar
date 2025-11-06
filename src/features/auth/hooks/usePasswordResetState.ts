@@ -67,7 +67,10 @@ export function usePasswordResetState(): ResetPasswordStateReturn {
     async (e: React.FormEvent) => {
       e.preventDefault();
       setError(null);
-      if (!isLoaded) return;
+      if (!isLoaded) {
+        console.warn('Clerk not loaded yet');
+        return;
+      }
       setLoading(true);
       try {
         await signIn.create({
@@ -79,6 +82,7 @@ export function usePasswordResetState(): ResetPasswordStateReturn {
         const msg =
           (err as { errors?: Array<{ message?: string }> })?.errors?.[0]
             ?.message ?? "Errore durante la richiesta del codice";
+        console.error('Password reset request error:', msg, err);
         setError(msg);
       } finally {
         setLoading(false);
@@ -92,7 +96,10 @@ export function usePasswordResetState(): ResetPasswordStateReturn {
     async (e: React.FormEvent) => {
       e.preventDefault();
       setError(null);
-      if (!isLoaded) return;
+      if (!isLoaded) {
+        console.warn('Clerk not loaded yet');
+        return;
+      }
       setLoading(true);
       try {
         await signIn.attemptFirstFactor({
@@ -104,6 +111,7 @@ export function usePasswordResetState(): ResetPasswordStateReturn {
         const msg =
           (err as { errors?: Array<{ message?: string }> })?.errors?.[0]
             ?.message ?? "Codice non valido";
+        console.error('Password reset verification error:', msg, err);
         setError(msg);
       } finally {
         setLoading(false);
@@ -114,7 +122,10 @@ export function usePasswordResetState(): ResetPasswordStateReturn {
 
   // Resend code
   const resendCode = useCallback(async () => {
-    if (!isLoaded) return;
+    if (!isLoaded) {
+      console.warn('Clerk not loaded yet');
+      return;
+    }
     try {
       await signIn.create({
         strategy: "reset_password_email_code",
@@ -125,6 +136,7 @@ export function usePasswordResetState(): ResetPasswordStateReturn {
       const msg =
         (err as { errors?: Array<{ message?: string }> })?.errors?.[0]
           ?.message ?? "Impossibile reinviare il codice";
+      console.error('Password reset resend code error:', msg, err);
       setError(msg);
     }
   }, [email, isLoaded, signIn]);
@@ -134,7 +146,10 @@ export function usePasswordResetState(): ResetPasswordStateReturn {
     async (e: React.FormEvent) => {
       e.preventDefault();
       setError(null);
-      if (!isLoaded) return;
+      if (!isLoaded) {
+        console.warn('Clerk not loaded yet');
+        return;
+      }
       setLoading(true);
       try {
         const res = await signIn.resetPassword({ password });
@@ -148,6 +163,7 @@ export function usePasswordResetState(): ResetPasswordStateReturn {
         const msg =
           (err as { errors?: Array<{ message?: string }> })?.errors?.[0]
             ?.message ?? "Errore durante l'aggiornamento della password";
+        console.error('Password reset submit error:', msg, err);
         setError(msg);
       } finally {
         setLoading(false);
