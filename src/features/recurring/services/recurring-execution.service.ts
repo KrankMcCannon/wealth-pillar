@@ -72,7 +72,6 @@ class RecurringExecutionService {
       for (const series of seriesToExecute) {
         try {
           if (dryRun) {
-            console.log(`[DRY RUN] Would execute series: ${series.description} (${series.id})`);
             result.summary.successfulExecutions++;
             result.summary.totalAmount += series.amount;
           } else {

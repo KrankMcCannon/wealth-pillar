@@ -110,6 +110,14 @@ export const authStyles = {
     container: 'mt-2 space-y-1',
   },
 
+  // Recovery flow specific styles
+  recovery: {
+    backButton: 'p-1 text-[hsl(var(--color-primary))] hover:text-[hsl(var(--color-primary))]/80 hover:bg-[hsl(var(--color-primary))]/5 rounded-md transition-colors',
+    verifyActions: 'flex flex-col gap-2 w-full',
+    resendLink: 'text-xs text-[hsl(var(--color-primary))] hover:text-[hsl(var(--color-primary))]/80 font-medium text-center',
+    backArrowButton: 'p-1 text-[hsl(var(--color-primary))] hover:text-[hsl(var(--color-primary))]/80 rounded-md transition-colors',
+  },
+
   // Animation
   animationWrapperCredentials: {
     animate: { opacity: 1, x: 0 },

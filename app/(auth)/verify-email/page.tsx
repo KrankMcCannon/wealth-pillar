@@ -43,7 +43,6 @@ export default function Page() {
               <Input id="code" placeholder="123456" value={state.code} onChange={(e) => actions.setCode(e.target.value)} className={authStyles.input.field} />
             </div>
             <div className={authStyles.actions.container}>
-              <Button type="button" variant="outline" onClick={() => actions.setStep('request')}>Torna indietro</Button>
               <div className={authStyles.actions.group}>
                 <button type="button" className={authStyles.toggle.link} onClick={actions.resend}>Reinvia codice</button>
                 <Button type="submit" disabled={state.loading} className={authStyles.button.primary}>

@@ -286,7 +286,7 @@ export const budgetService = {
 
 export const categoryService = {
   getAll: (): Promise<Category[]> => apiClient.get<Category[]>('/categories'),
-  create: (category: Omit<Category, 'id' | 'created_at' | 'updated_at'>): Promise<Category> =>
+  create: (category: Omit<Category, 'id' | 'created_at' | 'updated_at' | 'key'>): Promise<Category> =>
     apiClient.post<Category>('/categories', category),
   update: (id: string, category: Partial<Category>): Promise<Category> =>
     apiClient.put<Category>(`/categories/${id}`, category),

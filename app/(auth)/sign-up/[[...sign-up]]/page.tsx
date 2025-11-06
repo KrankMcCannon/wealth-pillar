@@ -91,10 +91,7 @@ export default function Page() {
 
             <div className={authStyles.form.fieldGroup}>
               <Label htmlFor="password" className={authStyles.label.base}>Password</Label>
-              <div className={authStyles.input.wrapper}>
-                <Lock className={authStyles.input.icon} />
-                <PasswordInput id="password" placeholder="••••••••" value={state.password} onChange={(e) => actions.setPassword(e.target.value)} required className={authStyles.password.field} />
-              </div>
+              <PasswordInput id="password" placeholder="••••••••" value={state.password} onChange={(e) => actions.setPassword(e.target.value)} required icon={<Lock className="h-3.5 w-3.5" />} />
               <PasswordStrength password={state.password} />
               <PasswordRequirements password={state.password} />
             </div>

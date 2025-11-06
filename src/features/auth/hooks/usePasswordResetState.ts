@@ -2,7 +2,7 @@
 
 import { useSignIn } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 export type ResetPasswordStep = "request" | "verify" | "reset";
 
@@ -16,6 +16,8 @@ export interface ResetPasswordFormState {
   password: string;
   error: string | null;
   loading: boolean;
+  resendLoading: boolean;
+  resendCooldown: number;
 }
 
 /**
@@ -61,6 +63,8 @@ export function usePasswordResetState(): ResetPasswordStateReturn {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
 
   // 1) Request reset code via email
   const requestCode = useCallback(
@@ -120,26 +124,48 @@ export function usePasswordResetState(): ResetPasswordStateReturn {
     [code, isLoaded, signIn]
   );
 
+  // Cooldown timer effect
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+
+    const timer = setInterval(() => {
+      setResendCooldown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [resendCooldown]);
+
   // Resend code
   const resendCode = useCallback(async () => {
-    if (!isLoaded) {
-      console.warn('Clerk not loaded yet');
+    if (!isLoaded || resendCooldown > 0) {
+      console.warn('Resend cooldown in progress or Clerk not loaded');
       return;
     }
+
+    setResendLoading(true);
     try {
       await signIn.create({
         strategy: "reset_password_email_code",
         identifier: email,
       });
       setError(null);
+      setResendCooldown(60); // 60 second cooldown
     } catch (err: unknown) {
       const msg =
         (err as { errors?: Array<{ message?: string }> })?.errors?.[0]
           ?.message ?? "Impossibile reinviare il codice";
       console.error('Password reset resend code error:', msg, err);
       setError(msg);
+    } finally {
+      setResendLoading(false);
     }
-  }, [email, isLoaded, signIn]);
+  }, [email, isLoaded, signIn, resendCooldown]);
 
   // 3) Set the new password
   const submitNewPassword = useCallback(
@@ -180,6 +206,8 @@ export function usePasswordResetState(): ResetPasswordStateReturn {
       password,
       error,
       loading,
+      resendLoading,
+      resendCooldown,
     },
     actions: {
       setStep,

@@ -32,7 +32,7 @@ const COLOR_PALETTE = [
   { name: 'Ardesia', value: '#475569' },
 ];
 
-export function CategoryForm({ isOpen, onOpenChange, category, mode = 'create' }: CategoryFormProps) {
+export function CategoryForm({ isOpen, onOpenChange, category, mode = 'create' }: Readonly<CategoryFormProps>) {
   const controller = useCategoryFormController({ mode, initialCategory: category || null });
 
   // Reset form when modal closes
@@ -50,14 +50,15 @@ export function CategoryForm({ isOpen, onOpenChange, category, mode = 'create' }
       e.preventDefault?.();
     }
     try {
-      await controller.submit();
-      // Close modal if submission succeeded (no actual errors, just undefined values)
-      const hasActualErrors = Object.values(controller.errors).some(err => err !== undefined);
-      if (!controller.isSubmitting && !hasActualErrors) {
+      // submit() returns { hasErrors } synchronously for validation, throws if mutation fails
+      const result = await controller.submit();
+      // Only close modal if submission succeeded (no validation/mutation errors)
+      if (!result.hasErrors && !controller.mutationError) {
         onOpenChange(false);
       }
     } catch (err) {
-      console.error('[CategoryForm] Submit error:', err);
+      // Error is captured in controller.mutationError and will be displayed to user
+      // Don't close modal on error - user can retry
     }
   };
 
@@ -80,21 +81,17 @@ export function CategoryForm({ isOpen, onOpenChange, category, mode = 'create' }
         }
       >
         <ModalContent>
+          {controller.mutationError && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-sm text-red-700">{controller.mutationError}</p>
+            </div>
+          )}
           <ModalSection>
             <FormField label="Etichetta" required error={controller.errors.label}>
               <Input
                 value={controller.form.label}
                 onChange={(e) => controller.setField('label', e.target.value)}
                 placeholder="es. Alimentari"
-              />
-            </FormField>
-
-            <FormField label="Chiave" required error={controller.errors.key}>
-              <Input
-                value={controller.form.key}
-                onChange={(e) => controller.setField('key', e.target.value)}
-                placeholder="es. alimentari"
-                disabled={mode === 'edit'}
               />
             </FormField>
 

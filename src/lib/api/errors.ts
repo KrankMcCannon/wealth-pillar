@@ -41,6 +41,7 @@ export enum ErrorCode {
   INTERNAL_ERROR = 'INTERNAL_ERROR',
   NOT_IMPLEMENTED = 'NOT_IMPLEMENTED',
   RATE_LIMIT_EXCEEDED = 'RATE_LIMIT_EXCEEDED',
+  CATEGORY_NOT_FOUND = "CATEGORY_NOT_FOUND",
 }
 
 /**
@@ -80,6 +81,7 @@ const ERROR_MESSAGES: Record<ErrorCode, string> = {
   [ErrorCode.INTERNAL_ERROR]: 'Si è verificato un errore interno. Il team tecnico è stato notificato.',
   [ErrorCode.NOT_IMPLEMENTED]: 'Funzionalità non ancora implementata.',
   [ErrorCode.RATE_LIMIT_EXCEEDED]: 'Troppe richieste. Riprova tra qualche minuto.',
+  [ErrorCode.CATEGORY_NOT_FOUND]: 'Categoria non trovata.',
 };
 
 /**
@@ -103,6 +105,7 @@ const ERROR_STATUS_CODES: Record<ErrorCode, number> = {
   // 404 Not Found
   [ErrorCode.USER_NOT_FOUND]: 404,
   [ErrorCode.RESOURCE_NOT_FOUND]: 404,
+  [ErrorCode.CATEGORY_NOT_FOUND]: 404,
 
   // 409 Conflict
   [ErrorCode.RESOURCE_CONFLICT]: 409,

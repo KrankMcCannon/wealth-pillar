@@ -243,11 +243,6 @@ export const budgetValidationSchema = {
  */
 export const categoryValidationSchema = {
   label: [required('L\'etichetta'), minLength(2, 'L\'etichetta')],
-  key: [
-    required('La chiave'),
-    minLength(2, 'La chiave'),
-    pattern(/^[a-z0-9-]+$/, 'La chiave', 'La chiave può contenere solo lettere minuscole, numeri e trattini'),
-  ],
   icon: [required('L\'icona')],
   color: [required('Il colore')],
 };

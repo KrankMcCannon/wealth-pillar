@@ -10,7 +10,7 @@ type AuthCardProps = {
   backButton?: ReactNode;
 };
 
-export function AuthCard({ title, subtitle, children, backButton }: AuthCardProps) {
+export function AuthCard({ title, subtitle, children, backButton }: Readonly<AuthCardProps>) {
   return (
     <div className="w-full max-w-md mx-auto px-4">
       <motion.div
@@ -19,20 +19,20 @@ export function AuthCard({ title, subtitle, children, backButton }: AuthCardProp
         animate={{ y: 0, opacity: 1 }}
         transition={{ type: 'spring', stiffness: 260, damping: 20, mass: 0.7 }}
       >
-        <div className="text-center mb-3">
-          <div className="flex items-center justify-between">
-            <div className="w-6">
+        <div className="mb-3">
+          <div className="flex items-center gap-2 justify-center mb-2">
+            <div className="shrink-0 w-6 h-6">
               {backButton}
             </div>
-            <div className="flex-1">
+            <div className="flex-1 text-center">
               <div className="text-primary text-xl font-bold tracking-tight">Wealth Pillar</div>
               <h2 className="text-xl font-bold text-primary tracking-tight mt-0.5">{title}</h2>
-              {subtitle && (
-                <p className="mt-0.5 text-xs text-foreground/60">{subtitle}</p>
-              )}
             </div>
-            <div className="w-6" />
+            <div className="shrink-0 w-6" />
           </div>
+          {subtitle && (
+            <p className="text-center text-xs text-foreground/60">{subtitle}</p>
+          )}
         </div>
         {children}
       </motion.div>

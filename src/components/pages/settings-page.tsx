@@ -11,8 +11,11 @@ import { ArrowLeft, BarChart3, Bell, ChevronRight, CreditCard, Globe, LogOut, Ma
 import { Button, Card } from "../ui";
 import { PermissionGuard, RoleBadge } from "@/features/permissions";
 import { formatDate } from "@/lib";
+import { useRouter } from "next/navigation";
 
 export function SettingsPage() {
+  const router = useRouter();
+
   // Data fetching
   const data = useSettingsData();
 
@@ -48,7 +51,7 @@ export function SettingsPage() {
   const { currentUser, users, activityStats, planInfo } = viewModel;
   const userStats = data.userStats || { totalUsers: 0, viewableUsers: 0 };
 
-return (
+  return (
     <div className="relative flex size-full min-h-dvh flex-col bg-card" style={{ fontFamily: '"Inter", "SF Pro Display", system-ui, sans-serif' }}>
       <div>
         {/* Header */}
@@ -76,7 +79,7 @@ return (
               iconClassName="text-[#7678e4]"
               className="mb-4"
             />
-            
+
             <Card className="gap-0 p-0 bg-card/95 backdrop-blur-sm shadow-xl shadow-[#7678e4]/15 border-0 rounded-2xl overflow-hidden">
               {/* User Info Header */}
               <div className="flex items-center justify-between px-2 py-4 bg-card">
@@ -122,7 +125,7 @@ return (
                     <p className="text-sm">{currentUser.email}</p>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center gap-3 p-3 hover:bg-[#7678e4]/8 transition-colors duration-200 group">
                   <div className="flex size-10 items-center justify-center rounded-xl bg-[#7678e4]/15 text-[#7678e4] shadow-sm group-hover:scale-[1.02] transition-transform duration-200">
                     <Phone className="h-5 w-5" />
@@ -132,7 +135,7 @@ return (
                     <p className="text-sm">Non specificato</p>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center gap-3 p-3 hover:bg-[#7678e4]/8 transition-colors duration-200 group">
                   <div className="flex size-10 items-center justify-center rounded-xl bg-[#7678e4]/15 text-[#7678e4] shadow-sm group-hover:scale-[1.02] transition-transform duration-200">
                     <User className="h-5 w-5" />
@@ -171,7 +174,7 @@ return (
                     <div key={member.id} className="p-3 flex items-center justify-between hover:bg-[#7678e4]/8 transition-all duration-200">
                       <div className="flex items-center gap-3 flex-1 min-w-0">
                         <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-white shadow-sm shrink-0">
-                          <User className="h-5 w-5"  />
+                          <User className="h-5 w-5" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <h4 className="text-sm font-semibold text-[#7678e4] truncate">{member.name}</h4>
@@ -309,6 +312,7 @@ return (
                 <div className="relative shrink-0">
                   <input type="checkbox" className="sr-only peer" id="push-notifications" defaultChecked />
                   <label htmlFor="push-notifications" className="flex items-center cursor-pointer">
+                    <span className="sr-only">Attiva notifiche push</span>
                     <div className="relative w-12 h-6 bg-muted peer-checked:bg-[#7678e4] rounded-full transition-colors duration-200 shadow-inner">
                       <div className="absolute left-1 top-1 bg-card w-4 h-4 rounded-full transition-transform duration-200 ease-in-out peer-checked:translate-x-6 shadow-md"></div>
                     </div>
@@ -329,6 +333,7 @@ return (
                 <div className="relative shrink-0">
                   <input type="checkbox" className="sr-only peer" id="email-notifications" />
                   <label htmlFor="email-notifications" className="flex items-center cursor-pointer">
+                    <span className="sr-only">Attiva notifiche email</span>
                     <div className="relative w-12 h-6 bg-muted peer-checked:bg-[#7678e4] rounded-full transition-colors duration-200 shadow-inner">
                       <div className="absolute left-1 top-1 bg-card w-4 h-4 rounded-full transition-transform duration-200 ease-in-out peer-checked:translate-x-6 shadow-md"></div>
                     </div>
@@ -349,6 +354,7 @@ return (
                 <div className="relative shrink-0">
                   <input type="checkbox" className="sr-only peer" id="budget-alerts" defaultChecked />
                   <label htmlFor="budget-alerts" className="flex items-center cursor-pointer">
+                    <span className="sr-only">Attiva avvisi budget</span>
                     <div className="relative w-12 h-6 bg-muted peer-checked:bg-[#7678e4] rounded-full transition-colors duration-200 shadow-inner">
                       <div className="absolute left-1 top-1 bg-card w-4 h-4 rounded-full transition-transform duration-200 ease-in-out peer-checked:translate-x-6 shadow-md"></div>
                     </div>
@@ -367,7 +373,10 @@ return (
               className="mb-4"
             />
             <Card className="gap-0 p-0 bg-card/95 backdrop-blur-sm shadow-xl shadow-[#7678e4]/15 border-0 rounded-2xl overflow-hidden">
-              <button className="flex items-center justify-between p-3 w-full text-left hover:bg-[#7678e4]/8 transition-all duration-200 group">
+              <button
+                onClick={() => router.push('/forgot-password')}
+                className="flex items-center justify-between p-3 w-full text-left hover:bg-[#7678e4]/8 transition-all duration-200 group"
+              >
                 <div className="flex items-center gap-3 flex-1 min-w-0">
                   <div className="flex size-10 items-center justify-center rounded-xl bg-[#7678e4]/15 text-[#7678e4] group-hover:scale-[1.02] transition-transform duration-200 shadow-sm">
                     <Shield className="h-5 w-5" />

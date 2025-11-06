@@ -7,15 +7,15 @@
 
 'use client';
 
-import { useGenericMutation } from '@/src/lib/hooks';
 import { Category, queryKeys } from '@/src/lib';
 import { categoryService } from '@/src/lib/api/client';
+import { useGenericMutation } from '@/src/lib/hooks';
 
 /**
  * Create a new category
  */
 export const useCreateCategory = () =>
-  useGenericMutation<Category, Omit<Category, 'id' | 'created_at' | 'updated_at'>>(
+  useGenericMutation<Category, Omit<Category, 'id' | 'created_at' | 'updated_at' | 'key'>>(
     categoryService.create,
     {
       cacheKeys: () => [queryKeys.categories()],

@@ -12,6 +12,3 @@ export * from "./keys";
 
 // Cache management
 export * from "./cache-utils";
-
-// Performance monitoring (development only)
-export * from "./performance-monitor";

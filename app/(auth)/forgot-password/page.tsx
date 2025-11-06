@@ -3,23 +3,71 @@
 import { Loader2, Mail, Lock, AlertCircle, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 import { AuthCard, getRequirementsStatus, PasswordInput, PasswordRequirements, PasswordStrength, usePasswordResetState, authStyles } from '@/features/auth';
 import { Button, Input, Label } from '@/components/ui';
+import { useEffect, useState } from 'react';
 
 export default function Page() {
+  const router = useRouter();
   const { state, actions } = usePasswordResetState();
+  const [canGoBack, setCanGoBack] = useState(false);
 
-  const backButton = (
-    <Link href="/sign-in">
-      <button
-        type="button"
-        className="p-1 text-[hsl(var(--color-primary))] hover:text-[hsl(var(--color-primary))]/80 hover:bg-[hsl(var(--color-primary))]/5 rounded-md transition-colors"
-        title="Torna indietro"
-      >
-        <ArrowLeft className="h-5 w-5" />
-      </button>
-    </Link>
-  );
+  // Check if browser history is available
+  useEffect(() => {
+    setCanGoBack(globalThis.window !== undefined && globalThis.history.length > 1);
+  }, []);
+
+  const handleBackNavigation = () => {
+    if (canGoBack) {
+      router.back();
+    } else {
+      router.push('/sign-in');
+    }
+  };
+
+  const getBackButton = () => {
+    if (state.step === 'request') {
+      return (
+        <button
+          type="button"
+          className={authStyles.recovery.backButton}
+          title="Torna indietro"
+          onClick={handleBackNavigation}
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </button>
+      );
+    }
+
+    if (state.step === 'verify') {
+      return (
+        <button
+          type="button"
+          className={authStyles.recovery.backButton}
+          title="Torna indietro"
+          onClick={() => actions.setStep('request')}
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </button>
+      );
+    }
+
+    if (state.step === 'reset') {
+      return (
+        <button
+          type="button"
+          className={authStyles.recovery.backButton}
+          title="Torna indietro"
+          onClick={() => actions.setStep('verify')}
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </button>
+      );
+    }
+
+    return null;
+  };
 
   return (
     <>
@@ -29,7 +77,7 @@ export default function Page() {
       <AuthCard
         title="Recupera la password"
         subtitle="Ricevi un codice via email e imposta una nuova password"
-        backButton={state.step === 'request' ? backButton : undefined}
+        backButton={getBackButton()}
       >
         {state.error && (
           <div className={authStyles.error.container}>
@@ -66,14 +114,30 @@ export default function Page() {
               <Label htmlFor="code" className={authStyles.label.base}>Codice ricevuto via email</Label>
               <Input id="code" placeholder="123456" value={state.code} onChange={(e) => actions.setCode(e.target.value)} className={authStyles.input.field} />
             </div>
-            <div className={authStyles.actions.container}>
-              <Button type="button" variant="outline" onClick={() => actions.setStep('request')}>Torna indietro</Button>
-              <div className={authStyles.actions.group}>
-                <button type="button" className={authStyles.toggle.link} onClick={actions.resendCode}>Reinvia codice</button>
-                <Button type="submit" disabled={state.loading} className={authStyles.button.primary}>
-                  {state.loading ? (<><Loader2 className={authStyles.button.icon} /> Verifica...</>) : 'Verifica codice'}
-                </Button>
-              </div>
+
+            <div className={authStyles.recovery.verifyActions}>
+              <button
+                type="button"
+                disabled={state.resendCooldown > 0 || state.resendLoading}
+                className={`${authStyles.recovery.resendLink} transition-all duration-300 ${state.resendCooldown > 0 || state.resendLoading ? 'opacity-50 cursor-not-allowed' : 'hover:opacity-80 active:scale-95'}`}
+                onClick={actions.resendCode}
+              >
+                {state.resendLoading && (
+                  <>
+                    <Loader2 className="inline h-3 w-3 mr-1 animate-spin" />
+                    Invio in corso...
+                  </>
+                )}
+                {!state.resendLoading && state.resendCooldown > 0 && `Riprova tra ${state.resendCooldown}s`}
+                {!state.resendLoading && state.resendCooldown === 0 && 'Reinvia codice'}
+              </button>
+              <Button
+                type="submit"
+                disabled={state.loading}
+                className={authStyles.button.primary}
+              >
+                {state.loading ? (<><Loader2 className={authStyles.button.icon} /> Verifica...</>) : 'Verifica codice'}
+              </Button>
             </div>
           </motion.form>
         )}
@@ -82,19 +146,18 @@ export default function Page() {
           <motion.form key="reset" onSubmit={actions.submitNewPassword} className={authStyles.form.container} initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -24 }} transition={{ type: 'spring', stiffness: 260, damping: 24 }}>
             <div className={authStyles.form.fieldGroup}>
               <Label htmlFor="password" className={authStyles.label.base}>Nuova password</Label>
-              <div className={authStyles.input.wrapper}>
-                <Lock className={authStyles.input.icon} />
-                <PasswordInput id="password" placeholder="••••••••" value={state.password} onChange={(e) => actions.setPassword(e.target.value)} required className={`${authStyles.password.field} pl-9`} />
-              </div>
+              <PasswordInput id="password" placeholder="••••••••" value={state.password} onChange={(e) => actions.setPassword(e.target.value)} required icon={<Lock className="h-3.5 w-3.5" />} />
               <PasswordStrength password={state.password} />
               <PasswordRequirements password={state.password} />
             </div>
-            <div className={authStyles.actions.container}>
-              <Button type="button" variant="outline" onClick={() => actions.setStep('verify')}>Torna indietro</Button>
-              <Button type="submit" disabled={state.loading || !getRequirementsStatus(state.password).meetsAll} className={authStyles.button.primary}>
-                {state.loading ? (<><Loader2 className={authStyles.button.icon} /> Salvataggio...</>) : 'Salva nuova password'}
-              </Button>
-            </div>
+
+            <Button
+              type="submit"
+              disabled={state.loading || !getRequirementsStatus(state.password).meetsAll}
+              className={authStyles.button.primary}
+            >
+              {state.loading ? (<><Loader2 className={authStyles.button.icon} /> Salvataggio...</>) : 'Salva nuova password'}
+            </Button>
           </motion.form>
         )}
         </AnimatePresence>
