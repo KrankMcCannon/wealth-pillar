@@ -1,22 +1,18 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import BottomNavigation from "@/src/components/layout/bottom-navigation";
 import { PageLoader } from "@/src/components/shared";
 import UserSelector from "@/src/components/shared/user-selector";
 import { SpendingOverviewCard, CategoryBreakdownSection, SavingsGoalCard, reportsStyles } from "@/features/reports";
 import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/src/components/ui";
+import type { DashboardDataProps } from "@/lib/auth/get-dashboard-data";
 
-export default function ReportsPage() {
-  // Show loader while data is loading
-  if (false) {
-    return <PageLoader message="Caricamento report..." />;
-  }
-
-  if (!true) {
-    return <PageLoader message="Nessun dato disponibile..." />;
-  }
+export default function ReportsContent({ currentUser, groupUsers }: DashboardDataProps) {
+  const router = useRouter();
+  const [selectedGroupFilter, setSelectedGroupFilter] = useState<string>('all');
 
   return (
     <div className={reportsStyles.page.container} style={reportsStyles.page.style}>
@@ -24,7 +20,7 @@ export default function ReportsPage() {
         {/* Header */}
         <header className={reportsStyles.header.container}>
           <div className={reportsStyles.header.inner}>
-            <Button variant="ghost" size="sm" className={reportsStyles.header.button} onClick={() => {}}>
+            <Button variant="ghost" size="sm" className={reportsStyles.header.button} onClick={() => router.back()}>
               <ArrowLeft className="h-5 w-5 sm:h-6 sm:w-6" />
             </Button>
             <h1 className={reportsStyles.header.title}>Rapporti</h1>
@@ -33,7 +29,12 @@ export default function ReportsPage() {
         </header>
 
         {/* User Selector */}
-        <UserSelector users={[]} currentUser={null} selectedGroupFilter={""} onGroupFilterChange={() => {}} />
+        <UserSelector
+          users={groupUsers}
+          currentUser={currentUser}
+          selectedGroupFilter={selectedGroupFilter}
+          onGroupFilterChange={setSelectedGroupFilter}
+        />
 
         {/* Month Selector - Under User Selector */}
         <div className="flex items-center justify-center gap-3 px-3 sm:px-4 py-3 border-b border-primary/10">

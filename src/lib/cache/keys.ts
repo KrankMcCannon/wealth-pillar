@@ -1,0 +1,97 @@
+/**
+ * Cache Key Generators
+ * Generates consistent cache keys for unstable_cache
+ *
+ * Following DRY principle - centralized key generation prevents typos and inconsistencies
+ */
+
+/**
+ * User-related cache keys
+ */
+export const userCacheKeys = {
+  /**
+   * Cache key for user by ID
+   * @param userId - User ID
+   */
+  byId: (userId: string) => ['user', 'id', userId] as const,
+
+  /**
+   * Cache key for user by Clerk ID
+   * @param clerkId - Clerk authentication ID
+   */
+  byClerkId: (clerkId: string) => ['user', 'clerk', clerkId] as const,
+
+  /**
+   * Cache key for all users (use with caution)
+   */
+  all: () => ['users'] as const,
+} as const;
+
+/**
+ * Group-related cache keys
+ */
+export const groupCacheKeys = {
+  /**
+   * Cache key for group by ID
+   * @param groupId - Group ID
+   */
+  byId: (groupId: string) => ['group', 'id', groupId] as const,
+
+  /**
+   * Cache key for all users in a group
+   * @param groupId - Group ID
+   */
+  users: (groupId: string) => ['group', groupId, 'users'] as const,
+
+  /**
+   * Cache key for all groups (use with caution)
+   */
+  all: () => ['groups'] as const,
+} as const;
+
+/**
+ * Account-related cache keys
+ */
+export const accountCacheKeys = {
+  /**
+   * Cache key for account by ID
+   * @param accountId - Account ID
+   */
+  byId: (accountId: string) => ['account', 'id', accountId] as const,
+
+  /**
+   * Cache key for accounts by user
+   * @param userId - User ID
+   */
+  byUser: (userId: string) => ['accounts', 'user', userId] as const,
+
+  /**
+   * Cache key for accounts by group
+   * @param groupId - Group ID
+   */
+  byGroup: (groupId: string) => ['accounts', 'group', groupId] as const,
+} as const;
+
+/**
+ * Transaction-related cache keys
+ */
+export const transactionCacheKeys = {
+  /**
+   * Cache key for transaction by ID
+   * @param transactionId - Transaction ID
+   */
+  byId: (transactionId: string) => ['transaction', 'id', transactionId] as const,
+
+  /**
+   * Cache key for transactions by user
+   * @param userId - User ID
+   */
+  byUser: (userId: string) => ['transactions', 'user', userId] as const,
+
+  /**
+   * Cache key for transactions by account
+   * @param accountId - Account ID
+   */
+  byAccount: (accountId: string) =>
+    ['transactions', 'account', accountId] as const,
+} as const;

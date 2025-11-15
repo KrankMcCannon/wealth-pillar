@@ -11,11 +11,12 @@
  * - Recurring Series Section (upcoming recurring transactions)
  * - Recurring Series Form Modal
  *
- * All data fetching happens in parallel via React Query hooks
+ * Data is passed from Server Component for optimal performance
  */
 
-import { Suspense } from "react";
+import { Suspense, useState } from "react";
 import { Settings, Bell, AlertTriangle } from "lucide-react";
+import { useRouter } from "next/navigation";
 import BottomNavigation from "@/components/layout/bottom-navigation";
 import { QueryErrorFallback } from "@/components/shared";
 import { Button, IconContainer, Text } from "@/components/ui";
@@ -31,14 +32,64 @@ import UserSelector from "@/components/shared/user-selector";
 import { BalanceSection } from "@/features/accounts";
 import { BudgetSection } from "@/features/budgets";
 import { RecurringSeriesForm, RecurringSeriesSection } from "@/features/recurring";
+import type { User } from "@/lib/types";
+
+/**
+ * Dashboard Content Props
+ */
+interface DashboardContentProps {
+  currentUser: User;
+  groupUsers: User[];
+}
 
 /**
  * Dashboard Content Component
  *
  * Handles full dashboard UI with four main sections
- * Uses client-side data fetching with parallel query execution
+ * Receives data from Server Component parent
  */
-export default function DashboardContent() {
+export default function DashboardContent({ currentUser, groupUsers }: DashboardContentProps) {
+  const router = useRouter();
+
+  // State management for user filtering
+  const [selectedGroupFilter, setSelectedGroupFilter] = useState<string>('all');
+
+  // State management for recurring series modal
+  const [isRecurringFormOpen, setIsRecurringFormOpen] = useState(false);
+  const [selectedSeries, setSelectedSeries] = useState<any>(undefined);
+  const [formMode, setFormMode] = useState<'create' | 'edit' | undefined>(undefined);
+
+  // Determine selected user ID (null for 'all', user ID otherwise)
+  const selectedUserId = selectedGroupFilter === 'all' ? undefined : selectedGroupFilter;
+
+  // Handler for group filter changes
+  const handleGroupFilterChange = (userId: string) => {
+    setSelectedGroupFilter(userId);
+  };
+
+  // Handler for account clicks
+  const handleAccountClick = () => {
+    router.push('/accounts');
+  };
+
+  // Handler for creating recurring series
+  const handleCreateRecurringSeries = () => {
+    setSelectedSeries(undefined);
+    setFormMode('create');
+    setIsRecurringFormOpen(true);
+  };
+
+  // Handler for editing recurring series
+  const handleEditRecurringSeries = (series: any) => {
+    setSelectedSeries(series);
+    setFormMode('edit');
+    setIsRecurringFormOpen(true);
+  };
+
+  // Handler for settings navigation
+  const handleSettingsClick = () => {
+    router.push('/settings');
+  };
   // Critical error handling (blocks entire dashboard)
   if (false) {
     return (
@@ -91,7 +142,7 @@ export default function DashboardContent() {
               </IconContainer>
               <div className={dashboardStyles.header.section.profileName}>
                 <Text variant="heading" size="sm">
-                  {"Utente"}
+                  {currentUser.name}
                 </Text>
                 <Text variant="muted" size="xs" className="font-semibold">
                   Premium Plan
@@ -104,7 +155,7 @@ export default function DashboardContent() {
               <Button variant="ghost" size="sm" className={dashboardStyles.header.button}>
                 <Bell className={dashboardStyles.header.section.notificationIcon} />
               </Button>
-              <Button variant="ghost" size="sm" className={dashboardStyles.header.button} onClick={() => {}}>
+              <Button variant="ghost" size="sm" className={dashboardStyles.header.button} onClick={handleSettingsClick}>
                 <Settings className={dashboardStyles.header.section.settingsIcon} />
               </Button>
             </div>
@@ -115,10 +166,10 @@ export default function DashboardContent() {
       {/* User Selector */}
       <Suspense fallback={<UserSelectorSkeleton />}>
         <UserSelector
-          users={[]}
-          currentUser={null}
-          selectedGroupFilter={""}
-          onGroupFilterChange={() => {}}
+          users={groupUsers}
+          currentUser={currentUser}
+          selectedGroupFilter={selectedGroupFilter}
+          onGroupFilterChange={handleGroupFilterChange}
           isLoading={false}
         />
       </Suspense>
@@ -128,10 +179,10 @@ export default function DashboardContent() {
         <Suspense fallback={<BalanceSectionSkeleton />}>
           <BalanceSection
             accounts={[]}
-            users={[]}
+            users={groupUsers}
             accountBalances={{}}
             totalBalance={0}
-            onAccountClick={() => {}}
+            onAccountClick={handleAccountClick}
             isLoading={false}
           />
         </Suspense>
@@ -141,20 +192,25 @@ export default function DashboardContent() {
         {/* Budget Section */}
         <div className="bg-[#F8FAFC]">
           <Suspense fallback={<BudgetSectionSkeleton />}>
-            <BudgetSection budgetsByUser={{}} budgets={[]} selectedViewUserId={""} isLoading={false} />
+            <BudgetSection
+              budgetsByUser={{}}
+              budgets={[]}
+              selectedViewUserId={selectedUserId || currentUser.id}
+              isLoading={false}
+            />
           </Suspense>
         </div>
 
         {/* Recurring Series Section */}
         <Suspense fallback={<RecurringSeriesSkeleton />}>
           <RecurringSeriesSection
-            selectedUserId={undefined}
+            selectedUserId={selectedUserId}
             className={dashboardStyles.recurringSection.container}
             showStats={false}
             maxItems={5}
             showActions={false}
-            onCreateRecurringSeries={() => {}}
-            onEditRecurringSeries={() => {}}
+            onCreateRecurringSeries={handleCreateRecurringSeries}
+            onEditRecurringSeries={handleEditRecurringSeries}
           />
         </Suspense>
       </main>
@@ -164,11 +220,11 @@ export default function DashboardContent() {
       {/* Recurring Series Form */}
       <Suspense fallback={null}>
         <RecurringSeriesForm
-          isOpen={false}
-          onOpenChange={() => {}}
-          selectedUserId={undefined}
-          series={undefined}
-          mode={undefined}
+          isOpen={isRecurringFormOpen}
+          onOpenChange={setIsRecurringFormOpen}
+          selectedUserId={selectedUserId}
+          series={selectedSeries}
+          mode={formMode}
         />
       </Suspense>
     </div>

@@ -4,17 +4,17 @@
  * Accounts Content - Client Component
  *
  * Handles interactive accounts UI with client-side state management
- * Data is pre-hydrated from server via HydrationBoundary
+ * Data is passed from Server Component for optimal performance
  */
 
 import { AccountHeader, TotalBalanceCard, AccountsList, accountStyles } from "@/features/accounts";
+import type { DashboardDataProps } from "@/lib/auth/get-dashboard-data";
 
 /**
  * Accounts Content Component
- * Separated to enable proper Suspense boundaries
- * Data is fetched client-side via TanStack Query with parallel execution
+ * Receives user data from Server Component parent
  */
-export default function AccountsContent() {
+export default function AccountsContent({ currentUser, groupUsers }: DashboardDataProps) {
   return (
     <div className={accountStyles.page.container}>
       {/* Header Section - shows skeleton while loading */}

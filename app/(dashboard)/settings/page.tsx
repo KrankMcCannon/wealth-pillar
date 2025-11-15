@@ -1,21 +1,19 @@
-'use client';
-
 /**
- * Settings Page
- * Simple client component wrapper for loading skeleton and content
- *
- * All data fetching happens client-side with parallel execution
- * Loading skeleton displayed immediately for fast perceived performance
+ * Settings Page - Server Component
+ * Uses shared utility for consistent data fetching across all dashboard pages
  */
 
 import { Suspense } from 'react';
+import { getDashboardData } from '@/lib/auth/get-dashboard-data';
 import SettingsContent from './settings-content';
 import { PageLoader } from '@/src/components/shared';
 
-export default function SettingsPage() {
+export default async function SettingsPage() {
+  const { currentUser, groupUsers } = await getDashboardData();
+
   return (
     <Suspense fallback={<PageLoader message="Caricamento impostazioni..." />}>
-      <SettingsContent />
+      <SettingsContent currentUser={currentUser} groupUsers={groupUsers} />
     </Suspense>
   );
 }

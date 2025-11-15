@@ -4,10 +4,11 @@
  * Transactions Content - Client Component
  *
  * Handles interactive transactions UI with client-side state management
- * Data is pre-hydrated from server via HydrationBoundary
+ * Data is passed from Server Component for optimal performance
  */
 
-import { Suspense } from "react";
+import { Suspense, useState } from "react";
+import { useRouter } from "next/navigation";
 import { ArrowLeft, MoreVertical, Plus, Search, Filter } from "lucide-react";
 import {
   Badge,
@@ -30,13 +31,32 @@ import {
   TransactionListSkeleton,
   RecurringSeriesSkeleton,
 } from "@/src/features/transactions/components/transaction-skeletons";
+import type { User } from "@/lib/types";
+
+/**
+ * Transactions Content Props
+ */
+interface TransactionsContentProps {
+  currentUser: User;
+  groupUsers: User[];
+}
 
 /**
  * Transactions Content Component
- * Separated to enable proper error handling and Suspense boundaries
- * Data is fetched client-side via TanStack Query with parallel execution
+ * Handles interactive transactions UI with state management
  */
-export default function TransactionsContent() {
+export default function TransactionsContent({ currentUser, groupUsers }: TransactionsContentProps) {
+  const router = useRouter();
+
+  // State management
+  const [selectedGroupFilter, setSelectedGroupFilter] = useState<string>('all');
+  const [activeTab, setActiveTab] = useState<string>('Transactions');
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [isTransactionFormOpen, setIsTransactionFormOpen] = useState(false);
+  const [isRecurringFormOpen, setIsRecurringFormOpen] = useState(false);
+
+  const selectedUserId = selectedGroupFilter === 'all' ? undefined : selectedGroupFilter;
   return (
     <div
       className={transactionStyles.page.container}
@@ -46,7 +66,7 @@ export default function TransactionsContent() {
       <header className={transactionStyles.header.container}>
         <div className={transactionStyles.header.inner}>
           {/* Back button */}
-          <Button variant="ghost" size="sm" className={transactionStyles.header.button} onClick={() => {}}>
+          <Button variant="ghost" size="sm" className={transactionStyles.header.button} onClick={() => router.back()}>
             <ArrowLeft className="h-5 w-5 sm:h-6 sm:w-6" />
           </Button>
 
@@ -67,7 +87,7 @@ export default function TransactionsContent() {
             >
               <DropdownMenuItem
                 className="text-sm font-medium text-primary hover:bg-primary hover:text-white rounded-lg px-3 py-2.5 cursor-pointer transition-colors"
-                onClick={() => {}}
+                onClick={() => setIsTransactionFormOpen(true)}
               >
                 <Plus className="mr-3 h-4 w-4" />
                 Aggiungi Transazione
@@ -80,10 +100,10 @@ export default function TransactionsContent() {
       {/* User Selector */}
       <Suspense fallback={<UserSelectorSkeleton />}>
         <UserSelector
-          users={[]}
-          currentUser={null}
-          selectedGroupFilter={""}
-          onGroupFilterChange={() => {}}
+          users={groupUsers}
+          currentUser={currentUser}
+          selectedGroupFilter={selectedGroupFilter}
+          onGroupFilterChange={setSelectedGroupFilter}
           className="bg-card border-border"
         />
       </Suspense>
@@ -95,8 +115,8 @@ export default function TransactionsContent() {
             { id: "Transactions", label: "Transazioni" },
             { id: "Recurrent", label: "Ricorrenti" },
           ]}
-          activeTab={"Transactions"}
-          onTabChange={() => {}}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
           variant="modern"
         />
       </div>

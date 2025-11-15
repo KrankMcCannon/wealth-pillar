@@ -1,6 +1,9 @@
 "use client";
 
 import { Loader2 } from "lucide-react";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@clerk/nextjs";
 import { AuthCard } from "@/features/auth";
 
 /**
@@ -9,20 +12,23 @@ import { AuthCard } from "@/features/auth";
  * Stays within app layout instead of redirecting to Clerk's hosted pages
  */
 export default function SignInSSOCallback() {
-  // const router = useRouter();
+  const router = useRouter();
+  const { isLoaded, isSignedIn } = useAuth();
 
-  // useEffect(() => {
-  //   // Wait for authentication to complete
-  //   if (!isLoading) {
-  //     if (isAuthenticated) {
-  //       // Successfully authenticated, redirect to dashboard
-  //       router.push('/dashboard');
-  //     } else {
-  //       // Authentication failed, redirect back to sign-in
-  //       router.push('/sign-in?error=oauth-failed');
-  //     }
-  //   }
-  // }, [isAuthenticated, isLoading, router]);
+  useEffect(() => {
+    // Wait for authentication to complete
+    if (isLoaded) {
+      if (isSignedIn) {
+        // Successfully authenticated, redirect to dashboard
+        console.log("SSO authentication successful, redirecting to dashboard");
+        router.push('/dashboard');
+      } else {
+        // Authentication failed, redirect back to sign-in
+        console.log("SSO authentication failed, redirecting to sign-in");
+        router.push('/sign-in?error=oauth-failed');
+      }
+    }
+  }, [isSignedIn, isLoaded, router]);
 
   return (
     <>

@@ -4,9 +4,11 @@
  * Budgets Content - Client Component
  *
  * Handles interactive budgets UI with client-side state management
- * Data is pre-hydrated from server via HydrationBoundary
+ * Data is passed from Server Component for optimal performance
  */
 
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import BottomNavigation from "@/components/layout/bottom-navigation";
 import UserSelector from "@/components/shared/user-selector";
 import { BudgetForm } from "@/features/budgets";
@@ -30,26 +32,30 @@ import { CategoryForm } from "@/features/categories";
 import { TransactionForm } from "@/features/transactions";
 import { Suspense } from "react";
 import { budgetStyles } from "@/features/budgets/theme/budget-styles";
-import { UserSelectorSkeleton } from "@/features/dashboard";
+import type { DashboardDataProps } from "@/lib/auth/get-dashboard-data";
 
 /**
  * Budgets Content Component
- * Separated to enable proper error handling and Suspense boundaries
- * Data is fetched client-side via TanStack Query with parallel execution
+ * Receives user data from Server Component parent
  */
-export default function BudgetsContent() {
+export default function BudgetsContent({ currentUser, groupUsers }: DashboardDataProps) {
+  const router = useRouter();
+
+  // State management
+  const [selectedGroupFilter, setSelectedGroupFilter] = useState<string>("all");
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   return (
     <div className={budgetStyles.page.container}>
       {/* Header with navigation and actions */}
       <BudgetHeader
-        isDropdownOpen={false}
-        onOpenChange={() => {}}
-        onBackClick={() => {}}
+        isDropdownOpen={isDropdownOpen}
+        onOpenChange={setIsDropdownOpen}
+        onBackClick={() => router.back()}
         onCreateBudget={() => {}}
         onCreateCategory={() => {}}
         selectedBudget={null}
         currentPeriod={null}
-        onPeriodManagerSuccess={() => {}}
+        onPeriodManagerSuccess={() => setIsDropdownOpen(false)}
         // periodManagerComponent={
         // state.selectedBudget && currentPeriod ? (
         //   <BudgetPeriodManager
@@ -71,11 +77,12 @@ export default function BudgetsContent() {
       />
 
       {/* User Selector */}
-      {false ? (
-        <UserSelectorSkeleton />
-      ) : (
-        <UserSelector users={[]} currentUser={null} selectedGroupFilter={""} onGroupFilterChange={() => {}} />
-      )}
+      <UserSelector
+        users={groupUsers}
+        currentUser={currentUser}
+        selectedGroupFilter={selectedGroupFilter}
+        onGroupFilterChange={setSelectedGroupFilter}
+      />
 
       {/* Main content area with progressive loading */}
       <main className={budgetStyles.page.main}>

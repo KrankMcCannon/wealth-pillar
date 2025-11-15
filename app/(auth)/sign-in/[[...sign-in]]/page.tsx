@@ -1,20 +1,73 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { Loader2, Mail, Lock, LogIn, AlertCircle } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { useSignIn } from "@clerk/nextjs";
 import { AppleButton, AuthCard, GitHubButton, GoogleButton, PasswordInput, authStyles } from "@/features/auth";
 import { Button, Input, Label } from "@/components/ui";
 
 export default function Page() {
+  const { isLoaded, signIn, setActive } = useSignIn();
+  const router = useRouter();
   const searchParams = useSearchParams();
+
+  // Form state
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const errorParam = searchParams.get("error");
     if (errorParam === "oauth-failed") {
+      setError("Autenticazione social fallita. Riprova.");
     }
   }, [searchParams]);
+
+  // Handle email/password sign-in
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!isLoaded) return;
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const result = await signIn.create({
+        identifier: email,
+        password,
+      });
+
+      if (result.status === "complete") {
+        await setActive({ session: result.createdSessionId });
+        router.push("/dashboard");
+      }
+    } catch (err: any) {
+      console.error("Sign in error:", err);
+      setError(err.errors?.[0]?.message || "Email o password non corretti");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Handle OAuth sign-in
+  const handleOAuthSignIn = async (provider: "oauth_google" | "oauth_apple" | "oauth_github") => {
+    if (!isLoaded) return;
+
+    try {
+      await signIn.authenticateWithRedirect({
+        strategy: provider,
+        redirectUrl: "/sign-in/sso-callback",
+        redirectUrlComplete: "/dashboard",
+      });
+    } catch (err: any) {
+      console.error("OAuth error:", err);
+      setError(err.errors?.[0]?.message || "Errore durante l'autenticazione social");
+    }
+  };
 
   return (
     <>
@@ -22,14 +75,14 @@ export default function Page() {
       <div className={authStyles.page.bgBlobBottom} />
 
       <AuthCard title="Accedi al tuo account" subtitle="Gestisci le tue finanze">
-        {false && (
+        {error && (
           <div className={authStyles.error.container}>
             <AlertCircle className={authStyles.error.icon} />
-            <span className={authStyles.error.text}>{false}</span>
+            <span className={authStyles.error.text}>{error}</span>
           </div>
         )}
 
-        <form onSubmit={() => {}} className={authStyles.form.container}>
+        <form onSubmit={handleSubmit} className={authStyles.form.container}>
           <div className={authStyles.form.fieldGroup}>
             <Label htmlFor="email" className={authStyles.label.base}>
               Email
@@ -40,9 +93,10 @@ export default function Page() {
                 id="email"
                 type="email"
                 placeholder="name@example.com"
-                value={""}
-                onChange={() => {}}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
+                disabled={isLoading}
                 className={authStyles.input.field}
               />
             </div>
@@ -54,24 +108,25 @@ export default function Page() {
             <PasswordInput
               id="password"
               placeholder="••••••••"
-              value={""}
-              onChange={() => {}}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               required
+              disabled={isLoading}
               icon={<Lock className="h-3.5 w-3.5" />}
             />
           </div>
 
           <div className={authStyles.actions.row}>
             <label className={authStyles.checkbox.label}>
-              <input type="checkbox" className={authStyles.checkbox.input} /> Ricordami
+              <input type="checkbox" className={authStyles.checkbox.input} disabled={isLoading} /> Ricordami
             </label>
             <Link href="/forgot-password" className={authStyles.forgotPassword.link}>
               Password dimenticata?
             </Link>
           </div>
 
-          <Button type="submit" disabled={false} className={authStyles.button.primary}>
-            {false ? (
+          <Button type="submit" disabled={isLoading || !isLoaded} className={authStyles.button.primary}>
+            {isLoading ? (
               <>
                 <Loader2 className={authStyles.button.icon} />
                 Accesso in corso
@@ -91,9 +146,21 @@ export default function Page() {
           </div>
 
           <div className={authStyles.socialButtons.container}>
-            <GoogleButton onClick={() => {}} className={authStyles.socialButtons.button} />
-            <AppleButton onClick={() => {}} className={authStyles.socialButtons.button} />
-            <GitHubButton onClick={() => {}} className={authStyles.socialButtons.button} />
+            <GoogleButton
+              onClick={() => handleOAuthSignIn("oauth_google")}
+              disabled={!isLoaded}
+              className={authStyles.socialButtons.button}
+            />
+            <AppleButton
+              onClick={() => handleOAuthSignIn("oauth_apple")}
+              disabled={!isLoaded}
+              className={authStyles.socialButtons.button}
+            />
+            <GitHubButton
+              onClick={() => handleOAuthSignIn("oauth_github")}
+              disabled={!isLoaded}
+              className={authStyles.socialButtons.button}
+            />
           </div>
 
           <div className={authStyles.toggle.container}>

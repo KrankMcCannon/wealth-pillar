@@ -1,21 +1,19 @@
-'use client';
-
 /**
- * Accounts Page
- * Simple client component wrapper for loading skeleton and content
- *
- * All data fetching happens client-side with parallel execution
- * Loading skeleton displayed immediately for fast perceived performance
+ * Accounts Page - Server Component
+ * Uses shared utility for consistent data fetching across all dashboard pages
  */
 
 import { Suspense } from 'react';
+import { getDashboardData } from '@/lib/auth/get-dashboard-data';
 import AccountsContent from './accounts-content';
 import { AccountHeaderSkeleton } from '@/features/accounts/components/account-skeletons';
 
-export default function AccountsPage() {
+export default async function AccountsPage() {
+  const { currentUser, groupUsers } = await getDashboardData();
+
   return (
     <Suspense fallback={<AccountHeaderSkeleton />}>
-      <AccountsContent />
+      <AccountsContent currentUser={currentUser} groupUsers={groupUsers} />
     </Suspense>
   );
 }

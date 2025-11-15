@@ -1,16 +1,18 @@
 "use client";
 
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { SectionHeader } from "@/src/components/layout";
 import BottomNavigation from "@/src/components/layout/bottom-navigation";
 import { PageLoader } from "@/src/components/shared";
 import UserSelector from "@/src/components/shared/user-selector";
 import { EnhancedHolding } from "@/src/lib";
 import { PieChart } from "lucide-react";
+import type { DashboardDataProps } from "@/lib/auth/get-dashboard-data";
 
-export default function InvestmentsContent() {
-  if (false) {
-    return <PageLoader message="Caricamento investimenti..." />;
-  }
+export default function InvestmentsContent({ currentUser, groupUsers }: DashboardDataProps) {
+  const router = useRouter();
+  const [selectedGroupFilter, setSelectedGroupFilter] = useState<string>('all');
 
   return (
     <div
@@ -23,7 +25,7 @@ export default function InvestmentsContent() {
             <div className="flex items-center justify-between">
               <button
                 className="text-[#1F2937] flex size-10 shrink-0 items-center justify-center rounded-full hover:bg-[#EFF2FE] transition-colors"
-                onClick={() => {}}
+                onClick={() => router.back()}
               >
                 <svg
                   fill="currentColor"
@@ -42,7 +44,12 @@ export default function InvestmentsContent() {
             </div>
           </header>
 
-          <UserSelector users={[]} currentUser={null} selectedGroupFilter={""} onGroupFilterChange={() => {}} />
+          <UserSelector
+            users={groupUsers}
+            currentUser={currentUser}
+            selectedGroupFilter={selectedGroupFilter}
+            onGroupFilterChange={setSelectedGroupFilter}
+          />
 
           <main className="p-4 pb-24">
             <div className="flex gap-4 overflow-x-auto pb-4 -mx-4 px-4 mb-6">

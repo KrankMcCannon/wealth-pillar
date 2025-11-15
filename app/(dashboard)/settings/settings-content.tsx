@@ -24,15 +24,20 @@ import {
 import { PermissionGuard, RoleBadge } from "@/features/permissions";
 import { useRouter } from "next/navigation";
 import { Button, Card } from "@/components/ui";
+import type { User as UserType } from "@/lib/types";
 
-export default function SettingsContent() {
+/**
+ * Settings Content Props
+ */
+interface SettingsContentProps {
+  currentUser: UserType;
+  groupUsers: UserType[];
+}
+
+export default function SettingsContent({ currentUser, groupUsers }: SettingsContentProps) {
   const router = useRouter();
 
-  if (false) {
-    return <PageLoader message="Caricamento impostazioni..." />;
-  }
-
-  if (!true) {
+  if (!currentUser) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
@@ -41,6 +46,17 @@ export default function SettingsContent() {
       </div>
     );
   }
+
+  // Get user initials for avatar
+  const userInitials = currentUser.name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase();
+
+  // TODO: Get actual counts from services when available
+  const accountCount = 0;
+  const transactionCount = 0;
 
   return (
     <div
@@ -68,19 +84,16 @@ export default function SettingsContent() {
               {/* User Info Header */}
               <div className={settingsStyles.profile.header}>
                 <div className={settingsStyles.profile.container}>
-                  <div className={settingsStyles.profile.avatar}>
-                    {""
-                      .split(" ")
-                      .map((n) => n[0])
-                      .join("")}
+                  <div className={settingsStyles.profile.avatar} style={{ backgroundColor: currentUser.theme_color }}>
+                    {userInitials}
                   </div>
                   <div className={settingsStyles.profile.info}>
-                    <h3 className={settingsStyles.profile.name}>{""}</h3>
+                    <h3 className={settingsStyles.profile.name}>{currentUser.name}</h3>
                     <div className={settingsStyles.profile.badges}>
-                      <div className={settingsStyles.profile.badge}>{""}</div>
-                      <RoleBadge size="sm" variant="subtle" />
-                      <div className={settingsStyles.profile.badge}>{0} Account</div>
-                      <div className={settingsStyles.profile.badge}>{0} Transazioni</div>
+                      <div className={settingsStyles.profile.badge}>{currentUser.email}</div>
+                      <RoleBadge role={currentUser.role} size="sm" variant="subtle" />
+                      <div className={settingsStyles.profile.badge}>{accountCount} Account</div>
+                      <div className={settingsStyles.profile.badge}>{transactionCount} Transazioni</div>
                     </div>
                   </div>
                 </div>
@@ -99,7 +112,7 @@ export default function SettingsContent() {
                   </div>
                   <div className={settingsStyles.profileDetails.content}>
                     <span className={settingsStyles.profileDetails.label}>Email</span>
-                    <p className={settingsStyles.profileDetails.value}>{""}</p>
+                    <p className={settingsStyles.profileDetails.value}>{currentUser.email}</p>
                   </div>
                 </div>
 
@@ -119,7 +132,7 @@ export default function SettingsContent() {
                   </div>
                   <div className={settingsStyles.profileDetails.content}>
                     <span className={settingsStyles.profileDetails.label}>Ruolo</span>
-                    <p className={settingsStyles.profileDetails.value}>{""}</p>
+                    <p className={settingsStyles.profileDetails.value}>{currentUser.role}</p>
                   </div>
                 </div>
               </div>
@@ -132,7 +145,7 @@ export default function SettingsContent() {
               <SectionHeader title="Gestione Gruppo" icon={Users} iconClassName="text-primary">
                 <div className={settingsStyles.sectionHeader.badge}>
                   <Users className={settingsStyles.sectionHeader.badgeIcon} />
-                  <span className={settingsStyles.sectionHeader.badgeText}>{0} membri</span>
+                  <span className={settingsStyles.sectionHeader.badgeText}>{groupUsers.length} membri</span>
                 </div>
               </SectionHeader>
 
@@ -141,27 +154,40 @@ export default function SettingsContent() {
                 <div className={settingsStyles.groupManagement.header}>
                   <h3 className={settingsStyles.groupManagement.title}>Membri del Gruppo</h3>
                   <p className={settingsStyles.groupManagement.subtitle}>
-                    {0} {1 === 1 ? "membro visibile" : "membri visibili"}
+                    {groupUsers.length} {groupUsers.length === 1 ? "membro visibile" : "membri visibili"}
                   </p>
                 </div>
                 <div className={settingsStyles.groupManagement.list}>
-                  {[].map(() => (
-                    <div key={""} className={settingsStyles.groupManagement.item}>
-                      <div className={settingsStyles.groupManagement.memberLeft}>
-                        <div className={settingsStyles.groupManagement.memberAvatar}>
-                          <User className={settingsStyles.profileDetails.icon} />
+                  {groupUsers.map((member) => {
+                    const memberInitials = member.name
+                      .split(" ")
+                      .map((n) => n[0])
+                      .join("")
+                      .toUpperCase();
+
+                    return (
+                      <div key={member.id} className={settingsStyles.groupManagement.item}>
+                        <div className={settingsStyles.groupManagement.memberLeft}>
+                          <div
+                            className={settingsStyles.groupManagement.memberAvatar}
+                            style={{ backgroundColor: member.theme_color }}
+                          >
+                            {memberInitials}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h4 className={settingsStyles.groupManagement.memberName}>{member.name}</h4>
+                            <p className={settingsStyles.groupManagement.memberEmail}>{member.email}</p>
+                          </div>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <h4 className={settingsStyles.groupManagement.memberName}>{""}</h4>
-                          <p className={settingsStyles.groupManagement.memberEmail}>{""}</p>
+                        <div className={settingsStyles.groupManagement.memberRight}>
+                          <RoleBadge role={member.role} size="sm" variant="subtle" />
+                          <p className={settingsStyles.groupManagement.memberDate}>
+                            {new Date(member.created_at).toLocaleDateString('it-IT')}
+                          </p>
                         </div>
                       </div>
-                      <div className={settingsStyles.groupManagement.memberRight}>
-                        <RoleBadge role={"superadmin"} size="sm" variant="subtle" />
-                        <p className={settingsStyles.groupManagement.memberDate}>{0}</p>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </Card>
 

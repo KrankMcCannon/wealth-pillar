@@ -7,13 +7,15 @@ type Props = {
   onClick: () => void;
   children?: React.ReactNode;
   className?: string;
+  disabled?: boolean;
 };
 
-export function GoogleButton({ onClick, children = 'Continua con Google', className }: Props) {
+export function GoogleButton({ onClick, children = 'Continua con Google', className, disabled }: Props) {
   return (
     <Button
       type="button"
       onClick={onClick}
+      disabled={disabled}
       className={`bg-white hover:bg-primary/5 text-foreground border border-primary/20 hover:border-primary/40 transition-all shadow-sm ${className}`}
     >
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" className="h-4 w-4 mr-2">
@@ -27,11 +29,12 @@ export function GoogleButton({ onClick, children = 'Continua con Google', classN
   );
 }
 
-export function AppleButton({ onClick, children = 'Continua con Apple', className }: Props) {
+export function AppleButton({ onClick, children = 'Continua con Apple', className, disabled }: Props) {
   return (
     <Button
       type="button"
       onClick={onClick}
+      disabled={disabled}
       className={`bg-white hover:bg-secondary/5 text-foreground border border-secondary/20 hover:border-secondary/40 transition-all shadow-sm ${className}`}
     >
       <Apple className="h-4 w-4 mr-2 text-secondary" />
@@ -40,11 +43,12 @@ export function AppleButton({ onClick, children = 'Continua con Apple', classNam
   );
 }
 
-export function GitHubButton({ onClick, children = 'Continua con GitHub', className }: Props) {
+export function GitHubButton({ onClick, children = 'Continua con GitHub', className, disabled }: Props) {
   return (
     <Button
       type="button"
       onClick={onClick}
+      disabled={disabled}
       className={`bg-white hover:bg-accent/5 text-foreground border border-accent/20 hover:border-accent/40 transition-all shadow-sm ${className}`}
     >
       <Github className="h-4 w-4 mr-2 text-accent" />

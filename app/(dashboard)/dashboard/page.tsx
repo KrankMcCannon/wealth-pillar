@@ -1,21 +1,19 @@
-'use client';
-
 /**
- * Dashboard Page
- * Simple client component wrapper for loading skeleton and content
- *
- * All data fetching happens client-side with parallel execution
- * Loading skeleton displayed immediately for fast perceived performance
+ * Dashboard Page - Server Component
+ * Uses shared utility for consistent data fetching across all dashboard pages
  */
 
 import { Suspense } from 'react';
+import { getDashboardData } from '@/lib/auth/get-dashboard-data';
 import DashboardContent from './dashboard-content';
 import DashboardPageLoading from './loading';
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  const { currentUser, groupUsers } = await getDashboardData();
+
   return (
     <Suspense fallback={<DashboardPageLoading />}>
-      <DashboardContent />
+      <DashboardContent currentUser={currentUser} groupUsers={groupUsers} />
     </Suspense>
   );
 }
