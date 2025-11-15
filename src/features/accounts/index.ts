@@ -22,7 +22,3 @@ export * from "./components/account-skeletons";
 
 // Theme - Styles and Design Tokens
 export { accountStyles, accountColors, accountSpacing, accountComponents, accountStatus } from "./theme";
-
-// Services - Business Logic and View Models
-export { createAccountsViewModel, getDefaultAccountsViewModel } from "./services";
-export type { AccountsViewModel, BalanceSectionViewModel } from "./services";

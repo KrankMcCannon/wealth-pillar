@@ -4,10 +4,8 @@
 
 "use client";
 
-import { useAccounts } from '@/src/lib';
-import { useMemo } from "react";
 import { FormField } from "../form-field";
-import { FormSelect, sortSelectOptions } from "../form-select";
+import { FormSelect } from "../form-select";
 
 interface AccountFieldProps {
   value: string;
@@ -18,35 +16,10 @@ interface AccountFieldProps {
   userId?: string; // Optional user filter
 }
 
-export function AccountField({
-  value,
-  onChange,
-  error,
-  required = true,
-  label = "Conto",
-  userId
-}: AccountFieldProps) {
-  const { data: accounts = [] } = useAccounts();
-
-  const options = useMemo(() => {
-    // Filter accounts by userId if provided
-    const filteredAccounts = userId && userId !== "all"
-      ? accounts.filter(a => a.user_ids?.includes(userId))
-      : accounts;
-
-    return sortSelectOptions(
-      filteredAccounts.map(a => ({ value: a.id, label: a.name }))
-    );
-  }, [accounts, userId]);
-
+export function AccountField({ value, onChange, error, required = true, label = "Conto" }: AccountFieldProps) {
   return (
     <FormField label={label} required={required} error={error}>
-      <FormSelect
-        value={value}
-        onValueChange={onChange}
-        options={options}
-        placeholder="Seleziona conto"
-      />
+      <FormSelect value={value} onValueChange={onChange} options={[]} placeholder="Seleziona conto" />
     </FormField>
   );
 }

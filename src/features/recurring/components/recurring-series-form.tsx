@@ -1,11 +1,22 @@
 "use client";
 
-import { RecurringTransactionSeries, TransactionType } from '@/src/lib';
-import { useEffect } from 'react';
-import useRecurringSeriesFormController from "../hooks/use-recurring-series-form-controller";
-import { AccountField, AmountField, CategoryField, DateField, FormActions, FormField, FormSelect, Input, ModalContent, ModalSection, ModalWrapper, UserField } from '@/src/components/ui';
+import { RecurringTransactionSeries } from "@/src/lib";
+import {
+  AccountField,
+  AmountField,
+  CategoryField,
+  DateField,
+  FormActions,
+  FormField,
+  FormSelect,
+  Input,
+  ModalContent,
+  ModalSection,
+  ModalWrapper,
+  UserField,
+} from "@/src/components/ui";
 
-type Mode = 'create' | 'edit';
+type Mode = "create" | "edit";
 
 interface RecurringSeriesFormProps {
   isOpen: boolean;
@@ -15,33 +26,24 @@ interface RecurringSeriesFormProps {
   mode?: Mode;
 }
 
-export function RecurringSeriesForm({ isOpen, onOpenChange, selectedUserId, series, mode = 'create' }: RecurringSeriesFormProps) {
-  const controller = useRecurringSeriesFormController({ mode, selectedUserId, initialSeries: series || null });
-
-  // Reset form when modal closes
-  useEffect(() => {
-    if (!isOpen) {
-      controller.reset();
-    }
-  }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const title = mode === 'edit' ? 'Modifica Serie Ricorrente' : 'Nuova Serie Ricorrente';
-  const description = mode === 'edit' ? 'Aggiorna la serie ricorrente' : 'Configura una nuova serie ricorrente';
+export function RecurringSeriesForm({ isOpen, onOpenChange, mode = "create" }: RecurringSeriesFormProps) {
+  const title = mode === "edit" ? "Modifica Serie Ricorrente" : "Nuova Serie Ricorrente";
+  const description = mode === "edit" ? "Aggiorna la serie ricorrente" : "Configura una nuova serie ricorrente";
 
   const handleSubmit = async (e?: React.FormEvent | React.MouseEvent) => {
     if (e) {
       e.preventDefault?.();
     }
-    try {
-      await controller.submit();
-      // Close modal if submission succeeded (no actual errors, just undefined values)
-      const hasActualErrors = Object.values(controller.errors).some(err => err !== undefined);
-      if (!controller.isSubmitting && !hasActualErrors) {
-        onOpenChange(false);
-      }
-    } catch (err) {
-      console.error('[RecurringSeriesForm] Submit error:', err);
-    }
+    // try {
+    //   await controller.submit();
+    //   // Close modal if submission succeeded (no actual errors, just undefined values)
+    //   const hasActualErrors = Object.values(controller.errors).some(err => err !== undefined);
+    //   if (!controller.isSubmitting && !hasActualErrors) {
+    //     onOpenChange(false);
+    //   }
+    // } catch (err) {
+    //   console.error('[RecurringSeriesForm] Submit error:', err);
+    // }
   };
 
   return (
@@ -55,10 +57,10 @@ export function RecurringSeriesForm({ isOpen, onOpenChange, selectedUserId, seri
         footer={
           <FormActions
             submitType="button"
-            submitLabel={mode === 'edit' ? 'Salva' : 'Crea Serie'}
+            submitLabel={mode === "edit" ? "Salva" : "Crea Serie"}
             onSubmit={handleSubmit}
             onCancel={() => onOpenChange(false)}
-            isSubmitting={controller.isSubmitting}
+            isSubmitting={false}
           />
         }
       >
@@ -66,97 +68,58 @@ export function RecurringSeriesForm({ isOpen, onOpenChange, selectedUserId, seri
           <ModalSection>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Tipo (limit to income/expense in UI) */}
-              <FormField label="Tipo" required error={controller.errors.type}>
+              <FormField label="Tipo" required error={undefined}>
                 <FormSelect
-                  value={controller.form.type}
-                  onValueChange={(v) => controller.setField('type', v as TransactionType)}
-                  options={[{ value: 'expense', label: 'Uscita' }, { value: 'income', label: 'Entrata' }]}
+                  value={""}
+                  onValueChange={() => {}}
+                  options={[
+                    { value: "expense", label: "Uscita" },
+                    { value: "income", label: "Entrata" },
+                  ]}
                 />
               </FormField>
 
               {/* Utente */}
-              <UserField
-                value={controller.form.user_id}
-                onChange={(v) => controller.setField('user_id', v)}
-                error={controller.errors.user_id}
-                required
-              />
+              <UserField value={""} onChange={() => {}} error={""} required />
 
               {/* Conto */}
-              <AccountField
-                value={controller.form.account_id}
-                onChange={(v) => controller.setField('account_id', v)}
-                error={controller.errors.account_id}
-                userId={controller.form.user_id}
-                required
-              />
+              <AccountField value={""} onChange={() => {}} error={""} userId={""} required />
 
               {/* Categoria */}
-              <CategoryField
-                value={controller.form.category}
-                onChange={(v) => controller.setField('category', v)}
-                error={controller.errors.category}
-                required
-              />
+              <CategoryField value={""} onChange={() => {}} error={""} required />
 
               {/* Frequenza */}
-              <FormField label="Frequenza" required error={controller.errors.frequency}>
+              <FormField label="Frequenza" required error={""}>
                 <FormSelect
-                  value={controller.form.frequency}
-                  onValueChange={(v) => controller.setField('frequency', v as any)}
+                  value={""}
+                  onValueChange={() => {}}
                   options={[
-                    { value: 'weekly', label: 'Settimanale' },
-                    { value: 'biweekly', label: 'Quindicinale' },
-                    { value: 'monthly', label: 'Mensile' },
-                    { value: 'yearly', label: 'Annuale' },
+                    { value: "weekly", label: "Settimanale" },
+                    { value: "biweekly", label: "Quindicinale" },
+                    { value: "monthly", label: "Mensile" },
+                    { value: "yearly", label: "Annuale" },
                   ]}
                 />
               </FormField>
 
               {/* Importo */}
-              <AmountField
-                value={controller.form.amount}
-                onChange={(v) => controller.setField('amount', v)}
-                error={controller.errors.amount}
-                required
-              />
+              <AmountField value={""} onChange={() => {}} error={""} required />
 
               {/* Data addebito */}
-              <DateField
-                label="Data addebito"
-                value={controller.form.due_date}
-                onChange={(v) => controller.setField('due_date', v)}
-                error={controller.errors.due_date}
-                required
-              />
+              <DateField label="Data addebito" value={""} onChange={() => {}} error={""} required />
 
               {/* Data inizio */}
-              <DateField
-                label="Data inizio"
-                value={controller.form.start_date}
-                onChange={(v) => controller.setField('start_date', v)}
-                error={controller.errors.start_date}
-                required
-              />
+              <DateField label="Data inizio" value={""} onChange={() => {}} error={""} required />
 
               {/* Data fine (opzionale) */}
-              <DateField
-                label="Data fine"
-                value={controller.form.end_date}
-                onChange={(v) => controller.setField('end_date', v)}
-                error={(controller.errors as any).end_date}
-              />
+              <DateField label="Data fine" value={""} onChange={() => {}} error={""} />
             </div>
           </ModalSection>
 
           <ModalSection>
             {/* Descrizione */}
-            <FormField label="Descrizione" required error={controller.errors.description}>
-              <Input
-                value={controller.form.description}
-                onChange={(e) => controller.setField('description', e.target.value)}
-                placeholder="Es. Abbonamento Netflix"
-              />
+            <FormField label="Descrizione" required error={""}>
+              <Input value={""} onChange={() => {}} placeholder="Es. Abbonamento Netflix" />
             </FormField>
           </ModalSection>
         </ModalContent>
@@ -164,4 +127,3 @@ export function RecurringSeriesForm({ isOpen, onOpenChange, selectedUserId, seri
     </form>
   );
 }
-

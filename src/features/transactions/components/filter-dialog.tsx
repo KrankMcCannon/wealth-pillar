@@ -1,7 +1,7 @@
 "use client";
 
 import { Button, Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Drawer, DrawerContent, DrawerTrigger, Input } from '@/src/components/ui';
-import { Category, CategoryIcon, cn, iconSizes, useMediaQuery } from '@/src/lib';
+import { Category, CategoryIcon, cn, iconSizes } from '@/src/lib';
 import { Filter, Search } from "lucide-react";
 import { useState, useEffect } from "react";
 
@@ -144,8 +144,6 @@ function FilterDialogContent({
 }
 
 export function FilterDialog(props: FilterDialogProps) {
-  const isDesktop = useMediaQuery("(min-width: 768px)");
-
   // Unified filter button styling for both mobile and desktop
   const filterButtonClasses = cn(
     "flex items-center justify-center w-9 h-9 rounded-lg transition-colors",
@@ -154,7 +152,7 @@ export function FilterDialog(props: FilterDialogProps) {
       : "bg-primary/10 text-primary hover:bg-primary/20"
   );
 
-  if (isDesktop) {
+  if (false) {
     return (
       <Dialog open={props.isOpen} onOpenChange={props.onOpenChange}>
         <DialogTrigger asChild>

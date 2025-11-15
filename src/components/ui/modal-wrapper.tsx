@@ -1,6 +1,6 @@
 "use client";
 
-import { cn, useMediaQuery } from '@/src/lib';
+import { cn } from "@/src/lib";
 import * as React from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "./dialog";
 import { Drawer, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle } from "./drawer";
@@ -61,9 +61,6 @@ export function ModalWrapper({
   isLoading = false,
   disableOutsideClose = false,
 }: ModalWrapperProps) {
-  // Detect if device is desktop or mobile
-  const isDesktop = useMediaQuery("(min-width: 768px)");
-
   // Prevent closing if disabled
   const handleOpenChange = React.useCallback(
     (open: boolean) => {
@@ -88,25 +85,17 @@ export function ModalWrapper({
   };
 
   // Desktop: Use Dialog
-  if (isDesktop) {
+  if (false) {
     return (
       <Dialog open={isOpen} onOpenChange={handleOpenChange}>
         <DialogContent
-          className={cn(
-            getMaxWidthClass(),
-            "p-0",
-            className
-          )}
+          className={cn(getMaxWidthClass(), "p-0", className)}
           showCloseButton={showCloseButton && !isLoading}
         >
           <DialogHeader className="rounded-t-2xl px-5 py-4 bg-card border-b border-border shrink-0">
-            <DialogTitle className="text-lg font-semibold text-foreground">
-              {title}
-            </DialogTitle>
+            <DialogTitle className="text-lg font-semibold text-foreground">{title}</DialogTitle>
             {description && (
-              <DialogDescription className="text-sm text-muted-foreground mt-1">
-                {description}
-              </DialogDescription>
+              <DialogDescription className="text-sm text-muted-foreground mt-1">{description}</DialogDescription>
             )}
           </DialogHeader>
 
@@ -114,9 +103,7 @@ export function ModalWrapper({
             {isLoading ? (
               <div className="flex items-center justify-center py-8">
                 <div className="liquid-pulse size-8 rounded-full bg-primary/20" />
-                <span className="ml-3 text-sm text-muted-foreground">
-                  Caricamento...
-                </span>
+                <span className="ml-3 text-sm text-muted-foreground">Caricamento...</span>
               </div>
             ) : (
               children
@@ -136,20 +123,11 @@ export function ModalWrapper({
   // Mobile: Use Drawer
   return (
     <Drawer open={isOpen} onOpenChange={handleOpenChange}>
-      <DrawerContent
-        className={cn(
-          "p-0",
-          className
-        )}
-      >
+      <DrawerContent className={cn("p-0", className)}>
         <DrawerHeader className="text-left bg-card px-4 py-3 border-b border-border shrink-0">
-          <DrawerTitle className="text-lg font-semibold text-foreground">
-            {title}
-          </DrawerTitle>
+          <DrawerTitle className="text-lg font-semibold text-foreground">{title}</DrawerTitle>
           {description && (
-            <DrawerDescription className="text-sm text-muted-foreground mt-1">
-              {description}
-            </DrawerDescription>
+            <DrawerDescription className="text-sm text-muted-foreground mt-1">{description}</DrawerDescription>
           )}
         </DrawerHeader>
 
@@ -157,9 +135,7 @@ export function ModalWrapper({
           {isLoading ? (
             <div className="flex items-center justify-center py-8">
               <div className="liquid-pulse size-8 rounded-full bg-primary/20" />
-              <span className="ml-3 text-sm text-muted-foreground">
-                Caricamento...
-              </span>
+              <span className="ml-3 text-sm text-muted-foreground">Caricamento...</span>
             </div>
           ) : (
             children
@@ -181,13 +157,7 @@ export function ModalWrapper({
 /**
  * Pre-styled modal content wrapper for consistent spacing
  */
-export function ModalContent({
-  children,
-  className,
-}: {
-  children: React.ReactNode;
-  className?: string;
-}) {
+export function ModalContent({ children, className }: { children: React.ReactNode; className?: string }) {
   return <div className={cn("flex flex-col gap-2", className)}>{children}</div>;
 }
 
@@ -205,9 +175,7 @@ export function ModalSection({
 }) {
   return (
     <div className={cn("flex flex-col gap-1.5", className)}>
-      {title && (
-        <h4 className="text-xs font-semibold text-foreground/80 uppercase tracking-wide shrink-0">{title}</h4>
-      )}
+      {title && <h4 className="text-xs font-semibold text-foreground/80 uppercase tracking-wide shrink-0">{title}</h4>}
       {children}
     </div>
   );
@@ -216,23 +184,8 @@ export function ModalSection({
 /**
  * Pre-styled modal footer with action buttons
  */
-export function ModalActions({
-  children,
-  className,
-}: {
-  children: React.ReactNode;
-  className?: string;
-}) {
-  return (
-    <div
-      className={cn(
-        "flex flex-col-reverse gap-2 sm:flex-row sm:justify-end",
-        className
-      )}
-    >
-      {children}
-    </div>
-  );
+export function ModalActions({ children, className }: { children: React.ReactNode; className?: string }) {
+  return <div className={cn("flex flex-col-reverse gap-2 sm:flex-row sm:justify-end", className)}>{children}</div>;
 }
 
 // Export type for external use

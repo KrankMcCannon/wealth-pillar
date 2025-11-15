@@ -4,10 +4,8 @@
 
 "use client";
 
-import { useUsers } from '@/src/lib';
-import { useMemo } from "react";
 import { FormField } from "../form-field";
-import { FormSelect, sortSelectOptions } from "../form-select";
+import { FormSelect } from "../form-select";
 
 interface UserFieldProps {
   value: string;
@@ -17,30 +15,10 @@ interface UserFieldProps {
   label?: string;
 }
 
-export function UserField({
-  value,
-  onChange,
-  error,
-  required = true,
-  label = "Utente"
-}: UserFieldProps) {
-  const { data: users = [] } = useUsers();
-
-  const options = useMemo(() =>
-    sortSelectOptions(
-      users.map(u => ({ value: u.id, label: u.name }))
-    ),
-    [users]
-  );
-
+export function UserField({ value, onChange, error, required = true, label = "Utente" }: UserFieldProps) {
   return (
     <FormField label={label} required={required} error={error}>
-      <FormSelect
-        value={value}
-        onValueChange={onChange}
-        options={options}
-        placeholder="Seleziona utente"
-      />
+      <FormSelect value={value} onValueChange={onChange} options={[]} placeholder="Seleziona utente" />
     </FormField>
   );
 }

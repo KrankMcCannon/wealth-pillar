@@ -4,27 +4,20 @@
  * Includes comparison with previous period
  */
 
-'use client';
+"use client";
 
-import { Card } from '@/components/ui';
-import { formatCurrency, LineChartData } from '@/lib';
-import { getComparisonStyles, budgetStyles } from '../theme/budget-styles';
-import { PeriodComparison, PeriodInfo } from '../services/budgets-view-model';
-import React from 'react';
+import { Card } from "@/components/ui";
+import { getComparisonStyles, budgetStyles } from "../theme/budget-styles";
+import React from "react";
 
 export interface BudgetChartProps {
   spent: number;
-  chartData: LineChartData;
-  periodComparison: PeriodComparison | null;
-  periodInfo: PeriodInfo | null;
+  chartData: null;
+  periodComparison: null;
+  periodInfo: null;
 }
 
-export function BudgetChart({
-  spent,
-  chartData,
-  periodComparison,
-  periodInfo,
-}: Readonly<BudgetChartProps>) {
+export function BudgetChart({ spent, periodInfo }: Readonly<BudgetChartProps>) {
   return (
     <section>
       <Card className={budgetStyles.chart.card}>
@@ -32,21 +25,13 @@ export function BudgetChart({
         <div className={budgetStyles.chart.header}>
           <div>
             <p className={budgetStyles.chart.headerLabel}>Hai speso</p>
-            <p className={budgetStyles.chart.headerAmount}>{formatCurrency(spent)}</p>
+            <p className={budgetStyles.chart.headerAmount}>{spent}</p>
           </div>
-          {periodComparison && periodComparison.previousTotal > 0 && (
-            <div
-              className={
-                getComparisonStyles(periodComparison.isHigher).container
-              }
-            >
-              <p
-                className={
-                  getComparisonStyles(periodComparison.isHigher).text
-                }
-              >
-                {periodComparison.isHigher ? '+' : ''}
-                {formatCurrency(periodComparison.difference)}
+          {0 > 0 && (
+            <div className={getComparisonStyles(true).container}>
+              <p className={getComparisonStyles(true).text}>
+                {true ? "+" : ""}
+                {0}
               </p>
             </div>
           )}
@@ -54,11 +39,7 @@ export function BudgetChart({
 
         {/* Revolut-style Line Chart */}
         <div className={budgetStyles.chart.svgContainer}>
-          <svg
-            className="w-full h-full"
-            viewBox="0 0 350 180"
-            preserveAspectRatio="none"
-          >
+          <svg className="w-full h-full" viewBox="0 0 350 180" preserveAspectRatio="none">
             {/* Subtle horizontal grid lines */}
             {[25, 50, 75].map((percent) => (
               <line
@@ -73,63 +54,49 @@ export function BudgetChart({
             ))}
 
             {/* Line for cumulative amounts */}
-            {chartData.pathD && chartData.data.length > 0 && (() => {
-              const visiblePoints = chartData.data.filter((p) => !p.isFuture);
-              const lastPoint = visiblePoints.at(-1);
+            {false &&
+              (() => {
+                // const visiblePoints = chartData.data.filter((p) => !p.isFuture);
+                // const lastPoint = visiblePoints.at(-1);
 
-              if (!lastPoint || typeof lastPoint.x !== 'number' || typeof lastPoint.y !== 'number') {
-                return null;
-              }
+                // if (!lastPoint || typeof lastPoint.x !== 'number' || typeof lastPoint.y !== 'number') {
+                //   return null;
+                // }
 
-              return (
-                <>
-                  {/* Subtle gradient fill under line */}
-                  <defs>
-                    <linearGradient
-                      id="lineGradient"
-                      x1="0%"
-                      y1="0%"
-                      x2="0%"
-                      y2="100%"
-                    >
-                      <stop
-                        offset="0%"
-                        style={{ stopColor: '#7578EC', stopOpacity: 0.08 }}
-                      />
-                      <stop
-                        offset="100%"
-                        style={{ stopColor: '#7578EC', stopOpacity: 0 }}
-                      />
-                    </linearGradient>
-                  </defs>
-                  <path
-                    d={`${chartData.pathD} L ${lastPoint.x} 180 L 0 180 Z`}
-                    fill="url(#lineGradient)"
-                  />
+                return (
+                  <>
+                    {/* Subtle gradient fill under line */}
+                    <defs>
+                      <linearGradient id="lineGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" style={{ stopColor: "#7578EC", stopOpacity: 0.08 }} />
+                        <stop offset="100%" style={{ stopColor: "#7578EC", stopOpacity: 0 }} />
+                      </linearGradient>
+                    </defs>
+                    <path d={`${""} L ${0} 180 L 0 180 Z`} fill="url(#lineGradient)" />
 
-                  {/* Main smooth line */}
-                  <path
-                    d={chartData.pathD}
-                    fill="none"
-                    stroke="#7578EC"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
+                    {/* Main smooth line */}
+                    <path
+                      d={""}
+                      fill="none"
+                      stroke="#7578EC"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
 
-                  {/* Dot at the end of line */}
-                  <circle cx={lastPoint.x} cy={lastPoint.y} r="4" fill="#7578EC" />
-                </>
-              );
-            })()}
+                    {/* Dot at the end of line */}
+                    <circle cx={0} cy={0} r="4" fill="#7578EC" />
+                  </>
+                );
+              })()}
           </svg>
 
           {/* Day numbers at bottom */}
           {periodInfo && (
             <div className={budgetStyles.chart.dayLabels}>
-              <div className="flex justify-between" style={{ width: '100%' }}>
+              <div className="flex justify-between" style={{ width: "100%" }}>
                 {Array.from({ length: 30 }).map((_, index) => {
-                  const startDate = new Date(periodInfo.startDate);
+                  const startDate = new Date();
                   startDate.setHours(0, 0, 0, 0);
                   const currentDate = new Date(startDate);
                   currentDate.setDate(startDate.getDate() + index);
@@ -141,12 +108,12 @@ export function BudgetChart({
                     <span
                       key={index}
                       className={`${budgetStyles.chart.dayLabel} absolute ${
-                        showDay ? 'text-black' : 'text-transparent'
+                        showDay ? "text-black" : "text-transparent"
                       }`}
                       style={{
                         left: `${position}%`,
-                        transform: 'translateX(-50%)',
-                        fontVariantNumeric: 'tabular-nums',
+                        transform: "translateX(-50%)",
+                        fontVariantNumeric: "tabular-nums",
                       }}
                     >
                       {dayOfMonth}

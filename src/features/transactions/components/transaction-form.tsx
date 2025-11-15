@@ -1,9 +1,20 @@
 "use client";
 
-import { Transaction, TransactionType, useAccounts } from '@/src/lib';
-import { useEffect, useMemo } from "react";
-import useTransactionFormController from "../hooks/use-transaction-form-controller";
-import { AccountField, AmountField, CategoryField, DateField, FormActions, FormField, FormSelect, Input, ModalContent, ModalSection, ModalWrapper, sortSelectOptions, toSelectOptions, UserField } from '@/src/components/ui';
+import { Transaction, TransactionType } from "@/src/lib";
+import {
+  AccountField,
+  AmountField,
+  CategoryField,
+  DateField,
+  FormActions,
+  FormField,
+  FormSelect,
+  Input,
+  ModalContent,
+  ModalSection,
+  ModalWrapper,
+  UserField,
+} from "@/src/components/ui";
 
 interface TransactionFormProps {
   isOpen: boolean;
@@ -14,43 +25,7 @@ interface TransactionFormProps {
   mode?: "create" | "edit";
 }
 
-export function TransactionForm({
-  isOpen,
-  onOpenChange,
-  initialType = "expense",
-  selectedUserId,
-  transaction,
-  mode = "create",
-}: Readonly<TransactionFormProps>) {
-  const { data: accounts = [] } = useAccounts();
-
-  const controller = useTransactionFormController({
-    mode,
-    initialType,
-    selectedUserId,
-    initialTransaction: transaction || null,
-  });
-
-  // Reset form when modal closes
-  useEffect(() => {
-    if (!isOpen) {
-      controller.reset();
-    }
-  }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Filter accounts based on selected user for destination account in transfers
-  const filteredAccounts = useMemo(() => {
-    if (!controller.form.user_id || controller.form.user_id === "all") {
-      return accounts;
-    }
-    return accounts.filter(account => account.user_ids?.includes(controller.form.user_id));
-  }, [accounts, controller.form.user_id]);
-
-  const sortedAccounts = useMemo(
-    () => sortSelectOptions(toSelectOptions(filteredAccounts, (a) => a.id, (a) => a.name)),
-    [filteredAccounts]
-  );
-
+export function TransactionForm({ isOpen, onOpenChange, mode = "create" }: Readonly<TransactionFormProps>) {
   const title = mode === "edit" ? "Modifica transazione" : "Nuova transazione";
   const description = mode === "edit" ? "Aggiorna i dettagli della transazione" : "Aggiungi una nuova transazione";
 
@@ -58,16 +33,16 @@ export function TransactionForm({
     if (e) {
       e.preventDefault?.();
     }
-    try {
-      await controller.submit();
-      // Close modal if submission succeeded (no actual errors, just undefined values)
-      const hasActualErrors = Object.values(controller.errors).some(err => err !== undefined);
-      if (!controller.isSubmitting && !hasActualErrors) {
-        onOpenChange(false);
-      }
-    } catch (err) {
-      console.error('[TransactionForm] Submit error:', err);
-    }
+    // try {
+    //   await controller.submit();
+    //   // Close modal if submission succeeded (no actual errors, just undefined values)
+    //   const hasActualErrors = Object.values(controller.errors).some(err => err !== undefined);
+    //   if (!controller.isSubmitting && !hasActualErrors) {
+    //     onOpenChange(false);
+    //   }
+    // } catch (err) {
+    //   console.error('[TransactionForm] Submit error:', err);
+    // }
   };
 
   return (
@@ -84,7 +59,7 @@ export function TransactionForm({
             submitLabel={mode === "edit" ? "Aggiorna" : "Crea"}
             onSubmit={handleSubmit}
             onCancel={() => onOpenChange(false)}
-            isSubmitting={controller.isSubmitting}
+            isSubmitting={false}
           />
         }
       >
@@ -92,18 +67,13 @@ export function TransactionForm({
           <ModalSection>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Utente */}
-              <UserField
-                value={controller.form.user_id}
-                onChange={(v) => controller.setField("user_id", v)}
-                error={controller.errors.user_id}
-                required
-              />
+              <UserField value={""} onChange={() => {}} error={""} required />
 
               {/* Tipo */}
-              <FormField label="Tipo" required error={controller.errors.type}>
+              <FormField label="Tipo" required error={""}>
                 <FormSelect
-                  value={controller.form.type}
-                  onValueChange={(v) => controller.setField("type", v as TransactionType)}
+                  value={""}
+                  onValueChange={() => {}}
                   options={[
                     { value: "income", label: "Entrata" },
                     { value: "expense", label: "Uscita" },
@@ -114,21 +84,15 @@ export function TransactionForm({
               </FormField>
 
               {/* Conto origine */}
-              <AccountField
-                value={controller.form.account_id}
-                onChange={(v) => controller.setField("account_id", v)}
-                error={controller.errors.account_id}
-                userId={controller.form.user_id}
-                required
-              />
+              <AccountField value={""} onChange={() => {}} error={""} userId={""} required />
 
               {/* Conto destinazione per trasferimenti */}
-              {controller.form.type === "transfer" && (
-                <FormField label="Conto destinazione" required error={controller.errors.to_account_id}>
+              {false && (
+                <FormField label="Conto destinazione" required error={""}>
                   <FormSelect
-                    value={controller.form.to_account_id || ""}
-                    onValueChange={(v) => controller.setField("to_account_id", v)}
-                    options={sortedAccounts}
+                    value={""}
+                    onValueChange={() => {}}
+                    options={[]}
                     placeholder="Seleziona conto destinazione"
                     showEmpty
                   />
@@ -136,39 +100,20 @@ export function TransactionForm({
               )}
 
               {/* Categoria */}
-              <CategoryField
-                value={controller.form.category}
-                onChange={(v) => controller.setField("category", v)}
-                error={controller.errors.category}
-                required
-              />
+              <CategoryField value={""} onChange={() => {}} error={""} required />
 
               {/* Importo */}
-              <AmountField
-                value={controller.form.amount}
-                onChange={(v) => controller.setField("amount", v)}
-                error={controller.errors.amount}
-                required
-              />
+              <AmountField value={""} onChange={() => {}} error={""} required />
 
               {/* Data */}
-              <DateField
-                value={controller.form.date}
-                onChange={(v) => controller.setField("date", v)}
-                error={controller.errors.date}
-                required
-              />
+              <DateField value={""} onChange={() => {}} error={""} required />
             </div>
           </ModalSection>
 
           <ModalSection>
             {/* Descrizione */}
-            <FormField label="Descrizione" required error={controller.errors.description}>
-              <Input
-                value={controller.form.description}
-                onChange={(e) => controller.setField("description", e.target.value)}
-                placeholder="Es. Spesa supermercato"
-              />
+            <FormField label="Descrizione" required error={""}>
+              <Input value={""} onChange={() => {}} placeholder="Es. Spesa supermercato" />
             </FormField>
           </ModalSection>
         </ModalContent>
@@ -176,4 +121,3 @@ export function TransactionForm({
     </form>
   );
 }
-

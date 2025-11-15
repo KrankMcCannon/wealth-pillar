@@ -3,52 +3,36 @@
  * Displays financial metrics in 3-column layout (Available, Spent, Total)
  */
 
-'use client';
+"use client";
 
-import { formatCurrency } from '@/lib';
-import { budgetStyles } from '../theme/budget-styles';
-import React from 'react';
-import { BudgetsViewModel } from '../services/budgets-view-model';
+import { budgetStyles } from "../theme/budget-styles";
+import React from "react";
 
 export interface BudgetMetricsProps {
-  viewModel: BudgetsViewModel | null;
+  viewModel: null;
   budgetAmount: number;
 }
 
-export function BudgetMetrics({ viewModel, budgetAmount }: BudgetMetricsProps) {
-  if (viewModel && viewModel.periodInfo) {
+export function BudgetMetrics({ budgetAmount }: BudgetMetricsProps) {
+  if (false) {
     return (
       <div className={budgetStyles.metrics.container}>
         {/* Available Amount */}
         <div className={budgetStyles.metrics.item}>
           <p className={budgetStyles.metrics.label}>Disponibile</p>
-          <p
-            className={`${budgetStyles.metrics.value} ${
-              viewModel.financialMetrics.remaining >= 0
-                ? budgetStyles.metrics.valueSafe
-                : budgetStyles.metrics.valueDanger
-            }`}
-          >
-            {formatCurrency(viewModel.financialMetrics.remaining)}
-          </p>
+          <p className={`${budgetStyles.metrics.value} ${""}`}>{0}</p>
         </div>
 
         {/* Spent Amount */}
         <div className={budgetStyles.metrics.item}>
-          <p className={`${budgetStyles.metrics.label} text-destructive`}>
-            Speso
-          </p>
-          <p className={`${budgetStyles.metrics.value} text-destructive`}>
-            {formatCurrency(viewModel.financialMetrics.totalSpent)}
-          </p>
+          <p className={`${budgetStyles.metrics.label} text-destructive`}>Speso</p>
+          <p className={`${budgetStyles.metrics.value} text-destructive`}>{0}</p>
         </div>
 
         {/* Total Budget */}
         <div className={budgetStyles.metrics.item}>
           <p className={budgetStyles.metrics.label}>Totale</p>
-          <p className={budgetStyles.metrics.value}>
-            {formatCurrency(viewModel.financialMetrics.totalBudgeted)}
-          </p>
+          <p className={budgetStyles.metrics.value}>{0}</p>
         </div>
       </div>
     );
@@ -60,13 +44,13 @@ export function BudgetMetrics({ viewModel, budgetAmount }: BudgetMetricsProps) {
       {/* Available Amount */}
       <div className={budgetStyles.metrics.item}>
         <p className={budgetStyles.metrics.label}>Disponibile</p>
-        <p className={budgetStyles.metrics.value}>{formatCurrency(0)}</p>
+        <p className={budgetStyles.metrics.value}>{0}</p>
       </div>
 
       {/* Total Budget */}
       <div className={budgetStyles.metrics.item}>
         <p className={budgetStyles.metrics.label}>Totale</p>
-        <p className={budgetStyles.metrics.value}>{formatCurrency(budgetAmount)}</p>
+        <p className={budgetStyles.metrics.value}>{budgetAmount}</p>
       </div>
     </div>
   );

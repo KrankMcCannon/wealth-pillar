@@ -1,33 +1,36 @@
 "use client";
 
-import { Suspense } from 'react';
-import { useRouter } from 'next/navigation';
-import { Budget, BudgetPeriod, formatCurrency, User } from '@/src/lib';
-import { BudgetSectionSkeleton } from '@/src/features/dashboard';
-import { SectionHeader } from '@/src/components/layout';
-import { BudgetCard } from '@/src/components/cards';
+import { Suspense } from "react";
+import { useRouter } from "next/navigation";
+import { Budget, BudgetPeriod, User } from "@/src/lib";
+import { BudgetSectionSkeleton } from "@/src/features/dashboard";
+import { SectionHeader } from "@/src/components/layout";
+import { BudgetCard } from "@/src/components/cards";
 
 interface BudgetSectionProps {
-  budgetsByUser: Record<string, {
-    user: User;
-    budgets: Array<{
-      id: string;
-      description: string;
-      amount: number;
-      spent: number;
-      remaining: number;
-      percentage: number;
-      categories: string[];
-      transactionCount: number;
-    }>;
-    activePeriod: BudgetPeriod | undefined;
-    periodStart: string | null;
-    periodEnd: string | null;
-    totalBudget: number;
-    totalSpent: number;
-    totalRemaining: number;
-    overallPercentage: number;
-  }>;
+  budgetsByUser: Record<
+    string,
+    {
+      user: User;
+      budgets: Array<{
+        id: string;
+        description: string;
+        amount: number;
+        spent: number;
+        remaining: number;
+        percentage: number;
+        categories: string[];
+        transactionCount: number;
+      }>;
+      activePeriod: BudgetPeriod | undefined;
+      periodStart: string | null;
+      periodEnd: string | null;
+      totalBudget: number;
+      totalSpent: number;
+      totalRemaining: number;
+      overallPercentage: number;
+    }
+  >;
   budgets: Budget[];
   selectedViewUserId: string;
   isLoading?: boolean;
@@ -37,12 +40,7 @@ interface BudgetSectionProps {
  * Budget section component with enhanced UX and performance
  * Follows Single Responsibility Principle - only handles budget display
  */
-export const BudgetSection = ({
-  budgetsByUser,
-  budgets,
-  selectedViewUserId,
-  isLoading
-}: BudgetSectionProps) => {
+export const BudgetSection = ({ budgetsByUser, budgets, selectedViewUserId, isLoading }: BudgetSectionProps) => {
   const router = useRouter();
 
   // Show skeleton only if actively loading AND no data received yet
@@ -57,11 +55,7 @@ export const BudgetSection = ({
   if (budgetEntries.length === 0) {
     return (
       <section className="bg-card px-3 pt-3">
-        <SectionHeader
-          title="Budget"
-          subtitle="Monitora le tue spese per categoria"
-          className="mb-3"
-        />
+        <SectionHeader title="Budget" subtitle="Monitora le tue spese per categoria" className="mb-3" />
 
         <div className="bg-card rounded-2xl p-8 text-center border border-primary/20 shadow-sm">
           <div className="flex size-16 items-center justify-center rounded-2xl bg-linear-to-br from-primary/10 to-primary/5 mx-auto mb-4 shadow-sm">
@@ -74,7 +68,7 @@ export const BudgetSection = ({
             Crea dei budget per monitorare le tue spese e tenere sotto controllo le finanze familiari
           </p>
           <button
-            onClick={() => router.push('/budgets')}
+            onClick={() => router.push("/budgets")}
             className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl font-medium text-sm hover:shadow-lg hover:shadow-primary/25 transition-all duration-300 hover:scale-105"
           >
             Crea Budget
@@ -104,7 +98,7 @@ export const BudgetSection = ({
               periodEnd,
               totalBudget,
               totalSpent,
-              overallPercentage
+              overallPercentage,
             } = userBudgetGroup;
 
             return (
@@ -121,16 +115,16 @@ export const BudgetSection = ({
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
                       <div className="flex size-7 items-center justify-center rounded-lg bg-linear-to-br from-primary/10 to-primary/5 shadow-sm">
-                        <span className="text-xs font-bold text-primary">
-                          {user.name.charAt(0).toUpperCase()}
-                        </span>
+                        <span className="text-xs font-bold text-primary">{user.name.charAt(0).toUpperCase()}</span>
                       </div>
                       <div>
                         <h3 className="text-sm font-semibold">{user.name}</h3>
                         {activePeriod && periodStart && (
                           <div className="text-xs">
-                            {new Date(periodStart).toLocaleDateString('it-IT', { day: 'numeric', month: 'short' })} -{' '}
-                            {periodEnd ? new Date(periodEnd).toLocaleDateString('it-IT', { day: 'numeric', month: 'short' }) : 'In corso'}
+                            {new Date(periodStart).toLocaleDateString("it-IT", { day: "numeric", month: "short" })} -{" "}
+                            {periodEnd
+                              ? new Date(periodEnd).toLocaleDateString("it-IT", { day: "numeric", month: "short" })
+                              : "In corso"}
                           </div>
                         )}
                       </div>
@@ -139,11 +133,11 @@ export const BudgetSection = ({
                     {/* Budget Amount - Right Side */}
                     <div className="text-right">
                       <div className="text-sm font-bold">
-                        <span className={overallPercentage > 100 ? 'text-destructive' : 'text-primary'}>
-                          {formatCurrency(totalSpent)}
+                        <span className={overallPercentage > 100 ? "text-destructive" : "text-primary"}>
+                          {totalSpent}
                         </span>
                         <span className="text-primary/50 font-normal"> / </span>
-                        <span>{formatCurrency(totalBudget)}</span>
+                        <span>{totalBudget}</span>
                       </div>
                     </div>
                   </div>
@@ -153,22 +147,26 @@ export const BudgetSection = ({
                     <div className="flex-1 bg-primary/10 rounded-full h-2">
                       <div
                         className={`h-2 rounded-full transition-all duration-500 ${(() => {
-                          if (overallPercentage > 100) return 'bg-destructive';
-                          if (overallPercentage > 75) return 'bg-warning';
-                          return 'bg-accent';
+                          if (overallPercentage > 100) return "bg-destructive";
+                          if (overallPercentage > 75) return "bg-warning";
+                          return "bg-accent";
                         })()}`}
                         style={{ width: `${Math.min(overallPercentage, 100)}%` }}
                       ></div>
                     </div>
                     <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-primary/10">
-                      <div className={`w-1.5 h-1.5 rounded-full ${(() => {
-                        if (overallPercentage > 100) return 'bg-destructive';
-                        if (overallPercentage > 75) return 'bg-warning';
-                        return 'bg-accent';
-                      })()}`} />
-                      <span className={`text-xs font-bold ${(() => {
-                        return 'text-accent';
-                      })()}`}>
+                      <div
+                        className={`w-1.5 h-1.5 rounded-full ${(() => {
+                          if (overallPercentage > 100) return "bg-destructive";
+                          if (overallPercentage > 75) return "bg-warning";
+                          return "bg-accent";
+                        })()}`}
+                      />
+                      <span
+                        className={`text-xs font-bold ${(() => {
+                          return "text-accent";
+                        })()}`}
+                      >
                         {Math.round(overallPercentage)}%
                       </span>
                     </div>
@@ -187,11 +185,11 @@ export const BudgetSection = ({
                         id: budgetInfo.id,
                         spent: budgetInfo.spent,
                         remaining: budgetInfo.remaining,
-                        progress: budgetInfo.percentage
+                        progress: budgetInfo.percentage,
                       };
 
                       return (
-                        <Suspense 
+                        <Suspense
                           key={budget.id}
                           fallback={
                             <div className="px-3 py-2 animate-pulse">
@@ -207,15 +205,16 @@ export const BudgetSection = ({
                                 </div>
                               </div>
                             </div>
-                          }>
+                          }
+                        >
                           <BudgetCard
                             budget={budget}
                             budgetInfo={mappedBudgetInfo}
                             onClick={() => {
                               const params = new URLSearchParams();
-                              params.set('budget', budget.id);
-                              if (selectedViewUserId !== 'all') {
-                                params.set('member', selectedViewUserId);
+                              params.set("budget", budget.id);
+                              if (selectedViewUserId !== "all") {
+                                params.set("member", selectedViewUserId);
                               }
                               router.push(`/budgets?${params.toString()}`);
                             }}

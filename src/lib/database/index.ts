@@ -6,5 +6,4 @@
  * Client code should only import from supabase-client
  */
 
-export * from "./supabase-client";
 export * from "./types";

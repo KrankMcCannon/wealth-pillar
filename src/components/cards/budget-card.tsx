@@ -9,7 +9,7 @@
 "use client";
 
 import { IconContainer, StatusBadge, Text } from "@/src/components/ui";
-import { Budget, CategoryIcon, formatCurrency, iconSizes, progressBarVariants, progressFillVariants } from "@/src/lib";
+import { Budget, CategoryIcon, iconSizes, progressBarVariants, progressFillVariants } from "@/src/lib";
 
 interface BudgetCardProps {
   budget: Budget;
@@ -88,10 +88,10 @@ export function BudgetCard({ budget, budgetInfo, onClick }: BudgetCardProps) {
             size="sm"
             className={getTextColorClass(status)}
           >
-            {formatCurrency(remaining)}
+            {remaining}
           </Text>
           <Text variant="subtle" size="xs">
-            di {formatCurrency(budget.amount)}
+            di {budget.amount}
           </Text>
         </div>
       </div>

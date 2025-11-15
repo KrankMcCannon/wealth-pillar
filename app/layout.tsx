@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Spline_Sans } from "next/font/google";
-import { ClerkProvider } from '@clerk/nextjs';
-import { QueryClientProvider } from "@/providers/query-client-provider";
+import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
 
 const splineSans = Spline_Sans({
@@ -33,8 +32,8 @@ export default function RootLayout({
       appearance={{
         elements: {
           // Completely hide CAPTCHA in development to avoid protocol mismatch errors
-          formFieldInput__captcha: 'hidden',
-          captcha: 'hidden',
+          formFieldInput__captcha: "hidden",
+          captcha: "hidden",
         },
       }}
     >
@@ -43,14 +42,12 @@ export default function RootLayout({
           className={`${splineSans.variable} antialiased min-h-screen`}
           style={{
             fontFamily: '"Spline Sans", "Noto Sans", sans-serif',
-            backgroundColor: '#F8FAFC',
-            color: '#1F2937'
+            backgroundColor: "#F8FAFC",
+            color: "#1F2937",
           }}
           suppressHydrationWarning={true}
         >
-          <QueryClientProvider>
-            {children}
-          </QueryClientProvider>
+          {children}
         </body>
       </html>
     </ClerkProvider>
