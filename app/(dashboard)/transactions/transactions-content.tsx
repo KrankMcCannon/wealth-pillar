@@ -7,7 +7,7 @@
  * Data is passed from Server Component for optimal performance
  */
 
-import { Suspense, useState } from "react";
+import { Suspense, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, MoreVertical, Plus, Search, Filter } from "lucide-react";
 import {
@@ -31,7 +31,8 @@ import {
   TransactionListSkeleton,
   RecurringSeriesSkeleton,
 } from "@/src/features/transactions/components/transaction-skeletons";
-import type { User } from "@/lib/types";
+import type { User, Transaction } from "@/lib/types";
+import { TransactionService } from "@/lib/services";
 
 /**
  * Transactions Content Props
@@ -39,13 +40,14 @@ import type { User } from "@/lib/types";
 interface TransactionsContentProps {
   currentUser: User;
   groupUsers: User[];
+  transactions: Transaction[];
 }
 
 /**
  * Transactions Content Component
  * Handles interactive transactions UI with state management
  */
-export default function TransactionsContent({ currentUser, groupUsers }: TransactionsContentProps) {
+export default function TransactionsContent({ currentUser, groupUsers, transactions }: TransactionsContentProps) {
   const router = useRouter();
 
   // State management
@@ -57,6 +59,31 @@ export default function TransactionsContent({ currentUser, groupUsers }: Transac
   const [isRecurringFormOpen, setIsRecurringFormOpen] = useState(false);
 
   const selectedUserId = selectedGroupFilter === 'all' ? undefined : selectedGroupFilter;
+
+  // Filter transactions by selected user
+  const filteredTransactions = useMemo(() => {
+    return selectedUserId
+      ? transactions.filter((t) => t.user_id === selectedUserId)
+      : transactions;
+  }, [selectedUserId, transactions]);
+
+  // Group transactions by date and calculate daily totals using service layer
+  const dayTotals = useMemo(() => {
+    const grouped = TransactionService.groupTransactionsByDate(filteredTransactions);
+    return TransactionService.calculateDailyTotals(grouped);
+  }, [filteredTransactions]);
+
+  // Handlers for transaction actions
+  const handleEditTransaction = (transaction: Transaction) => {
+    // TODO: Implement edit functionality when backend is ready
+    console.log('Edit transaction:', transaction.id);
+  };
+
+  const handleDeleteTransaction = (transactionId: string) => {
+    // TODO: Implement delete functionality when backend is ready
+    console.log('Delete transaction:', transactionId);
+  };
+
   return (
     <div
       className={transactionStyles.page.container}
@@ -123,21 +150,16 @@ export default function TransactionsContent({ currentUser, groupUsers }: Transac
 
       {/* Main Content */}
       <main className={transactionStyles.page.main}>
-        {/* Active Filters Display - Show when coming from budgets */}
-        {false && (false || false) && (
+        {/* Active Filters Display - Show when filters are active */}
+        {activeTab === 'Transactions' && (searchQuery || isFilterOpen) && (
           <div className={transactionStyles.activeFilters.container}>
             <div className={transactionStyles.activeFilters.header}>
               <Filter className={transactionStyles.activeFilters.icon} />
               <span className={transactionStyles.activeFilters.label}>Filtri Attivi:</span>
               <div className={transactionStyles.activeFilters.badges}>
-                {false && (
+                {searchQuery && (
                   <Badge variant="secondary" className="bg-primary/15 text-primary border-primary/30">
-                    Membro: {""}
-                  </Badge>
-                )}
-                {false && (
-                  <Badge variant="secondary" className="bg-primary/15 text-primary border-primary/30">
-                    Categoria: {""}
+                    Ricerca: {searchQuery}
                   </Badge>
                 )}
               </div>
@@ -145,7 +167,10 @@ export default function TransactionsContent({ currentUser, groupUsers }: Transac
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => {}}
+              onClick={() => {
+                setSearchQuery('');
+                setIsFilterOpen(false);
+              }}
               className={transactionStyles.activeFilters.clearButton}
             >
               Cancella Tutto
@@ -154,24 +179,24 @@ export default function TransactionsContent({ currentUser, groupUsers }: Transac
         )}
 
         {/* Transactions Tab Content */}
-        {false && (
+        {activeTab === 'Transactions' && (
           <>
-            {/* Search and Filter */}
-            <Suspense fallback={<SearchFilterSkeleton />}>
+            {/* Search and Filter - Commented out until needed */}
+            {/* <Suspense fallback={<SearchFilterSkeleton />}>
               <div className={transactionStyles.searchFilter.container}>
                 <div className={transactionStyles.searchFilter.searchContainer}>
                   <Search className={transactionStyles.searchFilter.searchIcon} />
                   <Input
                     type="text"
                     placeholder="Cerca transazioni..."
-                    value={undefined}
-                    onChange={() => {}}
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
                     className={transactionStyles.searchFilter.searchInput}
                   />
                 </div>
                 <FilterDialog
-                  isOpen={false}
-                  onOpenChange={() => {}}
+                  isOpen={isFilterOpen}
+                  onOpenChange={setIsFilterOpen}
                   selectedFilter={""}
                   selectedCategory={""}
                   categories={[]}
@@ -181,85 +206,77 @@ export default function TransactionsContent({ currentUser, groupUsers }: Transac
                   hasActiveFilters={false}
                 />
               </div>
-            </Suspense>
+            </Suspense> */}
 
             {/* Transactions List */}
-            {(() => {
-              if (false) {
-                return <TransactionListSkeleton />;
-              }
-
-              if (false) {
-                return (
-                  <div className="space-y-6">
-                    {[].map(() => (
-                      <section key={""}>
-                        <div className={transactionStyles.dayGroup.header}>
-                          <h2 className={transactionStyles.dayGroup.title}>{""}</h2>
-                          <div className={transactionStyles.dayGroup.stats}>
-                            <div className={transactionStyles.dayGroup.statsTotal}>
-                              <span className={transactionStyles.dayGroup.statsTotalLabel}>Totale:</span>
-                              <span
-                                className={`${transactionStyles.dayGroup.statsTotalValue} ${
-                                  0 >= 0
-                                    ? transactionStyles.dayGroup.statsTotalValuePositive
-                                    : transactionStyles.dayGroup.statsTotalValueNegative
-                                }`}
-                              >
-                                {0}
-                              </span>
-                            </div>
-                            <div className={transactionStyles.dayGroup.statsCount}>
-                              {1 === 1 ? "transazione" : "transazioni"}
-                            </div>
-                          </div>
+            {dayTotals.length > 0 ? (
+              <div className="space-y-6">
+                {dayTotals.map(({ date, total, count, transactions: dayTransactions }) => (
+                  <section key={date}>
+                    <div className={transactionStyles.dayGroup.header}>
+                      <h2 className={transactionStyles.dayGroup.title}>{date}</h2>
+                      <div className={transactionStyles.dayGroup.stats}>
+                        <div className={transactionStyles.dayGroup.statsTotal}>
+                          <span className={transactionStyles.dayGroup.statsTotalLabel}>Totale:</span>
+                          <span
+                            className={`${transactionStyles.dayGroup.statsTotalValue} ${
+                              total >= 0
+                                ? transactionStyles.dayGroup.statsTotalValuePositive
+                                : transactionStyles.dayGroup.statsTotalValueNegative
+                            }`}
+                          >
+                            €{Math.abs(total).toFixed(2)}
+                          </span>
                         </div>
-                        <GroupedTransactionCard
-                          transactions={[]}
-                          accountNames={{}}
-                          variant="regular"
-                          onEditTransaction={() => {}}
-                          onDeleteTransaction={() => {}}
-                        />
-                      </section>
-                    ))}
-                  </div>
-                );
-              }
-
-              return (
-                <div className={transactionStyles.emptyState.container}>
-                  <div className={transactionStyles.emptyState.icon}>
-                    <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={1.5}
-                        d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                      />
-                    </svg>
-                  </div>
-                  <h3 className={transactionStyles.emptyState.title}>Nessuna Transazione</h3>
-                  <p className={transactionStyles.emptyState.text}>
-                    Non ci sono transazioni da visualizzare per i filtri selezionati
-                  </p>
+                        <div className={transactionStyles.dayGroup.statsCount}>
+                          {count} {count === 1 ? "transazione" : "transazioni"}
+                        </div>
+                      </div>
+                    </div>
+                    <GroupedTransactionCard
+                      transactions={dayTransactions}
+                      accountNames={{}}
+                      variant="regular"
+                      onEditTransaction={handleEditTransaction}
+                      onDeleteTransaction={handleDeleteTransaction}
+                    />
+                  </section>
+                ))}
+              </div>
+            ) : (
+              <div className={transactionStyles.emptyState.container}>
+                <div className={transactionStyles.emptyState.icon}>
+                  <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={1.5}
+                      d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                    />
+                  </svg>
                 </div>
-              );
-            })()}
+                <h3 className={transactionStyles.emptyState.title}>Nessuna Transazione</h3>
+                <p className={transactionStyles.emptyState.text}>
+                  {selectedUserId
+                    ? "Non ci sono transazioni per questo utente"
+                    : "Non ci sono ancora transazioni. Inizia aggiungendone una!"}
+                </p>
+              </div>
+            )}
           </>
         )}
 
         {/* Recurring Tab Content */}
-        {false && (
+        {activeTab === 'Recurrent' && (
           <Suspense fallback={<RecurringSeriesSkeleton />}>
             <RecurringSeriesSection
-              selectedUserId={""}
+              selectedUserId={selectedUserId}
               className="bg-card/80 backdrop-blur-sm border border-border/50 shadow-lg shadow-muted/30"
               showStats={true}
               maxItems={10}
               showActions={true}
-              onCreateRecurringSeries={() => {}}
-              onEditRecurringSeries={() => {}}
+              onCreateRecurringSeries={() => setIsRecurringFormOpen(true)}
+              onEditRecurringSeries={() => setIsRecurringFormOpen(true)}
             />
           </Suspense>
         )}
@@ -269,17 +286,17 @@ export default function TransactionsContent({ currentUser, groupUsers }: Transac
 
       {/* Modal Forms */}
       <TransactionForm
-        isOpen={false}
-        onOpenChange={() => {}}
+        isOpen={isTransactionFormOpen}
+        onOpenChange={setIsTransactionFormOpen}
         initialType={undefined}
-        selectedUserId={""}
+        selectedUserId={selectedUserId}
         transaction={undefined}
         mode={undefined}
       />
       <RecurringSeriesForm
-        isOpen={false}
-        onOpenChange={() => {}}
-        selectedUserId={""}
+        isOpen={isRecurringFormOpen}
+        onOpenChange={setIsRecurringFormOpen}
+        selectedUserId={selectedUserId}
         series={undefined}
         mode={undefined}
       />

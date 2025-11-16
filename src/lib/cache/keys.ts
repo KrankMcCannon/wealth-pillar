@@ -94,4 +94,10 @@ export const transactionCacheKeys = {
    */
   byAccount: (accountId: string) =>
     ['transactions', 'account', accountId] as const,
+
+  /**
+   * Cache key for transactions by group
+   * @param groupId - Group ID
+   */
+  byGroup: (groupId: string) => ['transactions', 'group', groupId] as const,
 } as const;

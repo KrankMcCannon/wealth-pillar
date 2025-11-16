@@ -17,6 +17,7 @@
 // Export all services
 export { UserService } from './user.service';
 export { GroupService } from './group.service';
+export { TransactionService } from './transaction.service';
 
 // Export shared types
 export type { ServiceResult } from './user.service';

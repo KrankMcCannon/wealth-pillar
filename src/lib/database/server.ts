@@ -1,5 +1,12 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
+import type { SupabaseClient } from '@supabase/supabase-js';
+
+/**
+ * Cached Supabase client instance
+ * Lazy-loaded to ensure environment variables are available
+ */
+let cachedClient: SupabaseClient<Database> | null = null;
 
 /**
  * Creates a Supabase client for server-side operations
@@ -8,7 +15,7 @@ import type { Database } from './types';
  * @returns Supabase client instance with full database access
  * @throws Error if environment variables are not configured
  */
-export function createServerClient() {
+function createServerClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
@@ -27,7 +34,15 @@ export function createServerClient() {
 }
 
 /**
- * Singleton instance of the server Supabase client
+ * Lazy-loaded singleton instance of the server Supabase client
+ * Creates the client on first access to ensure environment variables are loaded
  * Reused across server components and actions for better performance
  */
-export const supabaseServer = createServerClient();
+export const supabaseServer = new Proxy({} as SupabaseClient<Database>, {
+  get: (target, prop) => {
+    if (!cachedClient) {
+      cachedClient = createServerClient();
+    }
+    return cachedClient[prop as keyof SupabaseClient<Database>];
+  },
+});

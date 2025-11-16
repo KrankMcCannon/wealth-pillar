@@ -88,4 +88,31 @@ export const cacheOptions = {
     revalidate: CACHE_TTL.GROUP,
     tags: [CACHE_TAGS.USERS, CACHE_TAGS.GROUP_USERS(groupId)],
   }),
+
+  /**
+   * Transactions by user cache options
+   * @param userId - User ID for tag
+   */
+  transactionsByUser: (userId: string) => ({
+    revalidate: CACHE_TTL.TRANSACTION,
+    tags: [CACHE_TAGS.TRANSACTIONS, `user:${userId}:transactions`],
+  }),
+
+  /**
+   * Transactions by account cache options
+   * @param accountId - Account ID for tag
+   */
+  transactionsByAccount: (accountId: string) => ({
+    revalidate: CACHE_TTL.TRANSACTION,
+    tags: [CACHE_TAGS.TRANSACTIONS, `account:${accountId}:transactions`],
+  }),
+
+  /**
+   * Transactions by group cache options
+   * @param groupId - Group ID for tag
+   */
+  transactionsByGroup: (groupId: string) => ({
+    revalidate: CACHE_TTL.TRANSACTION,
+    tags: [CACHE_TAGS.TRANSACTIONS, `group:${groupId}:transactions`],
+  }),
 } as const;

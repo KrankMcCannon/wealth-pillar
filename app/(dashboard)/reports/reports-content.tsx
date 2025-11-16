@@ -1,18 +1,41 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import BottomNavigation from "@/src/components/layout/bottom-navigation";
-import { PageLoader } from "@/src/components/shared";
 import UserSelector from "@/src/components/shared/user-selector";
 import { SpendingOverviewCard, CategoryBreakdownSection, SavingsGoalCard, reportsStyles } from "@/features/reports";
 import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/src/components/ui";
 import type { DashboardDataProps } from "@/lib/auth/get-dashboard-data";
+import type { Transaction, ReportMetrics } from "@/lib/types";
+import { TransactionService } from "@/lib/services";
 
-export default function ReportsContent({ currentUser, groupUsers }: DashboardDataProps) {
+interface ReportsContentProps extends DashboardDataProps {
+  transactions: Transaction[];
+  initialMetrics: ReportMetrics;
+}
+
+export default function ReportsContent({
+  currentUser,
+  groupUsers,
+  transactions,
+  initialMetrics,
+}: ReportsContentProps) {
   const router = useRouter();
   const [selectedGroupFilter, setSelectedGroupFilter] = useState<string>('all');
+
+  // Recalculate metrics when user filter changes using service layer
+  const metrics = useMemo(() => {
+    if (selectedGroupFilter === 'all') {
+      return initialMetrics;
+    }
+    // Use TransactionService for business logic
+    return TransactionService.calculateReportMetrics(
+      transactions,
+      selectedGroupFilter
+    );
+  }, [selectedGroupFilter, transactions, initialMetrics]);
 
   return (
     <div className={reportsStyles.page.container} style={reportsStyles.page.style}>
@@ -50,7 +73,12 @@ export default function ReportsContent({ currentUser, groupUsers }: DashboardDat
         <main className={reportsStyles.main.container}>
           {/* Spending Overview */}
           <section>
-            <SpendingOverviewCard income={0} expenses={0} netSavings={0} savingsRate={0} />
+            <SpendingOverviewCard
+              income={metrics.income}
+              expenses={metrics.expenses}
+              netSavings={metrics.netSavings}
+              savingsRate={metrics.savingsRate}
+            />
           </section>
 
           {/* Category Breakdown - First 5 */}
@@ -59,7 +87,7 @@ export default function ReportsContent({ currentUser, groupUsers }: DashboardDat
               <h2 className={reportsStyles.sectionHeader.title}>Spesa per categoria</h2>
               <p className={reportsStyles.sectionHeader.subtitle}>Top 5</p>
             </div>
-            <CategoryBreakdownSection categories={[]} isLoading={false} />
+            <CategoryBreakdownSection categories={metrics.categories as any} isLoading={false} />
           </section>
 
           {/* Savings Goal */}
@@ -69,12 +97,12 @@ export default function ReportsContent({ currentUser, groupUsers }: DashboardDat
               <p className={reportsStyles.sectionHeader.subtitle}>Progresso annuale</p>
             </div>
             <SavingsGoalCard
-              currentSavings={0}
-              savingsGoal={0}
-              projectedYearEnd={0}
-              projectedMonthly={0}
-              monthlyTarget={0}
-              totalToReach={0}
+              currentSavings={metrics.netSavings}
+              savingsGoal={10000}
+              projectedYearEnd={metrics.netSavings * 12}
+              projectedMonthly={metrics.netSavings}
+              monthlyTarget={833}
+              totalToReach={Math.max(0, 10000 - metrics.netSavings)}
             />
           </section>
         </main>
