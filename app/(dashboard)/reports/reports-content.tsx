@@ -9,16 +9,26 @@ import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/src/components/ui";
 import type { DashboardDataProps } from "@/lib/auth/get-dashboard-data";
 import type { Transaction, ReportMetrics, Category } from "@/lib/types";
-import { TransactionService, CategoryService } from "@/lib/services";
+import { AccountService, TransactionService, CategoryService } from "@/lib/services";
 import { SAVINGS_GOAL_NUMBER } from "@/features/transactions/constants";
+import type { Account } from "@/lib/types";
 
 interface ReportsContentProps extends DashboardDataProps {
+  accounts: Account[];
+  accountBalances: Record<string, number>;
   transactions: Transaction[];
   categories: Category[];
   initialMetrics: ReportMetrics;
 }
 
-export default function ReportsContent({ currentUser, groupUsers, transactions, categories }: ReportsContentProps) {
+export default function ReportsContent({
+  currentUser,
+  groupUsers,
+  accounts,
+  accountBalances,
+  transactions,
+  categories,
+}: ReportsContentProps) {
   const router = useRouter();
   const [selectedGroupFilter, setSelectedGroupFilter] = useState<string>("all");
 
@@ -43,13 +53,38 @@ export default function ReportsContent({ currentUser, groupUsers, transactions, 
     return TransactionService.calculateReportMetrics(monthlyTransactions, userId);
   }, [selectedGroupFilter, monthlyTransactions]);
 
-  // Calculate savings goal metrics (only "risparmi" category)
-  // Uses current month for full year YTD calculation (not selectedMonth)
-  // Always shows total for all users (not affected by user selector)
+  // Use Risparmi Casa account balance for savings goal (same logic as Accounts/Dashboard)
+  const risparmiCasaBalance = useMemo(() => {
+    // Prefer the shared "casa" savings account; otherwise fall back to any "risparmi" account
+    const savingsAccount =
+      accounts.find((account) => account.name?.toLowerCase().includes("casa")) ||
+      accounts.find((account) => account.name?.toLowerCase().includes("risparmi"));
+
+    if (!savingsAccount) {
+      return 0;
+    }
+
+    // Fallback: recalc on client in case balances are missing/stale
+    if (accountBalances[savingsAccount.id] !== undefined) {
+      return accountBalances[savingsAccount.id];
+    }
+
+    return AccountService.calculateAccountBalance(savingsAccount.id, transactions);
+  }, [accounts, accountBalances, transactions]);
+
+  // This represents the actual balance in the savings account
   const currentMonth = now.getMonth();
+  const monthsElapsed = currentMonth + 1;
   const savingsGoalMetrics = useMemo(() => {
-    return TransactionService.calculateSavingsGoalMetrics(transactions, currentMonth);
-  }, [transactions, currentMonth]);
+    const monthlyAverage = risparmiCasaBalance / monthsElapsed;
+    const projected = monthlyAverage * 12;
+
+    return {
+      total: risparmiCasaBalance,
+      monthlyAverage,
+      projected,
+    };
+  }, [risparmiCasaBalance, monthsElapsed]);
 
   // Month navigation handlers
   const handlePreviousMonth = () => {

@@ -108,8 +108,7 @@ export function GroupedTransactionCard({
         return "bg-primary/10 text-primary"; // Standard primary for informative context
       }
     }
-    // Transfer type uses neutral/muted background
-    if (transaction.type === "transfer") return "bg-muted/50 text-primary";
+    // All transaction types use primary color
     return "bg-primary/10 text-primary";
   };
 

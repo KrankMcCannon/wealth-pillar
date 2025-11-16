@@ -6,22 +6,29 @@
 
 import { Suspense } from 'react';
 import { getDashboardData } from '@/lib/auth/get-dashboard-data';
-import { TransactionService, CategoryService } from '@/lib/services';
-import ReportsContent from './reports-content';
+import { TransactionService, CategoryService, AccountService } from '@/lib/services';
 import { PageLoader } from '@/src/components/shared';
+import ReportsContent from './reports-content';
 
 export default async function ReportsPage() {
   const { currentUser, groupUsers } = await getDashboardData();
 
   // Fetch data in parallel for optimal performance
-  const [transactionsResult, categoriesResult] = await Promise.all([
+  const [transactionsResult, categoriesResult, accountsResult] = await Promise.all([
     TransactionService.getTransactionsByGroup(currentUser.group_id),
     CategoryService.getAllCategories(),
+    AccountService.getAccountsByGroup(currentUser.group_id),
   ]);
 
   // Calculate metrics using business logic in service layer
-  const metrics = TransactionService.calculateReportMetrics(
-    transactionsResult.data || []
+  const metrics = TransactionService.calculateReportMetrics(transactionsResult.data || []);
+
+  // Reuse the same balance calculation used by Accounts/Dashboard pages
+  const accounts = accountsResult.data || [];
+  const transactions = transactionsResult.data || [];
+  const accountBalances = AccountService.calculateAccountBalances(
+    accounts.map((account) => account.id),
+    transactions
   );
 
   return (
@@ -29,7 +36,9 @@ export default async function ReportsPage() {
       <ReportsContent
         currentUser={currentUser}
         groupUsers={groupUsers}
-        transactions={transactionsResult.data || []}
+        accounts={accounts}
+        accountBalances={accountBalances}
+        transactions={transactions}
         categories={categoriesResult.data || []}
         initialMetrics={metrics}
       />
