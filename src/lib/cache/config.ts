@@ -133,4 +133,31 @@ export const cacheOptions = {
     revalidate: CACHE_TTL.CATEGORY,
     tags: [CACHE_TAGS.CATEGORIES],
   }),
+
+  /**
+   * Account cache options
+   * @param accountId - Account ID for tag
+   */
+  account: (accountId: string) => ({
+    revalidate: CACHE_TTL.ACCOUNT,
+    tags: [CACHE_TAGS.ACCOUNTS, CACHE_TAGS.ACCOUNT(accountId)],
+  }),
+
+  /**
+   * Accounts by user cache options
+   * @param userId - User ID for tag
+   */
+  accountsByUser: (userId: string) => ({
+    revalidate: CACHE_TTL.ACCOUNT,
+    tags: [CACHE_TAGS.ACCOUNTS, `user:${userId}:accounts`],
+  }),
+
+  /**
+   * Accounts by group cache options
+   * @param groupId - Group ID for tag
+   */
+  accountsByGroup: (groupId: string) => ({
+    revalidate: CACHE_TTL.ACCOUNT,
+    tags: [CACHE_TAGS.ACCOUNTS, `group:${groupId}:accounts`],
+  }),
 } as const;

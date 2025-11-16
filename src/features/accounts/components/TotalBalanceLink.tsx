@@ -10,18 +10,30 @@
 import { CreditCard, ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { accountStyles } from "../theme/account-styles";
+import { formatCurrency } from "@/lib/utils";
 
 interface TotalBalanceLinkProps {
   totalBalance: number;
   accountCount: number;
+  selectedUserId?: string;
 }
 
-export const TotalBalanceLink = ({ totalBalance, accountCount }: TotalBalanceLinkProps) => {
+export const TotalBalanceLink = ({ totalBalance, accountCount, selectedUserId }: TotalBalanceLinkProps) => {
   const router = useRouter();
   const isPositive = totalBalance >= 0;
 
+  const handleClick = () => {
+    // Navigate to accounts page with userId filter if a specific user is selected
+    if (selectedUserId) {
+      router.push(`/accounts?userId=${selectedUserId}`);
+    } else {
+      router.push("/accounts");
+    }
+  };
+
   return (
-    <div className={accountStyles.totalBalanceLink.container} onClick={() => router.push("/accounts")}>
+    <div className={accountStyles.totalBalanceLink.container} onClick={handleClick}>
+
       {/* Left Section - Balance Info */}
       <div className={accountStyles.totalBalanceLink.leftSection}>
         <div className={accountStyles.totalBalanceLink.icon}>
@@ -34,7 +46,7 @@ export const TotalBalanceLink = ({ totalBalance, accountCount }: TotalBalanceLin
               isPositive ? accountStyles.totalBalanceLink.valuePositive : accountStyles.totalBalanceLink.valueNegative
             }
           >
-            {totalBalance}
+            {formatCurrency(totalBalance)}
           </p>
         </div>
       </div>

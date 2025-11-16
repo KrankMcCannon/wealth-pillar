@@ -31,8 +31,9 @@ import {
   TransactionListSkeleton,
   RecurringSeriesSkeleton,
 } from "@/src/features/transactions/components/transaction-skeletons";
-import type { User, Transaction, Category } from "@/lib/types";
-import { TransactionService, CategoryService } from "@/lib/services";
+import type { User, Transaction, Category, Account } from "@/lib/types";
+import { TransactionService, CategoryService, AccountService } from "@/lib/services";
+import { formatCurrency } from "@/lib/utils";
 
 /**
  * Transactions Content Props
@@ -42,6 +43,7 @@ interface TransactionsContentProps {
   groupUsers: User[];
   transactions: Transaction[];
   categories: Category[];
+  accounts: Account[];
 }
 
 /**
@@ -53,6 +55,7 @@ export default function TransactionsContent({
   groupUsers,
   transactions,
   categories,
+  accounts,
 }: TransactionsContentProps) {
   const router = useRouter();
 
@@ -65,6 +68,15 @@ export default function TransactionsContent({
   const [isRecurringFormOpen, setIsRecurringFormOpen] = useState(false);
 
   const selectedUserId = selectedGroupFilter === 'all' ? undefined : selectedGroupFilter;
+
+  // Create account names map for display
+  const accountNames = useMemo(() => {
+    const names: Record<string, string> = {};
+    accounts.forEach((account) => {
+      names[account.id] = account.name;
+    });
+    return names;
+  }, [accounts]);
 
   // Filter transactions by selected user
   const filteredTransactions = useMemo(() => {
@@ -231,7 +243,7 @@ export default function TransactionsContent({
                                 : transactionStyles.dayGroup.statsTotalValueNegative
                             }`}
                           >
-                            €{Math.abs(total).toFixed(2)}
+                            {formatCurrency(Math.abs(total))}
                           </span>
                         </div>
                         <div className={transactionStyles.dayGroup.statsCount}>
@@ -241,7 +253,7 @@ export default function TransactionsContent({
                     </div>
                     <GroupedTransactionCard
                       transactions={dayTransactions}
-                      accountNames={{}}
+                      accountNames={accountNames}
                       variant="regular"
                       categories={categories}
                       onEditTransaction={handleEditTransaction}

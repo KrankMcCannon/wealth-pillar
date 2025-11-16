@@ -3,6 +3,7 @@
 import { Badge, Button, Card } from "@/src/components/ui";
 import { CategoryIcon, iconSizes, Transaction, Category } from "@/src/lib";
 import { CategoryService } from "@/lib/services";
+import { formatCurrency } from "@/lib/utils";
 import { Trash2 } from "lucide-react";
 
 interface GroupedTransactionCardProps {
@@ -19,6 +20,7 @@ interface GroupedTransactionCardProps {
 
 export function GroupedTransactionCard({
   transactions,
+  accountNames,
   variant = "regular",
   showHeader = false,
   totalAmount,
@@ -163,12 +165,12 @@ export function GroupedTransactionCard({
                   <h4 className="font-medium transition-colors truncate text-sm">{transaction.description}</h4>
                   <div className="flex items-center gap-1.5 mt-0.5">
                     <span className="text-xs text-foreground/60">{getCategoryLabel(transaction.category)}</span>
-                    {/* {variant === "regular" && transaction.account_id && accountNames[transaction.account_id] && (
+                    {variant === "regular" && transaction.account_id && accountNames[transaction.account_id] && (
                       <>
                         <span className="text-xs text-primary/40">•</span>
                         <span className="text-xs text-foreground/50">{accountNames[transaction.account_id]}</span>
                       </>
-                    )} */}
+                    )}
                     {variant === "recurrent" && transaction.frequency && (
                       <>
                         <span className="text-xs text-primary/40">•</span>
@@ -205,7 +207,7 @@ export function GroupedTransactionCard({
 
                 <div className="text-right">
                   <p className={`text-sm font-bold ${getTransactionAmountColor(transaction)}`}>
-                    €{Math.abs(transaction.amount).toFixed(2)}
+                    {formatCurrency(Math.abs(transaction.amount))}
                   </p>
                   {variant === "recurrent" && transaction.frequency && transaction.frequency !== "once" && (
                     <p className={`text-xs mt-0.5 font-medium ${getTransactionAmountColor(transaction)}`}>

@@ -4,3 +4,4 @@
 export * from "./ui-variants";
 export * from "./date-formatter";
 export * from "./currency-formatter";
+export * from "./string-formatter";

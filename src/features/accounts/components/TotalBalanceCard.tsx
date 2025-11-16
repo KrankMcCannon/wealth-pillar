@@ -7,6 +7,7 @@
 
 import { CreditCard, TrendingUp, TrendingDown } from "lucide-react";
 import { accountStyles } from "../theme/account-styles";
+import { formatCurrency } from "@/lib/utils";
 
 const shimmerBase =
   "relative overflow-hidden before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_2s_infinite] before:bg-gradient-to-r before:from-transparent before:via-white/60 before:to-transparent";
@@ -75,7 +76,7 @@ export const TotalBalanceCard = ({
             <p
               className={isPositive ? accountStyles.balanceCard.valuePositive : accountStyles.balanceCard.valueNegative}
             >
-              {totalBalance}
+              {formatCurrency(totalBalance)}
             </p>
           </div>
           <div className={accountStyles.balanceCard.iconContainer}>

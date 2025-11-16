@@ -549,6 +549,48 @@ export class TransactionService {
   }
 
   /**
+   * Calculate balance from transactions of a specific category (Pure business logic)
+   * Useful for calculating category-specific balances like "risparmi" (savings)
+   *
+   * Balance calculation:
+   * - Income type: add amount
+   * - Expense type: subtract amount
+   * - Transfer type: ignored (doesn't affect category balance)
+   *
+   * @param transactions - All transactions
+   * @param categoryKey - Category to calculate balance for
+   * @returns Total balance for the category
+   *
+   * @example
+   * const risparmiBalance = TransactionService.calculateCategoryBalance(transactions, 'risparmi');
+   *
+   * @complexity O(n)
+   */
+  static calculateCategoryBalance(
+    transactions: Transaction[],
+    categoryKey: string
+  ): number {
+    return transactions.reduce((balance, transaction) => {
+      // Only process transactions matching the category
+      if (transaction.category !== categoryKey) {
+        return balance;
+      }
+
+      // Income adds to balance
+      if (transaction.type === 'income') {
+        return balance + transaction.amount;
+      }
+      // Expense subtracts from balance
+      else if (transaction.type === 'expense') {
+        return balance - transaction.amount;
+      }
+
+      // Transfers are ignored for category balance
+      return balance;
+    }, 0);
+  }
+
+  /**
    * Calculate savings goal metrics from "risparmi" category transactions
    * Used specifically for savings goal tracking (considers all transaction types with "risparmi" category)
    * Note: Adds all amounts directly without conditional logic based on type

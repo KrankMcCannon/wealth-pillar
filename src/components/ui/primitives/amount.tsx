@@ -12,7 +12,7 @@
  */
 
 import * as React from "react";
-import { amountVariants, AmountVariants, cn } from '@/src/lib';
+import { amountVariants, AmountVariants, cn, formatCurrency } from '@/src/lib';
 
 export interface AmountProps
   extends React.HTMLAttributes<HTMLSpanElement>,
@@ -33,7 +33,7 @@ export function Amount({
   ...props
 }: Readonly<AmountProps>) {
   const value = typeof children === "number" ? children : Number.parseFloat(children);
-  const formatted = currency ? value : value.toFixed(2);
+  const formatted = currency ? formatCurrency(value) : value.toFixed(2);
 
   return (
     <span

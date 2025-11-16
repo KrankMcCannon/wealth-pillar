@@ -12,6 +12,8 @@ interface BalanceSectionProps {
   users: User[];
   accountBalances: Record<string, number>;
   totalBalance: number;
+  totalAccountsCount?: number;
+  selectedUserId?: string;
   onAccountClick: (id: string) => void;
   isLoading?: boolean;
 }
@@ -34,6 +36,8 @@ export const BalanceSection = ({
   accounts,
   accountBalances,
   totalBalance,
+  totalAccountsCount,
+  selectedUserId,
   onAccountClick,
   isLoading = false,
 }: BalanceSectionProps) => {
@@ -45,6 +49,9 @@ export const BalanceSection = ({
     return <BalanceSectionSkeleton />;
   }
 
+  // Use provided totalAccountsCount or fall back to displayed accounts length
+  const accountCount = totalAccountsCount !== undefined ? totalAccountsCount : accounts.length;
+
   return (
     <section className="bg-card p-4 shadow-sm">
       {/* Account Slider Section */}
@@ -53,7 +60,7 @@ export const BalanceSection = ({
       </Suspense>
 
       {/* Total Balance Link Section */}
-      <TotalBalanceLink totalBalance={totalBalance} accountCount={accounts.length} />
+      <TotalBalanceLink totalBalance={totalBalance} accountCount={accountCount} selectedUserId={selectedUserId} />
     </section>
   );
 };

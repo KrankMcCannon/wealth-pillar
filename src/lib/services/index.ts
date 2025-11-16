@@ -17,6 +17,7 @@
 // Export all services
 export { UserService } from './user.service';
 export { GroupService } from './group.service';
+export { AccountService } from './account.service';
 export { TransactionService } from './transaction.service';
 export { CategoryService } from './category.service';
 

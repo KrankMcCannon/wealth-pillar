@@ -14,7 +14,7 @@
  * Data is passed from Server Component for optimal performance
  */
 
-import { Suspense, useState } from "react";
+import { Suspense, useState, useMemo } from "react";
 import { Settings, Bell, AlertTriangle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import BottomNavigation from "@/components/layout/bottom-navigation";
@@ -32,7 +32,8 @@ import UserSelector from "@/components/shared/user-selector";
 import { BalanceSection } from "@/features/accounts";
 import { BudgetSection } from "@/features/budgets";
 import { RecurringSeriesForm, RecurringSeriesSection } from "@/features/recurring";
-import type { User } from "@/lib/types";
+import { AccountService } from "@/lib/services";
+import type { User, Account, Transaction } from "@/lib/types";
 
 /**
  * Dashboard Content Props
@@ -40,6 +41,9 @@ import type { User } from "@/lib/types";
 interface DashboardContentProps {
   currentUser: User;
   groupUsers: User[];
+  accounts: Account[];
+  accountBalances: Record<string, number>;
+  transactions: Transaction[];
 }
 
 /**
@@ -48,26 +52,95 @@ interface DashboardContentProps {
  * Handles full dashboard UI with four main sections
  * Receives data from Server Component parent
  */
-export default function DashboardContent({ currentUser, groupUsers }: DashboardContentProps) {
+export default function DashboardContent({ currentUser, groupUsers, accounts, accountBalances }: DashboardContentProps) {
   const router = useRouter();
 
   // State management for user filtering
   const [selectedGroupFilter, setSelectedGroupFilter] = useState<string>('all');
+
+  // Determine selected user ID (undefined for 'all', user ID otherwise)
+  const selectedUserId = selectedGroupFilter === 'all' ? undefined : selectedGroupFilter;
+
+  // Filter default accounts based on selected user and sort by balance
+  const displayedDefaultAccounts = useMemo(() => {
+    let accountsToDisplay: Account[] = [];
+
+    // If a specific user is selected, show only that user's default account
+    if (selectedUserId) {
+      const user = groupUsers.find((u) => u.id === selectedUserId);
+      if (user?.default_account_id) {
+        const defaultAccount = accounts.find((a) => a.id === user.default_account_id);
+        accountsToDisplay = defaultAccount ? [defaultAccount] : [];
+      }
+    } else {
+      // If "all" is selected, show all users' default accounts
+      accountsToDisplay = AccountService.getDefaultAccounts(accounts, groupUsers);
+    }
+
+    // Sort accounts by balance (descending - highest first)
+    return accountsToDisplay.sort((a, b) => {
+      const balanceA = accountBalances[a.id] || 0;
+      const balanceB = accountBalances[b.id] || 0;
+      return balanceB - balanceA;
+    });
+  }, [selectedUserId, accounts, groupUsers, accountBalances]);
+
+  // Get all accounts for the selected user (or all accounts if "all" selected)
+  const userAccounts = useMemo(() => {
+    if (selectedUserId) {
+      return AccountService.filterAccountsByUser(accounts, selectedUserId);
+    }
+    return accounts;
+  }, [selectedUserId, accounts]);
+
+  // Calculate total account count for selected user
+  const totalAccountsCount = userAccounts.length;
+
+  // Calculate balances for displayed default accounts
+  const displayedAccountBalances = useMemo(() => {
+    const displayedAccountIds = new Set(displayedDefaultAccounts.map((account) => account.id));
+    return Object.fromEntries(
+      Object.entries(accountBalances).filter(([accountId]) => displayedAccountIds.has(accountId))
+    );
+  }, [displayedDefaultAccounts, accountBalances]);
+
+  // Calculate total balance based on selection
+  const totalBalance = useMemo(() => {
+    let balance = 0;
+
+    if (selectedUserId) {
+      // When a specific user is selected:
+      // Sum of user's account balances + "Risparmi Casa" account balance
+      const userAccountIds = userAccounts.map((a) => a.id);
+      balance = userAccountIds.reduce((sum, accountId) => {
+        return sum + (accountBalances[accountId] || 0);
+      }, 0);
+
+      // Find and add "Risparmi Casa" account balance
+      const risparmiCasaAccount = accounts.find((a) => a.name === 'Risparmi Casa');
+      if (risparmiCasaAccount) {
+        balance += accountBalances[risparmiCasaAccount.id] || 0;
+      }
+    } else {
+      // When "all" is selected: Sum of all account balances
+      balance = Object.values(accountBalances).reduce((sum, bal) => sum + bal, 0);
+    }
+
+    // Round to avoid floating point precision issues
+    return Math.round(balance * 100) / 100;
+  }, [selectedUserId, userAccounts, accounts, accountBalances]);
 
   // State management for recurring series modal
   const [isRecurringFormOpen, setIsRecurringFormOpen] = useState(false);
   const [selectedSeries, setSelectedSeries] = useState<any>(undefined);
   const [formMode, setFormMode] = useState<'create' | 'edit' | undefined>(undefined);
 
-  // Determine selected user ID (null for 'all', user ID otherwise)
-  const selectedUserId = selectedGroupFilter === 'all' ? undefined : selectedGroupFilter;
-
   // Handler for group filter changes
   const handleGroupFilterChange = (userId: string) => {
     setSelectedGroupFilter(userId);
   };
 
-  // Handler for account clicks
+  // Handler for individual account card clicks
   const handleAccountClick = () => {
     router.push('/accounts');
   };
@@ -175,13 +248,15 @@ export default function DashboardContent({ currentUser, groupUsers }: DashboardC
       </Suspense>
 
       <main className={dashboardStyles.page.main}>
-        {/* Balance Section */}
+        {/* Balance Section - Shows default accounts based on selected user */}
         <Suspense fallback={<BalanceSectionSkeleton />}>
           <BalanceSection
-            accounts={[]}
+            accounts={displayedDefaultAccounts}
             users={groupUsers}
-            accountBalances={{}}
-            totalBalance={0}
+            accountBalances={displayedAccountBalances}
+            totalBalance={totalBalance}
+            totalAccountsCount={totalAccountsCount}
+            selectedUserId={selectedUserId}
             onAccountClick={handleAccountClick}
             isLoading={false}
           />
