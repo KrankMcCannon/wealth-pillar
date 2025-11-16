@@ -18,9 +18,11 @@
 export { UserService } from './user.service';
 export { GroupService } from './group.service';
 export { TransactionService } from './transaction.service';
+export { CategoryService } from './category.service';
 
 // Export shared types
 export type { ServiceResult } from './user.service';
+export type { ReportMetrics, CategoryMetric } from './transaction.service';
 
 /**
  * Service Layer Documentation

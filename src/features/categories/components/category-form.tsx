@@ -1,6 +1,8 @@
 "use client";
 
+import { useMemo } from "react";
 import { Category, cn } from "@/src/lib";
+import { CategoryService } from "@/lib/services";
 import {
   FormActions,
   FormField,
@@ -18,45 +20,26 @@ interface CategoryFormProps {
   mode?: "create" | "edit";
 }
 
-// Predefined color palette for categories
-const COLOR_PALETTE = [
-  { name: "Rosso", value: "#EF4444" },
-  { name: "Arancione", value: "#F97316" },
-  { name: "Ambra", value: "#F59E0B" },
-  { name: "Giallo", value: "#EAB308" },
-  { name: "Verde", value: "#22C55E" },
-  { name: "Smeraldo", value: "#10B981" },
-  { name: "Turchese", value: "#14B8A6" },
-  { name: "Ciano", value: "#06B6D4" },
-  { name: "Blu", value: "#3B82F6" },
-  { name: "Indaco", value: "#6366F1" },
-  { name: "Viola", value: "#8B5CF6" },
-  { name: "Porpora", value: "#A855F7" },
-  { name: "Rosa", value: "#EC4899" },
-  { name: "Fucsia", value: "#D946EF" },
-  { name: "Grigio", value: "#6B7280" },
-  { name: "Ardesia", value: "#475569" },
-];
-
 export function CategoryForm({ isOpen, onOpenChange, mode = "create" }: Readonly<CategoryFormProps>) {
   const title = mode === "edit" ? "Modifica Categoria" : "Nuova Categoria";
   const description = mode === "edit" ? "Aggiorna i dettagli della categoria" : "Crea una nuova categoria";
+
+  // Get color palette from CategoryService (avoids code duplication)
+  const colorPalette = useMemo(() => CategoryService.getColorPalette(), []);
 
   const handleSubmit = async (e?: React.FormEvent | React.MouseEvent) => {
     if (e) {
       e.preventDefault?.();
     }
-    // try {
-    //   // submit() returns { hasErrors } synchronously for validation, throws if mutation fails
-    //   const result = await controller.submit();
-    //   // Only close modal if submission succeeded (no validation/mutation errors)
-    //   if (!result.hasErrors && !controller.mutationError) {
-    //     onOpenChange(false);
-    //   }
-    // } catch (err) {
-    //   // Error is captured in controller.mutationError and will be displayed to user
-    //   // Don't close modal on error - user can retry
+    // TODO: Implement submission logic using CategoryService.validateCategoryData()
+    // Example:
+    // const validation = CategoryService.validateCategoryData({ label, icon, color });
+    // if (!validation.isValid) {
+    //   setError(validation.error);
+    //   return;
     // }
+    // await createCategory({ label, icon, color });
+    // onOpenChange(false);
   };
 
   return (
@@ -95,7 +78,7 @@ export function CategoryForm({ isOpen, onOpenChange, mode = "create" }: Readonly
             <FormField label="Colore" required error={""}>
               <div className="space-y-3">
                 <div className="grid grid-cols-8 gap-2">
-                  {COLOR_PALETTE.map((color) => (
+                  {colorPalette.map((color) => (
                     <button
                       key={color.value}
                       type="button"
@@ -125,7 +108,11 @@ export function CategoryForm({ isOpen, onOpenChange, mode = "create" }: Readonly
                     </button>
                   ))}
                 </div>
-                <Input value={""} onChange={() => {}} placeholder="#6366F1" />
+                <Input
+                  value={""}
+                  onChange={() => {}}
+                  placeholder={CategoryService.getDefaultColor()}
+                />
               </div>
             </FormField>
           </ModalSection>

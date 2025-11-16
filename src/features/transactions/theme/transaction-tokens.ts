@@ -140,7 +140,7 @@ export const transactionComponents = {
     stats: 'text-right',
     statsLabel: 'text-sm',
     statsValue: 'text-sm font-bold',
-    statsValuePositive: 'text-primary',
+    statsValuePositive: 'text-success',
     statsValueNegative: 'text-destructive',
     count: 'text-xs mt-0.5',
   },

@@ -1,7 +1,8 @@
 "use client";
 
 import { Badge, Button, Card } from "@/src/components/ui";
-import { CategoryIcon, iconSizes, Transaction } from "@/src/lib";
+import { CategoryIcon, iconSizes, Transaction, Category } from "@/src/lib";
+import { CategoryService } from "@/lib/services";
 import { Trash2 } from "lucide-react";
 
 interface GroupedTransactionCardProps {
@@ -11,6 +12,7 @@ interface GroupedTransactionCardProps {
   showHeader?: boolean;
   totalAmount?: number;
   context?: "due" | "informative"; // New context parameter
+  categories?: Category[]; // Categories for displaying labels
   onEditTransaction?: (transaction: Transaction) => void; // Callback for editing
   onDeleteTransaction?: (transactionId: string) => void; // Callback for deleting
 }
@@ -21,10 +23,16 @@ export function GroupedTransactionCard({
   showHeader = false,
   totalAmount,
   context = "informative",
+  categories = [],
   onEditTransaction,
   onDeleteTransaction,
 }: GroupedTransactionCardProps) {
   if (!transactions.length) return null;
+
+  // Helper to get category label
+  const getCategoryLabel = (categoryKey: string) => {
+    return CategoryService.getCategoryLabel(categories, categoryKey);
+  };
 
   const getCardStyles = () => {
     switch (variant) {
@@ -81,6 +89,8 @@ export function GroupedTransactionCard({
         return "text-primary"; // Standard primary for informative context
       }
     }
+    // Transfer type uses neutral color (not calculated in daily totals)
+    if (transaction.type === "transfer") return "text-primary";
     return transaction.type === "income" ? "text-success" : "text-destructive";
   };
 
@@ -96,6 +106,8 @@ export function GroupedTransactionCard({
         return "bg-primary/10 text-primary"; // Standard primary for informative context
       }
     }
+    // Transfer type uses neutral/muted background
+    if (transaction.type === "transfer") return "bg-muted/50 text-primary";
     return "bg-primary/10 text-primary";
   };
 
@@ -150,13 +162,13 @@ export function GroupedTransactionCard({
                 <div className="flex-1 min-w-0">
                   <h4 className="font-medium transition-colors truncate text-sm">{transaction.description}</h4>
                   <div className="flex items-center gap-1.5 mt-0.5">
-                    <span className="text-xs text-foreground/60">{""}</span>
-                    {variant === "regular" && (
+                    <span className="text-xs text-foreground/60">{getCategoryLabel(transaction.category)}</span>
+                    {/* {variant === "regular" && transaction.account_id && accountNames[transaction.account_id] && (
                       <>
                         <span className="text-xs text-primary/40">•</span>
-                        <span className="text-xs text-foreground/50">{""}</span>
+                        <span className="text-xs text-foreground/50">{accountNames[transaction.account_id]}</span>
                       </>
-                    )}
+                    )} */}
                     {variant === "recurrent" && transaction.frequency && (
                       <>
                         <span className="text-xs text-primary/40">•</span>
@@ -192,7 +204,9 @@ export function GroupedTransactionCard({
                 )}
 
                 <div className="text-right">
-                  <p className={`text-sm font-bold ${getTransactionAmountColor(transaction)}`}>{""}</p>
+                  <p className={`text-sm font-bold ${getTransactionAmountColor(transaction)}`}>
+                    €{Math.abs(transaction.amount).toFixed(2)}
+                  </p>
                   {variant === "recurrent" && transaction.frequency && transaction.frequency !== "once" && (
                     <p className={`text-xs mt-0.5 font-medium ${getTransactionAmountColor(transaction)}`}>
                       Serie ricorrente - {transaction.frequency}

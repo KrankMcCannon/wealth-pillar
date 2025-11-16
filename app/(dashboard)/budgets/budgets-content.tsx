@@ -33,12 +33,20 @@ import { TransactionForm } from "@/features/transactions";
 import { Suspense } from "react";
 import { budgetStyles } from "@/features/budgets/theme/budget-styles";
 import type { DashboardDataProps } from "@/lib/auth/get-dashboard-data";
+import type { Category } from "@/lib/types";
+
+/**
+ * Budgets Content Props
+ */
+interface BudgetsContentProps extends DashboardDataProps {
+  categories: Category[];
+}
 
 /**
  * Budgets Content Component
  * Receives user data from Server Component parent
  */
-export default function BudgetsContent({ currentUser, groupUsers }: DashboardDataProps) {
+export default function BudgetsContent({ currentUser, groupUsers, categories }: BudgetsContentProps) {
   const router = useRouter();
 
   // State management
@@ -181,6 +189,7 @@ export default function BudgetsContent({ currentUser, groupUsers }: DashboardDat
         selectedUserId={undefined}
         budget={undefined}
         mode={undefined}
+        categories={categories}
       />
 
       <CategoryForm isOpen={false} onOpenChange={() => {}} mode="create" />

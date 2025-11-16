@@ -226,4 +226,25 @@ export class UserService {
       };
     }
   }
+
+  /**
+   * Get user name from user ID (client-side helper)
+   * Pure function for getting user name from a list of users
+   * Does not require database access - used in components with user data already loaded
+   *
+   * @param userId - User ID to look up
+   * @param users - Array of users to search through
+   * @returns User name or 'Sconosciuto' if not found
+   *
+   * @example
+   * const userName = UserService.getUserName(userId, groupUsers);
+   */
+  static getUserName(
+    userId: string | null,
+    users: Array<{ id: string; name: string }>
+  ): string {
+    if (!userId) return 'Sconosciuto';
+    const user = users.find((u) => u.id === userId);
+    return user?.name || 'Sconosciuto';
+  }
 }

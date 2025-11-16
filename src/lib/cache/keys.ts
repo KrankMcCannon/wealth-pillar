@@ -101,3 +101,25 @@ export const transactionCacheKeys = {
    */
   byGroup: (groupId: string) => ['transactions', 'group', groupId] as const,
 } as const;
+
+/**
+ * Category-related cache keys
+ */
+export const categoryCacheKeys = {
+  /**
+   * Cache key for category by ID
+   * @param categoryId - Category ID
+   */
+  byId: (categoryId: string) => ['category', 'id', categoryId] as const,
+
+  /**
+   * Cache key for category by key
+   * @param key - Category unique key
+   */
+  byKey: (key: string) => ['category', 'key', key] as const,
+
+  /**
+   * Cache key for all categories
+   */
+  all: () => ['categories'] as const,
+} as const;

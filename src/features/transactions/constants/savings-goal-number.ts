@@ -1,0 +1,1 @@
+export const SAVINGS_GOAL_NUMBER = 10000;

@@ -1,0 +1,1 @@
+export { SAVINGS_GOAL_NUMBER } from "./savings-goal-number";

@@ -115,4 +115,22 @@ export const cacheOptions = {
     revalidate: CACHE_TTL.TRANSACTION,
     tags: [CACHE_TAGS.TRANSACTIONS, `group:${groupId}:transactions`],
   }),
+
+  /**
+   * Category cache options
+   * @param categoryId - Category ID for tag
+   */
+  category: (categoryId: string) => ({
+    revalidate: CACHE_TTL.CATEGORY,
+    tags: [CACHE_TAGS.CATEGORIES, CACHE_TAGS.CATEGORY(categoryId)],
+  }),
+
+  /**
+   * All categories cache options
+   * Categories rarely change, so longer TTL
+   */
+  allCategories: () => ({
+    revalidate: CACHE_TTL.CATEGORY,
+    tags: [CACHE_TAGS.CATEGORIES],
+  }),
 } as const;

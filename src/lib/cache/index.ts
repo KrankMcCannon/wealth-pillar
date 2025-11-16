@@ -46,4 +46,5 @@ export {
   groupCacheKeys,
   accountCacheKeys,
   transactionCacheKeys,
+  categoryCacheKeys,
 } from './keys';

@@ -31,8 +31,8 @@ import {
   TransactionListSkeleton,
   RecurringSeriesSkeleton,
 } from "@/src/features/transactions/components/transaction-skeletons";
-import type { User, Transaction } from "@/lib/types";
-import { TransactionService } from "@/lib/services";
+import type { User, Transaction, Category } from "@/lib/types";
+import { TransactionService, CategoryService } from "@/lib/services";
 
 /**
  * Transactions Content Props
@@ -41,13 +41,19 @@ interface TransactionsContentProps {
   currentUser: User;
   groupUsers: User[];
   transactions: Transaction[];
+  categories: Category[];
 }
 
 /**
  * Transactions Content Component
  * Handles interactive transactions UI with state management
  */
-export default function TransactionsContent({ currentUser, groupUsers, transactions }: TransactionsContentProps) {
+export default function TransactionsContent({
+  currentUser,
+  groupUsers,
+  transactions,
+  categories,
+}: TransactionsContentProps) {
   const router = useRouter();
 
   // State management
@@ -237,6 +243,7 @@ export default function TransactionsContent({ currentUser, groupUsers, transacti
                       transactions={dayTransactions}
                       accountNames={{}}
                       variant="regular"
+                      categories={categories}
                       onEditTransaction={handleEditTransaction}
                       onDeleteTransaction={handleDeleteTransaction}
                     />

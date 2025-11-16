@@ -1,6 +1,6 @@
 "use client";
 
-import { Budget } from "@/src/lib";
+import { Budget, Category } from "@/src/lib";
 import {
   AmountField,
   FormActions,
@@ -13,6 +13,7 @@ import {
   ModalWrapper,
   UserField,
 } from "@/src/components/ui";
+import { useMemo } from "react";
 
 interface BudgetFormProps {
   isOpen: boolean;
@@ -20,11 +21,21 @@ interface BudgetFormProps {
   selectedUserId?: string;
   budget?: Budget; // For editing existing budgets
   mode?: "create" | "edit";
+  categories?: Category[];
 }
 
-export function BudgetForm({ isOpen, onOpenChange, selectedUserId, mode = "create" }: BudgetFormProps) {
+export function BudgetForm({ isOpen, onOpenChange, selectedUserId, mode = "create", categories = [] }: BudgetFormProps) {
   const title = mode === "edit" ? "Modifica Budget" : "Nuovo Budget";
   const description = mode === "edit" ? "Aggiorna i dettagli del budget" : "Crea un nuovo budget";
+
+  // Convert categories to checkbox options
+  const categoryOptions = useMemo(() => {
+    return categories.map((category) => ({
+      value: category.id,
+      label: category.label,
+      color: category.color,
+    }));
+  }, [categories]);
 
   const handleSubmit = async (e?: React.FormEvent | React.MouseEvent) => {
     if (e) {
@@ -95,7 +106,7 @@ export function BudgetForm({ isOpen, onOpenChange, selectedUserId, mode = "creat
               <FormCheckboxGroup
                 value={[]}
                 onChange={() => {}}
-                options={[]}
+                options={categoryOptions}
                 showSearch
                 showSelectAll
                 maxHeight="200px"
