@@ -7,8 +7,8 @@
  * Data is passed from Server Component for optimal performance
  */
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useMemo } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import BottomNavigation from "@/components/layout/bottom-navigation";
 import UserSelector from "@/components/shared/user-selector";
 import { BudgetForm } from "@/features/budgets";
@@ -16,14 +16,12 @@ import {
   BudgetHeader,
   BudgetSelector,
   BudgetDisplayCard,
-  BudgetMetrics,
   BudgetProgress,
   BudgetChart,
   BudgetTransactionsList,
   BudgetEmptyState,
   BudgetSelectorSkeleton,
   BudgetCardSkeleton,
-  BudgetMetricsSkeleton,
   BudgetProgressSkeleton,
   BudgetChartSkeleton,
   BudgetTransactionsListSkeleton,
@@ -32,26 +30,277 @@ import { CategoryForm } from "@/features/categories";
 import { TransactionForm } from "@/features/transactions";
 import { Suspense } from "react";
 import { budgetStyles } from "@/features/budgets/theme/budget-styles";
+import { BudgetService, CategoryService } from "@/lib/services";
 import type { DashboardDataProps } from "@/lib/auth/get-dashboard-data";
-import type { Category } from "@/lib/types";
+import type { Category, Budget, Transaction, Account } from "@/lib/types";
+import type { GroupedTransaction } from "@/features/budgets/components/BudgetTransactionsList";
+import type { ChartDataPoint } from "@/features/budgets/components/BudgetChart";
 
 /**
  * Budgets Content Props
  */
 interface BudgetsContentProps extends DashboardDataProps {
   categories: Category[];
+  budgets: Budget[];
+  transactions: Transaction[];
+  accounts: Account[];
 }
 
 /**
  * Budgets Content Component
  * Receives user data from Server Component parent
  */
-export default function BudgetsContent({ currentUser, groupUsers, categories }: BudgetsContentProps) {
+export default function BudgetsContent({ currentUser, groupUsers, categories, budgets, transactions, accounts }: BudgetsContentProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
-  // State management
-  const [selectedGroupFilter, setSelectedGroupFilter] = useState<string>("all");
+  // Read URL params for initial state
+  const initialBudgetId = searchParams.get('budget');
+  const initialMember = searchParams.get('member');
+
+  // State management - initialize from URL params
+  const [selectedGroupFilter, setSelectedGroupFilter] = useState<string>(initialMember || "all");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [selectedBudgetId, setSelectedBudgetId] = useState<string | null>(initialBudgetId);
+
+  // Form states
+  const [isBudgetFormOpen, setIsBudgetFormOpen] = useState(false);
+  const [isTransactionFormOpen, setIsTransactionFormOpen] = useState(false);
+  const [isCategoryFormOpen, setIsCategoryFormOpen] = useState(false);
+  const [editingBudget, setEditingBudget] = useState<Budget | undefined>(undefined);
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | undefined>(undefined);
+  const [formMode, setFormMode] = useState<'create' | 'edit'>('create');
+
+  // Determine selected user ID
+  const selectedUserId = selectedGroupFilter === 'all' ? undefined : selectedGroupFilter;
+
+  // Calculate budgets by user using BudgetService
+  const budgetsByUser = useMemo(() => {
+    return BudgetService.buildBudgetsByUser(groupUsers, budgets, transactions);
+  }, [groupUsers, budgets, transactions]);
+
+  // Get selected budget - find from ALL budgets first, then determine filter
+  const selectedBudget = useMemo(() => {
+    if (selectedBudgetId) {
+      // Find budget by ID from all budgets
+      const budget = budgets.find(b => b.id === selectedBudgetId);
+      if (budget) return budget;
+    }
+
+    // If no selectedBudgetId or not found, get first budget based on filter
+    if (selectedGroupFilter === 'all') {
+      return budgets[0] || null;
+    }
+
+    const userBudgets = budgets.filter(b => b.user_id === selectedGroupFilter);
+    return userBudgets[0] || budgets[0] || null;
+  }, [selectedBudgetId, selectedGroupFilter, budgets]);
+
+  // Filter budgets for selector dropdown based on selected user
+  // If selected budget belongs to a different user, show that user's budgets
+  const filteredBudgets = useMemo(() => {
+    // Determine which user's budgets to show
+    let effectiveFilter = selectedGroupFilter;
+
+    // If we have a selected budget, show budgets for that budget's owner
+    if (selectedBudget && selectedGroupFilter !== 'all') {
+      effectiveFilter = selectedBudget.user_id;
+    }
+
+    if (effectiveFilter === 'all') {
+      return budgets;
+    }
+
+    const userBudgets = budgets.filter(b => b.user_id === effectiveFilter);
+    return userBudgets.length > 0 ? userBudgets : budgets;
+  }, [budgets, selectedGroupFilter, selectedBudget]);
+
+  // Get budget progress for selected budget
+  const selectedBudgetProgress = useMemo(() => {
+    if (!selectedBudget) return null;
+
+    const user = groupUsers.find(u => u.id === selectedBudget.user_id);
+    if (!user) return null;
+
+    const userSummary = budgetsByUser[user.id];
+    if (!userSummary) return null;
+
+    return userSummary.budgets.find(b => b.id === selectedBudget.id) || null;
+  }, [selectedBudget, groupUsers, budgetsByUser]);
+
+  // Get period info for selected budget
+  const periodInfo = useMemo(() => {
+    if (!selectedBudget) return null;
+
+    const user = groupUsers.find(u => u.id === selectedBudget.user_id);
+    if (!user) return null;
+
+    const userSummary = budgetsByUser[user.id];
+    if (!userSummary) return null;
+
+    return {
+      start: userSummary.periodStart,
+      end: userSummary.periodEnd,
+      activePeriod: userSummary.activePeriod,
+    };
+  }, [selectedBudget, groupUsers, budgetsByUser]);
+
+  // Create user names map for budget selector
+  const userNamesMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    groupUsers.forEach(user => {
+      map[user.id] = user.name;
+    });
+    return map;
+  }, [groupUsers]);
+
+  // Create account names map
+  const accountNamesMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    accounts.forEach(account => {
+      map[account.id] = account.name;
+    });
+    return map;
+  }, [accounts]);
+
+  // Create category labels map
+  const categoryLabelsMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    categories.forEach(category => {
+      map[category.key] = category.label;
+    });
+    return map;
+  }, [categories]);
+
+  // Filter transactions for selected budget (by user and budget criteria)
+  const budgetTransactions = useMemo(() => {
+    if (!selectedBudget) return [];
+
+    const user = groupUsers.find(u => u.id === selectedBudget.user_id);
+    if (!user) return [];
+
+    const { periodStart, periodEnd } = BudgetService.getBudgetPeriodDates(user);
+
+    // Filter transactions by user first, then by budget criteria
+    const userTransactions = transactions.filter(t => t.user_id === selectedBudget.user_id);
+
+    return BudgetService.filterTransactionsForBudget(
+      userTransactions,
+      selectedBudget,
+      periodStart,
+      periodEnd
+    );
+  }, [selectedBudget, groupUsers, transactions]);
+
+  // Group transactions by date
+  const groupedTransactions = useMemo((): GroupedTransaction[] => {
+    if (budgetTransactions.length === 0) return [];
+
+    // Group by date
+    const groupedMap: Record<string, Transaction[]> = {};
+    budgetTransactions.forEach(transaction => {
+      const dateKey = new Date(transaction.date).toISOString().split('T')[0];
+      if (!groupedMap[dateKey]) {
+        groupedMap[dateKey] = [];
+      }
+      groupedMap[dateKey].push(transaction);
+    });
+
+    // Convert to array and sort by date (most recent first)
+    return Object.entries(groupedMap)
+      .sort(([dateA], [dateB]) => dateB.localeCompare(dateA))
+      .map(([date, txs]) => ({
+        date,
+        formattedDate: new Date(date).toLocaleDateString('it-IT', {
+          weekday: 'long',
+          day: 'numeric',
+          month: 'long',
+        }),
+        transactions: txs.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
+        total: txs.reduce((sum, t) => sum + t.amount, 0),
+      }));
+  }, [budgetTransactions]);
+
+  // Generate chart data from transactions
+  const chartData = useMemo((): ChartDataPoint[] | null => {
+    if (!periodInfo?.start || budgetTransactions.length === 0) return null;
+
+    const startDate = new Date(periodInfo.start);
+    const endDate = periodInfo.end ? new Date(periodInfo.end) : new Date();
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Calculate total days in period
+    const totalDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+    if (totalDays <= 0) return null;
+
+    // Group transactions by date and calculate cumulative spending
+    // Income transactions reduce spending (refill budget)
+    const dailySpending: Record<string, number> = {};
+    budgetTransactions.forEach(t => {
+      const dateKey = new Date(t.date).toISOString().split('T')[0];
+      const amount = t.type === 'income' ? -t.amount : t.amount;
+      dailySpending[dateKey] = (dailySpending[dateKey] || 0) + amount;
+    });
+
+    // Generate chart points
+    const points: ChartDataPoint[] = [];
+    let cumulative = 0;
+    const maxAmount = selectedBudgetProgress?.amount || 1;
+
+    for (let i = 0; i < totalDays; i++) {
+      const currentDate = new Date(startDate);
+      currentDate.setDate(startDate.getDate() + i);
+      currentDate.setHours(0, 0, 0, 0);
+      const dateKey = currentDate.toISOString().split('T')[0];
+
+      cumulative += dailySpending[dateKey] || 0;
+      const isFuture = currentDate > today;
+
+      // Scale to SVG coordinates (350 width, 180 height)
+      const x = (i / (totalDays - 1)) * 350;
+      const y = 180 - (cumulative / maxAmount) * 150; // Leave some padding at top
+
+      points.push({
+        x: Math.max(0, x),
+        y: Math.max(0, Math.min(180, y)),
+        amount: cumulative,
+        date: dateKey,
+        isFuture,
+      });
+    }
+
+    return points;
+  }, [periodInfo, budgetTransactions, selectedBudgetProgress]);
+
+  // Handlers
+  const handleBudgetSelect = (budgetId: string) => {
+    setSelectedBudgetId(budgetId);
+  };
+
+  const handleGroupFilterChange = (filter: string) => {
+    setSelectedGroupFilter(filter);
+    // Clear selected budget to auto-select first budget for new user
+    setSelectedBudgetId(null);
+  };
+
+  const handleCreateBudget = () => {
+    setEditingBudget(undefined);
+    setFormMode('create');
+    setIsBudgetFormOpen(true);
+  };
+
+  const handleEditBudget = () => {
+    if (selectedBudget) {
+      setEditingBudget(selectedBudget);
+      setFormMode('edit');
+      setIsBudgetFormOpen(true);
+    }
+  };
+
+  const handleCreateCategory = () => {
+    setIsCategoryFormOpen(true);
+  };
   return (
     <div className={budgetStyles.page.container}>
       {/* Header with navigation and actions */}
@@ -59,29 +308,11 @@ export default function BudgetsContent({ currentUser, groupUsers, categories }: 
         isDropdownOpen={isDropdownOpen}
         onOpenChange={setIsDropdownOpen}
         onBackClick={() => router.back()}
-        onCreateBudget={() => {}}
-        onCreateCategory={() => {}}
-        selectedBudget={null}
-        currentPeriod={null}
+        onCreateBudget={handleCreateBudget}
+        onCreateCategory={handleCreateCategory}
+        selectedBudget={selectedBudget}
+        currentPeriod={periodInfo?.activePeriod || null}
         onPeriodManagerSuccess={() => setIsDropdownOpen(false)}
-        // periodManagerComponent={
-        // state.selectedBudget && currentPeriod ? (
-        //   <BudgetPeriodManager
-        //     budget={state.selectedBudget}
-        //     currentPeriod={currentPeriod}
-        //     onSuccess={() => actions.setIsDropdownOpen(false)}
-        //     trigger={
-        //       <DropdownMenuItem
-        //         className={budgetStyles.dropdownMenu.item}
-        //         onSelect={(e) => e.preventDefault()}
-        //       >
-        //         <span className="mr-2">📅</span>{' '}
-        //         Gestisci Periodi
-        //       </DropdownMenuItem>
-        //     }
-        //   />
-        // ) : undefined
-        // }
       />
 
       {/* User Selector */}
@@ -89,69 +320,96 @@ export default function BudgetsContent({ currentUser, groupUsers, categories }: 
         users={groupUsers}
         currentUser={currentUser}
         selectedGroupFilter={selectedGroupFilter}
-        onGroupFilterChange={setSelectedGroupFilter}
+        onGroupFilterChange={handleGroupFilterChange}
       />
 
       {/* Main content area with progressive loading */}
       <main className={budgetStyles.page.main}>
-        {false ? (
+        {filteredBudgets.length > 0 && selectedBudget ? (
           <>
             {/* Budget selector with fallback skeleton */}
             <Suspense fallback={<BudgetSelectorSkeleton />}>
               <BudgetSelector
-                selectedBudget={null}
-                availableBudgets={[]}
-                userNamesMap={{}}
-                selectedViewUserId={""}
-                onBudgetSelect={() => {}}
+                selectedBudget={selectedBudget}
+                availableBudgets={filteredBudgets}
+                userNamesMap={userNamesMap}
+                selectedViewUserId={selectedGroupFilter}
+                onBudgetSelect={handleBudgetSelect}
               />
             </Suspense>
 
-            {/* Budget display card with period info */}
+            {/* Budget display card with period info and metrics */}
             <Suspense fallback={<BudgetCardSkeleton />}>
-              <BudgetDisplayCard budget={null} period={null} onEdit={() => {}} />
+              <BudgetDisplayCard
+                budget={selectedBudget}
+                period={periodInfo?.activePeriod || null}
+                budgetProgress={selectedBudgetProgress ? {
+                  spent: selectedBudgetProgress.spent,
+                  remaining: selectedBudgetProgress.remaining,
+                  percentage: selectedBudgetProgress.percentage,
+                  amount: selectedBudgetProgress.amount,
+                } : null}
+                onEdit={handleEditBudget}
+              />
             </Suspense>
 
-            {/* Financial metrics display */}
-            <Suspense fallback={<BudgetMetricsSkeleton />}>
-              <BudgetMetrics viewModel={null} budgetAmount={0} />
-            </Suspense>
-
-            {/* Progressive sections loaded with viewModel */}
-            {false && (
+            {/* Progressive sections loaded with budget progress */}
+            {selectedBudgetProgress && (
               <>
                 {/* Progress indicator */}
                 <Suspense fallback={<BudgetProgressSkeleton />}>
-                  <BudgetProgress progressData={null} />
+                  <BudgetProgress
+                    progressData={{
+                      percentage: selectedBudgetProgress.percentage,
+                      spent: selectedBudgetProgress.spent,
+                      remaining: selectedBudgetProgress.remaining,
+                      amount: selectedBudgetProgress.amount,
+                    }}
+                  />
                 </Suspense>
 
                 {/* Expense trend chart */}
                 <Suspense fallback={<BudgetChartSkeleton />}>
-                  <BudgetChart spent={0} chartData={null} periodComparison={null} periodInfo={null} />
+                  <BudgetChart
+                    spent={selectedBudgetProgress.spent}
+                    chartData={chartData}
+                    periodInfo={periodInfo ? {
+                      startDate: periodInfo.start || '',
+                      endDate: periodInfo.end,
+                    } : null}
+                  />
                 </Suspense>
 
                 {/* Grouped transactions list */}
                 <Suspense fallback={<BudgetTransactionsListSkeleton />}>
                   <BudgetTransactionsList
-                    groupedTransactions={[]}
-                    accountNames={{}}
-                    transactionCount={0}
-                    selectedBudget={null}
-                    selectedViewUserId={""}
-                    periodInfo={null}
-                    onEditTransaction={() => {}}
+                    groupedTransactions={groupedTransactions}
+                    accountNames={accountNamesMap}
+                    categories={categories}
+                    transactionCount={selectedBudgetProgress.transactionCount}
+                    selectedBudget={selectedBudget}
+                    selectedViewUserId={selectedGroupFilter}
+                    periodInfo={periodInfo ? {
+                      startDate: periodInfo.start || '',
+                      endDate: periodInfo.end,
+                    } : null}
+                    onEditTransaction={(transaction) => {
+                      setEditingTransaction(transaction);
+                      setFormMode('edit');
+                      setIsTransactionFormOpen(true);
+                    }}
                     onDeleteTransaction={() => {
                       /* Handled via transaction form */
                     }}
                     onViewAll={() => {
-                      // const params = new URLSearchParams();
-                      // params.set('from', 'budgets');
-                      // if (selectedViewUserId !== 'all') {
-                      //   params.set('member', selectedViewUserId);
-                      // }
-                      // params.set('budget', state.selectedBudget!.id);
-                      // params.set('category', state.selectedBudget!.description);
-                      // globalThis.location.href = `/transactions?${params.toString()}`;
+                      const params = new URLSearchParams();
+                      params.set('from', 'budgets');
+                      if (selectedGroupFilter !== 'all') {
+                        params.set('member', selectedGroupFilter);
+                      }
+                      params.set('budget', selectedBudget.id);
+                      params.set('category', selectedBudget.description);
+                      router.push(`/transactions?${params.toString()}`);
                     }}
                   />
                 </Suspense>
@@ -159,16 +417,7 @@ export default function BudgetsContent({ currentUser, groupUsers, categories }: 
             )}
           </>
         ) : (
-          (() => {
-            // Empty state when no budget selected
-            // const isLoadingEmptyBudgets = data.budgets.isLoading && (!data.budgets.data || data.budgets.data.length === 0);
-
-            // if (isLoadingEmptyBudgets) {
-            //   return <BudgetSelectorSkeleton />;
-            // }
-
-            return <BudgetEmptyState onCreateBudget={() => {}} />;
-          })()
+          <BudgetEmptyState onCreateBudget={handleCreateBudget} />
         )}
       </main>
 
@@ -176,23 +425,27 @@ export default function BudgetsContent({ currentUser, groupUsers, categories }: 
 
       {/* Modal Forms */}
       <TransactionForm
-        isOpen={false}
-        onOpenChange={() => {}}
-        selectedUserId={undefined}
-        transaction={undefined}
-        mode={undefined}
+        isOpen={isTransactionFormOpen}
+        onOpenChange={setIsTransactionFormOpen}
+        selectedUserId={selectedUserId}
+        transaction={editingTransaction}
+        mode={formMode}
       />
 
       <BudgetForm
-        isOpen={false}
-        onOpenChange={() => {}}
-        selectedUserId={undefined}
-        budget={undefined}
-        mode={undefined}
+        isOpen={isBudgetFormOpen}
+        onOpenChange={setIsBudgetFormOpen}
+        selectedUserId={selectedUserId}
+        budget={editingBudget}
+        mode={formMode}
         categories={categories}
       />
 
-      <CategoryForm isOpen={false} onOpenChange={() => {}} mode="create" />
+      <CategoryForm
+        isOpen={isCategoryFormOpen}
+        onOpenChange={setIsCategoryFormOpen}
+        mode="create"
+      />
     </div>
   );
 }

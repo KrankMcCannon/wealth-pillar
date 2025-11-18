@@ -2,7 +2,6 @@
 
 import { SectionHeader } from "@/src/components/layout";
 import BottomNavigation from "@/src/components/layout/bottom-navigation";
-import { PageLoader } from "@/src/components/shared";
 import { settingsStyles } from "@/src/features/settings/theme";
 import {
   ArrowLeft,
@@ -182,7 +181,7 @@ export default function SettingsContent({ currentUser, groupUsers }: SettingsCon
                         <div className={settingsStyles.groupManagement.memberRight}>
                           <RoleBadge role={member.role} size="sm" variant="subtle" />
                           <p className={settingsStyles.groupManagement.memberDate}>
-                            {new Date(member.created_at).toLocaleDateString('it-IT')}
+                            {new Date(member.created_at).toLocaleDateString("it-IT")}
                           </p>
                         </div>
                       </div>

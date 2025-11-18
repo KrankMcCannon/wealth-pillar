@@ -7,15 +7,24 @@
 
 import { SectionHeader } from "@/components/layout";
 import { Button } from "@/components/ui";
-import { Transaction } from "@/lib";
+import { Transaction, Category } from "@/lib";
 import { GroupedTransactionCard } from "@/features/transactions";
 import { budgetStyles } from "../theme/budget-styles";
+import { formatCurrency } from "@/lib/utils/currency-formatter";
 import React from "react";
 import { Budget } from "@/lib";
 
+export interface GroupedTransaction {
+  date: string;
+  formattedDate: string;
+  transactions: Transaction[];
+  total: number;
+}
+
 export interface BudgetTransactionsListProps {
-  groupedTransactions: null[];
+  groupedTransactions: GroupedTransaction[];
   accountNames: Record<string, string>;
+  categories: Category[];
   transactionCount: number;
   selectedBudget: Budget | null;
   selectedViewUserId: string;
@@ -28,6 +37,7 @@ export interface BudgetTransactionsListProps {
 export function BudgetTransactionsList({
   groupedTransactions,
   accountNames,
+  categories,
   transactionCount,
   selectedBudget,
   periodInfo,
@@ -51,21 +61,26 @@ export function BudgetTransactionsList({
 
       <div className={budgetStyles.transactions.container}>
         {groupedTransactions.length > 0 ? (
-          groupedTransactions.map(() => (
-            <section key={""}>
+          groupedTransactions.map((group) => (
+            <section key={group.date}>
               <div className={budgetStyles.transactions.dayHeader}>
-                <h2 className={budgetStyles.transactions.dayTitle}>{""}</h2>
+                <h2 className={budgetStyles.transactions.dayTitle}>{group.formattedDate}</h2>
                 <div className={budgetStyles.transactions.dayStats}>
                   <div className={budgetStyles.transactions.dayStatsTotal}>
                     <span className={budgetStyles.transactions.dayStatsTotalLabel}>Totale:</span>
-                    <span className={`${budgetStyles.transactions.dayStatsTotalValue} ${""}`}>{0}</span>
+                    <span className={`${budgetStyles.transactions.dayStatsTotalValue} text-destructive`}>
+                      {formatCurrency(group.total)}
+                    </span>
                   </div>
-                  <div className={budgetStyles.transactions.dayStatsCount}></div>
+                  <div className={budgetStyles.transactions.dayStatsCount}>
+                    {group.transactions.length} {group.transactions.length === 1 ? 'transazione' : 'transazioni'}
+                  </div>
                 </div>
               </div>
               <GroupedTransactionCard
-                transactions={[]}
+                transactions={group.transactions}
                 accountNames={accountNames}
+                categories={categories}
                 variant="regular"
                 onEditTransaction={onEditTransaction}
                 onDeleteTransaction={onDeleteTransaction}

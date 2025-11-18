@@ -5,7 +5,7 @@
 
 import { Suspense } from 'react';
 import { getDashboardData } from '@/lib/auth/get-dashboard-data';
-import { AccountService, TransactionService } from '@/lib/services';
+import { AccountService, TransactionService, BudgetService } from '@/lib/services';
 import DashboardContent from './dashboard-content';
 import DashboardPageLoading from './loading';
 
@@ -28,6 +28,13 @@ export default async function DashboardPage() {
     console.error('Failed to fetch transactions:', transactionsError);
   }
 
+  // Fetch budgets for group (cached for 5 minutes)
+  const { data: budgets, error: budgetsError } = await BudgetService.getBudgetsByGroup(currentUser.group_id);
+
+  if (budgetsError) {
+    console.error('Failed to fetch budgets:', budgetsError);
+  }
+
   // Calculate balances for all accounts
   const accountIds = (accounts || []).map((account) => account.id);
   const accountBalances = AccountService.calculateAccountBalances(accountIds, transactions || []);
@@ -40,6 +47,7 @@ export default async function DashboardPage() {
         accounts={accounts || []}
         accountBalances={accountBalances}
         transactions={transactions || []}
+        budgets={budgets || []}
       />
     </Suspense>
   );

@@ -160,4 +160,31 @@ export const cacheOptions = {
     revalidate: CACHE_TTL.ACCOUNT,
     tags: [CACHE_TAGS.ACCOUNTS, `group:${groupId}:accounts`],
   }),
+
+  /**
+   * Budget cache options
+   * @param budgetId - Budget ID for tag
+   */
+  budget: (budgetId: string) => ({
+    revalidate: CACHE_TTL.BUDGET,
+    tags: [CACHE_TAGS.BUDGETS, CACHE_TAGS.BUDGET(budgetId)],
+  }),
+
+  /**
+   * Budgets by user cache options
+   * @param userId - User ID for tag
+   */
+  budgetsByUser: (userId: string) => ({
+    revalidate: CACHE_TTL.BUDGET,
+    tags: [CACHE_TAGS.BUDGETS, `user:${userId}:budgets`],
+  }),
+
+  /**
+   * Budgets by group cache options
+   * @param groupId - Group ID for tag
+   */
+  budgetsByGroup: (groupId: string) => ({
+    revalidate: CACHE_TTL.BUDGET,
+    tags: [CACHE_TAGS.BUDGETS, `group:${groupId}:budgets`],
+  }),
 } as const;

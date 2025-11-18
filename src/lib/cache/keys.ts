@@ -123,3 +123,31 @@ export const categoryCacheKeys = {
    */
   all: () => ['categories'] as const,
 } as const;
+
+/**
+ * Budget-related cache keys
+ */
+export const budgetCacheKeys = {
+  /**
+   * Cache key for budget by ID
+   * @param budgetId - Budget ID
+   */
+  byId: (budgetId: string) => ['budget', 'id', budgetId] as const,
+
+  /**
+   * Cache key for budgets by user
+   * @param userId - User ID
+   */
+  byUser: (userId: string) => ['budgets', 'user', userId] as const,
+
+  /**
+   * Cache key for budgets by group
+   * @param groupId - Group ID
+   */
+  byGroup: (groupId: string) => ['budgets', 'group', groupId] as const,
+
+  /**
+   * Cache key for all budgets
+   */
+  all: () => ['budgets'] as const,
+} as const;

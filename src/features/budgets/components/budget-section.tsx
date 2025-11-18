@@ -2,10 +2,11 @@
 
 import { Suspense } from "react";
 import { useRouter } from "next/navigation";
-import { Budget, BudgetPeriod, User } from "@/src/lib";
+import { Budget, BudgetPeriod, User, progressBarVariants } from "@/src/lib";
 import { BudgetSectionSkeleton } from "@/src/features/dashboard";
 import { SectionHeader } from "@/src/components/layout";
 import { BudgetCard } from "@/src/components/cards";
+import { formatCurrency } from "@/lib/utils/currency-formatter";
 
 interface BudgetSectionProps {
   budgetsByUser: Record<
@@ -134,37 +135,41 @@ export const BudgetSection = ({ budgetsByUser, budgets, selectedViewUserId, isLo
                     <div className="text-right">
                       <div className="text-sm font-bold">
                         <span className={overallPercentage > 100 ? "text-destructive" : "text-primary"}>
-                          {totalSpent}
+                          {formatCurrency(totalSpent)}
                         </span>
                         <span className="text-primary/50 font-normal"> / </span>
-                        <span>{totalBudget}</span>
+                        <span>{formatCurrency(totalBudget)}</span>
                       </div>
                     </div>
                   </div>
 
                   {/* Progress Bar with Inline Percentage */}
                   <div className="flex items-center gap-2">
-                    <div className="flex-1 bg-primary/10 rounded-full h-2">
+                    <div className={progressBarVariants({
+                      status: overallPercentage > 100 ? 'danger' : overallPercentage > 75 ? 'warning' : 'neutral'
+                    })}>
                       <div
-                        className={`h-2 rounded-full transition-all duration-500 ${(() => {
+                        className={`h-full rounded-full transition-all duration-1000 ease-out ${(() => {
                           if (overallPercentage > 100) return "bg-destructive";
                           if (overallPercentage > 75) return "bg-warning";
-                          return "bg-accent";
+                          return "bg-primary";
                         })()}`}
                         style={{ width: `${Math.min(overallPercentage, 100)}%` }}
-                      ></div>
+                      />
                     </div>
                     <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-primary/10">
                       <div
                         className={`w-1.5 h-1.5 rounded-full ${(() => {
                           if (overallPercentage > 100) return "bg-destructive";
                           if (overallPercentage > 75) return "bg-warning";
-                          return "bg-accent";
+                          return "bg-primary";
                         })()}`}
                       />
                       <span
                         className={`text-xs font-bold ${(() => {
-                          return "text-accent";
+                          if (overallPercentage > 100) return "text-destructive";
+                          if (overallPercentage > 75) return "text-warning";
+                          return "text-primary";
                         })()}`}
                       >
                         {Math.round(overallPercentage)}%
@@ -213,9 +218,8 @@ export const BudgetSection = ({ budgetsByUser, budgets, selectedViewUserId, isLo
                             onClick={() => {
                               const params = new URLSearchParams();
                               params.set("budget", budget.id);
-                              if (selectedViewUserId !== "all") {
-                                params.set("member", selectedViewUserId);
-                              }
+                              // Always pass the budget owner's user_id
+                              params.set("member", budget.user_id);
                               router.push(`/budgets?${params.toString()}`);
                             }}
                           />

@@ -8,16 +8,27 @@
 import { Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui";
 import { Budget, BudgetPeriod, CategoryIcon, iconSizes } from "@/lib";
 import { budgetStyles } from "../theme/budget-styles";
+import { formatCurrency } from "@/lib/utils/currency-formatter";
 import { MoreVertical } from "lucide-react";
 import React from "react";
 
 export interface BudgetDisplayCardProps {
   budget: Budget | null;
   period: BudgetPeriod | null;
+  budgetProgress: {
+    spent: number;
+    remaining: number;
+    percentage: number;
+    amount: number;
+  } | null;
   onEdit: (budget: Budget) => void;
 }
 
-export function BudgetDisplayCard({ period }: Readonly<BudgetDisplayCardProps>) {
+export function BudgetDisplayCard({ budget, period, budgetProgress, onEdit }: Readonly<BudgetDisplayCardProps>) {
+  if (!budget) return null;
+
+  const remainingColorClass = budgetProgress && budgetProgress.remaining < 0 ? "text-destructive" : "text-primary";
+
   return (
     <div className={budgetStyles.budgetDisplay.container}>
       {/* Budget Actions Dropdown - Top Right Corner */}
@@ -39,7 +50,7 @@ export function BudgetDisplayCard({ period }: Readonly<BudgetDisplayCardProps>) 
           >
             <DropdownMenuItem
               className="text-sm font-medium hover:bg-primary/8 hover:text-primary rounded-lg px-3 py-2.5 cursor-pointer transition-colors"
-              onSelect={() => {}}
+              onSelect={() => onEdit(budget)}
             >
               <span className="mr-2">✏️</span> Modifica Budget
             </DropdownMenuItem>
@@ -51,10 +62,10 @@ export function BudgetDisplayCard({ period }: Readonly<BudgetDisplayCardProps>) 
       <div className={budgetStyles.budgetDisplay.headerRow}>
         <div className={budgetStyles.budgetDisplay.headerContent}>
           <div className={budgetStyles.budgetDisplay.iconContainer}>
-            <CategoryIcon categoryKey={"altro"} size={iconSizes.lg} className="text-[#7578EC]" />
+            <CategoryIcon categoryKey={budget.categories?.[0] || "altro"} size={iconSizes.lg} className="text-[#7578EC]" />
           </div>
           <div className={budgetStyles.budgetDisplay.iconText}>
-            <h3 className={budgetStyles.budgetDisplay.budgetName}>{""}</h3>
+            <h3 className={budgetStyles.budgetDisplay.budgetName}>{budget.description}</h3>
             <p className={budgetStyles.budgetDisplay.budgetStatus}>Budget attivo</p>
           </div>
         </div>
@@ -79,6 +90,33 @@ export function BudgetDisplayCard({ period }: Readonly<BudgetDisplayCardProps>) 
           </div>
         )}
       </div>
+
+      {/* Budget Metrics - Balances */}
+      {budgetProgress && (
+        <div className={budgetStyles.metrics.container}>
+          {/* Available Amount */}
+          <div className={budgetStyles.metrics.item}>
+            <p className={budgetStyles.metrics.label}>Disponibile</p>
+            <p className={`${budgetStyles.metrics.value} ${remainingColorClass}`}>
+              {formatCurrency(budgetProgress.remaining)}
+            </p>
+          </div>
+
+          {/* Spent Amount */}
+          <div className={budgetStyles.metrics.item}>
+            <p className={`${budgetStyles.metrics.label} text-destructive`}>Speso</p>
+            <p className={`${budgetStyles.metrics.value} text-destructive`}>
+              {formatCurrency(budgetProgress.spent)}
+            </p>
+          </div>
+
+          {/* Total Budget */}
+          <div className={budgetStyles.metrics.item}>
+            <p className={budgetStyles.metrics.label}>Totale</p>
+            <p className={budgetStyles.metrics.value}>{formatCurrency(budgetProgress.amount)}</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

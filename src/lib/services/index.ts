@@ -20,10 +20,12 @@ export { GroupService } from './group.service';
 export { AccountService } from './account.service';
 export { TransactionService } from './transaction.service';
 export { CategoryService } from './category.service';
+export { BudgetService } from './budget.service';
 
 // Export shared types
 export type { ServiceResult } from './user.service';
 export type { ReportMetrics, CategoryMetric } from './transaction.service';
+export type { BudgetProgress, UserBudgetSummary } from './budget.service';
 
 /**
  * Service Layer Documentation

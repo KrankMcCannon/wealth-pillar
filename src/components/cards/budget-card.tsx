@@ -10,6 +10,7 @@
 
 import { IconContainer, StatusBadge, Text } from "@/src/components/ui";
 import { Budget, CategoryIcon, iconSizes, progressBarVariants, progressFillVariants } from "@/src/lib";
+import { formatCurrency } from "@/lib/utils/currency-formatter";
 
 interface BudgetCardProps {
   budget: Budget;
@@ -88,10 +89,10 @@ export function BudgetCard({ budget, budgetInfo, onClick }: BudgetCardProps) {
             size="sm"
             className={getTextColorClass(status)}
           >
-            {remaining}
+            {formatCurrency(remaining)}
           </Text>
           <Text variant="subtle" size="xs">
-            di {budget.amount}
+            di {formatCurrency(budget.amount)}
           </Text>
         </div>
       </div>

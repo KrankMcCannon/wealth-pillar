@@ -32,8 +32,8 @@ import UserSelector from "@/components/shared/user-selector";
 import { BalanceSection } from "@/features/accounts";
 import { BudgetSection } from "@/features/budgets";
 import { RecurringSeriesForm, RecurringSeriesSection } from "@/features/recurring";
-import { AccountService } from "@/lib/services";
-import type { User, Account, Transaction } from "@/lib/types";
+import { AccountService, BudgetService } from "@/lib/services";
+import type { User, Account, Transaction, Budget } from "@/lib/types";
 
 /**
  * Dashboard Content Props
@@ -44,6 +44,7 @@ interface DashboardContentProps {
   accounts: Account[];
   accountBalances: Record<string, number>;
   transactions: Transaction[];
+  budgets: Budget[];
 }
 
 /**
@@ -52,7 +53,7 @@ interface DashboardContentProps {
  * Handles full dashboard UI with four main sections
  * Receives data from Server Component parent
  */
-export default function DashboardContent({ currentUser, groupUsers, accounts, accountBalances }: DashboardContentProps) {
+export default function DashboardContent({ currentUser, groupUsers, accounts, accountBalances, transactions, budgets }: DashboardContentProps) {
   const router = useRouter();
 
   // State management for user filtering
@@ -60,6 +61,11 @@ export default function DashboardContent({ currentUser, groupUsers, accounts, ac
 
   // Determine selected user ID (undefined for 'all', user ID otherwise)
   const selectedUserId = selectedGroupFilter === 'all' ? undefined : selectedGroupFilter;
+
+  // Calculate budgets by user using BudgetService
+  const budgetsByUser = useMemo(() => {
+    return BudgetService.buildBudgetsByUser(groupUsers, budgets, transactions);
+  }, [groupUsers, budgets, transactions]);
 
   // Filter default accounts based on selected user and sort by balance
   const displayedDefaultAccounts = useMemo(() => {
@@ -268,8 +274,8 @@ export default function DashboardContent({ currentUser, groupUsers, accounts, ac
         <div className="bg-[#F8FAFC]">
           <Suspense fallback={<BudgetSectionSkeleton />}>
             <BudgetSection
-              budgetsByUser={{}}
-              budgets={[]}
+              budgetsByUser={budgetsByUser}
+              budgets={budgets}
               selectedViewUserId={selectedUserId || currentUser.id}
               isLoading={false}
             />
