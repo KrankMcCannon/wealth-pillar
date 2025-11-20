@@ -2,8 +2,8 @@
 
 import * as React from "react";
 import { Loader2 } from "lucide-react";
-import { cn } from '@/src/lib';;
-import { Button } from "./button";
+import { cn } from "@/src/lib";
+import { Button } from "../ui";
 
 /**
  * Form Actions Component
@@ -68,12 +68,7 @@ export function FormActions({
   const isDisabled = disabled || isSubmitting;
 
   return (
-    <div
-      className={cn(
-        "flex flex-col-reverse gap-2 sm:flex-row sm:justify-end",
-        className
-      )}
-    >
+    <div className={cn("flex flex-col-reverse gap-2 sm:flex-row sm:justify-end", className)}>
       {/* Cancel Button */}
       {showCancel && (
         <Button
@@ -81,10 +76,7 @@ export function FormActions({
           variant="outline"
           onClick={onCancel}
           disabled={isSubmitting}
-          className={cn(
-            "w-full sm:w-auto",
-            "bg-card text-primary border-primary/30 hover:bg-primary/10"
-          )}
+          className={cn("w-full sm:w-auto", "bg-card text-primary border-primary/30 hover:bg-primary/10")}
         >
           {cancelLabel}
         </Button>
@@ -96,9 +88,7 @@ export function FormActions({
         variant={submitVariant}
         onClick={submitType === "button" ? onSubmit : undefined}
         disabled={isDisabled}
-        className={cn(
-          "w-full sm:w-auto"
-        )}
+        className={cn("w-full sm:w-auto")}
       >
         {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
         {submitLabel}
@@ -145,23 +135,8 @@ export function DestructiveFormActions({
 /**
  * Form actions with custom buttons
  */
-export function CustomFormActions({
-  children,
-  className,
-}: {
-  children: React.ReactNode;
-  className?: string;
-}) {
-  return (
-    <div
-      className={cn(
-        "flex flex-col-reverse gap-2 sm:flex-row sm:justify-end",
-        className
-      )}
-    >
-      {children}
-    </div>
-  );
+export function CustomFormActions({ children, className }: { children: React.ReactNode; className?: string }) {
+  return <div className={cn("flex flex-col-reverse gap-2 sm:flex-row sm:justify-end", className)}>{children}</div>;
 }
 
 /**

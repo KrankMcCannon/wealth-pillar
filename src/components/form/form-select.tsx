@@ -1,9 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./select";
-import { cn } from '@/src/lib';
+import { cn } from "@/src/lib";
 import { Search } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui";
 
 /**
  * Form Select Component
@@ -75,9 +75,8 @@ export function FormSelect({
     if (!searchValue) return options;
 
     const lowerSearch = searchValue.toLowerCase();
-    return options.filter((option) =>
-      option.label.toLowerCase().includes(lowerSearch) ||
-      option.value.toLowerCase().includes(lowerSearch)
+    return options.filter(
+      (option) => option.label.toLowerCase().includes(lowerSearch) || option.value.toLowerCase().includes(lowerSearch)
     );
   }, [searchValue, options]);
 
@@ -90,12 +89,7 @@ export function FormSelect({
 
   return (
     <Select value={value} onValueChange={onValueChange} disabled={disabled} onOpenChange={handleOpenChange}>
-      <SelectTrigger
-        className={cn(
-          "bg-card border-primary/20 focus:ring-2 focus:ring-primary/20",
-          className
-        )}
-      >
+      <SelectTrigger className={cn("bg-card border-primary/20 focus:ring-2 focus:ring-primary/20", className)}>
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
       <SelectContent className="max-h-[300px] p-0">
@@ -126,16 +120,10 @@ export function FormSelect({
         {/* Options List */}
         <div className="px-2 py-1">
           {filteredOptions.length === 0 ? (
-            <div className="py-6 text-center text-sm text-primary/50">
-              Nessun risultato trovato
-            </div>
+            <div className="py-6 text-center text-sm text-primary/50">Nessun risultato trovato</div>
           ) : (
             filteredOptions.map((option) => (
-              <SelectItem
-                key={option.value}
-                value={option.value}
-                disabled={option.disabled}
-              >
+              <SelectItem key={option.value} value={option.value} disabled={option.disabled}>
                 <div className="flex items-center gap-2">
                   {renderIcon && renderIcon(option)}
                   {option.icon && <span>{option.icon}</span>}
@@ -159,8 +147,8 @@ export function FormSelect({
  */
 export function toSelectOptions<T extends { id?: string; key?: string; label?: string; name?: string }>(
   items: T[],
-  getValue: (item: T) => string = (item) => item.id || item.key || '',
-  getLabel: (item: T) => string = (item) => item.label || item.name || ''
+  getValue: (item: T) => string = (item) => item.id || item.key || "",
+  getLabel: (item: T) => string = (item) => item.label || item.name || ""
 ): SelectOption[] {
   return items.map((item) => ({
     value: getValue(item),
@@ -171,10 +159,7 @@ export function toSelectOptions<T extends { id?: string; key?: string; label?: s
 /**
  * Sorts select options alphabetically by label
  */
-export function sortSelectOptions(
-  options: SelectOption[],
-  locale: string = 'it'
-): SelectOption[] {
+export function sortSelectOptions(options: SelectOption[], locale: string = "it"): SelectOption[] {
   return [...options].sort((a, b) => a.label.localeCompare(b.label, locale));
 }
 

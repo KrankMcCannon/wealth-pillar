@@ -2,13 +2,15 @@
 
 import { RecurringTransactionSeries } from "@/src/lib";
 import {
+  FormActions,
+  FormField,
+  FormSelect,
+} from "@/src/components/form";
+import {
   AccountField,
   AmountField,
   CategoryField,
   DateField,
-  FormActions,
-  FormField,
-  FormSelect,
   Input,
   ModalContent,
   ModalSection,

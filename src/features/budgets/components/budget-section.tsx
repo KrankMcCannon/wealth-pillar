@@ -41,7 +41,7 @@ interface BudgetSectionProps {
  * Budget section component with enhanced UX and performance
  * Follows Single Responsibility Principle - only handles budget display
  */
-export const BudgetSection = ({ budgetsByUser, budgets, selectedViewUserId, isLoading }: BudgetSectionProps) => {
+export const BudgetSection = ({ budgetsByUser, budgets, isLoading }: BudgetSectionProps) => {
   const router = useRouter();
 
   // Show skeleton only if actively loading AND no data received yet
@@ -145,9 +145,11 @@ export const BudgetSection = ({ budgetsByUser, budgets, selectedViewUserId, isLo
 
                   {/* Progress Bar with Inline Percentage */}
                   <div className="flex items-center gap-2">
-                    <div className={progressBarVariants({
-                      status: overallPercentage > 100 ? 'danger' : overallPercentage > 75 ? 'warning' : 'neutral'
-                    })}>
+                    <div
+                      className={progressBarVariants({
+                        status: overallPercentage > 100 ? "danger" : overallPercentage > 75 ? "warning" : "neutral",
+                      })}
+                    >
                       <div
                         className={`h-full rounded-full transition-all duration-1000 ease-out ${(() => {
                           if (overallPercentage > 100) return "bg-destructive";

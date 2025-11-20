@@ -21,7 +21,7 @@ interface AccountsContentProps extends DashboardDataProps {
  * Accounts Content Component
  * Receives user data, accounts, and balances from Server Component parent
  */
-export default function AccountsContent({ currentUser, groupUsers, accounts, accountBalances }: AccountsContentProps) {
+export default function AccountsContent({ accounts, accountBalances }: AccountsContentProps) {
   // Sort accounts by balance (descending - highest first)
   const sortedAccounts = useMemo(() => {
     return [...accounts].sort((a, b) => {

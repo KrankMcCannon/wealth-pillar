@@ -4,10 +4,7 @@
 
 "use client";
 
-import { FormDatePicker } from "../form-date-picker";
-import { FormField } from "../form-field";
-
-
+import { FormField, FormDatePicker } from "@/components/form";
 
 interface DateFieldProps {
   value: string;
@@ -26,16 +23,11 @@ export function DateField({
   required = true,
   label = "Data",
   maxDate,
-  minDate
+  minDate,
 }: DateFieldProps) {
   return (
     <FormField label={label} required={required} error={error}>
-      <FormDatePicker
-        value={value}
-        onChange={onChange}
-        maxDate={maxDate}
-        minDate={minDate}
-      />
+      <FormDatePicker value={value} onChange={onChange} maxDate={maxDate} minDate={minDate} />
     </FormField>
   );
 }

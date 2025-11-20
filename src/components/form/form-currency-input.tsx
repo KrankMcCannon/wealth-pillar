@@ -2,8 +2,8 @@
 
 import * as React from "react";
 import { Euro } from "lucide-react";
-import { Input } from "./input";
-import { cn } from '@/src/lib';;
+import { Input } from "../ui";
+import { cn } from "@/src/lib";
 
 /**
  * Form Currency Input Component
@@ -158,11 +158,7 @@ export function formatCurrency(
     locale?: string;
   }
 ): string {
-  const {
-    showSymbol = true,
-    decimals = 2,
-    locale = "it-IT",
-  } = options || {};
+  const { showSymbol = true, decimals = 2, locale = "it-IT" } = options || {};
 
   const numAmount = typeof amount === "string" ? parseFloat(amount) : amount;
 
@@ -192,10 +188,7 @@ export function parseCurrency(value: string): number {
 /**
  * Validates if string is valid currency amount
  */
-export function isValidCurrency(
-  value: string,
-  options?: { min?: number; max?: number; decimals?: number }
-): boolean {
+export function isValidCurrency(value: string, options?: { min?: number; max?: number; decimals?: number }): boolean {
   const { min, max, decimals = 2 } = options || {};
 
   if (!value) return false;

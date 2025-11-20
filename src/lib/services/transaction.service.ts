@@ -1,7 +1,18 @@
 import { supabaseServer } from '@/lib/database/server';
-import { cached, transactionCacheKeys, cacheOptions } from '@/lib/cache';
+import { cached, transactionCacheKeys, cacheOptions, CACHE_TAGS } from '@/lib/cache';
+import type { Database } from '@/lib/database/types';
 import type { ServiceResult } from './user.service';
-import type { Transaction } from '@/lib/types';
+import type { Transaction, TransactionType } from '@/lib/types';
+
+/**
+ * Helper to revalidate cache tags (dynamically imported to avoid client-side issues)
+ */
+async function revalidateCacheTags(tags: string[]) {
+  if (typeof window === 'undefined') {
+    const { revalidateTag } = await import('next/cache');
+    tags.forEach((tag) => revalidateTag(tag));
+  }
+}
 
 /**
  * Report metrics calculated from transactions
@@ -23,6 +34,26 @@ export interface CategoryMetric {
   percentage: number;
   trend?: 'up' | 'down' | 'stable';
 }
+
+/**
+ * Input data for creating a new transaction
+ */
+export interface CreateTransactionInput {
+  description: string;
+  amount: number;
+  type: TransactionType;
+  category: string;
+  date: string | Date;
+  user_id: string | null;
+  account_id: string;
+  to_account_id?: string | null;
+  group_id: string;
+}
+
+/**
+ * Input data for updating an existing transaction
+ */
+export type UpdateTransactionInput = Partial<CreateTransactionInput>;
 
 /**
  * Transaction Service
@@ -212,6 +243,371 @@ export class TransactionService {
           error instanceof Error
             ? error.message
             : 'Failed to retrieve account transactions',
+      };
+    }
+  }
+
+  /**
+   * Create a new transaction
+   * Used for adding new transactions to the database
+   *
+   * @param data - Transaction data to create
+   * @returns Created transaction or error
+   *
+   * @example
+   * const { data: transaction, error } = await TransactionService.createTransaction({
+   *   description: 'Grocery shopping',
+   *   amount: 50.00,
+   *   type: 'expense',
+   *   category: 'food',
+   *   date: new Date(),
+   *   user_id: userId,
+   *   account_id: accountId,
+   *   group_id: groupId
+   * });
+   */
+  static async createTransaction(
+    data: CreateTransactionInput
+  ): Promise<ServiceResult<Transaction>> {
+    try {
+      // Input validation
+      if (!data.description || data.description.trim() === '') {
+        return { data: null, error: 'Description is required' };
+      }
+
+      if (!data.amount || data.amount <= 0) {
+        return { data: null, error: 'Amount must be greater than zero' };
+      }
+
+      if (!data.type) {
+        return { data: null, error: 'Transaction type is required' };
+      }
+
+      if (!['income', 'expense', 'transfer'].includes(data.type)) {
+        return { data: null, error: 'Invalid transaction type' };
+      }
+
+      if (!data.category || data.category.trim() === '') {
+        return { data: null, error: 'Category is required' };
+      }
+
+      if (!data.account_id || data.account_id.trim() === '') {
+        return { data: null, error: 'Account is required' };
+      }
+
+      if (!data.date) {
+        return { data: null, error: 'Date is required' };
+      }
+
+      if (!data.group_id || data.group_id.trim() === '') {
+        return { data: null, error: 'Group ID is required' };
+      }
+
+      // Transfer-specific validation
+      if (data.type === 'transfer') {
+        if (!data.to_account_id || data.to_account_id.trim() === '') {
+          return {
+            data: null,
+            error: 'Destination account is required for transfers',
+          };
+        }
+
+        if (data.to_account_id === data.account_id) {
+          return {
+            data: null,
+            error: 'Source and destination accounts must be different',
+          };
+        }
+      }
+
+      // Insert transaction
+      const insertData: Database['public']['Tables']['transactions']['Insert'] = {
+        description: data.description.trim(),
+        amount: data.amount,
+        type: data.type,
+        category: data.category,
+        date: typeof data.date === 'string' ? data.date : data.date.toISOString(),
+        user_id: data.user_id,
+        account_id: data.account_id,
+        to_account_id: data.to_account_id || null,
+        frequency: 'once', // Always 'once' for now (no recurring support)
+        recurring_series_id: null,
+        group_id: data.group_id,
+      };
+
+      const { data: transaction, error } = await (supabaseServer as any)
+        .from('transactions')
+        .insert(insertData)
+        .select()
+        .single();
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      if (!transaction) {
+        return { data: null, error: 'Failed to create transaction' };
+      }
+
+      // Invalidate relevant caches
+      const tagsToInvalidate: string[] = [
+        CACHE_TAGS.TRANSACTIONS,
+        `account:${data.account_id}:transactions`,
+        `group:${data.group_id}:transactions`,
+      ];
+      if (data.user_id) {
+        tagsToInvalidate.push(`user:${data.user_id}:transactions`);
+      }
+      if (data.to_account_id) {
+        tagsToInvalidate.push(`account:${data.to_account_id}:transactions`);
+      }
+      await revalidateCacheTags(tagsToInvalidate);
+
+      return { data: transaction, error: null };
+    } catch (error) {
+      return {
+        data: null,
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Failed to create transaction',
+      };
+    }
+  }
+
+  /**
+   * Update an existing transaction
+   * Used for modifying transaction details
+   *
+   * @param id - Transaction ID
+   * @param data - Updated transaction data
+   * @returns Updated transaction or error
+   *
+   * @example
+   * const { data: transaction, error } = await TransactionService.updateTransaction(
+   *   transactionId,
+   *   { description: 'Updated description', amount: 75.00 }
+   * );
+   */
+  static async updateTransaction(
+    id: string,
+    data: UpdateTransactionInput
+  ): Promise<ServiceResult<Transaction>> {
+    try {
+      // Input validation
+      if (!id || id.trim() === '') {
+        return { data: null, error: 'Transaction ID is required' };
+      }
+
+      // Validate updated fields if provided
+      if (data.description !== undefined && data.description.trim() === '') {
+        return { data: null, error: 'Description cannot be empty' };
+      }
+
+      if (data.amount !== undefined && data.amount <= 0) {
+        return { data: null, error: 'Amount must be greater than zero' };
+      }
+
+      if (data.type !== undefined && !['income', 'expense', 'transfer'].includes(data.type)) {
+        return { data: null, error: 'Invalid transaction type' };
+      }
+
+      if (data.category !== undefined && data.category.trim() === '') {
+        return { data: null, error: 'Category cannot be empty' };
+      }
+
+      if (data.account_id !== undefined && data.account_id.trim() === '') {
+        return { data: null, error: 'Account cannot be empty' };
+      }
+
+      // Check if transaction exists and get current data for cache invalidation
+      const { data: existingTransaction, error: fetchError } =
+        await supabaseServer
+          .from('transactions')
+          .select('*')
+          .eq('id', id)
+          .single();
+
+      if (fetchError || !existingTransaction) {
+        return { data: null, error: 'Transaction not found' };
+      }
+
+      // Cast to Transaction type for proper typing
+      const existing = existingTransaction as Transaction;
+
+      // Transfer-specific validation
+      if (data.type === 'transfer' || existing.type === 'transfer') {
+        const toAccountId = data.to_account_id ?? existing.to_account_id;
+        const accountId = data.account_id ?? existing.account_id;
+
+        if (data.type === 'transfer' && !toAccountId) {
+          return {
+            data: null,
+            error: 'Destination account is required for transfers',
+          };
+        }
+
+        if (toAccountId === accountId) {
+          return {
+            data: null,
+            error: 'Source and destination accounts must be different',
+          };
+        }
+      }
+
+      // Build update object with only provided fields
+      const updateData: Database['public']['Tables']['transactions']['Update'] = {
+        updated_at: new Date().toISOString(),
+      };
+
+      if (data.description !== undefined) updateData.description = data.description.trim();
+      if (data.amount !== undefined) updateData.amount = data.amount;
+      if (data.type !== undefined) updateData.type = data.type;
+      if (data.category !== undefined) updateData.category = data.category;
+      if (data.date !== undefined) {
+        updateData.date = typeof data.date === 'string' ? data.date : data.date.toISOString();
+      }
+      if (data.user_id !== undefined) updateData.user_id = data.user_id;
+      if (data.account_id !== undefined) updateData.account_id = data.account_id;
+      if (data.to_account_id !== undefined) updateData.to_account_id = data.to_account_id;
+      if (data.group_id !== undefined) updateData.group_id = data.group_id;
+
+      // Update transaction
+      const { data: updatedTransaction, error } = await (supabaseServer as any)
+        .from('transactions')
+        .update(updateData)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      if (!updatedTransaction) {
+        return { data: null, error: 'Failed to update transaction' };
+      }
+
+      // Invalidate relevant caches (both old and new values)
+      const tagsToInvalidate: string[] = [CACHE_TAGS.TRANSACTIONS];
+
+      // Invalidate old user cache
+      if (existing.user_id) {
+        tagsToInvalidate.push(`user:${existing.user_id}:transactions`);
+      }
+      // Invalidate new user cache if changed
+      if (data.user_id && data.user_id !== existing.user_id) {
+        tagsToInvalidate.push(`user:${data.user_id}:transactions`);
+      }
+
+      // Invalidate old account caches
+      tagsToInvalidate.push(`account:${existing.account_id}:transactions`);
+      if (existing.to_account_id) {
+        tagsToInvalidate.push(`account:${existing.to_account_id}:transactions`);
+      }
+
+      // Invalidate new account caches if changed
+      if (data.account_id && data.account_id !== existing.account_id) {
+        tagsToInvalidate.push(`account:${data.account_id}:transactions`);
+      }
+      if (data.to_account_id && data.to_account_id !== existing.to_account_id) {
+        tagsToInvalidate.push(`account:${data.to_account_id}:transactions`);
+      }
+
+      // Invalidate old group cache
+      if (existing.group_id) {
+        tagsToInvalidate.push(`group:${existing.group_id}:transactions`);
+      }
+      // Invalidate new group cache if changed
+      if (data.group_id && data.group_id !== existing.group_id) {
+        tagsToInvalidate.push(`group:${data.group_id}:transactions`);
+      }
+
+      await revalidateCacheTags(tagsToInvalidate);
+
+      return { data: updatedTransaction, error: null };
+    } catch (error) {
+      return {
+        data: null,
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Failed to update transaction',
+      };
+    }
+  }
+
+  /**
+   * Delete a transaction
+   * Used for removing transactions from the database
+   *
+   * @param id - Transaction ID to delete
+   * @returns Deleted transaction ID or error
+   *
+   * @example
+   * const { data, error } = await TransactionService.deleteTransaction(transactionId);
+   * if (!error) {
+   *   console.log('Transaction deleted:', data.id);
+   * }
+   */
+  static async deleteTransaction(
+    id: string
+  ): Promise<ServiceResult<{ id: string }>> {
+    try {
+      // Input validation
+      if (!id || id.trim() === '') {
+        return { data: null, error: 'Transaction ID is required' };
+      }
+
+      // Get transaction before deleting for cache invalidation
+      const { data: existingTransaction, error: fetchError } =
+        await supabaseServer
+          .from('transactions')
+          .select('*')
+          .eq('id', id)
+          .single();
+
+      if (fetchError || !existingTransaction) {
+        return { data: null, error: 'Transaction not found' };
+      }
+
+      // Cast to Transaction type for proper typing
+      const existing = existingTransaction as Transaction;
+
+      // Delete transaction
+      const { error } = await supabaseServer
+        .from('transactions')
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      // Invalidate relevant caches
+      const tagsToInvalidate: string[] = [
+        CACHE_TAGS.TRANSACTIONS,
+        `account:${existing.account_id}:transactions`,
+      ];
+      if (existing.user_id) {
+        tagsToInvalidate.push(`user:${existing.user_id}:transactions`);
+      }
+      if (existing.to_account_id) {
+        tagsToInvalidate.push(`account:${existing.to_account_id}:transactions`);
+      }
+      if (existing.group_id) {
+        tagsToInvalidate.push(`group:${existing.group_id}:transactions`);
+      }
+      await revalidateCacheTags(tagsToInvalidate);
+
+      return { data: { id }, error: null };
+    } catch (error) {
+      return {
+        data: null,
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Failed to delete transaction',
       };
     }
   }

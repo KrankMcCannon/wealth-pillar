@@ -160,7 +160,9 @@ export const transactionComponents = {
 
   // Modal
   modal: {
-    content: 'bg-card border border-primary/20 rounded-2xl shadow-xl',
+    content: 'bg-card',
+    title: 'text-lg sm:text-xl font-bold tracking-tight text-black',
+    description: 'text-sm text-black/70',
   },
 
   // Empty State

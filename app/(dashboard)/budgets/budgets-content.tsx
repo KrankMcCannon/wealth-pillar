@@ -30,7 +30,7 @@ import { CategoryForm } from "@/features/categories";
 import { TransactionForm } from "@/features/transactions";
 import { Suspense } from "react";
 import { budgetStyles } from "@/features/budgets/theme/budget-styles";
-import { BudgetService, CategoryService } from "@/lib/services";
+import { BudgetService } from "@/lib/services";
 import type { DashboardDataProps } from "@/lib/auth/get-dashboard-data";
 import type { Category, Budget, Transaction, Account } from "@/lib/types";
 import type { GroupedTransaction } from "@/features/budgets/components/BudgetTransactionsList";
@@ -50,13 +50,20 @@ interface BudgetsContentProps extends DashboardDataProps {
  * Budgets Content Component
  * Receives user data from Server Component parent
  */
-export default function BudgetsContent({ currentUser, groupUsers, categories, budgets, transactions, accounts }: BudgetsContentProps) {
+export default function BudgetsContent({
+  currentUser,
+  groupUsers,
+  categories,
+  budgets,
+  transactions,
+  accounts,
+}: BudgetsContentProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
   // Read URL params for initial state
-  const initialBudgetId = searchParams.get('budget');
-  const initialMember = searchParams.get('member');
+  const initialBudgetId = searchParams.get("budget");
+  const initialMember = searchParams.get("member");
 
   // State management - initialize from URL params
   const [selectedGroupFilter, setSelectedGroupFilter] = useState<string>(initialMember || "all");
@@ -69,10 +76,10 @@ export default function BudgetsContent({ currentUser, groupUsers, categories, bu
   const [isCategoryFormOpen, setIsCategoryFormOpen] = useState(false);
   const [editingBudget, setEditingBudget] = useState<Budget | undefined>(undefined);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | undefined>(undefined);
-  const [formMode, setFormMode] = useState<'create' | 'edit'>('create');
+  const [formMode, setFormMode] = useState<"create" | "edit">("create");
 
   // Determine selected user ID
-  const selectedUserId = selectedGroupFilter === 'all' ? undefined : selectedGroupFilter;
+  const selectedUserId = selectedGroupFilter === "all" ? undefined : selectedGroupFilter;
 
   // Calculate budgets by user using BudgetService
   const budgetsByUser = useMemo(() => {
@@ -83,16 +90,16 @@ export default function BudgetsContent({ currentUser, groupUsers, categories, bu
   const selectedBudget = useMemo(() => {
     if (selectedBudgetId) {
       // Find budget by ID from all budgets
-      const budget = budgets.find(b => b.id === selectedBudgetId);
+      const budget = budgets.find((b) => b.id === selectedBudgetId);
       if (budget) return budget;
     }
 
     // If no selectedBudgetId or not found, get first budget based on filter
-    if (selectedGroupFilter === 'all') {
+    if (selectedGroupFilter === "all") {
       return budgets[0] || null;
     }
 
-    const userBudgets = budgets.filter(b => b.user_id === selectedGroupFilter);
+    const userBudgets = budgets.filter((b) => b.user_id === selectedGroupFilter);
     return userBudgets[0] || budgets[0] || null;
   }, [selectedBudgetId, selectedGroupFilter, budgets]);
 
@@ -103,15 +110,15 @@ export default function BudgetsContent({ currentUser, groupUsers, categories, bu
     let effectiveFilter = selectedGroupFilter;
 
     // If we have a selected budget, show budgets for that budget's owner
-    if (selectedBudget && selectedGroupFilter !== 'all') {
+    if (selectedBudget && selectedGroupFilter !== "all") {
       effectiveFilter = selectedBudget.user_id;
     }
 
-    if (effectiveFilter === 'all') {
+    if (effectiveFilter === "all") {
       return budgets;
     }
 
-    const userBudgets = budgets.filter(b => b.user_id === effectiveFilter);
+    const userBudgets = budgets.filter((b) => b.user_id === effectiveFilter);
     return userBudgets.length > 0 ? userBudgets : budgets;
   }, [budgets, selectedGroupFilter, selectedBudget]);
 
@@ -119,20 +126,20 @@ export default function BudgetsContent({ currentUser, groupUsers, categories, bu
   const selectedBudgetProgress = useMemo(() => {
     if (!selectedBudget) return null;
 
-    const user = groupUsers.find(u => u.id === selectedBudget.user_id);
+    const user = groupUsers.find((u) => u.id === selectedBudget.user_id);
     if (!user) return null;
 
     const userSummary = budgetsByUser[user.id];
     if (!userSummary) return null;
 
-    return userSummary.budgets.find(b => b.id === selectedBudget.id) || null;
+    return userSummary.budgets.find((b) => b.id === selectedBudget.id) || null;
   }, [selectedBudget, groupUsers, budgetsByUser]);
 
   // Get period info for selected budget
   const periodInfo = useMemo(() => {
     if (!selectedBudget) return null;
 
-    const user = groupUsers.find(u => u.id === selectedBudget.user_id);
+    const user = groupUsers.find((u) => u.id === selectedBudget.user_id);
     if (!user) return null;
 
     const userSummary = budgetsByUser[user.id];
@@ -148,7 +155,7 @@ export default function BudgetsContent({ currentUser, groupUsers, categories, bu
   // Create user names map for budget selector
   const userNamesMap = useMemo(() => {
     const map: Record<string, string> = {};
-    groupUsers.forEach(user => {
+    groupUsers.forEach((user) => {
       map[user.id] = user.name;
     });
     return map;
@@ -157,39 +164,25 @@ export default function BudgetsContent({ currentUser, groupUsers, categories, bu
   // Create account names map
   const accountNamesMap = useMemo(() => {
     const map: Record<string, string> = {};
-    accounts.forEach(account => {
+    accounts.forEach((account) => {
       map[account.id] = account.name;
     });
     return map;
   }, [accounts]);
 
-  // Create category labels map
-  const categoryLabelsMap = useMemo(() => {
-    const map: Record<string, string> = {};
-    categories.forEach(category => {
-      map[category.key] = category.label;
-    });
-    return map;
-  }, [categories]);
-
   // Filter transactions for selected budget (by user and budget criteria)
   const budgetTransactions = useMemo(() => {
     if (!selectedBudget) return [];
 
-    const user = groupUsers.find(u => u.id === selectedBudget.user_id);
+    const user = groupUsers.find((u) => u.id === selectedBudget.user_id);
     if (!user) return [];
 
     const { periodStart, periodEnd } = BudgetService.getBudgetPeriodDates(user);
 
     // Filter transactions by user first, then by budget criteria
-    const userTransactions = transactions.filter(t => t.user_id === selectedBudget.user_id);
+    const userTransactions = transactions.filter((t) => t.user_id === selectedBudget.user_id);
 
-    return BudgetService.filterTransactionsForBudget(
-      userTransactions,
-      selectedBudget,
-      periodStart,
-      periodEnd
-    );
+    return BudgetService.filterTransactionsForBudget(userTransactions, selectedBudget, periodStart, periodEnd);
   }, [selectedBudget, groupUsers, transactions]);
 
   // Group transactions by date
@@ -198,8 +191,8 @@ export default function BudgetsContent({ currentUser, groupUsers, categories, bu
 
     // Group by date
     const groupedMap: Record<string, Transaction[]> = {};
-    budgetTransactions.forEach(transaction => {
-      const dateKey = new Date(transaction.date).toISOString().split('T')[0];
+    budgetTransactions.forEach((transaction) => {
+      const dateKey = new Date(transaction.date).toISOString().split("T")[0];
       if (!groupedMap[dateKey]) {
         groupedMap[dateKey] = [];
       }
@@ -211,10 +204,10 @@ export default function BudgetsContent({ currentUser, groupUsers, categories, bu
       .sort(([dateA], [dateB]) => dateB.localeCompare(dateA))
       .map(([date, txs]) => ({
         date,
-        formattedDate: new Date(date).toLocaleDateString('it-IT', {
-          weekday: 'long',
-          day: 'numeric',
-          month: 'long',
+        formattedDate: new Date(date).toLocaleDateString("it-IT", {
+          weekday: "long",
+          day: "numeric",
+          month: "long",
         }),
         transactions: txs.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
         total: txs.reduce((sum, t) => sum + t.amount, 0),
@@ -237,9 +230,9 @@ export default function BudgetsContent({ currentUser, groupUsers, categories, bu
     // Group transactions by date and calculate cumulative spending
     // Income transactions reduce spending (refill budget)
     const dailySpending: Record<string, number> = {};
-    budgetTransactions.forEach(t => {
-      const dateKey = new Date(t.date).toISOString().split('T')[0];
-      const amount = t.type === 'income' ? -t.amount : t.amount;
+    budgetTransactions.forEach((t) => {
+      const dateKey = new Date(t.date).toISOString().split("T")[0];
+      const amount = t.type === "income" ? -t.amount : t.amount;
       dailySpending[dateKey] = (dailySpending[dateKey] || 0) + amount;
     });
 
@@ -252,7 +245,7 @@ export default function BudgetsContent({ currentUser, groupUsers, categories, bu
       const currentDate = new Date(startDate);
       currentDate.setDate(startDate.getDate() + i);
       currentDate.setHours(0, 0, 0, 0);
-      const dateKey = currentDate.toISOString().split('T')[0];
+      const dateKey = currentDate.toISOString().split("T")[0];
 
       cumulative += dailySpending[dateKey] || 0;
       const isFuture = currentDate > today;
@@ -286,14 +279,14 @@ export default function BudgetsContent({ currentUser, groupUsers, categories, bu
 
   const handleCreateBudget = () => {
     setEditingBudget(undefined);
-    setFormMode('create');
+    setFormMode("create");
     setIsBudgetFormOpen(true);
   };
 
   const handleEditBudget = () => {
     if (selectedBudget) {
       setEditingBudget(selectedBudget);
-      setFormMode('edit');
+      setFormMode("edit");
       setIsBudgetFormOpen(true);
     }
   };
@@ -343,12 +336,16 @@ export default function BudgetsContent({ currentUser, groupUsers, categories, bu
               <BudgetDisplayCard
                 budget={selectedBudget}
                 period={periodInfo?.activePeriod || null}
-                budgetProgress={selectedBudgetProgress ? {
-                  spent: selectedBudgetProgress.spent,
-                  remaining: selectedBudgetProgress.remaining,
-                  percentage: selectedBudgetProgress.percentage,
-                  amount: selectedBudgetProgress.amount,
-                } : null}
+                budgetProgress={
+                  selectedBudgetProgress
+                    ? {
+                        spent: selectedBudgetProgress.spent,
+                        remaining: selectedBudgetProgress.remaining,
+                        percentage: selectedBudgetProgress.percentage,
+                        amount: selectedBudgetProgress.amount,
+                      }
+                    : null
+                }
                 onEdit={handleEditBudget}
               />
             </Suspense>
@@ -373,10 +370,14 @@ export default function BudgetsContent({ currentUser, groupUsers, categories, bu
                   <BudgetChart
                     spent={selectedBudgetProgress.spent}
                     chartData={chartData}
-                    periodInfo={periodInfo ? {
-                      startDate: periodInfo.start || '',
-                      endDate: periodInfo.end,
-                    } : null}
+                    periodInfo={
+                      periodInfo
+                        ? {
+                            startDate: periodInfo.start || "",
+                            endDate: periodInfo.end,
+                          }
+                        : null
+                    }
                   />
                 </Suspense>
 
@@ -389,13 +390,17 @@ export default function BudgetsContent({ currentUser, groupUsers, categories, bu
                     transactionCount={selectedBudgetProgress.transactionCount}
                     selectedBudget={selectedBudget}
                     selectedViewUserId={selectedGroupFilter}
-                    periodInfo={periodInfo ? {
-                      startDate: periodInfo.start || '',
-                      endDate: periodInfo.end,
-                    } : null}
+                    periodInfo={
+                      periodInfo
+                        ? {
+                            startDate: periodInfo.start || "",
+                            endDate: periodInfo.end,
+                          }
+                        : null
+                    }
                     onEditTransaction={(transaction) => {
                       setEditingTransaction(transaction);
-                      setFormMode('edit');
+                      setFormMode("edit");
                       setIsTransactionFormOpen(true);
                     }}
                     onDeleteTransaction={() => {
@@ -403,12 +408,12 @@ export default function BudgetsContent({ currentUser, groupUsers, categories, bu
                     }}
                     onViewAll={() => {
                       const params = new URLSearchParams();
-                      params.set('from', 'budgets');
-                      if (selectedGroupFilter !== 'all') {
-                        params.set('member', selectedGroupFilter);
+                      params.set("from", "budgets");
+                      if (selectedGroupFilter !== "all") {
+                        params.set("member", selectedGroupFilter);
                       }
-                      params.set('budget', selectedBudget.id);
-                      params.set('category', selectedBudget.description);
+                      params.set("budget", selectedBudget.id);
+                      params.set("category", selectedBudget.description);
                       router.push(`/transactions?${params.toString()}`);
                     }}
                   />
@@ -427,9 +432,15 @@ export default function BudgetsContent({ currentUser, groupUsers, categories, bu
       <TransactionForm
         isOpen={isTransactionFormOpen}
         onOpenChange={setIsTransactionFormOpen}
-        selectedUserId={selectedUserId}
         transaction={editingTransaction}
         mode={formMode}
+        currentUser={currentUser}
+        groupUsers={groupUsers}
+        accounts={accounts}
+        categories={categories}
+        groupId={currentUser.group_id}
+        selectedUserId={selectedUserId}
+        onSuccess={() => router.refresh()}
       />
 
       <BudgetForm
@@ -441,11 +452,7 @@ export default function BudgetsContent({ currentUser, groupUsers, categories, bu
         categories={categories}
       />
 
-      <CategoryForm
-        isOpen={isCategoryFormOpen}
-        onOpenChange={setIsCategoryFormOpen}
-        mode="create"
-      />
+      <CategoryForm isOpen={isCategoryFormOpen} onOpenChange={setIsCategoryFormOpen} mode="create" />
     </div>
   );
 }

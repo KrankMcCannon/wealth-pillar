@@ -1,8 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { cn } from '@/src/lib';
-import { Label } from "./label";
+import { cn } from "@/src/lib";
+import { Label } from "../ui";
 
 /**
  * Form Field Component
@@ -64,11 +64,7 @@ export function FormField({
       {/* Label */}
       <Label
         htmlFor={htmlFor}
-        className={cn(
-          "text-sm font-medium text-foreground",
-          error && "text-destructive",
-          labelClassName
-        )}
+        className={cn("text-sm font-medium text-foreground", error && "text-destructive", labelClassName)}
       >
         {label}
         {required && <span className="ml-1 text-destructive">*</span>}
@@ -78,16 +74,10 @@ export function FormField({
       <div className="relative">{children}</div>
 
       {/* Error Message */}
-      {error && (
-        <p className="text-sm text-destructive animate-in fade-in slide-in-from-top-1 duration-200">
-          {error}
-        </p>
-      )}
+      {error && <p className="text-sm text-destructive animate-in fade-in slide-in-from-top-1 duration-200">{error}</p>}
 
       {/* Helper Text */}
-      {helperText && !error && (
-        <p className="text-sm text-black/70">{helperText}</p>
-      )}
+      {helperText && !error && <p className="text-sm text-black/70">{helperText}</p>}
     </div>
   );
 }

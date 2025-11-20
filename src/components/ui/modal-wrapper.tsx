@@ -2,7 +2,6 @@
 
 import { cn } from "@/src/lib";
 import * as React from "react";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "./dialog";
 import { Drawer, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle } from "./drawer";
 
 /**
@@ -37,6 +36,10 @@ export interface ModalWrapperProps {
   className?: string;
   /** Additional CSS classes for the content area */
   contentClassName?: string;
+  /** Additional CSS classes for the title */
+  titleClassName?: string;
+  /** Additional CSS classes for the description */
+  descriptionClassName?: string;
   /** Loading state - shows loading indicator */
   isLoading?: boolean;
   /** Disable closing on outside click/Esc (default: false) */
@@ -54,10 +57,10 @@ export function ModalWrapper({
   description,
   children,
   footer,
-  maxWidth = "md",
-  showCloseButton = true,
   className,
   contentClassName,
+  titleClassName,
+  descriptionClassName,
   isLoading = false,
   disableOutsideClose = false,
 }: ModalWrapperProps) {
@@ -72,62 +75,16 @@ export function ModalWrapper({
     [disableOutsideClose, onOpenChange]
   );
 
-  // Get max width class based on size
-  const getMaxWidthClass = () => {
-    const widthMap = {
-      sm: "sm:max-w-sm",
-      md: "sm:max-w-md",
-      lg: "sm:max-w-lg",
-      xl: "sm:max-w-xl",
-      full: "sm:max-w-full",
-    };
-    return widthMap[maxWidth];
-  };
-
-  // Desktop: Use Dialog
-  if (false) {
-    return (
-      <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-        <DialogContent
-          className={cn(getMaxWidthClass(), "p-0", className)}
-          showCloseButton={showCloseButton && !isLoading}
-        >
-          <DialogHeader className="rounded-t-2xl px-5 py-4 bg-card border-b border-border shrink-0">
-            <DialogTitle className="text-lg font-semibold text-foreground">{title}</DialogTitle>
-            {description && (
-              <DialogDescription className="text-sm text-muted-foreground mt-1">{description}</DialogDescription>
-            )}
-          </DialogHeader>
-
-          <div className={cn("px-6 py-4 text-foreground flex-1 overflow-y-auto", contentClassName)}>
-            {isLoading ? (
-              <div className="flex items-center justify-center py-8">
-                <div className="liquid-pulse size-8 rounded-full bg-primary/20" />
-                <span className="ml-3 text-sm text-muted-foreground">Caricamento...</span>
-              </div>
-            ) : (
-              children
-            )}
-          </div>
-
-          {footer && !isLoading && (
-            <DialogFooter className="px-6 py-4 border-t border-border bg-card rounded-b-2xl shrink-0">
-              {footer}
-            </DialogFooter>
-          )}
-        </DialogContent>
-      </Dialog>
-    );
-  }
-
   // Mobile: Use Drawer
   return (
     <Drawer open={isOpen} onOpenChange={handleOpenChange}>
       <DrawerContent className={cn("p-0", className)}>
         <DrawerHeader className="text-left bg-card px-4 py-3 border-b border-border shrink-0">
-          <DrawerTitle className="text-lg font-semibold text-foreground">{title}</DrawerTitle>
+          <DrawerTitle className={cn("text-lg font-semibold text-foreground", titleClassName)}>{title}</DrawerTitle>
           {description && (
-            <DrawerDescription className="text-sm text-muted-foreground mt-1">{description}</DrawerDescription>
+            <DrawerDescription className={cn("text-sm text-muted-foreground mt-1", descriptionClassName)}>
+              {description}
+            </DrawerDescription>
           )}
         </DrawerHeader>
 

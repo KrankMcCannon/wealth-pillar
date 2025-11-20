@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { SectionHeader } from "@/src/components/layout";
 import BottomNavigation from "@/src/components/layout/bottom-navigation";
-import { PageLoader } from "@/src/components/shared";
 import UserSelector from "@/src/components/shared/user-selector";
 import { EnhancedHolding } from "@/src/lib";
 import { PieChart } from "lucide-react";
@@ -12,7 +11,7 @@ import type { DashboardDataProps } from "@/lib/auth/get-dashboard-data";
 
 export default function InvestmentsContent({ currentUser, groupUsers }: DashboardDataProps) {
   const router = useRouter();
-  const [selectedGroupFilter, setSelectedGroupFilter] = useState<string>('all');
+  const [selectedGroupFilter, setSelectedGroupFilter] = useState<string>("all");
 
   return (
     <div

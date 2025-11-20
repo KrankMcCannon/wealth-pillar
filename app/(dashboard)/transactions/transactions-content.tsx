@@ -22,6 +22,7 @@ import {
 import BottomNavigation from "@/src/components/layout/bottom-navigation";
 import TabNavigation from "@/src/components/shared/tab-navigation";
 import UserSelector from "@/src/components/shared/user-selector";
+import { ConfirmationDialog } from "@/components/shared/confirmation-dialog";
 import { RecurringSeriesSection, RecurringSeriesForm } from "@/src/features/recurring";
 import { FilterDialog, GroupedTransactionCard, TransactionForm } from "@/src/features/transactions";
 import { transactionStyles } from "@/src/features/transactions/theme/transaction-styles";
@@ -33,6 +34,7 @@ import {
 } from "@/src/features/transactions/components/transaction-skeletons";
 import type { User, Transaction, Category, Account } from "@/lib/types";
 import { TransactionService, CategoryService, AccountService } from "@/lib/services";
+import { deleteTransactionAction } from "@/features/transactions/actions/transaction-actions";
 import { formatCurrency } from "@/lib/utils";
 
 /**
@@ -66,6 +68,14 @@ export default function TransactionsContent({
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isTransactionFormOpen, setIsTransactionFormOpen] = useState(false);
   const [isRecurringFormOpen, setIsRecurringFormOpen] = useState(false);
+  const [formMode, setFormMode] = useState<'create' | 'edit'>('create');
+  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | undefined>();
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [transactionToDelete, setTransactionToDelete] = useState<Transaction | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  // Optimistic UI state - local copy of transactions
+  const [localTransactions, setLocalTransactions] = useState<Transaction[]>(transactions);
 
   const selectedUserId = selectedGroupFilter === 'all' ? undefined : selectedGroupFilter;
 
@@ -78,12 +88,12 @@ export default function TransactionsContent({
     return names;
   }, [accounts]);
 
-  // Filter transactions by selected user
+  // Filter transactions by selected user (use local state for optimistic updates)
   const filteredTransactions = useMemo(() => {
     return selectedUserId
-      ? transactions.filter((t) => t.user_id === selectedUserId)
-      : transactions;
-  }, [selectedUserId, transactions]);
+      ? localTransactions.filter((t) => t.user_id === selectedUserId)
+      : localTransactions;
+  }, [selectedUserId, localTransactions]);
 
   // Group transactions by date and calculate daily totals using service layer
   const dayTotals = useMemo(() => {
@@ -92,14 +102,72 @@ export default function TransactionsContent({
   }, [filteredTransactions]);
 
   // Handlers for transaction actions
-  const handleEditTransaction = (transaction: Transaction) => {
-    // TODO: Implement edit functionality when backend is ready
-    console.log('Edit transaction:', transaction.id);
+  const handleCreateTransaction = () => {
+    setFormMode('create');
+    setSelectedTransaction(undefined);
+    setIsTransactionFormOpen(true);
   };
 
-  const handleDeleteTransaction = (transactionId: string) => {
-    // TODO: Implement delete functionality when backend is ready
-    console.log('Delete transaction:', transactionId);
+  const handleEditTransaction = (transaction: Transaction) => {
+    setFormMode('edit');
+    setSelectedTransaction(transaction);
+    setIsTransactionFormOpen(true);
+  };
+
+  const handleDeleteClick = (transactionId: string) => {
+    const transaction = localTransactions.find((t) => t.id === transactionId);
+    if (transaction) {
+      setTransactionToDelete(transaction);
+      setIsDeleteConfirmOpen(true);
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!transactionToDelete) return;
+
+    setIsDeleting(true);
+
+    // Optimistic UI update - remove immediately
+    const removedTransaction = transactionToDelete;
+    setLocalTransactions((prev) => prev.filter((t) => t.id !== removedTransaction.id));
+
+    try {
+      // Call server action to delete
+      const result = await deleteTransactionAction(removedTransaction.id);
+
+      if (result.error) {
+        // Revert on error
+        setLocalTransactions((prev) => [...prev, removedTransaction]);
+        console.error('Failed to delete transaction:', result.error);
+        // TODO: Show error toast/message to user
+      }
+      // Success - cache revalidation happens in service, UI will refresh with server data
+    } catch (error) {
+      // Revert on error
+      setLocalTransactions((prev) => [...prev, removedTransaction]);
+      console.error('Error deleting transaction:', error);
+      // TODO: Show error toast/message to user
+    } finally {
+      setIsDeleting(false);
+      setIsDeleteConfirmOpen(false);
+      setTransactionToDelete(null);
+      // Refresh data from server
+      router.refresh();
+    }
+  };
+
+  const handleFormSuccess = (transaction: Transaction, action: 'create' | 'update') => {
+    // Optimistic UI update
+    if (action === 'create') {
+      setLocalTransactions((prev) => [transaction, ...prev]);
+    } else {
+      setLocalTransactions((prev) =>
+        prev.map((t) => (t.id === transaction.id ? transaction : t))
+      );
+    }
+
+    // Cache revalidation happens in service, UI will refresh with server data
+    router.refresh();
   };
 
   return (
@@ -132,7 +200,7 @@ export default function TransactionsContent({
             >
               <DropdownMenuItem
                 className="text-sm font-medium text-primary hover:bg-primary hover:text-white rounded-lg px-3 py-2.5 cursor-pointer transition-colors"
-                onClick={() => setIsTransactionFormOpen(true)}
+                onClick={handleCreateTransaction}
               >
                 <Plus className="mr-3 h-4 w-4" />
                 Aggiungi Transazione
@@ -257,7 +325,7 @@ export default function TransactionsContent({
                       variant="regular"
                       categories={categories}
                       onEditTransaction={handleEditTransaction}
-                      onDeleteTransaction={handleDeleteTransaction}
+                      onDeleteTransaction={handleDeleteClick}
                     />
                   </section>
                 ))}
@@ -307,10 +375,15 @@ export default function TransactionsContent({
       <TransactionForm
         isOpen={isTransactionFormOpen}
         onOpenChange={setIsTransactionFormOpen}
-        initialType={undefined}
+        transaction={selectedTransaction}
+        mode={formMode}
+        currentUser={currentUser}
+        groupUsers={groupUsers}
+        accounts={accounts}
+        categories={categories}
+        groupId={currentUser.group_id}
         selectedUserId={selectedUserId}
-        transaction={undefined}
-        mode={undefined}
+        onSuccess={handleFormSuccess}
       />
       <RecurringSeriesForm
         isOpen={isRecurringFormOpen}
@@ -318,6 +391,22 @@ export default function TransactionsContent({
         selectedUserId={selectedUserId}
         series={undefined}
         mode={undefined}
+      />
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmationDialog
+        isOpen={isDeleteConfirmOpen}
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => {
+          setIsDeleteConfirmOpen(false);
+          setTransactionToDelete(null);
+        }}
+        title="Elimina transazione"
+        message={`Sei sicuro di voler eliminare la transazione "${transactionToDelete?.description}"? Questa azione non può essere annullata.`}
+        confirmText="Elimina"
+        cancelText="Annulla"
+        variant="destructive"
+        isLoading={isDeleting}
       />
     </div>
   );

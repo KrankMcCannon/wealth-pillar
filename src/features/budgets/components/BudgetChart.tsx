@@ -7,7 +7,7 @@
 "use client";
 
 import { Card } from "@/components/ui";
-import { getComparisonStyles, budgetStyles } from "../theme/budget-styles";
+import { budgetStyles } from "../theme/budget-styles";
 import { formatCurrency } from "@/lib/utils/currency-formatter";
 import React from "react";
 
@@ -31,19 +31,17 @@ export interface BudgetChartProps {
 export function BudgetChart({ spent, chartData, periodInfo }: Readonly<BudgetChartProps>) {
   // Generate path for chart line
   const generatePath = (points: ChartDataPoint[]): string => {
-    if (points.length === 0) return '';
+    if (points.length === 0) return "";
 
-    const visiblePoints = points.filter(p => !p.isFuture);
-    if (visiblePoints.length === 0) return '';
+    const visiblePoints = points.filter((p) => !p.isFuture);
+    if (visiblePoints.length === 0) return "";
 
-    return visiblePoints
-      .map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`)
-      .join(' ');
+    return visiblePoints.map((point, index) => `${index === 0 ? "M" : "L"} ${point.x} ${point.y}`).join(" ");
   };
 
-  const visiblePoints = chartData?.filter(p => !p.isFuture) || [];
+  const visiblePoints = chartData?.filter((p) => !p.isFuture) || [];
   const lastPoint = visiblePoints.at(-1);
-  const path = chartData ? generatePath(chartData) : '';
+  const path = chartData ? generatePath(chartData) : "";
 
   // Calculate period days for date labels
   const getPeriodDays = () => {
@@ -124,7 +122,8 @@ export function BudgetChart({ spent, chartData, periodInfo }: Readonly<BudgetCha
                   currentDate.setDate(startDate.getDate() + index);
                   const dayOfMonth = currentDate.getDate();
                   const totalDays = Math.min(periodDays, 30);
-                  const showDay = index === 0 || index === totalDays - 1 || (totalDays > 7 && index % Math.ceil(totalDays / 5) === 0);
+                  const showDay =
+                    index === 0 || index === totalDays - 1 || (totalDays > 7 && index % Math.ceil(totalDays / 5) === 0);
                   const position = totalDays > 1 ? (index / (totalDays - 1)) * 100 : 50;
 
                   return (
