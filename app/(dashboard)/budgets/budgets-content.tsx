@@ -11,7 +11,8 @@ import { useState, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import BottomNavigation from "@/components/layout/bottom-navigation";
 import UserSelector from "@/components/shared/user-selector";
-import { BudgetForm } from "@/features/budgets";
+import { ConfirmationDialog } from "@/components/shared/confirmation-dialog";
+import { BudgetForm, BudgetPeriodManager } from "@/features/budgets";
 import {
   BudgetHeader,
   BudgetSelector,
@@ -28,6 +29,7 @@ import {
 } from "@/features/budgets/components";
 import { CategoryForm } from "@/features/categories";
 import { TransactionForm } from "@/features/transactions";
+import { deleteBudgetAction } from "@/features/budgets/actions/budget-actions";
 import { Suspense } from "react";
 import { budgetStyles } from "@/features/budgets/theme/budget-styles";
 import { BudgetService } from "@/lib/services";
@@ -74,9 +76,13 @@ export default function BudgetsContent({
   const [isBudgetFormOpen, setIsBudgetFormOpen] = useState(false);
   const [isTransactionFormOpen, setIsTransactionFormOpen] = useState(false);
   const [isCategoryFormOpen, setIsCategoryFormOpen] = useState(false);
+  const [isPeriodManagerOpen, setIsPeriodManagerOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [editingBudget, setEditingBudget] = useState<Budget | undefined>(undefined);
+  const [deletingBudget, setDeletingBudget] = useState<Budget | undefined>(undefined);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | undefined>(undefined);
   const [formMode, setFormMode] = useState<"create" | "edit">("create");
+  const [isDeletingBudget, setIsDeletingBudget] = useState(false);
 
   // Determine selected user ID
   const selectedUserId = selectedGroupFilter === "all" ? undefined : selectedGroupFilter;
@@ -294,6 +300,55 @@ export default function BudgetsContent({
   const handleCreateCategory = () => {
     setIsCategoryFormOpen(true);
   };
+
+  const handleManagePeriod = () => {
+    setIsPeriodManagerOpen(true);
+  };
+
+  const handleDeleteBudget = (budget: Budget) => {
+    setDeletingBudget(budget);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const confirmDeleteBudget = async () => {
+    if (!deletingBudget) return;
+
+    setIsDeletingBudget(true);
+    try {
+      const result = await deleteBudgetAction(deletingBudget.id);
+
+      if (result.error) {
+        console.error("[BudgetsContent] Delete error:", result.error);
+        // Could show error toast here
+        return;
+      }
+
+      // Success - refresh page and close dialog
+      router.refresh();
+      setIsDeleteDialogOpen(false);
+      setDeletingBudget(undefined);
+      // Clear selected budget if it was the one deleted
+      if (selectedBudgetId === deletingBudget.id) {
+        setSelectedBudgetId(null);
+      }
+    } catch (error) {
+      console.error("[BudgetsContent] Delete error:", error);
+    } finally {
+      setIsDeletingBudget(false);
+    }
+  };
+
+  // Get user and budgets for period manager
+  const periodManagerUser = useMemo(() => {
+    if (!selectedBudget) return null;
+    return groupUsers.find((u) => u.id === selectedBudget.user_id) || null;
+  }, [selectedBudget, groupUsers]);
+
+  const periodManagerBudgets = useMemo(() => {
+    if (!selectedBudget) return [];
+    return budgets.filter((b) => b.user_id === selectedBudget.user_id);
+  }, [selectedBudget, budgets]);
+
   return (
     <div className={budgetStyles.page.container}>
       {/* Header with navigation and actions */}
@@ -303,9 +358,9 @@ export default function BudgetsContent({
         onBackClick={() => router.back()}
         onCreateBudget={handleCreateBudget}
         onCreateCategory={handleCreateCategory}
+        onManagePeriod={handleManagePeriod}
         selectedBudget={selectedBudget}
         currentPeriod={periodInfo?.activePeriod || null}
-        onPeriodManagerSuccess={() => setIsDropdownOpen(false)}
       />
 
       {/* User Selector */}
@@ -347,6 +402,7 @@ export default function BudgetsContent({
                     : null
                 }
                 onEdit={handleEditBudget}
+                onDelete={handleDeleteBudget}
               />
             </Suspense>
 
@@ -453,6 +509,52 @@ export default function BudgetsContent({
       />
 
       <CategoryForm isOpen={isCategoryFormOpen} onOpenChange={setIsCategoryFormOpen} mode="create" />
+
+      {/* Budget Period Manager - Controlled by isPeriodManagerOpen state */}
+      {periodManagerUser && (
+        <BudgetPeriodManager
+          user={periodManagerUser}
+          currentPeriod={periodInfo?.activePeriod || null}
+          transactions={transactions}
+          userBudgets={periodManagerBudgets}
+          trigger={
+            isPeriodManagerOpen ? (
+              <button
+                onClick={() => setIsPeriodManagerOpen(false)}
+                style={{ display: "none" }}
+                ref={(el) => {
+                  if (el && isPeriodManagerOpen) {
+                    setTimeout(() => el.click(), 0);
+                  }
+                }}
+              />
+            ) : (
+              <div />
+            )
+          }
+          onSuccess={() => {
+            router.refresh();
+            setIsPeriodManagerOpen(false);
+          }}
+        />
+      )}
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmationDialog
+        isOpen={isDeleteDialogOpen}
+        onCancel={() => setIsDeleteDialogOpen(false)}
+        title="Elimina Budget"
+        message={
+          deletingBudget
+            ? `Sei sicuro di voler eliminare il budget "${deletingBudget.description}"? Questa azione non può essere annullata.`
+            : ""
+        }
+        confirmText="Elimina"
+        cancelText="Annulla"
+        variant="destructive"
+        onConfirm={confirmDeleteBudget}
+        isLoading={isDeletingBudget}
+      />
     </div>
   );
 }

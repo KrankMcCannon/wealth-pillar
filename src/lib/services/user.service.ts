@@ -1,6 +1,17 @@
 import { supabaseServer } from '@/lib/database/server';
-import { cached, userCacheKeys, cacheOptions } from '@/lib/cache';
+import { cached, userCacheKeys, cacheOptions, CACHE_TAGS } from '@/lib/cache';
 import type { Database } from '@/lib/database/types';
+import type { BudgetPeriod, Transaction } from '@/lib/types';
+
+/**
+ * Helper to revalidate cache tags (dynamically imported to avoid client-side issues)
+ */
+async function revalidateCacheTags(tags: string[]) {
+  if (typeof window === 'undefined') {
+    const { revalidateTag } = await import('next/cache');
+    tags.forEach((tag) => revalidateTag(tag));
+  }
+}
 
 /**
  * User type from database
@@ -246,5 +257,257 @@ export class UserService {
     if (!userId) return 'Sconosciuto';
     const user = users.find((u) => u.id === userId);
     return user?.name || 'Sconosciuto';
+  }
+
+  /**
+   * Start a new budget period for a user
+   * Creates a new active period and deactivates any existing active periods
+   *
+   * @param userId - User ID
+   * @param startDate - Period start date (ISO string or Date)
+   * @returns Updated user with new period or error
+   *
+   * @example
+   * const { data: user, error } = await UserService.startBudgetPeriod(userId, new Date().toISOString());
+   */
+  static async startBudgetPeriod(
+    userId: string,
+    startDate: string | Date
+  ): Promise<ServiceResult<User>> {
+    try {
+      // Input validation
+      if (!userId || userId.trim() === '') {
+        return { data: null, error: 'User ID is required' };
+      }
+
+      if (!startDate) {
+        return { data: null, error: 'Start date is required' };
+      }
+
+      // Get current user to access existing periods
+      const { data: user, error: fetchError } = await this.getUserById(userId);
+
+      if (fetchError || !user) {
+        return { data: null, error: fetchError || 'User not found' };
+      }
+
+      // Convert startDate to ISO string
+      const startDateISO = typeof startDate === 'string' ? startDate : startDate.toISOString();
+
+      // Get existing periods (or initialize empty array)
+      const existingPeriods = (user.budget_periods as BudgetPeriod[]) || [];
+
+      // Deactivate all existing active periods
+      const updatedPeriods = existingPeriods.map((period) => ({
+        ...period,
+        is_active: false,
+      }));
+
+      // Create new period
+      const newPeriod: BudgetPeriod = {
+        id: crypto.randomUUID(),
+        user_id: userId,
+        start_date: startDateISO,
+        end_date: null, // Open-ended period
+        total_spent: 0,
+        total_saved: 0,
+        category_spending: {},
+        is_active: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      // Add new period to array
+      updatedPeriods.push(newPeriod);
+
+      // Update user with new periods array
+      const { data: updatedUser, error: updateError } = await (supabaseServer as any)
+        .from('users')
+        .update({
+          budget_periods: updatedPeriods,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', userId)
+        .select()
+        .single();
+
+      if (updateError) {
+        throw new Error(updateError.message);
+      }
+
+      if (!updatedUser) {
+        return { data: null, error: 'Failed to start budget period' };
+      }
+
+      // Invalidate user cache
+      await revalidateCacheTags([
+        CACHE_TAGS.USERS,
+        CACHE_TAGS.USER(userId),
+      ]);
+
+      return { data: updatedUser, error: null };
+    } catch (error) {
+      return {
+        data: null,
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Failed to start budget period',
+      };
+    }
+  }
+
+  /**
+   * Close the active budget period for a user
+   * Sets end_date, calculates totals from transactions, and marks as inactive
+   *
+   * @param userId - User ID
+   * @param endDate - Period end date (ISO string or Date)
+   * @param transactions - Array of transactions for calculating totals
+   * @param userBudgets - Array of user's budgets for calculating savings (optional)
+   * @returns Updated user with closed period or error
+   *
+   * @example
+   * const { data: user, error } = await UserService.closeBudgetPeriod(
+   *   userId,
+   *   new Date().toISOString(),
+   *   allTransactions,
+   *   userBudgets
+   * );
+   */
+  static async closeBudgetPeriod(
+    userId: string,
+    endDate: string | Date,
+    transactions: Transaction[],
+    userBudgets?: Array<{ amount: number; type: string }>
+  ): Promise<ServiceResult<User>> {
+    try {
+      // Input validation
+      if (!userId || userId.trim() === '') {
+        return { data: null, error: 'User ID is required' };
+      }
+
+      if (!endDate) {
+        return { data: null, error: 'End date is required' };
+      }
+
+      // Get current user to access existing periods
+      const { data: user, error: fetchError } = await this.getUserById(userId);
+
+      if (fetchError || !user) {
+        return { data: null, error: fetchError || 'User not found' };
+      }
+
+      // Get existing periods
+      const existingPeriods = (user.budget_periods as BudgetPeriod[]) || [];
+
+      // Find active period
+      const activePeriodIndex = existingPeriods.findIndex((p) => p.is_active);
+
+      if (activePeriodIndex === -1) {
+        return { data: null, error: 'No active budget period found' };
+      }
+
+      const activePeriod = existingPeriods[activePeriodIndex];
+
+      // Convert endDate to ISO string
+      const endDateISO = typeof endDate === 'string' ? endDate : endDate.toISOString();
+
+      // Filter transactions for this period and user
+      const periodStart = new Date(activePeriod.start_date);
+      const periodEnd = new Date(endDateISO);
+      const userTransactions = transactions.filter((t) => {
+        if (t.user_id !== userId) return false;
+        const txDate = new Date(t.date);
+        return txDate >= periodStart && txDate < periodEnd;
+      });
+
+      // Calculate totals
+      let totalSpent = 0;
+      const categorySpending: Record<string, number> = {};
+
+      userTransactions.forEach((t) => {
+        if (t.type === 'expense' || t.type === 'transfer') {
+          totalSpent += t.amount;
+          categorySpending[t.category] = (categorySpending[t.category] || 0) + t.amount;
+        } else if (t.type === 'income') {
+          totalSpent -= t.amount; // Income refills budget
+        }
+      });
+
+      // Ensure spent doesn't go negative
+      totalSpent = Math.max(0, totalSpent);
+
+      // Calculate total budget amount (monthly budgets for the period)
+      let totalBudget = 0;
+      if (userBudgets && userBudgets.length > 0) {
+        // Calculate budget for period based on type
+        const periodStart = new Date(activePeriod.start_date);
+        const periodEndDate = new Date(endDateISO);
+        const periodDays = Math.ceil((periodEndDate.getTime() - periodStart.getTime()) / (1000 * 60 * 60 * 24));
+
+        userBudgets.forEach((budget) => {
+          if (budget.type === 'monthly') {
+            // Pro-rate monthly budget based on period length
+            const monthlyFraction = periodDays / 30; // Approximate month as 30 days
+            totalBudget += budget.amount * monthlyFraction;
+          } else if (budget.type === 'annually') {
+            // Pro-rate annual budget based on period length
+            const annualFraction = periodDays / 365;
+            totalBudget += budget.amount * annualFraction;
+          }
+        });
+      }
+
+      // Calculate savings: budget - spent
+      const totalSaved = Math.max(0, totalBudget - totalSpent);
+
+      // Update the active period
+      const updatedPeriods = [...existingPeriods];
+      updatedPeriods[activePeriodIndex] = {
+        ...activePeriod,
+        end_date: endDateISO,
+        total_spent: totalSpent,
+        total_saved: totalSaved,
+        category_spending: categorySpending,
+        is_active: false,
+        updated_at: new Date().toISOString(),
+      };
+
+      // Update user with updated periods array
+      const { data: updatedUser, error: updateError } = await (supabaseServer as any)
+        .from('users')
+        .update({
+          budget_periods: updatedPeriods,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', userId)
+        .select()
+        .single();
+
+      if (updateError) {
+        throw new Error(updateError.message);
+      }
+
+      if (!updatedUser) {
+        return { data: null, error: 'Failed to close budget period' };
+      }
+
+      // Invalidate user cache
+      await revalidateCacheTags([
+        CACHE_TAGS.USERS,
+        CACHE_TAGS.USER(userId),
+      ]);
+
+      return { data: updatedUser, error: null };
+    } catch (error) {
+      return {
+        data: null,
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Failed to close budget period',
+      };
+    }
   }
 }

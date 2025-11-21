@@ -9,7 +9,7 @@ import { Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMe
 import { Budget, BudgetPeriod, CategoryIcon, iconSizes } from "@/lib";
 import { budgetStyles } from "../theme/budget-styles";
 import { formatCurrency } from "@/lib/utils/currency-formatter";
-import { MoreVertical } from "lucide-react";
+import { MoreVertical, Pencil, Trash2 } from "lucide-react";
 import React from "react";
 
 export interface BudgetDisplayCardProps {
@@ -22,9 +22,16 @@ export interface BudgetDisplayCardProps {
     amount: number;
   } | null;
   onEdit: (budget: Budget) => void;
+  onDelete: (budget: Budget) => void;
 }
 
-export function BudgetDisplayCard({ budget, period, budgetProgress, onEdit }: Readonly<BudgetDisplayCardProps>) {
+export function BudgetDisplayCard({
+  budget,
+  period,
+  budgetProgress,
+  onEdit,
+  onDelete,
+}: Readonly<BudgetDisplayCardProps>) {
   if (!budget) return null;
 
   const remainingColorClass = budgetProgress && budgetProgress.remaining < 0 ? "text-destructive" : "text-primary";
@@ -52,7 +59,16 @@ export function BudgetDisplayCard({ budget, period, budgetProgress, onEdit }: Re
               className="text-sm font-medium hover:bg-primary/8 hover:text-primary rounded-lg px-3 py-2.5 cursor-pointer transition-colors"
               onSelect={() => onEdit(budget)}
             >
-              <span className="mr-2">✏️</span> Modifica Budget
+              <Pencil className="h-4 w-4 mr-2" />
+              Modifica Budget
+            </DropdownMenuItem>
+
+            <DropdownMenuItem
+              className="text-sm font-medium hover:bg-destructive/10 hover:text-destructive rounded-lg px-3 py-2.5 cursor-pointer transition-colors text-destructive"
+              onSelect={() => onDelete(budget)}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Elimina Budget
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -62,7 +78,11 @@ export function BudgetDisplayCard({ budget, period, budgetProgress, onEdit }: Re
       <div className={budgetStyles.budgetDisplay.headerRow}>
         <div className={budgetStyles.budgetDisplay.headerContent}>
           <div className={budgetStyles.budgetDisplay.iconContainer}>
-            <CategoryIcon categoryKey={budget.categories?.[0] || "altro"} size={iconSizes.lg} className="text-[#7578EC]" />
+            <CategoryIcon
+              categoryKey={budget.categories?.[0] || "altro"}
+              size={iconSizes.lg}
+              className="text-[#7578EC]"
+            />
           </div>
           <div className={budgetStyles.budgetDisplay.iconText}>
             <h3 className={budgetStyles.budgetDisplay.budgetName}>{budget.description}</h3>
@@ -105,9 +125,7 @@ export function BudgetDisplayCard({ budget, period, budgetProgress, onEdit }: Re
           {/* Spent Amount */}
           <div className={budgetStyles.metrics.item}>
             <p className={`${budgetStyles.metrics.label} text-destructive`}>Speso</p>
-            <p className={`${budgetStyles.metrics.value} text-destructive`}>
-              {formatCurrency(budgetProgress.spent)}
-            </p>
+            <p className={`${budgetStyles.metrics.value} text-destructive`}>{formatCurrency(budgetProgress.spent)}</p>
           </div>
 
           {/* Total Budget */}

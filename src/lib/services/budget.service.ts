@@ -1,7 +1,36 @@
 import { supabaseServer } from '@/lib/database/server';
-import { cached, budgetCacheKeys, cacheOptions } from '@/lib/cache';
+import { cached, budgetCacheKeys, cacheOptions, CACHE_TAGS } from '@/lib/cache';
+import type { Database } from '@/lib/database/types';
 import type { ServiceResult } from './user.service';
-import type { Budget, Transaction, User, BudgetPeriod } from '@/lib/types';
+import type { Budget, Transaction, User, BudgetPeriod, BudgetType } from '@/lib/types';
+
+/**
+ * Helper to revalidate cache tags (dynamically imported to avoid client-side issues)
+ */
+async function revalidateCacheTags(tags: string[]) {
+  if (typeof window === 'undefined') {
+    const { revalidateTag } = await import('next/cache');
+    tags.forEach((tag) => revalidateTag(tag));
+  }
+}
+
+/**
+ * Input data for creating a new budget
+ */
+export interface CreateBudgetInput {
+  description: string;
+  amount: number;
+  type: BudgetType;
+  icon?: string;
+  categories: string[];
+  user_id: string;
+  group_id?: string; // Optional for backward compatibility
+}
+
+/**
+ * Input data for updating an existing budget
+ */
+export type UpdateBudgetInput = Partial<CreateBudgetInput>;
 
 /**
  * Budget progress data for a single budget
@@ -208,6 +237,297 @@ export class BudgetService {
           error instanceof Error
             ? error.message
             : 'Failed to retrieve group budgets',
+      };
+    }
+  }
+
+  /**
+   * Create a new budget
+   * Used for adding new budgets to the database
+   *
+   * @param data - Budget data to create
+   * @returns Created budget or error
+   *
+   * @example
+   * const { data: budget, error } = await BudgetService.createBudget({
+   *   description: 'Monthly groceries',
+   *   amount: 500.00,
+   *   type: 'monthly',
+   *   categories: ['food', 'groceries'],
+   *   user_id: userId
+   * });
+   */
+  static async createBudget(
+    data: CreateBudgetInput
+  ): Promise<ServiceResult<Budget>> {
+    try {
+      // Input validation
+      if (!data.description || data.description.trim() === '') {
+        return { data: null, error: 'Description is required' };
+      }
+
+      if (data.description.trim().length < 2) {
+        return { data: null, error: 'Description must be at least 2 characters' };
+      }
+
+      if (!data.amount || data.amount <= 0) {
+        return { data: null, error: 'Amount must be greater than zero' };
+      }
+
+      if (!data.type) {
+        return { data: null, error: 'Budget type is required' };
+      }
+
+      if (!['monthly', 'annually'].includes(data.type)) {
+        return { data: null, error: 'Invalid budget type' };
+      }
+
+      if (!data.categories || data.categories.length === 0) {
+        return { data: null, error: 'At least one category is required' };
+      }
+
+      if (!data.user_id || data.user_id.trim() === '') {
+        return { data: null, error: 'User ID is required' };
+      }
+
+      // Get user's group_id if not provided
+      let groupId = data.group_id;
+      if (!groupId) {
+        // Import UserService dynamically to avoid circular dependency
+        const { UserService } = await import('./user.service');
+        const { data: user, error: userError } = await UserService.getUserById(data.user_id);
+        if (userError || !user) {
+          return { data: null, error: 'Failed to get user group' };
+        }
+        groupId = user.group_id;
+      }
+
+      // Insert budget
+      const insertData: Database['public']['Tables']['budgets']['Insert'] = {
+        description: data.description.trim(),
+        amount: data.amount,
+        type: data.type,
+        icon: data.icon || null,
+        categories: data.categories,
+        user_id: data.user_id,
+        group_id: groupId,
+      };
+
+      const { data: budget, error } = await (supabaseServer as any)
+        .from('budgets')
+        .insert(insertData)
+        .select()
+        .single();
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      if (!budget) {
+        return { data: null, error: 'Failed to create budget' };
+      }
+
+      // Invalidate relevant caches
+      const tagsToInvalidate: string[] = [
+        CACHE_TAGS.BUDGETS,
+        `user:${data.user_id}:budgets`,
+      ];
+      await revalidateCacheTags(tagsToInvalidate);
+
+      return { data: budget, error: null };
+    } catch (error) {
+      return {
+        data: null,
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Failed to create budget',
+      };
+    }
+  }
+
+  /**
+   * Update an existing budget
+   * Used for modifying budget details
+   *
+   * @param id - Budget ID
+   * @param data - Updated budget data
+   * @returns Updated budget or error
+   *
+   * @example
+   * const { data: budget, error } = await BudgetService.updateBudget(
+   *   budgetId,
+   *   { description: 'Updated description', amount: 600.00 }
+   * );
+   */
+  static async updateBudget(
+    id: string,
+    data: UpdateBudgetInput
+  ): Promise<ServiceResult<Budget>> {
+    try {
+      // Input validation
+      if (!id || id.trim() === '') {
+        return { data: null, error: 'Budget ID is required' };
+      }
+
+      // Validate updated fields if provided
+      if (data.description !== undefined && data.description.trim() === '') {
+        return { data: null, error: 'Description cannot be empty' };
+      }
+
+      if (data.description !== undefined && data.description.trim().length < 2) {
+        return { data: null, error: 'Description must be at least 2 characters' };
+      }
+
+      if (data.amount !== undefined && data.amount <= 0) {
+        return { data: null, error: 'Amount must be greater than zero' };
+      }
+
+      if (data.type !== undefined && !['monthly', 'annually'].includes(data.type)) {
+        return { data: null, error: 'Invalid budget type' };
+      }
+
+      if (data.categories !== undefined && data.categories.length === 0) {
+        return { data: null, error: 'At least one category is required' };
+      }
+
+      if (data.user_id !== undefined && data.user_id.trim() === '') {
+        return { data: null, error: 'User ID cannot be empty' };
+      }
+
+      // Check if budget exists and get current data for cache invalidation
+      const { data: existingBudget, error: fetchError } =
+        await supabaseServer
+          .from('budgets')
+          .select('*')
+          .eq('id', id)
+          .single();
+
+      if (fetchError || !existingBudget) {
+        return { data: null, error: 'Budget not found' };
+      }
+
+      // Cast to Budget type for proper typing
+      const existing = existingBudget as Budget;
+
+      // Build update object with only provided fields
+      const updateData: Database['public']['Tables']['budgets']['Update'] = {
+        updated_at: new Date().toISOString(),
+      };
+
+      if (data.description !== undefined) updateData.description = data.description.trim();
+      if (data.amount !== undefined) updateData.amount = data.amount;
+      if (data.type !== undefined) updateData.type = data.type;
+      if (data.icon !== undefined) updateData.icon = data.icon;
+      if (data.categories !== undefined) updateData.categories = data.categories;
+      if (data.user_id !== undefined) updateData.user_id = data.user_id;
+
+      // Update budget
+      const { data: updatedBudget, error } = await (supabaseServer as any)
+        .from('budgets')
+        .update(updateData)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      if (!updatedBudget) {
+        return { data: null, error: 'Failed to update budget' };
+      }
+
+      // Invalidate relevant caches (both old and new values)
+      const tagsToInvalidate: string[] = [
+        CACHE_TAGS.BUDGETS,
+        CACHE_TAGS.BUDGET(id),
+        `user:${existing.user_id}:budgets`,
+      ];
+
+      // Invalidate new user cache if changed
+      if (data.user_id && data.user_id !== existing.user_id) {
+        tagsToInvalidate.push(`user:${data.user_id}:budgets`);
+      }
+
+      await revalidateCacheTags(tagsToInvalidate);
+
+      return { data: updatedBudget, error: null };
+    } catch (error) {
+      return {
+        data: null,
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Failed to update budget',
+      };
+    }
+  }
+
+  /**
+   * Delete a budget
+   * Used for removing budgets from the database
+   *
+   * @param id - Budget ID to delete
+   * @returns Deleted budget ID or error
+   *
+   * @example
+   * const { data, error } = await BudgetService.deleteBudget(budgetId);
+   * if (!error) {
+   *   console.log('Budget deleted:', data.id);
+   * }
+   */
+  static async deleteBudget(
+    id: string
+  ): Promise<ServiceResult<{ id: string }>> {
+    try {
+      // Input validation
+      if (!id || id.trim() === '') {
+        return { data: null, error: 'Budget ID is required' };
+      }
+
+      // Get budget before deleting for cache invalidation
+      const { data: existingBudget, error: fetchError } =
+        await supabaseServer
+          .from('budgets')
+          .select('*')
+          .eq('id', id)
+          .single();
+
+      if (fetchError || !existingBudget) {
+        return { data: null, error: 'Budget not found' };
+      }
+
+      // Cast to Budget type for proper typing
+      const existing = existingBudget as Budget;
+
+      // Delete budget
+      const { error } = await supabaseServer
+        .from('budgets')
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      // Invalidate relevant caches
+      const tagsToInvalidate: string[] = [
+        CACHE_TAGS.BUDGETS,
+        CACHE_TAGS.BUDGET(id),
+        `user:${existing.user_id}:budgets`,
+      ];
+
+      await revalidateCacheTags(tagsToInvalidate);
+
+      return { data: { id }, error: null };
+    } catch (error) {
+      return {
+        data: null,
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Failed to delete budget',
       };
     }
   }
