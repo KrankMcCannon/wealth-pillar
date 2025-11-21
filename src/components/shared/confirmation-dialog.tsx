@@ -3,7 +3,6 @@
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -40,25 +39,31 @@ export function ConfirmationDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onCancel()}>
-      <DialogContent className="sm:max-w-[425px]" showCloseButton={!isLoading}>
+      <DialogContent className="sm:max-w-[425px] border-primary/20" showCloseButton={!isLoading}>
         <DialogHeader>
-          <div className="flex items-center gap-3">
+          <div className="flex items-start gap-3">
             {variant === 'destructive' && (
-              <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-destructive/10">
-                <AlertTriangleIcon className="size-5 text-destructive" />
+              <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-destructive/10 border border-destructive/20">
+                <AlertTriangleIcon className="size-6 text-destructive" />
               </div>
             )}
-            <DialogTitle>{title}</DialogTitle>
+            <div className="flex-1 space-y-2">
+              <DialogTitle className="text-lg font-bold text-black dark:text-white">
+                {title}
+              </DialogTitle>
+              <p className="text-sm font-medium text-black/80 dark:text-white/80 leading-relaxed">
+                {message}
+              </p>
+            </div>
           </div>
-          <DialogDescription className="text-left">{message}</DialogDescription>
         </DialogHeader>
 
-        <DialogFooter className="mt-4">
+        <DialogFooter className="mt-6 gap-2">
           <Button
             variant="outline"
             onClick={onCancel}
             disabled={isLoading}
-            className="w-full sm:w-auto"
+            className="w-full sm:w-auto border-primary/20 hover:bg-primary/5 text-black dark:text-white font-semibold"
           >
             {cancelText}
           </Button>
@@ -66,9 +71,9 @@ export function ConfirmationDialog({
             variant={variant}
             onClick={handleConfirm}
             disabled={isLoading}
-            className="w-full sm:w-auto"
+            className="w-full sm:w-auto font-semibold gap-2"
           >
-            {isLoading && <Loader2Icon className="animate-spin" />}
+            {isLoading && <Loader2Icon className="size-4 animate-spin" />}
             {confirmText}
           </Button>
         </DialogFooter>

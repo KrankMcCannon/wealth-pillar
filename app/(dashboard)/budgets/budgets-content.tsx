@@ -508,7 +508,12 @@ export default function BudgetsContent({
         categories={categories}
       />
 
-      <CategoryForm isOpen={isCategoryFormOpen} onOpenChange={setIsCategoryFormOpen} mode="create" />
+      <CategoryForm
+        isOpen={isCategoryFormOpen}
+        onOpenChange={setIsCategoryFormOpen}
+        mode="create"
+        groupId={currentUser.group_id}
+      />
 
       {/* Budget Period Manager - Controlled by isPeriodManagerOpen state */}
       {periodManagerUser && (

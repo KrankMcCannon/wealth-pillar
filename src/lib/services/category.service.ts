@@ -1,8 +1,38 @@
 import { supabaseServer } from '@/lib/database/server';
-import { cached, categoryCacheKeys, cacheOptions } from '@/lib/cache';
+import { cached, categoryCacheKeys, cacheOptions, CACHE_TAGS } from '@/lib/cache';
 import { CATEGORY_COLOR_PALETTE, DEFAULT_CATEGORY_COLOR } from '@/features/categories';
 import type { ServiceResult } from './user.service';
 import type { Category } from '@/lib/types';
+
+/**
+ * Helper to revalidate cache tags (dynamically imported to avoid client-side issues)
+ */
+async function revalidateCacheTags(tags: string[]) {
+  if (typeof window === 'undefined') {
+    const { revalidateTag } = await import('next/cache');
+    tags.forEach((tag) => revalidateTag(tag));
+  }
+}
+
+/**
+ * Input type for creating a new category
+ */
+export interface CreateCategoryInput {
+  label: string;
+  key: string;
+  icon: string;
+  color: string;
+  group_id: string;
+}
+
+/**
+ * Input type for updating a category
+ */
+export interface UpdateCategoryInput {
+  label?: string;
+  icon?: string;
+  color?: string;
+}
 
 /**
  * Category Service
@@ -400,5 +430,216 @@ export class CategoryService {
    */
   static getDefaultColor(): string {
     return DEFAULT_CATEGORY_COLOR;
+  }
+
+  /**
+   * Creates a new category
+   * Validates input data and inserts into database
+   *
+   * @param data - Category creation data
+   * @returns Created category or error
+   *
+   * @example
+   * const { data: category, error } = await CategoryService.createCategory({
+   *   label: 'Food',
+   *   key: 'food',
+   *   icon: 'utensils',
+   *   color: '#FF0000',
+   *   group_id: 'group-123'
+   * });
+   */
+  static async createCategory(data: CreateCategoryInput): Promise<ServiceResult<Category>> {
+    try {
+      // Validate input
+      if (!data.label || data.label.trim() === '') {
+        return { data: null, error: 'Label is required' };
+      }
+
+      if (!data.key || data.key.trim() === '') {
+        return { data: null, error: 'Key is required' };
+      }
+
+      if (!data.icon || data.icon.trim() === '') {
+        return { data: null, error: 'Icon is required' };
+      }
+
+      if (!data.color || data.color.trim() === '') {
+        return { data: null, error: 'Color is required' };
+      }
+
+      if (!this.isValidColor(data.color)) {
+        return { data: null, error: 'Invalid color format. Use hex format (e.g., #FF0000)' };
+      }
+
+      if (!data.group_id || data.group_id.trim() === '') {
+        return { data: null, error: 'Group ID is required' };
+      }
+
+      // Insert category
+      const { data: category, error } = await (supabaseServer as any)
+        .from('categories')
+        .insert({
+          label: data.label.trim(),
+          key: data.key.trim().toLowerCase(),
+          icon: data.icon.trim(),
+          color: data.color.trim().toUpperCase(),
+          group_id: data.group_id,
+        })
+        .select()
+        .single();
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      if (!category) {
+        return { data: null, error: 'Failed to create category' };
+      }
+
+      // Invalidate caches
+      await revalidateCacheTags([
+        CACHE_TAGS.CATEGORIES,
+      ]);
+
+      return { data: category, error: null };
+    } catch (error) {
+      return {
+        data: null,
+        error: error instanceof Error ? error.message : 'Failed to create category',
+      };
+    }
+  }
+
+  /**
+   * Updates an existing category
+   * Validates input data and updates in database
+   *
+   * @param id - Category ID
+   * @param data - Category update data
+   * @returns Updated category or error
+   *
+   * @example
+   * const { data: category, error } = await CategoryService.updateCategory('cat-123', {
+   *   label: 'Food & Dining',
+   *   color: '#00FF00'
+   * });
+   */
+  static async updateCategory(id: string, data: UpdateCategoryInput): Promise<ServiceResult<Category>> {
+    try {
+      // Validate ID
+      if (!id || id.trim() === '') {
+        return { data: null, error: 'Category ID is required' };
+      }
+
+      // Fetch existing category for cache invalidation
+      const { data: existingCategory } = await this.getCategoryById(id);
+      if (!existingCategory) {
+        return { data: null, error: 'Category not found' };
+      }
+
+      // Build update object (only include provided fields)
+      const updateData: Partial<Category> = {};
+
+      if (data.label !== undefined) {
+        if (!data.label || data.label.trim() === '') {
+          return { data: null, error: 'Label cannot be empty' };
+        }
+        updateData.label = data.label.trim();
+      }
+
+      if (data.icon !== undefined) {
+        if (!data.icon || data.icon.trim() === '') {
+          return { data: null, error: 'Icon cannot be empty' };
+        }
+        updateData.icon = data.icon.trim();
+      }
+
+      if (data.color !== undefined) {
+        if (!data.color || data.color.trim() === '') {
+          return { data: null, error: 'Color cannot be empty' };
+        }
+        if (!this.isValidColor(data.color)) {
+          return { data: null, error: 'Invalid color format. Use hex format (e.g., #FF0000)' };
+        }
+        updateData.color = data.color.trim().toUpperCase();
+      }
+
+      // Update category
+      const { data: category, error } = await (supabaseServer as any)
+        .from('categories')
+        .update(updateData)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      if (!category) {
+        return { data: null, error: 'Failed to update category' };
+      }
+
+      // Invalidate caches
+      await revalidateCacheTags([
+        CACHE_TAGS.CATEGORIES,
+        CACHE_TAGS.CATEGORY(id),
+      ]);
+
+      return { data: category, error: null };
+    } catch (error) {
+      return {
+        data: null,
+        error: error instanceof Error ? error.message : 'Failed to update category',
+      };
+    }
+  }
+
+  /**
+   * Deletes a category
+   * Removes category from database
+   *
+   * @param id - Category ID
+   * @returns Deleted category ID or error
+   *
+   * @example
+   * const { data, error } = await CategoryService.deleteCategory('cat-123');
+   */
+  static async deleteCategory(id: string): Promise<ServiceResult<{ id: string }>> {
+    try {
+      // Validate ID
+      if (!id || id.trim() === '') {
+        return { data: null, error: 'Category ID is required' };
+      }
+
+      // Fetch existing category for cache invalidation
+      const { data: existingCategory } = await this.getCategoryById(id);
+      if (!existingCategory) {
+        return { data: null, error: 'Category not found' };
+      }
+
+      // Delete category
+      const { error } = await supabaseServer
+        .from('categories')
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      // Invalidate caches
+      await revalidateCacheTags([
+        CACHE_TAGS.CATEGORIES,
+        CACHE_TAGS.CATEGORY(id),
+      ]);
+
+      return { data: { id }, error: null };
+    } catch (error) {
+      return {
+        data: null,
+        error: error instanceof Error ? error.message : 'Failed to delete category',
+      };
+    }
   }
 }
