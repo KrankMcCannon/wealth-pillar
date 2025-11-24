@@ -382,6 +382,32 @@ export const dividerVariants = cva("border-0", {
 });
 
 // ============================================================================
+// CALENDAR/DATE PICKER VARIANTS - Re-export from date-drawer-variants
+// ============================================================================
+
+/**
+ * Calendar and date picker variants
+ * Organized in separate file for better maintainability
+ * Import these for calendar/date picker components
+ */
+export {
+  dayButtonVariants,
+  drawerContentVariants,
+  monthNavButtonVariants,
+  presetButtonVariants,
+  calendarTriggerVariants,
+  weekdayLabelVariants,
+  getDayState,
+  type DayButtonVariants,
+  type DrawerContentVariants,
+  type MonthNavButtonVariants,
+  type PresetButtonVariants,
+  type CalendarTriggerVariants,
+  type WeekdayLabelVariants,
+  type DayState,
+} from "./date-drawer-variants";
+
+// ============================================================================
 // EXPORT TYPES - For TypeScript IntelliSense
 // ============================================================================
 

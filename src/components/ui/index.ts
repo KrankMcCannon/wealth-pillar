@@ -20,7 +20,6 @@ export * from "./modal-wrapper";
 export * from "./drawer";
 export * from "./alert";
 export * from "./badge";
-export * from "./calendar";
 export * from "./checkbox";
 export * from "./dropdown-menu";
 export * from "./label";

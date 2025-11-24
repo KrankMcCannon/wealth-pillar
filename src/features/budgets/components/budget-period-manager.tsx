@@ -4,11 +4,8 @@ import { useState, useEffect, useMemo } from "react";
 import { Clock, History, TrendingUp, TrendingDown, Activity, Users, Calendar } from "lucide-react";
 import { BudgetPeriod, Transaction, User, Budget } from "@/lib/types";
 import { startPeriodAction, closePeriodAction } from "@/features/budgets/actions/period-actions";
-import {
-  FormActions,
-  FormDatePicker,
-  FormField,
-} from "@/src/components/form";
+import { FormActions } from "@/src/components/form";
+import { DateField } from "@/src/components/ui/fields";
 import {
   Alert,
   AlertDescription,
@@ -237,7 +234,7 @@ export function BudgetPeriodManager({
                       <span className="text-sm font-medium text-foreground">
                         Iniziato il {formatDate(currentPeriod.start_date)}
                       </span>
-                      <Badge className="bg-primary text-primary-foreground shadow-sm self-start sm:self-auto">
+                      <Badge className="bg-white text-primary shadow-sm self-start sm:self-auto">
                         <Activity className="h-3 w-3 mr-1" />
                         In corso
                       </Badge>
@@ -267,14 +264,12 @@ export function BudgetPeriodManager({
 
                     {/* End Date Selection */}
                     <div className="space-y-2 overflow-hidden">
-                      <FormField label="Data di Fine Periodo" required>
-                        <FormDatePicker
-                          value={selectedDate}
-                          onChange={setSelectedDate}
-                          minDate={currentPeriod.start_date ? new Date(currentPeriod.start_date) : undefined}
-                          maxDate={new Date()}
-                        />
-                      </FormField>
+                      <DateField
+                        label="Data di Fine Periodo"
+                        value={selectedDate}
+                        onChange={setSelectedDate}
+                        required
+                      />
                     </div>
                   </div>
                 ) : (
@@ -288,13 +283,12 @@ export function BudgetPeriodManager({
 
                     {/* Start Date Selection */}
                     <div className="space-y-2 overflow-hidden">
-                      <FormField label="Data di Inizio Periodo" required>
-                        <FormDatePicker
-                          value={selectedDate}
-                          onChange={setSelectedDate}
-                          maxDate={new Date()}
-                        />
-                      </FormField>
+                      <DateField
+                        label="Data di Inizio Periodo"
+                        value={selectedDate}
+                        onChange={setSelectedDate}
+                        required
+                      />
                     </div>
                   </div>
                 )}
@@ -323,7 +317,7 @@ export function BudgetPeriodManager({
                               {formatDate(period.start_date)} - {period.end_date ? formatDate(period.end_date) : "In corso"}
                             </span>
                           </div>
-                          <Badge variant="outline" className="bg-muted/50 text-xs shrink-0">
+                          <Badge variant="outline" className="bg-white text-xs text-primary shrink-0">
                             Chiuso
                           </Badge>
                         </div>
