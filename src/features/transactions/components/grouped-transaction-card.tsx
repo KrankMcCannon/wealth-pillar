@@ -163,11 +163,11 @@ export function GroupedTransactionCard({
                 <div className="flex-1 min-w-0">
                   <h4 className="font-medium transition-colors truncate text-sm">{transaction.description}</h4>
                   <div className="flex items-center gap-1.5 mt-0.5">
-                    <span className="text-xs text-foreground/60">{getCategoryLabel(transaction.category)}</span>
+                    <span className="text-xs text-black/60">{getCategoryLabel(transaction.category)}</span>
                     {variant === "regular" && transaction.account_id && accountNames[transaction.account_id] && (
                       <>
                         <span className="text-xs text-primary/40">•</span>
-                        <span className="text-xs text-foreground/50">{accountNames[transaction.account_id]}</span>
+                        <span className="text-xs text-black/50">{accountNames[transaction.account_id]}</span>
                       </>
                     )}
                     {variant === "recurrent" && transaction.frequency && (

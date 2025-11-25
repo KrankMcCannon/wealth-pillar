@@ -36,7 +36,7 @@ export function SeriesReconciliationView({ series, className = "" }: SeriesRecon
           <div className="flex size-16 items-center justify-center rounded-2xl bg-destructive/10 mx-auto mb-4">
             <AlertTriangle className="w-8 h-8 text-destructive" />
           </div>
-          <p className="font-medium text-foreground">Errore nel caricamento dei dati di riconciliazione</p>
+          <p className="font-medium text-black">Errore nel caricamento dei dati di riconciliazione</p>
         </div>
       </Card>
     );

@@ -7,11 +7,11 @@
 export const authStyles = {
   // Page background with gradient blobs
   page: {
-    container: 'min-h-screen flex items-center justify-center p-4 relative',
+    container: 'min-h-screen flex items-center justify-center p-4 relative overflow-hidden',
     bgBlobTop:
-      'pointer-events-none fixed -top-24 -left-24 h-72 w-72 rounded-full blur-3xl opacity-15 bg-[hsl(var(--color-primary))]',
+      'pointer-events-none absolute -top-24 -left-24 h-72 w-72 rounded-full blur-3xl opacity-15 bg-[hsl(var(--color-primary))]',
     bgBlobBottom:
-      'pointer-events-none fixed -bottom-24 -right-24 h-72 w-72 rounded-full blur-3xl opacity-15 bg-[hsl(var(--color-secondary))]',
+      'pointer-events-none absolute -bottom-24 -right-24 h-72 w-72 rounded-full blur-3xl opacity-15 bg-[hsl(var(--color-secondary))]',
   },
 
   // Error messages

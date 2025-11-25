@@ -23,7 +23,7 @@ export const budgetColors = {
 
   // Semantic colors
   text: {
-    primary: 'text-foreground',
+    primary: 'text-black',
     secondary: 'text-muted-foreground',
     tertiary: 'text-muted-foreground/60',
     destructive: 'text-destructive',

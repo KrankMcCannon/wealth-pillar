@@ -130,7 +130,7 @@ export function BudgetChart({ spent, chartData, periodInfo }: Readonly<BudgetCha
                     <span
                       key={index}
                       className={`${budgetStyles.chart.dayLabel} absolute ${
-                        showDay ? "text-foreground/70" : "text-transparent"
+                        showDay ? "text-black/70" : "text-transparent"
                       }`}
                       style={{
                         left: `${position}%`,

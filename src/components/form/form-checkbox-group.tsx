@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { Search } from "lucide-react";
-import { cn } from '@/src/lib';
+import { cn } from "@/src/lib";
 import { Checkbox, Input, Label } from "../ui";
 
 /**
@@ -78,23 +78,17 @@ export function FormCheckboxGroup({
   const filteredOptions = React.useMemo(() => {
     if (!searchQuery) return options;
     const query = searchQuery.toLowerCase();
-    return options.filter((option) =>
-      option.label.toLowerCase().includes(query)
-    );
+    return options.filter((option) => option.label.toLowerCase().includes(query));
   }, [options, searchQuery]);
 
   // Check if all options are selected
-  const allSelected =
-    filteredOptions.length > 0 &&
-    filteredOptions.every((opt) => value.includes(opt.value));
+  const allSelected = filteredOptions.length > 0 && filteredOptions.every((opt) => value.includes(opt.value));
 
   // Handle individual checkbox toggle
   const handleToggle = (optionValue: string) => {
     if (disabled) return;
 
-    const newValue = value.includes(optionValue)
-      ? value.filter((v) => v !== optionValue)
-      : [...value, optionValue];
+    const newValue = value.includes(optionValue) ? value.filter((v) => v !== optionValue) : [...value, optionValue];
 
     onChange(newValue);
   };
@@ -160,13 +154,13 @@ export function FormCheckboxGroup({
                 type="button"
                 onClick={handleSelectNone}
                 disabled={disabled}
-                className="text-foreground/70 hover:text-primary hover:underline disabled:opacity-50 disabled:cursor-not-allowed"
+                className="text-black/70 hover:text-primary hover:underline disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Deseleziona
               </button>
             </>
           )}
-          <span className="ml-auto text-foreground/70 text-xs">
+          <span className="ml-auto text-black/70 text-xs">
             {value.length}/{options.length}
           </span>
         </div>
@@ -181,9 +175,7 @@ export function FormCheckboxGroup({
         style={{ maxHeight }}
       >
         {filteredOptions.length === 0 ? (
-          <p className="text-sm text-foreground/70 text-center py-4">
-            Nessun risultato
-          </p>
+          <p className="text-sm text-black/70 text-center py-4">Nessun risultato</p>
         ) : (
           filteredOptions.map((option) => (
             <div
@@ -194,7 +186,7 @@ export function FormCheckboxGroup({
                 "hover:bg-primary/5 transition-colors",
                 option.disabled && "opacity-50 cursor-not-allowed"
               )}
-              style={{ contentVisibility: 'auto' }}
+              style={{ contentVisibility: "auto" }}
             >
               <Checkbox
                 id={`checkbox-${option.value}`}
@@ -229,9 +221,7 @@ export function FormCheckboxGroup({
 /**
  * Converts array of items to CheckboxOption format
  */
-export function toCheckboxOptions<
-  T extends { id?: string; key?: string; label?: string; name?: string }
->(
+export function toCheckboxOptions<T extends { id?: string; key?: string; label?: string; name?: string }>(
   items: T[],
   getValue: (item: T) => string = (item) => item.id || item.key || "",
   getLabel: (item: T) => string = (item) => item.label || item.name || ""
@@ -245,10 +235,7 @@ export function toCheckboxOptions<
 /**
  * Sorts checkbox options alphabetically by label
  */
-export function sortCheckboxOptions(
-  options: CheckboxOption[],
-  locale: string = "it"
-): CheckboxOption[] {
+export function sortCheckboxOptions(options: CheckboxOption[], locale: string = "it"): CheckboxOption[] {
   return [...options].sort((a, b) => a.label.localeCompare(b.label, locale));
 }
 
@@ -259,17 +246,14 @@ export function groupCheckboxOptions<T extends CheckboxOption>(
   options: T[],
   groupBy: (option: T) => string
 ): Record<string, T[]> {
-  return options.reduce(
-    (groups, option) => {
-      const key = groupBy(option);
-      if (!groups[key]) {
-        groups[key] = [];
-      }
-      groups[key].push(option);
-      return groups;
-    },
-    {} as Record<string, T[]>
-  );
+  return options.reduce((groups, option) => {
+    const key = groupBy(option);
+    if (!groups[key]) {
+      groups[key] = [];
+    }
+    groups[key].push(option);
+    return groups;
+  }, {} as Record<string, T[]>);
 }
 
 // Export types

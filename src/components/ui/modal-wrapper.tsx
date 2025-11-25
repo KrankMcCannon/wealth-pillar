@@ -80,7 +80,7 @@ export function ModalWrapper({
     <Drawer open={isOpen} onOpenChange={handleOpenChange}>
       <DrawerContent className={cn("p-0", className)}>
         <DrawerHeader className="text-left bg-card px-4 py-3 border-b border-border shrink-0">
-          <DrawerTitle className={cn("text-lg font-semibold text-foreground", titleClassName)}>{title}</DrawerTitle>
+          <DrawerTitle className={cn("text-lg font-semibold text-black", titleClassName)}>{title}</DrawerTitle>
           {description && (
             <DrawerDescription className={cn("text-sm text-muted-foreground mt-1", descriptionClassName)}>
               {description}
@@ -88,7 +88,7 @@ export function ModalWrapper({
           )}
         </DrawerHeader>
 
-        <div className={cn("px-4 py-3 text-foreground flex-1 overflow-y-auto", contentClassName)}>
+        <div className={cn("px-4 py-3 text-black flex-1 overflow-y-auto", contentClassName)}>
           {isLoading ? (
             <div className="flex items-center justify-center py-8">
               <div className="liquid-pulse size-8 rounded-full bg-primary/20" />
@@ -132,7 +132,7 @@ export function ModalSection({
 }) {
   return (
     <div className={cn("flex flex-col gap-1.5", className)}>
-      {title && <h4 className="text-xs font-semibold text-foreground/80 uppercase tracking-wide shrink-0">{title}</h4>}
+      {title && <h4 className="text-xs font-semibold text-black/80 uppercase tracking-wide shrink-0">{title}</h4>}
       {children}
     </div>
   );

@@ -107,7 +107,7 @@ export default function Page() {
                     value={""}
                     onChange={() => {}}
                     required
-                    className={`${authStyles.input.field} pl-9`}
+                    className={authStyles.input.field}
                   />
                 </div>
               </div>

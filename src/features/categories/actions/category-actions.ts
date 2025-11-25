@@ -4,6 +4,17 @@ import { CategoryService, CreateCategoryInput, UpdateCategoryInput } from '@/lib
 import type { Category } from '@/lib/types';
 import type { ServiceResult } from '@/lib/services/user.service';
 
+export async function getAllCategoriesAction(): Promise<ServiceResult<Category[]>> {
+  try {
+    return await CategoryService.getAllCategories();
+  } catch (error) {
+    return {
+      data: null,
+      error: error instanceof Error ? error.message : 'Failed to load categories',
+    };
+  }
+}
+
 /**
  * Server action to create a new category
  * Thin wrapper around CategoryService.createCategory

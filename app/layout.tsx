@@ -7,6 +7,8 @@ const splineSans = Spline_Sans({
   variable: "--font-spline-sans",
   subsets: ["latin"],
   weight: ["400", "500", "700"],
+  display: "swap",
+  fallback: ["system-ui", "arial"],
 });
 
 export const metadata: Metadata = {
@@ -37,7 +39,7 @@ export default function RootLayout({
         },
       }}
     >
-      <html lang="en" className="light">
+      <html lang="en" className="light" data-scroll-behavior="smooth">
         <body
           className={`${splineSans.variable} antialiased min-h-screen`}
           style={{

@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { AlertTriangle, RefreshCw } from 'lucide-react';
-import { Button, Card } from '../ui';
+import React from "react";
+import { AlertTriangle, RefreshCw } from "lucide-react";
+import { Button, Card } from "../ui";
 
 interface ErrorBoundaryState {
   hasError: boolean;
@@ -26,7 +26,7 @@ class ErrorBoundaryClass extends React.Component<ErrorBoundaryProps, ErrorBounda
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('ErrorBoundary caught an error:', error, errorInfo);
+    console.error("ErrorBoundary caught an error:", error, errorInfo);
     this.props.onError?.(error, errorInfo);
   }
 
@@ -57,37 +57,25 @@ const DefaultErrorFallback: React.FC<{ error?: Error; reset: () => void }> = ({ 
           </div>
         </div>
 
-        <h2 className="text-xl font-semibold text-foreground mb-2">
-          Errore nel caricamento
-        </h2>
+        <h2 className="text-xl font-semibold text-black mb-2">Errore nel caricamento</h2>
 
         <p className="mb-6">
-          Si è verificato un errore durante il caricamento dei dati finanziari.
-          I tuoi dati sono al sicuro.
+          Si è verificato un errore durante il caricamento dei dati finanziari. I tuoi dati sono al sicuro.
         </p>
 
-        {error && process.env.NODE_ENV === 'development' && (
+        {error && process.env.NODE_ENV === "development" && (
           <div className="bg-muted p-3 rounded-lg mb-4 text-left">
-            <p className="text-sm font-mono text-foreground break-all">
-              {error.message}
-            </p>
+            <p className="text-sm font-mono text-black break-all">{error.message}</p>
           </div>
         )}
 
         <div className="space-y-3">
-          <Button
-            onClick={reset}
-            className="w-full bg-primary hover:bg-primary/90 text-white"
-          >
+          <Button onClick={reset} className="w-full bg-primary hover:bg-primary/90 text-white">
             <RefreshCw className="h-4 w-4 mr-2" />
             Riprova
           </Button>
 
-          <Button
-            variant="outline"
-            onClick={() => window.location.reload()}
-            className="w-full"
-          >
+          <Button variant="outline" onClick={() => window.location.reload()} className="w-full">
             Ricarica pagina
           </Button>
         </div>
@@ -111,12 +99,10 @@ export const QueryErrorFallback: React.FC<{
         <AlertTriangle className="h-6 w-6 text-warning" />
       </div>
 
-      <h3 className="text-lg font-medium text-foreground mb-2">
-        {title || 'Errore nei dati'}
-      </h3>
+      <h3 className="text-lg font-medium text-black mb-2">{title || "Errore nei dati"}</h3>
 
       <p className="mb-4 max-w-sm mx-auto">
-        {description || 'Non è stato possibile caricare i dati. Verifica la connessione e riprova.'}
+        {description || "Non è stato possibile caricare i dati. Verifica la connessione e riprova."}
       </p>
 
       <Button
@@ -136,11 +122,11 @@ export const QueryErrorFallback: React.FC<{
  * Loading skeleton optimized for financial data
  */
 export const FinancialLoadingSkeleton: React.FC<{
-  type?: 'dashboard' | 'transactions' | 'budget' | 'accounts';
-}> = ({ type = 'dashboard' }) => {
+  type?: "dashboard" | "transactions" | "budget" | "accounts";
+}> = ({ type = "dashboard" }) => {
   const getSkeletonContent = () => {
     switch (type) {
-      case 'transactions':
+      case "transactions":
         return (
           <div className="space-y-3">
             {[...Array(5)].map((_, i) => (
@@ -160,7 +146,7 @@ export const FinancialLoadingSkeleton: React.FC<{
           </div>
         );
 
-      case 'budget':
+      case "budget":
         return (
           <div className="space-y-4">
             {[...Array(3)].map((_, i) => (
@@ -176,7 +162,7 @@ export const FinancialLoadingSkeleton: React.FC<{
           </div>
         );
 
-      case 'accounts':
+      case "accounts":
         return (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {[...Array(4)].map((_, i) => (
@@ -230,11 +216,7 @@ export const FinancialLoadingSkeleton: React.FC<{
     }
   };
 
-  return (
-    <div className="animate-pulse">
-      {getSkeletonContent()}
-    </div>
-  );
+  return <div className="animate-pulse">{getSkeletonContent()}</div>;
 };
 
 export default ErrorBoundaryClass;

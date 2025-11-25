@@ -8,7 +8,7 @@ const labelVariants = cva(
   {
     variants: {
       variant: {
-        default: "text-foreground",
+        default: "text-black",
         muted: "text-muted-foreground",
         destructive: "text-destructive",
       },

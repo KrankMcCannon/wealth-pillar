@@ -1,0 +1,30 @@
+export const onboardingStyles = {
+  overlay: 'fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4 py-8',
+  modal: 'w-full max-w-2xl rounded-3xl bg-white shadow-2xl p-6 sm:p-8',
+  header: {
+    container: 'mb-6',
+    content: 'flex items-start gap-3',
+    icon: 'h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary',
+    meta: 'text-xs uppercase tracking-wide text-primary/70',
+    title: 'text-2xl font-semibold text-primary',
+    description: 'text-sm text-primary/70',
+    progressTrack: 'mt-4 h-2 w-full rounded-full bg-primary/10',
+    progressIndicator: 'h-full rounded-full bg-primary transition-all',
+  },
+  stepContent: 'space-y-4 max-h-[60vh] overflow-y-auto pr-1',
+  card: 'rounded-xl border border-primary/10 p-4 space-y-3 bg-white/50',
+  cardHeader: 'flex items-center justify-between',
+  cardTitle: 'text-sm font-medium text-primary',
+  deleteButton: 'text-primary/70 hover:text-destructive transition-colors disabled:opacity-50',
+  addButton: 'w-full border-dashed',
+  label: 'text-xs text-primary',
+  primaryLabel: 'text-sm font-medium text-primary',
+  alert: 'mt-5 rounded-2xl border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive flex items-start gap-2',
+  footer: 'mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between',
+  secondaryButton: 'flex items-center gap-2',
+  primaryButton: 'flex items-center justify-center gap-2',
+  loadingInfo: 'flex items-center gap-2 text-sm text-primary/70',
+  warningMessage: 'rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800',
+};
+
+export type OnboardingStyles = typeof onboardingStyles;

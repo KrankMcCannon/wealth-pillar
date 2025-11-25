@@ -64,7 +64,7 @@ export function FormField({
       {/* Label */}
       <Label
         htmlFor={htmlFor}
-        className={cn("text-sm font-medium text-foreground", error && "text-destructive", labelClassName)}
+        className={cn("text-sm font-medium text-black", error && "text-destructive", labelClassName)}
       >
         {label}
         {required && <span className="ml-1 text-destructive">*</span>}

@@ -6,14 +6,7 @@ import { BudgetPeriod, Transaction, User, Budget } from "@/lib/types";
 import { startPeriodAction, closePeriodAction } from "@/features/budgets/actions/period-actions";
 import { FormActions } from "@/src/components/form";
 import { DateField } from "@/src/components/ui/fields";
-import {
-  Alert,
-  AlertDescription,
-  Badge,
-  ModalContent,
-  ModalSection,
-  ModalWrapper,
-} from "@/src/components/ui";
+import { Alert, AlertDescription, Badge, ModalContent, ModalSection, ModalWrapper } from "@/src/components/ui";
 
 interface BudgetPeriodManagerProps {
   user: User;
@@ -88,11 +81,11 @@ export function BudgetPeriodManager({
       const periodDays = Math.ceil((periodEnd.getTime() - periodStart.getTime()) / (1000 * 60 * 60 * 24));
 
       userBudgets.forEach((budget) => {
-        if (budget.type === 'monthly') {
+        if (budget.type === "monthly") {
           // Pro-rate monthly budget based on period length
           const monthlyFraction = periodDays / 30; // Approximate month as 30 days
           totalBudget += budget.amount * monthlyFraction;
-        } else if (budget.type === 'annually') {
+        } else if (budget.type === "annually") {
           // Pro-rate annual budget based on period length
           const annualFraction = periodDays / 365;
           totalBudget += budget.amount * annualFraction;
@@ -108,7 +101,7 @@ export function BudgetPeriodManager({
 
   // Get all previous periods (closed periods)
   const previousPeriods = useMemo(() => {
-    const allPeriods = (user.budget_periods as BudgetPeriod[] || []);
+    const allPeriods = (user.budget_periods as BudgetPeriod[]) || [];
     return allPeriods
       .filter((p) => !p.is_active && p.end_date)
       .sort((a, b) => new Date(b.start_date).getTime() - new Date(a.start_date).getTime());
@@ -116,7 +109,7 @@ export function BudgetPeriodManager({
 
   // Format date for display
   const formatDate = (dateString: string | Date) => {
-    const date = typeof dateString === 'string' ? new Date(dateString) : dateString;
+    const date = typeof dateString === "string" ? new Date(dateString) : dateString;
     return date.toLocaleDateString("it-IT", {
       day: "numeric",
       month: "short",
@@ -133,7 +126,7 @@ export function BudgetPeriodManager({
   };
 
   // Count total periods
-  const totalPeriods = (user.budget_periods as BudgetPeriod[] || []).length;
+  const totalPeriods = ((user.budget_periods as BudgetPeriod[]) || []).length;
 
   // Handle submit (start new period or close current period)
   const handleSubmit = async () => {
@@ -231,7 +224,7 @@ export function BudgetPeriodManager({
                   <div className="space-y-3">
                     {/* Period Status Header */}
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                      <span className="text-sm font-medium text-foreground">
+                      <span className="text-sm font-medium text-black">
                         Iniziato il {formatDate(currentPeriod.start_date)}
                       </span>
                       <Badge className="bg-white text-primary shadow-sm self-start sm:self-auto">
@@ -276,7 +269,7 @@ export function BudgetPeriodManager({
                   <div className="space-y-3">
                     {/* Alert */}
                     <Alert>
-                      <AlertDescription className="text-foreground font-medium">
+                      <AlertDescription className="text-black font-medium">
                         Nessun periodo attivo. Inizia un nuovo periodo per tracciare le spese del budget.
                       </AlertDescription>
                     </Alert>
@@ -313,8 +306,9 @@ export function BudgetPeriodManager({
                         <div className="flex items-center justify-between gap-3 mb-2">
                           <div className="flex items-center gap-2 flex-1 min-w-0">
                             <Calendar className="h-3 w-3 text-primary shrink-0" />
-                            <span className="text-xs font-medium text-foreground truncate">
-                              {formatDate(period.start_date)} - {period.end_date ? formatDate(period.end_date) : "In corso"}
+                            <span className="text-xs font-medium text-black truncate">
+                              {formatDate(period.start_date)} -{" "}
+                              {period.end_date ? formatDate(period.end_date) : "In corso"}
                             </span>
                           </div>
                           <Badge variant="outline" className="bg-white text-xs text-primary shrink-0">
@@ -324,20 +318,14 @@ export function BudgetPeriodManager({
 
                         <div className="grid grid-cols-2 gap-2">
                           <div className="text-center p-2 bg-destructive/10 rounded-md">
-                            <p className="text-xs font-bold text-destructive uppercase tracking-wide mb-0.5">
-                              Speso
-                            </p>
+                            <p className="text-xs font-bold text-destructive uppercase tracking-wide mb-0.5">Speso</p>
                             <p className="text-sm font-bold text-destructive">
                               {formatCurrency(period.total_spent || 0)}
                             </p>
                           </div>
                           <div className="text-center p-2 bg-primary/10 rounded-md">
-                            <p className="text-xs font-bold text-primary uppercase tracking-wide mb-0.5">
-                              Risparmiato
-                            </p>
-                            <p className="text-sm font-bold text-primary">
-                              {formatCurrency(period.total_saved || 0)}
-                            </p>
+                            <p className="text-xs font-bold text-primary uppercase tracking-wide mb-0.5">Risparmiato</p>
+                            <p className="text-sm font-bold text-primary">{formatCurrency(period.total_saved || 0)}</p>
                           </div>
                         </div>
                       </div>

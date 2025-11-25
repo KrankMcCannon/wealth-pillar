@@ -1,13 +1,29 @@
 import { supabaseServer } from '@/lib/database/server';
-import { cached, groupCacheKeys, cacheOptions } from '@/lib/cache';
+import { cached, groupCacheKeys, cacheOptions, CACHE_TAGS } from '@/lib/cache';
 import type { Database } from '@/lib/database/types';
 import type { ServiceResult } from './user.service';
+
+async function revalidateCacheTags(tags: string[]) {
+  if (typeof window === 'undefined') {
+    const { revalidateTag } = await import('next/cache');
+    tags.forEach((tag) => revalidateTag(tag));
+  }
+}
 
 /**
  * Group and User types from database
  */
 type Group = Database['public']['Tables']['groups']['Row'];
 type User = Database['public']['Tables']['users']['Row'];
+
+export interface CreateGroupInput {
+  id?: string;
+  name: string;
+  description?: string;
+  userIds: string[];
+  plan?: Record<string, unknown>;
+  isActive?: boolean;
+}
 
 /**
  * Group Service
@@ -322,6 +338,60 @@ export class GroupService {
           error instanceof Error
             ? error.message
             : 'Failed to retrieve group with user count',
+      };
+    }
+  }
+
+  /**
+   * Creates a new group with the provided users.
+   */
+  static async createGroup(input: CreateGroupInput): Promise<ServiceResult<Group>> {
+    try {
+      if (!input.name || input.name.trim() === '') {
+        return { data: null, error: 'Group name is required' };
+      }
+
+      if (!input.userIds || input.userIds.length === 0) {
+        return { data: null, error: 'At least one user is required to create a group' };
+      }
+
+      const now = new Date().toISOString();
+      const insertData: Database['public']['Tables']['groups']['Insert'] = {
+        id: input.id,
+        name: input.name.trim(),
+        description: input.description?.trim() || '',
+        user_ids: input.userIds,
+        plan: input.plan ?? { type: 'free', name: 'Free Plan' },
+        is_active: input.isActive ?? true,
+        created_at: now,
+        updated_at: now,
+      };
+
+      const { data, error } = await (supabaseServer as any)
+        .from('groups')
+        .insert(insertData)
+        .select()
+        .single();
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      if (!data) {
+        return { data: null, error: 'Failed to create group' };
+      }
+
+      await revalidateCacheTags([
+        CACHE_TAGS.GROUPS,
+        CACHE_TAGS.GROUP(data.id),
+        CACHE_TAGS.GROUP_USERS(data.id),
+      ]);
+
+      return { data, error: null };
+    } catch (error) {
+      return {
+        data: null,
+        error: error instanceof Error ? error.message : 'Failed to create group',
       };
     }
   }

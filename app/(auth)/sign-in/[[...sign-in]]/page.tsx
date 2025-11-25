@@ -4,12 +4,13 @@ import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Loader2, Mail, Lock, LogIn, AlertCircle } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useSignIn } from "@clerk/nextjs";
+import { useSignIn, useClerk } from "@clerk/nextjs";
 import { AppleButton, AuthCard, GitHubButton, GoogleButton, PasswordInput, authStyles } from "@/features/auth";
 import { Button, Input, Label } from "@/components/ui";
 
 export default function Page() {
   const { isLoaded, signIn, setActive } = useSignIn();
+  const { signOut, session } = useClerk();
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -18,6 +19,13 @@ export default function Page() {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Clear any existing session when landing on sign-in page
+    if (session) {
+      void signOut();
+    }
+  }, [session, signOut]);
 
   useEffect(() => {
     const errorParam = searchParams.get("error");

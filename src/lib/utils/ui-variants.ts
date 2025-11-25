@@ -195,10 +195,10 @@ export const financialButtonVariants = cva(
   {
     variants: {
       intent: {
-        income: "bg-success text-success-foreground hover:bg-success/90 shadow-success/20",
-        expense: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
-        transfer: "bg-secondary text-secondary-foreground hover:bg-secondary/90",
-        neutral: "bg-muted text-foreground hover:bg-muted/80",
+        income: "bg-success text-success hover:bg-success/90 shadow-success/20",
+        expense: "bg-destructive text-destructive hover:bg-destructive/90",
+        transfer: "bg-secondary text-secondary hover:bg-secondary/90",
+        neutral: "bg-muted text-black hover:bg-muted/80",
       },
       size: {
         sm: "h-8 px-3 text-sm",
@@ -325,7 +325,7 @@ export const amountVariants = cva("font-bold tabular-nums", {
       income: "text-success",
       expense: "text-destructive",
       transfer: "text-secondary",
-      balance: "text-foreground",
+      balance: "text-black",
       neutral: "text-muted-foreground",
     },
     size: {

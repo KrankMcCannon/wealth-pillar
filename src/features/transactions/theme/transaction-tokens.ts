@@ -23,7 +23,7 @@ export const transactionColors = {
 
   // Semantic colors
   text: {
-    primary: 'text-foreground',
+    primary: 'text-black',
     secondary: 'text-muted-foreground',
     tertiary: 'text-muted-foreground/60',
     destructive: 'text-destructive',
@@ -109,7 +109,7 @@ export const transactionComponents = {
     container: 'flex gap-2 border-b border-primary/20 px-3 sm:px-4 py-2',
     tab: 'px-4 py-2 text-sm font-medium rounded-t-lg',
     tabActive: 'text-primary border-b-2 border-primary',
-    tabInactive: 'text-muted-foreground hover:text-foreground',
+    tabInactive: 'text-muted-foreground hover:text-black',
   },
 
   // Search Bar

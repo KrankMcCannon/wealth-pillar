@@ -65,7 +65,7 @@ export const BudgetSection = ({ budgetsByUser, budgets, isLoading }: BudgetSecti
             </div>
           </div>
           <h3 className="font-semibold text-primary mb-2">Nessun budget configurato</h3>
-          <p className="text-sm text-foreground/70 mb-4 max-w-sm mx-auto">
+          <p className="text-sm text-black/70 mb-4 max-w-sm mx-auto">
             Crea dei budget per monitorare le tue spese e tenere sotto controllo le finanze familiari
           </p>
           <button

@@ -48,7 +48,7 @@ export function RecurringExecutionManager({ className = "" }: RecurringExecution
         <div className="flex size-16 items-center justify-center rounded-2xl bg-primary/10 mx-auto mb-4">
           <CheckCircle className="w-8 h-8 text-primary" />
         </div>
-        <p className="font-medium text-foreground">Tutte le transazioni sono aggiornate</p>
+        <p className="font-medium text-black">Tutte le transazioni sono aggiornate</p>
         <p className="text-sm mt-1">Non ci sono serie ricorrenti da eseguire oggi</p>
       </div>
     </Card>
@@ -67,7 +67,7 @@ export function RecurringExecutionManager({ className = "" }: RecurringExecution
       {false && (
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+            <h3 className="text-lg font-semibold text-black flex items-center gap-2">
               <Clock className="w-5 h-5 text-primary" />
               In Scadenza Oggi
             </h3>
@@ -83,7 +83,7 @@ export function RecurringExecutionManager({ className = "" }: RecurringExecution
                 className="flex items-center justify-between p-3 bg-primary/10 rounded-lg border border-primary/20"
               >
                 <div className="flex-1">
-                  <div className="font-medium text-foreground">{""}</div>
+                  <div className="font-medium text-black">{""}</div>
                   <div className="text-sm">{""}</div>
                 </div>
                 <div className="text-right">
@@ -107,7 +107,7 @@ export function RecurringExecutionManager({ className = "" }: RecurringExecution
       {false && (
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+            <h3 className="text-lg font-semibold text-black flex items-center gap-2">
               <AlertTriangle className="w-5 h-5 text-destructive" />
               In Ritardo
             </h3>
@@ -135,7 +135,7 @@ export function RecurringExecutionManager({ className = "" }: RecurringExecution
                   className="flex items-center justify-between p-3 bg-destructive/10 rounded-lg border border-destructive/20"
                 >
                   <div className="flex-1">
-                    <div className="font-medium text-foreground">{""}</div>
+                    <div className="font-medium text-black">{""}</div>
                     <div className="text-sm text-destructive">{daysOverdue} giorni in ritardo</div>
                   </div>
                   <div className="text-right">

@@ -1,6 +1,14 @@
 import { supabaseServer } from '@/lib/database/server';
-import { cached, accountCacheKeys, cacheOptions } from '@/lib/cache';
+import { cached, accountCacheKeys, cacheOptions, CACHE_TAGS } from '@/lib/cache';
+import type { Database } from '@/lib/database/types';
 import type { Account, Transaction } from '@/lib/types';
+
+async function revalidateCacheTags(tags: string[]) {
+  if (typeof window === 'undefined') {
+    const { revalidateTag } = await import('next/cache');
+    tags.forEach((tag) => revalidateTag(tag));
+  }
+}
 
 /**
  * Service result type for better error handling
@@ -8,6 +16,14 @@ import type { Account, Transaction } from '@/lib/types';
 export interface ServiceResult<T> {
   data: T | null;
   error: string | null;
+}
+
+export interface CreateAccountInput {
+  id?: string;
+  name: string;
+  type: Account['type'];
+  user_ids: string[];
+  group_id: string;
 }
 
 /**
@@ -428,5 +444,67 @@ export class AccountService {
     });
 
     return balances;
+  }
+
+  /**
+   * Creates a new account for onboarding or manual creation flows
+   */
+  static async createAccount(data: CreateAccountInput): Promise<ServiceResult<Account>> {
+    try {
+      if (!data.name || data.name.trim() === '') {
+        return { data: null, error: 'Account name is required' };
+      }
+
+      if (!data.type) {
+        return { data: null, error: 'Account type is required' };
+      }
+
+      if (!data.group_id || data.group_id.trim() === '') {
+        return { data: null, error: 'Group ID is required' };
+      }
+
+      if (!data.user_ids || data.user_ids.length === 0) {
+        return { data: null, error: 'At least one user is required for an account' };
+      }
+
+      const now = new Date().toISOString();
+      const insertData: Database['public']['Tables']['accounts']['Insert'] = {
+        id: data.id,
+        name: data.name.trim(),
+        type: data.type,
+        user_ids: data.user_ids,
+        group_id: data.group_id,
+        created_at: now,
+        updated_at: now,
+      };
+
+      const { data: account, error } = await (supabaseServer as any)
+        .from('accounts')
+        .insert(insertData)
+        .select()
+        .single();
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      if (!account) {
+        return { data: null, error: 'Failed to create account' };
+      }
+
+      await revalidateCacheTags([
+        CACHE_TAGS.ACCOUNTS,
+        CACHE_TAGS.ACCOUNT(account.id),
+        `group:${data.group_id}:accounts`,
+        ...data.user_ids.map((userId) => `user:${userId}:accounts`),
+      ]);
+
+      return { data: account, error: null };
+    } catch (error) {
+      return {
+        data: null,
+        error: error instanceof Error ? error.message : 'Failed to create account',
+      };
+    }
   }
 }
