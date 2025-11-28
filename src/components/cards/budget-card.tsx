@@ -9,7 +9,8 @@
 "use client";
 
 import { IconContainer, StatusBadge, Text } from "@/src/components/ui";
-import { Budget, CategoryIcon, formatCurrency, iconSizes, progressBarVariants, progressFillVariants } from "@/src/lib";
+import { Budget, CategoryIcon, iconSizes, progressBarVariants, progressFillVariants } from "@/src/lib";
+import { formatCurrency } from "@/lib/utils/currency-formatter";
 
 interface BudgetCardProps {
   budget: Budget;

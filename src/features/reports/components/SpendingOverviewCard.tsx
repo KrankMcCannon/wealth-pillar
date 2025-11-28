@@ -4,6 +4,7 @@ import React from "react";
 import { Card } from "@/src/components/ui";
 import { TrendingDown, TrendingUp } from "lucide-react";
 import { reportsStyles } from "@/features/reports";
+import { formatCurrency } from "@/lib/utils";
 
 /**
  * Spending Overview Card
@@ -26,14 +27,6 @@ export function SpendingOverviewCard({
   incomeChange = 0,
   expenseChange = 0,
 }: Readonly<SpendingOverviewProps>) {
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("it-IT", {
-      style: "currency",
-      currency: "EUR",
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(value);
-  };
 
   const getTrendColor = (change: number) => {
     if (change === 0) return reportsStyles.overview.neutral;

@@ -9,6 +9,7 @@
 
 import { Amount, DomainCard, Text } from "@/src/components/ui";
 import { Account, AccountTypeMap } from "@/src/lib";
+import { truncateText } from "@/lib/utils";
 import { Building2 } from "lucide-react";
 
 interface AccountCardProps {
@@ -43,7 +44,7 @@ export function AccountCard({ account, accountBalance, onClick }: Readonly<Accou
       icon={<Building2 className="h-5 w-5" />}
       iconSize="md"
       iconColor="primary"
-      title={account.name}
+      title={truncateText(account.name, 20)}
       subtitle={AccountTypeMap[account.type] || account.type}
       primaryContent={primaryContent}
       secondaryContent={secondaryContent}

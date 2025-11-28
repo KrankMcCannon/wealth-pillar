@@ -6,12 +6,11 @@
  * but uses DomainCard for layout structure where possible
  */
 
-'use client';
+"use client";
 
-import { CategoryIcon, cn, iconSizes, RecurringTransactionSeries } from '@/src/lib';
-import { Play, Pause, Settings } from 'lucide-react';
-import { useExecuteRecurringSeries, usePauseRecurringSeries, useResumeRecurringSeries } from '@/src/features/recurring/hooks/use-recurring-series';
-import { Amount, Button, Card, IconContainer, StatusBadge, Text } from '@/src/components/ui';
+import { CategoryIcon, cn, iconSizes, RecurringTransactionSeries } from "@/src/lib";
+import { Play, Pause, Settings } from "lucide-react";
+import { Amount, Button, Card, IconContainer, StatusBadge, Text } from "@/src/components/ui";
 
 interface SeriesCardProps {
   series: RecurringTransactionSeries;
@@ -23,21 +22,21 @@ interface SeriesCardProps {
 // Helper function: Get frequency label
 function getFrequencyLabel(frequency: string): string {
   const labels: Record<string, string> = {
-    weekly: 'Settimanale',
-    biweekly: 'Quindicinale',
-    monthly: 'Mensile',
-    yearly: 'Annuale',
+    weekly: "Settimanale",
+    biweekly: "Quindicinale",
+    monthly: "Mensile",
+    yearly: "Annuale",
   };
   return labels[frequency] || frequency;
 }
 
 // Helper function: Get due date label
 function getDueDateLabel(days: number, date: Date): string {
-  if (days === 0) return 'Oggi';
-  if (days === 1) return 'Domani';
+  if (days === 0) return "Oggi";
+  if (days === 1) return "Domani";
   if (days < 0) return `${Math.abs(days)} giorni fa`;
   if (days <= 7) return `Tra ${days} giorni`;
-  return date.toLocaleDateString('it-IT');
+  return date.toLocaleDateString("it-IT");
 }
 
 // Helper function: Calculate days until due
@@ -46,17 +45,7 @@ function calculateDaysUntilDue(dueDate: Date): number {
   return Math.ceil((dueDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
 }
 
-export function SeriesCard({
-  series,
-  className,
-  showActions = false,
-  onEdit,
-}: SeriesCardProps) {
-  // Mutations
-  const executeSeriesMutation = useExecuteRecurringSeries();
-  const pauseSeriesMutation = usePauseRecurringSeries();
-  const resumeSeriesMutation = useResumeRecurringSeries();
-
+export function SeriesCard({ series, className, showActions = false, onEdit }: SeriesCardProps) {
   // Calculate due date info
   const nextDueDate = new Date(series.due_date);
   const daysUntilDue = calculateDaysUntilDue(nextDueDate);
@@ -67,29 +56,29 @@ export function SeriesCard({
   // Action handlers
   const handleExecute = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    try {
-      await executeSeriesMutation.mutateAsync(series.id);
-    } catch (error) {
-      console.error('Failed to execute series:', error);
-    }
+    // try {
+    //   await executeSeriesMutation.mutateAsync(series.id);
+    // } catch (error) {
+    //   console.error('Failed to execute series:', error);
+    // }
   };
 
   const handlePause = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    try {
-      await pauseSeriesMutation.mutateAsync({ id: series.id });
-    } catch (error) {
-      console.error('Failed to pause series:', error);
-    }
+    // try {
+    //   await pauseSeriesMutation.mutateAsync({ id: series.id });
+    // } catch (error) {
+    //   console.error('Failed to pause series:', error);
+    // }
   };
 
   const handleResume = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    try {
-      await resumeSeriesMutation.mutateAsync(series.id);
-    } catch (error) {
-      console.error('Failed to resume series:', error);
-    }
+    // try {
+    //   await resumeSeriesMutation.mutateAsync(series.id);
+    // } catch (error) {
+    //   console.error('Failed to resume series:', error);
+    // }
   };
 
   const handleEdit = () => {
@@ -115,24 +104,20 @@ export function SeriesCard({
   };
 
   const getIconColor = (): "primary" | "warning" | "destructive" | "muted" => {
-    if (!series.is_active) return 'muted';
-    if (isOverdue) return 'destructive';
-    if (isDueToday || isDueSoon) return 'warning';
-    return 'primary';
+    if (!series.is_active) return "muted";
+    if (isOverdue) return "destructive";
+    if (isDueToday || isDueSoon) return "warning";
+    return "primary";
   };
 
   const getAmountType = (): "income" | "expense" | "neutral" => {
-    if (!series.is_active) return 'neutral';
-    return series.type === 'income' ? 'income' : 'expense';
+    if (!series.is_active) return "neutral";
+    return series.type === "income" ? "income" : "expense";
   };
 
   return (
     <Card
-      className={cn(
-        getCardStyles(),
-        "transition-all duration-300 group cursor-pointer",
-        className
-      )}
+      className={cn(getCardStyles(), "transition-all duration-300 group cursor-pointer", className)}
       onClick={handleEdit}
     >
       <div className="flex items-center justify-between gap-3">
@@ -172,7 +157,7 @@ export function SeriesCard({
         {/* Right Section: Amount + Actions */}
         <div className="flex flex-col items-end gap-1.5 shrink-0">
           <Amount type={getAmountType()} size="md" emphasis="strong">
-            {series.type === 'income' ? series.amount : -series.amount}
+            {series.type === "income" ? series.amount : -series.amount}
           </Amount>
 
           {showActions && (
@@ -185,7 +170,7 @@ export function SeriesCard({
                       size="sm"
                       className="h-6 w-6 p-0 hover:bg-primary/8 rounded-md transition-all duration-200"
                       onClick={handleExecute}
-                      disabled={executeSeriesMutation.isPending}
+                      disabled={false}
                     >
                       <Play className="h-3 w-3 text-accent" />
                     </Button>
@@ -195,7 +180,7 @@ export function SeriesCard({
                     size="sm"
                     className="h-6 w-6 p-0 hover:bg-warning/10 rounded-md transition-all duration-200"
                     onClick={handlePause}
-                    disabled={pauseSeriesMutation.isPending}
+                    disabled={false}
                   >
                     <Pause className="h-3 w-3 text-warning" />
                   </Button>
@@ -206,7 +191,7 @@ export function SeriesCard({
                   size="sm"
                   className="h-6 w-6 p-0 hover:bg-primary/5 rounded-md transition-all duration-200"
                   onClick={handleResume}
-                  disabled={resumeSeriesMutation.isPending}
+                  disabled={false}
                 >
                   <Play className="h-3 w-3 text-primary" />
                 </Button>

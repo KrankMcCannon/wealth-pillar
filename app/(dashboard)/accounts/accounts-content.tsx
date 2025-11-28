@@ -4,67 +4,75 @@
  * Accounts Content - Client Component
  *
  * Handles interactive accounts UI with client-side state management
- * Data is pre-hydrated from server via HydrationBoundary
+ * Data is passed from Server Component for optimal performance
  */
 
 import { useMemo } from "react";
-import {
-  AccountHeader,
-  TotalBalanceCard,
-  AccountsList,
-  createAccountsViewModel,
-  accountStyles,
-} from "@/features/accounts";
-import { useDashboardData } from "@/features/dashboard";
-import { useUserSelection } from "@/src/lib";
+import { AccountHeader, TotalBalanceCard, AccountsList, accountStyles } from "@/features/accounts";
+import type { DashboardDataProps } from "@/lib/auth/get-dashboard-data";
+import type { Account } from "@/lib/types";
+
+interface AccountsContentProps extends DashboardDataProps {
+  accounts: Account[];
+  accountBalances: Record<string, number>;
+}
 
 /**
  * Accounts Content Component
- * Separated to enable proper Suspense boundaries
- * Data is fetched client-side via TanStack Query with parallel execution
+ * Receives user data, accounts, and balances from Server Component parent
  */
-export default function AccountsContent() {
-  const { currentUser, selectedViewUserId } = useUserSelection();
-  const data = useDashboardData(currentUser, selectedViewUserId);
+export default function AccountsContent({ accounts, accountBalances }: AccountsContentProps) {
+  // Sort accounts by balance (descending - highest first)
+  const sortedAccounts = useMemo(() => {
+    return [...accounts].sort((a, b) => {
+      const balanceA = accountBalances[a.id] || 0;
+      const balanceB = accountBalances[b.id] || 0;
+      return balanceB - balanceA;
+    });
+  }, [accounts, accountBalances]);
 
-  // Create view model from raw data
-  const viewModel = useMemo(
-    () =>
-      createAccountsViewModel(
-        data.accounts.data,
-        data.accountBalances
-      ),
-    [data.accounts.data, data.accountBalances]
-  );
+  // Calculate account statistics from balances
+  const accountStats = useMemo(() => {
+    const totalBalance = Object.values(accountBalances).reduce((sum, balance) => sum + balance, 0);
+    const positiveAccounts = Object.values(accountBalances).filter((balance) => balance > 0).length;
+    const negativeAccounts = Object.values(accountBalances).filter((balance) => balance < 0).length;
+
+    return {
+      totalBalance,
+      totalAccounts: accounts.length,
+      positiveAccounts,
+      negativeAccounts,
+    };
+  }, [accounts.length, accountBalances]);
 
   return (
     <div className={accountStyles.page.container}>
-      {/* Header Section - shows skeleton while loading */}
+      {/* Header Section */}
       <AccountHeader
-        totalAccounts={viewModel.totalAccounts}
+        totalAccounts={accountStats.totalAccounts}
         onAddAccount={() => {
           /* TODO: Open add account modal */
         }}
-        isLoading={data.accounts.isLoading}
+        isLoading={false}
       />
 
-      {/* Total Balance Card Section - shows skeleton while loading */}
+      {/* Total Balance Card Section */}
       <TotalBalanceCard
-        totalBalance={data.totalBalance}
-        totalAccounts={viewModel.totalAccounts}
-        positiveAccounts={viewModel.positiveAccounts}
-        negativeAccounts={viewModel.negativeAccounts}
-        isLoading={data.accounts.isLoading}
+        totalBalance={accountStats.totalBalance}
+        totalAccounts={accountStats.totalAccounts}
+        positiveAccounts={accountStats.positiveAccounts}
+        negativeAccounts={accountStats.negativeAccounts}
+        isLoading={false}
       />
 
-      {/* Accounts List Section - shows individual card skeletons while loading */}
+      {/* Accounts List Section */}
       <AccountsList
-        accounts={viewModel.sortedAccounts}
-        accountBalances={data.accountBalances}
+        accounts={sortedAccounts}
+        accountBalances={accountBalances}
         onAccountClick={() => {
           /* TODO: Open account detail */
         }}
-        isLoading={data.accounts.isLoading}
+        isLoading={false}
       />
     </div>
   );

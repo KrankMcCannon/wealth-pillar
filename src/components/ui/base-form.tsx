@@ -5,8 +5,7 @@
 
 "use client";
 
-import { FormActions } from "./form-actions";
-import { FormLayout } from "./form-layout";
+import { FormActions, FormLayout } from "../form";
 import { ModalWrapper } from "./modal-wrapper";
 
 interface BaseFormProps {

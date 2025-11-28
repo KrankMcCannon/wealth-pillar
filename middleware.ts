@@ -1,65 +1,26 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
-import { NextResponse } from 'next/server';
 
+/**
+ * Clerk Middleware for Next.js 15
+ *
+ * This middleware handles authentication across the application.
+ * It protects dashboard routes and allows public access to auth pages.
+ */
+
+// Define which routes are public (accessible without authentication)
 const isPublicRoute = createRouteMatcher([
-  '/',
   '/sign-in(.*)',
   '/sign-up(.*)',
   '/forgot-password(.*)',
   '/verify-email(.*)',
-  '/api/webhooks(.*)',
-  '/sign-in/sso-callback',
-  '/sign-up/sso-callback',
+  '/',
 ]);
 
-const isAdminRoute = createRouteMatcher([
-  '/admin(.*)',
-  '/settings/admin(.*)',
-]);
-
-const isSuperAdminRoute = createRouteMatcher([
-  '/superadmin(.*)',
-  '/settings/superadmin(.*)',
-]);
-
-export default clerkMiddleware(async (auth, req) => {
-  const { userId, sessionClaims } = await auth();
-  const { pathname } = req.nextUrl;
-
-  // If user is not authenticated and trying to access protected routes
-  if (!userId && !isPublicRoute(req)) {
-    return NextResponse.redirect(new URL('/sign-in', req.url));
+export default clerkMiddleware(async (auth, request) => {
+  // Protect all routes except public ones
+  if (!isPublicRoute(request)) {
+    await auth.protect();
   }
-
-  // If user is authenticated but trying to access auth pages (except password recovery and email verification)
-  if (userId && (pathname.startsWith('/sign-in') || pathname.startsWith('/sign-up')) && !pathname.startsWith('/forgot-password') && !pathname.startsWith('/verify-email')) {
-    return NextResponse.redirect(new URL('/dashboard', req.url));
-  }
-
-  // If user is authenticated and on root page, redirect to dashboard
-  if (userId && pathname === '/') {
-    return NextResponse.redirect(new URL('/dashboard', req.url));
-  }
-
-  // Role-based access control for admin routes
-  if (isAdminRoute(req)) {
-    const userRole = (sessionClaims?.metadata as { role?: string })?.role;
-
-    if (userRole !== 'admin' && userRole !== 'superadmin') {
-      return NextResponse.redirect(new URL('/dashboard?error=insufficient-permissions', req.url));
-    }
-  }
-
-  // Super admin only routes
-  if (isSuperAdminRoute(req)) {
-    const userRole = (sessionClaims?.metadata as { role?: string })?.role;
-
-    if (userRole !== 'superadmin') {
-      return NextResponse.redirect(new URL('/dashboard?error=insufficient-permissions', req.url));
-    }
-  }
-
-  return NextResponse.next();
 });
 
 export const config = {

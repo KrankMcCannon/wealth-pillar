@@ -3,13 +3,14 @@
  * Displays total balance with account statistics
  */
 
-'use client';
+"use client";
 
-import { CreditCard, TrendingUp, TrendingDown } from 'lucide-react';
-import { formatCurrency } from '@/lib';
-import { accountStyles } from '../theme/account-styles';
+import { CreditCard, TrendingUp, TrendingDown } from "lucide-react";
+import { accountStyles } from "../theme/account-styles";
+import { formatCurrency } from "@/lib/utils";
 
-const shimmerBase = "relative overflow-hidden before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_2s_infinite] before:bg-gradient-to-r before:from-transparent before:via-white/60 before:to-transparent";
+const shimmerBase =
+  "relative overflow-hidden before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_2s_infinite] before:bg-gradient-to-r before:from-transparent before:via-white/60 before:to-transparent";
 
 /**
  * Skeleton for balance card
@@ -72,7 +73,9 @@ export const TotalBalanceCard = ({
         <div className={accountStyles.balanceCard.header}>
           <div>
             <p className={accountStyles.balanceCard.label}>Saldo Totale</p>
-            <p className={isPositive ? accountStyles.balanceCard.valuePositive : accountStyles.balanceCard.valueNegative}>
+            <p
+              className={isPositive ? accountStyles.balanceCard.valuePositive : accountStyles.balanceCard.valueNegative}
+            >
               {formatCurrency(totalBalance)}
             </p>
           </div>
@@ -89,9 +92,7 @@ export const TotalBalanceCard = ({
               <CreditCard className="w-4 h-4 text-primary" />
               <p className={accountStyles.balanceCard.statLabel}>Totale</p>
             </div>
-            <p className={`${accountStyles.balanceCard.statValue} text-primary`}>
-              {totalAccounts}
-            </p>
+            <p className={`${accountStyles.balanceCard.statValue} text-primary`}>{totalAccounts}</p>
           </div>
 
           {/* Positive Accounts */}
@@ -100,9 +101,7 @@ export const TotalBalanceCard = ({
               <TrendingUp className="w-4 h-4 text-success" />
               <p className={accountStyles.balanceCard.statLabel}>Positivi</p>
             </div>
-            <p className={`${accountStyles.balanceCard.statValue} text-success`}>
-              {positiveAccounts}
-            </p>
+            <p className={`${accountStyles.balanceCard.statValue} text-success`}>{positiveAccounts}</p>
           </div>
 
           {/* Negative Accounts */}
@@ -111,9 +110,7 @@ export const TotalBalanceCard = ({
               <TrendingDown className="w-4 h-4 text-destructive" />
               <p className={accountStyles.balanceCard.statLabel}>Negativi</p>
             </div>
-            <p className={`${accountStyles.balanceCard.statValue} text-destructive`}>
-              {negativeAccounts}
-            </p>
+            <p className={`${accountStyles.balanceCard.statValue} text-destructive`}>{negativeAccounts}</p>
           </div>
         </div>
       </div>

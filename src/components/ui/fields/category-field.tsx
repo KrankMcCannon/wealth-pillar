@@ -4,10 +4,8 @@
 
 "use client";
 
-import { useCategories } from '@/src/lib';
-import { useMemo } from "react";
-import { FormField } from "../form-field";
-import { FormSelect, sortSelectOptions } from "../form-select";
+import { FormField, FormSelect } from "@/components/form";
+import type { Category } from "@/lib/types";
 
 interface CategoryFieldProps {
   value: string;
@@ -15,6 +13,8 @@ interface CategoryFieldProps {
   error?: string;
   required?: boolean;
   label?: string;
+  placeholder?: string;
+  categories?: Category[];
 }
 
 export function CategoryField({
@@ -22,16 +22,14 @@ export function CategoryField({
   onChange,
   error,
   required = true,
-  label = "Categoria"
+  label = "Categoria",
+  placeholder = "Seleziona categoria",
+  categories = []
 }: CategoryFieldProps) {
-  const { data: categories = [] } = useCategories();
-
-  const options = useMemo(() =>
-    sortSelectOptions(
-      categories.map(c => ({ value: c.key, label: c.label }))
-    ),
-    [categories]
-  );
+  const options = categories.map((category) => ({
+    value: category.key,
+    label: category.label,
+  }));
 
   return (
     <FormField label={label} required={required} error={error}>
@@ -39,7 +37,7 @@ export function CategoryField({
         value={value}
         onValueChange={onChange}
         options={options}
-        placeholder="Seleziona categoria"
+        placeholder={placeholder}
       />
     </FormField>
   );

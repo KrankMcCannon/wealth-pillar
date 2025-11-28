@@ -1,21 +1,33 @@
-'use client';
-
 /**
- * Transactions Page
- * Simple client component wrapper for loading skeleton and content
- *
- * All data fetching happens client-side with parallel execution
- * Loading skeleton displayed immediately for fast perceived performance
+ * Transactions Page - Server Component
+ * Uses shared utility for consistent data fetching across all dashboard pages
  */
 
 import { Suspense } from 'react';
+import { getDashboardData } from '@/lib/auth/get-dashboard-data';
+import { TransactionService, CategoryService, AccountService } from '@/lib/services';
 import TransactionsContent from './transactions-content';
 import TransactionPageLoading from './loading';
 
-export default function TransactionsPage() {
+export default async function TransactionsPage() {
+  const { currentUser, groupUsers } = await getDashboardData();
+
+  // Fetch data in parallel for optimal performance
+  const [transactionsResult, categoriesResult, accountsResult] = await Promise.all([
+    TransactionService.getTransactionsByGroup(currentUser.group_id),
+    CategoryService.getAllCategories(),
+    AccountService.getAccountsByGroup(currentUser.group_id),
+  ]);
+
   return (
     <Suspense fallback={<TransactionPageLoading />}>
-      <TransactionsContent />
+      <TransactionsContent
+        currentUser={currentUser}
+        groupUsers={groupUsers}
+        transactions={transactionsResult.data || []}
+        categories={categoriesResult.data || []}
+        accounts={accountsResult.data || []}
+      />
     </Suspense>
   );
 }

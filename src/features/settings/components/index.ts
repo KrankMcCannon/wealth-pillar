@@ -9,3 +9,5 @@ export {
   PreferencesSectionSkeleton,
   SettingsPageSkeleton,
 } from './settings-skeletons';
+
+export { DeleteAccountModal } from './delete-account-modal';

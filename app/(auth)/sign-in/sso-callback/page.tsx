@@ -1,9 +1,10 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { Loader2 } from 'lucide-react';
-import { AuthCard, useAuth } from '@/features/auth';
+import { Loader2 } from "lucide-react";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@clerk/nextjs";
+import { AuthCard } from "@/features/auth";
 
 /**
  * SSO Callback Page for Sign In
@@ -12,20 +13,22 @@ import { AuthCard, useAuth } from '@/features/auth';
  */
 export default function SignInSSOCallback() {
   const router = useRouter();
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isLoaded, isSignedIn } = useAuth();
 
   useEffect(() => {
     // Wait for authentication to complete
-    if (!isLoading) {
-      if (isAuthenticated) {
+    if (isLoaded) {
+      if (isSignedIn) {
         // Successfully authenticated, redirect to dashboard
+        console.log("SSO authentication successful, redirecting to dashboard");
         router.push('/dashboard');
       } else {
         // Authentication failed, redirect back to sign-in
+        console.log("SSO authentication failed, redirecting to sign-in");
         router.push('/sign-in?error=oauth-failed');
       }
     }
-  }, [isAuthenticated, isLoading, router]);
+  }, [isSignedIn, isLoaded, router]);
 
   return (
     <>
@@ -34,9 +37,7 @@ export default function SignInSSOCallback() {
       <AuthCard title="Accesso in corso" subtitle="Completamento autenticazione">
         <div className="flex flex-col items-center justify-center py-8 space-y-4">
           <Loader2 className="h-12 w-12 animate-spin text-[hsl(var(--color-primary))]" />
-          <p className="text-sm text-gray-600 text-center">
-            Stiamo completando il tuo accesso...
-          </p>
+          <p className="text-sm text-gray-600 text-center">Stiamo completando il tuo accesso...</p>
         </div>
       </AuthCard>
     </>

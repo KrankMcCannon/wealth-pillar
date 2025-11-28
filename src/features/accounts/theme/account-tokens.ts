@@ -26,7 +26,7 @@ export const accountComponents = {
   header: {
     container: 'sticky top-0 z-10 bg-[#F8FAFC]/95 backdrop-blur-sm border-b border-border',
     inner: 'flex items-center justify-between px-4 py-4',
-    title: 'text-xl font-bold text-foreground',
+    title: 'text-xl font-bold text-black',
     subtitle: 'text-xs text-muted-foreground',
     backButton: 'flex items-center justify-center w-9 h-9 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors',
     addButton: 'flex items-center justify-center w-9 h-9 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors',
@@ -47,13 +47,13 @@ export const accountComponents = {
 
   accountsList: {
     container: 'space-y-3',
-    header: 'text-lg font-semibold text-foreground mb-4',
+    header: 'text-lg font-semibold text-black mb-4',
     addPrompt: 'flex-shrink-0 w-60 h-24 border-2 border-dashed border-primary/30 rounded-lg flex items-center justify-center bg-primary/5 hover:border-primary/40 hover:bg-primary/10 transition-all duration-300 cursor-pointer group',
   },
 
   slider: {
-    container: 'overflow-x-auto scrollbar-hide mb-4',
-    inner: 'flex gap-3 pb-2',
+    container: 'overflow-x-auto scrollbar-hide flex items-center',
+    inner: 'flex gap-3',
     cardWrapper: 'transform transition-all duration-300 hover:scale-[1.01] hover:shadow-md hover:shadow-muted/30',
     addPlaceholder: 'flex-shrink-0 w-60 h-24 border-2 border-dashed border-primary/30 rounded-lg flex items-center justify-center bg-primary/5 hover:border-primary/40 hover:bg-primary/10 transition-all duration-300 cursor-pointer group',
     addPromptIcon: 'h-6 w-6 text-primary/70 group-hover:text-primary mx-auto mb-1 transition-colors',

@@ -1,15 +1,14 @@
-'use client';
+"use client";
 
-import { usePermissions, useRoleBasedUI } from '@/src/lib';
-import { ReactNode } from 'react';
+import { ReactNode } from "react";
 
 interface PermissionGuardProps {
   children: ReactNode;
   fallback?: ReactNode;
 
   // Controlli basati su ruoli
-  requireRole?: 'member' | 'admin' | 'superadmin';
-  allowRoles?: Array<'member' | 'admin' | 'superadmin'>;
+  requireRole?: "member" | "admin" | "superadmin";
+  allowRoles?: Array<"member" | "admin" | "superadmin">;
 
   // Controlli basati su feature
   requireFeature?: string;
@@ -38,33 +37,31 @@ export const PermissionGuard: React.FC<PermissionGuardProps> = ({
   showFallback = true,
   hideCompletely = false,
 }) => {
-  const { permissions } = usePermissions();
-
   // Controllo ruolo richiesto
   if (requireRole) {
-    const hasRequiredRole = permissions.hasRole(requireRole);
-    if (!hasRequiredRole) {
-      if (hideCompletely) return null;
-      return showFallback ? <>{fallback}</> : null;
-    }
+    // const hasRequiredRole = permissions.hasRole(requireRole);
+    //   if (!hasRequiredRole) {
+    //     if (hideCompletely) return null;
+    //     return showFallback ? <>{fallback}</> : null;
+    //   }
   }
 
   // Controllo ruoli permessi
   if (allowRoles && allowRoles.length > 0) {
-    const hasAllowedRole = allowRoles.some(role => permissions.hasRole(role));
-    if (!hasAllowedRole) {
-      if (hideCompletely) return null;
-      return showFallback ? <>{fallback}</> : null;
-    }
+    // const hasAllowedRole = allowRoles.some(role => permissions.hasRole(role));
+    // if (!hasAllowedRole) {
+    //   if (hideCompletely) return null;
+    //   return showFallback ? <>{fallback}</> : null;
+    // }
   }
 
   // Controllo feature
   if (requireFeature) {
-    const hasFeature = permissions.canAccessFeature(requireFeature);
-    if (!hasFeature) {
-      if (hideCompletely) return null;
-      return showFallback ? <>{fallback}</> : null;
-    }
+    // const hasFeature = permissions.canAccessFeature(requireFeature);
+    // if (!hasFeature) {
+    //   if (hideCompletely) return null;
+    //   return showFallback ? <>{fallback}</> : null;
+    // }
   }
 
   // Controllo condizione personalizzata
@@ -92,25 +89,18 @@ interface RoleBasedContentProps {
 /**
  * Componente per rendering condizionale basato sul ruolo
  */
-export const RoleBasedContent: React.FC<RoleBasedContentProps> = ({
-  children,
-  memberContent,
-  adminContent,
-  superAdminContent,
-}) => {
-  const { isMember, isAdmin, isSuperAdmin } = useRoleBasedUI();
+export const RoleBasedContent: React.FC<RoleBasedContentProps> = ({ children }) => {
+  // if (isSuperAdmin && superAdminContent) {
+  //   return <>{superAdminContent}</>;
+  // }
 
-  if (isSuperAdmin && superAdminContent) {
-    return <>{superAdminContent}</>;
-  }
+  // if (isAdmin && adminContent) {
+  //   return <>{adminContent}</>;
+  // }
 
-  if (isAdmin && adminContent) {
-    return <>{adminContent}</>;
-  }
-
-  if (isMember && memberContent) {
-    return <>{memberContent}</>;
-  }
+  // if (isMember && memberContent) {
+  //   return <>{memberContent}</>;
+  // }
 
   return <>{children}</>;
 };
@@ -124,16 +114,10 @@ interface FeatureToggleProps {
 /**
  * Componente per abilitazione condizionale delle feature
  */
-export const FeatureToggle: React.FC<FeatureToggleProps> = ({
-  feature,
-  children,
-  fallback = null,
-}) => {
-  const { permissions } = usePermissions();
-
-  if (permissions.canAccessFeature(feature)) {
-    return <>{children}</>;
-  }
+export const FeatureToggle: React.FC<FeatureToggleProps> = ({ fallback = null }) => {
+  // if (permissions.canAccessFeature(feature)) {
+  //   return <>{children}</>;
+  // }
 
   return <>{fallback}</>;
 };
@@ -143,7 +127,7 @@ export const FeatureToggle: React.FC<FeatureToggleProps> = ({
  */
 export function withPermissions<P extends object>(
   Component: React.ComponentType<P>,
-  permissionConfig: Omit<PermissionGuardProps, 'children'>
+  permissionConfig: Omit<PermissionGuardProps, "children">
 ) {
   return function ProtectedComponent(props: P) {
     return (

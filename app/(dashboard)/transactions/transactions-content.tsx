@@ -1,77 +1,185 @@
-'use client';
+"use client";
 
 /**
  * Transactions Content - Client Component
  *
  * Handles interactive transactions UI with client-side state management
- * Data is pre-hydrated from server via HydrationBoundary
+ * Data is passed from Server Component for optimal performance
  */
 
-import { Suspense, useMemo } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { ArrowLeft, MoreVertical, Plus, Search, Filter } from 'lucide-react';
-import { Badge, Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, Input } from '@/src/components/ui';
-import BottomNavigation from '@/src/components/layout/bottom-navigation';
-import TabNavigation from '@/src/components/shared/tab-navigation';
-import UserSelector from '@/src/components/shared/user-selector';
-import { RecurringSeriesSection, RecurringSeriesForm } from '@/src/features/recurring';
-import { useTransactionsData, useTransactionsState } from '@/src/features/transactions/hooks';
-import { FilterDialog, GroupedTransactionCard, TransactionForm } from '@/src/features/transactions';
-import { createTransactionsViewModel } from '@/src/features/transactions/services/transactions-view-model';
-import { formatCurrency, pluralize } from '@/src/lib';
-import { useUserSelection } from '@/src/lib/hooks/use-user-selection';
-import { transactionStyles } from '@/src/features/transactions/theme/transaction-styles';
-import { UserSelectorSkeleton } from '@/src/features/dashboard';
-import { SearchFilterSkeleton, TransactionListSkeleton, RecurringSeriesSkeleton } from '@/src/features/transactions/components/transaction-skeletons';
+import { Suspense, useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
+import { ArrowLeft, MoreVertical, Plus, Search, Filter } from "lucide-react";
+import {
+  Badge,
+  Button,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  Input,
+} from "@/src/components/ui";
+import BottomNavigation from "@/src/components/layout/bottom-navigation";
+import TabNavigation from "@/src/components/shared/tab-navigation";
+import UserSelector from "@/src/components/shared/user-selector";
+import { ConfirmationDialog } from "@/components/shared/confirmation-dialog";
+import { RecurringSeriesSection, RecurringSeriesForm } from "@/src/features/recurring";
+import { FilterDialog, GroupedTransactionCard, TransactionForm } from "@/src/features/transactions";
+import { transactionStyles } from "@/src/features/transactions/theme/transaction-styles";
+import { UserSelectorSkeleton } from "@/src/features/dashboard";
+import {
+  SearchFilterSkeleton,
+  TransactionListSkeleton,
+  RecurringSeriesSkeleton,
+} from "@/src/features/transactions/components/transaction-skeletons";
+import type { User, Transaction, Category, Account } from "@/lib/types";
+import { TransactionService, CategoryService, AccountService } from "@/lib/services";
+import { deleteTransactionAction } from "@/features/transactions/actions/transaction-actions";
+import { formatCurrency } from "@/lib/utils";
+
+/**
+ * Transactions Content Props
+ */
+interface TransactionsContentProps {
+  currentUser: User;
+  groupUsers: User[];
+  transactions: Transaction[];
+  categories: Category[];
+  accounts: Account[];
+}
 
 /**
  * Transactions Content Component
- * Separated to enable proper error handling and Suspense boundaries
- * Data is fetched client-side via TanStack Query with parallel execution
+ * Handles interactive transactions UI with state management
  */
-export default function TransactionsContent() {
+export default function TransactionsContent({
+  currentUser,
+  groupUsers,
+  transactions,
+  categories,
+  accounts,
+}: TransactionsContentProps) {
   const router = useRouter();
-  const clientSearchParams = useSearchParams();
 
-  // Load all data with progressive loading states
-  // Uses hydrated data from server first, then refetches as needed
-  const data = useTransactionsData();
+  // State management
+  const [selectedGroupFilter, setSelectedGroupFilter] = useState<string>('all');
+  const [activeTab, setActiveTab] = useState<string>('Transactions');
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [isTransactionFormOpen, setIsTransactionFormOpen] = useState(false);
+  const [isRecurringFormOpen, setIsRecurringFormOpen] = useState(false);
+  const [formMode, setFormMode] = useState<'create' | 'edit'>('create');
+  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | undefined>();
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [transactionToDelete, setTransactionToDelete] = useState<Transaction | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  // Manage page state (selection, filters, forms, modals)
-  const { state, actions } = useTransactionsState();
+  // Optimistic UI state - local copy of transactions
+  const [localTransactions, setLocalTransactions] = useState<Transaction[]>(transactions);
 
-  // Get current user and selected view user from auth/selection hook
-  const { currentUser, selectedViewUserId, updateViewUserId } = useUserSelection();
+  const selectedUserId = selectedGroupFilter === 'all' ? undefined : selectedGroupFilter;
 
-  // Create view model from raw data with applied filters
-  const viewModel = useMemo(
-    () =>
-      createTransactionsViewModel(
-        data.transactions.data,
-        {
-          searchQuery: state.debouncedSearchQuery,
-          selectedFilter: state.selectedFilter,
-          selectedCategory: state.selectedCategory,
-          selectedUserId: selectedViewUserId
-        },
-        data.accounts.data as any,
-        currentUser
-      ),
-    [data.transactions.data, state.debouncedSearchQuery, state.selectedFilter, state.selectedCategory, data.accounts.data, selectedViewUserId, currentUser]
-  )
+  // Create account names map for display
+  const accountNames = useMemo(() => {
+    const names: Record<string, string> = {};
+    accounts.forEach((account) => {
+      names[account.id] = account.name;
+    });
+    return names;
+  }, [accounts]);
+
+  // Filter transactions by selected user (use local state for optimistic updates)
+  const filteredTransactions = useMemo(() => {
+    return selectedUserId
+      ? localTransactions.filter((t) => t.user_id === selectedUserId)
+      : localTransactions;
+  }, [selectedUserId, localTransactions]);
+
+  // Group transactions by date and calculate daily totals using service layer
+  const dayTotals = useMemo(() => {
+    const grouped = TransactionService.groupTransactionsByDate(filteredTransactions);
+    return TransactionService.calculateDailyTotals(grouped);
+  }, [filteredTransactions]);
+
+  // Handlers for transaction actions
+  const handleCreateTransaction = () => {
+    setFormMode('create');
+    setSelectedTransaction(undefined);
+    setIsTransactionFormOpen(true);
+  };
+
+  const handleEditTransaction = (transaction: Transaction) => {
+    setFormMode('edit');
+    setSelectedTransaction(transaction);
+    setIsTransactionFormOpen(true);
+  };
+
+  const handleDeleteClick = (transactionId: string) => {
+    const transaction = localTransactions.find((t) => t.id === transactionId);
+    if (transaction) {
+      setTransactionToDelete(transaction);
+      setIsDeleteConfirmOpen(true);
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!transactionToDelete) return;
+
+    setIsDeleting(true);
+
+    // Optimistic UI update - remove immediately
+    const removedTransaction = transactionToDelete;
+    setLocalTransactions((prev) => prev.filter((t) => t.id !== removedTransaction.id));
+
+    try {
+      // Call server action to delete
+      const result = await deleteTransactionAction(removedTransaction.id);
+
+      if (result.error) {
+        // Revert on error
+        setLocalTransactions((prev) => [...prev, removedTransaction]);
+        console.error('Failed to delete transaction:', result.error);
+        // TODO: Show error toast/message to user
+      }
+      // Success - cache revalidation happens in service, UI will refresh with server data
+    } catch (error) {
+      // Revert on error
+      setLocalTransactions((prev) => [...prev, removedTransaction]);
+      console.error('Error deleting transaction:', error);
+      // TODO: Show error toast/message to user
+    } finally {
+      setIsDeleting(false);
+      setIsDeleteConfirmOpen(false);
+      setTransactionToDelete(null);
+      // Refresh data from server
+      router.refresh();
+    }
+  };
+
+  const handleFormSuccess = (transaction: Transaction, action: 'create' | 'update') => {
+    // Optimistic UI update
+    if (action === 'create') {
+      setLocalTransactions((prev) => [transaction, ...prev]);
+    } else {
+      setLocalTransactions((prev) =>
+        prev.map((t) => (t.id === transaction.id ? transaction : t))
+      );
+    }
+
+    // Cache revalidation happens in service, UI will refresh with server data
+    router.refresh();
+  };
 
   return (
-    <div className={transactionStyles.page.container} style={{ fontFamily: '"Inter", "SF Pro Display", system-ui, sans-serif' }}>
+    <div
+      className={transactionStyles.page.container}
+      style={{ fontFamily: '"Inter", "SF Pro Display", system-ui, sans-serif' }}
+    >
       {/* Header */}
       <header className={transactionStyles.header.container}>
         <div className={transactionStyles.header.inner}>
           {/* Back button */}
-          <Button
-            variant="ghost"
-            size="sm"
-            className={transactionStyles.header.button}
-            onClick={() => actions.handleBackClick(selectedViewUserId, clientSearchParams)}
-          >
+          <Button variant="ghost" size="sm" className={transactionStyles.header.button} onClick={() => router.back()}>
             <ArrowLeft className="h-5 w-5 sm:h-6 sm:w-6" />
           </Button>
 
@@ -85,10 +193,14 @@ export default function TransactionsContent() {
                 <MoreVertical className="h-5 w-5" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 backdrop-blur-xl border border-border/50 shadow-xl rounded-xl p-2 animate-in slide-in-from-top-2 duration-200" sideOffset={8}>
+            <DropdownMenuContent
+              align="end"
+              className="w-56 backdrop-blur-xl border border-border/50 shadow-xl rounded-xl p-2 animate-in slide-in-from-top-2 duration-200"
+              sideOffset={8}
+            >
               <DropdownMenuItem
                 className="text-sm font-medium text-primary hover:bg-primary hover:text-white rounded-lg px-3 py-2.5 cursor-pointer transition-colors"
-                onClick={() => actions.handleCreateTransaction('expense')}
+                onClick={handleCreateTransaction}
               >
                 <Plus className="mr-3 h-4 w-4" />
                 Aggiungi Transazione
@@ -101,10 +213,10 @@ export default function TransactionsContent() {
       {/* User Selector */}
       <Suspense fallback={<UserSelectorSkeleton />}>
         <UserSelector
-          users={data.users.data as any}
+          users={groupUsers}
           currentUser={currentUser}
-          selectedGroupFilter={selectedViewUserId}
-          onGroupFilterChange={updateViewUserId}
+          selectedGroupFilter={selectedGroupFilter}
+          onGroupFilterChange={setSelectedGroupFilter}
           className="bg-card border-border"
         />
       </Suspense>
@@ -113,139 +225,145 @@ export default function TransactionsContent() {
       <div className="px-3">
         <TabNavigation
           tabs={[
-            { id: 'Transactions', label: 'Transazioni' },
-            { id: 'Recurrent', label: 'Ricorrenti' }
+            { id: "Transactions", label: "Transazioni" },
+            { id: "Recurrent", label: "Ricorrenti" },
           ]}
-          activeTab={state.activeTab as string}
-          onTabChange={(tabId) => actions.setActiveTab(tabId as 'Transactions' | 'Recurrent')}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
           variant="modern"
         />
       </div>
 
       {/* Main Content */}
       <main className={transactionStyles.page.main}>
-        {/* Active Filters Display - Show when coming from budgets */}
-        {clientSearchParams.get('from') === 'budgets' && (selectedViewUserId !== 'all' || clientSearchParams.get('category')) && (
+        {/* Active Filters Display - Show when filters are active */}
+        {activeTab === 'Transactions' && (searchQuery || isFilterOpen) && (
           <div className={transactionStyles.activeFilters.container}>
             <div className={transactionStyles.activeFilters.header}>
               <Filter className={transactionStyles.activeFilters.icon} />
               <span className={transactionStyles.activeFilters.label}>Filtri Attivi:</span>
               <div className={transactionStyles.activeFilters.badges}>
-                {selectedViewUserId !== 'all' && (
+                {searchQuery && (
                   <Badge variant="secondary" className="bg-primary/15 text-primary border-primary/30">
-                    Membro: {data.users.data.find((m) => m.id === selectedViewUserId)?.name || selectedViewUserId}
-                  </Badge>
-                )}
-                {clientSearchParams.get('category') && (
-                  <Badge variant="secondary" className="bg-primary/15 text-primary border-primary/30">
-                    Categoria: {clientSearchParams.get('category')}
+                    Ricerca: {searchQuery}
                   </Badge>
                 )}
               </div>
             </div>
-            <Button variant="ghost" size="sm" onClick={() => { actions.resetFilters(); updateViewUserId('all'); router.replace('/transactions'); }} className={transactionStyles.activeFilters.clearButton}>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setSearchQuery('');
+                setIsFilterOpen(false);
+              }}
+              className={transactionStyles.activeFilters.clearButton}
+            >
               Cancella Tutto
             </Button>
           </div>
         )}
 
         {/* Transactions Tab Content */}
-        {state.activeTab === 'Transactions' && (
+        {activeTab === 'Transactions' && (
           <>
-            {/* Search and Filter */}
-            <Suspense fallback={<SearchFilterSkeleton />}>
+            {/* Search and Filter - Commented out until needed */}
+            {/* <Suspense fallback={<SearchFilterSkeleton />}>
               <div className={transactionStyles.searchFilter.container}>
                 <div className={transactionStyles.searchFilter.searchContainer}>
                   <Search className={transactionStyles.searchFilter.searchIcon} />
                   <Input
                     type="text"
                     placeholder="Cerca transazioni..."
-                    value={state.searchQuery}
-                    onChange={(e) => actions.setSearchQuery(e.target.value)}
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
                     className={transactionStyles.searchFilter.searchInput}
                   />
                 </div>
                 <FilterDialog
-                  isOpen={state.isFilterModalOpen}
-                  onOpenChange={actions.setIsFilterModalOpen}
-                  selectedFilter={state.selectedFilter}
-                  selectedCategory={state.selectedCategory}
-                  categories={data.categories.data}
-                  onFilterChange={actions.setSelectedFilter}
-                  onCategoryChange={actions.setSelectedCategory}
-                  onReset={() => { actions.resetFilters(); actions.setSearchQuery(''); }}
-                  hasActiveFilters={viewModel.hasActiveFilters}
+                  isOpen={isFilterOpen}
+                  onOpenChange={setIsFilterOpen}
+                  selectedFilter={""}
+                  selectedCategory={""}
+                  categories={[]}
+                  onFilterChange={() => {}}
+                  onCategoryChange={() => {}}
+                  onReset={() => {}}
+                  hasActiveFilters={false}
                 />
               </div>
-            </Suspense>
+            </Suspense> */}
 
             {/* Transactions List */}
-            {(() => {
-              const isLoading = data.transactions.isLoading && (!viewModel.groupedByDay || viewModel.groupedByDay.length === 0);
-              const hasTransactions = viewModel.groupedByDay.length > 0;
-
-              if (isLoading) {
-                return <TransactionListSkeleton />;
-              }
-
-              if (hasTransactions) {
-                return (
-                  <div className="space-y-6">
-                    {viewModel.groupedByDay.map((dayGroup) => (
-                      <section key={dayGroup.date}>
-                        <div className={transactionStyles.dayGroup.header}>
-                          <h2 className={transactionStyles.dayGroup.title}>{dayGroup.dateLabel}</h2>
-                          <div className={transactionStyles.dayGroup.stats}>
-                            <div className={transactionStyles.dayGroup.statsTotal}>
-                              <span className={transactionStyles.dayGroup.statsTotalLabel}>Totale:</span>
-                              <span className={`${transactionStyles.dayGroup.statsTotalValue} ${dayGroup.total >= 0 ? transactionStyles.dayGroup.statsTotalValuePositive : transactionStyles.dayGroup.statsTotalValueNegative}`}>
-                                {formatCurrency(dayGroup.total)}
-                              </span>
-                            </div>
-                            <div className={transactionStyles.dayGroup.statsCount}>
-                              {pluralize(dayGroup.transactions.length, 'transazione', 'transazioni')}
-                            </div>
-                          </div>
+            {dayTotals.length > 0 ? (
+              <div className="space-y-6">
+                {dayTotals.map(({ date, total, count, transactions: dayTransactions }) => (
+                  <section key={date}>
+                    <div className={transactionStyles.dayGroup.header}>
+                      <h2 className={transactionStyles.dayGroup.title}>{date}</h2>
+                      <div className={transactionStyles.dayGroup.stats}>
+                        <div className={transactionStyles.dayGroup.statsTotal}>
+                          <span className={transactionStyles.dayGroup.statsTotalLabel}>Totale:</span>
+                          <span
+                            className={`${transactionStyles.dayGroup.statsTotalValue} ${
+                              total >= 0
+                                ? transactionStyles.dayGroup.statsTotalValuePositive
+                                : transactionStyles.dayGroup.statsTotalValueNegative
+                            }`}
+                          >
+                            {formatCurrency(Math.abs(total))}
+                          </span>
                         </div>
-                        <GroupedTransactionCard
-                          transactions={dayGroup.transactions}
-                          accountNames={viewModel.accountNamesMap}
-                          variant="regular"
-                          onEditTransaction={actions.handleEditTransaction}
-                          onDeleteTransaction={actions.handleDeleteTransaction}
-                        />
-                      </section>
-                    ))}
-                  </div>
-                );
-              }
-
-              return (
-                <div className={transactionStyles.emptyState.container}>
-                  <div className={transactionStyles.emptyState.icon}>
-                    <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                    </svg>
-                  </div>
-                  <h3 className={transactionStyles.emptyState.title}>Nessuna Transazione</h3>
-                  <p className={transactionStyles.emptyState.text}>Non ci sono transazioni da visualizzare per i filtri selezionati</p>
+                        <div className={transactionStyles.dayGroup.statsCount}>
+                          {count} {count === 1 ? "transazione" : "transazioni"}
+                        </div>
+                      </div>
+                    </div>
+                    <GroupedTransactionCard
+                      transactions={dayTransactions}
+                      accountNames={accountNames}
+                      variant="regular"
+                      categories={categories}
+                      onEditTransaction={handleEditTransaction}
+                      onDeleteTransaction={handleDeleteClick}
+                    />
+                  </section>
+                ))}
+              </div>
+            ) : (
+              <div className={transactionStyles.emptyState.container}>
+                <div className={transactionStyles.emptyState.icon}>
+                  <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={1.5}
+                      d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                    />
+                  </svg>
                 </div>
-              );
-            })()}
+                <h3 className={transactionStyles.emptyState.title}>Nessuna Transazione</h3>
+                <p className={transactionStyles.emptyState.text}>
+                  {selectedUserId
+                    ? "Non ci sono transazioni per questo utente"
+                    : "Non ci sono ancora transazioni. Inizia aggiungendone una!"}
+                </p>
+              </div>
+            )}
           </>
         )}
 
         {/* Recurring Tab Content */}
-        {state.activeTab === 'Recurrent' && (
+        {activeTab === 'Recurrent' && (
           <Suspense fallback={<RecurringSeriesSkeleton />}>
             <RecurringSeriesSection
-              selectedUserId={selectedViewUserId}
+              selectedUserId={selectedUserId}
               className="bg-card/80 backdrop-blur-sm border border-border/50 shadow-lg shadow-muted/30"
               showStats={true}
               maxItems={10}
               showActions={true}
-              onCreateRecurringSeries={actions.handleCreateRecurringSeries}
-              onEditRecurringSeries={actions.handleEditRecurringSeries}
+              onCreateRecurringSeries={() => setIsRecurringFormOpen(true)}
+              onEditRecurringSeries={() => setIsRecurringFormOpen(true)}
             />
           </Suspense>
         )}
@@ -255,19 +373,40 @@ export default function TransactionsContent() {
 
       {/* Modal Forms */}
       <TransactionForm
-        isOpen={state.isTransactionFormOpen}
-        onOpenChange={actions.setIsTransactionFormOpen}
-        initialType={state.transactionFormType}
-        selectedUserId={selectedViewUserId === 'all' ? currentUser?.id : selectedViewUserId}
-        transaction={state.editingTransaction || undefined}
-        mode={state.transactionFormMode}
+        isOpen={isTransactionFormOpen}
+        onOpenChange={setIsTransactionFormOpen}
+        transaction={selectedTransaction}
+        mode={formMode}
+        currentUser={currentUser}
+        groupUsers={groupUsers}
+        accounts={accounts}
+        categories={categories}
+        groupId={currentUser.group_id}
+        selectedUserId={selectedUserId}
+        onSuccess={handleFormSuccess}
       />
       <RecurringSeriesForm
-        isOpen={state.isRecurringFormOpen}
-        onOpenChange={actions.setIsRecurringFormOpen}
-        selectedUserId={selectedViewUserId === 'all' ? currentUser?.id : selectedViewUserId}
-        series={state.editingSeries ?? undefined}
-        mode={state.recurringFormMode}
+        isOpen={isRecurringFormOpen}
+        onOpenChange={setIsRecurringFormOpen}
+        selectedUserId={selectedUserId}
+        series={undefined}
+        mode={undefined}
+      />
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmationDialog
+        isOpen={isDeleteConfirmOpen}
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => {
+          setIsDeleteConfirmOpen(false);
+          setTransactionToDelete(null);
+        }}
+        title="Elimina transazione"
+        message={`Sei sicuro di voler eliminare la transazione "${transactionToDelete?.description}"? Questa azione non può essere annullata.`}
+        confirmText="Elimina"
+        cancelText="Annulla"
+        variant="destructive"
+        isLoading={isDeleting}
       />
     </div>
   );

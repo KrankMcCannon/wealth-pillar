@@ -3,6 +3,7 @@
 import React from "react";
 import { Card } from "@/src/components/ui";
 import { reportsStyles } from "@/features/reports";
+import { formatCurrency } from "@/lib/utils";
 
 /**
  * Savings Goal Card
@@ -26,14 +27,6 @@ export function SavingsGoalCard({
   monthlyTarget = 0,
   totalToReach = 0,
 }: Readonly<SavingsGoalProps>) {
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("it-IT", {
-      style: "currency",
-      currency: "EUR",
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(value);
-  };
 
   const progress = Math.min((currentSavings / savingsGoal) * 100, 100);
   const onTrack = projectedYearEnd >= savingsGoal;

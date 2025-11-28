@@ -4,19 +4,13 @@
  * Extracted from budgets/page.tsx for reusability
  */
 
-'use client';
+"use client";
 
-import {
-  Button,
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui';
-import { budgetStyles } from '../theme/budget-styles';
-import { ArrowLeft, MoreVertical } from 'lucide-react';
-import React, { ReactNode } from 'react';
-import { Budget, BudgetPeriod } from '@/lib';
+import { Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui";
+import { budgetStyles } from "../theme/budget-styles";
+import { ArrowLeft, MoreVertical } from "lucide-react";
+import React from "react";
+import { Budget, BudgetPeriod } from "@/lib";
 
 export interface BudgetHeaderProps {
   isDropdownOpen: boolean;
@@ -24,10 +18,9 @@ export interface BudgetHeaderProps {
   onBackClick: () => void;
   onCreateBudget: () => void;
   onCreateCategory: () => void;
+  onManagePeriod: () => void;
   selectedBudget: Budget | null;
   currentPeriod: BudgetPeriod | null;
-  onPeriodManagerSuccess: () => void;
-  periodManagerComponent?: ReactNode;
 }
 
 export function BudgetHeader({
@@ -36,8 +29,9 @@ export function BudgetHeader({
   onBackClick,
   onCreateBudget,
   onCreateCategory,
+  onManagePeriod,
   selectedBudget,
-  periodManagerComponent,
+  currentPeriod,
 }: BudgetHeaderProps) {
   return (
     <header className={budgetStyles.header.container}>
@@ -59,20 +53,11 @@ export function BudgetHeader({
         {/* Right - Three dots menu */}
         <DropdownMenu open={isDropdownOpen} onOpenChange={onOpenChange}>
           <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="sm"
-              className={budgetStyles.header.button}
-              aria-label="More options"
-            >
+            <Button variant="ghost" size="sm" className={budgetStyles.header.button} aria-label="More options">
               <MoreVertical className="h-5 w-5" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent
-            align="end"
-            className={budgetStyles.dropdownMenu.content}
-            sideOffset={8}
-          >
+          <DropdownMenuContent align="end" className={budgetStyles.dropdownMenu.content} sideOffset={8}>
             {/* New Budget */}
             <DropdownMenuItem
               className={budgetStyles.dropdownMenu.item}
@@ -97,8 +82,19 @@ export function BudgetHeader({
               Nuova Categoria
             </DropdownMenuItem>
 
-            {/* Manage Periods - Optional component injection */}
-            {selectedBudget && periodManagerComponent}
+            {/* Manage Period - Only show if budget is selected */}
+            {selectedBudget && (
+              <DropdownMenuItem
+                className={budgetStyles.dropdownMenu.item}
+                onSelect={() => {
+                  onManagePeriod();
+                  onOpenChange(false);
+                }}
+              >
+                <span className="mr-2">📊</span>
+                {currentPeriod?.is_active ? "Gestisci Periodo" : "Inizia Periodo"}
+              </DropdownMenuItem>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

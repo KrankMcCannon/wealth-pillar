@@ -23,7 +23,7 @@ export const transactionColors = {
 
   // Semantic colors
   text: {
-    primary: 'text-foreground',
+    primary: 'text-black',
     secondary: 'text-muted-foreground',
     tertiary: 'text-muted-foreground/60',
     destructive: 'text-destructive',
@@ -109,7 +109,7 @@ export const transactionComponents = {
     container: 'flex gap-2 border-b border-primary/20 px-3 sm:px-4 py-2',
     tab: 'px-4 py-2 text-sm font-medium rounded-t-lg',
     tabActive: 'text-primary border-b-2 border-primary',
-    tabInactive: 'text-muted-foreground hover:text-foreground',
+    tabInactive: 'text-muted-foreground hover:text-black',
   },
 
   // Search Bar
@@ -140,7 +140,7 @@ export const transactionComponents = {
     stats: 'text-right',
     statsLabel: 'text-sm',
     statsValue: 'text-sm font-bold',
-    statsValuePositive: 'text-primary',
+    statsValuePositive: 'text-success',
     statsValueNegative: 'text-destructive',
     count: 'text-xs mt-0.5',
   },
@@ -160,7 +160,9 @@ export const transactionComponents = {
 
   // Modal
   modal: {
-    content: 'bg-card border border-primary/20 rounded-2xl shadow-xl',
+    content: 'bg-card',
+    title: 'text-lg sm:text-xl font-bold tracking-tight text-black',
+    description: 'text-sm text-black/70',
   },
 
   // Empty State

@@ -116,6 +116,8 @@ export const transactionStyles = {
   // ====================================
   modal: {
     content: transactionComponents.modal.content,
+    title: transactionComponents.modal.title,
+    description: transactionComponents.modal.description,
   },
 
   // ====================================

@@ -1,57 +1,46 @@
-'use client';
-
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
-import { useAuth } from '../hooks/use-auth';
-import { authorizationService } from '@/src/lib';
+"use client";
 
 interface AuthGuardProps {
   children: React.ReactNode;
   requireAuth?: boolean;
-  requireRole?: 'member' | 'admin' | 'superadmin';
+  requireRole?: "member" | "admin" | "superadmin";
   fallback?: React.ReactNode;
 }
 
-export function AuthGuard({
-  children,
-  requireAuth = true,
-  requireRole,
-  fallback = <div>Loading...</div>
-}: AuthGuardProps) {
-  const { isAuthenticated, isLoading, user } = useAuth();
-  const router = useRouter();
+export function AuthGuard({ children, requireAuth = true, fallback = <div>Loading...</div> }: AuthGuardProps) {
+  // const router = useRouter();
 
-  useEffect(() => {
-    if (!isLoading) {
-      if (requireAuth && !isAuthenticated) {
-        router.push('/sign-in');
-        return;
-      }
+  // useEffect(() => {
+  //   if (!isLoading) {
+  //     if (requireAuth && !isAuthenticated) {
+  //       router.push('/sign-in');
+  //       return;
+  //     }
 
-      if (requireRole && user) {
-        const hasRole = authorizationService.hasRole(user, requireRole);
-        if (!hasRole) {
-          router.push('/dashboard?error=insufficient-permissions');
-          return;
-        }
-      }
-    }
-  }, [isLoading, isAuthenticated, user, requireAuth, requireRole, router]);
+  //     if (requireRole && user) {
+  //       const hasRole = authorizationService.hasRole(user, requireRole);
+  //       if (!hasRole) {
+  //         router.push('/dashboard?error=insufficient-permissions');
+  //         return;
+  //       }
+  //     }
+  //   }
+  // }, [isLoading, isAuthenticated, user, requireAuth, requireRole, router]);
 
-  if (isLoading) {
+  if (false) {
     return <>{fallback}</>;
   }
 
-  if (requireAuth && !isAuthenticated) {
+  if (requireAuth && !true) {
     return <>{fallback}</>;
   }
 
-  if (requireRole && user) {
-    const hasRole = authorizationService.hasRole(user, requireRole);
-    if (!hasRole) {
-      return <div>Permessi insufficienti</div>;
-    }
-  }
+  // if (requireRole && user) {
+  //   const hasRole = authorizationService.hasRole(user, requireRole);
+  //   if (!hasRole) {
+  //     return <div>Permessi insufficienti</div>;
+  //   }
+  // }
 
   return <>{children}</>;
 }

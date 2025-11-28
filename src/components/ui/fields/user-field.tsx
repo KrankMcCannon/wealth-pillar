@@ -4,10 +4,8 @@
 
 "use client";
 
-import { useUsers } from '@/src/lib';
-import { useMemo } from "react";
-import { FormField } from "../form-field";
-import { FormSelect, sortSelectOptions } from "../form-select";
+import { FormField, FormSelect } from "@/components/form";
+import type { User } from "@/lib/types";
 
 interface UserFieldProps {
   value: string;
@@ -15,6 +13,8 @@ interface UserFieldProps {
   error?: string;
   required?: boolean;
   label?: string;
+  placeholder?: string;
+  users?: User[];
 }
 
 export function UserField({
@@ -22,16 +22,14 @@ export function UserField({
   onChange,
   error,
   required = true,
-  label = "Utente"
+  label = "Utente",
+  placeholder = "Seleziona utente",
+  users = []
 }: UserFieldProps) {
-  const { data: users = [] } = useUsers();
-
-  const options = useMemo(() =>
-    sortSelectOptions(
-      users.map(u => ({ value: u.id, label: u.name }))
-    ),
-    [users]
-  );
+  const options = users.map((user) => ({
+    value: user.id,
+    label: user.name,
+  }));
 
   return (
     <FormField label={label} required={required} error={error}>
@@ -39,7 +37,7 @@ export function UserField({
         value={value}
         onValueChange={onChange}
         options={options}
-        placeholder="Seleziona utente"
+        placeholder={placeholder}
       />
     </FormField>
   );

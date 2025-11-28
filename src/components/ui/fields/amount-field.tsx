@@ -4,10 +4,7 @@
 
 "use client";
 
-import { FormCurrencyInput } from "../form-currency-input";
-import { FormField } from "../form-field";
-
-
+import { FormField, FormCurrencyInput } from "@/components/form";
 
 interface AmountFieldProps {
   value: string | number;
@@ -15,6 +12,7 @@ interface AmountFieldProps {
   error?: string;
   required?: boolean;
   label?: string;
+  placeholder?: string;
   min?: number;
 }
 
@@ -24,6 +22,7 @@ export function AmountField({
   error,
   required = true,
   label = "Importo",
+  placeholder,
   min = 0
 }: AmountFieldProps) {
   return (
@@ -32,6 +31,7 @@ export function AmountField({
         value={value}
         onChange={onChange}
         min={min}
+        placeholder={placeholder}
       />
     </FormField>
   );

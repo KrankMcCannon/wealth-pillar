@@ -1,4 +1,6 @@
 // Database types for Supabase - Generated from your database schema
+import type { BudgetPeriod } from '@/lib/types';
+
 export interface Database {
   public: {
     Tables: {
@@ -12,7 +14,7 @@ export interface Database {
           budget_start_date: number;
           group_id: string;
           role: 'superadmin' | 'admin' | 'member';
-          budget_periods: unknown; // jsonb
+          budget_periods: BudgetPeriod[];
           clerk_id: string | null;
           created_at: string;
           updated_at: string;
@@ -26,7 +28,7 @@ export interface Database {
           budget_start_date: number;
           group_id: string;
           role: 'superadmin' | 'admin' | 'member';
-          budget_periods?: unknown;
+          budget_periods?: BudgetPeriod[];
           clerk_id?: string | null;
           created_at?: string;
           updated_at?: string;
@@ -40,7 +42,7 @@ export interface Database {
           budget_start_date?: number;
           group_id?: string;
           role?: 'superadmin' | 'admin' | 'member';
-          budget_periods?: unknown;
+          budget_periods?: BudgetPeriod[];
           clerk_id?: string | null;
           created_at?: string;
           updated_at?: string;

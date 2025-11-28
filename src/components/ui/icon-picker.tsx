@@ -1,38 +1,34 @@
 "use client";
 
 import * as React from "react";
-import * as icons from "lucide-react";
-import { cn } from '@/src/lib';
+import { useVirtualizer } from "@tanstack/react-virtual";
+import * as Dialog from "@radix-ui/react-dialog";
+import { HelpCircle, Clock, X } from "lucide-react";
+import { cn } from "@/src/lib";
 import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 import { Button } from "./button";
 import { Input } from "./input";
 import { Tabs, TabsList, TabsTrigger } from "./tabs";
-import { ScrollArea } from "./scroll-area";
+import { useMediaQuery } from "@/hooks/use-media-query";
+import { useLocalStorage } from "@/hooks/use-local-storage";
+import { searchIcons } from "@/lib/utils/icon-search";
+import type { IconCategory } from "@/features/categories/constants/icon-metadata";
+import { CATEGORIES, ICON_METADATA, getIconByName } from "@/features/categories/constants/icon-metadata";
 
 /**
- * Icon Picker Component
+ * Modern Icon Picker Component
  *
- * Beautiful icon picker using Lucide React icons library.
- * Provides search functionality and categorized icon display.
- *
- * Features:
- * - 100+ popular icons from Lucide React
- * - Real-time search/filter functionality
- * - Smooth scrolling with styled scrollbars
- * - Visual feedback on selection
- * - Organized by categories (finance, shopping, transport, etc.)
- *
- * @example
- * ```tsx
- * <IconPicker
- *   value={formData.icon}
- *   onChange={(iconName) => handleChange('icon', iconName)}
- * />
- * ```
+ * A highly optimized and accessible icon picker with:
+ * - Fuzzy search with keyword matching
+ * - Virtualized grid for 1,000+ icons
+ * - Recent icons tracking
+ * - Responsive mobile design (Dialog) and desktop (Popover)
+ * - Full keyboard navigation
+ * - localStorage persistence
  */
 
 // ============================================================================
-// TYPES & INTERFACES
+// TYPES
 // ============================================================================
 
 export interface IconPickerProps {
@@ -45,282 +41,450 @@ export interface IconPickerProps {
 }
 
 // ============================================================================
-// ICON CATEGORIES
+// CONSTANTS
 // ============================================================================
 
-interface IconCategory {
-  label: string;
-  icons: string[];
+const MAX_RECENT = 5;
+const DEBOUNCE_DELAY = 300;
+
+// Grid configuration
+const MOBILE_COLS = 5;
+const DESKTOP_COLS = 6;
+const MOBILE_ICON_SIZE = 48; // 48x48px for better touch targets
+const DESKTOP_ICON_SIZE = 40;
+const GAP = 8;
+
+// ============================================================================
+// STYLES
+// ============================================================================
+
+const styles = {
+  // Container styles
+  container: "flex flex-col h-full min-h-0",
+
+  // Header styles
+  header: {
+    base: "border-b border-primary/20 bg-card/50 backdrop-blur-sm shrink-0 space-y-2",
+    mobile: "p-2",
+    desktop: "p-3",
+  },
+
+  // Search input wrapper
+  searchWrapper: "relative",
+  searchInput: "h-10 bg-card pr-8",
+  searchClearButton: "absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-md hover:bg-primary/10 transition-colors",
+  searchClearIcon: "h-4 w-4 text-muted-foreground",
+
+  // Recent icons container
+  recentContainer: "flex-1 flex gap-1 items-center px-2 text-xs text-muted-foreground bg-muted/50 rounded-md overflow-hidden",
+  recentIcon: "h-3.5 w-3.5 shrink-0",
+  recentLabel: "shrink-0",
+  recentIconsWrapper: "flex gap-1 overflow-x-auto",
+  recentIconButton: "p-0.5 rounded hover:bg-primary/10 transition-colors shrink-0",
+  recentIconSize: "h-3.5 w-3.5 text-primary",
+
+  // Category tabs
+  tabsContainer: "border-b border-primary/20 bg-card/30 backdrop-blur-sm overflow-x-auto",
+  tabsList: "inline-flex h-10 w-full justify-start rounded-none bg-transparent p-0",
+  tabsTrigger: "rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-3 text-xs whitespace-nowrap",
+
+  // Results count
+  resultsCount: {
+    base: "py-1.5 text-xs text-muted-foreground bg-muted/30 shrink-0",
+    mobile: "px-2",
+    desktop: "px-3",
+  },
+
+  // Virtualized grid container
+  gridContainer: "overflow-y-auto overflow-x-hidden flex-1 min-h-0",
+
+  // Empty state
+  emptyState: "flex flex-col items-center justify-center h-full py-8 text-center",
+  emptyStateText: "text-sm text-muted-foreground mb-2",
+
+  // Icon grid
+  iconGrid: {
+    base: "grid py-1",
+    mobile: "px-3 gap-3",
+    desktop: "px-3 gap-2",
+  },
+
+  // Icon item wrapper
+  iconItemWrapper: "relative group flex items-center justify-center",
+
+  // Icon button
+  iconButton: {
+    base: "flex items-center justify-center rounded-lg transition-all duration-200 relative hover:bg-primary/10 hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+    selected: "bg-primary text-white shadow-md scale-105",
+    unselected: "text-primary hover:text-primary",
+  },
+
+  // Icon size
+  iconSize: {
+    mobile: "h-6 w-6",
+    desktop: "h-5 w-5",
+  },
+
+  // Trigger button
+  triggerButton: "w-full h-10 justify-start text-left font-normal rounded-lg border-primary/20 bg-card hover:bg-card",
+  triggerIcon: "mr-2 h-4 w-4 text-primary",
+  triggerText: "text-muted-foreground",
+
+  // Desktop popover
+  popoverContent: "w-[450px] p-0 bg-card flex flex-col",
+
+  // Mobile dialog
+  dialogOverlay: "fixed inset-0 z-50 bg-black/60 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+  dialogContent: "fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-card border border-border rounded-2xl shadow-2xl flex flex-col data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 duration-300 w-[calc(100vw-40px)] max-w-[500px]",
+  dialogHandle: "mx-auto mt-3 mb-2 h-1.5 w-16 rounded-full bg-muted-foreground/30 shrink-0",
+  dialogWrapper: "flex flex-col flex-1 min-h-0",
+} as const;
+
+// ============================================================================
+// SHARED CONTENT COMPONENT
+// ============================================================================
+
+interface IconPickerContentProps {
+  value: string;
+  recent: string[];
+  onSelect: (iconName: string) => void;
+  isMobile: boolean;
 }
 
-type IconCategoriesType = {
-  all: IconCategory;
-  finance: IconCategory;
-  shopping: IconCategory;
-  transport: IconCategory;
-  home: IconCategory;
-  health: IconCategory;
-  entertainment: IconCategory;
-  work: IconCategory;
-  utilities: IconCategory;
-  nature: IconCategory;
-  people: IconCategory;
-  misc: IconCategory;
-};
-
-const ICON_CATEGORIES: IconCategoriesType = {
-  all: {
-    label: "Tutti",
-    icons: [], // Will be populated dynamically
-  },
-  finance: {
-    label: "Finanza",
-    icons: [
-      "Wallet", "CreditCard", "Banknote", "PiggyBank", "TrendingUp", "TrendingDown",
-      "DollarSign", "Euro", "CircleDollarSign", "Landmark", "Receipt", "Calculator",
-    ],
-  },
-  shopping: {
-    label: "Shopping",
-    icons: [
-      "ShoppingCart", "ShoppingBag", "Store", "Coffee", "UtensilsCrossed", "Pizza",
-      "Wine", "IceCream", "Sandwich", "Apple", "Beef", "Fish",
-    ],
-  },
-  transport: {
-    label: "Trasporti",
-    icons: [
-      "Car", "Bus", "Train", "Plane", "Ship", "Bike", "Fuel", "ParkingCircle",
-    ],
-  },
-  home: {
-    label: "Casa",
-    icons: [
-      "Home", "Building", "Building2", "Sofa", "Bed", "Lamp", "Tv", "Refrigerator",
-      "WashingMachine", "AirVent", "Lightbulb", "Hammer",
-    ],
-  },
-  health: {
-    label: "Salute",
-    icons: [
-      "Heart", "Activity", "Dumbbell", "Stethoscope", "Pill", "Syringe",
-    ],
-  },
-  entertainment: {
-    label: "Svago",
-    icons: [
-      "Film", "Music", "Tv2", "Gamepad2", "Ticket", "Trophy", "Medal", "PartyPopper",
-      "Gift", "Sparkles", "Camera", "Headphones",
-    ],
-  },
-  work: {
-    label: "Lavoro",
-    icons: [
-      "GraduationCap", "BookOpen", "Book", "Briefcase", "Laptop", "Monitor",
-      "Smartphone", "Phone", "Mail", "FileText", "Folder", "Printer",
-    ],
-  },
-  utilities: {
-    label: "Utilità",
-    icons: [
-      "Zap", "Droplet", "Wifi", "CloudRain", "Shield", "Lock", "Key", "Bell",
-      "Settings", "Tool", "Wrench", "Scissors",
-    ],
-  },
-  nature: {
-    label: "Natura",
-    icons: [
-      "Sun", "Moon", "CloudSun", "CloudSnow", "Snowflake", "Wind", "Leaf", "Tree",
-      "Flower", "Sprout",
-    ],
-  },
-  people: {
-    label: "Persone",
-    icons: [
-      "User", "Users", "Baby", "UserCircle", "HeartHandshake", "MessageCircle", "PhoneCall",
-    ],
-  },
-  misc: {
-    label: "Altro",
-    icons: [
-      "Star", "Flag", "Tag", "Bookmark", "Clock", "Calendar", "MapPin", "Navigation",
-      "Compass", "Globe", "Package", "Box", "Archive", "Trash",
-    ],
-  },
-};
-
-// Populate "all" category with all icons
-ICON_CATEGORIES.all.icons = Object.values(ICON_CATEGORIES)
-  .filter(cat => cat.label !== "Tutti")
-  .flatMap(cat => cat.icons);
-
-type CategoryKey = keyof IconCategoriesType;
-
-// ============================================================================
-// COMPONENT
-// ============================================================================
-
-export function IconPicker({
-  value,
-  onChange,
-  className,
-}: Readonly<IconPickerProps>) {
-  const [isOpen, setIsOpen] = React.useState(false);
+function IconPickerContent({ value, recent, onSelect, isMobile }: IconPickerContentProps) {
   const [searchQuery, setSearchQuery] = React.useState("");
-  const [selectedCategory, setSelectedCategory] = React.useState<CategoryKey>("all");
+  const [debouncedQuery, setDebouncedQuery] = React.useState("");
+  const [selectedCategory, setSelectedCategory] = React.useState<IconCategory>("all");
 
-  // Get the selected icon component
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const iconRecord = icons as any;
-  const SelectedIcon = value && iconRecord[value]
-    ? iconRecord[value]
-    : icons.HelpCircle;
+  const parentRef = React.useRef<HTMLDivElement>(null);
+
+  // Debounce search query
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedQuery(searchQuery);
+    }, DEBOUNCE_DELAY);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   // Filter icons based on search and category
   const filteredIcons = React.useMemo(() => {
-    const iconsToFilter = ICON_CATEGORIES[selectedCategory].icons;
+    if (debouncedQuery.trim()) {
+      const results = searchIcons(debouncedQuery, selectedCategory);
+      return results.map((r) => r.icon);
+    }
 
-    if (!searchQuery) return iconsToFilter;
+    if (selectedCategory === "all") {
+      return ICON_METADATA;
+    }
 
-    const query = searchQuery.toLowerCase();
-    return iconsToFilter.filter(iconName =>
-      iconName.toLowerCase().includes(query)
-    );
-  }, [searchQuery, selectedCategory]);
+    return ICON_METADATA.filter((icon) => icon.category === selectedCategory);
+  }, [debouncedQuery, selectedCategory]);
 
-  const handleIconSelect = (iconName: string) => {
-    onChange(iconName);
-    setIsOpen(false);
+  // Grid configuration
+  const cols = isMobile ? MOBILE_COLS : DESKTOP_COLS;
+  const iconSize = isMobile ? MOBILE_ICON_SIZE : DESKTOP_ICON_SIZE;
+  const rows = Math.ceil(filteredIcons.length / cols);
+
+  // Virtualizer
+  const rowVirtualizer = useVirtualizer({
+    count: rows,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => iconSize + GAP,
+    overscan: 5,
+  });
+
+  // Clear search
+  const clearSearch = () => {
     setSearchQuery("");
-    setSelectedCategory("all");
+    setDebouncedQuery("");
   };
 
   // Keyboard navigation
   const handleKeyDown = (e: React.KeyboardEvent, iconName: string) => {
     if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
-      handleIconSelect(iconName);
+      onSelect(iconName);
     }
   };
 
-  const renderIconGrid = (iconsList: string[]) => {
-    if (iconsList.length === 0) {
-      return (
-        <div className="flex items-center justify-center min-h-[250px] sm:min-h-[300px] py-8 text-center text-sm text-muted-foreground">
-          Nessuna icona trovata
-        </div>
-      );
-    }
-
-    return (
-      <div className="grid grid-cols-5 sm:grid-cols-6 gap-2 p-3 pb-6">
-        {iconsList.map((iconName) => {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const iconRecord = icons as any;
-          const IconComponent = iconRecord[iconName];
-          if (!IconComponent) return null;
-
-          const isSelected = value === iconName;
-
-          return (
-            <button
-              key={iconName}
-              onClick={() => handleIconSelect(iconName)}
-              onKeyDown={(e) => handleKeyDown(e, iconName)}
-              className={cn(
-                "flex items-center justify-center h-10 w-10 rounded-lg transition-all duration-200",
-                "hover:bg-primary/10 hover:scale-105",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
-                isSelected && "bg-primary text-white shadow-md",
-                !isSelected && "text-primary hover:text-primary"
-              )}
-              title={iconName}
-              aria-label={`Seleziona icona ${iconName}`}
-              aria-pressed={isSelected}
-              type="button"
-              tabIndex={0}
-            >
-              <IconComponent className="h-5 w-5" />
-            </button>
-          );
-        })}
-      </div>
-    );
+  // Get icon at grid position
+  const getIconAtPosition = (rowIndex: number, colIndex: number) => {
+    const iconIndex = rowIndex * cols + colIndex;
+    return filteredIcons[iconIndex];
   };
 
   return (
-    <div className={cn("space-y-2", className)}>
-      <Popover open={isOpen} onOpenChange={setIsOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            className="w-full h-10 justify-start text-left font-normal rounded-lg border-primary/20 bg-card hover:bg-card"
-            aria-label={value ? `Icona selezionata: ${value}. Clicca per cambiare` : "Seleziona un'icona"}
-            aria-haspopup="dialog"
-            aria-expanded={isOpen}
-          >
-            <SelectedIcon className="mr-2 h-4 w-4 text-primary" aria-hidden="true" />
-            <span className="text-muted-foreground">
-              {value || "Seleziona un'icona"}
-            </span>
-          </Button>
-        </PopoverTrigger>
-        
-        <PopoverContent
-          className="w-[90vw] sm:w-[400px] max-w-[calc(100vw-32px)] p-0 bg-card max-h-[70vh] flex flex-col"
-          align="start"
-          side="bottom"
-          sideOffset={5}
-          collisionPadding={16}
-          aria-label="Selettore icone"
-        >
-          {/* Search Input - Fixed at top */}
-          <div className="p-3 border-b border-primary/20 bg-card/50 backdrop-blur-sm shrink-0">
-            <Input
-              placeholder="Cerca icona..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-9 bg-card"
-              autoFocus={false}
-              aria-label="Cerca icona per nome"
-            />
+    <div className={styles.container}>
+      {/* Header: Search + Favorites Toggle */}
+      <div
+        className={cn(
+          styles.header.base,
+          isMobile ? styles.header.mobile : styles.header.desktop
+        )}
+      >
+        {/* Search Input */}
+        <div className={styles.searchWrapper}>
+          <Input
+            placeholder="Cerca icona..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className={styles.searchInput}
+            autoFocus={false}
+            aria-label="Cerca icona per nome o parola chiave"
+          />
+          {searchQuery && (
+            <button
+              onClick={clearSearch}
+              className={styles.searchClearButton}
+              aria-label="Cancella ricerca"
+              type="button"
+            >
+              <X className={styles.searchClearIcon} />
+            </button>
+          )}
+        </div>
+
+        {/* Recent Icons */}
+        {recent.length > 0 && (
+          <div className={styles.recentContainer}>
+            <Clock className={styles.recentIcon} />
+            <span className={styles.recentLabel}>Recenti:</span>
+            <div className={styles.recentIconsWrapper}>
+              {recent.slice(0, 3).map((iconName) => {
+                const iconMeta = getIconByName(iconName);
+                if (!iconMeta) return null;
+                const IconComp = iconMeta.component;
+                return (
+                  <button
+                    key={iconName}
+                    onClick={() => onSelect(iconName)}
+                    className={styles.recentIconButton}
+                    title={iconName}
+                    aria-label={`Icona recente: ${iconName}`}
+                    type="button"
+                  >
+                    <IconComp className={styles.recentIconSize} />
+                  </button>
+                );
+              })}
+            </div>
           </div>
+        )}
+      </div>
 
-          {/* Category Tabs */}
-          <Tabs value={selectedCategory} onValueChange={(v) => setSelectedCategory(v as CategoryKey)} className="flex flex-col min-w-0">
-            {/* Horizontal scrollable tabs */}
-            <div className="border-b border-primary/20 bg-card/30 backdrop-blur-sm shrink-0">
-              <ScrollArea className="w-full whitespace-nowrap">
-                <TabsList
-                  className="inline-flex h-10 w-full justify-start rounded-none bg-transparent p-0"
-                  aria-label="Categorie icone"
+      {/* Category Tabs */}
+      <Tabs
+        value={selectedCategory}
+        onValueChange={(v) => setSelectedCategory(v as IconCategory)}
+        className="shrink-0"
+      >
+        <div className={styles.tabsContainer}>
+          <TabsList
+            className={styles.tabsList}
+            aria-label="Categorie icone"
+          >
+            {CATEGORIES.map((cat) => (
+              <TabsTrigger
+                key={cat.key}
+                value={cat.key}
+                className={styles.tabsTrigger}
+                aria-label={`Filtra per categoria: ${cat.label}`}
+                title={cat.description}
+              >
+                {cat.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </div>
+      </Tabs>
+
+      {/* Results Count */}
+      <div
+        className={cn(styles.resultsCount.base, isMobile ? styles.resultsCount.mobile : styles.resultsCount.desktop)}
+        aria-live="polite"
+      >
+        {debouncedQuery
+          ? `${filteredIcons.length} ${filteredIcons.length === 1 ? "risultato" : "risultati"} trovati`
+          : `${filteredIcons.length} ${filteredIcons.length === 1 ? "icona" : "icone"} disponibili`}
+      </div>
+
+      {/* Virtualized Icon Grid */}
+      <div ref={parentRef} className={styles.gridContainer} aria-label="Lista icone">
+        {filteredIcons.length === 0 ? (
+          <div className={styles.emptyState}>
+            <p className={styles.emptyStateText}>Nessuna icona trovata</p>
+            {debouncedQuery && (
+              <Button variant="ghost" size="sm" onClick={clearSearch}>
+                Cancella ricerca
+              </Button>
+            )}
+          </div>
+        ) : (
+          <div
+            style={{
+              height: `${rowVirtualizer.getTotalSize()}px`,
+              width: "100%",
+              position: "relative",
+            }}
+          >
+            {rowVirtualizer.getVirtualItems().map((virtualRow) => (
+              <div
+                key={virtualRow.index}
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  width: "100%",
+                  height: `${virtualRow.size}px`,
+                  transform: `translateY(${virtualRow.start}px)`,
+                }}
+              >
+                <div
+                  className={cn(styles.iconGrid.base, isMobile ? styles.iconGrid.mobile : styles.iconGrid.desktop)}
+                  style={{
+                    gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
+                  }}
                 >
-                  {(Object.keys(ICON_CATEGORIES) as CategoryKey[]).map((categoryKey) => (
-                    <TabsTrigger
-                      key={categoryKey}
-                      value={categoryKey}
-                      className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-3 text-xs"
-                      aria-label={`Filtra per categoria: ${ICON_CATEGORIES[categoryKey].label}`}
-                    >
-                      {ICON_CATEGORIES[categoryKey].label}
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
-              </ScrollArea>
-            </div>
+                  {Array.from({ length: cols }).map((_, colIndex) => {
+                    const icon = getIconAtPosition(virtualRow.index, colIndex);
+                    if (!icon) return <div key={colIndex} />;
 
-            {/* Tab Contents - All share same scrollable grid */}
-            <output aria-live="polite" className="sr-only">
-              {filteredIcons.length > 0
-                ? `${filteredIcons.length} icone disponibili`
-                : "Nessuna icona trovata"}
-            </output>
-            <div className="overflow-y-auto overflow-x-hidden min-h-[250px] sm:h-[300px]" aria-label="Lista icone">
-              {renderIconGrid(filteredIcons)}
-            </div>
-          </Tabs>
-        </PopoverContent>
-      </Popover>
+                    const IconComponent = icon.component;
+                    const isSelected = value === icon.name;
+
+                    return (
+                      <div key={icon.name} className={styles.iconItemWrapper}>
+                        <button
+                          onClick={() => onSelect(icon.name)}
+                          onKeyDown={(e) => handleKeyDown(e, icon.name)}
+                          className={cn(
+                            styles.iconButton.base,
+                            isSelected && styles.iconButton.selected,
+                            !isSelected && styles.iconButton.unselected
+                          )}
+                          style={{
+                            width: `${iconSize}px`,
+                            height: `${iconSize}px`,
+                          }}
+                          title={icon.name}
+                          aria-label={`Seleziona icona ${icon.name}`}
+                          aria-pressed={isSelected}
+                          type="button"
+                          tabIndex={0}
+                        >
+                          <IconComponent className={isMobile ? styles.iconSize.mobile : styles.iconSize.desktop} />
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// MAIN COMPONENT
+// ============================================================================
+
+export function IconPicker({ value, onChange, className }: Readonly<IconPickerProps>) {
+  const isDesktop = useMediaQuery("(min-width: 768px)");
+  const [isOpen, setIsOpen] = React.useState(false);
+
+  // localStorage for recent icons
+  const [recent, setRecent] = useLocalStorage<string[]>("icon-picker-recent", []);
+
+  // Get selected icon component
+  const selectedIconMetadata = React.useMemo(() => {
+    if (!value) return null;
+    return getIconByName(value);
+  }, [value]);
+
+  const SelectedIcon = selectedIconMetadata?.component || HelpCircle;
+
+  // Handle icon selection
+  const handleIconSelect = (iconName: string) => {
+    onChange(iconName);
+
+    // Add to recent
+    setRecent((prev) => {
+      const filtered = prev.filter((name) => name !== iconName);
+      return [iconName, ...filtered].slice(0, MAX_RECENT);
+    });
+
+    // Close
+    setIsOpen(false);
+  };
+
+  // Trigger button
+  const triggerButton = (
+    <Button
+      variant="outline"
+      className={styles.triggerButton}
+      aria-label={value ? `Icona selezionata: ${value}. Clicca per cambiare` : "Seleziona un'icona"}
+      aria-haspopup="dialog"
+      aria-expanded={isOpen}
+    >
+      <SelectedIcon className={styles.triggerIcon} aria-hidden="true" />
+      <span className={styles.triggerText}>{value || "Seleziona un'icona"}</span>
+    </Button>
+  );
+
+  return (
+    <div className={cn("space-y-2", className)}>
+      {isDesktop ? (
+        // Desktop: Use Popover
+        <Popover open={isOpen} onOpenChange={setIsOpen}>
+          <PopoverTrigger asChild>{triggerButton}</PopoverTrigger>
+          <PopoverContent
+            className={styles.popoverContent}
+            style={{ height: "600px", maxHeight: "600px" }}
+            align="start"
+            side="bottom"
+            sideOffset={5}
+            aria-label="Selettore icone"
+          >
+            <IconPickerContent
+              value={value}
+              recent={recent}
+              onSelect={handleIconSelect}
+              isMobile={false}
+            />
+          </PopoverContent>
+        </Popover>
+      ) : (
+        // Mobile: Use Dialog (bottom drawer)
+        <Dialog.Root open={isOpen} onOpenChange={setIsOpen}>
+          <Dialog.Trigger asChild>{triggerButton}</Dialog.Trigger>
+          <Dialog.Portal>
+            <Dialog.Overlay className={styles.dialogOverlay} />
+            <Dialog.Content
+              className={styles.dialogContent}
+              style={{ height: "500px", maxHeight: "70vh" }}
+              aria-label="Selettore icone"
+            >
+              {/* Hidden title for accessibility */}
+              <Dialog.Title className="sr-only">Selettore Icone</Dialog.Title>
+
+              {/* Drawer handle */}
+              <div className={styles.dialogHandle} />
+
+              <div className={styles.dialogWrapper}>
+                <IconPickerContent
+                  value={value}
+                  recent={recent}
+                  onSelect={handleIconSelect}
+                  isMobile={true}
+                />
+              </div>
+            </Dialog.Content>
+          </Dialog.Portal>
+        </Dialog.Root>
+      )}
     </div>
   );
 }

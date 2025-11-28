@@ -76,6 +76,25 @@ export const reportsStyles = {
     progressBar: 'w-full h-2 bg-primary/10 rounded-full overflow-hidden',
     progressFill: 'h-full bg-primary transition-all duration-300 rounded-full',
     percentageText: 'text-xs font-semibold text-muted-foreground',
+
+    // Expandable category section
+    categoryRow: 'border-b border-primary/10 last:border-0',
+    categoryHeader: 'flex items-center justify-between gap-3 cursor-pointer hover:bg-primary/5 transition-colors duration-200 p-3',
+    expandIcon: 'shrink-0',
+    expandIconExpanded: 'h-5 w-5 text-primary',
+    expandIconCollapsed: 'h-5 w-5 text-muted-foreground',
+
+    // Transaction list (expandable content)
+    transactionList: 'px-3 pb-3 space-y-2 bg-primary/5',
+    transactionItem: 'flex items-center justify-between gap-2 p-2 bg-card rounded-lg border border-primary/10',
+    transactionContent: 'flex flex-col flex-1 min-w-0',
+    transactionDescription: 'text-sm text-black truncate',
+    transactionMeta: 'text-xs text-muted-foreground mt-0.5',
+    transactionAmount: 'text-sm font-semibold text-destructive shrink-0',
+
+    // Empty state for expanded category
+    transactionEmpty: 'px-3 pb-3 bg-primary/5',
+    transactionEmptyText: 'text-xs text-muted-foreground text-center py-2',
   },
 
   // Trend chart

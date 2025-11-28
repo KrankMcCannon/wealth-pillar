@@ -1,18 +1,19 @@
 "use client";
 
-import { Suspense, useMemo } from 'react';
-import { Account, User } from '@/src/lib';
-import { BalanceSectionSkeleton } from '@/src/features/dashboard';
-import { AccountSlider } from './AccountSlider';
-import { TotalBalanceLink } from './TotalBalanceLink';
-import { BalanceSectionSliderSkeleton } from './account-skeletons';
-import { getDefaultAccountsViewModel } from '../services/balance-section-view-model';
+import { Suspense } from "react";
+import { Account, User } from "@/src/lib";
+import { BalanceSectionSkeleton } from "@/src/features/dashboard";
+import { AccountSlider } from "./AccountSlider";
+import { TotalBalanceLink } from "./TotalBalanceLink";
+import { BalanceSectionSliderSkeleton } from "./account-skeletons";
 
 interface BalanceSectionProps {
   accounts: Account[];
   users: User[];
   accountBalances: Record<string, number>;
   totalBalance: number;
+  totalAccountsCount?: number;
+  selectedUserId?: string;
   onAccountClick: (id: string) => void;
   isLoading?: boolean;
 }
@@ -33,18 +34,13 @@ interface BalanceSectionProps {
  */
 export const BalanceSection = ({
   accounts,
-  users,
   accountBalances,
   totalBalance,
+  totalAccountsCount,
+  selectedUserId,
   onAccountClick,
-  isLoading = false
+  isLoading = false,
 }: BalanceSectionProps) => {
-  // Create view model with business logic
-  const viewModel = useMemo(
-    () => getDefaultAccountsViewModel(accounts, users, accountBalances),
-    [accounts, users, accountBalances]
-  );
-
   // Show skeleton only if actively loading AND no data received yet
   // With placeholderData, empty array exists immediately, so check both conditions
   const isInitialLoading = isLoading && (!accounts || accounts.length === 0);
@@ -53,22 +49,20 @@ export const BalanceSection = ({
     return <BalanceSectionSkeleton />;
   }
 
+  // Use provided totalAccountsCount or fall back to displayed accounts length
+  const accountCount = totalAccountsCount !== undefined ? totalAccountsCount : accounts.length;
+
   return (
-    <section className="bg-card p-4 shadow-sm">
+    <section className={"bg-card p-4 shadow-sm"}>
       {/* Account Slider Section */}
       <Suspense fallback={<BalanceSectionSliderSkeleton />}>
-        <AccountSlider
-          accounts={viewModel.sortedAccounts}
-          accountBalances={accountBalances}
-          onAccountClick={onAccountClick}
-        />
+        <AccountSlider accounts={accounts} accountBalances={accountBalances} onAccountClick={onAccountClick} />
       </Suspense>
 
-      {/* Total Balance Link Section */}
-      <TotalBalanceLink
-        totalBalance={totalBalance}
-        accountCount={accounts.length}
-      />
+      {/* Total Balance Link Section - only show when there are multiple accounts */}
+      {accountCount > 1 && (
+        <TotalBalanceLink totalBalance={totalBalance} accountCount={accountCount} selectedUserId={selectedUserId} />
+      )}
     </section>
   );
 };

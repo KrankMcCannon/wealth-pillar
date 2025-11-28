@@ -52,7 +52,7 @@ export interface User {
   group_id: string;
   role: RoleType;
   budget_periods: BudgetPeriod[];
-  clerk_id?: string; // Clerk user ID for authentication integration
+  clerk_id: string | null; // Clerk user ID for authentication integration
   default_account_id?: string; // Optional default bank account for prefilling forms
   created_at: string | Date;
   updated_at: string | Date;
@@ -75,12 +75,12 @@ export interface Transaction {
   type: TransactionType;
   category: string;
   date: string | Date;
-  user_id: string;
+  user_id: string | null; // Nullable to match database schema
   account_id: string;
   to_account_id?: string | null;
-  frequency?: TransactionFrequencyType;
+  frequency?: TransactionFrequencyType | null;
   recurring_series_id?: string | null; // Link to recurring series if this transaction is generated from one
-  group_id?: string;
+  group_id?: string | null;
   created_at: string | Date;
   updated_at: string | Date;
 }
@@ -192,3 +192,6 @@ export const AccountTypeMap: Record<AccountType, string> = {
   'cash': 'Contanti',
   'investments': 'Investimenti'
 };
+
+// Re-export service types for convenience
+export type { ReportMetrics, CategoryMetric } from '@/lib/services/transaction.service';

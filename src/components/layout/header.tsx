@@ -11,25 +11,24 @@ export function Header() {
             <span className="text-lg font-bold text-white">💎</span>
           </div>
           <div>
-            <h2 className="text-xl font-bold text-gradient tracking-tight">
-              Wealth Pillar
-            </h2>
-            <p className="text-xs -mt-1">
-              Financial Intelligence Platform
-            </p>
+            <h2 className="text-xl font-bold text-gradient tracking-tight">Wealth Pillar</h2>
+            <p className="text-xs -mt-1">Financial Intelligence Platform</p>
           </div>
         </div>
-        
+
         <div className="flex items-center gap-4">
           <div className="hidden md:flex items-center gap-2">
-            <Badge variant="outline" className="bg-accent-glass border-finance-positive text-finance-positive liquid-shimmer">
+            <Badge
+              variant="outline"
+              className="bg-accent-glass border-finance-positive text-finance-positive liquid-shimmer"
+            >
               ↗ +2.5%
             </Badge>
             <span className="text-sm">Portfolio</span>
           </div>
-          
+
           <ThemeToggle />
-          
+
           <div className="flex items-center gap-3 pl-4 border-l border-border">
             <Button variant="ghost" size="sm" className="hover-glass rounded-2xl p-3 morph-card">
               <div className="h-10 w-10 bg-primary-glass rounded-2xl flex items-center justify-center liquid-pulse">
@@ -37,7 +36,7 @@ export function Header() {
               </div>
             </Button>
             <div className="hidden lg:block">
-              <p className="text-sm font-medium text-foreground">Marco Rossi</p>
+              <p className="text-sm font-medium text-black">Marco Rossi</p>
               <p className="text-xs">Premium Account</p>
             </div>
           </div>

@@ -1,8 +1,7 @@
 "use client";
 
 import { Badge } from "@/src/components/ui";
-import { BudgetPeriod, formatCurrency } from "@/src/lib";
-import { formatDate } from "@/src/lib/utils/date";
+import { BudgetPeriod } from "@/src/lib";
 import { Calendar, Clock } from "lucide-react";
 
 interface BudgetPeriodInfoProps {
@@ -21,8 +20,7 @@ export function BudgetPeriodInfo({ period, className = "", showSpending = true }
   }
 
   const isCurrentPeriod = period.is_active && !period.end_date;
-  const startDate = formatDate(period.start_date);
-  const endDate = formatDate(period.end_date);
+  const endDate = period.end_date ? period.end_date : null;
 
   return (
     <div className={`space-y-2 ${className}`}>
@@ -30,22 +28,17 @@ export function BudgetPeriodInfo({ period, className = "", showSpending = true }
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <Calendar className="h-3 w-3 text-primary/70" />
-          <span className="text-xs font-medium text-primary/70">
-            {startDate} {endDate ? `- ${endDate}` : '- in corso'}
-          </span>
+          <span className="text-xs font-medium text-primary/70">{endDate ? `- ${endDate}` : "- in corso"}</span>
         </div>
 
-        <Badge
-          variant={isCurrentPeriod ? "default" : "secondary"}
-          className="text-xs font-semibold"
-        >
+        <Badge variant={isCurrentPeriod ? "default" : "secondary"} className="text-xs font-semibold">
           {isCurrentPeriod ? (
             <>
               <Clock className="h-3 w-3 mr-1" />
               Attivo
             </>
           ) : (
-            'Concluso'
+            "Concluso"
           )}
         </Badge>
       </div>
@@ -54,21 +47,13 @@ export function BudgetPeriodInfo({ period, className = "", showSpending = true }
       {showSpending && (
         <div className="grid grid-cols-2 gap-3">
           <div className="bg-primary/5 rounded-lg px-3 py-2 border border-primary/10">
-            <p className="text-xs font-semibold text-primary/70 uppercase tracking-wide mb-1">
-              Speso
-            </p>
-            <p className="text-sm font-bold text-destructive">
-              {formatCurrency(period.total_spent)}
-            </p>
+            <p className="text-xs font-semibold text-primary/70 uppercase tracking-wide mb-1">Speso</p>
+            <p className="text-sm font-bold text-destructive">{period.total_spent}</p>
           </div>
 
           <div className="bg-success/5 rounded-lg px-3 py-2 border border-success/10">
-            <p className="text-xs font-semibold text-success/70 uppercase tracking-wide mb-1">
-              Risparmiato
-            </p>
-            <p className="text-sm font-bold text-success">
-              {formatCurrency(period.total_saved)}
-            </p>
+            <p className="text-xs font-semibold text-success/70 uppercase tracking-wide mb-1">Risparmiato</p>
+            <p className="text-sm font-bold text-success">{period.total_saved}</p>
           </div>
         </div>
       )}
@@ -76,21 +61,15 @@ export function BudgetPeriodInfo({ period, className = "", showSpending = true }
       {/* Category Breakdown (if available) */}
       {period.category_spending && Object.keys(period.category_spending).length > 0 && (
         <div className="pt-2 border-t border-primary/10">
-          <p className="text-xs font-semibold text-primary/70 uppercase tracking-wide mb-2">
-            Principali Categorie
-          </p>
+          <p className="text-xs font-semibold text-primary/70 uppercase tracking-wide mb-2">Principali Categorie</p>
           <div className="space-y-1">
             {Object.entries(period.category_spending)
-              .sort(([,a], [,b]) => b - a)
+              .sort(([, a], [, b]) => b - a)
               .slice(0, 3)
               .map(([category, amount]) => (
                 <div key={category} className="flex items-center justify-between">
-                  <span className="text-xs text-primary/70 capitalize">
-                    {category.replace(/_/g, ' ')}
-                  </span>
-                  <span className="text-xs font-semibold text-primary">
-                    {formatCurrency(amount)}
-                  </span>
+                  <span className="text-xs text-primary/70 capitalize">{category.replace(/_/g, " ")}</span>
+                  <span className="text-xs font-semibold text-primary">{amount}</span>
                 </div>
               ))}
           </div>

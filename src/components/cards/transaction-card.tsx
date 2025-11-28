@@ -9,42 +9,37 @@
 "use client";
 
 import { Amount, DomainCard, StatusBadge } from "@/src/components/ui";
-import { CategoryIcon, cn, getCategoryLabel, iconSizes, Transaction, truncateText } from "@/src/lib";
+import { CategoryIcon, cn, iconSizes, Transaction } from "@/src/lib";
 
 interface TransactionCardProps {
   transaction: Transaction;
   accountNames: Record<string, string>;
-  variant?: 'regular' | 'recurrent';
+  variant?: "regular" | "recurrent";
   onClick?: () => void;
 }
 
-export function TransactionCard({
-  transaction,
-  accountNames,
-  variant = 'regular',
-  onClick
-}: TransactionCardProps) {
+export function TransactionCard({ transaction, variant = "regular", onClick }: TransactionCardProps) {
   // Determine amount type for color coding
   const getAmountType = (): "income" | "expense" | "balance" => {
-    if (variant === 'recurrent') return 'balance';
-    return transaction.type === 'income' ? 'income' : 'expense';
+    if (variant === "recurrent") return "balance";
+    return transaction.type === "income" ? "income" : "expense";
   };
 
   // Determine card variant
-  const cardVariant = variant === 'recurrent' ? 'highlighted' : 'interactive';
+  const cardVariant = variant === "recurrent" ? "highlighted" : "interactive";
 
   // Build subtitle (account name)
-  const subtitle = truncateText(
-    accountNames[transaction.account_id] || transaction.account_id,
-    20
-  );
+  // const subtitle = truncateText(
+  //   accountNames[transaction.account_id] || transaction.account_id,
+  //   20
+  // );
 
   // Build detail text (category or recurrence info)
-  const detail = variant === 'regular'
-    ? getCategoryLabel(transaction.category)
-    : transaction.frequency && transaction.frequency !== 'once'
-      ? `Serie ricorrente - ${transaction.frequency}`
-      : undefined;
+  // const detail = variant === 'regular'
+  //   ? getCategoryLabel(transaction.category)
+  //   : transaction.frequency && transaction.frequency !== 'once'
+  //     ? `Serie ricorrente - ${transaction.frequency}`
+  //     : undefined;
 
   // Primary content: Amount
   const primaryContent = (
@@ -52,32 +47,28 @@ export function TransactionCard({
       type={getAmountType()}
       size="md"
       emphasis="strong"
-      className={cn(variant === 'recurrent' && 'text-primary')}
+      className={cn(variant === "recurrent" && "text-primary")}
     >
-      {transaction.type === 'income' ? transaction.amount : -transaction.amount}
+      {transaction.type === "income" ? transaction.amount : -transaction.amount}
     </Amount>
   );
 
   // Secondary content: Frequency badge for recurrent transactions
-  const secondaryContent = variant === 'recurrent' ? (
-    <StatusBadge status="info" size="sm">
-      {transaction.frequency || 'Una volta'}
-    </StatusBadge>
-  ) : undefined;
+  const secondaryContent =
+    variant === "recurrent" ? (
+      <StatusBadge status="info" size="sm">
+        {transaction.frequency || "Una volta"}
+      </StatusBadge>
+    ) : undefined;
 
   return (
     <DomainCard
-      icon={
-        <CategoryIcon
-          categoryKey={transaction.category}
-          size={iconSizes.sm}
-        />
-      }
+      icon={<CategoryIcon categoryKey={transaction.category} size={iconSizes.sm} />}
       iconSize="md"
       iconColor="primary"
       title={transaction.description}
-      subtitle={subtitle}
-      detail={detail}
+      subtitle={""}
+      detail={""}
       primaryContent={primaryContent}
       secondaryContent={secondaryContent}
       variant={cardVariant}
