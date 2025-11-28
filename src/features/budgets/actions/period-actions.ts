@@ -31,11 +31,12 @@ export async function startPeriodAction(
  * Server Action: Close Budget Period
  * Wraps UserService.closeBudgetPeriod for client component usage
  * Fetches user budgets to calculate savings
+ * Automatically starts a new period from the next day
  *
  * @param userId - User ID
  * @param endDate - Period end date (ISO string)
  * @param transactions - All transactions for calculating totals
- * @returns Updated user with closed period or error
+ * @returns Updated user with closed period and new active period or error
  */
 export async function closePeriodAction(
   userId: string,
@@ -46,12 +47,35 @@ export async function closePeriodAction(
     // Fetch user's budgets for savings calculation
     const { data: userBudgets } = await BudgetService.getBudgetsByUser(userId);
 
-    return await UserService.closeBudgetPeriod(
+    // Close the current period
+    const closeResult = await UserService.closeBudgetPeriod(
       userId,
       endDate,
       transactions,
       userBudgets || undefined
     );
+
+    if (closeResult.error || !closeResult.data) {
+      return closeResult;
+    }
+
+    // Automatically start a new period from the next day
+    const endDateTime = new Date(endDate);
+    const nextDayDate = new Date(endDateTime);
+    nextDayDate.setDate(nextDayDate.getDate() + 1);
+    const nextDayISO = nextDayDate.toISOString();
+
+    // Start new period
+    const startResult = await UserService.startBudgetPeriod(userId, nextDayISO);
+
+    if (startResult.error || !startResult.data) {
+      // If starting new period fails, return the closed period result
+      // The period was successfully closed, so we don't want to fail entirely
+      console.error('Failed to start new period after closing:', startResult.error);
+      return closeResult;
+    }
+
+    return startResult;
   } catch (error) {
     return {
       data: null,

@@ -14,6 +14,7 @@ export interface OnboardingGroupInput {
 export interface OnboardingAccountInput {
   name: string;
   type: AccountType;
+  isDefault?: boolean; // Mark which account is default
 }
 
 /**
@@ -38,6 +39,7 @@ export interface CompleteOnboardingInput {
   group: OnboardingGroupInput;
   accounts: OnboardingAccountInput[];
   budgets: OnboardingBudgetInput[];
+  budgetStartDay: number;
 }
 
 /**
@@ -47,4 +49,5 @@ export interface OnboardingPayload {
   group: OnboardingGroupInput;
   accounts: OnboardingAccountInput[];
   budgets: OnboardingBudgetInput[];
+  budgetStartDay: number;
 }

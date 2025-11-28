@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2, Mail, Lock, User as UserIcon, AlertCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useSignUp, useClerk } from "@clerk/nextjs";
 import OnboardingModal from "@/components/shared/onboarding-modal";
 import ErrorBoundary from "@/components/shared/error-boundary";
@@ -52,9 +52,14 @@ export default function Page() {
   const [onboardingLoading, setOnboardingLoading] = useState(false);
   const [onboardingError, setOnboardingError] = useState<string | null>(null);
   const [showEmailSuggestions, setShowEmailSuggestions] = useState(true);
+  const hasMountedRef = useRef(false);
 
   useEffect(() => {
-    // Clear any existing session when landing on sign-up page
+    // Clear any existing session only when first landing on sign-up page
+    // This runs once on mount, not on every session change
+    if (hasMountedRef.current) return;
+
+    hasMountedRef.current = true;
     if (session) {
       void signOut();
     }
@@ -186,6 +191,7 @@ export default function Page() {
         group: payload.group,
         accounts: payload.accounts,
         budgets: payload.budgets,
+        budgetStartDay: payload.budgetStartDay,
       });
 
       setOnboardingLoading(false);
@@ -193,6 +199,7 @@ export default function Page() {
       if (result.error) {
         // Rollback: Delete the Clerk user if Supabase save failed
         console.error("Onboarding failed, rolling back Clerk user...");
+        console.error("Error details:", result.error);
         setOnboardingError(
           `${result.error}. La registrazione verrà annullata. Riprova tra poco.`
         );
@@ -279,7 +286,8 @@ export default function Page() {
         />
       )}
 
-      <AuthCard title="Crea il tuo account" subtitle="Inizia a gestire le tue finanze">
+      <div className={authStyles.page.container}>
+        <AuthCard title="Crea il tuo account" subtitle="Inizia a gestire le tue finanze">
         {errorMessage && (
           <div className={authStyles.error.container}>
             <AlertCircle className={authStyles.error.icon} />
@@ -506,6 +514,7 @@ export default function Page() {
           )}
         </AnimatePresence>
       </AuthCard>
+      </div>
     </ErrorBoundary>
   );
 }

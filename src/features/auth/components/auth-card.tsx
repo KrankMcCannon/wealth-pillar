@@ -12,9 +12,9 @@ type AuthCardProps = {
 
 export function AuthCard({ title, subtitle, children, backButton }: Readonly<AuthCardProps>) {
   return (
-    <div className="w-full max-w-md mx-auto px-4">
+    <div className="w-full max-w-md mx-auto px-2 sm:px-4">
       <motion.div
-        className="rounded-2xl bg-white p-5 shadow-xl border border-primary/20"
+        className="rounded-2xl bg-white p-4 sm:p-5 shadow-xl border border-primary/20"
         initial={{ y: 12, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ type: "spring", stiffness: 260, damping: 20, mass: 0.7 }}

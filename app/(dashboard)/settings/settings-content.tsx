@@ -3,6 +3,8 @@
 import { SectionHeader } from "@/src/components/layout";
 import BottomNavigation from "@/src/components/layout/bottom-navigation";
 import { settingsStyles } from "@/src/features/settings/theme";
+import { deleteUserAction } from "@/src/features/settings";
+import { DeleteAccountModal } from "@/src/features/settings";
 import {
   ArrowLeft,
   BarChart3,
@@ -10,6 +12,7 @@ import {
   ChevronRight,
   CreditCard,
   Globe,
+  Loader2,
   LogOut,
   Mail,
   Phone,
@@ -22,6 +25,8 @@ import {
 } from "lucide-react";
 import { PermissionGuard, RoleBadge } from "@/features/permissions";
 import { useRouter } from "next/navigation";
+import { useClerk } from "@clerk/nextjs";
+import { useState } from "react";
 import { Button, Card } from "@/components/ui";
 import type { User as UserType } from "@/lib/types";
 
@@ -35,6 +40,68 @@ interface SettingsContentProps {
 
 export default function SettingsContent({ currentUser, groupUsers }: SettingsContentProps) {
   const router = useRouter();
+  const { signOut } = useClerk();
+  const [isSigningOut, setIsSigningOut] = useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  const handleSignOut = async () => {
+    setIsSigningOut(true);
+    try {
+      await signOut();
+      router.push("/sign-in");
+    } catch (error) {
+      console.error("Error signing out:", error);
+      setIsSigningOut(false);
+    }
+  };
+
+  const handleDeleteAccountClick = () => {
+    // Verify clerk_id exists
+    if (!currentUser.clerk_id) {
+      setDeleteError("Impossibile eliminare l'account: ID Clerk mancante.");
+      setShowDeleteModal(true);
+      return;
+    }
+
+    setDeleteError(null);
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteAccountConfirm = async () => {
+    if (!currentUser.clerk_id) {
+      setDeleteError("Impossibile eliminare l'account: ID Clerk mancante.");
+      return;
+    }
+
+    setIsDeletingAccount(true);
+    setDeleteError(null);
+
+    try {
+      const { error } = await deleteUserAction(currentUser.id, currentUser.clerk_id);
+
+      if (error) {
+        setDeleteError(error);
+        setIsDeletingAccount(false);
+        return;
+      }
+
+      // Sign out and redirect to sign-in page
+      await signOut();
+      router.push("/sign-in");
+    } catch (error) {
+      console.error("Error deleting account:", error);
+      setDeleteError("Si è verificato un errore durante l'eliminazione dell'account.");
+      setIsDeletingAccount(false);
+    }
+  };
+
+  const handleCloseDeleteModal = () => {
+    if (isDeletingAccount) return; // Don't close while deleting
+    setShowDeleteModal(false);
+    setDeleteError(null);
+  };
 
   if (!currentUser) {
     return (
@@ -90,7 +157,6 @@ export default function SettingsContent({ currentUser, groupUsers }: SettingsCon
                     <h3 className={settingsStyles.profile.name}>{currentUser.name}</h3>
                     <div className={settingsStyles.profile.badges}>
                       <div className={settingsStyles.profile.badge}>{currentUser.email}</div>
-                      <RoleBadge role={currentUser.role} size="sm" variant="subtle" />
                       <div className={settingsStyles.profile.badge}>{accountCount} Account</div>
                       <div className={settingsStyles.profile.badge}>{transactionCount} Transazioni</div>
                     </div>
@@ -406,17 +472,25 @@ export default function SettingsContent({ currentUser, groupUsers }: SettingsCon
 
               <div className={settingsStyles.card.dividerLine}></div>
 
-              <button onClick={() => {}} disabled={false} className={settingsStyles.security.container}>
+              <button onClick={handleSignOut} disabled={isSigningOut} className={settingsStyles.security.container}>
                 <div className="flex items-center gap-3 flex-1 min-w-0">
                   <div className={settingsStyles.security.iconContainer}>
-                    <LogOut className={settingsStyles.security.icon} />
+                    {isSigningOut ? (
+                      <Loader2 className={`${settingsStyles.security.icon} animate-spin`} />
+                    ) : (
+                      <LogOut className={settingsStyles.security.icon} />
+                    )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <span className={settingsStyles.security.title}>{"Esci dall'Account"}</span>
-                    <p className={settingsStyles.security.subtitle}>Disconnetti dal tuo account</p>
+                    <span className={settingsStyles.security.title}>
+                      {isSigningOut ? "Disconnessione in corso..." : "Esci dall'Account"}
+                    </span>
+                    <p className={settingsStyles.security.subtitle}>
+                      {isSigningOut ? "Attendere prego" : "Disconnetti dal tuo account"}
+                    </p>
                   </div>
                 </div>
-                <ChevronRight className={settingsStyles.security.chevron} />
+                {!isSigningOut && <ChevronRight className={settingsStyles.security.chevron} />}
               </button>
             </Card>
           </section>
@@ -425,7 +499,10 @@ export default function SettingsContent({ currentUser, groupUsers }: SettingsCon
           <section>
             <SectionHeader title="Account" icon={User} iconClassName="text-red-600" className="mb-4" />
             <Card className={settingsStyles.accountActions.container}>
-              <button className={settingsStyles.accountActions.button}>
+              <button
+                onClick={handleDeleteAccountClick}
+                className={settingsStyles.accountActions.button}
+              >
                 <div className="flex items-center gap-3 flex-1 min-w-0">
                   <div className={settingsStyles.accountActions.iconContainer}>
                     <Trash2 className={settingsStyles.accountActions.icon} />
@@ -444,6 +521,15 @@ export default function SettingsContent({ currentUser, groupUsers }: SettingsCon
 
       {/* Bottom Navigation */}
       <BottomNavigation />
+
+      {/* Delete Account Modal */}
+      <DeleteAccountModal
+        isOpen={showDeleteModal}
+        isDeleting={isDeletingAccount}
+        error={deleteError}
+        onClose={handleCloseDeleteModal}
+        onConfirm={handleDeleteAccountConfirm}
+      />
     </div>
   );
 }

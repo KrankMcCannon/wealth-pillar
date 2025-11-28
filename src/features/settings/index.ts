@@ -8,3 +8,6 @@ export * from "./components";
 
 // Theme
 export * from "./theme";
+
+// Actions
+export * from "./actions";

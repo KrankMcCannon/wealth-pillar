@@ -12,7 +12,8 @@ export default function Page() {
       <div className={authStyles.page.bgBlobTop} />
       <div className={authStyles.page.bgBlobBottom} />
 
-      <AuthCard title="Verifica email" subtitle="Conferma l'indirizzo email per abilitare tutte le funzionalità">
+      <div className={authStyles.page.container}>
+        <AuthCard title="Verifica email" subtitle="Conferma l'indirizzo email per abilitare tutte le funzionalità">
         {false && (
           <div className={authStyles.error.container}>
             <AlertCircle className={authStyles.error.icon} />
@@ -94,6 +95,7 @@ export default function Page() {
           )}
         </AnimatePresence>
       </AuthCard>
+      </div>
     </>
   );
 }

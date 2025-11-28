@@ -7,7 +7,7 @@
 export const authStyles = {
   // Page background with gradient blobs
   page: {
-    container: 'min-h-screen flex items-center justify-center p-4 relative overflow-hidden',
+    container: 'h-full w-full flex items-center justify-center px-0 sm:px-4 relative',
     bgBlobTop:
       'pointer-events-none absolute -top-24 -left-24 h-72 w-72 rounded-full blur-3xl opacity-15 bg-[hsl(var(--color-primary))]',
     bgBlobBottom:
@@ -37,7 +37,7 @@ export const authStyles = {
   input: {
     wrapper: 'relative',
     icon: 'absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[hsl(var(--color-primary))]/60',
-    field: 'pl-9 h-9 text-sm bg-white border-[hsl(var(--color-primary))]/20 focus:border-[hsl(var(--color-primary))] focus:ring-[hsl(var(--color-primary))]/20',
+    field: 'pl-9 h-9 text-sm bg-white border-[hsl(var(--color-primary))]/20 focus:border-[hsl(var(--color-primary))] focus:ring-[hsl(var(--color-primary))]/20 placeholder:text-primary/40',
   },
 
   // Checkbox
@@ -92,7 +92,7 @@ export const authStyles = {
 
   // Password input specific
   password: {
-    field: 'h-9 text-sm bg-white border-[hsl(var(--color-primary))]/20 focus:border-[hsl(var(--color-primary))] focus:ring-[hsl(var(--color-primary))]/20',
+    field: 'h-9 text-sm bg-white border-[hsl(var(--color-primary))]/20 focus:border-[hsl(var(--color-primary))] focus:ring-[hsl(var(--color-primary))]/20 placeholder:text-primary/40',
   },
 
   // Email suggestions

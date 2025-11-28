@@ -2,6 +2,7 @@
 
 import { Badge } from "@/src/components/ui";
 import { cn } from "@/src/lib";
+import { Crown, Shield, User } from "lucide-react";
 
 interface RoleBadgeProps {
   role?: "member" | "admin" | "superadmin";
@@ -14,79 +15,71 @@ interface RoleBadgeProps {
 /**
  * Badge per visualizzare i ruoli utente con stili consistenti
  */
-export const RoleBadge: React.FC<RoleBadgeProps> = ({ size = "md", className }) => {
-  // Usa il ruolo corrente se non specificato
-  // const currentRole = role || (isSuperAdmin ? 'superadmin' : isAdmin ? 'admin' : 'member');
-  // const displayRole = role
-  //   ? (role === 'superadmin' ? 'Sviluppatore' : role === 'admin' ? 'Admin' : 'Membro')
-  //   : userRoleDisplay;
+export const RoleBadge: React.FC<RoleBadgeProps> = ({
+  role = "member",
+  size = "md",
+  variant = "subtle",
+  showIcon = false,
+  className
+}) => {
+  // Display text for each role
+  const displayRole = role === 'superadmin'
+    ? 'Sviluppatore'
+    : role === 'admin'
+    ? 'Admin'
+    : 'Membro';
 
-  // Configurazione colori per ruolo
-  // const getRoleConfig = (roleType: string) => {
-  //   switch (roleType) {
-  //     case 'superadmin':
-  //       return {
-  //         color: 'primary',
-  //         bgClass: variant === 'outline'
-  //           ? 'border-primary/30 text-primary bg-transparent hover:bg-primary/5'
-  //           : variant === 'subtle'
-  //           ? 'bg-primary/10 text-primary border-primary/20'
-  //           : 'bg-primary/10 text-primary border-primary/20',
-  //         icon: Crown,
-  //       };
-  //     case 'admin':
-  //       return {
-  //         color: 'primary',
-  //         bgClass: variant === 'outline'
-  //           ? 'border-primary/30 text-primary bg-transparent hover:bg-primary/5'
-  //           : variant === 'subtle'
-  //           ? 'bg-primary/10 text-primary border-primary/20'
-  //           : 'bg-primary/10 text-primary border-primary/20',
-  //         icon: Shield,
-  //       };
-  //     default:
-  //       return {
-  //         color: 'primary',
-  //         bgClass: variant === 'outline'
-  //           ? 'border-primary/30 text-primary bg-transparent hover:bg-primary/5'
-  //           : variant === 'subtle'
-  //           ? 'bg-primary/10 text-primary border-primary/20'
-  //           : 'bg-primary/10 text-primary border-primary/20',
-  //         icon: User,
-  //       };
-  //   }
-  // };
+  // Get configuration for each role
+  const getRoleConfig = (roleType: string) => {
+    const baseConfig = {
+      color: 'primary',
+      bgClass: variant === 'outline'
+        ? 'border-primary/30 text-primary bg-transparent hover:bg-primary/5'
+        : variant === 'subtle'
+        ? 'bg-primary/10 text-primary border-primary/20'
+        : 'bg-primary/10 text-primary border-primary/20',
+    };
 
-  // const config = getRoleConfig(currentRole);
-  // const Icon = config.icon;
+    switch (roleType) {
+      case 'superadmin':
+        return { ...baseConfig, icon: Crown };
+      case 'admin':
+        return { ...baseConfig, icon: Shield };
+      default:
+        return { ...baseConfig, icon: User };
+    }
+  };
 
-  // Classi per dimensione
+  const config = getRoleConfig(role);
+  const Icon = config.icon;
+
+  // Size classes
   const sizeClasses = {
     sm: "text-xs px-2 py-0.5",
     md: "text-sm px-2.5 py-1",
     lg: "text-sm px-3 py-1.5",
   };
 
-  // Dimensioni icona
-  // const iconSizes = {
-  //   sm: "h-3 w-3",
-  //   md: "h-4 w-4",
-  //   lg: "h-4 w-4",
-  // };
+  // Icon sizes
+  const iconSizes = {
+    sm: "h-3 w-3",
+    md: "h-4 w-4",
+    lg: "h-4 w-4",
+  };
 
   return (
     <Badge
       className={cn(
         "inline-flex items-center gap-1.5 font-semibold border transition-colors",
-        // config.bgClass,
+        config.bgClass,
         sizeClasses[size],
         className
       )}
     >
-      {/* {showIcon && (
+      {showIcon && (
         <Icon className={cn('shrink-0', iconSizes[size])} />
-      )} */}
-      <span>{""}</span>
+      )}
+      <span>{displayRole}</span>
     </Badge>
   );
 };

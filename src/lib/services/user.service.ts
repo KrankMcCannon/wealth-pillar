@@ -510,4 +510,171 @@ export class UserService {
       };
     }
   }
+
+  /**
+   * Set default account for a user
+   * Updates the user's default_account_id field
+   *
+   * @param userId - User ID
+   * @param accountId - Account ID to set as default (or null to clear)
+   * @returns Updated user or error
+   *
+   * @example
+   * const { data: user, error } = await UserService.setDefaultAccount(userId, accountId);
+   */
+  static async setDefaultAccount(
+    userId: string,
+    accountId: string | null
+  ): Promise<ServiceResult<User>> {
+    try {
+      if (!userId || userId.trim() === '') {
+        return { data: null, error: 'User ID is required' };
+      }
+
+      // Validate account exists if provided
+      if (accountId) {
+        const { AccountService } = await import('./account.service');
+        const accountExists = await AccountService.accountExists(accountId);
+        if (!accountExists) {
+          return { data: null, error: 'Account not found' };
+        }
+      }
+
+      // Update user
+      const { data: updatedUser, error: updateError } = await (supabaseServer as any)
+        .from('users')
+        .update({
+          default_account_id: accountId,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', userId)
+        .select()
+        .single();
+
+      if (updateError) {
+        throw new Error(updateError.message);
+      }
+
+      if (!updatedUser) {
+        return { data: null, error: 'Failed to set default account' };
+      }
+
+      // Invalidate user cache
+      await revalidateCacheTags([
+        CACHE_TAGS.USERS,
+        CACHE_TAGS.USER(userId),
+      ]);
+
+      return { data: updatedUser, error: null };
+    } catch (error) {
+      return {
+        data: null,
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Failed to set default account',
+      };
+    }
+  }
+
+  /**
+   * Deletes a user and all related data (accounts, transactions, budgets)
+   * This is a destructive operation that cannot be undone
+   *
+   * @param userId - ID of the user to delete
+   * @returns Success status or error
+   *
+   * @example
+   * const { data: success, error } = await UserService.deleteUser(userId);
+   * if (error) {
+   *   console.error('Failed to delete user:', error);
+   * }
+   */
+  static async deleteUser(userId: string): Promise<ServiceResult<boolean>> {
+    try {
+      // Input validation
+      if (!userId || userId.trim() === '') {
+        return {
+          data: null,
+          error: 'User ID is required',
+        };
+      }
+
+      // Get user to verify existence and get clerk_id
+      const { data: user, error: userError } = await supabaseServer
+        .from('users')
+        .select('id, clerk_id')
+        .eq('id', userId)
+        .single();
+
+      if (userError || !user) {
+        return {
+          data: null,
+          error: 'User not found',
+        };
+      }
+
+      // Delete all related data in correct order
+      // The database should handle cascading deletes, but we'll be explicit
+
+      // Delete budgets first (has foreign key to user)
+      await supabaseServer
+        .from('budgets')
+        .delete()
+        .eq('user_id', userId);
+
+      // Delete transactions (has foreign key to accounts)
+      // Get all account IDs for this user and delete their transactions
+      const { data: userAccounts } = await supabaseServer
+        .from('accounts')
+        .select('id')
+        .eq('user_id', userId);
+
+      if (userAccounts && userAccounts.length > 0) {
+        const accountIds = userAccounts.map((acc: { id: string }) => acc.id);
+        await supabaseServer
+          .from('transactions')
+          .delete()
+          .in('account_id', accountIds);
+      }
+
+      // Delete accounts (has foreign key to user)
+      await supabaseServer
+        .from('accounts')
+        .delete()
+        .eq('user_id', userId);
+
+      // Delete the user
+      const { error: deleteUserError } = await supabaseServer
+        .from('users')
+        .delete()
+        .eq('id', userId);
+
+      if (deleteUserError) {
+        return {
+          data: null,
+          error: 'Failed to delete user',
+        };
+      }
+
+      // Invalidate all related caches
+      await revalidateCacheTags([
+        CACHE_TAGS.USERS,
+        CACHE_TAGS.USER(userId),
+        CACHE_TAGS.ACCOUNTS,
+        CACHE_TAGS.TRANSACTIONS,
+        CACHE_TAGS.BUDGETS,
+      ]);
+
+      return { data: true, error: null };
+    } catch (error) {
+      return {
+        data: null,
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Failed to delete user',
+      };
+    }
+  }
 }

@@ -61,6 +61,11 @@ const UserSelector = memo(({
     return null;
   }
 
+  // Hide if only 1 user in group
+  if (users.length === 1) {
+    return null;
+  }
+
   // Loading state
   if (isLoading) {
     return (

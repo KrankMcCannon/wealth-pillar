@@ -53,14 +53,16 @@ export const BalanceSection = ({
   const accountCount = totalAccountsCount !== undefined ? totalAccountsCount : accounts.length;
 
   return (
-    <section className="bg-card p-4 shadow-sm">
+    <section className={"bg-card p-4 shadow-sm"}>
       {/* Account Slider Section */}
       <Suspense fallback={<BalanceSectionSliderSkeleton />}>
         <AccountSlider accounts={accounts} accountBalances={accountBalances} onAccountClick={onAccountClick} />
       </Suspense>
 
-      {/* Total Balance Link Section */}
-      <TotalBalanceLink totalBalance={totalBalance} accountCount={accountCount} selectedUserId={selectedUserId} />
+      {/* Total Balance Link Section - only show when there are multiple accounts */}
+      {accountCount > 1 && (
+        <TotalBalanceLink totalBalance={totalBalance} accountCount={accountCount} selectedUserId={selectedUserId} />
+      )}
     </section>
   );
 };

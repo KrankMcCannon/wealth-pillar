@@ -52,8 +52,8 @@ export const accountComponents = {
   },
 
   slider: {
-    container: 'overflow-x-auto scrollbar-hide mb-4',
-    inner: 'flex gap-3 pb-2',
+    container: 'overflow-x-auto scrollbar-hide flex items-center',
+    inner: 'flex gap-3',
     cardWrapper: 'transform transition-all duration-300 hover:scale-[1.01] hover:shadow-md hover:shadow-muted/30',
     addPlaceholder: 'flex-shrink-0 w-60 h-24 border-2 border-dashed border-primary/30 rounded-lg flex items-center justify-center bg-primary/5 hover:border-primary/40 hover:bg-primary/10 transition-all duration-300 cursor-pointer group',
     addPromptIcon: 'h-6 w-6 text-primary/70 group-hover:text-primary mx-auto mb-1 transition-colors',

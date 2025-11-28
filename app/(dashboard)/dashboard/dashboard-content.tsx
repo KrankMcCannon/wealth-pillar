@@ -70,17 +70,25 @@ export default function DashboardContent({ currentUser, groupUsers, accounts, ac
   // Filter default accounts based on selected user and sort by balance
   const displayedDefaultAccounts = useMemo(() => {
     let accountsToDisplay: Account[] = [];
+    const totalAccountCount = accounts.length;
 
-    // If a specific user is selected, show only that user's default account
-    if (selectedUserId) {
-      const user = groupUsers.find((u) => u.id === selectedUserId);
-      if (user?.default_account_id) {
-        const defaultAccount = accounts.find((a) => a.id === user.default_account_id);
-        accountsToDisplay = defaultAccount ? [defaultAccount] : [];
+    // Case 1: Exactly 1 account in entire system → show it
+    if (totalAccountCount === 1) {
+      accountsToDisplay = accounts;
+    }
+    // Case 2: Multiple accounts → use default account logic
+    else if (totalAccountCount > 1) {
+      if (selectedUserId) {
+        // Show only selected user's default account
+        const user = groupUsers.find((u) => u.id === selectedUserId);
+        if (user?.default_account_id) {
+          const defaultAccount = accounts.find((a) => a.id === user.default_account_id);
+          accountsToDisplay = defaultAccount ? [defaultAccount] : [];
+        }
+      } else {
+        // Show all users' default accounts
+        accountsToDisplay = AccountService.getDefaultAccounts(accounts, groupUsers);
       }
-    } else {
-      // If "all" is selected, show all users' default accounts
-      accountsToDisplay = AccountService.getDefaultAccounts(accounts, groupUsers);
     }
 
     // Sort accounts by balance (descending - highest first)

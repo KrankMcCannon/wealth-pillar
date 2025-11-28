@@ -94,7 +94,7 @@ export const settingsStyles = {
     iconContainer:
       'flex size-10 items-center justify-center rounded-xl bg-[#7678e4]/15 text-[#7678e4] group-hover:scale-[1.02] transition-transform duration-200 shadow-sm',
     icon: 'h-5 w-5',
-    content: 'flex-1 min-w-0',
+    content: 'flex items-center flex-1 min-w-0',
     title: 'text-sm font-semibold text-[#7678e4]',
     subtitle: 'text-xs truncate',
     chevron: 'h-4 w-4 group-hover:text-primary group-hover:translate-x-0.5 transition-all duration-200 shrink-0',

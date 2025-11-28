@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Loader2, Mail, Lock, LogIn, AlertCircle } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useSignIn, useClerk } from "@clerk/nextjs";
 import { AppleButton, AuthCard, GitHubButton, GoogleButton, PasswordInput, authStyles } from "@/features/auth";
 import { Button, Input, Label } from "@/components/ui";
@@ -19,9 +19,14 @@ export default function Page() {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const hasMountedRef = useRef(false);
 
   useEffect(() => {
-    // Clear any existing session when landing on sign-in page
+    // Clear any existing session only when first landing on sign-in page
+    // This runs once on mount, not on every session change
+    if (hasMountedRef.current) return;
+
+    hasMountedRef.current = true;
     if (session) {
       void signOut();
     }
@@ -82,7 +87,8 @@ export default function Page() {
       <div className={authStyles.page.bgBlobTop} />
       <div className={authStyles.page.bgBlobBottom} />
 
-      <AuthCard title="Accedi al tuo account" subtitle="Gestisci le tue finanze">
+      <div className={authStyles.page.container}>
+        <AuthCard title="Accedi al tuo account" subtitle="Gestisci le tue finanze">
         {error && (
           <div className={authStyles.error.container}>
             <AlertCircle className={authStyles.error.icon} />
@@ -179,6 +185,7 @@ export default function Page() {
           </div>
         </form>
       </AuthCard>
+      </div>
     </>
   );
 }

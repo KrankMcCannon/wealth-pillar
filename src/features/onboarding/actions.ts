@@ -36,7 +36,7 @@ export async function completeOnboardingAction(
   input: CompleteOnboardingInput
 ): Promise<ServiceResult<{ userId: string; groupId: string }>> {
   try {
-    const { user, group, accounts, budgets } = input;
+    const { user, group, accounts, budgets, budgetStartDay } = input;
 
     if (!user?.clerkId || !user.email || !user.name) {
       return { data: null, error: 'Dati utente mancanti per l\'onboarding' };
@@ -87,7 +87,7 @@ export async function completeOnboardingAction(
         email: user.email.trim().toLowerCase(),
         avatar: getInitials(user.name),
         theme_color: themeColor,
-        budget_start_date: Date.now(),
+        budget_start_date: budgetStartDay,
         group_id: groupId,
         role: 'admin',
         budget_periods: [],
@@ -111,8 +111,16 @@ export async function completeOnboardingAction(
       CACHE_TAGS.USER_BY_CLERK(user.clerkId),
     ]);
 
+    // Track created account IDs and default account
+    let defaultAccountId: string | null = null;
+    const createdAccountIds: string[] = [];
+
     for (const accountInput of accounts) {
+      // Generate account ID upfront so we can reference it
+      const accountId = randomUUID();
+
       const result = await AccountService.createAccount({
+        id: accountId,
         name: accountInput.name.trim(),
         type: accountInput.type,
         user_ids: [userId],
@@ -121,6 +129,27 @@ export async function completeOnboardingAction(
 
       if (result.error) {
         return { data: null, error: result.error };
+      }
+
+      createdAccountIds.push(accountId);
+
+      // Track which account is marked as default
+      if (accountInput.isDefault) {
+        defaultAccountId = accountId;
+      }
+    }
+
+    // Fallback: if no default specified, use first account
+    if (!defaultAccountId && createdAccountIds.length > 0) {
+      defaultAccountId = createdAccountIds[0];
+    }
+
+    // Set default account on user
+    if (defaultAccountId) {
+      const setDefaultResult = await UserService.setDefaultAccount(userId, defaultAccountId);
+      if (setDefaultResult.error) {
+        console.error('[Onboarding] Failed to set default account:', setDefaultResult.error);
+        // Non-blocking: don't fail entire onboarding
       }
     }
 
