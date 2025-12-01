@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Loader2, Mail, Lock, LogIn, AlertCircle } from "lucide-react";
+import { Loader2, Mail, Lock, LogIn, AlertCircle, ArrowLeft } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import { useSignIn, useClerk } from "@clerk/nextjs";
 import { AppleButton, AuthCard, GitHubButton, GoogleButton, PasswordInput, authStyles } from "@/features/auth";
@@ -19,6 +19,8 @@ export default function Page() {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [needsSecondFactor, setNeedsSecondFactor] = useState(false);
+  const [verificationCode, setVerificationCode] = useState("");
   const hasMountedRef = useRef(false);
 
   useEffect(() => {
@@ -57,10 +59,43 @@ export default function Page() {
       if (result.status === "complete") {
         await setActive({ session: result.createdSessionId });
         router.push("/dashboard");
+      } else if (result.status === "needs_second_factor") {
+        // Account has 2FA enabled, prepare email code verification
+        await signIn.prepareSecondFactor({
+          strategy: "email_code",
+        } as any);
+        setNeedsSecondFactor(true);
       }
     } catch (err: any) {
       console.error("Sign in error:", err);
       setError(err.errors?.[0]?.message || "Email o password non corretti");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Handle second factor verification
+  const handleSecondFactorVerification = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!isLoaded) return;
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const result = await signIn.attemptSecondFactor({
+        strategy: "email_code",
+        code: verificationCode,
+      } as any);
+
+      if (result.status === "complete") {
+        await setActive({ session: result.createdSessionId });
+        router.push("/dashboard");
+      }
+    } catch (err: any) {
+      console.error("Verification error:", err);
+      setError(err.errors?.[0]?.message || "Codice di verifica non corretto");
     } finally {
       setIsLoading(false);
     }
@@ -88,7 +123,10 @@ export default function Page() {
       <div className={authStyles.page.bgBlobBottom} />
 
       <div className={authStyles.page.container}>
-        <AuthCard title="Accedi al tuo account" subtitle="Gestisci le tue finanze">
+        <AuthCard
+          title={needsSecondFactor ? "Verifica la tua identità" : "Accedi al tuo account"}
+          subtitle={needsSecondFactor ? "Inserisci il codice inviato alla tua email" : "Gestisci le tue finanze"}
+        >
         {error && (
           <div className={authStyles.error.container}>
             <AlertCircle className={authStyles.error.icon} />
@@ -96,6 +134,58 @@ export default function Page() {
           </div>
         )}
 
+        {needsSecondFactor ? (
+          <form onSubmit={handleSecondFactorVerification} className={authStyles.form.container}>
+            <div className={authStyles.form.fieldGroup}>
+              <Label htmlFor="code" className={authStyles.label.base}>
+                Codice di verifica
+              </Label>
+              <div className={authStyles.input.wrapper}>
+                <Lock className={authStyles.input.icon} />
+                <Input
+                  id="code"
+                  type="text"
+                  placeholder="000000"
+                  value={verificationCode}
+                  onChange={(e) => setVerificationCode(e.target.value)}
+                  required
+                  disabled={isLoading}
+                  className={authStyles.input.field}
+                  maxLength={6}
+                />
+              </div>
+            </div>
+
+            <Button type="submit" disabled={isLoading || !isLoaded} className={authStyles.button.primary}>
+              {isLoading ? (
+                <>
+                  <Loader2 className={authStyles.button.icon} />
+                  Verifica in corso
+                </>
+              ) : (
+                <>
+                  <LogIn className="mr-2 h-3.5 w-3.5" />
+                  Verifica
+                </>
+              )}
+            </Button>
+
+            <div className={authStyles.toggle.container}>
+              <button
+                type="button"
+                onClick={() => {
+                  setNeedsSecondFactor(false);
+                  setVerificationCode("");
+                  setError(null);
+                }}
+                className={authStyles.toggle.link}
+              >
+                <ArrowLeft className="mr-2 h-3.5 w-3.5" />
+                Torna indietro
+              </button>
+            </div>
+          </form>
+        ) : (
         <form onSubmit={handleSubmit} className={authStyles.form.container}>
           <div className={authStyles.form.fieldGroup}>
             <Label htmlFor="email" className={authStyles.label.base}>
@@ -184,6 +274,7 @@ export default function Page() {
             </Link>
           </div>
         </form>
+        )}
       </AuthCard>
       </div>
     </>
