@@ -21,11 +21,13 @@ export { AccountService } from './account.service';
 export { TransactionService } from './transaction.service';
 export { CategoryService } from './category.service';
 export { BudgetService } from './budget.service';
+export { ReportPeriodService } from './report-period.service';
 
 // Export shared types
 export type { ServiceResult } from './user.service';
 export type { ReportMetrics, CategoryMetric } from './transaction.service';
 export type { BudgetProgress, UserBudgetSummary } from './budget.service';
+export type { EnrichedBudgetPeriod } from './report-period.service';
 
 /**
  * Service Layer Documentation

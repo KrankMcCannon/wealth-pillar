@@ -1058,4 +1058,117 @@ export class TransactionService {
       userContributions,
     };
   }
+
+  /**
+   * Calculate total earned amount from transactions
+   * Includes: income transactions + transfers TO user's accounts
+   *
+   * @param transactions - All transactions to analyze
+   * @param userAccountIds - Array of account IDs belonging to the user
+   * @param userId - Optional user ID to filter transactions (omit for "all members")
+   * @returns Total earned amount
+   *
+   * @example
+   * const earned = TransactionService.calculateEarned(transactions, ['acc1', 'acc2'], 'user123');
+   *
+   * @complexity O(n) - Single pass through transactions
+   */
+  static calculateEarned(
+    transactions: Transaction[],
+    userAccountIds: string[],
+    userId?: string
+  ): number {
+    return transactions.reduce((sum, t) => {
+      // Filter by user if specified (skip if "all members")
+      if (userId && t.user_id !== userId) {
+        return sum;
+      }
+
+      // Income transactions where account belongs to user
+      if (t.type === 'income' && userAccountIds.includes(t.account_id)) {
+        return sum + t.amount;
+      }
+
+      // Incoming transfers (to_account_id matches user's accounts)
+      if (
+        t.type === 'transfer' &&
+        t.to_account_id &&
+        userAccountIds.includes(t.to_account_id)
+      ) {
+        return sum + t.amount;
+      }
+
+      return sum;
+    }, 0);
+  }
+
+  /**
+   * Calculate total spent amount from transactions
+   * Includes: expense transactions + transfers FROM user's accounts
+   *
+   * @param transactions - All transactions to analyze
+   * @param userAccountIds - Array of account IDs belonging to the user
+   * @param userId - Optional user ID to filter transactions (omit for "all members")
+   * @returns Total spent amount
+   *
+   * @example
+   * const spent = TransactionService.calculateSpent(transactions, ['acc1', 'acc2'], 'user123');
+   *
+   * @complexity O(n) - Single pass through transactions
+   */
+  static calculateSpent(
+    transactions: Transaction[],
+    userAccountIds: string[],
+    userId?: string
+  ): number {
+    return transactions.reduce((sum, t) => {
+      // Filter by user if specified (skip if "all members")
+      if (userId && t.user_id !== userId) {
+        return sum;
+      }
+
+      // Expense transactions where account belongs to user
+      if (t.type === 'expense' && userAccountIds.includes(t.account_id)) {
+        return sum + t.amount;
+      }
+
+      // Outgoing transfers (account_id matches user's accounts)
+      if (
+        t.type === 'transfer' &&
+        userAccountIds.includes(t.account_id)
+      ) {
+        return sum + t.amount;
+      }
+
+      return sum;
+    }, 0);
+  }
+
+  /**
+   * Filter transactions within a budget period date range
+   *
+   * @param transactions - All transactions to filter
+   * @param period - Budget period with start_date and end_date
+   * @returns Filtered transactions within the period
+   *
+   * @example
+   * const periodTxns = TransactionService.filterByBudgetPeriod(transactions, budgetPeriod);
+   *
+   * @complexity O(n) - Single pass filter
+   */
+  static filterByBudgetPeriod(
+    transactions: Transaction[],
+    period: { start_date: string | Date; end_date: string | Date | null }
+  ): Transaction[] {
+    const periodStart = new Date(period.start_date);
+    periodStart.setHours(0, 0, 0, 0);
+
+    const periodEnd = period.end_date ? new Date(period.end_date) : new Date();
+    periodEnd.setHours(23, 59, 59, 999);
+
+    return transactions.filter((t) => {
+      const txDate = new Date(t.date);
+      return txDate >= periodStart && txDate <= periodEnd;
+    });
+  }
 }

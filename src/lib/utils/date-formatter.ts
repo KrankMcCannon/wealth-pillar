@@ -39,3 +39,21 @@ export function formatFullDate(dateString: string | Date): string {
   const year = date.getFullYear();
   return `${day}/${month}/${year}`;
 }
+
+/**
+ * Format date as DD/MM
+ * Used for displaying day and month without year
+ *
+ * @param dateString - ISO date string or Date object
+ * @returns Formatted date string (e.g., "15 Nov")
+ *
+ * @example
+ * const formatted = formatDayMonth("2025-01-15"); // "15 Nov"
+ */
+export function formatDayMonth(dateString: string | Date): string {
+  const date = typeof dateString === 'string' ? new Date(dateString) : dateString;
+  const day = String(date.getDate()).padStart(2, '0');
+  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const month = monthNames[date.getMonth()];
+  return `${day} ${month}`;
+}

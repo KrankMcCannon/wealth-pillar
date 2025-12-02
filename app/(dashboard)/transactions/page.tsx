@@ -1,6 +1,5 @@
 /**
  * Transactions Page - Server Component
- * Uses shared utility for consistent data fetching across all dashboard pages
  */
 
 import { Suspense } from 'react';

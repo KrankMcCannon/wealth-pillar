@@ -4,110 +4,88 @@ import React, { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import BottomNavigation from "@/src/components/layout/bottom-navigation";
 import UserSelector from "@/src/components/shared/user-selector";
-import { SpendingOverviewCard, CategoryBreakdownSection, SavingsGoalCard, reportsStyles } from "@/features/reports";
-import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  TransactionSplitCard,
+  BudgetPeriodsSection,
+  reportsStyles,
+} from "@/features/reports";
+import { ArrowLeft } from "lucide-react";
 import { Button } from "@/src/components/ui";
 import type { DashboardDataProps } from "@/lib/auth/get-dashboard-data";
-import type { Transaction, ReportMetrics, Category } from "@/lib/types";
-import { AccountService, TransactionService, CategoryService } from "@/lib/services";
-import { SAVINGS_GOAL_NUMBER } from "@/features/transactions/constants";
+import type { Transaction, Category, BudgetPeriod } from "@/lib/types";
+import { TransactionService, CategoryService } from "@/lib/services";
 import type { Account } from "@/lib/types";
 
 interface ReportsContentProps extends DashboardDataProps {
   accounts: Account[];
-  accountBalances: Record<string, number>;
   transactions: Transaction[];
   categories: Category[];
-  initialMetrics: ReportMetrics;
 }
 
 export default function ReportsContent({
   currentUser,
   groupUsers,
   accounts,
-  accountBalances,
   transactions,
   categories,
 }: ReportsContentProps) {
   const router = useRouter();
   const [selectedGroupFilter, setSelectedGroupFilter] = useState<string>("all");
 
-  // Month navigation state (initialize with current month)
-  const now = new Date();
-  const [selectedYear, setSelectedYear] = useState(now.getFullYear());
-  const [selectedMonth, setSelectedMonth] = useState(now.getMonth());
+  // Aggregate budget periods from all users or selected user
+  const allBudgetPeriods = useMemo<BudgetPeriod[]>(() => {
+    if (selectedGroupFilter === "all") {
+      // Ensure each period has correct user_id when aggregating from all users
+      return groupUsers.flatMap((user) =>
+        (user.budget_periods || []).map((period) => ({
+          ...period,
+          user_id: user.id, // Ensure user_id matches the owning user
+        }))
+      );
+    }
+    const selectedUser = groupUsers.find((u) => u.id === selectedGroupFilter);
+    if (!selectedUser) return [];
+    return (selectedUser.budget_periods || []).map((period) => ({
+      ...period,
+      user_id: selectedUser.id, // Ensure user_id is set correctly
+    }));
+  }, [selectedGroupFilter, groupUsers]);
 
-  // Get month label
-  const monthLabel = useMemo(() => {
-    return TransactionService.getMonthLabel(selectedYear, selectedMonth);
-  }, [selectedYear, selectedMonth]);
+  // Get user account IDs for earned/spent calculation
+  const userAccountIds = useMemo(() => {
+    if (selectedGroupFilter === "all") {
+      return accounts.map((a) => a.id);
+    }
+    return accounts
+      .filter((a) => a.user_ids.includes(selectedGroupFilter))
+      .map((a) => a.id);
+  }, [selectedGroupFilter, accounts]);
 
-  // Filter transactions by selected month
-  const monthlyTransactions = useMemo(() => {
-    return TransactionService.filterByMonth(transactions, selectedYear, selectedMonth);
-  }, [transactions, selectedYear, selectedMonth]);
-
-  // Calculate monthly metrics
-  const metrics = useMemo(() => {
+  // Calculate transaction split metrics (earned vs spent)
+  const splitMetrics = useMemo(() => {
     const userId = selectedGroupFilter === "all" ? undefined : selectedGroupFilter;
-    return TransactionService.calculateReportMetrics(monthlyTransactions, userId);
-  }, [selectedGroupFilter, monthlyTransactions]);
-
-  // Use Risparmi Casa account balance for savings goal (same logic as Accounts/Dashboard)
-  const risparmiCasaBalance = useMemo(() => {
-    // Prefer the shared "casa" savings account; otherwise fall back to any "risparmi" account
-    const savingsAccount =
-      accounts.find((account) => account.name?.toLowerCase().includes("casa")) ||
-      accounts.find((account) => account.name?.toLowerCase().includes("risparmi"));
-
-    if (!savingsAccount) {
-      return 0;
-    }
-
-    // Fallback: recalc on client in case balances are missing/stale
-    if (accountBalances[savingsAccount.id] !== undefined) {
-      return accountBalances[savingsAccount.id];
-    }
-
-    return AccountService.calculateAccountBalance(savingsAccount.id, transactions);
-  }, [accounts, accountBalances, transactions]);
-
-  // This represents the actual balance in the savings account
-  const currentMonth = now.getMonth();
-  const monthsElapsed = currentMonth + 1;
-  const savingsGoalMetrics = useMemo(() => {
-    const monthlyAverage = risparmiCasaBalance / monthsElapsed;
-    const projected = monthlyAverage * 12;
-
-    return {
-      total: risparmiCasaBalance,
-      monthlyAverage,
-      projected,
-    };
-  }, [risparmiCasaBalance, monthsElapsed]);
-
-  // Month navigation handlers
-  const handlePreviousMonth = () => {
-    const { year, month } = TransactionService.getPreviousMonth(selectedYear, selectedMonth);
-    setSelectedYear(year);
-    setSelectedMonth(month);
-  };
-
-  const handleNextMonth = () => {
-    const { year, month } = TransactionService.getNextMonth(selectedYear, selectedMonth);
-    setSelectedYear(year);
-    setSelectedMonth(month);
-  };
+    const earned = TransactionService.calculateEarned(
+      transactions,
+      userAccountIds,
+      userId
+    );
+    const spent = TransactionService.calculateSpent(
+      transactions,
+      userAccountIds,
+      userId
+    );
+    return { earned, spent };
+  }, [transactions, userAccountIds, selectedGroupFilter]);
 
   // Enrich category metrics with category details (label, color, icon)
   const enrichedCategories = useMemo(() => {
-    return metrics.categories.map((catMetric) => ({
-      ...catMetric,
-      label: CategoryService.getCategoryLabel(categories, catMetric.name),
-      color: CategoryService.getCategoryColor(categories, catMetric.name),
-      icon: CategoryService.getCategoryIcon(categories, catMetric.name),
+    return categories.map((category) => ({
+      ...category,
+      label: CategoryService.getCategoryLabel(categories, category.key),
+      color: CategoryService.getCategoryColor(categories, category.key),
+      icon: CategoryService.getCategoryIcon(categories, category.key),
     }));
-  }, [metrics.categories, categories]);
+  }, [categories]);
 
   return (
     <div className={reportsStyles.page.container} style={reportsStyles.page.style}>
@@ -132,54 +110,30 @@ export default function ReportsContent({
         />
 
         <main className={reportsStyles.main.container}>
-          {/* Savings Goal - Year-to-Date (uses current year, not selected month) */}
+          {/* Transaction Split - Earned vs Spent */}
           <section>
             <div className={reportsStyles.sectionHeader.container}>
-              <h2 className={reportsStyles.sectionHeader.title}>Obiettivi di risparmio</h2>
-              <p className={reportsStyles.sectionHeader.subtitle}>Progresso annuale</p>
+              <h2 className={reportsStyles.sectionHeader.title}>Transazioni</h2>
+              <p className={reportsStyles.sectionHeader.subtitle}>Totali guadagnati e spesi</p>
             </div>
-            <SavingsGoalCard
-              currentSavings={savingsGoalMetrics.total}
-              savingsGoal={SAVINGS_GOAL_NUMBER}
-              projectedYearEnd={savingsGoalMetrics.projected}
-              projectedMonthly={savingsGoalMetrics.monthlyAverage}
-              monthlyTarget={SAVINGS_GOAL_NUMBER / 12}
-              totalToReach={Math.max(0, SAVINGS_GOAL_NUMBER - savingsGoalMetrics.total)}
+            <TransactionSplitCard
+              earned={splitMetrics.earned}
+              spent={splitMetrics.spent}
             />
           </section>
 
-          {/* Month Selector - Before Monthly Sections */}
-          <div className="flex items-center justify-center gap-3 px-3 sm:px-4 py-4 border-t border-b border-primary/10">
-            <Button variant="ghost" size="sm" className={reportsStyles.header.button} onClick={handlePreviousMonth}>
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <span className="text-sm font-semibold text-black capitalize min-w-[150px] text-center">{monthLabel}</span>
-            <Button variant="ghost" size="sm" className={reportsStyles.header.button} onClick={handleNextMonth}>
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
-
-          {/* Spending Overview - Monthly (uses selected month) */}
-          <section>
-            <SpendingOverviewCard
-              income={metrics.income}
-              expenses={metrics.expenses}
-              netSavings={metrics.netSavings}
-              savingsRate={metrics.savingsRate}
-            />
-          </section>
-
-          {/* Category Breakdown - Monthly Top 5 (uses selected month) */}
+          {/* Budget Periods Section */}
           <section>
             <div className={reportsStyles.sectionHeader.container}>
-              <h2 className={reportsStyles.sectionHeader.title}>Spesa per categoria</h2>
-              <p className={reportsStyles.sectionHeader.subtitle}>Top 5</p>
+              <h2 className={reportsStyles.sectionHeader.title}>Periodi di Budget</h2>
+              <p className={reportsStyles.sectionHeader.subtitle}>Storico periodi passati e attuali</p>
             </div>
-            <CategoryBreakdownSection
-              categories={enrichedCategories as any}
-              allCategories={categories}
-              transactions={monthlyTransactions}
-              users={groupUsers}
+            <BudgetPeriodsSection
+              budgetPeriods={allBudgetPeriods}
+              groupUsers={groupUsers}
+              transactions={transactions}
+              categories={enrichedCategories}
+              accounts={accounts}
               selectedUserId={selectedGroupFilter}
               isLoading={false}
             />

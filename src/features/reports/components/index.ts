@@ -3,17 +3,12 @@
  * Centralized exports for all report-related UI components
  */
 
-export { ReportHeader } from './ReportHeader';
-export type { ReportHeaderProps } from './ReportHeader';
+// Active Components
+export { TransactionSplitCard } from './TransactionSplitCard';
+export type { TransactionSplitCardProps } from './TransactionSplitCard';
 
-export { SpendingOverviewCard } from './SpendingOverviewCard';
-export type { SpendingOverviewProps } from './SpendingOverviewCard';
+export { BudgetPeriodCard } from './BudgetPeriodCard';
+export type { BudgetPeriodCardProps } from './BudgetPeriodCard';
 
-export { CategoryBreakdownSection } from './CategoryBreakdownSection';
-export type { CategoryBreakdownProps } from './CategoryBreakdownSection';
-
-export { SavingsGoalCard } from './SavingsGoalCard';
-export type { SavingsGoalProps } from './SavingsGoalCard';
-
-export { AccountDistributionCard } from './AccountDistributionCard';
-export type { AccountDistributionProps } from './AccountDistributionCard';
+export { BudgetPeriodsSection } from './BudgetPeriodsSection';
+export type { BudgetPeriodsSectionProps } from './BudgetPeriodsSection';

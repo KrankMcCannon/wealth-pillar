@@ -1,7 +1,5 @@
 /**
  * Reports Page - Server Component
- * Uses shared utility for consistent data fetching across all dashboard pages
- * Business logic is handled by TransactionService and CategoryService following SOLID principles
  */
 
 import { Suspense } from 'react';
@@ -17,19 +15,12 @@ export default async function ReportsPage() {
   const [transactionsResult, categoriesResult, accountsResult] = await Promise.all([
     TransactionService.getTransactionsByGroup(currentUser.group_id),
     CategoryService.getAllCategories(),
-    AccountService.getAccountsByGroup(currentUser.group_id),
+    AccountService.getAccountsByGroup(currentUser.group_id)
   ]);
 
-  // Calculate metrics using business logic in service layer
-  const metrics = TransactionService.calculateReportMetrics(transactionsResult.data || []);
-
-  // Reuse the same balance calculation used by Accounts/Dashboard pages
   const accounts = accountsResult.data || [];
+  const categories = categoriesResult.data || [];
   const transactions = transactionsResult.data || [];
-  const accountBalances = AccountService.calculateAccountBalances(
-    accounts.map((account) => account.id),
-    transactions
-  );
 
   return (
     <Suspense fallback={<PageLoader message="Caricamento report..." />}>
@@ -37,10 +28,8 @@ export default async function ReportsPage() {
         currentUser={currentUser}
         groupUsers={groupUsers}
         accounts={accounts}
-        accountBalances={accountBalances}
         transactions={transactions}
-        categories={categoriesResult.data || []}
-        initialMetrics={metrics}
+        categories={categories}
       />
     </Suspense>
   );
