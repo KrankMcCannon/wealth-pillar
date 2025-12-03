@@ -9,7 +9,7 @@
 
 import { Suspense, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, MoreVertical, Plus, Search, Filter } from "lucide-react";
+import { ArrowLeft, MoreVertical, Plus, Filter } from "lucide-react";
 import {
   Badge,
   Button,
@@ -17,23 +17,18 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  Input,
 } from "@/src/components/ui";
-import BottomNavigation from "@/src/components/layout/bottom-navigation";
+import { BottomNavigation } from "@/src/components/layout";
 import TabNavigation from "@/src/components/shared/tab-navigation";
 import UserSelector from "@/src/components/shared/user-selector";
 import { ConfirmationDialog } from "@/components/shared/confirmation-dialog";
 import { RecurringSeriesSection, RecurringSeriesForm } from "@/src/features/recurring";
-import { FilterDialog, GroupedTransactionCard, TransactionForm } from "@/src/features/transactions";
+import { GroupedTransactionCard, TransactionForm } from "@/src/features/transactions";
 import { transactionStyles } from "@/src/features/transactions/theme/transaction-styles";
 import { UserSelectorSkeleton } from "@/src/features/dashboard";
-import {
-  SearchFilterSkeleton,
-  TransactionListSkeleton,
-  RecurringSeriesSkeleton,
-} from "@/src/features/transactions/components/transaction-skeletons";
+import { RecurringSeriesSkeleton } from "@/src/features/transactions/components/transaction-skeletons";
 import type { User, Transaction, Category, Account } from "@/lib/types";
-import { TransactionService, CategoryService, AccountService } from "@/lib/services";
+import { TransactionService } from "@/lib/services";
 import { deleteTransactionAction } from "@/features/transactions/actions/transaction-actions";
 import { formatCurrency } from "@/lib/utils";
 

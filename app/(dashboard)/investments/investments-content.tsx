@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { SectionHeader } from "@/src/components/layout";
-import BottomNavigation from "@/src/components/layout/bottom-navigation";
+import { BottomNavigation } from "@/src/components/layout";
 import UserSelector from "@/src/components/shared/user-selector";
 import { EnhancedHolding } from "@/src/lib";
 import { PieChart } from "lucide-react";

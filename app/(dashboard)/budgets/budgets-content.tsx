@@ -9,7 +9,7 @@
 
 import { useState, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import BottomNavigation from "@/components/layout/bottom-navigation";
+import { BottomNavigation } from "@/components/layout";
 import UserSelector from "@/components/shared/user-selector";
 import { ConfirmationDialog } from "@/components/shared/confirmation-dialog";
 import { BudgetForm, BudgetPeriodManager } from "@/features/budgets";

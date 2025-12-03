@@ -1,7 +1,7 @@
 "use client";
 
 import { SectionHeader } from "@/src/components/layout";
-import BottomNavigation from "@/src/components/layout/bottom-navigation";
+import { BottomNavigation } from "@/src/components/layout";
 import { settingsStyles } from "@/src/features/settings/theme";
 import { deleteUserAction } from "@/src/features/settings";
 import { DeleteAccountModal } from "@/src/features/settings";

@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import BottomNavigation from "@/src/components/layout/bottom-navigation";
+import { BottomNavigation } from "@/src/components/layout";
 import UserSelector from "@/src/components/shared/user-selector";
 import {
   TransactionSplitCard,
