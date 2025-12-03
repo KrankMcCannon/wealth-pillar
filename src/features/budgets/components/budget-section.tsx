@@ -33,7 +33,7 @@ interface BudgetSectionProps {
     }
   >;
   budgets: Budget[];
-  selectedViewUserId: string;
+  selectedViewUserId?: string;
   isLoading?: boolean;
 }
 
@@ -41,12 +41,19 @@ interface BudgetSectionProps {
  * Budget section component with enhanced UX and performance
  * Follows Single Responsibility Principle - only handles budget display
  */
-export const BudgetSection = ({ budgetsByUser, budgets, isLoading }: BudgetSectionProps) => {
+export const BudgetSection = ({ budgetsByUser, budgets, selectedViewUserId, isLoading }: BudgetSectionProps) => {
   const router = useRouter();
 
   // Show skeleton only if actively loading AND no data received yet
   // With placeholderData, empty object exists immediately, so check both conditions
-  const budgetEntries = Object.values(budgetsByUser);
+  const allBudgetEntries = Object.values(budgetsByUser);
+
+  // Filter budget entries based on selected user
+  // If selectedViewUserId is undefined, show all budgets
+  const budgetEntries = selectedViewUserId
+    ? allBudgetEntries.filter(entry => entry.user.id === selectedViewUserId)
+    : allBudgetEntries;
+
   const isInitialLoading = isLoading && budgetEntries.length === 0;
 
   if (isInitialLoading) {

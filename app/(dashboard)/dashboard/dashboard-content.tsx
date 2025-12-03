@@ -284,7 +284,7 @@ export default function DashboardContent({ currentUser, groupUsers, accounts, ac
             <BudgetSection
               budgetsByUser={budgetsByUser}
               budgets={budgets}
-              selectedViewUserId={selectedUserId || currentUser.id}
+              selectedViewUserId={selectedUserId}
               isLoading={false}
             />
           </Suspense>
