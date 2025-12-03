@@ -19,7 +19,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/src/components/ui";
-import { BottomNavigation, PageContainer, PageHeaderWithBack } from "@/src/components/layout";
+import { BottomNavigation, PageContainer } from "@/src/components/layout";
 import TabNavigation from "@/src/components/shared/tab-navigation";
 import UserSelector from "@/src/components/shared/user-selector";
 import { ConfirmationDialog } from "@/components/shared/confirmation-dialog";

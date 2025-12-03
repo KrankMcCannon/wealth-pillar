@@ -5,6 +5,7 @@
  * Uses project palette and smooth animations
  */
 
+import { SkeletonList } from "@/components/ui/primitives";
 import { SHIMMER_BASE } from "@/lib/utils/ui-constants";
 
 export const BudgetCardSkeleton = () => (
@@ -28,11 +29,11 @@ export const BudgetCardSkeleton = () => (
 );
 
 export const BudgetListSkeleton = () => (
-  <div className="space-y-3">
-    {[1, 2, 3].map(i => (
-      <BudgetCardSkeleton key={i} />
-    ))}
-  </div>
+  <SkeletonList
+    count={3}
+    spacing="space-y-3"
+    renderItem={() => <BudgetCardSkeleton />}
+  />
 );
 
 export const BudgetDetailsSkeleton = () => (
@@ -66,9 +67,11 @@ export const BudgetDetailsSkeleton = () => (
 );
 
 export const TransactionListSkeleton = () => (
-  <div className="space-y-3">
-    {[1, 2, 3, 4].map(i => (
-      <div key={i} className={`p-3 rounded-lg border border-primary/20 bg-card ${SHIMMER_BASE}`}>
+  <SkeletonList
+    count={4}
+    spacing="space-y-3"
+    renderItem={() => (
+      <div className={`p-3 rounded-lg border border-primary/20 bg-card ${SHIMMER_BASE}`}>
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 bg-primary/10 rounded-lg" />
           <div className="flex-1">
@@ -81,8 +84,8 @@ export const TransactionListSkeleton = () => (
           </div>
         </div>
       </div>
-    ))}
-  </div>
+    )}
+  />
 );
 
 export const BudgetPageSkeleton = () => (
@@ -103,14 +106,17 @@ export const BudgetPageSkeleton = () => (
 
     {/* User selector skeleton */}
     <section className="bg-card/80 backdrop-blur-xl py-3 border-b border-primary/20 shadow-sm">
-      <div className="flex items-center gap-2 pl-4" style={{ height: '44px' }}>
-        {[1, 2, 3].map(i => (
-          <div key={i} className="flex-shrink-0 flex items-center gap-2 px-3 py-2 rounded-2xl bg-muted animate-pulse">
+      <SkeletonList
+        count={3}
+        spacing="flex items-center gap-2 pl-4"
+        style={{ height: 44 }}
+        renderItem={() => (
+          <div className="flex-shrink-0 flex items-center gap-2 px-3 py-2 rounded-2xl bg-muted animate-pulse">
             <div className="w-5 h-5 bg-muted-foreground/30 rounded-full" />
             <div className="w-12 h-3 bg-muted-foreground/30 rounded" />
           </div>
-        ))}
-      </div>
+        )}
+      />
     </section>
 
     {/* Main content skeleton */}

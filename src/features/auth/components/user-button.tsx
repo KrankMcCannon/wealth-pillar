@@ -3,8 +3,6 @@
 import { UserButton as ClerkUserButton } from "@clerk/nextjs";
 import { LogOut, Settings, User } from "lucide-react";
 import {
-  Avatar,
-  AvatarImage,
   Button,
   DropdownMenu,
   DropdownMenuContent,
@@ -13,6 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/src/components/ui";
+import Image from "next/image";
 
 interface UserButtonProps {
   showName?: boolean;
@@ -20,10 +19,7 @@ interface UserButtonProps {
 }
 
 export function UserButton({ showName = false, variant = "default" }: UserButtonProps) {
-  // If not authenticated, don't show anything
-  // if (!isAuthenticated || !user) {
-  //   return null;
-  // }
+  const avatarUrl = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent("")}`;
 
   // Use Clerk's built-in UserButton if specified
   if (variant === "clerk") {
@@ -44,14 +40,14 @@ export function UserButton({ showName = false, variant = "default" }: UserButton
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="flex items-center gap-2 px-2 py-1 h-auto">
-          <Avatar className="w-8 h-8">
-            <AvatarImage
-              src={`https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent("")}`}
-              alt={""}
-              sizes="32px"
-              priority={false}
+          <div className="w-8 h-8 rounded-xl overflow-hidden bg-muted">
+            <Image
+              src={avatarUrl}
+              alt=""
+              loading="lazy"
+              className="h-full w-full object-cover"
             />
-          </Avatar>
+          </div>
           {showName && (
             <div className="flex flex-col items-start text-left">
               <span className="text-sm font-medium">{""}</span>

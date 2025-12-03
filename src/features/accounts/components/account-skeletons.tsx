@@ -3,6 +3,7 @@
  * Progressive loading placeholders with smooth animations
  */
 
+import { SkeletonList } from "@/components/ui/primitives";
 import { SHIMMER_BASE } from "@/lib/utils/ui-constants";
 
 /**
@@ -42,17 +43,19 @@ export function BalanceCardSkeleton() {
         </div>
 
         {/* Statistics grid */}
-        <div className="grid grid-cols-3 gap-3 mt-6">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="bg-primary/5 rounded-lg p-3 border border-primary/10 space-y-2">
+        <SkeletonList
+          count={3}
+          spacing="grid grid-cols-3 gap-3 mt-6"
+          renderItem={() => (
+            <div className="bg-primary/5 rounded-lg p-3 border border-primary/10 space-y-2">
               <div className="flex items-center gap-2 mb-1">
                 <div className="w-4 h-4 bg-muted rounded" />
                 <div className="h-2 w-12 bg-muted rounded" />
               </div>
               <div className="h-5 w-8 bg-muted rounded" />
             </div>
-          ))}
-        </div>
+          )}
+        />
       </div>
     </div>
   );
@@ -65,27 +68,29 @@ export function AccountListSkeleton() {
   return (
     <div className="px-4">
       <div className="h-5 w-32 bg-muted rounded animate-pulse mb-4" />
-      <div className="space-y-3">
-        {Array.from({ length: 3 }).map((_, i) => (
-          <div key={i} className={`p-4 rounded-lg border border-primary/20 bg-card ${SHIMMER_BASE}`}>
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-3 flex-1">
-                <div className="w-10 h-10 bg-muted rounded-lg" />
-                <div className="flex-1">
-                  <div className="h-4 w-24 bg-muted rounded mb-2" />
-                  <div className="h-3 w-16 bg-muted rounded" />
-                </div>
-              </div>
-              <div className="text-right">
-                <div className="h-4 w-20 bg-muted rounded mb-1" />
+    <SkeletonList
+      count={3}
+      spacing="space-y-3"
+      renderItem={() => (
+        <div className={`p-4 rounded-lg border border-primary/20 bg-card ${SHIMMER_BASE}`}>
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-3 flex-1">
+              <div className="w-10 h-10 bg-muted rounded-lg" />
+              <div className="flex-1">
+                <div className="h-4 w-24 bg-muted rounded mb-2" />
                 <div className="h-3 w-16 bg-muted rounded" />
               </div>
             </div>
+            <div className="text-right">
+              <div className="h-4 w-20 bg-muted rounded mb-1" />
+              <div className="h-3 w-16 bg-muted rounded" />
+            </div>
           </div>
-        ))}
-      </div>
-    </div>
-  );
+        </div>
+      )}
+    />
+  </div>
+);
 }
 
 /**
@@ -94,14 +99,13 @@ export function AccountListSkeleton() {
 export function BalanceSectionSliderSkeleton() {
   return (
     <div className="overflow-x-auto scrollbar-hide mb-4">
-      <div className="flex gap-3 pb-2">
-        {Array.from({ length: 3 }).map((_, i) => (
-          <div
-            key={i}
-            className="shrink-0 w-60 h-24 bg-primary/10 rounded-lg animate-pulse border border-primary/20"
-          />
-        ))}
-      </div>
+      <SkeletonList
+        count={3}
+        spacing="flex gap-3 pb-2"
+        height="h-24"
+        width="w-60"
+        className="shrink-0 border border-primary/20 bg-primary/10"
+      />
     </div>
   );
 }

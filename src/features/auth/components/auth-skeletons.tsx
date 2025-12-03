@@ -4,6 +4,8 @@
  * Uses shimmer animation for visual feedback
  */
 
+import { SkeletonList } from "@/components/ui/primitives";
+
 /**
  * Sign-in form skeleton
  */
@@ -48,11 +50,12 @@ export function SignInSkeleton() {
           </div>
 
           {/* Social buttons */}
-          <div className="space-y-1.5">
-            {[1, 2, 3].map(i => (
-              <div key={i} className="h-9 bg-muted/50 rounded-lg animate-pulse"></div>
-            ))}
-          </div>
+          <SkeletonList
+            count={3}
+            spacing="space-y-1.5"
+            height="h-9"
+            className="bg-muted/50"
+          />
 
           {/* Sign up link */}
           <div className="h-4 bg-muted/50 rounded animate-pulse w-40 mx-auto"></div>
@@ -124,11 +127,12 @@ export function SignUpSkeleton() {
           </div>
 
           {/* Social buttons */}
-          <div className="space-y-1.5">
-            {[1, 2, 3].map(i => (
-              <div key={i} className="h-9 bg-muted/50 rounded-lg animate-pulse"></div>
-            ))}
-          </div>
+          <SkeletonList
+            count={3}
+            spacing="space-y-1.5"
+            height="h-9"
+            className="bg-muted/50"
+          />
 
           {/* Sign in link */}
           <div className="h-4 bg-muted/50 rounded animate-pulse w-40 mx-auto"></div>

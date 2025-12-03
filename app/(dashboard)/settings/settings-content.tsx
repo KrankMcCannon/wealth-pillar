@@ -5,7 +5,6 @@ import { settingsStyles } from "@/src/features/settings/theme";
 import { deleteUserAction } from "@/src/features/settings";
 import { DeleteAccountModal } from "@/src/features/settings";
 import {
-  ArrowLeft,
   BarChart3,
   Bell,
   ChevronRight,

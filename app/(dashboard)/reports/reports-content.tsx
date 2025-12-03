@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useMemo } from "react";
-import { useRouter } from "next/navigation";
 import { BottomNavigation, PageContainer, PageHeaderWithBack } from "@/src/components/layout";
 import { useUserFilter } from "@/hooks";
 import UserSelector from "@/src/components/shared/user-selector";
@@ -10,8 +9,6 @@ import {
   BudgetPeriodsSection,
   reportsStyles,
 } from "@/features/reports";
-import { ArrowLeft } from "lucide-react";
-import { Button } from "@/src/components/ui";
 import type { DashboardDataProps } from "@/lib/auth/get-dashboard-data";
 import type { Transaction, Category, BudgetPeriod } from "@/lib/types";
 import { TransactionService, CategoryService } from "@/lib/services";
@@ -30,10 +27,8 @@ export default function ReportsContent({
   transactions,
   categories,
 }: ReportsContentProps) {
-  const router = useRouter();
-
   // User filtering state management using shared hook
-  const { selectedGroupFilter, setSelectedGroupFilter, selectedUserId } = useUserFilter();
+  const { selectedGroupFilter, setSelectedGroupFilter } = useUserFilter();
 
   // Aggregate budget periods from all users or selected user
   const allBudgetPeriods = useMemo<BudgetPeriod[]>(() => {

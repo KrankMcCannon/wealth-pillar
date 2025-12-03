@@ -1,5 +1,3 @@
-"use client";
-
 import { cn } from "@/lib";
 
 export interface SkeletonBoxProps {
@@ -26,9 +24,10 @@ export function SkeletonBox({
       className={cn(
         variantClasses[variant],
         "rounded-lg animate-pulse",
+        height,
+        width,
         className
       )}
-      style={{ height, width }}
     />
   );
 }

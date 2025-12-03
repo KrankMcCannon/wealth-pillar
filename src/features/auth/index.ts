@@ -4,10 +4,8 @@
  */
 
 // Components
-export * from "./components/auth-guard";
 export * from "./components/auth-card";
 export * from "./components/user-button";
-export * from "./components/auth-method-toggle";
 export * from "./components/email-suggestions";
 export * from "./components/social-buttons";
 export * from "./components/auth-skeletons";

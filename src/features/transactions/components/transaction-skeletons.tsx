@@ -1,10 +1,11 @@
-'use client';
+"use client";
 
 /**
  * Modern skeleton components for transactions pages
  * Uses project palette and smooth animations
  */
 
+import { SkeletonList } from "@/components/ui/primitives";
 import { SHIMMER_BASE } from "@/lib/utils/ui-constants";
 
 export const TransactionHeaderSkeleton = () => (
@@ -19,14 +20,17 @@ export const TransactionHeaderSkeleton = () => (
 
 export const UserSelectorSkeleton = () => (
   <section className={`sticky top-[60px] z-10 bg-card/80 backdrop-blur-sm border-b border-primary/20 px-3 sm:px-4 py-2 ${SHIMMER_BASE}`}>
-    <div className="flex items-center gap-2" style={{ height: '44px' }}>
-      {[1, 2, 3].map((i) => (
-        <div key={i} className="shrink-0 flex items-center gap-2 px-3 py-2 rounded-2xl bg-muted">
+    <SkeletonList
+      count={3}
+      spacing="flex items-center gap-2"
+      style={{ height: 44 }}
+      renderItem={() => (
+        <div className="shrink-0 flex items-center gap-2 px-3 py-2 rounded-2xl bg-muted">
           <div className="w-5 h-5 bg-muted-foreground/30 rounded-full" />
           <div className="w-12 h-3 bg-muted-foreground/30 rounded" />
         </div>
-      ))}
-    </div>
+      )}
+    />
   </section>
 );
 
@@ -58,18 +62,20 @@ export const TransactionDayGroupSkeleton = () => (
     </div>
 
     {/* Transaction cards */}
-    {[1, 2, 3].map((i) => (
-      <TransactionCardSkeleton key={i} />
-    ))}
+    <SkeletonList
+      count={3}
+      spacing="space-y-3"
+      renderItem={() => <TransactionCardSkeleton />}
+    />
   </div>
 );
 
 export const TransactionListSkeleton = () => (
-  <div className="space-y-6">
-    {[1, 2, 3].map((i) => (
-      <TransactionDayGroupSkeleton key={i} />
-    ))}
-  </div>
+  <SkeletonList
+    count={3}
+    spacing="space-y-6"
+    renderItem={() => <TransactionDayGroupSkeleton />}
+  />
 );
 
 export const SearchFilterSkeleton = () => (
@@ -83,24 +89,32 @@ export const SearchFilterSkeleton = () => (
 
 export const TabNavigationSkeleton = () => (
   <div className={`flex gap-2 border-b border-primary/20 px-3 py-2 ${SHIMMER_BASE}`}>
-    {[1, 2].map((i) => (
-      <div key={i} className="h-10 bg-muted rounded-lg w-24" />
-    ))}
+    <SkeletonList
+      count={2}
+      spacing="flex gap-2 w-full"
+      height="h-10"
+      width="w-24"
+      className="bg-muted rounded-lg"
+    />
   </div>
 );
 
 export const RecurringSeriesSkeleton = () => (
   <div className={`p-4 rounded-lg border border-primary/20 bg-card space-y-4 ${SHIMMER_BASE}`}>
-    {[1, 2, 3].map((i) => (
-      <div key={i} className="flex items-center gap-3">
-        <div className="w-10 h-10 bg-primary/10 rounded-lg shrink-0" />
-        <div className="flex-1">
-          <div className="h-4 bg-muted rounded w-3/4 mb-1" />
-          <div className="h-3 bg-muted rounded w-1/2" />
+    <SkeletonList
+      count={3}
+      spacing="space-y-4"
+      renderItem={() => (
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-primary/10 rounded-lg shrink-0" />
+          <div className="flex-1">
+            <div className="h-4 bg-muted rounded w-3/4 mb-1" />
+            <div className="h-3 bg-muted rounded w-1/2" />
+          </div>
+          <div className="w-8 h-8 bg-muted rounded-lg shrink-0" />
         </div>
-        <div className="w-8 h-8 bg-muted rounded-lg shrink-0" />
-      </div>
-    ))}
+      )}
+    />
   </div>
 );
 

@@ -3,11 +3,6 @@
  * Organized exports for all dashboard components
  */
 
-// Layout Components
-export * from './dashboard-grid';
-export * from './metric-card';
-export * from './stats-section';
-
 // Skeleton Components
 export {
   DashboardHeaderSkeleton,
