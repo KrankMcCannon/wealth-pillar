@@ -10,6 +10,7 @@
 import { Suspense, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, MoreVertical, Plus, Filter } from "lucide-react";
+import { useUserFilter } from "@/hooks";
 import {
   Badge,
   Button,
@@ -18,7 +19,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/src/components/ui";
-import { BottomNavigation } from "@/src/components/layout";
+import { BottomNavigation, PageContainer, PageHeaderWithBack } from "@/src/components/layout";
 import TabNavigation from "@/src/components/shared/tab-navigation";
 import UserSelector from "@/src/components/shared/user-selector";
 import { ConfirmationDialog } from "@/components/shared/confirmation-dialog";
@@ -56,8 +57,8 @@ export default function TransactionsContent({
 }: TransactionsContentProps) {
   const router = useRouter();
 
-  // State management
-  const [selectedGroupFilter, setSelectedGroupFilter] = useState<string>('all');
+  // User filtering state management using shared hook
+  const { selectedGroupFilter, setSelectedGroupFilter, selectedUserId } = useUserFilter();
   const [activeTab, setActiveTab] = useState<string>('Transactions');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -71,8 +72,6 @@ export default function TransactionsContent({
 
   // Optimistic UI state - local copy of transactions
   const [localTransactions, setLocalTransactions] = useState<Transaction[]>(transactions);
-
-  const selectedUserId = selectedGroupFilter === 'all' ? undefined : selectedGroupFilter;
 
   // Create account names map for display
   const accountNames = useMemo(() => {
@@ -166,10 +165,7 @@ export default function TransactionsContent({
   };
 
   return (
-    <div
-      className={transactionStyles.page.container}
-      style={{ fontFamily: '"Inter", "SF Pro Display", system-ui, sans-serif' }}
-    >
+    <PageContainer className={transactionStyles.page.container}>
       {/* Header */}
       <header className={transactionStyles.header.container}>
         <div className={transactionStyles.header.inner}>
@@ -403,6 +399,6 @@ export default function TransactionsContent({
         variant="destructive"
         isLoading={isDeleting}
       />
-    </div>
+    </PageContainer>
   );
 }

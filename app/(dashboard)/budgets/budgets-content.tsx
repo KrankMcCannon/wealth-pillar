@@ -9,7 +9,8 @@
 
 import { useState, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { BottomNavigation } from "@/components/layout";
+import { BottomNavigation, PageContainer } from "@/components/layout";
+import { useUserFilter } from "@/hooks";
 import UserSelector from "@/components/shared/user-selector";
 import { ConfirmationDialog } from "@/components/shared/confirmation-dialog";
 import { BudgetForm, BudgetPeriodManager } from "@/features/budgets";
@@ -67,8 +68,8 @@ export default function BudgetsContent({
   const initialBudgetId = searchParams.get("budget");
   const initialMember = searchParams.get("member");
 
-  // State management - initialize from URL params
-  const [selectedGroupFilter, setSelectedGroupFilter] = useState<string>(initialMember || "all");
+  // User filtering state management using shared hook (initialized from URL params)
+  const { selectedGroupFilter, setSelectedGroupFilter, selectedUserId } = useUserFilter(initialMember || "all");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [selectedBudgetId, setSelectedBudgetId] = useState<string | null>(initialBudgetId);
 
@@ -84,8 +85,7 @@ export default function BudgetsContent({
   const [formMode, setFormMode] = useState<"create" | "edit">("create");
   const [isDeletingBudget, setIsDeletingBudget] = useState(false);
 
-  // Determine selected user ID
-  const selectedUserId = selectedGroupFilter === "all" ? undefined : selectedGroupFilter;
+  // selectedUserId is provided by useUserFilter hook
 
   // Calculate budgets by user using BudgetService
   const budgetsByUser = useMemo(() => {
@@ -350,7 +350,7 @@ export default function BudgetsContent({
   }, [selectedBudget, budgets]);
 
   return (
-    <div className={budgetStyles.page.container}>
+    <PageContainer className={budgetStyles.page.container}>
       {/* Header with navigation and actions */}
       <BudgetHeader
         isDropdownOpen={isDropdownOpen}
@@ -560,6 +560,6 @@ export default function BudgetsContent({
         onConfirm={confirmDeleteBudget}
         isLoading={isDeletingBudget}
       />
-    </div>
+    </PageContainer>
   );
 }

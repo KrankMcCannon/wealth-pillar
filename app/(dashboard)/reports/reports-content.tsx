@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { BottomNavigation } from "@/src/components/layout";
+import { BottomNavigation, PageContainer, PageHeaderWithBack } from "@/src/components/layout";
+import { useUserFilter } from "@/hooks";
 import UserSelector from "@/src/components/shared/user-selector";
 import {
   TransactionSplitCard,
@@ -30,7 +31,9 @@ export default function ReportsContent({
   categories,
 }: ReportsContentProps) {
   const router = useRouter();
-  const [selectedGroupFilter, setSelectedGroupFilter] = useState<string>("all");
+
+  // User filtering state management using shared hook
+  const { selectedGroupFilter, setSelectedGroupFilter, selectedUserId } = useUserFilter();
 
   // Aggregate budget periods from all users or selected user
   const allBudgetPeriods = useMemo<BudgetPeriod[]>(() => {
@@ -88,18 +91,10 @@ export default function ReportsContent({
   }, [categories]);
 
   return (
-    <div className={reportsStyles.page.container} style={reportsStyles.page.style}>
+    <PageContainer className={reportsStyles.page.container}>
       <div>
         {/* Header */}
-        <header className={reportsStyles.header.container}>
-          <div className={reportsStyles.header.inner}>
-            <Button variant="ghost" size="sm" className={reportsStyles.header.button} onClick={() => router.back()}>
-              <ArrowLeft className="h-5 w-5 sm:h-6 sm:w-6" />
-            </Button>
-            <h1 className={reportsStyles.header.title}>Rapporti</h1>
-            <div className={reportsStyles.header.spacer}></div>
-          </div>
-        </header>
+        <PageHeaderWithBack title="Rapporti" />
 
         {/* User Selector */}
         <UserSelector
@@ -143,6 +138,6 @@ export default function ReportsContent({
 
       {/* Bottom Navigation */}
       <BottomNavigation />
-    </div>
+    </PageContainer>
   );
 }
