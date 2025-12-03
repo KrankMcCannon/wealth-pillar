@@ -1,0 +1,883 @@
+Here is Claude's plan:
+╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌
+ UI Component Cleanup & Refactoring Plan
+
+ Objective: Comprehensive cleanup to delete 22 unused components and extract 7+ reusable patterns across the codebase.
+
+ Approach: Aggressive deletion + Full pattern extraction
+ Estimated Impact: ~800-1000 lines of code reduction, 35+ files improved
+ Estimated Time: 4-5 hours of focused work
+
+ ---
+ Executive Summary
+
+ Components to Delete (22 total)
+
+ - src/components/: 15 unused components
+ - src/features/: 7 unused components
+
+ Patterns to Extract
+
+ 1. SHIMMER_BASE constant → 5+ files affected
+ 2. StickyHeader component → 11+ files affected
+ 3. BackButton component → 7+ files affected
+ 4. useUserFilter hook → 4+ pages affected
+ 5. SkeletonBox/SkeletonList components → 15+ files affected
+ 6. PageContainer component → 5+ files affected
+ 7. PageHeaderWithBack component → 3+ files affected
+
+ Components to Relocate
+
+ - PermissionGuard (permissions → shared)
+ - RoleBadge (permissions → ui)
+ - PasswordInput (auth → ui)
+ - PasswordStrength (auth → ui)
+ - PasswordRequirements (auth → ui)
+
+ ---
+ Phase 1: Preparation & Baseline (10 min)
+
+ Goals
+
+ - Establish TypeScript baseline
+ - Create git checkpoint
+ - Document current component inventory
+
+ Steps
+
+ 1. Run TypeScript check to establish baseline
+ npx tsc --noEmit
+ 2. Create git checkpoint
+ git add -A
+ git commit -m "checkpoint: before component cleanup"
+ 3. Verify all tests pass (if any exist)
+ npm test
+
+ Verification: Clean TypeScript build, clean git status
+
+ ---
+ Phase 2: Extract Constants (20 min)
+
+ Goal
+
+ Create shared constants file and migrate SHIMMER_BASE usage across 5+ skeleton files.
+
+ Critical Files
+
+ - NEW: /src/lib/utils/ui-constants.ts
+ - MODIFY:
+   - /src/features/accounts/components/account-skeletons.tsx
+   - /src/features/accounts/components/AccountsList.tsx
+   - /src/features/transactions/components/transaction-skeletons.tsx
+   - /src/features/accounts/components/TotalBalanceCard.tsx
+   - /src/features/budgets/components/budget-skeletons.tsx
+
+ Steps
+
+ 1. Create new constants file
+
+ 1. /src/lib/utils/ui-constants.ts:
+ /**
+  * Shared UI Constants
+  * Centralized location for commonly used UI values across components
+  */
+
+ /** Shimmer animation for loading skeletons */
+ export const SHIMMER_BASE =
+   "relative overflow-hidden before:absolute before:inset-0 before:-translate-x-full " +
+   "before:animate-[shimmer_2s_infinite] before:bg-gradient-to-r " +
+   "before:from-transparent before:via-white/60 before:to-transparent";
+
+ /** Base classes for sticky headers */
+ export const STICKY_HEADER_BASE =
+   "sticky top-0 backdrop-blur-xl border-b shadow-sm";
+ 2. Update skeleton files to import constant
+
+ 2. Search for: const shimmerBase = "relative overflow-hidden..."
+
+ 2. Replace with:
+ import { SHIMMER_BASE } from "@/lib/utils/ui-constants";
+ // Then use SHIMMER_BASE instead of shimmerBase in className
+ 3. Run TypeScript check
+ npx tsc --noEmit
+ 4. Commit
+ git add -A
+ git commit -m "refactor: extract SHIMMER_BASE constant to shared location"
+
+ Verification: No TypeScript errors, all skeleton files use shared constant
+
+ ---
+ Phase 3: Create New Shared Components (60 min)
+
+ Goal
+
+ Build all new reusable components BEFORE using them to avoid breaking changes.
+
+ Components to Create
+
+ 3.1 BackButton Component (10 min)
+
+ NEW: /src/components/shared/back-button.tsx
+
+ "use client";
+
+ import { useRouter } from "next/navigation";
+ import { ArrowLeft } from "lucide-react";
+ import { Button } from "@/components/ui";
+ import { cn } from "@/lib";
+
+ interface BackButtonProps {
+   onClick?: () => void;
+   className?: string;
+   variant?: "ghost" | "outline";
+   size?: "sm" | "md";
+ }
+
+ export function BackButton({
+   onClick,
+   className,
+   variant = "ghost",
+   size = "sm"
+ }: BackButtonProps) {
+   const router = useRouter();
+
+   const handleClick = () => {
+     if (onClick) {
+       onClick();
+     } else {
+       router.back();
+     }
+   };
+
+   return (
+     <Button
+       variant={variant}
+       size={size}
+       onClick={handleClick}
+       className={cn(
+         "hover:bg-primary/10 text-primary rounded-xl transition-all",
+         className
+       )}
+     >
+       <ArrowLeft className="h-5 w-5 sm:h-6 sm:w-6" />
+     </Button>
+   );
+ }
+
+ 3.2 StickyHeader Component (15 min)
+
+ NEW: /src/components/layout/sticky-header.tsx
+
+ "use client";
+
+ import { cn } from "@/lib";
+ import { STICKY_HEADER_BASE } from "@/lib/utils/ui-constants";
+
+ interface StickyHeaderProps {
+   variant?: "primary" | "secondary" | "light";
+   zIndex?: 10 | 20;
+   children: React.ReactNode;
+   className?: string;
+ }
+
+ export function StickyHeader({
+   variant = "primary",
+   zIndex = 20,
+   children,
+   className
+ }: StickyHeaderProps) {
+   const variantClasses = {
+     primary: "bg-card/80 border-primary/20 px-4 py-3",
+     secondary: "bg-card/70 border-primary/20 px-3 sm:px-4 py-2 sm:py-3",
+     light: "bg-[#F8FAFC]/95 border-border px-4 py-4"
+   };
+
+   return (
+     <header
+       className={cn(
+         STICKY_HEADER_BASE,
+         `z-${zIndex}`,
+         variantClasses[variant],
+         className
+       )}
+     >
+       {children}
+     </header>
+   );
+ }
+
+ 3.3 PageContainer Component (10 min)
+
+ NEW: /src/components/layout/page-container.tsx
+
+ "use client";
+
+ import { cn } from "@/lib";
+
+ interface PageContainerProps {
+   children: React.ReactNode;
+   className?: string;
+ }
+
+ export function PageContainer({ children, className }: PageContainerProps) {
+   return (
+     <div
+       className={cn(
+         "relative flex size-full min-h-[100dvh] flex-col bg-card",
+         className
+       )}
+       style={{ fontFamily: '"Inter", "SF Pro Display", system-ui, sans-serif' }}
+     >
+       {children}
+     </div>
+   );
+ }
+
+ 3.4 PageHeaderWithBack Component (10 min)
+
+ NEW: /src/components/layout/page-header-with-back.tsx
+
+ "use client";
+
+ import { useRouter } from "next/navigation";
+ import { StickyHeader } from "./sticky-header";
+ import { BackButton } from "@/components/shared/back-button";
+
+ interface PageHeaderWithBackProps {
+   title: string;
+   onBack?: () => void;
+   actions?: React.ReactNode;
+   variant?: "primary" | "secondary" | "light";
+ }
+
+ export function PageHeaderWithBack({
+   title,
+   onBack,
+   actions,
+   variant = "primary"
+ }: PageHeaderWithBackProps) {
+   return (
+     <StickyHeader variant={variant}>
+       <div className="flex items-center justify-between">
+         <BackButton onClick={onBack} />
+         <h1 className="text-base sm:text-lg font-semibold text-primary">{title}</h1>
+         {actions ? actions : <div className="w-10" />}
+       </div>
+     </StickyHeader>
+   );
+ }
+
+ 3.5 Skeleton Components (15 min)
+
+ NEW: /src/components/ui/primitives/skeleton-box.tsx
+
+ "use client";
+
+ import { cn } from "@/lib";
+
+ interface SkeletonBoxProps {
+   height: string;
+   width?: string;
+   variant?: "light" | "medium" | "dark";
+   className?: string;
+ }
+
+ export function SkeletonBox({
+   height,
+   width,
+   variant = "medium",
+   className
+ }: SkeletonBoxProps) {
+   const variantClasses = {
+     light: "bg-slate-50",
+     medium: "bg-slate-100",
+     dark: "bg-slate-200"
+   };
+
+   return (
+     <div
+       className={cn(
+         variantClasses[variant],
+         "rounded-lg animate-pulse",
+         className
+       )}
+       style={{ height, width }}
+     />
+   );
+ }
+
+ NEW: /src/components/ui/primitives/skeleton-list.tsx
+
+ "use client";
+
+ import { SkeletonBox } from "./skeleton-box";
+
+ interface SkeletonListProps {
+   count: number;
+   height?: string;
+   spacing?: string;
+   variant?: "light" | "medium" | "dark";
+   className?: string;
+ }
+
+ export function SkeletonList({
+   count,
+   height = "h-16",
+   spacing = "space-y-2",
+   variant = "medium",
+   className
+ }: SkeletonListProps) {
+   return (
+     <div className={spacing}>
+       {Array.from({ length: count }).map((_, i) => (
+         <SkeletonBox
+           key={i}
+           height={height}
+           variant={variant}
+           className={className}
+         />
+       ))}
+     </div>
+   );
+ }
+
+ Steps
+
+ 1. Create all 6 new component files (listed above)
+ 2. Update index exports
+
+ 2. Update /src/components/shared/index.ts:
+ export * from "./back-button";
+ // ... existing exports
+
+ 2. Update /src/components/layout/index.ts:
+ export * from "./sticky-header";
+ export * from "./page-container";
+ export * from "./page-header-with-back";
+ // ... existing exports
+
+ 2. Update /src/components/ui/primitives/index.ts:
+ export * from "./skeleton-box";
+ export * from "./skeleton-list";
+ // ... existing exports
+ 3. Run TypeScript check
+ npx tsc --noEmit
+ 4. Commit
+ git add -A
+ git commit -m "feat: add reusable UI components (BackButton, StickyHeader, PageContainer, etc)"
+
+ Verification: All new components compile, exports available
+
+ ---
+ Phase 4: Extract Custom Hook (20 min)
+
+ Goal
+
+ Create useUserFilter hook to eliminate duplicate state management across 4 pages.
+
+ Critical Files
+
+ - NEW: /src/hooks/use-user-filter.ts
+ - NEW: /src/hooks/index.ts (if doesn't exist)
+
+ Steps
+
+ 1. Create hooks directory if needed
+ mkdir -p src/hooks
+ 2. Create useUserFilter hook
+
+ 2. /src/hooks/use-user-filter.ts:
+ "use client";
+
+ import { useState, useMemo } from "react";
+
+ interface UseUserFilterReturn {
+   selectedGroupFilter: string;
+   setSelectedGroupFilter: (filter: string) => void;
+   selectedUserId: string | undefined;
+ }
+
+ /**
+  * Custom hook for managing user filter state
+  * Used across dashboard, budgets, reports, and transactions pages
+  */
+ export function useUserFilter(
+   initialFilter: string = "all"
+ ): UseUserFilterReturn {
+   const [selectedGroupFilter, setSelectedGroupFilter] = useState(initialFilter);
+
+   const selectedUserId = useMemo(
+     () => selectedGroupFilter === "all" ? undefined : selectedGroupFilter,
+     [selectedGroupFilter]
+   );
+
+   return {
+     selectedGroupFilter,
+     setSelectedGroupFilter,
+     selectedUserId,
+   };
+ }
+ 3. Create hooks index
+
+ 3. /src/hooks/index.ts:
+ export * from "./use-user-filter";
+ 4. Run TypeScript check
+ npx tsc --noEmit
+ 5. Commit
+ git add -A
+ git commit -m "feat: add useUserFilter hook for shared state management"
+
+ Verification: Hook compiles and exports correctly
+
+ ---
+ Phase 5: Relocate Feature Components (40 min)
+
+ Goal
+
+ Move 5 components from features to shared/ui locations for better reusability.
+
+ Components to Move
+
+ 5.1 PermissionGuard (permissions → shared)
+
+ 1. Copy file
+ cp src/features/permissions/components/permission-guard.tsx \
+    src/components/shared/permission-guard.tsx
+ 2. Update imports in new file (if needed)
+ 3. Update feature index to re-export from new location
+
+ 3. /src/features/permissions/components/index.ts:
+ // Re-export from shared
+ export { PermissionGuard } from "@/components/shared/permission-guard";
+ export * from "./role-badge"; // Keep this local for now
+ 4. Update shared index
+
+ 4. /src/components/shared/index.ts:
+ export * from "./permission-guard";
+
+ 5.2 RoleBadge (permissions → ui)
+
+ 1. Copy file
+ cp src/features/permissions/components/role-badge.tsx \
+    src/components/ui/role-badge.tsx
+ 2. Update imports in new file (if needed)
+ 3. Update feature index to re-export
+
+ 3. /src/features/permissions/components/index.ts:
+ export { PermissionGuard } from "@/components/shared/permission-guard";
+ export { RoleBadge } from "@/components/ui/role-badge";
+ 4. Update ui index
+
+ 4. /src/components/ui/index.ts:
+ export * from "./role-badge";
+
+ 5.3 Password Components (auth → ui)
+
+ 1. Copy files
+ cp src/features/auth/components/password-input.tsx \
+    src/components/ui/password-input.tsx
+ cp src/features/auth/components/password-strength.tsx \
+    src/components/ui/password-strength.tsx
+ cp src/features/auth/components/password-requirements.tsx \
+    src/components/ui/password-requirements.tsx
+ 2. Update imports in new files
+   - Change relative imports to absolute @/ imports
+   - Ensure all dependencies are accessible
+ 3. Update auth feature index
+
+ 3. /src/features/auth/components/index.ts:
+ // Re-export from UI
+ export { PasswordInput } from "@/components/ui/password-input";
+ export { PasswordStrength } from "@/components/ui/password-strength";
+ export { PasswordRequirements } from "@/components/ui/password-requirements";
+ // ... other auth components stay
+ 4. Update ui index
+
+ 4. /src/components/ui/index.ts:
+ export * from "./password-input";
+ export * from "./password-strength";
+ export * from "./password-requirements";
+
+ Steps
+
+ 1. Move all 5 components (as detailed above)
+ 2. Update all index files
+ 3. Run TypeScript check
+ npx tsc --noEmit
+ 4. Verify auth pages still work (sign-in, sign-up)
+ 5. Commit
+ git add -A
+ git commit -m "refactor: relocate PermissionGuard, RoleBadge, and password components to shared locations"
+
+ Verification: All moved components accessible from new locations, no TypeScript errors
+
+ ---
+ Phase 6: Refactor Pages to Use New Patterns (90 min)
+
+ Goal
+
+ Update content pages to use new hooks and components.
+
+ Pages to Refactor
+
+ 6.1 Dashboard Content (20 min)
+
+ MODIFY: /app/(dashboard)/dashboard/dashboard-content.tsx
+
+ 1. Add imports
+ import { useUserFilter } from "@/hooks";
+ import { PageContainer } from "@/components/layout";
+ 2. Replace state management
+
+ 2. Remove:
+ const [selectedGroupFilter, setSelectedGroupFilter] = useState<string>('all');
+ const selectedUserId = selectedGroupFilter === 'all' ? undefined : selectedGroupFilter;
+
+ 2. Replace with:
+ const { selectedGroupFilter, setSelectedGroupFilter, selectedUserId } = useUserFilter();
+ 3. Replace page container
+
+ 3. Remove:
+ <div className="relative flex size-full min-h-[100dvh] flex-col bg-card"
+      style={{ fontFamily: '"Inter", "SF Pro Display", system-ui, sans-serif' }}>
+
+ 3. Replace with:
+ <PageContainer>
+ 4. Run TypeScript check
+
+ 6.2 Budgets Content (25 min)
+
+ MODIFY: /app/(dashboard)/budgets/budgets-content.tsx
+
+ 1. Add imports
+ import { useUserFilter } from "@/hooks";
+ import { PageContainer } from "@/components/layout";
+ 2. Replace state management (same as dashboard)
+ 3. Replace page container (same as dashboard)
+ 4. Update BudgetHeader usage
+
+ 4. If BudgetHeader will be refactored to use PageHeaderWithBack internally, ensure consistency.
+ 5. Run TypeScript check
+
+ 6.3 Reports Content (20 min)
+
+ MODIFY: /app/(dashboard)/reports/reports-content.tsx
+
+ 1. Add imports
+ import { useUserFilter } from "@/hooks";
+ import { PageContainer, PageHeaderWithBack } from "@/components/layout";
+ 2. Replace state management
+ 3. Replace header
+
+ 3. Remove custom header:
+ <header className={styles.header.container}>
+   <Button variant="ghost" onClick={() => router.back()}>
+     <ArrowLeft />
+   </Button>
+   <h1>{title}</h1>
+   <div className="spacer"></div>
+ </header>
+
+ 3. Replace with:
+ <PageHeaderWithBack title="Report" />
+ 4. Replace page container
+ 5. Run TypeScript check
+
+ 6.4 Transactions Content (20 min)
+
+ MODIFY: /app/(dashboard)/transactions/transactions-content.tsx
+
+ Similar refactoring as Reports:
+ - useUserFilter hook
+ - PageContainer
+ - PageHeaderWithBack
+
+ 6.5 Settings Content (20 min)
+
+ MODIFY: /app/(dashboard)/settings/settings-content.tsx
+
+ Similar refactoring:
+ - PageContainer
+ - PageHeaderWithBack
+
+ Steps
+
+ 1. Refactor all 5 content pages (as detailed above)
+ 2. Update BudgetHeader component
+
+ 2. MODIFY: /src/features/budgets/components/BudgetHeader.tsx
+
+ 2. Simplify to use PageHeaderWithBack internally or just use BackButton.
+ 3. Run TypeScript check after each file
+ npx tsc --noEmit
+ 4. Test pages in browser (spot check critical flows)
+ 5. Commit
+ git add -A
+ git commit -m "refactor: update content pages to use new shared components and hooks"
+
+ Verification: All pages compile, no visual regressions
+
+ ---
+ Phase 7: Delete Unused Components (30 min)
+
+ Goal
+
+ Remove all 22 unused components and update index files.
+
+ Files to Delete
+
+ From src/components/
+
+ 1. Delete form components
+ rm src/components/form/form-checkbox-group.tsx
+ 2. Delete layout components
+ rm src/components/layout/content-section.tsx
+ rm src/components/layout/page-header.tsx
+ rm src/components/layout/page-layout.tsx
+ rm src/components/layout/sidebar.tsx
+ 3. Delete shared components
+ rm src/components/shared/theme-provider.tsx
+ 4. Delete ui components
+ rm src/components/ui/avatar.tsx
+ rm src/components/ui/filter-bar.tsx
+ rm src/components/ui/filter-chip.tsx
+ rm src/components/ui/period-selector.tsx
+ rm src/components/ui/progress.tsx
+ rm src/components/ui/scroll-area.tsx
+ 5. Delete ui/layout components
+ rm src/components/ui/layout/empty-state.tsx
+ rm src/components/ui/layout/list-item.tsx
+ rm src/components/ui/layout/section.tsx
+
+ From src/features/
+
+ 6. Delete auth components
+ rm src/features/auth/components/auth-guard.tsx
+ rm src/features/auth/components/auth-method-toggle.tsx
+ 7. Delete dashboard components
+ rm src/features/dashboard/components/dashboard-grid.tsx
+ rm src/features/dashboard/components/metric-card.tsx
+ rm src/features/dashboard/components/stats-section.tsx
+ 8. Delete recurring components
+ rm src/features/recurring/components/recurring-execution-manager.tsx
+ rm src/features/recurring/components/series-reconciliation-view.tsx
+
+ Update Index Files
+
+ Update /src/components/form/index.ts
+
+ Remove:
+ export * from "./form-checkbox-group";
+
+ Update /src/components/layout/index.ts
+
+ Remove:
+ export * from "./content-section";
+ export * from "./page-header";
+ export * from "./page-layout";
+ export * from "./sidebar";
+
+ Update /src/components/shared/index.ts
+
+ Remove:
+ export * from "./theme-provider";
+
+ Update /src/components/ui/index.ts
+
+ Remove:
+ export * from "./avatar";
+ export * from "./filter-bar";
+ export * from "./filter-chip";
+ export * from "./period-selector";
+ export * from "./progress";
+ export * from "./scroll-area";
+
+ Update /src/components/ui/layout/index.ts
+
+ Remove:
+ export * from "./empty-state";
+ export * from "./list-item";
+ export * from "./section";
+
+ Update /src/features/auth/components/index.ts
+
+ Remove:
+ export * from "./auth-guard";
+ export * from "./auth-method-toggle";
+
+ Update /src/features/dashboard/components/index.ts
+
+ Remove:
+ export * from "./dashboard-grid";
+ export * from "./metric-card";
+ export * from "./stats-section";
+
+ Update /src/features/recurring/index.ts
+
+ Remove:
+ export * from "./components/recurring-execution-manager";
+ export * from "./components/series-reconciliation-view";
+
+ Steps
+
+ 1. Delete all 22 files (use commands above)
+ 2. Update all 9 index files (remove exports)
+ 3. Run TypeScript check
+ npx tsc --noEmit
+ 4. Verify no broken imports
+   - Should have no errors since these components were unused
+ 5. Commit
+ git add -A
+ git commit -m "chore: delete 22 unused components and update index files"
+
+ Verification: Clean TypeScript build, no broken imports
+
+ ---
+ Phase 8: Optional - Advanced Skeleton Refactoring (30 min)
+
+ Goal
+
+ Update all skeleton files to use new SkeletonList component.
+
+ Files to Update (15+ files)
+
+ This is OPTIONAL but recommended for consistency:
+
+ 1. /src/features/accounts/components/account-skeletons.tsx
+ 2. /src/features/budgets/components/BudgetLoadingSkeletons.tsx
+ 3. /src/features/dashboard/components/dashboard-skeletons.tsx
+ 4. /src/features/transactions/components/transaction-skeletons.tsx
+ 5. And 11+ more skeleton files
+
+ Pattern
+
+ Replace:
+ {Array.from({ length: 3 }).map((_, i) => (
+   <div key={i} className="h-16 bg-slate-100 rounded-lg animate-pulse" />
+ ))}
+
+ With:
+ <SkeletonList count={3} height="h-16" variant="medium" />
+
+ Steps
+
+ 1. Update each skeleton file systematically
+ 2. Add import
+ import { SkeletonList } from "@/components/ui/primitives";
+ 3. Replace Array.from patterns with SkeletonList
+ 4. Test loading states in browser
+ 5. Commit
+ git add -A
+ git commit -m "refactor: use SkeletonList component in all skeleton files"
+
+ Verification: All loading states work correctly
+
+ ---
+ Phase 9: Final Verification & Documentation (20 min)
+
+ Steps
+
+ 1. Run full TypeScript check
+ npx tsc --noEmit
+ 2. Run build (if applicable)
+ npm run build
+ 3. Run tests (if any)
+ npm test
+ 4. Manual browser testing
+   - Dashboard page
+   - Budgets page with user selector
+   - Reports page
+   - Transactions page
+   - Settings page
+   - Auth pages (sign-in, sign-up)
+ 5. Create final commit
+ git add -A
+ git commit -m "feat: complete UI component cleanup and refactoring
+
+ - Deleted 22 unused components
+ - Extracted 7 reusable patterns (constants, hooks, components)
+ - Relocated 5 components from features to shared
+ - Refactored 5 content pages to use new patterns
+ - Reduced codebase by ~800-1000 lines
+ - Improved consistency across 35+ files"
+ 6. Document changes (optional)
+   - Update README if needed
+   - Add migration notes
+   - Document new shared patterns for team
+
+ Verification: Everything compiles, builds, and runs correctly
+
+ ---
+ Rollback Plan
+
+ If issues occur at any phase:
+
+ 1. Identify problematic commit
+ git log --oneline
+ 2. Revert to checkpoint
+ git reset --hard <commit-hash>
+ 3. Review what went wrong
+ 4. Fix and retry phase
+
+ Each phase is independently revertible.
+
+ ---
+ Success Metrics
+
+ Code Quality
+
+ - ✅ TypeScript compiles without errors
+ - ✅ Build succeeds
+ - ✅ No console errors in browser
+ - ✅ All pages render correctly
+
+ Improvements
+
+ - ✅ 22 unused files deleted
+ - ✅ 7 reusable patterns extracted
+ - ✅ ~800-1000 lines of code reduced
+ - ✅ 35+ files improved
+ - ✅ Consistent patterns across dashboard, budgets, reports, transactions, settings
+
+ Maintainability
+
+ - ✅ Centralized constants (SHIMMER_BASE)
+ - ✅ Reusable components (BackButton, PageContainer, etc)
+ - ✅ Shared hooks (useUserFilter)
+ - ✅ Clear component organization
+ - ✅ Updated barrel exports
+
+ ---
+ Key Decisions & Rationale
+
+ Why Extract Before Delete?
+
+ Ensures nothing breaks when old code is removed. New patterns are proven to work before cleanup.
+
+ Why Constants First?
+
+ Lowest risk change that demonstrates the pattern for more complex extractions.
+
+ Why Bottom-Up Component Creation?
+
+ Each component layer depends on the previous (BackButton → PageHeaderWithBack → Content pages).
+
+ Why Move Feature Components?
+
+ PermissionGuard and password components are generic UI, not feature-specific. Better discoverability in shared locations.
+
+ Why Delete Last?
+
+ Only after all imports are updated and new patterns are proven do we remove old code.
+
+ ---
+ Notes
+
+ - Each phase includes verification steps
+ - TypeScript is checked after every major change
+ - Git commits create checkpoints for rollback
+ - No behavioral changes - only structural refactoring
+ - All imports use existing @/ path alias
+ - Feature isolation maintained throughout
+
+ Ready for execution!
