@@ -8,9 +8,7 @@
 import { CreditCard, TrendingUp, TrendingDown } from "lucide-react";
 import { accountStyles } from "../theme/account-styles";
 import { formatCurrency } from "@/lib/utils";
-
-const shimmerBase =
-  "relative overflow-hidden before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_2s_infinite] before:bg-gradient-to-r before:from-transparent before:via-white/60 before:to-transparent";
+import { SHIMMER_BASE } from "@/lib/utils/ui-constants";
 
 /**
  * Skeleton for balance card
@@ -18,7 +16,7 @@ const shimmerBase =
 function TotalBalanceCardSkeleton() {
   return (
     <div className={accountStyles.balanceCard.container}>
-      <div className={`${accountStyles.balanceCard.card} ${shimmerBase}`}>
+      <div className={`${accountStyles.balanceCard.card} ${SHIMMER_BASE}`}>
         {/* Header */}
         <div className={accountStyles.balanceCard.header}>
           <div>

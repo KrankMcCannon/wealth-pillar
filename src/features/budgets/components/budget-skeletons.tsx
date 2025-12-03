@@ -5,10 +5,10 @@
  * Uses project palette and smooth animations
  */
 
-const shimmerBase = "relative overflow-hidden before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_2s_infinite] before:bg-gradient-to-r before:from-transparent before:via-white/60 before:to-transparent";
+import { SHIMMER_BASE } from "@/lib/utils/ui-constants";
 
 export const BudgetCardSkeleton = () => (
-  <div className={`p-4 rounded-xl border border-primary/20 bg-card ${shimmerBase}`}>
+  <div className={`p-4 rounded-xl border border-primary/20 bg-card ${SHIMMER_BASE}`}>
     <div className="flex items-center gap-3 mb-3">
       <div className="w-10 h-10 bg-primary/10 rounded-xl" />
       <div className="flex-1">
@@ -36,7 +36,7 @@ export const BudgetListSkeleton = () => (
 );
 
 export const BudgetDetailsSkeleton = () => (
-  <div className={`p-6 rounded-xl border border-primary/20 bg-card space-y-4 ${shimmerBase}`}>
+  <div className={`p-6 rounded-xl border border-primary/20 bg-card space-y-4 ${SHIMMER_BASE}`}>
     <div className="flex items-center justify-between">
       <div>
         <div className="h-6 bg-muted rounded w-32 mb-2" />
@@ -68,7 +68,7 @@ export const BudgetDetailsSkeleton = () => (
 export const TransactionListSkeleton = () => (
   <div className="space-y-3">
     {[1, 2, 3, 4].map(i => (
-      <div key={i} className={`p-3 rounded-lg border border-primary/20 bg-card ${shimmerBase}`}>
+      <div key={i} className={`p-3 rounded-lg border border-primary/20 bg-card ${SHIMMER_BASE}`}>
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 bg-primary/10 rounded-lg" />
           <div className="flex-1">

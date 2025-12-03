@@ -3,7 +3,7 @@
  * Progressive loading placeholders with smooth animations
  */
 
-const shimmerBase = "relative overflow-hidden before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_2s_infinite] before:bg-gradient-to-r before:from-transparent before:via-white/60 before:to-transparent";
+import { SHIMMER_BASE } from "@/lib/utils/ui-constants";
 
 /**
  * Header skeleton loader for accounts page
@@ -31,7 +31,7 @@ export function AccountHeaderSkeleton() {
 export function BalanceCardSkeleton() {
   return (
     <div className={`px-4 py-6`}>
-      <div className={`bg-card rounded-2xl p-6 border border-primary/20 shadow-xl space-y-4 ${shimmerBase}`}>
+      <div className={`bg-card rounded-2xl p-6 border border-primary/20 shadow-xl space-y-4 ${SHIMMER_BASE}`}>
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <div>
@@ -67,7 +67,7 @@ export function AccountListSkeleton() {
       <div className="h-5 w-32 bg-muted rounded animate-pulse mb-4" />
       <div className="space-y-3">
         {Array.from({ length: 3 }).map((_, i) => (
-          <div key={i} className={`p-4 rounded-lg border border-primary/20 bg-card ${shimmerBase}`}>
+          <div key={i} className={`p-4 rounded-lg border border-primary/20 bg-card ${SHIMMER_BASE}`}>
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-3 flex-1">
                 <div className="w-10 h-10 bg-muted rounded-lg" />

@@ -10,15 +10,14 @@ import { CreditCard } from 'lucide-react';
 import { Account } from '@/lib';
 import { AccountCard } from '@/components/cards';
 import { accountStyles } from '../theme/account-styles';
-
-const shimmerBase = "relative overflow-hidden before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_2s_infinite] before:bg-gradient-to-r before:from-transparent before:via-white/60 before:to-transparent";
+import { SHIMMER_BASE } from "@/lib/utils/ui-constants";
 
 /**
  * Skeleton for individual account card
  */
 function AccountCardSkeleton() {
   return (
-    <div className={`p-4 rounded-lg border border-primary/20 bg-card ${shimmerBase}`}>
+    <div className={`p-4 rounded-lg border border-primary/20 bg-card ${SHIMMER_BASE}`}>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3 flex-1">
           <div className="w-10 h-10 bg-muted rounded-lg" />

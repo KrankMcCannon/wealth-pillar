@@ -5,11 +5,10 @@
  * Uses project palette and smooth animations
  */
 
-const shimmerBase =
-  'relative overflow-hidden before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_2s_infinite] before:bg-gradient-to-r before:from-transparent before:via-white/60 before:to-transparent';
+import { SHIMMER_BASE } from "@/lib/utils/ui-constants";
 
 export const TransactionHeaderSkeleton = () => (
-  <header className={`sticky top-0 z-20 bg-card/70 backdrop-blur-xl border-b border-primary/20 px-3 sm:px-4 py-2 sm:py-3 shadow-sm ${shimmerBase}`}>
+  <header className={`sticky top-0 z-20 bg-card/70 backdrop-blur-xl border-b border-primary/20 px-3 sm:px-4 py-2 sm:py-3 shadow-sm ${SHIMMER_BASE}`}>
     <div className="flex items-center justify-between">
       <div className="w-10 h-10 bg-muted rounded-xl" />
       <div className="h-6 bg-muted rounded w-24" />
@@ -19,7 +18,7 @@ export const TransactionHeaderSkeleton = () => (
 );
 
 export const UserSelectorSkeleton = () => (
-  <section className={`sticky top-[60px] z-10 bg-card/80 backdrop-blur-sm border-b border-primary/20 px-3 sm:px-4 py-2 ${shimmerBase}`}>
+  <section className={`sticky top-[60px] z-10 bg-card/80 backdrop-blur-sm border-b border-primary/20 px-3 sm:px-4 py-2 ${SHIMMER_BASE}`}>
     <div className="flex items-center gap-2" style={{ height: '44px' }}>
       {[1, 2, 3].map((i) => (
         <div key={i} className="shrink-0 flex items-center gap-2 px-3 py-2 rounded-2xl bg-muted">
@@ -32,7 +31,7 @@ export const UserSelectorSkeleton = () => (
 );
 
 export const TransactionCardSkeleton = () => (
-  <div className={`p-3 sm:p-4 rounded-lg border border-primary/20 bg-card ${shimmerBase}`}>
+  <div className={`p-3 sm:p-4 rounded-lg border border-primary/20 bg-card ${SHIMMER_BASE}`}>
     <div className="flex items-center gap-3">
       <div className="w-10 h-10 bg-primary/10 rounded-lg shrink-0" />
       <div className="flex-1">
@@ -74,7 +73,7 @@ export const TransactionListSkeleton = () => (
 );
 
 export const SearchFilterSkeleton = () => (
-  <div className={`flex items-center gap-3 ${shimmerBase}`}>
+  <div className={`flex items-center gap-3 ${SHIMMER_BASE}`}>
     {/* Search input */}
     <div className="flex-1 h-12 bg-muted rounded-2xl" />
     {/* Filter button */}
@@ -83,7 +82,7 @@ export const SearchFilterSkeleton = () => (
 );
 
 export const TabNavigationSkeleton = () => (
-  <div className={`flex gap-2 border-b border-primary/20 px-3 py-2 ${shimmerBase}`}>
+  <div className={`flex gap-2 border-b border-primary/20 px-3 py-2 ${SHIMMER_BASE}`}>
     {[1, 2].map((i) => (
       <div key={i} className="h-10 bg-muted rounded-lg w-24" />
     ))}
@@ -91,7 +90,7 @@ export const TabNavigationSkeleton = () => (
 );
 
 export const RecurringSeriesSkeleton = () => (
-  <div className={`p-4 rounded-lg border border-primary/20 bg-card space-y-4 ${shimmerBase}`}>
+  <div className={`p-4 rounded-lg border border-primary/20 bg-card space-y-4 ${SHIMMER_BASE}`}>
     {[1, 2, 3].map((i) => (
       <div key={i} className="flex items-center gap-3">
         <div className="w-10 h-10 bg-primary/10 rounded-lg shrink-0" />
