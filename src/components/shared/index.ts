@@ -3,8 +3,10 @@
  */
 
 export * from "./back-button";
+export * from "./confirmation-dialog";
 export * from "./error-boundary";
 export * from "./page-loader";
+export * from "./permission-guard";
 export * from "./tab-navigation";
 export * from "./theme-provider";
 export * from "./user-selector";
