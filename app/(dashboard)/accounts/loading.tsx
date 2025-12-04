@@ -12,6 +12,7 @@ import {
   AccountHeaderSkeleton,
   AccountListSkeleton,
 } from '@/features/accounts/components/account-skeletons';
+import { SkeletonBox } from "@/components/ui/primitives";
 
 export default function AccountsLoading() {
   return (
@@ -23,7 +24,7 @@ export default function AccountsLoading() {
         {/* Main Content Loading States */}
         <main className="space-y-6 px-4 py-6">
           {/* Total Balance Skeleton */}
-          <div className="h-32 bg-slate-100 rounded-lg animate-pulse" />
+          <SkeletonBox height="h-32" variant="medium" />
 
           {/* Accounts List Skeleton */}
           <AccountListSkeleton />

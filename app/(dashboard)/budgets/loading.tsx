@@ -11,6 +11,7 @@ import {
   BudgetSelectorSkeleton,
   BudgetCardSkeleton,
 } from '@/features/budgets/components';
+import { SkeletonBox, SkeletonList } from "@/components/ui/primitives";
 
 export default function BudgetsLoading() {
   return (
@@ -31,12 +32,8 @@ export default function BudgetsLoading() {
 
           {/* Budget Details Skeleton */}
           <div className="space-y-4">
-            <div className="h-12 bg-slate-100 rounded-lg animate-pulse" />
-            <div className="space-y-2">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <div key={i} className="h-16 bg-slate-50 rounded-lg animate-pulse" />
-              ))}
-            </div>
+            <SkeletonBox height="h-12" variant="medium" />
+            <SkeletonList count={5} height="h-16" spacing="space-y-2" variant="light" />
           </div>
         </div>
       </main>
