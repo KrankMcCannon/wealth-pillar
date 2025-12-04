@@ -14,13 +14,13 @@ export function AccountHeaderSkeleton() {
     <header className="sticky top-0 z-10 bg-[#F8FAFC]/95 backdrop-blur-sm border-b border-border">
       <div className="flex items-center justify-between px-4 py-4">
         <div className="flex items-center gap-3 flex-1">
-          <div className="w-9 h-9 bg-muted rounded-lg animate-pulse" />
+          <div className="w-9 h-9 bg-primary/10 rounded-lg animate-pulse" />
           <div className="flex-1">
-            <div className="h-5 w-32 bg-muted rounded animate-pulse mb-2" />
-            <div className="h-3 w-16 bg-muted rounded animate-pulse" />
+            <div className="h-5 w-32 bg-primary/15 rounded animate-pulse mb-2" />
+            <div className="h-3 w-16 bg-primary/15 rounded animate-pulse" />
           </div>
         </div>
-        <div className="w-9 h-9 bg-muted rounded-lg animate-pulse" />
+        <div className="w-9 h-9 bg-primary/10 rounded-lg animate-pulse" />
       </div>
     </header>
   );
@@ -36,10 +36,10 @@ export function BalanceCardSkeleton() {
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <div>
-            <div className="h-3 w-20 bg-muted rounded mb-2" />
-            <div className="h-8 w-32 bg-muted rounded" />
+            <div className="h-3 w-20 bg-primary/15 rounded mb-2" />
+            <div className="h-8 w-32 bg-primary/15 rounded" />
           </div>
-          <div className="w-14 h-14 bg-muted rounded-full" />
+          <div className="w-14 h-14 bg-primary/10 rounded-full" />
         </div>
 
         {/* Statistics grid */}
@@ -49,10 +49,10 @@ export function BalanceCardSkeleton() {
           renderItem={() => (
             <div className="bg-primary/5 rounded-lg p-3 border border-primary/10 space-y-2">
               <div className="flex items-center gap-2 mb-1">
-                <div className="w-4 h-4 bg-muted rounded" />
-                <div className="h-2 w-12 bg-muted rounded" />
+                <div className="w-4 h-4 bg-primary/15 rounded" />
+                <div className="h-2 w-12 bg-primary/15 rounded" />
               </div>
-              <div className="h-5 w-8 bg-muted rounded" />
+              <div className="h-5 w-8 bg-primary/15 rounded" />
             </div>
           )}
         />
@@ -67,7 +67,7 @@ export function BalanceCardSkeleton() {
 export function AccountListSkeleton() {
   return (
     <div className="px-4">
-      <div className="h-5 w-32 bg-muted rounded animate-pulse mb-4" />
+      <div className="h-5 w-32 bg-primary/15 rounded animate-pulse mb-4" />
     <SkeletonList
       count={3}
       spacing="space-y-3"
@@ -75,15 +75,15 @@ export function AccountListSkeleton() {
         <div className={`p-4 rounded-lg border border-primary/20 bg-card ${SHIMMER_BASE}`}>
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-3 flex-1">
-              <div className="w-10 h-10 bg-muted rounded-lg" />
+              <div className="w-10 h-10 bg-primary/10 rounded-lg" />
               <div className="flex-1">
-                <div className="h-4 w-24 bg-muted rounded mb-2" />
-                <div className="h-3 w-16 bg-muted rounded" />
+                <div className="h-4 w-24 bg-primary/15 rounded mb-2" />
+                <div className="h-3 w-16 bg-primary/15 rounded" />
               </div>
             </div>
             <div className="text-right">
-              <div className="h-4 w-20 bg-muted rounded mb-1" />
-              <div className="h-3 w-16 bg-muted rounded" />
+              <div className="h-4 w-20 bg-primary/15 rounded mb-1" />
+              <div className="h-3 w-16 bg-primary/15 rounded" />
             </div>
           </div>
         </div>

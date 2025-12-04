@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { AlertTriangleIcon, Loader2Icon } from 'lucide-react';
+import { confirmationDialogStyles } from './theme/feedback-styles';
 
 interface ConfirmationDialogProps {
   isOpen: boolean;
@@ -39,31 +40,27 @@ export function ConfirmationDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onCancel()}>
-      <DialogContent className="sm:max-w-[425px] border-primary/20" showCloseButton={!isLoading}>
-        <DialogHeader>
-          <div className="flex items-start gap-3">
+      <DialogContent className={confirmationDialogStyles.content} showCloseButton={!isLoading}>
+        <DialogHeader className={confirmationDialogStyles.header}>
+          <div className={confirmationDialogStyles.headerLayout}>
             {variant === 'destructive' && (
-              <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-destructive/10 border border-destructive/20">
-                <AlertTriangleIcon className="size-6 text-destructive" />
+              <div className={confirmationDialogStyles.iconWrapper}>
+                <AlertTriangleIcon className={confirmationDialogStyles.icon} />
               </div>
             )}
-            <div className="flex-1 space-y-2">
-              <DialogTitle className="text-lg font-bold text-black dark:text-white">
-                {title}
-              </DialogTitle>
-              <p className="text-sm font-medium text-black/80 dark:text-white/80 leading-relaxed">
-                {message}
-              </p>
+            <div className={confirmationDialogStyles.body}>
+              <DialogTitle className={confirmationDialogStyles.text.title}>{title}</DialogTitle>
+              <p className={confirmationDialogStyles.text.message}>{message}</p>
             </div>
           </div>
         </DialogHeader>
 
-        <DialogFooter className="mt-6 gap-2">
+        <DialogFooter className={confirmationDialogStyles.footer}>
           <Button
             variant="outline"
             onClick={onCancel}
             disabled={isLoading}
-            className="w-full sm:w-auto border-primary/20 hover:bg-primary/5 text-black dark:text-white font-semibold"
+            className={confirmationDialogStyles.buttons.cancel}
           >
             {cancelText}
           </Button>
@@ -71,9 +68,9 @@ export function ConfirmationDialog({
             variant={variant}
             onClick={handleConfirm}
             disabled={isLoading}
-            className="w-full sm:w-auto font-semibold gap-2"
+            className={confirmationDialogStyles.buttons.confirm}
           >
-            {isLoading && <Loader2Icon className="size-4 animate-spin" />}
+            {isLoading && <Loader2Icon className={confirmationDialogStyles.loadingIcon} />}
             {confirmText}
           </Button>
         </DialogFooter>

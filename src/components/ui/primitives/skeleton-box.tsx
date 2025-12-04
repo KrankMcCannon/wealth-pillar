@@ -14,9 +14,9 @@ export function SkeletonBox({
   className
 }: SkeletonBoxProps) {
   const variantClasses = {
-    light: "bg-slate-50",
-    medium: "bg-slate-100",
-    dark: "bg-slate-200"
+    light: "bg-primary/10",
+    medium: "bg-primary/15",
+    dark: "bg-primary/20"
   };
 
   return (

@@ -43,7 +43,7 @@ export const calendarDrawerStyles = {
       "fixed bottom-0 left-0 right-0 z-50",
       "max-h-[90vh]",
       "rounded-t-3xl",
-      "bg-white dark:bg-gray-900",
+      "bg-card dark:bg-card",
       "border-t-4 border-primary",
       "shadow-2xl shadow-primary/10",
       "data-[state=open]:animate-in data-[state=closed]:animate-out",
@@ -88,7 +88,7 @@ export const calendarDrawerStyles = {
     container: [
       "flex items-center justify-between",
       "px-2 py-2 mb-2",
-      "bg-white dark:bg-gray-900",
+      "bg-card dark:bg-card",
       "border-b-2 border-primary/10",
     ].join(" "),
 
@@ -200,11 +200,11 @@ export const calendarDrawerStyles = {
       // Default state
       default: [
         "text-primary dark:text-primary",
-        "bg-white dark:bg-gray-800",
+        "bg-card dark:bg-card/90",
         "hover:bg-primary hover:text-white",
         "hover:scale-110 hover:shadow-md",
         "active:scale-95",
-        "border border-gray-100 dark:border-gray-700",
+        "border border-primary/15",
       ].join(" "),
 
       // Selected date - Full primary color
@@ -230,29 +230,29 @@ export const calendarDrawerStyles = {
       // Disabled date
       disabled: [
         "text-gray-300 dark:text-gray-600",
-        "bg-gray-50 dark:bg-gray-800/50",
+        "bg-primary/5 dark:bg-primary/10",
         "cursor-not-allowed",
-        "hover:bg-gray-50 hover:scale-100",
+        "hover:bg-primary/5 hover:scale-100",
         "opacity-40",
-        "border border-gray-100 dark:border-gray-700",
+        "border border-primary/15",
       ].join(" "),
 
       // Weekend date
       weekend: [
         "text-primary dark:text-primary",
-        "bg-white dark:bg-gray-800",
+        "bg-card dark:bg-card/90",
         "hover:bg-primary hover:text-white",
         "hover:scale-110",
-        "border border-gray-100 dark:border-gray-700",
+        "border border-primary/15",
       ].join(" "),
 
       // Other month date
       otherMonth: [
         "text-gray-300 dark:text-gray-600",
-        "bg-gray-50 dark:bg-gray-800/50",
-        "hover:bg-gray-100 hover:text-gray-500",
+        "bg-primary/5 dark:bg-primary/10",
+        "hover:bg-primary/10 hover:text-primary/60",
         "hover:scale-105",
-        "border border-gray-100 dark:border-gray-700",
+        "border border-primary/15",
       ].join(" "),
     },
   },
@@ -304,9 +304,9 @@ export const calendarDrawerStyles = {
         "rounded-xl",
         "text-sm font-semibold",
         "transition-all duration-200",
-        "bg-white dark:bg-gray-800",
+        "bg-card dark:bg-card/90",
         "text-primary dark:text-primary",
-        "border-2 border-gray-200 dark:border-gray-700",
+        "border-2 border-primary/20",
         "hover:border-primary hover:bg-primary hover:text-white",
         "hover:shadow-md hover:shadow-primary/20",
         "active:scale-95",
@@ -346,13 +346,13 @@ export const calendarDrawerStyles = {
       "pr-10",
       "text-primary dark:text-primary",
       "rounded-xl",
-      "border-2 border-gray-200 dark:border-gray-700",
-      "bg-white dark:bg-gray-800",
+      "border-2 border-primary/20",
+      "bg-card dark:bg-card/90",
       "px-4 py-2",
       "text-sm font-medium",
       "transition-all",
       "focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary",
-      "hover:border-gray-300 dark:hover:border-gray-600",
+      "hover:border-primary/40",
       "disabled:opacity-50 disabled:cursor-not-allowed",
     ].join(" "),
 
@@ -375,13 +375,13 @@ export const calendarDrawerStyles = {
      */
     triggerButton: {
       base: [
-        "h-11 w-11 shrink-0",
-        "rounded-xl",
-        "border-2 border-gray-200 dark:border-gray-700",
-        "bg-white dark:bg-gray-800 text-primary",
-        "hover:bg-primary hover:text-white hover:border-primary",
-        "hover:scale-105 hover:shadow-md hover:shadow-primary/20",
-        "transition-all duration-200",
+      "h-11 w-11 shrink-0",
+      "rounded-xl",
+      "border-2 border-primary/20",
+      "bg-card dark:bg-card/90 text-primary",
+      "hover:bg-primary hover:text-white hover:border-primary",
+      "hover:scale-105 hover:shadow-md hover:shadow-primary/20",
+      "transition-all duration-200",
         "active:scale-95",
       ].join(" "),
 

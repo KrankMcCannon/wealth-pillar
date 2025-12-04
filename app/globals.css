@@ -44,7 +44,7 @@
 
   /* Card System - Soft white that doesn't strain eyes */
   --color-card: oklch(0.985 0.003 90);             /* Warm soft white for cards/modals */
-  --color-card-foreground: oklch(0.28 0.015 90);   /* Card text */
+  --color-card-foreground: var(--color-primary);   /* Card text aligned to brand */
 
   /* Popover - Same soft white */
   --color-popover: oklch(0.985 0.003 90);
@@ -81,7 +81,7 @@
   --color-success-foreground: oklch(1 0 0);        /* White text */
 
   /* UI Elements */
-  --color-border: oklch(0.85 0.008 90);            /* Subtle borders */
+  --color-border: oklch(0.595 0.178 270 / 0.22);    /* Primary-tinted borders */
   --color-input: oklch(0.98 0.004 90);             /* Soft white for inputs - not tiring */
   --color-ring: oklch(0.595 0.178 270);            /* Focus ring, same as primary */
 
@@ -151,7 +151,7 @@ html.dark {
 
   /* Card System - Soft dark that doesn't strain eyes */
   --color-card: oklch(0.24 0.006 90);             /* Slightly lighter than background, warmer */
-  --color-card-foreground: oklch(0.92 0.008 90);  /* Card text */
+  --color-card-foreground: var(--color-primary);  /* Card text aligned to brand */
 
   /* Popover - Same soft dark */
   --color-popover: oklch(0.24 0.006 90);
@@ -188,7 +188,7 @@ html.dark {
   --color-success-foreground: oklch(0.15 0.02 90);/* Dark text */
 
   /* UI Elements */
-  --color-border: oklch(0.32 0.008 90);
+  --color-border: oklch(0.72 0.168 270 / 0.28);     /* Primary-tinted borders for dark mode */
   --color-input: oklch(0.26 0.006 90);             /* Soft dark for inputs - not tiring */
   --color-ring: oklch(0.72 0.168 270);
 

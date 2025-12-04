@@ -11,9 +11,9 @@ import { SHIMMER_BASE } from "@/lib/utils/ui-constants";
 export const TransactionHeaderSkeleton = () => (
   <header className={`sticky top-0 z-20 bg-card/70 backdrop-blur-xl border-b border-primary/20 px-3 sm:px-4 py-2 sm:py-3 shadow-sm ${SHIMMER_BASE}`}>
     <div className="flex items-center justify-between">
-      <div className="w-10 h-10 bg-muted rounded-xl" />
-      <div className="h-6 bg-muted rounded w-24" />
-      <div className="w-10 h-10 bg-muted rounded-xl" />
+      <div className="w-10 h-10 bg-primary/12 rounded-xl" />
+      <div className="h-6 bg-primary/15 rounded w-24" />
+      <div className="w-10 h-10 bg-primary/12 rounded-xl" />
     </div>
   </header>
 );
@@ -25,9 +25,9 @@ export const UserSelectorSkeleton = () => (
       spacing="flex items-center gap-2"
       style={{ height: 44 }}
       renderItem={() => (
-        <div className="shrink-0 flex items-center gap-2 px-3 py-2 rounded-2xl bg-muted">
-          <div className="w-5 h-5 bg-muted-foreground/30 rounded-full" />
-          <div className="w-12 h-3 bg-muted-foreground/30 rounded" />
+        <div className="shrink-0 flex items-center gap-2 px-3 py-2 rounded-2xl bg-primary/10">
+          <div className="w-5 h-5 bg-primary/25 rounded-full" />
+          <div className="w-12 h-3 bg-primary/20 rounded" />
         </div>
       )}
     />
@@ -39,12 +39,12 @@ export const TransactionCardSkeleton = () => (
     <div className="flex items-center gap-3">
       <div className="w-10 h-10 bg-primary/10 rounded-lg shrink-0" />
       <div className="flex-1">
-        <div className="h-4 bg-muted rounded w-3/4 mb-1" />
-        <div className="h-3 bg-muted rounded w-1/2" />
+        <div className="h-4 bg-primary/15 rounded w-3/4 mb-1" />
+        <div className="h-3 bg-primary/15 rounded w-1/2" />
       </div>
       <div className="text-right shrink-0">
-        <div className="h-4 bg-muted rounded w-16 mb-1" />
-        <div className="h-3 bg-muted rounded w-12" />
+        <div className="h-4 bg-primary/15 rounded w-16 mb-1" />
+        <div className="h-3 bg-primary/15 rounded w-12" />
       </div>
     </div>
   </div>
@@ -54,10 +54,10 @@ export const TransactionDayGroupSkeleton = () => (
   <div className="space-y-3">
     {/* Day header */}
     <div className="flex items-center justify-between mb-2 px-1">
-      <div className="h-5 bg-muted rounded w-24" />
+      <div className="h-5 bg-primary/15 rounded w-24" />
       <div className="text-right">
-        <div className="h-4 bg-muted rounded w-16 mb-1" />
-        <div className="h-3 bg-muted rounded w-12" />
+        <div className="h-4 bg-primary/15 rounded w-16 mb-1" />
+        <div className="h-3 bg-primary/15 rounded w-12" />
       </div>
     </div>
 
@@ -81,9 +81,9 @@ export const TransactionListSkeleton = () => (
 export const SearchFilterSkeleton = () => (
   <div className={`flex items-center gap-3 ${SHIMMER_BASE}`}>
     {/* Search input */}
-    <div className="flex-1 h-12 bg-muted rounded-2xl" />
+    <div className="flex-1 h-12 bg-primary/12 rounded-2xl" />
     {/* Filter button */}
-    <div className="w-12 h-12 bg-muted rounded-xl" />
+    <div className="w-12 h-12 bg-primary/12 rounded-xl" />
   </div>
 );
 
@@ -94,7 +94,7 @@ export const TabNavigationSkeleton = () => (
       spacing="flex gap-2 w-full"
       height="h-10"
       width="w-24"
-      className="bg-muted rounded-lg"
+      className="bg-primary/12 rounded-lg"
     />
   </div>
 );
@@ -108,10 +108,10 @@ export const RecurringSeriesSkeleton = () => (
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-primary/10 rounded-lg shrink-0" />
           <div className="flex-1">
-            <div className="h-4 bg-muted rounded w-3/4 mb-1" />
-            <div className="h-3 bg-muted rounded w-1/2" />
+            <div className="h-4 bg-primary/15 rounded w-3/4 mb-1" />
+            <div className="h-3 bg-primary/15 rounded w-1/2" />
           </div>
-          <div className="w-8 h-8 bg-muted rounded-lg shrink-0" />
+          <div className="w-8 h-8 bg-primary/12 rounded-lg shrink-0" />
         </div>
       )}
     />

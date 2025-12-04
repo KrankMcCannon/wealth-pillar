@@ -194,7 +194,7 @@ export function GroupedTransactionCard({
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive/10 hover:text-destructive"
+                    className="h-7 w-7 p-0 text-primary opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive/10 hover:text-destructive"
                     onClick={(e) => {
                       e.stopPropagation();
                       onDeleteTransaction(transaction.id);

@@ -15,7 +15,7 @@ import { dashboardStyles } from '../theme/dashboard-styles';
  */
 const skeletonClasses = {
   // Use liquid-shimmer class which is defined in globals.css for consistent branding
-  shimmer: 'liquid-shimmer bg-muted',
+  shimmer: 'liquid-shimmer bg-primary/12',
   pulse: 'animate-pulse',
 };
 
