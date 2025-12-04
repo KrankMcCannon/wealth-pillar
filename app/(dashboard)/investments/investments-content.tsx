@@ -1,6 +1,7 @@
 "use client";
 
 import { PageContainer, PageHeaderWithBack, SectionHeader, BottomNavigation } from "@/src/components/layout";
+import { EmptyState } from "@/components/shared";
 import { useUserFilter } from "@/hooks";
 import UserSelector from "@/src/components/shared/user-selector";
 import { EnhancedHolding } from "@/src/lib";
@@ -77,9 +78,11 @@ export default function InvestmentsContent({ currentUser, groupUsers }: Dashboar
                   </div>
                 ))
               ) : (
-                <div className="py-8 text-center">
-                  <p>Nessuna partecipazione trovata</p>
-                </div>
+                <EmptyState
+                  icon={PieChart}
+                  title="Nessuna Partecipazione"
+                  description="Non ci sono partecipazioni registrate al momento"
+                />
               )}
             </div>
           </section>
