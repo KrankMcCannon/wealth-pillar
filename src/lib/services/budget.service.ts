@@ -21,7 +21,7 @@ export interface CreateBudgetInput {
   description: string;
   amount: number;
   type: BudgetType;
-  icon?: string;
+  icon?: string | null;
   categories: string[];
   user_id: string;
   group_id?: string; // Optional for backward compatibility
@@ -313,7 +313,7 @@ export class BudgetService {
         group_id: groupId,
       };
 
-      const { data: budget, error } = await (supabaseServer as any)
+      const { data: budget, error } = await supabaseServer
         .from('budgets')
         .insert(insertData)
         .select()
@@ -423,7 +423,7 @@ export class BudgetService {
       if (data.user_id !== undefined) updateData.user_id = data.user_id;
 
       // Update budget
-      const { data: updatedBudget, error } = await (supabaseServer as any)
+      const { data: updatedBudget, error } = await supabaseServer
         .from('budgets')
         .update(updateData)
         .eq('id', id)

@@ -2,6 +2,7 @@ import { supabaseServer } from '@/lib/database/server';
 import { cached, categoryCacheKeys, cacheOptions, CACHE_TAGS } from '@/lib/cache';
 import { CATEGORY_COLOR_PALETTE, DEFAULT_CATEGORY_COLOR } from '@/features/categories';
 import type { ServiceResult } from './user.service';
+import type { Database } from '@/lib/database/types';
 import type { Category } from '@/lib/types';
 
 /**
@@ -476,7 +477,7 @@ export class CategoryService {
       }
 
       // Insert category
-      const { data: category, error } = await (supabaseServer as any)
+      const { data: category, error } = await supabaseServer
         .from('categories')
         .insert({
           label: data.label.trim(),
@@ -538,7 +539,7 @@ export class CategoryService {
       }
 
       // Build update object (only include provided fields)
-      const updateData: Partial<Category> = {};
+      const updateData: Database['public']['Tables']['categories']['Update'] = {};
 
       if (data.label !== undefined) {
         if (!data.label || data.label.trim() === '') {
@@ -565,7 +566,7 @@ export class CategoryService {
       }
 
       // Update category
-      const { data: category, error } = await (supabaseServer as any)
+      const { data: category, error } = await supabaseServer
         .from('categories')
         .update(updateData)
         .eq('id', id)

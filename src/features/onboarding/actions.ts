@@ -7,6 +7,7 @@ import { AccountService, BudgetService, GroupService, UserService } from '@/lib/
 import { CACHE_TAGS } from '@/lib/cache';
 import type { ServiceResult } from '@/lib/services/user.service';
 import type { CompleteOnboardingInput } from './types';
+import type { Database } from '@/lib/database/types';
 
 async function revalidateCacheTags(tags: string[]) {
   if (typeof window === 'undefined') {
@@ -20,13 +21,6 @@ function getInitials(name: string) {
   if (parts.length === 0) return 'WP';
   if (parts.length === 1) return parts[0][0]?.toUpperCase() ?? 'W';
   return `${parts[0][0] ?? ''}${parts[parts.length - 1][0] ?? ''}`.toUpperCase();
-}
-
-const THEME_COLORS = ['#6366F1', '#0EA5E9', '#EC4899', '#10B981', '#F97316'];
-
-function pickThemeColor() {
-  const index = Math.floor(Math.random() * THEME_COLORS.length);
-  return THEME_COLORS[index];
 }
 
 /**
@@ -77,24 +71,26 @@ export async function completeOnboardingAction(
       return { data: null, error: groupResult.error || 'Errore durante la creazione del gruppo' };
     }
 
-    const themeColor = pickThemeColor();
+    const themeColor = '#6366F1';
 
-    const { data: createdUser, error: userError } = await (supabaseServer as any)
+    const newUser: Database['public']['Tables']['users']['Insert'] = {
+      id: userId,
+      name: user.name.trim(),
+      email: user.email.trim().toLowerCase(),
+      avatar: getInitials(user.name),
+      theme_color: themeColor,
+      budget_start_date: budgetStartDay,
+      group_id: groupId,
+      role: 'admin',
+      budget_periods: [],
+      clerk_id: user.clerkId,
+      created_at: now,
+      updated_at: now,
+    };
+
+    const { data: createdUser, error: userError } = await supabaseServer
       .from('users')
-      .insert({
-        id: userId,
-        name: user.name.trim(),
-        email: user.email.trim().toLowerCase(),
-        avatar: getInitials(user.name),
-        theme_color: themeColor,
-        budget_start_date: budgetStartDay,
-        group_id: groupId,
-        role: 'admin',
-        budget_periods: [],
-        clerk_id: user.clerkId,
-        created_at: now,
-        updated_at: now,
-      })
+      .insert(newUser)
       .select()
       .single();
 

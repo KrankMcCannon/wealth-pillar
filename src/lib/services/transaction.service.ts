@@ -335,7 +335,7 @@ export class TransactionService {
         group_id: data.group_id,
       };
 
-      const { data: transaction, error } = await (supabaseServer as any)
+      const { data: transaction, error } = await supabaseServer
         .from('transactions')
         .insert(insertData)
         .select()
@@ -473,7 +473,7 @@ export class TransactionService {
       if (data.group_id !== undefined) updateData.group_id = data.group_id;
 
       // Update transaction
-      const { data: updatedTransaction, error } = await (supabaseServer as any)
+      const { data: updatedTransaction, error } = await supabaseServer
         .from('transactions')
         .update(updateData)
         .eq('id', id)

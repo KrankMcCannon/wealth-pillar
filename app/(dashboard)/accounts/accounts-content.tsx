@@ -8,6 +8,7 @@
  */
 
 import { useMemo } from "react";
+import { BottomNavigation, PageContainer } from "@/components/layout";
 import { AccountHeader, TotalBalanceCard, AccountsList, accountStyles } from "@/features/accounts";
 import type { DashboardDataProps } from "@/lib/auth/get-dashboard-data";
 import type { Account } from "@/lib/types";
@@ -46,34 +47,38 @@ export default function AccountsContent({ accounts, accountBalances }: AccountsC
   }, [accounts.length, accountBalances]);
 
   return (
-    <div className={accountStyles.page.container}>
-      {/* Header Section */}
-      <AccountHeader
-        totalAccounts={accountStats.totalAccounts}
-        onAddAccount={() => {
-          /* TODO: Open add account modal */
-        }}
-        isLoading={false}
-      />
+    <PageContainer className={accountStyles.page.container}>
+      <div className="flex-1">
+        {/* Header Section */}
+        <AccountHeader
+          totalAccounts={accountStats.totalAccounts}
+          onAddAccount={() => {
+            /* TODO: Open add account modal */
+          }}
+          isLoading={false}
+        />
 
-      {/* Total Balance Card Section */}
-      <TotalBalanceCard
-        totalBalance={accountStats.totalBalance}
-        totalAccounts={accountStats.totalAccounts}
-        positiveAccounts={accountStats.positiveAccounts}
-        negativeAccounts={accountStats.negativeAccounts}
-        isLoading={false}
-      />
+        {/* Total Balance Card Section */}
+        <TotalBalanceCard
+          totalBalance={accountStats.totalBalance}
+          totalAccounts={accountStats.totalAccounts}
+          positiveAccounts={accountStats.positiveAccounts}
+          negativeAccounts={accountStats.negativeAccounts}
+          isLoading={false}
+        />
 
-      {/* Accounts List Section */}
-      <AccountsList
-        accounts={sortedAccounts}
-        accountBalances={accountBalances}
-        onAccountClick={() => {
-          /* TODO: Open account detail */
-        }}
-        isLoading={false}
-      />
-    </div>
+        {/* Accounts List Section */}
+        <AccountsList
+          accounts={sortedAccounts}
+          accountBalances={accountBalances}
+          onAccountClick={() => {
+            /* TODO: Open account detail */
+          }}
+          isLoading={false}
+        />
+      </div>
+
+      <BottomNavigation />
+    </PageContainer>
   );
 }

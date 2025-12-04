@@ -35,7 +35,7 @@ export const budgetColors = {
     card: 'bg-card',
     cardHover: 'bg-card/90',
     overlay: 'bg-card/95',
-    muted: 'bg-muted',
+    muted: 'bg-primary/10',
     primaryLight: 'bg-primary/10',
     primaryLighter: 'bg-primary/5',
   },
@@ -43,9 +43,9 @@ export const budgetColors = {
   // Border colors
   border: {
     primary: 'border-primary/20',
-    secondary: 'border-border/50',
-    tertiary: 'border-border/60',
-    light: 'border-border/30',
+    secondary: 'border-primary/25',
+    tertiary: 'border-primary/30',
+    light: 'border-primary/20',
   },
 
   // Shadows
@@ -54,7 +54,7 @@ export const budgetColors = {
     md: 'shadow-md',
     lg: 'shadow-lg',
     xl: 'shadow-xl',
-    cardShadow: 'shadow-lg shadow-muted/40',
+    cardShadow: 'shadow-lg shadow-primary/20',
   },
 } as const;
 
@@ -122,7 +122,7 @@ export const budgetComponents = {
 
   // Button
   button: {
-    primary: 'text-sm font-semibold hover:hover:bg-muted rounded-xl transition-all duration-200 px-5 py-2.5 min-h-10 border border-primary/20 hover:border-primary/40 hover:shadow-sm',
+    primary: 'text-sm font-semibold hover:bg-primary/10 rounded-xl transition-all duration-200 px-5 py-2.5 min-h-10 border border-primary/20 hover:border-primary/40 hover:shadow-sm',
   },
 
   // Dropdown Menu

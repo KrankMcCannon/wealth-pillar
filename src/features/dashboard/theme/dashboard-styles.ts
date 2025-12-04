@@ -68,7 +68,7 @@ export const dashboardStyles = {
   },
 
   // Divider
-  divider: 'h-px bg-muted mx-4',
+  divider: 'h-px bg-primary/15 mx-4',
 
   // Budget section
   budgetSection: {
@@ -92,7 +92,7 @@ export const dashboardStyles = {
       label: 'flex justify-between items-center mb-1.5 text-xs',
       labelText: 'font-medium',
       labelValue: 'text-primary font-semibold',
-      bar: 'h-2 bg-muted rounded-full overflow-hidden',
+      bar: 'h-2 bg-primary/12 rounded-full overflow-hidden',
       fill: 'h-full bg-primary transition-all duration-300',
     },
     stats: {
@@ -114,7 +114,7 @@ export const dashboardStyles = {
       container: 'bg-white rounded-lg p-3 border border-border/50 hover:border-primary/30 transition-colors',
       header: 'flex items-center justify-between mb-2',
       title: 'font-medium text-sm',
-      frequency: 'text-xs text-muted bg-muted/50 px-2 py-1 rounded',
+      frequency: 'text-xs text-primary/80 bg-primary/10 px-2 py-1 rounded',
       details: 'text-xs text-muted space-y-1',
       amount: 'font-semibold text-primary',
     },
@@ -126,17 +126,17 @@ export const dashboardStyles = {
     content: 'bg-card rounded-2xl shadow-xl max-h-[80vh] overflow-y-auto',
     header: 'flex items-center justify-between p-4 border-b border-border/50',
     title: 'font-semibold text-lg',
-    closeButton: 'h-6 w-6 p-0 hover:bg-muted rounded',
+    closeButton: 'h-6 w-6 p-0 hover:bg-primary/10 rounded',
     body: 'p-4',
     footer: 'flex gap-2 p-4 border-t border-border/50',
   },
 
   // Loading states
   skeleton: {
-    base: 'animate-pulse bg-muted/50 rounded',
-    text: 'h-4 bg-muted/50 rounded w-3/4',
-    card: 'h-24 bg-muted/50 rounded-xl',
-    line: 'h-2 bg-muted/50 rounded w-full',
+    base: 'animate-pulse bg-primary/12 rounded',
+    text: 'h-4 bg-primary/15 rounded w-3/4',
+    card: 'h-24 bg-primary/15 rounded-xl',
+    line: 'h-2 bg-primary/12 rounded w-full',
   },
 
   // Error state

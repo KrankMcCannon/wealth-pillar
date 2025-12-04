@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Home, CreditCard, TrendingUp, BarChart3 } from "lucide-react";
 
-export default function BottomNavigation() {
+export function BottomNavigation() {
   const pathname = usePathname();
 
   const navItems = [

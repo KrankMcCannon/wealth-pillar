@@ -478,7 +478,7 @@ export class AccountService {
         updated_at: now,
       };
 
-      const { data: account, error } = await (supabaseServer as any)
+      const { data: account, error } = await supabaseServer
         .from('accounts')
         .insert(insertData)
         .select()

@@ -9,7 +9,8 @@
 
 import { Suspense, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, MoreVertical, Plus, Search, Filter } from "lucide-react";
+import { MoreVertical, Plus, Filter, FileText } from "lucide-react";
+import { useUserFilter, useFormModal, useDeleteConfirmation, useIdNameMap } from "@/hooks";
 import {
   Badge,
   Button,
@@ -17,23 +18,19 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  Input,
 } from "@/src/components/ui";
-import BottomNavigation from "@/src/components/layout/bottom-navigation";
+import { BottomNavigation, PageContainer, PageHeaderWithBack } from "@/src/components/layout";
 import TabNavigation from "@/src/components/shared/tab-navigation";
 import UserSelector from "@/src/components/shared/user-selector";
-import { ConfirmationDialog } from "@/components/shared/confirmation-dialog";
+import { ConfirmationDialog, EmptyState } from "@/components/shared";
 import { RecurringSeriesSection, RecurringSeriesForm } from "@/src/features/recurring";
-import { FilterDialog, GroupedTransactionCard, TransactionForm } from "@/src/features/transactions";
+import { RecurringTransactionSeries } from "@/src/lib";
+import { GroupedTransactionCard, TransactionForm } from "@/src/features/transactions";
 import { transactionStyles } from "@/src/features/transactions/theme/transaction-styles";
 import { UserSelectorSkeleton } from "@/src/features/dashboard";
-import {
-  SearchFilterSkeleton,
-  TransactionListSkeleton,
-  RecurringSeriesSkeleton,
-} from "@/src/features/transactions/components/transaction-skeletons";
+import { RecurringSeriesSkeleton } from "@/src/features/transactions/components/transaction-skeletons";
 import type { User, Transaction, Category, Account } from "@/lib/types";
-import { TransactionService, CategoryService, AccountService } from "@/lib/services";
+import { TransactionService } from "@/lib/services";
 import { deleteTransactionAction } from "@/features/transactions/actions/transaction-actions";
 import { formatCurrency } from "@/lib/utils";
 
@@ -61,32 +58,26 @@ export default function TransactionsContent({
 }: TransactionsContentProps) {
   const router = useRouter();
 
-  // State management
-  const [selectedGroupFilter, setSelectedGroupFilter] = useState<string>('all');
+  // User filtering state management using shared hook
+  const { selectedGroupFilter, setSelectedGroupFilter, selectedUserId } = useUserFilter();
+
+  // Tab and search state
   const [activeTab, setActiveTab] = useState<string>('Transactions');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [isTransactionFormOpen, setIsTransactionFormOpen] = useState(false);
-  const [isRecurringFormOpen, setIsRecurringFormOpen] = useState(false);
-  const [formMode, setFormMode] = useState<'create' | 'edit'>('create');
-  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | undefined>();
-  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
-  const [transactionToDelete, setTransactionToDelete] = useState<Transaction | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
+
+  // Form modal state using hooks
+  const transactionModal = useFormModal<Transaction>();
+  const recurringModal = useFormModal<RecurringTransactionSeries>();
+
+  // Delete confirmation state using hook
+  const deleteConfirm = useDeleteConfirmation<Transaction>();
 
   // Optimistic UI state - local copy of transactions
   const [localTransactions, setLocalTransactions] = useState<Transaction[]>(transactions);
 
-  const selectedUserId = selectedGroupFilter === 'all' ? undefined : selectedGroupFilter;
-
-  // Create account names map for display
-  const accountNames = useMemo(() => {
-    const names: Record<string, string> = {};
-    accounts.forEach((account) => {
-      names[account.id] = account.name;
-    });
-    return names;
-  }, [accounts]);
+  // Create account names map for display using hook
+  const accountNames = useIdNameMap(accounts);
 
   // Filter transactions by selected user (use local state for optimistic updates)
   const filteredTransactions = useMemo(() => {
@@ -103,57 +94,46 @@ export default function TransactionsContent({
 
   // Handlers for transaction actions
   const handleCreateTransaction = () => {
-    setFormMode('create');
-    setSelectedTransaction(undefined);
-    setIsTransactionFormOpen(true);
+    transactionModal.openCreate();
   };
 
   const handleEditTransaction = (transaction: Transaction) => {
-    setFormMode('edit');
-    setSelectedTransaction(transaction);
-    setIsTransactionFormOpen(true);
+    transactionModal.openEdit(transaction);
   };
 
   const handleDeleteClick = (transactionId: string) => {
     const transaction = localTransactions.find((t) => t.id === transactionId);
     if (transaction) {
-      setTransactionToDelete(transaction);
-      setIsDeleteConfirmOpen(true);
+      deleteConfirm.openDialog(transaction);
     }
   };
 
   const handleDeleteConfirm = async () => {
-    if (!transactionToDelete) return;
+    await deleteConfirm.executeDelete(async (transaction) => {
+      // Optimistic UI update - remove immediately
+      setLocalTransactions((prev) => prev.filter((t) => t.id !== transaction.id));
 
-    setIsDeleting(true);
+      try {
+        // Call server action to delete
+        const result = await deleteTransactionAction(transaction.id);
 
-    // Optimistic UI update - remove immediately
-    const removedTransaction = transactionToDelete;
-    setLocalTransactions((prev) => prev.filter((t) => t.id !== removedTransaction.id));
-
-    try {
-      // Call server action to delete
-      const result = await deleteTransactionAction(removedTransaction.id);
-
-      if (result.error) {
+        if (result.error) {
+          // Revert on error
+          setLocalTransactions((prev) => [...prev, transaction]);
+          console.error('Failed to delete transaction:', result.error);
+          // TODO: Show error toast/message to user
+          throw new Error(result.error);
+        }
+        // Success - cache revalidation happens in service, UI will refresh with server data
+        router.refresh();
+      } catch (error) {
         // Revert on error
-        setLocalTransactions((prev) => [...prev, removedTransaction]);
-        console.error('Failed to delete transaction:', result.error);
+        setLocalTransactions((prev) => [...prev, transaction]);
+        console.error('Error deleting transaction:', error);
         // TODO: Show error toast/message to user
+        throw error;
       }
-      // Success - cache revalidation happens in service, UI will refresh with server data
-    } catch (error) {
-      // Revert on error
-      setLocalTransactions((prev) => [...prev, removedTransaction]);
-      console.error('Error deleting transaction:', error);
-      // TODO: Show error toast/message to user
-    } finally {
-      setIsDeleting(false);
-      setIsDeleteConfirmOpen(false);
-      setTransactionToDelete(null);
-      // Refresh data from server
-      router.refresh();
-    }
+    });
   };
 
   const handleFormSuccess = (transaction: Transaction, action: 'create' | 'update') => {
@@ -171,22 +151,17 @@ export default function TransactionsContent({
   };
 
   return (
-    <div
-      className={transactionStyles.page.container}
-      style={{ fontFamily: '"Inter", "SF Pro Display", system-ui, sans-serif' }}
-    >
+    <PageContainer className={transactionStyles.page.container}>
       {/* Header */}
-      <header className={transactionStyles.header.container}>
-        <div className={transactionStyles.header.inner}>
-          {/* Back button */}
-          <Button variant="ghost" size="sm" className={transactionStyles.header.button} onClick={() => router.back()}>
-            <ArrowLeft className="h-5 w-5 sm:h-6 sm:w-6" />
-          </Button>
-
-          {/* Title */}
-          <h1 className={transactionStyles.header.title}>Transazioni</h1>
-
-          {/* Actions menu */}
+      <PageHeaderWithBack
+        title="Transazioni"
+        onBack={() => router.back()}
+        className={transactionStyles.header.container}
+        contentClassName={transactionStyles.header.inner}
+        titleClassName={transactionStyles.header.title}
+        backButtonClassName={transactionStyles.header.button}
+        variant="secondary"
+        actions={(
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="sm" className={transactionStyles.header.button}>
@@ -207,8 +182,8 @@ export default function TransactionsContent({
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-        </div>
-      </header>
+        )}
+      />
 
       {/* User Selector */}
       <Suspense fallback={<UserSelectorSkeleton />}>
@@ -331,24 +306,15 @@ export default function TransactionsContent({
                 ))}
               </div>
             ) : (
-              <div className={transactionStyles.emptyState.container}>
-                <div className={transactionStyles.emptyState.icon}>
-                  <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={1.5}
-                      d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                    />
-                  </svg>
-                </div>
-                <h3 className={transactionStyles.emptyState.title}>Nessuna Transazione</h3>
-                <p className={transactionStyles.emptyState.text}>
-                  {selectedUserId
+              <EmptyState
+                icon={FileText}
+                title="Nessuna Transazione"
+                description={
+                  selectedUserId
                     ? "Non ci sono transazioni per questo utente"
-                    : "Non ci sono ancora transazioni. Inizia aggiungendone una!"}
-                </p>
-              </div>
+                    : "Non ci sono ancora transazioni. Inizia aggiungendone una!"
+                }
+              />
             )}
           </>
         )}
@@ -362,8 +328,8 @@ export default function TransactionsContent({
               showStats={true}
               maxItems={10}
               showActions={true}
-              onCreateRecurringSeries={() => setIsRecurringFormOpen(true)}
-              onEditRecurringSeries={() => setIsRecurringFormOpen(true)}
+              onCreateRecurringSeries={recurringModal.openCreate}
+              onEditRecurringSeries={recurringModal.openCreate}
             />
           </Suspense>
         )}
@@ -373,10 +339,10 @@ export default function TransactionsContent({
 
       {/* Modal Forms */}
       <TransactionForm
-        isOpen={isTransactionFormOpen}
-        onOpenChange={setIsTransactionFormOpen}
-        transaction={selectedTransaction}
-        mode={formMode}
+        isOpen={transactionModal.isOpen}
+        onOpenChange={transactionModal.setIsOpen}
+        transaction={transactionModal.entity}
+        mode={transactionModal.mode}
         currentUser={currentUser}
         groupUsers={groupUsers}
         accounts={accounts}
@@ -386,28 +352,25 @@ export default function TransactionsContent({
         onSuccess={handleFormSuccess}
       />
       <RecurringSeriesForm
-        isOpen={isRecurringFormOpen}
-        onOpenChange={setIsRecurringFormOpen}
+        isOpen={recurringModal.isOpen}
+        onOpenChange={recurringModal.setIsOpen}
         selectedUserId={selectedUserId}
-        series={undefined}
-        mode={undefined}
+        series={recurringModal.entity}
+        mode={recurringModal.mode}
       />
 
       {/* Delete Confirmation Dialog */}
       <ConfirmationDialog
-        isOpen={isDeleteConfirmOpen}
+        isOpen={deleteConfirm.isOpen}
         onConfirm={handleDeleteConfirm}
-        onCancel={() => {
-          setIsDeleteConfirmOpen(false);
-          setTransactionToDelete(null);
-        }}
+        onCancel={deleteConfirm.closeDialog}
         title="Elimina transazione"
-        message={`Sei sicuro di voler eliminare la transazione "${transactionToDelete?.description}"? Questa azione non può essere annullata.`}
+        message={`Sei sicuro di voler eliminare la transazione "${deleteConfirm.itemToDelete?.description}"? Questa azione non può essere annullata.`}
         confirmText="Elimina"
         cancelText="Annulla"
         variant="destructive"
-        isLoading={isDeleting}
+        isLoading={deleteConfirm.isDeleting}
       />
-    </div>
+    </PageContainer>
   );
 }

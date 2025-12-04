@@ -4,14 +4,14 @@
  */
 
 // Components
-export * from "./components/auth-guard";
 export * from "./components/auth-card";
 export * from "./components/user-button";
-export * from "./components/auth-method-toggle";
-export * from "./components/password-input";
-export * from "./components/password-strength";
-export * from "./components/password-requirements";
 export * from "./components/email-suggestions";
 export * from "./components/social-buttons";
 export * from "./components/auth-skeletons";
+
+// Password components - re-exported from UI for backwards compatibility
+export { PasswordInput } from "@/components/ui/password-input";
+export { PasswordStrength, scorePassword } from "@/components/ui/password-strength";
+export { PasswordRequirements, getRequirementsStatus } from "@/components/ui/password-requirements";
 export * from "./theme";

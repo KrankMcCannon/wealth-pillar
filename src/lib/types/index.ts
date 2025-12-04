@@ -132,9 +132,10 @@ export interface Budget {
   description: string;
   amount: number;
   type: BudgetType;
-  icon?: string;
+  icon: string | null;
   categories: string[];
   user_id: string;
+  group_id: string;
   created_at: string | Date;
   updated_at: string | Date;
 }

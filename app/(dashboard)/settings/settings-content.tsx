@@ -1,12 +1,10 @@
 "use client";
 
-import { SectionHeader } from "@/src/components/layout";
-import BottomNavigation from "@/src/components/layout/bottom-navigation";
+import { SectionHeader, BottomNavigation, PageContainer, PageHeaderWithBack } from "@/src/components/layout";
 import { settingsStyles } from "@/src/features/settings/theme";
 import { deleteUserAction } from "@/src/features/settings";
 import { DeleteAccountModal } from "@/src/features/settings";
 import {
-  ArrowLeft,
   BarChart3,
   Bell,
   ChevronRight,
@@ -125,21 +123,10 @@ export default function SettingsContent({ currentUser, groupUsers }: SettingsCon
   const transactionCount = 0;
 
   return (
-    <div
-      className="relative flex size-full min-h-dvh flex-col bg-card"
-      style={{ fontFamily: '"Inter", "SF Pro Display", system-ui, sans-serif' }}
-    >
+    <PageContainer>
       <div>
         {/* Header */}
-        <header className={settingsStyles.header.container}>
-          <div className={settingsStyles.header.inner}>
-            <Button variant="ghost" size="sm" className={settingsStyles.header.button} onClick={() => {}}>
-              <ArrowLeft className="h-5 w-5 sm:h-6 sm:w-6" />
-            </Button>
-            <h1 className={settingsStyles.header.title}>Impostazioni</h1>
-            <div className={settingsStyles.header.spacer}></div>
-          </div>
-        </header>
+        <PageHeaderWithBack title="Impostazioni" onBack={() => router.push('/dashboard')} />
 
         <main className={settingsStyles.main.container}>
           {/* Profile Section */}
@@ -530,6 +517,6 @@ export default function SettingsContent({ currentUser, groupUsers }: SettingsCon
         onClose={handleCloseDeleteModal}
         onConfirm={handleDeleteAccountConfirm}
       />
-    </div>
+    </PageContainer>
   );
 }

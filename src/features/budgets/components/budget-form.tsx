@@ -1,17 +1,18 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import type { CheckedState } from "@radix-ui/react-checkbox";
 import { Budget, BudgetType, Category } from "@/lib/types";
 import { CreateBudgetInput } from "@/lib/services/budget.service";
 import { createBudgetAction, updateBudgetAction } from "@/features/budgets/actions/budget-actions";
 import {
   FormActions,
-  FormCheckboxGroup,
   FormField,
   FormSelect,
 } from "@/src/components/form";
 import {
   AmountField,
+  Checkbox,
   Input,
   ModalContent,
   ModalSection,
@@ -34,7 +35,7 @@ interface FormData {
   description: string;
   amount: string;
   type: BudgetType;
-  icon?: string;
+  icon: string | null;
   categories: string[];
   user_id: string;
 }
@@ -66,13 +67,14 @@ export function BudgetForm({
     description: "",
     amount: "",
     type: "monthly",
-    icon: undefined,
+    icon: null,
     categories: [],
     user_id: selectedUserId || "",
   });
 
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [categorySearch, setCategorySearch] = useState("");
 
   // Convert categories to checkbox options
   const categoryOptions = useMemo(() => {
@@ -82,6 +84,17 @@ export function BudgetForm({
       color: category.color,
     }));
   }, [categories]);
+
+  const filteredCategoryOptions = useMemo(() => {
+    if (!categorySearch.trim()) {
+      return categoryOptions;
+    }
+
+    const query = categorySearch.trim().toLowerCase();
+    return categoryOptions.filter((option) =>
+      option.label.toLowerCase().includes(query)
+    );
+  }, [categoryOptions, categorySearch]);
 
   // Reset form when modal opens/closes or budget changes
   useEffect(() => {
@@ -102,7 +115,7 @@ export function BudgetForm({
           description: "",
           amount: "",
           type: "monthly",
-          icon: undefined,
+          icon: null,
           categories: [],
           user_id: selectedUserId || "",
         });
@@ -233,6 +246,28 @@ export function BudgetForm({
     }
   };
 
+  const handleCategoryToggle = (categoryId: string, checked: CheckedState) => {
+    const isChecked = checked === true || checked === "indeterminate";
+    const updatedCategories = isChecked
+      ? Array.from(new Set([...formData.categories, categoryId]))
+      : formData.categories.filter((id) => id !== categoryId);
+
+    handleChange("categories", updatedCategories);
+  };
+
+  const handleSelectAllCategories = () => {
+    if (!categoryOptions.length) return;
+    handleChange(
+      "categories",
+      categoryOptions.map((option) => option.value)
+    );
+  };
+
+  const handleClearCategories = () => {
+    if (!formData.categories.length) return;
+    handleChange("categories", []);
+  };
+
   return (
     <form className="space-y-2" onSubmit={handleSubmit}>
       <ModalWrapper
@@ -306,14 +341,64 @@ export function BudgetForm({
 
           <ModalSection className="gap-1 shrink-0">
             <FormField label="Seleziona categorie" required error={errors.categories} className="space-y-1">
-              <FormCheckboxGroup
-                value={formData.categories}
-                onChange={(value) => handleChange("categories", value)}
-                options={categoryOptions}
-                showSearch
-                showSelectAll
-                maxHeight="200px"
-              />
+              <div className="space-y-3 rounded-2xl border border-primary/15 bg-card/70 p-3">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <Input
+                    value={categorySearch}
+                    onChange={(event) => setCategorySearch(event.target.value)}
+                    placeholder="Cerca categoria..."
+                    className="h-9 text-sm"
+                  />
+                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                    <span className="font-medium">
+                      {formData.categories.length}/{categoryOptions.length} selezionate
+                    </span>
+                    <button
+                      type="button"
+                      className="text-primary hover:underline disabled:opacity-40"
+                      onClick={handleSelectAllCategories}
+                      disabled={!categoryOptions.length}
+                    >
+                      Seleziona tutto
+                    </button>
+                    <button
+                      type="button"
+                      className="text-primary hover:underline disabled:opacity-40"
+                      onClick={handleClearCategories}
+                      disabled={!formData.categories.length}
+                    >
+                      Pulisci
+                    </button>
+                  </div>
+                </div>
+
+                <div className="max-h-60 overflow-y-auto space-y-2 pr-1">
+                  {filteredCategoryOptions.length === 0 ? (
+                    <p className="text-sm text-muted-foreground px-1 py-4">
+                      Nessuna categoria trovata
+                    </p>
+                  ) : (
+                    filteredCategoryOptions.map((option) => (
+                      <label
+                        key={option.value}
+                        className="flex items-center gap-3 rounded-xl border border-primary/10 bg-card/80 px-3 py-2 text-sm hover:border-primary/40"
+                      >
+                        <Checkbox
+                          checked={formData.categories.includes(option.value)}
+                          onCheckedChange={(checked) => handleCategoryToggle(option.value, checked)}
+                        />
+                        <span className="flex items-center gap-2">
+                          <span
+                            className="h-2.5 w-2.5 rounded-full"
+                            style={{ backgroundColor: option.color || "#CBD5F5" }}
+                          />
+                          {option.label}
+                        </span>
+                      </label>
+                    ))
+                  )}
+                </div>
+              </div>
             </FormField>
           </ModalSection>
         </ModalContent>

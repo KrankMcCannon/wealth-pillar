@@ -8,9 +8,7 @@
 import { CreditCard, TrendingUp, TrendingDown } from "lucide-react";
 import { accountStyles } from "../theme/account-styles";
 import { formatCurrency } from "@/lib/utils";
-
-const shimmerBase =
-  "relative overflow-hidden before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_2s_infinite] before:bg-gradient-to-r before:from-transparent before:via-white/60 before:to-transparent";
+import { SHIMMER_BASE } from "@/lib/utils/ui-constants";
 
 /**
  * Skeleton for balance card
@@ -18,14 +16,14 @@ const shimmerBase =
 function TotalBalanceCardSkeleton() {
   return (
     <div className={accountStyles.balanceCard.container}>
-      <div className={`${accountStyles.balanceCard.card} ${shimmerBase}`}>
+      <div className={`${accountStyles.balanceCard.card} ${SHIMMER_BASE}`}>
         {/* Header */}
         <div className={accountStyles.balanceCard.header}>
           <div>
-            <div className="h-3 w-20 bg-muted rounded mb-2" />
-            <div className="h-8 w-32 bg-muted rounded" />
+            <div className="h-3 w-20 bg-primary/15 rounded mb-2" />
+            <div className="h-8 w-32 bg-primary/15 rounded" />
           </div>
-          <div className="w-14 h-14 bg-muted rounded-full" />
+          <div className="w-14 h-14 bg-primary/10 rounded-full" />
         </div>
 
         {/* Statistics grid */}
@@ -33,10 +31,10 @@ function TotalBalanceCardSkeleton() {
           {new Array(3).fill(null).map((_, i) => (
             <div key={i} className="bg-primary/5 rounded-lg p-3 border border-primary/10 space-y-2">
               <div className="flex items-center gap-2 mb-1">
-                <div className="w-4 h-4 bg-muted rounded" />
-                <div className="h-2 w-12 bg-muted rounded" />
+                <div className="w-4 h-4 bg-primary/15 rounded" />
+                <div className="h-2 w-12 bg-primary/15 rounded" />
               </div>
-              <div className="h-5 w-8 bg-muted rounded" />
+              <div className="h-5 w-8 bg-primary/15 rounded" />
             </div>
           ))}
         </div>

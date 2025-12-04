@@ -14,12 +14,13 @@
  * Data is passed from Server Component for optimal performance
  */
 
-import { Suspense, useState, useMemo } from "react";
-import { Settings, Bell, AlertTriangle } from "lucide-react";
+import { Suspense, useMemo, useState } from "react";
+import { Settings, Bell } from "lucide-react";
 import { useRouter } from "next/navigation";
-import BottomNavigation from "@/components/layout/bottom-navigation";
-import { QueryErrorFallback } from "@/components/shared";
+import { BottomNavigation, PageContainer } from "@/components/layout";
+import { useUserFilter } from "@/hooks";
 import { Button, IconContainer, Text } from "@/components/ui";
+import { RecurringTransactionSeries } from "@/src/lib";
 import {
   BalanceSectionSkeleton,
   BudgetSectionSkeleton,
@@ -56,11 +57,8 @@ interface DashboardContentProps {
 export default function DashboardContent({ currentUser, groupUsers, accounts, accountBalances, transactions, budgets }: DashboardContentProps) {
   const router = useRouter();
 
-  // State management for user filtering
-  const [selectedGroupFilter, setSelectedGroupFilter] = useState<string>('all');
-
-  // Determine selected user ID (undefined for 'all', user ID otherwise)
-  const selectedUserId = selectedGroupFilter === 'all' ? undefined : selectedGroupFilter;
+  // User filtering state management using shared hook
+  const { selectedGroupFilter, setSelectedGroupFilter, selectedUserId } = useUserFilter();
 
   // Calculate budgets by user using BudgetService
   const budgetsByUser = useMemo(() => {
@@ -146,7 +144,7 @@ export default function DashboardContent({ currentUser, groupUsers, accounts, ac
 
   // State management for recurring series modal
   const [isRecurringFormOpen, setIsRecurringFormOpen] = useState(false);
-  const [selectedSeries, setSelectedSeries] = useState<any>(undefined);
+  const [selectedSeries, setSelectedSeries] = useState<RecurringTransactionSeries | undefined>(undefined);
   const [formMode, setFormMode] = useState<'create' | 'edit' | undefined>(undefined);
 
   // Handler for group filter changes
@@ -167,7 +165,7 @@ export default function DashboardContent({ currentUser, groupUsers, accounts, ac
   };
 
   // Handler for editing recurring series
-  const handleEditRecurringSeries = (series: any) => {
+  const handleEditRecurringSeries = (series: RecurringTransactionSeries) => {
     setSelectedSeries(series);
     setFormMode('edit');
     setIsRecurringFormOpen(true);
@@ -177,47 +175,9 @@ export default function DashboardContent({ currentUser, groupUsers, accounts, ac
   const handleSettingsClick = () => {
     router.push('/settings');
   };
-  // Critical error handling (blocks entire dashboard)
-  if (false) {
-    return (
-      <div className={dashboardStyles.page.container}>
-        <header className="sticky top-0 z-20 bg-card/70 backdrop-blur-xl border-b border-primary/20 px-3 sm:px-4 py-2 sm:py-3 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 sm:gap-3">
-              <IconContainer size="md" color="destructive" className="rounded-xl sm:rounded-2xl">
-                <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5" />
-              </IconContainer>
-              <div className="flex flex-col">
-                <Text variant="heading" size="sm" className="sm:text-base text-destructive">
-                  Errore di Connessione
-                </Text>
-                <Text variant="emphasis" size="xs" className="sm:text-sm text-destructive">
-                  Dati non disponibili
-                </Text>
-              </div>
-            </div>
-          </div>
-        </header>
-
-        <main className="flex-1 flex items-center justify-center p-4">
-          <QueryErrorFallback
-            error={null}
-            reset={() => globalThis.location.reload()}
-            title="Errore nel caricamento della dashboard"
-            description="Si è verificato un errore durante il caricamento dei dati finanziari. Verifica la connessione internet e riprova."
-          />
-        </main>
-
-        <BottomNavigation />
-      </div>
-    );
-  }
 
   return (
-    <div
-      className={dashboardStyles.page.container}
-      style={{ fontFamily: '"Inter", "SF Pro Display", system-ui, sans-serif' }}
-    >
+    <PageContainer className={dashboardStyles.page.container}>
       {/* Mobile-First Header */}
       <Suspense fallback={<DashboardHeaderSkeleton />}>
         <header className={dashboardStyles.header.container}>
@@ -316,6 +276,6 @@ export default function DashboardContent({ currentUser, groupUsers, accounts, ac
           mode={formMode}
         />
       </Suspense>
-    </div>
+    </PageContainer>
   );
 }

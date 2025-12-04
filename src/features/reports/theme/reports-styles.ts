@@ -48,7 +48,7 @@ export const reportsStyles = {
     container: 'p-3 sm:p-4',
     grid: 'grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4',
     item: 'flex flex-col items-start',
-    label: 'text-xs font-medium text-muted-foreground mb-1',
+    label: 'text-xs font-medium text-primary/70 mb-1',
     value: 'text-lg sm:text-2xl font-bold text-black',
     change: 'text-xs mt-1 flex items-center gap-1',
     positive: 'text-emerald-600',
@@ -60,7 +60,7 @@ export const reportsStyles = {
   sectionHeader: {
     container: 'mb-2',
     title: 'text-base sm:text-lg font-semibold text-black',
-    subtitle: 'text-xs text-muted-foreground mt-1',
+    subtitle: 'text-xs text-primary/70 mt-1',
   },
 
   // Category breakdown
@@ -72,29 +72,29 @@ export const reportsStyles = {
       'flex items-center justify-center h-10 w-10 rounded-lg bg-primary/10 text-primary shrink-0',
     categoryDetails: 'flex-1 min-w-0',
     categoryName: 'text-sm font-semibold text-black truncate',
-    categoryAmount: 'text-xs text-muted-foreground mt-0.5',
+    categoryAmount: 'text-xs text-primary/70 mt-0.5',
     progressBar: 'w-full h-2 bg-primary/10 rounded-full overflow-hidden',
     progressFill: 'h-full bg-primary transition-all duration-300 rounded-full',
-    percentageText: 'text-xs font-semibold text-muted-foreground',
+    percentageText: 'text-xs font-semibold text-primary/70',
 
     // Expandable category section
     categoryRow: 'border-b border-primary/10 last:border-0',
     categoryHeader: 'flex items-center justify-between gap-3 cursor-pointer hover:bg-primary/5 transition-colors duration-200 p-3',
     expandIcon: 'shrink-0',
     expandIconExpanded: 'h-5 w-5 text-primary',
-    expandIconCollapsed: 'h-5 w-5 text-muted-foreground',
+    expandIconCollapsed: 'h-5 w-5 text-primary/60',
 
     // Transaction list (expandable content)
     transactionList: 'px-3 pb-3 space-y-2 bg-primary/5',
     transactionItem: 'flex items-center justify-between gap-2 p-2 bg-card rounded-lg border border-primary/10',
     transactionContent: 'flex flex-col flex-1 min-w-0',
     transactionDescription: 'text-sm text-black truncate',
-    transactionMeta: 'text-xs text-muted-foreground mt-0.5',
+    transactionMeta: 'text-xs text-primary/70 mt-0.5',
     transactionAmount: 'text-sm font-semibold text-destructive shrink-0',
 
     // Empty state for expanded category
     transactionEmpty: 'px-3 pb-3 bg-primary/5',
-    transactionEmptyText: 'text-xs text-muted-foreground text-center py-2',
+    transactionEmptyText: 'text-xs text-primary/70 text-center py-2',
   },
 
   // Trend chart
@@ -104,7 +104,7 @@ export const reportsStyles = {
     legend: 'flex items-center justify-center gap-4 flex-wrap text-xs',
     legendItem: 'flex items-center gap-2',
     legendColor: 'w-3 h-3 rounded-full',
-    legendLabel: 'text-muted-foreground',
+    legendLabel: 'text-primary/70',
   },
 
   // Savings goal
@@ -115,7 +115,7 @@ export const reportsStyles = {
     goalStatus: 'text-xs font-medium px-2 py-1 rounded-full bg-primary/10 text-primary',
     progressSection: 'space-y-3',
     progressLabel: 'text-sm font-medium text-black flex justify-between',
-    progressValue: 'text-xs text-muted-foreground',
+    progressValue: 'text-xs text-primary/70',
     progressBar: 'w-full h-3 bg-primary/10 rounded-full overflow-hidden',
     progressFill: 'h-full bg-primary transition-all duration-300 rounded-full',
     projection: 'p-3 bg-primary/5 rounded-xl border border-primary/10 mt-3',
@@ -131,10 +131,10 @@ export const reportsStyles = {
     accountIcon: 'flex items-center justify-center h-10 w-10 rounded-lg bg-primary/10 shrink-0',
     accountDetails: 'flex-1 min-w-0',
     accountName: 'text-sm font-semibold text-black truncate',
-    accountType: 'text-xs text-muted-foreground mt-0.5',
+    accountType: 'text-xs text-primary/70 mt-0.5',
     accountValue: 'flex flex-col items-end',
     accountAmount: 'text-sm font-semibold text-black',
-    accountPercent: 'text-xs text-muted-foreground mt-0.5',
+    accountPercent: 'text-xs text-primary/70 mt-0.5',
   },
 
   // Action buttons
@@ -149,7 +149,7 @@ export const reportsStyles = {
     container: 'flex flex-col items-center justify-center min-h-[200px] py-8 text-center',
     icon: 'text-primary/20 mb-3',
     title: 'text-base font-semibold text-black mb-1',
-    description: 'text-xs text-muted-foreground',
+    description: 'text-xs text-primary/70',
   },
 
   // Loading states

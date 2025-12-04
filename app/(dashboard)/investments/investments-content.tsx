@@ -1,113 +1,95 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { SectionHeader } from "@/src/components/layout";
-import BottomNavigation from "@/src/components/layout/bottom-navigation";
+import { PageContainer, PageHeaderWithBack, SectionHeader, BottomNavigation } from "@/src/components/layout";
+import { EmptyState } from "@/components/shared";
+import { useUserFilter } from "@/hooks";
 import UserSelector from "@/src/components/shared/user-selector";
 import { EnhancedHolding } from "@/src/lib";
 import { PieChart } from "lucide-react";
 import type { DashboardDataProps } from "@/lib/auth/get-dashboard-data";
 
 export default function InvestmentsContent({ currentUser, groupUsers }: DashboardDataProps) {
-  const router = useRouter();
-  const [selectedGroupFilter, setSelectedGroupFilter] = useState<string>("all");
+  const { selectedGroupFilter, setSelectedGroupFilter } = useUserFilter();
 
   return (
-    <div
-      className="relative flex size-full min-h-[100dvh] flex-col justify-between overflow-x-hidden"
-      style={{ fontFamily: '"Spline Sans", "Noto Sans", sans-serif', backgroundColor: "#F8FAFC" }}
-    >
-      <>
-        <div>
-          <header className="sticky top-0 z-10 bg-[#F8FAFC]/80 p-4 pb-2 backdrop-blur-sm">
-            <div className="flex items-center justify-between">
-              <button
-                className="text-[#1F2937] flex size-10 shrink-0 items-center justify-center rounded-full hover:bg-[#EFF2FE] transition-colors"
-                onClick={() => router.back()}
-              >
-                <svg
-                  fill="currentColor"
-                  height="24px"
-                  viewBox="0 0 256 256"
-                  width="24px"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path d="M224,128a8,8,0,0,1-8,8H59.31l58.35,58.34a8,8,0,0,1-11.32,11.32l-72-72a8,8,0,0,1,0-11.32l72-72a8,8,0,0,1,11.32,11.32L59.31,120H216A8,8,0,0,1,224,128Z"></path>
-                </svg>
-              </button>
-              <h1 className="text-[#1F2937] text-xl font-bold leading-tight tracking-[-0.015em] flex-1 text-center">
-                Investimenti
-              </h1>
-              <div className="size-10"></div>
-            </div>
-          </header>
+    <PageContainer className="bg-[#F8FAFC]">
+      <div className="flex-1">
+        <PageHeaderWithBack
+          title="Investimenti"
+          variant="light"
+          className="shadow-sm"
+          contentClassName="flex items-center justify-between"
+          titleClassName="text-[#1F2937] text-xl font-bold leading-tight tracking-[-0.015em] flex-1 text-center"
+          backButtonClassName="text-[#1F2937] flex size-10 shrink-0 items-center justify-center rounded-full hover:bg-[#EFF2FE] transition-colors"
+          actions={<div className="size-10" />}
+        />
 
-          <UserSelector
-            users={groupUsers}
-            currentUser={currentUser}
-            selectedGroupFilter={selectedGroupFilter}
-            onGroupFilterChange={setSelectedGroupFilter}
-          />
+        <UserSelector
+          users={groupUsers}
+          currentUser={currentUser}
+          selectedGroupFilter={selectedGroupFilter}
+          onGroupFilterChange={setSelectedGroupFilter}
+        />
 
-          <main className="p-4 pb-24">
-            <div className="flex gap-4 overflow-x-auto pb-4 -mx-4 px-4 mb-6">
-              <div className="flex w-64 shrink-0 flex-col rounded-2xl bg-card p-4 shadow-sm">
-                <div className="flex items-start justify-between">
-                  <p className="text-base font-bold">Portafoglio Totale</p>
-                </div>
-                <p className="mt-2 text-2xl font-bold">{0}</p>
-                <div className="mt-4">
-                  <div className="flex justify-between text-sm font-medium">
-                    <span>
-                      {0 >= 0 ? "+" : ""}
-                      {Math.abs(0)}
-                    </span>
-                    <span className={0 >= 0 ? "text-primary" : "text-destructive"}>
-                      {0 >= 0 ? "+" : ""}
-                      {Number(0).toFixed(1)}%
-                    </span>
-                  </div>
+        <main className="p-4 pb-24">
+          <div className="flex gap-4 overflow-x-auto pb-4 -mx-4 px-4 mb-6">
+            <div className="flex w-64 shrink-0 flex-col rounded-2xl bg-card p-4 shadow-sm">
+              <div className="flex items-start justify-between">
+                <p className="text-base font-bold">Portafoglio Totale</p>
+              </div>
+              <p className="mt-2 text-2xl font-bold">{0}</p>
+              <div className="mt-4">
+                <div className="flex justify-between text-sm font-medium">
+                  <span>
+                    {0 >= 0 ? "+" : ""}
+                    {Math.abs(0)}
+                  </span>
+                  <span className={0 >= 0 ? "text-primary" : "text-destructive"}>
+                    {0 >= 0 ? "+" : ""}
+                    {Number(0).toFixed(1)}%
+                  </span>
                 </div>
               </div>
             </div>
+          </div>
 
-            <section>
-              <SectionHeader
-                title="Le Tue Partecipazioni"
-                icon={PieChart}
-                iconClassName="text-primary"
-                className="px-4 pb-3 pt-5"
-              />
-              <div className="space-y-3">
-                {0 > 0 ? (
-                  [].map((holding: EnhancedHolding, index: number) => (
-                    <div
-                      key={holding.id || index}
-                      className="flex items-center justify-between gap-4 rounded-2xl bg-card p-4 shadow-sm"
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className="flex-1">
-                          <div className="flex justify-between items-center mb-1">
-                            <p className="text-base font-medium">{holding.symbol}</p>
-                            <span className="text-sm font-medium">{holding.currentValue}</span>
-                          </div>
+          <section>
+            <SectionHeader
+              title="Le Tue Partecipazioni"
+              icon={PieChart}
+              iconClassName="text-primary"
+              className="px-4 pb-3 pt-5"
+            />
+            <div className="space-y-3">
+              {0 > 0 ? (
+                [].map((holding: EnhancedHolding, index: number) => (
+                  <div
+                    key={holding.id || index}
+                    className="flex items-center justify-between gap-4 rounded-2xl bg-card p-4 shadow-sm"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="flex-1">
+                        <div className="mb-1 flex items-center justify-between">
+                          <p className="text-base font-medium">{holding.symbol}</p>
+                          <span className="text-sm font-medium">{holding.currentValue}</span>
                         </div>
                       </div>
                     </div>
-                  ))
-                ) : (
-                  <div className="text-center py-8">
-                    <p>Nessuna partecipazione trovata</p>
                   </div>
-                )}
-              </div>
-            </section>
-          </main>
-        </div>
+                ))
+              ) : (
+                <EmptyState
+                  icon={PieChart}
+                  title="Nessuna Partecipazione"
+                  description="Non ci sono partecipazioni registrate al momento"
+                />
+              )}
+            </div>
+          </section>
+        </main>
+      </div>
 
-        <BottomNavigation />
-      </>
-    </div>
+      <BottomNavigation />
+    </PageContainer>
   );
 }

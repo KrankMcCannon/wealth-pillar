@@ -31,7 +31,7 @@ export interface CacheOptions {
  *   cacheOptions.user(userId)
  * );
  */
-export function cached<T extends (...args: any[]) => Promise<any>>(
+export function cached<T extends (...args: unknown[]) => Promise<unknown>>(
   fn: T,
   keyParts: readonly string[],
   options?: CacheOptions

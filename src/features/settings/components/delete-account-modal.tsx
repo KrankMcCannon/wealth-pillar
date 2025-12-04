@@ -45,7 +45,7 @@ export function DeleteAccountModal({
           <button
             onClick={onClose}
             disabled={isDeleting}
-            className="text-muted-foreground hover:text-foreground p-1 rounded-lg hover:bg-muted transition-colors disabled:opacity-50"
+            className="text-primary/80 hover:text-primary p-1 rounded-lg hover:bg-primary/10 transition-colors disabled:opacity-50"
           >
             <X className="h-5 w-5" />
           </button>

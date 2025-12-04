@@ -76,7 +76,7 @@ const styles = {
   searchClearIcon: "h-4 w-4 text-muted-foreground",
 
   // Recent icons container
-  recentContainer: "flex-1 flex gap-1 items-center px-2 text-xs text-muted-foreground bg-muted/50 rounded-md overflow-hidden",
+  recentContainer: "flex-1 flex gap-1 items-center px-2 text-xs text-primary/80 bg-primary/10 rounded-md overflow-hidden",
   recentIcon: "h-3.5 w-3.5 shrink-0",
   recentLabel: "shrink-0",
   recentIconsWrapper: "flex gap-1 overflow-x-auto",
@@ -90,7 +90,7 @@ const styles = {
 
   // Results count
   resultsCount: {
-    base: "py-1.5 text-xs text-muted-foreground bg-muted/30 shrink-0",
+    base: "py-1.5 text-xs text-primary/80 bg-primary/10 shrink-0",
     mobile: "px-2",
     desktop: "px-3",
   },
@@ -136,7 +136,7 @@ const styles = {
   // Mobile dialog
   dialogOverlay: "fixed inset-0 z-50 bg-black/60 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
   dialogContent: "fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-card border border-border rounded-2xl shadow-2xl flex flex-col data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 duration-300 w-[calc(100vw-40px)] max-w-[500px]",
-  dialogHandle: "mx-auto mt-3 mb-2 h-1.5 w-16 rounded-full bg-muted-foreground/30 shrink-0",
+  dialogHandle: "mx-auto mt-3 mb-2 h-1.5 w-16 rounded-full bg-primary/20 shrink-0",
   dialogWrapper: "flex flex-col flex-1 min-h-0",
 } as const;
 

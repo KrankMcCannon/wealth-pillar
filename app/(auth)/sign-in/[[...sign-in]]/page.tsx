@@ -60,15 +60,20 @@ export default function Page() {
         await setActive({ session: result.createdSessionId });
         router.push("/dashboard");
       } else if (result.status === "needs_second_factor") {
-        // Account has 2FA enabled, prepare email code verification
+        // Account has 2FA enabled, prepare code verification
         await signIn.prepareSecondFactor({
-          strategy: "email_code",
-        } as any);
+          strategy: "phone_code",
+        });
         setNeedsSecondFactor(true);
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error("Sign in error:", err);
-      setError(err.errors?.[0]?.message || "Email o password non corretti");
+      const message = err && typeof err === "object" && "errors" in err && Array.isArray((err as { errors?: { message?: string }[] }).errors)
+        ? (err as { errors: { message?: string }[] }).errors?.[0]?.message ?? "Email o password non corretti"
+        : err instanceof Error
+          ? err.message
+          : "Email o password non corretti";
+      setError(message);
     } finally {
       setIsLoading(false);
     }
@@ -85,17 +90,22 @@ export default function Page() {
 
     try {
       const result = await signIn.attemptSecondFactor({
-        strategy: "email_code",
+        strategy: "phone_code",
         code: verificationCode,
-      } as any);
+      });
 
       if (result.status === "complete") {
         await setActive({ session: result.createdSessionId });
         router.push("/dashboard");
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error("Verification error:", err);
-      setError(err.errors?.[0]?.message || "Codice di verifica non corretto");
+      const message = err && typeof err === "object" && "errors" in err && Array.isArray((err as { errors?: { message?: string }[] }).errors)
+        ? (err as { errors: { message?: string }[] }).errors?.[0]?.message ?? "Codice di verifica non corretto"
+        : err instanceof Error
+          ? err.message
+          : "Codice di verifica non corretto";
+      setError(message);
     } finally {
       setIsLoading(false);
     }
@@ -111,9 +121,14 @@ export default function Page() {
         redirectUrl: "/sign-in/sso-callback",
         redirectUrlComplete: "/dashboard",
       });
-    } catch (err: any) {
+    } catch (err) {
       console.error("OAuth error:", err);
-      setError(err.errors?.[0]?.message || "Errore durante l'autenticazione social");
+      const message = err && typeof err === "object" && "errors" in err && Array.isArray((err as { errors?: { message?: string }[] }).errors)
+        ? (err as { errors: { message?: string }[] }).errors?.[0]?.message ?? "Errore durante l'autenticazione social"
+        : err instanceof Error
+          ? err.message
+          : "Errore durante l'autenticazione social";
+      setError(message);
     }
   };
 
@@ -125,7 +140,7 @@ export default function Page() {
       <div className={authStyles.page.container}>
         <AuthCard
           title={needsSecondFactor ? "Verifica la tua identità" : "Accedi al tuo account"}
-          subtitle={needsSecondFactor ? "Inserisci il codice inviato alla tua email" : "Gestisci le tue finanze"}
+          subtitle={needsSecondFactor ? "Inserisci il codice di verifica" : "Gestisci le tue finanze"}
         >
         {error && (
           <div className={authStyles.error.container}>

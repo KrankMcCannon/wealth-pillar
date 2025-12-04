@@ -2,6 +2,9 @@
 
 import { RecurringTransactionSeries } from "@/src/lib";
 import { SeriesCard } from "@/src/components/cards";
+import { EmptyState } from "@/components/shared";
+import { RefreshCw } from "lucide-react";
+import { Button } from "@/components/ui";
 
 interface RecurringSeriesSectionProps {
   selectedUserId?: string;
@@ -34,31 +37,18 @@ export function RecurringSeriesSection({
   if (0 === 0) {
     return (
       <div className={`p-6 ${className}`}>
-        <div className="text-center py-8 text-primary/70">
-          <div className="flex size-16 items-center justify-center rounded-2xl bg-primary/10 mx-auto mb-4">
-            <svg className="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-              />
-            </svg>
-          </div>
-          <p className="font-medium text-primary">Nessuna serie ricorrente trovata</p>
-          <p className="text-sm mt-1">Le serie ricorrenti configurate appariranno qui</p>
-          {onCreateRecurringSeries && (
-            <button
-              className="mt-4 px-4 py-2 bg-card border border-primary/20 text-primary hover:bg-primary/5 transition-all duration-200 rounded-xl shadow-sm text-sm font-medium"
-              onClick={onCreateRecurringSeries}
-            >
-              <svg className="w-4 h-4 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
-              </svg>
-              Aggiungi Serie
-            </button>
-          )}
-        </div>
+        <EmptyState
+          icon={RefreshCw}
+          title="Nessuna serie ricorrente trovata"
+          description="Le serie ricorrenti configurate appariranno qui"
+          action={
+            onCreateRecurringSeries && (
+              <Button onClick={onCreateRecurringSeries} variant="default" size="sm">
+                Aggiungi Serie
+              </Button>
+            )
+          }
+        />
       </div>
     );
   }

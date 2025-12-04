@@ -4,6 +4,7 @@ import * as React from "react";
 import { Dialog, DialogPortal, DialogOverlay, DialogContent, DialogTitle, DialogDescription, DialogClose, DialogTrigger } from "@radix-ui/react-dialog";
 import { motion } from "framer-motion";
 import { cn } from '@/src/lib';
+import { drawerStyles } from "@/styles/system";
 
 const Drawer = Dialog;
 const DrawerTrigger = DialogTrigger;
@@ -35,7 +36,7 @@ const DrawerContent = React.forwardRef<
         exit={{ scale: 0.95, opacity: 0 }}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
         className={cn(
-          "fixed top-[50%] left-[50%] z-50 flex h-auto w-[90%] max-w-[90%] max-h-[70vh] flex-col rounded-2xl border border-border bg-card shadow-xl translate-x-[-50%] translate-y-[-50%] overflow-hidden",
+          drawerStyles.content,
           className
         )}
       >
@@ -51,7 +52,7 @@ const DrawerHeader = ({
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
-    className={cn("grid gap-1.5 p-4 text-center sm:text-left", className)}
+    className={cn(drawerStyles.header, className)}
     {...props}
   />
 );
@@ -62,7 +63,7 @@ const DrawerFooter = ({
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
-    className={cn("mt-auto flex flex-col gap-2 p-4", className)}
+    className={cn(drawerStyles.footer, className)}
     {...props}
   />
 );
