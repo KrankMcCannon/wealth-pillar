@@ -76,7 +76,7 @@ export function FormActions({
           variant="outline"
           onClick={onCancel}
           disabled={isSubmitting}
-          className={cn("w-full sm:w-auto", "bg-card text-primary border-primary/30 hover:bg-primary/10")}
+          className={cn("w-full sm:w-auto", "bg-card text-primary border-primary hover:bg-primary hover:text-card")}
         >
           {cancelLabel}
         </Button>

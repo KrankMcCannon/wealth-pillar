@@ -7,7 +7,7 @@
  * Data is passed from Server Component for optimal performance
  */
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { BottomNavigation, PageContainer } from "@/components/layout";
 import { useUserFilter, useFormModal, useDeleteConfirmation, useIdNameMap } from "@/hooks";
@@ -84,6 +84,18 @@ export default function BudgetsContent({
   const deleteConfirm = useDeleteConfirmation<Budget>();
 
   // selectedUserId is provided by useUserFilter hook
+
+  // Reset selected budget when user filter changes to show first available budget
+  useEffect(() => {
+    if (selectedGroupFilter === "all") {
+      // Show first budget from all budgets
+      setSelectedBudgetId(budgets[0]?.id || null);
+    } else {
+      // Show first budget for the selected user
+      const userBudgets = budgets.filter((b) => b.user_id === selectedGroupFilter);
+      setSelectedBudgetId(userBudgets[0]?.id || budgets[0]?.id || null);
+    }
+  }, [selectedGroupFilter, budgets]);
 
   // Calculate budgets by user using BudgetService
   const budgetsByUser = useMemo(() => {
@@ -450,7 +462,7 @@ export default function BudgetsContent({
             title="Nessun budget disponibile"
             description="Crea il tuo primo budget per iniziare"
             action={
-              <Button onClick={handleCreateBudget} variant="outline" size="sm">
+              <Button onClick={handleCreateBudget} variant="default" size="sm">
                 Crea budget →
               </Button>
             }

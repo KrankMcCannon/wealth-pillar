@@ -43,7 +43,7 @@ export function RecurringSeriesSection({
           description="Le serie ricorrenti configurate appariranno qui"
           action={
             onCreateRecurringSeries && (
-              <Button onClick={onCreateRecurringSeries} variant="outline" size="sm">
+              <Button onClick={onCreateRecurringSeries} variant="default" size="sm">
                 Aggiungi Serie
               </Button>
             )
