@@ -182,11 +182,11 @@ export const budgetStyles = {
   skeleton: {
     base: 'animate-pulse',
     card: 'bg-card rounded-xl p-4 sm:p-6',
-    line: 'h-4 bg-muted rounded',
-    lineShort: 'w-1/3 h-4 bg-muted rounded',
-    lineMedium: 'w-2/3 h-4 bg-muted rounded',
-    circle: 'rounded-full bg-muted',
-    rect: 'rounded bg-muted',
+    line: 'h-4 bg-primary/15 rounded',
+    lineShort: 'w-1/3 h-4 bg-primary/15 rounded',
+    lineMedium: 'w-2/3 h-4 bg-primary/15 rounded',
+    circle: 'rounded-full bg-primary/12',
+    rect: 'rounded bg-primary/12',
   },
 
   // ====================================

@@ -1,4 +1,5 @@
 import { cn } from "@/lib";
+import { skeletonStyles } from "@/styles/system";
 
 export interface SkeletonBoxProps {
   height: string;
@@ -14,16 +15,17 @@ export function SkeletonBox({
   className
 }: SkeletonBoxProps) {
   const variantClasses = {
-    light: "bg-primary/10",
-    medium: "bg-primary/15",
-    dark: "bg-primary/20"
+    light: skeletonStyles.light,
+    medium: skeletonStyles.medium,
+    dark: skeletonStyles.dark
   };
 
   return (
     <div
       className={cn(
+        skeletonStyles.base,
         variantClasses[variant],
-        "rounded-lg animate-pulse",
+        "rounded-lg",
         height,
         width,
         className

@@ -4,6 +4,7 @@ import * as React from "react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { XIcon } from "lucide-react";
 import { cn } from "@/src/lib";
+import { modalStyles } from "@/styles/system";
 
 function Dialog({ ...props }: React.ComponentProps<typeof DialogPrimitive.Root>) {
   return <DialogPrimitive.Root data-slot="dialog" {...props} />;
@@ -48,7 +49,8 @@ function DialogContent({
       <DialogPrimitive.Content
         data-slot="dialog-content"
         className={cn(
-          "bg-card data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 flex flex-col w-[90%] max-w-[90%] max-h-[75vh] overflow-hidden translate-x-[-50%] translate-y-[-50%] rounded-2xl border border-primary/20 p-0 shadow-xl duration-200 sm:w-full sm:max-w-lg",
+          "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 flex flex-col w-[90%] max-w-[90%] max-h-[75vh] overflow-hidden translate-x-[-50%] translate-y-[-50%] rounded-2xl p-0 duration-200 sm:w-full sm:max-w-lg",
+          modalStyles.content,
           className
         )}
         {...props}

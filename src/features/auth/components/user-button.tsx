@@ -40,7 +40,7 @@ export function UserButton({ showName = false, variant = "default" }: UserButton
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="flex items-center gap-2 px-2 py-1 h-auto">
-          <div className="w-8 h-8 rounded-xl overflow-hidden bg-muted">
+          <div className="w-8 h-8 rounded-xl overflow-hidden bg-primary/10">
             <Image
               src={avatarUrl}
               alt=""

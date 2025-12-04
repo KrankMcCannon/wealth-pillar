@@ -126,7 +126,7 @@ export const iconContainerVariants = cva(
         warning: "bg-warning/10 text-warning",
         destructive: "bg-destructive/10 text-destructive",
         success: "bg-success/10 text-success",
-        muted: "bg-muted/20 text-muted-foreground",
+        muted: "bg-primary/12 text-primary",
         accent: "bg-accent/10 text-primary",
       },
     },
@@ -160,7 +160,7 @@ export const statusBadgeVariants = cva(
         success: "bg-success/10 text-success border border-success/20",
         warning: "bg-warning/10 text-warning border border-warning/20",
         danger: "bg-destructive/10 text-destructive border border-destructive/20",
-        neutral: "bg-muted text-muted-foreground border border-border",
+        neutral: "bg-primary/10 text-primary border border-primary/20",
         info: "bg-accent/10 text-primary border border-accent/20",
       },
       size: {
@@ -198,7 +198,7 @@ export const financialButtonVariants = cva(
         income: "bg-success text-success hover:bg-success/90 shadow-success/20",
         expense: "bg-destructive text-destructive hover:bg-destructive/90",
         transfer: "bg-secondary text-secondary hover:bg-secondary/90",
-        neutral: "bg-muted text-black hover:bg-muted/80",
+        neutral: "bg-primary/10 text-primary hover:bg-primary/15",
       },
       size: {
         sm: "h-8 px-3 text-sm",
@@ -252,7 +252,7 @@ export const progressFillVariants = cva(
         success: "bg-success shadow-lg shadow-success/20",
         warning: "bg-warning",
         danger: "bg-destructive",
-        neutral: "bg-muted-foreground",
+        neutral: "bg-primary",
       },
     },
     defaultVariants: {

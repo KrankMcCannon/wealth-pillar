@@ -126,11 +126,11 @@ export const transactionStyles = {
   skeleton: {
     base: 'animate-pulse',
     card: 'bg-card rounded-lg p-3 sm:p-4',
-    line: 'h-4 bg-muted rounded',
-    lineShort: 'w-1/3 h-4 bg-muted rounded',
-    lineMedium: 'w-2/3 h-4 bg-muted rounded',
-    circle: 'w-10 h-10 rounded-lg bg-muted',
-    rect: 'rounded bg-muted',
+    line: 'h-4 bg-primary/15 rounded',
+    lineShort: 'w-1/3 h-4 bg-primary/15 rounded',
+    lineMedium: 'w-2/3 h-4 bg-primary/15 rounded',
+    circle: 'w-10 h-10 rounded-lg bg-primary/12',
+    rect: 'rounded bg-primary/12',
   },
 };
 

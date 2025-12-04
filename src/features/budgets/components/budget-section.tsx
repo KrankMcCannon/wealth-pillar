@@ -208,14 +208,14 @@ export const BudgetSection = ({ budgetsByUser, budgets, selectedViewUserId, isLo
                           fallback={
                             <div className="px-3 py-2 animate-pulse">
                               <div className="flex items-center gap-3">
-                                <div className="w-11 h-11 bg-muted rounded-2xl"></div>
+                                <div className="w-11 h-11 bg-primary/10 rounded-2xl"></div>
                                 <div className="flex-1">
-                                  <div className="h-4 bg-muted rounded w-24 mb-1"></div>
-                                  <div className="h-3 bg-muted rounded w-16"></div>
+                                  <div className="h-4 bg-primary/15 rounded w-24 mb-1"></div>
+                                  <div className="h-3 bg-primary/15 rounded w-16"></div>
                                 </div>
                                 <div className="text-right">
-                                  <div className="h-4 bg-muted rounded w-20 mb-1"></div>
-                                  <div className="h-3 bg-muted rounded w-12"></div>
+                                  <div className="h-4 bg-primary/15 rounded w-20 mb-1"></div>
+                                  <div className="h-3 bg-primary/15 rounded w-12"></div>
                                 </div>
                               </div>
                             </div>

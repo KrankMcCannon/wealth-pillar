@@ -74,10 +74,10 @@ const UserSelector = memo(({
           {[1, 2, 3].map((i) => (
             <div
               key={i}
-              className="shrink-0 flex items-center gap-3 p-2 rounded-2xl bg-linear-to-r from-primary/10 to-white border border-primary/20 min-w-[120px] animate-pulse"
+              className="shrink-0 flex items-center gap-3 p-2 rounded-2xl bg-primary/10 border border-primary/20 min-w-[120px] animate-pulse"
             >
           <div className="w-6 h-6 bg-primary/20 rounded-full"></div>
-          <div className="w-16 h-4 bg-primary/20 rounded"></div>
+          <div className="w-16 h-4 bg-primary/15 rounded"></div>
             </div>
           ))}
         </div>
@@ -88,7 +88,7 @@ const UserSelector = memo(({
   return (
     <section className={`bg-card/80 backdrop-blur-xl py-3 border-b border-primary/20 shadow-sm ${className}`}>
       <div
-        className="flex items-center gap-2 overflow-x-auto scrollbar-thin scrollbar-thumb-muted-foreground/30 scrollbar-track-transparent hover:scrollbar-thumb-muted-foreground/50 scrollbar-thumb-rounded-full pl-4"
+        className="flex items-center gap-2 overflow-x-auto scrollbar-thin scrollbar-thumb-primary/30 scrollbar-track-transparent hover:scrollbar-thumb-primary/40 scrollbar-thumb-rounded-full pl-4"
         style={{
           scrollbarWidth: 'thin',
           height: '44px', // Altezza fissa per il container

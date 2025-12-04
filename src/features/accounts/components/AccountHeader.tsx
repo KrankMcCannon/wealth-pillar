@@ -18,15 +18,15 @@ function AccountHeaderSkeleton() {
     <header className={accountStyles.header.container}>
       <div className={accountStyles.header.inner}>
         <div className={accountStyles.header.leftSection}>
-          <div className="w-10 h-10 bg-muted rounded-lg animate-pulse" />
+          <div className="w-10 h-10 bg-primary/10 rounded-lg animate-pulse" />
           <div className="flex-1">
-            <div className="h-5 w-32 bg-muted rounded animate-pulse mb-2" />
-            <div className="h-3 w-16 bg-muted rounded animate-pulse" />
+            <div className="h-5 w-32 bg-primary/15 rounded animate-pulse mb-2" />
+            <div className="h-3 w-16 bg-primary/15 rounded animate-pulse" />
           </div>
         </div>
 
         <div className={accountStyles.header.rightSection}>
-          <div className="w-10 h-10 bg-muted rounded-lg animate-pulse" />
+          <div className="w-10 h-10 bg-primary/10 rounded-lg animate-pulse" />
         </div>
       </div>
     </header>

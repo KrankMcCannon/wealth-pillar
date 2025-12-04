@@ -235,7 +235,7 @@ export default function OnboardingModal({
       {accounts.length > 1 && (
         <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 mb-4">
           <Label className={onboardingStyles.label}>Conto Predefinito</Label>
-          <p className="text-xs text-muted-foreground mt-1">
+          <p className="text-xs text-primary/70 mt-1">
             Seleziona quale conto vuoi usare come predefinito per le transazioni
           </p>
         </div>

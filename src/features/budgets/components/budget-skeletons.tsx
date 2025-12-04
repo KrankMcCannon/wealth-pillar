@@ -124,8 +124,8 @@ export const BudgetPageSkeleton = () => (
       <div className="space-y-6">
         {/* Section header */}
         <div>
-          <div className="h-6 bg-muted rounded w-32 mb-2 animate-pulse" />
-          <div className="h-4 bg-muted rounded w-24 animate-pulse" />
+          <div className="h-6 bg-primary/15 rounded w-32 mb-2 animate-pulse" />
+          <div className="h-4 bg-primary/15 rounded w-24 animate-pulse" />
         </div>
 
         {/* Budget list */}
@@ -134,8 +134,8 @@ export const BudgetPageSkeleton = () => (
         {/* Details section */}
         <div className="space-y-4">
           <div className="flex gap-2">
-            <div className="h-10 bg-muted rounded-lg flex-1 animate-pulse" />
-            <div className="h-10 bg-muted rounded-lg flex-1 animate-pulse" />
+            <div className="h-10 bg-primary/12 rounded-lg flex-1 animate-pulse" />
+            <div className="h-10 bg-primary/12 rounded-lg flex-1 animate-pulse" />
           </div>
           <BudgetDetailsSkeleton />
         </div>

@@ -44,7 +44,7 @@ export function SignInSkeleton() {
 
           {/* Divider */}
           <div className="flex items-center gap-3 py-1">
-            <div className="h-px bg-muted/50 flex-1"></div>
+            <div className="h-px bg-primary/15 flex-1"></div>
             <div className="h-4 bg-primary/15 rounded animate-pulse w-12"></div>
             <div className="h-px bg-primary/15 flex-1"></div>
           </div>
@@ -121,7 +121,7 @@ export function SignUpSkeleton() {
 
           {/* Divider */}
           <div className="flex items-center gap-3 py-1">
-            <div className="h-px bg-muted/50 flex-1"></div>
+            <div className="h-px bg-primary/15 flex-1"></div>
             <div className="h-4 bg-primary/15 rounded animate-pulse w-12"></div>
             <div className="h-px bg-primary/15 flex-1"></div>
           </div>

@@ -119,7 +119,7 @@ export const settingsStyles = {
       wrapper: 'relative shrink-0',
       input: 'sr-only peer',
       label: 'flex items-center cursor-pointer',
-      track: 'relative w-12 h-6 bg-muted peer-checked:bg-[#7678e4] rounded-full transition-colors duration-200 shadow-inner',
+      track: 'relative w-12 h-6 bg-primary/12 peer-checked:bg-primary rounded-full transition-colors duration-200 shadow-inner',
       thumb: 'absolute left-1 top-1 bg-card w-4 h-4 rounded-full transition-transform duration-200 ease-in-out peer-checked:translate-x-6 shadow-md',
     },
   },
@@ -150,10 +150,10 @@ export const settingsStyles = {
 
   // Loading states
   skeleton: {
-    base: 'animate-pulse bg-muted/50 rounded',
-    text: 'h-4 bg-muted/50 rounded w-3/4',
-    card: 'h-24 bg-muted/50 rounded-xl',
-    line: 'h-2 bg-muted/50 rounded w-full',
+    base: 'animate-pulse bg-primary/12 rounded',
+    text: 'h-4 bg-primary/15 rounded w-3/4',
+    card: 'h-24 bg-primary/15 rounded-xl',
+    line: 'h-2 bg-primary/12 rounded w-full',
   },
 };
 

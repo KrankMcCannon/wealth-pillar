@@ -35,7 +35,7 @@ export const transactionColors = {
     card: 'bg-card',
     cardHover: 'bg-card/90',
     overlay: 'bg-card/95',
-    muted: 'bg-muted',
+    muted: 'bg-primary/10',
     primaryLight: 'bg-primary/10',
     primaryLighter: 'bg-primary/5',
   },
@@ -43,9 +43,9 @@ export const transactionColors = {
   // Border colors
   border: {
     primary: 'border-primary/20',
-    secondary: 'border-border/50',
-    tertiary: 'border-border/60',
-    light: 'border-border/30',
+    secondary: 'border-primary/25',
+    tertiary: 'border-primary/30',
+    light: 'border-primary/20',
   },
 
   // Shadows
@@ -54,7 +54,7 @@ export const transactionColors = {
     md: 'shadow-md',
     lg: 'shadow-lg',
     xl: 'shadow-xl',
-    cardShadow: 'shadow-lg shadow-muted/40',
+    cardShadow: 'shadow-lg shadow-primary/20',
   },
 } as const;
 

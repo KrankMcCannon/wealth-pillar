@@ -20,10 +20,10 @@ function TotalBalanceCardSkeleton() {
         {/* Header */}
         <div className={accountStyles.balanceCard.header}>
           <div>
-            <div className="h-3 w-20 bg-muted rounded mb-2" />
-            <div className="h-8 w-32 bg-muted rounded" />
+            <div className="h-3 w-20 bg-primary/15 rounded mb-2" />
+            <div className="h-8 w-32 bg-primary/15 rounded" />
           </div>
-          <div className="w-14 h-14 bg-muted rounded-full" />
+          <div className="w-14 h-14 bg-primary/10 rounded-full" />
         </div>
 
         {/* Statistics grid */}
@@ -31,10 +31,10 @@ function TotalBalanceCardSkeleton() {
           {new Array(3).fill(null).map((_, i) => (
             <div key={i} className="bg-primary/5 rounded-lg p-3 border border-primary/10 space-y-2">
               <div className="flex items-center gap-2 mb-1">
-                <div className="w-4 h-4 bg-muted rounded" />
-                <div className="h-2 w-12 bg-muted rounded" />
+                <div className="w-4 h-4 bg-primary/15 rounded" />
+                <div className="h-2 w-12 bg-primary/15 rounded" />
               </div>
-              <div className="h-5 w-8 bg-muted rounded" />
+              <div className="h-5 w-8 bg-primary/15 rounded" />
             </div>
           ))}
         </div>

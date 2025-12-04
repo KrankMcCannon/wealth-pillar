@@ -2,6 +2,7 @@
 
 import { cn } from "@/lib";
 import { LucideIcon } from "lucide-react";
+import { emptyStateStyles } from "@/styles/system";
 
 /**
  * Empty State Component
@@ -44,19 +45,19 @@ export function EmptyState({
   className
 }: EmptyStateProps) {
   return (
-    <div className={cn("py-12 text-center", className)}>
+    <div className={cn(emptyStateStyles.container, className)}>
       {Icon && (
-        <div className="flex justify-center mb-4">
-          <Icon className="h-12 w-12 text-primary" />
+        <div className={emptyStateStyles.iconWrapper}>
+          <Icon className={emptyStateStyles.icon} />
         </div>
       )}
-      <h3 className="text-lg font-semibold text-primary mb-2">{title}</h3>
+      <h3 className={emptyStateStyles.title}>{title}</h3>
       {description && (
-        <p className="text-sm text-primary/70 mb-4 max-w-md mx-auto">
+        <p className={emptyStateStyles.description}>
           {description}
         </p>
       )}
-      {action && <div className="mt-6">{action}</div>}
+      {action && <div className={emptyStateStyles.action}>{action}</div>}
     </div>
   );
 }
