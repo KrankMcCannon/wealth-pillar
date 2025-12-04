@@ -3,12 +3,26 @@
 import { StickyHeader } from "./sticky-header";
 import { BackButton } from "@/components/shared/back-button";
 import { cn } from "@/lib";
+import { Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui";
+import { MoreVertical, LucideIcon } from "lucide-react";
+
+/**
+ * Action menu item configuration
+ */
+export interface ActionMenuItem {
+  label: string;
+  icon?: LucideIcon;
+  onClick: () => void;
+}
 
 interface PageHeaderWithBackProps {
   title: string;
   subtitle?: React.ReactNode;
   onBack?: () => void;
+  /** Custom actions element (use this OR actionsMenu, not both) */
   actions?: React.ReactNode;
+  /** Array of action menu items - creates a dropdown automatically */
+  actionsMenu?: ActionMenuItem[];
   variant?: "primary" | "secondary" | "light";
   className?: string;
   contentClassName?: string;
@@ -23,6 +37,7 @@ export function PageHeaderWithBack({
   subtitle,
   onBack,
   actions,
+  actionsMenu,
   variant = "primary",
   className,
   contentClassName,
@@ -31,6 +46,43 @@ export function PageHeaderWithBack({
   subtitleClassName,
   backButtonClassName
 }: PageHeaderWithBackProps) {
+  // Render actions menu if provided
+  const renderActions = () => {
+    if (actionsMenu && actionsMenu.length > 0) {
+      return (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="sm" className={backButtonClassName}>
+              <MoreVertical className="h-5 w-5" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            align="end"
+            className="w-56 backdrop-blur-xl border border-border/50 shadow-xl rounded-xl p-2 animate-in slide-in-from-top-2 duration-200"
+            sideOffset={8}
+          >
+            {actionsMenu.map((item, idx) => (
+              <DropdownMenuItem
+                key={idx}
+                className="text-sm font-medium text-primary hover:bg-primary hover:text-white rounded-lg px-3 py-2.5 cursor-pointer transition-colors"
+                onClick={item.onClick}
+              >
+                {item.icon && <item.icon className="mr-3 h-4 w-4" />}
+                {item.label}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
+    }
+
+    if (actions) {
+      return actions;
+    }
+
+    return <div className="w-10" />;
+  };
+
   return (
     <StickyHeader variant={variant} className={className}>
       <div className={cn("flex items-center gap-3", contentClassName)}>
@@ -43,7 +95,7 @@ export function PageHeaderWithBack({
             <p className={cn("text-sm text-muted-foreground", subtitleClassName)}>{subtitle}</p>
           ) : null}
         </div>
-        {actions ? actions : <div className="w-10" />}
+        {renderActions()}
       </div>
     </StickyHeader>
   );
