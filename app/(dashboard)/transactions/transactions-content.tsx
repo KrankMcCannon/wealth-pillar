@@ -9,7 +9,7 @@
 
 import { Suspense, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, MoreVertical, Plus, Filter } from "lucide-react";
+import { MoreVertical, Plus, Filter } from "lucide-react";
 import { useUserFilter } from "@/hooks";
 import {
   Badge,
@@ -19,7 +19,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/src/components/ui";
-import { BottomNavigation, PageContainer } from "@/src/components/layout";
+import { BottomNavigation, PageContainer, PageHeaderWithBack } from "@/src/components/layout";
 import TabNavigation from "@/src/components/shared/tab-navigation";
 import UserSelector from "@/src/components/shared/user-selector";
 import { ConfirmationDialog } from "@/components/shared/confirmation-dialog";
@@ -167,17 +167,15 @@ export default function TransactionsContent({
   return (
     <PageContainer className={transactionStyles.page.container}>
       {/* Header */}
-      <header className={transactionStyles.header.container}>
-        <div className={transactionStyles.header.inner}>
-          {/* Back button */}
-          <Button variant="ghost" size="sm" className={transactionStyles.header.button} onClick={() => router.back()}>
-            <ArrowLeft className="h-5 w-5 sm:h-6 sm:w-6" />
-          </Button>
-
-          {/* Title */}
-          <h1 className={transactionStyles.header.title}>Transazioni</h1>
-
-          {/* Actions menu */}
+      <PageHeaderWithBack
+        title="Transazioni"
+        onBack={() => router.back()}
+        className={transactionStyles.header.container}
+        contentClassName={transactionStyles.header.inner}
+        titleClassName={transactionStyles.header.title}
+        backButtonClassName={transactionStyles.header.button}
+        variant="secondary"
+        actions={(
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="sm" className={transactionStyles.header.button}>
@@ -198,8 +196,8 @@ export default function TransactionsContent({
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-        </div>
-      </header>
+        )}
+      />
 
       {/* User Selector */}
       <Suspense fallback={<UserSelectorSkeleton />}>
