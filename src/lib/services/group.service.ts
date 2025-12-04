@@ -367,7 +367,7 @@ export class GroupService {
         updated_at: now,
       };
 
-      const { data, error } = await (supabaseServer as any)
+      const { data, error } = await supabaseServer
         .from('groups')
         .insert(insertData)
         .select()

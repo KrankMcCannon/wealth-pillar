@@ -24,6 +24,7 @@ import TabNavigation from "@/src/components/shared/tab-navigation";
 import UserSelector from "@/src/components/shared/user-selector";
 import { ConfirmationDialog, EmptyState } from "@/components/shared";
 import { RecurringSeriesSection, RecurringSeriesForm } from "@/src/features/recurring";
+import { RecurringTransactionSeries } from "@/src/lib";
 import { GroupedTransactionCard, TransactionForm } from "@/src/features/transactions";
 import { transactionStyles } from "@/src/features/transactions/theme/transaction-styles";
 import { UserSelectorSkeleton } from "@/src/features/dashboard";
@@ -67,7 +68,7 @@ export default function TransactionsContent({
 
   // Form modal state using hooks
   const transactionModal = useFormModal<Transaction>();
-  const recurringModal = useFormModal();
+  const recurringModal = useFormModal<RecurringTransactionSeries>();
 
   // Delete confirmation state using hook
   const deleteConfirm = useDeleteConfirmation<Transaction>();

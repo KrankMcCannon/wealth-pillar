@@ -35,7 +35,7 @@ interface FormData {
   description: string;
   amount: string;
   type: BudgetType;
-  icon?: string;
+  icon: string | null;
   categories: string[];
   user_id: string;
 }
@@ -67,7 +67,7 @@ export function BudgetForm({
     description: "",
     amount: "",
     type: "monthly",
-    icon: undefined,
+    icon: null,
     categories: [],
     user_id: selectedUserId || "",
   });
@@ -115,7 +115,7 @@ export function BudgetForm({
           description: "",
           amount: "",
           type: "monthly",
-          icon: undefined,
+          icon: null,
           categories: [],
           user_id: selectedUserId || "",
         });

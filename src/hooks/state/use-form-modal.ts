@@ -28,7 +28,7 @@ import { useState, useCallback } from "react";
  * />
  * ```
  */
-export function useFormModal<T = any>() {
+export function useFormModal<T>() {
   const [isOpen, setIsOpen] = useState(false);
   const [mode, setMode] = useState<'create' | 'edit'>('create');
   const [entity, setEntity] = useState<T | undefined>();

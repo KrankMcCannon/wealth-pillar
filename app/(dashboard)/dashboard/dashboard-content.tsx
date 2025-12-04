@@ -20,6 +20,7 @@ import { useRouter } from "next/navigation";
 import { BottomNavigation, PageContainer } from "@/components/layout";
 import { useUserFilter } from "@/hooks";
 import { Button, IconContainer, Text } from "@/components/ui";
+import { RecurringTransactionSeries } from "@/src/lib";
 import {
   BalanceSectionSkeleton,
   BudgetSectionSkeleton,
@@ -143,7 +144,7 @@ export default function DashboardContent({ currentUser, groupUsers, accounts, ac
 
   // State management for recurring series modal
   const [isRecurringFormOpen, setIsRecurringFormOpen] = useState(false);
-  const [selectedSeries, setSelectedSeries] = useState<any>(undefined);
+  const [selectedSeries, setSelectedSeries] = useState<RecurringTransactionSeries | undefined>(undefined);
   const [formMode, setFormMode] = useState<'create' | 'edit' | undefined>(undefined);
 
   // Handler for group filter changes
@@ -164,7 +165,7 @@ export default function DashboardContent({ currentUser, groupUsers, accounts, ac
   };
 
   // Handler for editing recurring series
-  const handleEditRecurringSeries = (series: any) => {
+  const handleEditRecurringSeries = (series: RecurringTransactionSeries) => {
     setSelectedSeries(series);
     setFormMode('edit');
     setIsRecurringFormOpen(true);

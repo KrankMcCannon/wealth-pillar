@@ -28,16 +28,16 @@ import { useMemo } from "react";
  * // { '1': 'bank', '2': 'bank' }
  * ```
  */
-export function useMapFromArray<T>(
+export function useMapFromArray<T, V>(
   array: T[],
   keyField: keyof T,
   valueField: keyof T
-): Record<string, any> {
+): Record<string, V> {
   return useMemo(() => {
-    const map: Record<string, any> = {};
+    const map: Record<string, V> = {};
     array.forEach((item) => {
       const key = String(item[keyField]);
-      map[key] = item[valueField];
+      map[key] = item[valueField] as unknown as V;
     });
     return map;
   }, [array, keyField, valueField]);

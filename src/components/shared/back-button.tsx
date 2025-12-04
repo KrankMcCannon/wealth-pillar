@@ -9,7 +9,7 @@ interface BackButtonProps {
   onClick?: () => void;
   className?: string;
   variant?: "ghost" | "outline";
-  size?: "sm" | "default" | "lg" | "icon" | null | undefined;
+  size?: "sm" | "default" | "lg" | "icon";
 }
 
 export function BackButton({

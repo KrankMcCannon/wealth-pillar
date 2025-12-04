@@ -33,7 +33,7 @@ import { useState, useCallback } from "react";
  * />
  * ```
  */
-export function useDeleteConfirmation<T = any>() {
+export function useDeleteConfirmation<T>() {
   const [isOpen, setIsOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<T | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);

@@ -321,7 +321,7 @@ export class UserService {
       updatedPeriods.push(newPeriod);
 
       // Update user with new periods array
-      const { data: updatedUser, error: updateError } = await (supabaseServer as any)
+      const { data: updatedUser, error: updateError } = await supabaseServer
         .from('users')
         .update({
           budget_periods: updatedPeriods,
@@ -475,7 +475,7 @@ export class UserService {
       };
 
       // Update user with updated periods array
-      const { data: updatedUser, error: updateError } = await (supabaseServer as any)
+      const { data: updatedUser, error: updateError } = await supabaseServer
         .from('users')
         .update({
           budget_periods: updatedPeriods,
@@ -541,7 +541,7 @@ export class UserService {
       }
 
       // Update user
-      const { data: updatedUser, error: updateError } = await (supabaseServer as any)
+      const { data: updatedUser, error: updateError } = await supabaseServer
         .from('users')
         .update({
           default_account_id: accountId,
