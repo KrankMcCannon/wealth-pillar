@@ -30,7 +30,7 @@ export const dayButtonVariants = cva(
       state: {
         // Default state - White with border
         default: [
-          "text-gray-700 dark:text-gray-300",
+          "text-primary dark:text-primary",
           "bg-white dark:bg-gray-800",
           "hover:bg-primary hover:text-white",
           "hover:scale-110 hover:shadow-md",
@@ -70,7 +70,7 @@ export const dayButtonVariants = cva(
 
         // Weekend date
         weekend: [
-          "text-gray-600 dark:text-gray-400",
+          "text-primary dark:text-primary",
           "bg-white dark:bg-gray-800",
           "hover:bg-primary hover:text-white",
           "hover:scale-110",
@@ -231,7 +231,7 @@ export const presetButtonVariants = cva(
         ].join(" "),
         false: [
           "bg-white dark:bg-gray-800",
-          "text-gray-700 dark:text-gray-300",
+          "text-primary dark:text-primary",
           "border-2 border-gray-200 dark:border-gray-700",
           "hover:border-primary hover:bg-primary hover:text-white",
           "hover:shadow-md hover:shadow-primary/20",

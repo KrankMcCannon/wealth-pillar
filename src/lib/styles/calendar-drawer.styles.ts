@@ -199,7 +199,7 @@ export const calendarDrawerStyles = {
     states: {
       // Default state
       default: [
-        "text-gray-700 dark:text-gray-300",
+        "text-primary dark:text-primary",
         "bg-white dark:bg-gray-800",
         "hover:bg-primary hover:text-white",
         "hover:scale-110 hover:shadow-md",
@@ -239,7 +239,7 @@ export const calendarDrawerStyles = {
 
       // Weekend date
       weekend: [
-        "text-gray-600 dark:text-gray-400",
+        "text-primary dark:text-primary",
         "bg-white dark:bg-gray-800",
         "hover:bg-primary hover:text-white",
         "hover:scale-110",
@@ -305,7 +305,7 @@ export const calendarDrawerStyles = {
         "text-sm font-semibold",
         "transition-all duration-200",
         "bg-white dark:bg-gray-800",
-        "text-gray-700 dark:text-gray-300",
+        "text-primary dark:text-primary",
         "border-2 border-gray-200 dark:border-gray-700",
         "hover:border-primary hover:bg-primary hover:text-white",
         "hover:shadow-md hover:shadow-primary/20",
@@ -344,7 +344,7 @@ export const calendarDrawerStyles = {
     field: [
       "w-full h-11",
       "pr-10",
-      "text-black dark:text-gray-100",
+      "text-primary dark:text-primary",
       "rounded-xl",
       "border-2 border-gray-200 dark:border-gray-700",
       "bg-white dark:bg-gray-800",
