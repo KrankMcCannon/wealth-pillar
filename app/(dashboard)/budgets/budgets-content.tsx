@@ -70,7 +70,6 @@ export default function BudgetsContent({
 
   // User filtering state management using shared hook (initialized from URL params)
   const { selectedGroupFilter, setSelectedGroupFilter, selectedUserId } = useUserFilter(initialMember || "all");
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [selectedBudgetId, setSelectedBudgetId] = useState<string | null>(initialBudgetId);
 
   // Form modal state using hooks
@@ -323,8 +322,6 @@ export default function BudgetsContent({
     <PageContainer className={budgetStyles.page.container}>
       {/* Header with navigation and actions */}
       <BudgetHeader
-        isDropdownOpen={isDropdownOpen}
-        onOpenChange={setIsDropdownOpen}
         onBackClick={() => router.back()}
         onCreateBudget={handleCreateBudget}
         onCreateCategory={handleCreateCategory}

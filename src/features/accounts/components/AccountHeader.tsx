@@ -58,15 +58,13 @@ export const AccountHeader = ({
       titleClassName={accountStyles.header.title}
       subtitleClassName={accountStyles.header.subtitle}
       backButtonClassName={accountStyles.header.backButton}
-      actions={
-        <button
-          className={accountStyles.header.addButton}
-          onClick={onAddAccount}
-          aria-label="Add new account"
-        >
-          <Plus className="w-5 h-5" />
-        </button>
-      }
+      actionsMenu={onAddAccount ? [
+        {
+          label: 'Add Account',
+          icon: Plus,
+          onClick: onAddAccount,
+        },
+      ] : undefined}
     />
   );
 };
