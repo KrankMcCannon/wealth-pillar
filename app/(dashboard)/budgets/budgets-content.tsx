@@ -10,7 +10,7 @@
 import { useState, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { BottomNavigation, PageContainer } from "@/components/layout";
-import { useUserFilter } from "@/hooks";
+import { useUserFilter, useFormModal, useDeleteConfirmation, useIdNameMap } from "@/hooks";
 import UserSelector from "@/components/shared/user-selector";
 import { ConfirmationDialog } from "@/components/shared/confirmation-dialog";
 import { BudgetForm, BudgetPeriodManager } from "@/features/budgets";
@@ -73,17 +73,14 @@ export default function BudgetsContent({
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [selectedBudgetId, setSelectedBudgetId] = useState<string | null>(initialBudgetId);
 
-  // Form states
-  const [isBudgetFormOpen, setIsBudgetFormOpen] = useState(false);
-  const [isTransactionFormOpen, setIsTransactionFormOpen] = useState(false);
-  const [isCategoryFormOpen, setIsCategoryFormOpen] = useState(false);
-  const [isPeriodManagerOpen, setIsPeriodManagerOpen] = useState(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [editingBudget, setEditingBudget] = useState<Budget | undefined>(undefined);
-  const [deletingBudget, setDeletingBudget] = useState<Budget | undefined>(undefined);
-  const [editingTransaction, setEditingTransaction] = useState<Transaction | undefined>(undefined);
-  const [formMode, setFormMode] = useState<"create" | "edit">("create");
-  const [isDeletingBudget, setIsDeletingBudget] = useState(false);
+  // Form modal state using hooks
+  const budgetModal = useFormModal<Budget>();
+  const transactionModal = useFormModal<Transaction>();
+  const categoryModal = useFormModal<Category>();
+  const periodManagerModal = useFormModal();
+
+  // Delete confirmation state using hook
+  const deleteConfirm = useDeleteConfirmation<Budget>();
 
   // selectedUserId is provided by useUserFilter hook
 
@@ -158,23 +155,11 @@ export default function BudgetsContent({
     };
   }, [selectedBudget, groupUsers, budgetsByUser]);
 
-  // Create user names map for budget selector
-  const userNamesMap = useMemo(() => {
-    const map: Record<string, string> = {};
-    groupUsers.forEach((user) => {
-      map[user.id] = user.name;
-    });
-    return map;
-  }, [groupUsers]);
+  // Create user names map for budget selector using hook
+  const userNamesMap = useIdNameMap(groupUsers);
 
-  // Create account names map
-  const accountNamesMap = useMemo(() => {
-    const map: Record<string, string> = {};
-    accounts.forEach((account) => {
-      map[account.id] = account.name;
-    });
-    return map;
-  }, [accounts]);
+  // Create account names map using hook
+  const accountNamesMap = useIdNameMap(accounts);
 
   // Filter transactions for selected budget (by user and budget criteria)
   const budgetTransactions = useMemo(() => {
@@ -284,58 +269,43 @@ export default function BudgetsContent({
   };
 
   const handleCreateBudget = () => {
-    setEditingBudget(undefined);
-    setFormMode("create");
-    setIsBudgetFormOpen(true);
+    budgetModal.openCreate();
   };
 
   const handleEditBudget = () => {
     if (selectedBudget) {
-      setEditingBudget(selectedBudget);
-      setFormMode("edit");
-      setIsBudgetFormOpen(true);
+      budgetModal.openEdit(selectedBudget);
     }
   };
 
   const handleCreateCategory = () => {
-    setIsCategoryFormOpen(true);
+    categoryModal.openCreate();
   };
 
   const handleManagePeriod = () => {
-    setIsPeriodManagerOpen(true);
+    periodManagerModal.openCreate();
   };
 
   const handleDeleteBudget = (budget: Budget) => {
-    setDeletingBudget(budget);
-    setIsDeleteDialogOpen(true);
+    deleteConfirm.openDialog(budget);
   };
 
   const confirmDeleteBudget = async () => {
-    if (!deletingBudget) return;
-
-    setIsDeletingBudget(true);
-    try {
-      const result = await deleteBudgetAction(deletingBudget.id);
+    await deleteConfirm.executeDelete(async (budget) => {
+      const result = await deleteBudgetAction(budget.id);
 
       if (result.error) {
         console.error("[BudgetsContent] Delete error:", result.error);
-        // Could show error toast here
-        return;
+        throw new Error(result.error);
       }
 
-      // Success - refresh page and close dialog
+      // Success - refresh page
       router.refresh();
-      setIsDeleteDialogOpen(false);
-      setDeletingBudget(undefined);
       // Clear selected budget if it was the one deleted
-      if (selectedBudgetId === deletingBudget.id) {
+      if (selectedBudgetId === budget.id) {
         setSelectedBudgetId(null);
       }
-    } catch (error) {
-      console.error("[BudgetsContent] Delete error:", error);
-    } finally {
-      setIsDeletingBudget(false);
-    }
+    });
   };
 
   // Get user and budgets for period manager
@@ -455,9 +425,7 @@ export default function BudgetsContent({
                         : null
                     }
                     onEditTransaction={(transaction) => {
-                      setEditingTransaction(transaction);
-                      setFormMode("edit");
-                      setIsTransactionFormOpen(true);
+                      transactionModal.openEdit(transaction);
                     }}
                     onDeleteTransaction={() => {
                       /* Handled via transaction form */
@@ -486,10 +454,10 @@ export default function BudgetsContent({
 
       {/* Modal Forms */}
       <TransactionForm
-        isOpen={isTransactionFormOpen}
-        onOpenChange={setIsTransactionFormOpen}
-        transaction={editingTransaction}
-        mode={formMode}
+        isOpen={transactionModal.isOpen}
+        onOpenChange={transactionModal.setIsOpen}
+        transaction={transactionModal.entity}
+        mode={transactionModal.mode}
         currentUser={currentUser}
         groupUsers={groupUsers}
         accounts={accounts}
@@ -500,22 +468,22 @@ export default function BudgetsContent({
       />
 
       <BudgetForm
-        isOpen={isBudgetFormOpen}
-        onOpenChange={setIsBudgetFormOpen}
+        isOpen={budgetModal.isOpen}
+        onOpenChange={budgetModal.setIsOpen}
         selectedUserId={selectedUserId}
-        budget={editingBudget}
-        mode={formMode}
+        budget={budgetModal.entity}
+        mode={budgetModal.mode}
         categories={categories}
       />
 
       <CategoryForm
-        isOpen={isCategoryFormOpen}
-        onOpenChange={setIsCategoryFormOpen}
-        mode="create"
+        isOpen={categoryModal.isOpen}
+        onOpenChange={categoryModal.setIsOpen}
+        mode={categoryModal.mode}
         groupId={currentUser.group_id}
       />
 
-      {/* Budget Period Manager - Controlled by isPeriodManagerOpen state */}
+      {/* Budget Period Manager - Controlled by periodManagerModal */}
       {periodManagerUser && (
         <BudgetPeriodManager
           user={periodManagerUser}
@@ -523,12 +491,12 @@ export default function BudgetsContent({
           transactions={transactions}
           userBudgets={periodManagerBudgets}
           trigger={
-            isPeriodManagerOpen ? (
+            periodManagerModal.isOpen ? (
               <button
-                onClick={() => setIsPeriodManagerOpen(false)}
+                onClick={periodManagerModal.close}
                 style={{ display: "none" }}
                 ref={(el) => {
-                  if (el && isPeriodManagerOpen) {
+                  if (el && periodManagerModal.isOpen) {
                     setTimeout(() => el.click(), 0);
                   }
                 }}
@@ -539,26 +507,26 @@ export default function BudgetsContent({
           }
           onSuccess={() => {
             router.refresh();
-            setIsPeriodManagerOpen(false);
+            periodManagerModal.close();
           }}
         />
       )}
 
       {/* Delete Confirmation Dialog */}
       <ConfirmationDialog
-        isOpen={isDeleteDialogOpen}
-        onCancel={() => setIsDeleteDialogOpen(false)}
+        isOpen={deleteConfirm.isOpen}
+        onCancel={deleteConfirm.closeDialog}
         title="Elimina Budget"
         message={
-          deletingBudget
-            ? `Sei sicuro di voler eliminare il budget "${deletingBudget.description}"? Questa azione non può essere annullata.`
+          deleteConfirm.itemToDelete
+            ? `Sei sicuro di voler eliminare il budget "${deleteConfirm.itemToDelete.description}"? Questa azione non può essere annullata.`
             : ""
         }
         confirmText="Elimina"
         cancelText="Annulla"
         variant="destructive"
         onConfirm={confirmDeleteBudget}
-        isLoading={isDeletingBudget}
+        isLoading={deleteConfirm.isDeleting}
       />
     </PageContainer>
   );
