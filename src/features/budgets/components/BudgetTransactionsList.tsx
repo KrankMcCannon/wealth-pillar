@@ -6,6 +6,7 @@
 "use client";
 
 import { SectionHeader } from "@/components/layout";
+import { EmptyState } from "@/components/shared";
 import { Button } from "@/components/ui";
 import { Transaction, Category } from "@/lib";
 import { GroupedTransactionCard } from "@/features/transactions";
@@ -13,6 +14,7 @@ import { budgetStyles } from "../theme/budget-styles";
 import { formatCurrency } from "@/lib/utils/currency-formatter";
 import React from "react";
 import { Budget } from "@/lib";
+import { FileText } from "lucide-react";
 
 export interface GroupedTransaction {
   date: string;
@@ -88,9 +90,11 @@ export function BudgetTransactionsList({
             </section>
           ))
         ) : (
-          <div className={budgetStyles.transactions.emptyMessage}>
-            <p>Nessuna transazione trovata per questo budget</p>
-          </div>
+          <EmptyState
+            icon={FileText}
+            title="Nessuna Transazione"
+            description="Nessuna transazione trovata per questo budget"
+          />
         )}
       </div>
 

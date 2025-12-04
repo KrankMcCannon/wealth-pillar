@@ -28,10 +28,6 @@ export type { BudgetChartProps } from './BudgetChart';
 export { BudgetTransactionsList } from './BudgetTransactionsList';
 export type { BudgetTransactionsListProps } from './BudgetTransactionsList';
 
-// State & Empty State
-export { BudgetEmptyState } from './BudgetEmptyState';
-export type { BudgetEmptyStateProps } from './BudgetEmptyState';
-
 // Loading States
 export {
   BudgetSelectorSkeleton,

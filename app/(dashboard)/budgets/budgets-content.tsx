@@ -13,6 +13,7 @@ import { BottomNavigation, PageContainer } from "@/components/layout";
 import { useUserFilter, useFormModal, useDeleteConfirmation, useIdNameMap } from "@/hooks";
 import UserSelector from "@/components/shared/user-selector";
 import { ConfirmationDialog } from "@/components/shared/confirmation-dialog";
+import { EmptyState } from "@/components/shared";
 import { BudgetForm, BudgetPeriodManager } from "@/features/budgets";
 import {
   BudgetHeader,
@@ -21,7 +22,6 @@ import {
   BudgetProgress,
   BudgetChart,
   BudgetTransactionsList,
-  BudgetEmptyState,
   BudgetSelectorSkeleton,
   BudgetCardSkeleton,
   BudgetProgressSkeleton,
@@ -33,6 +33,8 @@ import { TransactionForm } from "@/features/transactions";
 import { deleteBudgetAction } from "@/features/budgets/actions/budget-actions";
 import { Suspense } from "react";
 import { budgetStyles } from "@/features/budgets/theme/budget-styles";
+import { ShoppingCart } from "lucide-react";
+import { Button } from "@/components/ui";
 import { BudgetService } from "@/lib/services";
 import type { DashboardDataProps } from "@/lib/auth/get-dashboard-data";
 import type { Category, Budget, Transaction, Account } from "@/lib/types";
@@ -443,7 +445,16 @@ export default function BudgetsContent({
             )}
           </>
         ) : (
-          <BudgetEmptyState onCreateBudget={handleCreateBudget} />
+          <EmptyState
+            icon={ShoppingCart}
+            title="Nessun budget disponibile"
+            description="Crea il tuo primo budget per iniziare"
+            action={
+              <Button onClick={handleCreateBudget} variant="outline" size="sm">
+                Crea budget →
+              </Button>
+            }
+          />
         )}
       </main>
 

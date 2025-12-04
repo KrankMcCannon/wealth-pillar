@@ -9,6 +9,7 @@
 import { CreditCard } from 'lucide-react';
 import { Account } from '@/lib';
 import { AccountCard } from '@/components/cards';
+import { EmptyState } from '@/components/shared';
 import { accountStyles } from '../theme/account-styles';
 import { SHIMMER_BASE } from "@/lib/utils/ui-constants";
 
@@ -72,13 +73,11 @@ export const AccountsList = ({
     return (
       <div className={accountStyles.accountsList.container}>
         <h2 className={accountStyles.accountsList.header}>Tutti gli Account</h2>
-        <div className={accountStyles.emptyState.container}>
-          <div className={accountStyles.emptyState.icon}>
-            <CreditCard className={accountStyles.emptyState.iconContent} />
-          </div>
-          <p className={accountStyles.emptyState.title}>Nessun account trovato</p>
-          <p className={accountStyles.emptyState.subtitle}>Aggiungi il tuo primo bank account</p>
-        </div>
+        <EmptyState
+          icon={CreditCard}
+          title="Nessun account trovato"
+          description="Aggiungi il tuo primo bank account"
+        />
       </div>
     );
   }
