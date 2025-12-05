@@ -57,7 +57,7 @@ export class RecurringService {
           const { data, error } = await supabaseServer
             .from('recurring_transactions')
             .select('*')
-            .eq('user_id', userId)
+            .contains('user_ids', [userId])
             .order('due_day', { ascending: true });
 
           if (error) throw new Error(error.message);
@@ -113,10 +113,11 @@ export class RecurringService {
           const userIds = users.map((u) => u.id);
 
           // Then get all recurring series for those users
+          // Using overlaps to find series that include any group member
           const { data, error } = await supabaseServer
             .from('recurring_transactions')
             .select('*')
-            .in('user_id', userIds)
+            .overlaps('user_ids', userIds)
             .order('due_day', { ascending: true });
 
           if (error) throw new Error(error.message);
@@ -441,7 +442,7 @@ export class RecurringService {
     const grouped: Record<string, { user: { id: string; name: string }; series: RecurringTransactionSeries[] }> = {};
 
     for (const user of users) {
-      const userSeries = series.filter((s) => s.user_id === user.id);
+      const userSeries = series.filter((s) => s.user_ids.includes(user.id));
       if (userSeries.length > 0) {
         grouped[user.id] = {
           user,
@@ -504,5 +505,36 @@ export class RecurringService {
       totalExpenses,
       netMonthly: totalIncome - totalExpenses,
     };
+  }
+
+  /**
+   * Check if a user has access to a series
+   *
+   * @param series - The recurring series
+   * @param userId - User ID to check
+   * @returns True if user has access
+   *
+   * @example
+   * const hasAccess = RecurringService.hasAccess(series, userId);
+   */
+  static hasAccess(series: RecurringTransactionSeries, userId: string): boolean {
+    return series.user_ids.includes(userId);
+  }
+
+  /**
+   * Get all users associated with a series
+   *
+   * @param series - The recurring series
+   * @param allUsers - All available users
+   * @returns Array of users who have access
+   *
+   * @example
+   * const associatedUsers = RecurringService.getAssociatedUsers(series, groupUsers);
+   */
+  static getAssociatedUsers(
+    series: RecurringTransactionSeries,
+    allUsers: Array<{ id: string; name: string; theme_color?: string }>
+  ): Array<{ id: string; name: string; theme_color?: string }> {
+    return allUsers.filter(user => series.user_ids.includes(user.id));
   }
 }

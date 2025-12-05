@@ -8,9 +8,10 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { CategoryIcon, cn, iconSizes, RecurringTransactionSeries } from "@/src/lib";
 import { RecurringService } from "@/src/lib/services";
+import type { User } from "@/lib/types";
 import {
   executeRecurringSeriesAction,
   toggleRecurringSeriesActiveAction,
@@ -27,6 +28,8 @@ interface SeriesCardProps {
   /** Callback quando si clicca sulla card (navigazione o altro) - se definito, sovrascrive onEdit per il click */
   readonly onCardClick?: (series: RecurringTransactionSeries) => void;
   readonly onSeriesUpdate?: (series: RecurringTransactionSeries) => void;
+  /** Group users for displaying user badges */
+  readonly groupUsers?: User[];
 }
 
 // Helper function: Get frequency label
@@ -49,14 +52,20 @@ function getDueDateLabel(days: number): string {
   return `Tra ${days} giorni`;
 }
 
-export function SeriesCard({ series, className, showActions = false, onEdit, onCardClick, onSeriesUpdate }: SeriesCardProps) {
+export function SeriesCard({ series, className, showActions = false, onEdit, onCardClick, onSeriesUpdate, groupUsers }: SeriesCardProps) {
   const [isLoading, setIsLoading] = useState(false);
-  
+
   // Calculate due date info using RecurringService
   const daysUntilDue = RecurringService.calculateDaysUntilDue(series);
   const isOverdue = daysUntilDue < 0;
   const isDueToday = daysUntilDue === 0;
   const isDueSoon = daysUntilDue <= 3;
+
+  // Get associated users for badge display
+  const associatedUsers = useMemo(() => {
+    if (!groupUsers) return [];
+    return RecurringService.getAssociatedUsers(series, groupUsers);
+  }, [series, groupUsers]);
 
   // Handle card click - use onCardClick if defined, otherwise fall back to onEdit
   const handleCardClick = () => {
@@ -190,6 +199,27 @@ export function SeriesCard({ series, className, showActions = false, onEdit, onC
               <Text variant="muted" size="xs">
                 Prossima: {getDueDateLabel(daysUntilDue)}
               </Text>
+
+              {/* User badges - show if multiple users */}
+              {associatedUsers.length > 1 && (
+                <div className="flex items-center gap-1 mt-1.5">
+                  {associatedUsers.slice(0, 3).map((user) => (
+                    <div
+                      key={user.id}
+                      className="w-5 h-5 rounded-full border border-white/20 dark:border-gray-700 flex items-center justify-center text-[10px] font-bold text-white"
+                      style={{ backgroundColor: user.theme_color }}
+                      title={user.name}
+                    >
+                      {user.name.charAt(0).toUpperCase()}
+                    </div>
+                  ))}
+                  {associatedUsers.length > 3 && (
+                    <span className="text-[10px] text-muted-foreground font-medium">
+                      +{associatedUsers.length - 3}
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>

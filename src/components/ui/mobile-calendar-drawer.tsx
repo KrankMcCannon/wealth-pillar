@@ -88,6 +88,11 @@ export function MobileCalendarDrawer({
     setCurrentMonth((prev) => addMonths(prev, 1));
   }, []);
 
+  // Handle direct month/year selection from dropdown
+  const handleMonthYearChange = useCallback((newDate: Date) => {
+    setCurrentMonth(newDate);
+  }, []);
+
   // Handle date selection
   const handleDateSelect = useCallback(
     (date: Date) => {
@@ -146,6 +151,7 @@ export function MobileCalendarDrawer({
                 currentMonth={currentMonth}
                 onPrevious={handlePrevious}
                 onNext={handleNext}
+                onMonthChange={handleMonthYearChange}
               />
 
               {/* Weekday Labels */}

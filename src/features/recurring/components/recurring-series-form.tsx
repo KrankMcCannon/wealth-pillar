@@ -2,21 +2,17 @@
 
 /**
  * RecurringSeriesForm - Form for creating/editing recurring transaction series
- * 
+ *
  * Handles form state management, validation, and submission for recurring series.
  */
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { RecurringTransactionSeries, User, Account, Category, TransactionFrequencyType } from "@/lib/types";
 import {
   createRecurringSeriesAction,
   updateRecurringSeriesAction,
 } from "@/features/recurring/actions/recurring-actions";
-import {
-  FormActions,
-  FormField,
-  FormSelect,
-} from "@/src/components/form";
+import { FormActions, FormField, FormSelect, MultiUserSelect } from "@/src/components/form";
 import {
   AccountField,
   AmountField,
@@ -50,7 +46,7 @@ interface FormData {
   type: "income" | "expense";
   category: string;
   frequency: TransactionFrequencyType;
-  user_id: string;
+  user_ids: string[]; // Array of user IDs who can access this series
   account_id: string;
   start_date: string;
   end_date: string;
@@ -63,7 +59,7 @@ interface FormErrors {
   type?: string;
   category?: string;
   frequency?: string;
-  user_id?: string;
+  user_ids?: string;
   account_id?: string;
   start_date?: string;
   end_date?: string;
@@ -96,7 +92,7 @@ export function RecurringSeriesForm({
     type: "expense",
     category: "",
     frequency: "monthly",
-    user_id: selectedUserId ?? currentUser.id,
+    user_ids: selectedUserId ? [selectedUserId] : [currentUser.id],
     account_id: "",
     start_date: today,
     end_date: "",
@@ -106,39 +102,64 @@ export function RecurringSeriesForm({
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Filter accounts by selected user
+  // Filter accounts: show accounts accessible by ALL selected users (intersection)
+  // Sort: prioritize accounts of currentUser
   const filteredAccounts = useMemo(() => {
-    if (!formData.user_id) return accounts;
-    return accounts.filter((acc) => acc.user_ids.includes(formData.user_id));
-  }, [accounts, formData.user_id]);
+    if (!formData.user_ids || formData.user_ids.length === 0) return accounts;
 
-  // Get default account for selected user (same logic as TransactionForm)
-  const getDefaultAccountId = useCallback(
-    (userId: string): string => {
-      if (!userId) {
-        return accounts.length > 0 ? accounts[0].id : "";
+    // Filter: accounts accessible by ALL selected users
+    const filtered = accounts.filter((acc) => formData.user_ids.every((userId) => acc.user_ids.includes(userId)));
+
+    // Sort: currentUser's accounts first
+    return filtered.sort((a, b) => {
+      const aHasCurrentUser = a.user_ids.includes(currentUser.id);
+      const bHasCurrentUser = b.user_ids.includes(currentUser.id);
+      if (aHasCurrentUser && !bHasCurrentUser) return -1;
+      if (!aHasCurrentUser && bHasCurrentUser) return 1;
+      return 0;
+    });
+  }, [accounts, formData.user_ids, currentUser.id]);
+
+  // Calculate default account to prepopulate
+  const defaultAccountId = useMemo(() => {
+    if (!formData.user_ids || formData.user_ids.length === 0 || filteredAccounts.length === 0) {
+      return "";
+    }
+
+    // SOLO 1 UTENTE: Usa il default di quell'utente
+    if (formData.user_ids.length === 1) {
+      const selectedUser = groupUsers.find((u) => u.id === formData.user_ids[0]);
+
+      if (selectedUser?.default_account_id) {
+        const defaultAcc = filteredAccounts.find((acc) => acc.id === selectedUser.default_account_id);
+        if (defaultAcc) {
+          return defaultAcc.id;
+        }
       }
 
-      // Find user and use their default account
-      const user = groupUsers.find((u) => u.id === userId);
-      if (user?.default_account_id) {
-        // Verify the default account is accessible to this user
-        const defaultAccount = accounts.find(
-          (acc) => acc.id === user.default_account_id && acc.user_ids.includes(userId)
-        );
-        if (defaultAccount) return defaultAccount.id;
-      }
+      // Fallback: primo account disponibile per quell'utente
+      return filteredAccounts[0].id;
+    }
 
-      // Fall back to first account accessible to this user
-      const userAccounts = accounts.filter((acc) => acc.user_ids.includes(userId));
-      if (userAccounts.length > 0) {
-        return userAccounts[0].id;
+    // filteredAccounts contiene solo gli account accessibili da TUTTI gli utenti selezionati
+    if (filteredAccounts.length > 0) {
+      return filteredAccounts[0].id;
+    }
+
+    // Fallback: se non ci sono account condivisi, usa il default del creatore
+    const creator = groupUsers.find((u) => u.id === currentUser.id);
+
+    if (creator?.default_account_id) {
+      // Cerca il default del creatore tra TUTTI gli account (non solo filtrati)
+      const creatorDefaultAcc = accounts.find((acc) => acc.id === creator.default_account_id);
+      if (creatorDefaultAcc) {
+        return creatorDefaultAcc.id;
       }
-      
-      return accounts.length > 0 ? accounts[0].id : "";
-    },
-    [accounts, groupUsers]
-  );
+    }
+
+    // Ultimo fallback: primo account disponibile
+    return accounts.length > 0 ? accounts[0].id : "";
+  }, [formData.user_ids, filteredAccounts, accounts, currentUser.id, groupUsers]);
 
   // Reset form when modal opens or mode/series changes
   useEffect(() => {
@@ -157,7 +178,7 @@ export function RecurringSeriesForm({
           type: series.type === "income" ? "income" : "expense",
           category: series.category,
           frequency: series.frequency,
-          user_id: series.user_id,
+          user_ids: series.user_ids,
           account_id: series.account_id,
           start_date: formatDateToString(series.start_date),
           end_date: formatDateToString(series.end_date),
@@ -172,8 +193,8 @@ export function RecurringSeriesForm({
           type: "expense",
           category: "",
           frequency: "monthly",
-          user_id: userId,
-          account_id: getDefaultAccountId(userId),
+          user_ids: [userId],
+          account_id: "", // Will be set by prepopulate useEffect
           start_date: today,
           end_date: "",
           due_day: "1", // Default: primo del mese
@@ -181,17 +202,22 @@ export function RecurringSeriesForm({
       }
       setErrors({});
     }
-  }, [isOpen, mode, series, currentUser.id, selectedUserId, getDefaultAccountId, today]);
+  }, [isOpen, mode, series, currentUser.id, selectedUserId, today]);
 
-  // Update account when user changes
+  // Prepopulate account when modal opens or users change
   useEffect(() => {
-    if (mode === "create" && formData.user_id) {
-      setFormData((prev) => ({
-        ...prev,
-        account_id: getDefaultAccountId(formData.user_id),
-      }));
+    if (!isOpen) {
+      return;
     }
-  }, [formData.user_id, getDefaultAccountId, mode]);
+    if (!defaultAccountId) {
+      return;
+    }
+
+    // Always update account when users change (both create and edit modes)
+    if (defaultAccountId !== formData.account_id) {
+      setFormData((prev) => ({ ...prev, account_id: defaultAccountId }));
+    }
+  }, [isOpen, mode, formData.user_ids, defaultAccountId, formData.account_id]);
 
   // Validate form
   const validateForm = (): boolean => {
@@ -210,8 +236,8 @@ export function RecurringSeriesForm({
       newErrors.category = "La categoria è obbligatoria";
     }
 
-    if (!formData.user_id) {
-      newErrors.user_id = "L'utente è obbligatorio";
+    if (!formData.user_ids || formData.user_ids.length === 0) {
+      newErrors.user_ids = "Almeno un utente è obbligatorio";
     }
 
     if (!formData.account_id) {
@@ -254,7 +280,7 @@ export function RecurringSeriesForm({
   // Process submission result
   const processResult = (
     result: { data: RecurringTransactionSeries | null; error: string | null },
-    action: "create" | "update"
+    action: "create" | "update",
   ) => {
     if (result.error) {
       setErrors({ submit: result.error });
@@ -291,10 +317,17 @@ export function RecurringSeriesForm({
       };
 
       if (mode === "edit" && series) {
-        const result = await updateRecurringSeriesAction({ id: series.id, ...baseInput });
+        const result = await updateRecurringSeriesAction({
+          id: series.id,
+          user_ids: formData.user_ids,
+          ...baseInput,
+        });
         processResult(result, "update");
       } else {
-        const result = await createRecurringSeriesAction({ ...baseInput, user_id: formData.user_id });
+        const result = await createRecurringSeriesAction({
+          ...baseInput,
+          user_ids: formData.user_ids,
+        });
         processResult(result, "create");
       }
     } catch (error) {
@@ -360,7 +393,19 @@ export function RecurringSeriesForm({
                   ]}
                 />
               </FormField>
+            </div>
 
+            {/* Utenti - Multi-select (full width) */}
+            <FormField label="Utenti" required error={errors.user_ids}>
+              <MultiUserSelect
+                value={formData.user_ids}
+                onChange={(value) => handleFieldChange("user_ids", value)}
+                users={groupUsers}
+                currentUserId={currentUser.id}
+              />
+            </FormField>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Conto */}
               <AccountField
                 value={formData.account_id}

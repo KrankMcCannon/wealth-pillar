@@ -127,6 +127,18 @@ export default function TransactionsContent({
     }
   }, [searchParams]);
 
+  // Scroll to top on page mount (navigation to transactions page)
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, []); // Empty dependency array = run once on mount
+
+  // Scroll to top when tab changes
+  useEffect(() => {
+    if (activeTab) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [activeTab]); // Run when activeTab changes
+
   // Handler to clear budget filter and reset URL
   const handleClearBudgetFilter = () => {
     setFilters(defaultFiltersState);

@@ -2,7 +2,7 @@
 
 /**
  * RecurringSeriesSection - Display recurring transaction series
- * 
+ *
  * Shows a list of recurring series with filtering and actions.
  * Data is passed from parent component (Server Component pattern).
  */
@@ -51,17 +51,17 @@ export function RecurringSeriesSection({
   // Filter series by user if selected
   const filteredSeries = useMemo(() => {
     let result = series;
-    
-    // Filter by user
+
+    // Filter by user (check if user is in user_ids array)
     if (selectedUserId) {
-      result = result.filter((s) => s.user_id === selectedUserId);
+      result = result.filter((s) => s.user_ids.includes(selectedUserId));
     }
-    
+
     // Limit results if maxItems specified
     if (maxItems && maxItems > 0) {
       result = result.slice(0, maxItems);
     }
-    
+
     return result;
   }, [series, selectedUserId, maxItems]);
 
@@ -115,20 +115,16 @@ export function RecurringSeriesSection({
                 {activeSeries.length} {activeSeries.length === 1 ? "serie attiva" : "serie attive"}
                 {filteredSeries.length > activeSeries.length && (
                   <span className="text-muted-foreground/70">
-                    {" "}• {filteredSeries.length - activeSeries.length} in pausa
+                    {" "}
+                    • {filteredSeries.length - activeSeries.length} in pausa
                   </span>
                 )}
               </p>
             </div>
           </div>
-          
+
           {onCreateRecurringSeries && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onCreateRecurringSeries}
-              className="h-8 px-2"
-            >
+            <Button variant="ghost" size="sm" onClick={onCreateRecurringSeries} className="h-8 px-2">
               <Plus className="h-4 w-4" />
             </Button>
           )}
@@ -143,9 +139,7 @@ export function RecurringSeriesSection({
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Entrate/mese</p>
-                <p className="text-sm font-semibold text-emerald-500">
-                  +{formatCurrency(monthlyTotals.totalIncome)}
-                </p>
+                <p className="text-sm font-semibold text-emerald-500">+{formatCurrency(monthlyTotals.totalIncome)}</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -154,9 +148,7 @@ export function RecurringSeriesSection({
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Uscite/mese</p>
-                <p className="text-sm font-semibold text-red-500">
-                  -{formatCurrency(monthlyTotals.totalExpenses)}
-                </p>
+                <p className="text-sm font-semibold text-red-500">-{formatCurrency(monthlyTotals.totalExpenses)}</p>
               </div>
             </div>
           </div>
@@ -180,9 +172,8 @@ export function RecurringSeriesSection({
       {maxItems && series.length > maxItems && (
         <div className="px-4 pb-3 pt-1">
           <p className="text-xs text-muted-foreground text-center">
-            Mostrando {filteredSeries.length} di {selectedUserId 
-              ? series.filter(s => s.user_id === selectedUserId).length 
-              : series.length} serie
+            Mostrando {filteredSeries.length} di{" "}
+            {selectedUserId ? series.filter((s) => s.user_ids.includes(selectedUserId)).length : series.length} serie
           </p>
         </div>
       )}

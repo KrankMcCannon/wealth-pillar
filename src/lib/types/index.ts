@@ -97,7 +97,7 @@ export interface RecurringTransactionSeries {
   type: TransactionType;
   category: string;
   frequency: TransactionFrequencyType;
-  user_id: string;
+  user_ids: string[]; // Array of user IDs who can access this series
   account_id: string;
   transaction_ids?: string[]; // elenco id transazioni generate
 

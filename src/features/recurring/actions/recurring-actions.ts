@@ -22,7 +22,7 @@ export interface CreateRecurringSeriesInput {
   type: "income" | "expense";
   category: string;
   frequency: "once" | "weekly" | "biweekly" | "monthly" | "yearly";
-  user_id: string;
+  user_ids: string[]; // Array of user IDs who can access this series
   account_id: string;
   start_date: string;
   end_date?: string | null;
@@ -39,6 +39,7 @@ export interface UpdateRecurringSeriesInput {
   type?: "income" | "expense";
   category?: string;
   frequency?: "once" | "weekly" | "biweekly" | "monthly" | "yearly";
+  user_ids?: string[]; // Array of user IDs who can access this series
   account_id?: string;
   start_date?: string;
   end_date?: string | null;
@@ -71,8 +72,8 @@ export async function createRecurringSeriesAction(
     if (input.amount <= 0) {
       return { data: null, error: "L'importo deve essere maggiore di zero" };
     }
-    if (!input.user_id) {
-      return { data: null, error: "L'utente è obbligatorio" };
+    if (!input.user_ids || input.user_ids.length === 0) {
+      return { data: null, error: "Almeno un utente è obbligatorio" };
     }
     if (!input.account_id) {
       return { data: null, error: "Il conto è obbligatorio" };
@@ -92,7 +93,7 @@ export async function createRecurringSeriesAction(
         type: input.type,
         category: input.category,
         frequency: input.frequency,
-        user_id: input.user_id,
+        user_ids: input.user_ids,
         account_id: input.account_id,
         start_date: input.start_date,
         end_date: input.end_date || null,
@@ -109,9 +110,11 @@ export async function createRecurringSeriesAction(
       return { data: null, error: error.message };
     }
 
-    // Invalidate cache
+    // Invalidate cache for all affected users
     revalidateTag(CACHE_TAGS.RECURRING_SERIES);
-    revalidateTag(`user:${input.user_id}:recurring`);
+    for (const userId of input.user_ids) {
+      revalidateTag(`user:${userId}:recurring`);
+    }
 
     return { data: data as unknown as RecurringTransactionSeries, error: null };
   } catch (error) {
@@ -139,7 +142,7 @@ function buildUpdateData(input: UpdateRecurringSeriesInput): Record<string, unkn
   // Copy all defined fields
   const fieldsToCopy: (keyof UpdateRecurringSeriesInput)[] = [
     "description", "amount", "type", "category", "frequency",
-    "account_id", "start_date", "end_date", "due_day", "is_active"
+    "account_id", "start_date", "end_date", "due_day", "is_active", "user_ids"
   ];
 
   for (const field of fieldsToCopy) {
@@ -167,6 +170,13 @@ export async function updateRecurringSeriesAction(
       return { data: null, error: "ID serie obbligatorio" };
     }
 
+    // Get old user_ids to invalidate cache for previous users
+    const { data: oldSeries } = await supabaseServer
+      .from("recurring_transactions")
+      .select("user_ids")
+      .eq("id", input.id)
+      .single();
+
     const updateData = buildUpdateData(input);
     if (!updateData) {
       return { data: null, error: "L'importo deve essere maggiore di zero" };
@@ -184,11 +194,22 @@ export async function updateRecurringSeriesAction(
       return { data: null, error: error.message };
     }
 
-    // Invalidate cache
+    // Invalidate cache for all affected users (old and new)
     revalidateTag(CACHE_TAGS.RECURRING_SERIES);
     revalidateTag(CACHE_TAGS.RECURRING(input.id));
-    if (data) {
-      revalidateTag(`user:${data.user_id}:recurring`);
+
+    // Invalidate old users' caches
+    if (oldSeries?.user_ids) {
+      for (const userId of oldSeries.user_ids) {
+        revalidateTag(`user:${userId}:recurring`);
+      }
+    }
+
+    // Invalidate new users' caches (if user_ids changed)
+    if (data?.user_ids) {
+      for (const userId of data.user_ids) {
+        revalidateTag(`user:${userId}:recurring`);
+      }
     }
 
     return { data: data as unknown as RecurringTransactionSeries, error: null };
@@ -215,10 +236,10 @@ export async function deleteRecurringSeriesAction(
       return { data: null, error: "ID serie obbligatorio" };
     }
 
-    // First get the series to know the user_id for cache invalidation
+    // First get the series to know the user_ids for cache invalidation
     const { data: series, error: fetchError } = await supabaseServer
       .from("recurring_transactions")
-      .select("user_id")
+      .select("user_ids")
       .eq("id", seriesId)
       .single();
 
@@ -237,11 +258,13 @@ export async function deleteRecurringSeriesAction(
       return { data: null, error: error.message };
     }
 
-    // Invalidate cache
+    // Invalidate cache for all affected users
     revalidateTag(CACHE_TAGS.RECURRING_SERIES);
     revalidateTag(CACHE_TAGS.RECURRING(seriesId));
-    if (series) {
-      revalidateTag(`user:${series.user_id}:recurring`);
+    if (series?.user_ids) {
+      for (const userId of series.user_ids) {
+        revalidateTag(`user:${userId}:recurring`);
+      }
     }
 
     return { data: { success: true }, error: null };
@@ -271,12 +294,14 @@ export async function toggleRecurringSeriesActiveAction(
 /**
  * Execute a recurring series - create a transaction from it
  * This increments total_executions and updates due_day.
- * 
+ *
  * @param seriesId - The ID of the series to execute
+ * @param userId - The ID of the user executing the series
  * @returns The created transaction ID or error
  */
 export async function executeRecurringSeriesAction(
-  seriesId: string
+  seriesId: string,
+  userId?: string
 ): Promise<ActionResult<{ transactionId: string }>> {
   try {
     if (!seriesId) {
@@ -299,11 +324,14 @@ export async function executeRecurringSeriesAction(
       return { data: null, error: "La serie non è attiva" };
     }
 
+    // Use provided userId or first user in the series
+    const executingUserId = userId || series.user_ids[0];
+
     // Get user's group_id
     const { data: user, error: userError } = await supabaseServer
       .from("users")
       .select("group_id")
-      .eq("id", series.user_id)
+      .eq("id", executingUserId)
       .single();
 
     if (userError || !user) {
@@ -329,7 +357,7 @@ export async function executeRecurringSeriesAction(
     //     type: series.type,
     //     category: series.category,
     //     date: dateToUse.toISOString().split("T")[0],
-    //     user_id: series.user_id,
+    //     user_id: executingUserId,
     //     account_id: series.account_id,
     //     group_id: user.group_id,
     //     recurring_series_id: series.id,

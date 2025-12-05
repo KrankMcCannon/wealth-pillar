@@ -38,10 +38,11 @@ export const calendarDrawerStyles = {
      * - Clean white background
      * - Primary color border top
      * - Smooth rounded corners
+     * - UPDATED: Reduced from 90vh to 75vh for better mobile UX
      */
     content: [
       "fixed bottom-0 left-0 right-0 z-50",
-      "max-h-[90vh]",
+      "max-h-[75vh]",
       "rounded-t-3xl",
       "bg-card dark:bg-card",
       "border-t-4 border-primary",

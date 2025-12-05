@@ -240,7 +240,7 @@ export interface Database {
           type: 'income' | 'expense' | 'transfer';
           category: string;
           frequency: 'once' | 'weekly' | 'biweekly' | 'monthly' | 'yearly';
-          user_id: string;
+          user_ids: string[]; // Array of user IDs who can access this series
           account_id: string;
           start_date: string;
           end_date: string | null;
@@ -258,7 +258,7 @@ export interface Database {
           type: 'income' | 'expense' | 'transfer';
           category: string;
           frequency: 'once' | 'weekly' | 'biweekly' | 'monthly' | 'yearly';
-          user_id: string;
+          user_ids: string[]; // Array of user IDs who can access this series
           account_id: string;
           start_date: string;
           end_date?: string | null;
@@ -276,7 +276,7 @@ export interface Database {
           type?: 'income' | 'expense' | 'transfer';
           category?: string;
           frequency?: 'once' | 'weekly' | 'biweekly' | 'monthly' | 'yearly';
-          user_id?: string;
+          user_ids?: string[]; // Array of user IDs who can access this series
           account_id?: string;
           start_date?: string;
           end_date?: string | null;
