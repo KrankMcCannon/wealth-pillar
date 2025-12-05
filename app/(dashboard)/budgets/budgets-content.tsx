@@ -20,23 +20,28 @@ import {
   BudgetDisplayCard,
   BudgetProgress,
   BudgetChart,
-  BudgetTransactionsList,
   BudgetSelectorSkeleton,
   BudgetCardSkeleton,
   BudgetProgressSkeleton,
   BudgetChartSkeleton,
-  BudgetTransactionsListSkeleton,
 } from "@/features/budgets/components";
 import { CategoryForm } from "@/features/categories";
-import { TransactionForm } from "@/features/transactions";
+import { TransactionForm, TransactionDayList, TransactionDayListSkeleton, type GroupedTransaction } from "@/features/transactions";
 import { deleteBudgetAction } from "@/features/budgets/actions/budget-actions";
 import { budgetStyles } from "@/features/budgets/theme/budget-styles";
 import { ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui";
+import {
+  toDateTime,
+  toDateString,
+  today as luxonToday,
+  formatDateSmart,
+  formatDateShort,
+  diffInDays,
+} from "@/lib/utils/date-utils";
 import { BudgetService } from "@/lib/services";
 import type { DashboardDataProps } from "@/lib/auth/get-dashboard-data";
 import type { Category, Budget, Transaction, Account } from "@/lib/types";
-import type { GroupedTransaction } from "@/features/budgets/components/BudgetTransactionsList";
 import type { ChartDataPoint } from "@/features/budgets/components/BudgetChart";
 
 /**
@@ -145,6 +150,21 @@ export default function BudgetsContent({
     return BudgetService.filterTransactionsForBudget(userTransactions, selectedBudget, periodStart, periodEnd);
   }, [selectedBudget, currentUser, transactions]);
 
+  // Generate subtitle for transaction section
+  const transactionSectionSubtitle = useMemo(() => {
+    if (periodInfo?.start) {
+      const startDt = toDateTime(periodInfo.start);
+      const endDt = periodInfo.end ? toDateTime(periodInfo.end) : null;
+      
+      const startFormatted = startDt ? formatDateShort(startDt) : '';
+      const endFormatted = endDt ? formatDateShort(endDt) : 'Oggi';
+      return `${startFormatted} - ${endFormatted}`;
+    }
+    
+    const count = selectedBudgetProgress?.transactionCount ?? 0;
+    return `${count} ${count === 1 ? 'transazione' : 'transazioni'}`;
+  }, [periodInfo, selectedBudgetProgress]);
+
   // Group transactions by date
   const groupedTransactions = useMemo((): GroupedTransaction[] => {
     if (budgetTransactions.length === 0) return [];
@@ -152,7 +172,7 @@ export default function BudgetsContent({
     // Group by date
     const groupedMap: Record<string, Transaction[]> = {};
     for (const transaction of budgetTransactions) {
-      const dateKey = new Date(transaction.date).toISOString().split("T")[0];
+      const dateKey = toDateString(transaction.date);
       if (!groupedMap[dateKey]) {
         groupedMap[dateKey] = [];
       }
@@ -164,12 +184,13 @@ export default function BudgetsContent({
       .sort(([dateA], [dateB]) => dateB.localeCompare(dateA))
       .map(([date, txs]) => ({
         date,
-        formattedDate: new Date(date).toLocaleDateString("it-IT", {
-          weekday: "long",
-          day: "numeric",
-          month: "long",
+        formattedDate: formatDateSmart(date),
+        transactions: txs.sort((a, b) => {
+          const dtA = toDateTime(a.date);
+          const dtB = toDateTime(b.date);
+          if (!dtA || !dtB) return 0;
+          return dtB.toMillis() - dtA.toMillis();
         }),
-        transactions: txs.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
         total: txs.reduce((sum, t) => sum + t.amount, 0),
       }));
   }, [budgetTransactions]);
@@ -178,20 +199,21 @@ export default function BudgetsContent({
   const chartData = useMemo((): ChartDataPoint[] | null => {
     if (!periodInfo?.start || budgetTransactions.length === 0) return null;
 
-    const startDate = new Date(periodInfo.start);
-    const endDate = periodInfo.end ? new Date(periodInfo.end) : new Date();
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const startDate = toDateTime(periodInfo.start);
+    const endDate = periodInfo.end ? toDateTime(periodInfo.end) : luxonToday();
+    const today = luxonToday();
+
+    if (!startDate || !endDate) return null;
 
     // Calculate total days in period
-    const totalDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+    const totalDays = diffInDays(startDate, endDate);
     if (totalDays <= 0) return null;
 
     // Group transactions by date and calculate cumulative spending
     // Income transactions reduce spending (refill budget)
     const dailySpending: Record<string, number> = {};
     for (const t of budgetTransactions) {
-      const dateKey = new Date(t.date).toISOString().split("T")[0];
+      const dateKey = toDateString(t.date);
       const amount = t.type === "income" ? -t.amount : t.amount;
       dailySpending[dateKey] = (dailySpending[dateKey] || 0) + amount;
     }
@@ -202,10 +224,8 @@ export default function BudgetsContent({
     const maxAmount = selectedBudgetProgress?.amount || 1;
 
     for (let i = 0; i < totalDays; i++) {
-      const currentDate = new Date(startDate);
-      currentDate.setDate(startDate.getDate() + i);
-      currentDate.setHours(0, 0, 0, 0);
-      const dateKey = currentDate.toISOString().split("T")[0];
+      const currentDate = startDate.plus({ days: i });
+      const dateKey = toDateString(currentDate);
 
       cumulative += dailySpending[dateKey] || 0;
       const isFuture = currentDate > today;
@@ -353,34 +373,38 @@ export default function BudgetsContent({
                 </Suspense>
 
                 {/* Grouped transactions list */}
-                <Suspense fallback={<BudgetTransactionsListSkeleton />}>
-                  <BudgetTransactionsList
+                <Suspense fallback={<TransactionDayListSkeleton itemCount={3} showHeader />}>
+                  <TransactionDayList
                     groupedTransactions={groupedTransactions}
                     accountNames={accountNamesMap}
                     categories={categories}
-                    transactionCount={selectedBudgetProgress.transactionCount}
-                    selectedBudget={selectedBudget}
-                    periodInfo={
-                      periodInfo
-                        ? {
-                            startDate: periodInfo.start || "",
-                            endDate: periodInfo.end,
-                          }
-                        : null
-                    }
-                    onEditTransaction={(transaction) => {
-                      transactionModal.openEdit(transaction);
-                    }}
-                    onDeleteTransaction={() => {
-                      /* Handled via transaction form */
-                    }}
+                    sectionTitle="Transazioni Budget"
+                    sectionSubtitle={transactionSectionSubtitle}
+                    emptyTitle="Nessuna Transazione"
+                    emptyDescription="Nessuna transazione trovata per questo budget"
+                    expensesOnly
+                    showViewAll
+                    viewAllLabel="Vedi tutte"
                     onViewAll={() => {
                       const params = new URLSearchParams();
                       params.set("from", "budgets");
                       params.set("member", currentUser.id);
                       params.set("budget", selectedBudget.id);
                       params.set("category", selectedBudget.description);
+                      // Pass period dates for custom date range filter
+                      if (periodInfo?.start) {
+                        params.set("startDate", periodInfo.start);
+                      }
+                      if (periodInfo?.end) {
+                        params.set("endDate", periodInfo.end);
+                      }
                       router.push(`/transactions?${params.toString()}`);
+                    }}
+                    onEditTransaction={(transaction) => {
+                      transactionModal.openEdit(transaction);
+                    }}
+                    onDeleteTransaction={() => {
+                      /* Handled via transaction form */
                     }}
                   />
                 </Suspense>

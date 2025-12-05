@@ -1,18 +1,21 @@
 'use server';
 
-import { randomUUID } from 'crypto';
-import { clerkClient } from '@clerk/nextjs/server';
-import { supabaseServer } from '@/lib/database/server';
-import { AccountService, BudgetService, GroupService, UserService } from '@/lib/services';
 import { CACHE_TAGS } from '@/lib/cache';
-import type { ServiceResult } from '@/lib/services/user.service';
-import type { CompleteOnboardingInput } from './types';
+import { supabaseServer } from '@/lib/database/server';
 import type { Database } from '@/lib/database/types';
+import { AccountService, BudgetService, GroupService, UserService } from '@/lib/services';
+import type { ServiceResult } from '@/lib/services/user.service';
+import { nowISO } from '@/lib/utils/date-utils';
+import { clerkClient } from '@clerk/nextjs/server';
+import { randomUUID } from 'node:crypto';
+import type { CompleteOnboardingInput } from './types';
 
 async function revalidateCacheTags(tags: string[]) {
-  if (typeof window === 'undefined') {
+  if (globalThis.window === undefined) {
     const { revalidateTag } = await import('next/cache');
-    tags.forEach((tag) => revalidateTag(tag));
+    for (const tag of tags) {
+      revalidateTag(tag);
+    }
   }
 }
 
@@ -20,7 +23,8 @@ function getInitials(name: string) {
   const parts = name.trim().split(' ').filter(Boolean);
   if (parts.length === 0) return 'WP';
   if (parts.length === 1) return parts[0][0]?.toUpperCase() ?? 'W';
-  return `${parts[0][0] ?? ''}${parts[parts.length - 1][0] ?? ''}`.toUpperCase();
+  const lastPart = parts.at(-1);
+  return `${parts[0][0] ?? ''}${lastPart?.[0] ?? ''}`.toUpperCase();
 }
 
 /**
@@ -58,7 +62,7 @@ export async function completeOnboardingAction(
 
     const userId = randomUUID();
     const groupId = randomUUID();
-    const now = new Date().toISOString();
+    const now = nowISO();
 
     const groupResult = await GroupService.createGroup({
       id: groupId,

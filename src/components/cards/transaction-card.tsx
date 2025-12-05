@@ -18,7 +18,7 @@ interface TransactionCardProps {
   onClick?: () => void;
 }
 
-export function TransactionCard({ transaction, variant = "regular", onClick }: TransactionCardProps) {
+export function TransactionCard({ transaction, variant = "regular", onClick }: Readonly<TransactionCardProps>) {
   // Determine amount type for color coding
   const getAmountType = (): "income" | "expense" | "balance" => {
     if (variant === "recurrent") return "balance";

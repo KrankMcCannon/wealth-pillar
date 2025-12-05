@@ -78,15 +78,6 @@ export const TransactionListSkeleton = () => (
   />
 );
 
-export const SearchFilterSkeleton = () => (
-  <div className={`flex items-center gap-3 ${SHIMMER_BASE}`}>
-    {/* Search input */}
-    <div className="flex-1 h-12 bg-primary/12 rounded-2xl" />
-    {/* Filter button */}
-    <div className="w-12 h-12 bg-primary/12 rounded-xl" />
-  </div>
-);
-
 export const TabNavigationSkeleton = () => (
   <div className={`flex gap-2 border-b border-primary/20 px-3 py-2 ${SHIMMER_BASE}`}>
     <SkeletonList
@@ -131,9 +122,6 @@ export const FullTransactionsPageSkeleton = () => (
 
     {/* Main content skeleton */}
     <main className="flex-1 p-3 space-y-6 pb-20">
-      {/* Search and filter section */}
-      <SearchFilterSkeleton />
-
       {/* Transactions list */}
       <TransactionListSkeleton />
     </main>

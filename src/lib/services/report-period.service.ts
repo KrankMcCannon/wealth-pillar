@@ -4,7 +4,8 @@
  * based on budget periods
  */
 
-import type { Transaction, BudgetPeriod, User, Account } from '@/lib/types';
+import type { Account, BudgetPeriod, Transaction, User } from '@/lib/types';
+import { now, toDateTime } from '@/lib/utils/date-utils';
 
 /**
  * Category breakdown item for transaction analysis with NET calculations
@@ -137,17 +138,20 @@ export class ReportPeriodService {
     startDate: string | Date,
     endDate: string | Date | null
   ): Transaction[] {
-    const periodStart = new Date(startDate);
-    // Set to start of day in UTC
-    periodStart.setUTCHours(0, 0, 0, 0);
+    const periodStart = toDateTime(startDate);
+    if (!periodStart) return [];
+    // Start of day
+    const normalizedStart = periodStart.startOf('day');
 
-    const periodEnd = endDate ? new Date(endDate) : new Date();
-    // Set to end of day in UTC
-    periodEnd.setUTCHours(23, 59, 59, 999);
+    const periodEnd = endDate ? toDateTime(endDate) : now();
+    if (!periodEnd) return [];
+    // End of day
+    const normalizedEnd = periodEnd.endOf('day');
 
     return transactions.filter((t) => {
-      const txDate = new Date(t.date);
-      return txDate >= periodStart && txDate <= periodEnd;
+      const txDate = toDateTime(t.date);
+      if (!txDate) return false;
+      return txDate >= normalizedStart && txDate <= normalizedEnd;
     });
   }
 
@@ -199,7 +203,7 @@ export class ReportPeriodService {
     // Group by category and calculate spent/received separately
     const categoryMap = new Map<string, { spent: number; received: number; count: number }>();
 
-    transactions.forEach(t => {
+    for (const t of transactions) {
       const existing = categoryMap.get(t.category) || { spent: 0, received: 0, count: 0 };
 
       // Separate spent (expenses/outgoing) from received (income/incoming)
@@ -211,7 +215,7 @@ export class ReportPeriodService {
 
       existing.count += 1;
       categoryMap.set(t.category, existing);
-    });
+    }
 
     // Convert to array and calculate NET for each category
     const breakdown = Array.from(categoryMap.entries()).map(([category, data]) => ({
@@ -229,13 +233,13 @@ export class ReportPeriodService {
       .reduce((sum, item) => sum + item.net, 0);
 
     // Calculate percentage for each category (only for net spending categories)
-    breakdown.forEach(item => {
+    for (const item of breakdown) {
       if (item.net > 0 && totalNetSpending > 0) {
         item.percentage = (item.net / totalNetSpending) * 100;
       } else {
         item.percentage = 0;
       }
-    });
+    }
 
     // Sort by absolute NET value descending (show biggest impacts first)
     return breakdown.sort((a, b) => Math.abs(b.net) - Math.abs(a.net));

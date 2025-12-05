@@ -36,16 +36,12 @@ export function cached<T extends (...args: unknown[]) => Promise<unknown>>(
   keyParts: readonly string[],
   options?: CacheOptions
 ): T {
-  return unstable_cache(fn, [...keyParts], options) as T;
+  return unstable_cache(fn, [...keyParts], options);
 }
 
 // Re-export cache configuration for convenience
-export { CACHE_TTL, CACHE_TAGS, cacheOptions } from './config';
+export { CACHE_TAGS, CACHE_TTL, cacheOptions } from './config';
 export {
-  userCacheKeys,
-  groupCacheKeys,
-  accountCacheKeys,
-  transactionCacheKeys,
-  categoryCacheKeys,
-  budgetCacheKeys,
+  accountCacheKeys, budgetCacheKeys, categoryCacheKeys, groupCacheKeys, recurringCacheKeys, transactionCacheKeys, userCacheKeys
 } from './keys';
+

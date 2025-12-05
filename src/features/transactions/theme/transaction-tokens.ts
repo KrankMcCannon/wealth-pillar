@@ -112,27 +112,6 @@ export const transactionComponents = {
     tabInactive: 'text-muted-foreground hover:text-black',
   },
 
-  // Search Bar
-  search: {
-    container: 'flex-1 relative',
-    icon: 'absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-primary/60 z-10',
-    input: 'rounded-2xl pl-12 pr-4 py-3 bg-card/80 backdrop-blur-sm border border-primary/20 focus:border-primary/60 focus:ring-4 focus:ring-primary/10 h-12 shadow-sm hover:shadow-md transition-all duration-300',
-  },
-
-  // Filter Button
-  filter: {
-    button: 'p-2 sm:p-3 rounded-xl border border-primary/20 hover:border-primary/40 transition-all',
-  },
-
-  // Active Filters Display
-  activeFilters: {
-    container: 'bg-primary/10 border border-primary/20 rounded-lg p-3 flex items-center justify-between gap-3',
-    header: 'flex items-center gap-2',
-    icon: 'h-4 w-4 text-primary',
-    label: 'text-sm font-medium text-primary',
-    badges: 'flex gap-2',
-  },
-
   // Day Group
   dayGroup: {
     header: 'flex items-center justify-between mb-2 px-1',

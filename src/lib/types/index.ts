@@ -104,7 +104,7 @@ export interface RecurringTransactionSeries {
   // Pianificazione
   start_date: string | Date;
   end_date?: string | Date | null;
-  due_date: string | Date;
+  due_day: number; // Giorno del mese per l'addebito (1-31)
 
   // Stato e conteggio esecuzioni generate
   is_active: boolean;
@@ -195,4 +195,5 @@ export const AccountTypeMap: Record<AccountType, string> = {
 };
 
 // Re-export service types for convenience
-export type { ReportMetrics, CategoryMetric } from '@/lib/services/transaction.service';
+export type { CategoryMetric, ReportMetrics } from '@/lib/services/transaction.service';
+

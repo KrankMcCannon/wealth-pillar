@@ -19,6 +19,8 @@ export const CACHE_TTL = {
   CATEGORY: 900,
   /** Budget data - 5 minutes */
   BUDGET: 300,
+  /** Recurring series data - 5 minutes */
+  RECURRING: 300,
   /** Static data - 1 hour */
   STATIC: 3600,
 } as const;
@@ -47,6 +49,8 @@ export const CACHE_TAGS = {
   CATEGORY: (categoryId: string) => `category:${categoryId}`,
   BUDGETS: 'budgets',
   BUDGET: (budgetId: string) => `budget:${budgetId}`,
+  RECURRING_SERIES: 'recurring_series',
+  RECURRING: (seriesId: string) => `recurring:${seriesId}`,
 } as const;
 
 /**
@@ -186,5 +190,32 @@ export const cacheOptions = {
   budgetsByGroup: (groupId: string) => ({
     revalidate: CACHE_TTL.BUDGET,
     tags: [CACHE_TAGS.BUDGETS, `group:${groupId}:budgets`],
+  }),
+
+  /**
+   * Recurring series by user cache options
+   * @param userId - User ID for tag
+   */
+  recurring: (userId: string) => ({
+    revalidate: CACHE_TTL.RECURRING,
+    tags: [CACHE_TAGS.RECURRING_SERIES, `user:${userId}:recurring`],
+  }),
+
+  /**
+   * Recurring series by group cache options
+   * @param groupId - Group ID for tag
+   */
+  recurringGroup: (groupId: string) => ({
+    revalidate: CACHE_TTL.RECURRING,
+    tags: [CACHE_TAGS.RECURRING_SERIES, `group:${groupId}:recurring`],
+  }),
+
+  /**
+   * Single recurring series cache options
+   * @param seriesId - Series ID for tag
+   */
+  recurringSingle: (seriesId: string) => ({
+    revalidate: CACHE_TTL.RECURRING,
+    tags: [CACHE_TAGS.RECURRING_SERIES, CACHE_TAGS.RECURRING(seriesId)],
   }),
 } as const;

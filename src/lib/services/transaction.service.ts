@@ -1,16 +1,25 @@
+import { CACHE_TAGS, cached, cacheOptions, transactionCacheKeys } from '@/lib/cache';
 import { supabaseServer } from '@/lib/database/server';
-import { cached, transactionCacheKeys, cacheOptions, CACHE_TAGS } from '@/lib/cache';
 import type { Database } from '@/lib/database/types';
-import type { ServiceResult } from './user.service';
 import type { Transaction, TransactionType } from '@/lib/types';
+import {
+  DateTime,
+  formatDateSmart,
+  today as luxonToday,
+  nowISO,
+  toDateTime,
+} from '@/lib/utils/date-utils';
+import type { ServiceResult } from './user.service';
 
 /**
  * Helper to revalidate cache tags (dynamically imported to avoid client-side issues)
  */
 async function revalidateCacheTags(tags: string[]) {
-  if (typeof window === 'undefined') {
+  if (globalThis.window === undefined) {
     const { revalidateTag } = await import('next/cache');
-    tags.forEach((tag) => revalidateTag(tag));
+    for (const tag of tags) {
+      revalidateTag(tag);
+    }
   }
 }
 
@@ -457,7 +466,7 @@ export class TransactionService {
 
       // Build update object with only provided fields
       const updateData: Database['public']['Tables']['transactions']['Update'] = {
-        updated_at: new Date().toISOString(),
+        updated_at: nowISO(),
       };
 
       if (data.description !== undefined) updateData.description = data.description.trim();
@@ -648,7 +657,7 @@ export class TransactionService {
     let expenses = 0;
     const categoryMap = new Map<string, number>();
 
-    filteredTransactions.forEach((t) => {
+    for (const t of filteredTransactions) {
       if (t.type === 'income') {
         income += t.amount;
       } else if (t.type === 'expense') {
@@ -657,7 +666,7 @@ export class TransactionService {
         const current = categoryMap.get(t.category) || 0;
         categoryMap.set(t.category, current + t.amount);
       }
-    });
+    }
 
     const netSavings = income - expenses;
     const savingsRate = income > 0 ? (netSavings / income) * 100 : 0;
@@ -697,41 +706,13 @@ export class TransactionService {
     transactions: Transaction[],
     locale: string = 'it-IT'
   ): Record<string, Transaction[]> {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-
     return transactions.reduce(
       (groups: Record<string, Transaction[]>, transaction) => {
-        const txDate = new Date(transaction.date);
-        txDate.setHours(0, 0, 0, 0);
+        const txDate = toDateTime(transaction.date);
+        if (!txDate) return groups;
 
-        let dateLabel: string;
-
-        // Check if it's today
-        if (txDate.getTime() === today.getTime()) {
-          dateLabel = 'Oggi';
-        }
-        // Check if it's yesterday
-        else if (txDate.getTime() === yesterday.getTime()) {
-          dateLabel = 'Ieri';
-        }
-        // For other dates, use modern compact format with year
-        else {
-          const dayOfWeek = txDate.toLocaleDateString(locale, { weekday: 'short' });
-          const day = txDate.getDate();
-          const month = txDate.toLocaleDateString(locale, { month: 'short' });
-          const year = txDate.getFullYear();
-
-          // Capitalize first letter
-          const capitalizedDayOfWeek = dayOfWeek.charAt(0).toUpperCase() + dayOfWeek.slice(1);
-          const capitalizedMonth = month.charAt(0).toUpperCase() + month.slice(1);
-
-          // Format: "Lun 15 Gen 2025" (modern, compact with year)
-          dateLabel = `${capitalizedDayOfWeek} ${day} ${capitalizedMonth} ${year}`;
-        }
+        // Use formatDateSmart for consistent date labeling
+        const dateLabel = formatDateSmart(txDate, locale);
 
         if (!groups[dateLabel]) {
           groups[dateLabel] = [];
@@ -793,8 +774,9 @@ export class TransactionService {
     month: number
   ): Transaction[] {
     return transactions.filter((t) => {
-      const txDate = new Date(t.date);
-      return txDate.getFullYear() === year && txDate.getMonth() === month;
+      const txDate = toDateTime(t.date);
+      if (!txDate) return false;
+      return txDate.year === year && txDate.month === month;
     });
   }
 
@@ -803,20 +785,19 @@ export class TransactionService {
    * Returns localized month and year string
    *
    * @param year - Year
-   * @param month - Month (0-11)
+   * @param month - Month (1-12 for Luxon)
    * @param locale - Locale for formatting (default: 'it-IT')
    * @returns Formatted month label (e.g., "Gennaio 2025")
    *
    * @example
-   * const label = TransactionService.getMonthLabel(2025, 0); // "Gennaio 2025"
+   * const label = TransactionService.getMonthLabel(2025, 1); // "Gennaio 2025"
    */
   static getMonthLabel(
     year: number,
-    month: number,
-    locale: string = 'it-IT'
+    month: number
   ): string {
-    const date = new Date(year, month, 1);
-    const monthName = date.toLocaleDateString(locale, { month: 'long' });
+    const dt = DateTime.local(year, month, 1);
+    const monthName = dt.toFormat('LLLL'); // Full month name
     const capitalizedMonth = monthName.charAt(0).toUpperCase() + monthName.slice(1);
     return `${capitalizedMonth} ${year}`;
   }
@@ -877,14 +858,15 @@ export class TransactionService {
     userId?: string
   ) {
     // Filter transactions for current year up to current month
-    const now = new Date();
-    const currentYear = now.getFullYear();
+    const today = luxonToday();
+    const currentYear = today.year;
 
     const ytdTransactions = allTransactions.filter((t) => {
-      const txDate = new Date(t.date);
+      const txDate = toDateTime(t.date);
+      if (!txDate) return false;
       return (
-        txDate.getFullYear() === currentYear &&
-        txDate.getMonth() <= currentMonth
+        txDate.year === currentYear &&
+        txDate.month <= currentMonth
       );
     });
 
@@ -1007,19 +989,20 @@ export class TransactionService {
   ) {
     // Filter and calculate in optimized single pass
     // Complexity: O(n)
-    const now = new Date();
-    const currentYear = now.getFullYear();
+    const today = luxonToday();
+    const currentYear = today.year;
 
     // Single pass: filter, sum total, and build per-user breakdown
     let totalSavings = 0;
     const userBreakdown = new Map<string, number>();
 
-    allTransactions.forEach((t) => {
-      const txDate = new Date(t.date);
+    for (const t of allTransactions) {
+      const txDate = toDateTime(t.date);
+      if (!txDate) continue;
 
       // Check all conditions in one pass
-      const isCurrentYear = txDate.getFullYear() === currentYear;
-      const isUpToCurrentMonth = txDate.getMonth() <= currentMonth;
+      const isCurrentYear = txDate.year === currentYear;
+      const isUpToCurrentMonth = txDate.month <= currentMonth;
       const isSavingsCategory = t.category === 'risparmi';
 
       // Count all transaction types with "risparmi" category
@@ -1033,7 +1016,7 @@ export class TransactionService {
           userBreakdown.set(t.user_id, userTotal + t.amount);
         }
       }
-    });
+    }
 
     // Calculate monthly average (divide by months elapsed + 1)
     const monthsElapsed = currentMonth + 1;
@@ -1160,15 +1143,18 @@ export class TransactionService {
     transactions: Transaction[],
     period: { start_date: string | Date; end_date: string | Date | null }
   ): Transaction[] {
-    const periodStart = new Date(period.start_date);
-    periodStart.setHours(0, 0, 0, 0);
+    const periodStart = toDateTime(period.start_date);
+    if (!periodStart) return [];
+    const normalizedStart = periodStart.startOf('day');
 
-    const periodEnd = period.end_date ? new Date(period.end_date) : new Date();
-    periodEnd.setHours(23, 59, 59, 999);
+    const periodEnd = period.end_date ? toDateTime(period.end_date) : luxonToday();
+    if (!periodEnd) return [];
+    const normalizedEnd = periodEnd.endOf('day');
 
     return transactions.filter((t) => {
-      const txDate = new Date(t.date);
-      return txDate >= periodStart && txDate <= periodEnd;
+      const txDate = toDateTime(t.date);
+      if (!txDate) return false;
+      return txDate >= normalizedStart && txDate <= normalizedEnd;
     });
   }
 }

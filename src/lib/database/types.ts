@@ -244,7 +244,7 @@ export interface Database {
           account_id: string;
           start_date: string;
           end_date: string | null;
-          due_date: string;
+          due_day: number; // Giorno del mese per l'addebito (1-31)
           is_active: boolean;
           total_executions: number;
           transaction_ids: string[];
@@ -262,7 +262,7 @@ export interface Database {
           account_id: string;
           start_date: string;
           end_date?: string | null;
-          due_date: string;
+          due_day: number; // Giorno del mese per l'addebito (1-31)
           is_active?: boolean;
           total_executions?: number;
           transaction_ids?: string[];
@@ -280,7 +280,7 @@ export interface Database {
           account_id?: string;
           start_date?: string;
           end_date?: string | null;
-          due_date?: string;
+          due_day?: number; // Giorno del mese per l'addebito (1-31)
           is_active?: boolean;
           total_executions?: number;
           transaction_ids?: string[];

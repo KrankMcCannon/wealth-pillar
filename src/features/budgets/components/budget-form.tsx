@@ -137,8 +137,8 @@ export function BudgetForm({
     }
 
     // Amount validation
-    const amount = parseFloat(formData.amount);
-    if (!formData.amount || isNaN(amount)) {
+    const amount = Number.parseFloat(formData.amount);
+    if (!formData.amount || Number.isNaN(amount)) {
       newErrors.amount = "L'importo è obbligatorio";
     } else if (amount <= 0) {
       newErrors.amount = "L'importo deve essere maggiore di zero";
@@ -177,7 +177,7 @@ export function BudgetForm({
     setErrors({});
 
     try {
-      const amount = parseFloat(formData.amount);
+      const amount = Number.parseFloat(formData.amount);
 
       if (mode === "create") {
         // Create new budget
@@ -320,7 +320,7 @@ export function BudgetForm({
 
               {/* Importo */}
               <AmountField
-                value={parseFloat(formData.amount) || 0}
+                value={Number.parseFloat(formData.amount) || 0}
                 onChange={(value) => handleChange("amount", value.toString())}
                 error={errors.amount}
                 required

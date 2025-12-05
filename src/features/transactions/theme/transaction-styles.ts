@@ -49,29 +49,6 @@ export const transactionStyles = {
   },
 
   // ====================================
-  // Search and Filter Section
-  // ====================================
-  searchFilter: {
-    container: 'flex items-center gap-3',
-    searchContainer: transactionComponents.search.container,
-    searchIcon: transactionComponents.search.icon,
-    searchInput: transactionComponents.search.input,
-    filterButton: transactionComponents.filter.button,
-  },
-
-  // ====================================
-  // Active Filters Display
-  // ====================================
-  activeFilters: {
-    container: transactionComponents.activeFilters.container,
-    header: transactionComponents.activeFilters.header,
-    icon: transactionComponents.activeFilters.icon,
-    label: transactionComponents.activeFilters.label,
-    badges: transactionComponents.activeFilters.badges,
-    clearButton: 'text-primary hover:text-primary hover:bg-primary/8 text-sm',
-  },
-
-  // ====================================
   // Day Group / Section Header
   // ====================================
   dayGroup: {

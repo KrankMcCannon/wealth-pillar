@@ -8,15 +8,25 @@
 
 "use client";
 
+import { useState } from "react";
 import { CategoryIcon, cn, iconSizes, RecurringTransactionSeries } from "@/src/lib";
-import { Play, Pause, Settings } from "lucide-react";
+import { RecurringService } from "@/src/lib/services";
+import {
+  executeRecurringSeriesAction,
+  toggleRecurringSeriesActiveAction,
+} from "@/src/features/recurring/actions/recurring-actions";
+import { Play, Pause } from "lucide-react";
 import { Amount, Button, Card, IconContainer, StatusBadge, Text } from "@/src/components/ui";
 
 interface SeriesCardProps {
-  series: RecurringTransactionSeries;
-  className?: string;
-  showActions?: boolean;
-  onEdit?: (series: RecurringTransactionSeries) => void;
+  readonly series: RecurringTransactionSeries;
+  readonly className?: string;
+  readonly showActions?: boolean;
+  /** Callback quando si clicca per modificare (modale) */
+  readonly onEdit?: (series: RecurringTransactionSeries) => void;
+  /** Callback quando si clicca sulla card (navigazione o altro) - se definito, sovrascrive onEdit per il click */
+  readonly onCardClick?: (series: RecurringTransactionSeries) => void;
+  readonly onSeriesUpdate?: (series: RecurringTransactionSeries) => void;
 }
 
 // Helper function: Get frequency label
@@ -31,58 +41,88 @@ function getFrequencyLabel(frequency: string): string {
 }
 
 // Helper function: Get due date label
-function getDueDateLabel(days: number, date: Date): string {
+function getDueDateLabel(days: number): string {
   if (days === 0) return "Oggi";
   if (days === 1) return "Domani";
   if (days < 0) return `${Math.abs(days)} giorni fa`;
   if (days <= 7) return `Tra ${days} giorni`;
-  return date.toLocaleDateString("it-IT");
+  return `Tra ${days} giorni`;
 }
 
-// Helper function: Calculate days until due
-function calculateDaysUntilDue(dueDate: Date): number {
-  const now = new Date();
-  return Math.ceil((dueDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-}
-
-export function SeriesCard({ series, className, showActions = false, onEdit }: SeriesCardProps) {
-  // Calculate due date info
-  const nextDueDate = new Date(series.due_date);
-  const daysUntilDue = calculateDaysUntilDue(nextDueDate);
+export function SeriesCard({ series, className, showActions = false, onEdit, onCardClick, onSeriesUpdate }: SeriesCardProps) {
+  const [isLoading, setIsLoading] = useState(false);
+  
+  // Calculate due date info using RecurringService
+  const daysUntilDue = RecurringService.calculateDaysUntilDue(series);
   const isOverdue = daysUntilDue < 0;
   const isDueToday = daysUntilDue === 0;
   const isDueSoon = daysUntilDue <= 3;
 
+  // Handle card click - use onCardClick if defined, otherwise fall back to onEdit
+  const handleCardClick = () => {
+    if (onCardClick) {
+      onCardClick(series);
+    } else {
+      onEdit?.(series);
+    }
+  };
+
   // Action handlers
   const handleExecute = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    // try {
-    //   await executeSeriesMutation.mutateAsync(series.id);
-    // } catch (error) {
-    //   console.error('Failed to execute series:', error);
-    // }
+    if (isLoading) return;
+    
+    setIsLoading(true);
+    try {
+      const result = await executeRecurringSeriesAction(series.id);
+      if (result.error) {
+        console.error('Failed to execute series:', result.error);
+      }
+      // Trigger refresh of series list
+      onSeriesUpdate?.(series);
+    } catch (error) {
+      console.error('Failed to execute series:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handlePause = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    // try {
-    //   await pauseSeriesMutation.mutateAsync({ id: series.id });
-    // } catch (error) {
-    //   console.error('Failed to pause series:', error);
-    // }
+    if (isLoading) return;
+    
+    setIsLoading(true);
+    try {
+      const result = await toggleRecurringSeriesActiveAction(series.id, false);
+      if (result.error) {
+        console.error('Failed to pause series:', result.error);
+      } else if (result.data) {
+        onSeriesUpdate?.(result.data);
+      }
+    } catch (error) {
+      console.error('Failed to pause series:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleResume = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    // try {
-    //   await resumeSeriesMutation.mutateAsync(series.id);
-    // } catch (error) {
-    //   console.error('Failed to resume series:', error);
-    // }
-  };
-
-  const handleEdit = () => {
-    onEdit?.(series);
+    if (isLoading) return;
+    
+    setIsLoading(true);
+    try {
+      const result = await toggleRecurringSeriesActiveAction(series.id, true);
+      if (result.error) {
+        console.error('Failed to resume series:', result.error);
+      } else if (result.data) {
+        onSeriesUpdate?.(result.data);
+      }
+    } catch (error) {
+      console.error('Failed to resume series:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Styling logic (centralized)
@@ -118,7 +158,7 @@ export function SeriesCard({ series, className, showActions = false, onEdit }: S
   return (
     <Card
       className={cn(getCardStyles(), "transition-all duration-300 group cursor-pointer", className)}
-      onClick={handleEdit}
+      onClick={handleCardClick}
     >
       <div className="flex items-center justify-between gap-3">
         {/* Left Section: Icon + Content */}
@@ -148,7 +188,7 @@ export function SeriesCard({ series, className, showActions = false, onEdit }: S
                 {getFrequencyLabel(series.frequency)}
               </Text>
               <Text variant="muted" size="xs">
-                Prossima: {getDueDateLabel(daysUntilDue, nextDueDate)}
+                Prossima: {getDueDateLabel(daysUntilDue)}
               </Text>
             </div>
           </div>
@@ -170,7 +210,7 @@ export function SeriesCard({ series, className, showActions = false, onEdit }: S
                       size="sm"
                       className="h-6 w-6 p-0 hover:bg-primary/8 rounded-md transition-all duration-200"
                       onClick={handleExecute}
-                      disabled={false}
+                      disabled={isLoading}
                     >
                       <Play className="h-3 w-3 text-accent" />
                     </Button>
@@ -180,7 +220,7 @@ export function SeriesCard({ series, className, showActions = false, onEdit }: S
                     size="sm"
                     className="h-6 w-6 p-0 hover:bg-warning/10 rounded-md transition-all duration-200"
                     onClick={handlePause}
-                    disabled={false}
+                    disabled={isLoading}
                   >
                     <Pause className="h-3 w-3 text-warning" />
                   </Button>
@@ -191,22 +231,11 @@ export function SeriesCard({ series, className, showActions = false, onEdit }: S
                   size="sm"
                   className="h-6 w-6 p-0 hover:bg-primary/5 rounded-md transition-all duration-200"
                   onClick={handleResume}
-                  disabled={false}
+                  disabled={isLoading}
                 >
                   <Play className="h-3 w-3 text-primary" />
                 </Button>
               )}
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-6 w-6 p-0 hover:bg-accent rounded-md transition-all duration-200"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleEdit();
-                }}
-              >
-                <Settings className="h-3 w-3 text-primary/70" />
-              </Button>
             </div>
           )}
         </div>

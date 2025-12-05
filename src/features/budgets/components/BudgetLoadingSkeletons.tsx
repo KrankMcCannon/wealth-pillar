@@ -132,47 +132,6 @@ export function BudgetChartSkeleton() {
 }
 
 /**
- * Skeleton for transaction list
- */
-export function BudgetTransactionsListSkeleton() {
-  return (
-    <section className="animate-pulse">
-      {/* Section header skeleton */}
-      <div className="mb-4">
-        <div className={`${budgetStyles.skeleton.lineMedium} h-6 mb-2`} />
-        <div className={`${budgetStyles.skeleton.lineShort} h-4`} />
-      </div>
-
-      {/* Transaction items skeleton */}
-      <div className={budgetStyles.transactions.container}>
-        {[1, 2].map((dayGroup) => (
-          <div key={dayGroup}>
-            {/* Day header skeleton */}
-            <div className={budgetStyles.transactions.dayHeader}>
-              <div className={`${budgetStyles.skeleton.line} h-5 w-32`} />
-              <div className="text-right">
-                <div className={`${budgetStyles.skeleton.lineShort} h-4 ml-auto mb-1`} />
-                <div className={`${budgetStyles.skeleton.lineShort} h-3`} />
-              </div>
-            </div>
-
-            {/* Transaction items */}
-            <div className="space-y-2">
-              {[1, 2].map((item) => (
-                <div
-                  key={item}
-                  className={`${budgetStyles.skeleton.rect} h-16 rounded-lg`}
-                />
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-/**
  * Skeleton for empty selected budget state
  */
 export function BudgetSelectorOnlySkeleton() {
@@ -194,7 +153,7 @@ export function FullBudgetPageSkeleton() {
       <BudgetMetricsSkeleton />
       <BudgetProgressSkeleton />
       <BudgetChartSkeleton />
-      <BudgetTransactionsListSkeleton />
+      {/* Transaction list uses TransactionDayListSkeleton from @/features/transactions */}
     </div>
   );
 }

@@ -1,49 +1,96 @@
 "use client";
 
+/**
+ * RecurringSeriesSection - Display recurring transaction series
+ * 
+ * Shows a list of recurring series with filtering and actions.
+ * Data is passed from parent component (Server Component pattern).
+ */
+
+import { useMemo } from "react";
 import { RecurringTransactionSeries } from "@/src/lib";
 import { SeriesCard } from "@/src/components/cards";
 import { EmptyState } from "@/components/shared";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, Plus, TrendingUp, TrendingDown } from "lucide-react";
 import { Button } from "@/components/ui";
+import { RecurringService } from "@/lib/services";
+import { formatCurrency } from "@/lib/utils";
 
 interface RecurringSeriesSectionProps {
-  selectedUserId?: string;
-  className?: string;
-  maxItems?: number;
-  showActions?: boolean;
-  showStats?: boolean;
-  onCreateRecurringSeries?: () => void;
-  onEditRecurringSeries?: (series: RecurringTransactionSeries) => void;
+  /** All recurring series data */
+  readonly series: RecurringTransactionSeries[];
+  /** Filter series by user ID (optional) */
+  readonly selectedUserId?: string;
+  /** Additional CSS classes */
+  readonly className?: string;
+  /** Maximum number of items to display */
+  readonly maxItems?: number;
+  /** Show action buttons on each series card */
+  readonly showActions?: boolean;
+  /** Show statistics header */
+  readonly showStats?: boolean;
+  /** Callback when create button is clicked */
+  readonly onCreateRecurringSeries?: () => void;
+  /** Callback when edit button is clicked (modale) */
+  readonly onEditRecurringSeries?: (series: RecurringTransactionSeries) => void;
+  /** Callback when card is clicked (navigazione) - se definito, sovrascrive onEditRecurringSeries per il click */
+  readonly onCardClick?: (series: RecurringTransactionSeries) => void;
 }
 
 export function RecurringSeriesSection({
+  series,
+  selectedUserId,
   className = "",
+  maxItems,
   showActions = false,
+  showStats = false,
   onCreateRecurringSeries,
   onEditRecurringSeries,
+  onCardClick,
 }: RecurringSeriesSectionProps) {
-  const isLoading = false;
+  // Filter series by user if selected
+  const filteredSeries = useMemo(() => {
+    let result = series;
+    
+    // Filter by user
+    if (selectedUserId) {
+      result = result.filter((s) => s.user_id === selectedUserId);
+    }
+    
+    // Limit results if maxItems specified
+    if (maxItems && maxItems > 0) {
+      result = result.slice(0, maxItems);
+    }
+    
+    return result;
+  }, [series, selectedUserId, maxItems]);
 
-  if (isLoading) {
-    return (
-      <div className={`animate-pulse space-y-2 ${className}`}>
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="h-16 bg-linear-to-r from-muted to-card rounded-xl"></div>
-        ))}
-      </div>
-    );
-  }
+  // Get active series only for count
+  const activeSeries = useMemo(() => {
+    return filteredSeries.filter((s) => s.is_active);
+  }, [filteredSeries]);
 
-  if (0 === 0) {
+  // Calculate monthly totals using service method
+  const monthlyTotals = useMemo(() => {
+    return RecurringService.calculateTotals(activeSeries);
+  }, [activeSeries]);
+
+  // Empty state
+  if (filteredSeries.length === 0) {
     return (
       <div className={`p-6 ${className}`}>
         <EmptyState
           icon={RefreshCw}
-          title="Nessuna serie ricorrente trovata"
-          description="Le serie ricorrenti configurate appariranno qui"
+          title="Nessuna serie ricorrente"
+          description={
+            selectedUserId
+              ? "Non ci sono serie ricorrenti per questo utente"
+              : "Le serie ricorrenti configurate appariranno qui"
+          }
           action={
             onCreateRecurringSeries && (
               <Button onClick={onCreateRecurringSeries} variant="default" size="sm">
+                <Plus className="h-4 w-4 mr-2" />
                 Aggiungi Serie
               </Button>
             )
@@ -55,36 +102,90 @@ export function RecurringSeriesSection({
 
   return (
     <div className={`rounded-xl ${className}`}>
-      {/* Title Section */}
+      {/* Header Section */}
       <div className="px-4 pt-4 pb-3 border-b border-primary/20">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="flex size-8 items-center justify-center rounded-xl bg-primary/10">
-              <svg className="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                />
-              </svg>
+              <RefreshCw className="w-4 h-4 text-primary" />
             </div>
             <div>
               <h3 className="text-base font-bold tracking-tight">Transazioni Ricorrenti</h3>
-              <p className="text-xs">
-                {0} {1 === 1 ? "serie attiva" : "serie attive"}
+              <p className="text-xs text-muted-foreground">
+                {activeSeries.length} {activeSeries.length === 1 ? "serie attiva" : "serie attive"}
+                {filteredSeries.length > activeSeries.length && (
+                  <span className="text-muted-foreground/70">
+                    {" "}• {filteredSeries.length - activeSeries.length} in pausa
+                  </span>
+                )}
               </p>
             </div>
           </div>
+          
+          {onCreateRecurringSeries && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onCreateRecurringSeries}
+              className="h-8 px-2"
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+          )}
         </div>
+
+        {/* Stats Section */}
+        {showStats && activeSeries.length > 0 && (
+          <div className="mt-3 pt-3 border-t border-primary/10 grid grid-cols-2 gap-3">
+            <div className="flex items-center gap-2">
+              <div className="flex size-6 items-center justify-center rounded-lg bg-emerald-500/10">
+                <TrendingUp className="w-3 h-3 text-emerald-500" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Entrate/mese</p>
+                <p className="text-sm font-semibold text-emerald-500">
+                  +{formatCurrency(monthlyTotals.totalIncome)}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="flex size-6 items-center justify-center rounded-lg bg-red-500/10">
+                <TrendingDown className="w-3 h-3 text-red-500" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Uscite/mese</p>
+                <p className="text-sm font-semibold text-red-500">
+                  -{formatCurrency(monthlyTotals.totalExpenses)}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Series List */}
       <div className="p-2 space-y-2">
-        {[].map((series) => (
-          <SeriesCard key={""} series={series} showActions={showActions} onEdit={onEditRecurringSeries} />
+        {filteredSeries.map((item) => (
+          <SeriesCard
+            key={item.id}
+            series={item}
+            showActions={showActions}
+            onEdit={onEditRecurringSeries}
+            onCardClick={onCardClick}
+          />
         ))}
       </div>
+
+      {/* Show More Link (if truncated) */}
+      {maxItems && series.length > maxItems && (
+        <div className="px-4 pb-3 pt-1">
+          <p className="text-xs text-muted-foreground text-center">
+            Mostrando {filteredSeries.length} di {selectedUserId 
+              ? series.filter(s => s.user_id === selectedUserId).length 
+              : series.length} serie
+          </p>
+        </div>
+      )}
     </div>
   );
 }

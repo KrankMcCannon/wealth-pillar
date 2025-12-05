@@ -4,49 +4,53 @@
 
 import { Suspense } from 'react';
 import { getDashboardData } from '@/lib/auth/get-dashboard-data';
-import { AccountService, TransactionService, BudgetService } from '@/lib/services';
+import { AccountService, TransactionService, BudgetService, RecurringService, CategoryService } from '@/lib/services';
 import DashboardContent from './dashboard-content';
 import DashboardPageLoading from './loading';
 
 export default async function DashboardPage() {
   const { currentUser, groupUsers } = await getDashboardData();
 
-  // Fetch accounts for group (cached for 5 minutes)
-  const { data: accounts, error: accountsError } = await AccountService.getAccountsByGroup(currentUser.group_id);
+  // Fetch all data in parallel (each cached with appropriate TTL)
+  const [accountsResult, transactionsResult, budgetsResult, recurringResult, categoriesResult] = await Promise.all([
+    AccountService.getAccountsByGroup(currentUser.group_id),
+    TransactionService.getTransactionsByGroup(currentUser.group_id),
+    BudgetService.getBudgetsByGroup(currentUser.group_id),
+    RecurringService.getSeriesByGroup(currentUser.group_id),
+    CategoryService.getAllCategories(),
+  ]);
 
-  if (accountsError) {
-    console.error('Failed to fetch accounts:', accountsError);
+  if (accountsResult.error) {
+    console.error('Failed to fetch accounts:', accountsResult.error);
   }
 
-  // Fetch transactions for group to calculate balances (cached for 2 minutes)
-  const { data: transactions, error: transactionsError } = await TransactionService.getTransactionsByGroup(
-    currentUser.group_id
-  );
-
-  if (transactionsError) {
-    console.error('Failed to fetch transactions:', transactionsError);
+  if (transactionsResult.error) {
+    console.error('Failed to fetch transactions:', transactionsResult.error);
   }
 
-  // Fetch budgets for group (cached for 5 minutes)
-  const { data: budgets, error: budgetsError } = await BudgetService.getBudgetsByGroup(currentUser.group_id);
+  if (budgetsResult.error) {
+    console.error('Failed to fetch budgets:', budgetsResult.error);
+  }
 
-  if (budgetsError) {
-    console.error('Failed to fetch budgets:', budgetsError);
+  if (recurringResult.error) {
+    console.error('Failed to fetch recurring series:', recurringResult.error);
   }
 
   // Calculate balances for all accounts
-  const accountIds = (accounts || []).map((account) => account.id);
-  const accountBalances = AccountService.calculateAccountBalances(accountIds, transactions || []);
+  const accountIds = (accountsResult.data || []).map((account) => account.id);
+  const accountBalances = AccountService.calculateAccountBalances(accountIds, transactionsResult.data || []);
 
   return (
     <Suspense fallback={<DashboardPageLoading />}>
       <DashboardContent
         currentUser={currentUser}
         groupUsers={groupUsers}
-        accounts={accounts || []}
+        accounts={accountsResult.data || []}
         accountBalances={accountBalances}
-        transactions={transactions || []}
-        budgets={budgets || []}
+        transactions={transactionsResult.data || []}
+        budgets={budgetsResult.data || []}
+        recurringSeries={recurringResult.data || []}
+        categories={categoriesResult.data || []}
       />
     </Suspense>
   );

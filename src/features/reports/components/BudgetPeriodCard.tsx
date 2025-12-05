@@ -11,7 +11,8 @@ import { ChevronDown, ChevronUp, Calendar, TrendingUp, TrendingDown, ArrowUpRigh
 import type { Transaction, Category } from "@/lib/types";
 import type { CategoryBreakdownItem } from "@/lib/services/report-period.service";
 import { CategoryService } from "@/lib/services";
-import { CategoryIcon, iconSizes, formatDayMonth } from "@/lib";
+import { CategoryIcon, iconSizes } from "@/lib";
+import { formatDateShort } from "@/lib/utils/date-utils";
 import { reportsStyles } from "../theme/reports-styles";
 import { cn } from "@/lib/utils/ui-variants";
 
@@ -218,14 +219,27 @@ export function BudgetPeriodCard({
                       <div className="text-right shrink-0 ml-2">
                         <div className="flex items-center gap-1 justify-end">
                           <span className="text-xs text-muted-foreground">Netto:</span>
-                          <Amount
-                            type={isNetSpending ? "expense" : isNetIncome ? "income" : "balance"}
-                            size="sm"
-                            emphasis="strong"
-                            className={isNetSpending ? "text-red-700" : isNetIncome ? "text-emerald-700" : "text-gray-700"}
-                          >
-                            {Math.abs(item.net)}
-                          </Amount>
+                          {(() => {
+                            let amountType: "expense" | "income" | "balance" = "balance";
+                            let amountClass = "text-gray-700";
+                            if (isNetSpending) {
+                              amountType = "expense";
+                              amountClass = "text-red-700";
+                            } else if (isNetIncome) {
+                              amountType = "income";
+                              amountClass = "text-emerald-700";
+                            }
+                            return (
+                              <Amount
+                                type={amountType}
+                                size="sm"
+                                emphasis="strong"
+                                className={amountClass}
+                              >
+                                {Math.abs(item.net)}
+                              </Amount>
+                            );
+                          })()}
                         </div>
                         {item.percentage > 0 && (
                           <p className="text-xs text-muted-foreground">
@@ -292,11 +306,12 @@ export function BudgetPeriodCard({
                   const categoryLabel = CategoryService.getCategoryLabel(categories, transaction.category);
                   const categoryColor = CategoryService.getCategoryColor(categories, transaction.category);
 
-                  const TransactionIcon = transaction.type === 'income'
-                    ? ArrowUpRight
-                    : transaction.type === 'expense'
-                    ? ArrowDownRight
-                    : ArrowLeftRight;
+                  const getTransactionIcon = () => {
+                    if (transaction.type === 'income') return ArrowUpRight;
+                    if (transaction.type === 'expense') return ArrowDownRight;
+                    return ArrowLeftRight;
+                  };
+                  const TransactionIcon = getTransactionIcon();
 
                   return (
                     <div
@@ -325,7 +340,7 @@ export function BudgetPeriodCard({
                           </span>
                           <span className="text-xs text-muted-foreground/50">•</span>
                           <span className="text-xs text-muted-foreground">
-                            {formatDayMonth(transaction.date)}
+                            {formatDateShort(transaction.date)}
                           </span>
                         </div>
                       </div>

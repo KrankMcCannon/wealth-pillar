@@ -1,16 +1,24 @@
+import { budgetCacheKeys, CACHE_TAGS, cached, cacheOptions } from '@/lib/cache';
 import { supabaseServer } from '@/lib/database/server';
-import { cached, budgetCacheKeys, cacheOptions, CACHE_TAGS } from '@/lib/cache';
 import type { Database } from '@/lib/database/types';
+import type { Budget, BudgetPeriod, BudgetType, Transaction, User } from '@/lib/types';
+import {
+  DateTime,
+  formatDateShort,
+  nowISO,
+  toDateTime,
+} from '@/lib/utils/date-utils';
 import type { ServiceResult } from './user.service';
-import type { Budget, Transaction, User, BudgetPeriod, BudgetType } from '@/lib/types';
 
 /**
  * Helper to revalidate cache tags (dynamically imported to avoid client-side issues)
  */
 async function revalidateCacheTags(tags: string[]) {
-  if (typeof window === 'undefined') {
+  if (globalThis.window === undefined) {
     const { revalidateTag } = await import('next/cache');
-    tags.forEach((tag) => revalidateTag(tag));
+    for (const tag of tags) {
+      revalidateTag(tag);
+    }
   }
 }
 
@@ -387,7 +395,7 @@ export class BudgetService {
         return { data: null, error: 'Invalid budget type' };
       }
 
-      if (data.categories !== undefined && data.categories.length === 0) {
+      if (data.categories?.length === 0) {
         return { data: null, error: 'At least one category is required' };
       }
 
@@ -412,7 +420,7 @@ export class BudgetService {
 
       // Build update object with only provided fields
       const updateData: Database['public']['Tables']['budgets']['Update'] = {
-        updated_at: new Date().toISOString(),
+        updated_at: nowISO(),
       };
 
       if (data.description !== undefined) updateData.description = data.description.trim();
@@ -543,8 +551,8 @@ export class BudgetService {
    * const { periodStart, periodEnd } = BudgetService.getBudgetPeriodDates(user);
    */
   static getBudgetPeriodDates(user: User): {
-    periodStart: Date | null;
-    periodEnd: Date | null;
+    periodStart: DateTime | null;
+    periodEnd: DateTime | null;
   } {
     // Find the active budget period
     const activePeriod = user.budget_periods?.find((p) => p.is_active);
@@ -553,8 +561,8 @@ export class BudgetService {
       return { periodStart: null, periodEnd: null };
     }
 
-    const periodStart = new Date(activePeriod.start_date);
-    const periodEnd = activePeriod.end_date ? new Date(activePeriod.end_date) : null;
+    const periodStart = toDateTime(activePeriod.start_date);
+    const periodEnd = activePeriod.end_date ? toDateTime(activePeriod.end_date) : null;
 
     return { periodStart, periodEnd };
   }
@@ -579,32 +587,32 @@ export class BudgetService {
   static filterTransactionsForBudget(
     transactions: Transaction[],
     budget: Budget,
-    periodStart: Date | null,
-    periodEnd: Date | null
+    periodStart: DateTime | null,
+    periodEnd: DateTime | null
   ): Transaction[] {
     // If no active period, return empty array
     if (!periodStart) return [];
 
-    // Normalize start date to beginning of day for comparison
-    const normalizedStart = new Date(periodStart);
-    normalizedStart.setHours(0, 0, 0, 0);
+    // Start of day for comparison
+    const normalizedStart = periodStart.startOf('day');
 
     return transactions.filter((t) => {
       // Check if transaction category is in budget categories
       if (!budget.categories.includes(t.category)) return false;
 
       // Check if transaction date is within period
-      const txDate = new Date(t.date);
-      txDate.setHours(0, 0, 0, 0);
+      const txDate = toDateTime(t.date);
+      if (!txDate) return false;
+      
+      const normalizedTxDate = txDate.startOf('day');
 
       // Include transactions on or after start date
-      if (txDate < normalizedStart) return false;
+      if (normalizedTxDate < normalizedStart) return false;
 
       // Exclude transactions on or after end date (if end date exists)
       if (periodEnd) {
-        const normalizedEnd = new Date(periodEnd);
-        normalizedEnd.setHours(0, 0, 0, 0);
-        if (txDate >= normalizedEnd) return false;
+        const normalizedEnd = periodEnd.startOf('day');
+        if (normalizedTxDate >= normalizedEnd) return false;
       }
 
       return true;
@@ -671,8 +679,8 @@ export class BudgetService {
   static calculateBudgetsWithProgress(
     budgets: Budget[],
     transactions: Transaction[],
-    periodStart: Date | null,
-    periodEnd: Date | null
+    periodStart: DateTime | null,
+    periodEnd: DateTime | null
   ): BudgetProgress[] {
     // Filter out budgets with 0€ amount
     const validBudgets = budgets.filter((b) => b.amount > 0);
@@ -732,8 +740,8 @@ export class BudgetService {
       user,
       budgets: budgetProgress,
       activePeriod,
-      periodStart: periodStart?.toISOString() || null,
-      periodEnd: periodEnd?.toISOString() || null,
+      periodStart: periodStart?.toISO() || null,
+      periodEnd: periodEnd?.toISO() || null,
       totalBudget,
       totalSpent,
       totalRemaining,
@@ -823,11 +831,11 @@ export class BudgetService {
       let totalBudget = 0;
       let totalSpent = 0;
 
-      Object.values(budgetsByUser).forEach((summary) => {
+      for (const summary of Object.values(budgetsByUser)) {
         allBudgets.push(...summary.budgets);
         totalBudget += summary.totalBudget;
         totalSpent += summary.totalSpent;
-      });
+      }
 
       const totalRemaining = totalBudget - totalSpent;
       const overallPercentage = totalBudget > 0 ? (totalSpent / totalBudget) * 100 : 0;
@@ -875,21 +883,12 @@ export class BudgetService {
    * const { start, end } = BudgetService.formatPeriodDates(periodStart, periodEnd);
    */
   static formatPeriodDates(
-    periodStart: Date | string,
-    periodEnd: Date | string,
-    locale: string = 'it-IT'
+    periodStart: DateTime | string,
+    periodEnd: DateTime | string
   ): { start: string; end: string } {
-    const startDate = new Date(periodStart);
-    const endDate = new Date(periodEnd);
-
-    const options: Intl.DateTimeFormatOptions = {
-      day: 'numeric',
-      month: 'short',
-    };
-
     return {
-      start: startDate.toLocaleDateString(locale, options),
-      end: endDate.toLocaleDateString(locale, options),
+      start: formatDateShort(periodStart),
+      end: formatDateShort(periodEnd),
     };
   }
 }

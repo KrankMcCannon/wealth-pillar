@@ -8,6 +8,24 @@ import { useSignIn, useClerk } from "@clerk/nextjs";
 import { AppleButton, AuthCard, GitHubButton, GoogleButton, PasswordInput, authStyles } from "@/features/auth";
 import { Button, Input, Label } from "@/components/ui";
 
+/**
+ * Extract error message from Clerk error or generic error
+ */
+function getErrorMessage(err: unknown, fallback: string): string {
+  // Check for Clerk-style errors with errors array
+  if (err && typeof err === "object" && "errors" in err) {
+    const clerkErr = err as { errors?: { message?: string }[] };
+    if (Array.isArray(clerkErr.errors) && clerkErr.errors[0]?.message) {
+      return clerkErr.errors[0].message;
+    }
+  }
+  // Check for standard Error instance
+  if (err instanceof Error) {
+    return err.message;
+  }
+  return fallback;
+}
+
 export default function Page() {
   const { isLoaded, signIn, setActive } = useSignIn();
   const { signOut, session } = useClerk();
@@ -68,12 +86,7 @@ export default function Page() {
       }
     } catch (err) {
       console.error("Sign in error:", err);
-      const message = err && typeof err === "object" && "errors" in err && Array.isArray((err as { errors?: { message?: string }[] }).errors)
-        ? (err as { errors: { message?: string }[] }).errors?.[0]?.message ?? "Email o password non corretti"
-        : err instanceof Error
-          ? err.message
-          : "Email o password non corretti";
-      setError(message);
+      setError(getErrorMessage(err, "Email o password non corretti"));
     } finally {
       setIsLoading(false);
     }
@@ -100,12 +113,7 @@ export default function Page() {
       }
     } catch (err) {
       console.error("Verification error:", err);
-      const message = err && typeof err === "object" && "errors" in err && Array.isArray((err as { errors?: { message?: string }[] }).errors)
-        ? (err as { errors: { message?: string }[] }).errors?.[0]?.message ?? "Codice di verifica non corretto"
-        : err instanceof Error
-          ? err.message
-          : "Codice di verifica non corretto";
-      setError(message);
+      setError(getErrorMessage(err, "Codice di verifica non corretto"));
     } finally {
       setIsLoading(false);
     }
@@ -123,12 +131,7 @@ export default function Page() {
       });
     } catch (err) {
       console.error("OAuth error:", err);
-      const message = err && typeof err === "object" && "errors" in err && Array.isArray((err as { errors?: { message?: string }[] }).errors)
-        ? (err as { errors: { message?: string }[] }).errors?.[0]?.message ?? "Errore durante l'autenticazione social"
-        : err instanceof Error
-          ? err.message
-          : "Errore durante l'autenticazione social";
-      setError(message);
+      setError(getErrorMessage(err, "Errore durante l'autenticazione social"));
     }
   };
 

@@ -7,12 +7,11 @@
  * Data is passed from Server Component for optimal performance
  */
 
-import { Suspense, useState, useMemo } from "react";
-import { useRouter } from "next/navigation";
-import { MoreVertical, Plus, Filter, FileText } from "lucide-react";
+import { Suspense, useState, useMemo, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { MoreVertical, Plus } from "lucide-react";
 import { useUserFilter, useFormModal, useDeleteConfirmation, useIdNameMap } from "@/hooks";
 import {
-  Badge,
   Button,
   DropdownMenu,
   DropdownMenuContent,
@@ -22,17 +21,24 @@ import {
 import { BottomNavigation, PageContainer, PageHeaderWithBack } from "@/src/components/layout";
 import TabNavigation from "@/src/components/shared/tab-navigation";
 import UserSelector from "@/src/components/shared/user-selector";
-import { ConfirmationDialog, EmptyState } from "@/components/shared";
+import { ConfirmationDialog } from "@/components/shared";
 import { RecurringSeriesSection, RecurringSeriesForm } from "@/src/features/recurring";
 import { RecurringTransactionSeries } from "@/src/lib";
-import { GroupedTransactionCard, TransactionForm } from "@/src/features/transactions";
+import { 
+  TransactionDayList,
+  TransactionForm,
+  TransactionFilters,
+  defaultFiltersState,
+  filterTransactions,
+  type TransactionFiltersState,
+  type GroupedTransaction,
+} from "@/src/features/transactions";
 import { transactionStyles } from "@/src/features/transactions/theme/transaction-styles";
 import { UserSelectorSkeleton } from "@/src/features/dashboard";
 import { RecurringSeriesSkeleton } from "@/src/features/transactions/components/transaction-skeletons";
-import type { User, Transaction, Category, Account } from "@/lib/types";
+import type { User, Transaction, Category, Account, Budget } from "@/lib/types";
 import { TransactionService } from "@/lib/services";
 import { deleteTransactionAction } from "@/features/transactions/actions/transaction-actions";
-import { formatCurrency } from "@/lib/utils";
 
 /**
  * Transactions Content Props
@@ -43,6 +49,8 @@ interface TransactionsContentProps {
   transactions: Transaction[];
   categories: Category[];
   accounts: Account[];
+  recurringSeries: RecurringTransactionSeries[];
+  budgets: Budget[];
 }
 
 /**
@@ -55,16 +63,77 @@ export default function TransactionsContent({
   transactions,
   categories,
   accounts,
+  recurringSeries,
+  budgets,
 }: TransactionsContentProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   // User filtering state management using shared hook
   const { selectedGroupFilter, setSelectedGroupFilter, selectedUserId } = useUserFilter();
 
-  // Tab and search state
-  const [activeTab, setActiveTab] = useState<string>('Transactions');
-  const [searchQuery, setSearchQuery] = useState<string>('');
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  // Check if coming from budgets page
+  const fromBudgets = searchParams.get('from') === 'budgets';
+  const budgetIdFromUrl = searchParams.get('budget');
+  const memberIdFromUrl = searchParams.get('member');
+  const startDateFromUrl = searchParams.get('startDate');
+  const endDateFromUrl = searchParams.get('endDate');
+
+  // Get selected budget for display
+  const selectedBudget = useMemo(() => {
+    if (budgetIdFromUrl) {
+      return budgets.find(b => b.id === budgetIdFromUrl) || null;
+    }
+    return null;
+  }, [budgetIdFromUrl, budgets]);
+
+  // Initialize filters from URL params (budget navigation)
+  const initialFilters = useMemo((): TransactionFiltersState => {
+    if (fromBudgets && selectedBudget) {
+      return {
+        ...defaultFiltersState,
+        budgetId: selectedBudget.id,
+        categoryKeys: selectedBudget.categories,
+        // Budgets typically track expenses
+        type: 'expense',
+        // Use custom date range if period dates are provided
+        dateRange: startDateFromUrl || endDateFromUrl ? 'custom' : defaultFiltersState.dateRange,
+        startDate: startDateFromUrl || undefined,
+        endDate: endDateFromUrl || undefined,
+      };
+    }
+    return defaultFiltersState;
+  }, [fromBudgets, selectedBudget, startDateFromUrl, endDateFromUrl]);
+
+  // Tab state - initialize from URL params if present
+  const initialTab = searchParams.get('tab') || 'Transactions';
+  const [activeTab, setActiveTab] = useState<string>(initialTab);
+
+  // Modern filters state - initialized from URL or default
+  const [filters, setFilters] = useState<TransactionFiltersState>(initialFilters);
+
+  // Set user filter when coming from budgets
+  useEffect(() => {
+    if (fromBudgets && memberIdFromUrl) {
+      setSelectedGroupFilter(memberIdFromUrl);
+    }
+  }, [fromBudgets, memberIdFromUrl, setSelectedGroupFilter]);
+
+  // Sync tab state with URL params on mount and when URL changes
+  useEffect(() => {
+    const tabFromUrl = searchParams.get('tab');
+    if (tabFromUrl && (tabFromUrl === 'Transactions' || tabFromUrl === 'Recurrent')) {
+      setActiveTab(tabFromUrl);
+    }
+  }, [searchParams]);
+
+  // Handler to clear budget filter and reset URL
+  const handleClearBudgetFilter = () => {
+    setFilters(defaultFiltersState);
+    setSelectedGroupFilter('all');
+    // Clear URL params by navigating to base transactions page
+    router.push('/transactions');
+  };
 
   // Form modal state using hooks
   const transactionModal = useFormModal<Transaction>();
@@ -79,15 +148,16 @@ export default function TransactionsContent({
   // Create account names map for display using hook
   const accountNames = useIdNameMap(accounts);
 
-  // Filter transactions by selected user (use local state for optimistic updates)
+  // Filter transactions by selected user and filters (use local state for optimistic updates)
   const filteredTransactions = useMemo(() => {
-    return selectedUserId
+    const userFiltered = selectedUserId
       ? localTransactions.filter((t) => t.user_id === selectedUserId)
       : localTransactions;
-  }, [selectedUserId, localTransactions]);
+    return filterTransactions(userFiltered, filters, categories);
+  }, [selectedUserId, localTransactions, filters, categories]);
 
   // Group transactions by date and calculate daily totals using service layer
-  const dayTotals = useMemo(() => {
+  const dayTotals = useMemo((): GroupedTransaction[] => {
     const grouped = TransactionService.groupTransactionsByDate(filteredTransactions);
     return TransactionService.calculateDailyTotals(grouped);
   }, [filteredTransactions]);
@@ -108,10 +178,19 @@ export default function TransactionsContent({
     }
   };
 
+  // Helper functions for optimistic updates (extracted to avoid deep nesting)
+  const removeTransactionFromList = (transactionToRemove: Transaction) => {
+    setLocalTransactions((prev) => prev.filter((t) => t.id !== transactionToRemove.id));
+  };
+
+  const addTransactionToList = (transactionToAdd: Transaction) => {
+    setLocalTransactions((prev) => [...prev, transactionToAdd]);
+  };
+
   const handleDeleteConfirm = async () => {
     await deleteConfirm.executeDelete(async (transaction) => {
       // Optimistic UI update - remove immediately
-      setLocalTransactions((prev) => prev.filter((t) => t.id !== transaction.id));
+      removeTransactionFromList(transaction);
 
       try {
         // Call server action to delete
@@ -119,18 +198,16 @@ export default function TransactionsContent({
 
         if (result.error) {
           // Revert on error
-          setLocalTransactions((prev) => [...prev, transaction]);
+          addTransactionToList(transaction);
           console.error('Failed to delete transaction:', result.error);
-          // TODO: Show error toast/message to user
           throw new Error(result.error);
         }
         // Success - cache revalidation happens in service, UI will refresh with server data
         router.refresh();
       } catch (error) {
         // Revert on error
-        setLocalTransactions((prev) => [...prev, transaction]);
+        addTransactionToList(transaction);
         console.error('Error deleting transaction:', error);
-        // TODO: Show error toast/message to user
         throw error;
       }
     });
@@ -141,12 +218,19 @@ export default function TransactionsContent({
     if (action === 'create') {
       setLocalTransactions((prev) => [transaction, ...prev]);
     } else {
-      setLocalTransactions((prev) =>
-        prev.map((t) => (t.id === transaction.id ? transaction : t))
-      );
+      setLocalTransactions((prev) => {
+        const updateTransaction = (t: Transaction) => 
+          t.id === transaction.id ? transaction : t;
+        return prev.map(updateTransaction);
+      });
     }
 
     // Cache revalidation happens in service, UI will refresh with server data
+    router.refresh();
+  };
+
+  const handleRecurringFormSuccess = () => {
+    // Refresh to get updated recurring series data
     router.refresh();
   };
 
@@ -211,125 +295,46 @@ export default function TransactionsContent({
 
       {/* Main Content */}
       <main className={transactionStyles.page.main}>
-        {/* Active Filters Display - Show when filters are active */}
-        {activeTab === 'Transactions' && (searchQuery || isFilterOpen) && (
-          <div className={transactionStyles.activeFilters.container}>
-            <div className={transactionStyles.activeFilters.header}>
-              <Filter className={transactionStyles.activeFilters.icon} />
-              <span className={transactionStyles.activeFilters.label}>Filtri Attivi:</span>
-              <div className={transactionStyles.activeFilters.badges}>
-                {searchQuery && (
-                  <Badge variant="secondary" className="bg-primary/15 text-primary border-primary/30">
-                    Ricerca: {searchQuery}
-                  </Badge>
-                )}
-              </div>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                setSearchQuery('');
-                setIsFilterOpen(false);
-              }}
-              className={transactionStyles.activeFilters.clearButton}
-            >
-              Cancella Tutto
-            </Button>
-          </div>
+        {/* Transaction Filters - Modern 2025 UX */}
+        {activeTab === 'Transactions' && (
+          <TransactionFilters
+            filters={filters}
+            onFiltersChange={setFilters}
+            categories={categories}
+            budgetName={selectedBudget?.description}
+            onClearBudgetFilter={selectedBudget ? handleClearBudgetFilter : undefined}
+          />
         )}
 
         {/* Transactions Tab Content */}
         {activeTab === 'Transactions' && (
-          <>
-            {/* Search and Filter - Commented out until needed */}
-            {/* <Suspense fallback={<SearchFilterSkeleton />}>
-              <div className={transactionStyles.searchFilter.container}>
-                <div className={transactionStyles.searchFilter.searchContainer}>
-                  <Search className={transactionStyles.searchFilter.searchIcon} />
-                  <Input
-                    type="text"
-                    placeholder="Cerca transazioni..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className={transactionStyles.searchFilter.searchInput}
-                  />
-                </div>
-                <FilterDialog
-                  isOpen={isFilterOpen}
-                  onOpenChange={setIsFilterOpen}
-                  selectedFilter={""}
-                  selectedCategory={""}
-                  categories={[]}
-                  onFilterChange={() => {}}
-                  onCategoryChange={() => {}}
-                  onReset={() => {}}
-                  hasActiveFilters={false}
-                />
-              </div>
-            </Suspense> */}
-
-            {/* Transactions List */}
-            {dayTotals.length > 0 ? (
-              <div className="space-y-6">
-                {dayTotals.map(({ date, total, count, transactions: dayTransactions }) => (
-                  <section key={date}>
-                    <div className={transactionStyles.dayGroup.header}>
-                      <h2 className={transactionStyles.dayGroup.title}>{date}</h2>
-                      <div className={transactionStyles.dayGroup.stats}>
-                        <div className={transactionStyles.dayGroup.statsTotal}>
-                          <span className={transactionStyles.dayGroup.statsTotalLabel}>Totale:</span>
-                          <span
-                            className={`${transactionStyles.dayGroup.statsTotalValue} ${
-                              total >= 0
-                                ? transactionStyles.dayGroup.statsTotalValuePositive
-                                : transactionStyles.dayGroup.statsTotalValueNegative
-                            }`}
-                          >
-                            {formatCurrency(Math.abs(total))}
-                          </span>
-                        </div>
-                        <div className={transactionStyles.dayGroup.statsCount}>
-                          {count} {count === 1 ? "transazione" : "transazioni"}
-                        </div>
-                      </div>
-                    </div>
-                    <GroupedTransactionCard
-                      transactions={dayTransactions}
-                      accountNames={accountNames}
-                      variant="regular"
-                      categories={categories}
-                      onEditTransaction={handleEditTransaction}
-                      onDeleteTransaction={handleDeleteClick}
-                    />
-                  </section>
-                ))}
-              </div>
-            ) : (
-              <EmptyState
-                icon={FileText}
-                title="Nessuna Transazione"
-                description={
-                  selectedUserId
-                    ? "Non ci sono transazioni per questo utente"
-                    : "Non ci sono ancora transazioni. Inizia aggiungendone una!"
-                }
-              />
-            )}
-          </>
+          <TransactionDayList
+            groupedTransactions={dayTotals}
+            accountNames={accountNames}
+            categories={categories}
+            emptyTitle="Nessuna Transazione"
+            emptyDescription={
+              selectedUserId
+                ? "Non ci sono transazioni per questo utente"
+                : "Non ci sono ancora transazioni. Inizia aggiungendone una!"
+            }
+            onEditTransaction={handleEditTransaction}
+            onDeleteTransaction={handleDeleteClick}
+          />
         )}
 
         {/* Recurring Tab Content */}
         {activeTab === 'Recurrent' && (
           <Suspense fallback={<RecurringSeriesSkeleton />}>
             <RecurringSeriesSection
+              series={recurringSeries}
               selectedUserId={selectedUserId}
               className="bg-card/80 backdrop-blur-sm border border-border/50 shadow-lg shadow-muted/30"
               showStats={true}
               maxItems={10}
               showActions={true}
               onCreateRecurringSeries={recurringModal.openCreate}
-              onEditRecurringSeries={recurringModal.openCreate}
+              onEditRecurringSeries={recurringModal.openEdit}
             />
           </Suspense>
         )}
@@ -354,9 +359,14 @@ export default function TransactionsContent({
       <RecurringSeriesForm
         isOpen={recurringModal.isOpen}
         onOpenChange={recurringModal.setIsOpen}
+        currentUser={currentUser}
+        groupUsers={groupUsers}
+        accounts={accounts}
+        categories={categories}
         selectedUserId={selectedUserId}
         series={recurringModal.entity}
         mode={recurringModal.mode}
+        onSuccess={handleRecurringFormSuccess}
       />
 
       {/* Delete Confirmation Dialog */}

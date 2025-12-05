@@ -1,12 +1,15 @@
+import { CACHE_TAGS, cached, cacheOptions, groupCacheKeys } from '@/lib/cache';
 import { supabaseServer } from '@/lib/database/server';
-import { cached, groupCacheKeys, cacheOptions, CACHE_TAGS } from '@/lib/cache';
 import type { Database } from '@/lib/database/types';
+import { nowISO } from '@/lib/utils/date-utils';
 import type { ServiceResult } from './user.service';
 
 async function revalidateCacheTags(tags: string[]) {
-  if (typeof window === 'undefined') {
+  if (globalThis.window === undefined) {
     const { revalidateTag } = await import('next/cache');
-    tags.forEach((tag) => revalidateTag(tag));
+    for (const tag of tags) {
+      revalidateTag(tag);
+    }
   }
 }
 
@@ -355,7 +358,7 @@ export class GroupService {
         return { data: null, error: 'At least one user is required to create a group' };
       }
 
-      const now = new Date().toISOString();
+      const now = nowISO();
       const insertData: Database['public']['Tables']['groups']['Insert'] = {
         id: input.id,
         name: input.name.trim(),

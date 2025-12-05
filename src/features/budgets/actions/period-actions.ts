@@ -1,9 +1,10 @@
 'use server';
 
-import { UserService } from '@/lib/services/user.service';
 import { BudgetService } from '@/lib/services/budget.service';
-import type { Transaction, User } from '@/lib/types';
 import type { ServiceResult } from '@/lib/services/user.service';
+import { UserService } from '@/lib/services/user.service';
+import type { Transaction, User } from '@/lib/types';
+import { toDateTime, toISOString } from '@/lib/utils/date-utils';
 
 /**
  * Server Action: Start Budget Period
@@ -60,10 +61,12 @@ export async function closePeriodAction(
     }
 
     // Automatically start a new period from the next day
-    const endDateTime = new Date(endDate);
-    const nextDayDate = new Date(endDateTime);
-    nextDayDate.setDate(nextDayDate.getDate() + 1);
-    const nextDayISO = nextDayDate.toISOString();
+    const endDateTime = toDateTime(endDate);
+    if (!endDateTime) {
+      return { data: null, error: 'Invalid end date' };
+    }
+    const nextDayDate = endDateTime.plus({ days: 1 });
+    const nextDayISO = toISOString(nextDayDate);
 
     // Start new period
     const startResult = await UserService.startBudgetPeriod(userId, nextDayISO);

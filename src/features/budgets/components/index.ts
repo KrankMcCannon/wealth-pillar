@@ -24,18 +24,9 @@ export type { BudgetProgressProps } from './BudgetProgress';
 export { BudgetChart } from './BudgetChart';
 export type { BudgetChartProps } from './BudgetChart';
 
-// Transaction Display
-export { BudgetTransactionsList } from './BudgetTransactionsList';
-export type { BudgetTransactionsListProps } from './BudgetTransactionsList';
-
 // Loading States
 export {
-  BudgetSelectorSkeleton,
-  BudgetCardSkeleton,
-  BudgetMetricsSkeleton,
-  BudgetProgressSkeleton,
-  BudgetChartSkeleton,
-  BudgetTransactionsListSkeleton,
-  BudgetSelectorOnlySkeleton,
-  FullBudgetPageSkeleton,
+    BudgetCardSkeleton, BudgetChartSkeleton, BudgetMetricsSkeleton,
+    BudgetProgressSkeleton, BudgetSelectorOnlySkeleton, BudgetSelectorSkeleton, FullBudgetPageSkeleton
 } from './BudgetLoadingSkeletons';
+

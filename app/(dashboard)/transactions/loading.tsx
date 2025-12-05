@@ -8,7 +8,6 @@
 
 import { transactionStyles } from '@/features/transactions/theme/transaction-styles';
 import {
-  SearchFilterSkeleton,
   TransactionListSkeleton,
 } from '@/features/transactions/components/transaction-skeletons';
 
@@ -25,9 +24,6 @@ export default function TransactionsLoading() {
       {/* Main Content Loading States */}
       <main className={transactionStyles.page.main}>
         <div className="space-y-6">
-          {/* Search and Filter Skeleton */}
-          <SearchFilterSkeleton />
-
           {/* Transaction List Skeleton */}
           <TransactionListSkeleton />
         </div>

@@ -34,7 +34,7 @@ import { BalanceSection } from "@/features/accounts";
 import { BudgetSection } from "@/features/budgets";
 import { RecurringSeriesForm, RecurringSeriesSection } from "@/features/recurring";
 import { AccountService, BudgetService } from "@/lib/services";
-import type { User, Account, Transaction, Budget } from "@/lib/types";
+import type { User, Account, Transaction, Budget, Category } from "@/lib/types";
 
 /**
  * Dashboard Content Props
@@ -46,6 +46,8 @@ interface DashboardContentProps {
   accountBalances: Record<string, number>;
   transactions: Transaction[];
   budgets: Budget[];
+  recurringSeries: RecurringTransactionSeries[];
+  categories: Category[];
 }
 
 /**
@@ -54,7 +56,16 @@ interface DashboardContentProps {
  * Handles full dashboard UI with four main sections
  * Receives data from Server Component parent
  */
-export default function DashboardContent({ currentUser, groupUsers, accounts, accountBalances, transactions, budgets }: DashboardContentProps) {
+export default function DashboardContent({
+  currentUser,
+  groupUsers,
+  accounts,
+  accountBalances,
+  transactions,
+  budgets,
+  recurringSeries,
+  categories,
+}: DashboardContentProps) {
   const router = useRouter();
 
   // User filtering state management using shared hook
@@ -164,11 +175,16 @@ export default function DashboardContent({ currentUser, groupUsers, accounts, ac
     setIsRecurringFormOpen(true);
   };
 
-  // Handler for editing recurring series
+  // Handler for editing recurring series (used in modal)
   const handleEditRecurringSeries = (series: RecurringTransactionSeries) => {
     setSelectedSeries(series);
     setFormMode('edit');
     setIsRecurringFormOpen(true);
+  };
+
+  // Handler for clicking on a series card - navigate to transactions with Recurrent tab
+  const handleSeriesCardClick = () => {
+    router.push('/transactions?tab=Recurrent');
   };
 
   // Handler for settings navigation
@@ -253,6 +269,7 @@ export default function DashboardContent({ currentUser, groupUsers, accounts, ac
         {/* Recurring Series Section */}
         <Suspense fallback={<RecurringSeriesSkeleton />}>
           <RecurringSeriesSection
+            series={recurringSeries}
             selectedUserId={selectedUserId}
             className={dashboardStyles.recurringSection.container}
             showStats={false}
@@ -260,6 +277,7 @@ export default function DashboardContent({ currentUser, groupUsers, accounts, ac
             showActions={false}
             onCreateRecurringSeries={handleCreateRecurringSeries}
             onEditRecurringSeries={handleEditRecurringSeries}
+            onCardClick={handleSeriesCardClick}
           />
         </Suspense>
       </main>
@@ -271,6 +289,10 @@ export default function DashboardContent({ currentUser, groupUsers, accounts, ac
         <RecurringSeriesForm
           isOpen={isRecurringFormOpen}
           onOpenChange={setIsRecurringFormOpen}
+          currentUser={currentUser}
+          groupUsers={groupUsers}
+          accounts={accounts}
+          categories={categories}
           selectedUserId={selectedUserId}
           series={selectedSeries}
           mode={formMode}

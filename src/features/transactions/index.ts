@@ -11,25 +11,24 @@ export { TransactionForm } from './components/transaction-form';
 
 // Display Components
 export { GroupedTransactionCard } from './components/grouped-transaction-card';
+export { TransactionDayList, TransactionDayListSkeleton, type GroupedTransaction, type TransactionDayListProps } from './components/transaction-day-list';
 
-// Dialog Components
-export { FilterDialog } from './components/filter-dialog';
+// Filter Components
+export {
+  defaultFiltersState, filterTransactions, hasActiveFilters, TransactionFilters, type DateRangeFilter, type TransactionFiltersState,
+  type TransactionTypeFilter
+} from './components/transaction-filters';
 
 // Loading Skeletons
 export {
-  TransactionHeaderSkeleton,
-  UserSelectorSkeleton,
-  TransactionCardSkeleton,
-  TransactionDayGroupSkeleton,
-  TransactionListSkeleton,
-  SearchFilterSkeleton,
-  TabNavigationSkeleton,
-  RecurringSeriesSkeleton,
-  FullTransactionsPageSkeleton,
+  FullTransactionsPageSkeleton, RecurringSeriesSkeleton,
+  TabNavigationSkeleton, TransactionCardSkeleton,
+  TransactionDayGroupSkeleton, TransactionHeaderSkeleton, TransactionListSkeleton, UserSelectorSkeleton
 } from './components/transaction-skeletons';
 
 // ====================================
 // Theme
 // ====================================
-export { transactionStyles, getTransactionTypeStyles, getAmountStyles, getIconStyles, getDayTotalStyles } from './theme/transaction-styles';
-export { transactionColors, transactionSpacing, transactionTypography, transactionComponents } from './theme/transaction-tokens';
+export { getAmountStyles, getDayTotalStyles, getIconStyles, getTransactionTypeStyles, transactionStyles } from './theme/transaction-styles';
+export { transactionColors, transactionComponents, transactionSpacing, transactionTypography } from './theme/transaction-tokens';
+

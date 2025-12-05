@@ -1,12 +1,15 @@
+import { accountCacheKeys, CACHE_TAGS, cached, cacheOptions } from '@/lib/cache';
 import { supabaseServer } from '@/lib/database/server';
-import { cached, accountCacheKeys, cacheOptions, CACHE_TAGS } from '@/lib/cache';
 import type { Database } from '@/lib/database/types';
 import type { Account, Transaction } from '@/lib/types';
+import { nowISO } from '@/lib/utils/date-utils';
 
 async function revalidateCacheTags(tags: string[]) {
-  if (typeof window === 'undefined') {
+  if (globalThis.window === undefined) {
     const { revalidateTag } = await import('next/cache');
-    tags.forEach((tag) => revalidateTag(tag));
+    for (const tag of tags) {
+      revalidateTag(tag);
+    }
   }
 }
 
@@ -408,12 +411,12 @@ export class AccountService {
   ): Record<string, number> {
     // Initialize balances map
     const balances: Record<string, number> = {};
-    accountIds.forEach((id) => {
+    for (const id of accountIds) {
       balances[id] = 0;
-    });
+    }
 
     // Process each transaction once
-    transactions.forEach((transaction) => {
+    for (const transaction of transactions) {
       const sourceAccountId = transaction.account_id;
       const destAccountId = transaction.to_account_id;
 
@@ -436,12 +439,12 @@ export class AccountService {
           balances[sourceAccountId] -= transaction.amount;
         }
       }
-    });
+    }
 
     // Round all balances to 2 decimal places to avoid floating point precision issues
-    Object.keys(balances).forEach((accountId) => {
+    for (const accountId of Object.keys(balances)) {
       balances[accountId] = Math.round(balances[accountId] * 100) / 100;
-    });
+    }
 
     return balances;
   }
@@ -467,7 +470,7 @@ export class AccountService {
         return { data: null, error: 'At least one user is required for an account' };
       }
 
-      const now = new Date().toISOString();
+      const now = nowISO();
       const insertData: Database['public']['Tables']['accounts']['Insert'] = {
         id: data.id,
         name: data.name.trim(),

@@ -151,3 +151,31 @@ export const budgetCacheKeys = {
    */
   all: () => ['budgets'] as const,
 } as const;
+
+/**
+ * Recurring series cache keys
+ */
+export const recurringCacheKeys = {
+  /**
+   * Cache key for recurring series by ID
+   * @param seriesId - Series ID
+   */
+  byId: (seriesId: string) => ['recurring', 'id', seriesId] as const,
+
+  /**
+   * Cache key for recurring series by user
+   * @param userId - User ID
+   */
+  byUser: (userId: string) => ['recurring', 'user', userId] as const,
+
+  /**
+   * Cache key for recurring series by group
+   * @param groupId - Group ID
+   */
+  byGroup: (groupId: string) => ['recurring', 'group', groupId] as const,
+
+  /**
+   * Cache key for all recurring series
+   */
+  all: () => ['recurring_series'] as const,
+} as const;

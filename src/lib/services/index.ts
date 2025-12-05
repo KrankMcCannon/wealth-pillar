@@ -15,19 +15,20 @@
  */
 
 // Export all services
-export { UserService } from './user.service';
-export { GroupService } from './group.service';
 export { AccountService } from './account.service';
-export { TransactionService } from './transaction.service';
-export { CategoryService } from './category.service';
 export { BudgetService } from './budget.service';
+export { CategoryService } from './category.service';
+export { GroupService } from './group.service';
+export { RecurringService } from './recurring.service';
 export { ReportPeriodService } from './report-period.service';
+export { TransactionService } from './transaction.service';
+export { UserService } from './user.service';
 
 // Export shared types
-export type { ServiceResult } from './user.service';
-export type { ReportMetrics, CategoryMetric } from './transaction.service';
 export type { BudgetProgress, UserBudgetSummary } from './budget.service';
 export type { EnrichedBudgetPeriod } from './report-period.service';
+export type { CategoryMetric, ReportMetrics } from './transaction.service';
+export type { ServiceResult } from './user.service';
 
 /**
  * Service Layer Documentation

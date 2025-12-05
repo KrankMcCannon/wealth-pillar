@@ -1,15 +1,18 @@
+import { CACHE_TAGS, cached, cacheOptions, userCacheKeys } from '@/lib/cache';
 import { supabaseServer } from '@/lib/database/server';
-import { cached, userCacheKeys, cacheOptions, CACHE_TAGS } from '@/lib/cache';
 import type { Database } from '@/lib/database/types';
 import type { BudgetPeriod, Transaction } from '@/lib/types';
+import { diffInDays, nowISO, toDateTime } from '@/lib/utils/date-utils';
 
 /**
  * Helper to revalidate cache tags (dynamically imported to avoid client-side issues)
  */
 async function revalidateCacheTags(tags: string[]) {
-  if (typeof window === 'undefined') {
+  if (globalThis.window === undefined) {
     const { revalidateTag } = await import('next/cache');
-    tags.forEach((tag) => revalidateTag(tag));
+    for (const tag of tags) {
+      revalidateTag(tag);
+    }
   }
 }
 
@@ -295,7 +298,7 @@ export class UserService {
       const startDateISO = typeof startDate === 'string' ? startDate : startDate.toISOString();
 
       // Get existing periods (or initialize empty array)
-      const existingPeriods = (user.budget_periods as BudgetPeriod[]) || [];
+      const existingPeriods = (user.budget_periods) || [];
 
       // Deactivate all existing active periods
       const updatedPeriods = existingPeriods.map((period) => ({
@@ -313,8 +316,8 @@ export class UserService {
         total_saved: 0,
         category_spending: {},
         is_active: true,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
+        created_at: nowISO(),
+        updated_at: nowISO(),
       };
 
       // Add new period to array
@@ -325,7 +328,7 @@ export class UserService {
         .from('users')
         .update({
           budget_periods: updatedPeriods,
-          updated_at: new Date().toISOString(),
+          updated_at: nowISO(),
         })
         .eq('id', userId)
         .select()
@@ -399,7 +402,7 @@ export class UserService {
       }
 
       // Get existing periods
-      const existingPeriods = (user.budget_periods as BudgetPeriod[]) || [];
+      const existingPeriods = (user.budget_periods) || [];
 
       // Find active period
       const activePeriodIndex = existingPeriods.findIndex((p) => p.is_active);
@@ -414,11 +417,12 @@ export class UserService {
       const endDateISO = typeof endDate === 'string' ? endDate : endDate.toISOString();
 
       // Filter transactions for this period and user
-      const periodStart = new Date(activePeriod.start_date);
-      const periodEnd = new Date(endDateISO);
+      const periodStart = toDateTime(activePeriod.start_date);
+      const periodEnd = toDateTime(endDateISO);
       const userTransactions = transactions.filter((t) => {
         if (t.user_id !== userId) return false;
-        const txDate = new Date(t.date);
+        const txDate = toDateTime(t.date);
+        if (!txDate || !periodStart || !periodEnd) return false;
         return txDate >= periodStart && txDate < periodEnd;
       });
 
@@ -426,14 +430,15 @@ export class UserService {
       let totalSpent = 0;
       const categorySpending: Record<string, number> = {};
 
-      userTransactions.forEach((t) => {
+      // userTransactions.forEach((t) => {
+      for (const t of userTransactions) {
         if (t.type === 'expense' || t.type === 'transfer') {
           totalSpent += t.amount;
           categorySpending[t.category] = (categorySpending[t.category] || 0) + t.amount;
         } else if (t.type === 'income') {
           totalSpent -= t.amount; // Income refills budget
         }
-      });
+      }
 
       // Ensure spent doesn't go negative
       totalSpent = Math.max(0, totalSpent);
@@ -442,11 +447,13 @@ export class UserService {
       let totalBudget = 0;
       if (userBudgets && userBudgets.length > 0) {
         // Calculate budget for period based on type
-        const periodStart = new Date(activePeriod.start_date);
-        const periodEndDate = new Date(endDateISO);
-        const periodDays = Math.ceil((periodEndDate.getTime() - periodStart.getTime()) / (1000 * 60 * 60 * 24));
+        const budgetPeriodStart = toDateTime(activePeriod.start_date);
+        const budgetPeriodEnd = toDateTime(endDateISO);
+        const periodDays = budgetPeriodStart && budgetPeriodEnd 
+          ? diffInDays(budgetPeriodStart, budgetPeriodEnd)
+          : 0;
 
-        userBudgets.forEach((budget) => {
+        for (const budget of userBudgets) {
           if (budget.type === 'monthly') {
             // Pro-rate monthly budget based on period length
             const monthlyFraction = periodDays / 30; // Approximate month as 30 days
@@ -456,7 +463,7 @@ export class UserService {
             const annualFraction = periodDays / 365;
             totalBudget += budget.amount * annualFraction;
           }
-        });
+        }
       }
 
       // Calculate savings: budget - spent
@@ -471,7 +478,7 @@ export class UserService {
         total_saved: totalSaved,
         category_spending: categorySpending,
         is_active: false,
-        updated_at: new Date().toISOString(),
+        updated_at: nowISO(),
       };
 
       // Update user with updated periods array
@@ -479,7 +486,7 @@ export class UserService {
         .from('users')
         .update({
           budget_periods: updatedPeriods,
-          updated_at: new Date().toISOString(),
+          updated_at: nowISO(),
         })
         .eq('id', userId)
         .select()
@@ -545,7 +552,7 @@ export class UserService {
         .from('users')
         .update({
           default_account_id: accountId,
-          updated_at: new Date().toISOString(),
+          updated_at: nowISO(),
         })
         .eq('id', userId)
         .select()
