@@ -60,9 +60,9 @@ export default function Page() {
         await setActive({ session: result.createdSessionId });
         router.push("/dashboard");
       } else if (result.status === "needs_second_factor") {
-        // Account has 2FA enabled, prepare code verification
-        await signIn.prepareSecondFactor({
-          strategy: "phone_code",
+        // Account has 2FA enabled, prepare email_code verification
+        await (signIn.prepareSecondFactor as (config: { strategy: string }) => Promise<unknown>)({
+          strategy: "email_code",
         });
         setNeedsSecondFactor(true);
       }
@@ -89,8 +89,8 @@ export default function Page() {
     setError(null);
 
     try {
-      const result = await signIn.attemptSecondFactor({
-        strategy: "phone_code",
+      const result = await (signIn.attemptSecondFactor as (config: { strategy: string; code: string }) => Promise<{ status: string; createdSessionId: string }>)({
+        strategy: "email_code",
         code: verificationCode,
       });
 

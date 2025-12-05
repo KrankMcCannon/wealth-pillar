@@ -20,16 +20,12 @@ import React from 'react';
 export interface BudgetSelectorProps {
   selectedBudget: Budget | null;
   availableBudgets: Budget[];
-  userNamesMap: Record<string, string>;
-  selectedViewUserId: string;
   onBudgetSelect: (budgetId: string) => void;
 }
 
 export function BudgetSelector({
   selectedBudget,
   availableBudgets,
-  userNamesMap,
-  selectedViewUserId,
   onBudgetSelect,
 }: BudgetSelectorProps) {
   return (
@@ -82,16 +78,9 @@ export function BudgetSelector({
                       className={budgetStyles.selector.itemIconContent}
                     />
                   </div>
-                  <div className="flex items-center gap-2 flex-1 min-w-0">
-                    <span className={budgetStyles.selector.itemText}>
-                      {budget.description}
-                    </span>
-                    {selectedViewUserId === 'all' && userNamesMap[budget.user_id] && (
-                      <span className={budgetStyles.selector.itemSubtext}>
-                        ({userNamesMap[budget.user_id]})
-                      </span>
-                    )}
-                  </div>
+                  <span className={budgetStyles.selector.itemText}>
+                    {budget.description}
+                  </span>
                 </div>
               </SelectItem>
             ))}

@@ -8,12 +8,11 @@
 import { SectionHeader } from "@/components/layout";
 import { EmptyState } from "@/components/shared";
 import { Button } from "@/components/ui";
-import { Transaction, Category } from "@/lib";
+import { Transaction, Category, Budget } from "@/lib";
 import { GroupedTransactionCard } from "@/features/transactions";
 import { budgetStyles } from "../theme/budget-styles";
 import { formatCurrency } from "@/lib/utils/currency-formatter";
 import React from "react";
-import { Budget } from "@/lib";
 import { FileText } from "lucide-react";
 
 export interface GroupedTransaction {
@@ -29,7 +28,6 @@ export interface BudgetTransactionsListProps {
   categories: Category[];
   transactionCount: number;
   selectedBudget: Budget | null;
-  selectedViewUserId: string;
   periodInfo: { startDate: string; endDate: string | null } | null;
   onEditTransaction: (transaction: Transaction) => void;
   onDeleteTransaction: (transactionId: string) => void;
@@ -46,7 +44,7 @@ export function BudgetTransactionsList({
   onEditTransaction,
   onDeleteTransaction,
   onViewAll,
-}: BudgetTransactionsListProps) {
+}: Readonly<BudgetTransactionsListProps>) {
   return (
     <section>
       <SectionHeader

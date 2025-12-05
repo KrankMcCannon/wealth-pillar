@@ -3,15 +3,14 @@
 /**
  * Budgets Content - Client Component
  *
- * Handles interactive budgets UI with client-side state management
- * Data is passed from Server Component for optimal performance
+ * Handles interactive budgets UI for the current user only.
+ * Data is passed from Server Component for optimal performance.
  */
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { BottomNavigation, PageContainer } from "@/components/layout";
-import { useUserFilter, useFormModal, useDeleteConfirmation, useIdNameMap } from "@/hooks";
-import UserSelector from "@/components/shared/user-selector";
+import { useFormModal, useDeleteConfirmation, useIdNameMap } from "@/hooks";
 import { ConfirmationDialog } from "@/components/shared/confirmation-dialog";
 import { EmptyState } from "@/components/shared";
 import { BudgetForm, BudgetPeriodManager } from "@/features/budgets";
@@ -31,7 +30,6 @@ import {
 import { CategoryForm } from "@/features/categories";
 import { TransactionForm } from "@/features/transactions";
 import { deleteBudgetAction } from "@/features/budgets/actions/budget-actions";
-import { Suspense } from "react";
 import { budgetStyles } from "@/features/budgets/theme/budget-styles";
 import { ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui";
@@ -53,7 +51,8 @@ interface BudgetsContentProps extends DashboardDataProps {
 
 /**
  * Budgets Content Component
- * Receives user data from Server Component parent
+ * Manages budgets for the current user only.
+ * Receives user data from Server Component parent.
  */
 export default function BudgetsContent({
   currentUser,
@@ -66,13 +65,23 @@ export default function BudgetsContent({
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Read URL params for initial state
+  // Read URL params for initial budget selection
   const initialBudgetId = searchParams.get("budget");
-  const initialMember = searchParams.get("member");
 
-  // User filtering state management using shared hook (initialized from URL params)
-  const { selectedGroupFilter, setSelectedGroupFilter, selectedUserId } = useUserFilter(initialMember || "all");
-  const [selectedBudgetId, setSelectedBudgetId] = useState<string | null>(initialBudgetId);
+  // Filter budgets for current user only, showing only budgets with amount > 0
+  const userBudgets = useMemo(() => {
+    return budgets.filter((b) => b.user_id === currentUser.id && b.amount > 0);
+  }, [budgets, currentUser.id]);
+
+  // Selected budget state - initialized from URL or first user budget
+  const [selectedBudgetId, setSelectedBudgetId] = useState<string | null>(() => {
+    // Check if initialBudgetId belongs to current user
+    if (initialBudgetId) {
+      const budget = userBudgets.find((b) => b.id === initialBudgetId);
+      if (budget) return initialBudgetId;
+    }
+    return userBudgets[0]?.id || null;
+  });
 
   // Form modal state using hooks
   const budgetModal = useFormModal<Budget>();
@@ -83,111 +92,58 @@ export default function BudgetsContent({
   // Delete confirmation state using hook
   const deleteConfirm = useDeleteConfirmation<Budget>();
 
-  // selectedUserId is provided by useUserFilter hook
-
-  // Reset selected budget when user filter changes to show first available budget
+  // Update selected budget when userBudgets changes (e.g., after delete/create)
   useEffect(() => {
-    if (selectedGroupFilter === "all") {
-      // Show first budget from all budgets
-      setSelectedBudgetId(budgets[0]?.id || null);
-    } else {
-      // Show first budget for the selected user
-      const userBudgets = budgets.filter((b) => b.user_id === selectedGroupFilter);
-      setSelectedBudgetId(userBudgets[0]?.id || budgets[0]?.id || null);
+    if (selectedBudgetId && !userBudgets.some((b) => b.id === selectedBudgetId)) {
+      setSelectedBudgetId(userBudgets[0]?.id || null);
     }
-  }, [selectedGroupFilter, budgets]);
+  }, [userBudgets, selectedBudgetId]);
 
-  // Calculate budgets by user using BudgetService
-  const budgetsByUser = useMemo(() => {
-    return BudgetService.buildBudgetsByUser(groupUsers, budgets, transactions);
-  }, [groupUsers, budgets, transactions]);
+  // Calculate budget summary for current user using BudgetService
+  const userBudgetSummary = useMemo(() => {
+    const budgetsByUser = BudgetService.buildBudgetsByUser([currentUser], budgets, transactions);
+    return budgetsByUser[currentUser.id] || null;
+  }, [currentUser, budgets, transactions]);
 
-  // Get selected budget - find from ALL budgets first, then determine filter
+  // Get selected budget
   const selectedBudget = useMemo(() => {
     if (selectedBudgetId) {
-      // Find budget by ID from all budgets
-      const budget = budgets.find((b) => b.id === selectedBudgetId);
-      if (budget) return budget;
+      return userBudgets.find((b) => b.id === selectedBudgetId) || null;
     }
-
-    // If no selectedBudgetId or not found, get first budget based on filter
-    if (selectedGroupFilter === "all") {
-      return budgets[0] || null;
-    }
-
-    const userBudgets = budgets.filter((b) => b.user_id === selectedGroupFilter);
-    return userBudgets[0] || budgets[0] || null;
-  }, [selectedBudgetId, selectedGroupFilter, budgets]);
-
-  // Filter budgets for selector dropdown based on selected user
-  // If selected budget belongs to a different user, show that user's budgets
-  const filteredBudgets = useMemo(() => {
-    // Determine which user's budgets to show
-    let effectiveFilter = selectedGroupFilter;
-
-    // If we have a selected budget, show budgets for that budget's owner
-    if (selectedBudget && selectedGroupFilter !== "all") {
-      effectiveFilter = selectedBudget.user_id;
-    }
-
-    if (effectiveFilter === "all") {
-      return budgets;
-    }
-
-    const userBudgets = budgets.filter((b) => b.user_id === effectiveFilter);
-    return userBudgets.length > 0 ? userBudgets : budgets;
-  }, [budgets, selectedGroupFilter, selectedBudget]);
+    return userBudgets[0] || null;
+  }, [selectedBudgetId, userBudgets]);
 
   // Get budget progress for selected budget
   const selectedBudgetProgress = useMemo(() => {
-    if (!selectedBudget) return null;
+    if (!selectedBudget || !userBudgetSummary) return null;
+    return userBudgetSummary.budgets.find((b) => b.id === selectedBudget.id) || null;
+  }, [selectedBudget, userBudgetSummary]);
 
-    const user = groupUsers.find((u) => u.id === selectedBudget.user_id);
-    if (!user) return null;
-
-    const userSummary = budgetsByUser[user.id];
-    if (!userSummary) return null;
-
-    return userSummary.budgets.find((b) => b.id === selectedBudget.id) || null;
-  }, [selectedBudget, groupUsers, budgetsByUser]);
-
-  // Get period info for selected budget
+  // Get period info for current user
   const periodInfo = useMemo(() => {
-    if (!selectedBudget) return null;
-
-    const user = groupUsers.find((u) => u.id === selectedBudget.user_id);
-    if (!user) return null;
-
-    const userSummary = budgetsByUser[user.id];
-    if (!userSummary) return null;
+    if (!userBudgetSummary) return null;
 
     return {
-      start: userSummary.periodStart,
-      end: userSummary.periodEnd,
-      activePeriod: userSummary.activePeriod,
+      start: userBudgetSummary.periodStart,
+      end: userBudgetSummary.periodEnd,
+      activePeriod: userBudgetSummary.activePeriod,
     };
-  }, [selectedBudget, groupUsers, budgetsByUser]);
-
-  // Create user names map for budget selector using hook
-  const userNamesMap = useIdNameMap(groupUsers);
+  }, [userBudgetSummary]);
 
   // Create account names map using hook
   const accountNamesMap = useIdNameMap(accounts);
 
-  // Filter transactions for selected budget (by user and budget criteria)
+  // Filter transactions for selected budget (current user only)
   const budgetTransactions = useMemo(() => {
     if (!selectedBudget) return [];
 
-    const user = groupUsers.find((u) => u.id === selectedBudget.user_id);
-    if (!user) return [];
+    const { periodStart, periodEnd } = BudgetService.getBudgetPeriodDates(currentUser);
 
-    const { periodStart, periodEnd } = BudgetService.getBudgetPeriodDates(user);
-
-    // Filter transactions by user first, then by budget criteria
-    const userTransactions = transactions.filter((t) => t.user_id === selectedBudget.user_id);
+    // Filter transactions for current user, then by budget criteria
+    const userTransactions = transactions.filter((t) => t.user_id === currentUser.id);
 
     return BudgetService.filterTransactionsForBudget(userTransactions, selectedBudget, periodStart, periodEnd);
-  }, [selectedBudget, groupUsers, transactions]);
+  }, [selectedBudget, currentUser, transactions]);
 
   // Group transactions by date
   const groupedTransactions = useMemo((): GroupedTransaction[] => {
@@ -195,13 +151,13 @@ export default function BudgetsContent({
 
     // Group by date
     const groupedMap: Record<string, Transaction[]> = {};
-    budgetTransactions.forEach((transaction) => {
+    for (const transaction of budgetTransactions) {
       const dateKey = new Date(transaction.date).toISOString().split("T")[0];
       if (!groupedMap[dateKey]) {
         groupedMap[dateKey] = [];
       }
       groupedMap[dateKey].push(transaction);
-    });
+    }
 
     // Convert to array and sort by date (most recent first)
     return Object.entries(groupedMap)
@@ -234,11 +190,11 @@ export default function BudgetsContent({
     // Group transactions by date and calculate cumulative spending
     // Income transactions reduce spending (refill budget)
     const dailySpending: Record<string, number> = {};
-    budgetTransactions.forEach((t) => {
+    for (const t of budgetTransactions) {
       const dateKey = new Date(t.date).toISOString().split("T")[0];
       const amount = t.type === "income" ? -t.amount : t.amount;
       dailySpending[dateKey] = (dailySpending[dateKey] || 0) + amount;
-    });
+    }
 
     // Generate chart points
     const points: ChartDataPoint[] = [];
@@ -273,12 +229,6 @@ export default function BudgetsContent({
   // Handlers
   const handleBudgetSelect = (budgetId: string) => {
     setSelectedBudgetId(budgetId);
-  };
-
-  const handleGroupFilterChange = (filter: string) => {
-    setSelectedGroupFilter(filter);
-    // Clear selected budget to auto-select first budget for new user
-    setSelectedBudgetId(null);
   };
 
   const handleCreateBudget = () => {
@@ -321,16 +271,10 @@ export default function BudgetsContent({
     });
   };
 
-  // Get user and budgets for period manager
-  const periodManagerUser = useMemo(() => {
-    if (!selectedBudget) return null;
-    return groupUsers.find((u) => u.id === selectedBudget.user_id) || null;
-  }, [selectedBudget, groupUsers]);
-
+  // Get user budgets for period manager (current user's budgets)
   const periodManagerBudgets = useMemo(() => {
-    if (!selectedBudget) return [];
-    return budgets.filter((b) => b.user_id === selectedBudget.user_id);
-  }, [selectedBudget, budgets]);
+    return userBudgets;
+  }, [userBudgets]);
 
   return (
     <PageContainer className={budgetStyles.page.container}>
@@ -344,25 +288,15 @@ export default function BudgetsContent({
         currentPeriod={periodInfo?.activePeriod || null}
       />
 
-      {/* User Selector */}
-      <UserSelector
-        users={groupUsers}
-        currentUser={currentUser}
-        selectedGroupFilter={selectedGroupFilter}
-        onGroupFilterChange={handleGroupFilterChange}
-      />
-
       {/* Main content area with progressive loading */}
       <main className={budgetStyles.page.main}>
-        {filteredBudgets.length > 0 && selectedBudget ? (
+        {userBudgets.length > 0 && selectedBudget ? (
           <>
             {/* Budget selector with fallback skeleton */}
             <Suspense fallback={<BudgetSelectorSkeleton />}>
               <BudgetSelector
                 selectedBudget={selectedBudget}
-                availableBudgets={filteredBudgets}
-                userNamesMap={userNamesMap}
-                selectedViewUserId={selectedGroupFilter}
+                availableBudgets={userBudgets}
                 onBudgetSelect={handleBudgetSelect}
               />
             </Suspense>
@@ -426,7 +360,6 @@ export default function BudgetsContent({
                     categories={categories}
                     transactionCount={selectedBudgetProgress.transactionCount}
                     selectedBudget={selectedBudget}
-                    selectedViewUserId={selectedGroupFilter}
                     periodInfo={
                       periodInfo
                         ? {
@@ -444,9 +377,7 @@ export default function BudgetsContent({
                     onViewAll={() => {
                       const params = new URLSearchParams();
                       params.set("from", "budgets");
-                      if (selectedGroupFilter !== "all") {
-                        params.set("member", selectedGroupFilter);
-                      }
+                      params.set("member", currentUser.id);
                       params.set("budget", selectedBudget.id);
                       params.set("category", selectedBudget.description);
                       router.push(`/transactions?${params.toString()}`);
@@ -483,14 +414,14 @@ export default function BudgetsContent({
         accounts={accounts}
         categories={categories}
         groupId={currentUser.group_id}
-        selectedUserId={selectedUserId}
+        selectedUserId={currentUser.id}
         onSuccess={() => router.refresh()}
       />
 
       <BudgetForm
         isOpen={budgetModal.isOpen}
         onOpenChange={budgetModal.setIsOpen}
-        selectedUserId={selectedUserId}
+        selectedUserId={currentUser.id}
         budget={budgetModal.entity}
         mode={budgetModal.mode}
         categories={categories}
@@ -504,33 +435,31 @@ export default function BudgetsContent({
       />
 
       {/* Budget Period Manager - Controlled by periodManagerModal */}
-      {periodManagerUser && (
-        <BudgetPeriodManager
-          user={periodManagerUser}
-          currentPeriod={periodInfo?.activePeriod || null}
-          transactions={transactions}
-          userBudgets={periodManagerBudgets}
-          trigger={
-            periodManagerModal.isOpen ? (
-              <button
-                onClick={periodManagerModal.close}
-                style={{ display: "none" }}
-                ref={(el) => {
-                  if (el && periodManagerModal.isOpen) {
-                    setTimeout(() => el.click(), 0);
-                  }
-                }}
-              />
-            ) : (
-              <div />
-            )
-          }
-          onSuccess={() => {
-            router.refresh();
-            periodManagerModal.close();
-          }}
-        />
-      )}
+      <BudgetPeriodManager
+        user={currentUser}
+        currentPeriod={periodInfo?.activePeriod || null}
+        transactions={transactions}
+        userBudgets={periodManagerBudgets}
+        trigger={
+          periodManagerModal.isOpen ? (
+            <button
+              onClick={periodManagerModal.close}
+              style={{ display: "none" }}
+              ref={(el) => {
+                if (el && periodManagerModal.isOpen) {
+                  setTimeout(() => el.click(), 0);
+                }
+              }}
+            />
+          ) : (
+            <div />
+          )
+        }
+        onSuccess={() => {
+          router.refresh();
+          periodManagerModal.close();
+        }}
+      />
 
       {/* Delete Confirmation Dialog */}
       <ConfirmationDialog
