@@ -4,6 +4,7 @@ import { SectionHeader, BottomNavigation, PageContainer, PageHeaderWithBack } fr
 import { settingsStyles } from "@/src/features/settings/theme";
 import { deleteUserAction } from "@/src/features/settings";
 import { DeleteAccountModal } from "@/src/features/settings";
+import { usePermissions } from "@/hooks";
 import {
   BarChart3,
   Bell,
@@ -21,7 +22,7 @@ import {
   User,
   Users,
 } from "lucide-react";
-import { PermissionGuard, RoleBadge } from "@/features/permissions";
+import { RoleBadge } from "@/features/permissions";
 import { useRouter } from "next/navigation";
 import { useClerk } from "@clerk/nextjs";
 import { useState } from "react";
@@ -34,15 +35,20 @@ import type { User as UserType } from "@/lib/types";
 interface SettingsContentProps {
   currentUser: UserType;
   groupUsers: UserType[];
+  accounts: any[];
+  transactions: any[];
 }
 
-export default function SettingsContent({ currentUser, groupUsers }: SettingsContentProps) {
+export default function SettingsContent({ currentUser, groupUsers, accounts, transactions }: SettingsContentProps) {
   const router = useRouter();
   const { signOut } = useClerk();
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  // Permission checks
+  const { isAdmin } = usePermissions({ currentUser });
 
   const handleSignOut = async () => {
     setIsSigningOut(true);
@@ -118,15 +124,15 @@ export default function SettingsContent({ currentUser, groupUsers }: SettingsCon
     .join("")
     .toUpperCase();
 
-  // TODO: Get actual counts from services when available
-  const accountCount = 0;
-  const transactionCount = 0;
+  // Get actual counts
+  const accountCount = accounts.length;
+  const transactionCount = transactions.length;
 
   return (
     <PageContainer>
       <div>
         {/* Header */}
-        <PageHeaderWithBack title="Impostazioni" onBack={() => router.push('/dashboard')} />
+        <PageHeaderWithBack title="Impostazioni" onBack={() => router.push("/dashboard")} />
 
         <main className={settingsStyles.main.container}>
           {/* Profile Section */}
@@ -191,8 +197,8 @@ export default function SettingsContent({ currentUser, groupUsers }: SettingsCon
             </Card>
           </section>
 
-          {/* Group Management Section - Permission-based visibility */}
-          <PermissionGuard requireFeature="user_management">
+          {/* Group Management Section - Only visible to admins */}
+          {isAdmin && (
             <section>
               <SectionHeader title="Gestione Gruppo" icon={Users} iconClassName="text-primary">
                 <div className={settingsStyles.sectionHeader.badge}>
@@ -289,7 +295,7 @@ export default function SettingsContent({ currentUser, groupUsers }: SettingsCon
                 </button>
               </Card>
             </section>
-          </PermissionGuard>
+          )}
 
           {/* Preferences */}
           <section>
@@ -486,10 +492,7 @@ export default function SettingsContent({ currentUser, groupUsers }: SettingsCon
           <section>
             <SectionHeader title="Account" icon={User} iconClassName="text-red-600" className="mb-4" />
             <Card className={settingsStyles.accountActions.container}>
-              <button
-                onClick={handleDeleteAccountClick}
-                className={settingsStyles.accountActions.button}
-              >
+              <button onClick={handleDeleteAccountClick} className={settingsStyles.accountActions.button}>
                 <div className="flex items-center gap-3 flex-1 min-w-0">
                   <div className={settingsStyles.accountActions.iconContainer}>
                     <Trash2 className={settingsStyles.accountActions.icon} />

@@ -7,8 +7,11 @@
  * These actions handle data mutations and cache invalidation.
  */
 
+import { auth } from '@clerk/nextjs/server';
 import { CACHE_TAGS } from "@/lib/cache";
 import { supabaseServer } from "@/lib/database/server";
+import { UserService } from '@/lib/services';
+import { canAccessUserData, isMember } from '@/lib/utils/permissions';
 import type { RecurringTransactionSeries } from "@/lib/types";
 import { DateTime, today as luxonToday, nowISO, toDateString } from "@/lib/utils/date-utils";
 import { revalidateTag } from "next/cache";
@@ -58,6 +61,8 @@ interface ActionResult<T = unknown> {
 /**
  * Create a new recurring series
  * 
+ * Validates permissions: members can only create series that include themselves
+ * 
  * @param input - The series data to create
  * @returns The created series or error
  */
@@ -65,6 +70,18 @@ export async function createRecurringSeriesAction(
   input: CreateRecurringSeriesInput
 ): Promise<ActionResult<RecurringTransactionSeries>> {
   try {
+    // Authentication check
+    const { userId: clerkId } = await auth();
+    if (!clerkId) {
+      return { data: null, error: 'Non autenticato. Effettua il login per continuare.' };
+    }
+
+    // Get current user
+    const { data: currentUser, error: userError } = await UserService.getLoggedUserInfo(clerkId);
+    if (userError || !currentUser) {
+      return { data: null, error: userError || 'Utente non trovato' };
+    }
+
     // Validate required fields
     if (!input.description || input.description.trim() === "") {
       return { data: null, error: "La descrizione è obbligatoria" };
@@ -83,6 +100,34 @@ export async function createRecurringSeriesAction(
     }
     if (!input.due_day || input.due_day < 1 || input.due_day > 31) {
       return { data: null, error: "Il giorno di addebito deve essere tra 1 e 31" };
+    }
+
+    // Permission validation: members can only create series that include themselves
+    if (isMember(currentUser)) {
+      if (!input.user_ids.includes(currentUser.id)) {
+        return {
+          data: null,
+          error: 'Devi includere te stesso nella serie ricorrente'
+        };
+      }
+
+      // Members can only create series with themselves (not with other users)
+      if (input.user_ids.length > 1 || input.user_ids[0] !== currentUser.id) {
+        return {
+          data: null,
+          error: 'Non hai i permessi per creare serie ricorrenti per altri utenti'
+        };
+      }
+    }
+
+    // Admins can create for anyone, but verify all target users exist and are accessible
+    for (const userId of input.user_ids) {
+      if (!canAccessUserData(currentUser, userId)) {
+        return {
+          data: null,
+          error: 'Non hai i permessi per accedere ai dati di uno o più utenti selezionati'
+        };
+      }
     }
 
     const { data, error } = await supabaseServer
@@ -159,6 +204,8 @@ function buildUpdateData(input: UpdateRecurringSeriesInput): Record<string, unkn
 /**
  * Update an existing recurring series
  * 
+ * Validates permissions: members can only update series they own
+ * 
  * @param input - The series data to update
  * @returns The updated series or error
  */
@@ -170,12 +217,64 @@ export async function updateRecurringSeriesAction(
       return { data: null, error: "ID serie obbligatorio" };
     }
 
+    // Authentication check
+    const { userId: clerkId } = await auth();
+    if (!clerkId) {
+      return { data: null, error: 'Non autenticato. Effettua il login per continuare.' };
+    }
+
+    // Get current user
+    const { data: currentUser, error: userError } = await UserService.getLoggedUserInfo(clerkId);
+    if (userError || !currentUser) {
+      return { data: null, error: userError || 'Utente non trovato' };
+    }
+
     // Get old user_ids to invalidate cache for previous users
     const { data: oldSeries } = await supabaseServer
       .from("recurring_transactions")
       .select("user_ids")
       .eq("id", input.id)
       .single();
+
+    if (!oldSeries) {
+      return { data: null, error: "Serie ricorrente non trovata" };
+    }
+
+    // Permission validation: verify access to existing series
+    // Members can only update series they are part of
+    const hasAccess = isMember(currentUser)
+      ? (oldSeries.user_ids as string[]).includes(currentUser.id)
+      : (oldSeries.user_ids as string[]).some(userId => canAccessUserData(currentUser, userId));
+
+    if (!hasAccess) {
+      return {
+        data: null,
+        error: 'Non hai i permessi per modificare questa serie ricorrente'
+      };
+    }
+
+    // If changing user_ids, validate permissions
+    if (input.user_ids) {
+      if (isMember(currentUser)) {
+        // Members can only have themselves in the series
+        if (input.user_ids.length > 1 || input.user_ids[0] !== currentUser.id) {
+          return {
+            data: null,
+            error: 'Non puoi assegnare la serie ricorrente ad altri utenti'
+          };
+        }
+      } else {
+        // Admins can assign to anyone they have access to
+        for (const userId of input.user_ids) {
+          if (!canAccessUserData(currentUser, userId)) {
+            return {
+              data: null,
+              error: 'Non hai i permessi per uno o più utenti selezionati'
+            };
+          }
+        }
+      }
+    }
 
     const updateData = buildUpdateData(input);
     if (!updateData) {
@@ -225,6 +324,8 @@ export async function updateRecurringSeriesAction(
 /**
  * Delete a recurring series
  * 
+ * Validates permissions: members can only delete series they own
+ * 
  * @param seriesId - The ID of the series to delete
  * @returns Success status or error
  */
@@ -234,6 +335,18 @@ export async function deleteRecurringSeriesAction(
   try {
     if (!seriesId) {
       return { data: null, error: "ID serie obbligatorio" };
+    }
+
+    // Authentication check
+    const { userId: clerkId } = await auth();
+    if (!clerkId) {
+      return { data: null, error: 'Non autenticato. Effettua il login per continuare.' };
+    }
+
+    // Get current user
+    const { data: currentUser, error: userError } = await UserService.getLoggedUserInfo(clerkId);
+    if (userError || !currentUser) {
+      return { data: null, error: userError || 'Utente non trovato' };
     }
 
     // First get the series to know the user_ids for cache invalidation
@@ -246,6 +359,18 @@ export async function deleteRecurringSeriesAction(
     if (fetchError) {
       console.error("[deleteRecurringSeriesAction] Fetch error:", fetchError);
       return { data: null, error: "Serie non trovata" };
+    }
+
+    // Permission validation: verify access to series
+    const hasAccess = isMember(currentUser)
+      ? (series.user_ids as string[]).includes(currentUser.id)
+      : (series.user_ids as string[]).some(userId => canAccessUserData(currentUser, userId));
+
+    if (!hasAccess) {
+      return {
+        data: null,
+        error: 'Non hai i permessi per eliminare questa serie ricorrente'
+      };
     }
 
     const { error } = await supabaseServer

@@ -7,12 +7,21 @@
 
 import { Card, Badge } from "@/components/ui";
 import { Amount } from "@/components/ui/primitives";
-import { ChevronDown, ChevronUp, Calendar, TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight, ArrowLeftRight } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronUp,
+  Calendar,
+  TrendingUp,
+  TrendingDown,
+  ArrowUpRight,
+  ArrowDownRight,
+  ArrowLeftRight,
+} from "lucide-react";
 import type { Transaction, Category } from "@/lib/types";
 import type { CategoryBreakdownItem } from "@/lib/services/report-period.service";
 import { CategoryService } from "@/lib/services";
 import { CategoryIcon, iconSizes } from "@/lib";
-import { formatDateShort } from "@/lib/utils/date-utils";
+import { formatDateShort, toDateTime } from "@/lib/utils/date-utils";
 import { reportsStyles } from "../theme/reports-styles";
 import { cn } from "@/lib/utils/ui-variants";
 
@@ -50,13 +59,14 @@ export function BudgetPeriodCard({
   onToggle,
   showUserName = false,
 }: Readonly<BudgetPeriodCardProps>) {
-  // Format period dates (handle UTC dates correctly to avoid timezone shifts)
+  // Format period dates using toDateTime
   const formatPeriodDate = (date: string | Date): string => {
-    const d = new Date(date);
-    // Use UTC methods to avoid timezone conversion issues
-    const day = d.getUTCDate();
-    const month = d.toLocaleDateString("it-IT", { month: "short", timeZone: "UTC" });
-    const year = d.getUTCFullYear();
+    const dt = toDateTime(date);
+    if (!dt) return "Data non valida";
+
+    const day = dt.day;
+    const month = dt.toFormat("LLL", { locale: "it" });
+    const year = dt.year;
     return `${day} ${month} ${year}`;
   };
 
@@ -98,13 +108,8 @@ export function BudgetPeriodCard({
 
         {/* Gain Indicator & Chevron */}
         <div className="flex items-center gap-3 shrink-0">
-          <div className={cn(
-            "flex flex-col items-end",
-            isPositiveGain ? "text-emerald-600" : "text-red-600"
-          )}>
-            <p className="text-xs font-medium">
-              {isPositiveGain ? "Saldo Reale" : "Perdita"}
-            </p>
+          <div className={cn("flex flex-col items-end", isPositiveGain ? "text-emerald-600" : "text-red-600")}>
+            <p className="text-xs font-medium">{isPositiveGain ? "Saldo Reale" : "Perdita"}</p>
             <Amount
               type={isPositiveGain ? "income" : "expense"}
               size="sm"
@@ -123,10 +128,7 @@ export function BudgetPeriodCard({
       </button>
 
       {/* Metrics Section (Always Visible) - NET Analysis */}
-      <div className={cn(
-        reportsStyles.card.divider,
-        "grid grid-cols-3 gap-0"
-      )}>
+      <div className={cn(reportsStyles.card.divider, "grid grid-cols-3 gap-0")}>
         {/* Real Income (Net Received) */}
         <div className="p-4 border-r border-primary/10">
           <div className="flex items-center gap-2 mb-2">
@@ -152,10 +154,7 @@ export function BudgetPeriodCard({
         {/* Real Balance */}
         <div className="p-4">
           <div className="flex items-center gap-2 mb-2">
-            <div className={cn(
-              "h-2 w-2 rounded-full",
-              isPositiveGain ? "bg-emerald-600" : "bg-red-600"
-            )} />
+            <div className={cn("h-2 w-2 rounded-full", isPositiveGain ? "bg-emerald-600" : "bg-red-600")} />
             <p className="text-xs font-medium text-muted-foreground">Saldo Reale</p>
           </div>
           <Amount
@@ -172,14 +171,10 @@ export function BudgetPeriodCard({
       {/* Expandable Category Breakdown Section */}
       {isExpanded && (
         <div className="p-4 border-t border-primary/10 bg-card/50">
-          <p className="text-xs font-semibold text-muted-foreground mb-3">
-            Categorie per Transazione
-          </p>
+          <p className="text-xs font-semibold text-muted-foreground mb-3">Categorie per Transazione</p>
 
           {categoryBreakdown.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-8">
-              Nessuna transazione in questo periodo
-            </p>
+            <p className="text-sm text-muted-foreground text-center py-8">Nessuna transazione in questo periodo</p>
           ) : (
             <div className="space-y-3">
               {categoryBreakdown.map((item) => {
@@ -198,7 +193,7 @@ export function BudgetPeriodCard({
                           className="flex items-center justify-center h-8 w-8 rounded-lg shrink-0"
                           style={{
                             backgroundColor: `oklch(from ${categoryColor} calc(l + 0.35) c h / 0.15)`,
-                            color: categoryColor
+                            color: categoryColor,
                           }}
                         >
                           <CategoryIcon categoryKey={item.category} size={iconSizes.sm} />
@@ -206,9 +201,7 @@ export function BudgetPeriodCard({
 
                         {/* Category Name and Details */}
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-black truncate">
-                            {categoryLabel}
-                          </p>
+                          <p className="text-sm font-medium text-black truncate">{categoryLabel}</p>
                           <p className="text-xs text-muted-foreground">
                             Speso €{item.spent.toFixed(2)} • Ricevuto €{item.received.toFixed(2)}
                           </p>
@@ -230,21 +223,14 @@ export function BudgetPeriodCard({
                               amountClass = "text-emerald-700";
                             }
                             return (
-                              <Amount
-                                type={amountType}
-                                size="sm"
-                                emphasis="strong"
-                                className={amountClass}
-                              >
+                              <Amount type={amountType} size="sm" emphasis="strong" className={amountClass}>
                                 {Math.abs(item.net)}
                               </Amount>
                             );
                           })()}
                         </div>
                         {item.percentage > 0 && (
-                          <p className="text-xs text-muted-foreground">
-                            {item.percentage.toFixed(1)}%
-                          </p>
+                          <p className="text-xs text-muted-foreground">{item.percentage.toFixed(1)}%</p>
                         )}
                       </div>
                     </div>
@@ -256,7 +242,7 @@ export function BudgetPeriodCard({
                           className="h-full rounded-full transition-all duration-300"
                           style={{
                             width: `${item.percentage}%`,
-                            backgroundColor: categoryColor
+                            backgroundColor: categoryColor,
                           }}
                         />
                       </div>
@@ -275,17 +261,13 @@ export function BudgetPeriodCard({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <ArrowLeftRight className="h-4 w-4 text-amber-600" />
-              <p className="text-xs font-semibold text-muted-foreground">
-                Trasferimenti Interni
-              </p>
+              <p className="text-xs font-semibold text-muted-foreground">Trasferimenti Interni</p>
             </div>
             <Amount type="balance" size="sm" emphasis="strong" className="text-amber-700">
               {internalTransfers}
             </Amount>
           </div>
-          <p className="text-xs text-muted-foreground mt-1">
-            Movimenti tra i tuoi conti (esclusi dal calcolo)
-          </p>
+          <p className="text-xs text-muted-foreground mt-1">Movimenti tra i tuoi conti (esclusi dal calcolo)</p>
         </div>
       )}
 
@@ -293,13 +275,9 @@ export function BudgetPeriodCard({
       {isExpanded && (
         <div className="border-t border-primary/10">
           <div className="p-4 bg-card/50">
-            <p className="text-xs font-semibold text-muted-foreground mb-3">
-              Transazioni ({transactions.length})
-            </p>
+            <p className="text-xs font-semibold text-muted-foreground mb-3">Transazioni ({transactions.length})</p>
             {transactions.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-8">
-                Nessuna transazione in questo periodo
-              </p>
+              <p className="text-sm text-muted-foreground text-center py-8">Nessuna transazione in questo periodo</p>
             ) : (
               <div className="space-y-2">
                 {transactions.map((transaction) => {
@@ -307,8 +285,8 @@ export function BudgetPeriodCard({
                   const categoryColor = CategoryService.getCategoryColor(categories, transaction.category);
 
                   const getTransactionIcon = () => {
-                    if (transaction.type === 'income') return ArrowUpRight;
-                    if (transaction.type === 'expense') return ArrowDownRight;
+                    if (transaction.type === "income") return ArrowUpRight;
+                    if (transaction.type === "expense") return ArrowDownRight;
                     return ArrowLeftRight;
                   };
                   const TransactionIcon = getTransactionIcon();
@@ -323,7 +301,7 @@ export function BudgetPeriodCard({
                         className="flex items-center justify-center h-9 w-9 rounded-lg shrink-0"
                         style={{
                           backgroundColor: `oklch(from ${categoryColor} calc(l + 0.35) c h / 0.15)`,
-                          color: categoryColor
+                          color: categoryColor,
                         }}
                       >
                         <TransactionIcon className="h-4 w-4" />
@@ -331,27 +309,16 @@ export function BudgetPeriodCard({
 
                       {/* Transaction Details */}
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-black truncate">
-                          {transaction.description}
-                        </p>
+                        <p className="text-sm font-medium text-black truncate">{transaction.description}</p>
                         <div className="flex items-center gap-2 mt-0.5">
-                          <span className="text-xs text-muted-foreground">
-                            {categoryLabel}
-                          </span>
+                          <span className="text-xs text-muted-foreground">{categoryLabel}</span>
                           <span className="text-xs text-muted-foreground/50">•</span>
-                          <span className="text-xs text-muted-foreground">
-                            {formatDateShort(transaction.date)}
-                          </span>
+                          <span className="text-xs text-muted-foreground">{formatDateShort(transaction.date)}</span>
                         </div>
                       </div>
 
                       {/* Amount */}
-                      <Amount
-                        type={transaction.type}
-                        size="sm"
-                        emphasis="strong"
-                        className="shrink-0"
-                      >
+                      <Amount type={transaction.type} size="sm" emphasis="strong" className="shrink-0">
                         {transaction.amount}
                       </Amount>
                     </div>

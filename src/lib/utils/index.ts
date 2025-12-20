@@ -3,5 +3,6 @@
  */
 export * from "./currency-formatter";
 export * from "./date-utils";
+export * from "./permissions";
 export * from "./string-formatter";
 export * from "./ui-variants";

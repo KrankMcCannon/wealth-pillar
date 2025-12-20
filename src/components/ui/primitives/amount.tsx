@@ -12,11 +12,9 @@
  */
 
 import * as React from "react";
-import { amountVariants, AmountVariants, cn, formatCurrency } from '@/src/lib';
+import { amountVariants, AmountVariants, cn, formatCurrency } from "@/src/lib";
 
-export interface AmountProps
-  extends React.HTMLAttributes<HTMLSpanElement>,
-    AmountVariants {
+export interface AmountProps extends React.HTMLAttributes<HTMLSpanElement>, AmountVariants {
   /** Amount value (number or string) */
   children: number | string;
   /** Format as currency with € symbol */
@@ -36,10 +34,7 @@ export function Amount({
   const formatted = currency ? formatCurrency(value) : value.toFixed(2);
 
   return (
-    <span
-      className={cn(amountVariants({ type, size, emphasis }), className)}
-      {...props}
-    >
+    <span className={cn(amountVariants({ type, size, emphasis }), className)} suppressHydrationWarning {...props}>
       {formatted}
     </span>
   );

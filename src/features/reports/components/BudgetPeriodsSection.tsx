@@ -10,6 +10,7 @@ import { BudgetPeriodCard } from "./BudgetPeriodCard";
 import { ReportPeriodService } from "@/lib/services";
 import type { BudgetPeriod, User, Transaction, Account, Category } from "@/lib/types";
 import { CalendarOff } from "lucide-react";
+import { toDateTime } from "@/lib/utils/date-utils";
 
 export interface BudgetPeriodsSectionProps {
   budgetPeriods: BudgetPeriod[];
@@ -35,17 +36,12 @@ export function BudgetPeriodsSection({
 
   // Enrich budget periods with calculated metrics
   const enrichedPeriods = useMemo(() => {
-    const enriched = ReportPeriodService.enrichBudgetPeriods(
-      budgetPeriods,
-      groupUsers,
-      transactions,
-      accounts
-    );
+    const enriched = ReportPeriodService.enrichBudgetPeriods(budgetPeriods, groupUsers, transactions, accounts);
 
     // Sort by start_date descending (most recent first)
     return enriched.sort((a, b) => {
-      const dateA = new Date(a.start_date).getTime();
-      const dateB = new Date(b.start_date).getTime();
+      const dateA = toDateTime(a.start_date)?.toMillis() || 0;
+      const dateB = toDateTime(b.start_date)?.toMillis() || 0;
       return dateB - dateA;
     });
   }, [budgetPeriods, groupUsers, transactions, accounts]);
@@ -71,10 +67,7 @@ export function BudgetPeriodsSection({
     return (
       <div className="space-y-3">
         {[1, 2, 3].map((i) => (
-          <div
-            key={i}
-            className="h-32 bg-card/50 rounded-2xl animate-pulse border border-primary/10"
-          />
+          <div key={i} className="h-32 bg-card/50 rounded-2xl animate-pulse border border-primary/10" />
         ))}
       </div>
     );
@@ -87,11 +80,10 @@ export function BudgetPeriodsSection({
         <div className="flex items-center justify-center h-16 w-16 rounded-full bg-primary/10 text-primary mb-4">
           <CalendarOff className="h-8 w-8" />
         </div>
-        <h3 className="text-lg font-semibold text-black mb-2">
-          Nessun periodo di budget configurato
-        </h3>
+        <h3 className="text-lg font-semibold text-black mb-2">Nessun periodo di budget configurato</h3>
         <p className="text-sm text-muted-foreground max-w-sm">
-          I periodi di budget vengono creati automaticamente quando imposti la tua data di inizio budget nelle impostazioni.
+          I periodi di budget vengono creati automaticamente quando imposti la tua data di inizio budget nelle
+          impostazioni.
         </p>
       </div>
     );

@@ -51,7 +51,7 @@ export const BudgetSection = ({ budgetsByUser, budgets, selectedViewUserId, isLo
   // Filter budget entries based on selected user
   // If selectedViewUserId is undefined, show all budgets
   const budgetEntries = selectedViewUserId
-    ? allBudgetEntries.filter(entry => entry.user.id === selectedViewUserId)
+    ? allBudgetEntries.filter((entry) => entry.user.id === selectedViewUserId)
     : allBudgetEntries;
 
   const isInitialLoading = isLoading && budgetEntries.length === 0;
@@ -141,11 +141,14 @@ export const BudgetSection = ({ budgetsByUser, budgets, selectedViewUserId, isLo
                     {/* Budget Amount - Right Side */}
                     <div className="text-right">
                       <div className="text-sm font-bold">
-                        <span className={overallPercentage > 100 ? "text-destructive" : "text-primary"}>
+                        <span
+                          className={overallPercentage > 100 ? "text-destructive" : "text-primary"}
+                          suppressHydrationWarning
+                        >
                           {formatCurrency(totalSpent)}
                         </span>
                         <span className="text-primary/50 font-normal"> / </span>
-                        <span>{formatCurrency(totalBudget)}</span>
+                        <span suppressHydrationWarning>{formatCurrency(totalBudget)}</span>
                       </div>
                     </div>
                   </div>

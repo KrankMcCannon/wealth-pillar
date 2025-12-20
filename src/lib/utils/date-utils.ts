@@ -31,35 +31,43 @@ export interface DateFormatOptions {
 
 /**
  * Convert any date input to Luxon DateTime
- * Handles strings (ISO, date-only), Date objects, and DateTime instances
+ * Handles strings (ISO, date-only YYYY-MM-DD), Date objects, and DateTime instances
+ * Date-only strings (YYYY-MM-DD) are parsed in local timezone to avoid timezone shifts
  */
 export function toDateTime(date: DateInput): DateTime | null {
   if (!date) return null;
-  
+
   if (DateTime.isDateTime(date)) {
     return date;
   }
-  
+
   if (date instanceof Date) {
-    return DateTime.fromJSDate(date);
+    return DateTime.fromJSDate(date, { zone: 'Europe/Rome' });
   }
-  
+
   if (typeof date === 'string') {
-    // Try ISO first
+    // Check if it's a date-only format (YYYY-MM-DD)
+    if (/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      // Parse as local date (no timezone shift)
+      const dt = DateTime.fromISO(date, { zone: 'Europe/Rome' });
+      if (dt.isValid) return dt.startOf('day');
+    }
+
+    // Try ISO format with timezone
     let dt = DateTime.fromISO(date);
     if (dt.isValid) return dt;
-    
+
     // Try SQL format
     dt = DateTime.fromSQL(date);
     if (dt.isValid) return dt;
-    
+
     // Try common formats
-    dt = DateTime.fromFormat(date, 'yyyy-MM-dd');
-    if (dt.isValid) return dt;
-    
+    dt = DateTime.fromFormat(date, 'yyyy-MM-dd', { zone: 'Europe/Rome' });
+    if (dt.isValid) return dt.startOf('day');
+
     return null;
   }
-  
+
   return null;
 }
 
@@ -147,25 +155,25 @@ function capitalize(str: string): string {
 export function formatDateSmart(date: DateInput, locale = 'it-IT'): string {
   const dt = toDateTime(date);
   if (!dt) return '';
-  
+
   const todayStart = today();
   const yesterdayStart = yesterday();
   const dateStart = dt.startOf('day');
-  
+
   if (dateStart.equals(todayStart)) {
     return 'Oggi';
   }
-  
+
   if (dateStart.equals(yesterdayStart)) {
     return 'Ieri';
   }
-  
+
   // Compact format: "Lun 15 Gen 2025"
   const dayOfWeek = capitalize(dt.setLocale(locale).toFormat('ccc'));
   const day = dt.day;
   const month = capitalize(dt.setLocale(locale).toFormat('MMM'));
   const year = dt.year;
-  
+
   return `${dayOfWeek} ${day} ${month} ${year}`;
 }
 
@@ -210,15 +218,15 @@ export function formatDateRange(
 ): string {
   const startDt = toDateTime(start);
   const endDt = toDateTime(end);
-  
+
   if (!startDt) return '';
-  
+
   const startStr = startDt.setLocale(locale).toFormat('d MMM');
-  
+
   if (!endDt) {
     return `${startStr} - Oggi`;
   }
-  
+
   const endStr = endDt.setLocale(locale).toFormat('d MMM yyyy');
   return `${startStr} - ${endStr}`;
 }
@@ -289,13 +297,13 @@ export function isInRange(date: DateInput, start: DateInput, end: DateInput): bo
   const dt = toDateTime(date);
   const startDt = toDateTime(start);
   const endDt = toDateTime(end);
-  
+
   if (!dt || !startDt) return false;
-  
+
   if (endDt) {
     return dt >= startDt && dt <= endDt;
   }
-  
+
   return dt >= startDt;
 }
 
@@ -309,9 +317,9 @@ export function isInRange(date: DateInput, start: DateInput, end: DateInput): bo
 export function diffInDays(date1: DateInput, date2: DateInput): number {
   const dt1 = toDateTime(date1);
   const dt2 = toDateTime(date2);
-  
+
   if (!dt1 || !dt2) return 0;
-  
+
   return Math.ceil(dt2.diff(dt1, 'days').days);
 }
 
@@ -376,15 +384,15 @@ export function getNextOccurrenceOfDay(
 ): DateTime {
   const ref = toDateTime(referenceDate) ?? DateTime.now();
   const currentDay = ref.day;
-  
+
   // Limit due day to valid range
   const effectiveDueDay = Math.min(dueDay, getDaysInMonth(ref.year, ref.month));
-  
+
   if (currentDay <= effectiveDueDay) {
     // Due day is in current month
     return ref.set({ day: effectiveDueDay });
   }
-  
+
   // Due day is in next month
   const nextMonth = ref.plus({ months: 1 });
   const nextMonthDueDay = Math.min(dueDay, getDaysInMonth(nextMonth.year, nextMonth.month));
@@ -401,7 +409,7 @@ export function getNextOccurrenceOfDay(
 export function daysUntil(date: DateInput): number {
   const dt = toDateTime(date);
   if (!dt) return 0;
-  
+
   const todayStart = today();
   const diff = dt.startOf('day').diff(todayStart, 'days').days;
   return Math.ceil(diff);
@@ -412,7 +420,7 @@ export function daysUntil(date: DateInput): number {
  */
 export function formatDaysUntil(date: DateInput): string {
   const days = daysUntil(date);
-  
+
   if (days === 0) return 'Oggi';
   if (days === 1) return 'Domani';
   if (days < 0) return `${Math.abs(days)} giorni fa`;
@@ -425,7 +433,7 @@ export function formatDaysUntil(date: DateInput): string {
     const months = Math.floor(days / 30);
     return months === 1 ? 'Fra 1 mese' : `Fra ${months} mesi`;
   }
-  
+
   const years = Math.floor(days / 365);
   return years === 1 ? 'Fra 1 anno' : `Fra ${years} anni`;
 }

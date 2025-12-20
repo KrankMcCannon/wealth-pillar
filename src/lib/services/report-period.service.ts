@@ -44,7 +44,7 @@ export interface EnrichedBudgetPeriod extends BudgetPeriod {
 export class ReportPeriodService {
   /**
    * Calculate total earned amount from transactions
-   * Includes: income transactions + transfers TO user's accounts
+   * Includes: income transactions only (transfers excluded)
    *
    * @param transactions - All transactions to analyze
    * @param userAccountIds - Array of account IDs belonging to the user
@@ -66,22 +66,13 @@ export class ReportPeriodService {
         return sum + t.amount;
       }
 
-      // Incoming transfers (to_account_id matches user's accounts)
-      if (
-        t.type === 'transfer' &&
-        t.to_account_id &&
-        userAccountIds.includes(t.to_account_id)
-      ) {
-        return sum + t.amount;
-      }
-
       return sum;
     }, 0);
   }
 
   /**
    * Calculate total spent amount from transactions
-   * Includes: expense transactions + transfers FROM user's accounts
+   * Includes: expense transactions only (transfers excluded)
    *
    * @param transactions - All transactions to analyze
    * @param userAccountIds - Array of account IDs belonging to the user
@@ -100,14 +91,6 @@ export class ReportPeriodService {
     return transactions.reduce((sum, t) => {
       // Expense transactions where account belongs to user
       if (t.type === 'expense' && userAccountIds.includes(t.account_id)) {
-        return sum + t.amount;
-      }
-
-      // Outgoing transfers (account_id matches user's accounts)
-      if (
-        t.type === 'transfer' &&
-        userAccountIds.includes(t.account_id)
-      ) {
         return sum + t.amount;
       }
 
@@ -185,18 +168,20 @@ export class ReportPeriodService {
   /**
    * Calculate category breakdown from transactions with NET analysis
    * Returns categories sorted by absolute NET (descending)
-   * Includes all transaction types and shows spent/received/net per category
+   * Includes only income and expense transactions (transfers excluded)
    *
    * @param transactions - Filtered transactions for the period and user
+   * @param userAccountIds - Array of account IDs belonging to the user
    * @returns Array of category breakdowns sorted by amount descending
    *
    * @example
-   * const breakdown = ReportPeriodService.calculateCategoryBreakdown(userTransactions);
+   * const breakdown = ReportPeriodService.calculateCategoryBreakdown(userTransactions, userAccountIds);
    *
    * @complexity O(n + m log m) where n is transactions, m is unique categories
    */
   static calculateCategoryBreakdown(
-    transactions: Transaction[]
+    transactions: Transaction[],
+    userAccountIds: string[]
   ): CategoryBreakdownItem[] {
     if (transactions.length === 0) return [];
 
@@ -204,16 +189,21 @@ export class ReportPeriodService {
     const categoryMap = new Map<string, { spent: number; received: number; count: number }>();
 
     for (const t of transactions) {
+      // Skip transfer transactions completely
+      if (t.type === 'transfer') continue;
+
       const existing = categoryMap.get(t.category) || { spent: 0, received: 0, count: 0 };
 
-      // Separate spent (expenses/outgoing) from received (income/incoming)
-      if (t.type === 'expense' || (t.type === 'transfer' && !t.to_account_id)) {
+      if (t.type === 'expense') {
+        // Expense transactions: always count as spent
         existing.spent += t.amount;
-      } else if (t.type === 'income' || t.type === 'transfer') {
+        existing.count += 1;
+      } else if (t.type === 'income') {
+        // Income transactions: always count as received
         existing.received += t.amount;
+        existing.count += 1;
       }
 
-      existing.count += 1;
       categoryMap.set(t.category, existing);
     }
 
@@ -310,8 +300,8 @@ export class ReportPeriodService {
         userAccountIds
       );
 
-      // Calculate category breakdown with NET analysis
-      const categoryBreakdown = this.calculateCategoryBreakdown(userTransactions);
+      // Calculate category breakdown with NET analysis (pass userAccountIds for transfer logic)
+      const categoryBreakdown = this.calculateCategoryBreakdown(userTransactions, userAccountIds);
 
       // Calculate real spending totals from category breakdown
       const totalRealSpent = categoryBreakdown

@@ -294,8 +294,15 @@ export class UserService {
         return { data: null, error: fetchError || 'User not found' };
       }
 
-      // Convert startDate to ISO string
-      const startDateISO = typeof startDate === 'string' ? startDate : startDate.toISOString();
+      // Convert startDate to YYYY-MM-DD format
+      const startDt = toDateTime(startDate);
+      if (!startDt) {
+        return { data: null, error: 'Invalid start date' };
+      }
+      const startDateFormatted = startDt.toISODate(); // YYYY-MM-DD
+      if (!startDateFormatted) {
+        return { data: null, error: 'Invalid start date format' };
+      }
 
       // Get existing periods (or initialize empty array)
       const existingPeriods = (user.budget_periods) || [];
@@ -310,7 +317,7 @@ export class UserService {
       const newPeriod: BudgetPeriod = {
         id: crypto.randomUUID(),
         user_id: userId,
-        start_date: startDateISO,
+        start_date: startDateFormatted,
         end_date: null, // Open-ended period
         total_spent: 0,
         total_saved: 0,
@@ -413,17 +420,25 @@ export class UserService {
 
       const activePeriod = existingPeriods[activePeriodIndex];
 
-      // Convert endDate to ISO string
-      const endDateISO = typeof endDate === 'string' ? endDate : endDate.toISOString();
+      // Convert endDate to YYYY-MM-DD format
+      const endDt = toDateTime(endDate);
+      if (!endDt) {
+        return { data: null, error: 'Invalid end date' };
+      }
+      const endDateFormatted = endDt.toISODate(); // YYYY-MM-DD
+      if (!endDateFormatted) {
+        return { data: null, error: 'Invalid end date format' };
+      }
 
       // Filter transactions for this period and user
+      // Include full end date (until 23:59:59.999)
       const periodStart = toDateTime(activePeriod.start_date);
-      const periodEnd = toDateTime(endDateISO);
+      const periodEnd = toDateTime(endDateFormatted)?.endOf('day'); // Include entire end day
       const userTransactions = transactions.filter((t) => {
         if (t.user_id !== userId) return false;
         const txDate = toDateTime(t.date);
         if (!txDate || !periodStart || !periodEnd) return false;
-        return txDate >= periodStart && txDate < periodEnd;
+        return txDate >= periodStart && txDate <= periodEnd;
       });
 
       // Calculate totals
@@ -448,8 +463,8 @@ export class UserService {
       if (userBudgets && userBudgets.length > 0) {
         // Calculate budget for period based on type
         const budgetPeriodStart = toDateTime(activePeriod.start_date);
-        const budgetPeriodEnd = toDateTime(endDateISO);
-        const periodDays = budgetPeriodStart && budgetPeriodEnd 
+        const budgetPeriodEnd = toDateTime(endDateFormatted)?.endOf('day'); // Include entire end day
+        const periodDays = budgetPeriodStart && budgetPeriodEnd
           ? diffInDays(budgetPeriodStart, budgetPeriodEnd)
           : 0;
 
@@ -473,7 +488,7 @@ export class UserService {
       const updatedPeriods = [...existingPeriods];
       updatedPeriods[activePeriodIndex] = {
         ...activePeriod,
-        end_date: endDateISO,
+        end_date: endDateFormatted,
         total_spent: totalSpent,
         total_saved: totalSaved,
         category_spending: categorySpending,

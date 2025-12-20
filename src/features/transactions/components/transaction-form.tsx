@@ -9,6 +9,7 @@ import { ModalContent, ModalSection, ModalWrapper } from "@/src/components/ui/mo
 import { FormActions, FormField, FormSelect } from "@/src/components/form";
 import { UserField, AccountField, CategoryField, AmountField, DateField } from "@/src/components/ui/fields";
 import { Input } from "@/src/components/ui/input";
+import { usePermissions } from "@/hooks";
 
 interface TransactionFormProps {
   isOpen: boolean;
@@ -63,6 +64,12 @@ export function TransactionForm({
   const title = mode === "edit" ? "Modifica transazione" : "Nuova transazione";
   const description = mode === "edit" ? "Aggiorna i dettagli della transazione" : "Aggiungi una nuova transazione";
 
+  // Permission checks
+  const { shouldDisableUserField, defaultFormUserId, userFieldHelperText } = usePermissions({
+    currentUser,
+    selectedUserId,
+  });
+
   // Initialize form data
   const [formData, setFormData] = useState<FormData>({
     description: "",
@@ -70,7 +77,7 @@ export function TransactionForm({
     type: "expense",
     category: "",
     date: new Date().toISOString().split("T")[0],
-    user_id: currentUser.id,
+    user_id: defaultFormUserId,
     account_id: "",
     to_account_id: "",
   });
@@ -94,7 +101,7 @@ export function TransactionForm({
       if (user?.default_account_id) {
         // Verify the default account is accessible to this user
         const defaultAccount = accounts.find(
-          (acc) => acc.id === user.default_account_id && acc.user_ids.includes(userId)
+          (acc) => acc.id === user.default_account_id && acc.user_ids.includes(userId),
         );
         if (defaultAccount) return defaultAccount.id;
       }
@@ -103,7 +110,7 @@ export function TransactionForm({
       const userAccounts = accounts.filter((acc) => acc.user_ids.includes(userId));
       return userAccounts.length > 0 ? userAccounts[0].id : accounts.length > 0 ? accounts[0].id : "";
     },
-    [accounts, groupUsers]
+    [accounts, groupUsers],
   );
 
   // Reset form when modal opens/closes or transaction changes
@@ -126,23 +133,22 @@ export function TransactionForm({
         });
       } else {
         // Reset to defaults for create mode
-        // Use selectedUserId if provided, otherwise use currentUser.id
-        const defaultUserId = selectedUserId || currentUser.id;
+        // Use permission-based default user ID
         setFormData({
           description: "",
           amount: "",
           type: "expense",
           category: "",
           date: new Date().toISOString().split("T")[0],
-          user_id: defaultUserId,
-          account_id: getDefaultAccountId(defaultUserId),
+          user_id: defaultFormUserId,
+          account_id: getDefaultAccountId(defaultFormUserId),
           to_account_id: "",
         });
       }
       setErrors({});
       setIsSubmitting(false);
     }
-  }, [isOpen, mode, transaction, currentUser.id, selectedUserId, accounts, groupUsers, getDefaultAccountId]);
+  }, [isOpen, mode, transaction, currentUser.id, defaultFormUserId, accounts, groupUsers, getDefaultAccountId]);
 
   // Validate form
   const validate = (): boolean => {
@@ -342,6 +348,8 @@ export function TransactionForm({
                 users={groupUsers}
                 label="Utente"
                 placeholder="Seleziona utente"
+                disabled={shouldDisableUserField}
+                helperText={userFieldHelperText}
               />
 
               {/* Type */}

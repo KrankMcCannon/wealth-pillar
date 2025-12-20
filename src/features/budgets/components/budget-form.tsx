@@ -2,23 +2,12 @@
 
 import { useState, useEffect, useMemo } from "react";
 import type { CheckedState } from "@radix-ui/react-checkbox";
-import { Budget, BudgetType, Category } from "@/lib/types";
+import { Budget, BudgetType, Category, User } from "@/lib/types";
 import { CreateBudgetInput } from "@/lib/services/budget.service";
 import { createBudgetAction, updateBudgetAction } from "@/features/budgets/actions/budget-actions";
-import {
-  FormActions,
-  FormField,
-  FormSelect,
-} from "@/src/components/form";
-import {
-  AmountField,
-  Checkbox,
-  Input,
-  ModalContent,
-  ModalSection,
-  ModalWrapper,
-  UserField,
-} from "@/src/components/ui";
+import { usePermissions } from "@/hooks";
+import { FormActions, FormField, FormSelect } from "@/src/components/form";
+import { AmountField, Checkbox, Input, ModalContent, ModalSection, ModalWrapper, UserField } from "@/src/components/ui";
 
 interface BudgetFormProps {
   isOpen: boolean;
@@ -26,6 +15,7 @@ interface BudgetFormProps {
   budget?: Budget; // For editing existing budgets
   mode?: "create" | "edit";
   selectedUserId?: string; // Pre-selected user from page filter
+  currentUser?: { id: string; name: string; role: string }; // NEW: Current user for permissions
   categories?: Category[];
   groupUsers?: Array<{ id: string; name: string }>; // For user selection
   onSuccess?: (budget: Budget, action: "create" | "update") => void;
@@ -55,12 +45,24 @@ export function BudgetForm({
   budget,
   mode = "create",
   selectedUserId,
+  currentUser,
   categories = [],
   groupUsers = [],
   onSuccess,
 }: Readonly<BudgetFormProps>) {
   const title = mode === "edit" ? "Modifica Budget" : "Nuovo Budget";
   const description = mode === "edit" ? "Aggiorna i dettagli del budget" : "Crea un nuovo budget";
+
+  // Permission checks - Use safe defaults if currentUser is not provided
+  const safeCurrentUser: { id: string; name: string; role: string } = currentUser || {
+    id: selectedUserId || "",
+    name: "",
+    role: "member",
+  };
+  const { shouldDisableUserField, defaultFormUserId, userFieldHelperText } = usePermissions({
+    currentUser: safeCurrentUser as User,
+    selectedUserId,
+  });
 
   // Initialize form data
   const [formData, setFormData] = useState<FormData>({
@@ -69,7 +71,7 @@ export function BudgetForm({
     type: "monthly",
     icon: null,
     categories: [],
-    user_id: selectedUserId || "",
+    user_id: defaultFormUserId,
   });
 
   const [errors, setErrors] = useState<FormErrors>({});
@@ -79,7 +81,7 @@ export function BudgetForm({
   // Convert categories to checkbox options
   const categoryOptions = useMemo(() => {
     return categories.map((category) => ({
-      value: category.id,
+      value: category.key,
       label: category.label,
       color: category.color,
     }));
@@ -91,9 +93,7 @@ export function BudgetForm({
     }
 
     const query = categorySearch.trim().toLowerCase();
-    return categoryOptions.filter((option) =>
-      option.label.toLowerCase().includes(query)
-    );
+    return categoryOptions.filter((option) => option.label.toLowerCase().includes(query));
   }, [categoryOptions, categorySearch]);
 
   // Reset form when modal opens/closes or budget changes
@@ -117,13 +117,13 @@ export function BudgetForm({
           type: "monthly",
           icon: null,
           categories: [],
-          user_id: selectedUserId || "",
+          user_id: defaultFormUserId,
         });
       }
       setErrors({});
       setIsSubmitting(false);
     }
-  }, [isOpen, mode, budget, selectedUserId]);
+  }, [isOpen, mode, budget, defaultFormUserId]);
 
   // Validate form
   const validate = (): boolean => {
@@ -259,7 +259,7 @@ export function BudgetForm({
     if (!categoryOptions.length) return;
     handleChange(
       "categories",
-      categoryOptions.map((option) => option.value)
+      categoryOptions.map((option) => option.value),
     );
   };
 
@@ -302,6 +302,8 @@ export function BudgetForm({
                   value={formData.user_id}
                   onChange={(value) => handleChange("user_id", value)}
                   error={errors.user_id}
+                  disabled={shouldDisableUserField}
+                  helperText={userFieldHelperText}
                   required
                 />
               )}
@@ -374,9 +376,7 @@ export function BudgetForm({
 
                 <div className="max-h-60 overflow-y-auto space-y-2 pr-1">
                   {filteredCategoryOptions.length === 0 ? (
-                    <p className="text-sm text-muted-foreground px-1 py-4">
-                      Nessuna categoria trovata
-                    </p>
+                    <p className="text-sm text-muted-foreground px-1 py-4">Nessuna categoria trovata</p>
                   ) : (
                     filteredCategoryOptions.map((option) => (
                       <label

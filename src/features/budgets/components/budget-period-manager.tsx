@@ -5,30 +5,61 @@ import { Clock, History, TrendingUp, TrendingDown, Activity, Users, Calendar } f
 import { BudgetPeriod, Transaction, User, Budget } from "@/lib/types";
 import { startPeriodAction, closePeriodAction } from "@/features/budgets/actions/period-actions";
 import { FormActions } from "@/src/components/form";
-import { DateField } from "@/src/components/ui/fields";
+import { DateField, UserField } from "@/src/components/ui/fields";
 import { Alert, AlertDescription, Badge, ModalContent, ModalSection, ModalWrapper } from "@/src/components/ui";
+import { usePermissions } from "@/hooks";
+import { toDateTime } from "@/lib/utils/date-utils";
 
 interface BudgetPeriodManagerProps {
-  user: User;
+  currentUser: User;
+  groupUsers: User[];
+  selectedUserId?: string; // Initial user selection
   currentPeriod: BudgetPeriod | null;
   transactions: Transaction[];
   userBudgets: Budget[]; // User's budgets for savings calculation
   trigger: React.ReactNode;
   onSuccess?: () => void;
+  onUserChange?: (userId: string) => void; // Callback when user selection changes
 }
 
 export function BudgetPeriodManager({
-  user,
+  currentUser,
+  groupUsers,
+  selectedUserId,
   currentPeriod,
   transactions,
   userBudgets,
   trigger,
   onSuccess,
+  onUserChange,
 }: Readonly<BudgetPeriodManagerProps>) {
   const [isOpen, setIsOpen] = useState(false);
   const [isActionPending, setIsActionPending] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string>("");
   const [error, setError] = useState<string>("");
+  const [internalSelectedUserId, setInternalSelectedUserId] = useState<string>(selectedUserId || currentUser.id);
+
+  // Permission checks
+  const { isAdmin, shouldDisableUserField } = usePermissions({ currentUser });
+
+  // Get the target user (selected or current)
+  const targetUser = useMemo(() => {
+    return groupUsers.find((u) => u.id === internalSelectedUserId) || currentUser;
+  }, [groupUsers, internalSelectedUserId, currentUser]);
+
+  // Update internal user selection when prop changes
+  useEffect(() => {
+    if (selectedUserId) {
+      setInternalSelectedUserId(selectedUserId);
+    }
+  }, [selectedUserId]);
+
+  // Notify parent when user selection changes (for data refresh)
+  useEffect(() => {
+    if (onUserChange && internalSelectedUserId !== selectedUserId) {
+      onUserChange(internalSelectedUserId);
+    }
+  }, [internalSelectedUserId, onUserChange, selectedUserId]);
 
   // Reset state when modal opens/closes
   useEffect(() => {
@@ -36,60 +67,71 @@ export function BudgetPeriodManager({
       setIsActionPending(false);
       setSelectedDate("");
       setError("");
+      setInternalSelectedUserId(selectedUserId || currentUser.id);
     } else {
       // Pre-fill with current date for both start and close
       setSelectedDate(new Date().toISOString().split("T")[0]);
     }
-  }, [isOpen]);
+  }, [isOpen, selectedUserId, currentUser.id]);
 
   const isActivePeriod = currentPeriod?.is_active && !currentPeriod?.end_date;
 
-  // Calculate current period metrics
+  // Calculate current period metrics based on selected end date
+  // Uses same logic as dashboard (BudgetService.calculateBudgetProgress)
   const periodMetrics = useMemo(() => {
     if (!isActivePeriod || !currentPeriod) {
       return { totalSpent: 0, totalSaved: 0, totalBudget: 0, categorySpending: {} };
     }
 
-    const periodStart = new Date(currentPeriod.start_date);
-    const periodEnd = selectedDate ? new Date(selectedDate) : new Date();
+    const periodStart = toDateTime(currentPeriod.start_date);
+    const periodEnd = selectedDate
+      ? toDateTime(selectedDate)?.endOf("day")
+      : toDateTime(new Date().toISOString().split("T")[0])?.endOf("day");
 
-    // Filter transactions for this period and user
+    // Filter transactions for this period and target user
     const periodTransactions = transactions.filter((t) => {
-      if (t.user_id !== user.id) return false;
-      const txDate = new Date(t.date);
-      return txDate >= periodStart && txDate < periodEnd;
+      if (t.user_id !== targetUser.id) return false;
+      const txDate = toDateTime(t.date);
+      if (!txDate || !periodStart || !periodEnd) return false;
+      return txDate >= periodStart && txDate <= periodEnd;
     });
 
-    // Calculate totals
+    // Calculate totals by processing each budget individually (like BudgetService)
+    let totalBudget = 0;
     let totalSpent = 0;
     const categorySpending: Record<string, number> = {};
 
-    periodTransactions.forEach((t) => {
-      if (t.type === "expense" || t.type === "transfer") {
-        totalSpent += t.amount;
-        categorySpending[t.category] = (categorySpending[t.category] || 0) + t.amount;
-      } else if (t.type === "income") {
-        totalSpent -= t.amount; // Income refills budget
-      }
-    });
-
-    totalSpent = Math.max(0, totalSpent);
-
-    // Calculate total budget amount (pro-rated for period length)
-    let totalBudget = 0;
     if (userBudgets && userBudgets.length > 0) {
-      const periodDays = Math.ceil((periodEnd.getTime() - periodStart.getTime()) / (1000 * 60 * 60 * 24));
+      // Filter out budgets with 0€ amount (same as BudgetService)
+      const validBudgets = userBudgets.filter((b) => b.amount > 0);
 
-      userBudgets.forEach((budget) => {
-        if (budget.type === "monthly") {
-          // Pro-rate monthly budget based on period length
-          const monthlyFraction = periodDays / 30; // Approximate month as 30 days
-          totalBudget += budget.amount * monthlyFraction;
-        } else if (budget.type === "annually") {
-          // Pro-rate annual budget based on period length
-          const annualFraction = periodDays / 365;
-          totalBudget += budget.amount * annualFraction;
-        }
+      validBudgets.forEach((budget) => {
+        // Add budget amount to total
+        totalBudget += budget.amount;
+
+        // Filter transactions for this specific budget's categories
+        // Include expense, transfer, and income for correct calculation
+        const budgetTransactions = periodTransactions.filter((t) => {
+          return budget.categories.includes(t.category);
+        });
+
+        // Calculate spent for this budget (income refills, expense/transfer consume)
+        const budgetSpent = budgetTransactions.reduce((sum, t) => {
+          if (t.type === "income") {
+            return sum - t.amount; // Income refills budget
+          }
+          return sum + t.amount; // Expense and transfer consume budget
+        }, 0);
+
+        // Add to total spent (ensure non-negative)
+        totalSpent += Math.max(0, budgetSpent);
+
+        // Track category spending (expense and transfer)
+        budgetTransactions.forEach((t) => {
+          if (t.type === "expense" || t.type === "transfer") {
+            categorySpending[t.category] = (categorySpending[t.category] || 0) + t.amount;
+          }
+        });
       });
     }
 
@@ -97,24 +139,25 @@ export function BudgetPeriodManager({
     const totalSaved = Math.max(0, totalBudget - totalSpent);
 
     return { totalSpent, totalSaved, totalBudget, categorySpending };
-  }, [isActivePeriod, currentPeriod, selectedDate, transactions, user.id, userBudgets]);
+  }, [isActivePeriod, currentPeriod, selectedDate, transactions, targetUser.id, userBudgets]);
 
-  // Get all previous periods (closed periods)
+  // Get all previous periods (closed periods) for target user
   const previousPeriods = useMemo(() => {
-    const allPeriods = (user.budget_periods as BudgetPeriod[]) || [];
+    const allPeriods = (targetUser.budget_periods as BudgetPeriod[]) || [];
     return allPeriods
       .filter((p) => !p.is_active && p.end_date)
-      .sort((a, b) => new Date(b.start_date).getTime() - new Date(a.start_date).getTime());
-  }, [user.budget_periods]);
+      .sort((a, b) => {
+        const dateA = toDateTime(b.start_date)?.toMillis() || 0;
+        const dateB = toDateTime(a.start_date)?.toMillis() || 0;
+        return dateA - dateB;
+      });
+  }, [targetUser.budget_periods]);
 
   // Format date for display
   const formatDate = (dateString: string | Date) => {
-    const date = typeof dateString === "string" ? new Date(dateString) : dateString;
-    return date.toLocaleDateString("it-IT", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-    });
+    const dt = toDateTime(dateString);
+    if (!dt) return "Data non valida";
+    return dt.toFormat("d LLL yyyy", { locale: "it" });
   };
 
   // Format currency
@@ -125,8 +168,8 @@ export function BudgetPeriodManager({
     }).format(amount);
   };
 
-  // Count total periods
-  const totalPeriods = ((user.budget_periods as BudgetPeriod[]) || []).length;
+  // Count total periods for target user
+  const totalPeriods = ((targetUser.budget_periods as BudgetPeriod[]) || []).length;
 
   // Handle submit (start new period or close current period)
   const handleSubmit = async () => {
@@ -142,11 +185,11 @@ export function BudgetPeriodManager({
       let result;
 
       if (isActivePeriod) {
-        // Close current period
-        result = await closePeriodAction(user.id, selectedDate, transactions);
+        // Close current period - pass transactions array for calculation
+        result = await closePeriodAction(targetUser.id, selectedDate, transactions);
       } else {
         // Start new period
-        result = await startPeriodAction(user.id, selectedDate);
+        result = await startPeriodAction(targetUser.id, selectedDate);
       }
 
       if (result.error || !result.data) {
@@ -195,21 +238,36 @@ export function BudgetPeriodManager({
 
           <ModalSection>
             <div className="space-y-4">
-              {/* User Info Section */}
-              <div className="rounded-xl p-3 border border-primary/10 bg-card">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-2">
-                    <div className="p-1.5 bg-primary/10 rounded-lg">
-                      <Users className="h-4 w-4 text-primary" />
+              {/* User Selection (Admin) or User Info (Member) */}
+              {isAdmin ? (
+                <UserField
+                  label="Utente"
+                  users={groupUsers}
+                  value={internalSelectedUserId}
+                  onChange={setInternalSelectedUserId}
+                  disabled={shouldDisableUserField}
+                  helperText={
+                    shouldDisableUserField
+                      ? "Puoi gestire solo i tuoi periodi"
+                      : "Seleziona l'utente di cui gestire il periodo budget"
+                  }
+                />
+              ) : (
+                <div className="rounded-xl p-3 border border-primary/10 bg-card">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2">
+                      <div className="p-1.5 bg-primary/10 rounded-lg">
+                        <Users className="h-4 w-4 text-primary" />
+                      </div>
+                      <span className="text-sm font-bold text-primary">{targetUser.name}</span>
                     </div>
-                    <span className="text-sm font-bold text-primary">{user.name}</span>
-                  </div>
-                  <div className="flex items-center gap-1 text-xs text-primary/70 bg-primary/10 px-2 py-1 rounded-full">
-                    <History className="h-3 w-3 text-primary/70" />
-                    <span>{totalPeriods} periodi</span>
+                    <div className="flex items-center gap-1 text-xs text-primary/70 bg-primary/10 px-2 py-1 rounded-full">
+                      <History className="h-3 w-3 text-primary/70" />
+                      <span>{totalPeriods} periodi</span>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
 
               {/* Current Period Status */}
               <div className="bg-card rounded-xl p-4 border border-primary/10 shadow-sm">
@@ -240,7 +298,7 @@ export function BudgetPeriodManager({
                           <TrendingDown className="h-3 w-3 text-destructive" />
                           <p className="text-xs font-bold text-destructive uppercase tracking-wide">Speso</p>
                         </div>
-                        <p className="text-base sm:text-lg font-bold text-destructive">
+                        <p className="text-base sm:text-lg font-bold text-destructive" suppressHydrationWarning>
                           {formatCurrency(periodMetrics.totalSpent)}
                         </p>
                       </div>
@@ -249,7 +307,7 @@ export function BudgetPeriodManager({
                           <TrendingUp className="h-3 w-3 text-primary" />
                           <p className="text-xs font-bold text-primary uppercase tracking-wide">Risparmiato</p>
                         </div>
-                        <p className="text-base sm:text-lg font-bold text-primary">
+                        <p className="text-base sm:text-lg font-bold text-primary" suppressHydrationWarning>
                           {formatCurrency(periodMetrics.totalSaved)}
                         </p>
                       </div>
@@ -319,13 +377,15 @@ export function BudgetPeriodManager({
                         <div className="grid grid-cols-2 gap-2">
                           <div className="text-center p-2 bg-destructive/10 rounded-md">
                             <p className="text-xs font-bold text-destructive uppercase tracking-wide mb-0.5">Speso</p>
-                            <p className="text-sm font-bold text-destructive">
+                            <p className="text-sm font-bold text-destructive" suppressHydrationWarning>
                               {formatCurrency(period.total_spent || 0)}
                             </p>
                           </div>
                           <div className="text-center p-2 bg-primary/10 rounded-md">
                             <p className="text-xs font-bold text-primary uppercase tracking-wide mb-0.5">Risparmiato</p>
-                            <p className="text-sm font-bold text-primary">{formatCurrency(period.total_saved || 0)}</p>
+                            <p className="text-sm font-bold text-primary" suppressHydrationWarning>
+                              {formatCurrency(period.total_saved || 0)}
+                            </p>
                           </div>
                         </div>
                       </div>

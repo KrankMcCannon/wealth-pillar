@@ -18,7 +18,7 @@ import { Suspense, useMemo, useState } from "react";
 import { Settings, Bell } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { BottomNavigation, PageContainer } from "@/components/layout";
-import { useUserFilter } from "@/hooks";
+import { useUserFilter, usePermissions } from "@/hooks";
 import { Button, IconContainer, Text } from "@/components/ui";
 import { RecurringTransactionSeries } from "@/src/lib";
 import {
@@ -71,32 +71,67 @@ export default function DashboardContent({
   // User filtering state management using shared hook
   const { selectedGroupFilter, setSelectedGroupFilter, selectedUserId } = useUserFilter();
 
+  // Permission checks
+  const { effectiveUserId, isMember } = usePermissions({
+    currentUser,
+    selectedUserId: selectedGroupFilter !== "all" ? selectedGroupFilter : undefined,
+  });
+
   // Calculate budgets by user using BudgetService
+  // Members only see their own budgets
   const budgetsByUser = useMemo(() => {
+    if (isMember) {
+      // Members see only their own budgets
+      const memberUsers = [currentUser];
+      return BudgetService.buildBudgetsByUser(memberUsers, budgets, transactions);
+    }
+    // Admins see filtered budgets based on selection
     return BudgetService.buildBudgetsByUser(groupUsers, budgets, transactions);
-  }, [groupUsers, budgets, transactions]);
+  }, [currentUser, groupUsers, budgets, transactions, isMember]);
 
   // Filter default accounts based on selected user and sort by balance
+  // Members only see their own accounts
   const displayedDefaultAccounts = useMemo(() => {
     let accountsToDisplay: Account[] = [];
     const totalAccountCount = accounts.length;
 
-    // Case 1: Exactly 1 account in entire system → show it
-    if (totalAccountCount === 1) {
-      accountsToDisplay = accounts;
+    // Members only see their own accounts
+    if (isMember) {
+      const userAccounts = accounts.filter((acc) => acc.user_ids.includes(currentUser.id));
+
+      // If only one account, show it
+      if (userAccounts.length === 1) {
+        accountsToDisplay = userAccounts;
+      }
+      // If multiple, show only default account
+      else if (userAccounts.length > 1 && currentUser.default_account_id) {
+        const defaultAccount = accounts.find((a) => a.id === currentUser.default_account_id);
+        accountsToDisplay = defaultAccount ? [defaultAccount] : userAccounts;
+      }
+      // Fallback: show all user's accounts
+      else {
+        accountsToDisplay = userAccounts;
+      }
     }
-    // Case 2: Multiple accounts → use default account logic
-    else if (totalAccountCount > 1) {
-      if (selectedUserId) {
-        // Show only selected user's default account
-        const user = groupUsers.find((u) => u.id === selectedUserId);
-        if (user?.default_account_id) {
-          const defaultAccount = accounts.find((a) => a.id === user.default_account_id);
-          accountsToDisplay = defaultAccount ? [defaultAccount] : [];
+    // Admin logic (existing)
+    else {
+      // Case 1: Exactly 1 account in entire system → show it
+      if (totalAccountCount === 1) {
+        accountsToDisplay = accounts;
+      }
+      // Case 2: Multiple accounts → use default account logic
+      else if (totalAccountCount > 1) {
+        if (selectedUserId) {
+          // Show only selected user's default account
+          const user = groupUsers.find((u) => u.id === selectedUserId);
+          if (user?.default_account_id) {
+            const defaultAccount = accounts.find((a) => a.id === user.default_account_id);
+            accountsToDisplay = defaultAccount ? [defaultAccount] : [];
+          }
+        } else {
+          // Show all users' default accounts
+          accountsToDisplay = AccountService.getDefaultAccounts(accounts, groupUsers);
         }
-      } else {
-        // Show all users' default accounts
-        accountsToDisplay = AccountService.getDefaultAccounts(accounts, groupUsers);
       }
     }
 
@@ -106,15 +141,19 @@ export default function DashboardContent({
       const balanceB = accountBalances[b.id] || 0;
       return balanceB - balanceA;
     });
-  }, [selectedUserId, accounts, groupUsers, accountBalances]);
+  }, [selectedUserId, accounts, groupUsers, accountBalances, isMember, currentUser]);
 
   // Get all accounts for the selected user (or all accounts if "all" selected)
+  // Members only see their own accounts
   const userAccounts = useMemo(() => {
+    if (isMember) {
+      return accounts.filter((acc) => acc.user_ids.includes(currentUser.id));
+    }
     if (selectedUserId) {
       return AccountService.filterAccountsByUser(accounts, selectedUserId);
     }
     return accounts;
-  }, [selectedUserId, accounts]);
+  }, [selectedUserId, accounts, isMember, currentUser.id]);
 
   // Calculate total account count for selected user
   const totalAccountsCount = userAccounts.length;
@@ -123,7 +162,7 @@ export default function DashboardContent({
   const displayedAccountBalances = useMemo(() => {
     const displayedAccountIds = new Set(displayedDefaultAccounts.map((account) => account.id));
     return Object.fromEntries(
-      Object.entries(accountBalances).filter(([accountId]) => displayedAccountIds.has(accountId))
+      Object.entries(accountBalances).filter(([accountId]) => displayedAccountIds.has(accountId)),
     );
   }, [displayedDefaultAccounts, accountBalances]);
 
@@ -140,7 +179,7 @@ export default function DashboardContent({
       }, 0);
 
       // Find and add "Risparmi Casa" account balance
-      const risparmiCasaAccount = accounts.find((a) => a.name === 'Risparmi Casa');
+      const risparmiCasaAccount = accounts.find((a) => a.name === "Risparmi Casa");
       if (risparmiCasaAccount) {
         balance += accountBalances[risparmiCasaAccount.id] || 0;
       }
@@ -156,7 +195,7 @@ export default function DashboardContent({
   // State management for recurring series modal
   const [isRecurringFormOpen, setIsRecurringFormOpen] = useState(false);
   const [selectedSeries, setSelectedSeries] = useState<RecurringTransactionSeries | undefined>(undefined);
-  const [formMode, setFormMode] = useState<'create' | 'edit' | undefined>(undefined);
+  const [formMode, setFormMode] = useState<"create" | "edit" | undefined>(undefined);
 
   // Handler for group filter changes
   const handleGroupFilterChange = (userId: string) => {
@@ -165,31 +204,31 @@ export default function DashboardContent({
 
   // Handler for individual account card clicks
   const handleAccountClick = () => {
-    router.push('/accounts');
+    router.push("/accounts");
   };
 
   // Handler for creating recurring series
   const handleCreateRecurringSeries = () => {
     setSelectedSeries(undefined);
-    setFormMode('create');
+    setFormMode("create");
     setIsRecurringFormOpen(true);
   };
 
   // Handler for editing recurring series (used in modal)
   const handleEditRecurringSeries = (series: RecurringTransactionSeries) => {
     setSelectedSeries(series);
-    setFormMode('edit');
+    setFormMode("edit");
     setIsRecurringFormOpen(true);
   };
 
   // Handler for clicking on a series card - navigate to transactions with Recurrent tab
   const handleSeriesCardClick = () => {
-    router.push('/transactions?tab=Recurrent');
+    router.push("/transactions?tab=Recurrent");
   };
 
   // Handler for settings navigation
   const handleSettingsClick = () => {
-    router.push('/settings');
+    router.push("/settings");
   };
 
   return (
@@ -208,7 +247,7 @@ export default function DashboardContent({
                   {currentUser.name}
                 </Text>
                 <Text variant="muted" size="xs" className="font-semibold">
-                  Premium Plan
+                  {currentUser.role === "admin" || currentUser.role === "superadmin" ? "Premium Plan" : "Standard Plan"}
                 </Text>
               </div>
             </div>
@@ -270,7 +309,7 @@ export default function DashboardContent({
         <Suspense fallback={<RecurringSeriesSkeleton />}>
           <RecurringSeriesSection
             series={recurringSeries}
-            selectedUserId={selectedUserId}
+            selectedUserId={isMember ? currentUser.id : selectedGroupFilter === "all" ? undefined : effectiveUserId}
             className={dashboardStyles.recurringSection.container}
             showStats={false}
             maxItems={5}
@@ -293,7 +332,7 @@ export default function DashboardContent({
           groupUsers={groupUsers}
           accounts={accounts}
           categories={categories}
-          selectedUserId={selectedUserId}
+          selectedUserId={effectiveUserId === "all" ? undefined : effectiveUserId}
           series={selectedSeries}
           mode={formMode}
         />

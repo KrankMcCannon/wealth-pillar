@@ -155,7 +155,7 @@ export function GroupedTransactionCard({
               >
                 <div
                   className={`flex size-8 items-center justify-center rounded-lg ${getTransactionIconColor(
-                    transaction
+                    transaction,
                   )} shadow-sm group-hover:shadow-md transition-all duration-200 shrink-0`}
                 >
                   <CategoryIcon categoryKey={transaction.category} size={iconSizes.xs} />
@@ -176,7 +176,7 @@ export function GroupedTransactionCard({
                         <Badge
                           variant="outline"
                           className={`text-xs ${getTransactionBadgeColor(
-                            transaction
+                            transaction,
                           )} font-medium px-1 py-0 scale-75 origin-left`}
                         >
                           {transaction.frequency}
@@ -205,7 +205,7 @@ export function GroupedTransactionCard({
                 )}
 
                 <div className="text-right">
-                  <p className={`text-sm font-bold ${getTransactionAmountColor(transaction)}`}>
+                  <p className={`text-sm font-bold ${getTransactionAmountColor(transaction)}`} suppressHydrationWarning>
                     {formatCurrency(Math.abs(transaction.amount))}
                   </p>
                   {variant === "recurrent" && transaction.frequency && transaction.frequency !== "once" && (

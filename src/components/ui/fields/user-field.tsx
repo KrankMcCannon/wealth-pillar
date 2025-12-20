@@ -15,6 +15,8 @@ interface UserFieldProps {
   label?: string;
   placeholder?: string;
   users?: User[];
+  disabled?: boolean;
+  helperText?: string;
 }
 
 export function UserField({
@@ -24,7 +26,9 @@ export function UserField({
   required = true,
   label = "Utente",
   placeholder = "Seleziona utente",
-  users = []
+  users = [],
+  disabled = false,
+  helperText,
 }: UserFieldProps) {
   const options = users.map((user) => ({
     value: user.id,
@@ -32,12 +36,13 @@ export function UserField({
   }));
 
   return (
-    <FormField label={label} required={required} error={error}>
+    <FormField label={label} required={required} error={error} helperText={helperText}>
       <FormSelect
         value={value}
         onValueChange={onChange}
         options={options}
         placeholder={placeholder}
+        disabled={disabled}
       />
     </FormField>
   );

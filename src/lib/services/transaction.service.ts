@@ -257,6 +257,62 @@ export class TransactionService {
   }
 
   /**
+   * Get a single transaction by ID
+   * Used for verifying ownership/permissions before update/delete operations
+   *
+   * @param transactionId - The transaction ID
+   * @returns Transaction or error
+   *
+   * @example
+   * const { data: transaction, error } = await TransactionService.getTransactionById(id);
+   */
+  static async getTransactionById(
+    transactionId: string
+  ): Promise<ServiceResult<Transaction>> {
+    try {
+      // Input validation
+      if (!transactionId || transactionId.trim() === '') {
+        return { data: null, error: 'Transaction ID is required' };
+      }
+
+      const getCachedTransaction = cached(
+        async () => {
+          const { data, error } = await supabaseServer
+            .from('transactions')
+            .select('*')
+            .eq('id', transactionId)
+            .single();
+
+          if (error) throw new Error(error.message);
+          if (!data) throw new Error('Transaction not found');
+
+          return data as Transaction;
+        },
+        ['transaction', 'id', transactionId],
+        {
+          revalidate: 120, // 2 minutes (same as other transaction queries)
+          tags: [CACHE_TAGS.TRANSACTIONS, `transaction:${transactionId}`],
+        }
+      );
+
+      const transaction = await getCachedTransaction();
+
+      return {
+        data: transaction,
+        error: null,
+      };
+    } catch (error) {
+      return {
+        data: null,
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Failed to retrieve transaction',
+      };
+    }
+  }
+
+  /**
    * Create a new transaction
    * Used for adding new transactions to the database
    *

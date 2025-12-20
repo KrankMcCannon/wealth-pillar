@@ -562,7 +562,7 @@ export class BudgetService {
     }
 
     const periodStart = toDateTime(activePeriod.start_date);
-    const periodEnd = activePeriod.end_date ? toDateTime(activePeriod.end_date) : null;
+    const periodEnd = activePeriod.end_date ? toDateTime(activePeriod.end_date)?.endOf('day') : null;
 
     return { periodStart, periodEnd };
   }
@@ -603,7 +603,7 @@ export class BudgetService {
       // Check if transaction date is within period
       const txDate = toDateTime(t.date);
       if (!txDate) return false;
-      
+
       const normalizedTxDate = txDate.startOf('day');
 
       // Include transactions on or after start date

@@ -10,21 +10,15 @@
 import { Suspense, useState, useMemo, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { MoreVertical, Plus } from "lucide-react";
-import { useUserFilter, useFormModal, useDeleteConfirmation, useIdNameMap } from "@/hooks";
-import {
-  Button,
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/src/components/ui";
+import { useUserFilter, useFormModal, useDeleteConfirmation, useIdNameMap, usePermissions } from "@/hooks";
+import { Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/src/components/ui";
 import { BottomNavigation, PageContainer, PageHeaderWithBack } from "@/src/components/layout";
 import TabNavigation from "@/src/components/shared/tab-navigation";
 import UserSelector from "@/src/components/shared/user-selector";
 import { ConfirmationDialog } from "@/components/shared";
 import { RecurringSeriesSection, RecurringSeriesForm } from "@/src/features/recurring";
 import { RecurringTransactionSeries } from "@/src/lib";
-import { 
+import {
   TransactionDayList,
   TransactionForm,
   TransactionFilters,
@@ -72,17 +66,23 @@ export default function TransactionsContent({
   // User filtering state management using shared hook
   const { selectedGroupFilter, setSelectedGroupFilter, selectedUserId } = useUserFilter();
 
+  // Permission checks
+  const { effectiveUserId, isMember } = usePermissions({
+    currentUser,
+    selectedUserId: selectedGroupFilter !== "all" ? selectedGroupFilter : undefined,
+  });
+
   // Check if coming from budgets page
-  const fromBudgets = searchParams.get('from') === 'budgets';
-  const budgetIdFromUrl = searchParams.get('budget');
-  const memberIdFromUrl = searchParams.get('member');
-  const startDateFromUrl = searchParams.get('startDate');
-  const endDateFromUrl = searchParams.get('endDate');
+  const fromBudgets = searchParams.get("from") === "budgets";
+  const budgetIdFromUrl = searchParams.get("budget");
+  const memberIdFromUrl = searchParams.get("member");
+  const startDateFromUrl = searchParams.get("startDate");
+  const endDateFromUrl = searchParams.get("endDate");
 
   // Get selected budget for display
   const selectedBudget = useMemo(() => {
     if (budgetIdFromUrl) {
-      return budgets.find(b => b.id === budgetIdFromUrl) || null;
+      return budgets.find((b) => b.id === budgetIdFromUrl) || null;
     }
     return null;
   }, [budgetIdFromUrl, budgets]);
@@ -95,9 +95,9 @@ export default function TransactionsContent({
         budgetId: selectedBudget.id,
         categoryKeys: selectedBudget.categories,
         // Budgets typically track expenses
-        type: 'expense',
+        type: "expense",
         // Use custom date range if period dates are provided
-        dateRange: startDateFromUrl || endDateFromUrl ? 'custom' : defaultFiltersState.dateRange,
+        dateRange: startDateFromUrl || endDateFromUrl ? "custom" : defaultFiltersState.dateRange,
         startDate: startDateFromUrl || undefined,
         endDate: endDateFromUrl || undefined,
       };
@@ -106,7 +106,7 @@ export default function TransactionsContent({
   }, [fromBudgets, selectedBudget, startDateFromUrl, endDateFromUrl]);
 
   // Tab state - initialize from URL params if present
-  const initialTab = searchParams.get('tab') || 'Transactions';
+  const initialTab = searchParams.get("tab") || "Transactions";
   const [activeTab, setActiveTab] = useState<string>(initialTab);
 
   // Modern filters state - initialized from URL or default
@@ -121,30 +121,30 @@ export default function TransactionsContent({
 
   // Sync tab state with URL params on mount and when URL changes
   useEffect(() => {
-    const tabFromUrl = searchParams.get('tab');
-    if (tabFromUrl && (tabFromUrl === 'Transactions' || tabFromUrl === 'Recurrent')) {
+    const tabFromUrl = searchParams.get("tab");
+    if (tabFromUrl && (tabFromUrl === "Transactions" || tabFromUrl === "Recurrent")) {
       setActiveTab(tabFromUrl);
     }
   }, [searchParams]);
 
   // Scroll to top on page mount (navigation to transactions page)
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'instant' });
+    window.scrollTo({ top: 0, behavior: "instant" });
   }, []); // Empty dependency array = run once on mount
 
   // Scroll to top when tab changes
   useEffect(() => {
     if (activeTab) {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   }, [activeTab]); // Run when activeTab changes
 
   // Handler to clear budget filter and reset URL
   const handleClearBudgetFilter = () => {
     setFilters(defaultFiltersState);
-    setSelectedGroupFilter('all');
+    setSelectedGroupFilter("all");
     // Clear URL params by navigating to base transactions page
-    router.push('/transactions');
+    router.push("/transactions");
   };
 
   // Form modal state using hooks
@@ -161,12 +161,20 @@ export default function TransactionsContent({
   const accountNames = useIdNameMap(accounts);
 
   // Filter transactions by selected user and filters (use local state for optimistic updates)
+  // Members only see their own transactions
   const filteredTransactions = useMemo(() => {
-    const userFiltered = selectedUserId
-      ? localTransactions.filter((t) => t.user_id === selectedUserId)
-      : localTransactions;
+    let userFiltered: Transaction[];
+
+    if (isMember) {
+      // Members see only their own transactions
+      userFiltered = localTransactions.filter((t) => t.user_id === currentUser.id);
+    } else {
+      // Admin logic - filter by selected user or show all
+      userFiltered = selectedUserId ? localTransactions.filter((t) => t.user_id === selectedUserId) : localTransactions;
+    }
+
     return filterTransactions(userFiltered, filters, categories);
-  }, [selectedUserId, localTransactions, filters, categories]);
+  }, [selectedUserId, localTransactions, filters, categories, isMember, currentUser.id]);
 
   // Group transactions by date and calculate daily totals using service layer
   const dayTotals = useMemo((): GroupedTransaction[] => {
@@ -211,7 +219,7 @@ export default function TransactionsContent({
         if (result.error) {
           // Revert on error
           addTransactionToList(transaction);
-          console.error('Failed to delete transaction:', result.error);
+          console.error("Failed to delete transaction:", result.error);
           throw new Error(result.error);
         }
         // Success - cache revalidation happens in service, UI will refresh with server data
@@ -219,20 +227,19 @@ export default function TransactionsContent({
       } catch (error) {
         // Revert on error
         addTransactionToList(transaction);
-        console.error('Error deleting transaction:', error);
+        console.error("Error deleting transaction:", error);
         throw error;
       }
     });
   };
 
-  const handleFormSuccess = (transaction: Transaction, action: 'create' | 'update') => {
+  const handleFormSuccess = (transaction: Transaction, action: "create" | "update") => {
     // Optimistic UI update
-    if (action === 'create') {
+    if (action === "create") {
       setLocalTransactions((prev) => [transaction, ...prev]);
     } else {
       setLocalTransactions((prev) => {
-        const updateTransaction = (t: Transaction) => 
-          t.id === transaction.id ? transaction : t;
+        const updateTransaction = (t: Transaction) => (t.id === transaction.id ? transaction : t);
         return prev.map(updateTransaction);
       });
     }
@@ -257,7 +264,7 @@ export default function TransactionsContent({
         titleClassName={transactionStyles.header.title}
         backButtonClassName={transactionStyles.header.button}
         variant="secondary"
-        actions={(
+        actions={
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="sm" className={transactionStyles.header.button}>
@@ -278,7 +285,7 @@ export default function TransactionsContent({
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-        )}
+        }
       />
 
       {/* User Selector */}
@@ -308,7 +315,7 @@ export default function TransactionsContent({
       {/* Main Content */}
       <main className={transactionStyles.page.main}>
         {/* Transaction Filters - Modern 2025 UX */}
-        {activeTab === 'Transactions' && (
+        {activeTab === "Transactions" && (
           <TransactionFilters
             filters={filters}
             onFiltersChange={setFilters}
@@ -319,7 +326,7 @@ export default function TransactionsContent({
         )}
 
         {/* Transactions Tab Content */}
-        {activeTab === 'Transactions' && (
+        {activeTab === "Transactions" && (
           <TransactionDayList
             groupedTransactions={dayTotals}
             accountNames={accountNames}
@@ -336,11 +343,11 @@ export default function TransactionsContent({
         )}
 
         {/* Recurring Tab Content */}
-        {activeTab === 'Recurrent' && (
+        {activeTab === "Recurrent" && (
           <Suspense fallback={<RecurringSeriesSkeleton />}>
             <RecurringSeriesSection
               series={recurringSeries}
-              selectedUserId={selectedUserId}
+              selectedUserId={isMember ? currentUser.id : selectedGroupFilter === "all" ? undefined : effectiveUserId}
               className="bg-card/80 backdrop-blur-sm border border-border/50 shadow-lg shadow-muted/30"
               showStats={true}
               maxItems={10}
@@ -365,7 +372,7 @@ export default function TransactionsContent({
         accounts={accounts}
         categories={categories}
         groupId={currentUser.group_id}
-        selectedUserId={selectedUserId}
+        selectedUserId={effectiveUserId === "all" ? undefined : effectiveUserId}
         onSuccess={handleFormSuccess}
       />
       <RecurringSeriesForm
@@ -375,7 +382,7 @@ export default function TransactionsContent({
         groupUsers={groupUsers}
         accounts={accounts}
         categories={categories}
-        selectedUserId={selectedUserId}
+        selectedUserId={effectiveUserId === "all" ? undefined : effectiveUserId}
         series={recurringModal.entity}
         mode={recurringModal.mode}
         onSuccess={handleRecurringFormSuccess}
