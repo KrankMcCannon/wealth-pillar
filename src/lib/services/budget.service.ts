@@ -562,7 +562,9 @@ export class BudgetService {
     }
 
     const periodStart = toDateTime(activePeriod.start_date);
-    const periodEnd = activePeriod.end_date ? toDateTime(activePeriod.end_date)?.endOf('day') : null;
+    const periodEnd = activePeriod.end_date
+      ? (toDateTime(activePeriod.end_date)?.endOf('day') ?? null)
+      : null;
 
     return { periodStart, periodEnd };
   }

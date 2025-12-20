@@ -171,17 +171,15 @@ export class ReportPeriodService {
    * Includes only income and expense transactions (transfers excluded)
    *
    * @param transactions - Filtered transactions for the period and user
-   * @param userAccountIds - Array of account IDs belonging to the user
    * @returns Array of category breakdowns sorted by amount descending
    *
    * @example
-   * const breakdown = ReportPeriodService.calculateCategoryBreakdown(userTransactions, userAccountIds);
+   * const breakdown = ReportPeriodService.calculateCategoryBreakdown(userTransactions);
    *
    * @complexity O(n + m log m) where n is transactions, m is unique categories
    */
   static calculateCategoryBreakdown(
-    transactions: Transaction[],
-    userAccountIds: string[]
+    transactions: Transaction[]
   ): CategoryBreakdownItem[] {
     if (transactions.length === 0) return [];
 
@@ -300,8 +298,8 @@ export class ReportPeriodService {
         userAccountIds
       );
 
-      // Calculate category breakdown with NET analysis (pass userAccountIds for transfer logic)
-      const categoryBreakdown = this.calculateCategoryBreakdown(userTransactions, userAccountIds);
+      // Calculate category breakdown with NET analysis
+      const categoryBreakdown = this.calculateCategoryBreakdown(userTransactions);
 
       // Calculate real spending totals from category breakdown
       const totalRealSpent = categoryBreakdown

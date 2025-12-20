@@ -27,7 +27,7 @@ import { useRouter } from "next/navigation";
 import { useClerk } from "@clerk/nextjs";
 import { useState } from "react";
 import { Button, Card } from "@/components/ui";
-import type { User as UserType } from "@/lib/types";
+import type { User as UserType, Account, Transaction } from "@/lib/types";
 
 /**
  * Settings Content Props
@@ -35,8 +35,8 @@ import type { User as UserType } from "@/lib/types";
 interface SettingsContentProps {
   currentUser: UserType;
   groupUsers: UserType[];
-  accounts: any[];
-  transactions: any[];
+  accounts: Account[];
+  transactions: Transaction[];
 }
 
 export default function SettingsContent({ currentUser, groupUsers, accounts, transactions }: SettingsContentProps) {
