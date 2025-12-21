@@ -156,9 +156,9 @@ export async function createRecurringSeriesAction(
     }
 
     // Invalidate cache for all affected users
-    revalidateTag(CACHE_TAGS.RECURRING_SERIES);
+    revalidateTag(CACHE_TAGS.RECURRING_SERIES, 'max');
     for (const userId of input.user_ids) {
-      revalidateTag(`user:${userId}:recurring`);
+      revalidateTag(`user:${userId}:recurring`, 'max');
     }
 
     return { data: data as unknown as RecurringTransactionSeries, error: null };
@@ -294,20 +294,20 @@ export async function updateRecurringSeriesAction(
     }
 
     // Invalidate cache for all affected users (old and new)
-    revalidateTag(CACHE_TAGS.RECURRING_SERIES);
-    revalidateTag(CACHE_TAGS.RECURRING(input.id));
+    revalidateTag(CACHE_TAGS.RECURRING_SERIES, 'max');
+    revalidateTag(CACHE_TAGS.RECURRING(input.id), 'max');
 
     // Invalidate old users' caches
     if (oldSeries?.user_ids) {
       for (const userId of oldSeries.user_ids) {
-        revalidateTag(`user:${userId}:recurring`);
+        revalidateTag(`user:${userId}:recurring`, 'max');
       }
     }
 
     // Invalidate new users' caches (if user_ids changed)
     if (data?.user_ids) {
       for (const userId of data.user_ids) {
-        revalidateTag(`user:${userId}:recurring`);
+        revalidateTag(`user:${userId}:recurring`, 'max');
       }
     }
 
@@ -384,11 +384,11 @@ export async function deleteRecurringSeriesAction(
     }
 
     // Invalidate cache for all affected users
-    revalidateTag(CACHE_TAGS.RECURRING_SERIES);
-    revalidateTag(CACHE_TAGS.RECURRING(seriesId));
+    revalidateTag(CACHE_TAGS.RECURRING_SERIES, 'max');
+    revalidateTag(CACHE_TAGS.RECURRING(seriesId), 'max');
     if (series?.user_ids) {
       for (const userId of series.user_ids) {
-        revalidateTag(`user:${userId}:recurring`);
+        revalidateTag(`user:${userId}:recurring`, 'max');
       }
     }
 

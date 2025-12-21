@@ -14,7 +14,7 @@ async function revalidateCacheTags(tags: string[]) {
   if (globalThis.window === undefined) {
     const { revalidateTag } = await import('next/cache');
     for (const tag of tags) {
-      revalidateTag(tag, '/');
+      revalidateTag(tag, 'max');
     }
   }
 }

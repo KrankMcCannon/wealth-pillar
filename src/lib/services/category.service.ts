@@ -11,7 +11,7 @@ import type { Category } from '@/lib/types';
 async function revalidateCacheTags(tags: string[]) {
   if (typeof window === 'undefined') {
     const { revalidateTag } = await import('next/cache');
-    tags.forEach((tag) => revalidateTag(tag));
+    tags.forEach((tag) => revalidateTag(tag, 'max'));
   }
 }
 

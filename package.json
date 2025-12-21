@@ -6,9 +6,9 @@
     "node": ">=22.0.0"
   },
   "scripts": {
-    "dev": "NODE_OPTIONS='--no-deprecation' next dev --turbopack",
-    "build": "NODE_OPTIONS='--no-deprecation' next build --turbopack",
-    "start": "NODE_OPTIONS='--no-deprecation' next start",
+    "dev": "next dev --turbopack",
+    "build": "next build --turbopack",
+    "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit"
   },
