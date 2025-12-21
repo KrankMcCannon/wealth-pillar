@@ -54,13 +54,6 @@ export function BudgetPeriodManager({
     }
   }, [selectedUserId]);
 
-  // Notify parent when user selection changes (for data refresh)
-  useEffect(() => {
-    if (onUserChange && internalSelectedUserId !== selectedUserId) {
-      onUserChange(internalSelectedUserId);
-    }
-  }, [internalSelectedUserId, onUserChange, selectedUserId]);
-
   // Reset state when modal opens/closes
   useEffect(() => {
     if (!isOpen) {
@@ -244,7 +237,10 @@ export function BudgetPeriodManager({
                   label="Utente"
                   users={groupUsers}
                   value={internalSelectedUserId}
-                  onChange={setInternalSelectedUserId}
+                  onChange={(userId) => {
+                    setInternalSelectedUserId(userId);
+                    onUserChange?.(userId);
+                  }}
                   disabled={shouldDisableUserField}
                   helperText={
                     shouldDisableUserField

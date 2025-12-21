@@ -60,9 +60,13 @@ export class ReportPeriodService {
     transactions: Transaction[],
     userAccountIds: string[],
   ): number {
+    // OPTIMIZATION: Use Set for O(1) account lookup instead of O(a) array.includes()
+    // Reduces complexity from O(t × a) to O(t) where t=transactions, a=accounts
+    const accountSet = new Set(userAccountIds);
+
     return transactions.reduce((sum, t) => {
-      // Income transactions where account belongs to user
-      if (t.type === 'income' && userAccountIds.includes(t.account_id)) {
+      // Income transactions where account belongs to user - O(1) with Set
+      if (t.type === 'income' && accountSet.has(t.account_id)) {
         return sum + t.amount;
       }
 
@@ -88,9 +92,13 @@ export class ReportPeriodService {
     transactions: Transaction[],
     userAccountIds: string[],
   ): number {
+    // OPTIMIZATION: Use Set for O(1) account lookup instead of O(a) array.includes()
+    // Reduces complexity from O(t × a) to O(t) where t=transactions, a=accounts
+    const accountSet = new Set(userAccountIds);
+
     return transactions.reduce((sum, t) => {
-      // Expense transactions where account belongs to user
-      if (t.type === 'expense' && userAccountIds.includes(t.account_id)) {
+      // Expense transactions where account belongs to user - O(1) with Set
+      if (t.type === 'expense' && accountSet.has(t.account_id)) {
         return sum + t.amount;
       }
 
@@ -155,12 +163,16 @@ export class ReportPeriodService {
     transactions: Transaction[],
     userAccountIds: string[]
   ): number {
+    // OPTIMIZATION: Use Set for O(1) account lookup instead of O(a) array.includes()
+    // Reduces complexity from O(t × 2a) to O(t) where t=transactions, a=accounts
+    const accountSet = new Set(userAccountIds);
+
     return transactions
       .filter(t =>
         t.type === 'transfer' &&
         t.to_account_id &&
-        userAccountIds.includes(t.account_id) &&
-        userAccountIds.includes(t.to_account_id)
+        accountSet.has(t.account_id) && // O(1) vs O(a)
+        accountSet.has(t.to_account_id) // O(1) vs O(a)
       )
       .reduce((sum, t) => sum + t.amount, 0);
   }
@@ -251,7 +263,8 @@ export class ReportPeriodService {
    *   accounts
    * );
    *
-   * @complexity O(n*m) where n is periods and m is transactions
+   * @complexity O(u + a×u + p×t) - Pre-indexing users/accounts, then O(t) per period
+   * OPTIMIZED: Previously O(p×u + p×a + p×t) - now much faster with Map pre-indexing
    */
   static enrichBudgetPeriods(
     budgetPeriods: BudgetPeriod[],
@@ -259,9 +272,25 @@ export class ReportPeriodService {
     transactions: Transaction[],
     accounts: Account[]
   ): EnrichedBudgetPeriod[] {
+    // OPTIMIZATION: Pre-index users by ID for O(1) lookup instead of O(u) per period
+    // Reduces user lookup from O(p × u) to O(u + p) where p=periods, u=users
+    const userMap = new Map(users.map(u => [u.id, u]));
+
+    // OPTIMIZATION: Pre-compute account IDs per user for O(1) lookup
+    // Reduces from O(p × a) to O(a + p) where a=accounts
+    const accountIdsByUser = new Map<string, string[]>();
+    for (const account of accounts) {
+      for (const userId of account.user_ids) {
+        if (!accountIdsByUser.has(userId)) {
+          accountIdsByUser.set(userId, []);
+        }
+        accountIdsByUser.get(userId)!.push(account.id);
+      }
+    }
+
     return budgetPeriods.map((period) => {
-      // Find user who owns this period
-      const user = users.find((u) => u.id === period.user_id);
+      // O(1) user lookup instead of O(u) find
+      const user = userMap.get(period.user_id);
       const userName = user?.name || 'Unknown User';
 
       // Filter transactions for this period by date range
@@ -276,10 +305,8 @@ export class ReportPeriodService {
         t => t.user_id === period.user_id
       );
 
-      // Get account IDs for earned/spent calculations (still needed for transfers)
-      const userAccountIds = accounts
-        .filter((a) => a.user_ids.includes(period.user_id))
-        .map((a) => a.id);
+      // O(1) lookup instead of O(a) filter
+      const userAccountIds = accountIdsByUser.get(period.user_id) || [];
 
       // Calculate legacy earned/spent for this user's period (for backward compatibility)
       const totalEarned = this.calculateEarned(

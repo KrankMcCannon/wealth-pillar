@@ -595,12 +595,16 @@ export class BudgetService {
     // If no active period, return empty array
     if (!periodStart) return [];
 
+    // OPTIMIZATION: Use Set for O(1) category lookup instead of O(k) array.includes()
+    // This reduces complexity from O(p × k) to O(p) where p=transactions, k=categories
+    const categorySet = new Set(budget.categories);
+
     // Start of day for comparison
     const normalizedStart = periodStart.startOf('day');
 
     return transactions.filter((t) => {
-      // Check if transaction category is in budget categories
-      if (!budget.categories.includes(t.category)) return false;
+      // Check if transaction category is in budget categories - O(1) with Set
+      if (!categorySet.has(t.category)) return false;
 
       // Check if transaction date is within period
       const txDate = toDateTime(t.date);
@@ -647,7 +651,14 @@ export class BudgetService {
 
     // Ensure spent doesn't go negative (can't have negative spending)
     const effectiveSpent = Math.max(0, spent);
+
+    // FIXED: Calculate remaining correctly for overspent budgets
+    // If budget is overpassed (spent > amount), show how much it's overpassed
+    // Example: budget=200, spent=427.23 → remaining=-227.23 (overpassed by 227.23)
+    // The UI can then display this as "Exceeded by €227.23"
     const remaining = budget.amount - effectiveSpent;
+
+    // Calculate actual percentage (can exceed 100% when overspent)
     const percentage = budget.amount > 0 ? (effectiveSpent / budget.amount) * 100 : 0;
 
     return {
@@ -655,8 +666,8 @@ export class BudgetService {
       description: budget.description,
       amount: budget.amount,
       spent: effectiveSpent,
-      remaining,
-      percentage: Math.min(percentage, 100), // Cap at 100%
+      remaining, // Can be negative when overspent - indicates how much over budget
+      percentage, // Not capped - shows true percentage (e.g., 213% for 427.23/200)
       categories: budget.categories,
       transactionCount: transactions.length,
     };
@@ -713,18 +724,19 @@ export class BudgetService {
   static calculateUserBudgetSummary(
     user: User,
     budgets: Budget[],
-    transactions: Transaction[]
+    transactions: Transaction[] // Now receives pre-filtered user transactions
   ): UserBudgetSummary {
     // Get budget period dates from user's budget_periods
     const { periodStart, periodEnd } = this.getBudgetPeriodDates(user);
 
-    // Filter transactions for this user only
-    const userTransactions = transactions.filter((t) => t.user_id === user.id);
+    // OPTIMIZATION: Transactions are already filtered by user_id in buildBudgetsByUser
+    // No need to filter again - reduces one O(p) operation per user
+    // Use transactions directly (already filtered)
 
-    // Calculate progress for all budgets
+    // Calculate progress for all budgets with pre-filtered transactions
     const budgetProgress = this.calculateBudgetsWithProgress(
       budgets,
-      userTransactions,
+      transactions, // Already filtered by user
       periodStart,
       periodEnd
     );
@@ -732,7 +744,10 @@ export class BudgetService {
     // Calculate totals
     const totalBudget = budgetProgress.reduce((sum, b) => sum + b.amount, 0);
     const totalSpent = budgetProgress.reduce((sum, b) => sum + b.spent, 0);
+    // FIXED: totalRemaining can be negative when overspent (coherent with individual budget.remaining)
     const totalRemaining = totalBudget - totalSpent;
+    // FIXED: overallPercentage not capped - shows true percentage (coherent with individual budget.percentage)
+    // Example: If totalBudget=500, totalSpent=650 → overallPercentage=130%, totalRemaining=-150
     const overallPercentage = totalBudget > 0 ? (totalSpent / totalBudget) * 100 : 0;
 
     // Get active budget period from user
@@ -746,8 +761,8 @@ export class BudgetService {
       periodEnd: periodEnd?.toISO() || null,
       totalBudget,
       totalSpent,
-      totalRemaining,
-      overallPercentage: Math.min(overallPercentage, 100),
+      totalRemaining, // Can be negative - shows remaining availability under 0
+      overallPercentage, // Not capped - shows true percentage for consistency
     };
   }
 
@@ -768,17 +783,43 @@ export class BudgetService {
     budgets: Budget[],
     transactions: Transaction[]
   ): Record<string, UserBudgetSummary> {
+    // OPTIMIZATION: Pre-group budgets and transactions by user_id
+    // Reduces complexity from O(n × m) to O(m + p + n) where:
+    // n=users, m=budgets, p=transactions
+
+    // Create budget map: O(m)
+    const budgetsByUserId = new Map<string, Budget[]>();
+    for (const budget of budgets) {
+      const userId = budget.user_id;
+      if (!budgetsByUserId.has(userId)) {
+        budgetsByUserId.set(userId, []);
+      }
+      budgetsByUserId.get(userId)!.push(budget);
+    }
+
+    // Create transaction map: O(p)
+    const transactionsByUserId = new Map<string, Transaction[]>();
+    for (const transaction of transactions) {
+      if (!transaction.user_id) continue; // Skip transactions without user_id
+      const userId = transaction.user_id;
+      if (!transactionsByUserId.has(userId)) {
+        transactionsByUserId.set(userId, []);
+      }
+      transactionsByUserId.get(userId)!.push(transaction);
+    }
+
+    // Build result: O(n) with O(1) lookups
     const result: Record<string, UserBudgetSummary> = {};
 
     for (const user of groupUsers) {
-      // Get budgets for this user
-      const userBudgets = budgets.filter((b) => b.user_id === user.id);
+      const userBudgets = budgetsByUserId.get(user.id) || [];
+      const userTransactions = transactionsByUserId.get(user.id) || [];
 
-      // Calculate summary for this user
+      // Calculate summary with pre-filtered data
       result[user.id] = this.calculateUserBudgetSummary(
         user,
         userBudgets,
-        transactions
+        userTransactions // Pass only user's transactions instead of all
       );
     }
 

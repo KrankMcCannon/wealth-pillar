@@ -29,12 +29,16 @@ interface RecurringSeriesSectionProps {
   readonly showActions?: boolean;
   /** Show statistics header */
   readonly showStats?: boolean;
+  /** Show delete icon on each series card */
+  readonly showDelete?: boolean;
   /** Callback when create button is clicked */
   readonly onCreateRecurringSeries?: () => void;
   /** Callback when edit button is clicked (modale) */
   readonly onEditRecurringSeries?: (series: RecurringTransactionSeries) => void;
   /** Callback when card is clicked (navigazione) - se definito, sovrascrive onEditRecurringSeries per il click */
   readonly onCardClick?: (series: RecurringTransactionSeries) => void;
+  /** Callback when delete icon is clicked */
+  readonly onDeleteRecurringSeries?: (series: RecurringTransactionSeries) => void;
 }
 
 export function RecurringSeriesSection({
@@ -44,9 +48,11 @@ export function RecurringSeriesSection({
   maxItems,
   showActions = false,
   showStats = false,
+  showDelete = false,
   onCreateRecurringSeries,
   onEditRecurringSeries,
   onCardClick,
+  onDeleteRecurringSeries,
 }: RecurringSeriesSectionProps) {
   // Filter series by user if selected
   const filteredSeries = useMemo(() => {
@@ -56,6 +62,15 @@ export function RecurringSeriesSection({
     if (selectedUserId) {
       result = result.filter((s) => s.user_ids.includes(selectedUserId));
     }
+
+    // Sort by days left (ascending)
+    result = result
+      .slice()
+      .sort(
+        (a, b) =>
+          RecurringService.calculateDaysUntilDue(a) -
+          RecurringService.calculateDaysUntilDue(b),
+      );
 
     // Limit results if maxItems specified
     if (maxItems && maxItems > 0) {
@@ -166,8 +181,10 @@ export function RecurringSeriesSection({
             key={item.id}
             series={item}
             showActions={showActions}
+            showDelete={showDelete}
             onEdit={onEditRecurringSeries}
             onCardClick={onCardClick}
+            onDelete={onDeleteRecurringSeries}
           />
         ))}
       </div>

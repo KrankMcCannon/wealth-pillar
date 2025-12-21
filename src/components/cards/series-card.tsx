@@ -16,17 +16,19 @@ import {
   executeRecurringSeriesAction,
   toggleRecurringSeriesActiveAction,
 } from "@/src/features/recurring/actions/recurring-actions";
-import { Play, Pause } from "lucide-react";
+import { Play, Pause, Trash2 } from "lucide-react";
 import { Amount, Button, Card, IconContainer, StatusBadge, Text } from "@/src/components/ui";
 
 interface SeriesCardProps {
   readonly series: RecurringTransactionSeries;
   readonly className?: string;
   readonly showActions?: boolean;
+  readonly showDelete?: boolean;
   /** Callback quando si clicca per modificare (modale) */
   readonly onEdit?: (series: RecurringTransactionSeries) => void;
   /** Callback quando si clicca sulla card (navigazione o altro) - se definito, sovrascrive onEdit per il click */
   readonly onCardClick?: (series: RecurringTransactionSeries) => void;
+  readonly onDelete?: (series: RecurringTransactionSeries) => void;
   readonly onSeriesUpdate?: (series: RecurringTransactionSeries) => void;
   /** Group users for displaying user badges */
   readonly groupUsers?: User[];
@@ -52,7 +54,17 @@ function getDueDateLabel(days: number): string {
   return `Tra ${days} giorni`;
 }
 
-export function SeriesCard({ series, className, showActions = false, onEdit, onCardClick, onSeriesUpdate, groupUsers }: SeriesCardProps) {
+export function SeriesCard({
+  series,
+  className,
+  showActions = false,
+  showDelete = false,
+  onEdit,
+  onCardClick,
+  onDelete,
+  onSeriesUpdate,
+  groupUsers,
+}: SeriesCardProps) {
   const [isLoading, setIsLoading] = useState(false);
 
   // Calculate due date info using RecurringService
@@ -132,6 +144,11 @@ export function SeriesCard({ series, className, showActions = false, onEdit, onC
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onDelete?.(series);
   };
 
   // Styling logic (centralized)
@@ -264,6 +281,16 @@ export function SeriesCard({ series, className, showActions = false, onEdit, onC
                   disabled={isLoading}
                 >
                   <Play className="h-3 w-3 text-primary" />
+                </Button>
+              )}
+              {showDelete && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 w-6 p-0 hover:bg-destructive/10 rounded-md transition-all duration-200"
+                  onClick={handleDelete}
+                >
+                  <Trash2 className="h-3 w-3 text-destructive" />
                 </Button>
               )}
             </div>

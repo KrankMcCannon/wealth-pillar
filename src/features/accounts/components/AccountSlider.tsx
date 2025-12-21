@@ -7,6 +7,7 @@
 'use client';
 
 import { CreditCard } from 'lucide-react';
+import { useRef } from 'react';
 import { Account } from '@/lib';
 import { AccountSliderCard } from './AccountSliderCard';
 import { accountStyles } from '../theme/account-styles';
@@ -22,8 +23,21 @@ export const AccountSlider = ({
   accountBalances,
   onAccountClick,
 }: AccountSliderProps) => {
+  const sliderRef = useRef<HTMLDivElement | null>(null);
+
+  const handleWheel = (event: React.WheelEvent<HTMLDivElement>) => {
+    if (!sliderRef.current) return;
+    if (Math.abs(event.deltaY) < Math.abs(event.deltaX)) return;
+    sliderRef.current.scrollLeft += event.deltaY;
+  };
+
   return (
-    <div className={accountStyles.slider.container}>
+    <div
+      ref={sliderRef}
+      className={accountStyles.slider.container}
+      style={{ WebkitOverflowScrolling: 'touch' }}
+      onWheel={handleWheel}
+    >
       <div className={accountStyles.slider.inner} style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
         {accounts.map((account, index) => {
           const accountBalance = accountBalances[account.id] || 0;

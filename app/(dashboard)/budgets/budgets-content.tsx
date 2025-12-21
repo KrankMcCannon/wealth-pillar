@@ -12,7 +12,7 @@
 import { useState, useMemo, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { BottomNavigation, PageContainer } from "@/components/layout";
-import { useFormModal, useDeleteConfirmation, useIdNameMap, usePermissions } from "@/hooks";
+import { useFormModal, useDeleteConfirmation, useIdNameMap, usePermissions, useFilteredData, useBudgetsByUser } from "@/hooks";
 import { ConfirmationDialog } from "@/components/shared/confirmation-dialog";
 import { EmptyState } from "@/components/shared";
 import { BudgetForm, BudgetPeriodManager } from "@/features/budgets";
@@ -85,15 +85,13 @@ export default function BudgetsContent({
   const initialBudgetId = searchParams.get("budget");
 
   // Filter budgets: admin sees all group budgets, members see only their own
-  const userBudgets = useMemo(() => {
-    if (isAdmin) {
-      // Admin sees all budgets from group users
-      const groupUserIds = groupUsers.map((u) => u.id);
-      return budgets.filter((b) => groupUserIds.includes(b.user_id) && b.amount > 0);
-    }
-    // Members see only their own budgets
-    return budgets.filter((b) => b.user_id === currentUser.id && b.amount > 0);
-  }, [budgets, currentUser.id, isAdmin, groupUsers]);
+  // Using centralized filtering hook with additional domain filter
+  const { filteredData: userBudgets } = useFilteredData({
+    data: budgets,
+    currentUser,
+    selectedUserId: undefined, // Show all for admin, own for member
+    additionalFilter: (budget) => budget.amount > 0, // Only budgets with positive amounts
+  });
 
   // Selected budget state - initialized from URL or first available budget
   const [selectedBudgetId, setSelectedBudgetId] = useState<string | null>(() => {
@@ -154,11 +152,15 @@ export default function BudgetsContent({
     return groupUsers.find((u) => u.id === selectedBudget.user_id) || currentUser;
   }, [selectedBudget, groupUsers, currentUser]);
 
-  // Calculate budget summary for the selected budget's user
-  const userBudgetSummary = useMemo(() => {
-    const budgetsByUser = BudgetService.buildBudgetsByUser([selectedBudgetUser], budgets, transactions);
-    return budgetsByUser[selectedBudgetUser.id] || null;
-  }, [selectedBudgetUser, budgets, transactions]);
+  // Calculate budget summary for the selected budget's user using centralized hook
+  const { budgetsByUser } = useBudgetsByUser({
+    groupUsers: [selectedBudgetUser],
+    budgets,
+    transactions,
+    currentUser,
+    selectedUserId: selectedBudgetUser.id,
+  });
+  const userBudgetSummary = budgetsByUser[selectedBudgetUser.id] || null;
 
   // Get budget progress for selected budget
   const selectedBudgetProgress = useMemo(() => {

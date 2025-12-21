@@ -10,7 +10,7 @@
 import { Suspense, useState, useMemo, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { MoreVertical, Plus } from "lucide-react";
-import { useUserFilter, useFormModal, useDeleteConfirmation, useIdNameMap, usePermissions } from "@/hooks";
+import { useUserFilter, useFormModal, useDeleteConfirmation, useIdNameMap, usePermissions, useFilteredData } from "@/hooks";
 import { Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/src/components/ui";
 import { BottomNavigation, PageContainer, PageHeaderWithBack } from "@/src/components/layout";
 import TabNavigation from "@/src/components/shared/tab-navigation";
@@ -33,6 +33,7 @@ import { RecurringSeriesSkeleton } from "@/src/features/transactions/components/
 import type { User, Transaction, Category, Account, Budget } from "@/lib/types";
 import { TransactionService } from "@/lib/services";
 import { deleteTransactionAction } from "@/features/transactions/actions/transaction-actions";
+import { deleteRecurringSeriesAction } from "@/features/recurring/actions/recurring-actions";
 
 /**
  * Transactions Content Props
@@ -153,6 +154,7 @@ export default function TransactionsContent({
 
   // Delete confirmation state using hook
   const deleteConfirm = useDeleteConfirmation<Transaction>();
+  const recurringDeleteConfirm = useDeleteConfirmation<RecurringTransactionSeries>();
 
   // Optimistic UI state - local copy of transactions
   const [localTransactions, setLocalTransactions] = useState<Transaction[]>(transactions);
@@ -160,21 +162,17 @@ export default function TransactionsContent({
   // Create account names map for display using hook
   const accountNames = useIdNameMap(accounts);
 
-  // Filter transactions by selected user and filters (use local state for optimistic updates)
-  // Members only see their own transactions
+  // Filter transactions by selected user (centralized permission-based filtering)
+  const { filteredData: userFilteredTransactions } = useFilteredData({
+    data: localTransactions,
+    currentUser,
+    selectedUserId,
+  });
+
+  // Apply domain-specific filters (type, date, category, search)
   const filteredTransactions = useMemo(() => {
-    let userFiltered: Transaction[];
-
-    if (isMember) {
-      // Members see only their own transactions
-      userFiltered = localTransactions.filter((t) => t.user_id === currentUser.id);
-    } else {
-      // Admin logic - filter by selected user or show all
-      userFiltered = selectedUserId ? localTransactions.filter((t) => t.user_id === selectedUserId) : localTransactions;
-    }
-
-    return filterTransactions(userFiltered, filters, categories);
-  }, [selectedUserId, localTransactions, filters, categories, isMember, currentUser.id]);
+    return filterTransactions(userFilteredTransactions, filters, categories);
+  }, [userFilteredTransactions, filters, categories]);
 
   // Group transactions by date and calculate daily totals using service layer
   const dayTotals = useMemo((): GroupedTransaction[] => {
@@ -233,6 +231,21 @@ export default function TransactionsContent({
     });
   };
 
+  const handleRecurringDeleteClick = (series: RecurringTransactionSeries) => {
+    recurringDeleteConfirm.openDialog(series);
+  };
+
+  const handleRecurringDeleteConfirm = async () => {
+    await recurringDeleteConfirm.executeDelete(async (series) => {
+      const result = await deleteRecurringSeriesAction(series.id);
+      if (result.error) {
+        console.error("Failed to delete recurring series:", result.error);
+        throw new Error(result.error);
+      }
+      router.refresh();
+    });
+  };
+
   const handleFormSuccess = (transaction: Transaction, action: "create" | "update") => {
     // Optimistic UI update
     if (action === "create") {
@@ -246,6 +259,7 @@ export default function TransactionsContent({
 
     // Cache revalidation happens in service, UI will refresh with server data
     router.refresh();
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleRecurringFormSuccess = () => {
@@ -352,8 +366,10 @@ export default function TransactionsContent({
               showStats={true}
               maxItems={10}
               showActions={true}
+              showDelete={true}
               onCreateRecurringSeries={recurringModal.openCreate}
               onEditRecurringSeries={recurringModal.openEdit}
+              onDeleteRecurringSeries={handleRecurringDeleteClick}
             />
           </Suspense>
         )}
@@ -399,6 +415,18 @@ export default function TransactionsContent({
         cancelText="Annulla"
         variant="destructive"
         isLoading={deleteConfirm.isDeleting}
+      />
+
+      <ConfirmationDialog
+        isOpen={recurringDeleteConfirm.isOpen}
+        onConfirm={handleRecurringDeleteConfirm}
+        onCancel={recurringDeleteConfirm.closeDialog}
+        title="Elimina serie ricorrente"
+        message={`Sei sicuro di voler eliminare la serie "${recurringDeleteConfirm.itemToDelete?.description}"? Questa azione non può essere annullata.`}
+        confirmText="Elimina"
+        cancelText="Annulla"
+        variant="destructive"
+        isLoading={recurringDeleteConfirm.isDeleting}
       />
     </PageContainer>
   );

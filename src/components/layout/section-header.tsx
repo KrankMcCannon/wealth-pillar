@@ -7,6 +7,7 @@ interface SectionHeaderProps {
   title: string;
   icon?: LucideIcon;
   iconClassName?: string;
+  leading?: React.ReactNode;
   badge?: {
     text: string;
     className?: string;
@@ -16,25 +17,20 @@ interface SectionHeaderProps {
   children?: React.ReactNode;
 }
 
-export function SectionHeader({ 
-  title, 
-  icon: Icon, 
+export function SectionHeader({
+  title,
+  icon: Icon,
   iconClassName = "",
+  leading,
   badge,
   subtitle,
   className = "",
-  children
+  children,
 }: SectionHeaderProps) {
   return (
     <div className={`flex items-center justify-between mb-2 ${className}`}>
-      <div className="flex-1">
-        <Text
-          variant="heading"
-          size="lg"
-          as="h2"
-          className="flex items-center gap-2"
-        >
-          {Icon && <Icon className={`h-5 w-5 ${iconClassName}`} />}
+      <div className="flex flex-1 flex-col">
+        <Text variant="heading" size="lg" as="h2">
           {title}
         </Text>
         {subtitle && (
@@ -43,16 +39,12 @@ export function SectionHeader({
           </Text>
         )}
       </div>
-      {badge && (
-        <Badge className={badge.className}>
-          {badge.text}
-        </Badge>
-      )}
-      {children && (
-        <div className="flex items-center gap-2">
-          {children}
-        </div>
-      )}
+      <div className="flex items-center gap-2">
+        {Icon && <Icon className={`h-5 w-5 ${iconClassName}`} />}
+        {leading && <span className="shrink-0">{leading}</span>}
+        {badge && <Badge className={badge.className}>{badge.text}</Badge>}
+        {children}
+      </div>
     </div>
   );
 }

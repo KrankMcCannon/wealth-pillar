@@ -35,13 +35,14 @@ interface BudgetSectionProps {
   budgets: Budget[];
   selectedViewUserId?: string;
   isLoading?: boolean;
+  headerLeading?: React.ReactNode;
 }
 
 /**
  * Budget section component with enhanced UX and performance
  * Follows Single Responsibility Principle - only handles budget display
  */
-export const BudgetSection = ({ budgetsByUser, budgets, selectedViewUserId, isLoading }: BudgetSectionProps) => {
+export const BudgetSection = ({ budgetsByUser, budgets, selectedViewUserId, isLoading, headerLeading }: BudgetSectionProps) => {
   const router = useRouter();
 
   // Show skeleton only if actively loading AND no data received yet
@@ -92,6 +93,7 @@ export const BudgetSection = ({ budgetsByUser, budgets, selectedViewUserId, isLo
         title="Budget"
         subtitle={budgetEntries.length > 1 ? `${budgetEntries.length} utenti con budget attivi` : undefined}
         className="mb-3"
+        leading={headerLeading}
       />
 
       <div className="space-y-4">

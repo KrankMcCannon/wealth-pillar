@@ -4,7 +4,7 @@ import { Badge, Button, Card } from "@/src/components/ui";
 import { CategoryIcon, iconSizes, Transaction, Category } from "@/src/lib";
 import { CategoryService } from "@/lib/services";
 import { formatCurrency } from "@/lib/utils";
-import { Trash2 } from "lucide-react";
+import { useRef, useState } from "react";
 
 interface GroupedTransactionCardProps {
   transactions: Transaction[];
@@ -29,8 +29,18 @@ export function GroupedTransactionCard({
   onEditTransaction,
   onDeleteTransaction,
 }: GroupedTransactionCardProps) {
-  if (!transactions.length) return null;
+  const [openTransactionId, setOpenTransactionId] = useState<string | null>(null);
+  const [dragState, setDragState] = useState<{ id: string | null; offset: number }>({
+    id: null,
+    offset: 0,
+  });
+  const swipeStartRef = useRef({ id: "", x: 0, y: 0, moved: false });
+  const ACTION_WIDTH = 80;
+  const SWIPE_OPEN_THRESHOLD = ACTION_WIDTH / 2;
+  const RESISTANCE_START = ACTION_WIDTH * 0.6;
+  const DRAG_ACTIVATE_THRESHOLD = 8;
 
+  if (!transactions.length) return null;
   // Helper to get category label
   const getCategoryLabel = (categoryKey: string) => {
     return CategoryService.getCategoryLabel(categories, categoryKey);
@@ -127,6 +137,71 @@ export function GroupedTransactionCard({
     return "";
   };
 
+  const handlePointerDown = (transactionId: string, event: React.PointerEvent<HTMLDivElement>) => {
+    if (openTransactionId && openTransactionId !== transactionId) {
+      setOpenTransactionId(null);
+    }
+    swipeStartRef.current = {
+      id: transactionId,
+      x: event.clientX,
+      y: event.clientY,
+      moved: false,
+    };
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+
+  const handlePointerMove = (transactionId: string, event: React.PointerEvent<HTMLDivElement>) => {
+    if (swipeStartRef.current.id !== transactionId) return;
+    const deltaX = event.clientX - swipeStartRef.current.x;
+    const deltaY = event.clientY - swipeStartRef.current.y;
+
+    if (Math.abs(deltaX) < Math.abs(deltaY)) return;
+
+    if (!swipeStartRef.current.moved && Math.abs(deltaX) < DRAG_ACTIVATE_THRESHOLD) {
+      return;
+    }
+
+    swipeStartRef.current.moved = true;
+
+    if (deltaX >= 0) {
+      setDragState({ id: transactionId, offset: 0 });
+      return;
+    }
+
+    const abs = Math.abs(deltaX);
+    const resisted = abs > RESISTANCE_START
+      ? RESISTANCE_START + (abs - RESISTANCE_START) / 3
+      : abs;
+    const clamped = -Math.min(resisted, ACTION_WIDTH);
+    setDragState({ id: transactionId, offset: clamped });
+  };
+
+  const handlePointerUp = (transactionId: string, event: React.PointerEvent<HTMLDivElement>) => {
+    if (swipeStartRef.current.id !== transactionId) return;
+    const deltaX = event.clientX - swipeStartRef.current.x;
+    const deltaY = event.clientY - swipeStartRef.current.y;
+
+    event.currentTarget.releasePointerCapture(event.pointerId);
+
+    if (!swipeStartRef.current.moved) {
+      setDragState({ id: null, offset: 0 });
+      return;
+    }
+
+    if (Math.abs(deltaX) < Math.abs(deltaY)) {
+      setDragState({ id: null, offset: 0 });
+      return;
+    }
+
+    if (deltaX <= -SWIPE_OPEN_THRESHOLD) {
+      setOpenTransactionId(transactionId);
+    } else {
+      setOpenTransactionId(null);
+    }
+
+    setDragState({ id: null, offset: 0 });
+  };
+
   return (
     <Card className={`${getCardStyles()} rounded-2xl overflow-hidden`}>
       {/* Optional Header with Total */}
@@ -146,64 +221,131 @@ export function GroupedTransactionCard({
         {transactions.map((transaction, index) => (
           <div
             key={transaction.id || index}
-            className="px-3 py-2 hover:bg-accent/10 transition-colors duration-200 group relative"
+            className="relative overflow-hidden touch-pan-y"
+            onPointerDown={(event) => handlePointerDown(transaction.id, event)}
+            onPointerMove={(event) => handlePointerMove(transaction.id, event)}
+            onPointerUp={(event) => handlePointerUp(transaction.id, event)}
+            onPointerCancel={() => {
+              setOpenTransactionId(null);
+              setDragState({ id: null, offset: 0 });
+            }}
           >
-            <div className="flex items-center justify-between gap-2">
+            {onDeleteTransaction && (
               <div
-                className="flex items-center gap-2.5 flex-1 min-w-0 cursor-pointer"
-                onClick={() => onEditTransaction?.(transaction)}
+                className="absolute inset-y-0 right-0 left-0"
+                style={{
+                  opacity:
+                    dragState.id === transaction.id
+                      ? Math.min(1, Math.abs(dragState.offset) / 24)
+                      : openTransactionId === transaction.id
+                        ? 1
+                        : 0,
+                  pointerEvents:
+                    dragState.id === transaction.id || openTransactionId === transaction.id ? "auto" : "none",
+                }}
               >
                 <div
-                  className={`flex size-8 items-center justify-center rounded-lg ${getTransactionIconColor(
-                    transaction,
-                  )} shadow-sm group-hover:shadow-md transition-all duration-200 shrink-0`}
+                  className="absolute inset-y-0 right-0 bg-destructive/15"
+                  style={{
+                    width:
+                      dragState.id === transaction.id
+                        ? `${Math.min(ACTION_WIDTH, Math.abs(dragState.offset))}px`
+                        : openTransactionId === transaction.id
+                          ? `${ACTION_WIDTH}px`
+                          : "0px",
+                  }}
+                />
+                <div
+                  className="relative flex h-full items-center justify-end px-2"
+                  style={{
+                    transform:
+                      dragState.id === transaction.id
+                        ? `translateX(${Math.max(
+                            0,
+                            (ACTION_WIDTH - Math.abs(dragState.offset)) / 2,
+                          )}px)`
+                        : openTransactionId === transaction.id
+                          ? "translateX(0px)"
+                          : `translateX(${ACTION_WIDTH / 2}px)`,
+                  }}
                 >
-                  <CategoryIcon categoryKey={transaction.category} size={iconSizes.xs} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h4 className="font-medium transition-colors truncate text-sm">{transaction.description}</h4>
-                  <div className="flex items-center gap-1.5 mt-0.5">
-                    <span className="text-xs text-black/60">{getCategoryLabel(transaction.category)}</span>
-                    {variant === "regular" && transaction.account_id && accountNames[transaction.account_id] && (
-                      <>
-                        <span className="text-xs text-primary/40">•</span>
-                        <span className="text-xs text-black/50">{accountNames[transaction.account_id]}</span>
-                      </>
-                    )}
-                    {variant === "recurrent" && transaction.frequency && (
-                      <>
-                        <span className="text-xs text-primary/40">•</span>
-                        <Badge
-                          variant="outline"
-                          className={`text-xs ${getTransactionBadgeColor(
-                            transaction,
-                          )} font-medium px-1 py-0 scale-75 origin-left`}
-                        >
-                          {transaction.frequency}
-                        </Badge>
-                      </>
-                    )}
-                  </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 px-2 text-destructive hover:bg-destructive/20"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    onDeleteTransaction(transaction.id);
+                  }}
+                >
+                  Elimina
+                </Button>
                 </div>
               </div>
+            )}
 
-              {/* Amount and Delete Button */}
-              <div className="flex items-center gap-2">
-                {/* Delete Button - visible on hover */}
-                {onDeleteTransaction && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 w-7 p-0 text-primary opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive/10 hover:text-destructive"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onDeleteTransaction(transaction.id);
-                    }}
+            <div
+              className="px-3 py-2 hover:bg-accent/10"
+              style={{
+                transform:
+                  dragState.id === transaction.id
+                    ? `translateX(${dragState.offset}px)`
+                    : openTransactionId === transaction.id && onDeleteTransaction
+                      ? `translateX(-${ACTION_WIDTH}px)`
+                      : "translateX(0px)",
+                transition:
+                  dragState.id === transaction.id
+                    ? "none"
+                    : "transform 200ms ease, background-color 200ms ease",
+                willChange: "transform",
+              }}
+            >
+              <div className="flex items-center justify-between gap-2">
+                <div
+                  className="flex items-center gap-2.5 flex-1 min-w-0 cursor-pointer"
+                  onClick={() => {
+                    if (openTransactionId === transaction.id) {
+                      setOpenTransactionId(null);
+                      return;
+                    }
+                    onEditTransaction?.(transaction);
+                  }}
+                >
+                  <div
+                    className={`flex size-8 items-center justify-center rounded-lg ${getTransactionIconColor(
+                      transaction,
+                    )} shadow-sm transition-all duration-200 shrink-0`}
                   >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
-                )}
+                    <CategoryIcon categoryKey={transaction.category} size={iconSizes.xs} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-medium transition-colors truncate text-sm">{transaction.description}</h4>
+                    <div className="flex items-center gap-1.5 mt-0.5">
+                      <span className="text-xs text-black/60">{getCategoryLabel(transaction.category)}</span>
+                      {variant === "regular" && transaction.account_id && accountNames[transaction.account_id] && (
+                        <>
+                          <span className="text-xs text-primary/40">•</span>
+                          <span className="text-xs text-black/50">{accountNames[transaction.account_id]}</span>
+                        </>
+                      )}
+                      {variant === "recurrent" && transaction.frequency && (
+                        <>
+                          <span className="text-xs text-primary/40">•</span>
+                          <Badge
+                            variant="outline"
+                            className={`text-xs ${getTransactionBadgeColor(
+                              transaction,
+                            )} font-medium px-1 py-0 scale-75 origin-left`}
+                          >
+                            {transaction.frequency}
+                          </Badge>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
 
+                {/* Amount */}
                 <div className="text-right">
                   <p className={`text-sm font-bold ${getTransactionAmountColor(transaction)}`} suppressHydrationWarning>
                     {formatCurrency(Math.abs(transaction.amount))}

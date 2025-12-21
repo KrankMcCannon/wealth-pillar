@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 import { BottomNavigation, PageContainer, PageHeaderWithBack } from "@/src/components/layout";
-import { useUserFilter, usePermissions } from "@/hooks";
+import { useUserFilter, usePermissions, useFilteredAccounts } from "@/hooks";
 import UserSelector from "@/src/components/shared/user-selector";
 import { TransactionSplitCard, BudgetPeriodsSection, reportsStyles } from "@/features/reports";
 import type { DashboardDataProps } from "@/lib/auth/get-dashboard-data";
@@ -65,19 +65,13 @@ export default function ReportsContent({
   }, [activeGroupFilter, groupUsers, isMember, currentUser]);
 
   // Get user account IDs for earned/spent calculation
-  // Members only see their own accounts
-  const userAccountIds = useMemo(() => {
-    if (isMember) {
-      // Members see only their own accounts
-      return accounts.filter((a) => a.user_ids.includes(currentUser.id)).map((a) => a.id);
-    }
-
-    // Admin logic
-    if (activeGroupFilter === "all") {
-      return accounts.map((a) => a.id);
-    }
-    return accounts.filter((a) => a.user_ids.includes(activeGroupFilter)).map((a) => a.id);
-  }, [activeGroupFilter, accounts, isMember, currentUser.id]);
+  // Using centralized account filtering hook
+  const { filteredAccounts: userAccounts } = useFilteredAccounts({
+    accounts,
+    currentUser,
+    selectedUserId: activeGroupFilter !== "all" ? activeGroupFilter : undefined,
+  });
+  const userAccountIds = useMemo(() => userAccounts.map((a) => a.id), [userAccounts]);
 
   // Calculate transaction split metrics (earned vs spent)
   const splitMetrics = useMemo(() => {

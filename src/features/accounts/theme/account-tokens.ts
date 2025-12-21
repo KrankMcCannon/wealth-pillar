@@ -25,7 +25,7 @@ export const accountSpacing = {
 export const accountComponents = {
   header: {
     container: 'sticky top-0 z-10 bg-[#F8FAFC]/95 backdrop-blur-sm border-b border-border',
-    inner: 'flex items-center justify-between px-4 py-4',
+    inner: 'flex items-center justify-between p-2',
     title: 'text-xl font-bold text-black',
     subtitle: 'text-xs text-muted-foreground',
     backButton: 'flex items-center justify-center w-9 h-9 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors',
@@ -52,7 +52,7 @@ export const accountComponents = {
   },
 
   slider: {
-    container: 'overflow-x-auto scrollbar-hide flex items-center',
+    container: 'overflow-x-auto scrollbar-hide flex items-center touch-pan-x touch-pan-y',
     inner: 'flex gap-3',
     cardWrapper: 'transform transition-all duration-300 hover:scale-[1.01] hover:shadow-md hover:shadow-muted/30',
     addPlaceholder: 'flex-shrink-0 w-60 h-24 border-2 border-dashed border-primary/30 rounded-lg flex items-center justify-center bg-primary/5 hover:border-primary/40 hover:bg-primary/10 transition-all duration-300 cursor-pointer group',

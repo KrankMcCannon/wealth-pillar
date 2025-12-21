@@ -14,11 +14,11 @@
  * Data is passed from Server Component for optimal performance
  */
 
-import { Suspense, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { Settings, Bell } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { BottomNavigation, PageContainer } from "@/components/layout";
-import { useUserFilter, usePermissions } from "@/hooks";
+import { useUserFilter, usePermissions, useFilteredAccounts, useBudgetsByUser } from "@/hooks";
 import { Button, IconContainer, Text } from "@/components/ui";
 import { RecurringTransactionSeries } from "@/src/lib";
 import {
@@ -31,9 +31,9 @@ import {
 } from "@/features/dashboard";
 import UserSelector from "@/components/shared/user-selector";
 import { BalanceSection } from "@/features/accounts";
-import { BudgetSection } from "@/features/budgets";
+import { BudgetPeriodManager, BudgetSection } from "@/features/budgets";
 import { RecurringSeriesForm, RecurringSeriesSection } from "@/features/recurring";
-import { AccountService, BudgetService } from "@/lib/services";
+import { AccountService } from "@/lib/services";
 import type { User, Account, Transaction, Budget, Category } from "@/lib/types";
 
 /**
@@ -77,17 +77,14 @@ export default function DashboardContent({
     selectedUserId: selectedGroupFilter !== "all" ? selectedGroupFilter : undefined,
   });
 
-  // Calculate budgets by user using BudgetService
-  // Members only see their own budgets
-  const budgetsByUser = useMemo(() => {
-    if (isMember) {
-      // Members see only their own budgets
-      const memberUsers = [currentUser];
-      return BudgetService.buildBudgetsByUser(memberUsers, budgets, transactions);
-    }
-    // Admins see filtered budgets based on selection
-    return BudgetService.buildBudgetsByUser(groupUsers, budgets, transactions);
-  }, [currentUser, groupUsers, budgets, transactions, isMember]);
+  // Calculate budgets by user using centralized hook
+  const { budgetsByUser } = useBudgetsByUser({
+    groupUsers,
+    budgets,
+    transactions,
+    currentUser,
+    selectedUserId,
+  });
 
   // Filter default accounts based on selected user and sort by balance
   // Members only see their own accounts
@@ -144,16 +141,12 @@ export default function DashboardContent({
   }, [selectedUserId, accounts, groupUsers, accountBalances, isMember, currentUser]);
 
   // Get all accounts for the selected user (or all accounts if "all" selected)
-  // Members only see their own accounts
-  const userAccounts = useMemo(() => {
-    if (isMember) {
-      return accounts.filter((acc) => acc.user_ids.includes(currentUser.id));
-    }
-    if (selectedUserId) {
-      return AccountService.filterAccountsByUser(accounts, selectedUserId);
-    }
-    return accounts;
-  }, [selectedUserId, accounts, isMember, currentUser.id]);
+  // Using centralized account filtering hook
+  const { filteredAccounts: userAccounts } = useFilteredAccounts({
+    accounts,
+    currentUser,
+    selectedUserId,
+  });
 
   // Calculate total account count for selected user
   const totalAccountsCount = userAccounts.length;
@@ -231,6 +224,38 @@ export default function DashboardContent({
     router.push("/settings");
   };
 
+  const [periodManagerUserId, setPeriodManagerUserId] = useState(
+    isMember ? currentUser.id : selectedUserId || currentUser.id,
+  );
+
+  useEffect(() => {
+    if (isMember) {
+      setPeriodManagerUserId(currentUser.id);
+      return;
+    }
+    if (selectedUserId) {
+      setPeriodManagerUserId(selectedUserId);
+    }
+  }, [isMember, currentUser.id, selectedUserId]);
+
+  const periodManagerData = useMemo(() => {
+    const targetUser = groupUsers.find((u) => u.id === periodManagerUserId) || currentUser;
+    const targetUserBudgets = budgets.filter((b) => b.user_id === targetUser.id && b.amount > 0);
+    const targetUserPeriod = targetUser.budget_periods?.find((p) => p.is_active && !p.end_date) || null;
+
+    return {
+      targetUser,
+      budgets: targetUserBudgets,
+      period: targetUserPeriod,
+    };
+  }, [periodManagerUserId, groupUsers, currentUser, budgets]);
+
+  const budgetPeriodTrigger = (
+    <Button variant="ghost" size="sm" className="h-7 px-2 text-xs font-semibold text-primary">
+      Chiudi Periodo
+    </Button>
+  );
+
   return (
     <PageContainer className={dashboardStyles.page.container}>
       {/* Mobile-First Header */}
@@ -301,6 +326,19 @@ export default function DashboardContent({
               budgets={budgets}
               selectedViewUserId={selectedUserId}
               isLoading={false}
+              headerLeading={
+                <BudgetPeriodManager
+                  currentUser={currentUser}
+                  groupUsers={groupUsers}
+                  selectedUserId={periodManagerUserId}
+                  currentPeriod={periodManagerData.period}
+                  transactions={transactions}
+                  userBudgets={periodManagerData.budgets}
+                  onUserChange={setPeriodManagerUserId}
+                  onSuccess={() => router.refresh()}
+                  trigger={budgetPeriodTrigger}
+                />
+              }
             />
           </Suspense>
         </div>

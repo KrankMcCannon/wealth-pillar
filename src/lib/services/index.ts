@@ -23,6 +23,7 @@ export { RecurringService } from './recurring.service';
 export { ReportPeriodService } from './report-period.service';
 export { TransactionService } from './transaction.service';
 export { UserService } from './user.service';
+export { PageDataService } from './page-data.service';
 
 // Export shared types
 export type { BudgetProgress, UserBudgetSummary } from './budget.service';

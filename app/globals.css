@@ -236,11 +236,20 @@ html {
   -moz-osx-font-smoothing: grayscale;
 }
 
+html,
+body {
+  height: 100%;
+  overscroll-behavior-y: auto;
+  touch-action: pan-y;
+}
+
 body {
   font-family: var(--font-sans), var(--font-geist-sans), system-ui, -apple-system, sans-serif;
   line-height: 1.6;
   background-color: oklch(var(--color-background));
   color: oklch(var(--color-foreground));
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* ============================================================================
