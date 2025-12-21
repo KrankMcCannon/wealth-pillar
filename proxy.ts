@@ -1,9 +1,9 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 
 /**
- * Clerk Middleware for Next.js 15
+ * Clerk Middleware for Next.js 16
  *
- * This middleware handles authentication across the application.
+ * This proxy handles authentication across the application.
  * It protects dashboard routes and allows public access to auth pages.
  */
 
