@@ -105,7 +105,7 @@ export const dashboardStyles = {
 
   // Recurring series section
   recurringSection: {
-    container: 'bg-card/80 backdrop-blur-sm shadow-lg shadow-muted/30 rounded-xl border border-white/50 mx-4 mb-4 p-4',
+    container: 'bg-card/80 backdrop-blur-sm shadow-lg shadow-muted/30 rounded-xl border border-white/50 mx-4 mb-4',
     header: 'mb-4',
     title: 'text-sm font-medium text-muted mb-3',
     grid: 'grid gap-3',

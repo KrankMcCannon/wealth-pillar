@@ -133,12 +133,6 @@ export function RecurringSeriesSection({
               </p>
             </div>
           </div>
-
-          {onCreateRecurringSeries && (
-            <Button variant="ghost" size="sm" onClick={onCreateRecurringSeries} className="h-8 px-2">
-              <Plus className="h-4 w-4" />
-            </Button>
-          )}
         </div>
 
         {/* Stats Section */}

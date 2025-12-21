@@ -10,7 +10,14 @@
 import { Suspense, useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { MoreVertical, Plus } from "lucide-react";
-import { useUserFilter, useFormModal, useDeleteConfirmation, useIdNameMap, usePermissions, useFilteredData } from "@/hooks";
+import {
+  useUserFilter,
+  useFormModal,
+  useDeleteConfirmation,
+  useIdNameMap,
+  usePermissions,
+  useFilteredData,
+} from "@/hooks";
 import { Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/src/components/ui";
 import { BottomNavigation, PageContainer, PageHeaderWithBack } from "@/src/components/layout";
 import TabNavigation from "@/src/components/shared/tab-navigation";
@@ -316,6 +323,13 @@ export default function TransactionsContent({
               >
                 <Plus className="mr-3 h-4 w-4" />
                 Aggiungi Transazione
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="text-sm font-medium text-primary hover:bg-primary hover:text-white rounded-lg px-3 py-2.5 cursor-pointer transition-colors"
+                onClick={recurringModal.openCreate}
+              >
+                <Plus className="mr-3 h-4 w-4" />
+                Aggiungi Ricorrenza
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
