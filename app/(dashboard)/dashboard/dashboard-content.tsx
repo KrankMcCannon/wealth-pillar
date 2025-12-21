@@ -251,7 +251,7 @@ export default function DashboardContent({
   }, [periodManagerUserId, groupUsers, currentUser, budgets]);
 
   const budgetPeriodTrigger = (
-    <Button variant="ghost" size="sm" className="h-7 px-2 text-xs font-semibold text-primary">
+    <Button variant="default" size="sm">
       Chiudi Periodo
     </Button>
   );

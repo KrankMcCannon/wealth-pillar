@@ -7,7 +7,7 @@
  * Data is passed from Server Component for optimal performance
  */
 
-import { Suspense, useState, useMemo, useEffect } from "react";
+import { Suspense, useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { MoreVertical, Plus } from "lucide-react";
 import { useUserFilter, useFormModal, useDeleteConfirmation, useIdNameMap, usePermissions, useFilteredData } from "@/hooks";
@@ -32,6 +32,7 @@ import { UserSelectorSkeleton } from "@/src/features/dashboard";
 import { RecurringSeriesSkeleton } from "@/src/features/transactions/components/transaction-skeletons";
 import type { User, Transaction, Category, Account, Budget } from "@/lib/types";
 import { TransactionService } from "@/lib/services";
+import { insertTransactionSorted, updateTransactionSorted, removeTransaction } from "@/lib/utils/transaction-sorting";
 import { deleteTransactionAction } from "@/features/transactions/actions/transaction-actions";
 import { deleteRecurringSeriesAction } from "@/features/recurring/actions/recurring-actions";
 
@@ -159,6 +160,28 @@ export default function TransactionsContent({
   // Optimistic UI state - local copy of transactions
   const [localTransactions, setLocalTransactions] = useState<Transaction[]>(transactions);
 
+  // Debounced refresh to prevent race conditions and flickering
+  const refreshTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const debouncedRefresh = useCallback(() => {
+    if (refreshTimeoutRef.current) {
+      clearTimeout(refreshTimeoutRef.current);
+    }
+
+    refreshTimeoutRef.current = setTimeout(() => {
+      router.refresh();
+    }, 300); // 300ms debounce
+  }, [router]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (refreshTimeoutRef.current) {
+        clearTimeout(refreshTimeoutRef.current);
+      }
+    };
+  }, []);
+
   // Create account names map for display using hook
   const accountNames = useIdNameMap(accounts);
 
@@ -198,11 +221,11 @@ export default function TransactionsContent({
 
   // Helper functions for optimistic updates (extracted to avoid deep nesting)
   const removeTransactionFromList = (transactionToRemove: Transaction) => {
-    setLocalTransactions((prev) => prev.filter((t) => t.id !== transactionToRemove.id));
+    setLocalTransactions((prev) => removeTransaction(prev, transactionToRemove.id));
   };
 
   const addTransactionToList = (transactionToAdd: Transaction) => {
-    setLocalTransactions((prev) => [...prev, transactionToAdd]);
+    setLocalTransactions((prev) => insertTransactionSorted(prev, transactionToAdd));
   };
 
   const handleDeleteConfirm = async () => {
@@ -221,7 +244,7 @@ export default function TransactionsContent({
           throw new Error(result.error);
         }
         // Success - cache revalidation happens in service, UI will refresh with server data
-        router.refresh();
+        debouncedRefresh();
       } catch (error) {
         // Revert on error
         addTransactionToList(transaction);
@@ -247,18 +270,15 @@ export default function TransactionsContent({
   };
 
   const handleFormSuccess = (transaction: Transaction, action: "create" | "update") => {
-    // Optimistic UI update
+    // Optimistic UI update with sorted insertion
     if (action === "create") {
-      setLocalTransactions((prev) => [transaction, ...prev]);
+      setLocalTransactions((prev) => insertTransactionSorted(prev, transaction));
     } else {
-      setLocalTransactions((prev) => {
-        const updateTransaction = (t: Transaction) => (t.id === transaction.id ? transaction : t);
-        return prev.map(updateTransaction);
-      });
+      setLocalTransactions((prev) => updateTransactionSorted(prev, transaction));
     }
 
-    // Cache revalidation happens in service, UI will refresh with server data
-    router.refresh();
+    // Debounced cache revalidation to prevent flickering during rapid operations
+    debouncedRefresh();
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 

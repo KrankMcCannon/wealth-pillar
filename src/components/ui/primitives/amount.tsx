@@ -34,7 +34,7 @@ export function Amount({
   const formatted = currency ? formatCurrency(value) : value.toFixed(2);
 
   return (
-    <span className={cn(amountVariants({ type, size, emphasis }), className)} suppressHydrationWarning {...props}>
+    <span className={cn(amountVariants({ type, size, emphasis }), className)} {...props}>
       {formatted}
     </span>
   );

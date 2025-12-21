@@ -27,7 +27,7 @@ export function BudgetMetrics({ viewModel, budgetAmount }: BudgetMetricsProps) {
         {/* Available Amount */}
         <div className={budgetStyles.metrics.item}>
           <p className={budgetStyles.metrics.label}>Disponibile</p>
-          <p className={`${budgetStyles.metrics.value} ${remainingColorClass}`} suppressHydrationWarning>
+          <p className={`${budgetStyles.metrics.value} ${remainingColorClass}`}>
             {formatCurrency(viewModel.remaining)}
           </p>
         </div>
@@ -35,17 +35,13 @@ export function BudgetMetrics({ viewModel, budgetAmount }: BudgetMetricsProps) {
         {/* Spent Amount */}
         <div className={budgetStyles.metrics.item}>
           <p className={`${budgetStyles.metrics.label} text-destructive`}>Speso</p>
-          <p className={`${budgetStyles.metrics.value} text-destructive`} suppressHydrationWarning>
-            {formatCurrency(viewModel.spent)}
-          </p>
+          <p className={`${budgetStyles.metrics.value} text-destructive`}>{formatCurrency(viewModel.spent)}</p>
         </div>
 
         {/* Total Budget */}
         <div className={budgetStyles.metrics.item}>
           <p className={budgetStyles.metrics.label}>Totale</p>
-          <p className={budgetStyles.metrics.value} suppressHydrationWarning>
-            {formatCurrency(budgetAmount)}
-          </p>
+          <p className={budgetStyles.metrics.value}>{formatCurrency(budgetAmount)}</p>
         </div>
       </div>
     );
@@ -57,17 +53,13 @@ export function BudgetMetrics({ viewModel, budgetAmount }: BudgetMetricsProps) {
       {/* Available Amount */}
       <div className={budgetStyles.metrics.item}>
         <p className={budgetStyles.metrics.label}>Disponibile</p>
-        <p className={budgetStyles.metrics.value} suppressHydrationWarning>
-          {formatCurrency(budgetAmount)}
-        </p>
+        <p className={budgetStyles.metrics.value}>{formatCurrency(budgetAmount)}</p>
       </div>
 
       {/* Total Budget */}
       <div className={budgetStyles.metrics.item}>
         <p className={budgetStyles.metrics.label}>Totale</p>
-        <p className={budgetStyles.metrics.value} suppressHydrationWarning>
-          {formatCurrency(budgetAmount)}
-        </p>
+        <p className={budgetStyles.metrics.value}>{formatCurrency(budgetAmount)}</p>
       </div>
     </div>
   );

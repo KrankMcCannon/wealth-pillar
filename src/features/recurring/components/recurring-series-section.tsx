@@ -66,11 +66,7 @@ export function RecurringSeriesSection({
     // Sort by days left (ascending)
     result = result
       .slice()
-      .sort(
-        (a, b) =>
-          RecurringService.calculateDaysUntilDue(a) -
-          RecurringService.calculateDaysUntilDue(b),
-      );
+      .sort((a, b) => RecurringService.calculateDaysUntilDue(a) - RecurringService.calculateDaysUntilDue(b));
 
     // Limit results if maxItems specified
     if (maxItems && maxItems > 0) {
@@ -154,9 +150,7 @@ export function RecurringSeriesSection({
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Entrate/mese</p>
-                <p className="text-sm font-semibold text-emerald-500" suppressHydrationWarning>
-                  +{formatCurrency(monthlyTotals.totalIncome)}
-                </p>
+                <p className="text-sm font-semibold text-emerald-500">+{formatCurrency(monthlyTotals.totalIncome)}</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -165,9 +159,7 @@ export function RecurringSeriesSection({
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Uscite/mese</p>
-                <p className="text-sm font-semibold text-red-500" suppressHydrationWarning>
-                  -{formatCurrency(monthlyTotals.totalExpenses)}
-                </p>
+                <p className="text-sm font-semibold text-red-500">-{formatCurrency(monthlyTotals.totalExpenses)}</p>
               </div>
             </div>
           </div>

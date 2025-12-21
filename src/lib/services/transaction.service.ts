@@ -417,15 +417,18 @@ export class TransactionService {
       // Invalidate relevant caches
       const tagsToInvalidate: string[] = [
         CACHE_TAGS.TRANSACTIONS,
+        CACHE_TAGS.ACCOUNTS,
         `account:${data.account_id}:transactions`,
         `group:${data.group_id}:transactions`,
       ];
       if (data.user_id) {
         tagsToInvalidate.push(`user:${data.user_id}:transactions`);
+        tagsToInvalidate.push(`user:${data.user_id}:budgets`);
       }
       if (data.to_account_id) {
         tagsToInvalidate.push(`account:${data.to_account_id}:transactions`);
       }
+      tagsToInvalidate.push(`group:${data.group_id}:budgets`);
       await revalidateCacheTags(tagsToInvalidate);
 
       return { data: transaction, error: null };
@@ -554,15 +557,17 @@ export class TransactionService {
       }
 
       // Invalidate relevant caches (both old and new values)
-      const tagsToInvalidate: string[] = [CACHE_TAGS.TRANSACTIONS];
+      const tagsToInvalidate: string[] = [CACHE_TAGS.TRANSACTIONS, CACHE_TAGS.ACCOUNTS];
 
       // Invalidate old user cache
       if (existing.user_id) {
         tagsToInvalidate.push(`user:${existing.user_id}:transactions`);
+        tagsToInvalidate.push(`user:${existing.user_id}:budgets`);
       }
       // Invalidate new user cache if changed
       if (data.user_id && data.user_id !== existing.user_id) {
         tagsToInvalidate.push(`user:${data.user_id}:transactions`);
+        tagsToInvalidate.push(`user:${data.user_id}:budgets`);
       }
 
       // Invalidate old account caches
@@ -582,10 +587,12 @@ export class TransactionService {
       // Invalidate old group cache
       if (existing.group_id) {
         tagsToInvalidate.push(`group:${existing.group_id}:transactions`);
+        tagsToInvalidate.push(`group:${existing.group_id}:budgets`);
       }
       // Invalidate new group cache if changed
       if (data.group_id && data.group_id !== existing.group_id) {
         tagsToInvalidate.push(`group:${data.group_id}:transactions`);
+        tagsToInvalidate.push(`group:${data.group_id}:budgets`);
       }
 
       await revalidateCacheTags(tagsToInvalidate);
@@ -652,16 +659,19 @@ export class TransactionService {
       // Invalidate relevant caches
       const tagsToInvalidate: string[] = [
         CACHE_TAGS.TRANSACTIONS,
+        CACHE_TAGS.ACCOUNTS,
         `account:${existing.account_id}:transactions`,
       ];
       if (existing.user_id) {
         tagsToInvalidate.push(`user:${existing.user_id}:transactions`);
+        tagsToInvalidate.push(`user:${existing.user_id}:budgets`);
       }
       if (existing.to_account_id) {
         tagsToInvalidate.push(`account:${existing.to_account_id}:transactions`);
       }
       if (existing.group_id) {
         tagsToInvalidate.push(`group:${existing.group_id}:transactions`);
+        tagsToInvalidate.push(`group:${existing.group_id}:budgets`);
       }
       await revalidateCacheTags(tagsToInvalidate);
 

@@ -42,7 +42,13 @@ interface BudgetSectionProps {
  * Budget section component with enhanced UX and performance
  * Follows Single Responsibility Principle - only handles budget display
  */
-export const BudgetSection = ({ budgetsByUser, budgets, selectedViewUserId, isLoading, headerLeading }: BudgetSectionProps) => {
+export const BudgetSection = ({
+  budgetsByUser,
+  budgets,
+  selectedViewUserId,
+  isLoading,
+  headerLeading,
+}: BudgetSectionProps) => {
   const router = useRouter();
 
   // Show skeleton only if actively loading AND no data received yet
@@ -143,14 +149,11 @@ export const BudgetSection = ({ budgetsByUser, budgets, selectedViewUserId, isLo
                     {/* Budget Amount - Right Side */}
                     <div className="text-right">
                       <div className="text-sm font-bold">
-                        <span
-                          className={overallPercentage > 100 ? "text-destructive" : "text-primary"}
-                          suppressHydrationWarning
-                        >
+                        <span className={overallPercentage > 100 ? "text-destructive" : "text-primary"}>
                           {formatCurrency(totalSpent)}
                         </span>
                         <span className="text-primary/50 font-normal"> / </span>
-                        <span suppressHydrationWarning>{formatCurrency(totalBudget)}</span>
+                        <span>{formatCurrency(totalBudget)}</span>
                       </div>
                     </div>
                   </div>

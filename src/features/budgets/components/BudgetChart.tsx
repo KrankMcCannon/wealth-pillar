@@ -63,9 +63,7 @@ export function BudgetChart({ spent, chartData, periodInfo }: Readonly<BudgetCha
         <div className={budgetStyles.chart.header}>
           <div>
             <p className={budgetStyles.chart.headerLabel}>Hai speso</p>
-            <p className={budgetStyles.chart.headerAmount} suppressHydrationWarning>
-              {formatCurrency(spent)}
-            </p>
+            <p className={budgetStyles.chart.headerAmount}>{formatCurrency(spent)}</p>
           </div>
         </div>
 

@@ -294,7 +294,7 @@ export function BudgetPeriodManager({
                           <TrendingDown className="h-3 w-3 text-destructive" />
                           <p className="text-xs font-bold text-destructive uppercase tracking-wide">Speso</p>
                         </div>
-                        <p className="text-base sm:text-lg font-bold text-destructive" suppressHydrationWarning>
+                        <p className="text-base sm:text-lg font-bold text-destructive">
                           {formatCurrency(periodMetrics.totalSpent)}
                         </p>
                       </div>
@@ -303,7 +303,7 @@ export function BudgetPeriodManager({
                           <TrendingUp className="h-3 w-3 text-primary" />
                           <p className="text-xs font-bold text-primary uppercase tracking-wide">Risparmiato</p>
                         </div>
-                        <p className="text-base sm:text-lg font-bold text-primary" suppressHydrationWarning>
+                        <p className="text-base sm:text-lg font-bold text-primary">
                           {formatCurrency(periodMetrics.totalSaved)}
                         </p>
                       </div>
@@ -373,15 +373,13 @@ export function BudgetPeriodManager({
                         <div className="grid grid-cols-2 gap-2">
                           <div className="text-center p-2 bg-destructive/10 rounded-md">
                             <p className="text-xs font-bold text-destructive uppercase tracking-wide mb-0.5">Speso</p>
-                            <p className="text-sm font-bold text-destructive" suppressHydrationWarning>
+                            <p className="text-sm font-bold text-destructive">
                               {formatCurrency(period.total_spent || 0)}
                             </p>
                           </div>
                           <div className="text-center p-2 bg-primary/10 rounded-md">
                             <p className="text-xs font-bold text-primary uppercase tracking-wide mb-0.5">Risparmiato</p>
-                            <p className="text-sm font-bold text-primary" suppressHydrationWarning>
-                              {formatCurrency(period.total_saved || 0)}
-                            </p>
+                            <p className="text-sm font-bold text-primary">{formatCurrency(period.total_saved || 0)}</p>
                           </div>
                         </div>
                       </div>

@@ -169,9 +169,7 @@ export function GroupedTransactionCard({
     }
 
     const abs = Math.abs(deltaX);
-    const resisted = abs > RESISTANCE_START
-      ? RESISTANCE_START + (abs - RESISTANCE_START) / 3
-      : abs;
+    const resisted = abs > RESISTANCE_START ? RESISTANCE_START + (abs - RESISTANCE_START) / 3 : abs;
     const clamped = -Math.min(resisted, ACTION_WIDTH);
     setDragState({ id: transactionId, offset: clamped });
   };
@@ -260,26 +258,23 @@ export function GroupedTransactionCard({
                   style={{
                     transform:
                       dragState.id === transaction.id
-                        ? `translateX(${Math.max(
-                            0,
-                            (ACTION_WIDTH - Math.abs(dragState.offset)) / 2,
-                          )}px)`
+                        ? `translateX(${Math.max(0, (ACTION_WIDTH - Math.abs(dragState.offset)) / 2)}px)`
                         : openTransactionId === transaction.id
                           ? "translateX(0px)"
                           : `translateX(${ACTION_WIDTH / 2}px)`,
                   }}
                 >
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 px-2 text-destructive hover:bg-destructive/20"
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    onDeleteTransaction(transaction.id);
-                  }}
-                >
-                  Elimina
-                </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 px-2 text-destructive hover:bg-destructive/20"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      onDeleteTransaction(transaction.id);
+                    }}
+                  >
+                    Elimina
+                  </Button>
                 </div>
               </div>
             )}
@@ -294,9 +289,7 @@ export function GroupedTransactionCard({
                       ? `translateX(-${ACTION_WIDTH}px)`
                       : "translateX(0px)",
                 transition:
-                  dragState.id === transaction.id
-                    ? "none"
-                    : "transform 200ms ease, background-color 200ms ease",
+                  dragState.id === transaction.id ? "none" : "transform 200ms ease, background-color 200ms ease",
                 willChange: "transform",
               }}
             >
@@ -347,7 +340,7 @@ export function GroupedTransactionCard({
 
                 {/* Amount */}
                 <div className="text-right">
-                  <p className={`text-sm font-bold ${getTransactionAmountColor(transaction)}`} suppressHydrationWarning>
+                  <p className={`text-sm font-bold ${getTransactionAmountColor(transaction)}`}>
                     {formatCurrency(Math.abs(transaction.amount))}
                   </p>
                   {variant === "recurrent" && transaction.frequency && transaction.frequency !== "once" && (
