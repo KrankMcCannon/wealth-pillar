@@ -1,7 +1,7 @@
 import { CACHE_TAGS, cached, cacheOptions, transactionCacheKeys } from '@/lib/cache';
 import { supabaseServer } from '@/lib/database/server';
 import type { Database } from '@/lib/database/types';
-import type { Transaction, TransactionType } from '@/lib/types';
+import type { Transaction, TransactionType, CategoryBreakdownItem } from '@/lib/types';
 import {
   DateTime,
   formatDateSmart,
@@ -10,6 +10,7 @@ import {
   toDateTime,
 } from '@/lib/utils/date-utils';
 import type { ServiceResult } from './user.service';
+import { FinanceLogicService } from './finance-logic.service';
 
 /**
  * Helper to revalidate cache tags (dynamically imported to avoid client-side issues)
@@ -689,70 +690,37 @@ export class TransactionService {
 
   /**
    * Calculate report metrics from transactions
-   * Used for generating financial reports and analytics
-   * Note: Excludes transfer transactions (they don't affect income/expense metrics)
-   *
-   * @param transactions - Array of transactions to analyze
-   * @param userId - Optional user ID to filter by specific user
-   * @returns Report metrics including income, expenses, savings, and category breakdown
-   *
-   * @example
-   * const { data: transactions } = await TransactionService.getTransactionsByGroup(groupId);
-   * const metrics = TransactionService.calculateReportMetrics(transactions, userId);
-   *
-   * @complexity O(n) - Single pass for user filter, then O(n) for each calculation
    */
   static calculateReportMetrics(
     transactions: Transaction[],
     userId?: string
   ): ReportMetrics {
-    // Filter by user if specified, excluding transactions without user_id
-    // Also exclude transfer transactions (they don't affect income/expense)
-    // Complexity: O(n)
-    const filteredTransactions = userId
-      ? transactions.filter(
-        (t) => t.user_id === userId && t.type !== 'transfer'
-      )
-      : transactions.filter(
-        (t) => t.user_id !== null && t.type !== 'transfer'
-      );
+    const userIdFilter = userId || undefined;
+    const breakdown = FinanceLogicService.calculateCategoryBreakdown(
+      transactions.filter(t => !userIdFilter || t.user_id === userIdFilter)
+    );
 
-    // Single pass to calculate income, expenses, and category breakdown
-    // Complexity: O(n) - optimized to avoid multiple iterations
-    let income = 0;
-    let expenses = 0;
-    const categoryMap = new Map<string, number>();
+    const income = breakdown
+      .filter((item: CategoryBreakdownItem) => item.received > 0)
+      .reduce((sum: number, item: CategoryBreakdownItem) => sum + item.received, 0);
 
-    for (const t of filteredTransactions) {
-      if (t.type === 'income') {
-        income += t.amount;
-      } else if (t.type === 'expense') {
-        expenses += t.amount;
-        // Build category breakdown for expenses
-        const current = categoryMap.get(t.category) || 0;
-        categoryMap.set(t.category, current + t.amount);
-      }
-    }
+    const expenses = breakdown
+      .filter((item: CategoryBreakdownItem) => item.spent > 0)
+      .reduce((sum: number, item: CategoryBreakdownItem) => sum + item.spent, 0);
 
     const netSavings = income - expenses;
     const savingsRate = income > 0 ? (netSavings / income) * 100 : 0;
-
-    // Convert to array and sort by amount (descending)
-    // Complexity: O(m log m) where m is number of unique categories (typically small)
-    const categories: CategoryMetric[] = Array.from(categoryMap.entries())
-      .map(([name, amount]) => ({
-        name,
-        amount,
-        percentage: expenses > 0 ? (amount / expenses) * 100 : 0,
-      }))
-      .sort((a, b) => b.amount - a.amount);
 
     return {
       income,
       expenses,
       netSavings,
       savingsRate,
-      categories,
+      categories: breakdown.map((item: CategoryBreakdownItem) => ({
+        name: item.category,
+        amount: item.spent,
+        percentage: item.percentage
+      }))
     };
   }
 
@@ -824,26 +792,13 @@ export class TransactionService {
 
   /**
    * Filter transactions by month and year
-   * Used for monthly reports and analytics
-   *
-   * @param transactions - Array of transactions to filter
-   * @param year - Year to filter by
-   * @param month - Month to filter by (0-11, JavaScript Date format)
-   * @returns Filtered transactions for the specified month
-   *
-   * @example
-   * const monthlyTransactions = TransactionService.filterByMonth(transactions, 2025, 0); // January 2025
    */
   static filterByMonth(
     transactions: Transaction[],
     year: number,
     month: number
   ): Transaction[] {
-    return transactions.filter((t) => {
-      const txDate = toDateTime(t.date);
-      if (!txDate) return false;
-      return txDate.year === year && txDate.month === month;
-    });
+    return FinanceLogicService.filterByMonth(transactions, year, month);
   }
 
   /**
@@ -993,45 +948,19 @@ export class TransactionService {
   }
 
   /**
-   * Calculate balance from transactions of a specific category (Pure business logic)
-   * Useful for calculating category-specific balances like "risparmi" (savings)
-   *
-   * Balance calculation:
-   * - Income type: add amount
-   * - Expense type: subtract amount
-   * - Transfer type: ignored (doesn't affect category balance)
-   *
-   * @param transactions - All transactions
-   * @param categoryKey - Category to calculate balance for
-   * @returns Total balance for the category
-   *
-   * @example
-   * const risparmiBalance = TransactionService.calculateCategoryBalance(transactions, 'risparmi');
-   *
-   * @complexity O(n)
+   * Calculate balance from transactions of a specific category
    */
   static calculateCategoryBalance(
     transactions: Transaction[],
     categoryKey: string
   ): number {
-    return transactions.reduce((balance, transaction) => {
-      // Only process transactions matching the category
-      if (transaction.category !== categoryKey) {
+    return transactions
+      .filter((t) => t.category === categoryKey)
+      .reduce((balance, transaction) => {
+        if (transaction.type === 'income') return balance + transaction.amount;
+        if (transaction.type === 'expense') return balance - transaction.amount;
         return balance;
-      }
-
-      // Income adds to balance
-      if (transaction.type === 'income') {
-        return balance + transaction.amount;
-      }
-      // Expense subtracts from balance
-      else if (transaction.type === 'expense') {
-        return balance - transaction.amount;
-      }
-
-      // Transfers are ignored for category balance
-      return balance;
-    }, 0);
+      }, 0);
   }
 
   /**
@@ -1127,100 +1056,24 @@ export class TransactionService {
     userAccountIds: string[],
     userId?: string
   ): number {
-    return transactions.reduce((sum, t) => {
-      // Filter by user if specified (skip if "all members")
-      if (userId && t.user_id !== userId) {
-        return sum;
-      }
-
-      // Income transactions where account belongs to user
-      if (t.type === 'income' && userAccountIds.includes(t.account_id)) {
-        return sum + t.amount;
-      }
-
-      // Incoming transfers (to_account_id matches user's accounts)
-      if (
-        t.type === 'transfer' &&
-        t.to_account_id &&
-        userAccountIds.includes(t.to_account_id)
-      ) {
-        return sum + t.amount;
-      }
-
-      return sum;
-    }, 0);
+    return FinanceLogicService.calculateTotalIn(transactions, userAccountIds, userId);
   }
 
-  /**
-   * Calculate total spent amount from transactions
-   * Includes: expense transactions + transfers FROM user's accounts
-   *
-   * @param transactions - All transactions to analyze
-   * @param userAccountIds - Array of account IDs belonging to the user
-   * @param userId - Optional user ID to filter transactions (omit for "all members")
-   * @returns Total spent amount
-   *
-   * @example
-   * const spent = TransactionService.calculateSpent(transactions, ['acc1', 'acc2'], 'user123');
-   *
-   * @complexity O(n) - Single pass through transactions
-   */
   static calculateSpent(
     transactions: Transaction[],
     userAccountIds: string[],
     userId?: string
   ): number {
-    return transactions.reduce((sum, t) => {
-      // Filter by user if specified (skip if "all members")
-      if (userId && t.user_id !== userId) {
-        return sum;
-      }
-
-      // Expense transactions where account belongs to user
-      if (t.type === 'expense' && userAccountIds.includes(t.account_id)) {
-        return sum + t.amount;
-      }
-
-      // Outgoing transfers (account_id matches user's accounts)
-      if (
-        t.type === 'transfer' &&
-        userAccountIds.includes(t.account_id)
-      ) {
-        return sum + t.amount;
-      }
-
-      return sum;
-    }, 0);
+    return FinanceLogicService.calculateTotalOut(transactions, userAccountIds, userId);
   }
 
   /**
    * Filter transactions within a budget period date range
-   *
-   * @param transactions - All transactions to filter
-   * @param period - Budget period with start_date and end_date
-   * @returns Filtered transactions within the period
-   *
-   * @example
-   * const periodTxns = TransactionService.filterByBudgetPeriod(transactions, budgetPeriod);
-   *
-   * @complexity O(n) - Single pass filter
    */
   static filterByBudgetPeriod(
     transactions: Transaction[],
     period: { start_date: string | Date; end_date: string | Date | null }
   ): Transaction[] {
-    const periodStart = toDateTime(period.start_date);
-    if (!periodStart) return [];
-    const normalizedStart = periodStart.startOf('day');
-
-    const periodEnd = period.end_date ? toDateTime(period.end_date) : luxonToday();
-    if (!periodEnd) return [];
-    const normalizedEnd = periodEnd.endOf('day');
-
-    return transactions.filter((t) => {
-      const txDate = toDateTime(t.date);
-      if (!txDate) return false;
-      return txDate >= normalizedStart && txDate <= normalizedEnd;
-    });
+    return FinanceLogicService.filterTransactionsByPeriod(transactions, period.start_date, period.end_date);
   }
 }

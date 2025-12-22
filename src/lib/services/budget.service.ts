@@ -9,6 +9,7 @@ import {
   toDateTime,
 } from '@/lib/utils/date-utils';
 import type { ServiceResult } from './user.service';
+import { FinanceLogicService } from './finance-logic.service';
 
 /**
  * Helper to revalidate cache tags (dynamically imported to avoid client-side issues)
@@ -592,37 +593,17 @@ export class BudgetService {
     periodStart: DateTime | null,
     periodEnd: DateTime | null
   ): Transaction[] {
-    // If no active period, return empty array
     if (!periodStart) return [];
 
-    // OPTIMIZATION: Use Set for O(1) category lookup instead of O(k) array.includes()
-    // This reduces complexity from O(p × k) to O(p) where p=transactions, k=categories
-    const categorySet = new Set(budget.categories);
+    // 1. Filter by period
+    const periodTransactions = FinanceLogicService.filterTransactionsByPeriod(
+      transactions,
+      periodStart,
+      periodEnd
+    );
 
-    // Start of day for comparison
-    const normalizedStart = periodStart.startOf('day');
-
-    return transactions.filter((t) => {
-      // Check if transaction category is in budget categories - O(1) with Set
-      if (!categorySet.has(t.category)) return false;
-
-      // Check if transaction date is within period
-      const txDate = toDateTime(t.date);
-      if (!txDate) return false;
-
-      const normalizedTxDate = txDate.startOf('day');
-
-      // Include transactions on or after start date
-      if (normalizedTxDate < normalizedStart) return false;
-
-      // Exclude transactions on or after end date (if end date exists)
-      if (periodEnd) {
-        const normalizedEnd = periodEnd.startOf('day');
-        if (normalizedTxDate >= normalizedEnd) return false;
-      }
-
-      return true;
-    });
+    // 2. Filter by budget categories
+    return FinanceLogicService.filterByCategories(periodTransactions, budget.categories);
   }
 
   /**

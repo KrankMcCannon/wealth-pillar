@@ -25,7 +25,7 @@ export function AccountCard({ account, accountBalance, onClick }: Readonly<Accou
   const primaryContent = (
     <Amount
       type={isNegative ? 'expense' : 'income'}
-      size="sm"
+      size="md"
       emphasis="strong"
     >
       {Math.abs(accountBalance)}

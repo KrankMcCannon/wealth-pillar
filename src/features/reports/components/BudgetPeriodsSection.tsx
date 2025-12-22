@@ -98,10 +98,11 @@ export function BudgetPeriodsSection({
           endDate={period.end_date}
           userName={period.userName}
           userId={period.user_id}
-          categoryBreakdown={period.categoryBreakdown}
-          transactions={period.transactions}
+          userAccountIds={accounts
+            .filter((acc) => acc.user_ids.includes(period.user_id))
+            .map((acc) => acc.id)}
+          allTransactions={period.transactions} // Note: The sectional service already filters these by user
           categories={categories}
-          accounts={accounts}
           isExpanded={expandedPeriods.has(period.id)}
           onToggle={() => togglePeriod(period.id)}
           showUserName={showUserNames}

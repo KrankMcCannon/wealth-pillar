@@ -18,12 +18,11 @@ import {
   Wallet,
   PiggyBank,
 } from "lucide-react";
-import type { Transaction, Category, Account } from "@/lib/types";
-import type { CategoryBreakdownItem } from "@/lib/services/report-period.service";
-import { BudgetService, CategoryService, ReportPeriodService } from "@/lib/services";
+import type { Transaction, Category, CategoryBreakdownItem } from "@/lib/types";
+import { BudgetService, CategoryService, FinanceLogicService } from "@/lib/services";
 import { ReportMetricsService } from "@/lib/services/report-metrics.service";
 import { CategoryIcon, iconSizes } from "@/lib";
-import { formatDateShort, toDateTime } from "@/lib/utils/date-utils";
+import { formatDateShort } from "@/lib/utils/date-utils";
 import { reportsStyles } from "../theme/reports-styles";
 import { cn } from "@/lib/utils/ui-variants";
 import { PeriodMetricsCard } from "./PeriodMetricsCard";
@@ -33,51 +32,56 @@ export interface BudgetPeriodCardProps {
   endDate: string | Date | null;
   userName: string;
   userId: string;
-  categoryBreakdown: CategoryBreakdownItem[];
-  transactions: Transaction[];
+  userAccountIds: string[]; // Pass pre-filtered account IDs
+  allTransactions: Transaction[]; // All transactions for the user
   categories: Category[];
-  accounts: Account[];
   isExpanded: boolean;
   onToggle: () => void;
   showUserName?: boolean;
 }
 
-export function BudgetPeriodCard({
+const BudgetPeriodCardComponent = ({
   startDate,
   endDate,
   userName,
   userId,
-  categoryBreakdown,
-  transactions,
+  userAccountIds,
+  allTransactions,
   categories,
-  accounts,
   isExpanded,
   onToggle,
   showUserName = false,
-}: Readonly<BudgetPeriodCardProps>) {
+}: Readonly<BudgetPeriodCardProps>) => {
   const periodStartFormatted = BudgetService.formatPeriodDate(startDate);
   const periodEndFormatted = endDate ? BudgetService.formatPeriodDate(endDate) : "In corso";
 
+  // Filter transactions for the current period and user
+  const periodTransactions = React.useMemo(() => {
+    return FinanceLogicService.filterTransactionsByPeriod(
+      allTransactions,
+      startDate,
+      endDate
+    ).filter((t: Transaction) => t.user_id === userId);
+  }, [allTransactions, startDate, endDate, userId]);
+
   // Calculate account-based and budget-based metrics for this period
-  const userAccountIds = accounts
-    .filter((acc) => acc.user_ids.includes(userId))
-    .map((acc) => acc.id);
+  const accountMetrics = React.useMemo(() => {
+    return ReportMetricsService.calculateAccountBasedMetrics(
+      periodTransactions,
+      userAccountIds
+    );
+  }, [periodTransactions, userAccountIds]);
 
-  const periodTransactions = ReportPeriodService.filterTransactionsByPeriod(
-    transactions,
-    startDate,
-    endDate
-  ).filter((t) => t.user_id === userId);
+  const budgetMetrics = React.useMemo(() => {
+    return ReportMetricsService.calculateBudgetBasedMetrics(
+      periodTransactions,
+      userAccountIds
+    );
+  }, [periodTransactions, userAccountIds]);
 
-  const accountMetrics = ReportMetricsService.calculateAccountBasedMetrics(
-    periodTransactions,
-    userAccountIds
-  );
-
-  const budgetMetrics = ReportMetricsService.calculateBudgetBasedMetrics(
-    periodTransactions,
-    userAccountIds
-  );
+  const categoryBreakdown = React.useMemo(() => {
+    return FinanceLogicService.calculateCategoryBreakdown(periodTransactions);
+  }, [periodTransactions]);
 
   // Ref for auto-scroll when expanded
   const cardRef = React.useRef<HTMLDivElement>(null);
@@ -234,7 +238,7 @@ export function BudgetPeriodCard({
             <p className="text-sm text-muted-foreground text-center py-8">Nessuna transazione in questo periodo</p>
           ) : (
             <div className="space-y-3">
-              {categoryBreakdown.map((item) => {
+              {categoryBreakdown.map((item: CategoryBreakdownItem) => {
                 const categoryLabel = CategoryService.getCategoryLabel(categories, item.category);
                 const categoryColor = CategoryService.getCategoryColor(categories, item.category);
                 const isNetSpending = item.net > 0;
@@ -332,12 +336,12 @@ export function BudgetPeriodCard({
       {isExpanded && (
         <div className="border-t border-primary/10">
           <div className="p-4 bg-card/50">
-            <p className="text-xs font-semibold text-muted-foreground mb-3">Transazioni ({transactions.length})</p>
-            {transactions.length === 0 ? (
+            <p className="text-xs font-semibold text-muted-foreground mb-3">Transazioni ({periodTransactions.length})</p>
+            {periodTransactions.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-8">Nessuna transazione in questo periodo</p>
             ) : (
               <div className="space-y-2">
-                {transactions.map((transaction) => {
+                {periodTransactions.map((transaction) => {
                   const categoryLabel = CategoryService.getCategoryLabel(categories, transaction.category);
                   const categoryColor = CategoryService.getCategoryColor(categories, transaction.category);
 
@@ -388,4 +392,18 @@ export function BudgetPeriodCard({
       )}
     </Card>
   );
-}
+};
+
+// Optimized with React.memo to prevent unnecessary re-renders in large lists
+export const BudgetPeriodCard = React.memo(BudgetPeriodCardComponent, (prev, next) => {
+  return (
+    prev.isExpanded === next.isExpanded &&
+    prev.userId === next.userId &&
+    prev.startDate === next.startDate &&
+    prev.endDate === next.endDate &&
+    prev.allTransactions === next.allTransactions &&
+    prev.userAccountIds === next.userAccountIds
+  );
+});
+
+export default BudgetPeriodCard;

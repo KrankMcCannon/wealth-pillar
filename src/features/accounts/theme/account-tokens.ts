@@ -33,11 +33,11 @@ export const accountComponents = {
   },
 
   balanceCard: {
-    container: 'bg-card rounded-2xl p-6 border border-primary/20 shadow-xl',
+    container: 'bg-card rounded-2xl p-3 border border-primary/20 shadow-xl',
     header: 'flex items-center justify-between mb-4',
     icon: 'flex items-center justify-center w-14 h-14 rounded-full bg-primary/10',
     label: 'text-sm text-muted-foreground mb-1',
-    value: 'text-3xl font-bold',
+    value: 'text-2xl font-bold',
     statsGrid: 'grid grid-cols-3 gap-3 mt-6',
     statItem: 'rounded-lg p-3 border',
     statItemPrimary: 'bg-primary/5 border-primary/10',

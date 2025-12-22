@@ -68,10 +68,10 @@ export interface DomainCardProps {
 }
 
 const variantStyles = {
-  regular: "p-3 mb-2 bg-card/80 backdrop-blur-sm shadow-lg border border-border hover:shadow-xl",
-  interactive: "p-3 mb-2 bg-card/80 backdrop-blur-sm shadow-lg border border-border hover:shadow-xl cursor-pointer hover:scale-[1.01]",
-  highlighted: "p-4 bg-primary/10 backdrop-blur-sm border border-primary/20 hover:shadow-xl hover:shadow-primary/20",
-  muted: "p-3 mb-2 bg-muted/50 border border-border/50",
+  regular: "p-2 mb-2 bg-card/80 backdrop-blur-sm shadow-lg border border-border hover:shadow-xl",
+  interactive: "p-2 mb-2 bg-card/80 backdrop-blur-sm shadow-lg border border-border hover:shadow-xl cursor-pointer hover:scale-[1.01]",
+  highlighted: "p-2 bg-primary/10 backdrop-blur-sm border border-primary/20 hover:shadow-xl hover:shadow-primary/20",
+  muted: "p-2 mb-2 bg-muted/50 border border-border/50",
 };
 
 export function DomainCard({
@@ -108,11 +108,11 @@ export function DomainCard({
       onKeyDown={
         isInteractive && !isDisabled
           ? (e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                onClick?.();
-              }
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              onClick?.();
             }
+          }
           : undefined
       }
       data-testid={testId}
