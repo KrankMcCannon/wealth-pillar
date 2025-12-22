@@ -5,168 +5,225 @@
 
 "use client";
 
+import * as React from "react";
 import { Card, Badge } from "@/components/ui";
 import { Amount } from "@/components/ui/primitives";
 import {
   ChevronDown,
   ChevronUp,
   Calendar,
-  TrendingUp,
-  TrendingDown,
   ArrowUpRight,
   ArrowDownRight,
   ArrowLeftRight,
+  Wallet,
+  PiggyBank,
 } from "lucide-react";
-import type { Transaction, Category } from "@/lib/types";
+import type { Transaction, Category, Account } from "@/lib/types";
 import type { CategoryBreakdownItem } from "@/lib/services/report-period.service";
-import { CategoryService } from "@/lib/services";
+import { BudgetService, CategoryService, ReportPeriodService } from "@/lib/services";
+import { ReportMetricsService } from "@/lib/services/report-metrics.service";
 import { CategoryIcon, iconSizes } from "@/lib";
 import { formatDateShort, toDateTime } from "@/lib/utils/date-utils";
 import { reportsStyles } from "../theme/reports-styles";
 import { cn } from "@/lib/utils/ui-variants";
+import { PeriodMetricsCard } from "./PeriodMetricsCard";
 
 export interface BudgetPeriodCardProps {
   startDate: string | Date;
   endDate: string | Date | null;
   userName: string;
-  totalEarned: number;
-  totalSpent: number;
-  totalGain: number;
-  totalRealSpent: number;
-  totalRealReceived: number;
-  totalRealGain: number;
-  internalTransfers: number;
+  userId: string;
   categoryBreakdown: CategoryBreakdownItem[];
   transactions: Transaction[];
   categories: Category[];
+  accounts: Account[];
   isExpanded: boolean;
   onToggle: () => void;
-  showUserName?: boolean; // Show user name if displaying "all members"
+  showUserName?: boolean;
 }
 
 export function BudgetPeriodCard({
   startDate,
   endDate,
   userName,
-  totalRealSpent,
-  totalRealReceived,
-  totalRealGain,
-  internalTransfers,
+  userId,
   categoryBreakdown,
   transactions,
   categories,
+  accounts,
   isExpanded,
   onToggle,
   showUserName = false,
 }: Readonly<BudgetPeriodCardProps>) {
-  // Format period dates using toDateTime
-  const formatPeriodDate = (date: string | Date): string => {
-    const dt = toDateTime(date);
-    if (!dt) return "Data non valida";
+  const periodStartFormatted = BudgetService.formatPeriodDate(startDate);
+  const periodEndFormatted = endDate ? BudgetService.formatPeriodDate(endDate) : "In corso";
 
-    const day = dt.day;
-    const month = dt.toFormat("LLL", { locale: "it" });
-    const year = dt.year;
-    return `${day} ${month} ${year}`;
-  };
+  // Calculate account-based and budget-based metrics for this period
+  const userAccountIds = accounts
+    .filter((acc) => acc.user_ids.includes(userId))
+    .map((acc) => acc.id);
 
-  const periodStartFormatted = formatPeriodDate(startDate);
-  const periodEndFormatted = endDate ? formatPeriodDate(endDate) : "In corso";
+  const periodTransactions = ReportPeriodService.filterTransactionsByPeriod(
+    transactions,
+    startDate,
+    endDate
+  ).filter((t) => t.user_id === userId);
 
-  const isPositiveGain = totalRealGain >= 0;
+  const accountMetrics = ReportMetricsService.calculateAccountBasedMetrics(
+    periodTransactions,
+    userAccountIds
+  );
+
+  const budgetMetrics = ReportMetricsService.calculateBudgetBasedMetrics(
+    periodTransactions,
+    userAccountIds
+  );
+
+  // Ref for auto-scroll when expanded
+  const cardRef = React.useRef<HTMLDivElement>(null);
+
+  // Auto-scroll into view when expanded
+  React.useEffect(() => {
+    if (isExpanded && cardRef.current) {
+      setTimeout(() => {
+        cardRef.current?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'nearest',
+        });
+      }, 100);
+    }
+  }, [isExpanded]);
+
+  const styles = reportsStyles.budgetPeriodCard;
 
   return (
-    <Card className={reportsStyles.card.container}>
-      {/* Clickable Header */}
-      <button
-        onClick={onToggle}
-        className="w-full p-4 flex items-center justify-between hover:bg-primary/5 transition-colors"
-      >
-        <div className="flex-1 flex items-center gap-3">
-          {/* Calendar Icon */}
-          <div className="flex items-center justify-center h-10 w-10 rounded-lg bg-primary/10 text-primary shrink-0">
-            <Calendar className="h-5 w-5" />
-          </div>
+    <Card ref={cardRef} className={styles.container}>
+      {/* Header */}
+      <button onClick={onToggle} className={styles.header}>
+        {/* Calendar Icon */}
+        <div className={styles.headerIcon}>
+          <Calendar className={styles.headerIconSize} />
+        </div>
 
-          {/* Period Info */}
-          <div className="flex-1 text-left min-w-0">
-            <div className="flex items-center gap-2 mb-1">
-              <p className="text-sm font-semibold text-black truncate">
-                {periodStartFormatted} - {periodEndFormatted}
-              </p>
-              {showUserName && (
-                <Badge variant="secondary" className="text-xs">
-                  {userName}
-                </Badge>
-              )}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Clicca per {isExpanded ? "nascondere" : "vedere"} i dettagli
-            </p>
+        {/* Period Info */}
+        <div className={styles.headerContent}>
+          <div className={styles.headerTitleRow}>
+            <h3 className={styles.headerTitle}>
+              {periodStartFormatted} - {periodEndFormatted}
+            </h3>
+            {showUserName && (
+              <Badge variant="secondary" className={styles.headerBadge}>
+                {userName}
+              </Badge>
+            )}
           </div>
         </div>
 
-        {/* Gain Indicator & Chevron */}
-        <div className="flex items-center gap-3 shrink-0">
-          <div className={cn("flex flex-col items-end", isPositiveGain ? "text-emerald-600" : "text-red-600")}>
-            <p className="text-xs font-medium">{isPositiveGain ? "Saldo Reale" : "Perdita"}</p>
-            <Amount
-              type={isPositiveGain ? "income" : "expense"}
-              size="sm"
-              emphasis="strong"
-              className={isPositiveGain ? "text-emerald-700" : "text-red-700"}
-            >
-              {Math.abs(totalRealGain)}
-            </Amount>
+        {/* Chevron with detail label */}
+        <div className={styles.headerChevronContainer}>
+          <p className={styles.headerDetailLabel}>
+            {isExpanded ? "Nascondi" : "Mostra"}
+          </p>
+          <div className={styles.headerChevron}>
+            {isExpanded ? (
+              <ChevronUp className={styles.headerChevronIcon} />
+            ) : (
+              <ChevronDown className={styles.headerChevronIcon} />
+            )}
           </div>
-          {isExpanded ? (
-            <ChevronUp className="h-5 w-5 text-primary" />
-          ) : (
-            <ChevronDown className="h-5 w-5 text-primary" />
-          )}
         </div>
       </button>
 
-      {/* Metrics Section (Always Visible) - NET Analysis */}
-      <div className={cn(reportsStyles.card.divider, "grid grid-cols-3 gap-0")}>
-        {/* Real Income (Net Received) */}
-        <div className="p-4 border-r border-primary/10">
-          <div className="flex items-center gap-2 mb-2">
-            <TrendingUp className="h-4 w-4 text-emerald-600" />
-            <p className="text-xs font-medium text-muted-foreground">Entrate Nette</p>
+      {/* Metrics Grid */}
+      <div className={styles.metricsContainer}>
+        {/* Budget Balance (with internal transfers) */}
+        <div className={cn(styles.metricCard, styles.metricCardBudget)}>
+          <div className={styles.metricHeader}>
+            <div className={cn(styles.metricIconBadge, styles.metricIconBadgeDefault)}>
+              <PiggyBank className={cn(styles.metricIcon, styles.metricIconDefault)} />
+            </div>
+            <div className={styles.metricContent}>
+              <p className={cn(styles.metricLabel, styles.metricLabelDefault)}>
+                Budget (Con Trasf.)
+              </p>
+              <Amount
+                type={(budgetMetrics.balance + budgetMetrics.balance - accountMetrics.internalTransfers) >= 0 ? "income" : "expense"}
+                size="xl"
+                emphasis="strong"
+                className={cn(
+                  styles.metricValue,
+                  (budgetMetrics.balance + accountMetrics.internalTransfers) >= 0 ? styles.metricValuePositive : styles.metricValueNegative
+                )}
+              >
+                {budgetMetrics.balance + accountMetrics.internalTransfers}
+              </Amount>
+            </div>
           </div>
-          <Amount type="income" size="md" emphasis="strong" className="text-emerald-700">
-            {totalRealReceived}
-          </Amount>
         </div>
 
-        {/* Real Expenses (Net Spent) */}
-        <div className="p-4 border-r border-primary/10">
-          <div className="flex items-center gap-2 mb-2">
-            <TrendingDown className="h-4 w-4 text-red-600" />
-            <p className="text-xs font-medium text-muted-foreground">Uscite Nette</p>
+        {/* Budget Balance (without internal transfers) */}
+        <div className={cn(styles.metricCard, styles.metricCardAccount)}>
+          <div className={styles.metricHeader}>
+            <div className={cn(styles.metricIconBadge, styles.metricIconBadgeDefault)}>
+              <Wallet className={cn(styles.metricIcon, styles.metricIconDefault)} />
+            </div>
+            <div className={styles.metricContent}>
+              <p className={cn(styles.metricLabel, styles.metricLabelDefault)}>
+                Budget (Senza Trasf.)
+              </p>
+              <Amount
+                type={budgetMetrics.balance >= 0 ? "income" : "expense"}
+                size="xl"
+                emphasis="strong"
+                className={cn(
+                  styles.metricValue,
+                  budgetMetrics.balance >= 0 ? styles.metricValuePositive : styles.metricValueNegative
+                )}
+              >
+                {budgetMetrics.balance}
+              </Amount>
+            </div>
           </div>
-          <Amount type="expense" size="md" emphasis="strong" className="text-red-700">
-            {totalRealSpent}
-          </Amount>
         </div>
 
-        {/* Real Balance */}
-        <div className="p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <div className={cn("h-2 w-2 rounded-full", isPositiveGain ? "bg-emerald-600" : "bg-red-600")} />
-            <p className="text-xs font-medium text-muted-foreground">Saldo Reale</p>
+        {/* Total Internal Transfers */}
+        <div className={cn(styles.metricCard, styles.metricCardTransfer)}>
+          <div className={styles.metricHeader}>
+            <div className={cn(styles.metricIconBadge, styles.metricIconBadgeTransfer)}>
+              <ArrowLeftRight className={cn(styles.metricIcon, styles.metricIconTransfer)} />
+            </div>
+            <div className={styles.metricContent}>
+              <p className={cn(styles.metricLabel, styles.metricLabelTransfer)}>
+                Trasferimenti
+              </p>
+              <Amount
+                type="balance"
+                size="xl"
+                emphasis="strong"
+                className={cn(styles.metricValue, styles.metricValueTransfer)}
+              >
+                {accountMetrics.internalTransfers}
+              </Amount>
+            </div>
           </div>
-          <Amount
-            type={isPositiveGain ? "income" : "expense"}
-            size="md"
-            emphasis="strong"
-            className={isPositiveGain ? "text-emerald-700" : "text-red-700"}
-          >
-            {Math.abs(totalRealGain)}
-          </Amount>
         </div>
       </div>
+
+      {/* Dual Metrics Section (Account vs Budget) - Expandable */}
+      {isExpanded && (
+        <div className="p-4 border-t border-primary/10 bg-card/50">
+          <p className="text-xs font-semibold text-muted-foreground mb-3">Confronto Metriche</p>
+          <PeriodMetricsCard
+            accountMoneyIn={accountMetrics.moneyIn}
+            accountMoneyOut={accountMetrics.moneyOut}
+            accountBalance={accountMetrics.balance}
+            internalTransfers={accountMetrics.internalTransfers}
+            budgetIncrease={budgetMetrics.budgetIncrease}
+            budgetDecrease={budgetMetrics.budgetDecrease}
+            budgetBalance={budgetMetrics.balance}
+          />
+        </div>
+      )}
 
       {/* Expandable Category Breakdown Section */}
       {isExpanded && (
@@ -256,7 +313,7 @@ export function BudgetPeriodCard({
       )}
 
       {/* Internal Transfers Section (if any) */}
-      {isExpanded && internalTransfers > 0 && (
+      {isExpanded && accountMetrics.internalTransfers > 0 && (
         <div className="p-4 border-t border-primary/10 bg-amber-50/50">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -264,7 +321,7 @@ export function BudgetPeriodCard({
               <p className="text-xs font-semibold text-muted-foreground">Trasferimenti Interni</p>
             </div>
             <Amount type="balance" size="sm" emphasis="strong" className="text-amber-700">
-              {internalTransfers}
+              {accountMetrics.internalTransfers}
             </Amount>
           </div>
           <p className="text-xs text-muted-foreground mt-1">Movimenti tra i tuoi conti (esclusi dal calcolo)</p>

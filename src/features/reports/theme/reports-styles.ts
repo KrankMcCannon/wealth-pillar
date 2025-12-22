@@ -152,6 +152,129 @@ export const reportsStyles = {
     description: 'text-xs text-primary/70',
   },
 
+  // Period Metrics Card
+  periodMetricsCard: {
+    container: 'overflow-hidden',
+
+    // Tab navigation
+    tabContainer: 'flex border-b border-slate-200 dark:border-slate-800',
+    tabButton: 'flex-1 px-4 py-3 text-sm font-medium transition-all flex items-center justify-center gap-2',
+    tabActive: 'bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 border-b-2 border-slate-900 dark:border-slate-100',
+    tabInactive: 'text-slate-600 dark:text-slate-400 hover:bg-slate-50/50 dark:hover:bg-slate-900/50',
+    tabIcon: 'h-4 w-4',
+
+    // Content
+    content: 'p-4',
+    viewContainer: 'space-y-4',
+    description: 'text-xs text-slate-600 dark:text-slate-400',
+
+    // Metric row
+    metricRow: 'flex items-center justify-between',
+    metricLabel: 'text-sm text-slate-600 dark:text-slate-400',
+    metricValueIncome: 'text-emerald-600 dark:text-emerald-400',
+    metricValueExpense: 'text-red-600 dark:text-red-400',
+
+    // Internal transfers row
+    transfersRow: 'flex items-center justify-between pt-2 border-t border-slate-200 dark:border-slate-800',
+    transfersLabel: 'text-xs text-slate-500 dark:text-slate-500',
+    transfersValue: 'text-slate-500 dark:text-slate-500',
+
+    // Balance row
+    balanceRow: 'flex items-center justify-between pt-3 border-t-2 border-slate-300 dark:border-slate-700',
+    balanceLabel: 'text-base font-semibold text-slate-700 dark:text-slate-300',
+    balanceValuePositive: 'text-emerald-700 dark:text-emerald-400',
+    balanceValueNegative: 'text-red-700 dark:text-red-400',
+  },
+
+  // Reports Overview Card
+  reportsOverviewCard: {
+    container: 'grid grid-cols-2 gap-3 sm:gap-4',
+
+    // Earned card
+    earnedCard: 'p-4 bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-200/50 dark:border-emerald-800/50 hover:shadow-lg transition-all',
+    earnedIcon: 'flex items-center justify-center h-8 w-8 rounded-lg bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 shrink-0',
+    earnedValue: 'text-emerald-700 dark:text-emerald-400',
+    earnedDescription: 'text-xs text-emerald-600/70 dark:text-emerald-400/70 mt-2',
+
+    // Spent card
+    spentCard: 'p-4 bg-red-50/50 dark:bg-red-950/20 border-red-200/50 dark:border-red-800/50 hover:shadow-lg transition-all',
+    spentIcon: 'flex items-center justify-center h-8 w-8 rounded-lg bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 shrink-0',
+    spentValue: 'text-red-700 dark:text-red-400',
+    spentDescription: 'text-xs text-red-600/70 dark:text-red-400/70 mt-2',
+
+    // Transferred card
+    transferredCard: 'p-4 bg-blue-50/50 dark:bg-blue-950/20 border-blue-200/50 dark:border-blue-800/50 hover:shadow-lg transition-all',
+    transferredIcon: 'flex items-center justify-center h-8 w-8 rounded-lg bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 shrink-0',
+    transferredValue: 'text-blue-700 dark:text-blue-400',
+    transferredDescription: 'text-xs text-blue-600/70 dark:text-blue-400/70 mt-2',
+
+    // Balance card (conditional styles)
+    balanceCard: 'p-4 transition-all hover:shadow-lg',
+    balanceCardPositive: 'bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-200/50 dark:border-emerald-800/50',
+    balanceCardNegative: 'bg-red-50/50 dark:bg-red-950/20 border-red-200/50 dark:border-red-800/50',
+    balanceIconPositive: 'flex items-center justify-center h-8 w-8 rounded-lg shrink-0 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400',
+    balanceIconNegative: 'flex items-center justify-center h-8 w-8 rounded-lg shrink-0 bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400',
+    balanceValuePositive: 'text-emerald-700 dark:text-emerald-400',
+    balanceValueNegative: 'text-red-700 dark:text-red-400',
+    balanceDescriptionPositive: 'text-xs mt-2 text-emerald-600/70 dark:text-emerald-400/70',
+    balanceDescriptionNegative: 'text-xs mt-2 text-red-600/70 dark:text-red-400/70',
+
+    // Common
+    headerRow: 'flex items-start justify-between mb-3',
+    headerContent: 'flex-1',
+    iconSize: 'h-4 w-4',
+  },
+
+  // Budget Period Card
+  budgetPeriodCard: {
+    // Card container
+    container: 'overflow-hidden border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow',
+
+    // Header
+    header: 'w-full px-3 py-2.5 flex items-center gap-2 hover:bg-slate-50/50 dark:hover:bg-slate-900/50 transition-colors',
+    headerIcon: 'flex items-center justify-center h-9 w-9 rounded-xl bg-primary/10 text-primary shrink-0',
+    headerIconSize: 'h-4 w-4',
+    headerContent: 'flex-1 text-left min-w-0',
+    headerTitleRow: 'flex items-center gap-1.5 flex-wrap',
+    headerTitle: 'text-sm font-bold text-slate-900 dark:text-slate-100 leading-tight',
+    headerBadge: 'text-xs',
+    headerSubtitle: 'text-xs text-slate-500 dark:text-slate-400',
+    headerChevronContainer: 'flex items-center gap-1.5 shrink-0',
+    headerChevron: 'shrink-0 self-center',
+    headerChevronIcon: 'h-5 w-5 text-slate-400',
+    headerDetailLabel: 'text-[10px] text-slate-400 dark:text-slate-500 hidden sm:block',
+
+    // Metrics grid
+    metricsContainer: 'px-3 pb-3 space-y-1.5 sm:space-y-0 sm:grid sm:grid-cols-3 sm:gap-1.5',
+
+    // Metric card base
+    metricCard: 'p-2.5 rounded-lg border',
+    metricCardAccount: 'bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 border-slate-200 dark:border-slate-700',
+    metricCardBudget: 'bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 border-slate-200 dark:border-slate-700',
+    metricCardTransfer: 'bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900 border-blue-200 dark:border-blue-800',
+
+    // Metric header - horizontal layout with icon left, label+amount right
+    metricHeader: 'flex items-center gap-1.5',
+    metricIconBadge: 'p-1 rounded-md shadow-sm shrink-0',
+    metricIconBadgeDefault: 'bg-white dark:bg-slate-800',
+    metricIconBadgeTransfer: 'bg-white dark:bg-blue-900',
+    metricIcon: 'h-3.5 w-3.5',
+    metricIconDefault: 'text-slate-700 dark:text-slate-300',
+    metricIconTransfer: 'text-blue-700 dark:text-blue-300',
+
+    // Label and amount stacked vertically, left-aligned
+    metricContent: 'flex justify-between items-center gap-0.5 flex-1 min-w-0',
+    metricLabel: 'text-[10px] font-medium uppercase tracking-wider leading-none',
+    metricLabelDefault: 'text-slate-600 dark:text-slate-400',
+    metricLabelTransfer: 'text-blue-700 dark:text-blue-300',
+
+    // Metric value
+    metricValue: 'text-lg font-bold leading-none',
+    metricValuePositive: 'text-emerald-600 dark:text-emerald-400',
+    metricValueNegative: 'text-red-600 dark:text-red-400',
+    metricValueTransfer: 'text-blue-700 dark:text-blue-300',
+  },
+
   // Loading states
   skeleton: {
     base: 'animate-pulse bg-primary/10 rounded',

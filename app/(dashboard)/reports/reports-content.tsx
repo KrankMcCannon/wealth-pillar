@@ -4,10 +4,11 @@ import { useMemo } from "react";
 import { BottomNavigation, PageContainer, PageHeaderWithBack } from "@/src/components/layout";
 import { useUserFilter, usePermissions, useFilteredAccounts } from "@/hooks";
 import UserSelector from "@/src/components/shared/user-selector";
-import { TransactionSplitCard, BudgetPeriodsSection, reportsStyles } from "@/features/reports";
+import { BudgetPeriodsSection, reportsStyles, ReportsOverviewCard } from "@/features/reports";
 import type { DashboardDataProps } from "@/lib/auth/get-dashboard-data";
 import type { Transaction, Category, BudgetPeriod } from "@/lib/types";
 import { TransactionService, CategoryService } from "@/lib/services";
+import { ReportMetricsService } from "@/lib/services/report-metrics.service";
 import type { Account } from "@/lib/types";
 
 interface ReportsContentProps extends DashboardDataProps {
@@ -73,6 +74,12 @@ export default function ReportsContent({
   });
   const userAccountIds = useMemo(() => userAccounts.map((a) => a.id), [userAccounts]);
 
+  // Calculate overview metrics (total earned, spent, transferred, balance)
+  const overviewMetrics = useMemo(() => {
+    const userId = activeGroupFilter === "all" ? undefined : activeGroupFilter;
+    return ReportMetricsService.calculateOverviewMetrics(transactions, userAccountIds, userId);
+  }, [transactions, userAccountIds, activeGroupFilter]);
+
   // Calculate transaction split metrics (earned vs spent)
   const splitMetrics = useMemo(() => {
     const userId = activeGroupFilter === "all" ? undefined : activeGroupFilter;
@@ -106,13 +113,18 @@ export default function ReportsContent({
         />
 
         <main className={reportsStyles.main.container}>
-          {/* Transaction Split - Earned vs Spent */}
+          {/* Overview Section - Overall Metrics */}
           <section>
             <div className={reportsStyles.sectionHeader.container}>
-              <h2 className={reportsStyles.sectionHeader.title}>Transazioni</h2>
-              <p className={reportsStyles.sectionHeader.subtitle}>Totali guadagnati e spesi</p>
+              <h2 className={reportsStyles.sectionHeader.title}>Panoramica Generale</h2>
+              <p className={reportsStyles.sectionHeader.subtitle}>Metriche complessive di tutte le transazioni</p>
             </div>
-            <TransactionSplitCard earned={splitMetrics.earned} spent={splitMetrics.spent} />
+            <ReportsOverviewCard
+              totalEarned={overviewMetrics.totalEarned}
+              totalSpent={overviewMetrics.totalSpent}
+              totalTransferred={overviewMetrics.totalTransferred}
+              totalBalance={overviewMetrics.totalBalance}
+            />
           </section>
 
           {/* Budget Periods Section */}

@@ -934,4 +934,21 @@ export class BudgetService {
       end: formatDateShort(periodEnd),
     };
   }
+
+  /**
+   * Format period date for display
+   * Returns formatted date string
+   
+   * @param date - Date to format
+   * @returns Formatted date string
+   */
+  static formatPeriodDate(date: string | Date): string {
+    const dt = toDateTime(date);
+    if (!dt) return "Data non valida";
+
+    const day = dt.day;
+    const month = dt.toFormat("LLL", { locale: "it" });
+    const year = dt.year;
+    return `${day} ${month} ${year}`;
+  };
 }

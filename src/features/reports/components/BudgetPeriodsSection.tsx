@@ -97,16 +97,11 @@ export function BudgetPeriodsSection({
           startDate={period.start_date}
           endDate={period.end_date}
           userName={period.userName}
-          totalEarned={period.totalEarned}
-          totalSpent={period.totalSpent}
-          totalGain={period.totalGain}
-          totalRealSpent={period.totalRealSpent}
-          totalRealReceived={period.totalRealReceived}
-          totalRealGain={period.totalRealGain}
-          internalTransfers={period.internalTransfers}
+          userId={period.user_id}
           categoryBreakdown={period.categoryBreakdown}
           transactions={period.transactions}
           categories={categories}
+          accounts={accounts}
           isExpanded={expandedPeriods.has(period.id)}
           onToggle={() => togglePeriod(period.id)}
           showUserName={showUserNames}
