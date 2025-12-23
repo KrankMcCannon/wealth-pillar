@@ -8,6 +8,7 @@
 
 import type { Account, BudgetPeriod, Transaction, User, CategoryBreakdownItem } from '@/lib/types';
 import { FinanceLogicService } from './finance-logic.service';
+import { AccountService } from './account.service';
 import { subtractDays, toDateTime } from '@/lib/utils/date-utils';
 
 /**
@@ -100,8 +101,7 @@ export class ReportPeriodService {
       if (defaultAccountId) {
         periodTotalSpent = FinanceLogicService.calculatePeriodTotalSpent(
           userTransactions,
-          defaultAccountId,
-          userAccountIds
+          defaultAccountId
         );
 
         periodTotalIncome = FinanceLogicService.calculatePeriodTotalIncome(
@@ -156,24 +156,31 @@ export class ReportPeriodService {
       const defaultAccountId = user?.default_account_id;
 
       if (defaultAccountId) {
-        let runningBalance = 0; // First period starts at 0
+        // Calculate REAL current balance using AccountService
+        const currentBalance = AccountService.calculateAccountBalance(defaultAccountId, transactions);
+
+        // Calculate the REAL historical balance at the start of the first period
+        // This ensures the sequence ends exactly at the current account balance
+        const firstPeriodStart = userPeriods[0]?.start_date;
+        let runningBalance = 0;
+
+        if (firstPeriodStart) {
+          runningBalance = FinanceLogicService.calculateHistoricalBalance(
+            transactions,
+            defaultAccountId,
+            currentBalance,
+            firstPeriodStart
+          );
+        }
 
         for (let i = 0; i < userPeriods.length; i++) {
           const p = userPeriods[i];
 
-          // Calculate Internal Transfers OUT for the default account in this period
-          // Only needed for correcting the balance calculation since p.periodTotalSpent now excludes them
-          const periodInternalTransfersOut = FinanceLogicService.calculatePeriodInternalTransfersOut(
-            p.transactions,
-            defaultAccountId,
-            accountIdsByUser.get(userId) || []
-          );
-
           p.defaultAccountStartBalance = runningBalance;
 
-          // End Balance = Start + Income - (Expenses + Internal Transfers Out)
-          // Note: p.periodTotalSpent now EXCLUDES internal transfers out, so we must subtract them explicitly
-          const netChange = p.periodTotalIncome - p.periodTotalSpent - periodInternalTransfersOut;
+          // End Balance = Start + Income - Spent
+          // Note: Income includes transfers IN, Spent includes transfers OUT
+          const netChange = p.periodTotalIncome - p.periodTotalSpent;
 
           p.defaultAccountEndBalance = runningBalance + netChange;
 

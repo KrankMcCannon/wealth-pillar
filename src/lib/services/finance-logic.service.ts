@@ -358,14 +358,15 @@ export class FinanceLogicService {
     currentBalance: number,
     targetDate: DateInput
   ): number {
-    const targetDt = toDateTime(targetDate)?.endOf('day');
+    // We want the balance at the BEGINNING of the target date
+    // So we must reverse all transactions that happened ON or AFTER the target date
+    const targetDt = toDateTime(targetDate)?.startOf('day');
     if (!targetDt) return currentBalance;
 
-    // Filter transactions that happened AFTER the target date
-    // We need to reverse these to go back in time
+    // Filter transactions that happened ON or AFTER the target date
     const futureTransactions = allTransactions.filter(t => {
       const tDate = toDateTime(t.date);
-      return tDate && tDate > targetDt;
+      return tDate && tDate >= targetDt;
     });
 
     let historicalBalance = currentBalance;
@@ -400,26 +401,14 @@ export class FinanceLogicService {
    */
   static calculatePeriodTotalSpent(
     periodTransactions: Transaction[],
-    accountId: string,
-    userAccountIds?: string[]
+    accountId: string
   ): number {
-    const userAccountSet = userAccountIds ? new Set(userAccountIds) : null;
-
     return periodTransactions.reduce((sum, t) => {
       if (t.account_id !== accountId) return sum;
 
-      if (t.type === 'expense') {
+      if (t.type === 'expense' || t.type === 'transfer') {
         return sum + t.amount;
       }
-
-      if (t.type === 'transfer') {
-        // If userAccountIds is provided, exclude internal transfers
-        if (userAccountSet && t.to_account_id && userAccountSet.has(t.to_account_id)) {
-          return sum;
-        }
-        return sum + t.amount;
-      }
-
       return sum;
     }, 0);
   }

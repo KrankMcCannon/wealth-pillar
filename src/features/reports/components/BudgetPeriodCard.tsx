@@ -185,28 +185,6 @@ const BudgetPeriodCardComponent = ({
           </div>
         </div>
 
-        {/* Total Transfers */}
-        <div className={cn(styles.metricCard, styles.metricCardAccount)}>
-          <div className={styles.metricHeader}>
-            <div className={cn(styles.metricIconBadge, styles.metricIconBadgeTransfer)}>
-              <ArrowLeftRight className={cn(styles.metricIcon, styles.metricIconTransfer)} />
-            </div>
-            <div className={styles.metricContent}>
-              <p className={cn(styles.metricLabel, styles.metricLabelTransfer)}>
-                Totale Trasferimenti
-              </p>
-              <Amount
-                type="balance"
-                size="xl"
-                emphasis="strong"
-                className={cn(styles.metricValue, "text-amber-500")}
-              >
-                {periodTotalTransfers ?? 0}
-              </Amount>
-            </div>
-          </div>
-        </div>
-
         {/* End Balance */}
         <div className={cn(styles.metricCard, styles.metricCardTransfer)}>
           <div className={styles.metricHeader}>
@@ -224,6 +202,28 @@ const BudgetPeriodCardComponent = ({
                 className={cn(styles.metricValue, styles.metricValuePositive)}
               >
                 {defaultAccountEndBalance ?? 0}
+              </Amount>
+            </div>
+          </div>
+        </div>
+
+        {/* Total Transfers */}
+        <div className={cn(styles.metricCard, styles.metricCardAccount)}>
+          <div className={styles.metricHeader}>
+            <div className={cn(styles.metricIconBadge, styles.metricIconBadgeTransfer)}>
+              <ArrowLeftRight className={cn(styles.metricIcon, styles.metricIconTransfer)} />
+            </div>
+            <div className={styles.metricContent}>
+              <p className={cn(styles.metricLabel, styles.metricLabelTransfer)}>
+                Totale Trasferimenti
+              </p>
+              <Amount
+                type="balance"
+                size="xl"
+                emphasis="strong"
+                className={cn(styles.metricValue, "text-amber-500")}
+              >
+                {periodTotalTransfers ?? 0}
               </Amount>
             </div>
           </div>
