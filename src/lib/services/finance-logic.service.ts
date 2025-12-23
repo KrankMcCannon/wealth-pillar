@@ -345,4 +345,170 @@ export class FinanceLogicService {
       return dt && dt.year === year && dt.month === month + 1;
     });
   }
+
+  /**
+   * Calculate historical balance for a specific account
+   * Reverses transactions from current balance back to target date
+   * 
+   * @complexity O(n)
+   */
+  static calculateHistoricalBalance(
+    allTransactions: Transaction[],
+    accountId: string,
+    currentBalance: number,
+    targetDate: DateInput
+  ): number {
+    const targetDt = toDateTime(targetDate)?.endOf('day');
+    if (!targetDt) return currentBalance;
+
+    // Filter transactions that happened AFTER the target date
+    // We need to reverse these to go back in time
+    const futureTransactions = allTransactions.filter(t => {
+      const tDate = toDateTime(t.date);
+      return tDate && tDate > targetDt;
+    });
+
+    let historicalBalance = currentBalance;
+
+    for (const t of futureTransactions) {
+      const isSource = t.account_id === accountId;
+      const isDest = t.to_account_id === accountId;
+
+      if (!isSource && !isDest) continue;
+
+      // REVERSE the effect of the transaction
+      if (t.type === 'expense' && isSource) {
+        historicalBalance += t.amount; // Add back spent money
+      } else if (t.type === 'income' && isSource) {
+        historicalBalance -= t.amount; // Remove received money
+      } else if (t.type === 'transfer') {
+        if (isSource) {
+          historicalBalance += t.amount; // Add back money sent out
+        } else if (isDest) {
+          historicalBalance -= t.amount; // Remove money received
+        }
+      }
+    }
+
+    return historicalBalance;
+  }
+
+  /**
+   * Calculate total spent (expenses + outgoing transfers) for an account in a period
+   * 
+   * @complexity O(n)
+   */
+  static calculatePeriodTotalSpent(
+    periodTransactions: Transaction[],
+    accountId: string,
+    userAccountIds?: string[]
+  ): number {
+    const userAccountSet = userAccountIds ? new Set(userAccountIds) : null;
+
+    return periodTransactions.reduce((sum, t) => {
+      if (t.account_id !== accountId) return sum;
+
+      if (t.type === 'expense') {
+        return sum + t.amount;
+      }
+
+      if (t.type === 'transfer') {
+        // If userAccountIds is provided, exclude internal transfers
+        if (userAccountSet && t.to_account_id && userAccountSet.has(t.to_account_id)) {
+          return sum;
+        }
+        return sum + t.amount;
+      }
+
+      return sum;
+    }, 0);
+  }
+
+  /**
+   * Calculate internal transfers OUT for a specific account
+   * Used to adjust balance calculations when "Total Spent" excludes internal transfers
+   * 
+   * @complexity O(n)
+   */
+  static calculatePeriodInternalTransfersOut(
+    periodTransactions: Transaction[],
+    accountId: string,
+    userAccountIds: string[]
+  ): number {
+    const userAccountSet = new Set(userAccountIds);
+
+    return periodTransactions.reduce((sum, t) => {
+      if (t.account_id !== accountId) return sum;
+      if (t.type !== 'transfer') return sum;
+
+      // Only count transfers to other user accounts
+      if (t.to_account_id && userAccountSet.has(t.to_account_id)) {
+        return sum + t.amount;
+      }
+
+      return sum;
+    }, 0);
+  }
+
+  /**
+   * Calculate total income (income + incoming transfers) for an account in a period
+   * 
+   * @complexity O(n)
+   */
+  static calculatePeriodTotalIncome(
+    periodTransactions: Transaction[],
+    accountId: string
+  ): number {
+    return periodTransactions.reduce((sum, t) => {
+      // Direct income to account
+      if (t.account_id === accountId && t.type === 'income') {
+        return sum + t.amount;
+      }
+
+      // Transfer IN to account
+      if (t.to_account_id === accountId && t.type === 'transfer') {
+        return sum + t.amount;
+      }
+
+      return sum;
+    }, 0);
+  }
+
+  /**
+   * Calculate total transfers (absolute sum of IN and OUT) for a specific account
+   * 
+   * @complexity O(n)
+   */
+  static calculatePeriodTotalTransfers(
+    periodTransactions: Transaction[],
+    accountId: string
+  ): number {
+    return periodTransactions.reduce((sum, t) => {
+      if (t.type !== 'transfer') return sum;
+
+      const isRelated = t.account_id === accountId || t.to_account_id === accountId;
+      if (isRelated) {
+        return sum + t.amount;
+      }
+      return sum;
+    }, 0);
+  }
+
+  /**
+   * Calculate annual category spending
+   * Returns category breakdown for the current year (or specified year)
+   * 
+   * @complexity O(n)
+   */
+  static calculateAnnualCategorySpending(
+    allTransactions: Transaction[],
+    year: number = new Date().getFullYear()
+  ): CategoryBreakdownItem[] {
+    const annualTransactions = allTransactions.filter(t => {
+      const dt = toDateTime(t.date);
+      return dt?.year === year;
+    });
+
+    return this.calculateCategoryBreakdown(annualTransactions);
+  }
 }

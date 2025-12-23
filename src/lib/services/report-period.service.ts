@@ -8,21 +8,19 @@
 
 import type { Account, BudgetPeriod, Transaction, User, CategoryBreakdownItem } from '@/lib/types';
 import { FinanceLogicService } from './finance-logic.service';
+import { subtractDays, toDateTime } from '@/lib/utils/date-utils';
 
 /**
  * Enhanced budget period with calculated metrics including NET analysis
  */
 export interface EnrichedBudgetPeriod extends BudgetPeriod {
   userName: string;
-  totalEarned: number;           // Legacy: Total income + incoming transfers
-  totalSpent: number;            // Legacy: Total expenses + outgoing transfers
-  totalGain: number;             // Legacy: totalEarned - totalSpent
-  totalRealSpent: number;        // NEW: Sum of positive category NETs (real spending)
-  totalRealReceived: number;     // NEW: Sum of negative category NETs (real income)
-  totalRealGain: number;         // NEW: Real balance (totalRealReceived - totalRealSpent)
-  internalTransfers: number;     // NEW: Total amount moved between own accounts
-  categoryBreakdown: CategoryBreakdownItem[]; // Sorted by absolute NET descending
   transactions: Transaction[];   // Sorted by amount descending
+  defaultAccountStartBalance: number | null; // NEW: Sequential Start Balance
+  defaultAccountEndBalance: number | null;   // NEW: Sequential End Balance
+  periodTotalSpent: number;      // NEW: Expenses + Transfers Out
+  periodTotalIncome: number;     // NEW: Income + Transfers In
+  periodTotalTransfers: number;  // NEW: Total related transfers (In + Out)
 }
 
 /**
@@ -76,7 +74,8 @@ export class ReportPeriodService {
       }
     }
 
-    return budgetPeriods.map((period) => {
+    // 1. Enrich periods with basic metrics first (Income/Spent)
+    const partiallyEnriched = budgetPeriods.map((period) => {
       const user = userMap.get(period.user_id);
       const userName = user?.name || 'Unknown User';
       const userAccountIds = accountIdsByUser.get(period.user_id) || [];
@@ -92,23 +91,29 @@ export class ReportPeriodService {
         t => t.user_id === period.user_id
       );
 
-      // Calculate metrics using FinanceLogicService
-      const overview = FinanceLogicService.calculateOverviewMetrics(userTransactions, userAccountIds);
-      const internalTransfers = FinanceLogicService.calculateInternalTransfers(userTransactions, userAccountIds);
-      const categoryBreakdown = FinanceLogicService.calculateCategoryBreakdown(userTransactions);
+      // Basic Period Totals (Income/Spent)
+      let periodTotalSpent = 0;
+      let periodTotalIncome = 0;
+      let periodTotalTransfers = 0;
+      const defaultAccountId = user?.default_account_id;
 
-      // Calculate real spending totals from category breakdown
-      const totalRealSpent = categoryBreakdown
-        .filter(item => item.net > 0)
-        .reduce((sum, item) => sum + item.net, 0);
+      if (defaultAccountId) {
+        periodTotalSpent = FinanceLogicService.calculatePeriodTotalSpent(
+          userTransactions,
+          defaultAccountId,
+          userAccountIds
+        );
 
-      const totalRealReceived = Math.abs(
-        categoryBreakdown
-          .filter(item => item.net < 0)
-          .reduce((sum, item) => sum + item.net, 0)
-      );
+        periodTotalIncome = FinanceLogicService.calculatePeriodTotalIncome(
+          userTransactions,
+          defaultAccountId
+        );
 
-      const totalRealGain = totalRealReceived - totalRealSpent;
+        periodTotalTransfers = FinanceLogicService.calculatePeriodTotalTransfers(
+          userTransactions,
+          defaultAccountId
+        );
+      }
 
       // Sort transactions by amount descending
       const sortedTransactions = [...userTransactions].sort((a, b) => b.amount - a.amount);
@@ -116,16 +121,73 @@ export class ReportPeriodService {
       return {
         ...period,
         userName,
-        totalEarned: overview.totalEarned,
-        totalSpent: overview.totalSpent,
-        totalGain: overview.totalBalance,
-        totalRealSpent,
-        totalRealReceived,
-        totalRealGain,
-        internalTransfers,
-        categoryBreakdown,
         transactions: sortedTransactions,
+        defaultAccountStartBalance: null as number | null,
+        defaultAccountEndBalance: null as number | null,
+        periodTotalSpent,
+        periodTotalIncome,
+        periodTotalTransfers,
       };
     });
+
+    // 2. Apply Sequential Forward Accumulation for Default Account Balances
+    // Group by User
+    const periodsByUser = new Map<string, typeof partiallyEnriched>();
+    for (const p of partiallyEnriched) {
+      if (!periodsByUser.has(p.user_id)) {
+        periodsByUser.set(p.user_id, []);
+      }
+      periodsByUser.get(p.user_id)!.push(p);
+    }
+
+    // Process each user's timeline
+    const fullyEnriched: EnrichedBudgetPeriod[] = [];
+
+    periodsByUser.forEach((userPeriods, userId) => {
+      // Sort by Start Date Ascending
+      userPeriods.sort((a, b) => {
+        const da = toDateTime(a.start_date);
+        const db = toDateTime(b.start_date);
+        if (!da || !db) return 0;
+        return da.toMillis() - db.toMillis();
+      });
+
+      const user = userMap.get(userId);
+      const defaultAccountId = user?.default_account_id;
+
+      if (defaultAccountId) {
+        let runningBalance = 0; // First period starts at 0
+
+        for (let i = 0; i < userPeriods.length; i++) {
+          const p = userPeriods[i];
+
+          // Calculate Internal Transfers OUT for the default account in this period
+          // Only needed for correcting the balance calculation since p.periodTotalSpent now excludes them
+          const periodInternalTransfersOut = FinanceLogicService.calculatePeriodInternalTransfersOut(
+            p.transactions,
+            defaultAccountId,
+            accountIdsByUser.get(userId) || []
+          );
+
+          p.defaultAccountStartBalance = runningBalance;
+
+          // End Balance = Start + Income - (Expenses + Internal Transfers Out)
+          // Note: p.periodTotalSpent now EXCLUDES internal transfers out, so we must subtract them explicitly
+          const netChange = p.periodTotalIncome - p.periodTotalSpent - periodInternalTransfersOut;
+
+          p.defaultAccountEndBalance = runningBalance + netChange;
+
+          // Update running balance for next period
+          runningBalance = p.defaultAccountEndBalance;
+
+          fullyEnriched.push(p);
+        }
+      } else {
+        // No default account, just push as is
+        fullyEnriched.push(...userPeriods);
+      }
+    });
+
+    return fullyEnriched;
   }
 }

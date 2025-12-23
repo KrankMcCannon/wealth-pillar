@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import { BottomNavigation, PageContainer, PageHeaderWithBack } from "@/src/components/layout";
 import { useUserFilter, usePermissions, useFilteredAccounts } from "@/hooks";
 import UserSelector from "@/src/components/shared/user-selector";
-import { BudgetPeriodsSection, reportsStyles, ReportsOverviewCard } from "@/features/reports";
+import { BudgetPeriodsSection, reportsStyles, ReportsOverviewCard, AnnualCategorySection } from "@/features/reports";
 import type { DashboardDataProps } from "@/lib/auth/get-dashboard-data";
 import type { Transaction, Category, BudgetPeriod } from "@/lib/types";
 import { TransactionService, CategoryService } from "@/lib/services";
@@ -98,6 +98,12 @@ export default function ReportsContent({
     }));
   }, [categories]);
 
+  // Filter transactions for active user/group context (for Annual Section)
+  const activeTransactions = useMemo(() => {
+    if (activeGroupFilter === "all") return transactions;
+    return transactions.filter(t => t.user_id === activeGroupFilter);
+  }, [transactions, activeGroupFilter]);
+
   return (
     <PageContainer className={reportsStyles.page.container}>
       <div>
@@ -143,6 +149,12 @@ export default function ReportsContent({
               isLoading={false}
             />
           </section>
+
+          {/* Annual Category Breakdown */}
+          <AnnualCategorySection
+            transactions={activeTransactions}
+            categories={categories}
+          />
         </main>
       </div>
 

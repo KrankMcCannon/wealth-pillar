@@ -13,5 +13,4 @@ export type { BudgetPeriodsSectionProps } from './BudgetPeriodsSection';
 export { ReportsOverviewCard } from './ReportsOverviewCard';
 export type { ReportsOverviewCardProps } from './ReportsOverviewCard';
 
-export { PeriodMetricsCard } from './PeriodMetricsCard';
-export type { PeriodMetricsCardProps } from './PeriodMetricsCard';
+export { AnnualCategorySection } from './AnnualCategorySection';
