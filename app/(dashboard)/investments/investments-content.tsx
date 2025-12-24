@@ -1,27 +1,36 @@
 "use client";
 
-import { PageContainer, PageHeaderWithBack, SectionHeader, BottomNavigation } from "@/src/components/layout";
+import { PageContainer, Header, SectionHeader, BottomNavigation } from "@/src/components/layout";
 import { EmptyState } from "@/components/shared";
 import { useUserFilter } from "@/hooks";
 import UserSelector from "@/src/components/shared/user-selector";
 import { EnhancedHolding } from "@/src/lib";
 import { PieChart } from "lucide-react";
 import type { DashboardDataProps } from "@/lib/auth/get-dashboard-data";
+import type { Account, Category } from "@/lib/types";
 
-export default function InvestmentsContent({ currentUser, groupUsers }: DashboardDataProps) {
+interface InvestmentsContentProps extends DashboardDataProps {
+  accounts: Account[];
+  categories: Category[];
+}
+
+export default function InvestmentsContent({ currentUser, groupUsers, accounts, categories }: InvestmentsContentProps) {
   const { selectedGroupFilter, setSelectedGroupFilter } = useUserFilter();
 
   return (
     <PageContainer className="bg-[#F8FAFC]">
       <div className="flex-1">
-        <PageHeaderWithBack
+        <Header
           title="Investimenti"
-          variant="light"
+          showBack={true}
           className="shadow-sm"
-          contentClassName="flex items-center justify-between"
-          titleClassName="text-[#1F2937] text-xl font-bold leading-tight tracking-[-0.015em] flex-1 text-center"
-          backButtonClassName="text-[#1F2937] flex size-10 shrink-0 items-center justify-center rounded-full hover:bg-[#EFF2FE] transition-colors"
-          actions={<div className="size-10" />}
+          data={{
+            currentUser: { ...currentUser, role: currentUser.role || 'member' },
+            groupUsers,
+            accounts,
+            categories,
+            groupId: currentUser.group_id
+          }}
         />
 
         <UserSelector

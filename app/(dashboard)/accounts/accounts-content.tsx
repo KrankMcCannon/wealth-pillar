@@ -8,18 +8,19 @@
  */
 
 import { Suspense, useEffect, useMemo } from "react";
-import { BottomNavigation, PageContainer } from "@/components/layout";
-import { AccountHeader, TotalBalanceCard, AccountsList, accountStyles } from "@/features/accounts";
+import { BottomNavigation, PageContainer, Header } from "@/components/layout";
+import { TotalBalanceCard, AccountsList, accountStyles } from "@/features/accounts";
 import { useFilteredAccounts, usePermissions, useUserFilter } from "@/hooks";
 import UserSelector from "@/components/shared/user-selector";
 import { UserSelectorSkeleton } from "@/features/dashboard";
 import type { DashboardDataProps } from "@/lib/auth/get-dashboard-data";
-import type { Account } from "@/lib/types";
+import type { Account, Category } from "@/lib/types";
 
 interface AccountsContentProps extends DashboardDataProps {
   accounts: Account[];
   accountBalances: Record<string, number>;
   initialUserId?: string;
+  categories: Category[];
 }
 
 /**
@@ -32,6 +33,7 @@ export default function AccountsContent({
   accounts,
   accountBalances,
   initialUserId,
+  categories,
 }: AccountsContentProps) {
   const initialFilter = initialUserId || "all";
   const { selectedGroupFilter, setSelectedGroupFilter, selectedUserId } = useUserFilter(initialFilter);
@@ -81,12 +83,18 @@ export default function AccountsContent({
     <PageContainer className={accountStyles.page.container}>
       <div className="flex-1">
         {/* Header Section */}
-        <AccountHeader
-          totalAccounts={accountStats.totalAccounts}
-          onAddAccount={() => {
-            /* TODO: Open add account modal */
+        <Header
+          title="Bank Accounts"
+          subtitle={`${accountStats.totalAccounts} account${accountStats.totalAccounts === 1 ? '' : 's'}`}
+          showBack={true}
+          className={accountStyles.header.container}
+          data={{
+            currentUser: { ...currentUser, role: currentUser.role || 'member' },
+            groupUsers,
+            accounts,
+            categories,
+            groupId: currentUser.group_id
           }}
-          isLoading={false}
         />
 
         {/* User Selector */}

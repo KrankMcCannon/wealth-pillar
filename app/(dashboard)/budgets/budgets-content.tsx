@@ -9,15 +9,14 @@
  * Data is passed from Server Component for optimal performance.
  */
 
-import { useState, useMemo, useEffect, Suspense } from "react";
+import { useState, useMemo, useEffect, Suspense, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { BottomNavigation, PageContainer } from "@/components/layout";
+import { BottomNavigation, PageContainer, Header } from "@/components/layout";
 import { useFormModal, useDeleteConfirmation, useIdNameMap, usePermissions, useFilteredData, useBudgetsByUser } from "@/hooks";
 import { ConfirmationDialog } from "@/components/shared/confirmation-dialog";
 import { EmptyState } from "@/components/shared";
 import { BudgetForm, BudgetPeriodManager } from "@/features/budgets";
 import {
-  BudgetHeader,
   BudgetSelector,
   BudgetDisplayCard,
   BudgetProgress,
@@ -27,7 +26,6 @@ import {
   BudgetProgressSkeleton,
   BudgetChartSkeleton,
 } from "@/features/budgets/components";
-import { CategoryForm } from "@/features/categories";
 import {
   TransactionForm,
   TransactionDayList,
@@ -36,7 +34,7 @@ import {
 } from "@/features/transactions";
 import { deleteBudgetAction } from "@/features/budgets/actions/budget-actions";
 import { budgetStyles } from "@/features/budgets/theme/budget-styles";
-import { ShoppingCart } from "lucide-react";
+import { ShoppingCart, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui";
 import {
   toDateTime,
@@ -305,13 +303,9 @@ export default function BudgetsContent({
     }
   };
 
-  const handleCreateCategory = () => {
-    categoryModal.openCreate();
-  };
-
-  const handleManagePeriod = () => {
+  const handleManagePeriod = useCallback(() => {
     periodManagerModal.openCreate();
-  };
+  }, [periodManagerModal]);
 
   const handleDeleteBudget = (budget: Budget) => {
     deleteConfirm.openDialog(budget);
@@ -351,13 +345,27 @@ export default function BudgetsContent({
   return (
     <PageContainer className={budgetStyles.page.container}>
       {/* Header with navigation and actions */}
-      <BudgetHeader
-        onBackClick={() => router.back()}
-        onCreateBudget={handleCreateBudget}
-        onCreateCategory={handleCreateCategory}
-        onManagePeriod={handleManagePeriod}
-        selectedBudget={selectedBudget}
-        currentPeriod={periodInfo?.activePeriod || null}
+      <Header
+        title="Budgets"
+        showBack={true}
+        className={budgetStyles.header.container}
+        data={{
+          currentUser: { ...currentUser, role: currentUser.role || 'member' },
+          groupUsers,
+          accounts,
+          categories,
+          groupId: currentUser.group_id
+        }}
+        extraMenuItems={useMemo(() => {
+          if (selectedBudget) {
+            return [{
+              label: periodInfo?.activePeriod ? 'Gestisci Periodo' : 'Inizia Periodo',
+              icon: BarChart3,
+              onClick: handleManagePeriod
+            }];
+          }
+          return [];
+        }, [selectedBudget, periodInfo, handleManagePeriod])}
       />
 
       {/* Main content area with progressive loading */}
@@ -381,11 +389,11 @@ export default function BudgetsContent({
                 budgetProgress={
                   selectedBudgetProgress
                     ? {
-                        spent: selectedBudgetProgress.spent,
-                        remaining: selectedBudgetProgress.remaining,
-                        percentage: selectedBudgetProgress.percentage,
-                        amount: selectedBudgetProgress.amount,
-                      }
+                      spent: selectedBudgetProgress.spent,
+                      remaining: selectedBudgetProgress.remaining,
+                      percentage: selectedBudgetProgress.percentage,
+                      amount: selectedBudgetProgress.amount,
+                    }
                     : null
                 }
                 onEdit={handleEditBudget}
@@ -416,9 +424,9 @@ export default function BudgetsContent({
                     periodInfo={
                       periodInfo
                         ? {
-                            startDate: periodInfo.start || "",
-                            endDate: periodInfo.end,
-                          }
+                          startDate: periodInfo.start || "",
+                          endDate: periodInfo.end,
+                        }
                         : null
                     }
                   />
@@ -503,12 +511,7 @@ export default function BudgetsContent({
         categories={categories}
       />
 
-      <CategoryForm
-        isOpen={categoryModal.isOpen}
-        onOpenChange={categoryModal.setIsOpen}
-        mode={categoryModal.mode}
-        groupId={currentUser.group_id}
-      />
+
 
       {/* Budget Period Manager - Controlled by periodManagerModal */}
       <BudgetPeriodManager

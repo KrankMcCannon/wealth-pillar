@@ -15,11 +15,10 @@
  */
 
 import { Suspense, useEffect, useMemo, useState } from "react";
-import { Settings, Bell } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { BottomNavigation, PageContainer } from "@/components/layout";
+import { BottomNavigation, PageContainer, Header } from "@/components/layout";
 import { useUserFilter, usePermissions, useFilteredAccounts, useBudgetsByUser } from "@/hooks";
-import { Button, IconContainer, Text } from "@/components/ui";
+import { Button } from "@/components/ui";
 import { RecurringTransactionSeries } from "@/src/lib";
 import {
   BalanceSectionSkeleton,
@@ -219,11 +218,6 @@ export default function DashboardContent({
     router.push("/transactions?tab=Recurrent");
   };
 
-  // Handler for settings navigation
-  const handleSettingsClick = () => {
-    router.push("/settings");
-  };
-
   const [periodManagerUserId, setPeriodManagerUserId] = useState(
     isMember ? currentUser.id : selectedUserId || currentUser.id,
   );
@@ -260,34 +254,17 @@ export default function DashboardContent({
     <PageContainer className={dashboardStyles.page.container}>
       {/* Mobile-First Header */}
       <Suspense fallback={<DashboardHeaderSkeleton />}>
-        <header className={dashboardStyles.header.container}>
-          <div className={dashboardStyles.header.inner}>
-            {/* Left - User Profile */}
-            <div className={dashboardStyles.header.section.left}>
-              <IconContainer size="sm" color="primary" className={dashboardStyles.header.section.profileIcon}>
-                <Settings className="h-4 w-4" />
-              </IconContainer>
-              <div className={dashboardStyles.header.section.profileName}>
-                <Text variant="heading" size="sm">
-                  {currentUser.name}
-                </Text>
-                <Text variant="muted" size="xs" className="font-semibold">
-                  {currentUser.role === "admin" || currentUser.role === "superadmin" ? "Premium Plan" : "Standard Plan"}
-                </Text>
-              </div>
-            </div>
-
-            {/* Right - Actions */}
-            <div className={dashboardStyles.header.section.right}>
-              <Button variant="ghost" size="sm" className={dashboardStyles.header.button}>
-                <Bell className={dashboardStyles.header.section.notificationIcon} />
-              </Button>
-              <Button variant="ghost" size="sm" className={dashboardStyles.header.button} onClick={handleSettingsClick}>
-                <Settings className={dashboardStyles.header.section.settingsIcon} />
-              </Button>
-            </div>
-          </div>
-        </header>
+        <Header
+          isDashboard={true}
+          data={{
+            currentUser: { ...currentUser, role: currentUser.role || 'member' },
+            groupUsers,
+            accounts,
+            categories,
+            groupId: currentUser.group_id
+          }}
+          className="mb-6"
+        />
       </Suspense>
 
       {/* User Selector */}

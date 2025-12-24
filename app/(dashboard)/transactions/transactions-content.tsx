@@ -9,7 +9,6 @@
 
 import { Suspense, useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { MoreVertical, Plus } from "lucide-react";
 import {
   useUserFilter,
   useFormModal,
@@ -18,8 +17,7 @@ import {
   usePermissions,
   useFilteredData,
 } from "@/hooks";
-import { Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/src/components/ui";
-import { BottomNavigation, PageContainer, PageHeaderWithBack } from "@/src/components/layout";
+import { BottomNavigation, PageContainer, Header } from "@/src/components/layout";
 import TabNavigation from "@/src/components/shared/tab-navigation";
 import UserSelector from "@/src/components/shared/user-selector";
 import { ConfirmationDialog } from "@/components/shared";
@@ -167,6 +165,12 @@ export default function TransactionsContent({
   // Optimistic UI state - local copy of transactions
   const [localTransactions, setLocalTransactions] = useState<Transaction[]>(transactions);
 
+  // Sync local state with prop updates (needed for router.refresh())
+  useEffect(() => {
+    setLocalTransactions(transactions);
+  }, [transactions]);
+
+
   // Debounced refresh to prevent race conditions and flickering
   const refreshTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -209,11 +213,6 @@ export default function TransactionsContent({
     const grouped = TransactionService.groupTransactionsByDate(filteredTransactions);
     return TransactionService.calculateDailyTotals(grouped);
   }, [filteredTransactions]);
-
-  // Handlers for transaction actions
-  const handleCreateTransaction = () => {
-    transactionModal.openCreate();
-  };
 
   const handleEditTransaction = (transaction: Transaction) => {
     transactionModal.openEdit(transaction);
@@ -297,43 +296,17 @@ export default function TransactionsContent({
   return (
     <PageContainer className={transactionStyles.page.container}>
       {/* Header */}
-      <PageHeaderWithBack
+      <Header
         title="Transazioni"
-        onBack={() => router.back()}
+        showBack={true}
         className={transactionStyles.header.container}
-        contentClassName={transactionStyles.header.inner}
-        titleClassName={transactionStyles.header.title}
-        backButtonClassName={transactionStyles.header.button}
-        variant="secondary"
-        actions={
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className={transactionStyles.header.button}>
-                <MoreVertical className="h-5 w-5" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent
-              align="end"
-              className="w-56 backdrop-blur-xl border border-border/50 shadow-xl rounded-xl p-2 animate-in slide-in-from-top-2 duration-200"
-              sideOffset={8}
-            >
-              <DropdownMenuItem
-                className="text-sm font-medium text-primary hover:bg-primary hover:text-white rounded-lg px-3 py-2.5 cursor-pointer transition-colors"
-                onClick={handleCreateTransaction}
-              >
-                <Plus className="mr-3 h-4 w-4" />
-                Aggiungi Transazione
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                className="text-sm font-medium text-primary hover:bg-primary hover:text-white rounded-lg px-3 py-2.5 cursor-pointer transition-colors"
-                onClick={recurringModal.openCreate}
-              >
-                <Plus className="mr-3 h-4 w-4" />
-                Aggiungi Ricorrenza
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        }
+        data={{
+          currentUser: { ...currentUser, role: currentUser.role || 'member' },
+          groupUsers,
+          accounts,
+          categories,
+          groupId: currentUser.group_id
+        }}
       />
 
       {/* User Selector */}

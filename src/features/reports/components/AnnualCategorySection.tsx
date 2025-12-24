@@ -38,7 +38,7 @@ export function AnnualCategorySection({
     <section className="space-y-4">
       <div className={reportsStyles.sectionHeader.container}>
         <h2 className={reportsStyles.sectionHeader.title}>Spese Annuali per Categoria</h2>
-        <p className={reportsStyles.sectionHeader.subtitle}>Riepilogo spese dell'anno {year}</p>
+        <p className={reportsStyles.sectionHeader.subtitle}>Riepilogo spese dell&apos;anno {year}</p>
       </div>
 
       <Card className={cn(reportsStyles.card.container, "p-4")}>

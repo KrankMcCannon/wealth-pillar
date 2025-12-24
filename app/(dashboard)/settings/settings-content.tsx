@@ -1,6 +1,6 @@
 "use client";
 
-import { SectionHeader, BottomNavigation, PageContainer, PageHeaderWithBack } from "@/src/components/layout";
+import { SectionHeader, BottomNavigation, PageContainer, Header } from "@/src/components/layout";
 import { settingsStyles } from "@/src/features/settings/theme";
 import { deleteUserAction } from "@/src/features/settings";
 import { DeleteAccountModal } from "@/src/features/settings";
@@ -27,7 +27,7 @@ import { useRouter } from "next/navigation";
 import { useClerk } from "@clerk/nextjs";
 import { useState } from "react";
 import { Button, Card } from "@/components/ui";
-import type { User as UserType, Account, Transaction } from "@/lib/types";
+import type { User as UserType, Account, Transaction, Category } from "@/lib/types";
 
 /**
  * Settings Content Props
@@ -37,9 +37,10 @@ interface SettingsContentProps {
   groupUsers: UserType[];
   accounts: Account[];
   transactions: Transaction[];
+  categories: Category[];
 }
 
-export default function SettingsContent({ currentUser, groupUsers, accounts, transactions }: SettingsContentProps) {
+export default function SettingsContent({ currentUser, groupUsers, accounts, transactions, categories }: SettingsContentProps) {
   const router = useRouter();
   const { signOut } = useClerk();
   const [isSigningOut, setIsSigningOut] = useState(false);
@@ -132,7 +133,18 @@ export default function SettingsContent({ currentUser, groupUsers, accounts, tra
     <PageContainer>
       <div>
         {/* Header */}
-        <PageHeaderWithBack title="Impostazioni" onBack={() => router.push("/dashboard")} />
+        <Header
+          title="Impostazioni"
+          showBack={true}
+          onBack={() => router.push("/dashboard")}
+          data={{
+            currentUser: { ...currentUser, role: currentUser.role || 'member' },
+            groupUsers,
+            accounts,
+            categories,
+            groupId: currentUser.group_id
+          }}
+        />
 
         <main className={settingsStyles.main.container}>
           {/* Profile Section */}

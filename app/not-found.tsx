@@ -4,8 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Home, Search } from "lucide-react";
 import { Button } from "@/components/ui";
-import { PageContainer, StickyHeader } from "@/components/layout";
-import { BackButton } from "@/components/shared/back-button";
+import { PageContainer, Header } from "@/components/layout";
 import { confirmationDialogStyles, notFoundStyles } from "@/components/shared/theme/feedback-styles";
 
 export default function NotFound() {
@@ -13,19 +12,12 @@ export default function NotFound() {
 
   return (
     <PageContainer className={notFoundStyles.page}>
-      <StickyHeader variant="light" className={notFoundStyles.header.container}>
-        <div className={notFoundStyles.header.inner}>
-          <BackButton
-            onClick={() => router.back()}
-            className="bg-white border border-primary text-primary hover:bg-primary hover:text-white"
-          />
-          <div className={notFoundStyles.header.titleGroup}>
-            <span className={notFoundStyles.header.label}>Errore 404</span>
-            <h1 className={notFoundStyles.header.title}>Pagina non trovata</h1>
-            <p className={notFoundStyles.header.subtitle}>Il contenuto potrebbe essere stato spostato</p>
-          </div>
-        </div>
-      </StickyHeader>
+      <Header
+        title="Errore 404"
+        subtitle="Pagina non trovata"
+        showBack={true}
+        className={notFoundStyles.header.container}
+      />
 
       <main className={notFoundStyles.content.container}>
         <div className={notFoundStyles.content.card}>

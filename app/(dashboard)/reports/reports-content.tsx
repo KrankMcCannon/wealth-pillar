@@ -1,13 +1,13 @@
 "use client";
 
 import { useMemo } from "react";
-import { BottomNavigation, PageContainer, PageHeaderWithBack } from "@/src/components/layout";
+import { BottomNavigation, PageContainer, Header } from "@/components/layout";
 import { useUserFilter, usePermissions, useFilteredAccounts } from "@/hooks";
 import UserSelector from "@/src/components/shared/user-selector";
 import { BudgetPeriodsSection, reportsStyles, ReportsOverviewCard, AnnualCategorySection } from "@/features/reports";
 import type { DashboardDataProps } from "@/lib/auth/get-dashboard-data";
 import type { Transaction, Category, BudgetPeriod } from "@/lib/types";
-import { TransactionService, CategoryService } from "@/lib/services";
+import { CategoryService } from "@/lib/services";
 import { ReportMetricsService } from "@/lib/services/report-metrics.service";
 import type { Account } from "@/lib/types";
 
@@ -80,14 +80,6 @@ export default function ReportsContent({
     return ReportMetricsService.calculateOverviewMetrics(transactions, userAccountIds, userId);
   }, [transactions, userAccountIds, activeGroupFilter]);
 
-  // Calculate transaction split metrics (earned vs spent)
-  const splitMetrics = useMemo(() => {
-    const userId = activeGroupFilter === "all" ? undefined : activeGroupFilter;
-    const earned = TransactionService.calculateEarned(transactions, userAccountIds, userId);
-    const spent = TransactionService.calculateSpent(transactions, userAccountIds, userId);
-    return { earned, spent };
-  }, [transactions, userAccountIds, activeGroupFilter]);
-
   // Enrich category metrics with category details (label, color, icon)
   const enrichedCategories = useMemo(() => {
     return categories.map((category) => ({
@@ -108,7 +100,17 @@ export default function ReportsContent({
     <PageContainer className={reportsStyles.page.container}>
       <div>
         {/* Header */}
-        <PageHeaderWithBack title="Rapporti" />
+        <Header
+          title="Rapporti"
+          showBack={true}
+          data={{
+            currentUser: { ...currentUser, role: currentUser.role || 'member' },
+            groupUsers,
+            accounts,
+            categories,
+            groupId: currentUser.group_id
+          }}
+        />
 
         {/* User Selector */}
         <UserSelector
