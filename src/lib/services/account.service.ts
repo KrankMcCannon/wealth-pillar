@@ -29,6 +29,13 @@ export interface CreateAccountInput {
   group_id: string;
 }
 
+export interface UpdateAccountInput {
+  name?: string;
+  type?: Account['type'];
+  user_ids?: string[];
+  group_id?: string;
+}
+
 /**
  * Account Service
  * Handles all account-related business logic following Single Responsibility Principle
@@ -507,6 +514,111 @@ export class AccountService {
       return {
         data: null,
         error: error instanceof Error ? error.message : 'Failed to create account',
+      };
+    }
+  }
+
+  /**
+   * Updates an existing account
+   */
+  static async updateAccount(
+    accountId: string,
+    data: UpdateAccountInput
+  ): Promise<ServiceResult<Account>> {
+    try {
+      if (!accountId || accountId.trim() === '') {
+        return { data: null, error: 'Account ID is required' };
+      }
+
+      const updates: Database['public']['Tables']['accounts']['Update'] = {
+        updated_at: nowISO(),
+        ...data,
+      };
+
+      const { data: account, error } = await supabaseServer
+        .from('accounts')
+        .update(updates)
+        .eq('id', accountId)
+        .select()
+        .single();
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      if (!account) {
+        return { data: null, error: 'Failed to update account' };
+      }
+
+      // Invalidate caches
+      const tagsToRevalidate = [
+        CACHE_TAGS.ACCOUNTS,
+        CACHE_TAGS.ACCOUNT(accountId),
+      ];
+
+      if (data.group_id) {
+        tagsToRevalidate.push(`group:${data.group_id}:accounts`);
+      }
+
+      if (data.user_ids) {
+        data.user_ids.forEach((userId) => {
+          tagsToRevalidate.push(`user:${userId}:accounts`);
+        });
+      }
+
+      await revalidateCacheTags(tagsToRevalidate);
+
+      return { data: account, error: null };
+    } catch (error) {
+      return {
+        data: null,
+        error: error instanceof Error ? error.message : 'Failed to update account',
+      };
+    }
+  }
+
+  /**
+   * Deletes an account
+   * WARNING: This will fail if there are related transactions unless cascade delete is enabled in DB
+   */
+  static async deleteAccount(accountId: string): Promise<ServiceResult<boolean>> {
+    try {
+      if (!accountId || accountId.trim() === '') {
+        return { data: null, error: 'Account ID is required' };
+      }
+
+      // Get account details first for cache invalidation
+      const { data: account } = await this.getAccountById(accountId);
+
+      const { error } = await supabaseServer
+        .from('accounts')
+        .delete()
+        .eq('id', accountId);
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      // Invalidate caches
+      const tagsToRevalidate = [
+        CACHE_TAGS.ACCOUNTS,
+        CACHE_TAGS.ACCOUNT(accountId),
+      ];
+
+      if (account) {
+        tagsToRevalidate.push(`group:${account.group_id}:accounts`);
+        account.user_ids.forEach((userId) => {
+          tagsToRevalidate.push(`user:${userId}:accounts`);
+        });
+      }
+
+      await revalidateCacheTags(tagsToRevalidate);
+
+      return { data: true, error: null };
+    } catch (error) {
+      return {
+        data: null,
+        error: error instanceof Error ? error.message : 'Failed to delete account',
       };
     }
   }

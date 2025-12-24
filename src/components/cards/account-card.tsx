@@ -1,24 +1,27 @@
-/**
- * AccountCard - Domain card for bank accounts
- *
- * Refactored from AccountCard to use DomainCard abstraction
- * Reduced from 60 lines to ~40 lines (33% reduction)
- */
-
 "use client";
 
-import { Amount, DomainCard, Text } from "@/src/components/ui";
-import { Account, AccountTypeMap } from "@/src/lib";
-import { truncateText } from "@/lib/utils";
-import { Building2 } from "lucide-react";
+import { Building2, MoreVertical, Pencil, Trash2 } from "lucide-react";
+import { formatCurrency, truncateText } from "@/lib/utils";
+import { Account, AccountTypeMap } from "@/lib/types";
+import { DomainCard } from "@/src/components/ui/layout/domain-card";
+import { Amount, Text } from "@/src/components/ui/primitives";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  Button
+} from "@/components/ui";
 
 interface AccountCardProps {
   account: Account;
   accountBalance: number;
-  onClick: () => void;
+  onClick?: () => void;
+  onEdit?: () => void;
+  onDelete?: () => void;
 }
 
-export function AccountCard({ account, accountBalance, onClick }: Readonly<AccountCardProps>) {
+export function AccountCard({ account, accountBalance, onClick, onEdit, onDelete }: Readonly<AccountCardProps>) {
   const isNegative = accountBalance < 0;
 
   // Primary content: Balance amount
@@ -39,6 +42,30 @@ export function AccountCard({ account, accountBalance, onClick }: Readonly<Accou
     </Text>
   ) : undefined;
 
+  const actions = (onEdit || onDelete) ? (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
+          <MoreVertical className="h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        {onEdit && (
+          <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit(); }}>
+            <Pencil className="mr-2 h-4 w-4" />
+            <span>Modifica</span>
+          </DropdownMenuItem>
+        )}
+        {onDelete && (
+          <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onDelete(); }} className="text-destructive focus:text-destructive">
+            <Trash2 className="mr-2 h-4 w-4" />
+            <span>Elimina</span>
+          </DropdownMenuItem>
+        )}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  ) : undefined;
+
   return (
     <DomainCard
       icon={<Building2 className="h-5 w-5" />}
@@ -52,6 +79,7 @@ export function AccountCard({ account, accountBalance, onClick }: Readonly<Accou
       onClick={onClick}
       className="min-w-[180px] shrink-0"
       testId={`account-card-${account.id}`}
+      actions={actions}
     />
   );
 }

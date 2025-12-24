@@ -65,6 +65,8 @@ export interface DomainCardProps {
   isDisabled?: boolean;
   /** Test ID for testing */
   testId?: string;
+  /** Optional actions element (e.g. dropdown menu) */
+  actions?: React.ReactNode;
 }
 
 const variantStyles = {
@@ -90,6 +92,7 @@ export function DomainCard({
   isLoading = false,
   isDisabled = false,
   testId,
+  actions,
 }: DomainCardProps) {
   const cardStyles = variantStyles[variant];
   const isInteractive = variant === "interactive" || onClick;
@@ -161,10 +164,17 @@ export function DomainCard({
         </div>
 
         {/* Right Section: Primary & Secondary Content */}
-        {(primaryContent || secondaryContent) && (
-          <div className="text-right flex-shrink-0 ml-2">
-            {primaryContent && <div className="mb-1">{primaryContent}</div>}
-            {secondaryContent && <div>{secondaryContent}</div>}
+        {(primaryContent || secondaryContent || actions) && (
+          <div className="text-right flex-shrink-0 ml-2 flex items-center gap-2">
+            <div>
+              {primaryContent && <div className="mb-1">{primaryContent}</div>}
+              {secondaryContent && <div>{secondaryContent}</div>}
+            </div>
+            {actions && (
+              <div onClick={(e) => e.stopPropagation()}>
+                {actions}
+              </div>
+            )}
           </div>
         )}
       </div>

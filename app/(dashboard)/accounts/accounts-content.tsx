@@ -7,14 +7,16 @@
  * Data is passed from Server Component for optimal performance
  */
 
-import { Suspense, useEffect, useMemo } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { BottomNavigation, PageContainer, Header } from "@/components/layout";
-import { TotalBalanceCard, AccountsList, accountStyles } from "@/features/accounts";
+import { TotalBalanceCard, AccountsList, accountStyles, AccountForm } from "@/features/accounts";
+import { deleteAccountAction } from "@/features/accounts/actions/account-actions";
 import { useFilteredAccounts, usePermissions, useUserFilter } from "@/hooks";
 import UserSelector from "@/components/shared/user-selector";
 import { UserSelectorSkeleton } from "@/features/dashboard";
 import type { DashboardDataProps } from "@/lib/auth/get-dashboard-data";
 import type { Account, Category } from "@/lib/types";
+import { Plus } from "lucide-react";
 
 interface AccountsContentProps extends DashboardDataProps {
   accounts: Account[];
@@ -38,6 +40,11 @@ export default function AccountsContent({
   const initialFilter = initialUserId || "all";
   const { selectedGroupFilter, setSelectedGroupFilter, selectedUserId } = useUserFilter(initialFilter);
   const { isMember } = usePermissions({ currentUser, selectedUserId });
+
+  // State for Account Form
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [formMode, setFormMode] = useState<"create" | "edit">("create");
+  const [selectedAccount, setSelectedAccount] = useState<Account | undefined>(undefined);
 
   useEffect(() => {
     if (isMember) {
@@ -79,6 +86,41 @@ export default function AccountsContent({
     };
   }, [filteredAccounts.length, filteredBalances]);
 
+  // Action Handlers
+  const handleCreateAccount = () => {
+    setFormMode("create");
+    setSelectedAccount(undefined);
+    setIsFormOpen(true);
+  };
+
+  const handleEditAccount = (account: Account) => {
+    setFormMode("edit");
+    setSelectedAccount(account);
+    setIsFormOpen(true);
+  };
+
+  const handleDeleteAccount = async (account: Account) => {
+    if (confirm(`Sei sicuro di voler eliminare l'account "${account.name}"? Questa azione non può essere annullata.`)) {
+      try {
+        const result = await deleteAccountAction(account.id);
+        if (result.error) {
+          alert(`Errore: ${result.error}`);
+        }
+        // Success is handled by revalidation
+      } catch (error) {
+        alert("Si è verificato un errore durante l'eliminazione dell'account.");
+      }
+    }
+  };
+
+  const extraMenuItems = [
+    {
+      label: "Nuovo Account",
+      icon: Plus,
+      onClick: handleCreateAccount,
+    }
+  ];
+
   return (
     <PageContainer className={accountStyles.page.container}>
       <div className="flex-1">
@@ -88,6 +130,7 @@ export default function AccountsContent({
           subtitle={`${accountStats.totalAccounts} account${accountStats.totalAccounts === 1 ? '' : 's'}`}
           showBack={true}
           className={accountStyles.header.container}
+          extraMenuItems={extraMenuItems}
           data={{
             currentUser: { ...currentUser, role: currentUser.role || 'member' },
             groupUsers,
@@ -120,12 +163,26 @@ export default function AccountsContent({
         <AccountsList
           accounts={sortedAccounts}
           accountBalances={filteredBalances}
-          onAccountClick={() => {
-            /* TODO: Open account detail */
-          }}
+          onAccountClick={handleEditAccount}
+          onEditAccount={handleEditAccount}
+          onDeleteAccount={handleDeleteAccount}
           isLoading={false}
         />
       </div>
+
+      <AccountForm
+        isOpen={isFormOpen}
+        onOpenChange={setIsFormOpen}
+        mode={formMode}
+        account={selectedAccount}
+        currentUser={currentUser}
+        groupUsers={groupUsers}
+        groupId={currentUser.group_id}
+        selectedUserId={selectedUserId === "all" ? undefined : selectedUserId}
+        onSuccess={() => {
+          // Toast or other notification could be added here
+        }}
+      />
 
       <BottomNavigation />
     </PageContainer>

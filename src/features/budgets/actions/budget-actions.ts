@@ -1,5 +1,7 @@
 'use server';
 
+import { revalidatePath } from 'next/cache';
+
 import { auth } from '@clerk/nextjs/server';
 import { BudgetService, CreateBudgetInput } from '@/lib/services/budget.service';
 import { UserService } from '@/lib/services';
@@ -52,7 +54,14 @@ export async function createBudgetAction(
       };
     }
 
-    return await BudgetService.createBudget(input);
+    const result = await BudgetService.createBudget(input);
+
+    if (!result.error) {
+      revalidatePath('/budgets');
+      revalidatePath('/dashboard');
+    }
+
+    return result;
   } catch (error) {
     return {
       data: null,
@@ -122,7 +131,14 @@ export async function updateBudgetAction(
       }
     }
 
-    return await BudgetService.updateBudget(id, input);
+    const result = await BudgetService.updateBudget(id, input);
+
+    if (!result.error) {
+      revalidatePath('/budgets');
+      revalidatePath('/dashboard');
+    }
+
+    return result;
   } catch (error) {
     return {
       data: null,
@@ -174,7 +190,14 @@ export async function deleteBudgetAction(
       };
     }
 
-    return await BudgetService.deleteBudget(id);
+    const result = await BudgetService.deleteBudget(id);
+
+    if (!result.error) {
+      revalidatePath('/budgets');
+      revalidatePath('/dashboard');
+    }
+
+    return result;
   } catch (error) {
     return {
       data: null,

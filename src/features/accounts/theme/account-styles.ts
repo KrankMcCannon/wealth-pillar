@@ -17,7 +17,7 @@ export const accountStyles = {
   // Page-level styles
   // ====================================
   page: {
-    container: `bg-[#F8FAFC] pb-24`,
+    container: `bg-[#F8FAFC] pb-20`, // Reduced bottom padding
   },
 
   // ====================================

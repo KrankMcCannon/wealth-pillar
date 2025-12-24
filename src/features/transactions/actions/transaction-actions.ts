@@ -1,5 +1,7 @@
 'use server';
 
+import { revalidatePath } from 'next/cache';
+
 import { auth } from '@clerk/nextjs/server';
 import { TransactionService, CreateTransactionInput } from '@/lib/services/transaction.service';
 import { UserService } from '@/lib/services';
@@ -52,7 +54,17 @@ export async function createTransactionAction(
       };
     }
 
-    return await TransactionService.createTransaction(input);
+    const result = await TransactionService.createTransaction(input);
+
+    if (!result.error) {
+      revalidatePath('/dashboard');
+      revalidatePath('/transactions');
+      revalidatePath('/accounts');
+      revalidatePath('/budgets');
+      revalidatePath('/reports');
+    }
+
+    return result;
   } catch (error) {
     return {
       data: null,
@@ -122,7 +134,17 @@ export async function updateTransactionAction(
       }
     }
 
-    return await TransactionService.updateTransaction(id, input);
+    const result = await TransactionService.updateTransaction(id, input);
+
+    if (!result.error) {
+      revalidatePath('/dashboard');
+      revalidatePath('/transactions');
+      revalidatePath('/accounts');
+      revalidatePath('/budgets');
+      revalidatePath('/reports');
+    }
+
+    return result;
   } catch (error) {
     return {
       data: null,
@@ -174,7 +196,17 @@ export async function deleteTransactionAction(
       };
     }
 
-    return await TransactionService.deleteTransaction(id);
+    const result = await TransactionService.deleteTransaction(id);
+
+    if (!result.error) {
+      revalidatePath('/dashboard');
+      revalidatePath('/transactions');
+      revalidatePath('/accounts');
+      revalidatePath('/budgets');
+      revalidatePath('/reports');
+    }
+
+    return result;
   } catch (error) {
     return {
       data: null,
