@@ -167,7 +167,7 @@ export function DomainCard({
         {(primaryContent || secondaryContent || actions) && (
           <div className="text-right flex-shrink-0 ml-2 flex items-center gap-2">
             <div>
-              {primaryContent && <div className="mb-1">{primaryContent}</div>}
+              {primaryContent && <div>{primaryContent}</div>}
               {secondaryContent && <div>{secondaryContent}</div>}
             </div>
             {actions && (

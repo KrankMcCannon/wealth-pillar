@@ -33,16 +33,18 @@ export const accountComponents = {
   },
 
   balanceCard: {
-    container: 'bg-card rounded-2xl p-3 border border-primary/20 shadow-xl',
-    header: 'flex items-center justify-between mb-4',
-    icon: 'flex items-center justify-center w-14 h-14 rounded-full bg-primary/10',
-    label: 'text-sm text-muted-foreground mb-1',
-    value: 'text-2xl font-bold',
-    statsGrid: 'grid grid-cols-3 gap-3 mt-6',
-    statItem: 'rounded-lg p-3 border',
-    statItemPrimary: 'bg-primary/5 border-primary/10',
-    statItemSuccess: 'bg-success/5 border-success/10',
-    statItemDestructive: 'bg-destructive/5 border-destructive/10',
+    container: 'bg-card rounded-2xl p-3 border border-primary/20 shadow-lg relative overflow-hidden', // Reduced padding
+    mainRow: 'flex flex-col gap-2.5', // Stacked vertical column for the two main rows
+    balanceSection: 'w-full', // Full width for the balance row
+    header: 'flex flex-col items-start', // Label and Value in a vertical row
+    icon: 'hidden',
+    label: 'text-[10px] font-bold text-muted-foreground/60 uppercase tracking-wider',
+    value: 'text-xl font-extrabold tracking-tight sm:text-2xl', // Slightly smaller for row fit
+    statsGrid: 'flex flex-row items-center gap-2 w-full', // Full width row
+    statItem: 'flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all duration-300', // flex-1 to expand
+    statItemPrimary: 'bg-primary/5 border-primary/10 text-primary',
+    statItemSuccess: 'bg-success/5 border-success/10 text-success',
+    statItemDestructive: 'bg-destructive/5 border-destructive/10 text-destructive',
   },
 
   accountsList: {

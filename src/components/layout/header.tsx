@@ -10,7 +10,8 @@ import {
     CreditCard,
     PieChart,
     Tag,
-    RefreshCw
+    RefreshCw,
+    Crown
 } from "lucide-react";
 import { User, Account, Category } from "@/lib/types";
 import { cn } from "@/lib";
@@ -135,27 +136,38 @@ export function Header({
                     className
                 )}
             >
-                <div className="flex items-center justify-between w-full mx-auto max-w-7xl">
+                <div className="flex items-center justify-between w-full mx-auto">
                     {/* LEFT SECTION: Back Button or Dashboard Info */}
                     <div className="flex items-center gap-4">
-                        {isDashboard ? (
-                            // Dashboard View: Logo & Title
+                        {isDashboard && data?.currentUser && (
                             <div className="flex items-center gap-3">
-                                <div className="bg-primary/10 h-10 w-10 rounded-xl flex items-center justify-center shadow-sm">
-                                    <span className="text-xl">💎</span>
+                                <div className="relative">
+                                    <div className="h-9 w-9 bg-primary/10 rounded-full flex items-center justify-center text-primary font-semibold text-sm border-2 border-background shadow-sm overflow-hidden">
+                                        {data.currentUser.name.substring(0, 2).toUpperCase()}
+                                    </div>
+                                    {data.currentUser.role === 'admin' && (
+                                        <div className="absolute -top-1 -right-1 bg-amber-500 rounded-full p-0.5 border-2 border-background shadow-sm" title="Premium">
+                                            <Crown className="h-2.5 w-2.5 text-white fill-white" />
+                                        </div>
+                                    )}
                                 </div>
-                                <div className="hidden sm:block">
-                                    <h1 className="text-lg font-bold text-foreground leading-tight">Wealth Pillar</h1>
-                                    <p className="text-[10px] text-muted-foreground font-medium tracking-wide uppercase">Financial Intelligence</p>
+                                <div className="hidden sm:block leading-none">
+                                    <p className="text-sm font-semibold text-foreground truncate max-w-[120px]">{data.currentUser.name}</p>
+                                    <p className="text-[10px] text-muted-foreground font-medium mt-0.5 capitalize">
+                                        {data.currentUser.role === 'admin' ? 'Premium Plan' : 'Standard Plan'}
+                                    </p>
                                 </div>
                             </div>
-                        ) : (
+                        )}
+
+                        {!isDashboard && (
                             // Subpage View: Back Button & Title
                             <div className="flex items-center gap-3">
                                 {showBack && (
                                     <Button
                                         variant="ghost"
                                         size="icon"
+                                        aria-label="Torna indietro"
                                         className="h-9 w-9 -ml-2 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
                                         onClick={handleBack}
                                     >
@@ -172,46 +184,40 @@ export function Header({
 
                     {/* RIGHT SECTION: Actions */}
                     <div className="flex items-center gap-2 sm:gap-3">
-                        {/* Dashboard Specific: Portfolio Badge */}
-                        {isDashboard && (
-                            <div className="hidden md:flex items-center px-3 py-1.5 bg-green-500/10 border border-green-500/20 rounded-full text-green-600 text-xs font-semibold">
-                                <span>↗ +2.5% Portfolio</span>
-                            </div>
-                        )}
+                        {/* Common Actions Order: Add, Notifications, Settings, Toggle */}
 
-                        {/* Common Actions */}
-                        <ThemeToggle />
-
-                        {/* Add Menu - Only if data is available */}
+                        {/* 1. Add Actions */}
                         {data && renderAddAction()}
 
-                        {/* Notifications (Mock for now) */}
-                        <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full text-muted-foreground hover:text-foreground">
-                            <Bell className="h-5 w-5" />
-                        </Button>
-
-                        {/* Settings Link (could be handled via router) */}
+                        {/* 2. Notifications */}
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="h-9 w-9 rounded-full text-muted-foreground hover:text-foreground"
+                            aria-label="Notifiche"
+                            className="h-9 w-9 rounded-full text-primary hover:bg-primary/5"
+                        >
+                            <Bell className="h-5 w-5" />
+                        </Button>
+
+                        {/* 3. Settings */}
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            aria-label="Impostazioni"
+                            className="h-9 w-9 rounded-full text-primary hover:bg-primary/5"
                             onClick={() => router.push('/settings')}
                         >
                             <Settings className="h-5 w-5" />
                         </Button>
 
-                        {/* Dashboard User Profile - Only if data is available */}
-                        {isDashboard && data?.currentUser && (
-                            <div className="flex items-center gap-3 pl-2 sm:pl-4 sm:border-l border-border/50 ml-1 sm:ml-2">
-                                <div className="h-9 w-9 bg-primary/10 rounded-full flex items-center justify-center text-primary font-semibold text-sm border-2 border-background shadow-sm">
-                                    {data.currentUser.name.substring(0, 2).toUpperCase()}
-                                </div>
-                                <div className="hidden lg:block leading-none">
-                                    <p className="text-sm font-semibold text-foreground">{data.currentUser.name}</p>
-                                    <p className="text-[10px] text-muted-foreground font-medium mt-0.5 capitalize">{data.currentUser.role === 'admin' ? 'Premium' : 'Member'}</p>
-                                </div>
+                        {/* 4. Portfolio Badge */}
+                        {isDashboard && (
+                            <div className="flex items-center px-3 py-1.5 bg-green-500/10 border border-green-500/20 rounded-full text-green-600 text-xs font-semibold">
+                                <span>↗ +2.5%</span>
                             </div>
                         )}
+
+                        <ThemeToggle />
                     </div>
                 </div>
             </header>

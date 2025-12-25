@@ -17,27 +17,23 @@ function TotalBalanceCardSkeleton() {
   return (
     <div className={accountStyles.balanceCard.container}>
       <div className={`${accountStyles.balanceCard.card} ${SHIMMER_BASE}`}>
-        {/* Header */}
-        <div className={accountStyles.balanceCard.header}>
-          <div>
-            <div className="h-3 w-20 bg-primary/15 rounded mb-2" />
-            <div className="h-8 w-32 bg-primary/15 rounded" />
+        {/* Main Column Layout */}
+        <div className={accountStyles.balanceCard.mainRow}>
+          {/* Row 1: Balance Info (Label + Value) */}
+          <div className={accountStyles.balanceCard.header}>
+            <div className="h-3 w-16 bg-primary/15 rounded" />
+            <div className="h-6 w-24 bg-primary/15 rounded" />
           </div>
-          <div className="w-14 h-14 bg-primary/10 rounded-full" />
+
+          {/* Row 2: Stats Row */}
+          <div className={accountStyles.balanceCard.statsGrid}>
+            {new Array(3).fill(null).map((_, i) => (
+              <div key={i} className="h-8 flex-1 bg-primary/10 rounded-lg animate-pulse" />
+            ))}
+          </div>
         </div>
 
-        {/* Statistics grid */}
-        <div className={accountStyles.balanceCard.statsGrid}>
-          {new Array(3).fill(null).map((_, i) => (
-            <div key={i} className="bg-primary/5 rounded-lg p-3 border border-primary/10 space-y-2">
-              <div className="flex items-center gap-2 mb-1">
-                <div className="w-4 h-4 bg-primary/15 rounded" />
-                <div className="h-2 w-12 bg-primary/15 rounded" />
-              </div>
-              <div className="h-5 w-8 bg-primary/15 rounded" />
-            </div>
-          ))}
-        </div>
+
       </div>
     </div>
   );
@@ -67,9 +63,9 @@ export const TotalBalanceCard = ({
   return (
     <div className={accountStyles.balanceCard.container}>
       <div className={accountStyles.balanceCard.card}>
-        {/* Header with balance and icon */}
-        <div className={accountStyles.balanceCard.header}>
-          <div>
+        <div className={accountStyles.balanceCard.mainRow}>
+          {/* Row 1: Balance Row (Label left, Value right) */}
+          <div className={accountStyles.balanceCard.header}>
             <p className={accountStyles.balanceCard.label}>Saldo Totale</p>
             <p
               className={isPositive ? accountStyles.balanceCard.valuePositive : accountStyles.balanceCard.valueNegative}
@@ -77,38 +73,26 @@ export const TotalBalanceCard = ({
               {formatCurrency(totalBalance)}
             </p>
           </div>
-          <div className={accountStyles.balanceCard.iconContainer}>
-            <CreditCard className="w-7 h-7 text-primary" />
-          </div>
-        </div>
 
-        {/* Statistics Grid */}
-        <div className={accountStyles.balanceCard.statsGrid}>
-          {/* Total Accounts */}
-          <div className={accountStyles.balanceCard.statItem.primary}>
-            <div className="flex items-center gap-2 mb-1">
-              <CreditCard className="w-4 h-4 text-primary" />
-              <p className={accountStyles.balanceCard.statLabel}>Totale</p>
+          {/* Row 2: Statistics Row */}
+          <div className={accountStyles.balanceCard.statsGrid}>
+            {/* Total Accounts */}
+            <div className={`${accountStyles.balanceCard.statItem.base} ${accountStyles.balanceCard.statItem.primary}`}>
+              <span className={accountStyles.balanceCard.statLabel}>Totale:</span>
+              <span className={accountStyles.balanceCard.statValue}>{totalAccounts}</span>
             </div>
-            <p className={`${accountStyles.balanceCard.statValue} text-primary`}>{totalAccounts}</p>
-          </div>
 
-          {/* Positive Accounts */}
-          <div className={accountStyles.balanceCard.statItem.success}>
-            <div className="flex items-center gap-2 mb-1">
-              <TrendingUp className="w-4 h-4 text-success" />
-              <p className={accountStyles.balanceCard.statLabel}>Positivi</p>
+            {/* Positive Accounts */}
+            <div className={`${accountStyles.balanceCard.statItem.base} ${accountStyles.balanceCard.statItem.success}`}>
+              <span className={accountStyles.balanceCard.statLabel}>Positivi:</span>
+              <span className={accountStyles.balanceCard.statValue}>{positiveAccounts}</span>
             </div>
-            <p className={`${accountStyles.balanceCard.statValue} text-success`}>{positiveAccounts}</p>
-          </div>
 
-          {/* Negative Accounts */}
-          <div className={accountStyles.balanceCard.statItem.destructive}>
-            <div className="flex items-center gap-2 mb-1">
-              <TrendingDown className="w-4 h-4 text-destructive" />
-              <p className={accountStyles.balanceCard.statLabel}>Negativi</p>
+            {/* Negative Accounts */}
+            <div className={`${accountStyles.balanceCard.statItem.base} ${accountStyles.balanceCard.statItem.destructive}`}>
+              <span className={accountStyles.balanceCard.statLabel}>Negativi:</span>
+              <span className={accountStyles.balanceCard.statValue}>{negativeAccounts}</span>
             </div>
-            <p className={`${accountStyles.balanceCard.statValue} text-destructive`}>{negativeAccounts}</p>
           </div>
         </div>
       </div>

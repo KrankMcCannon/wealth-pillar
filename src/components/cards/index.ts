@@ -8,4 +8,3 @@
 export { AccountCard } from './account-card';
 export { BudgetCard } from './budget-card';
 export { SeriesCard } from './series-card';
-export { TransactionCard } from './transaction-card';
