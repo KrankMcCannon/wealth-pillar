@@ -219,7 +219,7 @@ export const groupedCardTokens = {
   // Spacing - single source of truth
   spacing: {
     cardPadding: 'py-0',                    // Card wrapper (no vertical padding)
-    rowPadding: 'px-4 py-3',                // Individual row padding (increased for better touch targets)
+    rowPadding: 'px-3 py-2',                // Individual row padding (increased for better touch targets)
     rowGap: 'gap-3',                        // Gap between icon and content
     contentGap: 'gap-1.5',                  // Gap in metadata row
   },
