@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import { BottomNavigation, PageContainer, Header } from "@/components/layout";
 import { useUserFilter, usePermissions, useFilteredAccounts } from "@/hooks";
+import { useModalState } from "@/lib/navigation/modal-params";
 import UserSelector from "@/src/components/shared/user-selector";
 import { BudgetPeriodsSection, reportsStyles, ReportsOverviewCard, AnnualCategorySection } from "@/features/reports";
 import type { DashboardDataProps } from "@/lib/auth/get-dashboard-data";
@@ -26,6 +27,7 @@ export default function ReportsContent({
 }: ReportsContentProps) {
   // User filtering state management using shared hook
   const { selectedGroupFilter, setSelectedGroupFilter } = useUserFilter();
+  const { openModal } = useModalState();
 
   // Permission checks
   const { isMember } = usePermissions({
@@ -103,13 +105,8 @@ export default function ReportsContent({
         <Header
           title="Rapporti"
           showBack={true}
-          data={{
-            currentUser: { ...currentUser, role: currentUser.role || 'member' },
-            groupUsers,
-            accounts,
-            categories,
-            groupId: currentUser.group_id
-          }}
+          currentUser={{ name: currentUser.name, role: currentUser.role || 'member' }}
+          showActions={true}
         />
 
         {/* User Selector */}

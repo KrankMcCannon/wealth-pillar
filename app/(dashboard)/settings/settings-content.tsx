@@ -137,13 +137,8 @@ export default function SettingsContent({ currentUser, groupUsers, accounts, tra
           title="Impostazioni"
           showBack={true}
           onBack={() => router.push("/dashboard")}
-          data={{
-            currentUser: { ...currentUser, role: currentUser.role || 'member' },
-            groupUsers,
-            accounts,
-            categories,
-            groupId: currentUser.group_id
-          }}
+          currentUser={{ name: currentUser.name, role: currentUser.role || 'member' }}
+          showActions={true}
         />
 
         <main className={settingsStyles.main.container}>

@@ -21,11 +21,10 @@ import { BottomNavigation, PageContainer, Header } from "@/src/components/layout
 import TabNavigation from "@/src/components/shared/tab-navigation";
 import UserSelector from "@/src/components/shared/user-selector";
 import { ConfirmationDialog } from "@/components/shared";
-import { RecurringSeriesSection, RecurringSeriesForm } from "@/src/features/recurring";
+import { RecurringSeriesSection } from "@/src/features/recurring";
 import { RecurringTransactionSeries } from "@/src/lib";
 import {
   TransactionDayList,
-  TransactionForm,
   TransactionFilters,
   defaultFiltersState,
   filterTransactions,
@@ -40,6 +39,7 @@ import { TransactionService } from "@/lib/services";
 import { insertTransactionSorted, updateTransactionSorted, removeTransaction } from "@/lib/utils/transaction-sorting";
 import { deleteTransactionAction } from "@/features/transactions/actions/transaction-actions";
 import { deleteRecurringSeriesAction } from "@/features/recurring/actions/recurring-actions";
+import { useModalState } from "@/lib/navigation/modal-params";
 
 /**
  * Transactions Content Props
@@ -73,11 +73,8 @@ export default function TransactionsContent({
   // User filtering state management (global context)
   const { selectedGroupFilter, setSelectedGroupFilter, selectedUserId } = useUserFilter();
 
-  // Permission checks
-  const { isMember, shouldDisableUserField, defaultFormUserId } = usePermissions({
-    currentUser,
-    selectedUserId,
-  });
+  // Modal state management (URL-based)
+  const { openModal } = useModalState();
 
   // Check if coming from budgets page
   const fromBudgets = searchParams.get("from") === "budgets";
@@ -154,10 +151,6 @@ export default function TransactionsContent({
     router.push("/transactions");
   };
 
-  // Form modal state using hooks
-  const transactionModal = useFormModal<Transaction>();
-  const recurringModal = useFormModal<RecurringTransactionSeries>();
-
   // Delete confirmation state using hook
   const deleteConfirm = useDeleteConfirmation<Transaction>();
   const recurringDeleteConfirm = useDeleteConfirmation<RecurringTransactionSeries>();
@@ -215,7 +208,7 @@ export default function TransactionsContent({
   }, [filteredTransactions]);
 
   const handleEditTransaction = (transaction: Transaction) => {
-    transactionModal.openEdit(transaction);
+    openModal("transaction", transaction.id);
   };
 
   const handleDeleteClick = (transactionId: string) => {
@@ -275,24 +268,6 @@ export default function TransactionsContent({
     });
   };
 
-  const handleFormSuccess = (transaction: Transaction, action: "create" | "update") => {
-    // Optimistic UI update with sorted insertion
-    if (action === "create") {
-      setLocalTransactions((prev) => insertTransactionSorted(prev, transaction));
-    } else {
-      setLocalTransactions((prev) => updateTransactionSorted(prev, transaction));
-    }
-
-    // Debounced cache revalidation to prevent flickering during rapid operations
-    debouncedRefresh();
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
-  const handleRecurringFormSuccess = () => {
-    // Refresh to get updated recurring series data
-    router.refresh();
-  };
-
   return (
     <PageContainer className={transactionStyles.page.container}>
       {/* Header */}
@@ -300,13 +275,8 @@ export default function TransactionsContent({
         title="Transazioni"
         showBack={true}
         className={transactionStyles.header.container}
-        data={{
-          currentUser: { ...currentUser, role: currentUser.role || 'member' },
-          groupUsers,
-          accounts,
-          categories,
-          groupId: currentUser.group_id
-        }}
+        currentUser={{ name: currentUser.name, role: currentUser.role || 'member' }}
+        showActions={true}
       />
 
       {/* User Selector */}
@@ -374,8 +344,8 @@ export default function TransactionsContent({
               maxItems={10}
               showActions={true}
               showDelete={true}
-              onCreateRecurringSeries={recurringModal.openCreate}
-              onEditRecurringSeries={recurringModal.openEdit}
+              onCreateRecurringSeries={() => openModal("recurring")}
+              onEditRecurringSeries={(series) => openModal("recurring", series.id)}
               onDeleteRecurringSeries={handleRecurringDeleteClick}
             />
           </Suspense>
@@ -383,33 +353,6 @@ export default function TransactionsContent({
       </main>
 
       <BottomNavigation />
-
-      {/* Modal Forms */}
-      <TransactionForm
-        isOpen={transactionModal.isOpen}
-        onOpenChange={transactionModal.setIsOpen}
-        transaction={transactionModal.entity}
-        mode={transactionModal.mode}
-        currentUser={currentUser}
-        groupUsers={groupUsers}
-        accounts={accounts}
-        categories={categories}
-        groupId={currentUser.group_id}
-        selectedUserId={selectedUserId}
-        onSuccess={handleFormSuccess}
-      />
-      <RecurringSeriesForm
-        isOpen={recurringModal.isOpen}
-        onOpenChange={recurringModal.setIsOpen}
-        currentUser={currentUser}
-        groupUsers={groupUsers}
-        accounts={accounts}
-        categories={categories}
-        selectedUserId={selectedUserId}
-        series={recurringModal.entity}
-        mode={recurringModal.mode}
-        onSuccess={handleRecurringFormSuccess}
-      />
 
       {/* Delete Confirmation Dialog */}
       <ConfirmationDialog

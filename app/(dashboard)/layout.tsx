@@ -1,30 +1,49 @@
-'use client';
-
-import { UserFilterProvider } from '@/contexts';
+import { NuqsAdapter } from 'nuqs/adapters/next/app';
+import { getDashboardData } from '@/lib/auth/get-dashboard-data';
+import { PageDataService } from '@/lib/services';
+import { ModalProvider } from '@/providers/modal-provider';
 
 /**
- * Dashboard Layout with SSR Streaming Support
+ * Dashboard Layout with Modal Management
  *
- * This layout provides the structure for progressive data loading
- * with Suspense boundaries for streaming responses in Next.js 15
+ * Server Component that fetches shared data and provides it to:
+ * - All dashboard pages (via children)
+ * - Global modal system (via ModalProvider)
  *
  * Architecture:
- * - All children are client components (for now, can be converted to server components later)
- * - Suspense boundaries wrap data-heavy components
- * - Fallbacks use skeleton loaders for perceived performance
- * - UserFilterProvider wraps all dashboard pages for global user selection state
+ * - Server Component for optimal data fetching
+ * - Fetches user data and page data once at layout level
+ * - ModalProvider manages all modals via URL state (nuqs)
+ * - User filter state managed globally via Zustand (client-side)
  *
- * Future: Convert to async Server Component with per-segment prefetching
+ * Data Flow:
+ * Layout (Server) → Fetch Data → ModalProvider (Client) → Children
  */
-
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  // Fetch user data (currentUser, groupUsers)
+  const { currentUser, groupUsers } = await getDashboardData();
+
+  // Fetch page data (accounts, categories, etc.)
+  const { data } = await PageDataService.getDashboardData(currentUser.group_id);
+
+  // Safe fallbacks if data is null
+  const { accounts = [], categories = [] } = data || {};
+
   return (
-    <UserFilterProvider>
-      {children}
-    </UserFilterProvider>
+    <NuqsAdapter>
+      <ModalProvider
+        currentUser={currentUser}
+        groupUsers={groupUsers}
+        accounts={accounts}
+        categories={categories}
+        groupId={currentUser.group_id}
+      >
+        {children}
+      </ModalProvider>
+    </NuqsAdapter>
   );
 }

@@ -3,6 +3,7 @@
 import { PageContainer, Header, SectionHeader, BottomNavigation } from "@/src/components/layout";
 import { EmptyState } from "@/components/shared";
 import { useUserFilter } from "@/hooks";
+import { useModalState } from "@/lib/navigation/modal-params";
 import UserSelector from "@/src/components/shared/user-selector";
 import { EnhancedHolding } from "@/src/lib";
 import { PieChart } from "lucide-react";
@@ -16,6 +17,7 @@ interface InvestmentsContentProps extends DashboardDataProps {
 
 export default function InvestmentsContent({ currentUser, groupUsers, accounts, categories }: InvestmentsContentProps) {
   const { selectedGroupFilter, setSelectedGroupFilter } = useUserFilter();
+  const { openModal } = useModalState();
 
   return (
     <PageContainer className="bg-[#F8FAFC]">
@@ -24,13 +26,8 @@ export default function InvestmentsContent({ currentUser, groupUsers, accounts, 
           title="Investimenti"
           showBack={true}
           className="shadow-sm"
-          data={{
-            currentUser: { ...currentUser, role: currentUser.role || 'member' },
-            groupUsers,
-            accounts,
-            categories,
-            groupId: currentUser.group_id
-          }}
+          currentUser={{ name: currentUser.name, role: currentUser.role || 'member' }}
+          showActions={true}
         />
 
         <UserSelector

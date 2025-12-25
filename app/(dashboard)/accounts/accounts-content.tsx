@@ -7,9 +7,9 @@
  * Data is passed from Server Component for optimal performance
  */
 
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo } from "react";
 import { BottomNavigation, PageContainer, Header } from "@/components/layout";
-import { TotalBalanceCard, AccountsList, accountStyles, AccountForm } from "@/features/accounts";
+import { TotalBalanceCard, AccountsList, accountStyles } from "@/features/accounts";
 import { deleteAccountAction } from "@/features/accounts/actions/account-actions";
 import { useFilteredAccounts, usePermissions, useUserFilter } from "@/hooks";
 import UserSelector from "@/components/shared/user-selector";
@@ -17,6 +17,7 @@ import { UserSelectorSkeleton } from "@/features/dashboard";
 import type { DashboardDataProps } from "@/lib/auth/get-dashboard-data";
 import type { Account, Category } from "@/lib/types";
 import { Plus } from "lucide-react";
+import { useModalState } from "@/lib/navigation/modal-params";
 
 interface AccountsContentProps extends DashboardDataProps {
   accounts: Account[];
@@ -34,17 +35,13 @@ export default function AccountsContent({
   groupUsers,
   accounts,
   accountBalances,
-  initialUserId,
-  categories,
 }: AccountsContentProps) {
   // User filtering state management (global context)
   const { selectedGroupFilter, setSelectedGroupFilter, selectedUserId } = useUserFilter();
   const { isMember } = usePermissions({ currentUser, selectedUserId });
 
-  // State for Account Form
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [formMode, setFormMode] = useState<"create" | "edit">("create");
-  const [selectedAccount, setSelectedAccount] = useState<Account | undefined>(undefined);
+  // Modal state management (URL-based)
+  const { openModal } = useModalState();
 
   useEffect(() => {
     if (isMember) {
@@ -88,15 +85,11 @@ export default function AccountsContent({
 
   // Action Handlers
   const handleCreateAccount = () => {
-    setFormMode("create");
-    setSelectedAccount(undefined);
-    setIsFormOpen(true);
+    openModal("account");
   };
 
   const handleEditAccount = (account: Account) => {
-    setFormMode("edit");
-    setSelectedAccount(account);
-    setIsFormOpen(true);
+    openModal("account", account.id);
   };
 
   const handleDeleteAccount = async (account: Account) => {
@@ -112,15 +105,6 @@ export default function AccountsContent({
       }
     }
   };
-
-  const extraMenuItems = [
-    {
-      label: "Nuovo Account",
-      icon: Plus,
-      onClick: handleCreateAccount,
-    }
-  ];
-
   return (
     <PageContainer className={accountStyles.page.container}>
       <div className="flex-1">
@@ -130,14 +114,8 @@ export default function AccountsContent({
           subtitle={`${accountStats.totalAccounts} account${accountStats.totalAccounts === 1 ? '' : 's'}`}
           showBack={true}
           className={accountStyles.header.container}
-          extraMenuItems={extraMenuItems}
-          data={{
-            currentUser: { ...currentUser, role: currentUser.role || 'member' },
-            groupUsers,
-            accounts,
-            categories,
-            groupId: currentUser.group_id
-          }}
+          currentUser={{ name: currentUser.name, role: currentUser.role || 'member' }}
+          showActions={true}
         />
 
         {/* User Selector */}
@@ -169,20 +147,6 @@ export default function AccountsContent({
           isLoading={false}
         />
       </div>
-
-      <AccountForm
-        isOpen={isFormOpen}
-        onOpenChange={setIsFormOpen}
-        mode={formMode}
-        account={selectedAccount}
-        currentUser={currentUser}
-        groupUsers={groupUsers}
-        groupId={currentUser.group_id}
-        selectedUserId={selectedUserId}
-        onSuccess={() => {
-          // Toast or other notification could be added here
-        }}
-      />
 
       <BottomNavigation />
     </PageContainer>

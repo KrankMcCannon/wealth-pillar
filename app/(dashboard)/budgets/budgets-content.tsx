@@ -12,12 +12,13 @@
 import { useState, useMemo, useEffect, Suspense, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { BottomNavigation, PageContainer, Header } from "@/components/layout";
-import { useFormModal, useDeleteConfirmation, useIdNameMap, usePermissions, useFilteredData, useBudgetsByUser, useUserFilter } from "@/hooks";
+import { useDeleteConfirmation, useIdNameMap, usePermissions, useFilteredData, useBudgetsByUser, useUserFilter } from "@/hooks";
+import { useModalState } from "@/lib/navigation/modal-params";
 import UserSelector from "@/components/shared/user-selector";
 import { UserSelectorSkeleton } from "@/features/dashboard";
 import { ConfirmationDialog } from "@/components/shared/confirmation-dialog";
 import { EmptyState } from "@/components/shared";
-import { BudgetForm, BudgetPeriodManager } from "@/features/budgets";
+import { BudgetPeriodManager } from "@/features/budgets";
 import {
   BudgetSelector,
   BudgetDisplayCard,
@@ -29,7 +30,6 @@ import {
   BudgetChartSkeleton,
 } from "@/features/budgets/components";
 import {
-  TransactionForm,
   TransactionDayList,
   TransactionDayListSkeleton,
   type GroupedTransaction,
@@ -118,11 +118,8 @@ export default function BudgetsContent({
     return null; // Will be set in useEffect
   });
 
-  // Form modal state using hooks
-  const budgetModal = useFormModal<Budget>();
-  const transactionModal = useFormModal<Transaction>();
-  const categoryModal = useFormModal<Category>();
-  const periodManagerModal = useFormModal();
+  // Modal state management (URL-based)
+  const { openModal } = useModalState();
 
   // Period manager selected user state (for admins)
   const [periodManagerUserId, setPeriodManagerUserId] = useState<string>(currentUser.id);
@@ -302,18 +299,14 @@ export default function BudgetsContent({
   };
 
   const handleCreateBudget = () => {
-    budgetModal.openCreate();
+    openModal("budget");
   };
 
   const handleEditBudget = () => {
     if (selectedBudget) {
-      budgetModal.openEdit(selectedBudget);
+      openModal("budget", selectedBudget.id);
     }
   };
-
-  const handleManagePeriod = useCallback(() => {
-    periodManagerModal.openCreate();
-  }, [periodManagerModal]);
 
   const handleDeleteBudget = (budget: Budget) => {
     deleteConfirm.openDialog(budget);
@@ -337,19 +330,6 @@ export default function BudgetsContent({
     });
   };
 
-  // Get data for period manager based on selected user (for admins)
-  const periodManagerData = useMemo(() => {
-    const targetUser = groupUsers.find((u) => u.id === periodManagerUserId) || currentUser;
-    const targetUserBudgets = budgets.filter((b) => b.user_id === targetUser.id && b.amount > 0);
-    const targetUserPeriod = targetUser.budget_periods?.find((p: BudgetPeriod) => p.is_active && !p.end_date) || null;
-
-    return {
-      targetUser,
-      budgets: targetUserBudgets,
-      period: targetUserPeriod,
-    };
-  }, [periodManagerUserId, groupUsers, currentUser, budgets]);
-
   return (
     <PageContainer className={budgetStyles.page.container}>
       {/* Header with navigation and actions */}
@@ -357,23 +337,8 @@ export default function BudgetsContent({
         title="Budgets"
         showBack={true}
         className={budgetStyles.header.container}
-        data={{
-          currentUser: { ...currentUser, role: currentUser.role || 'member' },
-          groupUsers,
-          accounts,
-          categories,
-          groupId: currentUser.group_id
-        }}
-        extraMenuItems={useMemo(() => {
-          if (selectedBudget) {
-            return [{
-              label: periodInfo?.activePeriod ? 'Gestisci Periodo' : 'Inizia Periodo',
-              icon: BarChart3,
-              onClick: handleManagePeriod
-            }];
-          }
-          return [];
-        }, [selectedBudget, periodInfo, handleManagePeriod])}
+        currentUser={{ name: currentUser.name, role: currentUser.role || 'member' }}
+        showActions={true}
       />
 
       {/* User Selector */}
@@ -480,7 +445,7 @@ export default function BudgetsContent({
                       router.push(`/transactions?${params.toString()}`);
                     }}
                     onEditTransaction={(transaction) => {
-                      transactionModal.openEdit(transaction);
+                      openModal("transaction", transaction.id);
                     }}
                     onDeleteTransaction={() => {
                       /* Handled via transaction form */
@@ -505,62 +470,6 @@ export default function BudgetsContent({
       </main>
 
       <BottomNavigation />
-
-      {/* Modal Forms */}
-      <TransactionForm
-        isOpen={transactionModal.isOpen}
-        onOpenChange={transactionModal.setIsOpen}
-        transaction={transactionModal.entity}
-        mode={transactionModal.mode}
-        currentUser={currentUser}
-        groupUsers={groupUsers}
-        accounts={accounts}
-        categories={categories}
-        groupId={currentUser.group_id}
-        selectedUserId={selectedUserId}
-        onSuccess={() => router.refresh()}
-      />
-
-      <BudgetForm
-        isOpen={budgetModal.isOpen}
-        onOpenChange={budgetModal.setIsOpen}
-        selectedUserId={selectedUserId}
-        budget={budgetModal.entity}
-        mode={budgetModal.mode}
-        categories={categories}
-      />
-
-
-
-      {/* Budget Period Manager - Controlled by periodManagerModal */}
-      <BudgetPeriodManager
-        currentUser={currentUser}
-        groupUsers={groupUsers}
-        selectedUserId={selectedUserId}
-        currentPeriod={periodManagerData.period}
-        transactions={transactions}
-        userBudgets={periodManagerData.budgets}
-        onUserChange={setPeriodManagerUserId}
-        trigger={
-          periodManagerModal.isOpen ? (
-            <button
-              onClick={periodManagerModal.close}
-              style={{ display: "none" }}
-              ref={(el) => {
-                if (el && periodManagerModal.isOpen) {
-                  setTimeout(() => el.click(), 0);
-                }
-              }}
-            />
-          ) : (
-            <div />
-          )
-        }
-        onSuccess={() => {
-          router.refresh();
-          periodManagerModal.close();
-        }}
-      />
 
       {/* Delete Confirmation Dialog */}
       <ConfirmationDialog

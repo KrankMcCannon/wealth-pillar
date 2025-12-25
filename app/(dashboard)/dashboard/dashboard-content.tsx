@@ -31,8 +31,9 @@ import {
 import UserSelector from "@/components/shared/user-selector";
 import { BalanceSection } from "@/features/accounts";
 import { BudgetPeriodManager, BudgetSection } from "@/features/budgets";
-import { RecurringSeriesForm, RecurringSeriesSection } from "@/features/recurring";
+import { RecurringSeriesSection } from "@/features/recurring";
 import { AccountService } from "@/lib/services";
+import { useModalState } from "@/lib/navigation/modal-params";
 import type { User, Account, Transaction, Budget, Category } from "@/lib/types";
 
 /**
@@ -184,10 +185,8 @@ export default function DashboardContent({
     return Math.round(balance * 100) / 100;
   }, [selectedUserId, userAccounts, accounts, accountBalances]);
 
-  // State management for recurring series modal
-  const [isRecurringFormOpen, setIsRecurringFormOpen] = useState(false);
-  const [selectedSeries, setSelectedSeries] = useState<RecurringTransactionSeries | undefined>(undefined);
-  const [formMode, setFormMode] = useState<"create" | "edit" | undefined>(undefined);
+  // Modal state management via URL params
+  const { openModal } = useModalState();
 
   // Handler for group filter changes
   const handleGroupFilterChange = (userId: string) => {
@@ -201,16 +200,7 @@ export default function DashboardContent({
 
   // Handler for creating recurring series
   const handleCreateRecurringSeries = () => {
-    setSelectedSeries(undefined);
-    setFormMode("create");
-    setIsRecurringFormOpen(true);
-  };
-
-  // Handler for editing recurring series (used in modal)
-  const handleEditRecurringSeries = (series: RecurringTransactionSeries) => {
-    setSelectedSeries(series);
-    setFormMode("edit");
-    setIsRecurringFormOpen(true);
+    openModal('recurring');
   };
 
   // Handler for clicking on a series card - navigate to transactions with Recurrent tab
@@ -256,13 +246,8 @@ export default function DashboardContent({
       <Suspense fallback={<DashboardHeaderSkeleton />}>
         <Header
           isDashboard={true}
-          data={{
-            currentUser: { ...currentUser, role: currentUser.role || 'member' },
-            groupUsers,
-            accounts,
-            categories,
-            groupId: currentUser.group_id
-          }}
+          currentUser={{ name: currentUser.name, role: currentUser.role || 'member' }}
+          showActions={true}
           className="mb-6"
         />
       </Suspense>
@@ -330,7 +315,6 @@ export default function DashboardContent({
             maxItems={5}
             showActions={false}
             onCreateRecurringSeries={handleCreateRecurringSeries}
-            onEditRecurringSeries={handleEditRecurringSeries}
             onCardClick={handleSeriesCardClick}
           />
         </Suspense>
@@ -338,20 +322,6 @@ export default function DashboardContent({
 
       <BottomNavigation />
 
-      {/* Recurring Series Form */}
-      <Suspense fallback={null}>
-        <RecurringSeriesForm
-          isOpen={isRecurringFormOpen}
-          onOpenChange={setIsRecurringFormOpen}
-          currentUser={currentUser}
-          groupUsers={groupUsers}
-          accounts={accounts}
-          categories={categories}
-          selectedUserId={effectiveUserId === "all" ? undefined : effectiveUserId}
-          series={selectedSeries}
-          mode={formMode}
-        />
-      </Suspense>
     </PageContainer>
   );
 }
