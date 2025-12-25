@@ -70,14 +70,14 @@ export function TransactionForm({
     selectedUserId,
   });
 
-  // Initialize form data
+  // Initialize form data (actual values set by useEffect)
   const [formData, setFormData] = useState<FormData>({
     description: "",
     amount: "",
     type: "expense",
     category: "",
     date: new Date().toISOString().split("T")[0],
-    user_id: defaultFormUserId,
+    user_id: "",
     account_id: "",
     to_account_id: "",
   });
@@ -148,7 +148,7 @@ export function TransactionForm({
       setErrors({});
       setIsSubmitting(false);
     }
-  }, [isOpen, mode, transaction, currentUser.id, defaultFormUserId, accounts, groupUsers, getDefaultAccountId]);
+  }, [isOpen, mode, transaction, currentUser.id, defaultFormUserId, selectedUserId, accounts, groupUsers, getDefaultAccountId]);
 
   // Validate form
   const validate = (): boolean => {

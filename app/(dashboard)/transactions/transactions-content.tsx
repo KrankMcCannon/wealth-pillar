@@ -70,13 +70,13 @@ export default function TransactionsContent({
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // User filtering state management using shared hook
+  // User filtering state management (global context)
   const { selectedGroupFilter, setSelectedGroupFilter, selectedUserId } = useUserFilter();
 
   // Permission checks
-  const { effectiveUserId, isMember } = usePermissions({
+  const { isMember, shouldDisableUserField, defaultFormUserId } = usePermissions({
     currentUser,
-    selectedUserId: selectedGroupFilter !== "all" ? selectedGroupFilter : undefined,
+    selectedUserId,
   });
 
   // Check if coming from budgets page
@@ -368,7 +368,7 @@ export default function TransactionsContent({
           <Suspense fallback={<RecurringSeriesSkeleton />}>
             <RecurringSeriesSection
               series={recurringSeries}
-              selectedUserId={isMember ? currentUser.id : selectedGroupFilter === "all" ? undefined : effectiveUserId}
+              selectedUserId={selectedUserId}
               className="bg-card/80 backdrop-blur-sm border border-border/50 shadow-lg shadow-muted/30"
               showStats={true}
               maxItems={10}
@@ -395,7 +395,7 @@ export default function TransactionsContent({
         accounts={accounts}
         categories={categories}
         groupId={currentUser.group_id}
-        selectedUserId={effectiveUserId === "all" ? undefined : effectiveUserId}
+        selectedUserId={selectedUserId}
         onSuccess={handleFormSuccess}
       />
       <RecurringSeriesForm
@@ -405,7 +405,7 @@ export default function TransactionsContent({
         groupUsers={groupUsers}
         accounts={accounts}
         categories={categories}
-        selectedUserId={effectiveUserId === "all" ? undefined : effectiveUserId}
+        selectedUserId={selectedUserId}
         series={recurringModal.entity}
         mode={recurringModal.mode}
         onSuccess={handleRecurringFormSuccess}

@@ -12,7 +12,9 @@
 import { useState, useMemo, useEffect, Suspense, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { BottomNavigation, PageContainer, Header } from "@/components/layout";
-import { useFormModal, useDeleteConfirmation, useIdNameMap, usePermissions, useFilteredData, useBudgetsByUser } from "@/hooks";
+import { useFormModal, useDeleteConfirmation, useIdNameMap, usePermissions, useFilteredData, useBudgetsByUser, useUserFilter } from "@/hooks";
+import UserSelector from "@/components/shared/user-selector";
+import { UserSelectorSkeleton } from "@/features/dashboard";
 import { ConfirmationDialog } from "@/components/shared/confirmation-dialog";
 import { EmptyState } from "@/components/shared";
 import { BudgetForm, BudgetPeriodManager } from "@/features/budgets";
@@ -76,18 +78,24 @@ export default function BudgetsContent({
   const router = useRouter();
   const searchParams = useSearchParams();
 
+  // User filtering state management (global context)
+  const { selectedGroupFilter, setSelectedGroupFilter, selectedUserId } = useUserFilter();
+
   // Permission checks
-  const { isAdmin } = usePermissions({ currentUser });
+  const { isAdmin, isMember, effectiveUserId } = usePermissions({
+    currentUser,
+    selectedUserId,
+  });
 
   // Read URL params for initial budget selection
   const initialBudgetId = searchParams.get("budget");
 
-  // Filter budgets: admin sees all group budgets, members see only their own
+  // Filter budgets by selected user
   // Using centralized filtering hook with additional domain filter
   const { filteredData: userBudgets } = useFilteredData({
     data: budgets,
     currentUser,
-    selectedUserId: undefined, // Show all for admin, own for member
+    selectedUserId, // Use global selected user
     additionalFilter: (budget) => budget.amount > 0, // Only budgets with positive amounts
   });
 
@@ -368,6 +376,17 @@ export default function BudgetsContent({
         }, [selectedBudget, periodInfo, handleManagePeriod])}
       />
 
+      {/* User Selector */}
+      <Suspense fallback={<UserSelectorSkeleton />}>
+        <UserSelector
+          users={groupUsers}
+          currentUser={currentUser}
+          selectedGroupFilter={selectedGroupFilter}
+          onGroupFilterChange={setSelectedGroupFilter}
+          className="bg-card border-border"
+        />
+      </Suspense>
+
       {/* Main content area with progressive loading */}
       <main className={budgetStyles.page.main}>
         {userBudgets.length > 0 && selectedBudget ? (
@@ -498,14 +517,14 @@ export default function BudgetsContent({
         accounts={accounts}
         categories={categories}
         groupId={currentUser.group_id}
-        selectedUserId={currentUser.id}
+        selectedUserId={selectedUserId}
         onSuccess={() => router.refresh()}
       />
 
       <BudgetForm
         isOpen={budgetModal.isOpen}
         onOpenChange={budgetModal.setIsOpen}
-        selectedUserId={currentUser.id}
+        selectedUserId={selectedUserId}
         budget={budgetModal.entity}
         mode={budgetModal.mode}
         categories={categories}
@@ -517,7 +536,7 @@ export default function BudgetsContent({
       <BudgetPeriodManager
         currentUser={currentUser}
         groupUsers={groupUsers}
-        selectedUserId={periodManagerUserId}
+        selectedUserId={selectedUserId}
         currentPeriod={periodManagerData.period}
         transactions={transactions}
         userBudgets={periodManagerData.budgets}

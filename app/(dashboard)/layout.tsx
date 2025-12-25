@@ -1,5 +1,7 @@
 'use client';
 
+import { UserFilterProvider } from '@/contexts';
+
 /**
  * Dashboard Layout with SSR Streaming Support
  *
@@ -10,6 +12,7 @@
  * - All children are client components (for now, can be converted to server components later)
  * - Suspense boundaries wrap data-heavy components
  * - Fallbacks use skeleton loaders for perceived performance
+ * - UserFilterProvider wraps all dashboard pages for global user selection state
  *
  * Future: Convert to async Server Component with per-segment prefetching
  */
@@ -19,5 +22,9 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <>{children}</>;
+  return (
+    <UserFilterProvider>
+      {children}
+    </UserFilterProvider>
+  );
 }

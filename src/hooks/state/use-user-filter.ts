@@ -1,30 +1,18 @@
 "use client";
 
-import { useState, useMemo } from "react";
-
-interface UseUserFilterReturn {
-  selectedGroupFilter: string;
-  setSelectedGroupFilter: (filter: string) => void;
-  selectedUserId: string | undefined;
-}
-
 /**
- * Custom hook for managing user filter state
- * Used across dashboard, budgets, reports, and transactions pages
+ * Global User Filter Hook
+ * Provides access to global user selection state (persisted across pages via localStorage)
+ *
+ * This hook delegates to UserFilterContext for global state management.
+ * User selection persists across page navigation and browser refreshes.
+ *
+ * @example
+ * ```tsx
+ * const { selectedGroupFilter, setSelectedGroupFilter, selectedUserId } = useUserFilter();
+ *
+ * // selectedGroupFilter: "all" | user_id
+ * // selectedUserId: undefined | user_id
+ * ```
  */
-export function useUserFilter(
-  initialFilter: string = "all"
-): UseUserFilterReturn {
-  const [selectedGroupFilter, setSelectedGroupFilter] = useState(initialFilter);
-
-  const selectedUserId = useMemo(
-    () => selectedGroupFilter === "all" ? undefined : selectedGroupFilter,
-    [selectedGroupFilter]
-  );
-
-  return {
-    selectedGroupFilter,
-    setSelectedGroupFilter,
-    selectedUserId,
-  };
-}
+export { useUserFilterContext as useUserFilter } from '@/contexts';

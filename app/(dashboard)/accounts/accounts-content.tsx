@@ -37,8 +37,8 @@ export default function AccountsContent({
   initialUserId,
   categories,
 }: AccountsContentProps) {
-  const initialFilter = initialUserId || "all";
-  const { selectedGroupFilter, setSelectedGroupFilter, selectedUserId } = useUserFilter(initialFilter);
+  // User filtering state management (global context)
+  const { selectedGroupFilter, setSelectedGroupFilter, selectedUserId } = useUserFilter();
   const { isMember } = usePermissions({ currentUser, selectedUserId });
 
   // State for Account Form
@@ -178,7 +178,7 @@ export default function AccountsContent({
         currentUser={currentUser}
         groupUsers={groupUsers}
         groupId={currentUser.group_id}
-        selectedUserId={selectedUserId === "all" ? undefined : selectedUserId}
+        selectedUserId={selectedUserId}
         onSuccess={() => {
           // Toast or other notification could be added here
         }}
