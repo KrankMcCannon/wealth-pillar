@@ -7,7 +7,7 @@
  * Data is passed from Server Component for optimal performance
  */
 
-import { Suspense, useState, useMemo, useEffect, useCallback, useRef } from "react";
+import { Suspense, useState, useMemo, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   useUserFilter,
@@ -34,11 +34,11 @@ import { UserSelectorSkeleton } from "@/src/features/dashboard";
 import { RecurringSeriesSkeleton } from "@/src/features/transactions/components/transaction-skeletons";
 import type { Transaction, Budget } from "@/lib/types";
 import { TransactionService } from "@/lib/services";
-import { insertTransactionSorted, removeTransaction } from "@/lib/utils/transaction-sorting";
 import { deleteTransactionAction } from "@/features/transactions/actions/transaction-actions";
 import { deleteRecurringSeriesAction } from "@/features/recurring/actions/recurring-actions";
 import { useModalState } from "@/lib/navigation/modal-params";
 import { useCurrentUser, useAccounts, useCategories } from "@/stores/reference-data-store";
+import { usePageDataStore } from "@/stores/page-data-store";
 
 /**
  * Transactions Content Props
@@ -155,43 +155,23 @@ export default function TransactionsContent({
   const deleteConfirm = useDeleteConfirmation<Transaction>();
   const recurringDeleteConfirm = useDeleteConfirmation<RecurringTransactionSeries>();
 
-  // Optimistic UI state - local copy of transactions
-  const [localTransactions, setLocalTransactions] = useState<Transaction[]>(transactions);
+  // Page data store - for optimistic updates
+  const storeTransactions = usePageDataStore((state) => state.transactions);
+  const setTransactions = usePageDataStore((state) => state.setTransactions);
+  const removeTransactionFromStore = usePageDataStore((state) => state.removeTransaction);
+  const addTransactionToStore = usePageDataStore((state) => state.addTransaction);
 
-  // Sync local state with prop updates (needed for router.refresh())
+  // Initialize store with server data on mount and when props change
   useEffect(() => {
-    setLocalTransactions(transactions);
-  }, [transactions]);
-
-
-  // Debounced refresh to prevent race conditions and flickering
-  const refreshTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  const debouncedRefresh = useCallback(() => {
-    if (refreshTimeoutRef.current) {
-      clearTimeout(refreshTimeoutRef.current);
-    }
-
-    refreshTimeoutRef.current = setTimeout(() => {
-      router.refresh();
-    }, 300); // 300ms debounce
-  }, [router]);
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if (refreshTimeoutRef.current) {
-        clearTimeout(refreshTimeoutRef.current);
-      }
-    };
-  }, []);
+    setTransactions(transactions);
+  }, [transactions, setTransactions]);
 
   // Create account names map for display using hook
   const accountNames = useIdNameMap(accounts);
 
   // Filter transactions by selected user (centralized permission-based filtering)
   const { filteredData: userFilteredTransactions } = useFilteredData({
-    data: localTransactions,
+    data: storeTransactions,
     currentUser,
     selectedUserId,
   });
@@ -212,41 +192,31 @@ export default function TransactionsContent({
   };
 
   const handleDeleteClick = (transactionId: string) => {
-    const transaction = localTransactions.find((t) => t.id === transactionId);
+    const transaction = storeTransactions.find((t) => t.id === transactionId);
     if (transaction) {
       deleteConfirm.openDialog(transaction);
     }
   };
 
-  // Helper functions for optimistic updates (extracted to avoid deep nesting)
-  const removeTransactionFromList = (transactionToRemove: Transaction) => {
-    setLocalTransactions((prev) => removeTransaction(prev, transactionToRemove.id));
-  };
-
-  const addTransactionToList = (transactionToAdd: Transaction) => {
-    setLocalTransactions((prev) => insertTransactionSorted(prev, transactionToAdd));
-  };
-
   const handleDeleteConfirm = async () => {
     await deleteConfirm.executeDelete(async (transaction) => {
-      // Optimistic UI update - remove immediately
-      removeTransactionFromList(transaction);
+      // Optimistic UI update - remove immediately from store
+      removeTransactionFromStore(transaction.id);
 
       try {
         // Call server action to delete
         const result = await deleteTransactionAction(transaction.id);
 
         if (result.error) {
-          // Revert on error
-          addTransactionToList(transaction);
+          // Revert on error - add back to store
+          addTransactionToStore(transaction);
           console.error("Failed to delete transaction:", result.error);
           throw new Error(result.error);
         }
-        // Success - cache revalidation happens in service, UI will refresh with server data
-        debouncedRefresh();
+        // Success - no router.refresh() needed, store already updated!
       } catch (error) {
         // Revert on error
-        addTransactionToList(transaction);
+        addTransactionToStore(transaction);
         console.error("Error deleting transaction:", error);
         throw error;
       }
@@ -264,7 +234,8 @@ export default function TransactionsContent({
         console.error("Failed to delete recurring series:", result.error);
         throw new Error(result.error);
       }
-      router.refresh();
+      // Success - recurring series deleted
+      // Note: Page will be refreshed naturally when user navigates
     });
   };
 
