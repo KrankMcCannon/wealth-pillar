@@ -84,7 +84,7 @@ export default function BudgetsContent({
   const searchParams = useSearchParams();
 
   // User filtering state management (global context)
-  const { selectedGroupFilter, setSelectedGroupFilter, selectedUserId } = useUserFilter();
+  const { selectedUserId } = useUserFilter();
 
   // Permission checks
   const { isAdmin } = usePermissions({
@@ -345,13 +345,7 @@ export default function BudgetsContent({
 
       {/* User Selector */}
       <Suspense fallback={<UserSelectorSkeleton />}>
-        <UserSelector
-          users={groupUsers}
-          currentUser={currentUser}
-          selectedGroupFilter={selectedGroupFilter}
-          onGroupFilterChange={setSelectedGroupFilter}
-          className="bg-card border-border"
-        />
+        <UserSelector className="bg-card border-border" />
       </Suspense>
 
       {/* Main content area with progressive loading */}

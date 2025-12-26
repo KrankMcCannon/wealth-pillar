@@ -71,7 +71,7 @@ export default function DashboardContent({
   const router = useRouter();
 
   // User filtering state management using shared hook
-  const { selectedGroupFilter, setSelectedGroupFilter, selectedUserId } = useUserFilter();
+  const { selectedGroupFilter, selectedUserId } = useUserFilter();
 
   // Permission checks
   const { effectiveUserId, isMember } = usePermissions({
@@ -190,11 +190,6 @@ export default function DashboardContent({
   // Modal state management via URL params
   const { openModal } = useModalState();
 
-  // Handler for group filter changes
-  const handleGroupFilterChange = (userId: string) => {
-    setSelectedGroupFilter(userId);
-  };
-
   // Handler for individual account card clicks
   const handleAccountClick = () => {
     router.push("/accounts");
@@ -256,13 +251,7 @@ export default function DashboardContent({
 
       {/* User Selector */}
       <Suspense fallback={<UserSelectorSkeleton />}>
-        <UserSelector
-          users={groupUsers}
-          currentUser={currentUser}
-          selectedGroupFilter={selectedGroupFilter}
-          onGroupFilterChange={handleGroupFilterChange}
-          isLoading={false}
-        />
+        <UserSelector isLoading={false} />
       </Suspense>
 
       <main className={dashboardStyles.page.main}>

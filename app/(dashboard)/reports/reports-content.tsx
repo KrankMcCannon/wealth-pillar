@@ -31,7 +31,7 @@ export default function ReportsContent({
     return null;
   }
   // User filtering state management using shared hook
-  const { selectedGroupFilter, setSelectedGroupFilter } = useUserFilter();
+  const { selectedGroupFilter } = useUserFilter();
 
   // Permission checks
   const { isMember } = usePermissions({
@@ -114,12 +114,7 @@ export default function ReportsContent({
         />
 
         {/* User Selector */}
-        <UserSelector
-          users={groupUsers}
-          currentUser={currentUser}
-          selectedGroupFilter={selectedGroupFilter}
-          onGroupFilterChange={setSelectedGroupFilter}
-        />
+        <UserSelector />
 
         <main className={reportsStyles.main.container}>
           {/* Overview Section - Overall Metrics */}

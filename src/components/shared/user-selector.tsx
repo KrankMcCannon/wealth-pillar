@@ -2,13 +2,10 @@
 
 import { memo, useCallback, useMemo } from 'react';
 import { Users, User as UserIcon, Crown, Star, Heart } from "lucide-react";
-import { User } from '@/src/lib';
+import { useCurrentUser, useGroupUsers } from '@/stores/reference-data-store';
+import { useUserFilter } from '@/hooks';
 
 interface UserSelectorProps {
-  users: User[];
-  currentUser: User | null;
-  selectedGroupFilter: string;
-  onGroupFilterChange: (userId: string) => void;
   className?: string;
   isLoading?: boolean;
 }
@@ -16,15 +13,22 @@ interface UserSelectorProps {
 /**
  * Optimized UserSelector with memoization and modern UX
  * Prevents unnecessary re-renders and improves performance
+ *
+ * Reads data from Zustand stores - no props needed for user data
  */
 const UserSelector = memo(({
-  users,
-  currentUser,
-  selectedGroupFilter,
-  onGroupFilterChange,
   className = "",
   isLoading = false
 }: UserSelectorProps) => {
+  // Read from stores
+  const currentUser = useCurrentUser();
+  const users = useGroupUsers();
+  const { selectedGroupFilter, setSelectedGroupFilter } = useUserFilter();
+
+  // Early return if store not initialized
+  if (!currentUser) {
+    return null;
+  }
   // Memoized icon selection
   const getUserIcon = useCallback((userId: string, index: number) => {
     const userIcons = [UserIcon, Crown, Star, Heart];
@@ -52,12 +56,12 @@ const UserSelector = memo(({
   // Memoized click handler
   const handleMemberClick = useCallback((memberId: string) => {
     if (memberId !== selectedGroupFilter) {
-      onGroupFilterChange(memberId);
+      setSelectedGroupFilter(memberId);
     }
-  }, [selectedGroupFilter, onGroupFilterChange]);
+  }, [selectedGroupFilter, setSelectedGroupFilter]);
 
   // Early return for non-admin users
-  if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'superadmin')) {
+  if (currentUser.role !== 'admin' && currentUser.role !== 'superadmin') {
     return null;
   }
 

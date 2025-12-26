@@ -38,7 +38,7 @@ import { insertTransactionSorted, removeTransaction } from "@/lib/utils/transact
 import { deleteTransactionAction } from "@/features/transactions/actions/transaction-actions";
 import { deleteRecurringSeriesAction } from "@/features/recurring/actions/recurring-actions";
 import { useModalState } from "@/lib/navigation/modal-params";
-import { useCurrentUser, useGroupUsers, useAccounts, useCategories } from "@/stores/reference-data-store";
+import { useCurrentUser, useAccounts, useCategories } from "@/stores/reference-data-store";
 
 /**
  * Transactions Content Props
@@ -60,7 +60,6 @@ export default function TransactionsContent({
 }: TransactionsContentProps) {
   // Read from stores instead of props
   const currentUser = useCurrentUser();
-  const groupUsers = useGroupUsers();
   const accounts = useAccounts();
   const categories = useCategories();
 
@@ -72,7 +71,7 @@ export default function TransactionsContent({
   const searchParams = useSearchParams();
 
   // User filtering state management (global context)
-  const { selectedGroupFilter, setSelectedGroupFilter, selectedUserId } = useUserFilter();
+  const { setSelectedGroupFilter, selectedUserId } = useUserFilter();
 
   // Modal state management (URL-based)
   const { openModal } = useModalState();
@@ -282,13 +281,7 @@ export default function TransactionsContent({
 
       {/* User Selector */}
       <Suspense fallback={<UserSelectorSkeleton />}>
-        <UserSelector
-          users={groupUsers}
-          currentUser={currentUser}
-          selectedGroupFilter={selectedGroupFilter}
-          onGroupFilterChange={setSelectedGroupFilter}
-          className="bg-card border-border"
-        />
+        <UserSelector className="bg-card border-border" />
       </Suspense>
 
       {/* Tab Navigation */}

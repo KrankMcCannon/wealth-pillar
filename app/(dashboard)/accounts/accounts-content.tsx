@@ -16,7 +16,7 @@ import UserSelector from "@/components/shared/user-selector";
 import { UserSelectorSkeleton } from "@/features/dashboard";
 import type { Account, Category } from "@/lib/types";
 import { useModalState } from "@/lib/navigation/modal-params";
-import { useCurrentUser, useGroupUsers } from "@/stores/reference-data-store";
+import { useCurrentUser } from "@/stores/reference-data-store";
 
 interface AccountsContentProps {
   accounts: Account[];
@@ -35,14 +35,13 @@ export default function AccountsContent({
 }: AccountsContentProps) {
   // Read from stores instead of props
   const currentUser = useCurrentUser();
-  const groupUsers = useGroupUsers();
 
   // Early return if store not initialized
   if (!currentUser) {
     return null;
   }
   // User filtering state management (global context)
-  const { selectedGroupFilter, setSelectedGroupFilter, selectedUserId } = useUserFilter();
+  const { setSelectedGroupFilter, selectedUserId } = useUserFilter();
   const { isMember } = usePermissions({ currentUser, selectedUserId });
 
   // Modal state management (URL-based)
@@ -89,10 +88,6 @@ export default function AccountsContent({
   }, [filteredAccounts.length, filteredBalances]);
 
   // Action Handlers
-  const handleCreateAccount = () => {
-    openModal("account");
-  };
-
   const handleEditAccount = (account: Account) => {
     openModal("account", account.id);
   };
@@ -125,12 +120,7 @@ export default function AccountsContent({
 
         {/* User Selector */}
         <Suspense fallback={<UserSelectorSkeleton />}>
-          <UserSelector
-            users={groupUsers}
-            currentUser={currentUser}
-            selectedGroupFilter={selectedGroupFilter}
-            onGroupFilterChange={setSelectedGroupFilter}
-          />
+          <UserSelector />
         </Suspense>
 
         {/* Total Balance Card Section */}

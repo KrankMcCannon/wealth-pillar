@@ -2,13 +2,11 @@
 
 import { PageContainer, Header, SectionHeader, BottomNavigation } from "@/src/components/layout";
 import { EmptyState } from "@/components/shared";
-import { useUserFilter } from "@/hooks";
-import { useModalState } from "@/lib/navigation/modal-params";
 import UserSelector from "@/src/components/shared/user-selector";
 import { EnhancedHolding } from "@/src/lib";
 import { PieChart } from "lucide-react";
 import type { Account, Category } from "@/lib/types";
-import { useCurrentUser, useGroupUsers } from "@/stores/reference-data-store";
+import { useCurrentUser } from "@/stores/reference-data-store";
 
 interface InvestmentsContentProps {
   accounts: Account[];
@@ -18,14 +16,11 @@ interface InvestmentsContentProps {
 export default function InvestmentsContent({ accounts, categories }: InvestmentsContentProps) {
   // Read from stores instead of props
   const currentUser = useCurrentUser();
-  const groupUsers = useGroupUsers();
 
   // Early return if store not initialized
   if (!currentUser) {
     return null;
   }
-  const { selectedGroupFilter, setSelectedGroupFilter } = useUserFilter();
-  const { openModal } = useModalState();
 
   return (
     <PageContainer className="bg-[#F8FAFC]">
@@ -38,12 +33,7 @@ export default function InvestmentsContent({ accounts, categories }: Investments
           showActions={true}
         />
 
-        <UserSelector
-          users={groupUsers}
-          currentUser={currentUser}
-          selectedGroupFilter={selectedGroupFilter}
-          onGroupFilterChange={setSelectedGroupFilter}
-        />
+        <UserSelector />
 
         <main className="p-4 pb-24">
           <div className="flex gap-4 overflow-x-auto pb-4 -mx-4 px-4 mb-6">
