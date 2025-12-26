@@ -46,3 +46,21 @@ export function useModalState() {
     }
   };
 }
+
+/**
+ * Hook for managing tab state via URL params
+ * Persists active tab in URL for shareable links and browser navigation
+ *
+ * @param defaultTab - The default tab to show if no tab is in URL
+ * @returns Object with activeTab and setActiveTab
+ *
+ * @example
+ * const { activeTab, setActiveTab } = useTabState('Transactions');
+ *
+ * // activeTab will be 'Transactions' initially
+ * // setActiveTab('Recurrent') will update URL to ?tab=Recurrent
+ */
+export function useTabState(defaultTab: string) {
+  const [tab, setTab] = useQueryState('tab', parseAsString.withDefault(defaultTab));
+  return { activeTab: tab, setActiveTab: setTab };
+}

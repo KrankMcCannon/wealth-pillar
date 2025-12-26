@@ -2,7 +2,7 @@
 
 import { lazy } from "react";
 import dynamic from 'next/dynamic';
-import { useModalState } from "@/lib/navigation/modal-params";
+import { useModalState } from "@/lib/navigation/url-state";
 import { useUserFilterStore } from "@/stores/user-filter-store";
 import {
   useCurrentUser,

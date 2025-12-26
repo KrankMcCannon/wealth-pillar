@@ -8,6 +8,7 @@
 
 "use client";
 
+import { memo } from "react";
 import { IconContainer, StatusBadge, Text } from "@/src/components/ui";
 import { Budget, CategoryIcon, iconSizes, progressBarVariants, progressFillVariants } from "@/src/lib";
 import { formatCurrency } from "@/lib/utils/currency-formatter";
@@ -23,7 +24,7 @@ interface BudgetCardProps {
   onClick: () => void;
 }
 
-export function BudgetCard({ budget, budgetInfo, onClick }: BudgetCardProps) {
+export const BudgetCard = memo(function BudgetCard({ budget, budgetInfo, onClick }: BudgetCardProps) {
   // Status calculation (centralized logic)
   const getStatusVariant = (progress: number): "success" | "warning" | "danger" => {
     if (progress >= 100) return "danger";
@@ -89,4 +90,4 @@ export function BudgetCard({ budget, budgetInfo, onClick }: BudgetCardProps) {
       </div>
     </button>
   );
-}
+});

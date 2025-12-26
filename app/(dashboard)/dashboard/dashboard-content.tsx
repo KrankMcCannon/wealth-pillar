@@ -33,7 +33,7 @@ import { BalanceSection } from "@/features/accounts";
 import { BudgetPeriodManager, BudgetSection } from "@/features/budgets";
 import { RecurringSeriesSection } from "@/features/recurring";
 import { AccountService } from "@/lib/services";
-import { useModalState } from "@/lib/navigation/modal-params";
+import { useModalState } from "@/lib/navigation/url-state";
 import type { Account, Transaction, Budget } from "@/lib/types";
 import { useCurrentUser, useGroupUsers, useAccounts } from "@/stores/reference-data-store";
 

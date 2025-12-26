@@ -10,7 +10,8 @@ import { createCategoryAction, updateCategoryAction } from "@/features/categorie
 import { ModalWrapper, ModalContent, ModalSection } from "@/src/components/ui/modal-wrapper";
 import { FormActions, FormField } from "@/src/components/form";
 import { IconPicker, Input } from "@/src/components/ui";
-import { useGroupId } from "@/stores/reference-data-store";
+import { useGroupId, useCategories } from "@/stores/reference-data-store";
+import { useReferenceDataStore } from "@/stores/reference-data-store";
 
 // Zod schema for category validation
 const categorySchema = z.object({
@@ -46,6 +47,12 @@ function CategoryFormModal({
 }: CategoryFormModalProps) {
   // Read from store instead of props
   const groupId = useGroupId();
+
+  // Reference data store actions for optimistic updates
+  const storeCategories = useCategories();
+  const addCategory = useReferenceDataStore((state) => state.addCategory);
+  const updateCategory = useReferenceDataStore((state) => state.updateCategory);
+  const removeCategory = useReferenceDataStore((state) => state.removeCategory);
 
   // Early return if store not initialized
   if (!groupId) {
@@ -115,23 +122,63 @@ function CategoryFormModal({
     }
   }, [watchedLabel, isEditMode, setValue]);
 
-  // Handle form submission
+  // Handle form submission with optimistic updates
   const onSubmit = async (data: CategoryFormData) => {
     try {
       if (isEditMode && editId) {
-        // Update existing category
-        const result = await updateCategoryAction(editId, {
+        // UPDATE: Optimistic update pattern
+        // 1. Store original category for revert
+        const originalCategory = storeCategories.find((cat) => cat.id === editId);
+        if (!originalCategory) {
+          setError("root", { message: "Categoria non trovata" });
+          return;
+        }
+
+        const updateData = {
           label: data.label.trim(),
           icon: data.icon.trim(),
           color: data.color.trim().toUpperCase(),
-        });
+        };
+
+        // 2. Update in store immediately (optimistic)
+        updateCategory(editId, updateData);
+
+        // 3. Call server action
+        const result = await updateCategoryAction(editId, updateData);
 
         if (result.error) {
+          // 4. Revert on error
+          updateCategory(editId, originalCategory);
           setError("root", { message: result.error });
           return;
         }
+
+        // 5. Success - update with real data from server
+        if (result.data) {
+          updateCategory(editId, result.data);
+        }
       } else {
-        // Create new category
+        // CREATE: Optimistic add pattern
+        // 1. Create temporary ID
+        const tempId = `temp-${Date.now()}`;
+        const now = new Date().toISOString();
+        const optimisticCategory: Category = {
+          id: tempId,
+          created_at: now,
+          updated_at: now,
+          label: data.label.trim(),
+          key: data.key.trim(),
+          icon: data.icon.trim(),
+          color: data.color.trim().toUpperCase(),
+        };
+
+        // 2. Add to store immediately (optimistic)
+        addCategory(optimisticCategory);
+
+        // 3. Close modal immediately for better UX
+        onClose();
+
+        // 4. Call server action in background
         const result = await createCategoryAction({
           label: data.label.trim(),
           key: data.key.trim(),
@@ -141,12 +188,21 @@ function CategoryFormModal({
         });
 
         if (result.error) {
-          setError("root", { message: result.error });
+          // 5. Remove optimistic category on error
+          removeCategory(tempId);
+          console.error("Failed to create category:", result.error);
           return;
         }
+
+        // 6. Replace temporary with real category from server
+        removeCategory(tempId);
+        if (result.data) {
+          addCategory(result.data);
+        }
+        return; // Early return since modal already closed
       }
 
-      // Close modal on success
+      // Close modal on success (for update mode)
       onClose();
     } catch (error) {
       setError("root", {

@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { Building2, MoreVertical, Pencil, Trash2 } from "lucide-react";
 import { formatCurrency, truncateText } from "@/lib/utils";
 import { Account, AccountTypeMap } from "@/lib/types";
@@ -21,7 +22,7 @@ interface AccountCardProps {
   onDelete?: () => void;
 }
 
-export function AccountCard({ account, accountBalance, onClick, onEdit, onDelete }: Readonly<AccountCardProps>) {
+export const AccountCard = memo(function AccountCard({ account, accountBalance, onClick, onEdit, onDelete }: Readonly<AccountCardProps>) {
   const isNegative = accountBalance < 0;
 
   // Primary content: Balance amount
@@ -82,4 +83,4 @@ export function AccountCard({ account, accountBalance, onClick, onEdit, onDelete
       actions={actions}
     />
   );
-}
+});

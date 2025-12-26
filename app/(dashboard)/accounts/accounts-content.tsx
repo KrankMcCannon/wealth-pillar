@@ -11,12 +11,14 @@ import { Suspense, useEffect, useMemo } from "react";
 import { BottomNavigation, PageContainer, Header } from "@/components/layout";
 import { TotalBalanceCard, AccountsList, accountStyles } from "@/features/accounts";
 import { deleteAccountAction } from "@/features/accounts/actions/account-actions";
-import { useFilteredAccounts, usePermissions, useUserFilter } from "@/hooks";
+import { useFilteredAccounts, usePermissions, useUserFilter, useDeleteConfirmation } from "@/hooks";
 import UserSelector from "@/components/shared/user-selector";
 import { UserSelectorSkeleton } from "@/features/dashboard";
+import { ConfirmationDialog } from "@/components/shared/confirmation-dialog";
 import type { Account, Category } from "@/lib/types";
-import { useModalState } from "@/lib/navigation/modal-params";
-import { useCurrentUser } from "@/stores/reference-data-store";
+import { useModalState } from "@/lib/navigation/url-state";
+import { useCurrentUser, useAccounts } from "@/stores/reference-data-store";
+import { useReferenceDataStore } from "@/stores/reference-data-store";
 
 interface AccountsContentProps {
   accounts: Account[];
@@ -35,6 +37,11 @@ export default function AccountsContent({
 }: AccountsContentProps) {
   // Read from stores instead of props
   const currentUser = useCurrentUser();
+  const storeAccounts = useAccounts();
+
+  // Reference data store actions for optimistic updates
+  const removeAccount = useReferenceDataStore((state) => state.removeAccount);
+  const addAccount = useReferenceDataStore((state) => state.addAccount);
 
   // Early return if store not initialized
   if (!currentUser) {
@@ -47,6 +54,9 @@ export default function AccountsContent({
   // Modal state management (URL-based)
   const { openModal } = useModalState();
 
+  // Delete confirmation state using hook
+  const deleteConfirm = useDeleteConfirmation<Account>();
+
   useEffect(() => {
     if (isMember) {
       setSelectedGroupFilter(currentUser.id);
@@ -54,7 +64,7 @@ export default function AccountsContent({
   }, [isMember, currentUser.id, setSelectedGroupFilter]);
 
   const { filteredAccounts } = useFilteredAccounts({
-    accounts,
+    accounts: storeAccounts,
     currentUser,
     selectedUserId: isMember ? currentUser.id : selectedUserId,
   });
@@ -92,18 +102,32 @@ export default function AccountsContent({
     openModal("account", account.id);
   };
 
-  const handleDeleteAccount = async (account: Account) => {
-    if (confirm(`Sei sicuro di voler eliminare l'account "${account.name}"? Questa azione non può essere annullata.`)) {
+  const handleDeleteAccount = (account: Account) => {
+    deleteConfirm.openDialog(account);
+  };
+
+  const handleDeleteConfirm = async () => {
+    await deleteConfirm.executeDelete(async (account) => {
+      // Optimistic UI update - remove immediately from store
+      removeAccount(account.id);
+
       try {
         const result = await deleteAccountAction(account.id);
+
         if (result.error) {
-          alert(`Errore: ${result.error}`);
+          // Revert on error - add back to store
+          addAccount(account);
+          console.error("[AccountsContent] Delete error:", result.error);
+          throw new Error(result.error);
         }
-        // Success is handled by revalidation
+        // Success - no page refresh needed, store already updated!
       } catch (error) {
-        alert("Si è verificato un errore durante l'eliminazione dell'account.");
+        // Revert on error
+        addAccount(account);
+        console.error("[AccountsContent] Error deleting account:", error);
+        throw error;
       }
-    }
+    });
   };
   return (
     <PageContainer className={accountStyles.page.container}>
@@ -144,6 +168,23 @@ export default function AccountsContent({
       </div>
 
       <BottomNavigation />
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmationDialog
+        isOpen={deleteConfirm.isOpen}
+        onConfirm={handleDeleteConfirm}
+        onCancel={deleteConfirm.closeDialog}
+        title="Elimina Account"
+        message={
+          deleteConfirm.itemToDelete
+            ? `Sei sicuro di voler eliminare l'account "${deleteConfirm.itemToDelete.name}"? Questa azione non può essere annullata.`
+            : ""
+        }
+        confirmText="Elimina"
+        cancelText="Annulla"
+        variant="destructive"
+        isLoading={deleteConfirm.isDeleting}
+      />
     </PageContainer>
   );
 }

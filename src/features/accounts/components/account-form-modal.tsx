@@ -13,7 +13,8 @@ import { Input } from "@/src/components/ui/input";
 import { usePermissions } from "@/hooks";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/src/components/ui";
-import { useCurrentUser, useGroupUsers, useGroupId } from "@/stores/reference-data-store";
+import { useCurrentUser, useGroupUsers, useGroupId, useAccounts } from "@/stores/reference-data-store";
+import { useReferenceDataStore } from "@/stores/reference-data-store";
 import { useUserFilterStore } from "@/stores/user-filter-store";
 
 // Zod schema for account validation
@@ -44,6 +45,12 @@ function AccountFormModal({
   const groupUsers = useGroupUsers();
   const groupId = useGroupId();
   const selectedUserId = useUserFilterStore(state => state.selectedUserId);
+
+  // Reference data store actions for optimistic updates
+  const storeAccounts = useAccounts();
+  const addAccount = useReferenceDataStore((state) => state.addAccount);
+  const updateAccount = useReferenceDataStore((state) => state.updateAccount);
+  const removeAccount = useReferenceDataStore((state) => state.removeAccount);
 
   // Early return if store not initialized
   if (!currentUser || !groupId) {
@@ -104,45 +111,90 @@ function AccountFormModal({
     }
   }, [isOpen, isEditMode, editId, defaultFormUserId, currentUser.id, reset]);
 
-  // Handle form submission
+  // Handle form submission with optimistic updates
   const onSubmit = async (data: AccountFormData) => {
     try {
+      const accountData = {
+        name: data.name.trim(),
+        type: data.type,
+        user_ids: [data.user_id],
+      };
+
       if (isEditMode && editId) {
-        // Update existing account
+        // UPDATE: Optimistic update pattern
+        // 1. Store original account for revert
+        const originalAccount = storeAccounts.find((acc) => acc.id === editId);
+        if (!originalAccount) {
+          setError("root", { message: "Account non trovato" });
+          return;
+        }
+
+        // 2. Update in store immediately (optimistic)
+        updateAccount(editId, accountData);
+
+        // 3. Call server action
         const result = await updateAccountAction(
           editId,
-          {
-            name: data.name.trim(),
-            type: data.type,
-            user_ids: [data.user_id],
-          },
+          accountData,
           data.isDefault || false
         );
 
         if (result.error) {
+          // 4. Revert on error
+          updateAccount(editId, originalAccount);
           setError("root", { message: result.error });
           return;
         }
+
+        // 5. Success - update with real data from server
+        if (result.data) {
+          updateAccount(editId, result.data);
+        }
       } else {
-        // Create new account
+        // CREATE: Optimistic add pattern
+        // 1. Create temporary ID
+        const tempId = `temp-${Date.now()}`;
+        const now = new Date().toISOString();
+        const optimisticAccount: Account = {
+          id: tempId,
+          created_at: now,
+          updated_at: now,
+          ...accountData,
+          group_id: groupId,
+        };
+
+        // 2. Add to store immediately (optimistic)
+        addAccount(optimisticAccount);
+
+        // 3. Close modal immediately for better UX
+        onClose();
+
+        // 4. Call server action in background
         const result = await createAccountAction(
           {
             id: crypto.randomUUID(),
-            name: data.name.trim(),
-            type: data.type,
-            user_ids: [data.user_id],
+            ...accountData,
             group_id: groupId,
           },
           data.isDefault || false
         );
 
         if (result.error) {
-          setError("root", { message: result.error });
+          // 5. Remove optimistic account on error
+          removeAccount(tempId);
+          console.error("Failed to create account:", result.error);
           return;
         }
+
+        // 6. Replace temporary with real account from server
+        removeAccount(tempId);
+        if (result.data) {
+          addAccount(result.data);
+        }
+        return; // Early return since modal already closed
       }
 
-      // Close modal on success
+      // Close modal on success (for update mode)
       onClose();
     } catch (error) {
       setError("root", {

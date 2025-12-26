@@ -13,7 +13,7 @@ import { useState, useMemo, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { BottomNavigation, PageContainer, Header } from "@/components/layout";
 import { useDeleteConfirmation, useIdNameMap, usePermissions, useFilteredData, useBudgetsByUser, useUserFilter } from "@/hooks";
-import { useModalState } from "@/lib/navigation/modal-params";
+import { useModalState } from "@/lib/navigation/url-state";
 import UserSelector from "@/components/shared/user-selector";
 import { UserSelectorSkeleton } from "@/features/dashboard";
 import { ConfirmationDialog } from "@/components/shared/confirmation-dialog";
@@ -49,6 +49,7 @@ import { BudgetService } from "@/lib/services";
 import type { Category, Budget, Transaction, Account } from "@/lib/types";
 import type { ChartDataPoint } from "@/features/budgets/components/BudgetChart";
 import { useCurrentUser, useGroupUsers } from "@/stores/reference-data-store";
+import { usePageDataStore } from "@/stores/page-data-store";
 
 /**
  * Budgets Content Props
@@ -83,6 +84,18 @@ export default function BudgetsContent({
   const router = useRouter();
   const searchParams = useSearchParams();
 
+  // Page data store - for optimistic updates
+  const storeBudgets = usePageDataStore((state) => state.budgets);
+  const setBudgets = usePageDataStore((state) => state.setBudgets);
+  const removeBudget = usePageDataStore((state) => state.removeBudget);
+  const addBudget = usePageDataStore((state) => state.addBudget);
+  const updateBudget = usePageDataStore((state) => state.updateBudget);
+
+  // Initialize store with server data on mount
+  useEffect(() => {
+    setBudgets(budgets);
+  }, [budgets, setBudgets]);
+
   // User filtering state management (global context)
   const { selectedUserId } = useUserFilter();
 
@@ -98,7 +111,7 @@ export default function BudgetsContent({
   // Filter budgets by selected user
   // Using centralized filtering hook with additional domain filter
   const { filteredData: userBudgets } = useFilteredData({
-    data: budgets,
+    data: storeBudgets,
     currentUser,
     selectedUserId, // Use global selected user
     additionalFilter: (budget) => budget.amount > 0, // Only budgets with positive amounts
@@ -109,7 +122,7 @@ export default function BudgetsContent({
     // Try to use URL parameter if provided
     if (initialBudgetId) {
       // Check if budget exists and is accessible
-      const budget = budgets.find((b) => b.id === initialBudgetId);
+      const budget = storeBudgets.find((b) => b.id === initialBudgetId);
       if (budget && budget.amount > 0) {
         // For admin, allow any group user's budget
         if (isAdmin) {
@@ -160,7 +173,7 @@ export default function BudgetsContent({
   // Calculate budget summary for the selected budget's user using centralized hook
   const { budgetsByUser } = useBudgetsByUser({
     groupUsers: [selectedBudgetUser],
-    budgets,
+    budgets: storeBudgets,
     transactions,
     currentUser,
     selectedUserId: selectedBudgetUser.id,
@@ -316,18 +329,28 @@ export default function BudgetsContent({
 
   const confirmDeleteBudget = async () => {
     await deleteConfirm.executeDelete(async (budget) => {
-      const result = await deleteBudgetAction(budget.id);
+      // Optimistic UI update - remove immediately from store
+      removeBudget(budget.id);
 
-      if (result.error) {
-        console.error("[BudgetsContent] Delete error:", result.error);
-        throw new Error(result.error);
-      }
+      try {
+        const result = await deleteBudgetAction(budget.id);
 
-      // Success - refresh page
-      router.refresh();
-      // Clear selected budget if it was the one deleted
-      if (selectedBudgetId === budget.id) {
-        setSelectedBudgetId(null);
+        if (result.error) {
+          // Revert on error - add back to store
+          addBudget(budget);
+          console.error("[BudgetsContent] Delete error:", result.error);
+          throw new Error(result.error);
+        }
+        // Success - no router.refresh() needed, store already updated!
+        // Clear selected budget if it was the one deleted
+        if (selectedBudgetId === budget.id) {
+          setSelectedBudgetId(null);
+        }
+      } catch (error) {
+        // Revert on error
+        addBudget(budget);
+        console.error("[BudgetsContent] Error deleting budget:", error);
+        throw error;
       }
     });
   };

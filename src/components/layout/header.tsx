@@ -18,7 +18,7 @@ import { cn } from "@/lib";
 import { Button, ThemeToggle, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui";
 
 // New Modal State Management
-import { useModalState } from "@/lib/navigation/modal-params";
+import { useModalState } from "@/lib/navigation/url-state";
 
 // Constants
 import { STICKY_HEADER_BASE } from "@/lib/utils/ui-constants";

@@ -19,8 +19,9 @@ import {
   Input,
 } from "@/src/components/ui";
 import { todayDateString } from "@/lib/utils/date-utils";
-import { useCurrentUser, useGroupUsers, useAccounts, useCategories } from "@/stores/reference-data-store";
+import { useCurrentUser, useGroupUsers, useAccounts, useCategories, useGroupId } from "@/stores/reference-data-store";
 import { useUserFilterStore } from "@/stores/user-filter-store";
+import { usePageDataStore } from "@/stores/page-data-store";
 
 // Zod schema for recurring series validation
 const recurringSchema = z.object({
@@ -76,10 +77,17 @@ function RecurringFormModal({
   const groupUsers = useGroupUsers();
   const accounts = useAccounts();
   const categories = useCategories();
+  const groupId = useGroupId();
   const selectedUserId = useUserFilterStore(state => state.selectedUserId);
 
+  // Page data store actions for optimistic updates
+  const storeRecurringSeries = usePageDataStore((state) => state.recurringSeries);
+  const addRecurringSeries = usePageDataStore((state) => state.addRecurringSeries);
+  const updateRecurringSeries = usePageDataStore((state) => state.updateRecurringSeries);
+  const removeRecurringSeries = usePageDataStore((state) => state.removeRecurringSeries);
+
   // Early return if store not initialized
-  if (!currentUser) {
+  if (!currentUser || !groupId) {
     return null;
   }
   const isEditMode = !!editId;
@@ -220,13 +228,13 @@ function RecurringFormModal({
     }
   }, [isOpen, watchedUserIds, defaultAccountId, watchedAccountId, setValue]);
 
-  // Handle form submission
+  // Handle form submission with optimistic updates
   const onSubmit = async (data: RecurringFormData) => {
     try {
       const amount = parseFloat(data.amount);
       const dueDay = parseInt(data.due_day, 10);
 
-      const baseInput = {
+      const seriesData = {
         description: data.description.trim(),
         amount,
         type: data.type,
@@ -236,34 +244,78 @@ function RecurringFormModal({
         start_date: data.start_date,
         end_date: data.end_date || null,
         due_day: dueDay,
+        user_ids: data.user_ids,
+        group_id: groupId,
       };
 
       if (isEditMode && editId) {
-        // Update existing recurring series
+        // UPDATE: Optimistic update pattern
+        // 1. Store original series for revert
+        const originalSeries = storeRecurringSeries.find((s) => s.id === editId);
+        if (!originalSeries) {
+          setError("root", { message: "Serie ricorrente non trovata" });
+          return;
+        }
+
+        // 2. Update in store immediately (optimistic)
+        updateRecurringSeries(editId, seriesData);
+
+        // 3. Call server action
         const result = await updateRecurringSeriesAction({
           id: editId,
-          user_ids: data.user_ids,
-          ...baseInput,
+          ...seriesData,
         });
 
         if (result.error) {
+          // 4. Revert on error
+          updateRecurringSeries(editId, originalSeries);
           setError("root", { message: result.error });
           return;
+        }
+
+        // 5. Success - update with real data from server
+        if (result.data) {
+          updateRecurringSeries(editId, result.data);
         }
       } else {
-        // Create new recurring series
-        const result = await createRecurringSeriesAction({
-          ...baseInput,
-          user_ids: data.user_ids,
-        });
+        // CREATE: Optimistic add pattern
+        // 1. Create temporary ID
+        const tempId = `temp-${Date.now()}`;
+        const now = new Date().toISOString();
+        const optimisticSeries: RecurringTransactionSeries = {
+          id: tempId,
+          created_at: now,
+          updated_at: now,
+          is_active: true,
+          total_executions: 0,
+          ...seriesData,
+        };
+
+        // 2. Add to store immediately (optimistic)
+        addRecurringSeries(optimisticSeries);
+
+        // 3. Close modal immediately for better UX
+        onClose();
+
+        // 4. Call server action in background
+        const result = await createRecurringSeriesAction(seriesData);
 
         if (result.error) {
-          setError("root", { message: result.error });
+          // 5. Remove optimistic series on error
+          removeRecurringSeries(tempId);
+          console.error("Failed to create recurring series:", result.error);
           return;
         }
+
+        // 6. Replace temporary with real series from server
+        removeRecurringSeries(tempId);
+        if (result.data) {
+          addRecurringSeries(result.data);
+        }
+        return; // Early return since modal already closed
       }
 
-      // Close modal on success
+      // Close modal on success (for update mode)
       onClose();
     } catch (error) {
       setError("root", {

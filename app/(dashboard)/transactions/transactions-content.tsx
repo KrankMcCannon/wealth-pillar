@@ -36,7 +36,7 @@ import type { Transaction, Budget } from "@/lib/types";
 import { TransactionService } from "@/lib/services";
 import { deleteTransactionAction } from "@/features/transactions/actions/transaction-actions";
 import { deleteRecurringSeriesAction } from "@/features/recurring/actions/recurring-actions";
-import { useModalState } from "@/lib/navigation/modal-params";
+import { useModalState, useTabState } from "@/lib/navigation/url-state";
 import { useCurrentUser, useAccounts, useCategories } from "@/stores/reference-data-store";
 import { usePageDataStore } from "@/stores/page-data-store";
 
@@ -109,9 +109,8 @@ export default function TransactionsContent({
     return defaultFiltersState;
   }, [fromBudgets, selectedBudget, startDateFromUrl, endDateFromUrl]);
 
-  // Tab state - initialize from URL params if present
-  const initialTab = searchParams.get("tab") || "Transactions";
-  const [activeTab, setActiveTab] = useState<string>(initialTab);
+  // Tab state - managed via URL params for shareable links
+  const { activeTab, setActiveTab } = useTabState("Transactions");
 
   // Modern filters state - initialized from URL or default
   const [filters, setFilters] = useState<TransactionFiltersState>(initialFilters);
@@ -122,14 +121,6 @@ export default function TransactionsContent({
       setSelectedGroupFilter(memberIdFromUrl);
     }
   }, [fromBudgets, memberIdFromUrl, setSelectedGroupFilter]);
-
-  // Sync tab state with URL params on mount and when URL changes
-  useEffect(() => {
-    const tabFromUrl = searchParams.get("tab");
-    if (tabFromUrl && (tabFromUrl === "Transactions" || tabFromUrl === "Recurrent")) {
-      setActiveTab(tabFromUrl);
-    }
-  }, [searchParams]);
 
   // Scroll to top on page mount (navigation to transactions page)
   useEffect(() => {
