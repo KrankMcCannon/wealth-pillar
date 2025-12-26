@@ -59,82 +59,64 @@ export default function DashboardContent({
   budgets,
   recurringSeries,
 }: DashboardContentProps) {
-  // Read from stores instead of props
+  // 1. All hooks must be called at the top of the component, unconditionally
   const currentUser = useCurrentUser();
   const groupUsers = useGroupUsers();
   const accounts = useAccounts();
-
-  // Early return if store not initialized
-  if (!currentUser) {
-    return null;
-  }
   const router = useRouter();
-
-  // User filtering state management using shared hook
   const { selectedGroupFilter, selectedUserId } = useUserFilter();
 
-  // Permission checks
+  // Permission checks - handles null currentUser internally
   const { effectiveUserId, isMember } = usePermissions({
-    currentUser,
+    currentUser: currentUser || ({ id: '', name: '', role: 'member' } as any),
     selectedUserId: selectedGroupFilter !== "all" ? selectedGroupFilter : undefined,
   });
 
-  // Calculate budgets by user using centralized hook
+  // Calculate budgets - handles null currentUser internally
   const { budgetsByUser } = useBudgetsByUser({
     groupUsers,
     budgets,
     transactions,
-    currentUser,
+    currentUser: currentUser || ({ id: '', name: '', role: 'member' } as any),
     selectedUserId,
   });
 
-  // Filter default accounts based on selected user and sort by balance
-  // Members only see their own accounts
+  // Modal state management
+  const { openModal } = useModalState();
+
+  // Filter default accounts - useMemo is a hook, must be called unconditionally
   const displayedDefaultAccounts = useMemo(() => {
+    if (!currentUser) return [];
+
     let accountsToDisplay: Account[] = [];
     const totalAccountCount = accounts.length;
 
-    // Members only see their own accounts
     if (isMember) {
       const userAccounts = accounts.filter((acc) => acc.user_ids.includes(currentUser.id));
-
-      // If only one account, show it
       if (userAccounts.length === 1) {
         accountsToDisplay = userAccounts;
-      }
-      // If multiple, show only default account
-      else if (userAccounts.length > 1 && currentUser.default_account_id) {
+      } else if (userAccounts.length > 1 && currentUser.default_account_id) {
         const defaultAccount = accounts.find((a) => a.id === currentUser.default_account_id);
         accountsToDisplay = defaultAccount ? [defaultAccount] : userAccounts;
-      }
-      // Fallback: show all user's accounts
-      else {
+      } else {
         accountsToDisplay = userAccounts;
       }
-    }
-    // Admin logic (existing)
-    else {
-      // Case 1: Exactly 1 account in entire system → show it
+    } else {
       if (totalAccountCount === 1) {
         accountsToDisplay = accounts;
-      }
-      // Case 2: Multiple accounts → use default account logic
-      else if (totalAccountCount > 1) {
+      } else if (totalAccountCount > 1) {
         if (selectedUserId) {
-          // Show only selected user's default account
           const user = groupUsers.find((u) => u.id === selectedUserId);
           if (user?.default_account_id) {
             const defaultAccount = accounts.find((a) => a.id === user.default_account_id);
             accountsToDisplay = defaultAccount ? [defaultAccount] : [];
           }
         } else {
-          // Show all users' default accounts
           accountsToDisplay = AccountService.getDefaultAccounts(accounts, groupUsers);
         }
       }
     }
 
-    // Sort accounts by balance (descending - highest first)
     return accountsToDisplay.sort((a, b) => {
       const balanceA = accountBalances[a.id] || 0;
       const balanceB = accountBalances[b.id] || 0;
@@ -142,18 +124,15 @@ export default function DashboardContent({
     });
   }, [selectedUserId, accounts, groupUsers, accountBalances, isMember, currentUser]);
 
-  // Get all accounts for the selected user (or all accounts if "all" selected)
-  // Using centralized account filtering hook
+  // Account filtering hook
   const { filteredAccounts: userAccounts } = useFilteredAccounts({
     accounts,
     currentUser,
     selectedUserId,
   });
 
-  // Calculate total account count for selected user
   const totalAccountsCount = userAccounts.length;
 
-  // Calculate balances for displayed default accounts
   const displayedAccountBalances = useMemo(() => {
     const displayedAccountIds = new Set(displayedDefaultAccounts.map((account) => account.id));
     return Object.fromEntries(
@@ -161,66 +140,39 @@ export default function DashboardContent({
     );
   }, [displayedDefaultAccounts, accountBalances]);
 
-  // Calculate total balance based on selection
   const totalBalance = useMemo(() => {
     let balance = 0;
-
     if (selectedUserId) {
-      // When a specific user is selected:
-      // Sum of user's account balances + "Risparmi Casa" account balance
       const userAccountIds = userAccounts.map((a) => a.id);
-      balance = userAccountIds.reduce((sum, accountId) => {
-        return sum + (accountBalances[accountId] || 0);
-      }, 0);
-
-      // Find and add "Risparmi Casa" account balance
+      balance = userAccountIds.reduce((sum, accountId) => sum + (accountBalances[accountId] || 0), 0);
       const risparmiCasaAccount = accounts.find((a) => a.name === "Risparmi Casa");
-      if (risparmiCasaAccount) {
-        balance += accountBalances[risparmiCasaAccount.id] || 0;
-      }
+      if (risparmiCasaAccount) balance += accountBalances[risparmiCasaAccount.id] || 0;
     } else {
-      // When "all" is selected: Sum of all account balances
       balance = Object.values(accountBalances).reduce((sum, bal) => sum + bal, 0);
     }
-
-    // Round to avoid floating point precision issues
     return Math.round(balance * 100) / 100;
   }, [selectedUserId, userAccounts, accounts, accountBalances]);
 
-  // Modal state management via URL params
-  const { openModal } = useModalState();
-
-  // Handler for individual account card clicks
-  const handleAccountClick = () => {
-    router.push("/accounts");
-  };
-
-  // Handler for creating recurring series
-  const handleCreateRecurringSeries = () => {
-    openModal('recurring');
-  };
-
-  // Handler for clicking on a series card - navigate to transactions with Recurrent tab
-  const handleSeriesCardClick = () => {
-    router.push("/transactions?tab=Recurrent");
-  };
-
-  const [periodManagerUserId, setPeriodManagerUserId] = useState(
-    isMember ? currentUser.id : selectedUserId || currentUser.id,
+  // State hooks
+  const [periodManagerUserId, setPeriodManagerUserId] = useState<string | undefined>(
+    isMember ? currentUser?.id : selectedUserId || currentUser?.id,
   );
 
+  // Effects
   useEffect(() => {
-    if (isMember) {
+    if (isMember && currentUser) {
       setPeriodManagerUserId(currentUser.id);
       return;
     }
     if (selectedUserId) {
       setPeriodManagerUserId(selectedUserId);
     }
-  }, [isMember, currentUser.id, selectedUserId]);
+  }, [isMember, currentUser, selectedUserId]);
 
   const periodManagerData = useMemo(() => {
     const targetUser = groupUsers.find((u) => u.id === periodManagerUserId) || currentUser;
+    if (!targetUser) return { targetUser: null, budgets: [], period: null };
+
     const targetUserBudgets = budgets.filter((b) => b.user_id === targetUser.id && b.amount > 0);
     const targetUserPeriod = targetUser.budget_periods?.find((p) => p.is_active && !p.end_date) || null;
 
@@ -230,6 +182,17 @@ export default function DashboardContent({
       period: targetUserPeriod,
     };
   }, [periodManagerUserId, groupUsers, currentUser, budgets]);
+
+  // Handlers
+  const handleAccountClick = () => router.push("/accounts");
+  const handleCreateRecurringSeries = () => openModal('recurring');
+  const handleSeriesCardClick = () => router.push("/transactions?tab=Recurrent");
+
+  // 2. ONLY NOW check if we have the data needed to render. 
+  // If currentUser is missing, return null or a loader, but all hooks have been called.
+  if (!currentUser) {
+    return null;
+  }
 
   const budgetPeriodTrigger = (
     <Button variant="outline" size="sm">
@@ -281,7 +244,7 @@ export default function DashboardContent({
               isLoading={false}
               headerLeading={
                 <BudgetPeriodManager
-                  selectedUserId={periodManagerUserId}
+                  selectedUserId={periodManagerUserId || currentUser.id}
                   currentPeriod={periodManagerData.period}
                   transactions={transactions}
                   userBudgets={periodManagerData.budgets}
@@ -310,7 +273,6 @@ export default function DashboardContent({
       </main>
 
       <BottomNavigation />
-
     </PageContainer>
   );
 }
