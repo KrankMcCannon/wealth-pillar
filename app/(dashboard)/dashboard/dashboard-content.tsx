@@ -281,8 +281,6 @@ export default function DashboardContent({
               isLoading={false}
               headerLeading={
                 <BudgetPeriodManager
-                  currentUser={currentUser}
-                  groupUsers={groupUsers}
                   selectedUserId={periodManagerUserId}
                   currentPeriod={periodManagerData.period}
                   transactions={transactions}

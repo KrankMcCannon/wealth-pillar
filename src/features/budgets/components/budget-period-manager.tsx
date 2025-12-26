@@ -2,17 +2,16 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { Clock, History, TrendingUp, TrendingDown, Activity, Users, Calendar } from "lucide-react";
-import { BudgetPeriod, Transaction, User, Budget } from "@/lib/types";
+import { BudgetPeriod, Transaction, Budget } from "@/lib/types";
 import { startPeriodAction, closePeriodAction } from "@/features/budgets/actions/period-actions";
 import { FormActions } from "@/src/components/form";
 import { DateField, UserField } from "@/src/components/ui/fields";
 import { Alert, AlertDescription, Badge, ModalContent, ModalSection, ModalWrapper } from "@/src/components/ui";
 import { usePermissions } from "@/hooks";
 import { toDateTime } from "@/lib/utils/date-utils";
+import { useCurrentUser, useGroupUsers } from "@/stores/reference-data-store";
 
 interface BudgetPeriodManagerProps {
-  currentUser: User;
-  groupUsers: User[];
   selectedUserId?: string; // Initial user selection
   currentPeriod: BudgetPeriod | null;
   transactions: Transaction[];
@@ -23,8 +22,6 @@ interface BudgetPeriodManagerProps {
 }
 
 export function BudgetPeriodManager({
-  currentUser,
-  groupUsers,
   selectedUserId,
   currentPeriod,
   transactions,
@@ -33,6 +30,15 @@ export function BudgetPeriodManager({
   onSuccess,
   onUserChange,
 }: Readonly<BudgetPeriodManagerProps>) {
+  // Read from stores
+  const currentUser = useCurrentUser();
+  const groupUsers = useGroupUsers();
+
+  // Early return if store not initialized
+  if (!currentUser) {
+    return null;
+  }
+
   const [isOpen, setIsOpen] = useState(false);
   const [isActionPending, setIsActionPending] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string>("");
