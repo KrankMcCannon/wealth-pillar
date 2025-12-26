@@ -91,14 +91,17 @@ function CategoryFormModal({
   // Load category data for edit mode
   useEffect(() => {
     if (isOpen && isEditMode && editId) {
-      // TODO: Fetch category by editId
-      // For now, reset to defaults
-      reset({
-        label: "",
-        key: "",
-        icon: "",
-        color: CategoryService.getDefaultColor(),
-      });
+      // Find category in store
+      const category = storeCategories.find((cat) => cat.id === editId);
+
+      if (category) {
+        reset({
+          label: category.label,
+          key: category.key,
+          icon: category.icon,
+          color: category.color,
+        });
+      }
     } else if (isOpen && !isEditMode) {
       // Reset to defaults for create mode
       reset({
@@ -108,7 +111,7 @@ function CategoryFormModal({
         color: CategoryService.getDefaultColor(),
       });
     }
-  }, [isOpen, isEditMode, editId, reset]);
+  }, [isOpen, isEditMode, editId, reset, storeCategories]);
 
   // Auto-generate key from label (only in create mode)
   useEffect(() => {

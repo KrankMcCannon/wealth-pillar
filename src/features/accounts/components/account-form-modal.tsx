@@ -92,14 +92,20 @@ function AccountFormModal({
   // Load account data for edit mode
   useEffect(() => {
     if (isOpen && isEditMode && editId) {
-      // TODO: Fetch account by editId
-      // For now, reset to defaults
-      reset({
-        name: "",
-        type: "payroll",
-        user_id: defaultFormUserId || currentUser.id,
-        isDefault: false,
-      });
+      // Find account in store
+      const account = storeAccounts.find((acc) => acc.id === editId);
+
+      if (account) {
+        // Check if this is the user's default account
+        const isDefault = currentUser.default_account_id === account.id;
+
+        reset({
+          name: account.name,
+          type: account.type as any,
+          user_id: account.user_ids[0] || currentUser.id,
+          isDefault,
+        });
+      }
     } else if (isOpen && !isEditMode) {
       // Reset to defaults for create mode
       reset({
@@ -109,7 +115,7 @@ function AccountFormModal({
         isDefault: false,
       });
     }
-  }, [isOpen, isEditMode, editId, defaultFormUserId, currentUser.id, reset]);
+  }, [isOpen, isEditMode, editId, defaultFormUserId, currentUser, reset, storeAccounts]);
 
   // Handle form submission with optimistic updates
   const onSubmit = async (data: AccountFormData) => {

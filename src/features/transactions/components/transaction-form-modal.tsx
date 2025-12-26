@@ -143,18 +143,26 @@ function TransactionFormModal({
   // Load transaction data for edit mode
   useEffect(() => {
     if (isOpen && isEditMode && editId) {
-      // TODO: Fetch transaction by editId
-      // For now, reset to defaults
-      reset({
-        description: "",
-        amount: "",
-        type: "expense",
-        category: "",
-        date: new Date().toISOString().split("T")[0],
-        user_id: defaultFormUserId,
-        account_id: getDefaultAccountId(defaultFormUserId),
-        to_account_id: "",
-      });
+      // Find transaction in store
+      const transaction = storeTransactions.find((t) => t.id === editId);
+
+      if (transaction) {
+        // Handle date formatting (could be string or Date)
+        const dateStr = typeof transaction.date === "string"
+          ? transaction.date.split("T")[0]
+          : (transaction.date as Date).toISOString().split("T")[0];
+
+        reset({
+          description: transaction.description,
+          amount: transaction.amount.toString(),
+          type: transaction.type,
+          category: transaction.category,
+          date: dateStr,
+          user_id: transaction.user_id || "",
+          account_id: transaction.account_id,
+          to_account_id: transaction.to_account_id || "",
+        });
+      }
     } else if (isOpen && !isEditMode) {
       // Reset to defaults for create mode
       reset({
@@ -168,7 +176,7 @@ function TransactionFormModal({
         to_account_id: "",
       });
     }
-  }, [isOpen, isEditMode, editId, defaultFormUserId, reset, getDefaultAccountId]);
+  }, [isOpen, isEditMode, editId, defaultFormUserId, reset, getDefaultAccountId, storeTransactions]);
 
   // Update account when user changes
   useEffect(() => {

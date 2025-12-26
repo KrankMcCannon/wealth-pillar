@@ -120,17 +120,20 @@ function BudgetFormModal({
   // Load budget data for edit mode
   useEffect(() => {
     if (isOpen && isEditMode && editId) {
-      // TODO: Fetch budget by editId
-      // For now, reset to defaults
-      reset({
-        description: "",
-        amount: "",
-        type: "monthly",
-        icon: null,
-        categories: [],
-        user_id: defaultFormUserId,
-        categorySearch: "",
-      });
+      // Find budget in store
+      const budget = storeBudgets.find((b) => b.id === editId);
+
+      if (budget) {
+        reset({
+          description: budget.description,
+          amount: budget.amount.toString(),
+          type: budget.type,
+          icon: budget.icon,
+          categories: budget.categories,
+          user_id: budget.user_id,
+          categorySearch: "",
+        });
+      }
     } else if (isOpen && !isEditMode) {
       // Reset to defaults for create mode
       reset({
@@ -143,7 +146,7 @@ function BudgetFormModal({
         categorySearch: "",
       });
     }
-  }, [isOpen, isEditMode, editId, defaultFormUserId, reset]);
+  }, [isOpen, isEditMode, editId, defaultFormUserId, reset, storeBudgets]);
 
   // Handle category toggle
   const handleCategoryToggle = (categoryId: string, checked: CheckedState) => {

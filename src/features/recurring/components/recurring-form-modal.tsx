@@ -187,20 +187,34 @@ function RecurringFormModal({
   // Load recurring series data for edit mode
   useEffect(() => {
     if (isOpen && isEditMode && editId) {
-      // TODO: Fetch recurring series by editId
-      // For now, reset to defaults
-      reset({
-        description: "",
-        amount: "",
-        type: "expense",
-        category: "",
-        frequency: "monthly",
-        user_ids: selectedUserId ? [selectedUserId] : [currentUser.id],
-        account_id: "",
-        start_date: today,
-        end_date: "",
-        due_day: "1",
-      });
+      // Find series in store
+      const series = storeRecurringSeries.find((s) => s.id === editId);
+
+      if (series) {
+        // Handle date formatting
+        const startDateStr = typeof series.start_date === "string"
+          ? series.start_date.split("T")[0]
+          : (series.start_date as Date).toISOString().split("T")[0];
+
+        const endDateStr = series.end_date
+          ? (typeof series.end_date === "string"
+            ? series.end_date.split("T")[0]
+            : (series.end_date as Date).toISOString().split("T")[0])
+          : "";
+
+        reset({
+          description: series.description,
+          amount: series.amount.toString(),
+          type: series.type === "transfer" ? "expense" : series.type,
+          category: series.category,
+          frequency: series.frequency,
+          user_ids: series.user_ids,
+          account_id: series.account_id,
+          start_date: startDateStr,
+          end_date: endDateStr,
+          due_day: series.due_day.toString(),
+        });
+      }
     } else if (isOpen && !isEditMode) {
       // Reset to defaults for create mode
       reset({
@@ -216,7 +230,7 @@ function RecurringFormModal({
         due_day: "1",
       });
     }
-  }, [isOpen, isEditMode, editId, selectedUserId, currentUser.id, reset, today]);
+  }, [isOpen, isEditMode, editId, selectedUserId, currentUser.id, reset, today, storeRecurringSeries]);
 
   // Prepopulate account when users change
   useEffect(() => {

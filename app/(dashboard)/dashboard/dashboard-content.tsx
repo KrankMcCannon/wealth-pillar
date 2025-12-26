@@ -208,7 +208,6 @@ export default function DashboardContent({
           isDashboard={true}
           currentUser={{ name: currentUser.name, role: currentUser.role || 'member' }}
           showActions={true}
-          className="mb-6"
         />
       </Suspense>
 
