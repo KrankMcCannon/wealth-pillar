@@ -60,12 +60,6 @@ function ModalRenderer() {
           isOpen={true}
           onClose={closeModal}
           editId={editId}
-          currentUser={currentUser}
-          groupUsers={groupUsers}
-          accounts={accounts}
-          categories={categories}
-          groupId={groupId}
-          selectedUserId={selectedUserId}
         />
       )}
 
@@ -74,10 +68,6 @@ function ModalRenderer() {
           isOpen={true}
           onClose={closeModal}
           editId={editId}
-          currentUser={currentUser}
-          groupUsers={groupUsers}
-          categories={categories}
-          selectedUserId={selectedUserId}
         />
       )}
 
@@ -86,7 +76,6 @@ function ModalRenderer() {
           isOpen={true}
           onClose={closeModal}
           editId={editId}
-          groupId={groupId}
         />
       )}
 
@@ -95,11 +84,6 @@ function ModalRenderer() {
           isOpen={true}
           onClose={closeModal}
           editId={editId}
-          currentUser={currentUser}
-          groupUsers={groupUsers}
-          accounts={accounts}
-          categories={categories}
-          selectedUserId={selectedUserId}
         />
       )}
 
@@ -108,10 +92,6 @@ function ModalRenderer() {
           isOpen={true}
           onClose={closeModal}
           editId={editId}
-          currentUser={currentUser}
-          groupUsers={groupUsers}
-          groupId={groupId}
-          selectedUserId={selectedUserId}
         />
       )}
     </>

@@ -12,6 +12,8 @@ import { FormActions, FormField, FormSelect } from "@/src/components/form";
 import { UserField, AccountField, CategoryField, AmountField, DateField } from "@/src/components/ui/fields";
 import { Input } from "@/src/components/ui/input";
 import { usePermissions } from "@/hooks";
+import { useCurrentUser, useGroupUsers, useAccounts, useCategories, useGroupId } from "@/stores/reference-data-store";
+import { useUserFilterStore } from "@/stores/user-filter-store";
 
 // Zod schema for transaction validation
 const transactionSchema = z.object({
@@ -47,25 +49,25 @@ interface TransactionFormModalProps {
   isOpen: boolean;
   onClose: () => void;
   editId?: string | null;
-  currentUser: User;
-  groupUsers: User[];
-  accounts: Account[];
-  categories: Category[];
-  groupId: string;
-  selectedUserId?: string;
 }
 
 function TransactionFormModal({
   isOpen,
   onClose,
   editId,
-  currentUser,
-  groupUsers,
-  accounts,
-  categories,
-  groupId,
-  selectedUserId
 }: TransactionFormModalProps) {
+  // Read from stores instead of props
+  const currentUser = useCurrentUser();
+  const groupUsers = useGroupUsers();
+  const accounts = useAccounts();
+  const categories = useCategories();
+  const groupId = useGroupId();
+  const selectedUserId = useUserFilterStore(state => state.selectedUserId);
+
+  // Early return if store not initialized
+  if (!currentUser || !groupId) {
+    return null;
+  }
   const isEditMode = !!editId;
   const title = isEditMode ? "Modifica transazione" : "Nuova transazione";
   const description = isEditMode ? "Aggiorna i dettagli della transazione" : "Aggiungi una nuova transazione";

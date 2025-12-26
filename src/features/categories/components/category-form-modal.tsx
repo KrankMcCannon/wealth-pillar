@@ -10,6 +10,7 @@ import { createCategoryAction, updateCategoryAction } from "@/features/categorie
 import { ModalWrapper, ModalContent, ModalSection } from "@/src/components/ui/modal-wrapper";
 import { FormActions, FormField } from "@/src/components/form";
 import { IconPicker, Input } from "@/src/components/ui";
+import { useGroupId } from "@/stores/reference-data-store";
 
 // Zod schema for category validation
 const categorySchema = z.object({
@@ -36,15 +37,20 @@ interface CategoryFormModalProps {
   isOpen: boolean;
   onClose: () => void;
   editId?: string | null;
-  groupId: string;
 }
 
 function CategoryFormModal({
   isOpen,
   onClose,
   editId,
-  groupId
 }: CategoryFormModalProps) {
+  // Read from store instead of props
+  const groupId = useGroupId();
+
+  // Early return if store not initialized
+  if (!groupId) {
+    return null;
+  }
   const isEditMode = !!editId;
   const title = isEditMode ? "Modifica Categoria" : "Nuova Categoria";
   const description = isEditMode ? "Aggiorna i dettagli della categoria" : "Crea una nuova categoria";

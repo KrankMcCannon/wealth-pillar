@@ -13,6 +13,8 @@ import { Input } from "@/src/components/ui/input";
 import { usePermissions } from "@/hooks";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/src/components/ui";
+import { useCurrentUser, useGroupUsers, useGroupId } from "@/stores/reference-data-store";
+import { useUserFilterStore } from "@/stores/user-filter-store";
 
 // Zod schema for account validation
 const accountSchema = z.object({
@@ -30,21 +32,23 @@ interface AccountFormModalProps {
   isOpen: boolean;
   onClose: () => void;
   editId?: string | null;
-  currentUser: User;
-  groupUsers: User[];
-  groupId: string;
-  selectedUserId?: string;
 }
 
 function AccountFormModal({
   isOpen,
   onClose,
   editId,
-  currentUser,
-  groupUsers,
-  groupId,
-  selectedUserId
 }: AccountFormModalProps) {
+  // Read from stores instead of props
+  const currentUser = useCurrentUser();
+  const groupUsers = useGroupUsers();
+  const groupId = useGroupId();
+  const selectedUserId = useUserFilterStore(state => state.selectedUserId);
+
+  // Early return if store not initialized
+  if (!currentUser || !groupId) {
+    return null;
+  }
   const isEditMode = !!editId;
   const title = isEditMode ? "Modifica account" : "Nuovo account";
   const description = isEditMode ? "Aggiorna i dettagli dell'account" : "Aggiungi un nuovo account bancario o di cassa";

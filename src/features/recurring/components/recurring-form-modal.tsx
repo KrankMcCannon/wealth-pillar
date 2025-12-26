@@ -19,6 +19,8 @@ import {
   Input,
 } from "@/src/components/ui";
 import { todayDateString } from "@/lib/utils/date-utils";
+import { useCurrentUser, useGroupUsers, useAccounts, useCategories } from "@/stores/reference-data-store";
+import { useUserFilterStore } from "@/stores/user-filter-store";
 
 // Zod schema for recurring series validation
 const recurringSchema = z.object({
@@ -62,23 +64,24 @@ interface RecurringFormModalProps {
   isOpen: boolean;
   onClose: () => void;
   editId?: string | null;
-  currentUser: User;
-  groupUsers: User[];
-  accounts: Account[];
-  categories: Category[];
-  selectedUserId?: string;
 }
 
 function RecurringFormModal({
   isOpen,
   onClose,
   editId,
-  currentUser,
-  groupUsers,
-  accounts,
-  categories,
-  selectedUserId
 }: RecurringFormModalProps) {
+  // Read from stores instead of props
+  const currentUser = useCurrentUser();
+  const groupUsers = useGroupUsers();
+  const accounts = useAccounts();
+  const categories = useCategories();
+  const selectedUserId = useUserFilterStore(state => state.selectedUserId);
+
+  // Early return if store not initialized
+  if (!currentUser) {
+    return null;
+  }
   const isEditMode = !!editId;
   const title = isEditMode ? "Modifica Serie Ricorrente" : "Nuova Serie Ricorrente";
   const description = isEditMode ? "Aggiorna la serie ricorrente" : "Configura una nuova serie ricorrente";

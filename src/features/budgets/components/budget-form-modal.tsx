@@ -11,6 +11,8 @@ import { ModalWrapper, ModalContent, ModalSection } from "@/src/components/ui/mo
 import { FormActions, FormField, FormSelect } from "@/src/components/form";
 import { AmountField, Checkbox, Input, UserField } from "@/src/components/ui";
 import { usePermissions } from "@/hooks";
+import { useCurrentUser, useGroupUsers, useCategories } from "@/stores/reference-data-store";
+import { useUserFilterStore } from "@/stores/user-filter-store";
 
 // Zod schema for budget validation
 const budgetSchema = z.object({
@@ -35,21 +37,23 @@ interface BudgetFormModalProps {
   isOpen: boolean;
   onClose: () => void;
   editId?: string | null;
-  currentUser: User;
-  groupUsers: User[];
-  categories: Category[];
-  selectedUserId?: string;
 }
 
 function BudgetFormModal({
   isOpen,
   onClose,
   editId,
-  currentUser,
-  groupUsers,
-  categories,
-  selectedUserId
 }: BudgetFormModalProps) {
+  // Read from stores instead of props
+  const currentUser = useCurrentUser();
+  const groupUsers = useGroupUsers();
+  const categories = useCategories();
+  const selectedUserId = useUserFilterStore(state => state.selectedUserId);
+
+  // Early return if store not initialized
+  if (!currentUser) {
+    return null;
+  }
   const isEditMode = !!editId;
   const title = isEditMode ? "Modifica Budget" : "Nuovo Budget";
   const description = isEditMode ? "Aggiorna i dettagli del budget" : "Crea un nuovo budget";
