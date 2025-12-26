@@ -1,10 +1,16 @@
 "use client";
 
-import { lazy, Suspense } from "react";
+import { lazy } from "react";
 import dynamic from 'next/dynamic';
 import { useModalState } from "@/lib/navigation/modal-params";
 import { useUserFilterStore } from "@/stores/user-filter-store";
-import type { User, Account, Category } from "@/lib/types";
+import {
+  useCurrentUser,
+  useGroupUsers,
+  useAccounts,
+  useCategories,
+  useGroupId,
+} from "@/stores/reference-data-store";
 
 // Lazy load modals - only loaded when opened
 const TransactionFormModal = lazy(() =>
@@ -25,26 +31,27 @@ const AccountFormModal = lazy(() =>
 
 interface ModalProviderProps {
   children: React.ReactNode;
-  currentUser: User;
-  groupUsers: User[];
-  accounts: Account[];
-  categories: Category[];
-  groupId: string;
 }
 
 /**
- * Inner Modal Renderer (uses hooks that access search params)
+ * Inner Modal Renderer (uses hooks that access search params and stores)
  * Wrapped in Suspense by parent to prevent SSR issues
  */
-function ModalRenderer({
-  currentUser,
-  groupUsers,
-  accounts,
-  categories,
-  groupId
-}: Omit<ModalProviderProps, 'children'>) {
+function ModalRenderer() {
   const { modal, editId, closeModal } = useModalState();
   const selectedUserId = useUserFilterStore(state => state.selectedUserId);
+
+  // Read from stores instead of props
+  const currentUser = useCurrentUser();
+  const groupUsers = useGroupUsers();
+  const accounts = useAccounts();
+  const categories = useCategories();
+  const groupId = useGroupId();
+
+  // Don't render modals until store is initialized
+  if (!currentUser || !groupId) {
+    return null;
+  }
 
   return (
     <>
@@ -122,29 +129,18 @@ const DynamicModalRenderer = dynamic(
  *
  * Manages all application modals via URL state (nuqs)
  * - Lazy loads modals only when needed
- * - Provides data from layout to all modals
+ * - Reads data from Zustand stores (no props needed)
  * - Handles modal open/close via URL params
  */
 export function ModalProvider({
   children,
-  currentUser,
-  groupUsers,
-  accounts,
-  categories,
-  groupId
 }: ModalProviderProps) {
   return (
     <>
       {children}
 
       {/* Modal Rendering - Client-only (no SSR) to prevent searchParams issues */}
-      <DynamicModalRenderer
-        currentUser={currentUser}
-        groupUsers={groupUsers}
-        accounts={accounts}
-        categories={categories}
-        groupId={groupId}
-      />
+      <DynamicModalRenderer />
     </>
   );
 }

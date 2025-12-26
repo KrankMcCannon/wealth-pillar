@@ -2,22 +2,24 @@ import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import { getDashboardData } from '@/lib/auth/get-dashboard-data';
 import { PageDataService } from '@/lib/services';
 import { ModalProvider } from '@/providers/modal-provider';
+import { ReferenceDataInitializer } from '@/providers/reference-data-initializer';
 
 /**
- * Dashboard Layout with Modal Management
+ * Dashboard Layout with Zustand Store Initialization
  *
- * Server Component that fetches shared data and provides it to:
- * - All dashboard pages (via children)
- * - Global modal system (via ModalProvider)
+ * Server Component that fetches shared data and initializes global stores:
+ * - ReferenceDataInitializer: Initializes reference data store (users, accounts, categories)
+ * - ModalProvider: Manages global modals via URL state (nuqs)
  *
  * Architecture:
  * - Server Component for optimal data fetching
  * - Fetches user data and page data once at layout level
- * - ModalProvider manages all modals via URL state (nuqs)
+ * - ReferenceDataInitializer bridges server data → Zustand stores
+ * - ModalProvider reads from stores (no props needed)
  * - User filter state managed globally via Zustand (client-side)
  *
  * Data Flow:
- * Layout (Server) → Fetch Data → ModalProvider (Client) → Children
+ * Layout (Server) → Fetch Data → ReferenceDataInitializer (Client) → Stores → ModalProvider (Client) → Children
  */
 export default async function DashboardLayout({
   children,
@@ -35,15 +37,18 @@ export default async function DashboardLayout({
 
   return (
     <NuqsAdapter>
-      <ModalProvider
-        currentUser={currentUser}
-        groupUsers={groupUsers}
-        accounts={accounts}
-        categories={categories}
-        groupId={currentUser.group_id}
+      <ReferenceDataInitializer
+        data={{
+          currentUser,
+          groupUsers,
+          accounts,
+          categories,
+        }}
       >
-        {children}
-      </ModalProvider>
+        <ModalProvider>
+          {children}
+        </ModalProvider>
+      </ReferenceDataInitializer>
     </NuqsAdapter>
   );
 }
