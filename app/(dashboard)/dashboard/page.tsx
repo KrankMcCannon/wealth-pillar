@@ -9,7 +9,7 @@ import DashboardContent from './dashboard-content';
 import DashboardPageLoading from './loading';
 
 export default async function DashboardPage() {
-  const { currentUser, groupUsers } = await getDashboardData();
+  const { currentUser } = await getDashboardData();
 
   // Fetch all dashboard data in parallel with centralized service
   const { data, error } = await PageDataService.getDashboardData(currentUser.group_id);
@@ -19,25 +19,19 @@ export default async function DashboardPage() {
   }
 
   const {
-    accounts = [],
     accountBalances = {},
     transactions = [],
     budgets = [],
     recurringSeries = [],
-    categories = [],
   } = data || {};
 
   return (
     <Suspense fallback={<DashboardPageLoading />}>
       <DashboardContent
-        currentUser={currentUser}
-        groupUsers={groupUsers}
-        accounts={accounts}
         accountBalances={accountBalances}
         transactions={transactions}
         budgets={budgets}
         recurringSeries={recurringSeries}
-        categories={categories}
       />
     </Suspense>
   );

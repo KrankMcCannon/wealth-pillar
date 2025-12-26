@@ -9,7 +9,7 @@ import BudgetsContent from './budgets-content';
 import { BudgetSelectorSkeleton } from '@/features/budgets/components';
 
 export default async function BudgetsPage() {
-  const { currentUser, groupUsers } = await getDashboardData();
+  const { currentUser } = await getDashboardData();
 
   // Fetch all budget page data in parallel (optimized with Promise.all)
   const { data, error } = await PageDataService.getBudgetsPageData(currentUser.group_id);
@@ -23,8 +23,6 @@ export default async function BudgetsPage() {
   return (
     <Suspense fallback={<BudgetSelectorSkeleton />}>
       <BudgetsContent
-        currentUser={currentUser}
-        groupUsers={groupUsers}
         categories={categories || []}
         budgets={budgets || []}
         transactions={transactions || []}

@@ -9,7 +9,7 @@ import { PageLoader } from '@/src/components/shared';
 import ReportsContent from './reports-content';
 
 export default async function ReportsPage() {
-  const { currentUser, groupUsers } = await getDashboardData();
+  const { currentUser } = await getDashboardData();
 
   // Fetch all reports page data in parallel with centralized service
   const { data, error } = await PageDataService.getReportsPageData(currentUser.group_id);
@@ -23,8 +23,6 @@ export default async function ReportsPage() {
   return (
     <Suspense fallback={<PageLoader message="Caricamento report..." />}>
       <ReportsContent
-        currentUser={currentUser}
-        groupUsers={groupUsers}
         accounts={accounts}
         transactions={transactions}
         categories={categories}

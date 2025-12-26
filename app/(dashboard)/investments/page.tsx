@@ -9,7 +9,7 @@ import InvestmentsContent from './investments-content';
 import { PageLoader } from '@/src/components/shared';
 
 export default async function InvestmentsPage() {
-  const { currentUser, groupUsers } = await getDashboardData();
+  const { currentUser } = await getDashboardData();
   const [accountsResult, categoriesResult] = await Promise.all([
     AccountService.getAccountsByUser(currentUser.id),
     CategoryService.getAllCategories(),
@@ -21,8 +21,6 @@ export default async function InvestmentsPage() {
   return (
     <Suspense fallback={<PageLoader message="Caricamento investimenti..." />}>
       <InvestmentsContent
-        currentUser={currentUser}
-        groupUsers={groupUsers}
         accounts={accounts}
         categories={categories}
       />

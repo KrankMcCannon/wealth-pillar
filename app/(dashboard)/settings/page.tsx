@@ -9,7 +9,7 @@ import SettingsContent from "./settings-content";
 import { PageLoader } from "@/src/components/shared";
 
 export default async function SettingsPage() {
-  const { currentUser, groupUsers } = await getDashboardData();
+  const { currentUser } = await getDashboardData();
 
   // Fetch accounts, transactions, and categories
   const [accountsResult, transactionsResult, categoriesResult] = await Promise.all([
@@ -25,8 +25,6 @@ export default async function SettingsPage() {
   return (
     <Suspense fallback={<PageLoader message="Caricamento impostazioni..." />}>
       <SettingsContent
-        currentUser={currentUser}
-        groupUsers={groupUsers}
         accounts={accounts}
         transactions={transactions}
         categories={categories}

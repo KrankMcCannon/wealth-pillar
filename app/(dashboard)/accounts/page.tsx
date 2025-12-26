@@ -13,7 +13,7 @@ interface AccountsPageProps {
 }
 
 export default async function AccountsPage(props: AccountsPageProps) {
-  const { currentUser, groupUsers } = await getDashboardData();
+  const { currentUser } = await getDashboardData();
 
   // Await searchParams for Next.js 15
   const searchParams = await props.searchParams;
@@ -38,8 +38,6 @@ export default async function AccountsPage(props: AccountsPageProps) {
   return (
     <Suspense fallback={<AccountHeaderSkeleton />}>
       <AccountsContent
-        currentUser={currentUser}
-        groupUsers={groupUsers}
         accounts={accounts}
         accountBalances={accountBalances}
         initialUserId={filterUserId}

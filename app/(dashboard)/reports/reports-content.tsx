@@ -3,31 +3,35 @@
 import { useMemo } from "react";
 import { BottomNavigation, PageContainer, Header } from "@/components/layout";
 import { useUserFilter, usePermissions, useFilteredAccounts } from "@/hooks";
-import { useModalState } from "@/lib/navigation/modal-params";
 import UserSelector from "@/src/components/shared/user-selector";
 import { BudgetPeriodsSection, reportsStyles, ReportsOverviewCard, AnnualCategorySection } from "@/features/reports";
-import type { DashboardDataProps } from "@/lib/auth/get-dashboard-data";
 import type { Transaction, Category, BudgetPeriod } from "@/lib/types";
 import { CategoryService } from "@/lib/services";
 import { ReportMetricsService } from "@/lib/services/report-metrics.service";
 import type { Account } from "@/lib/types";
+import { useCurrentUser, useGroupUsers } from "@/stores/reference-data-store";
 
-interface ReportsContentProps extends DashboardDataProps {
+interface ReportsContentProps {
   accounts: Account[];
   transactions: Transaction[];
   categories: Category[];
 }
 
 export default function ReportsContent({
-  currentUser,
-  groupUsers,
   accounts,
   transactions,
   categories,
 }: ReportsContentProps) {
+  // Read from stores instead of props
+  const currentUser = useCurrentUser();
+  const groupUsers = useGroupUsers();
+
+  // Early return if store not initialized
+  if (!currentUser) {
+    return null;
+  }
   // User filtering state management using shared hook
   const { selectedGroupFilter, setSelectedGroupFilter } = useUserFilter();
-  const { openModal } = useModalState();
 
   // Permission checks
   const { isMember } = usePermissions({

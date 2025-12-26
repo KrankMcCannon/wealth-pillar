@@ -34,20 +34,17 @@ import { BudgetPeriodManager, BudgetSection } from "@/features/budgets";
 import { RecurringSeriesSection } from "@/features/recurring";
 import { AccountService } from "@/lib/services";
 import { useModalState } from "@/lib/navigation/modal-params";
-import type { User, Account, Transaction, Budget, Category } from "@/lib/types";
+import type { Account, Transaction, Budget } from "@/lib/types";
+import { useCurrentUser, useGroupUsers, useAccounts } from "@/stores/reference-data-store";
 
 /**
  * Dashboard Content Props
  */
 interface DashboardContentProps {
-  currentUser: User;
-  groupUsers: User[];
-  accounts: Account[];
   accountBalances: Record<string, number>;
   transactions: Transaction[];
   budgets: Budget[];
   recurringSeries: RecurringTransactionSeries[];
-  categories: Category[];
 }
 
 /**
@@ -57,15 +54,20 @@ interface DashboardContentProps {
  * Receives data from Server Component parent
  */
 export default function DashboardContent({
-  currentUser,
-  groupUsers,
-  accounts,
   accountBalances,
   transactions,
   budgets,
   recurringSeries,
-  categories,
 }: DashboardContentProps) {
+  // Read from stores instead of props
+  const currentUser = useCurrentUser();
+  const groupUsers = useGroupUsers();
+  const accounts = useAccounts();
+
+  // Early return if store not initialized
+  if (!currentUser) {
+    return null;
+  }
   const router = useRouter();
 
   // User filtering state management using shared hook

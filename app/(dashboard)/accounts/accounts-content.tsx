@@ -14,12 +14,11 @@ import { deleteAccountAction } from "@/features/accounts/actions/account-actions
 import { useFilteredAccounts, usePermissions, useUserFilter } from "@/hooks";
 import UserSelector from "@/components/shared/user-selector";
 import { UserSelectorSkeleton } from "@/features/dashboard";
-import type { DashboardDataProps } from "@/lib/auth/get-dashboard-data";
 import type { Account, Category } from "@/lib/types";
-import { Plus } from "lucide-react";
 import { useModalState } from "@/lib/navigation/modal-params";
+import { useCurrentUser, useGroupUsers } from "@/stores/reference-data-store";
 
-interface AccountsContentProps extends DashboardDataProps {
+interface AccountsContentProps {
   accounts: Account[];
   accountBalances: Record<string, number>;
   initialUserId?: string;
@@ -31,11 +30,17 @@ interface AccountsContentProps extends DashboardDataProps {
  * Receives user data, accounts, and balances from Server Component parent
  */
 export default function AccountsContent({
-  currentUser,
-  groupUsers,
   accounts,
   accountBalances,
 }: AccountsContentProps) {
+  // Read from stores instead of props
+  const currentUser = useCurrentUser();
+  const groupUsers = useGroupUsers();
+
+  // Early return if store not initialized
+  if (!currentUser) {
+    return null;
+  }
   // User filtering state management (global context)
   const { selectedGroupFilter, setSelectedGroupFilter, selectedUserId } = useUserFilter();
   const { isMember } = usePermissions({ currentUser, selectedUserId });

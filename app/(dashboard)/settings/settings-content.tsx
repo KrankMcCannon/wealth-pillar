@@ -27,20 +27,27 @@ import { useRouter } from "next/navigation";
 import { useClerk } from "@clerk/nextjs";
 import { useState } from "react";
 import { Button, Card } from "@/components/ui";
-import type { User as UserType, Account, Transaction, Category } from "@/lib/types";
+import type { Account, Transaction, Category } from "@/lib/types";
+import { useCurrentUser, useGroupUsers } from "@/stores/reference-data-store";
 
 /**
  * Settings Content Props
  */
 interface SettingsContentProps {
-  currentUser: UserType;
-  groupUsers: UserType[];
   accounts: Account[];
   transactions: Transaction[];
   categories: Category[];
 }
 
-export default function SettingsContent({ currentUser, groupUsers, accounts, transactions, categories }: SettingsContentProps) {
+export default function SettingsContent({ accounts, transactions }: SettingsContentProps) {
+  // Read from stores instead of props
+  const currentUser = useCurrentUser();
+  const groupUsers = useGroupUsers();
+
+  // Early return if store not initialized
+  if (!currentUser) {
+    return null;
+  }
   const router = useRouter();
   const { signOut } = useClerk();
   const [isSigningOut, setIsSigningOut] = useState(false);

@@ -9,7 +9,7 @@
  * Data is passed from Server Component for optimal performance.
  */
 
-import { useState, useMemo, useEffect, Suspense, useCallback } from "react";
+import { useState, useMemo, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { BottomNavigation, PageContainer, Header } from "@/components/layout";
 import { useDeleteConfirmation, useIdNameMap, usePermissions, useFilteredData, useBudgetsByUser, useUserFilter } from "@/hooks";
@@ -18,7 +18,6 @@ import UserSelector from "@/components/shared/user-selector";
 import { UserSelectorSkeleton } from "@/features/dashboard";
 import { ConfirmationDialog } from "@/components/shared/confirmation-dialog";
 import { EmptyState } from "@/components/shared";
-import { BudgetPeriodManager } from "@/features/budgets";
 import {
   BudgetSelector,
   BudgetDisplayCard,
@@ -36,7 +35,7 @@ import {
 } from "@/features/transactions";
 import { deleteBudgetAction } from "@/features/budgets/actions/budget-actions";
 import { budgetStyles } from "@/features/budgets/theme/budget-styles";
-import { ShoppingCart, BarChart3 } from "lucide-react";
+import { ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui";
 import {
   toDateTime,
@@ -47,14 +46,14 @@ import {
   diffInDays,
 } from "@/lib/utils/date-utils";
 import { BudgetService } from "@/lib/services";
-import type { DashboardDataProps } from "@/lib/auth/get-dashboard-data";
-import type { Category, Budget, Transaction, Account, BudgetPeriod } from "@/lib/types";
+import type { Category, Budget, Transaction, Account } from "@/lib/types";
 import type { ChartDataPoint } from "@/features/budgets/components/BudgetChart";
+import { useCurrentUser, useGroupUsers } from "@/stores/reference-data-store";
 
 /**
  * Budgets Content Props
  */
-interface BudgetsContentProps extends DashboardDataProps {
+interface BudgetsContentProps {
   categories: Category[];
   budgets: Budget[];
   transactions: Transaction[];
@@ -68,13 +67,19 @@ interface BudgetsContentProps extends DashboardDataProps {
  * Receives user data from Server Component parent.
  */
 export default function BudgetsContent({
-  currentUser,
-  groupUsers,
   categories,
   budgets,
   transactions,
   accounts,
 }: BudgetsContentProps) {
+  // Read from stores instead of props
+  const currentUser = useCurrentUser();
+  const groupUsers = useGroupUsers();
+
+  // Early return if store not initialized
+  if (!currentUser) {
+    return null;
+  }
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -82,7 +87,7 @@ export default function BudgetsContent({
   const { selectedGroupFilter, setSelectedGroupFilter, selectedUserId } = useUserFilter();
 
   // Permission checks
-  const { isAdmin, isMember, effectiveUserId } = usePermissions({
+  const { isAdmin } = usePermissions({
     currentUser,
     selectedUserId,
   });
@@ -120,9 +125,6 @@ export default function BudgetsContent({
 
   // Modal state management (URL-based)
   const { openModal } = useModalState();
-
-  // Period manager selected user state (for admins)
-  const [periodManagerUserId, setPeriodManagerUserId] = useState<string>(currentUser.id);
 
   // Delete confirmation state using hook
   const deleteConfirm = useDeleteConfirmation<Budget>();

@@ -11,10 +11,8 @@ import { Suspense, useState, useMemo, useEffect, useCallback, useRef } from "rea
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   useUserFilter,
-  useFormModal,
   useDeleteConfirmation,
   useIdNameMap,
-  usePermissions,
   useFilteredData,
 } from "@/hooks";
 import { BottomNavigation, PageContainer, Header } from "@/src/components/layout";
@@ -34,22 +32,19 @@ import {
 import { transactionStyles } from "@/src/features/transactions/theme/transaction-styles";
 import { UserSelectorSkeleton } from "@/src/features/dashboard";
 import { RecurringSeriesSkeleton } from "@/src/features/transactions/components/transaction-skeletons";
-import type { User, Transaction, Category, Account, Budget } from "@/lib/types";
+import type { Transaction, Budget } from "@/lib/types";
 import { TransactionService } from "@/lib/services";
-import { insertTransactionSorted, updateTransactionSorted, removeTransaction } from "@/lib/utils/transaction-sorting";
+import { insertTransactionSorted, removeTransaction } from "@/lib/utils/transaction-sorting";
 import { deleteTransactionAction } from "@/features/transactions/actions/transaction-actions";
 import { deleteRecurringSeriesAction } from "@/features/recurring/actions/recurring-actions";
 import { useModalState } from "@/lib/navigation/modal-params";
+import { useCurrentUser, useGroupUsers, useAccounts, useCategories } from "@/stores/reference-data-store";
 
 /**
  * Transactions Content Props
  */
 interface TransactionsContentProps {
-  currentUser: User;
-  groupUsers: User[];
   transactions: Transaction[];
-  categories: Category[];
-  accounts: Account[];
   recurringSeries: RecurringTransactionSeries[];
   budgets: Budget[];
 }
@@ -59,14 +54,20 @@ interface TransactionsContentProps {
  * Handles interactive transactions UI with state management
  */
 export default function TransactionsContent({
-  currentUser,
-  groupUsers,
   transactions,
-  categories,
-  accounts,
   recurringSeries,
   budgets,
 }: TransactionsContentProps) {
+  // Read from stores instead of props
+  const currentUser = useCurrentUser();
+  const groupUsers = useGroupUsers();
+  const accounts = useAccounts();
+  const categories = useCategories();
+
+  // Early return if store not initialized
+  if (!currentUser) {
+    return null;
+  }
   const router = useRouter();
   const searchParams = useSearchParams();
 

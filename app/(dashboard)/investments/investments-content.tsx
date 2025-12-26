@@ -7,15 +7,23 @@ import { useModalState } from "@/lib/navigation/modal-params";
 import UserSelector from "@/src/components/shared/user-selector";
 import { EnhancedHolding } from "@/src/lib";
 import { PieChart } from "lucide-react";
-import type { DashboardDataProps } from "@/lib/auth/get-dashboard-data";
 import type { Account, Category } from "@/lib/types";
+import { useCurrentUser, useGroupUsers } from "@/stores/reference-data-store";
 
-interface InvestmentsContentProps extends DashboardDataProps {
+interface InvestmentsContentProps {
   accounts: Account[];
   categories: Category[];
 }
 
-export default function InvestmentsContent({ currentUser, groupUsers, accounts, categories }: InvestmentsContentProps) {
+export default function InvestmentsContent({ accounts, categories }: InvestmentsContentProps) {
+  // Read from stores instead of props
+  const currentUser = useCurrentUser();
+  const groupUsers = useGroupUsers();
+
+  // Early return if store not initialized
+  if (!currentUser) {
+    return null;
+  }
   const { selectedGroupFilter, setSelectedGroupFilter } = useUserFilter();
   const { openModal } = useModalState();
 
