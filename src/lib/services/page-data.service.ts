@@ -1,10 +1,19 @@
 import { AccountService } from './account.service';
 import { TransactionService } from './transaction.service';
 import { BudgetService } from './budget.service';
+import { BudgetPeriodService } from './budget-period.service';
 import { CategoryService } from './category.service';
 import { RecurringService } from './recurring.service';
+import { UserService } from './user.service';
 import type { ServiceResult } from './user.service';
-import type { Account, Transaction, Budget, Category, RecurringTransactionSeries } from '@/lib/types';
+import type {
+  Account,
+  Transaction,
+  Budget,
+  BudgetPeriod,
+  Category,
+  RecurringTransactionSeries,
+} from '@/lib/types';
 
 /**
  * Page Data Service
@@ -26,6 +35,7 @@ export interface DashboardPageData {
   accounts: Account[];
   transactions: Transaction[];
   budgets: Budget[];
+  budgetPeriods: Map<string, BudgetPeriod | null>; // userId -> active period
   recurringSeries: RecurringTransactionSeries[];
   categories: Category[];
   accountBalances: Record<string, number>;
@@ -50,6 +60,7 @@ export interface BudgetsPageData {
   transactions: Transaction[];
   accounts: Account[];
   categories: Category[];
+  budgetPeriods: Map<string, BudgetPeriod | null>; // userId -> active period
 }
 
 /**
@@ -79,24 +90,43 @@ export class PageDataService {
   /**
    * Fetch all data for dashboard page
    *
-   * Fetches: accounts, transactions, budgets, recurring series, categories
+   * Fetches: accounts, transactions, budgets, budget periods, recurring series, categories
    * Also calculates account balances from transactions.
+   * Fetches active budget period for each user in parallel.
    *
    * @param groupId - Group ID to fetch data for
-   * @returns Complete dashboard data with account balances
+   * @returns Complete dashboard data with account balances and budget periods
    *
    * @example
    * ```typescript
    * const data = await PageDataService.getDashboardData(currentUser.group_id);
    * ```
    */
-  static async getDashboardData(groupId: string): Promise<ServiceResult<DashboardPageData>> {
-    const [accountsResult, transactionsResult, budgetsResult, recurringResult, categoriesResult] = await Promise.all([
+  static async getDashboardData(
+    groupId: string
+  ): Promise<ServiceResult<DashboardPageData>> {
+    // First, get group users to fetch their budget periods
+    const { data: groupUsers } = await UserService.getUsersByGroup(groupId);
+    const userIds = groupUsers?.map((u) => u.id) || [];
+
+    // Fetch all data in parallel
+    const [
+      accountsResult,
+      transactionsResult,
+      budgetsResult,
+      recurringResult,
+      categoriesResult,
+      ...periodResults
+    ] = await Promise.all([
       AccountService.getAccountsByGroup(groupId),
       TransactionService.getTransactionsByGroup(groupId),
       BudgetService.getBudgetsByGroup(groupId),
       RecurringService.getSeriesByGroup(groupId),
       CategoryService.getAllCategories(),
+      // Fetch active budget period for each user
+      ...userIds.map((userId) =>
+        BudgetPeriodService.getActivePeriod(userId)
+      ),
     ]);
 
     // Check for errors
@@ -122,15 +152,25 @@ export class PageDataService {
     const recurringSeries = recurringResult.data || [];
     const categories = categoriesResult.data || [];
 
+    // Build budget periods map (userId -> active period)
+    const budgetPeriods = new Map<string, BudgetPeriod | null>();
+    userIds.forEach((userId, index) => {
+      budgetPeriods.set(userId, periodResults[index].data);
+    });
+
     // Calculate account balances
-    const accountIds = accounts.map(a => a.id);
-    const accountBalances = AccountService.calculateAccountBalances(accountIds, transactions);
+    const accountIds = accounts.map((a) => a.id);
+    const accountBalances = AccountService.calculateAccountBalances(
+      accountIds,
+      transactions
+    );
 
     return {
       data: {
         accounts,
         transactions,
         budgets,
+        budgetPeriods,
         recurringSeries,
         categories,
         accountBalances,
@@ -188,17 +228,35 @@ export class PageDataService {
   /**
    * Fetch data for budgets page
    *
-   * Fetches: budgets, transactions, accounts, categories (parallel)
+   * Fetches: budgets, transactions, accounts, categories, budget periods (parallel)
+   * Fetches active budget period for each user in the group.
    *
    * @param groupId - Group ID to fetch data for
-   * @returns Budgets page data
+   * @returns Budgets page data with active budget periods
    */
-  static async getBudgetsPageData(groupId: string): Promise<ServiceResult<BudgetsPageData>> {
-    const [budgetsResult, transactionsResult, accountsResult, categoriesResult] = await Promise.all([
+  static async getBudgetsPageData(
+    groupId: string
+  ): Promise<ServiceResult<BudgetsPageData>> {
+    // First, get group users to fetch their budget periods
+    const { data: groupUsers } = await UserService.getUsersByGroup(groupId);
+    const userIds = groupUsers?.map((u) => u.id) || [];
+
+    // Fetch all data in parallel
+    const [
+      budgetsResult,
+      transactionsResult,
+      accountsResult,
+      categoriesResult,
+      ...periodResults
+    ] = await Promise.all([
       BudgetService.getBudgetsByGroup(groupId),
       TransactionService.getTransactionsByGroup(groupId),
       AccountService.getAccountsByGroup(groupId),
       CategoryService.getAllCategories(),
+      // Fetch active budget period for each user
+      ...userIds.map((userId) =>
+        BudgetPeriodService.getActivePeriod(userId)
+      ),
     ]);
 
     // Check for errors
@@ -215,12 +273,19 @@ export class PageDataService {
       return { data: null, error: categoriesResult.error };
     }
 
+    // Build budget periods map (userId -> active period)
+    const budgetPeriods = new Map<string, BudgetPeriod | null>();
+    userIds.forEach((userId, index) => {
+      budgetPeriods.set(userId, periodResults[index].data);
+    });
+
     return {
       data: {
         budgets: budgetsResult.data || [],
         transactions: transactionsResult.data || [],
         accounts: accountsResult.data || [],
         categories: categoriesResult.data || [],
+        budgetPeriods,
       },
       error: null,
     };

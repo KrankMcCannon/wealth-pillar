@@ -63,7 +63,6 @@ export interface User {
   budget_start_date: number;
   group_id: string;
   role: RoleType;
-  budget_periods: BudgetPeriod[];
   clerk_id: string | null; // Clerk user ID for authentication integration
   default_account_id?: string; // Optional default bank account for prefilling forms
   created_at: string | Date;
@@ -148,6 +147,8 @@ export interface Budget {
   categories: string[];
   user_id: string;
   group_id: string;
+  current_balance?: number | null;
+  balance_updated_at?: string | Date | null;
   created_at: string | Date;
   updated_at: string | Date;
 }

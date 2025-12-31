@@ -919,7 +919,7 @@ export class BudgetService {
   /**
    * Format period date for display
    * Returns formatted date string
-   
+
    * @param date - Date to format
    * @returns Formatted date string
    */
@@ -931,5 +931,122 @@ export class BudgetService {
     const month = dt.toFormat("LLL", { locale: "it" });
     const year = dt.year;
     return `${day} ${month} ${year}`;
-  };
+  }
+
+  /**
+   * Update cached budget balance for a budget
+   * Recalculates balance from transactions and caches it in the database
+   * Called when transactions change or balance becomes stale
+   *
+   * @param budgetId - Budget ID to update
+   * @param transactions - All transactions to calculate from
+   * @param periodStart - Active period start date
+   * @param periodEnd - Active period end date (null for open period)
+   * @returns Updated budget with cached balance
+   *
+   * @example
+   * const { data: updatedBudget } = await BudgetService.updateBudgetBalance(
+   *   budgetId,
+   *   transactions,
+   *   periodStart,
+   *   periodEnd
+   * );
+   */
+  static async updateBudgetBalance(
+    budgetId: string,
+    transactions: Transaction[],
+    periodStart: DateTime | null,
+    periodEnd: DateTime | null
+  ): Promise<ServiceResult<Budget>> {
+    try {
+      const { data: budget } = await this.getBudgetById(budgetId);
+      if (!budget) {
+        return { data: null, error: 'Budget not found' };
+      }
+
+      // Calculate fresh balance
+      const budgetTransactions = this.filterTransactionsForBudget(
+        transactions,
+        budget,
+        periodStart,
+        periodEnd
+      );
+
+      const progress = this.calculateBudgetProgress(budget, budgetTransactions);
+
+      // Update budget with cached balance
+      const { data: updated, error } = await supabaseServer
+        .from('budgets')
+        .update({
+          current_balance: progress.remaining,
+          balance_updated_at: nowISO(),
+          updated_at: nowISO(),
+        })
+        .eq('id', budgetId)
+        .select()
+        .single();
+
+      if (error) throw new Error(error.message);
+
+      // Invalidate caches
+      await revalidateCacheTags([
+        CACHE_TAGS.BUDGETS,
+        CACHE_TAGS.BUDGET(budgetId),
+        `user:${budget.user_id}:budgets`,
+      ]);
+
+      return { data: updated as Budget, error: null };
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
+      return { data: null, error: errorMessage };
+    }
+  }
+
+  /**
+   * Get budget balance with smart caching
+   * Returns cached value if fresh (<5 min), otherwise recalculates
+   *
+   * @param budget - Budget to get balance for
+   * @param transactions - All transactions
+   * @param periodStart - Active period start date
+   * @param periodEnd - Active period end date
+   * @returns Balance (remaining amount)
+   *
+   * @example
+   * const balance = await BudgetService.getBudgetBalance(
+   *   budget,
+   *   transactions,
+   *   periodStart,
+   *   periodEnd
+   * );
+   */
+  static async getBudgetBalance(
+    budget: Budget,
+    transactions: Transaction[],
+    periodStart: DateTime | null,
+    periodEnd: DateTime | null
+  ): Promise<number> {
+    // Check if cached balance is fresh (< 5 minutes)
+    const isFresh =
+      budget.balance_updated_at &&
+      budget.current_balance !== null &&
+      budget.current_balance !== undefined &&
+      DateTime.now().diff(toDateTime(budget.balance_updated_at)!, 'minutes')
+        .minutes < 5;
+
+    if (isFresh) {
+      return budget.current_balance!;
+    }
+
+    // Recalculate if stale or not cached
+    const { data: updated } = await this.updateBudgetBalance(
+      budget.id,
+      transactions,
+      periodStart,
+      periodEnd
+    );
+
+    return updated?.current_balance ?? 0;
+  }
 }

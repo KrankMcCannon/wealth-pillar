@@ -46,10 +46,10 @@ import {
   diffInDays,
 } from "@/lib/utils/date-utils";
 import { BudgetService } from "@/lib/services";
-import type { Category, Budget, Transaction, Account } from "@/lib/types";
+import type { Category, Budget, Transaction, Account, BudgetPeriod } from "@/lib/types";
 import type { ChartDataPoint } from "@/features/budgets/components/BudgetChart";
 import { useCurrentUser, useGroupUsers } from "@/stores/reference-data-store";
-import { usePageDataStore } from "@/stores/page-data-store";
+import { usePageDataStore, useBudgetPeriod } from "@/stores/page-data-store";
 
 /**
  * Budgets Content Props
@@ -59,6 +59,7 @@ interface BudgetsContentProps {
   budgets: Budget[];
   transactions: Transaction[];
   accounts: Account[];
+  budgetPeriods: Map<string, BudgetPeriod | null>;
 }
 
 /**
@@ -72,6 +73,7 @@ export default function BudgetsContent({
   budgets,
   transactions,
   accounts,
+  budgetPeriods,
 }: BudgetsContentProps) {
   // Read from stores instead of props
   const currentUser = useCurrentUser();
@@ -87,6 +89,7 @@ export default function BudgetsContent({
   // Page data store - for optimistic updates
   const storeBudgets = usePageDataStore((state) => state.budgets);
   const setBudgets = usePageDataStore((state) => state.setBudgets);
+  const setBudgetPeriods = usePageDataStore((state) => state.setBudgetPeriods);
   const removeBudget = usePageDataStore((state) => state.removeBudget);
   const addBudget = usePageDataStore((state) => state.addBudget);
   const updateBudget = usePageDataStore((state) => state.updateBudget);
@@ -95,6 +98,10 @@ export default function BudgetsContent({
   useEffect(() => {
     setBudgets(budgets);
   }, [budgets, setBudgets]);
+
+  useEffect(() => {
+    setBudgetPeriods(budgetPeriods);
+  }, [budgetPeriods, setBudgetPeriods]);
 
   // User filtering state management (global context)
   const { selectedUserId } = useUserFilter();

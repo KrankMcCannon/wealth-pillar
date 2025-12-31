@@ -179,3 +179,32 @@ export const recurringCacheKeys = {
    */
   all: () => ['recurring_series'] as const,
 } as const;
+
+/**
+ * Budget period cache keys
+ */
+export const budgetPeriodCacheKeys = {
+  /**
+   * Cache key for budget period by ID
+   * @param periodId - Period ID
+   */
+  byId: (periodId: string) => ['budget_period', 'id', periodId] as const,
+
+  /**
+   * Cache key for budget periods by user
+   * @param userId - User ID
+   */
+  byUser: (userId: string) => ['budget_periods', 'user', userId] as const,
+
+  /**
+   * Cache key for active budget period by user
+   * @param userId - User ID
+   */
+  activeByUser: (userId: string) =>
+    ['budget_period', 'user', userId, 'active'] as const,
+
+  /**
+   * Cache key for all budget periods
+   */
+  all: () => ['budget_periods'] as const,
+} as const;

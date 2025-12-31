@@ -266,12 +266,20 @@ export class UserService {
    * Start a new budget period for a user
    * Creates a new active period and deactivates any existing active periods
    *
+   * @deprecated Use BudgetPeriodService.createPeriod() instead
+   * This method updates the old users.budget_periods JSONB field
+   * and will be removed after migration to budget_periods table
+   *
    * @param userId - User ID
    * @param startDate - Period start date (ISO string or Date)
    * @returns Updated user with new period or error
    *
    * @example
+   * // OLD (deprecated):
    * const { data: user, error } = await UserService.startBudgetPeriod(userId, new Date().toISOString());
+   *
+   * // NEW (recommended):
+   * const { data: period, error } = await BudgetPeriodService.createPeriod(userId, '2024-12-29');
    */
   static async startBudgetPeriod(
     userId: string,
@@ -370,6 +378,10 @@ export class UserService {
   /**
    * Close the active budget period for a user
    * Sets end_date, calculates totals from transactions, and marks as inactive
+   *
+   * @deprecated Use BudgetPeriodService.closePeriod() instead
+   * This method updates the old users.budget_periods JSONB field
+   * and will be removed after migration to budget_periods table
    *
    * @param userId - User ID
    * @param endDate - Period end date (ISO string or Date)

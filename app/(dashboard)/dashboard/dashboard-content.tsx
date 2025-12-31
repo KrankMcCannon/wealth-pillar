@@ -34,8 +34,9 @@ import { BudgetPeriodManager, BudgetSection } from "@/features/budgets";
 import { RecurringSeriesSection } from "@/features/recurring";
 import { AccountService } from "@/lib/services";
 import { useModalState } from "@/lib/navigation/url-state";
-import type { Account, Transaction, Budget } from "@/lib/types";
+import type { Account, Transaction, Budget, BudgetPeriod } from "@/lib/types";
 import { useCurrentUser, useGroupUsers, useAccounts } from "@/stores/reference-data-store";
+import { usePageDataStore, useBudgetPeriod } from "@/stores/page-data-store";
 
 /**
  * Dashboard Content Props
@@ -44,6 +45,7 @@ interface DashboardContentProps {
   accountBalances: Record<string, number>;
   transactions: Transaction[];
   budgets: Budget[];
+  budgetPeriods: Map<string, BudgetPeriod | null>;
   recurringSeries: RecurringTransactionSeries[];
 }
 
@@ -57,6 +59,7 @@ export default function DashboardContent({
   accountBalances,
   transactions,
   budgets,
+  budgetPeriods,
   recurringSeries,
 }: DashboardContentProps) {
   // 1. All hooks must be called at the top of the component, unconditionally
@@ -65,6 +68,7 @@ export default function DashboardContent({
   const accounts = useAccounts();
   const router = useRouter();
   const { selectedGroupFilter, selectedUserId } = useUserFilter();
+  const setBudgetPeriods = usePageDataStore((state) => state.setBudgetPeriods);
 
   // Permission checks - handles null currentUser internally
   const { effectiveUserId, isMember } = usePermissions({
@@ -159,6 +163,11 @@ export default function DashboardContent({
   );
 
   // Effects
+  // Initialize store with budget periods from server
+  useEffect(() => {
+    setBudgetPeriods(budgetPeriods);
+  }, [budgetPeriods, setBudgetPeriods]);
+
   useEffect(() => {
     if (isMember && currentUser) {
       setPeriodManagerUserId(currentUser.id);
@@ -169,19 +178,21 @@ export default function DashboardContent({
     }
   }, [isMember, currentUser, selectedUserId]);
 
+  // Get active budget period from store
+  const activePeriod = useBudgetPeriod(periodManagerUserId || currentUser?.id || '');
+
   const periodManagerData = useMemo(() => {
     const targetUser = groupUsers.find((u) => u.id === periodManagerUserId) || currentUser;
     if (!targetUser) return { targetUser: null, budgets: [], period: null };
 
     const targetUserBudgets = budgets.filter((b) => b.user_id === targetUser.id && b.amount > 0);
-    const targetUserPeriod = targetUser.budget_periods?.find((p) => p.is_active && !p.end_date) || null;
 
     return {
       targetUser,
       budgets: targetUserBudgets,
-      period: targetUserPeriod,
+      period: activePeriod,
     };
-  }, [periodManagerUserId, groupUsers, currentUser, budgets]);
+  }, [periodManagerUserId, groupUsers, currentUser, budgets, activePeriod]);
 
   // Handlers
   const handleAccountClick = () => router.push("/accounts");

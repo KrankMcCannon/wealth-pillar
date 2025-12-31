@@ -42,34 +42,16 @@ export default function ReportsContent({
   // Force members to see only their own data
   const activeGroupFilter = isMember ? currentUser.id : selectedGroupFilter;
 
-  // Aggregate budget periods from all users or selected user
-  // Members only see their own budget periods
+  // TODO: Budget periods display in reports currently disabled
+  // The refactored architecture stores only active periods in the page-data-store.
+  // To show historical budget periods in reports, we need to:
+  // 1. Add a method in BudgetPeriodService to fetch all periods for a user/group
+  // 2. Fetch all periods in the reports page server component
+  // 3. Pass them as props and store them separately from active periods
+  // For now, returning empty array to prevent errors
   const allBudgetPeriods = useMemo<BudgetPeriod[]>(() => {
-    if (isMember) {
-      // Members see only their own budget periods
-      return (currentUser.budget_periods || []).map((period) => ({
-        ...period,
-        user_id: currentUser.id,
-      }));
-    }
-
-    // Admin logic
-    if (activeGroupFilter === "all") {
-      // Ensure each period has correct user_id when aggregating from all users
-      return groupUsers.flatMap((user) =>
-        (user.budget_periods || []).map((period) => ({
-          ...period,
-          user_id: user.id, // Ensure user_id matches the owning user
-        })),
-      );
-    }
-    const selectedUser = groupUsers.find((u) => u.id === activeGroupFilter);
-    if (!selectedUser) return [];
-    return (selectedUser.budget_periods || []).map((period) => ({
-      ...period,
-      user_id: selectedUser.id, // Ensure user_id is set correctly
-    }));
-  }, [activeGroupFilter, groupUsers, isMember, currentUser]);
+    return [];
+  }, []);
 
   // Get user account IDs for earned/spent calculation
   // Using centralized account filtering hook

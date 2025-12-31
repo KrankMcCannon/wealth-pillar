@@ -18,7 +18,7 @@ export default async function BudgetsPage() {
     console.error('Failed to fetch budgets page data:', error);
   }
 
-  const { budgets = [], transactions = [], accounts = [], categories = [] } = data || {};
+  const { budgets = [], transactions = [], accounts = [], categories = [], budgetPeriods = new Map() } = data || {};
 
   return (
     <Suspense fallback={<BudgetSelectorSkeleton />}>
@@ -27,6 +27,7 @@ export default async function BudgetsPage() {
         budgets={budgets || []}
         transactions={transactions || []}
         accounts={accounts || []}
+        budgetPeriods={budgetPeriods}
       />
     </Suspense>
   );

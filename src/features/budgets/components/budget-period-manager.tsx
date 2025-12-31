@@ -3,13 +3,14 @@
 import { useState, useEffect, useMemo } from "react";
 import { Clock, History, TrendingUp, TrendingDown, Activity, Users, Calendar } from "lucide-react";
 import { BudgetPeriod, Transaction, Budget } from "@/lib/types";
-import { startPeriodAction, closePeriodAction } from "@/features/budgets/actions/period-actions";
+import { startPeriodAction, closePeriodAction } from "@/features/budgets/actions/budget-period-actions";
 import { FormActions } from "@/src/components/form";
 import { DateField, UserField } from "@/src/components/ui/fields";
 import { Alert, AlertDescription, Badge, ModalContent, ModalSection, ModalWrapper } from "@/src/components/ui";
 import { usePermissions } from "@/hooks";
 import { toDateTime } from "@/lib/utils/date-utils";
 import { useCurrentUser, useGroupUsers } from "@/stores/reference-data-store";
+import { useBudgetPeriod, usePageDataStore } from "@/stores/page-data-store";
 
 interface BudgetPeriodManagerProps {
   selectedUserId?: string; // Initial user selection
@@ -140,17 +141,8 @@ export function BudgetPeriodManager({
     return { totalSpent, totalSaved, totalBudget, categorySpending };
   }, [isActivePeriod, currentPeriod, selectedDate, transactions, targetUser.id, userBudgets]);
 
-  // Get all previous periods (closed periods) for target user
-  const previousPeriods = useMemo(() => {
-    const allPeriods = (targetUser.budget_periods as BudgetPeriod[]) || [];
-    return allPeriods
-      .filter((p) => !p.is_active && p.end_date)
-      .sort((a, b) => {
-        const dateA = toDateTime(b.start_date)?.toMillis() || 0;
-        const dateB = toDateTime(a.start_date)?.toMillis() || 0;
-        return dateA - dateB;
-      });
-  }, [targetUser.budget_periods]);
+  // NOTE: Previous periods display removed - we only store active periods in the store
+  // To display historical periods, we'd need to fetch all periods for the user
 
   // Format date for display
   const formatDate = (dateString: string | Date) => {
@@ -167,8 +159,8 @@ export function BudgetPeriodManager({
     }).format(amount);
   };
 
-  // Count total periods for target user
-  const totalPeriods = ((targetUser.budget_periods as BudgetPeriod[]) || []).length;
+  // Get store updater for optimistic UI
+  const updateBudgetPeriod = usePageDataStore((state) => state.updateBudgetPeriod);
 
   // Handle submit (start new period or close current period)
   const handleSubmit = async () => {
@@ -183,12 +175,22 @@ export function BudgetPeriodManager({
     try {
       let result;
 
-      if (isActivePeriod) {
-        // Close current period - pass transactions array for calculation
-        result = await closePeriodAction(targetUser.id, selectedDate, transactions);
+      if (isActivePeriod && currentPeriod) {
+        // Close current period using period ID
+        result = await closePeriodAction(currentPeriod.id, selectedDate);
+
+        // Optimistic UI update - mark period as closed
+        if (!result.error && result.data) {
+          updateBudgetPeriod(targetUser.id, result.data);
+        }
       } else {
         // Start new period
         result = await startPeriodAction(targetUser.id, selectedDate);
+
+        // Optimistic UI update - set new active period
+        if (!result.error && result.data) {
+          updateBudgetPeriod(targetUser.id, result.data);
+        }
       }
 
       if (result.error || !result.data) {
@@ -256,17 +258,11 @@ export function BudgetPeriodManager({
                 />
               ) : (
                 <div className="rounded-xl p-3 border border-primary/10 bg-card">
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-2">
-                      <div className="p-1.5 bg-primary/10 rounded-lg">
-                        <Users className="h-4 w-4 text-primary" />
-                      </div>
-                      <span className="text-sm font-bold text-primary">{targetUser.name}</span>
+                  <div className="flex items-center gap-2">
+                    <div className="p-1.5 bg-primary/10 rounded-lg">
+                      <Users className="h-4 w-4 text-primary" />
                     </div>
-                    <div className="flex items-center gap-1 text-xs text-primary/70 bg-primary/10 px-2 py-1 rounded-full">
-                      <History className="h-3 w-3 text-primary/70" />
-                      <span>{totalPeriods} periodi</span>
-                    </div>
+                    <span className="text-sm font-bold text-primary">{targetUser.name}</span>
                   </div>
                 </div>
               )}
@@ -346,53 +342,6 @@ export function BudgetPeriodManager({
                   </div>
                 )}
               </div>
-
-              {/* Previous Periods List */}
-              {previousPeriods.length > 0 && (
-                <div className="bg-card rounded-xl p-4 border border-primary/10 shadow-sm">
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className="p-1.5 bg-primary/10 rounded-lg">
-                      <History className="h-4 w-4 text-primary" />
-                    </div>
-                    <h3 className="text-base font-bold text-primary">Periodi Precedenti</h3>
-                  </div>
-
-                  <div className="space-y-2 max-h-64 overflow-y-auto">
-                    {previousPeriods.map((period) => (
-                      <div
-                        key={period.id}
-                        className="rounded-lg p-3 border border-primary/10 bg-primary/5 hover:bg-primary/10 transition-colors"
-                      >
-                        <div className="flex items-center justify-between gap-3 mb-2">
-                          <div className="flex items-center gap-2 flex-1 min-w-0">
-                            <Calendar className="h-3 w-3 text-primary shrink-0" />
-                            <span className="text-xs font-medium text-black truncate">
-                              {formatDate(period.start_date)} -{" "}
-                              {period.end_date ? formatDate(period.end_date) : "In corso"}
-                            </span>
-                          </div>
-                          <Badge variant="outline" className="bg-white text-xs text-primary shrink-0">
-                            Chiuso
-                          </Badge>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-2">
-                          <div className="text-center p-2 bg-destructive/10 rounded-md">
-                            <p className="text-xs font-bold text-destructive uppercase tracking-wide mb-0.5">Speso</p>
-                            <p className="text-sm font-bold text-destructive">
-                              {formatCurrency(period.total_spent || 0)}
-                            </p>
-                          </div>
-                          <div className="text-center p-2 bg-primary/10 rounded-md">
-                            <p className="text-xs font-bold text-primary uppercase tracking-wide mb-0.5">Risparmiato</p>
-                            <p className="text-sm font-bold text-primary">{formatCurrency(period.total_saved || 0)}</p>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
           </ModalSection>
         </ModalContent>

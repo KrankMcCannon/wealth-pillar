@@ -42,6 +42,13 @@ export function cached<T extends (...args: unknown[]) => Promise<unknown>>(
 // Re-export cache configuration for convenience
 export { CACHE_TAGS, CACHE_TTL, cacheOptions } from './config';
 export {
-  accountCacheKeys, budgetCacheKeys, categoryCacheKeys, groupCacheKeys, recurringCacheKeys, transactionCacheKeys, userCacheKeys
+  accountCacheKeys,
+  budgetCacheKeys,
+  budgetPeriodCacheKeys,
+  categoryCacheKeys,
+  groupCacheKeys,
+  recurringCacheKeys,
+  transactionCacheKeys,
+  userCacheKeys,
 } from './keys';
 

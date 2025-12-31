@@ -17,6 +17,7 @@
 // Export all services
 export { AccountService } from './account.service';
 export { BudgetService } from './budget.service';
+export { BudgetPeriodService } from './budget-period.service';
 export { CategoryService } from './category.service';
 export { GroupService } from './group.service';
 export { RecurringService } from './recurring.service';

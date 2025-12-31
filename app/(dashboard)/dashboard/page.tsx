@@ -22,6 +22,7 @@ export default async function DashboardPage() {
     accountBalances = {},
     transactions = [],
     budgets = [],
+    budgetPeriods = new Map(),
     recurringSeries = [],
   } = data || {};
 
@@ -31,6 +32,7 @@ export default async function DashboardPage() {
         accountBalances={accountBalances}
         transactions={transactions}
         budgets={budgets}
+        budgetPeriods={budgetPeriods}
         recurringSeries={recurringSeries}
       />
     </Suspense>

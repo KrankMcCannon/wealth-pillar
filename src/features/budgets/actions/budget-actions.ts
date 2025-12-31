@@ -1,11 +1,12 @@
 'use server';
 
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 
 import { auth } from '@clerk/nextjs/server';
 import { BudgetService, CreateBudgetInput } from '@/lib/services/budget.service';
 import { UserService } from '@/lib/services';
 import { canAccessUserData, isMember } from '@/lib/utils/permissions';
+import { CACHE_TAGS } from '@/lib/cache';
 import type { Budget } from '@/lib/types';
 import type { ServiceResult } from '@/lib/services/user.service';
 
@@ -57,8 +58,12 @@ export async function createBudgetAction(
     const result = await BudgetService.createBudget(input);
 
     if (!result.error) {
+      // Revalidate paths
       revalidatePath('/budgets');
       revalidatePath('/dashboard');
+
+      // Invalidate budget cache
+      revalidateTag(CACHE_TAGS.USER_BUDGETS(input.user_id));
     }
 
     return result;
@@ -134,8 +139,17 @@ export async function updateBudgetAction(
     const result = await BudgetService.updateBudget(id, input);
 
     if (!result.error) {
+      // Revalidate paths
       revalidatePath('/budgets');
       revalidatePath('/dashboard');
+
+      // Invalidate cache for old user
+      revalidateTag(CACHE_TAGS.USER_BUDGETS(existingBudget.user_id));
+
+      // If user_id changed, invalidate cache for new user too
+      if (input.user_id && input.user_id !== existingBudget.user_id) {
+        revalidateTag(CACHE_TAGS.USER_BUDGETS(input.user_id));
+      }
     }
 
     return result;
@@ -193,8 +207,12 @@ export async function deleteBudgetAction(
     const result = await BudgetService.deleteBudget(id);
 
     if (!result.error) {
+      // Revalidate paths
       revalidatePath('/budgets');
       revalidatePath('/dashboard');
+
+      // Invalidate budget cache
+      revalidateTag(CACHE_TAGS.USER_BUDGETS(existingBudget.user_id));
     }
 
     return result;

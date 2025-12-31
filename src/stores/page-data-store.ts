@@ -9,7 +9,7 @@
 
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
-import type { Transaction, Budget, RecurringTransactionSeries } from '@/lib/types';
+import type { Transaction, Budget, RecurringTransactionSeries, BudgetPeriod } from '@/lib/types';
 
 // ============================================================================
 // Types
@@ -30,6 +30,11 @@ interface PageDataState {
   updateBudget: (id: string, updates: Partial<Budget>) => void;
   removeBudget: (id: string) => void;
 
+  // Budget Periods (Map of userId -> active period)
+  budgetPeriods: Map<string, BudgetPeriod | null>;
+  setBudgetPeriods: (periods: Map<string, BudgetPeriod | null>) => void;
+  updateBudgetPeriod: (userId: string, period: BudgetPeriod | null) => void;
+
   // Recurring Series
   recurringSeries: RecurringTransactionSeries[];
   setRecurringSeries: (series: RecurringTransactionSeries[]) => void;
@@ -48,6 +53,7 @@ interface PageDataState {
 const initialState = {
   transactions: [],
   budgets: [],
+  budgetPeriods: new Map<string, BudgetPeriod | null>(),
   recurringSeries: [],
 };
 
@@ -110,6 +116,19 @@ export const usePageDataStore = create<PageDataState>()(
         }), false, 'page-data/removeBudget');
       },
 
+      // Budget Periods
+      setBudgetPeriods: (periods) => {
+        set({ budgetPeriods: periods }, false, 'page-data/setBudgetPeriods');
+      },
+
+      updateBudgetPeriod: (userId, period) => {
+        set((state) => {
+          const newPeriods = new Map(state.budgetPeriods);
+          newPeriods.set(userId, period);
+          return { budgetPeriods: newPeriods };
+        }, false, 'page-data/updateBudgetPeriod');
+      },
+
       // Recurring Series
       setRecurringSeries: (series) => {
         set({ recurringSeries: series }, false, 'page-data/setRecurringSeries');
@@ -168,3 +187,17 @@ export const useBudgets = () =>
  */
 export const useRecurringSeries = () =>
   usePageDataStore((state) => state.recurringSeries);
+
+/**
+ * Get budget periods
+ * Subscribes only to budgetPeriods changes
+ */
+export const useBudgetPeriods = () =>
+  usePageDataStore((state) => state.budgetPeriods);
+
+/**
+ * Get budget period for a specific user
+ * Subscribes only to budgetPeriods changes (optimized)
+ */
+export const useBudgetPeriod = (userId: string) =>
+  usePageDataStore((state) => state.budgetPeriods.get(userId) ?? null);
