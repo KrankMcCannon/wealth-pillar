@@ -72,8 +72,7 @@ export type { ServiceResult } from './user.service';
  *
  * To invalidate cache:
  * ```typescript
- * import { revalidateTag } from 'next/cache';
- * import { CACHE_TAGS } from '@/lib/cache';
+ * import { revalidateTag, CACHE_TAGS } from '@/lib/cache';
  *
  * // Invalidate specific user
  * revalidateTag(CACHE_TAGS.USER(userId));

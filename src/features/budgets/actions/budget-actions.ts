@@ -63,7 +63,7 @@ export async function createBudgetAction(
       revalidatePath('/dashboard');
 
       // Invalidate budget cache
-      revalidateTag(CACHE_TAGS.USER_BUDGETS(input.user_id));
+      revalidateTag(CACHE_TAGS.USER_BUDGETS(input.user_id), 'max');
     }
 
     return result;
@@ -144,11 +144,11 @@ export async function updateBudgetAction(
       revalidatePath('/dashboard');
 
       // Invalidate cache for old user
-      revalidateTag(CACHE_TAGS.USER_BUDGETS(existingBudget.user_id));
+      revalidateTag(CACHE_TAGS.USER_BUDGETS(existingBudget.user_id), 'max');
 
       // If user_id changed, invalidate cache for new user too
       if (input.user_id && input.user_id !== existingBudget.user_id) {
-        revalidateTag(CACHE_TAGS.USER_BUDGETS(input.user_id));
+        revalidateTag(CACHE_TAGS.USER_BUDGETS(input.user_id), 'max');
       }
     }
 
@@ -212,7 +212,7 @@ export async function deleteBudgetAction(
       revalidatePath('/dashboard');
 
       // Invalidate budget cache
-      revalidateTag(CACHE_TAGS.USER_BUDGETS(existingBudget.user_id));
+      revalidateTag(CACHE_TAGS.USER_BUDGETS(existingBudget.user_id), 'max');
     }
 
     return result;

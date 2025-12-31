@@ -17,7 +17,7 @@
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { BottomNavigation, PageContainer, Header } from "@/components/layout";
-import { useUserFilter, usePermissions, useFilteredAccounts, useBudgetsByUser } from "@/hooks";
+import { useUserFilter, usePermissions, useFilteredAccounts, useBudgetsByUser, useRequiredCurrentUser, useRequiredGroupUsers } from "@/hooks";
 import { Button } from "@/components/ui";
 import { RecurringTransactionSeries } from "@/src/lib";
 import {
@@ -35,7 +35,7 @@ import { RecurringSeriesSection } from "@/features/recurring";
 import { AccountService } from "@/lib/services";
 import { useModalState } from "@/lib/navigation/url-state";
 import type { Account, Transaction, Budget, BudgetPeriod } from "@/lib/types";
-import { useCurrentUser, useGroupUsers, useAccounts } from "@/stores/reference-data-store";
+import { useAccounts } from "@/stores/reference-data-store";
 import { usePageDataStore, useBudgetPeriod } from "@/stores/page-data-store";
 
 /**
@@ -62,27 +62,28 @@ export default function DashboardContent({
   budgetPeriods,
   recurringSeries,
 }: DashboardContentProps) {
-  // 1. All hooks must be called at the top of the component, unconditionally
-  const currentUser = useCurrentUser();
-  const groupUsers = useGroupUsers();
+  // All hooks must be called at the top of the component, unconditionally
+  const currentUser = useRequiredCurrentUser();
+  const groupUsers = useRequiredGroupUsers();
   const accounts = useAccounts();
   const router = useRouter();
   const { selectedGroupFilter, selectedUserId } = useUserFilter();
   const setBudgetPeriods = usePageDataStore((state) => state.setBudgetPeriods);
 
-  // Permission checks - handles null currentUser internally
+  // Permission checks
   const { effectiveUserId, isMember } = usePermissions({
-    currentUser: currentUser || ({ id: '', name: '', role: 'member' } as any),
-    selectedUserId: selectedGroupFilter !== "all" ? selectedGroupFilter : undefined,
+    currentUser,
+    selectedUserId: selectedGroupFilter === "all" ? undefined : selectedGroupFilter,
   });
 
-  // Calculate budgets - handles null currentUser internally
+  // Calculate budgets
   const { budgetsByUser } = useBudgetsByUser({
     groupUsers,
     budgets,
     transactions,
-    currentUser: currentUser || ({ id: '', name: '', role: 'member' } as any),
+    currentUser,
     selectedUserId,
+    budgetPeriods,
   });
 
   // Modal state management
@@ -90,8 +91,6 @@ export default function DashboardContent({
 
   // Filter default accounts - useMemo is a hook, must be called unconditionally
   const displayedDefaultAccounts = useMemo(() => {
-    if (!currentUser) return [];
-
     let accountsToDisplay: Account[] = [];
     const totalAccountCount = accounts.length;
 
@@ -105,19 +104,17 @@ export default function DashboardContent({
       } else {
         accountsToDisplay = userAccounts;
       }
-    } else {
-      if (totalAccountCount === 1) {
-        accountsToDisplay = accounts;
-      } else if (totalAccountCount > 1) {
-        if (selectedUserId) {
-          const user = groupUsers.find((u) => u.id === selectedUserId);
-          if (user?.default_account_id) {
-            const defaultAccount = accounts.find((a) => a.id === user.default_account_id);
-            accountsToDisplay = defaultAccount ? [defaultAccount] : [];
-          }
-        } else {
-          accountsToDisplay = AccountService.getDefaultAccounts(accounts, groupUsers);
+    } else if (totalAccountCount === 1) {
+      accountsToDisplay = accounts;
+    } else if (totalAccountCount > 1) {
+      if (selectedUserId) {
+        const user = groupUsers.find((u) => u.id === selectedUserId);
+        if (user?.default_account_id) {
+          const defaultAccount = accounts.find((a) => a.id === user.default_account_id);
+          accountsToDisplay = defaultAccount ? [defaultAccount] : [];
         }
+      } else {
+        accountsToDisplay = AccountService.getDefaultAccounts(accounts, groupUsers);
       }
     }
 
@@ -159,7 +156,7 @@ export default function DashboardContent({
 
   // State hooks
   const [periodManagerUserId, setPeriodManagerUserId] = useState<string | undefined>(
-    isMember ? currentUser?.id : selectedUserId || currentUser?.id,
+    isMember ? currentUser.id : selectedUserId || currentUser.id,
   );
 
   // Effects
@@ -169,7 +166,7 @@ export default function DashboardContent({
   }, [budgetPeriods, setBudgetPeriods]);
 
   useEffect(() => {
-    if (isMember && currentUser) {
+    if (isMember) {
       setPeriodManagerUserId(currentUser.id);
       return;
     }
@@ -179,12 +176,10 @@ export default function DashboardContent({
   }, [isMember, currentUser, selectedUserId]);
 
   // Get active budget period from store
-  const activePeriod = useBudgetPeriod(periodManagerUserId || currentUser?.id || '');
+  const activePeriod = useBudgetPeriod(periodManagerUserId || currentUser.id);
 
   const periodManagerData = useMemo(() => {
     const targetUser = groupUsers.find((u) => u.id === periodManagerUserId) || currentUser;
-    if (!targetUser) return { targetUser: null, budgets: [], period: null };
-
     const targetUserBudgets = budgets.filter((b) => b.user_id === targetUser.id && b.amount > 0);
 
     return {
@@ -198,12 +193,6 @@ export default function DashboardContent({
   const handleAccountClick = () => router.push("/accounts");
   const handleCreateRecurringSeries = () => openModal('recurring');
   const handleSeriesCardClick = () => router.push("/transactions?tab=Recurrent");
-
-  // 2. ONLY NOW check if we have the data needed to render. 
-  // If currentUser is missing, return null or a loader, but all hooks have been called.
-  if (!currentUser) {
-    return null;
-  }
 
   const budgetPeriodTrigger = (
     <Button variant="outline" size="sm">

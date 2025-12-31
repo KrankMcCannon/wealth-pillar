@@ -12,7 +12,7 @@
 import { useState, useMemo, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { BottomNavigation, PageContainer, Header } from "@/components/layout";
-import { useDeleteConfirmation, useIdNameMap, usePermissions, useFilteredData, useBudgetsByUser, useUserFilter } from "@/hooks";
+import { useDeleteConfirmation, useIdNameMap, usePermissions, useFilteredData, useBudgetsByUser, useUserFilter, useRequiredCurrentUser, useRequiredGroupUsers } from "@/hooks";
 import { useModalState } from "@/lib/navigation/url-state";
 import UserSelector from "@/components/shared/user-selector";
 import { UserSelectorSkeleton } from "@/features/dashboard";
@@ -48,8 +48,7 @@ import {
 import { BudgetService } from "@/lib/services";
 import type { Category, Budget, Transaction, Account, BudgetPeriod } from "@/lib/types";
 import type { ChartDataPoint } from "@/features/budgets/components/BudgetChart";
-import { useCurrentUser, useGroupUsers } from "@/stores/reference-data-store";
-import { usePageDataStore, useBudgetPeriod } from "@/stores/page-data-store";
+import { usePageDataStore } from "@/stores/page-data-store";
 
 /**
  * Budgets Content Props
@@ -76,13 +75,9 @@ export default function BudgetsContent({
   budgetPeriods,
 }: BudgetsContentProps) {
   // Read from stores instead of props
-  const currentUser = useCurrentUser();
-  const groupUsers = useGroupUsers();
+  const currentUser = useRequiredCurrentUser();
+  const groupUsers = useRequiredGroupUsers();
 
-  // Early return if store not initialized
-  if (!currentUser) {
-    return null;
-  }
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -92,7 +87,6 @@ export default function BudgetsContent({
   const setBudgetPeriods = usePageDataStore((state) => state.setBudgetPeriods);
   const removeBudget = usePageDataStore((state) => state.removeBudget);
   const addBudget = usePageDataStore((state) => state.addBudget);
-  const updateBudget = usePageDataStore((state) => state.updateBudget);
 
   // Initialize store with server data on mount
   useEffect(() => {
@@ -184,6 +178,7 @@ export default function BudgetsContent({
     transactions,
     currentUser,
     selectedUserId: selectedBudgetUser.id,
+    budgetPeriods,
   });
   const userBudgetSummary = budgetsByUser[selectedBudgetUser.id] || null;
 
@@ -209,15 +204,16 @@ export default function BudgetsContent({
 
   // Filter transactions for selected budget (based on budget owner)
   const budgetTransactions = useMemo(() => {
-    if (!selectedBudget) return [];
+    if (!selectedBudget || !periodInfo) return [];
 
-    const { periodStart, periodEnd } = BudgetService.getBudgetPeriodDates(selectedBudgetUser);
+    const periodStart = periodInfo.start ? toDateTime(periodInfo.start) : null;
+    const periodEnd = periodInfo.end ? toDateTime(periodInfo.end) : null;
 
     // Filter transactions for the budget owner, then by budget criteria
     const userTransactions = transactions.filter((t) => t.user_id === selectedBudgetUser.id);
 
     return BudgetService.filterTransactionsForBudget(userTransactions, selectedBudget, periodStart, periodEnd);
-  }, [selectedBudget, selectedBudgetUser, transactions]);
+  }, [selectedBudget, selectedBudgetUser, transactions, periodInfo]);
 
   // Generate subtitle for transaction section
   const transactionSectionSubtitle = useMemo(() => {

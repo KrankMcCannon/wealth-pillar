@@ -6,3 +6,4 @@
 export * from "./state";
 export * from "./data";
 export * from "./use-permissions";
+export * from "./use-required-user";

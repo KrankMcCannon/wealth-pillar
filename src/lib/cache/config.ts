@@ -51,8 +51,11 @@ export const CACHE_TAGS = {
   CATEGORY: (categoryId: string) => `category:${categoryId}`,
   BUDGETS: 'budgets',
   BUDGET: (budgetId: string) => `budget:${budgetId}`,
+  USER_BUDGETS: (userId: string) => `user:${userId}:budgets`,
   BUDGET_PERIODS: 'budget_periods',
   BUDGET_PERIOD: (periodId: string) => `budget_period:${periodId}`,
+  USER_BUDGET_PERIODS: (userId: string) => `user:${userId}:budget_periods`,
+  USER_ACTIVE_BUDGET_PERIOD: (userId: string) => `user:${userId}:budget_period:active`,
   RECURRING_SERIES: 'recurring_series',
   RECURRING: (seriesId: string) => `recurring:${seriesId}`,
 } as const;

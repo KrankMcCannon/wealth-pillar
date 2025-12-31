@@ -45,7 +45,6 @@ const BudgetPeriodCardComponent = ({
   startDate,
   endDate,
   userName,
-  userId: _userId,
   transactions,
   categories,
   isExpanded,

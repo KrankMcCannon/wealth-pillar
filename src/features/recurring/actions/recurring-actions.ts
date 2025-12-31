@@ -2,19 +2,19 @@
 
 /**
  * Recurring Series Server Actions
- * 
+ *
  * Server-side actions for creating, updating, and deleting recurring transaction series.
  * These actions handle data mutations and cache invalidation.
  */
 
 import { auth } from '@clerk/nextjs/server';
+import { revalidateTag } from 'next/cache';
 import { CACHE_TAGS } from "@/lib/cache";
 import { supabaseServer } from "@/lib/database/server";
 import { UserService } from '@/lib/services';
 import { canAccessUserData, isMember } from '@/lib/utils/permissions';
 import type { RecurringTransactionSeries } from "@/lib/types";
 import { DateTime, today as luxonToday, nowISO, toDateString } from "@/lib/utils/date-utils";
-import { revalidateTag } from "next/cache";
 
 /**
  * Input type for creating a recurring series
@@ -161,7 +161,7 @@ export async function createRecurringSeriesAction(
       revalidateTag(`user:${userId}:recurring`, 'max');
     }
 
-    return { data: data as unknown as RecurringTransactionSeries, error: null };
+    return { data: data as RecurringTransactionSeries, error: null };
   } catch (error) {
     console.error("[createRecurringSeriesAction] Unexpected error:", error);
     return {
@@ -240,11 +240,15 @@ export async function updateRecurringSeriesAction(
       return { data: null, error: "Serie ricorrente non trovata" };
     }
 
+    // Type assertion for database response
+    type SeriesWithUserIds = { user_ids: string[] };
+    const typedOldSeries = oldSeries as SeriesWithUserIds;
+
     // Permission validation: verify access to existing series
     // Members can only update series they are part of
     const hasAccess = isMember(currentUser)
-      ? (oldSeries.user_ids as string[]).includes(currentUser.id)
-      : (oldSeries.user_ids as string[]).some(userId => canAccessUserData(currentUser, userId));
+      ? typedOldSeries.user_ids.includes(currentUser.id)
+      : typedOldSeries.user_ids.some(userId => canAccessUserData(currentUser, userId));
 
     if (!hasAccess) {
       return {
@@ -298,20 +302,21 @@ export async function updateRecurringSeriesAction(
     revalidateTag(CACHE_TAGS.RECURRING(input.id), 'max');
 
     // Invalidate old users' caches
-    if (oldSeries?.user_ids) {
-      for (const userId of oldSeries.user_ids) {
+    if (typedOldSeries.user_ids) {
+      for (const userId of typedOldSeries.user_ids) {
         revalidateTag(`user:${userId}:recurring`, 'max');
       }
     }
 
     // Invalidate new users' caches (if user_ids changed)
-    if (data?.user_ids) {
-      for (const userId of data.user_ids) {
+    const typedData = data as SeriesWithUserIds | null;
+    if (typedData?.user_ids) {
+      for (const userId of typedData.user_ids) {
         revalidateTag(`user:${userId}:recurring`, 'max');
       }
     }
 
-    return { data: data as unknown as RecurringTransactionSeries, error: null };
+    return { data: data as RecurringTransactionSeries, error: null };
   } catch (error) {
     console.error("[updateRecurringSeriesAction] Unexpected error:", error);
     return {
@@ -356,15 +361,19 @@ export async function deleteRecurringSeriesAction(
       .eq("id", seriesId)
       .single();
 
-    if (fetchError) {
+    if (fetchError || !series) {
       console.error("[deleteRecurringSeriesAction] Fetch error:", fetchError);
       return { data: null, error: "Serie non trovata" };
     }
 
+    // Type assertion for database response
+    type SeriesWithUserIds = { user_ids: string[] };
+    const typedSeries = series as SeriesWithUserIds;
+
     // Permission validation: verify access to series
     const hasAccess = isMember(currentUser)
-      ? (series.user_ids as string[]).includes(currentUser.id)
-      : (series.user_ids as string[]).some(userId => canAccessUserData(currentUser, userId));
+      ? typedSeries.user_ids.includes(currentUser.id)
+      : typedSeries.user_ids.some(userId => canAccessUserData(currentUser, userId));
 
     if (!hasAccess) {
       return {
@@ -386,8 +395,8 @@ export async function deleteRecurringSeriesAction(
     // Invalidate cache for all affected users
     revalidateTag(CACHE_TAGS.RECURRING_SERIES, 'max');
     revalidateTag(CACHE_TAGS.RECURRING(seriesId), 'max');
-    if (series?.user_ids) {
-      for (const userId of series.user_ids) {
+    if (typedSeries.user_ids) {
+      for (const userId of typedSeries.user_ids) {
         revalidateTag(`user:${userId}:recurring`, 'max');
       }
     }
@@ -445,12 +454,21 @@ export async function executeRecurringSeriesAction(
       return { data: null, error: "Serie non trovata" };
     }
 
-    if (!series.is_active) {
+    // Type assertion for full series data
+    type FullSeries = {
+      is_active: boolean;
+      user_ids: string[];
+      due_day: number;
+      [key: string]: unknown;
+    };
+    const typedSeries = series as FullSeries;
+
+    if (!typedSeries.is_active) {
       return { data: null, error: "La serie non è attiva" };
     }
 
     // Use provided userId or first user in the series
-    const executingUserId = userId || series.user_ids[0];
+    const executingUserId = userId || typedSeries.user_ids[0];
 
     // Get user's group_id
     const { data: user, error: userError } = await supabaseServer
@@ -465,7 +483,7 @@ export async function executeRecurringSeriesAction(
 
     // Calculate the actual transaction date based on due_day
     const today = luxonToday();
-    const transactionDate = DateTime.local(today.year, today.month, series.due_day);
+    const transactionDate = DateTime.local(today.year, today.month, typedSeries.due_day);
     // Use the later date between transactionDate and today (compare via milliseconds)
     const maxMillis = Math.max(transactionDate.toMillis(), today.toMillis());
     const dateToUse = DateTime.fromMillis(maxMillis);

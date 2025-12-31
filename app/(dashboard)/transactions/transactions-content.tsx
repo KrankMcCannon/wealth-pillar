@@ -14,6 +14,7 @@ import {
   useDeleteConfirmation,
   useIdNameMap,
   useFilteredData,
+  useRequiredCurrentUser,
 } from "@/hooks";
 import { BottomNavigation, PageContainer, Header } from "@/src/components/layout";
 import TabNavigation from "@/src/components/shared/tab-navigation";
@@ -37,7 +38,7 @@ import { TransactionService } from "@/lib/services";
 import { deleteTransactionAction } from "@/features/transactions/actions/transaction-actions";
 import { deleteRecurringSeriesAction } from "@/features/recurring/actions/recurring-actions";
 import { useModalState, useTabState } from "@/lib/navigation/url-state";
-import { useCurrentUser, useAccounts, useCategories } from "@/stores/reference-data-store";
+import { useAccounts, useCategories } from "@/stores/reference-data-store";
 import { usePageDataStore } from "@/stores/page-data-store";
 
 /**
@@ -59,14 +60,10 @@ export default function TransactionsContent({
   budgets,
 }: TransactionsContentProps) {
   // Read from stores instead of props
-  const currentUser = useCurrentUser();
+  const currentUser = useRequiredCurrentUser();
   const accounts = useAccounts();
   const categories = useCategories();
 
-  // Early return if store not initialized
-  if (!currentUser) {
-    return null;
-  }
   const router = useRouter();
   const searchParams = useSearchParams();
 

@@ -5,7 +5,6 @@
 
 "use client";
 
-import { CreditCard, TrendingUp, TrendingDown } from "lucide-react";
 import { accountStyles } from "../theme/account-styles";
 import { formatCurrency } from "@/lib/utils";
 import { SHIMMER_BASE } from "@/lib/utils/ui-constants";

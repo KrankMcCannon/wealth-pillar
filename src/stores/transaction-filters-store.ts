@@ -99,7 +99,7 @@ export const useTransactionFiltersStore = create<TransactionFiltersStore>()(
 
         setDateRange: (range) => {
           set(
-            (state) =>
+            () =>
               range === 'custom'
                 ? { dateRange: range }
                 : { dateRange: range, startDate: undefined, endDate: undefined },

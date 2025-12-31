@@ -66,9 +66,9 @@ export async function createTransactionAction(
       revalidatePath('/reports');
 
       // Invalidate budget period and budget caches (PostgreSQL triggers handle DB updates)
-      revalidateTag(CACHE_TAGS.USER_BUDGET_PERIODS(input.user_id));
-      revalidateTag(CACHE_TAGS.USER_ACTIVE_BUDGET_PERIOD(input.user_id));
-      revalidateTag(CACHE_TAGS.USER_BUDGETS(input.user_id));
+      revalidateTag(CACHE_TAGS.USER_BUDGET_PERIODS(input.user_id), 'max');
+      revalidateTag(CACHE_TAGS.USER_ACTIVE_BUDGET_PERIOD(input.user_id), 'max');
+      revalidateTag(CACHE_TAGS.USER_BUDGETS(input.user_id), 'max');
     }
 
     return result;
@@ -152,15 +152,15 @@ export async function updateTransactionAction(
       revalidatePath('/reports');
 
       // Invalidate caches for old user
-      revalidateTag(CACHE_TAGS.USER_BUDGET_PERIODS(existingTransaction.user_id));
-      revalidateTag(CACHE_TAGS.USER_ACTIVE_BUDGET_PERIOD(existingTransaction.user_id));
-      revalidateTag(CACHE_TAGS.USER_BUDGETS(existingTransaction.user_id));
+      revalidateTag(CACHE_TAGS.USER_BUDGET_PERIODS(existingTransaction.user_id), 'max');
+      revalidateTag(CACHE_TAGS.USER_ACTIVE_BUDGET_PERIOD(existingTransaction.user_id), 'max');
+      revalidateTag(CACHE_TAGS.USER_BUDGETS(existingTransaction.user_id), 'max');
 
       // If user_id changed, invalidate caches for new user too
       if (input.user_id && input.user_id !== existingTransaction.user_id) {
-        revalidateTag(CACHE_TAGS.USER_BUDGET_PERIODS(input.user_id));
-        revalidateTag(CACHE_TAGS.USER_ACTIVE_BUDGET_PERIOD(input.user_id));
-        revalidateTag(CACHE_TAGS.USER_BUDGETS(input.user_id));
+        revalidateTag(CACHE_TAGS.USER_BUDGET_PERIODS(input.user_id), 'max');
+        revalidateTag(CACHE_TAGS.USER_ACTIVE_BUDGET_PERIOD(input.user_id), 'max');
+        revalidateTag(CACHE_TAGS.USER_BUDGETS(input.user_id), 'max');
       }
     }
 
@@ -227,9 +227,9 @@ export async function deleteTransactionAction(
       revalidatePath('/reports');
 
       // Invalidate budget period and budget caches (PostgreSQL triggers handle DB updates)
-      revalidateTag(CACHE_TAGS.USER_BUDGET_PERIODS(existingTransaction.user_id));
-      revalidateTag(CACHE_TAGS.USER_ACTIVE_BUDGET_PERIOD(existingTransaction.user_id));
-      revalidateTag(CACHE_TAGS.USER_BUDGETS(existingTransaction.user_id));
+      revalidateTag(CACHE_TAGS.USER_BUDGET_PERIODS(existingTransaction.user_id), 'max');
+      revalidateTag(CACHE_TAGS.USER_ACTIVE_BUDGET_PERIOD(existingTransaction.user_id), 'max');
+      revalidateTag(CACHE_TAGS.USER_BUDGETS(existingTransaction.user_id), 'max');
     }
 
     return result;

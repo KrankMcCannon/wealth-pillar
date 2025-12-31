@@ -10,8 +10,8 @@ import { createCategoryAction, updateCategoryAction } from "@/features/categorie
 import { ModalWrapper, ModalContent, ModalSection } from "@/src/components/ui/modal-wrapper";
 import { FormActions, FormField } from "@/src/components/form";
 import { IconPicker, Input } from "@/src/components/ui";
-import { useGroupId, useCategories } from "@/stores/reference-data-store";
-import { useReferenceDataStore } from "@/stores/reference-data-store";
+import { useRequiredGroupId } from "@/hooks";
+import { useCategories, useReferenceDataStore } from "@/stores/reference-data-store";
 
 // Zod schema for category validation
 const categorySchema = z.object({
@@ -44,9 +44,9 @@ function CategoryFormModal({
   isOpen,
   onClose,
   editId,
-}: CategoryFormModalProps) {
+}: Readonly<CategoryFormModalProps>) {
   // Read from store instead of props
-  const groupId = useGroupId();
+  const groupId = useRequiredGroupId();
 
   // Reference data store actions for optimistic updates
   const storeCategories = useCategories();
@@ -54,10 +54,6 @@ function CategoryFormModal({
   const updateCategory = useReferenceDataStore((state) => state.updateCategory);
   const removeCategory = useReferenceDataStore((state) => state.removeCategory);
 
-  // Early return if store not initialized
-  if (!groupId) {
-    return null;
-  }
   const isEditMode = !!editId;
   const title = isEditMode ? "Modifica Categoria" : "Nuova Categoria";
   const description = isEditMode ? "Aggiorna i dettagli della categoria" : "Crea una nuova categoria";
@@ -119,8 +115,8 @@ function CategoryFormModal({
       const generatedKey = watchedLabel
         .toLowerCase()
         .trim()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/^-+|-+$/g, "");
+        .replaceAll(/[^a-z0-9]+/g, "-")
+        .replaceAll(/^-+|-+$/g, "");
       setValue("key", generatedKey);
     }
   }, [watchedLabel, isEditMode, setValue]);

@@ -88,7 +88,7 @@ export class GroupService {
       }
 
       return {
-        data: group,
+        data: group as Group,
         error: null,
       };
     } catch (error) {
@@ -149,7 +149,7 @@ export class GroupService {
       const users = await getCachedUsers();
 
       return {
-        data: users,
+        data: users as User[],
         error: null,
       };
     } catch (error) {
@@ -184,9 +184,9 @@ export class GroupService {
         };
       }
 
-      const { count, error } = await supabaseServer
+      const { data, error } = await supabaseServer
         .from('users')
-        .select('id', { count: 'exact', head: true })
+        .select('id')
         .eq('group_id', groupId);
 
       if (error) {
@@ -194,7 +194,7 @@ export class GroupService {
       }
 
       return {
-        data: count || 0,
+        data: data?.length ?? 0,
         error: null,
       };
     } catch (error) {
@@ -243,7 +243,7 @@ export class GroupService {
       }
 
       return {
-        data: data || [],
+        data: (data || []) as User[],
         error: null,
       };
     } catch (error) {
@@ -384,13 +384,15 @@ export class GroupService {
         return { data: null, error: 'Failed to create group' };
       }
 
+      const createdGroup = data as Group;
+
       await revalidateCacheTags([
         CACHE_TAGS.GROUPS,
-        CACHE_TAGS.GROUP(data.id),
-        CACHE_TAGS.GROUP_USERS(data.id),
+        CACHE_TAGS.GROUP(createdGroup.id),
+        CACHE_TAGS.GROUP_USERS(createdGroup.id),
       ]);
 
-      return { data, error: null };
+      return { data: createdGroup, error: null };
     } catch (error) {
       return {
         data: null,

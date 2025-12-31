@@ -2,7 +2,7 @@
 
 import { memo } from "react";
 import { Building2, MoreVertical, Pencil, Trash2 } from "lucide-react";
-import { formatCurrency, truncateText } from "@/lib/utils";
+import { truncateText } from "@/lib/utils";
 import { Account, AccountTypeMap } from "@/lib/types";
 import { DomainCard } from "@/src/components/ui/layout/domain-card";
 import { Amount, Text } from "@/src/components/ui/primitives";

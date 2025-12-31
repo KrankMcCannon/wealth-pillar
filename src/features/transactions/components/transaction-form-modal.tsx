@@ -4,15 +4,15 @@ import { useEffect, useMemo, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Transaction, TransactionType, User, Account, Category } from "@/lib/types";
+import { Transaction, TransactionType } from "@/lib/types";
 import { createTransactionAction, updateTransactionAction } from "@/features/transactions/actions/transaction-actions";
 import { transactionStyles } from "@/features/transactions/theme/transaction-styles";
 import { ModalWrapper, ModalContent, ModalSection } from "@/src/components/ui/modal-wrapper";
 import { FormActions, FormField, FormSelect } from "@/src/components/form";
 import { UserField, AccountField, CategoryField, AmountField, DateField } from "@/src/components/ui/fields";
 import { Input } from "@/src/components/ui/input";
-import { usePermissions } from "@/hooks";
-import { useCurrentUser, useGroupUsers, useAccounts, useCategories, useGroupId } from "@/stores/reference-data-store";
+import { usePermissions, useRequiredCurrentUser, useRequiredGroupUsers, useRequiredGroupId } from "@/hooks";
+import { useAccounts, useCategories } from "@/stores/reference-data-store";
 import { useUserFilterStore } from "@/stores/user-filter-store";
 import { usePageDataStore } from "@/stores/page-data-store";
 
@@ -23,7 +23,7 @@ const transactionSchema = z.object({
     .trim(),
   amount: z.string()
     .min(1, "L'importo è obbligatorio")
-    .refine((val) => !isNaN(parseFloat(val)) && parseFloat(val) > 0, {
+    .refine((val) => !Number.isNaN(Number.parseFloat(val)) && Number.parseFloat(val) > 0, {
       message: "L'importo deve essere maggiore di zero"
     }),
   type: z.enum(["income", "expense", "transfer"]),
@@ -56,13 +56,13 @@ function TransactionFormModal({
   isOpen,
   onClose,
   editId,
-}: TransactionFormModalProps) {
+}: Readonly<TransactionFormModalProps>) {
   // Read from stores instead of props
-  const currentUser = useCurrentUser();
-  const groupUsers = useGroupUsers();
+  const currentUser = useRequiredCurrentUser();
+  const groupUsers = useRequiredGroupUsers();
   const accounts = useAccounts();
   const categories = useCategories();
-  const groupId = useGroupId();
+  const groupId = useRequiredGroupId();
   const selectedUserId = useUserFilterStore(state => state.selectedUserId);
 
   // Page data store actions for optimistic updates
@@ -71,10 +71,6 @@ function TransactionFormModal({
   const updateTransaction = usePageDataStore((state) => state.updateTransaction);
   const removeTransaction = usePageDataStore((state) => state.removeTransaction);
 
-  // Early return if store not initialized
-  if (!currentUser || !groupId) {
-    return null;
-  }
   const isEditMode = !!editId;
   const title = isEditMode ? "Modifica transazione" : "Nuova transazione";
   const description = isEditMode ? "Aggiorna i dettagli della transazione" : "Aggiungi una nuova transazione";
@@ -150,7 +146,7 @@ function TransactionFormModal({
         // Handle date formatting (could be string or Date)
         const dateStr = typeof transaction.date === "string"
           ? transaction.date.split("T")[0]
-          : (transaction.date as Date).toISOString().split("T")[0];
+          : (transaction.date).toISOString().split("T")[0];
 
         reset({
           description: transaction.description,
@@ -190,7 +186,7 @@ function TransactionFormModal({
   // Handle form submission with optimistic updates
   const onSubmit = async (data: TransactionFormData) => {
     try {
-      const amount = parseFloat(data.amount);
+      const amount = Number.parseFloat(data.amount);
       const transactionData = {
         description: data.description.trim(),
         amount,

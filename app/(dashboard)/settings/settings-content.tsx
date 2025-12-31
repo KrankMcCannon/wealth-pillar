@@ -2,9 +2,8 @@
 
 import { SectionHeader, BottomNavigation, PageContainer, Header } from "@/src/components/layout";
 import { settingsStyles } from "@/src/features/settings/theme";
-import { deleteUserAction } from "@/src/features/settings";
-import { DeleteAccountModal } from "@/src/features/settings";
-import { usePermissions } from "@/hooks";
+import { deleteUserAction, DeleteAccountModal } from "@/src/features/settings";
+import { usePermissions, useRequiredCurrentUser, useRequiredGroupUsers } from "@/hooks";
 import {
   BarChart3,
   Bell,
@@ -27,8 +26,7 @@ import { useRouter } from "next/navigation";
 import { useClerk } from "@clerk/nextjs";
 import { useState } from "react";
 import { Button, Card } from "@/components/ui";
-import type { Account, Transaction, Category } from "@/lib/types";
-import { useCurrentUser, useGroupUsers } from "@/stores/reference-data-store";
+import type { Account, Transaction } from "@/lib/types";
 
 /**
  * Settings Content Props
@@ -36,18 +34,13 @@ import { useCurrentUser, useGroupUsers } from "@/stores/reference-data-store";
 interface SettingsContentProps {
   accounts: Account[];
   transactions: Transaction[];
-  categories: Category[];
 }
 
 export default function SettingsContent({ accounts, transactions }: SettingsContentProps) {
   // Read from stores instead of props
-  const currentUser = useCurrentUser();
-  const groupUsers = useGroupUsers();
+  const currentUser = useRequiredCurrentUser();
+  const groupUsers = useRequiredGroupUsers();
 
-  // Early return if store not initialized
-  if (!currentUser) {
-    return null;
-  }
   const router = useRouter();
   const { signOut } = useClerk();
   const [isSigningOut, setIsSigningOut] = useState(false);
@@ -114,16 +107,6 @@ export default function SettingsContent({ accounts, transactions }: SettingsCont
     setShowDeleteModal(false);
     setDeleteError(null);
   };
-
-  if (!currentUser) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <p>Nessun utente trovato</p>
-        </div>
-      </div>
-    );
-  }
 
   // Get user initials for avatar
   const userInitials = currentUser.name

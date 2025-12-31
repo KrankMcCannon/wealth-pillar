@@ -2,8 +2,7 @@
 
 import { memo, useCallback, useMemo } from 'react';
 import { Users, User as UserIcon, Crown, Star, Heart } from "lucide-react";
-import { useCurrentUser, useGroupUsers } from '@/stores/reference-data-store';
-import { useUserFilter } from '@/hooks';
+import { useUserFilter, useRequiredCurrentUser, useRequiredGroupUsers } from '@/hooks';
 
 interface UserSelectorProps {
   className?: string;
@@ -21,14 +20,10 @@ const UserSelector = memo(({
   isLoading = false
 }: UserSelectorProps) => {
   // Read from stores
-  const currentUser = useCurrentUser();
-  const users = useGroupUsers();
+  const currentUser = useRequiredCurrentUser();
+  const users = useRequiredGroupUsers();
   const { selectedGroupFilter, setSelectedGroupFilter } = useUserFilter();
 
-  // Early return if store not initialized
-  if (!currentUser) {
-    return null;
-  }
   // Memoized icon selection
   const getUserIcon = useCallback((userId: string, index: number) => {
     const userIcons = [UserIcon, Crown, Star, Heart];
@@ -80,8 +75,8 @@ const UserSelector = memo(({
               key={i}
               className="shrink-0 flex items-center gap-3 p-2 rounded-2xl bg-primary/10 border border-primary/20 min-w-[120px] animate-pulse"
             >
-          <div className="w-6 h-6 bg-primary/20 rounded-full"></div>
-          <div className="w-16 h-4 bg-primary/15 rounded"></div>
+              <div className="w-6 h-6 bg-primary/20 rounded-full"></div>
+              <div className="w-16 h-4 bg-primary/15 rounded"></div>
             </div>
           ))}
         </div>
@@ -128,9 +123,8 @@ const UserSelector = memo(({
                 }
               `}>
                 <IconComponent
-                  className={`w-3.5 h-3.5 transition-colors duration-200 ${
-                    isSelected ? 'text-white' : 'text-primary'
-                  }`}
+                  className={`w-3.5 h-3.5 transition-colors duration-200 ${isSelected ? 'text-white' : 'text-primary'
+                    }`}
                 />
               </div>
 
@@ -153,11 +147,10 @@ const UserSelector = memo(({
           {membersList.slice(0, Math.min(membersList.length, 5)).map((_, index) => (
             <div
               key={index}
-              className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
-                index === membersList.findIndex(m => m.id === selectedGroupFilter)
+              className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${index === membersList.findIndex(m => m.id === selectedGroupFilter)
                   ? 'bg-primary w-4'
                   : 'bg-muted-foreground/30'
-              }`}
+                }`}
             />
           ))}
         </div>

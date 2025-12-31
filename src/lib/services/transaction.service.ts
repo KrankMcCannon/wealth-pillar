@@ -105,7 +105,7 @@ export class TransactionService {
             .from('transactions')
             .select('*')
             .eq('group_id', groupId)
-            .order('date', { ascending: false });
+            .order('date', { ascending: false }).execute();
 
           if (error) {
             throw new Error(error.message);
@@ -120,7 +120,7 @@ export class TransactionService {
       const transactions = await getCachedTransactions();
 
       return {
-        data: transactions || [],
+        data: (transactions || []) as Transaction[],
         error: null,
       };
     } catch (error) {
@@ -166,7 +166,7 @@ export class TransactionService {
             .from('transactions')
             .select('*')
             .eq('user_id', userId)
-            .order('date', { ascending: false });
+            .order('date', { ascending: false }).execute();
 
           if (error) {
             throw new Error(error.message);
@@ -181,7 +181,7 @@ export class TransactionService {
       const transactions = await getCachedTransactions();
 
       return {
-        data: transactions || [],
+        data: (transactions || []) as Transaction[],
         error: null,
       };
     } catch (error) {
@@ -228,7 +228,7 @@ export class TransactionService {
             .from('transactions')
             .select('*')
             .or(`account_id.eq.${accountId},to_account_id.eq.${accountId}`)
-            .order('date', { ascending: false });
+            .order('date', { ascending: false }).execute();
 
           if (error) {
             throw new Error(error.message);
@@ -243,7 +243,7 @@ export class TransactionService {
       const transactions = await getCachedTransactions();
 
       return {
-        data: transactions || [],
+        data: (transactions || []) as Transaction[],
         error: null,
       };
     } catch (error) {
@@ -432,7 +432,7 @@ export class TransactionService {
       tagsToInvalidate.push(`group:${data.group_id}:budgets`);
       await revalidateCacheTags(tagsToInvalidate);
 
-      return { data: transaction, error: null };
+      return { data: transaction as Transaction, error: null };
     } catch (error) {
       return {
         data: null,
@@ -598,7 +598,7 @@ export class TransactionService {
 
       await revalidateCacheTags(tagsToInvalidate);
 
-      return { data: updatedTransaction, error: null };
+      return { data: updatedTransaction as Transaction, error: null };
     } catch (error) {
       return {
         data: null,
@@ -651,7 +651,7 @@ export class TransactionService {
       const { error } = await supabaseServer
         .from('transactions')
         .delete()
-        .eq('id', id);
+        .eq('id', id).execute();
 
       if (error) {
         throw new Error(error.message);

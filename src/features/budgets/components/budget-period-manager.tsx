@@ -1,16 +1,15 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { Clock, History, TrendingUp, TrendingDown, Activity, Users, Calendar } from "lucide-react";
+import { Clock, TrendingUp, TrendingDown, Activity, Users } from "lucide-react";
 import { BudgetPeriod, Transaction, Budget } from "@/lib/types";
 import { startPeriodAction, closePeriodAction } from "@/features/budgets/actions/budget-period-actions";
 import { FormActions } from "@/src/components/form";
 import { DateField, UserField } from "@/src/components/ui/fields";
 import { Alert, AlertDescription, Badge, ModalContent, ModalSection, ModalWrapper } from "@/src/components/ui";
-import { usePermissions } from "@/hooks";
+import { usePermissions, useRequiredCurrentUser, useRequiredGroupUsers } from "@/hooks";
 import { toDateTime } from "@/lib/utils/date-utils";
-import { useCurrentUser, useGroupUsers } from "@/stores/reference-data-store";
-import { useBudgetPeriod, usePageDataStore } from "@/stores/page-data-store";
+import { usePageDataStore } from "@/stores/page-data-store";
 
 interface BudgetPeriodManagerProps {
   selectedUserId?: string; // Initial user selection
@@ -32,13 +31,8 @@ export function BudgetPeriodManager({
   onUserChange,
 }: Readonly<BudgetPeriodManagerProps>) {
   // Read from stores
-  const currentUser = useCurrentUser();
-  const groupUsers = useGroupUsers();
-
-  // Early return if store not initialized
-  if (!currentUser) {
-    return null;
-  }
+  const currentUser = useRequiredCurrentUser();
+  const groupUsers = useRequiredGroupUsers();
 
   const [isOpen, setIsOpen] = useState(false);
   const [isActionPending, setIsActionPending] = useState(false);
@@ -63,14 +57,14 @@ export function BudgetPeriodManager({
 
   // Reset state when modal opens/closes
   useEffect(() => {
-    if (!isOpen) {
+    if (isOpen) {
+      // Pre-fill with current date for both start and close
+      setSelectedDate(new Date().toISOString().split("T")[0]);
+    } else {
       setIsActionPending(false);
       setSelectedDate("");
       setError("");
       setInternalSelectedUserId(selectedUserId || currentUser.id);
-    } else {
-      // Pre-fill with current date for both start and close
-      setSelectedDate(new Date().toISOString().split("T")[0]);
     }
   }, [isOpen, selectedUserId, currentUser.id]);
 

@@ -34,8 +34,8 @@ interface HeaderProps {
 
     // User info for display only
     currentUser?: {
-        name: string;
-        role: string;
+        name?: string;
+        role?: string;
     };
 
     // Show action menu
@@ -49,7 +49,7 @@ interface HeaderProps {
 }
 
 // Action Menu Component - Separate to avoid hook issues when NuqsAdapter isn't available
-function ActionMenu({ extraMenuItems = [] }: { extraMenuItems?: { label: string; icon: React.ElementType; onClick: () => void }[] }) {
+function ActionMenu({ extraMenuItems = [] }: Readonly<{ extraMenuItems?: { label: string; icon: React.ElementType; onClick: () => void }[] }>) {
     const { openModal } = useModalState();
 
     const actionItems = [
@@ -114,7 +114,7 @@ export function Header({
     showActions = false,
     extraMenuItems = [],
     onBack,
-}: HeaderProps) {
+}: Readonly<HeaderProps>) {
     const router = useRouter();
 
     // Navigation Handler
@@ -142,9 +142,9 @@ export function Header({
                         <div className="flex items-center gap-3">
                             <div className="relative">
                                 <div className="h-9 w-9 bg-primary/10 rounded-full flex items-center justify-center text-primary font-semibold text-sm border-2 border-background shadow-sm overflow-hidden">
-                                    {currentUser.name.substring(0, 2).toUpperCase()}
+                                    {currentUser?.name?.substring(0, 2).toUpperCase()}
                                 </div>
-                                {currentUser.role === 'admin' && (
+                                {currentUser?.role === 'admin' && (
                                     <div className="absolute -top-1 -right-1 bg-amber-500 rounded-full p-0.5 border-2 border-background shadow-sm" title="Premium">
                                         <Crown className="h-2.5 w-2.5 text-white fill-white" />
                                     </div>
@@ -152,10 +152,10 @@ export function Header({
                             </div>
                             <div className="hidden sm:block leading-none">
                                 <p className="text-sm font-semibold text-foreground truncate max-w-[120px]">
-                                    {currentUser.name}
+                                    {currentUser?.name}
                                 </p>
                                 <p className="text-[10px] text-muted-foreground font-medium mt-0.5 capitalize">
-                                    {currentUser.role === 'admin' ? 'Premium Plan' : 'Standard Plan'}
+                                    {currentUser?.role === 'admin' ? 'Premium Plan' : 'Standard Plan'}
                                 </p>
                             </div>
                         </div>

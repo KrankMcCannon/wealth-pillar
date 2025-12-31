@@ -5,13 +5,13 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import type { CheckedState } from "@radix-ui/react-checkbox";
-import { Budget, BudgetType, Category, User } from "@/lib/types";
+import { Budget, BudgetType } from "@/lib/types";
 import { createBudgetAction, updateBudgetAction } from "@/features/budgets/actions/budget-actions";
 import { ModalWrapper, ModalContent, ModalSection } from "@/src/components/ui/modal-wrapper";
 import { FormActions, FormField, FormSelect } from "@/src/components/form";
 import { AmountField, Checkbox, Input, UserField } from "@/src/components/ui";
-import { usePermissions } from "@/hooks";
-import { useCurrentUser, useGroupUsers, useCategories, useGroupId } from "@/stores/reference-data-store";
+import { usePermissions, useRequiredCurrentUser, useRequiredGroupUsers, useRequiredGroupId } from "@/hooks";
+import { useCategories } from "@/stores/reference-data-store";
 import { useUserFilterStore } from "@/stores/user-filter-store";
 import { usePageDataStore } from "@/stores/page-data-store";
 
@@ -22,7 +22,7 @@ const budgetSchema = z.object({
     .trim(),
   amount: z.string()
     .min(1, "L'importo è obbligatorio")
-    .refine((val) => !isNaN(parseFloat(val)) && parseFloat(val) > 0, {
+    .refine((val) => !Number.isNaN(Number.parseFloat(val)) && Number.parseFloat(val) > 0, {
       message: "L'importo deve essere maggiore di zero"
     }),
   type: z.enum(["monthly", "annually"]),
@@ -44,12 +44,12 @@ function BudgetFormModal({
   isOpen,
   onClose,
   editId,
-}: BudgetFormModalProps) {
+}: Readonly<BudgetFormModalProps>) {
   // Read from stores instead of props
-  const currentUser = useCurrentUser();
-  const groupUsers = useGroupUsers();
+  const currentUser = useRequiredCurrentUser();
+  const groupUsers = useRequiredGroupUsers();
   const categories = useCategories();
-  const groupId = useGroupId();
+  const groupId = useRequiredGroupId();
   const selectedUserId = useUserFilterStore(state => state.selectedUserId);
 
   // Page data store actions for optimistic updates
@@ -58,10 +58,6 @@ function BudgetFormModal({
   const updateBudget = usePageDataStore((state) => state.updateBudget);
   const removeBudget = usePageDataStore((state) => state.removeBudget);
 
-  // Early return if store not initialized
-  if (!currentUser || !groupId) {
-    return null;
-  }
   const isEditMode = !!editId;
   const title = isEditMode ? "Modifica Budget" : "Nuovo Budget";
   const description = isEditMode ? "Aggiorna i dettagli del budget" : "Crea un nuovo budget";
@@ -173,7 +169,7 @@ function BudgetFormModal({
   // Handle form submission with optimistic updates
   const onSubmit = async (data: BudgetFormData) => {
     try {
-      const amount = parseFloat(data.amount);
+      const amount = Number.parseFloat(data.amount);
       const budgetData = {
         description: data.description.trim(),
         amount,
@@ -310,7 +306,7 @@ function BudgetFormModal({
 
               {/* Amount */}
               <AmountField
-                value={parseFloat(watch("amount") || "0")}
+                value={Number.parseFloat(watch("amount") || "0")}
                 onChange={(value) => setValue("amount", value.toString())}
                 error={errors.amount?.message}
                 label="Importo"

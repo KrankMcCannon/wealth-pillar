@@ -2,63 +2,48 @@
 
 import { useMemo } from "react";
 import { BottomNavigation, PageContainer, Header } from "@/components/layout";
-import { useUserFilter, usePermissions, useFilteredAccounts } from "@/hooks";
+import { useUserFilter, usePermissions, useFilteredAccounts, useRequiredCurrentUser, useRequiredGroupUsers } from "@/hooks";
 import UserSelector from "@/src/components/shared/user-selector";
 import { BudgetPeriodsSection, reportsStyles, ReportsOverviewCard, AnnualCategorySection } from "@/features/reports";
-import type { Transaction, Category, BudgetPeriod } from "@/lib/types";
+import type { Transaction, Category, BudgetPeriod, Account } from "@/lib/types";
 import { CategoryService } from "@/lib/services";
 import { ReportMetricsService } from "@/lib/services/report-metrics.service";
-import type { Account } from "@/lib/types";
-import { useCurrentUser, useGroupUsers } from "@/stores/reference-data-store";
 
 interface ReportsContentProps {
   accounts: Account[];
   transactions: Transaction[];
   categories: Category[];
+  budgetPeriods: BudgetPeriod[];
 }
 
 export default function ReportsContent({
   accounts,
   transactions,
   categories,
+  budgetPeriods,
 }: ReportsContentProps) {
   // Read from stores instead of props
-  const currentUser = useCurrentUser();
-  const groupUsers = useGroupUsers();
+  const currentUser = useRequiredCurrentUser();
+  const groupUsers = useRequiredGroupUsers();
 
-  // Early return if store not initialized
-  if (!currentUser) {
-    return null;
-  }
   // User filtering state management using shared hook
   const { selectedGroupFilter } = useUserFilter();
 
   // Permission checks
   const { isMember } = usePermissions({
     currentUser,
-    selectedUserId: selectedGroupFilter !== "all" ? selectedGroupFilter : undefined,
+    selectedUserId: selectedGroupFilter === "all" ? undefined : selectedGroupFilter,
   });
 
   // Force members to see only their own data
   const activeGroupFilter = isMember ? currentUser.id : selectedGroupFilter;
-
-  // TODO: Budget periods display in reports currently disabled
-  // The refactored architecture stores only active periods in the page-data-store.
-  // To show historical budget periods in reports, we need to:
-  // 1. Add a method in BudgetPeriodService to fetch all periods for a user/group
-  // 2. Fetch all periods in the reports page server component
-  // 3. Pass them as props and store them separately from active periods
-  // For now, returning empty array to prevent errors
-  const allBudgetPeriods = useMemo<BudgetPeriod[]>(() => {
-    return [];
-  }, []);
 
   // Get user account IDs for earned/spent calculation
   // Using centralized account filtering hook
   const { filteredAccounts: userAccounts } = useFilteredAccounts({
     accounts,
     currentUser,
-    selectedUserId: activeGroupFilter !== "all" ? activeGroupFilter : undefined,
+    selectedUserId: activeGroupFilter === "all" ? undefined : activeGroupFilter,
   });
   const userAccountIds = useMemo(() => userAccounts.map((a) => a.id), [userAccounts]);
 
@@ -120,7 +105,7 @@ export default function ReportsContent({
               <p className={reportsStyles.sectionHeader.subtitle}>Storico periodi passati e attuali</p>
             </div>
             <BudgetPeriodsSection
-              budgetPeriods={allBudgetPeriods}
+              budgetPeriods={budgetPeriods}
               groupUsers={groupUsers}
               transactions={transactions}
               categories={enrichedCategories}

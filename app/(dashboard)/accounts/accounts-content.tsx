@@ -11,42 +11,31 @@ import { Suspense, useEffect, useMemo } from "react";
 import { BottomNavigation, PageContainer, Header } from "@/components/layout";
 import { TotalBalanceCard, AccountsList, accountStyles } from "@/features/accounts";
 import { deleteAccountAction } from "@/features/accounts/actions/account-actions";
-import { useFilteredAccounts, usePermissions, useUserFilter, useDeleteConfirmation } from "@/hooks";
+import { useFilteredAccounts, usePermissions, useUserFilter, useDeleteConfirmation, useRequiredCurrentUser } from "@/hooks";
 import UserSelector from "@/components/shared/user-selector";
 import { UserSelectorSkeleton } from "@/features/dashboard";
 import { ConfirmationDialog } from "@/components/shared/confirmation-dialog";
-import type { Account, Category } from "@/lib/types";
+import type { Account } from "@/lib/types";
 import { useModalState } from "@/lib/navigation/url-state";
-import { useCurrentUser, useAccounts } from "@/stores/reference-data-store";
-import { useReferenceDataStore } from "@/stores/reference-data-store";
+import { useAccounts, useReferenceDataStore } from "@/stores/reference-data-store";
 
 interface AccountsContentProps {
-  accounts: Account[];
   accountBalances: Record<string, number>;
-  initialUserId?: string;
-  categories: Category[];
 }
 
 /**
  * Accounts Content Component
  * Receives user data, accounts, and balances from Server Component parent
  */
-export default function AccountsContent({
-  accounts,
-  accountBalances,
-}: AccountsContentProps) {
+export default function AccountsContent({ accountBalances }: AccountsContentProps) {
   // Read from stores instead of props
-  const currentUser = useCurrentUser();
+  const currentUser = useRequiredCurrentUser();
   const storeAccounts = useAccounts();
 
   // Reference data store actions for optimistic updates
   const removeAccount = useReferenceDataStore((state) => state.removeAccount);
   const addAccount = useReferenceDataStore((state) => state.addAccount);
 
-  // Early return if store not initialized
-  if (!currentUser) {
-    return null;
-  }
   // User filtering state management (global context)
   const { setSelectedGroupFilter, selectedUserId } = useUserFilter();
   const { isMember } = usePermissions({ currentUser, selectedUserId });

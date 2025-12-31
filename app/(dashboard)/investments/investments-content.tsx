@@ -5,15 +5,9 @@ import { EmptyState } from "@/components/shared";
 import UserSelector from "@/src/components/shared/user-selector";
 import { EnhancedHolding } from "@/src/lib";
 import { PieChart } from "lucide-react";
-import type { Account, Category } from "@/lib/types";
 import { useCurrentUser } from "@/stores/reference-data-store";
 
-interface InvestmentsContentProps {
-  accounts: Account[];
-  categories: Category[];
-}
-
-export default function InvestmentsContent({ accounts, categories }: InvestmentsContentProps) {
+export default function InvestmentsContent() {
   // Read from stores instead of props
   const currentUser = useCurrentUser();
 
@@ -45,11 +39,11 @@ export default function InvestmentsContent({ accounts, categories }: Investments
               <div className="mt-4">
                 <div className="flex justify-between text-sm font-medium">
                   <span>
-                    {0 >= 0 ? "+" : ""}
+                    +
                     {Math.abs(0)}
                   </span>
-                  <span className={0 >= 0 ? "text-primary" : "text-destructive"}>
-                    {0 >= 0 ? "+" : ""}
+                  <span className="text-primary">
+                    +
                     {Number(0).toFixed(1)}%
                   </span>
                 </div>
@@ -65,7 +59,7 @@ export default function InvestmentsContent({ accounts, categories }: Investments
               className="px-4 pb-3 pt-5"
             />
             <div className="space-y-3">
-              {0 > 0 ? (
+              {true ? (
                 [].map((holding: EnhancedHolding, index: number) => (
                   <div
                     key={holding.id || index}

@@ -86,7 +86,6 @@ export async function completeOnboardingAction(
       budget_start_date: budgetStartDay,
       group_id: groupId,
       role: 'admin',
-      budget_periods: [],
       clerk_id: user.clerkId,
       created_at: now,
       updated_at: now,

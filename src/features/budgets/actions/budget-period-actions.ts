@@ -63,6 +63,7 @@ export async function startPeriodAction(
       // Revalidate pages that display budget periods
       revalidatePath('/budgets');
       revalidatePath('/dashboard');
+      revalidatePath('/reports');
     }
 
     return result;
@@ -146,6 +147,7 @@ export async function closePeriodAction(
       // Revalidate pages that display budget periods
       revalidatePath('/budgets');
       revalidatePath('/dashboard');
+      revalidatePath('/reports');
     }
 
     return result;
@@ -215,6 +217,7 @@ export async function deletePeriodAction(
       // Revalidate pages that display budget periods
       revalidatePath('/budgets');
       revalidatePath('/dashboard');
+      revalidatePath('/reports');
     }
 
     return result;

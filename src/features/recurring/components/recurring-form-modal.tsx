@@ -4,7 +4,7 @@ import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { RecurringTransactionSeries, User, Account, Category, TransactionFrequencyType } from "@/lib/types";
+import { RecurringTransactionSeries, TransactionFrequencyType } from "@/lib/types";
 import {
   createRecurringSeriesAction,
   updateRecurringSeriesAction,
@@ -19,7 +19,8 @@ import {
   Input,
 } from "@/src/components/ui";
 import { todayDateString } from "@/lib/utils/date-utils";
-import { useCurrentUser, useGroupUsers, useAccounts, useCategories, useGroupId } from "@/stores/reference-data-store";
+import { useRequiredCurrentUser, useRequiredGroupUsers, useRequiredGroupId } from "@/hooks";
+import { useAccounts, useCategories } from "@/stores/reference-data-store";
 import { useUserFilterStore } from "@/stores/user-filter-store";
 import { usePageDataStore } from "@/stores/page-data-store";
 
@@ -30,7 +31,7 @@ const recurringSchema = z.object({
     .trim(),
   amount: z.string()
     .min(1, "L'importo è obbligatorio")
-    .refine((val) => !isNaN(parseFloat(val)) && parseFloat(val) > 0, {
+    .refine((val) => !Number.isNaN(Number.parseFloat(val)) && Number.parseFloat(val) > 0, {
       message: "L'importo deve essere maggiore di zero"
     }),
   type: z.enum(["income", "expense"]),
@@ -43,8 +44,8 @@ const recurringSchema = z.object({
   due_day: z.string()
     .min(1, "Il giorno di addebito è obbligatorio")
     .refine((val) => {
-      const num = parseInt(val, 10);
-      return !isNaN(num) && num >= 1 && num <= 31;
+      const num = Number.parseInt(val, 10);
+      return !Number.isNaN(num) && num >= 1 && num <= 31;
     }, {
       message: "Il giorno deve essere tra 1 e 31"
     }),
@@ -71,13 +72,13 @@ function RecurringFormModal({
   isOpen,
   onClose,
   editId,
-}: RecurringFormModalProps) {
+}: Readonly<RecurringFormModalProps>) {
   // Read from stores instead of props
-  const currentUser = useCurrentUser();
-  const groupUsers = useGroupUsers();
+  const currentUser = useRequiredCurrentUser();
+  const groupUsers = useRequiredGroupUsers();
   const accounts = useAccounts();
   const categories = useCategories();
-  const groupId = useGroupId();
+  const groupId = useRequiredGroupId();
   const selectedUserId = useUserFilterStore(state => state.selectedUserId);
 
   // Page data store actions for optimistic updates
@@ -86,10 +87,6 @@ function RecurringFormModal({
   const updateRecurringSeries = usePageDataStore((state) => state.updateRecurringSeries);
   const removeRecurringSeries = usePageDataStore((state) => state.removeRecurringSeries);
 
-  // Early return if store not initialized
-  if (!currentUser || !groupId) {
-    return null;
-  }
   const isEditMode = !!editId;
   const title = isEditMode ? "Modifica Serie Ricorrente" : "Nuova Serie Ricorrente";
   const description = isEditMode ? "Aggiorna la serie ricorrente" : "Configura una nuova serie ricorrente";
@@ -194,12 +191,12 @@ function RecurringFormModal({
         // Handle date formatting
         const startDateStr = typeof series.start_date === "string"
           ? series.start_date.split("T")[0]
-          : (series.start_date as Date).toISOString().split("T")[0];
+          : (series.start_date).toISOString().split("T")[0];
 
         const endDateStr = series.end_date
           ? (typeof series.end_date === "string"
             ? series.end_date.split("T")[0]
-            : (series.end_date as Date).toISOString().split("T")[0])
+            : (series.end_date).toISOString().split("T")[0])
           : "";
 
         reset({
@@ -245,8 +242,8 @@ function RecurringFormModal({
   // Handle form submission with optimistic updates
   const onSubmit = async (data: RecurringFormData) => {
     try {
-      const amount = parseFloat(data.amount);
-      const dueDay = parseInt(data.due_day, 10);
+      const amount = Number.parseFloat(data.amount);
+      const dueDay = Number.parseInt(data.due_day, 10);
 
       const seriesData = {
         description: data.description.trim(),
@@ -432,7 +429,7 @@ function RecurringFormModal({
 
               {/* Amount */}
               <AmountField
-                value={parseFloat(watch("amount") || "0")}
+                value={Number.parseFloat(watch("amount") || "0")}
                 onChange={(value) => setValue("amount", value.toString())}
                 error={errors.amount?.message}
                 label="Importo"

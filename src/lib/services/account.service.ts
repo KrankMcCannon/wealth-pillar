@@ -82,7 +82,11 @@ export class AccountService {
             throw new Error(error.message);
           }
 
-          return data;
+          if (!data) {
+            throw new Error('Account not found');
+          }
+
+          return data as Account;
         },
         accountCacheKeys.byId(accountId),
         cacheOptions.account(accountId)
@@ -150,7 +154,7 @@ export class AccountService {
             throw new Error(error.message);
           }
 
-          return data || [];
+          return (data || []) as Account[];
         },
         accountCacheKeys.byUser(userId),
         cacheOptions.accountsByUser(userId)
@@ -211,7 +215,7 @@ export class AccountService {
             throw new Error(error.message);
           }
 
-          return data || [];
+          return (data || []) as Account[];
         },
         accountCacheKeys.byGroup(groupId),
         cacheOptions.accountsByGroup(groupId)
@@ -502,14 +506,16 @@ export class AccountService {
         return { data: null, error: 'Failed to create account' };
       }
 
+      const createdAccount = account as Account;
+
       await revalidateCacheTags([
         CACHE_TAGS.ACCOUNTS,
-        CACHE_TAGS.ACCOUNT(account.id),
+        CACHE_TAGS.ACCOUNT(createdAccount.id),
         `group:${data.group_id}:accounts`,
         ...data.user_ids.map((userId) => `user:${userId}:accounts`),
       ]);
 
-      return { data: account, error: null };
+      return { data: createdAccount, error: null };
     } catch (error) {
       return {
         data: null,
@@ -568,7 +574,7 @@ export class AccountService {
 
       await revalidateCacheTags(tagsToRevalidate);
 
-      return { data: account, error: null };
+      return { data: account as Account, error: null };
     } catch (error) {
       return {
         data: null,

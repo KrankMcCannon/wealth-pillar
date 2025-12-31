@@ -6,6 +6,7 @@ import { Suspense } from 'react';
 import { getDashboardData } from '@/lib/auth/get-dashboard-data';
 import { PageDataService } from '@/lib/services';
 import { PageLoader } from '@/src/components/shared';
+import { getUserPeriodsAction } from '@/features/budgets/actions/budget-period-actions';
 import ReportsContent from './reports-content';
 
 export default async function ReportsPage() {
@@ -20,12 +21,16 @@ export default async function ReportsPage() {
 
   const { accounts = [], transactions = [], categories = [] } = data || {};
 
+  // Fetch all budget periods for the current user
+  const { data: budgetPeriods } = await getUserPeriodsAction(currentUser.id);
+
   return (
     <Suspense fallback={<PageLoader message="Caricamento report..." />}>
       <ReportsContent
         accounts={accounts}
         transactions={transactions}
         categories={categories}
+        budgetPeriods={budgetPeriods || []}
       />
     </Suspense>
   );

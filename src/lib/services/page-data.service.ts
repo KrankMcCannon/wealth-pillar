@@ -4,7 +4,7 @@ import { BudgetService } from './budget.service';
 import { BudgetPeriodService } from './budget-period.service';
 import { CategoryService } from './category.service';
 import { RecurringService } from './recurring.service';
-import { UserService } from './user.service';
+import { GroupService } from './group.service';
 import type { ServiceResult } from './user.service';
 import type {
   Account,
@@ -106,7 +106,7 @@ export class PageDataService {
     groupId: string
   ): Promise<ServiceResult<DashboardPageData>> {
     // First, get group users to fetch their budget periods
-    const { data: groupUsers } = await UserService.getUsersByGroup(groupId);
+    const { data: groupUsers } = await GroupService.getGroupUsers(groupId);
     const userIds = groupUsers?.map((u) => u.id) || [];
 
     // Fetch all data in parallel
@@ -238,7 +238,7 @@ export class PageDataService {
     groupId: string
   ): Promise<ServiceResult<BudgetsPageData>> {
     // First, get group users to fetch their budget periods
-    const { data: groupUsers } = await UserService.getUsersByGroup(groupId);
+    const { data: groupUsers } = await GroupService.getGroupUsers(groupId);
     const userIds = groupUsers?.map((u) => u.id) || [];
 
     // Fetch all data in parallel

@@ -3,12 +3,8 @@
 import { lazy } from "react";
 import dynamic from 'next/dynamic';
 import { useModalState } from "@/lib/navigation/url-state";
-import { useUserFilterStore } from "@/stores/user-filter-store";
 import {
   useCurrentUser,
-  useGroupUsers,
-  useAccounts,
-  useCategories,
   useGroupId,
 } from "@/stores/reference-data-store";
 
@@ -39,13 +35,9 @@ interface ModalProviderProps {
  */
 function ModalRenderer() {
   const { modal, editId, closeModal } = useModalState();
-  const selectedUserId = useUserFilterStore(state => state.selectedUserId);
 
   // Read from stores instead of props
   const currentUser = useCurrentUser();
-  const groupUsers = useGroupUsers();
-  const accounts = useAccounts();
-  const categories = useCategories();
   const groupId = useGroupId();
 
   // Don't render modals until store is initialized
@@ -114,7 +106,7 @@ const DynamicModalRenderer = dynamic(
  */
 export function ModalProvider({
   children,
-}: ModalProviderProps) {
+}: Readonly<ModalProviderProps>) {
   return (
     <>
       {children}

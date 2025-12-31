@@ -4,17 +4,16 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { User, Account } from "@/lib/types";
+import { Account } from "@/lib/types";
 import { createAccountAction, updateAccountAction } from "@/features/accounts/actions/account-actions";
 import { ModalWrapper, ModalContent, ModalSection } from "@/src/components/ui/modal-wrapper";
 import { FormActions, FormField, FormSelect } from "@/src/components/form";
 import { UserField } from "@/src/components/ui/fields";
 import { Input } from "@/src/components/ui/input";
-import { usePermissions } from "@/hooks";
+import { usePermissions, useRequiredCurrentUser, useRequiredGroupUsers, useRequiredGroupId } from "@/hooks";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/src/components/ui";
-import { useCurrentUser, useGroupUsers, useGroupId, useAccounts } from "@/stores/reference-data-store";
-import { useReferenceDataStore } from "@/stores/reference-data-store";
+import { useAccounts, useReferenceDataStore } from "@/stores/reference-data-store";
 import { useUserFilterStore } from "@/stores/user-filter-store";
 
 // Zod schema for account validation
@@ -39,11 +38,11 @@ function AccountFormModal({
   isOpen,
   onClose,
   editId,
-}: AccountFormModalProps) {
+}: Readonly<AccountFormModalProps>) {
   // Read from stores instead of props
-  const currentUser = useCurrentUser();
-  const groupUsers = useGroupUsers();
-  const groupId = useGroupId();
+  const currentUser = useRequiredCurrentUser();
+  const groupUsers = useRequiredGroupUsers();
+  const groupId = useRequiredGroupId();
   const selectedUserId = useUserFilterStore(state => state.selectedUserId);
 
   // Reference data store actions for optimistic updates
@@ -52,10 +51,6 @@ function AccountFormModal({
   const updateAccount = useReferenceDataStore((state) => state.updateAccount);
   const removeAccount = useReferenceDataStore((state) => state.removeAccount);
 
-  // Early return if store not initialized
-  if (!currentUser || !groupId) {
-    return null;
-  }
   const isEditMode = !!editId;
   const title = isEditMode ? "Modifica account" : "Nuovo account";
   const description = isEditMode ? "Aggiorna i dettagli dell'account" : "Aggiungi un nuovo account bancario o di cassa";
@@ -101,7 +96,7 @@ function AccountFormModal({
 
         reset({
           name: account.name,
-          type: account.type as any,
+          type: account.type,
           user_id: account.user_ids[0] || currentUser.id,
           isDefault,
         });

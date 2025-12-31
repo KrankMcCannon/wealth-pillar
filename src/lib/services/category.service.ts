@@ -78,7 +78,7 @@ export class CategoryService {
       const categories = await getCachedCategories();
 
       return {
-        data: categories || [],
+        data: (categories || []) as Category[],
         error: null,
       };
     } catch (error) {
@@ -146,7 +146,7 @@ export class CategoryService {
       }
 
       return {
-        data: category,
+        data: category as Category,
         error: null,
       };
     } catch (error) {
@@ -212,7 +212,7 @@ export class CategoryService {
       }
 
       return {
-        data: category,
+        data: category as Category,
         error: null,
       };
     } catch (error) {
@@ -502,7 +502,7 @@ export class CategoryService {
         CACHE_TAGS.CATEGORIES,
       ]);
 
-      return { data: category, error: null };
+      return { data: category as Category, error: null };
     } catch (error) {
       return {
         data: null,
@@ -587,7 +587,7 @@ export class CategoryService {
         CACHE_TAGS.CATEGORY(id),
       ]);
 
-      return { data: category, error: null };
+      return { data: category as Category, error: null };
     } catch (error) {
       return {
         data: null,

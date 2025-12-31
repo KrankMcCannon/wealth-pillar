@@ -108,7 +108,6 @@ export function GroupedTransactionCard({
             accountNames={accountNames}
             variant={variant}
             context={context}
-            categories={categories}
             onEditTransaction={(tx) => {
               // Prima chiudi la row aperta se ce n'è una
               if (openTransactionId) {

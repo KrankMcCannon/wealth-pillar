@@ -1,7 +1,7 @@
 "use client";
 
 import { Badge } from "@/src/components/ui";
-import { CategoryIcon, iconSizes, Transaction, Category } from "@/src/lib";
+import { CategoryIcon, iconSizes, Transaction } from "@/src/lib";
 import { formatCurrency } from "@/lib/utils";
 import { memo, useEffect, useRef } from "react";
 import { motion, useMotionValue, PanInfo, animate } from "framer-motion";
@@ -18,7 +18,6 @@ interface TransactionRowProps {
   accountNames: Record<string, string>;
   variant: "regular" | "recurrent";
   context: "due" | "informative";
-  categories: Category[];
   onEditTransaction?: (transaction: Transaction) => void;
   onDeleteTransaction?: (transactionId: string) => void;
   getCategoryLabel: (key: string) => string;
@@ -44,7 +43,6 @@ export const TransactionRow = memo(({
   accountNames,
   variant,
   context,
-  categories,
   onEditTransaction,
   onDeleteTransaction,
   getCategoryLabel,
