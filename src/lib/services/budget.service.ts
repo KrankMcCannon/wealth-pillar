@@ -343,7 +343,7 @@ export class BudgetService {
       ];
       await revalidateCacheTags(tagsToInvalidate);
 
-      return { data: budget, error: null };
+      return { data: budget as Budget, error: null };
     } catch (error) {
       return {
         data: null,
@@ -461,7 +461,7 @@ export class BudgetService {
 
       await revalidateCacheTags(tagsToInvalidate);
 
-      return { data: updatedBudget, error: null };
+      return { data: updatedBudget as Budget, error: null };
     } catch (error) {
       return {
         data: null,
@@ -542,21 +542,23 @@ export class BudgetService {
   }
 
   /**
-   * Get current budget period dates from user's budget_periods
-   * Uses the active period's start_date and end_date
+   * Get current budget period dates from user's active budget period
+   * Fetches from the budget_periods table and uses the active period's dates
    *
-   * @param user - User with budget_periods array
-   * @returns Object with periodStart and periodEnd dates, or null dates if no active period
+   * @param userId - User ID
+   * @returns Promise with periodStart and periodEnd dates, or null dates if no active period
    *
    * @example
-   * const { periodStart, periodEnd } = BudgetService.getBudgetPeriodDates(user);
+   * const { periodStart, periodEnd } = await BudgetService.getBudgetPeriodDates(userId);
    */
-  static getBudgetPeriodDates(user: User): {
+  static async getBudgetPeriodDates(userId: string): Promise<{
     periodStart: DateTime | null;
     periodEnd: DateTime | null;
-  } {
-    // Find the active budget period
-    const activePeriod = user.budget_periods?.find((p) => p.is_active);
+  }> {
+    const { BudgetPeriodService } = await import('./budget-period.service');
+
+    // Fetch the active budget period from the database
+    const { data: activePeriod } = await BudgetPeriodService.getActivePeriod(userId);
 
     if (!activePeriod) {
       return { periodStart: null, periodEnd: null };
@@ -697,18 +699,35 @@ export class BudgetService {
    * @param user - User to build summary for
    * @param budgets - User's budgets
    * @param transactions - All transactions to calculate spending
+   * @param activePeriod - Optional active budget period (if not provided, will fetch from DB)
    * @returns Complete user budget summary
    *
    * @example
-   * const summary = BudgetService.calculateUserBudgetSummary(user, userBudgets, transactions);
+   * // With period data already available:
+   * const summary = await BudgetService.calculateUserBudgetSummary(user, userBudgets, transactions, activePeriod);
+   * // Without period data (will fetch):
+   * const summary = await BudgetService.calculateUserBudgetSummary(user, userBudgets, transactions);
    */
-  static calculateUserBudgetSummary(
+  static async calculateUserBudgetSummary(
     user: User,
     budgets: Budget[],
-    transactions: Transaction[] // Now receives pre-filtered user transactions
-  ): UserBudgetSummary {
-    // Get budget period dates from user's budget_periods
-    const { periodStart, periodEnd } = this.getBudgetPeriodDates(user);
+    transactions: Transaction[], // Now receives pre-filtered user transactions
+    activePeriod?: BudgetPeriod | null
+  ): Promise<UserBudgetSummary> {
+    let period: BudgetPeriod | null | undefined = activePeriod;
+
+    // Fetch period if not provided
+    if (activePeriod === undefined) {
+      const { BudgetPeriodService } = await import('./budget-period.service');
+      const { data } = await BudgetPeriodService.getActivePeriod(user.id);
+      period = data;
+    }
+
+    // Calculate period dates from the period
+    const periodStart = period ? toDateTime(period.start_date) : null;
+    const periodEnd = period?.end_date
+      ? (toDateTime(period.end_date)?.endOf('day') ?? null)
+      : null;
 
     // OPTIMIZATION: Transactions are already filtered by user_id in buildBudgetsByUser
     // No need to filter again - reduces one O(p) operation per user
@@ -731,13 +750,10 @@ export class BudgetService {
     // Example: If totalBudget=500, totalSpent=650 → overallPercentage=130%, totalRemaining=-150
     const overallPercentage = totalBudget > 0 ? (totalSpent / totalBudget) * 100 : 0;
 
-    // Get active budget period from user
-    const activePeriod = user.budget_periods?.find((p) => p.is_active);
-
     return {
       user,
       budgets: budgetProgress,
-      activePeriod,
+      activePeriod: period || undefined,
       periodStart: periodStart?.toISO() || null,
       periodEnd: periodEnd?.toISO() || null,
       totalBudget,
@@ -754,16 +770,21 @@ export class BudgetService {
    * @param groupUsers - All users in the group
    * @param budgets - All group budgets
    * @param transactions - All group transactions
-   * @returns Record of user ID to budget summary
+   * @param budgetPeriods - Optional map of user ID to BudgetPeriod (if not provided, will fetch from DB)
+   * @returns Promise with record of user ID to budget summary
    *
    * @example
-   * const budgetsByUser = BudgetService.buildBudgetsByUser(groupUsers, budgets, transactions);
+   * // With budget periods already available:
+   * const budgetsByUser = await BudgetService.buildBudgetsByUser(groupUsers, budgets, transactions, budgetPeriods);
+   * // Without budget periods (will fetch):
+   * const budgetsByUser = await BudgetService.buildBudgetsByUser(groupUsers, budgets, transactions);
    */
-  static buildBudgetsByUser(
+  static async buildBudgetsByUser(
     groupUsers: User[],
     budgets: Budget[],
-    transactions: Transaction[]
-  ): Record<string, UserBudgetSummary> {
+    transactions: Transaction[],
+    budgetPeriods?: Record<string, BudgetPeriod | null>
+  ): Promise<Record<string, UserBudgetSummary>> {
     // OPTIMIZATION: Pre-group budgets and transactions by user_id
     // Reduces complexity from O(n × m) to O(m + p + n) where:
     // n=users, m=budgets, p=transactions
@@ -789,19 +810,30 @@ export class BudgetService {
       transactionsByUserId.get(userId)!.push(transaction);
     }
 
-    // Build result: O(n) with O(1) lookups
-    const result: Record<string, UserBudgetSummary> = {};
-
-    for (const user of groupUsers) {
+    // Build result: O(n) with O(1) lookups - now async
+    const summaryPromises = groupUsers.map(async (user) => {
       const userBudgets = budgetsByUserId.get(user.id) || [];
       const userTransactions = transactionsByUserId.get(user.id) || [];
+      const userPeriod = budgetPeriods?.[user.id];
 
       // Calculate summary with pre-filtered data
-      result[user.id] = this.calculateUserBudgetSummary(
+      const summary = await this.calculateUserBudgetSummary(
         user,
         userBudgets,
-        userTransactions // Pass only user's transactions instead of all
+        userTransactions, // Pass only user's transactions instead of all
+        userPeriod
       );
+
+      return [user.id, summary] as const;
+    });
+
+    // Wait for all summaries to be calculated
+    const summaries = await Promise.all(summaryPromises);
+
+    // Convert to object
+    const result: Record<string, UserBudgetSummary> = {};
+    for (const [userId, summary] of summaries) {
+      result[userId] = summary;
     }
 
     return result;
@@ -919,7 +951,7 @@ export class BudgetService {
   /**
    * Format period date for display
    * Returns formatted date string
-   
+
    * @param date - Date to format
    * @returns Formatted date string
    */
@@ -931,5 +963,122 @@ export class BudgetService {
     const month = dt.toFormat("LLL", { locale: "it" });
     const year = dt.year;
     return `${day} ${month} ${year}`;
-  };
+  }
+
+  /**
+   * Update cached budget balance for a budget
+   * Recalculates balance from transactions and caches it in the database
+   * Called when transactions change or balance becomes stale
+   *
+   * @param budgetId - Budget ID to update
+   * @param transactions - All transactions to calculate from
+   * @param periodStart - Active period start date
+   * @param periodEnd - Active period end date (null for open period)
+   * @returns Updated budget with cached balance
+   *
+   * @example
+   * const { data: updatedBudget } = await BudgetService.updateBudgetBalance(
+   *   budgetId,
+   *   transactions,
+   *   periodStart,
+   *   periodEnd
+   * );
+   */
+  static async updateBudgetBalance(
+    budgetId: string,
+    transactions: Transaction[],
+    periodStart: DateTime | null,
+    periodEnd: DateTime | null
+  ): Promise<ServiceResult<Budget>> {
+    try {
+      const { data: budget } = await this.getBudgetById(budgetId);
+      if (!budget) {
+        return { data: null, error: 'Budget not found' };
+      }
+
+      // Calculate fresh balance
+      const budgetTransactions = this.filterTransactionsForBudget(
+        transactions,
+        budget,
+        periodStart,
+        periodEnd
+      );
+
+      const progress = this.calculateBudgetProgress(budget, budgetTransactions);
+
+      // Update budget with cached balance
+      const { data: updated, error } = await supabaseServer
+        .from('budgets')
+        .update({
+          current_balance: progress.remaining,
+          balance_updated_at: nowISO(),
+          updated_at: nowISO(),
+        })
+        .eq('id', budgetId)
+        .select()
+        .single();
+
+      if (error) throw new Error(error.message);
+
+      // Invalidate caches
+      await revalidateCacheTags([
+        CACHE_TAGS.BUDGETS,
+        CACHE_TAGS.BUDGET(budgetId),
+        `user:${budget.user_id}:budgets`,
+      ]);
+
+      return { data: updated as Budget, error: null };
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
+      return { data: null, error: errorMessage };
+    }
+  }
+
+  /**
+   * Get budget balance with smart caching
+   * Returns cached value if fresh (<5 min), otherwise recalculates
+   *
+   * @param budget - Budget to get balance for
+   * @param transactions - All transactions
+   * @param periodStart - Active period start date
+   * @param periodEnd - Active period end date
+   * @returns Balance (remaining amount)
+   *
+   * @example
+   * const balance = await BudgetService.getBudgetBalance(
+   *   budget,
+   *   transactions,
+   *   periodStart,
+   *   periodEnd
+   * );
+   */
+  static async getBudgetBalance(
+    budget: Budget,
+    transactions: Transaction[],
+    periodStart: DateTime | null,
+    periodEnd: DateTime | null
+  ): Promise<number> {
+    // Check if cached balance is fresh (< 5 minutes)
+    const isFresh =
+      budget.balance_updated_at &&
+      budget.current_balance !== null &&
+      budget.current_balance !== undefined &&
+      DateTime.now().diff(toDateTime(budget.balance_updated_at)!, 'minutes')
+        .minutes < 5;
+
+    if (isFresh) {
+      return budget.current_balance!;
+    }
+
+    // Recalculate if stale or not cached
+    const { data: updated } = await this.updateBudgetBalance(
+      budget.id,
+      transactions,
+      periodStart,
+      periodEnd
+    );
+
+    return updated?.current_balance ?? 0;
+  }
 }

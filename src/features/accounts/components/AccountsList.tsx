@@ -39,7 +39,9 @@ function AccountCardSkeleton() {
 interface AccountsListProps {
   accounts: Account[];
   accountBalances: Record<string, number>;
-  onAccountClick: (accountId: string) => void;
+  onAccountClick?: (account: Account) => void;
+  onEditAccount?: (account: Account) => void;
+  onDeleteAccount?: (account: Account) => void;
   isLoading?: boolean;
 }
 
@@ -47,8 +49,10 @@ export const AccountsList = ({
   accounts,
   accountBalances,
   onAccountClick,
+  onEditAccount,
+  onDeleteAccount,
   isLoading = false,
-}: AccountsListProps) => {
+}: Readonly<AccountsListProps>) => {
   // Show skeleton only if actively loading AND no data received yet
   // With placeholderData, empty array exists immediately, so check both conditions
   const isInitialLoading = isLoading && (!accounts || accounts.length === 0);
@@ -96,7 +100,9 @@ export const AccountsList = ({
               <AccountCard
                 account={account}
                 accountBalance={accountBalance}
-                onClick={() => onAccountClick(account.id)}
+                onClick={onAccountClick ? () => onAccountClick(account) : undefined}
+                onEdit={onEditAccount ? () => onEditAccount(account) : undefined}
+                onDelete={onDeleteAccount ? () => onDeleteAccount(account) : undefined}
               />
             </div>
           );

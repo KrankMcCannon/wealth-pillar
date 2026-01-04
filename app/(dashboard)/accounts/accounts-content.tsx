@@ -8,18 +8,22 @@
  */
 
 import { Suspense, useEffect, useMemo } from "react";
-import { BottomNavigation, PageContainer } from "@/components/layout";
-import { AccountHeader, TotalBalanceCard, AccountsList, accountStyles } from "@/features/accounts";
-import { useFilteredAccounts, usePermissions, useUserFilter } from "@/hooks";
+import { BottomNavigation, PageContainer, Header } from "@/components/layout";
+import { TotalBalanceCard, AccountsList, accountStyles } from "@/features/accounts";
+import { deleteAccountAction } from "@/features/accounts/actions/account-actions";
+import { useFilteredAccounts, usePermissions, useUserFilter, useDeleteConfirmation } from "@/hooks";
 import UserSelector from "@/components/shared/user-selector";
 import { UserSelectorSkeleton } from "@/features/dashboard";
-import type { DashboardDataProps } from "@/lib/auth/get-dashboard-data";
-import type { Account } from "@/lib/types";
+import { ConfirmationDialog } from "@/components/shared/confirmation-dialog";
+import type { Account, User } from "@/lib/types";
+import { useModalState } from "@/lib/navigation/url-state";
+import { useReferenceDataStore } from "@/stores/reference-data-store";
 
-interface AccountsContentProps extends DashboardDataProps {
-  accounts: Account[];
+interface AccountsContentProps {
   accountBalances: Record<string, number>;
-  initialUserId?: string;
+  currentUser: User;
+  groupUsers: User[];
+  accounts: Account[];
 }
 
 /**
@@ -27,15 +31,24 @@ interface AccountsContentProps extends DashboardDataProps {
  * Receives user data, accounts, and balances from Server Component parent
  */
 export default function AccountsContent({
+  accountBalances,
   currentUser,
   groupUsers,
   accounts,
-  accountBalances,
-  initialUserId,
 }: AccountsContentProps) {
-  const initialFilter = initialUserId || "all";
-  const { selectedGroupFilter, setSelectedGroupFilter, selectedUserId } = useUserFilter(initialFilter);
+  // Reference data store actions for optimistic updates
+  const removeAccount = useReferenceDataStore((state) => state.removeAccount);
+  const addAccount = useReferenceDataStore((state) => state.addAccount);
+
+  // User filtering state management (global context)
+  const { setSelectedGroupFilter, selectedUserId } = useUserFilter();
   const { isMember } = usePermissions({ currentUser, selectedUserId });
+
+  // Modal state management (URL-based)
+  const { openModal } = useModalState();
+
+  // Delete confirmation state using hook
+  const deleteConfirm = useDeleteConfirmation<Account>();
 
   useEffect(() => {
     if (isMember) {
@@ -77,25 +90,56 @@ export default function AccountsContent({
     };
   }, [filteredAccounts.length, filteredBalances]);
 
+  // Action Handlers
+  const handleEditAccount = (account: Account) => {
+    openModal("account", account.id);
+  };
+
+  const handleDeleteAccount = (account: Account) => {
+    deleteConfirm.openDialog(account);
+  };
+
+  const handleDeleteConfirm = async () => {
+    await deleteConfirm.executeDelete(async (account) => {
+      // Optimistic UI update - remove immediately from store
+      removeAccount(account.id);
+
+      try {
+        const result = await deleteAccountAction(account.id);
+
+        if (result.error) {
+          // Revert on error - add back to store
+          addAccount(account);
+          console.error("[AccountsContent] Delete error:", result.error);
+          throw new Error(result.error);
+        }
+        // Success - no page refresh needed, store already updated!
+      } catch (error) {
+        // Revert on error
+        addAccount(account);
+        console.error("[AccountsContent] Error deleting account:", error);
+        throw error;
+      }
+    });
+  };
   return (
     <PageContainer className={accountStyles.page.container}>
       <div className="flex-1">
         {/* Header Section */}
-        <AccountHeader
-          totalAccounts={accountStats.totalAccounts}
-          onAddAccount={() => {
-            /* TODO: Open add account modal */
-          }}
-          isLoading={false}
+        <Header
+          title="Bank Accounts"
+          subtitle={`${accountStats.totalAccounts} account${accountStats.totalAccounts === 1 ? '' : 's'}`}
+          showBack={true}
+          className={accountStyles.header.container}
+          currentUser={{ name: currentUser.name, role: currentUser.role || 'member' }}
+          showActions={true}
         />
 
         {/* User Selector */}
         <Suspense fallback={<UserSelectorSkeleton />}>
           <UserSelector
-            users={groupUsers}
             currentUser={currentUser}
-            selectedGroupFilter={selectedGroupFilter}
-            onGroupFilterChange={setSelectedGroupFilter}
+            users={groupUsers}
           />
         </Suspense>
 
@@ -112,14 +156,31 @@ export default function AccountsContent({
         <AccountsList
           accounts={sortedAccounts}
           accountBalances={filteredBalances}
-          onAccountClick={() => {
-            /* TODO: Open account detail */
-          }}
+          onAccountClick={handleEditAccount}
+          onEditAccount={handleEditAccount}
+          onDeleteAccount={handleDeleteAccount}
           isLoading={false}
         />
       </div>
 
       <BottomNavigation />
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmationDialog
+        isOpen={deleteConfirm.isOpen}
+        onConfirm={handleDeleteConfirm}
+        onCancel={deleteConfirm.closeDialog}
+        title="Elimina Account"
+        message={
+          deleteConfirm.itemToDelete
+            ? `Sei sicuro di voler eliminare l'account "${deleteConfirm.itemToDelete.name}"? Questa azione non può essere annullata.`
+            : ""
+        }
+        confirmText="Elimina"
+        cancelText="Annulla"
+        variant="destructive"
+        isLoading={deleteConfirm.isDeleting}
+      />
     </PageContainer>
   );
 }

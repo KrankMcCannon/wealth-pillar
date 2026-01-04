@@ -4,9 +4,6 @@
  */
 
 // Layout & Container Components
-export { BudgetHeader } from './BudgetHeader';
-export type { BudgetHeaderProps } from './BudgetHeader';
-
 export { BudgetSelector } from './BudgetSelector';
 export type { BudgetSelectorProps } from './BudgetSelector';
 

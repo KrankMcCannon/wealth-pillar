@@ -8,9 +8,19 @@ interface BudgetPeriodInfoProps {
   period: BudgetPeriod | null;
   className?: string;
   showSpending?: boolean;
+  totalSpent?: number;
+  totalSaved?: number;
+  categorySpending?: Record<string, number>;
 }
 
-export function BudgetPeriodInfo({ period, className = "", showSpending = true }: BudgetPeriodInfoProps) {
+export function BudgetPeriodInfo({
+  period,
+  className = "",
+  showSpending = true,
+  totalSpent,
+  totalSaved,
+  categorySpending,
+}: BudgetPeriodInfoProps) {
   if (!period) {
     return (
       <div className={`text-center py-2 ${className}`}>
@@ -44,32 +54,36 @@ export function BudgetPeriodInfo({ period, className = "", showSpending = true }
       </div>
 
       {/* Spending Summary */}
-      {showSpending && (
+      {showSpending && (totalSpent !== undefined || totalSaved !== undefined) && (
         <div className="grid grid-cols-2 gap-3">
-          <div className="bg-primary/5 rounded-lg px-3 py-2 border border-primary/10">
-            <p className="text-xs font-semibold text-primary/70 uppercase tracking-wide mb-1">Speso</p>
-            <p className="text-sm font-bold text-destructive">{period.total_spent}</p>
-          </div>
+          {totalSpent !== undefined && (
+            <div className="bg-primary/5 rounded-lg px-3 py-2 border border-primary/10">
+              <p className="text-xs font-semibold text-primary/70 uppercase tracking-wide mb-1">Speso</p>
+              <p className="text-sm font-bold text-destructive">{totalSpent}</p>
+            </div>
+          )}
 
-          <div className="bg-success/5 rounded-lg px-3 py-2 border border-success/10">
-            <p className="text-xs font-semibold text-success/70 uppercase tracking-wide mb-1">Risparmiato</p>
-            <p className="text-sm font-bold text-success">{period.total_saved}</p>
-          </div>
+          {totalSaved !== undefined && (
+            <div className="bg-success/5 rounded-lg px-3 py-2 border border-success/10">
+              <p className="text-xs font-semibold text-success/70 uppercase tracking-wide mb-1">Risparmiato</p>
+              <p className="text-sm font-bold text-success">{totalSaved}</p>
+            </div>
+          )}
         </div>
       )}
 
       {/* Category Breakdown (if available) */}
-      {period.category_spending && Object.keys(period.category_spending).length > 0 && (
+      {categorySpending && Object.keys(categorySpending).length > 0 && (
         <div className="pt-2 border-t border-primary/10">
           <p className="text-xs font-semibold text-primary/70 uppercase tracking-wide mb-2">Principali Categorie</p>
           <div className="space-y-1">
-            {Object.entries(period.category_spending)
-              .sort(([, a], [, b]) => b - a)
+            {Object.entries(categorySpending)
+              .sort(([, a], [, b]) => (b as number) - (a as number))
               .slice(0, 3)
               .map(([category, amount]) => (
                 <div key={category} className="flex items-center justify-between">
                   <span className="text-xs text-primary/70 capitalize">{category.replace(/_/g, " ")}</span>
-                  <span className="text-xs font-semibold text-primary">{amount}</span>
+                  <span className="text-xs font-semibold text-primary">{amount as number}</span>
                 </div>
               ))}
           </div>

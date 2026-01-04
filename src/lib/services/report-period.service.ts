@@ -9,7 +9,7 @@
 import type { Account, BudgetPeriod, Transaction, User, CategoryBreakdownItem } from '@/lib/types';
 import { FinanceLogicService } from './finance-logic.service';
 import { AccountService } from './account.service';
-import { subtractDays, toDateTime } from '@/lib/utils/date-utils';
+import { toDateTime } from '@/lib/utils/date-utils';
 
 /**
  * Enhanced budget period with calculated metrics including NET analysis
@@ -79,8 +79,6 @@ export class ReportPeriodService {
     const partiallyEnriched = budgetPeriods.map((period) => {
       const user = userMap.get(period.user_id);
       const userName = user?.name || 'Unknown User';
-      const userAccountIds = accountIdsByUser.get(period.user_id) || [];
-
       // Filter transactions for this period and user
       const periodTransactions = FinanceLogicService.filterTransactionsByPeriod(
         transactions,

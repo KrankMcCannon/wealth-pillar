@@ -19,7 +19,7 @@ import {
   PiggyBank,
 } from "lucide-react";
 import type { Transaction, Category } from "@/lib/types";
-import { BudgetService, CategoryService, FinanceLogicService } from "@/lib/services";
+import { BudgetService, CategoryService } from "@/lib/services";
 import { formatDateShort } from "@/lib/utils/date-utils";
 import { reportsStyles } from "../theme/reports-styles";
 import { cn } from "@/lib/utils/ui-variants";
@@ -45,7 +45,6 @@ const BudgetPeriodCardComponent = ({
   startDate,
   endDate,
   userName,
-  userId,
   transactions,
   categories,
   isExpanded,

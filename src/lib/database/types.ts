@@ -1,5 +1,16 @@
 // Database types for Supabase - Generated from your database schema
-import type { BudgetPeriod } from '@/lib/types';
+
+/**
+ * Budget Period JSON structure
+ */
+export interface BudgetPeriodJSON {
+  id: string;
+  start_date: string;
+  end_date: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
 
 export interface Database {
   public: {
@@ -14,8 +25,8 @@ export interface Database {
           budget_start_date: number;
           group_id: string;
           role: 'superadmin' | 'admin' | 'member';
-          budget_periods: BudgetPeriod[];
           clerk_id: string | null;
+          budget_periods: BudgetPeriodJSON[];
           created_at: string;
           updated_at: string;
         };
@@ -28,8 +39,8 @@ export interface Database {
           budget_start_date: number;
           group_id: string;
           role: 'superadmin' | 'admin' | 'member';
-          budget_periods?: BudgetPeriod[];
           clerk_id?: string | null;
+          budget_periods?: BudgetPeriodJSON[];
           created_at?: string;
           updated_at?: string;
         };
@@ -42,8 +53,8 @@ export interface Database {
           budget_start_date?: number;
           group_id?: string;
           role?: 'superadmin' | 'admin' | 'member';
-          budget_periods?: BudgetPeriod[];
           clerk_id?: string | null;
+          budget_periods?: BudgetPeriodJSON[];
           created_at?: string;
           updated_at?: string;
         };
@@ -203,6 +214,8 @@ export interface Database {
           categories: string[];
           user_id: string;
           group_id: string;
+          current_balance: number | null;
+          balance_updated_at: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -215,6 +228,8 @@ export interface Database {
           categories: string[];
           user_id: string;
           group_id: string;
+          current_balance?: number | null;
+          balance_updated_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -227,6 +242,8 @@ export interface Database {
           categories?: string[];
           user_id?: string;
           group_id?: string;
+          current_balance?: number | null;
+          balance_updated_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };

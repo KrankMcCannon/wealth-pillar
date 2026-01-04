@@ -1,9 +1,12 @@
 'use server';
 
+import { revalidatePath, revalidateTag } from 'next/cache';
+
 import { auth } from '@clerk/nextjs/server';
 import { TransactionService, CreateTransactionInput } from '@/lib/services/transaction.service';
 import { UserService } from '@/lib/services';
 import { canAccessUserData, isMember } from '@/lib/utils/permissions';
+import { CACHE_TAGS } from '@/lib/cache';
 import type { Transaction } from '@/lib/types';
 import type { ServiceResult } from '@/lib/services/user.service';
 
@@ -52,7 +55,23 @@ export async function createTransactionAction(
       };
     }
 
-    return await TransactionService.createTransaction(input);
+    const result = await TransactionService.createTransaction(input);
+
+    if (!result.error) {
+      // Revalidate paths
+      revalidatePath('/dashboard');
+      revalidatePath('/transactions');
+      revalidatePath('/accounts');
+      revalidatePath('/budgets');
+      revalidatePath('/reports');
+
+      // Invalidate budget period and budget caches (PostgreSQL triggers handle DB updates)
+      revalidateTag(CACHE_TAGS.USER_BUDGET_PERIODS(input.user_id), 'max');
+      revalidateTag(CACHE_TAGS.USER_ACTIVE_BUDGET_PERIOD(input.user_id), 'max');
+      revalidateTag(CACHE_TAGS.USER_BUDGETS(input.user_id), 'max');
+    }
+
+    return result;
   } catch (error) {
     return {
       data: null,
@@ -122,7 +141,30 @@ export async function updateTransactionAction(
       }
     }
 
-    return await TransactionService.updateTransaction(id, input);
+    const result = await TransactionService.updateTransaction(id, input);
+
+    if (!result.error) {
+      // Revalidate paths
+      revalidatePath('/dashboard');
+      revalidatePath('/transactions');
+      revalidatePath('/accounts');
+      revalidatePath('/budgets');
+      revalidatePath('/reports');
+
+      // Invalidate caches for old user
+      revalidateTag(CACHE_TAGS.USER_BUDGET_PERIODS(existingTransaction.user_id), 'max');
+      revalidateTag(CACHE_TAGS.USER_ACTIVE_BUDGET_PERIOD(existingTransaction.user_id), 'max');
+      revalidateTag(CACHE_TAGS.USER_BUDGETS(existingTransaction.user_id), 'max');
+
+      // If user_id changed, invalidate caches for new user too
+      if (input.user_id && input.user_id !== existingTransaction.user_id) {
+        revalidateTag(CACHE_TAGS.USER_BUDGET_PERIODS(input.user_id), 'max');
+        revalidateTag(CACHE_TAGS.USER_ACTIVE_BUDGET_PERIOD(input.user_id), 'max');
+        revalidateTag(CACHE_TAGS.USER_BUDGETS(input.user_id), 'max');
+      }
+    }
+
+    return result;
   } catch (error) {
     return {
       data: null,
@@ -174,7 +216,23 @@ export async function deleteTransactionAction(
       };
     }
 
-    return await TransactionService.deleteTransaction(id);
+    const result = await TransactionService.deleteTransaction(id);
+
+    if (!result.error) {
+      // Revalidate paths
+      revalidatePath('/dashboard');
+      revalidatePath('/transactions');
+      revalidatePath('/accounts');
+      revalidatePath('/budgets');
+      revalidatePath('/reports');
+
+      // Invalidate budget period and budget caches (PostgreSQL triggers handle DB updates)
+      revalidateTag(CACHE_TAGS.USER_BUDGET_PERIODS(existingTransaction.user_id), 'max');
+      revalidateTag(CACHE_TAGS.USER_ACTIVE_BUDGET_PERIOD(existingTransaction.user_id), 'max');
+      revalidateTag(CACHE_TAGS.USER_BUDGETS(existingTransaction.user_id), 'max');
+    }
+
+    return result;
   } catch (error) {
     return {
       data: null,

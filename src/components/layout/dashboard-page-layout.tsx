@@ -8,7 +8,7 @@ import { cn } from "@/lib";
  * Dashboard Page Layout Props
  */
 interface DashboardPageLayoutProps {
-  /** Optional header component (typically PageHeaderWithBack) */
+  /** Optional header component */
   header?: React.ReactNode;
   /** Optional user selector component */
   userSelector?: React.ReactNode;
@@ -28,11 +28,11 @@ interface DashboardPageLayoutProps {
  * @example
  * ```tsx
  * import { DashboardPageLayout } from "@/components/layout";
- * import { PageHeaderWithBack } from "@/components/layout";
+ * import { Header } from "@/components/layout";
  * import { UserSelector } from "@/components/shared";
  *
  * <DashboardPageLayout
- *   header={<PageHeaderWithBack title="Transactions" />}
+ *   header={<Header title="Transactions" />}
  *   userSelector={<UserSelector ... />}
  * >
  *   <TransactionsList />

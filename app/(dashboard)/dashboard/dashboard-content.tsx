@@ -15,11 +15,10 @@
  */
 
 import { Suspense, useEffect, useMemo, useState } from "react";
-import { Settings, Bell } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { BottomNavigation, PageContainer } from "@/components/layout";
+import { BottomNavigation, PageContainer, Header } from "@/components/layout";
 import { useUserFilter, usePermissions, useFilteredAccounts, useBudgetsByUser } from "@/hooks";
-import { Button, IconContainer, Text } from "@/components/ui";
+import { Button } from "@/components/ui";
 import { RecurringTransactionSeries } from "@/src/lib";
 import {
   BalanceSectionSkeleton,
@@ -32,9 +31,11 @@ import {
 import UserSelector from "@/components/shared/user-selector";
 import { BalanceSection } from "@/features/accounts";
 import { BudgetPeriodManager, BudgetSection } from "@/features/budgets";
-import { RecurringSeriesForm, RecurringSeriesSection } from "@/features/recurring";
+import { RecurringSeriesSection } from "@/features/recurring";
 import { AccountService } from "@/lib/services";
-import type { User, Account, Transaction, Budget, Category } from "@/lib/types";
+import { useModalState } from "@/lib/navigation/url-state";
+import type { Account, Transaction, Budget, BudgetPeriod, User } from "@/lib/types";
+import { usePageDataStore, useBudgetPeriod } from "@/stores/page-data-store";
 
 /**
  * Dashboard Content Props
@@ -46,8 +47,8 @@ interface DashboardContentProps {
   accountBalances: Record<string, number>;
   transactions: Transaction[];
   budgets: Budget[];
+  budgetPeriods: Record<string, BudgetPeriod | null>;
   recurringSeries: RecurringTransactionSeries[];
-  categories: Category[];
 }
 
 /**
@@ -63,76 +64,61 @@ export default function DashboardContent({
   accountBalances,
   transactions,
   budgets,
+  budgetPeriods,
   recurringSeries,
-  categories,
 }: DashboardContentProps) {
   const router = useRouter();
-
-  // User filtering state management using shared hook
-  const { selectedGroupFilter, setSelectedGroupFilter, selectedUserId } = useUserFilter();
+  const { selectedGroupFilter, selectedUserId } = useUserFilter();
+  const setBudgetPeriods = usePageDataStore((state) => state.setBudgetPeriods);
 
   // Permission checks
   const { effectiveUserId, isMember } = usePermissions({
     currentUser,
-    selectedUserId: selectedGroupFilter !== "all" ? selectedGroupFilter : undefined,
+    selectedUserId: selectedGroupFilter === "all" ? undefined : selectedGroupFilter,
   });
 
-  // Calculate budgets by user using centralized hook
+  // Calculate budgets
   const { budgetsByUser } = useBudgetsByUser({
     groupUsers,
     budgets,
     transactions,
     currentUser,
     selectedUserId,
+    budgetPeriods,
   });
 
-  // Filter default accounts based on selected user and sort by balance
-  // Members only see their own accounts
+  // Modal state management
+  const { openModal } = useModalState();
+
+  // Filter default accounts - useMemo is a hook, must be called unconditionally
   const displayedDefaultAccounts = useMemo(() => {
     let accountsToDisplay: Account[] = [];
     const totalAccountCount = accounts.length;
 
-    // Members only see their own accounts
     if (isMember) {
       const userAccounts = accounts.filter((acc) => acc.user_ids.includes(currentUser.id));
-
-      // If only one account, show it
       if (userAccounts.length === 1) {
         accountsToDisplay = userAccounts;
-      }
-      // If multiple, show only default account
-      else if (userAccounts.length > 1 && currentUser.default_account_id) {
+      } else if (userAccounts.length > 1 && currentUser.default_account_id) {
         const defaultAccount = accounts.find((a) => a.id === currentUser.default_account_id);
         accountsToDisplay = defaultAccount ? [defaultAccount] : userAccounts;
-      }
-      // Fallback: show all user's accounts
-      else {
+      } else {
         accountsToDisplay = userAccounts;
       }
-    }
-    // Admin logic (existing)
-    else {
-      // Case 1: Exactly 1 account in entire system → show it
-      if (totalAccountCount === 1) {
-        accountsToDisplay = accounts;
-      }
-      // Case 2: Multiple accounts → use default account logic
-      else if (totalAccountCount > 1) {
-        if (selectedUserId) {
-          // Show only selected user's default account
-          const user = groupUsers.find((u) => u.id === selectedUserId);
-          if (user?.default_account_id) {
-            const defaultAccount = accounts.find((a) => a.id === user.default_account_id);
-            accountsToDisplay = defaultAccount ? [defaultAccount] : [];
-          }
-        } else {
-          // Show all users' default accounts
-          accountsToDisplay = AccountService.getDefaultAccounts(accounts, groupUsers);
+    } else if (totalAccountCount === 1) {
+      accountsToDisplay = accounts;
+    } else if (totalAccountCount > 1) {
+      if (selectedUserId) {
+        const user = groupUsers.find((u) => u.id === selectedUserId);
+        if (user?.default_account_id) {
+          const defaultAccount = accounts.find((a) => a.id === user.default_account_id);
+          accountsToDisplay = defaultAccount ? [defaultAccount] : [];
         }
+      } else {
+        accountsToDisplay = AccountService.getDefaultAccounts(accounts, groupUsers);
       }
     }
 
-    // Sort accounts by balance (descending - highest first)
     return accountsToDisplay.sort((a, b) => {
       const balanceA = accountBalances[a.id] || 0;
       const balanceB = accountBalances[b.id] || 0;
@@ -140,18 +126,15 @@ export default function DashboardContent({
     });
   }, [selectedUserId, accounts, groupUsers, accountBalances, isMember, currentUser]);
 
-  // Get all accounts for the selected user (or all accounts if "all" selected)
-  // Using centralized account filtering hook
+  // Account filtering hook
   const { filteredAccounts: userAccounts } = useFilteredAccounts({
     accounts,
     currentUser,
     selectedUserId,
   });
 
-  // Calculate total account count for selected user
   const totalAccountsCount = userAccounts.length;
 
-  // Calculate balances for displayed default accounts
   const displayedAccountBalances = useMemo(() => {
     const displayedAccountIds = new Set(displayedDefaultAccounts.map((account) => account.id));
     return Object.fromEntries(
@@ -159,74 +142,29 @@ export default function DashboardContent({
     );
   }, [displayedDefaultAccounts, accountBalances]);
 
-  // Calculate total balance based on selection
   const totalBalance = useMemo(() => {
     let balance = 0;
-
     if (selectedUserId) {
-      // When a specific user is selected:
-      // Sum of user's account balances + "Risparmi Casa" account balance
       const userAccountIds = userAccounts.map((a) => a.id);
-      balance = userAccountIds.reduce((sum, accountId) => {
-        return sum + (accountBalances[accountId] || 0);
-      }, 0);
-
-      // Find and add "Risparmi Casa" account balance
+      balance = userAccountIds.reduce((sum, accountId) => sum + (accountBalances[accountId] || 0), 0);
       const risparmiCasaAccount = accounts.find((a) => a.name === "Risparmi Casa");
-      if (risparmiCasaAccount) {
-        balance += accountBalances[risparmiCasaAccount.id] || 0;
-      }
+      if (risparmiCasaAccount) balance += accountBalances[risparmiCasaAccount.id] || 0;
     } else {
-      // When "all" is selected: Sum of all account balances
       balance = Object.values(accountBalances).reduce((sum, bal) => sum + bal, 0);
     }
-
-    // Round to avoid floating point precision issues
     return Math.round(balance * 100) / 100;
   }, [selectedUserId, userAccounts, accounts, accountBalances]);
 
-  // State management for recurring series modal
-  const [isRecurringFormOpen, setIsRecurringFormOpen] = useState(false);
-  const [selectedSeries, setSelectedSeries] = useState<RecurringTransactionSeries | undefined>(undefined);
-  const [formMode, setFormMode] = useState<"create" | "edit" | undefined>(undefined);
-
-  // Handler for group filter changes
-  const handleGroupFilterChange = (userId: string) => {
-    setSelectedGroupFilter(userId);
-  };
-
-  // Handler for individual account card clicks
-  const handleAccountClick = () => {
-    router.push("/accounts");
-  };
-
-  // Handler for creating recurring series
-  const handleCreateRecurringSeries = () => {
-    setSelectedSeries(undefined);
-    setFormMode("create");
-    setIsRecurringFormOpen(true);
-  };
-
-  // Handler for editing recurring series (used in modal)
-  const handleEditRecurringSeries = (series: RecurringTransactionSeries) => {
-    setSelectedSeries(series);
-    setFormMode("edit");
-    setIsRecurringFormOpen(true);
-  };
-
-  // Handler for clicking on a series card - navigate to transactions with Recurrent tab
-  const handleSeriesCardClick = () => {
-    router.push("/transactions?tab=Recurrent");
-  };
-
-  // Handler for settings navigation
-  const handleSettingsClick = () => {
-    router.push("/settings");
-  };
-
-  const [periodManagerUserId, setPeriodManagerUserId] = useState(
+  // State hooks
+  const [periodManagerUserId, setPeriodManagerUserId] = useState<string | undefined>(
     isMember ? currentUser.id : selectedUserId || currentUser.id,
   );
+
+  // Effects
+  // Initialize store with budget periods from server
+  useEffect(() => {
+    setBudgetPeriods(budgetPeriods);
+  }, [budgetPeriods, setBudgetPeriods]);
 
   useEffect(() => {
     if (isMember) {
@@ -236,19 +174,26 @@ export default function DashboardContent({
     if (selectedUserId) {
       setPeriodManagerUserId(selectedUserId);
     }
-  }, [isMember, currentUser.id, selectedUserId]);
+  }, [isMember, currentUser, selectedUserId]);
+
+  // Get active budget period from store
+  const activePeriod = useBudgetPeriod(periodManagerUserId || currentUser.id);
 
   const periodManagerData = useMemo(() => {
     const targetUser = groupUsers.find((u) => u.id === periodManagerUserId) || currentUser;
     const targetUserBudgets = budgets.filter((b) => b.user_id === targetUser.id && b.amount > 0);
-    const targetUserPeriod = targetUser.budget_periods?.find((p) => p.is_active && !p.end_date) || null;
 
     return {
       targetUser,
       budgets: targetUserBudgets,
-      period: targetUserPeriod,
+      period: activePeriod,
     };
-  }, [periodManagerUserId, groupUsers, currentUser, budgets]);
+  }, [periodManagerUserId, groupUsers, currentUser, budgets, activePeriod]);
+
+  // Handlers
+  const handleAccountClick = () => router.push("/accounts");
+  const handleCreateRecurringSeries = () => openModal('recurring');
+  const handleSeriesCardClick = () => router.push("/transactions?tab=Recurrent");
 
   const budgetPeriodTrigger = (
     <Button variant="outline" size="sm">
@@ -260,44 +205,19 @@ export default function DashboardContent({
     <PageContainer className={dashboardStyles.page.container}>
       {/* Mobile-First Header */}
       <Suspense fallback={<DashboardHeaderSkeleton />}>
-        <header className={dashboardStyles.header.container}>
-          <div className={dashboardStyles.header.inner}>
-            {/* Left - User Profile */}
-            <div className={dashboardStyles.header.section.left}>
-              <IconContainer size="sm" color="primary" className={dashboardStyles.header.section.profileIcon}>
-                <Settings className="h-4 w-4" />
-              </IconContainer>
-              <div className={dashboardStyles.header.section.profileName}>
-                <Text variant="heading" size="sm">
-                  {currentUser.name}
-                </Text>
-                <Text variant="muted" size="xs" className="font-semibold">
-                  {currentUser.role === "admin" || currentUser.role === "superadmin" ? "Premium Plan" : "Standard Plan"}
-                </Text>
-              </div>
-            </div>
-
-            {/* Right - Actions */}
-            <div className={dashboardStyles.header.section.right}>
-              <Button variant="ghost" size="sm" className={dashboardStyles.header.button}>
-                <Bell className={dashboardStyles.header.section.notificationIcon} />
-              </Button>
-              <Button variant="ghost" size="sm" className={dashboardStyles.header.button} onClick={handleSettingsClick}>
-                <Settings className={dashboardStyles.header.section.settingsIcon} />
-              </Button>
-            </div>
-          </div>
-        </header>
+        <Header
+          isDashboard={true}
+          currentUser={{ name: currentUser.name, role: currentUser.role || 'member' }}
+          showActions={true}
+        />
       </Suspense>
 
       {/* User Selector */}
       <Suspense fallback={<UserSelectorSkeleton />}>
         <UserSelector
-          users={groupUsers}
-          currentUser={currentUser}
-          selectedGroupFilter={selectedGroupFilter}
-          onGroupFilterChange={handleGroupFilterChange}
           isLoading={false}
+          currentUser={currentUser}
+          users={groupUsers}
         />
       </Suspense>
 
@@ -328,15 +248,15 @@ export default function DashboardContent({
               isLoading={false}
               headerLeading={
                 <BudgetPeriodManager
-                  currentUser={currentUser}
-                  groupUsers={groupUsers}
-                  selectedUserId={periodManagerUserId}
+                  selectedUserId={periodManagerUserId || currentUser.id}
                   currentPeriod={periodManagerData.period}
                   transactions={transactions}
                   userBudgets={periodManagerData.budgets}
                   onUserChange={setPeriodManagerUserId}
                   onSuccess={() => router.refresh()}
                   trigger={budgetPeriodTrigger}
+                  currentUser={currentUser}
+                  groupUsers={groupUsers}
                 />
               }
             />
@@ -353,28 +273,12 @@ export default function DashboardContent({
             maxItems={5}
             showActions={false}
             onCreateRecurringSeries={handleCreateRecurringSeries}
-            onEditRecurringSeries={handleEditRecurringSeries}
             onCardClick={handleSeriesCardClick}
           />
         </Suspense>
       </main>
 
       <BottomNavigation />
-
-      {/* Recurring Series Form */}
-      <Suspense fallback={null}>
-        <RecurringSeriesForm
-          isOpen={isRecurringFormOpen}
-          onOpenChange={setIsRecurringFormOpen}
-          currentUser={currentUser}
-          groupUsers={groupUsers}
-          accounts={accounts}
-          categories={categories}
-          selectedUserId={effectiveUserId === "all" ? undefined : effectiveUserId}
-          series={selectedSeries}
-          mode={formMode}
-        />
-      </Suspense>
     </PageContainer>
   );
 }

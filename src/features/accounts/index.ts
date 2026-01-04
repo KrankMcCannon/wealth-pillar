@@ -7,7 +7,6 @@
 export { AccountCard } from "@/src/components/cards";
 
 // Components - Accounts Detail Page
-export { AccountHeader } from "./components/AccountHeader";
 export { TotalBalanceCard } from "./components/TotalBalanceCard";
 export { AccountsList } from "./components/AccountsList";
 

@@ -4,5 +4,4 @@
  */
 
 export * from "./use-delete-confirmation";
-export * from "./use-form-modal";
 export * from "./use-user-filter";

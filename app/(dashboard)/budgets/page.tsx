@@ -18,17 +18,18 @@ export default async function BudgetsPage() {
     console.error('Failed to fetch budgets page data:', error);
   }
 
-  const { budgets = [], transactions = [], accounts = [], categories = [] } = data || {};
+  const { budgets = [], transactions = [], accounts = [], categories = [], budgetPeriods = {} } = data || {};
 
   return (
     <Suspense fallback={<BudgetSelectorSkeleton />}>
       <BudgetsContent
-        currentUser={currentUser}
-        groupUsers={groupUsers}
         categories={categories || []}
         budgets={budgets || []}
         transactions={transactions || []}
         accounts={accounts || []}
+        budgetPeriods={budgetPeriods}
+        currentUser={currentUser}
+        groupUsers={groupUsers}
       />
     </Suspense>
   );

@@ -11,13 +11,14 @@
 
 import { useState, useMemo, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { BottomNavigation, PageContainer } from "@/components/layout";
-import { useFormModal, useDeleteConfirmation, useIdNameMap, usePermissions, useFilteredData, useBudgetsByUser } from "@/hooks";
+import { BottomNavigation, PageContainer, Header } from "@/components/layout";
+import { useDeleteConfirmation, useIdNameMap, usePermissions, useFilteredData, useBudgetsByUser, useUserFilter } from "@/hooks";
+import { useModalState } from "@/lib/navigation/url-state";
+import UserSelector from "@/components/shared/user-selector";
+import { UserSelectorSkeleton } from "@/features/dashboard";
 import { ConfirmationDialog } from "@/components/shared/confirmation-dialog";
 import { EmptyState } from "@/components/shared";
-import { BudgetForm, BudgetPeriodManager } from "@/features/budgets";
 import {
-  BudgetHeader,
   BudgetSelector,
   BudgetDisplayCard,
   BudgetProgress,
@@ -27,9 +28,7 @@ import {
   BudgetProgressSkeleton,
   BudgetChartSkeleton,
 } from "@/features/budgets/components";
-import { CategoryForm } from "@/features/categories";
 import {
-  TransactionForm,
   TransactionDayList,
   TransactionDayListSkeleton,
   type GroupedTransaction,
@@ -47,18 +46,21 @@ import {
   diffInDays,
 } from "@/lib/utils/date-utils";
 import { BudgetService } from "@/lib/services";
-import type { DashboardDataProps } from "@/lib/auth/get-dashboard-data";
-import type { Category, Budget, Transaction, Account, BudgetPeriod } from "@/lib/types";
+import type { Category, Budget, Transaction, Account, BudgetPeriod, User } from "@/lib/types";
 import type { ChartDataPoint } from "@/features/budgets/components/BudgetChart";
+import { usePageDataStore } from "@/stores/page-data-store";
 
 /**
  * Budgets Content Props
  */
-interface BudgetsContentProps extends DashboardDataProps {
+interface BudgetsContentProps {
   categories: Category[];
   budgets: Budget[];
   transactions: Transaction[];
   accounts: Account[];
+  budgetPeriods: Record<string, BudgetPeriod | null>;
+  currentUser: User;
+  groupUsers: User[];
 }
 
 /**
@@ -68,28 +70,51 @@ interface BudgetsContentProps extends DashboardDataProps {
  * Receives user data from Server Component parent.
  */
 export default function BudgetsContent({
-  currentUser,
-  groupUsers,
   categories,
   budgets,
   transactions,
   accounts,
+  budgetPeriods,
+  currentUser,
+  groupUsers,
 }: BudgetsContentProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
+  // Page data store - for optimistic updates
+  const storeBudgets = usePageDataStore((state) => state.budgets);
+  const setBudgets = usePageDataStore((state) => state.setBudgets);
+  const setBudgetPeriods = usePageDataStore((state) => state.setBudgetPeriods);
+  const removeBudget = usePageDataStore((state) => state.removeBudget);
+  const addBudget = usePageDataStore((state) => state.addBudget);
+
+  // Initialize store with server data on mount
+  useEffect(() => {
+    setBudgets(budgets);
+  }, [budgets, setBudgets]);
+
+  useEffect(() => {
+    setBudgetPeriods(budgetPeriods);
+  }, [budgetPeriods, setBudgetPeriods]);
+
+  // User filtering state management (global context)
+  const { selectedUserId } = useUserFilter();
+
   // Permission checks
-  const { isAdmin } = usePermissions({ currentUser });
+  const { isAdmin } = usePermissions({
+    currentUser,
+    selectedUserId,
+  });
 
   // Read URL params for initial budget selection
   const initialBudgetId = searchParams.get("budget");
 
-  // Filter budgets: admin sees all group budgets, members see only their own
+  // Filter budgets by selected user
   // Using centralized filtering hook with additional domain filter
   const { filteredData: userBudgets } = useFilteredData({
-    data: budgets,
+    data: storeBudgets,
     currentUser,
-    selectedUserId: undefined, // Show all for admin, own for member
+    selectedUserId, // Use global selected user
     additionalFilter: (budget) => budget.amount > 0, // Only budgets with positive amounts
   });
 
@@ -98,7 +123,7 @@ export default function BudgetsContent({
     // Try to use URL parameter if provided
     if (initialBudgetId) {
       // Check if budget exists and is accessible
-      const budget = budgets.find((b) => b.id === initialBudgetId);
+      const budget = storeBudgets.find((b) => b.id === initialBudgetId);
       if (budget && budget.amount > 0) {
         // For admin, allow any group user's budget
         if (isAdmin) {
@@ -112,14 +137,8 @@ export default function BudgetsContent({
     return null; // Will be set in useEffect
   });
 
-  // Form modal state using hooks
-  const budgetModal = useFormModal<Budget>();
-  const transactionModal = useFormModal<Transaction>();
-  const categoryModal = useFormModal<Category>();
-  const periodManagerModal = useFormModal();
-
-  // Period manager selected user state (for admins)
-  const [periodManagerUserId, setPeriodManagerUserId] = useState<string>(currentUser.id);
+  // Modal state management (URL-based)
+  const { openModal } = useModalState();
 
   // Delete confirmation state using hook
   const deleteConfirm = useDeleteConfirmation<Budget>();
@@ -152,13 +171,17 @@ export default function BudgetsContent({
     return groupUsers.find((u) => u.id === selectedBudget.user_id) || currentUser;
   }, [selectedBudget, groupUsers, currentUser]);
 
+  // Memoize users list for hook to prevent infinite loops
+  const hookGroupUsers = useMemo(() => [selectedBudgetUser], [selectedBudgetUser]);
+
   // Calculate budget summary for the selected budget's user using centralized hook
   const { budgetsByUser } = useBudgetsByUser({
-    groupUsers: [selectedBudgetUser],
-    budgets,
+    groupUsers: hookGroupUsers,
+    budgets: storeBudgets,
     transactions,
     currentUser,
     selectedUserId: selectedBudgetUser.id,
+    budgetPeriods,
   });
   const userBudgetSummary = budgetsByUser[selectedBudgetUser.id] || null;
 
@@ -184,15 +207,16 @@ export default function BudgetsContent({
 
   // Filter transactions for selected budget (based on budget owner)
   const budgetTransactions = useMemo(() => {
-    if (!selectedBudget) return [];
+    if (!selectedBudget || !periodInfo) return [];
 
-    const { periodStart, periodEnd } = BudgetService.getBudgetPeriodDates(selectedBudgetUser);
+    const periodStart = periodInfo.start ? toDateTime(periodInfo.start) : null;
+    const periodEnd = periodInfo.end ? toDateTime(periodInfo.end) : null;
 
     // Filter transactions for the budget owner, then by budget criteria
     const userTransactions = transactions.filter((t) => t.user_id === selectedBudgetUser.id);
 
     return BudgetService.filterTransactionsForBudget(userTransactions, selectedBudget, periodStart, periodEnd);
-  }, [selectedBudget, selectedBudgetUser, transactions]);
+  }, [selectedBudget, selectedBudgetUser, transactions, periodInfo]);
 
   // Generate subtitle for transaction section
   const transactionSectionSubtitle = useMemo(() => {
@@ -296,21 +320,13 @@ export default function BudgetsContent({
   };
 
   const handleCreateBudget = () => {
-    budgetModal.openCreate();
+    openModal("budget");
   };
 
   const handleEditBudget = () => {
     if (selectedBudget) {
-      budgetModal.openEdit(selectedBudget);
+      openModal("budget", selectedBudget.id);
     }
-  };
-
-  const handleCreateCategory = () => {
-    categoryModal.openCreate();
-  };
-
-  const handleManagePeriod = () => {
-    periodManagerModal.openCreate();
   };
 
   const handleDeleteBudget = (budget: Budget) => {
@@ -319,46 +335,51 @@ export default function BudgetsContent({
 
   const confirmDeleteBudget = async () => {
     await deleteConfirm.executeDelete(async (budget) => {
-      const result = await deleteBudgetAction(budget.id);
+      // Optimistic UI update - remove immediately from store
+      removeBudget(budget.id);
 
-      if (result.error) {
-        console.error("[BudgetsContent] Delete error:", result.error);
-        throw new Error(result.error);
-      }
+      try {
+        const result = await deleteBudgetAction(budget.id);
 
-      // Success - refresh page
-      router.refresh();
-      // Clear selected budget if it was the one deleted
-      if (selectedBudgetId === budget.id) {
-        setSelectedBudgetId(null);
+        if (result.error) {
+          // Revert on error - add back to store
+          addBudget(budget);
+          console.error("[BudgetsContent] Delete error:", result.error);
+          throw new Error(result.error);
+        }
+        // Success - no router.refresh() needed, store already updated!
+        // Clear selected budget if it was the one deleted
+        if (selectedBudgetId === budget.id) {
+          setSelectedBudgetId(null);
+        }
+      } catch (error) {
+        // Revert on error
+        addBudget(budget);
+        console.error("[BudgetsContent] Error deleting budget:", error);
+        throw error;
       }
     });
   };
 
-  // Get data for period manager based on selected user (for admins)
-  const periodManagerData = useMemo(() => {
-    const targetUser = groupUsers.find((u) => u.id === periodManagerUserId) || currentUser;
-    const targetUserBudgets = budgets.filter((b) => b.user_id === targetUser.id && b.amount > 0);
-    const targetUserPeriod = targetUser.budget_periods?.find((p: BudgetPeriod) => p.is_active && !p.end_date) || null;
-
-    return {
-      targetUser,
-      budgets: targetUserBudgets,
-      period: targetUserPeriod,
-    };
-  }, [periodManagerUserId, groupUsers, currentUser, budgets]);
-
   return (
     <PageContainer className={budgetStyles.page.container}>
       {/* Header with navigation and actions */}
-      <BudgetHeader
-        onBackClick={() => router.back()}
-        onCreateBudget={handleCreateBudget}
-        onCreateCategory={handleCreateCategory}
-        onManagePeriod={handleManagePeriod}
-        selectedBudget={selectedBudget}
-        currentPeriod={periodInfo?.activePeriod || null}
+      <Header
+        title="Budgets"
+        showBack={true}
+        className={budgetStyles.header.container}
+        currentUser={{ name: currentUser.name, role: currentUser.role || 'member' }}
+        showActions={true}
       />
+
+      {/* User Selector */}
+      <Suspense fallback={<UserSelectorSkeleton />}>
+        <UserSelector
+          className="bg-card border-border"
+          currentUser={currentUser}
+          users={groupUsers}
+        />
+      </Suspense>
 
       {/* Main content area with progressive loading */}
       <main className={budgetStyles.page.main}>
@@ -381,11 +402,11 @@ export default function BudgetsContent({
                 budgetProgress={
                   selectedBudgetProgress
                     ? {
-                        spent: selectedBudgetProgress.spent,
-                        remaining: selectedBudgetProgress.remaining,
-                        percentage: selectedBudgetProgress.percentage,
-                        amount: selectedBudgetProgress.amount,
-                      }
+                      spent: selectedBudgetProgress.spent,
+                      remaining: selectedBudgetProgress.remaining,
+                      percentage: selectedBudgetProgress.percentage,
+                      amount: selectedBudgetProgress.amount,
+                    }
                     : null
                 }
                 onEdit={handleEditBudget}
@@ -416,9 +437,9 @@ export default function BudgetsContent({
                     periodInfo={
                       periodInfo
                         ? {
-                            startDate: periodInfo.start || "",
-                            endDate: periodInfo.end,
-                          }
+                          startDate: periodInfo.start || "",
+                          endDate: periodInfo.end,
+                        }
                         : null
                     }
                   />
@@ -453,7 +474,7 @@ export default function BudgetsContent({
                       router.push(`/transactions?${params.toString()}`);
                     }}
                     onEditTransaction={(transaction) => {
-                      transactionModal.openEdit(transaction);
+                      openModal("transaction", transaction.id);
                     }}
                     onDeleteTransaction={() => {
                       /* Handled via transaction form */
@@ -478,67 +499,6 @@ export default function BudgetsContent({
       </main>
 
       <BottomNavigation />
-
-      {/* Modal Forms */}
-      <TransactionForm
-        isOpen={transactionModal.isOpen}
-        onOpenChange={transactionModal.setIsOpen}
-        transaction={transactionModal.entity}
-        mode={transactionModal.mode}
-        currentUser={currentUser}
-        groupUsers={groupUsers}
-        accounts={accounts}
-        categories={categories}
-        groupId={currentUser.group_id}
-        selectedUserId={currentUser.id}
-        onSuccess={() => router.refresh()}
-      />
-
-      <BudgetForm
-        isOpen={budgetModal.isOpen}
-        onOpenChange={budgetModal.setIsOpen}
-        selectedUserId={currentUser.id}
-        budget={budgetModal.entity}
-        mode={budgetModal.mode}
-        categories={categories}
-      />
-
-      <CategoryForm
-        isOpen={categoryModal.isOpen}
-        onOpenChange={categoryModal.setIsOpen}
-        mode={categoryModal.mode}
-        groupId={currentUser.group_id}
-      />
-
-      {/* Budget Period Manager - Controlled by periodManagerModal */}
-      <BudgetPeriodManager
-        currentUser={currentUser}
-        groupUsers={groupUsers}
-        selectedUserId={periodManagerUserId}
-        currentPeriod={periodManagerData.period}
-        transactions={transactions}
-        userBudgets={periodManagerData.budgets}
-        onUserChange={setPeriodManagerUserId}
-        trigger={
-          periodManagerModal.isOpen ? (
-            <button
-              onClick={periodManagerModal.close}
-              style={{ display: "none" }}
-              ref={(el) => {
-                if (el && periodManagerModal.isOpen) {
-                  setTimeout(() => el.click(), 0);
-                }
-              }}
-            />
-          ) : (
-            <div />
-          )
-        }
-        onSuccess={() => {
-          router.refresh();
-          periodManagerModal.close();
-        }}
-      />
 
       {/* Delete Confirmation Dialog */}
       <ConfirmationDialog

@@ -328,6 +328,13 @@ html.dark .scrollbar-thin::-webkit-scrollbar-thumb:hover {
 
 @layer utilities {
   /* ========================================================================
+     MOBILE SAFE AREA UTILITIES
+     ======================================================================== */
+  .safe-area-pb {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* ========================================================================
      LIQUID GLASS EFFECTS - Signature Wealth Pillar aesthetic
      ======================================================================== */
 

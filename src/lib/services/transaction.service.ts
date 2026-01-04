@@ -105,13 +105,28 @@ export class TransactionService {
             .from('transactions')
             .select('*')
             .eq('group_id', groupId)
-            .order('date', { ascending: false });
+            .order('date', { ascending: false }).execute();
 
           if (error) {
             throw new Error(error.message);
           }
 
-          return data;
+          // Force client-side sort to ensure correct order
+          const transactions = (data || []) as Transaction[];
+          return transactions.sort((a, b) => {
+            const dateA = typeof a.date === 'string' ? a.date : a.date.toISOString();
+            const dateB = typeof b.date === 'string' ? b.date : b.date.toISOString();
+            const dateParams = dateB.localeCompare(dateA);
+
+            if (dateParams !== 0) return dateParams;
+
+            // Secondary sort by creation time if available
+            const caA = a.created_at;
+            const caB = b.created_at;
+            const strA = typeof caA === 'string' ? caA : caA?.toISOString() || '';
+            const strB = typeof caB === 'string' ? caB : caB?.toISOString() || '';
+            return strB.localeCompare(strA);
+          });
         },
         transactionCacheKeys.byGroup(groupId),
         cacheOptions.transactionsByGroup(groupId)
@@ -120,7 +135,7 @@ export class TransactionService {
       const transactions = await getCachedTransactions();
 
       return {
-        data: transactions || [],
+        data: (transactions || []) as Transaction[],
         error: null,
       };
     } catch (error) {
@@ -166,13 +181,27 @@ export class TransactionService {
             .from('transactions')
             .select('*')
             .eq('user_id', userId)
-            .order('date', { ascending: false });
+            .order('date', { ascending: false }).execute();
 
           if (error) {
             throw new Error(error.message);
           }
 
-          return data;
+          // Force client-side sort to ensure correct order
+          const transactions = (data || []) as Transaction[];
+          return transactions.sort((a, b) => {
+            const dateA = typeof a.date === 'string' ? a.date : a.date.toISOString();
+            const dateB = typeof b.date === 'string' ? b.date : b.date.toISOString();
+            const dateParams = dateB.localeCompare(dateA);
+
+            if (dateParams !== 0) return dateParams;
+
+            const caA = a.created_at;
+            const caB = b.created_at;
+            const strA = typeof caA === 'string' ? caA : caA?.toISOString() || '';
+            const strB = typeof caB === 'string' ? caB : caB?.toISOString() || '';
+            return strB.localeCompare(strA);
+          });
         },
         transactionCacheKeys.byUser(userId),
         cacheOptions.transactionsByUser(userId)
@@ -181,7 +210,7 @@ export class TransactionService {
       const transactions = await getCachedTransactions();
 
       return {
-        data: transactions || [],
+        data: (transactions || []) as Transaction[],
         error: null,
       };
     } catch (error) {
@@ -228,13 +257,27 @@ export class TransactionService {
             .from('transactions')
             .select('*')
             .or(`account_id.eq.${accountId},to_account_id.eq.${accountId}`)
-            .order('date', { ascending: false });
+            .order('date', { ascending: false }).execute();
 
           if (error) {
             throw new Error(error.message);
           }
 
-          return data;
+          // Force client-side sort to ensure correct order
+          const transactions = (data || []) as Transaction[];
+          return transactions.sort((a, b) => {
+            const dateA = typeof a.date === 'string' ? a.date : a.date.toISOString();
+            const dateB = typeof b.date === 'string' ? b.date : b.date.toISOString();
+            const dateParams = dateB.localeCompare(dateA);
+
+            if (dateParams !== 0) return dateParams;
+
+            const caA = a.created_at;
+            const caB = b.created_at;
+            const strA = typeof caA === 'string' ? caA : caA?.toISOString() || '';
+            const strB = typeof caB === 'string' ? caB : caB?.toISOString() || '';
+            return strB.localeCompare(strA);
+          });
         },
         transactionCacheKeys.byAccount(accountId),
         cacheOptions.transactionsByAccount(accountId)
@@ -243,7 +286,7 @@ export class TransactionService {
       const transactions = await getCachedTransactions();
 
       return {
-        data: transactions || [],
+        data: (transactions || []) as Transaction[],
         error: null,
       };
     } catch (error) {
@@ -432,7 +475,7 @@ export class TransactionService {
       tagsToInvalidate.push(`group:${data.group_id}:budgets`);
       await revalidateCacheTags(tagsToInvalidate);
 
-      return { data: transaction, error: null };
+      return { data: transaction as Transaction, error: null };
     } catch (error) {
       return {
         data: null,
@@ -598,7 +641,7 @@ export class TransactionService {
 
       await revalidateCacheTags(tagsToInvalidate);
 
-      return { data: updatedTransaction, error: null };
+      return { data: updatedTransaction as Transaction, error: null };
     } catch (error) {
       return {
         data: null,
@@ -651,7 +694,7 @@ export class TransactionService {
       const { error } = await supabaseServer
         .from('transactions')
         .delete()
-        .eq('id', id);
+        .eq('id', id).execute();
 
       if (error) {
         throw new Error(error.message);
@@ -772,22 +815,31 @@ export class TransactionService {
    * const dailyTotals = TransactionService.calculateDailyTotals(grouped);
    */
   static calculateDailyTotals(groupedTransactions: Record<string, Transaction[]>) {
-    return Object.entries(groupedTransactions).map(([date, dayTransactions]) => {
-      const total = dayTransactions.reduce((sum, t) => {
-        // Exclude transfers from daily totals (they don't affect net worth)
-        if (t.type === 'transfer') return sum;
-        if (t.type === 'income') return sum + t.amount;
-        if (t.type === 'expense') return sum - t.amount;
-        return sum;
-      }, 0);
+    return Object.entries(groupedTransactions)
+      .map(([date, dayTransactions]) => {
+        const total = dayTransactions.reduce((sum, t) => {
+          // Exclude transfers from daily totals (they don't affect net worth)
+          if (t.type === 'transfer') return sum;
+          if (t.type === 'income') return sum + t.amount;
+          if (t.type === 'expense') return sum - t.amount;
+          return sum;
+        }, 0);
 
-      return {
-        date,
-        total,
-        count: dayTransactions.length,
-        transactions: dayTransactions,
-      };
-    });
+        return {
+          date,
+          total,
+          count: dayTransactions.length,
+          transactions: dayTransactions,
+        };
+      })
+      .sort((a, b) => {
+        // Sort by the date of the first transaction in the group
+        const dateA = a.transactions[0]?.date ? toDateTime(a.transactions[0].date) : null;
+        const dateB = b.transactions[0]?.date ? toDateTime(b.transactions[0].date) : null;
+
+        if (!dateA || !dateB) return 0;
+        return dateB.toMillis() - dateA.toMillis();
+      });
   }
 
   /**

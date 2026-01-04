@@ -8,35 +8,25 @@ import { PageDataService } from "@/lib/services";
 import AccountsContent from "./accounts-content";
 import { AccountHeaderSkeleton } from "@/features/accounts/components/account-skeletons";
 
-interface AccountsPageProps {
-  searchParams: Promise<{ userId?: string }>;
-}
-
-export default async function AccountsPage(props: AccountsPageProps) {
+export default async function AccountsPage() {
   const { currentUser, groupUsers } = await getDashboardData();
 
-  // Await searchParams for Next.js 15
-  const searchParams = await props.searchParams;
-  const filterUserId = searchParams?.userId;
-
-  // Fetch accounts page data in parallel with centralized service
+  // Fetch accounts page data and categories in parallel
   const { data, error } = await PageDataService.getAccountsPageData(currentUser.group_id);
 
   if (error) {
     console.error("Failed to fetch accounts page data:", error);
   }
 
-  const accounts = data?.accounts || [];
-  const accountBalances = data?.accountBalances || {};
+  const { accountBalances = {}, accounts = [] } = data || {};
 
   return (
     <Suspense fallback={<AccountHeaderSkeleton />}>
       <AccountsContent
+        accountBalances={accountBalances}
         currentUser={currentUser}
         groupUsers={groupUsers}
         accounts={accounts}
-        accountBalances={accountBalances}
-        initialUserId={filterUserId}
       />
     </Suspense>
   );

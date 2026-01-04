@@ -23,8 +23,8 @@ export default async function DashboardPage() {
     accountBalances = {},
     transactions = [],
     budgets = [],
+    budgetPeriods = {},
     recurringSeries = [],
-    categories = [],
   } = data || {};
 
   return (
@@ -36,8 +36,8 @@ export default async function DashboardPage() {
         accountBalances={accountBalances}
         transactions={transactions}
         budgets={budgets}
+        budgetPeriods={budgetPeriods}
         recurringSeries={recurringSeries}
-        categories={categories}
       />
     </Suspense>
   );

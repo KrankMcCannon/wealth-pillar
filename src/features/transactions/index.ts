@@ -6,9 +6,6 @@
 // ====================================
 // Components
 // ====================================
-// Main Form Component
-export { TransactionForm } from './components/transaction-form';
-
 // Display Components
 export { GroupedTransactionCard } from './components/grouped-transaction-card';
 export { TransactionDayList, TransactionDayListSkeleton, type GroupedTransaction, type TransactionDayListProps } from './components/transaction-day-list';

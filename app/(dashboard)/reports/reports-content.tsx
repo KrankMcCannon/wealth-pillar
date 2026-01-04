@@ -1,76 +1,56 @@
 "use client";
 
 import { useMemo } from "react";
-import { BottomNavigation, PageContainer, PageHeaderWithBack } from "@/src/components/layout";
-import { useUserFilter, usePermissions, useFilteredAccounts } from "@/hooks";
+import { BottomNavigation, PageContainer, Header } from "@/components/layout";
+import { useUserFilter, usePermissions, useFilteredAccounts, useFilteredData } from "@/hooks";
 import UserSelector from "@/src/components/shared/user-selector";
 import { BudgetPeriodsSection, reportsStyles, ReportsOverviewCard, AnnualCategorySection } from "@/features/reports";
-import type { DashboardDataProps } from "@/lib/auth/get-dashboard-data";
-import type { Transaction, Category, BudgetPeriod } from "@/lib/types";
-import { TransactionService, CategoryService } from "@/lib/services";
+import type { Transaction, Category, BudgetPeriod, Account, User } from "@/lib/types";
+import { CategoryService } from "@/lib/services";
 import { ReportMetricsService } from "@/lib/services/report-metrics.service";
-import type { Account } from "@/lib/types";
 
-interface ReportsContentProps extends DashboardDataProps {
+interface ReportsContentProps {
   accounts: Account[];
   transactions: Transaction[];
   categories: Category[];
+  budgetPeriods: BudgetPeriod[];
+  currentUser: User;
+  groupUsers: User[];
 }
 
 export default function ReportsContent({
-  currentUser,
-  groupUsers,
   accounts,
   transactions,
   categories,
+  budgetPeriods,
+  currentUser,
+  groupUsers,
 }: ReportsContentProps) {
   // User filtering state management using shared hook
-  const { selectedGroupFilter, setSelectedGroupFilter } = useUserFilter();
+  const { selectedGroupFilter } = useUserFilter();
 
   // Permission checks
   const { isMember } = usePermissions({
     currentUser,
-    selectedUserId: selectedGroupFilter !== "all" ? selectedGroupFilter : undefined,
+    selectedUserId: selectedGroupFilter === "all" ? undefined : selectedGroupFilter,
   });
 
   // Force members to see only their own data
   const activeGroupFilter = isMember ? currentUser.id : selectedGroupFilter;
 
-  // Aggregate budget periods from all users or selected user
-  // Members only see their own budget periods
-  const allBudgetPeriods = useMemo<BudgetPeriod[]>(() => {
-    if (isMember) {
-      // Members see only their own budget periods
-      return (currentUser.budget_periods || []).map((period) => ({
-        ...period,
-        user_id: currentUser.id,
-      }));
-    }
-
-    // Admin logic
-    if (activeGroupFilter === "all") {
-      // Ensure each period has correct user_id when aggregating from all users
-      return groupUsers.flatMap((user) =>
-        (user.budget_periods || []).map((period) => ({
-          ...period,
-          user_id: user.id, // Ensure user_id matches the owning user
-        })),
-      );
-    }
-    const selectedUser = groupUsers.find((u) => u.id === activeGroupFilter);
-    if (!selectedUser) return [];
-    return (selectedUser.budget_periods || []).map((period) => ({
-      ...period,
-      user_id: selectedUser.id, // Ensure user_id is set correctly
-    }));
-  }, [activeGroupFilter, groupUsers, isMember, currentUser]);
+  // Filter budget periods
+  const { filteredData: activeBudgetPeriods } = useFilteredData({
+    data: budgetPeriods,
+    currentUser,
+    selectedUserId: activeGroupFilter === "all" ? undefined : activeGroupFilter,
+  });
 
   // Get user account IDs for earned/spent calculation
   // Using centralized account filtering hook
   const { filteredAccounts: userAccounts } = useFilteredAccounts({
     accounts,
     currentUser,
-    selectedUserId: activeGroupFilter !== "all" ? activeGroupFilter : undefined,
+    selectedUserId: activeGroupFilter === "all" ? undefined : activeGroupFilter,
   });
   const userAccountIds = useMemo(() => userAccounts.map((a) => a.id), [userAccounts]);
 
@@ -78,14 +58,6 @@ export default function ReportsContent({
   const overviewMetrics = useMemo(() => {
     const userId = activeGroupFilter === "all" ? undefined : activeGroupFilter;
     return ReportMetricsService.calculateOverviewMetrics(transactions, userAccountIds, userId);
-  }, [transactions, userAccountIds, activeGroupFilter]);
-
-  // Calculate transaction split metrics (earned vs spent)
-  const splitMetrics = useMemo(() => {
-    const userId = activeGroupFilter === "all" ? undefined : activeGroupFilter;
-    const earned = TransactionService.calculateEarned(transactions, userAccountIds, userId);
-    const spent = TransactionService.calculateSpent(transactions, userAccountIds, userId);
-    return { earned, spent };
   }, [transactions, userAccountIds, activeGroupFilter]);
 
   // Enrich category metrics with category details (label, color, icon)
@@ -108,14 +80,17 @@ export default function ReportsContent({
     <PageContainer className={reportsStyles.page.container}>
       <div>
         {/* Header */}
-        <PageHeaderWithBack title="Rapporti" />
+        <Header
+          title="Rapporti"
+          showBack={true}
+          currentUser={{ name: currentUser.name, role: currentUser.role || 'member' }}
+          showActions={true}
+        />
 
         {/* User Selector */}
         <UserSelector
-          users={groupUsers}
           currentUser={currentUser}
-          selectedGroupFilter={selectedGroupFilter}
-          onGroupFilterChange={setSelectedGroupFilter}
+          users={groupUsers}
         />
 
         <main className={reportsStyles.main.container}>
@@ -140,7 +115,7 @@ export default function ReportsContent({
               <p className={reportsStyles.sectionHeader.subtitle}>Storico periodi passati e attuali</p>
             </div>
             <BudgetPeriodsSection
-              budgetPeriods={allBudgetPeriods}
+              budgetPeriods={activeBudgetPeriods}
               groupUsers={groupUsers}
               transactions={transactions}
               categories={enrichedCategories}

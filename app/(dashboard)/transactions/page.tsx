@@ -18,18 +18,24 @@ export default async function TransactionsPage() {
     console.error('Failed to fetch transactions page data:', error);
   }
 
-  const { transactions = [], categories = [], accounts = [], recurringSeries = [], budgets = [] } = data || {};
+  const {
+    transactions = [],
+    recurringSeries = [],
+    budgets = [],
+    accounts = [],
+    categories = []
+  } = data || {};
 
   return (
     <Suspense fallback={<TransactionPageLoading />}>
       <TransactionsContent
-        currentUser={currentUser}
-        groupUsers={groupUsers}
         transactions={transactions}
-        categories={categories}
-        accounts={accounts}
         recurringSeries={recurringSeries}
         budgets={budgets}
+        currentUser={currentUser}
+        groupUsers={groupUsers}
+        accounts={accounts}
+        categories={categories}
       />
     </Suspense>
   );

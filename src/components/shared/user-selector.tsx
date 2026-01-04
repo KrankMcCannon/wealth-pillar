@@ -2,29 +2,31 @@
 
 import { memo, useCallback, useMemo } from 'react';
 import { Users, User as UserIcon, Crown, Star, Heart } from "lucide-react";
-import { User } from '@/src/lib';
+import { useUserFilter } from '@/hooks';
+import { User } from '@/lib/types';
 
 interface UserSelectorProps {
-  users: User[];
-  currentUser: User | null;
-  selectedGroupFilter: string;
-  onGroupFilterChange: (userId: string) => void;
   className?: string;
   isLoading?: boolean;
+  currentUser: User;
+  users: User[];
 }
 
 /**
  * Optimized UserSelector with memoization and modern UX
  * Prevents unnecessary re-renders and improves performance
+ *
+ * NOW STATLESS: Receives data via props
  */
 const UserSelector = memo(({
-  users,
-  currentUser,
-  selectedGroupFilter,
-  onGroupFilterChange,
   className = "",
-  isLoading = false
+  isLoading = false,
+  currentUser,
+  users
 }: UserSelectorProps) => {
+  // Read from props instead of stores
+  const { selectedGroupFilter, setSelectedGroupFilter } = useUserFilter();
+
   // Memoized icon selection
   const getUserIcon = useCallback((userId: string, index: number) => {
     const userIcons = [UserIcon, Crown, Star, Heart];
@@ -52,12 +54,12 @@ const UserSelector = memo(({
   // Memoized click handler
   const handleMemberClick = useCallback((memberId: string) => {
     if (memberId !== selectedGroupFilter) {
-      onGroupFilterChange(memberId);
+      setSelectedGroupFilter(memberId);
     }
-  }, [selectedGroupFilter, onGroupFilterChange]);
+  }, [selectedGroupFilter, setSelectedGroupFilter]);
 
   // Early return for non-admin users
-  if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'superadmin')) {
+  if (currentUser.role !== 'admin' && currentUser.role !== 'superadmin') {
     return null;
   }
 
@@ -76,8 +78,8 @@ const UserSelector = memo(({
               key={i}
               className="shrink-0 flex items-center gap-3 p-2 rounded-2xl bg-primary/10 border border-primary/20 min-w-[120px] animate-pulse"
             >
-          <div className="w-6 h-6 bg-primary/20 rounded-full"></div>
-          <div className="w-16 h-4 bg-primary/15 rounded"></div>
+              <div className="w-6 h-6 bg-primary/20 rounded-full"></div>
+              <div className="w-16 h-4 bg-primary/15 rounded"></div>
             </div>
           ))}
         </div>
@@ -124,9 +126,8 @@ const UserSelector = memo(({
                 }
               `}>
                 <IconComponent
-                  className={`w-3.5 h-3.5 transition-colors duration-200 ${
-                    isSelected ? 'text-white' : 'text-primary'
-                  }`}
+                  className={`w-3.5 h-3.5 transition-colors duration-200 ${isSelected ? 'text-white' : 'text-primary'
+                    }`}
                 />
               </div>
 
@@ -149,11 +150,10 @@ const UserSelector = memo(({
           {membersList.slice(0, Math.min(membersList.length, 5)).map((_, index) => (
             <div
               key={index}
-              className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
-                index === membersList.findIndex(m => m.id === selectedGroupFilter)
-                  ? 'bg-primary w-4'
-                  : 'bg-muted-foreground/30'
-              }`}
+              className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${index === membersList.findIndex(m => m.id === selectedGroupFilter)
+                ? 'bg-primary w-4'
+                : 'bg-muted-foreground/30'
+                }`}
             />
           ))}
         </div>

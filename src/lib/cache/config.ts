@@ -19,6 +19,8 @@ export const CACHE_TTL = {
   CATEGORY: 900,
   /** Budget data - 5 minutes */
   BUDGET: 300,
+  /** Budget period data - 5 minutes */
+  BUDGET_PERIOD: 300,
   /** Recurring series data - 5 minutes */
   RECURRING: 300,
   /** Static data - 1 hour */
@@ -49,6 +51,11 @@ export const CACHE_TAGS = {
   CATEGORY: (categoryId: string) => `category:${categoryId}`,
   BUDGETS: 'budgets',
   BUDGET: (budgetId: string) => `budget:${budgetId}`,
+  USER_BUDGETS: (userId: string) => `user:${userId}:budgets`,
+  BUDGET_PERIODS: 'budget_periods',
+  BUDGET_PERIOD: (periodId: string) => `budget_period:${periodId}`,
+  USER_BUDGET_PERIODS: (userId: string) => `user:${userId}:budget_periods`,
+  USER_ACTIVE_BUDGET_PERIOD: (userId: string) => `user:${userId}:budget_period:active`,
   RECURRING_SERIES: 'recurring_series',
   RECURRING: (seriesId: string) => `recurring:${seriesId}`,
 } as const;
@@ -217,5 +224,32 @@ export const cacheOptions = {
   recurringSingle: (seriesId: string) => ({
     revalidate: CACHE_TTL.RECURRING,
     tags: [CACHE_TAGS.RECURRING_SERIES, CACHE_TAGS.RECURRING(seriesId)],
+  }),
+
+  /**
+   * Budget period cache options
+   * @param periodId - Period ID for tag
+   */
+  budgetPeriod: (periodId: string) => ({
+    revalidate: CACHE_TTL.BUDGET_PERIOD,
+    tags: [CACHE_TAGS.BUDGET_PERIODS, CACHE_TAGS.BUDGET_PERIOD(periodId)],
+  }),
+
+  /**
+   * Budget periods by user cache options
+   * @param userId - User ID for tag
+   */
+  budgetPeriodsByUser: (userId: string) => ({
+    revalidate: CACHE_TTL.BUDGET_PERIOD,
+    tags: [CACHE_TAGS.BUDGET_PERIODS, `user:${userId}:budget_periods`],
+  }),
+
+  /**
+   * Active budget period by user cache options
+   * @param userId - User ID for tag
+   */
+  activeBudgetPeriod: (userId: string) => ({
+    revalidate: CACHE_TTL.BUDGET_PERIOD,
+    tags: [CACHE_TAGS.BUDGET_PERIODS, `user:${userId}:budget_period:active`],
   }),
 } as const;

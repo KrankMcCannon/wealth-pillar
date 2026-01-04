@@ -17,7 +17,7 @@ export const accountStyles = {
   // Page-level styles
   // ====================================
   page: {
-    container: `bg-[#F8FAFC] pb-24`,
+    container: `bg-[#F8FAFC] pb-32`, // Increased bottom padding to prevent overlap with bottom navigation
   },
 
   // ====================================
@@ -38,8 +38,10 @@ export const accountStyles = {
   // Balance Card styles
   // ====================================
   balanceCard: {
-    container: `${accountSpacing.page.mobile} py-6`,
+    container: `${accountSpacing.page.mobile} py-4`,
     card: accountComponents.balanceCard.container,
+    mainRow: accountComponents.balanceCard.mainRow,
+    balanceSection: accountComponents.balanceCard.balanceSection,
     header: accountComponents.balanceCard.header,
     iconContainer: accountComponents.balanceCard.icon,
     label: accountComponents.balanceCard.label,
@@ -48,19 +50,20 @@ export const accountStyles = {
     valueNegative: `${accountComponents.balanceCard.value} ${accountStatus.negative}`,
     statsGrid: accountComponents.balanceCard.statsGrid,
     statItem: {
-      primary: `${accountComponents.balanceCard.statItem} ${accountComponents.balanceCard.statItemPrimary}`,
-      success: `${accountComponents.balanceCard.statItem} ${accountComponents.balanceCard.statItemSuccess}`,
-      destructive: `${accountComponents.balanceCard.statItem} ${accountComponents.balanceCard.statItemDestructive}`,
+      primary: accountComponents.balanceCard.statItemPrimary,
+      success: accountComponents.balanceCard.statItemSuccess,
+      destructive: accountComponents.balanceCard.statItemDestructive,
+      base: accountComponents.balanceCard.statItem,
     },
-    statLabel: 'text-xs text-muted-foreground',
-    statValue: 'text-lg font-bold',
+    statLabel: 'opacity-90 font-medium',
+    statValue: 'ml-1 font-bold text-sm',
   },
 
   // ====================================
   // Accounts List styles
   // ====================================
   accountsList: {
-    container: `${accountSpacing.page.mobile}`,
+    container: `${accountSpacing.page.mobile} pb-24`,
     header: accountComponents.accountsList.header,
     items: accountComponents.accountsList.container,
     addPrompt: accountComponents.accountsList.addPrompt,

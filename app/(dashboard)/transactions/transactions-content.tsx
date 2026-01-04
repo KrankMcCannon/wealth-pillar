@@ -7,27 +7,22 @@
  * Data is passed from Server Component for optimal performance
  */
 
-import { Suspense, useState, useMemo, useEffect, useCallback, useRef } from "react";
+import { Suspense, useState, useMemo, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { MoreVertical, Plus } from "lucide-react";
 import {
   useUserFilter,
-  useFormModal,
   useDeleteConfirmation,
   useIdNameMap,
-  usePermissions,
   useFilteredData,
 } from "@/hooks";
-import { Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/src/components/ui";
-import { BottomNavigation, PageContainer, PageHeaderWithBack } from "@/src/components/layout";
+import { BottomNavigation, PageContainer, Header } from "@/src/components/layout";
 import TabNavigation from "@/src/components/shared/tab-navigation";
 import UserSelector from "@/src/components/shared/user-selector";
 import { ConfirmationDialog } from "@/components/shared";
-import { RecurringSeriesSection, RecurringSeriesForm } from "@/src/features/recurring";
+import { RecurringSeriesSection } from "@/src/features/recurring";
 import { RecurringTransactionSeries } from "@/src/lib";
 import {
   TransactionDayList,
-  TransactionForm,
   TransactionFilters,
   defaultFiltersState,
   filterTransactions,
@@ -37,23 +32,24 @@ import {
 import { transactionStyles } from "@/src/features/transactions/theme/transaction-styles";
 import { UserSelectorSkeleton } from "@/src/features/dashboard";
 import { RecurringSeriesSkeleton } from "@/src/features/transactions/components/transaction-skeletons";
-import type { User, Transaction, Category, Account, Budget } from "@/lib/types";
+import type { Transaction, Budget, User, Account, Category } from "@/lib/types";
 import { TransactionService } from "@/lib/services";
-import { insertTransactionSorted, updateTransactionSorted, removeTransaction } from "@/lib/utils/transaction-sorting";
 import { deleteTransactionAction } from "@/features/transactions/actions/transaction-actions";
 import { deleteRecurringSeriesAction } from "@/features/recurring/actions/recurring-actions";
+import { useModalState, useTabState } from "@/lib/navigation/url-state";
+import { usePageDataStore } from "@/stores/page-data-store";
 
 /**
  * Transactions Content Props
  */
 interface TransactionsContentProps {
-  currentUser: User;
-  groupUsers: User[];
   transactions: Transaction[];
-  categories: Category[];
-  accounts: Account[];
   recurringSeries: RecurringTransactionSeries[];
   budgets: Budget[];
+  currentUser: User;
+  groupUsers: User[];
+  accounts: Account[];
+  categories: Category[];
 }
 
 /**
@@ -61,25 +57,22 @@ interface TransactionsContentProps {
  * Handles interactive transactions UI with state management
  */
 export default function TransactionsContent({
-  currentUser,
-  groupUsers,
   transactions,
-  categories,
-  accounts,
   recurringSeries,
   budgets,
+  currentUser,
+  groupUsers,
+  accounts,
+  categories,
 }: TransactionsContentProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // User filtering state management using shared hook
-  const { selectedGroupFilter, setSelectedGroupFilter, selectedUserId } = useUserFilter();
+  // User filtering state management (global context)
+  const { setSelectedGroupFilter, selectedUserId } = useUserFilter();
 
-  // Permission checks
-  const { effectiveUserId, isMember } = usePermissions({
-    currentUser,
-    selectedUserId: selectedGroupFilter !== "all" ? selectedGroupFilter : undefined,
-  });
+  // Modal state management (URL-based)
+  const { openModal } = useModalState();
 
   // Check if coming from budgets page
   const fromBudgets = searchParams.get("from") === "budgets";
@@ -114,9 +107,8 @@ export default function TransactionsContent({
     return defaultFiltersState;
   }, [fromBudgets, selectedBudget, startDateFromUrl, endDateFromUrl]);
 
-  // Tab state - initialize from URL params if present
-  const initialTab = searchParams.get("tab") || "Transactions";
-  const [activeTab, setActiveTab] = useState<string>(initialTab);
+  // Tab state - managed via URL params for shareable links
+  const { activeTab, setActiveTab } = useTabState("Transactions");
 
   // Modern filters state - initialized from URL or default
   const [filters, setFilters] = useState<TransactionFiltersState>(initialFilters);
@@ -127,14 +119,6 @@ export default function TransactionsContent({
       setSelectedGroupFilter(memberIdFromUrl);
     }
   }, [fromBudgets, memberIdFromUrl, setSelectedGroupFilter]);
-
-  // Sync tab state with URL params on mount and when URL changes
-  useEffect(() => {
-    const tabFromUrl = searchParams.get("tab");
-    if (tabFromUrl && (tabFromUrl === "Transactions" || tabFromUrl === "Recurrent")) {
-      setActiveTab(tabFromUrl);
-    }
-  }, [searchParams]);
 
   // Scroll to top on page mount (navigation to transactions page)
   useEffect(() => {
@@ -156,45 +140,27 @@ export default function TransactionsContent({
     router.push("/transactions");
   };
 
-  // Form modal state using hooks
-  const transactionModal = useFormModal<Transaction>();
-  const recurringModal = useFormModal<RecurringTransactionSeries>();
-
   // Delete confirmation state using hook
   const deleteConfirm = useDeleteConfirmation<Transaction>();
   const recurringDeleteConfirm = useDeleteConfirmation<RecurringTransactionSeries>();
 
-  // Optimistic UI state - local copy of transactions
-  const [localTransactions, setLocalTransactions] = useState<Transaction[]>(transactions);
+  // Page data store - for optimistic updates
+  const storeTransactions = usePageDataStore((state) => state.transactions);
+  const setTransactions = usePageDataStore((state) => state.setTransactions);
+  const removeTransactionFromStore = usePageDataStore((state) => state.removeTransaction);
+  const addTransactionToStore = usePageDataStore((state) => state.addTransaction);
 
-  // Debounced refresh to prevent race conditions and flickering
-  const refreshTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  const debouncedRefresh = useCallback(() => {
-    if (refreshTimeoutRef.current) {
-      clearTimeout(refreshTimeoutRef.current);
-    }
-
-    refreshTimeoutRef.current = setTimeout(() => {
-      router.refresh();
-    }, 300); // 300ms debounce
-  }, [router]);
-
-  // Cleanup on unmount
+  // Initialize store with server data on mount and when props change
   useEffect(() => {
-    return () => {
-      if (refreshTimeoutRef.current) {
-        clearTimeout(refreshTimeoutRef.current);
-      }
-    };
-  }, []);
+    setTransactions(transactions);
+  }, [transactions, setTransactions]);
 
   // Create account names map for display using hook
   const accountNames = useIdNameMap(accounts);
 
   // Filter transactions by selected user (centralized permission-based filtering)
   const { filteredData: userFilteredTransactions } = useFilteredData({
-    data: localTransactions,
+    data: storeTransactions,
     currentUser,
     selectedUserId,
   });
@@ -210,51 +176,36 @@ export default function TransactionsContent({
     return TransactionService.calculateDailyTotals(grouped);
   }, [filteredTransactions]);
 
-  // Handlers for transaction actions
-  const handleCreateTransaction = () => {
-    transactionModal.openCreate();
-  };
-
   const handleEditTransaction = (transaction: Transaction) => {
-    transactionModal.openEdit(transaction);
+    openModal("transaction", transaction.id);
   };
 
   const handleDeleteClick = (transactionId: string) => {
-    const transaction = localTransactions.find((t) => t.id === transactionId);
+    const transaction = storeTransactions.find((t) => t.id === transactionId);
     if (transaction) {
       deleteConfirm.openDialog(transaction);
     }
   };
 
-  // Helper functions for optimistic updates (extracted to avoid deep nesting)
-  const removeTransactionFromList = (transactionToRemove: Transaction) => {
-    setLocalTransactions((prev) => removeTransaction(prev, transactionToRemove.id));
-  };
-
-  const addTransactionToList = (transactionToAdd: Transaction) => {
-    setLocalTransactions((prev) => insertTransactionSorted(prev, transactionToAdd));
-  };
-
   const handleDeleteConfirm = async () => {
     await deleteConfirm.executeDelete(async (transaction) => {
-      // Optimistic UI update - remove immediately
-      removeTransactionFromList(transaction);
+      // Optimistic UI update - remove immediately from store
+      removeTransactionFromStore(transaction.id);
 
       try {
         // Call server action to delete
         const result = await deleteTransactionAction(transaction.id);
 
         if (result.error) {
-          // Revert on error
-          addTransactionToList(transaction);
+          // Revert on error - add back to store
+          addTransactionToStore(transaction);
           console.error("Failed to delete transaction:", result.error);
           throw new Error(result.error);
         }
-        // Success - cache revalidation happens in service, UI will refresh with server data
-        debouncedRefresh();
+        // Success - no router.refresh() needed, store already updated!
       } catch (error) {
         // Revert on error
-        addTransactionToList(transaction);
+        addTransactionToStore(transaction);
         console.error("Error deleting transaction:", error);
         throw error;
       }
@@ -272,78 +223,28 @@ export default function TransactionsContent({
         console.error("Failed to delete recurring series:", result.error);
         throw new Error(result.error);
       }
-      router.refresh();
+      // Success - recurring series deleted
+      // Note: Page will be refreshed naturally when user navigates
     });
-  };
-
-  const handleFormSuccess = (transaction: Transaction, action: "create" | "update") => {
-    // Optimistic UI update with sorted insertion
-    if (action === "create") {
-      setLocalTransactions((prev) => insertTransactionSorted(prev, transaction));
-    } else {
-      setLocalTransactions((prev) => updateTransactionSorted(prev, transaction));
-    }
-
-    // Debounced cache revalidation to prevent flickering during rapid operations
-    debouncedRefresh();
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
-  const handleRecurringFormSuccess = () => {
-    // Refresh to get updated recurring series data
-    router.refresh();
   };
 
   return (
     <PageContainer className={transactionStyles.page.container}>
       {/* Header */}
-      <PageHeaderWithBack
+      <Header
         title="Transazioni"
-        onBack={() => router.back()}
+        showBack={true}
         className={transactionStyles.header.container}
-        contentClassName={transactionStyles.header.inner}
-        titleClassName={transactionStyles.header.title}
-        backButtonClassName={transactionStyles.header.button}
-        variant="secondary"
-        actions={
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className={transactionStyles.header.button}>
-                <MoreVertical className="h-5 w-5" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent
-              align="end"
-              className="w-56 backdrop-blur-xl border border-border/50 shadow-xl rounded-xl p-2 animate-in slide-in-from-top-2 duration-200"
-              sideOffset={8}
-            >
-              <DropdownMenuItem
-                className="text-sm font-medium text-primary hover:bg-primary hover:text-white rounded-lg px-3 py-2.5 cursor-pointer transition-colors"
-                onClick={handleCreateTransaction}
-              >
-                <Plus className="mr-3 h-4 w-4" />
-                Aggiungi Transazione
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                className="text-sm font-medium text-primary hover:bg-primary hover:text-white rounded-lg px-3 py-2.5 cursor-pointer transition-colors"
-                onClick={recurringModal.openCreate}
-              >
-                <Plus className="mr-3 h-4 w-4" />
-                Aggiungi Ricorrenza
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        }
+        currentUser={{ name: currentUser.name, role: currentUser.role || 'member' }}
+        showActions={true}
       />
 
       {/* User Selector */}
       <Suspense fallback={<UserSelectorSkeleton />}>
         <UserSelector
-          users={groupUsers}
-          currentUser={currentUser}
-          selectedGroupFilter={selectedGroupFilter}
-          onGroupFilterChange={setSelectedGroupFilter}
           className="bg-card border-border"
+          currentUser={currentUser}
+          users={groupUsers}
         />
       </Suspense>
 
@@ -395,14 +296,14 @@ export default function TransactionsContent({
           <Suspense fallback={<RecurringSeriesSkeleton />}>
             <RecurringSeriesSection
               series={recurringSeries}
-              selectedUserId={isMember ? currentUser.id : selectedGroupFilter === "all" ? undefined : effectiveUserId}
+              selectedUserId={selectedUserId}
               className="bg-card/80 backdrop-blur-sm border border-border/50 shadow-lg shadow-muted/30"
               showStats={true}
               maxItems={10}
               showActions={true}
               showDelete={true}
-              onCreateRecurringSeries={recurringModal.openCreate}
-              onEditRecurringSeries={recurringModal.openEdit}
+              onCreateRecurringSeries={() => openModal("recurring")}
+              onEditRecurringSeries={(series) => openModal("recurring", series.id)}
               onDeleteRecurringSeries={handleRecurringDeleteClick}
             />
           </Suspense>
@@ -410,33 +311,6 @@ export default function TransactionsContent({
       </main>
 
       <BottomNavigation />
-
-      {/* Modal Forms */}
-      <TransactionForm
-        isOpen={transactionModal.isOpen}
-        onOpenChange={transactionModal.setIsOpen}
-        transaction={transactionModal.entity}
-        mode={transactionModal.mode}
-        currentUser={currentUser}
-        groupUsers={groupUsers}
-        accounts={accounts}
-        categories={categories}
-        groupId={currentUser.group_id}
-        selectedUserId={effectiveUserId === "all" ? undefined : effectiveUserId}
-        onSuccess={handleFormSuccess}
-      />
-      <RecurringSeriesForm
-        isOpen={recurringModal.isOpen}
-        onOpenChange={recurringModal.setIsOpen}
-        currentUser={currentUser}
-        groupUsers={groupUsers}
-        accounts={accounts}
-        categories={categories}
-        selectedUserId={effectiveUserId === "all" ? undefined : effectiveUserId}
-        series={recurringModal.entity}
-        mode={recurringModal.mode}
-        onSuccess={handleRecurringFormSuccess}
-      />
 
       {/* Delete Confirmation Dialog */}
       <ConfirmationDialog
