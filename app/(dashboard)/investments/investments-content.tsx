@@ -3,19 +3,18 @@
 import { PageContainer, Header, SectionHeader, BottomNavigation } from "@/src/components/layout";
 import { EmptyState } from "@/components/shared";
 import UserSelector from "@/src/components/shared/user-selector";
-import { EnhancedHolding } from "@/src/lib";
+import { EnhancedHolding, User } from "@/src/lib";
 import { PieChart } from "lucide-react";
-import { useCurrentUser } from "@/stores/reference-data-store";
 
-export default function InvestmentsContent() {
-  // Read from stores instead of props
-  const currentUser = useCurrentUser();
+interface InvestmentsContentProps {
+  currentUser: User;
+  groupUsers: User[];
+}
 
-  // Early return if store not initialized
-  if (!currentUser) {
-    return null;
-  }
-
+export default function InvestmentsContent({
+  currentUser,
+  groupUsers,
+}: InvestmentsContentProps) {
   return (
     <PageContainer className="bg-[#F8FAFC]">
       <div className="flex-1">
@@ -27,7 +26,10 @@ export default function InvestmentsContent() {
           showActions={true}
         />
 
-        <UserSelector />
+        <UserSelector
+          currentUser={currentUser}
+          users={groupUsers}
+        />
 
         <main className="p-4 pb-24">
           <div className="flex gap-4 overflow-x-auto pb-4 -mx-4 px-4 mb-6">

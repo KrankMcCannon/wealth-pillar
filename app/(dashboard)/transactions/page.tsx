@@ -9,7 +9,7 @@ import TransactionsContent from './transactions-content';
 import TransactionPageLoading from './loading';
 
 export default async function TransactionsPage() {
-  const { currentUser } = await getDashboardData();
+  const { currentUser, groupUsers } = await getDashboardData();
 
   // Fetch all transactions page data in parallel with centralized service
   const { data, error } = await PageDataService.getTransactionsPageData(currentUser.group_id);
@@ -18,7 +18,13 @@ export default async function TransactionsPage() {
     console.error('Failed to fetch transactions page data:', error);
   }
 
-  const { transactions = [], recurringSeries = [], budgets = [] } = data || {};
+  const {
+    transactions = [],
+    recurringSeries = [],
+    budgets = [],
+    accounts = [],
+    categories = []
+  } = data || {};
 
   return (
     <Suspense fallback={<TransactionPageLoading />}>
@@ -26,6 +32,10 @@ export default async function TransactionsPage() {
         transactions={transactions}
         recurringSeries={recurringSeries}
         budgets={budgets}
+        currentUser={currentUser}
+        groupUsers={groupUsers}
+        accounts={accounts}
+        categories={categories}
       />
     </Suspense>
   );

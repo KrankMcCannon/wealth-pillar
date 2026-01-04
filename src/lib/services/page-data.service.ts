@@ -35,7 +35,7 @@ export interface DashboardPageData {
   accounts: Account[];
   transactions: Transaction[];
   budgets: Budget[];
-  budgetPeriods: Map<string, BudgetPeriod | null>; // userId -> active period
+  budgetPeriods: Record<string, BudgetPeriod | null>; // userId -> active period
   recurringSeries: RecurringTransactionSeries[];
   categories: Category[];
   accountBalances: Record<string, number>;
@@ -60,7 +60,7 @@ export interface BudgetsPageData {
   transactions: Transaction[];
   accounts: Account[];
   categories: Category[];
-  budgetPeriods: Map<string, BudgetPeriod | null>; // userId -> active period
+  budgetPeriods: Record<string, BudgetPeriod | null>; // userId -> active period
 }
 
 /**
@@ -129,23 +129,24 @@ export class PageDataService {
       ),
     ]);
 
-    // Check for errors
+    // Log errors but continue with default values
     if (accountsResult.error) {
-      return { data: null, error: accountsResult.error };
+      console.error('[PageDataService] Failed to fetch accounts:', accountsResult.error);
     }
     if (transactionsResult.error) {
-      return { data: null, error: transactionsResult.error };
+      console.error('[PageDataService] Failed to fetch transactions:', transactionsResult.error);
     }
     if (budgetsResult.error) {
-      return { data: null, error: budgetsResult.error };
+      console.error('[PageDataService] Failed to fetch budgets:', budgetsResult.error);
     }
     if (recurringResult.error) {
-      return { data: null, error: recurringResult.error };
+      console.error('[PageDataService] Failed to fetch recurring series:', recurringResult.error);
     }
     if (categoriesResult.error) {
-      return { data: null, error: categoriesResult.error };
+      console.error('[PageDataService] Failed to fetch categories:', categoriesResult.error);
     }
 
+    // Use data or fallback to empty arrays
     const accounts = accountsResult.data || [];
     const transactions = transactionsResult.data || [];
     const budgets = budgetsResult.data || [];
@@ -153,9 +154,9 @@ export class PageDataService {
     const categories = categoriesResult.data || [];
 
     // Build budget periods map (userId -> active period)
-    const budgetPeriods = new Map<string, BudgetPeriod | null>();
+    const budgetPeriods: Record<string, BudgetPeriod | null> = {};
     userIds.forEach((userId, index) => {
-      budgetPeriods.set(userId, periodResults[index].data);
+      budgetPeriods[userId] = periodResults[index].data ?? null;
     });
 
     // Calculate account balances
@@ -196,21 +197,21 @@ export class PageDataService {
       BudgetService.getBudgetsByGroup(groupId),
     ]);
 
-    // Check for errors
+    // Log errors but continue with default values
     if (transactionsResult.error) {
-      return { data: null, error: transactionsResult.error };
+      console.error('[PageDataService] Failed to fetch transactions:', transactionsResult.error);
     }
     if (categoriesResult.error) {
-      return { data: null, error: categoriesResult.error };
+      console.error('[PageDataService] Failed to fetch categories:', categoriesResult.error);
     }
     if (accountsResult.error) {
-      return { data: null, error: accountsResult.error };
+      console.error('[PageDataService] Failed to fetch accounts:', accountsResult.error);
     }
     if (recurringResult.error) {
-      return { data: null, error: recurringResult.error };
+      console.error('[PageDataService] Failed to fetch recurring series:', recurringResult.error);
     }
     if (budgetsResult.error) {
-      return { data: null, error: budgetsResult.error };
+      console.error('[PageDataService] Failed to fetch budgets:', budgetsResult.error);
     }
 
     return {
@@ -259,24 +260,24 @@ export class PageDataService {
       ),
     ]);
 
-    // Check for errors
+    // Log errors but continue with default values (graceful degradation)
     if (budgetsResult.error) {
-      return { data: null, error: budgetsResult.error };
+      console.error('[PageDataService] Failed to fetch budgets:', budgetsResult.error);
     }
     if (transactionsResult.error) {
-      return { data: null, error: transactionsResult.error };
+      console.error('[PageDataService] Failed to fetch transactions:', transactionsResult.error);
     }
     if (accountsResult.error) {
-      return { data: null, error: accountsResult.error };
+      console.error('[PageDataService] Failed to fetch accounts:', accountsResult.error);
     }
     if (categoriesResult.error) {
-      return { data: null, error: categoriesResult.error };
+      console.error('[PageDataService] Failed to fetch categories:', categoriesResult.error);
     }
 
     // Build budget periods map (userId -> active period)
-    const budgetPeriods = new Map<string, BudgetPeriod | null>();
+    const budgetPeriods: Record<string, BudgetPeriod | null> = {};
     userIds.forEach((userId, index) => {
-      budgetPeriods.set(userId, periodResults[index].data);
+      budgetPeriods[userId] = periodResults[index].data ?? null;
     });
 
     return {
@@ -306,12 +307,12 @@ export class PageDataService {
       TransactionService.getTransactionsByGroup(groupId),
     ]);
 
-    // Check for errors
+    // Log errors but continue with default values (graceful degradation)
     if (accountsResult.error) {
-      return { data: null, error: accountsResult.error };
+      console.error('[PageDataService] Failed to fetch accounts:', accountsResult.error);
     }
     if (transactionsResult.error) {
-      return { data: null, error: transactionsResult.error };
+      console.error('[PageDataService] Failed to fetch transactions:', transactionsResult.error);
     }
 
     const accounts = accountsResult.data || [];
@@ -346,15 +347,15 @@ export class PageDataService {
       CategoryService.getAllCategories(),
     ]);
 
-    // Check for errors
+    // Log errors but continue with default values (graceful degradation)
     if (accountsResult.error) {
-      return { data: null, error: accountsResult.error };
+      console.error('[PageDataService] Failed to fetch accounts:', accountsResult.error);
     }
     if (transactionsResult.error) {
-      return { data: null, error: transactionsResult.error };
+      console.error('[PageDataService] Failed to fetch transactions:', transactionsResult.error);
     }
     if (categoriesResult.error) {
-      return { data: null, error: categoriesResult.error };
+      console.error('[PageDataService] Failed to fetch categories:', categoriesResult.error);
     }
 
     return {

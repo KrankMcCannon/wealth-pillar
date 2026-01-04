@@ -9,7 +9,7 @@
 
 "use client";
 
-import { useEffect, useRef } from 'react';
+import { useMemo } from 'react';
 import { useReferenceDataStore } from '@/stores/reference-data-store';
 import type { User, Account, Category } from '@/lib/types';
 
@@ -52,15 +52,21 @@ export function ReferenceDataInitializer({
 }: ReferenceDataInitializerProps) {
   const initialize = useReferenceDataStore((state) => state.initialize);
   const isInitialized = useReferenceDataStore((state) => state.isInitialized);
-  const hasInitialized = useRef(false);
 
-  useEffect(() => {
-    // Only initialize once
-    if (!hasInitialized.current && !isInitialized && data) {
+  // Initialize synchronously using useMemo to ensure store is ready before children render
+  // This prevents the "currentUser is null" error when child components try to access the store
+  const isReady = useMemo(() => {
+    if (!isInitialized && data) {
       initialize(data);
-      hasInitialized.current = true;
+      return true;
     }
+    return isInitialized;
   }, [data, initialize, isInitialized]);
+
+  // Don't render children until store is initialized
+  if (!isReady) {
+    return null;
+  }
 
   return <>{children}</>;
 }

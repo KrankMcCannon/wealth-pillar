@@ -12,7 +12,7 @@
 import { useState, useMemo, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { BottomNavigation, PageContainer, Header } from "@/components/layout";
-import { useDeleteConfirmation, useIdNameMap, usePermissions, useFilteredData, useBudgetsByUser, useUserFilter, useRequiredCurrentUser, useRequiredGroupUsers } from "@/hooks";
+import { useDeleteConfirmation, useIdNameMap, usePermissions, useFilteredData, useBudgetsByUser, useUserFilter } from "@/hooks";
 import { useModalState } from "@/lib/navigation/url-state";
 import UserSelector from "@/components/shared/user-selector";
 import { UserSelectorSkeleton } from "@/features/dashboard";
@@ -46,7 +46,7 @@ import {
   diffInDays,
 } from "@/lib/utils/date-utils";
 import { BudgetService } from "@/lib/services";
-import type { Category, Budget, Transaction, Account, BudgetPeriod } from "@/lib/types";
+import type { Category, Budget, Transaction, Account, BudgetPeriod, User } from "@/lib/types";
 import type { ChartDataPoint } from "@/features/budgets/components/BudgetChart";
 import { usePageDataStore } from "@/stores/page-data-store";
 
@@ -58,7 +58,9 @@ interface BudgetsContentProps {
   budgets: Budget[];
   transactions: Transaction[];
   accounts: Account[];
-  budgetPeriods: Map<string, BudgetPeriod | null>;
+  budgetPeriods: Record<string, BudgetPeriod | null>;
+  currentUser: User;
+  groupUsers: User[];
 }
 
 /**
@@ -73,11 +75,9 @@ export default function BudgetsContent({
   transactions,
   accounts,
   budgetPeriods,
+  currentUser,
+  groupUsers,
 }: BudgetsContentProps) {
-  // Read from stores instead of props
-  const currentUser = useRequiredCurrentUser();
-  const groupUsers = useRequiredGroupUsers();
-
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -171,9 +171,12 @@ export default function BudgetsContent({
     return groupUsers.find((u) => u.id === selectedBudget.user_id) || currentUser;
   }, [selectedBudget, groupUsers, currentUser]);
 
+  // Memoize users list for hook to prevent infinite loops
+  const hookGroupUsers = useMemo(() => [selectedBudgetUser], [selectedBudgetUser]);
+
   // Calculate budget summary for the selected budget's user using centralized hook
   const { budgetsByUser } = useBudgetsByUser({
-    groupUsers: [selectedBudgetUser],
+    groupUsers: hookGroupUsers,
     budgets: storeBudgets,
     transactions,
     currentUser,
@@ -371,7 +374,11 @@ export default function BudgetsContent({
 
       {/* User Selector */}
       <Suspense fallback={<UserSelectorSkeleton />}>
-        <UserSelector className="bg-card border-border" />
+        <UserSelector
+          className="bg-card border-border"
+          currentUser={currentUser}
+          users={groupUsers}
+        />
       </Suspense>
 
       {/* Main content area with progressive loading */}

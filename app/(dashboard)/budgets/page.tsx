@@ -9,7 +9,7 @@ import BudgetsContent from './budgets-content';
 import { BudgetSelectorSkeleton } from '@/features/budgets/components';
 
 export default async function BudgetsPage() {
-  const { currentUser } = await getDashboardData();
+  const { currentUser, groupUsers } = await getDashboardData();
 
   // Fetch all budget page data in parallel (optimized with Promise.all)
   const { data, error } = await PageDataService.getBudgetsPageData(currentUser.group_id);
@@ -18,7 +18,7 @@ export default async function BudgetsPage() {
     console.error('Failed to fetch budgets page data:', error);
   }
 
-  const { budgets = [], transactions = [], accounts = [], categories = [], budgetPeriods = new Map() } = data || {};
+  const { budgets = [], transactions = [], accounts = [], categories = [], budgetPeriods = {} } = data || {};
 
   return (
     <Suspense fallback={<BudgetSelectorSkeleton />}>
@@ -28,6 +28,8 @@ export default async function BudgetsPage() {
         transactions={transactions || []}
         accounts={accounts || []}
         budgetPeriods={budgetPeriods}
+        currentUser={currentUser}
+        groupUsers={groupUsers}
       />
     </Suspense>
   );

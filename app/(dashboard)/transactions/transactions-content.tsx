@@ -14,7 +14,6 @@ import {
   useDeleteConfirmation,
   useIdNameMap,
   useFilteredData,
-  useRequiredCurrentUser,
 } from "@/hooks";
 import { BottomNavigation, PageContainer, Header } from "@/src/components/layout";
 import TabNavigation from "@/src/components/shared/tab-navigation";
@@ -33,12 +32,11 @@ import {
 import { transactionStyles } from "@/src/features/transactions/theme/transaction-styles";
 import { UserSelectorSkeleton } from "@/src/features/dashboard";
 import { RecurringSeriesSkeleton } from "@/src/features/transactions/components/transaction-skeletons";
-import type { Transaction, Budget } from "@/lib/types";
+import type { Transaction, Budget, User, Account, Category } from "@/lib/types";
 import { TransactionService } from "@/lib/services";
 import { deleteTransactionAction } from "@/features/transactions/actions/transaction-actions";
 import { deleteRecurringSeriesAction } from "@/features/recurring/actions/recurring-actions";
 import { useModalState, useTabState } from "@/lib/navigation/url-state";
-import { useAccounts, useCategories } from "@/stores/reference-data-store";
 import { usePageDataStore } from "@/stores/page-data-store";
 
 /**
@@ -48,6 +46,10 @@ interface TransactionsContentProps {
   transactions: Transaction[];
   recurringSeries: RecurringTransactionSeries[];
   budgets: Budget[];
+  currentUser: User;
+  groupUsers: User[];
+  accounts: Account[];
+  categories: Category[];
 }
 
 /**
@@ -58,12 +60,11 @@ export default function TransactionsContent({
   transactions,
   recurringSeries,
   budgets,
+  currentUser,
+  groupUsers,
+  accounts,
+  categories,
 }: TransactionsContentProps) {
-  // Read from stores instead of props
-  const currentUser = useRequiredCurrentUser();
-  const accounts = useAccounts();
-  const categories = useCategories();
-
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -240,7 +241,11 @@ export default function TransactionsContent({
 
       {/* User Selector */}
       <Suspense fallback={<UserSelectorSkeleton />}>
-        <UserSelector className="bg-card border-border" />
+        <UserSelector
+          className="bg-card border-border"
+          currentUser={currentUser}
+          users={groupUsers}
+        />
       </Suspense>
 
       {/* Tab Navigation */}

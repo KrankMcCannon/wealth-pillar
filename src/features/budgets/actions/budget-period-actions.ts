@@ -85,7 +85,10 @@ export async function startPeriodAction(
  */
 export async function closePeriodAction(
   periodId: string,
-  endDate: string
+  endDate: string,
+  totalSpent?: number,
+  totalSaved?: number,
+  categorySpending?: Record<string, number>
 ): Promise<ServiceResult<BudgetPeriod>> {
   try {
     // Authentication check
@@ -127,7 +130,7 @@ export async function closePeriodAction(
       };
     }
 
-    // Fetch transactions and budgets for calculations
+    // Fetch transactions and budgets for calculations (fallback)
     const { data: transactions } = await TransactionService.getTransactionsByUser(
       period.user_id
     );
@@ -135,12 +138,17 @@ export async function closePeriodAction(
       period.user_id
     );
 
-    // Close period with calculations
+    const totals = totalSpent !== undefined && totalSaved !== undefined && categorySpending !== undefined
+      ? { total_spent: totalSpent, total_saved: totalSaved, category_spending: categorySpending }
+      : undefined;
+
+    // Close period with calculations or pre-calculated totals
     const result = await BudgetPeriodService.closePeriod(
       periodId,
       endDate,
       transactions || [],
-      budgets || []
+      budgets || [],
+      totals
     );
 
     if (!result.error) {

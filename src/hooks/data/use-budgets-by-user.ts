@@ -19,7 +19,7 @@ interface UseBudgetsByUserOptions {
   /** Selected user ID for filtering (undefined = all for admins) */
   selectedUserId?: string;
   /** Optional budget periods map (if not provided, will fetch from DB) */
-  budgetPeriods?: Map<string, BudgetPeriod | null>;
+  budgetPeriods?: Record<string, BudgetPeriod | null>;
 }
 
 /**

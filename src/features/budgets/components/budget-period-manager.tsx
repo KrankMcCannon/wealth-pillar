@@ -2,12 +2,12 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { Clock, TrendingUp, TrendingDown, Activity, Users } from "lucide-react";
-import { BudgetPeriod, Transaction, Budget } from "@/lib/types";
+import { BudgetPeriod, Transaction, Budget, User } from "@/lib/types";
 import { startPeriodAction, closePeriodAction } from "@/features/budgets/actions/budget-period-actions";
 import { FormActions } from "@/src/components/form";
 import { DateField, UserField } from "@/src/components/ui/fields";
 import { Alert, AlertDescription, Badge, ModalContent, ModalSection, ModalWrapper } from "@/src/components/ui";
-import { usePermissions, useRequiredCurrentUser, useRequiredGroupUsers } from "@/hooks";
+import { usePermissions } from "@/hooks";
 import { toDateTime } from "@/lib/utils/date-utils";
 import { usePageDataStore } from "@/stores/page-data-store";
 
@@ -19,6 +19,8 @@ interface BudgetPeriodManagerProps {
   trigger: React.ReactNode;
   onSuccess?: () => void;
   onUserChange?: (userId: string) => void; // Callback when user selection changes
+  currentUser: User;
+  groupUsers: User[];
 }
 
 export function BudgetPeriodManager({
@@ -29,11 +31,9 @@ export function BudgetPeriodManager({
   trigger,
   onSuccess,
   onUserChange,
+  currentUser,
+  groupUsers,
 }: Readonly<BudgetPeriodManagerProps>) {
-  // Read from stores
-  const currentUser = useRequiredCurrentUser();
-  const groupUsers = useRequiredGroupUsers();
-
   const [isOpen, setIsOpen] = useState(false);
   const [isActionPending, setIsActionPending] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string>("");
@@ -170,8 +170,14 @@ export function BudgetPeriodManager({
       let result;
 
       if (isActivePeriod && currentPeriod) {
-        // Close current period using period ID
-        result = await closePeriodAction(currentPeriod.id, selectedDate);
+        // Close current period using period ID and pre-calculated metrics
+        result = await closePeriodAction(
+          currentPeriod.id,
+          selectedDate,
+          periodMetrics.totalSpent,
+          periodMetrics.totalSaved,
+          periodMetrics.categorySpending
+        );
 
         // Optimistic UI update - mark period as closed
         if (!result.error && result.data) {

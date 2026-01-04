@@ -129,7 +129,7 @@ export class BudgetPeriodService {
     try {
       const getCachedPeriod = cached(
         async () => {
-          const { data, error} = await supabaseServer
+          const { data, error } = await supabaseServer
             .from('budget_periods')
             .select('*')
             .eq('user_id', userId)
@@ -241,7 +241,12 @@ export class BudgetPeriodService {
     periodId: string,
     endDate: string | Date,
     transactions: Transaction[],
-    budgets?: Budget[]
+    budgets?: Budget[],
+    totals?: {
+      total_spent: number;
+      total_saved: number;
+      category_spending: Record<string, number>;
+    }
   ): Promise<ServiceResult<BudgetPeriod>> {
     try {
       // Get period
@@ -265,8 +270,8 @@ export class BudgetPeriodService {
         };
       }
 
-      // Calculate totals from transactions
-      const totals = this.calculatePeriodTotals(
+      // Use provided totals or calculate them from transactions
+      const periodTotals = totals || this.calculatePeriodTotals(
         transactions,
         period,
         startDt,
@@ -280,9 +285,9 @@ export class BudgetPeriodService {
         .update({
           end_date: endDt.toISODate() as string,
           is_active: false,
-          total_spent: totals.total_spent,
-          total_saved: totals.total_saved,
-          category_spending: totals.category_spending,
+          total_spent: periodTotals.total_spent,
+          total_saved: periodTotals.total_saved,
+          category_spending: periodTotals.category_spending,
           updated_at: nowISO(),
         })
         .eq('id', periodId)
@@ -298,6 +303,20 @@ export class BudgetPeriodService {
         `user:${period.user_id}:budget_periods`,
         `user:${period.user_id}:budget_period:active`,
       ]);
+
+      // Automatically create next budget period starting the day after this one ends
+      const nextStartDt = endDt.plus({ days: 1 });
+      const nextStartDateStr = nextStartDt.toISODate();
+
+      if (nextStartDateStr) {
+        // We catch errors here to ensure the period remains closed even if auto-creation fails
+        // (though in practice it should succeed)
+        try {
+          await this.createPeriod(period.user_id, nextStartDateStr);
+        } catch (createError) {
+          console.error('[BudgetPeriodService] Failed to auto-create next period:', createError);
+        }
+      }
 
       return { data: closedPeriod as BudgetPeriod, error: null };
     } catch (error) {
@@ -405,25 +424,42 @@ export class BudgetPeriodService {
     });
 
     let total_spent = 0;
+    let total_budget = 0;
     const category_spending: Record<string, number> = {};
 
-    // Calculate spending
-    for (const t of periodTransactions) {
-      if (t.type === 'expense' || t.type === 'transfer') {
-        total_spent += t.amount;
-        category_spending[t.category] =
-          (category_spending[t.category] || 0) + t.amount;
-      } else if (t.type === 'income') {
-        total_spent -= t.amount; // Income refills budget
-      }
-    }
+    // Filter valid budgets (amount > 0) for the target user
+    const validBudgets = (budgets || []).filter(
+      (b) => b.user_id === period.user_id && b.amount > 0
+    );
 
-    total_spent = Math.max(0, total_spent);
+    // Calculate totals by processing each budget individually (matches modal logic)
+    validBudgets.forEach((budget) => {
+      total_budget += budget.amount;
 
-    // Calculate total budget for this period
-    const total_budget = budgets
-      .filter((b) => b.user_id === period.user_id)
-      .reduce((sum, b) => sum + b.amount, 0);
+      // Filter transactions for this specific budget's categories
+      const budgetTransactions = periodTransactions.filter((t) =>
+        budget.categories.includes(t.category)
+      );
+
+      // Calculate spent for this budget (income refills, expense/transfer consume)
+      const budgetSpent = budgetTransactions.reduce((sum, t) => {
+        if (t.type === 'income') {
+          return sum - t.amount;
+        }
+        return sum + t.amount;
+      }, 0);
+
+      // Add to total spent (ensuring non-negative per budget)
+      total_spent += Math.max(0, budgetSpent);
+
+      // Track category spending (only for expenses and transfers)
+      budgetTransactions.forEach((t) => {
+        if (t.type === 'expense' || t.type === 'transfer') {
+          category_spending[t.category] =
+            (category_spending[t.category] || 0) + t.amount;
+        }
+      });
+    });
 
     const total_saved = Math.max(0, total_budget - total_spent);
 

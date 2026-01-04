@@ -15190,7 +15190,7 @@
       "frequency": "once"
     }
   ],
-  "recurring_transaction_series": [
+  "recurring_transactions": [
     {
       "id": "0cec7850-6809-473c-b0cc-6e1cd33f9269",
       "description": "Crunchyroll",

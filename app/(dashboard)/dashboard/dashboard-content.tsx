@@ -17,7 +17,7 @@
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { BottomNavigation, PageContainer, Header } from "@/components/layout";
-import { useUserFilter, usePermissions, useFilteredAccounts, useBudgetsByUser, useRequiredCurrentUser, useRequiredGroupUsers } from "@/hooks";
+import { useUserFilter, usePermissions, useFilteredAccounts, useBudgetsByUser } from "@/hooks";
 import { Button } from "@/components/ui";
 import { RecurringTransactionSeries } from "@/src/lib";
 import {
@@ -34,18 +34,20 @@ import { BudgetPeriodManager, BudgetSection } from "@/features/budgets";
 import { RecurringSeriesSection } from "@/features/recurring";
 import { AccountService } from "@/lib/services";
 import { useModalState } from "@/lib/navigation/url-state";
-import type { Account, Transaction, Budget, BudgetPeriod } from "@/lib/types";
-import { useAccounts } from "@/stores/reference-data-store";
+import type { Account, Transaction, Budget, BudgetPeriod, User } from "@/lib/types";
 import { usePageDataStore, useBudgetPeriod } from "@/stores/page-data-store";
 
 /**
  * Dashboard Content Props
  */
 interface DashboardContentProps {
+  currentUser: User;
+  groupUsers: User[];
+  accounts: Account[];
   accountBalances: Record<string, number>;
   transactions: Transaction[];
   budgets: Budget[];
-  budgetPeriods: Map<string, BudgetPeriod | null>;
+  budgetPeriods: Record<string, BudgetPeriod | null>;
   recurringSeries: RecurringTransactionSeries[];
 }
 
@@ -56,16 +58,15 @@ interface DashboardContentProps {
  * Receives data from Server Component parent
  */
 export default function DashboardContent({
+  currentUser,
+  groupUsers,
+  accounts,
   accountBalances,
   transactions,
   budgets,
   budgetPeriods,
   recurringSeries,
 }: DashboardContentProps) {
-  // All hooks must be called at the top of the component, unconditionally
-  const currentUser = useRequiredCurrentUser();
-  const groupUsers = useRequiredGroupUsers();
-  const accounts = useAccounts();
   const router = useRouter();
   const { selectedGroupFilter, selectedUserId } = useUserFilter();
   const setBudgetPeriods = usePageDataStore((state) => state.setBudgetPeriods);
@@ -213,7 +214,11 @@ export default function DashboardContent({
 
       {/* User Selector */}
       <Suspense fallback={<UserSelectorSkeleton />}>
-        <UserSelector isLoading={false} />
+        <UserSelector
+          isLoading={false}
+          currentUser={currentUser}
+          users={groupUsers}
+        />
       </Suspense>
 
       <main className={dashboardStyles.page.main}>
@@ -250,6 +255,8 @@ export default function DashboardContent({
                   onUserChange={setPeriodManagerUserId}
                   onSuccess={() => router.refresh()}
                   trigger={budgetPeriodTrigger}
+                  currentUser={currentUser}
+                  groupUsers={groupUsers}
                 />
               }
             />

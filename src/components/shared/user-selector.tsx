@@ -2,26 +2,29 @@
 
 import { memo, useCallback, useMemo } from 'react';
 import { Users, User as UserIcon, Crown, Star, Heart } from "lucide-react";
-import { useUserFilter, useRequiredCurrentUser, useRequiredGroupUsers } from '@/hooks';
+import { useUserFilter } from '@/hooks';
+import { User } from '@/lib/types';
 
 interface UserSelectorProps {
   className?: string;
   isLoading?: boolean;
+  currentUser: User;
+  users: User[];
 }
 
 /**
  * Optimized UserSelector with memoization and modern UX
  * Prevents unnecessary re-renders and improves performance
  *
- * Reads data from Zustand stores - no props needed for user data
+ * NOW STATLESS: Receives data via props
  */
 const UserSelector = memo(({
   className = "",
-  isLoading = false
+  isLoading = false,
+  currentUser,
+  users
 }: UserSelectorProps) => {
-  // Read from stores
-  const currentUser = useRequiredCurrentUser();
-  const users = useRequiredGroupUsers();
+  // Read from props instead of stores
   const { selectedGroupFilter, setSelectedGroupFilter } = useUserFilter();
 
   // Memoized icon selection
@@ -148,8 +151,8 @@ const UserSelector = memo(({
             <div
               key={index}
               className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${index === membersList.findIndex(m => m.id === selectedGroupFilter)
-                  ? 'bg-primary w-4'
-                  : 'bg-muted-foreground/30'
+                ? 'bg-primary w-4'
+                : 'bg-muted-foreground/30'
                 }`}
             />
           ))}

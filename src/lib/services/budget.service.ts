@@ -783,7 +783,7 @@ export class BudgetService {
     groupUsers: User[],
     budgets: Budget[],
     transactions: Transaction[],
-    budgetPeriods?: Map<string, BudgetPeriod | null>
+    budgetPeriods?: Record<string, BudgetPeriod | null>
   ): Promise<Record<string, UserBudgetSummary>> {
     // OPTIMIZATION: Pre-group budgets and transactions by user_id
     // Reduces complexity from O(n × m) to O(m + p + n) where:
@@ -814,7 +814,7 @@ export class BudgetService {
     const summaryPromises = groupUsers.map(async (user) => {
       const userBudgets = budgetsByUserId.get(user.id) || [];
       const userTransactions = transactionsByUserId.get(user.id) || [];
-      const userPeriod = budgetPeriods?.get(user.id);
+      const userPeriod = budgetPeriods?.[user.id];
 
       // Calculate summary with pre-filtered data
       const summary = await this.calculateUserBudgetSummary(

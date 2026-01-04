@@ -30,9 +30,9 @@ interface PageDataState {
   updateBudget: (id: string, updates: Partial<Budget>) => void;
   removeBudget: (id: string) => void;
 
-  // Budget Periods (Map of userId -> active period)
-  budgetPeriods: Map<string, BudgetPeriod | null>;
-  setBudgetPeriods: (periods: Map<string, BudgetPeriod | null>) => void;
+  // Budget Periods (Record of userId -> active period)
+  budgetPeriods: Record<string, BudgetPeriod | null>;
+  setBudgetPeriods: (periods: Record<string, BudgetPeriod | null>) => void;
   updateBudgetPeriod: (userId: string, period: BudgetPeriod | null) => void;
 
   // Recurring Series
@@ -53,7 +53,7 @@ interface PageDataState {
 const initialState = {
   transactions: [],
   budgets: [],
-  budgetPeriods: new Map<string, BudgetPeriod | null>(),
+  budgetPeriods: {},
   recurringSeries: [],
 };
 
@@ -122,11 +122,9 @@ export const usePageDataStore = create<PageDataState>()(
       },
 
       updateBudgetPeriod: (userId, period) => {
-        set((state) => {
-          const newPeriods = new Map(state.budgetPeriods);
-          newPeriods.set(userId, period);
-          return { budgetPeriods: newPeriods };
-        }, false, 'page-data/updateBudgetPeriod');
+        set((state) => ({
+          budgetPeriods: { ...state.budgetPeriods, [userId]: period },
+        }), false, 'page-data/updateBudgetPeriod');
       },
 
       // Recurring Series
@@ -200,4 +198,4 @@ export const useBudgetPeriods = () =>
  * Subscribes only to budgetPeriods changes (optimized)
  */
 export const useBudgetPeriod = (userId: string) =>
-  usePageDataStore((state) => state.budgetPeriods.get(userId) ?? null);
+  usePageDataStore((state) => state.budgetPeriods[userId] ?? null);

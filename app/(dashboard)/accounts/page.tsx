@@ -9,7 +9,7 @@ import AccountsContent from "./accounts-content";
 import { AccountHeaderSkeleton } from "@/features/accounts/components/account-skeletons";
 
 export default async function AccountsPage() {
-  const { currentUser } = await getDashboardData();
+  const { currentUser, groupUsers } = await getDashboardData();
 
   // Fetch accounts page data and categories in parallel
   const { data, error } = await PageDataService.getAccountsPageData(currentUser.group_id);
@@ -18,12 +18,15 @@ export default async function AccountsPage() {
     console.error("Failed to fetch accounts page data:", error);
   }
 
-  const accountBalances = data?.accountBalances || {};
+  const { accountBalances = {}, accounts = [] } = data || {};
 
   return (
     <Suspense fallback={<AccountHeaderSkeleton />}>
       <AccountsContent
         accountBalances={accountBalances}
+        currentUser={currentUser}
+        groupUsers={groupUsers}
+        accounts={accounts}
       />
     </Suspense>
   );

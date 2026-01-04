@@ -11,27 +11,31 @@ import { Suspense, useEffect, useMemo } from "react";
 import { BottomNavigation, PageContainer, Header } from "@/components/layout";
 import { TotalBalanceCard, AccountsList, accountStyles } from "@/features/accounts";
 import { deleteAccountAction } from "@/features/accounts/actions/account-actions";
-import { useFilteredAccounts, usePermissions, useUserFilter, useDeleteConfirmation, useRequiredCurrentUser } from "@/hooks";
+import { useFilteredAccounts, usePermissions, useUserFilter, useDeleteConfirmation } from "@/hooks";
 import UserSelector from "@/components/shared/user-selector";
 import { UserSelectorSkeleton } from "@/features/dashboard";
 import { ConfirmationDialog } from "@/components/shared/confirmation-dialog";
-import type { Account } from "@/lib/types";
+import type { Account, User } from "@/lib/types";
 import { useModalState } from "@/lib/navigation/url-state";
-import { useAccounts, useReferenceDataStore } from "@/stores/reference-data-store";
+import { useReferenceDataStore } from "@/stores/reference-data-store";
 
 interface AccountsContentProps {
   accountBalances: Record<string, number>;
+  currentUser: User;
+  groupUsers: User[];
+  accounts: Account[];
 }
 
 /**
  * Accounts Content Component
  * Receives user data, accounts, and balances from Server Component parent
  */
-export default function AccountsContent({ accountBalances }: AccountsContentProps) {
-  // Read from stores instead of props
-  const currentUser = useRequiredCurrentUser();
-  const storeAccounts = useAccounts();
-
+export default function AccountsContent({
+  accountBalances,
+  currentUser,
+  groupUsers,
+  accounts,
+}: AccountsContentProps) {
   // Reference data store actions for optimistic updates
   const removeAccount = useReferenceDataStore((state) => state.removeAccount);
   const addAccount = useReferenceDataStore((state) => state.addAccount);
@@ -53,7 +57,7 @@ export default function AccountsContent({ accountBalances }: AccountsContentProp
   }, [isMember, currentUser.id, setSelectedGroupFilter]);
 
   const { filteredAccounts } = useFilteredAccounts({
-    accounts: storeAccounts,
+    accounts,
     currentUser,
     selectedUserId: isMember ? currentUser.id : selectedUserId,
   });
@@ -133,7 +137,10 @@ export default function AccountsContent({ accountBalances }: AccountsContentProp
 
         {/* User Selector */}
         <Suspense fallback={<UserSelectorSkeleton />}>
-          <UserSelector />
+          <UserSelector
+            currentUser={currentUser}
+            users={groupUsers}
+          />
         </Suspense>
 
         {/* Total Balance Card Section */}

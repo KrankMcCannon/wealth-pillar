@@ -2,10 +2,10 @@
 
 import { useMemo } from "react";
 import { BottomNavigation, PageContainer, Header } from "@/components/layout";
-import { useUserFilter, usePermissions, useFilteredAccounts, useRequiredCurrentUser, useRequiredGroupUsers } from "@/hooks";
+import { useUserFilter, usePermissions, useFilteredAccounts, useFilteredData } from "@/hooks";
 import UserSelector from "@/src/components/shared/user-selector";
 import { BudgetPeriodsSection, reportsStyles, ReportsOverviewCard, AnnualCategorySection } from "@/features/reports";
-import type { Transaction, Category, BudgetPeriod, Account } from "@/lib/types";
+import type { Transaction, Category, BudgetPeriod, Account, User } from "@/lib/types";
 import { CategoryService } from "@/lib/services";
 import { ReportMetricsService } from "@/lib/services/report-metrics.service";
 
@@ -14,6 +14,8 @@ interface ReportsContentProps {
   transactions: Transaction[];
   categories: Category[];
   budgetPeriods: BudgetPeriod[];
+  currentUser: User;
+  groupUsers: User[];
 }
 
 export default function ReportsContent({
@@ -21,11 +23,9 @@ export default function ReportsContent({
   transactions,
   categories,
   budgetPeriods,
+  currentUser,
+  groupUsers,
 }: ReportsContentProps) {
-  // Read from stores instead of props
-  const currentUser = useRequiredCurrentUser();
-  const groupUsers = useRequiredGroupUsers();
-
   // User filtering state management using shared hook
   const { selectedGroupFilter } = useUserFilter();
 
@@ -37,6 +37,13 @@ export default function ReportsContent({
 
   // Force members to see only their own data
   const activeGroupFilter = isMember ? currentUser.id : selectedGroupFilter;
+
+  // Filter budget periods
+  const { filteredData: activeBudgetPeriods } = useFilteredData({
+    data: budgetPeriods,
+    currentUser,
+    selectedUserId: activeGroupFilter === "all" ? undefined : activeGroupFilter,
+  });
 
   // Get user account IDs for earned/spent calculation
   // Using centralized account filtering hook
@@ -81,7 +88,10 @@ export default function ReportsContent({
         />
 
         {/* User Selector */}
-        <UserSelector />
+        <UserSelector
+          currentUser={currentUser}
+          users={groupUsers}
+        />
 
         <main className={reportsStyles.main.container}>
           {/* Overview Section - Overall Metrics */}
@@ -105,7 +115,7 @@ export default function ReportsContent({
               <p className={reportsStyles.sectionHeader.subtitle}>Storico periodi passati e attuali</p>
             </div>
             <BudgetPeriodsSection
-              budgetPeriods={budgetPeriods}
+              budgetPeriods={activeBudgetPeriods}
               groupUsers={groupUsers}
               transactions={transactions}
               categories={enrichedCategories}

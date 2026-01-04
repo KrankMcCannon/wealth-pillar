@@ -29,10 +29,10 @@ let cachedClient: DatabaseClient | null = null;
  * - MOCK_API_URL → Base URL for json-server (default: http://localhost:3001)
  */
 export function createDatabaseClient(): DatabaseClient {
-  const useMockApi = process.env.USE_MOCK_API === 'true';
+  const useMockApi = process.env.NEXT_PUBLIC_USE_MOCK_API === 'true';
 
   if (useMockApi) {
-    const mockApiUrl = process.env.MOCK_API_URL || 'http://localhost:3001';
+    const mockApiUrl = process.env.NEXT_PUBLIC_MOCK_API_URL || 'http://localhost:3001';
     console.log('[Database] Using MockAPI adapter:', mockApiUrl);
     return new JsonServerAdapter(mockApiUrl);
   }

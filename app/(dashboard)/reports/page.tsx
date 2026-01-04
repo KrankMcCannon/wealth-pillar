@@ -10,7 +10,7 @@ import { getUserPeriodsAction } from '@/features/budgets/actions/budget-period-a
 import ReportsContent from './reports-content';
 
 export default async function ReportsPage() {
-  const { currentUser } = await getDashboardData();
+  const { currentUser, groupUsers } = await getDashboardData();
 
   // Fetch all reports page data in parallel with centralized service
   const { data, error } = await PageDataService.getReportsPageData(currentUser.group_id);
@@ -21,8 +21,12 @@ export default async function ReportsPage() {
 
   const { accounts = [], transactions = [], categories = [] } = data || {};
 
-  // Fetch all budget periods for the current user
-  const { data: budgetPeriods } = await getUserPeriodsAction(currentUser.id);
+  // Fetch all budget periods for all users in the group
+  const budgetPeriodsPromises = groupUsers.map((user) => getUserPeriodsAction(user.id));
+  const budgetPeriodsResults = await Promise.all(budgetPeriodsPromises);
+
+  // Flatten results into a single array
+  const allBudgetPeriods = budgetPeriodsResults.flatMap((result) => result.data || []);
 
   return (
     <Suspense fallback={<PageLoader message="Caricamento report..." />}>
@@ -30,7 +34,9 @@ export default async function ReportsPage() {
         accounts={accounts}
         transactions={transactions}
         categories={categories}
-        budgetPeriods={budgetPeriods || []}
+        budgetPeriods={allBudgetPeriods}
+        currentUser={currentUser}
+        groupUsers={groupUsers}
       />
     </Suspense>
   );
