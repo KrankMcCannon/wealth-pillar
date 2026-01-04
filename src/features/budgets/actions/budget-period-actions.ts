@@ -2,12 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { auth } from '@clerk/nextjs/server';
-import {
-  BudgetPeriodService,
-  BudgetService,
-  TransactionService,
-  UserService,
-} from '@/lib/services';
+import { BudgetPeriodService, UserService } from '@/lib/services';
 import { canAccessUserData, isMember } from '@/lib/utils/permissions';
 import type { BudgetPeriod } from '@/lib/types';
 import type { ServiceResult } from '@/lib/services/user.service';
@@ -86,9 +81,6 @@ export async function startPeriodAction(
 export async function closePeriodAction(
   periodId: string,
   endDate: string,
-  totalSpent?: number,
-  totalSaved?: number,
-  categorySpending?: Record<string, number>
 ): Promise<ServiceResult<BudgetPeriod>> {
   try {
     // Authentication check
@@ -130,25 +122,10 @@ export async function closePeriodAction(
       };
     }
 
-    // Fetch transactions and budgets for calculations (fallback)
-    const { data: transactions } = await TransactionService.getTransactionsByUser(
-      period.user_id
-    );
-    const { data: budgets } = await BudgetService.getBudgetsByUser(
-      period.user_id
-    );
-
-    const totals = totalSpent !== undefined && totalSaved !== undefined && categorySpending !== undefined
-      ? { total_spent: totalSpent, total_saved: totalSaved, category_spending: categorySpending }
-      : undefined;
-
     // Close period with calculations or pre-calculated totals
     const result = await BudgetPeriodService.closePeriod(
       periodId,
       endDate,
-      transactions || [],
-      budgets || [],
-      totals
     );
 
     if (!result.error) {

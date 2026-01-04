@@ -135,9 +135,6 @@ export function BudgetPeriodManager({
     return { totalSpent, totalSaved, totalBudget, categorySpending };
   }, [isActivePeriod, currentPeriod, selectedDate, transactions, targetUser.id, userBudgets]);
 
-  // NOTE: Previous periods display removed - we only store active periods in the store
-  // To display historical periods, we'd need to fetch all periods for the user
-
   // Format date for display
   const formatDate = (dateString: string | Date) => {
     const dt = toDateTime(dateString);
@@ -171,13 +168,7 @@ export function BudgetPeriodManager({
 
       if (isActivePeriod && currentPeriod) {
         // Close current period using period ID and pre-calculated metrics
-        result = await closePeriodAction(
-          currentPeriod.id,
-          selectedDate,
-          periodMetrics.totalSpent,
-          periodMetrics.totalSaved,
-          periodMetrics.categorySpending
-        );
+        result = await closePeriodAction(currentPeriod.id, selectedDate);
 
         // Optimistic UI update - mark period as closed
         if (!result.error && result.data) {
