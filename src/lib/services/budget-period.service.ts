@@ -6,6 +6,7 @@ import {
 } from '@/lib/cache';
 import { supabaseServer } from '@/lib/database/server';
 import type { BudgetPeriod, Budget, Transaction } from '@/lib/types';
+import type { BudgetPeriodJSON } from '@/lib/database/types';
 import { DateTime, nowISO, toDateTime } from '@/lib/utils/date-utils';
 import type { ServiceResult } from './user.service';
 
@@ -25,7 +26,8 @@ async function revalidateCacheTags(tags: string[]) {
  * Budget Period Service
  * Handles all budget period related business logic following Single Responsibility Principle
  *
- * Budget periods track user spending over a defined time range (start_date to end_date)
+ * Budget periods are stored in users.budget_periods (JSONB array)
+ * Each period tracks spending over a defined time range (start_date to end_date)
  * Only one period can be active per user at a time
  *
  * All methods return ServiceResult for consistent error handling
@@ -33,7 +35,27 @@ async function revalidateCacheTags(tags: string[]) {
  */
 export class BudgetPeriodService {
   /**
+   * Convert BudgetPeriodJSON to BudgetPeriod
+   * @private
+   */
+  private static jsonToBudgetPeriod(
+    json: BudgetPeriodJSON,
+    userId: string
+  ): BudgetPeriod {
+    return {
+      id: json.id,
+      user_id: userId,
+      start_date: json.start_date,
+      end_date: json.end_date,
+      is_active: json.is_active,
+      created_at: json.created_at,
+      updated_at: json.updated_at,
+    };
+  }
+
+  /**
    * Get budget period by ID
+   * Searches across all users to find the period
    * Cached for 5 minutes
    *
    * @param periodId - Budget period ID
@@ -48,21 +70,30 @@ export class BudgetPeriodService {
     try {
       const getCachedPeriod = cached(
         async () => {
+          // Query users table with JSONB contains operator
           const { data, error } = await supabaseServer
-            .from('budget_periods')
-            .select('*')
-            .eq('id', periodId)
-            .single();
+            .from('users')
+            .select('id, budget_periods')
+            .contains('budget_periods', [{ id: periodId }] as unknown as Record<string, unknown>)
+            .maybeSingle();
 
           if (error) throw new Error(error.message);
-          return data;
+
+          const user = data as { id: string; budget_periods: BudgetPeriodJSON[] } | null;
+          if (!user?.budget_periods) return null;
+
+          // Find period in array
+          const periods = user.budget_periods;
+          const period = periods.find((p) => p.id === periodId);
+
+          return period ? this.jsonToBudgetPeriod(period, user.id) : null;
         },
         budgetPeriodCacheKeys.byId(periodId),
         cacheOptions.budgetPeriod(periodId)
       );
 
       const period = await getCachedPeriod();
-      return { data: period as BudgetPeriod, error: null };
+      return { data: period as BudgetPeriod | null, error: null };
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : 'Unknown error';
@@ -88,13 +119,23 @@ export class BudgetPeriodService {
       const getCachedPeriods = cached(
         async () => {
           const { data, error } = await supabaseServer
-            .from('budget_periods')
-            .select('*')
-            .eq('user_id', userId)
-            .order('start_date', { ascending: false });
+            .from('users')
+            .select('budget_periods')
+            .eq('id', userId)
+            .single();
 
           if (error) throw new Error(error.message);
-          return data;
+
+          const user = data as { budget_periods: BudgetPeriodJSON[] } | null;
+          const periods = (user?.budget_periods || [])
+            .map((p) => this.jsonToBudgetPeriod(p, userId))
+            .sort(
+              (a, b) =>
+                new Date(b.start_date).getTime() -
+                new Date(a.start_date).getTime()
+            );
+
+          return periods;
         },
         budgetPeriodCacheKeys.byUser(userId),
         cacheOptions.budgetPeriodsByUser(userId)
@@ -111,7 +152,7 @@ export class BudgetPeriodService {
 
   /**
    * Get active budget period for a user
-   * Only one period can be active per user (enforced by DB constraint)
+   * Only one period can be active per user
    * Cached for 5 minutes
    *
    * @param userId - User ID
@@ -130,14 +171,18 @@ export class BudgetPeriodService {
       const getCachedPeriod = cached(
         async () => {
           const { data, error } = await supabaseServer
-            .from('budget_periods')
-            .select('*')
-            .eq('user_id', userId)
-            .eq('is_active', true)
-            .maybeSingle(); // Returns null if not found instead of error
+            .from('users')
+            .select('budget_periods')
+            .eq('id', userId)
+            .single();
 
           if (error) throw new Error(error.message);
-          return data;
+
+          const user = data as { budget_periods: BudgetPeriodJSON[] } | null;
+          const periods = user?.budget_periods || [];
+          const activePeriod = periods.find((p) => p.is_active);
+
+          return activePeriod ? this.jsonToBudgetPeriod(activePeriod, userId) : null;
         },
         budgetPeriodCacheKeys.activeByUser(userId),
         cacheOptions.activeBudgetPeriod(userId)
@@ -181,25 +226,39 @@ export class BudgetPeriodService {
         return { data: null, error: 'Invalid start date format' };
       }
 
-      // Deactivate existing active period
-      await supabaseServer
-        .from('budget_periods')
-        .update({ is_active: false, updated_at: nowISO() })
-        .eq('user_id', userId)
-        .eq('is_active', true);
+      // Fetch current periods
+      const { data, error: fetchError } = await supabaseServer
+        .from('users')
+        .select('budget_periods')
+        .eq('id', userId)
+        .single();
 
-      // Create new active period
-      const { data: newPeriod, error } = await supabaseServer
-        .from('budget_periods')
-        .insert({
-          user_id: userId,
-          start_date: startDt.toISODate() as string,
-          is_active: true,
-          total_spent: 0,
-          total_saved: 0,
-          category_spending: {},
-        })
-        .select()
+      if (fetchError) throw new Error(fetchError.message);
+
+      const user = data as { budget_periods: BudgetPeriodJSON[] } | null;
+      let periods = user?.budget_periods || [];
+
+      // Deactivate all existing periods
+      periods = periods.map((p) => ({ ...p, is_active: false }));
+
+      // Create new period
+      const newPeriod: BudgetPeriodJSON = {
+        id: `bdp_${Date.now()}`,
+        start_date: startDt.toISODate() as string,
+        end_date: null,
+        is_active: true,
+        created_at: nowISO(),
+        updated_at: nowISO(),
+      };
+
+      periods.unshift(newPeriod); // Add to start (newest first)
+
+      // Update user
+      const { error } = await supabaseServer
+        .from('users')
+        .update({ budget_periods: periods as unknown as Record<string, unknown>[] })
+        .eq('id', userId)
+        .select('budget_periods')
         .single();
 
       if (error) throw new Error(error.message);
@@ -211,7 +270,7 @@ export class BudgetPeriodService {
         `user:${userId}:budget_period:active`,
       ]);
 
-      return { data: newPeriod as BudgetPeriod, error: null };
+      return { data: this.jsonToBudgetPeriod(newPeriod, userId), error: null };
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : 'Unknown error';
@@ -220,13 +279,11 @@ export class BudgetPeriodService {
   }
 
   /**
-   * Close a budget period (set end_date, calculate final totals)
-   * Calculates total_spent, total_saved, and category_spending from transactions
+   * Close a budget period (set end_date, deactivate)
+   * Automatically creates the next period starting the day after
    *
    * @param periodId - Budget period ID to close
    * @param endDate - Period end date (YYYY-MM-DD or Date object)
-   * @param transactions - All transactions to calculate totals from
-   * @param budgets - User budgets for calculating total_saved
    * @returns Closed budget period or error
    *
    * @example
@@ -240,29 +297,38 @@ export class BudgetPeriodService {
   static async closePeriod(
     periodId: string,
     endDate: string | Date,
-    transactions: Transaction[],
-    budgets?: Budget[],
-    totals?: {
-      total_spent: number;
-      total_saved: number;
-      category_spending: Record<string, number>;
-    }
   ): Promise<ServiceResult<BudgetPeriod>> {
     try {
-      // Get period
-      const { data: period, error: periodError } =
-        await this.getPeriodById(periodId);
-      if (periodError || !period) {
-        return { data: null, error: 'Budget period not found' };
-      }
-
       // Validate end date
       const endDt = toDateTime(endDate);
       if (!endDt) {
         return { data: null, error: 'Invalid end date format' };
       }
 
-      const startDt = toDateTime(period.start_date);
+      // Find user with this period
+      const { data, error: fetchError } = await supabaseServer
+        .from('users')
+        .select('id, budget_periods')
+        .contains('budget_periods', [{ id: periodId }] as unknown as Record<string, unknown>);
+
+      if (fetchError) throw new Error(fetchError.message);
+
+      const users = data as Array<{ id: string; budget_periods: BudgetPeriodJSON[] }> | null;
+      if (!users || users.length === 0) {
+        return { data: null, error: 'Period not found' };
+      }
+
+      const user = users[0];
+      const periods = user.budget_periods;
+
+      // Find the period to close
+      const periodToClose = periods.find((p) => p.id === periodId);
+      if (!periodToClose) {
+        return { data: null, error: 'Period not found in user data' };
+      }
+
+      // Validate end date >= start date
+      const startDt = toDateTime(periodToClose.start_date);
       if (!startDt || endDt < startDt) {
         return {
           data: null,
@@ -270,28 +336,24 @@ export class BudgetPeriodService {
         };
       }
 
-      // Use provided totals or calculate them from transactions
-      const periodTotals = totals || this.calculatePeriodTotals(
-        transactions,
-        period,
-        startDt,
-        endDt,
-        budgets || []
+      // Update period in array
+      const updatedPeriods = periods.map((p) =>
+        p.id === periodId
+          ? {
+            ...p,
+            end_date: endDt.toISODate() as string,
+            is_active: false,
+            updated_at: nowISO(),
+          }
+          : p
       );
 
-      // Update period
-      const { data: closedPeriod, error } = await supabaseServer
-        .from('budget_periods')
-        .update({
-          end_date: endDt.toISODate() as string,
-          is_active: false,
-          total_spent: periodTotals.total_spent,
-          total_saved: periodTotals.total_saved,
-          category_spending: periodTotals.category_spending,
-          updated_at: nowISO(),
-        })
-        .eq('id', periodId)
-        .select()
+      // Update user
+      const { error } = await supabaseServer
+        .from('users')
+        .update({ budget_periods: updatedPeriods as unknown as Record<string, unknown>[] })
+        .eq('id', user.id)
+        .select('budget_periods')
         .single();
 
       if (error) throw new Error(error.message);
@@ -300,8 +362,8 @@ export class BudgetPeriodService {
       await revalidateCacheTags([
         CACHE_TAGS.BUDGET_PERIODS,
         CACHE_TAGS.BUDGET_PERIOD(periodId),
-        `user:${period.user_id}:budget_periods`,
-        `user:${period.user_id}:budget_period:active`,
+        `user:${user.id}:budget_periods`,
+        `user:${user.id}:budget_period:active`,
       ]);
 
       // Automatically create next budget period starting the day after this one ends
@@ -309,76 +371,23 @@ export class BudgetPeriodService {
       const nextStartDateStr = nextStartDt.toISODate();
 
       if (nextStartDateStr) {
-        // We catch errors here to ensure the period remains closed even if auto-creation fails
-        // (though in practice it should succeed)
         try {
-          await this.createPeriod(period.user_id, nextStartDateStr);
+          await this.createPeriod(user.id, nextStartDateStr);
         } catch (createError) {
-          console.error('[BudgetPeriodService] Failed to auto-create next period:', createError);
+          console.error(
+            '[BudgetPeriodService] Failed to auto-create next period:',
+            createError
+          );
         }
       }
 
-      return { data: closedPeriod as BudgetPeriod, error: null };
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : 'Unknown error';
-      return { data: null, error: errorMessage };
-    }
-  }
-
-  /**
-   * Update budget period aggregates (total_spent, category_spending)
-   * Used by triggers or manual recalculation
-   *
-   * @param periodId - Budget period ID
-   * @param transactions - Transactions to calculate from
-   * @returns Updated period or error
-   */
-  static async updatePeriodAggregates(
-    periodId: string,
-    transactions: Transaction[]
-  ): Promise<ServiceResult<BudgetPeriod>> {
-    try {
-      const { data: period } = await this.getPeriodById(periodId);
-      if (!period) {
-        return { data: null, error: 'Period not found' };
-      }
-
-      const startDt = toDateTime(period.start_date);
-      const endDt = period.end_date ? toDateTime(period.end_date) : null;
-
-      if (!startDt) {
-        return { data: null, error: 'Invalid period dates' };
-      }
-
-      const totals = this.calculatePeriodTotals(
-        transactions,
-        period,
-        startDt,
-        endDt,
-        []
-      );
-
-      const { data: updated, error } = await supabaseServer
-        .from('budget_periods')
-        .update({
-          total_spent: totals.total_spent,
-          category_spending: totals.category_spending,
-          updated_at: nowISO(),
-        })
-        .eq('id', periodId)
-        .select()
-        .single();
-
-      if (error) throw new Error(error.message);
-
-      // Invalidate caches
-      await revalidateCacheTags([
-        CACHE_TAGS.BUDGET_PERIOD(periodId),
-        `user:${period.user_id}:budget_periods`,
-      ]);
-
-      return { data: updated as BudgetPeriod, error: null };
+      const closedPeriod = updatedPeriods.find((p) => p.id === periodId);
+      return {
+        data: closedPeriod
+          ? this.jsonToBudgetPeriod(closedPeriod, user.id)
+          : null,
+        error: null,
+      };
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : 'Unknown error';
@@ -477,16 +486,26 @@ export class BudgetPeriodService {
     periodId: string
   ): Promise<ServiceResult<{ id: string }>> {
     try {
-      // Get period before delete for cache invalidation
-      const { data: period } = await this.getPeriodById(periodId);
-      if (!period) {
+      // Find user with this period
+      const { data, error: fetchError } = await supabaseServer
+        .from('users')
+        .select('id, budget_periods')
+        .contains('budget_periods', [{ id: periodId }] as unknown as Record<string, unknown>);
+
+      if (fetchError) throw new Error(fetchError.message);
+
+      const users = data as Array<{ id: string; budget_periods: BudgetPeriodJSON[] }> | null;
+      if (!users || users.length === 0) {
         return { data: null, error: 'Period not found' };
       }
 
+      const user = users[0];
+      const periods = user.budget_periods.filter((p) => p.id !== periodId);
+
       const { error } = await supabaseServer
-        .from('budget_periods')
-        .delete()
-        .eq('id', periodId);
+        .from('users')
+        .update({ budget_periods: periods as unknown as Record<string, unknown>[] })
+        .eq('id', user.id);
 
       if (error) throw new Error(error.message);
 
@@ -494,8 +513,8 @@ export class BudgetPeriodService {
       await revalidateCacheTags([
         CACHE_TAGS.BUDGET_PERIODS,
         CACHE_TAGS.BUDGET_PERIOD(periodId),
-        `user:${period.user_id}:budget_periods`,
-        `user:${period.user_id}:budget_period:active`,
+        `user:${user.id}:budget_periods`,
+        `user:${user.id}:budget_period:active`,
       ]);
 
       return { data: { id: periodId }, error: null };

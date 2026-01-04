@@ -12,7 +12,57 @@
       "role": "admin",
       "created_at": "2025-08-07 20:22:22.531909+00",
       "updated_at": "2025-12-23 22:42:07.494252+00",
-      "default_account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568"
+      "default_account_id": "8a4b0888-0811-4a92-8e3e-c124aa687568",
+      "budget_periods": [
+        {
+          "id": "bdp_1758480562115",
+          "start_date": "2025-07-25",
+          "end_date": "2025-08-25",
+          "is_active": false,
+          "created_at": "2025-09-21",
+          "updated_at": "2025-09-21"
+        },
+        {
+          "id": "bdp_1758480562117",
+          "start_date": "2025-08-26",
+          "end_date": "2025-09-24",
+          "is_active": false,
+          "created_at": "2025-09-21",
+          "updated_at": "2025-09-26"
+        },
+        {
+          "id": "33ff38e0-b2e8-4caa-a9da-57cf7af8bb7e",
+          "start_date": "2025-09-25",
+          "end_date": "2025-10-26",
+          "is_active": false,
+          "created_at": "2025-09-26",
+          "updated_at": "2025-10-30"
+        },
+        {
+          "id": "33ff38e0-b2e8-4caa-a9da-57cf7af8bb7f",
+          "start_date": "2025-10-27",
+          "end_date": "2025-11-26",
+          "is_active": false,
+          "created_at": "2025-10-30",
+          "updated_at": "2025-11-28"
+        },
+        {
+          "id": "33ff38e0-b2e8-4caa-a9da-57cf7af8bb7g",
+          "start_date": "2025-11-27",
+          "end_date": "2025-12-22",
+          "is_active": false,
+          "created_at": "2025-11-28",
+          "updated_at": "2025-12-23T23:42:07.005+01:00"
+        },
+        {
+          "id": "a6bf3169-ae59-4a36-910c-49ea18ff7d39",
+          "start_date": "2025-12-23",
+          "end_date": null,
+          "is_active": true,
+          "created_at": "2025-12-23T23:42:07.399+01:00",
+          "updated_at": "2025-12-23T23:42:07.399+01:00"
+        }
+      ]
     },
     {
       "id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
@@ -26,7 +76,57 @@
       "role": "member",
       "created_at": "2025-08-07 20:22:22.599484+00",
       "updated_at": "2025-12-20 22:03:09.638187+00",
-      "default_account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232"
+      "default_account_id": "f5977c4b-a5c6-4d29-bf94-243367d2e232",
+      "budget_periods": [
+        {
+          "id": "bdp_1758480562118",
+          "start_date": "2025-07-14",
+          "end_date": "2025-08-10",
+          "is_active": false,
+          "created_at": "2025-09-21",
+          "updated_at": "2025-09-21"
+        },
+        {
+          "id": "bdp_1758480562119",
+          "start_date": "2025-08-11",
+          "end_date": "2025-09-14",
+          "is_active": false,
+          "created_at": "2025-09-21",
+          "updated_at": "2025-09-21"
+        },
+        {
+          "id": "bdp_1758480562120",
+          "start_date": "2025-09-15",
+          "end_date": "2025-10-13",
+          "is_active": false,
+          "created_at": "2025-09-21",
+          "updated_at": "2025-10-16"
+        },
+        {
+          "id": "bdp_1758480562121",
+          "start_date": "2025-10-14",
+          "end_date": "2025-11-12",
+          "is_active": false,
+          "created_at": "2025-10-15",
+          "updated_at": "2025-11-13"
+        },
+        {
+          "id": "period_1763101898029",
+          "start_date": "2025-11-13",
+          "end_date": "2025-12-11",
+          "is_active": false,
+          "created_at": "2025-11-13",
+          "updated_at": "2025-12-20"
+        },
+        {
+          "id": "07816a2c-493f-4da7-b126-063b84ac72d3",
+          "start_date": "2025-12-12",
+          "end_date": null,
+          "is_active": true,
+          "created_at": "2025-12-20",
+          "updated_at": "2025-12-20"
+        }
+      ]
     },
     {
       "id": "ebdd2916-4d3b-4417-b740-bbdbdab3170b",
@@ -40,7 +140,8 @@
       "role": "member",
       "created_at": "2025-10-10 11:02:57.006817+00",
       "updated_at": "2025-10-10 11:17:09.401369+00",
-      "default_account_id": null
+      "default_account_id": null,
+      "budget_periods": []
     }
   ],
   "groups": [
@@ -134,210 +235,6 @@
       "is_active": true,
       "created_at": "2025-11-28 22:03:23.314+00",
       "updated_at": "2025-11-28 22:03:23.314+00"
-    }
-  ],
-  "budget_periods": [
-    {
-      "id": "bdp_1758480562115",
-      "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
-      "start_date": "2025-07-25",
-      "end_date": "2025-08-25",
-      "is_active": false,
-      "total_spent": 0,
-      "total_saved": 0,
-      "category_spending": {},
-      "created_at": "2025-09-21",
-      "updated_at": "2025-09-21"
-    },
-    {
-      "id": "bdp_1758480562117",
-      "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
-      "start_date": "2025-08-26",
-      "end_date": "2025-09-24",
-      "is_active": false,
-      "total_spent": 1436.51,
-      "total_saved": 413.49,
-      "category_spending": {},
-      "created_at": "2025-09-21",
-      "updated_at": "2025-09-26"
-    },
-    {
-      "id": "33ff38e0-b2e8-4caa-a9da-57cf7af8bb7e",
-      "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
-      "start_date": "2025-09-25",
-      "end_date": "2025-10-26",
-      "is_active": false,
-      "total_spent": 1849.26,
-      "total_saved": 100.74,
-      "category_spending": {},
-      "created_at": "2025-09-26",
-      "updated_at": "2025-10-30"
-    },
-    {
-      "id": "33ff38e0-b2e8-4caa-a9da-57cf7af8bb7f",
-      "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
-      "start_date": "2025-10-27",
-      "end_date": "2025-11-26",
-      "is_active": false,
-      "total_spent": 1913.2700000000002,
-      "total_saved": 360.06333333333373,
-      "category_spending": {
-        "altro": 2,
-        "spesa": 376.90999999999997,
-        "eventi": 26.1,
-        "benzina": 52.17,
-        "vestiti": 40.18,
-        "contanti": 80,
-        "medicine": 44,
-        "palestra": 22.9,
-        "cibo_thor": 129.19,
-        "rata_auto": 476.41,
-        "cibo_fuori": 155.85,
-        "rate_amazon": 278.02,
-        "taglio_thor": 60,
-        "bolletta_tim": 8.3,
-        "cibo_asporto": 246.14,
-        "investimenti": 8,
-        "abbonamenti_tv": 18.98,
-        "bolletta_acqua": 9.33,
-        "tagliando_auto": 230,
-        "visite_mediche": 202.75,
-        "ricarica_telefono": 4.99,
-        "abbonamenti_necessari": 51.97
-      },
-      "created_at": "2025-10-30",
-      "updated_at": "2025-11-28"
-    },
-    {
-      "id": "33ff38e0-b2e8-4caa-a9da-57cf7af8bb7g",
-      "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
-      "start_date": "2025-11-27",
-      "end_date": "2025-12-22",
-      "is_active": false,
-      "total_spent": 93.43000000000002,
-      "total_saved": 1813.236666666667,
-      "category_spending": {
-        "altro": 5,
-        "spesa": 386.86999999999995,
-        "regali": 433,
-        "benzina": 125,
-        "contanti": 302,
-        "medicine": 127.5,
-        "rata_auto": 401.41,
-        "cibo_fuori": 212.84000000000003,
-        "spese_extra": 281.18,
-        "taglio_thor": 60,
-        "bolletta_gas": 120,
-        "cibo_asporto": 166.86,
-        "investimenti": 10,
-        "parrucchiere": 15,
-        "abbonamenti_tv": 4.99,
-        "ricarica_telefono": 4.99,
-        "abbonamenti_necessari": 49.120000000000005
-      },
-      "created_at": "2025-11-28",
-      "updated_at": "2025-12-23T23:42:07.005+01:00"
-    },
-    {
-      "id": "a6bf3169-ae59-4a36-910c-49ea18ff7d39",
-      "user_id": "461d8e82-dfe2-4a6f-99b7-d571a31bc5d8",
-      "start_date": "2025-12-23",
-      "end_date": null,
-      "is_active": true,
-      "total_spent": 0,
-      "total_saved": 0,
-      "category_spending": {},
-      "created_at": "2025-12-23T23:42:07.399+01:00",
-      "updated_at": "2025-12-23T23:42:07.399+01:00"
-    },
-    {
-      "id": "bdp_1758480562118",
-      "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
-      "start_date": "2025-07-14",
-      "end_date": "2025-08-10",
-      "is_active": false,
-      "total_spent": 0,
-      "total_saved": 0,
-      "category_spending": {},
-      "created_at": "2025-09-21",
-      "updated_at": "2025-09-21"
-    },
-    {
-      "id": "bdp_1758480562119",
-      "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
-      "start_date": "2025-08-11",
-      "end_date": "2025-09-14",
-      "is_active": false,
-      "total_spent": 0,
-      "total_saved": 0,
-      "category_spending": {},
-      "created_at": "2025-09-21",
-      "updated_at": "2025-09-21"
-    },
-    {
-      "id": "bdp_1758480562120",
-      "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
-      "start_date": "2025-09-15",
-      "end_date": "2025-10-13",
-      "is_active": false,
-      "total_spent": 1933.81,
-      "total_saved": 0,
-      "category_spending": {},
-      "created_at": "2025-09-21",
-      "updated_at": "2025-10-16"
-    },
-    {
-      "id": "bdp_1758480562121",
-      "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
-      "start_date": "2025-10-14",
-      "end_date": "2025-11-12",
-      "is_active": false,
-      "total_spent": -625.79,
-      "total_saved": 650.79,
-      "category_spending": {},
-      "created_at": "2025-10-15",
-      "updated_at": "2025-11-13"
-    },
-    {
-      "id": "period_1763101898029",
-      "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
-      "start_date": "2025-11-13",
-      "end_date": "2025-12-11",
-      "is_active": false,
-      "total_spent": 977.4799999999999,
-      "total_saved": 1680.8533333333335,
-      "category_spending": {
-        "regali": 99.9,
-        "vestiti": 345.53,
-        "haircare": 14.79,
-        "medicine": 91,
-        "skincare": 8.99,
-        "cibo_thor": 64.59,
-        "estetista": 25,
-        "cibo_fuori": 73.69999999999999,
-        "spese_extra": 48.55,
-        "cibo_asporto": 57.45,
-        "parrucchiere": 75,
-        "trasferimento": 50,
-        "abbonamenti_tv": 6.99,
-        "analisi_mediche": 30,
-        "ricarica_telefono": 9.95,
-        "abbonamenti_necessari": 2.99
-      },
-      "created_at": "2025-11-13",
-      "updated_at": "2025-12-20"
-    },
-    {
-      "id": "07816a2c-493f-4da7-b126-063b84ac72d3",
-      "user_id": "7f5151f2-39b7-47c8-934f-fa2ac6a65a11",
-      "start_date": "2025-12-12",
-      "end_date": null,
-      "is_active": true,
-      "total_spent": 0,
-      "total_saved": 0,
-      "category_spending": {},
-      "created_at": "2025-12-20",
-      "updated_at": "2025-12-20"
     }
   ],
   "budgets": [

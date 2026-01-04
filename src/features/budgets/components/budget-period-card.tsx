@@ -9,6 +9,9 @@ interface BudgetPeriodCardProps {
   period: BudgetPeriod;
   onDelete?: () => void;
   showActions?: boolean;
+  totalSpent?: number;
+  totalSaved?: number;
+  categorySpending?: Record<string, number>;
 }
 
 /**
@@ -23,6 +26,9 @@ export function BudgetPeriodCard({
   period,
   onDelete,
   showActions = true,
+  totalSpent,
+  totalSaved,
+  categorySpending,
 }: Readonly<BudgetPeriodCardProps>) {
   // Format date for display (Italian locale)
   const formatDate = (date: string | Date | null) => {
@@ -40,10 +46,12 @@ export function BudgetPeriodCard({
     }).format(amount);
   };
 
-  // Get top 3 categories by spending
-  const topCategories = Object.entries(period.category_spending || {})
-    .sort(([, a], [, b]) => b - a)
-    .slice(0, 3);
+  // Get top 3 categories by spending (if available)
+  const topCategories = categorySpending
+    ? Object.entries(categorySpending)
+        .sort(([, a], [, b]) => (b as number) - (a as number))
+        .slice(0, 3)
+    : [];
 
   // Determine if period is active
   const isActive = period.is_active && !period.end_date;
@@ -85,27 +93,33 @@ export function BudgetPeriodCard({
       </div>
 
       {/* Financial Metrics */}
-      <div className="grid grid-cols-2 gap-2">
-        {/* Total Spent */}
-        <div className="p-3 bg-destructive/5 rounded-lg border border-destructive/20">
-          <p className="text-xs font-bold text-destructive uppercase tracking-wide mb-1">
-            Speso
-          </p>
-          <p className="text-base font-bold text-destructive">
-            {formatCurrency(period.total_spent)}
-          </p>
-        </div>
+      {(totalSpent !== undefined || totalSaved !== undefined) && (
+        <div className="grid grid-cols-2 gap-2">
+          {/* Total Spent */}
+          {totalSpent !== undefined && (
+            <div className="p-3 bg-destructive/5 rounded-lg border border-destructive/20">
+              <p className="text-xs font-bold text-destructive uppercase tracking-wide mb-1">
+                Speso
+              </p>
+              <p className="text-base font-bold text-destructive">
+                {formatCurrency(totalSpent)}
+              </p>
+            </div>
+          )}
 
-        {/* Total Saved */}
-        <div className="p-3 bg-primary/5 rounded-lg border border-primary/20">
-          <p className="text-xs font-bold text-primary uppercase tracking-wide mb-1">
-            Risparmiato
-          </p>
-          <p className="text-base font-bold text-primary">
-            {formatCurrency(period.total_saved)}
-          </p>
+          {/* Total Saved */}
+          {totalSaved !== undefined && (
+            <div className="p-3 bg-primary/5 rounded-lg border border-primary/20">
+              <p className="text-xs font-bold text-primary uppercase tracking-wide mb-1">
+                Risparmiato
+              </p>
+              <p className="text-base font-bold text-primary">
+                {formatCurrency(totalSaved)}
+              </p>
+            </div>
+          )}
         </div>
-      </div>
+      )}
 
       {/* Top Categories */}
       {topCategories.length > 0 && (
@@ -123,7 +137,7 @@ export function BudgetPeriodCard({
                   {category}
                 </span>
                 <span className="font-medium text-black">
-                  {formatCurrency(amount)}
+                  {formatCurrency(amount as number)}
                 </span>
               </div>
             ))}

@@ -272,6 +272,18 @@ class JsonServerQueryBuilder<T> extends JsonServerBaseBuilder<T[]> implements Qu
           if (!this.isRecord(item)) return false;
           const itemValue = item[column];
           if (Array.isArray(itemValue)) {
+            // Check if value is an array with objects to match (JSONB array contains)
+            if (Array.isArray(value) && value.length > 0 && this.isRecord(value[0])) {
+              const searchObj = value[0] as Record<string, unknown>;
+              return itemValue.some((arrayItem: unknown) => {
+                if (!this.isRecord(arrayItem)) return false;
+                // Check if all search properties match
+                return Object.entries(searchObj).every(
+                  ([key, val]) => arrayItem[key] === val
+                );
+              });
+            }
+            // Simple array contains (primitive values)
             return itemValue.includes(value);
           }
           return false;

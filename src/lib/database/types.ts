@@ -1,5 +1,17 @@
 // Database types for Supabase - Generated from your database schema
 
+/**
+ * Budget Period JSON structure
+ */
+export interface BudgetPeriodJSON {
+  id: string;
+  start_date: string;
+  end_date: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Database {
   public: {
     Tables: {
@@ -14,6 +26,7 @@ export interface Database {
           group_id: string;
           role: 'superadmin' | 'admin' | 'member';
           clerk_id: string | null;
+          budget_periods: BudgetPeriodJSON[];
           created_at: string;
           updated_at: string;
         };
@@ -27,6 +40,7 @@ export interface Database {
           group_id: string;
           role: 'superadmin' | 'admin' | 'member';
           clerk_id?: string | null;
+          budget_periods?: BudgetPeriodJSON[];
           created_at?: string;
           updated_at?: string;
         };
@@ -40,6 +54,7 @@ export interface Database {
           group_id?: string;
           role?: 'superadmin' | 'admin' | 'member';
           clerk_id?: string | null;
+          budget_periods?: BudgetPeriodJSON[];
           created_at?: string;
           updated_at?: string;
         };
@@ -233,52 +248,6 @@ export interface Database {
           updated_at?: string;
         };
         Relationships: [];
-      };
-      budget_periods: {
-        Row: {
-          id: string;
-          user_id: string;
-          start_date: string;
-          end_date: string | null;
-          is_active: boolean;
-          total_spent: number;
-          total_saved: number;
-          category_spending: Record<string, number>;
-          created_at: string;
-          updated_at: string;
-        };
-        Insert: {
-          id?: string;
-          user_id: string;
-          start_date: string;
-          end_date?: string | null;
-          is_active?: boolean;
-          total_spent?: number;
-          total_saved?: number;
-          category_spending?: Record<string, number>;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Update: {
-          id?: string;
-          user_id?: string;
-          start_date?: string;
-          end_date?: string | null;
-          is_active?: boolean;
-          total_spent?: number;
-          total_saved?: number;
-          category_spending?: Record<string, number>;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: 'budget_periods_user_id_fkey';
-            columns: ['user_id'];
-            referencedRelation: 'users';
-            referencedColumns: ['id'];
-          }
-        ];
       };
       recurring_transactions: {
         Row: {

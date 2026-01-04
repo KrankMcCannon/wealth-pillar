@@ -130,9 +130,6 @@ export interface BudgetPeriod {
   user_id: string;
   start_date: string | Date;
   end_date: string | Date | null;
-  total_spent: number;
-  total_saved: number;
-  category_spending: Record<string, number>;
   is_active: boolean;
   created_at: string | Date;
   updated_at: string | Date;
