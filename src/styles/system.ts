@@ -162,7 +162,7 @@ export const alertStyles = {
 
 // Sticky header styles
 export const stickyHeaderStyles = {
-  base: "sticky top-0 backdrop-blur-xl border-b border-primary/20 shadow-sm bg-card/80",
+  base: "fixed top-0 left-0 right-0 backdrop-blur-xl border-b border-primary/20 shadow-sm bg-card/80",
   light: "bg-card/80 border-primary/20",
 };
 

@@ -8,7 +8,7 @@ export const dashboardStyles = {
   // Page layout
   page: {
     container: 'relative flex size-full min-h-[100dvh] flex-col bg-card',
-    main: 'pb-16',
+    main: 'pb-14',
   },
 
   // Header section

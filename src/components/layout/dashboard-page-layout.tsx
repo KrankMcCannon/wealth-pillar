@@ -52,7 +52,7 @@ export function DashboardPageLayout({
         {header}
         {userSelector}
         {tabs}
-        <main className={cn("p-4 pb-24", mainClassName)}>
+        <main className={cn("p-4 pb-14", mainClassName)}>
           {children}
         </main>
       </div>

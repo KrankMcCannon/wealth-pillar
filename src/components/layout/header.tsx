@@ -87,9 +87,9 @@ function ActionMenu({ extraMenuItems = [] }: Readonly<{ extraMenuItems?: { label
                 <Button
                     variant="default"
                     size="icon"
-                    className="h-10 w-10 bg-primary text-primary-foreground rounded-full shadow-sm hover:bg-primary/90"
+                    className="h-11 w-11 bg-primary text-primary-foreground rounded-full shadow-sm hover:bg-primary/90"
                 >
-                    <Plus className="h-5 w-5" />
+                    <Plus className="h-5.5 w-5.5" />
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
@@ -131,7 +131,7 @@ export function Header({
             className={cn(
                 STICKY_HEADER_BASE,
                 stickyHeaderStyles.base,
-                "px-4 py-3 z-30 transition-all duration-200",
+                "px-4 py-2 z-40 transition-all duration-200",
                 className
             )}
         >
@@ -141,20 +141,20 @@ export function Header({
                     {isDashboard && currentUser && (
                         <div className="flex items-center gap-3">
                             <div className="relative">
-                                <div className="h-9 w-9 bg-primary/10 rounded-full flex items-center justify-center text-primary font-semibold text-sm border-2 border-background shadow-sm overflow-hidden">
+                                <div className="h-10 w-10 bg-primary/10 rounded-full flex items-center justify-center text-primary font-semibold text-base border-2 border-background shadow-sm overflow-hidden">
                                     {currentUser?.name?.substring(0, 2).toUpperCase()}
                                 </div>
                                 {currentUser?.role === 'admin' && (
                                     <div className="absolute -top-1 -right-1 bg-amber-500 rounded-full p-0.5 border-2 border-background shadow-sm" title="Premium">
-                                        <Crown className="h-2.5 w-2.5 text-white fill-white" />
+                                        <Crown className="h-3 w-3 text-white fill-white" />
                                     </div>
                                 )}
                             </div>
                             <div className="hidden sm:block leading-none">
-                                <p className="text-sm font-semibold text-foreground truncate max-w-[120px]">
+                                <p className="text-base font-semibold text-foreground truncate max-w-[140px]">
                                     {currentUser?.name}
                                 </p>
-                                <p className="text-[10px] text-muted-foreground font-medium mt-0.5 capitalize">
+                                <p className="text-xs text-muted-foreground font-medium mt-0.5 capitalize">
                                     {currentUser?.role === 'admin' ? 'Premium Plan' : 'Standard Plan'}
                                 </p>
                             </div>
@@ -169,20 +169,20 @@ export function Header({
                                     variant="ghost"
                                     size="icon"
                                     aria-label="Torna indietro"
-                                    className="h-9 w-9 -ml-2 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                                    className="h-10 w-10 -ml-2 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
                                     onClick={handleBack}
                                 >
-                                    <ArrowLeft className="h-5 w-5" />
+                                    <ArrowLeft className="h-5.5 w-5.5" />
                                 </Button>
                             )}
                             <div>
                                 {title && (
-                                    <h1 className="text-lg font-semibold text-foreground leading-tight">
+                                    <h1 className="text-xl font-semibold text-foreground leading-tight">
                                         {title}
                                     </h1>
                                 )}
                                 {subtitle && (
-                                    <p className="text-xs text-muted-foreground">{subtitle}</p>
+                                    <p className="text-sm text-muted-foreground">{subtitle}</p>
                                 )}
                             </div>
                         </div>
@@ -199,9 +199,9 @@ export function Header({
                         variant="ghost"
                         size="icon"
                         aria-label="Notifiche"
-                        className="h-9 w-9 rounded-full text-primary hover:bg-primary/5"
+                        className="h-10 w-10 rounded-full text-primary hover:bg-primary/5"
                     >
-                        <Bell className="h-5 w-5" />
+                        <Bell className="h-5.5 w-5.5" />
                     </Button>
 
                     {/* 3. Settings */}
@@ -209,15 +209,15 @@ export function Header({
                         variant="ghost"
                         size="icon"
                         aria-label="Impostazioni"
-                        className="h-9 w-9 rounded-full text-primary hover:bg-primary/5"
+                        className="h-10 w-10 rounded-full text-primary hover:bg-primary/5"
                         onClick={() => router.push('/settings')}
                     >
-                        <Settings className="h-5 w-5" />
+                        <Settings className="h-5.5 w-5.5" />
                     </Button>
 
                     {/* 4. Portfolio Badge */}
                     {isDashboard && (
-                        <div className="flex items-center px-3 py-1.5 bg-green-500/10 border border-green-500/20 rounded-full text-green-600 text-xs font-semibold">
+                        <div className="flex items-center px-3 py-2 bg-green-500/10 border border-green-500/20 rounded-full text-green-600 text-sm font-semibold">
                             <span>↗ +2.5%</span>
                         </div>
                     )}

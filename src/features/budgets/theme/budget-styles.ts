@@ -20,7 +20,7 @@ export const budgetStyles = {
   // ====================================
   page: {
     container: `relative flex size-full min-h-dvh flex-col bg-card`,
-    main: `flex-1 ${budgetSpacing.page.mobile} ${budgetSpacing.page.tablet} space-y-4 sm:space-y-6 pb-20 sm:pb-24`,
+    main: `flex-1 ${budgetSpacing.page.mobile} ${budgetSpacing.page.tablet} space-y-4 sm:space-y-6 pb-14`,
   },
 
   // ====================================

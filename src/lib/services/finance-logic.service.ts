@@ -485,14 +485,22 @@ export class FinanceLogicService {
 
   /**
    * Calculate annual category spending
-   * Returns category breakdown for the current year (or specified year)
-   * 
+   * Returns category breakdown for the current year, specified year, or all time
+   *
+   * @param allTransactions - All transactions to analyze
+   * @param year - Year to filter by, or 'all' for all-time data
    * @complexity O(n)
    */
   static calculateAnnualCategorySpending(
     allTransactions: Transaction[],
-    year: number = new Date().getFullYear()
+    year: number | 'all' = new Date().getFullYear()
   ): CategoryBreakdownItem[] {
+    // If 'all', use all transactions without filtering
+    if (year === 'all') {
+      return this.calculateCategoryBreakdown(allTransactions);
+    }
+
+    // Otherwise filter by specific year
     const annualTransactions = allTransactions.filter(t => {
       const dt = toDateTime(t.date);
       return dt?.year === year;

@@ -24,7 +24,6 @@ export const accountSpacing = {
 /** Component Tokens */
 export const accountComponents = {
   header: {
-    container: 'sticky top-0 z-10 bg-[#F8FAFC]/95 backdrop-blur-sm border-b border-border',
     inner: 'flex items-center justify-between p-2',
     title: 'text-xl font-bold text-black',
     subtitle: 'text-xs text-muted-foreground',
@@ -63,7 +62,7 @@ export const accountComponents = {
   },
 
   totalBalanceLink: {
-    container: 'flex items-center justify-between p-4 bg-primary/5 rounded-lg border border-primary/20 cursor-pointer hover:bg-primary/10 transition-all duration-300 group',
+    container: 'flex items-center justify-between p-3 bg-primary/5 rounded-lg border border-primary/20 cursor-pointer hover:bg-primary/10 transition-all duration-300 group',
     leftSection: 'flex items-center gap-3',
     icon: 'flex items-center justify-center w-10 h-10 rounded-lg bg-primary/10',
     label: 'text-xs mb-1 font-medium text-muted-foreground',

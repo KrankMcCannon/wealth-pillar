@@ -10,7 +10,7 @@ import type { Transaction, Category } from "@/lib/types";
 interface AnnualCategorySectionProps {
   transactions: Transaction[];
   categories: Category[];
-  year?: number;
+  year?: number | 'all';
 }
 
 export function AnnualCategorySection({
@@ -22,23 +22,32 @@ export function AnnualCategorySection({
     return FinanceLogicService.calculateAnnualCategorySpending(transactions, year);
   }, [transactions, year]);
 
-  // Filter only categories with spending
+  // Filter only categories with spending (spent > 0, regardless of income)
+  // Sort by net amount descending (highest to lowest)
   const spendingCategories = React.useMemo(() => {
-    return categoryBreakdown.filter(item => item.net > 0);
+    return categoryBreakdown
+      .filter(item => item.spent > 0)
+      .sort((a, b) => b.net - a.net);
   }, [categoryBreakdown]);
 
   if (spendingCategories.length === 0) {
     return null; // Don't show if no spending
   }
 
-  // Calculate max spending for progress bars
+  // Calculate max value for progress bars (using net)
   const maxSpending = Math.max(...spendingCategories.map(c => c.net), 0);
+
+  // Determine title and subtitle based on year selection
+  const title = year === 'all' ? 'Spese per Categoria - Tutti i Tempi' : 'Spese Annuali per Categoria';
+  const subtitle = year === 'all'
+    ? 'Riepilogo completo di tutte le spese'
+    : `Riepilogo spese dell'anno ${year}`;
 
   return (
     <section className="space-y-4">
       <div className={reportsStyles.sectionHeader.container}>
-        <h2 className={reportsStyles.sectionHeader.title}>Spese Annuali per Categoria</h2>
-        <p className={reportsStyles.sectionHeader.subtitle}>Riepilogo spese dell&apos;anno {year}</p>
+        <h2 className={reportsStyles.sectionHeader.title}>{title}</h2>
+        <p className={reportsStyles.sectionHeader.subtitle}>{subtitle}</p>
       </div>
 
       <Card className={cn(reportsStyles.card.container, "p-4")}>
@@ -47,7 +56,7 @@ export function AnnualCategorySection({
             const categoryLabel = CategoryService.getCategoryLabel(categories, item.category);
             const categoryColor = CategoryService.getCategoryColor(categories, item.category);
 
-            // Calculate width for relative bar
+            // Calculate width for relative bar based on net amount
             const barWidth = maxSpending > 0
               ? Math.max((item.net / maxSpending) * 100, 2)
               : 0;

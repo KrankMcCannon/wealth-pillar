@@ -7,7 +7,7 @@ import {
 import { supabaseServer } from '@/lib/database/server';
 import type { BudgetPeriod, Budget, Transaction } from '@/lib/types';
 import type { BudgetPeriodJSON } from '@/lib/database/types';
-import { DateTime, nowISO, toDateTime } from '@/lib/utils/date-utils';
+import { DateTime, toDateTime, todayDateString } from '@/lib/utils/date-utils';
 import type { ServiceResult } from './user.service';
 
 /**
@@ -243,12 +243,12 @@ export class BudgetPeriodService {
 
       // Create new period
       const newPeriod: BudgetPeriodJSON = {
-        id: `bdp_${Date.now()}`,
+        id: crypto.randomUUID(),
         start_date: startDt.toISODate() as string,
         end_date: null,
         is_active: true,
-        created_at: nowISO(),
-        updated_at: nowISO(),
+        created_at: todayDateString(),
+        updated_at: todayDateString(),
       };
 
       periods.unshift(newPeriod); // Add to start (newest first)
@@ -343,7 +343,7 @@ export class BudgetPeriodService {
             ...p,
             end_date: endDt.toISODate() as string,
             is_active: false,
-            updated_at: nowISO(),
+            updated_at: todayDateString(),
           }
           : p
       );

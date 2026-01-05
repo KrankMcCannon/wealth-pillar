@@ -115,7 +115,7 @@ export function BalanceSectionSliderSkeleton() {
  */
 export function AccountsPageSkeleton() {
   return (
-    <div className="min-h-screen bg-[#F8FAFC] pb-24">
+    <div className="min-h-screen bg-[#F8FAFC] pb-14">
       <AccountHeaderSkeleton />
       <BalanceCardSkeleton />
       <AccountListSkeleton />

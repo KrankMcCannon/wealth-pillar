@@ -1,13 +1,15 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { BottomNavigation, PageContainer, Header } from "@/components/layout";
 import { useUserFilter, usePermissions, useFilteredAccounts, useFilteredData } from "@/hooks";
 import UserSelector from "@/src/components/shared/user-selector";
+import YearSelector from "@/src/components/shared/year-selector";
 import { BudgetPeriodsSection, reportsStyles, ReportsOverviewCard, AnnualCategorySection } from "@/features/reports";
 import type { Transaction, Category, BudgetPeriod, Account, User } from "@/lib/types";
 import { CategoryService } from "@/lib/services";
 import { ReportMetricsService } from "@/lib/services/report-metrics.service";
+import { toDateTime } from "@/lib/utils/date-utils";
 
 interface ReportsContentProps {
   accounts: Account[];
@@ -26,6 +28,9 @@ export default function ReportsContent({
   currentUser,
   groupUsers,
 }: ReportsContentProps) {
+  // Year filtering state management
+  const [selectedYear, setSelectedYear] = useState<number | 'all'>(new Date().getFullYear());
+
   // User filtering state management using shared hook
   const { selectedGroupFilter } = useUserFilter();
 
@@ -38,12 +43,43 @@ export default function ReportsContent({
   // Force members to see only their own data
   const activeGroupFilter = isMember ? currentUser.id : selectedGroupFilter;
 
-  // Filter budget periods
-  const { filteredData: activeBudgetPeriods } = useFilteredData({
+  // Extract available years from transactions
+  const availableYears = useMemo(() => {
+    const years = new Set<number>();
+    transactions.forEach(transaction => {
+      const dt = toDateTime(transaction.date);
+      if (dt) {
+        years.add(dt.year);
+      }
+    });
+    return Array.from(years).sort((a, b) => b - a); // Descending order
+  }, [transactions]);
+
+  // Filter transactions by selected year
+  const yearFilteredTransactions = useMemo(() => {
+    if (selectedYear === 'all') return transactions;
+
+    return transactions.filter(t => {
+      const dt = toDateTime(t.date);
+      return dt?.year === selectedYear;
+    });
+  }, [transactions, selectedYear]);
+
+  // Filter budget periods by selected year
+  const { filteredData: userFilteredBudgetPeriods } = useFilteredData({
     data: budgetPeriods,
     currentUser,
     selectedUserId: activeGroupFilter === "all" ? undefined : activeGroupFilter,
   });
+
+  const activeBudgetPeriods = useMemo(() => {
+    if (selectedYear === 'all') return userFilteredBudgetPeriods;
+
+    return userFilteredBudgetPeriods.filter(period => {
+      const dt = toDateTime(period.start_date);
+      return dt?.year === selectedYear;
+    });
+  }, [userFilteredBudgetPeriods, selectedYear]);
 
   // Get user account IDs for earned/spent calculation
   // Using centralized account filtering hook
@@ -54,11 +90,11 @@ export default function ReportsContent({
   });
   const userAccountIds = useMemo(() => userAccounts.map((a) => a.id), [userAccounts]);
 
-  // Calculate overview metrics (total earned, spent, transferred, balance)
+  // Calculate overview metrics with year-filtered transactions
   const overviewMetrics = useMemo(() => {
     const userId = activeGroupFilter === "all" ? undefined : activeGroupFilter;
-    return ReportMetricsService.calculateOverviewMetrics(transactions, userAccountIds, userId);
-  }, [transactions, userAccountIds, activeGroupFilter]);
+    return ReportMetricsService.calculateOverviewMetrics(yearFilteredTransactions, userAccountIds, userId);
+  }, [yearFilteredTransactions, userAccountIds, activeGroupFilter]);
 
   // Enrich category metrics with category details (label, color, icon)
   const enrichedCategories = useMemo(() => {
@@ -70,11 +106,11 @@ export default function ReportsContent({
     }));
   }, [categories]);
 
-  // Filter transactions for active user/group context (for Annual Section)
+  // Filter transactions for active user/group context AND selected year
   const activeTransactions = useMemo(() => {
-    if (activeGroupFilter === "all") return transactions;
-    return transactions.filter(t => t.user_id === activeGroupFilter);
-  }, [transactions, activeGroupFilter]);
+    if (activeGroupFilter === "all") return yearFilteredTransactions;
+    return yearFilteredTransactions.filter(t => t.user_id === activeGroupFilter);
+  }, [yearFilteredTransactions, activeGroupFilter]);
 
   return (
     <PageContainer className={reportsStyles.page.container}>
@@ -91,6 +127,13 @@ export default function ReportsContent({
         <UserSelector
           currentUser={currentUser}
           users={groupUsers}
+        />
+
+        {/* Year Selector */}
+        <YearSelector
+          selectedYear={selectedYear}
+          onYearChange={setSelectedYear}
+          availableYears={availableYears}
         />
 
         <main className={reportsStyles.main.container}>
@@ -117,7 +160,7 @@ export default function ReportsContent({
             <BudgetPeriodsSection
               budgetPeriods={activeBudgetPeriods}
               groupUsers={groupUsers}
-              transactions={transactions}
+              transactions={yearFilteredTransactions}
               categories={enrichedCategories}
               accounts={accounts}
               selectedUserId={selectedGroupFilter}
@@ -129,6 +172,7 @@ export default function ReportsContent({
           <AnnualCategorySection
             transactions={activeTransactions}
             categories={categories}
+            year={selectedYear}
           />
         </main>
       </div>

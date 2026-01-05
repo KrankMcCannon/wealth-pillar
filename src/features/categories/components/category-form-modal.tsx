@@ -115,8 +115,8 @@ function CategoryFormModal({
       const generatedKey = watchedLabel
         .toLowerCase()
         .trim()
-        .replaceAll(/[^a-z0-9]+/g, "-")
-        .replaceAll(/^-+|-+$/g, "");
+        .replaceAll(/[^a-z0-9]+/g, "_")
+        .replaceAll(/^_+|_+$/g, "");
       setValue("key", generatedKey);
     }
   }, [watchedLabel, isEditMode, setValue]);

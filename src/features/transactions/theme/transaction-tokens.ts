@@ -94,7 +94,6 @@ export const transactionTypography = {
 export const transactionComponents = {
   // Header
   header: {
-    container: 'sticky top-0 z-20 bg-card/70 backdrop-blur-xl border-b border-primary/20 px-3 sm:px-4 py-2 sm:py-3 shadow-sm',
     title: 'text-lg sm:text-xl font-bold tracking-tight',
     button: 'text-primary hover:bg-primary hover:text-white rounded-xl transition-all duration-200 p-2 sm:p-3 min-w-[44px] min-h-[44px] flex items-center justify-center',
   },

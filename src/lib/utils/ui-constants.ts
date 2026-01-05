@@ -11,4 +11,4 @@ export const SHIMMER_BASE =
 
 /** Base classes for sticky headers */
 export const STICKY_HEADER_BASE =
-  "sticky top-0 backdrop-blur-xl border-b border-primary/20 shadow-sm bg-card/80";
+  "fixed top-0 left-0 right-0 backdrop-blur-xl border-b border-primary/20 shadow-sm bg-card/80";

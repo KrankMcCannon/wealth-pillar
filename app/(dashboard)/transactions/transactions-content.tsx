@@ -234,7 +234,6 @@ export default function TransactionsContent({
       <Header
         title="Transazioni"
         showBack={true}
-        className={transactionStyles.header.container}
         currentUser={{ name: currentUser.name, role: currentUser.role || 'member' }}
         showActions={true}
       />

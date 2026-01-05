@@ -4,10 +4,6 @@
  *
  * This file exports className strings grouped by component.
  * Modify styles in one place and they apply everywhere.
- *
- * Usage:
- * import { transactionStyles } from '@/features/transactions/theme/transaction-styles';
- * className={transactionStyles.header.container}
  */
 
 import {
@@ -26,14 +22,13 @@ export const transactionStyles = {
   // ====================================
   page: {
     container: `relative flex size-full min-h-[100dvh] flex-col bg-card`,
-    main: `flex-1 ${transactionSpacing.page.mobile} space-y-4 sm:space-y-6 pb-20 sm:pb-24`,
+    main: `flex-1 ${transactionSpacing.page.mobile} space-y-4 sm:space-y-6 pb-14`,
   },
 
   // ====================================
   // Header styles
   // ====================================
   header: {
-    container: transactionComponents.header.container,
     inner: 'flex items-center justify-between',
     title: transactionComponents.header.title,
     button: transactionComponents.header.button,

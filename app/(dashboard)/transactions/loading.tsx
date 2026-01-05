@@ -15,7 +15,7 @@ export default function TransactionsLoading() {
   return (
     <div className={transactionStyles.page.container}>
       {/* Header Skeleton */}
-      <header className={transactionStyles.header.container}>
+      <header>
         <div className={transactionStyles.header.inner}>
           <div className="h-6 w-32 bg-slate-200 rounded animate-pulse" />
         </div>

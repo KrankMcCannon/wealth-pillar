@@ -114,7 +114,7 @@ export function RecurringSeriesSection({
   return (
     <div className={`rounded-xl ${className}`}>
       {/* Header Section */}
-      <div className="px-4 pt-4 pb-3 border-b border-primary/20">
+      <div className="p-3 border-b border-primary/20">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="flex size-8 items-center justify-center rounded-xl bg-primary/10">
@@ -123,7 +123,7 @@ export function RecurringSeriesSection({
             <div>
               <h3 className="text-base font-bold tracking-tight">Transazioni Ricorrenti</h3>
               <p className="text-xs text-muted-foreground">
-                {activeSeries.length} {activeSeries.length === 1 ? "serie attiva" : "serie attive"}
+                {selectedUserId ? series.filter((s) => s.user_ids.includes(selectedUserId)).length : series.length} {activeSeries.length === 1 ? "serie attiva" : "serie attive"}
                 {filteredSeries.length > activeSeries.length && (
                   <span className="text-muted-foreground/70">
                     {" "}
@@ -177,7 +177,7 @@ export function RecurringSeriesSection({
 
       {/* Show More Link (if truncated) */}
       {maxItems && series.length > maxItems && (
-        <div className="px-4 pb-3 pt-1">
+        <div className="px-4 pb-2 pt-1">
           <p className="text-xs text-muted-foreground text-center">
             Mostrando {filteredSeries.length} di{" "}
             {selectedUserId ? series.filter((s) => s.user_ids.includes(selectedUserId)).length : series.length} serie

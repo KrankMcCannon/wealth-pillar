@@ -24,7 +24,6 @@ export const accountStyles = {
   // Header styles
   // ====================================
   header: {
-    container: accountComponents.header.container,
     inner: accountComponents.header.inner,
     title: accountComponents.header.title,
     subtitle: accountComponents.header.subtitle,
@@ -63,7 +62,7 @@ export const accountStyles = {
   // Accounts List styles
   // ====================================
   accountsList: {
-    container: `${accountSpacing.page.mobile} pb-24`,
+    container: `${accountSpacing.page.mobile} pb-14`,
     header: accountComponents.accountsList.header,
     items: accountComponents.accountsList.container,
     addPrompt: accountComponents.accountsList.addPrompt,

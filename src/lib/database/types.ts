@@ -181,6 +181,7 @@ export interface Database {
           key: string;
           icon: string;
           color: string;
+          group_id: string;
           created_at: string;
           updated_at: string;
         };
@@ -190,6 +191,7 @@ export interface Database {
           key: string;
           icon: string;
           color: string;
+          group_id: string;
           created_at?: string;
           updated_at?: string;
         };
@@ -199,6 +201,7 @@ export interface Database {
           key?: string;
           icon?: string;
           color?: string;
+          group_id?: string;
           created_at?: string;
           updated_at?: string;
         };

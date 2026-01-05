@@ -9,7 +9,7 @@
 
 import { Suspense, useEffect, useMemo } from "react";
 import { BottomNavigation, PageContainer, Header } from "@/components/layout";
-import { TotalBalanceCard, AccountsList, accountStyles } from "@/features/accounts";
+import { TotalBalanceCard, AccountsList } from "@/features/accounts";
 import { deleteAccountAction } from "@/features/accounts/actions/account-actions";
 import { useFilteredAccounts, usePermissions, useUserFilter, useDeleteConfirmation } from "@/hooks";
 import UserSelector from "@/components/shared/user-selector";
@@ -123,45 +123,42 @@ export default function AccountsContent({
     });
   };
   return (
-    <PageContainer className={accountStyles.page.container}>
-      <div className="flex-1">
-        {/* Header Section */}
-        <Header
-          title="Bank Accounts"
-          subtitle={`${accountStats.totalAccounts} account${accountStats.totalAccounts === 1 ? '' : 's'}`}
-          showBack={true}
-          className={accountStyles.header.container}
-          currentUser={{ name: currentUser.name, role: currentUser.role || 'member' }}
-          showActions={true}
-        />
+    <PageContainer>
+      {/* Header Section */}
+      <Header
+        title="Bank Accounts"
+        subtitle={`${accountStats.totalAccounts} account${accountStats.totalAccounts === 1 ? '' : 's'}`}
+        showBack={true}
+        currentUser={{ name: currentUser.name, role: currentUser.role || 'member' }}
+        showActions={true}
+      />
 
-        {/* User Selector */}
-        <Suspense fallback={<UserSelectorSkeleton />}>
-          <UserSelector
-            currentUser={currentUser}
-            users={groupUsers}
-          />
-        </Suspense>
-
-        {/* Total Balance Card Section */}
-        <TotalBalanceCard
-          totalBalance={accountStats.totalBalance}
-          totalAccounts={accountStats.totalAccounts}
-          positiveAccounts={accountStats.positiveAccounts}
-          negativeAccounts={accountStats.negativeAccounts}
-          isLoading={false}
+      {/* User Selector */}
+      <Suspense fallback={<UserSelectorSkeleton />}>
+        <UserSelector
+          currentUser={currentUser}
+          users={groupUsers}
         />
+      </Suspense>
 
-        {/* Accounts List Section */}
-        <AccountsList
-          accounts={sortedAccounts}
-          accountBalances={filteredBalances}
-          onAccountClick={handleEditAccount}
-          onEditAccount={handleEditAccount}
-          onDeleteAccount={handleDeleteAccount}
-          isLoading={false}
-        />
-      </div>
+      {/* Total Balance Card Section */}
+      <TotalBalanceCard
+        totalBalance={accountStats.totalBalance}
+        totalAccounts={accountStats.totalAccounts}
+        positiveAccounts={accountStats.positiveAccounts}
+        negativeAccounts={accountStats.negativeAccounts}
+        isLoading={false}
+      />
+
+      {/* Accounts List Section */}
+      <AccountsList
+        accounts={sortedAccounts}
+        accountBalances={filteredBalances}
+        onAccountClick={handleEditAccount}
+        onEditAccount={handleEditAccount}
+        onDeleteAccount={handleDeleteAccount}
+        isLoading={false}
+      />
 
       <BottomNavigation />
 

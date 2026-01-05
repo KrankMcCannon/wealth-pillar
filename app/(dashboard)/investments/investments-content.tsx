@@ -31,7 +31,7 @@ export default function InvestmentsContent({
           users={groupUsers}
         />
 
-        <main className="p-4 pb-24">
+        <main className="p-4 pb-14">
           <div className="flex gap-4 overflow-x-auto pb-4 -mx-4 px-4 mb-6">
             <div className="flex w-64 shrink-0 flex-col rounded-2xl bg-card p-4 shadow-sm">
               <div className="flex items-start justify-between">
