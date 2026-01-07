@@ -4,7 +4,8 @@
 
 "use client";
 
-import { FormField, FormSelect } from "@/components/form";
+import { FormField } from "@/components/form";
+import { CategorySelect } from "@/components/form/category-select";
 import type { Category } from "@/lib/types";
 
 interface CategoryFieldProps {
@@ -26,18 +27,15 @@ export function CategoryField({
   placeholder = "Seleziona categoria",
   categories = []
 }: CategoryFieldProps) {
-  const options = categories.map((category) => ({
-    value: category.key,
-    label: category.label,
-  }));
-
   return (
     <FormField label={label} required={required} error={error}>
-      <FormSelect
+      <CategorySelect
         value={value}
         onValueChange={onChange}
-        options={options}
+        categories={categories}
         placeholder={placeholder}
+        showRecentCategories={true}
+        recentCategoriesLimit={5}
       />
     </FormField>
   );

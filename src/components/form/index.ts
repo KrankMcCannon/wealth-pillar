@@ -10,7 +10,9 @@ export { FormLayout } from './form-layout';
 export { FormSection } from './form-section';
 export { FormSelect } from './form-select';
 export { MultiUserSelect } from './multi-user-select';
+export { CategorySelect } from './category-select';
 
 // Re-export types
 export type { FormActionsProps } from './form-actions';
 export type { FormFieldProps } from './form-field';
+export type { CategorySelectProps } from './category-select';

@@ -47,6 +47,7 @@ export default function RootLayout({
             backgroundColor: "#F8FAFC",
             color: "#1F2937",
           }}
+          suppressHydrationWarning
         >
           {children}
         </body>

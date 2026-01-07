@@ -78,12 +78,16 @@ export function ModalWrapper({
   // Mobile: Use Drawer
   return (
     <Drawer open={isOpen} onOpenChange={handleOpenChange}>
-      <DrawerContent className={cn("p-0", className)}>
+      <DrawerContent className={cn("p-0", className)} aria-describedby={undefined}>
         <DrawerHeader className="text-left bg-card px-4 py-3 border-b border-border shrink-0">
           <DrawerTitle className={cn("text-lg font-semibold text-black", titleClassName)}>{title}</DrawerTitle>
-          {description && (
+          {description ? (
             <DrawerDescription className={cn("text-sm text-muted-foreground mt-1", descriptionClassName)}>
               {description}
+            </DrawerDescription>
+          ) : (
+            <DrawerDescription className="sr-only">
+              {title}
             </DrawerDescription>
           )}
         </DrawerHeader>

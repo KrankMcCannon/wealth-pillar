@@ -15,6 +15,7 @@ export function PageContainer({ children, className }: PageContainerProps) {
         className
       )}
       style={{ fontFamily: '"Inter", "SF Pro Display", system-ui, sans-serif' }}
+      suppressHydrationWarning
     >
       {children}
     </div>
