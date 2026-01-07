@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Spline_Sans } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
+import { ToastProvider } from "@/src/components/ui/toast";
 import "./globals.css";
 
 const splineSans = Spline_Sans({
@@ -49,7 +50,9 @@ export default function RootLayout({
           }}
           suppressHydrationWarning
         >
-          {children}
+          <ToastProvider>
+            {children}
+          </ToastProvider>
         </body>
       </html>
     </ClerkProvider>

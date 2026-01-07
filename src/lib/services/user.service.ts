@@ -431,4 +431,126 @@ export class UserService {
       };
     }
   }
+
+  /**
+   * Updates user profile information (name and email)
+   * Validates input and updates cache
+   *
+   * @param userId - User ID
+   * @param updates - Profile updates (name and/or email)
+   * @returns Updated user or error
+   *
+   * @example
+   * const { data: user, error } = await UserService.updateProfile(userId, {
+   *   name: 'John Doe',
+   *   email: 'john@example.com'
+   * });
+   */
+  static async updateProfile(
+    userId: string,
+    updates: { name?: string; email?: string }
+  ): Promise<ServiceResult<User>> {
+    try {
+      // Input validation
+      if (!userId || userId.trim() === '') {
+        return {
+          data: null,
+          error: 'User ID is required',
+        };
+      }
+
+      if (!updates || Object.keys(updates).length === 0) {
+        return {
+          data: null,
+          error: 'At least one field (name or email) must be provided',
+        };
+      }
+
+      // Validate name if provided
+      if (updates.name !== undefined) {
+        if (updates.name.trim() === '') {
+          return {
+            data: null,
+            error: 'Name cannot be empty',
+          };
+        }
+        if (updates.name.length > 100) {
+          return {
+            data: null,
+            error: 'Name must be 100 characters or less',
+          };
+        }
+      }
+
+      // Validate email if provided
+      if (updates.email !== undefined) {
+        const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+        if (!emailRegex.test(updates.email)) {
+          return {
+            data: null,
+            error: 'Invalid email format',
+          };
+        }
+
+        // Check if email is already in use by another user
+        const { data: existingUser } = await supabaseServer
+          .from('users')
+          .select('id')
+          .eq('email', updates.email.toLowerCase())
+          .neq('id', userId)
+          .single();
+
+        if (existingUser) {
+          return {
+            data: null,
+            error: 'Email is already in use',
+          };
+        }
+      }
+
+      // Update user
+      const updateData: Partial<User> = {
+        ...(updates.name && { name: updates.name.trim() }),
+        ...(updates.email && { email: updates.email.toLowerCase() }),
+        updated_at: nowISO(),
+      };
+
+      const { data: updatedUser, error: updateError } = await supabaseServer
+        .from('users')
+        .update(updateData)
+        .eq('id', userId)
+        .select()
+        .single();
+
+      if (updateError) {
+        throw new Error(updateError.message);
+      }
+
+      if (!updatedUser) {
+        return {
+          data: null,
+          error: 'Failed to update user profile',
+        };
+      }
+
+      // Invalidate user cache
+      await revalidateCacheTags([
+        CACHE_TAGS.USERS,
+        CACHE_TAGS.USER(userId),
+      ]);
+
+      return {
+        data: updatedUser as User,
+        error: null,
+      };
+    } catch (error) {
+      return {
+        data: null,
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Failed to update user profile',
+      };
+    }
+  }
 }

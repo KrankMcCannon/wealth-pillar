@@ -208,3 +208,41 @@ export const budgetPeriodCacheKeys = {
    */
   all: () => ['budget_periods'] as const,
 } as const;
+
+/**
+ * User preferences cache keys
+ */
+export const userPreferencesCacheKeys = {
+  /**
+   * Cache key for user preferences by user ID
+   * @param userId - User ID
+   */
+  byUser: (userId: string) => ['user_preferences', 'user', userId] as const,
+
+  /**
+   * Cache key for all user preferences
+   */
+  all: () => ['user_preferences'] as const,
+} as const;
+
+/**
+ * Group invitations cache keys
+ */
+export const groupInvitationCacheKeys = {
+  /**
+   * Cache key for invitation by ID
+   * @param invitationId - Invitation ID
+   */
+  byId: (invitationId: string) => ['group_invitation', 'id', invitationId] as const,
+
+  /**
+   * Cache key for invitations by group
+   * @param groupId - Group ID
+   */
+  byGroup: (groupId: string) => ['group_invitations', 'group', groupId] as const,
+
+  /**
+   * Cache key for all group invitations
+   */
+  all: () => ['group_invitations'] as const,
+} as const;

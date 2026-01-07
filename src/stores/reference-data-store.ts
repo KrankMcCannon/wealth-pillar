@@ -33,6 +33,9 @@ interface ReferenceDataState {
   }) => void;
   reset: () => void;
 
+  // User optimistic update actions
+  updateCurrentUser: (updates: Partial<User>) => void;
+
   // Account optimistic update actions
   addAccount: (account: Account) => void;
   updateAccount: (id: string, updates: Partial<Account>) => void;
@@ -83,6 +86,13 @@ export const useReferenceDataStore = create<ReferenceDataState>()(
       // Reset store to initial state
       reset: () => {
         set(initialState, false, 'reference-data/reset');
+      },
+
+      // User actions
+      updateCurrentUser: (updates) => {
+        set((state) => ({
+          currentUser: state.currentUser ? { ...state.currentUser, ...updates } : null,
+        }), false, 'reference-data/updateCurrentUser');
       },
 
       // Account actions

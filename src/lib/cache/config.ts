@@ -23,6 +23,10 @@ export const CACHE_TTL = {
   BUDGET_PERIOD: 300,
   /** Recurring series data - 5 minutes */
   RECURRING: 300,
+  /** User preferences data - 5 minutes */
+  USER_PREFERENCES: 300,
+  /** Group invitations data - 5 minutes */
+  GROUP_INVITATIONS: 300,
   /** Static data - 1 hour */
   STATIC: 3600,
 } as const;
@@ -58,6 +62,11 @@ export const CACHE_TAGS = {
   USER_ACTIVE_BUDGET_PERIOD: (userId: string) => `user:${userId}:budget_period:active`,
   RECURRING_SERIES: 'recurring_series',
   RECURRING: (seriesId: string) => `recurring:${seriesId}`,
+  USER_PREFERENCES: 'user_preferences',
+  USER_PREFERENCE: (userId: string) => `user:${userId}:preferences`,
+  GROUP_INVITATIONS: 'group_invitations',
+  GROUP_INVITATION: (invitationId: string) => `group_invitation:${invitationId}`,
+  GROUP_INVITATIONS_BY_GROUP: (groupId: string) => `group:${groupId}:invitations`,
 } as const;
 
 /**
@@ -251,5 +260,23 @@ export const cacheOptions = {
   activeBudgetPeriod: (userId: string) => ({
     revalidate: CACHE_TTL.BUDGET_PERIOD,
     tags: [CACHE_TAGS.BUDGET_PERIODS, `user:${userId}:budget_period:active`],
+  }),
+
+  /**
+   * User preferences cache options
+   * @param userId - User ID for tag
+   */
+  userPreferences: (userId: string) => ({
+    revalidate: CACHE_TTL.USER_PREFERENCES,
+    tags: [CACHE_TAGS.USER_PREFERENCES, CACHE_TAGS.USER_PREFERENCE(userId)],
+  }),
+
+  /**
+   * Group invitations by group cache options
+   * @param groupId - Group ID for tag
+   */
+  groupInvitations: (groupId: string) => ({
+    revalidate: CACHE_TTL.GROUP_INVITATIONS,
+    tags: [CACHE_TAGS.GROUP_INVITATIONS, CACHE_TAGS.GROUP_INVITATIONS_BY_GROUP(groupId)],
   }),
 } as const;

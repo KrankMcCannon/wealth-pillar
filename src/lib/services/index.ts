@@ -20,10 +20,12 @@ export { BudgetService } from './budget.service';
 export { BudgetPeriodService } from './budget-period.service';
 export { CategoryService } from './category.service';
 export { GroupService } from './group.service';
+export { GroupInvitationService } from './group-invitation.service';
 export { RecurringService } from './recurring.service';
 export { ReportPeriodService } from './report-period.service';
 export { TransactionService } from './transaction.service';
 export { UserService } from './user.service';
+export { UserPreferencesService } from './user-preferences.service';
 export { PageDataService } from './page-data.service';
 export { FinanceLogicService } from './finance-logic.service';
 
@@ -32,6 +34,8 @@ export type { BudgetProgress, UserBudgetSummary } from './budget.service';
 export type { EnrichedBudgetPeriod } from './report-period.service';
 export type { CategoryMetric, ReportMetrics } from './transaction.service';
 export type { ServiceResult } from './user.service';
+export type { UserPreferences, UserPreferencesUpdate } from './user-preferences.service';
+export type { GroupInvitation, CreateInvitationInput } from './group-invitation.service';
 
 /**
  * Service Layer Documentation
