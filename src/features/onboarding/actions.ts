@@ -200,3 +200,42 @@ export async function deleteClerkUserAction(clerkUserId: string): Promise<Servic
     };
   }
 }
+
+/**
+ * Checks if a user exists in Supabase by Clerk ID
+ * This is a server action safe for use in client components
+ */
+export async function checkUserExistsAction(
+  clerkId: string
+): Promise<ServiceResult<{ exists: boolean; userId?: string }>> {
+  try {
+    if (!clerkId) {
+      return { data: null, error: 'Clerk ID mancante' };
+    }
+
+    const { data: user, error } = await supabaseServer
+      .from('users')
+      .select('id, clerk_id')
+      .eq('clerk_id', clerkId)
+      .maybeSingle();
+
+    if (error) {
+      console.error('[checkUserExistsAction] Database error:', error);
+      return { data: null, error: error.message };
+    }
+
+    return {
+      data: {
+        exists: !!user,
+        userId: user ? (user as { id: string }).id : undefined,
+      },
+      error: null,
+    };
+  } catch (error) {
+    console.error('[checkUserExistsAction] Unexpected error:', error);
+    return {
+      data: null,
+      error: error instanceof Error ? error.message : 'Errore durante la verifica dell\'utente',
+    };
+  }
+}

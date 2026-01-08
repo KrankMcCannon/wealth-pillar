@@ -113,7 +113,7 @@ export default function SettingsContent({ accounts, transactions }: SettingsCont
     setIsSigningOut(true);
     try {
       await signOut();
-      router.push("/sign-in");
+      router.push("/auth");
     } catch (error) {
       console.error("Error signing out:", error);
       setIsSigningOut(false);
@@ -150,9 +150,9 @@ export default function SettingsContent({ accounts, transactions }: SettingsCont
         return;
       }
 
-      // Sign out and redirect to sign-in page
+      // Sign out and redirect to auth page
       await signOut();
-      router.push("/sign-in");
+      router.push("/auth");
     } catch (error) {
       console.error("Error deleting account:", error);
       setDeleteError("Si è verificato un errore durante l'eliminazione dell'account.");

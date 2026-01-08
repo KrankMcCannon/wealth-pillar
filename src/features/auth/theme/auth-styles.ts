@@ -25,7 +25,6 @@ export const authStyles = {
   form: {
     container: 'space-y-2',
     fieldGroup: 'space-y-1',
-    twoColumnGrid: 'grid grid-cols-2 gap-2',
   },
 
   // Label
@@ -38,17 +37,6 @@ export const authStyles = {
     wrapper: 'relative',
     icon: 'absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[hsl(var(--color-primary))]/60',
     field: 'pl-9 h-9 text-sm bg-white border-[hsl(var(--color-primary))]/20 focus:border-[hsl(var(--color-primary))] focus:ring-[hsl(var(--color-primary))]/20 placeholder:text-primary/40',
-  },
-
-  // Checkbox
-  checkbox: {
-    label: 'inline-flex items-center gap-1.5 text-xs text-gray-600 cursor-pointer select-none',
-    input: 'size-3 rounded border-[hsl(var(--color-primary))]/30 text-[hsl(var(--color-primary))] focus:ring-[hsl(var(--color-primary))]/20 align-middle',
-  },
-
-  // Forgot password link
-  forgotPassword: {
-    link: 'text-xs text-[hsl(var(--color-primary))] hover:text-[hsl(var(--color-primary))]/80 font-medium',
   },
 
   // Primary button
@@ -70,17 +58,10 @@ export const authStyles = {
     button: 'w-full h-9 transition-all duration-200 hover:opacity-95 active:scale-[.98] text-sm',
   },
 
-  // Sign in/up toggle
+  // Terms and conditions toggle
   toggle: {
     container: 'text-center text-xs text-gray-600 pt-1',
     link: 'text-[hsl(var(--color-primary))] hover:text-[hsl(var(--color-primary))]/80 font-semibold',
-  },
-
-  // Verification step specific styles
-  verification: {
-    infoText: 'text-xs text-gray-600',
-    container: 'space-y-3',
-    actions: 'flex items-center justify-between text-xs text-gray-600',
   },
 
   // Action buttons container
@@ -88,42 +69,6 @@ export const authStyles = {
     container: 'flex items-center justify-between gap-3',
     group: 'flex items-center gap-3',
     row: 'flex items-center justify-between',
-  },
-
-  // Password input specific
-  password: {
-    field: 'h-9 text-sm bg-white border-[hsl(var(--color-primary))]/20 focus:border-[hsl(var(--color-primary))] focus:ring-[hsl(var(--color-primary))]/20 placeholder:text-primary/40',
-  },
-
-  // Email suggestions
-  emailSuggestions: {
-    container: 'mt-2 space-y-2',
-  },
-
-  // Password strength indicator
-  passwordStrength: {
-    container: 'mt-2',
-  },
-
-  // Password requirements
-  passwordRequirements: {
-    container: 'mt-2 space-y-1',
-  },
-
-  // Recovery flow specific styles
-  recovery: {
-    backButton: 'p-1 text-[hsl(var(--color-primary))] hover:text-[hsl(var(--color-primary))]/80 hover:bg-[hsl(var(--color-primary))]/5 rounded-md transition-colors',
-    verifyActions: 'flex flex-col gap-2 w-full',
-    resendLink: 'text-xs text-[hsl(var(--color-primary))] hover:text-[hsl(var(--color-primary))]/80 font-medium text-center',
-    backArrowButton: 'p-1 text-[hsl(var(--color-primary))] hover:text-[hsl(var(--color-primary))]/80 rounded-md transition-colors',
-  },
-
-  // Animation
-  animationWrapperCredentials: {
-    animate: { opacity: 1, x: 0 },
-    initial: { opacity: 0, x: 24 },
-    exit: { opacity: 0, x: -24 },
-    transition: { type: 'spring', stiffness: 260, damping: 24 },
   },
 };
 

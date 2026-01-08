@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   AlertCircle,
@@ -8,6 +8,7 @@ import {
   ArrowRight,
   Building2,
   CheckCircle2,
+  HelpCircle,
   Loader2,
   PlusCircle,
   Star,
@@ -41,6 +42,55 @@ interface BudgetFormState {
   type: BudgetType;
   categoryId: string;
 }
+
+interface OnboardingDraft {
+  currentStep: number;
+  groupName: string;
+  groupDescription: string;
+  budgetStartDay: number;
+  accounts: AccountFormState[];
+  budgets: BudgetFormState[];
+}
+
+// Account type descriptions for tooltips
+const accountTypeDescriptions: Record<keyof typeof AccountTypeMap, string> = {
+  payroll: "Conto principale dove ricevi lo stipendio o pensione",
+  savings: "Conto dedicato al risparmio a lungo termine",
+  cash: "Denaro contante fisico o fondo cassa",
+  investments: "Conto per investimenti, trading e portafoglio",
+};
+
+// LocalStorage key for draft
+const ONBOARDING_DRAFT_KEY = "onboarding-draft";
+
+// Helper to save draft to localStorage
+const saveDraft = (draft: OnboardingDraft) => {
+  try {
+    localStorage.setItem(ONBOARDING_DRAFT_KEY, JSON.stringify(draft));
+  } catch (err) {
+    console.error("Failed to save onboarding draft:", err);
+  }
+};
+
+// Helper to load draft from localStorage
+const loadDraft = (): OnboardingDraft | null => {
+  try {
+    const saved = localStorage.getItem(ONBOARDING_DRAFT_KEY);
+    return saved ? JSON.parse(saved) : null;
+  } catch (err) {
+    console.error("Failed to load onboarding draft:", err);
+    return null;
+  }
+};
+
+// Helper to clear draft from localStorage
+const clearDraft = () => {
+  try {
+    localStorage.removeItem(ONBOARDING_DRAFT_KEY);
+  } catch (err) {
+    console.error("Failed to clear onboarding draft:", err);
+  }
+};
 
 const steps = [
   {
@@ -79,6 +129,51 @@ export default function OnboardingModal({
     { description: "", amount: "", type: "monthly", categoryId: "" },
   ]);
   const [localError, setLocalError] = useState<string | null>(null);
+  const [showDraftRestore, setShowDraftRestore] = useState(false);
+
+  // Load draft on mount
+  useEffect(() => {
+    const draft = loadDraft();
+    if (draft) {
+      setShowDraftRestore(true);
+    }
+  }, []);
+
+  // Auto-save draft whenever state changes (debounced)
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      saveDraft({
+        currentStep,
+        groupName,
+        groupDescription,
+        budgetStartDay,
+        accounts,
+        budgets,
+      });
+    }, 1000); // Debounce by 1 second
+
+    return () => clearTimeout(timeout);
+  }, [currentStep, groupName, groupDescription, budgetStartDay, accounts, budgets]);
+
+  // Restore draft
+  const restoreDraft = () => {
+    const draft = loadDraft();
+    if (draft) {
+      setCurrentStep(draft.currentStep);
+      setGroupName(draft.groupName);
+      setGroupDescription(draft.groupDescription);
+      setBudgetStartDay(draft.budgetStartDay);
+      setAccounts(draft.accounts);
+      setBudgets(draft.budgets);
+      setShowDraftRestore(false);
+    }
+  };
+
+  // Dismiss draft restore prompt
+  const dismissDraftRestore = () => {
+    clearDraft();
+    setShowDraftRestore(false);
+  };
 
   const canProceed = useMemo(() => {
     if (currentStep === 0) {
@@ -89,10 +184,15 @@ export default function OnboardingModal({
       return accounts.every((account) => account.name.trim() && account.type);
     }
 
-    return budgets.every((budget) => {
-      const amount = parseFloat(budget.amount);
-      return budget.description.trim().length > 1 && !isNaN(amount) && amount > 0 && Boolean(budget.categoryId);
-    });
+    // Budget step: Allow proceeding if at least one budget is valid OR if budgets array is empty (skipped)
+    if (currentStep === 2) {
+      return budgets.length === 0 || budgets.every((budget) => {
+        const amount = parseFloat(budget.amount);
+        return budget.description.trim().length > 1 && !isNaN(amount) && amount > 0 && Boolean(budget.categoryId);
+      });
+    }
+
+    return true;
   }, [currentStep, groupName, accounts, budgets]);
 
   const accountTypeOptions = useMemo(
@@ -161,9 +261,18 @@ export default function OnboardingModal({
         })),
         budgetStartDay: budgetStartDay,
       });
+
+      // Clear draft on successful completion
+      clearDraft();
     } catch (err) {
-      setLocalError(err instanceof Error ? err.message : "Errore durante il salvataggio");
+      setLocalError(err instanceof Error ? err.message : "Errore durante il salvataggio. Riprova tra poco.");
     }
+  };
+
+  // Skip budgets step
+  const handleSkipBudgets = () => {
+    setBudgets([]);
+    setLocalError(null);
   };
 
   const renderGroupStep = () => (
@@ -287,7 +396,16 @@ export default function OnboardingModal({
             />
           </div>
           <div className="space-y-2">
-            <Label className={onboardingStyles.label}>Tipologia</Label>
+            <div className="flex items-center gap-2">
+              <Label className={onboardingStyles.label}>Tipologia</Label>
+              <div className="group relative">
+                <HelpCircle className="h-3.5 w-3.5 text-primary/60 cursor-help" />
+                <div className="invisible group-hover:visible absolute left-0 top-6 z-50 w-64 rounded-lg bg-primary text-white p-3 text-xs shadow-lg">
+                  <p className="font-semibold mb-1">{AccountTypeMap[account.type]}</p>
+                  <p className="text-white/90">{accountTypeDescriptions[account.type]}</p>
+                </div>
+              </div>
+            </div>
             <Select
               value={account.type}
               onValueChange={(value) => updateAccountField(index, "type", value as keyof typeof AccountTypeMap)}
@@ -327,6 +445,29 @@ export default function OnboardingModal({
 
   const renderBudgetsStep = () => (
     <div className="space-y-4">
+      {/* Skip budget info */}
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+        <div className="flex items-start gap-2">
+          <HelpCircle className="h-4 w-4 text-blue-600 mt-0.5 shrink-0" />
+          <div className="flex-1">
+            <p className="text-xs font-semibold text-blue-900">Puoi saltare questo passaggio</p>
+            <p className="text-xs text-blue-700 mt-1">
+              Non sei sicuro dei budget? Puoi configurarli più tardi dal dashboard.
+            </p>
+          </div>
+          {budgets.length > 0 && (
+            <Button
+              type="button"
+              onClick={handleSkipBudgets}
+              disabled={loading}
+              className="text-xs px-3 py-1 h-auto bg-blue-100 text-blue-700 hover:bg-blue-200 border-blue-300"
+            >
+              Salta
+            </Button>
+          )}
+        </div>
+      </div>
+
       {categoriesLoading && (
         <div className={onboardingStyles.loadingInfo}>
           <Loader2 className="h-4 w-4 animate-spin" />
@@ -458,6 +599,41 @@ export default function OnboardingModal({
 
   return (
     <div className={onboardingStyles.overlay}>
+      {/* Draft restore banner */}
+      {showDraftRestore && (
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-white border border-primary/20 rounded-lg shadow-lg p-4 max-w-md"
+        >
+          <div className="flex items-start gap-3">
+            <HelpCircle className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-primary">Riprendere da dove hai lasciato?</p>
+              <p className="text-xs text-primary/70 mt-1">
+                Abbiamo trovato una configurazione salvata in precedenza.
+              </p>
+            </div>
+          </div>
+          <div className="flex gap-2 mt-3">
+            <Button
+              type="button"
+              onClick={restoreDraft}
+              className="flex-1 text-xs h-8 bg-primary text-white hover:bg-primary/90"
+            >
+              Ripristina
+            </Button>
+            <Button
+              type="button"
+              onClick={dismissDraftRestore}
+              className="flex-1 text-xs h-8 bg-gray-100 text-gray-700 hover:bg-gray-200"
+            >
+              Ricomincia
+            </Button>
+          </div>
+        </motion.div>
+      )}
+
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -470,6 +646,21 @@ export default function OnboardingModal({
               <StepIcon className="h-5 w-5" />
             </div>
             <div>
+              {/* Visual step progress indicator with dots */}
+              <div className="flex items-center gap-2 mb-2">
+                {steps.map((_, index) => (
+                  <div
+                    key={index}
+                    className={`h-2 rounded-full transition-all duration-300 ${
+                      index === currentStep
+                        ? 'w-8 bg-primary'
+                        : index < currentStep
+                        ? 'w-2 bg-primary'
+                        : 'w-2 bg-primary/20'
+                    }`}
+                  />
+                ))}
+              </div>
               <p className={onboardingStyles.header.meta}>
                 Step {currentStep + 1} di {steps.length}
               </p>

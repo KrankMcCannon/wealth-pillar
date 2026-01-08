@@ -42,12 +42,12 @@ export interface DashboardData {
  * ```
  *
  * **Error Handling:**
- * - Redirects to /sign-in if user is not authenticated
- * - Redirects to /sign-in if user data cannot be fetched
+ * - Redirects to /auth if user is not authenticated
+ * - Redirects to /auth if user data cannot be fetched
  * - Logs error if group users fail to load (but continues with empty array)
  *
  * @returns Promise<DashboardData> - User and group data
- * @throws Redirects to /sign-in on authentication failure
+ * @throws Redirects to /auth on authentication failure
  *
  * @example
  * const { currentUser, groupUsers } = await getDashboardData();
@@ -59,17 +59,16 @@ export async function getDashboardData(): Promise<DashboardData> {
   const { userId: clerkId } = await auth();
 
   if (!clerkId) {
-    redirect('/sign-in');
+    redirect('/auth');
   }
 
   // Step 2: Fetch logged user info from database (cached for 5 minutes)
   const { data: user, error: userError } = await UserService.getLoggedUserInfo(clerkId);
 
-  // If user doesn't exist in Supabase, redirect to sign-in
+  // If user doesn't exist in Supabase, redirect to auth
   // User will be created during onboarding flow
   if (userError || !user) {
-    console.log('User not found in Supabase, redirecting to sign-in for onboarding');
-    redirect('/sign-in');
+    redirect('/auth');
   }
 
   // Step 3: Fetch all users in the group (cached for 10 minutes)

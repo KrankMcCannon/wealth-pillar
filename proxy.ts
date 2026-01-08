@@ -7,17 +7,15 @@ import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
  * It protects dashboard routes and allows public access to auth pages.
  */
 
-// Define which routes are public (accessible without authentication)
+// Define public routes that don't require authentication
 const isPublicRoute = createRouteMatcher([
-  '/sign-in(.*)',
-  '/sign-up(.*)',
-  '/forgot-password(.*)',
-  '/verify-email(.*)',
-  '/',
+  '/auth(.*)',
 ]);
 
 export default clerkMiddleware(async (auth, request) => {
   // Protect all routes except public ones
+  // Per Next.js 16 best practices, use Clerk's built-in protection
+  // Auth checks moved to layouts for better performance
   if (!isPublicRoute(request)) {
     await auth.protect();
   }
