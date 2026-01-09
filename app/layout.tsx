@@ -54,6 +54,8 @@ export default function RootLayout({
           }}
           suppressHydrationWarning
         >
+          {/* CAPTCHA container for Clerk - hidden in dev, visible in prod */}
+          <div id="clerk-captcha" style={isDevelopment() ? { display: 'none' } : undefined} aria-hidden={isDevelopment()} />
           <ToastProvider>
             {children}
           </ToastProvider>

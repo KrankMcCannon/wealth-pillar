@@ -40,7 +40,7 @@ export default function SSOCallback() {
   const [viewState, setViewState] = useState<ViewState>({ type: 'checking' });
   const [onboardingError, setOnboardingError] = useState<string | null>(null);
 
-  // Single effect - linear flow
+  // Single effect - linear flow with improved UX
   useEffect(() => {
     async function processCallback() {
       // Wait for Clerk to load
@@ -88,8 +88,7 @@ export default function SSOCallback() {
         const result = await checkUserExistsAction(userId);
 
         if (result.data?.exists) {
-          // Existing user - redirect to dashboard
-          setViewState({ type: 'redirecting' });
+          // Existing user - redirect to dashboard immediately for smoother UX
           router.replace('/dashboard');
         } else {
           // New user - load onboarding
@@ -154,8 +153,7 @@ export default function SSOCallback() {
         return;
       }
 
-      // Success - redirect to dashboard
-      setViewState({ type: 'redirecting' });
+      // Success - redirect to dashboard immediately for smoother UX
       router.replace('/dashboard');
     } catch (error) {
       console.error("Onboarding error:", error);
