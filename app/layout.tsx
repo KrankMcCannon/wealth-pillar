@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Spline_Sans } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { ToastProvider } from "@/src/components/ui/toast";
+import { isDevelopment } from "@/src/lib/utils";
 import "./globals.css";
 
 const splineSans = Spline_Sans({
@@ -34,9 +35,12 @@ export default function RootLayout({
       telemetry={false}
       appearance={{
         elements: {
-          // Completely hide CAPTCHA in development to avoid protocol mismatch errors
-          formFieldInput__captcha: "hidden",
-          captcha: "hidden",
+          // Hide CAPTCHA only in development to avoid protocol mismatch errors
+          // In production, CAPTCHA is enabled for security (bot sign-up protection)
+          ...(isDevelopment() && {
+            formFieldInput__captcha: "hidden",
+            captcha: "hidden",
+          }),
         },
       }}
     >

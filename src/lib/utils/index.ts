@@ -6,3 +6,4 @@ export * from "./date-utils";
 export * from "./permissions";
 export * from "./string-formatter";
 export * from "./ui-variants";
+export * from "./url-utils";

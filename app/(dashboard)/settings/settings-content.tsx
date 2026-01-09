@@ -83,31 +83,58 @@ export default function SettingsContent({ accounts, transactions }: SettingsCont
 
   // Load user preferences on mount
   useEffect(() => {
+    const abortController = new AbortController();
+    let mounted = true;
+
     const loadPreferences = async () => {
       try {
+        setIsLoadingPreferences(true);
+
         const { data, error } = await getUserPreferencesAction(currentUser.id);
 
-        if (error || !data) {
-          console.error('Error loading preferences:', error);
+        // Only update state if component is still mounted
+        if (!mounted || abortController.signal.aborted) {
+          return;
+        }
+
+        if (error) {
           showToast({
-            type: 'error',
-            title: 'Errore',
-            description: 'Impossibile caricare le preferenze',
+            title: "Errore",
+            description: "Impossibile caricare le preferenze",
+            type: "error",
           });
           setIsLoadingPreferences(false);
           return;
         }
 
-        setPreferences(data);
+        if (data) {
+          setPreferences(data);
+        }
+
         setIsLoadingPreferences(false);
       } catch (error) {
-        console.error('Error loading preferences:', error);
+        if (!mounted || abortController.signal.aborted) {
+          return;
+        }
+
+        console.error("Error loading preferences:", error);
+        showToast({
+          title: "Errore",
+          description: "Errore durante il caricamento delle preferenze",
+          type: "error",
+        });
         setIsLoadingPreferences(false);
       }
     };
 
     loadPreferences();
-  }, [currentUser.id, showToast]);
+
+    // Cleanup function
+    return () => {
+      mounted = false;
+      abortController.abort();
+    };
+  }, [currentUser.id]); // Only depend on currentUser.id
 
   const handleSignOut = useCallback(async () => {
     setIsSigningOut(true);

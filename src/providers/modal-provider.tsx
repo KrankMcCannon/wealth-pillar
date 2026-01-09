@@ -1,6 +1,6 @@
 "use client";
 
-import { lazy } from "react";
+import { lazy, Suspense } from "react";
 import dynamic from 'next/dynamic';
 import { useModalState } from "@/lib/navigation/url-state";
 import {
@@ -46,7 +46,7 @@ function ModalRenderer() {
   }
 
   return (
-    <>
+    <Suspense fallback={null}>
       {modal === "transaction" && (
         <TransactionFormModal
           isOpen={true}
@@ -86,7 +86,7 @@ function ModalRenderer() {
           editId={editId}
         />
       )}
-    </>
+    </Suspense>
   );
 }
 

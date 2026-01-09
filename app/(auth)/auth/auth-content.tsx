@@ -6,6 +6,7 @@ import { AlertCircle } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import { useSignUp, useClerk } from "@clerk/nextjs";
 import { AppleButton, AuthCard, GitHubButton, GoogleButton, authStyles } from "@/features/auth";
+import { getAbsoluteUrl, isProduction } from "@/src/lib/utils";
 
 /**
  * Extract error message from Clerk error or generic error
@@ -93,10 +94,17 @@ export default function AuthContent() {
     try {
       // Use signUp for OAuth - it handles both new and existing users
       // The SSO callback will check user existence and determine final routing
+
+      // Use relative URLs in development, absolute URLs in production
+      // Clerk handles relative URLs better in dev, but requires absolute in production
+      const callbackPath = "/auth/sso-callback";
+      const callbackUrl = isProduction() ? getAbsoluteUrl(callbackPath) : callbackPath;
+      console.log('[Auth] OAuth redirect URL:', callbackUrl, `(${isProduction() ? 'production' : 'development'})`);
+
       await signUp.authenticateWithRedirect({
         strategy: provider,
-        redirectUrl: "/auth/sso-callback",
-        redirectUrlComplete: "/auth/sso-callback", // SSO callback determines final destination
+        redirectUrl: callbackUrl,
+        redirectUrlComplete: callbackUrl, // SSO callback determines final destination
       });
     } catch (err) {
       console.error("OAuth error:", err);
