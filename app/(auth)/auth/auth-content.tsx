@@ -91,16 +91,12 @@ export default function AuthContent() {
     setError(null);
 
     try {
-      // Get redirect URL from query params if provided
-      const redirectUrl = searchParams.get("redirect_url");
-      const redirectUrlComplete = redirectUrl || "/dashboard";
-
       // Use signUp for OAuth - it handles both new and existing users
-      // The SSO callback will handle any errors (like external_account_exists)
+      // The SSO callback will check user existence and determine final routing
       await signUp.authenticateWithRedirect({
         strategy: provider,
         redirectUrl: "/auth/sso-callback",
-        redirectUrlComplete,
+        redirectUrlComplete: "/auth/sso-callback", // SSO callback determines final destination
       });
     } catch (err) {
       console.error("OAuth error:", err);
