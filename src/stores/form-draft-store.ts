@@ -15,7 +15,7 @@ import { persist, createJSONStorage, devtools } from 'zustand/middleware';
 // ============================================================================
 
 interface FormDraft {
-  data: any;
+  data: unknown;
   timestamp: number;
 }
 
@@ -24,8 +24,8 @@ interface FormDraftStore {
   drafts: Record<string, FormDraft>;
 
   // Actions
-  saveDraft: (formId: string, data: any) => void;
-  getDraft: (formId: string) => any | null;
+  saveDraft: (formId: string, data: unknown) => void;
+  getDraft: (formId: string) => unknown | null;
   clearDraft: (formId: string) => void;
   clearAllDrafts: () => void;
   clearExpiredDrafts: () => void;
@@ -85,7 +85,8 @@ export const useFormDraftStore = create<FormDraftStore>()(
         clearDraft: (formId) => {
           set(
             (state) => {
-              const { [formId]: _, ...remaining } = state.drafts;
+              const remaining = { ...state.drafts };
+              delete remaining[formId];
               return { drafts: remaining };
             },
             false,

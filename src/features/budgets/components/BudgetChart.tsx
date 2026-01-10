@@ -7,9 +7,14 @@
 "use client";
 
 import { Card } from "@/components/ui";
-import { budgetStyles } from "../theme/budget-styles";
+import {
+  budgetStyles,
+  getChartGradientStartStyle,
+  getChartGradientEndStyle,
+  getChartDayRowStyle,
+  getChartDayLabelStyle,
+} from "../theme/budget-styles";
 import { formatCurrency } from "@/lib/utils/currency-formatter";
-import React from "react";
 
 export interface ChartDataPoint {
   x: number;
@@ -69,7 +74,7 @@ export function BudgetChart({ spent, chartData, periodInfo }: Readonly<BudgetCha
 
         {/* Revolut-style Line Chart */}
         <div className={budgetStyles.chart.svgContainer}>
-          <svg className="w-full h-full" viewBox="0 0 350 180" preserveAspectRatio="none">
+          <svg className={budgetStyles.chart.svg} viewBox="0 0 350 180" preserveAspectRatio="none">
             {/* Subtle horizontal grid lines */}
             {[25, 50, 75].map((percent) => (
               <line
@@ -89,8 +94,8 @@ export function BudgetChart({ spent, chartData, periodInfo }: Readonly<BudgetCha
                 {/* Subtle gradient fill under line */}
                 <defs>
                   <linearGradient id="lineGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                    <stop offset="0%" style={{ stopColor: "#7578EC", stopOpacity: 0.08 }} />
-                    <stop offset="100%" style={{ stopColor: "#7578EC", stopOpacity: 0 }} />
+                    <stop offset="0%" style={getChartGradientStartStyle()} />
+                    <stop offset="100%" style={getChartGradientEndStyle()} />
                   </linearGradient>
                 </defs>
                 <path d={`${path} L ${lastPoint.x} 180 L 0 180 Z`} fill="url(#lineGradient)" />
@@ -114,7 +119,7 @@ export function BudgetChart({ spent, chartData, periodInfo }: Readonly<BudgetCha
           {/* Day numbers at bottom */}
           {periodInfo && (
             <div className={budgetStyles.chart.dayLabels}>
-              <div className="flex justify-between relative" style={{ width: "100%" }}>
+              <div className={budgetStyles.chart.dayRow} style={getChartDayRowStyle()}>
                 {Array.from({ length: Math.min(periodDays, 30) }).map((_, index) => {
                   const startDate = new Date(periodInfo.startDate);
                   startDate.setHours(0, 0, 0, 0);
@@ -129,14 +134,10 @@ export function BudgetChart({ spent, chartData, periodInfo }: Readonly<BudgetCha
                   return (
                     <span
                       key={index}
-                      className={`${budgetStyles.chart.dayLabel} absolute ${
-                        showDay ? "text-black/70" : "text-transparent"
+                      className={`${budgetStyles.chart.dayLabel} ${budgetStyles.chart.dayLabelPosition} ${
+                        showDay ? budgetStyles.chart.dayLabelVisible : budgetStyles.chart.dayLabelHidden
                       }`}
-                      style={{
-                        left: `${position}%`,
-                        transform: "translateX(-50%)",
-                        fontVariantNumeric: "tabular-nums",
-                      }}
+                      style={getChartDayLabelStyle(position)}
                     >
                       {dayOfMonth}
                     </span>

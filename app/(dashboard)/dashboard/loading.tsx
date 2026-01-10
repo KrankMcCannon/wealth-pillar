@@ -22,7 +22,7 @@ export default function DashboardPageLoading() {
 
       {/* Main Content Loading States */}
       <main className={dashboardStyles.page.main}>
-        <div className="space-y-6 px-4 py-6">
+        <div className={dashboardStyles.loading.content}>
           {/* Balance Section Skeleton */}
           <BalanceSectionSkeleton />
 

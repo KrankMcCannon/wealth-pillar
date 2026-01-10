@@ -10,6 +10,7 @@ import {
 } from "@/stores/reports-data-store";
 import { deletePeriodAction } from "@/features/budgets/actions/budget-period-actions";
 import { BudgetPeriodCard } from "./budget-period-card";
+import { budgetStyles } from "../theme/budget-styles";
 
 interface BudgetPeriodsListProps {
   userId: string;
@@ -69,12 +70,12 @@ export function BudgetPeriodsList({
   };
 
   return (
-    <div className="space-y-6">
+    <div className={budgetStyles.periodsList.container}>
       {/* Active Periods Section */}
       {activePeriods.length > 0 && (
         <section>
-          <h3 className="text-lg font-bold text-black mb-3">Periodo Attivo</h3>
-          <div className="space-y-3">
+          <h3 className={budgetStyles.periodsList.sectionTitle}>Periodo Attivo</h3>
+          <div className={budgetStyles.periodsList.sectionList}>
             {activePeriods.map((period) => (
               <BudgetPeriodCard
                 key={period.id}
@@ -90,8 +91,8 @@ export function BudgetPeriodsList({
       {/* Historical Periods Section */}
       {historicPeriods.length > 0 && (
         <section>
-          <h3 className="text-lg font-bold text-black mb-3">Storico Periodi</h3>
-          <div className="space-y-3">
+          <h3 className={budgetStyles.periodsList.sectionTitle}>Storico Periodi</h3>
+          <div className={budgetStyles.periodsList.sectionList}>
             {historicPeriods.map((period) => (
               <BudgetPeriodCard
                 key={period.id}
@@ -106,11 +107,11 @@ export function BudgetPeriodsList({
 
       {/* Empty State */}
       {periods.length === 0 && (
-        <div className="text-center py-12">
-          <p className="text-muted-foreground text-base">
+        <div className={budgetStyles.periodsList.emptyContainer}>
+          <p className={budgetStyles.periodsList.emptyTitle}>
             Nessun periodo budget trovato
           </p>
-          <p className="text-sm text-muted-foreground mt-2">
+          <p className={budgetStyles.periodsList.emptySubtitle}>
             I periodi budget ti permettono di tracciare le tue spese nel tempo
           </p>
         </div>
@@ -118,8 +119,8 @@ export function BudgetPeriodsList({
 
       {/* Loading Indicator (shown during delete) */}
       {isPending && (
-        <div className="fixed bottom-4 right-4 bg-black text-white px-4 py-2 rounded-lg shadow-lg">
-          <p className="text-sm font-medium">Eliminazione in corso...</p>
+        <div className={budgetStyles.periodsList.deletingToast}>
+          <p className={budgetStyles.periodsList.deletingText}>Eliminazione in corso...</p>
         </div>
       )}
     </div>

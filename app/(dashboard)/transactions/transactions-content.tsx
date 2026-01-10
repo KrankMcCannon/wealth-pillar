@@ -15,12 +15,12 @@ import {
   useIdNameMap,
   useFilteredData,
 } from "@/hooks";
-import { BottomNavigation, PageContainer, Header } from "@/src/components/layout";
-import TabNavigation from "@/src/components/shared/tab-navigation";
-import UserSelector from "@/src/components/shared/user-selector";
+import { BottomNavigation, PageContainer, Header } from "@/components/layout";
+import TabNavigation from "@/components/shared/tab-navigation";
+import UserSelector from "@/components/shared/user-selector";
 import { ConfirmationDialog } from "@/components/shared";
-import { RecurringSeriesSection } from "@/src/features/recurring";
-import { RecurringTransactionSeries } from "@/src/lib";
+import { RecurringSeriesSection } from "@/features/recurring";
+import { RecurringTransactionSeries } from "@/lib";
 import {
   TransactionDayList,
   TransactionFilters,
@@ -28,10 +28,10 @@ import {
   filterTransactions,
   type TransactionFiltersState,
   type GroupedTransaction,
-} from "@/src/features/transactions";
-import { transactionStyles } from "@/src/features/transactions/theme/transaction-styles";
-import { UserSelectorSkeleton } from "@/src/features/dashboard";
-import { RecurringSeriesSkeleton } from "@/src/features/transactions/components/transaction-skeletons";
+} from "@/features/transactions";
+import { transactionStyles } from "@/features/transactions/theme/transaction-styles";
+import { UserSelectorSkeleton } from "@/features/dashboard";
+import { RecurringSeriesSkeleton } from "@/features/transactions/components/transaction-skeletons";
 import type { Transaction, Budget, User, Account, Category } from "@/lib/types";
 import { TransactionService } from "@/lib/services";
 import { deleteTransactionAction } from "@/features/transactions/actions/transaction-actions";
@@ -241,14 +241,14 @@ export default function TransactionsContent({
       {/* User Selector */}
       <Suspense fallback={<UserSelectorSkeleton />}>
         <UserSelector
-          className="bg-card border-border"
+          className={transactionStyles.userSelector.className}
           currentUser={currentUser}
           users={groupUsers}
         />
       </Suspense>
 
       {/* Tab Navigation */}
-      <div className="px-3">
+      <div className={transactionStyles.tabNavigation.wrapper}>
         <TabNavigation
           tabs={[
             { id: "Transactions", label: "Transazioni" },
@@ -296,7 +296,7 @@ export default function TransactionsContent({
             <RecurringSeriesSection
               series={recurringSeries}
               selectedUserId={selectedUserId}
-              className="bg-card/80 backdrop-blur-sm border border-border/50 shadow-lg shadow-muted/30"
+              className={transactionStyles.recurringSection.container}
               showStats={true}
               maxItems={10}
               showActions={true}

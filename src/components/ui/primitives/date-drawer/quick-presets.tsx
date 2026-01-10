@@ -16,9 +16,9 @@
 import { format, subDays, startOfWeek, startOfMonth, startOfYear, isSameDay } from "date-fns";
 import { it } from "date-fns/locale";
 import { Zap } from "lucide-react";
-import { calendarDrawerStyles } from "@/src/lib/styles/calendar-drawer.styles";
-import { presetButtonVariants } from "@/src/lib/utils/date-drawer-variants";
-import { cn } from "@/src/lib/utils/ui-variants";
+import { calendarDrawerStyles } from "@/lib/styles/calendar-drawer.styles";
+import { presetButtonVariants } from "@/lib/utils/date-drawer-variants";
+import { cn } from "@/lib/utils";
 
 /**
  * Preset configuration type
@@ -110,7 +110,7 @@ export function QuickPresets({ selectedDate, onSelect, className }: QuickPresets
     <section className={cn(calendarDrawerStyles.presets.section, className)} aria-label="Scorciatoie data">
       {/* Section Title */}
       <h3 className={calendarDrawerStyles.presets.title}>
-        <Zap className="h-4 w-4" />
+        <Zap className={calendarDrawerStyles.presets.icon} />
         Scorciatoie
       </h3>
 

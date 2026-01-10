@@ -1,17 +1,15 @@
 "use client";
 
-import { Badge } from "@/src/components/ui";
-import { CategoryIcon, iconSizes, Transaction } from "@/src/lib";
+import { Badge } from "@/components/ui";
+import { CategoryIcon, iconSizes, Transaction } from "@/lib";
 import { formatCurrency } from "@/lib/utils";
-import { memo, useEffect, useRef } from "react";
-import { motion, useMotionValue, PanInfo, animate } from "framer-motion";
+import { memo } from "react";
+import { RowCard } from "@/components/ui/layout/row-card";
 import {
   transactionStyles,
-  getTransactionAmountColor,
   getTransactionIconColor,
-  getTransactionBadgeColor
+  getTransactionBadgeColor,
 } from "../theme";
-import { transactionInteraction } from "../theme/transaction-tokens";
 
 interface TransactionRowProps {
   transaction: Transaction;
@@ -27,16 +25,15 @@ interface TransactionRowProps {
 
 /**
  * Individual Transaction Row Component
- * Optimized for performance and smooth swiping using Framer Motion
+ *
+ * Now powered by the unified RowCard component.
+ * This is a thin wrapper that maps transaction-specific props to RowCard's generic API.
  *
  * Features:
- * - Swipe-to-delete gesture with configurable thresholds
- * - Smart tap detection (distinguishes swipe from tap)
- * - Smooth spring animations
- * - Centralized styling from theme system
- *
- * All animation constants and styles are defined in the theme system,
- * making it easy to tune behavior across all transaction rows.
+ * - Swipe-to-delete gesture (via RowCard)
+ * - Smart tap detection (via RowCard)
+ * - Smooth spring animations (via RowCard)
+ * - Transaction-specific styling and layout
  */
 export const TransactionRow = memo(({
   transaction,
@@ -49,92 +46,6 @@ export const TransactionRow = memo(({
   isOpen,
   onSwipe,
 }: TransactionRowProps) => {
-  const x = useMotionValue(0);
-  const hasDragged = useRef(false); // Traccia se c'è stato uno slide per evitare apertura modale
-
-  const { swipe, spring, drag, tap } = transactionInteraction;
-
-  // Sync internal x with external isOpen state
-  // This is the single source of truth for the row position
-  useEffect(() => {
-    const targetX = isOpen ? -swipe.actionWidth : 0;
-    if (x.get() !== targetX) {
-      animate(x, targetX, {
-        type: "spring",
-        stiffness: spring.stiffness,
-        damping: spring.damping
-      });
-    }
-  }, [isOpen, x, swipe.actionWidth, spring.stiffness, spring.damping]);
-
-  const handleDragStart = () => {
-    hasDragged.current = false; // Reset all'inizio del drag
-  };
-
-  const handleDragEnd = (_: any, info: PanInfo) => {
-    const currentX = x.get();
-    const velocityX = info.velocity.x;
-    const dragDistance = Math.abs(info.offset.x);
-
-    // Se ha draggato più di 10px, considera come slide (non tap)
-    if (dragDistance > 10) {
-      hasDragged.current = true;
-    }
-
-    if (isOpen) {
-      // Card è aperta: swipe a destra per chiudere (UX moderna iOS/Android)
-      // Chiudi se: swipato verso destra (anche poco) O qualsiasi velocità positiva
-      // Logica: se stai swipando verso destra (chiusura), è intenzionale → chiudi
-      const shouldClose = currentX > -swipe.actionWidth * 0.7 || velocityX > 10;
-
-      if (shouldClose) {
-        onSwipe(null); // Chiudi
-      } else {
-        onSwipe(transaction.id); // Rimani aperto
-      }
-    } else {
-      // Card è chiusa: swipe a sinistra per aprire
-      const shouldOpen = currentX < -swipe.threshold || velocityX < swipe.velocityThreshold;
-
-      if (shouldOpen) {
-        onSwipe(transaction.id); // Apri
-      } else {
-        onSwipe(null); // Rimani chiuso
-      }
-    }
-
-    // Reset hasDragged dopo breve delay per permettere a handleTap di leggerlo
-    setTimeout(() => {
-      hasDragged.current = false;
-    }, 100);
-  };
-
-  const handleTap = () => {
-    // Se ha appena fatto uno slide, ignora il tap (previene apertura modale accidentale)
-    if (hasDragged.current) {
-      hasDragged.current = false;
-      return;
-    }
-
-    const currentX = x.get();
-
-    // Se card è aperta o parzialmente aperta
-    if (isOpen || currentX < -tap.threshold) {
-      // Chiudi lo swipe IMMEDIATAMENTE (senza delay)
-      onSwipe(null);
-
-      // Apri modale di aggiornamento dopo delay per animazione fluida
-      setTimeout(() => {
-        onEditTransaction?.(transaction);
-      }, 200); // 200ms per completare animazione di chiusura
-
-      return;
-    }
-
-    // Card chiusa: apri direttamente la modale
-    onEditTransaction?.(transaction);
-  };
-
   // Calculate days until due for recurrent transactions
   const getDaysUntilDue = (): number => {
     if (!transaction.frequency || transaction.frequency === "once") return Infinity;
@@ -144,120 +55,95 @@ export const TransactionRow = memo(({
 
   const daysUntilDue = getDaysUntilDue();
 
-  return (
-    <div className={transactionStyles.transactionRow.wrapper}>
-      {/* Background Action Layer */}
-      {onDeleteTransaction && (
-        <div
-          className={transactionStyles.transactionRow.deleteLayer}
-          style={{
-            width: `${swipe.actionWidth}px`,
-            // Nasconde il bottone se la row non è esplicitamente aperta
-            // Previene visualizzazione durante transizioni o tap accidentali
-            opacity: isOpen ? 1 : 0,
-            pointerEvents: isOpen ? 'auto' : 'none'
-          }}
-          onClick={(e) => {
-            e.stopPropagation();
-            // Tap sull'area fuori dal bottone chiude lo swipe (UX moderna)
-            if (isOpen) {
-              onSwipe(null);
-            }
-          }}
-        >
-          <div
-            className={transactionStyles.transactionRow.deleteButton}
-            onClick={(e) => {
-              e.stopPropagation();
-              onDeleteTransaction(transaction.id);
-            }}
-          >
-            Elimina
-          </div>
-        </div>
+  // Determine icon color based on variant and context
+  const iconColor = (() => {
+    const colorClass = getTransactionIconColor(variant, context, daysUntilDue);
+    // Map transaction color classes to RowCard iconColor prop
+    if (colorClass.includes("text-destructive")) return "destructive";
+    if (colorClass.includes("text-warning")) return "warning";
+    if (colorClass.includes("text-success")) return "success";
+    return "primary";
+  })();
+
+  // Build metadata section (category + account/frequency)
+  const metadata = (
+    <>
+      <span className={transactionStyles.transactionRow.metadataText}>
+        {getCategoryLabel(transaction.category)}
+      </span>
+
+      {/* Account name for regular transactions */}
+      {variant === "regular" && transaction.account_id && accountNames[transaction.account_id] && (
+        <>
+          <span className={transactionStyles.transactionRow.separator}>•</span>
+          <span className={transactionStyles.transactionRow.metadataSecondary}>
+            {accountNames[transaction.account_id]}
+          </span>
+        </>
       )}
 
-      {/* Foreground Card Content */}
-      <motion.div
-        drag={onDeleteTransaction ? "x" : false}
-        dragConstraints={{ left: -swipe.actionWidth, right: 0 }}
-        dragElastic={drag.elastic}
-        dragMomentum={false}
-        style={{ x }}
-        onDragStart={handleDragStart}
-        onDragEnd={handleDragEnd}
-        onTap={handleTap}
-        onClick={(e) => e.stopPropagation()}
-        className={transactionStyles.transactionRow.content}
-      >
-        <div className={transactionStyles.transactionRow.contentLayout}>
-          <div className={transactionStyles.transactionRow.leftSection}>
-            {/* Category Icon */}
-            <div
-              className={`${transactionStyles.transactionRow.icon} ${getTransactionIconColor(
-                variant,
-                context,
-                daysUntilDue
-              )}`}
-            >
-              <CategoryIcon categoryKey={transaction.category} size={iconSizes.sm} />
-            </div>
+      {/* Frequency badge for recurrent transactions */}
+      {variant === "recurrent" && transaction.frequency && (
+        <>
+          <span className={transactionStyles.transactionRow.separator}>•</span>
+          <Badge
+            variant="outline"
+            className={`${transactionStyles.transactionRow.badge} ${getTransactionBadgeColor(
+              variant,
+              context,
+              daysUntilDue
+            )}`}
+          >
+            {transaction.frequency}
+          </Badge>
+        </>
+      )}
+    </>
+  );
 
-            {/* Transaction Details */}
-            <div className={transactionStyles.transactionRow.details}>
-              <h4 className={transactionStyles.transactionRow.title}>
-                {transaction.description}
-              </h4>
+  // Build primary value (amount)
+  const primaryValue = formatCurrency(Math.abs(transaction.amount));
 
-              <div className={transactionStyles.transactionRow.metadata}>
-                <span className={transactionStyles.transactionRow.metadataText}>
-                  {getCategoryLabel(transaction.category)}
-                </span>
+  // Build secondary value (frequency for recurrent)
+  const secondaryValue =
+    variant === "recurrent" && transaction.frequency && transaction.frequency !== "once"
+      ? transaction.frequency
+      : undefined;
 
-                {/* Account name for regular transactions */}
-                {variant === "regular" && transaction.account_id && accountNames[transaction.account_id] && (
-                  <>
-                    <span className={transactionStyles.transactionRow.separator}>•</span>
-                    <span className={transactionStyles.transactionRow.metadataSecondary}>
-                      {accountNames[transaction.account_id]}
-                    </span>
-                  </>
-                )}
+  const amountVariant = variant === "recurrent"
+    ? "primary"
+    : transaction.type === "income"
+      ? "success"
+      : transaction.type === "expense"
+        ? "destructive"
+        : "primary";
 
-                {/* Frequency badge for recurrent transactions */}
-                {variant === "recurrent" && transaction.frequency && (
-                  <>
-                    <span className={transactionStyles.transactionRow.separator}>•</span>
-                    <Badge
-                      variant="outline"
-                      className={`${transactionStyles.transactionRow.badge} ${getTransactionBadgeColor(
-                        variant,
-                        context,
-                        daysUntilDue
-                      )}`}
-                    >
-                      {transaction.frequency}
-                    </Badge>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
+  return (
+    <RowCard
+      // Layout
+      icon={<CategoryIcon categoryKey={transaction.category} size={iconSizes.sm} />}
+      iconSize="sm"
+      iconColor={iconColor}
+      title={transaction.description}
+      metadata={metadata}
+      primaryValue={primaryValue}
+      secondaryValue={secondaryValue}
+      amountVariant={amountVariant}
 
-          {/* Amount Section */}
-          <div className={transactionStyles.transactionRow.rightSection}>
-            <p className={`${transactionStyles.transactionRow.amount} ${getTransactionAmountColor(transaction, variant)}`}>
-              {formatCurrency(Math.abs(transaction.amount))}
-            </p>
-            {variant === "recurrent" && transaction.frequency && transaction.frequency !== "once" && (
-              <p className={`${transactionStyles.transactionRow.amountSecondary} ${getTransactionAmountColor(transaction, variant)}`}>
-                {transaction.frequency}
-              </p>
-            )}
-          </div>
-        </div>
-      </motion.div>
-    </div>
+      // Interaction
+      variant={variant === "regular" ? "interactive" : "highlighted"}
+      onClick={() => onEditTransaction?.(transaction)}
+      onDelete={onDeleteTransaction ? () => onDeleteTransaction(transaction.id) : undefined}
+
+      // Swipe gesture
+      isSwipeOpen={isOpen}
+      onSwipeChange={(open) => onSwipe(open ? transaction.id : null)}
+      deleteLabel="Elimina"
+
+      // Styling (maintain transaction-specific wrapper styles)
+      className={transactionStyles.transactionRow.content}
+      testId={`transaction-row-${transaction.id}`}
+    />
   );
 });
 

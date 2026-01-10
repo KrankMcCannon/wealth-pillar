@@ -37,7 +37,7 @@ export const TotalBalanceLink = ({ totalBalance, accountCount, selectedUserId }:
       {/* Left Section - Balance Info */}
       <div className={accountStyles.totalBalanceLink.leftSection}>
         <div className={accountStyles.totalBalanceLink.icon}>
-          <CreditCard className="h-5 w-5 text-primary" />
+          <CreditCard className={accountStyles.totalBalanceLink.iconSvg} />
         </div>
         <div>
           <p className={accountStyles.totalBalanceLink.label}>Saldo Totale</p>

@@ -3,7 +3,7 @@
  */
 
 // Components
-export { SeriesCard } from "@/src/components/cards";
+export { SeriesCard } from "@/components/cards";
 export * from "./components/recurring-series-form";
 export * from "./components/recurring-series-section";
 

@@ -1,7 +1,8 @@
 "use client";
 
-import { SectionHeader, BottomNavigation, PageContainer, Header } from "@/src/components/layout";
-import { settingsStyles } from "@/src/features/settings/theme";
+import { SectionHeader, BottomNavigation, PageContainer, Header } from "@/components/layout";
+import { SettingsItem } from "@/components/ui/layout";
+import { settingsStyles } from "@/features/settings/theme";
 import {
   deleteUserAction,
   DeleteAccountModal,
@@ -12,11 +13,11 @@ import {
   TIMEZONE_OPTIONS,
   InviteMemberModal,
   SubscriptionModal,
-} from "@/src/features/settings";
+} from "@/features/settings";
 import {
   getUserPreferencesAction,
   updateUserPreferencesAction
-} from "@/src/features/settings/actions";
+} from "@/features/settings/actions";
 import { usePermissions, useRequiredCurrentUser, useRequiredGroupUsers } from "@/hooks";
 import {
   Bell,
@@ -39,7 +40,7 @@ import { useRouter } from "next/navigation";
 import { useClerk } from "@clerk/nextjs";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { Button, Card } from "@/components/ui";
-import { useToast } from "@/src/components/ui/toast";
+import { toast } from "@/hooks/use-toast";
 import type { Account, Transaction } from "@/lib/types";
 import type { UserPreferences } from "@/lib/services/user-preferences.service";
 
@@ -58,7 +59,6 @@ export default function SettingsContent({ accounts, transactions }: SettingsCont
 
   const router = useRouter();
   const { signOut } = useClerk();
-  const { showToast } = useToast();
 
   // Modal visibility state
   const [showEditProfileModal, setShowEditProfileModal] = useState(false);
@@ -98,10 +98,10 @@ export default function SettingsContent({ accounts, transactions }: SettingsCont
         }
 
         if (error) {
-          showToast({
+          toast({
             title: "Errore",
             description: "Impossibile caricare le preferenze",
-            type: "error",
+            variant: "destructive",
           });
           setIsLoadingPreferences(false);
           return;
@@ -118,10 +118,10 @@ export default function SettingsContent({ accounts, transactions }: SettingsCont
         }
 
         console.error("Error loading preferences:", error);
-        showToast({
+        toast({
           title: "Errore",
           description: "Errore durante il caricamento delle preferenze",
-          type: "error",
+          variant: "destructive",
         });
         setIsLoadingPreferences(false);
       }
@@ -221,18 +221,18 @@ export default function SettingsContent({ accounts, transactions }: SettingsCont
             [key]: currentValue,
           };
         });
-        showToast({
-          type: 'error',
-          title: 'Errore',
+        toast({
+          title: "Errore",
           description: error,
+          variant: "destructive",
         });
         return;
       }
 
-      showToast({
-        type: 'success',
-        title: 'Preferenza aggiornata',
-        description: 'Le notifiche sono state aggiornate',
+      toast({
+        title: "Preferenza aggiornata",
+        description: "Le notifiche sono state aggiornate",
+        variant: "success",
       });
     } catch (error) {
       // Revert on error using functional update
@@ -244,13 +244,13 @@ export default function SettingsContent({ accounts, transactions }: SettingsCont
         };
       });
       console.error('Error updating notification:', error);
-      showToast({
-        type: 'error',
-        title: 'Errore',
-        description: 'Si è verificato un errore durante l\'aggiornamento',
+      toast({
+        title: "Errore",
+        description: "Si è verificato un errore durante l'aggiornamento",
+        variant: "destructive",
       });
     }
-  }, [currentUser.id, showToast]);
+  }, [currentUser.id]);
 
   // Handle preference updates (callback for modal success)
   const handlePreferenceUpdate = useCallback((key: keyof UserPreferences, value: string) => {
@@ -278,7 +278,7 @@ export default function SettingsContent({ accounts, transactions }: SettingsCont
   const transactionCount = useMemo(() => transactions.length, [transactions.length]);
 
   return (
-    <PageContainer>
+    <PageContainer className={settingsStyles.page.container}>
       <div>
         {/* Header */}
         <Header
@@ -292,7 +292,12 @@ export default function SettingsContent({ accounts, transactions }: SettingsCont
         <main className={settingsStyles.main.container}>
           {/* Profile Section */}
           <section>
-            <SectionHeader title="Profilo" icon={User} iconClassName="text-primary" className="mb-4" />
+            <SectionHeader
+              title="Profilo"
+              icon={User}
+              iconClassName={settingsStyles.sectionHeader.iconPrimary}
+              className={settingsStyles.sectionHeader.spacing}
+            />
 
             <Card className={settingsStyles.card.container}>
               {/* User Info Header */}
@@ -321,35 +326,25 @@ export default function SettingsContent({ accounts, transactions }: SettingsCont
 
               {/* Profile Details */}
               <div className={settingsStyles.profileDetails.container}>
-                <div className={settingsStyles.profileDetails.item}>
-                  <div className={settingsStyles.profileDetails.iconContainer}>
-                    <Mail className={settingsStyles.profileDetails.icon} />
-                  </div>
-                  <div className={settingsStyles.profileDetails.content}>
-                    <span className={settingsStyles.profileDetails.label}>Email</span>
-                    <p className={settingsStyles.profileDetails.value}>{currentUser.email}</p>
-                  </div>
-                </div>
+                <SettingsItem
+                  icon={<Mail className={settingsStyles.sectionHeader.badgeIcon} />}
+                  label="Email"
+                  value={currentUser.email}
+                  showDivider
+                />
 
-                <div className={settingsStyles.profileDetails.item}>
-                  <div className={settingsStyles.profileDetails.iconContainer}>
-                    <Phone className={settingsStyles.profileDetails.icon} />
-                  </div>
-                  <div className={settingsStyles.profileDetails.content}>
-                    <span className={settingsStyles.profileDetails.label}>Telefono</span>
-                    <p className={settingsStyles.profileDetails.value}>Non specificato</p>
-                  </div>
-                </div>
+                <SettingsItem
+                  icon={<Phone className={settingsStyles.sectionHeader.badgeIcon} />}
+                  label="Telefono"
+                  value="Non specificato"
+                  showDivider
+                />
 
-                <div className={settingsStyles.profileDetails.item}>
-                  <div className={settingsStyles.profileDetails.iconContainer}>
-                    <User className={settingsStyles.profileDetails.icon} />
-                  </div>
-                  <div className={settingsStyles.profileDetails.content}>
-                    <span className={settingsStyles.profileDetails.label}>Ruolo</span>
-                    <p className={settingsStyles.profileDetails.value + ' capitalize'}>{currentUser.role}</p>
-                  </div>
-                </div>
+                <SettingsItem
+                  icon={<User className={settingsStyles.sectionHeader.badgeIcon} />}
+                  label="Ruolo"
+                  value={currentUser.role}
+                />
               </div>
             </Card>
           </section>
@@ -357,10 +352,10 @@ export default function SettingsContent({ accounts, transactions }: SettingsCont
           {/* Group Management Section - Only visible to admins */}
           {isAdmin && (
             <section>
-              <SectionHeader title="Gestione Gruppo" icon={Users} iconClassName="text-primary" />
+              <SectionHeader title="Gestione Gruppo" icon={Users} iconClassName={settingsStyles.sectionHeader.iconPrimary} />
 
               {/* Group Members List */}
-              <Card className={settingsStyles.card.container + " pb-0 mb-4"}>
+              <Card className={settingsStyles.card.containerTight}>
                 <div className={settingsStyles.groupManagement.header}>
                   <h3 className={settingsStyles.groupManagement.title}>Membri del Gruppo</h3>
                   <p className={settingsStyles.groupManagement.subtitle}>
@@ -384,7 +379,7 @@ export default function SettingsContent({ accounts, transactions }: SettingsCont
                           >
                             {memberInitials}
                           </div>
-                          <div className="flex-1 min-w-0">
+                          <div className={settingsStyles.layout.column}>
                             <h4 className={settingsStyles.groupManagement.memberName}>{member.name}</h4>
                             <p className={settingsStyles.groupManagement.memberEmail}>{member.email}</p>
                           </div>
@@ -411,7 +406,7 @@ export default function SettingsContent({ accounts, transactions }: SettingsCont
                     <div className={settingsStyles.actionButton.iconContainer}>
                       <Plus className={settingsStyles.actionButton.icon} />
                     </div>
-                    <div className="flex-1 min-w-0 ml-3">
+                    <div className={settingsStyles.layout.rowOffset}>
                       <span className={settingsStyles.actionButton.title}>Invita Membro</span>
                       <p className={settingsStyles.actionButton.subtitle}>Invia invito per unirsi al gruppo</p>
                     </div>
@@ -429,7 +424,7 @@ export default function SettingsContent({ accounts, transactions }: SettingsCont
                     <div className={settingsStyles.actionButton.iconContainer}>
                       <CreditCard className={settingsStyles.actionButton.icon} />
                     </div>
-                    <div className="flex-1 min-w-0 ml-3">
+                    <div className={settingsStyles.layout.rowOffset}>
                       <span className={settingsStyles.actionButton.title}>Impostazioni Abbonamento</span>
                       <p className={settingsStyles.actionButton.subtitle}>Gestisci fatturazione e abbonamento gruppo</p>
                     </div>
@@ -442,221 +437,142 @@ export default function SettingsContent({ accounts, transactions }: SettingsCont
 
           {/* Preferences */}
           <section>
-            <SectionHeader title="Preferenze" icon={Settings} iconClassName="text-primary" className="mb-4" />
+            <SectionHeader
+              title="Preferenze"
+              icon={Settings}
+              iconClassName={settingsStyles.sectionHeader.iconPrimary}
+              className={settingsStyles.sectionHeader.spacing}
+            />
             <Card className={settingsStyles.card.container}>
-              <div className={settingsStyles.preference.container}>
-                <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <div className={settingsStyles.preference.iconContainer}>
-                    <CreditCard className={settingsStyles.preference.icon} />
-                  </div>
-                  <div className={settingsStyles.preference.content}>
-                    <span className={settingsStyles.preference.label}>Valuta</span>
-                    <p className={settingsStyles.preference.value}>
-                      {preferences?.currency ?
-                        CURRENCY_OPTIONS.find(opt => opt.value === preferences.currency)?.label || preferences.currency
-                        : 'EUR - Euro'}
-                    </p>
-                  </div>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className={settingsStyles.preference.button}
-                  onClick={() => setShowCurrencyModal(true)}
-                  disabled={isLoadingPreferences}
-                >
-                  Cambia
-                </Button>
-              </div>
+              <SettingsItem
+                icon={<CreditCard className={settingsStyles.sectionHeader.badgeIcon} />}
+                label="Valuta"
+                value={preferences?.currency ?
+                  CURRENCY_OPTIONS.find(opt => opt.value === preferences.currency)?.label || preferences.currency
+                  : 'EUR - Euro'}
+                actionType="button"
+                buttonLabel="Cambia"
+                onPress={() => setShowCurrencyModal(true)}
+                disabled={isLoadingPreferences}
+                showDivider
+              />
 
-              <div className={settingsStyles.preference.container}>
-                <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <div className={settingsStyles.preference.iconContainer}>
-                    <Globe className={settingsStyles.preference.icon} />
-                  </div>
-                  <div className={settingsStyles.preference.content}>
-                    <span className={settingsStyles.preference.label}>Lingua</span>
-                    <p className={settingsStyles.preference.value}>
-                      {preferences?.language ?
-                        LANGUAGE_OPTIONS.find(opt => opt.value === preferences.language)?.label || preferences.language
-                        : 'Italiano'}
-                    </p>
-                  </div>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className={settingsStyles.preference.button}
-                  onClick={() => setShowLanguageModal(true)}
-                  disabled={isLoadingPreferences}
-                >
-                  Cambia
-                </Button>
-              </div>
+              <SettingsItem
+                icon={<Globe className={settingsStyles.sectionHeader.badgeIcon} />}
+                label="Lingua"
+                value={preferences?.language ?
+                  LANGUAGE_OPTIONS.find(opt => opt.value === preferences.language)?.label || preferences.language
+                  : 'Italiano'}
+                actionType="button"
+                buttonLabel="Cambia"
+                onPress={() => setShowLanguageModal(true)}
+                disabled={isLoadingPreferences}
+                showDivider
+              />
 
-              <div className={settingsStyles.preference.container}>
-                <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <div className={settingsStyles.preference.iconContainer}>
-                    <Globe className={settingsStyles.preference.icon} />
-                  </div>
-                  <div className={settingsStyles.preference.content}>
-                    <span className={settingsStyles.preference.label}>Fuso Orario</span>
-                    <p className={settingsStyles.preference.value}>
-                      {preferences?.timezone ?
-                        TIMEZONE_OPTIONS.find(opt => opt.value === preferences.timezone)?.label || preferences.timezone
-                        : 'Roma (GMT+1)'}
-                    </p>
-                  </div>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className={settingsStyles.preference.button}
-                  onClick={() => setShowTimezoneModal(true)}
-                  disabled={isLoadingPreferences}
-                >
-                  Cambia
-                </Button>
-              </div>
+              <SettingsItem
+                icon={<Globe className={settingsStyles.sectionHeader.badgeIcon} />}
+                label="Fuso Orario"
+                value={preferences?.timezone ?
+                  TIMEZONE_OPTIONS.find(opt => opt.value === preferences.timezone)?.label || preferences.timezone
+                  : 'Roma (GMT+1)'}
+                actionType="button"
+                buttonLabel="Cambia"
+                onPress={() => setShowTimezoneModal(true)}
+                disabled={isLoadingPreferences}
+              />
             </Card>
           </section>
 
           {/* Notifications */}
           <section>
-            <SectionHeader title="Notifiche" icon={Bell} iconClassName="text-primary" className="mb-4" />
+            <SectionHeader
+              title="Notifiche"
+              icon={Bell}
+              iconClassName={settingsStyles.sectionHeader.iconPrimary}
+              className={settingsStyles.sectionHeader.spacing}
+            />
             <Card className={settingsStyles.card.container}>
-              <div className={settingsStyles.notification.container}>
-                <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <div className={settingsStyles.preference.iconContainer}>
-                    <Bell className={settingsStyles.preference.icon} />
-                  </div>
-                  <div className={settingsStyles.preference.content}>
-                    <span className={settingsStyles.preference.label}>Notifiche Push</span>
-                    <p className={settingsStyles.preference.value}>Ricevi notifiche sulle transazioni</p>
-                  </div>
-                </div>
-                <label className={settingsStyles.notification.toggle.wrapper}>
-                  <input
-                    type="checkbox"
-                    className={settingsStyles.notification.toggle.input}
-                    checked={preferences?.notifications_push ?? true}
-                    onChange={() => handleNotificationToggle('notifications_push', preferences?.notifications_push ?? true)}
-                    disabled={isLoadingPreferences}
-                  />
-                  <span className="sr-only">Attiva notifiche push</span>
-                  <div className={settingsStyles.notification.toggle.track}></div>
-                  <div className={settingsStyles.notification.toggle.thumb}></div>
-                </label>
-              </div>
+              <SettingsItem
+                icon={<Bell className={settingsStyles.sectionHeader.badgeIcon} />}
+                label="Notifiche Push"
+                description="Ricevi notifiche sulle transazioni"
+                actionType="toggle"
+                checked={preferences?.notifications_push ?? true}
+                onToggle={(checked) => handleNotificationToggle('notifications_push', !checked)}
+                disabled={isLoadingPreferences}
+                showDivider
+              />
 
-              <div className={settingsStyles.notification.container}>
-                <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <div className={settingsStyles.preference.iconContainer}>
-                    <Mail className={settingsStyles.preference.icon} />
-                  </div>
-                  <div className={settingsStyles.preference.content}>
-                    <span className={settingsStyles.preference.label}>Notifiche Email</span>
-                    <p className={settingsStyles.preference.value}>Ricevi rapporti settimanali</p>
-                  </div>
-                </div>
-                <label className={settingsStyles.notification.toggle.wrapper}>
-                  <input
-                    type="checkbox"
-                    className={settingsStyles.notification.toggle.input}
-                    checked={preferences?.notifications_email ?? false}
-                    onChange={() => handleNotificationToggle('notifications_email', preferences?.notifications_email ?? false)}
-                    disabled={isLoadingPreferences}
-                  />
-                  <span className="sr-only">Attiva notifiche email</span>
-                  <div className={settingsStyles.notification.toggle.track}></div>
-                  <div className={settingsStyles.notification.toggle.thumb}></div>
-                </label>
-              </div>
+              <SettingsItem
+                icon={<Mail className={settingsStyles.sectionHeader.badgeIcon} />}
+                label="Notifiche Email"
+                description="Ricevi rapporti settimanali"
+                actionType="toggle"
+                checked={preferences?.notifications_email ?? false}
+                onToggle={(checked) => handleNotificationToggle('notifications_email', !checked)}
+                disabled={isLoadingPreferences}
+                showDivider
+              />
 
-              <div className={settingsStyles.notification.container}>
-                <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <div className={settingsStyles.preference.iconContainer}>
-                    <Bell className={settingsStyles.preference.icon} />
-                  </div>
-                  <div className={settingsStyles.preference.content}>
-                    <span className={settingsStyles.preference.label}>Avvisi Budget</span>
-                    <p className={settingsStyles.preference.value}>Avvisa quando superi il budget</p>
-                  </div>
-                </div>
-                <label className={settingsStyles.notification.toggle.wrapper}>
-                  <input
-                    type="checkbox"
-                    className={settingsStyles.notification.toggle.input}
-                    checked={preferences?.notifications_budget_alerts ?? true}
-                    onChange={() => handleNotificationToggle('notifications_budget_alerts', preferences?.notifications_budget_alerts ?? true)}
-                    disabled={isLoadingPreferences}
-                  />
-                  <span className="sr-only">Attiva avvisi budget</span>
-                  <div className={settingsStyles.notification.toggle.track}></div>
-                  <div className={settingsStyles.notification.toggle.thumb}></div>
-                </label>
-              </div>
+              <SettingsItem
+                icon={<Bell className={settingsStyles.sectionHeader.badgeIcon} />}
+                label="Avvisi Budget"
+                description="Avvisa quando superi il budget"
+                actionType="toggle"
+                checked={preferences?.notifications_budget_alerts ?? true}
+                onToggle={(checked) => handleNotificationToggle('notifications_budget_alerts', !checked)}
+                disabled={isLoadingPreferences}
+              />
             </Card>
           </section>
 
           {/* Security */}
           <section>
-            <SectionHeader title="Sicurezza" icon={Shield} iconClassName="text-primary" className="mb-4" />
+            <SectionHeader
+              title="Sicurezza"
+              icon={Shield}
+              iconClassName={settingsStyles.sectionHeader.iconPrimary}
+              className={settingsStyles.sectionHeader.spacing}
+            />
             <Card className={settingsStyles.card.container}>
-              <button className={settingsStyles.security.container}>
-                <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <div className={settingsStyles.security.iconContainer}>
-                    <Shield className={settingsStyles.security.icon} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <span className={settingsStyles.security.title}>Autenticazione a Due Fattori</span>
-                    <p className={settingsStyles.security.subtitle}>Aggiungi sicurezza extra</p>
-                  </div>
-                </div>
-                <ChevronRight className={settingsStyles.security.chevron} />
-              </button>
+              <SettingsItem
+                icon={<Shield className={settingsStyles.sectionHeader.badgeIcon} />}
+                label="Autenticazione a Due Fattori"
+                description="Aggiungi sicurezza extra"
+                actionType="navigation"
+                onPress={() => {/* TODO: Navigate to 2FA settings */ }}
+                showDivider
+              />
 
-              <div className={settingsStyles.card.dividerLine}></div>
-
-              <button onClick={handleSignOut} disabled={isSigningOut} className={settingsStyles.security.container}>
-                <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <div className={settingsStyles.security.iconContainer}>
-                    {isSigningOut ? (
-                      <Loader2 className={`${settingsStyles.security.icon} animate-spin`} />
-                    ) : (
-                      <LogOut className={settingsStyles.security.icon} />
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <span className={settingsStyles.security.title}>
-                      {isSigningOut ? "Disconnessione in corso..." : "Esci dall'Account"}
-                    </span>
-                    <p className={settingsStyles.security.subtitle}>
-                      {isSigningOut ? "Attendere prego" : "Disconnetti dal tuo account"}
-                    </p>
-                  </div>
-                </div>
-                {!isSigningOut && <ChevronRight className={settingsStyles.security.chevron} />}
-              </button>
+              <SettingsItem
+                icon={isSigningOut ? <Loader2 className={`${settingsStyles.sectionHeader.badgeIcon} animate-spin`} /> : <LogOut className={settingsStyles.sectionHeader.badgeIcon} />}
+                label={isSigningOut ? "Disconnessione in corso..." : "Esci dall'Account"}
+                description={isSigningOut ? "Attendere prego" : "Disconnetti dal tuo account"}
+                actionType={isSigningOut ? "custom" : "navigation"}
+                onPress={handleSignOut}
+                disabled={isSigningOut}
+              />
             </Card>
           </section>
 
           {/* Account Actions */}
           <section>
-            <SectionHeader title="Account" icon={User} iconClassName="text-red-600" className="mb-4" />
+            <SectionHeader
+              title="Account"
+              icon={User}
+              iconClassName={settingsStyles.sectionHeader.iconDestructive}
+              className={settingsStyles.sectionHeader.spacing}
+            />
             <Card className={settingsStyles.accountActions.container}>
-              <button onClick={handleDeleteAccountClick} className={settingsStyles.accountActions.button}>
-                <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <div className={settingsStyles.accountActions.iconContainer}>
-                    <Trash2 className={settingsStyles.accountActions.icon} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <span className={settingsStyles.accountActions.title}>Elimina Account</span>
-                    <p className={settingsStyles.accountActions.subtitle}>Elimina permanentemente il tuo account</p>
-                  </div>
-                </div>
-                <ChevronRight className={settingsStyles.accountActions.chevron} />
-              </button>
+              <SettingsItem
+                icon={<Trash2 className={settingsStyles.sectionHeader.badgeIcon} />}
+                label="Elimina Account"
+                description="Elimina permanentemente il tuo account"
+                actionType="navigation"
+                onPress={handleDeleteAccountClick}
+                variant="destructive"
+              />
             </Card>
           </section>
         </main>

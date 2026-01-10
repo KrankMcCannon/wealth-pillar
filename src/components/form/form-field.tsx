@@ -1,8 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { cn } from "@/src/lib";
+import { cn } from "@/lib";
 import { Label } from "../ui";
+import { formStyles } from "./theme/form-styles";
 
 /**
  * Form Field Component
@@ -60,24 +61,28 @@ export function FormField({
   labelClassName,
 }: FormFieldProps) {
   return (
-    <div className={cn("space-y-2", className)}>
+    <div className={cn(formStyles.field.container, className)}>
       {/* Label */}
       <Label
         htmlFor={htmlFor}
-        className={cn("text-sm font-medium text-black", error && "text-destructive", labelClassName)}
+        className={cn(
+          formStyles.field.label,
+          error && formStyles.field.labelError,
+          labelClassName
+        )}
       >
         {label}
-        {required && <span className="ml-1 text-destructive">*</span>}
+        {required && <span className={formStyles.field.required}>*</span>}
       </Label>
 
       {/* Input */}
-      <div className="relative">{children}</div>
+      <div className={formStyles.field.inputWrap}>{children}</div>
 
       {/* Error Message */}
-      {error && <p className="text-sm text-destructive animate-in fade-in slide-in-from-top-1 duration-200">{error}</p>}
+      {error && <p className={formStyles.field.error}>{error}</p>}
 
       {/* Helper Text */}
-      {helperText && !error && <p className="text-sm text-black/70">{helperText}</p>}
+      {helperText && !error && <p className={formStyles.field.helper}>{helperText}</p>}
     </div>
   );
 }

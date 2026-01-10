@@ -1,6 +1,7 @@
 "use client";
 
-import { cn } from '@/src/lib';
+import { cn } from '@/lib';
+import { tabNavigationStyles } from './theme/tab-navigation-styles';
 
 interface TabNavigationProps {
   tabs: Array<{
@@ -24,11 +25,11 @@ export default function TabNavigation({
   const getContainerStyles = () => {
     switch (variant) {
       case 'pills':
-        return "flex gap-2 p-1.5 bg-card rounded-full border border-primary/20 shadow-md";
+        return tabNavigationStyles.container.pills;
       case 'modern':
-        return "flex gap-2 p-1.5 bg-card rounded-full border border-primary/20 shadow-md";
+        return tabNavigationStyles.container.modern;
       default:
-        return "flex border-b border-primary/20 px-4 gap-8 pb-1";
+        return tabNavigationStyles.container.underline;
     }
   };
 
@@ -38,24 +39,24 @@ export default function TabNavigation({
     switch (variant) {
       case 'pills':
         return cn(
-          "flex-1 py-2 px-4 text-sm font-semibold rounded-xl transition-all duration-300",
+          tabNavigationStyles.tab.pills.base,
           isActive
-            ? "bg-primary text-primary-foreground shadow-lg"
-            : "text-primary/70 hover:text-primary hover:bg-primary/5"
+            ? tabNavigationStyles.tab.pills.active
+            : tabNavigationStyles.tab.pills.inactive
         );
       case 'modern':
         return cn(
-          "flex-1 py-3 px-6 text-sm font-semibold rounded-xl transition-all duration-300 group",
+          tabNavigationStyles.tab.modern.base,
           isActive
-            ? "bg-primary text-primary-foreground shadow-lg"
-            : "text-primary/70 hover:text-primary hover:bg-primary/5"
+            ? tabNavigationStyles.tab.modern.active
+            : tabNavigationStyles.tab.modern.inactive
         );
       default:
         return cn(
-          "flex flex-col items-center justify-center border-b-2 pb-[13px] pt-4 flex-1 transition-colors",
+          tabNavigationStyles.tab.underline.base,
           isActive
-            ? "border-b-primary text-primary"
-            : "border-b-transparent text-primary/70 hover:text-primary"
+            ? tabNavigationStyles.tab.underline.active
+            : tabNavigationStyles.tab.underline.inactive
         );
     }
   };
@@ -70,9 +71,9 @@ export default function TabNavigation({
             className={getTabStyles(tab)}
           >
             {tab.icon && variant !== 'underline' && (
-              <span className="mr-2">{tab.icon}</span>
+              <span className={tabNavigationStyles.icon}>{tab.icon}</span>
             )}
-            <span className={variant === 'underline' ? 'text-sm font-semibold leading-normal' : ''}>
+            <span className={variant === 'underline' ? tabNavigationStyles.tab.underline.label : ''}>
               {tab.label}
             </span>
           </button>

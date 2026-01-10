@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth, useUser, useSignUp, useSignIn } from "@clerk/nextjs";
 import { AuthCard } from "@/features/auth";
+import { authStyles } from "@/features/auth/theme/auth-styles";
 import OnboardingModal from "@/components/shared/onboarding-modal";
 import { getAllCategoriesAction } from "@/features/categories/actions/category-actions";
 import { completeOnboardingAction, checkUserExistsAction } from "@/features/onboarding/actions";
@@ -191,15 +192,15 @@ export default function SSOCallback() {
 
   return (
     <>
-      <div className="pointer-events-none fixed -top-24 -left-24 h-72 w-72 rounded-full blur-3xl opacity-15 bg-[hsl(var(--color-primary))]" />
-      <div className="pointer-events-none fixed -bottom-24 -right-24 h-72 w-72 rounded-full blur-3xl opacity-15 bg-[hsl(var(--color-secondary))]" />
+      <div className={authStyles.page.bgBlobTop} />
+      <div className={authStyles.page.bgBlobBottom} />
       <AuthCard
         title={viewState.type === 'error' ? "Errore" : "Verifica in corso"}
         subtitle={viewState.type === 'error' ? "Si è verificato un problema" : "Completamento autenticazione"}
       >
-        <div className="flex flex-col items-center justify-center py-8 space-y-4">
-          <Loader2 className="h-12 w-12 animate-spin text-[hsl(var(--color-primary))]" />
-          <p className="text-sm text-gray-600 text-center">
+        <div className={authStyles.loading.container}>
+          <Loader2 className={authStyles.loading.spinner} />
+          <p className={authStyles.loading.text}>
             {loadingMessage}
           </p>
         </div>

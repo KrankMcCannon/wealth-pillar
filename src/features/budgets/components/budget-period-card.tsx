@@ -2,8 +2,9 @@
 
 import { Trash2 } from "lucide-react";
 import type { BudgetPeriod } from "@/lib/types";
-import { Button, Badge } from "@/src/components/ui";
+import { Button, Badge } from "@/components/ui";
 import { toDateTime } from "@/lib/utils/date-utils";
+import { budgetStyles } from "../theme/budget-styles";
 
 interface BudgetPeriodCardProps {
   period: BudgetPeriod;
@@ -57,22 +58,22 @@ export function BudgetPeriodCard({
   const isActive = period.is_active && !period.end_date;
 
   return (
-    <div className="p-4 border border-primary/10 rounded-xl space-y-3 bg-card shadow-sm hover:shadow-md transition-shadow">
+    <div className={budgetStyles.periodCard.container}>
       {/* Header with dates and status */}
-      <div className="flex justify-between items-start gap-3">
-        <div className="flex-1">
-          <p className="text-sm font-medium text-black">
+      <div className={budgetStyles.periodCard.header}>
+        <div className={budgetStyles.periodCard.headerContent}>
+          <p className={budgetStyles.periodCard.title}>
             {formatDate(period.start_date)}
             {period.end_date && (
               <>
-                <span className="text-muted-foreground mx-1">→</span>
+                <span className={budgetStyles.periodCard.arrow}>→</span>
                 {formatDate(period.end_date)}
               </>
             )}
           </p>
           <Badge
             variant={isActive ? "default" : "secondary"}
-            className={isActive ? "bg-primary text-white mt-1" : "mt-1"}
+            className={isActive ? budgetStyles.periodCard.badgeActive : budgetStyles.periodCard.badge}
           >
             {isActive ? "In corso" : "Chiuso"}
           </Badge>
@@ -84,24 +85,24 @@ export function BudgetPeriodCard({
             variant="ghost"
             size="sm"
             onClick={onDelete}
-            className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+            className={budgetStyles.periodCard.deleteButton}
             title="Elimina periodo"
           >
-            <Trash2 className="h-4 w-4" />
+            <Trash2 className={budgetStyles.periodCard.deleteIcon} />
           </Button>
         )}
       </div>
 
       {/* Financial Metrics */}
       {(totalSpent !== undefined || totalSaved !== undefined) && (
-        <div className="grid grid-cols-2 gap-2">
+        <div className={budgetStyles.periodCard.metricsGrid}>
           {/* Total Spent */}
           {totalSpent !== undefined && (
-            <div className="p-3 bg-destructive/5 rounded-lg border border-destructive/20">
-              <p className="text-xs font-bold text-destructive uppercase tracking-wide mb-1">
+            <div className={budgetStyles.periodCard.metricSpent}>
+              <p className={budgetStyles.periodCard.metricLabelSpent}>
                 Speso
               </p>
-              <p className="text-base font-bold text-destructive">
+              <p className={budgetStyles.periodCard.metricValueSpent}>
                 {formatCurrency(totalSpent)}
               </p>
             </div>
@@ -109,11 +110,11 @@ export function BudgetPeriodCard({
 
           {/* Total Saved */}
           {totalSaved !== undefined && (
-            <div className="p-3 bg-primary/5 rounded-lg border border-primary/20">
-              <p className="text-xs font-bold text-primary uppercase tracking-wide mb-1">
+            <div className={budgetStyles.periodCard.metricSaved}>
+              <p className={budgetStyles.periodCard.metricLabelSaved}>
                 Risparmiato
               </p>
-              <p className="text-base font-bold text-primary">
+              <p className={budgetStyles.periodCard.metricValueSaved}>
                 {formatCurrency(totalSaved)}
               </p>
             </div>
@@ -123,20 +124,20 @@ export function BudgetPeriodCard({
 
       {/* Top Categories */}
       {topCategories.length > 0 && (
-        <div className="pt-2 border-t border-primary/10">
-          <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide mb-2">
+        <div className={budgetStyles.periodCard.categorySection}>
+          <p className={budgetStyles.periodCard.categoryTitle}>
             Top Categorie
           </p>
-          <div className="space-y-1.5">
+          <div className={budgetStyles.periodCard.categoryList}>
             {topCategories.map(([category, amount]) => (
               <div
                 key={category}
-                className="flex justify-between items-center text-sm"
+                className={budgetStyles.periodCard.categoryRow}
               >
-                <span className="text-muted-foreground capitalize">
+                <span className={budgetStyles.periodCard.categoryLabel}>
                   {category}
                 </span>
-                <span className="font-medium text-black">
+                <span className={budgetStyles.periodCard.categoryAmount}>
                   {formatCurrency(amount as number)}
                 </span>
               </div>

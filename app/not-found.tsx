@@ -35,7 +35,7 @@ export default function NotFound() {
             <Button
               variant="outline"
               onClick={() => router.back()}
-              className={`${notFoundStyles.content.backButton} ${confirmationDialogStyles.buttons.cancel} bg-white text-primary border-primary hover:bg-primary hover:text-white`}
+              className={`${notFoundStyles.content.backButton} ${confirmationDialogStyles.buttons.cancel} ${notFoundStyles.content.backButtonVariant}`}
             >
               Torna indietro
             </Button>

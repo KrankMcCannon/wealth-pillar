@@ -22,7 +22,8 @@
 "use client";
 
 import * as React from "react";
-import { cn } from '@/src/lib';
+import { cn } from '@/lib';
+import { formStyles } from "./theme/form-styles";
 
 export interface FormLayoutProps {
   /** Form fields */
@@ -41,7 +42,7 @@ export function FormLayout({
   return (
     <form
       onSubmit={onSubmit}
-      className={cn("space-y-4", className)}
+      className={cn(formStyles.layout.form, className)}
     >
       {children}
     </form>

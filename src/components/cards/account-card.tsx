@@ -2,10 +2,10 @@
 
 import { memo } from "react";
 import { Building2, MoreVertical, Pencil, Trash2 } from "lucide-react";
-import { truncateText } from "@/lib/utils";
+import { formatCurrency, truncateText } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { Account, AccountTypeMap } from "@/lib/types";
-import { DomainCard } from "@/src/components/ui/layout/domain-card";
-import { Amount, Text } from "@/src/components/ui/primitives";
+import { RowCard } from "@/components/ui/layout/row-card";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger,
   Button
 } from "@/components/ui";
+import { cardStyles } from "./theme/card-styles";
 
 interface AccountCardProps {
   account: Account;
@@ -20,46 +21,47 @@ interface AccountCardProps {
   onClick?: () => void;
   onEdit?: () => void;
   onDelete?: () => void;
+  className?: string;
 }
 
-export const AccountCard = memo(function AccountCard({ account, accountBalance, onClick, onEdit, onDelete }: Readonly<AccountCardProps>) {
+/**
+ * AccountCard Component
+ *
+ * Now powered by the unified RowCard component.
+ * Displays account information with balance and action menu.
+ */
+export const AccountCard = memo(function AccountCard({
+  account,
+  accountBalance,
+  onClick,
+  onEdit,
+  onDelete,
+  className,
+}: Readonly<AccountCardProps>) {
   const isNegative = accountBalance < 0;
 
-  // Primary content: Balance amount
-  const primaryContent = (
-    <Amount
-      type={isNegative ? 'expense' : 'income'}
-      size="md"
-      emphasis="strong"
-    >
-      {Math.abs(accountBalance)}
-    </Amount>
-  );
+  const primaryValue = formatCurrency(Math.abs(accountBalance));
+  const secondaryValue = isNegative ? "DEBITO" : undefined;
+  const amountVariant = isNegative ? "destructive" : "success";
 
-  // Secondary content: Debt indicator
-  const secondaryContent = isNegative ? (
-    <Text variant="muted" size="xs" className="text-destructive/80 font-medium">
-      DEBITO
-    </Text>
-  ) : undefined;
-
+  // Actions dropdown menu
   const actions = (onEdit || onDelete) ? (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
-          <MoreVertical className="h-4 w-4" />
+        <Button variant="ghost" size="icon" className={cardStyles.account.actionsButton}>
+          <MoreVertical className={cardStyles.account.actionsIcon} />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         {onEdit && (
           <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit(); }}>
-            <Pencil className="mr-2 h-4 w-4" />
+            <Pencil className={cardStyles.account.actionItemIcon} />
             <span>Modifica</span>
           </DropdownMenuItem>
         )}
         {onDelete && (
-          <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onDelete(); }} className="text-destructive focus:text-destructive">
-            <Trash2 className="mr-2 h-4 w-4" />
+          <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onDelete(); }} className={cardStyles.account.deleteItem}>
+            <Trash2 className={cardStyles.account.actionItemIcon} />
             <span>Elimina</span>
           </DropdownMenuItem>
         )}
@@ -68,19 +70,21 @@ export const AccountCard = memo(function AccountCard({ account, accountBalance, 
   ) : undefined;
 
   return (
-    <DomainCard
-      icon={<Building2 className="h-5 w-5" />}
+    <RowCard
+      icon={<Building2 className={cardStyles.account.icon} />}
       iconSize="md"
       iconColor="primary"
       title={truncateText(account.name, 20)}
       subtitle={AccountTypeMap[account.type] || account.type}
-      primaryContent={primaryContent}
-      secondaryContent={secondaryContent}
-      variant="interactive"
-      onClick={onClick}
-      className="min-w-[180px] shrink-0"
-      testId={`account-card-${account.id}`}
+      primaryValue={primaryValue}
+      secondaryValue={secondaryValue}
+      amountVariant={amountVariant}
       actions={actions}
+      variant="interactive"
+      rightLayout="row"
+      onClick={onClick}
+      className={cn(cardStyles.account.container, className)}
+      testId={`account-card-${account.id}`}
     />
   );
 });

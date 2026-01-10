@@ -7,24 +7,25 @@
 
 import { SkeletonList } from "@/components/ui/primitives";
 import { SHIMMER_BASE } from "@/lib/utils/ui-constants";
+import { budgetStyles } from "../theme/budget-styles";
 
 export const BudgetCardSkeleton = () => (
-  <div className={`p-4 rounded-xl border border-primary/20 bg-card ${SHIMMER_BASE}`}>
-    <div className="flex items-center gap-3 mb-3">
-      <div className="w-10 h-10 bg-primary/10 rounded-xl" />
-      <div className="flex-1">
-        <div className="h-4 bg-primary/15 rounded w-2/3 mb-2" />
-        <div className="flex items-center gap-2">
-          <div className="w-2 h-2 bg-primary/25 rounded-full" />
-          <div className="h-3 bg-primary/15 rounded w-8" />
+  <div className={`${budgetStyles.skeleton.budgetCard} ${SHIMMER_BASE}`}>
+    <div className={budgetStyles.skeleton.budgetCardRow}>
+      <div className={budgetStyles.skeleton.budgetCardIcon} />
+      <div className={budgetStyles.skeleton.budgetCardBody}>
+        <div className={budgetStyles.skeleton.budgetCardTitle} />
+        <div className={budgetStyles.skeleton.budgetCardMetaRow}>
+          <div className={budgetStyles.skeleton.budgetCardDot} />
+          <div className={budgetStyles.skeleton.budgetCardMeta} />
         </div>
       </div>
-      <div className="text-right">
-        <div className="h-4 bg-primary/15 rounded w-16 mb-1" />
-        <div className="h-3 bg-primary/15 rounded w-12" />
+      <div className={budgetStyles.skeleton.budgetCardRight}>
+        <div className={budgetStyles.skeleton.budgetCardAmount} />
+        <div className={budgetStyles.skeleton.budgetCardSubAmount} />
       </div>
     </div>
-    <div className="w-full h-2 bg-primary/12 rounded-full" />
+    <div className={budgetStyles.skeleton.budgetCardBar} />
   </div>
 );
 
@@ -37,30 +38,30 @@ export const BudgetListSkeleton = () => (
 );
 
 export const BudgetDetailsSkeleton = () => (
-  <div className={`p-6 rounded-xl border border-primary/20 bg-card space-y-4 ${SHIMMER_BASE}`}>
-    <div className="flex items-center justify-between">
-      <div>
-        <div className="h-6 bg-primary/15 rounded w-32 mb-2" />
-        <div className="h-4 bg-primary/15 rounded w-24" />
+  <div className={`${budgetStyles.skeleton.detailsCard} ${SHIMMER_BASE}`}>
+    <div className={budgetStyles.skeleton.detailsHeader}>
+      <div className={budgetStyles.skeleton.detailsLeft}>
+        <div className={budgetStyles.skeleton.detailsTitle} />
+        <div className={budgetStyles.skeleton.detailsSubtitle} />
       </div>
-      <div className="text-right">
-        <div className="h-8 bg-primary/15 rounded w-20 mb-1" />
-        <div className="h-3 bg-primary/15 rounded w-16" />
+      <div className={budgetStyles.skeleton.detailsRight}>
+        <div className={budgetStyles.skeleton.detailsAmount} />
+        <div className={budgetStyles.skeleton.detailsAmountSub} />
       </div>
     </div>
 
     {/* Progress bar */}
-    <div className="w-full h-3 bg-primary/12 rounded-full" />
+    <div className={budgetStyles.skeleton.detailsBar} />
 
     {/* Stats */}
-    <div className="grid grid-cols-2 gap-4 pt-4 border-t border-primary/20">
+    <div className={budgetStyles.skeleton.detailsStats}>
       <div>
-        <div className="h-3 bg-primary/15 rounded w-16 mb-1" />
-        <div className="h-5 bg-primary/15 rounded w-20" />
+        <div className={budgetStyles.skeleton.detailsStatLabel} />
+        <div className={budgetStyles.skeleton.detailsStatValue} />
       </div>
       <div>
-        <div className="h-3 bg-primary/15 rounded w-16 mb-1" />
-        <div className="h-5 bg-primary/15 rounded w-20" />
+        <div className={budgetStyles.skeleton.detailsStatLabel} />
+        <div className={budgetStyles.skeleton.detailsStatValue} />
       </div>
     </div>
   </div>
@@ -71,16 +72,16 @@ export const TransactionListSkeleton = () => (
     count={4}
     spacing="space-y-3"
     renderItem={() => (
-      <div className={`p-3 rounded-lg border border-primary/20 bg-card ${SHIMMER_BASE}`}>
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-primary/10 rounded-lg" />
-          <div className="flex-1">
-            <div className="h-4 bg-primary/15 rounded w-3/4 mb-1" />
-            <div className="h-3 bg-primary/15 rounded w-1/2" />
+      <div className={`${budgetStyles.skeleton.txCard} ${SHIMMER_BASE}`}>
+        <div className={budgetStyles.skeleton.txRow}>
+          <div className={budgetStyles.skeleton.txIcon} />
+          <div className={budgetStyles.skeleton.txBody}>
+            <div className={budgetStyles.skeleton.txTitle} />
+            <div className={budgetStyles.skeleton.txMeta} />
           </div>
-          <div className="text-right">
-            <div className="h-4 bg-primary/15 rounded w-16 mb-1" />
-            <div className="h-3 bg-primary/15 rounded w-12" />
+          <div className={budgetStyles.skeleton.txRight}>
+            <div className={budgetStyles.skeleton.txAmount} />
+            <div className={budgetStyles.skeleton.txAmountSub} />
           </div>
         </div>
       </div>
@@ -89,53 +90,53 @@ export const TransactionListSkeleton = () => (
 );
 
 export const BudgetPageSkeleton = () => (
-  <div className="flex flex-col min-h-screen bg-card">
+  <div className={budgetStyles.skeleton.page}>
     {/* Header skeleton */}
-    <header className="sticky top-0 z-20 bg-card/80 backdrop-blur-xl border-b border-primary/20 px-4 py-3 shadow-sm">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-primary/12 rounded-xl animate-pulse" />
+    <header className={budgetStyles.skeleton.pageHeader}>
+      <div className={budgetStyles.skeleton.pageHeaderRow}>
+        <div className={budgetStyles.skeleton.pageHeaderLeft}>
+          <div className={budgetStyles.skeleton.pageHeaderIcon} />
           <div>
-            <div className="h-5 bg-primary/15 rounded w-16 mb-1 animate-pulse" />
-            <div className="h-3 bg-primary/15 rounded w-20 animate-pulse" />
+            <div className={budgetStyles.skeleton.pageHeaderText} />
+            <div className={budgetStyles.skeleton.pageHeaderSubtext} />
           </div>
         </div>
-        <div className="w-8 h-8 bg-primary/12 rounded-xl animate-pulse" />
+        <div className={budgetStyles.skeleton.pageHeaderAction} />
       </div>
     </header>
 
     {/* User selector skeleton */}
-    <section className="bg-card/80 backdrop-blur-xl py-3 border-b border-primary/20 shadow-sm">
+    <section className={budgetStyles.skeleton.selectorSection}>
       <SkeletonList
         count={3}
-        spacing="flex items-center gap-2 pl-4"
-        style={{ height: 44 }}
+        spacing={budgetStyles.skeleton.selectorList}
+        style={budgetStyles.skeleton.selectorListStyle}
         renderItem={() => (
-          <div className="flex-shrink-0 flex items-center gap-2 px-3 py-2 rounded-2xl bg-primary/10 animate-pulse">
-            <div className="w-5 h-5 bg-primary/25 rounded-full" />
-            <div className="w-12 h-3 bg-primary/20 rounded" />
+          <div className={budgetStyles.skeleton.selectorItem}>
+            <div className={budgetStyles.skeleton.selectorIcon} />
+            <div className={budgetStyles.skeleton.selectorText} />
           </div>
         )}
       />
     </section>
 
     {/* Main content skeleton */}
-    <main className="flex-1 p-4 pb-20">
-      <div className="space-y-6">
+    <main className={budgetStyles.skeleton.pageMain}>
+      <div className={budgetStyles.skeleton.pageMainBody}>
         {/* Section header */}
         <div>
-          <div className="h-6 bg-primary/15 rounded w-32 mb-2 animate-pulse" />
-          <div className="h-4 bg-primary/15 rounded w-24 animate-pulse" />
+          <div className={budgetStyles.skeleton.pageSectionTitle} />
+          <div className={budgetStyles.skeleton.pageSectionSubtitle} />
         </div>
 
         {/* Budget list */}
         <BudgetListSkeleton />
 
         {/* Details section */}
-        <div className="space-y-4">
-          <div className="flex gap-2">
-            <div className="h-10 bg-primary/12 rounded-lg flex-1 animate-pulse" />
-            <div className="h-10 bg-primary/12 rounded-lg flex-1 animate-pulse" />
+        <div className={budgetStyles.skeleton.pageDetails}>
+          <div className={budgetStyles.skeleton.pageDetailsActions}>
+            <div className={budgetStyles.skeleton.pageDetailsAction} />
+            <div className={budgetStyles.skeleton.pageDetailsAction} />
           </div>
           <BudgetDetailsSkeleton />
         </div>

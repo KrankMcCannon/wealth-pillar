@@ -8,13 +8,15 @@
  */
 
 import { useMemo } from "react";
-import { RecurringTransactionSeries } from "@/src/lib";
-import { SeriesCard } from "@/src/components/cards";
+import { RecurringTransactionSeries } from "@/lib";
+import { SeriesCard } from "@/components/cards";
 import { EmptyState } from "@/components/shared";
 import { RefreshCw, Plus, TrendingUp, TrendingDown } from "lucide-react";
 import { Button } from "@/components/ui";
 import { RecurringService } from "@/lib/services";
 import { formatCurrency } from "@/lib/utils";
+import { recurringStyles } from "../theme/recurring-styles";
+import { cn } from "@/lib/utils";
 
 interface RecurringSeriesSectionProps {
   /** All recurring series data */
@@ -89,7 +91,7 @@ export function RecurringSeriesSection({
   // Empty state
   if (filteredSeries.length === 0) {
     return (
-      <div className={`p-6 ${className}`}>
+      <div className={cn(recurringStyles.section.emptyWrap, className)}>
         <EmptyState
           icon={RefreshCw}
           title="Nessuna serie ricorrente"
@@ -101,7 +103,7 @@ export function RecurringSeriesSection({
           action={
             onCreateRecurringSeries && (
               <Button onClick={onCreateRecurringSeries} variant="default" size="sm">
-                <Plus className="h-4 w-4 mr-2" />
+                <Plus className={recurringStyles.section.emptyActionIcon} />
                 Aggiungi Serie
               </Button>
             )
@@ -112,20 +114,20 @@ export function RecurringSeriesSection({
   }
 
   return (
-    <div className={`rounded-xl ${className}`}>
+    <div className={cn(recurringStyles.section.container, className)}>
       {/* Header Section */}
-      <div className="p-3 border-b border-primary/20">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="flex size-8 items-center justify-center rounded-xl bg-primary/10">
-              <RefreshCw className="w-4 h-4 text-primary" />
+      <div className={recurringStyles.section.header}>
+        <div className={recurringStyles.section.headerRow}>
+          <div className={recurringStyles.section.headerLeft}>
+            <div className={recurringStyles.section.headerIconWrap}>
+              <RefreshCw className={recurringStyles.section.headerIcon} />
             </div>
             <div>
-              <h3 className="text-base font-bold tracking-tight">Transazioni Ricorrenti</h3>
-              <p className="text-xs text-muted-foreground">
+              <h3 className={recurringStyles.section.title}>Transazioni Ricorrenti</h3>
+              <p className={recurringStyles.section.subtitle}>
                 {selectedUserId ? series.filter((s) => s.user_ids.includes(selectedUserId)).length : series.length} {activeSeries.length === 1 ? "serie attiva" : "serie attive"}
                 {filteredSeries.length > activeSeries.length && (
-                  <span className="text-muted-foreground/70">
+                  <span className={recurringStyles.section.subtitleMuted}>
                     {" "}
                     • {filteredSeries.length - activeSeries.length} in pausa
                   </span>
@@ -137,23 +139,23 @@ export function RecurringSeriesSection({
 
         {/* Stats Section */}
         {showStats && activeSeries.length > 0 && (
-          <div className="mt-3 pt-3 border-t border-primary/10 grid grid-cols-2 gap-3">
-            <div className="flex items-center gap-2">
-              <div className="flex size-6 items-center justify-center rounded-lg bg-emerald-500/10">
-                <TrendingUp className="w-3 h-3 text-emerald-500" />
+          <div className={recurringStyles.section.stats}>
+            <div className={recurringStyles.section.statRow}>
+              <div className={recurringStyles.section.statIconWrapPositive}>
+                <TrendingUp className={recurringStyles.section.statIconPositive} />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Entrate/mese</p>
-                <p className="text-sm font-semibold text-emerald-500">+{formatCurrency(monthlyTotals.totalIncome)}</p>
+                <p className={recurringStyles.section.statLabel}>Entrate/mese</p>
+                <p className={recurringStyles.section.statValuePositive}>+{formatCurrency(monthlyTotals.totalIncome)}</p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="flex size-6 items-center justify-center rounded-lg bg-red-500/10">
-                <TrendingDown className="w-3 h-3 text-red-500" />
+            <div className={recurringStyles.section.statRow}>
+              <div className={recurringStyles.section.statIconWrapNegative}>
+                <TrendingDown className={recurringStyles.section.statIconNegative} />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Uscite/mese</p>
-                <p className="text-sm font-semibold text-red-500">-{formatCurrency(monthlyTotals.totalExpenses)}</p>
+                <p className={recurringStyles.section.statLabel}>Uscite/mese</p>
+                <p className={recurringStyles.section.statValueNegative}>-{formatCurrency(monthlyTotals.totalExpenses)}</p>
               </div>
             </div>
           </div>
@@ -161,7 +163,7 @@ export function RecurringSeriesSection({
       </div>
 
       {/* Series List */}
-      <div className="p-2 space-y-2">
+      <div className={recurringStyles.section.list}>
         {filteredSeries.map((item) => (
           <SeriesCard
             key={item.id}
@@ -177,8 +179,8 @@ export function RecurringSeriesSection({
 
       {/* Show More Link (if truncated) */}
       {maxItems && series.length > maxItems && (
-        <div className="px-4 pb-2 pt-1">
-          <p className="text-xs text-muted-foreground text-center">
+        <div className={recurringStyles.section.footer}>
+          <p className={recurringStyles.section.footerText}>
             Mostrando {filteredSeries.length} di{" "}
             {selectedUserId ? series.filter((s) => s.user_ids.includes(selectedUserId)).length : series.length} serie
           </p>

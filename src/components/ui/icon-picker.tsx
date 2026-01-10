@@ -4,7 +4,7 @@ import * as React from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import * as Dialog from "@radix-ui/react-dialog";
 import { HelpCircle, Clock, X } from "lucide-react";
-import { cn } from "@/src/lib";
+import { cn } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 import { Button } from "./button";
 import { Input } from "./input";
@@ -186,6 +186,7 @@ function IconPickerContent({ value, recent, onSelect, isMobile }: IconPickerCont
   const rows = Math.ceil(filteredIcons.length / cols);
 
   // Virtualizer
+  // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Virtual returns functions that aren't compiler-memoizable
   const rowVirtualizer = useVirtualizer({
     count: rows,
     getScrollElement: () => parentRef.current,

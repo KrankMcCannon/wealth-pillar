@@ -1,7 +1,7 @@
 "use client";
 
-import { Card } from "@/src/components/ui";
-import { Transaction, Category } from "@/src/lib";
+import { Card } from "@/components/ui";
+import { Transaction, Category } from "@/lib";
 import { CategoryService } from "@/lib/services";
 import { formatCurrency } from "@/lib/utils";
 import { useState } from "react";
@@ -12,6 +12,7 @@ import {
   getHeaderVariantStyles,
   getTotalAmountColor
 } from "../theme";
+import { cn } from "@/lib/utils";
 
 interface GroupedTransactionCardProps {
   transactions: Transaction[];
@@ -69,14 +70,17 @@ export function GroupedTransactionCard({
       {/* Backdrop invisibile per chiudere row quando si clicca fuori */}
       {openTransactionId && (
         <div
-          className="fixed inset-0 z-10"
+          className={transactionStyles.groupedCard.backdrop}
           onClick={() => setOpenTransactionId(null)}
           onTouchEnd={() => setOpenTransactionId(null)}
         />
       )}
 
       <Card
-        className={`${getCardVariantStyles(variant)} ${openTransactionId ? 'relative z-20' : ''}`}
+        className={cn(
+          getCardVariantStyles(variant),
+          openTransactionId && transactionStyles.groupedCard.openState
+        )}
         onClick={() => {
           // Se il click arriva qui, significa che non è stato fermato da una row
           // (le row fanno stopPropagation), quindi chiudi la row aperta

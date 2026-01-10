@@ -3,7 +3,8 @@
 import * as React from "react";
 import { Euro } from "lucide-react";
 import { Input } from "../ui";
-import { cn } from "@/src/lib";
+import { cn } from "@/lib";
+import { formStyles } from "./theme/form-styles";
 
 /**
  * Form Currency Input Component
@@ -118,10 +119,10 @@ export function FormCurrencyInput({
   };
 
   return (
-    <div className="relative">
+    <div className={formStyles.currencyInput.wrapper}>
       {showSymbol && (
-        <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
-          <Euro className="h-4 w-4 text-primary/60" />
+        <div className={formStyles.currencyInput.iconWrap}>
+          <Euro className={formStyles.currencyInput.icon} />
         </div>
       )}
       <Input
@@ -133,9 +134,8 @@ export function FormCurrencyInput({
         disabled={disabled}
         placeholder={placeholder}
         className={cn(
-          "bg-card border-primary/20 focus:ring-2 focus:ring-primary/20 text-primary",
-          showSymbol && "pl-10",
-          "text-right font-mono",
+          formStyles.currencyInput.inputBase,
+          showSymbol && formStyles.currencyInput.inputWithIcon,
           className
         )}
       />

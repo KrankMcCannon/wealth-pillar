@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui";
 import { cn } from "@/lib";
+import { backButtonStyles } from "./theme/back-button-styles";
 
 interface BackButtonProps {
   onClick?: () => void;
@@ -34,11 +35,11 @@ export function BackButton({
       size={size}
       onClick={handleClick}
       className={cn(
-        "hover:bg-primary/10 text-primary rounded-xl transition-all",
+        backButtonStyles.base,
         className
       )}
     >
-      <ArrowLeft className="h-5 w-5 sm:h-6 sm:w-6" />
+      <ArrowLeft className={backButtonStyles.icon} />
     </Button>
   );
 }

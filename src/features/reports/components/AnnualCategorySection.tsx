@@ -3,8 +3,12 @@ import { Card } from "@/components/ui";
 import { Amount } from "@/components/ui/primitives";
 import { CategoryService, FinanceLogicService } from "@/lib/services";
 import { CategoryIcon, iconSizes } from "@/lib";
-import { reportsStyles } from "../theme/reports-styles";
-import { cn } from "@/lib/utils/ui-variants";
+import {
+  reportsStyles,
+  getAnnualCategoryIconStyle,
+  getAnnualCategoryBarStyle,
+} from "../theme/reports-styles";
+import { cn } from "@/lib/utils";
 import type { Transaction, Category } from "@/lib/types";
 
 interface AnnualCategorySectionProps {
@@ -44,14 +48,14 @@ export function AnnualCategorySection({
     : `Riepilogo spese dell'anno ${year}`;
 
   return (
-    <section className="space-y-4">
+    <section className={reportsStyles.annualCategory.container}>
       <div className={reportsStyles.sectionHeader.container}>
         <h2 className={reportsStyles.sectionHeader.title}>{title}</h2>
         <p className={reportsStyles.sectionHeader.subtitle}>{subtitle}</p>
       </div>
 
-      <Card className={cn(reportsStyles.card.container, "p-4")}>
-        <div className="space-y-4">
+      <Card className={cn(reportsStyles.card.container, reportsStyles.annualCategory.card)}>
+        <div className={reportsStyles.annualCategory.list}>
           {spendingCategories.map((item) => {
             const categoryLabel = CategoryService.getCategoryLabel(categories, item.category);
             const categoryColor = CategoryService.getCategoryColor(categories, item.category);
@@ -62,32 +66,29 @@ export function AnnualCategorySection({
               : 0;
 
             return (
-              <div key={item.category} className="space-y-1.5">
-                <div className="flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-2">
+              <div key={item.category} className={reportsStyles.annualCategory.item}>
+                <div className={reportsStyles.annualCategory.row}>
+                  <div className={reportsStyles.annualCategory.rowLeft}>
                     <div
-                      className="p-1 rounded-md shrink-0"
-                      style={{ backgroundColor: `${categoryColor}20`, color: categoryColor }}
+                      className={reportsStyles.annualCategory.iconWrap}
+                      style={getAnnualCategoryIconStyle(categoryColor)}
                     >
                       <CategoryIcon
                         categoryKey={item.category}
                         size={iconSizes.sm}
                       />
                     </div>
-                    <span className="font-medium text-black">{categoryLabel}</span>
-                    <span className="text-xs text-muted-foreground">({item.count})</span>
+                    <span className={reportsStyles.annualCategory.name}>{categoryLabel}</span>
+                    <span className={reportsStyles.annualCategory.count}>({item.count})</span>
                   </div>
-                  <Amount type="expense" className="font-semibold">{item.net}</Amount>
+                  <Amount type="expense" className={reportsStyles.annualCategory.amount}>{item.net}</Amount>
                 </div>
 
                 {/* Visual Bar */}
-                <div className="h-1.5 w-full bg-muted/30 rounded-full overflow-hidden">
+                <div className={reportsStyles.annualCategory.bar}>
                   <div
-                    className="h-full rounded-full transition-all duration-500 ease-out"
-                    style={{
-                      width: `${barWidth}%`,
-                      backgroundColor: categoryColor
-                    }}
+                    className={reportsStyles.annualCategory.barFill}
+                    style={getAnnualCategoryBarStyle(categoryColor, barWidth)}
                   />
                 </div>
               </div>

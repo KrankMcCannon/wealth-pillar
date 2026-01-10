@@ -3,10 +3,10 @@
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { AlertCircle } from "lucide-react";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useSignUp, useClerk } from "@clerk/nextjs";
 import { AppleButton, AuthCard, GitHubButton, GoogleButton, authStyles } from "@/features/auth";
-import { getAbsoluteUrl, isProduction } from "@/src/lib/utils";
+import { getAbsoluteUrl, isProduction } from "@/lib/utils";
 
 /**
  * Extract error message from Clerk error or generic error
@@ -41,6 +41,12 @@ export default function AuthContent() {
 
   const [error, setError] = useState<string | null>(null);
   const redirectingRef = useRef(false);
+  const urlError = useMemo(() => {
+    const errorParam = searchParams.get("error");
+    return errorParam === "oauth-failed"
+      ? "Autenticazione non riuscita. Riprova."
+      : null;
+  }, [searchParams]);
 
   // IMPORTANT: All hooks must be called before any conditional returns
   // First effect: Handle existing session redirect
@@ -54,20 +60,15 @@ export default function AuthContent() {
     }
   }, [isLoaded, session, router]);
 
-  // Second effect: Handle error parameters from URL
+  // Second effect: Clear error parameters from URL
   useEffect(() => {
-    const errorParam = searchParams.get("error");
-    if (errorParam === "oauth-failed") {
-      setError("Autenticazione non riuscita. Riprova.");
-    }
-
     // Clear error from URL without page reload
-    if (errorParam) {
+    if (urlError) {
       const url = new URL(window.location.href);
       url.searchParams.delete("error");
       window.history.replaceState({}, "", url.toString());
     }
-  }, [searchParams]);
+  }, [urlError]);
 
   // CONDITIONAL RENDERING: Only after all hooks are called
   // If session exists, redirect immediately (don't show the page)
@@ -77,8 +78,8 @@ export default function AuthContent() {
         title="Reindirizzamento in corso..."
         subtitle="Un momento, per favore"
       >
-        <div className="flex justify-center py-8">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[hsl(var(--color-primary))]" />
+        <div className={authStyles.loading.container}>
+          <div className={`${authStyles.loading.spinner} border-b-2 border-current rounded-full`} />
         </div>
       </AuthCard>
     );
@@ -131,10 +132,10 @@ export default function AuthContent() {
       title="Accedi a Wealth Pillar"
       subtitle="Scegli un metodo per continuare"
     >
-      {error && (
+      {(error ?? urlError) && (
         <div className={authStyles.error.container}>
           <AlertCircle className={authStyles.error.icon} />
-          <span className={authStyles.error.text}>{error}</span>
+          <span className={authStyles.error.text}>{error ?? urlError}</span>
         </div>
       )}
 
@@ -158,7 +159,7 @@ export default function AuthContent() {
         </div>
 
         <div className={authStyles.toggle.container}>
-          <p className="text-xs text-gray-600">
+          <p className={authStyles.toggle.text}>
             Continuando, accetti i nostri{" "}
             <Link href="/terms" className={authStyles.toggle.link}>
               Termini di Servizio

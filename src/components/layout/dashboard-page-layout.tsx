@@ -3,6 +3,7 @@
 import { PageContainer } from "./page-container";
 import { BottomNavigation } from "./bottom-navigation";
 import { cn } from "@/lib";
+import { dashboardPageLayoutStyles } from "./theme/dashboard-page-layout-styles";
 
 /**
  * Dashboard Page Layout Props
@@ -48,11 +49,11 @@ export function DashboardPageLayout({
 }: DashboardPageLayoutProps) {
   return (
     <PageContainer>
-      <div className="flex-1">
+      <div className={dashboardPageLayoutStyles.container}>
         {header}
         {userSelector}
         {tabs}
-        <main className={cn("p-4 pb-14", mainClassName)}>
+        <main className={cn(dashboardPageLayoutStyles.main, mainClassName)}>
           {children}
         </main>
       </div>

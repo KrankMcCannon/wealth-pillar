@@ -1,20 +1,22 @@
 "use client";
 
 import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Account } from "@/lib/types";
+import { getTempId } from "@/lib/utils/temp-id";
 import { createAccountAction, updateAccountAction } from "@/features/accounts/actions/account-actions";
-import { ModalWrapper, ModalContent, ModalSection } from "@/src/components/ui/modal-wrapper";
-import { FormActions, FormField, FormSelect } from "@/src/components/form";
-import { UserField } from "@/src/components/ui/fields";
-import { Input } from "@/src/components/ui/input";
+import { ModalWrapper, ModalContent, ModalSection } from "@/components/ui/modal-wrapper";
+import { FormActions, FormField, FormSelect } from "@/components/form";
+import { UserField } from "@/components/ui/fields";
+import { Input } from "@/components/ui/input";
 import { usePermissions, useRequiredCurrentUser, useRequiredGroupUsers, useRequiredGroupId } from "@/hooks";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/src/components/ui";
+import { Checkbox } from "@/components/ui";
 import { useAccounts, useReferenceDataStore } from "@/stores/reference-data-store";
 import { useUserFilterStore } from "@/stores/user-filter-store";
+import { accountStyles } from "../theme/account-styles";
 
 // Zod schema for account validation
 const accountSchema = z.object({
@@ -65,7 +67,7 @@ function AccountFormModal({
   const {
     register,
     handleSubmit,
-    watch,
+    control,
     setValue,
     reset,
     setError,
@@ -80,9 +82,9 @@ function AccountFormModal({
     }
   });
 
-  const watchedUserId = watch("user_id");
-  const watchedIsDefault = watch("isDefault");
-  const watchedType = watch("type");
+  const watchedUserId = useWatch({ control, name: "user_id" });
+  const watchedIsDefault = useWatch({ control, name: "isDefault" });
+  const watchedType = useWatch({ control, name: "type" });
 
   // Load account data for edit mode
   useEffect(() => {
@@ -154,7 +156,7 @@ function AccountFormModal({
       } else {
         // CREATE: Optimistic add pattern
         // 1. Create temporary ID
-        const tempId = `temp-${Date.now()}`;
+        const tempId = getTempId("temp-account");
         const now = new Date().toISOString();
         const optimisticAccount: Account = {
           id: tempId,
@@ -213,7 +215,7 @@ function AccountFormModal({
   ];
 
   return (
-    <form className="space-y-4">
+    <form className={accountStyles.formModal.form}>
       <ModalWrapper
         isOpen={isOpen}
         onOpenChange={onClose}
@@ -230,11 +232,11 @@ function AccountFormModal({
           />
         }
       >
-        <ModalContent className="space-y-4">
+        <ModalContent className={accountStyles.formModal.content}>
           {/* Submit Error Display */}
           {errors.root && (
-            <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3 mb-4">
-              <p className="text-sm text-destructive font-medium">{errors.root.message}</p>
+            <div className={accountStyles.formModal.error}>
+              <p className={accountStyles.formModal.errorText}>{errors.root.message}</p>
             </div>
           )}
 
@@ -271,7 +273,7 @@ function AccountFormModal({
             />
 
             {/* Set as Default */}
-            <div className="flex items-center space-x-2 pt-2">
+            <div className={accountStyles.formModal.checkboxRow}>
               <Checkbox
                 id="isDefault"
                 checked={watchedIsDefault}
@@ -280,7 +282,7 @@ function AccountFormModal({
               />
               <Label
                 htmlFor="isDefault"
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                className={accountStyles.formModal.checkboxLabel}
               >
                 Imposta come account predefinito per questo utente
               </Label>

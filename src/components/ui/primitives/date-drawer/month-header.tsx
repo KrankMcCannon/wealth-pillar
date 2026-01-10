@@ -17,9 +17,9 @@ import { useState, useMemo } from "react";
 import { format, setMonth, setYear, getYear, getMonth } from "date-fns";
 import { it } from "date-fns/locale";
 import { ChevronLeft, ChevronRight, ChevronDown } from "lucide-react";
-import { calendarDrawerStyles } from "@/src/lib/styles/calendar-drawer.styles";
-import { monthNavButtonVariants } from "@/src/lib/utils/date-drawer-variants";
-import { cn } from "@/src/lib/utils/ui-variants";
+import { calendarDrawerStyles } from "@/lib/styles/calendar-drawer.styles";
+import { monthNavButtonVariants } from "@/lib/utils/date-drawer-variants";
+import { cn } from "@/lib/utils";
 import {
   Select,
   SelectContent,
@@ -130,7 +130,7 @@ export function MonthHeader({
       </button>
 
       {/* Month and Year Display/Selector */}
-      <div className="flex-1 flex flex-col items-center gap-2">
+      <div className={calendarDrawerStyles.header.center}>
         {!showDropdowns ? (
           // Display mode - clickable to show dropdowns
           <button
@@ -138,31 +138,35 @@ export function MonthHeader({
             onClick={() => setShowDropdowns(true)}
             className={cn(
               calendarDrawerStyles.header.monthYear,
-              "hover:bg-primary/5 px-3 py-1 rounded-lg transition-colors",
-              "flex items-center gap-1.5"
+              calendarDrawerStyles.header.monthYearButton
             )}
             aria-label="Seleziona mese e anno"
           >
             <span>{capitalizedText}</span>
-            <ChevronDown className="h-4 w-4 text-primary/70" />
+            <ChevronDown className={calendarDrawerStyles.header.chevronIcon} />
           </button>
         ) : (
           // Dropdown mode
-          <div className="flex items-center gap-2 w-full max-w-[280px]">
+          <div className={calendarDrawerStyles.header.dropdowns}>
             {/* Month Dropdown */}
             <Select
               value={currentMonthNum.toString()}
               onValueChange={handleMonthSelect}
             >
-              <SelectTrigger className="flex-1 h-9 text-sm font-semibold border-primary/20 focus:ring-primary">
+              <SelectTrigger
+                className={cn(
+                  calendarDrawerStyles.header.selectTrigger,
+                  calendarDrawerStyles.header.selectTriggerMonth
+                )}
+              >
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="max-h-[240px]">
+              <SelectContent className={calendarDrawerStyles.header.selectContent}>
                 {monthNames.map((month, index) => (
                   <SelectItem
                     key={index}
                     value={index.toString()}
-                    className="text-sm font-medium"
+                    className={calendarDrawerStyles.header.selectItem}
                   >
                     {month}
                   </SelectItem>
@@ -175,15 +179,20 @@ export function MonthHeader({
               value={currentYearNum.toString()}
               onValueChange={handleYearSelect}
             >
-              <SelectTrigger className="w-[90px] h-9 text-sm font-semibold border-primary/20 focus:ring-primary">
+              <SelectTrigger
+                className={cn(
+                  calendarDrawerStyles.header.selectTrigger,
+                  calendarDrawerStyles.header.selectTriggerYear
+                )}
+              >
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="max-h-[240px]">
+              <SelectContent className={calendarDrawerStyles.header.selectContent}>
                 {yearOptions.map((year) => (
                   <SelectItem
                     key={year}
                     value={year.toString()}
-                    className="text-sm font-medium tabular-nums"
+                    className={calendarDrawerStyles.header.selectItemYear}
                   >
                     {year}
                   </SelectItem>
@@ -195,7 +204,7 @@ export function MonthHeader({
             <button
               type="button"
               onClick={() => setShowDropdowns(false)}
-              className="text-xs text-muted-foreground hover:text-primary transition-colors px-2"
+              className={calendarDrawerStyles.header.closeButton}
               aria-label="Chiudi selettori"
             >
               Chiudi

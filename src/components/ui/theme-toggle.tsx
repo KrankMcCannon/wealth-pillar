@@ -1,17 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Moon, Sun } from "lucide-react";
 import { Button } from "./button";
+import { themeToggleStyles } from "./theme/theme-toggle-styles";
 
 export function ThemeToggle() {
-  const [isDark, setIsDark] = useState(true);
-
-  useEffect(() => {
-    // Imposta il tema iniziale basato sulla classe dell'html
-    const htmlElement = document.documentElement;
-    setIsDark(htmlElement.classList.contains("dark"));
-  }, []);
+  const [isDark, setIsDark] = useState(() => {
+    if (typeof document === "undefined") return true;
+    return document.documentElement.classList.contains("dark");
+  });
 
   const toggleTheme = () => {
     const htmlElement = document.documentElement;
@@ -33,13 +31,13 @@ export function ThemeToggle() {
       variant="ghost"
       size="sm"
       onClick={toggleTheme}
-      className="h-9 w-9 p-0"
+      className={themeToggleStyles.button}
       aria-label="Toggle theme"
     >
       {isDark ? (
-        <Sun className="h-4 w-4" />
+        <Sun className={themeToggleStyles.icon} />
       ) : (
-        <Moon className="h-4 w-4" />
+        <Moon className={themeToggleStyles.icon} />
       )}
     </Button>
   );

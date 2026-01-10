@@ -4,12 +4,13 @@ import { useState, useEffect, useMemo } from "react";
 import { Clock, TrendingUp, TrendingDown, Activity, Users } from "lucide-react";
 import { BudgetPeriod, Transaction, Budget, User } from "@/lib/types";
 import { startPeriodAction, closePeriodAction } from "@/features/budgets/actions/budget-period-actions";
-import { FormActions } from "@/src/components/form";
-import { DateField, UserField } from "@/src/components/ui/fields";
-import { Alert, AlertDescription, Badge, ModalContent, ModalSection, ModalWrapper } from "@/src/components/ui";
+import { FormActions } from "@/components/form";
+import { DateField, UserField } from "@/components/ui/fields";
+import { Alert, AlertDescription, Badge, ModalContent, ModalSection, ModalWrapper } from "@/components/ui";
 import { usePermissions } from "@/hooks";
 import { toDateTime } from "@/lib/utils/date-utils";
 import { usePageDataStore } from "@/stores/page-data-store";
+import { budgetStyles } from "../theme/budget-styles";
 
 interface BudgetPeriodManagerProps {
   selectedUserId?: string; // Initial user selection
@@ -223,13 +224,13 @@ export function BudgetPeriodManager({
         <ModalContent>
           {/* Error message */}
           {error && (
-            <div className="px-3 py-2 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-md">
+            <div className={budgetStyles.periodManager.error}>
               {error}
             </div>
           )}
 
           <ModalSection>
-            <div className="space-y-4">
+            <div className={budgetStyles.periodManager.body}>
               {/* User Selection (Admin) or User Info (Member) */}
               {isAdmin ? (
                 <UserField
@@ -248,62 +249,62 @@ export function BudgetPeriodManager({
                   }
                 />
               ) : (
-                <div className="rounded-xl p-3 border border-primary/10 bg-card">
-                  <div className="flex items-center gap-2">
-                    <div className="p-1.5 bg-primary/10 rounded-lg">
-                      <Users className="h-4 w-4 text-primary" />
+                <div className={budgetStyles.periodManager.userCard}>
+                  <div className={budgetStyles.periodManager.userRow}>
+                    <div className={budgetStyles.periodManager.userIconWrap}>
+                      <Users className={budgetStyles.periodManager.userIcon} />
                     </div>
-                    <span className="text-sm font-bold text-primary">{targetUser.name}</span>
+                    <span className={budgetStyles.periodManager.userName}>{targetUser.name}</span>
                   </div>
                 </div>
               )}
 
               {/* Current Period Status */}
-              <div className="bg-card rounded-xl p-4 border border-primary/10 shadow-sm">
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="p-1.5 bg-primary/10 rounded-lg">
-                    <Clock className="h-4 w-4 text-primary" />
+              <div className={budgetStyles.periodManager.periodCard}>
+                <div className={budgetStyles.periodManager.periodHeader}>
+                  <div className={budgetStyles.periodManager.userIconWrap}>
+                    <Clock className={budgetStyles.periodManager.userIcon} />
                   </div>
-                  <h3 className="text-base font-bold text-primary">Periodo Corrente</h3>
+                  <h3 className={budgetStyles.periodManager.periodTitle}>Periodo Corrente</h3>
                 </div>
 
                 {isActivePeriod ? (
-                  <div className="space-y-3">
+                  <div className={budgetStyles.periodManager.periodContent}>
                     {/* Period Status Header */}
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                      <span className="text-sm font-medium text-black">
+                    <div className={budgetStyles.periodManager.periodRow}>
+                      <span className={budgetStyles.periodManager.periodDate}>
                         Iniziato il {formatDate(currentPeriod.start_date)}
                       </span>
-                      <Badge className="bg-white text-primary shadow-sm self-start sm:self-auto">
-                        <Activity className="h-3 w-3 mr-1" />
+                      <Badge className={budgetStyles.periodManager.periodBadge}>
+                        <Activity className={budgetStyles.periodManager.periodBadgeIcon} />
                         In corso
                       </Badge>
                     </div>
 
                     {/* Financial Metrics - Summary Only */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div className="rounded-lg p-3 border border-destructive/20 bg-destructive/5">
-                        <div className="flex items-center gap-1.5 mb-1">
-                          <TrendingDown className="h-3 w-3 text-destructive" />
-                          <p className="text-xs font-bold text-destructive uppercase tracking-wide">Speso</p>
+                    <div className={budgetStyles.periodManager.metricsGrid}>
+                      <div className={budgetStyles.periodManager.metricCardSpent}>
+                        <div className={budgetStyles.periodManager.metricRow}>
+                          <TrendingDown className={budgetStyles.periodManager.metricIconSpent} />
+                          <p className={budgetStyles.periodManager.metricLabelSpent}>Speso</p>
                         </div>
-                        <p className="text-base sm:text-lg font-bold text-destructive">
+                        <p className={budgetStyles.periodManager.metricValueSpent}>
                           {formatCurrency(periodMetrics.totalSpent)}
                         </p>
                       </div>
-                      <div className="rounded-lg p-3 border border-primary/20 bg-primary/5">
-                        <div className="flex items-center gap-1.5 mb-1">
-                          <TrendingUp className="h-3 w-3 text-primary" />
-                          <p className="text-xs font-bold text-primary uppercase tracking-wide">Risparmiato</p>
+                      <div className={budgetStyles.periodManager.metricCardSaved}>
+                        <div className={budgetStyles.periodManager.metricRow}>
+                          <TrendingUp className={budgetStyles.periodManager.metricIconSaved} />
+                          <p className={budgetStyles.periodManager.metricLabelSaved}>Risparmiato</p>
                         </div>
-                        <p className="text-base sm:text-lg font-bold text-primary">
+                        <p className={budgetStyles.periodManager.metricValueSaved}>
                           {formatCurrency(periodMetrics.totalSaved)}
                         </p>
                       </div>
                     </div>
 
                     {/* End Date Selection */}
-                    <div className="space-y-2 overflow-hidden">
+                    <div className={budgetStyles.periodManager.dateFieldWrap}>
                       <DateField
                         label="Data di Fine Periodo"
                         value={selectedDate}
@@ -313,16 +314,16 @@ export function BudgetPeriodManager({
                     </div>
                   </div>
                 ) : (
-                  <div className="space-y-3">
+                  <div className={budgetStyles.periodManager.periodContent}>
                     {/* Alert */}
                     <Alert>
-                      <AlertDescription className="text-black font-medium">
+                      <AlertDescription className={budgetStyles.periodManager.alertText}>
                         Nessun periodo attivo. Inizia un nuovo periodo per tracciare le spese del budget.
                       </AlertDescription>
                     </Alert>
 
                     {/* Start Date Selection */}
-                    <div className="space-y-2 overflow-hidden">
+                    <div className={budgetStyles.periodManager.dateFieldWrap}>
                       <DateField
                         label="Data di Inizio Periodo"
                         value={selectedDate}

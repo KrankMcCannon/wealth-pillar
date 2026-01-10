@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { Spline_Sans } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
-import { ToastProvider } from "@/src/components/ui/toast";
-import { isDevelopment } from "@/src/lib/utils";
+import { Toaster } from "@/components/ui";
+import { isDevelopment } from "@/lib/utils";
 import "./globals.css";
 
 const splineSans = Spline_Sans({
@@ -56,9 +56,8 @@ export default function RootLayout({
         >
           {/* CAPTCHA container for Clerk - hidden in dev, visible in prod */}
           <div id="clerk-captcha" style={isDevelopment() ? { display: 'none' } : undefined} aria-hidden={isDevelopment()} />
-          <ToastProvider>
-            {children}
-          </ToastProvider>
+          {children}
+          <Toaster />
         </body>
       </html>
     </ClerkProvider>

@@ -102,6 +102,21 @@ export const calendarDrawerStyles = {
       "flex-1 text-center",
       "tracking-tight",
     ].join(" "),
+    center: "flex-1 flex flex-col items-center gap-2",
+    monthYearButton: [
+      "hover:bg-primary/5 px-3 py-1 rounded-lg transition-colors",
+      "flex items-center gap-1.5",
+    ].join(" "),
+    chevronIcon: "h-4 w-4 text-primary/70",
+    dropdowns: "flex items-center gap-2 w-full max-w-[280px]",
+    selectTrigger: "h-9 text-sm font-semibold border-primary/20 focus:ring-primary",
+    selectTriggerMonth: "flex-1",
+    selectTriggerYear: "w-[90px]",
+    selectContent: "max-h-[240px]",
+    selectItem: "text-sm font-medium",
+    selectItemYear: "text-sm font-medium tabular-nums",
+    closeButton:
+      "text-xs text-muted-foreground hover:text-primary transition-colors px-2",
 
     /**
      * Navigation buttons (previous/next)
@@ -283,6 +298,7 @@ export const calendarDrawerStyles = {
       "mb-3 px-2",
       "flex items-center gap-2",
     ].join(" "),
+    icon: "h-4 w-4",
 
     /**
      * Preset buttons container

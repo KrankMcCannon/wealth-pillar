@@ -4,4 +4,4 @@
  */
 
 export { accountStyles } from './account-styles';
-export { accountColors, accountSpacing, accountComponents, accountStatus } from './account-tokens';
+export { accountTokens } from './account-tokens';

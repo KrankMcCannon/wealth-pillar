@@ -17,13 +17,13 @@ export default function TransactionsLoading() {
       {/* Header Skeleton */}
       <header>
         <div className={transactionStyles.header.inner}>
-          <div className="h-6 w-32 bg-slate-200 rounded animate-pulse" />
+          <div className={transactionStyles.skeleton.title} />
         </div>
       </header>
 
       {/* Main Content Loading States */}
       <main className={transactionStyles.page.main}>
-        <div className="space-y-6">
+        <div className={transactionStyles.page.loadingContent}>
           {/* Transaction List Skeleton */}
           <TransactionListSkeleton />
         </div>

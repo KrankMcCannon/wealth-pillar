@@ -4,11 +4,12 @@
  */
 
 import { SkeletonBox, SkeletonList } from "@/components/ui/primitives";
+import { dashboardStyles } from "@/features/dashboard/theme/dashboard-styles";
 
 export default function DashboardLoading() {
   return (
-    <div className="flex items-center justify-center min-h-screen">
-      <div className="space-y-4 max-w-md w-full px-4">
+    <div className={dashboardStyles.groupLoading.container}>
+      <div className={dashboardStyles.groupLoading.card}>
         {/* Header Skeleton */}
         <SkeletonBox height="h-10" variant="light" />
 

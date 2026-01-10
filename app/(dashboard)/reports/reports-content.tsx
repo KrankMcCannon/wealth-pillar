@@ -3,8 +3,8 @@
 import { useMemo, useState } from "react";
 import { BottomNavigation, PageContainer, Header } from "@/components/layout";
 import { useUserFilter, usePermissions, useFilteredAccounts, useFilteredData } from "@/hooks";
-import UserSelector from "@/src/components/shared/user-selector";
-import YearSelector from "@/src/components/shared/year-selector";
+import UserSelector from "@/components/shared/user-selector";
+import YearSelector from "@/components/shared/year-selector";
 import { BudgetPeriodsSection, reportsStyles, ReportsOverviewCard, AnnualCategorySection } from "@/features/reports";
 import type { Transaction, Category, BudgetPeriod, Account, User } from "@/lib/types";
 import { CategoryService } from "@/lib/services";

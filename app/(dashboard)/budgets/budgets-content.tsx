@@ -375,7 +375,7 @@ export default function BudgetsContent({
       {/* User Selector */}
       <Suspense fallback={<UserSelectorSkeleton />}>
         <UserSelector
-          className="bg-card border-border"
+          className={budgetStyles.userSelector.className}
           currentUser={currentUser}
           users={groupUsers}
         />
@@ -390,6 +390,7 @@ export default function BudgetsContent({
               <BudgetSelector
                 selectedBudget={selectedBudget}
                 availableBudgets={userBudgets}
+                users={groupUsers}
                 onBudgetSelect={handleBudgetSelect}
               />
             </Suspense>

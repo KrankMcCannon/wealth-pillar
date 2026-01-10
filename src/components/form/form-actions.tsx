@@ -2,8 +2,9 @@
 
 import * as React from "react";
 import { Loader2 } from "lucide-react";
-import { cn } from "@/src/lib";
+import { cn } from "@/lib";
 import { Button } from "../ui";
+import { formStyles } from "./theme/form-styles";
 
 /**
  * Form Actions Component
@@ -68,7 +69,7 @@ export function FormActions({
   const isDisabled = disabled || isSubmitting;
 
   return (
-    <div className={cn("flex flex-col-reverse gap-2 sm:flex-row sm:justify-end", className)}>
+    <div className={cn(formStyles.actions.container, className)}>
       {/* Cancel Button */}
       {showCancel && (
         <Button
@@ -76,7 +77,7 @@ export function FormActions({
           variant="outline"
           onClick={onCancel}
           disabled={isSubmitting}
-          className={cn("w-full sm:w-auto", "bg-card text-primary border-primary hover:bg-primary hover:text-card")}
+          className={cn(formStyles.actions.buttonBase, formStyles.actions.cancel)}
         >
           {cancelLabel}
         </Button>
@@ -88,9 +89,9 @@ export function FormActions({
         variant={submitVariant}
         onClick={submitType === "button" ? onSubmit : undefined}
         disabled={isDisabled}
-        className={cn("w-full sm:w-auto")}
+        className={cn(formStyles.actions.buttonBase)}
       >
-        {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+        {isSubmitting && <Loader2 className={formStyles.actions.loadingIcon} />}
         {submitLabel}
       </Button>
     </div>
@@ -136,7 +137,7 @@ export function DestructiveFormActions({
  * Form actions with custom buttons
  */
 export function CustomFormActions({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <div className={cn("flex flex-col-reverse gap-2 sm:flex-row sm:justify-end", className)}>{children}</div>;
+  return <div className={cn(formStyles.actions.container, className)}>{children}</div>;
 }
 
 /**

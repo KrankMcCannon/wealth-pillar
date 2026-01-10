@@ -18,18 +18,18 @@ import { SHIMMER_BASE } from "@/lib/utils/ui-constants";
  */
 function AccountCardSkeleton() {
   return (
-    <div className={`p-4 rounded-lg border border-primary/20 bg-card ${SHIMMER_BASE}`}>
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3 flex-1">
-          <div className="w-10 h-10 bg-primary/10 rounded-lg" />
-          <div className="flex-1">
-            <div className="h-4 w-24 bg-primary/15 rounded mb-2" />
-            <div className="h-3 w-16 bg-primary/15 rounded" />
+    <div className={`${accountStyles.skeleton.list.item} ${SHIMMER_BASE}`}>
+      <div className={accountStyles.skeleton.list.row}>
+        <div className={accountStyles.skeleton.list.left}>
+          <div className={accountStyles.skeleton.list.icon} />
+          <div className={accountStyles.skeleton.list.body}>
+            <div className={accountStyles.skeleton.list.line} />
+            <div className={accountStyles.skeleton.list.subline} />
           </div>
         </div>
-        <div className="text-right">
-          <div className="h-4 w-20 bg-primary/15 rounded mb-1" />
-          <div className="h-3 w-16 bg-primary/15 rounded" />
+        <div className={accountStyles.skeleton.list.right}>
+          <div className={accountStyles.skeleton.list.amount} />
+          <div className={accountStyles.skeleton.list.amountSub} />
         </div>
       </div>
     </div>
@@ -63,7 +63,7 @@ export const AccountsList = ({
         <h2 className={accountStyles.accountsList.header}>Tutti gli Account</h2>
         <div className={accountStyles.accountsList.items}>
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="w-full">
+            <div key={i} className={accountStyles.list.cardWrapper}>
               <AccountCardSkeleton />
             </div>
           ))}
@@ -88,25 +88,29 @@ export const AccountsList = ({
 
   // Show actual accounts
   return (
-    <div className={accountStyles.accountsList.container}>
+      <div className={accountStyles.accountsList.container}>
       <h2 className={accountStyles.accountsList.header}>Tutti gli Account</h2>
 
       <div className={accountStyles.accountsList.items}>
-        {accounts.map((account) => {
-          const accountBalance = accountBalances[account.id] || 0;
+        <div className={accountStyles.accountsList.groupCard}>
+          <div className={accountStyles.accountsList.groupItems}>
+            {accounts.map((account) => {
+              const accountBalance = accountBalances[account.id] || 0;
 
-          return (
-            <div key={account.id} className="w-full">
-              <AccountCard
-                account={account}
-                accountBalance={accountBalance}
-                onClick={onAccountClick ? () => onAccountClick(account) : undefined}
-                onEdit={onEditAccount ? () => onEditAccount(account) : undefined}
-                onDelete={onDeleteAccount ? () => onDeleteAccount(account) : undefined}
-              />
-            </div>
-          );
-        })}
+              return (
+                <div key={account.id} className={accountStyles.list.cardWrapper}>
+                  <AccountCard
+                    account={account}
+                    accountBalance={accountBalance}
+                    onClick={onAccountClick ? () => onAccountClick(account) : undefined}
+                    onEdit={onEditAccount ? () => onEditAccount(account) : undefined}
+                    onDelete={onDeleteAccount ? () => onDeleteAccount(account) : undefined}
+                  />
+                </div>
+              );
+            })}
+          </div>
+        </div>
       </div>
     </div>
   );

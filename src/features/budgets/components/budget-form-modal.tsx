@@ -1,19 +1,21 @@
 "use client";
 
 import { useEffect, useMemo } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import type { CheckedState } from "@radix-ui/react-checkbox";
 import { Budget, BudgetType } from "@/lib/types";
+import { getTempId } from "@/lib/utils/temp-id";
 import { createBudgetAction, updateBudgetAction } from "@/features/budgets/actions/budget-actions";
-import { ModalWrapper, ModalContent, ModalSection } from "@/src/components/ui/modal-wrapper";
-import { FormActions, FormField, FormSelect } from "@/src/components/form";
-import { AmountField, Checkbox, Input, UserField } from "@/src/components/ui";
+import { ModalWrapper, ModalContent, ModalSection } from "@/components/ui/modal-wrapper";
+import { FormActions, FormField, FormSelect } from "@/components/form";
+import { AmountField, Checkbox, Input, UserField } from "@/components/ui";
 import { usePermissions, useRequiredCurrentUser, useRequiredGroupUsers, useRequiredGroupId } from "@/hooks";
 import { useCategories } from "@/stores/reference-data-store";
 import { useUserFilterStore } from "@/stores/user-filter-store";
 import { usePageDataStore } from "@/stores/page-data-store";
+import { budgetStyles, getBudgetCategoryColorStyle } from "../theme/budget-styles";
 
 // Zod schema for budget validation
 const budgetSchema = z.object({
@@ -72,7 +74,7 @@ function BudgetFormModal({
   const {
     register,
     handleSubmit,
-    watch,
+    control,
     setValue,
     reset,
     setError,
@@ -90,10 +92,11 @@ function BudgetFormModal({
     }
   });
 
-  const watchedType = watch("type");
-  const watchedCategories = watch("categories");
-  const watchedUserId = watch("user_id");
-  const categorySearch = watch("categorySearch") || "";
+  const watchedType = useWatch({ control, name: "type" });
+  const watchedCategories = useWatch({ control, name: "categories" });
+  const watchedUserId = useWatch({ control, name: "user_id" });
+  const watchedAmount = useWatch({ control, name: "amount" });
+  const categorySearch = useWatch({ control, name: "categorySearch" }) || "";
 
   // Convert categories to checkbox options
   const categoryOptions = useMemo(() => {
@@ -209,7 +212,7 @@ function BudgetFormModal({
       } else {
         // CREATE: Optimistic add pattern
         // 1. Create temporary ID
-        const tempId = `temp-${Date.now()}`;
+        const tempId = getTempId("temp-budget");
         const now = new Date().toISOString();
         const optimisticBudget: Budget = {
           id: tempId,
@@ -252,7 +255,7 @@ function BudgetFormModal({
   };
 
   return (
-    <form className="space-y-2">
+    <form className={budgetStyles.formModal.form}>
       <ModalWrapper
         isOpen={isOpen}
         onOpenChange={onClose}
@@ -269,16 +272,16 @@ function BudgetFormModal({
           />
         }
       >
-        <ModalContent className="gap-2">
+        <ModalContent className={budgetStyles.formModal.content}>
           {/* Submit Error Display */}
           {errors.root && (
-            <div className="px-3 py-2 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-md">
+            <div className={budgetStyles.formModal.error}>
               {errors.root.message}
             </div>
           )}
 
-          <ModalSection className="gap-2">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <ModalSection className={budgetStyles.formModal.section}>
+            <div className={budgetStyles.formModal.grid}>
               {/* User */}
               <UserField
                 value={watchedUserId}
@@ -306,7 +309,7 @@ function BudgetFormModal({
 
               {/* Amount */}
               <AmountField
-                value={Number.parseFloat(watch("amount") || "0")}
+                value={Number.parseFloat(watchedAmount || "0")}
                 onChange={(value) => setValue("amount", value.toString())}
                 error={errors.amount?.message}
                 label="Importo"
@@ -316,7 +319,7 @@ function BudgetFormModal({
             </div>
           </ModalSection>
 
-          <ModalSection className="gap-2">
+          <ModalSection className={budgetStyles.formModal.section}>
             {/* Description */}
             <FormField label="Descrizione" required error={errors.description?.message}>
               <Input
@@ -327,24 +330,24 @@ function BudgetFormModal({
             </FormField>
           </ModalSection>
 
-          <ModalSection className="gap-1 shrink-0">
+          <ModalSection className={budgetStyles.formModal.sectionTight}>
             {/* Categories Selection */}
-            <FormField label="Seleziona categorie" required error={errors.categories?.message} className="space-y-1">
-              <div className="space-y-3 rounded-2xl border border-primary/15 bg-card/70 p-3">
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <FormField label="Seleziona categorie" required error={errors.categories?.message} className={budgetStyles.formModal.categoryField}>
+              <div className={budgetStyles.formModal.categoryBox}>
+                <div className={budgetStyles.formModal.categoryHeader}>
                   <Input
                     value={categorySearch}
                     onChange={(event) => setValue("categorySearch", event.target.value)}
                     placeholder="Cerca categoria..."
-                    className="h-9 text-sm"
+                    className={budgetStyles.formModal.categorySelect}
                   />
-                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                    <span className="font-medium">
+                  <div className={budgetStyles.formModal.categoryMeta}>
+                    <span className={budgetStyles.formModal.categoryMetaStrong}>
                       {watchedCategories.length}/{categoryOptions.length} selezionate
                     </span>
                     <button
                       type="button"
-                      className="text-primary hover:underline disabled:opacity-40"
+                      className={budgetStyles.formModal.categoryLink}
                       onClick={handleSelectAllCategories}
                       disabled={!categoryOptions.length}
                     >
@@ -352,7 +355,7 @@ function BudgetFormModal({
                     </button>
                     <button
                       type="button"
-                      className="text-primary hover:underline disabled:opacity-40"
+                      className={budgetStyles.formModal.categoryLink}
                       onClick={handleClearCategories}
                       disabled={!watchedCategories.length}
                     >
@@ -361,23 +364,23 @@ function BudgetFormModal({
                   </div>
                 </div>
 
-                <div className="max-h-60 overflow-y-auto space-y-2 pr-1">
+                <div className={budgetStyles.formModal.categoryList}>
                   {filteredCategoryOptions.length === 0 ? (
-                    <p className="text-sm text-muted-foreground px-1 py-4">Nessuna categoria trovata</p>
+                    <p className={budgetStyles.formModal.categoryEmpty}>Nessuna categoria trovata</p>
                   ) : (
                     filteredCategoryOptions.map((option) => (
                       <label
                         key={option.value}
-                        className="flex items-center gap-3 rounded-xl border border-primary/10 bg-card/80 px-3 py-2 text-sm hover:border-primary/40 cursor-pointer"
+                        className={budgetStyles.formModal.categoryItem}
                       >
                         <Checkbox
                           checked={watchedCategories.includes(option.value)}
                           onCheckedChange={(checked) => handleCategoryToggle(option.value, checked)}
                         />
-                        <span className="flex items-center gap-2">
+                        <span className={budgetStyles.formModal.categoryItemRow}>
                           <span
-                            className="h-2.5 w-2.5 rounded-full"
-                            style={{ backgroundColor: option.color || "#CBD5F5" }}
+                            className={budgetStyles.formModal.categoryDot}
+                            style={getBudgetCategoryColorStyle(option.color)}
                           />
                           {option.label}
                         </span>

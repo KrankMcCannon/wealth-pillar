@@ -4,6 +4,8 @@
  * Follows design system tokens defined in reports-tokens.ts
  */
 
+import type { CSSProperties } from "react";
+
 export const reportsStyles = {
   // Page layout
   page: {
@@ -273,6 +275,54 @@ export const reportsStyles = {
     metricValuePositive: 'text-emerald-600 dark:text-emerald-400',
     metricValueNegative: 'text-red-600 dark:text-red-400',
     metricValueTransfer: 'text-blue-700 dark:text-blue-300',
+    metricValuePrimary: 'text-primary',
+    metricValueIncome: 'text-emerald-500',
+    metricValueExpense: 'text-red-500',
+    metricValueWarning: 'text-amber-500',
+
+    // Expandable transactions section
+    transactionsContainer: 'border-t border-primary/10',
+    transactionsBody: 'p-4 bg-card/50',
+    transactionsTitle: 'text-xs font-semibold text-muted-foreground mb-3',
+    transactionsEmpty: 'text-sm text-muted-foreground text-center py-8',
+    transactionsList: 'space-y-2',
+    transactionRow: 'flex items-center gap-3 p-3 rounded-lg bg-white/50 border border-primary/5 hover:border-primary/20 transition-colors',
+    transactionIconWrap: 'flex items-center justify-center h-9 w-9 rounded-lg shrink-0',
+    transactionIcon: 'h-4 w-4',
+    transactionBody: 'flex-1 min-w-0',
+    transactionTitle: 'text-sm font-medium text-black truncate',
+    transactionMetaRow: 'flex items-center gap-2 mt-0.5',
+    transactionMeta: 'text-xs text-muted-foreground',
+    transactionMetaSeparator: 'text-xs text-muted-foreground/50',
+    transactionAmount: 'shrink-0',
+  },
+
+  // Budget Periods Section
+  budgetPeriodsSection: {
+    loadingContainer: 'space-y-3',
+    loadingCard: 'h-32 bg-card/50 rounded-2xl animate-pulse border border-primary/10',
+    emptyContainer: 'flex flex-col items-center justify-center py-12 px-4 text-center',
+    emptyIconWrap: 'flex items-center justify-center h-16 w-16 rounded-full bg-primary/10 text-primary mb-4',
+    emptyIcon: 'h-8 w-8',
+    emptyTitle: 'text-lg font-semibold text-black mb-2',
+    emptyDescription: 'text-sm text-muted-foreground max-w-sm',
+    list: 'space-y-3 sm:space-y-4',
+  },
+
+  // Annual Category Section
+  annualCategory: {
+    container: 'space-y-4',
+    card: 'p-4',
+    list: 'space-y-4',
+    item: 'space-y-1.5',
+    row: 'flex items-center justify-between text-sm',
+    rowLeft: 'flex items-center gap-2',
+    iconWrap: 'p-1 rounded-md shrink-0',
+    name: 'font-medium text-black',
+    count: 'text-xs text-muted-foreground',
+    amount: 'font-semibold',
+    bar: 'h-1.5 w-full bg-muted/30 rounded-full overflow-hidden',
+    barFill: 'h-full rounded-full transition-all duration-500 ease-out',
   },
 
   // Loading states
@@ -283,3 +333,18 @@ export const reportsStyles = {
     line: 'h-2 bg-primary/10 rounded w-full',
   },
 };
+
+export function getAnnualCategoryIconStyle(color: string): CSSProperties {
+  return { backgroundColor: `${color}20`, color };
+}
+
+export function getAnnualCategoryBarStyle(color: string, width: number): CSSProperties {
+  return { width: `${width}%`, backgroundColor: color };
+}
+
+export function getBudgetPeriodTransactionIconStyle(color: string): CSSProperties {
+  return {
+    backgroundColor: `oklch(from ${color} calc(l + 0.35) c h / 0.15)`,
+    color,
+  };
+}

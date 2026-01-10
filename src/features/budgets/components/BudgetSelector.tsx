@@ -6,6 +6,7 @@
 
 'use client';
 
+import { useMemo } from 'react';
 import {
   Select,
   SelectContent,
@@ -13,21 +14,27 @@ import {
   SelectTrigger,
 } from '@/components/ui';
 import { SectionHeader } from '@/components/layout';
-import { Budget, CategoryIcon, iconSizes } from '@/lib';
+import { Budget, CategoryIcon, iconSizes, User } from '@/lib';
 import { budgetStyles } from '../theme/budget-styles';
-import React from 'react';
+import { useUserFilter } from '@/hooks/state/use-user-filter';
 
 export interface BudgetSelectorProps {
   selectedBudget: Budget | null;
   availableBudgets: Budget[];
+  users: User[];
   onBudgetSelect: (budgetId: string) => void;
 }
 
 export function BudgetSelector({
   selectedBudget,
   availableBudgets,
+  users,
   onBudgetSelect,
 }: BudgetSelectorProps) {
+  const { selectedUserId } = useUserFilter();
+  const showUserChip = !selectedUserId;
+  const userMap = useMemo(() => new Map(users.map((user) => [user.id, user.name])), [users]);
+
   return (
     <section className={budgetStyles.selectionSection}>
       {/* Section Header */}
@@ -35,12 +42,12 @@ export function BudgetSelector({
         <SectionHeader
           title="Budget"
           subtitle="Seleziona per visualizzare i dettagli"
-          className="space-y-1"
+          className={budgetStyles.sectionHeader.titleSpacing}
         />
       </div>
 
       {/* Budget Selector Dropdown */}
-      <div className="mb-4">
+      <div>
         <Select
           value={selectedBudget?.id || ''}
           onValueChange={onBudgetSelect}
@@ -55,12 +62,19 @@ export function BudgetSelector({
                     className={budgetStyles.selector.itemIconContent}
                   />
                 </div>
-                <span className={budgetStyles.selector.itemText}>
-                  {selectedBudget.description}
-                </span>
+                <div className={budgetStyles.selector.itemTextRow}>
+                  <span className={budgetStyles.selector.itemText}>
+                    {selectedBudget.description}
+                  </span>
+                  {showUserChip && userMap.get(selectedBudget.user_id) && (
+                    <span className={budgetStyles.selector.itemChip}>
+                      {userMap.get(selectedBudget.user_id)}
+                    </span>
+                  )}
+                </div>
               </div>
             ) : (
-              <span className="text-primary/50">Seleziona budget</span>
+              <span className={budgetStyles.selector.placeholder}>Seleziona budget</span>
             )}
           </SelectTrigger>
           <SelectContent className={budgetStyles.selector.content}>
@@ -78,9 +92,16 @@ export function BudgetSelector({
                       className={budgetStyles.selector.itemIconContent}
                     />
                   </div>
-                  <span className={budgetStyles.selector.itemText}>
-                    {budget.description}
-                  </span>
+                  <div className={budgetStyles.selector.itemTextRow}>
+                    <span className={budgetStyles.selector.itemText}>
+                      {budget.description}
+                    </span>
+                    {showUserChip && userMap.get(budget.user_id) && (
+                      <span className={budgetStyles.selector.itemChip}>
+                        {userMap.get(budget.user_id)}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </SelectItem>
             ))}

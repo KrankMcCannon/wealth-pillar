@@ -39,6 +39,7 @@ import { GroupedTransactionCard } from "./grouped-transaction-card";
 import { transactionStyles } from "../theme/transaction-styles";
 import { formatCurrency } from "@/lib/utils/currency-formatter";
 import { FileText, type LucideIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 /**
  * Grouped transaction structure
@@ -120,7 +121,7 @@ export function TransactionDayList({
   categories,
   sectionTitle,
   sectionSubtitle,
-  sectionHeaderClassName = "mb-4",
+  sectionHeaderClassName,
   emptyIcon = FileText,
   emptyTitle = "Nessuna Transazione",
   emptyDescription = "Non ci sono transazioni da visualizzare",
@@ -135,6 +136,8 @@ export function TransactionDayList({
 }: Readonly<TransactionDayListProps>) {
   const hasTransactions = groupedTransactions.length > 0;
 
+  const headerClassName = cn(transactionStyles.dayList.sectionHeader, sectionHeaderClassName);
+
   return (
     <section className={className}>
       {/* Optional Section Header */}
@@ -142,12 +145,12 @@ export function TransactionDayList({
         <SectionHeader
           title={sectionTitle}
           subtitle={sectionSubtitle}
-          className={sectionHeaderClassName}
+          className={headerClassName}
         />
       )}
 
       {/* Transactions List */}
-      <div className="space-y-6">
+      <div className={transactionStyles.dayList.container}>
         {hasTransactions ? (
           groupedTransactions.map((group) => {
             const count = group.count ?? group.transactions.length;
@@ -204,15 +207,15 @@ export function TransactionDayList({
 
       {/* View All Button */}
       {showViewAll && hasTransactions && onViewAll && (
-        <div className="flex justify-center mt-6">
+        <div className={transactionStyles.dayList.viewAllWrap}>
           <Button
             variant="ghost"
             size="sm"
-            className="group"
+            className={transactionStyles.dayList.viewAllButton}
             onClick={onViewAll}
           >
-            <span className="mr-2 text-primary">{viewAllLabel}</span>
-            <span className="group-hover:translate-x-0.5 transition-transform duration-200 text-primary">
+            <span className={transactionStyles.dayList.viewAllLabel}>{viewAllLabel}</span>
+            <span className={transactionStyles.dayList.viewAllArrow}>
               →
             </span>
           </Button>
@@ -239,35 +242,35 @@ export function TransactionDayListSkeleton({
   showHeader = false,
 }: TransactionDayListSkeletonProps) {
   return (
-    <section className="space-y-6">
+    <section className={transactionStyles.dayList.skeleton.container}>
       {showHeader && (
-        <div className="mb-4">
-          <div className="h-5 w-40 bg-primary/15 rounded animate-pulse" />
-          <div className="h-4 w-32 bg-primary/10 rounded animate-pulse mt-1" />
+        <div className={transactionStyles.dayList.skeleton.header}>
+          <div className={transactionStyles.dayList.skeleton.headerTitle} />
+          <div className={transactionStyles.dayList.skeleton.headerSubtitle} />
         </div>
       )}
       
       {SKELETON_GROUP_KEYS.slice(0, itemCount).map((groupKey) => (
-        <div key={groupKey} className="space-y-3">
+        <div key={groupKey} className={transactionStyles.dayList.skeleton.group}>
           {/* Day header skeleton */}
-          <div className="flex justify-between items-center">
-            <div className="h-4 w-24 bg-primary/15 rounded animate-pulse" />
-            <div className="text-right">
-              <div className="h-4 w-16 bg-primary/15 rounded animate-pulse" />
-              <div className="h-3 w-20 bg-primary/10 rounded animate-pulse mt-1" />
+          <div className={transactionStyles.dayList.skeleton.groupHeader}>
+            <div className={transactionStyles.dayList.skeleton.groupTitle} />
+            <div className={transactionStyles.dayList.skeleton.groupTotal}>
+              <div className={transactionStyles.dayList.skeleton.groupTotalLine} />
+              <div className={transactionStyles.dayList.skeleton.groupTotalSub} />
             </div>
           </div>
           
           {/* Transaction cards skeleton */}
-          <div className="bg-card rounded-xl border border-primary/20 p-3 space-y-3">
+          <div className={transactionStyles.dayList.skeleton.card}>
             {SKELETON_TX_KEYS.map((txKey) => (
-              <div key={`${groupKey}-${txKey}`} className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-primary/12 animate-pulse" />
-                <div className="flex-1 space-y-2">
-                  <div className="h-4 w-32 bg-primary/15 rounded animate-pulse" />
-                  <div className="h-3 w-20 bg-primary/10 rounded animate-pulse" />
+              <div key={`${groupKey}-${txKey}`} className={transactionStyles.dayList.skeleton.row}>
+                <div className={transactionStyles.dayList.skeleton.rowIcon} />
+                <div className={transactionStyles.dayList.skeleton.rowBody}>
+                  <div className={transactionStyles.dayList.skeleton.rowTitle} />
+                  <div className={transactionStyles.dayList.skeleton.rowSubtitle} />
                 </div>
-                <div className="h-5 w-16 bg-primary/15 rounded animate-pulse" />
+                <div className={transactionStyles.dayList.skeleton.rowAmount} />
               </div>
             ))}
           </div>

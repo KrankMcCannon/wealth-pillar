@@ -14,12 +14,12 @@
  * Data is passed from Server Component for optimal performance
  */
 
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { BottomNavigation, PageContainer, Header } from "@/components/layout";
 import { useUserFilter, usePermissions, useFilteredAccounts, useBudgetsByUser } from "@/hooks";
 import { Button } from "@/components/ui";
-import { RecurringTransactionSeries } from "@/src/lib";
+import { RecurringTransactionSeries } from "@/lib";
 import {
   BalanceSectionSkeleton,
   BudgetSectionSkeleton,
@@ -68,7 +68,7 @@ export default function DashboardContent({
   recurringSeries,
 }: DashboardContentProps) {
   const router = useRouter();
-  const { selectedGroupFilter, selectedUserId } = useUserFilter();
+  const { selectedGroupFilter, selectedUserId, setSelectedGroupFilter } = useUserFilter();
   const setBudgetPeriods = usePageDataStore((state) => state.setBudgetPeriods);
 
   // Permission checks
@@ -155,10 +155,7 @@ export default function DashboardContent({
     return Math.round(balance * 100) / 100;
   }, [selectedUserId, userAccounts, accounts, accountBalances]);
 
-  // State hooks
-  const [periodManagerUserId, setPeriodManagerUserId] = useState<string | undefined>(
-    isMember ? currentUser.id : selectedUserId || currentUser.id,
-  );
+  const periodManagerUserId = isMember ? currentUser.id : (selectedUserId ?? currentUser.id);
 
   // Effects
   // Initialize store with budget periods from server
@@ -166,15 +163,9 @@ export default function DashboardContent({
     setBudgetPeriods(budgetPeriods);
   }, [budgetPeriods, setBudgetPeriods]);
 
-  useEffect(() => {
-    if (isMember) {
-      setPeriodManagerUserId(currentUser.id);
-      return;
-    }
-    if (selectedUserId) {
-      setPeriodManagerUserId(selectedUserId);
-    }
-  }, [isMember, currentUser, selectedUserId]);
+  const handlePeriodManagerUserChange = (userId: string) => {
+    setSelectedGroupFilter(userId);
+  };
 
   // Get active budget period from store
   const activePeriod = useBudgetPeriod(periodManagerUserId || currentUser.id);
@@ -239,7 +230,7 @@ export default function DashboardContent({
         <div className={dashboardStyles.divider} />
 
         {/* Budget Section */}
-        <div className="bg-[#F8FAFC]">
+        <div className={dashboardStyles.budgetSection.container}>
           <Suspense fallback={<BudgetSectionSkeleton />}>
             <BudgetSection
               budgetsByUser={budgetsByUser}
@@ -252,7 +243,7 @@ export default function DashboardContent({
                   currentPeriod={periodManagerData.period}
                   transactions={transactions}
                   userBudgets={periodManagerData.budgets}
-                  onUserChange={setPeriodManagerUserId}
+                  onUserChange={handlePeriodManagerUserChange}
                   onSuccess={() => router.refresh()}
                   trigger={budgetPeriodTrigger}
                   currentUser={currentUser}

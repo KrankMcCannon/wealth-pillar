@@ -13,6 +13,7 @@ import {
     Crown
 } from "lucide-react";
 import { cn } from "@/lib";
+import { headerStyles } from "./theme/header-styles";
 
 // UI Components
 import { Button, ThemeToggle, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui";
@@ -87,15 +88,15 @@ function ActionMenu({ extraMenuItems = [] }: Readonly<{ extraMenuItems?: { label
                 <Button
                     variant="default"
                     size="icon"
-                    className="h-11 w-11 bg-primary text-primary-foreground rounded-full shadow-sm hover:bg-primary/90"
+                    className={headerStyles.actions.actionButton}
                 >
-                    <Plus className="h-5.5 w-5.5" />
+                    <Plus className={headerStyles.actions.actionIcon} />
                 </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuContent align="end" className={headerStyles.actions.menu}>
                 {actionItems.map((item) => (
                     <DropdownMenuItem key={item.label} onClick={item.onClick}>
-                        <item.icon className="mr-2 h-4 w-4" />
+                        <item.icon className={headerStyles.actions.menuIcon} />
                         {item.label}
                     </DropdownMenuItem>
                 ))}
@@ -131,30 +132,30 @@ export function Header({
             className={cn(
                 STICKY_HEADER_BASE,
                 stickyHeaderStyles.base,
-                "px-4 py-2 z-40 transition-all duration-200",
+                headerStyles.container,
                 className
             )}
         >
-            <div className="flex items-center justify-between w-full mx-auto">
+            <div className={headerStyles.inner}>
                 {/* LEFT SECTION: Back Button or Dashboard Info */}
-                <div className="flex items-center gap-4">
+                <div className={headerStyles.left}>
                     {isDashboard && currentUser && (
-                        <div className="flex items-center gap-3">
-                            <div className="relative">
-                                <div className="h-10 w-10 bg-primary/10 rounded-full flex items-center justify-center text-primary font-semibold text-base border-2 border-background shadow-sm overflow-hidden">
+                        <div className={headerStyles.dashboard.wrapper}>
+                            <div className={headerStyles.dashboard.avatarWrap}>
+                                <div className={headerStyles.dashboard.avatar}>
                                     {currentUser?.name?.substring(0, 2).toUpperCase()}
                                 </div>
                                 {currentUser?.role === 'admin' && (
-                                    <div className="absolute -top-1 -right-1 bg-amber-500 rounded-full p-0.5 border-2 border-background shadow-sm" title="Premium">
-                                        <Crown className="h-3 w-3 text-white fill-white" />
+                                    <div className={headerStyles.dashboard.crownWrap} title="Premium">
+                                        <Crown className={headerStyles.dashboard.crownIcon} />
                                     </div>
                                 )}
                             </div>
-                            <div className="hidden sm:block leading-none">
-                                <p className="text-base font-semibold text-foreground truncate max-w-[140px]">
+                            <div className={headerStyles.dashboard.userInfo}>
+                                <p className={headerStyles.dashboard.userName}>
                                     {currentUser?.name}
                                 </p>
-                                <p className="text-xs text-muted-foreground font-medium mt-0.5 capitalize">
+                                <p className={headerStyles.dashboard.userRole}>
                                     {currentUser?.role === 'admin' ? 'Premium Plan' : 'Standard Plan'}
                                 </p>
                             </div>
@@ -163,26 +164,26 @@ export function Header({
 
                     {!isDashboard && (
                         // Subpage View: Back Button & Title
-                        <div className="flex items-center gap-3">
+                        <div className={headerStyles.subpage.wrapper}>
                             {showBack && (
                                 <Button
                                     variant="ghost"
                                     size="icon"
                                     aria-label="Torna indietro"
-                                    className="h-10 w-10 -ml-2 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                                    className={headerStyles.subpage.backButton}
                                     onClick={handleBack}
                                 >
-                                    <ArrowLeft className="h-5.5 w-5.5" />
+                                    <ArrowLeft className={headerStyles.subpage.backIcon} />
                                 </Button>
                             )}
                             <div>
                                 {title && (
-                                    <h1 className="text-xl font-semibold text-foreground leading-tight">
+                                    <h1 className={headerStyles.subpage.title}>
                                         {title}
                                     </h1>
                                 )}
                                 {subtitle && (
-                                    <p className="text-sm text-muted-foreground">{subtitle}</p>
+                                    <p className={headerStyles.subpage.subtitle}>{subtitle}</p>
                                 )}
                             </div>
                         </div>
@@ -190,7 +191,7 @@ export function Header({
                 </div>
 
                 {/* RIGHT SECTION: Actions */}
-                <div className="flex items-center gap-2 sm:gap-3">
+                <div className={headerStyles.actions.wrapper}>
                     {/* 1. Add Actions */}
                     {showActions && <ActionMenu extraMenuItems={extraMenuItems} />}
 
@@ -199,9 +200,9 @@ export function Header({
                         variant="ghost"
                         size="icon"
                         aria-label="Notifiche"
-                        className="h-10 w-10 rounded-full text-primary hover:bg-primary/5"
+                        className={headerStyles.actions.iconButton}
                     >
-                        <Bell className="h-5.5 w-5.5" />
+                        <Bell className={headerStyles.actions.icon} />
                     </Button>
 
                     {/* 3. Settings */}
@@ -209,15 +210,15 @@ export function Header({
                         variant="ghost"
                         size="icon"
                         aria-label="Impostazioni"
-                        className="h-10 w-10 rounded-full text-primary hover:bg-primary/5"
+                        className={headerStyles.actions.iconButton}
                         onClick={() => router.push('/settings')}
                     >
-                        <Settings className="h-5.5 w-5.5" />
+                        <Settings className={headerStyles.actions.icon} />
                     </Button>
 
                     {/* 4. Portfolio Badge */}
                     {isDashboard && (
-                        <div className="flex items-center px-3 py-2 bg-green-500/10 border border-green-500/20 rounded-full text-green-600 text-sm font-semibold">
+                        <div className={headerStyles.actions.badge}>
                             <span>↗ +2.5%</span>
                         </div>
                     )}

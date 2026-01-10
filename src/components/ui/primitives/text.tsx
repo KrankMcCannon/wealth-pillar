@@ -12,7 +12,7 @@
  */
 
 import * as React from "react";
-import { cn, textVariants, TextVariants } from '@/src/lib';
+import { cn, textVariants, type TextVariants } from "@/lib/utils";
 
 export interface TextProps
   extends React.HTMLAttributes<HTMLElement>,

@@ -21,8 +21,8 @@ import {
 import type { Transaction, Category } from "@/lib/types";
 import { BudgetService, CategoryService } from "@/lib/services";
 import { formatDateShort } from "@/lib/utils/date-utils";
-import { reportsStyles } from "../theme/reports-styles";
-import { cn } from "@/lib/utils/ui-variants";
+import { reportsStyles, getBudgetPeriodTransactionIconStyle } from "../theme/reports-styles";
+import { cn } from "@/lib/utils";
 
 export interface BudgetPeriodCardProps {
   startDate: string | Date;
@@ -132,7 +132,7 @@ const BudgetPeriodCardComponent = ({
                 type="balance"
                 size="xl"
                 emphasis="strong"
-                className={cn(styles.metricValue, "text-primary")}
+                className={cn(styles.metricValue, styles.metricValuePrimary)}
               >
                 {defaultAccountStartBalance ?? 0}
               </Amount>
@@ -154,7 +154,7 @@ const BudgetPeriodCardComponent = ({
                 type="income"
                 size="xl"
                 emphasis="strong"
-                className={cn(styles.metricValue, "text-emerald-500")}
+                className={cn(styles.metricValue, styles.metricValueIncome)}
               >
                 {periodTotalIncome ?? 0}
               </Amount>
@@ -176,7 +176,7 @@ const BudgetPeriodCardComponent = ({
                 type="expense"
                 size="xl"
                 emphasis="strong"
-                className={cn(styles.metricValue, "text-red-500")}
+                className={cn(styles.metricValue, styles.metricValueExpense)}
               >
                 {periodTotalSpent ?? 0}
               </Amount>
@@ -220,7 +220,7 @@ const BudgetPeriodCardComponent = ({
                 type="balance"
                 size="xl"
                 emphasis="strong"
-                className={cn(styles.metricValue, "text-amber-500")}
+                className={cn(styles.metricValue, styles.metricValueWarning)}
               >
                 {periodTotalTransfers ?? 0}
               </Amount>
@@ -231,13 +231,13 @@ const BudgetPeriodCardComponent = ({
 
       {/* Expandable Transactions Section */}
       {isExpanded && (
-        <div className="border-t border-primary/10">
-          <div className="p-4 bg-card/50">
-            <p className="text-xs font-semibold text-muted-foreground mb-3">Transazioni ({transactions.length})</p>
+        <div className={styles.transactionsContainer}>
+          <div className={styles.transactionsBody}>
+            <p className={styles.transactionsTitle}>Transazioni ({transactions.length})</p>
             {transactions.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-8">Nessuna transazione in questo periodo</p>
+              <p className={styles.transactionsEmpty}>Nessuna transazione in questo periodo</p>
             ) : (
-              <div className="space-y-2">
+              <div className={styles.transactionsList}>
                 {transactions.map((transaction) => {
                   const categoryLabel = CategoryService.getCategoryLabel(categories, transaction.category);
                   const categoryColor = CategoryService.getCategoryColor(categories, transaction.category);
@@ -252,31 +252,28 @@ const BudgetPeriodCardComponent = ({
                   return (
                     <div
                       key={transaction.id}
-                      className="flex items-center gap-3 p-3 rounded-lg bg-white/50 border border-primary/5 hover:border-primary/20 transition-colors"
+                      className={styles.transactionRow}
                     >
                       {/* Transaction Icon */}
                       <div
-                        className="flex items-center justify-center h-9 w-9 rounded-lg shrink-0"
-                        style={{
-                          backgroundColor: `oklch(from ${categoryColor} calc(l + 0.35) c h / 0.15)`,
-                          color: categoryColor,
-                        }}
+                        className={styles.transactionIconWrap}
+                        style={getBudgetPeriodTransactionIconStyle(categoryColor)}
                       >
-                        <TransactionIcon className="h-4 w-4" />
+                        <TransactionIcon className={styles.transactionIcon} />
                       </div>
 
                       {/* Transaction Details */}
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-black truncate">{transaction.description}</p>
-                        <div className="flex items-center gap-2 mt-0.5">
-                          <span className="text-xs text-muted-foreground">{categoryLabel}</span>
-                          <span className="text-xs text-muted-foreground/50">•</span>
-                          <span className="text-xs text-muted-foreground">{formatDateShort(transaction.date)}</span>
+                      <div className={styles.transactionBody}>
+                        <p className={styles.transactionTitle}>{transaction.description}</p>
+                        <div className={styles.transactionMetaRow}>
+                          <span className={styles.transactionMeta}>{categoryLabel}</span>
+                          <span className={styles.transactionMetaSeparator}>•</span>
+                          <span className={styles.transactionMeta}>{formatDateShort(transaction.date)}</span>
                         </div>
                       </div>
 
                       {/* Amount */}
-                      <Amount type={transaction.type} size="sm" emphasis="strong" className="shrink-0">
+                      <Amount type={transaction.type} size="sm" emphasis="strong" className={styles.transactionAmount}>
                         {transaction.amount}
                       </Amount>
                     </div>

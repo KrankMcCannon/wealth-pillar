@@ -13,7 +13,7 @@
 
 import { useState, useMemo, useCallback } from "react";
 import { Search, X, ChevronDown, Check } from "lucide-react";
-import { Category, CategoryIcon, cn, iconSizes } from "@/src/lib";
+import { Category, CategoryIcon, cn, iconSizes } from "@/lib";
 import { toDateTime, isToday as isDateToday, isWithinWeek, isWithinMonth, isWithinYear, formatDateShort } from "@/lib/utils/date-utils";
 import {
   Button,
@@ -23,8 +23,9 @@ import {
   DrawerTrigger,
   DrawerTitle,
   DrawerDescription,
-} from "@/src/components/ui";
+} from "@/components/ui";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
+import { transactionStyles } from "../theme/transaction-styles";
 
 // ============================================================================
 // Types
@@ -135,17 +136,12 @@ function FilterChip({ label, isActive, hasValue, onClick, onClear }: FilterChipP
   // Chip con valore attivo: mostra label + icona X per cancellare
   if (hasValue && !isActive) {
     return (
-      <div className="relative inline-flex">
+      <div className={transactionStyles.filters.chip.wrapper}>
         {/* Main button - opens drawer */}
         <button
           type="button"
           onClick={onClick}
-          className={cn(
-            "inline-flex items-center gap-2 pl-3 pr-8 py-2 rounded-full text-sm font-medium",
-            "transition-all duration-200 whitespace-nowrap select-none",
-            "bg-primary text-white shadow-md",
-            "hover:bg-primary/90 active:scale-[0.98]"
-          )}
+          className={transactionStyles.filters.chip.buttonActive}
         >
           <span>{label}</span>
         </button>
@@ -153,14 +149,10 @@ function FilterChip({ label, isActive, hasValue, onClick, onClear }: FilterChipP
         <button
           type="button"
           onClick={handleClearClick}
-          className={cn(
-            "absolute right-1 top-1/2 -translate-y-1/2",
-            "flex items-center justify-center w-6 h-6 rounded-full",
-            "bg-white/20 hover:bg-white/30 transition-colors"
-          )}
+          className={transactionStyles.filters.chip.clearButton}
           aria-label={`Rimuovi filtro ${label}`}
         >
-          <X className="h-3 w-3 text-white" />
+          <X className={transactionStyles.filters.chip.clearIcon} />
         </button>
       </div>
     );
@@ -172,19 +164,17 @@ function FilterChip({ label, isActive, hasValue, onClick, onClear }: FilterChipP
       type="button"
       onClick={onClick}
       className={cn(
-        "inline-flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium",
-        "transition-all duration-200 whitespace-nowrap select-none",
-        "active:scale-[0.98]",
+        transactionStyles.filters.chip.buttonBase,
         isActive
-          ? "bg-primary text-white shadow-md"
-          : "bg-card text-primary border border-primary/20 hover:border-primary/40 hover:bg-primary/5"
+          ? transactionStyles.filters.chip.buttonOpen
+          : transactionStyles.filters.chip.buttonIdle
       )}
     >
       <span>{label}</span>
       <ChevronDown 
         className={cn(
-          "h-3.5 w-3.5 transition-transform duration-200", 
-          isActive && "rotate-180"
+          transactionStyles.filters.chip.chevron,
+          isActive && transactionStyles.filters.chip.chevronOpen
         )} 
       />
     </button>
@@ -217,7 +207,7 @@ function FilterDrawerContent({ filterType, filters, categories, onSelect, onClos
   }, [categories, categorySearch]);
 
   const renderTypeOptions = () => (
-    <div className="grid grid-cols-3 gap-2">
+    <div className={transactionStyles.filters.typeGrid}>
       {TYPE_OPTIONS.map((option) => (
         <button
           key={option.key}
@@ -227,14 +217,13 @@ function FilterDrawerContent({ filterType, filters, categories, onSelect, onClos
             onClose();
           }}
           className={cn(
-            "flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200",
-            "border active:scale-95",
+            transactionStyles.filters.typeButton,
             filters.type === option.key
-              ? "bg-primary text-white border-primary shadow-md"
-              : "bg-card text-primary border-primary/20 hover:bg-primary/10 hover:border-primary/40"
+              ? transactionStyles.filters.typeButtonActive
+              : transactionStyles.filters.typeButtonIdle
           )}
         >
-          {filters.type === option.key && <Check className="h-4 w-4" />}
+          {filters.type === option.key && <Check className={transactionStyles.filters.typeCheck} />}
           <span>{option.label}</span>
         </button>
       ))}
@@ -250,9 +239,9 @@ function FilterDrawerContent({ filterType, filters, categories, onSelect, onClos
     };
 
     return (
-      <div className="space-y-4">
+      <div className={transactionStyles.filters.dateSection}>
         {/* Preset options */}
-        <div className="grid grid-cols-2 gap-2">
+        <div className={transactionStyles.filters.dateGrid}>
           {DATE_OPTIONS.filter(o => o.key !== "custom").map((option) => (
             <button
               key={option.key}
@@ -262,40 +251,39 @@ function FilterDrawerContent({ filterType, filters, categories, onSelect, onClos
                 onClose();
               }}
               className={cn(
-                "flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200",
-                "border active:scale-95",
+                transactionStyles.filters.dateButton,
                 filters.dateRange === option.key
-                  ? "bg-primary text-white border-primary shadow-md"
-                  : "bg-card text-primary border-primary/20 hover:bg-primary/10 hover:border-primary/40"
+                  ? transactionStyles.filters.dateButtonActive
+                  : transactionStyles.filters.dateButtonIdle
               )}
             >
-              {filters.dateRange === option.key && <Check className="h-4 w-4" />}
+              {filters.dateRange === option.key && <Check className={transactionStyles.filters.typeCheck} />}
               <span>{option.label}</span>
             </button>
           ))}
         </div>
 
         {/* Custom date range */}
-        <div className="space-y-3 pt-2 border-t border-primary/10">
-          <p className="text-sm font-medium text-primary">Range personalizzato</p>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <span className="text-xs text-primary/70">Da</span>
+        <div className={transactionStyles.filters.dateCustom}>
+          <p className={transactionStyles.filters.dateTitle}>Range personalizzato</p>
+          <div className={transactionStyles.filters.dateInputs}>
+            <div className={transactionStyles.filters.dateField}>
+              <span className={transactionStyles.filters.dateLabel}>Da</span>
               <Input
                 type="date"
                 value={customStartDate}
                 onChange={(e) => setCustomStartDate(e.target.value)}
-                className="bg-card border-primary/20 rounded-xl text-sm"
+                className={transactionStyles.filters.dateInput}
                 aria-label="Data inizio"
               />
             </div>
-            <div className="space-y-1.5">
-              <span className="text-xs text-primary/70">A</span>
+            <div className={transactionStyles.filters.dateField}>
+              <span className={transactionStyles.filters.dateLabel}>A</span>
               <Input
                 type="date"
                 value={customEndDate}
                 onChange={(e) => setCustomEndDate(e.target.value)}
-                className="bg-card border-primary/20 rounded-xl text-sm"
+                className={transactionStyles.filters.dateInput}
                 aria-label="Data fine"
               />
             </div>
@@ -303,7 +291,7 @@ function FilterDrawerContent({ filterType, filters, categories, onSelect, onClos
           <Button
             onClick={handleApplyCustomRange}
             disabled={!customStartDate && !customEndDate}
-            className="w-full rounded-xl"
+            className={transactionStyles.filters.dateApply}
           >
             Applica range
           </Button>
@@ -313,20 +301,20 @@ function FilterDrawerContent({ filterType, filters, categories, onSelect, onClos
   };
 
   const renderCategoryOptions = () => (
-    <div className="space-y-3">
+    <div className={transactionStyles.filters.categorySection}>
       {/* Search */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary/50" />
+      <div className={transactionStyles.filters.categorySearchWrap}>
+        <Search className={transactionStyles.filters.categorySearchIcon} />
         <Input
           placeholder="Cerca categoria..."
           value={categorySearch}
           onChange={(e) => setCategorySearch(e.target.value)}
-          className="pl-10 bg-card border-primary/20 rounded-xl"
+          className={transactionStyles.filters.categorySearchInput}
         />
       </div>
 
       {/* Category grid */}
-      <div className="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto pr-1">
+      <div className={transactionStyles.filters.categoryGrid}>
         {/* "All" option */}
         <button
           type="button"
@@ -335,15 +323,14 @@ function FilterDrawerContent({ filterType, filters, categories, onSelect, onClos
             onClose();
           }}
           className={cn(
-            "flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
-            "border active:scale-95",
+            transactionStyles.filters.categoryButton,
             filters.categoryKey === "all"
-              ? "bg-primary text-white border-primary shadow-md"
-              : "bg-card text-primary border-primary/20 hover:bg-primary/10"
+              ? transactionStyles.filters.categoryButtonActive
+              : transactionStyles.filters.categoryButtonIdle
           )}
         >
-          {filters.categoryKey === "all" && <Check className="h-4 w-4 shrink-0" />}
-          <span className="truncate">Tutte</span>
+          {filters.categoryKey === "all" && <Check className={transactionStyles.filters.categoryCheck} />}
+          <span className={transactionStyles.filters.categoryLabel}>Tutte</span>
         </button>
 
         {filteredCategories.map((category) => (
@@ -355,16 +342,15 @@ function FilterDrawerContent({ filterType, filters, categories, onSelect, onClos
               onClose();
             }}
             className={cn(
-              "flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
-              "border active:scale-95",
+              transactionStyles.filters.categoryButton,
               filters.categoryKey === category.key
-                ? "bg-primary text-white border-primary shadow-md"
-                : "bg-card text-primary border-primary/20 hover:bg-primary/10"
+                ? transactionStyles.filters.categoryButtonActive
+                : transactionStyles.filters.categoryButtonIdle
             )}
           >
             <CategoryIcon categoryKey={category.key} size={iconSizes.sm} />
-            <span className="truncate flex-1 text-left">{category.label}</span>
-            {filters.categoryKey === category.key && <Check className="h-4 w-4 shrink-0" />}
+            <span className={transactionStyles.filters.categoryLabelLeft}>{category.label}</span>
+            {filters.categoryKey === category.key && <Check className={transactionStyles.filters.categoryCheck} />}
           </button>
         ))}
       </div>
@@ -378,7 +364,7 @@ function FilterDrawerContent({ filterType, filters, categories, onSelect, onClos
   };
 
   return (
-    <div className="p-4 space-y-4">
+    <div className={transactionStyles.filters.drawer.inner}>
       {/* Accessible title and description for screen readers */}
       <VisuallyHidden.Root>
         <DrawerTitle>{titles[filterType]}</DrawerTitle>
@@ -386,13 +372,13 @@ function FilterDrawerContent({ filterType, filters, categories, onSelect, onClos
       </VisuallyHidden.Root>
       
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-bold text-primary">{titles[filterType]}</h3>
+      <div className={transactionStyles.filters.drawer.header}>
+        <h3 className={transactionStyles.filters.drawer.title}>{titles[filterType]}</h3>
         <Button
           variant="ghost"
           size="sm"
           onClick={onClose}
-          className="text-primary hover:bg-primary/10 rounded-xl"
+          className={transactionStyles.filters.drawer.closeButton}
         >
           Chiudi
         </Button>
@@ -496,20 +482,17 @@ export function TransactionFilters({
   }, [filters, onFiltersChange]);
 
   return (
-    <div className={cn("space-y-3", className)}>
+    <div className={cn(transactionStyles.filters.container, className)}>
       {/* Budget Mode Banner */}
       {isBudgetMode && (
-        <div className={cn(
-          "flex items-center justify-between gap-3 px-4 py-3 rounded-2xl",
-          "bg-primary/10 border border-primary/20"
-        )}>
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-            <span className="text-sm font-medium text-primary">
+        <div className={transactionStyles.filters.budgetBanner}>
+          <div className={transactionStyles.filters.budgetBannerLeft}>
+            <div className={transactionStyles.filters.budgetBannerDot} />
+            <span className={transactionStyles.filters.budgetBannerText}>
               {budgetName ? `Budget: ${budgetName}` : "Filtro Budget attivo"}
             </span>
             {filters.categoryKeys && filters.categoryKeys.length > 0 && (
-              <span className="text-xs text-primary/70">
+              <span className={transactionStyles.filters.budgetBannerCount}>
                 ({filters.categoryKeys.length} {filters.categoryKeys.length === 1 ? 'categoria' : 'categorie'})
               </span>
             )}
@@ -518,12 +501,9 @@ export function TransactionFilters({
             <button
               type="button"
               onClick={onClearBudgetFilter}
-              className={cn(
-                "inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium",
-                "bg-primary/20 text-primary hover:bg-primary/30 transition-colors"
-              )}
+              className={transactionStyles.filters.budgetBannerExit}
             >
-              <X className="h-3 w-3" />
+              <X className={transactionStyles.filters.budgetBannerExitIcon} />
               Esci
             </button>
           )}
@@ -531,11 +511,11 @@ export function TransactionFilters({
       )}
 
       {/* Search Bar */}
-      <div className="relative">
+      <div className={transactionStyles.filters.searchWrap}>
         <Search
           className={cn(
-            "absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 transition-colors duration-200",
-            isSearchFocused ? "text-primary" : "text-primary/50"
+            transactionStyles.filters.searchIcon,
+            isSearchFocused ? transactionStyles.filters.searchIconActive : transactionStyles.filters.searchIconInactive
           )}
         />
         <Input
@@ -545,25 +525,21 @@ export function TransactionFilters({
           onChange={(e) => handleSearchChange(e.target.value)}
           onFocus={() => setIsSearchFocused(true)}
           onBlur={() => setIsSearchFocused(false)}
-          className={cn(
-            "pl-12 pr-10 py-3 h-12 rounded-2xl bg-card border-primary/20 text-primary placeholder:text-primary/40",
-            "transition-all duration-200",
-            "focus:border-primary focus:ring-2 focus:ring-primary/20 focus:shadow-lg"
-          )}
+          className={transactionStyles.filters.searchInput}
         />
         {filters.searchQuery && (
           <button
             type="button"
             onClick={handleClearSearch}
-            className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-primary/10 hover:bg-primary/20 transition-colors"
+            className={transactionStyles.filters.searchClear}
           >
-            <X className="h-4 w-4 text-primary" />
+            <X className={transactionStyles.filters.searchClearIcon} />
           </button>
         )}
       </div>
 
       {/* Filter Chips - Horizontal Scroll */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1 -mx-3 px-3 scrollbar-hide">
+      <div className={transactionStyles.filters.chipsRow}>
         {/* Type Filter */}
         <Drawer open={activeDrawer === "type"} onOpenChange={(open) => setActiveDrawer(open ? "type" : null)}>
           <DrawerTrigger asChild>
@@ -577,7 +553,7 @@ export function TransactionFilters({
               />
             </div>
           </DrawerTrigger>
-          <DrawerContent className="rounded-t-3xl bg-card border-t border-primary/20">
+          <DrawerContent className={transactionStyles.filters.drawer.content}>
             <FilterDrawerContent
               filterType="type"
               filters={filters}
@@ -601,7 +577,7 @@ export function TransactionFilters({
               />
             </div>
           </DrawerTrigger>
-          <DrawerContent className="rounded-t-3xl bg-card border-t border-primary/20">
+          <DrawerContent className={transactionStyles.filters.drawer.content}>
             <FilterDrawerContent
               filterType="date"
               filters={filters}
@@ -626,7 +602,7 @@ export function TransactionFilters({
               />
             </div>
           </DrawerTrigger>
-          <DrawerContent className="rounded-t-3xl bg-card border-t border-primary/20 max-h-[70vh]">
+          <DrawerContent className={transactionStyles.filters.drawer.contentTall}>
             <FilterDrawerContent
               filterType="category"
               filters={filters}
@@ -642,13 +618,9 @@ export function TransactionFilters({
           <button
             type="button"
             onClick={handleClearAll}
-            className={cn(
-              "inline-flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium",
-              "bg-destructive/10 text-destructive",
-              "hover:bg-destructive/20 transition-all duration-200 active:scale-[0.98] whitespace-nowrap"
-            )}
+            className={transactionStyles.filters.clearAll}
           >
-            <X className="h-3.5 w-3.5" />
+            <X className={transactionStyles.filters.clearAllIcon} />
             <span>Cancella</span>
           </button>
         )}

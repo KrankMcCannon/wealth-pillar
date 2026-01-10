@@ -6,7 +6,7 @@ import { Suspense } from "react";
 import { getDashboardData } from "@/lib/auth/get-dashboard-data";
 import { AccountService, TransactionService } from "@/lib/services";
 import SettingsContent from "./settings-content";
-import { PageLoader } from "@/src/components/shared";
+import { PageLoader } from "@/components/shared";
 
 export default async function SettingsPage() {
   const { currentUser } = await getDashboardData();

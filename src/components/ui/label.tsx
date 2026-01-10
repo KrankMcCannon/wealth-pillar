@@ -1,7 +1,7 @@
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
-import { cn } from '@/src/lib';
+import { cn } from "@/lib/utils";
 
 const labelVariants = cva(
   "text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70",
@@ -25,25 +25,27 @@ const labelVariants = cva(
   }
 )
 
-function Label({
-  className,
-  variant,
-  size,
-  asChild = false,
-  ...props
-}: React.ComponentProps<"label"> &
-  VariantProps<typeof labelVariants> & {
-    asChild?: boolean
-  }) {
-  const Comp = asChild ? Slot : "label"
-
-  return (
-    <Comp
-      data-slot="label"
-      className={cn(labelVariants({ variant, size }), className)}
-      {...props}
-    />
-  )
+export interface LabelProps
+  extends React.LabelHTMLAttributes<HTMLLabelElement>,
+    VariantProps<typeof labelVariants> {
+  asChild?: boolean
 }
+
+const Label = React.forwardRef<HTMLLabelElement, LabelProps>(
+  ({ className, variant, size, asChild = false, ...props }, ref) => {
+    const Comp = asChild ? Slot : "label"
+
+    return (
+      <Comp
+        ref={ref}
+        data-slot="label"
+        className={cn(labelVariants({ variant, size }), className)}
+        {...props}
+      />
+    )
+  }
+)
+
+Label.displayName = "Label"
 
 export { Label, labelVariants }

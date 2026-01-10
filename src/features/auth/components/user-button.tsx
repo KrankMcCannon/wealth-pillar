@@ -10,8 +10,9 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/src/components/ui";
+} from "@/components/ui";
 import Image from "next/image";
+import { authStyles } from "../theme";
 
 interface UserButtonProps {
   showName?: boolean;
@@ -39,48 +40,48 @@ export function UserButton({ showName = false, variant = "default" }: UserButton
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="flex items-center gap-2 px-2 py-1 h-auto">
-          <div className="w-8 h-8 rounded-xl overflow-hidden bg-primary/10">
+        <Button variant="ghost" className={authStyles.userButton.trigger}>
+          <div className={authStyles.userButton.avatarWrap}>
             <Image
               src={avatarUrl}
               alt=""
               loading="lazy"
-              className="h-full w-full object-cover"
+              className={authStyles.userButton.avatarImage}
             />
           </div>
           {showName && (
-            <div className="flex flex-col items-start text-left">
-              <span className="text-sm font-medium">{""}</span>
-              <span className="text-xs capitalize">{""}</span>
+            <div className={authStyles.userButton.nameWrap}>
+              <span className={authStyles.userButton.name}>{""}</span>
+              <span className={authStyles.userButton.role}>{""}</span>
             </div>
           )}
         </Button>
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent align="end" className="w-56">
+      <DropdownMenuContent align="end" className={authStyles.userButton.menu}>
         <DropdownMenuLabel>
-          <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">{""}</p>
-            <p className="text-xs leading-none">{""}</p>
-            <p className="text-xs leading-none capitalize">Ruolo: {""}</p>
+          <div className={authStyles.userButton.menuLabel}>
+            <p className={authStyles.userButton.menuName}>{""}</p>
+            <p className={authStyles.userButton.menuEmail}>{""}</p>
+            <p className={authStyles.userButton.menuRole}>Ruolo: {""}</p>
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
 
         <DropdownMenuItem>
-          <User className="mr-2 h-4 w-4" />
+          <User className={authStyles.userButton.menuIcon} />
           <span>Profilo</span>
         </DropdownMenuItem>
 
         <DropdownMenuItem>
-          <Settings className="mr-2 h-4 w-4" />
+          <Settings className={authStyles.userButton.menuIcon} />
           <span>Impostazioni</span>
         </DropdownMenuItem>
 
         <DropdownMenuSeparator />
 
-        <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => {}}>
-          <LogOut className="mr-2 h-4 w-4" />
+        <DropdownMenuItem className={authStyles.userButton.destructiveItem} onClick={() => {}}>
+          <LogOut className={authStyles.userButton.menuIcon} />
           <span>Disconnetti</span>
         </DropdownMenuItem>
       </DropdownMenuContent>

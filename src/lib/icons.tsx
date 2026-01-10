@@ -52,13 +52,13 @@ import {
 } from 'lucide-react';
 
 export const designSystemColors = {
-  primary: 'hsl(var(--color-primary))',
-  secondary: 'hsl(var(--color-secondary))',
-  success: 'hsl(var(--color-accent))', // Using accent color for success (mint green)
-  warning: 'hsl(var(--color-warning))',
-  error: 'hsl(var(--color-destructive))',
-  info: 'hsl(var(--color-secondary))', // Using secondary color for info
-  neutral: 'hsl(var(--color-primary))',
+  primary: 'var(--color-primary)',
+  secondary: 'var(--color-secondary)',
+  success: 'var(--color-accent)', // Using accent color for success (mint green)
+  warning: 'var(--color-warning)',
+  error: 'var(--color-destructive)',
+  info: 'var(--color-secondary)', // Using secondary color for info
+  neutral: 'var(--color-primary)',
 };
 
 // Modern icon mapping - Category-based line-art icons
@@ -133,7 +133,7 @@ const categoryColors: Record<string, string> = {
   bolletta_gas: designSystemColors.error,
   bolletta_acqua: 'hsl(var(--category-utilities-blue))',
   bolletta_tim: 'hsl(var(--category-utilities-red))',
-  bolletta_tari: 'hsl(var(--color-destructive))',
+  bolletta_tari: 'var(--color-destructive)',
   ricarica_telefono: designSystemColors.info,
   abbonamenti_tv: designSystemColors.primary,
   abbonamenti_necessari: designSystemColors.secondary,
@@ -150,7 +150,7 @@ const categoryColors: Record<string, string> = {
   medicine_thor: 'hsl(var(--category-health-cyan))',
   visite_mediche: 'hsl(var(--category-health-cyan))',
   analisi_mediche: 'hsl(var(--category-health-cyan))',
-  veterinario: 'hsl(var(--color-secondary))',
+  veterinario: 'var(--color-secondary)',
   palestra: 'hsl(var(--category-health-teal))',
   
   // Beauty & Lifestyle
@@ -187,7 +187,7 @@ interface IconProps {
 }
 
 export const Icon: React.FC<IconProps> = ({ icon, className = '', size = 20, color }) => {
-  const IconComponent = getIconComponent(icon);
+  const IconComponent = iconMapping[icon] || FileText;
   return (
     <IconComponent 
       className={className}
@@ -196,11 +196,6 @@ export const Icon: React.FC<IconProps> = ({ icon, className = '', size = 20, col
       style={color ? { color } : undefined}
     />
   );
-};
-
-// Get icon component by key with fallback
-export const getIconComponent = (iconKey: string): React.ComponentType<React.SVGProps<SVGSVGElement>> => {
-  return iconMapping[iconKey] || FileText;
 };
 
 interface CategoryIconProps {

@@ -35,10 +35,10 @@ export const AccountSlider = ({
     <div
       ref={sliderRef}
       className={accountStyles.slider.container}
-      style={{ WebkitOverflowScrolling: 'touch' }}
+      style={accountStyles.slider.scrollStyle}
       onWheel={handleWheel}
     >
-      <div className={accountStyles.slider.inner} style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+      <div className={accountStyles.slider.inner} style={accountStyles.slider.innerStyle}>
         {accounts.map((account, index) => {
           const accountBalance = accountBalances[account.id] || 0;
 
@@ -56,7 +56,7 @@ export const AccountSlider = ({
         {/* Add Account Placeholder */}
         {accounts.length === 0 && (
           <div className={accountStyles.slider.addPlaceholder}>
-            <div className="text-center">
+            <div className={accountStyles.slider.addPlaceholderContent}>
               <CreditCard className={accountStyles.slider.addPromptIcon} />
               <p className={accountStyles.slider.addPromptLabel}>
                 Aggiungi Account

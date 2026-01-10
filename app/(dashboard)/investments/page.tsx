@@ -4,7 +4,7 @@
 
 import { Suspense } from 'react';
 import InvestmentsContent from './investments-content';
-import { PageLoader } from '@/src/components/shared';
+import { PageLoader } from '@/components/shared';
 import { getDashboardData } from '@/lib/auth/get-dashboard-data';
 
 export default async function InvestmentsPage() {

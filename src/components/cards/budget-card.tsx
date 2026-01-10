@@ -1,17 +1,14 @@
 /**
  * BudgetCard - Domain card for budgets
- *
- * Refactored to use DomainCard abstraction with custom footer for progress bar
- * Reduced from 103 lines to ~75 lines (27% reduction)
- * Follows DRY principle by leveraging shared card layout
  */
 
 "use client";
 
 import { memo } from "react";
-import { IconContainer, StatusBadge, Text } from "@/src/components/ui";
-import { Budget, CategoryIcon, iconSizes, progressBarVariants, progressFillVariants } from "@/src/lib";
+import { IconContainer, StatusBadge, Text } from "@/components/ui";
+import { Budget, CategoryIcon, iconSizes, progressBarVariants, progressFillVariants } from "@/lib";
 import { formatCurrency } from "@/lib/utils/currency-formatter";
+import { cardStyles, getBudgetProgressStyle, getBudgetStatusTextClass } from "./theme/card-styles";
 
 interface BudgetCardProps {
   budget: Budget;
@@ -33,47 +30,41 @@ export const BudgetCard = memo(function BudgetCard({ budget, budgetInfo, onClick
   };
 
   // Get text color class based on status
-  const getTextColorClass = (status: "success" | "warning" | "danger"): string => {
-    if (status === "success") return "text-success";
-    if (status === "warning") return "text-warning";
-    return "text-destructive";
-  };
-
   const remaining = budgetInfo?.remaining ?? budget.amount;
   const progress = budgetInfo?.progress || 0;
   const status = getStatusVariant(progress);
 
-  // Custom subtitle with status badge (rendered inline without DomainCard subtitle slot)
+  // Custom subtitle with status badge
   // We'll use a custom implementation for this specific case
   return (
     <button
-      className="px-3 py-2 hover:bg-accent/10 transition-colors duration-200 cursor-pointer w-full text-left"
+      className={cardStyles.budget.container}
       onClick={onClick}
       data-testid={`budget-card-${budget.id}`}
     >
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-3 flex-1">
+      <div className={cardStyles.budget.row}>
+        <div className={cardStyles.budget.left}>
           {/* Icon Container */}
           <IconContainer size="md" color="primary">
             <CategoryIcon categoryKey={budget.categories?.[0] || "altro"} size={iconSizes.md} />
           </IconContainer>
 
-          <div className="flex-1">
+          <div className={cardStyles.budget.content}>
             {/* Budget title */}
-            <Text variant="heading" size="sm" className="truncate max-w-35 sm:max-w-40 mb-1">
+            <Text variant="heading" size="sm" className={cardStyles.budget.title}>
               {budget.description}
             </Text>
 
             {/* Progress badge */}
-            <StatusBadge status={status} size="sm" showDot className="w-fit">
+            <StatusBadge status={status} size="sm" showDot className={cardStyles.budget.statusBadge}>
               {Math.round(progress)}%
             </StatusBadge>
           </div>
         </div>
 
-        <div className="text-right shrink-0 ml-2">
+        <div className={cardStyles.budget.right}>
           {/* Remaining amount */}
-          <Text variant="emphasis" size="sm" className={getTextColorClass(status)}>
+          <Text variant="emphasis" size="sm" className={getBudgetStatusTextClass(status)}>
             {formatCurrency(remaining)}
           </Text>
           <Text variant="subtle" size="xs">
@@ -83,9 +74,9 @@ export const BudgetCard = memo(function BudgetCard({ budget, budgetInfo, onClick
       </div>
 
       {/* Progress Bar */}
-      <div className="relative">
+      <div className={cardStyles.budget.progress}>
         <div className={progressBarVariants({ status })}>
-          <div className={progressFillVariants({ status })} style={{ width: `${Math.min(progress, 100)}%` }} />
+          <div className={progressFillVariants({ status })} style={getBudgetProgressStyle(progress)} />
         </div>
       </div>
     </button>

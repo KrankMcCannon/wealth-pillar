@@ -17,12 +17,12 @@ import { SkeletonBox } from "@/components/ui/primitives";
 export default function AccountsLoading() {
   return (
     <PageContainer className={accountStyles.page.container}>
-      <div className="flex-1">
+      <div className={accountStyles.loading.body}>
         {/* Header Skeleton */}
         <AccountHeaderSkeleton />
 
         {/* Main Content Loading States */}
-        <main className="space-y-6 px-4 py-6">
+        <main className={accountStyles.loading.main}>
           {/* Total Balance Skeleton */}
           <SkeletonBox height="h-32" variant="medium" />
 

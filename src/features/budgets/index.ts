@@ -3,7 +3,7 @@
  */
 
 // Components
-export { BudgetCard } from "@/src/components/cards";
+export { BudgetCard } from "@/components/cards";
 export * from "./components/budget-period-info";
 export * from "./components/budget-period-manager";
 export * from "./components/budget-period-card";

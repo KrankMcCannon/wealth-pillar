@@ -6,7 +6,7 @@
  * Follows consistent design system and spacing patterns
  */
 
-import { PageLoader } from '@/src/components/shared';
+import { PageLoader } from '@/components/shared';
 
 export default function ReportsLoading() {
   return (

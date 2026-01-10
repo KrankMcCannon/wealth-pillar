@@ -16,7 +16,8 @@
  */
 
 import * as React from "react";
-import { cn, statusBadgeVariants, StatusBadgeVariants } from '@/src/lib';
+import { cn, statusBadgeVariants, type StatusBadgeVariants } from "@/lib/utils";
+import { statusBadgeStyles } from "./theme/status-badge-styles";
 
 export interface StatusBadgeProps
   extends React.HTMLAttributes<HTMLDivElement>,
@@ -40,7 +41,7 @@ export function StatusBadge({
       className={cn(statusBadgeVariants({ status, size }), className)}
       {...props}
     >
-      {showDot && <div className="w-2 h-2 rounded-full bg-current shrink-0" />}
+      {showDot && <div className={statusBadgeStyles.dot} />}
       {children}
     </div>
   );

@@ -2,11 +2,17 @@
 
 import { Suspense } from "react";
 import { useRouter } from "next/navigation";
-import { Budget, BudgetPeriod, User, progressBarVariants } from "@/src/lib";
-import { BudgetSectionSkeleton } from "@/src/features/dashboard";
-import { SectionHeader } from "@/src/components/layout";
-import { BudgetCard } from "@/src/components/cards";
+import { Budget, BudgetPeriod, User, progressBarVariants } from "@/lib";
+import { BudgetSectionSkeleton } from "@/features/dashboard";
+import { SectionHeader } from "@/components/layout";
+import { BudgetCard } from "@/components/cards";
 import { formatCurrency } from "@/lib/utils/currency-formatter";
+import {
+  budgetStyles,
+  getBudgetSectionProgressStyles,
+  getBudgetGroupCardStyle,
+  getBudgetSectionProgressBarStyle,
+} from "../theme/budget-styles";
 
 interface BudgetSectionProps {
   budgetsByUser: Record<
@@ -69,22 +75,22 @@ export const BudgetSection = ({
 
   if (budgetEntries.length === 0) {
     return (
-      <section className="bg-card px-3 pt-3">
-        <SectionHeader title="Budget" subtitle="Monitora le tue spese per categoria" className="mb-3" />
+      <section className={budgetStyles.section.container}>
+        <SectionHeader title="Budget" subtitle="Monitora le tue spese per categoria" className={budgetStyles.sectionHeader.container} />
 
-        <div className="bg-card rounded-2xl p-8 text-center border border-primary/20 shadow-sm">
-          <div className="flex size-16 items-center justify-center rounded-2xl bg-linear-to-br from-primary/10 to-primary/5 mx-auto mb-4 shadow-sm">
-            <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
-              <span className="text-primary font-bold text-lg">€</span>
+        <div className={budgetStyles.section.emptyContainer}>
+          <div className={budgetStyles.section.emptyIconWrap}>
+            <div className={budgetStyles.section.emptyIconInner}>
+              <span className={budgetStyles.section.emptyIconText}>€</span>
             </div>
           </div>
-          <h3 className="font-semibold text-primary mb-2">Nessun budget configurato</h3>
-          <p className="text-sm text-black/70 mb-4 max-w-sm mx-auto">
+          <h3 className={budgetStyles.section.emptyTitle}>Nessun budget configurato</h3>
+          <p className={budgetStyles.section.emptyDescription}>
             Crea dei budget per monitorare le tue spese e tenere sotto controllo le finanze familiari
           </p>
           <button
             onClick={() => router.push("/budgets")}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl font-medium text-sm hover:shadow-lg hover:shadow-primary/25 transition-all duration-300 hover:scale-105"
+            className={budgetStyles.section.emptyButton}
           >
             Crea Budget
           </button>
@@ -94,15 +100,15 @@ export const BudgetSection = ({
   }
 
   return (
-    <section className="bg-card px-4 py-4">
+    <section className={budgetStyles.section.container}>
       <SectionHeader
         title="Budget"
         subtitle={budgetEntries.length > 1 ? `${budgetEntries.length} utenti con budget attivi` : undefined}
-        className="mb-3"
+        className={budgetStyles.sectionHeader.container}
         leading={headerLeading}
       />
 
-      <div className="space-y-4">
+      <div className={budgetStyles.transactions.container}>
         {budgetEntries
           .sort((a, b) => b.totalBudget - a.totalBudget)
           .map((userBudgetGroup, index) => {
@@ -116,27 +122,26 @@ export const BudgetSection = ({
               totalSpent,
               overallPercentage,
             } = userBudgetGroup;
+            const progressClasses = getBudgetSectionProgressStyles(overallPercentage);
 
             return (
               <div
                 key={user.id}
-                className="bg-card shadow-sm border border-primary/20 rounded-xl overflow-hidden"
-                style={{
-                  animationDelay: `${index * 150}ms`,
-                }}
+                className={budgetStyles.section.groupCard}
+                style={getBudgetGroupCardStyle(index)}
               >
                 {/* Mobile-First Compact User Header */}
-                <div className="bg-card p-3 border-b border-primary/20">
+                <div className={budgetStyles.section.groupHeader}>
                   {/* User Info Row */}
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <div className="flex size-7 items-center justify-center rounded-lg bg-linear-to-br from-primary/10 to-primary/5 shadow-sm">
-                        <span className="text-xs font-bold text-primary">{user.name.charAt(0).toUpperCase()}</span>
+                  <div className={budgetStyles.section.groupRow}>
+                    <div className={budgetStyles.section.groupLeft}>
+                      <div className={budgetStyles.section.avatar}>
+                        <span className={budgetStyles.section.avatarText}>{user.name.charAt(0).toUpperCase()}</span>
                       </div>
                       <div>
-                        <h3 className="text-sm font-semibold">{user.name}</h3>
+                        <h3 className={budgetStyles.section.groupText}>{user.name}</h3>
                         {activePeriod && periodStart && (
-                          <div className="text-xs">
+                          <div className={budgetStyles.section.periodText}>
                             {new Date(periodStart).toLocaleDateString("it-IT", { day: "numeric", month: "short" })} -{" "}
                             {periodEnd
                               ? new Date(periodEnd).toLocaleDateString("it-IT", { day: "numeric", month: "short" })
@@ -147,47 +152,33 @@ export const BudgetSection = ({
                     </div>
 
                     {/* Budget Amount - Right Side */}
-                    <div className="text-right">
-                      <div className="text-sm font-bold">
-                        <span className={overallPercentage > 100 ? "text-destructive" : "text-primary"}>
+                    <div className={budgetStyles.transactions.dayStats}>
+                      <div className={budgetStyles.section.amount}>
+                        <span className={progressClasses.amount}>
                           {formatCurrency(totalSpent)}
                         </span>
-                        <span className="text-primary/50 font-normal"> / </span>
+                        <span className={budgetStyles.section.amountDivider}> / </span>
                         <span>{formatCurrency(totalBudget)}</span>
                       </div>
                     </div>
                   </div>
 
                   {/* Progress Bar with Inline Percentage */}
-                  <div className="flex items-center gap-2">
+                  <div className={budgetStyles.section.progressRow}>
                     <div
                       className={progressBarVariants({
                         status: overallPercentage > 100 ? "danger" : overallPercentage > 75 ? "warning" : "neutral",
                       })}
                     >
                       <div
-                        className={`h-full rounded-full transition-all duration-1000 ease-out ${(() => {
-                          if (overallPercentage > 100) return "bg-destructive";
-                          if (overallPercentage > 75) return "bg-warning";
-                          return "bg-primary";
-                        })()}`}
-                        style={{ width: `${Math.min(overallPercentage, 100)}%` }}
+                        className={`${budgetStyles.progress.barFillBase} ${progressClasses.bar}`}
+                        style={getBudgetSectionProgressBarStyle(overallPercentage)}
                       />
                     </div>
-                    <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-primary/10">
-                      <div
-                        className={`w-1.5 h-1.5 rounded-full ${(() => {
-                          if (overallPercentage > 100) return "bg-destructive";
-                          if (overallPercentage > 75) return "bg-warning";
-                          return "bg-primary";
-                        })()}`}
-                      />
+                    <div className={budgetStyles.section.progressBadge}>
+                      <div className={`${budgetStyles.section.progressBadgeDot} ${progressClasses.dot}`} />
                       <span
-                        className={`text-xs font-bold ${(() => {
-                          if (overallPercentage > 100) return "text-destructive";
-                          if (overallPercentage > 75) return "text-warning";
-                          return "text-primary";
-                        })()}`}
+                        className={`${budgetStyles.section.progressBadgeText} ${progressClasses.text}`}
                       >
                         {Math.round(overallPercentage)}%
                       </span>
@@ -196,7 +187,7 @@ export const BudgetSection = ({
                 </div>
 
                 {/* User's Budget Cards */}
-                <div className="divide-y divide-primary/10">
+                <div className={budgetStyles.section.cardsDivider}>
                   {userBudgets
                     .sort((a, b) => b.amount - a.amount)
                     .map((budgetInfo) => {
@@ -214,16 +205,16 @@ export const BudgetSection = ({
                         <Suspense
                           key={budget.id}
                           fallback={
-                            <div className="px-3 py-2 animate-pulse">
-                              <div className="flex items-center gap-3">
-                                <div className="w-11 h-11 bg-primary/10 rounded-2xl"></div>
-                                <div className="flex-1">
-                                  <div className="h-4 bg-primary/15 rounded w-24 mb-1"></div>
-                                  <div className="h-3 bg-primary/15 rounded w-16"></div>
+                            <div className={budgetStyles.section.cardSkeleton}>
+                              <div className={budgetStyles.section.cardSkeletonRow}>
+                                <div className={budgetStyles.section.cardSkeletonIcon}></div>
+                                <div className={budgetStyles.section.cardSkeletonBody}>
+                                  <div className={budgetStyles.section.cardSkeletonTitle}></div>
+                                  <div className={budgetStyles.section.cardSkeletonSubtitle}></div>
                                 </div>
-                                <div className="text-right">
-                                  <div className="h-4 bg-primary/15 rounded w-20 mb-1"></div>
-                                  <div className="h-3 bg-primary/15 rounded w-12"></div>
+                                <div className={budgetStyles.section.cardSkeletonRight}>
+                                  <div className={budgetStyles.section.cardSkeletonAmount}></div>
+                                  <div className={budgetStyles.section.cardSkeletonSubAmount}></div>
                                 </div>
                               </div>
                             </div>

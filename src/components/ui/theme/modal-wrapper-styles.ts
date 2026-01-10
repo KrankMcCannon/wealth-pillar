@@ -1,0 +1,20 @@
+export const modalWrapperStyles = {
+  dialogHeader: "text-left",
+  dialogTitle: "text-lg font-semibold text-black",
+  dialogDescription: "text-sm text-muted-foreground",
+  dialogDescriptionHidden: "sr-only",
+  content: "text-black flex-1 overflow-y-auto pt-4",
+  loadingWrap: "flex items-center justify-center py-8",
+  loadingDot: "liquid-pulse size-8 rounded-full bg-primary/20",
+  loadingText: "ml-3 text-sm text-muted-foreground",
+  drawerContent: "p-0",
+  drawerHeader: "text-left bg-card px-4 py-3 border-b border-border shrink-0",
+  drawerTitle: "text-lg font-semibold text-black",
+  drawerDescription: "text-sm text-muted-foreground mt-1",
+  drawerContentBody: "px-4 py-3 text-black flex-1 overflow-y-auto pt-4",
+  drawerFooter: "pt-3 pb-4 px-4 border-t border-border bg-card shrink-0",
+  modalSection: "flex flex-col",
+  modalSectionTitle:
+    "text-xs font-semibold text-black/80 uppercase tracking-wide shrink-0",
+  modalActions: "flex flex-col-reverse gap-2 sm:flex-row sm:justify-end",
+} as const;

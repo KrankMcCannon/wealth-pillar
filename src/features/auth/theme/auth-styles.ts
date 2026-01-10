@@ -1,79 +1,181 @@
 /**
  * Auth Style Utilities
  * Organized by component section for consistency and maintainability
- * Follows design system tokens defined in auth-tokens.ts
+ * Uses core design tokens from @/styles/core-tokens
  */
 
+import { coreTokens } from '@/styles/core-tokens';
+import { authTokens } from './auth-tokens';
+
 export const authStyles = {
-  // Page background with gradient blobs
+  // ============================================================================
+  // PAGE LAYOUT
+  // Full-page container with decorative background blobs
+  // ============================================================================
+
   page: {
-    container: 'h-full w-full flex items-center justify-center px-0 sm:px-4 relative',
-    bgBlobTop:
-      'pointer-events-none absolute -top-24 -left-24 h-72 w-72 rounded-full blur-3xl opacity-15 bg-[hsl(var(--color-primary))]',
-    bgBlobBottom:
-      'pointer-events-none absolute -bottom-24 -right-24 h-72 w-72 rounded-full blur-3xl opacity-15 bg-[hsl(var(--color-secondary))]',
+    container:
+      'h-full w-full flex items-center justify-center px-0 sm:px-4 relative',
+    bgBlobTop: `pointer-events-none absolute -top-24 -left-24 h-72 w-72 rounded-full blur-3xl opacity-15 bg-[${coreTokens.color.primary}]`,
+    bgBlobBottom: `pointer-events-none absolute -bottom-24 -right-24 h-72 w-72 rounded-full blur-3xl opacity-15 bg-[${coreTokens.color.secondary}]`,
+  },
+  layout: {
+    container: 'h-dvh w-screen bg-background flex items-center justify-center relative overflow-hidden',
+    main: 'w-full h-full flex items-center justify-center',
+    footer: 'absolute bottom-2 left-0 right-0',
+    footerText: `mx-auto max-w-6xl px-4 text-center ${coreTokens.typography.xs} text-primary/60`,
+  },
+  loading: {
+    container: 'flex flex-col items-center justify-center py-8 space-y-4',
+    spinner: `h-12 w-12 animate-spin text-[${coreTokens.color.primary}]`,
+    spinnerRing: 'border-b-2 border-current rounded-full',
+    text: `${coreTokens.typography.sm} text-center text-[${coreTokens.color.mutedForeground}]`,
+  },
+  errorPage: {
+    container: 'space-y-4',
+    description: `${coreTokens.typography.sm} text-center text-[${coreTokens.color.mutedForeground}]`,
+    retryButton: `w-full px-4 py-2 bg-[${coreTokens.color.primary}] text-[${coreTokens.color.primaryForeground}] ${coreTokens.radius.sm} hover:opacity-90 transition-opacity`,
+    backLink: `${coreTokens.typography.sm} block text-center text-[${coreTokens.color.mutedForeground}] hover:text-[${coreTokens.color.foreground}] transition-colors`,
   },
 
-  // Error messages
+  // ============================================================================
+  // ERROR MESSAGES
+  // Error display for form validation failures
+  // ============================================================================
+
   error: {
-    container: 'mb-2 rounded-lg bg-red-50 p-2 text-xs text-red-700 border border-red-200 flex items-start gap-2',
+    container: `mb-2 ${coreTokens.radius.sm} bg-[${authTokens.validation.error.bg}] p-2 ${coreTokens.typography.xs} text-[${authTokens.validation.error.text}] border border-[${authTokens.validation.error.border}] flex items-start gap-2`,
     icon: 'h-4 w-4 shrink-0 mt-0.5',
     text: 'flex-1',
   },
 
-  // Form layout
+  // ============================================================================
+  // FORM LAYOUT
+  // Form structure using auth component tokens
+  // ============================================================================
+
   form: {
-    container: 'space-y-2',
-    fieldGroup: 'space-y-1',
+    container: authTokens.components.form.group,
+    fieldGroup: authTokens.components.form.field,
   },
 
-  // Label
+  // ============================================================================
+  // LABEL
+  // Form field labels
+  // ============================================================================
+
   label: {
-    base: 'text-xs font-medium text-gray-900',
+    base: `${coreTokens.typography.label} text-[${coreTokens.color.foreground}]`,
   },
 
-  // Input wrapper with icon
+  // ============================================================================
+  // INPUT WRAPPER
+  // Input field with optional icon prefix
+  // ============================================================================
+
   input: {
     wrapper: 'relative',
-    icon: 'absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[hsl(var(--color-primary))]/60',
-    field: 'pl-9 h-9 text-sm bg-white border-[hsl(var(--color-primary))]/20 focus:border-[hsl(var(--color-primary))] focus:ring-[hsl(var(--color-primary))]/20 placeholder:text-primary/40',
+    icon: authTokens.input.icon,
+    field: `pl-9 ${authTokens.input.base} placeholder:text-primary/40`,
   },
 
-  // Primary button
+  // ============================================================================
+  // BUTTONS
+  // Primary action button and loading spinner
+  // ============================================================================
+
   button: {
-    primary: 'w-full h-9 bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-200 active:scale-[.98] shadow-md text-sm font-medium',
-    icon: 'mr-2 h-3.5 w-3.5 animate-spin',
+    primary: `${authTokens.button.primary} ${coreTokens.radius.md}`,
+    icon: `mr-2 h-3.5 w-3.5 animate-spin`,
   },
 
-  // Divider
+  // ============================================================================
+  // DIVIDER
+  // "Or continue with" divider section
+  // ============================================================================
+
   divider: {
-    container: 'flex items-center gap-3 py-1',
-    line: 'h-px bg-[hsl(var(--color-primary))]/20 flex-1',
-    text: 'text-xs text-gray-500 font-medium',
+    container: authTokens.components.divider,
+    line: 'h-px bg-primary/20 flex-1',
+    text: `${coreTokens.typography.xs} text-[${coreTokens.color.mutedForeground}] font-medium`,
   },
 
-  // Social buttons container
+  // ============================================================================
+  // SOCIAL BUTTONS
+  // OAuth provider buttons container
+  // ============================================================================
+
   socialButtons: {
     container: 'space-y-1.5',
-    button: 'w-full h-9 transition-all duration-200 hover:opacity-95 active:scale-[.98] text-sm',
+    button: `w-full h-9 ${coreTokens.animation.classes.transition} hover:opacity-95 active:scale-[.98] ${coreTokens.typography.sm}`,
+    base: 'bg-white text-black border border-primary hover:border-primary/40 transition-all shadow-sm',
+    google: 'hover:bg-primary/5',
+    apple: 'hover:bg-secondary/5',
+    github: 'hover:bg-accent/5',
+    icon: 'h-4 w-4 mr-2',
+    iconSecondary: 'text-secondary',
+    iconAccent: 'text-accent',
+  },
+  card: {
+    container: 'w-full max-w-md mx-auto px-2 sm:px-4',
+    surface: 'rounded-2xl bg-white p-4 sm:p-5 shadow-xl border border-primary/20',
+    header: 'mb-3',
+    headerRow: 'flex items-center gap-2 justify-center mb-2',
+    headerSlot: 'shrink-0 w-6 h-6',
+    headerSlotSpacer: 'shrink-0 w-6',
+    headerCenter: 'flex-1 text-center',
+    brand: 'text-primary text-xl font-bold tracking-tight',
+    title: 'text-xl font-bold text-primary tracking-tight mt-0.5',
+    subtitle: 'text-center text-xs text-black/60',
+  },
+  userButton: {
+    trigger: 'flex items-center gap-2 px-2 py-1 h-auto',
+    avatarWrap: 'w-8 h-8 rounded-xl overflow-hidden bg-primary/10',
+    avatarImage: 'h-full w-full object-cover',
+    nameWrap: 'flex flex-col items-start text-left',
+    name: 'text-sm font-medium',
+    role: 'text-xs capitalize',
+    menu: 'w-56',
+    menuLabel: 'flex flex-col space-y-1',
+    menuName: 'text-sm font-medium leading-none',
+    menuEmail: 'text-xs leading-none',
+    menuRole: 'text-xs leading-none capitalize',
+    menuIcon: 'mr-2 h-4 w-4',
+    destructiveItem: 'text-destructive focus:text-destructive',
   },
 
-  // Terms and conditions toggle
+  // ============================================================================
+  // TERMS & CONDITIONS
+  // Bottom links for sign-in/sign-up toggle
+  // ============================================================================
+
   toggle: {
-    container: 'text-center text-xs text-gray-600 pt-1',
-    link: 'text-[hsl(var(--color-primary))] hover:text-[hsl(var(--color-primary))]/80 font-semibold',
+    container: `text-center ${coreTokens.typography.xs} text-[${coreTokens.color.mutedForeground}] pt-1`,
+    text: `${coreTokens.typography.xs} text-[${coreTokens.color.mutedForeground}]`,
+    link: `text-[${coreTokens.color.primary}] hover:text-primary/80 font-semibold`,
   },
 
-  // Action buttons container
+  // ============================================================================
+  // ACTION BUTTONS
+  // Container layouts for action buttons
+  // ============================================================================
+
   actions: {
     container: 'flex items-center justify-between gap-3',
     group: 'flex items-center gap-3',
     row: 'flex items-center justify-between',
   },
-};
+} as const;
+
+// ============================================================================
+// HELPER FUNCTIONS
+// Utilities for dynamic styling based on state
+// ============================================================================
 
 /**
- * Helper function to get input styles with icon
+ * Get input styles with optional icon
+ * @param withIcon - Whether to include icon spacing
+ * @returns Object with wrapper and input class strings
  */
 export function getInputStyles(withIcon: boolean = true): {
   wrapper: string;
@@ -81,12 +183,16 @@ export function getInputStyles(withIcon: boolean = true): {
 } {
   return {
     wrapper: authStyles.input.wrapper,
-    input: `${authStyles.input.field}${withIcon ? ' ' + authStyles.input.field : ''}`,
+    input: withIcon
+      ? authStyles.input.field
+      : authStyles.input.field.replace('pl-9', 'px-3'),
   };
 }
 
 /**
- * Helper function to get button loading state
+ * Get button loading state
+ * @param isLoading - Whether the button is in loading state
+ * @returns Object with disabled state and opacity class
  */
 export function getButtonLoadingState(isLoading: boolean): {
   disabled: boolean;

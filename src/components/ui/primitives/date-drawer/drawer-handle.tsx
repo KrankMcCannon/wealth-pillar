@@ -10,7 +10,7 @@
  * - Visual affordance for drag gesture
  */
 
-import { calendarDrawerStyles } from "@/src/lib/styles/calendar-drawer.styles";
+import { calendarDrawerStyles } from "@/lib/styles/calendar-drawer.styles";
 
 /**
  * DrawerHandle - Visual indicator for drawer dismissal

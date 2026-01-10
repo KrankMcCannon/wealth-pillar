@@ -10,9 +10,9 @@
  * - Responsive typography
  */
 
-import { calendarDrawerStyles } from "@/src/lib/styles/calendar-drawer.styles";
-import { weekdayLabelVariants } from "@/src/lib/utils/date-drawer-variants";
-import { cn } from "@/src/lib/utils/ui-variants";
+import { calendarDrawerStyles } from "@/lib/styles/calendar-drawer.styles";
+import { weekdayLabelVariants } from "@/lib/utils/date-drawer-variants";
+import { cn } from "@/lib/utils";
 
 /**
  * Italian weekday abbreviations

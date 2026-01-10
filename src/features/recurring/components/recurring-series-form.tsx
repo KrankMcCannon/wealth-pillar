@@ -12,7 +12,7 @@ import {
   createRecurringSeriesAction,
   updateRecurringSeriesAction,
 } from "@/features/recurring/actions/recurring-actions";
-import { FormActions, FormField, FormSelect, MultiUserSelect } from "@/src/components/form";
+import { FormActions, FormField, FormSelect, MultiUserSelect } from "@/components/form";
 import {
   AccountField,
   AmountField,
@@ -22,8 +22,9 @@ import {
   ModalContent,
   ModalSection,
   ModalWrapper,
-} from "@/src/components/ui";
+} from "@/components/ui";
 import { todayDateString, toDateString, toDateTime } from "@/lib/utils/date-utils";
+import { recurringStyles } from "../theme/recurring-styles";
 
 type Mode = "create" | "edit";
 
@@ -341,7 +342,7 @@ export function RecurringSeriesForm({
   };
 
   return (
-    <form className="space-y-4" onSubmit={handleSubmit}>
+    <form className={recurringStyles.form.form} onSubmit={handleSubmit}>
       <ModalWrapper
         isOpen={isOpen}
         onOpenChange={onOpenChange}
@@ -361,13 +362,13 @@ export function RecurringSeriesForm({
         <ModalContent>
           {/* Error message */}
           {errors.submit && (
-            <div className="mb-4 p-3 rounded-lg bg-destructive/10 border border-destructive/20">
-              <p className="text-sm text-destructive">{errors.submit}</p>
+            <div className={recurringStyles.form.errorWrap}>
+              <p className={recurringStyles.form.errorText}>{errors.submit}</p>
             </div>
           )}
 
           <ModalSection>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className={recurringStyles.form.grid}>
               {/* Tipo */}
               <FormField label="Tipo" required error={errors.type}>
                 <FormSelect
@@ -405,7 +406,7 @@ export function RecurringSeriesForm({
               />
             </FormField>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className={recurringStyles.form.grid}>
               {/* Conto */}
               <AccountField
                 value={formData.account_id}

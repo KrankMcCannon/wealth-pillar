@@ -5,22 +5,23 @@
 
 import { SkeletonList } from "@/components/ui/primitives";
 import { SHIMMER_BASE } from "@/lib/utils/ui-constants";
+import { accountStyles } from "../theme/account-styles";
 
 /**
  * Header skeleton loader for accounts page
  */
 export function AccountHeaderSkeleton() {
   return (
-    <header className="sticky top-0 z-10 bg-[#F8FAFC]/95 backdrop-blur-sm border-b border-border">
-      <div className="flex items-center justify-between px-4 py-4">
-        <div className="flex items-center gap-3 flex-1">
-          <div className="w-9 h-9 bg-primary/10 rounded-lg animate-pulse" />
-          <div className="flex-1">
-            <div className="h-5 w-32 bg-primary/15 rounded animate-pulse mb-2" />
-            <div className="h-3 w-16 bg-primary/15 rounded animate-pulse" />
+    <header className={accountStyles.skeleton.header.container}>
+      <div className={accountStyles.skeleton.header.row}>
+        <div className={accountStyles.skeleton.header.left}>
+          <div className={accountStyles.skeleton.header.icon} />
+          <div className={accountStyles.skeleton.list.body}>
+            <div className={accountStyles.skeleton.header.title} />
+            <div className={accountStyles.skeleton.header.subtitle} />
           </div>
         </div>
-        <div className="w-9 h-9 bg-primary/10 rounded-lg animate-pulse" />
+        <div className={accountStyles.skeleton.header.action} />
       </div>
     </header>
   );
@@ -31,28 +32,28 @@ export function AccountHeaderSkeleton() {
  */
 export function BalanceCardSkeleton() {
   return (
-    <div className={`px-4 py-6`}>
-      <div className={`bg-card rounded-2xl p-6 border border-primary/20 shadow-xl space-y-4 ${SHIMMER_BASE}`}>
+    <div className={accountStyles.skeleton.balance.container}>
+      <div className={`${accountStyles.skeleton.balance.card} ${SHIMMER_BASE}`}>
         {/* Header */}
-        <div className="flex items-center justify-between mb-4">
+        <div className={accountStyles.skeleton.balance.header}>
           <div>
-            <div className="h-3 w-20 bg-primary/15 rounded mb-2" />
-            <div className="h-8 w-32 bg-primary/15 rounded" />
+            <div className={accountStyles.skeleton.balance.label} />
+            <div className={accountStyles.skeleton.balance.value} />
           </div>
-          <div className="w-14 h-14 bg-primary/10 rounded-full" />
+          <div className={accountStyles.skeleton.balance.avatar} />
         </div>
 
         {/* Statistics grid */}
         <SkeletonList
           count={3}
-          spacing="grid grid-cols-3 gap-3 mt-6"
+          spacing={accountStyles.skeleton.balance.statsGrid}
           renderItem={() => (
-            <div className="bg-primary/5 rounded-lg p-3 border border-primary/10 space-y-2">
-              <div className="flex items-center gap-2 mb-1">
-                <div className="w-4 h-4 bg-primary/15 rounded" />
-                <div className="h-2 w-12 bg-primary/15 rounded" />
+            <div className={accountStyles.skeleton.balance.statCard}>
+              <div className={accountStyles.skeleton.balance.statRow}>
+                <div className={accountStyles.skeleton.balance.statIcon} />
+                <div className={accountStyles.skeleton.balance.statLabel} />
               </div>
-              <div className="h-5 w-8 bg-primary/15 rounded" />
+              <div className={accountStyles.skeleton.balance.statValue} />
             </div>
           )}
         />
@@ -66,24 +67,24 @@ export function BalanceCardSkeleton() {
  */
 export function AccountListSkeleton() {
   return (
-    <div className="px-4">
-      <div className="h-5 w-32 bg-primary/15 rounded animate-pulse mb-4" />
+    <div className={accountStyles.skeleton.list.container}>
+      <div className={accountStyles.skeleton.list.title} />
     <SkeletonList
       count={3}
       spacing="space-y-3"
       renderItem={() => (
-        <div className={`p-4 rounded-lg border border-primary/20 bg-card ${SHIMMER_BASE}`}>
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-3 flex-1">
-              <div className="w-10 h-10 bg-primary/10 rounded-lg" />
-              <div className="flex-1">
-                <div className="h-4 w-24 bg-primary/15 rounded mb-2" />
-                <div className="h-3 w-16 bg-primary/15 rounded" />
+        <div className={`${accountStyles.skeleton.list.item} ${SHIMMER_BASE}`}>
+          <div className={accountStyles.skeleton.list.row}>
+            <div className={accountStyles.skeleton.list.left}>
+              <div className={accountStyles.skeleton.list.icon} />
+              <div className={accountStyles.skeleton.list.body}>
+                <div className={accountStyles.skeleton.list.line} />
+                <div className={accountStyles.skeleton.list.subline} />
               </div>
             </div>
-            <div className="text-right">
-              <div className="h-4 w-20 bg-primary/15 rounded mb-1" />
-              <div className="h-3 w-16 bg-primary/15 rounded" />
+            <div className={accountStyles.skeleton.list.right}>
+              <div className={accountStyles.skeleton.list.amount} />
+              <div className={accountStyles.skeleton.list.amountSub} />
             </div>
           </div>
         </div>
@@ -98,13 +99,13 @@ export function AccountListSkeleton() {
  */
 export function BalanceSectionSliderSkeleton() {
   return (
-    <div className="overflow-x-auto scrollbar-hide mb-4">
+    <div className={accountStyles.skeleton.slider.container}>
       <SkeletonList
         count={3}
         spacing="flex gap-3 pb-2"
         height="h-24"
         width="w-60"
-        className="shrink-0 border border-primary/20 bg-primary/10"
+        className={accountStyles.skeleton.slider.item}
       />
     </div>
   );
@@ -115,7 +116,7 @@ export function BalanceSectionSliderSkeleton() {
  */
 export function AccountsPageSkeleton() {
   return (
-    <div className="min-h-screen bg-[#F8FAFC] pb-14">
+    <div className={accountStyles.skeleton.page.container}>
       <AccountHeaderSkeleton />
       <BalanceCardSkeleton />
       <AccountListSkeleton />

@@ -32,14 +32,15 @@ export function cn(...inputs: ClassValue[]) {
  */
 export const cardVariants = cva(
   // Base styles - always applied
-  "card-soft transition-all duration-200",
+  "bg-card text-primary flex flex-col rounded-xl border border-primary/20 shadow-sm",
   {
     variants: {
       variant: {
-        default: "hover:shadow-xl hover:border-primary/30",
-        elevated: "shadow-2xl border-primary/40",
+        default: "",
+        elevated: "shadow-xl border-primary/30",
         flat: "shadow-none border-primary/10",
-        interactive: "cursor-pointer hover:bg-interactive-hover hover:scale-[1.02]",
+        interactive:
+          "cursor-pointer transition-transform hover:shadow-md hover:border-primary/30 hover:scale-[1.01]",
         glass: "liquid-glass",
       },
       padding: {
@@ -51,7 +52,7 @@ export const cardVariants = cva(
     },
     defaultVariants: {
       variant: "default",
-      padding: "md",
+      padding: "none",
     },
   }
 );

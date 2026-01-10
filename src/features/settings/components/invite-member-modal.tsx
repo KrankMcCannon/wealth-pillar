@@ -5,11 +5,11 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Loader2, Mail } from "lucide-react";
-import { ModalWrapper, ModalActions } from "@/src/components/ui/modal-wrapper";
-import { Button } from "@/components/ui";
-import { useToast } from "@/src/components/ui/toast";
-import { sendGroupInvitationAction } from "@/src/features/settings/actions";
-import { cn } from "@/src/lib";
+import { Button, ModalActions, ModalWrapper } from "@/components/ui";
+import { toast } from "@/hooks/use-toast";
+import { sendGroupInvitationAction } from "@/features/settings/actions";
+import { settingsStyles } from "../theme";
+import { SettingsModalField, SettingsModalForm } from "./settings-modal-form";
 
 // ============================================================================
 // VALIDATION SCHEMA
@@ -70,7 +70,6 @@ export function InviteMemberModal({
   currentUserId,
   onSuccess,
 }: InviteMemberModalProps) {
-  const { showToast } = useToast();
 
   const {
     register,
@@ -101,19 +100,19 @@ export function InviteMemberModal({
       );
 
       if (error) {
-        showToast({
-          type: "error",
+        toast({
           title: "Errore nell'invio",
           description: error,
+          variant: "destructive",
         });
         return;
       }
 
       // Show success toast
-      showToast({
-        type: "success",
+      toast({
         title: "Invito inviato",
         description: `Un invito è stato inviato a ${data.email}`,
+        variant: "success",
       });
 
       // Call onSuccess callback if provided
@@ -125,10 +124,10 @@ export function InviteMemberModal({
       onOpenChange(false);
     } catch (error) {
       console.error("Error sending invitation:", error);
-      showToast({
-        type: "error",
+      toast({
         title: "Errore",
         description: "Si è verificato un errore durante l'invio dell'invito",
+        variant: "destructive",
       });
     }
   };
@@ -139,6 +138,8 @@ export function InviteMemberModal({
       onOpenChange={onOpenChange}
       title="Invita Membro"
       description="Invia un invito per unirsi al gruppo"
+      titleClassName={settingsStyles.modals.title}
+      descriptionClassName={settingsStyles.modals.description}
       disableOutsideClose={isSubmitting}
       footer={
         <ModalActions>
@@ -146,23 +147,23 @@ export function InviteMemberModal({
             variant="outline"
             onClick={() => onOpenChange(false)}
             disabled={isSubmitting}
-            className="w-full sm:w-auto"
+            className={settingsStyles.modals.actionsButton}
           >
             Annulla
           </Button>
           <Button
             onClick={handleSubmit(onSubmit)}
             disabled={isSubmitting}
-            className="w-full sm:w-auto"
+            className={settingsStyles.modals.actionsButton}
           >
             {isSubmitting ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Loader2 className={settingsStyles.modals.loadingIcon} />
                 Invio...
               </>
             ) : (
               <>
-                <Mail className="mr-2 h-4 w-4" />
+                <Mail className={settingsStyles.modals.iconSmall} />
                 Invia Invito
               </>
             )}
@@ -170,47 +171,31 @@ export function InviteMemberModal({
         </ModalActions>
       }
     >
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        {/* Email Field */}
-        <div>
-          <label
-            htmlFor="email"
-            className="block text-sm font-medium text-gray-900 mb-1.5"
-          >
-            Indirizzo email del nuovo membro
-          </label>
-          <input
-            id="email"
-            type="email"
-            {...register("email")}
-            className={cn(
-              "w-full px-3 py-2 text-sm rounded-lg",
-              "border border-gray-300 bg-white text-gray-900",
-              "placeholder:text-gray-400",
-              "focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary",
-              "disabled:opacity-50 disabled:cursor-not-allowed",
-              errors.email && "border-red-500 focus:ring-red-500/20 focus:border-red-500"
-            )}
-            placeholder="nuovo.membro@example.com"
-            disabled={isSubmitting}
-            autoComplete="email"
-            autoFocus
-          />
-          {errors.email && (
-            <p className="mt-1.5 text-sm text-red-600">{errors.email.message}</p>
-          )}
-        </div>
+      <SettingsModalForm onSubmit={handleSubmit(onSubmit)}>
+        <SettingsModalField
+          id="email"
+          label="Indirizzo email del nuovo membro"
+          error={errors.email?.message}
+          inputProps={{
+            type: "email",
+            placeholder: "nuovo.membro@example.com",
+            disabled: isSubmitting,
+            autoComplete: "email",
+            autoFocus: true,
+            ...register("email"),
+          }}
+        />
 
         {/* Info message */}
-        <div className="rounded-lg bg-blue-50 border border-blue-200 p-3">
-          <p className="text-sm text-blue-800">
-            <strong className="font-semibold">Nota:</strong> Il nuovo membro
+        <div className={settingsStyles.modals.invite.infoBox}>
+          <p className={settingsStyles.modals.invite.infoText}>
+            <strong className={settingsStyles.modals.invite.infoStrong}>Nota:</strong> Il nuovo membro
             riceverà un&apos;email con un link di invito valido per 7 giorni. Potrà
             accettare l&apos;invito creando un account o accedendo con un account
             esistente.
           </p>
         </div>
-      </form>
+      </SettingsModalForm>
     </ModalWrapper>
   );
 }

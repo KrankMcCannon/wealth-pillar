@@ -42,7 +42,7 @@ export const dashboardStyles = {
 
   // Balance section
   balanceSection: {
-    container: 'px-4 py-6',
+    container: 'p-4',
     header: 'mb-4',
     title: 'text-sm font-medium text-muted mb-3',
     grid: 'grid gap-3',
@@ -137,6 +137,36 @@ export const dashboardStyles = {
     text: 'h-4 bg-primary/15 rounded w-3/4',
     card: 'h-24 bg-primary/15 rounded-xl',
     line: 'h-2 bg-primary/12 rounded w-full',
+  },
+  skeletons: {
+    shimmer: 'liquid-shimmer bg-primary/12',
+    headerIcon: 'w-8 h-8 rounded-xl',
+    headerTextGroup: 'flex flex-col gap-1',
+    headerLinePrimary: 'h-4 w-24 rounded',
+    headerLineSecondary: 'h-3 w-20 rounded',
+    userPill: 'shrink-0 h-8 w-20 rounded-full',
+    accountRow: 'flex justify-between gap-2',
+    accountLinePrimary: 'h-4 w-24 rounded flex-1',
+    accountLineSecondary: 'h-4 w-20 rounded',
+    budgetRow: 'flex gap-3 mb-3',
+    budgetIcon: 'w-8 h-8 rounded',
+    budgetText: 'flex-1 space-y-1',
+    budgetLinePrimary: 'h-4 w-24 rounded',
+    budgetLineSecondary: 'h-3 w-20 rounded',
+    budgetProgress: 'h-2 rounded-full mb-3',
+    budgetStats: 'grid grid-cols-2 gap-2',
+    budgetStat: 'h-8 rounded',
+    recurringRow: 'flex justify-between mb-2 gap-2',
+    recurringLinePrimary: 'h-4 w-24 rounded flex-1',
+    recurringLineSecondary: 'h-6 w-16 rounded',
+    recurringLineTertiary: 'h-3 w-32 rounded',
+  },
+  loading: {
+    content: 'space-y-6 px-4 py-6',
+  },
+  groupLoading: {
+    container: 'flex items-center justify-center min-h-screen',
+    card: 'space-y-4 max-w-md w-full px-4',
   },
 
   // Error state

@@ -19,7 +19,7 @@
 import { useState, useCallback } from "react";
 import { format, addMonths, subMonths, isValid, startOfYear } from "date-fns";
 import * as Dialog from "@radix-ui/react-dialog";
-import { calendarDrawerStyles } from "@/src/lib/styles/calendar-drawer.styles";
+import { calendarDrawerStyles } from "@/lib/styles/calendar-drawer.styles";
 import { DrawerHandle, WeekdayLabels, MonthGrid, MonthHeader, QuickPresets } from "./primitives/date-drawer";
 
 export interface MobileCalendarDrawerProps {

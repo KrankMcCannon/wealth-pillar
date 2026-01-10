@@ -17,13 +17,13 @@ export default function BudgetsLoading() {
   return (
     <div className={budgetStyles.page.container}>
       {/* Header Skeleton */}
-      <header className="sticky top-0 z-10 bg-card/80 backdrop-blur-sm border-b border-border/50 px-4 py-3">
-        <div className="h-6 w-32 bg-slate-200 rounded animate-pulse" />
+      <header className={budgetStyles.loading.header}>
+        <div className={budgetStyles.loading.title} />
       </header>
 
       {/* Main Content Loading States */}
       <main className={budgetStyles.page.main}>
-        <div className="space-y-6 px-4 py-6">
+        <div className={budgetStyles.loading.content}>
           {/* Budget Selector Skeleton */}
           <BudgetSelectorSkeleton />
 
@@ -31,7 +31,7 @@ export default function BudgetsLoading() {
           <BudgetCardSkeleton />
 
           {/* Budget Details Skeleton */}
-          <div className="space-y-4">
+          <div className={budgetStyles.loading.details}>
             <SkeletonBox height="h-12" variant="medium" />
             <SkeletonList count={5} height="h-16" spacing="space-y-2" variant="light" />
           </div>

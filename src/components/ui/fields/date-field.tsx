@@ -15,15 +15,15 @@
 
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { format, parse, isValid } from "date-fns";
 import { it } from "date-fns/locale";
 import { Calendar as CalendarIcon, X } from "lucide-react";
 import { FormField } from "@/components/form";
 import { Input, Button } from "@/components/ui";
 import { MobileCalendarDrawer } from "../mobile-calendar-drawer";
-import { calendarDrawerStyles } from "@/src/lib/styles/calendar-drawer.styles";
-import { calendarTriggerVariants } from "@/src/lib/utils/date-drawer-variants";
+import { calendarDrawerStyles } from "@/lib/styles/calendar-drawer.styles";
+import { calendarTriggerVariants } from "@/lib/utils/date-drawer-variants";
 
 export interface DateFieldProps {
   /** Current date value (YYYY-MM-DD format for API compatibility) */
@@ -66,23 +66,20 @@ export function DateField({
   label = "Data",
 }: DateFieldProps) {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [inputValue, setInputValue] = useState("");
-
-  // Sync input value with prop value
-  useEffect(() => {
+  const formattedValue = useMemo(() => {
     if (value && isValid(new Date(value))) {
-      const date = new Date(value);
-      setInputValue(format(date, "dd/MM/yyyy", { locale: it }));
-    } else {
-      setInputValue("");
+      return format(new Date(value), "dd/MM/yyyy", { locale: it });
     }
+    return "";
   }, [value]);
+  const [isEditing, setIsEditing] = useState(false);
+  const [draftValue, setDraftValue] = useState(formattedValue);
 
   // Handle manual text input
   const handleInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const newValue = e.target.value;
-      setInputValue(newValue);
+      setDraftValue(newValue);
 
       // Try to parse DD/MM/YYYY format
       if (newValue.length === 10) {
@@ -101,10 +98,11 @@ export function DateField({
   const handleInputBlur = useCallback(() => {
     if (value && isValid(new Date(value))) {
       const date = new Date(value);
-      setInputValue(format(date, "dd/MM/yyyy", { locale: it }));
+      setDraftValue(format(date, "dd/MM/yyyy", { locale: it }));
     } else if (!value) {
-      setInputValue("");
+      setDraftValue("");
     }
+    setIsEditing(false);
   }, [value]);
 
   // Clear date
@@ -112,7 +110,8 @@ export function DateField({
     (e: React.MouseEvent) => {
       e.stopPropagation();
       onChange("");
-      setInputValue("");
+      setDraftValue("");
+      setIsEditing(false);
     },
     [onChange]
   );
@@ -123,9 +122,13 @@ export function DateField({
         {/* Text Input with Clear Button */}
         <div className={calendarDrawerStyles.input.wrapper}>
           <Input
-            value={inputValue}
+            value={isEditing ? draftValue : formattedValue}
             onChange={handleInputChange}
             onBlur={handleInputBlur}
+            onFocus={() => {
+              setIsEditing(true);
+              setDraftValue(formattedValue);
+            }}
             placeholder="GG/MM/AAAA"
             className={calendarDrawerStyles.input.field}
             autoComplete="off"

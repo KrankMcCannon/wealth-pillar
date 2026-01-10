@@ -1,11 +1,12 @@
 "use client";
 
 import { Suspense } from "react";
-import { Account, User } from "@/src/lib";
-import { BalanceSectionSkeleton } from "@/src/features/dashboard";
+import { Account, User } from "@/lib";
+import { BalanceSectionSkeleton } from "@/features/dashboard";
 import { AccountSlider } from "./AccountSlider";
 import { TotalBalanceLink } from "./TotalBalanceLink";
 import { BalanceSectionSliderSkeleton } from "./account-skeletons";
+import { accountStyles } from "../theme/account-styles";
 
 interface BalanceSectionProps {
   accounts: Account[];
@@ -53,7 +54,7 @@ export const BalanceSection = ({
   const accountCount = totalAccountsCount !== undefined ? totalAccountsCount : accounts.length;
 
   return (
-    <section className={"bg-card p-4 shadow-sm"}>
+    <section className={accountStyles.balanceSection.container}>
       {/* Account Slider Section */}
       <Suspense fallback={<BalanceSectionSliderSkeleton />}>
         <AccountSlider accounts={accounts} accountBalances={accountBalances} onAccountClick={onAccountClick} />

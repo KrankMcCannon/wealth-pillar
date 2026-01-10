@@ -6,7 +6,7 @@
  *
  * @example
  * ```tsx
- * import { Text, IconContainer, StatusBadge } from "@/src/components/ui/primitives";
+ * import { Text, IconContainer, StatusBadge } from "@/components/ui/primitives";
  * ```
  */
 

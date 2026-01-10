@@ -1,16 +1,17 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import * as SelectPrimitive from "@radix-ui/react-select"
-import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "lucide-react"
-import { cn } from '@/src/lib';
+import * as React from "react";
+import * as SelectPrimitive from "@radix-ui/react-select";
+import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { selectStyles } from "@/styles/system";
+import { selectComponentStyles } from "./theme/select-component-styles";
 
-const Select = SelectPrimitive.Root
+const Select = SelectPrimitive.Root;
 
-const SelectGroup = SelectPrimitive.Group
+const SelectGroup = SelectPrimitive.Group;
 
-const SelectValue = SelectPrimitive.Value
+const SelectValue = SelectPrimitive.Value;
 
 const SelectTrigger = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Trigger>,
@@ -18,10 +19,8 @@ const SelectTrigger = React.forwardRef<
 >(({ className, children, ...props }, ref) => (
   <SelectPrimitive.Trigger
     ref={ref}
-    className={cn(
-      selectStyles.trigger,
-      className
-    )}
+    data-slot="select-trigger"
+    className={cn(selectStyles.trigger, className)}
     {...props}
   >
     {children}
@@ -38,13 +37,11 @@ const SelectScrollUpButton = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <SelectPrimitive.ScrollUpButton
     ref={ref}
-    className={cn(
-      "flex cursor-default items-center justify-center py-1",
-      className
-    )}
+    data-slot="select-scroll-up-button"
+    className={cn(selectComponentStyles.scrollButton, className)}
     {...props}
   >
-    <ChevronUpIcon className="h-4 w-4" />
+    <ChevronUpIcon className={selectComponentStyles.scrollIcon} />
   </SelectPrimitive.ScrollUpButton>
 ))
 SelectScrollUpButton.displayName = SelectPrimitive.ScrollUpButton.displayName
@@ -55,13 +52,11 @@ const SelectScrollDownButton = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <SelectPrimitive.ScrollDownButton
     ref={ref}
-    className={cn(
-      "flex cursor-default items-center justify-center py-1",
-      className
-    )}
+    data-slot="select-scroll-down-button"
+    className={cn(selectComponentStyles.scrollButton, className)}
     {...props}
   >
-    <ChevronDownIcon className="h-4 w-4" />
+    <ChevronDownIcon className={selectComponentStyles.scrollIcon} />
   </SelectPrimitive.ScrollDownButton>
 ))
 SelectScrollDownButton.displayName =
@@ -74,10 +69,11 @@ const SelectContent = React.forwardRef<
   <SelectPrimitive.Portal>
     <SelectPrimitive.Content
       ref={ref}
+      data-slot="select-content"
       className={cn(
         selectStyles.content,
         position === "popper" &&
-          "data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1",
+          selectComponentStyles.contentOffset,
         className
       )}
       position={position}
@@ -88,7 +84,7 @@ const SelectContent = React.forwardRef<
         className={cn(
           selectStyles.viewportBase,
           position === "popper" &&
-            "h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]"
+            selectComponentStyles.viewportPopper
         )}
       >
         {children}
@@ -105,6 +101,7 @@ const SelectLabel = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <SelectPrimitive.Label
     ref={ref}
+    data-slot="select-label"
     className={cn(selectStyles.label, className)}
     {...props}
   />
@@ -117,15 +114,13 @@ const SelectItem = React.forwardRef<
 >(({ className, children, ...props }, ref) => (
   <SelectPrimitive.Item
     ref={ref}
-    className={cn(
-      selectStyles.item,
-      className
-    )}
+    data-slot="select-item"
+    className={cn(selectStyles.item, className)}
     {...props}
   >
     <span className={selectStyles.itemIndicator}>
       <SelectPrimitive.ItemIndicator>
-        <CheckIcon className="h-4 w-4" />
+        <CheckIcon className={selectComponentStyles.itemCheckIcon} />
       </SelectPrimitive.ItemIndicator>
     </span>
 
@@ -140,6 +135,7 @@ const SelectSeparator = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <SelectPrimitive.Separator
     ref={ref}
+    data-slot="select-separator"
     className={cn(selectStyles.separator, className)}
     {...props}
   />

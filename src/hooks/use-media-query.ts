@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 
 /**
  * Custom hook for responsive design using media queries
@@ -13,28 +13,16 @@ import { useEffect, useState } from "react";
  * const isMobile = useMediaQuery("(max-width: 767px)");
  */
 export function useMediaQuery(query: string): boolean {
-  const [matches, setMatches] = useState(false);
+  const getSnapshot = () =>
+    typeof window === "undefined" ? false : window.matchMedia(query).matches;
 
-  useEffect(() => {
-    // Create media query list
+  const subscribe = (callback: () => void) => {
     const mediaQuery = window.matchMedia(query);
+    const handleChange = () => callback();
 
-    // Set initial value
-    setMatches(mediaQuery.matches);
-
-    // Define callback for changes
-    const handleChange = (event: MediaQueryListEvent) => {
-      setMatches(event.matches);
-    };
-
-    // Add listener (modern API)
     mediaQuery.addEventListener("change", handleChange);
+    return () => mediaQuery.removeEventListener("change", handleChange);
+  };
 
-    // Cleanup
-    return () => {
-      mediaQuery.removeEventListener("change", handleChange);
-    };
-  }, [query]);
-
-  return matches;
+  return useSyncExternalStore(subscribe, getSnapshot, () => false);
 }

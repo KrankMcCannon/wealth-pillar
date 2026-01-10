@@ -5,7 +5,7 @@
 import { Suspense } from 'react';
 import { getDashboardData } from '@/lib/auth/get-dashboard-data';
 import { PageDataService } from '@/lib/services';
-import { PageLoader } from '@/src/components/shared';
+import { PageLoader } from '@/components/shared';
 import { getUserPeriodsAction } from '@/features/budgets/actions/budget-period-actions';
 import ReportsContent from './reports-content';
 

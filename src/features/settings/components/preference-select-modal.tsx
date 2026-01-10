@@ -2,12 +2,12 @@
 
 import * as React from "react";
 import { Check, Loader2 } from "lucide-react";
-import { ModalWrapper, ModalActions } from "@/src/components/ui/modal-wrapper";
-import { Button } from "@/components/ui";
-import { useToast } from "@/src/components/ui/toast";
-import { updateUserPreferencesAction } from "@/src/features/settings/actions";
+import { Button, ModalActions, ModalWrapper } from "@/components/ui";
+import { toast } from "@/hooks/use-toast";
+import { updateUserPreferencesAction } from "@/features/settings/actions";
 import type { UserPreferencesUpdate } from "@/lib/services/user-preferences.service";
-import { cn } from "@/src/lib";
+import { cn } from "@/lib";
+import { settingsStyles } from "../theme";
 
 // ============================================================================
 // TYPES & INTERFACES
@@ -72,7 +72,6 @@ export function PreferenceSelectModal({
   preferenceKey,
   onSuccess,
 }: PreferenceSelectModalProps) {
-  const { showToast } = useToast();
   const [selectedValue, setSelectedValue] = React.useState(currentValue);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
@@ -86,10 +85,10 @@ export function PreferenceSelectModal({
   const handleSave = async () => {
     // Check if value changed
     if (selectedValue === currentValue) {
-      showToast({
-        type: "info",
+      toast({
         title: "Nessuna modifica",
         description: "Il valore selezionato è già quello attuale",
+        variant: "info",
       });
       onOpenChange(false);
       return;
@@ -106,10 +105,10 @@ export function PreferenceSelectModal({
       const { error } = await updateUserPreferencesAction(userId, updates);
 
       if (error) {
-        showToast({
-          type: "error",
+        toast({
           title: "Errore",
           description: error,
+          variant: "destructive",
         });
         setIsSubmitting(false);
         return;
@@ -117,10 +116,10 @@ export function PreferenceSelectModal({
 
       // Show success toast
       const selectedOption = options.find((opt) => opt.value === selectedValue);
-      showToast({
-        type: "success",
+      toast({
         title: "Preferenza aggiornata",
         description: `${title} impostato su ${selectedOption?.label || selectedValue}`,
+        variant: "success",
       });
 
       // Call onSuccess callback if provided
@@ -133,10 +132,10 @@ export function PreferenceSelectModal({
       setIsSubmitting(false);
     } catch (error) {
       console.error("Error updating preference:", error);
-      showToast({
-        type: "error",
+      toast({
         title: "Errore",
         description: "Si è verificato un errore durante l'aggiornamento",
+        variant: "destructive",
       });
       setIsSubmitting(false);
     }
@@ -148,6 +147,8 @@ export function PreferenceSelectModal({
       onOpenChange={onOpenChange}
       title={title}
       description={description}
+      titleClassName={settingsStyles.modals.title}
+      descriptionClassName={settingsStyles.modals.description}
       disableOutsideClose={isSubmitting}
       footer={
         <ModalActions>
@@ -155,18 +156,18 @@ export function PreferenceSelectModal({
             variant="outline"
             onClick={() => onOpenChange(false)}
             disabled={isSubmitting}
-            className="w-full sm:w-auto"
+            className={settingsStyles.modals.actionsButton}
           >
             Annulla
           </Button>
           <Button
             onClick={handleSave}
             disabled={isSubmitting || selectedValue === currentValue}
-            className="w-full sm:w-auto"
+            className={settingsStyles.modals.actionsButton}
           >
             {isSubmitting ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Loader2 className={settingsStyles.modals.loadingIcon} />
                 Salvataggio...
               </>
             ) : (
@@ -176,7 +177,7 @@ export function PreferenceSelectModal({
         </ModalActions>
       }
     >
-      <div className="space-y-2">
+      <div className={settingsStyles.modals.preference.list}>
         {options.map((option) => {
           const isSelected = selectedValue === option.value;
           const isCurrent = currentValue === option.value;
@@ -188,46 +189,42 @@ export function PreferenceSelectModal({
               onClick={() => setSelectedValue(option.value)}
               disabled={isSubmitting}
               className={cn(
-                "w-full text-left px-4 py-3 rounded-lg border-2 transition-all",
-                "flex items-start gap-3",
-                "hover:border-primary/40 hover:bg-primary/5",
-                "focus:outline-none focus:ring-2 focus:ring-primary/20",
-                "disabled:opacity-50 disabled:cursor-not-allowed",
+                settingsStyles.modals.preference.itemBase,
                 isSelected
-                  ? "border-primary bg-primary/10"
-                  : "border-gray-200 bg-white"
+                  ? settingsStyles.modals.preference.itemActive
+                  : settingsStyles.modals.preference.itemIdle
               )}
             >
               {/* Radio indicator */}
               <div
                 className={cn(
-                  "mt-0.5 shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all",
+                  settingsStyles.modals.preference.radioBase,
                   isSelected
-                    ? "border-primary bg-primary"
-                    : "border-gray-300 bg-white"
+                    ? settingsStyles.modals.preference.radioActive
+                    : settingsStyles.modals.preference.radioIdle
                 )}
               >
-                {isSelected && <Check className="h-3 w-3 text-white" />}
+                {isSelected && <Check className={settingsStyles.modals.preference.radioIcon} />}
               </div>
 
               {/* Content */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
+              <div className={settingsStyles.modals.preference.content}>
+                <div className={settingsStyles.modals.preference.titleRow}>
                   <span
                     className={cn(
-                      "text-sm font-semibold",
-                      isSelected ? "text-primary" : "text-gray-900"
+                      settingsStyles.modals.preference.title,
+                      isSelected ? settingsStyles.modals.preference.titleActive : settingsStyles.modals.preference.titleIdle
                     )}
                   >
                     {option.label}
                   </span>
                   {isCurrent && (
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-medium">
+                    <span className={settingsStyles.modals.preference.currentBadge}>
                       Attuale
                     </span>
                   )}
                 </div>
-                <p className="text-sm text-gray-600 mt-0.5">
+                <p className={settingsStyles.modals.preference.description}>
                   {option.description}
                 </p>
               </div>

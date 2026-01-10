@@ -5,12 +5,12 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Loader2 } from "lucide-react";
-import { ModalWrapper, ModalActions } from "@/src/components/ui/modal-wrapper";
-import { Button } from "@/components/ui";
-import { useToast } from "@/src/components/ui/toast";
-import { updateUserProfileAction } from "@/src/features/settings/actions";
+import { Button, ModalActions, ModalWrapper } from "@/components/ui";
+import { toast } from "@/hooks/use-toast";
+import { updateUserProfileAction } from "@/features/settings/actions";
 import { useReferenceDataStore } from "@/stores/reference-data-store";
-import { cn } from "@/src/lib";
+import { settingsStyles } from "../theme";
+import { SettingsModalField, SettingsModalForm } from "./settings-modal-form";
 
 // ============================================================================
 // VALIDATION SCHEMA
@@ -76,7 +76,6 @@ export function EditProfileModal({
   currentName,
   currentEmail,
 }: EditProfileModalProps) {
-  const { showToast } = useToast();
   const updateCurrentUser = useReferenceDataStore((state) => state.updateCurrentUser);
 
   const {
@@ -106,10 +105,10 @@ export function EditProfileModal({
     try {
       // Check if anything changed
       if (data.name === currentName && data.email === currentEmail) {
-        showToast({
-          type: "info",
+        toast({
           title: "Nessuna modifica",
           description: "Non hai apportato modifiche al profilo",
+          variant: "info",
         });
         onOpenChange(false);
         return;
@@ -122,19 +121,19 @@ export function EditProfileModal({
       });
 
       if (error) {
-        showToast({
-          type: "error",
+        toast({
           title: "Errore",
           description: error,
+          variant: "destructive",
         });
         return;
       }
 
       if (!updatedUser) {
-        showToast({
-          type: "error",
+        toast({
           title: "Errore",
           description: "Impossibile aggiornare il profilo",
+          variant: "destructive",
         });
         return;
       }
@@ -146,20 +145,20 @@ export function EditProfileModal({
       });
 
       // Show success toast
-      showToast({
-        type: "success",
+      toast({
         title: "Profilo aggiornato",
         description: "Le modifiche sono state salvate con successo",
+        variant: "success",
       });
 
       // Close modal
       onOpenChange(false);
     } catch (error) {
       console.error("Error updating profile:", error);
-      showToast({
-        type: "error",
+      toast({
         title: "Errore",
         description: "Si è verificato un errore durante l'aggiornamento",
+        variant: "destructive",
       });
     }
   };
@@ -170,6 +169,8 @@ export function EditProfileModal({
       onOpenChange={onOpenChange}
       title="Modifica Profilo"
       description="Aggiorna il tuo nome e indirizzo email"
+      titleClassName={settingsStyles.modals.title}
+      descriptionClassName={settingsStyles.modals.description}
       disableOutsideClose={isSubmitting}
       footer={
         <ModalActions>
@@ -177,18 +178,18 @@ export function EditProfileModal({
             variant="outline"
             onClick={() => onOpenChange(false)}
             disabled={isSubmitting}
-            className="w-full sm:w-auto"
+            className={settingsStyles.modals.actionsButton}
           >
             Annulla
           </Button>
           <Button
             onClick={handleSubmit(onSubmit)}
             disabled={isSubmitting}
-            className="w-full sm:w-auto"
+            className={settingsStyles.modals.actionsButton}
           >
             {isSubmitting ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Loader2 className={settingsStyles.modals.loadingIcon} />
                 Salvataggio...
               </>
             ) : (
@@ -198,65 +199,33 @@ export function EditProfileModal({
         </ModalActions>
       }
     >
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        {/* Name Field */}
-        <div>
-          <label
-            htmlFor="name"
-            className="block text-sm font-medium text-gray-900 mb-1.5"
-          >
-            Nome completo
-          </label>
-          <input
-            id="name"
-            type="text"
-            {...register("name")}
-            className={cn(
-              "w-full px-3 py-2 text-sm rounded-lg",
-              "border border-gray-300 bg-white text-gray-900",
-              "placeholder:text-gray-400",
-              "focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary",
-              "disabled:opacity-50 disabled:cursor-not-allowed",
-              errors.name && "border-red-500 focus:ring-red-500/20 focus:border-red-500"
-            )}
-            placeholder="Mario Rossi"
-            disabled={isSubmitting}
-            autoComplete="name"
-          />
-          {errors.name && (
-            <p className="mt-1.5 text-sm text-red-600">{errors.name.message}</p>
-          )}
-        </div>
+      <SettingsModalForm onSubmit={handleSubmit(onSubmit)}>
+        <SettingsModalField
+          id="name"
+          label="Nome completo"
+          error={errors.name?.message}
+          inputProps={{
+            type: "text",
+            placeholder: "Mario Rossi",
+            disabled: isSubmitting,
+            autoComplete: "name",
+            ...register("name"),
+          }}
+        />
 
-        {/* Email Field */}
-        <div>
-          <label
-            htmlFor="email"
-            className="block text-sm font-medium text-gray-900 mb-1.5"
-          >
-            Indirizzo email
-          </label>
-          <input
-            id="email"
-            type="email"
-            {...register("email")}
-            className={cn(
-              "w-full px-3 py-2 text-sm rounded-lg",
-              "border border-gray-300 bg-white text-gray-900",
-              "placeholder:text-gray-400",
-              "focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary",
-              "disabled:opacity-50 disabled:cursor-not-allowed",
-              errors.email && "border-red-500 focus:ring-red-500/20 focus:border-red-500"
-            )}
-            placeholder="mario.rossi@example.com"
-            disabled={isSubmitting}
-            autoComplete="email"
-          />
-          {errors.email && (
-            <p className="mt-1.5 text-sm text-red-600">{errors.email.message}</p>
-          )}
-        </div>
-      </form>
+        <SettingsModalField
+          id="email"
+          label="Indirizzo email"
+          error={errors.email?.message}
+          inputProps={{
+            type: "email",
+            placeholder: "mario.rossi@example.com",
+            disabled: isSubmitting,
+            autoComplete: "email",
+            ...register("email"),
+          }}
+        />
+      </SettingsModalForm>
     </ModalWrapper>
   );
 }

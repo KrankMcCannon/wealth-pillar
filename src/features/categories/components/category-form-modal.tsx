@@ -1,15 +1,17 @@
 "use client";
 
 import { useEffect, useMemo } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Category, cn } from "@/src/lib";
+import { Category, cn } from "@/lib";
+import { getTempId } from "@/lib/utils/temp-id";
 import { CategoryService } from "@/lib/services";
+import { categoryStyles, getCategoryColorStyle } from "../theme/category-styles";
 import { createCategoryAction, updateCategoryAction } from "@/features/categories/actions/category-actions";
-import { ModalWrapper, ModalContent, ModalSection } from "@/src/components/ui/modal-wrapper";
-import { FormActions, FormField } from "@/src/components/form";
-import { IconPicker, Input } from "@/src/components/ui";
+import { ModalWrapper, ModalContent, ModalSection } from "@/components/ui/modal-wrapper";
+import { FormActions, FormField } from "@/components/form";
+import { IconPicker, Input } from "@/components/ui";
 import { useRequiredGroupId } from "@/hooks";
 import { useCategories, useReferenceDataStore } from "@/stores/reference-data-store";
 
@@ -62,7 +64,7 @@ function CategoryFormModal({
   const {
     register,
     handleSubmit,
-    watch,
+    control,
     setValue,
     reset,
     setError,
@@ -77,9 +79,9 @@ function CategoryFormModal({
     }
   });
 
-  const watchedLabel = watch("label");
-  const watchedColor = watch("color");
-  const watchedIcon = watch("icon");
+  const watchedLabel = useWatch({ control, name: "label" });
+  const watchedColor = useWatch({ control, name: "color" });
+  const watchedIcon = useWatch({ control, name: "icon" });
 
   // Get color palette from CategoryService
   const colorPalette = useMemo(() => CategoryService.getColorPalette(), []);
@@ -159,7 +161,7 @@ function CategoryFormModal({
       } else {
         // CREATE: Optimistic add pattern
         // 1. Create temporary ID
-        const tempId = `temp-${Date.now()}`;
+        const tempId = getTempId("temp-category");
         const now = new Date().toISOString();
         const optimisticCategory: Category = {
           id: tempId,
@@ -211,7 +213,7 @@ function CategoryFormModal({
   };
 
   return (
-    <form className="space-y-4">
+    <form className={categoryStyles.formModal.form}>
       <ModalWrapper
         isOpen={isOpen}
         onOpenChange={onClose}
@@ -231,7 +233,7 @@ function CategoryFormModal({
         <ModalContent>
           {/* Submit Error Display */}
           {errors.root && (
-            <div className="px-3 py-2 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-md">
+            <div className={categoryStyles.formModal.error}>
               {errors.root.message}
             </div>
           )}
@@ -256,9 +258,9 @@ function CategoryFormModal({
 
             {/* Color */}
             <FormField label="Colore" required error={errors.color?.message}>
-              <div className="space-y-3">
+              <div className={categoryStyles.formModal.colorSection}>
                 {/* Color palette */}
-                <div className="grid grid-cols-8 gap-2">
+                <div className={categoryStyles.formModal.palette}>
                   {colorPalette.map((color) => (
                     <button
                       key={color.value}
@@ -266,19 +268,19 @@ function CategoryFormModal({
                       onClick={() => setValue("color", color.value)}
                       disabled={isSubmitting}
                       className={cn(
-                        "group relative aspect-square rounded-lg transition-all duration-200",
+                        categoryStyles.formModal.colorButton,
                         watchedColor.toUpperCase() === color.value.toUpperCase()
-                          ? "ring-2 ring-primary ring-offset-2 ring-offset-background scale-110"
-                          : "hover:scale-105 hover:ring-2 hover:ring-primary/30 hover:ring-offset-2 hover:ring-offset-background",
-                        isSubmitting && "opacity-50 cursor-not-allowed"
+                          ? categoryStyles.formModal.colorActive
+                          : categoryStyles.formModal.colorIdle,
+                        isSubmitting && categoryStyles.formModal.colorDisabled
                       )}
-                      style={{ backgroundColor: color.value }}
+                      style={getCategoryColorStyle(color.value)}
                       title={color.name}
                     >
                       {watchedColor.toUpperCase() === color.value.toUpperCase() && (
-                        <div className="absolute inset-0 flex items-center justify-center">
+                        <div className={categoryStyles.formModal.checkWrap}>
                           <svg
-                            className="h-4 w-4 text-white drop-shadow-lg"
+                            className={categoryStyles.formModal.checkIcon}
                             fill="none"
                             strokeWidth="3"
                             stroke="currentColor"

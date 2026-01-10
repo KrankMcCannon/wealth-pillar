@@ -12,6 +12,7 @@
 8. [Usage Examples](#usage-examples)
 9. [Adding New Features](#adding-new-features)
 10. [Best Practices](#best-practices)
+11. [UI Architecture & Migration Notes](#ui-architecture--migration-notes)
 
 ---
 
@@ -1150,6 +1151,43 @@ static async getLoggedUserInfo(clerkId: string): Promise<ServiceResult<User>> {
   // ...
 }
 ```
+
+---
+
+## UI Architecture & Migration Notes
+
+### Modern UI Stack (2025)
+- **Next.js 16 + React 19**
+- **TailwindCSS v4** with `@theme` tokens in `app/globals.css`
+- **shadcn/ui** primitives in `src/components/ui` using Radix + Tailwind v4 conventions
+- **Vaul** for drawers, **Radix Toast** for notifications
+
+### Single Source of Truth
+- **Class merging:** `cn` from `src/lib/utils/ui-variants.ts` (do not reintroduce other `cn` helpers).
+- **Tokens:** `src/styles/core-tokens.ts` references `var(--color-*)` tokens only.
+- **Component styles:** `src/styles/system.ts` for shared style objects (cards, buttons, tabs, etc.).
+
+### Import Conventions
+- Prefer `@/components/ui` for UI primitives and `@/lib/utils` for `cn`/variants/utilities.
+- Remove legacy `@/src/*` imports; use `@/*` paths only.
+
+### Toasts (New Standard)
+- Use `toast({ title, description, variant })` from `src/hooks/use-toast.ts`.
+- `Toaster` is mounted once in `app/layout.tsx`.
+- Variants: `default`, `destructive`, `success`, `info`.
+
+### Drawers and Modals
+- Drawers use **Vaul** in `src/components/ui/drawer.tsx`.
+- `ModalWrapper` renders **Dialog** on desktop and **Drawer** on mobile.
+
+### Deprecated / Removed
+- `withTailwindOpacity` and duplicate `cn` helpers (removed).
+- Custom toast context implementation (replaced by Radix Toast).
+
+### Migration Checklist (for future work)
+- Add new UI primitives via `src/components/ui` with `forwardRef` + `data-slot` attributes.
+- Keep colors in CSS variables only (`var(--color-*)`), no `hsl(var(--color-*))` wrappers.
+- Use `useWatch` for React Hook Form watchers (avoid `watch()` in render).
 
 ---
 

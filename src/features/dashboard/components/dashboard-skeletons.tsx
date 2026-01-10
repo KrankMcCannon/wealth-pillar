@@ -14,9 +14,7 @@ import { dashboardStyles } from '../theme/dashboard-styles';
  * The liquid-shimmer class provides a smooth, performant gradient effect
  */
 const skeletonClasses = {
-  // Use liquid-shimmer class which is defined in globals.css for consistent branding
-  shimmer: 'liquid-shimmer bg-primary/12',
-  pulse: 'animate-pulse',
+  shimmer: dashboardStyles.skeletons.shimmer,
 };
 
 /**
@@ -28,15 +26,15 @@ export function DashboardHeaderSkeleton() {
     <header className={dashboardStyles.header.container}>
       <div className={dashboardStyles.header.inner}>
         <div className={dashboardStyles.header.section.left}>
-          <div className={`w-8 h-8 rounded-xl ${skeletonClasses.shimmer}`} />
-          <div className="flex flex-col gap-1">
-            <div className={`h-4 w-24 rounded ${skeletonClasses.shimmer}`} />
-            <div className={`h-3 w-20 rounded ${skeletonClasses.shimmer}`} />
+          <div className={`${dashboardStyles.skeletons.headerIcon} ${skeletonClasses.shimmer}`} />
+          <div className={dashboardStyles.skeletons.headerTextGroup}>
+            <div className={`${dashboardStyles.skeletons.headerLinePrimary} ${skeletonClasses.shimmer}`} />
+            <div className={`${dashboardStyles.skeletons.headerLineSecondary} ${skeletonClasses.shimmer}`} />
           </div>
         </div>
         <div className={dashboardStyles.header.section.right}>
-          <div className={`w-8 h-8 rounded-xl ${skeletonClasses.shimmer}`} />
-          <div className={`w-8 h-8 rounded-xl ${skeletonClasses.shimmer}`} />
+          <div className={`${dashboardStyles.skeletons.headerIcon} ${skeletonClasses.shimmer}`} />
+          <div className={`${dashboardStyles.skeletons.headerIcon} ${skeletonClasses.shimmer}`} />
         </div>
       </div>
     </header>
@@ -54,7 +52,7 @@ export function UserSelectorSkeleton() {
         count={3}
         spacing={dashboardStyles.userSelector.inner}
         renderItem={() => (
-          <div className={`shrink-0 h-8 w-20 rounded-full ${skeletonClasses.shimmer}`} />
+          <div className={`${dashboardStyles.skeletons.userPill} ${skeletonClasses.shimmer}`} />
         )}
       />
     </div>
@@ -84,9 +82,9 @@ export function BalanceSectionSkeleton() {
         spacing={dashboardStyles.balanceSection.grid}
         renderItem={() => (
           <div className={dashboardStyles.balanceSection.accountCard.container}>
-            <div className="flex justify-between gap-2">
-              <div className={`h-4 w-24 rounded flex-1 ${skeletonClasses.shimmer}`} />
-              <div className={`h-4 w-20 rounded ${skeletonClasses.shimmer}`} />
+            <div className={dashboardStyles.skeletons.accountRow}>
+              <div className={`${dashboardStyles.skeletons.accountLinePrimary} ${skeletonClasses.shimmer}`} />
+              <div className={`${dashboardStyles.skeletons.accountLineSecondary} ${skeletonClasses.shimmer}`} />
             </div>
           </div>
         )}
@@ -111,17 +109,17 @@ export function BudgetSectionSkeleton() {
         spacing={dashboardStyles.budgetSection.grid}
         renderItem={() => (
           <div className={dashboardStyles.budgetSection.budgetCard.container}>
-            <div className="flex gap-3 mb-3">
-              <div className={`w-8 h-8 rounded ${skeletonClasses.shimmer}`} />
-              <div className="flex-1 space-y-1">
-                <div className={`h-4 w-24 rounded ${skeletonClasses.shimmer}`} />
-                <div className={`h-3 w-20 rounded ${skeletonClasses.shimmer}`} />
+            <div className={dashboardStyles.skeletons.budgetRow}>
+              <div className={`${dashboardStyles.skeletons.budgetIcon} ${skeletonClasses.shimmer}`} />
+              <div className={dashboardStyles.skeletons.budgetText}>
+                <div className={`${dashboardStyles.skeletons.budgetLinePrimary} ${skeletonClasses.shimmer}`} />
+                <div className={`${dashboardStyles.skeletons.budgetLineSecondary} ${skeletonClasses.shimmer}`} />
               </div>
             </div>
-            <div className={`h-2 rounded-full mb-3 ${skeletonClasses.shimmer}`} />
-            <div className="grid grid-cols-2 gap-2">
-              <div className={`h-8 rounded ${skeletonClasses.shimmer}`} />
-              <div className={`h-8 rounded ${skeletonClasses.shimmer}`} />
+            <div className={`${dashboardStyles.skeletons.budgetProgress} ${skeletonClasses.shimmer}`} />
+            <div className={dashboardStyles.skeletons.budgetStats}>
+              <div className={`${dashboardStyles.skeletons.budgetStat} ${skeletonClasses.shimmer}`} />
+              <div className={`${dashboardStyles.skeletons.budgetStat} ${skeletonClasses.shimmer}`} />
             </div>
           </div>
         )}
@@ -146,11 +144,11 @@ export function RecurringSeriesSkeleton() {
         spacing={dashboardStyles.recurringSection.grid}
         renderItem={() => (
           <div className={dashboardStyles.recurringSection.seriesCard.container}>
-            <div className="flex justify-between mb-2 gap-2">
-              <div className={`h-4 w-24 rounded flex-1 ${skeletonClasses.shimmer}`} />
-              <div className={`h-6 w-16 rounded ${skeletonClasses.shimmer}`} />
+            <div className={dashboardStyles.skeletons.recurringRow}>
+              <div className={`${dashboardStyles.skeletons.recurringLinePrimary} ${skeletonClasses.shimmer}`} />
+              <div className={`${dashboardStyles.skeletons.recurringLineSecondary} ${skeletonClasses.shimmer}`} />
             </div>
-            <div className={`h-3 w-32 rounded ${skeletonClasses.shimmer}`} />
+            <div className={`${dashboardStyles.skeletons.recurringLineTertiary} ${skeletonClasses.shimmer}`} />
           </div>
         )}
       />

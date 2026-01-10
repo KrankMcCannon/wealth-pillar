@@ -2,11 +2,11 @@
 
 import * as React from "react";
 import { Check, CreditCard, Loader2, Sparkles } from "lucide-react";
-import { ModalWrapper, ModalActions } from "@/src/components/ui/modal-wrapper";
-import { Button } from "@/components/ui";
-import { useToast } from "@/src/components/ui/toast";
-import { updateSubscriptionAction } from "@/src/features/settings/actions";
-import { cn } from "@/src/lib";
+import { Button, ModalActions, ModalWrapper } from "@/components/ui";
+import { toast } from "@/hooks/use-toast";
+import { updateSubscriptionAction } from "@/features/settings/actions";
+import { cn } from "@/lib";
+import { settingsStyles } from "../theme";
 
 // ============================================================================
 // TYPES & INTERFACES
@@ -50,7 +50,6 @@ export function SubscriptionModal({
   groupId,
   currentPlan,
 }: SubscriptionModalProps) {
-  const { showToast } = useToast();
   const [isProcessing, setIsProcessing] = React.useState(false);
 
   const handleUpgrade = async () => {
@@ -60,29 +59,29 @@ export function SubscriptionModal({
       const { data, error } = await updateSubscriptionAction(groupId, "upgrade");
 
       if (error) {
-        showToast({
-          type: "error",
+        toast({
           title: "Errore",
           description: error,
+          variant: "destructive",
         });
         setIsProcessing(false);
         return;
       }
 
       // TODO: Redirect to Stripe checkout when implemented
-      showToast({
-        type: "info",
+      toast({
         title: "Prossimamente",
         description: data?.message || "L'integrazione con Stripe è in arrivo",
+        variant: "info",
       });
 
       setIsProcessing(false);
     } catch (error) {
       console.error("Error upgrading subscription:", error);
-      showToast({
-        type: "error",
+      toast({
         title: "Errore",
         description: "Si è verificato un errore durante l'aggiornamento",
+        variant: "destructive",
       });
       setIsProcessing(false);
     }
@@ -95,29 +94,29 @@ export function SubscriptionModal({
       const { data, error } = await updateSubscriptionAction(groupId, "cancel");
 
       if (error) {
-        showToast({
-          type: "error",
+        toast({
           title: "Errore",
           description: error,
+          variant: "destructive",
         });
         setIsProcessing(false);
         return;
       }
 
-      showToast({
-        type: "success",
+      toast({
         title: "Abbonamento cancellato",
         description: data?.message || "Il tuo abbonamento è stato cancellato",
+        variant: "success",
       });
 
       onOpenChange(false);
       setIsProcessing(false);
     } catch (error) {
       console.error("Error canceling subscription:", error);
-      showToast({
-        type: "error",
+      toast({
         title: "Errore",
         description: "Si è verificato un errore durante la cancellazione",
+        variant: "destructive",
       });
       setIsProcessing(false);
     }
@@ -131,6 +130,8 @@ export function SubscriptionModal({
       onOpenChange={onOpenChange}
       title="Gestione Abbonamento"
       description="Scegli il piano più adatto alle tue esigenze"
+      titleClassName={settingsStyles.modals.title}
+      descriptionClassName={settingsStyles.modals.description}
       disableOutsideClose={isProcessing}
       footer={
         <ModalActions>
@@ -138,7 +139,7 @@ export function SubscriptionModal({
             variant="outline"
             onClick={() => onOpenChange(false)}
             disabled={isProcessing}
-            className="w-full sm:w-auto"
+            className={settingsStyles.modals.actionsButton}
           >
             Chiudi
           </Button>
@@ -147,11 +148,11 @@ export function SubscriptionModal({
               variant="outline"
               onClick={handleCancel}
               disabled={isProcessing}
-              className="w-full sm:w-auto text-red-600 hover:text-red-700 hover:bg-red-50"
+              className={cn(settingsStyles.modals.actionsButton, settingsStyles.modals.subscription.cancelButton)}
             >
               {isProcessing ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Loader2 className={settingsStyles.modals.loadingIcon} />
                   Elaborazione...
                 </>
               ) : (
@@ -162,16 +163,16 @@ export function SubscriptionModal({
             <Button
               onClick={handleUpgrade}
               disabled={isProcessing}
-              className="w-full sm:w-auto"
+              className={settingsStyles.modals.actionsButton}
             >
               {isProcessing ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Loader2 className={settingsStyles.modals.loadingIcon} />
                   Elaborazione...
                 </>
               ) : (
                 <>
-                  <Sparkles className="mr-2 h-4 w-4" />
+                  <Sparkles className={settingsStyles.modals.iconSmall} />
                   Passa a Premium
                 </>
               )}
@@ -180,29 +181,31 @@ export function SubscriptionModal({
         </ModalActions>
       }
     >
-      <div className="space-y-4">
+      <div className={settingsStyles.modals.subscription.container}>
         {/* Free Plan */}
         <div
           className={cn(
-            "rounded-lg border-2 p-4 transition-all",
+            settingsStyles.modals.subscription.cardBase,
             !isPremium
-              ? "border-primary bg-primary/5"
-              : "border-gray-200 bg-white"
+              ? settingsStyles.modals.subscription.cardActive
+              : settingsStyles.modals.subscription.cardIdle
           )}
         >
-          <div className="flex items-start justify-between mb-3">
+          <div className={settingsStyles.modals.subscription.headerRow}>
             <div>
-              <h3 className="text-lg font-bold text-gray-900">Piano Gratuito</h3>
-              <p className="text-2xl font-bold text-gray-900 mt-1">€0 <span className="text-sm font-normal text-gray-600">/mese</span></p>
+              <h3 className={settingsStyles.modals.subscription.planTitle}>Piano Gratuito</h3>
+              <p className={settingsStyles.modals.subscription.planPrice}>
+                €0 <span className={settingsStyles.modals.subscription.planPriceSuffix}>/mese</span>
+              </p>
             </div>
             {!isPremium && (
-              <span className="px-3 py-1 rounded-full bg-primary text-white text-xs font-semibold">
+              <span className={settingsStyles.modals.subscription.planBadge}>
                 Piano Attuale
               </span>
             )}
           </div>
 
-          <ul className="space-y-2">
+          <ul className={settingsStyles.modals.subscription.list}>
             {[
               "1 gruppo familiare",
               "5 membri massimi",
@@ -210,9 +213,9 @@ export function SubscriptionModal({
               "Budget mensili di base",
               "Report mensili",
             ].map((feature, index) => (
-              <li key={index} className="flex items-start gap-2">
-                <Check className="h-4 w-4 text-green-600 mt-0.5 shrink-0" />
-                <span className="text-sm text-gray-700">{feature}</span>
+              <li key={index} className={settingsStyles.modals.subscription.listItem}>
+                <Check className={settingsStyles.modals.subscription.listIcon} />
+                <span className={settingsStyles.modals.subscription.listText}>{feature}</span>
               </li>
             ))}
           </ul>
@@ -221,37 +224,40 @@ export function SubscriptionModal({
         {/* Premium Plan */}
         <div
           className={cn(
-            "rounded-lg border-2 p-4 transition-all relative overflow-hidden",
+            `${settingsStyles.modals.subscription.cardBase} relative overflow-hidden`,
             isPremium
-              ? "border-primary bg-primary/5"
-              : "border-gray-200 bg-white"
+              ? settingsStyles.modals.subscription.cardActive
+              : settingsStyles.modals.subscription.cardIdle
           )}
         >
           {/* Premium badge */}
-          <div className="absolute top-0 right-0 w-24 h-24 -mr-12 -mt-12">
-            <div className="absolute transform rotate-45 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-bold py-1 w-32 text-center shadow-md" style={{ top: '35px' }}>
+          <div className={settingsStyles.modals.subscription.premiumBadgeWrap}>
+            <div
+              className={settingsStyles.modals.subscription.premiumBadge}
+              style={settingsStyles.modals.subscription.premiumBadgeStyle}
+            >
               Premium
             </div>
           </div>
 
-          <div className="flex items-start justify-between mb-3">
+          <div className={settingsStyles.modals.subscription.headerRow}>
             <div>
-              <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+              <h3 className={settingsStyles.modals.subscription.premiumTitleRow}>
                 Piano Premium
-                <Sparkles className="h-5 w-5 text-yellow-500" />
+                <Sparkles className={settingsStyles.modals.subscription.premiumIcon} />
               </h3>
-              <p className="text-2xl font-bold text-gray-900 mt-1">
-                €9.99 <span className="text-sm font-normal text-gray-600">/mese</span>
+              <p className={settingsStyles.modals.subscription.planPrice}>
+                €9.99 <span className={settingsStyles.modals.subscription.planPriceSuffix}>/mese</span>
               </p>
             </div>
             {isPremium && (
-              <span className="px-3 py-1 rounded-full bg-primary text-white text-xs font-semibold">
+              <span className={settingsStyles.modals.subscription.planBadge}>
                 Piano Attuale
               </span>
             )}
           </div>
 
-          <ul className="space-y-2">
+          <ul className={settingsStyles.modals.subscription.list}>
             {[
               "Gruppi familiari illimitati",
               "Membri illimitati",
@@ -263,17 +269,17 @@ export function SubscriptionModal({
               "Notifiche push avanzate",
               "Sincronizzazione multi-dispositivo",
             ].map((feature, index) => (
-              <li key={index} className="flex items-start gap-2">
-                <Check className="h-4 w-4 text-green-600 mt-0.5 shrink-0" />
-                <span className="text-sm text-gray-700">{feature}</span>
+              <li key={index} className={settingsStyles.modals.subscription.listItem}>
+                <Check className={settingsStyles.modals.subscription.listIcon} />
+                <span className={settingsStyles.modals.subscription.listText}>{feature}</span>
               </li>
             ))}
           </ul>
 
           {!isPremium && (
-            <div className="mt-4 pt-4 border-t border-gray-200">
-              <p className="text-xs text-gray-600 text-center">
-                <CreditCard className="inline h-3 w-3 mr-1" />
+            <div className={settingsStyles.modals.subscription.secureRow}>
+              <p className={settingsStyles.modals.subscription.secureText}>
+                <CreditCard className={settingsStyles.modals.subscription.secureIcon} />
                 Pagamento sicuro tramite Stripe
               </p>
             </div>

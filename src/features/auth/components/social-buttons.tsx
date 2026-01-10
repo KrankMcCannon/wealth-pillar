@@ -1,7 +1,8 @@
 "use client";
 
-import { Button } from "@/src/components/ui";
+import { Button } from "@/components/ui";
 import { Apple, Github } from "lucide-react";
+import { authStyles } from "../theme";
 
 type Props = {
   onClick: () => void;
@@ -16,9 +17,9 @@ export function GoogleButton({ onClick, children = "Continua con Google", classN
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className={`bg-white hover:bg-primary/5 text-black border border-primary hover:border-primary/40 transition-all shadow-sm ${className}`}
+      className={`${authStyles.socialButtons.base} ${authStyles.socialButtons.google} ${className ?? ""}`}
     >
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" className="h-4 w-4 mr-2">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" className={authStyles.socialButtons.icon}>
         <path
           fill="#FFC107"
           d="M43.611,20.083H42V20H24v8h11.303C33.602,32.657,29.166,36,24,36c-6.627,0-12-5.373-12-12 s5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.201,6.053,29.326,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"
@@ -47,9 +48,9 @@ export function AppleButton({ onClick, children = "Continua con Apple", classNam
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className={`bg-white hover:bg-secondary/5 text-black border border-primary hover:border-primary/40 transition-all shadow-sm ${className}`}
+      className={`${authStyles.socialButtons.base} ${authStyles.socialButtons.apple} ${className ?? ""}`}
     >
-      <Apple className="h-4 w-4 mr-2 text-secondary" />
+      <Apple className={`${authStyles.socialButtons.icon} ${authStyles.socialButtons.iconSecondary}`} />
       {children}
     </Button>
   );
@@ -61,9 +62,9 @@ export function GitHubButton({ onClick, children = "Continua con GitHub", classN
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className={`bg-white hover:bg-accent/5 text-black border border-primary hover:border-primary/40 transition-all shadow-sm ${className}`}
+      className={`${authStyles.socialButtons.base} ${authStyles.socialButtons.github} ${className ?? ""}`}
     >
-      <Github className="h-4 w-4 mr-2 text-accent" />
+      <Github className={`${authStyles.socialButtons.icon} ${authStyles.socialButtons.iconAccent}`} />
       {children}
     </Button>
   );

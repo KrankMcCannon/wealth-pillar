@@ -1,16 +1,17 @@
 "use client";
 
-import { useEffect, useMemo, useCallback } from "react";
-import { useForm } from "react-hook-form";
+import { useEffect, useMemo, useCallback, useRef } from "react";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Transaction, TransactionType } from "@/lib/types";
+import { getTempId } from "@/lib/utils/temp-id";
 import { createTransactionAction, updateTransactionAction } from "@/features/transactions/actions/transaction-actions";
 import { transactionStyles } from "@/features/transactions/theme/transaction-styles";
-import { ModalWrapper, ModalContent, ModalSection } from "@/src/components/ui/modal-wrapper";
-import { FormActions, FormField, FormSelect } from "@/src/components/form";
-import { UserField, AccountField, CategoryField, AmountField, DateField } from "@/src/components/ui/fields";
-import { Input } from "@/src/components/ui/input";
+import { ModalWrapper, ModalContent, ModalSection } from "@/components/ui/modal-wrapper";
+import { FormActions, FormField, FormSelect } from "@/components/form";
+import { UserField, AccountField, CategoryField, AmountField, DateField } from "@/components/ui/fields";
+import { Input } from "@/components/ui/input";
 import { usePermissions, useRequiredCurrentUser, useRequiredGroupUsers, useRequiredGroupId } from "@/hooks";
 import { useAccounts, useCategories } from "@/stores/reference-data-store";
 import { useUserFilterStore } from "@/stores/user-filter-store";
@@ -85,7 +86,7 @@ function TransactionFormModal({
   const {
     register,
     handleSubmit,
-    watch,
+    control,
     setValue,
     reset,
     setError,
@@ -104,15 +105,21 @@ function TransactionFormModal({
     }
   });
 
-  const watchedUserId = watch("user_id");
-  const watchedType = watch("type");
-  const watchedAccountId = watch("account_id");
+  const watchedUserId = useWatch({ control, name: "user_id" });
+  const watchedType = useWatch({ control, name: "type" });
+  const watchedAccountId = useWatch({ control, name: "account_id" });
+  const watchedToAccountId = useWatch({ control, name: "to_account_id" });
+  const watchedCategory = useWatch({ control, name: "category" });
+  const watchedAmount = useWatch({ control, name: "amount" });
+  const watchedDate = useWatch({ control, name: "date" });
 
   // Filter accounts by selected user
   const filteredAccounts = useMemo(() => {
     if (!watchedUserId) return accounts;
     return accounts.filter((acc) => acc.user_ids.includes(watchedUserId));
   }, [accounts, watchedUserId]);
+
+  const previousUserIdRef = useRef<string | null>(null);
 
   // Get default account for selected user
   const getDefaultAccountId = useCallback(
@@ -158,6 +165,7 @@ function TransactionFormModal({
           account_id: transaction.account_id,
           to_account_id: transaction.to_account_id || "",
         });
+        previousUserIdRef.current = transaction.user_id || "";
       }
     } else if (isOpen && !isEditMode) {
       // Reset to defaults for create mode
@@ -171,17 +179,37 @@ function TransactionFormModal({
         account_id: getDefaultAccountId(defaultFormUserId),
         to_account_id: "",
       });
+      previousUserIdRef.current = defaultFormUserId;
     }
   }, [isOpen, isEditMode, editId, defaultFormUserId, reset, getDefaultAccountId, storeTransactions]);
 
-  // Update account when user changes
   useEffect(() => {
-    if (watchedUserId) {
-      const newAccountId = getDefaultAccountId(watchedUserId);
-      setValue("account_id", newAccountId);
-      setValue("to_account_id", ""); // Clear transfer destination
+    if (!isOpen) {
+      previousUserIdRef.current = null;
     }
-  }, [watchedUserId, setValue, getDefaultAccountId]);
+  }, [isOpen]);
+
+  // Update account when user changes (create mode only)
+  useEffect(() => {
+    if (!isEditMode && watchedUserId) {
+      const accountIsValid =
+        !!watchedAccountId && filteredAccounts.some((acc) => acc.id === watchedAccountId);
+      const previousUserId = previousUserIdRef.current;
+
+      if (accountIsValid && (!previousUserId || previousUserId === watchedUserId)) {
+        previousUserIdRef.current = watchedUserId;
+        return;
+      }
+
+      if (!accountIsValid || (previousUserId && previousUserId !== watchedUserId)) {
+        const newAccountId = getDefaultAccountId(watchedUserId);
+        setValue("account_id", newAccountId);
+        setValue("to_account_id", ""); // Clear transfer destination
+      }
+
+      previousUserIdRef.current = watchedUserId;
+    }
+  }, [isEditMode, watchedUserId, watchedAccountId, filteredAccounts, setValue, getDefaultAccountId]);
 
   // Handle form submission with optimistic updates
   const onSubmit = async (data: TransactionFormData) => {
@@ -228,7 +256,7 @@ function TransactionFormModal({
       } else {
         // CREATE: Optimistic add pattern
         // 1. Create temporary ID
-        const tempId = `temp-${Date.now()}`;
+        const tempId = getTempId("temp-transaction");
         const now = new Date().toISOString();
         const optimisticTransaction: Transaction = {
           id: tempId,
@@ -282,7 +310,7 @@ function TransactionFormModal({
   const destinationAccounts = filteredAccounts.filter((acc) => acc.id !== watchedAccountId);
 
   return (
-    <form className="space-y-4">
+    <form className={transactionStyles.form.container}>
       <ModalWrapper
         isOpen={isOpen}
         onOpenChange={onClose}
@@ -304,13 +332,13 @@ function TransactionFormModal({
         <ModalContent className={transactionStyles.modal.content}>
           {/* Submit Error Display */}
           {errors.root && (
-            <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3 mb-4">
-              <p className="text-sm text-destructive font-medium">{errors.root.message}</p>
+            <div className={transactionStyles.form.error}>
+              <p className={transactionStyles.form.errorText}>{errors.root.message}</p>
             </div>
           )}
 
           <ModalSection>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className={transactionStyles.form.grid}>
               {/* User */}
               <UserField
                 value={watchedUserId}
@@ -347,7 +375,7 @@ function TransactionFormModal({
               {/* Destination Account (only for transfers) */}
               {watchedType === "transfer" && (
                 <AccountField
-                  value={watch("to_account_id") || ""}
+                  value={watchedToAccountId || ""}
                   onChange={(value) => setValue("to_account_id", value)}
                   error={errors.to_account_id?.message}
                   accounts={destinationAccounts}
@@ -359,7 +387,7 @@ function TransactionFormModal({
 
               {/* Category */}
               <CategoryField
-                value={watch("category")}
+                value={watchedCategory}
                 onChange={(value) => setValue("category", value)}
                 error={errors.category?.message}
                 categories={categories}
@@ -370,7 +398,7 @@ function TransactionFormModal({
 
               {/* Amount */}
               <AmountField
-                value={watch("amount")}
+                value={watchedAmount}
                 onChange={(value) => setValue("amount", value)}
                 error={errors.amount?.message}
                 label="Importo"
@@ -380,7 +408,7 @@ function TransactionFormModal({
 
               {/* Date */}
               <DateField
-                value={watch("date")}
+                value={watchedDate}
                 onChange={(value) => setValue("date", value)}
                 error={errors.date?.message}
                 label="Data"

@@ -9,7 +9,8 @@
 
 import { Suspense, useEffect, useMemo } from "react";
 import { BottomNavigation, PageContainer, Header } from "@/components/layout";
-import { TotalBalanceCard, AccountsList } from "@/features/accounts";
+import { AccountsList, accountStyles } from "@/features/accounts";
+import { MetricCard } from "@/components/ui/layout";
 import { deleteAccountAction } from "@/features/accounts/actions/account-actions";
 import { useFilteredAccounts, usePermissions, useUserFilter, useDeleteConfirmation } from "@/hooks";
 import UserSelector from "@/components/shared/user-selector";
@@ -123,7 +124,7 @@ export default function AccountsContent({
     });
   };
   return (
-    <PageContainer>
+    <PageContainer className={accountStyles.page.container}>
       {/* Header Section */}
       <Header
         title="Bank Accounts"
@@ -142,13 +143,22 @@ export default function AccountsContent({
       </Suspense>
 
       {/* Total Balance Card Section */}
-      <TotalBalanceCard
-        totalBalance={accountStats.totalBalance}
-        totalAccounts={accountStats.totalAccounts}
-        positiveAccounts={accountStats.positiveAccounts}
-        negativeAccounts={accountStats.negativeAccounts}
-        isLoading={false}
-      />
+      <div className={accountStyles.balanceCard.container}>
+        <MetricCard
+          label="Saldo Totale"
+          value={accountStats.totalBalance}
+          valueType={accountStats.totalBalance >= 0 ? "income" : "expense"}
+          valueSize="lg"
+          size="sm"
+          stats={[
+            { label: "Totale", value: accountStats.totalAccounts, variant: "primary" },
+            { label: "Positivi", value: accountStats.positiveAccounts, variant: "success" },
+            { label: "Negativi", value: accountStats.negativeAccounts, variant: "destructive" },
+          ]}
+          variant={accountStats.totalBalance >= 0 ? "success" : "danger"}
+          isLoading={false}
+        />
+      </div>
 
       {/* Accounts List Section */}
       <AccountsList

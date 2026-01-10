@@ -1,35 +1,29 @@
 /**
- * Centralized style system
- * Single source of truth for tokens and shared component style patterns.
+ * Centralized Style System
+ * Re-exports core design tokens and provides reusable component style utilities
+ *
+ * Modern token architecture - all styling should use coreTokens
  */
 
-// Core tokens (derived from CSS custom properties in app/globals.css)
-export const tokens = {
-  color: {
-    primary: "text-primary",
-    primaryBg: "bg-primary",
-    primarySoft: "bg-primary/10",
-    primarySofter: "bg-primary/15",
-    primaryBorder: "border-primary/20",
-    primaryBorderStrong: "border-primary/15",
-    card: "bg-card",
-    cardBorder: "border-border",
-    text: "text-primary",
-    textMuted: "text-primary/70",
-    destructive: "text-destructive",
-  },
-  layout: {
-    radius: "rounded-xl",
-    radiusLg: "rounded-2xl",
-    radiusFull: "rounded-full",
-    padding: "px-4 py-3",
-  },
-  effect: {
-    shadowCard: "shadow-sm",
-    shadowElevated: "shadow-xl",
-    shimmer: "liquid-shimmer",
-  },
-};
+// Core design tokens - single source of truth
+export { coreTokens } from './core-tokens';
+
+// Type exports for TypeScript autocomplete
+export type {
+  ColorToken,
+  SpacingToken,
+  TypographyToken,
+  RadiusToken,
+  ShadowToken,
+  ZIndexToken,
+  AnimationDurationToken,
+  AnimationTimingToken,
+} from './core-tokens';
+
+// ============================================================================
+// COMPONENT STYLE UTILITIES
+// Reusable style combinations for common UI components
+// ============================================================================
 
 // Button styles
 export const buttonStyles = {
@@ -37,7 +31,7 @@ export const buttonStyles = {
   variants: {
     default: `bg-primary text-primary-foreground border border-primary hover:bg-primary/90`,
     secondary: `bg-secondary text-secondary-foreground border border-secondary hover:bg-secondary/90`,
-    outline: `border ${tokens.color.primaryBorder} bg-card text-primary hover:bg-primary hover:text-white`,
+    outline: `border border-primary/20 bg-card text-primary hover:bg-primary hover:text-white`,
     ghost: `hover:bg-primary/10 text-primary`,
     destructive: `bg-destructive text-white border border-destructive hover:bg-destructive/90`,
     cancel: `bg-white text-primary border border-primary hover:bg-primary hover:text-white`,
@@ -52,7 +46,7 @@ export const buttonStyles = {
 
 // Card styles
 export const cardStyles = {
-  container: `bg-card text-primary flex flex-col ${tokens.layout.radius} border ${tokens.color.primaryBorder} ${tokens.effect.shadowCard}`,
+  container: `bg-card text-primary flex flex-col rounded-xl border border-primary/20 shadow-sm`,
   header: "@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-1.5 px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6",
   title: "leading-none font-semibold text-primary",
   description: "text-primary/70 text-sm",
@@ -72,7 +66,7 @@ export const skeletonStyles = {
   light: "bg-primary/10",
   medium: "bg-primary/15",
   dark: "bg-primary/20",
-  shimmer: `${tokens.effect.shimmer} bg-primary/12`,
+  shimmer: `liquid-shimmer bg-primary/12`,
 };
 
 // Modal / dialog styles

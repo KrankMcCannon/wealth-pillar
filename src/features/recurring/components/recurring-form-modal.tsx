@@ -1,28 +1,30 @@
 "use client";
 
 import { useEffect, useMemo } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { RecurringTransactionSeries, TransactionFrequencyType } from "@/lib/types";
+import { getTempId } from "@/lib/utils/temp-id";
 import {
   createRecurringSeriesAction,
   updateRecurringSeriesAction,
 } from "@/features/recurring/actions/recurring-actions";
-import { ModalWrapper, ModalContent, ModalSection } from "@/src/components/ui/modal-wrapper";
-import { FormActions, FormField, FormSelect, MultiUserSelect } from "@/src/components/form";
+import { ModalWrapper, ModalContent, ModalSection } from "@/components/ui/modal-wrapper";
+import { FormActions, FormField, FormSelect, MultiUserSelect } from "@/components/form";
 import {
   AccountField,
   AmountField,
   CategoryField,
   DateField,
   Input,
-} from "@/src/components/ui";
+} from "@/components/ui";
 import { todayDateString } from "@/lib/utils/date-utils";
 import { useRequiredCurrentUser, useRequiredGroupUsers, useRequiredGroupId } from "@/hooks";
 import { useAccounts, useCategories } from "@/stores/reference-data-store";
 import { useUserFilterStore } from "@/stores/user-filter-store";
 import { usePageDataStore } from "@/stores/page-data-store";
+import { recurringStyles } from "../theme/recurring-styles";
 
 // Zod schema for recurring series validation
 const recurringSchema = z.object({
@@ -97,7 +99,7 @@ function RecurringFormModal({
   const {
     register,
     handleSubmit,
-    watch,
+    control,
     setValue,
     reset,
     setError,
@@ -118,10 +120,14 @@ function RecurringFormModal({
     }
   });
 
-  const watchedType = watch("type");
-  const watchedFrequency = watch("frequency");
-  const watchedUserIds = watch("user_ids");
-  const watchedAccountId = watch("account_id");
+  const watchedType = useWatch({ control, name: "type" });
+  const watchedFrequency = useWatch({ control, name: "frequency" });
+  const watchedUserIds = useWatch({ control, name: "user_ids" });
+  const watchedAccountId = useWatch({ control, name: "account_id" });
+  const watchedCategory = useWatch({ control, name: "category" });
+  const watchedAmount = useWatch({ control, name: "amount" });
+  const watchedStartDate = useWatch({ control, name: "start_date" });
+  const watchedEndDate = useWatch({ control, name: "end_date" });
 
   // Filter accounts: show accounts accessible by ALL selected users (intersection)
   const filteredAccounts = useMemo(() => {
@@ -291,7 +297,7 @@ function RecurringFormModal({
       } else {
         // CREATE: Optimistic add pattern
         // 1. Create temporary ID
-        const tempId = `temp-${Date.now()}`;
+        const tempId = getTempId("temp-recurring");
         const now = new Date().toISOString();
         const optimisticSeries: RecurringTransactionSeries = {
           id: tempId,
@@ -336,7 +342,7 @@ function RecurringFormModal({
   };
 
   return (
-    <form className="space-y-2">
+    <form className={recurringStyles.formModal.form}>
       <ModalWrapper
         isOpen={isOpen}
         onOpenChange={onClose}
@@ -353,16 +359,16 @@ function RecurringFormModal({
           />
         }
       >
-        <ModalContent className="gap-2">
+        <ModalContent className={recurringStyles.formModal.content}>
           {/* Submit Error Display */}
           {errors.root && (
-            <div className="px-3 py-2 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-md">
+            <div className={recurringStyles.formModal.error}>
               {errors.root.message}
             </div>
           )}
 
-          <ModalSection className="gap-2">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <ModalSection className={recurringStyles.formModal.section}>
+            <div className={recurringStyles.formModal.grid}>
               {/* Type */}
               <FormField label="Tipo" required error={errors.type?.message}>
                 <FormSelect
@@ -391,7 +397,7 @@ function RecurringFormModal({
             </div>
           </ModalSection>
 
-          <ModalSection className="gap-2">
+          <ModalSection className={recurringStyles.formModal.section}>
             {/* Users - Multi-select (full width) */}
             <FormField label="Utenti" required error={errors.user_ids?.message}>
               <MultiUserSelect
@@ -403,8 +409,8 @@ function RecurringFormModal({
             </FormField>
           </ModalSection>
 
-          <ModalSection className="gap-2">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <ModalSection className={recurringStyles.formModal.section}>
+            <div className={recurringStyles.formModal.grid}>
               {/* Account */}
               <AccountField
                 value={watchedAccountId}
@@ -418,7 +424,7 @@ function RecurringFormModal({
 
               {/* Category */}
               <CategoryField
-                value={watch("category")}
+                value={watchedCategory}
                 onChange={(value) => setValue("category", value)}
                 error={errors.category?.message}
                 categories={categories}
@@ -429,7 +435,7 @@ function RecurringFormModal({
 
               {/* Amount */}
               <AmountField
-                value={Number.parseFloat(watch("amount") || "0")}
+                value={Number.parseFloat(watchedAmount || "0")}
                 onChange={(value) => setValue("amount", value.toString())}
                 error={errors.amount?.message}
                 label="Importo"
@@ -452,7 +458,7 @@ function RecurringFormModal({
               {/* Start Date */}
               <DateField
                 label="Data inizio"
-                value={watch("start_date")}
+                value={watchedStartDate}
                 onChange={(value) => setValue("start_date", value)}
                 error={errors.start_date?.message}
                 required
@@ -461,14 +467,14 @@ function RecurringFormModal({
               {/* End Date (optional) */}
               <DateField
                 label="Data fine"
-                value={watch("end_date") || ""}
+                value={watchedEndDate || ""}
                 onChange={(value) => setValue("end_date", value)}
                 error={errors.end_date?.message}
               />
             </div>
           </ModalSection>
 
-          <ModalSection className="gap-2">
+          <ModalSection className={recurringStyles.formModal.section}>
             {/* Description */}
             <FormField label="Descrizione" required error={errors.description?.message}>
               <Input

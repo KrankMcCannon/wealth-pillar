@@ -1,8 +1,9 @@
 "use client";
 
-import { Badge } from "@/src/components/ui";
-import { BudgetPeriod } from "@/src/lib";
+import { Badge } from "@/components/ui";
+import { BudgetPeriod } from "@/lib";
 import { Calendar, Clock } from "lucide-react";
+import { budgetStyles } from "../theme/budget-styles";
 
 interface BudgetPeriodInfoProps {
   period: BudgetPeriod | null;
@@ -24,7 +25,7 @@ export function BudgetPeriodInfo({
   if (!period) {
     return (
       <div className={`text-center py-2 ${className}`}>
-        <p className="text-xs text-primary/70">Nessun periodo attivo</p>
+        <p className={budgetStyles.periodInfo.emptyText}>Nessun periodo attivo</p>
       </div>
     );
   }
@@ -35,16 +36,16 @@ export function BudgetPeriodInfo({
   return (
     <div className={`space-y-2 ${className}`}>
       {/* Period Status and Dates */}
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <Calendar className="h-3 w-3 text-primary/70" />
-          <span className="text-xs font-medium text-primary/70">{endDate ? `- ${endDate}` : "- in corso"}</span>
+      <div className={budgetStyles.periodInfo.headerRow}>
+        <div className={budgetStyles.periodInfo.headerLeft}>
+          <Calendar className={budgetStyles.periodInfo.headerIcon} />
+          <span className={budgetStyles.periodInfo.headerText}>{endDate ? `- ${endDate}` : "- in corso"}</span>
         </div>
 
-        <Badge variant={isCurrentPeriod ? "default" : "secondary"} className="text-xs font-semibold">
+        <Badge variant={isCurrentPeriod ? "default" : "secondary"} className={budgetStyles.periodInfo.badge}>
           {isCurrentPeriod ? (
             <>
-              <Clock className="h-3 w-3 mr-1" />
+              <Clock className={budgetStyles.periodInfo.badgeIcon} />
               Attivo
             </>
           ) : (
@@ -55,18 +56,18 @@ export function BudgetPeriodInfo({
 
       {/* Spending Summary */}
       {showSpending && (totalSpent !== undefined || totalSaved !== undefined) && (
-        <div className="grid grid-cols-2 gap-3">
+        <div className={budgetStyles.periodInfo.metricsGrid}>
           {totalSpent !== undefined && (
-            <div className="bg-primary/5 rounded-lg px-3 py-2 border border-primary/10">
-              <p className="text-xs font-semibold text-primary/70 uppercase tracking-wide mb-1">Speso</p>
-              <p className="text-sm font-bold text-destructive">{totalSpent}</p>
+            <div className={budgetStyles.periodInfo.metricSpent}>
+              <p className={budgetStyles.periodInfo.metricLabelSpent}>Speso</p>
+              <p className={budgetStyles.periodInfo.metricValueSpent}>{totalSpent}</p>
             </div>
           )}
 
           {totalSaved !== undefined && (
-            <div className="bg-success/5 rounded-lg px-3 py-2 border border-success/10">
-              <p className="text-xs font-semibold text-success/70 uppercase tracking-wide mb-1">Risparmiato</p>
-              <p className="text-sm font-bold text-success">{totalSaved}</p>
+            <div className={budgetStyles.periodInfo.metricSaved}>
+              <p className={budgetStyles.periodInfo.metricLabelSaved}>Risparmiato</p>
+              <p className={budgetStyles.periodInfo.metricValueSaved}>{totalSaved}</p>
             </div>
           )}
         </div>
@@ -74,16 +75,16 @@ export function BudgetPeriodInfo({
 
       {/* Category Breakdown (if available) */}
       {categorySpending && Object.keys(categorySpending).length > 0 && (
-        <div className="pt-2 border-t border-primary/10">
-          <p className="text-xs font-semibold text-primary/70 uppercase tracking-wide mb-2">Principali Categorie</p>
-          <div className="space-y-1">
+        <div className={budgetStyles.periodInfo.topCategories}>
+          <p className={budgetStyles.periodInfo.topCategoriesTitle}>Principali Categorie</p>
+          <div className={budgetStyles.periodInfo.topCategoriesList}>
             {Object.entries(categorySpending)
               .sort(([, a], [, b]) => (b as number) - (a as number))
               .slice(0, 3)
               .map(([category, amount]) => (
-                <div key={category} className="flex items-center justify-between">
-                  <span className="text-xs text-primary/70 capitalize">{category.replace(/_/g, " ")}</span>
-                  <span className="text-xs font-semibold text-primary">{amount as number}</span>
+                <div key={category} className={budgetStyles.periodInfo.topCategoryRow}>
+                  <span className={budgetStyles.periodInfo.topCategoryLabel}>{category.replace(/_/g, " ")}</span>
+                  <span className={budgetStyles.periodInfo.topCategoryAmount}>{amount as number}</span>
                 </div>
               ))}
           </div>

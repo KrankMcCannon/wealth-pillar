@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@/lib";
+import { pageContainerStyles } from "./theme/page-container-styles";
 
 interface PageContainerProps {
   children: React.ReactNode;
@@ -11,10 +12,10 @@ export function PageContainer({ children, className }: PageContainerProps) {
   return (
     <div
       className={cn(
-        "relative flex size-full min-h-[100dvh] flex-col bg-card pt-[60px]",
+        pageContainerStyles.container,
         className
       )}
-      style={{ fontFamily: '"Inter", "SF Pro Display", system-ui, sans-serif' }}
+      style={pageContainerStyles.style}
       suppressHydrationWarning
     >
       {children}

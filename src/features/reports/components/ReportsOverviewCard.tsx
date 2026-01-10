@@ -6,11 +6,8 @@
 
 "use client";
 
-import { Card } from "@/components/ui";
-import { Amount } from "@/components/ui/primitives";
+import { MetricCard, MetricGrid } from "@/components/ui/layout";
 import { TrendingUp, TrendingDown, ArrowLeftRight, Wallet } from "lucide-react";
-import { reportsStyles } from "../theme/reports-styles";
-import { cn } from "@/lib/utils";
 
 export interface ReportsOverviewCardProps {
   totalEarned: number;
@@ -26,99 +23,60 @@ export function ReportsOverviewCard({
   totalBalance,
 }: Readonly<ReportsOverviewCardProps>) {
   const isPositiveBalance = totalBalance >= 0;
-  const styles = reportsStyles.reportsOverviewCard;
 
   return (
-    <div className={styles.container}>
+    <MetricGrid columns={4}>
       {/* Total Earned */}
-      <Card className={styles.earnedCard}>
-        <div className={styles.headerRow}>
-          <div className={styles.headerContent}>
-            <p className={reportsStyles.overview.label}>Totale Guadagnato</p>
-          </div>
-          <div className={styles.earnedIcon}>
-            <TrendingUp className={styles.iconSize} />
-          </div>
-        </div>
-
-        <Amount type="income" size="xl" emphasis="strong" className={styles.earnedValue}>
-          {totalEarned}
-        </Amount>
-
-        <p className={styles.earnedDescription}>
-          Incassi + Trasferimenti ricevuti
-        </p>
-      </Card>
+      <MetricCard
+        label="Totale Guadagnato"
+        icon={<TrendingUp className="w-4 h-4" />}
+        iconColor="success"
+        labelTone="variant"
+        value={totalEarned}
+        valueType="income"
+        valueSize="xl"
+        description="Incassi + Trasferimenti ricevuti"
+        variant="success"
+      />
 
       {/* Total Spent */}
-      <Card className={styles.spentCard}>
-        <div className={styles.headerRow}>
-          <div className={styles.headerContent}>
-            <p className={reportsStyles.overview.label}>Totale Speso</p>
-          </div>
-          <div className={styles.spentIcon}>
-            <TrendingDown className={styles.iconSize} />
-          </div>
-        </div>
-
-        <Amount type="expense" size="xl" emphasis="strong" className={styles.spentValue}>
-          {totalSpent}
-        </Amount>
-
-        <p className={styles.spentDescription}>
-          Spese + Trasferimenti effettuati
-        </p>
-      </Card>
+      <MetricCard
+        label="Totale Speso"
+        icon={<TrendingDown className="w-4 h-4" />}
+        iconColor="destructive"
+        labelTone="variant"
+        value={totalSpent}
+        valueType="expense"
+        valueSize="xl"
+        description="Spese + Trasferimenti effettuati"
+        variant="danger"
+      />
 
       {/* Total Transferred */}
-      <Card className={styles.transferredCard}>
-        <div className={styles.headerRow}>
-          <div className={styles.headerContent}>
-            <p className={reportsStyles.overview.label}>Totale Trasferito</p>
-          </div>
-          <div className={styles.transferredIcon}>
-            <ArrowLeftRight className={styles.iconSize} />
-          </div>
-        </div>
-
-        <Amount size="xl" emphasis="strong" className={styles.transferredValue}>
-          {totalTransferred}
-        </Amount>
-
-        <p className={styles.transferredDescription}>
-          Trasferimenti tra conti
-        </p>
-      </Card>
+      <MetricCard
+        label="Totale Trasferito"
+        icon={<ArrowLeftRight className="w-4 h-4" />}
+        iconColor="accent"
+        labelTone="variant"
+        value={totalTransferred}
+        valueType="neutral"
+        valueSize="xl"
+        description="Trasferimenti tra conti"
+        variant="highlighted"
+      />
 
       {/* Total Balance */}
-      <Card
-        className={cn(
-          styles.balanceCard,
-          isPositiveBalance ? styles.balanceCardPositive : styles.balanceCardNegative
-        )}
-      >
-        <div className={styles.headerRow}>
-          <div className={styles.headerContent}>
-            <p className={reportsStyles.overview.label}>Saldo Totale</p>
-          </div>
-          <div className={isPositiveBalance ? styles.balanceIconPositive : styles.balanceIconNegative}>
-            <Wallet className={styles.iconSize} />
-          </div>
-        </div>
-
-        <Amount
-          type={isPositiveBalance ? "income" : "expense"}
-          size="xl"
-          emphasis="strong"
-          className={isPositiveBalance ? styles.balanceValuePositive : styles.balanceValueNegative}
-        >
-          {totalBalance}
-        </Amount>
-
-        <p className={isPositiveBalance ? styles.balanceDescriptionPositive : styles.balanceDescriptionNegative}>
-          {isPositiveBalance ? "Saldo positivo" : "Saldo negativo"}
-        </p>
-      </Card>
-    </div>
+      <MetricCard
+        label="Saldo Totale"
+        icon={<Wallet className="w-4 h-4" />}
+        iconColor={isPositiveBalance ? "success" : "destructive"}
+        labelTone="variant"
+        value={totalBalance}
+        valueType={isPositiveBalance ? "income" : "expense"}
+        valueSize="xl"
+        description={isPositiveBalance ? "Saldo positivo" : "Saldo negativo"}
+        variant={isPositiveBalance ? "success" : "danger"}
+      />
+    </MetricGrid>
   );
 }

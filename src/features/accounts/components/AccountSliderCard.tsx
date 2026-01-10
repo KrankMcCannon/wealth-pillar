@@ -27,19 +27,18 @@ export const AccountSliderCard = ({
   return (
     <div
       className={accountStyles.slider.cardWrapper}
-      style={{
-        animationDelay: `${index * 100}ms`,
-      }}
+      style={accountStyles.slider.cardDelayStyle(index)}
     >
       <Suspense
         fallback={
-          <div className="shrink-0 w-60 h-24 bg-primary/10 rounded-lg animate-pulse border border-primary/20" />
+          <div className={accountStyles.slider.skeletonCard} />
         }
       >
         <AccountCard
           account={account}
           accountBalance={balance}
           onClick={onClick}
+          className={accountStyles.slider.card}
         />
       </Suspense>
     </div>

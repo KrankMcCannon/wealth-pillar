@@ -11,6 +11,7 @@ import { ReportPeriodService } from "@/lib/services";
 import type { BudgetPeriod, User, Transaction, Account, Category } from "@/lib/types";
 import { CalendarOff } from "lucide-react";
 import { toDateTime } from "@/lib/utils/date-utils";
+import { reportsStyles } from "../theme/reports-styles";
 
 export interface BudgetPeriodsSectionProps {
   budgetPeriods: BudgetPeriod[];
@@ -65,9 +66,9 @@ export function BudgetPeriodsSection({
   // Loading state
   if (isLoading) {
     return (
-      <div className="space-y-3">
+      <div className={reportsStyles.budgetPeriodsSection.loadingContainer}>
         {[1, 2, 3].map((i) => (
-          <div key={i} className="h-32 bg-card/50 rounded-2xl animate-pulse border border-primary/10" />
+          <div key={i} className={reportsStyles.budgetPeriodsSection.loadingCard} />
         ))}
       </div>
     );
@@ -76,12 +77,12 @@ export function BudgetPeriodsSection({
   // Empty state
   if (enrichedPeriods.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
-        <div className="flex items-center justify-center h-16 w-16 rounded-full bg-primary/10 text-primary mb-4">
-          <CalendarOff className="h-8 w-8" />
+      <div className={reportsStyles.budgetPeriodsSection.emptyContainer}>
+        <div className={reportsStyles.budgetPeriodsSection.emptyIconWrap}>
+          <CalendarOff className={reportsStyles.budgetPeriodsSection.emptyIcon} />
         </div>
-        <h3 className="text-lg font-semibold text-black mb-2">Nessun periodo di budget configurato</h3>
-        <p className="text-sm text-muted-foreground max-w-sm">
+        <h3 className={reportsStyles.budgetPeriodsSection.emptyTitle}>Nessun periodo di budget configurato</h3>
+        <p className={reportsStyles.budgetPeriodsSection.emptyDescription}>
           I periodi di budget vengono creati automaticamente quando imposti la tua data di inizio budget nelle
           impostazioni.
         </p>
@@ -90,7 +91,7 @@ export function BudgetPeriodsSection({
   }
 
   return (
-    <div className="space-y-3 sm:space-y-4">
+    <div className={reportsStyles.budgetPeriodsSection.list}>
       {enrichedPeriods.map((period) => (
         <BudgetPeriodCard
           key={period.id}

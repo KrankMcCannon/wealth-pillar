@@ -1,10 +1,11 @@
 "use client";
 
-import { PageContainer, Header, SectionHeader, BottomNavigation } from "@/src/components/layout";
+import { PageContainer, Header, SectionHeader, BottomNavigation } from "@/components/layout";
 import { EmptyState } from "@/components/shared";
-import UserSelector from "@/src/components/shared/user-selector";
-import { EnhancedHolding, User } from "@/src/lib";
+import UserSelector from "@/components/shared/user-selector";
+import { EnhancedHolding, User } from "@/lib";
 import { PieChart } from "lucide-react";
+import { investmentsStyles } from "@/features/investments/theme/investments-styles";
 
 interface InvestmentsContentProps {
   currentUser: User;
@@ -16,12 +17,12 @@ export default function InvestmentsContent({
   groupUsers,
 }: InvestmentsContentProps) {
   return (
-    <PageContainer className="bg-[#F8FAFC]">
-      <div className="flex-1">
+    <PageContainer className={investmentsStyles.page.container}>
+      <div className={investmentsStyles.page.content}>
         <Header
           title="Investimenti"
           showBack={true}
-          className="shadow-sm"
+          className={investmentsStyles.header.container}
           currentUser={{ name: currentUser.name, role: currentUser.role || 'member' }}
           showActions={true}
         />
@@ -31,20 +32,20 @@ export default function InvestmentsContent({
           users={groupUsers}
         />
 
-        <main className="p-4 pb-14">
-          <div className="flex gap-4 overflow-x-auto pb-4 -mx-4 px-4 mb-6">
-            <div className="flex w-64 shrink-0 flex-col rounded-2xl bg-card p-4 shadow-sm">
-              <div className="flex items-start justify-between">
-                <p className="text-base font-bold">Portafoglio Totale</p>
+        <main className={investmentsStyles.main.container}>
+          <div className={investmentsStyles.overview.container}>
+            <div className={investmentsStyles.overview.card}>
+              <div className={investmentsStyles.overview.cardHeader}>
+                <p className={investmentsStyles.overview.title}>Portafoglio Totale</p>
               </div>
-              <p className="mt-2 text-2xl font-bold">{0}</p>
-              <div className="mt-4">
-                <div className="flex justify-between text-sm font-medium">
+              <p className={investmentsStyles.overview.value}>{0}</p>
+              <div className={investmentsStyles.overview.delta}>
+                <div className={investmentsStyles.overview.deltaRow}>
                   <span>
                     +
                     {Math.abs(0)}
                   </span>
-                  <span className="text-primary">
+                  <span className={investmentsStyles.overview.deltaPositive}>
                     +
                     {Number(0).toFixed(1)}%
                   </span>
@@ -57,21 +58,21 @@ export default function InvestmentsContent({
             <SectionHeader
               title="Le Tue Partecipazioni"
               icon={PieChart}
-              iconClassName="text-primary"
-              className="px-4 pb-3 pt-5"
+              iconClassName={investmentsStyles.holdings.icon}
+              className={investmentsStyles.holdings.sectionHeader}
             />
-            <div className="space-y-3">
+            <div className={investmentsStyles.holdings.list}>
               {true ? (
                 [].map((holding: EnhancedHolding, index: number) => (
                   <div
                     key={holding.id || index}
-                    className="flex items-center justify-between gap-4 rounded-2xl bg-card p-4 shadow-sm"
+                    className={investmentsStyles.holdings.item}
                   >
-                    <div className="flex items-center gap-4">
-                      <div className="flex-1">
-                        <div className="mb-1 flex items-center justify-between">
-                          <p className="text-base font-medium">{holding.symbol}</p>
-                          <span className="text-sm font-medium">{holding.currentValue}</span>
+                    <div className={investmentsStyles.holdings.itemRow}>
+                      <div className={investmentsStyles.holdings.itemContent}>
+                        <div className={investmentsStyles.holdings.itemHeader}>
+                          <p className={investmentsStyles.holdings.itemSymbol}>{holding.symbol}</p>
+                          <span className={investmentsStyles.holdings.itemValue}>{holding.currentValue}</span>
                         </div>
                       </div>
                     </div>

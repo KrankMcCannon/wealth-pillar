@@ -10,7 +10,6 @@ import { Budget, BudgetPeriod, CategoryIcon, iconSizes } from "@/lib";
 import { budgetStyles } from "../theme/budget-styles";
 import { formatCurrency } from "@/lib/utils/currency-formatter";
 import { MoreVertical, Pencil, Trash2 } from "lucide-react";
-import React from "react";
 
 export interface BudgetDisplayCardProps {
   budget: Budget | null;
@@ -34,7 +33,7 @@ export function BudgetDisplayCard({
 }: Readonly<BudgetDisplayCardProps>) {
   if (!budget) return null;
 
-  const remainingColorClass = budgetProgress && budgetProgress.remaining < 0 ? "text-destructive" : "text-primary";
+  const remainingColorClass = budgetProgress && budgetProgress.remaining < 0 ? "text-destructive" : "text-success";
 
   return (
     <div className={budgetStyles.budgetDisplay.container}>
@@ -48,26 +47,26 @@ export function BudgetDisplayCard({
               className={budgetStyles.budgetDisplay.actionsButton}
               title="Azioni Budget"
             >
-              <MoreVertical className="h-4 w-4" />
+              <MoreVertical className={budgetStyles.budgetDisplay.actionIcon} />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent
             align="end"
-            className="w-48 bg-card/95 backdrop-blur-xl border border-border/50 shadow-xl rounded-xl p-2"
+            className={budgetStyles.dropdownMenu.contentWide}
           >
             <DropdownMenuItem
-              className="text-sm font-medium hover:bg-primary/8 hover:text-primary rounded-lg px-3 py-2.5 cursor-pointer transition-colors"
+              className={`${budgetStyles.dropdownMenu.itemBase} ${budgetStyles.dropdownMenu.itemEdit}`}
               onSelect={() => onEdit(budget)}
             >
-              <Pencil className="h-4 w-4 mr-2" />
+              <Pencil className={`${budgetStyles.budgetDisplay.actionIcon} ${budgetStyles.dropdownMenu.itemIcon}`} />
               Modifica Budget
             </DropdownMenuItem>
 
             <DropdownMenuItem
-              className="text-sm font-medium hover:bg-destructive/10 hover:text-destructive rounded-lg px-3 py-2.5 cursor-pointer transition-colors text-destructive"
+              className={`${budgetStyles.dropdownMenu.itemBase} ${budgetStyles.dropdownMenu.itemDelete}`}
               onSelect={() => onDelete(budget)}
             >
-              <Trash2 className="h-4 w-4 mr-2" />
+              <Trash2 className={`${budgetStyles.budgetDisplay.actionIcon} ${budgetStyles.dropdownMenu.itemIcon}`} />
               Elimina Budget
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -80,8 +79,8 @@ export function BudgetDisplayCard({
           <div className={budgetStyles.budgetDisplay.iconContainer}>
             <CategoryIcon
               categoryKey={budget.categories?.[0] || "altro"}
-              size={iconSizes.lg}
-              className="text-[#7578EC]"
+              size={iconSizes.sm}
+              className={budgetStyles.budgetDisplay.iconClass}
             />
           </div>
           <div className={budgetStyles.budgetDisplay.iconText}>
@@ -116,7 +115,7 @@ export function BudgetDisplayCard({
         <div className={budgetStyles.metrics.container}>
           {/* Available Amount */}
           <div className={budgetStyles.metrics.item}>
-            <p className={budgetStyles.metrics.label}>Disponibile</p>
+            <p className={`${budgetStyles.metrics.label} ${remainingColorClass}`}>Disponibile</p>
             <p className={`${budgetStyles.metrics.value} ${remainingColorClass}`}>
               {formatCurrency(budgetProgress.remaining)}
             </p>
@@ -125,13 +124,13 @@ export function BudgetDisplayCard({
           {/* Spent Amount */}
           <div className={budgetStyles.metrics.item}>
             <p className={`${budgetStyles.metrics.label} text-destructive`}>Speso</p>
-            <p className={`${budgetStyles.metrics.value} text-destructive`}>{formatCurrency(budgetProgress.spent)}</p>
+            <p className={`${budgetStyles.metrics.value} ${budgetStyles.metrics.valueDanger}`}>{formatCurrency(budgetProgress.spent)}</p>
           </div>
 
           {/* Total Budget */}
           <div className={budgetStyles.metrics.item}>
-            <p className={budgetStyles.metrics.label}>Totale</p>
-            <p className={budgetStyles.metrics.value}>{formatCurrency(budgetProgress.amount)}</p>
+            <p className={`${budgetStyles.metrics.label} text-primary`}>Totale</p>
+            <p className={`${budgetStyles.metrics.value} text-primary`}>{formatCurrency(budgetProgress.amount)}</p>
           </div>
         </div>
       )}

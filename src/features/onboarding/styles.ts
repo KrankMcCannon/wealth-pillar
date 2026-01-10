@@ -25,9 +25,75 @@ export const onboardingStyles = {
   select: 'h-11 bg-input border-2 border-primary/20 focus:border-primary',
   selectContent: 'bg-popover border-2 border-primary/20',
   alert: 'mt-4 sm:mt-5 rounded-2xl border border-destructive/30 bg-destructive/10 p-3 text-xs sm:text-sm text-destructive flex items-start gap-2 flex-shrink-0',
-  footer: 'mt-4 sm:mt-6 flex flex-row items-center justify-between gap-3 flex-shrink-0',
   loadingInfo: 'flex items-center gap-2 text-sm text-primary/70',
   warningMessage: 'rounded-xl border border-warning/30 bg-warning/10 p-3 text-sm text-warning-foreground',
+  form: {
+    section: 'space-y-4',
+    field: 'space-y-2',
+    grid: 'grid grid-cols-1 sm:grid-cols-2 gap-3',
+    gridField: 'space-y-2',
+    fieldRow: 'flex items-center gap-2',
+  },
+  accounts: {
+    infoBanner: 'bg-primary/5 border border-primary/20 rounded-lg p-3 mb-4',
+    infoText: 'text-xs text-primary/70 mt-1',
+    defaultToggle: 'ml-2 p-1 rounded transition-colors',
+    defaultActive: 'text-yellow-500 bg-yellow-50',
+    defaultInactive: 'text-gray-400 hover:text-yellow-400 hover:bg-yellow-50',
+    defaultIcon: 'h-4 w-4',
+    defaultIconFilled: 'fill-current',
+    helpGroup: 'group relative',
+    helpIcon: 'h-3.5 w-3.5 text-primary/60 cursor-help',
+    helpPopover: 'invisible group-hover:visible absolute left-0 top-6 z-50 w-64 rounded-lg bg-primary text-white p-3 text-xs shadow-lg',
+    helpTitle: 'font-semibold mb-1',
+    helpBody: 'text-white/90',
+    addIcon: 'h-4 w-4 mr-2',
+    deleteIcon: 'h-4 w-4',
+    labelRow: 'flex items-center gap-2',
+  },
+  budgets: {
+    infoBanner: 'bg-blue-50 border border-blue-200 rounded-lg p-3',
+    infoRow: 'flex items-start gap-2',
+    infoIcon: 'h-4 w-4 text-blue-600 mt-0.5 shrink-0',
+    infoBody: 'flex-1',
+    infoTitle: 'text-xs font-semibold text-blue-900',
+    infoText: 'text-xs text-blue-700 mt-1',
+    skipButton: 'text-xs px-3 py-1 h-auto bg-blue-100 text-blue-700 hover:bg-blue-200 border-blue-300',
+    loadingIcon: 'h-4 w-4 animate-spin',
+    deleteIcon: 'h-4 w-4',
+    grid: 'grid grid-cols-1 sm:grid-cols-2 gap-3',
+    field: 'space-y-2',
+    startDay: 'space-y-2 pt-2',
+    addIcon: 'h-4 w-4 mr-2',
+  },
+  draftRestore: {
+    container: 'fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-white border border-primary/20 rounded-lg shadow-lg p-4 max-w-md',
+    body: 'flex items-start gap-3',
+    icon: 'h-5 w-5 text-primary mt-0.5 shrink-0',
+    content: 'flex-1',
+    title: 'text-sm font-semibold text-primary',
+    text: 'text-xs text-primary/70 mt-1',
+    actions: 'flex gap-2 mt-3',
+    primaryButton: 'flex-1 text-xs h-8 bg-primary text-white hover:bg-primary/90',
+    secondaryButton: 'flex-1 text-xs h-8 bg-gray-100 text-gray-700 hover:bg-gray-200',
+  },
+  steps: {
+    icon: 'h-5 w-5',
+    dots: 'flex items-center gap-2 mb-2',
+    dot: 'h-2 rounded-full transition-all duration-300',
+    dotActive: 'w-8 bg-primary',
+    dotDone: 'w-2 bg-primary',
+    dotIdle: 'w-2 bg-primary/20',
+  },
+  footer: {
+    container: 'mt-4 sm:mt-6 flex flex-row items-center justify-between gap-3 flex-shrink-0',
+    buttonIcon: 'h-4 w-4',
+  },
 };
 
 export type OnboardingStyles = typeof onboardingStyles;
+
+export function getOnboardingProgressStyle(currentStep: number, totalSteps: number) {
+  const width = totalSteps > 0 ? ((currentStep + 1) / totalSteps) * 100 : 0;
+  return { width: `${width}%` };
+}

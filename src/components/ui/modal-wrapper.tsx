@@ -1,8 +1,11 @@
 "use client";
 
-import { cn } from "@/src/lib";
+import { cn } from "@/lib/utils";
 import * as React from "react";
+import { useMediaQuery } from "@/hooks/use-media-query";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "./dialog";
 import { Drawer, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle } from "./drawer";
+import { modalWrapperStyles } from "./theme/modal-wrapper-styles";
 
 /**
  * Modal Wrapper Component
@@ -61,9 +64,12 @@ export function ModalWrapper({
   contentClassName,
   titleClassName,
   descriptionClassName,
+  showCloseButton = true,
   isLoading = false,
   disableOutsideClose = false,
 }: ModalWrapperProps) {
+  const isDesktop = useMediaQuery("(min-width: 640px)");
+
   // Prevent closing if disabled
   const handleOpenChange = React.useCallback(
     (open: boolean) => {
@@ -75,28 +81,61 @@ export function ModalWrapper({
     [disableOutsideClose, onOpenChange]
   );
 
-  // Mobile: Use Drawer
+  if (isDesktop) {
+    return (
+      <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+        <DialogContent showCloseButton={showCloseButton} className={className}>
+          <DialogHeader className={modalWrapperStyles.dialogHeader}>
+            <DialogTitle className={cn(modalWrapperStyles.dialogTitle, titleClassName)}>{title}</DialogTitle>
+            {description ? (
+              <DialogDescription className={cn(modalWrapperStyles.dialogDescription, descriptionClassName)}>
+                {description}
+              </DialogDescription>
+            ) : (
+              <DialogDescription className={modalWrapperStyles.dialogDescriptionHidden}>{title}</DialogDescription>
+            )}
+          </DialogHeader>
+
+          <div className={cn(modalWrapperStyles.content, contentClassName)}>
+            {isLoading ? (
+              <div className={modalWrapperStyles.loadingWrap}>
+                <div className={modalWrapperStyles.loadingDot} />
+                <span className={modalWrapperStyles.loadingText}>Caricamento...</span>
+              </div>
+            ) : (
+              children
+            )}
+          </div>
+
+          {footer && !isLoading && (
+            <DialogFooter>{footer}</DialogFooter>
+          )}
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
   return (
     <Drawer open={isOpen} onOpenChange={handleOpenChange}>
-      <DrawerContent className={cn("p-0", className)} aria-describedby={undefined}>
-        <DrawerHeader className="text-left bg-card px-4 py-3 border-b border-border shrink-0">
-          <DrawerTitle className={cn("text-lg font-semibold text-black", titleClassName)}>{title}</DrawerTitle>
+      <DrawerContent className={cn(modalWrapperStyles.drawerContent, className)} aria-describedby={undefined}>
+        <DrawerHeader className={modalWrapperStyles.drawerHeader}>
+          <DrawerTitle className={cn(modalWrapperStyles.drawerTitle, titleClassName)}>{title}</DrawerTitle>
           {description ? (
-            <DrawerDescription className={cn("text-sm text-muted-foreground mt-1", descriptionClassName)}>
+            <DrawerDescription className={cn(modalWrapperStyles.drawerDescription, descriptionClassName)}>
               {description}
             </DrawerDescription>
           ) : (
-            <DrawerDescription className="sr-only">
+            <DrawerDescription className={modalWrapperStyles.dialogDescriptionHidden}>
               {title}
             </DrawerDescription>
           )}
         </DrawerHeader>
 
-        <div className={cn("px-4 py-3 text-black flex-1 overflow-y-auto", contentClassName)}>
+        <div className={cn(modalWrapperStyles.drawerContentBody, contentClassName)}>
           {isLoading ? (
-            <div className="flex items-center justify-center py-8">
-              <div className="liquid-pulse size-8 rounded-full bg-primary/20" />
-              <span className="ml-3 text-sm text-muted-foreground">Caricamento...</span>
+            <div className={modalWrapperStyles.loadingWrap}>
+              <div className={modalWrapperStyles.loadingDot} />
+              <span className={modalWrapperStyles.loadingText}>Caricamento...</span>
             </div>
           ) : (
             children
@@ -104,7 +143,7 @@ export function ModalWrapper({
         </div>
 
         {footer && !isLoading && (
-          <DrawerFooter className="pt-3 pb-4 px-4 border-t border-border bg-card shrink-0">{footer}</DrawerFooter>
+          <DrawerFooter className={modalWrapperStyles.drawerFooter}>{footer}</DrawerFooter>
         )}
       </DrawerContent>
     </Drawer>
@@ -119,7 +158,7 @@ export function ModalWrapper({
  * Pre-styled modal content wrapper for consistent spacing
  */
 export function ModalContent({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <div className={cn("flex flex-col gap-2", className)}>{children}</div>;
+  return <div className={cn("flex flex-col", className)}>{children}</div>;
 }
 
 /**

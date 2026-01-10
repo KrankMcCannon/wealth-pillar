@@ -20,7 +20,7 @@ import { Button, Input, Label, Select, SelectContent, SelectItem, SelectTrigger,
 import type { Category, BudgetType } from "@/lib/types";
 import { AccountTypeMap } from "@/lib/types";
 import type { OnboardingPayload } from "@/features/onboarding/types";
-import { onboardingStyles } from "@/features/onboarding/styles";
+import { onboardingStyles, getOnboardingProgressStyle } from "@/features/onboarding/styles";
 
 interface OnboardingModalProps {
   categories: Category[];
@@ -129,15 +129,7 @@ export default function OnboardingModal({
     { description: "", amount: "", type: "monthly", categoryId: "" },
   ]);
   const [localError, setLocalError] = useState<string | null>(null);
-  const [showDraftRestore, setShowDraftRestore] = useState(false);
-
-  // Load draft on mount
-  useEffect(() => {
-    const draft = loadDraft();
-    if (draft) {
-      setShowDraftRestore(true);
-    }
-  }, []);
+  const [showDraftRestore, setShowDraftRestore] = useState(() => Boolean(loadDraft()));
 
   // Auto-save draft whenever state changes (debounced)
   useEffect(() => {
@@ -276,8 +268,8 @@ export default function OnboardingModal({
   };
 
   const renderGroupStep = () => (
-    <div className="space-y-4">
-      <div className="space-y-2">
+    <div className={onboardingStyles.form.section}>
+      <div className={onboardingStyles.form.field}>
         <Label htmlFor="groupName" className={onboardingStyles.primaryLabel}>
           Nome del gruppo
         </Label>
@@ -291,7 +283,7 @@ export default function OnboardingModal({
           className={onboardingStyles.input}
         />
       </div>
-      <div className="space-y-2">
+      <div className={onboardingStyles.form.field}>
         <Label htmlFor="groupDescription" className={onboardingStyles.primaryLabel}>
           Descrizione (opzionale)
         </Label>
@@ -339,12 +331,12 @@ export default function OnboardingModal({
   };
 
   const renderAccountsStep = () => (
-    <div className="space-y-4">
+    <div className={onboardingStyles.form.section}>
       {/* Info banner - only if multiple accounts */}
       {accounts.length > 1 && (
-        <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 mb-4">
+        <div className={onboardingStyles.accounts.infoBanner}>
           <Label className={onboardingStyles.label}>Conto Predefinito</Label>
-          <p className="text-xs text-primary/70 mt-1">
+          <p className={onboardingStyles.accounts.infoText}>
             Seleziona quale conto vuoi usare come predefinito per le transazioni
           </p>
         </div>
@@ -353,7 +345,7 @@ export default function OnboardingModal({
       {accounts.map((account, index) => (
         <div key={`account-${index}`} className={onboardingStyles.card}>
           <div className={onboardingStyles.cardHeader}>
-            <div className="flex items-center gap-2">
+            <div className={onboardingStyles.accounts.labelRow}>
               <p className={onboardingStyles.cardTitle}>Conto {index + 1}</p>
 
               {/* Star icon for default selection - only if multiple accounts */}
@@ -361,15 +353,15 @@ export default function OnboardingModal({
                 <button
                   type="button"
                   onClick={() => setAccountAsDefault(index)}
-                  className={`ml-2 p-1 rounded transition-colors ${
+                  className={`${onboardingStyles.accounts.defaultToggle} ${
                     account.isDefault
-                      ? 'text-yellow-500 bg-yellow-50'
-                      : 'text-gray-400 hover:text-yellow-400 hover:bg-yellow-50'
+                      ? onboardingStyles.accounts.defaultActive
+                      : onboardingStyles.accounts.defaultInactive
                   }`}
                   title={account.isDefault ? 'Conto predefinito' : 'Imposta come predefinito'}
                   disabled={loading}
                 >
-                  <Star className={`h-4 w-4 ${account.isDefault ? 'fill-current' : ''}`} />
+                  <Star className={`${onboardingStyles.accounts.defaultIcon} ${account.isDefault ? onboardingStyles.accounts.defaultIconFilled : ''}`} />
                 </button>
               )}
             </div>
@@ -381,11 +373,11 @@ export default function OnboardingModal({
                 className={onboardingStyles.deleteButton}
                 disabled={loading}
               >
-                <Trash2 className="h-4 w-4" />
+                <Trash2 className={onboardingStyles.accounts.deleteIcon} />
               </button>
             )}
           </div>
-          <div className="space-y-2">
+          <div className={onboardingStyles.form.field}>
             <Label className={onboardingStyles.label}>Nome del conto</Label>
             <Input
               value={account.name}
@@ -395,14 +387,14 @@ export default function OnboardingModal({
               className={onboardingStyles.input}
             />
           </div>
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
+          <div className={onboardingStyles.form.field}>
+            <div className={onboardingStyles.accounts.labelRow}>
               <Label className={onboardingStyles.label}>Tipologia</Label>
-              <div className="group relative">
-                <HelpCircle className="h-3.5 w-3.5 text-primary/60 cursor-help" />
-                <div className="invisible group-hover:visible absolute left-0 top-6 z-50 w-64 rounded-lg bg-primary text-white p-3 text-xs shadow-lg">
-                  <p className="font-semibold mb-1">{AccountTypeMap[account.type]}</p>
-                  <p className="text-white/90">{accountTypeDescriptions[account.type]}</p>
+              <div className={onboardingStyles.accounts.helpGroup}>
+                <HelpCircle className={onboardingStyles.accounts.helpIcon} />
+                <div className={onboardingStyles.accounts.helpPopover}>
+                  <p className={onboardingStyles.accounts.helpTitle}>{AccountTypeMap[account.type]}</p>
+                  <p className={onboardingStyles.accounts.helpBody}>{accountTypeDescriptions[account.type]}</p>
                 </div>
               </div>
             </div>
@@ -426,7 +418,7 @@ export default function OnboardingModal({
         </div>
       ))}
       <Button type="button" onClick={addAccount} disabled={loading} className={onboardingStyles.addButton}>
-        <PlusCircle className="h-4 w-4 mr-2" /> Aggiungi un conto
+        <PlusCircle className={onboardingStyles.accounts.addIcon} /> Aggiungi un conto
       </Button>
     </div>
   );
@@ -444,14 +436,14 @@ export default function OnboardingModal({
   };
 
   const renderBudgetsStep = () => (
-    <div className="space-y-4">
+    <div className={onboardingStyles.form.section}>
       {/* Skip budget info */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-        <div className="flex items-start gap-2">
-          <HelpCircle className="h-4 w-4 text-blue-600 mt-0.5 shrink-0" />
-          <div className="flex-1">
-            <p className="text-xs font-semibold text-blue-900">Puoi saltare questo passaggio</p>
-            <p className="text-xs text-blue-700 mt-1">
+      <div className={onboardingStyles.budgets.infoBanner}>
+        <div className={onboardingStyles.budgets.infoRow}>
+          <HelpCircle className={onboardingStyles.budgets.infoIcon} />
+          <div className={onboardingStyles.budgets.infoBody}>
+            <p className={onboardingStyles.budgets.infoTitle}>Puoi saltare questo passaggio</p>
+            <p className={onboardingStyles.budgets.infoText}>
               Non sei sicuro dei budget? Puoi configurarli più tardi dal dashboard.
             </p>
           </div>
@@ -460,7 +452,7 @@ export default function OnboardingModal({
               type="button"
               onClick={handleSkipBudgets}
               disabled={loading}
-              className="text-xs px-3 py-1 h-auto bg-blue-100 text-blue-700 hover:bg-blue-200 border-blue-300"
+              className={onboardingStyles.budgets.skipButton}
             >
               Salta
             </Button>
@@ -470,7 +462,7 @@ export default function OnboardingModal({
 
       {categoriesLoading && (
         <div className={onboardingStyles.loadingInfo}>
-          <Loader2 className="h-4 w-4 animate-spin" />
+          <Loader2 className={onboardingStyles.budgets.loadingIcon} />
           Caricamento categorie...
         </div>
       )}
@@ -491,11 +483,11 @@ export default function OnboardingModal({
                 className={onboardingStyles.deleteButton}
                 disabled={loading}
               >
-                <Trash2 className="h-4 w-4" />
+                <Trash2 className={onboardingStyles.budgets.deleteIcon} />
               </button>
             )}
           </div>
-          <div className="space-y-2">
+          <div className={onboardingStyles.form.field}>
             <Label className={onboardingStyles.label}>Descrizione</Label>
             <Input
               value={budget.description}
@@ -505,8 +497,8 @@ export default function OnboardingModal({
               className={onboardingStyles.input}
             />
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="space-y-2">
+          <div className={onboardingStyles.budgets.grid}>
+            <div className={onboardingStyles.budgets.field}>
               <Label className={onboardingStyles.label}>Importo previsto (€)</Label>
               <Input
                 type="number"
@@ -519,7 +511,7 @@ export default function OnboardingModal({
                 className={onboardingStyles.input}
               />
             </div>
-            <div className="space-y-2">
+            <div className={onboardingStyles.budgets.field}>
               <Label className={onboardingStyles.label}>Periodo</Label>
               <Select
                 value={budget.type}
@@ -539,7 +531,7 @@ export default function OnboardingModal({
               </Select>
             </div>
           </div>
-          <div className="space-y-2">
+          <div className={onboardingStyles.form.field}>
             <Label className={onboardingStyles.label}>Categoria principale</Label>
             <Select
               value={budget.categoryId}
@@ -562,7 +554,7 @@ export default function OnboardingModal({
           </div>
         </div>
       ))}
-      <div className="space-y-2 pt-2">
+      <div className={onboardingStyles.budgets.startDay}>
         <Label htmlFor="budgetStartDay" className={onboardingStyles.primaryLabel}>
           Giorno di inizio budget
         </Label>
@@ -584,7 +576,7 @@ export default function OnboardingModal({
         </Select>
       </div>
       <Button type="button" onClick={addBudget} disabled={loading} className={onboardingStyles.addButton}>
-        <PlusCircle className="h-4 w-4 mr-2" /> Aggiungi un budget
+        <PlusCircle className={onboardingStyles.budgets.addIcon} /> Aggiungi un budget
       </Button>
     </div>
   );
@@ -604,29 +596,29 @@ export default function OnboardingModal({
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-white border border-primary/20 rounded-lg shadow-lg p-4 max-w-md"
+          className={onboardingStyles.draftRestore.container}
         >
-          <div className="flex items-start gap-3">
-            <HelpCircle className="h-5 w-5 text-primary mt-0.5 shrink-0" />
-            <div className="flex-1">
-              <p className="text-sm font-semibold text-primary">Riprendere da dove hai lasciato?</p>
-              <p className="text-xs text-primary/70 mt-1">
+          <div className={onboardingStyles.draftRestore.body}>
+            <HelpCircle className={onboardingStyles.draftRestore.icon} />
+            <div className={onboardingStyles.draftRestore.content}>
+              <p className={onboardingStyles.draftRestore.title}>Riprendere da dove hai lasciato?</p>
+              <p className={onboardingStyles.draftRestore.text}>
                 Abbiamo trovato una configurazione salvata in precedenza.
               </p>
             </div>
           </div>
-          <div className="flex gap-2 mt-3">
+          <div className={onboardingStyles.draftRestore.actions}>
             <Button
               type="button"
               onClick={restoreDraft}
-              className="flex-1 text-xs h-8 bg-primary text-white hover:bg-primary/90"
+              className={onboardingStyles.draftRestore.primaryButton}
             >
               Ripristina
             </Button>
             <Button
               type="button"
               onClick={dismissDraftRestore}
-              className="flex-1 text-xs h-8 bg-gray-100 text-gray-700 hover:bg-gray-200"
+              className={onboardingStyles.draftRestore.secondaryButton}
             >
               Ricomincia
             </Button>
@@ -643,20 +635,20 @@ export default function OnboardingModal({
         <header className={onboardingStyles.header.container}>
           <div className={onboardingStyles.header.content}>
             <div className={onboardingStyles.header.icon}>
-              <StepIcon className="h-5 w-5" />
+              <StepIcon className={onboardingStyles.steps.icon} />
             </div>
             <div>
               {/* Visual step progress indicator with dots */}
-              <div className="flex items-center gap-2 mb-2">
+              <div className={onboardingStyles.steps.dots}>
                 {steps.map((_, index) => (
                   <div
                     key={index}
-                    className={`h-2 rounded-full transition-all duration-300 ${
+                    className={`${onboardingStyles.steps.dot} ${
                       index === currentStep
-                        ? 'w-8 bg-primary'
+                        ? onboardingStyles.steps.dotActive
                         : index < currentStep
-                        ? 'w-2 bg-primary'
-                        : 'w-2 bg-primary/20'
+                        ? onboardingStyles.steps.dotDone
+                        : onboardingStyles.steps.dotIdle
                     }`}
                   />
                 ))}
@@ -671,7 +663,7 @@ export default function OnboardingModal({
           <div className={onboardingStyles.header.progressTrack}>
             <div
               className={onboardingStyles.header.progressIndicator}
-              style={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
+              style={getOnboardingProgressStyle(currentStep, steps.length)}
             />
           </div>
         </header>
@@ -680,15 +672,15 @@ export default function OnboardingModal({
 
         {(localError || error) && (
           <div className={onboardingStyles.alert}>
-            <AlertCircle className="h-4 w-4" />
+            <AlertCircle className={onboardingStyles.footer.buttonIcon} />
             <span>{localError || error}</span>
           </div>
         )}
 
-        <div className={onboardingStyles.footer}>
+        <div className={onboardingStyles.footer.container}>
           {currentStep > 0 ? (
             <Button type="button" onClick={handleBack} disabled={loading} className={onboardingStyles.backButton}>
-              <ArrowLeft className="h-4 w-4" /> Indietro
+              <ArrowLeft className={onboardingStyles.footer.buttonIcon} /> Indietro
             </Button>
           ) : (
             <div />
@@ -703,19 +695,19 @@ export default function OnboardingModal({
             {currentStep === steps.length - 1 ? (
               loading ? (
                 <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <Loader2 className={onboardingStyles.budgets.loadingIcon} />
                   Salvataggio...
                 </>
               ) : (
                 <>
                   Conferma
-                  <CheckCircle2 className="h-4 w-4" />
+                  <CheckCircle2 className={onboardingStyles.footer.buttonIcon} />
                 </>
               )
             ) : (
               <>
                 Avanti
-                <ArrowRight className="h-4 w-4" />
+                <ArrowRight className={onboardingStyles.footer.buttonIcon} />
               </>
             )}
           </Button>

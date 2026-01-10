@@ -4,6 +4,7 @@ import { memo, useCallback, useMemo } from 'react';
 import { Users, User as UserIcon, Crown, Star, Heart } from "lucide-react";
 import { useUserFilter } from '@/hooks';
 import { User } from '@/lib/types';
+import { userSelectorStyles } from './theme/user-selector-styles';
 
 interface UserSelectorProps {
   className?: string;
@@ -71,15 +72,15 @@ const UserSelector = memo(({
   // Loading state
   if (isLoading) {
     return (
-      <section className={`bg-card/80 backdrop-blur-xl p-2 border-b border-primary/20 shadow-sm ${className}`}>
-        <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+      <section className={`${userSelectorStyles.loading.container} ${className}`}>
+        <div className={userSelectorStyles.loading.list}>
           {[1, 2, 3].map((i) => (
             <div
               key={i}
-              className="shrink-0 flex items-center gap-3 p-2 rounded-2xl bg-primary/10 border border-primary/20 min-w-[120px] animate-pulse"
+              className={userSelectorStyles.loading.item}
             >
-              <div className="w-6 h-6 bg-primary/20 rounded-full"></div>
-              <div className="w-16 h-4 bg-primary/15 rounded"></div>
+              <div className={userSelectorStyles.loading.icon}></div>
+              <div className={userSelectorStyles.loading.text}></div>
             </div>
           ))}
         </div>
@@ -88,13 +89,10 @@ const UserSelector = memo(({
   }
 
   return (
-    <section className={`bg-card/80 backdrop-blur-xl py-3 border-b border-primary/20 shadow-sm ${className}`}>
+    <section className={`${userSelectorStyles.container} ${className}`}>
       <div
-        className="flex items-center gap-2 overflow-x-auto scrollbar-thin scrollbar-thumb-primary/30 scrollbar-track-transparent hover:scrollbar-thumb-primary/40 scrollbar-thumb-rounded-full pl-4"
-        style={{
-          scrollbarWidth: 'thin',
-          height: '44px', // Altezza fissa per il container
-        }}
+        className={userSelectorStyles.list}
+        style={userSelectorStyles.listStyle}
       >
         {membersList.map((member, index) => {
           const IconComponent = getUserIcon(member.id, index);
@@ -104,40 +102,33 @@ const UserSelector = memo(({
             <button
               key={member.id}
               onClick={() => handleMemberClick(member.id)}
-              className={`
-                shrink-0 flex items-center gap-2 px-3 py-2 rounded-2xl text-sm font-semibold
-                whitespace-nowrap transition-all duration-300 group hover:scale-[1.02]
-                focus:outline-none
-                ${isSelected
-                  ? "bg-primary text-white shadow-lg shadow-primary/30 scale-105"
-                  : "bg-primary/10 backdrop-blur-sm text-primary hover:bg-primary/12 hover:text-primary hover:shadow-sm hover:shadow-primary/10"
-                }
-              `}
+              className={`${userSelectorStyles.item.base} ${isSelected
+                ? userSelectorStyles.item.active
+                : userSelectorStyles.item.inactive
+                }`}
               disabled={isLoading}
               aria-pressed={isSelected}
               aria-label={`Seleziona ${member.name}`}
             >
-              <div className={`
-                flex items-center justify-center w-5 h-5 rounded-full
-                transition-all duration-200 group-hover:scale-105
-                ${isSelected
-                  ? 'bg-white/20 backdrop-blur-sm'
-                  : 'bg-primary/20'
-                }
-              `}>
+              <div className={`${userSelectorStyles.icon.containerBase} ${isSelected
+                ? userSelectorStyles.icon.containerActive
+                : userSelectorStyles.icon.containerInactive
+                }`}>
                 <IconComponent
-                  className={`w-3.5 h-3.5 transition-colors duration-200 ${isSelected ? 'text-white' : 'text-primary'
+                  className={`${userSelectorStyles.icon.svgBase} ${isSelected
+                    ? userSelectorStyles.icon.svgActive
+                    : userSelectorStyles.icon.svgInactive
                     }`}
                 />
               </div>
 
-              <span className="truncate max-w-[70px] transition-all duration-200">
+              <span className={userSelectorStyles.label}>
                 {member.name}
               </span>
 
               {/* Hover indicator only for non-selected */}
               {!isSelected && (
-                <div className="w-0 h-2 bg-primary/40 rounded-full transition-all duration-300 group-hover:w-2 shrink-0" />
+                <div className={userSelectorStyles.hoverIndicator} />
               )}
             </button>
           );
@@ -146,13 +137,13 @@ const UserSelector = memo(({
 
       {/* Selection indicator dots (for visual feedback) */}
       {membersList.length > 3 && (
-        <div className="flex justify-center mt-2 gap-1">
+        <div className={userSelectorStyles.dots.container}>
           {membersList.slice(0, Math.min(membersList.length, 5)).map((_, index) => (
             <div
               key={index}
-              className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${index === membersList.findIndex(m => m.id === selectedGroupFilter)
-                ? 'bg-primary w-4'
-                : 'bg-muted-foreground/30'
+              className={`${userSelectorStyles.dots.base} ${index === membersList.findIndex(m => m.id === selectedGroupFilter)
+                ? userSelectorStyles.dots.active
+                : userSelectorStyles.dots.inactive
                 }`}
             />
           ))}

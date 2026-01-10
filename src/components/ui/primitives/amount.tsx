@@ -12,7 +12,7 @@
  */
 
 import * as React from "react";
-import { amountVariants, AmountVariants, cn, formatCurrency } from "@/src/lib";
+import { amountVariants, type AmountVariants, cn, formatCurrency } from "@/lib/utils";
 
 export interface AmountProps extends React.HTMLAttributes<HTMLSpanElement>, AmountVariants {
   /** Amount value (number or string) */

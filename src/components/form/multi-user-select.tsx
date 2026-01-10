@@ -11,6 +11,7 @@
 import type { User } from "@/lib/types";
 import { Checkbox } from "@/components/ui";
 import { cn } from "@/lib/utils";
+import { formStyles, getMultiUserAvatarStyle } from "./theme/form-styles";
 
 interface MultiUserSelectProps {
   /**
@@ -81,37 +82,36 @@ export function MultiUserSelect({
   };
 
   return (
-    <div className={cn("space-y-2 border border-border rounded-lg p-3", className)}>
+    <div className={cn(formStyles.multiUser.container, className)}>
       {users.map((user) => (
         <label
           key={user.id}
           className={cn(
-            "flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-colors",
-            "hover:bg-muted/50",
-            value.includes(user.id) && "bg-primary/5"
+            formStyles.multiUser.row,
+            value.includes(user.id) && formStyles.multiUser.rowActive
           )}
         >
           <Checkbox
             checked={value.includes(user.id)}
             onCheckedChange={() => handleToggle(user.id)}
           />
-          <div className="flex items-center gap-2 flex-1">
+          <div className={formStyles.multiUser.userRow}>
             {/* User avatar */}
             <div
-              className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium text-white"
-              style={{ backgroundColor: user.theme_color }}
+              className={formStyles.multiUser.avatar}
+              style={getMultiUserAvatarStyle(user.theme_color)}
             >
               {user.name.charAt(0).toUpperCase()}
             </div>
 
             {/* User name */}
-            <span className="text-sm font-medium">
+            <span className={formStyles.multiUser.name}>
               {user.name}
             </span>
 
             {/* Current user indicator */}
             {user.id === currentUserId && (
-              <span className="text-xs text-muted-foreground">(Tu)</span>
+              <span className={formStyles.multiUser.current}>(Tu)</span>
             )}
           </div>
         </label>

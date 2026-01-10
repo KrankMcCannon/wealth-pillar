@@ -26,8 +26,8 @@ import {
   format,
 } from "date-fns";
 import { it } from "date-fns/locale";
-import { calendarDrawerStyles } from "@/src/lib/styles/calendar-drawer.styles";
-import { cn } from "@/src/lib/utils/ui-variants";
+import { calendarDrawerStyles } from "@/lib/styles/calendar-drawer.styles";
+import { cn } from "@/lib/utils";
 import { DayCell } from "./day-cell";
 
 export interface MonthGridProps {

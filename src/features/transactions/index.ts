@@ -27,5 +27,5 @@ export {
 // Theme
 // ====================================
 export { getAmountStyles, getDayTotalStyles, getIconStyles, getTransactionTypeStyles, transactionStyles } from './theme/transaction-styles';
-export { transactionColors, transactionComponents, transactionSpacing, transactionTypography } from './theme/transaction-tokens';
+export { transactionTokens } from './theme/transaction-tokens';
 
