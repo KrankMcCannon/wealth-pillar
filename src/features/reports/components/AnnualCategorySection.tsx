@@ -1,13 +1,11 @@
 "use client";
 
 import * as React from "react";
-import { ListContainer, PageSection, RowCard, SectionHeader } from "@/components/ui";
+import { ListContainer, PageSection, RowCard, SectionHeader, CategoryBadge } from "@/components/ui";
 import { Amount } from "@/components/ui/primitives";
 import { CategoryService, FinanceLogicService } from "@/lib/services";
-import { CategoryIcon, iconSizes } from "@/lib";
 import {
   reportsStyles,
-  getAnnualCategoryIconStyle,
   getAnnualCategoryBarStyle,
 } from "@/styles/system";
 import { cn } from "@/lib/utils";
@@ -74,15 +72,12 @@ export function AnnualCategorySection({
                   title={categoryLabel}
                   metadata={<span className={reportsStyles.annualCategory.count}>({item.count})</span>}
                   icon={
-                    <div
+                    <CategoryBadge
+                      categoryKey={item.category}
+                      color={categoryColor}
+                      size="sm"
                       className={reportsStyles.annualCategory.iconWrap}
-                      style={getAnnualCategoryIconStyle(categoryColor)}
-                    >
-                      <CategoryIcon
-                        categoryKey={item.category}
-                        size={iconSizes.sm}
-                      />
-                    </div>
+                    />
                   }
                   iconColor="none"
                   primaryValue={

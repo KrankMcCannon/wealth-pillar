@@ -4,11 +4,13 @@
 
 "use client";
 
-import { memo } from "react";
-import { IconContainer, StatusBadge, Text } from "@/components/ui";
-import { Budget, CategoryIcon, iconSizes, progressBarVariants, progressFillVariants } from "@/lib";
+import { memo, useMemo } from "react";
+import { CategoryBadge, StatusBadge, Text } from "@/components/ui";
+import { Budget, progressBarVariants, progressFillVariants } from "@/lib";
 import { formatCurrency } from "@/lib/utils/currency-formatter";
 import { cardStyles, getBudgetProgressStyle, getBudgetStatusTextClass } from "./theme/card-styles";
+import { useCategories } from "@/stores/reference-data-store";
+import { CategoryService } from "@/lib/services";
 
 interface BudgetCardProps {
   budget: Budget;
@@ -22,6 +24,10 @@ interface BudgetCardProps {
 }
 
 export const BudgetCard = memo(function BudgetCard({ budget, budgetInfo, onClick }: BudgetCardProps) {
+  const categories = useCategories();
+  const categoryColor = useMemo(() => {
+    return CategoryService.getCategoryColor(categories, budget.categories?.[0] || "altro");
+  }, [categories, budget.categories]);
   // Status calculation (centralized logic)
   const getStatusVariant = (progress: number): "success" | "warning" | "danger" => {
     if (progress >= 100) return "danger";
@@ -42,10 +48,11 @@ export const BudgetCard = memo(function BudgetCard({ budget, budgetInfo, onClick
     >
       <div className={cardStyles.budget.row}>
         <div className={cardStyles.budget.left}>
-          {/* Icon Container */}
-          <IconContainer size="md" color="primary">
-            <CategoryIcon categoryKey={budget.categories?.[0] || "altro"} size={iconSizes.md} />
-          </IconContainer>
+          <CategoryBadge
+            categoryKey={budget.categories?.[0] || "altro"}
+            color={categoryColor}
+            size="md"
+          />
 
           <div className={cardStyles.budget.content}>
             {/* Budget title */}

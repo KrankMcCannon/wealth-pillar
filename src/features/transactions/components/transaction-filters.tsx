@@ -13,7 +13,8 @@
 
 import { useState, useMemo, useCallback } from "react";
 import { Search, X, ChevronDown, Check } from "lucide-react";
-import { Category, CategoryIcon, cn, iconSizes } from "@/lib";
+import { Category, cn } from "@/lib";
+import { CategoryBadge } from "@/components/ui";
 import { toDateTime, isToday as isDateToday, isWithinWeek, isWithinMonth, isWithinYear, formatDateShort } from "@/lib/utils/date-utils";
 import {
   Button,
@@ -348,7 +349,7 @@ function FilterDrawerContent({ filterType, filters, categories, onSelect, onClos
                 : transactionStyles.filters.categoryButtonIdle
             )}
           >
-            <CategoryIcon categoryKey={category.key} size={iconSizes.sm} />
+            <CategoryBadge categoryKey={category.key} size="sm" />
             <span className={transactionStyles.filters.categoryLabelLeft}>{category.label}</span>
             {filters.categoryKey === category.key && <Check className={transactionStyles.filters.categoryCheck} />}
           </button>

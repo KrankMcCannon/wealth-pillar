@@ -5,11 +5,13 @@
 
 "use client";
 
-import { Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui";
-import { Budget, BudgetPeriod, CategoryIcon, iconSizes } from "@/lib";
+import { Button, CategoryBadge, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui";
+import { Budget, BudgetPeriod } from "@/lib";
 import { budgetStyles } from "@/styles/system";
 import { formatCurrency } from "@/lib/utils/currency-formatter";
 import { MoreVertical, Pencil, Trash2 } from "lucide-react";
+import { useCategories } from "@/stores/reference-data-store";
+import { CategoryService } from "@/lib/services";
 
 export interface BudgetDisplayCardProps {
   budget: Budget | null;
@@ -31,9 +33,11 @@ export function BudgetDisplayCard({
   onEdit,
   onDelete,
 }: Readonly<BudgetDisplayCardProps>) {
-  if (!budget) return null;
-
+  const categories = useCategories();
+  const categoryColor = CategoryService.getCategoryColor(categories, budget?.categories?.[0] || "altro");
   const remainingColorClass = budgetProgress && budgetProgress.remaining < 0 ? "text-destructive" : "text-success";
+
+  if (!budget) return null;
 
   return (
     <div className={budgetStyles.budgetDisplay.container}>
@@ -77,9 +81,10 @@ export function BudgetDisplayCard({
       <div className={budgetStyles.budgetDisplay.headerRow}>
         <div className={budgetStyles.budgetDisplay.headerContent}>
           <div className={budgetStyles.budgetDisplay.iconContainer}>
-            <CategoryIcon
+            <CategoryBadge
               categoryKey={budget.categories?.[0] || "altro"}
-              size={iconSizes.sm}
+              color={categoryColor}
+              size="sm"
               className={budgetStyles.budgetDisplay.iconClass}
             />
           </div>

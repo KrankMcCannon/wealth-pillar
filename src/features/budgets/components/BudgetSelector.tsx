@@ -6,17 +6,20 @@
 
 'use client';
 
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
+  CategoryBadge,
 } from '@/components/ui';
 import { PageSection, SectionHeader } from "@/components/ui";
-import { Budget, CategoryIcon, iconSizes, User } from '@/lib';
+import { Budget, User } from '@/lib';
 import { budgetStyles } from '@/styles/system';
 import { useUserFilter } from '@/hooks/state/use-user-filter';
+import { useCategories } from '@/stores/reference-data-store';
+import { CategoryService } from '@/lib/services';
 
 export interface BudgetSelectorProps {
   selectedBudget: Budget | null;
@@ -34,6 +37,15 @@ export function BudgetSelector({
   const { selectedUserId } = useUserFilter();
   const showUserChip = !selectedUserId;
   const userMap = useMemo(() => new Map(users.map((user) => [user.id, user.name])), [users]);
+  const categories = useCategories();
+  const categoryColors = useMemo(() => {
+    return new Map(
+      categories.map((category) => [category.key, category.color])
+    );
+  }, [categories]);
+  const getCategoryColor = useCallback((categoryKey: string) => {
+    return categoryColors.get(categoryKey) || CategoryService.getCategoryColor(categories, categoryKey);
+  }, [categories, categoryColors]);
 
   return (
     <PageSection variant="card" padding="sm" className={budgetStyles.selectionSection}>
@@ -53,11 +65,12 @@ export function BudgetSelector({
             {selectedBudget ? (
               <div className={budgetStyles.selector.itemContent}>
                 <div className={budgetStyles.selector.itemIcon}>
-                  <CategoryIcon
-                    categoryKey={selectedBudget.categories?.[0] || 'altro'}
-                    size={iconSizes.sm}
-                    className={budgetStyles.selector.itemIconContent}
-                  />
+                <CategoryBadge
+                  categoryKey={selectedBudget.categories?.[0] || 'altro'}
+                  color={getCategoryColor(selectedBudget.categories?.[0] || 'altro')}
+                  size="sm"
+                  className={budgetStyles.selector.itemIconContent}
+                />
                 </div>
                 <div className={budgetStyles.selector.itemTextRow}>
                   <span className={budgetStyles.selector.itemText}>
@@ -83,11 +96,12 @@ export function BudgetSelector({
               >
                 <div className={budgetStyles.selector.itemContent}>
                   <div className={budgetStyles.selector.itemIcon}>
-                    <CategoryIcon
-                      categoryKey={budget.categories?.[0] || 'altro'}
-                      size={iconSizes.sm}
-                      className={budgetStyles.selector.itemIconContent}
-                    />
+                  <CategoryBadge
+                    categoryKey={budget.categories?.[0] || 'altro'}
+                    color={getCategoryColor(budget.categories?.[0] || 'altro')}
+                    size="sm"
+                    className={budgetStyles.selector.itemIconContent}
+                  />
                   </div>
                   <div className={budgetStyles.selector.itemTextRow}>
                     <span className={budgetStyles.selector.itemText}>

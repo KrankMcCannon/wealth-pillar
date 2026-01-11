@@ -8,16 +8,17 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { CategoryIcon, cn, iconSizes, RecurringTransactionSeries } from "@/lib";
-import { RecurringService } from "@/lib/services";
+import { cn, RecurringTransactionSeries } from "@/lib";
+import { CategoryService, RecurringService } from "@/lib/services";
 import type { User } from "@/lib/types";
 import {
   executeRecurringSeriesAction,
   toggleRecurringSeriesActiveAction,
 } from "@/features/recurring/actions/recurring-actions";
 import { Play, Pause, Trash2 } from "lucide-react";
-import { Amount, Button, Card, IconContainer, StatusBadge, Text } from "@/components/ui";
+import { Amount, Button, Card, CategoryBadge, StatusBadge, Text } from "@/components/ui";
 import { cardStyles, getSeriesCardClassName, getSeriesUserBadgeStyle } from "./theme/card-styles";
+import { useCategories } from "@/stores/reference-data-store";
 
 interface SeriesCardProps {
   readonly series: RecurringTransactionSeries;
@@ -66,6 +67,10 @@ export function SeriesCard({
   groupUsers,
 }: SeriesCardProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const categories = useCategories();
+  const categoryColor = useMemo(() => {
+    return CategoryService.getCategoryColor(categories, series.category);
+  }, [categories, series.category]);
 
   // Calculate due date info using RecurringService
   const daysUntilDue = RecurringService.calculateDaysUntilDue(series);
@@ -151,13 +156,6 @@ export function SeriesCard({
     onDelete?.(series);
   };
 
-  const getIconColor = (): "primary" | "warning" | "destructive" | "muted" => {
-    if (!series.is_active) return "muted";
-    if (isOverdue) return "destructive";
-    if (isDueToday || isDueSoon) return "warning";
-    return "primary";
-  };
-
   const getAmountType = (): "income" | "expense" | "neutral" => {
     if (!series.is_active) return "neutral";
     return series.type === "income" ? "income" : "expense";
@@ -174,9 +172,12 @@ export function SeriesCard({
       <div className={cardStyles.series.layout}>
         {/* Left Section: Icon + Content */}
         <div className={cardStyles.series.left}>
-          <IconContainer size="md" color={getIconColor()} className={cardStyles.series.icon}>
-            <CategoryIcon categoryKey={series.category} size={iconSizes.sm} />
-          </IconContainer>
+          <CategoryBadge
+            categoryKey={series.category}
+            color={categoryColor}
+            size="md"
+            className={cardStyles.series.icon}
+          />
 
           <div className={cardStyles.series.content}>
             <div className={cardStyles.series.titleRow}>

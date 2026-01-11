@@ -1,11 +1,14 @@
 "use client";
 
-import { Badge } from "@/components/ui";
-import { CategoryIcon, iconSizes, Transaction } from "@/lib";
+import { Badge, CategoryBadge } from "@/components/ui";
+import { Transaction } from "@/lib";
 import { formatCurrency } from "@/lib/utils";
 import { memo } from "react";
 import { RowCard } from "@/components/ui/layout/row-card";
-import { transactionStyles, getTransactionBadgeColor } from "@/styles/system";
+import {
+  transactionStyles,
+  getTransactionBadgeColor,
+} from "@/styles/system";
 
 interface TransactionRowProps {
   transaction: Transaction;
@@ -15,6 +18,7 @@ interface TransactionRowProps {
   onEditTransaction?: (transaction: Transaction) => void;
   onDeleteTransaction?: (transactionId: string) => void;
   getCategoryLabel: (key: string) => string;
+  getCategoryColor: (key: string) => string;
   isOpen: boolean;
   onSwipe: (id: string | null) => void;
 }
@@ -38,6 +42,7 @@ export const TransactionRow = memo(({
   onEditTransaction,
   onDeleteTransaction,
   getCategoryLabel,
+  getCategoryColor,
   isOpen,
   onSwipe,
 }: TransactionRowProps) => {
@@ -105,7 +110,13 @@ export const TransactionRow = memo(({
   return (
     <RowCard
       // Layout
-      icon={<CategoryIcon categoryKey={transaction.category} size={iconSizes.sm} />}
+      icon={
+        <CategoryBadge
+          categoryKey={transaction.category}
+          color={getCategoryColor(transaction.category)}
+          size="sm"
+        />
+      }
       iconSize="sm"
       iconColor="none"
       title={transaction.description}

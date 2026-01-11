@@ -65,6 +65,10 @@ export function GroupedTransactionCard({
     return CategoryService.getCategoryLabel(categories, categoryKey);
   };
 
+  const getCategoryColor = (categoryKey: string) => {
+    return CategoryService.getCategoryColor(categories, categoryKey);
+  };
+
   return (
     <>
       {/* Backdrop invisibile per chiudere row quando si clicca fuori */}
@@ -127,6 +131,7 @@ export function GroupedTransactionCard({
             }}
             onDeleteTransaction={onDeleteTransaction}
             getCategoryLabel={getCategoryLabel}
+            getCategoryColor={getCategoryColor}
             isOpen={openTransactionId === transaction.id}
             onSwipe={(id) => setOpenTransactionId(id)}
           />

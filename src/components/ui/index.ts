@@ -31,3 +31,4 @@ export * from "./icon-picker";
 export * from "./theme-toggle";
 export * from "./toast";
 export * from "./toaster";
+export * from "./category-badge";
