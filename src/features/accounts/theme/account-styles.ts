@@ -37,7 +37,7 @@ const accountTokens = {
       header: 'flex flex-col items-start',
       icon: 'hidden',
       label: 'text-[10px] font-bold text-primary/60 uppercase tracking-wider',
-      value: `${typographyStyles.xl} sm:${typographyStyles["2xl"]} font-extrabold tracking-tight`,
+      value: `${typographyStyles.xl} sm:${typographyStyles["2xl"]} font-bold tracking-tight`,
       statsGrid: 'flex flex-row items-center gap-2 w-full',
       statItem: `flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 ${radiusStyles.sm} border ${typographyStyles.xs} font-semibold transition-all duration-300`,
       statItemPrimary: 'bg-primary/5 border-primary/10 text-primary',

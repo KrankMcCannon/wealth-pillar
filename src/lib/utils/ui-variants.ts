@@ -338,7 +338,7 @@ export const amountVariants = cva("font-bold tabular-nums", {
     },
     emphasis: {
       default: "",
-      strong: "font-extrabold tracking-tight",
+      strong: "font-bold tracking-tight",
       subtle: "font-semibold",
     },
   },

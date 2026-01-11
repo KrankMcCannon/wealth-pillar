@@ -217,7 +217,7 @@ export const settingsStyles = {
     field: {
       label: "block text-sm font-medium text-primary mb-1.5",
       input:
-        "w-full px-3 py-2 text-sm rounded-lg border border-primary/20 bg-card text-primary placeholder:text-primary/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary disabled:opacity-50 disabled:cursor-not-allowed",
+        "w-full px-3 py-2 text-sm rounded-lg border border-primary/20 bg-card text-primary placeholder:text-primary/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/20 disabled:opacity-50 disabled:cursor-not-allowed",
       inputError: "border-destructive focus:ring-destructive/20 focus:border-destructive",
       errorText: "mt-1.5 text-sm text-destructive",
     },
@@ -232,11 +232,11 @@ export const settingsStyles = {
       list: "space-y-2",
       itemBase:
         "w-full text-left px-4 py-3 rounded-lg border-2 transition-all flex items-start gap-3 hover:border-primary/40 hover:bg-primary/5 focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:opacity-50 disabled:cursor-not-allowed",
-      itemActive: "border-primary bg-primary/10",
+      itemActive: "border-primary/20 bg-primary/10",
       itemIdle: "border-primary/20 bg-card",
       radioBase:
         "mt-0.5 shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all",
-      radioActive: "border-primary bg-primary",
+      radioActive: "border-primary/20 bg-primary",
       radioIdle: "border-primary/20 bg-card",
       radioIcon: "h-3 w-3 text-primary-foreground",
       content: "flex-1 min-w-0",
@@ -250,7 +250,7 @@ export const settingsStyles = {
     subscription: {
       container: "space-y-4",
       cardBase: "rounded-lg border-2 p-4 transition-all",
-      cardActive: "border-primary bg-primary/5",
+      cardActive: "border-primary/20 bg-primary/5",
       cardIdle: "border-primary/20 bg-card",
       headerRow: "flex items-start justify-between mb-3",
       planTitle: "text-lg font-bold text-primary",
@@ -389,9 +389,9 @@ export const reportsStyles = {
     list: "space-y-3 sm:space-y-4",
   },
   annualCategory: {
-    container: "space-y-4",
-    card: "p-4",
-    list: "space-y-4",
+    container: "space-y-3",
+    card: "p-3",
+    list: "space-y-2",
     item: "pb-3 border-b border-primary/15 last:border-b-0",
     row: "flex items-center justify-between text-sm",
     rowLeft: "flex items-center gap-2",
@@ -479,7 +479,7 @@ export const budgetTokens = {
       item: `${typographyStyles.sm} font-medium text-primary hover:bg-primary hover:text-primary-foreground ${radiusStyles.sm} px-3 py-2.5 cursor-pointer transition-colors`,
     },
     select: {
-      trigger: `w-full h-12 sm:h-14 bg-card border border-primary/20 ${shadowStyles.sm} ${radiusStyles.md} px-3 sm:px-4 hover:border-primary/40 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all ${typographyStyles.sm} font-medium`,
+      trigger: `w-full h-12 sm:h-14 bg-card border border-primary/20 ${shadowStyles.sm} ${radiusStyles.md} px-3 sm:px-4 hover:border-primary/40 focus:border-primary/20 focus:ring-2 focus:ring-primary/20 transition-all ${typographyStyles.sm} font-medium`,
       content: `bg-card/95 backdrop-blur-md border border-border/60 ${shadowStyles.xl} ${radiusStyles.md} min-w-[320px]`,
       item: `hover:bg-primary/10 ${radiusStyles.sm} px-3 sm:px-4 cursor-pointer font-medium group`,
     },
@@ -550,7 +550,7 @@ export const budgetStyles = {
       "flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-primary/10 shadow-sm shrink-0",
     iconText: "flex-1 min-w-0",
     iconClass: "text-primary h-4 w-4",
-    budgetName: "text-base sm:text-lg font-bold leading-tight truncate",
+    budgetName: "text-base text-primary sm:text-lg font-bold leading-tight truncate",
     budgetStatus: "text-xs font-medium text-primary/70",
     periodContainer: "text-left sm:text-right shrink-0",
     periodLabel: "text-[10px] font-semibold uppercase tracking-wide text-primary pl-1",
@@ -574,7 +574,7 @@ export const budgetStyles = {
     indicatorSafe: "bg-primary",
     indicatorWarning: "bg-warning",
     indicatorDanger: "bg-red-500",
-    label: "text-sm font-semibold",
+    label: "text-sm text-primary font-semibold",
     percentage: "text-xl font-bold",
     percentageSafe: "text-primary",
     percentageWarning: "text-warning",
@@ -586,7 +586,7 @@ export const budgetStyles = {
     barFillSafe: "bg-linear-to-r from-green-400 to-green-500",
     barFillWarning: "bg-linear-to-r from-amber-400 to-amber-500",
     barFillDanger: "bg-linear-to-r from-red-500 to-red-600",
-    status: "text-center",
+    status: "text-center text-primary",
     statusText: "text-xs",
   },
   chart: {
@@ -1194,7 +1194,7 @@ export const transactionStyles = {
   },
   skeleton: {
     base: "animate-pulse",
-    card: "bg-card rounded-lg p-3 sm:p-4",
+    card: "bg-card rounded-lg p-3",
     line: "h-4 bg-primary/15 rounded",
     lineShort: "w-1/3 h-4 bg-primary/15 rounded",
     lineMedium: "w-2/3 h-4 bg-primary/15 rounded",
@@ -1215,7 +1215,7 @@ export const transactionStyles = {
     userSelectorDot: "w-5 h-5 bg-primary/25 rounded-full",
     userSelectorText: "w-12 h-3 bg-primary/20 rounded",
     userSelectorListStyle: { height: 44 } satisfies CSSProperties,
-    card: "p-3 sm:p-4 rounded-lg border border-primary/20 bg-card",
+    card: "p-3 rounded-lg border border-primary/20 bg-card",
     cardRow: "flex items-center gap-3",
     cardIcon: "w-10 h-10 bg-primary/10 rounded-lg shrink-0",
     cardBody: "flex-1",
@@ -1276,7 +1276,7 @@ export const transactionStyles = {
     searchIconActive: "text-primary",
     searchIconInactive: "text-primary/50",
     searchInput:
-      "pl-12 pr-10 py-3 h-12 rounded-2xl bg-card border-primary/20 text-primary placeholder:text-primary/40 transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary/20 focus:shadow-lg",
+      "pl-12 pr-10 py-3 h-12 rounded-2xl bg-card border-primary/20 text-primary placeholder:text-primary/40 transition-all duration-200 focus:border-primary/20 focus:ring-2 focus:ring-primary/20 focus:shadow-lg",
     searchClear:
       "absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-primary/10 hover:bg-primary/20 transition-colors",
     searchClearIcon: "h-4 w-4 text-primary",
@@ -1309,14 +1309,14 @@ export const transactionStyles = {
     typeGrid: "grid grid-cols-3 gap-2",
     typeButton:
       "flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 border active:scale-95",
-    typeButtonActive: "bg-primary text-primary-foreground border-primary shadow-md",
+    typeButtonActive: "bg-primary text-primary-foreground border-primary/20 shadow-md",
     typeButtonIdle: "bg-card text-primary border-primary/20 hover:bg-primary/10 hover:border-primary/40",
     typeCheck: "h-4 w-4",
     dateSection: "space-y-4",
     dateGrid: "grid grid-cols-2 gap-2",
     dateButton:
       "flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 border active:scale-95",
-    dateButtonActive: "bg-primary text-primary-foreground border-primary shadow-md",
+    dateButtonActive: "bg-primary text-primary-foreground border-primary/20 shadow-md",
     dateButtonIdle: "bg-card text-primary border-primary/20 hover:bg-primary/10 hover:border-primary/40",
     dateCustom: "space-y-3 pt-2 border-t border-primary/10",
     dateTitle: "text-sm font-medium text-primary",
@@ -1332,7 +1332,7 @@ export const transactionStyles = {
     categoryGrid: "grid grid-cols-2 gap-2 max-h-64 overflow-y-auto pr-1",
     categoryButton:
       "flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 border active:scale-95",
-    categoryButtonActive: "bg-primary text-primary-foreground border-primary shadow-md",
+    categoryButtonActive: "bg-primary text-primary-foreground border-primary/20 shadow-md",
     categoryButtonIdle: "bg-card text-primary border-primary/20 hover:bg-primary/10",
     categoryLabel: "truncate",
     categoryLabelLeft: "truncate flex-1 text-left",
@@ -1478,7 +1478,7 @@ export function getTransactionBadgeColor(
 export const buttonStyles = {
   base: "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-semibold transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:border-primary",
   variants: {
-    default: `bg-primary text-primary-foreground border border-primary hover:bg-primary/90`,
+    default: `bg-primary text-primary-foreground border border-primary/20 hover:bg-primary/90`,
     secondary: `bg-secondary text-secondary-foreground border border-secondary hover:bg-secondary/90`,
     outline: `border border-primary/20 bg-card text-primary hover:bg-primary hover:text-primary-foreground`,
     ghost: `hover:bg-primary/10 text-primary`,
@@ -1506,7 +1506,7 @@ export const cardStyles = {
 
 // Input styles
 export const inputStyles = {
-  base: "bg-card text-primary border border-primary/20 rounded-xl px-3 py-2 text-base transition-[color,box-shadow,background-color] outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary placeholder:text-primary/40 selection:bg-primary selection:text-primary-foreground",
+  base: "bg-card text-primary border border-primary/20 rounded-xl px-3 py-2 text-base transition-[color,box-shadow,background-color] outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/20 placeholder:text-primary/40 selection:bg-primary selection:text-primary-foreground",
 };
 
 // Skeleton styles
@@ -1539,7 +1539,7 @@ export const badgeStyles = {
     default: "border-transparent bg-primary text-primary-foreground hover:bg-primary/90",
     secondary: "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/90",
     destructive: "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/90",
-    outline: "text-primary border-primary hover:bg-primary/10",
+    outline: "text-primary border-primary/20 hover:bg-primary/10",
   },
 };
 
@@ -1553,7 +1553,7 @@ export const drawerStyles = {
 // Select styles
 export const selectStyles = {
   trigger:
-    "flex h-10 w-full items-center justify-between rounded-xl border border-primary/20 bg-card px-3 py-2 text-sm text-primary placeholder:text-primary/40 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
+    "flex h-10 w-full items-center justify-between rounded-xl border border-primary/20 bg-card px-3 py-2 text-sm text-primary placeholder:text-primary/40 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/20 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
   icon: "h-4 w-4 text-primary/60",
   content:
     "relative z-[10000] max-h-96 min-w-[8rem] overflow-hidden rounded-xl border border-primary/20 bg-card text-primary shadow-lg data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",

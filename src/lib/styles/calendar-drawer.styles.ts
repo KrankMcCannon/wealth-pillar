@@ -324,7 +324,7 @@ export const calendarDrawerStyles = {
         "bg-card dark:bg-card/90",
         "text-primary dark:text-primary",
         "border-2 border-primary/20",
-        "hover:border-primary hover:bg-primary hover:text-white",
+        "hover:border-primary/20 hover:bg-primary hover:text-white",
         "hover:shadow-md hover:shadow-primary/20",
         "active:scale-95",
       ].join(" "),

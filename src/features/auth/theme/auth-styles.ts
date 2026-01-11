@@ -36,7 +36,7 @@ const authTokens = {
 
   input: {
     // Base input field
-    base: "h-9 text-sm bg-input border-primary/20 focus:border-primary focus:ring-primary/20",
+    base: "h-9 text-sm bg-input border-primary/20 focus:border-primary/20 focus:ring-primary/20",
 
     // Input icon styling (for prefix icons)
     icon: 'h-3.5 w-3.5 text-primary/60',
@@ -172,7 +172,7 @@ export const authStyles = {
   socialButtons: {
     container: 'space-y-1.5',
     button: `w-full h-9 ${animationStyles.classes.transition} hover:opacity-95 active:scale-[.98] ${typographyStyles.sm}`,
-    base: 'bg-white text-primary border border-primary hover:border-primary/40 transition-all shadow-sm',
+    base: 'bg-white text-primary border border-primary/20 hover:border-primary/40 transition-all shadow-sm',
     google: 'hover:bg-primary/5',
     apple: 'hover:bg-secondary/5',
     github: 'hover:bg-accent/5',

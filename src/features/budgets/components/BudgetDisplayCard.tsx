@@ -118,12 +118,10 @@ export function BudgetDisplayCard({
       {/* Budget Metrics - Balances */}
       {budgetProgress && (
         <div className={budgetStyles.metrics.container}>
-          {/* Available Amount */}
+          {/* Total Budget */}
           <div className={budgetStyles.metrics.item}>
-            <p className={`${budgetStyles.metrics.label} ${remainingColorClass}`}>Disponibile</p>
-            <p className={`${budgetStyles.metrics.value} ${remainingColorClass}`}>
-              {formatCurrency(budgetProgress.remaining)}
-            </p>
+            <p className={`${budgetStyles.metrics.label} text-primary`}>Totale</p>
+            <p className={`${budgetStyles.metrics.value} text-primary`}>{formatCurrency(budgetProgress.amount)}</p>
           </div>
 
           {/* Spent Amount */}
@@ -132,10 +130,12 @@ export function BudgetDisplayCard({
             <p className={`${budgetStyles.metrics.value} ${budgetStyles.metrics.valueDanger}`}>{formatCurrency(budgetProgress.spent)}</p>
           </div>
 
-          {/* Total Budget */}
+          {/* Available Amount */}
           <div className={budgetStyles.metrics.item}>
-            <p className={`${budgetStyles.metrics.label} text-primary`}>Totale</p>
-            <p className={`${budgetStyles.metrics.value} text-primary`}>{formatCurrency(budgetProgress.amount)}</p>
+            <p className={`${budgetStyles.metrics.label} ${remainingColorClass}`}>Disponibile</p>
+            <p className={`${budgetStyles.metrics.value} ${remainingColorClass}`}>
+              {formatCurrency(budgetProgress.remaining)}
+            </p>
           </div>
         </div>
       )}

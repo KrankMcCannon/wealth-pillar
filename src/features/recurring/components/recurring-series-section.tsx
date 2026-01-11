@@ -17,6 +17,8 @@ import { RecurringService } from "@/lib/services";
 import { formatCurrency, cn } from "@/lib/utils";
 import { User } from "@/lib/types";
 import { recurringStyles } from "../theme/recurring-styles";
+import { accountStyles } from "@/features/accounts/theme/account-styles";
+import { transactionStyles } from "@/styles/system";
 
 interface RecurringSeriesSectionProps {
   /** All recurring series data */
@@ -175,29 +177,36 @@ export function RecurringSeriesSection({
       </div>
 
       {/* Series List */}
-      <div className={recurringStyles.section.list}>
-        {filteredSeries.map((item) => (
-          <SeriesCard
-            key={item.id}
-            series={item}
-            showActions={showActions}
-            showDelete={showDelete}
-            onEdit={onEditRecurringSeries}
-            onCardClick={onCardClick}
-            onDelete={onDeleteRecurringSeries}
-            groupUsers={groupUsers}
-            onSeriesUpdate={onSeriesUpdate}
-          />
-        ))}
+      <div className={cn(recurringStyles.section.list, accountStyles.accountsList.groupCard, "rounded-t-none border-0 shadow-none")}>
+        <div className={transactionStyles.groupedCard.rowContainer}>
+          {filteredSeries.map((item) => (
+            <div key={item.id} className={accountStyles.list.cardWrapper}>
+              <SeriesCard
+                series={item}
+                showActions={showActions}
+                showDelete={showDelete}
+                onEdit={onEditRecurringSeries}
+                onCardClick={onCardClick}
+                onDelete={onDeleteRecurringSeries}
+                groupUsers={groupUsers}
+                onSeriesUpdate={onSeriesUpdate}
+                className="rounded-none border-0 shadow-none"
+              />
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Show More Link (if truncated) */}
       {maxItems && series.length > maxItems && (
-        <div className={recurringStyles.section.footer}>
+        <div>
+          <div className="border-t border-primary/20 mx-2" />
+          <div className={recurringStyles.section.footer}>
           <p className={recurringStyles.section.footerText}>
             Mostrando {filteredSeries.length} di{" "}
             {selectedUserId ? series.filter((s) => s.user_ids.includes(selectedUserId)).length : series.length} serie
           </p>
+          </div>
         </div>
       )}
     </div>

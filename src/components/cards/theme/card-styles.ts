@@ -22,7 +22,7 @@ export const cardStyles = {
     progress: "relative",
   },
   series: {
-    base: "p-3 bg-card rounded-xl transition-all duration-300 group cursor-pointer",
+    base: "p-2 bg-card rounded-xl transition-all duration-300 group cursor-pointer",
     inactive: "border border-primary/20 opacity-60",
     overdue: "border border-destructive/30 hover:border-destructive/40",
     dueToday: "border border-warning/40 hover:border-warning/50",
@@ -35,12 +35,13 @@ export const cardStyles = {
     titleRow: "flex items-center gap-2 mb-0.5",
     title: "group-hover:text-primary/80 transition-colors truncate",
     details: "space-y-0.5",
-    frequency: "font-medium",
+    frequency: "font-base text-primary/60",
+    dueDate: "text-primary/60",
     userBadges: "flex items-center gap-1 mt-1.5",
     userBadge:
       "w-5 h-5 rounded-full border border-white/25 dark:border-border/40 flex items-center justify-center text-[10px] font-bold text-white",
     userBadgeOverflow: "text-[10px] text-muted-foreground font-medium",
-    right: "flex flex-col items-end gap-1.5 shrink-0",
+    right: "flex flex-col items-end shrink-0",
     actions: "flex items-center gap-0.5",
     actionButton:
       "h-6 w-6 p-0 rounded-md transition-all duration-200",

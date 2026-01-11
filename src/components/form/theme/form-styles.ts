@@ -23,7 +23,7 @@ export const formStyles = {
     container: "flex flex-col-reverse gap-2 sm:flex-row sm:justify-end",
     buttonBase: "w-full sm:w-auto",
     cancel:
-      "bg-card text-primary border-primary hover:bg-primary hover:text-primary-foreground",
+      "bg-card text-primary border-primary/20 hover:bg-primary hover:text-primary-foreground",
     loadingIcon: "mr-2 h-4 w-4 animate-spin",
   },
   currencyInput: {

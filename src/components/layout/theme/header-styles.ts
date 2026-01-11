@@ -6,10 +6,10 @@ export const headerStyles = {
     wrapper: "flex items-center gap-3",
     avatarWrap: "relative",
     avatar:
-      "h-10 w-10 bg-primary/10 rounded-full flex items-center justify-center text-primary font-semibold text-base border-2 border-background shadow-sm overflow-hidden",
+      "h-10 w-10 bg-primary/10 rounded-full flex items-center justify-center text-primary font-semibold text-base border-2 border-primary shadow-sm overflow-hidden",
     crownWrap:
-      "absolute -top-1 -right-1 bg-amber-500 rounded-full p-0.5 border-2 border-background shadow-sm",
-    crownIcon: "h-3 w-3 text-primary-foreground fill-current",
+      "absolute -top-1 -right-1 bg-primary rounded-full p-0.5 border-2 border-primary shadow-sm",
+    crownIcon: "h-3 w-3 text-amber-500 fill-current",
     userInfo: "hidden sm:block leading-none",
     userName: "text-lg font-semibold text-primary truncate max-w-[140px]",
     userRole: "text-xs text-primary/60 font-medium mt-0.5 capitalize",

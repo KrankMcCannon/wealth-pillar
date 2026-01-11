@@ -140,26 +140,32 @@ export function Header({
                 {/* LEFT SECTION: Back Button or Dashboard Info */}
                 <div className={headerStyles.left}>
                     {isDashboard && currentUser && (
-                        <div className={headerStyles.dashboard.wrapper}>
-                            <div className={headerStyles.dashboard.avatarWrap}>
-                                <div className={headerStyles.dashboard.avatar}>
-                                    {currentUser?.name?.substring(0, 2).toUpperCase()}
-                                </div>
-                                {currentUser?.role === 'admin' && (
-                                    <div className={headerStyles.dashboard.crownWrap} title="Premium">
-                                        <Crown className={headerStyles.dashboard.crownIcon} />
+                        <>
+                            <div className={headerStyles.dashboard.wrapper}>
+                                <div className={headerStyles.dashboard.avatarWrap}>
+                                    <div className={headerStyles.dashboard.avatar}>
+                                        {currentUser?.name?.substring(0, 2).toUpperCase()}
                                     </div>
-                                )}
+                                    {currentUser?.role === 'admin' && (
+                                        <div className={headerStyles.dashboard.crownWrap} title="Premium">
+                                            <Crown className={headerStyles.dashboard.crownIcon} />
+                                        </div>
+                                    )}
+                                </div>
+                                <div className={headerStyles.dashboard.userInfo}>
+                                    <p className={headerStyles.dashboard.userName}>
+                                        {currentUser?.name}
+                                    </p>
+                                    <p className={headerStyles.dashboard.userRole}>
+                                        {currentUser?.role === 'admin' ? 'Premium Plan' : 'Standard Plan'}
+                                    </p>
+                                </div>
                             </div>
-                            <div className={headerStyles.dashboard.userInfo}>
-                                <p className={headerStyles.dashboard.userName}>
-                                    {currentUser?.name}
-                                </p>
-                                <p className={headerStyles.dashboard.userRole}>
-                                    {currentUser?.role === 'admin' ? 'Premium Plan' : 'Standard Plan'}
-                                </p>
+
+                            <div className={headerStyles.actions.badge}>
+                                <span>↗ +2.5%</span>
                             </div>
-                        </div>
+                        </>
                     )}
 
                     {!isDashboard && (
@@ -215,13 +221,6 @@ export function Header({
                     >
                         <Settings className={headerStyles.actions.icon} />
                     </Button>
-
-                    {/* 4. Portfolio Badge */}
-                    {isDashboard && (
-                        <div className={headerStyles.actions.badge}>
-                            <span>↗ +2.5%</span>
-                        </div>
-                    )}
 
                     <ThemeToggle />
                 </div>

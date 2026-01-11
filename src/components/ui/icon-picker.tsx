@@ -86,7 +86,7 @@ const styles = {
   // Category tabs
   tabsContainer: "border-b border-primary/20 bg-card/30 backdrop-blur-sm overflow-x-auto",
   tabsList: "inline-flex h-10 w-full justify-start rounded-none bg-transparent p-0",
-  tabsTrigger: "rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-3 text-xs whitespace-nowrap",
+  tabsTrigger: "rounded-none border-b-2 border-transparent data-[state=active]:border-primary/20 data-[state=active]:bg-transparent px-3 text-xs whitespace-nowrap",
 
   // Results count
   resultsCount: {

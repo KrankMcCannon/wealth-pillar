@@ -6,5 +6,5 @@ export const bottomNavigationStyles = {
     "flex flex-col items-center gap-1 py-2 px-3 rounded-lg transition-colors",
   itemActive: "bg-primary text-primary-foreground",
   itemInactive: "text-primary/70 hover:text-primary",
-  icon: "h-5 w-5",
+  icon: "h-6 w-6",
 } as const;
