@@ -155,7 +155,7 @@ export default function AccountsContent({
             { label: "Positivi", value: accountStats.positiveAccounts, variant: "success" },
             { label: "Negativi", value: accountStats.negativeAccounts, variant: "destructive" },
           ]}
-          variant={accountStats.totalBalance >= 0 ? "success" : "danger"}
+          variant="highlighted"
           isLoading={false}
         />
       </div>

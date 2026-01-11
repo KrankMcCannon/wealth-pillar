@@ -96,7 +96,7 @@ export const badgeStyles = {
 
 // Drawer styles
 export const drawerStyles = {
-  content: "fixed top-[50%] left-[50%] z-50 flex h-auto w-[90%] max-w-[90%] max-h-[70vh] flex-col rounded-2xl border border-primary/20 bg-card shadow-xl translate-x-[-50%] translate-y-[-50%] overflow-hidden",
+  content: "fixed top-[50%] left-[50%] z-50 flex h-auto w-[85%] max-w-[400px] max-h-[60vh] flex-col rounded-2xl border border-primary/20 bg-card shadow-xl translate-x-[-50%] translate-y-[-50%] overflow-hidden",
   header: "grid gap-1.5 p-4 text-center sm:text-left",
   footer: "mt-auto flex flex-col gap-2 p-4",
 };
