@@ -1,15 +1,7 @@
 /**
  * Reports Feature Design Tokens
  * Feature-specific tokens for reports and analytics
- *
- * Uses core design tokens from @/styles/core-tokens
- * Only defines truly reports-specific patterns here
- *
- * CRITICAL FIX: Replaced hardcoded #7678e4 with coreTokens.color.primary
- * to unify primary color across all features
  */
-
-import { coreTokens } from '@/styles/core-tokens';
 
 export const reportsTokens = {
   // ============================================================================

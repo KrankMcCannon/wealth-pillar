@@ -50,7 +50,6 @@ export interface RowCardProps {
   deleteLabel?: string; // Default: "Elimina"
 
   // State
-  isLoading?: boolean;
   isDisabled?: boolean;
   className?: string;
   testId?: string;
@@ -80,7 +79,6 @@ export const RowCard = memo(({
   isSwipeOpen = false,
   onSwipeChange,
   deleteLabel = "Elimina",
-  isLoading = false,
   isDisabled = false,
   className,
   testId,

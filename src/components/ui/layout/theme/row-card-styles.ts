@@ -97,9 +97,10 @@ export const rowCardTokens = {
 
 /**
  * Helper: Generate motion style for swipe animation
+ * Note: Uses type assertion to work around React 19 + Framer Motion type incompatibility
  */
-export function getRowCardMotionStyle(x: MotionValue<number>): CSSProperties {
-  return { x } as any;
+export function getRowCardMotionStyle(x: MotionValue<number>) {
+  return { x } as unknown as CSSProperties;
 }
 
 /**

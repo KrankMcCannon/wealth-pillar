@@ -1,15 +1,7 @@
 /**
  * Settings Feature Design Tokens
  * Feature-specific tokens for settings and preferences
- *
- * Uses core design tokens from @/styles/core-tokens
- * Only defines truly settings-specific patterns here
- *
- * CRITICAL FIX: Replaced ALL hardcoded #7678e4 instances with coreTokens.color.primary
- * to unify primary color across all features
  */
-
-import { coreTokens } from '@/styles/core-tokens';
 
 export const settingsTokens = {
   // ============================================================================

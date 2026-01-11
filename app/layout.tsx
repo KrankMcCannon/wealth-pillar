@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Spline_Sans } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Toaster } from "@/components/ui";
@@ -16,6 +16,14 @@ const splineSans = Spline_Sans({
 export const metadata: Metadata = {
   title: "Wealth Pillar - Gestione Finanziaria Intelligente",
   description: "Piattaforma completa per la gestione delle finanze personali e familiari",
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: 'cover',
 };
 
 /**
