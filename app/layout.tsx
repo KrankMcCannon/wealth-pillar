@@ -52,14 +52,9 @@ export default function RootLayout({
         },
       }}
     >
-      <html lang="en" className="light" data-scroll-behavior="smooth">
+      <html lang="en" data-scroll-behavior="smooth">
         <body
-          className={`${splineSans.variable} antialiased min-h-screen`}
-          style={{
-            fontFamily: '"Spline Sans", "Noto Sans", sans-serif',
-            backgroundColor: "#F8FAFC",
-            color: "#1F2937",
-          }}
+          className={`${splineSans.variable} antialiased min-h-screen bg-card text-primary`}
           suppressHydrationWarning
         >
           {/* CAPTCHA container for Clerk - hidden in dev, visible in prod */}

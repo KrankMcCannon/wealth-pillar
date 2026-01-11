@@ -5,11 +5,7 @@ import { CategoryIcon, iconSizes, Transaction } from "@/lib";
 import { formatCurrency } from "@/lib/utils";
 import { memo } from "react";
 import { RowCard } from "@/components/ui/layout/row-card";
-import {
-  transactionStyles,
-  getTransactionIconColor,
-  getTransactionBadgeColor,
-} from "@/styles/system";
+import { transactionStyles, getTransactionBadgeColor } from "@/styles/system";
 
 interface TransactionRowProps {
   transaction: Transaction;
@@ -25,7 +21,6 @@ interface TransactionRowProps {
 
 /**
  * Individual Transaction Row Component
- *
  * Now powered by the unified RowCard component.
  * This is a thin wrapper that maps transaction-specific props to RowCard's generic API.
  *
@@ -49,21 +44,10 @@ export const TransactionRow = memo(({
   // Calculate days until due for recurrent transactions
   const getDaysUntilDue = (): number => {
     if (!transaction.frequency || transaction.frequency === "once") return Infinity;
-    // TODO: Implement actual date calculation based on transaction frequency
     return 0;
   };
 
   const daysUntilDue = getDaysUntilDue();
-
-  // Determine icon color based on variant and context
-  const iconColor = (() => {
-    const colorClass = getTransactionIconColor(variant, context, daysUntilDue);
-    // Map transaction color classes to RowCard iconColor prop
-    if (colorClass.includes("text-destructive")) return "destructive";
-    if (colorClass.includes("text-warning")) return "warning";
-    if (colorClass.includes("text-success")) return "success";
-    return "primary";
-  })();
 
   // Build metadata section (category + account/frequency)
   const metadata = (
@@ -123,7 +107,7 @@ export const TransactionRow = memo(({
       // Layout
       icon={<CategoryIcon categoryKey={transaction.category} size={iconSizes.sm} />}
       iconSize="sm"
-      iconColor={iconColor}
+      iconColor="none"
       title={transaction.description}
       metadata={metadata}
       primaryValue={primaryValue}

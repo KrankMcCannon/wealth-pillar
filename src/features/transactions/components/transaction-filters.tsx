@@ -171,11 +171,11 @@ function FilterChip({ label, isActive, hasValue, onClick, onClear }: FilterChipP
       )}
     >
       <span>{label}</span>
-      <ChevronDown 
+      <ChevronDown
         className={cn(
           transactionStyles.filters.chip.chevron,
           isActive && transactionStyles.filters.chip.chevronOpen
-        )} 
+        )}
       />
     </button>
   );
@@ -370,7 +370,7 @@ function FilterDrawerContent({ filterType, filters, categories, onSelect, onClos
         <DrawerTitle>{titles[filterType]}</DrawerTitle>
         <DrawerDescription>Seleziona un opzione per filtrare le transazioni</DrawerDescription>
       </VisuallyHidden.Root>
-      
+
       {/* Header */}
       <div className={transactionStyles.filters.drawer.header}>
         <h3 className={transactionStyles.filters.drawer.title}>{titles[filterType]}</h3>
@@ -446,11 +446,11 @@ export function TransactionFilters({
 
   const handleCustomDateRange = useCallback(
     (startDate: string, endDate: string) => {
-      onFiltersChange({ 
-        ...filters, 
-        dateRange: "custom", 
-        startDate: startDate || undefined, 
-        endDate: endDate || undefined 
+      onFiltersChange({
+        ...filters,
+        dateRange: "custom",
+        startDate: startDate || undefined,
+        endDate: endDate || undefined
       });
     },
     [filters, onFiltersChange]
@@ -674,7 +674,7 @@ export function filterTransactions<T extends { description: string; type: string
     if (filters.searchQuery) {
       const query = filters.searchQuery.toLowerCase();
       const matchesDescription = t.description.toLowerCase().includes(query);
-      
+
       // Also search in category label if categories are provided
       let matchesCategory = false;
       if (categoryByKey && t.category) {
@@ -683,7 +683,7 @@ export function filterTransactions<T extends { description: string; type: string
           matchesCategory = category.label.toLowerCase().includes(query);
         }
       }
-      
+
       if (!matchesDescription && !matchesCategory) {
         return false;
       }

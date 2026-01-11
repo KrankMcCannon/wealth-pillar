@@ -94,7 +94,7 @@ const BudgetPeriodCardComponent = ({
               {periodStartFormatted} - {periodEndFormatted}
             </h3>
             {showUserName && (
-              <Badge variant="secondary" className={styles.headerBadge}>
+              <Badge variant="outline" className={styles.headerBadge}>
                 {userName}
               </Badge>
             )}

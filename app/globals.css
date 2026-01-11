@@ -44,11 +44,11 @@
 
   /* Card System - Soft white that doesn't strain eyes */
   --color-card: oklch(0.985 0.003 90); /* Warm soft white for cards/modals */
-  --color-card-foreground: var(--color-primary); /* Card text aligned to brand */
+  --color-card-foreground: var(--color-foreground); /* Card text aligned to body text */
 
   /* Popover - Same soft white */
   --color-popover: oklch(0.985 0.003 90);
-  --color-popover-foreground: oklch(0.28 0.015 90);
+  --color-popover-foreground: var(--color-foreground);
 
   /* Primary - Wealth Pillar Brand Purple (#7678E4) */
   --color-primary: oklch(0.595 0.178 270); /* Rich purple, brand color */
@@ -56,11 +56,11 @@
 
   /* Secondary - Steel Blue (#669BBC) */
   --color-secondary: oklch(0.68 0.08 235); /* Professional steel blue */
-  --color-secondary-foreground: oklch(1 0 0); /* White text */
+  --color-secondary-foreground: oklch(0.15 0.02 90); /* Dark text for contrast */
 
   /* Accent - Light Purple (lighter shade of primary for highlights) */
   --color-accent: oklch(0.68 0.16 270); /* Light purple for hover/selection */
-  --color-accent-foreground: oklch(1 0 0); /* White text */
+  --color-accent-foreground: oklch(0.15 0.02 90); /* Dark text for contrast */
 
   /* Muted - Subtle UI elements */
   --color-muted: oklch(0.88 0.008 90); /* Soft neutral background */
@@ -81,7 +81,7 @@
   --color-success-foreground: oklch(1 0 0); /* White text */
 
   /* UI Elements */
-  --color-border: oklch(0.595 0.178 270 / 0.22); /* Primary-tinted borders */
+  --color-border: oklch(0.85 0.01 90); /* Neutral borders for clarity */
   --color-input: oklch(0.98 0.004 90); /* Soft white for inputs - not tiring */
   --color-ring: oklch(0.595 0.178 270); /* Focus ring, same as primary */
 
@@ -99,7 +99,7 @@
 
   /* Semantic Text Colors - Auto-generate text-* utilities */
   --color-text-primary: var(--color-primary);
-  --color-text-heading: var(--color-primary);
+  --color-text-heading: var(--color-foreground);
   --color-text-body: var(--color-foreground);
   --color-text-muted: var(--color-muted-foreground);
   --color-text-subtle: oklch(0.55 0.015 90);
@@ -118,11 +118,11 @@
 
   /* Sidebar (for future use) */
   --color-sidebar: oklch(0.96 0.008 90);
-  --color-sidebar-foreground: oklch(0.28 0.015 90);
+  --color-sidebar-foreground: var(--color-foreground);
   --color-sidebar-primary: oklch(0.595 0.178 270);
   --color-sidebar-primary-foreground: oklch(1 0 0);
   --color-sidebar-accent: oklch(0.92 0.008 90);
-  --color-sidebar-accent-foreground: oklch(0.595 0.178 270);
+  --color-sidebar-accent-foreground: var(--color-foreground);
   --color-sidebar-border: oklch(0.85 0.008 90);
   --color-sidebar-ring: oklch(0.595 0.178 270);
 
@@ -151,44 +151,44 @@ html.dark {
 
   /* Card System - Soft dark that doesn't strain eyes */
   --color-card: oklch(0.24 0.006 90); /* Slightly lighter than background, warmer */
-  --color-card-foreground: var(--color-primary); /* Card text aligned to brand */
+  --color-card-foreground: var(--color-foreground); /* Card text aligned to body text */
 
   /* Popover - Same soft dark */
   --color-popover: oklch(0.24 0.006 90);
-  --color-popover-foreground: oklch(0.92 0.008 90);
+  --color-popover-foreground: var(--color-foreground);
 
   /* Primary - Lighter for dark backgrounds */
-  --color-primary: oklch(0.72 0.168 270); /* Lighter purple for visibility */
+  --color-primary: oklch(0.72 0.12 270); /* Lower chroma for dark mode */
   --color-primary-foreground: oklch(0.15 0.015 90); /* Dark text on light button */
 
   /* Secondary - Lighter Steel Blue */
-  --color-secondary: oklch(0.75 0.08 235); /* Brighter steel blue */
-  --color-secondary-foreground: oklch(0.15 0.015 90);
+  --color-secondary: oklch(0.75 0.06 235); /* Lower chroma for dark mode */
+  --color-secondary-foreground: oklch(0.12 0.02 90);
 
   /* Accent - Lighter Purple (lighter shade of primary for highlights) */
-  --color-accent: oklch(0.78 0.15 270); /* Lighter purple for hover/selection */
-  --color-accent-foreground: oklch(0.15 0.015 90);
+  --color-accent: oklch(0.78 0.1 270); /* Lower chroma for dark mode */
+  --color-accent-foreground: oklch(0.12 0.02 90);
 
   /* Muted */
   --color-muted: oklch(0.28 0.008 90);
-  --color-muted-foreground: oklch(0.72 0.008 90);
+  --color-muted-foreground: oklch(0.74 0.008 90);
 
   /* Destructive */
-  --color-destructive: oklch(0.65 0.22 25); /* Softer red for dark mode */
+  --color-destructive: oklch(0.65 0.16 25); /* Less intense red for dark mode */
   --color-destructive-foreground: oklch(1 0 0);
 
   /* Warning */
-  --color-warning: oklch(0.78 0.15 85); /* Brighter amber */
+  --color-warning: oklch(0.78 0.1 85); /* Lower chroma for dark mode */
   --color-warning-foreground: oklch(0.15 0.02 90);
 
   /* Success/Income - Positive financial states (Green) */
-  --color-success: oklch(0.75 0.15 150); /* Verde più chiaro per dark mode */
-  --color-success-light: oklch(0.85 0.1 150); /* Verde chiaro per dark mode */
-  --color-success-dark: oklch(0.5 0.13 150); /* Verde scuro per dark mode */
+  --color-success: oklch(0.75 0.1 150); /* Lower chroma for dark mode */
+  --color-success-light: oklch(0.85 0.06 150);
+  --color-success-dark: oklch(0.5 0.08 150);
   --color-success-foreground: oklch(0.15 0.02 90); /* Dark text */
 
   /* UI Elements */
-  --color-border: oklch(0.72 0.168 270 / 0.28); /* Primary-tinted borders for dark mode */
+  --color-border: oklch(0.32 0.01 90); /* Neutral borders for dark mode */
   --color-input: oklch(0.26 0.006 90); /* Soft dark for inputs - not tiring */
   --color-ring: oklch(0.72 0.168 270);
 
@@ -201,17 +201,25 @@ html.dark {
 
   /* Sidebar */
   --color-sidebar: oklch(0.2 0.008 90);
-  --color-sidebar-foreground: oklch(0.92 0.008 90);
+  --color-sidebar-foreground: var(--color-foreground);
   --color-sidebar-primary: oklch(0.72 0.168 270);
   --color-sidebar-primary-foreground: oklch(0.15 0.015 90);
   --color-sidebar-accent: oklch(0.28 0.008 90);
-  --color-sidebar-accent-foreground: oklch(0.72 0.168 270);
+  --color-sidebar-accent-foreground: var(--color-foreground);
+
+  /* Semantic Text Colors - Dark overrides */
+  --color-text-primary: var(--color-primary);
+  --color-text-heading: var(--color-foreground);
+  --color-text-body: var(--color-foreground);
+  --color-text-muted: var(--color-muted-foreground);
+  --color-text-subtle: oklch(0.7 0.01 90);
+  --color-text-emphasis: var(--color-foreground);
   --color-sidebar-border: oklch(0.32 0.008 90);
   --color-sidebar-ring: oklch(0.72 0.168 270);
 
   /* Category Colors - Adjusted for dark mode visibility */
   --category-utilities-blue: oklch(0.68 0.15 240);
-  --category-utilities-red: oklch(0.68 0.18 30);
+  --category-utilities-red: oklch(0.68 0.13 30);
   --category-transportation-purple: oklch(0.66 0.16 290);
   --category-transportation-orange: oklch(0.72 0.16 55);
   --category-health-cyan: oklch(0.72 0.12 210);
@@ -220,6 +228,36 @@ html.dark {
   --category-food-green: oklch(0.68 0.14 140);
   --category-shopping-purple: oklch(0.68 0.18 285);
   --category-shopping-orange: oklch(0.75 0.15 60);
+
+  /* Overrides for standard red palette to reduce intensity globally in dark mode */
+  --color-red-50: oklch(0.97 0.01 25);
+  --color-red-100: oklch(0.93 0.02 25);
+  --color-red-200: oklch(0.88 0.04 25);
+  --color-red-300: oklch(0.82 0.08 25);
+  --color-red-400: oklch(0.75 0.12 25);
+  --color-red-500: oklch(0.65 0.15 25);
+  --color-red-600: oklch(0.55 0.14 25);
+  --color-red-700: oklch(0.45 0.12 25);
+  --color-red-800: oklch(0.35 0.1 25);
+  --color-red-900: oklch(0.25 0.08 25);
+
+  /* Overrides for green palette in dark mode */
+  --color-emerald-500: oklch(0.75 0.1 150);
+  --color-emerald-600: oklch(0.65 0.08 150);
+  --color-green-500: oklch(0.75 0.1 140);
+  --color-green-600: oklch(0.65 0.08 140);
+
+  /* Overrides for blue palette in dark mode */
+  --color-blue-500: oklch(0.75 0.08 240);
+  --color-blue-600: oklch(0.65 0.06 240);
+
+  /* Overrides for amber/yellow palette in dark mode */
+  --color-amber-500: oklch(0.78 0.1 85);
+  --color-yellow-500: oklch(0.82 0.1 90);
+
+  /* Overrides for purple/violet palette in dark mode */
+  --color-purple-500: oklch(0.72 0.12 280);
+  --color-violet-500: oklch(0.72 0.12 270);
 }
 
 /* ============================================================================

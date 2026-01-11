@@ -355,7 +355,7 @@ export default function SettingsContent({ accounts, transactions }: SettingsCont
                   titleClassName="text-sm font-semibold text-primary"
                   subtitleClassName="text-xs text-primary/70"
                 />
-                <ListContainer divided className="space-y-0">
+                <ListContainer divided className="divide-primary/20 space-y-0">
                   {groupUsers.map((member) => {
                     const memberInitials = member.name
                       .split(" ")
@@ -392,7 +392,7 @@ export default function SettingsContent({ accounts, transactions }: SettingsCont
 
               {/* Group Actions */}
               <PageSection variant="card" padding="sm">
-                <ListContainer divided className="space-y-0">
+                <ListContainer divided className="divide-primary/20 space-y-0">
                   <RowCard
                     title="Invita Membro"
                     subtitle="Invia invito per unirsi al gruppo"
@@ -426,7 +426,7 @@ export default function SettingsContent({ accounts, transactions }: SettingsCont
           <PageSection>
             <SectionHeader title="Preferenze" icon={Settings} iconClassName="text-primary" />
             <PageSection variant="card" padding="sm">
-              <ListContainer divided className="space-y-0">
+              <ListContainer divided className="divide-primary/20 space-y-0">
                 <SettingsItem
                   icon={<CreditCard className="h-4 w-4 text-primary" />}
                   label="Valuta"
@@ -470,7 +470,7 @@ export default function SettingsContent({ accounts, transactions }: SettingsCont
           <PageSection>
             <SectionHeader title="Notifiche" icon={Bell} iconClassName="text-primary" />
             <PageSection variant="card" padding="sm">
-              <ListContainer divided className="space-y-0">
+              <ListContainer divided className="divide-primary/20 space-y-0">
                 <SettingsItem
                   icon={<Bell className="h-4 w-4 text-primary" />}
                   label="Notifiche Push"

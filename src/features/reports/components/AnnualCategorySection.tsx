@@ -1,3 +1,5 @@
+"use client";
+
 import * as React from "react";
 import { ListContainer, PageSection, RowCard, SectionHeader } from "@/components/ui";
 import { Amount } from "@/components/ui/primitives";
@@ -82,6 +84,7 @@ export function AnnualCategorySection({
                       />
                     </div>
                   }
+                  iconColor="none"
                   primaryValue={
                     <Amount type="expense" className={reportsStyles.annualCategory.amount}>
                       {item.net}

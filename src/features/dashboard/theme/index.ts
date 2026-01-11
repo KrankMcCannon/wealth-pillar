@@ -3,7 +3,6 @@
  * Organized exports for design tokens and style utilities
  */
 
-export { dashboardTokens } from './dashboard-tokens';
 export {
   dashboardStyles,
   getAccountCardStyles,

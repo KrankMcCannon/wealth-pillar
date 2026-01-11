@@ -13,7 +13,7 @@
  * Used across: Transactions, Accounts, Budgets, and more
  */
 
-import { memo, useEffect, useRef } from "react";
+import { memo, useEffect, useRef, type CSSProperties } from "react";
 import { motion, useMotionValue, PanInfo, animate } from "framer-motion";
 import {
   rowCardStyles,
@@ -27,7 +27,9 @@ export interface RowCardProps {
   // Layout - Left Section
   icon?: React.ReactNode;
   iconSize?: "sm" | "md" | "lg";
-  iconColor?: "primary" | "warning" | "destructive" | "success" | "muted" | "accent";
+  iconColor?: "primary" | "warning" | "destructive" | "success" | "muted" | "accent" | "none";
+  iconStyle?: CSSProperties;
+  iconClassName?: string;
   title: string;
   subtitle?: React.ReactNode;
   metadata?: React.ReactNode; // Flexible metadata area (badges, text, etc.)
@@ -80,6 +82,8 @@ export const RowCard = memo(({
   onSwipeChange,
   deleteLabel = "Elimina",
   isDisabled = false,
+  iconStyle,
+  iconClassName,
   className,
   testId,
 }: RowCardProps) => {
@@ -174,7 +178,8 @@ export const RowCard = memo(({
   const iconContainerClasses = cn(
     rowCardStyles.icon.container,
     rowCardStyles.icon.size[iconSize],
-    rowCardStyles.icon.color[iconColor]
+    rowCardStyles.icon.color[iconColor],
+    iconClassName
   );
 
   // If swipe-to-delete is enabled, wrap in swipe layers
@@ -241,7 +246,7 @@ export const RowCard = memo(({
         <div className={rowCardStyles.layout.left}>
           {/* Icon */}
           {icon && (
-            <div className={iconContainerClasses}>
+            <div className={iconContainerClasses} style={iconStyle}>
               {icon}
             </div>
           )}

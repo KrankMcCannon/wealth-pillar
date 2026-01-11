@@ -4,8 +4,71 @@
  * Uses centralized style registry from @/styles/system
  */
 
-import { animationStyles, radiusStyles, typographyStyles } from "@/styles/system";
-import { authTokens } from "./auth-tokens";
+import { animationStyles, radiusStyles, typographyStyles, spacingStyles } from "@/styles/system";
+
+const authTokens = {
+  // ============================================================================
+  // COMPONENT-SPECIFIC TOKENS
+  // Only auth-specific component patterns (not generic primitives)
+  // ============================================================================
+
+  components: {
+    // Card layout
+    card: {
+      padding: spacingStyles.card.large, // p-8 (32px) - generous auth card spacing
+      spacing: 'space-y-4', // Vertical spacing between card sections
+    },
+
+    // Form structure
+    form: {
+      group: 'space-y-2', // Spacing between form groups (label + input)
+      field: 'space-y-1', // Spacing within a field (label to input)
+    },
+
+    // Divider styling (for "or continue with" sections)
+    divider: 'flex items-center gap-3 py-1',
+  },
+
+  // ============================================================================
+  // AUTH-SPECIFIC INPUT STYLES
+  // Custom input styling for authentication forms
+  // ============================================================================
+
+  input: {
+    // Base input field
+    base: "h-9 text-sm bg-input border-primary/20 focus:border-primary focus:ring-primary/20",
+
+    // Input icon styling (for prefix icons)
+    icon: 'h-3.5 w-3.5 text-primary/60',
+  },
+
+  // ============================================================================
+  // AUTH-SPECIFIC BUTTON STYLES
+  // Primary action button for auth forms
+  // ============================================================================
+
+  button: {
+    // Primary auth button (sign in, sign up, etc.)
+    primary: "w-full h-9 bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-200 active:scale-[.98] shadow-md text-sm font-medium",
+  },
+
+  // ============================================================================
+  // ERROR & SUCCESS STATE COLORS
+  // Auth-specific semantic colors for form validation
+  // ============================================================================
+
+  validation: {
+    error: {
+      bg: "bg-destructive/10",
+      border: "border-destructive/20",
+      text: "text-destructive",
+    },
+    success: {
+      bg: "bg-success/10",
+      text: "text-success",
+    },
+  },
+} as const;
 
 export const authStyles = {
   // ============================================================================
@@ -20,10 +83,11 @@ export const authStyles = {
     bgBlobBottom: "pointer-events-none absolute -bottom-24 -right-24 h-72 w-72 rounded-full blur-3xl opacity-15 bg-secondary",
   },
   layout: {
-    container: 'h-dvh w-screen bg-background flex items-center justify-center relative overflow-hidden',
-    main: 'w-full h-full flex items-center justify-center',
-    footer: 'absolute bottom-2 left-0 right-0',
-    footerText: `mx-auto max-w-6xl px-4 text-center ${typographyStyles.xs} text-primary/60`,
+    container: 'h-dvh w-screen bg-card flex flex-col relative overflow-hidden',
+    main: 'w-full flex-1 flex items-center justify-center px-4 py-6',
+    footer:
+      'mt-auto w-full px-4 pb-[calc(theme(spacing.3)+env(safe-area-inset-bottom))] pt-2',
+    footerText: `mx-auto max-w-6xl text-center ${typographyStyles.xs} text-primary/60`,
   },
   loading: {
     container: 'flex flex-col items-center justify-center py-8 space-y-4',
@@ -65,7 +129,7 @@ export const authStyles = {
   // ============================================================================
 
   label: {
-    base: `${typographyStyles.label} text-foreground`,
+    base: `${typographyStyles.label} text-primary`,
   },
 
   // ============================================================================
@@ -108,7 +172,7 @@ export const authStyles = {
   socialButtons: {
     container: 'space-y-1.5',
     button: `w-full h-9 ${animationStyles.classes.transition} hover:opacity-95 active:scale-[.98] ${typographyStyles.sm}`,
-    base: 'bg-white text-black border border-primary hover:border-primary/40 transition-all shadow-sm',
+    base: 'bg-white text-primary border border-primary hover:border-primary/40 transition-all shadow-sm',
     google: 'hover:bg-primary/5',
     apple: 'hover:bg-secondary/5',
     github: 'hover:bg-accent/5',
@@ -126,7 +190,7 @@ export const authStyles = {
     headerCenter: 'flex-1 text-center',
     brand: 'text-primary text-xl font-bold tracking-tight',
     title: 'text-xl font-bold text-primary tracking-tight mt-0.5',
-    subtitle: 'text-center text-xs text-black/60',
+    subtitle: 'text-center text-xs text-primary/60',
   },
   userButton: {
     trigger: 'flex items-center gap-2 px-2 py-1 h-auto',

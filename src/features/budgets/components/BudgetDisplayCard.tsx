@@ -101,9 +101,9 @@ export function BudgetDisplayCard({
               -{" "}
               {period.end_date
                 ? new Date(period.end_date).toLocaleDateString("it-IT", {
-                    day: "numeric",
-                    month: "short",
-                  })
+                  day: "numeric",
+                  month: "short",
+                })
                 : "In corso"}
             </p>
           </div>

@@ -92,7 +92,7 @@ export function SeriesCard({
   const handleExecute = async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (isLoading) return;
-    
+
     setIsLoading(true);
     try {
       const result = await executeRecurringSeriesAction(series.id);
@@ -111,7 +111,7 @@ export function SeriesCard({
   const handlePause = async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (isLoading) return;
-    
+
     setIsLoading(true);
     try {
       const result = await toggleRecurringSeriesActiveAction(series.id, false);
@@ -130,7 +130,7 @@ export function SeriesCard({
   const handleResume = async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (isLoading) return;
-    
+
     setIsLoading(true);
     try {
       const result = await toggleRecurringSeriesActiveAction(series.id, true);
@@ -181,7 +181,7 @@ export function SeriesCard({
           <div className={cardStyles.series.content}>
             <div className={cardStyles.series.titleRow}>
               <Text
-                variant="heading"
+                variant="primary"
                 size="sm"
                 as="h3"
                 className={cardStyles.series.title}
@@ -190,15 +190,15 @@ export function SeriesCard({
               </Text>
               {!series.is_active && (
                 <StatusBadge status="info" size="sm">
-                  Pausata
+                  Stop
                 </StatusBadge>
               )}
             </div>
             <div className={cardStyles.series.details}>
-              <Text variant="muted" size="xs" className={cardStyles.series.frequency}>
+              <Text variant="body" size="xs" className={cardStyles.series.frequency}>
                 {getFrequencyLabel(series.frequency)}
               </Text>
-              <Text variant="muted" size="xs">
+              <Text variant="body" size="xs">
                 Prossima: {getDueDateLabel(daysUntilDue)}
               </Text>
 

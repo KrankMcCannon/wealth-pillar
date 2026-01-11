@@ -14,13 +14,13 @@ export const rowCardStyles = {
   wrapper: "relative w-full overflow-hidden",
 
   // Base card styles
-  base: "relative z-10 flex items-center justify-between bg-card rounded-none border-0 transition-colors first:pb-3 last:pt-3",
+  base: "relative z-10 flex items-center justify-between transition-colors first:pb-3 last:pt-3",
 
   // Variant styles
   variant: {
     regular: "",
     interactive: "cursor-pointer hover:bg-primary/5 active:bg-primary/10",
-    highlighted: "border-primary/30 bg-primary/5",
+    highlighted: "border-primary/20 bg-primary/5",
     muted: "opacity-60",
   },
 
@@ -29,7 +29,7 @@ export const rowCardStyles = {
     wrapper: "relative overflow-hidden",
     deleteLayer: "absolute inset-y-0 right-0 z-0 flex items-center justify-end",
     deleteButton:
-      "px-6 h-full bg-destructive text-white font-medium flex items-center justify-center rounded-r-lg hover:bg-destructive/90 active:bg-destructive/80 transition-all duration-200 ease-out",
+      "px-6 h-full bg-destructive text-destructive-foreground font-medium flex items-center justify-center rounded-r-lg hover:bg-destructive/90 active:bg-destructive/80 transition-all duration-200 ease-out",
   },
 
   // Layout structure
@@ -55,6 +55,7 @@ export const rowCardStyles = {
       destructive: "bg-destructive/10 text-destructive",
       muted: "bg-primary/10 text-primary/60",
       accent: "bg-primary/10 text-primary",
+      none: "",
     },
   },
 

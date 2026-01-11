@@ -8,7 +8,7 @@ import {
   PiggyBank,
   CreditCard,
   DollarSign,
-  
+
   // Utilities & Bills icons
   Tv,
   Smartphone,
@@ -19,34 +19,34 @@ import {
   Flame,
   Trash2,
   WifiIcon as Wifi,
-  
+
   // Transportation icons
   Car,
   Fuel,
   Wrench,
-  
+
   // Health & Wellness icons
   Heart,
   Pill,
   Stethoscope,
   Dumbbell,
-  
+
   // Beauty & Personal Care icons
   Sparkles,
   Scissors,
   Package,
-  
+
   // Food & Dining icons
   UtensilsCrossed,
   ShoppingBasket,
   Coffee,
   ChefHat,
-  
+
   // Shopping & Lifestyle icons
   Gift,
   ShirtIcon as Shirt,
   PartyPopper,
-  
+
   // Utility icons
   FileText,
 } from 'lucide-react';
@@ -71,7 +71,7 @@ export const iconMapping: Record<string, React.ComponentType<React.SVGProps<SVGS
   'investimenti': TrendingUp,
   'risparmi': PiggyBank,
   'rata_auto': CreditCard,
-  
+
   // Utilities & Bills
   'abbonamenti_tv': Tv,
   'ricarica_telefono': Smartphone,
@@ -82,12 +82,12 @@ export const iconMapping: Record<string, React.ComponentType<React.SVGProps<SVGS
   'bolletta_tari': Trash2,
   'abbonamenti_necessari': Wifi,
   'bolletta_depuratore': Activity,
-  
+
   // Transportation
   'bollo_auto': Car,
   'benzina': Fuel,
   'tagliando_auto': Wrench,
-  
+
   // Health & Wellness
   'medicine': Pill,
   'medicine_thor': Pill,
@@ -95,26 +95,26 @@ export const iconMapping: Record<string, React.ComponentType<React.SVGProps<SVGS
   'analisi_mediche': Activity,
   'veterinario': Heart,
   'palestra': Dumbbell,
-  
+
   // Beauty & Personal Care
   'parrucchiere': Scissors,
   'estetista': Sparkles,
   'skincare': Package,
   'haircare': Package,
   'taglio_thor': Scissors,
-  
+
   // Food & Dining
   'spesa': ShoppingBasket,
   'cibo_fuori': UtensilsCrossed,
   'cibo_asporto': Coffee,
   'cibo_thor': ChefHat,
-  
+
   // Shopping & Lifestyle
   'vestiti': Shirt,
   'regali': Gift,
   'eventi': PartyPopper,
   'yuup_thor': Heart,
-  
+
   // Default/Misc
   'altro': FileText,
 };
@@ -127,7 +127,7 @@ const categoryColors: Record<string, string> = {
   investimenti: designSystemColors.primary,
   contanti: designSystemColors.secondary,
   risparmi: designSystemColors.secondary,
-  
+
   // Utilities
   bolletta_luce: designSystemColors.warning,
   bolletta_gas: designSystemColors.error,
@@ -138,13 +138,13 @@ const categoryColors: Record<string, string> = {
   abbonamenti_tv: designSystemColors.primary,
   abbonamenti_necessari: designSystemColors.secondary,
   bolletta_depuratore: 'hsl(var(--category-utilities-blue))',
-  
+
   // Transportation
   bollo_auto: 'hsl(var(--category-transportation-purple))',
   tagliando_auto: 'hsl(var(--category-transportation-purple))',
   rata_auto: 'hsl(var(--category-transportation-purple))',
   benzina: 'hsl(var(--category-transportation-orange))',
-  
+
   // Health
   medicine: 'hsl(var(--category-health-cyan))',
   medicine_thor: 'hsl(var(--category-health-cyan))',
@@ -152,31 +152,31 @@ const categoryColors: Record<string, string> = {
   analisi_mediche: 'hsl(var(--category-health-cyan))',
   veterinario: 'var(--color-secondary)',
   palestra: 'hsl(var(--category-health-teal))',
-  
+
   // Beauty & Lifestyle
   parrucchiere: 'hsl(var(--category-beauty-pink))',
   estetista: 'hsl(var(--category-beauty-pink))',
   skincare: 'hsl(var(--category-beauty-pink))',
   haircare: 'hsl(var(--category-beauty-pink))',
   taglio_thor: 'hsl(var(--category-beauty-pink))',
-  
+
   // Food
   spesa: 'hsl(var(--category-food-green))',
   cibo_fuori: 'hsl(var(--category-food-green))',
   cibo_asporto: 'hsl(var(--category-food-green))',
   cibo_thor: 'hsl(var(--category-food-green))',
-  
+
   // Shopping
   vestiti: designSystemColors.secondary,
   regali: 'hsl(var(--category-shopping-purple))',
   eventi: designSystemColors.warning,
   yuup_thor: 'hsl(var(--category-shopping-orange))',
-  
+
   // Default
   altro: designSystemColors.neutral,
 };
 
-export const getSemanticColor = (categoryKey: string): string => 
+export const getSemanticColor = (categoryKey: string): string =>
   categoryColors[categoryKey] || designSystemColors.neutral;
 
 interface IconProps {
@@ -189,7 +189,7 @@ interface IconProps {
 export const Icon: React.FC<IconProps> = ({ icon, className = '', size = 20, color }) => {
   const IconComponent = iconMapping[icon] || FileText;
   return (
-    <IconComponent 
+    <IconComponent
       className={className}
       width={size}
       height={size}

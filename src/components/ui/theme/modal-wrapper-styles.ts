@@ -7,7 +7,7 @@ export const modalWrapperStyles = {
   loadingWrap: "flex items-center justify-center py-8",
   loadingDot: "liquid-pulse size-8 rounded-full bg-primary/20",
   loadingText: "ml-3 text-sm text-primary/70",
-  drawerContent: "p-0",
+  drawerContent: "p-0 pb-10",
   drawerHeader: "text-left bg-card px-4 py-3 border-b border-primary/10 shrink-0 gap-0",
   drawerTitle: "text-lg font-semibold text-primary",
   drawerDescription: "text-xs text-primary/70",

@@ -19,15 +19,15 @@ export const yearSelectorStyles = {
   },
   item: {
     base: 'shrink-0 flex items-center gap-2 px-3 py-2 rounded-2xl text-sm font-semibold whitespace-nowrap transition-all duration-300 group hover:scale-[1.02] focus:outline-none',
-    active: 'bg-primary text-white shadow-lg shadow-primary/30 scale-105',
+    active: 'bg-primary text-primary-foreground shadow-lg shadow-primary/30 scale-105',
     inactive: 'bg-primary/10 backdrop-blur-sm text-primary hover:bg-primary/12 hover:text-primary hover:shadow-sm hover:shadow-primary/10',
   },
   icon: {
     containerBase: 'flex items-center justify-center w-5 h-5 rounded-full transition-all duration-200 group-hover:scale-105',
-    containerActive: 'bg-white/20 backdrop-blur-sm',
+    containerActive: 'bg-primary/15 backdrop-blur-sm',
     containerInactive: 'bg-primary/20',
     svgBase: 'w-3.5 h-3.5 transition-colors duration-200',
-    svgActive: 'text-white',
+    svgActive: 'text-primary-foreground',
     svgInactive: 'text-primary',
   },
   label: 'transition-all duration-200',

@@ -12,7 +12,7 @@ export const cardStyles = {
   },
   budget: {
     container:
-      "p-3 hover:bg-accent/10 transition-colors duration-200 cursor-pointer w-full text-left",
+      "p-3 hover:bg-accent/10 transition-colors duration-200 cursor-pointer w-full text-left text-primary",
     row: "flex items-center justify-between mb-2",
     left: "flex items-center gap-3 flex-1",
     content: "flex-1",
@@ -38,7 +38,7 @@ export const cardStyles = {
     frequency: "font-medium",
     userBadges: "flex items-center gap-1 mt-1.5",
     userBadge:
-      "w-5 h-5 rounded-full border border-white/20 dark:border-gray-700 flex items-center justify-center text-[10px] font-bold text-white",
+      "w-5 h-5 rounded-full border border-white/25 dark:border-border/40 flex items-center justify-center text-[10px] font-bold text-white",
     userBadgeOverflow: "text-[10px] text-muted-foreground font-medium",
     right: "flex flex-col items-end gap-1.5 shrink-0",
     actions: "flex items-center gap-0.5",

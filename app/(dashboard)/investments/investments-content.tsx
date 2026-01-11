@@ -17,7 +17,7 @@ export default function InvestmentsContent({
   groupUsers,
 }: InvestmentsContentProps) {
   return (
-    <PageContainer className="bg-background">
+    <PageContainer>
       <div className="flex-1">
         <Header
           title="Investimenti"
@@ -36,7 +36,6 @@ export default function InvestmentsContent({
             <MetricCard
               label="Portafoglio Totale"
               value={0}
-              valueType="custom"
               description="+0 (+0.0%)"
             />
           </PageSection>

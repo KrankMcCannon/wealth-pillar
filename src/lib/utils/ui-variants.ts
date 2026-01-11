@@ -37,10 +37,10 @@ export const cardVariants = cva(
     variants: {
       variant: {
         default: "",
-        elevated: "shadow-xl border-primary/30",
+        elevated: "shadow-xl border-primary/20",
         flat: "shadow-none border-primary/10",
         interactive:
-          "cursor-pointer transition-transform hover:shadow-md hover:border-primary/30 hover:scale-[1.01]",
+          "cursor-pointer transition-transform hover:shadow-md hover:border-primary/20 hover:scale-[1.01]",
         glass: "liquid-glass",
       },
       padding: {
@@ -326,7 +326,7 @@ export const amountVariants = cva("font-bold tabular-nums", {
       income: "text-success",
       expense: "text-destructive",
       transfer: "text-secondary",
-      balance: "text-black",
+      balance: "text-primary",
       neutral: "text-muted-foreground",
     },
     size: {

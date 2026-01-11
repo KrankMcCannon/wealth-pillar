@@ -33,17 +33,6 @@ export interface CategorySelectProps {
  * - Alphabetically sorted categories
  * - Grid layout for better scanning
  * - Proper scrolling on mobile and desktop
- *
- * @example
- * ```tsx
- * <CategorySelect
- *   value={selectedCategory}
- *   onValueChange={setSelectedCategory}
- *   categories={categories}
- *   placeholder="Seleziona categoria"
- *   showRecentCategories={true}
- * />
- * ```
  */
 export const CategorySelect = React.memo<CategorySelectProps>(({
   value,
@@ -130,7 +119,7 @@ export const CategorySelect = React.memo<CategorySelectProps>(({
     // Find longest label
     const longestLabel = categories.reduce((longest, cat) =>
       cat.label.length > longest.length ? cat.label : longest
-    , "");
+      , "");
 
     // Rough estimate: 8px per character + 60px for icon and padding
     const estimatedWidth = (longestLabel.length * 8) + 60;

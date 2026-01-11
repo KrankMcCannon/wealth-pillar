@@ -35,7 +35,7 @@ export const RoleBadge: React.FC<RoleBadgeProps> = ({
     const baseConfig = {
       color: 'primary',
       bgClass: variant === 'outline'
-        ? 'border-primary/30 text-primary bg-transparent hover:bg-primary/5'
+        ? 'border-primary/20 text-primary bg-transparent hover:bg-primary/5'
         : variant === 'subtle'
         ? 'bg-primary/10 text-primary border-primary/20'
         : 'bg-primary/10 text-primary border-primary/20',

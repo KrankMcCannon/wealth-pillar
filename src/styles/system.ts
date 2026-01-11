@@ -106,13 +106,13 @@ export const layoutStyles = {
   section: {
     container: "space-y-4",
     headerRow: "flex items-center justify-between gap-3",
-    title: "text-lg font-semibold text-foreground",
-    subtitle: "text-sm text-muted-foreground",
+    title: "text-lg font-semibold text-primary",
+    subtitle: "text-sm text-primary",
     actions: "flex items-center gap-2",
     surface: {
       plain: "bg-transparent",
       card: "bg-card border border-primary/15 rounded-2xl",
-      muted: "bg-muted/40 border border-border/60 rounded-2xl",
+      muted: "bg-card/40 border border-border/60 rounded-2xl backdrop-blur-sm",
     },
     padding: {
       none: "",
@@ -127,9 +127,11 @@ export const layoutStyles = {
     item: "py-3 first:pt-0 last:pb-0",
   },
   footer: {
-    base: "flex items-center justify-between gap-3",
-    static: "mt-6",
-    sticky: "sticky bottom-0 bg-card/90 backdrop-blur border-t border-primary/15 p-3",
+    base: "w-full flex items-center justify-between gap-3",
+    static:
+      "mt-auto px-4 py-3 pb-[calc(theme(spacing.3)+env(safe-area-inset-bottom))]",
+    sticky:
+      "sticky bottom-0 bg-card/90 backdrop-blur border-t border-primary/15 px-4 py-3 pb-[calc(theme(spacing.3)+env(safe-area-inset-bottom))]",
   },
 } as const;
 
@@ -141,15 +143,15 @@ export const layoutStyles = {
 export const settingsStyles = {
   page: {
     container:
-      "relative flex size-full min-h-[100dvh] flex-col bg-gradient-to-br from-primary/5 via-white to-primary/5",
+      "relative flex w-full min-h-[100dvh] flex-col bg-card",
     style: { fontFamily: '"Inter", "SF Pro Display", system-ui, sans-serif' },
   },
   header: {
     container:
-      "sticky top-0 z-20 bg-white/80 backdrop-blur-xl border-b border-gray-200/60 shadow-sm px-3 sm:px-4 py-2 sm:py-3",
+      "sticky top-0 z-20 bg-card/80 backdrop-blur-xl border-b border-primary/60 shadow-sm px-3 sm:px-4 py-2 sm:py-3",
     inner: "flex items-center justify-between",
     button:
-      "text-primary hover:bg-primary hover:text-white active:scale-95 rounded-2xl transition-all duration-200 ease-out p-2 sm:p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center shadow-sm hover:shadow-md",
+      "text-primary hover:bg-primary hover:text-primary-foreground active:scale-95 rounded-2xl transition-all duration-200 ease-out p-2 sm:p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center shadow-sm hover:shadow-md",
     title: "text-lg sm:text-xl font-bold tracking-tight text-primary",
     spacer: "min-w-[44px] min-h-[44px]",
   },
@@ -161,17 +163,17 @@ export const settingsStyles = {
       "flex items-center justify-between gap-3",
     container: "flex items-center gap-3 flex-1 min-w-0",
     avatar:
-      "size-16 rounded-2xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center text-white text-xl font-bold shadow-lg shadow-primary/30 shrink-0",
+      "size-16 rounded-2xl bg-primary flex items-center justify-center text-primary-foreground text-xl font-bold shadow-lg shadow-primary/30 shrink-0",
     info: "flex-1 min-w-0",
     name: "text-lg font-bold text-primary mb-1.5 truncate",
     badges: "flex items-center gap-1.5 flex-wrap",
     badge:
       "px-2 py-1 rounded-full text-[10px] font-semibold bg-primary/10 text-primary whitespace-nowrap border border-primary/20",
     editButton:
-      "hover:bg-primary hover:text-white active:scale-95 transition-all duration-200 border border-primary/20 bg-primary/10 text-primary rounded-xl px-3 py-1.5 text-sm font-semibold shadow-sm hover:shadow-md whitespace-nowrap shrink-0",
+      "hover:bg-primary hover:text-primary-foreground active:scale-95 transition-all duration-200 border border-primary/20 bg-primary/10 text-primary rounded-xl px-3 py-1.5 text-sm font-semibold shadow-sm hover:shadow-md whitespace-nowrap shrink-0",
   },
   profileDetails: {
-    container: "divide-y divide-gray-100",
+    container: "divide-y divide-primary/20",
   },
   skeletons: {
     shimmer: "animate-pulse bg-primary/12",
@@ -185,8 +187,8 @@ export const settingsStyles = {
     headerBody: "flex-1 space-y-2",
     headerLinePrimary: "h-6 w-24 bg-primary/15 rounded-lg animate-pulse",
     headerLineSecondary: "h-4 w-32 bg-primary/15 rounded-lg animate-pulse",
-    dividerLight: "divide-y divide-[#7678e4]/8",
-    dividerStrong: "divide-y divide-[#7678e4]/10",
+    dividerLight: "divide-y divide-primary/40",
+    dividerStrong: "divide-y divide-primary/60",
     listRow: "flex items-center gap-3 p-3",
     listRowSpace: "flex items-center justify-between p-3",
     listIcon: "size-10 bg-primary/12 rounded-xl shrink-0 animate-pulse",
@@ -215,9 +217,9 @@ export const settingsStyles = {
     field: {
       label: "block text-sm font-medium text-primary mb-1.5",
       input:
-        "w-full px-3 py-2 text-sm rounded-lg border border-primary/20 bg-card text-primary placeholder:text-primary/40 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary disabled:opacity-50 disabled:cursor-not-allowed",
-      inputError: "border-red-500 focus:ring-red-500/20 focus:border-red-500",
-      errorText: "mt-1.5 text-sm text-red-600",
+        "w-full px-3 py-2 text-sm rounded-lg border border-primary/20 bg-card text-primary placeholder:text-primary/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary disabled:opacity-50 disabled:cursor-not-allowed",
+      inputError: "border-destructive focus:ring-destructive/20 focus:border-destructive",
+      errorText: "mt-1.5 text-sm text-destructive",
     },
     title: "text-lg font-semibold text-primary",
     description: "text-sm text-primary/70",
@@ -236,7 +238,7 @@ export const settingsStyles = {
         "mt-0.5 shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all",
       radioActive: "border-primary bg-primary",
       radioIdle: "border-primary/20 bg-card",
-      radioIcon: "h-3 w-3 text-white",
+      radioIcon: "h-3 w-3 text-primary-foreground",
       content: "flex-1 min-w-0",
       titleRow: "flex items-center gap-2",
       title: "text-sm font-semibold",
@@ -254,7 +256,8 @@ export const settingsStyles = {
       planTitle: "text-lg font-bold text-primary",
       planPrice: "text-2xl font-bold text-primary mt-1",
       planPriceSuffix: "text-sm font-normal text-primary/60",
-      planBadge: "px-3 py-1 rounded-full bg-primary text-white text-xs font-semibold",
+      planBadge:
+        "px-3 py-1 rounded-full bg-primary text-primary-foreground text-xs font-semibold",
       list: "space-y-2",
       listItem: "flex items-start gap-2",
       listIcon: "h-4 w-4 text-green-600 mt-0.5 shrink-0",
@@ -296,14 +299,14 @@ export const settingsStyles = {
         "rounded-lg bg-red-50 p-3 text-sm text-red-700 border border-red-200 flex items-start gap-2",
       warningAlertIcon: "h-4 w-4 text-red-600 mt-0.5",
       button: "w-full sm:w-auto",
-      confirmButton: "bg-red-600 text-white hover:bg-red-700",
+      confirmButton: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
     },
   },
 } as const;
 
 export const reportsStyles = {
   page: {
-    container: "relative flex size-full min-h-[100dvh] flex-col bg-card",
+    container: "relative flex w-full min-h-[100dvh] flex-col bg-card",
     style: { fontFamily: '"Inter", "SF Pro Display", system-ui, sans-serif' },
   },
   main: {
@@ -317,62 +320,62 @@ export const reportsStyles = {
   },
   budgetPeriodCard: {
     container:
-      "overflow-hidden border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow",
+      "overflow-hidden border border-primary/20 shadow-sm hover:shadow-md transition-shadow",
     header:
-      "w-full px-3 py-2.5 flex items-center gap-2 hover:bg-slate-50/50 dark:hover:bg-slate-900/50 transition-colors",
+      "w-full px-3 py-2.5 flex items-center gap-2 hover:bg-card/40 transition-colors",
     headerIcon:
       "flex items-center justify-center h-9 w-9 rounded-xl bg-primary/10 text-primary shrink-0",
     headerIconSize: "h-4 w-4",
     headerContent: "flex-1 text-left min-w-0",
     headerTitleRow: "flex items-center gap-1.5 flex-wrap",
-    headerTitle: "text-sm font-bold text-slate-900 dark:text-slate-100 leading-tight",
-    headerBadge: "text-xs",
-    headerSubtitle: "text-xs text-slate-500 dark:text-slate-400",
+    headerTitle: "text-sm font-bold text-primary leading-tight",
+    headerBadge: "text-xs border-primary/40 text-primary bg-primary/10",
+    headerSubtitle: "text-xs text-muted-primary",
     headerChevronContainer: "flex items-center gap-1.5 shrink-0",
     headerChevron: "shrink-0 self-center",
-    headerChevronIcon: "h-5 w-5 text-slate-400",
-    headerDetailLabel: "text-[10px] text-slate-400 dark:text-slate-500 hidden sm:block",
+    headerChevronIcon: "h-5 w-5 text-primary",
+    headerDetailLabel: "text-[10px] text-primary hidden sm:block",
     metricsContainer: "px-3 pb-3 space-y-1.5 sm:space-y-0 sm:grid sm:grid-cols-3 sm:gap-1.5",
     metricCard: "p-2.5 rounded-lg border",
     metricCardAccount:
-      "bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 border-slate-200 dark:border-slate-700",
+      "bg-card/40 border-primary/20",
     metricCardBudget:
-      "bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 border-slate-200 dark:border-slate-700",
+      "bg-card/40 border-primary/20",
     metricCardTransfer:
-      "bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900 border-blue-200 dark:border-blue-800",
+      "bg-primary/10 border-primary/20",
     metricHeader: "flex items-center gap-1.5",
     metricIconBadge: "p-1 rounded-md shadow-sm shrink-0",
-    metricIconBadgeDefault: "bg-white dark:bg-slate-800",
-    metricIconBadgeTransfer: "bg-white dark:bg-blue-900",
+    metricIconBadgeDefault: "bg-card",
+    metricIconBadgeTransfer: "bg-primary/15",
     metricIcon: "h-3.5 w-3.5",
-    metricIconDefault: "text-slate-700 dark:text-slate-300",
-    metricIconTransfer: "text-blue-700 dark:text-blue-300",
+    metricIconDefault: "text-primary",
+    metricIconTransfer: "text-secondary",
     metricContent: "flex justify-between items-center gap-0.5 flex-1 min-w-0",
     metricLabel: "text-[10px] font-medium uppercase tracking-wider leading-none",
-    metricLabelDefault: "text-slate-600 dark:text-slate-400",
-    metricLabelTransfer: "text-blue-700 dark:text-blue-300",
+    metricLabelDefault: "text-primary",
+    metricLabelTransfer: "text-secondary",
     metricValue: "text-lg font-bold leading-none",
     metricValuePositive: "text-emerald-600 dark:text-emerald-400",
     metricValueNegative: "text-red-600 dark:text-red-400",
-    metricValueTransfer: "text-blue-700 dark:text-blue-300",
+    metricValueTransfer: "text-secondary",
     metricValuePrimary: "text-primary",
     metricValueIncome: "text-emerald-500",
     metricValueExpense: "text-red-500",
     metricValueWarning: "text-amber-500",
     transactionsContainer: "border-t border-primary/10",
     transactionsBody: "p-4 bg-card/50",
-    transactionsTitle: "text-xs font-semibold text-muted-foreground mb-3",
-    transactionsEmpty: "text-sm text-muted-foreground text-center py-8",
-    transactionsList: "space-y-2",
+    transactionsTitle: "text-xs font-semibold text-primary mb-3",
+    transactionsEmpty: "text-sm text-primary/50 text-center py-8",
+    transactionsList: "divide-y divide-primary/10",
     transactionRow:
-      "flex items-center gap-3 p-3 rounded-lg bg-white/50 border border-primary/5 hover:border-primary/20 transition-colors",
+      "flex items-center gap-3 px-1.5 py-3 bg-card/60 transition-colors hover:bg-primary/5",
     transactionIconWrap: "flex items-center justify-center h-9 w-9 rounded-lg shrink-0",
     transactionIcon: "h-4 w-4",
     transactionBody: "flex-1 min-w-0",
-    transactionTitle: "text-sm font-medium text-black truncate",
+    transactionTitle: "text-sm font-semibold text-primary truncate",
     transactionMetaRow: "flex items-center gap-2 mt-0.5",
-    transactionMeta: "text-xs text-muted-foreground",
-    transactionMetaSeparator: "text-xs text-muted-foreground/50",
+    transactionMeta: "text-xs text-primary",
+    transactionMetaSeparator: "text-xs text-primary/50",
     transactionAmount: "shrink-0",
   },
   budgetPeriodsSection: {
@@ -381,22 +384,22 @@ export const reportsStyles = {
     emptyContainer: "flex flex-col items-center justify-center py-12 px-4 text-center",
     emptyIconWrap: "flex items-center justify-center h-16 w-16 rounded-full bg-primary/10 text-primary mb-4",
     emptyIcon: "h-8 w-8",
-    emptyTitle: "text-lg font-semibold text-black mb-2",
-    emptyDescription: "text-sm text-muted-foreground max-w-sm",
+    emptyTitle: "text-lg font-semibold text-primary mb-2",
+    emptyDescription: "text-sm text-primary max-w-sm",
     list: "space-y-3 sm:space-y-4",
   },
   annualCategory: {
     container: "space-y-4",
     card: "p-4",
     list: "space-y-4",
-    item: "space-y-1.5",
+    item: "pb-3 border-b border-primary/15 last:border-b-0",
     row: "flex items-center justify-between text-sm",
     rowLeft: "flex items-center gap-2",
-    iconWrap: "p-1 rounded-md shrink-0",
-    name: "font-medium text-black",
-    count: "text-xs text-muted-foreground",
+    iconWrap: "p-1 rounded-xl shrink-0",
+    name: "font-medium text-primary",
+    count: "text-xs text-muted-primary",
     amount: "font-semibold",
-    bar: "h-1.5 w-full bg-muted/30 rounded-full overflow-hidden",
+    bar: "h-1.5 w-full bg-card/30 rounded-full overflow-hidden",
     barFill: "h-full rounded-full transition-all duration-500 ease-out",
   },
   skeleton: {
@@ -503,7 +506,7 @@ export type BudgetStatus = "safe" | "warning" | "danger";
 
 export const budgetStyles = {
   page: {
-    container: "relative flex size-full min-h-dvh flex-col bg-card",
+    container: "relative flex w-full min-h-dvh flex-col bg-card",
     main: `flex-1 ${spacingStyles.page.mobile} ${spacingStyles.page.tablet} space-y-4 sm:space-y-6 pb-14`,
   },
   header: {
@@ -550,8 +553,8 @@ export const budgetStyles = {
     budgetName: "text-base sm:text-lg font-bold leading-tight truncate",
     budgetStatus: "text-xs font-medium text-primary/70",
     periodContainer: "text-left sm:text-right shrink-0",
-    periodLabel: "text-[10px] font-semibold uppercase tracking-wide text-black pl-1",
-    periodValue: "text-xs font-medium whitespace-nowrap text-black pl-1",
+    periodLabel: "text-[10px] font-semibold uppercase tracking-wide text-primary pl-1",
+    periodValue: "text-xs font-medium whitespace-nowrap text-primary pl-1",
   },
   metrics: {
     container: budgetTokens.components.metrics.container,
@@ -592,8 +595,8 @@ export const budgetStyles = {
     headerLabel: "text-xs mb-1",
     headerAmount: "text-2xl font-bold",
     comparisonContainer: "px-3 py-1.5 rounded-lg",
-    comparisonNegative: "bg-red-50",
-    comparisonPositive: "bg-green-50",
+    comparisonNegative: "bg-destructive/10",
+    comparisonPositive: "bg-success/10",
     comparisonText: "text-sm font-semibold",
     comparisonTextNegative: "text-destructive",
     comparisonTextPositive: "text-primary",
@@ -602,7 +605,7 @@ export const budgetStyles = {
     dayLabels: budgetTokens.components.chart.labels,
     dayLabel: budgetTokens.components.chart.label,
     dayRow: "flex justify-between relative",
-    dayLabelVisible: "text-black/70",
+    dayLabelVisible: "text-primary/70",
     dayLabelHidden: "text-transparent",
     dayLabelPosition: "absolute",
   },
@@ -625,7 +628,7 @@ export const budgetStyles = {
   emptyState: {
     container: budgetTokens.components.emptyState.container,
     icon: budgetTokens.components.emptyState.icon,
-    iconContent: "w-8 h-8 text-[#7578EC]",
+    iconContent: "w-8 h-8 text-primary",
     title: budgetTokens.components.emptyState.title,
     text: budgetTokens.components.emptyState.text,
   },
@@ -707,7 +710,7 @@ export const budgetStyles = {
   },
   loading: {
     header: "sticky top-0 z-10 bg-card/80 backdrop-blur-sm border-b border-border/50 px-4 py-3",
-    title: "h-6 w-32 bg-slate-200 rounded animate-pulse",
+    title: "h-6 w-32 bg-card/60 rounded animate-pulse",
     content: "space-y-6 px-4 py-6",
     details: "space-y-4",
   },
@@ -720,16 +723,16 @@ export const budgetStyles = {
       "w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center",
     emptyIconText: "text-primary font-bold text-lg",
     emptyTitle: "font-semibold text-primary mb-2",
-    emptyDescription: "text-sm text-black/70 mb-4 max-w-sm mx-auto",
+    emptyDescription: "text-sm text-muted-foreground mb-4 max-w-sm mx-auto",
     emptyButton:
-      "inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl font-medium text-sm hover:shadow-lg hover:shadow-primary/25 transition-all duration-300 hover:scale-105",
+      "inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-xl font-medium text-sm hover:shadow-lg hover:shadow-primary/25 transition-all duration-300 hover:scale-105",
     groupCard: "bg-card shadow-sm border border-primary/20 rounded-xl overflow-hidden",
     groupHeader: "bg-card p-3 border-b border-primary/20",
     groupRow: "flex items-center justify-between mb-2",
     groupLeft: "flex items-center gap-2",
     avatar:
-      "flex size-7 items-center justify-center rounded-lg bg-linear-to-br from-primary/10 to-primary/5 shadow-sm",
-    avatarText: "text-xs font-bold text-primary",
+      "flex size-10 items-center justify-center rounded-lg bg-linear-to-br from-primary/10 to-primary/5 shadow-sm",
+    avatarText: "text-md font-bold text-primary",
     groupText: "text-sm font-semibold",
     periodText: "text-xs",
     amount: "text-sm font-bold",
@@ -763,8 +766,8 @@ export const budgetStyles = {
     periodTitle: "text-base font-bold text-primary",
     periodContent: "space-y-3",
     periodRow: "flex flex-col sm:flex-row sm:items-center justify-between gap-2",
-    periodDate: "text-sm font-medium text-black",
-    periodBadge: "bg-white text-primary shadow-sm self-start sm:self-auto",
+    periodDate: "text-sm font-medium text-primary",
+    periodBadge: "bg-card text-primary border border-border shadow-sm self-start sm:self-auto",
     periodBadgeIcon: "h-3 w-3 mr-1",
     metricsGrid: "grid grid-cols-1 sm:grid-cols-2 gap-3",
     metricCardSpent: "rounded-lg p-3 border border-destructive/20 bg-destructive/5",
@@ -777,17 +780,17 @@ export const budgetStyles = {
     metricValueSpent: "text-base sm:text-lg font-bold text-destructive",
     metricValueSaved: "text-base sm:text-lg font-bold text-primary",
     dateFieldWrap: "space-y-2 overflow-hidden",
-    alertText: "text-black font-medium",
+    alertText: "text-primary font-medium",
   },
   periodCard: {
     container:
       "p-4 border border-primary/10 rounded-xl space-y-3 bg-card shadow-sm hover:shadow-md transition-shadow",
     header: "flex justify-between items-start gap-3",
     headerContent: "flex-1",
-    title: "text-sm font-medium text-black",
-    arrow: "text-muted-foreground mx-1",
+    title: "text-sm font-medium text-primary",
+    arrow: "text-primary mx-1",
     badge: "mt-1",
-    badgeActive: "bg-primary text-white mt-1",
+    badgeActive: "bg-primary text-primary mt-1",
     deleteButton: "h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10",
     deleteIcon: "h-4 w-4",
     metricsGrid: "grid grid-cols-2 gap-2",
@@ -798,11 +801,11 @@ export const budgetStyles = {
     metricValueSpent: "text-base font-bold text-destructive",
     metricValueSaved: "text-base font-bold text-primary",
     categorySection: "pt-2 border-t border-primary/10",
-    categoryTitle: "text-xs font-bold text-muted-foreground uppercase tracking-wide mb-2",
+    categoryTitle: "text-xs font-bold text-primary uppercase tracking-wide mb-2",
     categoryList: "space-y-1.5",
     categoryRow: "flex justify-between items-center text-sm",
-    categoryLabel: "text-muted-foreground capitalize",
-    categoryAmount: "font-medium text-black",
+    categoryLabel: "text-primary capitalize",
+    categoryAmount: "font-medium text-primary",
   },
   periodInfo: {
     emptyText: "text-xs text-primary/70",
@@ -828,12 +831,13 @@ export const budgetStyles = {
   },
   periodsList: {
     container: "space-y-6",
-    sectionTitle: "text-lg font-bold text-black mb-3",
+    sectionTitle: "text-lg font-bold text-primary mb-3",
     sectionList: "space-y-3",
     emptyContainer: "text-center py-12",
-    emptyTitle: "text-muted-foreground text-base",
-    emptySubtitle: "text-sm text-muted-foreground mt-2",
-    deletingToast: "fixed bottom-4 right-4 bg-black text-white px-4 py-2 rounded-lg shadow-lg",
+    emptyTitle: "text-primary text-base",
+    emptySubtitle: "text-sm text-primary mt-2",
+    deletingToast:
+      "fixed bottom-4 right-4 bg-card text-primary px-4 py-2 rounded-lg shadow-lg",
     deletingText: "text-sm font-medium",
   },
   loadingSkeletons: {
@@ -1042,7 +1046,7 @@ export const transactionTokens = {
   groupedCard: {
     spacing: {
       cardPadding: "py-0",
-      rowPadding: "px-3 py-2",
+      rowPadding: "p-3",
       rowGap: "gap-3",
       contentGap: "gap-1.5",
     },
@@ -1113,31 +1117,31 @@ export const transactionTokens = {
     },
     dayGroup: {
       header: "flex items-center justify-between mb-2 px-1",
-      title: typographyStyles.heading,
+      title: `${typographyStyles.heading} text-primary`,
       stats: "text-right",
-      statsLabel: typographyStyles.sm,
+      statsLabel: `${typographyStyles.sm} text-primary`,
       statsValue: `${typographyStyles.sm} font-bold`,
       statsValuePositive: "text-success",
       statsValueNegative: "text-destructive",
-      count: `${typographyStyles.xs} mt-0.5`,
+      count: `${typographyStyles.xs} mt-0.5 text-primary`,
     },
     modal: {
       content: "bg-card",
-      title: `${typographyStyles.heading} text-foreground`,
-      description: `${typographyStyles.sm} text-foreground/70`,
+      title: `${typographyStyles.heading} text-primary`,
+      description: `${typographyStyles.sm} text-primary/70`,
     },
     emptyState: {
       container: "text-center py-12",
       icon: `w-24 h-24 bg-primary/10 ${radiusStyles.full} flex items-center justify-center mb-4 mx-auto`,
       title: `${typographyStyles.lg} font-medium mb-2`,
-      text: `${typographyStyles.sm} text-muted-foreground`,
+      text: `${typographyStyles.sm} text-primary`,
     },
   },
 } as const;
 
 export const transactionStyles = {
   page: {
-    container: "relative flex size-full min-h-[100dvh] flex-col bg-card",
+    container: "relative flex w-full min-h-[100dvh] flex-col bg-card",
     main: `flex-1 ${spacingStyles.page.mobile} space-y-4 sm:space-y-6 pb-14`,
     loadingContent: "space-y-6",
   },
@@ -1196,7 +1200,7 @@ export const transactionStyles = {
     lineMedium: "w-2/3 h-4 bg-primary/15 rounded",
     circle: "w-10 h-10 rounded-lg bg-primary/12",
     rect: "rounded bg-primary/12",
-    title: "h-6 w-32 bg-slate-200 rounded animate-pulse",
+    title: "h-6 w-32 bg-card/60 rounded animate-pulse",
   },
   skeletons: {
     header:
@@ -1283,13 +1287,13 @@ export const transactionStyles = {
     chip: {
       wrapper: "relative inline-flex",
       buttonActive:
-        "inline-flex items-center gap-2 pl-3 pr-8 py-2 rounded-full text-sm font-medium transition-all duration-200 whitespace-nowrap select-none bg-primary text-white shadow-md hover:bg-primary/90 active:scale-[0.98]",
+        "inline-flex items-center gap-2 pl-3 pr-8 py-2 rounded-full text-sm font-medium transition-all duration-200 whitespace-nowrap select-none bg-primary text-primary-foreground shadow-md hover:bg-primary/90 active:scale-[0.98]",
       clearButton:
-        "absolute right-1 top-1/2 -translate-y-1/2 flex items-center justify-center w-6 h-6 rounded-full bg-white/20 hover:bg-white/30 transition-colors",
-      clearIcon: "h-3 w-3 text-white",
+        "absolute right-1 top-1/2 -translate-y-1/2 flex items-center justify-center w-6 h-6 rounded-full bg-primary/20 hover:bg-primary/30 transition-colors",
+      clearIcon: "h-3 w-3 text-primary-foreground",
       buttonBase:
         "inline-flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-all duration-200 whitespace-nowrap select-none active:scale-[0.98]",
-      buttonOpen: "bg-primary text-white shadow-md",
+      buttonOpen: "bg-primary text-primary-foreground shadow-md",
       buttonIdle: "bg-card text-primary border border-primary/20 hover:border-primary/40 hover:bg-primary/5",
       chevron: "h-3.5 w-3.5 transition-transform duration-200",
       chevronOpen: "rotate-180",
@@ -1305,14 +1309,14 @@ export const transactionStyles = {
     typeGrid: "grid grid-cols-3 gap-2",
     typeButton:
       "flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 border active:scale-95",
-    typeButtonActive: "bg-primary text-white border-primary shadow-md",
+    typeButtonActive: "bg-primary text-primary-foreground border-primary shadow-md",
     typeButtonIdle: "bg-card text-primary border-primary/20 hover:bg-primary/10 hover:border-primary/40",
     typeCheck: "h-4 w-4",
     dateSection: "space-y-4",
     dateGrid: "grid grid-cols-2 gap-2",
     dateButton:
       "flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 border active:scale-95",
-    dateButtonActive: "bg-primary text-white border-primary shadow-md",
+    dateButtonActive: "bg-primary text-primary-foreground border-primary shadow-md",
     dateButtonIdle: "bg-card text-primary border-primary/20 hover:bg-primary/10 hover:border-primary/40",
     dateCustom: "space-y-3 pt-2 border-t border-primary/10",
     dateTitle: "text-sm font-medium text-primary",
@@ -1328,7 +1332,7 @@ export const transactionStyles = {
     categoryGrid: "grid grid-cols-2 gap-2 max-h-64 overflow-y-auto pr-1",
     categoryButton:
       "flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 border active:scale-95",
-    categoryButtonActive: "bg-primary text-white border-primary shadow-md",
+    categoryButtonActive: "bg-primary text-primary-foreground border-primary shadow-md",
     categoryButtonIdle: "bg-card text-primary border-primary/20 hover:bg-primary/10",
     categoryLabel: "truncate",
     categoryLabelLeft: "truncate flex-1 text-left",
@@ -1476,10 +1480,10 @@ export const buttonStyles = {
   variants: {
     default: `bg-primary text-primary-foreground border border-primary hover:bg-primary/90`,
     secondary: `bg-secondary text-secondary-foreground border border-secondary hover:bg-secondary/90`,
-    outline: `border border-primary/20 bg-card text-primary hover:bg-primary hover:text-white`,
+    outline: `border border-primary/20 bg-card text-primary hover:bg-primary hover:text-primary-foreground`,
     ghost: `hover:bg-primary/10 text-primary`,
-    destructive: `bg-destructive text-white border border-destructive hover:bg-destructive/90`,
-    cancel: `bg-white text-primary border border-primary hover:bg-primary hover:text-white`,
+    destructive: `bg-destructive text-destructive-foreground border border-destructive hover:bg-destructive/90`,
+    cancel: `bg-card text-primary border border-primary/20 hover:bg-primary hover:text-primary-foreground`,
   },
   sizes: {
     default: "h-9 px-4 py-2",
@@ -1534,7 +1538,7 @@ export const badgeStyles = {
   variants: {
     default: "border-transparent bg-primary text-primary-foreground hover:bg-primary/90",
     secondary: "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/90",
-    destructive: "border-transparent bg-destructive text-white hover:bg-destructive/90",
+    destructive: "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/90",
     outline: "text-primary border-primary hover:bg-primary/10",
   },
 };
@@ -1555,7 +1559,7 @@ export const selectStyles = {
     "relative z-[10000] max-h-96 min-w-[8rem] overflow-hidden rounded-xl border border-primary/20 bg-card text-primary shadow-lg data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
   viewportBase: "p-1",
   item:
-    "relative flex w-full cursor-default select-none items-center rounded-lg py-1.5 pl-8 pr-2 text-sm text-primary outline-none transition-colors focus:bg-primary focus:text-white data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+    "relative flex w-full cursor-default select-none items-center rounded-lg py-1.5 pl-8 pr-2 text-sm text-primary outline-none transition-colors focus:bg-primary focus:text-primary-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
   itemIndicator: "absolute left-2 flex h-3.5 w-3.5 items-center justify-center",
   separator: "-mx-1 my-1 h-px bg-primary/15",
   label: "py-1.5 pl-8 pr-2 text-sm font-semibold text-primary",

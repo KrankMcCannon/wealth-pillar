@@ -34,8 +34,6 @@ export const BudgetCard = memo(function BudgetCard({ budget, budgetInfo, onClick
   const progress = budgetInfo?.progress || 0;
   const status = getStatusVariant(progress);
 
-  // Custom subtitle with status badge
-  // We'll use a custom implementation for this specific case
   return (
     <button
       className={cardStyles.budget.container}
@@ -51,7 +49,7 @@ export const BudgetCard = memo(function BudgetCard({ budget, budgetInfo, onClick
 
           <div className={cardStyles.budget.content}>
             {/* Budget title */}
-            <Text variant="heading" size="sm" className={cardStyles.budget.title}>
+            <Text variant="primary" size="sm" className={cardStyles.budget.title}>
               {budget.description}
             </Text>
 

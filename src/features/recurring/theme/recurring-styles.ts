@@ -8,9 +8,9 @@ export const recurringStyles = {
     headerLeft: "flex items-center gap-2",
     headerIconWrap: "flex size-8 items-center justify-center rounded-xl bg-primary/10",
     headerIcon: "w-4 h-4 text-primary",
-    title: "text-base font-bold tracking-tight",
-    subtitle: "text-xs text-muted-foreground",
-    subtitleMuted: "text-muted-foreground/70",
+    title: "text-base text-primary font-bold tracking-tight",
+    subtitle: "text-xs text-primary/70",
+    subtitleMuted: "text-primary/50",
     stats: "mt-3 pt-3 border-t border-primary/10 grid grid-cols-2 gap-2",
     statRow:
       "flex flex-col gap-1 rounded-xl border border-primary/10 bg-primary/5 px-3 py-2",
@@ -24,7 +24,7 @@ export const recurringStyles = {
     statValueNegative: "text-sm font-semibold text-red-500",
     list: "p-2 space-y-2",
     footer: "px-4 pb-2 pt-1",
-    footerText: "text-xs text-muted-foreground text-center",
+    footerText: "text-xs text-primary text-center",
   },
   form: {
     form: "space-y-4",

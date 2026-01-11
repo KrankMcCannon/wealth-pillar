@@ -135,12 +135,11 @@ export const BudgetSection = ({
                   {/* User Info Row */}
                   <RowCard
                     icon={
-                      <div className={budgetStyles.section.avatar}>
-                        <span className={budgetStyles.section.avatarText}>
-                          {user.name.charAt(0).toUpperCase()}
-                        </span>
-                      </div>
+                      <span className={budgetStyles.section.avatarText}>
+                        {user.name.charAt(0).toUpperCase()}
+                      </span>
                     }
+                    iconClassName={budgetStyles.section.avatar}
                     title={user.name}
                     subtitle={
                       activePeriod && periodStart ? (

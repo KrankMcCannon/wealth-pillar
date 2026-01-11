@@ -232,8 +232,6 @@ export default function DashboardContent({
           />
         </Suspense>
 
-        <div className={dashboardStyles.divider} />
-
         {/* Budget Section */}
         <div className={dashboardStyles.budgetSection.container}>
           <Suspense fallback={<BudgetSectionSkeleton />}>

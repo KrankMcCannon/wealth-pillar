@@ -8,9 +8,9 @@
 export const settingsItemStyles = {
   // Base container
   container:
-    "flex items-center justify-between py-3 first:pt-0 last:pb-0 w-full text-left transition-all duration-200 group hover:bg-gray-50/70 active:bg-gray-100/50",
+    "flex items-center justify-between py-3 first:pt-0 last:pb-0 w-full text-left transition-all duration-200 group hover:bg-card/60 active:bg-card/80",
   containerWithDivider:
-    "flex items-center justify-between py-3 first:pt-0 last:pb-0 w-full text-left transition-all duration-200 group hover:bg-gray-50/70 active:bg-gray-100/50 border-b border-gray-100",
+    "flex items-center justify-between py-3 first:pt-0 last:pb-0 w-full text-left transition-all duration-200 group hover:bg-card/60 active:bg-card/80 border-b border-primary/20",
   clickable: "cursor-pointer",
 
   // Left section (icon + content)
@@ -57,7 +57,7 @@ export const settingsItemStyles = {
       track:
         "relative w-11 h-6 bg-primary/20 peer-focus:ring-2 peer-focus:ring-primary rounded-full transition-colors peer-checked:bg-primary/80 peer-checked:[&>div]:translate-x-5",
       thumb:
-        "absolute top-0.5 left-0.5 bg-white w-5 h-5 rounded-full transition-transform shadow-sm pointer-events-none",
+        "absolute top-0.5 left-0.5 bg-card w-5 h-5 rounded-full transition-transform shadow-sm pointer-events-none",
     },
 
     // Chevron for navigation

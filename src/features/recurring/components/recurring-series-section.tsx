@@ -12,7 +12,7 @@ import { RecurringTransactionSeries } from "@/lib";
 import { SeriesCard } from "@/components/cards";
 import { EmptyState } from "@/components/shared";
 import { RefreshCw, Plus, TrendingUp, TrendingDown } from "lucide-react";
-import { Button } from "@/components/ui";
+import { Button, Text } from "@/components/ui";
 import { RecurringService } from "@/lib/services";
 import { formatCurrency, cn } from "@/lib/utils";
 import { User } from "@/lib/types";
@@ -129,16 +129,18 @@ export function RecurringSeriesSection({
               <RefreshCw className={recurringStyles.section.headerIcon} />
             </div>
             <div>
-              <h3 className={recurringStyles.section.title}>Transazioni Ricorrenti</h3>
-              <p className={recurringStyles.section.subtitle}>
+              <Text variant="primary" size="md" as="h3" className={recurringStyles.section.title}>
+                Transazioni Ricorrenti
+              </Text>
+              <Text variant="primary" size="xs" className={recurringStyles.section.subtitle}>
                 {selectedUserId ? series.filter((s) => s.user_ids.includes(selectedUserId)).length : series.length} {activeSeries.length === 1 ? "serie attiva" : "serie attive"}
                 {filteredSeries.length > activeSeries.length && (
-                  <span className={recurringStyles.section.subtitleMuted}>
+                  <span className={recurringStyles.section.subtitle}>
                     {" "}
                     • {filteredSeries.length - activeSeries.length} in pausa
                   </span>
                 )}
-              </p>
+              </Text>
             </div>
           </div>
         </div>

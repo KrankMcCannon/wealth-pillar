@@ -12,18 +12,18 @@ export const formStyles = {
   },
   field: {
     container: "space-y-2",
-    label: "text-sm font-medium text-black",
+    label: "text-sm font-medium text-primary",
     labelError: "text-destructive",
     required: "ml-1 text-destructive",
     inputWrap: "relative",
     error: "text-sm text-destructive animate-in fade-in slide-in-from-top-1 duration-200",
-    helper: "text-sm text-black/70",
+    helper: "text-sm text-muted-foreground",
   },
   actions: {
     container: "flex flex-col-reverse gap-2 sm:flex-row sm:justify-end",
     buttonBase: "w-full sm:w-auto",
     cancel:
-      "bg-card text-primary border-primary hover:bg-primary hover:text-card",
+      "bg-card text-primary border-primary hover:bg-primary hover:text-primary-foreground",
     loadingIcon: "mr-2 h-4 w-4 animate-spin",
   },
   currencyInput: {
@@ -37,7 +37,7 @@ export const formStyles = {
   select: {
     trigger: "bg-card border-primary/20 focus:ring-2 focus:ring-primary/20",
     content: "max-h-[300px] p-0",
-    searchWrap: "sticky top-0 border-b border-primary/10 bg-popover p-2 z-10",
+    searchWrap: "sticky top-0 border-b border-primary/20 bg-popover p-2 z-10",
     searchFieldWrap: "relative",
     searchIcon:
       "absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-primary/40 pointer-events-none",
@@ -56,7 +56,7 @@ export const formStyles = {
       "relative z-10000 overflow-hidden rounded-xl border border-primary/20 bg-card text-primary shadow-lg",
     contentAnim:
       "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
-    searchWrap: "border-b border-primary/10 p-3 bg-card",
+    searchWrap: "border-b border-primary/20 p-3 bg-card",
     searchFieldWrap: "relative",
     searchIcon:
       "absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary/40 pointer-events-none",
@@ -86,7 +86,7 @@ export const formStyles = {
   multiUser: {
     container: "space-y-2 border border-border rounded-lg p-3",
     row:
-      "flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-colors hover:bg-muted/50",
+      "flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-colors hover:bg-card/50",
     rowActive: "bg-primary/5",
     userRow: "flex items-center gap-2 flex-1",
     avatar:

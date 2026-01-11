@@ -4,4 +4,3 @@
  */
 
 export { accountStyles } from './account-styles';
-export { accountTokens } from './account-tokens';

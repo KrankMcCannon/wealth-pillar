@@ -19,4 +19,4 @@ export { TotalBalanceLink } from "./components/TotalBalanceLink";
 export * from "./components/account-skeletons";
 
 // Theme - Styles and Design Tokens
-export { accountStyles, accountTokens } from "./theme";
+export { accountStyles } from "./theme";

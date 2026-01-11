@@ -193,7 +193,7 @@ export function ModalSection({
 }) {
   return (
     <div className={cn("flex flex-col gap-1.5", className)}>
-      {title && <h4 className="text-xs font-semibold text-black/80 uppercase tracking-wide shrink-0">{title}</h4>}
+      {title && <h4 className="text-xs font-semibold text-primary/80 uppercase tracking-wide shrink-0">{title}</h4>}
       {children}
     </div>
   );

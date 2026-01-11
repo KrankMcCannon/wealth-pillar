@@ -8,7 +8,7 @@ const labelVariants = cva(
   {
     variants: {
       variant: {
-        default: "text-black",
+        default: "text-primary",
         muted: "text-muted-foreground",
         destructive: "text-destructive",
       },
@@ -27,7 +27,7 @@ const labelVariants = cva(
 
 export interface LabelProps
   extends React.LabelHTMLAttributes<HTMLLabelElement>,
-    VariantProps<typeof labelVariants> {
+  VariantProps<typeof labelVariants> {
   asChild?: boolean
 }
 
