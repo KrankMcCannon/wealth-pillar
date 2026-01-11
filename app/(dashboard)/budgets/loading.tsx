@@ -6,7 +6,7 @@
  * Follows consistent design system and spacing patterns
  */
 
-import { budgetStyles } from '@/features/budgets/theme/budget-styles';
+import { budgetStyles } from "@/styles/system";
 import {
   BudgetSelectorSkeleton,
   BudgetCardSkeleton,

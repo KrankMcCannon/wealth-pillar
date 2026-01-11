@@ -2,10 +2,12 @@
 
 import { useMemo, useState } from "react";
 import { BottomNavigation, PageContainer, Header } from "@/components/layout";
+import { PageSection, SectionHeader } from "@/components/ui";
 import { useUserFilter, usePermissions, useFilteredAccounts, useFilteredData } from "@/hooks";
 import UserSelector from "@/components/shared/user-selector";
 import YearSelector from "@/components/shared/year-selector";
-import { BudgetPeriodsSection, reportsStyles, ReportsOverviewCard, AnnualCategorySection } from "@/features/reports";
+import { BudgetPeriodsSection, ReportsOverviewCard, AnnualCategorySection } from "@/features/reports";
+import { reportsStyles } from "@/styles/system";
 import type { Transaction, Category, BudgetPeriod, Account, User } from "@/lib/types";
 import { CategoryService } from "@/lib/services";
 import { ReportMetricsService } from "@/lib/services/report-metrics.service";
@@ -138,25 +140,25 @@ export default function ReportsContent({
 
         <main className={reportsStyles.main.container}>
           {/* Overview Section - Overall Metrics */}
-          <section>
-            <div className={reportsStyles.sectionHeader.container}>
-              <h2 className={reportsStyles.sectionHeader.title}>Panoramica Generale</h2>
-              <p className={reportsStyles.sectionHeader.subtitle}>Metriche complessive di tutte le transazioni</p>
-            </div>
+          <PageSection>
+            <SectionHeader
+              title="Panoramica Generale"
+              subtitle="Metriche complessive di tutte le transazioni"
+            />
             <ReportsOverviewCard
               totalEarned={overviewMetrics.totalEarned}
               totalSpent={overviewMetrics.totalSpent}
               totalTransferred={overviewMetrics.totalTransferred}
               totalBalance={overviewMetrics.totalBalance}
             />
-          </section>
+          </PageSection>
 
           {/* Budget Periods Section */}
-          <section>
-            <div className={reportsStyles.sectionHeader.container}>
-              <h2 className={reportsStyles.sectionHeader.title}>Periodi di Budget</h2>
-              <p className={reportsStyles.sectionHeader.subtitle}>Storico periodi passati e attuali</p>
-            </div>
+          <PageSection>
+            <SectionHeader
+              title="Periodi di Budget"
+              subtitle="Storico periodi passati e attuali"
+            />
             <BudgetPeriodsSection
               budgetPeriods={activeBudgetPeriods}
               groupUsers={groupUsers}
@@ -166,7 +168,7 @@ export default function ReportsContent({
               selectedUserId={selectedGroupFilter}
               isLoading={false}
             />
-          </section>
+          </PageSection>
 
           {/* Annual Category Breakdown */}
           <AnnualCategorySection

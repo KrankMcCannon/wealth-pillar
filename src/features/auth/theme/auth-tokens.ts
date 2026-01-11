@@ -2,11 +2,11 @@
  * Auth Feature Design Tokens
  * Feature-specific tokens for authentication pages
  *
- * Uses core design tokens from @/styles/core-tokens
+ * Uses centralized style registry from @/styles/system
  * Only defines truly auth-specific patterns here
  */
 
-import { coreTokens } from '@/styles/core-tokens';
+import { spacingStyles } from "@/styles/system";
 
 export const authTokens = {
   // ============================================================================
@@ -17,7 +17,7 @@ export const authTokens = {
   components: {
     // Card layout
     card: {
-      padding: coreTokens.spacing.card.large, // p-8 (32px) - generous auth card spacing
+      padding: spacingStyles.card.large, // p-8 (32px) - generous auth card spacing
       spacing: 'space-y-4', // Vertical spacing between card sections
     },
 
@@ -38,7 +38,7 @@ export const authTokens = {
 
   input: {
     // Base input field
-    base: `h-9 text-sm bg-[${coreTokens.color.input}] border-primary/20 focus:border-[${coreTokens.color.primary}] focus:ring-primary/20`,
+    base: "h-9 text-sm bg-input border-primary/20 focus:border-primary focus:ring-primary/20",
 
     // Input icon styling (for prefix icons)
     icon: 'h-3.5 w-3.5 text-primary/60',
@@ -51,7 +51,7 @@ export const authTokens = {
 
   button: {
     // Primary auth button (sign in, sign up, etc.)
-    primary: `w-full h-9 bg-[${coreTokens.color.primary}] hover:bg-primary/90 text-[${coreTokens.color.primaryForeground}] transition-all duration-200 active:scale-[.98] shadow-md text-sm font-medium`,
+    primary: "w-full h-9 bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-200 active:scale-[.98] shadow-md text-sm font-medium",
   },
 
   // ============================================================================
@@ -61,13 +61,13 @@ export const authTokens = {
 
   validation: {
     error: {
-      bg: 'oklch(var(--color-destructive)/0.1)', // Light red background
-      border: 'oklch(var(--color-destructive)/0.2)', // Red border
-      text: coreTokens.color.destructive, // Red text
+      bg: "bg-destructive/10",
+      border: "border-destructive/20",
+      text: "text-destructive",
     },
     success: {
-      bg: 'oklch(var(--color-success)/0.1)', // Light green background
-      text: coreTokens.color.successDark, // Dark green text
+      bg: "bg-success/10",
+      text: "text-success",
     },
   },
 } as const;

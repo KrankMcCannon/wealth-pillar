@@ -13,9 +13,9 @@ import {
   SelectItem,
   SelectTrigger,
 } from '@/components/ui';
-import { SectionHeader } from '@/components/layout';
+import { PageSection, SectionHeader } from "@/components/ui";
 import { Budget, CategoryIcon, iconSizes, User } from '@/lib';
-import { budgetStyles } from '../theme/budget-styles';
+import { budgetStyles } from '@/styles/system';
 import { useUserFilter } from '@/hooks/state/use-user-filter';
 
 export interface BudgetSelectorProps {
@@ -36,15 +36,12 @@ export function BudgetSelector({
   const userMap = useMemo(() => new Map(users.map((user) => [user.id, user.name])), [users]);
 
   return (
-    <section className={budgetStyles.selectionSection}>
+    <PageSection variant="card" padding="sm" className={budgetStyles.selectionSection}>
       {/* Section Header */}
-      <div className={budgetStyles.sectionHeader.container}>
-        <SectionHeader
-          title="Budget"
-          subtitle="Seleziona per visualizzare i dettagli"
-          className={budgetStyles.sectionHeader.titleSpacing}
-        />
-      </div>
+      <SectionHeader
+        title="Budget"
+        subtitle="Seleziona per visualizzare i dettagli"
+      />
 
       {/* Budget Selector Dropdown */}
       <div>
@@ -108,6 +105,6 @@ export function BudgetSelector({
           </SelectContent>
         </Select>
       </div>
-    </section>
+    </PageSection>
   );
 }

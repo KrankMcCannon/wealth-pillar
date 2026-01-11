@@ -1,7 +1,7 @@
 "use client";
 
 import { Loader2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth, useUser, useSignUp, useSignIn } from "@clerk/nextjs";
 import { AuthCard } from "@/features/auth";
@@ -40,6 +40,16 @@ export default function SSOCallback() {
 
   const [viewState, setViewState] = useState<ViewState>({ type: 'checking' });
   const [onboardingError, setOnboardingError] = useState<string | null>(null);
+  const processedUserRef = useRef<string | null>(null);
+  const signUpRef = useRef(signUp);
+  const signInRef = useRef(signIn);
+  const setActiveRef = useRef(setActive);
+
+  useEffect(() => {
+    signUpRef.current = signUp;
+    signInRef.current = signIn;
+    setActiveRef.current = setActive;
+  }, [signUp, signIn, setActive]);
 
   // Single effect - linear flow with improved UX
   useEffect(() => {
@@ -48,20 +58,28 @@ export default function SSOCallback() {
       if (!isLoaded) return;
 
       // Handle external account transfer case (returning user)
-      if (!isSignedIn && signUp && signIn) {
+      const signUpClient = signUpRef.current;
+      const signInClient = signInRef.current;
+      const setActiveClient = setActiveRef.current;
+
+      if (!isSignedIn && signUpClient && signInClient) {
         const hasExternalAccountError =
-          signUp.verifications?.externalAccount?.error?.code === 'external_account_exists';
+          signUpClient.verifications?.externalAccount?.error?.code === 'external_account_exists';
 
         if (hasExternalAccountError) {
-          const transfer = signUp.verifications.externalAccount;
+          const transfer = signUpClient.verifications.externalAccount;
 
           if (transfer && transfer.status === 'transferable') {
             try {
               console.log('[SSO] External account exists, transferring to sign-in');
-              const signInAttempt = await signIn.create({ transfer: true });
+              const signInAttempt = await signInClient.create({ transfer: true });
 
-              if (signInAttempt.status === 'complete' && signInAttempt.createdSessionId) {
-                await setActive({ session: signInAttempt.createdSessionId });
+              if (
+                signInAttempt.status === 'complete' &&
+                signInAttempt.createdSessionId &&
+                setActiveClient
+              ) {
+                await setActiveClient({ session: signInAttempt.createdSessionId });
                 // Session activated, will trigger re-render with isSignedIn = true
                 return;
               }
@@ -83,6 +101,11 @@ export default function SSOCallback() {
         router.replace('/auth?error=authentication-required');
         return;
       }
+
+      if (processedUserRef.current === userId) {
+        return;
+      }
+      processedUserRef.current = userId;
 
       try {
         // Check if user exists in Supabase

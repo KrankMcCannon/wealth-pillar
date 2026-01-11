@@ -15,7 +15,7 @@ import { usePermissions, useRequiredCurrentUser, useRequiredGroupUsers, useRequi
 import { useCategories } from "@/stores/reference-data-store";
 import { useUserFilterStore } from "@/stores/user-filter-store";
 import { usePageDataStore } from "@/stores/page-data-store";
-import { budgetStyles, getBudgetCategoryColorStyle } from "../theme/budget-styles";
+import { budgetStyles, getBudgetCategoryColorStyle } from "@/styles/system";
 
 // Zod schema for budget validation
 const budgetSchema = z.object({

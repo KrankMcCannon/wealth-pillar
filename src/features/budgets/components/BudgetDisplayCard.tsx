@@ -7,7 +7,7 @@
 
 import { Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui";
 import { Budget, BudgetPeriod, CategoryIcon, iconSizes } from "@/lib";
-import { budgetStyles } from "../theme/budget-styles";
+import { budgetStyles } from "@/styles/system";
 import { formatCurrency } from "@/lib/utils/currency-formatter";
 import { MoreVertical, Pencil, Trash2 } from "lucide-react";
 

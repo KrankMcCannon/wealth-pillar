@@ -14,9 +14,9 @@ import { EmptyState } from "@/components/shared";
 import { RefreshCw, Plus, TrendingUp, TrendingDown } from "lucide-react";
 import { Button } from "@/components/ui";
 import { RecurringService } from "@/lib/services";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, cn } from "@/lib/utils";
+import { User } from "@/lib/types";
 import { recurringStyles } from "../theme/recurring-styles";
-import { cn } from "@/lib/utils";
 
 interface RecurringSeriesSectionProps {
   /** All recurring series data */
@@ -41,6 +41,10 @@ interface RecurringSeriesSectionProps {
   readonly onCardClick?: (series: RecurringTransactionSeries) => void;
   /** Callback when delete icon is clicked */
   readonly onDeleteRecurringSeries?: (series: RecurringTransactionSeries) => void;
+  /** Group users for badge display on cards */
+  readonly groupUsers?: User[];
+  /** Callback when series is updated (pause/resume) to refresh UI */
+  readonly onSeriesUpdate?: (series: RecurringTransactionSeries) => void;
 }
 
 export function RecurringSeriesSection({
@@ -55,6 +59,8 @@ export function RecurringSeriesSection({
   onEditRecurringSeries,
   onCardClick,
   onDeleteRecurringSeries,
+  groupUsers,
+  onSeriesUpdate,
 }: RecurringSeriesSectionProps) {
   // Filter series by user if selected
   const filteredSeries = useMemo(() => {
@@ -141,22 +147,26 @@ export function RecurringSeriesSection({
         {showStats && activeSeries.length > 0 && (
           <div className={recurringStyles.section.stats}>
             <div className={recurringStyles.section.statRow}>
-              <div className={recurringStyles.section.statIconWrapPositive}>
-                <TrendingUp className={recurringStyles.section.statIconPositive} />
-              </div>
-              <div>
+              <div className={recurringStyles.section.statLeft}>
+                <div className={recurringStyles.section.statIconWrapPositive}>
+                  <TrendingUp className={recurringStyles.section.statIconPositive} />
+                </div>
                 <p className={recurringStyles.section.statLabel}>Entrate/mese</p>
-                <p className={recurringStyles.section.statValuePositive}>+{formatCurrency(monthlyTotals.totalIncome)}</p>
               </div>
+              <p className={recurringStyles.section.statValuePositive}>
+                +{formatCurrency(monthlyTotals.totalIncome)}
+              </p>
             </div>
             <div className={recurringStyles.section.statRow}>
-              <div className={recurringStyles.section.statIconWrapNegative}>
-                <TrendingDown className={recurringStyles.section.statIconNegative} />
-              </div>
-              <div>
+              <div className={recurringStyles.section.statLeft}>
+                <div className={recurringStyles.section.statIconWrapNegative}>
+                  <TrendingDown className={recurringStyles.section.statIconNegative} />
+                </div>
                 <p className={recurringStyles.section.statLabel}>Uscite/mese</p>
-                <p className={recurringStyles.section.statValueNegative}>-{formatCurrency(monthlyTotals.totalExpenses)}</p>
               </div>
+              <p className={recurringStyles.section.statValueNegative}>
+                -{formatCurrency(monthlyTotals.totalExpenses)}
+              </p>
             </div>
           </div>
         )}
@@ -173,6 +183,8 @@ export function RecurringSeriesSection({
             onEdit={onEditRecurringSeries}
             onCardClick={onCardClick}
             onDelete={onDeleteRecurringSeries}
+            groupUsers={groupUsers}
+            onSeriesUpdate={onSeriesUpdate}
           />
         ))}
       </div>

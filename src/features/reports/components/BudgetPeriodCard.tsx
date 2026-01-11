@@ -21,7 +21,7 @@ import {
 import type { Transaction, Category } from "@/lib/types";
 import { BudgetService, CategoryService } from "@/lib/services";
 import { formatDateShort } from "@/lib/utils/date-utils";
-import { reportsStyles, getBudgetPeriodTransactionIconStyle } from "../theme/reports-styles";
+import { reportsStyles, getBudgetPeriodTransactionIconStyle } from "@/styles/system";
 import { cn } from "@/lib/utils";
 
 export interface BudgetPeriodCardProps {

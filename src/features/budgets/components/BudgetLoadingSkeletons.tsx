@@ -6,7 +6,7 @@
 
 'use client';
 
-import { budgetStyles } from '../theme/budget-styles';
+import { budgetStyles } from '@/styles/system';
 import React from 'react';
 
 /**

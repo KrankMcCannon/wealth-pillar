@@ -2,7 +2,7 @@ import type { CSSProperties } from "react";
 
 export const cardStyles = {
   account: {
-    container: "min-w-[180px] shrink-0",
+    container: "min-w-[180px] shrink-0 px-3",
     negativeLabel: "text-destructive/80 font-medium",
     actionsButton: "h-8 w-8 text-primary hover:text-primary/80",
     actionsIcon: "h-4 w-4 text-primary",

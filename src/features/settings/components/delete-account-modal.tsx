@@ -2,7 +2,7 @@
 
 import { AlertTriangle, Loader2 } from "lucide-react";
 import { Button, ModalActions, ModalWrapper } from "@/components/ui";
-import { settingsStyles } from "../theme";
+import { settingsStyles } from "@/styles/system";
 
 interface DeleteAccountModalProps {
   isOpen: boolean;
@@ -35,7 +35,7 @@ export function DeleteAccountModal({
       onOpenChange={handleOpenChange}
       title="Elimina Account"
       description="Questa azione è irreversibile"
-      titleClassName={settingsStyles.modals.title}
+      titleClassName={settingsStyles.modals.deleteAccount.title}
       descriptionClassName={settingsStyles.modals.description}
       disableOutsideClose={isDeleting}
       footer={

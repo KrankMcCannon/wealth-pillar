@@ -1,8 +1,8 @@
 "use client";
 
 import { SectionHeader, BottomNavigation, PageContainer, Header } from "@/components/layout";
-import { SettingsItem } from "@/components/ui/layout";
-import { settingsStyles } from "@/features/settings/theme";
+import { ListContainer, PageSection, RowCard, SettingsItem } from "@/components/ui/layout";
+import { settingsStyles } from "@/styles/system";
 import {
   deleteUserAction,
   DeleteAccountModal,
@@ -39,7 +39,7 @@ import { RoleBadge } from "@/features/permissions";
 import { useRouter } from "next/navigation";
 import { useClerk } from "@clerk/nextjs";
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { Button, Card } from "@/components/ui";
+import { Button } from "@/components/ui";
 import { toast } from "@/hooks/use-toast";
 import type { Account, Transaction } from "@/lib/types";
 import type { UserPreferences } from "@/lib/services/user-preferences.service";
@@ -291,15 +291,10 @@ export default function SettingsContent({ accounts, transactions }: SettingsCont
 
         <main className={settingsStyles.main.container}>
           {/* Profile Section */}
-          <section>
-            <SectionHeader
-              title="Profilo"
-              icon={User}
-              iconClassName={settingsStyles.sectionHeader.iconPrimary}
-              className={settingsStyles.sectionHeader.spacing}
-            />
+          <PageSection>
+            <SectionHeader title="Profilo" icon={User} iconClassName="text-primary" />
 
-            <Card className={settingsStyles.card.container}>
+            <PageSection variant="card" padding="sm">
               {/* User Info Header */}
               <div className={settingsStyles.profile.header}>
                 <div className={settingsStyles.profile.container}>
@@ -325,44 +320,42 @@ export default function SettingsContent({ accounts, transactions }: SettingsCont
               </div>
 
               {/* Profile Details */}
-              <div className={settingsStyles.profileDetails.container}>
+              <ListContainer divided className={`${settingsStyles.profileDetails.container} space-y-0`}>
                 <SettingsItem
-                  icon={<Mail className={settingsStyles.sectionHeader.badgeIcon} />}
+                  icon={<Mail className="h-4 w-4 text-primary" />}
                   label="Email"
                   value={currentUser.email}
-                  showDivider
                 />
 
                 <SettingsItem
-                  icon={<Phone className={settingsStyles.sectionHeader.badgeIcon} />}
+                  icon={<Phone className="h-4 w-4 text-primary" />}
                   label="Telefono"
                   value="Non specificato"
-                  showDivider
                 />
 
                 <SettingsItem
-                  icon={<User className={settingsStyles.sectionHeader.badgeIcon} />}
+                  icon={<User className="h-4 w-4 text-primary" />}
                   label="Ruolo"
                   value={currentUser.role}
                 />
-              </div>
-            </Card>
-          </section>
+              </ListContainer>
+            </PageSection>
+          </PageSection>
 
           {/* Group Management Section - Only visible to admins */}
           {isAdmin && (
-            <section>
-              <SectionHeader title="Gestione Gruppo" icon={Users} iconClassName={settingsStyles.sectionHeader.iconPrimary} />
+            <PageSection>
+              <SectionHeader title="Gestione Gruppo" icon={Users} iconClassName="text-primary" />
 
               {/* Group Members List */}
-              <Card className={settingsStyles.card.containerTight}>
-                <div className={settingsStyles.groupManagement.header}>
-                  <h3 className={settingsStyles.groupManagement.title}>Membri del Gruppo</h3>
-                  <p className={settingsStyles.groupManagement.subtitle}>
-                    {groupUsers.length} {groupUsers.length === 1 ? "membro visibile" : "membri visibili"}
-                  </p>
-                </div>
-                <div className={settingsStyles.groupManagement.list}>
+              <PageSection variant="card" padding="sm">
+                <SectionHeader
+                  title="Membri del Gruppo"
+                  subtitle={`${groupUsers.length} ${groupUsers.length === 1 ? "membro visibile" : "membri visibili"}`}
+                  titleClassName="text-sm font-semibold text-primary"
+                  subtitleClassName="text-xs text-primary/70"
+                />
+                <ListContainer divided className="space-y-0">
                   {groupUsers.map((member) => {
                     const memberInitials = member.name
                       .split(" ")
@@ -371,210 +364,185 @@ export default function SettingsContent({ accounts, transactions }: SettingsCont
                       .toUpperCase();
 
                     return (
-                      <div key={member.id} className={settingsStyles.groupManagement.item}>
-                        <div className={settingsStyles.groupManagement.memberLeft}>
+                      <RowCard
+                        key={member.id}
+                        title={member.name}
+                        subtitle={member.email}
+                        icon={
                           <div
-                            className={settingsStyles.groupManagement.memberAvatar}
+                            className="size-10 rounded-xl flex items-center justify-center text-white text-sm font-semibold shadow-md"
                             style={{ backgroundColor: member.theme_color }}
                           >
                             {memberInitials}
                           </div>
-                          <div className={settingsStyles.layout.column}>
-                            <h4 className={settingsStyles.groupManagement.memberName}>{member.name}</h4>
-                            <p className={settingsStyles.groupManagement.memberEmail}>{member.email}</p>
+                        }
+                        actions={(
+                          <div className="text-right">
+                            <RoleBadge role={member.role} size="sm" variant="subtle" />
+                            <p className="text-xs text-primary/50 mt-0.5">
+                              {new Date(member.created_at).toLocaleDateString("it-IT")}
+                            </p>
                           </div>
-                        </div>
-                        <div className={settingsStyles.groupManagement.memberRight}>
-                          <RoleBadge role={member.role} size="sm" variant="subtle" />
-                          <p className={settingsStyles.groupManagement.memberDate}>
-                            {new Date(member.created_at).toLocaleDateString("it-IT")}
-                          </p>
-                        </div>
-                      </div>
+                        )}
+                      />
                     );
                   })}
-                </div>
-              </Card>
+                </ListContainer>
+              </PageSection>
 
               {/* Group Actions */}
-              <Card className={settingsStyles.card.container}>
-                <button
-                  className={settingsStyles.actionButton.container}
-                  onClick={() => setShowInviteMemberModal(true)}
-                >
-                  <div className={settingsStyles.actionButton.content}>
-                    <div className={settingsStyles.actionButton.iconContainer}>
-                      <Plus className={settingsStyles.actionButton.icon} />
-                    </div>
-                    <div className={settingsStyles.layout.rowOffset}>
-                      <span className={settingsStyles.actionButton.title}>Invita Membro</span>
-                      <p className={settingsStyles.actionButton.subtitle}>Invia invito per unirsi al gruppo</p>
-                    </div>
-                  </div>
-                  <ChevronRight className={settingsStyles.actionButton.chevron} />
-                </button>
-
-                <div className={settingsStyles.card.dividerLine}></div>
-
-                <button
-                  className={settingsStyles.actionButton.container}
-                  onClick={() => setShowSubscriptionModal(true)}
-                >
-                  <div className={settingsStyles.actionButton.content}>
-                    <div className={settingsStyles.actionButton.iconContainer}>
-                      <CreditCard className={settingsStyles.actionButton.icon} />
-                    </div>
-                    <div className={settingsStyles.layout.rowOffset}>
-                      <span className={settingsStyles.actionButton.title}>Impostazioni Abbonamento</span>
-                      <p className={settingsStyles.actionButton.subtitle}>Gestisci fatturazione e abbonamento gruppo</p>
-                    </div>
-                  </div>
-                  <ChevronRight className={settingsStyles.actionButton.chevron} />
-                </button>
-              </Card>
-            </section>
+              <PageSection variant="card" padding="sm">
+                <ListContainer divided className="space-y-0">
+                  <RowCard
+                    title="Invita Membro"
+                    subtitle="Invia invito per unirsi al gruppo"
+                    icon={(
+                      <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary shadow-sm">
+                        <Plus className="h-4 w-4" />
+                      </div>
+                    )}
+                    onClick={() => setShowInviteMemberModal(true)}
+                    actions={<ChevronRight className="h-4 w-4 text-primary/50" />}
+                    variant="interactive"
+                  />
+                  <RowCard
+                    title="Impostazioni Abbonamento"
+                    subtitle="Gestisci fatturazione e abbonamento gruppo"
+                    icon={(
+                      <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary shadow-sm">
+                        <CreditCard className="h-4 w-4" />
+                      </div>
+                    )}
+                    onClick={() => setShowSubscriptionModal(true)}
+                    actions={<ChevronRight className="h-4 w-4 text-primary/50" />}
+                    variant="interactive"
+                  />
+                </ListContainer>
+              </PageSection>
+            </PageSection>
           )}
 
           {/* Preferences */}
-          <section>
-            <SectionHeader
-              title="Preferenze"
-              icon={Settings}
-              iconClassName={settingsStyles.sectionHeader.iconPrimary}
-              className={settingsStyles.sectionHeader.spacing}
-            />
-            <Card className={settingsStyles.card.container}>
-              <SettingsItem
-                icon={<CreditCard className={settingsStyles.sectionHeader.badgeIcon} />}
-                label="Valuta"
-                value={preferences?.currency ?
-                  CURRENCY_OPTIONS.find(opt => opt.value === preferences.currency)?.label || preferences.currency
-                  : 'EUR - Euro'}
-                actionType="button"
-                buttonLabel="Cambia"
-                onPress={() => setShowCurrencyModal(true)}
-                disabled={isLoadingPreferences}
-                showDivider
-              />
+          <PageSection>
+            <SectionHeader title="Preferenze" icon={Settings} iconClassName="text-primary" />
+            <PageSection variant="card" padding="sm">
+              <ListContainer divided className="space-y-0">
+                <SettingsItem
+                  icon={<CreditCard className="h-4 w-4 text-primary" />}
+                  label="Valuta"
+                  value={preferences?.currency ?
+                    CURRENCY_OPTIONS.find(opt => opt.value === preferences.currency)?.label || preferences.currency
+                    : 'EUR - Euro'}
+                  actionType="button"
+                  buttonLabel="Cambia"
+                  onPress={() => setShowCurrencyModal(true)}
+                  disabled={isLoadingPreferences}
+                />
 
-              <SettingsItem
-                icon={<Globe className={settingsStyles.sectionHeader.badgeIcon} />}
-                label="Lingua"
-                value={preferences?.language ?
-                  LANGUAGE_OPTIONS.find(opt => opt.value === preferences.language)?.label || preferences.language
-                  : 'Italiano'}
-                actionType="button"
-                buttonLabel="Cambia"
-                onPress={() => setShowLanguageModal(true)}
-                disabled={isLoadingPreferences}
-                showDivider
-              />
+                <SettingsItem
+                  icon={<Globe className="h-4 w-4 text-primary" />}
+                  label="Lingua"
+                  value={preferences?.language ?
+                    LANGUAGE_OPTIONS.find(opt => opt.value === preferences.language)?.label || preferences.language
+                    : 'Italiano'}
+                  actionType="button"
+                  buttonLabel="Cambia"
+                  onPress={() => setShowLanguageModal(true)}
+                  disabled={isLoadingPreferences}
+                />
 
-              <SettingsItem
-                icon={<Globe className={settingsStyles.sectionHeader.badgeIcon} />}
-                label="Fuso Orario"
-                value={preferences?.timezone ?
-                  TIMEZONE_OPTIONS.find(opt => opt.value === preferences.timezone)?.label || preferences.timezone
-                  : 'Roma (GMT+1)'}
-                actionType="button"
-                buttonLabel="Cambia"
-                onPress={() => setShowTimezoneModal(true)}
-                disabled={isLoadingPreferences}
-              />
-            </Card>
-          </section>
+                <SettingsItem
+                  icon={<Globe className="h-4 w-4 text-primary" />}
+                  label="Fuso Orario"
+                  value={preferences?.timezone ?
+                    TIMEZONE_OPTIONS.find(opt => opt.value === preferences.timezone)?.label || preferences.timezone
+                    : 'Roma (GMT+1)'}
+                  actionType="button"
+                  buttonLabel="Cambia"
+                  onPress={() => setShowTimezoneModal(true)}
+                  disabled={isLoadingPreferences}
+                />
+              </ListContainer>
+            </PageSection>
+          </PageSection>
 
           {/* Notifications */}
-          <section>
-            <SectionHeader
-              title="Notifiche"
-              icon={Bell}
-              iconClassName={settingsStyles.sectionHeader.iconPrimary}
-              className={settingsStyles.sectionHeader.spacing}
-            />
-            <Card className={settingsStyles.card.container}>
-              <SettingsItem
-                icon={<Bell className={settingsStyles.sectionHeader.badgeIcon} />}
-                label="Notifiche Push"
-                description="Ricevi notifiche sulle transazioni"
-                actionType="toggle"
-                checked={preferences?.notifications_push ?? true}
-                onToggle={(checked) => handleNotificationToggle('notifications_push', !checked)}
-                disabled={isLoadingPreferences}
-                showDivider
-              />
+          <PageSection>
+            <SectionHeader title="Notifiche" icon={Bell} iconClassName="text-primary" />
+            <PageSection variant="card" padding="sm">
+              <ListContainer divided className="space-y-0">
+                <SettingsItem
+                  icon={<Bell className="h-4 w-4 text-primary" />}
+                  label="Notifiche Push"
+                  description="Ricevi notifiche sulle transazioni"
+                  actionType="toggle"
+                  checked={preferences?.notifications_push ?? true}
+                  onToggle={(checked) => handleNotificationToggle('notifications_push', !checked)}
+                  disabled={isLoadingPreferences}
+                />
 
-              <SettingsItem
-                icon={<Mail className={settingsStyles.sectionHeader.badgeIcon} />}
-                label="Notifiche Email"
-                description="Ricevi rapporti settimanali"
-                actionType="toggle"
-                checked={preferences?.notifications_email ?? false}
-                onToggle={(checked) => handleNotificationToggle('notifications_email', !checked)}
-                disabled={isLoadingPreferences}
-                showDivider
-              />
+                <SettingsItem
+                  icon={<Mail className="h-4 w-4 text-primary" />}
+                  label="Notifiche Email"
+                  description="Ricevi rapporti settimanali"
+                  actionType="toggle"
+                  checked={preferences?.notifications_email ?? false}
+                  onToggle={(checked) => handleNotificationToggle('notifications_email', !checked)}
+                  disabled={isLoadingPreferences}
+                />
 
-              <SettingsItem
-                icon={<Bell className={settingsStyles.sectionHeader.badgeIcon} />}
-                label="Avvisi Budget"
-                description="Avvisa quando superi il budget"
-                actionType="toggle"
-                checked={preferences?.notifications_budget_alerts ?? true}
-                onToggle={(checked) => handleNotificationToggle('notifications_budget_alerts', !checked)}
-                disabled={isLoadingPreferences}
-              />
-            </Card>
-          </section>
+                <SettingsItem
+                  icon={<Bell className="h-4 w-4 text-primary" />}
+                  label="Avvisi Budget"
+                  description="Avvisa quando superi il budget"
+                  actionType="toggle"
+                  checked={preferences?.notifications_budget_alerts ?? true}
+                  onToggle={(checked) => handleNotificationToggle('notifications_budget_alerts', !checked)}
+                  disabled={isLoadingPreferences}
+                />
+              </ListContainer>
+            </PageSection>
+          </PageSection>
 
           {/* Security */}
-          <section>
-            <SectionHeader
-              title="Sicurezza"
-              icon={Shield}
-              iconClassName={settingsStyles.sectionHeader.iconPrimary}
-              className={settingsStyles.sectionHeader.spacing}
-            />
-            <Card className={settingsStyles.card.container}>
-              <SettingsItem
-                icon={<Shield className={settingsStyles.sectionHeader.badgeIcon} />}
-                label="Autenticazione a Due Fattori"
-                description="Aggiungi sicurezza extra"
-                actionType="navigation"
-                onPress={() => {/* TODO: Navigate to 2FA settings */ }}
-                showDivider
-              />
+          <PageSection>
+            <SectionHeader title="Sicurezza" icon={Shield} iconClassName="text-primary" />
+            <PageSection variant="card" padding="sm">
+              <ListContainer divided className="space-y-0">
+                <SettingsItem
+                  icon={<Shield className="h-4 w-4 text-primary" />}
+                  label="Autenticazione a Due Fattori"
+                  description="Aggiungi sicurezza extra"
+                  actionType="navigation"
+                  onPress={() => {/* TODO: Navigate to 2FA settings */ }}
+                />
 
-              <SettingsItem
-                icon={isSigningOut ? <Loader2 className={`${settingsStyles.sectionHeader.badgeIcon} animate-spin`} /> : <LogOut className={settingsStyles.sectionHeader.badgeIcon} />}
-                label={isSigningOut ? "Disconnessione in corso..." : "Esci dall'Account"}
-                description={isSigningOut ? "Attendere prego" : "Disconnetti dal tuo account"}
-                actionType={isSigningOut ? "custom" : "navigation"}
-                onPress={handleSignOut}
-                disabled={isSigningOut}
-              />
-            </Card>
-          </section>
+                <SettingsItem
+                  icon={isSigningOut ? <Loader2 className="h-4 w-4 text-primary animate-spin" /> : <LogOut className="h-4 w-4 text-primary" />}
+                  label={isSigningOut ? "Disconnessione in corso..." : "Esci dall'Account"}
+                  description={isSigningOut ? "Attendere prego" : "Disconnetti dal tuo account"}
+                  actionType={isSigningOut ? "custom" : "navigation"}
+                  onPress={handleSignOut}
+                  disabled={isSigningOut}
+                />
+              </ListContainer>
+            </PageSection>
+          </PageSection>
 
           {/* Account Actions */}
-          <section>
-            <SectionHeader
-              title="Account"
-              icon={User}
-              iconClassName={settingsStyles.sectionHeader.iconDestructive}
-              className={settingsStyles.sectionHeader.spacing}
-            />
-            <Card className={settingsStyles.accountActions.container}>
+          <PageSection>
+            <SectionHeader title="Account" icon={User} iconClassName="text-destructive" />
+            <PageSection variant="card" padding="sm">
               <SettingsItem
-                icon={<Trash2 className={settingsStyles.sectionHeader.badgeIcon} />}
+                icon={<Trash2 className="h-4 w-4 text-destructive" />}
                 label="Elimina Account"
                 description="Elimina permanentemente il tuo account"
                 actionType="navigation"
                 onPress={handleDeleteAccountClick}
                 variant="destructive"
               />
-            </Card>
-          </section>
+            </PageSection>
+          </PageSection>
         </main>
       </div>
 

@@ -1,11 +1,11 @@
 "use client";
 
 import { PageContainer, Header, SectionHeader, BottomNavigation } from "@/components/layout";
+import { ListContainer, MetricCard, PageSection, RowCard } from "@/components/ui";
 import { EmptyState } from "@/components/shared";
 import UserSelector from "@/components/shared/user-selector";
 import { EnhancedHolding, User } from "@/lib";
 import { PieChart } from "lucide-react";
-import { investmentsStyles } from "@/features/investments/theme/investments-styles";
 
 interface InvestmentsContentProps {
   currentUser: User;
@@ -17,12 +17,11 @@ export default function InvestmentsContent({
   groupUsers,
 }: InvestmentsContentProps) {
   return (
-    <PageContainer className={investmentsStyles.page.container}>
-      <div className={investmentsStyles.page.content}>
+    <PageContainer className="bg-background">
+      <div className="flex-1">
         <Header
           title="Investimenti"
           showBack={true}
-          className={investmentsStyles.header.container}
           currentUser={{ name: currentUser.name, role: currentUser.role || 'member' }}
           showActions={true}
         />
@@ -32,51 +31,31 @@ export default function InvestmentsContent({
           users={groupUsers}
         />
 
-        <main className={investmentsStyles.main.container}>
-          <div className={investmentsStyles.overview.container}>
-            <div className={investmentsStyles.overview.card}>
-              <div className={investmentsStyles.overview.cardHeader}>
-                <p className={investmentsStyles.overview.title}>Portafoglio Totale</p>
-              </div>
-              <p className={investmentsStyles.overview.value}>{0}</p>
-              <div className={investmentsStyles.overview.delta}>
-                <div className={investmentsStyles.overview.deltaRow}>
-                  <span>
-                    +
-                    {Math.abs(0)}
-                  </span>
-                  <span className={investmentsStyles.overview.deltaPositive}>
-                    +
-                    {Number(0).toFixed(1)}%
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
+        <main className="p-4 pb-14 space-y-6">
+          <PageSection>
+            <MetricCard
+              label="Portafoglio Totale"
+              value={0}
+              valueType="custom"
+              description="+0 (+0.0%)"
+            />
+          </PageSection>
 
-          <section>
+          <PageSection>
             <SectionHeader
               title="Le Tue Partecipazioni"
               icon={PieChart}
-              iconClassName={investmentsStyles.holdings.icon}
-              className={investmentsStyles.holdings.sectionHeader}
+              iconClassName="text-primary"
             />
-            <div className={investmentsStyles.holdings.list}>
+            <ListContainer>
               {true ? (
                 [].map((holding: EnhancedHolding, index: number) => (
-                  <div
+                  <RowCard
                     key={holding.id || index}
-                    className={investmentsStyles.holdings.item}
-                  >
-                    <div className={investmentsStyles.holdings.itemRow}>
-                      <div className={investmentsStyles.holdings.itemContent}>
-                        <div className={investmentsStyles.holdings.itemHeader}>
-                          <p className={investmentsStyles.holdings.itemSymbol}>{holding.symbol}</p>
-                          <span className={investmentsStyles.holdings.itemValue}>{holding.currentValue}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                    title={holding.symbol}
+                    primaryValue={holding.currentValue}
+                    variant="regular"
+                  />
                 ))
               ) : (
                 <EmptyState
@@ -85,8 +64,8 @@ export default function InvestmentsContent({
                   description="Non ci sono partecipazioni registrate al momento"
                 />
               )}
-            </div>
-          </section>
+            </ListContainer>
+          </PageSection>
         </main>
       </div>
 

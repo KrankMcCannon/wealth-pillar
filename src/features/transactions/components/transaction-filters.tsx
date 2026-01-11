@@ -25,7 +25,7 @@ import {
   DrawerDescription,
 } from "@/components/ui";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
-import { transactionStyles } from "../theme/transaction-styles";
+import { transactionStyles } from "@/styles/system";
 
 // ============================================================================
 // Types

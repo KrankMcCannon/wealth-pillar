@@ -5,7 +5,7 @@
 
 "use client";
 
-import { budgetStyles, getProgressBarFillStyles, getProgressIndicatorStyles } from "../theme/budget-styles";
+import { budgetStyles, getProgressBarFillStyles, getProgressIndicatorStyles } from "@/styles/system";
 
 export interface BudgetProgressProps {
   progressData: {

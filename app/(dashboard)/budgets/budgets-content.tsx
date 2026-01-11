@@ -34,7 +34,7 @@ import {
   type GroupedTransaction,
 } from "@/features/transactions";
 import { deleteBudgetAction } from "@/features/budgets/actions/budget-actions";
-import { budgetStyles } from "@/features/budgets/theme/budget-styles";
+import { budgetStyles } from "@/styles/system";
 import { ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui";
 import {

@@ -69,6 +69,12 @@ export function ModalWrapper({
   disableOutsideClose = false,
 }: ModalWrapperProps) {
   const isDesktop = useMediaQuery("(min-width: 640px)");
+  const contentRef = React.useRef<HTMLDivElement | null>(null);
+
+  const handleOpenAutoFocus = React.useCallback((event: Event) => {
+    event.preventDefault();
+    contentRef.current?.focus();
+  }, []);
 
   // Prevent closing if disabled
   const handleOpenChange = React.useCallback(
@@ -84,7 +90,13 @@ export function ModalWrapper({
   if (isDesktop) {
     return (
       <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-        <DialogContent showCloseButton={showCloseButton} className={className}>
+        <DialogContent
+          ref={contentRef}
+          tabIndex={-1}
+          onOpenAutoFocus={handleOpenAutoFocus}
+          showCloseButton={showCloseButton}
+          className={className}
+        >
           <DialogHeader className={modalWrapperStyles.dialogHeader}>
             <DialogTitle className={cn(modalWrapperStyles.dialogTitle, titleClassName)}>{title}</DialogTitle>
             {description ? (
@@ -117,7 +129,13 @@ export function ModalWrapper({
 
   return (
     <Drawer open={isOpen} onOpenChange={handleOpenChange}>
-      <DrawerContent className={cn(modalWrapperStyles.drawerContent, className)} aria-describedby={undefined}>
+      <DrawerContent
+        ref={contentRef}
+        tabIndex={-1}
+        onOpenAutoFocus={handleOpenAutoFocus}
+        className={cn(modalWrapperStyles.drawerContent, className)}
+        aria-describedby={undefined}
+      >
         <DrawerHeader className={modalWrapperStyles.drawerHeader}>
           <DrawerTitle className={cn(modalWrapperStyles.drawerTitle, titleClassName)}>{title}</DrawerTitle>
           {description ? (

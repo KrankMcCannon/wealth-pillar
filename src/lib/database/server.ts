@@ -1,7 +1,7 @@
 /**
  * Database Server Client
  *
- * Unified database client that supports switching between Supabase and json-server.
+ * Unified database client backed by Supabase.
  * Uses the DatabaseClient abstraction layer to normalize database operations.
  *
  * Export name `supabaseServer` is kept for backward compatibility with existing services.

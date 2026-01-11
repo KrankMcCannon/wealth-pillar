@@ -11,7 +11,8 @@ import { ReportPeriodService } from "@/lib/services";
 import type { BudgetPeriod, User, Transaction, Account, Category } from "@/lib/types";
 import { CalendarOff } from "lucide-react";
 import { toDateTime } from "@/lib/utils/date-utils";
-import { reportsStyles } from "../theme/reports-styles";
+import { ListContainer, PageSection } from "@/components/ui";
+import { reportsStyles } from "@/styles/system";
 
 export interface BudgetPeriodsSectionProps {
   budgetPeriods: BudgetPeriod[];
@@ -66,18 +67,18 @@ export function BudgetPeriodsSection({
   // Loading state
   if (isLoading) {
     return (
-      <div className={reportsStyles.budgetPeriodsSection.loadingContainer}>
+      <PageSection className={reportsStyles.budgetPeriodsSection.loadingContainer}>
         {[1, 2, 3].map((i) => (
           <div key={i} className={reportsStyles.budgetPeriodsSection.loadingCard} />
         ))}
-      </div>
+      </PageSection>
     );
   }
 
   // Empty state
   if (enrichedPeriods.length === 0) {
     return (
-      <div className={reportsStyles.budgetPeriodsSection.emptyContainer}>
+      <PageSection className={reportsStyles.budgetPeriodsSection.emptyContainer}>
         <div className={reportsStyles.budgetPeriodsSection.emptyIconWrap}>
           <CalendarOff className={reportsStyles.budgetPeriodsSection.emptyIcon} />
         </div>
@@ -86,12 +87,12 @@ export function BudgetPeriodsSection({
           I periodi di budget vengono creati automaticamente quando imposti la tua data di inizio budget nelle
           impostazioni.
         </p>
-      </div>
+      </PageSection>
     );
   }
 
   return (
-    <div className={reportsStyles.budgetPeriodsSection.list}>
+    <ListContainer className={reportsStyles.budgetPeriodsSection.list}>
       {enrichedPeriods.map((period) => (
         <BudgetPeriodCard
           key={period.id}
@@ -111,6 +112,6 @@ export function BudgetPeriodsSection({
           periodTotalTransfers={period.periodTotalTransfers}
         />
       ))}
-    </div>
+    </ListContainer>
   );
 }

@@ -1,12 +1,6 @@
 'use client';
 
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { ModalWrapper, ModalActions } from '@/components/ui/modal-wrapper';
 import { Button } from '@/components/ui/button';
 import { AlertTriangleIcon, Loader2Icon } from 'lucide-react';
 import { confirmationDialogStyles } from './theme/feedback-styles';
@@ -39,23 +33,14 @@ export function ConfirmationDialog({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onCancel()}>
-      <DialogContent className={confirmationDialogStyles.content} showCloseButton={!isLoading}>
-        <DialogHeader className={confirmationDialogStyles.header}>
-          <div className={confirmationDialogStyles.headerLayout}>
-            {variant === 'destructive' && (
-              <div className={confirmationDialogStyles.iconWrapper}>
-                <AlertTriangleIcon className={confirmationDialogStyles.icon} />
-              </div>
-            )}
-            <div className={confirmationDialogStyles.body}>
-              <DialogTitle className={confirmationDialogStyles.text.title}>{title}</DialogTitle>
-              <p className={confirmationDialogStyles.text.message}>{message}</p>
-            </div>
-          </div>
-        </DialogHeader>
-
-        <DialogFooter className={confirmationDialogStyles.footer}>
+    <ModalWrapper
+      isOpen={isOpen}
+      onOpenChange={(open) => !open && onCancel()}
+      title={title}
+      showCloseButton={!isLoading}
+      disableOutsideClose={isLoading}
+      footer={
+        <ModalActions>
           <Button
             variant="outline"
             onClick={onCancel}
@@ -73,8 +58,19 @@ export function ConfirmationDialog({
             {isLoading && <Loader2Icon className={confirmationDialogStyles.loadingIcon} />}
             {confirmText}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </ModalActions>
+      }
+    >
+      <div className={confirmationDialogStyles.headerLayout}>
+        {variant === 'destructive' && (
+          <div className={confirmationDialogStyles.iconWrapper}>
+            <AlertTriangleIcon className={confirmationDialogStyles.icon} />
+          </div>
+        )}
+        <div className={confirmationDialogStyles.body}>
+          <p className={confirmationDialogStyles.text.message}>{message}</p>
+        </div>
+      </div>
+    </ModalWrapper>
   );
 }

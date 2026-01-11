@@ -70,6 +70,7 @@ export default function DashboardContent({
   const router = useRouter();
   const { selectedGroupFilter, selectedUserId, setSelectedGroupFilter } = useUserFilter();
   const setBudgetPeriods = usePageDataStore((state) => state.setBudgetPeriods);
+  const setRecurringSeries = usePageDataStore((state) => state.setRecurringSeries);
 
   // Permission checks
   const { effectiveUserId, isMember } = usePermissions({
@@ -162,6 +163,10 @@ export default function DashboardContent({
   useEffect(() => {
     setBudgetPeriods(budgetPeriods);
   }, [budgetPeriods, setBudgetPeriods]);
+
+  useEffect(() => {
+    setRecurringSeries(recurringSeries);
+  }, [recurringSeries, setRecurringSeries]);
 
   const handlePeriodManagerUserChange = (userId: string) => {
     setSelectedGroupFilter(userId);

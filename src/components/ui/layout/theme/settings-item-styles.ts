@@ -8,9 +8,9 @@
 export const settingsItemStyles = {
   // Base container
   container:
-    "flex items-center justify-between p-3 w-full text-left transition-all duration-200 group hover:bg-gray-50/70 active:bg-gray-100/50",
+    "flex items-center justify-between py-3 first:pt-0 last:pb-0 w-full text-left transition-all duration-200 group hover:bg-gray-50/70 active:bg-gray-100/50",
   containerWithDivider:
-    "flex items-center justify-between p-3 w-full text-left transition-all duration-200 group hover:bg-gray-50/70 active:bg-gray-100/50 border-b border-gray-100",
+    "flex items-center justify-between py-3 first:pt-0 last:pb-0 w-full text-left transition-all duration-200 group hover:bg-gray-50/70 active:bg-gray-100/50 border-b border-gray-100",
   clickable: "cursor-pointer",
 
   // Left section (icon + content)
@@ -46,9 +46,9 @@ export const settingsItemStyles = {
   // Actions (right section)
   actions: {
     button:
-      "text-primary hover:bg-primary/10 active:scale-95 transition-all duration-200 shrink-0 px-3 py-1.5 rounded-xl text-sm font-medium",
+      "text-primary hover:bg-primary/10 active:scale-95 transition-all duration-200 shrink-0 p-2 rounded-xl text-sm font-medium",
     buttonDestructive:
-      "text-destructive hover:bg-destructive/10 active:scale-95 transition-all duration-200 shrink-0 px-3 py-1.5 rounded-xl text-sm font-medium",
+      "text-destructive hover:bg-destructive/10 active:scale-95 transition-all duration-200 shrink-0 p-2 rounded-xl text-sm font-medium",
 
     // Toggle switch
     toggle: {

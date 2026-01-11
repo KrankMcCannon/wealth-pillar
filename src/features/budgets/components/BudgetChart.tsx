@@ -13,7 +13,7 @@ import {
   getChartGradientEndStyle,
   getChartDayRowStyle,
   getChartDayLabelStyle,
-} from "../theme/budget-styles";
+} from "@/styles/system";
 import { formatCurrency } from "@/lib/utils/currency-formatter";
 
 export interface ChartDataPoint {

@@ -1,11 +1,11 @@
 /**
  * Auth Style Utilities
  * Organized by component section for consistency and maintainability
- * Uses core design tokens from @/styles/core-tokens
+ * Uses centralized style registry from @/styles/system
  */
 
-import { coreTokens } from '@/styles/core-tokens';
-import { authTokens } from './auth-tokens';
+import { animationStyles, radiusStyles, typographyStyles } from "@/styles/system";
+import { authTokens } from "./auth-tokens";
 
 export const authStyles = {
   // ============================================================================
@@ -16,26 +16,26 @@ export const authStyles = {
   page: {
     container:
       'h-full w-full flex items-center justify-center px-0 sm:px-4 relative',
-    bgBlobTop: `pointer-events-none absolute -top-24 -left-24 h-72 w-72 rounded-full blur-3xl opacity-15 bg-[${coreTokens.color.primary}]`,
-    bgBlobBottom: `pointer-events-none absolute -bottom-24 -right-24 h-72 w-72 rounded-full blur-3xl opacity-15 bg-[${coreTokens.color.secondary}]`,
+    bgBlobTop: "pointer-events-none absolute -top-24 -left-24 h-72 w-72 rounded-full blur-3xl opacity-15 bg-primary",
+    bgBlobBottom: "pointer-events-none absolute -bottom-24 -right-24 h-72 w-72 rounded-full blur-3xl opacity-15 bg-secondary",
   },
   layout: {
     container: 'h-dvh w-screen bg-background flex items-center justify-center relative overflow-hidden',
     main: 'w-full h-full flex items-center justify-center',
     footer: 'absolute bottom-2 left-0 right-0',
-    footerText: `mx-auto max-w-6xl px-4 text-center ${coreTokens.typography.xs} text-primary/60`,
+    footerText: `mx-auto max-w-6xl px-4 text-center ${typographyStyles.xs} text-primary/60`,
   },
   loading: {
     container: 'flex flex-col items-center justify-center py-8 space-y-4',
-    spinner: `h-12 w-12 animate-spin text-[${coreTokens.color.primary}]`,
+    spinner: "h-12 w-12 animate-spin text-primary",
     spinnerRing: 'border-b-2 border-current rounded-full',
-    text: `${coreTokens.typography.sm} text-center text-[${coreTokens.color.mutedForeground}]`,
+    text: `${typographyStyles.sm} text-center text-muted-foreground`,
   },
   errorPage: {
     container: 'space-y-4',
-    description: `${coreTokens.typography.sm} text-center text-[${coreTokens.color.mutedForeground}]`,
-    retryButton: `w-full px-4 py-2 bg-[${coreTokens.color.primary}] text-[${coreTokens.color.primaryForeground}] ${coreTokens.radius.sm} hover:opacity-90 transition-opacity`,
-    backLink: `${coreTokens.typography.sm} block text-center text-[${coreTokens.color.mutedForeground}] hover:text-[${coreTokens.color.foreground}] transition-colors`,
+    description: `${typographyStyles.sm} text-center text-muted-foreground`,
+    retryButton: `w-full px-4 py-2 bg-primary text-primary-foreground ${radiusStyles.sm} hover:opacity-90 transition-opacity`,
+    backLink: `${typographyStyles.sm} block text-center text-muted-foreground hover:text-foreground transition-colors`,
   },
 
   // ============================================================================
@@ -44,7 +44,7 @@ export const authStyles = {
   // ============================================================================
 
   error: {
-    container: `mb-2 ${coreTokens.radius.sm} bg-[${authTokens.validation.error.bg}] p-2 ${coreTokens.typography.xs} text-[${authTokens.validation.error.text}] border border-[${authTokens.validation.error.border}] flex items-start gap-2`,
+    container: `mb-2 ${radiusStyles.sm} bg-destructive/10 p-2 ${typographyStyles.xs} text-destructive border border-destructive/20 flex items-start gap-2`,
     icon: 'h-4 w-4 shrink-0 mt-0.5',
     text: 'flex-1',
   },
@@ -65,7 +65,7 @@ export const authStyles = {
   // ============================================================================
 
   label: {
-    base: `${coreTokens.typography.label} text-[${coreTokens.color.foreground}]`,
+    base: `${typographyStyles.label} text-foreground`,
   },
 
   // ============================================================================
@@ -85,7 +85,7 @@ export const authStyles = {
   // ============================================================================
 
   button: {
-    primary: `${authTokens.button.primary} ${coreTokens.radius.md}`,
+    primary: `${authTokens.button.primary} ${radiusStyles.md}`,
     icon: `mr-2 h-3.5 w-3.5 animate-spin`,
   },
 
@@ -97,7 +97,7 @@ export const authStyles = {
   divider: {
     container: authTokens.components.divider,
     line: 'h-px bg-primary/20 flex-1',
-    text: `${coreTokens.typography.xs} text-[${coreTokens.color.mutedForeground}] font-medium`,
+    text: `${typographyStyles.xs} text-muted-foreground font-medium`,
   },
 
   // ============================================================================
@@ -107,7 +107,7 @@ export const authStyles = {
 
   socialButtons: {
     container: 'space-y-1.5',
-    button: `w-full h-9 ${coreTokens.animation.classes.transition} hover:opacity-95 active:scale-[.98] ${coreTokens.typography.sm}`,
+    button: `w-full h-9 ${animationStyles.classes.transition} hover:opacity-95 active:scale-[.98] ${typographyStyles.sm}`,
     base: 'bg-white text-black border border-primary hover:border-primary/40 transition-all shadow-sm',
     google: 'hover:bg-primary/5',
     apple: 'hover:bg-secondary/5',
@@ -150,9 +150,9 @@ export const authStyles = {
   // ============================================================================
 
   toggle: {
-    container: `text-center ${coreTokens.typography.xs} text-[${coreTokens.color.mutedForeground}] pt-1`,
-    text: `${coreTokens.typography.xs} text-[${coreTokens.color.mutedForeground}]`,
-    link: `text-[${coreTokens.color.primary}] hover:text-primary/80 font-semibold`,
+    container: `text-center ${typographyStyles.xs} text-muted-foreground pt-1`,
+    text: `${typographyStyles.xs} text-muted-foreground`,
+    link: "text-primary hover:text-primary/80 font-semibold",
   },
 
   // ============================================================================

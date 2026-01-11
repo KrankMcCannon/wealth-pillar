@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Budget, BudgetPeriod, User, progressBarVariants } from "@/lib";
 import { BudgetSectionSkeleton } from "@/features/dashboard";
 import { SectionHeader } from "@/components/layout";
+import { PageSection, RowCard } from "@/components/ui/layout";
 import { BudgetCard } from "@/components/cards";
 import { formatCurrency } from "@/lib/utils/currency-formatter";
 import {
@@ -12,7 +13,7 @@ import {
   getBudgetSectionProgressStyles,
   getBudgetGroupCardStyle,
   getBudgetSectionProgressBarStyle,
-} from "../theme/budget-styles";
+} from "@/styles/system";
 
 interface BudgetSectionProps {
   budgetsByUser: Record<
@@ -75,8 +76,8 @@ export const BudgetSection = ({
 
   if (budgetEntries.length === 0) {
     return (
-      <section className={budgetStyles.section.container}>
-        <SectionHeader title="Budget" subtitle="Monitora le tue spese per categoria" className={budgetStyles.sectionHeader.container} />
+      <PageSection className={budgetStyles.section.container}>
+        <SectionHeader title="Budget" subtitle="Monitora le tue spese per categoria" />
 
         <div className={budgetStyles.section.emptyContainer}>
           <div className={budgetStyles.section.emptyIconWrap}>
@@ -95,16 +96,15 @@ export const BudgetSection = ({
             Crea Budget
           </button>
         </div>
-      </section>
+      </PageSection>
     );
   }
 
   return (
-    <section className={budgetStyles.section.container}>
+    <PageSection className={budgetStyles.section.container}>
       <SectionHeader
         title="Budget"
         subtitle={budgetEntries.length > 1 ? `${budgetEntries.length} utenti con budget attivi` : undefined}
-        className={budgetStyles.sectionHeader.container}
         leading={headerLeading}
       />
 
@@ -133,26 +133,26 @@ export const BudgetSection = ({
                 {/* Mobile-First Compact User Header */}
                 <div className={budgetStyles.section.groupHeader}>
                   {/* User Info Row */}
-                  <div className={budgetStyles.section.groupRow}>
-                    <div className={budgetStyles.section.groupLeft}>
+                  <RowCard
+                    icon={
                       <div className={budgetStyles.section.avatar}>
-                        <span className={budgetStyles.section.avatarText}>{user.name.charAt(0).toUpperCase()}</span>
+                        <span className={budgetStyles.section.avatarText}>
+                          {user.name.charAt(0).toUpperCase()}
+                        </span>
                       </div>
-                      <div>
-                        <h3 className={budgetStyles.section.groupText}>{user.name}</h3>
-                        {activePeriod && periodStart && (
-                          <div className={budgetStyles.section.periodText}>
-                            {new Date(periodStart).toLocaleDateString("it-IT", { day: "numeric", month: "short" })} -{" "}
-                            {periodEnd
-                              ? new Date(periodEnd).toLocaleDateString("it-IT", { day: "numeric", month: "short" })
-                              : "In corso"}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Budget Amount - Right Side */}
-                    <div className={budgetStyles.transactions.dayStats}>
+                    }
+                    title={user.name}
+                    subtitle={
+                      activePeriod && periodStart ? (
+                        <span className={budgetStyles.section.periodText}>
+                          {new Date(periodStart).toLocaleDateString("it-IT", { day: "numeric", month: "short" })} -{" "}
+                          {periodEnd
+                            ? new Date(periodEnd).toLocaleDateString("it-IT", { day: "numeric", month: "short" })
+                            : "In corso"}
+                        </span>
+                      ) : undefined
+                    }
+                    primaryValue={
                       <div className={budgetStyles.section.amount}>
                         <span className={progressClasses.amount}>
                           {formatCurrency(totalSpent)}
@@ -160,8 +160,9 @@ export const BudgetSection = ({
                         <span className={budgetStyles.section.amountDivider}> / </span>
                         <span>{formatCurrency(totalBudget)}</span>
                       </div>
-                    </div>
-                  </div>
+                    }
+                    rightLayout="row"
+                  />
 
                   {/* Progress Bar with Inline Percentage */}
                   <div className={budgetStyles.section.progressRow}>
@@ -239,7 +240,7 @@ export const BudgetSection = ({
             );
           })}
       </div>
-    </section>
+    </PageSection>
   );
 };
 

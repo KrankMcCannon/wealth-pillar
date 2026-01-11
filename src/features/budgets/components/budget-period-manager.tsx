@@ -10,7 +10,7 @@ import { Alert, AlertDescription, Badge, ModalContent, ModalSection, ModalWrappe
 import { usePermissions } from "@/hooks";
 import { toDateTime } from "@/lib/utils/date-utils";
 import { usePageDataStore } from "@/stores/page-data-store";
-import { budgetStyles } from "../theme/budget-styles";
+import { budgetStyles } from "@/styles/system";
 
 interface BudgetPeriodManagerProps {
   selectedUserId?: string; // Initial user selection

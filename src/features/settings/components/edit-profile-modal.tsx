@@ -9,7 +9,7 @@ import { Button, ModalActions, ModalWrapper } from "@/components/ui";
 import { toast } from "@/hooks/use-toast";
 import { updateUserProfileAction } from "@/features/settings/actions";
 import { useReferenceDataStore } from "@/stores/reference-data-store";
-import { settingsStyles } from "../theme";
+import { settingsStyles } from "@/styles/system";
 import { SettingsModalField, SettingsModalForm } from "./settings-modal-form";
 
 // ============================================================================

@@ -1,8 +1,7 @@
 /**
  * Database Query Builder Interfaces
  *
- * Defines the common interface that all database adapters must implement.
- * This allows switching between Supabase and json-server transparently.
+ * Defines the common interface that the database adapter must implement.
  *
  * @module lib/database/query-builder
  */

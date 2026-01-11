@@ -7,7 +7,7 @@ import { z } from "zod";
 import { Transaction, TransactionType } from "@/lib/types";
 import { getTempId } from "@/lib/utils/temp-id";
 import { createTransactionAction, updateTransactionAction } from "@/features/transactions/actions/transaction-actions";
-import { transactionStyles } from "@/features/transactions/theme/transaction-styles";
+import { transactionStyles } from "@/styles/system";
 import { ModalWrapper, ModalContent, ModalSection } from "@/components/ui/modal-wrapper";
 import { FormActions, FormField, FormSelect } from "@/components/form";
 import { UserField, AccountField, CategoryField, AmountField, DateField } from "@/components/ui/fields";

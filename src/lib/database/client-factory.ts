@@ -1,43 +1,31 @@
 /**
  * Database Client Factory
  *
- * Factory pattern implementation that creates the appropriate database client
- * based on environment configuration. Supports switching between Supabase and
- * json-server for development/testing.
+ * Factory pattern implementation that creates the database client
+ * based on environment configuration. Uses Supabase as the single backend.
  *
  * @module lib/database/client-factory
  */
 
 import type { DatabaseClient } from './query-builder';
 import { SupabaseAdapter } from './adapters/supabase-adapter';
-import { JsonServerAdapter } from './adapters/json-server-adapter';
 
 /**
  * Cached database client instance
  * Lazy-loaded on first access
  */
 let cachedClient: DatabaseClient | null = null;
+const boundMethods = new Map<PropertyKey, unknown>();
 
 /**
- * Creates the appropriate database client based on USE_MOCK_API environment variable
+ * Creates the database client.
  *
- * @returns DatabaseClient instance (either SupabaseAdapter or JsonServerAdapter)
- *
- * Environment Variables:
- * - USE_MOCK_API=true → Use JsonServerAdapter (json-server REST API)
- * - USE_MOCK_API=false or undefined → Use SupabaseAdapter (PostgreSQL)
- * - MOCK_API_URL → Base URL for json-server (default: http://localhost:3001)
+ * @returns DatabaseClient instance (SupabaseAdapter)
  */
 export function createDatabaseClient(): DatabaseClient {
-  const useMockApi = process.env.NEXT_PUBLIC_USE_MOCK_API === 'true';
-
-  if (useMockApi) {
-    const mockApiUrl = process.env.NEXT_PUBLIC_MOCK_API_URL || 'http://localhost:3001';
-    console.log('[Database] Using MockAPI adapter:', mockApiUrl);
-    return new JsonServerAdapter(mockApiUrl);
+  if (process.env.NODE_ENV !== 'production') {
+    console.log('[Database] Using Supabase adapter');
   }
-
-  console.log('[Database] Using Supabase adapter');
   return new SupabaseAdapter();
 }
 
@@ -51,7 +39,7 @@ export function createDatabaseClient(): DatabaseClient {
  * ```typescript
  * import { databaseClient } from '@/lib/database/client-factory';
  *
- * // Automatically uses the correct adapter based on USE_MOCK_API
+ * // Uses Supabase as the single backend
  * const { data, error } = await databaseClient
  *   .from('users')
  *   .select('*')
@@ -64,8 +52,17 @@ export const databaseClient = new Proxy({} as DatabaseClient, {
     cachedClient ??= createDatabaseClient();
 
     if (typeof prop === 'string' && prop in cachedClient) {
+      const cachedValue = boundMethods.get(prop);
+      if (cachedValue) {
+        return cachedValue;
+      }
       const value = cachedClient[prop as keyof DatabaseClient];
-      return typeof value === 'function' ? value.bind(cachedClient) : value;
+      if (typeof value === 'function') {
+        const bound = value.bind(cachedClient);
+        boundMethods.set(prop, bound);
+        return bound;
+      }
+      return value;
     }
 
     return undefined;

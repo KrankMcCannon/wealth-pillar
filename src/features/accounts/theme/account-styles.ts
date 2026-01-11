@@ -12,7 +12,7 @@
 
 import type { CSSProperties } from 'react';
 import { accountTokens } from './account-tokens';
-import { coreTokens } from '@/styles/core-tokens';
+import { spacingStyles } from "@/styles/system";
 
 export const accountStyles = {
   // ====================================
@@ -43,7 +43,7 @@ export const accountStyles = {
   // Balance Card styles
   // ====================================
   balanceCard: {
-    container: `${coreTokens.spacing.page.mobile} py-4`,
+    container: `${spacingStyles.page.mobile} py-4`,
     card: accountTokens.components.balanceCard.container,
     mainRow: accountTokens.components.balanceCard.mainRow,
     balanceSection: accountTokens.components.balanceCard.balanceSection,
@@ -68,7 +68,7 @@ export const accountStyles = {
   // Accounts List styles
   // ====================================
   accountsList: {
-    container: `${coreTokens.spacing.page.mobile} pb-14`,
+    container: `${spacingStyles.page.mobile} pb-14`,
     header: accountTokens.components.accountsList.header,
     items: accountTokens.components.accountsList.container,
     addPrompt: accountTokens.components.accountsList.addPrompt,

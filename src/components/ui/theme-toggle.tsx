@@ -1,15 +1,26 @@
 "use client";
 
-import { useState } from "react";
+import { useSyncExternalStore } from "react";
 import { Moon, Sun } from "lucide-react";
 import { Button } from "./button";
 import { themeToggleStyles } from "./theme/theme-toggle-styles";
 
 export function ThemeToggle() {
-  const [isDark, setIsDark] = useState(() => {
-    if (typeof document === "undefined") return true;
-    return document.documentElement.classList.contains("dark");
-  });
+  const isDark = useSyncExternalStore(
+    (callback) => {
+      if (typeof document === "undefined") return () => {};
+      const observer = new MutationObserver(() => callback());
+      observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ["class"],
+      });
+      return () => observer.disconnect();
+    },
+    () =>
+      typeof document !== "undefined" &&
+      document.documentElement.classList.contains("dark"),
+    () => false
+  );
 
   const toggleTheme = () => {
     const htmlElement = document.documentElement;
@@ -23,7 +34,6 @@ export function ThemeToggle() {
       htmlElement.classList.add("light");
     }
     
-    setIsDark(newIsDark);
   };
 
   return (

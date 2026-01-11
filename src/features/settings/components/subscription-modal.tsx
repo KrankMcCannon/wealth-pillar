@@ -6,7 +6,7 @@ import { Button, ModalActions, ModalWrapper } from "@/components/ui";
 import { toast } from "@/hooks/use-toast";
 import { updateSubscriptionAction } from "@/features/settings/actions";
 import { cn } from "@/lib";
-import { settingsStyles } from "../theme";
+import { settingsStyles } from "@/styles/system";
 
 // ============================================================================
 // TYPES & INTERFACES

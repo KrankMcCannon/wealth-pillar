@@ -7,7 +7,7 @@
 
 import { SkeletonList } from "@/components/ui/primitives";
 import { SHIMMER_BASE } from "@/lib/utils/ui-constants";
-import { transactionStyles } from "../theme";
+import { transactionStyles } from "@/styles/system";
 
 export const TransactionHeaderSkeleton = () => (
   <header className={`${transactionStyles.skeletons.header} ${SHIMMER_BASE}`}>

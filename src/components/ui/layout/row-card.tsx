@@ -29,7 +29,7 @@ export interface RowCardProps {
   iconSize?: "sm" | "md" | "lg";
   iconColor?: "primary" | "warning" | "destructive" | "success" | "muted" | "accent";
   title: string;
-  subtitle?: string;
+  subtitle?: React.ReactNode;
   metadata?: React.ReactNode; // Flexible metadata area (badges, text, etc.)
 
   // Layout - Right Section

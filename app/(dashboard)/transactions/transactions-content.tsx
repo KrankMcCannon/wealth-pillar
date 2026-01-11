@@ -29,7 +29,7 @@ import {
   type TransactionFiltersState,
   type GroupedTransaction,
 } from "@/features/transactions";
-import { transactionStyles } from "@/features/transactions/theme/transaction-styles";
+import { transactionStyles } from "@/styles/system";
 import { UserSelectorSkeleton } from "@/features/dashboard";
 import { RecurringSeriesSkeleton } from "@/features/transactions/components/transaction-skeletons";
 import type { Transaction, Budget, User, Account, Category } from "@/lib/types";
@@ -147,6 +147,7 @@ export default function TransactionsContent({
   // Page data store - for optimistic updates
   const storeTransactions = usePageDataStore((state) => state.transactions);
   const setTransactions = usePageDataStore((state) => state.setTransactions);
+  const setRecurringSeries = usePageDataStore((state) => state.setRecurringSeries);
   const removeTransactionFromStore = usePageDataStore((state) => state.removeTransaction);
   const addTransactionToStore = usePageDataStore((state) => state.addTransaction);
 
@@ -154,6 +155,10 @@ export default function TransactionsContent({
   useEffect(() => {
     setTransactions(transactions);
   }, [transactions, setTransactions]);
+
+  useEffect(() => {
+    setRecurringSeries(recurringSeries);
+  }, [recurringSeries, setRecurringSeries]);
 
   // Create account names map for display using hook
   const accountNames = useIdNameMap(accounts);
@@ -304,6 +309,8 @@ export default function TransactionsContent({
               onCreateRecurringSeries={() => openModal("recurring")}
               onEditRecurringSeries={(series) => openModal("recurring", series.id)}
               onDeleteRecurringSeries={handleRecurringDeleteClick}
+              groupUsers={groupUsers}
+              onSeriesUpdate={() => router.refresh()}
             />
           </Suspense>
         )}

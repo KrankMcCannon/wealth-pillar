@@ -9,7 +9,7 @@ import {
   transactionStyles,
   getTransactionIconColor,
   getTransactionBadgeColor,
-} from "../theme";
+} from "@/styles/system";
 
 interface TransactionRowProps {
   transaction: Transaction;

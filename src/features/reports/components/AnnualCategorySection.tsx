@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Card } from "@/components/ui";
+import { ListContainer, PageSection, RowCard, SectionHeader } from "@/components/ui";
 import { Amount } from "@/components/ui/primitives";
 import { CategoryService, FinanceLogicService } from "@/lib/services";
 import { CategoryIcon, iconSizes } from "@/lib";
@@ -7,7 +7,7 @@ import {
   reportsStyles,
   getAnnualCategoryIconStyle,
   getAnnualCategoryBarStyle,
-} from "../theme/reports-styles";
+} from "@/styles/system";
 import { cn } from "@/lib/utils";
 import type { Transaction, Category } from "@/lib/types";
 
@@ -48,14 +48,15 @@ export function AnnualCategorySection({
     : `Riepilogo spese dell'anno ${year}`;
 
   return (
-    <section className={reportsStyles.annualCategory.container}>
-      <div className={reportsStyles.sectionHeader.container}>
-        <h2 className={reportsStyles.sectionHeader.title}>{title}</h2>
-        <p className={reportsStyles.sectionHeader.subtitle}>{subtitle}</p>
-      </div>
+    <PageSection className={reportsStyles.annualCategory.container}>
+      <SectionHeader title={title} subtitle={subtitle} />
 
-      <Card className={cn(reportsStyles.card.container, reportsStyles.annualCategory.card)}>
-        <div className={reportsStyles.annualCategory.list}>
+      <PageSection
+        variant="card"
+        padding="none"
+        className={cn(reportsStyles.card.container, reportsStyles.annualCategory.card)}
+      >
+        <ListContainer className={reportsStyles.annualCategory.list}>
           {spendingCategories.map((item) => {
             const categoryLabel = CategoryService.getCategoryLabel(categories, item.category);
             const categoryColor = CategoryService.getCategoryColor(categories, item.category);
@@ -67,8 +68,10 @@ export function AnnualCategorySection({
 
             return (
               <div key={item.category} className={reportsStyles.annualCategory.item}>
-                <div className={reportsStyles.annualCategory.row}>
-                  <div className={reportsStyles.annualCategory.rowLeft}>
+                <RowCard
+                  title={categoryLabel}
+                  metadata={<span className={reportsStyles.annualCategory.count}>({item.count})</span>}
+                  icon={
                     <div
                       className={reportsStyles.annualCategory.iconWrap}
                       style={getAnnualCategoryIconStyle(categoryColor)}
@@ -78,11 +81,14 @@ export function AnnualCategorySection({
                         size={iconSizes.sm}
                       />
                     </div>
-                    <span className={reportsStyles.annualCategory.name}>{categoryLabel}</span>
-                    <span className={reportsStyles.annualCategory.count}>({item.count})</span>
-                  </div>
-                  <Amount type="expense" className={reportsStyles.annualCategory.amount}>{item.net}</Amount>
-                </div>
+                  }
+                  primaryValue={
+                    <Amount type="expense" className={reportsStyles.annualCategory.amount}>
+                      {item.net}
+                    </Amount>
+                  }
+                  rightLayout="row"
+                />
 
                 {/* Visual Bar */}
                 <div className={reportsStyles.annualCategory.bar}>
@@ -94,8 +100,8 @@ export function AnnualCategorySection({
               </div>
             );
           })}
-        </div>
-      </Card>
-    </section>
+        </ListContainer>
+      </PageSection>
+    </PageSection>
   );
 }

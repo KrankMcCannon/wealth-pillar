@@ -5,6 +5,3 @@
 
 // Components
 export * from './components';
-
-// Theme
-export { reportsTokens, reportsStyles } from './theme';

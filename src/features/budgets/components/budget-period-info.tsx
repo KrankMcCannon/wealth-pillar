@@ -3,7 +3,7 @@
 import { Badge } from "@/components/ui";
 import { BudgetPeriod } from "@/lib";
 import { Calendar, Clock } from "lucide-react";
-import { budgetStyles } from "../theme/budget-styles";
+import { budgetStyles } from "@/styles/system";
 
 interface BudgetPeriodInfoProps {
   period: BudgetPeriod | null;

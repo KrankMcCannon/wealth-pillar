@@ -8,7 +8,7 @@ import { Loader2, Mail } from "lucide-react";
 import { Button, ModalActions, ModalWrapper } from "@/components/ui";
 import { toast } from "@/hooks/use-toast";
 import { sendGroupInvitationAction } from "@/features/settings/actions";
-import { settingsStyles } from "../theme";
+import { settingsStyles } from "@/styles/system";
 import { SettingsModalField, SettingsModalForm } from "./settings-modal-form";
 
 // ============================================================================

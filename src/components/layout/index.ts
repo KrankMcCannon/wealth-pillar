@@ -5,6 +5,5 @@
 export * from "./bottom-navigation";
 export * from "./dashboard-page-layout";
 export * from "./page-container";
-export * from "./section-header";
+export { SectionHeader } from "../ui/layout";
 export * from "./header";
-

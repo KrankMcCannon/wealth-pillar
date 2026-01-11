@@ -10,7 +10,7 @@ import {
 } from "@/stores/reports-data-store";
 import { deletePeriodAction } from "@/features/budgets/actions/budget-period-actions";
 import { BudgetPeriodCard } from "./budget-period-card";
-import { budgetStyles } from "../theme/budget-styles";
+import { budgetStyles } from "@/styles/system";
 
 interface BudgetPeriodsListProps {
   userId: string;

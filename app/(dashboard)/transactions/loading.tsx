@@ -6,7 +6,7 @@
  * Follows consistent design system and spacing patterns
  */
 
-import { transactionStyles } from '@/features/transactions/theme/transaction-styles';
+import { transactionStyles } from "@/styles/system";
 import {
   TransactionListSkeleton,
 } from '@/features/transactions/components/transaction-skeletons';

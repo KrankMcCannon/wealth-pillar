@@ -239,11 +239,11 @@ function RecurringFormModal({
   useEffect(() => {
     if (!isOpen || !defaultAccountId) return;
 
-    // Update account when users change
-    if (defaultAccountId !== watchedAccountId) {
+    // Only update account in CREATE mode, not EDIT mode
+    if (!isEditMode && defaultAccountId !== watchedAccountId) {
       setValue("account_id", defaultAccountId);
     }
-  }, [isOpen, watchedUserIds, defaultAccountId, watchedAccountId, setValue]);
+  }, [isOpen, watchedUserIds, defaultAccountId, watchedAccountId, setValue, isEditMode]);
 
   // Handle form submission with optimistic updates
   const onSubmit = async (data: RecurringFormData) => {

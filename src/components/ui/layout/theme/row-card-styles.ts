@@ -14,7 +14,7 @@ export const rowCardStyles = {
   wrapper: "relative w-full overflow-hidden",
 
   // Base card styles
-  base: "relative z-10 flex items-center justify-between p-3 bg-card rounded-none border-0 transition-colors",
+  base: "relative z-10 flex items-center justify-between bg-card rounded-none border-0 transition-colors first:pb-3 last:pt-3",
 
   // Variant styles
   variant: {

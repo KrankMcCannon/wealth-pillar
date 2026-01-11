@@ -7,7 +7,7 @@ import { toast } from "@/hooks/use-toast";
 import { updateUserPreferencesAction } from "@/features/settings/actions";
 import type { UserPreferencesUpdate } from "@/lib/services/user-preferences.service";
 import { cn } from "@/lib";
-import { settingsStyles } from "../theme";
+import { settingsStyles } from "@/styles/system";
 
 // ============================================================================
 // TYPES & INTERFACES
