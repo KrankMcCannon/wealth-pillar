@@ -13,7 +13,6 @@ import { CategoryService, RecurringService } from "@/lib/services";
 import type { User } from "@/lib/types";
 import {
   executeRecurringSeriesAction,
-  toggleRecurringSeriesActiveAction,
 } from "@/features/recurring/actions/recurring-actions";
 import { Play } from "lucide-react";
 import { Amount, Button, Card, CategoryBadge, StatusBadge, Text } from "@/components/ui";
@@ -36,6 +35,8 @@ interface SeriesCardProps {
   /** Callback quando si clicca sulla card (navigazione o altro) - se definito, sovrascrive onEdit per il click */
   readonly onCardClick?: (series: RecurringTransactionSeries) => void;
   readonly onDelete?: (series: RecurringTransactionSeries) => void;
+  /** Callback quando si mette in pausa/riprende la serie */
+  readonly onPause?: (series: RecurringTransactionSeries) => void;
   readonly onSeriesUpdate?: (series: RecurringTransactionSeries) => void;
   /** Group users for displaying user badges */
   readonly groupUsers?: User[];
@@ -69,6 +70,7 @@ export function SeriesCard({
   onEdit,
   onCardClick,
   onDelete,
+  onPause,
   onSeriesUpdate,
   groupUsers,
 }: SeriesCardProps) {
@@ -123,41 +125,6 @@ export function SeriesCard({
     }
   };
 
-  const pauseSeries = async () => {
-    if (isLoading) return;
-
-    setIsLoading(true);
-    try {
-      const result = await toggleRecurringSeriesActiveAction(series.id, false);
-      if (result.error) {
-        console.error('Failed to pause series:', result.error);
-      } else if (result.data) {
-        onSeriesUpdate?.(result.data);
-      }
-    } catch (error) {
-      console.error('Failed to pause series:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const resumeSeries = async () => {
-    if (isLoading) return;
-
-    setIsLoading(true);
-    try {
-      const result = await toggleRecurringSeriesActiveAction(series.id, true);
-      if (result.error) {
-        console.error('Failed to resume series:', result.error);
-      } else if (result.data) {
-        onSeriesUpdate?.(result.data);
-      }
-    } catch (error) {
-      console.error('Failed to resume series:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
   // Action handlers
   const handleExecute = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -169,11 +136,7 @@ export function SeriesCard({
   };
 
   const handleSwipePause = () => {
-    if (series.is_active) {
-      void pauseSeries();
-      return;
-    }
-    void resumeSeries();
+    onPause?.(series);
   };
 
   useEffect(() => {

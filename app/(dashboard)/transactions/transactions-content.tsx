@@ -19,7 +19,7 @@ import { BottomNavigation, PageContainer, Header } from "@/components/layout";
 import TabNavigation from "@/components/shared/tab-navigation";
 import UserSelector from "@/components/shared/user-selector";
 import { ConfirmationDialog } from "@/components/shared";
-import { RecurringSeriesSection } from "@/features/recurring";
+import { RecurringSeriesSection, PauseSeriesModal } from "@/features/recurring";
 import { RecurringTransactionSeries } from "@/lib";
 import {
   TransactionDayList,
@@ -112,6 +112,10 @@ export default function TransactionsContent({
 
   // Modern filters state - initialized from URL or default
   const [filters, setFilters] = useState<TransactionFiltersState>(initialFilters);
+
+  // Pause modal state
+  const [showPauseModal, setShowPauseModal] = useState(false);
+  const [selectedSeriesForPause, setSelectedSeriesForPause] = useState<RecurringTransactionSeries | null>(null);
 
   // Set user filter when coming from budgets
   useEffect(() => {
@@ -233,6 +237,24 @@ export default function TransactionsContent({
     });
   };
 
+  const handleRecurringPauseClick = (series: RecurringTransactionSeries) => {
+    setSelectedSeriesForPause(series);
+    setShowPauseModal(true);
+  };
+
+  const handlePauseSuccess = () => {
+    router.refresh();
+    setShowPauseModal(false);
+    setSelectedSeriesForPause(null);
+  };
+
+  const handlePauseModalChange = (open: boolean) => {
+    setShowPauseModal(open);
+    if (!open) {
+      setSelectedSeriesForPause(null);
+    }
+  };
+
   return (
     <PageContainer className={transactionStyles.page.container}>
       {/* Header */}
@@ -309,6 +331,7 @@ export default function TransactionsContent({
               onCreateRecurringSeries={() => openModal("recurring")}
               onEditRecurringSeries={(series) => openModal("recurring", series.id)}
               onDeleteRecurringSeries={handleRecurringDeleteClick}
+              onPauseRecurringSeries={handleRecurringPauseClick}
               groupUsers={groupUsers}
               onSeriesUpdate={() => router.refresh()}
             />
@@ -341,6 +364,13 @@ export default function TransactionsContent({
         cancelText="Annulla"
         variant="destructive"
         isLoading={recurringDeleteConfirm.isDeleting}
+      />
+
+      <PauseSeriesModal
+        isOpen={showPauseModal}
+        onOpenChange={handlePauseModalChange}
+        series={selectedSeriesForPause}
+        onSuccess={handlePauseSuccess}
       />
     </PageContainer>
   );

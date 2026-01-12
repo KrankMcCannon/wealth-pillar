@@ -143,7 +143,7 @@ export const layoutStyles = {
 export const settingsStyles = {
   page: {
     container:
-      "relative flex w-full min-h-[100dvh] flex-col bg-card",
+      "relative flex w-full min-h-[100svh] flex-col bg-card",
     style: { fontFamily: '"Inter", "SF Pro Display", system-ui, sans-serif' },
   },
   header: {
@@ -306,7 +306,7 @@ export const settingsStyles = {
 
 export const reportsStyles = {
   page: {
-    container: "relative flex w-full min-h-[100dvh] flex-col bg-card",
+    container: "relative flex w-full min-h-[100svh] flex-col bg-card",
     style: { fontFamily: '"Inter", "SF Pro Display", system-ui, sans-serif' },
   },
   main: {
@@ -1141,7 +1141,7 @@ export const transactionTokens = {
 
 export const transactionStyles = {
   page: {
-    container: "relative flex w-full min-h-[100dvh] flex-col bg-card",
+    container: "relative flex w-full min-h-[100svh] flex-col bg-card",
     main: `flex-1 ${spacingStyles.page.mobile} space-y-4 sm:space-y-6 pb-14`,
     loadingContent: "space-y-6",
   },

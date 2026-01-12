@@ -43,6 +43,8 @@ interface RecurringSeriesSectionProps {
   readonly onCardClick?: (series: RecurringTransactionSeries) => void;
   /** Callback when delete icon is clicked */
   readonly onDeleteRecurringSeries?: (series: RecurringTransactionSeries) => void;
+  /** Callback when pause icon is clicked */
+  readonly onPauseRecurringSeries?: (series: RecurringTransactionSeries) => void;
   /** Group users for badge display on cards */
   readonly groupUsers?: User[];
   /** Callback when series is updated (pause/resume) to refresh UI */
@@ -61,6 +63,7 @@ export function RecurringSeriesSection({
   onEditRecurringSeries,
   onCardClick,
   onDeleteRecurringSeries,
+  onPauseRecurringSeries,
   groupUsers,
   onSeriesUpdate,
 }: RecurringSeriesSectionProps) {
@@ -188,6 +191,7 @@ export function RecurringSeriesSection({
                 onEdit={onEditRecurringSeries}
                 onCardClick={onCardClick}
                 onDelete={onDeleteRecurringSeries}
+                onPause={onPauseRecurringSeries}
                 groupUsers={groupUsers}
                 onSeriesUpdate={onSeriesUpdate}
                 className="rounded-none border-0 shadow-none"
