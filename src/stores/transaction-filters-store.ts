@@ -9,7 +9,7 @@
 
 import { create } from 'zustand';
 import { persist, createJSONStorage, devtools } from 'zustand/middleware';
-import { shallow } from 'zustand/shallow';
+import { useShallow } from 'zustand/react/shallow';
 
 // ============================================================================
 // Types
@@ -154,7 +154,7 @@ export const useTransactionFiltersStore = create<TransactionFiltersStore>()(
  */
 export const useTransactionFilters = () =>
   useTransactionFiltersStore(
-    (state) => ({
+    useShallow((state) => ({
       searchQuery: state.searchQuery,
       type: state.type,
       dateRange: state.dateRange,
@@ -163,8 +163,7 @@ export const useTransactionFilters = () =>
       budgetId: state.budgetId,
       startDate: state.startDate,
       endDate: state.endDate,
-    }),
-    shallow
+    }))
   );
 
 /**
@@ -173,7 +172,7 @@ export const useTransactionFilters = () =>
  */
 export const useTransactionFiltersActions = () =>
   useTransactionFiltersStore(
-    (state) => ({
+    useShallow((state) => ({
       setFilters: state.setFilters,
       resetFilters: state.resetFilters,
       clearBudgetFilter: state.clearBudgetFilter,
@@ -182,8 +181,7 @@ export const useTransactionFiltersActions = () =>
       setDateRange: state.setDateRange,
       setCategoryKey: state.setCategoryKey,
       setCustomDateRange: state.setCustomDateRange,
-    }),
-    shallow
+    }))
   );
 
 /**

@@ -9,7 +9,7 @@
 
 import { create } from 'zustand';
 import { persist, createJSONStorage, devtools } from 'zustand/middleware';
-import { shallow } from 'zustand/shallow';
+import { useShallow } from 'zustand/react/shallow';
 
 // ============================================================================
 // Types
@@ -139,14 +139,13 @@ export const useFormDraftStore = create<FormDraftStore>()(
  */
 export const useFormDraftActions = () =>
   useFormDraftStore(
-    (state) => ({
+    useShallow((state) => ({
       saveDraft: state.saveDraft,
       getDraft: state.getDraft,
       clearDraft: state.clearDraft,
       clearAllDrafts: state.clearAllDrafts,
       clearExpiredDrafts: state.clearExpiredDrafts,
-    }),
-    shallow
+    }))
   );
 
 /**

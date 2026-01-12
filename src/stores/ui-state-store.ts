@@ -9,7 +9,7 @@
 
 import { create } from 'zustand';
 import { persist, createJSONStorage, devtools } from 'zustand/middleware';
-import { shallow } from 'zustand/shallow';
+import { useShallow } from 'zustand/react/shallow';
 
 // ============================================================================
 // Types
@@ -193,13 +193,12 @@ export const useIsPending = (actionId: string) =>
  */
 export const useUIStateActions = () =>
   useUIStateStore(
-    (state) => ({
+    useShallow((state) => ({
       setActiveTab: state.setActiveTab,
       toggleSection: state.toggleSection,
       setSectionExpanded: state.setSectionExpanded,
       setPendingAction: state.setPendingAction,
       clearPendingActions: state.clearPendingActions,
       reset: state.reset,
-    }),
-    shallow
+    }))
   );

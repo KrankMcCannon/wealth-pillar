@@ -9,7 +9,7 @@
 
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
-import { shallow } from 'zustand/shallow';
+import { useShallow } from 'zustand/react/shallow';
 import type { User, Account, Category } from '@/lib/types';
 
 // ============================================================================
@@ -203,12 +203,11 @@ export const useIsInitialized = () =>
  */
 export const useReferenceData = () =>
   useReferenceDataStore(
-    (state) => ({
+    useShallow((state) => ({
       currentUser: state.currentUser,
       groupUsers: state.groupUsers,
       accounts: state.accounts,
       categories: state.categories,
       groupId: state.groupId,
-    }),
-    shallow
+    }))
   );
