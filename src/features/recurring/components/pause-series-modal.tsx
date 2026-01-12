@@ -80,7 +80,7 @@ export function PauseSeriesModal({
       }
     >
       <div className="space-y-4">
-        <div className="rounded-lg bg-muted/50 p-4">
+        <div className="rounded-lg bg-card/10 p-4 border border-primary/10">
           <p className="text-sm font-medium text-primary mb-2">
             {series.description}
           </p>

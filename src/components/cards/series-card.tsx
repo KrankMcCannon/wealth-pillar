@@ -7,7 +7,7 @@
 
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { cn, RecurringTransactionSeries } from "@/lib";
 import { CategoryService, RecurringService } from "@/lib/services";
 import type { User } from "@/lib/types";
@@ -18,12 +18,8 @@ import { Play } from "lucide-react";
 import { Amount, Button, Card, CategoryBadge, StatusBadge, Text } from "@/components/ui";
 import { cardStyles, getSeriesCardClassName, getSeriesUserBadgeStyle } from "./theme/card-styles";
 import { useCategories } from "@/stores/reference-data-store";
-import { motion, useMotionValue, type PanInfo, animate } from "framer-motion";
-import {
-  rowCardStyles,
-  rowCardTokens,
-  getRowCardMotionStyle,
-} from "@/components/ui/layout/theme/row-card-styles";
+import { SwipeableCard } from "@/components/ui/interactions/swipeable-card";
+import { useCloseAllCards } from "@/stores/swipe-state-store";
 
 interface SeriesCardProps {
   readonly series: RecurringTransactionSeries;
@@ -75,16 +71,13 @@ export function SeriesCard({
   groupUsers,
 }: SeriesCardProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const [swipeSide, setSwipeSide] = useState<"left" | "right" | null>(null);
-  const hasDragged = useRef(false);
-  const x = useMotionValue(0);
+  const closeAllCards = useCloseAllCards();
   const categories = useCategories();
   const categoryColor = useMemo(() => {
     return CategoryService.getCategoryColor(categories, series.category);
   }, [categories, series.category]);
   const canSwipeDelete = Boolean(onDelete) && showDelete;
   const canSwipePause = showActions;
-  const { swipe, spring, drag, tap } = rowCardTokens.interaction;
 
   // Calculate due date info using RecurringService
   const daysUntilDue = RecurringService.calculateDaysUntilDue(series);
@@ -131,96 +124,15 @@ export function SeriesCard({
     void executeSeries();
   };
 
+  // Action handlers with swipe close-first pattern
   const handleSwipeDelete = () => {
+    closeAllCards();
     onDelete?.(series);
   };
 
   const handleSwipePause = () => {
+    closeAllCards();
     onPause?.(series);
-  };
-
-  useEffect(() => {
-    if (!canSwipeDelete && !canSwipePause) return;
-
-    const targetX = swipeSide === "left"
-      ? swipe.actionWidth
-      : swipeSide === "right"
-        ? -swipe.actionWidth
-        : 0;
-    if (x.get() !== targetX) {
-      animate(x, targetX, {
-        type: "spring",
-        stiffness: spring.stiffness,
-        damping: spring.damping,
-      });
-    }
-  }, [swipeSide, canSwipeDelete, canSwipePause, x, swipe.actionWidth, spring.stiffness, spring.damping]);
-
-  const handleDragStart = () => {
-    hasDragged.current = false;
-  };
-
-  const handleDragEnd = (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
-    if (!canSwipeDelete && !canSwipePause) return;
-
-    const currentX = x.get();
-    const velocityX = info.velocity.x;
-    const dragDistance = Math.abs(info.offset.x);
-
-    if (dragDistance > 10) {
-      hasDragged.current = true;
-    }
-
-    if (swipeSide === "right") {
-      const shouldClose = currentX > -swipe.actionWidth * 0.7 || velocityX > 10;
-      setSwipeSide(shouldClose ? null : "right");
-    } else if (swipeSide === "left") {
-      const shouldClose = currentX < swipe.actionWidth * 0.7 || velocityX < -10;
-      setSwipeSide(shouldClose ? null : "left");
-    } else {
-      if (canSwipeDelete && (currentX < -swipe.threshold || velocityX < swipe.velocityThreshold)) {
-        setSwipeSide("right");
-      } else if (canSwipePause && (currentX > swipe.threshold || velocityX > Math.abs(swipe.velocityThreshold))) {
-        setSwipeSide("left");
-      } else {
-        setSwipeSide(null);
-      }
-    }
-
-    setTimeout(() => {
-      hasDragged.current = false;
-    }, 100);
-  };
-
-  const handleTap = () => {
-    if (hasDragged.current) {
-      hasDragged.current = false;
-      return;
-    }
-
-    const currentX = x.get();
-    if (swipeSide || Math.abs(currentX) > tap.threshold) {
-      setSwipeSide(null);
-      if (handleCardClick) {
-        setTimeout(() => {
-          handleCardClick();
-        }, 200);
-      }
-      return;
-    }
-
-    handleCardClick();
-  };
-
-  const getSwipeLayerStyle = (isOpen: boolean, side: "left" | "right") => {
-    const width = isOpen ? `${swipe.actionWidth}px` : "0px";
-    const transform = isOpen ? "translateX(0)" : side === "left" ? "translateX(-12px)" : "translateX(12px)";
-    return {
-      width,
-      opacity: isOpen ? 1 : 0,
-      transform,
-      transition: "width 0.25s ease, opacity 0.2s ease, transform 0.25s ease",
-    };
   };
 
   const getAmountType = (): "income" | "expense" | "neutral" => {
@@ -326,74 +238,22 @@ export function SeriesCard({
 
   if (canSwipeDelete || canSwipePause) {
     return (
-      <div className={rowCardStyles.wrapper}>
-        {canSwipePause && (
-          <div
-            className="absolute inset-y-0 left-0 z-0 flex items-center justify-start"
-            style={getSwipeLayerStyle(swipeSide === "left", "left")}
-            onClick={(e) => {
-              e.stopPropagation();
-              if (swipeSide === "left") {
-                setSwipeSide(null);
-              }
-            }}
-          >
-            <div
-              className={`px-6 h-full font-medium flex items-center justify-center transition-all duration-200 ease-out ${
-                series.is_active
-                  ? "bg-warning text-white"
-                  : "bg-primary text-primary-foreground"
-              }`}
-              onClick={(e) => {
-                e.stopPropagation();
-                handleSwipePause();
-              }}
-            >
-              {series.is_active ? "Pausa" : "Riprendi"}
-            </div>
-          </div>
-        )}
-        {canSwipeDelete && (
-          <div
-            className={rowCardStyles.swipe.deleteLayer}
-            style={getSwipeLayerStyle(swipeSide === "right", "right")}
-            onClick={(e) => {
-              e.stopPropagation();
-              if (swipeSide === "right") {
-                setSwipeSide(null);
-              }
-            }}
-          >
-            <div
-              className={rowCardStyles.swipe.deleteButton}
-              onClick={(e) => {
-                e.stopPropagation();
-                handleSwipeDelete();
-              }}
-            >
-              Elimina
-            </div>
-          </div>
-        )}
-
-        <motion.div
-          drag="x"
-          dragConstraints={{
-            left: canSwipeDelete ? -swipe.actionWidth : 0,
-            right: canSwipePause ? swipe.actionWidth : 0,
-          }}
-          dragElastic={drag.elastic}
-          dragMomentum={false}
-          style={getRowCardMotionStyle(x)}
-          onDragStart={handleDragStart}
-          onDragEnd={handleDragEnd}
-          onTap={handleTap}
-          onClick={(e) => e.stopPropagation()}
-          className="relative z-10"
-        >
-          {cardContent}
-        </motion.div>
-      </div>
+      <SwipeableCard
+        id={`series-${series.id}`}
+        leftAction={canSwipePause ? {
+          label: series.is_active ? "Pausa" : "Riprendi",
+          variant: series.is_active ? "pause" : "resume",
+          onAction: handleSwipePause,
+        } : undefined}
+        rightAction={canSwipeDelete ? {
+          label: "Elimina",
+          variant: "delete",
+          onAction: handleSwipeDelete,
+        } : undefined}
+        onCardClick={handleCardClick}
+      >
+        {cardContent}
+      </SwipeableCard>
     );
   }
 

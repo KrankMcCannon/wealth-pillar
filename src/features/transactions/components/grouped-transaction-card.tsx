@@ -4,7 +4,6 @@ import { Card } from "@/components/ui";
 import { Transaction, Category } from "@/lib";
 import { CategoryService } from "@/lib/services";
 import { formatCurrency } from "@/lib/utils";
-import { useState } from "react";
 import { TransactionRow } from "./transaction-row";
 import {
   transactionStyles,
@@ -33,18 +32,11 @@ interface GroupedTransactionCardProps {
  * Supports both regular and recurrent transaction variants.
  *
  * Features:
- * - Swipe-to-delete on individual rows
- * - Tap to edit
+ * - Swipe-to-delete on individual rows (global state coordination)
+ * - Tap to edit with smooth animation delays
  * - Optional total header
  * - Context-aware styling (due vs informative)
- *
- * Refactored from 304 lines to ~100 lines through:
- * - Extraction of TransactionRow to separate file
- * - Centralization of all styles to theme system
- * - Use of style utility functions
- *
- * All styling and animation behavior is now managed through the theme system,
- * making it easy to tune and maintain consistency across the app.
+ * - Apple-style interactions with unified swipe system
  */
 export function GroupedTransactionCard({
   transactions,
@@ -57,8 +49,6 @@ export function GroupedTransactionCard({
   onEditTransaction,
   onDeleteTransaction,
 }: GroupedTransactionCardProps) {
-  const [openTransactionId, setOpenTransactionId] = useState<string | null>(null);
-
   if (!transactions.length) return null;
 
   const getCategoryLabel = (categoryKey: string) => {
@@ -70,29 +60,7 @@ export function GroupedTransactionCard({
   };
 
   return (
-    <>
-      {/* Backdrop invisibile per chiudere row quando si clicca fuori */}
-      {openTransactionId && (
-        <div
-          className={transactionStyles.groupedCard.backdrop}
-          onClick={() => setOpenTransactionId(null)}
-          onTouchEnd={() => setOpenTransactionId(null)}
-        />
-      )}
-
-      <Card
-        className={cn(
-          getCardVariantStyles(variant),
-          openTransactionId && transactionStyles.groupedCard.openState
-        )}
-        onClick={() => {
-          // Se il click arriva qui, significa che non è stato fermato da una row
-          // (le row fanno stopPropagation), quindi chiudi la row aperta
-          if (openTransactionId) {
-            setOpenTransactionId(null);
-          }
-        }}
-      >
+    <Card className={cn(getCardVariantStyles(variant))}>
         {/* Optional Header with Total */}
         {showHeader && totalAmount !== undefined && (
         <div className={getHeaderVariantStyles(variant)}>
@@ -116,28 +84,13 @@ export function GroupedTransactionCard({
             accountNames={accountNames}
             variant={variant}
             context={context}
-            onEditTransaction={(tx) => {
-              // Prima chiudi la row aperta se ce n'è una
-              if (openTransactionId) {
-                setOpenTransactionId(null);
-                // Apri modale con delay per animazione fluida di chiusura
-                setTimeout(() => {
-                  onEditTransaction?.(tx);
-                }, 200);
-              } else {
-                // Nessuna row aperta, apri modale direttamente
-                onEditTransaction?.(tx);
-              }
-            }}
+            onEditTransaction={onEditTransaction}
             onDeleteTransaction={onDeleteTransaction}
             getCategoryLabel={getCategoryLabel}
             getCategoryColor={getCategoryColor}
-            isOpen={openTransactionId === transaction.id}
-            onSwipe={(id) => setOpenTransactionId(id)}
           />
         ))}
-        </div>
-      </Card>
-    </>
+      </div>
+    </Card>
   );
 }

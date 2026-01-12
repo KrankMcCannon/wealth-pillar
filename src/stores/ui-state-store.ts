@@ -9,6 +9,7 @@
 
 import { create } from 'zustand';
 import { persist, createJSONStorage, devtools } from 'zustand/middleware';
+import { shallow } from 'zustand/shallow';
 
 // ============================================================================
 // Types
@@ -191,11 +192,14 @@ export const useIsPending = (actionId: string) =>
  * Get UI state actions
  */
 export const useUIStateActions = () =>
-  useUIStateStore((state) => ({
-    setActiveTab: state.setActiveTab,
-    toggleSection: state.toggleSection,
-    setSectionExpanded: state.setSectionExpanded,
-    setPendingAction: state.setPendingAction,
-    clearPendingActions: state.clearPendingActions,
-    reset: state.reset,
-  }));
+  useUIStateStore(
+    (state) => ({
+      setActiveTab: state.setActiveTab,
+      toggleSection: state.toggleSection,
+      setSectionExpanded: state.setSectionExpanded,
+      setPendingAction: state.setPendingAction,
+      clearPendingActions: state.clearPendingActions,
+      reset: state.reset,
+    }),
+    shallow
+  );
