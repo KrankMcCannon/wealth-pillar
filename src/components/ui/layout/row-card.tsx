@@ -13,15 +13,23 @@
  * Used across: Transactions, Accounts, Budgets, and more
  */
 
-import { memo, useEffect, useRef, type CSSProperties } from "react";
-import { motion, useMotionValue, PanInfo, animate } from "framer-motion";
+import { memo, type CSSProperties } from "react";
 import {
   rowCardStyles,
-  rowCardTokens,
-  getRowCardMotionStyle,
-  getRowCardDeleteLayerStyle,
 } from "./theme/row-card-styles";
 import { cn } from "@/lib/utils";
+import { SwipeableCard, type SwipeAction } from "@/components/ui/interactions/swipeable-card";
+
+export interface RowCardSwipeConfig {
+  /** Unique ID for swipe state tracking */
+  id: string;
+
+  /** Delete action configuration */
+  deleteAction?: SwipeAction;
+
+  /** Optional callback when card is clicked */
+  onCardClick?: () => void;
+}
 
 export interface RowCardProps {
   // Layout - Left Section
@@ -44,12 +52,9 @@ export interface RowCardProps {
   // Interaction
   variant?: "regular" | "interactive" | "highlighted" | "muted";
   onClick?: () => void;
-  onDelete?: () => void; // Enables swipe-to-delete
 
-  // Swipe gesture (optional - for transactions)
-  isSwipeOpen?: boolean;
-  onSwipeChange?: (open: boolean) => void;
-  deleteLabel?: string; // Default: "Elimina"
+  // Swipe configuration (new unified system)
+  swipeConfig?: RowCardSwipeConfig;
 
   // State
   isDisabled?: boolean;
@@ -77,96 +82,13 @@ export const RowCard = memo(({
   rightLayout = "stack",
   variant = "regular",
   onClick,
-  onDelete,
-  isSwipeOpen = false,
-  onSwipeChange,
-  deleteLabel = "Elimina",
+  swipeConfig,
   isDisabled = false,
   iconStyle,
   iconClassName,
   className,
   testId,
 }: RowCardProps) => {
-  const x = useMotionValue(0);
-  const hasDragged = useRef(false); // Track if user dragged (to distinguish from tap)
-
-  const { swipe, spring, drag, tap } = rowCardTokens.interaction;
-
-  // Sync internal x with external isSwipeOpen state
-  useEffect(() => {
-    const targetX = isSwipeOpen ? -swipe.actionWidth : 0;
-    if (x.get() !== targetX) {
-      animate(x, targetX, {
-        type: "spring",
-        stiffness: spring.stiffness,
-        damping: spring.damping,
-      });
-    }
-  }, [isSwipeOpen, x, swipe.actionWidth, spring.stiffness, spring.damping]);
-
-  const handleDragStart = () => {
-    hasDragged.current = false;
-  };
-
-  const handleDragEnd = (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
-    if (!onSwipeChange) return;
-
-    const currentX = x.get();
-    const velocityX = info.velocity.x;
-    const dragDistance = Math.abs(info.offset.x);
-
-    // If dragged more than 10px, consider it a swipe (not a tap)
-    if (dragDistance > 10) {
-      hasDragged.current = true;
-    }
-
-    if (isSwipeOpen) {
-      // Card is open: swipe right to close
-      const shouldClose = currentX > -swipe.actionWidth * 0.7 || velocityX > 10;
-      onSwipeChange(!shouldClose);
-    } else {
-      // Card is closed: swipe left to open
-      const shouldOpen = currentX < -swipe.threshold || velocityX < swipe.velocityThreshold;
-      onSwipeChange(shouldOpen);
-    }
-
-    // Reset hasDragged after delay to allow handleTap to read it
-    setTimeout(() => {
-      hasDragged.current = false;
-    }, 100);
-  };
-
-  const handleTap = () => {
-    // If user just swiped, ignore tap (prevents accidental modal open)
-    if (hasDragged.current) {
-      hasDragged.current = false;
-      return;
-    }
-
-    const currentX = x.get();
-
-    // If card is open or partially open
-    if (isSwipeOpen || currentX < -tap.threshold) {
-      // Close the swipe immediately
-      onSwipeChange?.(false);
-
-      // Call onClick after delay for smooth animation
-      if (onClick) {
-        setTimeout(() => {
-          onClick();
-        }, 200);
-      }
-      return;
-    }
-
-    // Card closed: call onClick directly
-    onClick?.();
-  };
-
-  const handleOpenChange = (open: boolean) => {
-    onSwipeChange?.(open);
-  };
-
   // Build class names
   const cardClasses = cn(
     rowCardStyles.base,
@@ -182,52 +104,69 @@ export const RowCard = memo(({
     iconClassName
   );
 
-  // If swipe-to-delete is enabled, wrap in swipe layers
-  if (onDelete && onSwipeChange) {
-    return (
-      <div className={rowCardStyles.wrapper} data-testid={testId}>
-        {/* Background Delete Layer */}
-        <div
-          className={rowCardStyles.swipe.deleteLayer}
-          style={getRowCardDeleteLayerStyle(isSwipeOpen, swipe.actionWidth)}
-          onClick={(e) => {
-            e.stopPropagation();
-            if (isSwipeOpen) {
-              handleOpenChange(false);
-            }
-          }}
-        >
-          <div
-            className={rowCardStyles.swipe.deleteButton}
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete();
-            }}
-          >
-            {deleteLabel}
-          </div>
-        </div>
+  // ========================================================================
+  // Render Card Content
+  // ========================================================================
 
-        {/* Foreground Card Content */}
-        <motion.div
-          drag="x"
-          dragConstraints={{ left: -swipe.actionWidth, right: 0 }}
-          dragElastic={drag.elastic}
-          dragMomentum={false}
-          style={getRowCardMotionStyle(x)}
-          onDragStart={handleDragStart}
-          onDragEnd={handleDragEnd}
-          onTap={handleTap}
-          onClick={(e) => e.stopPropagation()}
-          className={cardClasses}
-        >
-          {renderCardContent()}
-        </motion.div>
+  const renderCardContent = () => (
+    <div className="flex items-center justify-between w-full">
+      {/* Left Section */}
+      <div className={rowCardStyles.layout.left}>
+        {/* Icon */}
+        {icon && (
+          <div className={iconContainerClasses} style={iconStyle}>
+            {icon}
+          </div>
+        )}
+
+        {/* Content */}
+        <div className={rowCardStyles.layout.content}>
+          <h4 className={rowCardStyles.title}>{title}</h4>
+          {subtitle && <p className={rowCardStyles.subtitle}>{subtitle}</p>}
+          {metadata && <div className={rowCardStyles.metadata}>{metadata}</div>}
+        </div>
       </div>
+
+      {/* Right Section */}
+      {(primaryValue || secondaryValue || actions) && (
+        <div className={rightLayout === "row" ? rowCardStyles.layout.rightRow : rowCardStyles.layout.right}>
+          {primaryValue && (
+            <div className={cn(rowCardStyles.value, rowCardStyles.valueVariant[amountVariant])}>
+              {primaryValue}
+            </div>
+          )}
+          {secondaryValue && (
+            <div className={rowCardStyles.secondaryValue}>{secondaryValue}</div>
+          )}
+          {actions}
+        </div>
+      )}
+    </div>
+  );
+
+  // ========================================================================
+  // Render with Swipe Support (New Unified System)
+  // ========================================================================
+
+  if (swipeConfig) {
+    return (
+      <SwipeableCard
+        id={swipeConfig.id}
+        rightAction={swipeConfig.deleteAction}
+        onCardClick={swipeConfig.onCardClick || onClick}
+        disabled={isDisabled}
+      >
+        <div className={cardClasses} data-testid={testId}>
+          {renderCardContent()}
+        </div>
+      </SwipeableCard>
     );
   }
 
-  // Regular card (no swipe)
+  // ========================================================================
+  // Regular Card (No Swipe)
+  // ========================================================================
+
   return (
     <div
       className={cardClasses}
@@ -237,45 +176,6 @@ export const RowCard = memo(({
       {renderCardContent()}
     </div>
   );
-
-  // Helper: Render card content layout
-  function renderCardContent() {
-    return (
-      <div className="flex items-center justify-between w-full">
-        {/* Left Section */}
-        <div className={rowCardStyles.layout.left}>
-          {/* Icon */}
-          {icon && (
-            <div className={iconContainerClasses} style={iconStyle}>
-              {icon}
-            </div>
-          )}
-
-          {/* Content */}
-          <div className={rowCardStyles.layout.content}>
-            <h4 className={rowCardStyles.title}>{title}</h4>
-            {subtitle && <p className={rowCardStyles.subtitle}>{subtitle}</p>}
-            {metadata && <div className={rowCardStyles.metadata}>{metadata}</div>}
-          </div>
-        </div>
-
-        {/* Right Section */}
-        {(primaryValue || secondaryValue || actions) && (
-          <div className={rightLayout === "row" ? rowCardStyles.layout.rightRow : rowCardStyles.layout.right}>
-            {primaryValue && (
-              <div className={cn(rowCardStyles.value, rowCardStyles.valueVariant[amountVariant])}>
-                {primaryValue}
-              </div>
-            )}
-            {secondaryValue && (
-              <div className={rowCardStyles.secondaryValue}>{secondaryValue}</div>
-            )}
-            {actions}
-          </div>
-        )}
-      </div>
-    );
-  }
 });
 
 RowCard.displayName = "RowCard";

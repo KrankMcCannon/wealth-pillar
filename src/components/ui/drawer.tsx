@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { drawerStyles } from "@/styles/system";
 
 const Drawer = ({
-  shouldScaleBackground = false,
+  shouldScaleBackground = true, // Enable background scaling for better mobile UX
   ...props
 }: React.ComponentProps<typeof DrawerPrimitive.Root>) => (
   <DrawerPrimitive.Root shouldScaleBackground={shouldScaleBackground} {...props} />

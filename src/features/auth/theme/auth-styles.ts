@@ -83,7 +83,7 @@ export const authStyles = {
     bgBlobBottom: "pointer-events-none absolute -bottom-24 -right-24 h-72 w-72 rounded-full blur-3xl opacity-15 bg-secondary",
   },
   layout: {
-    container: 'h-dvh w-screen bg-card flex flex-col relative overflow-hidden',
+    container: 'h-screen w-screen bg-card flex flex-col relative overflow-hidden',
     main: 'w-full flex-1 flex items-center justify-center px-4 py-6',
     footer:
       'mt-auto w-full px-4 pb-[calc(theme(spacing.3)+env(safe-area-inset-bottom))] pt-2',

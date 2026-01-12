@@ -6,7 +6,7 @@
 export const dashboardStyles = {
   // Page layout
   page: {
-    container: 'relative flex w-full min-h-[100dvh] flex-col bg-card',
+    container: 'relative flex w-full min-h-[100svh] flex-col bg-card',
     main: 'pb-14',
   },
 

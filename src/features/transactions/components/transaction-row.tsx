@@ -9,6 +9,7 @@ import {
   transactionStyles,
   getTransactionBadgeColor,
 } from "@/styles/system";
+import { useCloseAllCards } from "@/stores/swipe-state-store";
 
 interface TransactionRowProps {
   transaction: Transaction;
@@ -19,20 +20,19 @@ interface TransactionRowProps {
   onDeleteTransaction?: (transactionId: string) => void;
   getCategoryLabel: (key: string) => string;
   getCategoryColor: (key: string) => string;
-  isOpen: boolean;
-  onSwipe: (id: string | null) => void;
 }
 
 /**
  * Individual Transaction Row Component
- * Now powered by the unified RowCard component.
+ * Now powered by the unified RowCard component with global swipe state.
  * This is a thin wrapper that maps transaction-specific props to RowCard's generic API.
  *
  * Features:
- * - Swipe-to-delete gesture (via RowCard)
- * - Smart tap detection (via RowCard)
- * - Smooth spring animations (via RowCard)
- * - Transaction-specific styling and layout
+ * - Swipe-to-delete gesture (via unified SwipeableCard)
+ * - Global swipe coordination (only one open at a time)
+ * - Apple-style physics and animations
+ * - Smart tap vs. drag detection
+ * - Auto-close after action execution
  */
 export const TransactionRow = memo(({
   transaction,
@@ -43,9 +43,8 @@ export const TransactionRow = memo(({
   onDeleteTransaction,
   getCategoryLabel,
   getCategoryColor,
-  isOpen,
-  onSwipe,
 }: TransactionRowProps) => {
+  const closeAllCards = useCloseAllCards();
   // Calculate days until due for recurrent transactions
   const getDaysUntilDue = (): number => {
     if (!transaction.frequency || transaction.frequency === "once") return Infinity;
@@ -107,6 +106,12 @@ export const TransactionRow = memo(({
         ? "destructive"
         : "primary";
 
+  // Handle delete action with swipe close-first pattern
+  const handleDelete = () => {
+    closeAllCards();
+    onDeleteTransaction?.(transaction.id);
+  };
+
   return (
     <RowCard
       // Layout
@@ -128,12 +133,17 @@ export const TransactionRow = memo(({
       // Interaction
       variant={variant === "regular" ? "interactive" : "highlighted"}
       onClick={() => onEditTransaction?.(transaction)}
-      onDelete={onDeleteTransaction ? () => onDeleteTransaction(transaction.id) : undefined}
 
-      // Swipe gesture
-      isSwipeOpen={isOpen}
-      onSwipeChange={(open) => onSwipe(open ? transaction.id : null)}
-      deleteLabel="Elimina"
+      // Swipe configuration (new unified system)
+      swipeConfig={onDeleteTransaction ? {
+        id: `transaction-${transaction.id}`,
+        deleteAction: {
+          label: "Elimina",
+          variant: "delete",
+          onAction: handleDelete,
+        },
+        onCardClick: () => onEditTransaction?.(transaction),
+      } : undefined}
 
       // Styling (maintain transaction-specific wrapper styles)
       className={transactionStyles.transactionRow.content}

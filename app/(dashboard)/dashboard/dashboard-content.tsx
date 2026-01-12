@@ -190,6 +190,7 @@ export default function DashboardContent({
   const handleAccountClick = () => router.push("/accounts");
   const handleCreateRecurringSeries = () => openModal('recurring');
   const handleSeriesCardClick = () => router.push("/transactions?tab=Recurrent");
+  const handlePauseRecurringSeries = () => router.push("/transactions?tab=Recurrent")
 
   const budgetPeriodTrigger = (
     <Button variant="outline" size="sm">
@@ -268,6 +269,7 @@ export default function DashboardContent({
             showActions={false}
             onCreateRecurringSeries={handleCreateRecurringSeries}
             onCardClick={handleSeriesCardClick}
+            onPauseRecurringSeries={handlePauseRecurringSeries}
           />
         </Suspense>
       </main>

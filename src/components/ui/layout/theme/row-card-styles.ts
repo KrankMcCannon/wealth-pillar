@@ -3,18 +3,14 @@
  *
  * Centralized styling for unified row card components.
  * Supports variants: regular, interactive, highlighted, muted
- * Includes swipe-to-delete styles and animations
  */
-
-import type { CSSProperties } from "react";
-import type { MotionValue } from "framer-motion";
 
 export const rowCardStyles = {
   // Wrapper container (for swipe layers)
   wrapper: "relative w-full overflow-hidden",
 
   // Base card styles
-  base: "relative z-10 flex items-center justify-between transition-colors first:pb-2 last:pt-2",
+  base: "relative z-10 flex items-center justify-between first:pb-2 last:pt-2",
 
   // Variant styles
   variant: {
@@ -22,14 +18,6 @@ export const rowCardStyles = {
     interactive: "cursor-pointer hover:bg-primary/5 active:bg-primary/10",
     highlighted: "border-primary/20 bg-primary/5",
     muted: "opacity-60",
-  },
-
-  // Swipe gesture styles
-  swipe: {
-    wrapper: "relative overflow-hidden",
-    deleteLayer: "absolute inset-y-0 right-0 z-0 flex items-center justify-end",
-    deleteButton:
-      "px-6 h-full bg-destructive text-destructive-foreground font-medium flex items-center justify-center hover:bg-destructive/90 active:bg-destructive/80 transition-all duration-200 ease-out",
   },
 
   // Layout structure
@@ -71,47 +59,3 @@ export const rowCardStyles = {
   },
   secondaryValue: "text-xs text-primary/60",
 };
-
-/**
- * Swipe Animation Tokens
- * These define the physics and behavior of swipe gestures
- */
-export const rowCardTokens = {
-  interaction: {
-    swipe: {
-      actionWidth: 100, // Width of delete button area
-      threshold: 50, // Minimum drag distance to trigger open
-      velocityThreshold: -200, // Minimum velocity to trigger open (negative = left)
-    },
-    spring: {
-      stiffness: 300,
-      damping: 30,
-    },
-    drag: {
-      elastic: 0.2, // How much to allow dragging beyond constraints
-    },
-    tap: {
-      threshold: 5, // Minimum x position to consider card as "open" on tap
-    },
-  },
-};
-
-/**
- * Helper: Generate motion style for swipe animation
- * Note: Uses type assertion to work around React 19 + Framer Motion type incompatibility
- */
-export function getRowCardMotionStyle(x: MotionValue<number>) {
-  return { x } as unknown as CSSProperties;
-}
-
-/**
- * Helper: Generate delete layer style based on open state
- */
-export function getRowCardDeleteLayerStyle(isOpen: boolean, actionWidth: number): CSSProperties {
-  return {
-    width: isOpen ? `${actionWidth}px` : '0px',
-    opacity: isOpen ? 1 : 0,
-    transform: isOpen ? 'translateX(0)' : 'translateX(12px)',
-    transition: 'width 0.25s ease, opacity 0.2s ease, transform 0.25s ease',
-  };
-}

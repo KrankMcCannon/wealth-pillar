@@ -143,7 +143,7 @@ export const layoutStyles = {
 export const settingsStyles = {
   page: {
     container:
-      "relative flex w-full min-h-[100dvh] flex-col bg-card",
+      "relative flex w-full min-h-[100svh] flex-col bg-card",
     style: { fontFamily: '"Inter", "SF Pro Display", system-ui, sans-serif' },
   },
   header: {
@@ -306,7 +306,7 @@ export const settingsStyles = {
 
 export const reportsStyles = {
   page: {
-    container: "relative flex w-full min-h-[100dvh] flex-col bg-card",
+    container: "relative flex w-full min-h-[100svh] flex-col bg-card",
     style: { fontFamily: '"Inter", "SF Pro Display", system-ui, sans-serif' },
   },
   main: {
@@ -1046,7 +1046,7 @@ export const transactionTokens = {
   groupedCard: {
     spacing: {
       cardPadding: "py-0",
-      rowPadding: "p-3",
+      rowPadding: "p-2",
       rowGap: "gap-3",
       contentGap: "gap-1.5",
     },
@@ -1055,16 +1055,16 @@ export const transactionTokens = {
       lastRowNoBorder: "last:border-0",
     },
     row: {
-      base: "relative bg-card cursor-pointer transition-colors",
+      base: "relative bg-card cursor-pointer",
       hover: "active:bg-accent/5",
       deleteLayer: "absolute right-0 top-0 bottom-0 flex items-center justify-end",
     },
     icon: {
-      container: `flex size-9 items-center justify-center ${radiusStyles.md} ${shadowStyles.sm} transition-all ${animationStyles.classes.transition} shrink-0`,
-      hover: "group-hover:scale-105",
+      container: `flex size-9 items-center justify-center ${radiusStyles.md} ${shadowStyles.sm} shrink-0`,
+      hover: "",
     },
     text: {
-      title: "font-semibold transition-colors truncate text-[15px] text-primary/90",
+      title: "font-semibold truncate text-[15px] text-primary/90",
       metadata: `${typographyStyles.xs} text-primary/60 font-medium`,
       metadataSecondary: `${typographyStyles.xs} text-primary/50`,
       separator: `${typographyStyles.xs} text-primary/30`,
@@ -1081,11 +1081,11 @@ export const transactionTokens = {
   },
   cardVariants: {
     regular: {
-      card: `py-0 bg-card backdrop-blur-sm ${shadowStyles.sm} hover:${shadowStyles.md} transition-all duration-300 ${radiusStyles.lg} overflow-hidden`,
+      card: `py-0 bg-card ${shadowStyles.sm} ${radiusStyles.lg} overflow-hidden`,
       header: "bg-primary/5 px-4 py-2.5",
     },
     recurrent: {
-      card: `py-0 bg-primary/5 backdrop-blur-sm ${shadowStyles.md} hover:${shadowStyles.lg} transition-all duration-300 ${radiusStyles.lg} overflow-hidden`,
+      card: `py-0 bg-primary/5 ${shadowStyles.md} ${radiusStyles.lg} overflow-hidden`,
       header: "bg-primary/10 px-4 py-2.5",
     },
   },
@@ -1141,7 +1141,7 @@ export const transactionTokens = {
 
 export const transactionStyles = {
   page: {
-    container: "relative flex w-full min-h-[100dvh] flex-col bg-card",
+    container: "relative flex w-full min-h-[100svh] flex-col bg-card",
     main: `flex-1 ${spacingStyles.page.mobile} space-y-4 sm:space-y-6 pb-14`,
     loadingContent: "space-y-6",
   },

@@ -22,7 +22,7 @@ export const cardStyles = {
     progress: "relative",
   },
   series: {
-    base: "p-2 bg-card rounded-xl transition-all duration-300 group cursor-pointer",
+    base: "p-2 bg-card rounded-xl transition-colors duration-200 group cursor-pointer",
     inactive: "border border-primary/20 opacity-60",
     overdue: "border border-destructive/30 hover:border-destructive/40",
     dueToday: "border border-warning/40 hover:border-warning/50",

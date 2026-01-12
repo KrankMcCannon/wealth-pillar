@@ -9,6 +9,7 @@
 
 import { create } from 'zustand';
 import { persist, createJSONStorage, devtools } from 'zustand/middleware';
+import { useShallow } from 'zustand/react/shallow';
 
 // ============================================================================
 // Types
@@ -152,32 +153,36 @@ export const useTransactionFiltersStore = create<TransactionFiltersStore>()(
  * Use this when you need all filters
  */
 export const useTransactionFilters = () =>
-  useTransactionFiltersStore((state) => ({
-    searchQuery: state.searchQuery,
-    type: state.type,
-    dateRange: state.dateRange,
-    categoryKey: state.categoryKey,
-    categoryKeys: state.categoryKeys,
-    budgetId: state.budgetId,
-    startDate: state.startDate,
-    endDate: state.endDate,
-  }));
+  useTransactionFiltersStore(
+    useShallow((state) => ({
+      searchQuery: state.searchQuery,
+      type: state.type,
+      dateRange: state.dateRange,
+      categoryKey: state.categoryKey,
+      categoryKeys: state.categoryKeys,
+      budgetId: state.budgetId,
+      startDate: state.startDate,
+      endDate: state.endDate,
+    }))
+  );
 
 /**
  * Get filter actions
  * Use this to update filters
  */
 export const useTransactionFiltersActions = () =>
-  useTransactionFiltersStore((state) => ({
-    setFilters: state.setFilters,
-    resetFilters: state.resetFilters,
-    clearBudgetFilter: state.clearBudgetFilter,
-    setSearchQuery: state.setSearchQuery,
-    setType: state.setType,
-    setDateRange: state.setDateRange,
-    setCategoryKey: state.setCategoryKey,
-    setCustomDateRange: state.setCustomDateRange,
-  }));
+  useTransactionFiltersStore(
+    useShallow((state) => ({
+      setFilters: state.setFilters,
+      resetFilters: state.resetFilters,
+      clearBudgetFilter: state.clearBudgetFilter,
+      setSearchQuery: state.setSearchQuery,
+      setType: state.setType,
+      setDateRange: state.setDateRange,
+      setCategoryKey: state.setCategoryKey,
+      setCustomDateRange: state.setCustomDateRange,
+    }))
+  );
 
 /**
  * Check if any filters are active

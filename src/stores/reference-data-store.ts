@@ -9,6 +9,7 @@
 
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
+import { useShallow } from 'zustand/react/shallow';
 import type { User, Account, Category } from '@/lib/types';
 
 // ============================================================================
@@ -201,10 +202,12 @@ export const useIsInitialized = () =>
  * For most cases, use individual selectors to prevent unnecessary re-renders
  */
 export const useReferenceData = () =>
-  useReferenceDataStore((state) => ({
-    currentUser: state.currentUser,
-    groupUsers: state.groupUsers,
-    accounts: state.accounts,
-    categories: state.categories,
-    groupId: state.groupId,
-  }));
+  useReferenceDataStore(
+    useShallow((state) => ({
+      currentUser: state.currentUser,
+      groupUsers: state.groupUsers,
+      accounts: state.accounts,
+      categories: state.categories,
+      groupId: state.groupId,
+    }))
+  );
