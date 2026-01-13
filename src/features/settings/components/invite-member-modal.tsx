@@ -155,7 +155,6 @@ export function InviteMemberModal({
               placeholder: "nuovo.membro@example.com",
               disabled: isSubmitting,
               autoComplete: "email",
-              autoFocus: true,
               ...register("email"),
             }}
           />

@@ -230,7 +230,6 @@ function IconPickerContent({ value, recent, onSelect, isMobile }: IconPickerCont
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className={styles.searchInput}
-            autoFocus={false}
             aria-label="Cerca icona per nome o parola chiave"
           />
           {searchQuery && (

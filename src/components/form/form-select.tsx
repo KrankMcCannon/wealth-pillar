@@ -109,7 +109,6 @@ export function FormSelect({
               }}
               onClick={(e) => e.stopPropagation()}
               onMouseDown={(e) => e.stopPropagation()}
-              autoFocus
               className={formStyles.select.searchInput}
             />
           </div>
