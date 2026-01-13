@@ -5,7 +5,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Loader2, Mail } from "lucide-react";
-import { Button, ModalActions, ModalWrapper } from "@/components/ui";
+import { Button } from "@/components/ui/button";
+import { ModalBody, ModalFooter, ModalWrapper } from "@/components/ui/modal-wrapper";
 import { toast } from "@/hooks/use-toast";
 import { sendGroupInvitationAction } from "@/features/settings/actions";
 import { settingsStyles } from "@/styles/system";
@@ -141,18 +142,47 @@ export function InviteMemberModal({
       titleClassName={settingsStyles.modals.title}
       descriptionClassName={settingsStyles.modals.description}
       disableOutsideClose={isSubmitting}
-      footer={
-        <ModalActions>
+      repositionInputs={false}
+    >
+      <SettingsModalForm onSubmit={handleSubmit(onSubmit)} className="flex flex-col h-full">
+        <ModalBody>
+          <SettingsModalField
+            id="email"
+            label="Indirizzo email del nuovo membro"
+            error={errors.email?.message}
+            inputProps={{
+              type: "email",
+              placeholder: "nuovo.membro@example.com",
+              disabled: isSubmitting,
+              autoComplete: "email",
+              autoFocus: true,
+              ...register("email"),
+            }}
+          />
+
+          {/* Info message */}
+          <div className={settingsStyles.modals.invite.infoBox}>
+            <p className={settingsStyles.modals.invite.infoText}>
+              <strong className={settingsStyles.modals.invite.infoStrong}>Nota:</strong> Il nuovo membro
+              riceverà un&apos;email con un link di invito valido per 7 giorni. Potrà
+              accettare l&apos;invito creando un account o accedendo con un account
+              esistente.
+            </p>
+          </div>
+        </ModalBody>
+
+        <ModalFooter>
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
             disabled={isSubmitting}
             className={settingsStyles.modals.actionsButton}
+            type="button"
           >
             Annulla
           </Button>
           <Button
-            onClick={handleSubmit(onSubmit)}
+            type="submit"
             disabled={isSubmitting}
             className={settingsStyles.modals.actionsButton}
           >
@@ -168,33 +198,7 @@ export function InviteMemberModal({
               </>
             )}
           </Button>
-        </ModalActions>
-      }
-    >
-      <SettingsModalForm onSubmit={handleSubmit(onSubmit)}>
-        <SettingsModalField
-          id="email"
-          label="Indirizzo email del nuovo membro"
-          error={errors.email?.message}
-          inputProps={{
-            type: "email",
-            placeholder: "nuovo.membro@example.com",
-            disabled: isSubmitting,
-            autoComplete: "email",
-            autoFocus: true,
-            ...register("email"),
-          }}
-        />
-
-        {/* Info message */}
-        <div className={settingsStyles.modals.invite.infoBox}>
-          <p className={settingsStyles.modals.invite.infoText}>
-            <strong className={settingsStyles.modals.invite.infoStrong}>Nota:</strong> Il nuovo membro
-            riceverà un&apos;email con un link di invito valido per 7 giorni. Potrà
-            accettare l&apos;invito creando un account o accedendo con un account
-            esistente.
-          </p>
-        </div>
+        </ModalFooter>
       </SettingsModalForm>
     </ModalWrapper>
   );

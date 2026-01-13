@@ -13,8 +13,8 @@ export const modalWrapperStyles = {
   drawerDescription: "text-xs text-primary/70",
   drawerContentBody: "px-4 py-3 text-primary flex-1 overflow-y-auto",
   drawerFooter: "pt-3 pb-4 px-4 border-t border-primary/10 bg-card shrink-0",
-  modalSection: "flex flex-col",
+  modalSection: "flex flex-col gap-4",
   modalSectionTitle:
-    "text-xs font-semibold text-primary/80 uppercase tracking-wide shrink-0",
-  modalActions: "flex flex-col-reverse gap-2 sm:flex-row sm:justify-end",
+    "text-xs font-semibold text-primary/80 uppercase tracking-wide shrink-0 mb-2",
+  modalActions: "flex flex-col-reverse gap-2 sm:flex-row sm:justify-end py-4",
 } as const;

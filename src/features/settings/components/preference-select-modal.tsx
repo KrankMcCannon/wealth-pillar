@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { Check, Loader2 } from "lucide-react";
-import { Button, ModalActions, ModalWrapper } from "@/components/ui";
+import { Button, ModalBody, ModalFooter, ModalWrapper } from "@/components/ui";
 import { toast } from "@/hooks/use-toast";
 import { updateUserPreferencesAction } from "@/features/settings/actions";
 import type { UserPreferencesUpdate } from "@/lib/services/user-preferences.service";
@@ -150,88 +150,89 @@ export function PreferenceSelectModal({
       titleClassName={settingsStyles.modals.title}
       descriptionClassName={settingsStyles.modals.description}
       disableOutsideClose={isSubmitting}
-      footer={
-        <ModalActions>
-          <Button
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-            disabled={isSubmitting}
-            className={settingsStyles.modals.actionsButton}
-          >
-            Annulla
-          </Button>
-          <Button
-            onClick={handleSave}
-            disabled={isSubmitting || selectedValue === currentValue}
-            className={settingsStyles.modals.actionsButton}
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2 className={settingsStyles.modals.loadingIcon} />
-                Salvataggio...
-              </>
-            ) : (
-              "Salva"
-            )}
-          </Button>
-        </ModalActions>
-      }
-    >
-      <div className={settingsStyles.modals.preference.list}>
-        {options.map((option) => {
-          const isSelected = selectedValue === option.value;
-          const isCurrent = currentValue === option.value;
 
-          return (
-            <button
-              key={option.value}
-              type="button"
-              onClick={() => setSelectedValue(option.value)}
-              disabled={isSubmitting}
-              className={cn(
-                settingsStyles.modals.preference.itemBase,
-                isSelected
-                  ? settingsStyles.modals.preference.itemActive
-                  : settingsStyles.modals.preference.itemIdle
-              )}
-            >
-              {/* Radio indicator */}
-              <div
+    >
+      <ModalBody>
+        <div className={settingsStyles.modals.preference.list}>
+          {options.map((option) => {
+            const isSelected = selectedValue === option.value;
+            const isCurrent = currentValue === option.value;
+
+            return (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => setSelectedValue(option.value)}
+                disabled={isSubmitting}
                 className={cn(
-                  settingsStyles.modals.preference.radioBase,
+                  settingsStyles.modals.preference.itemBase,
                   isSelected
-                    ? settingsStyles.modals.preference.radioActive
-                    : settingsStyles.modals.preference.radioIdle
+                    ? settingsStyles.modals.preference.itemActive
+                    : settingsStyles.modals.preference.itemIdle
                 )}
               >
-                {isSelected && <Check className={settingsStyles.modals.preference.radioIcon} />}
-              </div>
-
-              {/* Content */}
-              <div className={settingsStyles.modals.preference.content}>
-                <div className={settingsStyles.modals.preference.titleRow}>
-                  <span
-                    className={cn(
-                      settingsStyles.modals.preference.title,
-                      isSelected ? settingsStyles.modals.preference.titleActive : settingsStyles.modals.preference.titleIdle
-                    )}
-                  >
-                    {option.label}
-                  </span>
-                  {isCurrent && (
-                    <span className={settingsStyles.modals.preference.currentBadge}>
-                      Attuale
-                    </span>
+                {/* Radio indicator */}
+                <div
+                  className={cn(
+                    settingsStyles.modals.preference.radioBase,
+                    isSelected
+                      ? settingsStyles.modals.preference.radioActive
+                      : settingsStyles.modals.preference.radioIdle
                   )}
+                >
+                  {isSelected && <Check className={settingsStyles.modals.preference.radioIcon} />}
                 </div>
-                <p className={settingsStyles.modals.preference.description}>
-                  {option.description}
-                </p>
-              </div>
-            </button>
-          );
-        })}
-      </div>
+
+                {/* Content */}
+                <div className={settingsStyles.modals.preference.content}>
+                  <div className={settingsStyles.modals.preference.titleRow}>
+                    <span
+                      className={cn(
+                        settingsStyles.modals.preference.title,
+                        isSelected ? settingsStyles.modals.preference.titleActive : settingsStyles.modals.preference.titleIdle
+                      )}
+                    >
+                      {option.label}
+                    </span>
+                    {isCurrent && (
+                      <span className={settingsStyles.modals.preference.currentBadge}>
+                        Attuale
+                      </span>
+                    )}
+                  </div>
+                  <p className={settingsStyles.modals.preference.description}>
+                    {option.description}
+                  </p>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </ModalBody>
+      <ModalFooter>
+        <Button
+          variant="outline"
+          onClick={() => onOpenChange(false)}
+          disabled={isSubmitting}
+          className={settingsStyles.modals.actionsButton}
+        >
+          Annulla
+        </Button>
+        <Button
+          onClick={handleSave}
+          disabled={isSubmitting || selectedValue === currentValue}
+          className={settingsStyles.modals.actionsButton}
+        >
+          {isSubmitting ? (
+            <>
+              <Loader2 className={settingsStyles.modals.loadingIcon} />
+              Salvataggio...
+            </>
+          ) : (
+            "Salva"
+          )}
+        </Button>
+      </ModalFooter>
     </ModalWrapper>
   );
 }

@@ -5,12 +5,14 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Loader2 } from "lucide-react";
-import { Button, ModalActions, ModalWrapper } from "@/components/ui";
+import { Button } from "@/components/ui/button";
+import { ModalBody, ModalFooter, ModalWrapper } from "@/components/ui/modal-wrapper";
 import { toast } from "@/hooks/use-toast";
 import { updateUserProfileAction } from "@/features/settings/actions";
 import { useReferenceDataStore } from "@/stores/reference-data-store";
 import { settingsStyles } from "@/styles/system";
-import { SettingsModalField, SettingsModalForm } from "./settings-modal-form";
+import { SettingsModalField } from "./settings-modal-form";
+import { cn } from "@/lib/utils";
 
 // ============================================================================
 // VALIDATION SCHEMA
@@ -172,18 +174,52 @@ export function EditProfileModal({
       titleClassName={settingsStyles.modals.title}
       descriptionClassName={settingsStyles.modals.description}
       disableOutsideClose={isSubmitting}
-      footer={
-        <ModalActions>
+      repositionInputs={false}
+    >
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className={cn(settingsStyles.modals.form, "flex flex-col h-full")}
+      >
+        <ModalBody>
+          <SettingsModalField
+            id="name"
+            label="Nome completo"
+            error={errors.name?.message}
+            inputProps={{
+              type: "text",
+              placeholder: "Mario Rossi",
+              disabled: isSubmitting,
+              autoComplete: "name",
+              ...register("name"),
+            }}
+          />
+
+          <SettingsModalField
+            id="email"
+            label="Indirizzo email"
+            error={errors.email?.message}
+            inputProps={{
+              type: "email",
+              placeholder: "mario.rossi@example.com",
+              disabled: isSubmitting,
+              autoComplete: "email",
+              ...register("email"),
+            }}
+          />
+        </ModalBody>
+
+        <ModalFooter>
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
             disabled={isSubmitting}
             className={settingsStyles.modals.actionsButton}
+            type="button"
           >
             Annulla
           </Button>
           <Button
-            onClick={handleSubmit(onSubmit)}
+            type="submit"
             disabled={isSubmitting}
             className={settingsStyles.modals.actionsButton}
           >
@@ -196,36 +232,9 @@ export function EditProfileModal({
               "Salva Modifiche"
             )}
           </Button>
-        </ModalActions>
-      }
-    >
-      <SettingsModalForm onSubmit={handleSubmit(onSubmit)}>
-        <SettingsModalField
-          id="name"
-          label="Nome completo"
-          error={errors.name?.message}
-          inputProps={{
-            type: "text",
-            placeholder: "Mario Rossi",
-            disabled: isSubmitting,
-            autoComplete: "name",
-            ...register("name"),
-          }}
-        />
-
-        <SettingsModalField
-          id="email"
-          label="Indirizzo email"
-          error={errors.email?.message}
-          inputProps={{
-            type: "email",
-            placeholder: "mario.rossi@example.com",
-            disabled: isSubmitting,
-            autoComplete: "email",
-            ...register("email"),
-          }}
-        />
-      </SettingsModalForm>
+        </ModalFooter>
+      </form>
     </ModalWrapper>
   );
 }
+

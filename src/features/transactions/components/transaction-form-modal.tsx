@@ -1,5 +1,7 @@
 "use client";
 
+import { cn } from "@/lib/utils";
+
 import { useEffect, useMemo, useCallback, useRef } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -8,7 +10,7 @@ import { Transaction, TransactionType } from "@/lib/types";
 import { getTempId } from "@/lib/utils/temp-id";
 import { createTransactionAction, updateTransactionAction } from "@/features/transactions/actions/transaction-actions";
 import { transactionStyles } from "@/styles/system";
-import { ModalWrapper, ModalContent, ModalSection } from "@/components/ui/modal-wrapper";
+import { ModalWrapper, ModalBody, ModalFooter, ModalSection } from "@/components/ui/modal-wrapper";
 import { FormActions, FormField, FormSelect } from "@/components/form";
 import { UserField, AccountField, CategoryField, AmountField, DateField } from "@/components/ui/fields";
 import { Input } from "@/components/ui/input";
@@ -310,26 +312,18 @@ function TransactionFormModal({
   const destinationAccounts = filteredAccounts.filter((acc) => acc.id !== watchedAccountId);
 
   return (
-    <form className={transactionStyles.form.container}>
-      <ModalWrapper
-        isOpen={isOpen}
-        onOpenChange={onClose}
-        title={title}
-        description={description}
-        titleClassName={transactionStyles.modal.title}
-        descriptionClassName={transactionStyles.modal.description}
-        maxWidth="md"
-        footer={
-          <FormActions
-            submitType="button"
-            submitLabel={isEditMode ? "Aggiorna" : "Crea"}
-            onSubmit={handleSubmit(onSubmit)}
-            onCancel={onClose}
-            isSubmitting={isSubmitting}
-          />
-        }
-      >
-        <ModalContent className={transactionStyles.modal.content}>
+    <ModalWrapper
+      isOpen={isOpen}
+      onOpenChange={onClose}
+      title={title}
+      description={description}
+      titleClassName={transactionStyles.modal.title}
+      descriptionClassName={transactionStyles.modal.description}
+      maxWidth="md"
+      repositionInputs={false}
+    >
+      <form onSubmit={handleSubmit(onSubmit)} className={cn(transactionStyles.form.container, "flex flex-col h-full")}>
+        <ModalBody className={transactionStyles.modal.content}>
           {/* Submit Error Display */}
           {errors.root && (
             <div className={transactionStyles.form.error}>
@@ -427,9 +421,19 @@ function TransactionFormModal({
               />
             </FormField>
           </ModalSection>
-        </ModalContent>
-      </ModalWrapper>
-    </form>
+        </ModalBody>
+
+        <ModalFooter>
+          <FormActions
+            submitType="submit"
+            submitLabel={isEditMode ? "Aggiorna" : "Crea"}
+            onCancel={onClose}
+            isSubmitting={isSubmitting}
+            className="w-full sm:w-auto"
+          />
+        </ModalFooter>
+      </form>
+    </ModalWrapper>
   );
 }
 

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Loader2, Pause, Play } from "lucide-react";
-import { Button, ModalActions, ModalWrapper, Amount } from "@/components/ui";
+import { Button, ModalBody, ModalFooter, ModalWrapper, Amount } from "@/components/ui";
 import { RecurringTransactionSeries } from "@/lib/types";
 import { toggleRecurringSeriesActiveAction } from "@/features/recurring/actions/recurring-actions";
 
@@ -50,68 +50,70 @@ export function PauseSeriesModal({
       onOpenChange={onOpenChange}
       title={`${actionText} serie ricorrente`}
       description={willPause ? "La serie non genererà più transazioni automatiche" : "La serie riprenderà a generare transazioni"}
+      showCloseButton={!isLoading}
       disableOutsideClose={isLoading}
-      footer={
-        <ModalActions>
-          <Button
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-            disabled={isLoading}
-          >
-            Annulla
-          </Button>
-          <Button
-            onClick={handleConfirm}
-            disabled={isLoading}
-          >
-            {isLoading ? (
+    >
+      <ModalBody>
+        <div className="space-y-4">
+          <div className="rounded-lg bg-card/10 p-4 border border-primary/10">
+            <p className="text-sm font-medium text-primary mb-2">
+              {series.description}
+            </p>
+            <Amount
+              type={series.type === "income" ? "income" : "expense"}
+              size="lg"
+              emphasis="strong"
+            >
+              {series.type === "income" ? series.amount : -series.amount}
+            </Amount>
+          </div>
+
+          <div className="text-sm text-muted-foreground space-y-2">
+            {willPause ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                {actionText}...
+                <p>
+                  La serie ricorrente verrà {actionTextLower}. Non verranno più create transazioni automatiche finché non la riattiverai.
+                </p>
+                <p className="font-medium">
+                  Le transazioni già create rimarranno invariate.
+                </p>
               </>
             ) : (
               <>
-                {willPause ? <Pause className="mr-2 h-4 w-4" /> : <Play className="mr-2 h-4 w-4" />}
-                {actionText}
+                <p>
+                  La serie ricorrente verrà {actionTextLower}. Riprenderà a generare transazioni automatiche secondo la frequenza impostata.
+                </p>
               </>
             )}
-          </Button>
-        </ModalActions>
-      }
-    >
-      <div className="space-y-4">
-        <div className="rounded-lg bg-card/10 p-4 border border-primary/10">
-          <p className="text-sm font-medium text-primary mb-2">
-            {series.description}
-          </p>
-          <Amount
-            type={series.type === "income" ? "income" : "expense"}
-            size="lg"
-            emphasis="strong"
-          >
-            {series.type === "income" ? series.amount : -series.amount}
-          </Amount>
+          </div>
         </div>
-
-        <div className="text-sm text-muted-foreground space-y-2">
-          {willPause ? (
+      </ModalBody>
+      <ModalFooter>
+        <Button
+          variant="outline"
+          onClick={() => onOpenChange(false)}
+          disabled={isLoading}
+        >
+          Annulla
+        </Button>
+        <Button
+          onClick={handleConfirm}
+          disabled={isLoading}
+        >
+          {isLoading ? (
             <>
-              <p>
-                La serie ricorrente verrà {actionTextLower}. Non verranno più create transazioni automatiche finché non la riattiverai.
-              </p>
-              <p className="font-medium">
-                Le transazioni già create rimarranno invariate.
-              </p>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              {actionText}...
             </>
           ) : (
             <>
-              <p>
-                La serie ricorrente verrà {actionTextLower}. Riprenderà a generare transazioni automatiche secondo la frequenza impostata.
-              </p>
+              {willPause ? <Pause className="mr-2 h-4 w-4" /> : <Play className="mr-2 h-4 w-4" />}
+              {actionText}
             </>
           )}
-        </div>
-      </div>
+        </Button>
+      </ModalFooter>
     </ModalWrapper>
+
   );
 }

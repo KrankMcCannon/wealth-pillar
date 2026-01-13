@@ -1,6 +1,6 @@
 'use client';
 
-import { ModalWrapper, ModalActions } from '@/components/ui/modal-wrapper';
+import { ModalWrapper, ModalBody, ModalFooter } from '@/components/ui/modal-wrapper';
 import { Button } from '@/components/ui/button';
 import { AlertTriangleIcon, Loader2Icon } from 'lucide-react';
 import { confirmationDialogStyles } from './theme/feedback-styles';
@@ -39,38 +39,38 @@ export function ConfirmationDialog({
       title={title}
       showCloseButton={!isLoading}
       disableOutsideClose={isLoading}
-      footer={
-        <ModalActions>
-          <Button
-            variant="outline"
-            onClick={onCancel}
-            disabled={isLoading}
-            className={confirmationDialogStyles.buttons.cancel}
-          >
-            {cancelText}
-          </Button>
-          <Button
-            variant={variant}
-            onClick={handleConfirm}
-            disabled={isLoading}
-            className={confirmationDialogStyles.buttons.confirm}
-          >
-            {isLoading && <Loader2Icon className={confirmationDialogStyles.loadingIcon} />}
-            {confirmText}
-          </Button>
-        </ModalActions>
-      }
     >
-      <div className={confirmationDialogStyles.headerLayout}>
-        {variant === 'destructive' && (
-          <div className={confirmationDialogStyles.iconWrapper}>
-            <AlertTriangleIcon className={confirmationDialogStyles.icon} />
+      <ModalBody>
+        <div className={confirmationDialogStyles.headerLayout}>
+          {variant === 'destructive' && (
+            <div className={confirmationDialogStyles.iconWrapper}>
+              <AlertTriangleIcon className={confirmationDialogStyles.icon} />
+            </div>
+          )}
+          <div className={confirmationDialogStyles.body}>
+            <p className={confirmationDialogStyles.text.message}>{message}</p>
           </div>
-        )}
-        <div className={confirmationDialogStyles.body}>
-          <p className={confirmationDialogStyles.text.message}>{message}</p>
         </div>
-      </div>
+      </ModalBody>
+      <ModalFooter>
+        <Button
+          variant="outline"
+          onClick={onCancel}
+          disabled={isLoading}
+          className={confirmationDialogStyles.buttons.cancel}
+        >
+          {cancelText}
+        </Button>
+        <Button
+          variant={variant}
+          onClick={handleConfirm}
+          disabled={isLoading}
+          className={confirmationDialogStyles.buttons.confirm}
+        >
+          {isLoading && <Loader2Icon className={confirmationDialogStyles.loadingIcon} />}
+          {confirmText}
+        </Button>
+      </ModalFooter>
     </ModalWrapper>
   );
 }

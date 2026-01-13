@@ -3,16 +3,10 @@
 import { cn } from "@/lib/utils";
 import * as React from "react";
 import { useMediaQuery } from "@/hooks/use-media-query";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "./dialog";
-import { Drawer, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle } from "./drawer";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "./dialog";
+import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from "./drawer";
 import { modalWrapperStyles } from "./theme/modal-wrapper-styles";
-
-/**
- * Modal Wrapper Component
- *
- * Unified modal component that automatically switches between Dialog (desktop)
- * and Drawer (mobile) based on screen size.
- */
+import { Loader2 } from "lucide-react";
 
 // ============================================================================
 // TYPES & INTERFACES
@@ -29,16 +23,12 @@ export interface ModalWrapperProps {
   description?: string;
   /** Modal content */
   children: React.ReactNode;
-  /** Optional footer content (buttons, actions, etc.) */
-  footer?: React.ReactNode;
   /** Maximum width of the modal */
   maxWidth?: "sm" | "md" | "lg" | "xl" | "full";
   /** Show/hide the close button (default: true) */
   showCloseButton?: boolean;
   /** Additional CSS classes for the modal container */
   className?: string;
-  /** Additional CSS classes for the content area */
-  contentClassName?: string;
   /** Additional CSS classes for the title */
   titleClassName?: string;
   /** Additional CSS classes for the description */
@@ -47,10 +37,16 @@ export interface ModalWrapperProps {
   isLoading?: boolean;
   /** Disable closing on outside click/Esc (default: false) */
   disableOutsideClose?: boolean;
+  /** 
+   * Mobile-specific: Reposition inputs to avoid keyboard overlap.
+   * Set to `false` if inputs are flying off screen or handling it manually.
+   * Default: `false` (Fixed behavior)
+   */
+  repositionInputs?: boolean;
 }
 
 // ============================================================================
-// COMPONENT
+// ROOT COMPONENT
 // ============================================================================
 
 export function ModalWrapper({
@@ -59,24 +55,24 @@ export function ModalWrapper({
   title,
   description,
   children,
-  footer,
   className,
-  contentClassName,
   titleClassName,
   descriptionClassName,
   showCloseButton = true,
   isLoading = false,
   disableOutsideClose = false,
+  repositionInputs = false,
 }: ModalWrapperProps) {
   const isDesktop = useMediaQuery("(min-width: 640px)");
   const contentRef = React.useRef<HTMLDivElement | null>(null);
 
+  // Focus management
   const handleOpenAutoFocus = React.useCallback((event: Event) => {
     event.preventDefault();
     contentRef.current?.focus();
   }, []);
 
-  // Prevent closing if disabled
+  // Prevent closing logic
   const handleOpenChange = React.useCallback(
     (open: boolean) => {
       if (disableOutsideClose && !open) {
@@ -95,9 +91,9 @@ export function ModalWrapper({
           tabIndex={-1}
           onOpenAutoFocus={handleOpenAutoFocus}
           showCloseButton={showCloseButton}
-          className={className}
+          className={cn("max-h-[90vh] flex flex-col p-0 gap-0", className)}
         >
-          <DialogHeader className={modalWrapperStyles.dialogHeader}>
+          <DialogHeader className="p-6 pb-2">
             <DialogTitle className={cn(modalWrapperStyles.dialogTitle, titleClassName)}>{title}</DialogTitle>
             {description ? (
               <DialogDescription className={cn(modalWrapperStyles.dialogDescription, descriptionClassName)}>
@@ -108,34 +104,35 @@ export function ModalWrapper({
             )}
           </DialogHeader>
 
-          <div className={cn(modalWrapperStyles.content, contentClassName)}>
-            {isLoading ? (
-              <div className={modalWrapperStyles.loadingWrap}>
-                <div className={modalWrapperStyles.loadingDot} />
-                <span className={modalWrapperStyles.loadingText}>Caricamento...</span>
-              </div>
-            ) : (
-              children
-            )}
-          </div>
-
-          {footer && !isLoading && (
-            <DialogFooter>{footer}</DialogFooter>
+          {isLoading ? (
+            <div className={modalWrapperStyles.loadingWrap}>
+              <Loader2 className="h-8 w-8 animate-spin text-primary/30" />
+            </div>
+          ) : (
+            <div className="flex-1 overflow-y-auto px-6 py-2">
+              {children}
+            </div>
           )}
         </DialogContent>
       </Dialog>
     );
   }
 
+  // Mobile Drawer
   return (
-    <Drawer open={isOpen} onOpenChange={handleOpenChange}>
+    <Drawer
+      open={isOpen}
+      onOpenChange={handleOpenChange}
+      repositionInputs={repositionInputs} // Fix for keyboard issue
+    >
       <DrawerContent
         ref={contentRef}
         tabIndex={-1}
         onOpenAutoFocus={handleOpenAutoFocus}
-        className={cn(modalWrapperStyles.drawerContent, className)}
+        className={cn(modalWrapperStyles.drawerContent, "h-[96dvh] mt-24 rounded-t-[10px]", className)}
         aria-describedby={undefined}
       >
+        <div className="mx-auto mt-4 h-2 w-[100px] rounded-full bg-muted" />
         <DrawerHeader className={modalWrapperStyles.drawerHeader}>
           <DrawerTitle className={cn(modalWrapperStyles.drawerTitle, titleClassName)}>{title}</DrawerTitle>
           {description ? (
@@ -149,19 +146,14 @@ export function ModalWrapper({
           )}
         </DrawerHeader>
 
-        <div className={cn(modalWrapperStyles.drawerContentBody, contentClassName)}>
-          {isLoading ? (
-            <div className={modalWrapperStyles.loadingWrap}>
-              <div className={modalWrapperStyles.loadingDot} />
-              <span className={modalWrapperStyles.loadingText}>Caricamento...</span>
-            </div>
-          ) : (
-            children
-          )}
-        </div>
-
-        {footer && !isLoading && (
-          <DrawerFooter className={modalWrapperStyles.drawerFooter}>{footer}</DrawerFooter>
+        {isLoading ? (
+          <div className={modalWrapperStyles.loadingWrap}>
+            <Loader2 className="h-8 w-8 animate-spin text-primary/30" />
+          </div>
+        ) : (
+          <div className={cn(modalWrapperStyles.drawerContentBody, "h-full flex flex-col")}>
+            {children}
+          </div>
         )}
       </DrawerContent>
     </Drawer>
@@ -169,18 +161,33 @@ export function ModalWrapper({
 }
 
 // ============================================================================
-// HELPER COMPONENTS
+// SUB-COMPONENTS (Compound Pattern Helpers)
 // ============================================================================
 
 /**
- * Pre-styled modal content wrapper for consistent spacing
+ * Container for the distinct sections of a modal form/content.
+ * Use inside ModalWrapper > form or just ModalWrapper
  */
-export function ModalContent({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <div className={cn("flex flex-col", className)}>{children}</div>;
+export function ModalBody({ children, className }: { children: React.ReactNode; className?: string }) {
+  return <div className={cn("flex-1 py-2 space-y-4", className)}>{children}</div>;
 }
 
 /**
- * Pre-styled modal section with optional title
+ * Footer actions container.
+ * Automatically adapts to Dialog (right-aligned) vs Drawer (full-width stack) via CSS parent context or media query if needed.
+ * But we'll standardise it here.
+ */
+export function ModalFooter({ children, className }: { children: React.ReactNode; className?: string }) {
+  // Mobile drawer usually needs a bit more padding at bottom for safe area
+  return (
+    <div className={cn("mt-auto py-4 border-t border-border pt-4 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end sm:gap-2", className)}>
+      {children}
+    </div>
+  );
+}
+
+/**
+ * Section grouping for content
  */
 export function ModalSection({
   title,
@@ -192,19 +199,10 @@ export function ModalSection({
   className?: string;
 }) {
   return (
-    <div className={cn("flex flex-col gap-1.5", className)}>
-      {title && <h4 className="text-xs font-semibold text-primary/80 uppercase tracking-wide shrink-0">{title}</h4>}
+    <div className={cn("flex flex-col gap-3", className)}>
+      {title && <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{title}</h4>}
       {children}
     </div>
   );
 }
 
-/**
- * Pre-styled modal footer with action buttons
- */
-export function ModalActions({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <div className={cn("flex flex-col-reverse gap-2 sm:flex-row sm:justify-end", className)}>{children}</div>;
-}
-
-// Export type for external use
-// Note: avoid re-exporting the same type name to prevent TS duplicate export conflicts.

@@ -9,7 +9,7 @@ import { getTempId } from "@/lib/utils/temp-id";
 import { CategoryService } from "@/lib/services";
 import { categoryStyles, getCategoryColorStyle } from "../theme/category-styles";
 import { createCategoryAction, updateCategoryAction } from "@/features/categories/actions/category-actions";
-import { ModalWrapper, ModalContent, ModalSection } from "@/components/ui/modal-wrapper";
+import { ModalWrapper, ModalBody, ModalFooter, ModalSection } from "@/components/ui/modal-wrapper";
 import { FormActions, FormField } from "@/components/form";
 import { IconPicker, Input } from "@/components/ui";
 import { useRequiredGroupId } from "@/hooks";
@@ -213,24 +213,16 @@ function CategoryFormModal({
   };
 
   return (
-    <form className={categoryStyles.formModal.form}>
-      <ModalWrapper
-        isOpen={isOpen}
-        onOpenChange={onClose}
-        title={title}
-        description={description}
-        maxWidth="md"
-        footer={
-          <FormActions
-            submitType="button"
-            submitLabel={isEditMode ? "Salva" : "Crea Categoria"}
-            onSubmit={handleSubmit(onSubmit)}
-            onCancel={onClose}
-            isSubmitting={isSubmitting}
-          />
-        }
-      >
-        <ModalContent>
+    <ModalWrapper
+      isOpen={isOpen}
+      onOpenChange={onClose}
+      title={title}
+      description={description}
+      maxWidth="md"
+      repositionInputs={false}
+    >
+      <form onSubmit={handleSubmit(onSubmit)} className={cn(categoryStyles.formModal.form, "flex flex-col h-full")}>
+        <ModalBody>
           {/* Submit Error Display */}
           {errors.root && (
             <div className={categoryStyles.formModal.error}>
@@ -303,9 +295,19 @@ function CategoryFormModal({
               </div>
             </FormField>
           </ModalSection>
-        </ModalContent>
-      </ModalWrapper>
-    </form>
+        </ModalBody>
+
+        <ModalFooter>
+          <FormActions
+            submitType="submit"
+            submitLabel={isEditMode ? "Salva" : "Crea Categoria"}
+            onCancel={onClose}
+            isSubmitting={isSubmitting}
+            className="w-full sm:w-auto"
+          />
+        </ModalFooter>
+      </form>
+    </ModalWrapper>
   );
 }
 

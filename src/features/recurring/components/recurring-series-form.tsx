@@ -19,7 +19,8 @@ import {
   CategoryField,
   DateField,
   Input,
-  ModalContent,
+  ModalBody,
+  ModalFooter,
   ModalSection,
   ModalWrapper,
 } from "@/components/ui";
@@ -349,17 +350,9 @@ export function RecurringSeriesForm({
         title={title}
         description={description}
         maxWidth="md"
-        footer={
-          <FormActions
-            submitType="button"
-            submitLabel={mode === "edit" ? "Salva Modifiche" : "Crea Serie"}
-            onSubmit={handleSubmit}
-            onCancel={() => onOpenChange(false)}
-            isSubmitting={isSubmitting}
-          />
-        }
+
       >
-        <ModalContent>
+        <ModalBody>
           {/* Error message */}
           {errors.submit && (
             <div className={recurringStyles.form.errorWrap}>
@@ -474,7 +467,16 @@ export function RecurringSeriesForm({
               />
             </FormField>
           </ModalSection>
-        </ModalContent>
+        </ModalBody>
+        <ModalFooter>
+          <FormActions
+            submitType="button"
+            submitLabel={mode === "edit" ? "Salva Modifiche" : "Crea Serie"}
+            onSubmit={handleSubmit}
+            onCancel={() => onOpenChange(false)}
+            isSubmitting={isSubmitting}
+          />
+        </ModalFooter>
       </ModalWrapper>
     </form>
   );

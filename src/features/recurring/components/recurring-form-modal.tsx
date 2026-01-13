@@ -1,5 +1,6 @@
 "use client";
 
+import { cn } from "@/lib/utils";
 import { useEffect, useMemo } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -10,7 +11,7 @@ import {
   createRecurringSeriesAction,
   updateRecurringSeriesAction,
 } from "@/features/recurring/actions/recurring-actions";
-import { ModalWrapper, ModalContent, ModalSection } from "@/components/ui/modal-wrapper";
+import { ModalWrapper, ModalBody, ModalFooter, ModalSection } from "@/components/ui/modal-wrapper";
 import { FormActions, FormField, FormSelect, MultiUserSelect } from "@/components/form";
 import {
   AccountField,
@@ -342,24 +343,16 @@ function RecurringFormModal({
   };
 
   return (
-    <form className={recurringStyles.formModal.form}>
-      <ModalWrapper
-        isOpen={isOpen}
-        onOpenChange={onClose}
-        title={title}
-        description={description}
-        maxWidth="md"
-        footer={
-          <FormActions
-            submitType="button"
-            submitLabel={isEditMode ? "Salva Modifiche" : "Crea Serie"}
-            onSubmit={handleSubmit(onSubmit)}
-            onCancel={onClose}
-            isSubmitting={isSubmitting}
-          />
-        }
-      >
-        <ModalContent className={recurringStyles.formModal.content}>
+    <ModalWrapper
+      isOpen={isOpen}
+      onOpenChange={onClose}
+      title={title}
+      description={description}
+      maxWidth="md"
+      repositionInputs={false}
+    >
+      <form onSubmit={handleSubmit(onSubmit)} className={cn(recurringStyles.formModal.form, "flex flex-col h-full")}>
+        <ModalBody className={recurringStyles.formModal.content}>
           {/* Submit Error Display */}
           {errors.root && (
             <div className={recurringStyles.formModal.error}>
@@ -484,9 +477,19 @@ function RecurringFormModal({
               />
             </FormField>
           </ModalSection>
-        </ModalContent>
-      </ModalWrapper>
-    </form>
+        </ModalBody>
+
+        <ModalFooter>
+          <FormActions
+            submitType="submit"
+            submitLabel={isEditMode ? "Salva Modifiche" : "Crea Serie"}
+            onCancel={onClose}
+            isSubmitting={isSubmitting}
+            className="w-full sm:w-auto"
+          />
+        </ModalFooter>
+      </form>
+    </ModalWrapper>
   );
 }
 

@@ -1,5 +1,5 @@
 "use client";
-
+import { cn } from "@/lib/utils";
 import { useEffect, useMemo } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -8,7 +8,7 @@ import type { CheckedState } from "@radix-ui/react-checkbox";
 import { Budget, BudgetType } from "@/lib/types";
 import { getTempId } from "@/lib/utils/temp-id";
 import { createBudgetAction, updateBudgetAction } from "@/features/budgets/actions/budget-actions";
-import { ModalWrapper, ModalContent, ModalSection } from "@/components/ui/modal-wrapper";
+import { ModalWrapper, ModalBody, ModalFooter, ModalSection } from "@/components/ui/modal-wrapper";
 import { FormActions, FormField, FormSelect } from "@/components/form";
 import { AmountField, Checkbox, Input, UserField } from "@/components/ui";
 import { usePermissions, useRequiredCurrentUser, useRequiredGroupUsers, useRequiredGroupId } from "@/hooks";
@@ -255,24 +255,16 @@ function BudgetFormModal({
   };
 
   return (
-    <form className={budgetStyles.formModal.form}>
-      <ModalWrapper
-        isOpen={isOpen}
-        onOpenChange={onClose}
-        title={title}
-        description={description}
-        maxWidth="md"
-        footer={
-          <FormActions
-            submitType="button"
-            submitLabel={isEditMode ? "Salva" : "Crea Budget"}
-            onSubmit={handleSubmit(onSubmit)}
-            onCancel={onClose}
-            isSubmitting={isSubmitting}
-          />
-        }
-      >
-        <ModalContent className={budgetStyles.formModal.content}>
+    <ModalWrapper
+      isOpen={isOpen}
+      onOpenChange={onClose}
+      title={title}
+      description={description}
+      maxWidth="md"
+      repositionInputs={false}
+    >
+      <form onSubmit={handleSubmit(onSubmit)} className={cn(budgetStyles.formModal.form, "flex flex-col h-full")}>
+        <ModalBody className={budgetStyles.formModal.content}>
           {/* Submit Error Display */}
           {errors.root && (
             <div className={budgetStyles.formModal.error}>
@@ -391,9 +383,19 @@ function BudgetFormModal({
               </div>
             </FormField>
           </ModalSection>
-        </ModalContent>
-      </ModalWrapper>
-    </form>
+        </ModalBody>
+
+        <ModalFooter>
+          <FormActions
+            submitType="submit"
+            submitLabel={isEditMode ? "Salva" : "Crea Budget"}
+            onCancel={onClose}
+            isSubmitting={isSubmitting}
+            className="w-full sm:w-auto"
+          />
+        </ModalFooter>
+      </form>
+    </ModalWrapper>
   );
 }
 

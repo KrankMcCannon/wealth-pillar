@@ -1,5 +1,5 @@
 "use client";
-
+import { cn } from "@/lib/utils";
 import { useEffect } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -7,7 +7,7 @@ import { z } from "zod";
 import { Account } from "@/lib/types";
 import { getTempId } from "@/lib/utils/temp-id";
 import { createAccountAction, updateAccountAction } from "@/features/accounts/actions/account-actions";
-import { ModalWrapper, ModalContent, ModalSection } from "@/components/ui/modal-wrapper";
+import { ModalWrapper, ModalBody, ModalFooter, ModalSection } from "@/components/ui/modal-wrapper";
 import { FormActions, FormField, FormSelect } from "@/components/form";
 import { UserField } from "@/components/ui/fields";
 import { Input } from "@/components/ui/input";
@@ -215,24 +215,16 @@ function AccountFormModal({
   ];
 
   return (
-    <form className={accountStyles.formModal.form}>
-      <ModalWrapper
-        isOpen={isOpen}
-        onOpenChange={onClose}
-        title={title}
-        description={description}
-        maxWidth="md"
-        footer={
-          <FormActions
-            submitType="button"
-            submitLabel={isEditMode ? "Aggiorna" : "Crea"}
-            onSubmit={handleSubmit(onSubmit)}
-            onCancel={onClose}
-            isSubmitting={isSubmitting}
-          />
-        }
-      >
-        <ModalContent className={accountStyles.formModal.content}>
+    <ModalWrapper
+      isOpen={isOpen}
+      onOpenChange={onClose}
+      title={title}
+      description={description}
+      maxWidth="md"
+      repositionInputs={false}
+    >
+      <form onSubmit={handleSubmit(onSubmit)} className={cn(accountStyles.formModal.form, "flex flex-col h-full")}>
+        <ModalBody className={accountStyles.formModal.content}>
           {/* Submit Error Display */}
           {errors.root && (
             <div className={accountStyles.formModal.error}>
@@ -288,9 +280,19 @@ function AccountFormModal({
               </Label>
             </div>
           </ModalSection>
-        </ModalContent>
-      </ModalWrapper>
-    </form>
+        </ModalBody>
+
+        <ModalFooter>
+          <FormActions
+            submitType="submit"
+            submitLabel={isEditMode ? "Aggiorna" : "Crea"}
+            onCancel={onClose}
+            isSubmitting={isSubmitting}
+            className="w-full sm:w-auto"
+          />
+        </ModalFooter>
+      </form>
+    </ModalWrapper>
   );
 }
 

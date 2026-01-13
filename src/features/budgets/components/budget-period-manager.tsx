@@ -6,7 +6,7 @@ import { BudgetPeriod, Transaction, Budget, User } from "@/lib/types";
 import { startPeriodAction, closePeriodAction } from "@/features/budgets/actions/budget-period-actions";
 import { FormActions } from "@/components/form";
 import { DateField, UserField } from "@/components/ui/fields";
-import { Alert, AlertDescription, Badge, ModalContent, ModalSection, ModalWrapper } from "@/components/ui";
+import { Alert, AlertDescription, Badge, ModalBody, ModalFooter, ModalSection, ModalWrapper } from "@/components/ui";
 import { usePermissions } from "@/hooks";
 import { toDateTime } from "@/lib/utils/date-utils";
 import { usePageDataStore } from "@/stores/page-data-store";
@@ -210,18 +210,8 @@ export function BudgetPeriodManager({
         title="Gestione Periodi Budget"
         description="Gestisci i periodi di budget per tracciare le spese nel tempo"
         maxWidth="lg"
-        footer={
-          <FormActions
-            submitType="button"
-            onCancel={() => setIsOpen(false)}
-            onSubmit={handleSubmit}
-            isSubmitting={isActionPending}
-            submitLabel={isActivePeriod ? "Chiudi periodo" : "Inizia nuovo periodo"}
-            submitVariant="default"
-          />
-        }
       >
-        <ModalContent>
+        <ModalBody>
           {/* Error message */}
           {error && (
             <div className={budgetStyles.periodManager.error}>
@@ -336,8 +326,19 @@ export function BudgetPeriodManager({
               </div>
             </div>
           </ModalSection>
-        </ModalContent>
-      </ModalWrapper>
+
+        </ModalBody>
+        <ModalFooter>
+          <FormActions
+            submitType="button"
+            onCancel={() => setIsOpen(false)}
+            onSubmit={handleSubmit}
+            isSubmitting={isActionPending}
+            submitLabel={isActivePeriod ? "Chiudi periodo" : "Inizia nuovo periodo"}
+            submitVariant="default"
+          />
+        </ModalFooter>
+      </ModalWrapper >
     </>
   );
 }

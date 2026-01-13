@@ -39,7 +39,7 @@ const DrawerContent = React.forwardRef<
     <DrawerPrimitive.Content
       ref={ref}
       data-slot="drawer-content"
-      className={cn(drawerStyles.content, className)}
+      className={cn(drawerStyles.content, "max-h-[96dvh] flex flex-col fixed bottom-0 left-0 right-0", className)}
       {...props}
     >
       {children}
