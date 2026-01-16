@@ -428,8 +428,8 @@ function RecurringFormModal({
 
               {/* Amount */}
               <AmountField
-                value={Number.parseFloat(watchedAmount || "0")}
-                onChange={(value) => setValue("amount", value.toString())}
+                value={watchedAmount}
+                onChange={(value) => setValue("amount", value)}
                 error={errors.amount?.message}
                 label="Importo"
                 placeholder="0,00"

@@ -10,6 +10,7 @@ import { CACHE_TAGS } from '@/lib/cache';
 import type { Budget, User } from '@/lib/types';
 import type { ServiceResult } from '@/server/services/user.service';
 import { BudgetRepository } from '@/server/dal/budget.repository';
+import { serialize } from '@/lib/utils/serializer';
 
 /**
  * Server Action: Create Budget
@@ -113,7 +114,7 @@ export async function createBudgetAction(
       revalidateTag(CACHE_TAGS.BUDGETS, 'max'); // Global budgets tag if used
       revalidateTag(`user:${input.user_id}:budgets`, 'max'); // Legacy tag support
 
-      return { data: budget as unknown as Budget, error: null };
+      return { data: serialize(budget) as unknown as Budget, error: null };
     }
 
     return { data: null, error: 'Failed to create budget' };
@@ -231,7 +232,7 @@ export async function updateBudgetAction(
         revalidateTag(`user:${input.user_id}:budgets`, 'max');
       }
 
-      return { data: budget as unknown as Budget, error: null };
+      return { data: serialize(budget) as unknown as Budget, error: null };
     }
 
     return { data: null, error: 'Failed to update budget' };

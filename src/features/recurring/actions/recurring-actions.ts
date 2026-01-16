@@ -15,6 +15,7 @@ import { canAccessUserData, isMember } from '@/lib/utils/permissions';
 import type { RecurringTransactionSeries, User } from "@/lib/types";
 import { nowISO, toDateString } from "@/lib/utils/date-utils";
 import { RecurringRepository } from '@/server/dal/recurring.repository';
+import { serialize } from '@/lib/utils/serializer';
 
 /**
  * Input type for creating a recurring series
@@ -156,7 +157,7 @@ export async function createRecurringSeriesAction(
       revalidateTag(`user:${userId}:recurring`, 'max');
     }
 
-    return { data: data as unknown as RecurringTransactionSeries, error: null };
+    return { data: serialize(data) as unknown as RecurringTransactionSeries, error: null };
   } catch (error) {
     console.error("[createRecurringSeriesAction] Unexpected error:", error);
     return {
@@ -280,7 +281,7 @@ export async function updateRecurringSeriesAction(
       }
     }
 
-    return { data: data as unknown as RecurringTransactionSeries, error: null };
+    return { data: serialize(data) as unknown as RecurringTransactionSeries, error: null };
   } catch (error) {
     console.error("[updateRecurringSeriesAction] Unexpected error:", error);
     return {

@@ -78,40 +78,36 @@ export function FormCurrencyInput({
     // Allow only numbers and decimal point
     const cleanedValue = inputValue.replace(/[^\d.,]/g, "");
 
-    // Replace comma with dot for decimal
-    const normalizedValue = cleanedValue.replace(",", ".");
-
-    // Validate decimal places
-    const parts = normalizedValue.split(".");
-    if (parts.length > 2) return; // Multiple decimal points
-
-    if (parts[1] && parts[1].length > decimals) {
-      return; // Too many decimal places
-    }
-
-    // Validate min/max
-    if (normalizedValue !== "" && normalizedValue !== ".") {
-      const numValue = parseFloat(normalizedValue);
-      if (!isNaN(numValue)) {
-        if (min !== undefined && numValue < min) return;
-        if (max !== undefined && numValue > max) return;
-      }
-    }
-
-    onChange(normalizedValue);
+    // Just pass the cleaned value, don't normalize yet
+    onChange(cleanedValue);
   };
 
-  // Handle blur - format the value
+  // Handle blur - normalize and format the value
   const handleBlur = () => {
-    if (stringValue === "" || stringValue === ".") {
+    if (stringValue === "" || stringValue === "." || stringValue === ",") {
       onChange("");
       return;
     }
 
-    const numValue = parseFloat(stringValue);
+    // Normalize: replace commas with dots
+    const normalized = stringValue.replace(/,/g, ".");
+
+    // Handle multiple dots - keep only first
+    const parts = normalized.split(".");
+    let finalValue = parts[0];
+    if (parts.length > 1) {
+      finalValue += "." + parts.slice(1).join("");
+    }
+
+    const numValue = parseFloat(finalValue);
     if (!isNaN(numValue)) {
+      // Validate min/max on blur
+      let validatedValue = numValue;
+      if (min !== undefined && numValue < min) validatedValue = min;
+      if (max !== undefined && numValue > max) validatedValue = max;
+
       // Format to fixed decimal places
-      const formatted = numValue.toFixed(decimals);
+      const formatted = validatedValue.toFixed(decimals);
       onChange(formatted);
     } else {
       onChange("");
