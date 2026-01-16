@@ -74,7 +74,7 @@ export async function createAccountAction(
         revalidateTag(CACHE_TAGS.ACCOUNTS, 'max');
         revalidateTag(CACHE_TAGS.ACCOUNT(account.id), 'max');
         revalidateTag(`group:${input.group_id}:accounts`, 'max');
-        input.user_ids.forEach((userId) => revalidateTag(`user:${userId}:accounts`, 'max'));
+        input.user_ids.forEach((userId: string) => revalidateTag(`user:${userId}:accounts`, 'max'));
 
         return { data: account as unknown as Account };
     } catch (error) {
@@ -154,7 +154,7 @@ export async function updateAccountAction(
 
         // Revalidate users (both old and new to be safe)
         const userIds = new Set([...existingAccount.user_ids, ...(input.user_ids || [])]);
-        userIds.forEach((userId) => revalidateTag(`user:${userId}:accounts`, 'max'));
+        userIds.forEach((userId: string) => revalidateTag(`user:${userId}:accounts`, 'max'));
 
         return { data: account as unknown as Account };
     } catch (error) {
@@ -202,7 +202,7 @@ export async function deleteAccountAction(
         revalidateTag(CACHE_TAGS.ACCOUNTS, 'max');
         revalidateTag(CACHE_TAGS.ACCOUNT(accountId), 'max');
         revalidateTag(`group:${existingAccount.group_id}:accounts`, 'max');
-        existingAccount.user_ids.forEach((userId) => revalidateTag(`user:${userId}:accounts`, 'max'));
+        existingAccount.user_ids.forEach((userId: string) => revalidateTag(`user:${userId}:accounts`, 'max'));
 
         return { data: true };
     } catch (error) {
