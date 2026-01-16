@@ -1,5 +1,7 @@
 import 'server-only';
-import { CACHE_TAGS, cached, cacheOptions, userPreferencesCacheKeys } from '@/lib/cache';
+import { cached } from '@/lib/cache';
+import { CACHE_TAGS, cacheOptions } from '@/lib/cache/config';
+import { userPreferencesCacheKeys } from '@/lib/cache/keys';
 import { UserPreferencesRepository } from '@/server/dal';
 import type { ServiceResult } from './user.service';
 import type { Prisma } from '@prisma/client';
@@ -14,14 +16,7 @@ export type UserPreferences = user_preferences;
 /**
  * User Preferences update type (partial updates allowed)
  */
-export interface UserPreferencesUpdate {
-  currency?: string;
-  language?: string;
-  timezone?: string;
-  notifications_push?: boolean;
-  notifications_email?: boolean;
-  notifications_budget_alerts?: boolean;
-}
+import type { UserPreferencesUpdate } from "@/lib/types";
 
 /**
  * Default preferences for new users

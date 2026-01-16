@@ -1,9 +1,9 @@
-export * from './account.repository';
-export * from './budget.repository';
-export * from './category.repository';
-export * from './group.repository';
-export * from './group-invitation.repository';
-export * from './recurring.repository';
-export * from './transaction.repository';
-export * from './user.repository';
-export * from './user-preferences.repository';
+export { AccountRepository } from './account.repository';
+export { BudgetRepository } from './budget.repository';
+export { CategoryRepository } from './category.repository';
+export { GroupRepository } from './group.repository';
+export { GroupInvitationRepository } from './group-invitation.repository';
+export { RecurringRepository } from './recurring.repository';
+export { TransactionRepository } from './transaction.repository';
+export { UserRepository } from './user.repository';
+export { UserPreferencesRepository } from './user-preferences.repository';

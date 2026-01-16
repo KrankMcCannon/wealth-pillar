@@ -23,7 +23,7 @@ import { FormField } from "@/components/form";
 import { Input, Button } from "@/components/ui";
 import { MobileCalendarDrawer } from "../mobile-calendar-drawer";
 import { calendarDrawerStyles } from "@/lib/styles/calendar-drawer.styles";
-import { calendarTriggerVariants } from "@/lib/utils/date-drawer-variants";
+import { calendarTriggerVariants } from "@/lib/utils";
 
 export interface DateFieldProps {
   /** Current date value (YYYY-MM-DD format for API compatibility) */

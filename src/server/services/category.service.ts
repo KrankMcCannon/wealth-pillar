@@ -1,5 +1,7 @@
 import 'server-only';
-import { CACHE_TAGS, cached, cacheOptions, categoryCacheKeys } from '@/lib/cache';
+import { cached } from '@/lib/cache';
+import { CACHE_TAGS, cacheOptions } from '@/lib/cache/config';
+import { categoryCacheKeys } from '@/lib/cache/keys';
 import { CategoryRepository } from '@/server/dal';
 import { FinanceLogicService } from './finance-logic.service';
 import type { Category } from '@/lib/types';

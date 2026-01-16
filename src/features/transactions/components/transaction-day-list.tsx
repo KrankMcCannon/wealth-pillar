@@ -37,7 +37,7 @@ import { Button } from "@/components/ui";
 import { Transaction, Category } from "@/lib";
 import { GroupedTransactionCard } from "./grouped-transaction-card";
 import { transactionStyles } from "@/styles/system";
-import { formatCurrency } from "@/lib/utils/currency-formatter";
+import { formatCurrency } from '@/lib/utils';
 import { FileText, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -73,7 +73,7 @@ export interface TransactionDayListProps {
   accountNames: Record<string, string>;
   /** Categories for displaying labels and icons */
   categories: Category[];
-  
+
   // Optional section header
   /** Title for the section header */
   sectionTitle?: string;
@@ -81,7 +81,7 @@ export interface TransactionDayListProps {
   sectionSubtitle?: string;
   /** Custom class for section header */
   sectionHeaderClassName?: string;
-  
+
   // Empty state customization
   /** Icon for empty state */
   emptyIcon?: LucideIcon;
@@ -89,7 +89,7 @@ export interface TransactionDayListProps {
   emptyTitle?: string;
   /** Description for empty state */
   emptyDescription?: string;
-  
+
   // View all button (for budget page)
   /** Whether to show the "View All" button */
   showViewAll?: boolean;
@@ -97,17 +97,17 @@ export interface TransactionDayListProps {
   viewAllLabel?: string;
   /** Callback when "View All" is clicked */
   onViewAll?: () => void;
-  
+
   // Transaction card variant
   /** Variant for transaction cards */
   variant?: "regular" | "recurrent";
-  
+
   // Style customization
   /** Whether totals are always negative (expenses only, like budgets) */
   expensesOnly?: boolean;
   /** Custom container className */
   className?: string;
-  
+
   // Callbacks
   /** Callback when a transaction is clicked for editing */
   onEditTransaction: (transaction: Transaction) => void;
@@ -155,7 +155,7 @@ export function TransactionDayList({
           groupedTransactions.map((group) => {
             const count = group.count ?? group.transactions.length;
             const total = group.total;
-            
+
             return (
               <section key={group.date}>
                 {/* Day Header */}
@@ -169,11 +169,10 @@ export function TransactionDayList({
                         Totale:
                       </span>
                       <span
-                        className={`${transactionStyles.dayGroup.statsTotalValue} ${
-                          expensesOnly || total < 0
+                        className={`${transactionStyles.dayGroup.statsTotalValue} ${expensesOnly || total < 0
                             ? transactionStyles.dayGroup.statsTotalValueNegative
                             : transactionStyles.dayGroup.statsTotalValuePositive
-                        }`}
+                          }`}
                       >
                         {formatCurrency(Math.abs(total))}
                       </span>
@@ -249,7 +248,7 @@ export function TransactionDayListSkeleton({
           <div className={transactionStyles.dayList.skeleton.headerSubtitle} />
         </div>
       )}
-      
+
       {SKELETON_GROUP_KEYS.slice(0, itemCount).map((groupKey) => (
         <div key={groupKey} className={transactionStyles.dayList.skeleton.group}>
           {/* Day header skeleton */}
@@ -260,7 +259,7 @@ export function TransactionDayListSkeleton({
               <div className={transactionStyles.dayList.skeleton.groupTotalSub} />
             </div>
           </div>
-          
+
           {/* Transaction cards skeleton */}
           <div className={transactionStyles.dayList.skeleton.card}>
             {SKELETON_TX_KEYS.map((txKey) => (

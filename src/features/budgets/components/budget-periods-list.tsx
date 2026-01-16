@@ -8,7 +8,7 @@ import {
   useActiveBudgetPeriods,
   useHistoricalBudgetPeriods,
 } from "@/stores/reports-data-store";
-import { deletePeriodAction } from "@/features/budgets/actions/budget-period-actions";
+import { deletePeriodAction } from "@/features/budgets";
 import { BudgetPeriodCard } from "./budget-period-card";
 import { budgetStyles } from "@/styles/system";
 

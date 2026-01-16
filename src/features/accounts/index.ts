@@ -1,6 +1,5 @@
 /**
  * Accounts Feature - Public API
- * Exports all account-related components, styles, and business logic
  */
 
 // Components - Basic
@@ -16,7 +15,15 @@ export { AccountSliderCard } from "./components/AccountSliderCard";
 export { TotalBalanceLink } from "./components/TotalBalanceLink";
 
 // Skeleton Components
-export * from "./components/account-skeletons";
+export {
+  AccountHeaderSkeleton, BalanceCardSkeleton, AccountListSkeleton,
+  BalanceSectionSliderSkeleton, AccountsPageSkeleton
+} from "./components/account-skeletons";
 
 // Theme - Styles and Design Tokens
 export { accountStyles } from "./theme";
+
+// Actions
+export {
+  createAccountAction, updateAccountAction, deleteAccountAction
+} from "./actions/account-actions";

@@ -2,7 +2,6 @@ import { unstable_cache } from 'next/cache';
 
 /**
  * Cache Utilities
- * Wrapper around Next.js unstable_cache for type-safe caching
  */
 
 /**
@@ -38,19 +37,3 @@ export function cached<T extends (...args: unknown[]) => Promise<unknown>>(
 ): T {
   return unstable_cache(fn, [...keyParts], options);
 }
-
-// Re-export cache configuration for convenience
-export { CACHE_TAGS, CACHE_TTL, cacheOptions } from './config';
-export {
-  accountCacheKeys,
-  budgetCacheKeys,
-  budgetPeriodCacheKeys,
-  categoryCacheKeys,
-  groupCacheKeys,
-  groupInvitationCacheKeys,
-  recurringCacheKeys,
-  transactionCacheKeys,
-  userCacheKeys,
-  userPreferencesCacheKeys,
-} from './keys';
-

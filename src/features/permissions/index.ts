@@ -2,4 +2,5 @@
  * Permissions Feature - Centralized exports
  */
 
-export * from "./components";
+export { PermissionGuard } from "@/components/shared/permission-guard";
+export { RoleBadge } from "@/components/ui/role-badge";

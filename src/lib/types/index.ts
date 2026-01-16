@@ -234,6 +234,14 @@ export interface UserBudgetSummary {
   overallPercentage: number;
 }
 
-// Re-export service types for convenience
-export type { CategoryMetric, ReportMetrics } from '@/server/services/transaction.service';
-export type { UserPreferences } from '@/server/services/user-preferences.service';
+import type { user_preferences } from '@prisma/client';
+export type UserPreferences = user_preferences;
+
+export interface UserPreferencesUpdate {
+  currency?: string;
+  language?: string;
+  timezone?: string;
+  notifications_push?: boolean;
+  notifications_email?: boolean;
+  notifications_budget_alerts?: boolean;
+}

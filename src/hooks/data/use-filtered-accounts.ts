@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import type { User, Account } from '@/lib/types';
-import { isMember as checkIsMember } from '@/lib/utils/permissions';
+import { isMember as checkIsMember } from '@/lib/utils';
 
 /**
  * Options for useFilteredAccounts hook

@@ -3,9 +3,9 @@
 import { revalidatePath } from 'next/cache';
 import { auth } from '@clerk/nextjs/server';
 import { BudgetPeriodService, UserService } from '@/server/services';
-import { canAccessUserData, isMember } from '@/lib/utils/permissions';
+import { canAccessUserData, isMember } from '@/lib/utils';
 import type { BudgetPeriod, User } from '@/lib/types';
-import type { ServiceResult } from '@/server/services/user.service';
+import type { ServiceResult } from '@/server/services';
 
 /**
  * Server Action: Start Budget Period

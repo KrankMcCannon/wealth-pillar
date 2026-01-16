@@ -5,7 +5,7 @@ import { Check, CreditCard, Loader2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ModalBody, ModalFooter, ModalWrapper } from "@/components/ui/modal-wrapper";
 import { toast } from "@/hooks/use-toast";
-import { updateSubscriptionAction } from "@/features/settings/actions";
+import { updateSubscriptionAction } from "@/features/settings";
 import { cn } from "@/lib";
 import { settingsStyles } from "@/styles/system";
 

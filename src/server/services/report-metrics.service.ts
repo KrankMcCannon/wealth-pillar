@@ -13,9 +13,6 @@ import type {
   BudgetBasedMetrics
 } from './finance-logic.service';
 
-// Re-export types for backward compatibility
-export type { OverviewMetrics, AccountBasedMetrics, BudgetBasedMetrics };
-
 /**
  * Report Metrics Service
  * Wraps FinanceLogicService for consistent metrics calculation on the reports page.

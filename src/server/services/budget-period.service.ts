@@ -1,14 +1,13 @@
-import {
-  CACHE_TAGS,
-  budgetPeriodCacheKeys,
-  cached,
-  cacheOptions,
-} from '@/lib/cache';
+import { cached } from '@/lib/cache';
+import { CACHE_TAGS, cacheOptions } from '@/lib/cache/config';
+import { budgetPeriodCacheKeys } from '@/lib/cache/keys';
 import type { BudgetPeriod, Budget, Transaction } from '@/lib/types';
 import type { BudgetPeriodJSON } from '@/server/db/types';
-import { DateTime, toDateTime, todayDateString } from '@/lib/utils/date-utils';
+import { toDateTime, todayDateString } from '@/lib/utils/date-utils';
+import { DateTime } from 'luxon';
 import type { ServiceResult } from './user.service';
 import { UserRepository } from '@/server/dal/user.repository';
+import { Prisma } from '@prisma/client';
 
 /**
  * Helper to revalidate cache tags (dynamically imported to avoid client-side issues)
@@ -413,7 +412,7 @@ export class BudgetPeriodService {
 
       // Update user
       await UserRepository.update(user.id, {
-        budget_periods: newPeriods as any
+        budget_periods: newPeriods as unknown as Prisma.InputJsonValue
       });
 
       // Invalidate caches

@@ -12,8 +12,8 @@ import { Tabs, TabsList, TabsTrigger } from "./tabs";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import { searchIcons } from "@/lib/utils/icon-search";
-import type { IconCategory } from "@/features/categories/constants/icon-metadata";
-import { CATEGORIES, ICON_METADATA, getIconByName } from "@/features/categories/constants/icon-metadata";
+import type { IconCategory } from "@/features/categories";
+import { CATEGORIES, ICON_METADATA, getIconByName } from "@/features/categories";
 
 /**
  * Modern Icon Picker Component

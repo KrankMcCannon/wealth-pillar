@@ -3,13 +3,13 @@
 import { revalidatePath, revalidateTag } from 'next/cache';
 
 import { auth } from '@clerk/nextjs/server';
-import { CreateBudgetInput } from '@/server/services/budget.service';
+import { CreateBudgetInput } from '@/server/services';
 import { UserService } from '@/server/services';
-import { canAccessUserData, isMember } from '@/lib/utils/permissions';
-import { CACHE_TAGS } from '@/lib/cache';
+import { canAccessUserData, isMember } from '@/lib/utils';
+import { CACHE_TAGS } from '@/lib/cache/config';
 import type { Budget, User } from '@/lib/types';
-import type { ServiceResult } from '@/server/services/user.service';
-import { BudgetRepository } from '@/server/dal/budget.repository';
+import type { ServiceResult } from '@/server/services';
+import { BudgetRepository } from '@/server/dal';
 import { serialize } from '@/lib/utils/serializer';
 
 /**

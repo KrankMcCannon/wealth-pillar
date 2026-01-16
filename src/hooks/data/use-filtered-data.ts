@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import type { User } from '@/lib/types';
-import { isMember as checkIsMember } from '@/lib/utils/permissions';
+import { isMember as checkIsMember } from '@/lib/utils';
 
 /**
  * Options for useFilteredData hook
@@ -44,30 +44,30 @@ interface UseFilteredDataReturn<T> {
  *
  * @example Basic usage
  * ```tsx
- * const { filteredData: filteredTransactions } = useFilteredData({
- *   data: transactions,
- *   currentUser,
- *   selectedUserId,
- * });
+  * const { filteredData: filteredTransactions } = useFilteredData({
+    *   data: transactions,
+    *   currentUser,
+    *   selectedUserId,
+    * });
  * ```
  *
  * @example With additional domain filter
  * ```tsx
- * const { filteredData: activeBudgets } = useFilteredData({
- *   data: budgets,
- *   currentUser,
- *   selectedUserId,
- *   additionalFilter: (budget) => budget.amount > 0,
+  * const { filteredData: activeBudgets } = useFilteredData({
+    *   data: budgets,
+    *   currentUser,
+    *   selectedUserId,
+    *   additionalFilter: (budget) => budget.amount > 0,
  * });
  * ```
  *
  * @example Getting active user ID for forms
  * ```tsx
- * const { filteredData, activeUserId } = useFilteredData({
- *   data: transactions,
- *   currentUser,
- *   selectedUserId,
- * });
+  * const { filteredData, activeUserId } = useFilteredData({
+    *   data: transactions,
+    *   currentUser,
+    *   selectedUserId,
+    * });
  * // Use activeUserId in forms or display logic
  * ```
  */

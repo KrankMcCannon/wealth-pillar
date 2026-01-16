@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Loader2, Pause, Play } from "lucide-react";
 import { Button, ModalBody, ModalFooter, ModalWrapper, Amount } from "@/components/ui";
 import { RecurringTransactionSeries } from "@/lib/types";
-import { toggleRecurringSeriesActiveAction } from "@/features/recurring/actions/recurring-actions";
+import { toggleRecurringSeriesActiveAction } from "@/features/recurring";
 
 interface PauseSeriesModalProps {
   isOpen: boolean;

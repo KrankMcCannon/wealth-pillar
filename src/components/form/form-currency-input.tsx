@@ -216,6 +216,3 @@ export function getNumericAmount(amount: string | number): number {
   if (typeof amount === "number") return amount;
   return parseCurrency(amount);
 }
-
-// Export types
-// Note: avoid re-exporting the same type name to prevent TS duplicate export conflicts.

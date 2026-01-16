@@ -1,13 +1,13 @@
 "use server";
 
 import { revalidatePath, revalidateTag } from "next/cache";
-import { CreateAccountInput, UpdateAccountInput } from "@/server/services/account.service";
-import { UserService } from "@/server/services/user.service";
+import { CreateAccountInput, UpdateAccountInput } from "@/server/services";
+import { UserService } from "@/server/services";
 import { Account, User } from "@/lib/types";
-import { AccountRepository } from "@/server/dal/account.repository";
+import { AccountRepository } from "@/server/dal";
 import { auth } from "@clerk/nextjs/server";
 import { canAccessUserData } from "@/lib/utils/permissions";
-import { CACHE_TAGS } from "@/lib/cache";
+import { CACHE_TAGS } from "@/lib/cache/config";
 
 export type ActionState<T> = {
     data?: T;

@@ -11,7 +11,7 @@ import { RecurringTransactionSeries, User, Account, Category, TransactionFrequen
 import {
   createRecurringSeriesAction,
   updateRecurringSeriesAction,
-} from "@/features/recurring/actions/recurring-actions";
+} from "@/features/recurring";
 import { FormActions, FormField, FormSelect, MultiUserSelect } from "@/components/form";
 import {
   AccountField,

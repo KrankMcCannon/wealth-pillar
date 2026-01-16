@@ -7,7 +7,7 @@ import { z } from "zod";
 import type { CheckedState } from "@radix-ui/react-checkbox";
 import { Budget, BudgetType } from "@/lib/types";
 import { getTempId } from "@/lib/utils/temp-id";
-import { createBudgetAction, updateBudgetAction } from "@/features/budgets/actions/budget-actions";
+import { createBudgetAction, updateBudgetAction } from "@/features/budgets";
 import { ModalWrapper, ModalBody, ModalFooter, ModalSection } from "@/components/ui/modal-wrapper";
 import { FormActions, FormField, FormSelect } from "@/components/form";
 import { AmountField, Checkbox, Input, UserField } from "@/components/ui";

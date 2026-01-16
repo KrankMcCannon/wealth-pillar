@@ -9,7 +9,7 @@
 
 import { auth } from '@clerk/nextjs/server';
 import { revalidateTag } from 'next/cache';
-import { CACHE_TAGS } from "@/lib/cache";
+import { CACHE_TAGS } from "@/lib/cache/config";
 import { UserService } from '@/server/services';
 import { canAccessUserData, isMember } from '@/lib/utils/permissions';
 import type { RecurringTransactionSeries, User } from "@/lib/types";

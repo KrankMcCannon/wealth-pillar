@@ -437,9 +437,3 @@ export function formatDaysUntil(date: DateInput): string {
   const years = Math.floor(days / 365);
   return years === 1 ? 'Fra 1 anno' : `Fra ${years} anni`;
 }
-
-// ============================================================================
-// Re-exports from Luxon for convenience
-// ============================================================================
-
-export { DateTime, Duration, Interval, Settings } from 'luxon';

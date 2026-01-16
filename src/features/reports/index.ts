@@ -1,7 +1,11 @@
 /**
  * Reports Feature Module
- * Central export point for all reports-related components, styles, and utilities
  */
 
 // Components
-export * from './components';
+export {
+  BudgetPeriodCard, type BudgetPeriodCardProps,
+  BudgetPeriodsSection, type BudgetPeriodsSectionProps,
+  ReportsOverviewCard, type ReportsOverviewCardProps,
+  AnnualCategorySection
+} from './components';

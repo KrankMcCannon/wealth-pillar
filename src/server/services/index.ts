@@ -1,116 +1,25 @@
 /**
  * Services Layer - Business Logic
- *
- * This module exports all business logic services following SOLID principles:
- * - Single Responsibility: Each service handles one domain
- * - Open/Closed: Services are open for extension, closed for modification
- * - Liskov Substitution: Services can be substituted without breaking code
- * - Interface Segregation: Services expose only what clients need
- * - Dependency Inversion: Services depend on abstractions (Supabase client)
- *
- * Usage:
- * import { UserService, GroupService } from '@/server/services';
- *
- * const { data: user, error } = await UserService.getLoggedUserInfo(clerkId);
  */
 
-// Export all services
-export { AccountService } from './account.service';
-export { BudgetService } from './budget.service';
-export { BudgetPeriodService } from './budget-period.service';
-export { CategoryService } from './category.service';
-export { GroupService } from './group.service';
-export { GroupInvitationService } from './group-invitation.service';
-export { RecurringService } from './recurring.service';
-export { ReportPeriodService } from './report-period.service';
-export { TransactionService } from './transaction.service';
-export * from './transaction.logic';
-export { UserService } from './user.service';
-export { UserPreferencesService } from './user-preferences.service';
-export { PageDataService } from './page-data.service';
-export { FinanceLogicService } from './finance-logic.service';
+// Core Services
+export { UserService } from "./user.service";
+export { AccountService, type CreateAccountInput, type UpdateAccountInput } from "./account.service";
+export { BudgetService, type CreateBudgetInput, type UpdateBudgetInput } from "./budget.service";
+export { CategoryService, type CreateCategoryInput, type UpdateCategoryInput } from "./category.service";
+export { TransactionService, type CreateTransactionInput, type UpdateTransactionInput } from "./transaction.service";
 
-// Export shared types
+// Feature Services
+export { UserPreferencesService, type UserPreferences } from "./user-preferences.service";
+export { GroupService } from "./group.service";
+export { GroupInvitationService, type GroupInvitation, type CreateInvitationInput } from "./group-invitation.service";
+export { BudgetPeriodService } from "./budget-period.service";
+export { RecurringService as RecurringTransactionService } from "./recurring.service";
+export { FinanceLogicService } from "./finance-logic.service";
+export { ReportPeriodService, type EnrichedBudgetPeriod } from "./report-period.service";
+export { PageDataService } from "./page-data.service";
+
+// Shared Types
+export type { ServiceResult } from "./user.service";
 export type { BudgetProgress, UserBudgetSummary } from '@/lib/types';
-export type { EnrichedBudgetPeriod } from './report-period.service';
-export type { CategoryMetric, ReportMetrics } from './transaction.service';
-export type { ServiceResult } from './user.service';
-export type { UserPreferences, UserPreferencesUpdate } from './user-preferences.service';
-export type { GroupInvitation, CreateInvitationInput } from './group-invitation.service';
-
-/**
- * Service Layer Documentation
- *
- * ## Architecture
- *
- * All services follow a consistent pattern:
- * 1. Static class methods for stateless operations
- * 2. ServiceResult<T> return type for consistent error handling
- * 3. Input validation on all public methods
- * 4. Automatic caching using Next.js unstable_cache
- * 5. Data Access Layer (DAL) usage via Repositories (Prisma)
- * 6. Detailed JSDoc comments for IntelliSense support
- *
- * ## Error Handling
- *
- * Services return ServiceResult<T> with structure:
- * - data: T | null - The requested data or null if error
- * - error: string | null - Error message or null if success
- *
- * Example usage:
- * ```typescript
- * const { data, error } = await UserService.getUserById(userId);
- * if (error) {
- *   // Handle error
- *   console.error(error);
- *   return;
- * }
- * // Use data safely
- * console.log(data.name);
- * ```
- *
- * ## Caching Strategy
- *
- * All read operations are cached using Next.js unstable_cache:
- * - User data: 5 minutes TTL
- * - Group data: 10 minutes TTL
- * - Cache tags for granular invalidation
- *
- * To invalidate cache:
- * ```typescript
- * import { revalidateTag, CACHE_TAGS } from '@/lib/cache';
- *
- * // Invalidate specific user
- * revalidateTag(CACHE_TAGS.USER(userId));
- *
- * // Invalidate all users
- * revalidateTag(CACHE_TAGS.USERS);
- * ```
- *
- * ## Adding New Services
- *
- * To add a new service (e.g., AccountService):
- *
- * 1. Create file: `src/lib/services/account.service.ts`
- * 2. Follow the pattern in UserService/GroupService
- * 3. Add cache keys to `src/lib/cache/keys.ts`
- * 4. Add cache options to `src/lib/cache/config.ts`
- * 5. Create or use existing Repository in `src/lib/dal`
- * 6. Export from this index file
- * 7. Update .claude.md documentation
- *
- * Example template:
- * ```typescript
- * import { CachedRepository } from '@/server/dal';
- * import { cached, accountCacheKeys, cacheOptions } from '@/lib/cache';
- * import type { ServiceResult } from './user.service';
- *
- * export class AccountService {
- *   static async getAccountById(id: string): Promise<ServiceResult<Account>> {
- *     // Use Repository
- *     return await CachedRepository.getById(id);
- *   }
- * }
- * ```
- */
-
+export type { CategoryMetric, ReportMetrics } from './transaction.logic';

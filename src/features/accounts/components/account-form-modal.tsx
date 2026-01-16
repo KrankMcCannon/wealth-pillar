@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Account } from "@/lib/types";
 import { getTempId } from "@/lib/utils/temp-id";
-import { createAccountAction, updateAccountAction } from "@/features/accounts/actions/account-actions";
+import { createAccountAction, updateAccountAction } from "@/features/accounts";
 import { ModalWrapper, ModalBody, ModalFooter, ModalSection } from "@/components/ui/modal-wrapper";
 import { FormActions, FormField, FormSelect } from "@/components/form";
 import { UserField } from "@/components/ui/fields";

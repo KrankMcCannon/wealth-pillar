@@ -8,7 +8,7 @@ import { Category, cn } from "@/lib";
 import { getTempId } from "@/lib/utils/temp-id";
 import { FinanceLogicService } from "@/server/services/finance-logic.service";
 import { categoryStyles, getCategoryColorStyle } from "../theme/category-styles";
-import { createCategoryAction, updateCategoryAction } from "@/features/categories/actions/category-actions";
+import { createCategoryAction, updateCategoryAction } from "@/features/categories";
 import { ModalWrapper, ModalBody, ModalFooter, ModalSection } from "@/components/ui/modal-wrapper";
 import { FormActions, FormField } from "@/components/form";
 import { IconPicker, Input } from "@/components/ui";

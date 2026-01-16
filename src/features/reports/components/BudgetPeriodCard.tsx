@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 import type { Transaction, Category } from "@/lib/types";
 import { FinanceLogicService } from "@/server/services/finance-logic.service";
-import { formatDateShort } from "@/lib/utils/date-utils";
+import { formatDateShort } from "@/lib/utils";
 import { reportsStyles, getBudgetPeriodTransactionIconStyle } from "@/styles/system";
 import { cn } from "@/lib/utils";
 

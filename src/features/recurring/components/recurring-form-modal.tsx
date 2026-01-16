@@ -10,7 +10,7 @@ import { getTempId } from "@/lib/utils/temp-id";
 import {
   createRecurringSeriesAction,
   updateRecurringSeriesAction,
-} from "@/features/recurring/actions/recurring-actions";
+} from "@/features/recurring";
 import { ModalWrapper, ModalBody, ModalFooter, ModalSection } from "@/components/ui/modal-wrapper";
 import { FormActions, FormField, FormSelect, MultiUserSelect } from "@/components/form";
 import {

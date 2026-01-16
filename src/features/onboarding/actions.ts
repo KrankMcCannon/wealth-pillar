@@ -1,6 +1,6 @@
 "use server";
 
-import { CACHE_TAGS } from '@/lib/cache';
+import { CACHE_TAGS } from '@/lib/cache/config';
 import {
   AccountRepository,
   BudgetRepository,

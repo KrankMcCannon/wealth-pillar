@@ -2,14 +2,14 @@
 
 import { revalidateTag } from 'next/cache';
 
-import { CreateCategoryInput, UpdateCategoryInput } from '@/server/services/category.service';
+import { CreateCategoryInput, UpdateCategoryInput } from '@/server/services';
 import type { Category } from '@/lib/types';
-import type { ServiceResult } from '@/server/services/user.service';
-import { CategoryRepository } from '@/server/dal/category.repository';
-import { UserService } from '@/server/services/user.service';
-import { FinanceLogicService } from '@/server/services/finance-logic.service';
+import type { ServiceResult } from '@/server/services';
+import { CategoryRepository } from '@/server/dal';
+import { UserService } from '@/server/services';
+import { FinanceLogicService } from '@/server/services';
 import { auth } from '@clerk/nextjs/server';
-import { CACHE_TAGS } from '@/lib/cache';
+import { CACHE_TAGS } from '@/lib/cache/config';
 
 /**
  * Server action to get all categories

@@ -13,8 +13,8 @@ import {
   getDaysInMonth,
   formatDaysUntil,
   formatDateShort,
-  DateTime,
-} from '@/lib/utils/date-utils';
+} from '@/lib/utils';
+import { DateTime } from 'luxon';
 import type { DateInput } from '@/lib/utils/date-utils';
 import { CATEGORY_COLOR_PALETTE, DEFAULT_CATEGORY_COLOR } from '@/features/categories';
 

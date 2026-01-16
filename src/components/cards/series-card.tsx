@@ -1,8 +1,5 @@
 /**
  * SeriesCard - Domain card for recurring transaction series
- *
- * Refactored from SeriesCard
- * Note: Maintains business logic for series management (execute, pause, resume)
  */
 
 "use client";
@@ -14,7 +11,7 @@ import { FinanceLogicService } from "@/server/services/finance-logic.service";
 import type { User } from "@/lib/types";
 import {
   executeRecurringSeriesAction,
-} from "@/features/recurring/actions/recurring-actions";
+} from "@/features/recurring";
 import { Play } from "lucide-react";
 import { Amount, Button, Card, CategoryBadge, StatusBadge, Text } from "@/components/ui";
 import { cardStyles, getSeriesCardClassName, getSeriesUserBadgeStyle } from "./theme/card-styles";

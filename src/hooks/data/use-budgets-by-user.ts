@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import type { User, Budget, Transaction, BudgetPeriod, UserBudgetSummary } from '@/lib/types';
 import { FinanceLogicService } from '@/server/services/finance-logic.service';
-import { isMember as checkIsMember } from '@/lib/utils/permissions';
+import { isMember as checkIsMember } from '@/lib/utils';
 
 /**
  * Options for useBudgetsByUser hook

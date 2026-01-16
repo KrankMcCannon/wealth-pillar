@@ -15,7 +15,7 @@ import { useState, useMemo, useCallback } from "react";
 import { Search, X, ChevronDown, Check } from "lucide-react";
 import { Category, cn } from "@/lib";
 import { CategoryBadge } from "@/components/ui";
-import { toDateTime, isToday as isDateToday, isWithinWeek, isWithinMonth, isWithinYear, formatDateShort } from "@/lib/utils/date-utils";
+import { toDateTime, isToday as isDateToday, isWithinWeek, isWithinMonth, isWithinYear, formatDateShort } from '@/lib/utils';
 import {
   Button,
   Input,

@@ -10,7 +10,9 @@
  * const { data: series, error } = await RecurringService.getSeriesByUser(userId);
  */
 
-import { cached, cacheOptions, recurringCacheKeys } from '@/lib/cache';
+import { cached } from '@/lib/cache';
+import { cacheOptions } from '@/lib/cache/config';
+import { recurringCacheKeys } from '@/lib/cache/keys';
 import { RecurringRepository, UserRepository } from '@/server/dal';
 import type { RecurringTransactionSeries } from '@/lib/types';
 import type { ServiceResult } from './user.service';

@@ -159,6 +159,3 @@ export function toSelectOptions<T extends { id?: string; key?: string; label?: s
 export function sortSelectOptions(options: SelectOption[], locale: string = "it"): SelectOption[] {
   return [...options].sort((a, b) => a.label.localeCompare(b.label, locale));
 }
-
-// Export types
-// Note: avoid re-exporting the same type name to prevent TS duplicate export conflicts.

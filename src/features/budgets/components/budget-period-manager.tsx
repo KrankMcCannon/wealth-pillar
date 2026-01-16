@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { Clock, TrendingUp, TrendingDown, Activity, Users } from "lucide-react";
 import { BudgetPeriod, Transaction, Budget, User } from "@/lib/types";
-import { startPeriodAction, closePeriodAction } from "@/features/budgets/actions/budget-period-actions";
+import { startPeriodAction, closePeriodAction } from "@/features/budgets";
 import { FormActions } from "@/components/form";
 import { DateField, UserField } from "@/components/ui/fields";
 import { Alert, AlertDescription, Badge, ModalBody, ModalFooter, ModalSection, ModalWrapper } from "@/components/ui";

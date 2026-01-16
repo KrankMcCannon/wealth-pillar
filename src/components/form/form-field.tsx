@@ -86,6 +86,3 @@ export function FormField({
     </div>
   );
 }
-
-// Export type for external use
-// Note: avoid re-exporting the same type name to prevent TS duplicate export conflicts.

@@ -1,5 +1,7 @@
 import 'server-only';
-import { CACHE_TAGS, cached, cacheOptions, transactionCacheKeys } from '@/lib/cache';
+import { cached } from '@/lib/cache';
+import { CACHE_TAGS, cacheOptions } from '@/lib/cache/config';
+import { transactionCacheKeys } from '@/lib/cache/keys';
 export { TransactionLogic } from './transaction.logic';
 import { TransactionRepository } from '@/server/dal';
 import type { CategoryBreakdownItem, Transaction, TransactionType } from '@/lib/types';

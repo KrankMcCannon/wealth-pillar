@@ -1,5 +1,7 @@
 import 'server-only';
-import { CACHE_TAGS, cached, cacheOptions, userCacheKeys } from '@/lib/cache';
+import { cached } from '@/lib/cache';
+import { CACHE_TAGS, cacheOptions } from '@/lib/cache/config';
+import { userCacheKeys } from '@/lib/cache/keys';
 import { UserRepository, AccountRepository, BudgetRepository, TransactionRepository } from '@/server/dal';
 import { prisma } from '@/server/db/prisma';
 import { revalidateTag } from 'next/cache';

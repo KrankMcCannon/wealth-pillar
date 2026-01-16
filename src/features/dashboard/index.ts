@@ -1,10 +1,17 @@
 /**
  * Dashboard Feature - Public API
- * Organized exports for components, hooks, services, and theme
  */
 
 // Components
-export * from "./components";
+// Components
+export {
+  DashboardHeaderSkeleton, UserSelectorSkeleton,
+  BalanceSectionSkeleton, BudgetSectionSkeleton,
+  RecurringSeriesSkeleton, DashboardPageSkeleton
+} from "./components";
 
 // Theme
-export * from "./theme";
+export {
+  dashboardStyles, getAccountCardStyles,
+  getBalanceTextStyle, getBudgetStatusStyle
+} from "./theme";

@@ -3,11 +3,11 @@
 import { revalidatePath } from 'next/cache';
 
 import { auth } from '@clerk/nextjs/server';
-import { TransactionService, CreateTransactionInput } from '@/server/services/transaction.service';
+import { TransactionService, CreateTransactionInput } from '@/server/services';
 import { UserService } from '@/server/services';
-import { canAccessUserData, isMember } from '@/lib/utils/permissions';
+import { canAccessUserData, isMember } from '@/lib/utils';
 import type { User, Transaction } from '@/lib/types';
-import type { ServiceResult } from '@/server/services/user.service';
+import type { ServiceResult } from '@/server/services';
 
 /**
  * Server Action: Create Transaction

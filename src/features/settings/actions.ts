@@ -6,9 +6,10 @@ import {
   UserPreferencesService,
   GroupInvitationService,
 } from '@/server/services';
-import type { ServiceResult } from '@/server/services/user.service';
-import type { UserPreferences, UserPreferencesUpdate } from '@/server/services/user-preferences.service';
-import type { GroupInvitation } from '@/server/services/group-invitation.service';
+import type { ServiceResult } from '@/server/services';
+import type { UserPreferences } from '@/server/services';
+import type { UserPreferencesUpdate } from '@/lib/types';
+import type { GroupInvitation } from '@/server/services';
 
 /**
  * Deletes a user and all related data (accounts, transactions, budgets)

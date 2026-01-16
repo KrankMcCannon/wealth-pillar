@@ -1,5 +1,7 @@
 import 'server-only';
-import { accountCacheKeys, CACHE_TAGS, cached, cacheOptions } from '@/lib/cache';
+import { cached } from '@/lib/cache';
+import { CACHE_TAGS, cacheOptions } from '@/lib/cache/config';
+import { accountCacheKeys } from '@/lib/cache/keys';
 import { AccountRepository, TransactionRepository } from '@/server/dal';
 import type { Account } from '@/lib/types';
 import { revalidateTag } from 'next/cache';

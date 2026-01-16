@@ -9,7 +9,7 @@ import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ModalBody, ModalFooter, ModalWrapper } from "@/components/ui/modal-wrapper";
 import { toast } from "@/hooks/use-toast";
-import { updateUserProfileAction } from "@/features/settings/actions";
+import { updateUserProfileAction } from "@/features/settings";
 import { settingsStyles } from "@/styles/system";
 import { SettingsModalField } from "./settings-modal-form";
 import { cn } from "@/lib/utils";

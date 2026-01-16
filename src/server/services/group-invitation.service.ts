@@ -1,5 +1,7 @@
 import 'server-only';
-import { CACHE_TAGS, cached, cacheOptions, groupInvitationCacheKeys } from '@/lib/cache';
+import { cached } from '@/lib/cache';
+import { CACHE_TAGS, cacheOptions } from '@/lib/cache/config';
+import { groupInvitationCacheKeys } from '@/lib/cache/keys';
 import { GroupInvitationRepository, UserRepository } from '@/server/dal';
 import type { ServiceResult } from './user.service';
 import { randomBytes } from 'crypto';
