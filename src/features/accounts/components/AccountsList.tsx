@@ -7,7 +7,7 @@
 'use client';
 
 import { CreditCard } from 'lucide-react';
-import { Account } from '@/lib';
+import type { Account } from '@/lib';
 import { AccountCard } from '@/components/cards';
 import { EmptyState } from '@/components/shared';
 import { accountStyles } from '../theme/account-styles';
@@ -88,7 +88,7 @@ export const AccountsList = ({
 
   // Show actual accounts
   return (
-      <div className={accountStyles.accountsList.container}>
+    <div className={accountStyles.accountsList.container}>
       <h2 className={accountStyles.accountsList.header}>Tutti gli Account</h2>
 
       <div className={accountStyles.accountsList.items}>

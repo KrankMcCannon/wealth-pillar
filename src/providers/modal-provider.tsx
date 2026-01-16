@@ -4,9 +4,9 @@ import { lazy, Suspense } from "react";
 import dynamic from 'next/dynamic';
 import { useModalState } from "@/lib/navigation/url-state";
 import {
-  useCurrentUser,
-  useGroupId,
-} from "@/stores/reference-data-store";
+  useRequiredCurrentUser,
+  useRequiredGroupId,
+} from "@/hooks/use-required-user";
 
 // Lazy load modals - only loaded when opened
 const TransactionFormModal = lazy(() =>
@@ -36,14 +36,10 @@ interface ModalProviderProps {
 function ModalRenderer() {
   const { modal, editId, closeModal } = useModalState();
 
-  // Read from stores instead of props
-  const currentUser = useCurrentUser();
-  const groupId = useGroupId();
+  // Read from context
+  useRequiredCurrentUser();
+  useRequiredGroupId();
 
-  // Don't render modals until store is initialized
-  if (!currentUser || !groupId) {
-    return null;
-  }
 
   return (
     <Suspense fallback={null}>

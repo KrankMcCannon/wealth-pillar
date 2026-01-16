@@ -11,7 +11,7 @@
 
 import { useMemo } from 'react';
 import { useReferenceDataStore } from '@/stores/reference-data-store';
-import type { User, Account, Category } from '@/lib/types';
+import type { Account, Category } from '@/lib/types';
 
 // ============================================================================
 // Types
@@ -20,8 +20,6 @@ import type { User, Account, Category } from '@/lib/types';
 interface ReferenceDataInitializerProps {
   children: React.ReactNode;
   data: {
-    currentUser: User;
-    groupUsers: User[];
     accounts: Account[];
     categories: Category[];
   };

@@ -42,7 +42,7 @@ export const CategorySelect = React.memo<CategorySelectProps>(({
   disabled = false,
   className,
   showRecentCategories = true,
-  recentCategoriesLimit = 5,
+  recentCategoriesLimit = 3,
 }) => {
   const [searchValue, setSearchValue] = React.useState("");
   const [isOpen, setIsOpen] = React.useState(false);
@@ -51,14 +51,18 @@ export const CategorySelect = React.memo<CategorySelectProps>(({
   // Debounce search for performance
   const debouncedSearch = useDebouncedValue(searchValue, 200);
 
-  // Category usage tracking - destructure store methods
+  // Category usage tracking - subscribe to usageMap for reactivity
+  const usageMap = useCategoryUsageStore((state) => state.usageMap);
   const recordCategoryUsage = useCategoryUsageStore((state) => state.recordCategoryUsage);
-  const getRecentCategories = useCategoryUsageStore((state) => state.getRecentCategories);
 
-  // Only get recent categories after hydration to prevent SSR mismatch
+  // Compute recent categories from usageMap (reactive to store changes)
   const recentCategoryKeys = React.useMemo(() => {
-    return isHydrated ? getRecentCategories(recentCategoriesLimit) : [];
-  }, [isHydrated, getRecentCategories, recentCategoriesLimit]);
+    if (!isHydrated) return [];
+    return Object.values(usageMap)
+      .sort((a, b) => b.lastUsed - a.lastUsed)
+      .slice(0, recentCategoriesLimit)
+      .map((usage) => usage.categoryKey);
+  }, [isHydrated, usageMap, recentCategoriesLimit]);
 
   // Mark as hydrated after mount and rehydrate the store from localStorage
   React.useEffect(() => {
@@ -226,13 +230,13 @@ export const CategorySelect = React.memo<CategorySelectProps>(({
                   </div>
                   <div className={formStyles.categorySelect.recentList}>
                     {recentCategories.map((category) => (
-                      <SelectPrimitive.Item
-                        key={category.key}
-                        value={category.key}
+                      <button
+                        key={`recent-${category.key}`}
+                        onClick={() => handleValueChange(category.key)}
                         className={formStyles.categorySelect.recentItem}
                       >
-                        {renderCategoryItem(category, category.key === value)}
-                      </SelectPrimitive.Item>
+                        {renderCategoryItem(category, false)}
+                      </button>
                     ))}
                   </div>
                   <div className={formStyles.categorySelect.divider} />
@@ -259,11 +263,13 @@ export const CategorySelect = React.memo<CategorySelectProps>(({
                 <div className={formStyles.categorySelect.list}>
                   {filteredCategories.map((category) => (
                     <SelectPrimitive.Item
-                      key={category.key}
+                      key={`all-${category.key}`}
                       value={category.key}
                       className={formStyles.categorySelect.item}
                     >
-                      {renderCategoryItem(category, category.key === value)}
+                      <SelectPrimitive.ItemText>
+                        {renderCategoryItem(category, category.key === value)}
+                      </SelectPrimitive.ItemText>
                     </SelectPrimitive.Item>
                   ))}
                 </div>

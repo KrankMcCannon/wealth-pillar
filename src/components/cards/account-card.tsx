@@ -4,7 +4,8 @@ import { memo } from "react";
 import { Building2, MoreVertical, Pencil, Trash2 } from "lucide-react";
 import { formatCurrency, truncateText } from "@/lib/utils";
 import { cn } from "@/lib/utils";
-import { Account, AccountTypeMap } from "@/lib/types";
+import type { Account } from '@/lib/types';
+import { AccountTypeMap } from '@/lib/types';
 import { RowCard } from "@/components/ui/layout/row-card";
 import {
   DropdownMenu,

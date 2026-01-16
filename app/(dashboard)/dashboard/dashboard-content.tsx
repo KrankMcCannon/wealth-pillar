@@ -32,7 +32,7 @@ import UserSelector from "@/components/shared/user-selector";
 import { BalanceSection } from "@/features/accounts";
 import { BudgetPeriodManager, BudgetSection } from "@/features/budgets";
 import { RecurringSeriesSection } from "@/features/recurring";
-import { AccountService } from "@/lib/services";
+import { FinanceLogicService } from "@/server/services/finance-logic.service";
 import { useModalState } from "@/lib/navigation/url-state";
 import type { Account, Transaction, Budget, BudgetPeriod, User } from "@/lib/types";
 import { usePageDataStore, useBudgetPeriod } from "@/stores/page-data-store";
@@ -116,7 +116,7 @@ export default function DashboardContent({
           accountsToDisplay = defaultAccount ? [defaultAccount] : [];
         }
       } else {
-        accountsToDisplay = AccountService.getDefaultAccounts(accounts, groupUsers);
+        accountsToDisplay = FinanceLogicService.getDefaultAccounts(accounts, groupUsers);
       }
     }
 

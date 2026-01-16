@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from "next";
 import { Spline_Sans } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Toaster } from "@/components/ui";
-import { isDevelopment } from "@/lib/utils";
 import "./globals.css";
 
 const splineSans = Spline_Sans({
@@ -41,24 +40,12 @@ export default function RootLayout({
   return (
     <ClerkProvider
       telemetry={false}
-      appearance={{
-        elements: {
-          // Hide CAPTCHA only in development to avoid protocol mismatch errors
-          // In production, CAPTCHA is enabled for security (bot sign-up protection)
-          ...(isDevelopment() && {
-            formFieldInput__captcha: "hidden",
-            captcha: "hidden",
-          }),
-        },
-      }}
     >
       <html lang="en" data-scroll-behavior="smooth">
         <body
           className={`${splineSans.variable} antialiased min-h-screen bg-card text-primary`}
           suppressHydrationWarning
         >
-          {/* CAPTCHA container for Clerk - hidden in dev, visible in prod */}
-          <div id="clerk-captcha" style={isDevelopment() ? { display: 'none' } : undefined} aria-hidden={isDevelopment()} />
           {children}
           <Toaster />
         </body>

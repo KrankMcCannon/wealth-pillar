@@ -5,6 +5,7 @@ import { BudgetPeriodService } from './budget-period.service';
 import { CategoryService } from './category.service';
 import { RecurringService } from './recurring.service';
 import { GroupService } from './group.service';
+import { FinanceLogicService } from './finance-logic.service';
 import type { ServiceResult } from './user.service';
 import type {
   Account,
@@ -161,7 +162,7 @@ export class PageDataService {
 
     // Calculate account balances
     const accountIds = accounts.map((a) => a.id);
-    const accountBalances = AccountService.calculateAccountBalances(
+    const accountBalances = FinanceLogicService.calculateAccountBalances(
       accountIds,
       transactions
     );
@@ -320,7 +321,7 @@ export class PageDataService {
 
     // Calculate account balances
     const accountIds = accounts.map(a => a.id);
-    const accountBalances = AccountService.calculateAccountBalances(accountIds, transactions);
+    const accountBalances = FinanceLogicService.calculateAccountBalances(accountIds, transactions);
 
     return {
       data: {

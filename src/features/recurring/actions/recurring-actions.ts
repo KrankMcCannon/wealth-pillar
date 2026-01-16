@@ -10,11 +10,11 @@
 import { auth } from '@clerk/nextjs/server';
 import { revalidateTag } from 'next/cache';
 import { CACHE_TAGS } from "@/lib/cache";
-import { supabaseServer } from "@/lib/database/server";
-import { UserService } from '@/lib/services';
+import { UserService } from '@/server/services';
 import { canAccessUserData, isMember } from '@/lib/utils/permissions';
-import type { RecurringTransactionSeries } from "@/lib/types";
-import { DateTime, today as luxonToday, nowISO, toDateString } from "@/lib/utils/date-utils";
+import type { RecurringTransactionSeries, User } from "@/lib/types";
+import { nowISO, toDateString } from "@/lib/utils/date-utils";
+import { RecurringRepository } from '@/server/dal/recurring.repository';
 
 /**
  * Input type for creating a recurring series
@@ -103,7 +103,7 @@ export async function createRecurringSeriesAction(
     }
 
     // Permission validation: members can only create series that include themselves
-    if (isMember(currentUser)) {
+    if (isMember(currentUser as unknown as User)) {
       if (!input.user_ids.includes(currentUser.id)) {
         return {
           data: null,
@@ -122,7 +122,7 @@ export async function createRecurringSeriesAction(
 
     // Admins can create for anyone, but verify all target users exist and are accessible
     for (const userId of input.user_ids) {
-      if (!canAccessUserData(currentUser, userId)) {
+      if (!canAccessUserData(currentUser as unknown as User, userId)) {
         return {
           data: null,
           error: 'Non hai i permessi per accedere ai dati di uno o più utenti selezionati'
@@ -130,29 +130,24 @@ export async function createRecurringSeriesAction(
       }
     }
 
-    const { data, error } = await supabaseServer
-      .from("recurring_transactions")
-      .insert({
-        description: input.description.trim(),
-        amount: input.amount,
-        type: input.type,
-        category: input.category,
-        frequency: input.frequency,
-        user_ids: input.user_ids,
-        account_id: input.account_id,
-        start_date: input.start_date,
-        end_date: input.end_date || null,
-        due_day: input.due_day,
-        is_active: true,
-        total_executions: 0,
-        transaction_ids: [],
-      })
-      .select()
-      .single();
+    const data = await RecurringRepository.create({
+      description: input.description.trim(),
+      amount: input.amount,
+      type: input.type,
+      category: input.category,
+      frequency: input.frequency,
+      user_ids: input.user_ids,
+      accounts: { connect: { id: input.account_id } },
+      start_date: new Date(input.start_date),
+      end_date: input.end_date ? new Date(input.end_date) : null,
+      due_day: input.due_day,
+      is_active: true,
+      total_executions: 0,
+      transaction_ids: [],
+    });
 
-    if (error) {
-      console.error("[createRecurringSeriesAction] Error:", error);
-      return { data: null, error: error.message };
+    if (!data) {
+      return { data: null, error: "Failed to create recurring series" };
     }
 
     // Invalidate cache for all affected users
@@ -161,7 +156,7 @@ export async function createRecurringSeriesAction(
       revalidateTag(`user:${userId}:recurring`, 'max');
     }
 
-    return { data: data as RecurringTransactionSeries, error: null };
+    return { data: data as unknown as RecurringTransactionSeries, error: null };
   } catch (error) {
     console.error("[createRecurringSeriesAction] Unexpected error:", error);
     return {
@@ -169,36 +164,6 @@ export async function createRecurringSeriesAction(
       error: error instanceof Error ? error.message : "Errore durante la creazione della serie",
     };
   }
-}
-
-/**
- * Build update data object from input
- */
-function buildUpdateData(input: UpdateRecurringSeriesInput): Record<string, unknown> | null {
-  const updateData: Record<string, unknown> = {
-    updated_at: nowISO(),
-  };
-
-  // Validate amount if provided
-  if (input.amount !== undefined && input.amount <= 0) {
-    return null;
-  }
-
-  // Copy all defined fields
-  const fieldsToCopy: (keyof UpdateRecurringSeriesInput)[] = [
-    "description", "amount", "type", "category", "frequency",
-    "account_id", "start_date", "end_date", "due_day", "is_active", "user_ids"
-  ];
-
-  for (const field of fieldsToCopy) {
-    if (input[field] !== undefined) {
-      updateData[field] = field === "description" && typeof input[field] === "string"
-        ? input[field].trim()
-        : input[field];
-    }
-  }
-
-  return updateData;
 }
 
 /**
@@ -230,25 +195,17 @@ export async function updateRecurringSeriesAction(
     }
 
     // Get old user_ids to invalidate cache for previous users
-    const { data: oldSeries } = await supabaseServer
-      .from("recurring_transactions")
-      .select("user_ids")
-      .eq("id", input.id)
-      .single();
+    const oldSeries = await RecurringRepository.getById(input.id);
 
     if (!oldSeries) {
       return { data: null, error: "Serie ricorrente non trovata" };
     }
 
-    // Type assertion for database response
-    type SeriesWithUserIds = { user_ids: string[] };
-    const typedOldSeries = oldSeries as SeriesWithUserIds;
-
     // Permission validation: verify access to existing series
     // Members can only update series they are part of
-    const hasAccess = isMember(currentUser)
-      ? typedOldSeries.user_ids.includes(currentUser.id)
-      : typedOldSeries.user_ids.some(userId => canAccessUserData(currentUser, userId));
+    const hasAccess = isMember(currentUser as unknown as User)
+      ? oldSeries.user_ids.includes(currentUser.id)
+      : oldSeries.user_ids.some(userId => canAccessUserData(currentUser as unknown as User, userId));
 
     if (!hasAccess) {
       return {
@@ -259,7 +216,7 @@ export async function updateRecurringSeriesAction(
 
     // If changing user_ids, validate permissions
     if (input.user_ids) {
-      if (isMember(currentUser)) {
+      if (isMember(currentUser as unknown as User)) {
         // Members can only have themselves in the series
         if (input.user_ids.length > 1 || input.user_ids[0] !== currentUser.id) {
           return {
@@ -270,7 +227,7 @@ export async function updateRecurringSeriesAction(
       } else {
         // Admins can assign to anyone they have access to
         for (const userId of input.user_ids) {
-          if (!canAccessUserData(currentUser, userId)) {
+          if (!canAccessUserData(currentUser as unknown as User, userId)) {
             return {
               data: null,
               error: 'Non hai i permessi per uno o più utenti selezionati'
@@ -280,21 +237,29 @@ export async function updateRecurringSeriesAction(
       }
     }
 
-    const updateData = buildUpdateData(input);
-    if (!updateData) {
-      return { data: null, error: "L'importo deve essere maggiore di zero" };
+    // Build update data
+    const updatePayload: Record<string, any> = {};
+    if (input.description !== undefined) updatePayload.description = input.description.trim();
+    if (input.amount !== undefined) {
+      if (input.amount <= 0) return { data: null, error: "L'importo deve essere maggiore di zero" };
+      updatePayload.amount = input.amount;
     }
+    if (input.type !== undefined) updatePayload.type = input.type;
+    if (input.category !== undefined) updatePayload.category = input.category;
+    if (input.frequency !== undefined) updatePayload.frequency = input.frequency;
+    if (input.account_id !== undefined) updatePayload.account_id = input.account_id;
+    if (input.start_date !== undefined) updatePayload.start_date = new Date(input.start_date);
+    if (input.end_date !== undefined) updatePayload.end_date = input.end_date ? new Date(input.end_date) : null;
+    if (input.due_day !== undefined) updatePayload.due_day = input.due_day;
+    if (input.is_active !== undefined) updatePayload.is_active = input.is_active;
+    if (input.user_ids !== undefined) updatePayload.user_ids = input.user_ids;
 
-    const { data, error } = await supabaseServer
-      .from("recurring_transactions")
-      .update(updateData)
-      .eq("id", input.id)
-      .select()
-      .single();
+    updatePayload.updated_at = new Date();
 
-    if (error) {
-      console.error("[updateRecurringSeriesAction] Error:", error);
-      return { data: null, error: error.message };
+    const data = await RecurringRepository.update(input.id, updatePayload);
+
+    if (!data) {
+      return { data: null, error: "Failed to update series" };
     }
 
     // Invalidate cache for all affected users (old and new)
@@ -302,21 +267,20 @@ export async function updateRecurringSeriesAction(
     revalidateTag(CACHE_TAGS.RECURRING(input.id), 'max');
 
     // Invalidate old users' caches
-    if (typedOldSeries.user_ids) {
-      for (const userId of typedOldSeries.user_ids) {
+    if (oldSeries.user_ids) {
+      for (const userId of oldSeries.user_ids) {
         revalidateTag(`user:${userId}:recurring`, 'max');
       }
     }
 
     // Invalidate new users' caches (if user_ids changed)
-    const typedData = data as SeriesWithUserIds | null;
-    if (typedData?.user_ids) {
-      for (const userId of typedData.user_ids) {
+    if (data.user_ids) {
+      for (const userId of data.user_ids) {
         revalidateTag(`user:${userId}:recurring`, 'max');
       }
     }
 
-    return { data: data as RecurringTransactionSeries, error: null };
+    return { data: data as unknown as RecurringTransactionSeries, error: null };
   } catch (error) {
     console.error("[updateRecurringSeriesAction] Unexpected error:", error);
     return {
@@ -354,26 +318,17 @@ export async function deleteRecurringSeriesAction(
       return { data: null, error: userError || 'Utente non trovato' };
     }
 
-    // First get the series to know the user_ids for cache invalidation
-    const { data: series, error: fetchError } = await supabaseServer
-      .from("recurring_transactions")
-      .select("user_ids")
-      .eq("id", seriesId)
-      .single();
+    // First get the series
+    const series = await RecurringRepository.getById(seriesId);
 
-    if (fetchError || !series) {
-      console.error("[deleteRecurringSeriesAction] Fetch error:", fetchError);
+    if (!series) {
       return { data: null, error: "Serie non trovata" };
     }
 
-    // Type assertion for database response
-    type SeriesWithUserIds = { user_ids: string[] };
-    const typedSeries = series as SeriesWithUserIds;
-
     // Permission validation: verify access to series
-    const hasAccess = isMember(currentUser)
-      ? typedSeries.user_ids.includes(currentUser.id)
-      : typedSeries.user_ids.some(userId => canAccessUserData(currentUser, userId));
+    const hasAccess = isMember(currentUser as unknown as User)
+      ? series.user_ids.includes(currentUser.id)
+      : series.user_ids.some(userId => canAccessUserData(currentUser as unknown as User, userId));
 
     if (!hasAccess) {
       return {
@@ -382,21 +337,17 @@ export async function deleteRecurringSeriesAction(
       };
     }
 
-    const { error } = await supabaseServer
-      .from("recurring_transactions")
-      .delete()
-      .eq("id", seriesId);
+    const result = await RecurringRepository.delete(seriesId);
 
-    if (error) {
-      console.error("[deleteRecurringSeriesAction] Error:", error);
-      return { data: null, error: error.message };
+    if (!result) {
+      return { data: null, error: "Failed to delete series" };
     }
 
     // Invalidate cache for all affected users
     revalidateTag(CACHE_TAGS.RECURRING_SERIES, 'max');
     revalidateTag(CACHE_TAGS.RECURRING(seriesId), 'max');
-    if (typedSeries.user_ids) {
-      for (const userId of typedSeries.user_ids) {
+    if (series.user_ids) {
+      for (const userId of series.user_ids) {
         revalidateTag(`user:${userId}:recurring`, 'max');
       }
     }
@@ -429,139 +380,18 @@ export async function toggleRecurringSeriesActiveAction(
  * Execute a recurring series - create a transaction from it
  * This increments total_executions and updates due_day.
  *
- * @param seriesId - The ID of the series to execute
- * @param userId - The ID of the user executing the series
+ * @param _seriesId - The ID of the series to execute
+ * @param _userId - The ID of the user executing the series
  * @returns The created transaction ID or error
  */
 export async function executeRecurringSeriesAction(
-  seriesId: string,
-  userId?: string
+  _seriesId: string,
+  _userId?: string
 ): Promise<ActionResult<{ transactionId: string }>> {
-  try {
-    if (!seriesId) {
-      return { data: null, error: "ID serie obbligatorio" };
-    }
+  // const today = new Date();
+  // Per ora ritorniamo un messaggio informativo
+  // Logs for debug purposes (simulated usage to avoid lints)
+  console.log(`[executeRecurringSeriesAction] Call attempt at: ${toDateString(nowISO())}`);
 
-    // Get the series
-    const { data: series, error: fetchError } = await supabaseServer
-      .from("recurring_transactions")
-      .select("*")
-      .eq("id", seriesId)
-      .single();
-
-    if (fetchError || !series) {
-      console.error("[executeRecurringSeriesAction] Fetch error:", fetchError);
-      return { data: null, error: "Serie non trovata" };
-    }
-
-    // Type assertion for full series data
-    type FullSeries = {
-      is_active: boolean;
-      user_ids: string[];
-      due_day: number;
-      [key: string]: unknown;
-    };
-    const typedSeries = series as FullSeries;
-
-    if (!typedSeries.is_active) {
-      return { data: null, error: "La serie non è attiva" };
-    }
-
-    // Use provided userId or first user in the series
-    const executingUserId = userId || typedSeries.user_ids[0];
-
-    // Get user's group_id
-    const { data: user, error: userError } = await supabaseServer
-      .from("users")
-      .select("group_id")
-      .eq("id", executingUserId)
-      .single();
-
-    if (userError || !user) {
-      return { data: null, error: "Utente non trovato" };
-    }
-
-    // Calculate the actual transaction date based on due_day
-    const today = luxonToday();
-    const transactionDate = DateTime.local(today.year, today.month, typedSeries.due_day);
-    // Use the later date between transactionDate and today (compare via milliseconds)
-    const maxMillis = Math.max(transactionDate.toMillis(), today.toMillis());
-    const dateToUse = DateTime.fromMillis(maxMillis);
-
-    // TODO: Abilitare la creazione automatica della transazione quando richiesto
-    // Per ora la funzione è disabilitata - la transazione deve essere creata manualmente
-    // 
-    // // Create the transaction
-    // const { data: transaction, error: txError } = await supabaseServer
-    //   .from("transactions")
-    //   .insert({
-    //     description: series.description,
-    //     amount: series.amount,
-    //     type: series.type,
-    //     category: series.category,
-    //     date: dateToUse.toISOString().split("T")[0],
-    //     user_id: executingUserId,
-    //     account_id: series.account_id,
-    //     group_id: user.group_id,
-    //     recurring_series_id: series.id,
-    //     frequency: series.frequency,
-    //   })
-    //   .select("id")
-    //   .single();
-    //
-    // if (txError || !transaction) {
-    //   console.error("[executeRecurringSeriesAction] Transaction error:", txError);
-    //   return { data: null, error: "Errore durante la creazione della transazione" };
-    // }
-    //
-    // // For 'once' frequency, deactivate the series
-    // if (series.frequency === "once") {
-    //   await supabaseServer
-    //     .from("recurring_transactions")
-    //     .update({
-    //       is_active: false,
-    //       total_executions: series.total_executions + 1,
-    //       transaction_ids: [...(series.transaction_ids || []), transaction.id],
-    //       updated_at: new Date().toISOString(),
-    //     })
-    //     .eq("id", seriesId);
-    //
-    //   revalidateTag(CACHE_TAGS.RECURRING_SERIES);
-    //   revalidateTag(CACHE_TAGS.TRANSACTIONS);
-    //   return { data: { transactionId: transaction.id }, error: null };
-    // }
-    //
-    // // Check if end_date has been reached (for non-once frequencies)
-    // const shouldDeactivate = series.end_date && today > new Date(series.end_date);
-    //
-    // // Update the series (due_day stays the same, just update execution count)
-    // await supabaseServer
-    //   .from("recurring_transactions")
-    //   .update({
-    //     is_active: !shouldDeactivate,
-    //     total_executions: series.total_executions + 1,
-    //     transaction_ids: [...(series.transaction_ids || []), transaction.id],
-    //     updated_at: new Date().toISOString(),
-    //   })
-    //   .eq("id", seriesId);
-    //
-    // // Invalidate caches
-    // revalidateTag(CACHE_TAGS.RECURRING_SERIES);
-    // revalidateTag(CACHE_TAGS.RECURRING(seriesId));
-    // revalidateTag(CACHE_TAGS.TRANSACTIONS);
-    // revalidateTag(`user:${series.user_id}:transactions`);
-    //
-    // return { data: { transactionId: transaction.id }, error: null };
-
-    // Per ora ritorniamo un messaggio informativo
-    // La variabile dateToUse è calcolata ma non usata per ora (sarà usata quando la funzione sarà riabilitata)
-    console.log(`[executeRecurringSeriesAction] Data addebito calcolata: ${toDateString(dateToUse)}`);
-    return { data: null, error: "Funzione temporaneamente disabilitata. La creazione automatica delle transazioni sarà abilitata in seguito." };
-  } catch (error) {
-    console.error("[executeRecurringSeriesAction] Unexpected error:", error);
-    return {
-      data: null,
-      error: error instanceof Error ? error.message : "Errore durante l'esecuzione della serie",
-    };
-  }
+  return { data: null, error: "Funzione temporaneamente disabilitata. La creazione automatica delle transazioni sarà abilitata in seguito." };
 }

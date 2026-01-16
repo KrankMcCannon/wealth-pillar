@@ -3,17 +3,18 @@
 import { revalidatePath, revalidateTag } from 'next/cache';
 
 import { auth } from '@clerk/nextjs/server';
-import { BudgetService, CreateBudgetInput } from '@/lib/services/budget.service';
-import { UserService } from '@/lib/services';
+import { CreateBudgetInput } from '@/server/services/budget.service';
+import { UserService } from '@/server/services';
 import { canAccessUserData, isMember } from '@/lib/utils/permissions';
 import { CACHE_TAGS } from '@/lib/cache';
-import type { Budget } from '@/lib/types';
-import type { ServiceResult } from '@/lib/services/user.service';
+import type { Budget, User } from '@/lib/types';
+import type { ServiceResult } from '@/server/services/user.service';
+import { BudgetRepository } from '@/server/dal/budget.repository';
 
 /**
  * Server Action: Create Budget
- * Wraps BudgetService.createBudget for client component usage
- * Validates permissions: members can only create budgets for themselves
+ * Wraps BudgetRepository.create for client component usage
+ * Validates permissions and input data
  */
 export async function createBudgetAction(
   input: CreateBudgetInput
@@ -32,7 +33,7 @@ export async function createBudgetAction(
     }
 
     // Permission validation: members can only create for themselves
-    if (isMember(currentUser) && input.user_id !== currentUser.id) {
+    if (isMember(currentUser as unknown as User) && input.user_id !== currentUser.id) {
       return {
         data: null,
         error: 'Non hai i permessi per creare budget per altri utenti'
@@ -48,25 +49,74 @@ export async function createBudgetAction(
     }
 
     // Admins can create for anyone, but verify target user exists
-    if (!canAccessUserData(currentUser, input.user_id)) {
+    if (!canAccessUserData(currentUser as unknown as User, input.user_id)) {
       return {
         data: null,
         error: 'Non hai i permessi per accedere ai dati di questo utente'
       };
     }
 
-    const result = await BudgetService.createBudget(input);
+    // Input Validation (replicating Service logic)
+    if (!input.description || input.description.trim() === '') {
+      return { data: null, error: 'Description is required' };
+    }
+    if (input.description.trim().length < 2) {
+      return { data: null, error: 'Description must be at least 2 characters' };
+    }
+    if (!input.amount || input.amount <= 0) {
+      return { data: null, error: 'Amount must be greater than zero' };
+    }
+    if (!input.type) {
+      return { data: null, error: 'Budget type is required' };
+    }
+    if (!['monthly', 'annually'].includes(input.type)) {
+      return { data: null, error: 'Invalid budget type' };
+    }
+    if (!input.categories || input.categories.length === 0) {
+      return { data: null, error: 'At least one category is required' };
+    }
 
-    if (!result.error) {
+    // Resolve group_id
+    let groupId = input.group_id;
+    if (!groupId) {
+      // If we are creating for current user, use their group_id
+      if (input.user_id === currentUser.id) {
+        groupId = currentUser.group_id || undefined;
+      } else {
+        // Creating for another user (Admin), fetch that user
+        // Reuse UserService for now as we don't have UserRepository imported/setup fully in scope context
+        // Actually we can just use UserService.getUserById if available, or assume currentUser check passed so we can fetch target user
+        const { data: targetUser } = await UserService.getUserById(input.user_id);
+        if (targetUser) {
+          groupId = targetUser.group_id || undefined;
+        }
+      }
+    }
+
+    const budget = await BudgetRepository.create({
+      description: input.description.trim(),
+      amount: input.amount,
+      type: input.type,
+      icon: input.icon || null,
+      categories: input.categories, // Prisma handles string[] -> Json mapping implicitly usually
+      user_id: input.user_id,
+      group_id: groupId,
+    });
+
+    if (budget) {
       // Revalidate paths
       revalidatePath('/budgets');
       revalidatePath('/dashboard');
 
       // Invalidate budget cache
       revalidateTag(CACHE_TAGS.USER_BUDGETS(input.user_id), 'max');
+      revalidateTag(CACHE_TAGS.BUDGETS, 'max'); // Global budgets tag if used
+      revalidateTag(`user:${input.user_id}:budgets`, 'max'); // Legacy tag support
+
+      return { data: budget as unknown as Budget, error: null };
     }
 
-    return result;
+    return { data: null, error: 'Failed to create budget' };
   } catch (error) {
     return {
       data: null,
@@ -77,7 +127,7 @@ export async function createBudgetAction(
 
 /**
  * Server Action: Update Budget
- * Wraps BudgetService.updateBudget for client component usage
+ * Wraps BudgetRepository.update for client component usage
  * Validates permissions: members can only update their own budgets
  */
 export async function updateBudgetAction(
@@ -98,9 +148,11 @@ export async function updateBudgetAction(
     }
 
     // Get existing budget to verify ownership
-    const { data: existingBudget, error: budgetError } = await BudgetService.getBudgetById(id);
-    if (budgetError || !existingBudget) {
-      return { data: null, error: budgetError || 'Budget non trovato' };
+    // Use Repository if possible, but we just added getById
+    const existingBudget = await BudgetRepository.getById(id);
+
+    if (!existingBudget) {
+      return { data: null, error: 'Budget non trovato' };
     }
 
     // Verify budget has a user_id
@@ -112,7 +164,7 @@ export async function updateBudgetAction(
     }
 
     // Permission validation: verify access to existing budget
-    if (!canAccessUserData(currentUser, existingBudget.user_id)) {
+    if (!canAccessUserData(currentUser as unknown as User, existingBudget.user_id)) {
       return {
         data: null,
         error: 'Non hai i permessi per modificare questo budget'
@@ -121,14 +173,14 @@ export async function updateBudgetAction(
 
     // If changing user_id, verify permission for new user
     if (input.user_id && input.user_id !== existingBudget.user_id) {
-      if (isMember(currentUser)) {
+      if (isMember(currentUser as unknown as User)) {
         return {
           data: null,
           error: 'Non puoi assegnare il budget a un altro utente'
         };
       }
 
-      if (!canAccessUserData(currentUser, input.user_id)) {
+      if (!canAccessUserData(currentUser as unknown as User, input.user_id)) {
         return {
           data: null,
           error: 'Non hai i permessi per assegnare questo budget a questo utente'
@@ -136,23 +188,53 @@ export async function updateBudgetAction(
       }
     }
 
-    const result = await BudgetService.updateBudget(id, input);
+    // Input Validation for updates
+    if (input.description !== undefined && input.description.trim() === '') {
+      return { data: null, error: 'Description cannot be empty' };
+    }
+    if (input.description !== undefined && input.description.trim().length < 2) {
+      return { data: null, error: 'Description must be at least 2 characters' };
+    }
+    if (input.amount !== undefined && input.amount <= 0) {
+      return { data: null, error: 'Amount must be greater than zero' };
+    }
+    if (input.type !== undefined && !['monthly', 'annually'].includes(input.type)) {
+      return { data: null, error: 'Invalid budget type' };
+    }
+    if (input.categories !== undefined && input.categories.length === 0) {
+      return { data: null, error: 'At least one category is required' };
+    }
 
-    if (!result.error) {
+    const budget = await BudgetRepository.update(id, {
+      description: input.description?.trim(),
+      amount: input.amount,
+      type: input.type,
+      icon: input.icon,
+      categories: input.categories,
+      user_id: input.user_id,
+      group_id: input.group_id
+    });
+
+    if (budget) {
       // Revalidate paths
       revalidatePath('/budgets');
       revalidatePath('/dashboard');
 
       // Invalidate cache for old user
       revalidateTag(CACHE_TAGS.USER_BUDGETS(existingBudget.user_id), 'max');
+      revalidateTag(CACHE_TAGS.BUDGET(id), 'max');
+      revalidateTag(`user:${existingBudget.user_id}:budgets`, 'max');
 
       // If user_id changed, invalidate cache for new user too
       if (input.user_id && input.user_id !== existingBudget.user_id) {
         revalidateTag(CACHE_TAGS.USER_BUDGETS(input.user_id), 'max');
+        revalidateTag(`user:${input.user_id}:budgets`, 'max');
       }
+
+      return { data: budget as unknown as Budget, error: null };
     }
 
-    return result;
+    return { data: null, error: 'Failed to update budget' };
   } catch (error) {
     return {
       data: null,
@@ -163,7 +245,7 @@ export async function updateBudgetAction(
 
 /**
  * Server Action: Delete Budget
- * Wraps BudgetService.deleteBudget for client component usage
+ * Wraps BudgetRepository.delete for client component usage
  * Validates permissions: members can only delete their own budgets
  */
 export async function deleteBudgetAction(
@@ -183,9 +265,9 @@ export async function deleteBudgetAction(
     }
 
     // Get existing budget to verify ownership
-    const { data: existingBudget, error: budgetError } = await BudgetService.getBudgetById(id);
-    if (budgetError || !existingBudget) {
-      return { data: null, error: budgetError || 'Budget non trovato' };
+    const existingBudget = await BudgetRepository.getById(id);
+    if (!existingBudget) {
+      return { data: null, error: 'Budget non trovato' };
     }
 
     // Verify budget has a user_id
@@ -197,25 +279,29 @@ export async function deleteBudgetAction(
     }
 
     // Permission validation: verify access to budget
-    if (!canAccessUserData(currentUser, existingBudget.user_id)) {
+    if (!canAccessUserData(currentUser as unknown as User, existingBudget.user_id)) {
       return {
         data: null,
         error: 'Non hai i permessi per eliminare questo budget'
       };
     }
 
-    const result = await BudgetService.deleteBudget(id);
+    const result = await BudgetRepository.delete(id);
 
-    if (!result.error) {
+    if (result) {
       // Revalidate paths
       revalidatePath('/budgets');
       revalidatePath('/dashboard');
 
       // Invalidate budget cache
       revalidateTag(CACHE_TAGS.USER_BUDGETS(existingBudget.user_id), 'max');
+      revalidateTag(CACHE_TAGS.BUDGET(id), 'max');
+      revalidateTag(`user:${existingBudget.user_id}:budgets`, 'max');
+
+      return { data: { id }, error: null };
     }
 
-    return result;
+    return { data: null, error: 'Failed to delete budget' };
   } catch (error) {
     return {
       data: null,

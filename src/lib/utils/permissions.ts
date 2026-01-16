@@ -12,7 +12,7 @@ import type { User, RoleType } from '@/lib/types';
  * @returns true if user has any of the specified roles
  */
 export function hasRole(user: User | null, ...roles: RoleType[]): boolean {
-  if (!user) return false;
+  if (!user || !user.role) return false;
   return roles.includes(user.role);
 }
 

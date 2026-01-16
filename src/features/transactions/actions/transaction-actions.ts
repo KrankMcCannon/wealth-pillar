@@ -1,14 +1,13 @@
 'use server';
 
-import { revalidatePath, revalidateTag } from 'next/cache';
+import { revalidatePath } from 'next/cache';
 
 import { auth } from '@clerk/nextjs/server';
-import { TransactionService, CreateTransactionInput } from '@/lib/services/transaction.service';
-import { UserService } from '@/lib/services';
+import { TransactionService, CreateTransactionInput } from '@/server/services/transaction.service';
+import { UserService } from '@/server/services';
 import { canAccessUserData, isMember } from '@/lib/utils/permissions';
-import { CACHE_TAGS } from '@/lib/cache';
-import type { Transaction } from '@/lib/types';
-import type { ServiceResult } from '@/lib/services/user.service';
+import type { User, Transaction } from '@/lib/types';
+import type { ServiceResult } from '@/server/services/user.service';
 
 /**
  * Server Action: Create Transaction
@@ -21,54 +20,33 @@ export async function createTransactionAction(
   try {
     // Authentication check
     const { userId: clerkId } = await auth();
-    if (!clerkId) {
-      return { data: null, error: 'Non autenticato. Effettua il login per continuare.' };
-    }
+    if (!clerkId) return { data: null, error: 'Non autenticato' };
 
-    // Get current user
     const { data: currentUser, error: userError } = await UserService.getLoggedUserInfo(clerkId);
-    if (userError || !currentUser) {
-      return { data: null, error: userError || 'Utente non trovato' };
+    if (userError || !currentUser) return { data: null, error: userError };
+
+    if (isMember(currentUser as unknown as User) && input.user_id !== currentUser.id) {
+      return { data: null, error: 'Permesso negato' };
     }
 
-    // Permission validation: members can only create for themselves
-    if (isMember(currentUser) && input.user_id !== currentUser.id) {
-      return {
-        data: null,
-        error: 'Non hai i permessi per creare transazioni per altri utenti'
-      };
+    if (!input.user_id) return { data: null, error: 'User ID richiesto' };
+
+    if (!canAccessUserData(currentUser as unknown as User, input.user_id)) {
+      return { data: null, error: 'Permesso negato' };
     }
 
-    // Verify user_id is provided
-    if (!input.user_id) {
-      return {
-        data: null,
-        error: 'L\'utente è obbligatorio'
-      };
-    }
-
-    // Admins can create for anyone, but verify target user exists
-    if (!canAccessUserData(currentUser, input.user_id)) {
-      return {
-        data: null,
-        error: 'Non hai i permessi per accedere ai dati di questo utente'
-      };
-    }
-
+    // Call service
     const result = await TransactionService.createTransaction(input);
 
-    if (!result.error) {
-      // Revalidate paths
+    if (result.data) {
+      // Revalidate paths that might not be covered by the service
       revalidatePath('/dashboard');
       revalidatePath('/transactions');
       revalidatePath('/accounts');
       revalidatePath('/budgets');
       revalidatePath('/reports');
 
-      // Invalidate budget period and budget caches (PostgreSQL triggers handle DB updates)
-      revalidateTag(CACHE_TAGS.USER_BUDGET_PERIODS(input.user_id), 'max');
-      revalidateTag(CACHE_TAGS.USER_ACTIVE_BUDGET_PERIOD(input.user_id), 'max');
-      revalidateTag(CACHE_TAGS.USER_BUDGETS(input.user_id), 'max');
+      // Additional cache tags if needed, though Service handles most
     }
 
     return result;
@@ -117,51 +95,30 @@ export async function updateTransactionAction(
     }
 
     // Permission validation: verify access to existing transaction
-    if (!canAccessUserData(currentUser, existingTransaction.user_id)) {
-      return {
-        data: null,
-        error: 'Non hai i permessi per modificare questa transazione'
-      };
+    if (!canAccessUserData(currentUser as unknown as User, existingTransaction.user_id)) {
+      return { data: null, error: 'Permesso negato' };
     }
 
     // If changing user_id, verify permission for new user
     if (input.user_id && input.user_id !== existingTransaction.user_id) {
-      if (isMember(currentUser)) {
-        return {
-          data: null,
-          error: 'Non puoi assegnare la transazione a un altro utente'
-        };
+      if (isMember(currentUser as unknown as User)) {
+        return { data: null, error: 'Non puoi assegnare la transazione a un altro utente' };
       }
-
-      if (!canAccessUserData(currentUser, input.user_id)) {
-        return {
-          data: null,
-          error: 'Non hai i permessi per assegnare questa transazione a questo utente'
-        };
+      if (!canAccessUserData(currentUser as unknown as User, input.user_id)) {
+        return { data: null, error: 'Permesso negato' };
       }
     }
 
+    // Call service
     const result = await TransactionService.updateTransaction(id, input);
 
-    if (!result.error) {
+    if (result.data) {
       // Revalidate paths
       revalidatePath('/dashboard');
       revalidatePath('/transactions');
       revalidatePath('/accounts');
       revalidatePath('/budgets');
       revalidatePath('/reports');
-
-      // Invalidate caches for old user
-      revalidateTag(CACHE_TAGS.USER_BUDGET_PERIODS(existingTransaction.user_id), 'max');
-      revalidateTag(CACHE_TAGS.USER_ACTIVE_BUDGET_PERIOD(existingTransaction.user_id), 'max');
-      revalidateTag(CACHE_TAGS.USER_BUDGETS(existingTransaction.user_id), 'max');
-
-      // If user_id changed, invalidate caches for new user too
-      if (input.user_id && input.user_id !== existingTransaction.user_id) {
-        revalidateTag(CACHE_TAGS.USER_BUDGET_PERIODS(input.user_id), 'max');
-        revalidateTag(CACHE_TAGS.USER_ACTIVE_BUDGET_PERIOD(input.user_id), 'max');
-        revalidateTag(CACHE_TAGS.USER_BUDGETS(input.user_id), 'max');
-      }
     }
 
     return result;
@@ -209,27 +166,20 @@ export async function deleteTransactionAction(
     }
 
     // Permission validation: verify access to transaction
-    if (!canAccessUserData(currentUser, existingTransaction.user_id)) {
-      return {
-        data: null,
-        error: 'Non hai i permessi per eliminare questa transazione'
-      };
+    if (!canAccessUserData(currentUser as unknown as User, existingTransaction.user_id)) {
+      return { data: null, error: 'Permesso negato' };
     }
 
+    // Call service
     const result = await TransactionService.deleteTransaction(id);
 
-    if (!result.error) {
+    if (result.data) {
       // Revalidate paths
       revalidatePath('/dashboard');
       revalidatePath('/transactions');
       revalidatePath('/accounts');
       revalidatePath('/budgets');
       revalidatePath('/reports');
-
-      // Invalidate budget period and budget caches (PostgreSQL triggers handle DB updates)
-      revalidateTag(CACHE_TAGS.USER_BUDGET_PERIODS(existingTransaction.user_id), 'max');
-      revalidateTag(CACHE_TAGS.USER_ACTIVE_BUDGET_PERIOD(existingTransaction.user_id), 'max');
-      revalidateTag(CACHE_TAGS.USER_BUDGETS(existingTransaction.user_id), 'max');
     }
 
     return result;

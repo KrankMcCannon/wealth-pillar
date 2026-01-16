@@ -13,7 +13,7 @@ import { SeriesCard } from "@/components/cards";
 import { EmptyState } from "@/components/shared";
 import { RefreshCw, Plus, TrendingUp, TrendingDown } from "lucide-react";
 import { Button, Text } from "@/components/ui";
-import { RecurringService } from "@/lib/services";
+import { FinanceLogicService } from "@/server/services/finance-logic.service";
 import { formatCurrency, cn } from "@/lib/utils";
 import { User } from "@/lib/types";
 import { recurringStyles } from "../theme/recurring-styles";
@@ -79,7 +79,7 @@ export function RecurringSeriesSection({
     // Sort by days left (ascending)
     result = result
       .slice()
-      .sort((a, b) => RecurringService.calculateDaysUntilDue(a) - RecurringService.calculateDaysUntilDue(b));
+      .sort((a, b) => FinanceLogicService.calculateDaysUntilDue(a) - FinanceLogicService.calculateDaysUntilDue(b));
 
     // Limit results if maxItems specified
     if (maxItems && maxItems > 0) {
@@ -96,7 +96,7 @@ export function RecurringSeriesSection({
 
   // Calculate monthly totals using service method
   const monthlyTotals = useMemo(() => {
-    return RecurringService.calculateTotals(activeSeries);
+    return FinanceLogicService.calculateTotals(activeSeries);
   }, [activeSeries]);
 
   // Empty state
@@ -206,10 +206,10 @@ export function RecurringSeriesSection({
         <div>
           <div className="border-t border-primary/20 mx-2" />
           <div className={recurringStyles.section.footer}>
-          <p className={recurringStyles.section.footerText}>
-            Mostrando {filteredSeries.length} di{" "}
-            {selectedUserId ? series.filter((s) => s.user_ids.includes(selectedUserId)).length : series.length} serie
-          </p>
+            <p className={recurringStyles.section.footerText}>
+              Mostrando {filteredSeries.length} di{" "}
+              {selectedUserId ? series.filter((s) => s.user_ids.includes(selectedUserId)).length : series.length} serie
+            </p>
           </div>
         </div>
       )}

@@ -4,7 +4,7 @@
 
 import { Suspense } from "react";
 import { getDashboardData } from "@/lib/auth/get-dashboard-data";
-import { AccountService, TransactionService } from "@/lib/services";
+import { AccountService, TransactionService } from "@/server/services";
 import SettingsContent from "./settings-content";
 import { PageLoader } from "@/components/shared";
 

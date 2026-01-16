@@ -5,7 +5,7 @@ import { Check, Loader2 } from "lucide-react";
 import { Button, ModalBody, ModalFooter, ModalWrapper } from "@/components/ui";
 import { toast } from "@/hooks/use-toast";
 import { updateUserPreferencesAction } from "@/features/settings/actions";
-import type { UserPreferencesUpdate } from "@/lib/services/user-preferences.service";
+import type { UserPreferencesUpdate } from "@/server/services/user-preferences.service";
 import { cn } from "@/lib";
 import { settingsStyles } from "@/styles/system";
 

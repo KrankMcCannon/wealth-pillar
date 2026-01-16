@@ -2,10 +2,10 @@
 
 import { revalidatePath } from 'next/cache';
 import { auth } from '@clerk/nextjs/server';
-import { BudgetPeriodService, UserService } from '@/lib/services';
+import { BudgetPeriodService, UserService } from '@/server/services';
 import { canAccessUserData, isMember } from '@/lib/utils/permissions';
-import type { BudgetPeriod } from '@/lib/types';
-import type { ServiceResult } from '@/lib/services/user.service';
+import type { BudgetPeriod, User } from '@/lib/types';
+import type { ServiceResult } from '@/server/services/user.service';
 
 /**
  * Server Action: Start Budget Period
@@ -36,7 +36,7 @@ export async function startPeriodAction(
     }
 
     // Permission validation: members can only start periods for themselves
-    if (isMember(currentUser) && userId !== currentUser.id) {
+    if (isMember(currentUser as unknown as User) && userId !== currentUser.id) {
       return {
         data: null,
         error: 'Non hai i permessi per gestire i periodi di altri utenti',
@@ -44,7 +44,7 @@ export async function startPeriodAction(
     }
 
     // Admins can start for anyone, but verify target user exists
-    if (!canAccessUserData(currentUser, userId)) {
+    if (!canAccessUserData(currentUser as unknown as User, userId)) {
       return {
         data: null,
         error: 'Non hai i permessi per accedere ai dati di questo utente',
@@ -107,7 +107,7 @@ export async function closePeriodAction(
     }
 
     // Permission validation: members can only close their own periods
-    if (isMember(currentUser) && period.user_id !== currentUser.id) {
+    if (isMember(currentUser as unknown as User) && period.user_id !== currentUser.id) {
       return {
         data: null,
         error: 'Non hai i permessi per chiudere questo periodo',
@@ -115,7 +115,7 @@ export async function closePeriodAction(
     }
 
     // Admins can close for anyone
-    if (!canAccessUserData(currentUser, period.user_id)) {
+    if (!canAccessUserData(currentUser as unknown as User, period.user_id)) {
       return {
         data: null,
         error: 'Non hai i permessi per accedere ai dati di questo utente',
@@ -180,7 +180,7 @@ export async function deletePeriodAction(
     }
 
     // Permission validation: members can only delete their own periods
-    if (isMember(currentUser) && period.user_id !== currentUser.id) {
+    if (isMember(currentUser as unknown as User) && period.user_id !== currentUser.id) {
       return {
         data: null,
         error: 'Non hai i permessi per eliminare questo periodo',
@@ -188,7 +188,7 @@ export async function deletePeriodAction(
     }
 
     // Admins can delete for anyone
-    if (!canAccessUserData(currentUser, period.user_id)) {
+    if (!canAccessUserData(currentUser as unknown as User, period.user_id)) {
       return {
         data: null,
         error: 'Non hai i permessi per accedere ai dati di questo utente',
@@ -244,14 +244,14 @@ export async function getUserPeriodsAction(
     }
 
     // Permission validation
-    if (isMember(currentUser) && userId !== currentUser.id) {
+    if (isMember(currentUser as unknown as User) && userId !== currentUser.id) {
       return {
         data: null,
         error: 'Non hai i permessi per visualizzare i periodi di altri utenti',
       };
     }
 
-    if (!canAccessUserData(currentUser, userId)) {
+    if (!canAccessUserData(currentUser as unknown as User, userId)) {
       return {
         data: null,
         error: 'Non hai i permessi per accedere ai dati di questo utente',
@@ -300,7 +300,7 @@ export async function getActivePeriodAction(
     }
 
     // Permission validation
-    if (isMember(currentUser) && userId !== currentUser.id) {
+    if (isMember(currentUser as unknown as User) && userId !== currentUser.id) {
       return {
         data: null,
         error:
@@ -308,7 +308,7 @@ export async function getActivePeriodAction(
       };
     }
 
-    if (!canAccessUserData(currentUser, userId)) {
+    if (!canAccessUserData(currentUser as unknown as User, userId)) {
       return {
         data: null,
         error: 'Non hai i permessi per accedere ai dati di questo utente',

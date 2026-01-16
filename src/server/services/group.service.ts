@@ -1,23 +1,14 @@
+import 'server-only';
 import { CACHE_TAGS, cached, cacheOptions, groupCacheKeys } from '@/lib/cache';
-import { supabaseServer } from '@/lib/database/server';
-import type { Database } from '@/lib/database/types';
-import { nowISO } from '@/lib/utils/date-utils';
+import { GroupRepository, UserRepository } from '@/server/dal';
 import type { ServiceResult } from './user.service';
-
-async function revalidateCacheTags(tags: string[]) {
-  if (globalThis.window === undefined) {
-    const { revalidateTag } = await import('next/cache');
-    for (const tag of tags) {
-      revalidateTag(tag, 'max');
-    }
-  }
-}
+import { revalidateTag } from 'next/cache';
+import type { Prisma } from '@prisma/client';
 
 /**
  * Group and User types from database
  */
-type Group = Database['public']['Tables']['groups']['Row'];
-type User = Database['public']['Tables']['users']['Row'];
+import type { groups as Group, users as User } from '@prisma/client';
 
 export interface CreateGroupInput {
   id?: string;
@@ -38,16 +29,6 @@ export interface CreateGroupInput {
 export class GroupService {
   /**
    * Retrieves group information by ID
-   * Includes group details like name, plan, and settings
-   *
-   * @param groupId - Group ID
-   * @returns Group data or error
-   *
-   * @example
-   * const { data: group, error } = await GroupService.getGroupById(groupId);
-   * if (error) {
-   *   console.error('Failed to get group:', error);
-   * }
    */
   static async getGroupById(groupId: string): Promise<ServiceResult<Group>> {
     try {
@@ -62,17 +43,8 @@ export class GroupService {
       // Create cached query function
       const getCachedGroup = cached(
         async () => {
-          const { data, error } = await supabaseServer
-            .from('groups')
-            .select('*')
-            .eq('id', groupId)
-            .single();
-
-          if (error) {
-            throw new Error(error.message);
-          }
-
-          return data;
+          const group = await GroupRepository.getById(groupId);
+          return group;
         },
         groupCacheKeys.byId(groupId),
         cacheOptions.group(groupId)
@@ -104,22 +76,11 @@ export class GroupService {
 
   /**
    * Retrieves all users in a group
-   * Essential for displaying team members, permissions, and collaboration features
-   *
-   * @param groupId - Group ID
-   * @returns Array of users in the group or error
-   *
-   * @example
-   * const { data: users, error } = await GroupService.getGroupUsers(groupId);
-   * if (data) {
-   *   console.log(`Group has ${data.length} members`);
-   * }
    */
   static async getGroupUsers(
     groupId: string
   ): Promise<ServiceResult<User[]>> {
     try {
-      // Input validation
       if (!groupId || groupId.trim() === '') {
         return {
           data: null,
@@ -130,17 +91,8 @@ export class GroupService {
       // Create cached query function
       const getCachedUsers = cached(
         async () => {
-          const { data, error } = await supabaseServer
-            .from('users')
-            .select('*')
-            .eq('group_id', groupId)
-            .order('created_at', { ascending: true });
-
-          if (error) {
-            throw new Error(error.message);
-          }
-
-          return data || [];
+          const users = await UserRepository.getByGroup(groupId);
+          return users;
         },
         groupCacheKeys.users(groupId),
         cacheOptions.groupUsers(groupId)
@@ -149,7 +101,7 @@ export class GroupService {
       const users = await getCachedUsers();
 
       return {
-        data: users as User[],
+        data: (users || []) as User[],
         error: null,
       };
     } catch (error) {
@@ -165,13 +117,6 @@ export class GroupService {
 
   /**
    * Gets the count of users in a group
-   * Lightweight query for displaying member count
-   *
-   * @param groupId - Group ID
-   * @returns Number of users in group
-   *
-   * @example
-   * const { data: count } = await GroupService.getGroupUserCount(groupId);
    */
   static async getGroupUserCount(
     groupId: string
@@ -184,17 +129,10 @@ export class GroupService {
         };
       }
 
-      const { data, error } = await supabaseServer
-        .from('users')
-        .select('id')
-        .eq('group_id', groupId);
-
-      if (error) {
-        throw new Error(error.message);
-      }
+      const count = await UserRepository.countByGroup(groupId);
 
       return {
-        data: data?.length ?? 0,
+        data: count,
         error: null,
       };
     } catch (error) {
@@ -210,14 +148,6 @@ export class GroupService {
 
   /**
    * Gets users by role within a group
-   * Useful for permission checks and role-based UI
-   *
-   * @param groupId - Group ID
-   * @param role - User role (superadmin, admin, member)
-   * @returns Array of users with specified role
-   *
-   * @example
-   * const { data: admins } = await GroupService.getUsersByRole(groupId, 'admin');
    */
   static async getUsersByRole(
     groupId: string,
@@ -231,19 +161,10 @@ export class GroupService {
         };
       }
 
-      const { data, error } = await supabaseServer
-        .from('users')
-        .select('*')
-        .eq('group_id', groupId)
-        .eq('role', role)
-        .order('created_at', { ascending: true });
-
-      if (error) {
-        throw new Error(error.message);
-      }
+      const users = await UserRepository.getByGroupAndRole(groupId, role);
 
       return {
-        data: (data || []) as User[],
+        data: (users || []) as User[],
         error: null,
       };
     } catch (error) {
@@ -259,27 +180,12 @@ export class GroupService {
 
   /**
    * Checks if a group exists
-   * Lightweight check without fetching full group data
-   *
-   * @param groupId - Group ID
-   * @returns Boolean indicating if group exists
-   *
-   * @example
-   * const exists = await GroupService.groupExists(groupId);
    */
   static async groupExists(groupId: string): Promise<boolean> {
     try {
-      if (!groupId || groupId.trim() === '') {
-        return false;
-      }
-
-      const { data, error } = await supabaseServer
-        .from('groups')
-        .select('id')
-        .eq('id', groupId)
-        .single();
-
-      return !error && data !== null;
+      if (!groupId || groupId.trim() === '') return false;
+      const group = await GroupRepository.getById(groupId);
+      return !!group;
     } catch {
       return false;
     }
@@ -287,14 +193,6 @@ export class GroupService {
 
   /**
    * Gets group details with user count
-   * Combines group data with member count for dashboard displays
-   *
-   * @param groupId - Group ID
-   * @returns Group data with user count
-   *
-   * @example
-   * const { data } = await GroupService.getGroupWithUserCount(groupId);
-   * console.log(`${data.group.name} has ${data.userCount} members`);
    */
   static async getGroupWithUserCount(
     groupId: string
@@ -358,39 +256,26 @@ export class GroupService {
         return { data: null, error: 'At least one user is required to create a group' };
       }
 
-      const now = nowISO();
-      const insertData: Database['public']['Tables']['groups']['Insert'] = {
+      const createData: Prisma.groupsCreateInput = {
         id: input.id,
         name: input.name.trim(),
         description: input.description?.trim() || '',
         user_ids: input.userIds,
-        plan: input.plan ?? { type: 'free', name: 'Free Plan' },
+        plan: (input.plan as Prisma.InputJsonValue) ?? { type: 'free', name: 'Free Plan' },
         is_active: input.isActive ?? true,
-        created_at: now,
-        updated_at: now,
+        created_at: new Date(),
+        updated_at: new Date(),
       };
 
-      const { data, error } = await supabaseServer
-        .from('groups')
-        .insert(insertData)
-        .select()
-        .single();
+      const group = await GroupRepository.create(createData);
 
-      if (error) {
-        throw new Error(error.message);
-      }
+      if (!group) return { data: null, error: 'Failed to create group' };
 
-      if (!data) {
-        return { data: null, error: 'Failed to create group' };
-      }
+      const createdGroup = group as Group;
 
-      const createdGroup = data as Group;
-
-      await revalidateCacheTags([
-        CACHE_TAGS.GROUPS,
-        CACHE_TAGS.GROUP(createdGroup.id),
-        CACHE_TAGS.GROUP_USERS(createdGroup.id),
-      ]);
+      revalidateTag(CACHE_TAGS.GROUPS, 'max');
+      revalidateTag(CACHE_TAGS.GROUP(createdGroup.id), 'max');
+      revalidateTag(CACHE_TAGS.GROUP_USERS(createdGroup.id), 'max');
 
       return { data: createdGroup, error: null };
     } catch (error) {

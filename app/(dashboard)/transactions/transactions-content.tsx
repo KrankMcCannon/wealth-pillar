@@ -33,7 +33,7 @@ import { transactionStyles } from "@/styles/system";
 import { UserSelectorSkeleton } from "@/features/dashboard";
 import { RecurringSeriesSkeleton } from "@/features/transactions/components/transaction-skeletons";
 import type { Transaction, Budget, User, Account, Category } from "@/lib/types";
-import { TransactionService } from "@/lib/services";
+import { TransactionLogic } from "@/server/services/transaction.logic";
 import { deleteTransactionAction } from "@/features/transactions/actions/transaction-actions";
 import { deleteRecurringSeriesAction } from "@/features/recurring/actions/recurring-actions";
 import { useModalState, useTabState } from "@/lib/navigation/url-state";
@@ -181,8 +181,26 @@ export default function TransactionsContent({
 
   // Group transactions by date and calculate daily totals using service layer
   const dayTotals = useMemo((): GroupedTransaction[] => {
-    const grouped = TransactionService.groupTransactionsByDate(filteredTransactions);
-    return TransactionService.calculateDailyTotals(grouped);
+    const grouped = TransactionLogic.groupTransactionsByDate(filteredTransactions);
+    // Transform Record<string, Transaction[]> to GroupedTransaction[]
+    return Object.entries(grouped).map(([date, transactions]) => {
+      const totals = transactions.reduce(
+        (acc, t) => {
+          if (t.type === 'income') acc.income += t.amount;
+          else if (t.type === 'expense') acc.expense += t.amount;
+          return acc;
+        },
+        { income: 0, expense: 0 }
+      );
+
+      return {
+        date,
+        transactions,
+        income: totals.income,
+        expense: totals.expense,
+        total: totals.income - totals.expense
+      };
+    }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [filteredTransactions]);
 
   const handleEditTransaction = (transaction: Transaction) => {

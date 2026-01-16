@@ -1,7 +1,7 @@
 import { auth } from '@clerk/nextjs/server';
 import { redirect } from 'next/navigation';
-import { UserService, GroupService } from '@/lib/services';
-import type { User } from '@/lib/types';
+import { UserService, GroupService, UserPreferencesService } from '@/server/services';
+import type { User, UserPreferences } from '@/lib/types';
 
 /**
  * Dashboard Data Response
@@ -10,6 +10,8 @@ import type { User } from '@/lib/types';
 export interface DashboardData {
   currentUser: User;
   groupUsers: User[];
+  userPreferences: UserPreferences | null;
+  accountBalance: number;
 }
 
 /**
@@ -72,18 +74,34 @@ export async function getDashboardData(): Promise<DashboardData> {
   }
 
   // Step 3: Fetch all users in the group (cached for 10 minutes)
+  if (!user.group_id) {
+    console.error('User has no group_id');
+    return {
+      currentUser: user as unknown as User,
+      groupUsers: [user as unknown as User],
+      userPreferences: null,
+      accountBalance: 0,
+    };
+  }
+
   const { data: groupUsers, error: groupError } = await GroupService.getGroupUsers(user.group_id);
 
   if (groupError) {
     // Log error but don't block page render
     // Some features may be limited without group users
-    console.error('Failed to load group users:', groupError);
+    console.error('Failed to fetch group users:', groupError);
   }
+
+  // Fetch preferences
+  const { data: userPreferences } =
+    await UserPreferencesService.getUserPreferences(user.id);
 
   // Return data with fallback for group users
   return {
-    currentUser: user,
-    groupUsers: groupUsers || [],
+    currentUser: user as unknown as User,
+    groupUsers: (groupUsers || []) as unknown as User[],
+    userPreferences,
+    accountBalance: 0, // Placeholder, calculated client-side or separate service
   };
 }
 

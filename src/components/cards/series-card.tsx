@@ -8,8 +8,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { cn, RecurringTransactionSeries } from "@/lib";
-import { CategoryService, RecurringService } from "@/lib/services";
+import { cn } from '@/lib';
+import type { RecurringTransactionSeries } from '@/lib';
+import { FinanceLogicService } from "@/server/services/finance-logic.service";
 import type { User } from "@/lib/types";
 import {
   executeRecurringSeriesAction,
@@ -74,13 +75,13 @@ export function SeriesCard({
   const closeAllCards = useCloseAllCards();
   const categories = useCategories();
   const categoryColor = useMemo(() => {
-    return CategoryService.getCategoryColor(categories, series.category);
+    return FinanceLogicService.getCategoryColor(categories, series.category);
   }, [categories, series.category]);
   const canSwipeDelete = Boolean(onDelete) && showDelete;
   const canSwipePause = showActions;
 
-  // Calculate due date info using RecurringService
-  const daysUntilDue = RecurringService.calculateDaysUntilDue(series);
+  // Calculate due date info using FinanceLogicService
+  const daysUntilDue = FinanceLogicService.calculateDaysUntilDue(series);
   const isOverdue = daysUntilDue < 0;
   const isDueToday = daysUntilDue === 0;
   const isDueSoon = daysUntilDue <= 3;
@@ -88,7 +89,12 @@ export function SeriesCard({
   // Get associated users for badge display
   const associatedUsers = useMemo(() => {
     if (!groupUsers) return [];
-    return RecurringService.getAssociatedUsers(series, groupUsers);
+    // Ensure theme_color is compatible (string | undefined) vs (string | null)
+    const sanitizedGroupUsers = groupUsers.map(u => ({
+      ...u,
+      theme_color: u.theme_color || undefined
+    }));
+    return FinanceLogicService.getAssociatedUsers(series, sanitizedGroupUsers);
   }, [series, groupUsers]);
 
   // Handle card click - use onCardClick if defined, otherwise fall back to onEdit

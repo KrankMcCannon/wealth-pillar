@@ -11,7 +11,7 @@ import { budgetStyles } from "@/styles/system";
 import { formatCurrency } from "@/lib/utils/currency-formatter";
 import { MoreVertical, Pencil, Trash2 } from "lucide-react";
 import { useCategories } from "@/stores/reference-data-store";
-import { CategoryService } from "@/lib/services";
+import { FinanceLogicService } from "@/server/services/finance-logic.service";
 
 export interface BudgetDisplayCardProps {
   budget: Budget | null;
@@ -34,7 +34,7 @@ export function BudgetDisplayCard({
   onDelete,
 }: Readonly<BudgetDisplayCardProps>) {
   const categories = useCategories();
-  const categoryColor = CategoryService.getCategoryColor(categories, budget?.categories?.[0] || "altro");
+  const categoryColor = FinanceLogicService.getCategoryColor(categories, budget?.categories?.[0] || "altro");
   const remainingColorClass = budgetProgress && budgetProgress.remaining < 0 ? "text-destructive" : "text-success";
 
   if (!budget) return null;

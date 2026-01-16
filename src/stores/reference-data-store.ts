@@ -1,16 +1,12 @@
 /**
  * Reference Data Store
  *
- * Centralized state management for reference data (users, accounts, categories).
- * Eliminates props drilling across 20+ components and enables optimistic updates.
- *
- * @module stores/reference-data-store
  */
 
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import { useShallow } from 'zustand/react/shallow';
-import type { User, Account, Category } from '@/lib/types';
+import type { Account, Category } from '@/lib/types';
 
 // ============================================================================
 // Types
@@ -18,24 +14,16 @@ import type { User, Account, Category } from '@/lib/types';
 
 interface ReferenceDataState {
   // Data
-  currentUser: User | null;
-  groupUsers: User[];
   accounts: Account[];
   categories: Category[];
-  groupId: string | null;
   isInitialized: boolean;
 
   // Initialization
   initialize: (data: {
-    currentUser: User;
-    groupUsers: User[];
     accounts: Account[];
     categories: Category[];
   }) => void;
   reset: () => void;
-
-  // User optimistic update actions
-  updateCurrentUser: (updates: Partial<User>) => void;
 
   // Account optimistic update actions
   addAccount: (account: Account) => void;
@@ -55,11 +43,8 @@ interface ReferenceDataState {
 // ============================================================================
 
 const initialState = {
-  currentUser: null,
-  groupUsers: [],
   accounts: [],
   categories: [],
-  groupId: null,
   isInitialized: false,
 };
 
@@ -75,11 +60,8 @@ export const useReferenceDataStore = create<ReferenceDataState>()(
       // Initialize store with data from server
       initialize: (data) => {
         set({
-          currentUser: data.currentUser,
-          groupUsers: data.groupUsers,
           accounts: data.accounts,
           categories: data.categories,
-          groupId: data.currentUser.group_id,
           isInitialized: true,
         }, false, 'reference-data/initialize');
       },
@@ -87,13 +69,6 @@ export const useReferenceDataStore = create<ReferenceDataState>()(
       // Reset store to initial state
       reset: () => {
         set(initialState, false, 'reference-data/reset');
-      },
-
-      // User actions
-      updateCurrentUser: (updates) => {
-        set((state) => ({
-          currentUser: state.currentUser ? { ...state.currentUser, ...updates } : null,
-        }), false, 'reference-data/updateCurrentUser');
       },
 
       // Account actions
@@ -155,20 +130,6 @@ export const useReferenceDataStore = create<ReferenceDataState>()(
 // ============================================================================
 
 /**
- * Get current user
- * Subscribes only to currentUser changes
- */
-export const useCurrentUser = () =>
-  useReferenceDataStore((state) => state.currentUser);
-
-/**
- * Get group users
- * Subscribes only to groupUsers changes
- */
-export const useGroupUsers = () =>
-  useReferenceDataStore((state) => state.groupUsers);
-
-/**
  * Get accounts
  * Subscribes only to accounts changes
  */
@@ -183,13 +144,6 @@ export const useCategories = () =>
   useReferenceDataStore((state) => state.categories);
 
 /**
- * Get group ID
- * Subscribes only to groupId changes
- */
-export const useGroupId = () =>
-  useReferenceDataStore((state) => state.groupId);
-
-/**
  * Get initialization status
  * Subscribes only to isInitialized changes
  */
@@ -198,16 +152,11 @@ export const useIsInitialized = () =>
 
 /**
  * Get all reference data at once
- * Use this only when you need ALL reference data
- * For most cases, use individual selectors to prevent unnecessary re-renders
  */
 export const useReferenceData = () =>
   useReferenceDataStore(
     useShallow((state) => ({
-      currentUser: state.currentUser,
-      groupUsers: state.groupUsers,
       accounts: state.accounts,
       categories: state.categories,
-      groupId: state.groupId,
     }))
   );

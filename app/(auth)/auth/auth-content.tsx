@@ -28,10 +28,6 @@ function getErrorMessage(err: unknown, fallback: string): string {
 
 /**
  * Auth Content Component
- * Contains OAuth authentication logic
- * Wrapped in Suspense in parent page component
- *
- * Note: Using signUp for OAuth because it handles both new and existing users automatically. signIn would fail for new users with "external_account_not_found".
  */
 export default function AuthContent() {
   const { isLoaded, signUp } = useSignUp();
@@ -48,11 +44,8 @@ export default function AuthContent() {
       : null;
   }, [searchParams]);
 
-  // IMPORTANT: All hooks must be called before any conditional returns
   // First effect: Handle existing session redirect
   useEffect(() => {
-    // If user already has a session, send them to SSO callback immediately
-    // The callback will check if they exist in Supabase and either show onboarding or redirect to dashboard
     if (isLoaded && session && !redirectingRef.current) {
       console.log('[Auth] Session already exists, redirecting to SSO callback');
       redirectingRef.current = true;
@@ -62,7 +55,6 @@ export default function AuthContent() {
 
   // Second effect: Clear error parameters from URL
   useEffect(() => {
-    // Clear error from URL without page reload
     if (urlError) {
       const url = new URL(window.location.href);
       url.searchParams.delete("error");
@@ -70,8 +62,6 @@ export default function AuthContent() {
     }
   }, [urlError]);
 
-  // CONDITIONAL RENDERING: Only after all hooks are called
-  // If session exists, redirect immediately (don't show the page)
   if (isLoaded && session) {
     return (
       <AuthCard
@@ -85,7 +75,6 @@ export default function AuthContent() {
     );
   }
 
-  // Handle OAuth authentication (works for both new and existing users)
   const handleOAuthAuth = async (provider: "oauth_google" | "oauth_apple" | "oauth_github") => {
     if (!isLoaded || !signUp) return;
 
@@ -93,11 +82,6 @@ export default function AuthContent() {
     setError(null);
 
     try {
-      // Use signUp for OAuth - it handles both new and existing users
-      // The SSO callback will check user existence and determine final routing
-
-      // Use relative URLs in development, absolute URLs in production
-      // Clerk handles relative URLs better in dev, but requires absolute in production
       const callbackPath = "/auth/sso-callback";
       const callbackUrl = isProduction() ? getAbsoluteUrl(callbackPath) : callbackPath;
       console.log('[Auth] OAuth redirect URL:', callbackUrl, `(${isProduction() ? 'production' : 'development'})`);
@@ -105,13 +89,11 @@ export default function AuthContent() {
       await signUp.authenticateWithRedirect({
         strategy: provider,
         redirectUrl: callbackUrl,
-        redirectUrlComplete: callbackUrl, // SSO callback determines final destination
+        redirectUrlComplete: callbackUrl,
       });
     } catch (err) {
       console.error("OAuth error:", err);
 
-      // Check if error is "session_exists" - this means user is already signed in
-      // Redirect them to SSO callback instead of showing an error
       if (err && typeof err === "object" && "errors" in err) {
         const clerkErr = err as { errors?: { code?: string }[] };
         const hasSessionExistsError = clerkErr.errors?.some(e => e.code === 'session_exists');

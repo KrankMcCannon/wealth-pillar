@@ -45,7 +45,7 @@ import {
   formatDateShort,
   diffInDays,
 } from "@/lib/utils/date-utils";
-import { BudgetService } from "@/lib/services";
+import { FinanceLogicService } from "@/server/services/finance-logic.service";
 import type { Category, Budget, Transaction, Account, BudgetPeriod, User } from "@/lib/types";
 import type { ChartDataPoint } from "@/features/budgets/components/BudgetChart";
 import { usePageDataStore } from "@/stores/page-data-store";
@@ -215,7 +215,7 @@ export default function BudgetsContent({
     // Filter transactions for the budget owner, then by budget criteria
     const userTransactions = transactions.filter((t) => t.user_id === selectedBudgetUser.id);
 
-    return BudgetService.filterTransactionsForBudget(userTransactions, selectedBudget, periodStart, periodEnd);
+    return FinanceLogicService.filterTransactionsForBudget(userTransactions, selectedBudget, periodStart, periodEnd);
   }, [selectedBudget, selectedBudgetUser, transactions, periodInfo]);
 
   // Generate subtitle for transaction section

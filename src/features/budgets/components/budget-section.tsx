@@ -2,7 +2,8 @@
 
 import { Suspense } from "react";
 import { useRouter } from "next/navigation";
-import { Budget, BudgetPeriod, User, progressBarVariants } from "@/lib";
+import type { Budget, BudgetPeriod, User } from '@/lib';
+import { progressBarVariants } from '@/lib';
 import { BudgetSectionSkeleton } from "@/features/dashboard";
 import { SectionHeader } from "@/components/layout";
 import { PageSection, RowCard } from "@/components/ui/layout";

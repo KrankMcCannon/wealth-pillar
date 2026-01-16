@@ -35,7 +35,7 @@ export function CategoryField({
         categories={categories}
         placeholder={placeholder}
         showRecentCategories={true}
-        recentCategoriesLimit={5}
+        recentCategoriesLimit={3}
       />
     </FormField>
   );

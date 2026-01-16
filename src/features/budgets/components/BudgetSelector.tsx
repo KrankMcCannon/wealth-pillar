@@ -19,7 +19,7 @@ import { Budget, User } from '@/lib';
 import { budgetStyles } from '@/styles/system';
 import { useUserFilter } from '@/hooks/state/use-user-filter';
 import { useCategories } from '@/stores/reference-data-store';
-import { CategoryService } from '@/lib/services';
+import { FinanceLogicService } from "@/server/services/finance-logic.service";
 
 export interface BudgetSelectorProps {
   selectedBudget: Budget | null;
@@ -44,7 +44,7 @@ export function BudgetSelector({
     );
   }, [categories]);
   const getCategoryColor = useCallback((categoryKey: string) => {
-    return categoryColors.get(categoryKey) || CategoryService.getCategoryColor(categories, categoryKey);
+    return categoryColors.get(categoryKey) || FinanceLogicService.getCategoryColor(categories, categoryKey);
   }, [categories, categoryColors]);
 
   return (
@@ -65,12 +65,12 @@ export function BudgetSelector({
             {selectedBudget ? (
               <div className={budgetStyles.selector.itemContent}>
                 <div className={budgetStyles.selector.itemIcon}>
-                <CategoryBadge
-                  categoryKey={selectedBudget.categories?.[0] || 'altro'}
-                  color={getCategoryColor(selectedBudget.categories?.[0] || 'altro')}
-                  size="sm"
-                  className={budgetStyles.selector.itemIconContent}
-                />
+                  <CategoryBadge
+                    categoryKey={selectedBudget.categories?.[0] || 'altro'}
+                    color={getCategoryColor(selectedBudget.categories?.[0] || 'altro')}
+                    size="sm"
+                    className={budgetStyles.selector.itemIconContent}
+                  />
                 </div>
                 <div className={budgetStyles.selector.itemTextRow}>
                   <span className={budgetStyles.selector.itemText}>
@@ -96,12 +96,12 @@ export function BudgetSelector({
               >
                 <div className={budgetStyles.selector.itemContent}>
                   <div className={budgetStyles.selector.itemIcon}>
-                  <CategoryBadge
-                    categoryKey={budget.categories?.[0] || 'altro'}
-                    color={getCategoryColor(budget.categories?.[0] || 'altro')}
-                    size="sm"
-                    className={budgetStyles.selector.itemIconContent}
-                  />
+                    <CategoryBadge
+                      categoryKey={budget.categories?.[0] || 'altro'}
+                      color={getCategoryColor(budget.categories?.[0] || 'altro')}
+                      size="sm"
+                      className={budgetStyles.selector.itemIconContent}
+                    />
                   </div>
                   <div className={budgetStyles.selector.itemTextRow}>
                     <span className={budgetStyles.selector.itemText}>

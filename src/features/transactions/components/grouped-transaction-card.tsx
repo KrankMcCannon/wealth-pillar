@@ -2,7 +2,7 @@
 
 import { Card } from "@/components/ui";
 import { Transaction, Category } from "@/lib";
-import { CategoryService } from "@/lib/services";
+import { FinanceLogicService } from "@/server/services/finance-logic.service";
 import { formatCurrency } from "@/lib/utils";
 import { TransactionRow } from "./transaction-row";
 import {
@@ -52,17 +52,17 @@ export function GroupedTransactionCard({
   if (!transactions.length) return null;
 
   const getCategoryLabel = (categoryKey: string) => {
-    return CategoryService.getCategoryLabel(categories, categoryKey);
+    return FinanceLogicService.getCategoryLabel(categories, categoryKey);
   };
 
   const getCategoryColor = (categoryKey: string) => {
-    return CategoryService.getCategoryColor(categories, categoryKey);
+    return FinanceLogicService.getCategoryColor(categories, categoryKey);
   };
 
   return (
     <Card className={cn(getCardVariantStyles(variant))}>
-        {/* Optional Header with Total */}
-        {showHeader && totalAmount !== undefined && (
+      {/* Optional Header with Total */}
+      {showHeader && totalAmount !== undefined && (
         <div className={getHeaderVariantStyles(variant)}>
           <div className={transactionStyles.groupedCard.headerContent}>
             <span className={transactionStyles.groupedCard.headerLabel}>

@@ -1,9 +1,13 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
-import { CreateAccountInput, UpdateAccountInput, AccountService } from "@/lib/services/account.service";
-import { UserService } from "@/lib/services/user.service";
-import { Account } from "@/lib/types";
+import { revalidatePath, revalidateTag } from "next/cache";
+import { CreateAccountInput, UpdateAccountInput } from "@/server/services/account.service";
+import { UserService } from "@/server/services/user.service";
+import { Account, User } from "@/lib/types";
+import { AccountRepository } from "@/server/dal/account.repository";
+import { auth } from "@clerk/nextjs/server";
+import { canAccessUserData } from "@/lib/utils/permissions";
+import { CACHE_TAGS } from "@/lib/cache";
 
 export type ActionState<T> = {
     data?: T;
@@ -17,22 +21,65 @@ export async function createAccountAction(
     input: CreateAccountInput,
     isDefault: boolean = false
 ): Promise<ActionState<Account>> {
-    const { data: account, error } = await AccountService.createAccount(input);
+    try {
+        // Authentication check
+        const { userId: clerkId } = await auth();
+        if (!clerkId) {
+            return { error: "Non autenticato. Effettua il login per continuare." };
+        }
 
-    if (error || !account) {
-        return { error: error || "Failed to create account" };
+        // Get current user
+        const { data: currentUser, error: userError } = await UserService.getLoggedUserInfo(clerkId);
+        if (userError || !currentUser) {
+            return { error: userError || "Utente non trovato" };
+        }
+
+        // Validate permissions (e.g., creating account for user in same group)
+        // Check if current user has access to all target users
+        for (const userId of input.user_ids) {
+            if (!canAccessUserData(currentUser as unknown as User, userId)) {
+                return { error: "Non hai i permessi per creare un account per questo utente" };
+            }
+        }
+
+        // Input Validation
+        if (!input.name || input.name.trim() === '') return { error: 'Nome account obbligatorio' };
+        if (!input.type) return { error: 'Tipo account obbligatorio' };
+        if (!input.group_id) return { error: 'Gruppo obbligatorio' };
+        if (!input.user_ids || input.user_ids.length === 0) return { error: 'Almeno un utente è richiesto' };
+
+        const account = await AccountRepository.create({
+            id: input.id,
+            name: input.name.trim(),
+            type: input.type,
+            user_ids: input.user_ids,
+            group_id: input.group_id,
+        });
+
+        if (!account) {
+            return { error: "Failed to create account" };
+        }
+
+        // Handle default account setting
+        if (isDefault && input.user_ids.length === 1) {
+            const userId = input.user_ids[0];
+            await UserService.setDefaultAccount(userId, account.id);
+        }
+
+        // Revalidate paths
+        revalidatePath("/accounts");
+        revalidatePath("/dashboard");
+
+        // Invalidate caches
+        revalidateTag(CACHE_TAGS.ACCOUNTS, 'max');
+        revalidateTag(CACHE_TAGS.ACCOUNT(account.id), 'max');
+        revalidateTag(`group:${input.group_id}:accounts`, 'max');
+        input.user_ids.forEach((userId) => revalidateTag(`user:${userId}:accounts`, 'max'));
+
+        return { data: account as unknown as Account };
+    } catch (error) {
+        return { error: error instanceof Error ? error.message : "Failed to create account" };
     }
-
-    // Handle default account setting
-    if (isDefault && input.user_ids.length === 1) {
-        const userId = input.user_ids[0];
-        await UserService.setDefaultAccount(userId, account.id);
-    }
-
-    revalidatePath("/accounts");
-    revalidatePath("/dashboard");
-
-    return { data: account };
 }
 
 /**
@@ -43,36 +90,76 @@ export async function updateAccountAction(
     input: UpdateAccountInput,
     isDefault: boolean = false
 ): Promise<ActionState<Account>> {
-    const { data: account, error } = await AccountService.updateAccount(accountId, input);
-
-    if (error || !account) {
-        return { error: error || "Failed to update account" };
-    }
-
-    // Handle default account setting
-    // Only if single user is selected
-    if (input.user_ids?.length === 1) {
-        const userId = input.user_ids[0];
-        if (isDefault) {
-            await UserService.setDefaultAccount(userId, accountId);
-        } else {
-            // If unchecking default, we verify if this was indeed the default before clearing it?
-            // Actually, easiest logic is: if user wants it default, we set it. 
-            // If they assume it was default and want to remove it, they effectively set it to null?
-            // The UI usually only shows "Make default". Unsetting usually implies selecting another one.
-            // But if we support toggle off, we should check.
-            // For now, if explicit isDefault is true, we set it.
-            // If isDefault is passed as false, we do nothing (preserves existing state) 
-            // OR we should explicitly clear it if it WAS default.
-            // The user requirement says: "If Default is selected, update...". It doesn't explicitly say about unselecting.
-            // I will stick to "If checked, set as default".
+    try {
+        // Authentication check
+        const { userId: clerkId } = await auth();
+        if (!clerkId) {
+            return { error: "Non autenticato." };
         }
+
+        // Get current user
+        const { data: currentUser, error: userError } = await UserService.getLoggedUserInfo(clerkId);
+        if (userError || !currentUser) {
+            return { error: userError || "Utente non trovato" };
+        }
+
+        // Get existing account to verify ownership
+        const existingAccount = await AccountRepository.getById(accountId);
+        if (!existingAccount) {
+            return { error: "Account non trovato" };
+        }
+
+        // Validate permissions: Current user must be in the group of the account OR be one of the account users (if logic allows)
+        // Usually accounts stick to a group.
+        if (currentUser.group_id !== existingAccount.group_id) {
+            // Admin check? Assuming group isolation for now strictly?
+            // Or verify explicit access
+            // Simplest check: Must be in same group
+            return { error: "Non hai i permessi per modificare questo account" };
+        }
+
+        // Input validation for updates
+        if (input.name !== undefined && input.name.trim() === '') return { error: 'Nome account non può essere vuoto' };
+        if (input.user_ids !== undefined && input.user_ids.length === 0) return { error: 'Almeno un utente è richiesto' };
+
+        const account = await AccountRepository.update(accountId, {
+            name: input.name?.trim(),
+            type: input.type,
+            user_ids: input.user_ids,
+            group_id: input.group_id
+        });
+
+        if (!account) {
+            return { error: "Failed to update account" };
+        }
+
+        // Handle default account setting
+        if (input.user_ids?.length === 1 || (!input.user_ids && existingAccount.user_ids.length === 1)) {
+            const userId = input.user_ids ? input.user_ids[0] : existingAccount.user_ids[0];
+            if (isDefault) {
+                await UserService.setDefaultAccount(userId, accountId);
+            }
+        }
+
+        revalidatePath("/accounts");
+        revalidatePath("/dashboard");
+
+        // Invalidate caches
+        revalidateTag(CACHE_TAGS.ACCOUNTS, 'max');
+        revalidateTag(CACHE_TAGS.ACCOUNT(accountId), 'max');
+
+        // Revalidate group
+        const groupId = input.group_id || existingAccount.group_id;
+        revalidateTag(`group:${groupId}:accounts`, 'max');
+
+        // Revalidate users (both old and new to be safe)
+        const userIds = new Set([...existingAccount.user_ids, ...(input.user_ids || [])]);
+        userIds.forEach((userId) => revalidateTag(`user:${userId}:accounts`, 'max'));
+
+        return { data: account as unknown as Account };
+    } catch (error) {
+        return { error: error instanceof Error ? error.message : "Failed to update account" };
     }
-
-    revalidatePath("/accounts");
-    revalidatePath("/dashboard");
-
-    return { data: account };
 }
 
 /**
@@ -81,14 +168,44 @@ export async function updateAccountAction(
 export async function deleteAccountAction(
     accountId: string
 ): Promise<ActionState<boolean>> {
-    const { error } = await AccountService.deleteAccount(accountId);
+    try {
+        // Authentication check
+        const { userId: clerkId } = await auth();
+        if (!clerkId) {
+            return { error: "Non autenticato." };
+        }
 
-    if (error) {
-        return { error };
+        const { data: currentUser, error: userError } = await UserService.getLoggedUserInfo(clerkId);
+        if (userError || !currentUser) {
+            return { error: userError || "Utente non trovato" };
+        }
+
+        const existingAccount = await AccountRepository.getById(accountId);
+        if (!existingAccount) {
+            return { error: "Account non trovato" };
+        }
+
+        if (currentUser.group_id !== existingAccount.group_id) {
+            return { error: "Non hai i permessi per eliminare questo account" };
+        }
+
+        const result = await AccountRepository.delete(accountId);
+
+        if (!result) {
+            return { error: "Failed to delete account" };
+        }
+
+        revalidatePath("/accounts");
+        revalidatePath("/dashboard");
+
+        // Invalidate caches
+        revalidateTag(CACHE_TAGS.ACCOUNTS, 'max');
+        revalidateTag(CACHE_TAGS.ACCOUNT(accountId), 'max');
+        revalidateTag(`group:${existingAccount.group_id}:accounts`, 'max');
+        existingAccount.user_ids.forEach((userId) => revalidateTag(`user:${userId}:accounts`, 'max'));
+
+        return { data: true };
+    } catch (error) {
+        return { error: error instanceof Error ? error.message : "Failed to delete account" };
     }
-
-    revalidatePath("/accounts");
-    revalidatePath("/dashboard");
-
-    return { data: true };
 }

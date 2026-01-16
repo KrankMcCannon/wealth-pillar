@@ -9,8 +9,8 @@ import YearSelector from "@/components/shared/year-selector";
 import { BudgetPeriodsSection, ReportsOverviewCard, AnnualCategorySection } from "@/features/reports";
 import { reportsStyles } from "@/styles/system";
 import type { Transaction, Category, BudgetPeriod, Account, User } from "@/lib/types";
-import { CategoryService } from "@/lib/services";
-import { ReportMetricsService } from "@/lib/services/report-metrics.service";
+import { FinanceLogicService } from "@/server/services/finance-logic.service";
+import { ReportMetricsService } from "@/server/services/report-metrics.service";
 import { toDateTime } from "@/lib/utils/date-utils";
 
 interface ReportsContentProps {
@@ -102,9 +102,9 @@ export default function ReportsContent({
   const enrichedCategories = useMemo(() => {
     return categories.map((category) => ({
       ...category,
-      label: CategoryService.getCategoryLabel(categories, category.key),
-      color: CategoryService.getCategoryColor(categories, category.key),
-      icon: CategoryService.getCategoryIcon(categories, category.key),
+      label: FinanceLogicService.getCategoryLabel(categories, category.key),
+      color: FinanceLogicService.getCategoryColor(categories, category.key),
+      icon: FinanceLogicService.getCategoryIcon(categories, category.key),
     }));
   }, [categories]);
 

@@ -309,6 +309,107 @@ export interface Database {
         };
         Relationships: [];
       };
+      user_preferences: {
+        Row: {
+          id: string;
+          user_id: string;
+          currency: string;
+          language: string;
+          timezone: string;
+          notifications_push: boolean;
+          notifications_email: boolean;
+          notifications_budget_alerts: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          currency?: string;
+          language?: string;
+          timezone?: string;
+          notifications_push?: boolean;
+          notifications_email?: boolean;
+          notifications_budget_alerts?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          currency?: string;
+          language?: string;
+          timezone?: string;
+          notifications_push?: boolean;
+          notifications_email?: boolean;
+          notifications_budget_alerts?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "user_preferences_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: true;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      group_invitations: {
+        Row: {
+          id: string;
+          email: string;
+          group_id: string;
+          invited_by_user_id: string;
+          invitation_token: string;
+          status: 'pending' | 'accepted' | 'expired' | 'cancelled';
+          expires_at: string;
+          accepted_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          email: string;
+          group_id: string;
+          invited_by_user_id: string;
+          invitation_token: string;
+          status?: 'pending' | 'accepted' | 'expired' | 'cancelled';
+          expires_at: string;
+          accepted_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          email?: string;
+          group_id?: string;
+          invited_by_user_id?: string;
+          invitation_token?: string;
+          status?: 'pending' | 'accepted' | 'expired' | 'cancelled';
+          expires_at?: string;
+          accepted_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "group_invitations_group_id_fkey";
+            columns: ["group_id"];
+            isOneToOne: false;
+            referencedRelation: "groups";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "group_invitations_invited_by_user_id_fkey";
+            columns: ["invited_by_user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
     };
     Views: {
       [_ in never]: never;

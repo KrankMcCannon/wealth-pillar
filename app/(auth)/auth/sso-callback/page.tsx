@@ -12,18 +12,6 @@ import { completeOnboardingAction, checkUserExistsAction } from "@/features/onbo
 import type { Category } from "@/lib/types";
 import type { OnboardingPayload } from "@/features/onboarding/types";
 
-/**
- * Simplified SSO Callback Page
- *
- * Handles OAuth callback with a linear flow:
- * 1. Check if user exists in Supabase
- * 2. If exists → redirect to dashboard
- * 3. If new → show onboarding → create user → redirect to dashboard
- *
- * Clerk proxy handles session management automatically - no manual setActive() needed
- */
-
-// Simplified view state (discriminated union for type safety)
 type ViewState =
   | { type: 'checking' }
   | { type: 'onboarding'; categories: Category[] }
@@ -51,99 +39,73 @@ export default function SSOCallback() {
     setActiveRef.current = setActive;
   }, [signUp, signIn, setActive]);
 
-  // Single effect - linear flow with improved UX
   useEffect(() => {
-    async function processCallback() {
-      // Wait for Clerk to load
-      if (!isLoaded) return;
+    let mounted = true;
 
-      // Handle external account transfer case (returning user)
+    async function processCallback() {
+      if (!isLoaded) return;
+      if (processedUserRef.current === userId && processedUserRef.current !== null && viewState.type !== 'error') return;
+
       const signUpClient = signUpRef.current;
       const signInClient = signInRef.current;
       const setActiveClient = setActiveRef.current;
 
-      if (!isSignedIn && signUpClient && signInClient) {
-        const hasExternalAccountError =
-          signUpClient.verifications?.externalAccount?.error?.code === 'external_account_exists';
+      const isTransfer = signUpClient?.verifications?.externalAccount?.error?.code === 'external_account_exists';
+      const transferStatus = signUpClient?.verifications?.externalAccount?.status === 'transferable';
 
-        if (hasExternalAccountError) {
-          const transfer = signUpClient.verifications.externalAccount;
-
-          if (transfer && transfer.status === 'transferable') {
-            try {
-              console.log('[SSO] External account exists, transferring to sign-in');
-              const signInAttempt = await signInClient.create({ transfer: true });
-
-              if (
-                signInAttempt.status === 'complete' &&
-                signInAttempt.createdSessionId &&
-                setActiveClient
-              ) {
-                await setActiveClient({ session: signInAttempt.createdSessionId });
-                // Session activated, will trigger re-render with isSignedIn = true
-                return;
-              }
-            } catch (error) {
-              console.error('[SSO] Transfer failed:', error);
-              setViewState({
-                type: 'error',
-                message: 'Errore durante il trasferimento account. Riprova.'
-              });
-              return;
-            }
+      if (signUpClient && signInClient && isTransfer && transferStatus) {
+        try {
+          const signInAttempt = await signInClient.create({ transfer: true });
+          if (signInAttempt.status === 'complete' && signInAttempt.createdSessionId && setActiveClient) {
+            await setActiveClient({ session: signInAttempt.createdSessionId });
+            return;
           }
+        } catch (error) {
+          console.error('[SSO] Transfer failed:', error);
+          if (mounted) setViewState({ type: 'error', message: 'Errore trasferimento account.' });
+          return;
         }
       }
 
-      // Clerk proxy ensures user is authenticated
-      // If not signed in at this point, redirect to auth page
-      if (!isSignedIn || !userId) {
-        router.replace('/auth?error=authentication-required');
-        return;
-      }
+      if (!isSignedIn || !userId) return;
 
-      if (processedUserRef.current === userId) {
-        return;
-      }
       processedUserRef.current = userId;
 
       try {
-        // Check if user exists in Supabase
         const result = await checkUserExistsAction(userId);
+        if (!mounted) return;
 
         if (result.data?.exists) {
-          // Existing user - redirect to dashboard immediately for smoother UX
+          setViewState({ type: 'redirecting' });
           router.replace('/dashboard');
         } else {
-          // New user - load onboarding
           const categoriesResult = await getAllCategoriesAction();
-          const categories = categoriesResult.data || [];
-
-          setViewState({ type: 'onboarding', categories });
+          if (mounted) setViewState({ type: 'onboarding', categories: categoriesResult.data || [] });
         }
       } catch (error) {
-        console.error('[SSO] Error processing callback:', error);
-        setViewState({
-          type: 'error',
-          message: 'Errore durante la verifica. Riprova.'
-        });
+        console.error('[SSO] Error:', error);
+        if (mounted) setViewState({ type: 'error', message: 'Errore verifica.' });
       }
     }
 
     processCallback();
-  }, [isLoaded, isSignedIn, userId, router, signUp, signIn, setActive]);
+    return () => { mounted = false; };
+  }, [isLoaded, isSignedIn, userId, router, viewState.type]);
 
   // Handle error state redirect
   useEffect(() => {
-    if (viewState.type === 'error') {
+    if (viewState.type === 'error' || (!isLoaded && !isSignedIn)) {
       const timer = setTimeout(() => {
-        router.replace(`/auth?error=${encodeURIComponent(viewState.message)}`);
-      }, 2000);
+        if (viewState.type === 'error') {
+          router.replace(`/auth?error=${encodeURIComponent(viewState.message)}`);
+        } else if (isLoaded && !isSignedIn) {
+          router.replace('/auth?error=timeout');
+        }
+      }, 5000);
       return () => clearTimeout(timer);
     }
-  }, [viewState, router]);
+  }, [viewState, isLoaded, isSignedIn, router]);
 
-  // Onboarding completion handler
   const handleOnboardingComplete = async (payload: OnboardingPayload) => {
     if (!userId || !user) {
       setOnboardingError("Impossibile identificare l'utente. Riprova.");
@@ -168,31 +130,20 @@ export default function SSOCallback() {
 
       if (result.error) {
         setOnboardingError(`${result.error}. Riprova.`);
-        // Return to onboarding with error
         const categoriesResult = await getAllCategoriesAction();
-        setViewState({
-          type: 'onboarding',
-          categories: categoriesResult.data || []
-        });
+        setViewState({ type: 'onboarding', categories: categoriesResult.data || [] });
         return;
       }
 
-      // Success - redirect to dashboard immediately for smoother UX
       router.replace('/dashboard');
     } catch (error) {
       console.error("Onboarding error:", error);
       setOnboardingError("Errore imprevisto. Riprova.");
-
-      // Return to onboarding
       const categoriesResult = await getAllCategoriesAction();
-      setViewState({
-        type: 'onboarding',
-        categories: categoriesResult.data || []
-      });
+      setViewState({ type: 'onboarding', categories: categoriesResult.data || [] });
     }
   };
 
-  // Render based on view state
   if (viewState.type === 'onboarding') {
     return (
       <OnboardingModal
@@ -205,13 +156,12 @@ export default function SSOCallback() {
     );
   }
 
-  // Loading states
   const loadingMessage =
     viewState.type === 'checking' ? "Verifica account in corso..." :
-    viewState.type === 'submitting' ? "Configurazione account..." :
-    viewState.type === 'redirecting' ? "Reindirizzamento..." :
-    viewState.type === 'error' ? viewState.message :
-    "Caricamento...";
+      viewState.type === 'submitting' ? "Configurazione account..." :
+        viewState.type === 'redirecting' ? "Reindirizzamento..." :
+          viewState.type === 'error' ? viewState.message :
+            "Caricamento...";
 
   return (
     <>
@@ -223,9 +173,7 @@ export default function SSOCallback() {
       >
         <div className={authStyles.loading.container}>
           <Loader2 className={authStyles.loading.spinner} />
-          <p className={authStyles.loading.text}>
-            {loadingMessage}
-          </p>
+          <p className={authStyles.loading.text}>{loadingMessage}</p>
         </div>
       </AuthCard>
     </>

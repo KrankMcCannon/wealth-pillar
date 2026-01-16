@@ -42,7 +42,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { Button } from "@/components/ui";
 import { toast } from "@/hooks/use-toast";
 import type { Account, Transaction } from "@/lib/types";
-import type { UserPreferences } from "@/lib/services/user-preferences.service";
+import type { UserPreferences } from "@/server/services/user-preferences.service";
 
 /**
  * Settings Content Props
@@ -285,7 +285,7 @@ export default function SettingsContent({ accounts, transactions }: SettingsCont
           title="Impostazioni"
           showBack={true}
           onBack={() => router.push("/dashboard")}
-          currentUser={{ name: currentUser.name, role: currentUser.role || 'member' }}
+          currentUser={{ name: currentUser.name, role: (currentUser.role || 'member') as any }}
           showActions={true}
         />
 
@@ -298,7 +298,7 @@ export default function SettingsContent({ accounts, transactions }: SettingsCont
               {/* User Info Header */}
               <div className={settingsStyles.profile.header}>
                 <div className={settingsStyles.profile.container}>
-                  <div className={settingsStyles.profile.avatar} style={{ backgroundColor: currentUser.theme_color }}>
+                  <div className="settings-profile-avatar" style={{ backgroundColor: (currentUser.theme_color || '#000000') as string }}>
                     {userInitials}
                   </div>
                   <div className={settingsStyles.profile.info}>
@@ -336,7 +336,7 @@ export default function SettingsContent({ accounts, transactions }: SettingsCont
                 <SettingsItem
                   icon={<User className="h-4 w-4 text-primary" />}
                   label="Ruolo"
-                  value={currentUser.role}
+                  value={currentUser.role || 'Membro'}
                 />
               </ListContainer>
             </PageSection>
@@ -371,16 +371,16 @@ export default function SettingsContent({ accounts, transactions }: SettingsCont
                         icon={
                           <div
                             className="size-10 rounded-xl flex items-center justify-center text-white text-sm font-semibold shadow-md"
-                            style={{ backgroundColor: member.theme_color }}
+                            style={{ backgroundColor: (member.theme_color || '#000000') as string }}
                           >
                             {memberInitials}
                           </div>
                         }
                         actions={(
                           <div className="text-right">
-                            <RoleBadge role={member.role} size="sm" variant="subtle" />
+                            <RoleBadge role={(member.role || 'member') as any} size="sm" variant="subtle" />
                             <p className="text-xs text-primary/50 mt-0.5">
-                              {new Date(member.created_at).toLocaleDateString("it-IT")}
+                              {member.created_at ? new Date(member.created_at).toLocaleDateString("it-IT") : '-'}
                             </p>
                           </div>
                         )}
@@ -617,7 +617,7 @@ export default function SettingsContent({ accounts, transactions }: SettingsCont
         <InviteMemberModal
           isOpen={showInviteMemberModal}
           onOpenChange={setShowInviteMemberModal}
-          groupId={currentUser.group_id}
+          groupId={currentUser.group_id || ''}
           currentUserId={currentUser.id}
         />
       )}
@@ -627,7 +627,7 @@ export default function SettingsContent({ accounts, transactions }: SettingsCont
         <SubscriptionModal
           isOpen={showSubscriptionModal}
           onOpenChange={setShowSubscriptionModal}
-          groupId={currentUser.group_id}
+          groupId={currentUser.group_id || ''}
           currentPlan="free"
         />
       )}

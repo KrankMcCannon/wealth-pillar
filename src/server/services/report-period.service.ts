@@ -8,7 +8,6 @@
 
 import type { Account, BudgetPeriod, Transaction, User, CategoryBreakdownItem } from '@/lib/types';
 import { FinanceLogicService } from './finance-logic.service';
-import { AccountService } from './account.service';
 import { toDateTime } from '@/lib/utils/date-utils';
 
 /**
@@ -155,7 +154,7 @@ export class ReportPeriodService {
 
       if (defaultAccountId) {
         // Calculate REAL current balance using AccountService
-        const currentBalance = AccountService.calculateAccountBalance(defaultAccountId, transactions);
+        const currentBalance = FinanceLogicService.calculateAccountBalance(defaultAccountId, transactions);
 
         // Calculate the REAL historical balance at the start of the first period
         // This ensures the sequence ends exactly at the current account balance

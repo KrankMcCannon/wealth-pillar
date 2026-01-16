@@ -1,31 +1,14 @@
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import { auth } from '@clerk/nextjs/server';
 import { redirect } from 'next/navigation';
-import { GroupService, PageDataService, UserService } from '@/lib/services';
+import { GroupService, UserService, AccountService, CategoryService } from '@/server/services';
+import type { User } from '@/lib/types';
 import { ModalProvider } from '@/providers/modal-provider';
 import { ReferenceDataInitializer } from '@/providers/reference-data-initializer';
+import { UserProvider } from '@/providers/user-provider';
 
 /**
  * Dashboard Layout with Zustand Store Initialization
- *
- * Server Component that fetches shared data and initializes global stores:
- * - ReferenceDataInitializer: Initializes reference data store (users, accounts, categories)
- * - ModalProvider: Manages global modals via URL state (nuqs)
- *
- * Architecture (Next.js 16 Best Practices):
- * - Auth Gatekeeper: Checks Clerk auth AND Supabase user existence
- * - Server Component for optimal data fetching with parallel queries
- * - ReferenceDataInitializer bridges server data → Zustand stores
- * - ModalProvider reads from stores (no props needed)
- * - User filter state managed globally via Zustand (client-side)
- *
- * Auth Flow:
- * 1. Check Clerk auth → redirect to /auth if missing
- * 2. Check Supabase user → redirect to /auth/sso-callback if missing (for onboarding)
- * 3. Fetch data in parallel → initialize stores
- *
- * Data Flow:
- * Layout (Server) → Fetch Data → ReferenceDataInitializer (Client) → Stores → ModalProvider (Client) → Children
  */
 export default async function DashboardLayout({
   children,
@@ -47,30 +30,45 @@ export default async function DashboardLayout({
     redirect('/auth/sso-callback');
   }
 
-  // Step 3: Parallel data fetching (PERFORMANCE OPTIMIZATION)
-  // Fetch group users and page data simultaneously instead of sequentially
-  const [groupUsersResult, pageDataResult] = await Promise.all([
+  // Step 3: Check group logic
+  if (!user.group_id) {
+    // If user has no group configured, maybe redirect to an onboarding step or handle gracefully
+    // For now, let's assume valid state but with empty lists
+    return (
+      <NuqsAdapter>
+        <UserProvider currentUser={user as unknown as User} groupUsers={[user as unknown as User]}>
+          {children}
+        </UserProvider>
+      </NuqsAdapter>
+    );
+  }
+
+  // Step 4: Parallel data fetching
+  const [groupUsersResult, accountsResult, categoriesResult] = await Promise.all([
     GroupService.getGroupUsers(user.group_id),
-    PageDataService.getDashboardData(user.group_id),
+    AccountService.getAccountsByGroup(user.group_id),
+    CategoryService.getAllCategories(),
   ]);
 
   const groupUsers = groupUsersResult.data || [];
-  const { accounts = [], categories = [] } = pageDataResult.data || {};
+  const accounts = accountsResult.data || [];
+  const categories = categoriesResult.data || [];
+
 
   return (
     <NuqsAdapter>
-      <ReferenceDataInitializer
-        data={{
-          currentUser: user,
-          groupUsers,
-          accounts,
-          categories,
-        }}
-      >
-        <ModalProvider>
-          {children}
-        </ModalProvider>
-      </ReferenceDataInitializer>
+      <UserProvider currentUser={user as unknown as User} groupUsers={(groupUsers || []) as unknown as User[]}>
+        <ReferenceDataInitializer
+          data={{
+            accounts,
+            categories,
+          }}
+        >
+          <ModalProvider>
+            {children}
+          </ModalProvider>
+        </ReferenceDataInitializer>
+      </UserProvider>
     </NuqsAdapter>
   );
 }

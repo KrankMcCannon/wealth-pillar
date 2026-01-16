@@ -9,7 +9,7 @@
  * - Dependency Inversion: Services depend on abstractions (Supabase client)
  *
  * Usage:
- * import { UserService, GroupService } from '@/lib/services';
+ * import { UserService, GroupService } from '@/server/services';
  *
  * const { data: user, error } = await UserService.getLoggedUserInfo(clerkId);
  */
@@ -24,13 +24,14 @@ export { GroupInvitationService } from './group-invitation.service';
 export { RecurringService } from './recurring.service';
 export { ReportPeriodService } from './report-period.service';
 export { TransactionService } from './transaction.service';
+export * from './transaction.logic';
 export { UserService } from './user.service';
 export { UserPreferencesService } from './user-preferences.service';
 export { PageDataService } from './page-data.service';
 export { FinanceLogicService } from './finance-logic.service';
 
 // Export shared types
-export type { BudgetProgress, UserBudgetSummary } from './budget.service';
+export type { BudgetProgress, UserBudgetSummary } from '@/lib/types';
 export type { EnrichedBudgetPeriod } from './report-period.service';
 export type { CategoryMetric, ReportMetrics } from './transaction.service';
 export type { ServiceResult } from './user.service';
@@ -47,7 +48,8 @@ export type { GroupInvitation, CreateInvitationInput } from './group-invitation.
  * 2. ServiceResult<T> return type for consistent error handling
  * 3. Input validation on all public methods
  * 4. Automatic caching using Next.js unstable_cache
- * 5. Detailed JSDoc comments for IntelliSense support
+ * 5. Data Access Layer (DAL) usage via Repositories (Prisma)
+ * 6. Detailed JSDoc comments for IntelliSense support
  *
  * ## Error Handling
  *
@@ -93,19 +95,22 @@ export type { GroupInvitation, CreateInvitationInput } from './group-invitation.
  * 2. Follow the pattern in UserService/GroupService
  * 3. Add cache keys to `src/lib/cache/keys.ts`
  * 4. Add cache options to `src/lib/cache/config.ts`
- * 5. Export from this index file
- * 6. Update .claude.md documentation
+ * 5. Create or use existing Repository in `src/lib/dal`
+ * 6. Export from this index file
+ * 7. Update .claude.md documentation
  *
  * Example template:
  * ```typescript
- * import { supabaseServer } from '@/lib/database/server';
+ * import { CachedRepository } from '@/server/dal';
  * import { cached, accountCacheKeys, cacheOptions } from '@/lib/cache';
  * import type { ServiceResult } from './user.service';
  *
  * export class AccountService {
  *   static async getAccountById(id: string): Promise<ServiceResult<Account>> {
- *     // Implementation
+ *     // Use Repository
+ *     return await CachedRepository.getById(id);
  *   }
  * }
  * ```
  */
+

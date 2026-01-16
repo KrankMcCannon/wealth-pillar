@@ -58,15 +58,16 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  avatar: string;
-  theme_color: string;
-  budget_start_date: number;
-  group_id: string;
-  role: RoleType;
+  avatar: string | null;
+  theme_color: string | null;
+  budget_start_date: number | null;
+  group_id: string | null;
+  role: RoleType | null;
   clerk_id: string | null; // Clerk user ID for authentication integration
-  default_account_id?: string; // Optional default bank account for prefilling forms
-  created_at: string | Date;
-  updated_at: string | Date;
+  default_account_id?: string | null; // Optional default bank account for prefilling forms
+  budget_periods?: any; // JSON field
+  created_at: string | Date | null;
+  updated_at: string | Date | null;
 }
 
 export interface Account {
@@ -204,6 +205,35 @@ export const AccountTypeMap: Record<AccountType, string> = {
   'investments': 'Investimenti'
 };
 
-// Re-export service types for convenience
-export type { CategoryMetric, ReportMetrics } from '@/lib/services/transaction.service';
+/**
+ * Budget progress data for a single budget
+ */
+export interface BudgetProgress {
+  id: string;
+  description: string;
+  amount: number;
+  spent: number;
+  remaining: number;
+  percentage: number;
+  categories: string[];
+  transactionCount: number;
+}
 
+/**
+ * Complete budget summary for a user
+ */
+export interface UserBudgetSummary {
+  user: User;
+  budgets: BudgetProgress[];
+  activePeriod: BudgetPeriod | undefined;
+  periodStart: string | null;
+  periodEnd: string | null;
+  totalBudget: number;
+  totalSpent: number;
+  totalRemaining: number;
+  overallPercentage: number;
+}
+
+// Re-export service types for convenience
+export type { CategoryMetric, ReportMetrics } from '@/server/services/transaction.service';
+export type { UserPreferences } from '@/server/services/user-preferences.service';

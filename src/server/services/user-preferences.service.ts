@@ -1,35 +1,15 @@
+import 'server-only';
 import { CACHE_TAGS, cached, cacheOptions, userPreferencesCacheKeys } from '@/lib/cache';
-import { supabaseServer } from '@/lib/database/server';
-import { nowISO } from '@/lib/utils/date-utils';
+import { UserPreferencesRepository } from '@/server/dal';
 import type { ServiceResult } from './user.service';
+import type { Prisma } from '@prisma/client';
+import { revalidateTag } from 'next/cache';
+import type { user_preferences } from '@prisma/client';
 
 /**
- * Helper to revalidate cache tags (dynamically imported to avoid client-side issues)
+ * User Preferences type (alias for Prisma type)
  */
-async function revalidateCacheTags(tags: string[]) {
-  if (globalThis.window === undefined) {
-    const { revalidateTag } = await import('next/cache');
-    for (const tag of tags) {
-      revalidateTag(tag, 'max');
-    }
-  }
-}
-
-/**
- * User Preferences type
- */
-export interface UserPreferences {
-  id: string;
-  user_id: string;
-  currency: string;
-  language: string;
-  timezone: string;
-  notifications_push: boolean;
-  notifications_email: boolean;
-  notifications_budget_alerts: boolean;
-  created_at: string;
-  updated_at: string;
-}
+export type UserPreferences = user_preferences;
 
 /**
  * User Preferences update type (partial updates allowed)
@@ -46,7 +26,7 @@ export interface UserPreferencesUpdate {
 /**
  * Default preferences for new users
  */
-const DEFAULT_PREFERENCES: Omit<UserPreferences, 'id' | 'user_id' | 'created_at' | 'updated_at'> = {
+const DEFAULT_PREFERENCES = {
   currency: 'EUR',
   language: 'it-IT',
   timezone: 'Europe/Rome',
@@ -59,61 +39,33 @@ const DEFAULT_PREFERENCES: Omit<UserPreferences, 'id' | 'user_id' | 'created_at'
  * User Preferences Service
  * Handles all user preferences-related business logic
  *
- * Features:
- * - Lazy initialization (creates defaults if none exist)
- * - Automatic caching with Next.js unstable_cache
- * - Cache invalidation on updates
- * - Input validation
- *
  * All methods return ServiceResult for consistent error handling
  */
 export class UserPreferencesService {
   /**
-   * Gets user preferences by user ID
-   * Creates default preferences if none exist (lazy initialization)
-   *
-   * @param userId - User ID
-   * @returns User preferences or error
-   *
-   * @example
-   * const { data: prefs, error } = await UserPreferencesService.getUserPreferences(userId);
-   * if (error) {
-   *   console.error('Failed to get preferences:', error);
-   * }
-   */
+    * Gets user preferences by user ID
+    * Creates default preferences if none exist (lazy initialization)
+    */
   static async getUserPreferences(
     userId: string
   ): Promise<ServiceResult<UserPreferences>> {
     try {
-      // Input validation
       if (!userId || userId.trim() === '') {
-        return {
-          data: null,
-          error: 'User ID is required',
-        };
+        return { data: null, error: 'User ID is required' };
       }
 
       // Create cached query function
       const getCachedPreferences = cached(
         async () => {
           // Try to get existing preferences
-          const { data, error } = await supabaseServer
-            .from('user_preferences')
-            .select('*')
-            .eq('user_id', userId)
-            .single();
+          const prefs = await UserPreferencesRepository.getByUserId(userId);
 
           // If preferences don't exist, create defaults
-          if (error && error.code === 'PGRST116') {
-            // PGRST116 = no rows returned
+          if (!prefs) {
             return await this.createDefaultPreferences(userId);
           }
 
-          if (error) {
-            throw new Error(error.message);
-          }
-
-          return data;
+          return prefs;
         },
         userPreferencesCacheKeys.byUser(userId),
         cacheOptions.userPreferences(userId)
@@ -146,29 +98,25 @@ export class UserPreferencesService {
   /**
    * Creates default preferences for a user
    * Internal method used by getUserPreferences for lazy initialization
-   *
-   * @param userId - User ID
-   * @returns Created preferences or null
    */
   private static async createDefaultPreferences(
     userId: string
   ): Promise<UserPreferences | null> {
     try {
-      const { data, error } = await supabaseServer
-        .from('user_preferences')
-        .insert({
-          user_id: userId,
-          ...DEFAULT_PREFERENCES,
-        })
-        .select()
-        .single();
+      // Use Prisma connect syntax for relations
+      const initialData: Prisma.user_preferencesCreateInput = {
+        users: { connect: { id: userId } },
+        ...DEFAULT_PREFERENCES
+      };
 
-      if (error) {
-        console.error('Failed to create default preferences:', error);
+      const prefs = await UserPreferencesRepository.create(initialData);
+
+      if (!prefs) {
+        console.error('Failed to create default preferences');
         return null;
       }
 
-      return data as UserPreferences;
+      return prefs as UserPreferences;
     } catch (error) {
       console.error('Error creating default preferences:', error);
       return null;
@@ -178,16 +126,6 @@ export class UserPreferencesService {
   /**
    * Updates user preferences
    * Only updates provided fields (partial update)
-   *
-   * @param userId - User ID
-   * @param updates - Fields to update
-   * @returns Updated preferences or error
-   *
-   * @example
-   * const { data, error } = await UserPreferencesService.updatePreferences(
-   *   userId,
-   *   { currency: 'USD', notifications_push: false }
-   * );
    */
   static async updatePreferences(
     userId: string,
@@ -235,19 +173,12 @@ export class UserPreferencesService {
       }
 
       // Update preferences
-      const { data: updatedPrefs, error: updateError } = await supabaseServer
-        .from('user_preferences')
-        .update({
-          ...updates,
-          updated_at: nowISO(),
-        })
-        .eq('user_id', userId)
-        .select()
-        .single();
+      const updateData: Prisma.user_preferencesUpdateInput = {
+        ...updates,
+        updated_at: new Date(),
+      };
 
-      if (updateError) {
-        throw new Error(updateError.message);
-      }
+      const updatedPrefs = await UserPreferencesRepository.update(userId, updateData);
 
       if (!updatedPrefs) {
         return {
@@ -257,10 +188,8 @@ export class UserPreferencesService {
       }
 
       // Invalidate cache
-      await revalidateCacheTags([
-        CACHE_TAGS.USER_PREFERENCES,
-        CACHE_TAGS.USER_PREFERENCE(userId),
-      ]);
+      revalidateTag(CACHE_TAGS.USER_PREFERENCES, 'max');
+      revalidateTag(CACHE_TAGS.USER_PREFERENCE(userId), 'max');
 
       return {
         data: updatedPrefs as UserPreferences,
@@ -280,18 +209,11 @@ export class UserPreferencesService {
   /**
    * Deletes user preferences
    * Used when deleting a user account
-   *
-   * @param userId - User ID
-   * @returns Success status or error
-   *
-   * @example
-   * const { data: success, error } = await UserPreferencesService.deletePreferences(userId);
    */
   static async deletePreferences(
     userId: string
   ): Promise<ServiceResult<boolean>> {
     try {
-      // Input validation
       if (!userId || userId.trim() === '') {
         return {
           data: null,
@@ -299,20 +221,11 @@ export class UserPreferencesService {
         };
       }
 
-      const { error: deleteError } = await supabaseServer
-        .from('user_preferences')
-        .delete()
-        .eq('user_id', userId);
-
-      if (deleteError) {
-        throw new Error(deleteError.message);
-      }
+      await UserPreferencesRepository.delete(userId);
 
       // Invalidate cache
-      await revalidateCacheTags([
-        CACHE_TAGS.USER_PREFERENCES,
-        CACHE_TAGS.USER_PREFERENCE(userId),
-      ]);
+      revalidateTag(CACHE_TAGS.USER_PREFERENCES, 'max');
+      revalidateTag(CACHE_TAGS.USER_PREFERENCE(userId), 'max');
 
       return {
         data: true,

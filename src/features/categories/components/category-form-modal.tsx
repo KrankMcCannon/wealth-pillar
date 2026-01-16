@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Category, cn } from "@/lib";
 import { getTempId } from "@/lib/utils/temp-id";
-import { CategoryService } from "@/lib/services";
+import { FinanceLogicService } from "@/server/services/finance-logic.service";
 import { categoryStyles, getCategoryColorStyle } from "../theme/category-styles";
 import { createCategoryAction, updateCategoryAction } from "@/features/categories/actions/category-actions";
 import { ModalWrapper, ModalBody, ModalFooter, ModalSection } from "@/components/ui/modal-wrapper";
@@ -29,7 +29,7 @@ const categorySchema = z.object({
   color: z.string()
     .min(1, "Il colore è obbligatorio")
     .trim()
-    .refine((val) => CategoryService.isValidColor(val), {
+    .refine((val) => FinanceLogicService.isValidColor(val), {
       message: "Formato colore non valido. Usa il formato esadecimale (es. #FF0000)"
     }),
 });
@@ -75,7 +75,7 @@ function CategoryFormModal({
       label: "",
       key: "",
       icon: "",
-      color: CategoryService.getDefaultColor(),
+      color: FinanceLogicService.getDefaultColor(),
     }
   });
 
@@ -84,7 +84,7 @@ function CategoryFormModal({
   const watchedIcon = useWatch({ control, name: "icon" });
 
   // Get color palette from CategoryService
-  const colorPalette = useMemo(() => CategoryService.getColorPalette(), []);
+  const colorPalette = useMemo(() => FinanceLogicService.getColorPalette(), []);
 
   // Load category data for edit mode
   useEffect(() => {
@@ -106,7 +106,7 @@ function CategoryFormModal({
         label: "",
         key: "",
         icon: "",
-        color: CategoryService.getDefaultColor(),
+        color: FinanceLogicService.getDefaultColor(),
       });
     }
   }, [isOpen, isEditMode, editId, reset, storeCategories]);
@@ -289,7 +289,7 @@ function CategoryFormModal({
                 {/* Custom color input */}
                 <Input
                   {...register("color")}
-                  placeholder={CategoryService.getDefaultColor()}
+                  placeholder={FinanceLogicService.getDefaultColor()}
                   disabled={isSubmitting}
                 />
               </div>

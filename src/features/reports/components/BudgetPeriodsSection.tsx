@@ -7,7 +7,7 @@
 
 import { useMemo, useState } from "react";
 import { BudgetPeriodCard } from "./BudgetPeriodCard";
-import { ReportPeriodService } from "@/lib/services";
+import { ReportPeriodService } from "@/server/services/report-period.service";
 import type { BudgetPeriod, User, Transaction, Account, Category } from "@/lib/types";
 import { CalendarOff } from "lucide-react";
 import { toDateTime } from "@/lib/utils/date-utils";

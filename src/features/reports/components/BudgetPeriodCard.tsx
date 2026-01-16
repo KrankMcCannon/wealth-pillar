@@ -19,7 +19,7 @@ import {
   PiggyBank,
 } from "lucide-react";
 import type { Transaction, Category } from "@/lib/types";
-import { BudgetService, CategoryService } from "@/lib/services";
+import { FinanceLogicService } from "@/server/services/finance-logic.service";
 import { formatDateShort } from "@/lib/utils/date-utils";
 import { reportsStyles, getBudgetPeriodTransactionIconStyle } from "@/styles/system";
 import { cn } from "@/lib/utils";
@@ -56,8 +56,8 @@ const BudgetPeriodCardComponent = ({
   periodTotalIncome,
   periodTotalTransfers,
 }: Readonly<BudgetPeriodCardProps>) => {
-  const periodStartFormatted = BudgetService.formatPeriodDate(startDate);
-  const periodEndFormatted = endDate ? BudgetService.formatPeriodDate(endDate) : "In corso";
+  const periodStartFormatted = formatDateShort(startDate);
+  const periodEndFormatted = endDate ? formatDateShort(endDate) : "In corso";
 
   // Note: Transactions are already filtered by period and user in the parent component
 
@@ -239,8 +239,8 @@ const BudgetPeriodCardComponent = ({
             ) : (
               <div className={styles.transactionsList}>
                 {transactions.map((transaction) => {
-                  const categoryLabel = CategoryService.getCategoryLabel(categories, transaction.category);
-                  const categoryColor = CategoryService.getCategoryColor(categories, transaction.category);
+                  const categoryLabel = FinanceLogicService.getCategoryLabel(categories, transaction.category);
+                  const categoryColor = FinanceLogicService.getCategoryColor(categories, transaction.category);
 
                   const getTransactionIcon = () => {
                     if (transaction.type === "income") return ArrowUpRight;

@@ -4,7 +4,7 @@
 
 import { Suspense } from 'react';
 import { getDashboardData } from '@/lib/auth/get-dashboard-data';
-import { PageDataService } from '@/lib/services';
+import { PageDataService } from '@/server/services';
 import TransactionsContent from './transactions-content';
 import TransactionPageLoading from './loading';
 
@@ -12,7 +12,7 @@ export default async function TransactionsPage() {
   const { currentUser, groupUsers } = await getDashboardData();
 
   // Fetch all transactions page data in parallel with centralized service
-  const { data, error } = await PageDataService.getTransactionsPageData(currentUser.group_id);
+  const { data, error } = await PageDataService.getTransactionsPageData(currentUser.group_id || '');
 
   if (error) {
     console.error('Failed to fetch transactions page data:', error);

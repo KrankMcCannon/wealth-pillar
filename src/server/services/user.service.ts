@@ -1,24 +1,8 @@
+import 'server-only';
 import { CACHE_TAGS, cached, cacheOptions, userCacheKeys } from '@/lib/cache';
-import { supabaseServer } from '@/lib/database/server';
-import type { Database } from '@/lib/database/types';
-import { nowISO } from '@/lib/utils/date-utils';
-
-/**
- * Helper to revalidate cache tags (dynamically imported to avoid client-side issues)
- */
-async function revalidateCacheTags(tags: string[]) {
-  if (globalThis.window === undefined) {
-    const { revalidateTag } = await import('next/cache');
-    for (const tag of tags) {
-      revalidateTag(tag, 'max');
-    }
-  }
-}
-
-/**
- * User type from database
- */
-type User = Database['public']['Tables']['users']['Row'];
+import { UserRepository, AccountRepository, BudgetRepository, TransactionRepository } from '@/server/dal';
+import { prisma } from '@/server/db/prisma';
+import { revalidateTag } from 'next/cache';
 
 /**
  * Service result type for better error handling
@@ -27,6 +11,10 @@ export interface ServiceResult<T> {
   data: T | null;
   error: string | null;
 }
+
+// Type aliases for Prisma models
+import type { users as User } from '@prisma/client';
+import type { Prisma } from '@prisma/client';
 
 /**
  * User Service
@@ -39,15 +27,6 @@ export class UserService {
   /**
    * Retrieves logged-in user information by Clerk ID
    * Used for authentication flows where we have the Clerk user ID
-   *
-   * @param clerkId - Clerk authentication ID
-   * @returns User data or error
-   *
-   * @example
-   * const { data: user, error } = await UserService.getLoggedUserInfo(clerkId);
-   * if (error) {
-   *   console.error('Failed to get user:', error);
-   * }
    */
   static async getLoggedUserInfo(
     clerkId: string
@@ -64,17 +43,8 @@ export class UserService {
       // Create cached query function
       const getCachedUser = cached(
         async () => {
-          const { data, error } = await supabaseServer
-            .from('users')
-            .select('*')
-            .eq('clerk_id', clerkId)
-            .single();
-
-          if (error) {
-            throw new Error(error.message);
-          }
-
-          return data;
+          const user = await UserRepository.getByClerkId(clerkId);
+          return user;
         },
         userCacheKeys.byClerkId(clerkId),
         cacheOptions.userByClerk(clerkId)
@@ -107,12 +77,6 @@ export class UserService {
   /**
    * Retrieves user by database ID
    * Used when we have the internal user ID
-   *
-   * @param userId - Internal user ID from database
-   * @returns User data or error
-   *
-   * @example
-   * const { data: user, error } = await UserService.getUserById(userId);
    */
   static async getUserById(userId: string): Promise<ServiceResult<User>> {
     try {
@@ -127,17 +91,8 @@ export class UserService {
       // Create cached query function
       const getCachedUser = cached(
         async () => {
-          const { data, error } = await supabaseServer
-            .from('users')
-            .select('*')
-            .eq('id', userId)
-            .single();
-
-          if (error) {
-            throw new Error(error.message);
-          }
-
-          return data;
+          const user = await UserRepository.getById(userId);
+          return user;
         },
         userCacheKeys.byId(userId),
         cacheOptions.user(userId)
@@ -170,12 +125,6 @@ export class UserService {
   /**
    * Checks if a user exists by Clerk ID
    * Lightweight check without fetching full user data
-   *
-   * @param clerkId - Clerk authentication ID
-   * @returns Boolean indicating if user exists
-   *
-   * @example
-   * const exists = await UserService.userExistsByClerkId(clerkId);
    */
   static async userExistsByClerkId(clerkId: string): Promise<boolean> {
     try {
@@ -183,14 +132,10 @@ export class UserService {
         return false;
       }
 
-      const { data, error } = await supabaseServer
-        .from('users')
-        .select('id')
-        .eq('clerk_id', clerkId)
-        .single();
-
-      return !error && data !== null;
-    } catch {
+      const user = await UserRepository.getByClerkId(clerkId);
+      return !!user;
+    } catch (err) {
+      console.warn('[UserService] Unexpected error checking user existence:', err);
       return false;
     }
   }
@@ -198,12 +143,6 @@ export class UserService {
   /**
    * Gets user's group ID
    * Helper method to quickly get the group a user belongs to
-   *
-   * @param userId - User ID
-   * @returns Group ID or null
-   *
-   * @example
-   * const groupId = await UserService.getUserGroupId(userId);
    */
   static async getUserGroupId(
     userId: string
@@ -218,10 +157,10 @@ export class UserService {
 
       const { data: user, error } = await this.getUserById(userId);
 
-      if (error || !user) {
+      if (error || !user || !user.group_id) {
         return {
           data: null,
-          error: error || 'User not found',
+          error: error || 'User or Group not found',
         };
       }
 
@@ -243,14 +182,6 @@ export class UserService {
   /**
    * Get user name from user ID (client-side helper)
    * Pure function for getting user name from a list of users
-   * Does not require database access - used in components with user data already loaded
-   *
-   * @param userId - User ID to look up
-   * @param users - Array of users to search through
-   * @returns User name or 'Sconosciuto' if not found
-   *
-   * @example
-   * const userName = UserService.getUserName(userId, groupUsers);
    */
   static getUserName(
     userId: string | null,
@@ -261,19 +192,9 @@ export class UserService {
     return user?.name || 'Sconosciuto';
   }
 
-  // Note: startBudgetPeriod and closeBudgetPeriod methods have been removed.
-  // Use BudgetPeriodService.createPeriod() and BudgetPeriodService.closePeriod() instead.
-
   /**
    * Set default account for a user
    * Updates the user's default_account_id field
-   *
-   * @param userId - User ID
-   * @param accountId - Account ID to set as default (or null to clear)
-   * @returns Updated user or error
-   *
-   * @example
-   * const { data: user, error } = await UserService.setDefaultAccount(userId, accountId);
    */
   static async setDefaultAccount(
     userId: string,
@@ -286,37 +207,30 @@ export class UserService {
 
       // Validate account exists if provided
       if (accountId) {
-        const { AccountService } = await import('./account.service');
-        const accountExists = await AccountService.accountExists(accountId);
-        if (!accountExists) {
+        const account = await AccountRepository.getById(accountId);
+        if (!account) {
           return { data: null, error: 'Account not found' };
         }
       }
 
-      // Update user
-      const { data: updatedUser, error: updateError } = await supabaseServer
-        .from('users')
-        .update({
-          default_account_id: accountId,
-          updated_at: nowISO(),
-        })
-        .eq('id', userId)
-        .select()
-        .single();
+      // Update user with relation connect/disconnect
+      // default_account_id is a relation scalar, handle via accounts relation
+      const updateData: Prisma.usersUpdateInput = {
+        updated_at: new Date(),
+        accounts: accountId
+          ? { connect: { id: accountId } }
+          : { disconnect: true }
+      };
 
-      if (updateError) {
-        throw new Error(updateError.message);
-      }
+      const updatedUser = await UserRepository.update(userId, updateData);
 
       if (!updatedUser) {
         return { data: null, error: 'Failed to set default account' };
       }
 
       // Invalidate user cache
-      await revalidateCacheTags([
-        CACHE_TAGS.USERS,
-        CACHE_TAGS.USER(userId),
-      ]);
+      revalidateTag(CACHE_TAGS.USERS, 'max');
+      revalidateTag(CACHE_TAGS.USER(userId), 'max');
 
       return { data: updatedUser as User, error: null };
     } catch (error) {
@@ -333,15 +247,6 @@ export class UserService {
   /**
    * Deletes a user and all related data (accounts, transactions, budgets)
    * This is a destructive operation that cannot be undone
-   *
-   * @param userId - ID of the user to delete
-   * @returns Success status or error
-   *
-   * @example
-   * const { data: success, error } = await UserService.deleteUser(userId);
-   * if (error) {
-   *   console.error('Failed to delete user:', error);
-   * }
    */
   static async deleteUser(userId: string): Promise<ServiceResult<boolean>> {
     try {
@@ -353,75 +258,49 @@ export class UserService {
         };
       }
 
-      // Get user to verify existence and get clerk_id
-      const { data: user, error: userError } = await supabaseServer
-        .from('users')
-        .select('id, clerk_id')
-        .eq('id', userId)
-        .single();
-
-      if (userError || !user) {
+      // Get user to verify existence (read doesn't typically need to be in the write transaction unless for locking)
+      // But for consistency we can use prisma (default) outside or inside. Outside is fine.
+      const user = await UserRepository.getById(userId);
+      if (!user) {
         return {
           data: null,
           error: 'User not found',
         };
       }
 
-      // Delete all related data in correct order
-      // The database should handle cascading deletes, but we'll be explicit
+      // Perform deletion in a transaction
+      await prisma.$transaction(async (tx) => {
+        // Delete budgets
+        await BudgetRepository.deleteByUser(userId, tx);
 
-      // Delete budgets first (has foreign key to user)
-      await supabaseServer
-        .from('budgets')
-        .delete()
-        .eq('user_id', userId);
+        // Delete transactions
+        await TransactionRepository.deleteByUser(userId, tx);
 
-      // Delete transactions (has foreign key to accounts)
-      // Get all account IDs for this user and delete their transactions
-      const { data: userAccounts } = await supabaseServer
-        .from('accounts')
-        .select('id')
-        .eq('user_id', userId);
+        // Handle Accounts (remove user from shared accounts or delete if sole owner)
+        const accounts = await tx.accounts.findMany({
+          where: { user_ids: { has: userId } }
+        });
 
-      if (userAccounts && userAccounts.length > 0) {
-        type AccountIdRow = { id: string };
-        const accountIds = (userAccounts as AccountIdRow[]).map((acc) => acc.id);
-        await supabaseServer
-          .from('transactions')
-          .delete()
-          .in('account_id', accountIds);
-      }
+        for (const account of accounts) {
+          if (account.user_ids.length === 1 && account.user_ids[0] === userId) {
+            // Only this user, delete account
+            await AccountRepository.delete(account.id, tx);
+          } else {
+            // Remove user from list
+            const newUserIds = account.user_ids.filter(id => id !== userId);
+            await AccountRepository.update(account.id, {
+              user_ids: newUserIds
+            }, tx);
+          }
+        }
 
-      // Delete accounts (has foreign key to user)
-      await supabaseServer
-        .from('accounts')
-        .delete()
-        .eq('user_id', userId);
-
-      // Delete the user
-      const { error: deleteUserError } = await supabaseServer
-        .from('users')
-        .delete()
-        .eq('id', userId);
-
-      if (deleteUserError) {
-        return {
-          data: null,
-          error: 'Failed to delete user',
-        };
-      }
-
-      // Invalidate all related caches
-      await revalidateCacheTags([
-        CACHE_TAGS.USERS,
-        CACHE_TAGS.USER(userId),
-        CACHE_TAGS.ACCOUNTS,
-        CACHE_TAGS.TRANSACTIONS,
-        CACHE_TAGS.BUDGETS,
-      ]);
+        // Delete the user
+        await UserRepository.delete(userId, tx);
+      });
 
       return { data: true, error: null };
     } catch (error) {
+      console.error("[deleteUser] Error:", error);
       return {
         data: null,
         error:
@@ -435,16 +314,6 @@ export class UserService {
   /**
    * Updates user profile information (name and email)
    * Validates input and updates cache
-   *
-   * @param userId - User ID
-   * @param updates - Profile updates (name and/or email)
-   * @returns Updated user or error
-   *
-   * @example
-   * const { data: user, error } = await UserService.updateProfile(userId, {
-   *   name: 'John Doe',
-   *   email: 'john@example.com'
-   * });
    */
   static async updateProfile(
     userId: string,
@@ -492,15 +361,16 @@ export class UserService {
           };
         }
 
-        // Check if email is already in use by another user
-        const { data: existingUser } = await supabaseServer
-          .from('users')
-          .select('id')
-          .eq('email', updates.email.toLowerCase())
-          .neq('id', userId)
-          .single();
+        // Check format
+        const emailLower = updates.email.toLowerCase();
 
-        if (existingUser) {
+        // Check if email is already in use by another user
+        // Using prisma directly for uniqueness check
+        const existingUser = await prisma.users.findUnique({
+          where: { email: emailLower }
+        });
+
+        if (existingUser && existingUser.id !== userId) {
           return {
             data: null,
             error: 'Email is already in use',
@@ -509,22 +379,15 @@ export class UserService {
       }
 
       // Update user
-      const updateData: Partial<User> = {
-        ...(updates.name && { name: updates.name.trim() }),
-        ...(updates.email && { email: updates.email.toLowerCase() }),
-        updated_at: nowISO(),
+      // Use Prisma types
+      const updateData: Prisma.usersUpdateInput = {
+        updated_at: new Date()
       };
 
-      const { data: updatedUser, error: updateError } = await supabaseServer
-        .from('users')
-        .update(updateData)
-        .eq('id', userId)
-        .select()
-        .single();
+      if (updates.name) updateData.name = updates.name.trim();
+      if (updates.email) updateData.email = updates.email.toLowerCase();
 
-      if (updateError) {
-        throw new Error(updateError.message);
-      }
+      const updatedUser = await UserRepository.update(userId, updateData);
 
       if (!updatedUser) {
         return {
@@ -534,10 +397,8 @@ export class UserService {
       }
 
       // Invalidate user cache
-      await revalidateCacheTags([
-        CACHE_TAGS.USERS,
-        CACHE_TAGS.USER(userId),
-      ]);
+      revalidateTag(CACHE_TAGS.USERS, 'max');
+      revalidateTag(CACHE_TAGS.USER(userId), 'max');
 
       return {
         data: updatedUser as User,

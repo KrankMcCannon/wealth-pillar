@@ -1,7 +1,6 @@
-import { useState, useEffect, useMemo } from 'react';
-import type { User, Budget, Transaction, BudgetPeriod } from '@/lib/types';
-import type { UserBudgetSummary } from '@/lib/services';
-import { BudgetService } from '@/lib/services';
+import { useMemo } from 'react';
+import type { User, Budget, Transaction, BudgetPeriod, UserBudgetSummary } from '@/lib/types';
+import { FinanceLogicService } from '@/server/services/finance-logic.service';
 import { isMember as checkIsMember } from '@/lib/utils/permissions';
 
 /**
@@ -18,7 +17,7 @@ interface UseBudgetsByUserOptions {
   currentUser: User | null;
   /** Selected user ID for filtering (undefined = all for admins) */
   selectedUserId?: string;
-  /** Optional budget periods map (if not provided, will fetch from DB) */
+  /** Optional budget periods map */
   budgetPeriods?: Record<string, BudgetPeriod | null>;
 }
 
@@ -37,43 +36,6 @@ interface UseBudgetsByUserReturn {
 /**
  * Custom hook for calculating budget summaries by user
  *
- * Centralizes the budget calculation logic used across dashboard and budgets pages.
- * Eliminates duplication by wrapping BudgetService.buildBudgetsByUser with async handling.
- *
- * **Permission Logic:**
- * - Members see only their own budget summary
- * - Admins see filtered summary based on selectedUserId (or all if undefined)
- *
- * **Features:**
- * - Automatic memoization for performance
- * - Handles permission-based filtering
- * - Reuses existing BudgetService methods (DRY principle)
- * - Async handling for budget period data
- *
- * @example Basic usage (dashboard)
- * ```tsx
- * const { budgetsByUser, isLoading } = useBudgetsByUser({
- *   groupUsers,
- *   budgets,
- *   transactions,
- *   currentUser,
- *   selectedUserId,
- *   budgetPeriods,
- * });
- * ```
- *
- * @example Single user summary (budgets page)
- * ```tsx
- * const { budgetsByUser } = useBudgetsByUser({
- *   groupUsers: [selectedBudgetUser],
- *   budgets,
- *   transactions,
- *   currentUser,
- *   selectedUserId: selectedBudgetUser.id,
- *   budgetPeriods,
- * });
- * const userSummary = budgetsByUser[selectedBudgetUser.id];
- * ```
  */
 export function useBudgetsByUser({
   groupUsers,
@@ -81,12 +43,10 @@ export function useBudgetsByUser({
   transactions,
   currentUser,
   selectedUserId,
-  budgetPeriods,
+  budgetPeriods = {},
 }: UseBudgetsByUserOptions): UseBudgetsByUserReturn {
-  const [budgetsByUser, setBudgetsByUser] = useState<Record<string, UserBudgetSummary>>({});
-  const [isLoading, setIsLoading] = useState(true);
 
-  // Determine which users to calculate budgets for based on permissions (synchronous)
+  // Determine which users to calculate budgets for based on permissions
   const usersToInclude = useMemo(() => {
     if (!currentUser) return [];
 
@@ -106,49 +66,22 @@ export function useBudgetsByUser({
     }
   }, [currentUser, groupUsers, selectedUserId]);
 
-  // Calculate budget summaries asynchronously
-  useEffect(() => {
-    let isMounted = true;
-
-    async function calculateSummaries() {
-      if (usersToInclude.length === 0) {
-        setBudgetsByUser({});
-        setIsLoading(false);
-        return;
-      }
-
-      try {
-        setIsLoading(true);
-        const result = await BudgetService.buildBudgetsByUser(
-          usersToInclude,
-          budgets,
-          transactions,
-          budgetPeriods
-        );
-
-        if (isMounted) {
-          setBudgetsByUser(result);
-        }
-      } catch (error) {
-        console.error('[useBudgetsByUser] Error calculating summaries:', error);
-        if (isMounted) {
-          setBudgetsByUser({});
-        }
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
-      }
+  // Calculate budget summaries synchronously
+  const budgetsByUser = useMemo(() => {
+    if (usersToInclude.length === 0) {
+      return {};
     }
 
-    calculateSummaries();
-
-    return () => {
-      isMounted = false;
-    };
+    // Use pure logic service
+    return FinanceLogicService.buildBudgetsByUserPure(
+      usersToInclude,
+      budgets,
+      transactions,
+      budgetPeriods
+    );
   }, [usersToInclude, budgets, transactions, budgetPeriods]);
 
   const userIds = useMemo(() => Object.keys(budgetsByUser), [budgetsByUser]);
 
-  return { budgetsByUser, userIds, isLoading };
+  return { budgetsByUser, userIds, isLoading: false };
 }

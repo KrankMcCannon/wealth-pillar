@@ -1,5 +1,5 @@
 import { WebhookEvent } from '@clerk/nextjs/server';
-import { UserService } from '@/lib/services';
+import { UserService } from '@/server/services';
 
 /**
  * Main Clerk webhook handler

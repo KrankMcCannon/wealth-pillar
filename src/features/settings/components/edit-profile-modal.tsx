@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useForm } from "react-hook-form";
+import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Loader2 } from "lucide-react";
@@ -9,7 +10,6 @@ import { Button } from "@/components/ui/button";
 import { ModalBody, ModalFooter, ModalWrapper } from "@/components/ui/modal-wrapper";
 import { toast } from "@/hooks/use-toast";
 import { updateUserProfileAction } from "@/features/settings/actions";
-import { useReferenceDataStore } from "@/stores/reference-data-store";
 import { settingsStyles } from "@/styles/system";
 import { SettingsModalField } from "./settings-modal-form";
 import { cn } from "@/lib/utils";
@@ -78,7 +78,7 @@ export function EditProfileModal({
   currentName,
   currentEmail,
 }: EditProfileModalProps) {
-  const updateCurrentUser = useReferenceDataStore((state) => state.updateCurrentUser);
+  const router = useRouter();
 
   const {
     register,
@@ -141,10 +141,7 @@ export function EditProfileModal({
       }
 
       // Optimistic update to Zustand store
-      updateCurrentUser({
-        name: updatedUser.name,
-        email: updatedUser.email,
-      });
+      router.refresh();
 
       // Show success toast
       toast({

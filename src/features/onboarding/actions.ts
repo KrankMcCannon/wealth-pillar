@@ -1,23 +1,25 @@
-'use server';
+"use server";
 
 import { CACHE_TAGS } from '@/lib/cache';
-import { supabaseServer } from '@/lib/database/server';
-import type { Database } from '@/lib/database/types';
-import { AccountService, BudgetService, GroupService, UserService } from '@/lib/services';
-import type { ServiceResult } from '@/lib/services/user.service';
-import { nowISO } from '@/lib/utils/date-utils';
+import {
+  AccountRepository,
+  BudgetRepository,
+  GroupRepository,
+  UserRepository
+} from '@/server/dal';
+import { revalidateTag } from 'next/cache';
+import type { CompleteOnboardingInput } from './types';
 import { clerkClient } from '@clerk/nextjs/server';
 import { randomUUID } from 'node:crypto';
-import type { CompleteOnboardingInput } from './types';
+import type { Prisma } from '@prisma/client';
 
-async function revalidateCacheTags(tags: string[]) {
-  if (globalThis.window === undefined) {
-    const { revalidateTag } = await import('next/cache');
-    for (const tag of tags) {
-      revalidateTag(tag, 'max');
-    }
-  }
-}
+/**
+ * Service Result type
+ */
+type ServiceResult<T> = {
+  data: T | null;
+  error: string | null;
+};
 
 function getInitials(name: string) {
   const parts = name.trim().split(' ').filter(Boolean);
@@ -52,8 +54,9 @@ export async function completeOnboardingAction(
       return { data: null, error: 'Aggiungi almeno un budget' };
     }
 
-    const alreadyExists = await UserService.userExistsByClerkId(user.clerkId);
-    if (alreadyExists) {
+    // Check if user already exists
+    const existingUser = await UserRepository.getByClerkId(user.clerkId);
+    if (existingUser) {
       return {
         data: null,
         error: 'L\'utente risulta già configurato. Aggiorna la pagina per accedere alla dashboard.',
@@ -62,22 +65,28 @@ export async function completeOnboardingAction(
 
     const userId = randomUUID();
     const groupId = randomUUID();
-    const now = nowISO();
 
-    const groupResult = await GroupService.createGroup({
+    // Create Group
+    const groupData: Prisma.groupsCreateInput = {
       id: groupId,
       name: group.name.trim(),
       description: group.description?.trim() || '',
-      userIds: [userId],
-    });
+      user_ids: [userId],
+      is_active: true,
+      plan: { name: "Piano Gratuito", type: "free" },
+      subscription_status: "free"
+    };
 
-    if (groupResult.error || !groupResult.data) {
-      return { data: null, error: groupResult.error || 'Errore durante la creazione del gruppo' };
+    const createdGroup = await GroupRepository.create(groupData);
+
+    if (!createdGroup) {
+      return { data: null, error: 'Errore durante la creazione del gruppo' };
     }
 
     const themeColor = '#6366F1';
 
-    const newUser: Database['public']['Tables']['users']['Insert'] = {
+    // Create User
+    const userData: Prisma.usersCreateInput = {
       id: userId,
       name: user.name.trim(),
       email: user.email.trim().toLowerCase(),
@@ -87,52 +96,47 @@ export async function completeOnboardingAction(
       group_id: groupId,
       role: 'admin',
       clerk_id: user.clerkId,
-      created_at: now,
-      updated_at: now,
+      budget_periods: [],
     };
 
-    const { data: createdUser, error: userError } = await supabaseServer
-      .from('users')
-      .insert(newUser)
-      .select()
-      .single();
+    const createdUser = await UserRepository.create(userData);
 
-    if (userError || !createdUser) {
+    if (!createdUser) {
       return {
         data: null,
-        error: userError?.message || 'Errore durante la creazione del profilo utente',
+        error: 'Errore durante la creazione del profilo utente',
       };
     }
 
-    await revalidateCacheTags([
-      CACHE_TAGS.USERS,
-      CACHE_TAGS.USER(userId),
-      CACHE_TAGS.USER_BY_CLERK(user.clerkId),
-    ]);
+    // Revalidate caches
+    revalidateTag(CACHE_TAGS.USERS, 'max');
+    revalidateTag(CACHE_TAGS.USER(userId), 'max');
+    revalidateTag(CACHE_TAGS.USER_BY_CLERK(user.clerkId), 'max');
 
     // Track created account IDs and default account
     let defaultAccountId: string | null = null;
     const createdAccountIds: string[] = [];
 
+    // Create Accounts
     for (const accountInput of accounts) {
-      // Generate account ID upfront so we can reference it
       const accountId = randomUUID();
 
-      const result = await AccountService.createAccount({
+      const accountData: Prisma.accountsCreateInput = {
         id: accountId,
         name: accountInput.name.trim(),
         type: accountInput.type,
         user_ids: [userId],
         group_id: groupId,
-      });
+      };
 
-      if (result.error) {
-        return { data: null, error: result.error };
+      const createdAccount = await AccountRepository.create(accountData);
+
+      if (!createdAccount) {
+        return { data: null, error: "Failed to create account" };
       }
 
       createdAccountIds.push(accountId);
 
-      // Track which account is marked as default
       if (accountInput.isDefault) {
         defaultAccountId = accountId;
       }
@@ -145,25 +149,25 @@ export async function completeOnboardingAction(
 
     // Set default account on user
     if (defaultAccountId) {
-      const setDefaultResult = await UserService.setDefaultAccount(userId, defaultAccountId);
-      if (setDefaultResult.error) {
-        console.error('[Onboarding] Failed to set default account:', setDefaultResult.error);
-        // Non-blocking: don't fail entire onboarding
-      }
+      // We cast to any because default_account_id might be missing from generated types but exists in DB/Schema
+      await UserRepository.update(userId, { default_account_id: defaultAccountId } as any);
     }
 
+    // Create Budgets
     for (const budgetInput of budgets) {
-      const result = await BudgetService.createBudget({
+      const budgetData: Prisma.budgetsCreateInput = {
         description: budgetInput.description.trim(),
         amount: budgetInput.amount,
         type: budgetInput.type,
         categories: budgetInput.categories,
         user_id: userId,
         group_id: groupId,
-      });
+      };
 
-      if (result.error) {
-        return { data: null, error: result.error };
+      const createdBudget = await BudgetRepository.create(budgetData);
+
+      if (!createdBudget) {
+        return { data: null, error: "Failed to create budget" };
       }
     }
 
@@ -172,6 +176,7 @@ export async function completeOnboardingAction(
       error: null,
     };
   } catch (error) {
+    console.error("[completeOnboardingAction] Error:", error);
     return {
       data: null,
       error: error instanceof Error ? error.message : 'Errore durante il completamento dell\'onboarding',
@@ -202,7 +207,7 @@ export async function deleteClerkUserAction(clerkUserId: string): Promise<Servic
 }
 
 /**
- * Checks if a user exists in Supabase by Clerk ID
+ * Checks if a user exists in DB by Clerk ID
  * This is a server action safe for use in client components
  */
 export async function checkUserExistsAction(
@@ -213,21 +218,12 @@ export async function checkUserExistsAction(
       return { data: null, error: 'Clerk ID mancante' };
     }
 
-    const { data: user, error } = await supabaseServer
-      .from('users')
-      .select('id, clerk_id')
-      .eq('clerk_id', clerkId)
-      .maybeSingle();
-
-    if (error) {
-      console.error('[checkUserExistsAction] Database error:', error);
-      return { data: null, error: error.message };
-    }
+    const user = await UserRepository.getByClerkId(clerkId);
 
     return {
       data: {
         exists: !!user,
-        userId: user ? (user as { id: string }).id : undefined,
+        userId: user ? user.id : undefined,
       },
       error: null,
     };
