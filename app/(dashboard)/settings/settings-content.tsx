@@ -199,7 +199,7 @@ export default function SettingsContent({ accounts, transactions }: SettingsCont
     currentValue: boolean
   ) => {
     // Optimistic update using functional update to avoid stale state
-    setPreferences(prev => {
+    setPreferences((prev: UserPreferences | null) => {
       if (!prev) return prev;
       return {
         ...prev,
@@ -214,7 +214,7 @@ export default function SettingsContent({ accounts, transactions }: SettingsCont
 
       if (error) {
         // Revert on error using functional update
-        setPreferences(prev => {
+        setPreferences((prev: UserPreferences | null) => {
           if (!prev) return prev;
           return {
             ...prev,
@@ -236,7 +236,7 @@ export default function SettingsContent({ accounts, transactions }: SettingsCont
       });
     } catch (error) {
       // Revert on error using functional update
-      setPreferences(prev => {
+      setPreferences((prev: UserPreferences | null) => {
         if (!prev) return prev;
         return {
           ...prev,
@@ -254,7 +254,7 @@ export default function SettingsContent({ accounts, transactions }: SettingsCont
 
   // Handle preference updates (callback for modal success)
   const handlePreferenceUpdate = useCallback((key: keyof UserPreferences, value: string) => {
-    setPreferences(prev => {
+    setPreferences((prev: UserPreferences | null) => {
       if (!prev) return prev;
       return {
         ...prev,
