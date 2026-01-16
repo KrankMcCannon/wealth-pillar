@@ -75,7 +75,13 @@ export default function SSOCallback() {
         const result = await checkUserExistsAction(userId);
         if (!mounted) return;
 
-        if (result.data?.exists) {
+        // Handle error case first - don't assume user doesn't exist on error
+        if (result.error || !result.data) {
+          setViewState({ type: 'error', message: result.error || 'Errore verifica utente.' });
+          return;
+        }
+
+        if (result.data.exists) {
           setViewState({ type: 'redirecting' });
           router.replace('/dashboard');
         } else {
