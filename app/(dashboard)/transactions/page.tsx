@@ -12,11 +12,7 @@ export default async function TransactionsPage() {
   const { currentUser, groupUsers } = await getDashboardData();
 
   // Fetch all transactions page data in parallel with centralized service
-  const { data, error } = await PageDataService.getTransactionsPageData(currentUser.group_id || '');
-
-  if (error) {
-    console.error('Failed to fetch transactions page data:', error);
-  }
+  const pageData = await PageDataService.getTransactionsPageData(currentUser.group_id || '');
 
   const {
     transactions = [],
@@ -24,7 +20,7 @@ export default async function TransactionsPage() {
     budgets = [],
     accounts = [],
     categories = []
-  } = data || {};
+  } = pageData;
 
   return (
     <Suspense fallback={<TransactionPageLoading />}>

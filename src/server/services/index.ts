@@ -20,6 +20,5 @@ export { ReportPeriodService, type EnrichedBudgetPeriod } from "./report-period.
 export { PageDataService } from "./page-data.service";
 
 // Shared Types
-export type { ServiceResult } from "./user.service";
 export type { BudgetProgress, UserBudgetSummary } from '@/lib/types';
 export type { CategoryMetric, ReportMetrics } from './transaction.logic';

@@ -12,13 +12,9 @@ export default async function AccountsPage() {
   const { currentUser, groupUsers } = await getDashboardData();
 
   // Fetch accounts page data and categories in parallel
-  const { data, error } = await PageDataService.getAccountsPageData(currentUser.group_id || '');
+  const pageData = await PageDataService.getAccountsPageData(currentUser.group_id || '');
 
-  if (error) {
-    console.error("Failed to fetch accounts page data:", error);
-  }
-
-  const { accountBalances = {}, accounts = [] } = data || {};
+  const { accountBalances = {}, accounts = [] } = pageData;
 
   return (
     <Suspense fallback={<AccountHeaderSkeleton />}>

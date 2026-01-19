@@ -1,3 +1,4 @@
+import 'server-only';
 import { AccountService } from './account.service';
 import { TransactionService } from './transaction.service';
 import { BudgetService } from './budget.service';
@@ -6,7 +7,6 @@ import { CategoryService } from './category.service';
 import { RecurringService } from './recurring.service';
 import { GroupService } from './group.service';
 import { FinanceLogicService } from './finance-logic.service';
-import type { ServiceResult } from './user.service';
 import type {
   Account,
   Transaction,
@@ -97,87 +97,92 @@ export class PageDataService {
    *
    * @param groupId - Group ID to fetch data for
    * @returns Complete dashboard data with account balances and budget periods
-   *
-   * @example
-   * ```typescript
-   * const data = await PageDataService.getDashboardData(currentUser.group_id);
-   * ```
    */
-  static async getDashboardData(
-    groupId: string
-  ): Promise<ServiceResult<DashboardPageData>> {
+  static async getDashboardData(groupId: string): Promise<DashboardPageData> {
     // First, get group users to fetch their budget periods
-    const { data: groupUsers } = await GroupService.getGroupUsers(groupId);
-    const userIds = groupUsers?.map((u) => u.id) || [];
+    // Handle error gracefully by defaulting to empty array
+    let userIds: string[] = [];
+    try {
+      const groupUsers = await GroupService.getGroupUsers(groupId);
+      userIds = groupUsers.map((u) => u.id);
+    } catch (error) {
+      console.error(
+        '[PageDataService] Failed to fetch group users:',
+        error instanceof Error ? error.message : error
+      );
+    }
 
-    // Fetch all data in parallel
+    // Fetch all data in parallel with error handling for each promise
     const [
-      accountsResult,
-      transactionsResult,
-      budgetsResult,
-      recurringResult,
-      categoriesResult,
+      accounts,
+      transactions,
+      budgets,
+      recurringSeries,
+      categories,
       ...periodResults
     ] = await Promise.all([
-      AccountService.getAccountsByGroup(groupId),
-      TransactionService.getTransactionsByGroup(groupId),
-      BudgetService.getBudgetsByGroup(groupId),
-      RecurringService.getSeriesByGroup(groupId),
-      CategoryService.getAllCategories(),
+      AccountService.getAccountsByGroup(groupId).catch((e) => {
+        console.error('[PageDataService] Failed to fetch accounts:', e);
+        return [] as Account[];
+      }),
+      TransactionService.getTransactionsByGroup(groupId).catch((e) => {
+        console.error('[PageDataService] Failed to fetch transactions:', e);
+        return [] as Transaction[];
+      }),
+      BudgetService.getBudgetsByGroup(groupId).catch((e) => {
+        console.error('[PageDataService] Failed to fetch budgets:', e);
+        return [] as Budget[];
+      }),
+      RecurringService.getSeriesByGroup(groupId).catch((e) => {
+        console.error(
+          '[PageDataService] Failed to fetch recurring series:',
+          e
+        );
+        return [] as RecurringTransactionSeries[];
+      }),
+      CategoryService.getAllCategories().catch((e) => {
+        console.error('[PageDataService] Failed to fetch categories:', e);
+        return [] as Category[];
+      }),
       // Fetch active budget period for each user
       ...userIds.map((userId) =>
-        BudgetPeriodService.getActivePeriod(userId)
+        BudgetPeriodService.getActivePeriod(userId).catch((e) => {
+          console.error(
+            `[PageDataService] Failed to fetch budget period for user ${userId}:`,
+            e
+          );
+          return null;
+        })
       ),
     ]);
-
-    // Log errors but continue with default values
-    if (accountsResult.error) {
-      console.error('[PageDataService] Failed to fetch accounts:', accountsResult.error);
-    }
-    if (transactionsResult.error) {
-      console.error('[PageDataService] Failed to fetch transactions:', transactionsResult.error);
-    }
-    if (budgetsResult.error) {
-      console.error('[PageDataService] Failed to fetch budgets:', budgetsResult.error);
-    }
-    if (recurringResult.error) {
-      console.error('[PageDataService] Failed to fetch recurring series:', recurringResult.error);
-    }
-    if (categoriesResult.error) {
-      console.error('[PageDataService] Failed to fetch categories:', categoriesResult.error);
-    }
-
-    // Use data or fallback to empty arrays
-    const accounts = accountsResult.data || [];
-    const transactions = transactionsResult.data || [];
-    const budgets = budgetsResult.data || [];
-    const recurringSeries = recurringResult.data || [];
-    const categories = categoriesResult.data || [];
 
     // Build budget periods map (userId -> active period)
     const budgetPeriods: Record<string, BudgetPeriod | null> = {};
     userIds.forEach((userId, index) => {
-      budgetPeriods[userId] = periodResults[index].data ?? null;
+      // periodResults matches the order of userIds spread in Promise.all
+      // TypeScript infers periodResults type from the remaining elements of the array destructuring
+      // We need to cast it or handle it carefully since it's mixed with other types in the array destructuring if not precise
+      // But here with tuple destructuring, periodResults is collected rest.
+      // The type of periodResults is (Account[] | Transaction[] | ... | BudgetPeriod | null)[] which is not ideal.
+      // However, we know they come after the fixed 5 promises.
+      budgetPeriods[userId] = (periodResults[index] as BudgetPeriod | null) ?? null;
     });
 
     // Calculate account balances
-    const accountIds = accounts.map((a) => a.id);
+    const accountIds = (accounts as Account[]).map((a) => a.id);
     const accountBalances = FinanceLogicService.calculateAccountBalances(
       accountIds,
-      transactions
+      transactions as Transaction[]
     );
 
     return {
-      data: {
-        accounts,
-        transactions,
-        budgets,
-        budgetPeriods,
-        recurringSeries,
-        categories,
-        accountBalances,
-      },
-      error: null,
+      accounts: accounts as Account[],
+      transactions: transactions as Transaction[],
+      budgets: budgets as Budget[],
+      budgetPeriods,
+      recurringSeries: recurringSeries as RecurringTransactionSeries[],
+      categories: categories as Category[],
+      accountBalances,
     };
   }
 
@@ -189,41 +194,42 @@ export class PageDataService {
    * @param groupId - Group ID to fetch data for
    * @returns Transactions page data
    */
-  static async getTransactionsPageData(groupId: string): Promise<ServiceResult<TransactionsPageData>> {
-    const [transactionsResult, categoriesResult, accountsResult, recurringResult, budgetsResult] = await Promise.all([
-      TransactionService.getTransactionsByGroup(groupId),
-      CategoryService.getAllCategories(),
-      AccountService.getAccountsByGroup(groupId),
-      RecurringService.getSeriesByGroup(groupId),
-      BudgetService.getBudgetsByGroup(groupId),
-    ]);
-
-    // Log errors but continue with default values
-    if (transactionsResult.error) {
-      console.error('[PageDataService] Failed to fetch transactions:', transactionsResult.error);
-    }
-    if (categoriesResult.error) {
-      console.error('[PageDataService] Failed to fetch categories:', categoriesResult.error);
-    }
-    if (accountsResult.error) {
-      console.error('[PageDataService] Failed to fetch accounts:', accountsResult.error);
-    }
-    if (recurringResult.error) {
-      console.error('[PageDataService] Failed to fetch recurring series:', recurringResult.error);
-    }
-    if (budgetsResult.error) {
-      console.error('[PageDataService] Failed to fetch budgets:', budgetsResult.error);
-    }
+  static async getTransactionsPageData(
+    groupId: string
+  ): Promise<TransactionsPageData> {
+    const [transactions, categories, accounts, recurringSeries, budgets] =
+      await Promise.all([
+        TransactionService.getTransactionsByGroup(groupId).catch((e) => {
+          console.error('[PageDataService] Failed to fetch transactions:', e);
+          return [] as Transaction[];
+        }),
+        CategoryService.getAllCategories().catch((e) => {
+          console.error('[PageDataService] Failed to fetch categories:', e);
+          return [] as Category[];
+        }),
+        AccountService.getAccountsByGroup(groupId).catch((e) => {
+          console.error('[PageDataService] Failed to fetch accounts:', e);
+          return [] as Account[];
+        }),
+        RecurringService.getSeriesByGroup(groupId).catch((e) => {
+          console.error(
+            '[PageDataService] Failed to fetch recurring series:',
+            e
+          );
+          return [] as RecurringTransactionSeries[];
+        }),
+        BudgetService.getBudgetsByGroup(groupId).catch((e) => {
+          console.error('[PageDataService] Failed to fetch budgets:', e);
+          return [] as Budget[];
+        }),
+      ]);
 
     return {
-      data: {
-        transactions: transactionsResult.data || [],
-        categories: categoriesResult.data || [],
-        accounts: accountsResult.data || [],
-        recurringSeries: recurringResult.data || [],
-        budgets: budgetsResult.data || [],
-      },
-      error: null,
+      transactions: transactions as Transaction[],
+      categories: categories as Category[],
+      accounts: accounts as Account[],
+      recurringSeries: recurringSeries as RecurringTransactionSeries[],
+      budgets: budgets as Budget[],
     };
   }
 
@@ -236,60 +242,67 @@ export class PageDataService {
    * @param groupId - Group ID to fetch data for
    * @returns Budgets page data with active budget periods
    */
-  static async getBudgetsPageData(
-    groupId: string
-  ): Promise<ServiceResult<BudgetsPageData>> {
+  static async getBudgetsPageData(groupId: string): Promise<BudgetsPageData> {
     // First, get group users to fetch their budget periods
-    const { data: groupUsers } = await GroupService.getGroupUsers(groupId);
-    const userIds = groupUsers?.map((u) => u.id) || [];
+    let userIds: string[] = [];
+    try {
+      const groupUsers = await GroupService.getGroupUsers(groupId);
+      userIds = groupUsers.map((u) => u.id);
+    } catch (error) {
+      console.error(
+        '[PageDataService] Failed to fetch group users:',
+        error instanceof Error ? error.message : error
+      );
+    }
 
     // Fetch all data in parallel
     const [
-      budgetsResult,
-      transactionsResult,
-      accountsResult,
-      categoriesResult,
+      budgets,
+      transactions,
+      accounts,
+      categories,
       ...periodResults
     ] = await Promise.all([
-      BudgetService.getBudgetsByGroup(groupId),
-      TransactionService.getTransactionsByGroup(groupId),
-      AccountService.getAccountsByGroup(groupId),
-      CategoryService.getAllCategories(),
+      BudgetService.getBudgetsByGroup(groupId).catch((e) => {
+        console.error('[PageDataService] Failed to fetch budgets:', e);
+        return [] as Budget[];
+      }),
+      TransactionService.getTransactionsByGroup(groupId).catch((e) => {
+        console.error('[PageDataService] Failed to fetch transactions:', e);
+        return [] as Transaction[];
+      }),
+      AccountService.getAccountsByGroup(groupId).catch((e) => {
+        console.error('[PageDataService] Failed to fetch accounts:', e);
+        return [] as Account[];
+      }),
+      CategoryService.getAllCategories().catch((e) => {
+        console.error('[PageDataService] Failed to fetch categories:', e);
+        return [] as Category[];
+      }),
       // Fetch active budget period for each user
       ...userIds.map((userId) =>
-        BudgetPeriodService.getActivePeriod(userId)
+        BudgetPeriodService.getActivePeriod(userId).catch((e) => {
+          console.error(
+            `[PageDataService] Failed to fetch budget period for user ${userId}:`,
+            e
+          );
+          return null;
+        })
       ),
     ]);
-
-    // Log errors but continue with default values (graceful degradation)
-    if (budgetsResult.error) {
-      console.error('[PageDataService] Failed to fetch budgets:', budgetsResult.error);
-    }
-    if (transactionsResult.error) {
-      console.error('[PageDataService] Failed to fetch transactions:', transactionsResult.error);
-    }
-    if (accountsResult.error) {
-      console.error('[PageDataService] Failed to fetch accounts:', accountsResult.error);
-    }
-    if (categoriesResult.error) {
-      console.error('[PageDataService] Failed to fetch categories:', categoriesResult.error);
-    }
 
     // Build budget periods map (userId -> active period)
     const budgetPeriods: Record<string, BudgetPeriod | null> = {};
     userIds.forEach((userId, index) => {
-      budgetPeriods[userId] = periodResults[index].data ?? null;
+      budgetPeriods[userId] = (periodResults[index] as BudgetPeriod | null) ?? null;
     });
 
     return {
-      data: {
-        budgets: budgetsResult.data || [],
-        transactions: transactionsResult.data || [],
-        accounts: accountsResult.data || [],
-        categories: categoriesResult.data || [],
-        budgetPeriods,
-      },
-      error: null,
+      budgets: budgets as Budget[],
+      transactions: transactions as Transaction[],
+      accounts: accounts as Account[],
+      categories: categories as Category[],
+      budgetPeriods,
     };
   }
 
@@ -302,34 +315,31 @@ export class PageDataService {
    * @param groupId - Group ID to fetch data for
    * @returns Accounts page data with balances
    */
-  static async getAccountsPageData(groupId: string): Promise<ServiceResult<AccountsPageData>> {
-    const [accountsResult, transactionsResult] = await Promise.all([
-      AccountService.getAccountsByGroup(groupId),
-      TransactionService.getTransactionsByGroup(groupId),
+  static async getAccountsPageData(groupId: string): Promise<AccountsPageData> {
+    const [accounts, transactions] = await Promise.all([
+      AccountService.getAccountsByGroup(groupId).catch((e) => {
+        console.error('[PageDataService] Failed to fetch accounts:', e);
+        return [] as Account[];
+      }),
+      TransactionService.getTransactionsByGroup(groupId).catch((e) => {
+        console.error('[PageDataService] Failed to fetch transactions:', e);
+        return [] as Transaction[];
+      }),
     ]);
 
-    // Log errors but continue with default values (graceful degradation)
-    if (accountsResult.error) {
-      console.error('[PageDataService] Failed to fetch accounts:', accountsResult.error);
-    }
-    if (transactionsResult.error) {
-      console.error('[PageDataService] Failed to fetch transactions:', transactionsResult.error);
-    }
-
-    const accounts = accountsResult.data || [];
-    const transactions = transactionsResult.data || [];
-
     // Calculate account balances
-    const accountIds = accounts.map(a => a.id);
-    const accountBalances = FinanceLogicService.calculateAccountBalances(accountIds, transactions);
+    const accountsCast = accounts as Account[];
+    const transactionsCast = transactions as Transaction[];
+    const accountIds = accountsCast.map((a) => a.id);
+    const accountBalances = FinanceLogicService.calculateAccountBalances(
+      accountIds,
+      transactionsCast
+    );
 
     return {
-      data: {
-        accounts,
-        transactions,
-        accountBalances,
-      },
-      error: null,
+      accounts: accountsCast,
+      transactions: transactionsCast,
+      accountBalances,
     };
   }
 
@@ -341,31 +351,26 @@ export class PageDataService {
    * @param groupId - Group ID to fetch data for
    * @returns Reports page data
    */
-  static async getReportsPageData(groupId: string): Promise<ServiceResult<ReportsPageData>> {
-    const [accountsResult, transactionsResult, categoriesResult] = await Promise.all([
-      AccountService.getAccountsByGroup(groupId),
-      TransactionService.getTransactionsByGroup(groupId),
-      CategoryService.getAllCategories(),
+  static async getReportsPageData(groupId: string): Promise<ReportsPageData> {
+    const [accounts, transactions, categories] = await Promise.all([
+      AccountService.getAccountsByGroup(groupId).catch((e) => {
+        console.error('[PageDataService] Failed to fetch accounts:', e);
+        return [] as Account[];
+      }),
+      TransactionService.getTransactionsByGroup(groupId).catch((e) => {
+        console.error('[PageDataService] Failed to fetch transactions:', e);
+        return [] as Transaction[];
+      }),
+      CategoryService.getAllCategories().catch((e) => {
+        console.error('[PageDataService] Failed to fetch categories:', e);
+        return [] as Category[];
+      }),
     ]);
 
-    // Log errors but continue with default values (graceful degradation)
-    if (accountsResult.error) {
-      console.error('[PageDataService] Failed to fetch accounts:', accountsResult.error);
-    }
-    if (transactionsResult.error) {
-      console.error('[PageDataService] Failed to fetch transactions:', transactionsResult.error);
-    }
-    if (categoriesResult.error) {
-      console.error('[PageDataService] Failed to fetch categories:', categoriesResult.error);
-    }
-
     return {
-      data: {
-        accounts: accountsResult.data || [],
-        transactions: transactionsResult.data || [],
-        categories: categoriesResult.data || [],
-      },
-      error: null,
+      accounts: accounts as Account[],
+      transactions: transactions as Transaction[],
+      categories: categories as Category[],
     };
   }
 }

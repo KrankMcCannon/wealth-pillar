@@ -1,4 +1,4 @@
-"use server";
+'use server';
 
 /**
  * Recurring Series Server Actions
@@ -78,9 +78,9 @@ export async function createRecurringSeriesAction(
     }
 
     // Get current user
-    const { data: currentUser, error: userError } = await UserService.getLoggedUserInfo(clerkId);
-    if (userError || !currentUser) {
-      return { data: null, error: userError || 'Utente non trovato' };
+    const currentUser = await UserService.getLoggedUserInfo(clerkId);
+    if (!currentUser) {
+      return { data: null, error: 'Utente non trovato' };
     }
 
     // Validate required fields
@@ -190,9 +190,9 @@ export async function updateRecurringSeriesAction(
     }
 
     // Get current user
-    const { data: currentUser, error: userError } = await UserService.getLoggedUserInfo(clerkId);
-    if (userError || !currentUser) {
-      return { data: null, error: userError || 'Utente non trovato' };
+    const currentUser = await UserService.getLoggedUserInfo(clerkId);
+    if (!currentUser) {
+      return { data: null, error: 'Utente non trovato' };
     }
 
     // Get old user_ids to invalidate cache for previous users
@@ -314,9 +314,9 @@ export async function deleteRecurringSeriesAction(
     }
 
     // Get current user
-    const { data: currentUser, error: userError } = await UserService.getLoggedUserInfo(clerkId);
-    if (userError || !currentUser) {
-      return { data: null, error: userError || 'Utente non trovato' };
+    const currentUser = await UserService.getLoggedUserInfo(clerkId);
+    if (!currentUser) {
+      return { data: null, error: 'Utente non trovato' };
     }
 
     // First get the series

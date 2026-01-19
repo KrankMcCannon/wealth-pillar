@@ -4,12 +4,16 @@ import { revalidateTag } from 'next/cache';
 
 import { CreateCategoryInput, UpdateCategoryInput } from '@/server/services';
 import type { Category } from '@/lib/types';
-import type { ServiceResult } from '@/server/services';
 import { CategoryRepository } from '@/server/dal';
 import { UserService } from '@/server/services';
 import { FinanceLogicService } from '@/server/services';
 import { auth } from '@clerk/nextjs/server';
 import { CACHE_TAGS } from '@/lib/cache/config';
+
+type ServiceResult<T> = {
+  data: T | null;
+  error: string | null;
+};
 
 /**
  * Server action to get all categories
@@ -28,7 +32,7 @@ export async function getAllCategoriesAction(): Promise<ServiceResult<Category[]
     }
 
     // Get current user
-    const { data: currentUser } = await UserService.getLoggedUserInfo(clerkId);
+    const currentUser = await UserService.getLoggedUserInfo(clerkId);
     if (!currentUser || !currentUser.group_id) {
       // If no group, maybe return empty or error?
       return { data: [], error: null };
@@ -57,9 +61,9 @@ export async function createCategoryAction(input: CreateCategoryInput): Promise<
       return { data: null, error: 'Non autenticato' };
     }
 
-    const { data: currentUser, error: userError } = await UserService.getLoggedUserInfo(clerkId);
-    if (userError || !currentUser) {
-      return { data: null, error: userError || 'User not found' };
+    const currentUser = await UserService.getLoggedUserInfo(clerkId);
+    if (!currentUser) {
+      return { data: null, error: 'User not found' };
     }
 
     // Validation
@@ -117,9 +121,9 @@ export async function updateCategoryAction(id: string, input: UpdateCategoryInpu
       return { data: null, error: 'Non autenticato' };
     }
 
-    const { data: currentUser, error: userError } = await UserService.getLoggedUserInfo(clerkId);
-    if (userError || !currentUser) {
-      return { data: null, error: userError || 'User not found' };
+    const currentUser = await UserService.getLoggedUserInfo(clerkId);
+    if (!currentUser) {
+      return { data: null, error: 'User not found' };
     }
 
     const existingCategory = await CategoryRepository.getById(id);
@@ -173,9 +177,9 @@ export async function deleteCategoryAction(id: string): Promise<ServiceResult<{ 
       return { data: null, error: 'Non autenticato' };
     }
 
-    const { data: currentUser, error: userError } = await UserService.getLoggedUserInfo(clerkId);
-    if (userError || !currentUser) {
-      return { data: null, error: userError || 'User not found' };
+    const currentUser = await UserService.getLoggedUserInfo(clerkId);
+    if (!currentUser) {
+      return { data: null, error: 'User not found' };
     }
 
     const existingCategory = await CategoryRepository.getById(id);

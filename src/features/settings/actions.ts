@@ -6,10 +6,14 @@ import {
   UserPreferencesService,
   GroupInvitationService,
 } from '@/server/services';
-import type { ServiceResult } from '@/server/services';
 import type { UserPreferences } from '@/server/services';
 import type { UserPreferencesUpdate } from '@/lib/types';
 import type { GroupInvitation } from '@/server/services';
+
+type ServiceResult<T> = {
+  data: T | null;
+  error: string | null;
+};
 
 /**
  * Deletes a user and all related data (accounts, transactions, budgets)
@@ -38,14 +42,7 @@ export async function deleteUserAction(
     }
 
     // Delete user and all related data from database
-    const { data, error } = await UserService.deleteUser(userId);
-
-    if (error || !data) {
-      return {
-        data: null,
-        error: error || 'Failed to delete user from database',
-      };
-    }
+    await UserService.deleteUser(userId);
 
     // Delete Clerk user
     try {
@@ -97,14 +94,7 @@ export async function updateUserProfileAction(
     }
 
     // Update user profile via service
-    const { data, error } = await UserService.updateProfile(userId, updates);
-
-    if (error || !data) {
-      return {
-        data: null,
-        error: error || 'Failed to update profile',
-      };
-    }
+    const data = await UserService.updateProfile(userId, updates);
 
     // Return minimal user data (avoid sending sensitive fields)
     return {
@@ -146,14 +136,7 @@ export async function getUserPreferencesAction(
     }
 
     // Get preferences via service (with lazy initialization)
-    const { data, error } = await UserPreferencesService.getUserPreferences(userId);
-
-    if (error || !data) {
-      return {
-        data: null,
-        error: error || 'Failed to get preferences',
-      };
-    }
+    const data = await UserPreferencesService.getUserPreferences(userId);
 
     return {
       data,
@@ -199,17 +182,10 @@ export async function updateUserPreferencesAction(
     }
 
     // Update preferences via service
-    const { data, error } = await UserPreferencesService.updatePreferences(
+    const data = await UserPreferencesService.updatePreferences(
       userId,
       updates
     );
-
-    if (error || !data) {
-      return {
-        data: null,
-        error: error || 'Failed to update preferences',
-      };
-    }
 
     return {
       data,
@@ -264,18 +240,11 @@ export async function sendGroupInvitationAction(
     }
 
     // Create invitation via service
-    const { data, error } = await GroupInvitationService.createInvitation({
+    const data = await GroupInvitationService.createInvitation({
       groupId,
       invitedByUserId,
       email: email.trim(),
     });
-
-    if (error || !data) {
-      return {
-        data: null,
-        error: error || 'Failed to send invitation',
-      };
-    }
 
     // TODO: Send actual email notification via Resend/SendGrid
     // For now, just return the created invitation

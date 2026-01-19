@@ -12,13 +12,15 @@ export default async function BudgetsPage() {
   const { currentUser, groupUsers } = await getDashboardData();
 
   // Fetch all budget page data in parallel (optimized with Promise.all)
-  const { data, error } = await PageDataService.getBudgetsPageData(currentUser.group_id || '');
+  const pageData = await PageDataService.getBudgetsPageData(currentUser.group_id || '');
 
-  if (error) {
-    console.error('Failed to fetch budgets page data:', error);
-  }
-
-  const { budgets = [], transactions = [], accounts = [], categories = [], budgetPeriods = {} } = data || {};
+  const {
+    budgets = [],
+    transactions = [],
+    accounts = [],
+    categories = [],
+    budgetPeriods = {},
+  } = pageData;
 
   return (
     <Suspense fallback={<BudgetSelectorSkeleton />}>

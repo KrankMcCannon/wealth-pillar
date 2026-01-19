@@ -65,11 +65,11 @@ export async function getDashboardData(): Promise<DashboardData> {
   }
 
   // Step 2: Fetch logged user info from database (cached for 5 minutes)
-  const { data: user, error: userError } = await UserService.getLoggedUserInfo(clerkId);
+  const user = await UserService.getLoggedUserInfo(clerkId);
 
   // If user doesn't exist in Supabase, redirect to auth
   // User will be created during onboarding flow
-  if (userError || !user) {
+  if (!user) {
     redirect('/auth');
   }
 
@@ -84,17 +84,16 @@ export async function getDashboardData(): Promise<DashboardData> {
     };
   }
 
-  const { data: groupUsers, error: groupError } = await GroupService.getGroupUsers(user.group_id);
+  const groupUsers = await GroupService.getGroupUsers(user.group_id);
 
-  if (groupError) {
+  if (!groupUsers) {
     // Log error but don't block page render
     // Some features may be limited without group users
-    console.error('Failed to fetch group users:', groupError);
+    console.error('Failed to fetch group users');
   }
 
   // Fetch preferences
-  const { data: userPreferences } =
-    await UserPreferencesService.getUserPreferences(user.id);
+  const userPreferences = await UserPreferencesService.getUserPreferences(user.id);
 
   // Return data with fallback for group users
   return {

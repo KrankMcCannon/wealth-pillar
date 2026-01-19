@@ -5,7 +5,11 @@ import { auth } from '@clerk/nextjs/server';
 import { BudgetPeriodService, UserService } from '@/server/services';
 import { canAccessUserData, isMember } from '@/lib/utils';
 import type { BudgetPeriod, User } from '@/lib/types';
-import type { ServiceResult } from '@/server/services';
+
+type ServiceResult<T> = {
+  data: T | null;
+  error: string | null;
+};
 
 /**
  * Server Action: Start Budget Period
@@ -29,10 +33,9 @@ export async function startPeriodAction(
     }
 
     // Get current user
-    const { data: currentUser, error: userError } =
-      await UserService.getLoggedUserInfo(clerkId);
-    if (userError || !currentUser) {
-      return { data: null, error: userError || 'Utente non trovato' };
+    const currentUser = await UserService.getLoggedUserInfo(clerkId);
+    if (!currentUser) {
+      return { data: null, error: 'Utente non trovato' };
     }
 
     // Permission validation: members can only start periods for themselves
@@ -54,14 +57,12 @@ export async function startPeriodAction(
     // Create new period
     const result = await BudgetPeriodService.createPeriod(userId, startDate);
 
-    if (!result.error) {
-      // Revalidate pages that display budget periods
-      revalidatePath('/budgets');
-      revalidatePath('/dashboard');
-      revalidatePath('/reports');
-    }
+    // Revalidate pages that display budget periods
+    revalidatePath('/budgets');
+    revalidatePath('/dashboard');
+    revalidatePath('/reports');
 
-    return result;
+    return { data: result, error: null };
   } catch (error) {
     return {
       data: null,
@@ -93,17 +94,15 @@ export async function closePeriodAction(
     }
 
     // Get current user
-    const { data: currentUser, error: userError } =
-      await UserService.getLoggedUserInfo(clerkId);
-    if (userError || !currentUser) {
-      return { data: null, error: userError || 'Utente non trovato' };
+    const currentUser = await UserService.getLoggedUserInfo(clerkId);
+    if (!currentUser) {
+      return { data: null, error: 'Utente non trovato' };
     }
 
     // Get the period to verify ownership
-    const { data: period, error: periodError } =
-      await BudgetPeriodService.getPeriodById(periodId);
-    if (periodError || !period) {
-      return { data: null, error: periodError || 'Periodo non trovato' };
+    const period = await BudgetPeriodService.getPeriodById(periodId);
+    if (!period) {
+      return { data: null, error: 'Periodo non trovato' };
     }
 
     // Permission validation: members can only close their own periods
@@ -128,14 +127,16 @@ export async function closePeriodAction(
       endDate,
     );
 
-    if (!result.error) {
+    if (result) {
       // Revalidate pages that display budget periods
       revalidatePath('/budgets');
       revalidatePath('/dashboard');
       revalidatePath('/reports');
+      return { data: result, error: null };
     }
 
-    return result;
+    return { data: null, error: "Failed to close period" };
+
   } catch (error) {
     return {
       data: null,
@@ -166,17 +167,15 @@ export async function deletePeriodAction(
     }
 
     // Get current user
-    const { data: currentUser, error: userError } =
-      await UserService.getLoggedUserInfo(clerkId);
-    if (userError || !currentUser) {
-      return { data: null, error: userError || 'Utente non trovato' };
+    const currentUser = await UserService.getLoggedUserInfo(clerkId);
+    if (!currentUser) {
+      return { data: null, error: 'Utente non trovato' };
     }
 
     // Get the period to verify ownership
-    const { data: period, error: periodError } =
-      await BudgetPeriodService.getPeriodById(periodId);
-    if (periodError || !period) {
-      return { data: null, error: periodError || 'Periodo non trovato' };
+    const period = await BudgetPeriodService.getPeriodById(periodId);
+    if (!period) {
+      return { data: null, error: 'Periodo non trovato' };
     }
 
     // Permission validation: members can only delete their own periods
@@ -196,16 +195,15 @@ export async function deletePeriodAction(
     }
 
     // Delete period
-    const result = await BudgetPeriodService.deletePeriod(periodId);
+    await BudgetPeriodService.deletePeriod(periodId);
 
-    if (!result.error) {
-      // Revalidate pages that display budget periods
-      revalidatePath('/budgets');
-      revalidatePath('/dashboard');
-      revalidatePath('/reports');
-    }
+    // Revalidate pages that display budget periods
+    revalidatePath('/budgets');
+    revalidatePath('/dashboard');
+    revalidatePath('/reports');
 
-    return result;
+    return { data: { id: periodId }, error: null };
+
   } catch (error) {
     return {
       data: null,
@@ -237,10 +235,9 @@ export async function getUserPeriodsAction(
     }
 
     // Get current user
-    const { data: currentUser, error: userError } =
-      await UserService.getLoggedUserInfo(clerkId);
-    if (userError || !currentUser) {
-      return { data: null, error: userError || 'Utente non trovato' };
+    const currentUser = await UserService.getLoggedUserInfo(clerkId);
+    if (!currentUser) {
+      return { data: null, error: 'Utente non trovato' };
     }
 
     // Permission validation
@@ -259,9 +256,9 @@ export async function getUserPeriodsAction(
     }
 
     // Fetch periods
-    const result = await BudgetPeriodService.getPeriodsByUser(userId);
+    const periods = await BudgetPeriodService.getPeriodsByUser(userId);
 
-    return result;
+    return { data: periods, error: null };
   } catch (error) {
     return {
       data: null,
@@ -293,10 +290,9 @@ export async function getActivePeriodAction(
     }
 
     // Get current user
-    const { data: currentUser, error: userError } =
-      await UserService.getLoggedUserInfo(clerkId);
-    if (userError || !currentUser) {
-      return { data: null, error: userError || 'Utente non trovato' };
+    const currentUser = await UserService.getLoggedUserInfo(clerkId);
+    if (!currentUser) {
+      return { data: null, error: 'Utente non trovato' };
     }
 
     // Permission validation
@@ -316,9 +312,9 @@ export async function getActivePeriodAction(
     }
 
     // Fetch active period
-    const result = await BudgetPeriodService.getActivePeriod(userId);
+    const period = await BudgetPeriodService.getActivePeriod(userId);
 
-    return result;
+    return { data: period, error: null };
   } catch (error) {
     return {
       data: null,

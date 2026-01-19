@@ -7,7 +7,11 @@ import { TransactionService, CreateTransactionInput } from '@/server/services';
 import { UserService } from '@/server/services';
 import { canAccessUserData, isMember } from '@/lib/utils';
 import type { User, Transaction } from '@/lib/types';
-import type { ServiceResult } from '@/server/services';
+
+type ServiceResult<T> = {
+  data: T | null;
+  error: string | null;
+};
 
 /**
  * Server Action: Create Transaction
@@ -22,8 +26,8 @@ export async function createTransactionAction(
     const { userId: clerkId } = await auth();
     if (!clerkId) return { data: null, error: 'Non autenticato' };
 
-    const { data: currentUser, error: userError } = await UserService.getLoggedUserInfo(clerkId);
-    if (userError || !currentUser) return { data: null, error: userError };
+    const currentUser = await UserService.getLoggedUserInfo(clerkId);
+    if (!currentUser) return { data: null, error: 'Utente non trovato' };
 
     if (isMember(currentUser as unknown as User) && input.user_id !== currentUser.id) {
       return { data: null, error: 'Permesso negato' };
@@ -36,9 +40,9 @@ export async function createTransactionAction(
     }
 
     // Call service
-    const result = await TransactionService.createTransaction(input);
+    const data = await TransactionService.createTransaction(input);
 
-    if (result.data) {
+    if (data) {
       // Revalidate paths that might not be covered by the service
       revalidatePath('/dashboard');
       revalidatePath('/transactions');
@@ -49,7 +53,7 @@ export async function createTransactionAction(
       // Additional cache tags if needed, though Service handles most
     }
 
-    return result;
+    return { data, error: null };
   } catch (error) {
     return {
       data: null,
@@ -75,15 +79,15 @@ export async function updateTransactionAction(
     }
 
     // Get current user
-    const { data: currentUser, error: userError } = await UserService.getLoggedUserInfo(clerkId);
-    if (userError || !currentUser) {
-      return { data: null, error: userError || 'Utente non trovato' };
+    const currentUser = await UserService.getLoggedUserInfo(clerkId);
+    if (!currentUser) {
+      return { data: null, error: 'Utente non trovato' };
     }
 
     // Get existing transaction to verify ownership
-    const { data: existingTransaction, error: txError } = await TransactionService.getTransactionById(id);
-    if (txError || !existingTransaction) {
-      return { data: null, error: txError || 'Transazione non trovata' };
+    const existingTransaction = await TransactionService.getTransactionById(id);
+    if (!existingTransaction) {
+      return { data: null, error: 'Transazione non trovata' };
     }
 
     // Verify transaction has a user_id
@@ -110,9 +114,9 @@ export async function updateTransactionAction(
     }
 
     // Call service
-    const result = await TransactionService.updateTransaction(id, input);
+    const data = await TransactionService.updateTransaction(id, input);
 
-    if (result.data) {
+    if (data) {
       // Revalidate paths
       revalidatePath('/dashboard');
       revalidatePath('/transactions');
@@ -121,7 +125,7 @@ export async function updateTransactionAction(
       revalidatePath('/reports');
     }
 
-    return result;
+    return { data, error: null };
   } catch (error) {
     return {
       data: null,
@@ -146,15 +150,15 @@ export async function deleteTransactionAction(
     }
 
     // Get current user
-    const { data: currentUser, error: userError } = await UserService.getLoggedUserInfo(clerkId);
-    if (userError || !currentUser) {
-      return { data: null, error: userError || 'Utente non trovato' };
+    const currentUser = await UserService.getLoggedUserInfo(clerkId);
+    if (!currentUser) {
+      return { data: null, error: 'Utente non trovato' };
     }
 
     // Get existing transaction to verify ownership
-    const { data: existingTransaction, error: txError } = await TransactionService.getTransactionById(id);
-    if (txError || !existingTransaction) {
-      return { data: null, error: txError || 'Transazione non trovata' };
+    const existingTransaction = await TransactionService.getTransactionById(id);
+    if (!existingTransaction) {
+      return { data: null, error: 'Transazione non trovata' };
     }
 
     // Verify transaction has a user_id
@@ -171,18 +175,16 @@ export async function deleteTransactionAction(
     }
 
     // Call service
-    const result = await TransactionService.deleteTransaction(id);
+    await TransactionService.deleteTransaction(id);
 
-    if (result.data) {
-      // Revalidate paths
-      revalidatePath('/dashboard');
-      revalidatePath('/transactions');
-      revalidatePath('/accounts');
-      revalidatePath('/budgets');
-      revalidatePath('/reports');
-    }
+    // Revalidate paths
+    revalidatePath('/dashboard');
+    revalidatePath('/transactions');
+    revalidatePath('/accounts');
+    revalidatePath('/budgets');
+    revalidatePath('/reports');
 
-    return result;
+    return { data: { id }, error: null };
   } catch (error) {
     return {
       data: null,

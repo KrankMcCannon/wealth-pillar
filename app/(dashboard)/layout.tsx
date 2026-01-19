@@ -23,10 +23,10 @@ export default async function DashboardLayout({
   }
 
   // Step 2: Check if user exists in Supabase
-  const { data: user, error } = await UserService.getLoggedUserInfo(clerkId);
+  const user = await UserService.getLoggedUserInfo(clerkId);
 
   // If user doesn't exist in Supabase, redirect to SSO callback for onboarding
-  if (error || !user) {
+  if (!user) {
     redirect('/auth/sso-callback');
   }
 
@@ -50,10 +50,9 @@ export default async function DashboardLayout({
     CategoryService.getAllCategories(),
   ]);
 
-  const groupUsers = groupUsersResult.data || [];
-  const accounts = accountsResult.data || [];
-  const categories = categoriesResult.data || [];
-
+  const groupUsers = groupUsersResult || [];
+  const accounts = accountsResult || [];
+  const categories = categoriesResult || [];
 
   return (
     <NuqsAdapter>

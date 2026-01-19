@@ -9,9 +9,9 @@ import { auth } from "@clerk/nextjs/server";
 import { canAccessUserData } from "@/lib/utils/permissions";
 import { CACHE_TAGS } from "@/lib/cache/config";
 
-export type ActionState<T> = {
-    data?: T;
-    error?: string;
+export type ServiceResult<T> = {
+    data: T | null;
+    error: string | null;
 };
 
 /**
@@ -20,33 +20,33 @@ export type ActionState<T> = {
 export async function createAccountAction(
     input: CreateAccountInput,
     isDefault: boolean = false
-): Promise<ActionState<Account>> {
+): Promise<ServiceResult<Account>> {
     try {
         // Authentication check
         const { userId: clerkId } = await auth();
         if (!clerkId) {
-            return { error: "Non autenticato. Effettua il login per continuare." };
+            return { data: null, error: "Non autenticato. Effettua il login per continuare." };
         }
 
         // Get current user
-        const { data: currentUser, error: userError } = await UserService.getLoggedUserInfo(clerkId);
-        if (userError || !currentUser) {
-            return { error: userError || "Utente non trovato" };
+        const currentUser = await UserService.getLoggedUserInfo(clerkId);
+        if (!currentUser) {
+            return { data: null, error: "Utente non trovato" };
         }
 
         // Validate permissions (e.g., creating account for user in same group)
         // Check if current user has access to all target users
         for (const userId of input.user_ids) {
             if (!canAccessUserData(currentUser as unknown as User, userId)) {
-                return { error: "Non hai i permessi per creare un account per questo utente" };
+                return { data: null, error: "Non hai i permessi per creare un account per questo utente" };
             }
         }
 
         // Input Validation
-        if (!input.name || input.name.trim() === '') return { error: 'Nome account obbligatorio' };
-        if (!input.type) return { error: 'Tipo account obbligatorio' };
-        if (!input.group_id) return { error: 'Gruppo obbligatorio' };
-        if (!input.user_ids || input.user_ids.length === 0) return { error: 'Almeno un utente è richiesto' };
+        if (!input.name || input.name.trim() === '') return { data: null, error: 'Nome account obbligatorio' };
+        if (!input.type) return { data: null, error: 'Tipo account obbligatorio' };
+        if (!input.group_id) return { data: null, error: 'Gruppo obbligatorio' };
+        if (!input.user_ids || input.user_ids.length === 0) return { data: null, error: 'Almeno un utente è richiesto' };
 
         const account = await AccountRepository.create({
             id: input.id,
@@ -57,7 +57,7 @@ export async function createAccountAction(
         });
 
         if (!account) {
-            return { error: "Failed to create account" };
+            return { data: null, error: "Failed to create account" };
         }
 
         // Handle default account setting
@@ -76,9 +76,9 @@ export async function createAccountAction(
         revalidateTag(`group:${input.group_id}:accounts`, 'max');
         input.user_ids.forEach((userId: string) => revalidateTag(`user:${userId}:accounts`, 'max'));
 
-        return { data: account as unknown as Account };
+        return { data: account as unknown as Account, error: null };
     } catch (error) {
-        return { error: error instanceof Error ? error.message : "Failed to create account" };
+        return { data: null, error: error instanceof Error ? error.message : "Failed to create account" };
     }
 }
 
@@ -89,24 +89,24 @@ export async function updateAccountAction(
     accountId: string,
     input: UpdateAccountInput,
     isDefault: boolean = false
-): Promise<ActionState<Account>> {
+): Promise<ServiceResult<Account>> {
     try {
         // Authentication check
         const { userId: clerkId } = await auth();
         if (!clerkId) {
-            return { error: "Non autenticato." };
+            return { data: null, error: "Non autenticato." };
         }
 
         // Get current user
-        const { data: currentUser, error: userError } = await UserService.getLoggedUserInfo(clerkId);
-        if (userError || !currentUser) {
-            return { error: userError || "Utente non trovato" };
+        const currentUser = await UserService.getLoggedUserInfo(clerkId);
+        if (!currentUser) {
+            return { data: null, error: "Utente non trovato" };
         }
 
         // Get existing account to verify ownership
         const existingAccount = await AccountRepository.getById(accountId);
         if (!existingAccount) {
-            return { error: "Account non trovato" };
+            return { data: null, error: "Account non trovato" };
         }
 
         // Validate permissions: Current user must be in the group of the account OR be one of the account users (if logic allows)
@@ -115,12 +115,12 @@ export async function updateAccountAction(
             // Admin check? Assuming group isolation for now strictly?
             // Or verify explicit access
             // Simplest check: Must be in same group
-            return { error: "Non hai i permessi per modificare questo account" };
+            return { data: null, error: "Non hai i permessi per modificare questo account" };
         }
 
         // Input validation for updates
-        if (input.name !== undefined && input.name.trim() === '') return { error: 'Nome account non può essere vuoto' };
-        if (input.user_ids !== undefined && input.user_ids.length === 0) return { error: 'Almeno un utente è richiesto' };
+        if (input.name !== undefined && input.name.trim() === '') return { data: null, error: 'Nome account non può essere vuoto' };
+        if (input.user_ids !== undefined && input.user_ids.length === 0) return { data: null, error: 'Almeno un utente è richiesto' };
 
         const account = await AccountRepository.update(accountId, {
             name: input.name?.trim(),
@@ -130,7 +130,7 @@ export async function updateAccountAction(
         });
 
         if (!account) {
-            return { error: "Failed to update account" };
+            return { data: null, error: "Failed to update account" };
         }
 
         // Handle default account setting
@@ -156,9 +156,9 @@ export async function updateAccountAction(
         const userIds = new Set([...existingAccount.user_ids, ...(input.user_ids || [])]);
         userIds.forEach((userId: string) => revalidateTag(`user:${userId}:accounts`, 'max'));
 
-        return { data: account as unknown as Account };
+        return { data: account as unknown as Account, error: null };
     } catch (error) {
-        return { error: error instanceof Error ? error.message : "Failed to update account" };
+        return { data: null, error: error instanceof Error ? error.message : "Failed to update account" };
     }
 }
 
@@ -167,32 +167,32 @@ export async function updateAccountAction(
  */
 export async function deleteAccountAction(
     accountId: string
-): Promise<ActionState<boolean>> {
+): Promise<ServiceResult<boolean>> {
     try {
         // Authentication check
         const { userId: clerkId } = await auth();
         if (!clerkId) {
-            return { error: "Non autenticato." };
+            return { data: null, error: "Non autenticato." };
         }
 
-        const { data: currentUser, error: userError } = await UserService.getLoggedUserInfo(clerkId);
-        if (userError || !currentUser) {
-            return { error: userError || "Utente non trovato" };
+        const currentUser = await UserService.getLoggedUserInfo(clerkId);
+        if (!currentUser) {
+            return { data: null, error: "Utente non trovato" };
         }
 
         const existingAccount = await AccountRepository.getById(accountId);
         if (!existingAccount) {
-            return { error: "Account non trovato" };
+            return { data: null, error: "Account non trovato" };
         }
 
         if (currentUser.group_id !== existingAccount.group_id) {
-            return { error: "Non hai i permessi per eliminare questo account" };
+            return { data: null, error: "Non hai i permessi per eliminare questo account" };
         }
 
         const result = await AccountRepository.delete(accountId);
 
         if (!result) {
-            return { error: "Failed to delete account" };
+            return { data: null, error: "Failed to delete account" };
         }
 
         revalidatePath("/accounts");
@@ -204,8 +204,8 @@ export async function deleteAccountAction(
         revalidateTag(`group:${existingAccount.group_id}:accounts`, 'max');
         existingAccount.user_ids.forEach((userId: string) => revalidateTag(`user:${userId}:accounts`, 'max'));
 
-        return { data: true };
+        return { data: true, error: null };
     } catch (error) {
-        return { error: error instanceof Error ? error.message : "Failed to delete account" };
+        return { data: null, error: error instanceof Error ? error.message : "Failed to delete account" };
     }
 }

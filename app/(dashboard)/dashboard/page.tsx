@@ -12,11 +12,7 @@ export default async function DashboardPage() {
   const { currentUser, groupUsers } = await getDashboardData();
 
   // Fetch all dashboard data in parallel with centralized service
-  const { data, error } = await PageDataService.getDashboardData(currentUser.group_id || '');
-
-  if (error) {
-    console.error('Failed to fetch dashboard data:', error);
-  }
+  const dashboardData = await PageDataService.getDashboardData(currentUser.group_id || '');
 
   const {
     accounts = [],
@@ -25,7 +21,7 @@ export default async function DashboardPage() {
     budgets = [],
     budgetPeriods = {},
     recurringSeries = [],
-  } = data || {};
+  } = dashboardData;
 
   return (
     <Suspense fallback={<DashboardPageLoading />}>

@@ -13,13 +13,13 @@ export default async function ReportsPage() {
   const { currentUser, groupUsers } = await getDashboardData();
 
   // Fetch all reports page data in parallel with centralized service
-  const { data, error } = await PageDataService.getReportsPageData(currentUser.group_id || '');
+  const pageData = await PageDataService.getReportsPageData(currentUser.group_id || '');
 
-  if (error) {
-    console.error('Failed to fetch reports page data:', error);
-  }
-
-  const { accounts = [], transactions = [], categories = [] } = data || {};
+  const {
+    accounts = [],
+    transactions = [],
+    categories = [],
+  } = pageData;
 
   // Fetch all budget periods for all users in the group
   const budgetPeriodsPromises = groupUsers.map((user) => getUserPeriodsAction(user.id));

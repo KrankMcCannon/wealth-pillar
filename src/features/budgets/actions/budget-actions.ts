@@ -8,9 +8,13 @@ import { UserService } from '@/server/services';
 import { canAccessUserData, isMember } from '@/lib/utils';
 import { CACHE_TAGS } from '@/lib/cache/config';
 import type { Budget, User } from '@/lib/types';
-import type { ServiceResult } from '@/server/services';
 import { BudgetRepository } from '@/server/dal';
 import { serialize } from '@/lib/utils/serializer';
+
+type ServiceResult<T> = {
+  data: T | null;
+  error: string | null;
+};
 
 /**
  * Server Action: Create Budget
@@ -28,9 +32,9 @@ export async function createBudgetAction(
     }
 
     // Get current user
-    const { data: currentUser, error: userError } = await UserService.getLoggedUserInfo(clerkId);
-    if (userError || !currentUser) {
-      return { data: null, error: userError || 'Utente non trovato' };
+    const currentUser = await UserService.getLoggedUserInfo(clerkId);
+    if (!currentUser) {
+      return { data: null, error: 'Utente non trovato' };
     }
 
     // Permission validation: members can only create for themselves
@@ -85,9 +89,7 @@ export async function createBudgetAction(
         groupId = currentUser.group_id || undefined;
       } else {
         // Creating for another user (Admin), fetch that user
-        // Reuse UserService for now as we don't have UserRepository imported/setup fully in scope context
-        // Actually we can just use UserService.getUserById if available, or assume currentUser check passed so we can fetch target user
-        const { data: targetUser } = await UserService.getUserById(input.user_id);
+        const targetUser = await UserService.getUserById(input.user_id);
         if (targetUser) {
           groupId = targetUser.group_id || undefined;
         }
@@ -143,13 +145,12 @@ export async function updateBudgetAction(
     }
 
     // Get current user
-    const { data: currentUser, error: userError } = await UserService.getLoggedUserInfo(clerkId);
-    if (userError || !currentUser) {
-      return { data: null, error: userError || 'Utente non trovato' };
+    const currentUser = await UserService.getLoggedUserInfo(clerkId);
+    if (!currentUser) {
+      return { data: null, error: 'Utente non trovato' };
     }
 
     // Get existing budget to verify ownership
-    // Use Repository if possible, but we just added getById
     const existingBudget = await BudgetRepository.getById(id);
 
     if (!existingBudget) {
@@ -260,9 +261,9 @@ export async function deleteBudgetAction(
     }
 
     // Get current user
-    const { data: currentUser, error: userError } = await UserService.getLoggedUserInfo(clerkId);
-    if (userError || !currentUser) {
-      return { data: null, error: userError || 'Utente non trovato' };
+    const currentUser = await UserService.getLoggedUserInfo(clerkId);
+    if (!currentUser) {
+      return { data: null, error: 'Utente non trovato' };
     }
 
     // Get existing budget to verify ownership
