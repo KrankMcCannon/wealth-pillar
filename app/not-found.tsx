@@ -1,54 +1,38 @@
 "use client";
 
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { Home, Search } from "lucide-react";
+import { Home } from "lucide-react";
 import { Button } from "@/components/ui";
-import { PageContainer, Header } from "@/components/layout";
-import { confirmationDialogStyles, notFoundStyles } from "@/components/shared/theme/feedback-styles";
+import Link from "next/link";
 
 export default function NotFound() {
-  const router = useRouter();
-
   return (
-    <PageContainer className={notFoundStyles.page}>
-      <Header
-        title="Errore 404"
-        subtitle="Pagina non trovata"
-        showBack={true}
-        className={notFoundStyles.header.container}
-      />
+    <div className="h-full w-full flex items-center justify-center px-4 relative">
+      <div className="pointer-events-none absolute -top-24 -left-24 h-72 w-72 rounded-full blur-3xl opacity-15 bg-primary" />
+      <div className="pointer-events-none absolute -bottom-24 -right-24 h-72 w-72 rounded-full blur-3xl opacity-15 bg-secondary" />
 
-      <main className={notFoundStyles.content.container}>
-        <div className={notFoundStyles.content.card}>
-          <div className={notFoundStyles.content.illustration}>
-            <Search className={notFoundStyles.content.illustrationIcon} />
-          </div>
-          <span className={notFoundStyles.content.badge}>Percorso non trovato</span>
-          <h2 className={notFoundStyles.content.title}>Non riusciamo a trovare questa pagina</h2>
-          <p className={notFoundStyles.content.description}>
-            Il link potrebbe essere errato oppure la pagina è stata spostata. Torna indietro o rientra
-            nella dashboard per continuare la navigazione.
-          </p>
-
-          <div className={notFoundStyles.content.actions}>
-            <Button
-              variant="outline"
-              onClick={() => router.back()}
-              className={`${notFoundStyles.content.backButton} ${confirmationDialogStyles.buttons.cancel} ${notFoundStyles.content.backButtonVariant}`}
-            >
-              Torna indietro
-            </Button>
-
-            <Link href="/dashboard" className={notFoundStyles.content.actionLink}>
-              <Button className={`${notFoundStyles.content.homeButton} ${confirmationDialogStyles.buttons.confirm}`}>
-                <Home className={notFoundStyles.content.actionIcon} />
-                Vai alla Dashboard
-              </Button>
-            </Link>
-          </div>
+      <div className="w-full max-w-md rounded-2xl bg-white p-6 sm:p-8 shadow-xl border border-primary/20 space-y-6 text-center">
+        <div className="mx-auto flex size-20 items-center justify-center rounded-full bg-primary/10 shadow-lg">
+          <Home className="h-10 w-10 text-primary" />
         </div>
-      </main>
-    </PageContainer>
+
+        <div className="mx-auto inline-flex items-center rounded-full bg-primary/30 px-4 py-1.5 text-xs font-semibold text-primary">
+          Pagina non trovata
+        </div>
+
+        <h2 className="text-2xl font-bold text-primary">Ops! Pagina non trovata</h2>
+
+        <p className="text-sm text-primary/70 leading-relaxed">
+          Il percorso che stai cercando non esiste oppure è stato spostato. Torna alla dashboard per
+          continuare la navigazione.
+        </p>
+
+        <Link href="/dashboard" className="w-full">
+          <Button className="w-full gap-2">
+            <Home className="h-4 w-4" />
+            Vai alla Dashboard
+          </Button>
+        </Link>
+      </div>
+    </div>
   );
 }

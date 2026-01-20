@@ -76,7 +76,7 @@ async function handleUserUpdated(evt: WebhookEvent) {
     }
 
     // Get existing user
-    const { data: user } = await UserService.getLoggedUserInfo(clerkId);
+    const user = await UserService.getLoggedUserInfo(clerkId);
 
     if (!user) {
       console.log(
@@ -130,7 +130,7 @@ async function handleUserDeleted(evt: WebhookEvent) {
     }
 
     // Get existing user
-    const { data: user } = await UserService.getLoggedUserInfo(clerkId);
+    const user = await UserService.getLoggedUserInfo(clerkId);
 
     if (!user) {
       console.log(
