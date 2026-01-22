@@ -41,18 +41,17 @@ import { useClerk } from "@clerk/nextjs";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { Button } from "@/components/ui";
 import { toast } from "@/hooks/use-toast";
-import type { Account, Transaction } from "@/lib/types";
 import type { UserPreferences } from "@/server/services/user-preferences.service";
 
 /**
  * Settings Content Props
  */
 interface SettingsContentProps {
-  accounts: Account[];
-  transactions: Transaction[];
+  accountCount: number;
+  transactionCount: number;
 }
 
-export default function SettingsContent({ accounts, transactions }: SettingsContentProps) {
+export default function SettingsContent({ accountCount, transactionCount }: SettingsContentProps) {
   // Read from stores instead of props
   const currentUser = useRequiredCurrentUser();
   const groupUsers = useRequiredGroupUsers();
@@ -272,10 +271,6 @@ export default function SettingsContent({ accounts, transactions }: SettingsCont
       .toUpperCase(),
     [currentUser.name]
   );
-
-  // Get actual counts (memoized)
-  const accountCount = useMemo(() => accounts.length, [accounts.length]);
-  const transactionCount = useMemo(() => transactions.length, [transactions.length]);
 
   return (
     <PageContainer className={settingsStyles.page.container}>

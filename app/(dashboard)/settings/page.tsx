@@ -12,16 +12,17 @@ export default async function SettingsPage() {
   const { currentUser } = await getDashboardData();
 
   // Fetch accounts and transactions
-  const [accounts, transactions] = await Promise.all([
-    AccountService.getAccountsByUser(currentUser.id),
-    TransactionService.getTransactionsByUser(currentUser.id)
+  // Fetch counts
+  const [accountCount, transactionCount] = await Promise.all([
+    AccountService.getAccountCountByUser(currentUser.id),
+    TransactionService.getTransactionCountByUser(currentUser.id)
   ]);
 
   return (
     <Suspense fallback={<PageLoader message="Caricamento impostazioni..." />}>
       <SettingsContent
-        accounts={accounts}
-        transactions={transactions}
+        accountCount={accountCount}
+        transactionCount={transactionCount}
       />
     </Suspense>
   );

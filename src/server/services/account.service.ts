@@ -79,6 +79,30 @@ export class AccountService {
   }
 
   /**
+   * Retrieves account count for a user
+   * Optimized to avoiding fetching full dataset
+   */
+  static async getAccountCountByUser(userId: string): Promise<number> {
+    if (!userId || userId.trim() === '') {
+      throw new Error('User ID is required');
+    }
+
+    const getCachedCount = cached(
+      async () => {
+        const accounts = await AccountRepository.getByUser(userId);
+        return accounts.length;
+      },
+      [`user:${userId}:accounts:count`],
+      {
+        revalidate: 300,
+        tags: [CACHE_TAGS.ACCOUNTS, `user:${userId}:accounts`],
+      }
+    );
+
+    return getCachedCount();
+  }
+
+  /**
    * Retrieves all accounts for a group
    */
   static async getAccountsByGroup(groupId: string): Promise<Account[]> {

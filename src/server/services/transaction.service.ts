@@ -111,6 +111,31 @@ export class TransactionService {
   }
 
   /**
+   * Retrieves transaction count for a specific user
+   * Optimized to avoiding fetching full dataset
+   */
+  static async getTransactionCountByUser(userId: string): Promise<number> {
+    if (!userId || userId.trim() === '') {
+      throw new Error('User ID is required');
+    }
+
+    const getCachedCount = cached(
+      async () => {
+        // Use limit: 0 to only fetch count
+        const result = await TransactionRepository.getByUser(userId, { limit: 0 });
+        return result.total;
+      },
+      [`user:${userId}:transactions:count`],
+      {
+        revalidate: 300, // 5 minutes cache for counts
+        tags: [CACHE_TAGS.TRANSACTIONS, `user:${userId}:transactions`],
+      }
+    );
+
+    return getCachedCount();
+  }
+
+  /**
    * Retrieves all transactions for a specific account
    */
   static async getTransactionsByAccount(accountId: string): Promise<Transaction[]> {
