@@ -18,6 +18,7 @@ export { RecurringService as RecurringTransactionService } from "./recurring.ser
 export { FinanceLogicService } from "./finance-logic.service";
 export { ReportPeriodService, type EnrichedBudgetPeriod } from "./report-period.service";
 export { PageDataService } from "./page-data.service";
+export { InvestmentService } from "./investment.service";
 
 // Shared Types
 export type { BudgetProgress, UserBudgetSummary } from '@/lib/types';

@@ -220,9 +220,31 @@ model users {
   transactions       transactions[]
   user_preferences   user_preferences?
   accounts           accounts?           @relation(fields: [default_account_id], references: [id], onUpdate: NoAction)
+  investments        investments[]
 
   @@index([clerk_id], map: "idx_users_clerk_id")
   @@index([email], map: "idx_users_email")
   @@index([group_id], map: "idx_users_group_id")
   @@index([role], map: "idx_users_role")
+}
+
+/// This model represents user investments and requires additional setup for migrations.
+model investments {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id         String   @db.Uuid
+  name            String
+  symbol          String
+  amount          Decimal  @db.Decimal(15, 2)
+  shares_acquired Decimal  @db.Decimal(15, 6)
+  currency        String   @db.VarChar(3)
+  currency_rate   Decimal  @default(1.0) @db.Decimal(10, 6)
+  tax_paid        Decimal  @default(0.0) @db.Decimal(15, 2)
+  net_earn        Decimal  @default(0.0) @db.Decimal(15, 2)
+  created_at      DateTime? @default(now()) @db.Timestamptz(6)
+  updated_at      DateTime? @default(now()) @db.Timestamptz(6)
+
+  users           users    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([user_id], map: "idx_investments_user_id")
+  @@index([symbol], map: "idx_investments_symbol")
 }

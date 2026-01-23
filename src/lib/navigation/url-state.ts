@@ -7,7 +7,8 @@ export const MODAL_TYPES = [
   'budget',
   'category',
   'recurring',
-  'account'
+  'account',
+  'investment'
 ] as const;
 
 export type ModalType = typeof MODAL_TYPES[number];

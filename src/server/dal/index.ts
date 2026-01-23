@@ -7,3 +7,4 @@ export { RecurringRepository } from './recurring.repository';
 export { TransactionRepository } from './transaction.repository';
 export { UserRepository } from './user.repository';
 export { UserPreferencesRepository } from './user-preferences.repository';
+export { InvestmentRepository } from './investment.repository';

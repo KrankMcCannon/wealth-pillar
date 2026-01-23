@@ -17,6 +17,7 @@ export * from "./input";
 export * from "./dialog";
 export * from "./modal-wrapper";
 export * from "./drawer";
+export * from "./switch";
 export * from "./alert";
 export * from "./badge";
 export * from "./role-badge";

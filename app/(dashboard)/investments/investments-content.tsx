@@ -1,20 +1,33 @@
 "use client";
 
-import { PageContainer, Header, SectionHeader, BottomNavigation } from "@/components/layout";
-import { ListContainer, MetricCard, PageSection, RowCard } from "@/components/ui";
-import { EmptyState } from "@/components/shared";
+import { PageContainer, Header, BottomNavigation } from "@/components/layout";
 import UserSelector from "@/components/shared/user-selector";
-import { EnhancedHolding, User } from "@/lib";
-import { PieChart } from "lucide-react";
+import { User } from "@/lib";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PersonalInvestmentTab, Investment } from "@/components/investments/personal-investment-tab";
+import { SandboxForecastTab } from "@/components/investments/sandbox-forecast-tab";
 
 interface InvestmentsContentProps {
   currentUser: User;
   groupUsers: User[];
+  investments: Investment[];
+  summary: {
+    totalInvested: number;
+    totalCurrentValue: number;
+    totalReturn: number;
+    totalReturnPercent: number;
+  };
+  indexData: any[]; // Consider defining TimeSeriesData type shared
+  currentIndex?: string;
 }
 
 export default function InvestmentsContent({
   currentUser,
   groupUsers,
+  investments,
+  summary,
+  indexData,
+  currentIndex
 }: InvestmentsContentProps) {
   return (
     <PageContainer>
@@ -32,39 +45,23 @@ export default function InvestmentsContent({
         />
 
         <main className="p-4 pb-14 space-y-6">
-          <PageSection>
-            <MetricCard
-              label="Portafoglio Totale"
-              value={0}
-              description="+0 (+0.0%)"
-            />
-          </PageSection>
-
-          <PageSection>
-            <SectionHeader
-              title="Le Tue Partecipazioni"
-              icon={PieChart}
-              iconClassName="text-primary"
-            />
-            <ListContainer>
-              {true ? (
-                [].map((holding: EnhancedHolding, index: number) => (
-                  <RowCard
-                    key={holding.id || index}
-                    title={holding.symbol}
-                    primaryValue={holding.currentValue}
-                    variant="regular"
-                  />
-                ))
-              ) : (
-                <EmptyState
-                  icon={PieChart}
-                  title="Nessuna Partecipazione"
-                  description="Non ci sono partecipazioni registrate al momento"
-                />
-              )}
-            </ListContainer>
-          </PageSection>
+          <Tabs defaultValue="personal" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="personal" className="text-primary/60 data-[state=active]:text-primary">Investimenti Personali</TabsTrigger>
+              <TabsTrigger value="sandbox" className="text-primary/60 data-[state=active]:text-primary">Sandbox Previsionale</TabsTrigger>
+            </TabsList>
+            <TabsContent value="personal" className="mt-6 space-y-4">
+              <PersonalInvestmentTab
+                investments={investments}
+                summary={summary}
+                indexData={indexData}
+                currentIndex={currentIndex}
+              />
+            </TabsContent>
+            <TabsContent value="sandbox" className="mt-6 space-y-4">
+              <SandboxForecastTab />
+            </TabsContent>
+          </Tabs>
         </main>
       </div>
 

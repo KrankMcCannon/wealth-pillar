@@ -24,6 +24,9 @@ const RecurringFormModal = lazy(() =>
 const AccountFormModal = lazy(() =>
   import("@/features/accounts/components/account-form-modal")
 );
+const AddInvestmentModal = lazy(() =>
+  import("@/components/investments/add-investment-modal")
+);
 
 interface ModalProviderProps {
   children: React.ReactNode;
@@ -80,6 +83,13 @@ function ModalRenderer() {
           isOpen={true}
           onClose={closeModal}
           editId={editId}
+        />
+      )}
+
+      {modal === "investment" && (
+        <AddInvestmentModal
+          isOpen={true}
+          onClose={closeModal}
         />
       )}
     </Suspense>

@@ -10,7 +10,8 @@ import {
     PieChart,
     Tag,
     RefreshCw,
-    Crown
+    Crown,
+    TrendingUp
 } from "lucide-react";
 import { cn } from "@/lib";
 import { headerStyles } from "./theme/header-styles";
@@ -78,6 +79,11 @@ function ActionMenu({ extraMenuItems = [] }: Readonly<{ extraMenuItems?: { label
             label: "Nuovo Account",
             icon: CreditCard,
             onClick: () => openModal('account'),
+        },
+        {
+            label: "Nuovo Investimento",
+            icon: TrendingUp,
+            onClick: () => openModal('investment'),
         },
         ...extraMenuItems
     ];
