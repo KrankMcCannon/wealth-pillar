@@ -34,8 +34,8 @@ export function SandboxForecastTab() {
           <CardTitle>Sandbox Previsionale</CardTitle>
           <CardDescription className="text-primary">Simula la crescita di un investimento nel tempo.</CardDescription>
         </CardHeader>
-        <CardContent className="p-6">
-          <div className="grid gap-4 md:grid-cols-3 mb-6">
+        <CardContent className="p-0">
+          <div className="grid gap-4 md:grid-cols-3 mb-6 p-6">
             <div className="space-y-2">
               <Label htmlFor="amount">Importo Iniziale (€)</Label>
               <Input
@@ -65,9 +65,9 @@ export function SandboxForecastTab() {
             </div>
           </div>
 
-          <div className="h-[400px] w-full py-6 pl-0">
-            <div style={{ width: '100%', height: '100%' }}>
-              <ResponsiveContainer width="100%" height="100%">
+          <div className="h-[400px] w-full p-6 pl-0 pt-0">
+            <div style={{ width: '100%', height: '100%', minHeight: '400px' }}>
+              <ResponsiveContainer width="99%" height="100%">
                 <AreaChart data={forecastData} margin={{ left: -15, right: 10 }}>
                   <defs>
                     <linearGradient id="colorForecast" x1="0" y1="0" x2="0" y2="1">

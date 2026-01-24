@@ -14,9 +14,10 @@ export default async function InvestmentsPage(props: {
   const { currentUser, groupUsers } = await getDashboardData();
 
   // Parallel data fetching
-  const [portfolioData, indexData] = await Promise.all([
+  const [portfolioData, indexData, historicalData] = await Promise.all([
     InvestmentService.getPortfolio(currentUser.id),
-    twelveData.getTimeSeries(indexSymbol)
+    twelveData.getTimeSeries(indexSymbol),
+    InvestmentService.getHistoricalPortfolio(currentUser.id)
   ]);
 
   return (
@@ -27,6 +28,7 @@ export default async function InvestmentsPage(props: {
         investments={portfolioData.investments}
         summary={portfolioData.summary}
         indexData={indexData}
+        historicalData={historicalData}
         currentIndex={indexSymbol}
       />
     </Suspense>

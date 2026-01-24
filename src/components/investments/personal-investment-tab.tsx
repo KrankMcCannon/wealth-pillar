@@ -2,9 +2,9 @@ import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { AreaChart, Area, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Search } from "lucide-react";
 
 export interface Investment {
   id: string;
@@ -28,12 +28,21 @@ interface PersonalInvestmentTabProps {
     totalReturnPercent: number;
   };
   indexData?: { datetime: string; close: string }[];
+  historicalData?: { date: string; value: number }[];
   currentIndex?: string;
 }
 
-export function PersonalInvestmentTab({ investments, summary, indexData, currentIndex = 'SPY' }: PersonalInvestmentTabProps) {
+export function PersonalInvestmentTab({ investments, summary, indexData, historicalData, currentIndex = 'SPY' }: PersonalInvestmentTabProps) {
   const router = useRouter();
-  const [reinvest, setReinvest] = useState(true);
+  const [searchValue, setSearchValue] = useState(currentIndex);
+
+  const handleSearch = () => {
+    if (searchValue && searchValue !== currentIndex) {
+      const searchParams = new URLSearchParams(window.location.search);
+      searchParams.set('index', searchValue.toUpperCase());
+      router.push(`?${searchParams.toString()}`);
+    }
+  };
 
   // Prepare data for "Personal Forecast"
   const forecastData = useMemo(() => {
@@ -66,13 +75,8 @@ export function PersonalInvestmentTab({ investments, summary, indexData, current
       let yearTotal = 0;
 
       investmentsWithRate.forEach(inv => {
-        if (reinvest) {
-          // Compound: Current * (1+r)^t
-          yearTotal += inv.initialForForecast * Math.pow(1 + inv.annualRate, i);
-        } else {
-          // Payout: Capital stays + accumulated simple return
-          yearTotal += inv.initialForForecast + (inv.initialForForecast * inv.annualRate * i);
-        }
+        // Compound: Current * (1+r)^t (Reinvest always implied now)
+        yearTotal += inv.initialForForecast * Math.pow(1 + inv.annualRate, i);
       });
 
       data.push({
@@ -81,7 +85,7 @@ export function PersonalInvestmentTab({ investments, summary, indexData, current
       });
     }
     return data;
-  }, [investments, reinvest]);
+  }, [investments]);
 
   return (
     <div className="space-y-6">
@@ -117,23 +121,52 @@ export function PersonalInvestmentTab({ investments, summary, indexData, current
       </div>
 
       {/* Charts Row */}
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-6 grid-cols-1">
+        {/* Historical Performance Chart */}
         <Card className="pt-4">
           <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle>Previsione Portafoglio (10 Anni)</CardTitle>
-                <CardDescription className="text-primary">Basato sul rendimento storico reale</CardDescription>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Switch id="reinvest" checked={reinvest} onCheckedChange={setReinvest} />
-                <Label htmlFor="reinvest">Accumulo</Label>
-              </div>
-            </div>
+            <CardTitle>Andamento Storico</CardTitle>
+            <CardDescription className="text-primary">Valore effettivo del portafoglio nel tempo</CardDescription>
           </CardHeader>
-          <CardContent className="h-[300px] w-full min-w-0 py-6 pl-0">
-            <div style={{ width: '100%', height: '100%' }}>
-              <ResponsiveContainer width="100%" height="100%">
+          <CardContent className="h-[300px] w-full min-w-0 p-6 pl-0">
+            {historicalData && historicalData.length > 0 ? (
+              <div style={{ width: '100%', height: '100%', minHeight: '300px' }}>
+                <ResponsiveContainer width="99%" height="100%">
+                  <AreaChart data={historicalData} margin={{ left: -15, right: 10 }}>
+                    <defs>
+                      <linearGradient id="colorHistory" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8} />
+                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                    <XAxis dataKey="date" stroke="#3b82f6" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(val) => val.split('-').slice(1).join('/')} minTickGap={30} />
+                    <YAxis stroke="#3b82f6" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `${value}€`} />
+                    <Tooltip
+                      contentStyle={{ backgroundColor: 'white', borderRadius: '8px', border: '1px solid #e2e8f0' }}
+                      formatter={(value: any) => [new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(value as number), "Valore"]}
+                    />
+                    <Area type="monotone" dataKey="value" stroke="#3b82f6" strokeWidth={2} fillOpacity={1} fill="url(#colorHistory)" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            ) : (
+              <div className="flex h-full items-center justify-center text-primary">
+                Dati storici non sufficienti
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Forecast Chart */}
+        <Card className="pt-4">
+          <CardHeader>
+            <CardTitle>Previsione Portafoglio (10 Anni)</CardTitle>
+            <CardDescription className="text-primary">Basato sul rendimento storico reale</CardDescription>
+          </CardHeader>
+          <CardContent className="h-[300px] w-full min-w-0 p-6 pl-0">
+            <div style={{ width: '100%', height: '100%', minHeight: '300px' }}>
+              <ResponsiveContainer width="99%" height="100%">
                 <AreaChart data={forecastData} margin={{ left: -15, right: 10 }}>
                   <defs>
                     <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
@@ -155,36 +188,31 @@ export function PersonalInvestmentTab({ investments, summary, indexData, current
           </CardContent>
         </Card>
 
+        {/* Benchmark / Index Chart */}
         <Card className="pt-4">
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
-              <CardTitle>Indice di Trading</CardTitle>
+              <CardTitle>Benchmark</CardTitle>
               <CardDescription className="text-primary">Confronta con {currentIndex}</CardDescription>
             </div>
-            <Select
-              defaultValue={currentIndex}
-              onValueChange={(val) => {
-                const searchParams = new URLSearchParams(window.location.search);
-                searchParams.set('index', val);
-                router.push(`?${searchParams.toString()}`);
-              }}
-            >
-              <SelectTrigger className="w-[120px]">
-                <SelectValue placeholder="Indice" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="SPY">S&P 500</SelectItem>
-                <SelectItem value="QQQ">Nasdaq</SelectItem>
-                <SelectItem value="DIA">Dow Jones</SelectItem>
-                <SelectItem value="BTC/USD">Bitcoin</SelectItem>
-                <SelectItem value="EUR/USD">EUR/USD</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="flex w-[200px] items-center space-x-2">
+              <Input
+                value={searchValue}
+                onChange={(e) => setSearchValue(e.target.value)}
+                placeholder="Es. SPY"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleSearch();
+                }}
+              />
+              <Button size="icon" variant="ghost" onClick={handleSearch}>
+                <Search className="h-4 w-4" />
+              </Button>
+            </div>
           </CardHeader>
           <CardContent className="h-[300px] w-full min-w-0 p-6 pl-0">
             {indexData && indexData.length > 0 ? (
-              <div style={{ width: '100%', height: '100%' }}>
-                <ResponsiveContainer width="100%" height="100%">
+              <div style={{ width: '100%', height: '100%', minHeight: '300px' }}>
+                <ResponsiveContainer width="99%" height="100%">
                   <LineChart data={[...indexData].reverse()} margin={{ left: -15, right: 10 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
                     <XAxis dataKey="datetime" minTickGap={30} tickFormatter={(val) => val.split(' ')[0]} stroke="#3b82f6" fontSize={12} tickLine={false} axisLine={false} />

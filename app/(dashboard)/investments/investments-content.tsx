@@ -18,6 +18,7 @@ interface InvestmentsContentProps {
     totalReturnPercent: number;
   };
   indexData: any[]; // Consider defining TimeSeriesData type shared
+  historicalData: any[];
   currentIndex?: string;
 }
 
@@ -27,6 +28,7 @@ export default function InvestmentsContent({
   investments,
   summary,
   indexData,
+  historicalData,
   currentIndex
 }: InvestmentsContentProps) {
   return (
@@ -55,6 +57,7 @@ export default function InvestmentsContent({
                 investments={investments}
                 summary={summary}
                 indexData={indexData}
+                historicalData={historicalData}
                 currentIndex={currentIndex}
               />
             </TabsContent>

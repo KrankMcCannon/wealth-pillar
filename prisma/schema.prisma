@@ -248,3 +248,12 @@ model investments {
   @@index([user_id], map: "idx_investments_user_id")
   @@index([symbol], map: "idx_investments_symbol")
 }
+
+/// Cache for external market data (Twelve Data) to minimize API calls
+model market_data_cache {
+  symbol       String   @id
+  data         Json     @default("[]") // Stores the time series data
+  last_updated DateTime @default(now()) @db.Timestamptz(6)
+
+  @@index([last_updated], map: "idx_market_data_last_updated")
+}
