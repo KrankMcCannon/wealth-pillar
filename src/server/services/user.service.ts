@@ -1,21 +1,183 @@
 import 'server-only';
+import { cache } from 'react';
 import { cached } from '@/lib/cache';
 import { CACHE_TAGS, cacheOptions } from '@/lib/cache/config';
 import { userCacheKeys } from '@/lib/cache/keys';
-import { UserRepository, AccountRepository, BudgetRepository, TransactionRepository } from '@/server/dal';
+import { supabase } from '@/server/db/supabase';
+import { TransactionService } from './transaction.service';
+import { AccountService } from './account.service';
+import { BudgetService } from './budget.service';
 import { revalidateTag } from 'next/cache';
 import type { Database } from '@/lib/types/database.types';
 
 type User = Database['public']['Tables']['users']['Row'];
+type UserInsert = Database['public']['Tables']['users']['Insert'];
+type UserUpdate = Database['public']['Tables']['users']['Update'];
 
 /**
  * User Service
  * Handles all user-related business logic following Single Responsibility Principle
- *
- * All methods throw standard errors instead of returning ServiceResult objects
- * All database queries are cached using Next.js unstable_cache
  */
 export class UserService {
+  // ================== DATABASE OPERATIONS (inlined from repository) ==================
+
+  private static getByClerkIdDb = cache(async (clerkId: string): Promise<User | null> => {
+    const { data, error } = await supabase
+      .from('users')
+      .select('*, user_preferences(*)')
+      .eq('clerk_id', clerkId)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') return null;
+      throw new Error(error.message);
+    }
+
+    const user = {
+      ...(data as any),
+      user_preferences: Array.isArray((data as any).user_preferences) ? (data as any).user_preferences[0] : (data as any).user_preferences
+    };
+
+    return user as User;
+  });
+
+  private static getByIdDb = cache(async (id: string): Promise<User | null> => {
+    const { data, error } = await supabase
+      .from('users')
+      .select('*, user_preferences(*)')
+      .eq('id', id)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') return null;
+      throw new Error(error.message);
+    }
+
+    const user = {
+      ...(data as any),
+      user_preferences: Array.isArray((data as any).user_preferences) ? (data as any).user_preferences[0] : (data as any).user_preferences
+    };
+
+    return user as User;
+  });
+
+  private static getByEmailDb = cache(async (email: string): Promise<User | null> => {
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('email', email)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') return null;
+      throw new Error(error.message);
+    }
+    return data as User;
+  });
+
+  private static getByGroupDb = cache(async (groupId: string): Promise<User[]> => {
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('group_id', groupId)
+      .order('created_at', { ascending: true });
+
+    if (error) throw new Error(error.message);
+    return (data || []) as User[];
+  });
+
+  private static getByGroupAndRoleDb = cache(async (groupId: string, role: string): Promise<User[]> => {
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('group_id', groupId)
+      .eq('role', role)
+      .order('created_at', { ascending: true });
+
+    if (error) throw new Error(error.message);
+    return (data || []) as User[];
+  });
+
+  private static async deleteDb(id: string): Promise<void> {
+    const { error } = await supabase
+      .from('users')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw new Error(error.message);
+  }
+
+  static async countByGroup(groupId: string): Promise<number> {
+    const { count, error } = await supabase
+      .from('users')
+      .select('*', { count: 'exact', head: true })
+      .eq('group_id', groupId);
+
+    if (error) throw new Error(error.message);
+    return count || 0;
+  }
+
+  static async findUserByPeriodId(periodId: string): Promise<User | null> {
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .contains('budget_periods', JSON.stringify([{ id: periodId }]))
+      .limit(1)
+      .maybeSingle();
+
+    if (error && error.code !== 'PGRST116') throw new Error(error.message);
+    return (data as unknown) as User | null;
+  }
+
+  static async create(data: UserInsert): Promise<User> {
+    const { data: created, error } = await supabase
+      .from('users')
+      .insert(data as never)
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    return created as User;
+  }
+
+  static async update(id: string, data: UserUpdate): Promise<User> {
+    const { data: updated, error } = await supabase
+      .from('users')
+      .update(data as never)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    return updated as User;
+  }
+
+  // ================== SERVICE LAYER ==================
+
+  /**
+   * Retrieves user by email
+   */
+  static async getUserByEmail(email: string): Promise<User | null> {
+    return this.getByEmailDb(email);
+  }
+
+  /**
+   * Retrieves users by group
+   */
+  static async getUsersByGroup(groupId: string): Promise<User[]> {
+    return this.getByGroupDb(groupId);
+  }
+
+  /**
+   * Retrieves users by group and role
+   */
+  static async getUsersByGroupAndRole(groupId: string, role: string): Promise<User[]> {
+    return this.getByGroupAndRoleDb(groupId, role);
+  }
+
+  /**
+   * Retrieves logged-in user information by Clerk ID
+   */
   /**
    * Retrieves logged-in user information by Clerk ID
    * Used for authentication flows where we have the Clerk user ID
@@ -29,7 +191,7 @@ export class UserService {
     // Create cached query function
     const getCachedUser = cached(
       async () => {
-        const user = await UserRepository.getByClerkId(clerkId);
+        const user = await this.getByClerkIdDb(clerkId);
         return user;
       },
       userCacheKeys.byClerkId(clerkId),
@@ -58,7 +220,7 @@ export class UserService {
     // Create cached query function
     const getCachedUser = cached(
       async () => {
-        const user = await UserRepository.getById(userId);
+        const user = await this.getByIdDb(userId);
         return user;
       },
       userCacheKeys.byId(userId),
@@ -84,7 +246,7 @@ export class UserService {
         return false;
       }
 
-      const user = await UserRepository.getByClerkId(clerkId);
+      const user = await this.getByClerkIdDb(clerkId);
       return !!user;
     } catch (err) {
       console.warn('[UserService] Unexpected error checking user existence:', err);
@@ -141,8 +303,8 @@ export class UserService {
 
     // Validate account exists if provided
     if (accountId) {
-      const account = await AccountRepository.getById(accountId);
-      if (!account) {
+      const exists = await AccountService.accountExists(accountId);
+      if (!exists) {
         throw new Error('Account not found');
       }
     }
@@ -153,7 +315,7 @@ export class UserService {
       default_account_id: accountId
     };
 
-    const updatedUser = await UserRepository.update(userId, updateData);
+    const updatedUser = await this.update(userId, updateData);
 
     if (!updatedUser) {
       throw new Error('Failed to set default account');
@@ -177,31 +339,31 @@ export class UserService {
     }
 
     // Get user to verify existence
-    const user = await UserRepository.getById(userId);
+    const user = await this.getByIdDb(userId);
     if (!user) {
       throw new Error('User not found');
     }
 
     // Perform deletion sequentially (Prisma transaction removed)
     // Delete budgets
-    await BudgetRepository.deleteByUser(userId);
+    await BudgetService.deleteByUser(userId);
 
     // Delete transactions
-    await TransactionRepository.deleteByUser(userId);
+    await TransactionService.deleteByUser(userId);
 
     // Handle Accounts (remove user from shared accounts or delete if sole owner)
     // We need to fetch accounts where user is part of user_ids
-    const accounts = await AccountRepository.getByUser(userId);
+    const accounts = await AccountService.getAccountsByUser(userId);
 
     if (accounts) {
       for (const account of accounts) {
         if (account.user_ids.length === 1 && account.user_ids[0] === userId) {
           // Only this user, delete account
-          await AccountRepository.delete(account.id);
+          await AccountService.deleteAccount(account.id);
         } else {
           // Remove user from list
           const newUserIds = account.user_ids.filter((id: string) => id !== userId);
-          await AccountRepository.update(account.id, {
+          await AccountService.updateAccount(account.id, {
             user_ids: newUserIds
           });
         }
@@ -209,7 +371,7 @@ export class UserService {
     }
 
     // Delete the user
-    await UserRepository.delete(userId);
+    await this.deleteDb(userId);
 
     return true;
   }
@@ -252,7 +414,7 @@ export class UserService {
       const emailLower = updates.email.toLowerCase();
 
       // Check if email is already in use by another user
-      const existingUser = await UserRepository.getByEmail(emailLower);
+      const existingUser = await this.getByEmailDb(emailLower);
 
       if (existingUser && existingUser.id !== userId) {
         throw new Error('Email is already in use');
@@ -267,7 +429,7 @@ export class UserService {
     if (updates.name) updateData.name = updates.name.trim();
     if (updates.email) updateData.email = updates.email.toLowerCase();
 
-    const updatedUser = await UserRepository.update(userId, updateData);
+    const updatedUser = await this.update(userId, updateData);
 
     if (!updatedUser) {
       throw new Error('Failed to update user profile');

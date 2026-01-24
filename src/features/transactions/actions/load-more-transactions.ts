@@ -28,7 +28,7 @@ export async function loadMoreTransactionsAction(
       return { data: [], total: 0, hasMore: false, error: 'Non autenticato' };
     }
 
-    const result = await TransactionService.getTransactionsByGroupPaginated(
+    const result = await TransactionService.getTransactionsByGroup(
       currentUser.group_id || '',
       { limit, offset }
     );

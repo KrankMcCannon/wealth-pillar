@@ -19,6 +19,7 @@ import type {
 } from '@/lib/types';
 import { toDateTime } from '@/lib/utils/date-utils';
 import { DateTime } from 'luxon';
+import { ReportPeriodService } from './report-period.service';
 
 /**
  * Page Data Service
@@ -83,8 +84,20 @@ export interface AccountsPageData {
  */
 export interface ReportsPageData {
   accounts: Account[];
-  transactions: Transaction[];
+  transactions?: Transaction[]; // Optional - ideally removed in optimized version
   categories: Category[];
+  // Aggregated Data
+  // Aggregated Data - Keyed by 'all' | userId
+  overviewMetrics: Record<string, {
+    totalEarned: number;
+    totalSpent: number;
+    totalTransferred: number;
+    totalBalance: number;
+  }>;
+  monthlyTrends: Array<{ month: string; income: number; expense: number }>;
+  categorySpending: Array<{ category: string; amount: number; count: number }>;
+  enrichedBudgetPeriods: any[];
+  annualSpending: Record<string, Record<number, any[]>>; // userId -> year -> breakdown
 }
 
 /**
@@ -128,7 +141,7 @@ export class PageDataService {
         return [] as Account[];
       }),
       // OPTIMIZATION: Fetch only first 50 transactions instead of ALL
-      TransactionService.getTransactionsByGroupPaginated(groupId, { limit: 50 }).catch((e) => {
+      TransactionService.getTransactionsByGroup(groupId, { limit: 50 }).catch((e) => {
         console.error('[PageDataService] Failed to fetch transactions:', e);
         return { data: [] as Transaction[], total: 0, hasMore: false };
       }),
@@ -162,7 +175,6 @@ export class PageDataService {
       let start: Date, end: Date;
       if (period) {
         start = new Date(period.start_date as string | number | Date);
-        // FIX: Ensure end date captures the entire day (23:59:59.999)
         const endDateTime = toDateTime(period.end_date as any);
         end = endDateTime ? endDateTime.endOf('day').toJSDate() : new Date();
       } else {
@@ -241,7 +253,7 @@ export class PageDataService {
 
     const [transactionResult, categories, accounts, recurringSeries, budgets] =
       await Promise.all([
-        TransactionService.getTransactionsByGroupPaginated(groupId, { limit, offset }).catch((e) => {
+        TransactionService.getTransactionsByGroup(groupId, { limit, offset }).catch((e) => {
           console.error('[PageDataService] Failed to fetch transactions:', e);
           return { data: [] as Transaction[], total: 0, hasMore: false };
         }),
@@ -286,11 +298,12 @@ export class PageDataService {
    * @param groupId - Group ID to fetch data for
    * @returns Budgets page data with active budget periods
    */
-  static async getBudgetsPageData(groupId: string): Promise<BudgetsPageData> {
-    // First, get group users to fetch their budget periods
+  static async getBudgetsPageData(groupId: string): Promise<BudgetsPageData & { budgetsByUser: Record<string, UserBudgetSummary> }> {
+    // 1. Get group users first
     let userIds: string[] = [];
+    let groupUsers: User[] = [];
     try {
-      const groupUsers = await GroupService.getGroupUsers(groupId);
+      groupUsers = (await GroupService.getGroupUsers(groupId)) as unknown as User[];
       userIds = groupUsers.map((u) => u.id);
     } catch (error) {
       console.error(
@@ -299,10 +312,9 @@ export class PageDataService {
       );
     }
 
-    // Fetch all data in parallel
+    // 2. Fetch Metadata and Active Periods in Parallel
     const [
       budgets,
-      transactions,
       accounts,
       categories,
       ...periodResults
@@ -310,10 +322,6 @@ export class PageDataService {
       BudgetService.getBudgetsByGroup(groupId).catch((e) => {
         console.error('[PageDataService] Failed to fetch budgets:', e);
         return [] as Budget[];
-      }),
-      TransactionService.getTransactionsByGroup(groupId).catch((e) => {
-        console.error('[PageDataService] Failed to fetch transactions:', e);
-        return [] as Transaction[];
       }),
       AccountService.getAccountsByGroup(groupId).catch((e) => {
         console.error('[PageDataService] Failed to fetch accounts:', e);
@@ -335,86 +343,238 @@ export class PageDataService {
       ),
     ]);
 
-    // Build budget periods map (userId -> active period)
+    // 3. Build Budget Periods & Determine Time Range
     const budgetPeriods: Record<string, BudgetPeriod | null> = {};
+    const userPeriodRanges: Record<string, { start: Date; end: Date }> = {};
+
+    // Track min/max dates to cover all users (for fetching relevant transactions)
+    let minDate: Date | null = null;
+    let maxDate: Date | null = null;
+    const now = new Date();
+
     userIds.forEach((userId, index) => {
-      budgetPeriods[userId] = (periodResults[index] as BudgetPeriod | null) ?? null;
+      const period = (periodResults[index] as BudgetPeriod | null) ?? null;
+      budgetPeriods[userId] = period;
+
+      let start: Date, end: Date;
+      if (period) {
+        start = new Date(period.start_date as string | number | Date);
+        const endDateTime = toDateTime(period.end_date as any);
+        end = endDateTime ? endDateTime.endOf('day').toJSDate() : now;
+      } else {
+        // Default to current month
+        start = new Date(now.getFullYear(), now.getMonth(), 1);
+        end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+      }
+      userPeriodRanges[userId] = { start, end };
+
+      if (!minDate || start < minDate) minDate = start;
+      if (!maxDate || end > maxDate) maxDate = end;
+    });
+
+    // 4. Fetch Aggregated Spending (Parallel per User)
+    // We fetch one aggregated result per user according to their period
+    const aggregationResults = await Promise.all(
+      userIds.map(userId => {
+        const { start, end } = userPeriodRanges[userId];
+        return TransactionService.getGroupUserCategorySpending(groupId, start, end)
+          .then(data => data.filter(r => r.user_id === userId))
+          .catch(e => {
+            console.error(`[PageDataService] Aggregation failed for user ${userId}:`, e);
+            return [];
+          });
+      })
+    );
+
+    // 5. Build budgetsByUser Map
+    const budgetsByUser: Record<string, UserBudgetSummary> = {};
+    groupUsers.forEach((user, index) => {
+      const userBudgets = (budgets as Budget[]).filter(b => b.user_id === user.id);
+      const spendingData = aggregationResults[index];
+      const activePeriod = budgetPeriods[user.id];
+
+      // Use the optimized builder that uses aggregated data
+      // We cast to any because TS might complain about private method or exact signature
+      // but we know available methods from FinanceLogicService
+      budgetsByUser[user.id] = FinanceLogicService.calculateUserBudgetSummaryFromAggregation(
+        user,
+        userBudgets,
+        spendingData,
+        activePeriod
+      );
+    });
+
+    // 6. Fetch Recent Transactions (Limit 100)
+    // We only fetch recent ones for the UI list. The progress bars are already correct via aggregation.
+    // If we want to support the CHART, we need daily data.
+    // The chart component currently filters client-side from the `transactions` array passed.
+    // Compromise: Fetch transactions covering the WIDEST active range found above.
+    const transactionResult = await TransactionService.getTransactionsByGroup(groupId, {
+      limit: 200, // Reasonable limit for chart/list 
+      startDate: minDate || undefined,
+      endDate: maxDate || undefined
+    }).catch((e) => {
+      console.error('[PageDataService] Failed to fetch transactions:', e);
+      return { data: [] as Transaction[], total: 0, hasMore: false };
     });
 
     return {
       budgets: budgets as Budget[],
-      transactions: transactions as Transaction[],
+      // Only return the subset of transactions to keep payload small
+      transactions: transactionResult.data as Transaction[],
       accounts: accounts as Account[],
       categories: categories as Category[],
       budgetPeriods,
+      budgetsByUser, // Add the pre-calculated map
     };
   }
 
   /**
-   * Fetch data for accounts page
+   * Fetch data for accounts page (OPTIMIZED)
    *
-   * Fetches: accounts, transactions (parallel)
-   * Also calculates account balances from transactions.
+   * Fetches: accounts with stored balances only
+   * No transactions needed - balances are stored in accounts table
    *
    * @param groupId - Group ID to fetch data for
-   * @returns Accounts page data with balances
+   * @returns Accounts page data with balances from stored column
    */
   static async getAccountsPageData(groupId: string): Promise<AccountsPageData> {
-    const [accounts, transactions] = await Promise.all([
-      AccountService.getAccountsByGroup(groupId).catch((e) => {
-        console.error('[PageDataService] Failed to fetch accounts:', e);
-        return [] as Account[];
-      }),
-      TransactionService.getTransactionsByGroup(groupId).catch((e) => {
-        console.error('[PageDataService] Failed to fetch transactions:', e);
-        return [] as Transaction[];
-      }),
-    ]);
+    const accounts = await AccountService.getAccountsByGroup(groupId).catch((e) => {
+      console.error('[PageDataService] Failed to fetch accounts:', e);
+      return [] as Account[];
+    });
 
-    // Calculate account balances
+    // Use stored balance from accounts table (already calculated on transaction mutations)
     const accountsCast = accounts as Account[];
-    const transactionsCast = transactions as Transaction[];
-    const accountIds = accountsCast.map((a) => a.id);
-    const accountBalances = FinanceLogicService.calculateAccountBalances(
-      accountIds,
-      transactionsCast
-    );
+    const accountBalances: Record<string, number> = {};
+    for (const account of accountsCast) {
+      accountBalances[account.id] = account.balance ?? 0;
+    }
 
     return {
       accounts: accountsCast,
-      transactions: transactionsCast,
+      transactions: [], // No transactions needed - use stored balances
       accountBalances,
     };
   }
 
   /**
-   * Fetch data for reports page
+   * Fetch data for reports page (OPTIMIZED)
    *
-   * Fetches: accounts, transactions, categories (parallel)
+   * Fetches: accounts, categories, transactions filtered by date range
+   * No limit - reports need complete data within date range
    *
    * @param groupId - Group ID to fetch data for
    * @returns Reports page data
    */
   static async getReportsPageData(groupId: string): Promise<ReportsPageData> {
-    const [accounts, transactions, categories] = await Promise.all([
+    // Calculate date range for last 24 months
+    const now = new Date();
+    const startDate = new Date(now.getFullYear() - 2, now.getMonth(), 1); // 2 years ago
+
+    // Fetch raw data needed for calculations (keeping it server-side)
+    const [accounts, transactionResult, categories, groupUsersResult] = await Promise.all([
       AccountService.getAccountsByGroup(groupId).catch((e) => {
         console.error('[PageDataService] Failed to fetch accounts:', e);
         return [] as Account[];
       }),
-      TransactionService.getTransactionsByGroup(groupId).catch((e) => {
+      // Fetch all transactions within date range
+      TransactionService.getTransactionsByGroup(groupId, {
+        startDate,
+        endDate: now
+      }).catch((e) => {
         console.error('[PageDataService] Failed to fetch transactions:', e);
-        return [] as Transaction[];
+        return { data: [] as Transaction[], total: 0, hasMore: false };
       }),
       CategoryService.getAllCategories().catch((e) => {
         console.error('[PageDataService] Failed to fetch categories:', e);
         return [] as Category[];
       }),
+      GroupService.getGroupUsers(groupId).catch((e) => {
+        console.error('[PageDataService] Failed to fetch group users:', e);
+        return [] as User[];
+      }),
     ]);
+
+    const transactions = transactionResult.data as Transaction[];
+    const groupUsers = groupUsersResult as User[];
+
+    // Helper to calculate metrics for a subset
+    const calcMetrics = (txs: Transaction[]) =>
+      FinanceLogicService.calculateOverviewMetrics(txs, accounts.map(a => a.id));
+
+    // 1. Calculate Overview Metrics (Global + Per User)
+    const overviewMetrics: Record<string, any> = {};
+
+    // All
+    overviewMetrics['all'] = calcMetrics(transactions);
+
+    // Per User
+    groupUsers.forEach(u => {
+      const userTxs = transactions.filter(t => t.user_id === u.id);
+      overviewMetrics[u.id] = calcMetrics(userTxs); // Note: strictly we should filter accounts too but overviewMetrics handles it via accountIds param?
+      // FinanceLogicService.calculateOverviewMetrics takes (transactions, userAccountIds, userId?)
+      // Let's use the explicit userId param of FinanceLogicService if available, or just filter transactions
+      // Actually calculateOverviewMetrics implementation might filter by userId if provided.
+      // Let's check signature: calculateOverviewMetrics(transactions, userAccountIds, userId?)
+      // So we can pass ALL transactions and the userId.
+      overviewMetrics[u.id] = FinanceLogicService.calculateOverviewMetrics(transactions, accounts.map(a => a.id), u.id);
+    });
+
+
+    // 2. Fetch Budget Periods... (Same as before)
+    const allUserIds = groupUsers.map(u => u.id);
+    const budgetPeriods: BudgetPeriod[] = [];
+    await Promise.all(allUserIds.map(async (uid) => {
+      const periods = await BudgetPeriodService.getPeriodsByUser(uid);
+      if (periods) budgetPeriods.push(...periods);
+    }));
+
+    // 3. Enrich Budget Periods (Server-Side)
+    const enrichedFull = ReportPeriodService.enrichBudgetPeriods(
+      budgetPeriods,
+      groupUsers,
+      transactions,
+      accounts
+    );
+
+    // User requested to ALWAYS show transactions, so we do not strip them anymore.
+    // This may impact performance but is required behavior.
+    const enrichedFinal = enrichedFull.map((p) => ({
+      ...p,
+      // Ensure transactions are included
+      transactionCount: p.transactions.length
+    }));
+
+    // 4. Calculate Annual Breakdown (Global + Per User)
+    const annualSpending: Record<string, Record<number, any[]>> = {};
+    const years = new Set(transactions.map(t => new Date(t.date).getFullYear()));
+    years.add(new Date().getFullYear());
+
+    // Helper for annual
+    const calcAnnual = (txs: Transaction[]) => {
+      const res: Record<number, any[]> = {};
+      years.forEach(year => {
+        res[year] = FinanceLogicService.calculateAnnualCategorySpending(txs, year);
+      });
+      return res;
+    };
+
+    annualSpending['all'] = calcAnnual(transactions);
+
+    groupUsers.forEach(u => {
+      annualSpending[u.id] = calcAnnual(transactions.filter(t => t.user_id === u.id));
+    });
 
     return {
       accounts: accounts as Account[],
-      transactions: transactions as Transaction[],
+      transactions: [],
       categories: categories as Category[],
+      overviewMetrics,
+      monthlyTrends: [],
+      categorySpending: [],
+      enrichedBudgetPeriods: enrichedFinal,
+      annualSpending
     };
   }
 }

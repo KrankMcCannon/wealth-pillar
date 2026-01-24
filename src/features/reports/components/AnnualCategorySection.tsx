@@ -9,22 +9,20 @@ import {
   getAnnualCategoryBarStyle,
 } from "@/styles/system";
 import { cn } from "@/lib/utils";
-import type { Transaction, Category } from "@/lib/types";
+import type { Category } from "@/lib/types";
 
 interface AnnualCategorySectionProps {
-  transactions: Transaction[];
+  annualData: any[]; // CategoryBreakdownItem[]
   categories: Category[];
   year?: number | 'all';
 }
 
 export function AnnualCategorySection({
-  transactions,
+  annualData = [],
   categories,
   year = new Date().getFullYear(),
 }: AnnualCategorySectionProps) {
-  const categoryBreakdown = React.useMemo(() => {
-    return FinanceLogicService.calculateAnnualCategorySpending(transactions, year);
-  }, [transactions, year]);
+  const categoryBreakdown = React.useMemo(() => annualData, [annualData]);
 
   // Filter only categories with spending (spent > 0, regardless of income)
   // Sort by net amount descending (highest to lowest)

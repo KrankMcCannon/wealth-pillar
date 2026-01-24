@@ -19,6 +19,8 @@ interface UseBudgetsByUserOptions {
   selectedUserId?: string;
   /** Optional budget periods map */
   budgetPeriods?: Record<string, BudgetPeriod | null>;
+  /** Optional pre-calculated budget summaries (server-side optimization) */
+  precalculatedData?: Record<string, UserBudgetSummary>;
 }
 
 /**
@@ -44,6 +46,7 @@ export function useBudgetsByUser({
   currentUser,
   selectedUserId,
   budgetPeriods = {},
+  precalculatedData,
 }: UseBudgetsByUserOptions): UseBudgetsByUserReturn {
 
   // Determine which users to calculate budgets for based on permissions
@@ -68,6 +71,11 @@ export function useBudgetsByUser({
 
   // Calculate budget summaries synchronously
   const budgetsByUser = useMemo(() => {
+    // Optimization: Use pre-calculated data if provided
+    if (precalculatedData && Object.keys(precalculatedData).length > 0) {
+      return precalculatedData;
+    }
+
     if (usersToInclude.length === 0) {
       return {};
     }
@@ -79,7 +87,7 @@ export function useBudgetsByUser({
       transactions,
       budgetPeriods
     );
-  }, [usersToInclude, budgets, transactions, budgetPeriods]);
+  }, [usersToInclude, budgets, transactions, budgetPeriods, precalculatedData]);
 
   const userIds = useMemo(() => Object.keys(budgetsByUser), [budgetsByUser]);
 

@@ -1,12 +1,7 @@
 "use server";
 
 import { CACHE_TAGS } from '@/lib/cache/config';
-import {
-  AccountRepository,
-  BudgetRepository,
-  GroupRepository,
-  UserRepository
-} from '@/server/dal';
+import { AccountService, BudgetService, UserService, GroupService } from '@/server/services';
 import { revalidateTag } from 'next/cache';
 import type { CompleteOnboardingInput } from './types';
 import { clerkClient } from '@clerk/nextjs/server';
@@ -15,8 +10,6 @@ import type { Database } from '@/lib/types/database.types';
 
 type UserInsert = Database['public']['Tables']['users']['Insert'];
 type GroupInsert = Database['public']['Tables']['groups']['Insert'];
-type AccountInsert = Database['public']['Tables']['accounts']['Insert'];
-type BudgetInsert = Database['public']['Tables']['budgets']['Insert'];
 
 /**
  * Service Result type
@@ -60,7 +53,7 @@ export async function completeOnboardingAction(
     }
 
     // Check if user already exists
-    const existingUser = await UserRepository.getByClerkId(user.clerkId);
+    const existingUser = await UserService.userExistsByClerkId(user.clerkId);
     if (existingUser) {
       return {
         data: null,
@@ -81,7 +74,15 @@ export async function completeOnboardingAction(
       plan: { name: "Piano Gratuito", type: "free" },
     };
 
-    const createdGroup = await GroupRepository.create(groupData);
+    // Use GroupService to create group
+    const createdGroup = await GroupService.createGroup({
+      id: groupId,
+      name: groupData.name,
+      description: groupData.description || undefined,
+      userIds: groupData.user_ids as string[],
+      plan: groupData.plan as Record<string, unknown>,
+      isActive: groupData.is_active
+    });
 
     if (!createdGroup) {
       return { data: null, error: 'Errore durante la creazione del gruppo' };
@@ -103,7 +104,7 @@ export async function completeOnboardingAction(
       budget_periods: [],
     };
 
-    const createdUser = await UserRepository.create(userData);
+    const createdUser = await UserService.create(userData);
 
     if (!createdUser) {
       return {
@@ -125,15 +126,13 @@ export async function completeOnboardingAction(
     for (const accountInput of accounts) {
       const accountId = randomUUID();
 
-      const accountData: AccountInsert = {
+      const createdAccount = await AccountService.createAccount({
         id: accountId,
         name: accountInput.name.trim(),
         type: accountInput.type,
         user_ids: [userId],
         group_id: groupId,
-      };
-
-      const createdAccount = await AccountRepository.create(accountData);
+      });
 
       if (!createdAccount) {
         return { data: null, error: "Failed to create account" };
@@ -154,21 +153,19 @@ export async function completeOnboardingAction(
     // Set default account on user
     if (defaultAccountId) {
       // We cast to any because default_account_id might be missing from generated types but exists in DB/Schema
-      await UserRepository.update(userId, { default_account_id: defaultAccountId } as any);
+      await UserService.update(userId, { default_account_id: defaultAccountId } as any);
     }
 
     // Create Budgets
     for (const budgetInput of budgets) {
-      const budgetData: BudgetInsert = {
+      const createdBudget = await BudgetService.createBudget({
         description: budgetInput.description.trim(),
         amount: budgetInput.amount,
         type: budgetInput.type,
         categories: budgetInput.categories,
         user_id: userId,
         group_id: groupId,
-      };
-
-      const createdBudget = await BudgetRepository.create(budgetData);
+      });
 
       if (!createdBudget) {
         return { data: null, error: "Failed to create budget" };
@@ -222,7 +219,7 @@ export async function checkUserExistsAction(
       return { data: null, error: 'Clerk ID mancante' };
     }
 
-    const user = await UserRepository.getByClerkId(clerkId);
+    const user = await UserService.getLoggedUserInfo(clerkId);
 
     return {
       data: {

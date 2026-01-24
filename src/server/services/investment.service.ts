@@ -1,6 +1,7 @@
-import { InvestmentRepository } from '../dal/investment.repository';
 import { MarketDataService } from './market-data-service';
 import type { Database } from '@/lib/types/database.types';
+import { supabase } from '@/server/db/supabase';
+import { cache } from 'react';
 
 type Investment = Database['public']['Tables']['investments']['Row'];
 type InvestmentInsert = Database['public']['Tables']['investments']['Insert'];
@@ -11,11 +12,48 @@ interface MarketDataBatchResult {
 }
 
 export class InvestmentService {
+  // ================== DATABASE OPERATIONS (inlined from repository) ==================
+
+  private static getByUserDb = cache(async (userId: string) => {
+    const { data, error } = await supabase
+      .from('investments')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw new Error(error.message);
+    return data as any;
+  });
+
+  private static async createDb(data: InvestmentInsert) {
+    const { data: created, error } = await supabase
+      .from('investments')
+      .insert(data as any as never)
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    return created as any;
+  }
+
+  private static async deleteDb(id: string) {
+    const { data, error } = await supabase
+      .from('investments')
+      .delete()
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    return data as any;
+  }
+
+  // ================== SERVICE LAYER ==================
   /**
    * Get user portfolio with real-time values
    */
   static async getPortfolio(userId: string) {
-    const investments = await InvestmentRepository.getByUser(userId);
+    const investments = await this.getByUserDb(userId);
 
     const symbols = [...new Set((investments as Investment[]).map((inv) => inv.symbol).filter(Boolean))] as string[];
     // Fetch time series data from cache/API
@@ -78,14 +116,14 @@ export class InvestmentService {
    * Create a new investment
    */
   static async addInvestment(data: InvestmentInsert) {
-    return InvestmentRepository.create(data);
+    return this.createDb(data);
   }
 
   /**
    * Delete an investment
    */
   static async deleteInvestment(id: string) {
-    return InvestmentRepository.delete(id);
+    return this.deleteDb(id);
   }
 
   /**
@@ -109,7 +147,7 @@ export class InvestmentService {
    * Get historical portfolio performance
    */
   static async getHistoricalPortfolio(userId: string) {
-    const investments = await InvestmentRepository.getByUser(userId);
+    const investments = await this.getByUserDb(userId);
     if (!investments || investments.length === 0) return [];
 
     const symbols = [...new Set((investments as Investment[]).map((inv) => inv.symbol).filter(Boolean))] as string[];

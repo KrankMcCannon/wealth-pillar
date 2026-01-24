@@ -1,22 +1,18 @@
 import 'server-only';
-/**
- * Recurring Transaction Series Service
- *
- * Business logic for recurring transaction series operations.
- * Follows Single Responsibility Principle - handles only recurring series domain.
- *
- * @example
- * import { RecurringService } from '@/server/services';
- *
- * const series = await RecurringService.getSeriesByUser(userId);
- */
-
+import { revalidateTag } from 'next/cache';
+import { CACHE_TAGS } from '@/lib/cache/config';
+import { supabase } from '@/server/db/supabase';
+import { cache } from 'react';
 import { cached } from '@/lib/cache';
 import { cacheOptions } from '@/lib/cache/config';
 import { recurringCacheKeys } from '@/lib/cache/keys';
-import { RecurringRepository, UserRepository } from '@/server/dal';
+import { UserService } from './user.service';
 import type { RecurringTransactionSeries } from '@/lib/types';
 import { serialize } from '@/lib/utils/serializer';
+import type { Database } from '@/lib/types/database.types';
+
+type RecurringInsert = Database['public']['Tables']['recurring_transactions']['Insert'];
+type RecurringUpdate = Database['public']['Tables']['recurring_transactions']['Update'];
 
 /**
  * RecurringService - Manages recurring transaction series
@@ -28,6 +24,84 @@ import { serialize } from '@/lib/utils/serializer';
  * - Managing series activation status
  */
 export class RecurringService {
+  // ================== DATABASE OPERATIONS (inlined from repository) ==================
+
+  private static async getByIdDb(id: string) {
+    const { data, error } = await supabase
+      .from('recurring_transactions')
+      .select('*, accounts(*)')
+      .eq('id', id)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') return null;
+      throw new Error(error.message);
+    }
+    const result = {
+      ...(data as any),
+      accounts: Array.isArray((data as any).accounts) ? (data as any).accounts[0] : (data as any).accounts
+    };
+    return result as any;
+  }
+
+  private static getByUserDb = cache(async (userId: string) => {
+    const { data, error } = await supabase
+      .from('recurring_transactions')
+      .select('*')
+      .contains('user_ids', [userId])
+      .order('created_at', { ascending: false });
+
+    if (error) throw new Error(error.message);
+    return data as any;
+  });
+
+  private static getByUserIdsDb = cache(async (userIds: string[]) => {
+    const { data, error } = await supabase
+      .from('recurring_transactions')
+      .select('*')
+      .overlaps('user_ids', userIds)
+      .order('created_at', { ascending: false });
+
+    if (error) throw new Error(error.message);
+    return data as any;
+  });
+
+  private static async createDb(data: RecurringInsert) {
+    const { data: created, error } = await supabase
+      .from('recurring_transactions')
+      .insert(data as any as never)
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    return created as any;
+  }
+
+  private static async updateDb(id: string, data: RecurringUpdate) {
+    const { data: updated, error } = await supabase
+      .from('recurring_transactions')
+      .update(data as any as never)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    return updated as any;
+  }
+
+  private static async deleteDb(id: string) {
+    const { data, error } = await supabase
+      .from('recurring_transactions')
+      .delete()
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    return data as any;
+  }
+
+  // ================== SERVICE LAYER ==================
   /**
     * Get all recurring series for a specific user
     *
@@ -46,7 +120,7 @@ export class RecurringService {
 
     const getCachedSeries = cached(
       async () => {
-        const series = await RecurringRepository.getByUser(userId);
+        const series = await this.getByUserDb(userId);
         return serialize(series || []) as unknown as RecurringTransactionSeries[];
       },
       recurringCacheKeys.byUser(userId),
@@ -77,7 +151,7 @@ export class RecurringService {
     const getCachedSeries = cached(
       async () => {
         // First get all users in the group
-        const users = await UserRepository.getByGroup(groupId);
+        const users = await UserService.getUsersByGroup(groupId);
 
         if (!users || users.length === 0) return [];
 
@@ -85,7 +159,7 @@ export class RecurringService {
 
         // Then get all recurring series for those users
         // Using overlaps to find series that include any group member
-        const series = await RecurringRepository.getByUserIds(userIds);
+        const series = await this.getByUserIdsDb(userIds);
         return serialize(series || []) as unknown as RecurringTransactionSeries[];
       },
       recurringCacheKeys.byGroup(groupId),
@@ -115,7 +189,7 @@ export class RecurringService {
 
     const getCachedSeries = cached(
       async () => {
-        const series = await RecurringRepository.getById(seriesId);
+        const series = await this.getByIdDb(seriesId);
         return serialize(series) as unknown as RecurringTransactionSeries | null;
       },
       recurringCacheKeys.byId(seriesId),
@@ -146,8 +220,45 @@ export class RecurringService {
 
     const allSeries = await this.getSeriesByUser(userId);
 
-    const activeSeries = (allSeries || []).filter((s) => s.is_active);
+    return allSeries.filter((s) => s.is_active);
+  }
 
-    return activeSeries;
+  /**
+   * Create a new recurring series
+   */
+  static async createSeries(data: RecurringInsert): Promise<RecurringTransactionSeries> {
+    const series = await this.createDb(data);
+    revalidateTag(CACHE_TAGS.RECURRING_SERIES, 'max');
+    if (data.user_ids && Array.isArray(data.user_ids)) {
+      (data.user_ids as string[]).forEach(uid => {
+        revalidateTag(`user:${uid}:recurring`, 'max');
+      });
+    }
+    return serialize(series) as unknown as RecurringTransactionSeries;
+  }
+
+  /**
+   * Update a recurring series
+   */
+  static async updateSeries(id: string, data: RecurringUpdate): Promise<RecurringTransactionSeries> {
+    const series = await this.updateDb(id, data);
+    revalidateTag(CACHE_TAGS.RECURRING_SERIES, 'max');
+    revalidateTag(CACHE_TAGS.RECURRING(id), 'max');
+    return serialize(series) as unknown as RecurringTransactionSeries;
+  }
+
+  /**
+   * Delete a recurring series
+   */
+  static async deleteSeries(id: string): Promise<void> {
+    const series = await this.getByIdDb(id);
+    await this.deleteDb(id);
+    revalidateTag(CACHE_TAGS.RECURRING_SERIES, 'max');
+    revalidateTag(CACHE_TAGS.RECURRING(id), 'max');
+    if (series && series.user_ids && Array.isArray(series.user_ids)) {
+      (series.user_ids as string[]).forEach(uid => {
+        revalidateTag(`user:${uid}:recurring`, 'max');
+      });
+    }
   }
 }

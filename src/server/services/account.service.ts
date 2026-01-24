@@ -1,11 +1,17 @@
 import { serialize } from '@/lib/utils/serializer';
 import 'server-only';
+import { cache } from 'react';
 import { cached } from '@/lib/cache';
 import { CACHE_TAGS, cacheOptions } from '@/lib/cache/config';
 import { accountCacheKeys } from '@/lib/cache/keys';
-import { AccountRepository, TransactionRepository } from '@/server/dal';
+import { supabase } from '@/server/db/supabase';
+import { TransactionService } from './transaction.service';
 import type { Account } from '@/lib/types';
+import type { Database } from '@/lib/types/database.types';
 import { revalidateTag } from 'next/cache';
+
+type AccountInsert = Database['public']['Tables']['accounts']['Insert'];
+type AccountUpdate = Database['public']['Tables']['accounts']['Update'];
 
 export interface CreateAccountInput {
   id?: string;
@@ -24,33 +30,120 @@ export interface UpdateAccountInput {
 
 /**
  * Account Service
- * Handles account logic using AccountRepository
+ * Handles account logic with inlined database operations
  */
 export class AccountService {
+  // ================== DATABASE OPERATIONS (inlined from repository) ==================
+
+  /**
+   * Get accounts by group ID
+   */
+  private static getByGroupDb = cache(async (groupId: string): Promise<Account[]> => {
+    const { data, error } = await supabase
+      .from('accounts')
+      .select('*')
+      .eq('group_id', groupId)
+      .order('created_at', { ascending: true });
+
+    if (error) throw new Error(error.message);
+    return (data || []) as Account[];
+  });
+
+  /**
+   * Get accounts by user ID (where user_ids contains userId)
+   */
+  private static getByUserDb = cache(async (userId: string): Promise<Account[]> => {
+    const { data, error } = await supabase
+      .from('accounts')
+      .select('*')
+      .contains('user_ids', [userId])
+      .order('created_at', { ascending: true });
+
+    if (error) throw new Error(error.message);
+    return (data || []) as Account[];
+  });
+
+  /**
+   * Get specific account by ID
+   */
+  private static async getByIdDb(id: string): Promise<Account | null> {
+    const { data, error } = await supabase
+      .from('accounts')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') return null;
+      throw new Error(error.message);
+    }
+    return data as Account;
+  }
+
+  /**
+   * Create a new account in database
+   */
+  private static async createDb(data: AccountInsert): Promise<Account> {
+    const { data: created, error } = await supabase
+      .from('accounts')
+      .insert(data as never)
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    return created as Account;
+  }
+
+  /**
+   * Update an account in database
+   */
+  private static async updateDb(id: string, data: AccountUpdate): Promise<Account> {
+    const { data: updated, error } = await supabase
+      .from('accounts')
+      .update(data as never)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    return updated as Account;
+  }
+
+  /**
+   * Delete an account from database
+   */
+  private static async deleteDb(id: string): Promise<Account> {
+    const { data, error } = await supabase
+      .from('accounts')
+      .delete()
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    return data as Account;
+  }
+
+  // ================== SERVICE LAYER ==================
+
   /**
    * Retrieves account by ID
    */
   static async getAccountById(accountId: string): Promise<Account> {
-    if (!accountId || accountId.trim() === '') {
-      throw new Error('Account ID is required');
-    }
+    if (!accountId?.trim()) throw new Error('Account ID is required');
 
     const getCachedAccount = cached(
       async () => {
-        const account = await AccountRepository.getById(accountId);
+        const account = await this.getByIdDb(accountId);
         if (!account) return null;
-        return serialize(account) as unknown as Account;
+        return serialize(account) as Account;
       },
       accountCacheKeys.byId(accountId),
       cacheOptions.account(accountId)
     );
 
     const account = await getCachedAccount();
-
-    if (!account) {
-      throw new Error('Account not found');
-    }
-
+    if (!account) throw new Error('Account not found');
     return account;
   }
 
@@ -58,43 +151,33 @@ export class AccountService {
    * Retrieves all accounts for a user
    */
   static async getAccountsByUser(userId: string): Promise<Account[]> {
-    if (!userId || userId.trim() === '') {
-      throw new Error('User ID is required');
-    }
+    if (!userId?.trim()) throw new Error('User ID is required');
 
     const getCachedAccounts = cached(
       async () => {
-        const accounts = await AccountRepository.getByUser(userId);
-        return serialize(accounts || []) as unknown as Account[];
+        const accounts = await this.getByUserDb(userId);
+        return serialize(accounts) as Account[];
       },
       accountCacheKeys.byUser(userId),
       cacheOptions.accountsByUser(userId)
     );
 
-    const accounts = await getCachedAccounts();
-
-    return accounts;
+    return getCachedAccounts();
   }
 
   /**
    * Retrieves account count for a user
-   * Optimized to avoiding fetching full dataset
    */
   static async getAccountCountByUser(userId: string): Promise<number> {
-    if (!userId || userId.trim() === '') {
-      throw new Error('User ID is required');
-    }
+    if (!userId?.trim()) throw new Error('User ID is required');
 
     const getCachedCount = cached(
       async () => {
-        const accounts = await AccountRepository.getByUser(userId);
-        return accounts ? accounts.length : 0;
+        const accounts = await this.getByUserDb(userId);
+        return accounts.length;
       },
       [`user:${userId}:accounts:count`],
-      {
-        revalidate: 300,
-        tags: [CACHE_TAGS.ACCOUNTS, `user:${userId}:accounts`],
-      }
+      { revalidate: 300, tags: [CACHE_TAGS.ACCOUNTS, `user:${userId}:accounts`] }
     );
 
     return getCachedCount();
@@ -104,22 +187,18 @@ export class AccountService {
    * Retrieves all accounts for a group
    */
   static async getAccountsByGroup(groupId: string): Promise<Account[]> {
-    if (!groupId || groupId.trim() === '') {
-      throw new Error('Group ID is required');
-    }
+    if (!groupId?.trim()) throw new Error('Group ID is required');
 
     const getCachedAccounts = cached(
       async () => {
-        const accounts = await AccountRepository.getByGroup(groupId);
-        return serialize(accounts || []) as unknown as Account[];
+        const accounts = await this.getByGroupDb(groupId);
+        return serialize(accounts) as Account[];
       },
       accountCacheKeys.byGroup(groupId),
       cacheOptions.accountsByGroup(groupId)
     );
 
-    const accounts = await getCachedAccounts();
-
-    return accounts;
+    return getCachedAccounts();
   }
 
   /**
@@ -127,8 +206,8 @@ export class AccountService {
    */
   static async accountExists(accountId: string): Promise<boolean> {
     try {
-      if (!accountId || accountId.trim() === '') return false;
-      const account = await AccountRepository.getById(accountId);
+      if (!accountId?.trim()) return false;
+      const account = await this.getByIdDb(accountId);
       return !!account;
     } catch {
       return false;
@@ -139,14 +218,14 @@ export class AccountService {
    * Creates a new account
    */
   static async createAccount(data: CreateAccountInput): Promise<Account> {
-    if (!data.name || data.name.trim() === '') throw new Error('Account name is required');
+    if (!data.name?.trim()) throw new Error('Account name is required');
     if (!data.type) throw new Error('Account type is required');
-    if (!data.group_id || data.group_id.trim() === '') throw new Error('Group ID is required');
-    if (!data.user_ids || data.user_ids.length === 0) throw new Error('At least one user is required for an account');
+    if (!data.group_id?.trim()) throw new Error('Group ID is required');
+    if (!data.user_ids?.length) throw new Error('At least one user is required');
 
     const now = new Date().toISOString();
 
-    const account = await AccountRepository.create({
+    const account = await this.createDb({
       id: data.id,
       name: data.name.trim(),
       type: data.type,
@@ -158,74 +237,54 @@ export class AccountService {
 
     if (!account) throw new Error('Failed to create account');
 
-    const createdAccount = account as unknown as Account;
-
     revalidateTag(CACHE_TAGS.ACCOUNTS, 'max');
-    revalidateTag(CACHE_TAGS.ACCOUNT(createdAccount.id), 'max');
-    revalidateTag(`group:${data.group_id}:accounts`, 'max');
-    for (const userId of data.user_ids) {
-      revalidateTag(`user:${userId}:accounts`, 'max');
-    }
+    revalidateTag(CACHE_TAGS.ACCOUNT(account.id), 'max');
+    revalidateTag(`group:${data.group_id}:accounts` as any, 'max');
+    data.user_ids.forEach(userId => revalidateTag(`user:${userId}:accounts` as any, 'max'));
 
-    return serialize(createdAccount);
+    return serialize(account);
   }
 
   /**
    * Updates an existing account
    */
-  static async updateAccount(
-    accountId: string,
-    data: UpdateAccountInput
-  ): Promise<Account> {
-    if (!accountId || accountId.trim() === '') throw new Error('Account ID is required');
+  static async updateAccount(accountId: string, data: UpdateAccountInput): Promise<Account> {
+    if (!accountId?.trim()) throw new Error('Account ID is required');
 
-    const updateData = {
+    const account = await this.updateDb(accountId, {
       updated_at: new Date().toISOString(),
       ...data,
-    };
-
-    const account = await AccountRepository.update(accountId, updateData);
+    });
 
     if (!account) throw new Error('Failed to update account');
 
-    const updatedAccount = account as unknown as Account;
-
     revalidateTag(CACHE_TAGS.ACCOUNTS, 'max');
     revalidateTag(CACHE_TAGS.ACCOUNT(accountId), 'max');
+    if (account.group_id) revalidateTag(`group:${account.group_id}:accounts` as any, 'max');
+    if (account.user_ids) account.user_ids.forEach(userId => revalidateTag(`user:${userId}:accounts` as any, 'max'));
 
-    if (updatedAccount.group_id) revalidateTag(`group:${updatedAccount.group_id}:accounts`, 'max');
-    if (updatedAccount.user_ids) {
-      for (const userId of updatedAccount.user_ids) {
-        revalidateTag(`user:${userId}:accounts`, 'max');
-      }
-    }
-
-    return serialize(updatedAccount);
+    return serialize(account);
   }
 
   /**
    * Deletes an account
    */
   static async deleteAccount(accountId: string): Promise<boolean> {
-    if (!accountId || accountId.trim() === '') throw new Error('Account ID is required');
+    if (!accountId?.trim()) throw new Error('Account ID is required');
 
     const account = await this.getAccountById(accountId);
 
-    // Manual sequential deletion
-    // Delete related transactions first (including transfers)
-    await TransactionRepository.deleteByAccount(accountId);
+    // Delete related transactions first
+    await TransactionService.deleteByAccount(accountId);
 
     // Delete the account
-    await AccountRepository.delete(accountId);
+    await this.deleteDb(accountId);
 
     revalidateTag(CACHE_TAGS.ACCOUNTS, 'max');
     revalidateTag(CACHE_TAGS.ACCOUNT(accountId), 'max');
-
     if (account) {
-      revalidateTag(`group:${account.group_id}:accounts`, 'max');
-      account.user_ids.forEach((userId) => {
-        revalidateTag(`user:${userId}:accounts`, 'max');
-      });
+      revalidateTag(`group:${account.group_id}:accounts` as any, 'max');
+      account.user_ids.forEach(userId => revalidateTag(`user:${userId}:accounts` as any, 'max'));
     }
 
     return true;

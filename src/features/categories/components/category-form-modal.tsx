@@ -171,6 +171,7 @@ function CategoryFormModal({
           key: data.key.trim(),
           icon: data.icon.trim(),
           color: data.color.trim().toUpperCase(),
+          group_id: groupId,
         };
 
         // 2. Add to store immediately (optimistic)

@@ -1,14 +1,19 @@
 import 'server-only';
+import { cache } from 'react';
 import { cached } from '@/lib/cache';
 import { CACHE_TAGS, cacheOptions } from '@/lib/cache/config';
 import { budgetCacheKeys } from '@/lib/cache/keys';
-import { BudgetRepository, UserRepository } from '@/server/dal';
+import { supabase } from '@/server/db/supabase';
 import type { Budget, BudgetPeriod, BudgetType, Transaction, User, BudgetProgress, UserBudgetSummary } from '@/lib/types';
+import type { Database } from '@/lib/types/database.types';
 import { toDateTime } from '@/lib/utils';
 import { DateTime } from 'luxon';
 import { FinanceLogicService } from './finance-logic.service';
 import { revalidateTag } from 'next/cache';
 import { serialize } from '@/lib/utils/serializer';
+
+type BudgetInsert = Database['public']['Tables']['budgets']['Insert'];
+type BudgetUpdate = Database['public']['Tables']['budgets']['Update'];
 
 /**
  * Input data for creating a new budget
@@ -32,6 +37,103 @@ export type UpdateBudgetInput = Partial<CreateBudgetInput>;
  * Budget Service
  */
 export class BudgetService {
+  // ================== DATABASE OPERATIONS (inlined from repository) ==================
+
+  private static getByUserDb = cache(async (userId: string): Promise<Budget[]> => {
+    const { data, error } = await supabase
+      .from('budgets')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw new Error(error.message);
+    return (data || []) as Budget[];
+  });
+
+  private static getByGroupDb = cache(async (groupId: string): Promise<Budget[]> => {
+    const { data, error } = await supabase
+      .from('budgets')
+      .select('*')
+      .eq('group_id', groupId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw new Error(error.message);
+    return (data || []) as Budget[];
+  });
+
+  private static async getByIdDb(id: string): Promise<Budget | null> {
+    const { data, error } = await supabase
+      .from('budgets')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') return null;
+      throw new Error(error.message);
+    }
+    return data as Budget;
+  }
+
+  private static async createDb(data: BudgetInsert): Promise<Budget> {
+    const { data: created, error } = await supabase
+      .from('budgets')
+      .insert(data as never)
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    return created as Budget;
+  }
+
+  private static async updateDb(id: string, data: BudgetUpdate): Promise<Budget> {
+    const { data: updated, error } = await supabase
+      .from('budgets')
+      .update(data as never)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    return updated as Budget;
+  }
+
+  private static async deleteDb(id: string): Promise<void> {
+    const { error } = await supabase
+      .from('budgets')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw new Error(error.message);
+  }
+
+  static async deleteByUser(userId: string): Promise<void> {
+    const { error } = await supabase
+      .from('budgets')
+      .delete()
+      .eq('user_id', userId);
+
+    if (error) throw new Error(error.message);
+  }
+
+  private static async getUserGroupId(userId: string): Promise<string> {
+    const { data, error } = await supabase
+      .from('users')
+      .select('group_id')
+      .eq('id', userId)
+      .single();
+
+    if (error) throw new Error(error.message);
+    const user = data as { group_id: string | null };
+    if (!user?.group_id) throw new Error('Failed to get user group');
+    return user.group_id;
+  }
+
+  // ================== SERVICE LAYER ==================
+
+  /**
+    * Retrieves a budget by ID
+    */
   /**
     * Retrieves a budget by ID
     */
@@ -42,7 +144,7 @@ export class BudgetService {
 
     const getCachedBudget = cached(
       async () => {
-        const budget = await BudgetRepository.getById(budgetId);
+        const budget = await this.getByIdDb(budgetId);
         if (!budget) return null;
         return serialize(budget) as unknown as Budget;
       },
@@ -69,7 +171,7 @@ export class BudgetService {
 
     const getCachedBudgets = cached(
       async () => {
-        const budgets = await BudgetRepository.getByUser(userId);
+        const budgets = await this.getByUserDb(userId);
         return serialize(budgets || []) as unknown as Budget[];
       },
       budgetCacheKeys.byUser(userId),
@@ -91,7 +193,7 @@ export class BudgetService {
 
     const getCachedBudgets = cached(
       async () => {
-        const budgets = await BudgetRepository.getByGroup(groupId);
+        const budgets = await this.getByGroupDb(groupId);
         return serialize(budgets || []) as unknown as Budget[];
       },
       budgetCacheKeys.byGroup(groupId),
@@ -139,11 +241,11 @@ export class BudgetService {
     // Get user's group_id if not provided
     let groupId = data.group_id;
     if (!groupId) {
-      const user = await UserRepository.getById(data.user_id);
-      if (!user || !user.group_id) {
+      try {
+        groupId = await this.getUserGroupId(data.user_id);
+      } catch {
         throw new Error('Failed to get user group');
       }
-      groupId = user.group_id;
     }
 
     const createData = {
@@ -156,7 +258,7 @@ export class BudgetService {
       group_id: groupId,
     };
 
-    const budget = await BudgetRepository.create(createData);
+    const budget = await this.createDb(createData);
 
     if (!budget) throw new Error('Failed to create budget');
 
@@ -196,7 +298,7 @@ export class BudgetService {
       throw new Error('User ID cannot be empty');
     }
 
-    const existingBudget = await BudgetRepository.getById(id);
+    const existingBudget = await this.getByIdDb(id);
 
     if (!existingBudget) {
       throw new Error('Budget not found');
@@ -214,7 +316,7 @@ export class BudgetService {
     if (data.categories !== undefined) updateData.categories = data.categories;
     if (data.user_id !== undefined) updateData.user_id = data.user_id;
 
-    const updatedBudget = await BudgetRepository.update(id, updateData);
+    const updatedBudget = await this.updateDb(id, updateData);
 
     if (!updatedBudget) throw new Error('Failed to update budget');
 
@@ -237,7 +339,7 @@ export class BudgetService {
       throw new Error('Budget ID is required');
     }
 
-    const existingBudget = await BudgetRepository.getById(id);
+    const existingBudget = await this.getByIdDb(id);
 
     if (!existingBudget) {
       throw new Error('Budget not found');
@@ -245,7 +347,7 @@ export class BudgetService {
 
     const existing = existingBudget as unknown as Budget;
 
-    await BudgetRepository.delete(id);
+    await this.deleteDb(id);
 
     revalidateTag(CACHE_TAGS.BUDGETS, 'max');
     revalidateTag(CACHE_TAGS.BUDGET(id), 'max');

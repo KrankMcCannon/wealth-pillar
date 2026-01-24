@@ -1,12 +1,16 @@
 import 'server-only';
+import { cache } from 'react';
 import { cached } from '@/lib/cache';
 import { CACHE_TAGS, cacheOptions } from '@/lib/cache/config';
 import { groupCacheKeys } from '@/lib/cache/keys';
-import { GroupRepository, UserRepository } from '@/server/dal';
+import { supabase } from '@/server/db/supabase';
+import { UserService } from './user.service';
 import { revalidateTag } from 'next/cache';
 import type { Database } from '@/lib/types/database.types';
 
 type Group = Database['public']['Tables']['groups']['Row'];
+type GroupInsert = Database['public']['Tables']['groups']['Insert'];
+type GroupUpdate = Database['public']['Tables']['groups']['Update'];
 type User = Database['public']['Tables']['users']['Row'];
 
 export interface CreateGroupInput {
@@ -21,11 +25,58 @@ export interface CreateGroupInput {
 /**
  * Group Service
  * Handles all group-related business logic following Single Responsibility Principle
- *
- * All methods throw standard errors instead of returning ServiceResult objects
- * All database queries are cached using Next.js unstable_cache
  */
 export class GroupService {
+  // ================== DATABASE OPERATIONS (inlined from repository) ==================
+
+  private static getByIdDb = cache(async (id: string): Promise<Group | null> => {
+    const { data, error } = await supabase
+      .from('groups')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') return null;
+      throw new Error(error.message);
+    }
+    return data as Group;
+  });
+
+  private static async createDb(data: GroupInsert): Promise<Group> {
+    const { data: created, error } = await supabase
+      .from('groups')
+      .insert(data as never)
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    return created as Group;
+  }
+
+  private static async updateDb(id: string, data: GroupUpdate): Promise<Group> {
+    const { data: updated, error } = await supabase
+      .from('groups')
+      .update(data as never)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    return updated as Group;
+  }
+
+  private static async deleteDb(id: string): Promise<void> {
+    const { error } = await supabase
+      .from('groups')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw new Error(error.message);
+  }
+
+  // ================== SERVICE LAYER ==================
+
   /**
     * Retrieves group information by ID
     */
@@ -37,7 +88,7 @@ export class GroupService {
     // Create cached query function
     const getCachedGroup = cached(
       async () => {
-        const group = await GroupRepository.getById(groupId);
+        const group = await this.getByIdDb(groupId);
         return group;
       },
       groupCacheKeys.byId(groupId),
@@ -64,7 +115,7 @@ export class GroupService {
     // Create cached query function
     const getCachedUsers = cached(
       async () => {
-        const users = await UserRepository.getByGroup(groupId);
+        const users = await UserService.getUsersByGroup(groupId);
         return users;
       },
       groupCacheKeys.users(groupId),
@@ -84,7 +135,7 @@ export class GroupService {
       throw new Error('Group ID is required');
     }
 
-    const count = await UserRepository.countByGroup(groupId);
+    const count = await UserService.countByGroup(groupId);
 
     return count;
   }
@@ -100,7 +151,7 @@ export class GroupService {
       throw new Error('Group ID is required');
     }
 
-    const users = await UserRepository.getByGroupAndRole(groupId, role);
+    const users = await UserService.getUsersByGroupAndRole(groupId, role);
 
     return (users || []) as unknown as User[];
   }
@@ -111,7 +162,7 @@ export class GroupService {
   static async groupExists(groupId: string): Promise<boolean> {
     if (!groupId || groupId.trim() === '') return false;
     try {
-      const group = await GroupRepository.getById(groupId);
+      const group = await this.getByIdDb(groupId);
       return !!group;
     } catch {
       return false;
@@ -166,7 +217,7 @@ export class GroupService {
       updated_at: new Date().toISOString(),
     };
 
-    const group = await GroupRepository.create(createData);
+    const group = await this.createDb(createData);
 
     if (!group) throw new Error('Failed to create group');
 

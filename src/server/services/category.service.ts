@@ -1,11 +1,16 @@
 import 'server-only';
+import { cache } from 'react';
 import { cached } from '@/lib/cache';
 import { CACHE_TAGS, cacheOptions } from '@/lib/cache/config';
 import { categoryCacheKeys } from '@/lib/cache/keys';
-import { CategoryRepository } from '@/server/dal';
+import { supabase } from '@/server/db/supabase';
 import { FinanceLogicService } from './finance-logic.service';
 import type { Category } from '@/lib/types';
+import type { Database } from '@/lib/types/database.types';
 import { revalidateTag } from 'next/cache';
+
+type CategoryInsert = Database['public']['Tables']['categories']['Insert'];
+type CategoryUpdate = Database['public']['Tables']['categories']['Update'];
 
 /**
  * Input type for creating a new category
@@ -30,20 +35,121 @@ export interface UpdateCategoryInput {
 /**
  * Category Service
  * Handles all category-related business logic following Single Responsibility Principle
- *
- * All methods throw standard errors instead of returning ServiceResult objects
- * All database queries are cached using Next.js unstable_cache
  */
 export class CategoryService {
+  // ================== DATABASE OPERATIONS (inlined from repository) ==================
+
+  private static getAllDb = cache(async (): Promise<Category[]> => {
+    const { data, error } = await supabase
+      .from('categories')
+      .select('*')
+      .order('label', { ascending: true });
+
+    if (error) throw new Error(error.message);
+    return (data || []) as Category[];
+  });
+
+  private static getByGroupDb = cache(async (groupId: string): Promise<Category[]> => {
+    const { data, error } = await supabase
+      .from('categories')
+      .select('*')
+      .eq('group_id', groupId)
+      .order('created_at', { ascending: true });
+
+    if (error) throw new Error(error.message);
+    return (data || []) as Category[];
+  });
+
+  private static async getByIdDb(id: string): Promise<Category | null> {
+    const { data, error } = await supabase
+      .from('categories')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') return null;
+      throw new Error(error.message);
+    }
+    return data as Category;
+  }
+
+  private static getByKeyDb = cache(async (key: string): Promise<Category | null> => {
+    const { data, error } = await supabase
+      .from('categories')
+      .select('*')
+      .eq('key', key)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') return null;
+      throw new Error(error.message);
+    }
+    return data as Category;
+  });
+
+  private static async createDb(data: CategoryInsert): Promise<Category> {
+    const { data: created, error } = await supabase
+      .from('categories')
+      .insert(data as never)
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    return created as Category;
+  }
+
+  private static async updateDb(id: string, data: CategoryUpdate): Promise<Category> {
+    const { data: updated, error } = await supabase
+      .from('categories')
+      .update(data as never)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    return updated as Category;
+  }
+
+  private static async deleteDb(id: string): Promise<void> {
+    const { error } = await supabase
+      .from('categories')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw new Error(error.message);
+  }
+
+  // ================== SERVICE LAYER ==================
+
   /**
-    * Retrieves all categories
-    * Used for displaying category lists in forms, filters, and reports
-    */
+   * Retrieves all categories by group
+   */
+  static async getCategoriesByGroup(groupId: string): Promise<Category[]> {
+    if (!groupId || groupId.trim() === '') {
+      throw new Error('Group ID is required');
+    }
+
+    const getCachedCategories = cached(
+      async () => {
+        const categories = await this.getByGroupDb(groupId);
+        return categories;
+      },
+      categoryCacheKeys.byGroup(groupId),
+      cacheOptions.categoriesByGroup(groupId)
+    );
+
+    const categories = await getCachedCategories();
+
+    return (categories || []) as unknown as Category[];
+  }
+
+
   static async getAllCategories(): Promise<Category[]> {
     // Create cached query function
     const getCachedCategories = cached(
       async () => {
-        const categories = await CategoryRepository.getAll();
+        const categories = await this.getAllDb();
         return categories;
       },
       categoryCacheKeys.all(),
@@ -67,7 +173,7 @@ export class CategoryService {
     // Create cached query function
     const getCachedCategory = cached(
       async () => {
-        const category = await CategoryRepository.getById(categoryId);
+        const category = await this.getByIdDb(categoryId);
         return category;
       },
       categoryCacheKeys.byId(categoryId),
@@ -95,7 +201,7 @@ export class CategoryService {
     // Create cached query function
     const getCachedCategory = cached(
       async () => {
-        const category = await CategoryRepository.getByKey(key);
+        const category = await this.getByKeyDb(key);
         return category;
       },
       categoryCacheKeys.byKey(key),
@@ -148,7 +254,7 @@ export class CategoryService {
       group_id: data.group_id,
     };
 
-    const category = await CategoryRepository.create(createData);
+    const category = await this.createDb(createData);
 
     if (!category) {
       throw new Error('Failed to create category');
@@ -204,7 +310,7 @@ export class CategoryService {
       updateData.color = data.color.trim().toUpperCase();
     }
 
-    const category = await CategoryRepository.update(id, updateData);
+    const category = await this.updateDb(id, updateData);
 
     if (!category) {
       throw new Error('Failed to update category');
@@ -232,7 +338,7 @@ export class CategoryService {
       throw new Error('Category not found');
     }
 
-    await CategoryRepository.delete(id);
+    await this.deleteDb(id);
 
     // Invalidate caches
     revalidateTag(CACHE_TAGS.CATEGORIES, 'max');

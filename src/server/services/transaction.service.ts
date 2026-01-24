@@ -1,17 +1,18 @@
 import 'server-only';
+import { cache } from 'react';
 import { cached } from '@/lib/cache';
 import { CACHE_TAGS, cacheOptions } from '@/lib/cache/config';
 import { transactionCacheKeys } from '@/lib/cache/keys';
-export { TransactionLogic } from './transaction.logic';
-import { TransactionRepository, AccountRepository } from '@/server/dal';
+import { supabase } from '@/server/db/supabase';
 import type { CategoryBreakdownItem, Transaction, TransactionType } from '@/lib/types';
-import {
-  formatDateSmart,
-  toDateTime,
-} from '@/lib/utils/date-utils';
+import type { Database } from '@/lib/types/database.types';
 import { FinanceLogicService } from './finance-logic.service';
 import { revalidateTag } from 'next/cache';
 import { serialize } from '@/lib/utils/serializer';
+export { TransactionLogic } from './transaction.logic';
+
+type TransactionInsert = Database['public']['Tables']['transactions']['Insert'];
+type TransactionUpdate = Database['public']['Tables']['transactions']['Update'];
 
 /**
  * Report metrics calculated from transactions
@@ -57,249 +58,405 @@ export interface CreateTransactionInput {
 export type UpdateTransactionInput = Partial<CreateTransactionInput>;
 
 /**
+ * Transaction filter options - supports both date range and offset/limit pagination
+ */
+export interface TransactionFilterOptions {
+  startDate?: Date;
+  endDate?: Date;
+  category?: string;
+  type?: 'income' | 'expense' | 'transfer';
+  accountId?: string;
+  limit?: number;
+  offset?: number; // For backward compatibility with infinite scroll
+}
+
+/**
  * Transaction Service
- * Handles all transaction-related business logic following Single Responsibility Principle
- *
- * All methods throw standard errors instead of returning ServiceResult objects
- * All database queries are cached using Next.js unstable_cache
+ * Handles all transaction-related business logic (service + repository merged)
  */
 export class TransactionService {
+  // ================== DATABASE OPERATIONS (inlined from repository) ==================
+
   /**
-   * Get category spending breakdown for a group in a time range
+   * Get transactions by group with date filtering (primary query method)
    */
-  static async getGroupCategorySpending(groupId: string, startDate: Date, endDate: Date) {
-    return TransactionRepository.getGroupCategorySpending(groupId, startDate, endDate);
+  private static getByGroupDb = cache(async (
+    groupId: string,
+    options?: TransactionFilterOptions
+  ): Promise<{ data: Transaction[]; total: number; hasMore: boolean }> => {
+    let query = supabase
+      .from('transactions')
+      .select('*', { count: 'exact' })
+      .eq('group_id', groupId)
+      .order('date', { ascending: false });
+
+    // Date range filtering
+    if (options?.startDate) {
+      query = query.gte('date', options.startDate.toISOString());
+    }
+    if (options?.endDate) {
+      query = query.lte('date', options.endDate.toISOString());
+    }
+    if (options?.category) {
+      query = query.eq('category', options.category);
+    }
+    if (options?.type) {
+      query = query.eq('type', options.type);
+    }
+    if (options?.accountId) {
+      query = query.eq('account_id', options.accountId);
+    }
+
+    // Pagination with offset/limit
+    if (options?.limit) {
+      const offset = options?.offset || 0;
+      query = query.range(offset, offset + options.limit - 1);
+    }
+
+    const { data, count, error } = await query;
+    if (error) throw new Error(error.message);
+
+    const total = count || 0;
+    const offset = options?.offset || 0;
+    return {
+      data: (data || []) as Transaction[],
+      total,
+      hasMore: options?.limit ? (offset + (data?.length || 0)) < total : false
+    };
+  });
+
+  /**
+   * Get transactions by user with date filtering
+   */
+  private static getByUserDb = cache(async (
+    userId: string,
+    options?: TransactionFilterOptions
+  ): Promise<{ data: Transaction[]; total: number }> => {
+    let query = supabase
+      .from('transactions')
+      .select('*', { count: 'exact' })
+      .eq('user_id', userId)
+      .order('date', { ascending: false });
+
+    if (options?.startDate) {
+      query = query.gte('date', options.startDate.toISOString());
+    }
+    if (options?.endDate) {
+      query = query.lte('date', options.endDate.toISOString());
+    }
+    if (options?.category) {
+      query = query.eq('category', options.category);
+    }
+    if (options?.type) {
+      query = query.eq('type', options.type);
+    }
+    if (options?.limit) {
+      query = query.limit(options.limit);
+    }
+
+    const { data, count, error } = await query;
+    if (error) throw new Error(error.message);
+
+    return { data: (data || []) as Transaction[], total: count || 0 };
+  });
+
+  /**
+   * Get transactions by account (including transfers)
+   */
+  private static getByAccountDb = cache(async (accountId: string): Promise<Transaction[]> => {
+    const { data, error } = await supabase
+      .from('transactions')
+      .select('*')
+      .or(`account_id.eq.${accountId},to_account_id.eq.${accountId}`)
+      .order('date', { ascending: false });
+
+    if (error) throw new Error(error.message);
+    return (data || []) as Transaction[];
+  });
+
+  /**
+   * Get transaction by ID
+   */
+  private static async getByIdDb(id: string): Promise<Transaction | null> {
+    const { data, error } = await supabase
+      .from('transactions')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') return null;
+      throw new Error(error.message);
+    }
+    return data as Transaction;
   }
 
   /**
-   * Get monthly spending trend for a group in a time range
+   * Create transaction in database
    */
-  static async getGroupMonthlySpending(groupId: string, startDate: Date, endDate: Date) {
-    return TransactionRepository.getGroupMonthlySpending(groupId, startDate, endDate);
+  private static async createDb(data: TransactionInsert): Promise<Transaction> {
+    const { data: created, error } = await supabase
+      .from('transactions')
+      .insert(data as never)
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    return created as Transaction;
   }
 
   /**
-   * Get category spending breakdown per user for a group in a time range
+   * Update transaction in database
    */
-  static async getGroupUserCategorySpending(groupId: string, startDate: Date, endDate: Date) {
-    return TransactionRepository.getGroupUserCategorySpending(groupId, startDate, endDate);
+  private static async updateDb(id: string, data: TransactionUpdate): Promise<Transaction> {
+    const { data: updated, error } = await supabase
+      .from('transactions')
+      .update(data as never)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    return updated as Transaction;
   }
+
+  /**
+   * Delete transaction from database
+   */
+  private static async deleteDb(id: string): Promise<Transaction> {
+    const { data, error } = await supabase
+      .from('transactions')
+      .delete()
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    return data as Transaction;
+  }
+
+  /**
+   * Delete all transactions for an account
+   */
+  static async deleteByAccount(accountId: string): Promise<void> {
+    const { error } = await supabase
+      .from('transactions')
+      .delete()
+      .or(`account_id.eq.${accountId},to_account_id.eq.${accountId}`);
+
+    if (error) throw new Error(error.message);
+  }
+
+  /**
+   * Delete all transactions for a user
+   */
+  static async deleteByUser(userId: string): Promise<void> {
+    const { error } = await supabase
+      .from('transactions')
+      .delete()
+      .eq('user_id', userId);
+
+    if (error) throw new Error(error.message);
+  }
+
+  /**
+   * Update account balance (helper for transaction mutations)
+   */
+  private static async updateAccountBalance(accountId: string, delta: number): Promise<void> {
+    const { data: account, error: fetchError } = await supabase
+      .from('accounts')
+      .select('balance')
+      .eq('id', accountId)
+      .single();
+
+    if (fetchError) throw new Error(`Failed to fetch account: ${fetchError.message}`);
+
+    const currentBalance = Number((account as { balance?: number })?.balance) || 0;
+    const newBalance = currentBalance + delta;
+
+    const { error: updateError } = await (supabase as any)
+      .from('accounts')
+      .update({ balance: newBalance })
+      .eq('id', accountId);
+
+    if (updateError) throw new Error(`Failed to update balance: ${updateError.message}`);
+  }
+
+  // ================== RPC FUNCTIONS ==================
+
+  /**
+   * Get category spending breakdown using database RPC
+   */
+  static getGroupCategorySpending = cache(async (groupId: string, startDate: Date, endDate: Date) => {
+    const { data, error } = await (supabase as any).rpc('get_group_category_spending', {
+      p_group_id: groupId,
+      p_start_date: startDate.toISOString(),
+      p_end_date: endDate.toISOString()
+    });
+    if (error) throw new Error(error.message);
+    return data as Array<{ category: string; spent: number; transaction_count: number }>;
+  });
+
+  /**
+   * Get monthly spending trend using database RPC
+   */
+  static getGroupMonthlySpending = cache(async (groupId: string, startDate: Date, endDate: Date) => {
+    const { data, error } = await (supabase as any).rpc('get_group_monthly_spending', {
+      p_group_id: groupId,
+      p_start_date: startDate.toISOString(),
+      p_end_date: endDate.toISOString()
+    });
+    if (error) throw new Error(error.message);
+    return data as Array<{ month: string; income: number; expense: number }>;
+  });
+
+  /**
+   * Get category spending per user using database RPC
+   */
+  static getGroupUserCategorySpending = cache(async (groupId: string, startDate: Date, endDate: Date) => {
+    const { data, error } = await (supabase as any).rpc('get_group_user_category_spending', {
+      p_group_id: groupId,
+      p_start_date: startDate.toISOString(),
+      p_end_date: endDate.toISOString()
+    });
+    if (error) throw new Error(error.message);
+    return data as Array<{ user_id: string; category: string; spent: number; income: number; transaction_count: number }>;
+  });
+
+  // ================== SERVICE LAYER ==================
 
   /**
    * Helper to update account balances based on transaction
-   * @param transaction The transaction object
-   * @param direction 1 for applying (create), -1 for reverting (delete)
    */
-  private static async updateBalancesForTransaction(
-    transaction: Transaction,
-    direction: 1 | -1
-  ) {
+  private static async updateBalancesForTransaction(transaction: Transaction, direction: 1 | -1): Promise<void> {
     const { amount, type, account_id, to_account_id } = transaction;
 
     if (type === 'income') {
-      // Income increases balance
-      await AccountRepository.updateBalance(account_id, amount * direction);
+      await this.updateAccountBalance(account_id, amount * direction);
     } else if (type === 'expense') {
-      // Expense decreases balance
-      await AccountRepository.updateBalance(account_id, -amount * direction);
+      await this.updateAccountBalance(account_id, -amount * direction);
     } else if (type === 'transfer' && to_account_id) {
-      // Transfer: decreases source, increases destination
       await Promise.all([
-        AccountRepository.updateBalance(account_id, -amount * direction),
-        AccountRepository.updateBalance(to_account_id, amount * direction)
+        this.updateAccountBalance(account_id, -amount * direction),
+        this.updateAccountBalance(to_account_id, amount * direction)
       ]);
     }
   }
 
   /**
-   * Retrieves transactions for a specific group with pagination
-   * @param groupId - Group ID
-   * @param options - Pagination options (limit, offset)
-   * @returns Paginated transactions with metadata
+   * Get transactions for a group with date filtering
    */
-  static async getTransactionsByGroupPaginated(
+  static async getTransactionsByGroup(
     groupId: string,
-    options?: { limit?: number; offset?: number }
+    options?: TransactionFilterOptions
   ): Promise<{ data: Transaction[]; total: number; hasMore: boolean }> {
-    if (!groupId || groupId.trim() === '') {
-      throw new Error('Group ID is required');
-    }
+    if (!groupId?.trim()) throw new Error('Group ID is required');
 
-    const result = await TransactionRepository.getByGroup(groupId, options);
+    const result = await this.getByGroupDb(groupId, options);
     return {
-      data: serialize(result.data || []) as unknown as Transaction[],
+      data: serialize(result.data) as Transaction[],
       total: result.total,
       hasMore: result.hasMore
     };
   }
 
   /**
-   * Retrieves all transactions for a specific group (for calculations)
-   * WARNING: Use sparingly - fetches all data. Prefer paginated version for UI.
+   * Get transactions for a user with date filtering
    */
-  static async getTransactionsByGroup(groupId: string): Promise<Transaction[]> {
-    if (!groupId || groupId.trim() === '') {
-      throw new Error('Group ID is required');
-    }
+  static async getTransactionsByUser(userId: string, options?: TransactionFilterOptions): Promise<Transaction[]> {
+    if (!userId?.trim()) throw new Error('User ID is required');
 
     const getCachedTransactions = cached(
       async () => {
-        // Fetch all for calculations (high limit)
-        const result = await TransactionRepository.getByGroup(groupId, { limit: 10000 });
-        return serialize(result.data || []) as unknown as Transaction[];
-      },
-      transactionCacheKeys.byGroup(groupId),
-      cacheOptions.transactionsByGroup(groupId)
-    );
-
-    const transactions = await getCachedTransactions();
-
-    return transactions;
-  }
-
-  /**
-   * Retrieves all transactions for a specific user
-   */
-  static async getTransactionsByUser(userId: string): Promise<Transaction[]> {
-    if (!userId || userId.trim() === '') {
-      throw new Error('User ID is required');
-    }
-
-    const getCachedTransactions = cached(
-      async () => {
-        const result = await TransactionRepository.getByUser(userId);
-        // Assuming result.data is the array of transactions
-        return serialize(result.data || []) as unknown as Transaction[];
+        const result = await this.getByUserDb(userId, options);
+        return serialize(result.data) as Transaction[];
       },
       transactionCacheKeys.byUser(userId),
       cacheOptions.transactionsByUser(userId)
     );
 
-    const transactions = await getCachedTransactions();
-
-    return transactions;
+    return getCachedTransactions();
   }
 
   /**
-   * Retrieves transaction count for a specific user
-   * Optimized to avoiding fetching full dataset
+   * Get transaction count for a user (optimized - only fetches count)
    */
   static async getTransactionCountByUser(userId: string): Promise<number> {
-    if (!userId || userId.trim() === '') {
-      throw new Error('User ID is required');
-    }
+    if (!userId?.trim()) throw new Error('User ID is required');
 
     const getCachedCount = cached(
       async () => {
-        // Use limit: 0 to only fetch count
-        const result = await TransactionRepository.getByUser(userId, { limit: 0 });
-        return result.total;
+        const { count, error } = await supabase
+          .from('transactions')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', userId);
+
+        if (error) throw new Error(error.message);
+        return count || 0;
       },
       [`user:${userId}:transactions:count`],
-      {
-        revalidate: 300, // 5 minutes cache for counts
-        tags: [CACHE_TAGS.TRANSACTIONS, `user:${userId}:transactions`],
-      }
+      { revalidate: 300, tags: [CACHE_TAGS.TRANSACTIONS, `user:${userId}:transactions`] }
     );
 
     return getCachedCount();
   }
 
   /**
-   * Retrieves all transactions for a specific account
+   * Get transactions for an account
    */
   static async getTransactionsByAccount(accountId: string): Promise<Transaction[]> {
-    if (!accountId || accountId.trim() === '') {
-      throw new Error('Account ID is required');
-    }
+    if (!accountId?.trim()) throw new Error('Account ID is required');
 
     const getCachedTransactions = cached(
       async () => {
-        const transactions = await TransactionRepository.getByAccount(accountId);
-        return serialize(transactions || []) as unknown as Transaction[];
+        const transactions = await this.getByAccountDb(accountId);
+        return serialize(transactions) as Transaction[];
       },
       transactionCacheKeys.byAccount(accountId),
       cacheOptions.transactionsByAccount(accountId)
     );
 
-    const transactions = await getCachedTransactions();
-
-    return transactions;
+    return getCachedTransactions();
   }
 
   /**
    * Get a single transaction by ID
    */
   static async getTransactionById(transactionId: string): Promise<Transaction> {
-    if (!transactionId || transactionId.trim() === '') {
-      throw new Error('Transaction ID is required');
-    }
+    if (!transactionId?.trim()) throw new Error('Transaction ID is required');
 
     const getCachedTransaction = cached(
       async () => {
-        const transaction = await TransactionRepository.getById(transactionId);
+        const transaction = await this.getByIdDb(transactionId);
         if (!transaction) throw new Error('Transaction not found');
-        return serialize(transaction) as unknown as Transaction;
+        return serialize(transaction) as Transaction;
       },
       ['transaction', 'id', transactionId],
-      {
-        revalidate: 120,
-        tags: [CACHE_TAGS.TRANSACTIONS, `transaction:${transactionId}`],
-      }
+      { revalidate: 120, tags: [CACHE_TAGS.TRANSACTIONS, `transaction:${transactionId}`] }
     );
 
-    const transaction = await getCachedTransaction();
-
-    return transaction;
+    return getCachedTransaction();
   }
 
   /**
    * Create a new transaction
    */
   static async createTransaction(data: CreateTransactionInput): Promise<Transaction> {
-    if (!data.description || data.description.trim() === '') {
-      throw new Error('Description is required');
-    }
-
-    if (!data.amount || data.amount <= 0) {
-      throw new Error('Amount must be greater than zero');
-    }
-
-    if (!data.type) {
-      throw new Error('Transaction type is required');
-    }
-
-    if (!['income', 'expense', 'transfer'].includes(data.type)) {
-      throw new Error('Invalid transaction type');
-    }
-
-    if (!data.category || data.category.trim() === '') {
-      throw new Error('Category is required');
-    }
-
-    if (!data.account_id || data.account_id.trim() === '') {
-      throw new Error('Account is required');
-    }
-
-    if (!data.date) {
-      throw new Error('Date is required');
-    }
-
-    if (!data.group_id || data.group_id.trim() === '') {
-      throw new Error('Group ID is required');
-    }
+    // Validation
+    if (!data.description?.trim()) throw new Error('Description is required');
+    if (!data.amount || data.amount <= 0) throw new Error('Amount must be greater than zero');
+    if (!data.type || !['income', 'expense', 'transfer'].includes(data.type)) throw new Error('Invalid transaction type');
+    if (!data.category?.trim()) throw new Error('Category is required');
+    if (!data.account_id?.trim()) throw new Error('Account is required');
+    if (!data.date) throw new Error('Date is required');
+    if (!data.group_id?.trim()) throw new Error('Group ID is required');
 
     if (data.type === 'transfer') {
-      if (!data.to_account_id || data.to_account_id.trim() === '') {
-        throw new Error('Destination account is required for transfers');
-      }
-
-      if (data.to_account_id === data.account_id) {
-        throw new Error('Source and destination accounts must be different');
-      }
+      if (!data.to_account_id?.trim()) throw new Error('Destination account is required for transfers');
+      if (data.to_account_id === data.account_id) throw new Error('Source and destination accounts must be different');
     }
 
-    const createData = {
+    const createData: TransactionInsert = {
       description: data.description.trim(),
       amount: data.amount,
       type: data.type,
@@ -312,178 +469,85 @@ export class TransactionService {
       group_id: data.group_id,
     };
 
-    const transaction = await TransactionRepository.create(createData);
+    const transaction = await this.createDb(createData);
+    await this.updateBalancesForTransaction(transaction, 1);
 
-    if (!transaction) {
-      throw new Error('Failed to create transaction');
-    }
+    // Cache invalidation
+    const tags = [CACHE_TAGS.TRANSACTIONS, CACHE_TAGS.ACCOUNTS, `account:${data.account_id}:transactions`, `group:${data.group_id}:transactions`];
+    if (data.user_id) tags.push(`user:${data.user_id}:transactions`, `user:${data.user_id}:budgets`);
+    if (data.to_account_id) tags.push(`account:${data.to_account_id}:transactions`);
+    tags.push(`group:${data.group_id}:budgets`);
+    tags.forEach(tag => revalidateTag(tag, 'max'));
 
-    // Update account balance
-    await this.updateBalancesForTransaction(transaction as unknown as Transaction, 1);
-
-    const tagsToInvalidate: string[] = [
-      CACHE_TAGS.TRANSACTIONS,
-      CACHE_TAGS.ACCOUNTS,
-      `account:${data.account_id}:transactions`,
-      `group:${data.group_id}:transactions`,
-    ];
-    if (data.user_id) {
-      tagsToInvalidate.push(`user:${data.user_id}:transactions`);
-      tagsToInvalidate.push(`user:${data.user_id}:budgets`);
-    }
-    if (data.to_account_id) {
-      tagsToInvalidate.push(`account:${data.to_account_id}:transactions`);
-    }
-    tagsToInvalidate.push(`group:${data.group_id}:budgets`);
-
-    for (const tag of tagsToInvalidate) {
-      revalidateTag(tag, 'max');
-    }
-
-    return serialize(transaction) as unknown as Transaction;
+    return serialize(transaction) as Transaction;
   }
 
   /**
    * Update an existing transaction
    */
-  static async updateTransaction(
-    id: string,
-    data: UpdateTransactionInput
-  ): Promise<Transaction> {
-    if (!id || id.trim() === '') {
-      throw new Error('Transaction ID is required');
-    }
+  static async updateTransaction(id: string, data: UpdateTransactionInput): Promise<Transaction> {
+    if (!id?.trim()) throw new Error('Transaction ID is required');
 
-    const existingTransaction = await TransactionRepository.getById(id);
-
-    if (!existingTransaction) {
-      throw new Error('Transaction not found');
-    }
-
-    const existing = existingTransaction as unknown as Transaction;
+    const existing = await this.getByIdDb(id);
+    if (!existing) throw new Error('Transaction not found');
 
     if (data.type === 'transfer' || existing.type === 'transfer') {
       const toAccountId = data.to_account_id ?? existing.to_account_id;
       const accountId = data.account_id ?? existing.account_id;
-
-      if (data.type === 'transfer' && !toAccountId) {
-        throw new Error('Destination account is required for transfers');
-      }
-
-      if (toAccountId === accountId) {
-        throw new Error('Source and destination accounts must be different');
-      }
+      if (data.type === 'transfer' && !toAccountId) throw new Error('Destination account is required for transfers');
+      if (toAccountId === accountId) throw new Error('Source and destination accounts must be different');
     }
 
-    const updateData: any = {
-      updated_at: new Date().toISOString(),
-    };
-
+    const updateData: TransactionUpdate = { updated_at: new Date().toISOString() };
     if (data.description !== undefined) updateData.description = data.description.trim();
     if (data.amount !== undefined) updateData.amount = data.amount;
     if (data.type !== undefined) updateData.type = data.type;
     if (data.category !== undefined) updateData.category = data.category;
-    if (data.date !== undefined) {
-      updateData.date = typeof data.date === 'string' ? new Date(data.date).toISOString() : data.date.toISOString();
-    }
+    if (data.date !== undefined) updateData.date = typeof data.date === 'string' ? new Date(data.date).toISOString() : data.date.toISOString();
     if (data.user_id !== undefined) updateData.user_id = data.user_id;
     if (data.account_id !== undefined) updateData.account_id = data.account_id;
-
-    // Handle to_account_id update
-    if (data.to_account_id !== undefined) {
-      updateData.to_account_id = data.to_account_id;
-    }
-
+    if (data.to_account_id !== undefined) updateData.to_account_id = data.to_account_id;
     if (data.group_id !== undefined) updateData.group_id = data.group_id;
 
-    const updatedTransaction = await TransactionRepository.update(id, updateData);
+    const updated = await this.updateDb(id, updateData);
 
-    if (!updatedTransaction) {
-      throw new Error('Failed to update transaction');
-    }
-
-    // Update account balances: Revert old, Apply new
+    // Balance updates
     await this.updateBalancesForTransaction(existing, -1);
-    await this.updateBalancesForTransaction(updatedTransaction as unknown as Transaction, 1);
+    await this.updateBalancesForTransaction(updated, 1);
 
-    const tagsToInvalidate: string[] = [CACHE_TAGS.TRANSACTIONS, CACHE_TAGS.ACCOUNTS];
+    // Cache invalidation
+    const tags: string[] = [CACHE_TAGS.TRANSACTIONS, CACHE_TAGS.ACCOUNTS];
+    if (existing.user_id) tags.push(`user:${existing.user_id}:transactions`, `user:${existing.user_id}:budgets`);
+    if (data.user_id && data.user_id !== existing.user_id) tags.push(`user:${data.user_id}:transactions`, `user:${data.user_id}:budgets`);
+    tags.push(`account:${existing.account_id}:transactions`);
+    if (existing.to_account_id) tags.push(`account:${existing.to_account_id}:transactions`);
+    if (data.account_id && data.account_id !== existing.account_id) tags.push(`account:${data.account_id}:transactions`);
+    if (data.to_account_id && data.to_account_id !== existing.to_account_id) tags.push(`account:${data.to_account_id}:transactions`);
+    if (existing.group_id) tags.push(`group:${existing.group_id}:transactions`, `group:${existing.group_id}:budgets`);
+    if (data.group_id && data.group_id !== existing.group_id) tags.push(`group:${data.group_id}:transactions`, `group:${data.group_id}:budgets`);
+    tags.forEach(tag => revalidateTag(tag as any, 'max'));
 
-    if (existing.user_id) {
-      tagsToInvalidate.push(`user:${existing.user_id}:transactions`);
-      tagsToInvalidate.push(`user:${existing.user_id}:budgets`);
-    }
-    if (data.user_id && data.user_id !== existing.user_id) {
-      tagsToInvalidate.push(`user:${data.user_id}:transactions`);
-      tagsToInvalidate.push(`user:${data.user_id}:budgets`);
-    }
-
-    tagsToInvalidate.push(`account:${existing.account_id}:transactions`);
-    if (existing.to_account_id) {
-      tagsToInvalidate.push(`account:${existing.to_account_id}:transactions`);
-    }
-
-    if (data.account_id && data.account_id !== existing.account_id) {
-      tagsToInvalidate.push(`account:${data.account_id}:transactions`);
-    }
-    if (data.to_account_id && data.to_account_id !== existing.to_account_id) {
-      tagsToInvalidate.push(`account:${data.to_account_id}:transactions`);
-    }
-
-    if (existing.group_id) {
-      tagsToInvalidate.push(`group:${existing.group_id}:transactions`);
-      tagsToInvalidate.push(`group:${existing.group_id}:budgets`);
-    }
-    if (data.group_id && data.group_id !== existing.group_id) {
-      tagsToInvalidate.push(`group:${data.group_id}:transactions`);
-      tagsToInvalidate.push(`group:${data.group_id}:budgets`);
-    }
-
-    for (const tag of tagsToInvalidate) {
-      revalidateTag(tag, 'max');
-    }
-
-    return serialize(updatedTransaction) as unknown as Transaction;
+    return serialize(updated) as Transaction;
   }
 
   /**
    * Delete a transaction
    */
   static async deleteTransaction(id: string): Promise<{ id: string }> {
-    if (!id || id.trim() === '') {
-      throw new Error('Transaction ID is required');
-    }
+    if (!id?.trim()) throw new Error('Transaction ID is required');
 
-    const existingTransaction = await TransactionRepository.getById(id);
+    const existing = await this.getByIdDb(id);
+    if (!existing) throw new Error('Transaction not found');
 
-    if (!existingTransaction) {
-      throw new Error('Transaction not found');
-    }
-
-    const existing = existingTransaction as unknown as Transaction;
-
-    await TransactionRepository.delete(id);
-
-    // Update account balance (revert transaction)
+    await this.deleteDb(id);
     await this.updateBalancesForTransaction(existing, -1);
 
-    const tagsToInvalidate: string[] = [
-      CACHE_TAGS.TRANSACTIONS,
-      CACHE_TAGS.ACCOUNTS,
-      `account:${existing.account_id}:transactions`,
-      `group:${existing.group_id}:transactions`,
-    ];
-    if (existing.user_id) {
-      tagsToInvalidate.push(`user:${existing.user_id}:transactions`);
-      tagsToInvalidate.push(`user:${existing.user_id}:budgets`);
-    }
-    if (existing.to_account_id) {
-      tagsToInvalidate.push(`account:${existing.to_account_id}:transactions`);
-    }
-    tagsToInvalidate.push(`group:${existing.group_id}:budgets`);
-
-    for (const tag of tagsToInvalidate) {
-      revalidateTag(tag, 'max');
-    }
+    // Cache invalidation
+    const tags = [CACHE_TAGS.TRANSACTIONS, CACHE_TAGS.ACCOUNTS, `account:${existing.account_id}:transactions`, `group:${existing.group_id}:transactions`];
+    if (existing.user_id) tags.push(`user:${existing.user_id}:transactions`, `user:${existing.user_id}:budgets`);
+    if (existing.to_account_id) tags.push(`account:${existing.to_account_id}:transactions`);
+    tags.push(`group:${existing.group_id}:budgets`);
+    tags.forEach(tag => revalidateTag(tag, 'max'));
 
     return { id };
   }
@@ -491,23 +555,13 @@ export class TransactionService {
   /**
    * Calculate report metrics from transactions
    */
-  static calculateReportMetrics(
-    transactions: Transaction[],
-    userId?: string
-  ): ReportMetrics {
-    const userIdFilter = userId || undefined;
+  static calculateReportMetrics(transactions: Transaction[], userId?: string): ReportMetrics {
     const breakdown = FinanceLogicService.calculateCategoryBreakdown(
-      transactions.filter(t => !userIdFilter || t.user_id === userIdFilter)
+      transactions.filter(t => !userId || t.user_id === userId)
     );
 
-    const income = breakdown
-      .filter((item: CategoryBreakdownItem) => item.received > 0)
-      .reduce((sum: number, item: CategoryBreakdownItem) => sum + item.received, 0);
-
-    const expenses = breakdown
-      .filter((item: CategoryBreakdownItem) => item.spent > 0)
-      .reduce((sum: number, item: CategoryBreakdownItem) => sum + item.spent, 0);
-
+    const income = breakdown.filter((i: CategoryBreakdownItem) => i.received > 0).reduce((s: number, i: CategoryBreakdownItem) => s + i.received, 0);
+    const expenses = breakdown.filter((i: CategoryBreakdownItem) => i.spent > 0).reduce((s: number, i: CategoryBreakdownItem) => s + i.spent, 0);
     const netSavings = income - expenses;
     const savingsRate = income > 0 ? (netSavings / income) * 100 : 0;
 
@@ -516,61 +570,7 @@ export class TransactionService {
       expenses,
       netSavings,
       savingsRate,
-      categories: breakdown.map((item: CategoryBreakdownItem) => ({
-        name: item.category,
-        amount: item.spent,
-        percentage: item.percentage
-      }))
+      categories: breakdown.map((i: CategoryBreakdownItem) => ({ name: i.category, amount: i.spent, percentage: i.percentage }))
     };
-  }
-
-  /**
-   * Group transactions by date
-   */
-  static groupTransactionsByDate(
-    transactions: Transaction[],
-    locale: string = 'it-IT'
-  ): Record<string, Transaction[]> {
-    return transactions.reduce(
-      (groups: Record<string, Transaction[]>, transaction) => {
-        const txDate = toDateTime(transaction.date);
-        if (!txDate) return groups;
-
-        const dateLabel = formatDateSmart(txDate, locale);
-
-        if (!groups[dateLabel]) {
-          groups[dateLabel] = [];
-        }
-
-        groups[dateLabel].push(transaction);
-        return groups;
-      },
-      {}
-    );
-  }
-
-  /**
-   * Calculate daily totals from grouped transactions
-   */
-  static calculateDailyTotals(
-    groupedTransactions: Record<string, Transaction[]>
-  ): Record<string, { income: number; expense: number }> {
-    const totals: Record<string, { income: number; expense: number }> = {};
-
-    Object.entries(groupedTransactions).forEach(([date, transactions]) => {
-      totals[date] = transactions.reduce(
-        (acc, t) => {
-          if (t.type === 'income') {
-            acc.income += t.amount;
-          } else if (t.type === 'expense') {
-            acc.expense += t.amount;
-          }
-          return acc;
-        },
-        { income: 0, expense: 0 }
-      );
-    });
-
-    return totals;
   }
 }

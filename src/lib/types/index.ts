@@ -158,6 +158,7 @@ export interface Category {
   key: string;
   icon: string;
   color: string;
+  group_id: string; // Added field matching DB
   created_at: string | Date;
   updated_at: string | Date;
 }

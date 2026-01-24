@@ -3,11 +3,9 @@
 import { revalidateTag } from 'next/cache';
 
 import { getCurrentUser } from '@/lib/auth/cached-auth';
-import { CreateCategoryInput, UpdateCategoryInput } from '@/server/services';
+import { CreateCategoryInput, UpdateCategoryInput, CategoryService } from '@/server/services';
 import type { Category } from '@/lib/types';
-import { CategoryRepository } from '@/server/dal';
 import { FinanceLogicService } from '@/server/services';
-import { CACHE_TAGS } from '@/lib/cache/config';
 
 type ServiceResult<T> = {
   data: T | null;
@@ -16,11 +14,6 @@ type ServiceResult<T> = {
 
 /**
  * Server action to get all categories
- * (Actually this should probably filter by user/group context, but replicating Service behavior for now which returned all?)
- * Service.getAllCategories returned all. Assuming RLS handled filtering before.
- * Now with Prisma we must filter manually if we want security.
- * BUT: The original action simply called Service.getAllCategories.
- * I will implement it safely by getting the user's group.
  */
 export async function getAllCategoriesAction(): Promise<ServiceResult<Category[]>> {
   try {
@@ -31,9 +24,10 @@ export async function getAllCategoriesAction(): Promise<ServiceResult<Category[]
       return { data: [], error: null };
     }
 
-    // Fetch categories for user's group
-    const categories = await CategoryRepository.getByGroup(currentUser.group_id);
-    return { data: categories as unknown as Category[], error: null };
+    // Fetch categories for user's group using Service
+    // Note: CategoryService.getCategoriesByGroup filters by group
+    const categories = await CategoryService.getCategoriesByGroup(currentUser.group_id);
+    return { data: categories, error: null };
   } catch (error) {
     return {
       data: null,
@@ -44,7 +38,6 @@ export async function getAllCategoriesAction(): Promise<ServiceResult<Category[]
 
 /**
  * Server action to create a new category
- * Wraps CategoryRepository.create
  */
 export async function createCategoryAction(input: CreateCategoryInput): Promise<ServiceResult<Category>> {
   try {
@@ -72,20 +65,16 @@ export async function createCategoryAction(input: CreateCategoryInput): Promise<
       return { data: null, error: 'Invalid color format. Use hex format (e.g., #FF0000)' };
     }
 
-    const category = await CategoryRepository.create({
-      label: input.label.trim(),
-      key: input.key.trim().toLowerCase(),
-      icon: input.icon.trim(),
-      color: input.color.trim().toUpperCase(),
-      group_id: input.group_id
-    });
+    const category = await CategoryService.createCategory(input);
 
     if (category) {
       // Invalidate caches
-      revalidateTag(CACHE_TAGS.CATEGORIES, 'max');
+      // Service handles some tags, but actions might need broader revalidation if needed
+      // Service handles CATEGORIES tag.
+
       revalidateTag(`group:${input.group_id}:categories`, 'max');
 
-      return { data: category as unknown as Category, error: null };
+      return { data: category, error: null };
     }
 
     return { data: null, error: 'Failed to create category' };
@@ -99,7 +88,6 @@ export async function createCategoryAction(input: CreateCategoryInput): Promise<
 
 /**
  * Server action to update an existing category
- * Wraps CategoryRepository.update
  */
 export async function updateCategoryAction(id: string, input: UpdateCategoryInput): Promise<ServiceResult<Category>> {
   try {
@@ -109,7 +97,7 @@ export async function updateCategoryAction(id: string, input: UpdateCategoryInpu
       return { data: null, error: 'Non autenticato' };
     }
 
-    const existingCategory = await CategoryRepository.getById(id);
+    const existingCategory = await CategoryService.getCategoryById(id);
     if (!existingCategory) return { data: null, error: 'Category not found' };
 
     // Permission check
@@ -125,18 +113,12 @@ export async function updateCategoryAction(id: string, input: UpdateCategoryInpu
       if (!FinanceLogicService.isValidColor(input.color)) return { data: null, error: 'Invalid color format' };
     }
 
-    const category = await CategoryRepository.update(id, {
-      label: input.label?.trim(),
-      icon: input.icon?.trim(),
-      color: input.color?.trim().toUpperCase(),
-    });
+    const category = await CategoryService.updateCategory(id, input);
 
     if (category) {
-      revalidateTag(CACHE_TAGS.CATEGORIES, 'max');
-      revalidateTag(CACHE_TAGS.CATEGORY(id), 'max');
       revalidateTag(`group:${existingCategory.group_id}:categories`, 'max');
 
-      return { data: category as unknown as Category, error: null };
+      return { data: category, error: null };
     }
 
     return { data: null, error: 'Failed to update category' };
@@ -150,7 +132,6 @@ export async function updateCategoryAction(id: string, input: UpdateCategoryInpu
 
 /**
  * Server action to delete a category
- * Wraps CategoryRepository.delete
  */
 export async function deleteCategoryAction(id: string): Promise<ServiceResult<{ id: string }>> {
   try {
@@ -160,7 +141,7 @@ export async function deleteCategoryAction(id: string): Promise<ServiceResult<{ 
       return { data: null, error: 'Non autenticato' };
     }
 
-    const existingCategory = await CategoryRepository.getById(id);
+    const existingCategory = await CategoryService.getCategoryById(id);
     if (!existingCategory) return { data: null, error: 'Category not found' };
 
     // Permission check
@@ -168,14 +149,11 @@ export async function deleteCategoryAction(id: string): Promise<ServiceResult<{ 
       return { data: null, error: 'Permission denied' };
     }
 
-    const result = await CategoryRepository.delete(id);
+    const result = await CategoryService.deleteCategory(id);
 
     if (result) {
-      revalidateTag(CACHE_TAGS.CATEGORIES, 'max');
-      revalidateTag(CACHE_TAGS.CATEGORY(id), 'max');
       revalidateTag(`group:${existingCategory.group_id}:categories`, 'max');
-
-      return { data: { id }, error: null };
+      return { data: result, error: null };
     }
 
     return { data: null, error: 'Failed to delete category' };

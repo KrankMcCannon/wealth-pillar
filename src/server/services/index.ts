@@ -14,7 +14,7 @@ export { UserPreferencesService, type UserPreferences } from "./user-preferences
 export { GroupService } from "./group.service";
 export { GroupInvitationService, type GroupInvitation, type CreateInvitationInput } from "./group-invitation.service";
 export { BudgetPeriodService } from "./budget-period.service";
-export { RecurringService as RecurringTransactionService } from "./recurring.service";
+export { RecurringService, RecurringService as RecurringTransactionService } from "./recurring.service";
 export { FinanceLogicService } from "./finance-logic.service";
 export { ReportPeriodService, type EnrichedBudgetPeriod } from "./report-period.service";
 export { PageDataService } from "./page-data.service";

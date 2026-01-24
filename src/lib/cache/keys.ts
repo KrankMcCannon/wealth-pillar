@@ -119,6 +119,12 @@ export const categoryCacheKeys = {
   byKey: (key: string) => ['category', 'key', key] as const,
 
   /**
+   * Cache key for category by group
+   * @param groupId - Group ID
+   */
+  byGroup: (groupId: string) => ['category', 'group', groupId] as const,
+
+  /**
    * Cache key for all categories
    */
   all: () => ['categories'] as const,

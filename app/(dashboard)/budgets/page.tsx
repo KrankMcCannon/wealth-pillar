@@ -23,6 +23,7 @@ export default async function BudgetsPage() {
     accounts = [],
     categories = [],
     budgetPeriods = {},
+    budgetsByUser = {},
   } = pageData;
 
   return (
@@ -35,6 +36,7 @@ export default async function BudgetsPage() {
         budgetPeriods={budgetPeriods}
         currentUser={currentUser}
         groupUsers={groupUsers}
+        precalculatedData={budgetsByUser}
       />
     </Suspense>
   );

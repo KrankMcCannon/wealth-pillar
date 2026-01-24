@@ -46,7 +46,7 @@ import {
   diffInDays,
 } from "@/lib/utils/date-utils";
 import { FinanceLogicService } from "@/server/services/finance-logic.service";
-import type { Category, Budget, Transaction, Account, BudgetPeriod, User } from "@/lib/types";
+import type { Category, Budget, Transaction, Account, BudgetPeriod, User, UserBudgetSummary } from "@/lib/types";
 import type { ChartDataPoint } from "@/features/budgets/components/BudgetChart";
 import { usePageDataStore } from "@/stores/page-data-store";
 
@@ -61,6 +61,7 @@ interface BudgetsContentProps {
   budgetPeriods: Record<string, BudgetPeriod | null>;
   currentUser: User;
   groupUsers: User[];
+  precalculatedData?: Record<string, UserBudgetSummary>;
 }
 
 /**
@@ -77,6 +78,7 @@ export default function BudgetsContent({
   budgetPeriods,
   currentUser,
   groupUsers,
+  precalculatedData,
 }: BudgetsContentProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -182,6 +184,7 @@ export default function BudgetsContent({
     currentUser,
     selectedUserId: selectedBudgetUser.id,
     budgetPeriods,
+    precalculatedData,
   });
   const userBudgetSummary = budgetsByUser[selectedBudgetUser.id] || null;
 

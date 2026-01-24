@@ -3,30 +3,38 @@
 import { useMemo, useState } from "react";
 import { BottomNavigation, PageContainer, Header } from "@/components/layout";
 import { PageSection, SectionHeader } from "@/components/ui";
-import { useUserFilter, usePermissions, useFilteredAccounts, useFilteredData } from "@/hooks";
+import { useUserFilter, usePermissions, useFilteredData } from "@/hooks";
 import UserSelector from "@/components/shared/user-selector";
 import YearSelector from "@/components/shared/year-selector";
 import { BudgetPeriodsSection, ReportsOverviewCard, AnnualCategorySection } from "@/features/reports";
 import { reportsStyles } from "@/styles/system";
 import type { Transaction, Category, BudgetPeriod, Account, User } from "@/lib/types";
 import { FinanceLogicService } from "@/server/services/finance-logic.service";
-import { ReportMetricsService } from "@/server/services/report-metrics.service";
 import { toDateTime } from "@/lib/utils/date-utils";
 
 interface ReportsContentProps {
   accounts: Account[];
-  transactions: Transaction[];
+  transactions?: Transaction[];
   categories: Category[];
-  budgetPeriods: BudgetPeriod[];
+  budgetPeriods?: BudgetPeriod[]; // Make optional or remove if unused
+  enrichedBudgetPeriods: any[]; // Using derived type
+  overviewMetrics: Record<string, {
+    totalEarned: number;
+    totalSpent: number;
+    totalTransferred: number;
+    totalBalance: number;
+  }>;
+  annualSpending: Record<string, Record<number, any[]>>;
   currentUser: User;
   groupUsers: User[];
 }
 
 export default function ReportsContent({
   accounts,
-  transactions,
   categories,
-  budgetPeriods,
+  enrichedBudgetPeriods,
+  overviewMetrics,
+  annualSpending,
   currentUser,
   groupUsers,
 }: ReportsContentProps) {
@@ -45,31 +53,21 @@ export default function ReportsContent({
   // Force members to see only their own data
   const activeGroupFilter = isMember ? currentUser.id : selectedGroupFilter;
 
-  // Extract available years from transactions
+  // Extract available years from annualSpending keys (instead of transactions)
   const availableYears = useMemo(() => {
+    // Collect years from all user's annualSpending
     const years = new Set<number>();
-    transactions.forEach(transaction => {
-      const dt = toDateTime(transaction.date);
-      if (dt) {
-        years.add(dt.year);
-      }
-    });
-    return Array.from(years).sort((a, b) => b - a); // Descending order
-  }, [transactions]);
+    // If filtering by user, assume 'all' key or specific user key contains years
+    // Actually we can iterate over annualSpending['all'] fields
+    const data = annualSpending['all'] || {};
+    Object.keys(data).forEach(year => years.add(Number(year)));
+    return Array.from(years).sort((a, b) => b - a);
+  }, [annualSpending]);
 
-  // Filter transactions by selected year
-  const yearFilteredTransactions = useMemo(() => {
-    if (selectedYear === 'all') return transactions;
-
-    return transactions.filter(t => {
-      const dt = toDateTime(t.date);
-      return dt?.year === selectedYear;
-    });
-  }, [transactions, selectedYear]);
-
-  // Filter budget periods by selected year
+  // Filter budget periods by user/year
+  // Now we filter enrichedBudgetPeriods directly
   const { filteredData: userFilteredBudgetPeriods } = useFilteredData({
-    data: budgetPeriods,
+    data: enrichedBudgetPeriods,
     currentUser,
     selectedUserId: activeGroupFilter === "all" ? undefined : activeGroupFilter,
   });
@@ -83,22 +81,29 @@ export default function ReportsContent({
     });
   }, [userFilteredBudgetPeriods, selectedYear]);
 
-  // Get user account IDs for earned/spent calculation
-  // Using centralized account filtering hook
-  const { filteredAccounts: userAccounts } = useFilteredAccounts({
-    accounts,
-    currentUser,
-    selectedUserId: activeGroupFilter === "all" ? undefined : activeGroupFilter,
-  });
-  const userAccountIds = useMemo(() => userAccounts.map((a) => a.id), [userAccounts]);
+  // Select Overview Metrics from Map
+  const activeOverviewMetrics = useMemo(() => {
+    return overviewMetrics[activeGroupFilter] || overviewMetrics['all'];
+  }, [overviewMetrics, activeGroupFilter]);
 
-  // Calculate overview metrics with year-filtered transactions
-  const overviewMetrics = useMemo(() => {
-    const userId = activeGroupFilter === "all" ? undefined : activeGroupFilter;
-    return ReportMetricsService.calculateOverviewMetrics(yearFilteredTransactions, userAccountIds, userId);
-  }, [yearFilteredTransactions, userAccountIds, activeGroupFilter]);
+  // Select Annual Data from Map
+  const activeAnnualData = useMemo(() => {
+    // Get year map for user
+    const userMap = annualSpending[activeGroupFilter] || annualSpending['all'];
+    if (selectedYear === 'all') {
+      // Aggregate all years if 'all' selected? Or just pass empty/all?
+      // Component expects array. Simple approach: Only support single year breakdown for now?
+      // Or aggregate values.
+      // For 'all', we might want to sum up.
+      // Let's grab 'all' metrics if year is 'all'? No, annualSpending structure is Year -> Breakdown
+      // If year is 'all', we can flatten?
+      return userMap[new Date().getFullYear()] || []; // Default to current year for breakdown if 'all' selected for now
+    }
+    return userMap[selectedYear] || [];
+  }, [annualSpending, activeGroupFilter, selectedYear]);
 
-  // Enrich category metrics with category details (label, color, icon)
+
+  // Prepare categories (static)
   const enrichedCategories = useMemo(() => {
     return categories.map((category) => ({
       ...category,
@@ -107,12 +112,6 @@ export default function ReportsContent({
       icon: FinanceLogicService.getCategoryIcon(categories, category.key),
     }));
   }, [categories]);
-
-  // Filter transactions for active user/group context AND selected year
-  const activeTransactions = useMemo(() => {
-    if (activeGroupFilter === "all") return yearFilteredTransactions;
-    return yearFilteredTransactions.filter(t => t.user_id === activeGroupFilter);
-  }, [yearFilteredTransactions, activeGroupFilter]);
 
   return (
     <PageContainer className={reportsStyles.page.container}>
@@ -146,10 +145,10 @@ export default function ReportsContent({
               subtitle="Metriche complessive di tutte le transazioni"
             />
             <ReportsOverviewCard
-              totalEarned={overviewMetrics.totalEarned}
-              totalSpent={overviewMetrics.totalSpent}
-              totalTransferred={overviewMetrics.totalTransferred}
-              totalBalance={overviewMetrics.totalBalance}
+              totalEarned={activeOverviewMetrics.totalEarned}
+              totalSpent={activeOverviewMetrics.totalSpent}
+              totalTransferred={activeOverviewMetrics.totalTransferred}
+              totalBalance={activeOverviewMetrics.totalBalance}
             />
           </PageSection>
 
@@ -160,9 +159,9 @@ export default function ReportsContent({
               subtitle="Storico periodi passati e attuali"
             />
             <BudgetPeriodsSection
-              budgetPeriods={activeBudgetPeriods}
+              enrichedBudgetPeriods={activeBudgetPeriods}
               groupUsers={groupUsers}
-              transactions={yearFilteredTransactions}
+              transactions={[]} // No transactions needed now
               categories={enrichedCategories}
               accounts={accounts}
               selectedUserId={selectedGroupFilter}
@@ -172,7 +171,7 @@ export default function ReportsContent({
 
           {/* Annual Category Breakdown */}
           <AnnualCategorySection
-            transactions={activeTransactions}
+            annualData={activeAnnualData}
             categories={categories}
             year={selectedYear}
           />

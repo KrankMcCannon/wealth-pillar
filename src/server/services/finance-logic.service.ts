@@ -836,53 +836,6 @@ export class FinanceLogicService {
     return Math.round(balance * 100) / 100;
   }
 
-  /**
-   * Calculate balances for multiple accounts (Pure business logic)
-   */
-  static calculateAccountBalances(
-    accountIds: string[],
-    transactions: Transaction[]
-  ): Record<string, number> {
-    // Initialize balances map
-    const balances: Record<string, number> = {};
-    for (const id of accountIds) {
-      balances[id] = 0;
-    }
-
-    // Process each transaction once
-    for (const transaction of transactions) {
-      const sourceAccountId = transaction.account_id;
-      const destAccountId = transaction.to_account_id;
-
-      // Handle transfers (has to_account_id)
-      if (destAccountId) {
-        // Subtract from source account if it's in our list
-        if (balances[sourceAccountId] !== undefined) {
-          balances[sourceAccountId] -= transaction.amount;
-        }
-        // Add to destination account if it's in our list
-        if (balances[destAccountId] !== undefined) {
-          balances[destAccountId] += transaction.amount;
-        }
-      }
-      // Handle regular transactions (no to_account_id)
-      else if (balances[sourceAccountId] !== undefined) {
-        if (transaction.type === 'income') {
-          balances[sourceAccountId] += transaction.amount;
-        } else if (transaction.type === 'expense') {
-          balances[sourceAccountId] -= transaction.amount;
-        }
-      }
-    }
-
-    // Round all balances to 2 decimal places to avoid floating point precision issues
-    for (const accountId of Object.keys(balances)) {
-      balances[accountId] = Math.round(balances[accountId] * 100) / 100;
-    }
-
-    return balances;
-  }
-
   // --- CATEGORY PURE LOGIC ---
 
   /**

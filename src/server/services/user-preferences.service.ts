@@ -1,13 +1,15 @@
 import 'server-only';
+import { revalidateTag } from 'next/cache';
 import { cached } from '@/lib/cache';
 import { CACHE_TAGS, cacheOptions } from '@/lib/cache/config';
 import { userPreferencesCacheKeys } from '@/lib/cache/keys';
-import { UserPreferencesRepository } from '@/server/dal';
-import { revalidateTag } from 'next/cache';
+import { supabase } from '@/server/db/supabase';
+import { cache } from 'react';
 import type { Database } from '@/lib/types/database.types';
-import type { UserPreferencesUpdate } from "@/lib/types";
 
 export type UserPreferences = Database['public']['Tables']['user_preferences']['Row'];
+type UserPreferencesInsert = Database['public']['Tables']['user_preferences']['Insert'];
+type UserPreferencesUpdate = Database['public']['Tables']['user_preferences']['Update'];
 
 /**
  * Default preferences for new users
@@ -28,6 +30,58 @@ const DEFAULT_PREFERENCES = {
  * All methods throw standard errors instead of returning ServiceResult objects
  */
 export class UserPreferencesService {
+  // ================== DATABASE OPERATIONS (inlined from repository) ==================
+
+  private static getByUserIdDb = cache(async (userId: string) => {
+    const { data, error } = await supabase
+      .from('user_preferences')
+      .select('*')
+      .eq('user_id', userId)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') return null;
+      throw new Error(error.message);
+    }
+    return data as UserPreferences;
+  });
+
+  private static async createDb(data: UserPreferencesInsert) {
+    const { data: created, error } = await supabase
+      .from('user_preferences')
+      .insert(data as any as never)
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    return created as UserPreferences;
+  }
+
+  private static async updateDb(userId: string, data: UserPreferencesUpdate) {
+    const { data: updated, error } = await supabase
+      .from('user_preferences')
+      .update(data as any as never)
+      .eq('user_id', userId)
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    return updated as UserPreferences;
+  }
+
+  private static async deleteDb(userId: string) {
+    const { data: deleted, error } = await supabase
+      .from('user_preferences')
+      .delete()
+      .eq('user_id', userId)
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    return deleted as UserPreferences;
+  }
+
+  // ================== SERVICE LAYER ==================
   /**
     * Gets user preferences by user ID
     * Creates default preferences if none exist (lazy initialization)
@@ -43,7 +97,7 @@ export class UserPreferencesService {
     const getCachedPreferences = cached(
       async () => {
         // Try to get existing preferences
-        const prefs = await UserPreferencesRepository.getByUserId(userId);
+        const prefs = await this.getByUserIdDb(userId);
 
         // If preferences don't exist, create defaults
         if (!prefs) {
@@ -81,7 +135,7 @@ export class UserPreferencesService {
         updated_at: now,
       };
 
-      const prefs = await UserPreferencesRepository.create(initialData);
+      const prefs = await this.createDb(initialData);
 
       if (!prefs) {
         throw new Error('Failed to create default preferences');
@@ -133,7 +187,7 @@ export class UserPreferencesService {
       updated_at: new Date().toISOString(),
     };
 
-    const updatedPrefs = await UserPreferencesRepository.update(userId, updateData);
+    const updatedPrefs = await this.updateDb(userId, updateData);
 
     if (!updatedPrefs) {
       throw new Error('Failed to update preferences');
@@ -155,7 +209,7 @@ export class UserPreferencesService {
       throw new Error('User ID is required');
     }
 
-    await UserPreferencesRepository.delete(userId);
+    await this.deleteDb(userId);
 
     // Invalidate cache
     revalidateTag(CACHE_TAGS.USER_PREFERENCES, 'max');

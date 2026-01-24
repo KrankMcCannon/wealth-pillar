@@ -1,13 +1,17 @@
 import 'server-only';
+import { cache } from 'react';
 import { cached } from '@/lib/cache';
 import { CACHE_TAGS, cacheOptions } from '@/lib/cache/config';
 import { groupInvitationCacheKeys } from '@/lib/cache/keys';
-import { GroupInvitationRepository, UserRepository } from '@/server/dal';
+import { supabase } from '@/server/db/supabase';
+import { UserService } from './user.service';
 import { randomBytes } from 'crypto';
 import { revalidateTag } from 'next/cache';
 import type { Database } from '@/lib/types/database.types';
 
 export type GroupInvitation = Database['public']['Tables']['group_invitations']['Row'];
+type GroupInvitationInsert = Database['public']['Tables']['group_invitations']['Insert'];
+type GroupInvitationUpdate = Database['public']['Tables']['group_invitations']['Update'];
 
 /**
  * Invitation creation input
@@ -21,10 +25,97 @@ export interface CreateInvitationInput {
 /**
  * Group Invitation Service
  * Handles all group invitation-related business logic
- *
- * All methods throw standard errors instead of returning ServiceResult objects
  */
 export class GroupInvitationService {
+  // ================== DATABASE OPERATIONS (inlined from repository) ==================
+
+  private static getByIdDb = cache(async (id: string): Promise<GroupInvitation | null> => {
+    const { data, error } = await supabase
+      .from('group_invitations')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') return null;
+      throw new Error(error.message);
+    }
+    return data as GroupInvitation;
+  });
+
+  private static getByTokenDb = cache(async (token: string): Promise<GroupInvitation | null> => {
+    const { data, error } = await supabase
+      .from('group_invitations')
+      .select('*')
+      .eq('invitation_token', token)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') return null;
+      throw new Error(error.message);
+    }
+    return data as GroupInvitation;
+  });
+
+  private static getByGroupDb = cache(async (groupId: string): Promise<GroupInvitation[]> => {
+    const { data, error } = await supabase
+      .from('group_invitations')
+      .select('*')
+      .eq('group_id', groupId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw new Error(error.message);
+    return (data || []) as GroupInvitation[];
+  });
+
+  private static async getPendingByEmailAndGroupDb(email: string, groupId: string): Promise<GroupInvitation | null> {
+    const { data, error } = await supabase
+      .from('group_invitations')
+      .select('*')
+      .eq('email', email)
+      .eq('group_id', groupId)
+      .eq('status', 'pending')
+      .limit(1)
+      .maybeSingle();
+
+    if (error) throw new Error(error.message);
+    return (data as unknown) as GroupInvitation | null;
+  }
+
+  private static async createDb(data: GroupInvitationInsert): Promise<GroupInvitation> {
+    const { data: created, error } = await supabase
+      .from('group_invitations')
+      .insert(data as never)
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    return created as GroupInvitation;
+  }
+
+  private static async updateDb(id: string, data: GroupInvitationUpdate): Promise<GroupInvitation> {
+    const { data: updated, error } = await supabase
+      .from('group_invitations')
+      .update(data as never)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    return updated as GroupInvitation;
+  }
+
+  private static async deleteDb(id: string): Promise<void> {
+    const { error } = await supabase
+      .from('group_invitations')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw new Error(error.message);
+  }
+
+  // ================== SERVICE LAYER ==================
+
   /**
    * Creates a new group invitation
    * Validates email, checks for duplicates, generates secure token
@@ -56,7 +147,7 @@ export class GroupInvitationService {
     const emailLower = email.toLowerCase();
 
     // Check for existing pending invitation
-    const existingInvitation = await GroupInvitationRepository.getPendingByEmailAndGroup(
+    const existingInvitation = await this.getPendingByEmailAndGroupDb(
       emailLower,
       groupId
     );
@@ -66,8 +157,8 @@ export class GroupInvitationService {
     }
 
     // Check if user is already in the group
-    // Using UserRepository to find user by email and check group
-    const existingUser = await UserRepository.getByEmail(emailLower);
+    // Using UserService to find user by email and check group
+    const existingUser = await UserService.getUserByEmail(emailLower);
 
     if (existingUser && existingUser.group_id === groupId) {
       throw new Error('This user is already a member of the group');
@@ -92,7 +183,7 @@ export class GroupInvitationService {
       updated_at: new Date().toISOString()
     };
 
-    const newInvitation = await GroupInvitationRepository.create(createData);
+    const newInvitation = await this.createDb(createData);
 
     if (!newInvitation) {
       throw new Error('Failed to create invitation');
@@ -119,7 +210,7 @@ export class GroupInvitationService {
     // Create cached query function
     const getCachedInvitations = cached(
       async () => {
-        const invitations = await GroupInvitationRepository.getByGroup(groupId);
+        const invitations = await this.getByGroupDb(groupId);
         return invitations;
       },
       groupInvitationCacheKeys.byGroup(groupId),
@@ -141,7 +232,7 @@ export class GroupInvitationService {
     }
 
     // Get invitation to verify it exists and get group ID
-    const invitation = await GroupInvitationRepository.getById(invitationId);
+    const invitation = await this.getByIdDb(invitationId);
 
     if (!invitation) {
       throw new Error('Invitation not found');
@@ -154,7 +245,7 @@ export class GroupInvitationService {
     }
 
     // Update status to cancelled
-    await GroupInvitationRepository.update(invitationId, {
+    await this.updateDb(invitationId, {
       status: 'cancelled',
       updated_at: new Date().toISOString(),
     });
@@ -179,7 +270,7 @@ export class GroupInvitationService {
       throw new Error('Invitation token is required');
     }
 
-    const invitation = await GroupInvitationRepository.getByToken(token);
+    const invitation = await this.getByTokenDb(token);
 
     if (!invitation) {
       throw new Error('Invitation not found');
@@ -191,7 +282,7 @@ export class GroupInvitationService {
 
     if (now > expiresAt && invitation.status === 'pending') {
       // Auto-expire the invitation
-      await GroupInvitationRepository.update(invitation.id, {
+      await this.updateDb(invitation.id, {
         status: 'expired',
         updated_at: new Date().toISOString(),
       });

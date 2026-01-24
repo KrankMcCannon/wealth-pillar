@@ -6,7 +6,7 @@ import type { BudgetPeriod, Budget, Transaction } from '@/lib/types';
 import type { BudgetPeriodJSON } from '@/lib/types';
 import { toDateTime, todayDateString } from '@/lib/utils/date-utils';
 import { DateTime } from 'luxon';
-import { UserRepository } from '@/server/dal/user.repository';
+import { UserService } from './user.service';
 import { revalidateTag } from 'next/cache';
 import type { Json } from '@/lib/types/database.types';
 
@@ -49,8 +49,8 @@ export class BudgetPeriodService {
   static async getPeriodById(periodId: string): Promise<BudgetPeriod | null> {
     const getCachedPeriod = cached(
       async () => {
-        // Use UserRepository custom finder for periods
-        const user = await UserRepository.findUserByPeriodId(periodId);
+        // Use UserService custom finder for periods
+        const user = await UserService.findUserByPeriodId(periodId);
 
         if (!user || !user.budget_periods) return null;
 
@@ -76,7 +76,7 @@ export class BudgetPeriodService {
   static async getPeriodsByUser(userId: string): Promise<BudgetPeriod[]> {
     const getCachedPeriods = cached(
       async () => {
-        const user = await UserRepository.getById(userId);
+        const user = await UserService.getUserById(userId);
 
         if (!user) {
           throw new Error("User not found");
@@ -108,7 +108,7 @@ export class BudgetPeriodService {
   static async getActivePeriod(userId: string): Promise<BudgetPeriod | null> {
     const getCachedPeriod = cached(
       async () => {
-        const user = await UserRepository.getById(userId);
+        const user = await UserService.getUserById(userId);
 
         if (!user) {
           return null;
@@ -149,7 +149,7 @@ export class BudgetPeriodService {
     }
 
     // Fetch current user and periods
-    const user = await UserRepository.getById(userId);
+    const user = await UserService.getUserById(userId);
     if (!user) {
       throw new Error('User not found');
     }
@@ -172,7 +172,7 @@ export class BudgetPeriodService {
     periods.unshift(newPeriod); // Add to start (newest first)
 
     // Update user
-    await UserRepository.update(userId, {
+    await UserService.update(userId, {
       budget_periods: periods as unknown as Json
     });
 
@@ -204,7 +204,7 @@ export class BudgetPeriodService {
     }
 
     // Find user with this period
-    const user = await UserRepository.findUserByPeriodId(periodId);
+    const user = await UserService.findUserByPeriodId(periodId);
     if (!user) {
       throw new Error('Period not found');
     }
@@ -236,7 +236,7 @@ export class BudgetPeriodService {
     );
 
     // Update user
-    await UserRepository.update(user.id, {
+    await UserService.update(user.id, {
       budget_periods: updatedPeriods as unknown as Json
     });
 
@@ -351,7 +351,7 @@ export class BudgetPeriodService {
    */
   static async deletePeriod(periodId: string): Promise<{ id: string }> {
     // Find user with this period
-    const user = await UserRepository.findUserByPeriodId(periodId);
+    const user = await UserService.findUserByPeriodId(periodId);
     if (!user) {
       throw new Error('Period not found');
     }
@@ -360,7 +360,7 @@ export class BudgetPeriodService {
     const newPeriods = periods.filter((p) => p.id !== periodId);
 
     // Update user
-    await UserRepository.update(user.id, {
+    await UserService.update(user.id, {
       budget_periods: newPeriods as unknown as Json
     });
 

@@ -146,6 +146,15 @@ export const cacheOptions = {
   }),
 
   /**
+   * Categories by group cache options
+   * @param groupId - Group ID for tag
+   */
+  categoriesByGroup: (groupId: string) => ({
+    revalidate: CACHE_TTL.CATEGORY,
+    tags: [CACHE_TAGS.CATEGORIES, `group:${groupId}:categories`],
+  }),
+
+  /**
    * All categories cache options
    * Categories rarely change, so longer TTL
    */

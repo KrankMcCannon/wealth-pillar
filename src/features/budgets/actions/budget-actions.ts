@@ -1,14 +1,11 @@
 'use server';
 
-import { revalidatePath, revalidateTag } from 'next/cache';
+import { revalidatePath } from 'next/cache';
 
 import { getCurrentUser } from '@/lib/auth/cached-auth';
-import { CreateBudgetInput, UserService } from '@/server/services';
+import { CreateBudgetInput, BudgetService } from '@/server/services';
 import { canAccessUserData, isMember } from '@/lib/utils';
-import { CACHE_TAGS } from '@/lib/cache/config';
 import type { Budget, User } from '@/lib/types';
-import { BudgetRepository } from '@/server/dal';
-import { serialize } from '@/lib/utils/serializer';
 
 type ServiceResult<T> = {
   data: T | null;
@@ -17,8 +14,7 @@ type ServiceResult<T> = {
 
 /**
  * Server Action: Create Budget
- * Wraps BudgetRepository.create for client component usage
- * Validates permissions and input data
+ * Wrapper for BudgetService.createBudget with additional validation
  */
 export async function createBudgetAction(
   input: CreateBudgetInput
@@ -54,62 +50,21 @@ export async function createBudgetAction(
       };
     }
 
-    // Input Validation (replicating Service logic)
-    if (!input.description || input.description.trim() === '') {
-      return { data: null, error: 'Description is required' };
-    }
-    if (input.description.trim().length < 2) {
-      return { data: null, error: 'Description must be at least 2 characters' };
-    }
-    if (!input.amount || input.amount <= 0) {
-      return { data: null, error: 'Amount must be greater than zero' };
-    }
-    if (!input.type) {
-      return { data: null, error: 'Budget type is required' };
-    }
-    if (!['monthly', 'annually'].includes(input.type)) {
-      return { data: null, error: 'Invalid budget type' };
-    }
-    if (!input.categories || input.categories.length === 0) {
-      return { data: null, error: 'At least one category is required' };
-    }
+    // Resolve group_id (BudgetService handles default logic but we can do it here explicitly if needed)
+    // BudgetService.createBudget handles permission/group resolution too, but we keep this action as a wrapper
+    // Actually, let's delegate to service which now has robust validation
 
-    // Resolve group_id
-    let groupId = input.group_id;
-    if (!groupId) {
-      // If we are creating for current user, use their group_id
-      if (input.user_id === currentUser.id) {
-        groupId = currentUser.group_id || undefined;
-      } else {
-        // Creating for another user (Admin), fetch that user
-        const targetUser = await UserService.getUserById(input.user_id);
-        if (targetUser) {
-          groupId = targetUser.group_id || undefined;
-        }
-      }
-    }
+    // We can just call BudgetService.createBudget - it handles validation.
+    // However, the action is responsible for revalidating paths that might not be known to service (though service does tags)
 
-    const budget = await BudgetRepository.create({
-      description: input.description.trim(),
-      amount: input.amount,
-      type: input.type,
-      icon: input.icon || null,
-      categories: input.categories, // Prisma handles string[] -> Json mapping implicitly usually
-      user_id: input.user_id,
-      group_id: groupId,
-    });
+    const budget = await BudgetService.createBudget(input);
 
     if (budget) {
       // Revalidate paths
       revalidatePath('/budgets');
       revalidatePath('/dashboard');
 
-      // Invalidate budget cache
-      revalidateTag(CACHE_TAGS.USER_BUDGETS(input.user_id), 'max');
-      revalidateTag(CACHE_TAGS.BUDGETS, 'max'); // Global budgets tag if used
-      revalidateTag(`user:${input.user_id}:budgets`, 'max'); // Legacy tag support
-
-      return { data: serialize(budget) as unknown as Budget, error: null };
+      return { data: budget, error: null };
     }
 
     return { data: null, error: 'Failed to create budget' };
@@ -123,8 +78,6 @@ export async function createBudgetAction(
 
 /**
  * Server Action: Update Budget
- * Wraps BudgetRepository.update for client component usage
- * Validates permissions: members can only update their own budgets
  */
 export async function updateBudgetAction(
   id: string,
@@ -138,11 +91,7 @@ export async function updateBudgetAction(
     }
 
     // Get existing budget to verify ownership
-    const existingBudget = await BudgetRepository.getById(id);
-
-    if (!existingBudget) {
-      return { data: null, error: 'Budget non trovato' };
-    }
+    const existingBudget = await BudgetService.getBudgetById(id);
 
     // Verify budget has a user_id
     if (!existingBudget.user_id) {
@@ -177,50 +126,14 @@ export async function updateBudgetAction(
       }
     }
 
-    // Input Validation for updates
-    if (input.description !== undefined && input.description.trim() === '') {
-      return { data: null, error: 'Description cannot be empty' };
-    }
-    if (input.description !== undefined && input.description.trim().length < 2) {
-      return { data: null, error: 'Description must be at least 2 characters' };
-    }
-    if (input.amount !== undefined && input.amount <= 0) {
-      return { data: null, error: 'Amount must be greater than zero' };
-    }
-    if (input.type !== undefined && !['monthly', 'annually'].includes(input.type)) {
-      return { data: null, error: 'Invalid budget type' };
-    }
-    if (input.categories !== undefined && input.categories.length === 0) {
-      return { data: null, error: 'At least one category is required' };
-    }
-
-    const budget = await BudgetRepository.update(id, {
-      description: input.description?.trim(),
-      amount: input.amount,
-      type: input.type,
-      icon: input.icon,
-      categories: input.categories,
-      user_id: input.user_id,
-      group_id: input.group_id
-    });
+    const budget = await BudgetService.updateBudget(id, input);
 
     if (budget) {
       // Revalidate paths
       revalidatePath('/budgets');
       revalidatePath('/dashboard');
 
-      // Invalidate cache for old user
-      revalidateTag(CACHE_TAGS.USER_BUDGETS(existingBudget.user_id), 'max');
-      revalidateTag(CACHE_TAGS.BUDGET(id), 'max');
-      revalidateTag(`user:${existingBudget.user_id}:budgets`, 'max');
-
-      // If user_id changed, invalidate cache for new user too
-      if (input.user_id && input.user_id !== existingBudget.user_id) {
-        revalidateTag(CACHE_TAGS.USER_BUDGETS(input.user_id), 'max');
-        revalidateTag(`user:${input.user_id}:budgets`, 'max');
-      }
-
-      return { data: serialize(budget) as unknown as Budget, error: null };
+      return { data: budget, error: null };
     }
 
     return { data: null, error: 'Failed to update budget' };
@@ -234,8 +147,6 @@ export async function updateBudgetAction(
 
 /**
  * Server Action: Delete Budget
- * Wraps BudgetRepository.delete for client component usage
- * Validates permissions: members can only delete their own budgets
  */
 export async function deleteBudgetAction(
   id: string
@@ -248,10 +159,7 @@ export async function deleteBudgetAction(
     }
 
     // Get existing budget to verify ownership
-    const existingBudget = await BudgetRepository.getById(id);
-    if (!existingBudget) {
-      return { data: null, error: 'Budget non trovato' };
-    }
+    const existingBudget = await BudgetService.getBudgetById(id);
 
     // Verify budget has a user_id
     if (!existingBudget.user_id) {
@@ -269,17 +177,12 @@ export async function deleteBudgetAction(
       };
     }
 
-    const result = await BudgetRepository.delete(id);
+    const result = await BudgetService.deleteBudget(id);
 
     if (result) {
       // Revalidate paths
       revalidatePath('/budgets');
       revalidatePath('/dashboard');
-
-      // Invalidate budget cache
-      revalidateTag(CACHE_TAGS.USER_BUDGETS(existingBudget.user_id), 'max');
-      revalidateTag(CACHE_TAGS.BUDGET(id), 'max');
-      revalidateTag(`user:${existingBudget.user_id}:budgets`, 'max');
 
       return { data: { id }, error: null };
     }

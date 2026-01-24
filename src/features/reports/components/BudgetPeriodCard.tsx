@@ -29,7 +29,8 @@ export interface BudgetPeriodCardProps {
   endDate: string | Date | null;
   userName: string;
   userId: string;
-  transactions: Transaction[]; // Only transactions for this period and user
+  transactions?: Transaction[]; // Optional - Only transactions for this period and user
+  transactionCount?: number; // Count if transactions not provided
   categories: Category[];
   isExpanded: boolean;
   onToggle: () => void;
@@ -46,6 +47,7 @@ const BudgetPeriodCardComponent = ({
   endDate,
   userName,
   transactions,
+  transactionCount,
   categories,
   isExpanded,
   onToggle,
@@ -58,6 +60,10 @@ const BudgetPeriodCardComponent = ({
 }: Readonly<BudgetPeriodCardProps>) => {
   const periodStartFormatted = formatDateShort(startDate);
   const periodEndFormatted = endDate ? formatDateShort(endDate) : "In corso";
+
+  // Determine if we have transactions or just a count
+  const totalCount = transactionCount ?? transactions?.length ?? 0;
+  const showEmptyState = totalCount === 0;
 
   // Note: Transactions are already filtered by period and user in the parent component
 
@@ -233,12 +239,21 @@ const BudgetPeriodCardComponent = ({
       {isExpanded && (
         <div className={styles.transactionsContainer}>
           <div className={styles.transactionsBody}>
-            <p className={styles.transactionsTitle}>Transazioni ({transactions.length})</p>
-            {transactions.length === 0 ? (
+            <div className="flex items-center justify-between mb-4">
+              <p className={styles.transactionsTitle}>Transazioni ({totalCount})</p>
+              <a
+                href={`/transactions?startDate=${startDate instanceof Date ? startDate.toISOString().split('T')[0] : startDate}&endDate=${endDate instanceof Date ? endDate.toISOString().split('T')[0] : (endDate || '')}`}
+                className="text-sm text-primary hover:underline flex items-center gap-1"
+              >
+                Vedi tutte <ArrowUpRight className="h-3 w-3" />
+              </a>
+            </div>
+
+            {showEmptyState ? (
               <p className={styles.transactionsEmpty}>Nessuna transazione in questo periodo</p>
             ) : (
               <div className={styles.transactionsList}>
-                {transactions.map((transaction) => {
+                {transactions?.map((transaction) => {
                   const categoryLabel = FinanceLogicService.getCategoryLabel(categories, transaction.category);
                   const categoryColor = FinanceLogicService.getCategoryColor(categories, transaction.category);
 

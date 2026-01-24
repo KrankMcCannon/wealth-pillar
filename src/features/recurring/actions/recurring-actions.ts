@@ -13,7 +13,7 @@ import { CACHE_TAGS } from "@/lib/cache/config";
 import { canAccessUserData, isMember } from '@/lib/utils/permissions';
 import type { RecurringTransactionSeries, User } from "@/lib/types";
 import { nowISO, toDateString } from "@/lib/utils/date-utils";
-import { RecurringRepository } from '@/server/dal/recurring.repository';
+import { RecurringService } from '@/server/services';
 import { serialize } from '@/lib/utils/serializer';
 
 /**
@@ -124,7 +124,7 @@ export async function createRecurringSeriesAction(
       }
     }
 
-    const data = await RecurringRepository.create({
+    const data = await RecurringService.createSeries({
       description: input.description.trim(),
       amount: input.amount,
       type: input.type,
@@ -183,7 +183,7 @@ export async function updateRecurringSeriesAction(
     }
 
     // Get old user_ids to invalidate cache for previous users
-    const oldSeries = await RecurringRepository.getById(input.id);
+    const oldSeries = await RecurringService.getSeriesById(input.id);
 
     if (!oldSeries) {
       return { data: null, error: "Serie ricorrente non trovata" };
@@ -244,7 +244,7 @@ export async function updateRecurringSeriesAction(
 
     updatePayload.updated_at = new Date();
 
-    const data = await RecurringRepository.update(input.id, updatePayload);
+    const data = await RecurringService.updateSeries(input.id, updatePayload);
 
     if (!data) {
       return { data: null, error: "Failed to update series" };
@@ -301,7 +301,7 @@ export async function deleteRecurringSeriesAction(
     }
 
     // First get the series
-    const series = await RecurringRepository.getById(seriesId);
+    const series = await RecurringService.getSeriesById(seriesId);
 
     if (!series) {
       return { data: null, error: "Serie non trovata" };
@@ -319,11 +319,7 @@ export async function deleteRecurringSeriesAction(
       };
     }
 
-    const result = await RecurringRepository.delete(seriesId);
-
-    if (!result) {
-      return { data: null, error: "Failed to delete series" };
-    }
+    await RecurringService.deleteSeries(seriesId);
 
     // Invalidate cache for all affected users
     revalidateTag(CACHE_TAGS.RECURRING_SERIES, 'max');

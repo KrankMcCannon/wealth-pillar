@@ -40,7 +40,6 @@ interface UseInfiniteScrollReturn<T> {
  */
 export function useInfiniteScroll<T>({
   initialItems,
-  totalCount,
   hasMore: initialHasMore,
   pageSize = 50,
   loadMore,
