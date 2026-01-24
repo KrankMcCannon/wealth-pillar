@@ -1,6 +1,9 @@
 import { InvestmentRepository } from '../dal/investment.repository';
 import { MarketDataService } from './market-data-service';
-import { Prisma, investments } from '@prisma/client';
+import type { Database } from '@/lib/types/database.types';
+
+type Investment = Database['public']['Tables']['investments']['Row'];
+type InvestmentInsert = Database['public']['Tables']['investments']['Insert'];
 
 interface MarketDataBatchResult {
   symbol: string;
@@ -14,7 +17,7 @@ export class InvestmentService {
   static async getPortfolio(userId: string) {
     const investments = await InvestmentRepository.getByUser(userId);
 
-    const symbols = [...new Set(investments.map((inv: investments) => inv.symbol).filter(Boolean))] as string[];
+    const symbols = [...new Set((investments as Investment[]).map((inv) => inv.symbol).filter(Boolean))] as string[];
     // Fetch time series data from cache/API
     const marketDataList = await MarketDataService.getBatchMarketData(symbols);
 
@@ -29,7 +32,7 @@ export class InvestmentService {
     let totalInvested = 0;
     let totalCurrentValue = 0;
 
-    const enrichedInvestments = investments.map((inv: investments) => {
+    const enrichedInvestments = (investments as Investment[]).map((inv) => {
       let currentPrice = 0;
       let currentValue = 0;
 
@@ -74,7 +77,7 @@ export class InvestmentService {
   /**
    * Create a new investment
    */
-  static async addInvestment(data: Prisma.investmentsCreateInput) {
+  static async addInvestment(data: InvestmentInsert) {
     return InvestmentRepository.create(data);
   }
 
@@ -107,9 +110,9 @@ export class InvestmentService {
    */
   static async getHistoricalPortfolio(userId: string) {
     const investments = await InvestmentRepository.getByUser(userId);
-    if (investments.length === 0) return [];
+    if (!investments || investments.length === 0) return [];
 
-    const symbols = [...new Set(investments.map((inv: investments) => inv.symbol).filter(Boolean))] as string[];
+    const symbols = [...new Set((investments as Investment[]).map((inv) => inv.symbol).filter(Boolean))] as string[];
     const marketDataList = await MarketDataService.getBatchMarketData(symbols);
 
     // Create a map of Symbol -> { DateString -> ClosePrice }
@@ -127,7 +130,7 @@ export class InvestmentService {
     });
 
     // Determine date range (from earliest investment to now)
-    const earliestDate = investments.reduce((min: Date, inv: investments) => {
+    const earliestDate = (investments as Investment[]).reduce((min: Date, inv) => {
       const d = new Date(inv.created_at || new Date());
       return d < min ? d : min;
     }, new Date());
@@ -140,7 +143,7 @@ export class InvestmentService {
       const dateStr = d.toISOString().split('T')[0];
       let totalValue = 0;
 
-      investments.forEach((inv: investments) => {
+      (investments as Investment[]).forEach((inv) => {
         const invDate = new Date(inv.created_at || new Date());
 
         if (invDate <= d) {

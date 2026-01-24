@@ -11,7 +11,12 @@ import { revalidateTag } from 'next/cache';
 import type { CompleteOnboardingInput } from './types';
 import { clerkClient } from '@clerk/nextjs/server';
 import { randomUUID } from 'node:crypto';
-import type { Prisma } from '@prisma/client';
+import type { Database } from '@/lib/types/database.types';
+
+type UserInsert = Database['public']['Tables']['users']['Insert'];
+type GroupInsert = Database['public']['Tables']['groups']['Insert'];
+type AccountInsert = Database['public']['Tables']['accounts']['Insert'];
+type BudgetInsert = Database['public']['Tables']['budgets']['Insert'];
 
 /**
  * Service Result type
@@ -67,14 +72,13 @@ export async function completeOnboardingAction(
     const groupId = randomUUID();
 
     // Create Group
-    const groupData: Prisma.groupsCreateInput = {
+    const groupData: GroupInsert = {
       id: groupId,
       name: group.name.trim(),
       description: group.description?.trim() || '',
       user_ids: [userId],
       is_active: true,
       plan: { name: "Piano Gratuito", type: "free" },
-      subscription_status: "free"
     };
 
     const createdGroup = await GroupRepository.create(groupData);
@@ -86,7 +90,7 @@ export async function completeOnboardingAction(
     const themeColor = '#6366F1';
 
     // Create User
-    const userData: Prisma.usersCreateInput = {
+    const userData: UserInsert = {
       id: userId,
       name: user.name.trim(),
       email: user.email.trim().toLowerCase(),
@@ -121,7 +125,7 @@ export async function completeOnboardingAction(
     for (const accountInput of accounts) {
       const accountId = randomUUID();
 
-      const accountData: Prisma.accountsCreateInput = {
+      const accountData: AccountInsert = {
         id: accountId,
         name: accountInput.name.trim(),
         type: accountInput.type,
@@ -155,7 +159,7 @@ export async function completeOnboardingAction(
 
     // Create Budgets
     for (const budgetInput of budgets) {
-      const budgetData: Prisma.budgetsCreateInput = {
+      const budgetData: BudgetInsert = {
         description: budgetInput.description.trim(),
         amount: budgetInput.amount,
         type: budgetInput.type,

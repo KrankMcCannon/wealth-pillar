@@ -3,12 +3,10 @@ import { cached } from '@/lib/cache';
 import { CACHE_TAGS, cacheOptions } from '@/lib/cache/config';
 import { userCacheKeys } from '@/lib/cache/keys';
 import { UserRepository, AccountRepository, BudgetRepository, TransactionRepository } from '@/server/dal';
-import { prisma } from '@/server/db/prisma';
 import { revalidateTag } from 'next/cache';
+import type { Database } from '@/lib/types/database.types';
 
-// Type aliases for Prisma models
-import type { users as User } from '@prisma/client';
-import type { Prisma } from '@prisma/client';
+type User = Database['public']['Tables']['users']['Row'];
 
 /**
  * User Service
@@ -44,7 +42,7 @@ export class UserService {
       throw new Error('User not found');
     }
 
-    return user as User;
+    return user as unknown as User;
   }
 
   /**
@@ -73,7 +71,7 @@ export class UserService {
       throw new Error('User not found');
     }
 
-    return user as User;
+    return user as unknown as User;
   }
 
   /**
@@ -149,13 +147,10 @@ export class UserService {
       }
     }
 
-    // Update user with relation connect/disconnect
-    // default_account_id is a relation scalar, handle via accounts relation
-    const updateData: Prisma.usersUpdateInput = {
-      updated_at: new Date(),
-      accounts: accountId
-        ? { connect: { id: accountId } }
-        : { disconnect: true }
+    // Update user with relation connect/disconnect logic replaced by scalar update
+    const updateData = {
+      updated_at: new Date().toISOString(),
+      default_account_id: accountId
     };
 
     const updatedUser = await UserRepository.update(userId, updateData);
@@ -168,7 +163,7 @@ export class UserService {
     revalidateTag(CACHE_TAGS.USERS, 'max');
     revalidateTag(CACHE_TAGS.USER(userId), 'max');
 
-    return updatedUser as User;
+    return updatedUser as unknown as User;
   }
 
   /**
@@ -187,35 +182,34 @@ export class UserService {
       throw new Error('User not found');
     }
 
-    // Perform deletion in a transaction
-    await prisma.$transaction(async (tx) => {
-      // Delete budgets
-      await BudgetRepository.deleteByUser(userId, tx);
+    // Perform deletion sequentially (Prisma transaction removed)
+    // Delete budgets
+    await BudgetRepository.deleteByUser(userId);
 
-      // Delete transactions
-      await TransactionRepository.deleteByUser(userId, tx);
+    // Delete transactions
+    await TransactionRepository.deleteByUser(userId);
 
-      // Handle Accounts (remove user from shared accounts or delete if sole owner)
-      const accounts = await tx.accounts.findMany({
-        where: { user_ids: { has: userId } }
-      });
+    // Handle Accounts (remove user from shared accounts or delete if sole owner)
+    // We need to fetch accounts where user is part of user_ids
+    const accounts = await AccountRepository.getByUser(userId);
 
+    if (accounts) {
       for (const account of accounts) {
         if (account.user_ids.length === 1 && account.user_ids[0] === userId) {
           // Only this user, delete account
-          await AccountRepository.delete(account.id, tx);
+          await AccountRepository.delete(account.id);
         } else {
           // Remove user from list
-          const newUserIds = account.user_ids.filter(id => id !== userId);
+          const newUserIds = account.user_ids.filter((id: string) => id !== userId);
           await AccountRepository.update(account.id, {
             user_ids: newUserIds
-          }, tx);
+          });
         }
       }
+    }
 
-      // Delete the user
-      await UserRepository.delete(userId, tx);
-    });
+    // Delete the user
+    await UserRepository.delete(userId);
 
     return true;
   }
@@ -258,10 +252,7 @@ export class UserService {
       const emailLower = updates.email.toLowerCase();
 
       // Check if email is already in use by another user
-      // Using prisma directly for uniqueness check is acceptable in Service layer validation logic
-      const existingUser = await prisma.users.findUnique({
-        where: { email: emailLower }
-      });
+      const existingUser = await UserRepository.getByEmail(emailLower);
 
       if (existingUser && existingUser.id !== userId) {
         throw new Error('Email is already in use');
@@ -269,8 +260,8 @@ export class UserService {
     }
 
     // Update user
-    const updateData: Prisma.usersUpdateInput = {
-      updated_at: new Date()
+    const updateData: any = {
+      updated_at: new Date().toISOString()
     };
 
     if (updates.name) updateData.name = updates.name.trim();
@@ -286,6 +277,6 @@ export class UserService {
     revalidateTag(CACHE_TAGS.USERS, 'max');
     revalidateTag(CACHE_TAGS.USER(userId), 'max');
 
-    return updatedUser as User;
+    return updatedUser as unknown as User;
   }
 }

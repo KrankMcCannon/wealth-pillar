@@ -3,19 +3,11 @@ import { cached } from '@/lib/cache';
 import { CACHE_TAGS, cacheOptions } from '@/lib/cache/config';
 import { userPreferencesCacheKeys } from '@/lib/cache/keys';
 import { UserPreferencesRepository } from '@/server/dal';
-import type { Prisma } from '@prisma/client';
 import { revalidateTag } from 'next/cache';
-import type { user_preferences } from '@prisma/client';
-
-/**
- * User Preferences type (alias for Prisma type)
- */
-export type UserPreferences = user_preferences;
-
-/**
- * User Preferences update type (partial updates allowed)
- */
+import type { Database } from '@/lib/types/database.types';
 import type { UserPreferencesUpdate } from "@/lib/types";
+
+export type UserPreferences = Database['public']['Tables']['user_preferences']['Row'];
 
 /**
  * Default preferences for new users
@@ -70,7 +62,7 @@ export class UserPreferencesService {
       throw new Error('Failed to get or create user preferences');
     }
 
-    return preferences as UserPreferences;
+    return preferences as unknown as UserPreferences;
   }
 
   /**
@@ -81,10 +73,12 @@ export class UserPreferencesService {
     userId: string
   ): Promise<UserPreferences> {
     try {
-      // Use Prisma connect syntax for relations
-      const initialData: Prisma.user_preferencesCreateInput = {
-        users: { connect: { id: userId } },
-        ...DEFAULT_PREFERENCES
+      const now = new Date().toISOString();
+      const initialData = {
+        user_id: userId,
+        ...DEFAULT_PREFERENCES,
+        created_at: now,
+        updated_at: now,
       };
 
       const prefs = await UserPreferencesRepository.create(initialData);
@@ -93,7 +87,7 @@ export class UserPreferencesService {
         throw new Error('Failed to create default preferences');
       }
 
-      return prefs as UserPreferences;
+      return prefs as unknown as UserPreferences;
     } catch (error) {
       console.error('Error creating default preferences:', error);
       throw error;
@@ -134,9 +128,9 @@ export class UserPreferencesService {
     }
 
     // Update preferences
-    const updateData: Prisma.user_preferencesUpdateInput = {
+    const updateData: any = {
       ...updates,
-      updated_at: new Date(),
+      updated_at: new Date().toISOString(),
     };
 
     const updatedPrefs = await UserPreferencesRepository.update(userId, updateData);
@@ -149,7 +143,7 @@ export class UserPreferencesService {
     revalidateTag(CACHE_TAGS.USER_PREFERENCES, 'max');
     revalidateTag(CACHE_TAGS.USER_PREFERENCE(userId), 'max');
 
-    return updatedPrefs as UserPreferences;
+    return updatedPrefs as unknown as UserPreferences;
   }
 
   /**

@@ -4,12 +4,10 @@ import { CACHE_TAGS, cacheOptions } from '@/lib/cache/config';
 import { groupCacheKeys } from '@/lib/cache/keys';
 import { GroupRepository, UserRepository } from '@/server/dal';
 import { revalidateTag } from 'next/cache';
-import type { Prisma } from '@prisma/client';
+import type { Database } from '@/lib/types/database.types';
 
-/**
- * Group and User types from database
- */
-import type { groups as Group, users as User } from '@prisma/client';
+type Group = Database['public']['Tables']['groups']['Row'];
+type User = Database['public']['Tables']['users']['Row'];
 
 export interface CreateGroupInput {
   id?: string;
@@ -29,8 +27,8 @@ export interface CreateGroupInput {
  */
 export class GroupService {
   /**
-   * Retrieves group information by ID
-   */
+    * Retrieves group information by ID
+    */
   static async getGroupById(groupId: string): Promise<Group> {
     if (!groupId || groupId.trim() === '') {
       throw new Error('Group ID is required');
@@ -52,7 +50,7 @@ export class GroupService {
       throw new Error('Group not found');
     }
 
-    return group as Group;
+    return group as unknown as Group;
   }
 
   /**
@@ -75,7 +73,7 @@ export class GroupService {
 
     const users = await getCachedUsers();
 
-    return (users || []) as User[];
+    return (users || []) as unknown as User[];
   }
 
   /**
@@ -104,7 +102,7 @@ export class GroupService {
 
     const users = await UserRepository.getByGroupAndRole(groupId, role);
 
-    return (users || []) as User[];
+    return (users || []) as unknown as User[];
   }
 
   /**
@@ -154,25 +152,25 @@ export class GroupService {
       throw new Error('At least one user is required to create a group');
     }
 
-    const createData: Prisma.groupsCreateInput = {
+    const createData = {
       id: input.id,
       name: input.name.trim(),
       description: input.description?.trim() || '',
       user_ids: input.userIds,
-      plan: (input.plan as Prisma.InputJsonValue) ?? {
+      plan: (input.plan) as any ?? {
         type: 'free',
         name: 'Free Plan',
       },
       is_active: input.isActive ?? true,
-      created_at: new Date(),
-      updated_at: new Date(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     };
 
     const group = await GroupRepository.create(createData);
 
     if (!group) throw new Error('Failed to create group');
 
-    const createdGroup = group as Group;
+    const createdGroup = group as unknown as Group;
 
     revalidateTag(CACHE_TAGS.GROUPS, 'max');
     revalidateTag(CACHE_TAGS.GROUP(createdGroup.id), 'max');

@@ -3,7 +3,7 @@ import { cached } from '@/lib/cache';
 import { CACHE_TAGS, cacheOptions } from '@/lib/cache/config';
 import { transactionCacheKeys } from '@/lib/cache/keys';
 export { TransactionLogic } from './transaction.logic';
-import { TransactionRepository } from '@/server/dal';
+import { TransactionRepository, AccountRepository } from '@/server/dal';
 import type { CategoryBreakdownItem, Transaction, TransactionType } from '@/lib/types';
 import {
   formatDateSmart,
@@ -11,7 +11,6 @@ import {
 } from '@/lib/utils/date-utils';
 import { FinanceLogicService } from './finance-logic.service';
 import { revalidateTag } from 'next/cache';
-import type { Prisma } from '@prisma/client';
 import { serialize } from '@/lib/utils/serializer';
 
 /**
@@ -66,7 +65,77 @@ export type UpdateTransactionInput = Partial<CreateTransactionInput>;
  */
 export class TransactionService {
   /**
-   * Retrieves all transactions for a specific group
+   * Get category spending breakdown for a group in a time range
+   */
+  static async getGroupCategorySpending(groupId: string, startDate: Date, endDate: Date) {
+    return TransactionRepository.getGroupCategorySpending(groupId, startDate, endDate);
+  }
+
+  /**
+   * Get monthly spending trend for a group in a time range
+   */
+  static async getGroupMonthlySpending(groupId: string, startDate: Date, endDate: Date) {
+    return TransactionRepository.getGroupMonthlySpending(groupId, startDate, endDate);
+  }
+
+  /**
+   * Get category spending breakdown per user for a group in a time range
+   */
+  static async getGroupUserCategorySpending(groupId: string, startDate: Date, endDate: Date) {
+    return TransactionRepository.getGroupUserCategorySpending(groupId, startDate, endDate);
+  }
+
+  /**
+   * Helper to update account balances based on transaction
+   * @param transaction The transaction object
+   * @param direction 1 for applying (create), -1 for reverting (delete)
+   */
+  private static async updateBalancesForTransaction(
+    transaction: Transaction,
+    direction: 1 | -1
+  ) {
+    const { amount, type, account_id, to_account_id } = transaction;
+
+    if (type === 'income') {
+      // Income increases balance
+      await AccountRepository.updateBalance(account_id, amount * direction);
+    } else if (type === 'expense') {
+      // Expense decreases balance
+      await AccountRepository.updateBalance(account_id, -amount * direction);
+    } else if (type === 'transfer' && to_account_id) {
+      // Transfer: decreases source, increases destination
+      await Promise.all([
+        AccountRepository.updateBalance(account_id, -amount * direction),
+        AccountRepository.updateBalance(to_account_id, amount * direction)
+      ]);
+    }
+  }
+
+  /**
+   * Retrieves transactions for a specific group with pagination
+   * @param groupId - Group ID
+   * @param options - Pagination options (limit, offset)
+   * @returns Paginated transactions with metadata
+   */
+  static async getTransactionsByGroupPaginated(
+    groupId: string,
+    options?: { limit?: number; offset?: number }
+  ): Promise<{ data: Transaction[]; total: number; hasMore: boolean }> {
+    if (!groupId || groupId.trim() === '') {
+      throw new Error('Group ID is required');
+    }
+
+    const result = await TransactionRepository.getByGroup(groupId, options);
+    return {
+      data: serialize(result.data || []) as unknown as Transaction[],
+      total: result.total,
+      hasMore: result.hasMore
+    };
+  }
+
+  /**
+   * Retrieves all transactions for a specific group (for calculations)
+   * WARNING: Use sparingly - fetches all data. Prefer paginated version for UI.
    */
   static async getTransactionsByGroup(groupId: string): Promise<Transaction[]> {
     if (!groupId || groupId.trim() === '') {
@@ -75,8 +144,9 @@ export class TransactionService {
 
     const getCachedTransactions = cached(
       async () => {
-        const transactions = await TransactionRepository.getByGroup(groupId);
-        return serialize(transactions || []) as unknown as Transaction[];
+        // Fetch all for calculations (high limit)
+        const result = await TransactionRepository.getByGroup(groupId, { limit: 10000 });
+        return serialize(result.data || []) as unknown as Transaction[];
       },
       transactionCacheKeys.byGroup(groupId),
       cacheOptions.transactionsByGroup(groupId)
@@ -229,17 +299,17 @@ export class TransactionService {
       }
     }
 
-    const createData: Prisma.transactionsCreateInput = {
+    const createData = {
       description: data.description.trim(),
       amount: data.amount,
       type: data.type,
       category: data.category,
-      date: typeof data.date === 'string' ? new Date(data.date) : data.date,
-      users: data.user_id ? { connect: { id: data.user_id } } : undefined,
+      date: typeof data.date === 'string' ? new Date(data.date).toISOString() : data.date.toISOString(),
+      user_id: data.user_id || null,
       account_id: data.account_id,
       to_account_id: data.to_account_id || null,
       frequency: 'once',
-      groups: { connect: { id: data.group_id } },
+      group_id: data.group_id,
     };
 
     const transaction = await TransactionRepository.create(createData);
@@ -247,6 +317,9 @@ export class TransactionService {
     if (!transaction) {
       throw new Error('Failed to create transaction');
     }
+
+    // Update account balance
+    await this.updateBalancesForTransaction(transaction as unknown as Transaction, 1);
 
     const tagsToInvalidate: string[] = [
       CACHE_TAGS.TRANSACTIONS,
@@ -302,8 +375,8 @@ export class TransactionService {
       }
     }
 
-    const updateData: Prisma.transactionsUpdateInput = {
-      updated_at: new Date(),
+    const updateData: any = {
+      updated_at: new Date().toISOString(),
     };
 
     if (data.description !== undefined) updateData.description = data.description.trim();
@@ -311,9 +384,9 @@ export class TransactionService {
     if (data.type !== undefined) updateData.type = data.type;
     if (data.category !== undefined) updateData.category = data.category;
     if (data.date !== undefined) {
-      updateData.date = typeof data.date === 'string' ? new Date(data.date) : data.date;
+      updateData.date = typeof data.date === 'string' ? new Date(data.date).toISOString() : data.date.toISOString();
     }
-    if (data.user_id !== undefined) updateData.users = data.user_id ? { connect: { id: data.user_id } } : { disconnect: true };
+    if (data.user_id !== undefined) updateData.user_id = data.user_id;
     if (data.account_id !== undefined) updateData.account_id = data.account_id;
 
     // Handle to_account_id update
@@ -321,13 +394,17 @@ export class TransactionService {
       updateData.to_account_id = data.to_account_id;
     }
 
-    if (data.group_id !== undefined) updateData.groups = { connect: { id: data.group_id } };
+    if (data.group_id !== undefined) updateData.group_id = data.group_id;
 
     const updatedTransaction = await TransactionRepository.update(id, updateData);
 
     if (!updatedTransaction) {
       throw new Error('Failed to update transaction');
     }
+
+    // Update account balances: Revert old, Apply new
+    await this.updateBalancesForTransaction(existing, -1);
+    await this.updateBalancesForTransaction(updatedTransaction as unknown as Transaction, 1);
 
     const tagsToInvalidate: string[] = [CACHE_TAGS.TRANSACTIONS, CACHE_TAGS.ACCOUNTS];
 
@@ -386,10 +463,14 @@ export class TransactionService {
 
     await TransactionRepository.delete(id);
 
+    // Update account balance (revert transaction)
+    await this.updateBalancesForTransaction(existing, -1);
+
     const tagsToInvalidate: string[] = [
       CACHE_TAGS.TRANSACTIONS,
       CACHE_TAGS.ACCOUNTS,
       `account:${existing.account_id}:transactions`,
+      `group:${existing.group_id}:transactions`,
     ];
     if (existing.user_id) {
       tagsToInvalidate.push(`user:${existing.user_id}:transactions`);
@@ -398,10 +479,7 @@ export class TransactionService {
     if (existing.to_account_id) {
       tagsToInvalidate.push(`account:${existing.to_account_id}:transactions`);
     }
-    if (existing.group_id) {
-      tagsToInvalidate.push(`group:${existing.group_id}:transactions`);
-      tagsToInvalidate.push(`group:${existing.group_id}:budgets`);
-    }
+    tagsToInvalidate.push(`group:${existing.group_id}:budgets`);
 
     for (const tag of tagsToInvalidate) {
       revalidateTag(tag, 'max');

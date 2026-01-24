@@ -3,13 +3,16 @@
  */
 
 import { Suspense } from 'react';
-import { getDashboardData } from '@/lib/auth/get-dashboard-data';
+import { redirect } from 'next/navigation';
+import { getCurrentUser, getGroupUsers } from '@/lib/auth/cached-auth';
 import { PageDataService } from '@/server/services';
 import BudgetsContent from './budgets-content';
 import { BudgetSelectorSkeleton } from '@/features/budgets/components';
 
 export default async function BudgetsPage() {
-  const { currentUser, groupUsers } = await getDashboardData();
+  const currentUser = await getCurrentUser();
+  if (!currentUser) redirect('/auth');
+  const groupUsers = await getGroupUsers();
 
   // Fetch all budget page data in parallel (optimized with Promise.all)
   const pageData = await PageDataService.getBudgetsPageData(currentUser.group_id || '');

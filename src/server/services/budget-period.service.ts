@@ -3,12 +3,12 @@ import { cached } from '@/lib/cache';
 import { CACHE_TAGS, cacheOptions } from '@/lib/cache/config';
 import { budgetPeriodCacheKeys } from '@/lib/cache/keys';
 import type { BudgetPeriod, Budget, Transaction } from '@/lib/types';
-import type { BudgetPeriodJSON } from '@/server/db/types';
+import type { BudgetPeriodJSON } from '@/lib/types';
 import { toDateTime, todayDateString } from '@/lib/utils/date-utils';
 import { DateTime } from 'luxon';
 import { UserRepository } from '@/server/dal/user.repository';
-import { Prisma } from '@prisma/client';
 import { revalidateTag } from 'next/cache';
+import type { Json } from '@/lib/types/database.types';
 
 /**
  * Budget Period Service
@@ -172,9 +172,8 @@ export class BudgetPeriodService {
     periods.unshift(newPeriod); // Add to start (newest first)
 
     // Update user
-    // Cast periods to any for Prisma Json compatibility
     await UserRepository.update(userId, {
-      budget_periods: periods as unknown as Prisma.InputJsonValue
+      budget_periods: periods as unknown as Json
     });
 
     // Invalidate caches
@@ -238,7 +237,7 @@ export class BudgetPeriodService {
 
     // Update user
     await UserRepository.update(user.id, {
-      budget_periods: updatedPeriods as unknown as Prisma.InputJsonValue
+      budget_periods: updatedPeriods as unknown as Json
     });
 
     // Invalidate caches
@@ -362,7 +361,7 @@ export class BudgetPeriodService {
 
     // Update user
     await UserRepository.update(user.id, {
-      budget_periods: newPeriods as unknown as Prisma.InputJsonValue
+      budget_periods: newPeriods as unknown as Json
     });
 
     // Invalidate caches

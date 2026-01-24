@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { Clock, TrendingUp, TrendingDown, Activity, Users } from "lucide-react";
-import { BudgetPeriod, Transaction, Budget, User } from "@/lib/types";
-import { startPeriodAction, closePeriodAction } from "@/features/budgets";
+import { BudgetPeriod, User } from "@/lib/types";
+import { startPeriodAction, closePeriodAction, getPeriodPreviewAction } from "@/features/budgets";
 import { FormActions } from "@/components/form";
 import { DateField, UserField } from "@/components/ui/fields";
 import { Alert, AlertDescription, Badge, ModalBody, ModalFooter, ModalSection, ModalWrapper } from "@/components/ui";
@@ -15,8 +15,6 @@ import { budgetStyles } from "@/styles/system";
 interface BudgetPeriodManagerProps {
   selectedUserId?: string; // Initial user selection
   currentPeriod: BudgetPeriod | null;
-  transactions: Transaction[];
-  userBudgets: Budget[]; // User's budgets for savings calculation
   trigger: React.ReactNode;
   onSuccess?: () => void;
   onUserChange?: (userId: string) => void; // Callback when user selection changes
@@ -27,8 +25,6 @@ interface BudgetPeriodManagerProps {
 export function BudgetPeriodManager({
   selectedUserId,
   currentPeriod,
-  transactions,
-  userBudgets,
   trigger,
   onSuccess,
   onUserChange,
@@ -71,70 +67,55 @@ export function BudgetPeriodManager({
 
   const isActivePeriod = currentPeriod?.is_active && !currentPeriod?.end_date;
 
-  // Calculate current period metrics based on selected end date
-  // Uses same logic as dashboard (BudgetService.calculateBudgetProgress)
-  const periodMetrics = useMemo(() => {
-    if (!isActivePeriod || !currentPeriod) {
-      return { totalSpent: 0, totalSaved: 0, totalBudget: 0, categorySpending: {} };
+  // State for metrics
+  const [metrics, setMetrics] = useState({
+    totalSpent: 0,
+    totalSaved: 0,
+    totalBudget: 0,
+    categorySpending: {} as Record<string, number>
+  });
+
+  // Fetch metrics when date changes
+  useEffect(() => {
+    let mounted = true;
+
+    async function fetchMetrics() {
+      // Determine dates
+      const rawStart = currentPeriod?.start_date;
+      const endDate = selectedDate || new Date().toISOString().split("T")[0];
+
+      if (!rawStart) return;
+
+      // Ensure startDate is string
+      const startDate = rawStart instanceof Date ? rawStart.toISOString() : rawStart;
+
+      try {
+        // Call Server Action
+        const result = await getPeriodPreviewAction(targetUser.id, startDate, endDate);
+
+        if (mounted && result.data) {
+          setMetrics({
+            totalSpent: result.data.totalSpent,
+            totalSaved: result.data.totalSaved,
+            totalBudget: result.data.totalBudget,
+            categorySpending: result.data.categorySpending
+          });
+        }
+      } catch (e) {
+        console.error("Failed to fetch metrics", e);
+      }
     }
 
-    const periodStart = toDateTime(currentPeriod.start_date);
-    const periodEnd = selectedDate
-      ? toDateTime(selectedDate)?.endOf("day")
-      : toDateTime(new Date().toISOString().split("T")[0])?.endOf("day");
-
-    // Filter transactions for this period and target user
-    const periodTransactions = transactions.filter((t) => {
-      if (t.user_id !== targetUser.id) return false;
-      const txDate = toDateTime(t.date);
-      if (!txDate || !periodStart || !periodEnd) return false;
-      return txDate >= periodStart && txDate <= periodEnd;
-    });
-
-    // Calculate totals by processing each budget individually (like BudgetService)
-    let totalBudget = 0;
-    let totalSpent = 0;
-    const categorySpending: Record<string, number> = {};
-
-    if (userBudgets && userBudgets.length > 0) {
-      // Filter out budgets with 0€ amount (same as BudgetService)
-      const validBudgets = userBudgets.filter((b) => b.amount > 0);
-
-      validBudgets.forEach((budget) => {
-        // Add budget amount to total
-        totalBudget += budget.amount;
-
-        // Filter transactions for this specific budget's categories
-        // Include expense, transfer, and income for correct calculation
-        const budgetTransactions = periodTransactions.filter((t) => {
-          return budget.categories.includes(t.category);
-        });
-
-        // Calculate spent for this budget (income refills, expense/transfer consume)
-        const budgetSpent = budgetTransactions.reduce((sum, t) => {
-          if (t.type === "income") {
-            return sum - t.amount; // Income refills budget
-          }
-          return sum + t.amount; // Expense and transfer consume budget
-        }, 0);
-
-        // Add to total spent (ensure non-negative)
-        totalSpent += Math.max(0, budgetSpent);
-
-        // Track category spending (expense and transfer)
-        budgetTransactions.forEach((t) => {
-          if (t.type === "expense" || t.type === "transfer") {
-            categorySpending[t.category] = (categorySpending[t.category] || 0) + t.amount;
-          }
-        });
-      });
+    // Only run if we have a current period (active or not)
+    if (currentPeriod) {
+      fetchMetrics();
     }
 
-    // Calculate savings: budget - spent
-    const totalSaved = Math.max(0, totalBudget - totalSpent);
+    return () => { mounted = false; };
+  }, [selectedDate, currentPeriod, targetUser.id]);
 
-    return { totalSpent, totalSaved, totalBudget, categorySpending };
-  }, [isActivePeriod, currentPeriod, selectedDate, transactions, targetUser.id, userBudgets]);
+  // Use metrics state
+  const periodMetrics = metrics;
 
   // Format date for display
   const formatDate = (dateString: string | Date) => {

@@ -3,14 +3,17 @@
  */
 
 import { Suspense } from 'react';
-import { getDashboardData } from '@/lib/auth/get-dashboard-data';
+import { redirect } from 'next/navigation';
+import { getCurrentUser, getGroupUsers } from '@/lib/auth/cached-auth';
 import { PageDataService } from '@/server/services';
 import { PageLoader } from '@/components/shared';
 import { getUserPeriodsAction } from '@/features/budgets/actions/budget-period-actions';
 import ReportsContent from './reports-content';
 
 export default async function ReportsPage() {
-  const { currentUser, groupUsers } = await getDashboardData();
+  const currentUser = await getCurrentUser();
+  if (!currentUser) redirect('/auth');
+  const groupUsers = await getGroupUsers();
 
   // Fetch all reports page data in parallel with centralized service
   const pageData = await PageDataService.getReportsPageData(currentUser.group_id || '');

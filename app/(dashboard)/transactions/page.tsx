@@ -1,21 +1,28 @@
 /**
  * Transactions Page - Server Component
+ * 
+ * Uses paginated data fetching (50 transactions per load)
  */
 
 import { Suspense } from 'react';
-import { getDashboardData } from '@/lib/auth/get-dashboard-data';
+import { redirect } from 'next/navigation';
+import { getCurrentUser, getGroupUsers } from '@/lib/auth/cached-auth';
 import { PageDataService } from '@/server/services';
 import TransactionsContent from './transactions-content';
 import TransactionPageLoading from './loading';
 
 export default async function TransactionsPage() {
-  const { currentUser, groupUsers } = await getDashboardData();
+  const currentUser = await getCurrentUser();
+  if (!currentUser) redirect('/auth');
+  const groupUsers = await getGroupUsers();
 
-  // Fetch all transactions page data in parallel with centralized service
+  // Fetch paginated transactions (first 50) with other page data
   const pageData = await PageDataService.getTransactionsPageData(currentUser.group_id || '');
 
   const {
     transactions = [],
+    total = 0,
+    hasMore = false,
     recurringSeries = [],
     budgets = [],
     accounts = [],
@@ -26,6 +33,8 @@ export default async function TransactionsPage() {
     <Suspense fallback={<TransactionPageLoading />}>
       <TransactionsContent
         transactions={transactions}
+        totalTransactions={total}
+        hasMoreTransactions={hasMore}
         recurringSeries={recurringSeries}
         budgets={budgets}
         currentUser={currentUser}

@@ -1,11 +1,10 @@
 "use server";
 
 import { revalidatePath, revalidateTag } from "next/cache";
-import { CreateAccountInput, UpdateAccountInput } from "@/server/services";
-import { UserService } from "@/server/services";
+import { getCurrentUser } from "@/lib/auth/cached-auth";
+import { CreateAccountInput, UpdateAccountInput, UserService } from "@/server/services";
 import { Account, User } from "@/lib/types";
 import { AccountRepository } from "@/server/dal";
-import { auth } from "@clerk/nextjs/server";
 import { canAccessUserData } from "@/lib/utils/permissions";
 import { CACHE_TAGS } from "@/lib/cache/config";
 
@@ -22,16 +21,10 @@ export async function createAccountAction(
     isDefault: boolean = false
 ): Promise<ServiceResult<Account>> {
     try {
-        // Authentication check
-        const { userId: clerkId } = await auth();
-        if (!clerkId) {
-            return { data: null, error: "Non autenticato. Effettua il login per continuare." };
-        }
-
-        // Get current user
-        const currentUser = await UserService.getLoggedUserInfo(clerkId);
+        // Authentication check (cached per request)
+        const currentUser = await getCurrentUser();
         if (!currentUser) {
-            return { data: null, error: "Utente non trovato" };
+            return { data: null, error: "Non autenticato. Effettua il login per continuare." };
         }
 
         // Validate permissions (e.g., creating account for user in same group)
@@ -91,16 +84,10 @@ export async function updateAccountAction(
     isDefault: boolean = false
 ): Promise<ServiceResult<Account>> {
     try {
-        // Authentication check
-        const { userId: clerkId } = await auth();
-        if (!clerkId) {
-            return { data: null, error: "Non autenticato." };
-        }
-
-        // Get current user
-        const currentUser = await UserService.getLoggedUserInfo(clerkId);
+        // Authentication check (cached per request)
+        const currentUser = await getCurrentUser();
         if (!currentUser) {
-            return { data: null, error: "Utente non trovato" };
+            return { data: null, error: "Non autenticato. Effettua il login per continuare." };
         }
 
         // Get existing account to verify ownership
@@ -169,15 +156,10 @@ export async function deleteAccountAction(
     accountId: string
 ): Promise<ServiceResult<boolean>> {
     try {
-        // Authentication check
-        const { userId: clerkId } = await auth();
-        if (!clerkId) {
-            return { data: null, error: "Non autenticato." };
-        }
-
-        const currentUser = await UserService.getLoggedUserInfo(clerkId);
+        // Authentication check (cached per request)
+        const currentUser = await getCurrentUser();
         if (!currentUser) {
-            return { data: null, error: "Utente non trovato" };
+            return { data: null, error: "Non autenticato. Effettua il login per continuare." };
         }
 
         const existingAccount = await AccountRepository.getById(accountId);

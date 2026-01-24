@@ -7,14 +7,16 @@
  * Data is passed from Server Component for optimal performance
  */
 
-import { Suspense, useState, useMemo, useEffect } from "react";
+import { Suspense, useState, useMemo, useEffect, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   useUserFilter,
   useDeleteConfirmation,
   useIdNameMap,
   useFilteredData,
+  useInfiniteScroll,
 } from "@/hooks";
+import { loadMoreTransactionsAction } from "@/features/transactions/actions/load-more-transactions";
 import { BottomNavigation, PageContainer, Header } from "@/components/layout";
 import TabNavigation from "@/components/shared/tab-navigation";
 import UserSelector from "@/components/shared/user-selector";
@@ -44,6 +46,8 @@ import { usePageDataStore } from "@/stores/page-data-store";
  */
 interface TransactionsContentProps {
   transactions: Transaction[];
+  totalTransactions?: number;
+  hasMoreTransactions?: boolean;
   recurringSeries: RecurringTransactionSeries[];
   budgets: Budget[];
   currentUser: User;
@@ -58,6 +62,8 @@ interface TransactionsContentProps {
  */
 export default function TransactionsContent({
   transactions,
+  totalTransactions = 0,
+  hasMoreTransactions = false,
   recurringSeries,
   budgets,
   currentUser,
@@ -155,10 +161,31 @@ export default function TransactionsContent({
   const removeTransactionFromStore = usePageDataStore((state) => state.removeTransaction);
   const addTransactionToStore = usePageDataStore((state) => state.addTransaction);
 
-  // Initialize store with server data on mount and when props change
+  // Infinite scroll - load more transactions callback
+  const loadMoreCallback = useCallback(async (offset: number, limit: number) => {
+    const result = await loadMoreTransactionsAction(offset, limit);
+    if (result.error) throw new Error(result.error);
+    return { data: result.data, hasMore: result.hasMore };
+  }, []);
+
+  // Infinite scroll hook
+  const {
+    items: infiniteTransactions,
+    isLoading: isLoadingMore,
+    hasMore: canLoadMore,
+    sentinelRef,
+  } = useInfiniteScroll({
+    initialItems: transactions,
+    totalCount: totalTransactions,
+    hasMore: hasMoreTransactions,
+    pageSize: 50,
+    loadMore: loadMoreCallback,
+  });
+
+  // Initialize store with infinite scroll data
   useEffect(() => {
-    setTransactions(transactions);
-  }, [transactions, setTransactions]);
+    setTransactions(infiniteTransactions);
+  }, [infiniteTransactions, setTransactions]);
 
   useEffect(() => {
     setRecurringSeries(recurringSeries);
@@ -320,19 +347,34 @@ export default function TransactionsContent({
 
         {/* Transactions Tab Content */}
         {activeTab === "Transactions" && (
-          <TransactionDayList
-            groupedTransactions={dayTotals}
-            accountNames={accountNames}
-            categories={categories}
-            emptyTitle="Nessuna Transazione"
-            emptyDescription={
-              selectedUserId
-                ? "Non ci sono transazioni per questo utente"
-                : "Non ci sono ancora transazioni. Inizia aggiungendone una!"
-            }
-            onEditTransaction={handleEditTransaction}
-            onDeleteTransaction={handleDeleteClick}
-          />
+          <>
+            <TransactionDayList
+              groupedTransactions={dayTotals}
+              accountNames={accountNames}
+              categories={categories}
+              emptyTitle="Nessuna Transazione"
+              emptyDescription={
+                selectedUserId
+                  ? "Non ci sono transazioni per questo utente"
+                  : "Non ci sono ancora transazioni. Inizia aggiungendone una!"
+              }
+              onEditTransaction={handleEditTransaction}
+              onDeleteTransaction={handleDeleteClick}
+            />
+            {/* Infinite scroll sentinel */}
+            {canLoadMore && (
+              <div ref={sentinelRef} className="flex justify-center py-4">
+                {isLoadingMore && (
+                  <div className="animate-spin rounded-full h-6 w-6 border-2 border-primary border-t-transparent" />
+                )}
+              </div>
+            )}
+            {!canLoadMore && storeTransactions.length > 0 && (
+              <p className="text-center text-muted-foreground py-4 text-sm">
+                Tutte le transazioni caricate ({storeTransactions.length})
+              </p>
+            )}
+          </>
         )}
 
         {/* Recurring Tab Content */}

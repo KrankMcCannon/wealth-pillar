@@ -2,9 +2,8 @@
 
 import { revalidatePath } from 'next/cache';
 
-import { auth } from '@clerk/nextjs/server';
+import { getCurrentUser } from '@/lib/auth/cached-auth';
 import { TransactionService, CreateTransactionInput } from '@/server/services';
-import { UserService } from '@/server/services';
 import { canAccessUserData, isMember } from '@/lib/utils';
 import type { User, Transaction } from '@/lib/types';
 
@@ -22,12 +21,9 @@ export async function createTransactionAction(
   input: CreateTransactionInput
 ): Promise<ServiceResult<Transaction>> {
   try {
-    // Authentication check
-    const { userId: clerkId } = await auth();
-    if (!clerkId) return { data: null, error: 'Non autenticato' };
-
-    const currentUser = await UserService.getLoggedUserInfo(clerkId);
-    if (!currentUser) return { data: null, error: 'Utente non trovato' };
+    // Authentication check (cached per request)
+    const currentUser = await getCurrentUser();
+    if (!currentUser) return { data: null, error: 'Non autenticato' };
 
     if (isMember(currentUser as unknown as User) && input.user_id !== currentUser.id) {
       return { data: null, error: 'Permesso negato' };
@@ -43,14 +39,9 @@ export async function createTransactionAction(
     const data = await TransactionService.createTransaction(input);
 
     if (data) {
-      // Revalidate paths that might not be covered by the service
-      revalidatePath('/dashboard');
+      // Revalidate only directly affected paths
       revalidatePath('/transactions');
       revalidatePath('/accounts');
-      revalidatePath('/budgets');
-      revalidatePath('/reports');
-
-      // Additional cache tags if needed, though Service handles most
     }
 
     return { data, error: null };
@@ -72,16 +63,10 @@ export async function updateTransactionAction(
   input: Partial<CreateTransactionInput>
 ): Promise<ServiceResult<Transaction>> {
   try {
-    // Authentication check
-    const { userId: clerkId } = await auth();
-    if (!clerkId) {
-      return { data: null, error: 'Non autenticato. Effettua il login per continuare.' };
-    }
-
-    // Get current user
-    const currentUser = await UserService.getLoggedUserInfo(clerkId);
+    // Authentication check (cached per request)
+    const currentUser = await getCurrentUser();
     if (!currentUser) {
-      return { data: null, error: 'Utente non trovato' };
+      return { data: null, error: 'Non autenticato. Effettua il login per continuare.' };
     }
 
     // Get existing transaction to verify ownership
@@ -117,12 +102,9 @@ export async function updateTransactionAction(
     const data = await TransactionService.updateTransaction(id, input);
 
     if (data) {
-      // Revalidate paths
-      revalidatePath('/dashboard');
+      // Revalidate only directly affected paths
       revalidatePath('/transactions');
       revalidatePath('/accounts');
-      revalidatePath('/budgets');
-      revalidatePath('/reports');
     }
 
     return { data, error: null };
@@ -143,16 +125,10 @@ export async function deleteTransactionAction(
   id: string
 ): Promise<ServiceResult<{ id: string }>> {
   try {
-    // Authentication check
-    const { userId: clerkId } = await auth();
-    if (!clerkId) {
-      return { data: null, error: 'Non autenticato. Effettua il login per continuare.' };
-    }
-
-    // Get current user
-    const currentUser = await UserService.getLoggedUserInfo(clerkId);
+    // Authentication check (cached per request)
+    const currentUser = await getCurrentUser();
     if (!currentUser) {
-      return { data: null, error: 'Utente non trovato' };
+      return { data: null, error: 'Non autenticato. Effettua il login per continuare.' };
     }
 
     // Get existing transaction to verify ownership
@@ -177,12 +153,9 @@ export async function deleteTransactionAction(
     // Call service
     await TransactionService.deleteTransaction(id);
 
-    // Revalidate paths
-    revalidatePath('/dashboard');
+    // Revalidate only directly affected paths
     revalidatePath('/transactions');
     revalidatePath('/accounts');
-    revalidatePath('/budgets');
-    revalidatePath('/reports');
 
     return { data: { id }, error: null };
   } catch (error) {

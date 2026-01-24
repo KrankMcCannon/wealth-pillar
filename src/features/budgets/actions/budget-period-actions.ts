@@ -1,10 +1,12 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { auth } from '@clerk/nextjs/server';
-import { BudgetPeriodService, UserService } from '@/server/services';
+import { getCurrentUser } from '@/lib/auth/cached-auth';
+import { BudgetPeriodService } from '@/server/services';
 import { canAccessUserData, isMember } from '@/lib/utils';
 import type { BudgetPeriod, User } from '@/lib/types';
+import { DateTime } from 'luxon';
+import { TransactionService, BudgetService } from '@/server/services';
 
 type ServiceResult<T> = {
   data: T | null;
@@ -23,19 +25,13 @@ export async function startPeriodAction(
   startDate: string
 ): Promise<ServiceResult<BudgetPeriod>> {
   try {
-    // Authentication check
-    const { userId: clerkId } = await auth();
-    if (!clerkId) {
+    // Authentication check (cached per request)
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
       return {
         data: null,
         error: 'Non autenticato. Effettua il login per continuare.',
       };
-    }
-
-    // Get current user
-    const currentUser = await UserService.getLoggedUserInfo(clerkId);
-    if (!currentUser) {
-      return { data: null, error: 'Utente non trovato' };
     }
 
     // Permission validation: members can only start periods for themselves
@@ -59,7 +55,6 @@ export async function startPeriodAction(
 
     // Revalidate pages that display budget periods
     revalidatePath('/budgets');
-    revalidatePath('/dashboard');
     revalidatePath('/reports');
 
     return { data: result, error: null };
@@ -84,19 +79,13 @@ export async function closePeriodAction(
   endDate: string,
 ): Promise<ServiceResult<BudgetPeriod>> {
   try {
-    // Authentication check
-    const { userId: clerkId } = await auth();
-    if (!clerkId) {
+    // Authentication check (cached per request)
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
       return {
         data: null,
         error: 'Non autenticato. Effettua il login per continuare.',
       };
-    }
-
-    // Get current user
-    const currentUser = await UserService.getLoggedUserInfo(clerkId);
-    if (!currentUser) {
-      return { data: null, error: 'Utente non trovato' };
     }
 
     // Get the period to verify ownership
@@ -130,7 +119,6 @@ export async function closePeriodAction(
     if (result) {
       // Revalidate pages that display budget periods
       revalidatePath('/budgets');
-      revalidatePath('/dashboard');
       revalidatePath('/reports');
       return { data: result, error: null };
     }
@@ -157,19 +145,13 @@ export async function deletePeriodAction(
   periodId: string
 ): Promise<ServiceResult<{ id: string }>> {
   try {
-    // Authentication check
-    const { userId: clerkId } = await auth();
-    if (!clerkId) {
+    // Authentication check (cached per request)
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
       return {
         data: null,
         error: 'Non autenticato. Effettua il login per continuare.',
       };
-    }
-
-    // Get current user
-    const currentUser = await UserService.getLoggedUserInfo(clerkId);
-    if (!currentUser) {
-      return { data: null, error: 'Utente non trovato' };
     }
 
     // Get the period to verify ownership
@@ -199,7 +181,6 @@ export async function deletePeriodAction(
 
     // Revalidate pages that display budget periods
     revalidatePath('/budgets');
-    revalidatePath('/dashboard');
     revalidatePath('/reports');
 
     return { data: { id: periodId }, error: null };
@@ -225,19 +206,13 @@ export async function getUserPeriodsAction(
   userId: string
 ): Promise<ServiceResult<BudgetPeriod[]>> {
   try {
-    // Authentication check
-    const { userId: clerkId } = await auth();
-    if (!clerkId) {
+    // Authentication check (cached per request)
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
       return {
         data: null,
         error: 'Non autenticato. Effettua il login per continuare.',
       };
-    }
-
-    // Get current user
-    const currentUser = await UserService.getLoggedUserInfo(clerkId);
-    if (!currentUser) {
-      return { data: null, error: 'Utente non trovato' };
     }
 
     // Permission validation
@@ -280,19 +255,13 @@ export async function getActivePeriodAction(
   userId: string
 ): Promise<ServiceResult<BudgetPeriod | null>> {
   try {
-    // Authentication check
-    const { userId: clerkId } = await auth();
-    if (!clerkId) {
+    // Authentication check (cached per request)
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
       return {
         data: null,
         error: 'Non autenticato. Effettua il login per continuare.',
       };
-    }
-
-    // Get current user
-    const currentUser = await UserService.getLoggedUserInfo(clerkId);
-    if (!currentUser) {
-      return { data: null, error: 'Utente non trovato' };
     }
 
     // Permission validation
@@ -314,14 +283,97 @@ export async function getActivePeriodAction(
     // Fetch active period
     const period = await BudgetPeriodService.getActivePeriod(userId);
 
-    return { data: period, error: null };
+    return {
+      data: period,
+      error: null
+    };
   } catch (error) {
     return {
       data: null,
-      error:
-        error instanceof Error
-          ? error.message
-          : 'Failed to fetch active period',
+      error: error instanceof Error ? error.message : 'Failed to fetch active period'
+    };
+  }
+}
+
+/**
+ * Server Action: Get Period Preview
+ * Calculates budget stats for a potential period date range
+ * Used by BudgetPeriodManager to avoid sending full transaction history to client
+ */
+export async function getPeriodPreviewAction(
+  userId: string,
+  startDate: string,
+  endDate: string
+): Promise<ServiceResult<{
+  totalSpent: number;
+  totalSaved: number;
+  totalBudget: number;
+  categorySpending: Record<string, number>;
+}>> {
+  try {
+    // Authentication check (cached per request)
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+      return { data: null, error: 'Non autenticato' };
+    }
+
+    // Permission check
+    if (isMember(currentUser as unknown as User) && userId !== currentUser.id) {
+      return { data: null, error: 'Permesso negato' };
+    }
+    if (!canAccessUserData(currentUser as unknown as User, userId)) {
+      return { data: null, error: 'Permesso negato' };
+    }
+
+    // Fetch necessary data on server
+    // We fetch all transactions for the user to ensure accurate calculations
+    const [transactions, budgets] = await Promise.all([
+      TransactionService.getTransactionsByUser(userId),
+      BudgetService.getBudgetsByUser(userId)
+    ]);
+
+    // Instantiate a temporary period object for calculation
+    const tempPeriod: BudgetPeriod = {
+      id: 'preview',
+      user_id: userId,
+      start_date: startDate,
+      end_date: endDate,
+      is_active: true,
+      created_at: '',
+      updated_at: ''
+    };
+
+    // Use BudgetPeriodService.calculatePeriodTotals
+    const startDt = DateTime.fromISO(startDate);
+    const endDt = DateTime.fromISO(endDate);
+
+    const totals = BudgetPeriodService.calculatePeriodTotals(
+      transactions as any, // Cast to any if there's a strict type mismatch with database types vs service types
+      tempPeriod,
+      startDt,
+      endDt,
+      budgets as any
+    );
+
+    // Calculate total budget amount
+    const totalBudget = budgets
+      .filter(b => b.amount > 0)
+      .reduce((sum, b) => sum + b.amount, 0);
+
+    return {
+      data: {
+        totalSpent: totals.total_spent,
+        totalSaved: totals.total_saved,
+        totalBudget,
+        categorySpending: totals.category_spending
+      },
+      error: null
+    };
+
+  } catch (error) {
+    return {
+      data: null,
+      error: error instanceof Error ? error.message : 'Failed to calculate preview'
     };
   }
 }

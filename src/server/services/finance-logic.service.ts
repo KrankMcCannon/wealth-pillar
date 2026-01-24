@@ -16,7 +16,7 @@ import {
 } from '@/lib/utils';
 import { DateTime } from 'luxon';
 import type { DateInput } from '@/lib/utils/date-utils';
-import { CATEGORY_COLOR_PALETTE, DEFAULT_CATEGORY_COLOR } from '@/features/categories';
+import { CATEGORY_COLOR_PALETTE, DEFAULT_CATEGORY_COLOR } from '@/features/categories/constants';
 
 export interface OverviewMetrics {
   totalEarned: number;
@@ -608,6 +608,78 @@ export class FinanceLogicService {
       periodStart,
       periodEnd
     );
+
+    const totalBudget = budgetProgress.reduce((sum, b) => sum + b.amount, 0);
+    const totalSpent = budgetProgress.reduce((sum, b) => sum + b.spent, 0);
+    const totalRemaining = totalBudget - totalSpent;
+    const overallPercentage = totalBudget > 0 ? (totalSpent / totalBudget) * 100 : 0;
+
+    return {
+      user,
+      budgets: budgetProgress,
+      activePeriod: activePeriod || undefined,
+      periodStart: periodStart?.toISO() || null,
+      periodEnd: periodEnd?.toISO() || null,
+      totalBudget,
+      totalSpent,
+      totalRemaining,
+      overallPercentage,
+    };
+  }
+
+  /**
+   * Build complete budget summary for a user using AGGREGATED data
+   */
+  static calculateUserBudgetSummaryFromAggregation(
+    user: User,
+    budgets: Budget[],
+    spendingData: Array<{ category: string; spent: number; income: number }>,
+    activePeriod: BudgetPeriod | null | undefined
+  ): UserBudgetSummary {
+    const periodStart = activePeriod ? toDateTime(activePeriod.start_date) : null;
+    const periodEnd = activePeriod?.end_date
+      ? (toDateTime(activePeriod.end_date)?.endOf('day') ?? null)
+      : null;
+
+    // Create a map for faster lookup
+    const spendingMap = new Map<string, { spent: number; income: number }>();
+    spendingData.forEach(item => {
+      spendingMap.set(item.category, { spent: item.spent, income: item.income });
+    });
+
+    // Calculate progress for each budget
+    const validBudgets = budgets.filter((b) => b.amount > 0);
+    const budgetProgress: BudgetProgress[] = validBudgets.map(budget => {
+      let budgetSpent = 0;
+      // let transactionCount = 0; // Aggregation might give count, but for now we might ignore or sum it if available
+
+      // Sum spending for all categories in this budget
+      budget.categories.forEach(cat => {
+        const data = spendingMap.get(cat);
+        if (data) {
+          // Logic: Net Spent = (Expense + Outgoing Transfer) - Income
+          // data.spent is already (Expense + Outgoing)
+          // data.income is Income
+          const netSpent = data.spent - data.income;
+          budgetSpent += netSpent;
+        }
+      });
+
+      const effectiveSpent = Math.max(0, budgetSpent);
+      const remaining = budget.amount - effectiveSpent;
+      const percentage = budget.amount > 0 ? (effectiveSpent / budget.amount) * 100 : 0;
+
+      return {
+        id: budget.id,
+        description: budget.description,
+        amount: budget.amount,
+        spent: effectiveSpent,
+        remaining,
+        percentage,
+        categories: budget.categories,
+        transactionCount: 0 // We don't have this exact count easily from this aggregation shape unless we sum it
+      };
+    });
 
     const totalBudget = budgetProgress.reduce((sum, b) => sum + b.amount, 0);
     const totalSpent = budgetProgress.reduce((sum, b) => sum + b.spent, 0);

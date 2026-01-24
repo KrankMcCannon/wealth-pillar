@@ -6,8 +6,6 @@ import { accountCacheKeys } from '@/lib/cache/keys';
 import { AccountRepository, TransactionRepository } from '@/server/dal';
 import type { Account } from '@/lib/types';
 import { revalidateTag } from 'next/cache';
-import type { Prisma } from '@prisma/client';
-import { prisma } from '@/server/db/prisma';
 
 export interface CreateAccountInput {
   id?: string;
@@ -90,7 +88,7 @@ export class AccountService {
     const getCachedCount = cached(
       async () => {
         const accounts = await AccountRepository.getByUser(userId);
-        return accounts.length;
+        return accounts ? accounts.length : 0;
       },
       [`user:${userId}:accounts:count`],
       {
@@ -146,17 +144,17 @@ export class AccountService {
     if (!data.group_id || data.group_id.trim() === '') throw new Error('Group ID is required');
     if (!data.user_ids || data.user_ids.length === 0) throw new Error('At least one user is required for an account');
 
-    const createData: Prisma.accountsCreateInput = {
+    const now = new Date().toISOString();
+
+    const account = await AccountRepository.create({
       id: data.id,
       name: data.name.trim(),
       type: data.type,
       user_ids: data.user_ids,
       group_id: data.group_id,
-      created_at: new Date(),
-      updated_at: new Date(),
-    };
-
-    const account = await AccountRepository.create(createData);
+      created_at: now,
+      updated_at: now,
+    });
 
     if (!account) throw new Error('Failed to create account');
 
@@ -181,8 +179,8 @@ export class AccountService {
   ): Promise<Account> {
     if (!accountId || accountId.trim() === '') throw new Error('Account ID is required');
 
-    const updateData: Prisma.accountsUpdateInput = {
-      updated_at: new Date(),
+    const updateData = {
+      updated_at: new Date().toISOString(),
       ...data,
     };
 
@@ -213,14 +211,12 @@ export class AccountService {
 
     const account = await this.getAccountById(accountId);
 
-    await prisma.$transaction(async (tx) => {
-      // Delete related transactions first (including transfers)
-      await TransactionRepository.deleteByAccount(accountId, tx);
+    // Manual sequential deletion
+    // Delete related transactions first (including transfers)
+    await TransactionRepository.deleteByAccount(accountId);
 
-      // Delete the account
-      // Recurring transactions should cascade via schema relation
-      await AccountRepository.delete(accountId, tx);
-    });
+    // Delete the account
+    await AccountRepository.delete(accountId);
 
     revalidateTag(CACHE_TAGS.ACCOUNTS, 'max');
     revalidateTag(CACHE_TAGS.ACCOUNT(accountId), 'max');

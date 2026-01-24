@@ -2,12 +2,11 @@
 
 import { revalidateTag } from 'next/cache';
 
+import { getCurrentUser } from '@/lib/auth/cached-auth';
 import { CreateCategoryInput, UpdateCategoryInput } from '@/server/services';
 import type { Category } from '@/lib/types';
 import { CategoryRepository } from '@/server/dal';
-import { UserService } from '@/server/services';
 import { FinanceLogicService } from '@/server/services';
-import { auth } from '@clerk/nextjs/server';
 import { CACHE_TAGS } from '@/lib/cache/config';
 
 type ServiceResult<T> = {
@@ -25,16 +24,10 @@ type ServiceResult<T> = {
  */
 export async function getAllCategoriesAction(): Promise<ServiceResult<Category[]>> {
   try {
-    // Authentication check
-    const { userId: clerkId } = await auth();
-    if (!clerkId) {
-      return { data: null, error: 'Non autenticato' };
-    }
-
-    // Get current user
-    const currentUser = await UserService.getLoggedUserInfo(clerkId);
+    // Authentication check (cached per request)
+    const currentUser = await getCurrentUser();
     if (!currentUser || !currentUser.group_id) {
-      // If no group, maybe return empty or error?
+      // If no group, return empty array
       return { data: [], error: null };
     }
 
@@ -55,15 +48,10 @@ export async function getAllCategoriesAction(): Promise<ServiceResult<Category[]
  */
 export async function createCategoryAction(input: CreateCategoryInput): Promise<ServiceResult<Category>> {
   try {
-    // Authentication check
-    const { userId: clerkId } = await auth();
-    if (!clerkId) {
-      return { data: null, error: 'Non autenticato' };
-    }
-
-    const currentUser = await UserService.getLoggedUserInfo(clerkId);
+    // Authentication check (cached per request)
+    const currentUser = await getCurrentUser();
     if (!currentUser) {
-      return { data: null, error: 'User not found' };
+      return { data: null, error: 'Non autenticato' };
     }
 
     // Validation
@@ -89,7 +77,7 @@ export async function createCategoryAction(input: CreateCategoryInput): Promise<
       key: input.key.trim().toLowerCase(),
       icon: input.icon.trim(),
       color: input.color.trim().toUpperCase(),
-      groups: { connect: { id: input.group_id } }
+      group_id: input.group_id
     });
 
     if (category) {
@@ -115,15 +103,10 @@ export async function createCategoryAction(input: CreateCategoryInput): Promise<
  */
 export async function updateCategoryAction(id: string, input: UpdateCategoryInput): Promise<ServiceResult<Category>> {
   try {
-    // Authentication check
-    const { userId: clerkId } = await auth();
-    if (!clerkId) {
-      return { data: null, error: 'Non autenticato' };
-    }
-
-    const currentUser = await UserService.getLoggedUserInfo(clerkId);
+    // Authentication check (cached per request)
+    const currentUser = await getCurrentUser();
     if (!currentUser) {
-      return { data: null, error: 'User not found' };
+      return { data: null, error: 'Non autenticato' };
     }
 
     const existingCategory = await CategoryRepository.getById(id);
@@ -171,15 +154,10 @@ export async function updateCategoryAction(id: string, input: UpdateCategoryInpu
  */
 export async function deleteCategoryAction(id: string): Promise<ServiceResult<{ id: string }>> {
   try {
-    // Authentication check
-    const { userId: clerkId } = await auth();
-    if (!clerkId) {
-      return { data: null, error: 'Non autenticato' };
-    }
-
-    const currentUser = await UserService.getLoggedUserInfo(clerkId);
+    // Authentication check (cached per request)
+    const currentUser = await getCurrentUser();
     if (!currentUser) {
-      return { data: null, error: 'User not found' };
+      return { data: null, error: 'Non autenticato' };
     }
 
     const existingCategory = await CategoryRepository.getById(id);

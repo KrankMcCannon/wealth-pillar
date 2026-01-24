@@ -76,6 +76,7 @@ export interface Account {
   type: AccountType;
   user_ids: string[];
   group_id: string;
+  balance?: number; // Added for performance optimization
   created_at: string | Date;
   updated_at: string | Date;
 }
@@ -234,8 +235,8 @@ export interface UserBudgetSummary {
   overallPercentage: number;
 }
 
-import type { user_preferences } from '@prisma/client';
-export type UserPreferences = user_preferences;
+import type { Database } from './database.types';
+export type UserPreferences = Database['public']['Tables']['user_preferences']['Row'];
 
 export interface UserPreferencesUpdate {
   currency?: string;
@@ -244,4 +245,16 @@ export interface UserPreferencesUpdate {
   notifications_push?: boolean;
   notifications_email?: boolean;
   notifications_budget_alerts?: boolean;
+}
+
+/**
+ * Budget Period JSON structure used in database
+ */
+export interface BudgetPeriodJSON {
+  id: string;
+  start_date: string;
+  end_date: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
 }

@@ -1,17 +1,29 @@
 /**
  * Dashboard Page - Server Component
+ *
+ * Uses request-scoped cached auth to avoid redundant database calls.
+ * User and group data are cached per-request, shared with layout.
  */
 
 import { Suspense } from 'react';
-import { getDashboardData } from '@/lib/auth/get-dashboard-data';
+import { redirect } from 'next/navigation';
+import { getCurrentUser, getGroupUsers } from '@/lib/auth/cached-auth';
 import { PageDataService } from '@/server/services';
 import DashboardContent from './dashboard-content';
 import DashboardPageLoading from './loading';
 
 export default async function DashboardPage() {
-  const { currentUser, groupUsers } = await getDashboardData();
+  // Use cached auth - same data as layout, no extra DB calls
+  const currentUser = await getCurrentUser();
 
-  // Fetch all dashboard data in parallel with centralized service
+  if (!currentUser) {
+    redirect('/auth');
+  }
+
+  // Get group users (cached per request)
+  const groupUsers = await getGroupUsers();
+
+  // Fetch page-specific data (accounts, transactions, budgets, etc.)
   const dashboardData = await PageDataService.getDashboardData(currentUser.group_id || '');
 
   const {
@@ -21,6 +33,7 @@ export default async function DashboardPage() {
     budgets = [],
     budgetPeriods = {},
     recurringSeries = [],
+    budgetsByUser = {},
   } = dashboardData;
 
   return (
@@ -34,6 +47,7 @@ export default async function DashboardPage() {
         budgets={budgets}
         budgetPeriods={budgetPeriods}
         recurringSeries={recurringSeries}
+        budgetsByUser={budgetsByUser}
       />
     </Suspense>
   );

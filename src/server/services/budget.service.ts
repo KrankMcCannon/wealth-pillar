@@ -8,7 +8,6 @@ import { toDateTime } from '@/lib/utils';
 import { DateTime } from 'luxon';
 import { FinanceLogicService } from './finance-logic.service';
 import { revalidateTag } from 'next/cache';
-import type { Prisma } from '@prisma/client';
 import { serialize } from '@/lib/utils/serializer';
 
 /**
@@ -34,8 +33,8 @@ export type UpdateBudgetInput = Partial<CreateBudgetInput>;
  */
 export class BudgetService {
   /**
-   * Retrieves a budget by ID
-   */
+    * Retrieves a budget by ID
+    */
   static async getBudgetById(budgetId: string): Promise<Budget> {
     if (!budgetId || budgetId.trim() === '') {
       throw new Error('Budget ID is required');
@@ -147,7 +146,7 @@ export class BudgetService {
       groupId = user.group_id;
     }
 
-    const createData: Prisma.budgetsCreateInput = {
+    const createData = {
       description: data.description.trim(),
       amount: data.amount,
       type: data.type,
@@ -204,15 +203,15 @@ export class BudgetService {
     }
 
     const existing = existingBudget as unknown as Budget;
-    const updateData: Prisma.budgetsUpdateInput = {
-      updated_at: new Date(),
+    const updateData: any = {
+      updated_at: new Date().toISOString(),
     };
 
     if (data.description !== undefined) updateData.description = data.description.trim();
     if (data.amount !== undefined) updateData.amount = data.amount;
     if (data.type !== undefined) updateData.type = data.type;
     if (data.icon !== undefined) updateData.icon = data.icon;
-    if (data.categories !== undefined) updateData.categories = data.categories as unknown as Prisma.InputJsonValue; // Cast for JSON
+    if (data.categories !== undefined) updateData.categories = data.categories;
     if (data.user_id !== undefined) updateData.user_id = data.user_id;
 
     const updatedBudget = await BudgetRepository.update(id, updateData);

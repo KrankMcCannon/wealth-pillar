@@ -1,10 +1,13 @@
-import { prisma } from '@/server/db/prisma';
-import { Prisma } from '@prisma/client';
+import { supabase } from '@/server/db/supabase';
 import { cache } from 'react';
+import type { Database } from '@/lib/types/database.types';
+
+type BudgetInsert = Database['public']['Tables']['budgets']['Insert'];
+type BudgetUpdate = Database['public']['Tables']['budgets']['Update'];
 
 /**
  * Budget Repository
- * Handles all database operations for budgets using Prisma.
+ * Handles all database operations for budgets using Supabase.
  */
 export class BudgetRepository {
   /**
@@ -12,68 +15,101 @@ export class BudgetRepository {
    * Cached per request using React cache()
    */
   static getByUser = cache(async (userId: string) => {
-    return prisma.budgets.findMany({
-      where: { user_id: userId },
-      orderBy: { created_at: 'desc' },
-    });
+    const { data, error } = await supabase
+      .from('budgets')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw new Error(error.message);
+    return data as any;
   });
 
   /**
    * Get budgets by group ID
    */
   static getByGroup = cache(async (groupId: string) => {
-    return prisma.budgets.findMany({
-      where: { group_id: groupId },
-      orderBy: { created_at: 'desc' },
-    });
+    const { data, error } = await supabase
+      .from('budgets')
+      .select('*')
+      .eq('group_id', groupId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw new Error(error.message);
+    return data as any;
   });
 
   /**
    * Create a new budget
    */
-  /**
-   * Create a new budget
-   */
-  static async create(data: Prisma.budgetsCreateInput, tx: Prisma.TransactionClient = prisma) {
-    return tx.budgets.create({
-      data,
-    });
+  static async create(data: BudgetInsert) {
+    const { data: created, error } = await supabase
+      .from('budgets')
+      .insert(data as any as never)
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    return created as any;
   }
 
   /**
    * Update a budget
    */
-  static async update(id: string, data: Prisma.budgetsUpdateInput, tx: Prisma.TransactionClient = prisma) {
-    return tx.budgets.update({
-      where: { id },
-      data,
-    });
+  static async update(id: string, data: BudgetUpdate) {
+    const { data: updated, error } = await supabase
+      .from('budgets')
+      .update(data as any as never)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    return updated as any;
   }
 
   /**
    * Get budget by ID
    */
   static async getById(id: string) {
-    return prisma.budgets.findUnique({
-      where: { id },
-    });
+    const { data, error } = await supabase
+      .from('budgets')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') return null;
+      throw new Error(error.message);
+    }
+    return data as any;
   }
 
   /**
    * Delete a budget
    */
-  static async delete(id: string, tx: Prisma.TransactionClient = prisma) {
-    return tx.budgets.delete({
-      where: { id },
-    });
+  static async delete(id: string) {
+    const { data, error } = await supabase
+      .from('budgets')
+      .delete()
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    return data as any;
   }
 
   /**
    * Delete all budgets for a user
    */
-  static async deleteByUser(userId: string, tx: Prisma.TransactionClient = prisma) {
-    return tx.budgets.deleteMany({
-      where: { user_id: userId },
-    });
+  static async deleteByUser(userId: string) {
+    const { data, error } = await supabase
+      .from('budgets')
+      .delete()
+      .eq('user_id', userId);
+
+    if (error) throw new Error(error.message);
+    return data as any;
   }
 }

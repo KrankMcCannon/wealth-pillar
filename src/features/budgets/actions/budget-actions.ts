@@ -2,9 +2,8 @@
 
 import { revalidatePath, revalidateTag } from 'next/cache';
 
-import { auth } from '@clerk/nextjs/server';
-import { CreateBudgetInput } from '@/server/services';
-import { UserService } from '@/server/services';
+import { getCurrentUser } from '@/lib/auth/cached-auth';
+import { CreateBudgetInput, UserService } from '@/server/services';
 import { canAccessUserData, isMember } from '@/lib/utils';
 import { CACHE_TAGS } from '@/lib/cache/config';
 import type { Budget, User } from '@/lib/types';
@@ -25,16 +24,10 @@ export async function createBudgetAction(
   input: CreateBudgetInput
 ): Promise<ServiceResult<Budget>> {
   try {
-    // Authentication check
-    const { userId: clerkId } = await auth();
-    if (!clerkId) {
-      return { data: null, error: 'Non autenticato. Effettua il login per continuare.' };
-    }
-
-    // Get current user
-    const currentUser = await UserService.getLoggedUserInfo(clerkId);
+    // Authentication check (cached per request)
+    const currentUser = await getCurrentUser();
     if (!currentUser) {
-      return { data: null, error: 'Utente non trovato' };
+      return { data: null, error: 'Non autenticato. Effettua il login per continuare.' };
     }
 
     // Permission validation: members can only create for themselves
@@ -138,16 +131,10 @@ export async function updateBudgetAction(
   input: Partial<CreateBudgetInput>
 ): Promise<ServiceResult<Budget>> {
   try {
-    // Authentication check
-    const { userId: clerkId } = await auth();
-    if (!clerkId) {
-      return { data: null, error: 'Non autenticato. Effettua il login per continuare.' };
-    }
-
-    // Get current user
-    const currentUser = await UserService.getLoggedUserInfo(clerkId);
+    // Authentication check (cached per request)
+    const currentUser = await getCurrentUser();
     if (!currentUser) {
-      return { data: null, error: 'Utente non trovato' };
+      return { data: null, error: 'Non autenticato. Effettua il login per continuare.' };
     }
 
     // Get existing budget to verify ownership
@@ -254,16 +241,10 @@ export async function deleteBudgetAction(
   id: string
 ): Promise<ServiceResult<{ id: string }>> {
   try {
-    // Authentication check
-    const { userId: clerkId } = await auth();
-    if (!clerkId) {
-      return { data: null, error: 'Non autenticato. Effettua il login per continuare.' };
-    }
-
-    // Get current user
-    const currentUser = await UserService.getLoggedUserInfo(clerkId);
+    // Authentication check (cached per request)
+    const currentUser = await getCurrentUser();
     if (!currentUser) {
-      return { data: null, error: 'Utente non trovato' };
+      return { data: null, error: 'Non autenticato. Effettua il login per continuare.' };
     }
 
     // Get existing budget to verify ownership

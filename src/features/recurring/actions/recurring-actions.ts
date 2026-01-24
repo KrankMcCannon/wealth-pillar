@@ -7,10 +7,9 @@
  * These actions handle data mutations and cache invalidation.
  */
 
-import { auth } from '@clerk/nextjs/server';
+import { getCurrentUser } from '@/lib/auth/cached-auth';
 import { revalidateTag } from 'next/cache';
 import { CACHE_TAGS } from "@/lib/cache/config";
-import { UserService } from '@/server/services';
 import { canAccessUserData, isMember } from '@/lib/utils/permissions';
 import type { RecurringTransactionSeries, User } from "@/lib/types";
 import { nowISO, toDateString } from "@/lib/utils/date-utils";
@@ -71,16 +70,10 @@ export async function createRecurringSeriesAction(
   input: CreateRecurringSeriesInput
 ): Promise<ActionResult<RecurringTransactionSeries>> {
   try {
-    // Authentication check
-    const { userId: clerkId } = await auth();
-    if (!clerkId) {
-      return { data: null, error: 'Non autenticato. Effettua il login per continuare.' };
-    }
-
-    // Get current user
-    const currentUser = await UserService.getLoggedUserInfo(clerkId);
+    // Authentication check (cached per request)
+    const currentUser = await getCurrentUser();
     if (!currentUser) {
-      return { data: null, error: 'Utente non trovato' };
+      return { data: null, error: 'Non autenticato. Effettua il login per continuare.' };
     }
 
     // Validate required fields
@@ -138,9 +131,9 @@ export async function createRecurringSeriesAction(
       category: input.category,
       frequency: input.frequency,
       user_ids: input.user_ids,
-      accounts: { connect: { id: input.account_id } },
-      start_date: new Date(input.start_date),
-      end_date: input.end_date ? new Date(input.end_date) : null,
+      account_id: input.account_id,
+      start_date: new Date(input.start_date).toISOString(),
+      end_date: input.end_date ? new Date(input.end_date).toISOString() : null,
       due_day: input.due_day,
       is_active: true,
       total_executions: 0,
@@ -183,16 +176,10 @@ export async function updateRecurringSeriesAction(
       return { data: null, error: "ID serie obbligatorio" };
     }
 
-    // Authentication check
-    const { userId: clerkId } = await auth();
-    if (!clerkId) {
-      return { data: null, error: 'Non autenticato. Effettua il login per continuare.' };
-    }
-
-    // Get current user
-    const currentUser = await UserService.getLoggedUserInfo(clerkId);
+    // Authentication check (cached per request)
+    const currentUser = await getCurrentUser();
     if (!currentUser) {
-      return { data: null, error: 'Utente non trovato' };
+      return { data: null, error: 'Non autenticato. Effettua il login per continuare.' };
     }
 
     // Get old user_ids to invalidate cache for previous users
@@ -206,7 +193,7 @@ export async function updateRecurringSeriesAction(
     // Members can only update series they are part of
     const hasAccess = isMember(currentUser as unknown as User)
       ? oldSeries.user_ids.includes(currentUser.id)
-      : oldSeries.user_ids.some(userId => canAccessUserData(currentUser as unknown as User, userId));
+      : oldSeries.user_ids.some((userId: string) => canAccessUserData(currentUser as unknown as User, userId));
 
     if (!hasAccess) {
       return {
@@ -249,8 +236,8 @@ export async function updateRecurringSeriesAction(
     if (input.category !== undefined) updatePayload.category = input.category;
     if (input.frequency !== undefined) updatePayload.frequency = input.frequency;
     if (input.account_id !== undefined) updatePayload.account_id = input.account_id;
-    if (input.start_date !== undefined) updatePayload.start_date = new Date(input.start_date);
-    if (input.end_date !== undefined) updatePayload.end_date = input.end_date ? new Date(input.end_date) : null;
+    if (input.start_date !== undefined) updatePayload.start_date = new Date(input.start_date).toISOString();
+    if (input.end_date !== undefined) updatePayload.end_date = input.end_date ? new Date(input.end_date).toISOString() : null;
     if (input.due_day !== undefined) updatePayload.due_day = input.due_day;
     if (input.is_active !== undefined) updatePayload.is_active = input.is_active;
     if (input.user_ids !== undefined) updatePayload.user_ids = input.user_ids;
@@ -307,16 +294,10 @@ export async function deleteRecurringSeriesAction(
       return { data: null, error: "ID serie obbligatorio" };
     }
 
-    // Authentication check
-    const { userId: clerkId } = await auth();
-    if (!clerkId) {
-      return { data: null, error: 'Non autenticato. Effettua il login per continuare.' };
-    }
-
-    // Get current user
-    const currentUser = await UserService.getLoggedUserInfo(clerkId);
+    // Authentication check (cached per request)
+    const currentUser = await getCurrentUser();
     if (!currentUser) {
-      return { data: null, error: 'Utente non trovato' };
+      return { data: null, error: 'Non autenticato. Effettua il login per continuare.' };
     }
 
     // First get the series
@@ -329,7 +310,7 @@ export async function deleteRecurringSeriesAction(
     // Permission validation: verify access to series
     const hasAccess = isMember(currentUser as unknown as User)
       ? series.user_ids.includes(currentUser.id)
-      : series.user_ids.some(userId => canAccessUserData(currentUser as unknown as User, userId));
+      : series.user_ids.some((userId: string) => canAccessUserData(currentUser as unknown as User, userId));
 
     if (!hasAccess) {
       return {
@@ -392,7 +373,7 @@ export async function executeRecurringSeriesAction(
   // const today = new Date();
   // Per ora ritorniamo un messaggio informativo
   // Logs for debug purposes (simulated usage to avoid lints)
-  console.log(`[executeRecurringSeriesAction] Call attempt at: ${toDateString(nowISO())}`);
+  console.log(`[executeRecurringSeriesAction] Call attempt at: ${toDateString(nowISO())} for series ${_seriesId} by user ${_userId}`);
 
   return { data: null, error: "Funzione temporaneamente disabilitata. La creazione automatica delle transazioni sarà abilitata in seguito." };
 }

@@ -5,13 +5,9 @@ import { groupInvitationCacheKeys } from '@/lib/cache/keys';
 import { GroupInvitationRepository, UserRepository } from '@/server/dal';
 import { randomBytes } from 'crypto';
 import { revalidateTag } from 'next/cache';
-import type { group_invitations } from '@prisma/client';
-import type { Prisma } from '@prisma/client';
+import type { Database } from '@/lib/types/database.types';
 
-/**
- * Group Invitation type (alias for Prisma type)
- */
-export type GroupInvitation = group_invitations;
+export type GroupInvitation = Database['public']['Tables']['group_invitations']['Row'];
 
 /**
  * Invitation creation input
@@ -85,13 +81,15 @@ export class GroupInvitationService {
     expiresAt.setDate(expiresAt.getDate() + 7);
 
     // Create invitation
-    const createData: Prisma.group_invitationsCreateInput = {
-      groups: { connect: { id: groupId } },
-      users: { connect: { id: invitedByUserId } },
+    const createData = {
+      group_id: groupId,
+      invited_by_user_id: invitedByUserId,
       email: emailLower,
       invitation_token: invitationToken,
-      expires_at: expiresAt,
+      expires_at: expiresAt.toISOString(),
       status: 'pending',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
     };
 
     const newInvitation = await GroupInvitationRepository.create(createData);
@@ -104,7 +102,7 @@ export class GroupInvitationService {
     revalidateTag(CACHE_TAGS.GROUP_INVITATIONS, 'max');
     revalidateTag(CACHE_TAGS.GROUP_INVITATIONS_BY_GROUP(groupId), 'max');
 
-    return newInvitation as GroupInvitation;
+    return newInvitation as unknown as GroupInvitation;
   }
 
   /**
@@ -130,7 +128,7 @@ export class GroupInvitationService {
 
     const invitations = await getCachedInvitations();
 
-    return (invitations || []) as GroupInvitation[];
+    return (invitations || []) as unknown as GroupInvitation[];
   }
 
   /**
@@ -158,7 +156,7 @@ export class GroupInvitationService {
     // Update status to cancelled
     await GroupInvitationRepository.update(invitationId, {
       status: 'cancelled',
-      updated_at: new Date(),
+      updated_at: new Date().toISOString(),
     });
 
     // Invalidate cache
@@ -195,13 +193,13 @@ export class GroupInvitationService {
       // Auto-expire the invitation
       await GroupInvitationRepository.update(invitation.id, {
         status: 'expired',
-        updated_at: new Date(),
+        updated_at: new Date().toISOString(),
       });
 
       throw new Error('Invitation has expired');
     }
 
-    return invitation as GroupInvitation;
+    return invitation as unknown as GroupInvitation;
   }
 
   /**

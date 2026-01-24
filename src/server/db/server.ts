@@ -1,7 +1,7 @@
 'server-only';
 
 import { createClient } from '@supabase/supabase-js';
-import type { Database } from './types';
+import type { Database } from '@/lib/types/database.types';
 
 if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
   throw new Error('Missing env.NEXT_PUBLIC_SUPABASE_URL');

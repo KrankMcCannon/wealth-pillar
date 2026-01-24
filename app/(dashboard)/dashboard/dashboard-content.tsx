@@ -17,7 +17,7 @@
 import { Suspense, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { BottomNavigation, PageContainer, Header } from "@/components/layout";
-import { useUserFilter, usePermissions, useFilteredAccounts, useBudgetsByUser } from "@/hooks";
+import { useUserFilter, usePermissions, useFilteredAccounts } from "@/hooks";
 import { Button } from "@/components/ui";
 import { RecurringTransactionSeries } from "@/lib";
 import {
@@ -34,7 +34,7 @@ import { BudgetPeriodManager, BudgetSection } from "@/features/budgets";
 import { RecurringSeriesSection } from "@/features/recurring";
 import { FinanceLogicService } from "@/server/services/finance-logic.service";
 import { useModalState } from "@/lib/navigation/url-state";
-import type { Account, Transaction, Budget, BudgetPeriod, User } from "@/lib/types";
+import type { Account, Transaction, Budget, BudgetPeriod, User, UserBudgetSummary } from "@/lib/types";
 import { usePageDataStore, useBudgetPeriod } from "@/stores/page-data-store";
 
 /**
@@ -49,6 +49,7 @@ interface DashboardContentProps {
   budgets: Budget[];
   budgetPeriods: Record<string, BudgetPeriod | null>;
   recurringSeries: RecurringTransactionSeries[];
+  budgetsByUser: Record<string, UserBudgetSummary>;
 }
 
 /**
@@ -62,10 +63,10 @@ export default function DashboardContent({
   groupUsers,
   accounts,
   accountBalances,
-  transactions,
   budgets,
   budgetPeriods,
   recurringSeries,
+  budgetsByUser,
 }: DashboardContentProps) {
   const router = useRouter();
   const { selectedGroupFilter, selectedUserId, setSelectedGroupFilter } = useUserFilter();
@@ -76,16 +77,6 @@ export default function DashboardContent({
   const { effectiveUserId, isMember } = usePermissions({
     currentUser,
     selectedUserId: selectedGroupFilter === "all" ? undefined : selectedGroupFilter,
-  });
-
-  // Calculate budgets
-  const { budgetsByUser } = useBudgetsByUser({
-    groupUsers,
-    budgets,
-    transactions,
-    currentUser,
-    selectedUserId,
-    budgetPeriods,
   });
 
   // Modal state management
@@ -245,8 +236,6 @@ export default function DashboardContent({
                 <BudgetPeriodManager
                   selectedUserId={periodManagerUserId || currentUser.id}
                   currentPeriod={periodManagerData.period}
-                  transactions={transactions}
-                  userBudgets={periodManagerData.budgets}
                   onUserChange={handlePeriodManagerUserChange}
                   onSuccess={() => router.refresh()}
                   trigger={budgetPeriodTrigger}

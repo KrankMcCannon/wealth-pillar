@@ -1,4 +1,4 @@
-import { prisma } from "@/server/db/prisma";
+import { supabase } from '@/server/db/supabase';
 import { twelveData } from "@/lib/twelve-data";
 
 /**
@@ -16,17 +16,19 @@ export const MarketDataService = {
       const normalizedSymbol = symbol.toUpperCase();
 
       // 1. Check cache
-      const cached = await prisma.market_data_cache.findUnique({
-        where: { symbol: normalizedSymbol }
-      });
+      const { data: cached } = await supabase
+        .from('market_data_cache')
+        .select('*')
+        .eq('symbol', normalizedSymbol)
+        .single();
 
       const now = new Date();
       // Freshness check: 24 hours
-      const isFresh = cached && (now.getTime() - new Date(cached.last_updated).getTime() < 24 * 60 * 60 * 1000);
+      const isFresh = cached && (now.getTime() - new Date((cached as any).last_updated).getTime() < 24 * 60 * 60 * 1000);
 
-      if (isFresh && cached.data) {
+      if (isFresh && (cached as any).data) {
         console.log(`[MarketData] Returning cached data for ${normalizedSymbol}`);
-        return cached.data;
+        return (cached as any).data;
       }
 
       // 2. Fetch from API
@@ -40,9 +42,9 @@ export const MarketDataService = {
 
       if (!timeSeries || timeSeries.length === 0) {
         // If cache exists but is stale, return it as fallback rather than failing
-        if (cached?.data) {
+        if ((cached as any)?.data) {
           console.warn(`[MarketData] Returning stale cache for ${normalizedSymbol} due to API error.`);
-          return cached.data;
+          return (cached as any).data;
         }
         return [];
       }
@@ -52,18 +54,14 @@ export const MarketDataService = {
       // 3. Update Cache
       console.log(`[MarketData] Saving to cache for ${normalizedSymbol}...`);
       try {
-        await prisma.market_data_cache.upsert({
-          where: { symbol: normalizedSymbol },
-          create: {
+        await supabase
+          .from('market_data_cache')
+          .upsert({
             symbol: normalizedSymbol,
-            data: values as any, // Cast to any to satisfy Prisma Json type constraints
-            last_updated: now
-          },
-          update: {
-            data: values as any,
-            last_updated: now
-          }
-        });
+            data: values, // Supabase handles JSON array automatically
+            last_updated: now.toISOString()
+          } as any, { onConflict: 'symbol' }); // Ensure upsert by PK
+
         console.log(`[MarketData] Successfully saved cache for ${normalizedSymbol}`);
       } catch (dbError) {
         console.error(`[MarketData] Database save error for ${normalizedSymbol}:`, dbError);

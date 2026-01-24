@@ -3,13 +3,15 @@
  */
 
 import { Suspense } from "react";
-import { getDashboardData } from "@/lib/auth/get-dashboard-data";
+import { redirect } from "next/navigation";
+import { getCurrentUser } from "@/lib/auth/cached-auth";
 import { AccountService, TransactionService } from "@/server/services";
 import SettingsContent from "./settings-content";
 import { PageLoader } from "@/components/shared";
 
 export default async function SettingsPage() {
-  const { currentUser } = await getDashboardData();
+  const currentUser = await getCurrentUser();
+  if (!currentUser) redirect("/auth");
 
   // Fetch accounts and transactions
   // Fetch counts

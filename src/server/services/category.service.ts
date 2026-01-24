@@ -6,7 +6,6 @@ import { CategoryRepository } from '@/server/dal';
 import { FinanceLogicService } from './finance-logic.service';
 import type { Category } from '@/lib/types';
 import { revalidateTag } from 'next/cache';
-import type { Prisma } from '@prisma/client';
 
 /**
  * Input type for creating a new category
@@ -141,12 +140,12 @@ export class CategoryService {
       throw new Error('Group ID is required');
     }
 
-    const createData: Prisma.categoriesCreateInput = {
+    const createData = {
       label: data.label.trim(),
       key: data.key.trim().toLowerCase(),
       icon: data.icon.trim(),
       color: data.color.trim().toUpperCase(),
-      groups: { connect: { id: data.group_id } },
+      group_id: data.group_id,
     };
 
     const category = await CategoryRepository.create(createData);
@@ -177,8 +176,8 @@ export class CategoryService {
     }
 
     // Build update object (only include provided fields)
-    const updateData: Prisma.categoriesUpdateInput = {
-      updated_at: new Date(),
+    const updateData: any = {
+      updated_at: new Date().toISOString(),
     };
 
     if (data.label !== undefined) {

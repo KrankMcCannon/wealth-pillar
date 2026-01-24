@@ -14,7 +14,11 @@ import type {
   BudgetPeriod,
   Category,
   RecurringTransactionSeries,
+  UserBudgetSummary,
+  User
 } from '@/lib/types';
+import { toDateTime } from '@/lib/utils/date-utils';
+import { DateTime } from 'luxon';
 
 /**
  * Page Data Service
@@ -40,6 +44,7 @@ export interface DashboardPageData {
   recurringSeries: RecurringTransactionSeries[];
   categories: Category[];
   accountBalances: Record<string, number>;
+  budgetsByUser: Record<string, UserBudgetSummary>; // Server-calculated summaries
 }
 
 /**
@@ -99,23 +104,20 @@ export class PageDataService {
    * @returns Complete dashboard data with account balances and budget periods
    */
   static async getDashboardData(groupId: string): Promise<DashboardPageData> {
-    // First, get group users to fetch their budget periods
-    // Handle error gracefully by defaulting to empty array
+    // 1. Get group users first
     let userIds: string[] = [];
+    let groupUsers: User[] = [];
     try {
-      const groupUsers = await GroupService.getGroupUsers(groupId);
+      groupUsers = (await GroupService.getGroupUsers(groupId)) as unknown as User[];
       userIds = groupUsers.map((u) => u.id);
     } catch (error) {
-      console.error(
-        '[PageDataService] Failed to fetch group users:',
-        error instanceof Error ? error.message : error
-      );
+      console.error('[PageDataService] Failed to fetch group users:', error);
     }
 
-    // Fetch all data in parallel with error handling for each promise
+    // 2. Parallel Fetch: Metadata + Paginated Transactions + Balances (via Account)
     const [
       accounts,
-      transactions,
+      transactionResult, // Only first page!
       budgets,
       recurringSeries,
       categories,
@@ -125,19 +127,17 @@ export class PageDataService {
         console.error('[PageDataService] Failed to fetch accounts:', e);
         return [] as Account[];
       }),
-      TransactionService.getTransactionsByGroup(groupId).catch((e) => {
+      // OPTIMIZATION: Fetch only first 50 transactions instead of ALL
+      TransactionService.getTransactionsByGroupPaginated(groupId, { limit: 50 }).catch((e) => {
         console.error('[PageDataService] Failed to fetch transactions:', e);
-        return [] as Transaction[];
+        return { data: [] as Transaction[], total: 0, hasMore: false };
       }),
       BudgetService.getBudgetsByGroup(groupId).catch((e) => {
         console.error('[PageDataService] Failed to fetch budgets:', e);
         return [] as Budget[];
       }),
       RecurringService.getSeriesByGroup(groupId).catch((e) => {
-        console.error(
-          '[PageDataService] Failed to fetch recurring series:',
-          e
-        );
+        console.error('[PageDataService] Failed to fetch recurring series:', e);
         return [] as RecurringTransactionSeries[];
       }),
       CategoryService.getAllCategories().catch((e) => {
@@ -146,62 +146,104 @@ export class PageDataService {
       }),
       // Fetch active budget period for each user
       ...userIds.map((userId) =>
-        BudgetPeriodService.getActivePeriod(userId).catch((e) => {
-          console.error(
-            `[PageDataService] Failed to fetch budget period for user ${userId}:`,
-            e
-          );
-          return null;
-        })
+        BudgetPeriodService.getActivePeriod(userId).catch(() => null)
       ),
     ]);
 
-    // Build budget periods map (userId -> active period)
+    // Build budget periods map
     const budgetPeriods: Record<string, BudgetPeriod | null> = {};
+    const validPeriods: Record<string, { start: Date; end: Date }> = {};
+
     userIds.forEach((userId, index) => {
-      // periodResults matches the order of userIds spread in Promise.all
-      // TypeScript infers periodResults type from the remaining elements of the array destructuring
-      // We need to cast it or handle it carefully since it's mixed with other types in the array destructuring if not precise
-      // But here with tuple destructuring, periodResults is collected rest.
-      // The type of periodResults is (Account[] | Transaction[] | ... | BudgetPeriod | null)[] which is not ideal.
-      // However, we know they come after the fixed 5 promises.
-      budgetPeriods[userId] = (periodResults[index] as BudgetPeriod | null) ?? null;
+      const period = (periodResults[index] as BudgetPeriod | null) ?? null;
+      budgetPeriods[userId] = period;
+
+      // Determine date range for aggregation
+      let start: Date, end: Date;
+      if (period) {
+        start = new Date(period.start_date as string | number | Date);
+        // FIX: Ensure end date captures the entire day (23:59:59.999)
+        const endDateTime = toDateTime(period.end_date as any);
+        end = endDateTime ? endDateTime.endOf('day').toJSDate() : new Date();
+      } else {
+        // Default to current month if no period set
+        const now = DateTime.now();
+        start = now.startOf('month').toJSDate();
+        end = now.endOf('month').toJSDate();
+      }
+      validPeriods[userId] = { start, end };
     });
 
-    // Calculate account balances
-    const accountIds = (accounts as Account[]).map((a) => a.id);
-    const accountBalances = FinanceLogicService.calculateAccountBalances(
-      accountIds,
-      transactions as Transaction[]
+    // 3. Parallel Fetch: User Budget Aggregations
+    // Fetch aggregated spending for each user based on their specific period
+    const aggregationResults = await Promise.all(
+      userIds.map(userId => {
+        const { start, end } = validPeriods[userId];
+        return TransactionService.getGroupUserCategorySpending(groupId, start, end)
+          .then(data => data.filter(r => r.user_id === userId)) // Filter strictly for safety
+          .catch(e => {
+            console.error(`[PageDataService] Aggregation failed for user ${userId}:`, e);
+            return [];
+          });
+      })
     );
+
+    // 4. Build Budgets By User Map
+    const budgetsByUser: Record<string, UserBudgetSummary> = {};
+
+    groupUsers.forEach((user, index) => {
+      const userBudgets = budgets.filter(b => b.user_id === user.id);
+      const spendingData = aggregationResults[index];
+      const activePeriod = budgetPeriods[user.id];
+
+      budgetsByUser[user.id] = FinanceLogicService.calculateUserBudgetSummaryFromAggregation(
+        user,
+        userBudgets,
+        spendingData,
+        activePeriod
+      );
+    });
+
+    // 5. Account Balances (from Column)
+    // No more manual calculation! Use the DB column.
+    const accountBalances: Record<string, number> = {};
+    (accounts as Account[]).forEach(a => {
+      accountBalances[a.id] = Number(a.balance) || 0;
+    });
 
     return {
       accounts: accounts as Account[],
-      transactions: transactions as Transaction[],
+      transactions: transactionResult.data as Transaction[],
       budgets: budgets as Budget[],
       budgetPeriods,
       recurringSeries: recurringSeries as RecurringTransactionSeries[],
       categories: categories as Category[],
       accountBalances,
+      budgetsByUser,
     };
   }
 
   /**
-   * Fetch data for transactions page
+   * Fetch data for transactions page (paginated)
    *
-   * Fetches: transactions, categories, accounts, recurring series, budgets
+   * Fetches: transactions (first 50), categories, accounts, recurring series, budgets
    *
    * @param groupId - Group ID to fetch data for
-   * @returns Transactions page data
+   * @param options - Pagination options
+   * @returns Transactions page data with pagination info
    */
   static async getTransactionsPageData(
-    groupId: string
-  ): Promise<TransactionsPageData> {
-    const [transactions, categories, accounts, recurringSeries, budgets] =
+    groupId: string,
+    options?: { limit?: number; offset?: number }
+  ): Promise<TransactionsPageData & { total: number; hasMore: boolean }> {
+    const limit = options?.limit ?? 50;
+    const offset = options?.offset ?? 0;
+
+    const [transactionResult, categories, accounts, recurringSeries, budgets] =
       await Promise.all([
-        TransactionService.getTransactionsByGroup(groupId).catch((e) => {
+        TransactionService.getTransactionsByGroupPaginated(groupId, { limit, offset }).catch((e) => {
           console.error('[PageDataService] Failed to fetch transactions:', e);
-          return [] as Transaction[];
+          return { data: [] as Transaction[], total: 0, hasMore: false };
         }),
         CategoryService.getAllCategories().catch((e) => {
           console.error('[PageDataService] Failed to fetch categories:', e);
@@ -225,7 +267,9 @@ export class PageDataService {
       ]);
 
     return {
-      transactions: transactions as Transaction[],
+      transactions: transactionResult.data as Transaction[],
+      total: transactionResult.total,
+      hasMore: transactionResult.hasMore,
       categories: categories as Category[],
       accounts: accounts as Account[],
       recurringSeries: recurringSeries as RecurringTransactionSeries[],

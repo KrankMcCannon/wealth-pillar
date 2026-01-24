@@ -18,7 +18,7 @@ export {
 // Actions
 export {
   startPeriodAction, closePeriodAction,
-  deletePeriodAction, getUserPeriodsAction, getActivePeriodAction
+  deletePeriodAction, getUserPeriodsAction, getActivePeriodAction, getPeriodPreviewAction
 } from "./actions/budget-period-actions";
 
 export {

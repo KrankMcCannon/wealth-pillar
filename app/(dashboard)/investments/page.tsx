@@ -1,7 +1,8 @@
 import { Suspense } from 'react';
+import { redirect } from 'next/navigation';
 import InvestmentsContent from './investments-content';
 import { PageLoader } from '@/components/shared';
-import { getDashboardData } from '@/lib/auth/get-dashboard-data';
+import { getCurrentUser, getGroupUsers } from '@/lib/auth/cached-auth';
 import { InvestmentService } from '@/server/services';
 import { twelveData } from '@/lib/twelve-data';
 
@@ -11,7 +12,9 @@ export default async function InvestmentsPage(props: {
   const searchParams = await props.searchParams;
   const indexSymbol = typeof searchParams.index === 'string' ? searchParams.index : 'SPY';
 
-  const { currentUser, groupUsers } = await getDashboardData();
+  const currentUser = await getCurrentUser();
+  if (!currentUser) redirect('/auth');
+  const groupUsers = await getGroupUsers();
 
   // Parallel data fetching
   const [portfolioData, indexData, historicalData] = await Promise.all([

@@ -81,7 +81,7 @@ export class RecurringService {
 
         if (!users || users.length === 0) return [];
 
-        const userIds = users.map((u) => u.id);
+        const userIds = users.map((u: any) => u.id);
 
         // Then get all recurring series for those users
         // Using overlaps to find series that include any group member
