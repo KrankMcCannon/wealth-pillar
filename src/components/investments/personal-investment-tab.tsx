@@ -40,7 +40,7 @@ interface PersonalInvestmentTabProps {
   currentIndex?: string;
 }
 
-export function PersonalInvestmentTab({ investments, summary, indexData, historicalData, currentIndex = 'SPY' }: PersonalInvestmentTabProps) {
+export function PersonalInvestmentTab({ investments, summary, indexData, historicalData, currentIndex = 'IVV' }: PersonalInvestmentTabProps) {
   const benchmarkAnchorId = 'benchmark-chart';
 
   const handleBenchmarkChange = (symbol: string) => {
@@ -51,70 +51,85 @@ export function PersonalInvestmentTab({ investments, summary, indexData, histori
     }
   };
 
-  // Prepare data for "Personal Forecast"
-  const forecastData = useMemo(() => {
-    const currentYear = new Date().getFullYear();
-    const data = [];
+  // Calculate Historical Performance based on Index Data (Daily Proxy)
+  const calculatedHistory = useMemo(() => {
+    if (!indexData || indexData.length === 0) return [];
 
-    // Calculate per-investment CAGR or simple rate
-    const investmentsWithRate = investments.map(inv => {
-      const start = new Date(inv.created_at || new Date());
-      const now = new Date();
-      // Years held, minimum 0.1 to avoid extreme rates
-      const yearsHeld = Math.max(0.1, (now.getTime() - start.getTime()) / (1000 * 60 * 60 * 24 * 365.25));
+    // Sort index data ascending by date
+    const sortedIndexData = [...indexData].sort((a, b) =>
+      new Date(a.datetime).getTime() - new Date(b.datetime).getTime()
+    );
 
-      const investedBase = inv.totalPaid ?? inv.totalCost ?? Number(inv.amount);
+    // 1. Generate Raw History Series
+    const rawHistory = sortedIndexData.map(point => {
+      const pointDate = new Date(point.datetime);
+      let dailyTotalValue = 0;
 
-      let annualRate = 0;
-      if (investedBase > 0 && (inv.currentValue || 0) > 0) {
-        annualRate = Math.pow((inv.currentValue || 0) / investedBase, 1 / yearsHeld) - 1;
-      }
+      const pointPrice = parseFloat(point.close);
+      if (isNaN(pointPrice)) return null;
 
-      // Clamp unrealistic rates/fallback
-      if (yearsHeld < 0.25) annualRate = 0.07;
+      investments.forEach(inv => {
+        const createdDate = inv.created_at ? new Date(inv.created_at) : new Date(0);
+
+        // Ownership check
+        if (pointDate >= createdDate) {
+          if (inv.symbol === currentIndex) {
+            // Dynamic pricing for matching assets
+            const shares = Number(inv.shares_acquired || 0);
+            dailyTotalValue += shares * pointPrice;
+          } else {
+            // Static value fallback for non-matching assets (to ensure they are included in Total)
+            // Using current value is a reasonable approximation for "Total Portfolio Value" history magnitude
+            // when granular history is missing for specific assets.
+            dailyTotalValue += Number(inv.currentValue || 0);
+          }
+        }
+      });
 
       return {
-        ...inv,
-        annualRate,
-        initialForForecast: inv.currentValue || 0
+        date: point.datetime.split('T')[0],
+        value: dailyTotalValue
       };
-    });
+    }).filter((p): p is { date: string; value: number } => p !== null && p.value > 0);
 
-    for (let i = 0; i <= 10; i++) {
-      let yearTotal = 0;
+    // 2. Align Endpoint to Summary Card
+    if (rawHistory.length === 0) return [];
 
-      investmentsWithRate.forEach(inv => {
-        // Compound: Current * (1+r)^t (Reinvest always implied now)
-        yearTotal += inv.initialForForecast * Math.pow(1 + inv.annualRate, i);
-      });
+    const lastPoint = rawHistory[rawHistory.length - 1];
+    const targetCurrentValue = summary.totalCurrentValue;
 
-      data.push({
-        year: currentYear + i,
-        amount: Math.round(yearTotal)
-      });
+    // Calculate adjustment ratio to force the final point to match the Card
+    let adjustmentRatio = 1;
+    if (lastPoint.value > 0 && targetCurrentValue > 0) {
+      adjustmentRatio = targetCurrentValue / lastPoint.value;
     }
-    return data;
-  }, [investments]);
 
-  const investmentMetrics = useMemo(() => {
-    return investments.map((inv) => {
-      const totalPaid = inv.totalPaid ?? inv.totalCost ?? (Number(inv.amount) + (Number(inv.tax_paid) || 0));
-      const currentValue = Number(inv.currentValue || 0);
-      const totalGain = inv.totalGain ?? (currentValue - totalPaid);
-      return {
-        ...inv,
-        totalPaid,
-        totalGain,
-        currentValue,
-      };
-    });
-  }, [investments]);
+    // Apply adjustment to valid history
+    return rawHistory.map(point => ({
+      ...point,
+      value: point.value * adjustmentRatio
+    }));
+  }, [investments, indexData, currentIndex, summary.totalCurrentValue]);
+
+
+
+  const investmentMetrics = investments.map((inv) => {
+    const totalPaid = inv.totalPaid ?? inv.totalCost ?? (Number(inv.amount) + (Number(inv.tax_paid) || 0));
+    const currentValue = Number(inv.currentValue || 0);
+    const totalGain = inv.totalGain ?? (currentValue - totalPaid);
+
+    return {
+      ...inv,
+      totalPaid,
+      totalGain,
+      currentValue,
+    };
+  });
 
   const isPositiveReturn = summary.totalReturn >= 0;
 
   return (
     <div className="space-y-8">
-      {/* Metrics Row - Using MetricCard/MetricGrid (Reports Style) */}
       <MetricGrid columns={4}>
         <MetricCard
           label="Valore Attuale"
@@ -122,7 +137,7 @@ export function PersonalInvestmentTab({ investments, summary, indexData, histori
           iconColor="accent"
           labelTone="variant"
           value={summary.totalCurrentValue}
-          valueType="income" // Using 'income' style for current value (usually bold/colored) or 'neutral'
+          valueType="income"
           valueSize="xl"
           description={
             <span className={isPositiveReturn ? "text-emerald-600" : "text-rose-600"}>
@@ -181,10 +196,10 @@ export function PersonalInvestmentTab({ investments, summary, indexData, histori
             <CardDescription className="text-primary/70">Valore effettivo del portafoglio nel tempo</CardDescription>
           </CardHeader>
           <CardContent className="p-6">
-            {historicalData && historicalData.length > 0 ? (
-              <div style={{ width: '100%', height: 350 }}>
+            {calculatedHistory && calculatedHistory.length > 0 ? (
+              <div style={{ width: '100%', height: 350, minWidth: 0 }}>
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={historicalData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                  <AreaChart data={calculatedHistory} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                     <defs>
                       <linearGradient id="colorHistory" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
@@ -227,51 +242,6 @@ export function PersonalInvestmentTab({ investments, summary, indexData, histori
           </CardContent>
         </Card>
 
-        {/* Forecast Chart */}
-        <Card className="border-none shadow-md overflow-hidden">
-          <CardHeader className="px-6 pt-6">
-            <CardTitle className="text-xl text-primary">Previsione Portafoglio (10 Anni)</CardTitle>
-            <CardDescription className="text-primary/70">Basato sul rendimento storico reale</CardDescription>
-          </CardHeader>
-          <CardContent className="p-6">
-            <div style={{ width: '100%', height: 350 }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={forecastData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e5e5" />
-                  <XAxis
-                    dataKey="year"
-                    stroke="#7678E4"
-                    fontSize={12}
-                    tickLine={false}
-                    axisLine={false}
-                    dy={10}
-                  />
-                  <YAxis
-                    stroke="#7678E4"
-                    fontSize={12}
-                    tickLine={false}
-                    axisLine={false}
-                    tickFormatter={(value) => `${new Intl.NumberFormat('it-IT', { notation: 'compact', compactDisplay: 'short' }).format(value)}€`}
-                    width={60}
-                  />
-                  <Tooltip
-                    contentStyle={{ backgroundColor: 'white', borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                    itemStyle={{ color: '#0f172a' }}
-                    formatter={(value) => [new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(Number(value) || 0), "Valore"]}
-                  />
-                  <Area type="monotone" dataKey="amount" stroke="#8b5cf6" strokeWidth={3} fillOpacity={1} fill="url(#colorValue)" activeDot={{ r: 6, strokeWidth: 0 }} />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-
         {/* Benchmark / Index Chart */}
         <Card className="border-none shadow-md overflow-hidden" id={benchmarkAnchorId}>
           <CardHeader className="px-6 pt-6 flex flex-col gap-4">
@@ -290,7 +260,7 @@ export function PersonalInvestmentTab({ investments, summary, indexData, histori
           </CardHeader>
           <CardContent className="p-6">
             {indexData && indexData.length > 0 ? (
-              <div style={{ width: '100%', height: 350 }}>
+              <div style={{ width: '100%', height: 350, minWidth: 0 }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={[...indexData].reverse()} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e5e5" />

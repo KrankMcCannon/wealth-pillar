@@ -9,7 +9,7 @@ export default async function InvestmentsPage(props: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
   const searchParams = await props.searchParams;
-  const indexSymbol = typeof searchParams.index === 'string' ? searchParams.index : 'SPY';
+  const indexSymbol = typeof searchParams.index === 'string' ? searchParams.index : 'IVV';
 
   const currentUser = await getCurrentUser();
   if (!currentUser) redirect('/auth');

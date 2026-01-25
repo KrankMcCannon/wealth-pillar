@@ -22,9 +22,9 @@ export const tabNavigationStyles = {
       inactive: 'text-primary/70 hover:text-primary hover:bg-primary/5',
     },
     modern: {
-      base: 'flex-1 py-3 px-6 text-sm font-semibold rounded-xl transition-all duration-300 group',
-      active: 'bg-primary text-primary-foreground shadow-lg',
-      inactive: 'text-primary/70 hover:text-primary hover:bg-primary/5',
+      base: 'flex-1 py-3 px-6 text-sm font-semibold rounded-full transition-all duration-300 group',
+      active: 'bg-primary text-primary-foreground shadow-lg rounded-full',
+      inactive: 'text-primary/70 hover:text-primary hover:bg-primary/5 rounded-full',
     },
   },
   icon: 'mr-2',

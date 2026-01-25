@@ -32,7 +32,7 @@ export function SandboxForecastTab() {
       <Card className="border-none shadow-lg overflow-hidden">
         <CardHeader className="px-6 pt-6 border-b bg-muted/10">
           <CardTitle className="text-xl">Sandbox Previsionale</CardTitle>
-          <CardDescription className="text-foreground/70">Simula la crescita di un investimento nel tempo modificando i parametri qui sotto.</CardDescription>
+          <CardDescription className="text-primary/70">Simula la crescita di un investimento nel tempo modificando i parametri qui sotto.</CardDescription>
         </CardHeader>
         <CardContent className="p-0">
           <div className="grid gap-8 md:grid-cols-3 p-8 bg-card">
@@ -69,7 +69,7 @@ export function SandboxForecastTab() {
           </div>
 
           <div className="p-6 border-t">
-            <div style={{ width: '100%', height: 400 }}>
+            <div style={{ width: '100%', height: 400, minWidth: 0 }}>
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={forecastData} margin={{ top: 20, right: 10, left: 0, bottom: 0 }}>
                   <defs>
