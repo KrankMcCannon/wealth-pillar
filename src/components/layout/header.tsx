@@ -46,6 +46,11 @@ interface HeaderProps {
     // Extra menu items (optional)
     extraMenuItems?: { label: string; icon: React.ElementType; onClick: () => void }[];
 
+    // Investment data for header badge
+    investmentSummary?: {
+        totalReturnPercent: number;
+    } | null;
+
     // Callbacks
     onBack?: () => void;
 }
@@ -120,6 +125,7 @@ export function Header({
     currentUser,
     showActions = false,
     extraMenuItems = [],
+    investmentSummary,
     onBack,
 }: Readonly<HeaderProps>) {
     const router = useRouter();
@@ -168,9 +174,15 @@ export function Header({
                                 </div>
                             </div>
 
-                            <div className={headerStyles.actions.badge}>
-                                <span>↗ +2.5%</span>
-                            </div>
+                            {investmentSummary && (
+                                <div className={`${headerStyles.actions.badge} ${investmentSummary.totalReturnPercent >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                                    <span>
+                                        {investmentSummary.totalReturnPercent >= 0 ? '↗' : '↘'}{' '}
+                                        {investmentSummary.totalReturnPercent >= 0 ? '+' : ''}
+                                        {investmentSummary.totalReturnPercent.toFixed(2)}%
+                                    </span>
+                                </div>
+                            )}
                         </>
                     )}
 

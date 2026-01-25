@@ -128,6 +128,24 @@ export class BudgetPeriodService {
   }
 
   /**
+   * Get active budget periods for multiple users
+   * returns map of userId -> activePeriod
+   */
+  static async getActivePeriodForUsers(userIds: string[]): Promise<Record<string, BudgetPeriod | null>> {
+    const results = await Promise.all(
+      userIds.map(async (id) => {
+        const period = await this.getActivePeriod(id);
+        return { id, period };
+      })
+    );
+
+    return results.reduce((acc, curr) => {
+      acc[curr.id] = curr.period;
+      return acc;
+    }, {} as Record<string, BudgetPeriod | null>);
+  }
+
+  /**
    * Create a new budget period (start period)
    * Automatically deactivates any existing active period for the user
    */

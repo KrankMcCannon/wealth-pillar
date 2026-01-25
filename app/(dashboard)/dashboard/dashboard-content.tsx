@@ -50,6 +50,9 @@ interface DashboardContentProps {
   budgetPeriods: Record<string, BudgetPeriod | null>;
   recurringSeries: RecurringTransactionSeries[];
   budgetsByUser: Record<string, UserBudgetSummary>;
+  investmentSummary?: {
+    totalReturnPercent: number;
+  } | null;
 }
 
 /**
@@ -67,6 +70,7 @@ export default function DashboardContent({
   budgetPeriods,
   recurringSeries,
   budgetsByUser,
+  investmentSummary,
 }: DashboardContentProps) {
   const router = useRouter();
   const { selectedGroupFilter, selectedUserId, setSelectedGroupFilter } = useUserFilter();
@@ -197,6 +201,7 @@ export default function DashboardContent({
           isDashboard={true}
           currentUser={{ name: currentUser.name, role: currentUser.role || 'member' }}
           showActions={true}
+          investmentSummary={investmentSummary}
         />
       </Suspense>
 

@@ -1,10 +1,8 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { AreaChart, Area, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Search } from "lucide-react";
+import { ShareSelector } from './share-selector';
 
 export interface Investment {
   id: string;
@@ -34,12 +32,11 @@ interface PersonalInvestmentTabProps {
 
 export function PersonalInvestmentTab({ investments, summary, indexData, historicalData, currentIndex = 'SPY' }: PersonalInvestmentTabProps) {
   const router = useRouter();
-  const [searchValue, setSearchValue] = useState(currentIndex);
 
-  const handleSearch = () => {
-    if (searchValue && searchValue !== currentIndex) {
+  const handleBenchmarkChange = (symbol: string) => {
+    if (symbol && symbol !== currentIndex) {
       const searchParams = new URLSearchParams(window.location.search);
-      searchParams.set('index', searchValue.toUpperCase());
+      searchParams.set('index', symbol.toUpperCase());
       router.push(`?${searchParams.toString()}`);
     }
   };
@@ -130,26 +127,24 @@ export function PersonalInvestmentTab({ investments, summary, indexData, histori
           </CardHeader>
           <CardContent className="h-[300px] w-full min-w-0 p-6 pl-0">
             {historicalData && historicalData.length > 0 ? (
-              <div style={{ width: '100%', height: '100%', minHeight: '300px' }}>
-                <ResponsiveContainer width="99%" height="100%">
-                  <AreaChart data={historicalData} margin={{ left: -15, right: 10 }}>
-                    <defs>
-                      <linearGradient id="colorHistory" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8} />
-                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                    <XAxis dataKey="date" stroke="#3b82f6" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(val) => val.split('-').slice(1).join('/')} minTickGap={30} />
-                    <YAxis stroke="#3b82f6" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `${value}€`} />
-                    <Tooltip
-                      contentStyle={{ backgroundColor: 'white', borderRadius: '8px', border: '1px solid #e2e8f0' }}
-                      formatter={(value: any) => [new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(value as number), "Valore"]}
-                    />
-                    <Area type="monotone" dataKey="value" stroke="#3b82f6" strokeWidth={2} fillOpacity={1} fill="url(#colorHistory)" />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
+              <ResponsiveContainer width="100%" height={280} minWidth={200}>
+                <AreaChart data={historicalData} margin={{ left: -15, right: 10 }}>
+                  <defs>
+                    <linearGradient id="colorHistory" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8} />
+                      <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <XAxis dataKey="date" stroke="#3b82f6" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(val) => val.split('-').slice(1).join('/')} minTickGap={30} />
+                  <YAxis stroke="#3b82f6" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `${value}€`} />
+                  <Tooltip
+                    contentStyle={{ backgroundColor: 'white', borderRadius: '8px', border: '1px solid #e2e8f0' }}
+                    formatter={(value) => [new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(Number(value) || 0), "Valore"]}
+                  />
+                  <Area type="monotone" dataKey="value" stroke="#3b82f6" strokeWidth={2} fillOpacity={1} fill="url(#colorHistory)" />
+                </AreaChart>
+              </ResponsiveContainer>
             ) : (
               <div className="flex h-full items-center justify-center text-primary">
                 Dati storici non sufficienti
@@ -165,63 +160,54 @@ export function PersonalInvestmentTab({ investments, summary, indexData, histori
             <CardDescription className="text-primary">Basato sul rendimento storico reale</CardDescription>
           </CardHeader>
           <CardContent className="h-[300px] w-full min-w-0 p-6 pl-0">
-            <div style={{ width: '100%', height: '100%', minHeight: '300px' }}>
-              <ResponsiveContainer width="99%" height="100%">
-                <AreaChart data={forecastData} margin={{ left: -15, right: 10 }}>
-                  <defs>
-                    <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8} />
-                      <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                  <XAxis dataKey="year" stroke="#3b82f6" fontSize={12} tickLine={false} axisLine={false} />
-                  <YAxis stroke="#3b82f6" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `${value}€`} />
-                  <Tooltip
-                    contentStyle={{ backgroundColor: 'white', borderRadius: '8px', border: '1px solid #e2e8f0' }}
-                    formatter={(value: any) => [new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(value as number), "Valore"]}
-                  />
-                  <Area type="monotone" dataKey="amount" stroke="#3b82f6" strokeWidth={2} fillOpacity={1} fill="url(#colorValue)" />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
+            <ResponsiveContainer width="100%" height={280} minWidth={200}>
+              <AreaChart data={forecastData} margin={{ left: -15, right: 10 }}>
+                <defs>
+                  <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8} />
+                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <XAxis dataKey="year" stroke="#3b82f6" fontSize={12} tickLine={false} axisLine={false} />
+                <YAxis stroke="#3b82f6" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `${value}€`} />
+                <Tooltip
+                  contentStyle={{ backgroundColor: 'white', borderRadius: '8px', border: '1px solid #e2e8f0' }}
+                  formatter={(value) => [new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(Number(value) || 0), "Valore"]}
+                />
+                <Area type="monotone" dataKey="amount" stroke="#3b82f6" strokeWidth={2} fillOpacity={1} fill="url(#colorValue)" />
+              </AreaChart>
+            </ResponsiveContainer>
           </CardContent>
         </Card>
 
         {/* Benchmark / Index Chart */}
         <Card className="pt-4">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardTitle>Benchmark</CardTitle>
-              <CardDescription className="text-primary">Confronta con {currentIndex}</CardDescription>
+          <CardHeader className="flex flex-col gap-4">
+            <div className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>Benchmark</CardTitle>
+                <CardDescription className="text-primary">Confronta con {currentIndex}</CardDescription>
+              </div>
             </div>
-            <div className="flex w-[200px] items-center space-x-2">
-              <Input
-                value={searchValue}
-                onChange={(e) => setSearchValue(e.target.value)}
-                placeholder="Es. SPY"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') handleSearch();
-                }}
+            <div className="relative">
+              <ShareSelector
+                value={currentIndex}
+                onChange={handleBenchmarkChange}
               />
-              <Button size="icon" variant="ghost" onClick={handleSearch}>
-                <Search className="h-4 w-4" />
-              </Button>
             </div>
           </CardHeader>
           <CardContent className="h-[300px] w-full min-w-0 p-6 pl-0">
             {indexData && indexData.length > 0 ? (
-              <div style={{ width: '100%', height: '100%', minHeight: '300px' }}>
-                <ResponsiveContainer width="99%" height="100%">
-                  <LineChart data={[...indexData].reverse()} margin={{ left: -15, right: 10 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                    <XAxis dataKey="datetime" minTickGap={30} tickFormatter={(val) => val.split(' ')[0]} stroke="#3b82f6" fontSize={12} tickLine={false} axisLine={false} />
-                    <YAxis domain={['auto', 'auto']} stroke="#3b82f6" fontSize={12} tickLine={false} axisLine={false} />
-                    <Tooltip contentStyle={{ backgroundColor: 'white', borderRadius: '8px', border: '1px solid #e2e8f0' }} />
-                    <Line type="monotone" dataKey="close" stroke="#3b82f6" dot={false} strokeWidth={2} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
+              <ResponsiveContainer width="100%" height={280} minWidth={200}>
+                <LineChart data={[...indexData].reverse()} margin={{ left: -15, right: 10 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <XAxis dataKey="datetime" minTickGap={30} tickFormatter={(val) => val.split(' ')[0]} stroke="#3b82f6" fontSize={12} tickLine={false} axisLine={false} />
+                  <YAxis domain={['auto', 'auto']} stroke="#3b82f6" fontSize={12} tickLine={false} axisLine={false} />
+                  <Tooltip contentStyle={{ backgroundColor: 'white', borderRadius: '8px', border: '1px solid #e2e8f0' }} />
+                  <Line type="monotone" dataKey="close" stroke="#3b82f6" dot={false} strokeWidth={2} />
+                </LineChart>
+              </ResponsiveContainer>
             ) : (
               <div className="flex h-full items-center justify-center text-primary">
                 Dati non disponibili

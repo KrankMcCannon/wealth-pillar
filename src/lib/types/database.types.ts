@@ -444,6 +444,44 @@ export interface Database {
           last_updated?: string
         }
       }
+      available_shares: {
+        Row: {
+          id: string
+          symbol: string
+          name: string
+          region: string
+          asset_type: string
+          exchange: string | null
+          currency: string | null
+          is_popular: boolean
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          symbol: string
+          name: string
+          region: string
+          asset_type: string
+          exchange?: string | null
+          currency?: string | null
+          is_popular?: boolean
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          symbol?: string
+          name?: string
+          region?: string
+          asset_type?: string
+          exchange?: string | null
+          currency?: string | null
+          is_popular?: boolean
+          created_at?: string | null
+          updated_at?: string | null
+        }
+      }
     }
     Views: {
       [_: string]: {

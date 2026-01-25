@@ -34,7 +34,12 @@ export default async function DashboardPage() {
     budgetPeriods = {},
     recurringSeries = [],
     budgetsByUser = {},
+    investments = {},
   } = dashboardData;
+
+  // Get current user's investment summary for header
+  const userInvestmentData = investments[currentUser.id];
+  const investmentSummary = userInvestmentData?.summary || null;
 
   return (
     <Suspense fallback={<DashboardPageLoading />}>
@@ -48,6 +53,7 @@ export default async function DashboardPage() {
         budgetPeriods={budgetPeriods}
         recurringSeries={recurringSeries}
         budgetsByUser={budgetsByUser}
+        investmentSummary={investmentSummary}
       />
     </Suspense>
   );

@@ -7,6 +7,7 @@ import { CategoryService } from './category.service';
 import { RecurringService } from './recurring.service';
 import { GroupService } from './group.service';
 import { FinanceLogicService } from './finance-logic.service';
+import { InvestmentService } from './investment.service';
 import type {
   Account,
   Transaction,
@@ -46,6 +47,7 @@ export interface DashboardPageData {
   categories: Category[];
   accountBalances: Record<string, number>;
   budgetsByUser: Record<string, UserBudgetSummary>; // Server-calculated summaries
+  investments: Record<string, any>; // userId -> portfolio summary
 }
 
 /**
@@ -127,14 +129,20 @@ export class PageDataService {
       console.error('[PageDataService] Failed to fetch group users:', error);
     }
 
-    // 2. Parallel Fetch: Metadata + Paginated Transactions + Balances (via Account)
+    // 2. Parallel Fetch: Metadata + Paginated Transactions + Balances + Investments
+    // We map users to promises for budget & investments
+    const investmentPromises = groupUsers.map(u => InvestmentService.getPortfolio(u.id).catch(e => {
+      console.error(`[PageDataService] Failed to fetch investments for user ${u.id}:`, e);
+      return null;
+    }));
     const [
       accounts,
       transactionResult, // Only first page!
       budgets,
       recurringSeries,
       categories,
-      ...periodResults
+      periodMap,           // periods
+      investmentResults    // investments
     ] = await Promise.all([
       AccountService.getAccountsByGroup(groupId).catch((e) => {
         console.error('[PageDataService] Failed to fetch accounts:', e);
@@ -157,19 +165,27 @@ export class PageDataService {
         console.error('[PageDataService] Failed to fetch categories:', e);
         return [] as Category[];
       }),
-      // Fetch active budget period for each user
-      ...userIds.map((userId) =>
-        BudgetPeriodService.getActivePeriod(userId).catch(() => null)
-      ),
+      BudgetPeriodService.getActivePeriodForUsers(userIds).catch((e) => {
+        console.error('[PageDataService] Failed to fetch budget periods:', e);
+        return {} as Record<string, BudgetPeriod | null>;
+      }),
+      Promise.all(investmentPromises)
     ]);
 
-    // Build budget periods map
+    // Build budget periods map (moved from array to map)
     const budgetPeriods: Record<string, BudgetPeriod | null> = {};
     const validPeriods: Record<string, { start: Date; end: Date }> = {};
 
+    // Build Investment Map
+    const investments: Record<string, any> = {};
+
     userIds.forEach((userId, index) => {
-      const period = (periodResults[index] as BudgetPeriod | null) ?? null;
+      // Budget Periods
+      const period = (periodMap?.[userId] as BudgetPeriod | null) ?? null;
       budgetPeriods[userId] = period;
+
+      // Investments
+      investments[userId] = investmentResults?.[index] || null;
 
       // Determine date range for aggregation
       let start: Date, end: Date;
@@ -232,6 +248,7 @@ export class PageDataService {
       categories: categories as Category[],
       accountBalances,
       budgetsByUser,
+      investments,
     };
   }
 

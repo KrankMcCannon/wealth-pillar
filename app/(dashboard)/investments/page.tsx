@@ -3,8 +3,7 @@ import { redirect } from 'next/navigation';
 import InvestmentsContent from './investments-content';
 import { PageLoader } from '@/components/shared';
 import { getCurrentUser, getGroupUsers } from '@/lib/auth/cached-auth';
-import { InvestmentService } from '@/server/services';
-import { twelveData } from '@/lib/twelve-data';
+import { InvestmentService, MarketDataService } from '@/server/services';
 
 export default async function InvestmentsPage(props: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
@@ -19,7 +18,7 @@ export default async function InvestmentsPage(props: {
   // Parallel data fetching
   const [portfolioData, indexData, historicalData] = await Promise.all([
     InvestmentService.getPortfolio(currentUser.id),
-    twelveData.getTimeSeries(indexSymbol),
+    MarketDataService.getMarketData(indexSymbol),
     InvestmentService.getHistoricalPortfolio(currentUser.id)
   ]);
 

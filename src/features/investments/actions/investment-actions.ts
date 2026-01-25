@@ -35,7 +35,6 @@ export async function createInvestmentAction(
       net_earn: input.net_earn || 0,
       created_at: input.created_at ? new Date(input.created_at).toISOString() : new Date().toISOString(),
       user_id: currentUser.id, // Force connect to current user for now
-      group_id: currentUser.group_id // Ensure group_id is set if required by DB constraint
     };
 
     const data = await InvestmentService.addInvestment(investmentData as InvestmentInsert);
