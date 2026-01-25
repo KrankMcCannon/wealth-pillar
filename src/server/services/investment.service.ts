@@ -52,6 +52,82 @@ export class InvestmentService {
     return [...new Set(investments.map((inv) => inv.symbol).filter(Boolean))] as string[];
   }
 
+  private static getLatestCloseFromSeries(data: any): number {
+    if (!Array.isArray(data) || data.length === 0) return 0;
+
+    const normalizeDateKey = (entry: any): string => {
+      const raw = entry?.datetime ?? entry?.time ?? entry?.date ?? '';
+      return String(raw).split(' ')[0].split('T')[0];
+    };
+
+    const latest = data.reduce((acc, current) => {
+      return normalizeDateKey(current) > normalizeDateKey(acc) ? current : acc;
+    }, data[0]);
+
+    const closeValue = latest?.close;
+    const parsed = Number.parseFloat(closeValue);
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+
+  private static normalizeDateKey(value: string | Date | null | undefined): string {
+    if (!value) return '';
+    const raw = value instanceof Date ? value.toISOString() : String(value);
+    return raw.split(' ')[0].split('T')[0];
+  }
+
+  private static buildSeriesIndex(
+    seriesRows: Array<{ symbol: string; data: any }>
+  ): Record<string, Array<{ date: string; close: number }>> {
+    const index: Record<string, Array<{ date: string; close: number }>> = {};
+
+    seriesRows.forEach((row) => {
+      const symbol = String(row?.symbol || '').toUpperCase();
+      const data = Array.isArray(row?.data) ? row.data : [];
+      if (!symbol || data.length === 0) return;
+
+      const points = data
+        .map((entry: any) => {
+          const date = this.normalizeDateKey(entry?.datetime ?? entry?.time ?? entry?.date);
+          const close = Number.parseFloat(entry?.close);
+          return {
+            date,
+            close: Number.isFinite(close) ? close : 0,
+          };
+        })
+        .filter((point) => point.date && point.close > 0)
+        .sort((a, b) => a.date.localeCompare(b.date));
+
+      if (points.length > 0) {
+        index[symbol] = points;
+      }
+    });
+
+    return index;
+  }
+
+  private static getCloseForDate(
+    points: Array<{ date: string; close: number }> | undefined,
+    targetDateKey: string
+  ): number {
+    if (!points || points.length === 0) return 0;
+    if (!targetDateKey) return points[points.length - 1]?.close ?? 0;
+
+    let found = false;
+    let close = 0;
+
+    for (const point of points) {
+      if (point.date <= targetDateKey) {
+        close = point.close;
+        found = true;
+      } else {
+        break;
+      }
+    }
+
+    if (found) return close;
+    return points[0]?.close ?? 0;
+  }
+
   private static async getMarketDataForInvestments(
     investments: Investment[]
   ): Promise<MarketDataBatchResult[]> {
@@ -67,16 +143,9 @@ export class InvestmentService {
   static async getPortfolio(userId: string) {
     const investments = await this.getByUserDb(userId);
 
-    // Fetch time series data from cache/API
-    const marketDataList = await this.getMarketDataForInvestments(investments as Investment[]);
-
-    // Map symbol -> latest price
-    const priceMap: Record<string, number> = {};
-    marketDataList.forEach((item: MarketDataBatchResult) => {
-      if (item.data && Array.isArray(item.data) && item.data.length > 0) {
-        priceMap[item.symbol] = parseFloat(item.data[0].close);
-      }
-    });
+    const symbols = this.getUniqueSymbols(investments as Investment[]);
+    const seriesRows = await MarketDataService.getCachedSeriesBySymbols(symbols);
+    const seriesIndex = this.buildSeriesIndex(seriesRows);
 
     let totalInvested = 0;
     let totalTaxPaid = 0;
@@ -86,10 +155,13 @@ export class InvestmentService {
       let currentPrice = 0;
       let currentValue = 0;
 
-      const price = priceMap[inv.symbol];
+      const symbolKey = inv.symbol?.toUpperCase();
+      const targetDateKey = this.normalizeDateKey(inv.created_at);
+      const price = symbolKey ? this.getCloseForDate(seriesIndex[symbolKey], targetDateKey) : 0;
+      const currencyRate = Number(inv.currency_rate) || 1;
 
       if (price) {
-        currentPrice = price;
+        currentPrice = price * currencyRate;
         currentValue = currentPrice * Number(inv.shares_acquired);
       } else {
         currentPrice = 0;
@@ -98,6 +170,8 @@ export class InvestmentService {
 
       const investmentAmount = Number(inv.amount);
       const taxPaid = Number(inv.tax_paid) || 0;
+      const totalPaid = investmentAmount + taxPaid;
+      const totalGain = currentValue - totalPaid;
 
       totalInvested += investmentAmount;
       totalTaxPaid += taxPaid;
@@ -115,21 +189,24 @@ export class InvestmentService {
         currentValue,
         currency: inv.currency,
         // Total cost including taxes
-        totalCost: investmentAmount + taxPaid,
+        totalCost: totalPaid,
+        totalPaid,
+        totalGain,
       };
     });
 
     // Total cost = amount invested + taxes paid
-    const totalCost = totalInvested + totalTaxPaid;
-    const totalReturn = totalCurrentValue - totalCost;
-    const totalReturnPercent = totalCost > 0 ? (totalReturn / totalCost) * 100 : 0;
+    const totalPaid = totalInvested + totalTaxPaid;
+    const totalReturn = totalCurrentValue - totalPaid;
+    const totalReturnPercent = totalPaid > 0 ? (totalReturn / totalPaid) * 100 : 0;
 
     return {
       investments: enrichedInvestments,
       summary: {
         totalInvested,
         totalTaxPaid,
-        totalCost,
+        totalCost: totalPaid,
+        totalPaid,
         totalCurrentValue,
         totalReturn,
         totalReturnPercent
@@ -167,8 +244,9 @@ export class InvestmentService {
       if (item.data && Array.isArray(item.data)) {
         historyMap[item.symbol] = {};
         item.data.forEach((day: any) => {
-          // Ensure date is YYYY-MM-DD
-          const dateKey = day.datetime.split(' ')[0];
+          const rawDate = day?.datetime ?? day?.time ?? day?.date;
+          if (!rawDate) return;
+          const dateKey = String(rawDate).split(' ')[0];
           historyMap[item.symbol][dateKey] = parseFloat(day.close);
         });
       }

@@ -94,13 +94,14 @@ function ActionMenu({ extraMenuItems = [] }: Readonly<{ extraMenuItems?: { label
     ];
 
     return (
-        <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-                <Button
-                    variant="default"
-                    size="icon"
-                    className={headerStyles.actions.actionButton}
-                >
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button
+                        id="header-action-menu-trigger"
+                        variant="default"
+                        size="icon"
+                        className={headerStyles.actions.actionButton}
+                    >
                     <Plus className={headerStyles.actions.actionIcon} />
                 </Button>
             </DropdownMenuTrigger>

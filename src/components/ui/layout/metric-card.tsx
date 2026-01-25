@@ -39,7 +39,7 @@ export interface MetricCardProps {
   valueSize?: "sm" | "md" | "lg" | "xl";
 
   // Additional content
-  description?: string;
+  description?: React.ReactNode | string;
   stats?: MetricCardStatItem[]; // Sub-metrics grid
 
   // Actions

@@ -12,7 +12,6 @@ import { revalidateTag } from 'next/cache';
 import { CACHE_TAGS } from "@/lib/cache/config";
 import { canAccessUserData, isMember } from '@/lib/utils/permissions';
 import type { RecurringTransactionSeries, User } from "@/lib/types";
-import { nowISO, toDateString } from "@/lib/utils/date-utils";
 import { RecurringService } from '@/server/services';
 import { serialize } from '@/lib/utils/serializer';
 
@@ -368,8 +367,5 @@ export async function executeRecurringSeriesAction(
 ): Promise<ActionResult<{ transactionId: string }>> {
   // const today = new Date();
   // Per ora ritorniamo un messaggio informativo
-  // Logs for debug purposes (simulated usage to avoid lints)
-  console.log(`[executeRecurringSeriesAction] Call attempt at: ${toDateString(nowISO())} for series ${_seriesId} by user ${_userId}`);
-
   return { data: null, error: "Funzione temporaneamente disabilitata. La creazione automatica delle transazioni sarà abilitata in seguito." };
 }

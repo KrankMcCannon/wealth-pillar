@@ -1,11 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import { PageContainer, Header, BottomNavigation } from "@/components/layout";
 import UserSelector from "@/components/shared/user-selector";
 import { User } from "@/lib";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { PersonalInvestmentTab, Investment } from "@/components/investments/personal-investment-tab";
+import TabNavigation from "@/components/shared/tab-navigation";
+import { transactionStyles } from "@/styles/system";
 import { SandboxForecastTab } from "@/components/investments/sandbox-forecast-tab";
+import { Investment, PersonalInvestmentTab } from "@/components/investments/personal-investment-tab";
 
 interface InvestmentsContentProps {
   currentUser: User;
@@ -13,6 +15,9 @@ interface InvestmentsContentProps {
   investments: Investment[];
   summary: {
     totalInvested: number;
+    totalTaxPaid?: number;
+    totalCost?: number;
+    totalPaid?: number;
     totalCurrentValue: number;
     totalReturn: number;
     totalReturnPercent: number;
@@ -31,6 +36,8 @@ export default function InvestmentsContent({
   historicalData,
   currentIndex
 }: InvestmentsContentProps) {
+  const [activeTab, setActiveTab] = useState("personal");
+
   return (
     <PageContainer>
       <div className="flex-1">
@@ -46,13 +53,21 @@ export default function InvestmentsContent({
           users={groupUsers}
         />
 
-        <main className="p-4 pb-14 space-y-6">
-          <Tabs defaultValue="personal" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="personal" className="text-primary/60 data-[state=active]:text-primary">Investimenti Personali</TabsTrigger>
-              <TabsTrigger value="sandbox" className="text-primary/60 data-[state=active]:text-primary">Sandbox Previsionale</TabsTrigger>
-            </TabsList>
-            <TabsContent value="personal" className="mt-6 space-y-4">
+        <div className={transactionStyles.tabNavigation.wrapper}>
+          <TabNavigation
+            tabs={[
+              { id: "personal", label: "Investimenti Personali" },
+              { id: "sandbox", label: "Sandbox Previsionale" },
+            ]}
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            variant="modern"
+          />
+        </div>
+
+        <div className="mt-8 space-y-6">
+          {activeTab === "personal" && (
+            <main className={transactionStyles.page.main}>
               <PersonalInvestmentTab
                 investments={investments}
                 summary={summary}
@@ -60,12 +75,14 @@ export default function InvestmentsContent({
                 historicalData={historicalData}
                 currentIndex={currentIndex}
               />
-            </TabsContent>
-            <TabsContent value="sandbox" className="mt-6 space-y-4">
+            </main>
+          )}
+          {activeTab === "sandbox" && (
+            <main className={transactionStyles.page.main}>
               <SandboxForecastTab />
-            </TabsContent>
-          </Tabs>
-        </main>
+            </main>
+          )}
+        </div>
       </div>
 
       <BottomNavigation />

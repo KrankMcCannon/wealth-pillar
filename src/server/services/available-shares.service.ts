@@ -1,9 +1,16 @@
 import { supabase } from '@/server/db/supabase';
-import { cache } from 'react';
 import type { Database } from '@/lib/types/database.types';
 
 type AvailableShare = Database['public']['Tables']['available_shares']['Row'];
 type AvailableShareInsert = Database['public']['Tables']['available_shares']['Insert'];
+
+type ShareListRow = Pick<
+  AvailableShare,
+  'id' | 'symbol' | 'name' | 'region' | 'asset_type' | 'exchange' | 'currency' | 'is_popular'
+>;
+
+type RegionRow = { region: string };
+type AssetTypeRow = { asset_type: string };
 
 /**
  * Available Shares Service
@@ -16,47 +23,57 @@ export class AvailableSharesService {
     column: 'region' | 'asset_type',
     filters?: { region?: string }
   ): Promise<string[]> {
-    let query = supabase
-      .from('available_shares')
-      .select(column)
-      .order(column);
+    const supabaseAny = supabase as any;
 
-    if (filters?.region) {
-      query = query.eq('region', filters.region);
+    if (column === 'region') {
+      const { data, error } = await supabaseAny.rpc('get_available_share_regions');
+      if (error) {
+        console.error('[AvailableSharesService] Error fetching regions:', error);
+        return [];
+      }
+      return ((data || []) as RegionRow[]).map((row) => row.region);
     }
 
-    const { data, error } = await query;
+    const { data, error } = await supabaseAny.rpc('get_available_share_asset_types', {
+      p_region: filters?.region ?? null,
+    });
 
     if (error) {
-      console.error('[AvailableSharesService] Error fetching distinct values:', error);
+      console.error('[AvailableSharesService] Error fetching asset types:', error);
       return [];
     }
 
-    const values = (data as Record<string, string>[]).map(item => item[column]);
-    return [...new Set(values)];
+    return ((data || []) as AssetTypeRow[]).map((row) => row.asset_type);
   }
 
   /**
    * Get all distinct regions
    */
-  static getRegions = cache(async (): Promise<string[]> => {
+  static async getRegions(): Promise<string[]> {
     return this.getDistinctColumn('region');
-  });
+  }
 
   /**
    * Get asset types for a specific region
    */
-  static getAssetTypes = cache(async (region: string): Promise<string[]> => {
+  static async getAssetTypes(region: string): Promise<string[]> {
     return this.getDistinctColumn('asset_type', { region });
-  });
+  }
+
+  /**
+   * Get all distinct asset types
+   */
+  static async getAssetTypesAll(): Promise<string[]> {
+    return this.getDistinctColumn('asset_type');
+  }
 
   /**
    * Get shares filtered by region and asset type
    */
-  static getShares = cache(async (region: string, assetType: string): Promise<AvailableShare[]> => {
+  static async getShares(region: string, assetType: string): Promise<AvailableShare[]> {
     const { data, error } = await supabase
       .from('available_shares')
-      .select('*')
+      .select('id, symbol, name, region, asset_type, exchange, currency, is_popular')
       .eq('region', region)
       .eq('asset_type', assetType)
       .order('is_popular', { ascending: false })
@@ -67,37 +84,40 @@ export class AvailableSharesService {
       return [];
     }
 
-    return data as AvailableShare[];
-  });
+    return data as ShareListRow[] as AvailableShare[];
+  }
 
   /**
    * Get popular shares (for quick access)
    */
-  static getPopularShares = cache(async (): Promise<AvailableShare[]> => {
-    const { data, error } = await supabase
-      .from('available_shares')
-      .select('*')
-      .eq('is_popular', true)
-      .order('name');
+  static async getPopularShares(): Promise<AvailableShare[]> {
+    const supabaseAny = supabase as any;
+    const { data, error } = await supabaseAny.rpc('get_popular_shares', { p_limit: 12 });
 
     if (error) {
       console.error('[AvailableSharesService] Error fetching popular shares:', error);
       return [];
     }
 
-    return data as AvailableShare[];
-  });
+    return data as ShareListRow[] as AvailableShare[];
+  }
 
   /**
    * Search shares by symbol or name
    */
-  static searchShares = cache(async (query: string): Promise<AvailableShare[]> => {
+  static async searchShares(query: string, assetType?: string): Promise<AvailableShare[]> {
     const searchTerm = `%${query.toLowerCase()}%`;
 
-    const { data, error } = await supabase
+    let queryBuilder = supabase
       .from('available_shares')
-      .select('*')
-      .or(`symbol.ilike.${searchTerm},name.ilike.${searchTerm}`)
+      .select('id, symbol, name, region, asset_type, exchange, currency, is_popular')
+      .or(`symbol.ilike.${searchTerm},name.ilike.${searchTerm}`);
+
+    if (assetType) {
+      queryBuilder = queryBuilder.eq('asset_type', assetType);
+    }
+
+    const { data, error } = await queryBuilder
       .order('is_popular', { ascending: false })
       .order('name')
       .limit(20);
@@ -107,16 +127,16 @@ export class AvailableSharesService {
       return [];
     }
 
-    return data as AvailableShare[];
-  });
+    return data as ShareListRow[] as AvailableShare[];
+  }
 
   /**
    * Get a single share by symbol
    */
-  static getShareBySymbol = cache(async (symbol: string): Promise<AvailableShare | null> => {
+  static async getShareBySymbol(symbol: string): Promise<AvailableShare | null> {
     const { data, error } = await supabase
       .from('available_shares')
-      .select('*')
+      .select('id, symbol, name, region, asset_type, exchange, currency, is_popular')
       .eq('symbol', symbol.toUpperCase())
       .single();
 
@@ -128,7 +148,7 @@ export class AvailableSharesService {
     }
 
     return data as AvailableShare;
-  });
+  }
 
   /**
    * Add a new share to the catalog

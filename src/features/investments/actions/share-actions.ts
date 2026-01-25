@@ -38,6 +38,19 @@ export async function getShareAssetTypesAction(region: string): Promise<ServiceR
 }
 
 /**
+ * Get asset types (all)
+ */
+export async function getShareAssetTypesAllAction(): Promise<ServiceResult<string[]>> {
+  try {
+    const assetTypes = await AvailableSharesService.getAssetTypesAll();
+    return { data: assetTypes, error: null };
+  } catch (error) {
+    console.error('[ShareActions] Error fetching asset types:', error);
+    return { data: null, error: 'Failed to fetch asset types' };
+  }
+}
+
+/**
  * Get shares filtered by region and asset type
  */
 export async function getSharesAction(
@@ -69,13 +82,64 @@ export async function getPopularSharesAction(): Promise<ServiceResult<AvailableS
 /**
  * Search shares by symbol or name
  */
-export async function searchSharesAction(query: string): Promise<ServiceResult<AvailableShare[]>> {
+export async function searchSharesAction(
+  query: string,
+  assetType?: string
+): Promise<ServiceResult<AvailableShare[]>> {
   try {
-    const shares = await AvailableSharesService.searchShares(query);
-    return { data: shares, error: null };
+    const shares = await AvailableSharesService.searchShares(query, assetType);
+    const needle = query.toLowerCase().trim();
+
+    const scoreShare = (share: AvailableShare): number => {
+      const symbol = share.symbol?.toLowerCase() || '';
+      const name = share.name?.toLowerCase() || '';
+
+      if (symbol === needle) return 0;
+      if (symbol.startsWith(needle)) return 1;
+      if (symbol.includes(needle)) return 2;
+      if (name.startsWith(needle)) return 3;
+      if (name.includes(needle)) return 4;
+      return 5;
+    };
+
+    const sorted = [...shares].sort((a, b) => {
+      const scoreDiff = scoreShare(a) - scoreShare(b);
+      if (scoreDiff !== 0) return scoreDiff;
+      const symbolDiff = (a.symbol || '').length - (b.symbol || '').length;
+      if (symbolDiff !== 0) return symbolDiff;
+      return (a.name || '').localeCompare(b.name || '', 'it');
+    });
+
+    return { data: sorted, error: null };
   } catch (error) {
     console.error('[ShareActions] Error searching shares:', error);
     return { data: null, error: 'Failed to search shares' };
+  }
+}
+
+/**
+ * Ensure market data is cached for a symbol
+ */
+export async function ensureMarketDataAction(symbol: string): Promise<ServiceResult<boolean>> {
+  try {
+    await MarketDataService.getMarketData(symbol.toUpperCase());
+    return { data: true, error: null };
+  } catch (error) {
+    console.error('[ShareActions] Error ensuring market data:', error);
+    return { data: null, error: 'Failed to cache market data' };
+  }
+}
+
+/**
+ * Get a single share by symbol
+ */
+export async function getShareBySymbolAction(symbol: string): Promise<ServiceResult<AvailableShare | null>> {
+  try {
+    const share = await AvailableSharesService.getShareBySymbol(symbol);
+    return { data: share, error: null };
+  } catch (error) {
+    console.error('[ShareActions] Error fetching share by symbol:', error);
+    return { data: null, error: 'Failed to fetch share' };
   }
 }
 

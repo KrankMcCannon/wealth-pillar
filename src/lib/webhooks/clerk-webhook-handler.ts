@@ -8,11 +8,6 @@ import { UserService } from '@/server/services';
 export async function handleClerkWebhook(evt: WebhookEvent) {
   const eventType = evt.type;
 
-  console.log(`[Webhook] Received event: ${eventType}`, {
-    userId: evt.data.id,
-    timestamp: new Date().toISOString(),
-  });
-
   switch (eventType) {
     case 'user.created':
       await handleUserCreated(evt);
@@ -27,7 +22,7 @@ export async function handleClerkWebhook(evt: WebhookEvent) {
       break;
 
     default:
-      console.log(`[Webhook] Unhandled event type: ${eventType}`);
+      break;
   }
 }
 
@@ -42,17 +37,6 @@ export async function handleClerkWebhook(evt: WebhookEvent) {
  */
 async function handleUserCreated(evt: WebhookEvent) {
   if (evt.type !== 'user.created') return;
-
-  const { id: clerkId, email_addresses } = evt.data;
-
-  console.log('[Webhook] User created in Clerk', {
-    clerkId,
-    email: email_addresses[0]?.email_address,
-    note: 'User will be created in Supabase during onboarding',
-  });
-
-  // User creation happens during onboarding when we have all required data
-  // including group_id, accounts, and budgets
 }
 
 /**
@@ -63,10 +47,6 @@ async function handleUserUpdated(evt: WebhookEvent) {
   if (evt.type !== 'user.updated') return;
 
   const { id: clerkId, email_addresses, first_name, last_name } = evt.data;
-
-  console.log('[Webhook] Processing user.updated', {
-    clerkId,
-  });
 
   try {
     // Validate clerkId exists
@@ -79,9 +59,6 @@ async function handleUserUpdated(evt: WebhookEvent) {
     const user = await UserService.getLoggedUserInfo(clerkId);
 
     if (!user) {
-      console.log(
-        `[Webhook] User ${clerkId} not found in Supabase, skipping update`
-      );
       return;
     }
 
@@ -95,10 +72,6 @@ async function handleUserUpdated(evt: WebhookEvent) {
     // Update user profile
     await UserService.updateProfile(user.id, { name, email });
 
-    console.log('[Webhook] User updated successfully', {
-      clerkId,
-      userId: user.id,
-    });
   } catch (error) {
     console.error('[Webhook] Error in handleUserUpdated:', {
       clerkId,
@@ -118,10 +91,6 @@ async function handleUserDeleted(evt: WebhookEvent) {
 
   const { id: clerkId } = evt.data;
 
-  console.log('[Webhook] Processing user.deleted', {
-    clerkId,
-  });
-
   try {
     // Validate clerkId exists
     if (!clerkId) {
@@ -133,19 +102,12 @@ async function handleUserDeleted(evt: WebhookEvent) {
     const user = await UserService.getLoggedUserInfo(clerkId);
 
     if (!user) {
-      console.log(
-        `[Webhook] User ${clerkId} not found in Supabase, skipping deletion`
-      );
       return;
     }
 
     // Delete user (cascades to all related data)
     await UserService.deleteUser(user.id);
 
-    console.log('[Webhook] User deleted successfully', {
-      clerkId,
-      userId: user.id,
-    });
   } catch (error) {
     console.error('[Webhook] Error in handleUserDeleted:', {
       clerkId,

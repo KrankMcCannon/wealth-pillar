@@ -6,6 +6,14 @@
 const API_KEY = process.env.TWELVE_DATA_API_KEY;
 const BASE_URL = 'https://api.twelvedata.com';
 
+const logNotFound = (response: Response, context: string) => {
+  if (response.status === 404) {
+    console.log(`[TwelveData] 404 not found for ${context}`);
+    return true;
+  }
+  return false;
+};
+
 export interface StockQuote {
   symbol: string;
   name: string;
@@ -42,7 +50,7 @@ export const twelveData = {
   async getQuote(symbol: string): Promise<StockQuote | null> {
     if (!API_KEY) {
       console.warn('TWELVE_DATA_API_KEY is not set');
-      // Return mock data for development if key is missing? 
+      // Return mock data for development if key is missing?
       // Or just fail. Let's return null.
       return null;
     }
@@ -51,6 +59,10 @@ export const twelveData = {
       const response = await fetch(`${BASE_URL}/quote?symbol=${symbol}&apikey=${API_KEY}`, {
         next: { revalidate: 60 } // Cache for 60 seconds
       });
+
+      if (logNotFound(response, `quote ${symbol}`)) {
+        return null;
+      }
 
       const data = await response.json();
 
@@ -79,6 +91,10 @@ export const twelveData = {
       const response = await fetch(`${BASE_URL}/quote?symbol=${symbolString}&apikey=${API_KEY}`, {
         next: { revalidate: 60 }
       });
+
+      if (logNotFound(response, `quote ${symbolString}`)) {
+        return {};
+      }
 
       const data = await response.json();
 
@@ -111,6 +127,10 @@ export const twelveData = {
         `${BASE_URL}/time_series?symbol=${symbol}&interval=${interval}&outputsize=${outputsize}&apikey=${API_KEY}`,
         { next: { revalidate: 3600 } } // Cache history for 1 hour
       );
+
+      if (logNotFound(response, `time_series ${symbol}`)) {
+        return [];
+      }
 
       const data = await response.json();
 

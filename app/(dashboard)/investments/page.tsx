@@ -18,7 +18,7 @@ export default async function InvestmentsPage(props: {
   // Parallel data fetching
   const [portfolioData, indexData, historicalData] = await Promise.all([
     InvestmentService.getPortfolio(currentUser.id),
-    MarketDataService.getMarketData(indexSymbol),
+    MarketDataService.getCachedMarketData(indexSymbol),
     InvestmentService.getHistoricalPortfolio(currentUser.id)
   ]);
 
