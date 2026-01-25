@@ -490,7 +490,14 @@ export class PageDataService {
     const startDate = new Date(now.getFullYear() - 2, now.getMonth(), 1); // 2 years ago
 
     // Fetch raw data needed for calculations (keeping it server-side)
-    const [accounts, transactionResult, categories, groupUsersResult] = await Promise.all([
+    const [
+      accounts,
+      transactionResult,
+      categories,
+      groupUsersResult,
+      categorySpendingRaw,
+      monthlyTrendsRaw
+    ] = await Promise.all([
       AccountService.getAccountsByGroup(groupId).catch((e) => {
         console.error('[PageDataService] Failed to fetch accounts:', e);
         return [] as Account[];
@@ -511,6 +518,14 @@ export class PageDataService {
         console.error('[PageDataService] Failed to fetch group users:', e);
         return [] as User[];
       }),
+      TransactionService.getGroupCategorySpending(groupId, startDate, now).catch((e) => {
+        console.error('[PageDataService] Failed to fetch category spending:', e);
+        return [] as Array<{ category: string; spent: number; transaction_count: number }>;
+      }),
+      TransactionService.getGroupMonthlySpending(groupId, startDate, now).catch((e) => {
+        console.error('[PageDataService] Failed to fetch monthly trends:', e);
+        return [] as Array<{ month: string; income: number; expense: number }>;
+      }),
     ]);
 
     const transactions = transactionResult.data as Transaction[];
@@ -528,13 +543,7 @@ export class PageDataService {
 
     // Per User
     groupUsers.forEach(u => {
-      const userTxs = transactions.filter(t => t.user_id === u.id);
-      overviewMetrics[u.id] = calcMetrics(userTxs); // Note: strictly we should filter accounts too but overviewMetrics handles it via accountIds param?
-      // FinanceLogicService.calculateOverviewMetrics takes (transactions, userAccountIds, userId?)
-      // Let's use the explicit userId param of FinanceLogicService if available, or just filter transactions
-      // Actually calculateOverviewMetrics implementation might filter by userId if provided.
-      // Let's check signature: calculateOverviewMetrics(transactions, userAccountIds, userId?)
-      // So we can pass ALL transactions and the userId.
+      // FinanceLogicService can filter by userId internally
       overviewMetrics[u.id] = FinanceLogicService.calculateOverviewMetrics(transactions, accounts.map(a => a.id), u.id);
     });
 
@@ -588,8 +597,12 @@ export class PageDataService {
       transactions: [],
       categories: categories as Category[],
       overviewMetrics,
-      monthlyTrends: [],
-      categorySpending: [],
+      monthlyTrends: monthlyTrendsRaw as Array<{ month: string; income: number; expense: number }>,
+      categorySpending: (categorySpendingRaw || []).map(item => ({
+        category: item.category,
+        amount: item.spent,
+        count: item.transaction_count,
+      })),
       enrichedBudgetPeriods: enrichedFinal,
       annualSpending
     };

@@ -69,18 +69,6 @@ export class UserPreferencesService {
     return updated as UserPreferences;
   }
 
-  private static async deleteDb(userId: string) {
-    const { data: deleted, error } = await supabase
-      .from('user_preferences')
-      .delete()
-      .eq('user_id', userId)
-      .select()
-      .single();
-
-    if (error) throw new Error(error.message);
-    return deleted as UserPreferences;
-  }
-
   // ================== SERVICE LAYER ==================
   /**
     * Gets user preferences by user ID
@@ -200,21 +188,4 @@ export class UserPreferencesService {
     return updatedPrefs as unknown as UserPreferences;
   }
 
-  /**
-   * Deletes user preferences
-   * Used when deleting a user account
-   */
-  static async deletePreferences(userId: string): Promise<boolean> {
-    if (!userId || userId.trim() === '') {
-      throw new Error('User ID is required');
-    }
-
-    await this.deleteDb(userId);
-
-    // Invalidate cache
-    revalidateTag(CACHE_TAGS.USER_PREFERENCES, 'max');
-    revalidateTag(CACHE_TAGS.USER_PREFERENCE(userId), 'max');
-
-    return true;
-  }
 }

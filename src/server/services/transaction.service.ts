@@ -4,36 +4,14 @@ import { cached } from '@/lib/cache';
 import { CACHE_TAGS, cacheOptions } from '@/lib/cache/config';
 import { transactionCacheKeys } from '@/lib/cache/keys';
 import { supabase } from '@/server/db/supabase';
-import type { CategoryBreakdownItem, Transaction, TransactionType } from '@/lib/types';
+import type { Transaction, TransactionType } from '@/lib/types';
 import type { Database } from '@/lib/types/database.types';
-import { FinanceLogicService } from './finance-logic.service';
 import { revalidateTag } from 'next/cache';
 import { serialize } from '@/lib/utils/serializer';
 export { TransactionLogic } from './transaction.logic';
 
 type TransactionInsert = Database['public']['Tables']['transactions']['Insert'];
 type TransactionUpdate = Database['public']['Tables']['transactions']['Update'];
-
-/**
- * Report metrics calculated from transactions
- */
-export interface ReportMetrics {
-  income: number;
-  expenses: number;
-  netSavings: number;
-  savingsRate: number;
-  categories: CategoryMetric[];
-}
-
-/**
- * Category spending metrics
- */
-export interface CategoryMetric {
-  name: string;
-  amount: number;
-  percentage: number;
-  trend?: 'up' | 'down' | 'stable';
-}
 
 /**
  * Input data for creating a new transaction
@@ -388,7 +366,7 @@ export class TransactionService {
       async () => {
         const { count, error } = await supabase
           .from('transactions')
-          .select('*', { count: 'exact', head: true })
+          .select('id', { count: 'exact', head: true })
           .eq('user_id', userId);
 
         if (error) throw new Error(error.message);
@@ -552,25 +530,4 @@ export class TransactionService {
     return { id };
   }
 
-  /**
-   * Calculate report metrics from transactions
-   */
-  static calculateReportMetrics(transactions: Transaction[], userId?: string): ReportMetrics {
-    const breakdown = FinanceLogicService.calculateCategoryBreakdown(
-      transactions.filter(t => !userId || t.user_id === userId)
-    );
-
-    const income = breakdown.filter((i: CategoryBreakdownItem) => i.received > 0).reduce((s: number, i: CategoryBreakdownItem) => s + i.received, 0);
-    const expenses = breakdown.filter((i: CategoryBreakdownItem) => i.spent > 0).reduce((s: number, i: CategoryBreakdownItem) => s + i.spent, 0);
-    const netSavings = income - expenses;
-    const savingsRate = income > 0 ? (netSavings / income) * 100 : 0;
-
-    return {
-      income,
-      expenses,
-      netSavings,
-      savingsRate,
-      categories: breakdown.map((i: CategoryBreakdownItem) => ({ name: i.category, amount: i.spent, percentage: i.percentage }))
-    };
-  }
 }

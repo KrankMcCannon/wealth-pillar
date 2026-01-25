@@ -5,7 +5,6 @@
 import type { Transaction, CategoryBreakdownItem, Budget, BudgetProgress, UserBudgetSummary, User, BudgetPeriod, Account, Category, RecurringTransactionSeries } from '@/lib/types';
 import {
   toDateTime,
-  isInRange,
   now as luxonNow,
   today as luxonToday,
   diffInDays,
@@ -23,19 +22,6 @@ export interface OverviewMetrics {
   totalSpent: number;
   totalTransferred: number;
   totalBalance: number;
-}
-
-export interface AccountBasedMetrics {
-  moneyIn: number;
-  moneyOut: number;
-  balance: number;
-  internalTransfers: number;
-}
-
-export interface BudgetBasedMetrics {
-  budgetIncrease: number;
-  budgetDecrease: number;
-  balance: number;
 }
 
 export class FinanceLogicService {
@@ -111,105 +97,6 @@ export class FinanceLogicService {
   }
 
   /**
-   * Calculate account-based metrics (real cash flow)
-   * @complexity O(n)
-   */
-  static calculateAccountBasedMetrics(
-    transactions: Transaction[],
-    userAccountIds: string[],
-    userId?: string
-  ): AccountBasedMetrics {
-    const accountSet = new Set(userAccountIds);
-    let moneyIn = 0;
-    let moneyOut = 0;
-    let internalTransfers = 0;
-    let totalTransferred = 0;
-
-    for (const t of transactions) {
-      if (userId && t.user_id !== userId) continue;
-
-      if (t.type === 'income' && accountSet.has(t.account_id)) {
-        moneyIn += t.amount;
-      } else if (t.type === 'expense' && accountSet.has(t.account_id)) {
-        moneyOut += t.amount;
-      } else if (t.type === 'transfer' && accountSet.has(t.account_id)) {
-        totalTransferred += t.amount;
-        if (t.to_account_id && accountSet.has(t.to_account_id)) {
-          internalTransfers += t.amount;
-        } else {
-          moneyOut += t.amount;
-        }
-      } else if (t.type === 'transfer' && t.to_account_id && accountSet.has(t.to_account_id)) {
-        moneyIn += t.amount;
-      }
-    }
-
-    return {
-      moneyIn,
-      moneyOut,
-      balance: moneyIn - moneyOut - totalTransferred,
-      internalTransfers,
-    };
-  }
-
-  /**
-   * Calculate budget-based metrics (full budget impact)
-   * @complexity O(n)
-   */
-  static calculateBudgetBasedMetrics(
-    transactions: Transaction[],
-    userAccountIds: string[],
-    userId?: string
-  ): BudgetBasedMetrics {
-    const accountSet = new Set(userAccountIds);
-    let budgetIncrease = 0;
-    let budgetDecrease = 0;
-    let totalTransferred = 0;
-
-    for (const t of transactions) {
-      if (userId && t.user_id !== userId) continue;
-
-      if (t.type === 'income' && accountSet.has(t.account_id)) {
-        budgetIncrease += t.amount;
-      } else if (t.type === 'expense' && accountSet.has(t.account_id)) {
-        budgetDecrease += t.amount;
-      } else if (t.type === 'transfer' && accountSet.has(t.account_id)) {
-        totalTransferred += t.amount;
-        if (!t.to_account_id || !accountSet.has(t.to_account_id)) {
-          budgetDecrease += t.amount;
-        }
-      } else if (t.type === 'transfer' && t.to_account_id && accountSet.has(t.to_account_id)) {
-        budgetIncrease += t.amount;
-      }
-    }
-
-    return {
-      budgetIncrease,
-      budgetDecrease,
-      balance: budgetIncrease - budgetDecrease - totalTransferred,
-    };
-  }
-
-  /**
-   * Calculate internal transfers
-   * @complexity O(n)
-   */
-  static calculateInternalTransfers(
-    transactions: Transaction[],
-    userAccountIds: string[]
-  ): number {
-    const accountSet = new Set(userAccountIds);
-    return transactions
-      .filter(t =>
-        t.type === 'transfer' &&
-        t.to_account_id &&
-        accountSet.has(t.account_id) &&
-        accountSet.has(t.to_account_id)
-      )
-      .reduce((sum, t) => sum + t.amount, 0);
-  }
-
-  /**
    * Calculate category breakdown with NET analysis
    * @complexity O(n + m log m)
    */
@@ -255,60 +142,6 @@ export class FinanceLogicService {
   }
 
   /**
-   * Calculate total money in (Income + ALL transfers in)
-   * @complexity O(n)
-   */
-  static calculateTotalIn(
-    transactions: Transaction[],
-    userAccountIds: string[],
-    userId?: string
-  ): number {
-    const accountSet = new Set(userAccountIds);
-    return transactions.reduce((sum, t) => {
-      if (userId && t.user_id !== userId) return sum;
-
-      // Income to user accounts
-      if (t.type === 'income' && accountSet.has(t.account_id)) {
-        return sum + t.amount;
-      }
-
-      // ANY transfer IN to user accounts
-      if (t.type === 'transfer' && t.to_account_id && accountSet.has(t.to_account_id)) {
-        return sum + t.amount;
-      }
-
-      return sum;
-    }, 0);
-  }
-
-  /**
-   * Calculate total money out (Expense + ALL transfers out)
-   * @complexity O(n)
-   */
-  static calculateTotalOut(
-    transactions: Transaction[],
-    userAccountIds: string[],
-    userId?: string
-  ): number {
-    const accountSet = new Set(userAccountIds);
-    return transactions.reduce((sum, t) => {
-      if (userId && t.user_id !== userId) return sum;
-
-      // Expense from user accounts
-      if (t.type === 'expense' && accountSet.has(t.account_id)) {
-        return sum + t.amount;
-      }
-
-      // ANY transfer OUT from user accounts
-      if (t.type === 'transfer' && accountSet.has(t.account_id)) {
-        return sum + t.amount;
-      }
-
-      return sum;
-    }, 0);
-  }
-
-  /**
    * Filter transactions by categories
    * @complexity O(n)
    */
@@ -318,33 +151,6 @@ export class FinanceLogicService {
   ): Transaction[] {
     const categorySet = new Set(categories);
     return transactions.filter(t => categorySet.has(t.category));
-  }
-
-  /**
-   * Filter transactions by period using utilities
-   * @complexity O(n)
-   */
-  static filterByPeriodInRange(
-    transactions: Transaction[],
-    startDate: DateInput,
-    endDate: DateInput
-  ): Transaction[] {
-    return transactions.filter(t => isInRange(t.date, startDate, endDate));
-  }
-
-  /**
-   * Filter transactions by month and year
-   * @complexity O(n)
-   */
-  static filterByMonth(
-    transactions: Transaction[],
-    year: number,
-    month: number
-  ): Transaction[] {
-    return transactions.filter((t) => {
-      const dt = toDateTime(t.date);
-      return dt && dt.year === year && dt.month === month + 1;
-    });
   }
 
   /**
@@ -410,32 +216,6 @@ export class FinanceLogicService {
       if (t.type === 'expense' || t.type === 'transfer') {
         return sum + t.amount;
       }
-      return sum;
-    }, 0);
-  }
-
-  /**
-   * Calculate internal transfers OUT for a specific account
-   * Used to adjust balance calculations when "Total Spent" excludes internal transfers
-   * 
-   * @complexity O(n)
-   */
-  static calculatePeriodInternalTransfersOut(
-    periodTransactions: Transaction[],
-    accountId: string,
-    userAccountIds: string[]
-  ): number {
-    const userAccountSet = new Set(userAccountIds);
-
-    return periodTransactions.reduce((sum, t) => {
-      if (t.account_id !== accountId) return sum;
-      if (t.type !== 'transfer') return sum;
-
-      // Only count transfers to other user accounts
-      if (t.to_account_id && userAccountSet.has(t.to_account_id)) {
-        return sum + t.amount;
-      }
-
       return sum;
     }, 0);
   }
@@ -751,18 +531,6 @@ export class FinanceLogicService {
   // --- ACCOUNT PURE LOGIC ---
 
   /**
-   * Get account name from account ID (client-side helper)
-   */
-  static getAccountName(
-    accountId: string | null,
-    accounts: Array<{ id: string; name: string }>
-  ): string {
-    if (!accountId) return 'Sconosciuto';
-    const account = accounts.find((a) => a.id === accountId);
-    return account?.name || 'Sconosciuto';
-  }
-
-  /**
    * Get default accounts for users (Pure business logic)
    */
   static getDefaultAccounts(
@@ -778,16 +546,6 @@ export class FinanceLogicService {
 
     // Filter accounts to only include default accounts
     return accounts.filter((account) => defaultAccountIds.has(account.id));
-  }
-
-  /**
-   * Filter accounts by user ID (Pure business logic)
-   */
-  static filterAccountsByUser(
-    accounts: Account[],
-    userId: string
-  ): Account[] {
-    return accounts.filter((account) => account.user_ids.includes(userId));
   }
 
   /**
@@ -837,42 +595,6 @@ export class FinanceLogicService {
   }
 
   // --- CATEGORY PURE LOGIC ---
-
-  /**
-   * Groups categories by first letter
-   */
-  static groupCategories(categories: Category[]): Record<string, Category[]> {
-    return categories.reduce(
-      (groups: Record<string, Category[]>, category) => {
-        const firstLetter = category.label.charAt(0).toUpperCase();
-        if (!groups[firstLetter]) {
-          groups[firstLetter] = [];
-        }
-        groups[firstLetter].push(category);
-        return groups;
-      },
-      {}
-    );
-  }
-
-  /**
-   * Filters categories by search query
-   */
-  static filterCategories(
-    categories: Category[],
-    searchQuery: string
-  ): Category[] {
-    if (!searchQuery || searchQuery.trim() === '') {
-      return categories;
-    }
-
-    const query = searchQuery.toLowerCase().trim();
-    return categories.filter(
-      (category) =>
-        category.label.toLowerCase().includes(query) ||
-        category.key.toLowerCase().includes(query)
-    );
-  }
 
   /**
    * Finds a category by ID, key, or label
@@ -941,33 +663,6 @@ export class FinanceLogicService {
    */
   static getDefaultColor(): string {
     return DEFAULT_CATEGORY_COLOR;
-  }
-
-  /**
-   * Validates category data structure
-   */
-  static validateCategoryData(data: {
-    label?: string;
-    icon?: string;
-    color?: string;
-  }): { isValid: boolean; error?: string } {
-    if (!data.label || data.label.trim() === '') {
-      return { isValid: false, error: 'Label is required' };
-    }
-
-    if (!data.icon || data.icon.trim() === '') {
-      return { isValid: false, error: 'Icon is required' };
-    }
-
-    if (!data.color || data.color.trim() === '') {
-      return { isValid: false, error: 'Color is required' };
-    }
-
-    if (!this.isValidColor(data.color)) {
-      return { isValid: false, error: 'Invalid color format. Use hex format (e.g., #FF0000)' };
-    }
-
-    return { isValid: true };
   }
 
   // --- RECURRING SERIES LOGIC ---

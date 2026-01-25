@@ -48,6 +48,18 @@ export class InvestmentService {
     return data as any;
   }
 
+  private static getUniqueSymbols(investments: Investment[]): string[] {
+    return [...new Set(investments.map((inv) => inv.symbol).filter(Boolean))] as string[];
+  }
+
+  private static async getMarketDataForInvestments(
+    investments: Investment[]
+  ): Promise<MarketDataBatchResult[]> {
+    const symbols = this.getUniqueSymbols(investments);
+    if (symbols.length === 0) return [];
+    return MarketDataService.getBatchMarketData(symbols);
+  }
+
   // ================== SERVICE LAYER ==================
   /**
    * Get user portfolio with real-time values
@@ -55,9 +67,8 @@ export class InvestmentService {
   static async getPortfolio(userId: string) {
     const investments = await this.getByUserDb(userId);
 
-    const symbols = [...new Set((investments as Investment[]).map((inv) => inv.symbol).filter(Boolean))] as string[];
     // Fetch time series data from cache/API
-    const marketDataList = await MarketDataService.getBatchMarketData(symbols);
+    const marketDataList = await this.getMarketDataForInvestments(investments as Investment[]);
 
     // Map symbol -> latest price
     const priceMap: Record<string, number> = {};
@@ -141,31 +152,13 @@ export class InvestmentService {
   }
 
   /**
-   * Calculate forecast (Sandbox)
-   * Calculates compound interest for a given amount over years.
-   */
-  static calculateForecast(amount: number, years: number = 10, rate: number = 0.07) {
-    const data = [];
-    let current = amount;
-    for (let i = 0; i <= years; i++) {
-      data.push({
-        year: new Date().getFullYear() + i,
-        amount: Math.round(current)
-      });
-      current = current * (1 + rate);
-    }
-    return data;
-  }
-
-  /**
    * Get historical portfolio performance
    */
   static async getHistoricalPortfolio(userId: string) {
     const investments = await this.getByUserDb(userId);
     if (!investments || investments.length === 0) return [];
 
-    const symbols = [...new Set((investments as Investment[]).map((inv) => inv.symbol).filter(Boolean))] as string[];
-    const marketDataList = await MarketDataService.getBatchMarketData(symbols);
+    const marketDataList = await this.getMarketDataForInvestments(investments as Investment[]);
 
     // Create a map of Symbol -> { DateString -> ClosePrice }
     const historyMap: Record<string, Record<string, number>> = {};
@@ -222,7 +215,9 @@ export class InvestmentService {
                 price = historyMap[inv.symbol]?.[yStr];
               }
             }
-          } else {
+          }
+
+          if (price) {
             totalValue += price * Number(inv.shares_acquired);
           }
         }

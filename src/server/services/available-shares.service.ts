@@ -12,43 +12,42 @@ type AvailableShareInsert = Database['public']['Tables']['available_shares']['In
  * cascading dropdown selector.
  */
 export class AvailableSharesService {
+  private static async getDistinctColumn(
+    column: 'region' | 'asset_type',
+    filters?: { region?: string }
+  ): Promise<string[]> {
+    let query = supabase
+      .from('available_shares')
+      .select(column)
+      .order(column);
+
+    if (filters?.region) {
+      query = query.eq('region', filters.region);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error('[AvailableSharesService] Error fetching distinct values:', error);
+      return [];
+    }
+
+    const values = (data as Record<string, string>[]).map(item => item[column]);
+    return [...new Set(values)];
+  }
+
   /**
    * Get all distinct regions
    */
   static getRegions = cache(async (): Promise<string[]> => {
-    const { data, error } = await supabase
-      .from('available_shares')
-      .select('region')
-      .order('region');
-
-    if (error) {
-      console.error('[AvailableSharesService] Error fetching regions:', error);
-      return [];
-    }
-
-    // Get unique regions
-    const uniqueRegions = [...new Set((data as { region: string }[]).map(item => item.region))];
-    return uniqueRegions;
+    return this.getDistinctColumn('region');
   });
 
   /**
    * Get asset types for a specific region
    */
   static getAssetTypes = cache(async (region: string): Promise<string[]> => {
-    const { data, error } = await supabase
-      .from('available_shares')
-      .select('asset_type')
-      .eq('region', region)
-      .order('asset_type');
-
-    if (error) {
-      console.error('[AvailableSharesService] Error fetching asset types:', error);
-      return [];
-    }
-
-    // Get unique asset types
-    const uniqueTypes = [...new Set((data as { asset_type: string }[]).map(item => item.asset_type))];
-    return uniqueTypes;
+    return this.getDistinctColumn('asset_type', { region });
   });
 
   /**

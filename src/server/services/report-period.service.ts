@@ -6,7 +6,7 @@
  * Note: This service now leverages FinanceLogicService for core calculations.
  */
 
-import type { Account, BudgetPeriod, Transaction, User, CategoryBreakdownItem } from '@/lib/types';
+import type { Account, BudgetPeriod, Transaction, User } from '@/lib/types';
 import { FinanceLogicService } from './finance-logic.service';
 import { toDateTime } from '@/lib/utils/date-utils';
 
@@ -28,26 +28,6 @@ export interface EnrichedBudgetPeriod extends BudgetPeriod {
  * Handles budget period calculations and enrichment by wrapping FinanceLogicService.
  */
 export class ReportPeriodService {
-  /**
-   * Filter transactions within a budget period date range
-   */
-  static filterTransactionsByPeriod(
-    transactions: Transaction[],
-    startDate: string | Date,
-    endDate: string | Date | null
-  ): Transaction[] {
-    return FinanceLogicService.filterTransactionsByPeriod(transactions, startDate, endDate);
-  }
-
-  /**
-   * Calculate category breakdown from transactions with NET analysis
-   */
-  static calculateCategoryBreakdown(
-    transactions: Transaction[]
-  ): CategoryBreakdownItem[] {
-    return FinanceLogicService.calculateCategoryBreakdown(transactions);
-  }
-
   /**
    * Enrich budget periods with calculated metrics
    * Combines period data with transaction analysis

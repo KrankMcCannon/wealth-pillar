@@ -173,8 +173,13 @@ export class AccountService {
 
     const getCachedCount = cached(
       async () => {
-        const accounts = await this.getByUserDb(userId);
-        return accounts.length;
+        const { count, error } = await supabase
+          .from('accounts')
+          .select('id', { count: 'exact', head: true })
+          .contains('user_ids', [userId]);
+
+        if (error) throw new Error(error.message);
+        return count || 0;
       },
       [`user:${userId}:accounts:count`],
       { revalidate: 300, tags: [CACHE_TAGS.ACCOUNTS, `user:${userId}:accounts`] }

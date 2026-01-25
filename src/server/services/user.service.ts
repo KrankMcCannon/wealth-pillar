@@ -8,6 +8,8 @@ import { TransactionService } from './transaction.service';
 import { AccountService } from './account.service';
 import { BudgetService } from './budget.service';
 import { revalidateTag } from 'next/cache';
+import { isValidEmail } from '@/lib/utils/validators';
+import { fetchUserGroupId } from './user-queries';
 import type { Database } from '@/lib/types/database.types';
 
 type User = Database['public']['Tables']['users']['Row'];
@@ -86,17 +88,6 @@ export class UserService {
     return (data || []) as User[];
   });
 
-  private static getByGroupAndRoleDb = cache(async (groupId: string, role: string): Promise<User[]> => {
-    const { data, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('group_id', groupId)
-      .eq('role', role)
-      .order('created_at', { ascending: true });
-
-    if (error) throw new Error(error.message);
-    return (data || []) as User[];
-  });
 
   private static async deleteDb(id: string): Promise<void> {
     const { error } = await supabase
@@ -105,16 +96,6 @@ export class UserService {
       .eq('id', id);
 
     if (error) throw new Error(error.message);
-  }
-
-  static async countByGroup(groupId: string): Promise<number> {
-    const { count, error } = await supabase
-      .from('users')
-      .select('*', { count: 'exact', head: true })
-      .eq('group_id', groupId);
-
-    if (error) throw new Error(error.message);
-    return count || 0;
   }
 
   static async findUserByPeriodId(periodId: string): Promise<User | null> {
@@ -166,13 +147,6 @@ export class UserService {
    */
   static async getUsersByGroup(groupId: string): Promise<User[]> {
     return this.getByGroupDb(groupId);
-  }
-
-  /**
-   * Retrieves users by group and role
-   */
-  static async getUsersByGroupAndRole(groupId: string, role: string): Promise<User[]> {
-    return this.getByGroupAndRoleDb(groupId, role);
   }
 
   /**
@@ -265,28 +239,7 @@ export class UserService {
       throw new Error('User ID is required');
     }
 
-    const user = await this.getUserById(userId);
-
-    if (!user || !user.group_id) {
-      throw new Error('User or Group not found');
-    }
-
-    return user.group_id;
-  }
-
-  /**
-   * Get user name from user ID (client-side helper)
-   * Pure function for getting user name from a list of users
-   * Note: This is a utility function, technically doesn't need to be in the Service class 
-   * but kept for backward compatibility of location.
-   */
-  static getUserName(
-    userId: string | null,
-    users: Array<{ id: string; name: string }>
-  ): string {
-    if (!userId) return 'Sconosciuto';
-    const user = users.find((u) => u.id === userId);
-    return user?.name || 'Sconosciuto';
+    return fetchUserGroupId(userId);
   }
 
   /**
@@ -405,8 +358,7 @@ export class UserService {
 
     // Validate email if provided
     if (updates.email !== undefined) {
-      const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
-      if (!emailRegex.test(updates.email)) {
+      if (!isValidEmail(updates.email)) {
         throw new Error('Invalid email format');
       }
 
