@@ -1,4 +1,4 @@
-import { MarketDataService } from './market-data-service';
+import { MarketDataService } from './market-data.service';
 import type { Database } from '@/lib/types/database.types';
 import { supabase } from '@/server/db/supabase';
 import { cache } from 'react';

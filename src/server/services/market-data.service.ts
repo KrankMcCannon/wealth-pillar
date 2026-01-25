@@ -10,8 +10,8 @@ import { twelveData } from "@/lib/twelve-data";
  * 4. Upsert data into DB.
  * 5. Return data.
  */
-export const MarketDataService = {
-  async getMarketData(symbol: string) {
+export class MarketDataService {
+  static async getMarketData(symbol: string) {
     try {
       const normalizedSymbol = symbol.toUpperCase();
 
@@ -75,12 +75,12 @@ export const MarketDataService = {
       // Fallback: try to return cache if possible even if checking failed (unlikely) or just return empty
       return [];
     }
-  },
+  }
 
   /**
    * Batch fetch for multiple symbols (used for portfolio)
    */
-  async getBatchMarketData(symbols: string[]) {
+  static async getBatchMarketData(symbols: string[]) {
     // Process in parallel
     const results = await Promise.all(
       symbols.map(async (sym) => ({
@@ -91,4 +91,4 @@ export const MarketDataService = {
 
     return results;
   }
-};
+}
