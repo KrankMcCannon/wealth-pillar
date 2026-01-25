@@ -21,6 +21,8 @@ interface PersonalInvestmentTabProps {
   investments: Investment[];
   summary: {
     totalInvested: number;
+    totalTaxPaid?: number;
+    totalCost?: number;
     totalCurrentValue: number;
     totalReturn: number;
     totalReturnPercent: number;
@@ -90,13 +92,13 @@ export function PersonalInvestmentTab({ investments, summary, indexData, histori
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card className="py-2">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Valore Totale</CardTitle>
+            <CardTitle className="text-sm font-medium">Valore Attuale</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
               {new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(summary.totalCurrentValue)}
             </div>
-            <p className="text-xs text-primary">
+            <p className={`text-xs ${summary.totalReturn >= 0 ? 'text-green-600' : 'text-red-600'}`}>
               {summary.totalReturn >= 0 ? '+' : ''}
               {new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(summary.totalReturn)}
               {' '}
@@ -107,14 +109,49 @@ export function PersonalInvestmentTab({ investments, summary, indexData, histori
 
         <Card className="pt-3">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Investito Totale</CardTitle>
+            <CardTitle className="text-sm font-medium">Investito</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
               {new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(summary.totalInvested)}
             </div>
+            <p className="text-xs text-muted-foreground">
+              Costo quote
+            </p>
           </CardContent>
         </Card>
+
+        {(summary.totalTaxPaid !== undefined && summary.totalTaxPaid > 0) && (
+          <Card className="pt-3">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Tasse Pagate</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(summary.totalTaxPaid)}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Bollo + commissioni
+              </p>
+            </CardContent>
+          </Card>
+        )}
+
+        {summary.totalCost !== undefined && (
+          <Card className="pt-3">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Costo Totale</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(summary.totalCost)}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Investito + tasse
+              </p>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {/* Charts Row */}

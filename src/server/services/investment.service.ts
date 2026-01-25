@@ -68,6 +68,7 @@ export class InvestmentService {
     });
 
     let totalInvested = 0;
+    let totalTaxPaid = 0;
     let totalCurrentValue = 0;
 
     const enrichedInvestments = (investments as Investment[]).map((inv) => {
@@ -84,30 +85,43 @@ export class InvestmentService {
         currentValue = 0;
       }
 
-      totalInvested += Number(inv.amount);
+      const investmentAmount = Number(inv.amount);
+      const taxPaid = Number(inv.tax_paid) || 0;
+
+      totalInvested += investmentAmount;
+      totalTaxPaid += taxPaid;
       totalCurrentValue += currentValue;
 
       return {
         ...inv,
-        amount: Number(inv.amount),
+        amount: investmentAmount,
         shares_acquired: Number(inv.shares_acquired),
         currency_rate: Number(inv.currency_rate),
-        tax_paid: Number(inv.tax_paid),
+        tax_paid: taxPaid,
         net_earn: Number(inv.net_earn),
         created_at: inv.created_at,
         currentPrice,
         currentValue,
         currency: inv.currency,
+        // Total cost including taxes
+        totalCost: investmentAmount + taxPaid,
       };
     });
+
+    // Total cost = amount invested + taxes paid
+    const totalCost = totalInvested + totalTaxPaid;
+    const totalReturn = totalCurrentValue - totalCost;
+    const totalReturnPercent = totalCost > 0 ? (totalReturn / totalCost) * 100 : 0;
 
     return {
       investments: enrichedInvestments,
       summary: {
         totalInvested,
+        totalTaxPaid,
+        totalCost,
         totalCurrentValue,
-        totalReturn: totalCurrentValue - totalInvested,
-        totalReturnPercent: totalInvested > 0 ? ((totalCurrentValue - totalInvested) / totalInvested) * 100 : 0
+        totalReturn,
+        totalReturnPercent
       }
     };
   }

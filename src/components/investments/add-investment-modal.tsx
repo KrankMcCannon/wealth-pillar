@@ -16,6 +16,7 @@ const investmentSchema = z.object({
   name: z.string().min(1, "Il nome è obbligatorio"),
   symbol: z.string().min(1, "Il simbolo è obbligatorio"),
   amount: z.string().refine(val => !isNaN(Number(val)) && Number(val) > 0, "Importo non valido"),
+  tax_paid: z.string().refine(val => !isNaN(Number(val)) && Number(val) >= 0, "Tasse non valide"),
   shares: z.string().refine(val => !isNaN(Number(val)) && Number(val) > 0, "Quote non valide"),
   created_at: z.string().min(1, "Data obbligatoria"),
   currency: z.enum(["EUR", "USD"])
@@ -42,6 +43,7 @@ export default function AddInvestmentModal({ isOpen, onClose }: AddInvestmentMod
       name: "",
       symbol: "",
       amount: "",
+      tax_paid: "0",
       shares: "",
       currency: "EUR",
       created_at: new Date().toISOString().split('T')[0]
@@ -67,9 +69,10 @@ export default function AddInvestmentModal({ isOpen, onClose }: AddInvestmentMod
         shares_acquired: Number(data.shares),
         currency: data.currency,
         created_at: new Date(data.created_at),
+        // Taxes paid for the purchase
+        tax_paid: Number(data.tax_paid) || 0,
         // Defaults
         currency_rate: 1,
-        tax_paid: 0,
         net_earn: 0
       });
 
@@ -106,7 +109,11 @@ export default function AddInvestmentModal({ isOpen, onClose }: AddInvestmentMod
                 <Input {...register("amount")} type="number" step="0.01" placeholder="1000.00" />
               </FormField>
 
-              <FormField label="Quote" required error={errors.shares?.message}>
+              <FormField label="Tasse Pagate" error={errors.tax_paid?.message}>
+                <Input {...register("tax_paid")} type="number" step="0.01" placeholder="0.00" />
+              </FormField>
+
+              <FormField label="Quote Acquisite" required error={errors.shares?.message}>
                 <Input {...register("shares")} type="number" step="0.000001" placeholder="10" />
               </FormField>
 
