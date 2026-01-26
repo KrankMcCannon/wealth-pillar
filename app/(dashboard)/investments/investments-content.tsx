@@ -16,14 +16,13 @@ interface InvestmentsContentProps {
   summary: {
     totalInvested: number;
     totalTaxPaid?: number;
-    totalCost?: number;
     totalPaid?: number;
     totalCurrentValue: number;
+    totalInitialValue?: number;
     totalReturn: number;
     totalReturnPercent: number;
   };
-  indexData: any[]; // Consider defining TimeSeriesData type shared
-  historicalData: any[];
+  indexData: any[];
   currentIndex?: string;
 }
 
@@ -33,7 +32,6 @@ export default function InvestmentsContent({
   investments,
   summary,
   indexData,
-  historicalData,
   currentIndex
 }: InvestmentsContentProps) {
   const [activeTab, setActiveTab] = useState("personal");
@@ -72,7 +70,6 @@ export default function InvestmentsContent({
                 investments={investments}
                 summary={summary}
                 indexData={indexData}
-                historicalData={historicalData}
                 currentIndex={currentIndex}
               />
             </main>

@@ -107,7 +107,7 @@ export class InvestmentService {
 
   private static getCloseForDate(
     points: Array<{ date: string; close: number }> | undefined,
-    targetDateKey: string
+    targetDateKey?: string
   ): number {
     if (!points || points.length === 0) return 0;
     if (!targetDateKey) return points[points.length - 1]?.close ?? 0;
@@ -150,23 +150,21 @@ export class InvestmentService {
     let totalInvested = 0;
     let totalTaxPaid = 0;
     let totalCurrentValue = 0;
+    let totalInitialValue = 0;
 
     const enrichedInvestments = (investments as Investment[]).map((inv) => {
-      let currentPrice = 0;
-      let currentValue = 0;
-
       const symbolKey = inv.symbol?.toUpperCase();
-      const targetDateKey = this.normalizeDateKey(inv.created_at);
-      const price = symbolKey ? this.getCloseForDate(seriesIndex[symbolKey], targetDateKey) : 0;
       const currencyRate = Number(inv.currency_rate) || 1;
+      const shares = Number(inv.shares_acquired);
 
-      if (price) {
-        currentPrice = price * currencyRate;
-        currentValue = currentPrice * Number(inv.shares_acquired);
-      } else {
-        currentPrice = 0;
-        currentValue = 0;
-      }
+      // 1. Current (Live) Value: No date passed = latest price
+      const livePrice = symbolKey ? this.getCloseForDate(seriesIndex[symbolKey], undefined) : 0;
+      const currentValue = livePrice * currencyRate * shares;
+
+      // 2. Initial (Historical) Value: Price at creation date
+      const creationDateKey = this.normalizeDateKey(inv.created_at);
+      const initialPrice = symbolKey ? this.getCloseForDate(seriesIndex[symbolKey], creationDateKey) : 0;
+      const initialValue = initialPrice * currencyRate * shares;
 
       const investmentAmount = Number(inv.amount);
       const taxPaid = Number(inv.tax_paid) || 0;
@@ -176,26 +174,25 @@ export class InvestmentService {
       totalInvested += investmentAmount;
       totalTaxPaid += taxPaid;
       totalCurrentValue += currentValue;
+      totalInitialValue += initialValue;
 
       return {
         ...inv,
         amount: investmentAmount,
-        shares_acquired: Number(inv.shares_acquired),
-        currency_rate: Number(inv.currency_rate),
+        shares_acquired: shares,
+        currency_rate: currencyRate,
         tax_paid: taxPaid,
         net_earn: Number(inv.net_earn),
         created_at: inv.created_at,
-        currentPrice,
+        currentPrice: livePrice * currencyRate,
         currentValue,
+        initialValue,
         currency: inv.currency,
-        // Total cost including taxes
-        totalCost: totalPaid,
         totalPaid,
         totalGain,
       };
     });
 
-    // Total cost = amount invested + taxes paid
     const totalPaid = totalInvested + totalTaxPaid;
     const totalReturn = totalCurrentValue - totalPaid;
     const totalReturnPercent = totalPaid > 0 ? (totalReturn / totalPaid) * 100 : 0;
@@ -205,9 +202,9 @@ export class InvestmentService {
       summary: {
         totalInvested,
         totalTaxPaid,
-        totalCost: totalPaid,
         totalPaid,
         totalCurrentValue,
+        totalInitialValue,
         totalReturn,
         totalReturnPercent
       }
@@ -296,7 +293,8 @@ export class InvestmentService {
           }
 
           if (price) {
-            totalValue += price * Number(inv.shares_acquired);
+            const currencyRate = Number(inv.currency_rate) || 1;
+            totalValue += price * Number(inv.shares_acquired) * currencyRate;
           }
         }
       });

@@ -15,6 +15,7 @@ export interface Investment {
   shares_acquired: number;
   currentPrice?: number;
   currentValue?: number;
+  initialValue?: number;
   currency: string;
   tax_paid?: number;
   totalPaid?: number;
@@ -29,18 +30,17 @@ interface PersonalInvestmentTabProps {
   summary: {
     totalInvested: number;
     totalTaxPaid?: number;
-    totalCost?: number;
     totalPaid?: number;
     totalCurrentValue: number;
+    totalInitialValue?: number;
     totalReturn: number;
     totalReturnPercent: number;
   };
   indexData?: { datetime: string; close: string }[];
-  historicalData?: { date: string; value: number }[];
   currentIndex?: string;
 }
 
-export function PersonalInvestmentTab({ investments, summary, indexData, historicalData, currentIndex = 'IVV' }: PersonalInvestmentTabProps) {
+export function PersonalInvestmentTab({ investments, summary, indexData, currentIndex = 'IVV' }: PersonalInvestmentTabProps) {
   const benchmarkAnchorId = 'benchmark-chart';
 
   const handleBenchmarkChange = (symbol: string) => {
@@ -79,9 +79,8 @@ export function PersonalInvestmentTab({ investments, summary, indexData, histori
             dailyTotalValue += shares * pointPrice;
           } else {
             // Static value fallback for non-matching assets (to ensure they are included in Total)
-            // Using current value is a reasonable approximation for "Total Portfolio Value" history magnitude
-            // when granular history is missing for specific assets.
-            dailyTotalValue += Number(inv.currentValue || 0);
+            // Using initialValue (value at creation) ensures the magnitude is correct for history.
+            dailyTotalValue += Number(inv.initialValue || 0);
           }
         }
       });
@@ -179,7 +178,7 @@ export function PersonalInvestmentTab({ investments, summary, indexData, histori
           icon={<TrendingUp className="w-4 h-4" />}
           iconColor="muted"
           labelTone="variant"
-          value={summary.totalPaid ?? summary.totalCost ?? 0}
+          value={summary.totalPaid ?? 0}
           valueType="neutral"
           valueSize="xl"
           description="Investito + tasse"
