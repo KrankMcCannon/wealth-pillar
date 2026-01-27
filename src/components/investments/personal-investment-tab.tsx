@@ -40,7 +40,7 @@ interface PersonalInvestmentTabProps {
   currentIndex?: string;
 }
 
-export function PersonalInvestmentTab({ investments, summary, indexData, currentIndex = 'IVV' }: PersonalInvestmentTabProps) {
+export function PersonalInvestmentTab({ investments, summary, indexData, currentIndex = 'IVV' }: Readonly<PersonalInvestmentTabProps>) {
   const benchmarkAnchorId = 'benchmark-chart';
 
   const handleBenchmarkChange = (symbol: string) => {

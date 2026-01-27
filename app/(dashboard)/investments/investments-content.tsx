@@ -22,7 +22,7 @@ interface InvestmentsContentProps {
     totalReturn: number;
     totalReturnPercent: number;
   };
-  indexData: any[];
+  indexData: { datetime: string; close: string }[];
   currentIndex?: string;
 }
 
