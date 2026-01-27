@@ -98,18 +98,6 @@ export class UserService {
     if (error) throw new Error(error.message);
   }
 
-  static async findUserByPeriodId(periodId: string): Promise<User | null> {
-    const { data, error } = await supabase
-      .from('users')
-      .select('*')
-      .contains('budget_periods', JSON.stringify([{ id: periodId }]))
-      .limit(1)
-      .maybeSingle();
-
-    if (error && error.code !== 'PGRST116') throw new Error(error.message);
-    return (data as unknown) as User | null;
-  }
-
   static async create(data: UserInsert): Promise<User> {
     const { data: created, error } = await supabase
       .from('users')

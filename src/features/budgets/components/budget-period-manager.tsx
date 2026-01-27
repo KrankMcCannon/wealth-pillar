@@ -150,7 +150,7 @@ export function BudgetPeriodManager({
 
       if (isActivePeriod && currentPeriod) {
         // Close current period using period ID and pre-calculated metrics
-        result = await closePeriodAction(currentPeriod.id, selectedDate);
+        result = await closePeriodAction(targetUser.id, currentPeriod.id, selectedDate);
 
         // Optimistic UI update - mark period as closed
         if (!result.error && result.data) {

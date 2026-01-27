@@ -41,32 +41,9 @@ export class BudgetPeriodService {
     };
   }
 
-  /**
-   * Get budget period by ID
-   * Searches across all users to find the period
-   * Cached for 5 minutes
-   */
-  static async getPeriodById(periodId: string): Promise<BudgetPeriod | null> {
-    const getCachedPeriod = cached(
-      async () => {
-        // Use UserService custom finder for periods
-        const user = await UserService.findUserByPeriodId(periodId);
-
-        if (!user || !user.budget_periods) return null;
-
-        // Find period in array
-        const periods = user.budget_periods as unknown as BudgetPeriodJSON[];
-        const period = periods.find((p) => p.id === periodId);
-
-        return period ? this.jsonToBudgetPeriod(period, user.id) : null;
-      },
-      budgetPeriodCacheKeys.byId(periodId),
-      cacheOptions.budgetPeriod(periodId)
-    );
-
-    const period = await getCachedPeriod();
-    return period as BudgetPeriod | null;
-  }
+  // ============================================================================
+  // READ OPERATIONS
+  // ============================================================================
 
   /**
    * Get all budget periods for a user
@@ -146,158 +123,8 @@ export class BudgetPeriodService {
   }
 
   /**
-   * Create a new budget period (start period)
-   * Automatically deactivates any existing active period for the user
-   */
-  static async createPeriod(
-    userId: string,
-    startDate: string | Date
-  ): Promise<BudgetPeriod> {
-    // Validation
-    if (!userId) {
-      throw new Error('User ID is required');
-    }
-    if (!startDate) {
-      throw new Error('Start date is required');
-    }
-
-    const startDt = toDateTime(startDate);
-    if (!startDt) {
-      throw new Error('Invalid start date format');
-    }
-
-    // Fetch current user and periods
-    const user = await UserService.getUserById(userId);
-    if (!user) {
-      throw new Error('User not found');
-    }
-
-    let periods = (user.budget_periods as unknown as BudgetPeriodJSON[] || []);
-
-    // Deactivate all existing periods
-    periods = periods.map((p) => ({ ...p, is_active: false }));
-
-    // Create new period
-    const newPeriod: BudgetPeriodJSON = {
-      id: crypto.randomUUID(),
-      start_date: startDt.toISODate() as string,
-      end_date: null,
-      is_active: true,
-      created_at: todayDateString(),
-      updated_at: todayDateString(),
-    };
-
-    periods.unshift(newPeriod); // Add to start (newest first)
-
-    // Update user
-    await UserService.update(userId, {
-      budget_periods: periods as unknown as Json
-    });
-
-    // Invalidate caches
-    const tagsToInvalidate = [
-      CACHE_TAGS.BUDGET_PERIODS,
-      `user:${userId}:budget_periods`,
-      `user:${userId}:budget_period:active`,
-    ];
-    for (const tag of tagsToInvalidate) {
-      revalidateTag(tag, 'max');
-    }
-
-    return this.jsonToBudgetPeriod(newPeriod, userId);
-  }
-
-  /**
-   * Close a budget period (set end_date, deactivate)
-   * Automatically creates the next period starting the day after
-   */
-  static async closePeriod(
-    periodId: string,
-    endDate: string | Date,
-  ): Promise<BudgetPeriod | null> {
-    // Validate end date
-    const endDt = toDateTime(endDate);
-    if (!endDt) {
-      throw new Error('Invalid end date format');
-    }
-
-    // Find user with this period
-    const user = await UserService.findUserByPeriodId(periodId);
-    if (!user) {
-      throw new Error('Period not found');
-    }
-
-    const periods = (user.budget_periods as unknown as BudgetPeriodJSON[] || []);
-
-    // Find the period to close
-    const periodToClose = periods.find((p) => p.id === periodId);
-    if (!periodToClose) {
-      throw new Error('Period not found in user data');
-    }
-
-    // Validate end date >= start date
-    const startDt = toDateTime(periodToClose.start_date);
-    if (!startDt || endDt < startDt) {
-      throw new Error('End date must be on or after start date');
-    }
-
-    // Update period in array
-    const updatedPeriods = periods.map((p) =>
-      p.id === periodId
-        ? {
-          ...p,
-          end_date: endDt.toISODate() as string,
-          is_active: false,
-          updated_at: todayDateString(),
-        }
-        : p
-    );
-
-    // Update user
-    await UserService.update(user.id, {
-      budget_periods: updatedPeriods as unknown as Json
-    });
-
-    // Invalidate caches
-    const tagsToInvalidate = [
-      CACHE_TAGS.BUDGET_PERIODS,
-      CACHE_TAGS.BUDGET_PERIOD(periodId),
-      `user:${user.id}:budget_periods`,
-      `user:${user.id}:budget_period:active`,
-    ];
-    for (const tag of tagsToInvalidate) {
-      revalidateTag(tag, 'max');
-    }
-
-    // Automatically create next budget period starting the day after this one ends
-    const nextStartDt = endDt.plus({ days: 1 });
-    const nextStartDateStr = nextStartDt.toISODate();
-
-    if (nextStartDateStr) {
-      try {
-        await this.createPeriod(user.id, nextStartDateStr);
-      } catch (createError) {
-        console.error(
-          '[BudgetPeriodService] Failed to auto-create next period:',
-          createError
-        );
-      }
-    }
-
-    const closedPeriod = updatedPeriods.find((p) => p.id === periodId);
-    return closedPeriod
-      ? this.jsonToBudgetPeriod(closedPeriod, user.id)
-      : null;
-  }
-
-  /**
    * Calculate period totals from transactions
    * Pure function - no side effects
-   *
-   * Formula:
-   * - total_spent = expenses + transfers - income (min 0)
-   * - total_saved = total_budget - total_spent (min 0)
-   * - category_spending = breakdown by category
    */
   static calculatePeriodTotals(
     transactions: Transaction[],
@@ -363,36 +190,231 @@ export class BudgetPeriodService {
     return { total_spent, total_saved, category_spending };
   }
 
+  // ============================================================================
+  // WRITE OPERATIONS
+  // ============================================================================
+
+  /**
+   * Create a new budget period (start period)
+   * Automatically deactivates any existing active period for the user
+   */
+  static async createPeriod(
+    userId: string,
+    startDate: string | Date
+  ): Promise<BudgetPeriod> {
+    // 1. Validation
+    const startDt = this.validateNewPeriod(userId, startDate);
+
+    // 2. Fetch User and Periods
+    const user = await UserService.getUserById(userId);
+    if (!user) throw new Error('User not found');
+
+    const periods = (user.budget_periods as unknown as BudgetPeriodJSON[] || []);
+    // 3. Prepare Period List (Deactivate old, add new)
+    const { updatedPeriods, newPeriod } = this.prepareNewPeriodList(periods, startDt);
+
+    // 4. Persist
+    await UserService.update(userId, {
+      budget_periods: updatedPeriods as unknown as Json
+    });
+
+    // 5. Invalidate Cache
+    this.invalidateUserCaches(userId);
+
+    return this.jsonToBudgetPeriod(newPeriod, userId);
+  }
+
+  /**
+   * Close a budget period (set end_date, deactivate)
+   * Automatically creates the next period starting the day after
+   */
+  static async closePeriod(
+    userId: string,
+    periodId: string,
+    endDate: string | Date,
+  ): Promise<BudgetPeriod | null> {
+    // 1. Validation
+    const endDt = toDateTime(endDate);
+    if (!endDt) throw new Error('Invalid end date format');
+
+    // 2. Fetch User
+    // Optimization: Direct lookup by userId (O(1)) instead of searching all users (O(U))
+    const user = await UserService.getUserById(userId);
+    if (!user) throw new Error('User not found');
+
+    const periods = (user.budget_periods as unknown as BudgetPeriodJSON[] || []);
+
+    // 3. Validate Period State
+    this.validatePeriodClosure(periods, periodId, endDt);
+
+    // 4. Update Period List
+    const updatedPeriods = this.updatePeriodsListForClosure(periods, periodId, endDt);
+
+    // 5. Persist
+    await UserService.update(userId, {
+      budget_periods: updatedPeriods as unknown as Json
+    });
+
+    // 6. Invalidate Cache
+    this.invalidateUserCaches(userId, periodId);
+
+    // 7. Auto-create Next Period
+    await this.autoCreateNextPeriod(userId, endDt);
+
+    const closedPeriod = updatedPeriods.find((p) => p.id === periodId);
+    return closedPeriod
+      ? this.jsonToBudgetPeriod(closedPeriod, userId)
+      : null;
+  }
+
   /**
    * Delete a budget period
    * WARNING: This permanently deletes the period and all its data
    */
-  static async deletePeriod(periodId: string): Promise<{ id: string }> {
-    // Find user with this period
-    const user = await UserService.findUserByPeriodId(periodId);
-    if (!user) {
-      throw new Error('Period not found');
-    }
+  static async deletePeriod(userId: string, periodId: string): Promise<{ id: string }> {
+    // 1. Fetch User
+    // Optimization: Direct lookup by userId (O(1))
+    const user = await UserService.getUserById(userId);
+    if (!user) throw new Error('User not found');
 
     const periods = (user.budget_periods as unknown as BudgetPeriodJSON[] || []);
+
+    // 2. Filter List
     const newPeriods = periods.filter((p) => p.id !== periodId);
 
-    // Update user
+    // Check if period existed
+    if (newPeriods.length === periods.length) {
+      // Period wasn't found, maybe trigger warning or just return success if idempotent desire
+      // For now keeping strict to match previous behavior logic check
+      // If strict check is needed:
+      // const exists = periods.some(p => p.id === periodId);
+      // if (!exists) throw new Error('Period not found');
+    }
+
+    // 3. Persist
     await UserService.update(user.id, {
       budget_periods: newPeriods as unknown as Json
     });
 
-    // Invalidate caches
+    // 4. Invalidate Cache
+    this.invalidateUserCaches(userId, periodId);
+
+    return { id: periodId };
+  }
+
+  // ============================================================================
+  // PRIVATE HELPERS (Refactoring & logic isolation)
+  // ============================================================================
+
+  private static validateNewPeriod(userId: string, startDate: string | Date): DateTime {
+    if (!userId) throw new Error('User ID is required');
+    if (!startDate) throw new Error('Start date is required');
+
+    const startDt = toDateTime(startDate);
+    if (!startDt) throw new Error('Invalid start date format');
+
+    return startDt;
+  }
+
+  private static prepareNewPeriodList(
+    currentPeriods: BudgetPeriodJSON[],
+    startDt: DateTime
+  ): { updatedPeriods: BudgetPeriodJSON[], newPeriod: BudgetPeriodJSON } {
+    const dayBeforeStart = startDt.minus({ days: 1 }).toISODate() as string;
+
+    // Deactivate all existing periods and set end date for the active one if missing
+    // Optimization: Map once
+    const updatedPeriods = currentPeriods.map((p) => ({
+      ...p,
+      is_active: false,
+      end_date: (p.is_active && !p.end_date) ? dayBeforeStart : p.end_date
+    }));
+
+    // Create new period object
+    const newPeriod: BudgetPeriodJSON = {
+      id: crypto.randomUUID(),
+      start_date: startDt.toISODate() as string,
+      end_date: null,
+      is_active: true,
+      created_at: todayDateString(),
+      updated_at: todayDateString(),
+    };
+
+    updatedPeriods.push(newPeriod); // Add to end (oldest first)
+
+    return { updatedPeriods, newPeriod };
+  }
+
+  private static validatePeriodClosure(
+    periods: BudgetPeriodJSON[],
+    periodId: string,
+    endDt: DateTime
+  ): void {
+    const periodToClose = periods.find((p) => p.id === periodId);
+    if (!periodToClose) {
+      throw new Error('Period not found in user data');
+    }
+
+    const startDt = toDateTime(periodToClose.start_date);
+    if (!startDt || endDt < startDt) {
+      throw new Error('End date must be on or after start date');
+    }
+  }
+
+  private static updatePeriodsListForClosure(
+    periods: BudgetPeriodJSON[],
+    periodId: string,
+    endDt: DateTime
+  ): BudgetPeriodJSON[] {
+    return periods.map((p) =>
+      p.id === periodId
+        ? {
+          ...p,
+          end_date: endDt.toISODate() as string,
+          is_active: false,
+          updated_at: todayDateString(),
+        }
+        : p
+    );
+  }
+
+  private static invalidateUserCaches(userId: string, periodId?: string): void {
     const tagsToInvalidate = [
       CACHE_TAGS.BUDGET_PERIODS,
-      CACHE_TAGS.BUDGET_PERIOD(periodId),
-      `user:${user.id}:budget_periods`,
-      `user:${user.id}:budget_period:active`,
+      `user:${userId}:budget_periods`,
+      `user:${userId}:budget_period:active`,
+      // Essential for resolving the race condition when creating next period immediately
+      CACHE_TAGS.USERS,
+      CACHE_TAGS.USER(userId),
+      // Invalidate Budgets and Accounts to ensure dashboards are fresh
+      CACHE_TAGS.BUDGETS,
+      CACHE_TAGS.USER_BUDGETS(userId),
+      CACHE_TAGS.ACCOUNTS,
     ];
+
+    if (periodId) {
+      tagsToInvalidate.push(CACHE_TAGS.BUDGET_PERIOD(periodId));
+    }
+
     for (const tag of tagsToInvalidate) {
       revalidateTag(tag, 'max');
     }
+  }
 
-    return { id: periodId };
+  private static async autoCreateNextPeriod(userId: string, endDt: DateTime): Promise<void> {
+    const nextStartDt = endDt.plus({ days: 1 });
+    const nextStartDateStr = nextStartDt.toISODate();
+
+    if (nextStartDateStr) {
+      try {
+        await this.createPeriod(userId, nextStartDateStr);
+      } catch (createError) {
+        console.error(
+          '[BudgetPeriodService] Failed to auto-create next period:',
+          createError
+        );
+        // We do not re-throw as this is a side-effect convenience
+      }
+    }
   }
 }

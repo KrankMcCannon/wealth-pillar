@@ -56,7 +56,7 @@ export function BudgetPeriodsList({
 
     // Execute server action
     startTransition(async () => {
-      const result = await deletePeriodAction(periodId);
+      const result = await deletePeriodAction(userId, periodId);
 
       if (result.error) {
         // Rollback on error - restore original data

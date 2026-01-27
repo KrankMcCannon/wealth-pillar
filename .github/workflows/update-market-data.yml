@@ -2,8 +2,8 @@ name: Update Market Data Cache
 
 on:
   schedule:
-    # Run at 00:00 UTC every day
-    - cron: "0 0 * * *"
+    # Run at 05:00 UTC every day
+    - cron: "0 5 * * *"
   workflow_dispatch:
 
 jobs:

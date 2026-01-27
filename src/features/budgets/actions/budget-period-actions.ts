@@ -75,6 +75,7 @@ export async function startPeriodAction(
  * Permissions: members can only close their own periods
  */
 export async function closePeriodAction(
+  userId: string,
   periodId: string,
   endDate: string,
 ): Promise<ServiceResult<BudgetPeriod>> {
@@ -88,14 +89,8 @@ export async function closePeriodAction(
       };
     }
 
-    // Get the period to verify ownership
-    const period = await BudgetPeriodService.getPeriodById(periodId);
-    if (!period) {
-      return { data: null, error: 'Periodo non trovato' };
-    }
-
-    // Permission validation: members can only close their own periods
-    if (isMember(currentUser as unknown as User) && period.user_id !== currentUser.id) {
+    // Permission validation
+    if (isMember(currentUser as unknown as User) && userId !== currentUser.id) {
       return {
         data: null,
         error: 'Non hai i permessi per chiudere questo periodo',
@@ -103,7 +98,7 @@ export async function closePeriodAction(
     }
 
     // Admins can close for anyone
-    if (!canAccessUserData(currentUser as unknown as User, period.user_id)) {
+    if (!canAccessUserData(currentUser as unknown as User, userId)) {
       return {
         data: null,
         error: 'Non hai i permessi per accedere ai dati di questo utente',
@@ -112,6 +107,7 @@ export async function closePeriodAction(
 
     // Close period with calculations or pre-calculated totals
     const result = await BudgetPeriodService.closePeriod(
+      userId,
       periodId,
       endDate,
     );
@@ -142,6 +138,7 @@ export async function closePeriodAction(
  * Permissions: members can only delete their own periods
  */
 export async function deletePeriodAction(
+  userId: string,
   periodId: string
 ): Promise<ServiceResult<{ id: string }>> {
   try {
@@ -154,14 +151,8 @@ export async function deletePeriodAction(
       };
     }
 
-    // Get the period to verify ownership
-    const period = await BudgetPeriodService.getPeriodById(periodId);
-    if (!period) {
-      return { data: null, error: 'Periodo non trovato' };
-    }
-
-    // Permission validation: members can only delete their own periods
-    if (isMember(currentUser as unknown as User) && period.user_id !== currentUser.id) {
+    // Permission validation
+    if (isMember(currentUser as unknown as User) && userId !== currentUser.id) {
       return {
         data: null,
         error: 'Non hai i permessi per eliminare questo periodo',
@@ -169,7 +160,7 @@ export async function deletePeriodAction(
     }
 
     // Admins can delete for anyone
-    if (!canAccessUserData(currentUser as unknown as User, period.user_id)) {
+    if (!canAccessUserData(currentUser as unknown as User, userId)) {
       return {
         data: null,
         error: 'Non hai i permessi per accedere ai dati di questo utente',
@@ -177,7 +168,7 @@ export async function deletePeriodAction(
     }
 
     // Delete period
-    await BudgetPeriodService.deletePeriod(periodId);
+    await BudgetPeriodService.deletePeriod(userId, periodId);
 
     // Revalidate pages that display budget periods
     revalidatePath('/budgets');
