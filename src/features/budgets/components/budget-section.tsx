@@ -121,6 +121,7 @@ export const BudgetSection = ({
               periodEnd,
               totalBudget,
               totalSpent,
+              totalRemaining,
               overallPercentage,
             } = userBudgetGroup;
             const progressClasses = getBudgetSectionProgressStyles(overallPercentage);
@@ -132,7 +133,10 @@ export const BudgetSection = ({
                 style={getBudgetGroupCardStyle(index)}
               >
                 {/* Mobile-First Compact User Header */}
-                <div className={budgetStyles.section.groupHeader}>
+                <div
+                  className={`${budgetStyles.section.groupHeader} cursor-pointer hover:bg-primary/5 transition-colors`}
+                  onClick={() => router.push(`/budgets/summary?userId=${user.id}`)}
+                >
                   {/* User Info Row */}
                   <RowCard
                     icon={
@@ -153,12 +157,17 @@ export const BudgetSection = ({
                       ) : undefined
                     }
                     primaryValue={
-                      <div className={budgetStyles.section.amount}>
-                        <span className={progressClasses.amount}>
-                          {formatCurrency(totalSpent)}
+                      <div className="flex flex-col items-end">
+                        <div className={budgetStyles.section.amount}>
+                          <span className={`${totalRemaining >= 0 ? "text-emerald-600" : "text-destructive"}`}>
+                            {formatCurrency(totalRemaining)}
+                          </span>
+                          <span className={budgetStyles.section.amountDivider}> / </span>
+                          <span>{formatCurrency(totalBudget)}</span>
+                        </div>
+                        <span className="text-xs text-muted-foreground">
+                          Spesi: {formatCurrency(totalSpent)}
                         </span>
-                        <span className={budgetStyles.section.amountDivider}> / </span>
-                        <span>{formatCurrency(totalBudget)}</span>
                       </div>
                     }
                     rightLayout="row"

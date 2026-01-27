@@ -73,9 +73,16 @@ export const BudgetCard = memo(function BudgetCard({ budget, budgetInfo, onClick
           <Text variant="emphasis" size="sm" className={getBudgetStatusTextClass(status)}>
             {formatCurrency(remaining)}
           </Text>
-          <Text variant="subtle" size="xs">
-            di {formatCurrency(budget.amount)}
-          </Text>
+          <div className="flex flex-col items-end">
+            <Text variant="subtle" size="xs">
+              su {formatCurrency(budget.amount)}
+            </Text>
+            {budgetInfo && (
+              <Text variant="subtle" size="xs" className="text-muted-foreground/70">
+                Spesi: {formatCurrency(budgetInfo.spent)}
+              </Text>
+            )}
+          </div>
         </div>
       </div>
 
