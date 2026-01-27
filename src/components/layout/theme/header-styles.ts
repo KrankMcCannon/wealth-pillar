@@ -32,6 +32,6 @@ export const headerStyles = {
     iconButton: "h-10 w-10 rounded-full text-primary hover:bg-primary/5",
     icon: "h-5.5 w-5.5",
     badge:
-      "flex items-center px-3 py-2 bg-green-500/10 border border-green-500/20 rounded-full text-green-600 text-sm font-semibold",
+      "flex items-center px-3 py-2 border rounded-full text-sm font-semibold",
   },
 } as const;

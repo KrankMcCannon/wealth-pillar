@@ -315,7 +315,9 @@ export const BudgetPeriodCard = React.memo(BudgetPeriodCardComponent, (prev, nex
     prev.defaultAccountEndBalance === next.defaultAccountEndBalance &&
     prev.periodTotalSpent === next.periodTotalSpent &&
     prev.periodTotalIncome === next.periodTotalIncome &&
-    prev.periodTotalTransfers === next.periodTotalTransfers
+    prev.periodTotalTransfers === next.periodTotalTransfers &&
+    prev.showUserName === next.showUserName &&
+    prev.userName === next.userName
   );
 });
 

@@ -94,14 +94,14 @@ function ActionMenu({ extraMenuItems = [] }: Readonly<{ extraMenuItems?: { label
     ];
 
     return (
-            <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                    <Button
-                        id="header-action-menu-trigger"
-                        variant="default"
-                        size="icon"
-                        className={headerStyles.actions.actionButton}
-                    >
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button
+                    id="header-action-menu-trigger"
+                    variant="default"
+                    size="icon"
+                    className={headerStyles.actions.actionButton}
+                >
                     <Plus className={headerStyles.actions.actionIcon} />
                 </Button>
             </DropdownMenuTrigger>
@@ -176,7 +176,14 @@ export function Header({
                             </div>
 
                             {investmentSummary && (
-                                <div className={`${headerStyles.actions.badge} ${investmentSummary.totalReturnPercent >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                                <div
+                                    className={cn(
+                                        headerStyles.actions.badge,
+                                        investmentSummary.totalReturnPercent >= 0
+                                            ? "bg-green-500/10 border-green-500/20 text-green-600 dark:text-green-400"
+                                            : "bg-red-500/10 border-red-500/20 text-red-600 dark:text-red-400"
+                                    )}
+                                >
                                     <span>
                                         {investmentSummary.totalReturnPercent >= 0 ? '↗' : '↘'}{' '}
                                         {investmentSummary.totalReturnPercent >= 0 ? '+' : ''}

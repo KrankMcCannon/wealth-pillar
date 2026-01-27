@@ -99,7 +99,7 @@ export interface ReportsPageData {
   monthlyTrends: Array<{ month: string; income: number; expense: number }>;
   categorySpending: Array<{ category: string; amount: number; count: number }>;
   enrichedBudgetPeriods: any[];
-  annualSpending: Record<string, Record<number, any[]>>; // userId -> year -> breakdown
+  annualSpending: Record<string, Record<string, any[]>>; // userId -> yearString -> breakdown
 }
 
 /**
@@ -573,23 +573,18 @@ export class PageDataService {
     }));
 
     // 4. Calculate Annual Breakdown (Global + Per User)
-    const annualSpending: Record<string, Record<number, any[]>> = {};
-    const years = new Set(transactions.map(t => new Date(t.date).getFullYear()));
-    years.add(new Date().getFullYear());
+    // Optimized single-pass calculation including 'all' key
+    const annualSpending: Record<string, Record<string, any[]>> = {};
 
-    // Helper for annual
-    const calcAnnual = (txs: Transaction[]) => {
-      const res: Record<number, any[]> = {};
-      years.forEach(year => {
-        res[year] = FinanceLogicService.calculateAnnualCategorySpending(txs, year);
-      });
-      return res;
-    };
+    // Global (for admins viewing all) - or just 'all' key for consistency
+    const globalBreakdowns = FinanceLogicService.calculateAnnualBreakdowns(transactions);
+    annualSpending['all'] = globalBreakdowns;
 
-    annualSpending['all'] = calcAnnual(transactions);
-
+    // Per User
     groupUsers.forEach(u => {
-      annualSpending[u.id] = calcAnnual(transactions.filter(t => t.user_id === u.id));
+      // Filter transactions for this user first
+      const userTxs = transactions.filter(t => t.user_id === u.id);
+      annualSpending[u.id] = FinanceLogicService.calculateAnnualBreakdowns(userTxs);
     });
 
     return {

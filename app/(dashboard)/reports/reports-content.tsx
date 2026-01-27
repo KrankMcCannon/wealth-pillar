@@ -24,7 +24,7 @@ interface ReportsContentProps {
     totalTransferred: number;
     totalBalance: number;
   }>;
-  annualSpending: Record<string, Record<number, any[]>>;
+  annualSpending: Record<string, Record<string, any[]>>;
   currentUser: User;
   groupUsers: User[];
 }
@@ -60,7 +60,12 @@ export default function ReportsContent({
     // If filtering by user, assume 'all' key or specific user key contains years
     // Actually we can iterate over annualSpending['all'] fields
     const data = annualSpending['all'] || {};
-    Object.keys(data).forEach(year => years.add(Number(year)));
+    Object.keys(data).forEach(key => {
+      const year = Number(key);
+      if (!isNaN(year)) {
+        years.add(year);
+      }
+    });
     return Array.from(years).sort((a, b) => b - a);
   }, [annualSpending]);
 
@@ -91,15 +96,9 @@ export default function ReportsContent({
     // Get year map for user
     const userMap = annualSpending[activeGroupFilter] || annualSpending['all'];
     if (selectedYear === 'all') {
-      // Aggregate all years if 'all' selected? Or just pass empty/all?
-      // Component expects array. Simple approach: Only support single year breakdown for now?
-      // Or aggregate values.
-      // For 'all', we might want to sum up.
-      // Let's grab 'all' metrics if year is 'all'? No, annualSpending structure is Year -> Breakdown
-      // If year is 'all', we can flatten?
-      return userMap[new Date().getFullYear()] || []; // Default to current year for breakdown if 'all' selected for now
+      return userMap['all'] || [];
     }
-    return userMap[selectedYear] || [];
+    return userMap[selectedYear.toString()] || [];
   }, [annualSpending, activeGroupFilter, selectedYear]);
 
 
@@ -164,7 +163,7 @@ export default function ReportsContent({
               transactions={[]} // No transactions needed now
               categories={enrichedCategories}
               accounts={accounts}
-              selectedUserId={selectedGroupFilter}
+              selectedUserId={activeGroupFilter}
               isLoading={false}
             />
           </PageSection>

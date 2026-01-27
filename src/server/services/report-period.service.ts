@@ -54,17 +54,19 @@ export class ReportPeriodService {
       }
     }
 
-    // 1. Enrich periods with basic metrics first (Income/Spent)
+    // 1. Partition transactions by period (Optimized O(n log n))
+    const transactionsByPeriod = FinanceLogicService.partitionTransactionsByPeriods(
+      transactions,
+      budgetPeriods
+    );
+
+    // 2. Enrich periods with partitioned data
     const partiallyEnriched = budgetPeriods.map((period) => {
       const user = userMap.get(period.user_id);
       const userName = user?.name || 'Unknown User';
-      // Filter transactions for this period and user
-      const periodTransactions = FinanceLogicService.filterTransactionsByPeriod(
-        transactions,
-        period.start_date,
-        period.end_date
-      );
 
+      // Get pre-partitioned and pre-sorted transactions (only for this period across ALL users)
+      const periodTransactions = transactionsByPeriod.get(period.id) || [];
       const userTransactions = periodTransactions.filter(
         t => t.user_id === period.user_id
       );
@@ -92,13 +94,12 @@ export class ReportPeriodService {
         );
       }
 
-      // Sort transactions by amount descending
-      const sortedTransactions = [...userTransactions].sort((a, b) => b.amount - a.amount);
+      // Transactions are already sorted by amount DESC from partitioner
 
       return {
         ...period,
         userName,
-        transactions: sortedTransactions,
+        transactions: userTransactions,
         defaultAccountStartBalance: null as number | null,
         defaultAccountEndBalance: null as number | null,
         periodTotalSpent,
