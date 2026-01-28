@@ -1,46 +1,35 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { useTheme } from "next-themes";
 import { Moon, Sun } from "lucide-react";
 import { Button } from "./button";
 import { themeToggleStyles } from "./theme/theme-toggle-styles";
+import { useMounted } from "@/hooks";
 
 export function ThemeToggle() {
-  const isDark = useSyncExternalStore(
-    (callback) => {
-      if (typeof document === "undefined") return () => {};
-      const observer = new MutationObserver(() => callback());
-      observer.observe(document.documentElement, {
-        attributes: true,
-        attributeFilter: ["class"],
-      });
-      return () => observer.disconnect();
-    },
-    () =>
-      typeof document !== "undefined" &&
-      document.documentElement.classList.contains("dark"),
-    () => false
-  );
+  const { theme, setTheme } = useTheme();
+  const mounted = useMounted();
 
-  const toggleTheme = () => {
-    const htmlElement = document.documentElement;
-    const newIsDark = !isDark;
-    
-    if (newIsDark) {
-      htmlElement.classList.remove("light");
-      htmlElement.classList.add("dark");
-    } else {
-      htmlElement.classList.remove("dark");
-      htmlElement.classList.add("light");
-    }
-    
-  };
+  if (!mounted) {
+    return (
+      <Button
+        variant="ghost"
+        size="sm"
+        className={themeToggleStyles.button}
+        disabled
+      >
+        <span className="w-5 h-5" />
+      </Button>
+    );
+  }
+
+  const isDark = theme === "dark";
 
   return (
     <Button
       variant="ghost"
       size="sm"
-      onClick={toggleTheme}
+      onClick={() => setTheme(isDark ? "light" : "dark")}
       className={themeToggleStyles.button}
       aria-label="Toggle theme"
     >

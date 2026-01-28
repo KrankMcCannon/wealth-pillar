@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Spline_Sans } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Toaster } from "@/components/ui";
+import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
 
 const splineSans = Spline_Sans({
@@ -41,13 +42,19 @@ export default function RootLayout({
     <ClerkProvider
       telemetry={false}
     >
-      <html lang="en" data-scroll-behavior="smooth">
+      <html lang="en" data-scroll-behavior="smooth" suppressHydrationWarning>
         <body
           className={`${splineSans.variable} antialiased min-h-screen bg-card text-primary`}
-          suppressHydrationWarning
         >
-          {children}
-          <Toaster />
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="dark"
+            enableSystem={false}
+            disableTransitionOnChange
+          >
+            {children}
+            <Toaster />
+          </ThemeProvider>
         </body>
       </html>
     </ClerkProvider>

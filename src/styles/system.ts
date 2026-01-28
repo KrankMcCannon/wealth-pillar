@@ -406,6 +406,38 @@ export const budgetStyles = {
     valueDanger: "text-destructive",
     fallbackGrid: "grid grid-cols-2 gap-4",
   },
+  summary: {
+    cardsGrid: "grid grid-cols-3 gap-3",
+    card: {
+      budget: "p-4 bg-primary/5 border-primary/20",
+      spent: "p-4 bg-destructive/5 border-destructive/20",
+      available: "p-4 bg-emerald-500/5 border-emerald-500/20",
+    },
+    cardHeader: "flex items-center gap-2 mb-2",
+    cardIcon: {
+      budget: "w-4 h-4 text-primary",
+      spent: "w-4 h-4 text-destructive",
+      available: "w-4 h-4 text-emerald-600",
+    },
+    cardLabel: {
+      budget: "text-xs font-semibold text-primary/70 uppercase",
+      spent: "text-xs font-semibold text-destructive/70 uppercase",
+      available: "text-xs font-semibold text-emerald-600/70 uppercase",
+    },
+    cardAmount: {
+      budget: "text-xl md:text-2xl font-bold text-primary",
+      spent: "text-xl md:text-2xl font-bold text-destructive",
+      available: "text-xl md:text-2xl font-bold text-emerald-600",
+    },
+    activeList: {
+      container: "space-y-3",
+      title: "text-sm font-semibold text-primary px-1",
+      listContainer: "bg-card shadow-sm border border-primary/20 rounded-xl overflow-hidden",
+      listBody: "p-2 space-y-2",
+      itemWrapper: "pt-2 border-t border-border/50",
+    },
+    emptyState: "p-8 text-center text-muted-foreground bg-muted/30 rounded-lg border border-dashed",
+  },
   progress: {
     container: budgetTokens.components.progress.container,
     header: "flex justify-between items-center",
