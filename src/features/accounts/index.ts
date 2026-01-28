@@ -2,6 +2,9 @@
  * Accounts Feature - Public API
  */
 
+// Hooks
+export { useAccountsContent } from "./hooks/use-accounts-content";
+
 // Components - Basic
 export { AccountCard } from "@/components/cards";
 
