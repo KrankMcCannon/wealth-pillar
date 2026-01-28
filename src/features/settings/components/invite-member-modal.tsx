@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { ModalBody, ModalFooter, ModalWrapper } from "@/components/ui/modal-wrapper";
 import { toast } from "@/hooks/use-toast";
 import { sendGroupInvitationAction } from "@/features/settings";
-import { settingsStyles } from "@/styles/system";
+import { settingsStyles } from "@/features/settings/theme";
 import { SettingsModalField, SettingsModalForm } from "./settings-modal-form";
 
 // ============================================================================

@@ -6,7 +6,7 @@
 
 import { SkeletonList } from "@/components/ui/primitives";
 
-import { settingsStyles } from "@/styles/system";
+import { settingsStyles } from "@/features/settings/theme";
 
 /**
  * Header skeleton for loading state

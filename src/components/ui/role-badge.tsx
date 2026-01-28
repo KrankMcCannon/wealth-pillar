@@ -27,8 +27,8 @@ export const RoleBadge: React.FC<RoleBadgeProps> = ({
   const displayRole = role === 'superadmin'
     ? 'Sviluppatore'
     : role === 'admin'
-    ? 'Admin'
-    : 'Membro';
+      ? 'Admin'
+      : 'Membro';
 
   // Get configuration for each role
   const getRoleConfig = (roleType: string) => {
@@ -37,8 +37,8 @@ export const RoleBadge: React.FC<RoleBadgeProps> = ({
       bgClass: variant === 'outline'
         ? 'border-primary/20 text-primary bg-transparent hover:bg-primary/5'
         : variant === 'subtle'
-        ? 'bg-primary/10 text-primary border-primary/20'
-        : 'bg-primary/10 text-primary border-primary/20',
+          ? 'bg-primary/10 text-primary border-primary/20'
+          : 'bg-primary/10 text-primary border-primary/20',
     };
 
     switch (roleType) {

@@ -21,3 +21,10 @@ export {
 export { InviteMemberModal } from './invite-member-modal';
 export { SubscriptionModal } from './subscription-modal';
 export { SettingsModalForm, SettingsModalField } from './settings-modal-form';
+
+export * from './sections/ProfileSection';
+export * from './sections/GroupSection';
+export * from './sections/PreferencesSection';
+export * from './sections/NotificationsSection';
+export * from './sections/SecuritySection';
+export * from './sections/AccountSection';

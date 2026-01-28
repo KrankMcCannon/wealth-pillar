@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { cn } from "@/lib";
-import { settingsStyles } from "@/styles/system";
+import { settingsStyles } from "@/features/settings/theme";
 
 export type SettingsModalFormProps = React.FormHTMLAttributes<HTMLFormElement>;
 

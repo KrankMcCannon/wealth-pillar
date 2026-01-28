@@ -2,7 +2,7 @@
 
 import { AlertTriangle, Loader2 } from "lucide-react";
 import { Button, ModalBody, ModalFooter, ModalWrapper } from "@/components/ui";
-import { settingsStyles } from "@/styles/system";
+import { settingsStyles } from "@/features/settings/theme";
 
 interface DeleteAccountModalProps {
   isOpen: boolean;

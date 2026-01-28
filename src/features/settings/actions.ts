@@ -7,7 +7,7 @@ import {
   GroupInvitationService,
 } from '@/server/services';
 import type { UserPreferences } from '@/server/services';
-import type { UserPreferencesUpdate } from '@/lib/types';
+import type { UserPreferencesUpdate, User } from '@/lib/types';
 import type { GroupInvitation } from '@/server/services';
 
 type ServiceResult<T> = {
@@ -263,6 +263,29 @@ export async function sendGroupInvitationAction(
           ? error.message
           : 'Failed to send invitation',
     };
+  }
+}
+
+/**
+ * Gets all users in a specific group
+ * Server action for Group Management Section
+ * 
+ * @param groupId - Group ID
+ * @returns List of users or error
+ */
+export async function getGroupUsersAction(
+  groupId: string
+): Promise<User[] | null> {
+  try {
+    if (!groupId || groupId.trim() === '') {
+      return null;
+    }
+
+    const users = await UserService.getUsersByGroup(groupId);
+    return users as unknown as User[];
+  } catch (error) {
+    console.error("Failed to get group users:", error);
+    return null;
   }
 }
 

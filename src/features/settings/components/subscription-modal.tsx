@@ -7,7 +7,7 @@ import { ModalBody, ModalFooter, ModalWrapper } from "@/components/ui/modal-wrap
 import { toast } from "@/hooks/use-toast";
 import { updateSubscriptionAction } from "@/features/settings";
 import { cn } from "@/lib";
-import { settingsStyles } from "@/styles/system";
+import { settingsStyles } from "@/features/settings/theme";
 
 // ============================================================================
 // TYPES & INTERFACES

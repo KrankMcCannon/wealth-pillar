@@ -25,6 +25,7 @@ export default async function SettingsPage() {
       <SettingsContent
         accountCount={accountCount}
         transactionCount={transactionCount}
+        currentUser={currentUser}
       />
     </Suspense>
   );

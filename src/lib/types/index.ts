@@ -65,7 +65,7 @@ export interface User {
   role: RoleType | null;
   clerk_id: string | null; // Clerk user ID for authentication integration
   default_account_id?: string | null; // Optional default bank account for prefilling forms
-  budget_periods?: any; // JSON field
+  budget_periods?: BudgetPeriodJSON[] | null; // JSON field
   created_at: string | Date | null;
   updated_at: string | Date | null;
 }
