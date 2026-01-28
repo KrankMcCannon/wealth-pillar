@@ -5,6 +5,7 @@ import { Loader2, Pause, Play } from "lucide-react";
 import { Button, ModalBody, ModalFooter, ModalWrapper, Amount } from "@/components/ui";
 import { RecurringTransactionSeries } from "@/lib/types";
 import { toggleRecurringSeriesActiveAction } from "@/features/recurring";
+import { recurringStyles } from "../theme/recurring-styles";
 
 interface PauseSeriesModalProps {
   isOpen: boolean;
@@ -54,9 +55,9 @@ export function PauseSeriesModal({
       disableOutsideClose={isLoading}
     >
       <ModalBody>
-        <div className="space-y-4">
-          <div className="rounded-lg bg-card/10 p-4 border border-primary/10">
-            <p className="text-sm font-medium text-primary mb-2">
+        <div className={recurringStyles.pauseModal.container}>
+          <div className={recurringStyles.pauseModal.card}>
+            <p className={recurringStyles.pauseModal.title}>
               {series.description}
             </p>
             <Amount
@@ -68,13 +69,13 @@ export function PauseSeriesModal({
             </Amount>
           </div>
 
-          <div className="text-sm text-muted-foreground space-y-2">
+          <div className={recurringStyles.pauseModal.description}>
             {willPause ? (
               <>
                 <p>
                   La serie ricorrente verrà {actionTextLower}. Non verranno più create transazioni automatiche finché non la riattiverai.
                 </p>
-                <p className="font-medium">
+                <p className={recurringStyles.pauseModal.descriptionStrong}>
                   Le transazioni già create rimarranno invariate.
                 </p>
               </>

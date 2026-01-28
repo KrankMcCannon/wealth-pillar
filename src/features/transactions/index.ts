@@ -24,6 +24,11 @@ export {
 } from './components/transaction-skeletons';
 
 // ====================================
+// Hooks
+// ====================================
+export { useTransactionsContent, type UseTransactionsContentProps, type UseTransactionsContentReturn } from './hooks';
+
+// ====================================
 // Theme
 // ====================================
 export { getAmountStyles, getDayTotalStyles, getIconStyles, getTransactionTypeStyles, transactionStyles } from '@/styles/system';

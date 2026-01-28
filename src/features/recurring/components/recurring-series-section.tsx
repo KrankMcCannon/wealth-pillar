@@ -204,7 +204,7 @@ export function RecurringSeriesSection({
       {/* Show More Link (if truncated) */}
       {maxItems && series.length > maxItems && (
         <div>
-          <div className="border-t border-primary/20 mx-2" />
+          <div className={recurringStyles.section.listDivider} />
           <div className={recurringStyles.section.footer}>
             <p className={recurringStyles.section.footerText}>
               Mostrando {filteredSeries.length} di{" "}

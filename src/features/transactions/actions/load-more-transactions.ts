@@ -13,15 +13,21 @@ import type { Transaction } from '@/lib/types';
  * @param limit - Number of transactions to fetch (default 50)
  * @returns Paginated transactions with metadata
  */
-export async function loadMoreTransactionsAction(
-  offset: number,
-  limit: number = 50
-): Promise<{
+
+/**
+ * Result type for the load more transactions action
+ */
+export interface LoadMoreTransactionsResult {
   data: Transaction[];
   total: number;
   hasMore: boolean;
   error: string | null;
-}> {
+}
+
+export async function loadMoreTransactionsAction(
+  offset: number,
+  limit: number = 50
+): Promise<LoadMoreTransactionsResult> {
   try {
     const currentUser = await getCurrentUser();
     if (!currentUser) {
