@@ -9,10 +9,10 @@ import {
   getAnnualCategoryBarStyle,
 } from "@/styles/system";
 import { cn } from "@/lib/utils";
-import type { Category } from "@/lib/types";
+import type { Category, CategoryBreakdownItem } from "@/lib/types";
 
 interface AnnualCategorySectionProps {
-  annualData: any[]; // CategoryBreakdownItem[]
+  annualData: CategoryBreakdownItem[];
   categories: Category[];
   year?: number | 'all';
 }

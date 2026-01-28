@@ -7,22 +7,16 @@
 
 import * as React from "react";
 import { Card, Badge } from "@/components/ui";
-import { Amount } from "@/components/ui/primitives";
 import {
   ChevronDown,
   ChevronUp,
   Calendar,
-  ArrowUpRight,
-  ArrowDownRight,
-  ArrowLeftRight,
-  Wallet,
-  PiggyBank,
 } from "lucide-react";
 import type { Transaction, Category } from "@/lib/types";
-import { FinanceLogicService } from "@/server/services/finance-logic.service";
 import { formatDateShort } from "@/lib/utils";
-import { reportsStyles, getBudgetPeriodTransactionIconStyle } from "@/styles/system";
-import { cn } from "@/lib/utils";
+import { reportsStyles } from "@/styles/system";
+import { BudgetPeriodMetrics } from "./BudgetPeriodMetrics";
+import { BudgetPeriodTransactions } from "./BudgetPeriodTransactions";
 
 export interface BudgetPeriodCardProps {
   startDate: string | Date;
@@ -64,8 +58,6 @@ const BudgetPeriodCardComponent = ({
   // Determine if we have transactions or just a count
   const totalCount = transactionCount ?? transactions?.length ?? 0;
   const showEmptyState = totalCount === 0;
-
-  // Note: Transactions are already filtered by period and user in the parent component
 
   // Ref for auto-scroll when expanded
   const cardRef = React.useRef<HTMLDivElement>(null);
@@ -122,182 +114,25 @@ const BudgetPeriodCardComponent = ({
         </div>
       </button>
 
-      {/* Metrics Grid - Default Account History */}
-      <div className={styles.metricsContainer}>
-        {/* Start Balance */}
-        <div className={cn(styles.metricCard, styles.metricCardTransfer)}>
-          <div className={styles.metricHeader}>
-            <div className={cn(styles.metricIconBadge, styles.metricIconBadgeDefault)}>
-              <PiggyBank className={cn(styles.metricIcon, styles.metricIconDefault)} />
-            </div>
-            <div className={styles.metricContent}>
-              <p className={cn(styles.metricLabel, styles.metricLabelDefault)}>
-                Saldo Iniziale
-              </p>
-              <Amount
-                type="balance"
-                size="xl"
-                emphasis="strong"
-                className={cn(styles.metricValue, styles.metricValuePrimary)}
-              >
-                {defaultAccountStartBalance ?? 0}
-              </Amount>
-            </div>
-          </div>
-        </div>
-
-        {/* Total Income (Entrate Totali) */}
-        <div className={cn(styles.metricCard, styles.metricCardBudget)}>
-          <div className={styles.metricHeader}>
-            <div className={cn(styles.metricIconBadge, styles.metricIconBadgeDefault)}>
-              <Wallet className={cn(styles.metricIcon, styles.metricIconDefault)} />
-            </div>
-            <div className={styles.metricContent}>
-              <p className={cn(styles.metricLabel, styles.metricLabelDefault)}>
-                Entrate Totali
-              </p>
-              <Amount
-                type="income"
-                size="xl"
-                emphasis="strong"
-                className={cn(styles.metricValue, styles.metricValueIncome)}
-              >
-                {periodTotalIncome ?? 0}
-              </Amount>
-            </div>
-          </div>
-        </div>
-
-        {/* Total Spent (Uscite Totali) */}
-        <div className={cn(styles.metricCard, styles.metricCardAccount)}>
-          <div className={styles.metricHeader}>
-            <div className={cn(styles.metricIconBadge, styles.metricIconBadgeTransfer)}>
-              <ArrowLeftRight className={cn(styles.metricIcon, styles.metricIconTransfer)} />
-            </div>
-            <div className={styles.metricContent}>
-              <p className={cn(styles.metricLabel, styles.metricLabelTransfer)}>
-                Uscite Totali
-              </p>
-              <Amount
-                type="expense"
-                size="xl"
-                emphasis="strong"
-                className={cn(styles.metricValue, styles.metricValueExpense)}
-              >
-                {periodTotalSpent ?? 0}
-              </Amount>
-            </div>
-          </div>
-        </div>
-
-        {/* End Balance */}
-        <div className={cn(styles.metricCard, styles.metricCardTransfer)}>
-          <div className={styles.metricHeader}>
-            <div className={cn(styles.metricIconBadge, styles.metricIconBadgeDefault)}>
-              <PiggyBank className={cn(styles.metricIcon, styles.metricIconDefault)} />
-            </div>
-            <div className={styles.metricContent}>
-              <p className={cn(styles.metricLabel, styles.metricLabelDefault)}>
-                Saldo Finale
-              </p>
-              <Amount
-                type="balance"
-                size="xl"
-                emphasis="strong"
-                className={cn(styles.metricValue, styles.metricValuePositive)}
-              >
-                {defaultAccountEndBalance ?? 0}
-              </Amount>
-            </div>
-          </div>
-        </div>
-
-        {/* Total Transfers */}
-        <div className={cn(styles.metricCard, styles.metricCardAccount)}>
-          <div className={styles.metricHeader}>
-            <div className={cn(styles.metricIconBadge, styles.metricIconBadgeTransfer)}>
-              <ArrowLeftRight className={cn(styles.metricIcon, styles.metricIconTransfer)} />
-            </div>
-            <div className={styles.metricContent}>
-              <p className={cn(styles.metricLabel, styles.metricLabelTransfer)}>
-                Totale Trasferimenti
-              </p>
-              <Amount
-                type="balance"
-                size="xl"
-                emphasis="strong"
-                className={cn(styles.metricValue, styles.metricValueWarning)}
-              >
-                {periodTotalTransfers ?? 0}
-              </Amount>
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* Metrics Grid */}
+      <BudgetPeriodMetrics
+        defaultAccountStartBalance={defaultAccountStartBalance}
+        defaultAccountEndBalance={defaultAccountEndBalance}
+        periodTotalIncome={periodTotalIncome}
+        periodTotalSpent={periodTotalSpent}
+        periodTotalTransfers={periodTotalTransfers}
+      />
 
       {/* Expandable Transactions Section */}
       {isExpanded && (
-        <div className={styles.transactionsContainer}>
-          <div className={styles.transactionsBody}>
-            <div className="flex items-center justify-between mb-4">
-              <p className={styles.transactionsTitle}>Transazioni ({totalCount})</p>
-              <a
-                href={`/transactions?startDate=${startDate instanceof Date ? startDate.toISOString().split('T')[0] : startDate}&endDate=${endDate instanceof Date ? endDate.toISOString().split('T')[0] : (endDate || '')}`}
-                className="text-sm text-primary hover:underline flex items-center gap-1"
-              >
-                Vedi tutte <ArrowUpRight className="h-3 w-3" />
-              </a>
-            </div>
-
-            {showEmptyState ? (
-              <p className={styles.transactionsEmpty}>Nessuna transazione in questo periodo</p>
-            ) : (
-              <div className={styles.transactionsList}>
-                {transactions?.map((transaction) => {
-                  const categoryLabel = FinanceLogicService.getCategoryLabel(categories, transaction.category);
-                  const categoryColor = FinanceLogicService.getCategoryColor(categories, transaction.category);
-
-                  const getTransactionIcon = () => {
-                    if (transaction.type === "income") return ArrowUpRight;
-                    if (transaction.type === "expense") return ArrowDownRight;
-                    return ArrowLeftRight;
-                  };
-                  const TransactionIcon = getTransactionIcon();
-
-                  return (
-                    <div
-                      key={transaction.id}
-                      className={styles.transactionRow}
-                    >
-                      {/* Transaction Icon */}
-                      <div
-                        className={styles.transactionIconWrap}
-                        style={getBudgetPeriodTransactionIconStyle(categoryColor)}
-                      >
-                        <TransactionIcon className={styles.transactionIcon} />
-                      </div>
-
-                      {/* Transaction Details */}
-                      <div className={styles.transactionBody}>
-                        <p className={styles.transactionTitle}>{transaction.description}</p>
-                        <div className={styles.transactionMetaRow}>
-                          <span className={styles.transactionMeta}>{categoryLabel}</span>
-                          <span className={styles.transactionMetaSeparator}>•</span>
-                          <span className={styles.transactionMeta}>{formatDateShort(transaction.date)}</span>
-                        </div>
-                      </div>
-
-                      {/* Amount */}
-                      <Amount type={transaction.type} size="sm" emphasis="strong" className={styles.transactionAmount}>
-                        {transaction.amount}
-                      </Amount>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        </div>
+        <BudgetPeriodTransactions
+          transactions={transactions}
+          totalCount={totalCount}
+          startDate={startDate}
+          endDate={endDate}
+          categories={categories}
+          showEmptyState={showEmptyState}
+        />
       )}
     </Card>
   );

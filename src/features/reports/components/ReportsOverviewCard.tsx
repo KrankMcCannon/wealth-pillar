@@ -8,6 +8,7 @@
 
 import { MetricCard, MetricGrid } from "@/components/ui/layout";
 import { TrendingUp, TrendingDown, ArrowLeftRight, Wallet } from "lucide-react";
+import { reportsStyles } from "@/styles/system";
 
 export interface ReportsOverviewCardProps {
   totalEarned: number;
@@ -29,7 +30,7 @@ export function ReportsOverviewCard({
       {/* Total Earned */}
       <MetricCard
         label="Totale Guadagnato"
-        icon={<TrendingUp className="w-4 h-4" />}
+        icon={<TrendingUp className={reportsStyles.reportsOverviewCard.icon} />}
         iconColor="success"
         labelTone="variant"
         value={totalEarned}
@@ -42,7 +43,7 @@ export function ReportsOverviewCard({
       {/* Total Spent */}
       <MetricCard
         label="Totale Speso"
-        icon={<TrendingDown className="w-4 h-4" />}
+        icon={<TrendingDown className={reportsStyles.reportsOverviewCard.icon} />}
         iconColor="destructive"
         labelTone="variant"
         value={totalSpent}
@@ -55,7 +56,7 @@ export function ReportsOverviewCard({
       {/* Total Transferred */}
       <MetricCard
         label="Totale Trasferito"
-        icon={<ArrowLeftRight className="w-4 h-4" />}
+        icon={<ArrowLeftRight className={reportsStyles.reportsOverviewCard.icon} />}
         iconColor="accent"
         labelTone="variant"
         value={totalTransferred}
@@ -68,7 +69,7 @@ export function ReportsOverviewCard({
       {/* Total Balance */}
       <MetricCard
         label="Saldo Totale"
-        icon={<Wallet className="w-4 h-4" />}
+        icon={<Wallet className={reportsStyles.reportsOverviewCard.icon} />}
         iconColor={isPositiveBalance ? "success" : "destructive"}
         labelTone="variant"
         value={totalBalance}

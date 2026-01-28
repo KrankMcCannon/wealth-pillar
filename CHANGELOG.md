@@ -29,6 +29,7 @@ All notable changes to this project will be documented in this file.
 - **budgets**: Replaced `text-emerald-600` with `text-success` in `budget-section`.
 
 - **investments**: Extracted logic to `useShareSearch` and `useInvestmentHistory`, split `PersonalInvestmentTab` into smaller components, and centralized styles in `investments-styles.ts`.
+- **reports**: Extracted logic to `useReportsData` and `useBudgetPeriods` hooks, extracted components, and centralized styles in `reportsStyles`.
 
 ### Bug Fixes
 

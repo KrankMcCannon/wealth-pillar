@@ -1,30 +1,28 @@
 "use client";
 
-import { useMemo, useState } from "react";
 import { BottomNavigation, PageContainer, Header } from "@/components/layout";
 import { PageSection, SectionHeader } from "@/components/ui";
-import { useUserFilter, usePermissions, useFilteredData } from "@/hooks";
 import UserSelector from "@/components/shared/user-selector";
 import YearSelector from "@/components/shared/year-selector";
 import { BudgetPeriodsSection, ReportsOverviewCard, AnnualCategorySection } from "@/features/reports";
+import { useReportsData } from "@/features/reports/hooks/useReportsData";
 import { reportsStyles } from "@/styles/system";
-import type { Transaction, Category, BudgetPeriod, Account, User } from "@/lib/types";
-import { FinanceLogicService } from "@/server/services/finance-logic.service";
-import { toDateTime } from "@/lib/utils/date-utils";
+import type { Transaction, Category, BudgetPeriod, Account, User, CategoryBreakdownItem } from "@/lib/types";
+import type { EnrichedBudgetPeriod } from "@/server/services/report-period.service";
 
 interface ReportsContentProps {
   accounts: Account[];
   transactions?: Transaction[];
   categories: Category[];
   budgetPeriods?: BudgetPeriod[]; // Make optional or remove if unused
-  enrichedBudgetPeriods: any[]; // Using derived type
+  enrichedBudgetPeriods: (EnrichedBudgetPeriod & { transactionCount?: number })[]; // Using derived type
   overviewMetrics: Record<string, {
     totalEarned: number;
     totalSpent: number;
     totalTransferred: number;
     totalBalance: number;
   }>;
-  annualSpending: Record<string, Record<string, any[]>>;
+  annualSpending: Record<string, Record<string, CategoryBreakdownItem[]>>;
   currentUser: User;
   groupUsers: User[];
 }
@@ -38,79 +36,25 @@ export default function ReportsContent({
   currentUser,
   groupUsers,
 }: ReportsContentProps) {
-  // Year filtering state management
-  const [selectedYear, setSelectedYear] = useState<number | 'all'>(new Date().getFullYear());
-
-  // User filtering state management using shared hook
-  const { selectedGroupFilter } = useUserFilter();
-
-  // Permission checks
-  const { isMember } = usePermissions({
+  // Use the extracted hook for data logic
+  const {
+    selectedYear,
+    setSelectedYear,
+    activeGroupFilter,
+    availableYears,
+    activeBudgetPeriods,
+    activeOverviewMetrics,
+    activeAnnualData,
+    enrichedCategories,
+  } = useReportsData({
+    accounts,
+    categories,
+    enrichedBudgetPeriods,
+    overviewMetrics,
+    annualSpending,
     currentUser,
-    selectedUserId: selectedGroupFilter === "all" ? undefined : selectedGroupFilter,
+    groupUsers,
   });
-
-  // Force members to see only their own data
-  const activeGroupFilter = isMember ? currentUser.id : selectedGroupFilter;
-
-  // Extract available years from annualSpending keys (instead of transactions)
-  const availableYears = useMemo(() => {
-    // Collect years from all user's annualSpending
-    const years = new Set<number>();
-    // If filtering by user, assume 'all' key or specific user key contains years
-    // Actually we can iterate over annualSpending['all'] fields
-    const data = annualSpending['all'] || {};
-    Object.keys(data).forEach(key => {
-      const year = Number(key);
-      if (!isNaN(year)) {
-        years.add(year);
-      }
-    });
-    return Array.from(years).sort((a, b) => b - a);
-  }, [annualSpending]);
-
-  // Filter budget periods by user/year
-  // Now we filter enrichedBudgetPeriods directly
-  const { filteredData: userFilteredBudgetPeriods } = useFilteredData({
-    data: enrichedBudgetPeriods,
-    currentUser,
-    selectedUserId: activeGroupFilter === "all" ? undefined : activeGroupFilter,
-  });
-
-  const activeBudgetPeriods = useMemo(() => {
-    if (selectedYear === 'all') return userFilteredBudgetPeriods;
-
-    return userFilteredBudgetPeriods.filter(period => {
-      const dt = toDateTime(period.start_date);
-      return dt?.year === selectedYear;
-    });
-  }, [userFilteredBudgetPeriods, selectedYear]);
-
-  // Select Overview Metrics from Map
-  const activeOverviewMetrics = useMemo(() => {
-    return overviewMetrics[activeGroupFilter] || overviewMetrics['all'];
-  }, [overviewMetrics, activeGroupFilter]);
-
-  // Select Annual Data from Map
-  const activeAnnualData = useMemo(() => {
-    // Get year map for user
-    const userMap = annualSpending[activeGroupFilter] || annualSpending['all'];
-    if (selectedYear === 'all') {
-      return userMap['all'] || [];
-    }
-    return userMap[selectedYear.toString()] || [];
-  }, [annualSpending, activeGroupFilter, selectedYear]);
-
-
-  // Prepare categories (static)
-  const enrichedCategories = useMemo(() => {
-    return categories.map((category) => ({
-      ...category,
-      label: FinanceLogicService.getCategoryLabel(categories, category.key),
-      color: FinanceLogicService.getCategoryColor(categories, category.key),
-      icon: FinanceLogicService.getCategoryIcon(categories, category.key),
-    }));
-  }, [categories]);
 
   return (
     <PageContainer className={reportsStyles.page.container}>

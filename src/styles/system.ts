@@ -245,6 +245,9 @@ export const reportsStyles = {
     card: "h-24 bg-primary/10 rounded-xl",
     line: "h-2 bg-primary/10 rounded w-full",
   },
+  reportsOverviewCard: {
+    icon: "w-4 h-4",
+  }
 } as const;
 
 export function getAnnualCategoryIconStyle(color: string): CSSProperties {
