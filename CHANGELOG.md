@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file.
 - **accounts**: Extracted logic from `AccountsContent` to `useAccountsContent` hook.
 - **transactions**: Extracted business logic from `TransactionsContent` to `useTransactionsContent` hook.
 - **transactions**: Added named `LoadMoreTransactionsResult` interface for better type safety.
+- **budgets**: Extracted business logic from `BudgetsContent` to `useBudgetsContent` hook (~59% reduction).
 
 ### Performance
 
@@ -22,12 +23,15 @@ All notable changes to this project will be documented in this file.
 - **transactions**: Reduced `TransactionsContent` component from ~430 to ~207 lines by extracting logic to hook.
 - **recurring**: Replaced raw color tokens (`emerald-500`, `red-500`) with semantic tokens (`success`, `destructive`).
 - **recurring**: Centralized hardcoded classes in `pause-series-modal` and `recurring-series-section` to style objects.
+- **budgets**: Replaced hardcoded hex colors in `BudgetChart` with semantic tokens (`gridLineColor`, `lineStroke`, `dotFill`).
+- **budgets**: Replaced `text-emerald-600` with `text-success` in `budget-section`.
 
 ### Bug Fixes
 
 - **settings**: Fixed group users fetching and role capitalization.
 - **build**: Fixed missing "use client" directive in `settings-content.tsx`.
+- **budgets**: Fixed division by zero in chart data generation when period has only 1 day.
 
 ### Documentation
 
-- **project**: Generated `PROJECT_STRUCTURE.md`.
+- **project**: Updated `PROJECT_STRUCTURE.md` with comprehensive architecture documentation.

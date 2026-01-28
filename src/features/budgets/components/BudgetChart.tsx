@@ -83,7 +83,7 @@ export function BudgetChart({ spent, chartData, periodInfo }: Readonly<BudgetCha
                 y1={180 - percent * 1.8}
                 x2="350"
                 y2={180 - percent * 1.8}
-                stroke="#f1f5f9"
+                stroke={budgetStyles.chart.gridLineColor}
                 strokeWidth="1"
               />
             ))}
@@ -104,14 +104,14 @@ export function BudgetChart({ spent, chartData, periodInfo }: Readonly<BudgetCha
                 <path
                   d={path}
                   fill="none"
-                  stroke="#7578EC"
+                  stroke={budgetStyles.chart.lineStroke}
                   strokeWidth="2.5"
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 />
 
                 {/* Dot at the end of line */}
-                <circle cx={lastPoint.x} cy={lastPoint.y} r="4" fill="#7578EC" />
+                <circle cx={lastPoint.x} cy={lastPoint.y} r="4" fill={budgetStyles.chart.dotFill} />
               </>
             )}
           </svg>
@@ -134,9 +134,8 @@ export function BudgetChart({ spent, chartData, periodInfo }: Readonly<BudgetCha
                   return (
                     <span
                       key={index}
-                      className={`${budgetStyles.chart.dayLabel} ${budgetStyles.chart.dayLabelPosition} ${
-                        showDay ? budgetStyles.chart.dayLabelVisible : budgetStyles.chart.dayLabelHidden
-                      }`}
+                      className={`${budgetStyles.chart.dayLabel} ${budgetStyles.chart.dayLabelPosition} ${showDay ? budgetStyles.chart.dayLabelVisible : budgetStyles.chart.dayLabelHidden
+                        }`}
                       style={getChartDayLabelStyle(position)}
                     >
                       {dayOfMonth}

@@ -159,7 +159,7 @@ export const BudgetSection = ({
                     primaryValue={
                       <div className="flex flex-col items-end">
                         <div className={budgetStyles.section.amount}>
-                          <span className={`${totalRemaining >= 0 ? "text-emerald-600" : "text-destructive"}`}>
+                          <span className={`${totalRemaining >= 0 ? "text-success" : "text-destructive"}`}>
                             {formatCurrency(totalRemaining)}
                           </span>
                           <span className={budgetStyles.section.amountDivider}> / </span>

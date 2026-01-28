@@ -24,3 +24,12 @@ export {
 export {
   createBudgetAction, updateBudgetAction, deleteBudgetAction
 } from "./actions/budget-actions";
+
+// ====================================
+// Hooks
+// ====================================
+export {
+  useBudgetsContent,
+  type UseBudgetsContentProps,
+  type UseBudgetsContentReturn,
+} from './hooks';
