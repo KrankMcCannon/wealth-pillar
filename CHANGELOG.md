@@ -19,6 +19,8 @@ All notable changes to this project will be documented in this file.
 
 ### Refactor
 
+- **dashboard**: Extracted business logic from `DashboardContent` to `useDashboardContent` hook (~36% reduction).
+- **dashboard**: Replaced hardcoded colors (`bg-green-500`, `bg-yellow-500`, `bg-red-500`) with semantic tokens (`bg-success`, `bg-warning`, `bg-destructive`).
 - **settings**: Extracted components, logic to `useSettings` hook, and centralized styles.
 - **transactions**: Reduced `TransactionsContent` component from ~430 to ~207 lines by extracting logic to hook.
 - **recurring**: Replaced raw color tokens (`emerald-500`, `red-500`) with semantic tokens (`success`, `destructive`).

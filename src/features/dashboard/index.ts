@@ -3,12 +3,19 @@
  */
 
 // Components
-// Components
 export {
   DashboardHeaderSkeleton, UserSelectorSkeleton,
   BalanceSectionSkeleton, BudgetSectionSkeleton,
   RecurringSeriesSkeleton, DashboardPageSkeleton
 } from "./components";
+
+// Hooks
+export { useDashboardContent } from "./hooks";
+export type {
+  UseDashboardContentParams,
+  UseDashboardContentReturn,
+  PeriodManagerData,
+} from "./hooks";
 
 // Theme
 export {

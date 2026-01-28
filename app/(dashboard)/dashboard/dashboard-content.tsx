@@ -12,14 +12,12 @@
  * - Recurring Series Form Modal
  *
  * Data is passed from Server Component for optimal performance
+ * Business logic is extracted to useDashboardContent hook
  */
 
-import { Suspense, useEffect, useMemo } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense } from "react";
 import { BottomNavigation, PageContainer, Header } from "@/components/layout";
-import { useUserFilter, usePermissions, useFilteredAccounts } from "@/hooks";
 import { Button } from "@/components/ui";
-import { RecurringTransactionSeries } from "@/lib";
 import {
   BalanceSectionSkeleton,
   BudgetSectionSkeleton,
@@ -27,15 +25,14 @@ import {
   RecurringSeriesSkeleton,
   UserSelectorSkeleton,
   dashboardStyles,
+  useDashboardContent,
 } from "@/features/dashboard";
 import UserSelector from "@/components/shared/user-selector";
 import { BalanceSection } from "@/features/accounts";
 import { BudgetPeriodManager, BudgetSection } from "@/features/budgets";
 import { RecurringSeriesSection } from "@/features/recurring";
-import { FinanceLogicService } from "@/server/services/finance-logic.service";
-import { useModalState } from "@/lib/navigation/url-state";
 import type { Account, Transaction, Budget, BudgetPeriod, User, UserBudgetSummary } from "@/lib/types";
-import { usePageDataStore, useBudgetPeriod } from "@/stores/page-data-store";
+import type { RecurringTransactionSeries } from "@/lib";
 
 /**
  * Dashboard Content Props
@@ -60,6 +57,7 @@ interface DashboardContentProps {
  *
  * Handles full dashboard UI with four main sections
  * Receives data from Server Component parent
+ * Uses useDashboardContent hook for business logic
  */
 export default function DashboardContent({
   currentUser,
@@ -72,120 +70,34 @@ export default function DashboardContent({
   budgetsByUser,
   investmentSummary,
 }: DashboardContentProps) {
-  const router = useRouter();
-  const { selectedGroupFilter, selectedUserId, setSelectedGroupFilter } = useUserFilter();
-  const setBudgetPeriods = usePageDataStore((state) => state.setBudgetPeriods);
-  const setRecurringSeries = usePageDataStore((state) => state.setRecurringSeries);
-
-  // Permission checks
-  const { effectiveUserId, isMember } = usePermissions({
-    currentUser,
-    selectedUserId: selectedGroupFilter === "all" ? undefined : selectedGroupFilter,
-  });
-
-  // Modal state management
-  const { openModal } = useModalState();
-
-  // Filter default accounts - useMemo is a hook, must be called unconditionally
-  const displayedDefaultAccounts = useMemo(() => {
-    let accountsToDisplay: Account[] = [];
-    const totalAccountCount = accounts.length;
-
-    if (isMember) {
-      const userAccounts = accounts.filter((acc) => acc.user_ids.includes(currentUser.id));
-      if (userAccounts.length === 1) {
-        accountsToDisplay = userAccounts;
-      } else if (userAccounts.length > 1 && currentUser.default_account_id) {
-        const defaultAccount = accounts.find((a) => a.id === currentUser.default_account_id);
-        accountsToDisplay = defaultAccount ? [defaultAccount] : userAccounts;
-      } else {
-        accountsToDisplay = userAccounts;
-      }
-    } else if (totalAccountCount === 1) {
-      accountsToDisplay = accounts;
-    } else if (totalAccountCount > 1) {
-      if (selectedUserId) {
-        const user = groupUsers.find((u) => u.id === selectedUserId);
-        if (user?.default_account_id) {
-          const defaultAccount = accounts.find((a) => a.id === user.default_account_id);
-          accountsToDisplay = defaultAccount ? [defaultAccount] : [];
-        }
-      } else {
-        accountsToDisplay = FinanceLogicService.getDefaultAccounts(accounts, groupUsers);
-      }
-    }
-
-    return accountsToDisplay.sort((a, b) => {
-      const balanceA = accountBalances[a.id] || 0;
-      const balanceB = accountBalances[b.id] || 0;
-      return balanceB - balanceA;
-    });
-  }, [selectedUserId, accounts, groupUsers, accountBalances, isMember, currentUser]);
-
-  // Account filtering hook
-  const { filteredAccounts: userAccounts } = useFilteredAccounts({
-    accounts,
-    currentUser,
+  // Extract all business logic to custom hook
+  const {
+    isMember,
+    selectedGroupFilter,
+    effectiveUserId,
+    displayedDefaultAccounts,
+    displayedAccountBalances,
+    totalBalance,
+    totalAccountsCount,
     selectedUserId,
+    periodManagerUserId,
+    periodManagerData,
+    handleAccountClick,
+    handleCreateRecurringSeries,
+    handleSeriesCardClick,
+    handlePauseRecurringSeries,
+    handlePeriodManagerUserChange,
+    handleRefresh,
+  } = useDashboardContent({
+    currentUser,
+    groupUsers,
+    accounts,
+    accountBalances,
+    budgets,
+    budgetPeriods,
+    recurringSeries,
+    budgetsByUser,
   });
-
-  const totalAccountsCount = userAccounts.length;
-
-  const displayedAccountBalances = useMemo(() => {
-    const displayedAccountIds = new Set(displayedDefaultAccounts.map((account) => account.id));
-    return Object.fromEntries(
-      Object.entries(accountBalances).filter(([accountId]) => displayedAccountIds.has(accountId)),
-    );
-  }, [displayedDefaultAccounts, accountBalances]);
-
-  const totalBalance = useMemo(() => {
-    let balance = 0;
-    if (selectedUserId) {
-      const userAccountIds = userAccounts.map((a) => a.id);
-      balance = userAccountIds.reduce((sum, accountId) => sum + (accountBalances[accountId] || 0), 0);
-      const risparmiCasaAccount = accounts.find((a) => a.name === "Risparmi Casa");
-      if (risparmiCasaAccount) balance += accountBalances[risparmiCasaAccount.id] || 0;
-    } else {
-      balance = Object.values(accountBalances).reduce((sum, bal) => sum + bal, 0);
-    }
-    return Math.round(balance * 100) / 100;
-  }, [selectedUserId, userAccounts, accounts, accountBalances]);
-
-  const periodManagerUserId = isMember ? currentUser.id : (selectedUserId ?? currentUser.id);
-
-  // Effects
-  // Initialize store with budget periods from server
-  useEffect(() => {
-    setBudgetPeriods(budgetPeriods);
-  }, [budgetPeriods, setBudgetPeriods]);
-
-  useEffect(() => {
-    setRecurringSeries(recurringSeries);
-  }, [recurringSeries, setRecurringSeries]);
-
-  const handlePeriodManagerUserChange = (userId: string) => {
-    setSelectedGroupFilter(userId);
-  };
-
-  // Get active budget period from store
-  const activePeriod = useBudgetPeriod(periodManagerUserId || currentUser.id);
-
-  const periodManagerData = useMemo(() => {
-    const targetUser = groupUsers.find((u) => u.id === periodManagerUserId) || currentUser;
-    const targetUserBudgets = budgets.filter((b) => b.user_id === targetUser.id && b.amount > 0);
-
-    return {
-      targetUser,
-      budgets: targetUserBudgets,
-      period: activePeriod,
-    };
-  }, [periodManagerUserId, groupUsers, currentUser, budgets, activePeriod]);
-
-  // Handlers
-  const handleAccountClick = () => router.push("/accounts");
-  const handleCreateRecurringSeries = () => openModal('recurring');
-  const handleSeriesCardClick = () => router.push("/transactions?tab=Recurrent");
-  const handlePauseRecurringSeries = () => router.push("/transactions?tab=Recurrent")
 
   const budgetPeriodTrigger = (
     <Button variant="outline" size="sm">
@@ -242,7 +154,7 @@ export default function DashboardContent({
                   selectedUserId={periodManagerUserId || currentUser.id}
                   currentPeriod={periodManagerData.period}
                   onUserChange={handlePeriodManagerUserChange}
-                  onSuccess={() => router.refresh()}
+                  onSuccess={handleRefresh}
                   trigger={budgetPeriodTrigger}
                   currentUser={currentUser}
                   groupUsers={groupUsers}

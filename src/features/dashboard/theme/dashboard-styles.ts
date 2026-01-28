@@ -177,8 +177,8 @@ export const dashboardStyles = {
 
   // Success feedback
   success: {
-    container: 'p-3 bg-green-50 border border-green-200 rounded-lg',
-    text: 'text-sm text-green-800 font-medium',
+    container: 'p-3 bg-success-light border border-success/30 rounded-lg',
+    text: 'text-sm text-success-dark font-medium',
   },
 };
 
@@ -209,20 +209,20 @@ export function getBudgetStatusStyle(percentage: number): {
 } {
   if (percentage <= 75) {
     return {
-      barClass: 'bg-green-500',
-      statusClass: 'text-green-600',
+      barClass: 'bg-success',
+      statusClass: 'text-success',
       statusText: 'In Budget',
     };
   } else if (percentage <= 90) {
     return {
-      barClass: 'bg-yellow-500',
-      statusClass: 'text-yellow-600',
+      barClass: 'bg-warning',
+      statusClass: 'text-warning',
       statusText: 'Attenzione',
     };
   } else {
     return {
-      barClass: 'bg-red-500',
-      statusClass: 'text-red-600',
+      barClass: 'bg-destructive',
+      statusClass: 'text-destructive',
       statusText: 'Sforato',
     };
   }
