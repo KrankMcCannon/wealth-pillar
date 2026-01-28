@@ -4,13 +4,9 @@ import * as React from 'react';
 import * as SelectPrimitive from '@radix-ui/react-select';
 import { ChevronDown, Loader2, Search, TrendingUp } from 'lucide-react';
 import { cn } from '@/lib';
-import { useDebouncedValue } from '@/hooks/use-debounced-value';
 import { selectStyles } from '@/styles/system';
 import { formStyles, getCategorySelectWidthStyle } from '@/components/form/theme/form-styles';
-import { ensureMarketDataAction, getShareAssetTypesAllAction, getShareBySymbolAction, searchSharesAction } from '@/features/investments/actions/share-actions';
-import type { Database } from '@/lib/types/database.types';
-
-type AvailableShare = Database['public']['Tables']['available_shares']['Row'];
+import { useShareSearch } from '@/features/investments/hooks/use-share-search';
 
 interface ShareSelectorProps {
   value: string;
@@ -27,116 +23,43 @@ const ASSET_TYPE_LABELS: Record<string, string> = {
 
 export function ShareSelector({ value, onChange, className }: ShareSelectorProps) {
   const [isOpen, setIsOpen] = React.useState(false);
-  const [searchValue, setSearchValue] = React.useState('');
-  const [results, setResults] = React.useState<AvailableShare[]>([]);
-  const [isLoading, setIsLoading] = React.useState(false);
-  const [isEnsuring, setIsEnsuring] = React.useState(false);
-  const [hasSearched, setHasSearched] = React.useState(false);
-  const [selectedShare, setSelectedShare] = React.useState<AvailableShare | null>(null);
-  const [assetTypes, setAssetTypes] = React.useState<string[]>([]);
-  const [selectedAssetType, setSelectedAssetType] = React.useState<string>('all');
   const searchInputRef = React.useRef<HTMLInputElement | null>(null);
 
-  const debouncedSearch = useDebouncedValue(searchValue, 200);
-
-  React.useEffect(() => {
-    let active = true;
-    getShareAssetTypesAllAction().then((result) => {
-      if (!active) return;
-      const types = (result.data || [])
-        .map((type) => String(type).toLowerCase())
-        .filter(Boolean);
-      setAssetTypes(Array.from(new Set(types)));
-    });
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  React.useEffect(() => {
-    let active = true;
-
-    const trimmedSearch = debouncedSearch.trim();
-    if (!trimmedSearch || trimmedSearch.length < 3) {
-      setResults([]);
-      setIsLoading(false);
-      setHasSearched(false);
-      return () => {
-        active = false;
-      };
+  const {
+    searchValue,
+    setSearchValue,
+    results,
+    isLoading,
+    isEnsuring,
+    hasSearched,
+    selectedShare,
+    assetTypes,
+    selectedAssetType,
+    setSelectedAssetType,
+    debouncedSearch,
+    handleSelect,
+    clearSearch
+  } = useShareSearch({
+    initialValue: value,
+    onSelect: (symbol) => {
+      setIsOpen(false);
+      onChange(symbol);
     }
-
-    setIsLoading(true);
-    setHasSearched(true);
-
-    const assetTypeFilter = selectedAssetType === 'all' ? undefined : selectedAssetType;
-    searchSharesAction(trimmedSearch, assetTypeFilter).then((result) => {
-      if (!active) return;
-      setResults(result.data || []);
-      setIsLoading(false);
-    });
-
-    return () => {
-      active = false;
-    };
-  }, [debouncedSearch, selectedAssetType]);
-
-  React.useEffect(() => {
-    let active = true;
-    const normalizedValue = typeof value === 'string' ? value.trim() : '';
-
-    if (!normalizedValue) {
-      setSelectedShare(null);
-      return () => {
-        active = false;
-      };
-    }
-
-    if (selectedShare?.symbol === normalizedValue) {
-      return () => {
-        active = false;
-      };
-    }
-
-    getShareBySymbolAction(normalizedValue).then((result) => {
-      if (!active) return;
-      setSelectedShare(result.data || null);
-    });
-
-    return () => {
-      active = false;
-    };
-  }, [value, selectedShare?.symbol]);
+  });
 
   const handleOpenChange = React.useCallback((open: boolean) => {
     setIsOpen(open);
     if (!open) {
-      setSearchValue('');
-      setResults([]);
-      setHasSearched(false);
+      clearSearch();
     }
-  }, []);
+  }, [clearSearch]);
 
   React.useEffect(() => {
     if (!isOpen) return;
     requestAnimationFrame(() => {
       searchInputRef.current?.focus();
     });
-  });
-
-  const handleValueChange = React.useCallback((symbol: string) => {
-    const match = results.find((share) => share.symbol === symbol);
-    if (match) {
-      setSelectedShare(match);
-    }
-    setIsEnsuring(true);
-    void ensureMarketDataAction(symbol)
-      .finally(() => {
-        setIsEnsuring(false);
-        setIsOpen(false);
-        onChange(symbol);
-      });
-  }, [onChange, results]);
+  }, [isOpen]);
 
   const selectedLabel = selectedShare?.name
     ? `${selectedShare.name} · ${selectedShare.symbol}`
@@ -158,7 +81,7 @@ export function ShareSelector({ value, onChange, className }: ShareSelectorProps
   return (
     <SelectPrimitive.Root
       value={value}
-      onValueChange={handleValueChange}
+      onValueChange={handleSelect}
       open={isOpen}
       onOpenChange={handleOpenChange}
     >

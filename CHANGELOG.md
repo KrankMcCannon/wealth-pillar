@@ -28,6 +28,8 @@ All notable changes to this project will be documented in this file.
 - **budgets**: Replaced hardcoded hex colors in `BudgetChart` with semantic tokens (`gridLineColor`, `lineStroke`, `dotFill`).
 - **budgets**: Replaced `text-emerald-600` with `text-success` in `budget-section`.
 
+- **investments**: Extracted logic to `useShareSearch` and `useInvestmentHistory`, split `PersonalInvestmentTab` into smaller components, and centralized styles in `investments-styles.ts`.
+
 ### Bug Fixes
 
 - **settings**: Fixed group users fetching and role capitalization.
