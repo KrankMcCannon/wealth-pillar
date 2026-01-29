@@ -13,7 +13,7 @@ export const clerkAppearance: Theme = {
   },
   elements: {
     // Card Container - Glassmorphism
-    card: "backdrop-blur-2xl bg-white/70 shadow-[0_8px_32px_rgba(0,0,0,0.08)] ring-1 ring-white/50 rounded-3xl p-2 sm:p-4",
+    card: "backdrop-blur-2xl bg-card/70 shadow-[0_8px_32px_rgba(0,0,0,0.08)] ring-1 ring-border/50 rounded-3xl p-2 sm:p-4",
     rootBox: "w-full max-w-sm mx-auto",
 
     // Header -> Changed to text-primary
@@ -22,7 +22,7 @@ export const clerkAppearance: Theme = {
 
     // Social Buttons -> Changed to text-primary
     socialButtonsBlockButton:
-      "relative h-12 bg-white hover:bg-muted/20 border border-border hover:border-primary/30 text-primary transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 rounded-xl group",
+      "relative h-12 bg-card hover:bg-muted/20 border border-border hover:border-primary/30 text-primary transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 rounded-xl group",
     socialButtonsBlockButtonText: "font-semibold text-sm !text-primary",
     socialButtonsProviderIcon: "mr-2 h-5 w-5 opacity-80 group-hover:opacity-100 transition-opacity !text-primary",
 
@@ -33,7 +33,7 @@ export const clerkAppearance: Theme = {
     // Inputs -> Changed to text-primary
     formFieldLabel: "!text-primary text-xs font-bold uppercase tracking-wide mb-1.5 ml-1",
     formFieldInput:
-      "h-11 bg-white border-border focus:border-primary/50 focus:ring-4 focus:ring-primary/10 rounded-xl transition-all duration-300 !text-primary placeholder:!text-primary/50 font-medium",
+      "h-11 bg-card border-border focus:border-primary/50 focus:ring-4 focus:ring-primary/10 rounded-xl transition-all duration-300 !text-primary placeholder:!text-primary/50 font-medium",
 
     // Primary Button
     formButtonPrimary:

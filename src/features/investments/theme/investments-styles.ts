@@ -28,7 +28,7 @@ export const investmentsStyles = {
     valueDetails: "flex flex-row sm:flex-col justify-between sm:items-end gap-x-4",
     valueLabel: "text-xs text-primary/60 mt-1",
     valueGain: (isPositive: boolean) =>
-      `text-sm font-medium mt-1 ${isPositive ? 'text-emerald-600' : 'text-rose-600'}`,
+      `text-sm font-medium mt-1 ${isPositive ? 'text-success' : 'text-destructive'}`,
   },
   sandbox: {
     grid: "grid gap-8 md:grid-cols-3 p-8 bg-card",

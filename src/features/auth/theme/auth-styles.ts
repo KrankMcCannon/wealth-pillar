@@ -79,6 +79,7 @@ export const authStyles = {
   page: {
     container:
       'h-full w-full flex items-center justify-center px-0 sm:px-4 relative',
+    wrapper: 'flex w-full justify-center py-12 relative z-10',
     bgBlobTop: "pointer-events-none absolute -top-24 -left-24 h-72 w-72 rounded-full blur-3xl opacity-15 bg-primary",
     bgBlobBottom: "pointer-events-none absolute -bottom-24 -right-24 h-72 w-72 rounded-full blur-3xl opacity-15 bg-secondary",
   },

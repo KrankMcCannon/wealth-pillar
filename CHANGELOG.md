@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.5.2] - 2026-01-29
+
+### Refactor
+
+- **auth**: Created `AuthPageWrapper` component to eliminate duplication in sign-in/sign-up pages.
+- **auth**: Replaced `bg-white` with `bg-card` in Clerk appearance for dark mode support.
+- **investments**: Added proper exports for hooks and theme in feature index.
+
+### Style
+
+- **investments**: Replaced raw colors (`emerald-600`/`rose-600`) with semantic tokens (`text-success`/`text-destructive`).
+- **ui**: Fixed `bg-white` → `bg-card` in not-found page for dark mode compatibility.
+
 ## [0.5.1] - 2026-01-29
 
 ### Chore
