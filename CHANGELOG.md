@@ -2,10 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+## [0.5.1] - 2026-01-29
 
 ### Chore
 
+- **agent**: Update git commit workflow to remove Unreleased section and enforce immediate versioning.
 - **agent**: Improve workflow instructions and add turbo annotations for safer and faster execution.
 
 ## [0.5.0] - 2026-01-28

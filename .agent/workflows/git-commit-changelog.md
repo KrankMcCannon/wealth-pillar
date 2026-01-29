@@ -14,11 +14,14 @@ This workflow automates the process of creating a semantically correct commit me
     - *Example*: `feat(auth): add google oauth provider`.
 
 3.  **Update CHANGELOG.md**:
-    - Read `CHANGELOG.md`.
-    - Find the `## Unreleased` section (or create it if it doesn't exist).
-    - Append a line describing the change.
-    - **Format** with date if moving to a release, otherwise keep in Unreleased:
-      `- **type**: description of change`
+    - Read `CHANGELOG.md` to find the latest version.
+    - **Bump Version**: Determine the next version number based on the change type:
+      - `fix`, `chore`, `style`, `refactor`, `perf`, `test` -> **Patch** bump (e.g., 0.5.0 -> 0.5.1)
+      - `feat` -> **Minor** bump (e.g., 0.5.0 -> 0.6.0)
+      - `BREAKING CHANGE` -> **Major** bump.
+    - Prepend a new version header with today's date: `## [X.Y.Z] - YYYY-MM-DD`.
+    - Append the line describing the change under the appropriate subsection.
+    - **Format**: `- **type**: description of change`
 
 4.  **Safe to Auto-Run**:
     - Generally, proposing the commit message is safe.
