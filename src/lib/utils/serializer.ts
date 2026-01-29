@@ -3,6 +3,19 @@
  * Converts Decimal to number.
  * Can be extended for other types.
  */
+
+/** Type guard for Decimal-like objects */
+function isDecimalLike(value: unknown): value is { toNumber: () => number; toFixed: () => string } {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'toNumber' in value &&
+    typeof (value as Record<string, unknown>).toNumber === 'function' &&
+    'toFixed' in value &&
+    typeof (value as Record<string, unknown>).toFixed === 'function'
+  );
+}
+
 export function serialize<T>(data: T): T {
   if (data === null || data === undefined) {
     return data;
@@ -10,16 +23,9 @@ export function serialize<T>(data: T): T {
 
   if (typeof data === 'object') {
     // Handle Decimal via duck typing
-    if (
-      typeof (data as any).toNumber === 'function' &&
-      typeof (data as any).toFixed === 'function'
-    ) {
-      return (data as any).toNumber() as T;
+    if (isDecimalLike(data)) {
+      return data.toNumber() as T;
     }
-
-    // Handle Date (optional, usually allowed for Server Actions but safer for props)
-    // Leaving Date as Date for now unless strict JSON required. Next.js supports Date in server-client props.
-    // However, the error said "Only plain objects". Decimal is the main culprit.
 
     // Handle Date - preserve it
     if (data instanceof Date) {
@@ -32,10 +38,10 @@ export function serialize<T>(data: T): T {
     }
 
     // Handle Object
-    const newObj: any = {};
+    const newObj: Record<string, unknown> = {};
     for (const key in data) {
       if (Object.prototype.hasOwnProperty.call(data, key)) {
-        newObj[key] = serialize((data as any)[key]);
+        newObj[key] = serialize((data as Record<string, unknown>)[key]);
       }
     }
     return newObj as T;

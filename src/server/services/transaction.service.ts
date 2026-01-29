@@ -8,10 +8,28 @@ import type { Transaction, TransactionType } from '@/lib/types';
 import type { Database } from '@/lib/types/database.types';
 import { revalidateTag } from 'next/cache';
 import { serialize } from '@/lib/utils/serializer';
-export { TransactionLogic } from './transaction.logic';
+export { TransactionLogic } from '@/lib/utils/transaction-logic';
 
 type TransactionInsert = Database['public']['Tables']['transactions']['Insert'];
 type TransactionUpdate = Database['public']['Tables']['transactions']['Update'];
+
+// Typed RPC Results (match database.types.ts Functions)
+type CategorySpendingResult = Array<{ category: string; spent: number; transaction_count: number }>;
+type MonthlySpendingResult = Array<{ month: string; income: number; expense: number }>;
+type UserCategorySpendingResult = Array<{ user_id: string; category: string; spent: number; income: number; transaction_count: number }>;
+
+// Typed RPC helper - uses unknown intermediary instead of any
+async function typedRpc<TResult>(
+  fnName: 'get_group_category_spending' | 'get_group_monthly_spending' | 'get_group_user_category_spending',
+  args: { p_group_id: string; p_start_date: string; p_end_date: string }
+): Promise<TResult> {
+  const client = supabase as unknown as {
+    rpc: (fn: string, params: Record<string, string>) => Promise<{ data: unknown; error: { message: string } | null }>;
+  };
+  const { data, error } = await client.rpc(fnName, args);
+  if (error) throw new Error(error.message);
+  return data as TResult;
+}
 
 /**
  * Input data for creating a new transaction
@@ -252,10 +270,15 @@ export class TransactionService {
     const currentBalance = Number((account as { balance?: number })?.balance) || 0;
     const newBalance = currentBalance + delta;
 
-    const { error: updateError } = await (supabase as any)
-      .from('accounts')
-      .update({ balance: newBalance })
-      .eq('id', accountId);
+    // Use typed update helper to avoid type inference issues
+    const updateClient = supabase as unknown as {
+      from: (table: 'accounts') => {
+        update: (data: { balance: number }) => {
+          eq: (col: string, val: string) => Promise<{ error: { message: string } | null }>;
+        };
+      };
+    };
+    const { error: updateError } = await updateClient.from('accounts').update({ balance: newBalance }).eq('id', accountId);
 
     if (updateError) throw new Error(`Failed to update balance: ${updateError.message}`);
   }
@@ -265,40 +288,34 @@ export class TransactionService {
   /**
    * Get category spending breakdown using database RPC
    */
-  static getGroupCategorySpending = cache(async (groupId: string, startDate: Date, endDate: Date) => {
-    const { data, error } = await (supabase as any).rpc('get_group_category_spending', {
+  static getGroupCategorySpending = cache(async (groupId: string, startDate: Date, endDate: Date): Promise<CategorySpendingResult> => {
+    return typedRpc<CategorySpendingResult>('get_group_category_spending', {
       p_group_id: groupId,
       p_start_date: startDate.toISOString(),
       p_end_date: endDate.toISOString()
     });
-    if (error) throw new Error(error.message);
-    return data as Array<{ category: string; spent: number; transaction_count: number }>;
   });
 
   /**
    * Get monthly spending trend using database RPC
    */
-  static getGroupMonthlySpending = cache(async (groupId: string, startDate: Date, endDate: Date) => {
-    const { data, error } = await (supabase as any).rpc('get_group_monthly_spending', {
+  static getGroupMonthlySpending = cache(async (groupId: string, startDate: Date, endDate: Date): Promise<MonthlySpendingResult> => {
+    return typedRpc<MonthlySpendingResult>('get_group_monthly_spending', {
       p_group_id: groupId,
       p_start_date: startDate.toISOString(),
       p_end_date: endDate.toISOString()
     });
-    if (error) throw new Error(error.message);
-    return data as Array<{ month: string; income: number; expense: number }>;
   });
 
   /**
    * Get category spending per user using database RPC
    */
-  static getGroupUserCategorySpending = cache(async (groupId: string, startDate: Date, endDate: Date) => {
-    const { data, error } = await (supabase as any).rpc('get_group_user_category_spending', {
+  static getGroupUserCategorySpending = cache(async (groupId: string, startDate: Date, endDate: Date): Promise<UserCategorySpendingResult> => {
+    return typedRpc<UserCategorySpendingResult>('get_group_user_category_spending', {
       p_group_id: groupId,
       p_start_date: startDate.toISOString(),
       p_end_date: endDate.toISOString()
     });
-    if (error) throw new Error(error.message);
-    return data as Array<{ user_id: string; category: string; spent: number; income: number; transaction_count: number }>;
   });
 
   // ================== SERVICE LAYER ==================
@@ -503,7 +520,7 @@ export class TransactionService {
     if (data.to_account_id && data.to_account_id !== existing.to_account_id) tags.push(`account:${data.to_account_id}:transactions`);
     if (existing.group_id) tags.push(`group:${existing.group_id}:transactions`, `group:${existing.group_id}:budgets`);
     if (data.group_id && data.group_id !== existing.group_id) tags.push(`group:${data.group_id}:transactions`, `group:${data.group_id}:budgets`);
-    tags.forEach(tag => revalidateTag(tag as any, 'max'));
+    tags.forEach(tag => revalidateTag(tag, 'max'));
 
     return serialize(updated) as Transaction;
   }

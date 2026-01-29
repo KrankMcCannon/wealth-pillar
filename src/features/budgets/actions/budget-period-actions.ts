@@ -339,11 +339,11 @@ export async function getPeriodPreviewAction(
     const endDt = DateTime.fromISO(endDate);
 
     const totals = BudgetPeriodService.calculatePeriodTotals(
-      transactions as any, // Cast to any if there's a strict type mismatch with database types vs service types
+      transactions,
       tempPeriod,
       startDt,
       endDt,
-      budgets as any
+      budgets
     );
 
     // Calculate total budget amount

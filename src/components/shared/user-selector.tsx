@@ -49,7 +49,7 @@ const UserSelector = memo(({
 
   // Memoized user list with "All Members" option
   const membersList = useMemo(() => {
-    const list = users.map(user => ({
+    const list: Array<{ id: string; name: string; isSpecial: boolean }> = users.map(user => ({
       id: user.id,
       name: user.name,
       isSpecial: false
@@ -59,9 +59,8 @@ const UserSelector = memo(({
       list.unshift({
         id: 'all',
         name: 'Tutti',
-        avatar: '👥',
         isSpecial: true
-      } as any);
+      });
     }
     return list;
   }, [users, showAllOption]);

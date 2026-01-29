@@ -152,8 +152,8 @@ export async function completeOnboardingAction(
 
     // Set default account on user
     if (defaultAccountId) {
-      // We cast to any because default_account_id might be missing from generated types but exists in DB/Schema
-      await UserService.update(userId, { default_account_id: defaultAccountId } as any);
+      // Type assertion needed because default_account_id may not be in generated types yet
+      await UserService.update(userId, { default_account_id: defaultAccountId } as { default_account_id: string });
     }
 
     // Create Budgets

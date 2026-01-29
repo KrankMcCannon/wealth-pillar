@@ -265,82 +265,31 @@ export class FinanceLogicService {
   }
 
   /**
-   * Calculate annual category spending for ALL years + 'all' aggregate in a single pass
-   * 
+   * Calculate annual category spending
+   * Returns category breakdown for the current year, specified year, or all time
+   *
+   * @param allTransactions - All transactions to analyze
+   * @param year - Year to filter by, or 'all' for all-time data
    * @complexity O(n)
    */
-  static calculateAnnualBreakdowns(
-    allTransactions: Transaction[]
-  ): Record<string, CategoryBreakdownItem[]> {
-    const yearsMap = new Map<number, Transaction[]>();
-    const allTxs: Transaction[] = [];
-
-    // Single pass bucketing
-    for (const t of allTransactions) {
-      allTxs.push(t); // For 'all' aggregate
-
-      const dt = toDateTime(t.date);
-      if (dt) {
-        const year = dt.year;
-        if (!yearsMap.has(year)) {
-          yearsMap.set(year, []);
-        }
-        yearsMap.get(year)!.push(t);
-      }
+  static calculateAnnualCategorySpending(
+    allTransactions: Transaction[],
+    year: number | 'all' = new Date().getFullYear()
+  ): CategoryBreakdownItem[] {
+    // If 'all', use all transactions without filtering
+    if (year === 'all') {
+      return this.calculateCategoryBreakdown(allTransactions);
     }
 
-    const result: Record<string, CategoryBreakdownItem[]> = {};
-
-    // Calculate 'all' aggregate
-    result['all'] = this.calculateCategoryBreakdown(allTxs);
-
-    // Calculate per-year
-    yearsMap.forEach((txs, year) => {
-      result[year.toString()] = this.calculateCategoryBreakdown(txs);
+    // Otherwise filter by specific year
+    const annualTransactions = allTransactions.filter(t => {
+      const dt = toDateTime(t.date);
+      return dt?.year === year;
     });
 
-    return result;
+    return this.calculateCategoryBreakdown(annualTransactions);
   }
 
-  /**
-   * Efficiently partition transactions into Budget Periods
-   * Sorts transactions by Amount DESC
-   * 
-   * @complexity O(n log n) sorting + O(n) partitioning
-   */
-  static partitionTransactionsByPeriods(
-    transactions: Transaction[],
-    periods: BudgetPeriod[]
-  ): Map<string, Transaction[]> {
-    // 1. Sort transactions by amount descending (highest first)
-    const sortedTxs = [...transactions].sort((a, b) => b.amount - a.amount);
-
-    // 2. Prepare result map
-    const periodMap = new Map<string, Transaction[]>();
-    periods.forEach(p => periodMap.set(p.id, []));
-
-    // 3. Partition
-    const periodRanges = periods.map(p => ({
-      id: p.id,
-      start: toDateTime(p.start_date)?.startOf('day').toMillis() || 0,
-      end: (p.end_date ? toDateTime(p.end_date) : luxonNow())?.endOf('day').toMillis() || Number.MAX_SAFE_INTEGER
-    }));
-
-    for (const t of sortedTxs) {
-      const txTime = toDateTime(t.date)?.toMillis();
-      if (!txTime) continue;
-
-      // Find matching period(s)
-      for (const p of periodRanges) {
-        if (txTime >= p.start && txTime <= p.end) {
-          periodMap.get(p.id)!.push(t);
-          break;
-        }
-      }
-    }
-
-    return periodMap;
-  }
 
   // --- BUDGET LOGIC ---
 

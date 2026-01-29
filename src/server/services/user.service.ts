@@ -9,7 +9,7 @@ import { AccountService } from './account.service';
 import { BudgetService } from './budget.service';
 import { revalidateTag } from 'next/cache';
 import { isValidEmail } from '@/lib/utils/validators';
-import { fetchUserGroupId } from './user-queries';
+import { fetchUserGroupId } from '@/server/db/user-queries';
 import type { Database } from '@/lib/types/database.types';
 
 type User = Database['public']['Tables']['users']['Row'];
@@ -35,9 +35,11 @@ export class UserService {
       throw new Error(error.message);
     }
 
+    // Normalize user_preferences join result (Supabase returns array for single join)
+    const row = data as User & { user_preferences?: unknown };
     const user = {
-      ...(data as any),
-      user_preferences: Array.isArray((data as any).user_preferences) ? (data as any).user_preferences[0] : (data as any).user_preferences
+      ...row,
+      user_preferences: Array.isArray(row.user_preferences) ? row.user_preferences[0] : row.user_preferences
     };
 
     return user as User;
@@ -55,9 +57,11 @@ export class UserService {
       throw new Error(error.message);
     }
 
+    // Normalize user_preferences join result
+    const row = data as User & { user_preferences?: unknown };
     const user = {
-      ...(data as any),
-      user_preferences: Array.isArray((data as any).user_preferences) ? (data as any).user_preferences[0] : (data as any).user_preferences
+      ...row,
+      user_preferences: Array.isArray(row.user_preferences) ? row.user_preferences[0] : row.user_preferences
     };
 
     return user as User;
@@ -362,7 +366,7 @@ export class UserService {
     }
 
     // Update user
-    const updateData: any = {
+    const updateData: UserUpdate = {
       updated_at: new Date().toISOString()
     };
 

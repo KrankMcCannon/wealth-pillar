@@ -259,3 +259,20 @@ export interface BudgetPeriodJSON {
   created_at: string;
   updated_at: string;
 }
+
+// Market Data Types
+export type {
+  TimeSeriesEntry,
+  MarketDataCacheRow,
+  ParsedSeriesPoint,
+  MarketQuote,
+  MarketDataBatchResult,
+} from './market-data.types';
+export {
+  normalizeDateKey,
+  extractDateFromEntry,
+  getLatestCloseFromSeries,
+  buildSeriesIndex,
+  getCloseForDate,
+  normalizeSeriesValues,
+} from './market-data.types';

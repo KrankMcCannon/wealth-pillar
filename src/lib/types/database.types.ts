@@ -495,7 +495,7 @@ export interface Database {
           p_start_date: string
           p_end_date: string
         }
-        Returns: Json
+        Returns: Array<{ category: string; spent: number; transaction_count: number }>
       }
       get_group_monthly_spending: {
         Args: {
@@ -503,7 +503,7 @@ export interface Database {
           p_start_date: string
           p_end_date: string
         }
-        Returns: Json
+        Returns: Array<{ month: string; income: number; expense: number }>
       }
       get_group_user_category_spending: {
         Args: {
@@ -511,7 +511,7 @@ export interface Database {
           p_start_date: string
           p_end_date: string
         }
-        Returns: Json
+        Returns: Array<{ user_id: string; category: string; spent: number; income: number; transaction_count: number }>
       }
     }
     Enums: {

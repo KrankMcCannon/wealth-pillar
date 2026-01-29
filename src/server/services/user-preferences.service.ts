@@ -49,7 +49,7 @@ export class UserPreferencesService {
   private static async createDb(data: UserPreferencesInsert) {
     const { data: created, error } = await supabase
       .from('user_preferences')
-      .insert(data as any as never)
+      .insert(data as never)
       .select()
       .single();
 
@@ -60,7 +60,7 @@ export class UserPreferencesService {
   private static async updateDb(userId: string, data: UserPreferencesUpdate) {
     const { data: updated, error } = await supabase
       .from('user_preferences')
-      .update(data as any as never)
+      .update(data as never)
       .eq('user_id', userId)
       .select()
       .single();
@@ -170,7 +170,7 @@ export class UserPreferencesService {
     }
 
     // Update preferences
-    const updateData: any = {
+    const updateData: UserPreferencesUpdate = {
       ...updates,
       updated_at: new Date().toISOString(),
     };

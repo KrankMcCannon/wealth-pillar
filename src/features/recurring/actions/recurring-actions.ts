@@ -225,7 +225,7 @@ export async function updateRecurringSeriesAction(
     }
 
     // Build update data
-    const updatePayload: Record<string, any> = {};
+    const updatePayload: Partial<UpdateRecurringSeriesInput> & { updated_at?: string } = {};
     if (input.description !== undefined) updatePayload.description = input.description.trim();
     if (input.amount !== undefined) {
       if (input.amount <= 0) return { data: null, error: "L'importo deve essere maggiore di zero" };
@@ -241,7 +241,7 @@ export async function updateRecurringSeriesAction(
     if (input.is_active !== undefined) updatePayload.is_active = input.is_active;
     if (input.user_ids !== undefined) updatePayload.user_ids = input.user_ids;
 
-    updatePayload.updated_at = new Date();
+    updatePayload.updated_at = new Date().toISOString();
 
     const data = await RecurringService.updateSeries(input.id, updatePayload);
 

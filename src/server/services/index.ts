@@ -24,4 +24,4 @@ export { AvailableSharesService } from "./available-shares.service";
 
 // Shared Types
 export type { BudgetProgress, UserBudgetSummary } from '@/lib/types';
-export type { CategoryMetric, ReportMetrics } from './transaction.logic';
+export type { CategoryMetric, ReportMetrics } from '@/lib/utils/transaction-logic';

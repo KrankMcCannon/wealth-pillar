@@ -13,6 +13,7 @@ import type { Database } from '@/lib/types/database.types';
 
 type RecurringInsert = Database['public']['Tables']['recurring_transactions']['Insert'];
 type RecurringUpdate = Database['public']['Tables']['recurring_transactions']['Update'];
+type RecurringRow = Database['public']['Tables']['recurring_transactions']['Row'];
 
 /**
  * RecurringService - Manages recurring transaction series
@@ -26,7 +27,7 @@ type RecurringUpdate = Database['public']['Tables']['recurring_transactions']['U
 export class RecurringService {
   // ================== DATABASE OPERATIONS (inlined from repository) ==================
 
-  private static async getByIdDb(id: string) {
+  private static async getByIdDb(id: string): Promise<RecurringRow | null> {
     const { data, error } = await supabase
       .from('recurring_transactions')
       .select('*, accounts(*)')
@@ -37,14 +38,16 @@ export class RecurringService {
       if (error.code === 'PGRST116') return null;
       throw new Error(error.message);
     }
+    // Normalize accounts join result (Supabase returns array for single join)
+    const row = data as RecurringRow & { accounts?: unknown };
     const result = {
-      ...(data as any),
-      accounts: Array.isArray((data as any).accounts) ? (data as any).accounts[0] : (data as any).accounts
+      ...row,
+      accounts: Array.isArray(row.accounts) ? row.accounts[0] : row.accounts
     };
-    return result as any;
+    return result as RecurringRow;
   }
 
-  private static getByUserDb = cache(async (userId: string) => {
+  private static getByUserDb = cache(async (userId: string): Promise<RecurringRow[]> => {
     const { data, error } = await supabase
       .from('recurring_transactions')
       .select('*')
@@ -52,10 +55,10 @@ export class RecurringService {
       .order('created_at', { ascending: false });
 
     if (error) throw new Error(error.message);
-    return data as any;
+    return (data || []) as RecurringRow[];
   });
 
-  private static getByUserIdsDb = cache(async (userIds: string[]) => {
+  private static getByUserIdsDb = cache(async (userIds: string[]): Promise<RecurringRow[]> => {
     const { data, error } = await supabase
       .from('recurring_transactions')
       .select('*')
@@ -63,33 +66,33 @@ export class RecurringService {
       .order('created_at', { ascending: false });
 
     if (error) throw new Error(error.message);
-    return data as any;
+    return (data || []) as RecurringRow[];
   });
 
-  private static async createDb(data: RecurringInsert) {
+  private static async createDb(data: RecurringInsert): Promise<RecurringRow> {
     const { data: created, error } = await supabase
       .from('recurring_transactions')
-      .insert(data as any as never)
+      .insert(data as never)
       .select()
       .single();
 
     if (error) throw new Error(error.message);
-    return created as any;
+    return created as RecurringRow;
   }
 
-  private static async updateDb(id: string, data: RecurringUpdate) {
+  private static async updateDb(id: string, data: RecurringUpdate): Promise<RecurringRow> {
     const { data: updated, error } = await supabase
       .from('recurring_transactions')
-      .update(data as any as never)
+      .update(data as never)
       .eq('id', id)
       .select()
       .single();
 
     if (error) throw new Error(error.message);
-    return updated as any;
+    return updated as RecurringRow;
   }
 
-  private static async deleteDb(id: string) {
+  private static async deleteDb(id: string): Promise<RecurringRow> {
     const { data, error } = await supabase
       .from('recurring_transactions')
       .delete()
@@ -98,7 +101,7 @@ export class RecurringService {
       .single();
 
     if (error) throw new Error(error.message);
-    return data as any;
+    return data as RecurringRow;
   }
 
   // ================== SERVICE LAYER ==================
@@ -155,7 +158,7 @@ export class RecurringService {
 
         if (!users || users.length === 0) return [];
 
-        const userIds = users.map((u: any) => u.id);
+        const userIds = users.map((u) => u.id);
 
         // Then get all recurring series for those users
         // Using overlaps to find series that include any group member

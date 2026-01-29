@@ -1,18 +1,27 @@
 import { supabase } from '@/server/db/supabase';
 import { twelveData } from "@/lib/twelve-data";
 import { cache } from 'react';
+import type {
+  TimeSeriesEntry,
+  MarketDataCacheRow,
+  MarketDataBatchResult,
+} from '@/lib/types/market-data.types';
+import {
+  getLatestCloseFromSeries,
+  normalizeSeriesValues,
+} from '@/lib/types/market-data.types';
 
 /**
  * Service to handle market data fetching with caching strategy.
  * Flow:
  * 1. Check DB for `market_data_cache` entry for the symbol.
- * 2. If exists and fresh (< 24h), return cached data.
+ * 2. If exists and fresh (<24h), return cached data.
  * 3. If stale or missing, fetch from Twelve Data API.
  * 4. Upsert data into DB.
  * 5. Return data.
  */
 export class MarketDataService {
-  static async getCachedSeriesBySymbols(symbols: string[]): Promise<Array<{ symbol: string; data: any; last_updated?: string }>> {
+  static async getCachedSeriesBySymbols(symbols: string[]): Promise<MarketDataCacheRow[]> {
     const normalized = Array.from(new Set(symbols.map(s => s.toUpperCase())));
     if (normalized.length === 0) return [];
 
@@ -26,34 +35,7 @@ export class MarketDataService {
       return [];
     }
 
-    return (data || []) as Array<{ symbol: string; data: any; last_updated?: string }>;
-  }
-
-  private static getLatestCloseFromSeries(data: any): number {
-    if (!Array.isArray(data) || data.length === 0) return 0;
-
-    const normalizeDateKey = (entry: any): string => {
-      const raw = entry?.datetime ?? entry?.time ?? entry?.date ?? '';
-      return String(raw).split(' ')[0].split('T')[0];
-    };
-
-    const latest = data.reduce((acc, current) => {
-      return normalizeDateKey(current) > normalizeDateKey(acc) ? current : acc;
-    }, data[0]);
-
-    const closeValue = latest?.close;
-    const parsed = Number.parseFloat(closeValue);
-    return Number.isFinite(parsed) ? parsed : 0;
-  }
-
-  private static normalizeSeriesValues(values: any[]): any[] {
-    return values.map((entry) => {
-      if (entry?.datetime) return entry;
-      const raw = entry?.time ?? entry?.date;
-      if (!raw) return entry;
-      const datetime = String(raw).split('T')[0];
-      return { ...entry, datetime };
-    });
+    return (data || []) as MarketDataCacheRow[];
   }
 
   static async getCachedQuotePrices(symbols: string[]): Promise<Record<string, number>> {
@@ -71,9 +53,10 @@ export class MarketDataService {
     }
 
     const priceMap: Record<string, number> = {};
-    (data || []).forEach((row: any) => {
-      const latestClose = this.getLatestCloseFromSeries(row?.data);
-      const symbol = String(row?.symbol || '').toUpperCase();
+    (data || []).forEach((row) => {
+      const cacheRow = row as MarketDataCacheRow;
+      const latestClose = getLatestCloseFromSeries(cacheRow?.data);
+      const symbol = String(cacheRow?.symbol || '').toUpperCase();
       if (symbol && latestClose > 0) {
         priceMap[symbol] = latestClose;
       }
@@ -82,7 +65,7 @@ export class MarketDataService {
     return priceMap;
   }
 
-  static async getCachedMarketData(symbol: string): Promise<any[]> {
+  static async getCachedMarketData(symbol: string): Promise<TimeSeriesEntry[]> {
     const normalizedSymbol = symbol.toUpperCase();
     const { data, error } = await supabase
       .from('market_data_cache')
@@ -91,8 +74,9 @@ export class MarketDataService {
       .single();
 
     if (!error && data) {
-      const values = (data as { data?: any }).data;
-      return Array.isArray(values) ? this.normalizeSeriesValues(values) : [];
+      const cacheData = data as { data?: TimeSeriesEntry[] };
+      const values = cacheData.data;
+      return Array.isArray(values) ? normalizeSeriesValues(values) : [];
     }
 
     // Fallback: fetch fresh data, save to DB, then read from cache
@@ -108,8 +92,9 @@ export class MarketDataService {
       return [];
     }
 
-    const values = (refreshed as { data?: any }).data;
-    return Array.isArray(values) ? this.normalizeSeriesValues(values) : [];
+    const refreshedData = refreshed as { data?: TimeSeriesEntry[] };
+    const values = refreshedData.data;
+    return Array.isArray(values) ? normalizeSeriesValues(values) : [];
   }
 
   private static getBatchQuotesCached = cache(async (symbolsKey: string) => {
@@ -124,7 +109,7 @@ export class MarketDataService {
     return this.getBatchQuotesCached(symbolsKey);
   }
 
-  static async getMarketData(symbol: string) {
+  static async getMarketData(symbol: string): Promise<TimeSeriesEntry[]> {
     try {
       const normalizedSymbol = symbol.toUpperCase();
 
@@ -136,12 +121,14 @@ export class MarketDataService {
         .single();
 
       const now = new Date();
+      const cachedRow = cached as MarketDataCacheRow | null;
       // Freshness check: 24 hours
-      const isFresh = cached && (now.getTime() - new Date((cached as any).last_updated).getTime() < 24 * 60 * 60 * 1000);
+      const isFresh = cachedRow && cachedRow.last_updated &&
+        (now.getTime() - new Date(cachedRow.last_updated).getTime() < 24 * 60 * 60 * 1000);
 
-      if (isFresh && (cached as any).data) {
-        const cachedValues = (cached as any).data;
-        return Array.isArray(cachedValues) ? this.normalizeSeriesValues(cachedValues) : cachedValues;
+      if (isFresh && cachedRow?.data) {
+        const cachedValues = cachedRow.data;
+        return Array.isArray(cachedValues) ? normalizeSeriesValues(cachedValues) : [];
       }
 
       // 2. Fetch from API
@@ -168,15 +155,15 @@ export class MarketDataService {
 
       if (!timeSeries || timeSeries.length === 0) {
         // If cache exists but is stale, return it as fallback rather than failing
-        if ((cached as any)?.data) {
+        if (cachedRow?.data) {
           console.warn(`[MarketData] Returning stale cache for ${normalizedSymbol} due to API error.`);
-          const cachedValues = (cached as any).data;
-          return Array.isArray(cachedValues) ? this.normalizeSeriesValues(cachedValues) : cachedValues;
+          const cachedValues = cachedRow.data;
+          return Array.isArray(cachedValues) ? normalizeSeriesValues(cachedValues) : [];
         }
         return [];
       }
 
-      const values = this.normalizeSeriesValues(timeSeries);
+      const values = normalizeSeriesValues(timeSeries as TimeSeriesEntry[]);
 
       // 3. Update Cache
       try {
@@ -184,9 +171,9 @@ export class MarketDataService {
           .from('market_data_cache')
           .upsert({
             symbol: normalizedSymbol,
-            data: values, // Supabase handles JSON array automatically
+            data: values,
             last_updated: now.toISOString()
-          } as any, { onConflict: 'symbol' }); // Ensure upsert by PK
+          } as never, { onConflict: 'symbol' });
       } catch (dbError) {
         console.error(`[MarketData] Database save error for ${normalizedSymbol}:`, dbError);
         // Don't throw, just log and return values so UI still works (non-cached)
@@ -204,7 +191,7 @@ export class MarketDataService {
   /**
    * Batch fetch for multiple symbols (used for portfolio)
    */
-  static async getBatchMarketData(symbols: string[]) {
+  static async getBatchMarketData(symbols: string[]): Promise<MarketDataBatchResult[]> {
     // Process in parallel
     const results = await Promise.all(
       symbols.map(async (sym) => ({

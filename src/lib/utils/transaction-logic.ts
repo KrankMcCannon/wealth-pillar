@@ -3,7 +3,7 @@ import {
   formatDateSmart,
   toDateTime,
 } from '@/lib/utils/date-utils';
-import { FinanceLogicService } from './finance-logic.service';
+import { FinanceLogicService } from '@/server/services/finance-logic.service';
 
 /**
  * Report metrics calculated from transactions

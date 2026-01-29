@@ -6,7 +6,7 @@ import { ShareSelector } from './share-selector';
 import { investmentsStyles } from "@/features/investments/theme/investments-styles";
 
 interface BenchmarkChartProps {
-  indexData?: { datetime: string; close: string }[];
+  indexData?: Array<{ datetime?: string; time?: string; date?: string; close: string | number }>;
   currentIndex: string;
   onBenchmarkChange: (symbol: string) => void;
   anchorId?: string;

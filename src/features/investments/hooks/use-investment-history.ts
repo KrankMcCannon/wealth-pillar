@@ -1,13 +1,21 @@
 import { useMemo } from 'react';
 import type { Investment } from '@/components/investments/personal-investment-tab';
 
+type TimeSeriesEntry = { datetime?: string; time?: string; date?: string; close: string | number };
+
 interface UseInvestmentHistoryProps {
   investments: Investment[];
-  indexData?: { datetime: string; close: string }[];
+  indexData?: TimeSeriesEntry[];
   summary: {
     totalCurrentValue: number;
   };
   currentIndex?: string;
+}
+
+// Helper to get date string from various formats
+function getDateString(entry: TimeSeriesEntry): string {
+  const raw = entry.datetime ?? entry.time ?? entry.date ?? '';
+  return String(raw).split('T')[0].split(' ')[0];
 }
 
 export function useInvestmentHistory({ investments, indexData, summary, currentIndex }: UseInvestmentHistoryProps) {
@@ -16,15 +24,16 @@ export function useInvestmentHistory({ investments, indexData, summary, currentI
 
     // Sort index data ascending by date
     const sortedIndexData = [...indexData].sort((a, b) =>
-      new Date(a.datetime).getTime() - new Date(b.datetime).getTime()
+      getDateString(a).localeCompare(getDateString(b))
     );
 
     // 1. Generate Raw History Series
     const rawHistory = sortedIndexData.map(point => {
-      const pointDate = new Date(point.datetime);
+      const dateStr = getDateString(point);
+      const pointDate = new Date(dateStr);
       let dailyTotalValue = 0;
 
-      const pointPrice = parseFloat(point.close);
+      const pointPrice = parseFloat(String(point.close));
       if (isNaN(pointPrice)) return null;
 
       investments.forEach(inv => {
@@ -45,7 +54,7 @@ export function useInvestmentHistory({ investments, indexData, summary, currentI
       });
 
       return {
-        date: point.datetime.split('T')[0],
+        date: dateStr,
         value: dailyTotalValue
       };
     }).filter((p): p is { date: string; value: number } => p !== null && p.value > 0);

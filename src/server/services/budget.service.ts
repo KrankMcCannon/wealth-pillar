@@ -8,7 +8,7 @@ import type { Budget, BudgetType } from '@/lib/types';
 import type { Database } from '@/lib/types/database.types';
 import { revalidateTag } from 'next/cache';
 import { serialize } from '@/lib/utils/serializer';
-import { fetchUserGroupId } from './user-queries';
+import { fetchUserGroupId } from '@/server/db/user-queries';
 
 type BudgetInsert = Database['public']['Tables']['budgets']['Insert'];
 type BudgetUpdate = Database['public']['Tables']['budgets']['Update'];
@@ -286,7 +286,7 @@ export class BudgetService {
     }
 
     const existing = existingBudget as unknown as Budget;
-    const updateData: any = {
+    const updateData: BudgetUpdate = {
       updated_at: new Date().toISOString(),
     };
 

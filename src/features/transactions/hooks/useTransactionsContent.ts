@@ -23,7 +23,7 @@ import {
   type GroupedTransaction,
 } from "@/features/transactions";
 import type { Transaction, Budget, User, Account, Category } from "@/lib/types";
-import { TransactionLogic } from "@/server/services/transaction.logic";
+import { TransactionLogic } from "@/lib/utils/transaction-logic";
 import { deleteTransactionAction } from "@/features/transactions/actions/transaction-actions";
 import { deleteRecurringSeriesAction } from "@/features/recurring/actions/recurring-actions";
 import { useModalState, useTabState, type ModalType } from "@/lib/navigation/url-state";

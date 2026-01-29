@@ -282,7 +282,7 @@ export class CategoryService {
     }
 
     // Build update object (only include provided fields)
-    const updateData: any = {
+    const updateData: CategoryUpdate = {
       updated_at: new Date().toISOString(),
     };
 

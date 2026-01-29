@@ -37,7 +37,7 @@ interface PersonalInvestmentTabProps {
     totalReturn: number;
     totalReturnPercent: number;
   };
-  indexData?: { datetime: string; close: string }[];
+  indexData?: Array<{ datetime?: string; time?: string; date?: string; close: string | number }>;
   currentIndex?: string;
 }
 

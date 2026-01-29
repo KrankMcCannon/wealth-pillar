@@ -14,7 +14,7 @@ type ServiceResult<T> = {
 
 export async function createInvestmentAction(
   input: Omit<InvestmentInsert, 'user_id' | 'id' | 'created_at' | 'updated_at'> & { created_at?: Date | string }
-): Promise<ServiceResult<any>> {
+): Promise<ServiceResult<Database['public']['Tables']['investments']['Row']>> {
   try {
     // Authentication check (cached per request)
     const currentUser = await getCurrentUser();
