@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+
+### Chore
+
+- **agent**: Improve workflow instructions and add turbo annotations for safer and faster execution.
+
 ## [0.5.0] - 2026-01-28
 
 ### Refactor

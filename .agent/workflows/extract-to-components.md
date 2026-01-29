@@ -6,29 +6,27 @@ This workflow decomposes large components into smaller, reusable UI components t
 
 1.  **Identify Logical Sections**:
     - Review the target component's JSX.
-    - Identify distinct UI sections (e.g., specific cards, list items, headers, complex forms).
-    - Look for repeated patterns or sections that are large enough to distract from the main component's purpose.
+    - Identify distinct UI sections (e.g., specific cards, list items, headers).
+    - **Check for Prop Drilling**: If you find yourself passing props down multiple levels, consider if a different pattern (like Composition or Context) is better.
 
 2.  **Evaluate Reusability**:
-    - Ask: "Could this UI piece be used elsewhere?" or "Is this file getting too long?"
-    - Check if a similar component already exists in `src/components` or `src/features/{feature}/components`.
+    - Ask: "Could this UI piece be used elsewhere?"
+    - Check if a similar component already exists.
 
 3.  **Extract Component**:
     - Create a new file for the sub-component.
-        - If generic: `src/components/{folder}/{ComponentName}.tsx`
-        - If feature-specific: `src/features/{feature}/components/{ComponentName}.tsx`
-    - Copy the relevant JSX and styles.
+    - Copy the relevant JSX, styles, and necessary imports.
 
 4.  **Define Interface**:
     - Create a strictly typed Props interface for the new component.
-    - Pass only the necessary data (avoid passing large objects if only one field is needed).
-    - Ensure callbacks (e.g., `onClick`, `onEdit`) are properly typed.
+    - Pass only the necessary data.
 
 5.  **Refactor Original**:
-    - Import the new component in the parent file.
+    - Import the new component.
     - Replace the extracted JSX with the component instance.
-    - Pass the required props.
 
 6.  **Verification**:
     - Ensure the UI renders exactly as before.
-    - Verify that all interactive elements (buttons, inputs) work correctly in the new sub-component.
+    - Verify interactive elements work.
+    - **Build Check**: Run `tsc --noEmit` locally (if applicable) to ensure no type errors introduced.
+

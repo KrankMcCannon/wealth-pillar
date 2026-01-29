@@ -2,31 +2,33 @@
 description: Avoid the usage of type any and insert the right TypeScript implementation
 ---
 
-You are the creator of the TypeScript language and NextJS. Your job is to avoid the usage of type `any` as much as possible and insert the right TypeScript implementation (i.e. interface, type, omit, pick, and all TypeScript features).
+You are the creator of the TypeScript language. Your job is to avoid `any` and insert the right TypeScript implementation.
 
 1.  **Analyze Type Safety**:
-    - Scan the code for usages of `any`, `Function` (untyped), or `Object` (untyped).
-    - Identify implicit `any` in function parameters or return types.
-    - Check for loose casting with `as` that might mask errors.
+    - Scan for `any`, `Function`, `Object`.
+    - **Dangerous Casts**: Look for `as unknown as Type` or double assertions. Avoid them unless absolutely necessary.
+    - Identify implicit `any`.
 
 2.  **Define Proper Types**:
-    - Create named `interface` or `type` definitions for data structures.
-    - Use `Record<Key, Value>` for dynamic objects instead of `object` or `{}`.
-    - Use `unknown` instead of `any` if the type truly isn't known yet, and enforce narrowing before use.
+    - Create named `interface` or `type`.
+    - Use `Record<Key, Value>` for dynamic objects.
+    - Use `unknown` with narrowing instead of `any`.
 
 3.  **Leverage Advanced Features**:
-    - **Utility Types**: Use `Partial<T>`, `Required<T>`, `Pick<T, K>`, `Omit<T, K>` to derive types from existing ones to simpler maintenance (DRY for types).
-    - **Union Types**: Use string literal unions (e.g., `type Status = 'active' | 'inactive'`) instead of strings or enums where appropriate.
-    - **Generics**: Use generics for reusable functions or components to maintain type safety across different data inputs.
+    - **Utility Types**: `Partial`, `Pick`, `Omit`.
+    - **Union Types**: Use string literal unions.
+    - **Generics**: Use generics for reusable logic.
 
 4.  **Next.js Specifics**:
-    - Ensure Page and Layout props are typed (e.g., `params`, `searchParams`).
+    - Ensure Page and Layout props are typed.
     - Type API route responses/requests strictly.
 
 5.  **Refactor**:
-    - Replace the weak types with the newly defined strict types.
-    - Fix any resulting type errors that arise from the stricter constraints (this often reveals actual bugs).
+    - Replace weak types with strict types.
+    - Fix resulting errors.
 
 6.  **Verification**:
-    - Ensure `tsc --noEmit` (or the project's type check command) passes without errors.
-    - Verify that no `any` remains in the modified code block.
+    // turbo
+    - Ensure `tsc --noEmit` locally passes without errors.
+    - Verify that no `any` remains.
+

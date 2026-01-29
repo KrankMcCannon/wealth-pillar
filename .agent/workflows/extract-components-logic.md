@@ -7,14 +7,15 @@ This workflow separates UI rendering from business logic by extracting state, ef
 1.  **Analyze Component**:
     - Identify the target component.
     - Look for:
-        - `useState` not directly related to UI state (e.g., data fetching state vs. modal open state).
+        - `useState` not directly related to UI state.
         - `useEffect` blocks.
-        - Complex event handlers or data transformation logic.
+        - Complex event handlers.
         - API calls.
+        - **Imports**: Identify which imports are used by the logic being extracted.
 
 2.  **Create Custom Hook/Service**:
-    - Create a new file named `use{ComponentName}.ts` (or similar) in a `hooks/` directory (or collocated if preferred).
-    - If the logic is pure business logic unrelated to React state, consider a service file (e.g., `services/myService.ts`).
+    - Create a new file named `use{ComponentName}.ts` (or similar) in a `hooks/` directory.
+    - Copy the necessary imports to the new file.
 
 3.  **Refactor**:
     - Move states, effects, and functions from the component to the new hook/service.
@@ -23,9 +24,10 @@ This workflow separates UI rendering from business logic by extracting state, ef
 4.  **Update Component**:
     - Import and call the new hook in the component.
     - `const { data, isLoading, handler } = useMyComponent();`
-    - Ensure the component now focuses primarily on JSX structure and rendering.
+    - **Cleanup**: Remove imports that are no longer used in the extracted component.
 
 5.  **Verification**:
     - Ensure the component renders the same output.
     - Ensure all interactions still work.
-    - Check that the component file size is reduced and readability is improved.
+    - Verify that no unused imports remain in the original file.
+
