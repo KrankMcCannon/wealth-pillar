@@ -61,7 +61,7 @@ export function FormCurrencyInput({
   min,
   max,
   decimals = 2,
-}: FormCurrencyInputProps) {
+}: Readonly<FormCurrencyInputProps>) {
   // Convert value to string for input
   const stringValue = typeof value === "number" ? value.toString() : value;
 
@@ -76,7 +76,7 @@ export function FormCurrencyInput({
     }
 
     // Allow only numbers and decimal point
-    const cleanedValue = inputValue.replace(/[^\d.,]/g, "");
+    const cleanedValue = inputValue.replaceAll(/[^\d.,]/g, "");
 
     // Just pass the cleaned value, don't normalize yet
     onChange(cleanedValue);
@@ -90,7 +90,7 @@ export function FormCurrencyInput({
     }
 
     // Normalize: replace commas with dots
-    const normalized = stringValue.replace(/,/g, ".");
+    const normalized = stringValue.replaceAll(',', ".");
 
     // Handle multiple dots - keep only first
     const parts = normalized.split(".");
@@ -99,8 +99,10 @@ export function FormCurrencyInput({
       finalValue += "." + parts.slice(1).join("");
     }
 
-    const numValue = parseFloat(finalValue);
-    if (!isNaN(numValue)) {
+    const numValue = Number.parseFloat(finalValue);
+    if (Number.isNaN(numValue)) {
+      onChange("");
+    } else {
       // Validate min/max on blur
       let validatedValue = numValue;
       if (min !== undefined && numValue < min) validatedValue = min;
@@ -109,8 +111,6 @@ export function FormCurrencyInput({
       // Format to fixed decimal places
       const formatted = validatedValue.toFixed(decimals);
       onChange(formatted);
-    } else {
-      onChange("");
     }
   };
 
@@ -156,9 +156,9 @@ export function formatCurrency(
 ): string {
   const { showSymbol = true, decimals = 2, locale = "it-IT" } = options || {};
 
-  const numAmount = typeof amount === "string" ? parseFloat(amount) : amount;
+  const numAmount = typeof amount === "string" ? Number.parseFloat(amount) : amount;
 
-  if (isNaN(numAmount)) return showSymbol ? "€ 0.00" : "0.00";
+  if (Number.isNaN(numAmount)) return showSymbol ? "€ 0.00" : "0.00";
 
   const formatted = new Intl.NumberFormat(locale, {
     style: showSymbol ? "currency" : "decimal",
@@ -176,9 +176,9 @@ export function formatCurrency(
 export function parseCurrency(value: string): number {
   if (!value) return 0;
   // Remove currency symbols, spaces, and replace comma with dot
-  const cleaned = value.replace(/[€$\s]/g, "").replace(",", ".");
-  const parsed = parseFloat(cleaned);
-  return isNaN(parsed) ? 0 : parsed;
+  const cleaned = value.replaceAll(/[€$\s]/g, "").replaceAll(",", ".");
+  const parsed = Number.parseFloat(cleaned);
+  return Number.isNaN(parsed) ? 0 : parsed;
 }
 
 /**
@@ -190,7 +190,7 @@ export function isValidCurrency(value: string, options?: { min?: number; max?: n
   if (!value) return false;
 
   const num = parseCurrency(value);
-  if (isNaN(num)) return false;
+  if (Number.isNaN(num)) return false;
 
   if (min !== undefined && num < min) return false;
   if (max !== undefined && num > max) return false;

@@ -14,7 +14,7 @@ export function ListContainer({
   children,
   divided = false,
   className,
-}: ListContainerProps) {
+}: Readonly<ListContainerProps>) {
   return (
     <div
       className={cn(
@@ -33,6 +33,6 @@ export interface ListItemProps {
   className?: string;
 }
 
-export function ListItem({ children, className }: ListItemProps) {
+export function ListItem({ children, className }: Readonly<ListItemProps>) {
   return <div className={cn(layoutStyles.list.item, className)}>{children}</div>;
 }

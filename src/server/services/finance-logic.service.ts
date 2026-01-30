@@ -71,20 +71,10 @@ export class FinanceLogicService {
       } else if (t.type === 'expense' && accountSet.has(t.account_id)) {
         totalSpent += t.amount;
       } else if (t.type === 'transfer') {
-        const fromUserAccount = accountSet.has(t.account_id);
-        const toUserAccount = t.to_account_id && accountSet.has(t.to_account_id);
-
-        if (fromUserAccount) {
-          totalTransferred += t.amount;
-        }
-
-        if (fromUserAccount && toUserAccount) {
-          continue; // Internal transfer
-        } else if (fromUserAccount) {
-          totalSpent += t.amount; // External OUT
-        } else if (toUserAccount) {
-          totalEarned += t.amount; // External IN
-        }
+        const metrics = this.calculateTransferMetrics(t, accountSet);
+        totalEarned += metrics.earned;
+        totalSpent += metrics.spent;
+        totalTransferred += metrics.transferred;
       }
     }
 
@@ -94,6 +84,30 @@ export class FinanceLogicService {
       totalTransferred,
       totalBalance: totalEarned - totalSpent,
     };
+  }
+
+  // Helper to reduce cognitive complexity of calculateOverviewMetrics
+  private static calculateTransferMetrics(t: Transaction, accountSet: Set<string>) {
+    let earned = 0;
+    let spent = 0;
+    let transferred = 0;
+
+    const fromUserAccount = accountSet.has(t.account_id);
+    const toUserAccount = t.to_account_id && accountSet.has(t.to_account_id);
+
+    if (fromUserAccount) {
+      transferred += t.amount;
+    }
+
+    if (fromUserAccount && toUserAccount) {
+      // Internal transfer: no net change to total balance
+    } else if (fromUserAccount) {
+      spent += t.amount; // External OUT
+    } else if (toUserAccount) {
+      earned += t.amount; // External IN
+    }
+
+    return { earned, spent, transferred };
   }
 
   /**
@@ -369,26 +383,15 @@ export class FinanceLogicService {
   }
 
   /**
-   * Build complete budget summary for a user (Pure Logic)
+   * Private helper to build UserBudgetSummary from computed budget progress.
    */
-  static calculateUserBudgetSummaryPure(
+  private static buildBudgetSummary(
     user: User,
-    budgets: Budget[],
-    transactions: Transaction[],
-    activePeriod: BudgetPeriod | null | undefined
+    budgetProgress: BudgetProgress[],
+    activePeriod: BudgetPeriod | null | undefined,
+    periodStart: DateTime | null,
+    periodEnd: DateTime | null
   ): UserBudgetSummary {
-    const periodStart = activePeriod ? toDateTime(activePeriod.start_date) : null;
-    const periodEnd = activePeriod?.end_date
-      ? (toDateTime(activePeriod.end_date)?.endOf('day') ?? null)
-      : null;
-
-    const budgetProgress = this.calculateBudgetsWithProgress(
-      budgets,
-      transactions,
-      periodStart,
-      periodEnd
-    );
-
     const totalBudget = budgetProgress.reduce((sum, b) => sum + b.amount, 0);
     const totalSpent = budgetProgress.reduce((sum, b) => sum + b.spent, 0);
     const totalRemaining = totalBudget - totalSpent;
@@ -408,6 +411,41 @@ export class FinanceLogicService {
   }
 
   /**
+   * Parse period dates from an active budget period.
+   * @returns Tuple of [periodStart, periodEnd] as DateTime or null
+   */
+  private static parsePeriodDates(
+    activePeriod: BudgetPeriod | null | undefined
+  ): [DateTime | null, DateTime | null] {
+    const periodStart = activePeriod ? toDateTime(activePeriod.start_date) : null;
+    const periodEnd = activePeriod?.end_date
+      ? (toDateTime(activePeriod.end_date)?.endOf('day') ?? null)
+      : null;
+    return [periodStart, periodEnd];
+  }
+
+  /**
+   * Build complete budget summary for a user (Pure Logic)
+   */
+  static calculateUserBudgetSummaryPure(
+    user: User,
+    budgets: Budget[],
+    transactions: Transaction[],
+    activePeriod: BudgetPeriod | null | undefined
+  ): UserBudgetSummary {
+    const [periodStart, periodEnd] = this.parsePeriodDates(activePeriod);
+
+    const budgetProgress = this.calculateBudgetsWithProgress(
+      budgets,
+      transactions,
+      periodStart,
+      periodEnd
+    );
+
+    return this.buildBudgetSummary(user, budgetProgress, activePeriod, periodStart, periodEnd);
+  }
+
+  /**
    * Build complete budget summary for a user using AGGREGATED data
    */
   static calculateUserBudgetSummaryFromAggregation(
@@ -416,67 +454,45 @@ export class FinanceLogicService {
     spendingData: Array<{ category: string; spent: number; income: number }>,
     activePeriod: BudgetPeriod | null | undefined
   ): UserBudgetSummary {
-    const periodStart = activePeriod ? toDateTime(activePeriod.start_date) : null;
-    const periodEnd = activePeriod?.end_date
-      ? (toDateTime(activePeriod.end_date)?.endOf('day') ?? null)
-      : null;
+    const [periodStart, periodEnd] = this.parsePeriodDates(activePeriod);
 
-    // Create a map for faster lookup
+    // Create a map for faster O(1) category lookup
     const spendingMap = new Map<string, { spent: number; income: number }>();
-    spendingData.forEach(item => {
+    for (const item of spendingData) {
       spendingMap.set(item.category, { spent: item.spent, income: item.income });
-    });
+    }
 
-    // Calculate progress for each budget
-    const validBudgets = budgets.filter((b) => b.amount > 0);
-    const budgetProgress: BudgetProgress[] = validBudgets.map(budget => {
-      let budgetSpent = 0;
-      // let transactionCount = 0; // Aggregation might give count, but for now we might ignore or sum it if available
-
-      // Sum spending for all categories in this budget
-      budget.categories.forEach(cat => {
-        const data = spendingMap.get(cat);
-        if (data) {
-          // Logic: Net Spent = (Expense + Outgoing Transfer) - Income
-          // data.spent is already (Expense + Outgoing)
-          // data.income is Income
-          const netSpent = data.spent - data.income;
-          budgetSpent += netSpent;
+    // Calculate progress for each valid budget
+    const budgetProgress: BudgetProgress[] = budgets
+      .filter((b) => b.amount > 0)
+      .map(budget => {
+        // Sum net spending for all categories in this budget
+        let budgetSpent = 0;
+        for (const cat of budget.categories) {
+          const data = spendingMap.get(cat);
+          if (data) {
+            // Net Spent = (Expense + Outgoing Transfer) - Income
+            budgetSpent += data.spent - data.income;
+          }
         }
+
+        const effectiveSpent = Math.max(0, budgetSpent);
+        const remaining = budget.amount - effectiveSpent;
+        const percentage = budget.amount > 0 ? (effectiveSpent / budget.amount) * 100 : 0;
+
+        return {
+          id: budget.id,
+          description: budget.description,
+          amount: budget.amount,
+          spent: effectiveSpent,
+          remaining,
+          percentage,
+          categories: budget.categories,
+          transactionCount: 0, // Not available from aggregated data
+        };
       });
 
-      const effectiveSpent = Math.max(0, budgetSpent);
-      const remaining = budget.amount - effectiveSpent;
-      const percentage = budget.amount > 0 ? (effectiveSpent / budget.amount) * 100 : 0;
-
-      return {
-        id: budget.id,
-        description: budget.description,
-        amount: budget.amount,
-        spent: effectiveSpent,
-        remaining,
-        percentage,
-        categories: budget.categories,
-        transactionCount: 0 // We don't have this exact count easily from this aggregation shape unless we sum it
-      };
-    });
-
-    const totalBudget = budgetProgress.reduce((sum, b) => sum + b.amount, 0);
-    const totalSpent = budgetProgress.reduce((sum, b) => sum + b.spent, 0);
-    const totalRemaining = totalBudget - totalSpent;
-    const overallPercentage = totalBudget > 0 ? (totalSpent / totalBudget) * 100 : 0;
-
-    return {
-      user,
-      budgets: budgetProgress,
-      activePeriod: activePeriod || undefined,
-      periodStart: periodStart?.toISO() || null,
-      periodEnd: periodEnd?.toISO() || null,
-      totalBudget,
-      totalSpent,
-      totalRemaining,
-      overallPercentage,
-    };
+    return this.buildBudgetSummary(user, budgetProgress, activePeriod, periodStart, periodEnd);
   }
 
   /**
@@ -668,22 +684,19 @@ export class FinanceLogicService {
   // --- RECURRING SERIES LOGIC ---
 
   /**
-   * Calculate next weekly due date
+   * Calculate next week-based due date (weekly or biweekly)
+   * @param today - Current date
+   * @param dueDay - Day of week (1=Monday, 7=Sunday)  
+   * @param intervalDays - Days in the interval (7 for weekly, 14 for biweekly)
    */
-  private static calculateWeeklyNextDate(today: DateTime, dueDay: number): string {
+  private static calculateWeekBasedNextDate(
+    today: DateTime,
+    dueDay: number,
+    intervalDays: 7 | 14
+  ): string {
     const currentDayOfWeek = today.weekday; // Luxon: 1=Monday, 7=Sunday
     let daysUntilDue = dueDay - currentDayOfWeek;
-    if (daysUntilDue <= 0) daysUntilDue += 7;
-    return toDateString(today.plus({ days: daysUntilDue }));
-  }
-
-  /**
-   * Calculate next biweekly due date
-   */
-  private static calculateBiweeklyNextDate(today: DateTime, dueDay: number): string {
-    const currentDayOfWeek = today.weekday;
-    let daysUntilDue = dueDay - currentDayOfWeek;
-    if (daysUntilDue <= 0) daysUntilDue += 14;
+    if (daysUntilDue <= 0) daysUntilDue += intervalDays;
     return toDateString(today.plus({ days: daysUntilDue }));
   }
 
@@ -754,9 +767,9 @@ export class FinanceLogicService {
 
     switch (series.frequency) {
       case 'weekly':
-        return this.calculateWeeklyNextDate(today, series.due_day);
+        return this.calculateWeekBasedNextDate(today, series.due_day, 7);
       case 'biweekly':
-        return this.calculateBiweeklyNextDate(today, series.due_day);
+        return this.calculateWeekBasedNextDate(today, series.due_day, 14);
       case 'monthly':
         return this.calculateMonthlyNextDate(today, series.due_day);
       case 'yearly':

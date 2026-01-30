@@ -1,14 +1,22 @@
 import 'server-only';
 import { cache } from 'react';
 import { cached } from '@/lib/cache';
-import { CACHE_TAGS, cacheOptions } from '@/lib/cache/config';
+import { cacheOptions } from '@/lib/cache/config';
 import { budgetCacheKeys } from '@/lib/cache/keys';
 import { supabase } from '@/server/db/supabase';
 import type { Budget, BudgetType } from '@/lib/types';
 import type { Database } from '@/lib/types/database.types';
-import { revalidateTag } from 'next/cache';
 import { serialize } from '@/lib/utils/serializer';
-import { fetchUserGroupId } from '@/server/db/user-queries';
+import { UserService } from '@/server/services/user.service';
+import {
+  validateId,
+  validateRequiredString,
+  validatePositiveNumber,
+  validateNonEmptyArray,
+  validateMinLength,
+  validateEnum,
+} from '@/lib/utils/validation-utils';
+import { invalidateBudgetCaches } from '@/lib/utils/cache-utils';
 
 type BudgetInsert = Database['public']['Tables']['budgets']['Insert'];
 type BudgetUpdate = Database['public']['Tables']['budgets']['Update'];
@@ -37,7 +45,7 @@ export type UpdateBudgetInput = Partial<CreateBudgetInput>;
 export class BudgetService {
   // ================== DATABASE OPERATIONS (inlined from repository) ==================
 
-  private static getByUserDb = cache(async (userId: string): Promise<Budget[]> => {
+  private static readonly getByUserDb = cache(async (userId: string): Promise<Budget[]> => {
     const { data, error } = await supabase
       .from('budgets')
       .select('*')
@@ -48,7 +56,7 @@ export class BudgetService {
     return (data || []) as Budget[];
   });
 
-  private static getByGroupDb = cache(async (groupId: string): Promise<Budget[]> => {
+  private static readonly getByGroupDb = cache(async (groupId: string): Promise<Budget[]> => {
     const { data, error } = await supabase
       .from('budgets')
       .select('*')
@@ -165,7 +173,7 @@ export class BudgetService {
 
     const budgets = await getCachedBudgets();
 
-    return (budgets || []) as Budget[];
+    return (budgets || []);
   }
 
   /**
@@ -187,50 +195,26 @@ export class BudgetService {
 
     const budgets = await getCachedBudgets();
 
-    return (budgets || []) as Budget[];
+    return (budgets || []);
   }
 
   /**
    * Create a new budget
    */
   static async createBudget(data: CreateBudgetInput): Promise<Budget> {
-    // Input validation
-    if (!data.description || data.description.trim() === '') {
-      throw new Error('Description is required');
-    }
-
-    if (data.description.trim().length < 2) {
-      throw new Error('Description must be at least 2 characters');
-    }
-
-    if (!data.amount || data.amount <= 0) {
-      throw new Error('Amount must be greater than zero');
-    }
-
-    if (!data.type) {
-      throw new Error('Budget type is required');
-    }
-
-    if (!['monthly', 'annually'].includes(data.type)) {
-      throw new Error('Invalid budget type');
-    }
-
-    if (!data.categories || data.categories.length === 0) {
-      throw new Error('At least one category is required');
-    }
-
-    if (!data.user_id || data.user_id.trim() === '') {
-      throw new Error('User ID is required');
-    }
+    // Input validation using shared utilities
+    const description = validateRequiredString(data.description, 'Description');
+    validateMinLength(description, 2, 'Description');
+    validatePositiveNumber(data.amount, 'Amount');
+    validateEnum(data.type, ['monthly', 'annually'] as const, 'Budget type');
+    validateNonEmptyArray(data.categories, 'category');
+    validateId(data.user_id, 'User ID');
 
     // Get user's group_id if not provided
-    let groupId = data.group_id;
-    if (!groupId) {
-      groupId = await fetchUserGroupId(data.user_id);
-    }
+    const groupId = data.group_id || await UserService.fetchUserGroupId(data.user_id);
 
     const createData = {
-      description: data.description.trim(),
+      description,
       amount: data.amount,
       type: data.type,
       icon: data.icon || null,
@@ -240,13 +224,12 @@ export class BudgetService {
     };
 
     const budget = await this.createDb(createData);
-
     if (!budget) throw new Error('Failed to create budget');
 
     const createdBudget = budget as unknown as Budget;
 
-    revalidateTag(CACHE_TAGS.BUDGETS, 'max');
-    revalidateTag(`user:${data.user_id}:budgets`, 'max');
+    // Cache invalidation using shared utility
+    invalidateBudgetCaches({ userId: data.user_id, groupId });
 
     return serialize(createdBudget) as unknown as Budget;
   }
@@ -255,29 +238,7 @@ export class BudgetService {
    * Update an existing budget
    */
   static async updateBudget(id: string, data: UpdateBudgetInput): Promise<Budget> {
-    if (!id || id.trim() === '') {
-      throw new Error('Budget ID is required');
-    }
-
-    // Validate updated fields
-    if (data.description !== undefined && data.description.trim() === '') {
-      throw new Error('Description cannot be empty');
-    }
-    if (data.description !== undefined && data.description.trim().length < 2) {
-      throw new Error('Description must be at least 2 characters');
-    }
-    if (data.amount !== undefined && data.amount <= 0) {
-      throw new Error('Amount must be greater than zero');
-    }
-    if (data.type !== undefined && !['monthly', 'annually'].includes(data.type)) {
-      throw new Error('Invalid budget type');
-    }
-    if (data.categories?.length === 0) {
-      throw new Error('At least one category is required');
-    }
-    if (data.user_id !== undefined && data.user_id.trim() === '') {
-      throw new Error('User ID cannot be empty');
-    }
+    this.validateBudgetUpdate(id, data);
 
     const existingBudget = await this.getByIdDb(id);
 
@@ -301,38 +262,67 @@ export class BudgetService {
 
     if (!updatedBudget) throw new Error('Failed to update budget');
 
-    revalidateTag(CACHE_TAGS.BUDGETS, 'max');
-    revalidateTag(CACHE_TAGS.BUDGET(id), 'max');
-    revalidateTag(`user:${existing.user_id}:budgets`, 'max');
+    // Cache invalidation using shared utility
+    invalidateBudgetCaches({ 
+      budgetId: id, 
+      userId: existing.user_id,
+      groupId: existing.group_id || undefined,
+    });
 
+    // If user changed, also invalidate new user's caches
     if (data.user_id && data.user_id !== existing.user_id) {
-      revalidateTag(`user:${data.user_id}:budgets`, 'max');
+      invalidateBudgetCaches({ userId: data.user_id });
     }
 
     return serialize(updatedBudget) as unknown as Budget;
+  }
+
+  private static validateBudgetUpdate(id: string, data: UpdateBudgetInput) {
+    if (!id || id.trim() === '') {
+      throw new Error('Budget ID is required');
+    }
+
+    if (data.description !== undefined) {
+      if (data.description.trim() === '') throw new Error('Description cannot be empty');
+      if (data.description.trim().length < 2) throw new Error('Description must be at least 2 characters');
+    }
+
+    if (data.amount !== undefined && data.amount <= 0) {
+      throw new Error('Amount must be greater than zero');
+    }
+
+    if (data.type !== undefined && !['monthly', 'annually'].includes(data.type)) {
+      throw new Error('Invalid budget type');
+    }
+
+    if (data.categories?.length === 0) {
+      throw new Error('At least one category is required');
+    }
+
+    if (data.user_id !== undefined && data.user_id.trim() === '') {
+      throw new Error('User ID cannot be empty');
+    }
   }
 
   /**
    * Delete a budget
    */
   static async deleteBudget(id: string): Promise<{ id: string }> {
-    if (!id || id.trim() === '') {
-      throw new Error('Budget ID is required');
-    }
+    validateId(id, 'Budget ID');
 
     const existingBudget = await this.getByIdDb(id);
-
-    if (!existingBudget) {
-      throw new Error('Budget not found');
-    }
+    if (!existingBudget) throw new Error('Budget not found');
 
     const existing = existingBudget as unknown as Budget;
 
     await this.deleteDb(id);
 
-    revalidateTag(CACHE_TAGS.BUDGETS, 'max');
-    revalidateTag(CACHE_TAGS.BUDGET(id), 'max');
-    revalidateTag(`user:${existing.user_id}:budgets`, 'max');
+    // Cache invalidation using shared utility
+    invalidateBudgetCaches({
+      budgetId: id,
+      userId: existing.user_id,
+      groupId: existing.group_id || undefined,
+    });
 
     return { id };
   }

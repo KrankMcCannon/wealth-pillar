@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.5.3] - 2026-01-30
+
+### Refactor
+
+- **project**: Applied comprehensive linting fixes, TypeScript best practices, and performance optimizations across the entire codebase.
+- **components**: Refactored logic in `swipeable-card`, `dashboard`, and modals to reduce complexity and improve maintainability.
+- **services**: Optimized server-side logic in finance and page data services.
+- **utils**: Centralized validation and caching utilities.
+
 ## [0.5.2] - 2026-01-29
 
 ### Refactor

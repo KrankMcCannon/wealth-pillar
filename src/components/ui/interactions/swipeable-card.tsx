@@ -119,13 +119,14 @@ export const SwipeableCard = memo<SwipeableCardProps>(
     className,
   }) => {
     // Determine swipe directions based on available actions
-    const directions = leftAction && rightAction
-      ? "both"
-      : leftAction
-        ? "left"
-        : rightAction
-          ? "right"
-          : "right"; // Default to right if no actions
+    let directions: "left" | "right" | "both";
+    if (leftAction && rightAction) {
+      directions = "both";
+    } else if (leftAction) {
+      directions = "left";
+    } else {
+      directions = "right";
+    }
 
     // Get swipe state and handlers from hook
     const {
@@ -223,7 +224,7 @@ export const SwipeableCard = memo<SwipeableCardProps>(
       <>
         {/* Global Backdrop (rendered only by the open card) */}
         {isOpen && (
-          <div
+          <button
             className={cn(
               swipeStyles.backdrop.base,
               isOpen ? swipeStyles.backdrop.visible : swipeStyles.backdrop.hidden
@@ -231,6 +232,13 @@ export const SwipeableCard = memo<SwipeableCardProps>(
             style={{ zIndex: swipeStyles.backdrop.zIndex }}
             onClick={handleBackdropClick}
             onTouchEnd={handleBackdropClick}
+            tabIndex={-1}
+            aria-label="Chiudi azione"
+            onKeyDown={(e) => {
+              if (e.key === 'Escape' || e.key === 'Enter' || e.key === ' ') {
+                handleBackdropClick();
+              }
+            }}
           />
         )}
 
@@ -238,7 +246,7 @@ export const SwipeableCard = memo<SwipeableCardProps>(
         <div className={cn(swipeStyles.wrapper, className)}>
           {/* Left Action Layer (Pause/Resume) */}
           {leftAction && (
-            <div
+            <button
               className={cn(
                 swipeStyles.actionLayer.base,
                 swipeStyles.actionLayer.left
@@ -248,6 +256,13 @@ export const SwipeableCard = memo<SwipeableCardProps>(
                 "left",
                 appleSwipeTokens.dimensions.actionWidthSingle
               )}
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.stopPropagation();
+                  if (swipeSide === "left") closeSwipe();
+                }
+              }}
               onClick={(e) => {
                 e.stopPropagation();
                 if (swipeSide === "left") {
@@ -255,23 +270,24 @@ export const SwipeableCard = memo<SwipeableCardProps>(
                 }
               }}
             >
-              <div
+              <button
                 className={cn(getActionButtonClasses(leftAction.variant), "w-full justify-center text-center")}
                 style={getActionButtonStyle(swipeSide === "left")}
                 onClick={(e) => {
                   e.stopPropagation();
                   handleActionClick(leftAction);
                 }}
+                aria-label={leftAction.label}
               >
-                {leftAction.icon && leftAction.icon}
+                {leftAction.icon}
                 {leftAction.label}
-              </div>
-            </div>
+              </button>
+            </button>
           )}
 
           {/* Right Action Layer (Delete) */}
           {rightAction && (
-            <div
+            <button
               className={cn(
                 swipeStyles.actionLayer.base,
                 swipeStyles.actionLayer.right
@@ -281,6 +297,13 @@ export const SwipeableCard = memo<SwipeableCardProps>(
                 "right",
                 appleSwipeTokens.dimensions.actionWidthSingle
               )}
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.stopPropagation();
+                  if (swipeSide === "right") closeSwipe();
+                }
+              }}
               onClick={(e) => {
                 e.stopPropagation();
                 if (swipeSide === "right") {
@@ -288,18 +311,19 @@ export const SwipeableCard = memo<SwipeableCardProps>(
                 }
               }}
             >
-              <div
+              <button
                 className={cn(getActionButtonClasses(rightAction.variant), "w-full justify-center text-center")}
                 style={getActionButtonStyle(swipeSide === "right")}
                 onClick={(e) => {
                   e.stopPropagation();
                   handleActionClick(rightAction);
                 }}
+                aria-label={rightAction.label}
               >
-                {rightAction.icon && rightAction.icon}
+                {rightAction.icon}
                 {rightAction.label}
-              </div>
-            </div>
+              </button>
+            </button>
           )}
 
           {/* Card Content (Foreground) */}

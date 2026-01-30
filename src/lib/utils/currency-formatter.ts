@@ -7,7 +7,7 @@
  */
 export const formatCurrency = (value: number): string => {
   // Handle edge cases
-  if (isNaN(value)) return "0,00 €";
+  if (Number.isNaN(value)) return "0,00 €";
 
   // Round to 2 decimal places
   const rounded = Math.round(value * 100) / 100;
@@ -18,7 +18,7 @@ export const formatCurrency = (value: number): string => {
   const [integerPart, decimalPart = "00"] = absoluteValue.toFixed(2).split(".");
 
   // Add thousand separators (Italian format uses . as separator)
-  const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  const formattedInteger = integerPart.replaceAll(/\B(?=(\d{3})+(?!\d))/g, ".");
 
   // Combine parts with Italian format (comma for decimals, space before €)
   const formattedValue = `${isNegative ? "-" : ""}${formattedInteger},${decimalPart} €`;

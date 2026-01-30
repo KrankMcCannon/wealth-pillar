@@ -64,7 +64,7 @@ export function DateField({
   error,
   required = false,
   label = "Data",
-}: DateFieldProps) {
+}: Readonly<DateFieldProps>) {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const formattedValue = useMemo(() => {
     if (value && isValid(new Date(value))) {

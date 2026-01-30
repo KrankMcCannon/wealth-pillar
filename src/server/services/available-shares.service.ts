@@ -12,6 +12,33 @@ type ShareListRow = Pick<
 type RegionRow = { region: string };
 type AssetTypeRow = { asset_type: string };
 
+// Define types for RPC functions not yet in the main Database definition
+type RpcFunctions = {
+  get_available_share_regions: {
+    Args: Record<string, never>;
+    Returns: RegionRow[];
+  };
+  get_available_share_asset_types: {
+    Args: { p_region: string | null };
+    Returns: AssetTypeRow[];
+  };
+  get_popular_shares: {
+    Args: { p_limit: number };
+    Returns: ShareListRow[];
+  };
+};
+
+type SupabaseWithRpc = {
+  rpc<
+    Fn extends keyof RpcFunctions,
+    Args extends RpcFunctions[Fn]['Args'],
+    Returns extends RpcFunctions[Fn]['Returns']
+  >(
+    fn: Fn,
+    args?: Args
+  ): Promise<{ data: Returns | null; error: Error | null }>;
+};
+
 /**
  * Available Shares Service
  * 
@@ -23,18 +50,19 @@ export class AvailableSharesService {
     column: 'region' | 'asset_type',
     filters?: { region?: string }
   ): Promise<string[]> {
-    const supabaseAny = supabase as any;
+    // Cast supabase to our extended type with RPCs
+    const rpcClient = supabase as unknown as SupabaseWithRpc;
 
     if (column === 'region') {
-      const { data, error } = await supabaseAny.rpc('get_available_share_regions');
+      const { data, error } = await rpcClient.rpc('get_available_share_regions');
       if (error) {
         console.error('[AvailableSharesService] Error fetching regions:', error);
         return [];
       }
-      return ((data || []) as RegionRow[]).map((row) => row.region);
+      return (data || []).map((row) => row.region);
     }
 
-    const { data, error } = await supabaseAny.rpc('get_available_share_asset_types', {
+    const { data, error } = await rpcClient.rpc('get_available_share_asset_types', {
       p_region: filters?.region ?? null,
     });
 
@@ -43,7 +71,7 @@ export class AvailableSharesService {
       return [];
     }
 
-    return ((data || []) as AssetTypeRow[]).map((row) => row.asset_type);
+    return (data || []).map((row) => row.asset_type);
   }
 
   /**
@@ -91,15 +119,16 @@ export class AvailableSharesService {
    * Get popular shares (for quick access)
    */
   static async getPopularShares(): Promise<AvailableShare[]> {
-    const supabaseAny = supabase as any;
-    const { data, error } = await supabaseAny.rpc('get_popular_shares', { p_limit: 12 });
+    const rpcClient = supabase as unknown as SupabaseWithRpc;
+    const { data, error } = await rpcClient.rpc('get_popular_shares', { p_limit: 12 });
 
     if (error) {
       console.error('[AvailableSharesService] Error fetching popular shares:', error);
       return [];
     }
 
-    return data as ShareListRow[] as AvailableShare[];
+    // Cast partial rows to AvailableShare (safe as UI handles missing fields)
+    return (data || []) as unknown as AvailableShare[];
   }
 
   /**

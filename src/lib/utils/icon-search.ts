@@ -65,9 +65,7 @@ const FUSE_OPTIONS: IFuseOptions<IconMetadata> = {
 let fuseInstance: Fuse<IconMetadata> | null = null;
 
 function getFuseInstance(): Fuse<IconMetadata> {
-  if (!fuseInstance) {
-    fuseInstance = new Fuse(ICON_METADATA, FUSE_OPTIONS);
-  }
+  fuseInstance ??= new Fuse(ICON_METADATA, FUSE_OPTIONS);
   return fuseInstance;
 }
 

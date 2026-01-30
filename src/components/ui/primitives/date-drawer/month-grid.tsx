@@ -79,7 +79,7 @@ export function MonthGrid({
   onDateSelect,
   size = "mobile",
   className,
-}: MonthGridProps) {
+}: Readonly<MonthGridProps>) {
   // Calculate all dates to display (with padding)
   const monthDays = useMemo(() => {
     return calculateMonthDays(currentMonth);

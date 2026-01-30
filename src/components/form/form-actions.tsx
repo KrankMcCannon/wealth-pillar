@@ -65,7 +65,7 @@ export function FormActions({
   className,
   submitVariant = "default",
   submitType = "button",
-}: FormActionsProps) {
+}: Readonly<FormActionsProps>) {
   const isDisabled = disabled || isSubmitting;
 
   return (
@@ -112,14 +112,14 @@ export function DestructiveFormActions({
   confirmLabel = "Elimina",
   cancelLabel = "Annulla",
   className,
-}: {
+}: Readonly<{
   onConfirm?: () => void;
   onCancel?: () => void;
   isSubmitting?: boolean;
   confirmLabel?: string;
   cancelLabel?: string;
   className?: string;
-}) {
+}>) {
   return (
     <FormActions
       onSubmit={onConfirm}
@@ -136,7 +136,7 @@ export function DestructiveFormActions({
 /**
  * Form actions with custom buttons
  */
-export function CustomFormActions({ children, className }: { children: React.ReactNode; className?: string }) {
+export function CustomFormActions({ children, className }: Readonly<{ children: React.ReactNode; className?: string }>) {
   return <div className={cn(formStyles.actions.container, className)}>{children}</div>;
 }
 
@@ -150,14 +150,14 @@ export function SingleFormAction({
   label = "Continua",
   variant = "default",
   className,
-}: {
+}: Readonly<{
   onSubmit?: () => void;
   isSubmitting?: boolean;
   disabled?: boolean;
   label?: string;
   variant?: "default" | "destructive" | "outline" | "secondary" | "ghost";
   className?: string;
-}) {
+}>) {
   return (
     <FormActions
       onSubmit={onSubmit}

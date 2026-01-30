@@ -9,6 +9,11 @@ export type SortOrder = 'asc' | 'desc';
 export type ViewMode = 'list' | 'grid' | 'chart';
 
 /**
+ * Common type for ISO date strings or Date objects
+ */
+export type DateString = string | Date;
+
+/**
  * User context from server-side authentication
  * Contains authenticated user information from Clerk
  */
@@ -50,8 +55,8 @@ export interface Group {
   user_ids: string[];
   plan: Plan;
   is_active: boolean;
-  created_at: string | Date;
-  updated_at: string | Date;
+  created_at: DateString;
+  updated_at: DateString;
 }
 
 export interface User {
@@ -66,8 +71,8 @@ export interface User {
   clerk_id: string | null; // Clerk user ID for authentication integration
   default_account_id?: string | null; // Optional default bank account for prefilling forms
   budget_periods?: BudgetPeriodJSON[] | null; // JSON field
-  created_at: string | Date | null;
-  updated_at: string | Date | null;
+  created_at: DateString | null;
+  updated_at: DateString | null;
 }
 
 export interface Account {
@@ -77,8 +82,8 @@ export interface Account {
   user_ids: string[];
   group_id: string;
   balance?: number; // Added for performance optimization
-  created_at: string | Date;
-  updated_at: string | Date;
+  created_at: DateString;
+  updated_at: DateString;
 }
 
 export interface Transaction {
@@ -87,15 +92,15 @@ export interface Transaction {
   amount: number;
   type: TransactionType;
   category: string;
-  date: string | Date;
+  date: DateString;
   user_id: string | null; // Nullable to match database schema
   account_id: string;
   to_account_id?: string | null;
   frequency?: TransactionFrequencyType | null;
   recurring_series_id?: string | null; // Link to recurring series if this transaction is generated from one
   group_id?: string | null;
-  created_at: string | Date;
-  updated_at: string | Date;
+  created_at: DateString;
+  updated_at: DateString;
 }
 
 /**
@@ -115,26 +120,26 @@ export interface RecurringTransactionSeries {
   transaction_ids?: string[]; // elenco id transazioni generate
 
   // Pianificazione
-  start_date: string | Date;
-  end_date?: string | Date | null;
+  start_date: DateString;
+  end_date?: DateString | null;
   due_day: number; // Giorno del mese per l'addebito (1-31)
 
   // Stato e conteggio esecuzioni generate
   is_active: boolean;
   total_executions: number;
 
-  created_at: string | Date;
-  updated_at: string | Date;
+  created_at: DateString;
+  updated_at: DateString;
 }
 
 export interface BudgetPeriod {
   id: string;
   user_id: string;
-  start_date: string | Date;
-  end_date: string | Date | null;
+  start_date: DateString;
+  end_date: DateString | null;
   is_active: boolean;
-  created_at: string | Date;
-  updated_at: string | Date;
+  created_at: DateString;
+  updated_at: DateString;
 }
 
 export interface Budget {
@@ -148,8 +153,8 @@ export interface Budget {
   group_id: string;
   current_balance?: number | null;
   balance_updated_at?: string | Date | null;
-  created_at: string | Date;
-  updated_at: string | Date;
+  created_at: DateString;
+  updated_at: DateString;
 }
 
 export interface Category {
@@ -159,8 +164,8 @@ export interface Category {
   icon: string;
   color: string;
   group_id: string; // Added field matching DB
-  created_at: string | Date;
-  updated_at: string | Date;
+  created_at: DateString;
+  updated_at: DateString;
 }
 
 export interface InvestmentHolding {
@@ -173,8 +178,8 @@ export interface InvestmentHolding {
   current_price: number;
   purchase_date: string | Date;
   group_id: string;
-  created_at: string | Date;
-  updated_at: string | Date;
+  created_at: DateString;
+  updated_at: DateString;
 }
 
 export interface EnhancedHolding extends InvestmentHolding {

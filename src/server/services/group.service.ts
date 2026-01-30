@@ -7,6 +7,7 @@ import { supabase } from '@/server/db/supabase';
 import { UserService } from './user.service';
 import { revalidateTag } from 'next/cache';
 import type { Database } from '@/lib/types/database.types';
+import { validateRequiredString, validateNonEmptyArray } from '@/lib/utils/validation-utils';
 
 type Group = Database['public']['Tables']['groups']['Row'];
 type GroupInsert = Database['public']['Tables']['groups']['Insert'];
@@ -29,7 +30,7 @@ export interface CreateGroupInput {
 export class GroupService {
   // ================== DATABASE OPERATIONS (inlined from repository) ==================
 
-  private static getByIdDb = cache(async (id: string): Promise<Group | null> => {
+  private static readonly getByIdDb = cache(async (id: string): Promise<Group | null> => {
     const { data, error } = await supabase
       .from('groups')
       .select('*')
@@ -131,30 +132,25 @@ export class GroupService {
    * Creates a new group with the provided users.
    */
   static async createGroup(input: CreateGroupInput): Promise<Group> {
-    if (!input.name || input.name.trim() === '') {
-      throw new Error('Group name is required');
-    }
-
-    if (!input.userIds || input.userIds.length === 0) {
-      throw new Error('At least one user is required to create a group');
-    }
+    // Validation using shared utilities
+    const name = validateRequiredString(input.name, 'Group name');
+    validateNonEmptyArray(input.userIds, 'user');
 
     const createData = {
       id: input.id,
-      name: input.name.trim(),
+      name,
       description: input.description?.trim() || '',
       user_ids: input.userIds,
-      plan: (input.plan) as any ?? {
+      plan: (input.plan ?? {
         type: 'free',
         name: 'Free Plan',
-      },
+      }) as Database['public']['Tables']['groups']['Insert']['plan'],
       is_active: input.isActive ?? true,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
 
     const group = await this.createDb(createData);
-
     if (!group) throw new Error('Failed to create group');
 
     const createdGroup = group as unknown as Group;

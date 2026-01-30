@@ -59,7 +59,7 @@ export function MultiUserSelect({
   users,
   currentUserId,
   className,
-}: MultiUserSelectProps) {
+}: Readonly<MultiUserSelectProps>) {
   /**
    * Toggle user selection
    * Always maintains at least the current user selected

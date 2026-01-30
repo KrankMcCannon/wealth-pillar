@@ -46,7 +46,7 @@ export function DashboardPageLayout({
   tabs,
   children,
   mainClassName
-}: DashboardPageLayoutProps) {
+}: Readonly<DashboardPageLayoutProps>) {
   return (
     <PageContainer>
       <div className={dashboardPageLayoutStyles.container}>

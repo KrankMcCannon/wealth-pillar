@@ -13,7 +13,7 @@ export function SecuritySection({
   isSigningOut,
   onSignOut,
   onNavigateTo2FA,
-}: SecuritySectionProps) {
+}: Readonly<SecuritySectionProps>) {
   return (
     <PageSection>
       <SectionHeader title="Sicurezza" icon={Shield} iconClassName="text-primary" />

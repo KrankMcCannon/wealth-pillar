@@ -39,9 +39,14 @@ export function UserProvider({
   children,
   currentUser,
   groupUsers,
-}: UserProviderProps) {
+}: Readonly<UserProviderProps>) {
+  const value = React.useMemo(
+    () => ({ currentUser, groupUsers }),
+    [currentUser, groupUsers]
+  );
+
   return (
-    <UserContext.Provider value={{ currentUser, groupUsers }}>
+    <UserContext.Provider value={value}>
       {children}
     </UserContext.Provider>
   );

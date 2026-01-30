@@ -6,6 +6,7 @@ import { userPreferencesCacheKeys } from '@/lib/cache/keys';
 import { supabase } from '@/server/db/supabase';
 import { cache } from 'react';
 import type { Database } from '@/lib/types/database.types';
+import { validateId } from '@/lib/utils/validation-utils';
 
 export type UserPreferences = Database['public']['Tables']['user_preferences']['Row'];
 type UserPreferencesInsert = Database['public']['Tables']['user_preferences']['Insert'];
@@ -32,7 +33,7 @@ const DEFAULT_PREFERENCES = {
 export class UserPreferencesService {
   // ================== DATABASE OPERATIONS (inlined from repository) ==================
 
-  private static getByUserIdDb = cache(async (userId: string) => {
+  private static readonly getByUserIdDb = cache(async (userId: string) => {
     const { data, error } = await supabase
       .from('user_preferences')
       .select('*')
@@ -77,9 +78,7 @@ export class UserPreferencesService {
   static async getUserPreferences(
     userId: string
   ): Promise<UserPreferences> {
-    if (!userId || userId.trim() === '') {
-      throw new Error('User ID is required');
-    }
+    validateId(userId, 'User ID');
 
     // Create cached query function
     const getCachedPreferences = cached(
@@ -144,10 +143,8 @@ export class UserPreferencesService {
     userId: string,
     updates: UserPreferencesUpdate
   ): Promise<UserPreferences> {
-    // Input validation
-    if (!userId || userId.trim() === '') {
-      throw new Error('User ID is required');
-    }
+    // Input validation using shared utility
+    validateId(userId, 'User ID');
 
     if (!updates || Object.keys(updates).length === 0) {
       throw new Error('At least one field must be provided for update');

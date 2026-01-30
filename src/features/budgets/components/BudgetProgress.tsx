@@ -16,7 +16,7 @@ export interface BudgetProgressProps {
   } | null;
 }
 
-export function BudgetProgress({ progressData }: BudgetProgressProps) {
+export function BudgetProgress({ progressData }: Readonly<BudgetProgressProps>) {
   if (!progressData) return null;
 
   const { percentage } = progressData;

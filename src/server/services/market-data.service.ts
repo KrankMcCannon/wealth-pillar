@@ -97,13 +97,13 @@ export class MarketDataService {
     return Array.isArray(values) ? normalizeSeriesValues(values) : [];
   }
 
-  private static getBatchQuotesCached = cache(async (symbolsKey: string) => {
+  private static readonly getBatchQuotesCached = cache(async (symbolsKey: string) => {
     const symbols = symbolsKey.split(',').filter(Boolean);
     return twelveData.getQuotes(symbols);
   });
 
   static async getQuotes(symbols: string[]) {
-    const normalized = Array.from(new Set(symbols.map(s => s.toUpperCase()))).sort();
+    const normalized = Array.from(new Set(symbols.map(s => s.toUpperCase()))).sort((a, b) => a.localeCompare(b));
     if (normalized.length === 0) return {};
     const symbolsKey = normalized.join(',');
     return this.getBatchQuotesCached(symbolsKey);
@@ -114,77 +114,84 @@ export class MarketDataService {
       const normalizedSymbol = symbol.toUpperCase();
 
       // 1. Check cache
-      const { data: cached } = await supabase
-        .from('market_data_cache')
-        .select('*')
-        .eq('symbol', normalizedSymbol)
-        .single();
-
-      const now = new Date();
-      const cachedRow = cached as MarketDataCacheRow | null;
-      // Freshness check: 24 hours
-      const isFresh = cachedRow && cachedRow.last_updated &&
-        (now.getTime() - new Date(cachedRow.last_updated).getTime() < 24 * 60 * 60 * 1000);
-
-      if (isFresh && cachedRow?.data) {
-        const cachedValues = cachedRow.data;
-        return Array.isArray(cachedValues) ? normalizeSeriesValues(cachedValues) : [];
+      const cacheResult = await this.getCacheEntry(normalizedSymbol);
+      if (cacheResult.isFresh && cacheResult.data) {
+        return cacheResult.data;
       }
 
       // 2. Fetch from API
-      let timeSeries = await twelveData.getTimeSeries(
-        normalizedSymbol,
-        "1day",
-        365 * 2
-      );
+      const values = await this.fetchMarketDataFromApi(normalizedSymbol);
 
-      if (!timeSeries || timeSeries.length === 0) {
-        const quote = await twelveData.getQuote(normalizedSymbol);
-        if (quote?.close) {
-          const datetime = quote.datetime || new Date().toISOString();
-          timeSeries = [{
-            time: datetime,
-            open: quote.open,
-            high: quote.high,
-            low: quote.low,
-            close: quote.close,
-            volume: quote.volume,
-          }];
-        }
+      // 3. Handle results
+      if (values.length > 0) {
+        await this.saveMarketDataToCache(normalizedSymbol, values);
+        return values;
       }
 
-      if (!timeSeries || timeSeries.length === 0) {
-        // If cache exists but is stale, return it as fallback rather than failing
-        if (cachedRow?.data) {
-          console.warn(`[MarketData] Returning stale cache for ${normalizedSymbol} due to API error.`);
-          const cachedValues = cachedRow.data;
-          return Array.isArray(cachedValues) ? normalizeSeriesValues(cachedValues) : [];
-        }
-        return [];
+      // Fallback: return stale cache if API failed
+      if (cacheResult.data) {
+        console.warn(`[MarketData] Returning stale cache for ${normalizedSymbol} due to API error.`);
+        return cacheResult.data;
       }
 
-      const values = normalizeSeriesValues(timeSeries as TimeSeriesEntry[]);
-
-      // 3. Update Cache
-      try {
-        await supabase
-          .from('market_data_cache')
-          .upsert({
-            symbol: normalizedSymbol,
-            data: values,
-            last_updated: now.toISOString()
-          } as never, { onConflict: 'symbol' });
-      } catch (dbError) {
-        console.error(`[MarketData] Database save error for ${normalizedSymbol}:`, dbError);
-        // Don't throw, just log and return values so UI still works (non-cached)
-      }
-
-      return values;
+      return [];
 
     } catch (error) {
       console.error("[MarketData] Error in getMarketData:", error);
-      // Fallback: try to return cache if possible even if checking failed (unlikely) or just return empty
       return [];
+    }
+  }
+
+  private static async getCacheEntry(symbol: string): Promise<{ data: TimeSeriesEntry[] | null, isFresh: boolean }> {
+    const { data: cached } = await supabase
+      .from('market_data_cache')
+      .select('*')
+      .eq('symbol', symbol)
+      .single();
+
+    const cachedRow = cached as MarketDataCacheRow | null;
+    if (!cachedRow?.data) return { data: null, isFresh: false };
+
+    const now = new Date();
+    const isFresh = cachedRow.last_updated &&
+      (now.getTime() - new Date(cachedRow.last_updated).getTime() < 24 * 60 * 60 * 1000);
+
+    const data = Array.isArray(cachedRow.data) ? normalizeSeriesValues(cachedRow.data) : [];
+    return { data, isFresh: !!isFresh };
+  }
+
+  private static async fetchMarketDataFromApi(symbol: string): Promise<TimeSeriesEntry[]> {
+    let timeSeries = await twelveData.getTimeSeries(symbol, "1day", 365 * 2);
+
+    if (!timeSeries || timeSeries.length === 0) {
+      const quote = await twelveData.getQuote(symbol);
+      if (quote?.close) {
+        const datetime = quote.datetime || new Date().toISOString();
+        timeSeries = [{
+          time: datetime,
+          open: quote.open,
+          high: quote.high,
+          low: quote.low,
+          close: quote.close,
+          volume: quote.volume,
+        }];
+      }
+    }
+
+    return timeSeries && timeSeries.length > 0 ? normalizeSeriesValues(timeSeries as TimeSeriesEntry[]) : [];
+  }
+
+  private static async saveMarketDataToCache(symbol: string, data: TimeSeriesEntry[]) {
+    try {
+      await supabase
+        .from('market_data_cache')
+        .upsert({
+          symbol,
+          data,
+          last_updated: new Date().toISOString()
+        } as never, { onConflict: 'symbol' });
+    } catch (dbError) {
+      console.error(`[MarketData] Database save error for ${symbol}:`, dbError);
     }
   }
 

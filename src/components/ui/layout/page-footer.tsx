@@ -14,7 +14,7 @@ export function PageFooter({
   children,
   sticky = false,
   className,
-}: PageFooterProps) {
+}: Readonly<PageFooterProps>) {
   return (
     <footer
       className={cn(

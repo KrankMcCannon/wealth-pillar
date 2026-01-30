@@ -5,7 +5,6 @@
  */
 
 import { SkeletonList } from "@/components/ui/primitives";
-
 import { dashboardStyles } from '../theme/dashboard-styles';
 
 /**

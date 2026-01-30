@@ -50,7 +50,7 @@ export function SubscriptionModal({
   onOpenChange,
   groupId,
   currentPlan,
-}: SubscriptionModalProps) {
+}: Readonly<SubscriptionModalProps>) {
   const [isProcessing, setIsProcessing] = React.useState(false);
 
   const handleUpgrade = async () => {
@@ -142,9 +142,9 @@ export function SubscriptionModal({
           <div
             className={cn(
               settingsStyles.modals.subscription.cardBase,
-              !isPremium
-                ? settingsStyles.modals.subscription.cardActive
-                : settingsStyles.modals.subscription.cardIdle
+              isPremium
+                ? settingsStyles.modals.subscription.cardIdle
+                : settingsStyles.modals.subscription.cardActive
             )}
           >
             <div className={settingsStyles.modals.subscription.headerRow}>
@@ -168,8 +168,8 @@ export function SubscriptionModal({
                 "Transazioni illimitate",
                 "Budget mensili di base",
                 "Report mensili",
-              ].map((feature, index) => (
-                <li key={index} className={settingsStyles.modals.subscription.listItem}>
+              ].map((feature) => (
+                <li key={feature} className={settingsStyles.modals.subscription.listItem}>
                   <Check className={settingsStyles.modals.subscription.listIcon} />
                   <span className={settingsStyles.modals.subscription.listText}>{feature}</span>
                 </li>
@@ -224,8 +224,8 @@ export function SubscriptionModal({
                 "Supporto prioritario",
                 "Notifiche push avanzate",
                 "Sincronizzazione multi-dispositivo",
-              ].map((feature, index) => (
-                <li key={index} className={settingsStyles.modals.subscription.listItem}>
+              ].map((feature) => (
+                <li key={feature} className={settingsStyles.modals.subscription.listItem}>
                   <Check className={settingsStyles.modals.subscription.listIcon} />
                   <span className={settingsStyles.modals.subscription.listText}>{feature}</span>
                 </li>

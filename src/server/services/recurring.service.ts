@@ -1,6 +1,4 @@
 import 'server-only';
-import { revalidateTag } from 'next/cache';
-import { CACHE_TAGS } from '@/lib/cache/config';
 import { supabase } from '@/server/db/supabase';
 import { cache } from 'react';
 import { cached } from '@/lib/cache';
@@ -10,6 +8,7 @@ import { UserService } from './user.service';
 import type { RecurringTransactionSeries } from '@/lib/types';
 import { serialize } from '@/lib/utils/serializer';
 import type { Database } from '@/lib/types/database.types';
+import { invalidateRecurringCaches } from '@/lib/utils/cache-utils';
 
 type RecurringInsert = Database['public']['Tables']['recurring_transactions']['Insert'];
 type RecurringUpdate = Database['public']['Tables']['recurring_transactions']['Update'];
@@ -47,7 +46,7 @@ export class RecurringService {
     return result as RecurringRow;
   }
 
-  private static getByUserDb = cache(async (userId: string): Promise<RecurringRow[]> => {
+  private static readonly getByUserDb = cache(async (userId: string): Promise<RecurringRow[]> => {
     const { data, error } = await supabase
       .from('recurring_transactions')
       .select('*')
@@ -58,7 +57,7 @@ export class RecurringService {
     return (data || []) as RecurringRow[];
   });
 
-  private static getByUserIdsDb = cache(async (userIds: string[]): Promise<RecurringRow[]> => {
+  private static readonly getByUserIdsDb = cache(async (userIds: string[]): Promise<RecurringRow[]> => {
     const { data, error } = await supabase
       .from('recurring_transactions')
       .select('*')
@@ -231,12 +230,12 @@ export class RecurringService {
    */
   static async createSeries(data: RecurringInsert): Promise<RecurringTransactionSeries> {
     const series = await this.createDb(data);
-    revalidateTag(CACHE_TAGS.RECURRING_SERIES, 'max');
-    if (data.user_ids && Array.isArray(data.user_ids)) {
-      (data.user_ids as string[]).forEach(uid => {
-        revalidateTag(`user:${uid}:recurring`, 'max');
-      });
-    }
+    
+    // Cache invalidation using shared utility
+    invalidateRecurringCaches({
+      userIds: data.user_ids && Array.isArray(data.user_ids) ? data.user_ids : undefined,
+    });
+    
     return serialize(series) as unknown as RecurringTransactionSeries;
   }
 
@@ -245,8 +244,10 @@ export class RecurringService {
    */
   static async updateSeries(id: string, data: RecurringUpdate): Promise<RecurringTransactionSeries> {
     const series = await this.updateDb(id, data);
-    revalidateTag(CACHE_TAGS.RECURRING_SERIES, 'max');
-    revalidateTag(CACHE_TAGS.RECURRING(id), 'max');
+    
+    // Cache invalidation using shared utility
+    invalidateRecurringCaches({ seriesId: id });
+    
     return serialize(series) as unknown as RecurringTransactionSeries;
   }
 
@@ -256,12 +257,13 @@ export class RecurringService {
   static async deleteSeries(id: string): Promise<void> {
     const series = await this.getByIdDb(id);
     await this.deleteDb(id);
-    revalidateTag(CACHE_TAGS.RECURRING_SERIES, 'max');
-    revalidateTag(CACHE_TAGS.RECURRING(id), 'max');
-    if (series && series.user_ids && Array.isArray(series.user_ids)) {
-      (series.user_ids as string[]).forEach(uid => {
-        revalidateTag(`user:${uid}:recurring`, 'max');
-      });
-    }
+    
+    // Cache invalidation using shared utility
+    invalidateRecurringCaches({
+      seriesId: id,
+      userIds: series?.user_ids && Array.isArray(series.user_ids) 
+        ? series.user_ids
+        : undefined,
+    });
   }
 }

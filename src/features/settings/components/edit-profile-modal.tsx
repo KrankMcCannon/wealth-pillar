@@ -27,7 +27,7 @@ const editProfileSchema = z.object({
   email: z
     .string()
     .min(1, "L'email è obbligatoria")
-    .email("Formato email non valido")
+    .regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, "Formato email non valido")
     .toLowerCase(),
 });
 
@@ -77,7 +77,7 @@ export function EditProfileModal({
   userId,
   currentName,
   currentEmail,
-}: EditProfileModalProps) {
+}: Readonly<EditProfileModalProps>) {
   const router = useRouter();
 
   const {
@@ -118,8 +118,8 @@ export function EditProfileModal({
 
       // Call server action
       const { data: updatedUser, error } = await updateUserProfileAction(userId, {
-        name: data.name !== currentName ? data.name : undefined,
-        email: data.email !== currentEmail ? data.email : undefined,
+        name: data.name === currentName ? undefined : data.name,
+        email: data.email === currentEmail ? undefined : data.email,
       });
 
       if (error) {

@@ -98,13 +98,14 @@ export const TransactionRow = memo(({
       ? transaction.frequency
       : undefined;
 
-  const amountVariant = variant === "recurrent"
-    ? "primary"
-    : transaction.type === "income"
-      ? "success"
-      : transaction.type === "expense"
-        ? "destructive"
-        : "primary";
+  const getAmountVariant = () => {
+    if (variant === "recurrent") return "primary";
+    if (transaction.type === "income") return "success";
+    if (transaction.type === "expense") return "destructive";
+    return "primary";
+  };
+
+  const amountVariant = getAmountVariant();
 
   // Handle delete action with swipe close-first pattern
   const handleDelete = () => {

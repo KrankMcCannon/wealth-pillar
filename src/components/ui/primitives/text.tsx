@@ -30,7 +30,7 @@ export function Text({
   className,
   children,
   ...props
-}: TextProps) {
+}: Readonly<TextProps>) {
   return (
     <Component
       className={cn(textVariants({ variant, size }), className)}

@@ -29,41 +29,11 @@ interface PermissionGuardProps {
 export const PermissionGuard: React.FC<PermissionGuardProps> = ({
   children,
   fallback = null,
-  requireRole,
-  allowRoles,
-  requireFeature,
   condition = true,
   customCheck,
   showFallback = true,
   hideCompletely = false,
 }) => {
-  // Controllo ruolo richiesto
-  if (requireRole) {
-    // const hasRequiredRole = permissions.hasRole(requireRole);
-    //   if (!hasRequiredRole) {
-    //     if (hideCompletely) return null;
-    //     return showFallback ? <>{fallback}</> : null;
-    //   }
-  }
-
-  // Controllo ruoli permessi
-  if (allowRoles && allowRoles.length > 0) {
-    // const hasAllowedRole = allowRoles.some(role => permissions.hasRole(role));
-    // if (!hasAllowedRole) {
-    //   if (hideCompletely) return null;
-    //   return showFallback ? <>{fallback}</> : null;
-    // }
-  }
-
-  // Controllo feature
-  if (requireFeature) {
-    // const hasFeature = permissions.canAccessFeature(requireFeature);
-    // if (!hasFeature) {
-    //   if (hideCompletely) return null;
-    //   return showFallback ? <>{fallback}</> : null;
-    // }
-  }
-
   // Controllo condizione personalizzata
   if (!condition) {
     if (hideCompletely) return null;
@@ -90,18 +60,6 @@ interface RoleBasedContentProps {
  * Componente per rendering condizionale basato sul ruolo
  */
 export const RoleBasedContent: React.FC<RoleBasedContentProps> = ({ children }) => {
-  // if (isSuperAdmin && superAdminContent) {
-  //   return <>{superAdminContent}</>;
-  // }
-
-  // if (isAdmin && adminContent) {
-  //   return <>{adminContent}</>;
-  // }
-
-  // if (isMember && memberContent) {
-  //   return <>{memberContent}</>;
-  // }
-
   return <>{children}</>;
 };
 
@@ -115,10 +73,6 @@ interface FeatureToggleProps {
  * Componente per abilitazione condizionale delle feature
  */
 export const FeatureToggle: React.FC<FeatureToggleProps> = ({ fallback = null }) => {
-  // if (permissions.canAccessFeature(feature)) {
-  //   return <>{children}</>;
-  // }
-
   return <>{fallback}</>;
 };
 

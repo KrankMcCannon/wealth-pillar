@@ -8,7 +8,7 @@ interface PageContainerProps {
   className?: string;
 }
 
-export function PageContainer({ children, className }: PageContainerProps) {
+export function PageContainer({ children, className }: Readonly<PageContainerProps>) {
   return (
     <div
       className={cn(

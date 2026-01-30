@@ -6,8 +6,17 @@ import { transactionCacheKeys } from '@/lib/cache/keys';
 import { supabase } from '@/server/db/supabase';
 import type { Transaction, TransactionType } from '@/lib/types';
 import type { Database } from '@/lib/types/database.types';
-import { revalidateTag } from 'next/cache';
 import { serialize } from '@/lib/utils/serializer';
+import {
+  validateId,
+  validateRequiredString,
+  validatePositiveNumber,
+  validateEnum,
+} from '@/lib/utils/validation-utils';
+import {
+  invalidateTransactionCaches,
+  invalidateTransactionUpdateCaches,
+} from '@/lib/utils/cache-utils';
 export { TransactionLogic } from '@/lib/utils/transaction-logic';
 
 type TransactionInsert = Database['public']['Tables']['transactions']['Insert'];
@@ -76,7 +85,7 @@ export class TransactionService {
   /**
    * Get transactions by group with date filtering (primary query method)
    */
-  private static getByGroupDb = cache(async (
+  private static readonly getByGroupDb = cache(async (
     groupId: string,
     options?: TransactionFilterOptions
   ): Promise<{ data: Transaction[]; total: number; hasMore: boolean }> => {
@@ -124,7 +133,7 @@ export class TransactionService {
   /**
    * Get transactions by user with date filtering
    */
-  private static getByUserDb = cache(async (
+  private static readonly getByUserDb = cache(async (
     userId: string,
     options?: TransactionFilterOptions
   ): Promise<{ data: Transaction[]; total: number }> => {
@@ -159,7 +168,7 @@ export class TransactionService {
   /**
    * Get transactions by account (including transfers)
    */
-  private static getByAccountDb = cache(async (accountId: string): Promise<Transaction[]> => {
+  private static readonly getByAccountDb = cache(async (accountId: string): Promise<Transaction[]> => {
     const { data, error } = await supabase
       .from('transactions')
       .select('*')
@@ -288,7 +297,7 @@ export class TransactionService {
   /**
    * Get category spending breakdown using database RPC
    */
-  static getGroupCategorySpending = cache(async (groupId: string, startDate: Date, endDate: Date): Promise<CategorySpendingResult> => {
+  static readonly getGroupCategorySpending = cache(async (groupId: string, startDate: Date, endDate: Date): Promise<CategorySpendingResult> => {
     return typedRpc<CategorySpendingResult>('get_group_category_spending', {
       p_group_id: groupId,
       p_start_date: startDate.toISOString(),
@@ -299,7 +308,7 @@ export class TransactionService {
   /**
    * Get monthly spending trend using database RPC
    */
-  static getGroupMonthlySpending = cache(async (groupId: string, startDate: Date, endDate: Date): Promise<MonthlySpendingResult> => {
+  static readonly getGroupMonthlySpending = cache(async (groupId: string, startDate: Date, endDate: Date): Promise<MonthlySpendingResult> => {
     return typedRpc<MonthlySpendingResult>('get_group_monthly_spending', {
       p_group_id: groupId,
       p_start_date: startDate.toISOString(),
@@ -310,7 +319,7 @@ export class TransactionService {
   /**
    * Get category spending per user using database RPC
    */
-  static getGroupUserCategorySpending = cache(async (groupId: string, startDate: Date, endDate: Date): Promise<UserCategorySpendingResult> => {
+  static readonly getGroupUserCategorySpending = cache(async (groupId: string, startDate: Date, endDate: Date): Promise<UserCategorySpendingResult> => {
     return typedRpc<UserCategorySpendingResult>('get_group_user_category_spending', {
       p_group_id: groupId,
       p_start_date: startDate.toISOString(),
@@ -349,7 +358,7 @@ export class TransactionService {
 
     const result = await this.getByGroupDb(groupId, options);
     return {
-      data: serialize(result.data) as Transaction[],
+      data: serialize(result.data),
       total: result.total,
       hasMore: result.hasMore
     };
@@ -364,7 +373,7 @@ export class TransactionService {
     const getCachedTransactions = cached(
       async () => {
         const result = await this.getByUserDb(userId, options);
-        return serialize(result.data) as Transaction[];
+        return serialize(result.data);
       },
       transactionCacheKeys.byUser(userId),
       cacheOptions.transactionsByUser(userId)
@@ -405,7 +414,7 @@ export class TransactionService {
     const getCachedTransactions = cached(
       async () => {
         const transactions = await this.getByAccountDb(accountId);
-        return serialize(transactions) as Transaction[];
+        return serialize(transactions);
       },
       transactionCacheKeys.byAccount(accountId),
       cacheOptions.transactionsByAccount(accountId)
@@ -424,7 +433,7 @@ export class TransactionService {
       async () => {
         const transaction = await this.getByIdDb(transactionId);
         if (!transaction) throw new Error('Transaction not found');
-        return serialize(transaction) as Transaction;
+        return serialize(transaction);
       },
       ['transaction', 'id', transactionId],
       { revalidate: 120, tags: [CACHE_TAGS.TRANSACTIONS, `transaction:${transactionId}`] }
@@ -437,22 +446,24 @@ export class TransactionService {
    * Create a new transaction
    */
   static async createTransaction(data: CreateTransactionInput): Promise<Transaction> {
-    // Validation
-    if (!data.description?.trim()) throw new Error('Description is required');
-    if (!data.amount || data.amount <= 0) throw new Error('Amount must be greater than zero');
-    if (!data.type || !['income', 'expense', 'transfer'].includes(data.type)) throw new Error('Invalid transaction type');
-    if (!data.category?.trim()) throw new Error('Category is required');
-    if (!data.account_id?.trim()) throw new Error('Account is required');
+    // Validation using shared utilities
+    const description = validateRequiredString(data.description, 'Description');
+    validatePositiveNumber(data.amount, 'Amount');
+    validateEnum(data.type, ['income', 'expense', 'transfer'] as const, 'Transaction type');
+    validateRequiredString(data.category, 'Category');
+    validateId(data.account_id, 'Account');
     if (!data.date) throw new Error('Date is required');
-    if (!data.group_id?.trim()) throw new Error('Group ID is required');
+    validateId(data.group_id, 'Group ID');
 
     if (data.type === 'transfer') {
-      if (!data.to_account_id?.trim()) throw new Error('Destination account is required for transfers');
-      if (data.to_account_id === data.account_id) throw new Error('Source and destination accounts must be different');
+      validateId(data.to_account_id, 'Destination account');
+      if (data.to_account_id === data.account_id) {
+        throw new Error('Source and destination accounts must be different');
+      }
     }
 
     const createData: TransactionInsert = {
-      description: data.description.trim(),
+      description,
       amount: data.amount,
       type: data.type,
       category: data.category,
@@ -467,14 +478,15 @@ export class TransactionService {
     const transaction = await this.createDb(createData);
     await this.updateBalancesForTransaction(transaction, 1);
 
-    // Cache invalidation
-    const tags = [CACHE_TAGS.TRANSACTIONS, CACHE_TAGS.ACCOUNTS, `account:${data.account_id}:transactions`, `group:${data.group_id}:transactions`];
-    if (data.user_id) tags.push(`user:${data.user_id}:transactions`, `user:${data.user_id}:budgets`);
-    if (data.to_account_id) tags.push(`account:${data.to_account_id}:transactions`);
-    tags.push(`group:${data.group_id}:budgets`);
-    tags.forEach(tag => revalidateTag(tag, 'max'));
+    // Cache invalidation using shared utility
+    invalidateTransactionCaches({
+      groupId: data.group_id,
+      accountId: data.account_id,
+      userId: data.user_id,
+      toAccountId: data.to_account_id,
+    });
 
-    return serialize(transaction) as Transaction;
+    return serialize(transaction);
   }
 
   /**
@@ -486,12 +498,7 @@ export class TransactionService {
     const existing = await this.getByIdDb(id);
     if (!existing) throw new Error('Transaction not found');
 
-    if (data.type === 'transfer' || existing.type === 'transfer') {
-      const toAccountId = data.to_account_id ?? existing.to_account_id;
-      const accountId = data.account_id ?? existing.account_id;
-      if (data.type === 'transfer' && !toAccountId) throw new Error('Destination account is required for transfers');
-      if (toAccountId === accountId) throw new Error('Source and destination accounts must be different');
-    }
+    this.validateTransferUpdate(data, existing);
 
     const updateData: TransactionUpdate = { updated_at: new Date().toISOString() };
     if (data.description !== undefined) updateData.description = data.description.trim();
@@ -511,25 +518,29 @@ export class TransactionService {
     await this.updateBalancesForTransaction(updated, 1);
 
     // Cache invalidation
-    const tags: string[] = [CACHE_TAGS.TRANSACTIONS, CACHE_TAGS.ACCOUNTS];
-    if (existing.user_id) tags.push(`user:${existing.user_id}:transactions`, `user:${existing.user_id}:budgets`);
-    if (data.user_id && data.user_id !== existing.user_id) tags.push(`user:${data.user_id}:transactions`, `user:${data.user_id}:budgets`);
-    tags.push(`account:${existing.account_id}:transactions`);
-    if (existing.to_account_id) tags.push(`account:${existing.to_account_id}:transactions`);
-    if (data.account_id && data.account_id !== existing.account_id) tags.push(`account:${data.account_id}:transactions`);
-    if (data.to_account_id && data.to_account_id !== existing.to_account_id) tags.push(`account:${data.to_account_id}:transactions`);
-    if (existing.group_id) tags.push(`group:${existing.group_id}:transactions`, `group:${existing.group_id}:budgets`);
-    if (data.group_id && data.group_id !== existing.group_id) tags.push(`group:${data.group_id}:transactions`, `group:${data.group_id}:budgets`);
-    tags.forEach(tag => revalidateTag(tag, 'max'));
+    invalidateTransactionUpdateCaches(
+      {
+        userId: existing.user_id,
+        accountId: existing.account_id,
+        toAccountId: existing.to_account_id ?? null,
+        groupId: existing.group_id ?? null
+      },
+      {
+        userId: data.user_id,
+        accountId: data.account_id,
+        toAccountId: data.to_account_id ?? null,
+        groupId: data.group_id
+      }
+    );
 
-    return serialize(updated) as Transaction;
+    return serialize(updated);
   }
 
   /**
    * Delete a transaction
    */
   static async deleteTransaction(id: string): Promise<{ id: string }> {
-    if (!id?.trim()) throw new Error('Transaction ID is required');
+    validateId(id, 'Transaction ID');
 
     const existing = await this.getByIdDb(id);
     if (!existing) throw new Error('Transaction not found');
@@ -537,14 +548,23 @@ export class TransactionService {
     await this.deleteDb(id);
     await this.updateBalancesForTransaction(existing, -1);
 
-    // Cache invalidation
-    const tags = [CACHE_TAGS.TRANSACTIONS, CACHE_TAGS.ACCOUNTS, `account:${existing.account_id}:transactions`, `group:${existing.group_id}:transactions`];
-    if (existing.user_id) tags.push(`user:${existing.user_id}:transactions`, `user:${existing.user_id}:budgets`);
-    if (existing.to_account_id) tags.push(`account:${existing.to_account_id}:transactions`);
-    tags.push(`group:${existing.group_id}:budgets`);
-    tags.forEach(tag => revalidateTag(tag, 'max'));
+    // Cache invalidation using shared utility
+    invalidateTransactionCaches({
+      groupId: existing.group_id!,
+      accountId: existing.account_id,
+      userId: existing.user_id,
+      toAccountId: existing.to_account_id,
+    });
 
     return { id };
   }
 
+  private static validateTransferUpdate(data: UpdateTransactionInput, existing: Transaction) {
+    if (data.type === 'transfer' || existing.type === 'transfer') {
+      const toAccountId = data.to_account_id ?? existing.to_account_id;
+      const accountId = data.account_id ?? existing.account_id;
+      if (data.type === 'transfer' && !toAccountId) throw new Error('Destination account is required for transfers');
+      if (toAccountId === accountId) throw new Error('Source and destination accounts must be different');
+    }
+  }
 }

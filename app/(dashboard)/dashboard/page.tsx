@@ -29,7 +29,6 @@ export default async function DashboardPage() {
   const {
     accounts = [],
     accountBalances = {},
-    transactions = [],
     budgets = [],
     budgetPeriods = {},
     recurringSeries = [],
@@ -48,7 +47,6 @@ export default async function DashboardPage() {
         groupUsers={groupUsers}
         accounts={accounts}
         accountBalances={accountBalances}
-        transactions={transactions}
         budgets={budgets}
         budgetPeriods={budgetPeriods}
         recurringSeries={recurringSeries}

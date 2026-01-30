@@ -33,8 +33,8 @@ export function useInvestmentHistory({ investments, indexData, summary, currentI
       const pointDate = new Date(dateStr);
       let dailyTotalValue = 0;
 
-      const pointPrice = parseFloat(String(point.close));
-      if (isNaN(pointPrice)) return null;
+      const pointPrice = Number.parseFloat(String(point.close));
+      if (Number.isNaN(pointPrice)) return null;
 
       investments.forEach(inv => {
         const createdDate = inv.created_at ? new Date(inv.created_at) : new Date(0);
@@ -62,12 +62,12 @@ export function useInvestmentHistory({ investments, indexData, summary, currentI
     // 2. Align Endpoint to Summary Card
     if (rawHistory.length === 0) return [];
 
-    const lastPoint = rawHistory[rawHistory.length - 1];
+    const lastPoint = rawHistory.at(-1);
     const targetCurrentValue = summary.totalCurrentValue;
 
     // Calculate adjustment ratio to force the final point to match the Card
     let adjustmentRatio = 1;
-    if (lastPoint.value > 0 && targetCurrentValue > 0) {
+    if (lastPoint?.value && lastPoint.value > 0 && targetCurrentValue > 0) {
       adjustmentRatio = targetCurrentValue / lastPoint.value;
     }
 

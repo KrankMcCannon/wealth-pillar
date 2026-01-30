@@ -48,7 +48,7 @@ export function PersonalInvestmentTab({ investments, summary, indexData, current
     if (symbol && symbol !== currentIndex) {
       const nextSymbol = symbol.toUpperCase();
       const url = `?index=${encodeURIComponent(nextSymbol)}#${benchmarkAnchorId}`;
-      window.location.assign(url);
+      globalThis.location.assign(url);
     }
   };
 

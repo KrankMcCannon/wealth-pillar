@@ -38,7 +38,7 @@ const UserSelector = memo(({
   const { selectedGroupFilter, setSelectedGroupFilter } = useUserFilter();
 
   // Determine current selection: Controlled (value) > Uncontrolled (store)
-  const currentSelection = value !== undefined ? value : selectedGroupFilter;
+  const currentSelection = value ?? selectedGroupFilter;
 
   // Memoized icon selection
   const getUserIcon = useCallback((userId: string, index: number) => {
@@ -160,9 +160,9 @@ const UserSelector = memo(({
       {/* Selection indicator dots (for visual feedback) */}
       {membersList.length > 3 && (
         <div className={userSelectorStyles.dots.container}>
-          {membersList.slice(0, Math.min(membersList.length, 5)).map((_, index) => (
+          {membersList.slice(0, Math.min(membersList.length, 5)).map((member, index) => (
             <div
-              key={index}
+              key={`dot-${member.id}`}
               className={`${userSelectorStyles.dots.base} ${index === membersList.findIndex(m => m.id === currentSelection)
                 ? userSelectorStyles.dots.active
                 : userSelectorStyles.dots.inactive

@@ -6,9 +6,8 @@ import {
   UserPreferencesService,
   GroupInvitationService,
 } from '@/server/services';
-import type { UserPreferences } from '@/server/services';
+import type { UserPreferences, GroupInvitation } from '@/server/services';
 import type { UserPreferencesUpdate, User } from '@/lib/types';
-import type { GroupInvitation } from '@/server/services';
 
 type ServiceResult<T> = {
   data: T | null;

@@ -24,7 +24,7 @@ export function AmountField({
   label = "Importo",
   placeholder,
   min = 0
-}: AmountFieldProps) {
+}: Readonly<AmountFieldProps>) {
   return (
     <FormField label={label} required={required} error={error}>
       <FormCurrencyInput

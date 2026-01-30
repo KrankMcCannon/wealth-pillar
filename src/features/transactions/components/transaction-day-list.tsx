@@ -37,9 +37,8 @@ import { Button } from "@/components/ui";
 import { Transaction, Category } from "@/lib";
 import { GroupedTransactionCard } from "./grouped-transaction-card";
 import { transactionStyles } from "@/styles/system";
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, cn } from '@/lib/utils';
 import { FileText, type LucideIcon } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 /**
  * Grouped transaction structure

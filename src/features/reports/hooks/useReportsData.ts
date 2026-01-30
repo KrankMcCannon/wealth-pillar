@@ -58,7 +58,7 @@ export function useReportsData({
     const data = annualSpending['all'] || {};
     Object.keys(data).forEach(key => {
       const year = Number(key);
-      if (!isNaN(year)) {
+      if (!Number.isNaN(year)) {
         years.add(year);
       }
     });

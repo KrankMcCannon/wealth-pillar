@@ -20,7 +20,13 @@ export function ProfileSection({
   transactionCount,
   userInitials,
   onEditProfile,
-}: ProfileSectionProps) {
+}: Readonly<ProfileSectionProps>) {
+  const getRoleLabel = (role: string) => {
+    if (role === 'superadmin') return 'Sviluppatore';
+    if (role === 'admin') return 'Admin';
+    return 'Membro';
+  };
+
   return (
     <PageSection>
       <SectionHeader title="Profilo" icon={UserIcon} iconClassName="text-primary" />
@@ -31,7 +37,7 @@ export function ProfileSection({
           <div className={settingsStyles.profile.container}>
             <div
               className={settingsStyles.profile.avatar}
-              style={{ backgroundColor: (currentUser.theme_color || "#000000") as string }}
+              style={{ backgroundColor: (currentUser.theme_color || "#000000") }}
             >
               {userInitials}
             </div>
@@ -71,9 +77,7 @@ export function ProfileSection({
             icon={<UserIcon className="h-4 w-4 text-primary" />}
             label="Ruolo"
             value={
-              currentUser.role === 'superadmin' ? 'Sviluppatore' :
-                currentUser.role === 'admin' ? 'Admin' :
-                  'Membro'
+              getRoleLabel(currentUser.role || '')
             }
           />
         </ListContainer>

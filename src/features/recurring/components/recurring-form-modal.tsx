@@ -8,10 +8,11 @@ import { z } from "zod";
 import { RecurringTransactionSeries, TransactionFrequencyType } from "@/lib/types";
 import { getTempId } from "@/lib/utils/temp-id";
 import {
-  createRecurringSeriesAction,
-  updateRecurringSeriesAction,
-} from "@/features/recurring";
-import { ModalWrapper, ModalBody, ModalFooter, ModalSection } from "@/components/ui/modal-wrapper";
+  ModalWrapper,
+  ModalBody,
+  ModalFooter,
+  ModalSection
+} from "@/components/ui/modal-wrapper";
 import { FormActions, FormField, FormSelect, MultiUserSelect } from "@/components/form";
 import {
   AccountField,
@@ -20,12 +21,74 @@ import {
   DateField,
   Input,
 } from "@/components/ui";
+import {
+  createRecurringSeriesAction,
+  updateRecurringSeriesAction,
+} from "@/features/recurring";
 import { todayDateString } from "@/lib/utils/date-utils";
 import { useRequiredCurrentUser, useRequiredGroupUsers, useRequiredGroupId } from "@/hooks";
 import { useAccounts, useCategories } from "@/stores/reference-data-store";
 import { useUserFilterStore } from "@/stores/user-filter-store";
 import { usePageDataStore } from "@/stores/page-data-store";
 import { recurringStyles } from "../theme/recurring-styles";
+
+// Helper: Format date for input
+const formatDateForInput = (date: string | Date | null | undefined): string => {
+  if (!date) return "";
+  if (typeof date === "string") return date.split("T")[0];
+  return date.toISOString().split("T")[0];
+};
+
+// Helper: Calculate default account
+const calculateDefaultAccountId = (
+  watchedUserIds: string[] | undefined,
+  filteredAccounts: AccountFieldProp[],
+  accounts: AccountFieldProp[],
+  currentUser: { id: string },
+  groupUsers: { id: string; default_account_id?: string | null }[]
+): string => {
+  if (!watchedUserIds || watchedUserIds.length === 0 || filteredAccounts.length === 0) {
+    return "";
+  }
+
+  // ONLY 1 USER: Use their default account
+  if (watchedUserIds.length === 1) {
+    const selectedUser = groupUsers.find((u) => u.id === watchedUserIds[0]);
+
+    if (selectedUser?.default_account_id) {
+      const defaultAcc = filteredAccounts.find((acc) => acc.id === selectedUser.default_account_id);
+      if (defaultAcc) {
+        return defaultAcc.id;
+      }
+    }
+
+    // Fallback: first available account for that user
+    return filteredAccounts[0].id;
+  }
+
+  // Multiple users: first shared account
+  if (filteredAccounts.length > 0) {
+    return filteredAccounts[0].id;
+  }
+
+  // Fallback: creator's default
+  const creator = groupUsers.find((u) => u.id === currentUser.id);
+  if (creator?.default_account_id) {
+    const creatorDefaultAcc = accounts.find((acc) => acc.id === creator.default_account_id);
+    if (creatorDefaultAcc) {
+      return creatorDefaultAcc.id;
+    }
+  }
+
+  // Last fallback: first available account
+  return accounts.length > 0 ? accounts[0].id : "";
+};
+
+// Helper interface
+interface AccountFieldProp {
+  id: string;
+  user_ids: string[];
+}
 
 // Zod schema for recurring series validation
 const recurringSchema = z.object({
@@ -64,6 +127,20 @@ const recurringSchema = z.object({
 });
 
 type RecurringFormData = z.infer<typeof recurringSchema>;
+
+interface RecurringTransactionSeriesData {
+  description: string;
+  amount: number;
+  type: "income" | "expense";
+  category: string;
+  frequency: TransactionFrequencyType;
+  account_id: string;
+  start_date: string;
+  end_date: string | null;
+  due_day: number;
+  user_ids: string[];
+  group_id: string;
+}
 
 interface RecurringFormModalProps {
   isOpen: boolean;
@@ -151,42 +228,8 @@ function RecurringFormModal({
 
   // Calculate default account to prepopulate
   const defaultAccountId = useMemo(() => {
-    if (!watchedUserIds || watchedUserIds.length === 0 || filteredAccounts.length === 0) {
-      return "";
-    }
-
-    // ONLY 1 USER: Use their default account
-    if (watchedUserIds.length === 1) {
-      const selectedUser = groupUsers.find((u) => u.id === watchedUserIds[0]);
-
-      if (selectedUser?.default_account_id) {
-        const defaultAcc = filteredAccounts.find((acc) => acc.id === selectedUser.default_account_id);
-        if (defaultAcc) {
-          return defaultAcc.id;
-        }
-      }
-
-      // Fallback: first available account for that user
-      return filteredAccounts[0].id;
-    }
-
-    // Multiple users: first shared account
-    if (filteredAccounts.length > 0) {
-      return filteredAccounts[0].id;
-    }
-
-    // Fallback: creator's default
-    const creator = groupUsers.find((u) => u.id === currentUser.id);
-    if (creator?.default_account_id) {
-      const creatorDefaultAcc = accounts.find((acc) => acc.id === creator.default_account_id);
-      if (creatorDefaultAcc) {
-        return creatorDefaultAcc.id;
-      }
-    }
-
-    // Last fallback: first available account
-    return accounts.length > 0 ? accounts[0].id : "";
-  }, [watchedUserIds, filteredAccounts, accounts, currentUser.id, groupUsers]);
+    return calculateDefaultAccountId(watchedUserIds, filteredAccounts, accounts, currentUser, groupUsers);
+  }, [watchedUserIds, filteredAccounts, accounts, currentUser, groupUsers]);
 
   // Load recurring series data for edit mode
   useEffect(() => {
@@ -196,15 +239,8 @@ function RecurringFormModal({
 
       if (series) {
         // Handle date formatting
-        const startDateStr = typeof series.start_date === "string"
-          ? series.start_date.split("T")[0]
-          : (series.start_date).toISOString().split("T")[0];
-
-        const endDateStr = series.end_date
-          ? (typeof series.end_date === "string"
-            ? series.end_date.split("T")[0]
-            : (series.end_date).toISOString().split("T")[0])
-          : "";
+        const startDateStr = formatDateForInput(series.start_date);
+        const endDateStr = formatDateForInput(series.end_date);
 
         reset({
           description: series.description,
@@ -246,6 +282,64 @@ function RecurringFormModal({
     }
   }, [isOpen, watchedUserIds, defaultAccountId, watchedAccountId, setValue, isEditMode]);
 
+  // Handle Update Logic
+  const handleUpdate = async (seriesData: RecurringTransactionSeriesData) => {
+    if (!editId) return;
+
+    const originalSeries = storeRecurringSeries.find((s) => s.id === editId);
+    if (!originalSeries) {
+      setError("root", { message: "Serie ricorrente non trovata" });
+      return;
+    }
+
+    updateRecurringSeries(editId, seriesData);
+
+    const result = await updateRecurringSeriesAction({
+      id: editId,
+      ...seriesData,
+    });
+
+    if (result.error) {
+      updateRecurringSeries(editId, originalSeries);
+      setError("root", { message: result.error });
+      return;
+    }
+
+    if (result.data) {
+      updateRecurringSeries(editId, result.data);
+    }
+  };
+
+  // Handle Create Logic
+  const handleCreate = async (seriesData: RecurringTransactionSeriesData) => {
+    const tempId = getTempId("temp-recurring");
+    const now = new Date().toISOString();
+    const optimisticSeries: RecurringTransactionSeries = {
+      id: tempId,
+      created_at: now,
+      updated_at: now,
+      is_active: true,
+      total_executions: 0,
+      ...seriesData,
+    };
+
+    addRecurringSeries(optimisticSeries);
+    onClose();
+
+    const result = await createRecurringSeriesAction(seriesData);
+
+    if (result.error) {
+      removeRecurringSeries(tempId);
+      console.error("Failed to create recurring series:", result.error);
+      return;
+    }
+
+    removeRecurringSeries(tempId);
+    if (result.data) {
+      addRecurringSeries(result.data);
+    }
+  };
+
   // Handle form submission with optimistic updates
   const onSubmit = async (data: RecurringFormData) => {
     try {
@@ -267,74 +361,15 @@ function RecurringFormModal({
       };
 
       if (isEditMode && editId) {
-        // UPDATE: Optimistic update pattern
-        // 1. Store original series for revert
-        const originalSeries = storeRecurringSeries.find((s) => s.id === editId);
-        if (!originalSeries) {
-          setError("root", { message: "Serie ricorrente non trovata" });
-          return;
-        }
-
-        // 2. Update in store immediately (optimistic)
-        updateRecurringSeries(editId, seriesData);
-
-        // 3. Call server action
-        const result = await updateRecurringSeriesAction({
-          id: editId,
-          ...seriesData,
-        });
-
-        if (result.error) {
-          // 4. Revert on error
-          updateRecurringSeries(editId, originalSeries);
-          setError("root", { message: result.error });
-          return;
-        }
-
-        // 5. Success - update with real data from server
-        if (result.data) {
-          updateRecurringSeries(editId, result.data);
-        }
+        await handleUpdate(seriesData);
       } else {
-        // CREATE: Optimistic add pattern
-        // 1. Create temporary ID
-        const tempId = getTempId("temp-recurring");
-        const now = new Date().toISOString();
-        const optimisticSeries: RecurringTransactionSeries = {
-          id: tempId,
-          created_at: now,
-          updated_at: now,
-          is_active: true,
-          total_executions: 0,
-          ...seriesData,
-        };
-
-        // 2. Add to store immediately (optimistic)
-        addRecurringSeries(optimisticSeries);
-
-        // 3. Close modal immediately for better UX
-        onClose();
-
-        // 4. Call server action in background
-        const result = await createRecurringSeriesAction(seriesData);
-
-        if (result.error) {
-          // 5. Remove optimistic series on error
-          removeRecurringSeries(tempId);
-          console.error("Failed to create recurring series:", result.error);
-          return;
-        }
-
-        // 6. Replace temporary with real series from server
-        removeRecurringSeries(tempId);
-        if (result.data) {
-          addRecurringSeries(result.data);
-        }
-        return; // Early return since modal already closed
+        await handleCreate(seriesData);
       }
 
       // Close modal on success (for update mode)
-      onClose();
+      if (isEditMode) {
+        onClose();
+      }
     } catch (error) {
       setError("root", {
         message: error instanceof Error ? error.message : "Errore sconosciuto"

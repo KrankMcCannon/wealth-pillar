@@ -14,7 +14,7 @@ export function NotificationsSection({
   preferences,
   isLoadingPreferences,
   onToggle,
-}: NotificationsSectionProps) {
+}: Readonly<NotificationsSectionProps>) {
   return (
     <PageSection>
       <SectionHeader title="Notifiche" icon={Bell} iconClassName="text-primary" />

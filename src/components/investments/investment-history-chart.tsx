@@ -8,7 +8,7 @@ interface InvestmentHistoryChartProps {
   data: { date: string; value: number }[];
 }
 
-export function InvestmentHistoryChart({ data }: InvestmentHistoryChartProps) {
+export function InvestmentHistoryChart({ data }: Readonly<InvestmentHistoryChartProps>) {
   const hasData = data && data.length > 0;
 
   return (

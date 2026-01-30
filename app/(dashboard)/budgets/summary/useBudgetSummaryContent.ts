@@ -18,7 +18,6 @@ interface UseBudgetSummaryContentProps {
 }
 
 export function useBudgetSummaryContent({
-  categories,
   budgets,
   transactions,
   accounts,

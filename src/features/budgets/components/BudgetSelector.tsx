@@ -13,8 +13,9 @@ import {
   SelectItem,
   SelectTrigger,
   CategoryBadge,
+  PageSection,
+  SectionHeader
 } from '@/components/ui';
-import { PageSection, SectionHeader } from "@/components/ui";
 import { Budget, User } from '@/lib';
 import { budgetStyles } from '@/styles/system';
 import { useUserFilter } from '@/hooks/state/use-user-filter';
@@ -33,7 +34,7 @@ export function BudgetSelector({
   availableBudgets,
   users,
   onBudgetSelect,
-}: BudgetSelectorProps) {
+}: Readonly<BudgetSelectorProps>) {
   const { selectedUserId } = useUserFilter();
   const showUserChip = !selectedUserId;
   const userMap = useMemo(() => new Map(users.map((user) => [user.id, user.name])), [users]);

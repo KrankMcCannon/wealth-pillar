@@ -76,7 +76,7 @@ export function MonthHeader({
   onNext,
   onMonthChange,
   className,
-}: MonthHeaderProps) {
+}: Readonly<MonthHeaderProps>) {
   const [showDropdowns, setShowDropdowns] = useState(false);
 
   // Get current month and year
@@ -105,20 +105,20 @@ export function MonthHeader({
 
   // Handle month selection
   const handleMonthSelect = (monthIndex: string) => {
-    const newDate = setMonth(currentMonth, parseInt(monthIndex));
+    const newDate = setMonth(currentMonth, Number.parseInt(monthIndex));
     onMonthChange?.(newDate);
     // Don't close dropdowns - let user select year too
   };
 
   // Handle year selection
   const handleYearSelect = (year: string) => {
-    const newDate = setYear(currentMonth, parseInt(year));
+    const newDate = setYear(currentMonth, Number.parseInt(year));
     onMonthChange?.(newDate);
-    // Don't close dropdowns - let user select month too
+    // Don't close dropdowns - let user select year too
   };
 
   return (
-    <div className={cn(calendarDrawerStyles.header.container, className)} role="banner">
+    <header className={cn(calendarDrawerStyles.header.container, className)}>
       {/* Previous Month Button */}
       <button
         type="button"
@@ -131,21 +131,7 @@ export function MonthHeader({
 
       {/* Month and Year Display/Selector */}
       <div className={calendarDrawerStyles.header.center}>
-        {!showDropdowns ? (
-          // Display mode - clickable to show dropdowns
-          <button
-            type="button"
-            onClick={() => setShowDropdowns(true)}
-            className={cn(
-              calendarDrawerStyles.header.monthYear,
-              calendarDrawerStyles.header.monthYearButton
-            )}
-            aria-label="Seleziona mese e anno"
-          >
-            <span>{capitalizedText}</span>
-            <ChevronDown className={calendarDrawerStyles.header.chevronIcon} />
-          </button>
-        ) : (
+        {showDropdowns ? (
           // Dropdown mode
           <div className={calendarDrawerStyles.header.dropdowns}>
             {/* Month Dropdown */}
@@ -164,7 +150,7 @@ export function MonthHeader({
               <SelectContent className={calendarDrawerStyles.header.selectContent}>
                 {monthNames.map((month, index) => (
                   <SelectItem
-                    key={index}
+                    key={month}
                     value={index.toString()}
                     className={calendarDrawerStyles.header.selectItem}
                   >
@@ -202,7 +188,6 @@ export function MonthHeader({
 
             {/* Close dropdowns button */}
             <button
-              type="button"
               onClick={() => setShowDropdowns(false)}
               className={calendarDrawerStyles.header.closeButton}
               aria-label="Chiudi selettori"
@@ -210,18 +195,30 @@ export function MonthHeader({
               Chiudi
             </button>
           </div>
+        ) : (
+          // Display mode - clickable to show dropdowns
+          <button
+            onClick={() => setShowDropdowns(true)}
+            className={cn(
+              calendarDrawerStyles.header.monthYear,
+              calendarDrawerStyles.header.monthYearButton
+            )}
+            aria-label="Seleziona mese e anno"
+          >
+            <span>{capitalizedText}</span>
+            <ChevronDown className={calendarDrawerStyles.header.chevronIcon} />
+          </button>
         )}
       </div>
 
       {/* Next Month Button */}
       <button
-        type="button"
         onClick={onNext}
         className={monthNavButtonVariants({ disabled: false })}
         aria-label="Mese successivo"
       >
         <ChevronRight className={calendarDrawerStyles.header.navButton.icon} />
       </button>
-    </div>
+    </header>
   );
 }

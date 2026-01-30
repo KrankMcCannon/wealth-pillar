@@ -2,8 +2,7 @@
 
 import { memo } from "react";
 import { Building2, MoreVertical, Pencil, Trash2 } from "lucide-react";
-import { formatCurrency, truncateText } from "@/lib/utils";
-import { cn } from "@/lib/utils";
+import { formatCurrency, truncateText, cn } from "@/lib/utils";
 import type { Account } from '@/lib/types';
 import { AccountTypeMap } from '@/lib/types';
 import { RowCard } from "@/components/ui/layout/row-card";

@@ -18,12 +18,12 @@ export function useLocalStorage<T>(
 ): [T, (value: T | ((val: T) => T)) => void] {
   // State to store our value
   const [storedValue, setStoredValue] = useState<T>(() => {
-    if (typeof window === "undefined") {
+    if (globalThis.window === undefined) {
       return initialValue;
     }
 
     try {
-      const item = window.localStorage.getItem(key);
+      const item = globalThis.window.localStorage.getItem(key);
       return item ? JSON.parse(item) : initialValue;
     } catch (error) {
       console.error(`Error loading localStorage key "${key}":`, error);
@@ -36,14 +36,14 @@ export function useLocalStorage<T>(
     try {
       // Allow value to be a function for same API as useState
       const valueToStore =
-        value instanceof Function ? value(storedValue) : value;
+        typeof value === 'function' ? (value as (val: T) => T)(storedValue) : value;
 
       // Save state
       setStoredValue(valueToStore);
 
       // Save to localStorage
-      if (typeof window !== "undefined") {
-        window.localStorage.setItem(key, JSON.stringify(valueToStore));
+      if (globalThis.window !== undefined) {
+        globalThis.window.localStorage.setItem(key, JSON.stringify(valueToStore));
       }
     } catch (error) {
       console.error(`Error setting localStorage key "${key}":`, error);

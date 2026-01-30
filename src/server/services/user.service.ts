@@ -8,8 +8,7 @@ import { TransactionService } from './transaction.service';
 import { AccountService } from './account.service';
 import { BudgetService } from './budget.service';
 import { revalidateTag } from 'next/cache';
-import { isValidEmail } from '@/lib/utils/validators';
-import { fetchUserGroupId } from '@/server/db/user-queries';
+import { isValidEmail } from '@/lib/utils/validation-utils';
 import type { Database } from '@/lib/types/database.types';
 
 type User = Database['public']['Tables']['users']['Row'];
@@ -23,7 +22,7 @@ type UserUpdate = Database['public']['Tables']['users']['Update'];
 export class UserService {
   // ================== DATABASE OPERATIONS (inlined from repository) ==================
 
-  private static getByClerkIdDb = cache(async (clerkId: string): Promise<User | null> => {
+  private static readonly getByClerkIdDb = cache(async (clerkId: string): Promise<User | null> => {
     const { data, error } = await supabase
       .from('users')
       .select('*, user_preferences(*)')
@@ -45,7 +44,7 @@ export class UserService {
     return user as User;
   });
 
-  private static getByIdDb = cache(async (id: string): Promise<User | null> => {
+  private static readonly getByIdDb = cache(async (id: string): Promise<User | null> => {
     const { data, error } = await supabase
       .from('users')
       .select('*, user_preferences(*)')
@@ -67,7 +66,7 @@ export class UserService {
     return user as User;
   });
 
-  private static getByEmailDb = cache(async (email: string): Promise<User | null> => {
+  private static readonly getByEmailDb = cache(async (email: string): Promise<User | null> => {
     const { data, error } = await supabase
       .from('users')
       .select('*')
@@ -81,7 +80,7 @@ export class UserService {
     return data as User;
   });
 
-  private static getByGroupDb = cache(async (groupId: string): Promise<User[]> => {
+  private static readonly getByGroupDb = cache(async (groupId: string): Promise<User[]> => {
     const { data, error } = await supabase
       .from('users')
       .select('*')
@@ -123,6 +122,19 @@ export class UserService {
 
     if (error) throw new Error(error.message);
     return updated as User;
+  }
+
+  static async fetchUserGroupId(userId: string): Promise<string> {
+    const { data, error } = await supabase
+      .from('users')
+      .select('group_id')
+      .eq('id', userId)
+      .single();
+
+    if (error) throw new Error(error.message);
+    const user = data as { group_id: string | null };
+    if (!user?.group_id) throw new Error('User or Group not found');
+    return user.group_id;
   }
 
   // ================== SERVICE LAYER ==================
@@ -231,7 +243,7 @@ export class UserService {
       throw new Error('User ID is required');
     }
 
-    return fetchUserGroupId(userId);
+    return this.fetchUserGroupId(userId);
   }
 
   /**
@@ -321,15 +333,7 @@ export class UserService {
     return true;
   }
 
-  /**
-   * Updates user profile information (name and email)
-   * Validates input and updates cache
-   */
-  static async updateProfile(
-    userId: string,
-    updates: { name?: string; email?: string }
-  ): Promise<User> {
-    // Input validation
+  private static validateUpdateProfile(userId: string, updates: { name?: string; email?: string }) {
     if (!userId || userId.trim() === '') {
       throw new Error('User ID is required');
     }
@@ -338,7 +342,6 @@ export class UserService {
       throw new Error('At least one field (name or email) must be provided');
     }
 
-    // Validate name if provided
     if (updates.name !== undefined) {
       if (updates.name.trim() === '') {
         throw new Error('Name cannot be empty');
@@ -347,6 +350,18 @@ export class UserService {
         throw new Error('Name must be 100 characters or less');
       }
     }
+  }
+
+  /**
+   * Updates user profile information (name and email)
+   * Validates input and updates cache
+   */
+  static async updateProfile(
+    userId: string,
+    updates: { name?: string; email?: string }
+  ): Promise<User> {
+    this.validateUpdateProfile(userId, updates);
+
 
     // Validate email if provided
     if (updates.email !== undefined) {

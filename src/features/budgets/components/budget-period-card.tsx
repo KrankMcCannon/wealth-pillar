@@ -50,7 +50,7 @@ export function BudgetPeriodCard({
   // Get top 3 categories by spending (if available)
   const topCategories = categorySpending
     ? Object.entries(categorySpending)
-        .sort(([, a], [, b]) => (b as number) - (a as number))
+        .sort(([, a], [, b]) => (b) - (a))
         .slice(0, 3)
     : [];
 
@@ -138,7 +138,7 @@ export function BudgetPeriodCard({
                   {category}
                 </span>
                 <span className={budgetStyles.periodCard.categoryAmount}>
-                  {formatCurrency(amount as number)}
+                  {formatCurrency(amount)}
                 </span>
               </div>
             ))}

@@ -150,8 +150,8 @@ export class ReportPeriodService {
           );
         }
 
-        for (let i = 0; i < userPeriods.length; i++) {
-          const p = userPeriods[i];
+        for (const element of userPeriods) {
+          const p = element;
 
           p.defaultAccountStartBalance = runningBalance;
 

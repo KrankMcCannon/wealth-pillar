@@ -72,7 +72,7 @@ export function PreferenceSelectModal({
   options,
   preferenceKey,
   onSuccess,
-}: PreferenceSelectModalProps) {
+}: Readonly<PreferenceSelectModalProps>) {
   const [selectedValue, setSelectedValue] = React.useState(currentValue);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 

@@ -48,10 +48,6 @@ export interface FormSelectProps {
   disabled?: boolean;
   /** Additional CSS classes */
   className?: string;
-  /** Show empty option */
-  showEmpty?: boolean;
-  /** Empty option label */
-  emptyLabel?: string;
   /** Function to render custom icon for option */
   renderIcon?: (option: SelectOption) => React.ReactNode;
 }
@@ -68,7 +64,7 @@ export function FormSelect({
   disabled = false,
   className,
   renderIcon,
-}: FormSelectProps) {
+}: Readonly<FormSelectProps>) {
   const [searchValue, setSearchValue] = React.useState("");
 
   // Filter options based on search value
@@ -122,7 +118,7 @@ export function FormSelect({
             filteredOptions.map((option) => (
               <SelectItem key={option.value} value={option.value} disabled={option.disabled}>
                 <div className={formStyles.select.optionRow}>
-                  {renderIcon && renderIcon(option)}
+                  {renderIcon?.(option)}
                   {option.icon && <span>{option.icon}</span>}
                   <span>{option.label}</span>
                 </div>

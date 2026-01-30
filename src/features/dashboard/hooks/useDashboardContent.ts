@@ -11,7 +11,7 @@ import { useRouter } from "next/navigation";
 import { useUserFilter, usePermissions, useFilteredAccounts } from "@/hooks";
 import { useModalState } from "@/lib/navigation/url-state";
 import { usePageDataStore, useBudgetPeriod } from "@/stores/page-data-store";
-import { FinanceLogicService } from "@/server/services/finance-logic.service";
+import { calculateDisplayedAccounts } from "./dashboard-helpers";
 import type {
   Account,
   Budget,
@@ -52,7 +52,7 @@ export interface UseDashboardContentReturn {
   isMember: boolean;
   selectedUserId: string | undefined;
   selectedGroupFilter: string;
-  effectiveUserId: string | "all";
+  effectiveUserId: string;
 
   // Computed data
   displayedDefaultAccounts: Account[];
@@ -110,38 +110,14 @@ export function useDashboardContent({
 
   // Filter default accounts for display
   const displayedDefaultAccounts = useMemo(() => {
-    let accountsToDisplay: Account[] = [];
-    const totalAccountCount = accounts.length;
-
-    if (isMember) {
-      const userFilteredAccounts = accounts.filter((acc) => acc.user_ids.includes(currentUser.id));
-      if (userFilteredAccounts.length === 1) {
-        accountsToDisplay = userFilteredAccounts;
-      } else if (userFilteredAccounts.length > 1 && currentUser.default_account_id) {
-        const defaultAccount = accounts.find((a) => a.id === currentUser.default_account_id);
-        accountsToDisplay = defaultAccount ? [defaultAccount] : userFilteredAccounts;
-      } else {
-        accountsToDisplay = userFilteredAccounts;
-      }
-    } else if (totalAccountCount === 1) {
-      accountsToDisplay = accounts;
-    } else if (totalAccountCount > 1) {
-      if (selectedUserId) {
-        const user = groupUsers.find((u) => u.id === selectedUserId);
-        if (user?.default_account_id) {
-          const defaultAccount = accounts.find((a) => a.id === user.default_account_id);
-          accountsToDisplay = defaultAccount ? [defaultAccount] : [];
-        }
-      } else {
-        accountsToDisplay = FinanceLogicService.getDefaultAccounts(accounts, groupUsers);
-      }
-    }
-
-    return accountsToDisplay.sort((a, b) => {
-      const balanceA = accountBalances[a.id] || 0;
-      const balanceB = accountBalances[b.id] || 0;
-      return balanceB - balanceA;
-    });
+    return calculateDisplayedAccounts(
+      accounts,
+      groupUsers,
+      accountBalances,
+      currentUser,
+      selectedUserId,
+      isMember
+    );
   }, [selectedUserId, accounts, groupUsers, accountBalances, isMember, currentUser]);
 
   // Filter balances for displayed accounts

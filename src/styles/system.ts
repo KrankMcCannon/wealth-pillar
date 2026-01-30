@@ -1267,15 +1267,24 @@ export const transactionStyles = {
   },
 } as const;
 
-export function getTransactionTypeStyles(type: "expense" | "income" | "transfer") {
+type TransactionTypeKey = "expense" | "income" | "transfer";
+
+export function getTransactionTypeStyles(type: TransactionTypeKey) {
   return transactionTokens.type[type];
 }
 
 export function getAmountStyles(type: "expense" | "income" | "transfer") {
   const typeStyles = transactionTokens.type[type];
+  let prefix = "";
+  if (type === "expense") {
+    prefix = "-";
+  } else if (type === "income") {
+    prefix = "+";
+  }
+  
   return {
     text: typeStyles.text,
-    prefix: type === "expense" ? "-" : type === "income" ? "+" : "",
+    prefix,
   };
 }
 

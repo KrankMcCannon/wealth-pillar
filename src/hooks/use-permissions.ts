@@ -30,7 +30,7 @@ interface UsePermissionsReturn {
   canAccessUser: (targetUserId: string) => boolean;
 
   // Effective values for filtering
-  effectiveUserId: string | 'all';
+  effectiveUserId: string;
 
   // Form helpers
   shouldDisableUserField: boolean;

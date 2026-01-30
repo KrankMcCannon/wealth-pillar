@@ -14,7 +14,6 @@
 import { useState, useMemo, useCallback } from "react";
 import { Search, X, ChevronDown, Check } from "lucide-react";
 import { Category, cn } from "@/lib";
-import { CategoryBadge } from "@/components/ui";
 import { toDateTime, isToday as isDateToday, isWithinWeek, isWithinMonth, isWithinYear, formatDateShort } from '@/lib/utils';
 import {
   Button,
@@ -24,6 +23,7 @@ import {
   DrawerTrigger,
   DrawerTitle,
   DrawerDescription,
+  CategoryBadge
 } from "@/components/ui";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import { transactionStyles } from "@/styles/system";
@@ -660,6 +660,77 @@ export function hasActiveFilters(filters: TransactionFiltersState): boolean {
  * NOTE: Transactions store category by KEY (e.g., "food", "transport")
  * The filter also uses category KEY for matching
  */
+const matchesSearch = (
+  t: { description: string; category: string },
+  query: string,
+  categoryByKey: Map<string, Category> | null
+): boolean => {
+  if (!query) return true;
+  const q = query.toLowerCase();
+  
+  // Search in description
+  if (t.description.toLowerCase().includes(q)) return true;
+  
+  // Search in category label
+  if (categoryByKey && t.category) {
+    const category = categoryByKey.get(t.category);
+    if (category?.label.toLowerCase().includes(q)) return true;
+  }
+  
+  return false;
+};
+
+const matchesCategory = (
+  t: { category: string },
+  filters: TransactionFiltersState
+): boolean => {
+  // 1. Specific category selected
+  if (filters.categoryKey !== "all") {
+    return t.category === filters.categoryKey;
+  }
+  
+  // 2. Budget mode (multiple permitted categories)
+  if (filters.categoryKeys && filters.categoryKeys.length > 0) {
+    return filters.categoryKeys.includes(t.category);
+  }
+  
+  return true;
+};
+
+const matchesDate = (
+  t: { date: string | Date },
+  filters: TransactionFiltersState
+): boolean => {
+  if (filters.dateRange === "all") return true;
+  
+  const transactionDate = toDateTime(t.date);
+  if (!transactionDate) return false;
+
+  switch (filters.dateRange) {
+    case "today":
+      return isDateToday(transactionDate);
+    case "week":
+      return isWithinWeek(transactionDate);
+    case "month":
+      return isWithinMonth(transactionDate);
+    case "year":
+      return isWithinYear(transactionDate);
+    case "custom": {
+      if (filters.startDate) {
+        const startDate = toDateTime(filters.startDate);
+        if (startDate && transactionDate < startDate.startOf('day')) return false;
+      }
+      if (filters.endDate) {
+        const endDate = toDateTime(filters.endDate);
+        if (endDate && transactionDate > endDate.endOf('day')) return false;
+      }
+      return true;
+    }
+    default:
+      return true;
+  }
+};
+
 export function filterTransactions<T extends { description: string; type: string; category: string; date: string | Date }>(
   transactions: T[],
   filters: TransactionFiltersState,
@@ -671,76 +742,17 @@ export function filterTransactions<T extends { description: string; type: string
     : null;
 
   return transactions.filter((t) => {
-    // Search filter - search in description and optionally category name
-    if (filters.searchQuery) {
-      const query = filters.searchQuery.toLowerCase();
-      const matchesDescription = t.description.toLowerCase().includes(query);
+    // 1. Search Filter
+    if (!matchesSearch(t, filters.searchQuery, categoryByKey)) return false;
 
-      // Also search in category label if categories are provided
-      let matchesCategory = false;
-      if (categoryByKey && t.category) {
-        const category = categoryByKey.get(t.category);
-        if (category) {
-          matchesCategory = category.label.toLowerCase().includes(query);
-        }
-      }
+    // 2. Type Filter
+    if (filters.type !== "all" && t.type !== filters.type) return false;
 
-      if (!matchesDescription && !matchesCategory) {
-        return false;
-      }
-    }
+    // 3. Category Filter
+    if (!matchesCategory(t, filters)) return false;
 
-    // Type filter
-    if (filters.type !== "all" && t.type !== filters.type) {
-      return false;
-    }
-
-    // Category filtering logic:
-    // 1. If categoryKey is set (not "all"), use it as the primary filter
-    // 2. If categoryKey is "all" but categoryKeys exists (budget mode), use categoryKeys
-    if (filters.categoryKey !== "all") {
-      // Single category filter takes priority - user explicitly selected a category
-      if (t.category !== filters.categoryKey) {
-        return false;
-      }
-    } else if (filters.categoryKeys && filters.categoryKeys.length > 0) {
-      // Budget mode: filter by multiple categories only when no specific category is selected
-      if (!filters.categoryKeys.includes(t.category)) {
-        return false;
-      }
-    }
-
-    // Date range filter - using Luxon utilities
-    if (filters.dateRange !== "all") {
-      const transactionDate = toDateTime(t.date);
-      if (!transactionDate) return false;
-
-      switch (filters.dateRange) {
-        case "today":
-          if (!isDateToday(transactionDate)) return false;
-          break;
-        case "week":
-          if (!isWithinWeek(transactionDate)) return false;
-          break;
-        case "month":
-          if (!isWithinMonth(transactionDate)) return false;
-          break;
-        case "year":
-          if (!isWithinYear(transactionDate)) return false;
-          break;
-        case "custom":
-          // Custom date range filter
-          if (filters.startDate) {
-            const startDate = toDateTime(filters.startDate);
-            if (startDate && transactionDate < startDate.startOf('day')) return false;
-          }
-          if (filters.endDate) {
-            const endDate = toDateTime(filters.endDate);
-            if (endDate && transactionDate > endDate.endOf('day')) return false;
-          }
-          break;
-      }
-    }
+    // 4. Date Filter
+    if (!matchesDate(t, filters)) return false;
 
     return true;
   });

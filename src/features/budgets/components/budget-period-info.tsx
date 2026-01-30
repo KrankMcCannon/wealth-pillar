@@ -21,7 +21,7 @@ export function BudgetPeriodInfo({
   totalSpent,
   totalSaved,
   categorySpending,
-}: BudgetPeriodInfoProps) {
+}: Readonly<BudgetPeriodInfoProps>) {
   if (!period) {
     return (
       <div className={`text-center py-2 ${className}`}>
@@ -79,12 +79,12 @@ export function BudgetPeriodInfo({
           <p className={budgetStyles.periodInfo.topCategoriesTitle}>Principali Categorie</p>
           <div className={budgetStyles.periodInfo.topCategoriesList}>
             {Object.entries(categorySpending)
-              .sort(([, a], [, b]) => (b as number) - (a as number))
+              .sort(([, a], [, b]) => (b) - (a))
               .slice(0, 3)
               .map(([category, amount]) => (
                 <div key={category} className={budgetStyles.periodInfo.topCategoryRow}>
-                  <span className={budgetStyles.periodInfo.topCategoryLabel}>{category.replace(/_/g, " ")}</span>
-                  <span className={budgetStyles.periodInfo.topCategoryAmount}>{amount as number}</span>
+                  <span className={budgetStyles.periodInfo.topCategoryLabel}>{category.replaceAll('_', " ")}</span>
+                  <span className={budgetStyles.periodInfo.topCategoryAmount}>{amount}</span>
                 </div>
               ))}
           </div>

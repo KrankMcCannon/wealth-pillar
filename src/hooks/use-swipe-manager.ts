@@ -186,60 +186,66 @@ export function useSwipeManager({
       hasDragged.current = true;
     }
 
-    // ========================================
-    // Case 1: Card is currently OPEN
-    // ========================================
-    if (isOpen) {
-      const currentSide = swipeSideRef.current;
-      if (currentSide === "right") {
-        // Right swipe open (delete action)
-        // Close if dragging right > 30% OR positive velocity > 10
-        const shouldClose = currentX > -actionWidth * 0.7 || velocityX > 10;
-        if (shouldClose) {
-          updateSwipeSide(null);
-          setOpenCard(null);
-        }
-      } else if (currentSide === "left") {
-        // Left swipe open (pause/resume action)
-        // Close if dragging left > 30% OR negative velocity < -10
-        const shouldClose = currentX < actionWidth * 0.7 || velocityX < -10;
-        if (shouldClose) {
-          updateSwipeSide(null);
-          setOpenCard(null);
-        }
-      }
+    // Mark as dragged if movement > 10px (not a tap)
+    if (dragDistance > 10) {
+      hasDragged.current = true;
     }
-    // ========================================
-    // Case 2: Card is currently CLOSED
-    // ========================================
-    else {
-      // Check for right swipe (delete)
-      if (
-        (directions === "right" || directions === "both") &&
-        (currentX < -thresholds.open || velocityX < thresholds.velocity)
-      ) {
-        updateSwipeSide("right");
-        setOpenCard(cardId);
-      }
-      // Check for left swipe (pause/resume)
-      else if (
-        (directions === "left" || directions === "both") &&
-        (currentX > thresholds.open || velocityX > Math.abs(thresholds.velocity))
-      ) {
-        updateSwipeSide("left");
-        setOpenCard(cardId);
-      }
-      // Neither threshold met: snap back to closed
-      else {
-        updateSwipeSide(null);
-        setOpenCard(null);
-      }
+
+    if (isOpen) {
+      handleDragEndOpen(currentX, velocityX);
+    } else {
+      handleDragEndClosed(currentX, velocityX);
     }
 
     // Reset drag flag after delay (allows handleTap to read it)
     setTimeout(() => {
       hasDragged.current = false;
     }, 100);
+  };
+
+  const handleDragEndOpen = (currentX: number, velocityX: number) => {
+    const currentSide = swipeSideRef.current;
+    if (currentSide === "right") {
+      // Right swipe open (delete action)
+      // Close if dragging right > 30% OR positive velocity > 10
+      const shouldClose = currentX > -actionWidth * 0.7 || velocityX > 10;
+      if (shouldClose) {
+        updateSwipeSide(null);
+        setOpenCard(null);
+      }
+    } else if (currentSide === "left") {
+      // Left swipe open (pause/resume action)
+      // Close if dragging left > 30% OR negative velocity < -10
+      const shouldClose = currentX < actionWidth * 0.7 || velocityX < -10;
+      if (shouldClose) {
+        updateSwipeSide(null);
+        setOpenCard(null);
+      }
+    }
+  };
+
+  const handleDragEndClosed = (currentX: number, velocityX: number) => {
+    // Check for right swipe (delete)
+    if (
+      (directions === "right" || directions === "both") &&
+      (currentX < -thresholds.open || velocityX < thresholds.velocity)
+    ) {
+      updateSwipeSide("right");
+      setOpenCard(cardId);
+    }
+    // Check for left swipe (pause/resume)
+    else if (
+      (directions === "left" || directions === "both") &&
+      (currentX > thresholds.open || velocityX > Math.abs(thresholds.velocity))
+    ) {
+      updateSwipeSide("left");
+      setOpenCard(cardId);
+    }
+    // Neither threshold met: snap back to closed
+    else {
+      updateSwipeSide(null);
+      setOpenCard(null);
+    }
   };
 
   /**

@@ -27,7 +27,7 @@ export function ConfirmationDialog({
   cancelText = 'Annulla',
   variant = 'default',
   isLoading = false,
-}: ConfirmationDialogProps) {
+}: Readonly<ConfirmationDialogProps>) {
   const handleConfirm = async () => {
     await onConfirm();
   };

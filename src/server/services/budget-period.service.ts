@@ -1,14 +1,13 @@
 import 'server-only';
 import { cached } from '@/lib/cache';
-import { CACHE_TAGS, cacheOptions } from '@/lib/cache/config';
+import { cacheOptions } from '@/lib/cache/config';
 import { budgetPeriodCacheKeys } from '@/lib/cache/keys';
-import type { BudgetPeriod, Budget, Transaction } from '@/lib/types';
-import type { BudgetPeriodJSON } from '@/lib/types';
+import type { BudgetPeriod, Budget, Transaction, BudgetPeriodJSON } from '@/lib/types';
 import { toDateTime, todayDateString } from '@/lib/utils/date-utils';
 import { DateTime } from 'luxon';
 import { UserService } from './user.service';
-import { revalidateTag } from 'next/cache';
 import type { Json } from '@/lib/types/database.types';
+import { invalidateBudgetPeriodCaches } from '@/lib/utils/cache-utils';
 
 /**
  * Budget Period Service
@@ -74,7 +73,7 @@ export class BudgetPeriodService {
     );
 
     const periods = await getCachedPeriods();
-    return (periods || []) as BudgetPeriod[];
+    return (periods || []);
   }
 
   /**
@@ -101,7 +100,7 @@ export class BudgetPeriodService {
     );
 
     const period = await getCachedPeriod();
-    return period as BudgetPeriod | null;
+    return period;
   }
 
   /**
@@ -378,27 +377,11 @@ export class BudgetPeriodService {
     );
   }
 
+  /**
+   * Invalidate all caches related to budget periods for a user
+   */
   private static invalidateUserCaches(userId: string, periodId?: string): void {
-    const tagsToInvalidate = [
-      CACHE_TAGS.BUDGET_PERIODS,
-      `user:${userId}:budget_periods`,
-      `user:${userId}:budget_period:active`,
-      // Essential for resolving the race condition when creating next period immediately
-      CACHE_TAGS.USERS,
-      CACHE_TAGS.USER(userId),
-      // Invalidate Budgets and Accounts to ensure dashboards are fresh
-      CACHE_TAGS.BUDGETS,
-      CACHE_TAGS.USER_BUDGETS(userId),
-      CACHE_TAGS.ACCOUNTS,
-    ];
-
-    if (periodId) {
-      tagsToInvalidate.push(CACHE_TAGS.BUDGET_PERIOD(periodId));
-    }
-
-    for (const tag of tagsToInvalidate) {
-      revalidateTag(tag, 'max');
-    }
+    invalidateBudgetPeriodCaches({ userId, periodId });
   }
 
   private static async autoCreateNextPeriod(userId: string, endDt: DateTime): Promise<void> {

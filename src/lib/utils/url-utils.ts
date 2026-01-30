@@ -19,8 +19,8 @@ export function getBaseUrl(): string {
   }
 
   // Priority 2: Client-side origin (browser environment)
-  if (typeof window !== 'undefined') {
-    return window.location.origin;
+  if (globalThis.window !== undefined) {
+    return globalThis.location.origin;
   }
 
   // Priority 3: Development fallback (server-side)

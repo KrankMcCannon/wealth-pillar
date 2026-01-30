@@ -12,7 +12,7 @@ interface BenchmarkChartProps {
   anchorId?: string;
 }
 
-export function BenchmarkChart({ indexData, currentIndex, onBenchmarkChange, anchorId }: BenchmarkChartProps) {
+export function BenchmarkChart({ indexData, currentIndex, onBenchmarkChange, anchorId }: Readonly<BenchmarkChartProps>) {
   const hasData = indexData && indexData.length > 0;
   const sortedData = hasData ? [...indexData].reverse() : [];
 

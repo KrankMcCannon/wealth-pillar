@@ -37,7 +37,7 @@ export interface ModalWrapperProps {
   isLoading?: boolean;
   /** Disable closing on outside click/Esc (default: false) */
   disableOutsideClose?: boolean;
-  /** 
+  /**
    * Mobile-specific: Reposition inputs to avoid keyboard overlap.
    * Set to `false` if inputs are flying off screen or handling it manually.
    * Default: `false` (Fixed behavior)
@@ -62,7 +62,8 @@ export function ModalWrapper({
   isLoading = false,
   disableOutsideClose = false,
   repositionInputs = false,
-}: ModalWrapperProps) {
+  maxWidth,
+}: Readonly<ModalWrapperProps>) {
   const isDesktop = useMediaQuery("(min-width: 640px)");
   const contentRef = React.useRef<HTMLDivElement | null>(null);
 
@@ -91,7 +92,7 @@ export function ModalWrapper({
           tabIndex={-1}
           onOpenAutoFocus={handleOpenAutoFocus}
           showCloseButton={showCloseButton}
-          className={cn("max-h-[90vh] flex flex-col p-0 gap-0", className)}
+          className={cn("max-h-[90vh] flex flex-col p-0 gap-0", maxWidth, className)}
         >
           <DialogHeader className="p-6 pb-2">
             <DialogTitle className={cn(modalWrapperStyles.dialogTitle, titleClassName)}>{title}</DialogTitle>
@@ -168,7 +169,7 @@ export function ModalWrapper({
  * Container for the distinct sections of a modal form/content.
  * Use inside ModalWrapper > form or just ModalWrapper
  */
-export function ModalBody({ children, className }: { children: React.ReactNode; className?: string }) {
+export function ModalBody({ children, className }: Readonly<{ children: React.ReactNode; className?: string }>) {
   return <div className={cn("flex-1 py-2 space-y-4", className)}>{children}</div>;
 }
 
@@ -177,7 +178,7 @@ export function ModalBody({ children, className }: { children: React.ReactNode; 
  * Automatically adapts to Dialog (right-aligned) vs Drawer (full-width stack) via CSS parent context or media query if needed.
  * But we'll standardise it here.
  */
-export function ModalFooter({ children, className }: { children: React.ReactNode; className?: string }) {
+export function ModalFooter({ children, className }: Readonly<{ children: React.ReactNode; className?: string }>) {
   // Mobile drawer usually needs a bit more padding at bottom for safe area
   return (
     <div className={cn("mt-auto py-4 border-t border-border pt-4 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end sm:gap-2", className)}>
@@ -193,11 +194,11 @@ export function ModalSection({
   title,
   children,
   className,
-}: {
+}: Readonly<{
   title?: string;
   children: React.ReactNode;
   className?: string;
-}) {
+}>) {
   return (
     <div className={cn("flex flex-col gap-3", className)}>
       {title && <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{title}</h4>}

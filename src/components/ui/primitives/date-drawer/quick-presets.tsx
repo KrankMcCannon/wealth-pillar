@@ -105,7 +105,7 @@ export interface QuickPresetsProps {
  * />
  * ```
  */
-export function QuickPresets({ selectedDate, onSelect, className }: QuickPresetsProps) {
+export function QuickPresets({ selectedDate, onSelect, className }: Readonly<QuickPresetsProps>) {
   return (
     <section className={cn(calendarDrawerStyles.presets.section, className)} aria-label="Scorciatoie data">
       {/* Section Title */}

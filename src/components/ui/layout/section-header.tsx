@@ -35,7 +35,7 @@ export function SectionHeader({
   titleClassName,
   subtitleClassName,
   children,
-}: SectionHeaderProps) {
+}: Readonly<SectionHeaderProps>) {
   return (
     <div className={cn(layoutStyles.section.headerRow, className)}>
       <div className="flex flex-col gap-1">

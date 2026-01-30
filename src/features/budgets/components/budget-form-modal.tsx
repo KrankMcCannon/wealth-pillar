@@ -169,84 +169,99 @@ function BudgetFormModal({
     setValue("categories", []);
   };
 
+  // Handle update budget flow
+  const handleUpdate = async (data: BudgetFormData, id: string) => {
+    const amount = Number.parseFloat(data.amount);
+    const budgetData = {
+      description: data.description.trim(),
+      amount,
+      type: data.type as BudgetType,
+      icon: data.icon ?? null,
+      categories: data.categories,
+      user_id: data.user_id,
+      group_id: groupId,
+    };
+
+    // 1. Store original budget for revert
+    const originalBudget = storeBudgets.find((b) => b.id === id);
+    if (!originalBudget) {
+      throw new Error("Budget non trovato");
+    }
+
+    // 2. Update in store immediately (optimistic)
+    updateBudget(id, budgetData);
+
+    // 3. Call server action
+    const result = await updateBudgetAction(id, budgetData);
+
+    if (result.error) {
+      // 4. Revert on error
+      updateBudget(id, originalBudget);
+      throw new Error(result.error);
+    }
+
+    // 5. Success - update with real data from server
+    if (result.data) {
+      updateBudget(id, result.data);
+    }
+  };
+
+  // Handle create budget flow
+  const handleCreate = async (data: BudgetFormData) => {
+    const amount = Number.parseFloat(data.amount);
+    const budgetData = {
+      description: data.description.trim(),
+      amount,
+      type: data.type as BudgetType,
+      icon: data.icon ?? null,
+      categories: data.categories,
+      user_id: data.user_id,
+      group_id: groupId,
+    };
+
+    // 1. Create temporary ID
+    const tempId = getTempId("temp-budget");
+    const now = new Date().toISOString();
+    const optimisticBudget: Budget = {
+      id: tempId,
+      created_at: now,
+      updated_at: now,
+      ...budgetData,
+    };
+
+    // 2. Add to store immediately (optimistic)
+    addBudget(optimisticBudget);
+
+    // 3. Close modal immediately for better UX
+    onClose();
+
+    // 4. Call server action in background
+    const result = await createBudgetAction(budgetData);
+
+    if (result.error) {
+      // 5. Remove optimistic budget on error
+      removeBudget(tempId);
+      console.error("Failed to create budget:", result.error);
+      return;
+    }
+
+    // 6. Replace temporary with real budget from server
+    removeBudget(tempId);
+    if (result.data) {
+      addBudget(result.data);
+    }
+  };
+
   // Handle form submission with optimistic updates
   const onSubmit = async (data: BudgetFormData) => {
     try {
-      const amount = Number.parseFloat(data.amount);
-      const budgetData = {
-        description: data.description.trim(),
-        amount,
-        type: data.type as BudgetType,
-        icon: data.icon ?? null,
-        categories: data.categories,
-        user_id: data.user_id,
-        group_id: groupId,
-      };
-
       if (isEditMode && editId) {
-        // UPDATE: Optimistic update pattern
-        // 1. Store original budget for revert
-        const originalBudget = storeBudgets.find((b) => b.id === editId);
-        if (!originalBudget) {
-          setError("root", { message: "Budget non trovato" });
-          return;
-        }
-
-        // 2. Update in store immediately (optimistic)
-        updateBudget(editId, budgetData);
-
-        // 3. Call server action
-        const result = await updateBudgetAction(editId, budgetData);
-
-        if (result.error) {
-          // 4. Revert on error
-          updateBudget(editId, originalBudget);
-          setError("root", { message: result.error });
-          return;
-        }
-
-        // 5. Success - update with real data from server
-        if (result.data) {
-          updateBudget(editId, result.data);
-        }
+        await handleUpdate(data, editId);
+        onClose(); // Close on success for update
       } else {
-        // CREATE: Optimistic add pattern
-        // 1. Create temporary ID
-        const tempId = getTempId("temp-budget");
-        const now = new Date().toISOString();
-        const optimisticBudget: Budget = {
-          id: tempId,
-          created_at: now,
-          updated_at: now,
-          ...budgetData,
-        };
-
-        // 2. Add to store immediately (optimistic)
-        addBudget(optimisticBudget);
-
-        // 3. Close modal immediately for better UX
-        onClose();
-
-        // 4. Call server action in background
-        const result = await createBudgetAction(budgetData);
-
-        if (result.error) {
-          // 5. Remove optimistic budget on error
-          removeBudget(tempId);
-          console.error("Failed to create budget:", result.error);
-          return;
-        }
-
-        // 6. Replace temporary with real budget from server
-        removeBudget(tempId);
-        if (result.data) {
-          addBudget(result.data);
-        }
-        return; // Early return since modal already closed
+        await handleCreate(data);
+        // onClose is called inside handleCreate for immediate feedback
       }
-
-      // Close modal on success (for update mode)
-      onClose();
     } catch (error) {
       setError("root", {
         message: error instanceof Error ? error.message : "Errore sconosciuto"

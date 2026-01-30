@@ -22,7 +22,7 @@ export function DeleteAccountModal({
   error,
   onClose,
   onConfirm,
-}: DeleteAccountModalProps) {
+}: Readonly<DeleteAccountModalProps>) {
   const handleOpenChange = (open: boolean) => {
     if (!open) {
       onClose();

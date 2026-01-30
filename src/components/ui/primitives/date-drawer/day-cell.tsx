@@ -89,7 +89,7 @@ export function DayCell({
   isOtherMonth,
   onClick,
   size = "mobile",
-}: DayCellProps) {
+}: Readonly<DayCellProps>) {
   // Determine which visual state to apply
   const state = getDayState({
     isSelected,
@@ -134,8 +134,8 @@ export function DayCell({
       role="button"
       tabIndex={isDisabled ? -1 : 0}
       // Framer Motion animations
-      whileTap={!isDisabled ? { scale: 0.95 } : undefined}
-      whileHover={!isDisabled ? { scale: 1.05 } : undefined}
+      whileTap={isDisabled ? undefined : { scale: 0.95 }}
+      whileHover={isDisabled ? undefined : { scale: 1.05 }}
       transition={{
         type: "spring",
         stiffness: 400,

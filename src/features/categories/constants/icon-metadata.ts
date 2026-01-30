@@ -941,7 +941,7 @@ export function getAllTags(): string[] {
   ICON_METADATA.forEach((icon) => {
     icon.tags.forEach((tag) => tags.add(tag));
   });
-  return Array.from(tags).sort();
+  return Array.from(tags).sort((a, b) => a.localeCompare(b));
 }
 
 /**

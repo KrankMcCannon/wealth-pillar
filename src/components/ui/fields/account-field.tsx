@@ -27,7 +27,7 @@ export function AccountField({
   placeholder = "Seleziona conto",
   accounts = [],
   userId
-}: AccountFieldProps) {
+}: Readonly<AccountFieldProps>) {
   // Filter accounts by user if userId is provided
   const filteredAccounts = userId
     ? accounts.filter((acc) => acc.user_ids.includes(userId))

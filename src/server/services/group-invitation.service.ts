@@ -2,9 +2,9 @@ import 'server-only';
 import { CACHE_TAGS } from '@/lib/cache/config';
 import { supabase } from '@/server/db/supabase';
 import { UserService } from './user.service';
-import { randomBytes } from 'crypto';
+import { randomBytes } from 'node:crypto';
 import { revalidateTag } from 'next/cache';
-import { isValidEmail } from '@/lib/utils/validators';
+import { isValidEmail, validateId, validateRequiredString } from '@/lib/utils/validation-utils';
 import type { Database } from '@/lib/types/database.types';
 
 export type GroupInvitation = Database['public']['Tables']['group_invitations']['Row'];
@@ -62,25 +62,17 @@ export class GroupInvitationService {
   ): Promise<GroupInvitation> {
     const { groupId, invitedByUserId, email } = input;
 
-    // Input validation
-    if (!groupId || groupId.trim() === '') {
-      throw new Error('Group ID is required');
-    }
-
-    if (!invitedByUserId || invitedByUserId.trim() === '') {
-      throw new Error('Invited by user ID is required');
-    }
-
-    if (!email || email.trim() === '') {
-      throw new Error('Email is required');
-    }
+    // Input validation using shared utilities
+    validateId(groupId, 'Group ID');
+    validateId(invitedByUserId, 'Invited by user ID');
+    const emailTrimmed = validateRequiredString(email, 'Email');
 
     // Validate email format
-    if (!isValidEmail(email)) {
+    if (!isValidEmail(emailTrimmed)) {
       throw new Error('Invalid email format');
     }
 
-    const emailLower = email.toLowerCase();
+    const emailLower = emailTrimmed.toLowerCase();
 
     // Check for existing pending invitation
     const existingInvitation = await this.getPendingByEmailAndGroupDb(
@@ -96,7 +88,7 @@ export class GroupInvitationService {
     // Using UserService to find user by email and check group
     const existingUser = await UserService.getUserByEmail(emailLower);
 
-    if (existingUser && existingUser.group_id === groupId) {
+    if (existingUser?.group_id === groupId) {
       throw new Error('This user is already a member of the group');
     }
 

@@ -29,7 +29,7 @@ export function UserField({
   users = [],
   disabled = false,
   helperText,
-}: UserFieldProps) {
+}: Readonly<UserFieldProps>) {
   const options = users.map((user) => ({
     value: user.id,
     label: user.name,

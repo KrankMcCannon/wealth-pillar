@@ -23,7 +23,7 @@ interface UseFilteredAccountsReturn {
   /** Filtered accounts based on permissions and optional additional filter */
   filteredAccounts: Account[];
   /** Active user ID being displayed ('all' for admins viewing all data) */
-  activeUserId: string | 'all';
+  activeUserId: string;
 }
 
 /**
@@ -83,17 +83,14 @@ export function useFilteredAccounts({
       permissionFiltered = accounts.filter((account) =>
         account.user_ids.includes(currentUser.id)
       );
+    } else if (selectedUserId && selectedUserId !== 'all') {
+      // Admin logic - Filter to accounts that include the selected user
+      permissionFiltered = accounts.filter((account) =>
+        account.user_ids.includes(selectedUserId)
+      );
     } else {
-      // Admin logic
-      if (selectedUserId && selectedUserId !== 'all') {
-        // Filter to accounts that include the selected user
-        permissionFiltered = accounts.filter((account) =>
-          account.user_ids.includes(selectedUserId)
-        );
-      } else {
-        // Show all accounts
-        permissionFiltered = accounts;
-      }
+      // Admin logic - Show all accounts
+      permissionFiltered = accounts;
     }
 
     // Step 2: Apply optional additional filter
