@@ -14,3 +14,8 @@ export { ReportsOverviewCard } from './ReportsOverviewCard';
 export type { ReportsOverviewCardProps } from './ReportsOverviewCard';
 
 export { AnnualCategorySection } from './AnnualCategorySection';
+
+export { SummarySection } from './SummarySection';
+export { PeriodsSection } from './PeriodsSection';
+export { PeriodCard } from './PeriodCard';
+export { CategoriesSection } from './CategoriesSection';

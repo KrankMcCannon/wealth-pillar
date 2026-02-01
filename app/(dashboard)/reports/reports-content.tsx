@@ -1,127 +1,57 @@
 "use client";
 
 import { BottomNavigation, PageContainer, Header } from "@/components/layout";
-import { PageSection, SectionHeader } from "@/components/ui";
-import UserSelector from "@/components/shared/user-selector";
-import YearSelector from "@/components/shared/year-selector";
-import { BudgetPeriodsSection, ReportsOverviewCard, AnnualCategorySection } from "@/features/reports";
-import { useReportsData } from "@/features/reports/hooks/useReportsData";
-import { reportsStyles } from "@/styles/system";
-import type { Transaction, Category, BudgetPeriod, Account, User, CategoryBreakdownItem } from "@/lib/types";
-import type { EnrichedBudgetPeriod } from "@/server/services/report-period.service";
+import { PageSection } from "@/components/ui";
+import { SummarySection, PeriodsSection, CategoriesSection } from "@/features/reports";
+import type {
+  AccountTypeSummary,
+  ReportPeriodSummary,
+  CategoryStat
+} from "@/server/services/reports.service";
+import type { User } from "@/lib/types";
 
 interface ReportsContentProps {
-  accounts: Account[];
-  transactions?: Transaction[];
-  categories: Category[];
-  budgetPeriods?: BudgetPeriod[]; // Make optional or remove if unused
-  enrichedBudgetPeriods: (EnrichedBudgetPeriod & { transactionCount?: number })[]; // Using derived type
-  overviewMetrics: Record<string, {
-    totalEarned: number;
-    totalSpent: number;
-    totalTransferred: number;
-    totalBalance: number;
-  }>;
-  annualSpending: Record<string, Record<string, CategoryBreakdownItem[]>>;
+  accountTypeSummary: AccountTypeSummary[];
+  periodSummaries: ReportPeriodSummary[];
+  incomeStats: CategoryStat[];
+  expenseStats: CategoryStat[];
   currentUser: User;
   groupUsers: User[];
 }
 
 export default function ReportsContent({
-  accounts,
-  categories,
-  enrichedBudgetPeriods,
-  overviewMetrics,
-  annualSpending,
+  accountTypeSummary,
+  periodSummaries,
+  incomeStats,
+  expenseStats,
   currentUser,
   groupUsers,
 }: ReportsContentProps) {
-  // Use the extracted hook for data logic
-  const {
-    selectedYear,
-    setSelectedYear,
-    activeGroupFilter,
-    availableYears,
-    activeBudgetPeriods,
-    activeOverviewMetrics,
-    activeAnnualData,
-    enrichedCategories,
-  } = useReportsData({
-    accounts,
-    categories,
-    enrichedBudgetPeriods,
-    overviewMetrics,
-    annualSpending,
-    currentUser,
-    groupUsers,
-  });
-
   return (
-    <PageContainer className={reportsStyles.page.container}>
-      <div>
-        {/* Header */}
-        <Header
-          title="Rapporti"
-          showBack={true}
-          currentUser={{ name: currentUser.name, role: currentUser.role || 'member' }}
-          showActions={true}
-        />
+    <PageContainer>
+      <Header
+        title="Rapporti"
+        showBack={true}
+        currentUser={{ name: currentUser.name, role: currentUser.role || 'member' }}
+      />
 
-        {/* User Selector */}
-        <UserSelector
-          currentUser={currentUser}
-          users={groupUsers}
-        />
+      <div className="space-y-8 pt-4 pb-10 px-4">
+        {/* Summary by Account Type */}
+        <PageSection>
+          <SummarySection data={accountTypeSummary} />
+        </PageSection>
 
-        {/* Year Selector */}
-        <YearSelector
-          selectedYear={selectedYear}
-          onYearChange={setSelectedYear}
-          availableYears={availableYears}
-        />
+        {/* Report Periods */}
+        <PageSection>
+          <PeriodsSection data={periodSummaries} users={groupUsers} />
+        </PageSection>
 
-        <main className={reportsStyles.main.container}>
-          {/* Overview Section - Overall Metrics */}
-          <PageSection>
-            <SectionHeader
-              title="Panoramica Generale"
-              subtitle="Metriche complessive di tutte le transazioni"
-            />
-            <ReportsOverviewCard
-              totalEarned={activeOverviewMetrics.totalEarned}
-              totalSpent={activeOverviewMetrics.totalSpent}
-              totalTransferred={activeOverviewMetrics.totalTransferred}
-              totalBalance={activeOverviewMetrics.totalBalance}
-            />
-          </PageSection>
-
-          {/* Budget Periods Section */}
-          <PageSection>
-            <SectionHeader
-              title="Periodi di Budget"
-              subtitle="Storico periodi passati e attuali"
-            />
-            <BudgetPeriodsSection
-              enrichedBudgetPeriods={activeBudgetPeriods}
-              groupUsers={groupUsers}
-              transactions={[]} // No transactions needed now
-              categories={enrichedCategories}
-              accounts={accounts}
-              selectedUserId={activeGroupFilter}
-              isLoading={false}
-            />
-          </PageSection>
-
-          {/* Annual Category Breakdown */}
-          <AnnualCategorySection
-            annualData={activeAnnualData}
-            categories={categories}
-            year={selectedYear}
-          />
-        </main>
+        {/* Categories */}
+        <PageSection>
+          <CategoriesSection incomeStats={incomeStats} expenseStats={expenseStats} />
+        </PageSection>
       </div>
 
-      {/* Bottom Navigation */}
       <BottomNavigation />
     </PageContainer>
   );

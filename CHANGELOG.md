@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.5.5] - 2026-02-01
+
+### Refactor
+
+- **reports**: Architecturally decouple data fetching from presentation, consolidate components in feature directory, and restore static all-time view default.
+
 ## [0.5.4] - 2026-02-01
 
 ### Refactor
