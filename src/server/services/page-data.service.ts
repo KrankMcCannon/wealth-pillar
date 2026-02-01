@@ -144,9 +144,9 @@ export class PageDataService {
 
     // 2. Parallel Fetch: Metadata + Paginated Transactions + Balances + Investments
     // We map users to promises for budget & investments
-    const investmentPromises = groupUsers.map(u => 
+    const investmentPromises = groupUsers.map(u =>
       this.safeFetch(
-        InvestmentService.getPortfolio(u.id), 
+        InvestmentService.getPortfolio(u.id),
         null as unknown as PortfolioResult, // Correct type assertion
         `Failed to fetch investments for user ${u.id}`
       )
@@ -163,7 +163,7 @@ export class PageDataService {
     ] = await Promise.all([
       this.safeFetch(AccountService.getAccountsByGroup(groupId), [] as Account[], 'Failed to fetch accounts'),
       this.safeFetch(
-        TransactionService.getTransactionsByGroup(groupId), 
+        TransactionService.getTransactionsByGroup(groupId),
         { data: [] as Transaction[], total: 0, hasMore: false },
         'Failed to fetch transactions'
       ),
@@ -476,8 +476,14 @@ export class PageDataService {
     ]);
 
     // Helper to calculate metrics for a subset
-    const calcMetrics = (txs: Transaction[]) =>
-      FinanceLogicService.calculateOverviewMetrics(txs, accounts.map(a => a.id));
+    const calcMetrics = (txs: Transaction[]) => {
+      const activeAccounts = accounts
+        .filter(a => a.type === 'payroll' || a.type === 'cash');
+
+      const activeAccountIds = activeAccounts.map(a => a.id);
+
+      return FinanceLogicService.calculateOverviewMetrics(txs, activeAccountIds, undefined);
+    };
 
     // 1. Calculate Overview Metrics (Global + Per User)
     const overviewMetrics: Record<string, OverviewMetrics> = {};
@@ -488,7 +494,13 @@ export class PageDataService {
     // Per User
     groupUsersResult.forEach(u => {
       // FinanceLogicService can filter by userId internally
-      overviewMetrics[u.id] = FinanceLogicService.calculateOverviewMetrics(transactionResult.data, accounts.map(a => a.id), u.id);
+      // Filter for active accounts (payroll + cash)
+      const userActiveAccounts = accounts
+        .filter(a => a.type === 'payroll' || a.type === 'cash');
+
+      const activeAccountIds = userActiveAccounts.map(a => a.id);
+
+      overviewMetrics[u.id] = FinanceLogicService.calculateOverviewMetrics(transactionResult.data, activeAccountIds, u.id);
     });
 
 

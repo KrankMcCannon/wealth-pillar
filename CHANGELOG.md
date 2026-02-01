@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.5.4] - 2026-02-01
+
+### Refactor
+
+- **reports**: Revert strict metric separation and restore payroll-only filtering logic significantly simplifying the implementation.
+
 ## [0.5.3] - 2026-01-30
 
 ### Refactor

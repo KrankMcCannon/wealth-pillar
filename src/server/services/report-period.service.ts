@@ -15,7 +15,7 @@ import { toDateTime } from '@/lib/utils/date-utils';
  */
 export interface EnrichedBudgetPeriod extends BudgetPeriod {
   userName: string;
-  transactions: Transaction[];   // Sorted by amount descending
+  transactions: Transaction[]; // Sorted by amount descending
   defaultAccountStartBalance: number | null; // NEW: Sequential Start Balance
   defaultAccountEndBalance: number | null;   // NEW: Sequential End Balance
   periodTotalSpent: number;      // NEW: Expenses + Transfers Out
@@ -44,13 +44,17 @@ export class ReportPeriodService {
     const userMap = new Map(users.map(u => [u.id, u]));
 
     // Pre-compute account IDs per user for O(1) lookup
-    const accountIdsByUser = new Map<string, string[]>();
+    const activeAccountIdsByUser = new Map<string, Set<string>>();
+
     for (const account of accounts) {
+      // Filter for Payroll only (aligned with Dashboard)
+      if (account.type !== 'payroll') continue;
+
       for (const userId of account.user_ids) {
-        if (!accountIdsByUser.has(userId)) {
-          accountIdsByUser.set(userId, []);
+        if (!activeAccountIdsByUser.has(userId)) {
+          activeAccountIdsByUser.set(userId, new Set());
         }
-        accountIdsByUser.get(userId)!.push(account.id);
+        activeAccountIdsByUser.get(userId)!.add(account.id);
       }
     }
 
@@ -73,22 +77,21 @@ export class ReportPeriodService {
       let periodTotalSpent = 0;
       let periodTotalIncome = 0;
       let periodTotalTransfers = 0;
-      const defaultAccountId = user?.default_account_id;
+      // identifying the set of active accounts for this user
+      const userActiveAccounts = activeAccountIdsByUser.get(period.user_id) || new Set<string>();
 
-      if (defaultAccountId) {
+      if (userActiveAccounts.size > 0) {
         periodTotalSpent = FinanceLogicService.calculatePeriodTotalSpent(
           userTransactions,
-          defaultAccountId
+          userActiveAccounts
         );
-
         periodTotalIncome = FinanceLogicService.calculatePeriodTotalIncome(
           userTransactions,
-          defaultAccountId
+          userActiveAccounts
         );
-
         periodTotalTransfers = FinanceLogicService.calculatePeriodTotalTransfers(
           userTransactions,
-          defaultAccountId
+          userActiveAccounts
         );
       }
 
@@ -129,22 +132,19 @@ export class ReportPeriodService {
         return da.toMillis() - db.toMillis();
       });
 
-      const user = userMap.get(userId);
-      const defaultAccountId = user?.default_account_id;
+      const userActiveAccounts = activeAccountIdsByUser.get(userId) || new Set<string>();
 
-      if (defaultAccountId) {
-        // Calculate REAL current balance using AccountService
-        const currentBalance = FinanceLogicService.calculateAccountBalance(defaultAccountId, transactions);
+      if (userActiveAccounts.size > 0) {
+        const userAccounts = accounts.filter(a => userActiveAccounts.has(a.id));
+        const currentBalance = FinanceLogicService.calculateAggregatedBalance(userAccounts);
 
-        // Calculate the REAL historical balance at the start of the first period
-        // This ensures the sequence ends exactly at the current account balance
         const firstPeriodStart = userPeriods[0]?.start_date;
         let runningBalance = 0;
 
         if (firstPeriodStart) {
           runningBalance = FinanceLogicService.calculateHistoricalBalance(
             transactions,
-            defaultAccountId,
+            userActiveAccounts,
             currentBalance,
             firstPeriodStart
           );
@@ -167,7 +167,7 @@ export class ReportPeriodService {
           fullyEnriched.push(p);
         }
       } else {
-        // No default account, just push as is
+        // No active accounts, just push as is
         fullyEnriched.push(...userPeriods);
       }
     });

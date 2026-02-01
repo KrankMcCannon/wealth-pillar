@@ -175,7 +175,7 @@ export class FinanceLogicService {
    */
   static calculateHistoricalBalance(
     allTransactions: Transaction[],
-    accountId: string,
+    accountIds: string | Set<string>,
     currentBalance: number,
     targetDate: DateInput
   ): number {
@@ -183,6 +183,9 @@ export class FinanceLogicService {
     // So we must reverse all transactions that happened ON or AFTER the target date
     const targetDt = toDateTime(targetDate)?.startOf('day');
     if (!targetDt) return currentBalance;
+
+    // Normalize accountIds to Set
+    const accountSet = typeof accountIds === 'string' ? new Set([accountIds]) : accountIds;
 
     // Filter transactions that happened ON or AFTER the target date
     const futureTransactions = allTransactions.filter(t => {
@@ -193,8 +196,8 @@ export class FinanceLogicService {
     let historicalBalance = currentBalance;
 
     for (const t of futureTransactions) {
-      const isSource = t.account_id === accountId;
-      const isDest = t.to_account_id === accountId;
+      const isSource = accountSet.has(t.account_id);
+      const isDest = t.to_account_id && accountSet.has(t.to_account_id);
 
       if (!isSource && !isDest) continue;
 
@@ -204,10 +207,15 @@ export class FinanceLogicService {
       } else if (t.type === 'income' && isSource) {
         historicalBalance -= t.amount; // Remove received money
       } else if (t.type === 'transfer') {
-        if (isSource) {
-          historicalBalance += t.amount; // Add back money sent out
+        if (isSource && isDest) {
+          // Internal transfer within the monitored accounts: NO NET CHANGE
+          // So nothing to reverse for the aggregate balance
+        } else if (isSource) {
+          // Money left the set of accounts -> Add it back
+          historicalBalance += t.amount;
         } else if (isDest) {
-          historicalBalance -= t.amount; // Remove money received
+          // Money entered the set of accounts -> Remove it
+          historicalBalance -= t.amount;
         }
       }
     }
@@ -222,14 +230,26 @@ export class FinanceLogicService {
    */
   static calculatePeriodTotalSpent(
     periodTransactions: Transaction[],
-    accountId: string
+    accountIds: string | Set<string>
   ): number {
-    return periodTransactions.reduce((sum, t) => {
-      if (t.account_id !== accountId) return sum;
+    const accountSet = typeof accountIds === 'string' ? new Set([accountIds]) : accountIds;
 
-      if (t.type === 'expense' || t.type === 'transfer') {
+    return periodTransactions.reduce((sum, t) => {
+      const isSource = accountSet.has(t.account_id);
+      if (!isSource) return sum;
+
+      if (t.type === 'expense') {
         return sum + t.amount;
       }
+
+      if (t.type === 'transfer') {
+        // Only count as spent if sending to an account OUTSIDE the set
+        const isDestInternal = t.to_account_id && accountSet.has(t.to_account_id);
+        if (!isDestInternal) {
+          return sum + t.amount;
+        }
+      }
+
       return sum;
     }, 0);
   }
@@ -241,17 +261,22 @@ export class FinanceLogicService {
    */
   static calculatePeriodTotalIncome(
     periodTransactions: Transaction[],
-    accountId: string
+    accountIds: string | Set<string>
   ): number {
+    const accountSet = typeof accountIds === 'string' ? new Set([accountIds]) : accountIds;
+
     return periodTransactions.reduce((sum, t) => {
       // Direct income to account
-      if (t.account_id === accountId && t.type === 'income') {
+      if (t.type === 'income' && accountSet.has(t.account_id)) {
         return sum + t.amount;
       }
 
-      // Transfer IN to account
-      if (t.to_account_id === accountId && t.type === 'transfer') {
-        return sum + t.amount;
+      // Transfer IN to account (from outside)
+      if (t.type === 'transfer' && t.to_account_id && accountSet.has(t.to_account_id)) {
+        const isSourceInternal = accountSet.has(t.account_id);
+        if (!isSourceInternal) {
+          return sum + t.amount;
+        }
       }
 
       return sum;
@@ -265,13 +290,17 @@ export class FinanceLogicService {
    */
   static calculatePeriodTotalTransfers(
     periodTransactions: Transaction[],
-    accountId: string
+    accountIds: string | Set<string>
   ): number {
+    const accountSet = typeof accountIds === 'string' ? new Set([accountIds]) : accountIds;
+
     return periodTransactions.reduce((sum, t) => {
       if (t.type !== 'transfer') return sum;
 
-      const isRelated = t.account_id === accountId || t.to_account_id === accountId;
-      if (isRelated) {
+      const isSource = accountSet.has(t.account_id);
+      const isDest = t.to_account_id && accountSet.has(t.to_account_id);
+
+      if (isSource || isDest) {
         return sum + t.amount;
       }
       return sum;
@@ -565,16 +594,26 @@ export class FinanceLogicService {
   }
 
   /**
+   * Calculate aggregated balance from a list of accounts
+   * Uses the 'balance' field from the database
+   */
+  static calculateAggregatedBalance(accounts: Account[]): number {
+    return accounts.reduce((sum, account) => sum + (account.balance || 0), 0);
+  }
+
+  /**
    * Calculate account balance from transactions (Pure business logic)
    */
   static calculateAccountBalance(
-    accountId: string,
+    accountIds: string | Set<string>,
     transactions: Transaction[]
   ): number {
+    const accountSet = typeof accountIds === 'string' ? new Set([accountIds]) : accountIds;
+
     const balance = transactions.reduce((balance, transaction) => {
       // Check if this transaction involves this account
-      const isSourceAccount = transaction.account_id === accountId;
-      const isDestinationAccount = transaction.to_account_id === accountId;
+      const isSourceAccount = accountSet.has(transaction.account_id);
+      const isDestinationAccount = transaction.to_account_id && accountSet.has(transaction.to_account_id);
 
       // Skip if transaction doesn't involve this account
       if (!isSourceAccount && !isDestinationAccount) {
@@ -583,17 +622,20 @@ export class FinanceLogicService {
 
       // Handle transfers (has to_account_id)
       if (transaction.to_account_id) {
-        if (isSourceAccount) {
-          // Money leaving this account (regardless of type)
+        if (isSourceAccount && isDestinationAccount) {
+          // Internal transfer within the set: NO NET CHANGE
+          return balance;
+        } else if (isSourceAccount) {
+          // Money leaving this account set
           return balance - transaction.amount;
         } else if (isDestinationAccount) {
-          // Money entering this account (regardless of type)
+          // Money entering this account set
           return balance + transaction.amount;
         }
       }
 
-      // Handle regular transactions (no to_account_id)
-      if (isSourceAccount && !transaction.to_account_id) {
+      // Handle regular transactions (no to_account_id or not transfer)
+      if (isSourceAccount) {
         if (transaction.type === 'income') {
           // Income adds to balance
           return balance + transaction.amount;
