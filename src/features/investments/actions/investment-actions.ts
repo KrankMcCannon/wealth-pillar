@@ -30,7 +30,7 @@ export async function createInvestmentAction(
       amount: input.amount,
       shares_acquired: input.shares_acquired,
       currency: input.currency,
-      currency_rate: input.currency_rate || 1.0,
+      currency_rate: input.currency_rate || 1,
       tax_paid: input.tax_paid || 0,
       net_earn: input.net_earn || 0,
       created_at: input.created_at ? new Date(input.created_at).toISOString() : new Date().toISOString(),

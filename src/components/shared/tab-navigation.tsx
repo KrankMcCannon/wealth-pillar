@@ -21,7 +21,7 @@ export default function TabNavigation({
   onTabChange,
   variant = 'underline',
   className = ''
-}: TabNavigationProps) {
+}: Readonly<TabNavigationProps>) {
   const getContainerStyles = () => {
     switch (variant) {
       case 'pills':

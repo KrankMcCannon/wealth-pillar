@@ -31,12 +31,14 @@ interface OnboardingModalProps {
 }
 
 interface AccountFormState {
+  id: string;
   name: string;
   type: keyof typeof AccountTypeMap;
   isDefault?: boolean;
 }
 
 interface BudgetFormState {
+  id: string;
   description: string;
   amount: string;
   type: BudgetType;
@@ -113,20 +115,53 @@ const steps = [
   },
 ] as const;
 
+// Helper for button content
+function renderButtonContent(currentStep: number, totalSteps: number, loading: boolean) {
+  if (currentStep === totalSteps - 1) {
+    if (loading) {
+      return (
+        <>
+          <Loader2 className={onboardingStyles.budgets.loadingIcon} />
+          Salvataggio...
+        </>
+      );
+    }
+    return (
+      <>
+        Conferma
+        <CheckCircle2 className={onboardingStyles.footer.buttonIcon} />
+      </>
+    );
+  }
+  return (
+    <>
+      Avanti
+      <ArrowRight className={onboardingStyles.footer.buttonIcon} />
+    </>
+  );
+}
+
+// Helper for step dots
+function getStepDotClass(index: number, currentStep: number) {
+  if (index === currentStep) return onboardingStyles.steps.dotActive;
+  if (index < currentStep) return onboardingStyles.steps.dotDone;
+  return onboardingStyles.steps.dotIdle;
+}
+
 export default function OnboardingModal({
   categories,
   onComplete,
   loading = false,
   error = null,
   categoriesLoading = false,
-}: OnboardingModalProps) {
+}: Readonly<OnboardingModalProps>) {
   const [currentStep, setCurrentStep] = useState(0);
   const [groupName, setGroupName] = useState("");
   const [groupDescription, setGroupDescription] = useState("");
   const [budgetStartDay, setBudgetStartDay] = useState<number>(1);
-  const [accounts, setAccounts] = useState<AccountFormState[]>([{ name: "", type: "payroll", isDefault: true }]);
+  const [accounts, setAccounts] = useState<AccountFormState[]>([{ id: crypto.randomUUID(), name: "", type: "payroll", isDefault: true }]);
   const [budgets, setBudgets] = useState<BudgetFormState[]>([
-    { description: "", amount: "", type: "monthly", categoryId: "" },
+    { id: crypto.randomUUID(), description: "", amount: "", type: "monthly", categoryId: "" },
   ]);
   const [localError, setLocalError] = useState<string | null>(null);
   const [showDraftRestore, setShowDraftRestore] = useState(() => Boolean(loadDraft()));
@@ -178,9 +213,9 @@ export default function OnboardingModal({
 
     // Budget step: Allow proceeding if at least one budget is valid OR if budgets array is empty (skipped)
     if (currentStep === 2) {
-      return budgets.length === 0 || budgets.every((budget) => {
-        const amount = parseFloat(budget.amount);
-        return budget.description.trim().length > 1 && !isNaN(amount) && amount > 0 && Boolean(budget.categoryId);
+      return budgets.every((budget) => {
+        const amount = Number.parseFloat(budget.amount);
+        return budget.description.trim().length > 1 && !Number.isNaN(amount) && amount > 0 && Boolean(budget.categoryId);
       });
     }
 
@@ -247,7 +282,7 @@ export default function OnboardingModal({
         })),
         budgets: budgets.map((budget) => ({
           description: budget.description.trim(),
-          amount: parseFloat(budget.amount),
+          amount: Number.parseFloat(budget.amount),
           type: budget.type,
           categories: [budget.categoryId],
         })),
@@ -314,7 +349,7 @@ export default function OnboardingModal({
   };
 
   const addAccount = () => {
-    setAccounts((prev) => [...prev, { name: "", type: "payroll", isDefault: false }]);
+    setAccounts((prev) => [...prev, { id: crypto.randomUUID(), name: "", type: "payroll", isDefault: false }]);
   };
 
   const removeAccount = (index: number) => {
@@ -343,7 +378,7 @@ export default function OnboardingModal({
       )}
 
       {accounts.map((account, index) => (
-        <div key={`account-${index}`} className={onboardingStyles.card}>
+        <div key={account.id} className={onboardingStyles.card}>
           <div className={onboardingStyles.cardHeader}>
             <div className={onboardingStyles.accounts.labelRow}>
               <p className={onboardingStyles.cardTitle}>Conto {index + 1}</p>
@@ -428,7 +463,7 @@ export default function OnboardingModal({
   };
 
   const addBudget = () => {
-    setBudgets((prev) => [...prev, { description: "", amount: "", type: "monthly", categoryId: "" }]);
+    setBudgets((prev) => [...prev, { id: crypto.randomUUID(), description: "", amount: "", type: "monthly", categoryId: "" }]);
   };
 
   const removeBudget = (index: number) => {
@@ -473,7 +508,7 @@ export default function OnboardingModal({
         </div>
       )}
       {budgets.map((budget, index) => (
-        <div key={`budget-${index}`} className={onboardingStyles.card}>
+        <div key={budget.id} className={onboardingStyles.card}>
           <div className={onboardingStyles.cardHeader}>
             <p className={onboardingStyles.cardTitle}>Budget {index + 1}</p>
             {budgets.length > 1 && (
@@ -560,7 +595,7 @@ export default function OnboardingModal({
         </Label>
         <Select
           value={budgetStartDay.toString()}
-          onValueChange={(value) => setBudgetStartDay(parseInt(value))}
+          onValueChange={(value) => setBudgetStartDay(Number.parseInt(value))}
           disabled={loading}
         >
           <SelectTrigger className={onboardingStyles.select}>
@@ -640,15 +675,11 @@ export default function OnboardingModal({
             <div>
               {/* Visual step progress indicator with dots */}
               <div className={onboardingStyles.steps.dots}>
-                {steps.map((_, index) => (
+                {steps.map((step, index) => (
                   <div
-                    key={index}
+                    key={step.id}
                     className={`${onboardingStyles.steps.dot} ${
-                      index === currentStep
-                        ? onboardingStyles.steps.dotActive
-                        : index < currentStep
-                        ? onboardingStyles.steps.dotDone
-                        : onboardingStyles.steps.dotIdle
+                      getStepDotClass(index, currentStep)
                     }`}
                   />
                 ))}
@@ -692,24 +723,7 @@ export default function OnboardingModal({
             disabled={loading || !canProceed || (currentStep === steps.length - 1 && categoriesLoading)}
             className={onboardingStyles.nextButton}
           >
-            {currentStep === steps.length - 1 ? (
-              loading ? (
-                <>
-                  <Loader2 className={onboardingStyles.budgets.loadingIcon} />
-                  Salvataggio...
-                </>
-              ) : (
-                <>
-                  Conferma
-                  <CheckCircle2 className={onboardingStyles.footer.buttonIcon} />
-                </>
-              )
-            ) : (
-              <>
-                Avanti
-                <ArrowRight className={onboardingStyles.footer.buttonIcon} />
-              </>
-            )}
+            {renderButtonContent(currentStep, steps.length, loading)}
           </Button>
         </div>
       </motion.div>

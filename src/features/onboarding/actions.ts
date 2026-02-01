@@ -6,10 +6,6 @@ import { revalidateTag } from 'next/cache';
 import type { CompleteOnboardingInput } from './types';
 import { clerkClient } from '@clerk/nextjs/server';
 import { randomUUID } from 'node:crypto';
-import type { Database } from '@/lib/types/database.types';
-
-type UserInsert = Database['public']['Tables']['users']['Insert'];
-type GroupInsert = Database['public']['Tables']['groups']['Insert'];
 
 /**
  * Service Result type
@@ -27,6 +23,70 @@ function getInitials(name: string) {
   return `${parts[0][0] ?? ''}${lastPart?.[0] ?? ''}`.toUpperCase();
 }
 
+// Helper: Validate onboarding input
+function validateOnboardingInput(input: CompleteOnboardingInput): string | null {
+  const { user, group, accounts, budgets } = input;
+  if (!user?.clerkId || !user.email || !user.name) return 'Dati utente mancanti per l\'onboarding';
+  if (!group?.name?.trim()) return 'Il nome del gruppo è obbligatorio';
+  if (!accounts || accounts.length === 0) return 'Aggiungi almeno un conto bancario';
+  if (!budgets || budgets.length === 0) return 'Aggiungi almeno un budget';
+  return null;
+}
+
+// Helper: Create accounts
+async function createOnboardingAccounts(
+  accounts: CompleteOnboardingInput['accounts'],
+  userId: string,
+  groupId: string
+): Promise<{ defaultAccountId: string | null; error: string | null }> {
+  let defaultAccountId: string | null = null;
+  const createdAccountIds: string[] = [];
+
+  for (const accountInput of accounts) {
+    const accountId = randomUUID();
+    const createdAccount = await AccountService.createAccount({
+      id: accountId,
+      name: accountInput.name.trim(),
+      type: accountInput.type,
+      user_ids: [userId],
+      group_id: groupId,
+    });
+
+    if (!createdAccount) return { defaultAccountId: null, error: "Failed to create account" };
+
+    createdAccountIds.push(accountId);
+    if (accountInput.isDefault) defaultAccountId = accountId;
+  }
+
+  // Fallback: if no default specified, use first account
+  if (!defaultAccountId && createdAccountIds.length > 0) {
+    defaultAccountId = createdAccountIds[0];
+  }
+
+  return { defaultAccountId, error: null };
+}
+
+// Helper: Create budgets
+async function createOnboardingBudgets(
+  budgets: CompleteOnboardingInput['budgets'],
+  userId: string,
+  groupId: string
+): Promise<string | null> {
+  for (const budgetInput of budgets) {
+    const createdBudget = await BudgetService.createBudget({
+      description: budgetInput.description.trim(),
+      amount: budgetInput.amount,
+      type: budgetInput.type,
+      categories: budgetInput.categories,
+      user_id: userId,
+      group_id: groupId,
+    });
+
+    if (!createdBudget) return "Failed to create budget";
+  }
+  return null;
+}
+
 /**
  * Completes the onboarding flow by creating the user, group, accounts and budgets.
  */
@@ -36,141 +96,64 @@ export async function completeOnboardingAction(
   try {
     const { user, group, accounts, budgets, budgetStartDay } = input;
 
-    if (!user?.clerkId || !user.email || !user.name) {
-      return { data: null, error: 'Dati utente mancanti per l\'onboarding' };
-    }
+    // 1. Validation
+    const validationError = validateOnboardingInput(input);
+    if (validationError) return { data: null, error: validationError };
 
-    if (!group?.name?.trim()) {
-      return { data: null, error: 'Il nome del gruppo è obbligatorio' };
-    }
-
-    if (!accounts || accounts.length === 0) {
-      return { data: null, error: 'Aggiungi almeno un conto bancario' };
-    }
-
-    if (!budgets || budgets.length === 0) {
-      return { data: null, error: 'Aggiungi almeno un budget' };
-    }
-
-    // Check if user already exists
+    // 2. Check existing user
     const existingUser = await UserService.userExistsByClerkId(user.clerkId);
     if (existingUser) {
-      return {
-        data: null,
-        error: 'L\'utente risulta già configurato. Aggiorna la pagina per accedere alla dashboard.',
-      };
+      return { data: null, error: 'L\'utente risulta già configurato. Aggiorna la pagina per accedere alla dashboard.' };
     }
 
     const userId = randomUUID();
     const groupId = randomUUID();
 
-    // Create Group
-    const groupData: GroupInsert = {
-      id: groupId,
-      name: group.name.trim(),
-      description: group.description?.trim() || '',
-      user_ids: [userId],
-      is_active: true,
-      plan: { name: "Piano Gratuito", type: "free" },
-    };
-
-    // Use GroupService to create group
+    // 3. Create Group
     const createdGroup = await GroupService.createGroup({
       id: groupId,
-      name: groupData.name,
-      description: groupData.description || undefined,
-      userIds: groupData.user_ids as string[],
-      plan: groupData.plan as Record<string, unknown>,
-      isActive: groupData.is_active
+      name: group.name.trim(),
+      description: group.description?.trim() || undefined,
+      userIds: [userId],
+      plan: { name: "Piano Gratuito", type: "free" },
+      isActive: true
     });
 
-    if (!createdGroup) {
-      return { data: null, error: 'Errore durante la creazione del gruppo' };
-    }
+    if (!createdGroup) return { data: null, error: 'Errore durante la creazione del gruppo' };
 
-    const themeColor = '#6366F1';
-
-    // Create User
-    const userData: UserInsert = {
+    // 4. Create User
+    const createdUser = await UserService.create({
       id: userId,
       name: user.name.trim(),
       email: user.email.trim().toLowerCase(),
       avatar: getInitials(user.name),
-      theme_color: themeColor,
+      theme_color: '#6366F1',
       budget_start_date: budgetStartDay,
       group_id: groupId,
       role: 'admin',
       clerk_id: user.clerkId,
       budget_periods: [],
-    };
+    });
 
-    const createdUser = await UserService.create(userData);
+    if (!createdUser) return { data: null, error: 'Errore durante la creazione del profilo utente' };
 
-    if (!createdUser) {
-      return {
-        data: null,
-        error: 'Errore durante la creazione del profilo utente',
-      };
-    }
-
-    // Revalidate caches
+    // 5. Invalidate caches
     revalidateTag(CACHE_TAGS.USERS, 'max');
     revalidateTag(CACHE_TAGS.USER(userId), 'max');
     revalidateTag(CACHE_TAGS.USER_BY_CLERK(user.clerkId), 'max');
 
-    // Track created account IDs and default account
-    let defaultAccountId: string | null = null;
-    const createdAccountIds: string[] = [];
+    // 6. Create Accounts
+    const { defaultAccountId, error: accountError } = await createOnboardingAccounts(accounts, userId, groupId);
+    if (accountError) return { data: null, error: accountError };
 
-    // Create Accounts
-    for (const accountInput of accounts) {
-      const accountId = randomUUID();
-
-      const createdAccount = await AccountService.createAccount({
-        id: accountId,
-        name: accountInput.name.trim(),
-        type: accountInput.type,
-        user_ids: [userId],
-        group_id: groupId,
-      });
-
-      if (!createdAccount) {
-        return { data: null, error: "Failed to create account" };
-      }
-
-      createdAccountIds.push(accountId);
-
-      if (accountInput.isDefault) {
-        defaultAccountId = accountId;
-      }
-    }
-
-    // Fallback: if no default specified, use first account
-    if (!defaultAccountId && createdAccountIds.length > 0) {
-      defaultAccountId = createdAccountIds[0];
-    }
-
-    // Set default account on user
+    // 7. Set default account
     if (defaultAccountId) {
-      // Type assertion needed because default_account_id may not be in generated types yet
       await UserService.update(userId, { default_account_id: defaultAccountId } as { default_account_id: string });
     }
 
-    // Create Budgets
-    for (const budgetInput of budgets) {
-      const createdBudget = await BudgetService.createBudget({
-        description: budgetInput.description.trim(),
-        amount: budgetInput.amount,
-        type: budgetInput.type,
-        categories: budgetInput.categories,
-        user_id: userId,
-        group_id: groupId,
-      });
-
-      if (!createdBudget) {
-        return { data: null, error: "Failed to create budget" };
-      }
-    }
+    // 8. Create Budgets
+    const budgetError = await createOnboardingBudgets(budgets, userId, groupId);
+    if (budgetError) return { data: null, error: budgetError };
 
     return {
       data: { userId, groupId },

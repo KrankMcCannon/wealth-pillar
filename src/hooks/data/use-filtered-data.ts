@@ -23,7 +23,7 @@ interface UseFilteredDataReturn<T> {
   /** Filtered data based on permissions and optional additional filter */
   filteredData: T[];
   /** Active user ID being displayed ('all' for admins viewing all data) */
-  activeUserId: string | 'all';
+  activeUserId: string;
 }
 
 /**
@@ -92,15 +92,12 @@ export function useFilteredData<T extends { user_id: string | null }>({
     if (checkIsMember(currentUser)) {
       // Members see only their own items
       permissionFiltered = data.filter(item => item.user_id === currentUser.id);
+    } else if (selectedUserId && selectedUserId !== 'all') {
+      // Admin logic - Filter to specific user
+      permissionFiltered = data.filter(item => item.user_id === selectedUserId);
     } else {
-      // Admin logic
-      if (selectedUserId && selectedUserId !== 'all') {
-        // Filter to specific user
-        permissionFiltered = data.filter(item => item.user_id === selectedUserId);
-      } else {
-        // Show all items
-        permissionFiltered = data;
-      }
+      // Admin logic - Show all items
+      permissionFiltered = data;
     }
 
     // Step 2: Apply optional additional filter for domain-specific logic

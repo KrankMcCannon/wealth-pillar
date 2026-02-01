@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.5.5] - 2026-02-01
+
+### Refactor
+
+- **reports**: Architecturally decouple data fetching from presentation, consolidate components in feature directory, and restore static all-time view default.
+
+## [0.5.4] - 2026-02-01
+
+### Refactor
+
+- **reports**: Revert strict metric separation and restore payroll-only filtering logic significantly simplifying the implementation.
+
+## [0.5.3] - 2026-01-30
+
+### Refactor
+
+- **project**: Applied comprehensive linting fixes, TypeScript best practices, and performance optimizations across the entire codebase.
+- **components**: Refactored logic in `swipeable-card`, `dashboard`, and modals to reduce complexity and improve maintainability.
+- **services**: Optimized server-side logic in finance and page data services.
+- **utils**: Centralized validation and caching utilities.
+
 ## [0.5.2] - 2026-01-29
 
 ### Refactor

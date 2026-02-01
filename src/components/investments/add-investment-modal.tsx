@@ -15,9 +15,9 @@ import { cn } from "@/lib/utils";
 const investmentSchema = z.object({
   name: z.string().min(1, "Il nome è obbligatorio"),
   symbol: z.string().min(1, "Il simbolo è obbligatorio"),
-  amount: z.string().refine(val => !isNaN(Number(val)) && Number(val) > 0, "Importo non valido"),
-  tax_paid: z.string().refine(val => !isNaN(Number(val)) && Number(val) >= 0, "Tasse non valide"),
-  shares: z.string().refine(val => !isNaN(Number(val)) && Number(val) > 0, "Quote non valide"),
+  amount: z.string().refine(val => !Number.isNaN(Number(val)) && Number(val) > 0, "Importo non valido"),
+  tax_paid: z.string().refine(val => !Number.isNaN(Number(val)) && Number(val) >= 0, "Tasse non valide"),
+  shares: z.string().refine(val => !Number.isNaN(Number(val)) && Number(val) > 0, "Quote non valide"),
   created_at: z.string().min(1, "Data obbligatoria"),
   currency: z.enum(["EUR", "USD"])
 });
@@ -29,7 +29,7 @@ interface AddInvestmentModalProps {
   onClose: () => void;
 }
 
-export default function AddInvestmentModal({ isOpen, onClose }: AddInvestmentModalProps) {
+export default function AddInvestmentModal({ isOpen, onClose }: Readonly<AddInvestmentModalProps>) {
   const {
     register,
     handleSubmit,

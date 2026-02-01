@@ -38,7 +38,7 @@ export function FormSection({
   children,
   showSeparator = false,
   className,
-}: FormSectionProps) {
+}: Readonly<FormSectionProps>) {
   return (
     <div className={cn(formStyles.section.container, className)}>
       {(title || description) && (

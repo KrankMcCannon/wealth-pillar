@@ -46,28 +46,27 @@ interface WeekdayLabelsProps {
 export function WeekdayLabels({
   highlightWeekends = false,
   className,
-}: WeekdayLabelsProps) {
+}: Readonly<WeekdayLabelsProps>) {
   return (
-    <div className={cn(calendarDrawerStyles.weekdays.container, className)} role="row">
+    <tr className={cn(calendarDrawerStyles.weekdays.container, className)}>
       {ITALIAN_WEEKDAYS.map((day, index) => {
         // Saturday (index 5) and Sunday (index 6) are weekends
         const isWeekend = highlightWeekends && (index === 5 || index === 6);
 
         return (
-          <div
+          <th
             key={day}
             className={cn(
               calendarDrawerStyles.weekdays.label,
               weekdayLabelVariants({ isWeekend })
             )}
-            role="columnheader"
             aria-label={getFullWeekdayName(index)}
           >
             {day}
-          </div>
+          </th>
         );
       })}
-    </div>
+    </tr>
   );
 }
 

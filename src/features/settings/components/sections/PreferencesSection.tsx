@@ -19,7 +19,7 @@ export function PreferencesSection({
   onOpenCurrency,
   onOpenLanguage,
   onOpenTimezone,
-}: PreferencesSectionProps) {
+}: Readonly<PreferencesSectionProps>) {
   return (
     <PageSection>
       <SectionHeader title="Preferenze" icon={Settings} iconClassName="text-primary" />

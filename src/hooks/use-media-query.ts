@@ -14,10 +14,10 @@ import { useSyncExternalStore } from "react";
  */
 export function useMediaQuery(query: string): boolean {
   const getSnapshot = () =>
-    typeof window === "undefined" ? false : window.matchMedia(query).matches;
+    globalThis.window === undefined ? false : globalThis.window.matchMedia(query).matches;
 
   const subscribe = (callback: () => void) => {
-    const mediaQuery = window.matchMedia(query);
+    const mediaQuery = globalThis.window.matchMedia(query);
     const handleChange = () => callback();
 
     mediaQuery.addEventListener("change", handleChange);

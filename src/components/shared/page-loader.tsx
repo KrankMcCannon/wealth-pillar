@@ -5,7 +5,7 @@ interface PageLoaderProps {
   submessage?: string;
 }
 
-export function PageLoader({ message = 'Caricamento...', submessage = 'Attendere prego' }: PageLoaderProps) {
+export function PageLoader({ message = 'Caricamento...', submessage = 'Attendere prego' }: Readonly<PageLoaderProps>) {
   return (
     <div className={pageLoaderStyles.page}>
       <div className={pageLoaderStyles.container}>

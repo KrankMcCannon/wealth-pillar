@@ -47,7 +47,7 @@ interface ReferenceDataInitializerProps {
 export function ReferenceDataInitializer({
   children,
   data,
-}: ReferenceDataInitializerProps) {
+}: Readonly<ReferenceDataInitializerProps>) {
   const initialize = useReferenceDataStore((state) => state.initialize);
   const isInitialized = useReferenceDataStore((state) => state.isInitialized);
 

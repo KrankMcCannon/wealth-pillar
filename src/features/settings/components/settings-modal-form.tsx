@@ -6,7 +6,7 @@ import { settingsStyles } from "@/features/settings/theme";
 
 export type SettingsModalFormProps = React.FormHTMLAttributes<HTMLFormElement>;
 
-export function SettingsModalForm({ className, ...props }: SettingsModalFormProps) {
+export function SettingsModalForm({ className, ...props }: Readonly<SettingsModalFormProps>) {
   return (
     <form
       className={cn(settingsStyles.modals.form, className)}
@@ -27,7 +27,7 @@ export function SettingsModalField({
   label,
   error,
   inputProps,
-}: SettingsModalFieldProps) {
+}: Readonly<SettingsModalFieldProps>) {
   return (
     <div>
       <label htmlFor={id} className={settingsStyles.modals.field.label}>

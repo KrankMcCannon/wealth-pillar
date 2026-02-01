@@ -144,6 +144,14 @@ const styles = {
 // SHARED CONTENT COMPONENT
 // ============================================================================
 
+// Helper for result message
+function getResultCountMessage(count: number, hasQuery: boolean) {
+  if (hasQuery) {
+    return `${count} ${count === 1 ? "risultato" : "risultati"} trovati`;
+  }
+  return `${count} ${count === 1 ? "icona" : "icone"} disponibili`;
+}
+
 interface IconPickerContentProps {
   value: string;
   recent: string[];
@@ -151,7 +159,7 @@ interface IconPickerContentProps {
   isMobile: boolean;
 }
 
-function IconPickerContent({ value, recent, onSelect, isMobile }: IconPickerContentProps) {
+function IconPickerContent({ value, recent, onSelect, isMobile }: Readonly<IconPickerContentProps>) {
   const [searchQuery, setSearchQuery] = React.useState("");
   const [debouncedQuery, setDebouncedQuery] = React.useState("");
   const [selectedCategory, setSelectedCategory] = React.useState<IconCategory>("all");
@@ -303,9 +311,7 @@ function IconPickerContent({ value, recent, onSelect, isMobile }: IconPickerCont
         className={cn(styles.resultsCount.base, isMobile ? styles.resultsCount.mobile : styles.resultsCount.desktop)}
         aria-live="polite"
       >
-        {debouncedQuery
-          ? `${filteredIcons.length} ${filteredIcons.length === 1 ? "risultato" : "risultati"} trovati`
-          : `${filteredIcons.length} ${filteredIcons.length === 1 ? "icona" : "icone"} disponibili`}
+        {getResultCountMessage(filteredIcons.length, !!debouncedQuery)}
       </div>
 
       {/* Virtualized Icon Grid */}
@@ -347,7 +353,10 @@ function IconPickerContent({ value, recent, onSelect, isMobile }: IconPickerCont
                 >
                   {Array.from({ length: cols }).map((_, colIndex) => {
                     const icon = getIconAtPosition(virtualRow.index, colIndex);
-                    if (!icon) return <div key={colIndex} />;
+                    // Use a unique key based on row and column to avoid array index warning
+                    const cellKey = `cell-${virtualRow.index}-${colIndex}`;
+                    
+                    if (!icon) return <div key={cellKey} />;
 
                     const IconComponent = icon.component;
                     const isSelected = value === icon.name;

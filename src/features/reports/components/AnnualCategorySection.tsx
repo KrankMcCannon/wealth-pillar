@@ -21,7 +21,7 @@ export function AnnualCategorySection({
   annualData = [],
   categories,
   year = new Date().getFullYear(),
-}: AnnualCategorySectionProps) {
+}: Readonly<AnnualCategorySectionProps>) {
   const categoryBreakdown = React.useMemo(() => annualData, [annualData]);
 
   // Filter only categories with spending (spent > 0, regardless of income)

@@ -8,7 +8,12 @@ import { supabase } from '@/server/db/supabase';
 import { TransactionService } from './transaction.service';
 import type { Account } from '@/lib/types';
 import type { Database } from '@/lib/types/database.types';
-import { revalidateTag } from 'next/cache';
+import {
+  validateId,
+  validateRequiredString,
+  validateNonEmptyArray,
+} from '@/lib/utils/validation-utils';
+import { invalidateAccountCaches } from '@/lib/utils/cache-utils';
 
 type AccountInsert = Database['public']['Tables']['accounts']['Insert'];
 type AccountUpdate = Database['public']['Tables']['accounts']['Update'];
@@ -38,7 +43,7 @@ export class AccountService {
   /**
    * Get accounts by group ID
    */
-  private static getByGroupDb = cache(async (groupId: string): Promise<Account[]> => {
+  private static readonly getByGroupDb = cache(async (groupId: string): Promise<Account[]> => {
     const { data, error } = await supabase
       .from('accounts')
       .select('*')
@@ -52,7 +57,7 @@ export class AccountService {
   /**
    * Get accounts by user ID (where user_ids contains userId)
    */
-  private static getByUserDb = cache(async (userId: string): Promise<Account[]> => {
+  private static readonly getByUserDb = cache(async (userId: string): Promise<Account[]> => {
     const { data, error } = await supabase
       .from('accounts')
       .select('*')
@@ -136,7 +141,7 @@ export class AccountService {
       async () => {
         const account = await this.getByIdDb(accountId);
         if (!account) return null;
-        return serialize(account) as Account;
+        return serialize(account);
       },
       accountCacheKeys.byId(accountId),
       cacheOptions.account(accountId)
@@ -156,7 +161,7 @@ export class AccountService {
     const getCachedAccounts = cached(
       async () => {
         const accounts = await this.getByUserDb(userId);
-        return serialize(accounts) as Account[];
+        return serialize(accounts);
       },
       accountCacheKeys.byUser(userId),
       cacheOptions.accountsByUser(userId)
@@ -197,7 +202,7 @@ export class AccountService {
     const getCachedAccounts = cached(
       async () => {
         const accounts = await this.getByGroupDb(groupId);
-        return serialize(accounts) as Account[];
+        return serialize(accounts);
       },
       accountCacheKeys.byGroup(groupId),
       cacheOptions.accountsByGroup(groupId)
@@ -223,16 +228,17 @@ export class AccountService {
    * Creates a new account
    */
   static async createAccount(data: CreateAccountInput): Promise<Account> {
-    if (!data.name?.trim()) throw new Error('Account name is required');
+    // Validation using shared utilities
+    const name = validateRequiredString(data.name, 'Account name');
     if (!data.type) throw new Error('Account type is required');
-    if (!data.group_id?.trim()) throw new Error('Group ID is required');
-    if (!data.user_ids?.length) throw new Error('At least one user is required');
+    validateId(data.group_id, 'Group ID');
+    validateNonEmptyArray(data.user_ids, 'user');
 
     const now = new Date().toISOString();
 
     const account = await this.createDb({
       id: data.id,
-      name: data.name.trim(),
+      name,
       type: data.type,
       user_ids: data.user_ids,
       group_id: data.group_id,
@@ -242,10 +248,12 @@ export class AccountService {
 
     if (!account) throw new Error('Failed to create account');
 
-    revalidateTag(CACHE_TAGS.ACCOUNTS, 'max');
-    revalidateTag(CACHE_TAGS.ACCOUNT(account.id), 'max');
-    revalidateTag(`group:${data.group_id}:accounts` as any, 'max');
-    data.user_ids.forEach(userId => revalidateTag(`user:${userId}:accounts` as any, 'max'));
+    // Cache invalidation using shared utility
+    invalidateAccountCaches({
+      accountId: account.id,
+      groupId: data.group_id,
+      userIds: data.user_ids,
+    });
 
     return serialize(account);
   }
@@ -254,7 +262,7 @@ export class AccountService {
    * Updates an existing account
    */
   static async updateAccount(accountId: string, data: UpdateAccountInput): Promise<Account> {
-    if (!accountId?.trim()) throw new Error('Account ID is required');
+    validateId(accountId, 'Account ID');
 
     const account = await this.updateDb(accountId, {
       updated_at: new Date().toISOString(),
@@ -263,10 +271,12 @@ export class AccountService {
 
     if (!account) throw new Error('Failed to update account');
 
-    revalidateTag(CACHE_TAGS.ACCOUNTS, 'max');
-    revalidateTag(CACHE_TAGS.ACCOUNT(accountId), 'max');
-    if (account.group_id) revalidateTag(`group:${account.group_id}:accounts` as any, 'max');
-    if (account.user_ids) account.user_ids.forEach(userId => revalidateTag(`user:${userId}:accounts` as any, 'max'));
+    // Cache invalidation using shared utility
+    invalidateAccountCaches({
+      accountId,
+      groupId: account.group_id || undefined,
+      userIds: account.user_ids,
+    });
 
     return serialize(account);
   }
@@ -275,7 +285,7 @@ export class AccountService {
    * Deletes an account
    */
   static async deleteAccount(accountId: string): Promise<boolean> {
-    if (!accountId?.trim()) throw new Error('Account ID is required');
+    validateId(accountId, 'Account ID');
 
     const account = await this.getAccountById(accountId);
 
@@ -285,11 +295,13 @@ export class AccountService {
     // Delete the account
     await this.deleteDb(accountId);
 
-    revalidateTag(CACHE_TAGS.ACCOUNTS, 'max');
-    revalidateTag(CACHE_TAGS.ACCOUNT(accountId), 'max');
+    // Cache invalidation using shared utility
     if (account) {
-      revalidateTag(`group:${account.group_id}:accounts` as any, 'max');
-      account.user_ids.forEach(userId => revalidateTag(`user:${userId}:accounts` as any, 'max'));
+      invalidateAccountCaches({
+        accountId,
+        groupId: account.group_id || undefined,
+        userIds: account.user_ids,
+      });
     }
 
     return true;

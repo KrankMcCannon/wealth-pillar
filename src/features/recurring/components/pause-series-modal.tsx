@@ -2,7 +2,13 @@
 
 import { useState } from "react";
 import { Loader2, Pause, Play } from "lucide-react";
-import { Button, ModalBody, ModalFooter, ModalWrapper, Amount } from "@/components/ui";
+import {
+  Button,
+  ModalBody,
+  ModalFooter,
+  ModalWrapper,
+  Amount,
+} from "@/components/ui";
 import { RecurringTransactionSeries } from "@/lib/types";
 import { toggleRecurringSeriesActiveAction } from "@/features/recurring";
 import { recurringStyles } from "../theme/recurring-styles";
@@ -19,7 +25,7 @@ export function PauseSeriesModal({
   onOpenChange,
   series,
   onSuccess,
-}: PauseSeriesModalProps) {
+}: Readonly<PauseSeriesModalProps>) {
   const [isLoading, setIsLoading] = useState(false);
 
   if (!series) return null;
@@ -31,15 +37,18 @@ export function PauseSeriesModal({
   const handleConfirm = async () => {
     setIsLoading(true);
     try {
-      const result = await toggleRecurringSeriesActiveAction(series.id, !willPause);
+      const result = await toggleRecurringSeriesActiveAction(
+        series.id,
+        !willPause,
+      );
       if (result.error) {
-        console.error('Failed to toggle series:', result.error);
+        console.error("Failed to toggle series:", result.error);
       } else if (result.data) {
         onSuccess?.(result.data);
       }
       onOpenChange(false);
     } catch (error) {
-      console.error('Failed to toggle series:', error);
+      console.error("Failed to toggle series:", error);
     } finally {
       setIsLoading(false);
     }
@@ -50,7 +59,11 @@ export function PauseSeriesModal({
       isOpen={isOpen}
       onOpenChange={onOpenChange}
       title={`${actionText} serie ricorrente`}
-      description={willPause ? "La serie non genererà più transazioni automatiche" : "La serie riprenderà a generare transazioni"}
+      description={
+        willPause
+          ? "La serie non genererà più transazioni automatiche"
+          : "La serie riprenderà a generare transazioni"
+      }
       showCloseButton={!isLoading}
       disableOutsideClose={isLoading}
     >
@@ -73,18 +86,18 @@ export function PauseSeriesModal({
             {willPause ? (
               <>
                 <p>
-                  La serie ricorrente verrà {actionTextLower}. Non verranno più create transazioni automatiche finché non la riattiverai.
+                  La serie ricorrente verrà {actionTextLower}. Non verranno più
+                  create transazioni automatiche finché non la riattiverai.
                 </p>
                 <p className={recurringStyles.pauseModal.descriptionStrong}>
                   Le transazioni già create rimarranno invariate.
                 </p>
               </>
             ) : (
-              <>
-                <p>
-                  La serie ricorrente verrà {actionTextLower}. Riprenderà a generare transazioni automatiche secondo la frequenza impostata.
-                </p>
-              </>
+              <p>
+                La serie ricorrente verrà {actionTextLower}. Riprenderà a
+                generare transazioni automatiche secondo la frequenza impostata.
+              </p>
             )}
           </div>
         </div>
@@ -97,10 +110,7 @@ export function PauseSeriesModal({
         >
           Annulla
         </Button>
-        <Button
-          onClick={handleConfirm}
-          disabled={isLoading}
-        >
+        <Button onClick={handleConfirm} disabled={isLoading}>
           {isLoading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -108,13 +118,16 @@ export function PauseSeriesModal({
             </>
           ) : (
             <>
-              {willPause ? <Pause className="mr-2 h-4 w-4" /> : <Play className="mr-2 h-4 w-4" />}
+              {willPause ? (
+                <Pause className="mr-2 h-4 w-4" />
+              ) : (
+                <Play className="mr-2 h-4 w-4" />
+              )}
               {actionText}
             </>
           )}
         </Button>
       </ModalFooter>
     </ModalWrapper>
-
   );
 }

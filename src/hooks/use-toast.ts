@@ -19,16 +19,14 @@ export type ToastProps = {
   onOpenChange?: (open: boolean) => void;
 };
 
-type ToasterToast = ToastProps;
-
 type ActionType =
-  | { type: "ADD_TOAST"; toast: ToasterToast }
-  | { type: "UPDATE_TOAST"; toast: Partial<ToasterToast> }
+  | { type: "ADD_TOAST"; toast: ToastProps }
+  | { type: "UPDATE_TOAST"; toast: Partial<ToastProps> }
   | { type: "DISMISS_TOAST"; toastId?: string }
   | { type: "REMOVE_TOAST"; toastId?: string };
 
 interface State {
-  toasts: ToasterToast[];
+  toasts: ToastProps[];
 }
 
 const toastTimeouts = new Map<string, ReturnType<typeof setTimeout>>();
@@ -104,10 +102,10 @@ function genId() {
   return Math.random().toString(36).slice(2, 9);
 }
 
-export function toast({ ...props }: Omit<ToasterToast, "id">) {
+export function toast({ ...props }: Omit<ToastProps, "id">) {
   const id = genId();
 
-  const update = (props: Partial<ToasterToast>) =>
+  const update = (props: Partial<ToastProps>) =>
     dispatch({ type: "UPDATE_TOAST", toast: { ...props, id } });
   const dismiss = () => dispatch({ type: "DISMISS_TOAST", toastId: id });
 

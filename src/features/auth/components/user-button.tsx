@@ -19,7 +19,7 @@ interface UserButtonProps {
   variant?: "default" | "clerk";
 }
 
-export function UserButton({ showName = false, variant = "default" }: UserButtonProps) {
+export function UserButton({ showName = false, variant = "default" }: Readonly<UserButtonProps>) {
   const avatarUrl = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent("")}`;
 
   // Use Clerk's built-in UserButton if specified

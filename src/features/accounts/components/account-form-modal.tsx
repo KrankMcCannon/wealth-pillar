@@ -114,91 +114,102 @@ function AccountFormModal({
     }
   }, [isOpen, isEditMode, editId, defaultFormUserId, currentUser, reset, storeAccounts]);
 
+  // Handle update account flow
+  const handleUpdate = async (data: AccountFormData, id: string) => {
+    const accountData = {
+      name: data.name.trim(),
+      type: data.type,
+      user_ids: [data.user_id],
+    };
+
+    // 1. Store original account for revert
+    const originalAccount = storeAccounts.find((acc) => acc.id === id);
+    if (!originalAccount) {
+      throw new Error("Account non trovato");
+    }
+
+    // 2. Update in store immediately (optimistic)
+    updateAccount(id, accountData);
+
+    // 3. Call server action
+    const result = await updateAccountAction(
+      id,
+      accountData,
+      data.isDefault || false
+    );
+
+    if (result.error) {
+      // 4. Revert on error
+      updateAccount(id, originalAccount);
+      throw new Error(result.error);
+    }
+
+    // 5. Success - update with real data from server
+    if (result.data) {
+      updateAccount(id, result.data);
+    }
+  };
+
+  // Handle create account flow
+  const handleCreate = async (data: AccountFormData) => {
+    const accountData = {
+      name: data.name.trim(),
+      type: data.type,
+      user_ids: [data.user_id],
+    };
+
+    // 1. Create temporary ID
+    const tempId = getTempId("temp-account");
+    const now = new Date().toISOString();
+    const optimisticAccount: Account = {
+      id: tempId,
+      created_at: now,
+      updated_at: now,
+      ...accountData,
+      group_id: groupId,
+    };
+
+    // 2. Add to store immediately (optimistic)
+    addAccount(optimisticAccount);
+
+    // 3. Close modal immediately for better UX
+    onClose();
+
+    // 4. Call server action in background
+    const result = await createAccountAction(
+      {
+        id: crypto.randomUUID(),
+        ...accountData,
+        group_id: groupId,
+      },
+      data.isDefault || false
+    );
+
+    if (result.error) {
+      // 5. Remove optimistic account on error
+      removeAccount(tempId);
+      console.error("Failed to create account:", result.error);
+      // We can't show error in form since modal is closed, but we log it
+      return;
+    }
+
+    // 6. Replace temporary with real account from server
+    removeAccount(tempId);
+    if (result.data) {
+      addAccount(result.data);
+    }
+  };
+
   // Handle form submission with optimistic updates
   const onSubmit = async (data: AccountFormData) => {
     try {
-      const accountData = {
-        name: data.name.trim(),
-        type: data.type,
-        user_ids: [data.user_id],
-      };
-
       if (isEditMode && editId) {
-        // UPDATE: Optimistic update pattern
-        // 1. Store original account for revert
-        const originalAccount = storeAccounts.find((acc) => acc.id === editId);
-        if (!originalAccount) {
-          setError("root", { message: "Account non trovato" });
-          return;
-        }
-
-        // 2. Update in store immediately (optimistic)
-        updateAccount(editId, accountData);
-
-        // 3. Call server action
-        const result = await updateAccountAction(
-          editId,
-          accountData,
-          data.isDefault || false
-        );
-
-        if (result.error) {
-          // 4. Revert on error
-          updateAccount(editId, originalAccount);
-          setError("root", { message: result.error });
-          return;
-        }
-
-        // 5. Success - update with real data from server
-        if (result.data) {
-          updateAccount(editId, result.data);
-        }
+        await handleUpdate(data, editId);
+        onClose(); // Close on success for update
       } else {
-        // CREATE: Optimistic add pattern
-        // 1. Create temporary ID
-        const tempId = getTempId("temp-account");
-        const now = new Date().toISOString();
-        const optimisticAccount: Account = {
-          id: tempId,
-          created_at: now,
-          updated_at: now,
-          ...accountData,
-          group_id: groupId,
-        };
-
-        // 2. Add to store immediately (optimistic)
-        addAccount(optimisticAccount);
-
-        // 3. Close modal immediately for better UX
-        onClose();
-
-        // 4. Call server action in background
-        const result = await createAccountAction(
-          {
-            id: crypto.randomUUID(),
-            ...accountData,
-            group_id: groupId,
-          },
-          data.isDefault || false
-        );
-
-        if (result.error) {
-          // 5. Remove optimistic account on error
-          removeAccount(tempId);
-          console.error("Failed to create account:", result.error);
-          return;
-        }
-
-        // 6. Replace temporary with real account from server
-        removeAccount(tempId);
-        if (result.data) {
-          addAccount(result.data);
-        }
-        return; // Early return since modal already closed
+        await handleCreate(data);
+        // onClose is called inside handleCreate for immediate feedback
       }
-
-      // Close modal on success (for update mode)
-      onClose();
     } catch (error) {
       setError("root", {
         message: error instanceof Error ? error.message : "Errore sconosciuto"

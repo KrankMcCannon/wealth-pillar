@@ -58,7 +58,7 @@ export interface HistoricalDataPoint {
 export class InvestmentService {
   // ================== DATABASE OPERATIONS (inlined from repository) ==================
 
-  private static getByUserDb = cache(async (userId: string): Promise<Investment[]> => {
+  private static readonly getByUserDb = cache(async (userId: string): Promise<Investment[]> => {
     const { data, error } = await supabase
       .from('investments')
       .select('*')
@@ -126,7 +126,7 @@ export class InvestmentService {
       const shares = Number(inv.shares_acquired);
 
       // 1. Current (Live) Value: No date passed = latest price
-      const livePrice = symbolKey ? getCloseForDate(seriesIndex[symbolKey], undefined) : 0;
+      const livePrice = symbolKey ? getCloseForDate(seriesIndex[symbolKey]) : 0;
       const currentValue = livePrice * currencyRate * shares;
 
       // 2. Initial (Historical) Value: Price at creation date
@@ -212,7 +212,7 @@ export class InvestmentService {
           const rawDate = day?.datetime ?? day?.time ?? day?.date;
           if (!rawDate) return;
           const dateKey = String(rawDate).split(' ')[0];
-          historyMap[item.symbol][dateKey] = parseFloat(String(day.close));
+          historyMap[item.symbol][dateKey] = Number.parseFloat(String(day.close));
         });
       }
     });
@@ -235,30 +235,8 @@ export class InvestmentService {
         const invDate = new Date(inv.created_at || new Date());
 
         if (invDate <= d) {
-          // Get price for this date
-          let price = historyMap[inv.symbol]?.[dateStr];
-
-          // Gap filling: look back up to 3 days
-          if (!price) {
-            const yesterday = new Date(d);
-            yesterday.setDate(d.getDate() - 1);
-            let yStr = yesterday.toISOString().split('T')[0];
-            price = historyMap[inv.symbol]?.[yStr];
-
-            if (!price) {
-              const twoDaysAgo = new Date(d);
-              twoDaysAgo.setDate(d.getDate() - 2);
-              yStr = twoDaysAgo.toISOString().split('T')[0];
-              price = historyMap[inv.symbol]?.[yStr];
-
-              if (!price) {
-                const threeDaysAgo = new Date(d);
-                threeDaysAgo.setDate(d.getDate() - 3);
-                yStr = threeDaysAgo.toISOString().split('T')[0];
-                price = historyMap[inv.symbol]?.[yStr];
-              }
-            }
-          }
+          // Gap filling: look back up to 3 days using helper
+          const price = this.findPriceWithGapFilling(historyMap, inv.symbol, d);
 
           if (price) {
             const currencyRate = Number(inv.currency_rate) || 1;
@@ -276,5 +254,30 @@ export class InvestmentService {
     }
 
     return data;
+  }
+
+  /**
+   * Helper to find price for a date, looking back up to 3 days if missing (gap filling)
+   */
+  private static findPriceWithGapFilling(
+    historyMap: Record<string, Record<string, number>>,
+    symbol: string,
+    targetDate: Date
+  ): number | undefined {
+    const dateStr = targetDate.toISOString().split('T')[0];
+    let price = historyMap[symbol]?.[dateStr];
+
+    if (price) return price;
+
+    // Look back up to 3 days
+    for (let i = 1; i <= 3; i++) {
+      const pastDate = new Date(targetDate);
+      pastDate.setDate(targetDate.getDate() - i);
+      const pastDateStr = pastDate.toISOString().split('T')[0];
+      price = historyMap[symbol]?.[pastDateStr];
+      if (price) return price;
+    }
+
+    return undefined;
   }
 }

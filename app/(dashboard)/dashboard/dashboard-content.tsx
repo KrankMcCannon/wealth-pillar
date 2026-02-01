@@ -31,7 +31,7 @@ import UserSelector from "@/components/shared/user-selector";
 import { BalanceSection } from "@/features/accounts";
 import { BudgetPeriodManager, BudgetSection } from "@/features/budgets";
 import { RecurringSeriesSection } from "@/features/recurring";
-import type { Account, Transaction, Budget, BudgetPeriod, User, UserBudgetSummary } from "@/lib/types";
+import type { Account, Budget, BudgetPeriod, User, UserBudgetSummary } from "@/lib/types";
 import type { RecurringTransactionSeries } from "@/lib";
 
 /**
@@ -42,7 +42,6 @@ interface DashboardContentProps {
   groupUsers: User[];
   accounts: Account[];
   accountBalances: Record<string, number>;
-  transactions: Transaction[];
   budgets: Budget[];
   budgetPeriods: Record<string, BudgetPeriod | null>;
   recurringSeries: RecurringTransactionSeries[];
@@ -105,6 +104,9 @@ export default function DashboardContent({
     </Button>
   );
 
+  const recurringSeriesUserId =
+    selectedGroupFilter === "all" ? undefined : effectiveUserId;
+
   return (
     <PageContainer className={dashboardStyles.page.container}>
       {/* Mobile-First Header */}
@@ -131,7 +133,6 @@ export default function DashboardContent({
         <Suspense fallback={<BalanceSectionSkeleton />}>
           <BalanceSection
             accounts={displayedDefaultAccounts}
-            users={groupUsers}
             accountBalances={displayedAccountBalances}
             totalBalance={totalBalance}
             totalAccountsCount={totalAccountsCount}
@@ -168,7 +169,9 @@ export default function DashboardContent({
         <Suspense fallback={<RecurringSeriesSkeleton />}>
           <RecurringSeriesSection
             series={recurringSeries}
-            selectedUserId={isMember ? currentUser.id : selectedGroupFilter === "all" ? undefined : effectiveUserId}
+            selectedUserId={
+              isMember ? currentUser.id : recurringSeriesUserId
+            }
             className={dashboardStyles.recurringSection.container}
             showStats={false}
             maxItems={5}

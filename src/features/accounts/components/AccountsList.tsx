@@ -62,8 +62,8 @@ export const AccountsList = ({
       <div className={accountStyles.accountsList.container}>
         <h2 className={accountStyles.accountsList.header}>Tutti gli Account</h2>
         <div className={accountStyles.accountsList.items}>
-          {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className={accountStyles.list.cardWrapper}>
+          {['skeleton-1', 'skeleton-2', 'skeleton-3'].map((id) => (
+            <div key={id} className={accountStyles.list.cardWrapper}>
               <AccountCardSkeleton />
             </div>
           ))}

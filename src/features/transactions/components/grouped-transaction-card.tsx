@@ -3,7 +3,7 @@
 import { Card } from "@/components/ui";
 import { Transaction, Category } from "@/lib";
 import { FinanceLogicService } from "@/server/services/finance-logic.service";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, cn } from "@/lib/utils";
 import { TransactionRow } from "./transaction-row";
 import {
   transactionStyles,
@@ -11,7 +11,6 @@ import {
   getHeaderVariantStyles,
   getTotalAmountColor
 } from "@/styles/system";
-import { cn } from "@/lib/utils";
 
 interface GroupedTransactionCardProps {
   transactions: Transaction[];
@@ -48,7 +47,7 @@ export function GroupedTransactionCard({
   categories = [],
   onEditTransaction,
   onDeleteTransaction,
-}: GroupedTransactionCardProps) {
+}: Readonly<GroupedTransactionCardProps>) {
   if (!transactions.length) return null;
 
   const getCategoryLabel = (categoryKey: string) => {

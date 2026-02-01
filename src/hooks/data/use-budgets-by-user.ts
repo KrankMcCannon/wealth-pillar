@@ -56,17 +56,17 @@ export function useBudgetsByUser({
     if (checkIsMember(currentUser)) {
       // Members see only their own budgets
       return [currentUser];
-    } else {
-      // Admin logic
-      if (selectedUserId && selectedUserId !== 'all') {
-        // Filter to specific user
-        const selectedUser = groupUsers.find(u => u.id === selectedUserId);
-        return selectedUser ? [selectedUser] : [];
-      } else {
-        // Show all group users
-        return groupUsers;
-      }
+    } 
+    
+    // Admin logic
+    if (selectedUserId && selectedUserId !== 'all') {
+      // Filter to specific user
+      const selectedUser = groupUsers.find(u => u.id === selectedUserId);
+      return selectedUser ? [selectedUser] : [];
     }
+    
+    // Show all group users
+    return groupUsers;
   }, [currentUser, groupUsers, selectedUserId]);
 
   // Calculate budget summaries synchronously

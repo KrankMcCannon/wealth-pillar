@@ -81,7 +81,7 @@ export function extractDateFromEntry(entry: TimeSeriesEntry): string {
 /**
  * Get the latest close price from a time series
  */
-export function getLatestCloseFromSeries(data: TimeSeriesEntry[] | unknown): number {
+export function getLatestCloseFromSeries(data: unknown): number {
   if (!Array.isArray(data) || data.length === 0) return 0;
 
   const typedData = data as TimeSeriesEntry[];
@@ -135,7 +135,7 @@ export function getCloseForDate(
   targetDateKey?: string
 ): number {
   if (!points || points.length === 0) return 0;
-  if (!targetDateKey) return points[points.length - 1]?.close ?? 0;
+  if (!targetDateKey) return points.at(-1)?.close ?? 0;
 
   let found = false;
   let close = 0;

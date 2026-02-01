@@ -17,7 +17,7 @@ export interface BudgetMetricsProps {
   budgetAmount: number;
 }
 
-export function BudgetMetrics({ viewModel, budgetAmount }: BudgetMetricsProps) {
+export function BudgetMetrics({ viewModel, budgetAmount }: Readonly<BudgetMetricsProps>) {
   if (viewModel) {
     const remainingColorClass = viewModel.remaining < 0 ? "text-destructive" : "text-success";
 

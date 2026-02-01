@@ -16,7 +16,7 @@ export function PageSection({
   variant = "plain",
   padding = "none",
   className,
-}: PageSectionProps) {
+}: Readonly<PageSectionProps>) {
   return (
     <section
       className={cn(

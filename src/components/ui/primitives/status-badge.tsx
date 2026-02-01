@@ -35,7 +35,7 @@ export function StatusBadge({
   className,
   children,
   ...props
-}: StatusBadgeProps) {
+}: Readonly<StatusBadgeProps>) {
   return (
     <div
       className={cn(statusBadgeVariants({ status, size }), className)}

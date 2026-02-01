@@ -26,7 +26,7 @@ export function CategoryField({
   label = "Categoria",
   placeholder = "Seleziona categoria",
   categories = []
-}: CategoryFieldProps) {
+}: Readonly<CategoryFieldProps>) {
   return (
     <FormField label={label} required={required} error={error}>
       <CategorySelect

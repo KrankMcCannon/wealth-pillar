@@ -57,6 +57,41 @@ interface ActionResult<T = unknown> {
   error: string | null;
 }
 
+// Helper: Validate input fields for creation
+function validateCreateInput(input: CreateRecurringSeriesInput): string | null {
+  if (!input.description || input.description.trim() === "") return "La descrizione è obbligatoria";
+  if (input.amount <= 0) return "L'importo deve essere maggiore di zero";
+  if (!input.user_ids || input.user_ids.length === 0) return "Almeno un utente è obbligatorio";
+  if (!input.account_id) return "Il conto è obbligatorio";
+  if (!input.category) return "La categoria è obbligatoria";
+  if (!input.due_day || input.due_day < 1 || input.due_day > 31) return "Il giorno di addebito deve essere tra 1 e 31";
+  return null;
+}
+
+// Helper: Validate permissions for creation
+function validateCreatePermissions(currentUser: User, userIds: string[]): string | null {
+  // Permission validation: members can only create series that include themselves
+  if (isMember(currentUser)) {
+    if (!userIds.includes(currentUser.id)) {
+      return 'Devi includere te stesso nella serie ricorrente';
+    }
+
+    // Members can only create series with themselves (not with other users)
+    if (userIds.length > 1 || userIds[0] !== currentUser.id) {
+      return 'Non hai i permessi per creare serie ricorrenti per altri utenti';
+    }
+  }
+
+  // Admins can create for anyone, but verify all target users exist and are accessible
+  for (const userId of userIds) {
+    if (!canAccessUserData(currentUser, userId)) {
+      return 'Non hai i permessi per accedere ai dati di uno o più utenti selezionati';
+    }
+  }
+  
+  return null;
+}
+
 /**
  * Create a new recurring series
  * 
@@ -75,53 +110,13 @@ export async function createRecurringSeriesAction(
       return { data: null, error: 'Non autenticato. Effettua il login per continuare.' };
     }
 
-    // Validate required fields
-    if (!input.description || input.description.trim() === "") {
-      return { data: null, error: "La descrizione è obbligatoria" };
-    }
-    if (input.amount <= 0) {
-      return { data: null, error: "L'importo deve essere maggiore di zero" };
-    }
-    if (!input.user_ids || input.user_ids.length === 0) {
-      return { data: null, error: "Almeno un utente è obbligatorio" };
-    }
-    if (!input.account_id) {
-      return { data: null, error: "Il conto è obbligatorio" };
-    }
-    if (!input.category) {
-      return { data: null, error: "La categoria è obbligatoria" };
-    }
-    if (!input.due_day || input.due_day < 1 || input.due_day > 31) {
-      return { data: null, error: "Il giorno di addebito deve essere tra 1 e 31" };
-    }
+    // Validate input logic
+    const inputError = validateCreateInput(input);
+    if (inputError) return { data: null, error: inputError };
 
-    // Permission validation: members can only create series that include themselves
-    if (isMember(currentUser as unknown as User)) {
-      if (!input.user_ids.includes(currentUser.id)) {
-        return {
-          data: null,
-          error: 'Devi includere te stesso nella serie ricorrente'
-        };
-      }
-
-      // Members can only create series with themselves (not with other users)
-      if (input.user_ids.length > 1 || input.user_ids[0] !== currentUser.id) {
-        return {
-          data: null,
-          error: 'Non hai i permessi per creare serie ricorrenti per altri utenti'
-        };
-      }
-    }
-
-    // Admins can create for anyone, but verify all target users exist and are accessible
-    for (const userId of input.user_ids) {
-      if (!canAccessUserData(currentUser as unknown as User, userId)) {
-        return {
-          data: null,
-          error: 'Non hai i permessi per accedere ai dati di uno o più utenti selezionati'
-        };
-      }
-    }
+    // Validate permissions logic
+    const permError = validateCreatePermissions(currentUser as unknown as User, input.user_ids);
+    if (permError) return { data: null, error: permError };
 
     const data = await RecurringService.createSeries({
       description: input.description.trim(),
@@ -159,6 +154,48 @@ export async function createRecurringSeriesAction(
   }
 }
 
+// Helper: Validate new user assignment permissions
+function validateNewUserAssignments(currentUser: User, newUserIds: string[]): string | null {
+  if (isMember(currentUser)) {
+    // Members can only have themselves in the series
+    if (newUserIds.length > 1 || newUserIds[0] !== currentUser.id) {
+      return 'Non puoi assegnare la serie ricorrente ad altri utenti';
+    }
+  } else {
+    // Admins can assign to anyone they have access to
+    for (const userId of newUserIds) {
+      if (!canAccessUserData(currentUser, userId)) {
+        return 'Non hai i permessi per uno o più utenti selezionati';
+      }
+    }
+  }
+  return null;
+}
+
+// Helper: Validate permissions for update
+function validateUpdatePermission(
+  currentUser: User, 
+  oldSeries: RecurringTransactionSeries, 
+  newUserIds?: string[]
+): string | null {
+  // 1. Verify access to existing series
+  const user = currentUser as unknown as User;
+  const hasAccess = isMember(user)
+    ? oldSeries.user_ids.includes(currentUser.id)
+    : oldSeries.user_ids.some((userId: string) => canAccessUserData(user, userId));
+
+  if (!hasAccess) {
+    return 'Non hai i permessi per modificare questa serie ricorrente';
+  }
+
+  // 2. If changing user_ids, validate new assignment permissions
+  if (newUserIds) {
+    return validateNewUserAssignments(user, newUserIds);
+  }
+  
+  return null;
+}
+
 /**
  * Update an existing recurring series
  * 
@@ -183,68 +220,48 @@ export async function updateRecurringSeriesAction(
 
     // Get old user_ids to invalidate cache for previous users
     const oldSeries = await RecurringService.getSeriesById(input.id);
-
     if (!oldSeries) {
       return { data: null, error: "Serie ricorrente non trovata" };
     }
 
-    // Permission validation: verify access to existing series
-    // Members can only update series they are part of
-    const hasAccess = isMember(currentUser as unknown as User)
-      ? oldSeries.user_ids.includes(currentUser.id)
-      : oldSeries.user_ids.some((userId: string) => canAccessUserData(currentUser as unknown as User, userId));
+    // Permission validation
+    const permError = validateUpdatePermission(
+      currentUser as unknown as User, 
+      oldSeries, 
+      input.user_ids
+    );
+    if (permError) return { data: null, error: permError };
 
-    if (!hasAccess) {
-      return {
-        data: null,
-        error: 'Non hai i permessi per modificare questa serie ricorrente'
-      };
-    }
+// Helper: Build update payload
+function buildUpdatePayload(input: UpdateRecurringSeriesInput): { payload: Partial<UpdateRecurringSeriesInput> & { updated_at?: string }, error?: string } {
+  const updatePayload: Partial<UpdateRecurringSeriesInput> & { updated_at?: string } = {};
+  
+  if (input.description !== undefined) updatePayload.description = input.description.trim();
+  if (input.amount !== undefined) {
+    if (input.amount <= 0) return { payload: {}, error: "L'importo deve essere maggiore di zero" };
+    updatePayload.amount = input.amount;
+  }
+  if (input.type !== undefined) updatePayload.type = input.type;
+  if (input.category !== undefined) updatePayload.category = input.category;
+  if (input.frequency !== undefined) updatePayload.frequency = input.frequency;
+  if (input.account_id !== undefined) updatePayload.account_id = input.account_id;
+  if (input.start_date !== undefined) updatePayload.start_date = new Date(input.start_date).toISOString();
+  if (input.end_date !== undefined) updatePayload.end_date = input.end_date ? new Date(input.end_date).toISOString() : null;
+  if (input.due_day !== undefined) updatePayload.due_day = input.due_day;
+  if (input.is_active !== undefined) updatePayload.is_active = input.is_active;
+  if (input.user_ids !== undefined) updatePayload.user_ids = input.user_ids;
 
-    // If changing user_ids, validate permissions
-    if (input.user_ids) {
-      if (isMember(currentUser as unknown as User)) {
-        // Members can only have themselves in the series
-        if (input.user_ids.length > 1 || input.user_ids[0] !== currentUser.id) {
-          return {
-            data: null,
-            error: 'Non puoi assegnare la serie ricorrente ad altri utenti'
-          };
-        }
-      } else {
-        // Admins can assign to anyone they have access to
-        for (const userId of input.user_ids) {
-          if (!canAccessUserData(currentUser as unknown as User, userId)) {
-            return {
-              data: null,
-              error: 'Non hai i permessi per uno o più utenti selezionati'
-            };
-          }
-        }
-      }
-    }
+  updatePayload.updated_at = new Date().toISOString();
+  
+  return { payload: updatePayload };
+}
 
     // Build update data
-    const updatePayload: Partial<UpdateRecurringSeriesInput> & { updated_at?: string } = {};
-    if (input.description !== undefined) updatePayload.description = input.description.trim();
-    if (input.amount !== undefined) {
-      if (input.amount <= 0) return { data: null, error: "L'importo deve essere maggiore di zero" };
-      updatePayload.amount = input.amount;
-    }
-    if (input.type !== undefined) updatePayload.type = input.type;
-    if (input.category !== undefined) updatePayload.category = input.category;
-    if (input.frequency !== undefined) updatePayload.frequency = input.frequency;
-    if (input.account_id !== undefined) updatePayload.account_id = input.account_id;
-    if (input.start_date !== undefined) updatePayload.start_date = new Date(input.start_date).toISOString();
-    if (input.end_date !== undefined) updatePayload.end_date = input.end_date ? new Date(input.end_date).toISOString() : null;
-    if (input.due_day !== undefined) updatePayload.due_day = input.due_day;
-    if (input.is_active !== undefined) updatePayload.is_active = input.is_active;
-    if (input.user_ids !== undefined) updatePayload.user_ids = input.user_ids;
-
-    updatePayload.updated_at = new Date().toISOString();
+    const { payload, error: payloadError } = buildUpdatePayload(input);
+    if (payloadError) return { data: null, error: payloadError };
+    const updatePayload = payload;
 
     const data = await RecurringService.updateSeries(input.id, updatePayload);
-
     if (!data) {
       return { data: null, error: "Failed to update series" };
     }
@@ -357,14 +374,10 @@ export async function toggleRecurringSeriesActiveAction(
  * Execute a recurring series - create a transaction from it
  * This increments total_executions and updates due_day.
  *
- * @param _seriesId - The ID of the series to execute
- * @param _userId - The ID of the user executing the series
  * @returns The created transaction ID or error
  */
-export async function executeRecurringSeriesAction(
-  _seriesId: string,
-  _userId?: string
-): Promise<ActionResult<{ transactionId: string }>> {
+export async function executeRecurringSeriesAction(seriesId: string): Promise<ActionResult<{ transactionId: string }>> {
+  console.warn("Series execution not implemented yet for series:", seriesId);
   // const today = new Date();
   // Per ora ritorniamo un messaggio informativo
   return { data: null, error: "Funzione temporaneamente disabilitata. La creazione automatica delle transazioni sarà abilitata in seguito." };

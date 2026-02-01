@@ -59,7 +59,7 @@ export function FormField({
   htmlFor,
   className,
   labelClassName,
-}: FormFieldProps) {
+}: Readonly<FormFieldProps>) {
   return (
     <div className={cn(formStyles.field.container, className)}>
       {/* Label */}

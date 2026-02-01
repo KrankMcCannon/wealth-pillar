@@ -71,7 +71,7 @@ export async function updateAccountAction(
         }
 
         if (input.name !== undefined && input.name.trim() === '') return { data: null, error: 'Nome account non può essere vuoto' };
-        if (input.user_ids !== undefined && input.user_ids.length === 0) return { data: null, error: 'Almeno un utente è richiesto' };
+        if (input.user_ids?.length === 0) return { data: null, error: 'Almeno un utente è richiesto' };
 
         const account = await AccountService.updateAccount(accountId, input);
 

@@ -69,7 +69,7 @@ export function MobileCalendarDrawer({
   onChange,
   isOpen,
   onClose,
-}: MobileCalendarDrawerProps) {
+}: Readonly<MobileCalendarDrawerProps>) {
   // Parse current value to Date (or use today if empty)
   const selectedDate = value && isValid(new Date(value)) ? new Date(value) : undefined;
 
@@ -171,14 +171,13 @@ export function MobileCalendarDrawer({
           </div>
 
           {/* Live region for screen reader announcements */}
-          <div
+          <output
             className={calendarDrawerStyles.accessibility.liveRegion}
-            role="status"
             aria-live="polite"
             aria-atomic="true"
           >
             {/* This will be populated by month changes */}
-          </div>
+          </output>
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>

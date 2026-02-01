@@ -1,38 +1,34 @@
-/**
- * Reports Page - Server Component
- */
-
 import { Suspense } from 'react';
 import { redirect } from 'next/navigation';
 import { getCurrentUser, getGroupUsers } from '@/lib/auth/cached-auth';
-import { PageDataService } from '@/server/services';
+import { ReportsService } from '@/server/services/reports.service';
 import { PageLoader } from '@/components/shared';
 import ReportsContent from './reports-content';
 
 export default async function ReportsPage() {
   const currentUser = await getCurrentUser();
   if (!currentUser) redirect('/auth');
-  const groupUsers = await getGroupUsers();
 
-  // Fetch all reports page data in parallel with centralized service
-  const pageData = await PageDataService.getReportsPageData(currentUser.group_id || '');
+  // Execute in parallel
+  const [groupUsers, reportsData] = await Promise.all([
+    getGroupUsers(),
+    ReportsService.getReportsData()
+  ]);
 
-  const {
-    accounts = [],
-    categories = [],
-    enrichedBudgetPeriods = [],
-    overviewMetrics,
-    annualSpending,
-  } = pageData;
+  const { transactions, accounts, periods, categories } = reportsData;
+
+  // Compute Metrics on Server
+  const accountTypeSummary = ReportsService.calculateAccountTypeSummary(transactions, accounts);
+  const periodSummaries = ReportsService.calculatePeriodSummaries(periods, transactions, accounts);
+  const { income: incomeStats, expense: expenseStats } = ReportsService.calculateCategoryStats(transactions, categories);
 
   return (
-    <Suspense fallback={<PageLoader message="Caricamento report..." />}>
+    <Suspense fallback={<PageLoader message="Caricamento rapporti..." />}>
       <ReportsContent
-        accounts={accounts}
-        categories={categories}
-        enrichedBudgetPeriods={enrichedBudgetPeriods}
-        overviewMetrics={overviewMetrics}
-        annualSpending={annualSpending}
+        accountTypeSummary={accountTypeSummary}
+        periodSummaries={periodSummaries}
+        incomeStats={incomeStats}
+        expenseStats={expenseStats}
         currentUser={currentUser}
         groupUsers={groupUsers}
       />

@@ -1,14 +1,12 @@
 "use client";
 
-import { cn } from "@/lib/utils";
-
 import { useEffect, useMemo, useCallback, useRef } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Transaction, TransactionType } from "@/lib/types";
-import { getTempId } from "@/lib/utils";
-import { createTransactionAction, updateTransactionAction } from "@/features/transactions";
+import { TransactionType } from "@/lib/types";
+import { cn } from "@/lib/utils";
+import { useTransactionSubmit } from "../hooks/useTransactionSubmit";
 import { transactionStyles } from "@/styles/system";
 import { ModalWrapper, ModalBody, ModalFooter, ModalSection } from "@/components/ui/modal-wrapper";
 import { FormActions, FormField, FormSelect } from "@/components/form";
@@ -140,7 +138,8 @@ function TransactionFormModal({
 
       // Fall back to first account accessible to this user
       const userAccounts = accounts.filter((acc) => acc.user_ids.includes(userId));
-      return userAccounts.length > 0 ? userAccounts[0].id : accounts.length > 0 ? accounts[0].id : "";
+      if (userAccounts.length > 0) return userAccounts[0].id;
+      return accounts.length > 0 ? accounts[0].id : "";
     },
     [accounts, groupUsers],
   );
@@ -214,91 +213,20 @@ function TransactionFormModal({
   }, [isEditMode, watchedUserId, watchedAccountId, filteredAccounts, setValue, getDefaultAccountId]);
 
   // Handle form submission with optimistic updates
+  const { handleSubmit: submitHandler } = useTransactionSubmit({
+    isEditMode,
+    editId,
+    groupId,
+    storeTransactions,
+    updateTransaction,
+    addTransaction,
+    removeTransaction,
+    onClose,
+    setError,
+  });
+
   const onSubmit = async (data: TransactionFormData) => {
-    try {
-      const amount = Number.parseFloat(data.amount);
-      const transactionData = {
-        description: data.description.trim(),
-        amount,
-        type: data.type as TransactionType,
-        category: data.category,
-        date: data.date,
-        user_id: data.user_id,
-        account_id: data.account_id,
-        to_account_id: data.type === "transfer" ? data.to_account_id : null,
-        group_id: groupId,
-      };
-
-      if (isEditMode && editId) {
-        // UPDATE: Optimistic update pattern
-        // 1. Store original transaction for revert
-        const originalTransaction = storeTransactions.find((t) => t.id === editId);
-        if (!originalTransaction) {
-          setError("root", { message: "Transazione non trovata" });
-          return;
-        }
-
-        // 2. Update in store immediately (optimistic)
-        updateTransaction(editId, transactionData);
-
-        // 3. Call server action
-        const result = await updateTransactionAction(editId, transactionData);
-
-        if (result.error) {
-          // 4. Revert on error
-          updateTransaction(editId, originalTransaction);
-          setError("root", { message: result.error });
-          return;
-        }
-
-        // 5. Success - update with real data from server
-        if (result.data) {
-          updateTransaction(editId, result.data);
-        }
-      } else {
-        // CREATE: Optimistic add pattern
-        // 1. Create temporary ID
-        const tempId = getTempId("temp-transaction");
-        const now = new Date().toISOString();
-        const optimisticTransaction: Transaction = {
-          id: tempId,
-          created_at: now,
-          updated_at: now,
-          ...transactionData,
-        };
-
-        // 2. Add to store immediately (optimistic)
-        addTransaction(optimisticTransaction);
-
-        // 3. Close modal immediately for better UX
-        onClose();
-
-        // 4. Call server action in background
-        const result = await createTransactionAction(transactionData);
-
-        if (result.error) {
-          // 5. Remove optimistic transaction on error
-          removeTransaction(tempId);
-          // Note: Modal is already closed, error handling could be improved
-          console.error("Failed to create transaction:", result.error);
-          return;
-        }
-
-        // 6. Replace temporary with real transaction from server
-        removeTransaction(tempId);
-        if (result.data) {
-          addTransaction(result.data);
-        }
-        return; // Early return since modal already closed
-      }
-
-      // Close modal on success (for update mode)
-      onClose();
-    } catch (error) {
-      setError("root", {
-        message: error instanceof Error ? error.message : "Errore sconosciuto"
-      });
-    }
+    await submitHandler(data);
   };
 
   // Type options

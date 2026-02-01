@@ -26,7 +26,7 @@ interface FormDraftStore {
 
   // Actions
   saveDraft: (formId: string, data: unknown) => void;
-  getDraft: (formId: string) => unknown | null;
+  getDraft: (formId: string) => unknown;
   clearDraft: (formId: string) => void;
   clearAllDrafts: () => void;
   clearExpiredDrafts: () => void;

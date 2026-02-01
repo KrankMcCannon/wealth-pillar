@@ -40,7 +40,7 @@ export function serialize<T>(data: T): T {
     // Handle Object
     const newObj: Record<string, unknown> = {};
     for (const key in data) {
-      if (Object.prototype.hasOwnProperty.call(data, key)) {
+      if (Object.hasOwn(data, key)) {
         newObj[key] = serialize((data as Record<string, unknown>)[key]);
       }
     }

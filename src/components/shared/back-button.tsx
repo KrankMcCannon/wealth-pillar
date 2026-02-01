@@ -18,7 +18,7 @@ export function BackButton({
   className,
   variant = "ghost",
   size = "sm"
-}: BackButtonProps) {
+}: Readonly<BackButtonProps>) {
   const router = useRouter();
 
   const handleClick = () => {

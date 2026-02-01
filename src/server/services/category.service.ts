@@ -1,13 +1,14 @@
 import 'server-only';
 import { cache } from 'react';
 import { cached } from '@/lib/cache';
-import { CACHE_TAGS, cacheOptions } from '@/lib/cache/config';
+import { cacheOptions } from '@/lib/cache/config';
 import { categoryCacheKeys } from '@/lib/cache/keys';
 import { supabase } from '@/server/db/supabase';
 import { FinanceLogicService } from './finance-logic.service';
 import type { Category } from '@/lib/types';
 import type { Database } from '@/lib/types/database.types';
-import { revalidateTag } from 'next/cache';
+import { validateId, validateRequiredString } from '@/lib/utils/validation-utils';
+import { invalidateCategoryCaches } from '@/lib/utils/cache-utils';
 
 type CategoryInsert = Database['public']['Tables']['categories']['Insert'];
 type CategoryUpdate = Database['public']['Tables']['categories']['Update'];
@@ -39,7 +40,7 @@ export interface UpdateCategoryInput {
 export class CategoryService {
   // ================== DATABASE OPERATIONS (inlined from repository) ==================
 
-  private static getAllDb = cache(async (): Promise<Category[]> => {
+  private static readonly getAllDb = cache(async (): Promise<Category[]> => {
     const { data, error } = await supabase
       .from('categories')
       .select('*')
@@ -49,7 +50,7 @@ export class CategoryService {
     return (data || []) as Category[];
   });
 
-  private static getByGroupDb = cache(async (groupId: string): Promise<Category[]> => {
+  private static readonly getByGroupDb = cache(async (groupId: string): Promise<Category[]> => {
     const { data, error } = await supabase
       .from('categories')
       .select('*')
@@ -74,7 +75,7 @@ export class CategoryService {
     return data as Category;
   }
 
-  private static getByKeyDb = cache(async (key: string): Promise<Category | null> => {
+  private static readonly getByKeyDb = cache(async (key: string): Promise<Category | null> => {
     const { data, error } = await supabase
       .from('categories')
       .select('*')
@@ -221,47 +222,30 @@ export class CategoryService {
    * Creates a new category
    */
   static async createCategory(data: CreateCategoryInput): Promise<Category> {
-    // Validate input
-    if (!data.label || data.label.trim() === '') {
-      throw new Error('Label is required');
-    }
+    // Validate input using shared utilities
+    const label = validateRequiredString(data.label, 'Label');
+    const key = validateRequiredString(data.key, 'Key');
+    const icon = validateRequiredString(data.icon, 'Icon');
+    const color = validateRequiredString(data.color, 'Color');
+    validateId(data.group_id, 'Group ID');
 
-    if (!data.key || data.key.trim() === '') {
-      throw new Error('Key is required');
-    }
-
-    if (!data.icon || data.icon.trim() === '') {
-      throw new Error('Icon is required');
-    }
-
-    if (!data.color || data.color.trim() === '') {
-      throw new Error('Color is required');
-    }
-
-    if (!FinanceLogicService.isValidColor(data.color)) {
+    if (!FinanceLogicService.isValidColor(color)) {
       throw new Error('Invalid color format. Use hex format (e.g., #FF0000)');
     }
 
-    if (!data.group_id || data.group_id.trim() === '') {
-      throw new Error('Group ID is required');
-    }
-
     const createData = {
-      label: data.label.trim(),
-      key: data.key.trim().toLowerCase(),
-      icon: data.icon.trim(),
-      color: data.color.trim().toUpperCase(),
+      label,
+      key: key.toLowerCase(),
+      icon,
+      color: color.toUpperCase(),
       group_id: data.group_id,
     };
 
     const category = await this.createDb(createData);
+    if (!category) throw new Error('Failed to create category');
 
-    if (!category) {
-      throw new Error('Failed to create category');
-    }
-
-    // Invalidate caches
-    revalidateTag(CACHE_TAGS.CATEGORIES, 'max');
+    // Invalidate caches using shared utility
+    invalidateCategoryCaches({});
 
     return category as unknown as Category;
   }
@@ -270,16 +254,12 @@ export class CategoryService {
    * Updates an existing category
    */
   static async updateCategory(id: string, data: UpdateCategoryInput): Promise<Category> {
-    // Validate ID
-    if (!id || id.trim() === '') {
-      throw new Error('Category ID is required');
-    }
+    // Validate ID using shared utility
+    validateId(id, 'Category ID');
 
     // Fetch existing category for cache invalidation
     const existingCategory = await this.getCategoryById(id);
-    if (!existingCategory) {
-      throw new Error('Category not found');
-    }
+    if (!existingCategory) throw new Error('Category not found');
 
     // Build update object (only include provided fields)
     const updateData: CategoryUpdate = {
@@ -287,38 +267,26 @@ export class CategoryService {
     };
 
     if (data.label !== undefined) {
-      if (!data.label || data.label.trim() === '') {
-        throw new Error('Label cannot be empty');
-      }
-      updateData.label = data.label.trim();
+      updateData.label = validateRequiredString(data.label, 'Label');
     }
 
     if (data.icon !== undefined) {
-      if (!data.icon || data.icon.trim() === '') {
-        throw new Error('Icon cannot be empty');
-      }
-      updateData.icon = data.icon.trim();
+      updateData.icon = validateRequiredString(data.icon, 'Icon');
     }
 
     if (data.color !== undefined) {
-      if (!data.color || data.color.trim() === '') {
-        throw new Error('Color cannot be empty');
-      }
-      if (!FinanceLogicService.isValidColor(data.color)) {
+      const color = validateRequiredString(data.color, 'Color');
+      if (!FinanceLogicService.isValidColor(color)) {
         throw new Error('Invalid color format. Use hex format (e.g., #FF0000)');
       }
-      updateData.color = data.color.trim().toUpperCase();
+      updateData.color = color.toUpperCase();
     }
 
     const category = await this.updateDb(id, updateData);
+    if (!category) throw new Error('Failed to update category');
 
-    if (!category) {
-      throw new Error('Failed to update category');
-    }
-
-    // Invalidate caches
-    revalidateTag(CACHE_TAGS.CATEGORIES, 'max');
-    revalidateTag(CACHE_TAGS.CATEGORY(id), 'max');
+    // Invalidate caches using shared utility
+    invalidateCategoryCaches({ categoryId: id });
 
     return category as unknown as Category;
   }
@@ -327,22 +295,17 @@ export class CategoryService {
    * Deletes a category
    */
   static async deleteCategory(id: string): Promise<{ id: string }> {
-    // Validate ID
-    if (!id || id.trim() === '') {
-      throw new Error('Category ID is required');
-    }
+    // Validate ID using shared utility
+    validateId(id, 'Category ID');
 
     // Fetch existing category for cache invalidation
     const existingCategory = await this.getCategoryById(id);
-    if (!existingCategory) {
-      throw new Error('Category not found');
-    }
+    if (!existingCategory) throw new Error('Category not found');
 
     await this.deleteDb(id);
 
-    // Invalidate caches
-    revalidateTag(CACHE_TAGS.CATEGORIES, 'max');
-    revalidateTag(CACHE_TAGS.CATEGORY(id), 'max');
+    // Invalidate caches using shared utility
+    invalidateCategoryCaches({ categoryId: id });
 
     return { id };
   }

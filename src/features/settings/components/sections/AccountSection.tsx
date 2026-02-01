@@ -7,7 +7,7 @@ interface AccountSectionProps {
   onDeleteAccount: () => void;
 }
 
-export function AccountSection({ onDeleteAccount }: AccountSectionProps) {
+export function AccountSection({ onDeleteAccount }: Readonly<AccountSectionProps>) {
   return (
     <PageSection>
       <SectionHeader title="Account" icon={UserIcon} iconClassName="text-destructive" />

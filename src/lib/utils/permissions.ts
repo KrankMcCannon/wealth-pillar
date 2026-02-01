@@ -12,7 +12,7 @@ import type { User, RoleType } from '@/lib/types';
  * @returns true if user has any of the specified roles
  */
 export function hasRole(user: User | null, ...roles: RoleType[]): boolean {
-  if (!user || !user.role) return false;
+  if (!user?.role) return false;
   return roles.includes(user.role);
 }
 
@@ -61,7 +61,7 @@ export const canManageOtherUsers = (user: User | null): boolean => isAdmin(user)
 export function getEffectiveUserId(
   currentUser: User | null,
   selectedUserId?: string
-): string | 'all' {
+): string {
   if (!currentUser) return 'all';
 
   // Members can only see their own data

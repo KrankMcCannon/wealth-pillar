@@ -3,14 +3,44 @@
 import { revalidateTag } from 'next/cache';
 
 import { getCurrentUser } from '@/lib/auth/cached-auth';
-import { CreateCategoryInput, UpdateCategoryInput, CategoryService } from '@/server/services';
+import { CreateCategoryInput, UpdateCategoryInput, CategoryService, FinanceLogicService } from '@/server/services';
 import type { Category } from '@/lib/types';
-import { FinanceLogicService } from '@/server/services';
 
 type ServiceResult<T> = {
   data: T | null;
   error: string | null;
 };
+
+/**
+ * Validates category input
+ */
+function validateCategoryInput(input: CreateCategoryInput): string | null {
+  if (!input.label || input.label.trim() === '') return 'Label is required';
+  if (!input.key || input.key.trim() === '') return 'Key is required';
+  if (!input.icon || input.icon.trim() === '') return 'Icon is required';
+  if (!input.color || input.color.trim() === '') return 'Color is required';
+
+  if (!FinanceLogicService.isValidColor(input.color)) {
+    return 'Invalid color format. Use hex format (e.g., #FF0000)';
+  }
+  
+  return null;
+}
+
+/**
+ * Validates category update input
+ */
+function validateUpdateCategoryInput(input: UpdateCategoryInput): string | null {
+  if (input.label !== undefined && input.label.trim() === '') return 'Label cannot be empty';
+  if (input.icon !== undefined && input.icon.trim() === '') return 'Icon cannot be empty';
+  
+  if (input.color !== undefined) {
+    if (input.color.trim() === '') return 'Color cannot be empty';
+    if (!FinanceLogicService.isValidColor(input.color)) return 'Invalid color format';
+  }
+
+  return null;
+}
 
 /**
  * Server action to get all categories
@@ -19,7 +49,7 @@ export async function getAllCategoriesAction(): Promise<ServiceResult<Category[]
   try {
     // Authentication check (cached per request)
     const currentUser = await getCurrentUser();
-    if (!currentUser || !currentUser.group_id) {
+    if (!currentUser?.group_id) {
       // If no group, return empty array
       return { data: [], error: null };
     }
@@ -56,13 +86,9 @@ export async function createCategoryAction(input: CreateCategoryInput): Promise<
     }
 
     // Input Validation
-    if (!input.label || input.label.trim() === '') return { data: null, error: 'Label is required' };
-    if (!input.key || input.key.trim() === '') return { data: null, error: 'Key is required' };
-    if (!input.icon || input.icon.trim() === '') return { data: null, error: 'Icon is required' };
-    if (!input.color || input.color.trim() === '') return { data: null, error: 'Color is required' };
-
-    if (!FinanceLogicService.isValidColor(input.color)) {
-      return { data: null, error: 'Invalid color format. Use hex format (e.g., #FF0000)' };
+    const validationError = validateCategoryInput(input);
+    if (validationError) {
+      return { data: null, error: validationError };
     }
 
     const category = await CategoryService.createCategory(input);
@@ -106,11 +132,9 @@ export async function updateCategoryAction(id: string, input: UpdateCategoryInpu
     }
 
     // Validation
-    if (input.label !== undefined && input.label.trim() === '') return { data: null, error: 'Label cannot be empty' };
-    if (input.icon !== undefined && input.icon.trim() === '') return { data: null, error: 'Icon cannot be empty' };
-    if (input.color !== undefined) {
-      if (input.color.trim() === '') return { data: null, error: 'Color cannot be empty' };
-      if (!FinanceLogicService.isValidColor(input.color)) return { data: null, error: 'Invalid color format' };
+    const validationError = validateUpdateCategoryInput(input);
+    if (validationError) {
+      return { data: null, error: validationError };
     }
 
     const category = await CategoryService.updateCategory(id, input);

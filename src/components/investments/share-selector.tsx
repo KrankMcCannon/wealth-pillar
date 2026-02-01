@@ -6,7 +6,7 @@ import { ChevronDown, Loader2, Search, TrendingUp } from 'lucide-react';
 import { cn } from '@/lib';
 import { selectStyles } from '@/styles/system';
 import { formStyles, getCategorySelectWidthStyle } from '@/components/form/theme/form-styles';
-import { useShareSearch } from '@/features/investments/hooks/use-share-search';
+import { useShareSearch, type AvailableShare } from '@/features/investments/hooks/use-share-search';
 
 interface ShareSelectorProps {
   value: string;
@@ -21,7 +21,68 @@ const ASSET_TYPE_LABELS: Record<string, string> = {
   crypto: 'Crypto',
 };
 
-export function ShareSelector({ value, onChange, className }: ShareSelectorProps) {
+// Helper to render search results
+function renderSearchResults(
+  isLoading: boolean,
+  isEnsuring: boolean,
+  results: AvailableShare[],
+  hasSearched: boolean,
+  currentValue: string
+) {
+  if (isLoading || isEnsuring) {
+    return (
+      <div className={formStyles.categorySelect.empty}>
+        <Loader2 className="h-4 w-4 animate-spin" />
+      </div>
+    );
+  }
+
+  if (results.length === 0 && hasSearched) {
+    return (
+      <div className={formStyles.categorySelect.empty}>
+        Nessun titolo trovato
+      </div>
+    );
+  }
+
+  if (results.length > 0) {
+    return (
+      <div className={formStyles.categorySelect.list}>
+        {results.map((share) => (
+          <SelectPrimitive.Item
+            key={share.id}
+            value={share.symbol}
+            className={formStyles.categorySelect.item}
+          >
+            <SelectPrimitive.ItemText>
+              <div
+                className={cn(
+                  formStyles.categorySelect.itemRow,
+                  share.symbol === currentValue && formStyles.categorySelect.itemSelected
+                )}
+              >
+                <div className="flex min-w-0 flex-col">
+                  <span className={formStyles.categorySelect.itemLabel}>
+                    {share.name || share.symbol}
+                  </span>
+                  <span className="text-xs text-primary/60 truncate">
+                    {share.symbol}
+                    {share.exchange ? ` · ${share.exchange}` : ''}
+                    {share.currency ? ` · ${share.currency}` : ''}
+                  </span>
+                </div>
+              </div>
+            </SelectPrimitive.ItemText>
+          </SelectPrimitive.Item>
+        ))}
+      </div>
+    );
+  }
+
+  return null;
+}
+
+export function ShareSelector({ value, onChange, className }: Readonly<ShareSelectorProps>) {
   const [isOpen, setIsOpen] = React.useState(false);
   const searchInputRef = React.useRef<HTMLInputElement | null>(null);
 
@@ -66,7 +127,13 @@ export function ShareSelector({ value, onChange, className }: ShareSelectorProps
     : value;
 
   const optimalWidth = React.useMemo(() => {
-    const candidates = results.length > 0 ? results : (selectedShare ? [selectedShare] : []);
+    let candidates = results;
+    if (results.length === 0 && selectedShare) {
+      candidates = [selectedShare];
+    } else if (results.length === 0) {
+      candidates = [];
+    }
+    
     if (candidates.length === 0) return 320;
 
     const longest = candidates.reduce((max, share) => {
@@ -179,45 +246,13 @@ export function ShareSelector({ value, onChange, className }: ShareSelectorProps
               </div>
             )}
 
-            {(isLoading || isEnsuring) ? (
-              <div className={formStyles.categorySelect.empty}>
-                <Loader2 className="h-4 w-4 animate-spin" />
-              </div>
-            ) : results.length === 0 && hasSearched ? (
-              <div className={formStyles.categorySelect.empty}>
-                Nessun titolo trovato
-              </div>
-            ) : results.length > 0 ? (
-              <div className={formStyles.categorySelect.list}>
-                {results.map((share) => (
-                  <SelectPrimitive.Item
-                    key={share.id}
-                    value={share.symbol}
-                    className={formStyles.categorySelect.item}
-                  >
-                    <SelectPrimitive.ItemText>
-                      <div
-                        className={cn(
-                          formStyles.categorySelect.itemRow,
-                          share.symbol === value && formStyles.categorySelect.itemSelected
-                        )}
-                      >
-                        <div className="flex min-w-0 flex-col">
-                          <span className={formStyles.categorySelect.itemLabel}>
-                            {share.name || share.symbol}
-                          </span>
-                          <span className="text-xs text-primary/60 truncate">
-                            {share.symbol}
-                            {share.exchange ? ` · ${share.exchange}` : ''}
-                            {share.currency ? ` · ${share.currency}` : ''}
-                          </span>
-                        </div>
-                      </div>
-                    </SelectPrimitive.ItemText>
-                  </SelectPrimitive.Item>
-                ))}
-              </div>
-            ) : null}
+            {renderSearchResults(
+              isLoading, 
+              isEnsuring, 
+              results, 
+              hasSearched, 
+              value
+            )}
           </SelectPrimitive.Viewport>
         </SelectPrimitive.Content>
       </SelectPrimitive.Portal>

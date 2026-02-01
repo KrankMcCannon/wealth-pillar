@@ -13,7 +13,7 @@ export function SkeletonBox({
   width,
   variant = "medium",
   className
-}: SkeletonBoxProps) {
+}: Readonly<SkeletonBoxProps>) {
   const variantClasses = {
     light: skeletonStyles.light,
     medium: skeletonStyles.medium,

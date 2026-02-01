@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense } from "react";
-import { Account, User } from "@/lib";
+import { Account } from "@/lib";
 import { BalanceSectionSkeleton } from "@/features/dashboard";
 import { AccountSlider } from "./AccountSlider";
 import { TotalBalanceLink } from "./TotalBalanceLink";
@@ -10,7 +10,6 @@ import { accountStyles } from "../theme/account-styles";
 
 interface BalanceSectionProps {
   accounts: Account[];
-  users: User[];
   accountBalances: Record<string, number>;
   totalBalance: number;
   totalAccountsCount?: number;
@@ -42,8 +41,6 @@ export const BalanceSection = ({
   onAccountClick,
   isLoading = false,
 }: BalanceSectionProps) => {
-  // Show skeleton only if actively loading AND no data received yet
-  // With placeholderData, empty array exists immediately, so check both conditions
   const isInitialLoading = isLoading && (!accounts || accounts.length === 0);
 
   if (isInitialLoading) {
@@ -51,7 +48,7 @@ export const BalanceSection = ({
   }
 
   // Use provided totalAccountsCount or fall back to displayed accounts length
-  const accountCount = totalAccountsCount !== undefined ? totalAccountsCount : accounts.length;
+  const accountCount = totalAccountsCount ?? accounts.length;
 
   return (
     <section className={accountStyles.balanceSection.container}>

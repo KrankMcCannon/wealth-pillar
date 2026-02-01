@@ -1,14 +1,14 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { calculateInvestmentMetrics } from "@/features/investments/utils/calculations";
+import { calculateInvestmentMetrics } from "@/lib/utils/investment-math";
 import type { Investment } from "./personal-investment-tab";
 
 interface InvestmentListProps {
   investments: Investment[];
 }
 
-export function InvestmentList({ investments }: InvestmentListProps) {
+export function InvestmentList({ investments }: Readonly<InvestmentListProps>) {
   const investmentMetrics = calculateInvestmentMetrics(investments);
 
   return (

@@ -17,7 +17,7 @@ export function GroupSection({
   isAdmin,
   onInviteMember,
   onManageSubscription,
-}: GroupSectionProps) {
+}: Readonly<GroupSectionProps>) {
   if (!isAdmin) return null;
 
   return (
@@ -48,7 +48,7 @@ export function GroupSection({
                 icon={
                   <div
                     className="size-10 rounded-xl flex items-center justify-center text-white text-sm font-semibold shadow-md"
-                    style={{ backgroundColor: (member.theme_color || "#000000") as string }}
+                    style={{ backgroundColor: (member.theme_color || "#000000") }}
                   >
                     {memberInitials}
                   </div>

@@ -118,94 +118,98 @@ function CategoryFormModal({
         .toLowerCase()
         .trim()
         .replaceAll(/[^a-z0-9]+/g, "_")
-        .replaceAll(/^_+|_+$/g, "");
+        .replaceAll(/(^_+)|(_+$)/g, "");
       setValue("key", generatedKey);
     }
   }, [watchedLabel, isEditMode, setValue]);
+
+  // Handle update category flow
+  const handleUpdate = async (data: CategoryFormData, id: string) => {
+    const updateData = {
+      label: data.label.trim(),
+      icon: data.icon.trim(),
+      color: data.color.trim().toUpperCase(),
+    };
+
+    // 1. Store original category for revert
+    const originalCategory = storeCategories.find((cat) => cat.id === id);
+    if (!originalCategory) {
+      throw new Error("Categoria non trovata");
+    }
+
+    // 2. Update in store immediately (optimistic)
+    updateCategory(id, updateData);
+
+    // 3. Call server action
+    const result = await updateCategoryAction(id, updateData);
+
+    if (result.error) {
+      // 4. Revert on error
+      updateCategory(id, originalCategory);
+      throw new Error(result.error);
+    }
+
+    // 5. Success - update with real data from server
+    if (result.data) {
+      updateCategory(id, result.data);
+    }
+  };
+
+  // Handle create category flow
+  const handleCreate = async (data: CategoryFormData) => {
+    // 1. Create temporary ID
+    const tempId = getTempId("temp-category");
+    const now = new Date().toISOString();
+    const optimisticCategory: Category = {
+      id: tempId,
+      created_at: now,
+      updated_at: now,
+      label: data.label.trim(),
+      key: data.key.trim(),
+      icon: data.icon.trim(),
+      color: data.color.trim().toUpperCase(),
+      group_id: groupId,
+    };
+
+    // 2. Add to store immediately (optimistic)
+    addCategory(optimisticCategory);
+
+    // 3. Close modal immediately for better UX
+    onClose();
+
+    // 4. Call server action in background
+    const result = await createCategoryAction({
+      label: data.label.trim(),
+      key: data.key.trim(),
+      icon: data.icon.trim(),
+      color: data.color.trim().toUpperCase(),
+      group_id: groupId,
+    });
+
+    if (result.error) {
+      // 5. Remove optimistic category on error
+      removeCategory(tempId);
+      console.error("Failed to create category:", result.error);
+      return;
+    }
+
+    // 6. Replace temporary with real category from server
+    removeCategory(tempId);
+    if (result.data) {
+      addCategory(result.data);
+    }
+  };
 
   // Handle form submission with optimistic updates
   const onSubmit = async (data: CategoryFormData) => {
     try {
       if (isEditMode && editId) {
-        // UPDATE: Optimistic update pattern
-        // 1. Store original category for revert
-        const originalCategory = storeCategories.find((cat) => cat.id === editId);
-        if (!originalCategory) {
-          setError("root", { message: "Categoria non trovata" });
-          return;
-        }
-
-        const updateData = {
-          label: data.label.trim(),
-          icon: data.icon.trim(),
-          color: data.color.trim().toUpperCase(),
-        };
-
-        // 2. Update in store immediately (optimistic)
-        updateCategory(editId, updateData);
-
-        // 3. Call server action
-        const result = await updateCategoryAction(editId, updateData);
-
-        if (result.error) {
-          // 4. Revert on error
-          updateCategory(editId, originalCategory);
-          setError("root", { message: result.error });
-          return;
-        }
-
-        // 5. Success - update with real data from server
-        if (result.data) {
-          updateCategory(editId, result.data);
-        }
+        await handleUpdate(data, editId);
+        onClose(); // Close on success for update
       } else {
-        // CREATE: Optimistic add pattern
-        // 1. Create temporary ID
-        const tempId = getTempId("temp-category");
-        const now = new Date().toISOString();
-        const optimisticCategory: Category = {
-          id: tempId,
-          created_at: now,
-          updated_at: now,
-          label: data.label.trim(),
-          key: data.key.trim(),
-          icon: data.icon.trim(),
-          color: data.color.trim().toUpperCase(),
-          group_id: groupId,
-        };
-
-        // 2. Add to store immediately (optimistic)
-        addCategory(optimisticCategory);
-
-        // 3. Close modal immediately for better UX
-        onClose();
-
-        // 4. Call server action in background
-        const result = await createCategoryAction({
-          label: data.label.trim(),
-          key: data.key.trim(),
-          icon: data.icon.trim(),
-          color: data.color.trim().toUpperCase(),
-          group_id: groupId,
-        });
-
-        if (result.error) {
-          // 5. Remove optimistic category on error
-          removeCategory(tempId);
-          console.error("Failed to create category:", result.error);
-          return;
-        }
-
-        // 6. Replace temporary with real category from server
-        removeCategory(tempId);
-        if (result.data) {
-          addCategory(result.data);
-        }
-        return; // Early return since modal already closed
+        await handleCreate(data);
+        // onClose is called inside handleCreate for immediate feedback
       }
-
-      // Close modal on success (for update mode)
-      onClose();
     } catch (error) {
       setError("root", {
         message: error instanceof Error ? error.message : "Errore sconosciuto"

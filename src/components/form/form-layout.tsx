@@ -38,7 +38,7 @@ export function FormLayout({
   children,
   className,
   onSubmit,
-}: FormLayoutProps) {
+}: Readonly<FormLayoutProps>) {
   return (
     <form
       onSubmit={onSubmit}
