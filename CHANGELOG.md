@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.5.6] - 2026-02-03
+
+### Test
+
+- **infra**: Setup Playwright for E2E testing and Vitest for unit testing with corresponding dependencies.
+
+### Chore
+
+- **workflows**: Reorganize agent workflows and update project configuration.
+
 ## [0.5.5] - 2026-02-01
 
 ### Refactor
