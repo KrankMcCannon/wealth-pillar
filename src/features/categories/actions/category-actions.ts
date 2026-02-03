@@ -23,7 +23,7 @@ function validateCategoryInput(input: CreateCategoryInput): string | null {
   if (!FinanceLogicService.isValidColor(input.color)) {
     return 'Invalid color format. Use hex format (e.g., #FF0000)';
   }
-  
+
   return null;
 }
 
@@ -33,7 +33,7 @@ function validateCategoryInput(input: CreateCategoryInput): string | null {
 function validateUpdateCategoryInput(input: UpdateCategoryInput): string | null {
   if (input.label !== undefined && input.label.trim() === '') return 'Label cannot be empty';
   if (input.icon !== undefined && input.icon.trim() === '') return 'Icon cannot be empty';
-  
+
   if (input.color !== undefined) {
     if (input.color.trim() === '') return 'Color cannot be empty';
     if (!FinanceLogicService.isValidColor(input.color)) return 'Invalid color format';
@@ -50,13 +50,14 @@ export async function getAllCategoriesAction(): Promise<ServiceResult<Category[]
     // Authentication check (cached per request)
     const currentUser = await getCurrentUser();
     if (!currentUser?.group_id) {
-      // If no group, return empty array
-      return { data: [], error: null };
+      // If no group (e.g. onboarding), return system default categories from DB
+      const result = await CategoryService.getSystemCategories();
+      return { data: result, error: null };
     }
 
-    // Fetch categories for user's group using Service
-    // Note: CategoryService.getCategoriesByGroup filters by group
-    const categories = await CategoryService.getCategoriesByGroup(currentUser.group_id);
+    // Fetch available categories (System + Group Custom) using Service
+    // Note: CategoryService.getAvailableCategories handles strict isolation
+    const categories = await CategoryService.getAvailableCategories(currentUser.group_id);
     return { data: categories, error: null };
   } catch (error) {
     return {

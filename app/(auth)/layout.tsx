@@ -1,7 +1,7 @@
-import type { ReactNode } from 'react';
+import React, { type ReactNode } from 'react';
 import { authStyles } from '@/features/auth';
 
-export default function AuthLayout({ children }: { children: ReactNode }) {
+export default function AuthLayout({ children }: { children: ReactNode }): React.JSX.Element {
   return (
     <div className={authStyles.layout.container}>
       <main className={authStyles.layout.main}>{children}</main>

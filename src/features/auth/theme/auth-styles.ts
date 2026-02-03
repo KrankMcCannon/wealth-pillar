@@ -4,7 +4,7 @@
  * Uses centralized style registry from @/styles/system
  */
 
-import { animationStyles, radiusStyles, typographyStyles, spacingStyles } from "@/styles/system";
+import { radiusStyles, typographyStyles, spacingStyles } from "@/styles/system";
 
 const authTokens = {
   // ============================================================================
@@ -166,50 +166,6 @@ export const authStyles = {
   },
 
   // ============================================================================
-  // SOCIAL BUTTONS
-  // OAuth provider buttons container
-  // ============================================================================
-
-  socialButtons: {
-    container: 'space-y-1.5',
-    button: `w-full h-9 ${animationStyles.classes.transition} hover:opacity-95 active:scale-[.98] ${typographyStyles.sm}`,
-    base: 'bg-white text-primary border border-primary/20 hover:border-primary/40 transition-all shadow-sm',
-    google: 'hover:bg-primary/5',
-    apple: 'hover:bg-secondary/5',
-    github: 'hover:bg-accent/5',
-    icon: 'h-4 w-4 mr-2',
-    iconSecondary: 'text-secondary',
-    iconAccent: 'text-accent',
-  },
-  card: {
-    container: 'w-full max-w-md mx-auto px-2 sm:px-4',
-    surface: 'rounded-2xl bg-white p-4 sm:p-5 shadow-xl border border-primary/20',
-    header: 'mb-3',
-    headerRow: 'flex items-center gap-2 justify-center mb-2',
-    headerSlot: 'shrink-0 w-6 h-6',
-    headerSlotSpacer: 'shrink-0 w-6',
-    headerCenter: 'flex-1 text-center',
-    brand: 'text-primary text-xl font-bold tracking-tight',
-    title: 'text-xl font-bold text-primary tracking-tight mt-0.5',
-    subtitle: 'text-center text-xs text-primary/60',
-  },
-  userButton: {
-    trigger: 'flex items-center gap-2 px-2 py-1 h-auto',
-    avatarWrap: 'w-8 h-8 rounded-xl overflow-hidden bg-primary/10',
-    avatarImage: 'h-full w-full object-cover',
-    nameWrap: 'flex flex-col items-start text-left',
-    name: 'text-sm font-medium',
-    role: 'text-xs capitalize',
-    menu: 'w-56',
-    menuLabel: 'flex flex-col space-y-1',
-    menuName: 'text-sm font-medium leading-none',
-    menuEmail: 'text-xs leading-none',
-    menuRole: 'text-xs leading-none capitalize',
-    menuIcon: 'mr-2 h-4 w-4',
-    destructiveItem: 'text-destructive focus:text-destructive',
-  },
-
-  // ============================================================================
   // TERMS & CONDITIONS
   // Bottom links for sign-in/sign-up toggle
   // ============================================================================
@@ -218,6 +174,24 @@ export const authStyles = {
     container: `text-center ${typographyStyles.xs} text-muted-foreground pt-1`,
     text: `${typographyStyles.xs} text-muted-foreground`,
     link: "text-primary hover:text-primary/80 font-semibold",
+  },
+
+  // ============================================================================
+  // CARD
+  // Card container and surface styles
+  // ============================================================================
+
+  card: {
+    container: 'w-full max-w-md mx-auto px-2 sm:px-4',
+    surface: 'rounded-2xl bg-card p-4 sm:p-5 shadow-xl border border-primary/20',
+    header: 'mb-3',
+    headerRow: 'flex items-center gap-2 justify-center mb-2',
+    headerSlot: 'shrink-0 w-6 h-6',
+    headerSlotSpacer: 'shrink-0 w-6',
+    headerCenter: 'flex-1 text-center',
+    brand: 'text-primary text-xl font-bold tracking-tight',
+    title: 'text-xl font-bold text-primary tracking-tight mt-0.5',
+    subtitle: 'text-center text-xs text-primary/60',
   },
 
   // ============================================================================

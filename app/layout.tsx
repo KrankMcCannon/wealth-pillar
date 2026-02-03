@@ -1,3 +1,4 @@
+import React from "react";
 import type { Metadata, Viewport } from "next";
 import { Spline_Sans } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
@@ -37,12 +38,12 @@ export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
-}>) {
+}>): React.JSX.Element {
   return (
     <ClerkProvider
       telemetry={false}
     >
-      <html lang="en" data-scroll-behavior="smooth" suppressHydrationWarning>
+      <html lang="it" data-scroll-behavior="smooth" suppressHydrationWarning>
         <body
           className={`${splineSans.variable} antialiased min-h-screen bg-card text-primary`}
         >

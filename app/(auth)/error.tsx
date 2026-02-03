@@ -1,6 +1,8 @@
 'use client';
 
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
+import Link from 'next/link';
+import { Button } from '@/components/ui';
 import { AuthCard, authStyles } from '@/features/auth';
 
 /**
@@ -15,7 +17,7 @@ export default function AuthError({
 }: {
   error: Error & { digest?: string };
   reset: () => void;
-}) {
+}): React.JSX.Element {
   useEffect(() => {
     // Log error to console for debugging
     console.error('[Auth Error]', {
@@ -37,18 +39,22 @@ export default function AuthError({
           <p className={authStyles.errorPage.description}>
             {error.message || "Errore imprevisto durante l'autenticazione"}
           </p>
-          <button
+          <Button
             onClick={() => reset()}
-            className={authStyles.errorPage.retryButton}
+            className="w-full"
+            size="default"
           >
             Riprova
-          </button>
-          <a
-            href="/auth"
-            className={authStyles.errorPage.backLink}
+          </Button>
+          <Button
+            variant="ghost"
+            asChild
+            className="w-full"
           >
-            Torna alla pagina di accesso
-          </a>
+            <Link href="/auth">
+              Torna alla pagina di accesso
+            </Link>
+          </Button>
         </div>
       </AuthCard>
     </>

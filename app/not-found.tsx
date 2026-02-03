@@ -1,10 +1,11 @@
 "use client";
 
+import React from "react";
 import { Home } from "lucide-react";
 import { Button } from "@/components/ui";
 import Link from "next/link";
 
-export default function NotFound() {
+export default function NotFound(): React.JSX.Element {
   return (
     <div className="h-full w-full flex items-center justify-center px-4 relative">
       <div className="pointer-events-none absolute -top-24 -left-24 h-72 w-72 rounded-full blur-3xl opacity-15 bg-primary" />
@@ -26,12 +27,12 @@ export default function NotFound() {
           continuare la navigazione.
         </p>
 
-        <Link href="/dashboard" className="w-full">
-          <Button className="w-full gap-2">
+        <Button className="w-full gap-2" asChild>
+          <Link href="/dashboard">
             <Home className="h-4 w-4" />
             Vai alla Dashboard
-          </Button>
-        </Link>
+          </Link>
+        </Button>
       </div>
     </div>
   );

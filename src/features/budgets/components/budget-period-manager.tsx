@@ -184,7 +184,7 @@ export function BudgetPeriodManager({
 
   return (
     <>
-      <button className="contents cursor-pointer" onClick={() => setIsOpen(true)}>{trigger}</button>
+      <div className="contents cursor-pointer" onClick={() => setIsOpen(true)}>{trigger}</div>
       <ModalWrapper
         isOpen={isOpen}
         onOpenChange={setIsOpen}

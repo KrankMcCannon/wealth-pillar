@@ -160,7 +160,7 @@ export class UserService {
    * Retrieves logged-in user information by Clerk ID
    * Used for authentication flows where we have the Clerk user ID
    */
-  static async getLoggedUserInfo(clerkId: string): Promise<User> {
+  static async getLoggedUserInfo(clerkId: string): Promise<User | null> {
     // Input validation
     if (!clerkId || clerkId.trim() === '') {
       throw new Error('Clerk ID is required');
@@ -179,7 +179,7 @@ export class UserService {
     const user = await getCachedUser();
 
     if (!user) {
-      throw new Error('User not found');
+      return null;
     }
 
     return user as unknown as User;

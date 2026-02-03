@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.6.0] - 2026-02-03
+
+### Features
+
+- **auth**: Implemented Google One Tap for seamless sign-in.
+- **categories**: Implemented strict isolation between System (Nil UUID) and Custom categories (`group_id`).
+
+### Refactor
+
+- **auth**: Modernized complete auth flow using Server Components and removing legacy wrappers.
+- **auth**: Standardized Clerk redirections using `forceRedirectUrl`.
+- **cleanup**: Removed unused `social-buttons` and `user-button` components.
+
+### Fix
+
+- **auth**: Resolved "User not found" crash by gracefully handling missing DB records in `UserService`.
+- **budgets**: Fixed hydration error caused by nested buttons in `BudgetPeriodManager`.
+- **onboarding**: Fixed empty category list by serving system defaults when no group exists.
+
 ## [0.5.6] - 2026-02-03
 
 ### Test

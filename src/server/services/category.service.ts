@@ -9,6 +9,7 @@ import type { Category } from '@/lib/types';
 import type { Database } from '@/lib/types/database.types';
 import { validateId, validateRequiredString } from '@/lib/utils/validation-utils';
 import { invalidateCategoryCaches } from '@/lib/utils/cache-utils';
+import { SYSTEM_GROUP_ID } from '@/lib/constants';
 
 type CategoryInsert = Database['public']['Tables']['categories']['Insert'];
 type CategoryUpdate = Database['public']['Tables']['categories']['Update'];
@@ -123,9 +124,6 @@ export class CategoryService {
 
   // ================== SERVICE LAYER ==================
 
-  /**
-   * Retrieves all categories by group
-   */
   static async getCategoriesByGroup(groupId: string): Promise<Category[]> {
     if (!groupId || groupId.trim() === '') {
       throw new Error('Group ID is required');
@@ -143,6 +141,32 @@ export class CategoryService {
     const categories = await getCachedCategories();
 
     return (categories || []) as unknown as Category[];
+  }
+
+  /**
+   * Retrieves system default categories (SYSTEM_GROUP_ID)
+   */
+  static async getSystemCategories(): Promise<Category[]> {
+    return this.getCategoriesByGroup(SYSTEM_GROUP_ID);
+  }
+
+  /**
+   * Retrieves all available categories for a group (System + Group Custom)
+   * Uses .or() query for efficient single-pass fetching and strict isolation.
+   */
+  static async getAvailableCategories(groupId: string): Promise<Category[]> {
+    if (!groupId || groupId.trim() === '') {
+      throw new Error('Group ID is required');
+    }
+
+    const { data, error } = await supabase
+      .from('categories')
+      .select('*')
+      .or(`group_id.eq.${groupId},group_id.eq.${SYSTEM_GROUP_ID}`)
+      .order('label', { ascending: true });
+
+    if (error) throw new Error(error.message);
+    return (data || []) as Category[];
   }
 
 

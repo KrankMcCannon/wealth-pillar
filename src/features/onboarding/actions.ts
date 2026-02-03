@@ -212,10 +212,24 @@ export async function checkUserExistsAction(
       error: null,
     };
   } catch (error) {
+    // If the error indicates user not found, strictly return exists: false
+    // This allows the onboarding flow to start.
+    const message = error instanceof Error ? error.message : String(error);
+
+    if (message.includes('User not found') || message.includes('not found')) {
+      return {
+        data: {
+          exists: false,
+          userId: undefined,
+        },
+        error: null,
+      };
+    }
+
     console.error('[checkUserExistsAction] Unexpected error:', error);
     return {
       data: null,
-      error: error instanceof Error ? error.message : 'Errore durante la verifica dell\'utente',
+      error: message,
     };
   }
 }
