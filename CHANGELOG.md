@@ -7,7 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Docs
 
 - **project**: Rewrote `PROJECT_STRUCTURE.md` as comprehensive agent-optimized reference (828 lines) with architecture diagrams, data flows, services, stores, user flows, styling system, and coding patterns.
-- **project**: Refactored `README.md` to align with GitHub standards and current tech stack (Next.js 16, React 19, Zustand 5).
+- **project**: Refactored `README.md` to align with GitHub standards and current tech stack (Next.js 16, React 19, Zustand 5), and added a professional product overview section.
 - **workflows**: Updated `describe-project-structure` workflow to support incremental updates with clear triggers and section mapping.
 
 ## [0.6.0] - 2026-02-03

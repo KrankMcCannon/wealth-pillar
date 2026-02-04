@@ -16,6 +16,19 @@
 
 ---
 
+## 🏛️ Product Overview
+
+**Wealth Pillar** is a professional financial management platform designed for families and small groups to consolidate their financial operations. The system centralizes decentralized assets—ranging from payroll accounts to investment portfolios—into a single, unified source of truth.
+
+The platform provides a functional command center for:
+
+- **Financial Consolidation**: Aggregating multiple bank accounts and investment holdings.
+- **Controlled Collaboration**: Managing shared group finances with role-based access.
+- **Budgeting & Analysis**: Executing multi-period budget plans with real-time tracking.
+- **Automated Series**: Handling recurring financial commitments and transaction reconciliation.
+
+---
+
 ## ✨ Features
 
 <table>
