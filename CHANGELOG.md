@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## [0.6.1] - 2026-02-04
 
+### Test
+
+- **e2e**: Added comprehensive E2E tests for transaction visualization, creation, update, and deletion.
+- **e2e**: Implemented client-side mock for Clerk authentication to enable testing without external dependencies.
+- **e2e**: Configured E2E code coverage using `monocart-reporter` and V8 coverage.
+- **e2e**: Enabled and verified mobile E2E tests for Chrome (Pixel 5) and Safari (iPhone 12).
+
 ### Docs
 
 - **project**: Rewrote `PROJECT_STRUCTURE.md` as comprehensive agent-optimized reference (828 lines) with architecture diagrams, data flows, services, stores, user flows, styling system, and coding patterns.
