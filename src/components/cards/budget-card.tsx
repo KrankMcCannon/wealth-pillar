@@ -2,16 +2,16 @@
  * BudgetCard - Domain card for budgets
  */
 
-"use client";
+'use client';
 
-import { memo, useMemo } from "react";
-import { CategoryBadge, StatusBadge, Text } from "@/components/ui";
+import { memo, useMemo } from 'react';
+import { CategoryBadge, StatusBadge, Text } from '@/components/ui';
 import type { Budget } from '@/lib';
 import { progressBarVariants, progressFillVariants } from '@/lib';
-import { formatCurrency } from "@/lib/utils/currency-formatter";
-import { cardStyles, getBudgetProgressStyle, getBudgetStatusTextClass } from "./theme/card-styles";
-import { useCategories } from "@/stores/reference-data-store";
-import { FinanceLogicService } from "@/server/services/finance-logic.service";
+import { formatCurrency } from '@/lib/utils/currency-formatter';
+import { cardStyles, getBudgetProgressStyle, getBudgetStatusTextClass } from './theme/card-styles';
+import { useCategories } from '@/stores/reference-data-store';
+import { FinanceLogicService } from '@/server/services/finance-logic.service';
 
 interface BudgetCardProps {
   budget: Budget;
@@ -24,16 +24,20 @@ interface BudgetCardProps {
   onClick: () => void;
 }
 
-export const BudgetCard = memo(function BudgetCard({ budget, budgetInfo, onClick }: BudgetCardProps) {
+export const BudgetCard = memo(function BudgetCard({
+  budget,
+  budgetInfo,
+  onClick,
+}: BudgetCardProps) {
   const categories = useCategories();
   const categoryColor = useMemo(() => {
-    return FinanceLogicService.getCategoryColor(categories, budget.categories?.[0] || "altro");
+    return FinanceLogicService.getCategoryColor(categories, budget.categories?.[0] || 'altro');
   }, [categories, budget.categories]);
   // Status calculation (centralized logic)
-  const getStatusVariant = (progress: number): "success" | "warning" | "danger" => {
-    if (progress >= 100) return "danger";
-    if (progress >= 80) return "warning";
-    return "success";
+  const getStatusVariant = (progress: number): 'success' | 'warning' | 'danger' => {
+    if (progress >= 100) return 'danger';
+    if (progress >= 80) return 'warning';
+    return 'success';
   };
 
   // Get text color class based on status
@@ -50,7 +54,7 @@ export const BudgetCard = memo(function BudgetCard({ budget, budgetInfo, onClick
       <div className={cardStyles.budget.row}>
         <div className={cardStyles.budget.left}>
           <CategoryBadge
-            categoryKey={budget.categories?.[0] || "altro"}
+            categoryKey={budget.categories?.[0] || 'altro'}
             color={categoryColor}
             size="md"
           />
@@ -62,7 +66,12 @@ export const BudgetCard = memo(function BudgetCard({ budget, budgetInfo, onClick
             </Text>
 
             {/* Progress badge */}
-            <StatusBadge status={status} size="sm" showDot className={cardStyles.budget.statusBadge}>
+            <StatusBadge
+              status={status}
+              size="sm"
+              showDot
+              className={cardStyles.budget.statusBadge}
+            >
               {Math.round(progress)}%
             </StatusBadge>
           </div>
@@ -89,7 +98,10 @@ export const BudgetCard = memo(function BudgetCard({ budget, budgetInfo, onClick
       {/* Progress Bar */}
       <div className={cardStyles.budget.progress}>
         <div className={progressBarVariants({ status })}>
-          <div className={progressFillVariants({ status })} style={getBudgetProgressStyle(progress)} />
+          <div
+            className={progressFillVariants({ status })}
+            style={getBudgetProgressStyle(progress)}
+          />
         </div>
       </div>
     </button>

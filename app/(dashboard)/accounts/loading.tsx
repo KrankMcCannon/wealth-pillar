@@ -6,13 +6,13 @@
  * Follows consistent design system and spacing patterns
  */
 
-import { PageContainer, BottomNavigation } from "@/components/layout";
+import { PageContainer, BottomNavigation } from '@/components/layout';
 import { accountStyles } from '@/features/accounts';
 import {
   AccountHeaderSkeleton,
   AccountListSkeleton,
 } from '@/features/accounts/components/account-skeletons';
-import { SkeletonBox } from "@/components/ui/primitives";
+import { SkeletonBox } from '@/components/ui/primitives';
 
 export default function AccountsLoading() {
   return (

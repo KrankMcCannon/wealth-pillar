@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useUserFilterStore } from '@/stores/user-filter-store';
 
@@ -18,10 +18,10 @@ import { useUserFilterStore } from '@/stores/user-filter-store';
  * ```
  */
 export function useUserFilter() {
-  const selectedGroupFilter = useUserFilterStore(state => state.selectedGroupFilter);
-  const selectedUserId = useUserFilterStore(state => state.selectedUserId);
-  const setSelectedGroupFilter = useUserFilterStore(state => state.setSelectedGroupFilter);
-  const reset = useUserFilterStore(state => state.reset);
+  const selectedGroupFilter = useUserFilterStore((state) => state.selectedGroupFilter);
+  const selectedUserId = useUserFilterStore((state) => state.selectedUserId);
+  const setSelectedGroupFilter = useUserFilterStore((state) => state.setSelectedGroupFilter);
+  const reset = useUserFilterStore((state) => state.reset);
 
   return {
     selectedGroupFilter,

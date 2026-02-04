@@ -3,7 +3,12 @@
 import { revalidateTag } from 'next/cache';
 
 import { getCurrentUser } from '@/lib/auth/cached-auth';
-import { CreateCategoryInput, UpdateCategoryInput, CategoryService, FinanceLogicService } from '@/server/services';
+import {
+  CreateCategoryInput,
+  UpdateCategoryInput,
+  CategoryService,
+  FinanceLogicService,
+} from '@/server/services';
 import type { Category } from '@/lib/types';
 
 type ServiceResult<T> = {
@@ -70,7 +75,9 @@ export async function getAllCategoriesAction(): Promise<ServiceResult<Category[]
 /**
  * Server action to create a new category
  */
-export async function createCategoryAction(input: CreateCategoryInput): Promise<ServiceResult<Category>> {
+export async function createCategoryAction(
+  input: CreateCategoryInput
+): Promise<ServiceResult<Category>> {
   try {
     // Authentication check (cached per request)
     const currentUser = await getCurrentUser();
@@ -116,7 +123,10 @@ export async function createCategoryAction(input: CreateCategoryInput): Promise<
 /**
  * Server action to update an existing category
  */
-export async function updateCategoryAction(id: string, input: UpdateCategoryInput): Promise<ServiceResult<Category>> {
+export async function updateCategoryAction(
+  id: string,
+  input: UpdateCategoryInput
+): Promise<ServiceResult<Category>> {
   try {
     // Authentication check (cached per request)
     const currentUser = await getCurrentUser();

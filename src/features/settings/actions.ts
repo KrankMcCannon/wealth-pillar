@@ -1,11 +1,7 @@
 'use server';
 
 import { clerkClient } from '@clerk/nextjs/server';
-import {
-  UserService,
-  UserPreferencesService,
-  GroupInvitationService,
-} from '@/server/services';
+import { UserService, UserPreferencesService, GroupInvitationService } from '@/server/services';
 import type { UserPreferences, GroupInvitation } from '@/server/services';
 import type { UserPreferencesUpdate, User } from '@/lib/types';
 
@@ -56,10 +52,7 @@ export async function deleteUserAction(
   } catch (error) {
     return {
       data: null,
-      error:
-        error instanceof Error
-          ? error.message
-          : 'Failed to delete user',
+      error: error instanceof Error ? error.message : 'Failed to delete user',
     };
   }
 }
@@ -107,10 +100,7 @@ export async function updateUserProfileAction(
   } catch (error) {
     return {
       data: null,
-      error:
-        error instanceof Error
-          ? error.message
-          : 'Failed to update profile',
+      error: error instanceof Error ? error.message : 'Failed to update profile',
     };
   }
 }
@@ -144,10 +134,7 @@ export async function getUserPreferencesAction(
   } catch (error) {
     return {
       data: null,
-      error:
-        error instanceof Error
-          ? error.message
-          : 'Failed to get preferences',
+      error: error instanceof Error ? error.message : 'Failed to get preferences',
     };
   }
 }
@@ -181,10 +168,7 @@ export async function updateUserPreferencesAction(
     }
 
     // Update preferences via service
-    const data = await UserPreferencesService.updatePreferences(
-      userId,
-      updates
-    );
+    const data = await UserPreferencesService.updatePreferences(userId, updates);
 
     return {
       data,
@@ -193,10 +177,7 @@ export async function updateUserPreferencesAction(
   } catch (error) {
     return {
       data: null,
-      error:
-        error instanceof Error
-          ? error.message
-          : 'Failed to update preferences',
+      error: error instanceof Error ? error.message : 'Failed to update preferences',
     };
   }
 }
@@ -257,10 +238,7 @@ export async function sendGroupInvitationAction(
   } catch (error) {
     return {
       data: null,
-      error:
-        error instanceof Error
-          ? error.message
-          : 'Failed to send invitation',
+      error: error instanceof Error ? error.message : 'Failed to send invitation',
     };
   }
 }
@@ -268,13 +246,11 @@ export async function sendGroupInvitationAction(
 /**
  * Gets all users in a specific group
  * Server action for Group Management Section
- * 
+ *
  * @param groupId - Group ID
  * @returns List of users or error
  */
-export async function getGroupUsersAction(
-  groupId: string
-): Promise<User[] | null> {
+export async function getGroupUsersAction(groupId: string): Promise<User[] | null> {
   try {
     if (!groupId || groupId.trim() === '') {
       return null;
@@ -283,7 +259,7 @@ export async function getGroupUsersAction(
     const users = await UserService.getUsersByGroup(groupId);
     return users as unknown as User[];
   } catch (error) {
-    console.error("Failed to get group users:", error);
+    console.error('Failed to get group users:', error);
     return null;
   }
 }
@@ -340,10 +316,7 @@ export async function updateSubscriptionAction(
   } catch (error) {
     return {
       data: null,
-      error:
-        error instanceof Error
-          ? error.message
-          : 'Failed to update subscription',
+      error: error instanceof Error ? error.message : 'Failed to update subscription',
     };
   }
 }

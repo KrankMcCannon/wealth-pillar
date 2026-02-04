@@ -3,8 +3,4 @@
  * Design tokens and style utilities
  */
 
-export {
-  authStyles,
-  getInputStyles,
-  getButtonLoadingState,
-} from './auth-styles';
+export { authStyles, getInputStyles, getButtonLoadingState } from './auth-styles';

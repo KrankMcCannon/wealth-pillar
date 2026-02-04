@@ -11,22 +11,22 @@
  * - Direct month and year selection
  */
 
-"use client";
+'use client';
 
-import { useState, useMemo } from "react";
-import { format, setMonth, setYear, getYear, getMonth } from "date-fns";
-import { it } from "date-fns/locale";
-import { ChevronLeft, ChevronRight, ChevronDown } from "lucide-react";
-import { calendarDrawerStyles } from "@/lib/styles/calendar-drawer.styles";
-import { monthNavButtonVariants } from "@/lib/utils/date-drawer-variants";
-import { cn } from "@/lib/utils";
+import { useState, useMemo } from 'react';
+import { format, setMonth, setYear, getYear, getMonth } from 'date-fns';
+import { it } from 'date-fns/locale';
+import { ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react';
+import { calendarDrawerStyles } from '@/lib/styles/calendar-drawer.styles';
+import { monthNavButtonVariants } from '@/lib/utils/date-drawer-variants';
+import { cn } from '@/lib/utils';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from '@/components/ui/select';
 
 export interface MonthHeaderProps {
   /**
@@ -93,13 +93,26 @@ export function MonthHeader({
   }, []);
 
   // Italian month names
-  const monthNames = useMemo(() => [
-    "Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno",
-    "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"
-  ], []);
+  const monthNames = useMemo(
+    () => [
+      'Gennaio',
+      'Febbraio',
+      'Marzo',
+      'Aprile',
+      'Maggio',
+      'Giugno',
+      'Luglio',
+      'Agosto',
+      'Settembre',
+      'Ottobre',
+      'Novembre',
+      'Dicembre',
+    ],
+    []
+  );
 
   // Format month and year for display
-  const monthYearText = format(currentMonth, "MMMM yyyy", { locale: it });
+  const monthYearText = format(currentMonth, 'MMMM yyyy', { locale: it });
   // Capitalize first letter (Italian months start lowercase)
   const capitalizedText = monthYearText.charAt(0).toUpperCase() + monthYearText.slice(1);
 
@@ -135,10 +148,7 @@ export function MonthHeader({
           // Dropdown mode
           <div className={calendarDrawerStyles.header.dropdowns}>
             {/* Month Dropdown */}
-            <Select
-              value={currentMonthNum.toString()}
-              onValueChange={handleMonthSelect}
-            >
+            <Select value={currentMonthNum.toString()} onValueChange={handleMonthSelect}>
               <SelectTrigger
                 className={cn(
                   calendarDrawerStyles.header.selectTrigger,
@@ -161,10 +171,7 @@ export function MonthHeader({
             </Select>
 
             {/* Year Dropdown */}
-            <Select
-              value={currentYearNum.toString()}
-              onValueChange={handleYearSelect}
-            >
+            <Select value={currentYearNum.toString()} onValueChange={handleYearSelect}>
               <SelectTrigger
                 className={cn(
                   calendarDrawerStyles.header.selectTrigger,

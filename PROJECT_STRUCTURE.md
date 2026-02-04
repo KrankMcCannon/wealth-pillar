@@ -464,11 +464,11 @@ Feature-specific styles in `/src/features/{domain}/theme/{name}-styles.ts`:
 
 ```typescript
 export const transactionStyles = {
-  card: "bg-card rounded-lg p-4 shadow-sm",
-  title: "text-lg font-semibold text-foreground",
+  card: 'bg-card rounded-lg p-4 shadow-sm',
+  title: 'text-lg font-semibold text-foreground',
   amount: {
-    income: "text-primary font-bold",
-    expense: "text-destructive font-bold",
+    income: 'text-primary font-bold',
+    expense: 'text-destructive font-bold',
   },
 };
 ```
@@ -552,13 +552,13 @@ npm run test:coverage
 
 ```typescript
 export const CACHE_TAGS = {
-  USERS: "users",
+  USERS: 'users',
   USER: (id: string) => `user:${id}`,
   USER_BY_CLERK: (clerkId: string) => `user-clerk:${clerkId}`,
-  TRANSACTIONS: "transactions",
+  TRANSACTIONS: 'transactions',
   TRANSACTION: (id: string) => `transaction:${id}`,
-  ACCOUNTS: "accounts",
-  BUDGETS: "budgets",
+  ACCOUNTS: 'accounts',
+  BUDGETS: 'budgets',
   // ... etc
 };
 ```
@@ -566,7 +566,7 @@ export const CACHE_TAGS = {
 ### Cache Invalidation
 
 ```typescript
-import { revalidateTag } from "next/cache";
+import { revalidateTag } from 'next/cache';
 
 // After mutation
 revalidateTag(CACHE_TAGS.TRANSACTIONS);
@@ -576,7 +576,7 @@ revalidateTag(CACHE_TAGS.ACCOUNTS);
 ### React Cache
 
 ```typescript
-import { cache } from "react";
+import { cache } from 'react';
 
 // Deduplicates requests per render
 const getUser = cache(async (id: string) => {
@@ -617,11 +617,11 @@ const getUser = cache(async (id: string) => {
 ### Server Action Pattern
 
 ```typescript
-"use server";
+'use server';
 
-import { revalidateTag } from "next/cache";
-import { TransactionService } from "@/server/services";
-import { CACHE_TAGS } from "@/lib/cache/config";
+import { revalidateTag } from 'next/cache';
+import { TransactionService } from '@/server/services';
+import { CACHE_TAGS } from '@/lib/cache/config';
 
 export async function createTransactionAction(input: CreateTransactionInput) {
   try {
@@ -638,7 +638,7 @@ export async function createTransactionAction(input: CreateTransactionInput) {
 
 ```tsx
 export function TransactionModal() {
-  const { isOpen, close, data } = useModalState("transaction");
+  const { isOpen, close, data } = useModalState('transaction');
 
   if (!isOpen) return null;
 

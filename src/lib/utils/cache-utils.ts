@@ -2,7 +2,7 @@ import 'server-only';
 
 /**
  * Shared Cache Invalidation Utilities
- * 
+ *
  * Centralized cache invalidation helpers to reduce code duplication.
  * Uses Next.js revalidateTag for on-demand cache invalidation.
  */
@@ -59,10 +59,7 @@ export function invalidateTransactionCaches(opts: TransactionCacheInvalidationOp
   ];
 
   if (opts.userId) {
-    tags.push(
-      `user:${opts.userId}:transactions`,
-      `user:${opts.userId}:budgets`
-    );
+    tags.push(`user:${opts.userId}:transactions`, `user:${opts.userId}:budgets`);
   }
 
   if (opts.toAccountId) {
@@ -77,10 +74,7 @@ export function invalidateTransactionCaches(opts: TransactionCacheInvalidationOp
  * Used after creating, updating, or deleting budgets.
  */
 export function invalidateBudgetCaches(opts: BudgetCacheInvalidationOptions): void {
-  const tags: string[] = [
-    CACHE_TAGS.BUDGETS,
-    `user:${opts.userId}:budgets`,
-  ];
+  const tags: string[] = [CACHE_TAGS.BUDGETS, `user:${opts.userId}:budgets`];
 
   if (opts.budgetId) {
     tags.push(CACHE_TAGS.BUDGET(opts.budgetId));
@@ -98,17 +92,14 @@ export function invalidateBudgetCaches(opts: BudgetCacheInvalidationOptions): vo
  * Used after creating, updating, or deleting accounts.
  */
 export function invalidateAccountCaches(opts: AccountCacheInvalidationOptions): void {
-  const tags: string[] = [
-    CACHE_TAGS.ACCOUNTS,
-    CACHE_TAGS.ACCOUNT(opts.accountId),
-  ];
+  const tags: string[] = [CACHE_TAGS.ACCOUNTS, CACHE_TAGS.ACCOUNT(opts.accountId)];
 
   if (opts.groupId) {
     tags.push(`group:${opts.groupId}:accounts`);
   }
 
   if (opts.userIds) {
-    opts.userIds.forEach(userId => {
+    opts.userIds.forEach((userId) => {
       tags.push(`user:${userId}:accounts`);
     });
   }
@@ -121,20 +112,14 @@ export function invalidateAccountCaches(opts: AccountCacheInvalidationOptions): 
  * Used after updating user profile or preferences.
  */
 export function invalidateUserCaches(opts: UserCacheInvalidationOptions): void {
-  invalidateTags([
-    CACHE_TAGS.USERS,
-    CACHE_TAGS.USER(opts.userId),
-  ]);
+  invalidateTags([CACHE_TAGS.USERS, CACHE_TAGS.USER(opts.userId)]);
 }
 
 /**
  * Invalidates budget period related caches.
  * Used after creating, updating, or deleting budget periods.
  */
-export function invalidateBudgetPeriodCaches(opts: {
-  userId: string;
-  periodId?: string;
-}): void {
+export function invalidateBudgetPeriodCaches(opts: { userId: string; periodId?: string }): void {
   const tags: string[] = [
     CACHE_TAGS.BUDGET_PERIODS,
     `user:${opts.userId}:budget_periods`,
@@ -169,10 +154,7 @@ export function invalidateCategoryCaches(opts: { categoryId?: string }): void {
 /**
  * Invalidates recurring series caches.
  */
-export function invalidateRecurringCaches(opts: {
-  seriesId?: string;
-  userIds?: string[];
-}): void {
+export function invalidateRecurringCaches(opts: { seriesId?: string; userIds?: string[] }): void {
   const tags: string[] = [CACHE_TAGS.RECURRING_SERIES];
 
   if (opts.seriesId) {
@@ -180,7 +162,7 @@ export function invalidateRecurringCaches(opts: {
   }
 
   if (opts.userIds) {
-    opts.userIds.forEach(uid => {
+    opts.userIds.forEach((uid) => {
       tags.push(`user:${uid}:recurring`);
     });
   }
@@ -209,7 +191,8 @@ export function invalidateTransactionUpdateCaches(
   const tags: string[] = [CACHE_TAGS.TRANSACTIONS, CACHE_TAGS.ACCOUNTS];
 
   // User tags
-  if (existing.userId) tags.push(`user:${existing.userId}:transactions`, `user:${existing.userId}:budgets`);
+  if (existing.userId)
+    tags.push(`user:${existing.userId}:transactions`, `user:${existing.userId}:budgets`);
   if (update.userId && update.userId !== existing.userId) {
     tags.push(`user:${update.userId}:transactions`, `user:${update.userId}:budgets`);
   }
@@ -225,7 +208,8 @@ export function invalidateTransactionUpdateCaches(
   }
 
   // Group tags
-  if (existing.groupId) tags.push(`group:${existing.groupId}:transactions`, `group:${existing.groupId}:budgets`);
+  if (existing.groupId)
+    tags.push(`group:${existing.groupId}:transactions`, `group:${existing.groupId}:budgets`);
   if (update.groupId && update.groupId !== existing.groupId) {
     tags.push(`group:${update.groupId}:transactions`, `group:${update.groupId}:budgets`);
   }

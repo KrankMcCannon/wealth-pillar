@@ -1,13 +1,16 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { PageContainer, Header, BottomNavigation } from "@/components/layout";
-import UserSelector from "@/components/shared/user-selector";
-import { User } from "@/lib";
-import TabNavigation from "@/components/shared/tab-navigation";
-import { transactionStyles } from "@/styles/system";
-import { SandboxForecastTab } from "@/components/investments/sandbox-forecast-tab";
-import { Investment, PersonalInvestmentTab } from "@/components/investments/personal-investment-tab";
+import { useState } from 'react';
+import { PageContainer, Header, BottomNavigation } from '@/components/layout';
+import UserSelector from '@/components/shared/user-selector';
+import { User } from '@/lib';
+import TabNavigation from '@/components/shared/tab-navigation';
+import { transactionStyles } from '@/styles/system';
+import { SandboxForecastTab } from '@/components/investments/sandbox-forecast-tab';
+import {
+  Investment,
+  PersonalInvestmentTab,
+} from '@/components/investments/personal-investment-tab';
 
 interface InvestmentsContentProps {
   currentUser: User;
@@ -32,9 +35,9 @@ export default function InvestmentsContent({
   investments,
   summary,
   indexData,
-  currentIndex
+  currentIndex,
 }: InvestmentsContentProps) {
-  const [activeTab, setActiveTab] = useState("personal");
+  const [activeTab, setActiveTab] = useState('personal');
 
   return (
     <PageContainer>
@@ -46,16 +49,13 @@ export default function InvestmentsContent({
           showActions={true}
         />
 
-        <UserSelector
-          currentUser={currentUser}
-          users={groupUsers}
-        />
+        <UserSelector currentUser={currentUser} users={groupUsers} />
 
         <div className={transactionStyles.tabNavigation.wrapper}>
           <TabNavigation
             tabs={[
-              { id: "personal", label: "Investimenti Personali" },
-              { id: "sandbox", label: "Sandbox Previsionale" },
+              { id: 'personal', label: 'Investimenti Personali' },
+              { id: 'sandbox', label: 'Sandbox Previsionale' },
             ]}
             activeTab={activeTab}
             onTabChange={setActiveTab}
@@ -64,7 +64,7 @@ export default function InvestmentsContent({
         </div>
 
         <div className="mt-8 space-y-6">
-          {activeTab === "personal" && (
+          {activeTab === 'personal' && (
             <main className={transactionStyles.page.main}>
               <PersonalInvestmentTab
                 investments={investments}
@@ -74,7 +74,7 @@ export default function InvestmentsContent({
               />
             </main>
           )}
-          {activeTab === "sandbox" && (
+          {activeTab === 'sandbox' && (
             <main className={transactionStyles.page.main}>
               <SandboxForecastTab />
             </main>

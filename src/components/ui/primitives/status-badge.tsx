@@ -15,13 +15,12 @@
  * ```
  */
 
-import * as React from "react";
-import { cn, statusBadgeVariants, type StatusBadgeVariants } from "@/lib/utils";
-import { statusBadgeStyles } from "./theme/status-badge-styles";
+import * as React from 'react';
+import { cn, statusBadgeVariants, type StatusBadgeVariants } from '@/lib/utils';
+import { statusBadgeStyles } from './theme/status-badge-styles';
 
 export interface StatusBadgeProps
-  extends React.HTMLAttributes<HTMLDivElement>,
-    StatusBadgeVariants {
+  extends React.HTMLAttributes<HTMLDivElement>, StatusBadgeVariants {
   /** Badge content */
   children: React.ReactNode;
   /** Show status dot indicator */
@@ -37,10 +36,7 @@ export function StatusBadge({
   ...props
 }: Readonly<StatusBadgeProps>) {
   return (
-    <div
-      className={cn(statusBadgeVariants({ status, size }), className)}
-      {...props}
-    >
+    <div className={cn(statusBadgeVariants({ status, size }), className)} {...props}>
       {showDot && <div className={statusBadgeStyles.dot} />}
       {children}
     </div>

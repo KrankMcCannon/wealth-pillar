@@ -1,16 +1,16 @@
-"use client";
+'use client';
 
-import { useEffect, useTransition } from "react";
-import type { BudgetPeriod } from "@/lib/types";
+import { useEffect, useTransition } from 'react';
+import type { BudgetPeriod } from '@/lib/types';
 import {
   useReportsDataStore,
   useAllBudgetPeriods,
   useActiveBudgetPeriods,
   useHistoricalBudgetPeriods,
-} from "@/stores/reports-data-store";
-import { deletePeriodAction } from "@/features/budgets";
-import { BudgetPeriodCard } from "./budget-period-card";
-import { budgetStyles } from "@/styles/system";
+} from '@/stores/reports-data-store';
+import { deletePeriodAction } from '@/features/budgets';
+import { BudgetPeriodCard } from './budget-period-card';
+import { budgetStyles } from '@/styles/system';
 
 interface BudgetPeriodsListProps {
   userId: string;
@@ -27,10 +27,7 @@ interface BudgetPeriodsListProps {
  * @param userId - User ID to display periods for
  * @param initialPeriods - Initial periods data from server
  */
-export function BudgetPeriodsList({
-  userId,
-  initialPeriods,
-}: Readonly<BudgetPeriodsListProps>) {
+export function BudgetPeriodsList({ userId, initialPeriods }: Readonly<BudgetPeriodsListProps>) {
   const [isPending, startTransition] = useTransition();
   const { setAllBudgetPeriods, removeBudgetPeriod } = useReportsDataStore();
 
@@ -108,9 +105,7 @@ export function BudgetPeriodsList({
       {/* Empty State */}
       {periods.length === 0 && (
         <div className={budgetStyles.periodsList.emptyContainer}>
-          <p className={budgetStyles.periodsList.emptyTitle}>
-            Nessun periodo budget trovato
-          </p>
+          <p className={budgetStyles.periodsList.emptyTitle}>Nessun periodo budget trovato</p>
           <p className={budgetStyles.periodsList.emptySubtitle}>
             I periodi budget ti permettono di tracciare le tue spese nel tempo
           </p>
@@ -128,4 +123,4 @@ export function BudgetPeriodsList({
 }
 
 // Export with displayName for debugging
-BudgetPeriodsList.displayName = "BudgetPeriodsList";
+BudgetPeriodsList.displayName = 'BudgetPeriodsList';

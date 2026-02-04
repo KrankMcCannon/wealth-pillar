@@ -13,7 +13,9 @@ type ServiceResult<T> = {
 };
 
 export async function createInvestmentAction(
-  input: Omit<InvestmentInsert, 'user_id' | 'id' | 'created_at' | 'updated_at'> & { created_at?: Date | string }
+  input: Omit<InvestmentInsert, 'user_id' | 'id' | 'created_at' | 'updated_at'> & {
+    created_at?: Date | string;
+  }
 ): Promise<ServiceResult<Database['public']['Tables']['investments']['Row']>> {
   try {
     // Authentication check (cached per request)
@@ -33,7 +35,9 @@ export async function createInvestmentAction(
       currency_rate: input.currency_rate || 1,
       tax_paid: input.tax_paid || 0,
       net_earn: input.net_earn || 0,
-      created_at: input.created_at ? new Date(input.created_at).toISOString() : new Date().toISOString(),
+      created_at: input.created_at
+        ? new Date(input.created_at).toISOString()
+        : new Date().toISOString(),
       user_id: currentUser.id, // Force connect to current user for now
     };
 

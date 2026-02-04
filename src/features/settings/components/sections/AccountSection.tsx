@@ -1,7 +1,6 @@
-
-import { SectionHeader } from "@/components/layout";
-import { PageSection, SettingsItem } from "@/components/ui/layout";
-import { Trash2, User as UserIcon } from "lucide-react";
+import { SectionHeader } from '@/components/layout';
+import { PageSection, SettingsItem } from '@/components/ui/layout';
+import { Trash2, User as UserIcon } from 'lucide-react';
 
 interface AccountSectionProps {
   onDeleteAccount: () => void;

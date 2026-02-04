@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useQueryState, parseAsString } from 'nuqs';
 
@@ -8,10 +8,10 @@ export const MODAL_TYPES = [
   'category',
   'recurring',
   'account',
-  'investment'
+  'investment',
 ] as const;
 
-export type ModalType = typeof MODAL_TYPES[number];
+export type ModalType = (typeof MODAL_TYPES)[number];
 
 /**
  * Hook for managing modal state via URL params
@@ -44,7 +44,7 @@ export function useModalState() {
     closeModal: () => {
       setModal(null);
       setEditId(null);
-    }
+    },
   };
 }
 

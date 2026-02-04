@@ -1,6 +1,6 @@
 /**
  * Shared Market Data Types
- * 
+ *
  * Centralized type definitions for market data operations.
  * Used by investment.service.ts and market-data.service.ts to eliminate `any` types.
  */

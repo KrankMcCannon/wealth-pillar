@@ -4,21 +4,26 @@
 
 // Components
 export {
-  DashboardHeaderSkeleton, UserSelectorSkeleton,
-  BalanceSectionSkeleton, BudgetSectionSkeleton,
-  RecurringSeriesSkeleton, DashboardPageSkeleton
-} from "./components";
+  DashboardHeaderSkeleton,
+  UserSelectorSkeleton,
+  BalanceSectionSkeleton,
+  BudgetSectionSkeleton,
+  RecurringSeriesSkeleton,
+  DashboardPageSkeleton,
+} from './components';
 
 // Hooks
-export { useDashboardContent } from "./hooks";
+export { useDashboardContent } from './hooks';
 export type {
   UseDashboardContentParams,
   UseDashboardContentReturn,
   PeriodManagerData,
-} from "./hooks";
+} from './hooks';
 
 // Theme
 export {
-  dashboardStyles, getAccountCardStyles,
-  getBalanceTextStyle, getBudgetStatusStyle
-} from "./theme";
+  dashboardStyles,
+  getAccountCardStyles,
+  getBalanceTextStyle,
+  getBudgetStatusStyle,
+} from './theme';

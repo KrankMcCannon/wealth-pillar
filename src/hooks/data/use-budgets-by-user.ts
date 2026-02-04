@@ -48,7 +48,6 @@ export function useBudgetsByUser({
   budgetPeriods = {},
   precalculatedData,
 }: UseBudgetsByUserOptions): UseBudgetsByUserReturn {
-
   // Determine which users to calculate budgets for based on permissions
   const usersToInclude = useMemo(() => {
     if (!currentUser) return [];
@@ -56,15 +55,15 @@ export function useBudgetsByUser({
     if (checkIsMember(currentUser)) {
       // Members see only their own budgets
       return [currentUser];
-    } 
-    
+    }
+
     // Admin logic
     if (selectedUserId && selectedUserId !== 'all') {
       // Filter to specific user
-      const selectedUser = groupUsers.find(u => u.id === selectedUserId);
+      const selectedUser = groupUsers.find((u) => u.id === selectedUserId);
       return selectedUser ? [selectedUser] : [];
     }
-    
+
     // Show all group users
     return groupUsers;
   }, [currentUser, groupUsers, selectedUserId]);

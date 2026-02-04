@@ -6,7 +6,7 @@
  * Centralizes styling to stay consistent with the mobile app UI
  */
 
-import { radiusStyles, shadowStyles, typographyStyles } from "@/styles/system";
+import { radiusStyles, shadowStyles, typographyStyles } from '@/styles/system';
 
 export const confirmationDialogStyles = {
   content: `sm:max-w-[420px] border border-primary/15 bg-card ${shadowStyles.xl}`,
@@ -21,14 +21,15 @@ export const confirmationDialogStyles = {
   body: 'flex-1 space-y-2',
   footer: `p-4 border-t border-border/60 flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-end`,
   buttons: {
-    cancel: "w-full sm:w-auto font-semibold border border-primary/20 text-primary bg-card hover:bg-primary hover:text-primary-foreground",
+    cancel:
+      'w-full sm:w-auto font-semibold border border-primary/20 text-primary bg-card hover:bg-primary hover:text-primary-foreground',
     confirm: 'w-full sm:w-auto font-semibold gap-2',
   },
   loadingIcon: 'size-4 animate-spin',
 } as const;
 
 export const notFoundStyles = {
-  page: "bg-card",
+  page: 'bg-card',
   header: {
     container: 'px-4 pt-6 pb-3',
     inner: 'flex items-center gap-3',
@@ -43,13 +44,14 @@ export const notFoundStyles = {
     illustration: `mx-auto flex size-16 items-center justify-center ${radiusStyles.lg} bg-primary/15 text-primary`,
     illustrationIcon: 'h-8 w-8',
     badge: `mx-auto inline-flex items-center gap-2 ${radiusStyles.full} bg-primary/30 px-3 py-1 ${typographyStyles.xs} font-semibold text-primary`,
-    title: `${typographyStyles["2xl"]} font-bold text-primary`,
+    title: `${typographyStyles['2xl']} font-bold text-primary`,
     description: `${typographyStyles.sm} leading-relaxed text-primary/80`,
     actions: 'grid gap-3 sm:grid-cols-2',
     actionLink: 'w-full',
     backButton: 'w-full',
     homeButton: 'w-full',
-    backButtonVariant: "bg-card text-primary border-primary/20 hover:bg-primary hover:text-primary-foreground",
+    backButtonVariant:
+      'bg-card text-primary border-primary/20 hover:bg-primary hover:text-primary-foreground',
     actionIcon: 'h-4 w-4',
   },
 } as const;

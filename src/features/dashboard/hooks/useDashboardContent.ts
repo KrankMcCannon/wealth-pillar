@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 /**
  * useDashboardContent Hook
@@ -6,20 +6,14 @@
  * Extracts business logic from DashboardContent component
  * Handles state management, calculations, and event handlers
  */
-import { useEffect, useMemo, useCallback } from "react";
-import { useRouter } from "next/navigation";
-import { useUserFilter, usePermissions, useFilteredAccounts } from "@/hooks";
-import { useModalState } from "@/lib/navigation/url-state";
-import { usePageDataStore, useBudgetPeriod } from "@/stores/page-data-store";
-import { calculateDisplayedAccounts } from "./dashboard-helpers";
-import type {
-  Account,
-  Budget,
-  BudgetPeriod,
-  User,
-  UserBudgetSummary,
-} from "@/lib/types";
-import type { RecurringTransactionSeries } from "@/lib";
+import { useEffect, useMemo, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
+import { useUserFilter, usePermissions, useFilteredAccounts } from '@/hooks';
+import { useModalState } from '@/lib/navigation/url-state';
+import { usePageDataStore, useBudgetPeriod } from '@/stores/page-data-store';
+import { calculateDisplayedAccounts } from './dashboard-helpers';
+import type { Account, Budget, BudgetPeriod, User, UserBudgetSummary } from '@/lib/types';
+import type { RecurringTransactionSeries } from '@/lib';
 
 /**
  * Input parameters for useDashboardContent hook
@@ -93,7 +87,7 @@ export function useDashboardContent({
   // Permission checks
   const { effectiveUserId, isMember } = usePermissions({
     currentUser,
-    selectedUserId: selectedGroupFilter === "all" ? undefined : selectedGroupFilter,
+    selectedUserId: selectedGroupFilter === 'all' ? undefined : selectedGroupFilter,
   });
 
   // Modal state management
@@ -124,7 +118,7 @@ export function useDashboardContent({
   const displayedAccountBalances = useMemo(() => {
     const displayedAccountIds = new Set(displayedDefaultAccounts.map((account) => account.id));
     return Object.fromEntries(
-      Object.entries(accountBalances).filter(([accountId]) => displayedAccountIds.has(accountId)),
+      Object.entries(accountBalances).filter(([accountId]) => displayedAccountIds.has(accountId))
     );
   }, [displayedDefaultAccounts, accountBalances]);
 
@@ -133,8 +127,11 @@ export function useDashboardContent({
     let balance = 0;
     if (selectedUserId) {
       const userAccountIds = userAccounts.map((a) => a.id);
-      balance = userAccountIds.reduce((sum, accountId) => sum + (accountBalances[accountId] || 0), 0);
-      const risparmiCasaAccount = accounts.find((a) => a.name === "Risparmi Casa");
+      balance = userAccountIds.reduce(
+        (sum, accountId) => sum + (accountBalances[accountId] || 0),
+        0
+      );
+      const risparmiCasaAccount = accounts.find((a) => a.name === 'Risparmi Casa');
       if (risparmiCasaAccount) balance += accountBalances[risparmiCasaAccount.id] || 0;
     } else {
       balance = Object.values(accountBalances).reduce((sum, bal) => sum + bal, 0);
@@ -172,26 +169,26 @@ export function useDashboardContent({
 
   // Event Handlers
   const handleAccountClick = useCallback(() => {
-    router.push("/accounts");
+    router.push('/accounts');
   }, [router]);
 
   const handleCreateRecurringSeries = useCallback(() => {
-    openModal("recurring");
+    openModal('recurring');
   }, [openModal]);
 
   const handleSeriesCardClick = useCallback(() => {
-    router.push("/transactions?tab=Recurrent");
+    router.push('/transactions?tab=Recurrent');
   }, [router]);
 
   const handlePauseRecurringSeries = useCallback(() => {
-    router.push("/transactions?tab=Recurrent");
+    router.push('/transactions?tab=Recurrent');
   }, [router]);
 
   const handlePeriodManagerUserChange = useCallback(
     (userId: string) => {
       setSelectedGroupFilter(userId);
     },
-    [setSelectedGroupFilter],
+    [setSelectedGroupFilter]
   );
 
   const handleRefresh = useCallback(() => {

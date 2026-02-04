@@ -1,14 +1,14 @@
-"use client";
+'use client';
 
-import * as React from "react";
-import { Check, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { ModalBody, ModalFooter, ModalWrapper } from "@/components/ui/modal-wrapper";
-import { toast } from "@/hooks/use-toast";
-import { updateUserPreferencesAction } from "@/features/settings";
-import type { UserPreferencesUpdate } from "@/lib/types";
-import { cn } from "@/lib";
-import { settingsStyles } from "@/features/settings/theme";
+import * as React from 'react';
+import { Check, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { ModalBody, ModalFooter, ModalWrapper } from '@/components/ui/modal-wrapper';
+import { toast } from '@/hooks/use-toast';
+import { updateUserPreferencesAction } from '@/features/settings';
+import type { UserPreferencesUpdate } from '@/lib/types';
+import { cn } from '@/lib';
+import { settingsStyles } from '@/features/settings/theme';
 
 // ============================================================================
 // TYPES & INTERFACES
@@ -87,9 +87,9 @@ export function PreferenceSelectModal({
     // Check if value changed
     if (selectedValue === currentValue) {
       toast({
-        title: "Nessuna modifica",
-        description: "Il valore selezionato è già quello attuale",
-        variant: "info",
+        title: 'Nessuna modifica',
+        description: 'Il valore selezionato è già quello attuale',
+        variant: 'info',
       });
       onOpenChange(false);
       return;
@@ -107,9 +107,9 @@ export function PreferenceSelectModal({
 
       if (error) {
         toast({
-          title: "Errore",
+          title: 'Errore',
           description: error,
-          variant: "destructive",
+          variant: 'destructive',
         });
         setIsSubmitting(false);
         return;
@@ -118,9 +118,9 @@ export function PreferenceSelectModal({
       // Show success toast
       const selectedOption = options.find((opt) => opt.value === selectedValue);
       toast({
-        title: "Preferenza aggiornata",
+        title: 'Preferenza aggiornata',
         description: `${title} impostato su ${selectedOption?.label || selectedValue}`,
-        variant: "success",
+        variant: 'success',
       });
 
       // Call onSuccess callback if provided
@@ -132,11 +132,11 @@ export function PreferenceSelectModal({
       onOpenChange(false);
       setIsSubmitting(false);
     } catch (error) {
-      console.error("Error updating preference:", error);
+      console.error('Error updating preference:', error);
       toast({
-        title: "Errore",
+        title: 'Errore',
         description: "Si è verificato un errore durante l'aggiornamento",
-        variant: "destructive",
+        variant: 'destructive',
       });
       setIsSubmitting(false);
     }
@@ -151,7 +151,6 @@ export function PreferenceSelectModal({
       titleClassName={settingsStyles.modals.title}
       descriptionClassName={settingsStyles.modals.description}
       disableOutsideClose={isSubmitting}
-
     >
       <ModalBody>
         <div className={settingsStyles.modals.preference.list}>
@@ -190,15 +189,15 @@ export function PreferenceSelectModal({
                     <span
                       className={cn(
                         settingsStyles.modals.preference.title,
-                        isSelected ? settingsStyles.modals.preference.titleActive : settingsStyles.modals.preference.titleIdle
+                        isSelected
+                          ? settingsStyles.modals.preference.titleActive
+                          : settingsStyles.modals.preference.titleIdle
                       )}
                     >
                       {option.label}
                     </span>
                     {isCurrent && (
-                      <span className={settingsStyles.modals.preference.currentBadge}>
-                        Attuale
-                      </span>
+                      <span className={settingsStyles.modals.preference.currentBadge}>Attuale</span>
                     )}
                   </div>
                   <p className={settingsStyles.modals.preference.description}>
@@ -230,7 +229,7 @@ export function PreferenceSelectModal({
               Salvataggio...
             </>
           ) : (
-            "Salva"
+            'Salva'
           )}
         </Button>
       </ModalFooter>
@@ -247,24 +246,24 @@ export function PreferenceSelectModal({
  */
 export const CURRENCY_OPTIONS: PreferenceOption[] = [
   {
-    value: "EUR",
-    label: "Euro (€)",
+    value: 'EUR',
+    label: 'Euro (€)',
     description: "Valuta ufficiale dell'Unione Europea",
   },
   {
-    value: "USD",
-    label: "Dollaro Americano ($)",
-    description: "Valuta ufficiale degli Stati Uniti",
+    value: 'USD',
+    label: 'Dollaro Americano ($)',
+    description: 'Valuta ufficiale degli Stati Uniti',
   },
   {
-    value: "GBP",
-    label: "Sterlina Britannica (£)",
-    description: "Valuta ufficiale del Regno Unito",
+    value: 'GBP',
+    label: 'Sterlina Britannica (£)',
+    description: 'Valuta ufficiale del Regno Unito',
   },
   {
-    value: "CHF",
-    label: "Franco Svizzero (CHF)",
-    description: "Valuta ufficiale della Svizzera",
+    value: 'CHF',
+    label: 'Franco Svizzero (CHF)',
+    description: 'Valuta ufficiale della Svizzera',
   },
 ];
 
@@ -273,34 +272,34 @@ export const CURRENCY_OPTIONS: PreferenceOption[] = [
  */
 export const LANGUAGE_OPTIONS: PreferenceOption[] = [
   {
-    value: "it-IT",
-    label: "Italiano",
-    description: "Lingua italiana",
+    value: 'it-IT',
+    label: 'Italiano',
+    description: 'Lingua italiana',
   },
   {
-    value: "en-US",
-    label: "English (US)",
-    description: "American English",
+    value: 'en-US',
+    label: 'English (US)',
+    description: 'American English',
   },
   {
-    value: "en-GB",
-    label: "English (UK)",
-    description: "British English",
+    value: 'en-GB',
+    label: 'English (UK)',
+    description: 'British English',
   },
   {
-    value: "fr-FR",
-    label: "Français",
-    description: "Langue française",
+    value: 'fr-FR',
+    label: 'Français',
+    description: 'Langue française',
   },
   {
-    value: "de-DE",
-    label: "Deutsch",
-    description: "Deutsche Sprache",
+    value: 'de-DE',
+    label: 'Deutsch',
+    description: 'Deutsche Sprache',
   },
   {
-    value: "es-ES",
-    label: "Español",
-    description: "Idioma español",
+    value: 'es-ES',
+    label: 'Español',
+    description: 'Idioma español',
   },
 ];
 
@@ -309,43 +308,43 @@ export const LANGUAGE_OPTIONS: PreferenceOption[] = [
  */
 export const TIMEZONE_OPTIONS: PreferenceOption[] = [
   {
-    value: "Europe/Rome",
-    label: "Roma (GMT+1)",
+    value: 'Europe/Rome',
+    label: 'Roma (GMT+1)',
     description: "Fuso orario dell'Italia centrale",
   },
   {
-    value: "Europe/London",
-    label: "Londra (GMT+0)",
-    description: "Fuso orario del Regno Unito",
+    value: 'Europe/London',
+    label: 'Londra (GMT+0)',
+    description: 'Fuso orario del Regno Unito',
   },
   {
-    value: "Europe/Paris",
-    label: "Parigi (GMT+1)",
-    description: "Fuso orario della Francia",
+    value: 'Europe/Paris',
+    label: 'Parigi (GMT+1)',
+    description: 'Fuso orario della Francia',
   },
   {
-    value: "Europe/Berlin",
-    label: "Berlino (GMT+1)",
-    description: "Fuso orario della Germania",
+    value: 'Europe/Berlin',
+    label: 'Berlino (GMT+1)',
+    description: 'Fuso orario della Germania',
   },
   {
-    value: "America/New_York",
-    label: "New York (GMT-5)",
-    description: "Fuso orario della costa est USA",
+    value: 'America/New_York',
+    label: 'New York (GMT-5)',
+    description: 'Fuso orario della costa est USA',
   },
   {
-    value: "America/Los_Angeles",
-    label: "Los Angeles (GMT-8)",
-    description: "Fuso orario della costa ovest USA",
+    value: 'America/Los_Angeles',
+    label: 'Los Angeles (GMT-8)',
+    description: 'Fuso orario della costa ovest USA',
   },
   {
-    value: "Asia/Tokyo",
-    label: "Tokyo (GMT+9)",
-    description: "Fuso orario del Giappone",
+    value: 'Asia/Tokyo',
+    label: 'Tokyo (GMT+9)',
+    description: 'Fuso orario del Giappone',
   },
   {
-    value: "Australia/Sydney",
-    label: "Sydney (GMT+10)",
+    value: 'Australia/Sydney',
+    label: 'Sydney (GMT+10)',
     description: "Fuso orario dell'Australia orientale",
   },
 ];

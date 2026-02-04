@@ -1,11 +1,11 @@
-import { useEffect, useRef, useState, useCallback } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth, useUser, useSignUp, useSignIn } from "@clerk/nextjs";
-import { getAllCategoriesAction } from "@/features/categories/actions/category-actions";
-import { completeOnboardingAction, checkUserExistsAction } from "@/features/onboarding/actions";
-import type { Category } from "@/lib/types";
-import type { OnboardingPayload } from "@/features/onboarding/types";
-import type { SignUpResource, SignInResource, SetActive } from "@clerk/types";
+import { useEffect, useRef, useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth, useUser, useSignUp, useSignIn } from '@clerk/nextjs';
+import { getAllCategoriesAction } from '@/features/categories/actions/category-actions';
+import { completeOnboardingAction, checkUserExistsAction } from '@/features/onboarding/actions';
+import type { Category } from '@/lib/types';
+import type { OnboardingPayload } from '@/features/onboarding/types';
+import type { SignUpResource, SignInResource, SetActive } from '@clerk/types';
 
 // ============================================================================
 // TYPES
@@ -38,7 +38,8 @@ async function handleTransferFlow(
   setActive: SetActive | undefined | null
 ): Promise<{ success: boolean; handled: boolean; error?: unknown }> {
   // Check if there is an external account conflict that is transferable
-  const isTransfer = signUp?.verifications?.externalAccount?.error?.code === 'external_account_exists';
+  const isTransfer =
+    signUp?.verifications?.externalAccount?.error?.code === 'external_account_exists';
   const transferStatus = signUp?.verifications?.externalAccount?.status === 'transferable';
 
   if (signUp && signIn && isTransfer && transferStatus && setActive) {
@@ -63,14 +64,14 @@ async function handleTransferFlow(
 
 /**
  * Custom hook to handle the SSO callback process.
- * 
+ *
  * Manages the state machine for:
  * 1. Verifying if the user exists in our database.
  * 2. Handling account transfers (merging).
  * 3. Redirecting existing users to dashboard.
  * 4. Initiating onboarding for new users.
  * 5. Handling errors and timeouts.
- * 
+ *
  * @returns {UseSSOCallbackReturn} State and handlers for the SSO callback view.
  */
 export function useSSOCallback(): UseSSOCallbackReturn {
@@ -165,7 +166,9 @@ export function useSSOCallback(): UseSSOCallbackReturn {
 
     processCallback();
 
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, [isLoaded, isSignedIn, userId, router, viewState.type]);
 
   /**
@@ -188,48 +191,51 @@ export function useSSOCallback(): UseSSOCallbackReturn {
   /**
    * Submits the onboarding form payload.
    */
-  const handleOnboardingComplete = useCallback(async (payload: OnboardingPayload): Promise<void> => {
-    if (!userId || !user) {
-      setOnboardingError("Impossibile identificare l'utente. Riprova.");
-      return;
-    }
-
-    setViewState({ type: 'submitting' });
-    setOnboardingError(null);
-
-    try {
-      const result = await completeOnboardingAction({
-        user: {
-          clerkId: userId,
-          email: user.primaryEmailAddress?.emailAddress || "",
-          name: user.fullName || user.firstName || user.primaryEmailAddress?.emailAddress || "",
-        },
-        group: payload.group,
-        accounts: payload.accounts,
-        budgets: payload.budgets,
-        budgetStartDay: payload.budgetStartDay,
-      });
-
-      if (result.error) {
-        setOnboardingError(`${result.error}. Riprova.`);
-        // Reload categories in case of retry needed state reset
-        const categoriesResult = await getAllCategoriesAction();
-        setViewState({ type: 'onboarding', categories: categoriesResult.data || [] });
+  const handleOnboardingComplete = useCallback(
+    async (payload: OnboardingPayload): Promise<void> => {
+      if (!userId || !user) {
+        setOnboardingError("Impossibile identificare l'utente. Riprova.");
         return;
       }
 
-      router.replace('/dashboard');
-    } catch (error) {
-      console.error("Onboarding error:", error);
-      setOnboardingError("Errore imprevisto. Riprova.");
-      const categoriesResult = await getAllCategoriesAction();
-      setViewState({ type: 'onboarding', categories: categoriesResult.data || [] });
-    }
-  }, [userId, user, router]);
+      setViewState({ type: 'submitting' });
+      setOnboardingError(null);
+
+      try {
+        const result = await completeOnboardingAction({
+          user: {
+            clerkId: userId,
+            email: user.primaryEmailAddress?.emailAddress || '',
+            name: user.fullName || user.firstName || user.primaryEmailAddress?.emailAddress || '',
+          },
+          group: payload.group,
+          accounts: payload.accounts,
+          budgets: payload.budgets,
+          budgetStartDay: payload.budgetStartDay,
+        });
+
+        if (result.error) {
+          setOnboardingError(`${result.error}. Riprova.`);
+          // Reload categories in case of retry needed state reset
+          const categoriesResult = await getAllCategoriesAction();
+          setViewState({ type: 'onboarding', categories: categoriesResult.data || [] });
+          return;
+        }
+
+        router.replace('/dashboard');
+      } catch (error) {
+        console.error('Onboarding error:', error);
+        setOnboardingError('Errore imprevisto. Riprova.');
+        const categoriesResult = await getAllCategoriesAction();
+        setViewState({ type: 'onboarding', categories: categoriesResult.data || [] });
+      }
+    },
+    [userId, user, router]
+  );
 
   return {
     viewState,
     onboardingError,
-    handleOnboardingComplete
+    handleOnboardingComplete,
   };
 }

@@ -3,15 +3,22 @@
  * Shows selected budget with icon, name, period, and actions menu
  */
 
-"use client";
+'use client';
 
-import { Button, CategoryBadge, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui";
-import { Budget, BudgetPeriod } from "@/lib";
-import { budgetStyles } from "@/styles/system";
-import { formatCurrency } from "@/lib/utils/currency-formatter";
-import { MoreVertical, Pencil, Trash2 } from "lucide-react";
-import { useCategories } from "@/stores/reference-data-store";
-import { FinanceLogicService } from "@/server/services/finance-logic.service";
+import {
+  Button,
+  CategoryBadge,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui';
+import { Budget, BudgetPeriod } from '@/lib';
+import { budgetStyles } from '@/styles/system';
+import { formatCurrency } from '@/lib/utils/currency-formatter';
+import { MoreVertical, Pencil, Trash2 } from 'lucide-react';
+import { useCategories } from '@/stores/reference-data-store';
+import { FinanceLogicService } from '@/server/services/finance-logic.service';
 
 export interface BudgetDisplayCardProps {
   budget: Budget | null;
@@ -34,8 +41,12 @@ export function BudgetDisplayCard({
   onDelete,
 }: Readonly<BudgetDisplayCardProps>) {
   const categories = useCategories();
-  const categoryColor = FinanceLogicService.getCategoryColor(categories, budget?.categories?.[0] || "altro");
-  const remainingColorClass = budgetProgress && budgetProgress.remaining < 0 ? "text-destructive" : "text-success";
+  const categoryColor = FinanceLogicService.getCategoryColor(
+    categories,
+    budget?.categories?.[0] || 'altro'
+  );
+  const remainingColorClass =
+    budgetProgress && budgetProgress.remaining < 0 ? 'text-destructive' : 'text-success';
 
   if (!budget) return null;
 
@@ -54,15 +65,14 @@ export function BudgetDisplayCard({
               <MoreVertical className={budgetStyles.budgetDisplay.actionIcon} />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent
-            align="end"
-            className={budgetStyles.dropdownMenu.contentWide}
-          >
+          <DropdownMenuContent align="end" className={budgetStyles.dropdownMenu.contentWide}>
             <DropdownMenuItem
               className={`${budgetStyles.dropdownMenu.itemBase} ${budgetStyles.dropdownMenu.itemEdit}`}
               onSelect={() => onEdit(budget)}
             >
-              <Pencil className={`${budgetStyles.budgetDisplay.actionIcon} ${budgetStyles.dropdownMenu.itemIcon}`} />
+              <Pencil
+                className={`${budgetStyles.budgetDisplay.actionIcon} ${budgetStyles.dropdownMenu.itemIcon}`}
+              />
               Modifica Budget
             </DropdownMenuItem>
 
@@ -70,7 +80,9 @@ export function BudgetDisplayCard({
               className={`${budgetStyles.dropdownMenu.itemBase} ${budgetStyles.dropdownMenu.itemDelete}`}
               onSelect={() => onDelete(budget)}
             >
-              <Trash2 className={`${budgetStyles.budgetDisplay.actionIcon} ${budgetStyles.dropdownMenu.itemIcon}`} />
+              <Trash2
+                className={`${budgetStyles.budgetDisplay.actionIcon} ${budgetStyles.dropdownMenu.itemIcon}`}
+              />
               Elimina Budget
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -82,7 +94,7 @@ export function BudgetDisplayCard({
         <div className={budgetStyles.budgetDisplay.headerContent}>
           <div className={budgetStyles.budgetDisplay.iconContainer}>
             <CategoryBadge
-              categoryKey={budget.categories?.[0] || "altro"}
+              categoryKey={budget.categories?.[0] || 'altro'}
               color={categoryColor}
               size="sm"
               className={budgetStyles.budgetDisplay.iconClass}
@@ -99,17 +111,17 @@ export function BudgetDisplayCard({
           <div className={budgetStyles.budgetDisplay.periodContainer}>
             <p className={budgetStyles.budgetDisplay.periodLabel}>Periodo</p>
             <p className={budgetStyles.budgetDisplay.periodValue}>
-              {new Date(period.start_date).toLocaleDateString("it-IT", {
-                day: "numeric",
-                month: "short",
-              })}{" "}
-              -{" "}
+              {new Date(period.start_date).toLocaleDateString('it-IT', {
+                day: 'numeric',
+                month: 'short',
+              })}{' '}
+              -{' '}
               {period.end_date
-                ? new Date(period.end_date).toLocaleDateString("it-IT", {
-                  day: "numeric",
-                  month: "short",
-                })
-                : "In corso"}
+                ? new Date(period.end_date).toLocaleDateString('it-IT', {
+                    day: 'numeric',
+                    month: 'short',
+                  })
+                : 'In corso'}
             </p>
           </div>
         )}
@@ -121,13 +133,17 @@ export function BudgetDisplayCard({
           {/* Total Budget */}
           <div className={budgetStyles.metrics.item}>
             <p className={`${budgetStyles.metrics.label} text-primary`}>Totale</p>
-            <p className={`${budgetStyles.metrics.value} text-primary`}>{formatCurrency(budgetProgress.amount)}</p>
+            <p className={`${budgetStyles.metrics.value} text-primary`}>
+              {formatCurrency(budgetProgress.amount)}
+            </p>
           </div>
 
           {/* Spent Amount */}
           <div className={budgetStyles.metrics.item}>
             <p className={`${budgetStyles.metrics.label} text-destructive`}>Speso</p>
-            <p className={`${budgetStyles.metrics.value} ${budgetStyles.metrics.valueDanger}`}>{formatCurrency(budgetProgress.spent)}</p>
+            <p className={`${budgetStyles.metrics.value} ${budgetStyles.metrics.valueDanger}`}>
+              {formatCurrency(budgetProgress.spent)}
+            </p>
           </div>
 
           {/* Available Amount */}

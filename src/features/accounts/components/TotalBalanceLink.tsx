@@ -5,12 +5,12 @@
  * Used in dashboard balance section
  */
 
-"use client";
+'use client';
 
-import { CreditCard, ArrowRight } from "lucide-react";
-import Link from "next/link";
-import { accountStyles } from "../theme/account-styles";
-import { formatCurrency } from "@/lib/utils";
+import { CreditCard, ArrowRight } from 'lucide-react';
+import Link from 'next/link';
+import { accountStyles } from '../theme/account-styles';
+import { formatCurrency } from '@/lib/utils';
 
 interface TotalBalanceLinkProps {
   totalBalance: number;
@@ -18,9 +18,13 @@ interface TotalBalanceLinkProps {
   selectedUserId?: string;
 }
 
-export const TotalBalanceLink = ({ totalBalance, accountCount, selectedUserId }: TotalBalanceLinkProps) => {
+export const TotalBalanceLink = ({
+  totalBalance,
+  accountCount,
+  selectedUserId,
+}: TotalBalanceLinkProps) => {
   const isPositive = totalBalance >= 0;
-  const href = selectedUserId ? `/accounts?userId=${selectedUserId}` : "/accounts";
+  const href = selectedUserId ? `/accounts?userId=${selectedUserId}` : '/accounts';
 
   return (
     <Link href={href} className={accountStyles.totalBalanceLink.container}>
@@ -33,7 +37,9 @@ export const TotalBalanceLink = ({ totalBalance, accountCount, selectedUserId }:
           <p className={accountStyles.totalBalanceLink.label}>Saldo Totale</p>
           <p
             className={
-              isPositive ? accountStyles.totalBalanceLink.valuePositive : accountStyles.totalBalanceLink.valueNegative
+              isPositive
+                ? accountStyles.totalBalanceLink.valuePositive
+                : accountStyles.totalBalanceLink.valueNegative
             }
           >
             {formatCurrency(totalBalance)}
@@ -45,7 +51,7 @@ export const TotalBalanceLink = ({ totalBalance, accountCount, selectedUserId }:
       <div className={accountStyles.totalBalanceLink.rightSection}>
         <div className={accountStyles.totalBalanceLink.badge}>
           <span className={accountStyles.totalBalanceLink.badgeText}>
-            {accountCount} {accountCount === 1 ? "Account" : "Accounts"}
+            {accountCount} {accountCount === 1 ? 'Account' : 'Accounts'}
           </span>
         </div>
         <ArrowRight className={accountStyles.totalBalanceLink.arrow} />

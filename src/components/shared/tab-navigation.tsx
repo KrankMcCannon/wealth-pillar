@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { cn } from '@/lib';
 import { tabNavigationStyles } from './theme/tab-navigation-styles';
@@ -20,7 +20,7 @@ export default function TabNavigation({
   activeTab,
   onTabChange,
   variant = 'underline',
-  className = ''
+  className = '',
 }: Readonly<TabNavigationProps>) {
   const getContainerStyles = () => {
     switch (variant) {
@@ -40,16 +40,12 @@ export default function TabNavigation({
       case 'pills':
         return cn(
           tabNavigationStyles.tab.pills.base,
-          isActive
-            ? tabNavigationStyles.tab.pills.active
-            : tabNavigationStyles.tab.pills.inactive
+          isActive ? tabNavigationStyles.tab.pills.active : tabNavigationStyles.tab.pills.inactive
         );
       case 'modern':
         return cn(
           tabNavigationStyles.tab.modern.base,
-          isActive
-            ? tabNavigationStyles.tab.modern.active
-            : tabNavigationStyles.tab.modern.inactive
+          isActive ? tabNavigationStyles.tab.modern.active : tabNavigationStyles.tab.modern.inactive
         );
       default:
         return cn(
@@ -65,15 +61,13 @@ export default function TabNavigation({
     <div className={className}>
       <div className={getContainerStyles()}>
         {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => onTabChange(tab.id)}
-            className={getTabStyles(tab)}
-          >
+          <button key={tab.id} onClick={() => onTabChange(tab.id)} className={getTabStyles(tab)}>
             {tab.icon && variant !== 'underline' && (
               <span className={tabNavigationStyles.icon}>{tab.icon}</span>
             )}
-            <span className={variant === 'underline' ? tabNavigationStyles.tab.underline.label : ''}>
+            <span
+              className={variant === 'underline' ? tabNavigationStyles.tab.underline.label : ''}
+            >
               {tab.label}
             </span>
           </button>

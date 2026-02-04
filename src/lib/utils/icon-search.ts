@@ -1,7 +1,7 @@
-import Fuse from "fuse.js";
-import type { IFuseOptions } from "fuse.js";
-import type { IconMetadata, IconCategory } from "@/features/categories";
-import { ICON_METADATA } from "@/features/categories";
+import Fuse from 'fuse.js';
+import type { IFuseOptions } from 'fuse.js';
+import type { IconMetadata, IconCategory } from '@/features/categories';
+import { ICON_METADATA } from '@/features/categories';
 
 /**
  * Fuzzy Search Utility for Icons
@@ -33,15 +33,15 @@ const FUSE_OPTIONS: IFuseOptions<IconMetadata> = {
   // Search in these fields
   keys: [
     {
-      name: "name",
+      name: 'name',
       weight: 3, // Highest priority - exact icon name
     },
     {
-      name: "keywords",
+      name: 'keywords',
       weight: 2, // Second priority - keywords array
     },
     {
-      name: "tags",
+      name: 'tags',
       weight: 1, // Lower priority - tags
     },
   ],
@@ -92,14 +92,15 @@ export interface IconSearchResult {
  */
 export function searchIcons(
   query: string,
-  category: IconCategory = "all",
+  category: IconCategory = 'all',
   maxResults?: number
 ): IconSearchResult[] {
   // Return all icons if no query
-  if (!query || query.trim() === "") {
-    const icons = category === "all"
-      ? ICON_METADATA
-      : ICON_METADATA.filter((icon) => icon.category === category);
+  if (!query || query.trim() === '') {
+    const icons =
+      category === 'all'
+        ? ICON_METADATA
+        : ICON_METADATA.filter((icon) => icon.category === category);
 
     return icons.map((icon) => ({ icon }));
   }
@@ -116,7 +117,7 @@ export function searchIcons(
     score: result.score,
   }));
 
-  if (category !== "all") {
+  if (category !== 'all') {
     results = results.filter((result) => result.icon.category === category);
   }
 
@@ -139,12 +140,9 @@ export function searchIcons(
  * @example
  * const results = simpleSearchIcons("car"); // Exact substring match
  */
-export function simpleSearchIcons(
-  query: string,
-  category: IconCategory = "all"
-): IconMetadata[] {
-  if (!query || query.trim() === "") {
-    return category === "all"
+export function simpleSearchIcons(query: string, category: IconCategory = 'all'): IconMetadata[] {
+  if (!query || query.trim() === '') {
+    return category === 'all'
       ? ICON_METADATA
       : ICON_METADATA.filter((icon) => icon.category === category);
   }
@@ -171,7 +169,7 @@ export function simpleSearchIcons(
   });
 
   // Filter by category if specified
-  if (category !== "all") {
+  if (category !== 'all') {
     results = results.filter((icon) => icon.category === category);
   }
 
@@ -188,17 +186,12 @@ export function simpleSearchIcons(
  * @example
  * const paymentIcons = searchIconsByTag("payment");
  */
-export function searchIconsByTag(
-  tag: string,
-  category: IconCategory = "all"
-): IconMetadata[] {
+export function searchIconsByTag(tag: string, category: IconCategory = 'all'): IconMetadata[] {
   const lowerTag = tag.toLowerCase();
 
-  let results = ICON_METADATA.filter((icon) =>
-    icon.tags.some((t) => t.toLowerCase() === lowerTag)
-  );
+  let results = ICON_METADATA.filter((icon) => icon.tags.some((t) => t.toLowerCase() === lowerTag));
 
-  if (category !== "all") {
+  if (category !== 'all') {
     results = results.filter((icon) => icon.category === category);
   }
 
@@ -216,11 +209,8 @@ export function searchIconsByTag(
  * @example
  * const suggestions = getSearchSuggestions("mon"); // ["money", "monitor", etc.]
  */
-export function getSearchSuggestions(
-  partialQuery: string,
-  maxSuggestions = 5
-): string[] {
-  if (!partialQuery || partialQuery.trim() === "") {
+export function getSearchSuggestions(partialQuery: string, maxSuggestions = 5): string[] {
+  if (!partialQuery || partialQuery.trim() === '') {
     return [];
   }
 
@@ -262,7 +252,7 @@ export function highlightMatch(
   text: string,
   query: string
 ): { text: string; matches: Array<{ start: number; end: number }> } {
-  if (!query || query.trim() === "") {
+  if (!query || query.trim() === '') {
     return { text, matches: [] };
   }
 

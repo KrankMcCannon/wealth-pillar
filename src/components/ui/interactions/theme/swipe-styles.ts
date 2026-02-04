@@ -7,7 +7,7 @@
  * @module components/ui/interactions/theme/swipe-styles
  */
 
-import type { CSSProperties } from "react";
+import type { CSSProperties } from 'react';
 
 // ============================================================================
 // Apple Design Tokens
@@ -26,13 +26,13 @@ export const appleSwipeTokens = {
    */
   physics: {
     spring: {
-      stiffness: 520,      // Snappier response to align swipe timing across cards
-      damping: 36,         // Balanced damping to avoid overshoot
-      mass: 0.7,           // Slightly lighter for quicker settle
+      stiffness: 520, // Snappier response to align swipe timing across cards
+      damping: 36, // Balanced damping to avoid overshoot
+      mass: 0.7, // Slightly lighter for quicker settle
     },
     drag: {
-      elastic: 0.15,       // Less elastic than current (0.2) for tighter control
-      resistance: 0.6,     // Resistance when dragging beyond limits
+      elastic: 0.15, // Less elastic than current (0.2) for tighter control
+      resistance: 0.6, // Resistance when dragging beyond limits
     },
   },
 
@@ -42,10 +42,10 @@ export const appleSwipeTokens = {
    * - Velocity-based: Fast swipes trigger instantly
    */
   thresholds: {
-    open: 60,              // Slightly higher than current (50px) - deliberate action
-    close: 40,             // Lower threshold for closing (hysteresis pattern)
-    velocity: -300,        // More aggressive velocity threshold than current (-200)
-    tap: 5,                // Maximum movement to count as tap (not swipe)
+    open: 60, // Slightly higher than current (50px) - deliberate action
+    close: 40, // Lower threshold for closing (hysteresis pattern)
+    velocity: -300, // More aggressive velocity threshold than current (-200)
+    tap: 5, // Maximum movement to count as tap (not swipe)
   },
 
   /**
@@ -54,9 +54,9 @@ export const appleSwipeTokens = {
    * - 176px: For two actions side-by-side
    */
   dimensions: {
-    actionWidthSingle: 88,    // Single action button width
-    actionWidthDouble: 176,   // Two actions side-by-side
-    maxSwipe: 200,            // Maximum swipe distance
+    actionWidthSingle: 88, // Single action button width
+    actionWidthDouble: 176, // Two actions side-by-side
+    maxSwipe: 200, // Maximum swipe distance
   },
 
   /**
@@ -64,14 +64,14 @@ export const appleSwipeTokens = {
    */
   animations: {
     duration: {
-      fast: 250,           // Quick interactions (tap feedback)
-      normal: 300,         // Standard transitions (swipe open/close)
-      slow: 350,           // Deliberate animations (modal transitions)
+      fast: 250, // Quick interactions (tap feedback)
+      normal: 300, // Standard transitions (swipe open/close)
+      slow: 350, // Deliberate animations (modal transitions)
     },
     easing: {
       spring: 'cubic-bezier(0.68, -0.55, 0.27, 1.55)', // Bounce effect
-      smooth: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',  // Ease-out
-      sharp: 'cubic-bezier(0.4, 0.0, 0.2, 1)',         // Deceleration
+      smooth: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)', // Ease-out
+      sharp: 'cubic-bezier(0.4, 0.0, 0.2, 1)', // Deceleration
     },
   },
 };
@@ -89,7 +89,7 @@ export const swipeStyles = {
    * - Isolates swipe layers with proper z-index stacking
    * - Enables GPU acceleration with transform
    */
-  wrapper: "relative w-full overflow-hidden touch-pan-y isolate",
+  wrapper: 'relative w-full overflow-hidden touch-pan-y isolate',
 
   /**
    * Global backdrop (semi-transparent overlay)
@@ -97,9 +97,9 @@ export const swipeStyles = {
    * - Positioned above swipe layers, below modals
    */
   backdrop: {
-    base: "fixed inset-0 transition-opacity duration-200",
-    visible: "opacity-100",
-    hidden: "opacity-0 pointer-events-none",
+    base: 'fixed inset-0 transition-opacity duration-200',
+    visible: 'opacity-100',
+    hidden: 'opacity-0 pointer-events-none',
     zIndex: 10, // Between cards (z-10) and modals (z-50)
   },
 
@@ -107,30 +107,31 @@ export const swipeStyles = {
    * Action layers (left and right swipe actions)
    */
   actionLayer: {
-    base: "absolute inset-y-0 z-0 flex items-center",
-    left: "left-0 justify-start",
-    right: "right-0 justify-end",
+    base: 'absolute inset-y-0 z-0 flex items-center',
+    left: 'left-0 justify-start',
+    right: 'right-0 justify-end',
   },
 
   /**
    * Action buttons (delete, pause, resume)
    */
   actionButton: {
-    base: "h-full font-medium flex items-center justify-center transition-all duration-200 ease-out px-6",
+    base: 'h-full font-medium flex items-center justify-center transition-all duration-200 ease-out px-6',
 
     // Variants based on action type
     variants: {
-      delete: "bg-destructive text-destructive-foreground hover:bg-destructive/90 active:bg-destructive/80",
-      pause: "bg-warning text-white hover:bg-warning/90 active:bg-warning/80",
-      resume: "bg-primary text-primary-foreground hover:bg-primary/90 active:bg-primary/80",
-      custom: "bg-primary/10 text-primary hover:bg-primary/20 active:bg-primary/30",
+      delete:
+        'bg-destructive text-destructive-foreground hover:bg-destructive/90 active:bg-destructive/80',
+      pause: 'bg-warning text-white hover:bg-warning/90 active:bg-warning/80',
+      resume: 'bg-primary text-primary-foreground hover:bg-primary/90 active:bg-primary/80',
+      custom: 'bg-primary/10 text-primary hover:bg-primary/20 active:bg-primary/30',
     },
 
     // Scale animation states
     scale: {
-      enter: "scale-85 opacity-0",      // Initial state
-      visible: "scale-100 opacity-100",  // Fully visible
-      exit: "scale-85 opacity-0",        // Exit state
+      enter: 'scale-85 opacity-0', // Initial state
+      visible: 'scale-100 opacity-100', // Fully visible
+      exit: 'scale-85 opacity-0', // Exit state
     },
   },
 
@@ -140,13 +141,13 @@ export const swipeStyles = {
    * - Hardware-accelerated transforms
    */
   cardContent: {
-    base: "relative z-10 will-change-transform backface-hidden",
+    base: 'relative z-10 will-change-transform backface-hidden',
 
     // Shadow elevation states
     shadow: {
-      closed: "shadow-none",
-      opening: "shadow-md",
-      open: "shadow-lg",
+      closed: 'shadow-none',
+      opening: 'shadow-md',
+      open: 'shadow-lg',
     },
   },
 };
@@ -166,18 +167,18 @@ export const swipeStyles = {
  */
 export function getActionLayerStyle(
   isOpen: boolean,
-  side: "left" | "right",
+  side: 'left' | 'right',
   actionWidth: number = appleSwipeTokens.dimensions.actionWidthSingle
 ): CSSProperties {
   return {
-    width: isOpen ? `${actionWidth}px` : "0px",
+    width: isOpen ? `${actionWidth}px` : '0px',
     opacity: isOpen ? 1 : 0,
     // Slide in from offset position (Apple effect)
     transform: isOpen
-      ? "translateX(0)"
-      : side === "left"
-        ? "translateX(-12px)"
-        : "translateX(12px)",
+      ? 'translateX(0)'
+      : side === 'left'
+        ? 'translateX(-12px)'
+        : 'translateX(12px)',
     transition: `width ${appleSwipeTokens.animations.duration.normal}ms ${appleSwipeTokens.animations.easing.smooth},
                  opacity ${appleSwipeTokens.animations.duration.fast}ms ${appleSwipeTokens.animations.easing.smooth},
                  transform ${appleSwipeTokens.animations.duration.normal}ms ${appleSwipeTokens.animations.easing.smooth}`,
@@ -193,7 +194,7 @@ export function getActionLayerStyle(
  */
 export function getActionButtonStyle(isVisible: boolean): CSSProperties {
   return {
-    transform: isVisible ? "scale(1)" : "scale(0.85)",
+    transform: isVisible ? 'scale(1)' : 'scale(0.85)',
     opacity: isVisible ? 1 : 0,
     transition: `transform ${appleSwipeTokens.animations.duration.normal}ms ${appleSwipeTokens.animations.easing.spring},
                  opacity ${appleSwipeTokens.animations.duration.fast}ms ${appleSwipeTokens.animations.easing.smooth}`,
@@ -219,10 +220,7 @@ export function getCardShadowClass(isOpen: boolean): string {
  * @param maxDistance - Maximum allowed distance
  * @returns Adjusted resistance value (0-1)
  */
-export function calculateRubberBandResistance(
-  distance: number,
-  maxDistance: number
-): number {
+export function calculateRubberBandResistance(distance: number, maxDistance: number): number {
   const { resistance } = appleSwipeTokens.physics.drag;
   // Exponential falloff: resistance decreases as distance increases
   return resistance * (1 - Math.pow(Math.abs(distance) / maxDistance, 2));

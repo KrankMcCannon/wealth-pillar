@@ -11,12 +11,12 @@
  * - Italian locale formatting
  */
 
-"use client";
+'use client';
 
-import { format } from "date-fns";
-import { it } from "date-fns/locale";
-import { motion } from "framer-motion";
-import { dayButtonVariants, getDayState } from "@/lib/utils/date-drawer-variants";
+import { format } from 'date-fns';
+import { it } from 'date-fns/locale';
+import { motion } from 'framer-motion';
+import { dayButtonVariants, getDayState } from '@/lib/utils/date-drawer-variants';
 
 export interface DayCellProps {
   /**
@@ -58,7 +58,7 @@ export interface DayCellProps {
    * Size variant (mobile or desktop)
    * @default "mobile"
    */
-  size?: "mobile" | "desktop";
+  size?: 'mobile' | 'desktop';
 }
 
 /**
@@ -88,7 +88,7 @@ export function DayCell({
   isWeekend,
   isOtherMonth,
   onClick,
-  size = "mobile",
+  size = 'mobile',
 }: Readonly<DayCellProps>) {
   // Determine which visual state to apply
   const state = getDayState({
@@ -100,10 +100,10 @@ export function DayCell({
   });
 
   // Format day number (1-31)
-  const dayNumber = format(date, "d");
+  const dayNumber = format(date, 'd');
 
   // Format full date for accessibility
-  const fullDate = format(date, "d MMMM yyyy", { locale: it });
+  const fullDate = format(date, 'd MMMM yyyy', { locale: it });
 
   // Handle click
   const handleClick = () => {
@@ -114,7 +114,7 @@ export function DayCell({
 
   // Handle keyboard interaction
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" || e.key === " ") {
+    if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
       handleClick();
     }
@@ -130,14 +130,14 @@ export function DayCell({
       aria-label={`Seleziona ${fullDate}`}
       aria-pressed={isSelected}
       aria-disabled={isDisabled}
-      aria-current={isToday ? "date" : undefined}
+      aria-current={isToday ? 'date' : undefined}
       role="button"
       tabIndex={isDisabled ? -1 : 0}
       // Framer Motion animations
       whileTap={isDisabled ? undefined : { scale: 0.95 }}
       whileHover={isDisabled ? undefined : { scale: 1.05 }}
       transition={{
-        type: "spring",
+        type: 'spring',
         stiffness: 400,
         damping: 20,
       }}

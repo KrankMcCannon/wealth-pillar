@@ -72,23 +72,35 @@ export const usePageDataStore = create<PageDataState>()(
       },
 
       addTransaction: (transaction) => {
-        set((state) => ({
-          transactions: [...state.transactions, transaction],
-        }), false, 'page-data/addTransaction');
+        set(
+          (state) => ({
+            transactions: [...state.transactions, transaction],
+          }),
+          false,
+          'page-data/addTransaction'
+        );
       },
 
       updateTransaction: (id, updates) => {
-        set((state) => ({
-          transactions: state.transactions.map((transaction) =>
-            transaction.id === id ? { ...transaction, ...updates } : transaction
-          ),
-        }), false, 'page-data/updateTransaction');
+        set(
+          (state) => ({
+            transactions: state.transactions.map((transaction) =>
+              transaction.id === id ? { ...transaction, ...updates } : transaction
+            ),
+          }),
+          false,
+          'page-data/updateTransaction'
+        );
       },
 
       removeTransaction: (id) => {
-        set((state) => ({
-          transactions: state.transactions.filter((transaction) => transaction.id !== id),
-        }), false, 'page-data/removeTransaction');
+        set(
+          (state) => ({
+            transactions: state.transactions.filter((transaction) => transaction.id !== id),
+          }),
+          false,
+          'page-data/removeTransaction'
+        );
       },
 
       // Budgets
@@ -97,23 +109,35 @@ export const usePageDataStore = create<PageDataState>()(
       },
 
       addBudget: (budget) => {
-        set((state) => ({
-          budgets: [...state.budgets, budget],
-        }), false, 'page-data/addBudget');
+        set(
+          (state) => ({
+            budgets: [...state.budgets, budget],
+          }),
+          false,
+          'page-data/addBudget'
+        );
       },
 
       updateBudget: (id, updates) => {
-        set((state) => ({
-          budgets: state.budgets.map((budget) =>
-            budget.id === id ? { ...budget, ...updates } : budget
-          ),
-        }), false, 'page-data/updateBudget');
+        set(
+          (state) => ({
+            budgets: state.budgets.map((budget) =>
+              budget.id === id ? { ...budget, ...updates } : budget
+            ),
+          }),
+          false,
+          'page-data/updateBudget'
+        );
       },
 
       removeBudget: (id) => {
-        set((state) => ({
-          budgets: state.budgets.filter((budget) => budget.id !== id),
-        }), false, 'page-data/removeBudget');
+        set(
+          (state) => ({
+            budgets: state.budgets.filter((budget) => budget.id !== id),
+          }),
+          false,
+          'page-data/removeBudget'
+        );
       },
 
       // Budget Periods
@@ -122,9 +146,13 @@ export const usePageDataStore = create<PageDataState>()(
       },
 
       updateBudgetPeriod: (userId, period) => {
-        set((state) => ({
-          budgetPeriods: { ...state.budgetPeriods, [userId]: period },
-        }), false, 'page-data/updateBudgetPeriod');
+        set(
+          (state) => ({
+            budgetPeriods: { ...state.budgetPeriods, [userId]: period },
+          }),
+          false,
+          'page-data/updateBudgetPeriod'
+        );
       },
 
       // Recurring Series
@@ -133,23 +161,35 @@ export const usePageDataStore = create<PageDataState>()(
       },
 
       addRecurringSeries: (series) => {
-        set((state) => ({
-          recurringSeries: [...state.recurringSeries, series],
-        }), false, 'page-data/addRecurringSeries');
+        set(
+          (state) => ({
+            recurringSeries: [...state.recurringSeries, series],
+          }),
+          false,
+          'page-data/addRecurringSeries'
+        );
       },
 
       updateRecurringSeries: (id, updates) => {
-        set((state) => ({
-          recurringSeries: state.recurringSeries.map((series) =>
-            series.id === id ? { ...series, ...updates } : series
-          ),
-        }), false, 'page-data/updateRecurringSeries');
+        set(
+          (state) => ({
+            recurringSeries: state.recurringSeries.map((series) =>
+              series.id === id ? { ...series, ...updates } : series
+            ),
+          }),
+          false,
+          'page-data/updateRecurringSeries'
+        );
       },
 
       removeRecurringSeries: (id) => {
-        set((state) => ({
-          recurringSeries: state.recurringSeries.filter((series) => series.id !== id),
-        }), false, 'page-data/removeRecurringSeries');
+        set(
+          (state) => ({
+            recurringSeries: state.recurringSeries.filter((series) => series.id !== id),
+          }),
+          false,
+          'page-data/removeRecurringSeries'
+        );
       },
 
       // Reset
@@ -169,29 +209,25 @@ export const usePageDataStore = create<PageDataState>()(
  * Get transactions
  * Subscribes only to transactions changes
  */
-export const useTransactions = () =>
-  usePageDataStore((state) => state.transactions);
+export const useTransactions = () => usePageDataStore((state) => state.transactions);
 
 /**
  * Get budgets
  * Subscribes only to budgets changes
  */
-export const useBudgets = () =>
-  usePageDataStore((state) => state.budgets);
+export const useBudgets = () => usePageDataStore((state) => state.budgets);
 
 /**
  * Get recurring series
  * Subscribes only to recurringSeries changes
  */
-export const useRecurringSeries = () =>
-  usePageDataStore((state) => state.recurringSeries);
+export const useRecurringSeries = () => usePageDataStore((state) => state.recurringSeries);
 
 /**
  * Get budget periods
  * Subscribes only to budgetPeriods changes
  */
-export const useBudgetPeriods = () =>
-  usePageDataStore((state) => state.budgetPeriods);
+export const useBudgetPeriods = () => usePageDataStore((state) => state.budgetPeriods);
 
 /**
  * Get budget period for a specific user

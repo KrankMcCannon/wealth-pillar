@@ -12,9 +12,11 @@ export const dashboardStyles = {
 
   // Header section
   header: {
-    container: 'sticky top-0 z-20 bg-card/80 backdrop-blur-xl border-b border-primary/20 px-4 py-3 shadow-sm',
+    container:
+      'sticky top-0 z-20 bg-card/80 backdrop-blur-xl border-b border-primary/20 px-4 py-3 shadow-sm',
     inner: 'flex items-center justify-between',
-    button: 'hover:bg-primary/8 text-primary rounded-xl transition-all duration-200 p-2 min-w-[40px] min-h-[40px] flex items-center justify-center group hover:scale-[1.02]',
+    button:
+      'hover:bg-primary/8 text-primary rounded-xl transition-all duration-200 p-2 min-w-[40px] min-h-[40px] flex items-center justify-center group hover:scale-[1.02]',
     title: 'text-base font-semibold',
     section: {
       left: 'flex items-center gap-3',
@@ -46,13 +48,15 @@ export const dashboardStyles = {
     title: 'text-sm font-medium text-muted mb-3',
     grid: 'grid gap-3',
     totalBalance: {
-      container: 'bg-gradient-to-br from-primary/10 to-primary/5 rounded-xl p-4 border border-primary/20 backdrop-blur-sm',
+      container:
+        'bg-gradient-to-br from-primary/10 to-primary/5 rounded-xl p-4 border border-primary/20 backdrop-blur-sm',
       label: 'text-xs text-muted mb-1',
       value: 'text-2xl font-bold text-primary',
       currency: 'text-lg',
     },
     accountCard: {
-      container: 'bg-card border border-border/50 rounded-xl p-3 hover:border-primary/30 transition-colors',
+      container:
+        'bg-card border border-border/50 rounded-xl p-3 hover:border-primary/30 transition-colors',
       header: 'flex items-center justify-between mb-2',
       name: 'font-medium text-sm',
       balance: 'text-base font-semibold text-primary',
@@ -77,7 +81,8 @@ export const dashboardStyles = {
     grid: 'grid gap-4',
     emptyState: 'text-center py-4 text-muted',
     budgetCard: {
-      container: 'bg-card border border-border/50 rounded-xl p-4 hover:border-primary/30 transition-colors backdrop-blur-sm',
+      container:
+        'bg-card border border-border/50 rounded-xl p-4 hover:border-primary/30 transition-colors backdrop-blur-sm',
       header: 'flex items-center gap-3 mb-3',
       icon: 'w-8 h-8 text-primary',
       titleSection: 'flex-1',
@@ -104,13 +109,15 @@ export const dashboardStyles = {
 
   // Recurring series section
   recurringSection: {
-    container: 'bg-card/80 backdrop-blur-xl shadow-lg shadow-primary/10 rounded-xl border border-primary/20 m-4',
+    container:
+      'bg-card/80 backdrop-blur-xl shadow-lg shadow-primary/10 rounded-xl border border-primary/20 m-4',
     header: 'mb-4',
     title: 'text-sm font-medium text-muted mb-3',
     grid: 'grid gap-3',
     emptyState: 'text-center py-6 text-muted text-sm',
     seriesCard: {
-      container: 'bg-card rounded-lg p-3 border border-border/50 hover:border-primary/30 transition-colors backdrop-blur-sm',
+      container:
+        'bg-card rounded-lg p-3 border border-border/50 hover:border-primary/30 transition-colors backdrop-blur-sm',
       header: 'flex items-center justify-between mb-2',
       title: 'font-medium text-sm',
       frequency: 'text-xs text-primary/80 bg-primary/10 px-2 py-1 rounded',

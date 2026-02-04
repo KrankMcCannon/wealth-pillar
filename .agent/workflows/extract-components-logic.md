@@ -83,9 +83,9 @@ export const UserDashboard = () => {
 
 ```tsx
 // src/features/users/components/UserDashboard.tsx
-import { useUserDashboard } from "../hooks/useUserDashboard";
-import { UserListTable } from "./UserListTable";
-import { DashboardHeader } from "./DashboardHeader";
+import { useUserDashboard } from '../hooks/useUserDashboard';
+import { UserListTable } from './UserListTable';
+import { DashboardHeader } from './DashboardHeader';
 
 export const UserDashboard = () => {
   // 1. Single hook for logic

@@ -80,14 +80,10 @@ export function useFilteredAccounts({
 
     if (checkIsMember(currentUser)) {
       // Members see only accounts where they are listed in user_ids
-      permissionFiltered = accounts.filter((account) =>
-        account.user_ids.includes(currentUser.id)
-      );
+      permissionFiltered = accounts.filter((account) => account.user_ids.includes(currentUser.id));
     } else if (selectedUserId && selectedUserId !== 'all') {
       // Admin logic - Filter to accounts that include the selected user
-      permissionFiltered = accounts.filter((account) =>
-        account.user_ids.includes(selectedUserId)
-      );
+      permissionFiltered = accounts.filter((account) => account.user_ids.includes(selectedUserId));
     } else {
       // Admin logic - Show all accounts
       permissionFiltered = accounts;
@@ -99,9 +95,7 @@ export function useFilteredAccounts({
       : permissionFiltered;
 
     // Step 3: Calculate active user ID
-    const activeUserId = selectedUserId && selectedUserId !== 'all'
-      ? selectedUserId
-      : 'all';
+    const activeUserId = selectedUserId && selectedUserId !== 'all' ? selectedUserId : 'all';
 
     return {
       filteredAccounts: finalFiltered,

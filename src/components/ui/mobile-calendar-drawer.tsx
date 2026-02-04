@@ -14,13 +14,19 @@
  * - WCAG AA accessibility
  */
 
-"use client";
+'use client';
 
-import { useState, useCallback } from "react";
-import { format, addMonths, subMonths, isValid, startOfYear } from "date-fns";
-import * as Dialog from "@radix-ui/react-dialog";
-import { calendarDrawerStyles } from "@/lib/styles/calendar-drawer.styles";
-import { DrawerHandle, WeekdayLabels, MonthGrid, MonthHeader, QuickPresets } from "./primitives/date-drawer";
+import { useState, useCallback } from 'react';
+import { format, addMonths, subMonths, isValid, startOfYear } from 'date-fns';
+import * as Dialog from '@radix-ui/react-dialog';
+import { calendarDrawerStyles } from '@/lib/styles/calendar-drawer.styles';
+import {
+  DrawerHandle,
+  WeekdayLabels,
+  MonthGrid,
+  MonthHeader,
+  QuickPresets,
+} from './primitives/date-drawer';
 
 export interface MobileCalendarDrawerProps {
   /**
@@ -97,7 +103,7 @@ export function MobileCalendarDrawer({
   const handleDateSelect = useCallback(
     (date: Date) => {
       // Convert to YYYY-MM-DD format for API compatibility
-      const formattedDate = format(date, "yyyy-MM-dd");
+      const formattedDate = format(date, 'yyyy-MM-dd');
       onChange(formattedDate);
       onClose();
     },
@@ -118,7 +124,7 @@ export function MobileCalendarDrawer({
   // Handle keyboard navigation
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
-      if (e.key === "Escape") {
+      if (e.key === 'Escape') {
         onClose();
       }
     },
@@ -138,7 +144,9 @@ export function MobileCalendarDrawer({
           aria-label="Selettore data"
         >
           {/* Hidden title for accessibility */}
-          <Dialog.Title className={calendarDrawerStyles.accessibility.srOnly}>Seleziona una data</Dialog.Title>
+          <Dialog.Title className={calendarDrawerStyles.accessibility.srOnly}>
+            Seleziona una data
+          </Dialog.Title>
 
           {/* Drag Handle */}
           <DrawerHandle />

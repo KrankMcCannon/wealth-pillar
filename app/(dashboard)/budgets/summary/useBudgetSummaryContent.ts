@@ -1,11 +1,11 @@
-'use client'
+'use client';
 
-import { useEffect, useMemo, useCallback } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { usePageDataStore } from "@/stores/page-data-store";
-import { useUserFilter, useIdNameMap } from "@/hooks";
-import { toDateTime, toDateString, formatDateSmart } from "@/lib/utils/date-utils";
-import { Budget, Transaction, Category, User, UserBudgetSummary, Account } from "@/lib/types";
+import { useEffect, useMemo, useCallback } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { usePageDataStore } from '@/stores/page-data-store';
+import { useUserFilter, useIdNameMap } from '@/hooks';
+import { toDateTime, toDateString, formatDateSmart } from '@/lib/utils/date-utils';
+import { Budget, Transaction, Category, User, UserBudgetSummary, Account } from '@/lib/types';
 
 interface UseBudgetSummaryContentProps {
   categories: Category[];
@@ -27,7 +27,7 @@ export function useBudgetSummaryContent({
 }: UseBudgetSummaryContentProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const userIdParam = searchParams.get("userId");
+  const userIdParam = searchParams.get('userId');
 
   const { selectedUserId, setSelectedGroupFilter } = useUserFilter();
 
@@ -45,24 +45,27 @@ export function useBudgetSummaryContent({
   }, [userIdParam, selectedUserId, setSelectedGroupFilter, currentUser.id]);
 
   // Handle User Selection (Explicitly updates URL and Store)
-  const handleUserSelect = useCallback((newUserId: string) => {
-    // 1. Update Store
-    setSelectedGroupFilter(newUserId);
+  const handleUserSelect = useCallback(
+    (newUserId: string) => {
+      // 1. Update Store
+      setSelectedGroupFilter(newUserId);
 
-    // 2. Update URL
-    const params = new URLSearchParams(searchParams.toString());
-    if (newUserId === 'all') {
-      params.delete("userId");
-    } else {
-      params.set("userId", newUserId);
-    }
-    router.replace(`/budgets/summary?${params.toString()}`);
-  }, [searchParams, router, setSelectedGroupFilter]);
+      // 2. Update URL
+      const params = new URLSearchParams(searchParams.toString());
+      if (newUserId === 'all') {
+        params.delete('userId');
+      } else {
+        params.set('userId', newUserId);
+      }
+      router.replace(`/budgets/summary?${params.toString()}`);
+    },
+    [searchParams, router, setSelectedGroupFilter]
+  );
 
   // Identify the target user object
   const targetUser = useMemo(() => {
     if (currentActiveUserId && currentActiveUserId !== 'all') {
-      return groupUsers.find(u => u.id === currentActiveUserId) || currentUser;
+      return groupUsers.find((u) => u.id === currentActiveUserId) || currentUser;
     }
     return currentUser;
   }, [currentActiveUserId, groupUsers, currentUser]);
@@ -84,7 +87,7 @@ export function useBudgetSummaryContent({
 
   // Filter budgets for this user
   const userBudgets = useMemo(() => {
-    return budgets.filter(b => b.user_id === targetUser.id && b.amount > 0);
+    return budgets.filter((b) => b.user_id === targetUser.id && b.amount > 0);
   }, [budgets, targetUser.id]);
 
   // Filter transactions
@@ -94,10 +97,10 @@ export function useBudgetSummaryContent({
     const start = toDateTime(userSummary.periodStart);
     const end = userSummary.periodEnd ? toDateTime(userSummary.periodEnd) : null;
 
-    let txs = transactions.filter(t => t.user_id === targetUser.id);
+    let txs = transactions.filter((t) => t.user_id === targetUser.id);
 
     if (start) {
-      txs = txs.filter(t => {
+      txs = txs.filter((t) => {
         const date = toDateTime(t.date);
         if (!date) return false;
         if (date < start) return false;
@@ -106,9 +109,9 @@ export function useBudgetSummaryContent({
       });
     }
 
-    const budgetCategoryIds = new Set(userBudgets.flatMap(b => b.categories));
+    const budgetCategoryIds = new Set(userBudgets.flatMap((b) => b.categories));
 
-    return txs.filter(t => budgetCategoryIds.has(t.category));
+    return txs.filter((t) => budgetCategoryIds.has(t.category));
   }, [transactions, targetUser.id, userSummary, userBudgets]);
 
   // Group transactions
@@ -146,6 +149,6 @@ export function useBudgetSummaryContent({
     currentActiveUserId,
     handleUserSelect,
     targetUser,
-    router
+    router,
   };
 }

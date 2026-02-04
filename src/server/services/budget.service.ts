@@ -68,11 +68,7 @@ export class BudgetService {
   });
 
   private static async getByIdDb(id: string): Promise<Budget | null> {
-    const { data, error } = await supabase
-      .from('budgets')
-      .select('*')
-      .eq('id', id)
-      .single();
+    const { data, error } = await supabase.from('budgets').select('*').eq('id', id).single();
 
     if (error) {
       if (error.code === 'PGRST116') return null;
@@ -105,19 +101,13 @@ export class BudgetService {
   }
 
   private static async deleteDb(id: string): Promise<void> {
-    const { error } = await supabase
-      .from('budgets')
-      .delete()
-      .eq('id', id);
+    const { error } = await supabase.from('budgets').delete().eq('id', id);
 
     if (error) throw new Error(error.message);
   }
 
   static async deleteByUser(userId: string): Promise<void> {
-    const { error } = await supabase
-      .from('budgets')
-      .delete()
-      .eq('user_id', userId);
+    const { error } = await supabase.from('budgets').delete().eq('user_id', userId);
 
     if (error) throw new Error(error.message);
   }
@@ -125,11 +115,11 @@ export class BudgetService {
   // ================== SERVICE LAYER ==================
 
   /**
-    * Retrieves a budget by ID
-    */
+   * Retrieves a budget by ID
+   */
   /**
-    * Retrieves a budget by ID
-    */
+   * Retrieves a budget by ID
+   */
   static async getBudgetById(budgetId: string): Promise<Budget> {
     if (!budgetId || budgetId.trim() === '') {
       throw new Error('Budget ID is required');
@@ -173,7 +163,7 @@ export class BudgetService {
 
     const budgets = await getCachedBudgets();
 
-    return (budgets || []);
+    return budgets || [];
   }
 
   /**
@@ -195,7 +185,7 @@ export class BudgetService {
 
     const budgets = await getCachedBudgets();
 
-    return (budgets || []);
+    return budgets || [];
   }
 
   /**
@@ -211,7 +201,7 @@ export class BudgetService {
     validateId(data.user_id, 'User ID');
 
     // Get user's group_id if not provided
-    const groupId = data.group_id || await UserService.fetchUserGroupId(data.user_id);
+    const groupId = data.group_id || (await UserService.fetchUserGroupId(data.user_id));
 
     const createData = {
       description,
@@ -263,8 +253,8 @@ export class BudgetService {
     if (!updatedBudget) throw new Error('Failed to update budget');
 
     // Cache invalidation using shared utility
-    invalidateBudgetCaches({ 
-      budgetId: id, 
+    invalidateBudgetCaches({
+      budgetId: id,
       userId: existing.user_id,
       groupId: existing.group_id || undefined,
     });
@@ -284,7 +274,8 @@ export class BudgetService {
 
     if (data.description !== undefined) {
       if (data.description.trim() === '') throw new Error('Description cannot be empty');
-      if (data.description.trim().length < 2) throw new Error('Description must be at least 2 characters');
+      if (data.description.trim().length < 2)
+        throw new Error('Description must be at least 2 characters');
     }
 
     if (data.amount !== undefined && data.amount <= 0) {
@@ -326,5 +317,4 @@ export class BudgetService {
 
     return { id };
   }
-
 }

@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import * as React from "react";
-import { Loader2 } from "lucide-react";
-import { cn } from "@/lib";
-import { Button } from "../ui";
-import { formStyles } from "./theme/form-styles";
+import * as React from 'react';
+import { Loader2 } from 'lucide-react';
+import { cn } from '@/lib';
+import { Button } from '../ui';
+import { formStyles } from './theme/form-styles';
 
 /**
  * Form Actions Component
@@ -45,9 +45,9 @@ export interface FormActionsProps {
   /** Additional CSS classes */
   className?: string;
   /** Submit button variant */
-  submitVariant?: "default" | "destructive" | "outline" | "secondary" | "ghost";
+  submitVariant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost';
   /** Submit button type (button or submit) */
-  submitType?: "button" | "submit";
+  submitType?: 'button' | 'submit';
 }
 
 // ============================================================================
@@ -59,12 +59,12 @@ export function FormActions({
   onCancel,
   isSubmitting = false,
   disabled = false,
-  submitLabel = "Salva",
-  cancelLabel = "Annulla",
+  submitLabel = 'Salva',
+  cancelLabel = 'Annulla',
   showCancel = true,
   className,
-  submitVariant = "default",
-  submitType = "button",
+  submitVariant = 'default',
+  submitType = 'button',
 }: Readonly<FormActionsProps>) {
   const isDisabled = disabled || isSubmitting;
 
@@ -87,7 +87,7 @@ export function FormActions({
       <Button
         type={submitType}
         variant={submitVariant}
-        onClick={submitType === "button" ? onSubmit : undefined}
+        onClick={submitType === 'button' ? onSubmit : undefined}
         disabled={isDisabled}
         className={cn(formStyles.actions.buttonBase)}
       >
@@ -109,8 +109,8 @@ export function DestructiveFormActions({
   onConfirm,
   onCancel,
   isSubmitting = false,
-  confirmLabel = "Elimina",
-  cancelLabel = "Annulla",
+  confirmLabel = 'Elimina',
+  cancelLabel = 'Annulla',
   className,
 }: Readonly<{
   onConfirm?: () => void;
@@ -136,7 +136,10 @@ export function DestructiveFormActions({
 /**
  * Form actions with custom buttons
  */
-export function CustomFormActions({ children, className }: Readonly<{ children: React.ReactNode; className?: string }>) {
+export function CustomFormActions({
+  children,
+  className,
+}: Readonly<{ children: React.ReactNode; className?: string }>) {
   return <div className={cn(formStyles.actions.container, className)}>{children}</div>;
 }
 
@@ -147,15 +150,15 @@ export function SingleFormAction({
   onSubmit,
   isSubmitting = false,
   disabled = false,
-  label = "Continua",
-  variant = "default",
+  label = 'Continua',
+  variant = 'default',
   className,
 }: Readonly<{
   onSubmit?: () => void;
   isSubmitting?: boolean;
   disabled?: boolean;
   label?: string;
-  variant?: "default" | "destructive" | "outline" | "secondary" | "ghost";
+  variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost';
   className?: string;
 }>) {
   return (

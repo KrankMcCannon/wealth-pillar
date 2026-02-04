@@ -1,5 +1,5 @@
-import type { ReactNode } from "react";
-import { authStyles } from "../theme";
+import type { ReactNode } from 'react';
+import { authStyles } from '../theme';
 
 type AuthPageWrapperProps = {
   children: ReactNode;

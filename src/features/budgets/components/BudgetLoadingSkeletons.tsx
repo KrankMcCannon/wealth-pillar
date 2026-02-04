@@ -7,7 +7,6 @@
 'use client';
 
 import { budgetStyles } from '@/styles/system';
-import React from 'react';
 
 /**
  * Skeleton for budget selector
@@ -17,12 +16,18 @@ export function BudgetSelectorSkeleton() {
     <div className={budgetStyles.selectionSection}>
       {/* Section Header Skeleton */}
       <div className={budgetStyles.loadingSkeletons.header}>
-        <div className={`${budgetStyles.skeleton.base} ${budgetStyles.skeleton.lineMedium} ${budgetStyles.loadingSkeletons.selectorTitle}`} />
-        <div className={`${budgetStyles.skeleton.base} ${budgetStyles.skeleton.lineShort} ${budgetStyles.loadingSkeletons.selectorSubtitle}`} />
+        <div
+          className={`${budgetStyles.skeleton.base} ${budgetStyles.skeleton.lineMedium} ${budgetStyles.loadingSkeletons.selectorTitle}`}
+        />
+        <div
+          className={`${budgetStyles.skeleton.base} ${budgetStyles.skeleton.lineShort} ${budgetStyles.loadingSkeletons.selectorSubtitle}`}
+        />
       </div>
 
       {/* Selector Skeleton */}
-      <div className={`${budgetStyles.skeleton.base} ${budgetStyles.skeleton.rect} ${budgetStyles.loadingSkeletons.selectorBox}`} />
+      <div
+        className={`${budgetStyles.skeleton.base} ${budgetStyles.skeleton.rect} ${budgetStyles.loadingSkeletons.selectorBox}`}
+      />
     </div>
   );
 }
@@ -41,15 +46,23 @@ export function BudgetCardSkeleton() {
 
           {/* Text skeleton */}
           <div className={budgetStyles.loadingSkeletons.budgetCardText}>
-            <div className={`${budgetStyles.skeleton.line} ${budgetStyles.loadingSkeletons.budgetCardTitle}`} />
-            <div className={`${budgetStyles.skeleton.lineShort} ${budgetStyles.loadingSkeletons.budgetCardSubtitle}`} />
+            <div
+              className={`${budgetStyles.skeleton.line} ${budgetStyles.loadingSkeletons.budgetCardTitle}`}
+            />
+            <div
+              className={`${budgetStyles.skeleton.lineShort} ${budgetStyles.loadingSkeletons.budgetCardSubtitle}`}
+            />
           </div>
         </div>
 
         {/* Period skeleton */}
         <div className={budgetStyles.loadingSkeletons.budgetCardPeriod}>
-          <div className={`${budgetStyles.skeleton.lineShort} ${budgetStyles.loadingSkeletons.budgetCardPeriodLine}`} />
-          <div className={`${budgetStyles.skeleton.line} ${budgetStyles.loadingSkeletons.budgetCardPeriodValue}`} />
+          <div
+            className={`${budgetStyles.skeleton.lineShort} ${budgetStyles.loadingSkeletons.budgetCardPeriodLine}`}
+          />
+          <div
+            className={`${budgetStyles.skeleton.line} ${budgetStyles.loadingSkeletons.budgetCardPeriodValue}`}
+          />
         </div>
       </div>
     </div>
@@ -81,10 +94,14 @@ export function BudgetProgressSkeleton() {
       {/* Header skeleton */}
       <div className={budgetStyles.progress.header}>
         <div className={budgetStyles.loadingSkeletons.progressIndicatorRow}>
-          <div className={`${budgetStyles.skeleton.rect} ${budgetStyles.loadingSkeletons.progressIndicator}`} />
+          <div
+            className={`${budgetStyles.skeleton.rect} ${budgetStyles.loadingSkeletons.progressIndicator}`}
+          />
           <div className={`${budgetStyles.skeleton.lineMedium} h-4`} />
         </div>
-        <div className={`${budgetStyles.skeleton.lineShort} ${budgetStyles.loadingSkeletons.progressValue}`} />
+        <div
+          className={`${budgetStyles.skeleton.lineShort} ${budgetStyles.loadingSkeletons.progressValue}`}
+        />
       </div>
 
       {/* Bar skeleton */}
@@ -94,7 +111,9 @@ export function BudgetProgressSkeleton() {
 
       {/* Status text skeleton */}
       <div className={budgetStyles.loadingSkeletons.progressStatus}>
-        <div className={`${budgetStyles.skeleton.line} ${budgetStyles.loadingSkeletons.progressStatusLine}`} />
+        <div
+          className={`${budgetStyles.skeleton.line} ${budgetStyles.loadingSkeletons.progressStatusLine}`}
+        />
       </div>
     </div>
   );
@@ -116,8 +135,12 @@ export function BudgetChartSkeleton() {
         </div>
 
         {/* Chart skeleton */}
-        <div className={`${budgetStyles.chart.svgContainer} ${budgetStyles.loadingSkeletons.chartWrap}`}>
-          <div className={`${budgetStyles.skeleton.rect} ${budgetStyles.loadingSkeletons.chartArea}`} />
+        <div
+          className={`${budgetStyles.chart.svgContainer} ${budgetStyles.loadingSkeletons.chartWrap}`}
+        >
+          <div
+            className={`${budgetStyles.skeleton.rect} ${budgetStyles.loadingSkeletons.chartArea}`}
+          />
         </div>
 
         {/* Labels skeleton */}

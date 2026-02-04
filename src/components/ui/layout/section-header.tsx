@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import * as React from "react";
-import { cn } from "@/lib/utils";
-import { Text } from "@/components/ui/primitives";
-import { Badge } from "@/components/ui/badge";
-import { layoutStyles } from "@/styles/system";
+import * as React from 'react';
+import { cn } from '@/lib/utils';
+import { Text } from '@/components/ui/primitives';
+import { Badge } from '@/components/ui/badge';
+import { layoutStyles } from '@/styles/system';
 
 export interface SectionHeaderProps {
   title: React.ReactNode;
@@ -27,7 +27,7 @@ export function SectionHeader({
   title,
   subtitle,
   icon: Icon,
-  iconClassName = "text-primary",
+  iconClassName = 'text-primary',
   leading,
   badge,
   actions,
@@ -43,10 +43,7 @@ export function SectionHeader({
           {title}
         </Text>
         {subtitle && (
-          <Text
-            as="p"
-            className={cn(layoutStyles.section.subtitle, subtitleClassName)}
-          >
+          <Text as="p" className={cn(layoutStyles.section.subtitle, subtitleClassName)}>
             {subtitle}
           </Text>
         )}
@@ -55,9 +52,7 @@ export function SectionHeader({
         <div className={layoutStyles.section.actions}>
           {Icon && <Icon className={iconClassName} />}
           {leading}
-          {badge && (
-            <Badge className={badge.className}>{badge.text}</Badge>
-          )}
+          {badge && <Badge className={badge.className}>{badge.text}</Badge>}
           {actions}
           {children}
         </div>

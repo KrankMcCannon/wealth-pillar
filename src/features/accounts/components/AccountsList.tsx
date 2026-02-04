@@ -11,7 +11,7 @@ import type { Account } from '@/lib';
 import { AccountCard } from '@/components/cards';
 import { EmptyState } from '@/components/shared';
 import { accountStyles } from '../theme/account-styles';
-import { SHIMMER_BASE } from "@/lib/utils/ui-constants";
+import { SHIMMER_BASE } from '@/lib/utils/ui-constants';
 
 /**
  * Skeleton for individual account card

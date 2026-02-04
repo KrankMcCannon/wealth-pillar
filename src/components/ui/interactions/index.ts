@@ -5,5 +5,5 @@
  * Provides consistent, performant, and accessible swipe gestures.
  */
 
-export { SwipeableCard } from "./swipeable-card";
-export type { SwipeAction, SwipeableCardProps } from "./swipeable-card";
+export { SwipeableCard } from './swipeable-card';
+export type { SwipeAction, SwipeableCardProps } from './swipeable-card';

@@ -1,18 +1,18 @@
-"use client";
+'use client';
 
-import * as React from "react";
-import { useForm } from "react-hook-form";
-import { useRouter } from "next/navigation";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { ModalBody, ModalFooter, ModalWrapper } from "@/components/ui/modal-wrapper";
-import { toast } from "@/hooks/use-toast";
-import { updateUserProfileAction } from "@/features/settings";
-import { settingsStyles } from "@/features/settings/theme";
-import { SettingsModalField } from "./settings-modal-form";
-import { cn } from "@/lib/utils";
+import * as React from 'react';
+import { useForm } from 'react-hook-form';
+import { useRouter } from 'next/navigation';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { ModalBody, ModalFooter, ModalWrapper } from '@/components/ui/modal-wrapper';
+import { toast } from '@/hooks/use-toast';
+import { updateUserProfileAction } from '@/features/settings';
+import { settingsStyles } from '@/features/settings/theme';
+import { SettingsModalField } from './settings-modal-form';
+import { cn } from '@/lib/utils';
 
 // ============================================================================
 // VALIDATION SCHEMA
@@ -21,13 +21,13 @@ import { cn } from "@/lib/utils";
 const editProfileSchema = z.object({
   name: z
     .string()
-    .min(1, "Il nome è obbligatorio")
-    .max(100, "Il nome deve essere massimo 100 caratteri")
+    .min(1, 'Il nome è obbligatorio')
+    .max(100, 'Il nome deve essere massimo 100 caratteri')
     .trim(),
   email: z
     .string()
     .min(1, "L'email è obbligatoria")
-    .regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, "Formato email non valido")
+    .regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Formato email non valido')
     .toLowerCase(),
 });
 
@@ -108,9 +108,9 @@ export function EditProfileModal({
       // Check if anything changed
       if (data.name === currentName && data.email === currentEmail) {
         toast({
-          title: "Nessuna modifica",
-          description: "Non hai apportato modifiche al profilo",
-          variant: "info",
+          title: 'Nessuna modifica',
+          description: 'Non hai apportato modifiche al profilo',
+          variant: 'info',
         });
         onOpenChange(false);
         return;
@@ -124,18 +124,18 @@ export function EditProfileModal({
 
       if (error) {
         toast({
-          title: "Errore",
+          title: 'Errore',
           description: error,
-          variant: "destructive",
+          variant: 'destructive',
         });
         return;
       }
 
       if (!updatedUser) {
         toast({
-          title: "Errore",
-          description: "Impossibile aggiornare il profilo",
-          variant: "destructive",
+          title: 'Errore',
+          description: 'Impossibile aggiornare il profilo',
+          variant: 'destructive',
         });
         return;
       }
@@ -145,19 +145,19 @@ export function EditProfileModal({
 
       // Show success toast
       toast({
-        title: "Profilo aggiornato",
-        description: "Le modifiche sono state salvate con successo",
-        variant: "success",
+        title: 'Profilo aggiornato',
+        description: 'Le modifiche sono state salvate con successo',
+        variant: 'success',
       });
 
       // Close modal
       onOpenChange(false);
     } catch (error) {
-      console.error("Error updating profile:", error);
+      console.error('Error updating profile:', error);
       toast({
-        title: "Errore",
+        title: 'Errore',
         description: "Si è verificato un errore durante l'aggiornamento",
-        variant: "destructive",
+        variant: 'destructive',
       });
     }
   };
@@ -175,7 +175,7 @@ export function EditProfileModal({
     >
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className={cn(settingsStyles.modals.form, "flex flex-col h-full")}
+        className={cn(settingsStyles.modals.form, 'flex flex-col h-full')}
       >
         <ModalBody>
           <SettingsModalField
@@ -183,11 +183,11 @@ export function EditProfileModal({
             label="Nome completo"
             error={errors.name?.message}
             inputProps={{
-              type: "text",
-              placeholder: "Mario Rossi",
+              type: 'text',
+              placeholder: 'Mario Rossi',
               disabled: isSubmitting,
-              autoComplete: "name",
-              ...register("name"),
+              autoComplete: 'name',
+              ...register('name'),
             }}
           />
 
@@ -196,11 +196,11 @@ export function EditProfileModal({
             label="Indirizzo email"
             error={errors.email?.message}
             inputProps={{
-              type: "email",
-              placeholder: "mario.rossi@example.com",
+              type: 'email',
+              placeholder: 'mario.rossi@example.com',
               disabled: isSubmitting,
-              autoComplete: "email",
-              ...register("email"),
+              autoComplete: 'email',
+              ...register('email'),
             }}
           />
         </ModalBody>
@@ -226,7 +226,7 @@ export function EditProfileModal({
                 Salvataggio...
               </>
             ) : (
-              "Salva Modifiche"
+              'Salva Modifiche'
             )}
           </Button>
         </ModalFooter>
@@ -234,4 +234,3 @@ export function EditProfileModal({
     </ModalWrapper>
   );
 }
-

@@ -6,7 +6,7 @@ import { getCurrentUser, getGroupUsers } from '@/lib/auth/cached-auth';
 import { InvestmentService, MarketDataService } from '@/server/services';
 
 export default async function InvestmentsPage(props: {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const searchParams = await props.searchParams;
   const indexSymbol = typeof searchParams.index === 'string' ? searchParams.index : 'IVV';

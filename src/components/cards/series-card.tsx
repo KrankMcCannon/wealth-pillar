@@ -2,22 +2,20 @@
  * SeriesCard - Domain card for recurring transaction series
  */
 
-"use client";
+'use client';
 
-import { useMemo, useState } from "react";
+import { useMemo, useState } from 'react';
 import { cn } from '@/lib';
 import type { RecurringTransactionSeries } from '@/lib';
-import { FinanceLogicService } from "@/server/services/finance-logic.service";
-import type { User } from "@/lib/types";
-import {
-  executeRecurringSeriesAction,
-} from "@/features/recurring";
-import { Play } from "lucide-react";
-import { Amount, Button, Card, CategoryBadge, StatusBadge, Text } from "@/components/ui";
-import { cardStyles, getSeriesCardClassName, getSeriesUserBadgeStyle } from "./theme/card-styles";
-import { useCategories } from "@/stores/reference-data-store";
-import { SwipeableCard } from "@/components/ui/interactions/swipeable-card";
-import { useCloseAllCards } from "@/stores/swipe-state-store";
+import { FinanceLogicService } from '@/server/services/finance-logic.service';
+import type { User } from '@/lib/types';
+import { executeRecurringSeriesAction } from '@/features/recurring';
+import { Play } from 'lucide-react';
+import { Amount, Button, Card, CategoryBadge, StatusBadge, Text } from '@/components/ui';
+import { cardStyles, getSeriesCardClassName, getSeriesUserBadgeStyle } from './theme/card-styles';
+import { useCategories } from '@/stores/reference-data-store';
+import { SwipeableCard } from '@/components/ui/interactions/swipeable-card';
+import { useCloseAllCards } from '@/stores/swipe-state-store';
 
 interface SeriesCardProps {
   readonly series: RecurringTransactionSeries;
@@ -39,18 +37,18 @@ interface SeriesCardProps {
 // Helper function: Get frequency label
 function getFrequencyLabel(frequency: string): string {
   const labels: Record<string, string> = {
-    weekly: "Settimanale",
-    biweekly: "Quindicinale",
-    monthly: "Mensile",
-    yearly: "Annuale",
+    weekly: 'Settimanale',
+    biweekly: 'Quindicinale',
+    monthly: 'Mensile',
+    yearly: 'Annuale',
   };
   return labels[frequency] || frequency;
 }
 
 // Helper function: Get due date label
 function getDueDateLabel(days: number): string {
-  if (days === 0) return "Oggi";
-  if (days === 1) return "Domani";
+  if (days === 0) return 'Oggi';
+  if (days === 1) return 'Domani';
   if (days < 0) return `${Math.abs(days)} giorni fa`;
   if (days <= 7) return `Tra ${days} giorni`;
   return `Tra ${days} giorni`;
@@ -87,9 +85,9 @@ export function SeriesCard({
   const associatedUsers = useMemo(() => {
     if (!groupUsers) return [];
     // Ensure theme_color is compatible (string | undefined) vs (string | null)
-    const sanitizedGroupUsers = groupUsers.map(u => ({
+    const sanitizedGroupUsers = groupUsers.map((u) => ({
       ...u,
-      theme_color: u.theme_color || undefined
+      theme_color: u.theme_color || undefined,
     }));
     return FinanceLogicService.getAssociatedUsers(series, sanitizedGroupUsers);
   }, [series, groupUsers]);
@@ -138,9 +136,9 @@ export function SeriesCard({
     onPause?.(series);
   };
 
-  const getAmountType = (): "income" | "expense" | "neutral" => {
-    if (!series.is_active) return "neutral";
-    return series.type === "income" ? "income" : "expense";
+  const getAmountType = (): 'income' | 'expense' | 'neutral' => {
+    if (!series.is_active) return 'neutral';
+    return series.type === 'income' ? 'income' : 'expense';
   };
 
   const cardContent = (
@@ -163,12 +161,7 @@ export function SeriesCard({
 
           <div className={cardStyles.series.content}>
             <div className={cardStyles.series.titleRow}>
-              <Text
-                variant="primary"
-                size="sm"
-                as="h3"
-                className={cardStyles.series.title}
-              >
+              <Text variant="primary" size="sm" as="h3" className={cardStyles.series.title}>
                 {series.description}
               </Text>
               {!series.is_active && (
@@ -209,7 +202,7 @@ export function SeriesCard({
         {/* Right Section: Amount + Actions */}
         <div className={cardStyles.series.right}>
           <Amount type={getAmountType()} size="md" emphasis="strong">
-            {series.type === "income" ? series.amount : -series.amount}
+            {series.type === 'income' ? series.amount : -series.amount}
           </Amount>
           <Text variant="body" size="xs" className={cardStyles.series.dueDate}>
             Prossima: {getDueDateLabel(daysUntilDue)}
@@ -227,7 +220,9 @@ export function SeriesCard({
                       onClick={handleExecute}
                       disabled={isLoading}
                     >
-                      <Play className={`${cardStyles.series.actionIcon} ${cardStyles.series.actionIconAccent}`} />
+                      <Play
+                        className={`${cardStyles.series.actionIcon} ${cardStyles.series.actionIconAccent}`}
+                      />
                     </Button>
                   )}
                 </>
@@ -243,16 +238,24 @@ export function SeriesCard({
     return (
       <SwipeableCard
         id={`series-${series.id}`}
-        leftAction={canSwipePause ? {
-          label: series.is_active ? "Pausa" : "Riprendi",
-          variant: series.is_active ? "pause" : "resume",
-          onAction: handleSwipePause,
-        } : undefined}
-        rightAction={canSwipeDelete ? {
-          label: "Elimina",
-          variant: "delete",
-          onAction: handleSwipeDelete,
-        } : undefined}
+        leftAction={
+          canSwipePause
+            ? {
+                label: series.is_active ? 'Pausa' : 'Riprendi',
+                variant: series.is_active ? 'pause' : 'resume',
+                onAction: handleSwipePause,
+              }
+            : undefined
+        }
+        rightAction={
+          canSwipeDelete
+            ? {
+                label: 'Elimina',
+                variant: 'delete',
+                onAction: handleSwipeDelete,
+              }
+            : undefined
+        }
         onCardClick={handleCardClick}
       >
         {cardContent}

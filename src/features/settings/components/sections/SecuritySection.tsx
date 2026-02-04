@@ -1,7 +1,6 @@
-
-import { SectionHeader } from "@/components/layout";
-import { ListContainer, PageSection, SettingsItem } from "@/components/ui/layout";
-import { Loader2, LogOut, Shield } from "lucide-react";
+import { SectionHeader } from '@/components/layout';
+import { ListContainer, PageSection, SettingsItem } from '@/components/ui/layout';
+import { Loader2, LogOut, Shield } from 'lucide-react';
 
 interface SecuritySectionProps {
   isSigningOut: boolean;
@@ -35,9 +34,9 @@ export function SecuritySection({
                 <LogOut className="h-4 w-4 text-primary" />
               )
             }
-            label={isSigningOut ? "Disconnessione in corso..." : "Esci dall'Account"}
-            description={isSigningOut ? "Attendere prego" : "Disconnetti dal tuo account"}
-            actionType={isSigningOut ? "custom" : "navigation"}
+            label={isSigningOut ? 'Disconnessione in corso...' : "Esci dall'Account"}
+            description={isSigningOut ? 'Attendere prego' : 'Disconnetti dal tuo account'}
+            actionType={isSigningOut ? 'custom' : 'navigation'}
             onPress={onSignOut}
             disabled={isSigningOut}
           />

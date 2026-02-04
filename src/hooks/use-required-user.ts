@@ -25,7 +25,7 @@ export function useRequiredGroupId(): string {
   if (!currentUser.group_id) {
     throw new Error(
       'useRequiredGroupId: currentUser.group_id is null. ' +
-      'This indicates data corruption - all users must have a group_id.'
+        'This indicates data corruption - all users must have a group_id.'
     );
   }
 

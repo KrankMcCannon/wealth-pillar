@@ -1,17 +1,11 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { Loader2, Pause, Play } from "lucide-react";
-import {
-  Button,
-  ModalBody,
-  ModalFooter,
-  ModalWrapper,
-  Amount,
-} from "@/components/ui";
-import { RecurringTransactionSeries } from "@/lib/types";
-import { toggleRecurringSeriesActiveAction } from "@/features/recurring";
-import { recurringStyles } from "../theme/recurring-styles";
+import { useState } from 'react';
+import { Loader2, Pause, Play } from 'lucide-react';
+import { Button, ModalBody, ModalFooter, ModalWrapper, Amount } from '@/components/ui';
+import { RecurringTransactionSeries } from '@/lib/types';
+import { toggleRecurringSeriesActiveAction } from '@/features/recurring';
+import { recurringStyles } from '../theme/recurring-styles';
 
 interface PauseSeriesModalProps {
   isOpen: boolean;
@@ -31,24 +25,21 @@ export function PauseSeriesModal({
   if (!series) return null;
 
   const willPause = series.is_active;
-  const actionText = willPause ? "Mettere in pausa" : "Riprendere";
-  const actionTextLower = willPause ? "messa in pausa" : "ripresa";
+  const actionText = willPause ? 'Mettere in pausa' : 'Riprendere';
+  const actionTextLower = willPause ? 'messa in pausa' : 'ripresa';
 
   const handleConfirm = async () => {
     setIsLoading(true);
     try {
-      const result = await toggleRecurringSeriesActiveAction(
-        series.id,
-        !willPause,
-      );
+      const result = await toggleRecurringSeriesActiveAction(series.id, !willPause);
       if (result.error) {
-        console.error("Failed to toggle series:", result.error);
+        console.error('Failed to toggle series:', result.error);
       } else if (result.data) {
         onSuccess?.(result.data);
       }
       onOpenChange(false);
     } catch (error) {
-      console.error("Failed to toggle series:", error);
+      console.error('Failed to toggle series:', error);
     } finally {
       setIsLoading(false);
     }
@@ -61,8 +52,8 @@ export function PauseSeriesModal({
       title={`${actionText} serie ricorrente`}
       description={
         willPause
-          ? "La serie non genererà più transazioni automatiche"
-          : "La serie riprenderà a generare transazioni"
+          ? 'La serie non genererà più transazioni automatiche'
+          : 'La serie riprenderà a generare transazioni'
       }
       showCloseButton={!isLoading}
       disableOutsideClose={isLoading}
@@ -70,15 +61,13 @@ export function PauseSeriesModal({
       <ModalBody>
         <div className={recurringStyles.pauseModal.container}>
           <div className={recurringStyles.pauseModal.card}>
-            <p className={recurringStyles.pauseModal.title}>
-              {series.description}
-            </p>
+            <p className={recurringStyles.pauseModal.title}>{series.description}</p>
             <Amount
-              type={series.type === "income" ? "income" : "expense"}
+              type={series.type === 'income' ? 'income' : 'expense'}
               size="lg"
               emphasis="strong"
             >
-              {series.type === "income" ? series.amount : -series.amount}
+              {series.type === 'income' ? series.amount : -series.amount}
             </Amount>
           </div>
 
@@ -86,8 +75,8 @@ export function PauseSeriesModal({
             {willPause ? (
               <>
                 <p>
-                  La serie ricorrente verrà {actionTextLower}. Non verranno più
-                  create transazioni automatiche finché non la riattiverai.
+                  La serie ricorrente verrà {actionTextLower}. Non verranno più create transazioni
+                  automatiche finché non la riattiverai.
                 </p>
                 <p className={recurringStyles.pauseModal.descriptionStrong}>
                   Le transazioni già create rimarranno invariate.
@@ -95,19 +84,15 @@ export function PauseSeriesModal({
               </>
             ) : (
               <p>
-                La serie ricorrente verrà {actionTextLower}. Riprenderà a
-                generare transazioni automatiche secondo la frequenza impostata.
+                La serie ricorrente verrà {actionTextLower}. Riprenderà a generare transazioni
+                automatiche secondo la frequenza impostata.
               </p>
             )}
           </div>
         </div>
       </ModalBody>
       <ModalFooter>
-        <Button
-          variant="outline"
-          onClick={() => onOpenChange(false)}
-          disabled={isLoading}
-        >
+        <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
           Annulla
         </Button>
         <Button onClick={handleConfirm} disabled={isLoading}>
@@ -118,11 +103,7 @@ export function PauseSeriesModal({
             </>
           ) : (
             <>
-              {willPause ? (
-                <Pause className="mr-2 h-4 w-4" />
-              ) : (
-                <Play className="mr-2 h-4 w-4" />
-              )}
+              {willPause ? <Pause className="mr-2 h-4 w-4" /> : <Play className="mr-2 h-4 w-4" />}
               {actionText}
             </>
           )}

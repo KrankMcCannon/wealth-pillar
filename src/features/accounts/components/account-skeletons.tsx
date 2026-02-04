@@ -3,9 +3,9 @@
  * Progressive loading placeholders with smooth animations
  */
 
-import { SkeletonList } from "@/components/ui/primitives";
-import { SHIMMER_BASE } from "@/lib/utils/ui-constants";
-import { accountStyles } from "../theme/account-styles";
+import { SkeletonList } from '@/components/ui/primitives';
+import { SHIMMER_BASE } from '@/lib/utils/ui-constants';
+import { accountStyles } from '../theme/account-styles';
 
 /**
  * Header skeleton loader for accounts page
@@ -69,29 +69,29 @@ export function AccountListSkeleton() {
   return (
     <div className={accountStyles.skeleton.list.container}>
       <div className={accountStyles.skeleton.list.title} />
-    <SkeletonList
-      count={3}
-      spacing="space-y-3"
-      renderItem={() => (
-        <div className={`${accountStyles.skeleton.list.item} ${SHIMMER_BASE}`}>
-          <div className={accountStyles.skeleton.list.row}>
-            <div className={accountStyles.skeleton.list.left}>
-              <div className={accountStyles.skeleton.list.icon} />
-              <div className={accountStyles.skeleton.list.body}>
-                <div className={accountStyles.skeleton.list.line} />
-                <div className={accountStyles.skeleton.list.subline} />
+      <SkeletonList
+        count={3}
+        spacing="space-y-3"
+        renderItem={() => (
+          <div className={`${accountStyles.skeleton.list.item} ${SHIMMER_BASE}`}>
+            <div className={accountStyles.skeleton.list.row}>
+              <div className={accountStyles.skeleton.list.left}>
+                <div className={accountStyles.skeleton.list.icon} />
+                <div className={accountStyles.skeleton.list.body}>
+                  <div className={accountStyles.skeleton.list.line} />
+                  <div className={accountStyles.skeleton.list.subline} />
+                </div>
+              </div>
+              <div className={accountStyles.skeleton.list.right}>
+                <div className={accountStyles.skeleton.list.amount} />
+                <div className={accountStyles.skeleton.list.amountSub} />
               </div>
             </div>
-            <div className={accountStyles.skeleton.list.right}>
-              <div className={accountStyles.skeleton.list.amount} />
-              <div className={accountStyles.skeleton.list.amountSub} />
-            </div>
           </div>
-        </div>
-      )}
-    />
-  </div>
-);
+        )}
+      />
+    </div>
+  );
 }
 
 /**

@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import * as React from "react";
-import * as DialogPrimitive from "@radix-ui/react-dialog";
-import { XIcon } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { modalStyles } from "@/styles/system";
-import { dialogComponentStyles } from "./theme/dialog-component-styles";
+import * as React from 'react';
+import * as DialogPrimitive from '@radix-ui/react-dialog';
+import { XIcon } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { modalStyles } from '@/styles/system';
+import { dialogComponentStyles } from './theme/dialog-component-styles';
 
 function Dialog({ ...props }: Readonly<React.ComponentProps<typeof DialogPrimitive.Root>>) {
   return <DialogPrimitive.Root data-slot="dialog" {...props} />;
@@ -30,10 +30,7 @@ const DialogOverlay = React.forwardRef<
   <DialogPrimitive.Overlay
     ref={ref}
     data-slot="dialog-overlay"
-    className={cn(
-      dialogComponentStyles.overlay,
-      className
-    )}
+    className={cn(dialogComponentStyles.overlay, className)}
     {...props}
   />
 ));
@@ -50,11 +47,7 @@ const DialogContent = React.forwardRef<
     <DialogPrimitive.Content
       ref={ref}
       data-slot="dialog-content"
-      className={cn(
-        dialogComponentStyles.contentBase,
-        modalStyles.content,
-        className
-      )}
+      className={cn(dialogComponentStyles.contentBase, modalStyles.content, className)}
       {...props}
     >
       {children}
@@ -82,7 +75,7 @@ const DialogHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLD
     />
   )
 );
-DialogHeader.displayName = "DialogHeader";
+DialogHeader.displayName = 'DialogHeader';
 
 const DialogFooter = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
@@ -94,7 +87,7 @@ const DialogFooter = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLD
     />
   )
 );
-DialogFooter.displayName = "DialogFooter";
+DialogFooter.displayName = 'DialogFooter';
 
 const DialogTitle = React.forwardRef<
   React.ComponentRef<typeof DialogPrimitive.Title>,

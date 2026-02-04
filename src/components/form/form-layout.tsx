@@ -19,11 +19,11 @@
  * ```
  */
 
-"use client";
+'use client';
 
-import * as React from "react";
+import * as React from 'react';
 import { cn } from '@/lib';
-import { formStyles } from "./theme/form-styles";
+import { formStyles } from './theme/form-styles';
 
 export interface FormLayoutProps {
   /** Form fields */
@@ -34,16 +34,9 @@ export interface FormLayoutProps {
   onSubmit?: (e: React.FormEvent) => void;
 }
 
-export function FormLayout({
-  children,
-  className,
-  onSubmit,
-}: Readonly<FormLayoutProps>) {
+export function FormLayout({ children, className, onSubmit }: Readonly<FormLayoutProps>) {
   return (
-    <form
-      onSubmit={onSubmit}
-      className={cn(formStyles.layout.form, className)}
-    >
+    <form onSubmit={onSubmit} className={cn(formStyles.layout.form, className)}>
       {children}
     </form>
   );

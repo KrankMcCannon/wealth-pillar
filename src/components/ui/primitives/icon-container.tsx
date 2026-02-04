@@ -12,12 +12,11 @@
  * ```
  */
 
-import * as React from "react";
-import { cn, iconContainerVariants, type IconContainerVariants } from "@/lib/utils";
+import * as React from 'react';
+import { cn, iconContainerVariants, type IconContainerVariants } from '@/lib/utils';
 
 export interface IconContainerProps
-  extends Omit<React.HTMLAttributes<HTMLDivElement>, "color">,
-    IconContainerVariants {
+  extends Omit<React.HTMLAttributes<HTMLDivElement>, 'color'>, IconContainerVariants {
   /** Icon element to display */
   children: React.ReactNode;
 }
@@ -30,10 +29,7 @@ export function IconContainer({
   ...props
 }: Readonly<IconContainerProps>) {
   return (
-    <div
-      className={cn(iconContainerVariants({ size, color }), className)}
-      {...props}
-    >
+    <div className={cn(iconContainerVariants({ size, color }), className)} {...props}>
       {children}
     </div>
   );

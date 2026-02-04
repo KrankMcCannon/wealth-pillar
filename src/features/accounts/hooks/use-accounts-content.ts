@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import { useEffect, useMemo } from "react";
-import { useFilteredAccounts, usePermissions, useUserFilter, useDeleteConfirmation } from "@/hooks";
-import { deleteAccountAction } from "@/features/accounts/actions/account-actions";
-import { useModalState } from "@/lib/navigation/url-state";
-import { useReferenceDataStore } from "@/stores/reference-data-store";
-import type { Account, User } from "@/lib/types";
+import { useEffect, useMemo } from 'react';
+import { useFilteredAccounts, usePermissions, useUserFilter, useDeleteConfirmation } from '@/hooks';
+import { deleteAccountAction } from '@/features/accounts/actions/account-actions';
+import { useModalState } from '@/lib/navigation/url-state';
+import { useReferenceDataStore } from '@/stores/reference-data-store';
+import type { Account, User } from '@/lib/types';
 
 export interface UseAccountsContentProps {
   accountBalances: Record<string, number>;
@@ -45,12 +45,15 @@ export function useAccountsContent({
   });
 
   const filteredBalances = useMemo(() => {
-    return filteredAccounts.reduce((acc, account) => {
-      if (accountBalances[account.id] !== undefined) {
-        acc[account.id] = accountBalances[account.id];
-      }
-      return acc;
-    }, {} as Record<string, number>);
+    return filteredAccounts.reduce(
+      (acc, account) => {
+        if (accountBalances[account.id] !== undefined) {
+          acc[account.id] = accountBalances[account.id];
+        }
+        return acc;
+      },
+      {} as Record<string, number>
+    );
   }, [filteredAccounts, accountBalances]);
 
   // Sort accounts by balance (descending - highest first)
@@ -85,7 +88,7 @@ export function useAccountsContent({
 
   // Action Handlers
   const handleEditAccount = (account: Account) => {
-    openModal("account", account.id);
+    openModal('account', account.id);
   };
 
   const handleDeleteAccount = (account: Account) => {
@@ -103,14 +106,14 @@ export function useAccountsContent({
         if (result.error) {
           // Revert on error - add back to store
           addAccount(account);
-          console.error("[AccountsContent] Delete error:", result.error);
+          console.error('[AccountsContent] Delete error:', result.error);
           throw new Error(result.error);
         }
         // Success - no page refresh needed, store already updated!
       } catch (error) {
         // Revert on error
         addAccount(account);
-        console.error("[AccountsContent] Error deleting account:", error);
+        console.error('[AccountsContent] Error deleting account:', error);
         throw error;
       }
     });

@@ -38,11 +38,7 @@ function renderSearchResults(
   }
 
   if (results.length === 0 && hasSearched) {
-    return (
-      <div className={formStyles.categorySelect.empty}>
-        Nessun titolo trovato
-      </div>
-    );
+    return <div className={formStyles.categorySelect.empty}>Nessun titolo trovato</div>;
   }
 
   if (results.length > 0) {
@@ -99,21 +95,24 @@ export function ShareSelector({ value, onChange, className }: Readonly<ShareSele
     setSelectedAssetType,
     debouncedSearch,
     handleSelect,
-    clearSearch
+    clearSearch,
   } = useShareSearch({
     initialValue: value,
     onSelect: (symbol) => {
       setIsOpen(false);
       onChange(symbol);
-    }
+    },
   });
 
-  const handleOpenChange = React.useCallback((open: boolean) => {
-    setIsOpen(open);
-    if (!open) {
-      clearSearch();
-    }
-  }, [clearSearch]);
+  const handleOpenChange = React.useCallback(
+    (open: boolean) => {
+      setIsOpen(open);
+      if (!open) {
+        clearSearch();
+      }
+    },
+    [clearSearch]
+  );
 
   React.useEffect(() => {
     if (!isOpen) return;
@@ -133,7 +132,7 @@ export function ShareSelector({ value, onChange, className }: Readonly<ShareSele
     } else if (results.length === 0) {
       candidates = [];
     }
-    
+
     if (candidates.length === 0) return 320;
 
     const longest = candidates.reduce((max, share) => {
@@ -141,7 +140,7 @@ export function ShareSelector({ value, onChange, className }: Readonly<ShareSele
       return Math.max(max, label.length);
     }, 0);
 
-    const estimatedWidth = (longest * 8) + 140;
+    const estimatedWidth = longest * 8 + 140;
     return Math.min(Math.max(estimatedWidth, 260), 440);
   }, [results, selectedShare]);
 
@@ -158,9 +157,7 @@ export function ShareSelector({ value, onChange, className }: Readonly<ShareSele
       >
         <div className={formStyles.categorySelect.triggerRow}>
           {value ? (
-            <span className={formStyles.categorySelect.triggerLabel}>
-              {selectedLabel}
-            </span>
+            <span className={formStyles.categorySelect.triggerLabel}>{selectedLabel}</span>
           ) : (
             <span className={formStyles.categorySelect.triggerPlaceholder}>
               Seleziona benchmark...
@@ -172,10 +169,7 @@ export function ShareSelector({ value, onChange, className }: Readonly<ShareSele
 
       <SelectPrimitive.Portal>
         <SelectPrimitive.Content
-          className={cn(
-            formStyles.categorySelect.content,
-            formStyles.categorySelect.contentAnim
-          )}
+          className={cn(formStyles.categorySelect.content, formStyles.categorySelect.contentAnim)}
           style={getCategorySelectWidthStyle(optimalWidth)}
           position="popper"
           side="top"
@@ -206,10 +200,10 @@ export function ShareSelector({ value, onChange, className }: Readonly<ShareSele
                 type="button"
                 onClick={() => setSelectedAssetType('all')}
                 className={cn(
-                  "px-2.5 py-1 text-xs rounded-full border transition-colors",
+                  'px-2.5 py-1 text-xs rounded-full border transition-colors',
                   selectedAssetType === 'all'
-                    ? "border-primary bg-primary/10 text-primary"
-                    : "border-primary/20 text-primary/70 hover:border-primary/50"
+                    ? 'border-primary bg-primary/10 text-primary'
+                    : 'border-primary/20 text-primary/70 hover:border-primary/50'
                 )}
               >
                 Tutti
@@ -220,10 +214,10 @@ export function ShareSelector({ value, onChange, className }: Readonly<ShareSele
                   type="button"
                   onClick={() => setSelectedAssetType(type)}
                   className={cn(
-                    "px-2.5 py-1 text-xs rounded-full border transition-colors",
+                    'px-2.5 py-1 text-xs rounded-full border transition-colors',
                     selectedAssetType === type
-                      ? "border-primary bg-primary/10 text-primary"
-                      : "border-primary/20 text-primary/70 hover:border-primary/50"
+                      ? 'border-primary bg-primary/10 text-primary'
+                      : 'border-primary/20 text-primary/70 hover:border-primary/50'
                   )}
                 >
                   {ASSET_TYPE_LABELS[type] || type.toUpperCase()}
@@ -234,25 +228,15 @@ export function ShareSelector({ value, onChange, className }: Readonly<ShareSele
             {!debouncedSearch && (
               <div className={formStyles.categorySelect.allHeader}>
                 <TrendingUp className={formStyles.categorySelect.allIcon} />
-                <span className={formStyles.categorySelect.allLabel}>
-                  Cerca un titolo USA
-                </span>
+                <span className={formStyles.categorySelect.allLabel}>Cerca un titolo USA</span>
               </div>
             )}
 
             {debouncedSearch.trim().length > 0 && debouncedSearch.trim().length < 3 && (
-              <div className={formStyles.categorySelect.empty}>
-                Inserisci almeno 3 caratteri
-              </div>
+              <div className={formStyles.categorySelect.empty}>Inserisci almeno 3 caratteri</div>
             )}
 
-            {renderSearchResults(
-              isLoading, 
-              isEnsuring, 
-              results, 
-              hasSearched, 
-              value
-            )}
+            {renderSearchResults(isLoading, isEnsuring, results, hasSearched, value)}
           </SelectPrimitive.Viewport>
         </SelectPrimitive.Content>
       </SelectPrimitive.Portal>

@@ -1,15 +1,12 @@
-"use client";
+'use client';
 
-import * as React from "react";
-import { ListContainer, PageSection, RowCard, SectionHeader, CategoryBadge } from "@/components/ui";
-import { Amount } from "@/components/ui/primitives";
-import { FinanceLogicService } from "@/server/services/finance-logic.service";
-import {
-  reportsStyles,
-  getAnnualCategoryBarStyle,
-} from "@/styles/system";
-import { cn } from "@/lib/utils";
-import type { Category, CategoryBreakdownItem } from "@/lib/types";
+import * as React from 'react';
+import { ListContainer, PageSection, RowCard, SectionHeader, CategoryBadge } from '@/components/ui';
+import { Amount } from '@/components/ui/primitives';
+import { FinanceLogicService } from '@/server/services/finance-logic.service';
+import { reportsStyles, getAnnualCategoryBarStyle } from '@/styles/system';
+import { cn } from '@/lib/utils';
+import type { Category, CategoryBreakdownItem } from '@/lib/types';
 
 interface AnnualCategorySectionProps {
   annualData: CategoryBreakdownItem[];
@@ -27,9 +24,7 @@ export function AnnualCategorySection({
   // Filter only categories with spending (spent > 0, regardless of income)
   // Sort by net amount descending (highest to lowest)
   const spendingCategories = React.useMemo(() => {
-    return categoryBreakdown
-      .filter(item => item.spent > 0)
-      .sort((a, b) => b.net - a.net);
+    return categoryBreakdown.filter((item) => item.spent > 0).sort((a, b) => b.net - a.net);
   }, [categoryBreakdown]);
 
   if (spendingCategories.length === 0) {
@@ -37,13 +32,13 @@ export function AnnualCategorySection({
   }
 
   // Calculate max value for progress bars (using net)
-  const maxSpending = Math.max(...spendingCategories.map(c => c.net), 0);
+  const maxSpending = Math.max(...spendingCategories.map((c) => c.net), 0);
 
   // Determine title and subtitle based on year selection
-  const title = year === 'all' ? 'Spese per Categoria - Tutti i Tempi' : 'Spese Annuali per Categoria';
-  const subtitle = year === 'all'
-    ? 'Riepilogo completo di tutte le spese'
-    : `Riepilogo spese dell'anno ${year}`;
+  const title =
+    year === 'all' ? 'Spese per Categoria - Tutti i Tempi' : 'Spese Annuali per Categoria';
+  const subtitle =
+    year === 'all' ? 'Riepilogo completo di tutte le spese' : `Riepilogo spese dell'anno ${year}`;
 
   return (
     <PageSection className={reportsStyles.annualCategory.container}>
@@ -60,15 +55,15 @@ export function AnnualCategorySection({
             const categoryColor = FinanceLogicService.getCategoryColor(categories, item.category);
 
             // Calculate width for relative bar based on net amount
-            const barWidth = maxSpending > 0
-              ? Math.max((item.net / maxSpending) * 100, 2)
-              : 0;
+            const barWidth = maxSpending > 0 ? Math.max((item.net / maxSpending) * 100, 2) : 0;
 
             return (
               <div key={item.category} className={reportsStyles.annualCategory.item}>
                 <RowCard
                   title={categoryLabel}
-                  metadata={<span className={reportsStyles.annualCategory.count}>({item.count})</span>}
+                  metadata={
+                    <span className={reportsStyles.annualCategory.count}>({item.count})</span>
+                  }
                   icon={
                     <CategoryBadge
                       categoryKey={item.category}

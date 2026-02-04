@@ -3,16 +3,16 @@
  * Container for displaying all budget periods with metrics
  */
 
-"use client";
+'use client';
 
-import { BudgetPeriodCard } from "./BudgetPeriodCard";
-import type { User, Transaction, Account, Category } from "@/lib/types";
-import type { EnrichedBudgetPeriod } from "@/server/services/report-period.service";
-import { useBudgetPeriods } from "../hooks/useBudgetPeriods";
-import { CalendarOff, ChevronDown } from "lucide-react";
-import { ListContainer, PageSection } from "@/components/ui";
-import { reportsStyles, layoutStyles } from "@/styles/system";
-import { Button } from "@/components/ui/button";
+import { BudgetPeriodCard } from './BudgetPeriodCard';
+import type { User, Transaction, Account, Category } from '@/lib/types';
+import type { EnrichedBudgetPeriod } from '@/server/services/report-period.service';
+import { useBudgetPeriods } from '../hooks/useBudgetPeriods';
+import { CalendarOff, ChevronDown } from 'lucide-react';
+import { ListContainer, PageSection } from '@/components/ui';
+import { reportsStyles, layoutStyles } from '@/styles/system';
+import { Button } from '@/components/ui/button';
 
 const INITIAL_VISIBLE_COUNT = 5;
 const LOAD_MORE_COUNT = 5;
@@ -40,15 +40,15 @@ export function BudgetPeriodsSection({
     handleLoadMore,
     togglePeriod,
     isExpanded,
-    sortedPeriods
+    sortedPeriods,
   } = useBudgetPeriods({
     periods: enrichedBudgetPeriods,
     initialVisibleCount: INITIAL_VISIBLE_COUNT,
-    incrementCount: LOAD_MORE_COUNT
+    incrementCount: LOAD_MORE_COUNT,
   });
 
   // Determine if showing all members (to display user names in cards)
-  const showUserNames = selectedUserId === "all";
+  const showUserNames = selectedUserId === 'all';
 
   // Loading state
   if (isLoading) {
@@ -68,10 +68,12 @@ export function BudgetPeriodsSection({
         <div className={reportsStyles.budgetPeriodsSection.emptyIconWrap}>
           <CalendarOff className={reportsStyles.budgetPeriodsSection.emptyIcon} />
         </div>
-        <h3 className={reportsStyles.budgetPeriodsSection.emptyTitle}>Nessun periodo di budget configurato</h3>
+        <h3 className={reportsStyles.budgetPeriodsSection.emptyTitle}>
+          Nessun periodo di budget configurato
+        </h3>
         <p className={reportsStyles.budgetPeriodsSection.emptyDescription}>
-          I periodi di budget vengono creati automaticamente quando imposti la tua data di inizio budget nelle
-          impostazioni.
+          I periodi di budget vengono creati automaticamente quando imposti la tua data di inizio
+          budget nelle impostazioni.
         </p>
       </PageSection>
     );

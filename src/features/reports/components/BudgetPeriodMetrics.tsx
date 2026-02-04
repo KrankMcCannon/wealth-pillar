@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { cn } from "@/lib/utils";
-import { PiggyBank, Wallet, ArrowLeftRight } from "lucide-react";
-import { Amount } from "@/components/ui/primitives";
-import { reportsStyles } from "@/styles/system";
+import { cn } from '@/lib/utils';
+import { PiggyBank, Wallet, ArrowLeftRight } from 'lucide-react';
+import { Amount } from '@/components/ui/primitives';
+import { reportsStyles } from '@/styles/system';
 
 interface BudgetPeriodMetricsProps {
   defaultAccountStartBalance?: number | null;
@@ -31,9 +31,7 @@ export function BudgetPeriodMetrics({
             <PiggyBank className={cn(styles.metricIcon, styles.metricIconDefault)} />
           </div>
           <div className={styles.metricContent}>
-            <p className={cn(styles.metricLabel, styles.metricLabelDefault)}>
-              Saldo Iniziale
-            </p>
+            <p className={cn(styles.metricLabel, styles.metricLabelDefault)}>Saldo Iniziale</p>
             <Amount
               type="balance"
               size="xl"
@@ -53,9 +51,7 @@ export function BudgetPeriodMetrics({
             <Wallet className={cn(styles.metricIcon, styles.metricIconDefault)} />
           </div>
           <div className={styles.metricContent}>
-            <p className={cn(styles.metricLabel, styles.metricLabelDefault)}>
-              Entrate Totali
-            </p>
+            <p className={cn(styles.metricLabel, styles.metricLabelDefault)}>Entrate Totali</p>
             <Amount
               type="income"
               size="xl"
@@ -75,9 +71,7 @@ export function BudgetPeriodMetrics({
             <ArrowLeftRight className={cn(styles.metricIcon, styles.metricIconTransfer)} />
           </div>
           <div className={styles.metricContent}>
-            <p className={cn(styles.metricLabel, styles.metricLabelTransfer)}>
-              Uscite Totali
-            </p>
+            <p className={cn(styles.metricLabel, styles.metricLabelTransfer)}>Uscite Totali</p>
             <Amount
               type="expense"
               size="xl"
@@ -97,9 +91,7 @@ export function BudgetPeriodMetrics({
             <PiggyBank className={cn(styles.metricIcon, styles.metricIconDefault)} />
           </div>
           <div className={styles.metricContent}>
-            <p className={cn(styles.metricLabel, styles.metricLabelDefault)}>
-              Saldo Finale
-            </p>
+            <p className={cn(styles.metricLabel, styles.metricLabelDefault)}>Saldo Finale</p>
             <Amount
               type="balance"
               size="xl"

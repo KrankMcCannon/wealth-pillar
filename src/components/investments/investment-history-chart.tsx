@@ -1,8 +1,16 @@
-"use client";
+'use client';
 
-import { AreaChart, Area, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { investmentsStyles } from "@/features/investments/theme/investments-styles";
+import {
+  AreaChart,
+  Area,
+  CartesianGrid,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+} from 'recharts';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { investmentsStyles } from '@/features/investments/theme/investments-styles';
 
 interface InvestmentHistoryChartProps {
   data: { date: string; value: number }[];
@@ -15,7 +23,9 @@ export function InvestmentHistoryChart({ data }: Readonly<InvestmentHistoryChart
     <Card className={investmentsStyles.card.root}>
       <CardHeader className={investmentsStyles.card.header}>
         <CardTitle className={investmentsStyles.card.title}>Andamento Storico</CardTitle>
-        <CardDescription className={investmentsStyles.card.description}>Valore effettivo del portafoglio nel tempo</CardDescription>
+        <CardDescription className={investmentsStyles.card.description}>
+          Valore effettivo del portafoglio nel tempo
+        </CardDescription>
       </CardHeader>
       <CardContent className={investmentsStyles.card.content}>
         {hasData ? (
@@ -44,22 +54,40 @@ export function InvestmentHistoryChart({ data }: Readonly<InvestmentHistoryChart
                   fontSize={12}
                   tickLine={false}
                   axisLine={false}
-                  tickFormatter={(value) => `${new Intl.NumberFormat('it-IT', { notation: 'compact', compactDisplay: 'short' }).format(value)}€`}
+                  tickFormatter={(value) =>
+                    `${new Intl.NumberFormat('it-IT', { notation: 'compact', compactDisplay: 'short' }).format(value)}€`
+                  }
                   width={60}
                 />
                 <Tooltip
-                  contentStyle={{ backgroundColor: 'white', borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                  contentStyle={{
+                    backgroundColor: 'white',
+                    borderRadius: '12px',
+                    border: 'none',
+                    boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+                  }}
                   itemStyle={{ color: '#0f172a' }}
-                  formatter={(value) => [new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(Number(value) || 0), "Valore"]}
+                  formatter={(value) => [
+                    new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(
+                      Number(value) || 0
+                    ),
+                    'Valore',
+                  ]}
                 />
-                <Area type="monotone" dataKey="value" stroke="#3b82f6" strokeWidth={3} fillOpacity={1} fill="url(#colorHistory)" activeDot={{ r: 6, strokeWidth: 0 }} />
+                <Area
+                  type="monotone"
+                  dataKey="value"
+                  stroke="#3b82f6"
+                  strokeWidth={3}
+                  fillOpacity={1}
+                  fill="url(#colorHistory)"
+                  activeDot={{ r: 6, strokeWidth: 0 }}
+                />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         ) : (
-          <div className={investmentsStyles.charts.fallback}>
-            Dati storici non sufficienti
-          </div>
+          <div className={investmentsStyles.charts.fallback}>Dati storici non sufficienti</div>
         )}
       </CardContent>
     </Card>

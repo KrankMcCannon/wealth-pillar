@@ -18,7 +18,7 @@ import type {
   RecurringTransactionSeries,
   UserBudgetSummary,
   User,
-  CategoryBreakdownItem
+  CategoryBreakdownItem,
 } from '@/lib/types';
 import { toDateTime } from '@/lib/utils/date-utils';
 import { DateTime } from 'luxon';
@@ -108,11 +108,7 @@ export class PageDataService {
   /**
    * Helper to safely fetch data with error logging and fallback
    */
-  private static async safeFetch<T>(
-    promise: Promise<T>,
-    fallback: T,
-    context: string
-  ): Promise<T> {
+  private static async safeFetch<T>(promise: Promise<T>, fallback: T, context: string): Promise<T> {
     try {
       return await promise;
     } catch (e) {
@@ -144,7 +140,7 @@ export class PageDataService {
 
     // 2. Parallel Fetch: Metadata + Paginated Transactions + Balances + Investments
     // We map users to promises for budget & investments
-    const investmentPromises = groupUsers.map(u =>
+    const investmentPromises = groupUsers.map((u) =>
       this.safeFetch(
         InvestmentService.getPortfolio(u.id),
         null as unknown as PortfolioResult, // Correct type assertion
@@ -158,20 +154,40 @@ export class PageDataService {
       budgets,
       recurringSeries,
       categories,
-      periodMap,           // periods
-      investmentResults    // investments
+      periodMap, // periods
+      investmentResults, // investments
     ] = await Promise.all([
-      this.safeFetch(AccountService.getAccountsByGroup(groupId), [] as Account[], 'Failed to fetch accounts'),
+      this.safeFetch(
+        AccountService.getAccountsByGroup(groupId),
+        [] as Account[],
+        'Failed to fetch accounts'
+      ),
       this.safeFetch(
         TransactionService.getTransactionsByGroup(groupId),
         { data: [] as Transaction[], total: 0, hasMore: false },
         'Failed to fetch transactions'
       ),
-      this.safeFetch(BudgetService.getBudgetsByGroup(groupId), [] as Budget[], 'Failed to fetch budgets'),
-      this.safeFetch(RecurringService.getSeriesByGroup(groupId), [] as RecurringTransactionSeries[], 'Failed to fetch recurring series'),
-      this.safeFetch(CategoryService.getAllCategories(), [] as Category[], 'Failed to fetch categories'),
-      this.safeFetch(BudgetPeriodService.getActivePeriodForUsers(userIds), {} as Record<string, BudgetPeriod | null>, 'Failed to fetch budget periods'),
-      Promise.all(investmentPromises)
+      this.safeFetch(
+        BudgetService.getBudgetsByGroup(groupId),
+        [] as Budget[],
+        'Failed to fetch budgets'
+      ),
+      this.safeFetch(
+        RecurringService.getSeriesByGroup(groupId),
+        [] as RecurringTransactionSeries[],
+        'Failed to fetch recurring series'
+      ),
+      this.safeFetch(
+        CategoryService.getAllCategories(),
+        [] as Category[],
+        'Failed to fetch categories'
+      ),
+      this.safeFetch(
+        BudgetPeriodService.getActivePeriodForUsers(userIds),
+        {} as Record<string, BudgetPeriod | null>,
+        'Failed to fetch budget periods'
+      ),
+      Promise.all(investmentPromises),
     ]);
 
     // Build budget periods map (moved from array to map)
@@ -183,7 +199,7 @@ export class PageDataService {
 
     userIds.forEach((userId, index) => {
       // Budget Periods
-      const period = (periodMap?.[userId]) ?? null;
+      const period = periodMap?.[userId] ?? null;
       budgetPeriods[userId] = period;
 
       // Investments
@@ -207,11 +223,11 @@ export class PageDataService {
     // 3. Parallel Fetch: User Budget Aggregations
     // Fetch aggregated spending for each user based on their specific period
     const aggregationResults = await Promise.all(
-      userIds.map(userId => {
+      userIds.map((userId) => {
         const { start, end } = validPeriods[userId];
         return TransactionService.getGroupUserCategorySpending(groupId, start, end)
-          .then(data => data.filter(r => r.user_id === userId)) // Filter strictly for safety
-          .catch(e => {
+          .then((data) => data.filter((r) => r.user_id === userId)) // Filter strictly for safety
+          .catch((e) => {
             console.error(`[PageDataService] Aggregation failed for user ${userId}:`, e);
             return [];
           });
@@ -222,7 +238,7 @@ export class PageDataService {
     const budgetsByUser: Record<string, UserBudgetSummary> = {};
 
     groupUsers.forEach((user, index) => {
-      const userBudgets = budgets.filter(b => b.user_id === user.id);
+      const userBudgets = budgets.filter((b) => b.user_id === user.id);
       const spendingData = aggregationResults[index];
       const activePeriod = budgetPeriods[user.id];
 
@@ -237,7 +253,7 @@ export class PageDataService {
     // 5. Account Balances (from Column)
     // No more manual calculation! Use the DB column.
     const accountBalances: Record<string, number> = {};
-    (accounts).forEach(a => {
+    accounts.forEach((a) => {
       accountBalances[a.id] = Number(a.balance) || 0;
     });
 
@@ -270,18 +286,33 @@ export class PageDataService {
     const limit = options?.limit ?? 50;
     const offset = options?.offset ?? 0;
 
-    const [transactionResult, categories, accounts, recurringSeries, budgets] =
-      await Promise.all([
-        this.safeFetch(
-          TransactionService.getTransactionsByGroup(groupId, { limit, offset }),
-          { data: [] as Transaction[], total: 0, hasMore: false },
-          'Failed to fetch transactions'
-        ),
-        this.safeFetch(CategoryService.getAllCategories(), [] as Category[], 'Failed to fetch categories'),
-        this.safeFetch(AccountService.getAccountsByGroup(groupId), [] as Account[], 'Failed to fetch accounts'),
-        this.safeFetch(RecurringService.getSeriesByGroup(groupId), [] as RecurringTransactionSeries[], 'Failed to fetch recurring series'),
-        this.safeFetch(BudgetService.getBudgetsByGroup(groupId), [] as Budget[], 'Failed to fetch budgets'),
-      ]);
+    const [transactionResult, categories, accounts, recurringSeries, budgets] = await Promise.all([
+      this.safeFetch(
+        TransactionService.getTransactionsByGroup(groupId, { limit, offset }),
+        { data: [] as Transaction[], total: 0, hasMore: false },
+        'Failed to fetch transactions'
+      ),
+      this.safeFetch(
+        CategoryService.getAllCategories(),
+        [] as Category[],
+        'Failed to fetch categories'
+      ),
+      this.safeFetch(
+        AccountService.getAccountsByGroup(groupId),
+        [] as Account[],
+        'Failed to fetch accounts'
+      ),
+      this.safeFetch(
+        RecurringService.getSeriesByGroup(groupId),
+        [] as RecurringTransactionSeries[],
+        'Failed to fetch recurring series'
+      ),
+      this.safeFetch(
+        BudgetService.getBudgetsByGroup(groupId),
+        [] as Budget[],
+        'Failed to fetch budgets'
+      ),
+    ]);
 
     return {
       transactions: transactionResult.data,
@@ -303,7 +334,9 @@ export class PageDataService {
    * @param groupId - Group ID to fetch data for
    * @returns Budgets page data with active budget periods
    */
-  static async getBudgetsPageData(groupId: string): Promise<BudgetsPageData & { budgetsByUser: Record<string, UserBudgetSummary> }> {
+  static async getBudgetsPageData(
+    groupId: string
+  ): Promise<BudgetsPageData & { budgetsByUser: Record<string, UserBudgetSummary> }> {
     // 1. Get group users first
     let userIds: string[] = [];
     let groupUsers: User[] = [];
@@ -318,18 +351,29 @@ export class PageDataService {
     }
 
     // 2. Fetch Metadata and Active Periods in Parallel
-    const [
-      budgets,
-      accounts,
-      categories,
-      ...periodResults
-    ] = await Promise.all([
-      this.safeFetch(BudgetService.getBudgetsByGroup(groupId), [] as Budget[], 'Failed to fetch budgets'),
-      this.safeFetch(AccountService.getAccountsByGroup(groupId), [] as Account[], 'Failed to fetch accounts'),
-      this.safeFetch(CategoryService.getAllCategories(), [] as Category[], 'Failed to fetch categories'),
+    const [budgets, accounts, categories, ...periodResults] = await Promise.all([
+      this.safeFetch(
+        BudgetService.getBudgetsByGroup(groupId),
+        [] as Budget[],
+        'Failed to fetch budgets'
+      ),
+      this.safeFetch(
+        AccountService.getAccountsByGroup(groupId),
+        [] as Account[],
+        'Failed to fetch accounts'
+      ),
+      this.safeFetch(
+        CategoryService.getAllCategories(),
+        [] as Category[],
+        'Failed to fetch categories'
+      ),
       // Fetch active budget period for each user
       ...userIds.map((userId) =>
-        this.safeFetch(BudgetPeriodService.getActivePeriod(userId), null, `Failed to fetch budget period for user ${userId}`)
+        this.safeFetch(
+          BudgetPeriodService.getActivePeriod(userId),
+          null,
+          `Failed to fetch budget period for user ${userId}`
+        )
       ),
     ]);
 
@@ -343,7 +387,7 @@ export class PageDataService {
     const now = new Date();
 
     userIds.forEach((userId, index) => {
-      const period = (periodResults[index]) ?? null;
+      const period = periodResults[index] ?? null;
       budgetPeriods[userId] = period;
 
       let start: Date, end: Date;
@@ -365,11 +409,11 @@ export class PageDataService {
     // 4. Fetch Aggregated Spending (Parallel per User)
     // We fetch one aggregated result per user according to their period
     const aggregationResults = await Promise.all(
-      userIds.map(userId => {
+      userIds.map((userId) => {
         const { start, end } = userPeriodRanges[userId];
         return TransactionService.getGroupUserCategorySpending(groupId, start, end)
-          .then(data => data.filter(r => r.user_id === userId))
-          .catch(e => {
+          .then((data) => data.filter((r) => r.user_id === userId))
+          .catch((e) => {
             console.error(`[PageDataService] Aggregation failed for user ${userId}:`, e);
             return [];
           });
@@ -379,7 +423,7 @@ export class PageDataService {
     // 5. Build budgetsByUser Map
     const budgetsByUser: Record<string, UserBudgetSummary> = {};
     groupUsers.forEach((user, index) => {
-      const userBudgets = (budgets).filter(b => b.user_id === user.id);
+      const userBudgets = budgets.filter((b) => b.user_id === user.id);
       const spendingData = aggregationResults[index];
       const activePeriod = budgetPeriods[user.id];
 
@@ -397,7 +441,7 @@ export class PageDataService {
     // 6. Fetch Recent Transactions
     const transactionResult = await TransactionService.getTransactionsByGroup(groupId, {
       startDate: minDate ?? undefined,
-      endDate: maxDate ?? undefined
+      endDate: maxDate ?? undefined,
     }).catch((e) => {
       console.error('[PageDataService] Failed to fetch transactions:', e);
       return { data: [] as Transaction[], total: 0, hasMore: false };
@@ -424,7 +468,11 @@ export class PageDataService {
    * @returns Accounts page data with balances from stored column
    */
   static async getAccountsPageData(groupId: string): Promise<AccountsPageData> {
-    const accounts = await this.safeFetch(AccountService.getAccountsByGroup(groupId), [] as Account[], 'Failed to fetch accounts');
+    const accounts = await this.safeFetch(
+      AccountService.getAccountsByGroup(groupId),
+      [] as Account[],
+      'Failed to fetch accounts'
+    );
 
     // Use stored balance from accounts table (already calculated on transaction mutations)
     const accountBalances: Record<string, number> = {};
@@ -460,27 +508,46 @@ export class PageDataService {
       categories,
       groupUsersResult,
       categorySpendingRaw,
-      monthlyTrendsRaw
+      monthlyTrendsRaw,
     ] = await Promise.all([
-      this.safeFetch(AccountService.getAccountsByGroup(groupId), [] as Account[], 'Failed to fetch accounts'),
+      this.safeFetch(
+        AccountService.getAccountsByGroup(groupId),
+        [] as Account[],
+        'Failed to fetch accounts'
+      ),
       // Fetch all transactions within date range
       this.safeFetch(
         TransactionService.getTransactionsByGroup(groupId, { startDate, endDate: now }),
         { data: [] as Transaction[], total: 0, hasMore: false },
         'Failed to fetch transactions'
       ),
-      this.safeFetch(CategoryService.getAllCategories(), [] as Category[], 'Failed to fetch categories'),
-      this.safeFetch(GroupService.getGroupUsers(groupId) as Promise<User[]>, [] as User[], 'Failed to fetch group users'),
-      this.safeFetch(TransactionService.getGroupCategorySpending(groupId, startDate, now), [], 'Failed to fetch category spending'),
-      this.safeFetch(TransactionService.getGroupMonthlySpending(groupId, startDate, now), [], 'Failed to fetch monthly trends'),
+      this.safeFetch(
+        CategoryService.getAllCategories(),
+        [] as Category[],
+        'Failed to fetch categories'
+      ),
+      this.safeFetch(
+        GroupService.getGroupUsers(groupId) as Promise<User[]>,
+        [] as User[],
+        'Failed to fetch group users'
+      ),
+      this.safeFetch(
+        TransactionService.getGroupCategorySpending(groupId, startDate, now),
+        [],
+        'Failed to fetch category spending'
+      ),
+      this.safeFetch(
+        TransactionService.getGroupMonthlySpending(groupId, startDate, now),
+        [],
+        'Failed to fetch monthly trends'
+      ),
     ]);
 
     // Helper to calculate metrics for a subset
     const calcMetrics = (txs: Transaction[]) => {
-      const activeAccounts = accounts
-        .filter(a => a.type === 'payroll' || a.type === 'cash');
+      const activeAccounts = accounts.filter((a) => a.type === 'payroll' || a.type === 'cash');
 
-      const activeAccountIds = activeAccounts.map(a => a.id);
+      const activeAccountIds = activeAccounts.map((a) => a.id);
 
       return FinanceLogicService.calculateOverviewMetrics(txs, activeAccountIds, undefined);
     };
@@ -492,25 +559,29 @@ export class PageDataService {
     overviewMetrics['all'] = calcMetrics(transactionResult.data);
 
     // Per User
-    groupUsersResult.forEach(u => {
+    groupUsersResult.forEach((u) => {
       // FinanceLogicService can filter by userId internally
       // Filter for active accounts (payroll + cash)
-      const userActiveAccounts = accounts
-        .filter(a => a.type === 'payroll' || a.type === 'cash');
+      const userActiveAccounts = accounts.filter((a) => a.type === 'payroll' || a.type === 'cash');
 
-      const activeAccountIds = userActiveAccounts.map(a => a.id);
+      const activeAccountIds = userActiveAccounts.map((a) => a.id);
 
-      overviewMetrics[u.id] = FinanceLogicService.calculateOverviewMetrics(transactionResult.data, activeAccountIds, u.id);
+      overviewMetrics[u.id] = FinanceLogicService.calculateOverviewMetrics(
+        transactionResult.data,
+        activeAccountIds,
+        u.id
+      );
     });
 
-
     // 2. Fetch Budget Periods... (Same as before)
-    const allUserIds = groupUsersResult.map(u => u.id);
+    const allUserIds = groupUsersResult.map((u) => u.id);
     const budgetPeriods: BudgetPeriod[] = [];
-    await Promise.all(allUserIds.map(async (uid) => {
-      const periods = await BudgetPeriodService.getPeriodsByUser(uid);
-      if (periods) budgetPeriods.push(...periods);
-    }));
+    await Promise.all(
+      allUserIds.map(async (uid) => {
+        const periods = await BudgetPeriodService.getPeriodsByUser(uid);
+        if (periods) budgetPeriods.push(...periods);
+      })
+    );
 
     // 3. Enrich Budget Periods (Server-Side)
     const enrichedFull = ReportPeriodService.enrichBudgetPeriods(
@@ -525,18 +596,18 @@ export class PageDataService {
     const enrichedFinal = enrichedFull.map((p) => ({
       ...p,
       // Ensure transactions are included
-      transactionCount: p.transactions.length
+      transactionCount: p.transactions.length,
     }));
 
     // 4. Calculate Annual Breakdown (Global + Per User)
     const annualSpending: Record<string, Record<number, CategoryBreakdownItem[]>> = {};
-    const years = new Set(transactionResult.data.map(t => new Date(t.date).getFullYear()));
+    const years = new Set(transactionResult.data.map((t) => new Date(t.date).getFullYear()));
     years.add(new Date().getFullYear());
 
     // Helper for annual
     const calcAnnual = (txs: Transaction[]) => {
       const res: Record<number, CategoryBreakdownItem[]> = {};
-      years.forEach(year => {
+      years.forEach((year) => {
         res[year] = FinanceLogicService.calculateAnnualCategorySpending(txs, year);
       });
       return res;
@@ -544,8 +615,8 @@ export class PageDataService {
 
     annualSpending['all'] = calcAnnual(transactionResult.data);
 
-    groupUsersResult.forEach(u => {
-      annualSpending[u.id] = calcAnnual(transactionResult.data.filter(t => t.user_id === u.id));
+    groupUsersResult.forEach((u) => {
+      annualSpending[u.id] = calcAnnual(transactionResult.data.filter((t) => t.user_id === u.id));
     });
 
     return {
@@ -554,13 +625,13 @@ export class PageDataService {
       categories,
       overviewMetrics,
       monthlyTrends: monthlyTrendsRaw as Array<{ month: string; income: number; expense: number }>,
-      categorySpending: (categorySpendingRaw || []).map(item => ({
+      categorySpending: (categorySpendingRaw || []).map((item) => ({
         category: item.category,
         amount: item.spent,
         count: item.transaction_count,
       })),
       enrichedBudgetPeriods: enrichedFinal,
-      annualSpending
+      annualSpending,
     };
   }
 }

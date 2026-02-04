@@ -1,13 +1,13 @@
-"use client";
+'use client';
 
-import { Header, PageContainer, BottomNavigation } from "@/components/layout";
-import { budgetStyles } from "@/styles/system";
-import { Budget, Transaction, Account, Category, User, UserBudgetSummary } from "@/lib/types";
-import { TransactionDayList } from "@/features/transactions/components";
-import UserSelector from "@/components/shared/user-selector";
-import { useBudgetSummaryContent } from "./useBudgetSummaryContent";
-import { BudgetSummaryCards } from "./components/BudgetSummaryCards";
-import { BudgetSummaryActiveList } from "./components/BudgetSummaryActiveList";
+import { Header, PageContainer, BottomNavigation } from '@/components/layout';
+import { budgetStyles } from '@/styles/system';
+import { Budget, Transaction, Account, Category, User, UserBudgetSummary } from '@/lib/types';
+import { TransactionDayList } from '@/features/transactions/components';
+import UserSelector from '@/components/shared/user-selector';
+import { useBudgetSummaryContent } from './useBudgetSummaryContent';
+import { BudgetSummaryCards } from './components/BudgetSummaryCards';
+import { BudgetSummaryActiveList } from './components/BudgetSummaryActiveList';
 
 interface BudgetSummaryContentProps {
   categories: Category[];
@@ -26,15 +26,10 @@ export default function BudgetSummaryContent(props: Readonly<BudgetSummaryConten
     accountNamesMap,
     currentActiveUserId,
     handleUserSelect,
-    router
+    router,
   } = useBudgetSummaryContent(props);
 
-  const {
-    categories,
-    budgets,
-    currentUser,
-    groupUsers
-  } = props;
+  const { categories, budgets, currentUser, groupUsers } = props;
 
   return (
     <PageContainer className={budgetStyles.page.container}>
@@ -80,8 +75,8 @@ export default function BudgetSummaryContent(props: Readonly<BudgetSummaryConten
               emptyTitle="Nessuna transazione"
               emptyDescription="Non ci sono transazioni collegate a questi budget nel periodo corrente."
               expensesOnly
-              onEditTransaction={() => { }}
-              onDeleteTransaction={() => { }}
+              onEditTransaction={() => {}}
+              onDeleteTransaction={() => {}}
             />
           </div>
         </main>

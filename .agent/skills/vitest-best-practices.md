@@ -32,19 +32,19 @@ We strictly follow **Testing Library** guiding principles.
 Query elements as a user would find them.
 
 ```tsx
-import { render, screen } from "@testing-library/react";
-import { userEvent } from "@testing-library/user-event";
-import { MyComponent } from "./MyComponent";
+import { render, screen } from '@testing-library/react';
+import { userEvent } from '@testing-library/user-event';
+import { MyComponent } from './MyComponent';
 
-it("submits the form", async () => {
+it('submits the form', async () => {
   const user = userEvent.setup();
   render(<MyComponent />);
 
   // Priority 1: Accessible Roles
-  await user.type(screen.getByRole("textbox", { name: /email/i }), "test@example.com");
+  await user.type(screen.getByRole('textbox', { name: /email/i }), 'test@example.com');
 
   // Priority 2: Label/Text
-  await user.click(screen.getByRole("button", { name: /submit/i }));
+  await user.click(screen.getByRole('button', { name: /submit/i }));
 });
 ```
 
@@ -75,11 +75,11 @@ Use `waitFor` or `findBy*` queries when waiting for updates.
 
 ```tsx
 // Wait for an element to appear (e.g., after API call)
-expect(await screen.findByText("Success")).toBeVisible();
+expect(await screen.findByText('Success')).toBeVisible();
 
 // Wait for an element to disappear
 await waitFor(() => {
-  expect(screen.queryByText("Loading")).not.toBeInTheDocument();
+  expect(screen.queryByText('Loading')).not.toBeInTheDocument();
 });
 ```
 
@@ -93,12 +93,12 @@ Next.js components often rely on `next/navigation` or Server Actions. These **mu
 
 ```tsx
 // At the top of your test file
-import { vi } from "vitest";
+import { vi } from 'vitest';
 
-vi.mock("next/navigation", () => ({
+vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
   useSearchParams: () => new URLSearchParams({}),
-  usePathname: () => "/current-path",
+  usePathname: () => '/current-path',
 }));
 ```
 
@@ -129,10 +129,10 @@ beforeEach(() => {
 Use `renderHook` from `@testing-library/react` (merged in v13+).
 
 ```tsx
-import { renderHook, act } from "@testing-library/react";
-import { useCounter } from "./useCounter";
+import { renderHook, act } from '@testing-library/react';
+import { useCounter } from './useCounter';
 
-it("increments value", () => {
+it('increments value', () => {
   const { result } = renderHook(() => useCounter());
 
   act(() => {
@@ -153,7 +153,7 @@ it("increments value", () => {
 
 ```tsx
 function renderSubject(props: Partial<Props> = {}) {
-  const defaultProps = { title: "Default", ...props };
+  const defaultProps = { title: 'Default', ...props };
   return render(<Subject {...defaultProps} />);
 }
 ```

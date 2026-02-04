@@ -11,7 +11,7 @@
  */
 
 import type { CSSProperties } from 'react';
-import { radiusStyles, shadowStyles, typographyStyles, spacingStyles } from "@/styles/system";
+import { radiusStyles, shadowStyles, typographyStyles, spacingStyles } from '@/styles/system';
 
 const accountTokens = {
   // ============================================================================
@@ -37,7 +37,7 @@ const accountTokens = {
       header: 'flex flex-col items-start',
       icon: 'hidden',
       label: 'text-[10px] font-bold text-primary/60 uppercase tracking-wider',
-      value: `${typographyStyles.xl} sm:${typographyStyles["2xl"]} font-bold tracking-tight`,
+      value: `${typographyStyles.xl} sm:${typographyStyles['2xl']} font-bold tracking-tight`,
       statsGrid: 'flex flex-row items-center gap-2 w-full',
       statItem: `flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 ${radiusStyles.sm} border ${typographyStyles.xs} font-semibold transition-all duration-300`,
       statItemPrimary: 'bg-primary/5 border-primary/10 text-primary',
@@ -54,20 +54,19 @@ const accountTokens = {
 
     // Slider
     slider: {
-      container:
-        'overflow-x-auto scrollbar-hide flex items-center touch-pan-x touch-pan-y',
+      container: 'overflow-x-auto scrollbar-hide flex items-center touch-pan-x touch-pan-y',
       inner: 'flex gap-3',
       cardWrapper: 'transform transition-all duration-300 hover:scale-[1.01]',
       addPlaceholder: `flex-shrink-0 w-60 h-24 border-2 border-dashed border-primary/20 ${radiusStyles.sm} flex items-center justify-center bg-primary/5 hover:border-primary/40 hover:bg-primary/10 transition-all duration-300 cursor-pointer group`,
-      addPromptIcon: 'h-6 w-6 text-primary/70 group-hover:text-primary mx-auto mb-1 transition-colors',
+      addPromptIcon:
+        'h-6 w-6 text-primary/70 group-hover:text-primary mx-auto mb-1 transition-colors',
       addPromptLabel: `${typographyStyles.xs} text-primary/70 group-hover:text-primary font-medium transition-colors`,
     },
 
     // Total Balance Link
     totalBalanceLink: {
-      container:
-        `flex items-center justify-between p-3 bg-primary/5 ${radiusStyles.sm} border border-primary/25 shadow-[0_10px_26px_oklch(var(--color-primary)/0.28)] cursor-pointer hover:bg-primary/10 hover:shadow-[0_14px_32px_oklch(var(--color-primary)/0.35)] transition-all duration-300 group`,
-      leftSection: "flex items-center gap-3",
+      container: `flex items-center justify-between p-3 bg-primary/5 ${radiusStyles.sm} border border-primary/25 shadow-[0_10px_26px_oklch(var(--color-primary)/0.28)] cursor-pointer hover:bg-primary/10 hover:shadow-[0_14px_32px_oklch(var(--color-primary)/0.35)] transition-all duration-300 group`,
+      leftSection: 'flex items-center gap-3',
       icon: `flex items-center justify-center w-10 h-10 ${radiusStyles.sm} bg-primary/15`,
       label: `${typographyStyles.xs} mb-1 font-medium text-primary/75`,
       valuePositive: `${typographyStyles.xl} font-bold text-primary transition-colors duration-300`,
@@ -85,9 +84,9 @@ const accountTokens = {
   // ============================================================================
 
   status: {
-    positive: "text-success",
-    negative: "text-destructive",
-    neutral: "text-muted-foreground",
+    positive: 'text-success',
+    negative: 'text-destructive',
+    neutral: 'text-muted-foreground',
   },
 } as const;
 
@@ -149,11 +148,13 @@ export const accountStyles = {
     header: accountTokens.components.accountsList.header,
     items: accountTokens.components.accountsList.container,
     addPrompt: accountTokens.components.accountsList.addPrompt,
-    groupCard: "bg-card rounded-xl border border-primary/20 shadow-sm overflow-hidden",
-    groupItems: "divide-y divide-primary/20",
+    groupCard: 'bg-card rounded-xl border border-primary/20 shadow-sm overflow-hidden',
+    groupItems: 'divide-y divide-primary/20',
     addPromptText: 'text-center',
-    addPromptIcon: 'h-6 w-6 text-primary/70 group-hover:text-primary mx-auto mb-1 transition-colors',
-    addPromptLabel: 'text-xs text-primary/70 group-hover:text-primary font-medium transition-colors',
+    addPromptIcon:
+      'h-6 w-6 text-primary/70 group-hover:text-primary mx-auto mb-1 transition-colors',
+    addPromptLabel:
+      'text-xs text-primary/70 group-hover:text-primary font-medium transition-colors',
   },
 
   // ====================================
@@ -174,12 +175,13 @@ export const accountStyles = {
     container: `${accountTokens.components.slider.container} mb-4`,
     inner: accountTokens.components.slider.inner,
     cardWrapper: accountTokens.components.slider.cardWrapper,
-    card: "border border-primary/20 rounded-xl overflow-hidden",
+    card: 'border border-primary/20 rounded-xl overflow-hidden',
     addPlaceholder: accountTokens.components.slider.addPlaceholder,
     addPromptIcon: accountTokens.components.slider.addPromptIcon,
     addPromptLabel: accountTokens.components.slider.addPromptLabel,
     addPlaceholderContent: 'text-center',
-    skeletonCard: 'shrink-0 w-60 h-24 bg-primary/10 rounded-lg animate-pulse border border-primary/20',
+    skeletonCard:
+      'shrink-0 w-60 h-24 bg-primary/10 rounded-lg animate-pulse border border-primary/20',
     scrollStyle: {
       WebkitOverflowScrolling: 'touch',
     } satisfies CSSProperties,
@@ -285,6 +287,7 @@ export const accountStyles = {
     error: 'bg-destructive/10 border border-destructive/20 rounded-lg p-3 mb-4',
     errorText: 'text-sm text-destructive font-medium',
     checkboxRow: 'flex items-center space-x-2 pt-2',
-    checkboxLabel: 'text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70',
+    checkboxLabel:
+      'text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70',
   },
 };

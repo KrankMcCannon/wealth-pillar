@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import * as React from "react";
-import * as TabsPrimitive from "@radix-ui/react-tabs";
-import { cn } from "@/lib/utils";
-import { tabStyles } from "@/styles/system";
+import * as React from 'react';
+import * as TabsPrimitive from '@radix-ui/react-tabs';
+import { cn } from '@/lib/utils';
+import { tabStyles } from '@/styles/system';
 
 const Tabs = TabsPrimitive.Root;
 
@@ -27,10 +27,7 @@ const TabsTrigger = React.forwardRef<
   <TabsPrimitive.Trigger
     ref={ref}
     data-slot="tabs-trigger"
-    className={cn(
-      tabStyles.trigger,
-      className
-    )}
+    className={cn(tabStyles.trigger, className)}
     {...props}
   />
 ));
@@ -43,10 +40,7 @@ const TabsContent = React.forwardRef<
   <TabsPrimitive.Content
     ref={ref}
     data-slot="tabs-content"
-    className={cn(
-      tabStyles.content,
-      className
-    )}
+    className={cn(tabStyles.content, className)}
     {...props}
   />
 ));

@@ -1,9 +1,17 @@
-"use client";
+'use client';
 
-import { LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  LineChart,
+  Line,
+  CartesianGrid,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+} from 'recharts';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { ShareSelector } from './share-selector';
-import { investmentsStyles } from "@/features/investments/theme/investments-styles";
+import { investmentsStyles } from '@/features/investments/theme/investments-styles';
 
 interface BenchmarkChartProps {
   indexData?: Array<{ datetime?: string; time?: string; date?: string; close: string | number }>;
@@ -12,7 +20,12 @@ interface BenchmarkChartProps {
   anchorId?: string;
 }
 
-export function BenchmarkChart({ indexData, currentIndex, onBenchmarkChange, anchorId }: Readonly<BenchmarkChartProps>) {
+export function BenchmarkChart({
+  indexData,
+  currentIndex,
+  onBenchmarkChange,
+  anchorId,
+}: Readonly<BenchmarkChartProps>) {
   const hasData = indexData && indexData.length > 0;
   const sortedData = hasData ? [...indexData].reverse() : [];
 
@@ -22,13 +35,12 @@ export function BenchmarkChart({ indexData, currentIndex, onBenchmarkChange, anc
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <CardTitle className={investmentsStyles.card.title}>Benchmark</CardTitle>
-            <CardDescription className={investmentsStyles.card.description}>Confronta con {currentIndex}</CardDescription>
+            <CardDescription className={investmentsStyles.card.description}>
+              Confronta con {currentIndex}
+            </CardDescription>
           </div>
           <div className="w-full md:w-auto min-w-[200px]">
-            <ShareSelector
-              value={currentIndex}
-              onChange={onBenchmarkChange}
-            />
+            <ShareSelector value={currentIndex} onChange={onBenchmarkChange} />
           </div>
         </div>
       </CardHeader>
@@ -54,24 +66,41 @@ export function BenchmarkChart({ indexData, currentIndex, onBenchmarkChange, anc
                   fontSize={12}
                   tickLine={false}
                   axisLine={false}
-                  tickFormatter={(value) => new Intl.NumberFormat('it-IT', { notation: 'compact', compactDisplay: 'short' }).format(value)}
+                  tickFormatter={(value) =>
+                    new Intl.NumberFormat('it-IT', {
+                      notation: 'compact',
+                      compactDisplay: 'short',
+                    }).format(value)
+                  }
                   width={60}
                 />
                 <Tooltip
-                  contentStyle={{ backgroundColor: 'white', borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                  contentStyle={{
+                    backgroundColor: 'white',
+                    borderRadius: '12px',
+                    border: 'none',
+                    boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+                  }}
                   itemStyle={{ color: '#0f172a' }}
                   formatter={(value) =>
-                    new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(Number(value) || 0)
+                    new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(
+                      Number(value) || 0
+                    )
                   }
                 />
-                <Line type="monotone" dataKey="close" stroke="#0ea5e9" dot={false} strokeWidth={3} activeDot={{ r: 6, strokeWidth: 0 }} />
+                <Line
+                  type="monotone"
+                  dataKey="close"
+                  stroke="#0ea5e9"
+                  dot={false}
+                  strokeWidth={3}
+                  activeDot={{ r: 6, strokeWidth: 0 }}
+                />
               </LineChart>
             </ResponsiveContainer>
           </div>
         ) : (
-          <div className={investmentsStyles.charts.fallback}>
-            Dati non disponibili
-          </div>
+          <div className={investmentsStyles.charts.fallback}>Dati non disponibili</div>
         )}
       </CardContent>
     </Card>

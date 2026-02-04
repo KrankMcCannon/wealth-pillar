@@ -11,7 +11,7 @@ import { validateRequiredString, validateNonEmptyArray } from '@/lib/utils/valid
 
 type Group = Database['public']['Tables']['groups']['Row'];
 type GroupInsert = Database['public']['Tables']['groups']['Insert'];
-type GroupUpdate = Database['public']['Tables']['groups']['Update'];
+// type GroupUpdate = Database['public']['Tables']['groups']['Update'];
 type User = Database['public']['Tables']['users']['Row'];
 
 export interface CreateGroupInput {
@@ -31,11 +31,7 @@ export class GroupService {
   // ================== DATABASE OPERATIONS (inlined from repository) ==================
 
   private static readonly getByIdDb = cache(async (id: string): Promise<Group | null> => {
-    const { data, error } = await supabase
-      .from('groups')
-      .select('*')
-      .eq('id', id)
-      .single();
+    const { data, error } = await supabase.from('groups').select('*').eq('id', id).single();
 
     if (error) {
       if (error.code === 'PGRST116') return null;
@@ -55,32 +51,29 @@ export class GroupService {
     return created as Group;
   }
 
-  private static async updateDb(id: string, data: GroupUpdate): Promise<Group> {
-    const { data: updated, error } = await supabase
-      .from('groups')
-      .update(data as never)
-      .eq('id', id)
-      .select()
-      .single();
+  // private static async updateDb(id: string, data: GroupUpdate): Promise<Group> {
+  //   const { data: updated, error } = await supabase
+  //     .from('groups')
+  //     .update(data as never)
+  //     .eq('id', id)
+  //     .select()
+  //     .single();
 
-    if (error) throw new Error(error.message);
-    return updated as Group;
-  }
+  //   if (error) throw new Error(error.message);
+  //   return updated as Group;
+  // }
 
-  private static async deleteDb(id: string): Promise<void> {
-    const { error } = await supabase
-      .from('groups')
-      .delete()
-      .eq('id', id);
+  // private static async deleteDb(id: string): Promise<void> {
+  //   const { error } = await supabase.from('groups').delete().eq('id', id);
 
-    if (error) throw new Error(error.message);
-  }
+  //   if (error) throw new Error(error.message);
+  // }
 
   // ================== SERVICE LAYER ==================
 
   /**
-    * Retrieves group information by ID
-    */
+   * Retrieves group information by ID
+   */
   static async getGroupById(groupId: string): Promise<Group> {
     if (!groupId || groupId.trim() === '') {
       throw new Error('Group ID is required');

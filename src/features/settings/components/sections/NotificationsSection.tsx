@@ -1,8 +1,7 @@
-
-import { SectionHeader } from "@/components/layout";
-import { ListContainer, PageSection, SettingsItem } from "@/components/ui/layout";
-import { Bell, Mail } from "lucide-react";
-import { UserPreferences } from "@/server/services";
+import { SectionHeader } from '@/components/layout';
+import { ListContainer, PageSection, SettingsItem } from '@/components/ui/layout';
+import { Bell, Mail } from 'lucide-react';
+import { UserPreferences } from '@/server/services';
 
 interface NotificationsSectionProps {
   preferences: UserPreferences | null;
@@ -26,7 +25,7 @@ export function NotificationsSection({
             description="Ricevi notifiche sulle transazioni"
             actionType="toggle"
             checked={preferences?.notifications_push ?? true}
-            onToggle={() => onToggle("notifications_push")}
+            onToggle={() => onToggle('notifications_push')}
             disabled={isLoadingPreferences}
           />
 
@@ -36,7 +35,7 @@ export function NotificationsSection({
             description="Ricevi rapporti settimanali"
             actionType="toggle"
             checked={preferences?.notifications_email ?? false}
-            onToggle={() => onToggle("notifications_email")}
+            onToggle={() => onToggle('notifications_email')}
             disabled={isLoadingPreferences}
           />
 
@@ -46,7 +45,7 @@ export function NotificationsSection({
             description="Avvisa quando superi il budget"
             actionType="toggle"
             checked={preferences?.notifications_budget_alerts ?? true}
-            onToggle={() => onToggle("notifications_budget_alerts")}
+            onToggle={() => onToggle('notifications_budget_alerts')}
             disabled={isLoadingPreferences}
           />
         </ListContainer>

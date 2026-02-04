@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 /**
  * RowCard - Unified Row Card Component
@@ -13,12 +13,10 @@
  * Used across: Transactions, Accounts, Budgets, and more
  */
 
-import { memo, type CSSProperties } from "react";
-import {
-  rowCardStyles,
-} from "./theme/row-card-styles";
-import { cn } from "@/lib/utils";
-import { SwipeableCard, type SwipeAction } from "@/components/ui/interactions/swipeable-card";
+import { memo, type CSSProperties } from 'react';
+import { rowCardStyles } from './theme/row-card-styles';
+import { cn } from '@/lib/utils';
+import { SwipeableCard, type SwipeAction } from '@/components/ui/interactions/swipeable-card';
 
 export interface RowCardSwipeConfig {
   /** Unique ID for swipe state tracking */
@@ -34,8 +32,8 @@ export interface RowCardSwipeConfig {
 export interface RowCardProps {
   // Layout - Left Section
   icon?: React.ReactNode;
-  iconSize?: "sm" | "md" | "lg";
-  iconColor?: "primary" | "warning" | "destructive" | "success" | "muted" | "accent" | "none";
+  iconSize?: 'sm' | 'md' | 'lg';
+  iconColor?: 'primary' | 'warning' | 'destructive' | 'success' | 'muted' | 'accent' | 'none';
   iconStyle?: CSSProperties;
   iconClassName?: string;
   title: string;
@@ -46,11 +44,11 @@ export interface RowCardProps {
   primaryValue?: React.ReactNode; // Main value (Amount, Balance, etc.)
   secondaryValue?: React.ReactNode; // Secondary text/badge
   actions?: React.ReactNode; // Action buttons/dropdowns
-  amountVariant?: "success" | "destructive" | "primary";
-  rightLayout?: "stack" | "row";
+  amountVariant?: 'success' | 'destructive' | 'primary';
+  rightLayout?: 'stack' | 'row';
 
   // Interaction
-  variant?: "regular" | "interactive" | "highlighted" | "muted";
+  variant?: 'regular' | 'interactive' | 'highlighted' | 'muted';
   onClick?: () => void;
 
   // Swipe configuration (new unified system)
@@ -68,114 +66,114 @@ export interface RowCardProps {
  * Provides a unified row card pattern with optional swipe-to-delete.
  * Extracted from TransactionRow to be reusable across the app.
  */
-export const RowCard = memo(({
-  icon,
-  iconSize = "md",
-  iconColor = "primary",
-  title,
-  subtitle,
-  metadata,
-  primaryValue,
-  secondaryValue,
-  actions,
-  amountVariant = "primary",
-  rightLayout = "stack",
-  variant = "regular",
-  onClick,
-  swipeConfig,
-  isDisabled = false,
-  iconStyle,
-  iconClassName,
-  className,
-  testId,
-}: RowCardProps) => {
-  // Build class names
-  const cardClasses = cn(
-    rowCardStyles.base,
-    rowCardStyles.variant[variant],
-    isDisabled && "opacity-50 cursor-not-allowed",
-    className
-  );
+export const RowCard = memo(
+  ({
+    icon,
+    iconSize = 'md',
+    iconColor = 'primary',
+    title,
+    subtitle,
+    metadata,
+    primaryValue,
+    secondaryValue,
+    actions,
+    amountVariant = 'primary',
+    rightLayout = 'stack',
+    variant = 'regular',
+    onClick,
+    swipeConfig,
+    isDisabled = false,
+    iconStyle,
+    iconClassName,
+    className,
+    testId,
+  }: RowCardProps) => {
+    // Build class names
+    const cardClasses = cn(
+      rowCardStyles.base,
+      rowCardStyles.variant[variant],
+      isDisabled && 'opacity-50 cursor-not-allowed',
+      className
+    );
 
-  const iconContainerClasses = cn(
-    rowCardStyles.icon.container,
-    rowCardStyles.icon.size[iconSize],
-    rowCardStyles.icon.color[iconColor],
-    iconClassName
-  );
+    const iconContainerClasses = cn(
+      rowCardStyles.icon.container,
+      rowCardStyles.icon.size[iconSize],
+      rowCardStyles.icon.color[iconColor],
+      iconClassName
+    );
 
-  // ========================================================================
-  // Render Card Content
-  // ========================================================================
+    // ========================================================================
+    // Render Card Content
+    // ========================================================================
 
-  const renderCardContent = () => (
-    <div className="flex items-center justify-between w-full">
-      {/* Left Section */}
-      <div className={rowCardStyles.layout.left}>
-        {/* Icon */}
-        {icon && (
-          <div className={iconContainerClasses} style={iconStyle}>
-            {icon}
-          </div>
-        )}
-
-        {/* Content */}
-        <div className={rowCardStyles.layout.content}>
-          <h4 className={rowCardStyles.title}>{title}</h4>
-          {subtitle && <p className={rowCardStyles.subtitle}>{subtitle}</p>}
-          {metadata && <div className={rowCardStyles.metadata}>{metadata}</div>}
-        </div>
-      </div>
-
-      {/* Right Section */}
-      {(primaryValue || secondaryValue || actions) && (
-        <div className={rightLayout === "row" ? rowCardStyles.layout.rightRow : rowCardStyles.layout.right}>
-          {primaryValue && (
-            <div className={cn(rowCardStyles.value, rowCardStyles.valueVariant[amountVariant])}>
-              {primaryValue}
+    const renderCardContent = () => (
+      <div className="flex items-center justify-between w-full">
+        {/* Left Section */}
+        <div className={rowCardStyles.layout.left}>
+          {/* Icon */}
+          {icon && (
+            <div className={iconContainerClasses} style={iconStyle}>
+              {icon}
             </div>
           )}
-          {secondaryValue && (
-            <div className={rowCardStyles.secondaryValue}>{secondaryValue}</div>
-          )}
-          {actions}
+
+          {/* Content */}
+          <div className={rowCardStyles.layout.content}>
+            <h4 className={rowCardStyles.title}>{title}</h4>
+            {subtitle && <p className={rowCardStyles.subtitle}>{subtitle}</p>}
+            {metadata && <div className={rowCardStyles.metadata}>{metadata}</div>}
+          </div>
         </div>
-      )}
-    </div>
-  );
 
-  // ========================================================================
-  // Render with Swipe Support (New Unified System)
-  // ========================================================================
+        {/* Right Section */}
+        {(primaryValue || secondaryValue || actions) && (
+          <div
+            className={
+              rightLayout === 'row' ? rowCardStyles.layout.rightRow : rowCardStyles.layout.right
+            }
+          >
+            {primaryValue && (
+              <div className={cn(rowCardStyles.value, rowCardStyles.valueVariant[amountVariant])}>
+                {primaryValue}
+              </div>
+            )}
+            {secondaryValue && <div className={rowCardStyles.secondaryValue}>{secondaryValue}</div>}
+            {actions}
+          </div>
+        )}
+      </div>
+    );
 
-  if (swipeConfig) {
+    // ========================================================================
+    // Render with Swipe Support (New Unified System)
+    // ========================================================================
+
+    if (swipeConfig) {
+      return (
+        <SwipeableCard
+          id={swipeConfig.id}
+          rightAction={swipeConfig.deleteAction}
+          onCardClick={swipeConfig.onCardClick || onClick}
+          disabled={isDisabled}
+        >
+          <div className={cardClasses} data-testid={testId}>
+            {renderCardContent()}
+          </div>
+        </SwipeableCard>
+      );
+    }
+
+    // ========================================================================
+    // Regular Card (No Swipe)
+    // ========================================================================
+
     return (
-      <SwipeableCard
-        id={swipeConfig.id}
-        rightAction={swipeConfig.deleteAction}
-        onCardClick={swipeConfig.onCardClick || onClick}
-        disabled={isDisabled}
-      >
-        <div className={cardClasses} data-testid={testId}>
-          {renderCardContent()}
-        </div>
-      </SwipeableCard>
+      <div className={cardClasses} onClick={isDisabled ? undefined : onClick} data-testid={testId}>
+        {renderCardContent()}
+      </div>
     );
   }
+);
 
-  // ========================================================================
-  // Regular Card (No Swipe)
-  // ========================================================================
-
-  return (
-    <div
-      className={cardClasses}
-      onClick={isDisabled ? undefined : onClick}
-      data-testid={testId}
-    >
-      {renderCardContent()}
-    </div>
-  );
-});
-
-RowCard.displayName = "RowCard";
+RowCard.displayName = 'RowCard';

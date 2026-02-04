@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import { cn } from "@/lib/utils";
-import * as React from "react";
-import { useMediaQuery } from "@/hooks/use-media-query";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "./dialog";
-import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from "./drawer";
-import { modalWrapperStyles } from "./theme/modal-wrapper-styles";
-import { Loader2 } from "lucide-react";
+import { cn } from '@/lib/utils';
+import * as React from 'react';
+import { useMediaQuery } from '@/hooks/use-media-query';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './dialog';
+import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from './drawer';
+import { modalWrapperStyles } from './theme/modal-wrapper-styles';
+import { Loader2 } from 'lucide-react';
 
 // ============================================================================
 // TYPES & INTERFACES
@@ -24,7 +24,7 @@ export interface ModalWrapperProps {
   /** Modal content */
   children: React.ReactNode;
   /** Maximum width of the modal */
-  maxWidth?: "sm" | "md" | "lg" | "xl" | "full";
+  maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
   /** Show/hide the close button (default: true) */
   showCloseButton?: boolean;
   /** Additional CSS classes for the modal container */
@@ -64,7 +64,7 @@ export function ModalWrapper({
   repositionInputs = false,
   maxWidth,
 }: Readonly<ModalWrapperProps>) {
-  const isDesktop = useMediaQuery("(min-width: 640px)");
+  const isDesktop = useMediaQuery('(min-width: 640px)');
   const contentRef = React.useRef<HTMLDivElement | null>(null);
 
   // Focus management
@@ -92,16 +92,22 @@ export function ModalWrapper({
           tabIndex={-1}
           onOpenAutoFocus={handleOpenAutoFocus}
           showCloseButton={showCloseButton}
-          className={cn("max-h-[90vh] flex flex-col p-0 gap-0", maxWidth, className)}
+          className={cn('max-h-[90vh] flex flex-col p-0 gap-0', maxWidth, className)}
         >
           <DialogHeader className="p-6 pb-2">
-            <DialogTitle className={cn(modalWrapperStyles.dialogTitle, titleClassName)}>{title}</DialogTitle>
+            <DialogTitle className={cn(modalWrapperStyles.dialogTitle, titleClassName)}>
+              {title}
+            </DialogTitle>
             {description ? (
-              <DialogDescription className={cn(modalWrapperStyles.dialogDescription, descriptionClassName)}>
+              <DialogDescription
+                className={cn(modalWrapperStyles.dialogDescription, descriptionClassName)}
+              >
                 {description}
               </DialogDescription>
             ) : (
-              <DialogDescription className={modalWrapperStyles.dialogDescriptionHidden}>{title}</DialogDescription>
+              <DialogDescription className={modalWrapperStyles.dialogDescriptionHidden}>
+                {title}
+              </DialogDescription>
             )}
           </DialogHeader>
 
@@ -110,9 +116,7 @@ export function ModalWrapper({
               <Loader2 className="h-8 w-8 animate-spin text-primary/30" />
             </div>
           ) : (
-            <div className="flex-1 overflow-y-auto px-6 py-2">
-              {children}
-            </div>
+            <div className="flex-1 overflow-y-auto px-6 py-2">{children}</div>
           )}
         </DialogContent>
       </Dialog>
@@ -130,14 +134,22 @@ export function ModalWrapper({
         ref={contentRef}
         tabIndex={-1}
         onOpenAutoFocus={handleOpenAutoFocus}
-        className={cn(modalWrapperStyles.drawerContent, "h-[96dvh] mt-24 rounded-t-[10px]", className)}
+        className={cn(
+          modalWrapperStyles.drawerContent,
+          'h-[96dvh] mt-24 rounded-t-[10px]',
+          className
+        )}
         aria-describedby={undefined}
       >
         <div className="mx-auto mt-4 h-2 w-[100px] rounded-full bg-muted" />
         <DrawerHeader className={modalWrapperStyles.drawerHeader}>
-          <DrawerTitle className={cn(modalWrapperStyles.drawerTitle, titleClassName)}>{title}</DrawerTitle>
+          <DrawerTitle className={cn(modalWrapperStyles.drawerTitle, titleClassName)}>
+            {title}
+          </DrawerTitle>
           {description ? (
-            <DrawerDescription className={cn(modalWrapperStyles.drawerDescription, descriptionClassName)}>
+            <DrawerDescription
+              className={cn(modalWrapperStyles.drawerDescription, descriptionClassName)}
+            >
               {description}
             </DrawerDescription>
           ) : (
@@ -152,7 +164,7 @@ export function ModalWrapper({
             <Loader2 className="h-8 w-8 animate-spin text-primary/30" />
           </div>
         ) : (
-          <div className={cn(modalWrapperStyles.drawerContentBody, "h-full flex flex-col")}>
+          <div className={cn(modalWrapperStyles.drawerContentBody, 'h-full flex flex-col')}>
             {children}
           </div>
         )}
@@ -169,8 +181,11 @@ export function ModalWrapper({
  * Container for the distinct sections of a modal form/content.
  * Use inside ModalWrapper > form or just ModalWrapper
  */
-export function ModalBody({ children, className }: Readonly<{ children: React.ReactNode; className?: string }>) {
-  return <div className={cn("flex-1 py-2 space-y-4", className)}>{children}</div>;
+export function ModalBody({
+  children,
+  className,
+}: Readonly<{ children: React.ReactNode; className?: string }>) {
+  return <div className={cn('flex-1 py-2 space-y-4', className)}>{children}</div>;
 }
 
 /**
@@ -178,10 +193,18 @@ export function ModalBody({ children, className }: Readonly<{ children: React.Re
  * Automatically adapts to Dialog (right-aligned) vs Drawer (full-width stack) via CSS parent context or media query if needed.
  * But we'll standardise it here.
  */
-export function ModalFooter({ children, className }: Readonly<{ children: React.ReactNode; className?: string }>) {
+export function ModalFooter({
+  children,
+  className,
+}: Readonly<{ children: React.ReactNode; className?: string }>) {
   // Mobile drawer usually needs a bit more padding at bottom for safe area
   return (
-    <div className={cn("mt-auto py-4 border-t border-border pt-4 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end sm:gap-2", className)}>
+    <div
+      className={cn(
+        'mt-auto py-4 border-t border-border pt-4 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end sm:gap-2',
+        className
+      )}
+    >
       {children}
     </div>
   );
@@ -200,10 +223,13 @@ export function ModalSection({
   className?: string;
 }>) {
   return (
-    <div className={cn("flex flex-col gap-3", className)}>
-      {title && <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{title}</h4>}
+    <div className={cn('flex flex-col gap-3', className)}>
+      {title && (
+        <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+          {title}
+        </h4>
+      )}
       {children}
     </div>
   );
 }
-

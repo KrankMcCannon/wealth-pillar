@@ -4,9 +4,9 @@
  * Uses shimmer animation for visual feedback
  */
 
-import { SkeletonList } from "@/components/ui/primitives";
+import { SkeletonList } from '@/components/ui/primitives';
 
-import { settingsStyles } from "@/features/settings/theme";
+import { settingsStyles } from '@/features/settings/theme';
 
 /**
  * Header skeleton for loading state
@@ -15,8 +15,12 @@ export function SettingsHeaderSkeleton() {
   return (
     <header className={settingsStyles.header.container}>
       <div className={settingsStyles.header.inner}>
-        <div className={`${settingsStyles.skeletons.headerIcon} ${settingsStyles.skeletons.shimmer}`}></div>
-        <div className={`${settingsStyles.skeletons.headerTitle} ${settingsStyles.skeletons.shimmer}`}></div>
+        <div
+          className={`${settingsStyles.skeletons.headerIcon} ${settingsStyles.skeletons.shimmer}`}
+        ></div>
+        <div
+          className={`${settingsStyles.skeletons.headerTitle} ${settingsStyles.skeletons.shimmer}`}
+        ></div>
         <div className={settingsStyles.header.spacer}></div>
       </div>
     </header>

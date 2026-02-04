@@ -1,6 +1,8 @@
 export const onboardingStyles = {
-  overlay: 'fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm px-3 sm:px-4 py-6 sm:py-8 overflow-y-auto',
-  modal: 'w-full max-w-md sm:max-w-lg md:max-w-2xl rounded-2xl sm:rounded-3xl bg-card shadow-2xl p-4 sm:p-6 md:p-8 my-auto max-h-[90vh] flex flex-col',
+  overlay:
+    'fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm px-3 sm:px-4 py-6 sm:py-8 overflow-y-auto',
+  modal:
+    'w-full max-w-md sm:max-w-lg md:max-w-2xl rounded-2xl sm:rounded-3xl bg-card shadow-2xl p-4 sm:p-6 md:p-8 my-auto max-h-[90vh] flex flex-col',
   header: {
     container: 'mb-4 sm:mb-6 flex-shrink-0',
     content: 'flex items-start gap-3',
@@ -16,17 +18,23 @@ export const onboardingStyles = {
   cardHeader: 'flex items-center justify-between',
   cardTitle: 'text-sm font-semibold text-primary',
   deleteButton: 'text-primary/70 hover:text-destructive transition-colors disabled:opacity-50',
-  addButton: 'w-full bg-primary text-primary-foreground hover:bg-card hover:text-primary border-2 border-primary/20 transition-all font-medium flex items-center justify-center gap-2',
-  backButton: 'bg-primary text-primary-foreground hover:bg-card hover:text-primary border-2 border-primary/20 transition-all font-medium flex items-center gap-2',
-  nextButton: 'bg-primary text-primary-foreground hover:bg-card hover:text-primary border-2 border-primary/20 transition-all font-medium flex items-center justify-center gap-2',
+  addButton:
+    'w-full bg-primary text-primary-foreground hover:bg-card hover:text-primary border-2 border-primary/20 transition-all font-medium flex items-center justify-center gap-2',
+  backButton:
+    'bg-primary text-primary-foreground hover:bg-card hover:text-primary border-2 border-primary/20 transition-all font-medium flex items-center gap-2',
+  nextButton:
+    'bg-primary text-primary-foreground hover:bg-card hover:text-primary border-2 border-primary/20 transition-all font-medium flex items-center justify-center gap-2',
   label: 'text-sm font-medium text-primary',
   primaryLabel: 'text-sm font-medium text-primary',
-  input: 'h-11 bg-input border-2 border-primary/20 focus:border-primary/20 text-primary placeholder:text-primary/40',
+  input:
+    'h-11 bg-input border-2 border-primary/20 focus:border-primary/20 text-primary placeholder:text-primary/40',
   select: 'h-11 bg-input border-2 border-primary/20 focus:border-primary/20',
   selectContent: 'bg-popover border-2 border-primary/20',
-  alert: 'mt-4 sm:mt-5 rounded-2xl border border-destructive/30 bg-destructive/10 p-3 text-xs sm:text-sm text-destructive flex items-start gap-2 flex-shrink-0',
+  alert:
+    'mt-4 sm:mt-5 rounded-2xl border border-destructive/30 bg-destructive/10 p-3 text-xs sm:text-sm text-destructive flex items-start gap-2 flex-shrink-0',
   loadingInfo: 'flex items-center gap-2 text-sm text-primary/70',
-  warningMessage: 'rounded-xl border border-warning/30 bg-warning/10 p-3 text-sm text-warning-foreground',
+  warningMessage:
+    'rounded-xl border border-warning/30 bg-warning/10 p-3 text-sm text-warning-foreground',
   form: {
     section: 'space-y-4',
     field: 'space-y-2',
@@ -44,7 +52,8 @@ export const onboardingStyles = {
     defaultIconFilled: 'fill-current',
     helpGroup: 'group relative',
     helpIcon: 'h-3.5 w-3.5 text-primary/60 cursor-help',
-    helpPopover: 'invisible group-hover:visible absolute left-0 top-6 z-50 w-64 rounded-lg bg-primary text-white p-3 text-xs shadow-lg',
+    helpPopover:
+      'invisible group-hover:visible absolute left-0 top-6 z-50 w-64 rounded-lg bg-primary text-white p-3 text-xs shadow-lg',
     helpTitle: 'font-semibold mb-1',
     helpBody: 'text-white/90',
     addIcon: 'h-4 w-4 mr-2',
@@ -58,7 +67,8 @@ export const onboardingStyles = {
     infoBody: 'flex-1',
     infoTitle: 'text-xs font-semibold text-blue-900',
     infoText: 'text-xs text-blue-700 mt-1',
-    skipButton: 'text-xs px-3 py-1 h-auto bg-blue-100 text-blue-700 hover:bg-blue-200 border-blue-300',
+    skipButton:
+      'text-xs px-3 py-1 h-auto bg-blue-100 text-blue-700 hover:bg-blue-200 border-blue-300',
     loadingIcon: 'h-4 w-4 animate-spin',
     deleteIcon: 'h-4 w-4',
     grid: 'grid grid-cols-1 sm:grid-cols-2 gap-3',
@@ -67,7 +77,8 @@ export const onboardingStyles = {
     addIcon: 'h-4 w-4 mr-2',
   },
   draftRestore: {
-    container: 'fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-white border border-primary/20 rounded-lg shadow-lg p-4 max-w-md',
+    container:
+      'fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-white border border-primary/20 rounded-lg shadow-lg p-4 max-w-md',
     body: 'flex items-start gap-3',
     icon: 'h-5 w-5 text-primary mt-0.5 shrink-0',
     content: 'flex-1',

@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import React from "react";
-import { Home } from "lucide-react";
-import { Button } from "@/components/ui";
-import Link from "next/link";
+import React from 'react';
+import { Home } from 'lucide-react';
+import { Button } from '@/components/ui';
+import Link from 'next/link';
 
 export default function NotFound(): React.JSX.Element {
   return (

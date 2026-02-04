@@ -3,9 +3,13 @@
  * Progress bar with status indicator and status message
  */
 
-"use client";
+'use client';
 
-import { budgetStyles, getProgressBarFillStyles, getProgressIndicatorStyles } from "@/styles/system";
+import {
+  budgetStyles,
+  getProgressBarFillStyles,
+  getProgressIndicatorStyles,
+} from '@/styles/system';
 
 export interface BudgetProgressProps {
   progressData: {
@@ -31,15 +35,15 @@ export function BudgetProgress({ progressData }: Readonly<BudgetProgressProps>) 
   const status = getStatus(percentage);
 
   const statusMessages = {
-    safe: "✅ Budget sotto controllo",
-    warning: "⚠️ Attenzione, quasi esaurito",
-    danger: "⚠️ Budget superato",
+    safe: '✅ Budget sotto controllo',
+    warning: '⚠️ Attenzione, quasi esaurito',
+    danger: '⚠️ Budget superato',
   };
 
   const percentageColors = {
-    safe: "text-primary",
-    warning: "text-warning",
-    danger: "text-destructive",
+    safe: 'text-primary',
+    warning: 'text-warning',
+    danger: 'text-destructive',
   };
 
   const indicatorClass = getProgressIndicatorStyles(status);
@@ -61,10 +65,7 @@ export function BudgetProgress({ progressData }: Readonly<BudgetProgressProps>) 
       {/* Progress bar */}
       <div className={budgetStyles.progress.barWrapper}>
         <div className={budgetStyles.progress.barContainer}>
-          <div
-            className={barFill.className}
-            style={barFill.style}
-          />
+          <div className={barFill.className} style={barFill.style} />
         </div>
       </div>
 

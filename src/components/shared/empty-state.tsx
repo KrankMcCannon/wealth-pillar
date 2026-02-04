@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { cn } from "@/lib";
-import { LucideIcon } from "lucide-react";
-import { emptyStateStyles } from "@/styles/system";
+import { cn } from '@/lib';
+import { LucideIcon } from 'lucide-react';
+import { emptyStateStyles } from '@/styles/system';
 
 /**
  * Empty State Component
@@ -42,7 +42,7 @@ export function EmptyState({
   title,
   description,
   action,
-  className
+  className,
 }: Readonly<EmptyStateProps>) {
   return (
     <div className={cn(emptyStateStyles.container, className)}>
@@ -52,11 +52,7 @@ export function EmptyState({
         </div>
       )}
       <h3 className={emptyStateStyles.title}>{title}</h3>
-      {description && (
-        <p className={emptyStateStyles.description}>
-          {description}
-        </p>
-      )}
+      {description && <p className={emptyStateStyles.description}>{description}</p>}
       {action && <div className={emptyStateStyles.action}>{action}</div>}
     </div>
   );

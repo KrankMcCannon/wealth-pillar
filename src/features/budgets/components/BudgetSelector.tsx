@@ -14,13 +14,13 @@ import {
   SelectTrigger,
   CategoryBadge,
   PageSection,
-  SectionHeader
+  SectionHeader,
 } from '@/components/ui';
 import { Budget, User } from '@/lib';
 import { budgetStyles } from '@/styles/system';
 import { useUserFilter } from '@/hooks/state/use-user-filter';
 import { useCategories } from '@/stores/reference-data-store';
-import { FinanceLogicService } from "@/server/services/finance-logic.service";
+import { FinanceLogicService } from '@/server/services/finance-logic.service';
 
 export interface BudgetSelectorProps {
   selectedBudget: Budget | null;
@@ -40,28 +40,26 @@ export function BudgetSelector({
   const userMap = useMemo(() => new Map(users.map((user) => [user.id, user.name])), [users]);
   const categories = useCategories();
   const categoryColors = useMemo(() => {
-    return new Map(
-      categories.map((category) => [category.key, category.color])
-    );
+    return new Map(categories.map((category) => [category.key, category.color]));
   }, [categories]);
-  const getCategoryColor = useCallback((categoryKey: string) => {
-    return categoryColors.get(categoryKey) || FinanceLogicService.getCategoryColor(categories, categoryKey);
-  }, [categories, categoryColors]);
+  const getCategoryColor = useCallback(
+    (categoryKey: string) => {
+      return (
+        categoryColors.get(categoryKey) ||
+        FinanceLogicService.getCategoryColor(categories, categoryKey)
+      );
+    },
+    [categories, categoryColors]
+  );
 
   return (
     <PageSection variant="card" padding="sm" className={budgetStyles.selectionSection}>
       {/* Section Header */}
-      <SectionHeader
-        title="Budget"
-        subtitle="Seleziona per visualizzare i dettagli"
-      />
+      <SectionHeader title="Budget" subtitle="Seleziona per visualizzare i dettagli" />
 
       {/* Budget Selector Dropdown */}
       <div>
-        <Select
-          value={selectedBudget?.id || ''}
-          onValueChange={onBudgetSelect}
-        >
+        <Select value={selectedBudget?.id || ''} onValueChange={onBudgetSelect}>
           <SelectTrigger className={budgetStyles.selector.trigger}>
             {selectedBudget ? (
               <div className={budgetStyles.selector.itemContent}>
@@ -90,11 +88,7 @@ export function BudgetSelector({
           </SelectTrigger>
           <SelectContent className={budgetStyles.selector.content}>
             {availableBudgets.map((budget) => (
-              <SelectItem
-                key={budget.id}
-                value={budget.id}
-                className={budgetStyles.selector.item}
-              >
+              <SelectItem key={budget.id} value={budget.id} className={budgetStyles.selector.item}>
                 <div className={budgetStyles.selector.itemContent}>
                   <div className={budgetStyles.selector.itemIcon}>
                     <CategoryBadge
@@ -105,9 +99,7 @@ export function BudgetSelector({
                     />
                   </div>
                   <div className={budgetStyles.selector.itemTextRow}>
-                    <span className={budgetStyles.selector.itemText}>
-                      {budget.description}
-                    </span>
+                    <span className={budgetStyles.selector.itemText}>{budget.description}</span>
                     {showUserChip && userMap.get(budget.user_id) && (
                       <span className={budgetStyles.selector.itemChip}>
                         {userMap.get(budget.user_id)}

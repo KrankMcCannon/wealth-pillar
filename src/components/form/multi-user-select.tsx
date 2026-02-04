@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 /**
  * MultiUserSelect Component
@@ -8,10 +8,10 @@
  * Always maintains at least the current user selected.
  */
 
-import type { User } from "@/lib/types";
-import { Checkbox } from "@/components/ui";
-import { cn } from "@/lib/utils";
-import { formStyles, getMultiUserAvatarStyle } from "./theme/form-styles";
+import type { User } from '@/lib/types';
+import { Checkbox } from '@/components/ui';
+import { cn } from '@/lib/utils';
+import { formStyles, getMultiUserAvatarStyle } from './theme/form-styles';
 
 interface MultiUserSelectProps {
   /**
@@ -67,7 +67,7 @@ export function MultiUserSelect({
   const handleToggle = (userId: string) => {
     if (value.includes(userId)) {
       // Remove user
-      const newValue = value.filter(id => id !== userId);
+      const newValue = value.filter((id) => id !== userId);
 
       // Keep at least current user selected
       if (newValue.length === 0) {
@@ -105,9 +105,7 @@ export function MultiUserSelect({
             </div>
 
             {/* User name */}
-            <span className={formStyles.multiUser.name}>
-              {user.name}
-            </span>
+            <span className={formStyles.multiUser.name}>{user.name}</span>
 
             {/* Current user indicator */}
             {user.id === currentUserId && (

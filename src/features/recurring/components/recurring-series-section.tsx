@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 /**
  * RecurringSeriesSection - Display recurring transaction series
@@ -7,18 +7,18 @@
  * Data is passed from parent component (Server Component pattern).
  */
 
-import { useMemo } from "react";
-import { RecurringTransactionSeries } from "@/lib";
-import { SeriesCard } from "@/components/cards";
-import { EmptyState } from "@/components/shared";
-import { RefreshCw, Plus, TrendingUp, TrendingDown } from "lucide-react";
-import { Button, Text } from "@/components/ui";
-import { FinanceLogicService } from "@/server/services/finance-logic.service";
-import { formatCurrency, cn } from "@/lib/utils";
-import { User } from "@/lib/types";
-import { recurringStyles } from "../theme/recurring-styles";
-import { accountStyles } from "@/features/accounts/theme/account-styles";
-import { transactionStyles } from "@/styles/system";
+import { useMemo } from 'react';
+import { RecurringTransactionSeries } from '@/lib';
+import { SeriesCard } from '@/components/cards';
+import { EmptyState } from '@/components/shared';
+import { RefreshCw, Plus, TrendingUp, TrendingDown } from 'lucide-react';
+import { Button, Text } from '@/components/ui';
+import { FinanceLogicService } from '@/server/services/finance-logic.service';
+import { formatCurrency, cn } from '@/lib/utils';
+import { User } from '@/lib/types';
+import { recurringStyles } from '../theme/recurring-styles';
+import { accountStyles } from '@/features/accounts/theme/account-styles';
+import { transactionStyles } from '@/styles/system';
 
 interface RecurringSeriesSectionProps {
   /** All recurring series data */
@@ -54,7 +54,7 @@ interface RecurringSeriesSectionProps {
 export function RecurringSeriesSection({
   series,
   selectedUserId,
-  className = "",
+  className = '',
   maxItems,
   showActions = false,
   showStats = false,
@@ -79,7 +79,11 @@ export function RecurringSeriesSection({
     // Sort by days left (ascending)
     result = result
       .slice()
-      .sort((a, b) => FinanceLogicService.calculateDaysUntilDue(a) - FinanceLogicService.calculateDaysUntilDue(b));
+      .sort(
+        (a, b) =>
+          FinanceLogicService.calculateDaysUntilDue(a) -
+          FinanceLogicService.calculateDaysUntilDue(b)
+      );
 
     // Limit results if maxItems specified
     if (maxItems && maxItems > 0) {
@@ -108,8 +112,8 @@ export function RecurringSeriesSection({
           title="Nessuna serie ricorrente"
           description={
             selectedUserId
-              ? "Non ci sono serie ricorrenti per questo utente"
-              : "Le serie ricorrenti configurate appariranno qui"
+              ? 'Non ci sono serie ricorrenti per questo utente'
+              : 'Le serie ricorrenti configurate appariranno qui'
           }
           action={
             onCreateRecurringSeries && (
@@ -138,10 +142,13 @@ export function RecurringSeriesSection({
                 Transazioni Ricorrenti
               </Text>
               <Text variant="primary" size="xs" className={recurringStyles.section.subtitle}>
-                {selectedUserId ? series.filter((s) => s.user_ids.includes(selectedUserId)).length : series.length} {activeSeries.length === 1 ? "serie attiva" : "serie attive"}
+                {selectedUserId
+                  ? series.filter((s) => s.user_ids.includes(selectedUserId)).length
+                  : series.length}{' '}
+                {activeSeries.length === 1 ? 'serie attiva' : 'serie attive'}
                 {filteredSeries.length > activeSeries.length && (
                   <span className={recurringStyles.section.subtitle}>
-                    {" "}
+                    {' '}
                     • {filteredSeries.length - activeSeries.length} in pausa
                   </span>
                 )}
@@ -180,7 +187,13 @@ export function RecurringSeriesSection({
       </div>
 
       {/* Series List */}
-      <div className={cn(recurringStyles.section.list, accountStyles.accountsList.groupCard, "rounded-t-none border-0 shadow-none")}>
+      <div
+        className={cn(
+          recurringStyles.section.list,
+          accountStyles.accountsList.groupCard,
+          'rounded-t-none border-0 shadow-none'
+        )}
+      >
         <div className={transactionStyles.groupedCard.rowContainer}>
           {filteredSeries.map((item) => (
             <div key={item.id} className={accountStyles.list.cardWrapper}>
@@ -207,8 +220,11 @@ export function RecurringSeriesSection({
           <div className={recurringStyles.section.listDivider} />
           <div className={recurringStyles.section.footer}>
             <p className={recurringStyles.section.footerText}>
-              Mostrando {filteredSeries.length} di{" "}
-              {selectedUserId ? series.filter((s) => s.user_ids.includes(selectedUserId)).length : series.length} serie
+              Mostrando {filteredSeries.length} di{' '}
+              {selectedUserId
+                ? series.filter((s) => s.user_ids.includes(selectedUserId)).length
+                : series.length}{' '}
+              serie
             </p>
           </div>
         </div>

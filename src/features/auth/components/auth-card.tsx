@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { motion } from "framer-motion";
-import type { ReactNode } from "react";
-import { authStyles } from "../theme";
+import { motion } from 'framer-motion';
+import type { ReactNode } from 'react';
+import { authStyles } from '../theme';
 
 type AuthCardProps = {
   title: string;
@@ -18,7 +18,7 @@ export function AuthCard({ title, subtitle, children, backButton }: Readonly<Aut
         className={authStyles.card.surface}
         initial={{ y: 12, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ type: "spring", stiffness: 260, damping: 20, mass: 0.7 }}
+        transition={{ type: 'spring', stiffness: 260, damping: 20, mass: 0.7 }}
       >
         <div className={authStyles.card.header}>
           <div className={authStyles.card.headerRow}>

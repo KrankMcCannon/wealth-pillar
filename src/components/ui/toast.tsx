@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import * as React from "react";
-import * as ToastPrimitive from "@radix-ui/react-toast";
-import { cva, type VariantProps } from "class-variance-authority";
-import { X } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { toastComponentStyles } from "./theme/toast-component-styles";
+import * as React from 'react';
+import * as ToastPrimitive from '@radix-ui/react-toast';
+import { cva, type VariantProps } from 'class-variance-authority';
+import { X } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { toastComponentStyles } from './theme/toast-component-styles';
 
 const ToastProvider = ToastPrimitive.Provider;
 
@@ -16,7 +16,7 @@ const ToastViewport = React.forwardRef<
   <ToastPrimitive.Viewport
     ref={ref}
     className={cn(
-      "fixed top-0 z-100 flex max-h-screen w-full flex-col-reverse gap-2 p-4 sm:bottom-0 sm:right-0 sm:top-auto sm:flex-col md:max-w-[420px]",
+      'fixed top-0 z-100 flex max-h-screen w-full flex-col-reverse gap-2 p-4 sm:bottom-0 sm:right-0 sm:top-auto sm:flex-col md:max-w-[420px]',
       className
     )}
     {...props}
@@ -25,26 +25,25 @@ const ToastViewport = React.forwardRef<
 ToastViewport.displayName = ToastPrimitive.Viewport.displayName;
 
 const toastVariants = cva(
-  "group pointer-events-auto relative flex w-full items-start gap-3 overflow-hidden rounded-2xl border p-4 pr-6 shadow-lg transition-all data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-80 data-[state=open]:slide-in-from-top-full sm:data-[state=open]:slide-in-from-bottom-full",
+  'group pointer-events-auto relative flex w-full items-start gap-3 overflow-hidden rounded-2xl border p-4 pr-6 shadow-lg transition-all data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-80 data-[state=open]:slide-in-from-top-full sm:data-[state=open]:slide-in-from-bottom-full',
   {
     variants: {
       variant: {
-        default: "bg-card text-primary border-primary/30",
-        destructive: "bg-card text-destructive border-destructive/40",
-        success: "bg-card text-success border-success/40",
-        info: "bg-card text-secondary border-secondary/40",
+        default: 'bg-card text-primary border-primary/30',
+        destructive: 'bg-card text-destructive border-destructive/40',
+        success: 'bg-card text-success border-success/40',
+        info: 'bg-card text-secondary border-secondary/40',
       },
     },
     defaultVariants: {
-      variant: "default",
+      variant: 'default',
     },
   }
 );
 
 const Toast = React.forwardRef<
   React.ElementRef<typeof ToastPrimitive.Root>,
-  React.ComponentPropsWithoutRef<typeof ToastPrimitive.Root> &
-    VariantProps<typeof toastVariants>
+  React.ComponentPropsWithoutRef<typeof ToastPrimitive.Root> & VariantProps<typeof toastVariants>
 >(({ className, variant, ...props }, ref) => (
   <ToastPrimitive.Root
     ref={ref}
@@ -63,7 +62,7 @@ const ToastAction = React.forwardRef<
     ref={ref}
     data-slot="toast-action"
     className={cn(
-      "inline-flex h-8 items-center justify-center rounded-lg border border-primary/30 bg-transparent px-3 text-xs font-medium text-primary transition-colors hover:bg-primary/10 focus-visible:ring-2 focus-visible:ring-primary/30",
+      'inline-flex h-8 items-center justify-center rounded-lg border border-primary/30 bg-transparent px-3 text-xs font-medium text-primary transition-colors hover:bg-primary/10 focus-visible:ring-2 focus-visible:ring-primary/30',
       className
     )}
     {...props}
@@ -78,10 +77,7 @@ const ToastClose = React.forwardRef<
   <ToastPrimitive.Close
     ref={ref}
     data-slot="toast-close"
-    className={cn(
-      toastComponentStyles.closeButton,
-      className
-    )}
+    className={cn(toastComponentStyles.closeButton, className)}
     toast-close=""
     {...props}
   >

@@ -1,10 +1,9 @@
-
-import { SectionHeader } from "@/components/layout";
-import { ListContainer, PageSection, SettingsItem } from "@/components/ui/layout";
-import { settingsStyles } from "../../theme/settings-styles";
-import { Mail, Phone, User as UserIcon } from "lucide-react";
-import { Button } from "@/components/ui";
-import { User } from "@/lib/types";
+import { SectionHeader } from '@/components/layout';
+import { ListContainer, PageSection, SettingsItem } from '@/components/ui/layout';
+import { settingsStyles } from '../../theme/settings-styles';
+import { Mail, Phone, User as UserIcon } from 'lucide-react';
+import { Button } from '@/components/ui';
+import { User } from '@/lib/types';
 
 interface ProfileSectionProps {
   currentUser: User;
@@ -37,7 +36,7 @@ export function ProfileSection({
           <div className={settingsStyles.profile.container}>
             <div
               className={settingsStyles.profile.avatar}
-              style={{ backgroundColor: (currentUser.theme_color || "#000000") }}
+              style={{ backgroundColor: currentUser.theme_color || '#000000' }}
             >
               {userInitials}
             </div>
@@ -76,9 +75,7 @@ export function ProfileSection({
           <SettingsItem
             icon={<UserIcon className="h-4 w-4 text-primary" />}
             label="Ruolo"
-            value={
-              getRoleLabel(currentUser.role || '')
-            }
+            value={getRoleLabel(currentUser.role || '')}
           />
         </ListContainer>
       </PageSection>

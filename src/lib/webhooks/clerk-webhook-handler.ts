@@ -63,15 +63,12 @@ async function handleUserUpdated(evt: WebhookEvent) {
     }
 
     // Get updated data
-    const primaryEmail = email_addresses.find(
-      (e) => e.id === evt.data.primary_email_address_id
-    );
+    const primaryEmail = email_addresses.find((e) => e.id === evt.data.primary_email_address_id);
     const email = primaryEmail?.email_address || user.email;
     const name = `${first_name || ''} ${last_name || ''}`.trim() || user.name;
 
     // Update user profile
     await UserService.updateProfile(user.id, { name, email });
-
   } catch (error) {
     console.error('[Webhook] Error in handleUserUpdated:', {
       clerkId,
@@ -107,7 +104,6 @@ async function handleUserDeleted(evt: WebhookEvent) {
 
     // Delete user (cascades to all related data)
     await UserService.deleteUser(user.id);
-
   } catch (error) {
     console.error('[Webhook] Error in handleUserDeleted:', {
       clerkId,

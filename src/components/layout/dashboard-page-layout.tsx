@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { PageContainer } from "./page-container";
-import { BottomNavigation } from "./bottom-navigation";
-import { cn } from "@/lib";
-import { dashboardPageLayoutStyles } from "./theme/dashboard-page-layout-styles";
+import { PageContainer } from './page-container';
+import { BottomNavigation } from './bottom-navigation';
+import { cn } from '@/lib';
+import { dashboardPageLayoutStyles } from './theme/dashboard-page-layout-styles';
 
 /**
  * Dashboard Page Layout Props
@@ -45,7 +45,7 @@ export function DashboardPageLayout({
   userSelector,
   tabs,
   children,
-  mainClassName
+  mainClassName,
 }: Readonly<DashboardPageLayoutProps>) {
   return (
     <PageContainer>
@@ -53,9 +53,7 @@ export function DashboardPageLayout({
         {header}
         {userSelector}
         {tabs}
-        <main className={cn(dashboardPageLayoutStyles.main, mainClassName)}>
-          {children}
-        </main>
+        <main className={cn(dashboardPageLayoutStyles.main, mainClassName)}>{children}</main>
       </div>
       <BottomNavigation />
     </PageContainer>

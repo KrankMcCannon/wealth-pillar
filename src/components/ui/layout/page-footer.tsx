@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import * as React from "react";
-import { cn } from "@/lib/utils";
-import { layoutStyles } from "@/styles/system";
+import * as React from 'react';
+import { cn } from '@/lib/utils';
+import { layoutStyles } from '@/styles/system';
 
 export interface PageFooterProps {
   children: React.ReactNode;
@@ -10,11 +10,7 @@ export interface PageFooterProps {
   className?: string;
 }
 
-export function PageFooter({
-  children,
-  sticky = false,
-  className,
-}: Readonly<PageFooterProps>) {
+export function PageFooter({ children, sticky = false, className }: Readonly<PageFooterProps>) {
   return (
     <footer
       className={cn(

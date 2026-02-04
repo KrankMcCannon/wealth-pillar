@@ -1,13 +1,13 @@
-"use client";
+'use client';
 
-import * as React from "react";
-import { Check, CreditCard, Loader2, Sparkles } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { ModalBody, ModalFooter, ModalWrapper } from "@/components/ui/modal-wrapper";
-import { toast } from "@/hooks/use-toast";
-import { updateSubscriptionAction } from "@/features/settings";
-import { cn } from "@/lib";
-import { settingsStyles } from "@/features/settings/theme";
+import * as React from 'react';
+import { Check, CreditCard, Loader2, Sparkles } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { ModalBody, ModalFooter, ModalWrapper } from '@/components/ui/modal-wrapper';
+import { toast } from '@/hooks/use-toast';
+import { updateSubscriptionAction } from '@/features/settings';
+import { cn } from '@/lib';
+import { settingsStyles } from '@/features/settings/theme';
 
 // ============================================================================
 // TYPES & INTERFACES
@@ -17,7 +17,7 @@ export interface SubscriptionModalProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   groupId: string;
-  currentPlan: "free" | "premium";
+  currentPlan: 'free' | 'premium';
 }
 
 // ============================================================================
@@ -57,13 +57,13 @@ export function SubscriptionModal({
     setIsProcessing(true);
 
     try {
-      const { data, error } = await updateSubscriptionAction(groupId, "upgrade");
+      const { data, error } = await updateSubscriptionAction(groupId, 'upgrade');
 
       if (error) {
         toast({
-          title: "Errore",
+          title: 'Errore',
           description: error,
-          variant: "destructive",
+          variant: 'destructive',
         });
         setIsProcessing(false);
         return;
@@ -71,18 +71,18 @@ export function SubscriptionModal({
 
       // TODO: Redirect to Stripe checkout when implemented
       toast({
-        title: "Prossimamente",
+        title: 'Prossimamente',
         description: data?.message || "L'integrazione con Stripe è in arrivo",
-        variant: "info",
+        variant: 'info',
       });
 
       setIsProcessing(false);
     } catch (error) {
-      console.error("Error upgrading subscription:", error);
+      console.error('Error upgrading subscription:', error);
       toast({
-        title: "Errore",
+        title: 'Errore',
         description: "Si è verificato un errore durante l'aggiornamento",
-        variant: "destructive",
+        variant: 'destructive',
       });
       setIsProcessing(false);
     }
@@ -92,38 +92,38 @@ export function SubscriptionModal({
     setIsProcessing(true);
 
     try {
-      const { data, error } = await updateSubscriptionAction(groupId, "cancel");
+      const { data, error } = await updateSubscriptionAction(groupId, 'cancel');
 
       if (error) {
         toast({
-          title: "Errore",
+          title: 'Errore',
           description: error,
-          variant: "destructive",
+          variant: 'destructive',
         });
         setIsProcessing(false);
         return;
       }
 
       toast({
-        title: "Abbonamento cancellato",
-        description: data?.message || "Il tuo abbonamento è stato cancellato",
-        variant: "success",
+        title: 'Abbonamento cancellato',
+        description: data?.message || 'Il tuo abbonamento è stato cancellato',
+        variant: 'success',
       });
 
       onOpenChange(false);
       setIsProcessing(false);
     } catch (error) {
-      console.error("Error canceling subscription:", error);
+      console.error('Error canceling subscription:', error);
       toast({
-        title: "Errore",
-        description: "Si è verificato un errore durante la cancellazione",
-        variant: "destructive",
+        title: 'Errore',
+        description: 'Si è verificato un errore durante la cancellazione',
+        variant: 'destructive',
       });
       setIsProcessing(false);
     }
   };
 
-  const isPremium = currentPlan === "premium";
+  const isPremium = currentPlan === 'premium';
 
   return (
     <ModalWrapper
@@ -151,23 +151,22 @@ export function SubscriptionModal({
               <div>
                 <h3 className={settingsStyles.modals.subscription.planTitle}>Piano Gratuito</h3>
                 <p className={settingsStyles.modals.subscription.planPrice}>
-                  €0 <span className={settingsStyles.modals.subscription.planPriceSuffix}>/mese</span>
+                  €0{' '}
+                  <span className={settingsStyles.modals.subscription.planPriceSuffix}>/mese</span>
                 </p>
               </div>
               {!isPremium && (
-                <span className={settingsStyles.modals.subscription.planBadge}>
-                  Piano Attuale
-                </span>
+                <span className={settingsStyles.modals.subscription.planBadge}>Piano Attuale</span>
               )}
             </div>
 
             <ul className={settingsStyles.modals.subscription.list}>
               {[
-                "1 gruppo familiare",
-                "5 membri massimi",
-                "Transazioni illimitate",
-                "Budget mensili di base",
-                "Report mensili",
+                '1 gruppo familiare',
+                '5 membri massimi',
+                'Transazioni illimitate',
+                'Budget mensili di base',
+                'Report mensili',
               ].map((feature) => (
                 <li key={feature} className={settingsStyles.modals.subscription.listItem}>
                   <Check className={settingsStyles.modals.subscription.listIcon} />
@@ -203,27 +202,26 @@ export function SubscriptionModal({
                   <Sparkles className={settingsStyles.modals.subscription.premiumIcon} />
                 </h3>
                 <p className={settingsStyles.modals.subscription.planPrice}>
-                  €9.99 <span className={settingsStyles.modals.subscription.planPriceSuffix}>/mese</span>
+                  €9.99{' '}
+                  <span className={settingsStyles.modals.subscription.planPriceSuffix}>/mese</span>
                 </p>
               </div>
               {isPremium && (
-                <span className={settingsStyles.modals.subscription.planBadge}>
-                  Piano Attuale
-                </span>
+                <span className={settingsStyles.modals.subscription.planBadge}>Piano Attuale</span>
               )}
             </div>
 
             <ul className={settingsStyles.modals.subscription.list}>
               {[
-                "Gruppi familiari illimitati",
-                "Membri illimitati",
-                "Transazioni illimitate",
-                "Budget avanzati con categorie personalizzate",
-                "Report dettagliati e analisi",
-                "Export dati in CSV/PDF",
-                "Supporto prioritario",
-                "Notifiche push avanzate",
-                "Sincronizzazione multi-dispositivo",
+                'Gruppi familiari illimitati',
+                'Membri illimitati',
+                'Transazioni illimitate',
+                'Budget avanzati con categorie personalizzate',
+                'Report dettagliati e analisi',
+                'Export dati in CSV/PDF',
+                'Supporto prioritario',
+                'Notifiche push avanzate',
+                'Sincronizzazione multi-dispositivo',
               ].map((feature) => (
                 <li key={feature} className={settingsStyles.modals.subscription.listItem}>
                   <Check className={settingsStyles.modals.subscription.listIcon} />
@@ -258,7 +256,10 @@ export function SubscriptionModal({
             variant="outline"
             onClick={handleCancel}
             disabled={isProcessing}
-            className={cn(settingsStyles.modals.actionsButton, settingsStyles.modals.subscription.cancelButton)}
+            className={cn(
+              settingsStyles.modals.actionsButton,
+              settingsStyles.modals.subscription.cancelButton
+            )}
           >
             {isProcessing ? (
               <>
@@ -266,7 +267,7 @@ export function SubscriptionModal({
                 Elaborazione...
               </>
             ) : (
-              "Cancella Abbonamento"
+              'Cancella Abbonamento'
             )}
           </Button>
         ) : (

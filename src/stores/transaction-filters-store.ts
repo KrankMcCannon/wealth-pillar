@@ -64,11 +64,7 @@ export const useTransactionFiltersStore = create<TransactionFiltersStore>()(
 
         // Set multiple filters at once
         setFilters: (filters) => {
-          set(
-            (state) => ({ ...state, ...filters }),
-            false,
-            'transaction-filters/setFilters'
-          );
+          set((state) => ({ ...state, ...filters }), false, 'transaction-filters/setFilters');
         },
 
         // Reset all filters to default

@@ -10,7 +10,10 @@ export type SupabaseInsertBuilder<Insert, Row = unknown> = {
 
 export type SupabaseUpdateBuilder<Update, Row = unknown> = {
   update: (values: Update) => {
-    eq: (column: string, value: string) => {
+    eq: (
+      column: string,
+      value: string
+    ) => {
       select: () => {
         single: () => Promise<{ data: Row | null; error: unknown; count?: number }>;
       };
@@ -18,4 +21,3 @@ export type SupabaseUpdateBuilder<Update, Row = unknown> = {
     };
   };
 };
-

@@ -1,6 +1,6 @@
 /**
  * Shared Validation Utilities
- * 
+ *
  * Centralized validation helpers to reduce code duplication across services.
  * All validators throw descriptive errors on validation failure.
  */
@@ -30,10 +30,7 @@ export function validateRequiredString(
  * Validates that a string ID is non-empty.
  * Alias for validateRequiredString with consistent error messaging.
  */
-export function validateId(
-  value: string | undefined | null,
-  fieldName: string = 'ID'
-): string {
+export function validateId(value: string | undefined | null, fieldName: string = 'ID'): string {
   return validateRequiredString(value, fieldName);
 }
 
@@ -69,11 +66,7 @@ export function validateNonNegativeNumber(
  * Validates that a string meets minimum length requirement.
  * @throws Error if value is too short
  */
-export function validateMinLength(
-  value: string,
-  minLength: number,
-  fieldName: string
-): string {
+export function validateMinLength(value: string, minLength: number, fieldName: string): string {
   if (value.length < minLength) {
     throw new Error(`${fieldName} must be at least ${minLength} characters`);
   }
@@ -84,11 +77,7 @@ export function validateMinLength(
  * Validates that a string does not exceed maximum length.
  * @throws Error if value is too long
  */
-export function validateMaxLength(
-  value: string,
-  maxLength: number,
-  fieldName: string
-): string {
+export function validateMaxLength(value: string, maxLength: number, fieldName: string): string {
   if (value.length > maxLength) {
     throw new Error(`${fieldName} must be ${maxLength} characters or less`);
   }
@@ -99,10 +88,7 @@ export function validateMaxLength(
  * Validates that an array is non-empty.
  * @throws Error if array is undefined, null, or empty
  */
-export function validateNonEmptyArray<T>(
-  value: T[] | undefined | null,
-  fieldName: string
-): T[] {
+export function validateNonEmptyArray<T>(value: T[] | undefined | null, fieldName: string): T[] {
   if (!value || value.length === 0) {
     throw new Error(`At least one ${fieldName} is required`);
   }

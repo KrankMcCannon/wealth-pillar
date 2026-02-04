@@ -17,10 +17,10 @@ export interface EnrichedBudgetPeriod extends BudgetPeriod {
   userName: string;
   transactions: Transaction[]; // Sorted by amount descending
   defaultAccountStartBalance: number | null; // NEW: Sequential Start Balance
-  defaultAccountEndBalance: number | null;   // NEW: Sequential End Balance
-  periodTotalSpent: number;      // NEW: Expenses + Transfers Out
-  periodTotalIncome: number;     // NEW: Income + Transfers In
-  periodTotalTransfers: number;  // NEW: Total related transfers (In + Out)
+  defaultAccountEndBalance: number | null; // NEW: Sequential End Balance
+  periodTotalSpent: number; // NEW: Expenses + Transfers Out
+  periodTotalIncome: number; // NEW: Income + Transfers In
+  periodTotalTransfers: number; // NEW: Total related transfers (In + Out)
 }
 
 /**
@@ -28,7 +28,6 @@ export interface EnrichedBudgetPeriod extends BudgetPeriod {
  * Handles budget period calculations and enrichment by wrapping FinanceLogicService.
  */
 export class ReportPeriodService {
-
   /**
    * Process raw user periods, identify active ones, and generate synthetic ones if needed.
    * This centralizes logic previously in ReportsService.
@@ -41,13 +40,13 @@ export class ReportPeriodService {
       // Safely cast and map
       userPeriods = (user.budget_periods as BudgetPeriodJSON[]).map((bp) => ({
         ...bp,
-        user_id: user.id
+        user_id: user.id,
       })) as BudgetPeriod[];
     }
 
-    // 2. CHECK: Does this user have an Active Period? 
+    // 2. CHECK: Does this user have an Active Period?
     // STRICT RULE: is_active === true AND end_date is null
-    const hasActive = userPeriods.some(p => p.is_active && !p.end_date);
+    const hasActive = userPeriods.some((p) => p.is_active && !p.end_date);
 
     if (!hasActive) {
       this.addSyntheticActivePeriod(user, userPeriods);
@@ -67,7 +66,7 @@ export class ReportPeriodService {
 
     if (periods.length > 0) {
       // Find latest end date
-      // Sort by end_date descending. '9999...' ensures nulls (if any exist erroneously) go to top, 
+      // Sort by end_date descending. '9999...' ensures nulls (if any exist erroneously) go to top,
       // but here we are looking for the latest *completed* date to start *after*.
       const sortedByEnd = [...periods].sort((a, b) => {
         const aEnd = a.end_date ? String(a.end_date) : '0000-00-00';
@@ -102,7 +101,7 @@ export class ReportPeriodService {
       startDateStr = `${year}-${month}-${d}`;
     }
 
-    // Only add if startDate is valid 
+    // Only add if startDate is valid
     if (startDateStr <= new Date().toISOString().split('T')[0]) {
       const nowIso = new Date().toISOString();
       periods.push({
@@ -112,7 +111,7 @@ export class ReportPeriodService {
         is_active: true,
         user_id: user.id,
         created_at: nowIso,
-        updated_at: nowIso
+        updated_at: nowIso,
       });
     }
   }
@@ -127,7 +126,7 @@ export class ReportPeriodService {
   ): BudgetPeriod[] {
     if (!startDate && !endDate) return allPeriods;
 
-    return allPeriods.filter(p => {
+    return allPeriods.filter((p) => {
       // ALWAYS include active periods (no end_date) as per user request
       if (!p.end_date) return true;
 
@@ -137,7 +136,7 @@ export class ReportPeriodService {
       // start <= reqEnd AND end >= reqStart
 
       if (startDate && p.end_date < startDate) inRange = false; // Ends before range starts
-      // Note: If endDate is provided, we used to check p.end_date > endDate. 
+      // Note: If endDate is provided, we used to check p.end_date > endDate.
       // STRICT FILTER: If user asks for report until X, do we show periods ending after X?
       // Usually "Report for Jan" implies periods *ending* in Jan???
       // Original logic was: if (params.endDate && p.end_date > params.endDate) inRange = false;
@@ -161,7 +160,7 @@ export class ReportPeriodService {
     accounts: Account[]
   ): EnrichedBudgetPeriod[] {
     // Pre-index users by ID for O(1) lookup
-    const userMap = new Map(users.map(u => [u.id, u]));
+    const userMap = new Map(users.map((u) => [u.id, u]));
 
     // Pre-compute account IDs and objects per user for O(1) lookup
     const activeAccountIdsByUser = new Map<string, Set<string>>();
@@ -181,7 +180,7 @@ export class ReportPeriodService {
       }
     }
 
-    // Pre-sort transactions to avoid sorting repeatedly? 
+    // Pre-sort transactions to avoid sorting repeatedly?
     // Sorting per subset is usually fine, but if N is huge, might be better to sort once.
     // However, we filter per period anyway.
 
@@ -227,7 +226,7 @@ export class ReportPeriodService {
 
       // Pre-filter transactions for this user??
       // Optimization: filter transactions once by user if possible.
-      const rawUserTransactions = transactions.filter(t => t.user_id === userId);
+      const rawUserTransactions = transactions.filter((t) => t.user_id === userId);
 
       // Process periods sequentially
       for (const period of userPeriods) {

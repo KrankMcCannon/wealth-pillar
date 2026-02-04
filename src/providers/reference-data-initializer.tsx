@@ -7,7 +7,7 @@
  * @module providers/reference-data-initializer
  */
 
-"use client";
+'use client';
 
 import { useMemo } from 'react';
 import { useReferenceDataStore } from '@/stores/reference-data-store';

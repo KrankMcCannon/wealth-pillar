@@ -38,13 +38,13 @@ Run: `npx supabase gen types typescript --project-id <your-project-id> --schema 
 Always inject the `Database` interface into the client creator. This enables autocomplete and type checking for all tables and columns.
 
 ```ts
-import { createClient } from "@supabase/supabase-js";
-import { Database } from "@/types/supabase";
+import { createClient } from '@supabase/supabase-js';
+import { Database } from '@/types/supabase';
 
 // For client-side
 export const supabase = createClient<Database>(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 ```
 
@@ -56,11 +56,11 @@ Let TypeScript infer the return type. Do not cast to `any`.
 
 ```ts
 // Bad
-const { data }: any = await supabase.from("users").select();
+const { data }: any = await supabase.from('users').select();
 
 // Good
 // 'data' is automatically inferred as 'Row<"users">[] | null'
-const { data, error } = await supabase.from("users").select("id, username, created_at");
+const { data, error } = await supabase.from('users').select('id, username, created_at');
 
 if (error) throw error;
 if (!data) return [];
@@ -75,7 +75,7 @@ if (!data) return [];
 - **Relationships**: Use standard joining syntax for related tables.
 
 ```ts
-const { data } = await supabase.from("posts").select(`
+const { data } = await supabase.from('posts').select(`
     id,
     title,
     author:users ( username )
@@ -87,10 +87,10 @@ const { data } = await supabase.from("posts").select(`
 Leverage helper types to extract Row or Insert definitions for use in your component props.
 
 ```ts
-import { Database } from "@/types/supabase";
+import { Database } from '@/types/supabase';
 
-type Post = Database["public"]["Tables"]["posts"]["Row"];
-type NewPost = Database["public"]["Tables"]["posts"]["Insert"];
+type Post = Database['public']['Tables']['posts']['Row'];
+type NewPost = Database['public']['Tables']['posts']['Insert'];
 
 function PostCard({ post }: { post: Post }) {
   // ...

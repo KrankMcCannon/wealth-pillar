@@ -13,17 +13,17 @@
  * - Modern bottom drawer UI for all devices
  */
 
-"use client";
+'use client';
 
-import { useState, useMemo, useCallback } from "react";
-import { format, parse, isValid } from "date-fns";
-import { it } from "date-fns/locale";
-import { Calendar as CalendarIcon, X } from "lucide-react";
-import { FormField } from "@/components/form";
-import { Input, Button } from "@/components/ui";
-import { MobileCalendarDrawer } from "../mobile-calendar-drawer";
-import { calendarDrawerStyles } from "@/lib/styles/calendar-drawer.styles";
-import { calendarTriggerVariants } from "@/lib/utils";
+import { useState, useMemo, useCallback } from 'react';
+import { format, parse, isValid } from 'date-fns';
+import { it } from 'date-fns/locale';
+import { Calendar as CalendarIcon, X } from 'lucide-react';
+import { FormField } from '@/components/form';
+import { Input, Button } from '@/components/ui';
+import { MobileCalendarDrawer } from '../mobile-calendar-drawer';
+import { calendarDrawerStyles } from '@/lib/styles/calendar-drawer.styles';
+import { calendarTriggerVariants } from '@/lib/utils';
 
 export interface DateFieldProps {
   /** Current date value (YYYY-MM-DD format for API compatibility) */
@@ -63,14 +63,14 @@ export function DateField({
   onChange,
   error,
   required = false,
-  label = "Data",
+  label = 'Data',
 }: Readonly<DateFieldProps>) {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const formattedValue = useMemo(() => {
     if (value && isValid(new Date(value))) {
-      return format(new Date(value), "dd/MM/yyyy", { locale: it });
+      return format(new Date(value), 'dd/MM/yyyy', { locale: it });
     }
-    return "";
+    return '';
   }, [value]);
   const [isEditing, setIsEditing] = useState(false);
   const [draftValue, setDraftValue] = useState(formattedValue);
@@ -83,12 +83,12 @@ export function DateField({
 
       // Try to parse DD/MM/YYYY format
       if (newValue.length === 10) {
-        const parsed = parse(newValue, "dd/MM/yyyy", new Date(), { locale: it });
+        const parsed = parse(newValue, 'dd/MM/yyyy', new Date(), { locale: it });
         if (isValid(parsed)) {
-          onChange(format(parsed, "yyyy-MM-dd"));
+          onChange(format(parsed, 'yyyy-MM-dd'));
         }
-      } else if (newValue === "") {
-        onChange("");
+      } else if (newValue === '') {
+        onChange('');
       }
     },
     [onChange]
@@ -98,9 +98,9 @@ export function DateField({
   const handleInputBlur = useCallback(() => {
     if (value && isValid(new Date(value))) {
       const date = new Date(value);
-      setDraftValue(format(date, "dd/MM/yyyy", { locale: it }));
+      setDraftValue(format(date, 'dd/MM/yyyy', { locale: it }));
     } else if (!value) {
-      setDraftValue("");
+      setDraftValue('');
     }
     setIsEditing(false);
   }, [value]);
@@ -109,15 +109,15 @@ export function DateField({
   const handleClear = useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation();
-      onChange("");
-      setDraftValue("");
+      onChange('');
+      setDraftValue('');
       setIsEditing(false);
     },
     [onChange]
   );
 
   return (
-    <FormField label={label || "Data"} required={required} error={error}>
+    <FormField label={label || 'Data'} required={required} error={error}>
       <div className={calendarDrawerStyles.input.group}>
         {/* Text Input with Clear Button */}
         <div className={calendarDrawerStyles.input.wrapper}>

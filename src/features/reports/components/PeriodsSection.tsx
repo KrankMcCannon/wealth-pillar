@@ -1,8 +1,8 @@
-import React from "react";
-import type { ReportPeriodSummary } from "@/server/services/reports.service";
-import { reportsStyles } from "@/features/reports/theme/reports-styles";
-import { CalendarDays } from "lucide-react";
-import { PeriodCard } from "./PeriodCard";
+import React from 'react';
+import type { ReportPeriodSummary } from '@/server/services/reports.service';
+import { reportsStyles } from '@/features/reports/theme/reports-styles';
+import { CalendarDays } from 'lucide-react';
+import { PeriodCard } from './PeriodCard';
 
 interface PeriodsSectionProps {
   data: ReportPeriodSummary[];
@@ -13,9 +13,9 @@ export function PeriodsSection({ data, users }: PeriodsSectionProps) {
   // Group periods by userId
   const periodsByUser = React.useMemo(() => {
     const grouped: Record<string, ReportPeriodSummary[]> = {};
-    users.forEach(u => grouped[u.id] = []);
+    users.forEach((u) => (grouped[u.id] = []));
 
-    data.forEach(period => {
+    data.forEach((period) => {
       if (grouped[period.userId]) {
         grouped[period.userId].push(period);
       }
@@ -24,7 +24,7 @@ export function PeriodsSection({ data, users }: PeriodsSectionProps) {
   }, [data, users]);
 
   // Filter users who have periods
-  const activeUsers = users.filter(user => (periodsByUser[user.id]?.length || 0) > 0);
+  const activeUsers = users.filter((user) => (periodsByUser[user.id]?.length || 0) > 0);
 
   return (
     <div className="space-y-4">
@@ -39,7 +39,7 @@ export function PeriodsSection({ data, users }: PeriodsSectionProps) {
         </div>
       ) : (
         <div className={`grid gap-6 grid-cols-${activeUsers.length}`}>
-          {activeUsers.map(user => (
+          {activeUsers.map((user) => (
             <React.Fragment key={user.id}>
               <div key={user.id} className="space-y-4">
                 <h4 className="text-lg font-semibold flex items-center gap-2 border-b border-primary/20 pb-2 text-primary">

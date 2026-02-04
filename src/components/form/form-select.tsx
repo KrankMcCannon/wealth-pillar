@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import * as React from "react";
-import { cn } from "@/lib";
-import { Search } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui";
-import { formStyles } from "./theme/form-styles";
+import * as React from 'react';
+import { cn } from '@/lib';
+import { Search } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui';
+import { formStyles } from './theme/form-styles';
 
 /**
  * Form Select Component
@@ -60,12 +60,12 @@ export function FormSelect({
   value,
   onValueChange,
   options,
-  placeholder = "Seleziona...",
+  placeholder = 'Seleziona...',
   disabled = false,
   className,
   renderIcon,
 }: Readonly<FormSelectProps>) {
-  const [searchValue, setSearchValue] = React.useState("");
+  const [searchValue, setSearchValue] = React.useState('');
 
   // Filter options based on search value
   const filteredOptions = React.useMemo(() => {
@@ -73,19 +73,26 @@ export function FormSelect({
 
     const lowerSearch = searchValue.toLowerCase();
     return options.filter(
-      (option) => option.label.toLowerCase().includes(lowerSearch) || option.value.toLowerCase().includes(lowerSearch)
+      (option) =>
+        option.label.toLowerCase().includes(lowerSearch) ||
+        option.value.toLowerCase().includes(lowerSearch)
     );
   }, [searchValue, options]);
 
   // Reset search when dropdown closes
   const handleOpenChange = (isOpen: boolean) => {
     if (!isOpen) {
-      setSearchValue("");
+      setSearchValue('');
     }
   };
 
   return (
-    <Select value={value} onValueChange={onValueChange} disabled={disabled} onOpenChange={handleOpenChange}>
+    <Select
+      value={value}
+      onValueChange={onValueChange}
+      disabled={disabled}
+      onOpenChange={handleOpenChange}
+    >
       <SelectTrigger className={cn(formStyles.select.trigger, className)}>
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
@@ -138,10 +145,12 @@ export function FormSelect({
 /**
  * Converts array of items to SelectOption format
  */
-export function toSelectOptions<T extends { id?: string; key?: string; label?: string; name?: string }>(
+export function toSelectOptions<
+  T extends { id?: string; key?: string; label?: string; name?: string },
+>(
   items: T[],
-  getValue: (item: T) => string = (item) => item.id || item.key || "",
-  getLabel: (item: T) => string = (item) => item.label || item.name || ""
+  getValue: (item: T) => string = (item) => item.id || item.key || '',
+  getLabel: (item: T) => string = (item) => item.label || item.name || ''
 ): SelectOption[] {
   return items.map((item) => ({
     value: getValue(item),
@@ -152,6 +161,6 @@ export function toSelectOptions<T extends { id?: string; key?: string; label?: s
 /**
  * Sorts select options alphabetically by label
  */
-export function sortSelectOptions(options: SelectOption[], locale: string = "it"): SelectOption[] {
+export function sortSelectOptions(options: SelectOption[], locale: string = 'it'): SelectOption[] {
   return [...options].sort((a, b) => a.label.localeCompare(b.label, locale));
 }

@@ -72,11 +72,7 @@ export class AccountService {
    * Get specific account by ID
    */
   private static async getByIdDb(id: string): Promise<Account | null> {
-    const { data, error } = await supabase
-      .from('accounts')
-      .select('*')
-      .eq('id', id)
-      .single();
+    const { data, error } = await supabase.from('accounts').select('*').eq('id', id).single();
 
     if (error) {
       if (error.code === 'PGRST116') return null;
@@ -118,12 +114,7 @@ export class AccountService {
    * Delete an account from database
    */
   private static async deleteDb(id: string): Promise<Account> {
-    const { data, error } = await supabase
-      .from('accounts')
-      .delete()
-      .eq('id', id)
-      .select()
-      .single();
+    const { data, error } = await supabase.from('accounts').delete().eq('id', id).select().single();
 
     if (error) throw new Error(error.message);
     return data as Account;

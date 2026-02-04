@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
 /**
  * TransactionFilters - Modern filter system for transactions
- * 
+ *
  * Features:
  * - Inline search bar with live filtering
  * - Horizontal scrollable filter chips
@@ -11,10 +11,17 @@
  * - Smooth animations and haptic feedback
  */
 
-import { useState, useMemo, useCallback } from "react";
-import { Search, X, ChevronDown, Check } from "lucide-react";
-import { Category, cn } from "@/lib";
-import { toDateTime, isToday as isDateToday, isWithinWeek, isWithinMonth, isWithinYear, formatDateShort } from '@/lib/utils';
+import { useState, useMemo, useCallback } from 'react';
+import { Search, X, ChevronDown, Check } from 'lucide-react';
+import { Category, cn } from '@/lib';
+import {
+  toDateTime,
+  isToday as isDateToday,
+  isWithinWeek,
+  isWithinMonth,
+  isWithinYear,
+  formatDateShort,
+} from '@/lib/utils';
 import {
   Button,
   Input,
@@ -23,17 +30,17 @@ import {
   DrawerTrigger,
   DrawerTitle,
   DrawerDescription,
-  CategoryBadge
-} from "@/components/ui";
-import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
-import { transactionStyles } from "@/styles/system";
+  CategoryBadge,
+} from '@/components/ui';
+import * as VisuallyHidden from '@radix-ui/react-visually-hidden';
+import { transactionStyles } from '@/styles/system';
 
 // ============================================================================
 // Types
 // ============================================================================
 
-export type TransactionTypeFilter = "all" | "income" | "expense";
-export type DateRangeFilter = "all" | "today" | "week" | "month" | "year" | "custom";
+export type TransactionTypeFilter = 'all' | 'income' | 'expense';
+export type DateRangeFilter = 'all' | 'today' | 'week' | 'month' | 'year' | 'custom';
 
 export interface TransactionFiltersState {
   searchQuery: string;
@@ -60,18 +67,18 @@ interface TransactionFiltersProps {
 // ============================================================================
 
 const TYPE_OPTIONS: { key: TransactionTypeFilter; label: string }[] = [
-  { key: "all", label: "Tutti" },
-  { key: "income", label: "Entrate" },
-  { key: "expense", label: "Uscite" },
+  { key: 'all', label: 'Tutti' },
+  { key: 'income', label: 'Entrate' },
+  { key: 'expense', label: 'Uscite' },
 ];
 
 const DATE_OPTIONS: { key: DateRangeFilter; label: string }[] = [
-  { key: "all", label: "Sempre" },
-  { key: "today", label: "Oggi" },
-  { key: "week", label: "Settimana" },
-  { key: "month", label: "Mese" },
-  { key: "year", label: "Anno" },
-  { key: "custom", label: "Personalizzato" },
+  { key: 'all', label: 'Sempre' },
+  { key: 'today', label: 'Oggi' },
+  { key: 'week', label: 'Settimana' },
+  { key: 'month', label: 'Mese' },
+  { key: 'year', label: 'Anno' },
+  { key: 'custom', label: 'Personalizzato' },
 ];
 
 // ============================================================================
@@ -81,25 +88,25 @@ const DATE_OPTIONS: { key: DateRangeFilter; label: string }[] = [
 function getActiveFiltersCount(filters: TransactionFiltersState): number {
   let count = 0;
   if (filters.searchQuery) count++;
-  if (filters.type !== "all") count++;
-  if (filters.dateRange !== "all") count++;
-  if (filters.categoryKey !== "all") count++;
+  if (filters.type !== 'all') count++;
+  if (filters.dateRange !== 'all') count++;
+  if (filters.categoryKey !== 'all') count++;
   if (filters.categoryKeys && filters.categoryKeys.length > 0) count++;
   if (filters.budgetId) count++;
   return count;
 }
 
 function getTypeLabel(type: TransactionTypeFilter): string {
-  return TYPE_OPTIONS.find((o) => o.key === type)?.label ?? "Tutti";
+  return TYPE_OPTIONS.find((o) => o.key === type)?.label ?? 'Tutti';
 }
 
 function getDateLabel(dateRange: DateRangeFilter): string {
-  return DATE_OPTIONS.find((o) => o.key === dateRange)?.label ?? "Sempre";
+  return DATE_OPTIONS.find((o) => o.key === dateRange)?.label ?? 'Sempre';
 }
 
 function getDateChipLabel(filters: TransactionFiltersState): string {
-  if (filters.dateRange === "all") return "Periodo";
-  if (filters.dateRange === "custom") {
+  if (filters.dateRange === 'all') return 'Periodo';
+  if (filters.dateRange === 'custom') {
     // Format custom date range for display
     if (filters.startDate && filters.endDate) {
       return `${formatDateShort(filters.startDate)} - ${formatDateShort(filters.endDate)}`;
@@ -110,7 +117,7 @@ function getDateChipLabel(filters: TransactionFiltersState): string {
     if (filters.endDate) {
       return `Fino al ${formatDateShort(filters.endDate)}`;
     }
-    return "Personalizzato";
+    return 'Personalizzato';
   }
   return getDateLabel(filters.dateRange);
 }
@@ -187,7 +194,7 @@ function FilterChip({ label, isActive, hasValue, onClick, onClear }: FilterChipP
 // ============================================================================
 
 interface FilterDrawerContentProps {
-  readonly filterType: "type" | "date" | "category";
+  readonly filterType: 'type' | 'date' | 'category';
   readonly filters: TransactionFiltersState;
   readonly categories: Category[];
   readonly onSelect: (value: string) => void;
@@ -195,10 +202,17 @@ interface FilterDrawerContentProps {
   readonly onDateRangeChange?: (startDate: string, endDate: string) => void;
 }
 
-function FilterDrawerContent({ filterType, filters, categories, onSelect, onClose, onDateRangeChange }: FilterDrawerContentProps) {
-  const [categorySearch, setCategorySearch] = useState("");
-  const [customStartDate, setCustomStartDate] = useState(filters.startDate || "");
-  const [customEndDate, setCustomEndDate] = useState(filters.endDate || "");
+function FilterDrawerContent({
+  filterType,
+  filters,
+  categories,
+  onSelect,
+  onClose,
+  onDateRangeChange,
+}: FilterDrawerContentProps) {
+  const [categorySearch, setCategorySearch] = useState('');
+  const [customStartDate, setCustomStartDate] = useState(filters.startDate || '');
+  const [customEndDate, setCustomEndDate] = useState(filters.endDate || '');
 
   const filteredCategories = useMemo(() => {
     if (!categorySearch.trim()) return categories;
@@ -243,7 +257,7 @@ function FilterDrawerContent({ filterType, filters, categories, onSelect, onClos
       <div className={transactionStyles.filters.dateSection}>
         {/* Preset options */}
         <div className={transactionStyles.filters.dateGrid}>
-          {DATE_OPTIONS.filter(o => o.key !== "custom").map((option) => (
+          {DATE_OPTIONS.filter((o) => o.key !== 'custom').map((option) => (
             <button
               key={option.key}
               type="button"
@@ -258,7 +272,9 @@ function FilterDrawerContent({ filterType, filters, categories, onSelect, onClos
                   : transactionStyles.filters.dateButtonIdle
               )}
             >
-              {filters.dateRange === option.key && <Check className={transactionStyles.filters.typeCheck} />}
+              {filters.dateRange === option.key && (
+                <Check className={transactionStyles.filters.typeCheck} />
+              )}
               <span>{option.label}</span>
             </button>
           ))}
@@ -320,17 +336,19 @@ function FilterDrawerContent({ filterType, filters, categories, onSelect, onClos
         <button
           type="button"
           onClick={() => {
-            onSelect("all");
+            onSelect('all');
             onClose();
           }}
           className={cn(
             transactionStyles.filters.categoryButton,
-            filters.categoryKey === "all"
+            filters.categoryKey === 'all'
               ? transactionStyles.filters.categoryButtonActive
               : transactionStyles.filters.categoryButtonIdle
           )}
         >
-          {filters.categoryKey === "all" && <Check className={transactionStyles.filters.categoryCheck} />}
+          {filters.categoryKey === 'all' && (
+            <Check className={transactionStyles.filters.categoryCheck} />
+          )}
           <span className={transactionStyles.filters.categoryLabel}>Tutte</span>
         </button>
 
@@ -351,7 +369,9 @@ function FilterDrawerContent({ filterType, filters, categories, onSelect, onClos
           >
             <CategoryBadge categoryKey={category.key} size="sm" />
             <span className={transactionStyles.filters.categoryLabelLeft}>{category.label}</span>
-            {filters.categoryKey === category.key && <Check className={transactionStyles.filters.categoryCheck} />}
+            {filters.categoryKey === category.key && (
+              <Check className={transactionStyles.filters.categoryCheck} />
+            )}
           </button>
         ))}
       </div>
@@ -359,9 +379,9 @@ function FilterDrawerContent({ filterType, filters, categories, onSelect, onClos
   );
 
   const titles: Record<string, string> = {
-    type: "Tipo transazione",
-    date: "Periodo",
-    category: "Categoria",
+    type: 'Tipo transazione',
+    date: 'Periodo',
+    category: 'Categoria',
   };
 
   return (
@@ -386,9 +406,9 @@ function FilterDrawerContent({ filterType, filters, categories, onSelect, onClos
       </div>
 
       {/* Content */}
-      {filterType === "type" && renderTypeOptions()}
-      {filterType === "date" && renderDateOptions()}
-      {filterType === "category" && renderCategoryOptions()}
+      {filterType === 'type' && renderTypeOptions()}
+      {filterType === 'date' && renderDateOptions()}
+      {filterType === 'category' && renderCategoryOptions()}
     </div>
   );
 }
@@ -405,7 +425,7 @@ export function TransactionFilters({
   budgetName,
   onClearBudgetFilter,
 }: TransactionFiltersProps) {
-  const [activeDrawer, setActiveDrawer] = useState<"type" | "date" | "category" | null>(null);
+  const [activeDrawer, setActiveDrawer] = useState<'type' | 'date' | 'category' | null>(null);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
 
   const activeFiltersCount = getActiveFiltersCount(filters);
@@ -413,9 +433,9 @@ export function TransactionFilters({
 
   // Get category label
   const categoryLabel = useMemo(() => {
-    if (filters.categoryKey === "all") return "Categoria";
+    if (filters.categoryKey === 'all') return 'Categoria';
     const cat = categories.find((c) => c.key === filters.categoryKey);
-    return cat?.label ?? "Categoria";
+    return cat?.label ?? 'Categoria';
   }, [filters.categoryKey, categories]);
 
   // Handlers
@@ -436,10 +456,15 @@ export function TransactionFilters({
   const handleDateChange = useCallback(
     (value: string) => {
       // If custom, keep custom dates; otherwise clear them
-      if (value === "custom") {
+      if (value === 'custom') {
         onFiltersChange({ ...filters, dateRange: value as DateRangeFilter });
       } else {
-        onFiltersChange({ ...filters, dateRange: value as DateRangeFilter, startDate: undefined, endDate: undefined });
+        onFiltersChange({
+          ...filters,
+          dateRange: value as DateRangeFilter,
+          startDate: undefined,
+          endDate: undefined,
+        });
       }
     },
     [filters, onFiltersChange]
@@ -449,9 +474,9 @@ export function TransactionFilters({
     (startDate: string, endDate: string) => {
       onFiltersChange({
         ...filters,
-        dateRange: "custom",
+        dateRange: 'custom',
         startDate: startDate || undefined,
-        endDate: endDate || undefined
+        endDate: endDate || undefined,
       });
     },
     [filters, onFiltersChange]
@@ -467,10 +492,10 @@ export function TransactionFilters({
   const handleClearAll = useCallback(() => {
     // Reset all filters to default state
     onFiltersChange({
-      searchQuery: "",
-      type: "all",
-      dateRange: "all",
-      categoryKey: "all",
+      searchQuery: '',
+      type: 'all',
+      dateRange: 'all',
+      categoryKey: 'all',
     });
     // Also clear budget filter if present
     if (onClearBudgetFilter) {
@@ -479,7 +504,7 @@ export function TransactionFilters({
   }, [onFiltersChange, onClearBudgetFilter]);
 
   const handleClearSearch = useCallback(() => {
-    onFiltersChange({ ...filters, searchQuery: "" });
+    onFiltersChange({ ...filters, searchQuery: '' });
   }, [filters, onFiltersChange]);
 
   return (
@@ -490,11 +515,12 @@ export function TransactionFilters({
           <div className={transactionStyles.filters.budgetBannerLeft}>
             <div className={transactionStyles.filters.budgetBannerDot} />
             <span className={transactionStyles.filters.budgetBannerText}>
-              {budgetName ? `Budget: ${budgetName}` : "Filtro Budget attivo"}
+              {budgetName ? `Budget: ${budgetName}` : 'Filtro Budget attivo'}
             </span>
             {filters.categoryKeys && filters.categoryKeys.length > 0 && (
               <span className={transactionStyles.filters.budgetBannerCount}>
-                ({filters.categoryKeys.length} {filters.categoryKeys.length === 1 ? 'categoria' : 'categorie'})
+                ({filters.categoryKeys.length}{' '}
+                {filters.categoryKeys.length === 1 ? 'categoria' : 'categorie'})
               </span>
             )}
           </div>
@@ -516,7 +542,9 @@ export function TransactionFilters({
         <Search
           className={cn(
             transactionStyles.filters.searchIcon,
-            isSearchFocused ? transactionStyles.filters.searchIconActive : transactionStyles.filters.searchIconInactive
+            isSearchFocused
+              ? transactionStyles.filters.searchIconActive
+              : transactionStyles.filters.searchIconInactive
           )}
         />
         <Input
@@ -542,15 +570,18 @@ export function TransactionFilters({
       {/* Filter Chips - Horizontal Scroll */}
       <div className={transactionStyles.filters.chipsRow}>
         {/* Type Filter */}
-        <Drawer open={activeDrawer === "type"} onOpenChange={(open) => setActiveDrawer(open ? "type" : null)}>
+        <Drawer
+          open={activeDrawer === 'type'}
+          onOpenChange={(open) => setActiveDrawer(open ? 'type' : null)}
+        >
           <DrawerTrigger asChild>
             <div>
               <FilterChip
-                label={filters.type === "all" ? "Tipo" : getTypeLabel(filters.type)}
-                isActive={activeDrawer === "type"}
-                hasValue={filters.type !== "all"}
-                onClick={() => setActiveDrawer("type")}
-                onClear={() => handleTypeChange("all")}
+                label={filters.type === 'all' ? 'Tipo' : getTypeLabel(filters.type)}
+                isActive={activeDrawer === 'type'}
+                hasValue={filters.type !== 'all'}
+                onClick={() => setActiveDrawer('type')}
+                onClear={() => handleTypeChange('all')}
               />
             </div>
           </DrawerTrigger>
@@ -566,15 +597,18 @@ export function TransactionFilters({
         </Drawer>
 
         {/* Date Filter */}
-        <Drawer open={activeDrawer === "date"} onOpenChange={(open) => setActiveDrawer(open ? "date" : null)}>
+        <Drawer
+          open={activeDrawer === 'date'}
+          onOpenChange={(open) => setActiveDrawer(open ? 'date' : null)}
+        >
           <DrawerTrigger asChild>
             <div>
               <FilterChip
                 label={getDateChipLabel(filters)}
-                isActive={activeDrawer === "date"}
-                hasValue={filters.dateRange !== "all"}
-                onClick={() => setActiveDrawer("date")}
-                onClear={() => handleDateChange("all")}
+                isActive={activeDrawer === 'date'}
+                hasValue={filters.dateRange !== 'all'}
+                onClick={() => setActiveDrawer('date')}
+                onClear={() => handleDateChange('all')}
               />
             </div>
           </DrawerTrigger>
@@ -591,15 +625,18 @@ export function TransactionFilters({
         </Drawer>
 
         {/* Category Filter */}
-        <Drawer open={activeDrawer === "category"} onOpenChange={(open) => setActiveDrawer(open ? "category" : null)}>
+        <Drawer
+          open={activeDrawer === 'category'}
+          onOpenChange={(open) => setActiveDrawer(open ? 'category' : null)}
+        >
           <DrawerTrigger asChild>
             <div>
               <FilterChip
                 label={categoryLabel}
-                isActive={activeDrawer === "category"}
-                hasValue={filters.categoryKey !== "all"}
-                onClick={() => setActiveDrawer("category")}
-                onClear={() => handleCategoryChange("all")}
+                isActive={activeDrawer === 'category'}
+                hasValue={filters.categoryKey !== 'all'}
+                onClick={() => setActiveDrawer('category')}
+                onClear={() => handleCategoryChange('all')}
               />
             </div>
           </DrawerTrigger>
@@ -640,10 +677,10 @@ export function TransactionFilters({
 export default TransactionFilters;
 
 export const defaultFiltersState: TransactionFiltersState = {
-  searchQuery: "",
-  type: "all",
-  dateRange: "all",
-  categoryKey: "all",
+  searchQuery: '',
+  type: 'all',
+  dateRange: 'all',
+  categoryKey: 'all',
 };
 
 /**
@@ -656,7 +693,7 @@ export function hasActiveFilters(filters: TransactionFiltersState): boolean {
 /**
  * Helper function to filter transactions based on filters state
  * Works with Transaction type from the application
- * 
+ *
  * NOTE: Transactions store category by KEY (e.g., "food", "transport")
  * The filter also uses category KEY for matching
  */
@@ -667,55 +704,49 @@ const matchesSearch = (
 ): boolean => {
   if (!query) return true;
   const q = query.toLowerCase();
-  
+
   // Search in description
   if (t.description.toLowerCase().includes(q)) return true;
-  
+
   // Search in category label
   if (categoryByKey && t.category) {
     const category = categoryByKey.get(t.category);
     if (category?.label.toLowerCase().includes(q)) return true;
   }
-  
+
   return false;
 };
 
-const matchesCategory = (
-  t: { category: string },
-  filters: TransactionFiltersState
-): boolean => {
+const matchesCategory = (t: { category: string }, filters: TransactionFiltersState): boolean => {
   // 1. Specific category selected
-  if (filters.categoryKey !== "all") {
+  if (filters.categoryKey !== 'all') {
     return t.category === filters.categoryKey;
   }
-  
+
   // 2. Budget mode (multiple permitted categories)
   if (filters.categoryKeys && filters.categoryKeys.length > 0) {
     return filters.categoryKeys.includes(t.category);
   }
-  
+
   return true;
 };
 
-const matchesDate = (
-  t: { date: string | Date },
-  filters: TransactionFiltersState
-): boolean => {
-  if (filters.dateRange === "all") return true;
-  
+const matchesDate = (t: { date: string | Date }, filters: TransactionFiltersState): boolean => {
+  if (filters.dateRange === 'all') return true;
+
   const transactionDate = toDateTime(t.date);
   if (!transactionDate) return false;
 
   switch (filters.dateRange) {
-    case "today":
+    case 'today':
       return isDateToday(transactionDate);
-    case "week":
+    case 'week':
       return isWithinWeek(transactionDate);
-    case "month":
+    case 'month':
       return isWithinMonth(transactionDate);
-    case "year":
+    case 'year':
       return isWithinYear(transactionDate);
-    case "custom": {
+    case 'custom': {
       if (filters.startDate) {
         const startDate = toDateTime(filters.startDate);
         if (startDate && transactionDate < startDate.startOf('day')) return false;
@@ -731,22 +762,18 @@ const matchesDate = (
   }
 };
 
-export function filterTransactions<T extends { description: string; type: string; category: string; date: string | Date }>(
-  transactions: T[],
-  filters: TransactionFiltersState,
-  categories?: Category[]
-): T[] {
+export function filterTransactions<
+  T extends { description: string; type: string; category: string; date: string | Date },
+>(transactions: T[], filters: TransactionFiltersState, categories?: Category[]): T[] {
   // Create category lookup by key for search functionality
-  const categoryByKey = categories
-    ? new Map(categories.map((c) => [c.key, c]))
-    : null;
+  const categoryByKey = categories ? new Map(categories.map((c) => [c.key, c])) : null;
 
   return transactions.filter((t) => {
     // 1. Search Filter
     if (!matchesSearch(t, filters.searchQuery, categoryByKey)) return false;
 
     // 2. Type Filter
-    if (filters.type !== "all" && t.type !== filters.type) return false;
+    if (filters.type !== 'all' && t.type !== filters.type) return false;
 
     // 3. Category Filter
     if (!matchesCategory(t, filters)) return false;

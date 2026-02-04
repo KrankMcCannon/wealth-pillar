@@ -2,10 +2,10 @@
  * UserField - Reusable user selector field
  */
 
-"use client";
+'use client';
 
-import { FormField, FormSelect } from "@/components/form";
-import type { User } from "@/lib/types";
+import { FormField, FormSelect } from '@/components/form';
+import type { User } from '@/lib/types';
 
 interface UserFieldProps {
   value: string;
@@ -24,8 +24,8 @@ export function UserField({
   onChange,
   error,
   required = true,
-  label = "Utente",
-  placeholder = "Seleziona utente",
+  label = 'Utente',
+  placeholder = 'Seleziona utente',
   users = [],
   disabled = false,
   helperText,

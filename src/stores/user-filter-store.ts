@@ -17,13 +17,14 @@ export const useUserFilterStore = create<UserFilterState>()(
       setSelectedGroupFilter: (filter: string) =>
         set({
           selectedGroupFilter: filter,
-          selectedUserId: filter === 'all' ? undefined : filter
+          selectedUserId: filter === 'all' ? undefined : filter,
         }),
 
-      reset: () => set({
-        selectedGroupFilter: 'all',
-        selectedUserId: undefined
-      }),
+      reset: () =>
+        set({
+          selectedGroupFilter: 'all',
+          selectedUserId: undefined,
+        }),
     }),
     {
       name: 'wealth-pillar-user-filter',
@@ -33,11 +34,10 @@ export const useUserFilterStore = create<UserFilterState>()(
 );
 
 // Selettori ottimizzati per performance
-export const useSelectedUserId = () =>
-  useUserFilterStore(state => state.selectedUserId);
+export const useSelectedUserId = () => useUserFilterStore((state) => state.selectedUserId);
 
 export const useSelectedGroupFilter = () =>
-  useUserFilterStore(state => state.selectedGroupFilter);
+  useUserFilterStore((state) => state.selectedGroupFilter);
 
 export const useSetSelectedGroupFilter = () =>
-  useUserFilterStore(state => state.setSelectedGroupFilter);
+  useUserFilterStore((state) => state.setSelectedGroupFilter);

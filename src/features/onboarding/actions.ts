@@ -1,4 +1,4 @@
-"use server";
+'use server';
 
 import { CACHE_TAGS } from '@/lib/cache/config';
 import { AccountService, BudgetService, UserService, GroupService } from '@/server/services';
@@ -26,7 +26,7 @@ function getInitials(name: string) {
 // Helper: Validate onboarding input
 function validateOnboardingInput(input: CompleteOnboardingInput): string | null {
   const { user, group, accounts, budgets } = input;
-  if (!user?.clerkId || !user.email || !user.name) return 'Dati utente mancanti per l\'onboarding';
+  if (!user?.clerkId || !user.email || !user.name) return "Dati utente mancanti per l'onboarding";
   if (!group?.name?.trim()) return 'Il nome del gruppo è obbligatorio';
   if (!accounts || accounts.length === 0) return 'Aggiungi almeno un conto bancario';
   if (!budgets || budgets.length === 0) return 'Aggiungi almeno un budget';
@@ -52,7 +52,7 @@ async function createOnboardingAccounts(
       group_id: groupId,
     });
 
-    if (!createdAccount) return { defaultAccountId: null, error: "Failed to create account" };
+    if (!createdAccount) return { defaultAccountId: null, error: 'Failed to create account' };
 
     createdAccountIds.push(accountId);
     if (accountInput.isDefault) defaultAccountId = accountId;
@@ -82,7 +82,7 @@ async function createOnboardingBudgets(
       group_id: groupId,
     });
 
-    if (!createdBudget) return "Failed to create budget";
+    if (!createdBudget) return 'Failed to create budget';
   }
   return null;
 }
@@ -103,7 +103,10 @@ export async function completeOnboardingAction(
     // 2. Check existing user
     const existingUser = await UserService.userExistsByClerkId(user.clerkId);
     if (existingUser) {
-      return { data: null, error: 'L\'utente risulta già configurato. Aggiorna la pagina per accedere alla dashboard.' };
+      return {
+        data: null,
+        error: "L'utente risulta già configurato. Aggiorna la pagina per accedere alla dashboard.",
+      };
     }
 
     const userId = randomUUID();
@@ -115,8 +118,8 @@ export async function completeOnboardingAction(
       name: group.name.trim(),
       description: group.description?.trim() || undefined,
       userIds: [userId],
-      plan: { name: "Piano Gratuito", type: "free" },
-      isActive: true
+      plan: { name: 'Piano Gratuito', type: 'free' },
+      isActive: true,
     });
 
     if (!createdGroup) return { data: null, error: 'Errore durante la creazione del gruppo' };
@@ -135,7 +138,8 @@ export async function completeOnboardingAction(
       budget_periods: [],
     });
 
-    if (!createdUser) return { data: null, error: 'Errore durante la creazione del profilo utente' };
+    if (!createdUser)
+      return { data: null, error: 'Errore durante la creazione del profilo utente' };
 
     // 5. Invalidate caches
     revalidateTag(CACHE_TAGS.USERS, 'max');
@@ -143,12 +147,18 @@ export async function completeOnboardingAction(
     revalidateTag(CACHE_TAGS.USER_BY_CLERK(user.clerkId), 'max');
 
     // 6. Create Accounts
-    const { defaultAccountId, error: accountError } = await createOnboardingAccounts(accounts, userId, groupId);
+    const { defaultAccountId, error: accountError } = await createOnboardingAccounts(
+      accounts,
+      userId,
+      groupId
+    );
     if (accountError) return { data: null, error: accountError };
 
     // 7. Set default account
     if (defaultAccountId) {
-      await UserService.update(userId, { default_account_id: defaultAccountId } as { default_account_id: string });
+      await UserService.update(userId, { default_account_id: defaultAccountId } as {
+        default_account_id: string;
+      });
     }
 
     // 8. Create Budgets
@@ -160,10 +170,11 @@ export async function completeOnboardingAction(
       error: null,
     };
   } catch (error) {
-    console.error("[completeOnboardingAction] Error:", error);
+    console.error('[completeOnboardingAction] Error:', error);
     return {
       data: null,
-      error: error instanceof Error ? error.message : 'Errore durante il completamento dell\'onboarding',
+      error:
+        error instanceof Error ? error.message : "Errore durante il completamento dell'onboarding",
     };
   }
 }
@@ -185,7 +196,8 @@ export async function deleteClerkUserAction(clerkUserId: string): Promise<Servic
     console.error('Error deleting Clerk user:', error);
     return {
       data: null,
-      error: error instanceof Error ? error.message : 'Errore durante l\'eliminazione dell\'utente Clerk',
+      error:
+        error instanceof Error ? error.message : "Errore durante l'eliminazione dell'utente Clerk",
     };
   }
 }

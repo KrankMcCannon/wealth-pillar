@@ -1,20 +1,20 @@
-"use client";
+'use client';
 
-import { Suspense } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense } from 'react';
+import { useRouter } from 'next/navigation';
 import type { Budget, BudgetPeriod, User } from '@/lib';
 import { progressBarVariants } from '@/lib';
-import { BudgetSectionSkeleton } from "@/features/dashboard";
-import { SectionHeader } from "@/components/layout";
-import { PageSection, RowCard } from "@/components/ui/layout";
-import { BudgetCard } from "@/components/cards";
-import { formatCurrency } from "@/lib/utils/currency-formatter";
+import { BudgetSectionSkeleton } from '@/features/dashboard';
+import { SectionHeader } from '@/components/layout';
+import { PageSection, RowCard } from '@/components/ui/layout';
+import { BudgetCard } from '@/components/cards';
+import { formatCurrency } from '@/lib/utils/currency-formatter';
 import {
   budgetStyles,
   getBudgetSectionProgressStyles,
   getBudgetGroupCardStyle,
   getBudgetSectionProgressBarStyle,
-} from "@/styles/system";
+} from '@/styles/system';
 
 interface BudgetSectionProps {
   budgetsByUser: Record<
@@ -88,10 +88,11 @@ export const BudgetSection = ({
           </div>
           <h3 className={budgetStyles.section.emptyTitle}>Nessun budget configurato</h3>
           <p className={budgetStyles.section.emptyDescription}>
-            Crea dei budget per monitorare le tue spese e tenere sotto controllo le finanze familiari
+            Crea dei budget per monitorare le tue spese e tenere sotto controllo le finanze
+            familiari
           </p>
           <button
-            onClick={() => router.push("/budgets")}
+            onClick={() => router.push('/budgets')}
             className={budgetStyles.section.emptyButton}
           >
             Crea Budget
@@ -105,7 +106,9 @@ export const BudgetSection = ({
     <PageSection className={budgetStyles.section.container}>
       <SectionHeader
         title="Budget"
-        subtitle={budgetEntries.length > 1 ? `${budgetEntries.length} utenti con budget attivi` : undefined}
+        subtitle={
+          budgetEntries.length > 1 ? `${budgetEntries.length} utenti con budget attivi` : undefined
+        }
         leading={headerLeading}
       />
 
@@ -137,65 +140,74 @@ export const BudgetSection = ({
                   className={`${budgetStyles.section.groupHeader} cursor-pointer hover:bg-primary/5 transition-colors w-full text-left`}
                   onClick={() => router.push(`/budgets/summary?userId=${user.id}`)}
                 >
-                      {/* User Info Row */}
-                      <RowCard
-                        icon={
-                          <span className={budgetStyles.section.avatarText}>
-                            {user.name.charAt(0).toUpperCase()}
+                  {/* User Info Row */}
+                  <RowCard
+                    icon={
+                      <span className={budgetStyles.section.avatarText}>
+                        {user.name.charAt(0).toUpperCase()}
+                      </span>
+                    }
+                    iconClassName={budgetStyles.section.avatar}
+                    title={user.name}
+                    subtitle={
+                      activePeriod && periodStart ? (
+                        <span className={budgetStyles.section.periodText}>
+                          {new Date(periodStart).toLocaleDateString('it-IT', {
+                            day: 'numeric',
+                            month: 'short',
+                          })}{' '}
+                          -{' '}
+                          {periodEnd
+                            ? new Date(periodEnd).toLocaleDateString('it-IT', {
+                                day: 'numeric',
+                                month: 'short',
+                              })
+                            : 'In corso'}
+                        </span>
+                      ) : undefined
+                    }
+                    primaryValue={
+                      <div className="flex flex-col items-end">
+                        <div className={budgetStyles.section.amount}>
+                          <span
+                            className={`${totalRemaining >= 0 ? 'text-success' : 'text-destructive'}`}
+                          >
+                            {formatCurrency(totalRemaining)}
                           </span>
-                        }
-                        iconClassName={budgetStyles.section.avatar}
-                        title={user.name}
-                        subtitle={
-                          activePeriod && periodStart ? (
-                            <span className={budgetStyles.section.periodText}>
-                              {new Date(periodStart).toLocaleDateString("it-IT", { day: "numeric", month: "short" })} -{" "}
-                              {periodEnd
-                                ? new Date(periodEnd).toLocaleDateString("it-IT", { day: "numeric", month: "short" })
-                                : "In corso"}
-                            </span>
-                          ) : undefined
-                        }
-                        primaryValue={
-                          <div className="flex flex-col items-end">
-                            <div className={budgetStyles.section.amount}>
-                              <span className={`${totalRemaining >= 0 ? "text-success" : "text-destructive"}`}>
-                                {formatCurrency(totalRemaining)}
-                              </span>
-                              <span className={budgetStyles.section.amountDivider}> / </span>
-                              <span>{formatCurrency(totalBudget)}</span>
-                            </div>
-                            <span className="text-xs text-muted-foreground">
-                              Spesi: {formatCurrency(totalSpent)}
-                            </span>
-                          </div>
-                        }
-                        rightLayout="row"
-                      />
+                          <span className={budgetStyles.section.amountDivider}> / </span>
+                          <span>{formatCurrency(totalBudget)}</span>
+                        </div>
+                        <span className="text-xs text-muted-foreground">
+                          Spesi: {formatCurrency(totalSpent)}
+                        </span>
+                      </div>
+                    }
+                    rightLayout="row"
+                  />
 
-                      {/* Progress Bar with Inline Percentage */}
-                      <div className={budgetStyles.section.progressRow}>
-                        {(() => {
-                           let status: "danger" | "warning" | "neutral" = "neutral";
-                           if (overallPercentage > 100) {
-                            status = "danger";
-                           } else if (overallPercentage > 75) {
-                            status = "warning";
-                           }
-                           
-                           return (
-                             <div
-                               className={progressBarVariants({ status })}
-                             >
-                               <div
-                                 className={`${budgetStyles.progress.barFillBase} ${progressClasses.bar}`}
-                                 style={getBudgetSectionProgressBarStyle(overallPercentage)}
-                               />
-                             </div>
-                           );
-                        })()}
+                  {/* Progress Bar with Inline Percentage */}
+                  <div className={budgetStyles.section.progressRow}>
+                    {(() => {
+                      let status: 'danger' | 'warning' | 'neutral' = 'neutral';
+                      if (overallPercentage > 100) {
+                        status = 'danger';
+                      } else if (overallPercentage > 75) {
+                        status = 'warning';
+                      }
+
+                      return (
+                        <div className={progressBarVariants({ status })}>
+                          <div
+                            className={`${budgetStyles.progress.barFillBase} ${progressClasses.bar}`}
+                            style={getBudgetSectionProgressBarStyle(overallPercentage)}
+                          />
+                        </div>
+                      );
+                    })()}
                     <div className={budgetStyles.section.progressBadge}>
-                      <div className={`${budgetStyles.section.progressBadgeDot} ${progressClasses.dot}`} />
+                      <div
+                        className={`${budgetStyles.section.progressBadgeDot} ${progressClasses.dot}`}
+                      />
                       <span
                         className={`${budgetStyles.section.progressBadgeText} ${progressClasses.text}`}
                       >
@@ -244,9 +256,9 @@ export const BudgetSection = ({
                             budgetInfo={mappedBudgetInfo}
                             onClick={() => {
                               const params = new URLSearchParams();
-                              params.set("budget", budget.id);
+                              params.set('budget', budget.id);
                               // Always pass the budget owner's user_id
-                              params.set("member", budget.user_id);
+                              params.set('member', budget.user_id);
                               router.push(`/budgets?${params.toString()}`);
                             }}
                           />

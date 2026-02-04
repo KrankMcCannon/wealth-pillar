@@ -1,14 +1,14 @@
-"use client";
+'use client';
 
-import { ReactNode } from "react";
+import { ReactNode } from 'react';
 
 interface PermissionGuardProps {
   children: ReactNode;
   fallback?: ReactNode;
 
   // Controlli basati su ruoli
-  requireRole?: "member" | "admin" | "superadmin";
-  allowRoles?: Array<"member" | "admin" | "superadmin">;
+  requireRole?: 'member' | 'admin' | 'superadmin';
+  allowRoles?: Array<'member' | 'admin' | 'superadmin'>;
 
   // Controlli basati su feature
   requireFeature?: string;
@@ -81,7 +81,7 @@ export const FeatureToggle: React.FC<FeatureToggleProps> = ({ fallback = null })
  */
 export function withPermissions<P extends object>(
   Component: React.ComponentType<P>,
-  permissionConfig: Omit<PermissionGuardProps, "children">
+  permissionConfig: Omit<PermissionGuardProps, 'children'>
 ) {
   return function ProtectedComponent(props: P) {
     return (

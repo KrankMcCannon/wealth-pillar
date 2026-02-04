@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import * as React from "react";
-import { cn } from "@/lib/utils";
-import { layoutStyles } from "@/styles/system";
+import * as React from 'react';
+import { cn } from '@/lib/utils';
+import { layoutStyles } from '@/styles/system';
 
 export interface ListContainerProps {
   children: React.ReactNode;
@@ -17,11 +17,7 @@ export function ListContainer({
 }: Readonly<ListContainerProps>) {
   return (
     <div
-      className={cn(
-        layoutStyles.list.container,
-        divided && layoutStyles.list.divided,
-        className
-      )}
+      className={cn(layoutStyles.list.container, divided && layoutStyles.list.divided, className)}
     >
       {children}
     </div>

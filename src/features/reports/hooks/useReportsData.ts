@@ -1,27 +1,25 @@
-"use client";
+'use client';
 
-import { useMemo, useState } from "react";
-import { useUserFilter, useFilteredData, usePermissions } from "@/hooks";
-import { FinanceLogicService } from "@/server/services/finance-logic.service";
-import { toDateTime } from "@/lib/utils/date-utils";
-import type {
-  User,
-  Account,
-  Category,
-  CategoryBreakdownItem
-} from "@/lib/types";
-import type { EnrichedBudgetPeriod } from "@/server/services/report-period.service";
+import { useMemo, useState } from 'react';
+import { useUserFilter, useFilteredData, usePermissions } from '@/hooks';
+import { FinanceLogicService } from '@/server/services/finance-logic.service';
+import { toDateTime } from '@/lib/utils/date-utils';
+import type { User, Account, Category, CategoryBreakdownItem } from '@/lib/types';
+import type { EnrichedBudgetPeriod } from '@/server/services/report-period.service';
 
 export interface ReportsDataProps {
   accounts: Account[];
   categories: Category[];
   enrichedBudgetPeriods: (EnrichedBudgetPeriod & { transactionCount?: number })[];
-  overviewMetrics: Record<string, {
-    totalEarned: number;
-    totalSpent: number;
-    totalTransferred: number;
-    totalBalance: number;
-  }>;
+  overviewMetrics: Record<
+    string,
+    {
+      totalEarned: number;
+      totalSpent: number;
+      totalTransferred: number;
+      totalBalance: number;
+    }
+  >;
   annualSpending: Record<string, Record<string, CategoryBreakdownItem[]>>;
   currentUser: User;
   groupUsers: User[];
@@ -44,7 +42,7 @@ export function useReportsData({
   // Permission checks
   const { isMember } = usePermissions({
     currentUser,
-    selectedUserId: selectedGroupFilter === "all" ? undefined : selectedGroupFilter,
+    selectedUserId: selectedGroupFilter === 'all' ? undefined : selectedGroupFilter,
   });
 
   // Force members to see only their own data
@@ -56,7 +54,7 @@ export function useReportsData({
     const years = new Set<number>();
     // If filtering by user, assume 'all' key or specific user key contains years
     const data = annualSpending['all'] || {};
-    Object.keys(data).forEach(key => {
+    Object.keys(data).forEach((key) => {
       const year = Number(key);
       if (!Number.isNaN(year)) {
         years.add(year);
@@ -69,14 +67,14 @@ export function useReportsData({
   const { filteredData: userFilteredBudgetPeriods } = useFilteredData({
     data: enrichedBudgetPeriods,
     currentUser,
-    selectedUserId: activeGroupFilter === "all" ? undefined : activeGroupFilter,
+    selectedUserId: activeGroupFilter === 'all' ? undefined : activeGroupFilter,
   });
 
   // Filter budget periods by Year
   const activeBudgetPeriods = useMemo(() => {
     if (selectedYear === 'all') return userFilteredBudgetPeriods;
 
-    return userFilteredBudgetPeriods.filter(period => {
+    return userFilteredBudgetPeriods.filter((period) => {
       const dt = toDateTime(period.start_date);
       return dt?.year === selectedYear;
     });

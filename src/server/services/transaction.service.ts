@@ -25,15 +25,27 @@ type TransactionUpdate = Database['public']['Tables']['transactions']['Update'];
 // Typed RPC Results (match database.types.ts Functions)
 type CategorySpendingResult = Array<{ category: string; spent: number; transaction_count: number }>;
 type MonthlySpendingResult = Array<{ month: string; income: number; expense: number }>;
-type UserCategorySpendingResult = Array<{ user_id: string; category: string; spent: number; income: number; transaction_count: number }>;
+type UserCategorySpendingResult = Array<{
+  user_id: string;
+  category: string;
+  spent: number;
+  income: number;
+  transaction_count: number;
+}>;
 
 // Typed RPC helper - uses unknown intermediary instead of any
 async function typedRpc<TResult>(
-  fnName: 'get_group_category_spending' | 'get_group_monthly_spending' | 'get_group_user_category_spending',
+  fnName:
+    | 'get_group_category_spending'
+    | 'get_group_monthly_spending'
+    | 'get_group_user_category_spending',
   args: { p_group_id: string; p_start_date: string; p_end_date: string }
 ): Promise<TResult> {
   const client = supabase as unknown as {
-    rpc: (fn: string, params: Record<string, string>) => Promise<{ data: unknown; error: { message: string } | null }>;
+    rpc: (
+      fn: string,
+      params: Record<string, string>
+    ) => Promise<{ data: unknown; error: { message: string } | null }>;
   };
   const { data, error } = await client.rpc(fnName, args);
   if (error) throw new Error(error.message);
@@ -85,109 +97,111 @@ export class TransactionService {
   /**
    * Get transactions by group with date filtering (primary query method)
    */
-  private static readonly getByGroupDb = cache(async (
-    groupId: string,
-    options?: TransactionFilterOptions
-  ): Promise<{ data: Transaction[]; total: number; hasMore: boolean }> => {
-    let query = supabase
-      .from('transactions')
-      .select('*', { count: 'exact' })
-      .eq('group_id', groupId)
-      .order('date', { ascending: false });
+  private static readonly getByGroupDb = cache(
+    async (
+      groupId: string,
+      options?: TransactionFilterOptions
+    ): Promise<{ data: Transaction[]; total: number; hasMore: boolean }> => {
+      let query = supabase
+        .from('transactions')
+        .select('*', { count: 'exact' })
+        .eq('group_id', groupId)
+        .order('date', { ascending: false });
 
-    // Date range filtering
-    if (options?.startDate) {
-      query = query.gte('date', options.startDate.toISOString());
-    }
-    if (options?.endDate) {
-      query = query.lte('date', options.endDate.toISOString());
-    }
-    if (options?.category) {
-      query = query.eq('category', options.category);
-    }
-    if (options?.type) {
-      query = query.eq('type', options.type);
-    }
-    if (options?.accountId) {
-      query = query.eq('account_id', options.accountId);
-    }
+      // Date range filtering
+      if (options?.startDate) {
+        query = query.gte('date', options.startDate.toISOString());
+      }
+      if (options?.endDate) {
+        query = query.lte('date', options.endDate.toISOString());
+      }
+      if (options?.category) {
+        query = query.eq('category', options.category);
+      }
+      if (options?.type) {
+        query = query.eq('type', options.type);
+      }
+      if (options?.accountId) {
+        query = query.eq('account_id', options.accountId);
+      }
 
-    // Pagination with offset/limit
-    if (options?.limit) {
+      // Pagination with offset/limit
+      if (options?.limit) {
+        const offset = options?.offset || 0;
+        query = query.range(offset, offset + options.limit - 1);
+      }
+
+      const { data, count, error } = await query;
+      if (error) throw new Error(error.message);
+
+      const total = count || 0;
       const offset = options?.offset || 0;
-      query = query.range(offset, offset + options.limit - 1);
+      return {
+        data: (data || []) as Transaction[],
+        total,
+        hasMore: options?.limit ? offset + (data?.length || 0) < total : false,
+      };
     }
-
-    const { data, count, error } = await query;
-    if (error) throw new Error(error.message);
-
-    const total = count || 0;
-    const offset = options?.offset || 0;
-    return {
-      data: (data || []) as Transaction[],
-      total,
-      hasMore: options?.limit ? (offset + (data?.length || 0)) < total : false
-    };
-  });
+  );
 
   /**
    * Get transactions by user with date filtering
    */
-  private static readonly getByUserDb = cache(async (
-    userId: string,
-    options?: TransactionFilterOptions
-  ): Promise<{ data: Transaction[]; total: number }> => {
-    let query = supabase
-      .from('transactions')
-      .select('*', { count: 'exact' })
-      .eq('user_id', userId)
-      .order('date', { ascending: false });
+  private static readonly getByUserDb = cache(
+    async (
+      userId: string,
+      options?: TransactionFilterOptions
+    ): Promise<{ data: Transaction[]; total: number }> => {
+      let query = supabase
+        .from('transactions')
+        .select('*', { count: 'exact' })
+        .eq('user_id', userId)
+        .order('date', { ascending: false });
 
-    if (options?.startDate) {
-      query = query.gte('date', options.startDate.toISOString());
-    }
-    if (options?.endDate) {
-      query = query.lte('date', options.endDate.toISOString());
-    }
-    if (options?.category) {
-      query = query.eq('category', options.category);
-    }
-    if (options?.type) {
-      query = query.eq('type', options.type);
-    }
-    if (options?.limit) {
-      query = query.limit(options.limit);
-    }
+      if (options?.startDate) {
+        query = query.gte('date', options.startDate.toISOString());
+      }
+      if (options?.endDate) {
+        query = query.lte('date', options.endDate.toISOString());
+      }
+      if (options?.category) {
+        query = query.eq('category', options.category);
+      }
+      if (options?.type) {
+        query = query.eq('type', options.type);
+      }
+      if (options?.limit) {
+        query = query.limit(options.limit);
+      }
 
-    const { data, count, error } = await query;
-    if (error) throw new Error(error.message);
+      const { data, count, error } = await query;
+      if (error) throw new Error(error.message);
 
-    return { data: (data || []) as Transaction[], total: count || 0 };
-  });
+      return { data: (data || []) as Transaction[], total: count || 0 };
+    }
+  );
 
   /**
    * Get transactions by account (including transfers)
    */
-  private static readonly getByAccountDb = cache(async (accountId: string): Promise<Transaction[]> => {
-    const { data, error } = await supabase
-      .from('transactions')
-      .select('*')
-      .or(`account_id.eq.${accountId},to_account_id.eq.${accountId}`)
-      .order('date', { ascending: false });
+  private static readonly getByAccountDb = cache(
+    async (accountId: string): Promise<Transaction[]> => {
+      const { data, error } = await supabase
+        .from('transactions')
+        .select('*')
+        .or(`account_id.eq.${accountId},to_account_id.eq.${accountId}`)
+        .order('date', { ascending: false });
 
-    if (error) throw new Error(error.message);
-    return (data || []) as Transaction[];
-  });
+      if (error) throw new Error(error.message);
+      return (data || []) as Transaction[];
+    }
+  );
 
   /**
    * Get transaction by ID
    */
   private static async getByIdDb(id: string): Promise<Transaction | null> {
-    const { data, error } = await supabase
-      .from('transactions')
-      .select('*')
-      .eq('id', id)
-      .single();
+    const { data, error } = await supabase.from('transactions').select('*').eq('id', id).single();
 
     if (error) {
       if (error.code === 'PGRST116') return null;
@@ -256,10 +270,7 @@ export class TransactionService {
    * Delete all transactions for a user
    */
   static async deleteByUser(userId: string): Promise<void> {
-    const { error } = await supabase
-      .from('transactions')
-      .delete()
-      .eq('user_id', userId);
+    const { error } = await supabase.from('transactions').delete().eq('user_id', userId);
 
     if (error) throw new Error(error.message);
   }
@@ -287,7 +298,10 @@ export class TransactionService {
         };
       };
     };
-    const { error: updateError } = await updateClient.from('accounts').update({ balance: newBalance }).eq('id', accountId);
+    const { error: updateError } = await updateClient
+      .from('accounts')
+      .update({ balance: newBalance })
+      .eq('id', accountId);
 
     if (updateError) throw new Error(`Failed to update balance: ${updateError.message}`);
   }
@@ -297,42 +311,55 @@ export class TransactionService {
   /**
    * Get category spending breakdown using database RPC
    */
-  static readonly getGroupCategorySpending = cache(async (groupId: string, startDate: Date, endDate: Date): Promise<CategorySpendingResult> => {
-    return typedRpc<CategorySpendingResult>('get_group_category_spending', {
-      p_group_id: groupId,
-      p_start_date: startDate.toISOString(),
-      p_end_date: endDate.toISOString()
-    });
-  });
+  static readonly getGroupCategorySpending = cache(
+    async (groupId: string, startDate: Date, endDate: Date): Promise<CategorySpendingResult> => {
+      return typedRpc<CategorySpendingResult>('get_group_category_spending', {
+        p_group_id: groupId,
+        p_start_date: startDate.toISOString(),
+        p_end_date: endDate.toISOString(),
+      });
+    }
+  );
 
   /**
    * Get monthly spending trend using database RPC
    */
-  static readonly getGroupMonthlySpending = cache(async (groupId: string, startDate: Date, endDate: Date): Promise<MonthlySpendingResult> => {
-    return typedRpc<MonthlySpendingResult>('get_group_monthly_spending', {
-      p_group_id: groupId,
-      p_start_date: startDate.toISOString(),
-      p_end_date: endDate.toISOString()
-    });
-  });
+  static readonly getGroupMonthlySpending = cache(
+    async (groupId: string, startDate: Date, endDate: Date): Promise<MonthlySpendingResult> => {
+      return typedRpc<MonthlySpendingResult>('get_group_monthly_spending', {
+        p_group_id: groupId,
+        p_start_date: startDate.toISOString(),
+        p_end_date: endDate.toISOString(),
+      });
+    }
+  );
 
   /**
    * Get category spending per user using database RPC
    */
-  static readonly getGroupUserCategorySpending = cache(async (groupId: string, startDate: Date, endDate: Date): Promise<UserCategorySpendingResult> => {
-    return typedRpc<UserCategorySpendingResult>('get_group_user_category_spending', {
-      p_group_id: groupId,
-      p_start_date: startDate.toISOString(),
-      p_end_date: endDate.toISOString()
-    });
-  });
+  static readonly getGroupUserCategorySpending = cache(
+    async (
+      groupId: string,
+      startDate: Date,
+      endDate: Date
+    ): Promise<UserCategorySpendingResult> => {
+      return typedRpc<UserCategorySpendingResult>('get_group_user_category_spending', {
+        p_group_id: groupId,
+        p_start_date: startDate.toISOString(),
+        p_end_date: endDate.toISOString(),
+      });
+    }
+  );
 
   // ================== SERVICE LAYER ==================
 
   /**
    * Helper to update account balances based on transaction
    */
-  private static async updateBalancesForTransaction(transaction: Transaction, direction: 1 | -1): Promise<void> {
+  private static async updateBalancesForTransaction(
+    transaction: Transaction,
+    direction: 1 | -1
+  ): Promise<void> {
     const { amount, type, account_id, to_account_id } = transaction;
 
     if (type === 'income') {
@@ -342,7 +369,7 @@ export class TransactionService {
     } else if (type === 'transfer' && to_account_id) {
       await Promise.all([
         this.updateAccountBalance(account_id, -amount * direction),
-        this.updateAccountBalance(to_account_id, amount * direction)
+        this.updateAccountBalance(to_account_id, amount * direction),
       ]);
     }
   }
@@ -360,14 +387,17 @@ export class TransactionService {
     return {
       data: serialize(result.data),
       total: result.total,
-      hasMore: result.hasMore
+      hasMore: result.hasMore,
     };
   }
 
   /**
    * Get transactions for a user with date filtering
    */
-  static async getTransactionsByUser(userId: string, options?: TransactionFilterOptions): Promise<Transaction[]> {
+  static async getTransactionsByUser(
+    userId: string,
+    options?: TransactionFilterOptions
+  ): Promise<Transaction[]> {
     if (!userId?.trim()) throw new Error('User ID is required');
 
     const getCachedTransactions = cached(
@@ -467,7 +497,8 @@ export class TransactionService {
       amount: data.amount,
       type: data.type,
       category: data.category,
-      date: typeof data.date === 'string' ? new Date(data.date).toISOString() : data.date.toISOString(),
+      date:
+        typeof data.date === 'string' ? new Date(data.date).toISOString() : data.date.toISOString(),
       user_id: data.user_id || null,
       account_id: data.account_id,
       to_account_id: data.to_account_id || null,
@@ -505,7 +536,9 @@ export class TransactionService {
     if (data.amount !== undefined) updateData.amount = data.amount;
     if (data.type !== undefined) updateData.type = data.type;
     if (data.category !== undefined) updateData.category = data.category;
-    if (data.date !== undefined) updateData.date = typeof data.date === 'string' ? new Date(data.date).toISOString() : data.date.toISOString();
+    if (data.date !== undefined)
+      updateData.date =
+        typeof data.date === 'string' ? new Date(data.date).toISOString() : data.date.toISOString();
     if (data.user_id !== undefined) updateData.user_id = data.user_id;
     if (data.account_id !== undefined) updateData.account_id = data.account_id;
     if (data.to_account_id !== undefined) updateData.to_account_id = data.to_account_id;
@@ -523,13 +556,13 @@ export class TransactionService {
         userId: existing.user_id,
         accountId: existing.account_id,
         toAccountId: existing.to_account_id ?? null,
-        groupId: existing.group_id ?? null
+        groupId: existing.group_id ?? null,
       },
       {
         userId: data.user_id,
         accountId: data.account_id,
         toAccountId: data.to_account_id ?? null,
-        groupId: data.group_id
+        groupId: data.group_id,
       }
     );
 
@@ -563,8 +596,10 @@ export class TransactionService {
     if (data.type === 'transfer' || existing.type === 'transfer') {
       const toAccountId = data.to_account_id ?? existing.to_account_id;
       const accountId = data.account_id ?? existing.account_id;
-      if (data.type === 'transfer' && !toAccountId) throw new Error('Destination account is required for transfers');
-      if (toAccountId === accountId) throw new Error('Source and destination accounts must be different');
+      if (data.type === 'transfer' && !toAccountId)
+        throw new Error('Destination account is required for transfers');
+      if (toAccountId === accountId)
+        throw new Error('Source and destination accounts must be different');
     }
   }
 }

@@ -1,9 +1,8 @@
-
-import { SectionHeader } from "@/components/layout";
-import { ListContainer, PageSection, SettingsItem } from "@/components/ui/layout";
-import { CURRENCY_OPTIONS, LANGUAGE_OPTIONS, TIMEZONE_OPTIONS } from "@/features/settings";
-import { CreditCard, Globe, Settings } from "lucide-react";
-import { UserPreferences } from "@/server/services";
+import { SectionHeader } from '@/components/layout';
+import { ListContainer, PageSection, SettingsItem } from '@/components/ui/layout';
+import { CURRENCY_OPTIONS, LANGUAGE_OPTIONS, TIMEZONE_OPTIONS } from '@/features/settings';
+import { CreditCard, Globe, Settings } from 'lucide-react';
+import { UserPreferences } from '@/server/services';
 
 interface PreferencesSectionProps {
   preferences: UserPreferences | null;
@@ -31,8 +30,8 @@ export function PreferencesSection({
             value={
               preferences?.currency
                 ? CURRENCY_OPTIONS.find((opt) => opt.value === preferences.currency)?.label ||
-                preferences.currency
-                : "EUR - Euro"
+                  preferences.currency
+                : 'EUR - Euro'
             }
             actionType="button"
             buttonLabel="Cambia"
@@ -46,8 +45,8 @@ export function PreferencesSection({
             value={
               preferences?.language
                 ? LANGUAGE_OPTIONS.find((opt) => opt.value === preferences.language)?.label ||
-                preferences.language
-                : "Italiano"
+                  preferences.language
+                : 'Italiano'
             }
             actionType="button"
             buttonLabel="Cambia"
@@ -61,8 +60,8 @@ export function PreferencesSection({
             value={
               preferences?.timezone
                 ? TIMEZONE_OPTIONS.find((opt) => opt.value === preferences.timezone)?.label ||
-                preferences.timezone
-                : "Roma (GMT+1)"
+                  preferences.timezone
+                : 'Roma (GMT+1)'
             }
             actionType="button"
             buttonLabel="Cambia"

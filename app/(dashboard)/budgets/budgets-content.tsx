@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 /**
  * Budgets Content - Client Component
@@ -9,12 +9,12 @@
  * Data is passed from Server Component for optimal performance.
  */
 
-import { Suspense } from "react";
-import { BottomNavigation, PageContainer, Header } from "@/components/layout";
-import UserSelector from "@/components/shared/user-selector";
-import { UserSelectorSkeleton } from "@/features/dashboard";
-import { ConfirmationDialog } from "@/components/shared/confirmation-dialog";
-import { EmptyState } from "@/components/shared";
+import { Suspense } from 'react';
+import { BottomNavigation, PageContainer, Header } from '@/components/layout';
+import UserSelector from '@/components/shared/user-selector';
+import { UserSelectorSkeleton } from '@/features/dashboard';
+import { ConfirmationDialog } from '@/components/shared/confirmation-dialog';
+import { EmptyState } from '@/components/shared';
 import {
   BudgetSelector,
   BudgetDisplayCard,
@@ -24,15 +24,12 @@ import {
   BudgetCardSkeleton,
   BudgetProgressSkeleton,
   BudgetChartSkeleton,
-} from "@/features/budgets/components";
-import {
-  TransactionDayList,
-  TransactionDayListSkeleton,
-} from "@/features/transactions";
-import { useBudgetsContent, type UseBudgetsContentProps } from "@/features/budgets";
-import { budgetStyles } from "@/styles/system";
-import { ShoppingCart } from "lucide-react";
-import { Button } from "@/components/ui";
+} from '@/features/budgets/components';
+import { TransactionDayList, TransactionDayListSkeleton } from '@/features/transactions';
+import { useBudgetsContent, type UseBudgetsContentProps } from '@/features/budgets';
+import { budgetStyles } from '@/styles/system';
+import { ShoppingCart } from 'lucide-react';
+import { Button } from '@/components/ui';
 
 /**
  * Budgets Content Props
@@ -75,7 +72,7 @@ export default function BudgetsContent(props: BudgetsContentProps) {
         title="Budgets"
         showBack={true}
         className={budgetStyles.header.container}
-        currentUser={{ name: currentUser.name, role: currentUser.role || "member" }}
+        currentUser={{ name: currentUser.name, role: currentUser.role || 'member' }}
         showActions={true}
       />
 
@@ -110,11 +107,11 @@ export default function BudgetsContent(props: BudgetsContentProps) {
                 budgetProgress={
                   selectedBudgetProgress
                     ? {
-                      spent: selectedBudgetProgress.spent,
-                      remaining: selectedBudgetProgress.remaining,
-                      percentage: selectedBudgetProgress.percentage,
-                      amount: selectedBudgetProgress.amount,
-                    }
+                        spent: selectedBudgetProgress.spent,
+                        remaining: selectedBudgetProgress.remaining,
+                        percentage: selectedBudgetProgress.percentage,
+                        amount: selectedBudgetProgress.amount,
+                      }
                     : null
                 }
                 onEdit={handleEditBudget}
@@ -145,9 +142,9 @@ export default function BudgetsContent(props: BudgetsContentProps) {
                     periodInfo={
                       periodInfo
                         ? {
-                          startDate: periodInfo.start || "",
-                          endDate: periodInfo.end,
-                        }
+                            startDate: periodInfo.start || '',
+                            endDate: periodInfo.end,
+                          }
                         : null
                     }
                   />
@@ -168,20 +165,20 @@ export default function BudgetsContent(props: BudgetsContentProps) {
                     viewAllLabel="Vedi tutte"
                     onViewAll={() => {
                       const params = new URLSearchParams();
-                      params.set("from", "budgets");
-                      params.set("member", currentUser.id);
-                      params.set("budget", selectedBudget.id);
-                      params.set("category", selectedBudget.description);
+                      params.set('from', 'budgets');
+                      params.set('member', currentUser.id);
+                      params.set('budget', selectedBudget.id);
+                      params.set('category', selectedBudget.description);
                       if (periodInfo?.start) {
-                        params.set("startDate", periodInfo.start);
+                        params.set('startDate', periodInfo.start);
                       }
                       if (periodInfo?.end) {
-                        params.set("endDate", periodInfo.end);
+                        params.set('endDate', periodInfo.end);
                       }
                       router.push(`/transactions?${params.toString()}`);
                     }}
                     onEditTransaction={(transaction) => {
-                      openModal("transaction", transaction.id);
+                      openModal('transaction', transaction.id);
                     }}
                     onDeleteTransaction={() => {
                       /* Handled via transaction form */
@@ -215,7 +212,7 @@ export default function BudgetsContent(props: BudgetsContentProps) {
         message={
           deleteConfirm.itemToDelete
             ? `Sei sicuro di voler eliminare il budget "${deleteConfirm.itemToDelete.description}"? Questa azione non può essere annullata.`
-            : ""
+            : ''
         }
         confirmText="Elimina"
         cancelText="Annulla"

@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import * as React from "react";
-import { cn } from "@/lib";
-import { Label } from "../ui";
-import { formStyles } from "./theme/form-styles";
+import * as React from 'react';
+import { cn } from '@/lib';
+import { Label } from '../ui';
+import { formStyles } from './theme/form-styles';
 
 /**
  * Form Field Component
@@ -65,11 +65,7 @@ export function FormField({
       {/* Label */}
       <Label
         htmlFor={htmlFor}
-        className={cn(
-          formStyles.field.label,
-          error && formStyles.field.labelError,
-          labelClassName
-        )}
+        className={cn(formStyles.field.label, error && formStyles.field.labelError, labelClassName)}
       >
         {label}
         {required && <span className={formStyles.field.required}>*</span>}

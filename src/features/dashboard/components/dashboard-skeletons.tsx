@@ -4,7 +4,7 @@
  * Prevents Cumulative Layout Shift (CLS) with accurate dimensions
  */
 
-import { SkeletonList } from "@/components/ui/primitives";
+import { SkeletonList } from '@/components/ui/primitives';
 import { dashboardStyles } from '../theme/dashboard-styles';
 
 /**
@@ -27,8 +27,12 @@ export function DashboardHeaderSkeleton() {
         <div className={dashboardStyles.header.section.left}>
           <div className={`${dashboardStyles.skeletons.headerIcon} ${skeletonClasses.shimmer}`} />
           <div className={dashboardStyles.skeletons.headerTextGroup}>
-            <div className={`${dashboardStyles.skeletons.headerLinePrimary} ${skeletonClasses.shimmer}`} />
-            <div className={`${dashboardStyles.skeletons.headerLineSecondary} ${skeletonClasses.shimmer}`} />
+            <div
+              className={`${dashboardStyles.skeletons.headerLinePrimary} ${skeletonClasses.shimmer}`}
+            />
+            <div
+              className={`${dashboardStyles.skeletons.headerLineSecondary} ${skeletonClasses.shimmer}`}
+            />
           </div>
         </div>
         <div className={dashboardStyles.header.section.right}>
@@ -82,8 +86,12 @@ export function BalanceSectionSkeleton() {
         renderItem={() => (
           <div className={dashboardStyles.balanceSection.accountCard.container}>
             <div className={dashboardStyles.skeletons.accountRow}>
-              <div className={`${dashboardStyles.skeletons.accountLinePrimary} ${skeletonClasses.shimmer}`} />
-              <div className={`${dashboardStyles.skeletons.accountLineSecondary} ${skeletonClasses.shimmer}`} />
+              <div
+                className={`${dashboardStyles.skeletons.accountLinePrimary} ${skeletonClasses.shimmer}`}
+              />
+              <div
+                className={`${dashboardStyles.skeletons.accountLineSecondary} ${skeletonClasses.shimmer}`}
+              />
             </div>
           </div>
         )}
@@ -109,16 +117,28 @@ export function BudgetSectionSkeleton() {
         renderItem={() => (
           <div className={dashboardStyles.budgetSection.budgetCard.container}>
             <div className={dashboardStyles.skeletons.budgetRow}>
-              <div className={`${dashboardStyles.skeletons.budgetIcon} ${skeletonClasses.shimmer}`} />
+              <div
+                className={`${dashboardStyles.skeletons.budgetIcon} ${skeletonClasses.shimmer}`}
+              />
               <div className={dashboardStyles.skeletons.budgetText}>
-                <div className={`${dashboardStyles.skeletons.budgetLinePrimary} ${skeletonClasses.shimmer}`} />
-                <div className={`${dashboardStyles.skeletons.budgetLineSecondary} ${skeletonClasses.shimmer}`} />
+                <div
+                  className={`${dashboardStyles.skeletons.budgetLinePrimary} ${skeletonClasses.shimmer}`}
+                />
+                <div
+                  className={`${dashboardStyles.skeletons.budgetLineSecondary} ${skeletonClasses.shimmer}`}
+                />
               </div>
             </div>
-            <div className={`${dashboardStyles.skeletons.budgetProgress} ${skeletonClasses.shimmer}`} />
+            <div
+              className={`${dashboardStyles.skeletons.budgetProgress} ${skeletonClasses.shimmer}`}
+            />
             <div className={dashboardStyles.skeletons.budgetStats}>
-              <div className={`${dashboardStyles.skeletons.budgetStat} ${skeletonClasses.shimmer}`} />
-              <div className={`${dashboardStyles.skeletons.budgetStat} ${skeletonClasses.shimmer}`} />
+              <div
+                className={`${dashboardStyles.skeletons.budgetStat} ${skeletonClasses.shimmer}`}
+              />
+              <div
+                className={`${dashboardStyles.skeletons.budgetStat} ${skeletonClasses.shimmer}`}
+              />
             </div>
           </div>
         )}
@@ -144,10 +164,16 @@ export function RecurringSeriesSkeleton() {
         renderItem={() => (
           <div className={dashboardStyles.recurringSection.seriesCard.container}>
             <div className={dashboardStyles.skeletons.recurringRow}>
-              <div className={`${dashboardStyles.skeletons.recurringLinePrimary} ${skeletonClasses.shimmer}`} />
-              <div className={`${dashboardStyles.skeletons.recurringLineSecondary} ${skeletonClasses.shimmer}`} />
+              <div
+                className={`${dashboardStyles.skeletons.recurringLinePrimary} ${skeletonClasses.shimmer}`}
+              />
+              <div
+                className={`${dashboardStyles.skeletons.recurringLineSecondary} ${skeletonClasses.shimmer}`}
+              />
             </div>
-            <div className={`${dashboardStyles.skeletons.recurringLineTertiary} ${skeletonClasses.shimmer}`} />
+            <div
+              className={`${dashboardStyles.skeletons.recurringLineTertiary} ${skeletonClasses.shimmer}`}
+            />
           </div>
         )}
       />

@@ -1,6 +1,6 @@
 /**
  * Transactions Page - Server Component
- * 
+ *
  * Uses paginated data fetching (50 transactions per load)
  */
 
@@ -26,7 +26,7 @@ export default async function TransactionsPage() {
     recurringSeries = [],
     budgets = [],
     accounts = [],
-    categories = []
+    categories = [],
   } = pageData;
 
   return (

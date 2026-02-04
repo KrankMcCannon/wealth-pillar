@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useRouter } from "next/navigation";
-import { BottomNavigation, PageContainer, Header } from "@/components/layout";
+import { useRouter } from 'next/navigation';
+import { BottomNavigation, PageContainer, Header } from '@/components/layout';
 import {
   DeleteAccountModal,
   EditProfileModal,
@@ -18,9 +18,9 @@ import {
   PreferencesSection,
   NotificationsSection,
   SecuritySection,
-  AccountSection
-} from "@/features/settings";
-import type { User } from "@/lib/types";
+  AccountSection,
+} from '@/features/settings';
+import type { User } from '@/lib/types';
 
 /**
  * Settings Content Props
@@ -31,7 +31,11 @@ interface SettingsContentProps {
   currentUser: User;
 }
 
-export default function SettingsContent({ accountCount, transactionCount, currentUser: initialUser }: SettingsContentProps) {
+export default function SettingsContent({
+  accountCount,
+  transactionCount,
+  currentUser: initialUser,
+}: SettingsContentProps) {
   const {
     currentUser,
     groupUsers,
@@ -44,12 +48,18 @@ export default function SettingsContent({ accountCount, transactionCount, curren
     userInitials,
 
     // Modal controls
-    showEditProfileModal, setShowEditProfileModal,
-    showCurrencyModal, setShowCurrencyModal,
-    showLanguageModal, setShowLanguageModal,
-    showTimezoneModal, setShowTimezoneModal,
-    showInviteMemberModal, setShowInviteMemberModal,
-    showSubscriptionModal, setShowSubscriptionModal,
+    showEditProfileModal,
+    setShowEditProfileModal,
+    showCurrencyModal,
+    setShowCurrencyModal,
+    showLanguageModal,
+    setShowLanguageModal,
+    showTimezoneModal,
+    setShowTimezoneModal,
+    showInviteMemberModal,
+    setShowInviteMemberModal,
+    showSubscriptionModal,
+    setShowSubscriptionModal,
     showDeleteModal,
 
     // Handlers
@@ -72,10 +82,13 @@ export default function SettingsContent({ accountCount, transactionCount, curren
         <Header
           title="Impostazioni"
           showBack={true}
-          onBack={() => router.push("/dashboard")}
+          onBack={() => router.push('/dashboard')}
           currentUser={{
             name: currentUser.name,
-            role: (currentUser.role === 'superadmin' || currentUser.role === 'admin') ? 'admin' : (currentUser.role || 'member') as "admin" | "member"
+            role:
+              currentUser.role === 'superadmin' || currentUser.role === 'admin'
+                ? 'admin'
+                : ((currentUser.role || 'member') as 'admin' | 'member'),
           }}
           showActions={true}
         />
@@ -113,7 +126,9 @@ export default function SettingsContent({ accountCount, transactionCount, curren
           <SecuritySection
             isSigningOut={isSigningOut}
             onSignOut={handleSignOut}
-            onNavigateTo2FA={() => {/* TODO: Navigate to 2FA settings */ }}
+            onNavigateTo2FA={() => {
+              /* TODO: Navigate to 2FA settings */
+            }}
           />
 
           <AccountSection onDeleteAccount={handleDeleteAccountClick} />

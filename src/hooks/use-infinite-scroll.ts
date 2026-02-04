@@ -34,7 +34,7 @@ interface UseInfiniteScrollReturn<T> {
 
 /**
  * useInfiniteScroll Hook
- * 
+ *
  * Provides infinite scroll functionality using Intersection Observer.
  * Compatible with TailwindCSS v4 and shadcn/ui.
  */
@@ -69,7 +69,7 @@ export function useInfiniteScroll<T>({
     try {
       const result = await loadMore(offsetRef.current, pageSize);
 
-      setItems(prev => [...prev, ...result.data]);
+      setItems((prev) => [...prev, ...result.data]);
       offsetRef.current += result.data.length;
       setHasMore(result.hasMore);
     } catch (err) {
@@ -80,28 +80,31 @@ export function useInfiniteScroll<T>({
   }, [isLoading, hasMore, loadMore, pageSize]);
 
   // Sentinel ref callback for Intersection Observer
-  const sentinelRef = useCallback((node: HTMLDivElement | null) => {
-    // Cleanup previous observer
-    if (observerRef.current) {
-      observerRef.current.disconnect();
-    }
-
-    if (!node || !hasMore) return;
-
-    observerRef.current = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasMore && !isLoading) {
-          loadMoreItems();
-        }
-      },
-      {
-        rootMargin: `${threshold}px`,
-        threshold: 0,
+  const sentinelRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      // Cleanup previous observer
+      if (observerRef.current) {
+        observerRef.current.disconnect();
       }
-    );
 
-    observerRef.current.observe(node);
-  }, [hasMore, isLoading, loadMoreItems, threshold]);
+      if (!node || !hasMore) return;
+
+      observerRef.current = new IntersectionObserver(
+        (entries) => {
+          if (entries[0].isIntersecting && hasMore && !isLoading) {
+            loadMoreItems();
+          }
+        },
+        {
+          rootMargin: `${threshold}px`,
+          threshold: 0,
+        }
+      );
+
+      observerRef.current.observe(node);
+    },
+    [hasMore, isLoading, loadMoreItems, threshold]
+  );
 
   // Cleanup observer on unmount
   useEffect(() => {

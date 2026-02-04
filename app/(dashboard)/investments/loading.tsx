@@ -9,7 +9,5 @@
 import { PageLoader } from '@/components/shared';
 
 export default function InvestmentsLoading() {
-  return (
-    <PageLoader message="Caricamento investimenti..." />
-  );
+  return <PageLoader message="Caricamento investimenti..." />;
 }

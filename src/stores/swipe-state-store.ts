@@ -56,22 +56,14 @@ export const useSwipeStateStore = create<SwipeStateStore>()(
        * @param id - Card ID to open, or null to close all
        */
       setOpenCard: (id) => {
-        set(
-          { openCardId: id },
-          false,
-          'swipe-state/setOpenCard'
-        );
+        set({ openCardId: id }, false, 'swipe-state/setOpenCard');
       },
 
       /**
        * Close all open cards
        */
       closeAllCards: () => {
-        set(
-          { openCardId: null },
-          false,
-          'swipe-state/closeAllCards'
-        );
+        set({ openCardId: null }, false, 'swipe-state/closeAllCards');
       },
 
       /**
@@ -94,8 +86,7 @@ export const useSwipeStateStore = create<SwipeStateStore>()(
  * Get the currently open card ID
  * Cached selector to prevent SSR hydration issues
  */
-export const useOpenCardId = () =>
-  useSwipeStateStore((state) => state.openCardId);
+export const useOpenCardId = () => useSwipeStateStore((state) => state.openCardId);
 
 /**
  * Check if a specific card is open
@@ -103,16 +94,13 @@ export const useOpenCardId = () =>
  * Cached to prevent SSR infinite loop warnings
  * @param id - Card ID to check
  */
-export const useIsCardOpen = (id: string) =>
-  useSwipeStateStore((state) => state.openCardId === id);
+export const useIsCardOpen = (id: string) => useSwipeStateStore((state) => state.openCardId === id);
 
 /**
  * Get swipe state actions
  * Memoized selector to prevent unnecessary re-renders when only using actions
  * Returns stable reference to action functions
  */
-export const useSetOpenCard = () =>
-  useSwipeStateStore((state) => state.setOpenCard);
+export const useSetOpenCard = () => useSwipeStateStore((state) => state.setOpenCard);
 
-export const useCloseAllCards = () =>
-  useSwipeStateStore((state) => state.closeAllCards);
+export const useCloseAllCards = () => useSwipeStateStore((state) => state.closeAllCards);

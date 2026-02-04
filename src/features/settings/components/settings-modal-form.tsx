@@ -1,18 +1,13 @@
-"use client";
+'use client';
 
-import * as React from "react";
-import { cn } from "@/lib";
-import { settingsStyles } from "@/features/settings/theme";
+import * as React from 'react';
+import { cn } from '@/lib';
+import { settingsStyles } from '@/features/settings/theme';
 
 export type SettingsModalFormProps = React.FormHTMLAttributes<HTMLFormElement>;
 
 export function SettingsModalForm({ className, ...props }: Readonly<SettingsModalFormProps>) {
-  return (
-    <form
-      className={cn(settingsStyles.modals.form, className)}
-      {...props}
-    />
-  );
+  return <form className={cn(settingsStyles.modals.form, className)} {...props} />;
 }
 
 export interface SettingsModalFieldProps {
@@ -41,9 +36,7 @@ export function SettingsModalField({
         )}
         {...inputProps}
       />
-      {error && (
-        <p className={settingsStyles.modals.field.errorText}>{error}</p>
-      )}
+      {error && <p className={settingsStyles.modals.field.errorText}>{error}</p>}
     </div>
   );
 }

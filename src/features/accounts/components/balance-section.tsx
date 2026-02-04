@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import { Suspense } from "react";
-import { Account } from "@/lib";
-import { BalanceSectionSkeleton } from "@/features/dashboard";
-import { AccountSlider } from "./AccountSlider";
-import { TotalBalanceLink } from "./TotalBalanceLink";
-import { BalanceSectionSliderSkeleton } from "./account-skeletons";
-import { accountStyles } from "../theme/account-styles";
+import { Suspense } from 'react';
+import { Account } from '@/lib';
+import { BalanceSectionSkeleton } from '@/features/dashboard';
+import { AccountSlider } from './AccountSlider';
+import { TotalBalanceLink } from './TotalBalanceLink';
+import { BalanceSectionSliderSkeleton } from './account-skeletons';
+import { accountStyles } from '../theme/account-styles';
 
 interface BalanceSectionProps {
   accounts: Account[];
@@ -54,12 +54,20 @@ export const BalanceSection = ({
     <section className={accountStyles.balanceSection.container}>
       {/* Account Slider Section */}
       <Suspense fallback={<BalanceSectionSliderSkeleton />}>
-        <AccountSlider accounts={accounts} accountBalances={accountBalances} onAccountClick={onAccountClick} />
+        <AccountSlider
+          accounts={accounts}
+          accountBalances={accountBalances}
+          onAccountClick={onAccountClick}
+        />
       </Suspense>
 
       {/* Total Balance Link Section - only show when there are multiple accounts */}
       {accountCount > 1 && (
-        <TotalBalanceLink totalBalance={totalBalance} accountCount={accountCount} selectedUserId={selectedUserId} />
+        <TotalBalanceLink
+          totalBalance={totalBalance}
+          accountCount={accountCount}
+          selectedUserId={selectedUserId}
+        />
       )}
     </section>
   );

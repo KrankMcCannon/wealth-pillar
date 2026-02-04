@@ -32,7 +32,7 @@ type SupabaseWithRpc = {
   rpc<
     Fn extends keyof RpcFunctions,
     Args extends RpcFunctions[Fn]['Args'],
-    Returns extends RpcFunctions[Fn]['Returns']
+    Returns extends RpcFunctions[Fn]['Returns'],
   >(
     fn: Fn,
     args?: Args
@@ -41,7 +41,7 @@ type SupabaseWithRpc = {
 
 /**
  * Available Shares Service
- * 
+ *
  * Manages the catalog of available shares for the Trade Republic-style
  * cascading dropdown selector.
  */
@@ -170,7 +170,8 @@ export class AvailableSharesService {
       .single();
 
     if (error) {
-      if (error.code !== 'PGRST116') { // Not found is not an error
+      if (error.code !== 'PGRST116') {
+        // Not found is not an error
         console.error('[AvailableSharesService] Error fetching share:', error);
       }
       return null;

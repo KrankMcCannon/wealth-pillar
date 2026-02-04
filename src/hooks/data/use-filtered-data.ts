@@ -44,30 +44,30 @@ interface UseFilteredDataReturn<T> {
  *
  * @example Basic usage
  * ```tsx
-  * const { filteredData: filteredTransactions } = useFilteredData({
-    *   data: transactions,
-    *   currentUser,
-    *   selectedUserId,
-    * });
+ * const { filteredData: filteredTransactions } = useFilteredData({
+ *   data: transactions,
+ *   currentUser,
+ *   selectedUserId,
+ * });
  * ```
  *
  * @example With additional domain filter
  * ```tsx
-  * const { filteredData: activeBudgets } = useFilteredData({
-    *   data: budgets,
-    *   currentUser,
-    *   selectedUserId,
-    *   additionalFilter: (budget) => budget.amount > 0,
+ * const { filteredData: activeBudgets } = useFilteredData({
+ *   data: budgets,
+ *   currentUser,
+ *   selectedUserId,
+ *   additionalFilter: (budget) => budget.amount > 0,
  * });
  * ```
  *
  * @example Getting active user ID for forms
  * ```tsx
-  * const { filteredData, activeUserId } = useFilteredData({
-    *   data: transactions,
-    *   currentUser,
-    *   selectedUserId,
-    * });
+ * const { filteredData, activeUserId } = useFilteredData({
+ *   data: transactions,
+ *   currentUser,
+ *   selectedUserId,
+ * });
  * // Use activeUserId in forms or display logic
  * ```
  */
@@ -91,10 +91,10 @@ export function useFilteredData<T extends { user_id: string | null }>({
 
     if (checkIsMember(currentUser)) {
       // Members see only their own items
-      permissionFiltered = data.filter(item => item.user_id === currentUser.id);
+      permissionFiltered = data.filter((item) => item.user_id === currentUser.id);
     } else if (selectedUserId && selectedUserId !== 'all') {
       // Admin logic - Filter to specific user
-      permissionFiltered = data.filter(item => item.user_id === selectedUserId);
+      permissionFiltered = data.filter((item) => item.user_id === selectedUserId);
     } else {
       // Admin logic - Show all items
       permissionFiltered = data;
@@ -107,9 +107,7 @@ export function useFilteredData<T extends { user_id: string | null }>({
 
     // Step 3: Calculate active user ID for display/forms
     // 'all' indicates admin viewing all users' data
-    const activeUserId = selectedUserId && selectedUserId !== 'all'
-      ? selectedUserId
-      : 'all';
+    const activeUserId = selectedUserId && selectedUserId !== 'all' ? selectedUserId : 'all';
 
     return {
       filteredData: finalFiltered,

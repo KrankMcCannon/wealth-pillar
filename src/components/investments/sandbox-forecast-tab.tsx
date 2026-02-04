@@ -1,10 +1,18 @@
-"use client";
+'use client';
 
 import { useState, useMemo } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from 'recharts';
 import { investmentsStyles } from '@/features/investments/theme/investments-styles';
 
 export function SandboxForecastTab() {
@@ -21,7 +29,7 @@ export function SandboxForecastTab() {
     for (let i = 0; i <= years; i++) {
       data.push({
         year: currentYear + i,
-        amount: Math.round(current)
+        amount: Math.round(current),
       });
       current = current * (1 + r);
     }
@@ -33,12 +41,16 @@ export function SandboxForecastTab() {
       <Card className={investmentsStyles.card.root}>
         <CardHeader className={investmentsStyles.card.headerWithBorder}>
           <CardTitle className={investmentsStyles.card.title}>Sandbox Previsionale</CardTitle>
-          <CardDescription className={investmentsStyles.card.description}>Simula la crescita di un investimento nel tempo modificando i parametri qui sotto.</CardDescription>
+          <CardDescription className={investmentsStyles.card.description}>
+            Simula la crescita di un investimento nel tempo modificando i parametri qui sotto.
+          </CardDescription>
         </CardHeader>
         <CardContent className={investmentsStyles.card.contentNoPadding}>
           <div className={investmentsStyles.sandbox.grid}>
             <div className={investmentsStyles.sandbox.inputGroup}>
-              <Label htmlFor="amount" className={investmentsStyles.sandbox.label}>Importo Iniziale (€)</Label>
+              <Label htmlFor="amount" className={investmentsStyles.sandbox.label}>
+                Importo Iniziale (€)
+              </Label>
               <Input
                 id="amount"
                 type="number"
@@ -48,7 +60,9 @@ export function SandboxForecastTab() {
               />
             </div>
             <div className={investmentsStyles.sandbox.inputGroup}>
-              <Label htmlFor="rate" className={investmentsStyles.sandbox.label}>Rendimento Annuo (%)</Label>
+              <Label htmlFor="rate" className={investmentsStyles.sandbox.label}>
+                Rendimento Annuo (%)
+              </Label>
               <Input
                 id="rate"
                 type="number"
@@ -58,7 +72,9 @@ export function SandboxForecastTab() {
               />
             </div>
             <div className={investmentsStyles.sandbox.inputGroup}>
-              <Label htmlFor="years" className={investmentsStyles.sandbox.label}>Durata (Anni)</Label>
+              <Label htmlFor="years" className={investmentsStyles.sandbox.label}>
+                Durata (Anni)
+              </Label>
               <Input
                 id="years"
                 type="number"
@@ -93,15 +109,35 @@ export function SandboxForecastTab() {
                     fontSize={12}
                     tickLine={false}
                     axisLine={false}
-                    tickFormatter={(value) => `${new Intl.NumberFormat('it-IT', { notation: 'compact', compactDisplay: 'short' }).format(value)}€`}
+                    tickFormatter={(value) =>
+                      `${new Intl.NumberFormat('it-IT', { notation: 'compact', compactDisplay: 'short' }).format(value)}€`
+                    }
                     width={60}
                   />
                   <Tooltip
-                    contentStyle={{ backgroundColor: 'white', borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                    contentStyle={{
+                      backgroundColor: 'white',
+                      borderRadius: '12px',
+                      border: 'none',
+                      boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+                    }}
                     itemStyle={{ color: '#0f172a' }}
-                    formatter={(value: number | undefined) => [new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(Number(value) || 0), "Valore"]}
+                    formatter={(value: number | undefined) => [
+                      new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(
+                        Number(value) || 0
+                      ),
+                      'Valore',
+                    ]}
                   />
-                  <Area type="monotone" dataKey="amount" stroke="#8b5cf6" strokeWidth={3} fillOpacity={1} fill="url(#colorForecast)" activeDot={{ r: 6, strokeWidth: 0 }} />
+                  <Area
+                    type="monotone"
+                    dataKey="amount"
+                    stroke="#8b5cf6"
+                    strokeWidth={3}
+                    fillOpacity={1}
+                    fill="url(#colorForecast)"
+                    activeDot={{ r: 6, strokeWidth: 0 }}
+                  />
                 </AreaChart>
               </ResponsiveContainer>
             </div>

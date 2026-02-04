@@ -1,32 +1,23 @@
-"use client";
+'use client';
 
-import { lazy, Suspense } from "react";
+import { lazy, Suspense } from 'react';
 import dynamic from 'next/dynamic';
-import { useModalState } from "@/lib/navigation/url-state";
-import {
-  useRequiredCurrentUser,
-  useRequiredGroupId,
-} from "@/hooks/use-required-user";
+import { useModalState } from '@/lib/navigation/url-state';
+import { useRequiredCurrentUser, useRequiredGroupId } from '@/hooks/use-required-user';
 
 // Lazy load modals - only loaded when opened
-const TransactionFormModal = lazy(() =>
-  import("@/features/transactions/components/transaction-form-modal")
+const TransactionFormModal = lazy(
+  () => import('@/features/transactions/components/transaction-form-modal')
 );
-const BudgetFormModal = lazy(() =>
-  import("@/features/budgets/components/budget-form-modal")
+const BudgetFormModal = lazy(() => import('@/features/budgets/components/budget-form-modal'));
+const CategoryFormModal = lazy(
+  () => import('@/features/categories/components/category-form-modal')
 );
-const CategoryFormModal = lazy(() =>
-  import("@/features/categories/components/category-form-modal")
+const RecurringFormModal = lazy(
+  () => import('@/features/recurring/components/recurring-form-modal')
 );
-const RecurringFormModal = lazy(() =>
-  import("@/features/recurring/components/recurring-form-modal")
-);
-const AccountFormModal = lazy(() =>
-  import("@/features/accounts/components/account-form-modal")
-);
-const AddInvestmentModal = lazy(() =>
-  import("@/components/investments/add-investment-modal")
-);
+const AccountFormModal = lazy(() => import('@/features/accounts/components/account-form-modal'));
+const AddInvestmentModal = lazy(() => import('@/components/investments/add-investment-modal'));
 
 interface ModalProviderProps {
   children: React.ReactNode;
@@ -43,64 +34,33 @@ function ModalRenderer() {
   useRequiredCurrentUser();
   useRequiredGroupId();
 
-
   return (
     <Suspense fallback={null}>
-      {modal === "transaction" && (
-        <TransactionFormModal
-          isOpen={true}
-          onClose={closeModal}
-          editId={editId}
-        />
+      {modal === 'transaction' && (
+        <TransactionFormModal isOpen={true} onClose={closeModal} editId={editId} />
       )}
 
-      {modal === "budget" && (
-        <BudgetFormModal
-          isOpen={true}
-          onClose={closeModal}
-          editId={editId}
-        />
+      {modal === 'budget' && <BudgetFormModal isOpen={true} onClose={closeModal} editId={editId} />}
+
+      {modal === 'category' && (
+        <CategoryFormModal isOpen={true} onClose={closeModal} editId={editId} />
       )}
 
-      {modal === "category" && (
-        <CategoryFormModal
-          isOpen={true}
-          onClose={closeModal}
-          editId={editId}
-        />
+      {modal === 'recurring' && (
+        <RecurringFormModal isOpen={true} onClose={closeModal} editId={editId} />
       )}
 
-      {modal === "recurring" && (
-        <RecurringFormModal
-          isOpen={true}
-          onClose={closeModal}
-          editId={editId}
-        />
+      {modal === 'account' && (
+        <AccountFormModal isOpen={true} onClose={closeModal} editId={editId} />
       )}
 
-      {modal === "account" && (
-        <AccountFormModal
-          isOpen={true}
-          onClose={closeModal}
-          editId={editId}
-        />
-      )}
-
-      {modal === "investment" && (
-        <AddInvestmentModal
-          isOpen={true}
-          onClose={closeModal}
-        />
-      )}
+      {modal === 'investment' && <AddInvestmentModal isOpen={true} onClose={closeModal} />}
     </Suspense>
   );
 }
 
 // Dynamic import of ModalRenderer with SSR disabled to prevent searchParams access during build
-const DynamicModalRenderer = dynamic(
-  () => Promise.resolve(ModalRenderer),
-  { ssr: false }
-);
+const DynamicModalRenderer = dynamic(() => Promise.resolve(ModalRenderer), { ssr: false });
 
 /**
  * Global Modal Provider
@@ -110,9 +70,7 @@ const DynamicModalRenderer = dynamic(
  * - Reads data from Zustand stores (no props needed)
  * - Handles modal open/close via URL params
  */
-export function ModalProvider({
-  children,
-}: Readonly<ModalProviderProps>) {
+export function ModalProvider({ children }: Readonly<ModalProviderProps>) {
   return (
     <>
       {children}

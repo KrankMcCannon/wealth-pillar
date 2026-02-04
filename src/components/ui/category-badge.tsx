@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import * as React from "react";
-import { cn } from "@/lib/utils";
-import { Icon, iconSizes, getSemanticColor } from "@/lib/icons";
+import * as React from 'react';
+import { cn } from '@/lib/utils';
+import { Icon, iconSizes, getSemanticColor } from '@/lib/icons';
 
 export interface CategoryBadgeProps extends React.HTMLAttributes<HTMLDivElement> {
   categoryKey: string;
@@ -11,7 +11,7 @@ export interface CategoryBadgeProps extends React.HTMLAttributes<HTMLDivElement>
   size?: keyof typeof iconSizes;
 }
 
-const DEFAULT_COLOR = "var(--color-primary)";
+const DEFAULT_COLOR = 'var(--color-primary)';
 
 function isHexColor(value: string): boolean {
   const trimmed = value.trim();
@@ -24,17 +24,18 @@ function isHexColor(value: string): boolean {
  * Lightweight icon wrapper used across reports, budgets, series, and transactions.
  */
 export const CategoryBadge = React.forwardRef<HTMLDivElement, CategoryBadgeProps>(
-  ({ categoryKey, color, backgroundColor, size = "sm", className, style, ...props }, ref) => {
-    const safeCategoryKey = typeof categoryKey === "string" && categoryKey.trim()
-      ? categoryKey
-      : "altro";
-    const resolvedColor = typeof color === "string" && color.trim()
-      ? color
-      : getSemanticColor(safeCategoryKey) || DEFAULT_COLOR;
+  ({ categoryKey, color, backgroundColor, size = 'sm', className, style, ...props }, ref) => {
+    const safeCategoryKey =
+      typeof categoryKey === 'string' && categoryKey.trim() ? categoryKey : 'altro';
+    const resolvedColor =
+      typeof color === 'string' && color.trim()
+        ? color
+        : getSemanticColor(safeCategoryKey) || DEFAULT_COLOR;
 
-    const resolvedBackground = typeof backgroundColor === "string" && backgroundColor.trim()
-      ? backgroundColor
-      : resolvedColor;
+    const resolvedBackground =
+      typeof backgroundColor === 'string' && backgroundColor.trim()
+        ? backgroundColor
+        : resolvedColor;
 
     const computedBackground = isHexColor(resolvedBackground)
       ? `${resolvedBackground}20`
@@ -44,12 +45,12 @@ export const CategoryBadge = React.forwardRef<HTMLDivElement, CategoryBadgeProps
       <div
         ref={ref}
         className={cn(
-          "flex items-center justify-center rounded-xl shrink-0 p-1 transition-colors duration-200",
-          size === "xs" && "size-6",
-          size === "sm" && "size-8",
-          size === "md" && "size-10",
-          size === "lg" && "size-12",
-          size === "xl" && "size-16",
+          'flex items-center justify-center rounded-xl shrink-0 p-1 transition-colors duration-200',
+          size === 'xs' && 'size-6',
+          size === 'sm' && 'size-8',
+          size === 'md' && 'size-10',
+          size === 'lg' && 'size-12',
+          size === 'xl' && 'size-16',
           className
         )}
         style={{
@@ -70,4 +71,4 @@ export const CategoryBadge = React.forwardRef<HTMLDivElement, CategoryBadgeProps
   }
 );
 
-CategoryBadge.displayName = "CategoryBadge";
+CategoryBadge.displayName = 'CategoryBadge';

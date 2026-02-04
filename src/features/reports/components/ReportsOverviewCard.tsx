@@ -4,11 +4,11 @@
  * Shows: Total Earned, Total Spent, Total Transferred, Total Balance
  */
 
-"use client";
+'use client';
 
-import { MetricCard, MetricGrid } from "@/components/ui/layout";
-import { TrendingUp, TrendingDown, ArrowLeftRight, Wallet } from "lucide-react";
-import { reportsStyles } from "@/styles/system";
+import { MetricCard, MetricGrid } from '@/components/ui/layout';
+import { TrendingUp, TrendingDown, ArrowLeftRight, Wallet } from 'lucide-react';
+import { reportsStyles } from '@/styles/system';
 
 export interface ReportsOverviewCardProps {
   totalEarned: number;
@@ -70,13 +70,13 @@ export function ReportsOverviewCard({
       <MetricCard
         label="Saldo Totale"
         icon={<Wallet className={reportsStyles.reportsOverviewCard.icon} />}
-        iconColor={isPositiveBalance ? "success" : "destructive"}
+        iconColor={isPositiveBalance ? 'success' : 'destructive'}
         labelTone="variant"
         value={totalBalance}
-        valueType={isPositiveBalance ? "income" : "expense"}
+        valueType={isPositiveBalance ? 'income' : 'expense'}
         valueSize="xl"
-        description={isPositiveBalance ? "Saldo positivo" : "Saldo negativo"}
-        variant={isPositiveBalance ? "success" : "danger"}
+        description={isPositiveBalance ? 'Saldo positivo' : 'Saldo negativo'}
+        variant={isPositiveBalance ? 'success' : 'danger'}
       />
     </MetricGrid>
   );

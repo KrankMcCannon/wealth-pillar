@@ -1,9 +1,9 @@
 /**
  * TransactionDayList Component
- * 
+ *
  * Unified component for displaying transactions grouped by day.
  * Used by both Transactions and Budgets pages.
- * 
+ *
  * @example
  * // Basic usage in Transactions page
  * <TransactionDayList
@@ -13,7 +13,7 @@
  *   onEditTransaction={handleEdit}
  *   onDeleteTransaction={handleDelete}
  * />
- * 
+ *
  * @example
  * // With header in Budgets page
  * <TransactionDayList
@@ -29,27 +29,27 @@
  * />
  */
 
-"use client";
+'use client';
 
-import { SectionHeader } from "@/components/layout";
-import { EmptyState } from "@/components/shared";
-import { Button } from "@/components/ui";
-import { Transaction, Category } from "@/lib";
-import { GroupedTransactionCard } from "./grouped-transaction-card";
-import { transactionStyles } from "@/styles/system";
+import { SectionHeader } from '@/components/layout';
+import { EmptyState } from '@/components/shared';
+import { Button } from '@/components/ui';
+import { Transaction, Category } from '@/lib';
+import { GroupedTransactionCard } from './grouped-transaction-card';
+import { transactionStyles } from '@/styles/system';
 import { formatCurrency, cn } from '@/lib/utils';
-import { FileText, type LucideIcon } from "lucide-react";
+import { FileText, type LucideIcon } from 'lucide-react';
 
 /**
  * Grouped transaction structure
  * Each group represents transactions for a single day
- * 
+ *
  * Supports two formats:
  * 1. Simple: { date: "Lun 15 Gen 2025", transactions, total } - used by TransactionService
  * 2. Extended: { date: "2025-01-15", formattedDate: "Lun 15 Gen 2025", transactions, total } - for sorting by ISO date
  */
 export interface GroupedTransaction {
-  /** 
+  /**
    * Date string - can be:
    * - Formatted date label (e.g., "Oggi", "Ieri", "Lun 15 Gen 2025")
    * - ISO date string (YYYY-MM-DD) when formattedDate is provided
@@ -99,7 +99,7 @@ export interface TransactionDayListProps {
 
   // Transaction card variant
   /** Variant for transaction cards */
-  variant?: "regular" | "recurrent";
+  variant?: 'regular' | 'recurrent';
 
   // Style customization
   /** Whether totals are always negative (expenses only, like budgets) */
@@ -122,12 +122,12 @@ export function TransactionDayList({
   sectionSubtitle,
   sectionHeaderClassName,
   emptyIcon = FileText,
-  emptyTitle = "Nessuna Transazione",
-  emptyDescription = "Non ci sono transazioni da visualizzare",
+  emptyTitle = 'Nessuna Transazione',
+  emptyDescription = 'Non ci sono transazioni da visualizzare',
   showViewAll = false,
-  viewAllLabel = "Vedi tutte",
+  viewAllLabel = 'Vedi tutte',
   onViewAll,
-  variant = "regular",
+  variant = 'regular',
   expensesOnly = false,
   className,
   onEditTransaction,
@@ -164,20 +164,19 @@ export function TransactionDayList({
                   </h2>
                   <div className={transactionStyles.dayGroup.stats}>
                     <div className={transactionStyles.dayGroup.statsTotal}>
-                      <span className={transactionStyles.dayGroup.statsTotalLabel}>
-                        Totale:
-                      </span>
+                      <span className={transactionStyles.dayGroup.statsTotalLabel}>Totale:</span>
                       <span
-                        className={`${transactionStyles.dayGroup.statsTotalValue} ${expensesOnly || total < 0
+                        className={`${transactionStyles.dayGroup.statsTotalValue} ${
+                          expensesOnly || total < 0
                             ? transactionStyles.dayGroup.statsTotalValueNegative
                             : transactionStyles.dayGroup.statsTotalValuePositive
-                          }`}
+                        }`}
                       >
                         {formatCurrency(Math.abs(total))}
                       </span>
                     </div>
                     <div className={transactionStyles.dayGroup.statsCount}>
-                      {count} {count === 1 ? "transazione" : "transazioni"}
+                      {count} {count === 1 ? 'transazione' : 'transazioni'}
                     </div>
                   </div>
                 </div>
@@ -195,11 +194,7 @@ export function TransactionDayList({
             );
           })
         ) : (
-          <EmptyState
-            icon={emptyIcon}
-            title={emptyTitle}
-            description={emptyDescription}
-          />
+          <EmptyState icon={emptyIcon} title={emptyTitle} description={emptyDescription} />
         )}
       </div>
 
@@ -213,9 +208,7 @@ export function TransactionDayList({
             onClick={onViewAll}
           >
             <span className={transactionStyles.dayList.viewAllLabel}>{viewAllLabel}</span>
-            <span className={transactionStyles.dayList.viewAllArrow}>
-              →
-            </span>
+            <span className={transactionStyles.dayList.viewAllArrow}>→</span>
           </Button>
         </div>
       )}
@@ -229,7 +222,13 @@ interface TransactionDayListSkeletonProps {
 }
 
 // Stable keys for skeleton items
-const SKELETON_GROUP_KEYS = ['skeleton-group-a', 'skeleton-group-b', 'skeleton-group-c', 'skeleton-group-d', 'skeleton-group-e'];
+const SKELETON_GROUP_KEYS = [
+  'skeleton-group-a',
+  'skeleton-group-b',
+  'skeleton-group-c',
+  'skeleton-group-d',
+  'skeleton-group-e',
+];
 const SKELETON_TX_KEYS = ['skeleton-tx-1', 'skeleton-tx-2'];
 
 /**

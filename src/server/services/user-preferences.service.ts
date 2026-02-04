@@ -72,12 +72,10 @@ export class UserPreferencesService {
 
   // ================== SERVICE LAYER ==================
   /**
-    * Gets user preferences by user ID
-    * Creates default preferences if none exist (lazy initialization)
-    */
-  static async getUserPreferences(
-    userId: string
-  ): Promise<UserPreferences> {
+   * Gets user preferences by user ID
+   * Creates default preferences if none exist (lazy initialization)
+   */
+  static async getUserPreferences(userId: string): Promise<UserPreferences> {
     validateId(userId, 'User ID');
 
     // Create cached query function
@@ -110,9 +108,7 @@ export class UserPreferencesService {
    * Creates default preferences for a user
    * Internal method used by getUserPreferences for lazy initialization
    */
-  private static async createDefaultPreferences(
-    userId: string
-  ): Promise<UserPreferences> {
+  private static async createDefaultPreferences(userId: string): Promise<UserPreferences> {
     try {
       const now = new Date().toISOString();
       const initialData = {
@@ -184,5 +180,4 @@ export class UserPreferencesService {
 
     return updatedPrefs as unknown as UserPreferences;
   }
-
 }

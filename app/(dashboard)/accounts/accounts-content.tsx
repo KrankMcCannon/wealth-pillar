@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 /**
  * Accounts Content - Client Component
@@ -7,14 +7,14 @@
  * Data is passed from Server Component for optimal performance
  */
 
-import { Suspense } from "react";
-import { BottomNavigation, PageContainer, Header } from "@/components/layout";
-import { AccountsList, accountStyles, useAccountsContent } from "@/features/accounts";
-import { MetricCard } from "@/components/ui/layout";
-import UserSelector from "@/components/shared/user-selector";
-import { UserSelectorSkeleton } from "@/features/dashboard";
-import { ConfirmationDialog } from "@/components/shared/confirmation-dialog";
-import type { Account, User } from "@/lib/types";
+import { Suspense } from 'react';
+import { BottomNavigation, PageContainer, Header } from '@/components/layout';
+import { AccountsList, accountStyles, useAccountsContent } from '@/features/accounts';
+import { MetricCard } from '@/components/ui/layout';
+import UserSelector from '@/components/shared/user-selector';
+import { UserSelectorSkeleton } from '@/features/dashboard';
+import { ConfirmationDialog } from '@/components/shared/confirmation-dialog';
+import type { Account, User } from '@/lib/types';
 
 interface AccountsContentProps {
   accountBalances: Record<string, number>;
@@ -60,10 +60,7 @@ export default function AccountsContent({
 
       {/* User Selector */}
       <Suspense fallback={<UserSelectorSkeleton />}>
-        <UserSelector
-          currentUser={currentUser}
-          users={groupUsers}
-        />
+        <UserSelector currentUser={currentUser} users={groupUsers} />
       </Suspense>
 
       {/* Total Balance Card Section */}
@@ -71,13 +68,13 @@ export default function AccountsContent({
         <MetricCard
           label="Saldo Totale"
           value={accountStats.totalBalance}
-          valueType={accountStats.totalBalance >= 0 ? "income" : "expense"}
+          valueType={accountStats.totalBalance >= 0 ? 'income' : 'expense'}
           valueSize="lg"
           size="sm"
           stats={[
-            { label: "Totale", value: accountStats.totalAccounts, variant: "primary" },
-            { label: "Positivi", value: accountStats.positiveAccounts, variant: "success" },
-            { label: "Negativi", value: accountStats.negativeAccounts, variant: "destructive" },
+            { label: 'Totale', value: accountStats.totalAccounts, variant: 'primary' },
+            { label: 'Positivi', value: accountStats.positiveAccounts, variant: 'success' },
+            { label: 'Negativi', value: accountStats.negativeAccounts, variant: 'destructive' },
           ]}
           variant="highlighted"
           isLoading={false}
@@ -105,7 +102,7 @@ export default function AccountsContent({
         message={
           deleteConfirm.itemToDelete
             ? `Sei sicuro di voler eliminare l'account "${deleteConfirm.itemToDelete.name}"? Questa azione non può essere annullata.`
-            : ""
+            : ''
         }
         confirmText="Elimina"
         cancelText="Annulla"

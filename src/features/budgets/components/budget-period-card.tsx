@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { Trash2 } from "lucide-react";
-import type { BudgetPeriod } from "@/lib/types";
-import { Button, Badge } from "@/components/ui";
-import { toDateTime } from "@/lib/utils/date-utils";
-import { budgetStyles } from "@/styles/system";
+import { Trash2 } from 'lucide-react';
+import type { BudgetPeriod } from '@/lib/types';
+import { Button, Badge } from '@/components/ui';
+import { toDateTime } from '@/lib/utils/date-utils';
+import { budgetStyles } from '@/styles/system';
 
 interface BudgetPeriodCardProps {
   period: BudgetPeriod;
@@ -33,24 +33,24 @@ export function BudgetPeriodCard({
 }: Readonly<BudgetPeriodCardProps>) {
   // Format date for display (Italian locale)
   const formatDate = (date: string | Date | null) => {
-    if (!date) return "—";
+    if (!date) return '—';
     const dt = toDateTime(date);
-    if (!dt) return "Data non valida";
-    return dt.toFormat("d LLL yyyy", { locale: "it" });
+    if (!dt) return 'Data non valida';
+    return dt.toFormat('d LLL yyyy', { locale: 'it' });
   };
 
   // Format currency (EUR)
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("it-IT", {
-      style: "currency",
-      currency: "EUR",
+    return new Intl.NumberFormat('it-IT', {
+      style: 'currency',
+      currency: 'EUR',
     }).format(amount);
   };
 
   // Get top 3 categories by spending (if available)
   const topCategories = categorySpending
     ? Object.entries(categorySpending)
-        .sort(([, a], [, b]) => (b) - (a))
+        .sort(([, a], [, b]) => b - a)
         .slice(0, 3)
     : [];
 
@@ -72,10 +72,12 @@ export function BudgetPeriodCard({
             )}
           </p>
           <Badge
-            variant={isActive ? "default" : "secondary"}
-            className={isActive ? budgetStyles.periodCard.badgeActive : budgetStyles.periodCard.badge}
+            variant={isActive ? 'default' : 'secondary'}
+            className={
+              isActive ? budgetStyles.periodCard.badgeActive : budgetStyles.periodCard.badge
+            }
           >
-            {isActive ? "In corso" : "Chiuso"}
+            {isActive ? 'In corso' : 'Chiuso'}
           </Badge>
         </div>
 
@@ -99,9 +101,7 @@ export function BudgetPeriodCard({
           {/* Total Spent */}
           {totalSpent !== undefined && (
             <div className={budgetStyles.periodCard.metricSpent}>
-              <p className={budgetStyles.periodCard.metricLabelSpent}>
-                Speso
-              </p>
+              <p className={budgetStyles.periodCard.metricLabelSpent}>Speso</p>
               <p className={budgetStyles.periodCard.metricValueSpent}>
                 {formatCurrency(totalSpent)}
               </p>
@@ -111,9 +111,7 @@ export function BudgetPeriodCard({
           {/* Total Saved */}
           {totalSaved !== undefined && (
             <div className={budgetStyles.periodCard.metricSaved}>
-              <p className={budgetStyles.periodCard.metricLabelSaved}>
-                Risparmiato
-              </p>
+              <p className={budgetStyles.periodCard.metricLabelSaved}>Risparmiato</p>
               <p className={budgetStyles.periodCard.metricValueSaved}>
                 {formatCurrency(totalSaved)}
               </p>
@@ -125,18 +123,11 @@ export function BudgetPeriodCard({
       {/* Top Categories */}
       {topCategories.length > 0 && (
         <div className={budgetStyles.periodCard.categorySection}>
-          <p className={budgetStyles.periodCard.categoryTitle}>
-            Top Categorie
-          </p>
+          <p className={budgetStyles.periodCard.categoryTitle}>Top Categorie</p>
           <div className={budgetStyles.periodCard.categoryList}>
             {topCategories.map(([category, amount]) => (
-              <div
-                key={category}
-                className={budgetStyles.periodCard.categoryRow}
-              >
-                <span className={budgetStyles.periodCard.categoryLabel}>
-                  {category}
-                </span>
+              <div key={category} className={budgetStyles.periodCard.categoryRow}>
+                <span className={budgetStyles.periodCard.categoryLabel}>{category}</span>
                 <span className={budgetStyles.periodCard.categoryAmount}>
                   {formatCurrency(amount)}
                 </span>
@@ -150,4 +141,4 @@ export function BudgetPeriodCard({
 }
 
 // Export with displayName for debugging
-BudgetPeriodCard.displayName = "BudgetPeriodCard";
+BudgetPeriodCard.displayName = 'BudgetPeriodCard';

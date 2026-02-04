@@ -1,13 +1,13 @@
-"use client";
+'use client';
 
 /**
  * Modern skeleton components for budget pages
  * Uses project palette and smooth animations
  */
 
-import { SkeletonList } from "@/components/ui/primitives";
-import { SHIMMER_BASE } from "@/lib/utils/ui-constants";
-import { budgetStyles } from "@/styles/system";
+import { SkeletonList } from '@/components/ui/primitives';
+import { SHIMMER_BASE } from '@/lib/utils/ui-constants';
+import { budgetStyles } from '@/styles/system';
 
 export const BudgetCardSkeleton = () => (
   <div className={`${budgetStyles.skeleton.budgetCard} ${SHIMMER_BASE}`}>
@@ -30,11 +30,7 @@ export const BudgetCardSkeleton = () => (
 );
 
 export const BudgetListSkeleton = () => (
-  <SkeletonList
-    count={3}
-    spacing="space-y-3"
-    renderItem={() => <BudgetCardSkeleton />}
-  />
+  <SkeletonList count={3} spacing="space-y-3" renderItem={() => <BudgetCardSkeleton />} />
 );
 
 export const BudgetDetailsSkeleton = () => (

@@ -38,7 +38,9 @@ export class UserService {
     const row = data as User & { user_preferences?: unknown };
     const user = {
       ...row,
-      user_preferences: Array.isArray(row.user_preferences) ? row.user_preferences[0] : row.user_preferences
+      user_preferences: Array.isArray(row.user_preferences)
+        ? row.user_preferences[0]
+        : row.user_preferences,
     };
 
     return user as User;
@@ -60,18 +62,16 @@ export class UserService {
     const row = data as User & { user_preferences?: unknown };
     const user = {
       ...row,
-      user_preferences: Array.isArray(row.user_preferences) ? row.user_preferences[0] : row.user_preferences
+      user_preferences: Array.isArray(row.user_preferences)
+        ? row.user_preferences[0]
+        : row.user_preferences,
     };
 
     return user as User;
   });
 
   private static readonly getByEmailDb = cache(async (email: string): Promise<User | null> => {
-    const { data, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('email', email)
-      .single();
+    const { data, error } = await supabase.from('users').select('*').eq('email', email).single();
 
     if (error) {
       if (error.code === 'PGRST116') return null;
@@ -91,12 +91,8 @@ export class UserService {
     return (data || []) as User[];
   });
 
-
   private static async deleteDb(id: string): Promise<void> {
-    const { error } = await supabase
-      .from('users')
-      .delete()
-      .eq('id', id);
+    const { error } = await supabase.from('users').delete().eq('id', id);
 
     if (error) throw new Error(error.message);
   }
@@ -250,10 +246,7 @@ export class UserService {
    * Set default account for a user
    * Updates the user's default_account_id field
    */
-  static async setDefaultAccount(
-    userId: string,
-    accountId: string | null
-  ): Promise<User> {
+  static async setDefaultAccount(userId: string, accountId: string | null): Promise<User> {
     if (!userId || userId.trim() === '') {
       throw new Error('User ID is required');
     }
@@ -269,7 +262,7 @@ export class UserService {
     // Update user with relation connect/disconnect logic replaced by scalar update
     const updateData = {
       updated_at: new Date().toISOString(),
-      default_account_id: accountId
+      default_account_id: accountId,
     };
 
     const updatedUser = await this.update(userId, updateData);
@@ -321,7 +314,7 @@ export class UserService {
           // Remove user from list
           const newUserIds = account.user_ids.filter((id: string) => id !== userId);
           await AccountService.updateAccount(account.id, {
-            user_ids: newUserIds
+            user_ids: newUserIds,
           });
         }
       }
@@ -362,7 +355,6 @@ export class UserService {
   ): Promise<User> {
     this.validateUpdateProfile(userId, updates);
 
-
     // Validate email if provided
     if (updates.email !== undefined) {
       if (!isValidEmail(updates.email)) {
@@ -382,7 +374,7 @@ export class UserService {
 
     // Update user
     const updateData: UserUpdate = {
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     };
 
     if (updates.name) updateData.name = updates.name.trim();

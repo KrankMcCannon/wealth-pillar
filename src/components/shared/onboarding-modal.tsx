@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useMemo, useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { useMemo, useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import {
   AlertCircle,
   ArrowLeft,
@@ -15,12 +15,21 @@ import {
   Target,
   Trash2,
   Wallet,
-} from "lucide-react";
-import { Button, Input, Label, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui";
-import type { Category, BudgetType } from "@/lib/types";
-import { AccountTypeMap } from "@/lib/types";
-import type { OnboardingPayload } from "@/features/onboarding/types";
-import { onboardingStyles, getOnboardingProgressStyle } from "@/features/onboarding/styles";
+} from 'lucide-react';
+import {
+  Button,
+  Input,
+  Label,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../ui';
+import type { Category, BudgetType } from '@/lib/types';
+import { AccountTypeMap } from '@/lib/types';
+import type { OnboardingPayload } from '@/features/onboarding/types';
+import { onboardingStyles, getOnboardingProgressStyle } from '@/features/onboarding/styles';
 
 interface OnboardingModalProps {
   categories: Category[];
@@ -56,21 +65,21 @@ interface OnboardingDraft {
 
 // Account type descriptions for tooltips
 const accountTypeDescriptions: Record<keyof typeof AccountTypeMap, string> = {
-  payroll: "Conto principale dove ricevi lo stipendio o pensione",
-  savings: "Conto dedicato al risparmio a lungo termine",
-  cash: "Denaro contante fisico o fondo cassa",
-  investments: "Conto per investimenti, trading e portafoglio",
+  payroll: 'Conto principale dove ricevi lo stipendio o pensione',
+  savings: 'Conto dedicato al risparmio a lungo termine',
+  cash: 'Denaro contante fisico o fondo cassa',
+  investments: 'Conto per investimenti, trading e portafoglio',
 };
 
 // LocalStorage key for draft
-const ONBOARDING_DRAFT_KEY = "onboarding-draft";
+const ONBOARDING_DRAFT_KEY = 'onboarding-draft';
 
 // Helper to save draft to localStorage
 const saveDraft = (draft: OnboardingDraft) => {
   try {
     localStorage.setItem(ONBOARDING_DRAFT_KEY, JSON.stringify(draft));
   } catch (err) {
-    console.error("Failed to save onboarding draft:", err);
+    console.error('Failed to save onboarding draft:', err);
   }
 };
 
@@ -80,7 +89,7 @@ const loadDraft = (): OnboardingDraft | null => {
     const saved = localStorage.getItem(ONBOARDING_DRAFT_KEY);
     return saved ? JSON.parse(saved) : null;
   } catch (err) {
-    console.error("Failed to load onboarding draft:", err);
+    console.error('Failed to load onboarding draft:', err);
     return null;
   }
 };
@@ -90,27 +99,27 @@ const clearDraft = () => {
   try {
     localStorage.removeItem(ONBOARDING_DRAFT_KEY);
   } catch (err) {
-    console.error("Failed to clear onboarding draft:", err);
+    console.error('Failed to clear onboarding draft:', err);
   }
 };
 
 const steps = [
   {
-    id: "group",
-    title: "Crea il gruppo",
-    description: "Dai un nome al tuo spazio condiviso",
+    id: 'group',
+    title: 'Crea il gruppo',
+    description: 'Dai un nome al tuo spazio condiviso',
     icon: Building2,
   },
   {
-    id: "accounts",
-    title: "Configura i conti",
-    description: "Aggiungi uno o più conti bancari",
+    id: 'accounts',
+    title: 'Configura i conti',
+    description: 'Aggiungi uno o più conti bancari',
     icon: Wallet,
   },
   {
-    id: "budgets",
-    title: "Definisci i budget",
-    description: "Imposta gli obiettivi di spesa",
+    id: 'budgets',
+    title: 'Definisci i budget',
+    description: 'Imposta gli obiettivi di spesa',
     icon: Target,
   },
 ] as const;
@@ -156,12 +165,14 @@ export default function OnboardingModal({
   categoriesLoading = false,
 }: Readonly<OnboardingModalProps>) {
   const [currentStep, setCurrentStep] = useState(0);
-  const [groupName, setGroupName] = useState("");
-  const [groupDescription, setGroupDescription] = useState("");
+  const [groupName, setGroupName] = useState('');
+  const [groupDescription, setGroupDescription] = useState('');
   const [budgetStartDay, setBudgetStartDay] = useState<number>(1);
-  const [accounts, setAccounts] = useState<AccountFormState[]>([{ id: crypto.randomUUID(), name: "", type: "payroll", isDefault: true }]);
+  const [accounts, setAccounts] = useState<AccountFormState[]>([
+    { id: crypto.randomUUID(), name: '', type: 'payroll', isDefault: true },
+  ]);
   const [budgets, setBudgets] = useState<BudgetFormState[]>([
-    { id: crypto.randomUUID(), description: "", amount: "", type: "monthly", categoryId: "" },
+    { id: crypto.randomUUID(), description: '', amount: '', type: 'monthly', categoryId: '' },
   ]);
   const [localError, setLocalError] = useState<string | null>(null);
   const [showDraftRestore, setShowDraftRestore] = useState(() => Boolean(loadDraft()));
@@ -215,7 +226,12 @@ export default function OnboardingModal({
     if (currentStep === 2) {
       return budgets.every((budget) => {
         const amount = Number.parseFloat(budget.amount);
-        return budget.description.trim().length > 1 && !Number.isNaN(amount) && amount > 0 && Boolean(budget.categoryId);
+        return (
+          budget.description.trim().length > 1 &&
+          !Number.isNaN(amount) &&
+          amount > 0 &&
+          Boolean(budget.categoryId)
+        );
       });
     }
 
@@ -232,15 +248,15 @@ export default function OnboardingModal({
   );
 
   const budgetTypeOptions: { value: BudgetType; label: string }[] = [
-    { value: "monthly", label: "Mensile" },
-    { value: "annually", label: "Annuale" },
+    { value: 'monthly', label: 'Mensile' },
+    { value: 'annually', label: 'Annuale' },
   ];
 
   const fallbackCategoryOptions = useMemo(
     () => [
-      { value: "spesa", label: "Spesa" },
-      { value: "bolletta_luce", label: "Bolletta luce" },
-      { value: "altro", label: "Altro" },
+      { value: 'spesa', label: 'Spesa' },
+      { value: 'bolletta_luce', label: 'Bolletta luce' },
+      { value: 'altro', label: 'Altro' },
     ],
     []
   );
@@ -251,7 +267,7 @@ export default function OnboardingModal({
 
   const handleNext = () => {
     if (!canProceed) {
-      setLocalError("Completa i campi obbligatori per continuare");
+      setLocalError('Completa i campi obbligatori per continuare');
       return;
     }
     setLocalError(null);
@@ -265,7 +281,7 @@ export default function OnboardingModal({
 
   const handleSubmit = async () => {
     if (!canProceed) {
-      setLocalError("Verifica di aver compilato tutti i campi");
+      setLocalError('Verifica di aver compilato tutti i campi');
       return;
     }
 
@@ -292,7 +308,9 @@ export default function OnboardingModal({
       // Clear draft on successful completion
       clearDraft();
     } catch (err) {
-      setLocalError(err instanceof Error ? err.message : "Errore durante il salvataggio. Riprova tra poco.");
+      setLocalError(
+        err instanceof Error ? err.message : 'Errore durante il salvataggio. Riprova tra poco.'
+      );
     }
   };
 
@@ -336,7 +354,9 @@ export default function OnboardingModal({
   );
 
   const updateAccountField = (index: number, field: keyof AccountFormState, value: string) => {
-    setAccounts((prev) => prev.map((account, idx) => (idx === index ? { ...account, [field]: value } : account)));
+    setAccounts((prev) =>
+      prev.map((account, idx) => (idx === index ? { ...account, [field]: value } : account))
+    );
   };
 
   const setAccountAsDefault = (index: number) => {
@@ -349,7 +369,10 @@ export default function OnboardingModal({
   };
 
   const addAccount = () => {
-    setAccounts((prev) => [...prev, { id: crypto.randomUUID(), name: "", type: "payroll", isDefault: false }]);
+    setAccounts((prev) => [
+      ...prev,
+      { id: crypto.randomUUID(), name: '', type: 'payroll', isDefault: false },
+    ]);
   };
 
   const removeAccount = (index: number) => {
@@ -396,7 +419,9 @@ export default function OnboardingModal({
                   title={account.isDefault ? 'Conto predefinito' : 'Imposta come predefinito'}
                   disabled={loading}
                 >
-                  <Star className={`${onboardingStyles.accounts.defaultIcon} ${account.isDefault ? onboardingStyles.accounts.defaultIconFilled : ''}`} />
+                  <Star
+                    className={`${onboardingStyles.accounts.defaultIcon} ${account.isDefault ? onboardingStyles.accounts.defaultIconFilled : ''}`}
+                  />
                 </button>
               )}
             </div>
@@ -416,7 +441,7 @@ export default function OnboardingModal({
             <Label className={onboardingStyles.label}>Nome del conto</Label>
             <Input
               value={account.name}
-              onChange={(e) => updateAccountField(index, "name", e.target.value)}
+              onChange={(e) => updateAccountField(index, 'name', e.target.value)}
               placeholder="Conto corrente principale"
               disabled={loading}
               className={onboardingStyles.input}
@@ -428,14 +453,20 @@ export default function OnboardingModal({
               <div className={onboardingStyles.accounts.helpGroup}>
                 <HelpCircle className={onboardingStyles.accounts.helpIcon} />
                 <div className={onboardingStyles.accounts.helpPopover}>
-                  <p className={onboardingStyles.accounts.helpTitle}>{AccountTypeMap[account.type]}</p>
-                  <p className={onboardingStyles.accounts.helpBody}>{accountTypeDescriptions[account.type]}</p>
+                  <p className={onboardingStyles.accounts.helpTitle}>
+                    {AccountTypeMap[account.type]}
+                  </p>
+                  <p className={onboardingStyles.accounts.helpBody}>
+                    {accountTypeDescriptions[account.type]}
+                  </p>
                 </div>
               </div>
             </div>
             <Select
               value={account.type}
-              onValueChange={(value) => updateAccountField(index, "type", value as keyof typeof AccountTypeMap)}
+              onValueChange={(value) =>
+                updateAccountField(index, 'type', value as keyof typeof AccountTypeMap)
+              }
               disabled={loading}
             >
               <SelectTrigger className={onboardingStyles.select}>
@@ -452,18 +483,28 @@ export default function OnboardingModal({
           </div>
         </div>
       ))}
-      <Button type="button" onClick={addAccount} disabled={loading} className={onboardingStyles.addButton}>
+      <Button
+        type="button"
+        onClick={addAccount}
+        disabled={loading}
+        className={onboardingStyles.addButton}
+      >
         <PlusCircle className={onboardingStyles.accounts.addIcon} /> Aggiungi un conto
       </Button>
     </div>
   );
 
   const updateBudgetField = (index: number, field: keyof BudgetFormState, value: string) => {
-    setBudgets((prev) => prev.map((budget, idx) => (idx === index ? { ...budget, [field]: value } : budget)));
+    setBudgets((prev) =>
+      prev.map((budget, idx) => (idx === index ? { ...budget, [field]: value } : budget))
+    );
   };
 
   const addBudget = () => {
-    setBudgets((prev) => [...prev, { id: crypto.randomUUID(), description: "", amount: "", type: "monthly", categoryId: "" }]);
+    setBudgets((prev) => [
+      ...prev,
+      { id: crypto.randomUUID(), description: '', amount: '', type: 'monthly', categoryId: '' },
+    ]);
   };
 
   const removeBudget = (index: number) => {
@@ -503,8 +544,8 @@ export default function OnboardingModal({
       )}
       {!categoriesLoading && categories.length === 0 && (
         <div className={onboardingStyles.warningMessage}>
-          Nessuna categoria disponibile al momento. Prova ad aggiornare la pagina dopo aver completato
-          l&apos;onboarding.
+          Nessuna categoria disponibile al momento. Prova ad aggiornare la pagina dopo aver
+          completato l&apos;onboarding.
         </div>
       )}
       {budgets.map((budget, index) => (
@@ -526,7 +567,7 @@ export default function OnboardingModal({
             <Label className={onboardingStyles.label}>Descrizione</Label>
             <Input
               value={budget.description}
-              onChange={(e) => updateBudgetField(index, "description", e.target.value)}
+              onChange={(e) => updateBudgetField(index, 'description', e.target.value)}
               placeholder="Spesa mensile supermercato"
               disabled={loading}
               className={onboardingStyles.input}
@@ -540,7 +581,7 @@ export default function OnboardingModal({
                 min="0"
                 step="0.01"
                 value={budget.amount}
-                onChange={(e) => updateBudgetField(index, "amount", e.target.value)}
+                onChange={(e) => updateBudgetField(index, 'amount', e.target.value)}
                 placeholder="500"
                 disabled={loading}
                 className={onboardingStyles.input}
@@ -550,7 +591,7 @@ export default function OnboardingModal({
               <Label className={onboardingStyles.label}>Periodo</Label>
               <Select
                 value={budget.type}
-                onValueChange={(value: BudgetType) => updateBudgetField(index, "type", value)}
+                onValueChange={(value: BudgetType) => updateBudgetField(index, 'type', value)}
                 disabled={loading}
               >
                 <SelectTrigger className={onboardingStyles.select}>
@@ -570,12 +611,16 @@ export default function OnboardingModal({
             <Label className={onboardingStyles.label}>Categoria principale</Label>
             <Select
               value={budget.categoryId}
-              onValueChange={(value) => updateBudgetField(index, "categoryId", value)}
+              onValueChange={(value) => updateBudgetField(index, 'categoryId', value)}
               disabled={loading || categoriesLoading}
             >
               <SelectTrigger className={onboardingStyles.select}>
                 <SelectValue
-                  placeholder={categoryOptions.length ? "Scegli una categoria" : "Nessuna categoria disponibile"}
+                  placeholder={
+                    categoryOptions.length
+                      ? 'Scegli una categoria'
+                      : 'Nessuna categoria disponibile'
+                  }
                 />
               </SelectTrigger>
               <SelectContent className={onboardingStyles.selectContent}>
@@ -610,7 +655,12 @@ export default function OnboardingModal({
           </SelectContent>
         </Select>
       </div>
-      <Button type="button" onClick={addBudget} disabled={loading} className={onboardingStyles.addButton}>
+      <Button
+        type="button"
+        onClick={addBudget}
+        disabled={loading}
+        className={onboardingStyles.addButton}
+      >
         <PlusCircle className={onboardingStyles.budgets.addIcon} /> Aggiungi un budget
       </Button>
     </div>
@@ -636,7 +686,9 @@ export default function OnboardingModal({
           <div className={onboardingStyles.draftRestore.body}>
             <HelpCircle className={onboardingStyles.draftRestore.icon} />
             <div className={onboardingStyles.draftRestore.content}>
-              <p className={onboardingStyles.draftRestore.title}>Riprendere da dove hai lasciato?</p>
+              <p className={onboardingStyles.draftRestore.title}>
+                Riprendere da dove hai lasciato?
+              </p>
               <p className={onboardingStyles.draftRestore.text}>
                 Abbiamo trovato una configurazione salvata in precedenza.
               </p>
@@ -664,7 +716,7 @@ export default function OnboardingModal({
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        transition={{ type: "spring", stiffness: 260, damping: 24 }}
+        transition={{ type: 'spring', stiffness: 260, damping: 24 }}
         className={onboardingStyles.modal}
       >
         <header className={onboardingStyles.header.container}>
@@ -678,9 +730,10 @@ export default function OnboardingModal({
                 {steps.map((step, index) => (
                   <div
                     key={step.id}
-                    className={`${onboardingStyles.steps.dot} ${
-                      getStepDotClass(index, currentStep)
-                    }`}
+                    className={`${onboardingStyles.steps.dot} ${getStepDotClass(
+                      index,
+                      currentStep
+                    )}`}
                   />
                 ))}
               </div>
@@ -688,7 +741,9 @@ export default function OnboardingModal({
                 Step {currentStep + 1} di {steps.length}
               </p>
               <h2 className={onboardingStyles.header.title}>{steps[currentStep].title}</h2>
-              <p className={onboardingStyles.header.description}>{steps[currentStep].description}</p>
+              <p className={onboardingStyles.header.description}>
+                {steps[currentStep].description}
+              </p>
             </div>
           </div>
           <div className={onboardingStyles.header.progressTrack}>
@@ -710,7 +765,12 @@ export default function OnboardingModal({
 
         <div className={onboardingStyles.footer.container}>
           {currentStep > 0 ? (
-            <Button type="button" onClick={handleBack} disabled={loading} className={onboardingStyles.backButton}>
+            <Button
+              type="button"
+              onClick={handleBack}
+              disabled={loading}
+              className={onboardingStyles.backButton}
+            >
               <ArrowLeft className={onboardingStyles.footer.buttonIcon} /> Indietro
             </Button>
           ) : (
@@ -720,7 +780,9 @@ export default function OnboardingModal({
           <Button
             type="button"
             onClick={currentStep === steps.length - 1 ? handleSubmit : handleNext}
-            disabled={loading || !canProceed || (currentStep === steps.length - 1 && categoriesLoading)}
+            disabled={
+              loading || !canProceed || (currentStep === steps.length - 1 && categoriesLoading)
+            }
             className={onboardingStyles.nextButton}
           >
             {renderButtonContent(currentStep, steps.length, loading)}

@@ -1,34 +1,34 @@
-"use client";
+'use client';
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { Home, CreditCard, TrendingUp, BarChart3 } from "lucide-react";
-import { bottomNavigationStyles } from "./theme/bottom-navigation-styles";
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { Home, CreditCard, TrendingUp, BarChart3 } from 'lucide-react';
+import { bottomNavigationStyles } from './theme/bottom-navigation-styles';
 
 export function BottomNavigation() {
   const pathname = usePathname();
 
   const navItems = [
     {
-      href: "/dashboard",
+      href: '/dashboard',
       icon: Home,
-      label: "Home"
+      label: 'Home',
     },
     {
-      href: "/transactions",
+      href: '/transactions',
       icon: CreditCard,
-      label: "Transactions"
+      label: 'Transactions',
     },
     {
-      href: "/investments",
+      href: '/investments',
       icon: TrendingUp,
-      label: "Investments"
+      label: 'Investments',
     },
     {
-      href: "/reports",
+      href: '/reports',
       icon: BarChart3,
-      label: "Reports"
-    }
+      label: 'Reports',
+    },
   ];
 
   return (

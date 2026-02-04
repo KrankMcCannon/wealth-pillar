@@ -1,9 +1,11 @@
-import type { AccountMetrics } from "@/server/services/reports.service";
+import type { AccountMetrics } from '@/server/services/reports.service';
 
 /**
  * Sorts account metrics by a predefined order: Payroll > Cash > Savings, then usage frequency or alphabetical.
  */
-export const sortAccountMetrics = (entries: [string, AccountMetrics][]): [string, AccountMetrics][] => {
+export const sortAccountMetrics = (
+  entries: [string, AccountMetrics][]
+): [string, AccountMetrics][] => {
   return entries.sort(([typeA], [typeB]) => {
     const order = ['payroll', 'cash', 'savings'];
     const indexA = order.indexOf(typeA.toLowerCase());

@@ -6,9 +6,9 @@ import type { Transaction } from '@/lib/types';
 
 /**
  * Server Action: Load More Transactions (Paginated)
- * 
+ *
  * Fetches additional transactions for infinite scroll.
- * 
+ *
  * @param offset - Number of transactions to skip
  * @param limit - Number of transactions to fetch (default 50)
  * @returns Paginated transactions with metadata
@@ -34,16 +34,16 @@ export async function loadMoreTransactionsAction(
       return { data: [], total: 0, hasMore: false, error: 'Non autenticato' };
     }
 
-    const result = await TransactionService.getTransactionsByGroup(
-      currentUser.group_id || '',
-      { limit, offset }
-    );
+    const result = await TransactionService.getTransactionsByGroup(currentUser.group_id || '', {
+      limit,
+      offset,
+    });
 
     return {
       data: result.data,
       total: result.total,
       hasMore: result.hasMore,
-      error: null
+      error: null,
     };
   } catch (error) {
     console.error('[loadMoreTransactionsAction] Error:', error);
@@ -51,7 +51,7 @@ export async function loadMoreTransactionsAction(
       data: [],
       total: 0,
       hasMore: false,
-      error: error instanceof Error ? error.message : 'Failed to load transactions'
+      error: error instanceof Error ? error.message : 'Failed to load transactions',
     };
   }
 }

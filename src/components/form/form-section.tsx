@@ -12,12 +12,12 @@
  * ```
  */
 
-"use client";
+'use client';
 
-import * as React from "react";
+import * as React from 'react';
 import { Separator, Text } from '@/components/ui';
 import { cn } from '@/lib';
-import { formStyles } from "./theme/form-styles";
+import { formStyles } from './theme/form-styles';
 
 export interface FormSectionProps {
   /** Section title */
@@ -56,9 +56,7 @@ export function FormSection({
         </div>
       )}
 
-      <div className={formStyles.section.body}>
-        {children}
-      </div>
+      <div className={formStyles.section.body}>{children}</div>
 
       {showSeparator && <Separator className={formStyles.section.separator} />}
     </div>

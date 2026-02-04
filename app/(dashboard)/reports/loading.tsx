@@ -9,7 +9,5 @@
 import { PageLoader } from '@/components/shared';
 
 export default function ReportsLoading() {
-  return (
-    <PageLoader message="Caricamento report..." />
-  );
+  return <PageLoader message="Caricamento report..." />;
 }

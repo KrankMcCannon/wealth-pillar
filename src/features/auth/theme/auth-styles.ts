@@ -4,7 +4,7 @@
  * Uses centralized style registry from @/styles/system
  */
 
-import { radiusStyles, typographyStyles, spacingStyles } from "@/styles/system";
+import { radiusStyles, typographyStyles, spacingStyles } from '@/styles/system';
 
 const authTokens = {
   // ============================================================================
@@ -36,7 +36,7 @@ const authTokens = {
 
   input: {
     // Base input field
-    base: "h-9 text-sm bg-input border-primary/20 focus:border-primary/20 focus:ring-primary/20",
+    base: 'h-9 text-sm bg-input border-primary/20 focus:border-primary/20 focus:ring-primary/20',
 
     // Input icon styling (for prefix icons)
     icon: 'h-3.5 w-3.5 text-primary/60',
@@ -49,7 +49,8 @@ const authTokens = {
 
   button: {
     // Primary auth button (sign in, sign up, etc.)
-    primary: "w-full h-9 bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-200 active:scale-[.98] shadow-md text-sm font-medium",
+    primary:
+      'w-full h-9 bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-200 active:scale-[.98] shadow-md text-sm font-medium',
   },
 
   // ============================================================================
@@ -59,13 +60,13 @@ const authTokens = {
 
   validation: {
     error: {
-      bg: "bg-destructive/10",
-      border: "border-destructive/20",
-      text: "text-destructive",
+      bg: 'bg-destructive/10',
+      border: 'border-destructive/20',
+      text: 'text-destructive',
     },
     success: {
-      bg: "bg-success/10",
-      text: "text-success",
+      bg: 'bg-success/10',
+      text: 'text-success',
     },
   },
 } as const;
@@ -77,22 +78,22 @@ export const authStyles = {
   // ============================================================================
 
   page: {
-    container:
-      'h-full w-full flex items-center justify-center px-0 sm:px-4 relative',
+    container: 'h-full w-full flex items-center justify-center px-0 sm:px-4 relative',
     wrapper: 'flex w-full justify-center py-12 relative z-10',
-    bgBlobTop: "pointer-events-none absolute -top-24 -left-24 h-72 w-72 rounded-full blur-3xl opacity-15 bg-primary",
-    bgBlobBottom: "pointer-events-none absolute -bottom-24 -right-24 h-72 w-72 rounded-full blur-3xl opacity-15 bg-secondary",
+    bgBlobTop:
+      'pointer-events-none absolute -top-24 -left-24 h-72 w-72 rounded-full blur-3xl opacity-15 bg-primary',
+    bgBlobBottom:
+      'pointer-events-none absolute -bottom-24 -right-24 h-72 w-72 rounded-full blur-3xl opacity-15 bg-secondary',
   },
   layout: {
     container: 'h-screen w-screen bg-card flex flex-col relative overflow-hidden',
     main: 'w-full flex-1 flex items-center justify-center px-4 py-6',
-    footer:
-      'mt-auto w-full px-4 pb-[calc(theme(spacing.3)+env(safe-area-inset-bottom))] pt-2',
+    footer: 'mt-auto w-full px-4 pb-[calc(theme(spacing.3)+env(safe-area-inset-bottom))] pt-2',
     footerText: `mx-auto max-w-6xl text-center ${typographyStyles.xs} text-primary/60`,
   },
   loading: {
     container: 'flex flex-col items-center justify-center py-8 space-y-4',
-    spinner: "h-12 w-12 animate-spin text-primary",
+    spinner: 'h-12 w-12 animate-spin text-primary',
     spinnerRing: 'border-b-2 border-current rounded-full',
     text: `${typographyStyles.sm} text-center text-muted-foreground`,
   },
@@ -173,7 +174,7 @@ export const authStyles = {
   toggle: {
     container: `text-center ${typographyStyles.xs} text-muted-foreground pt-1`,
     text: `${typographyStyles.xs} text-muted-foreground`,
-    link: "text-primary hover:text-primary/80 font-semibold",
+    link: 'text-primary hover:text-primary/80 font-semibold',
   },
 
   // ============================================================================
@@ -222,9 +223,7 @@ export function getInputStyles(withIcon: boolean = true): {
 } {
   return {
     wrapper: authStyles.input.wrapper,
-    input: withIcon
-      ? authStyles.input.field
-      : authStyles.input.field.replace('pl-9', 'px-3'),
+    input: withIcon ? authStyles.input.field : authStyles.input.field.replace('pl-9', 'px-3'),
   };
 }
 

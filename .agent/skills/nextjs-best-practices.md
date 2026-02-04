@@ -59,8 +59,8 @@ src/
 
 ```tsx
 // app/dashboard/page.tsx
-import { getDashboardStats } from "@/features/dashboard/queries";
-import { StatsGrid } from "@/features/dashboard/components/stats-grid";
+import { getDashboardStats } from '@/features/dashboard/queries';
+import { StatsGrid } from '@/features/dashboard/components/stats-grid';
 
 export default async function DashboardPage() {
   const stats = await getDashboardStats(); // Direct Server Call

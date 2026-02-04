@@ -1,14 +1,14 @@
-import { Fragment, useMemo } from "react";
-import type { CSSProperties, ReactNode } from "react";
+import { Fragment, useMemo } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 
-import { SkeletonBox } from "./skeleton-box";
+import { SkeletonBox } from './skeleton-box';
 
 export interface SkeletonListProps {
   count: number;
   height?: string;
   width?: string;
   spacing?: string;
-  variant?: "light" | "medium" | "dark";
+  variant?: 'light' | 'medium' | 'dark';
   className?: string;
   style?: CSSProperties;
   renderItem?: (index: number) => ReactNode;
@@ -16,13 +16,13 @@ export interface SkeletonListProps {
 
 export function SkeletonList({
   count,
-  height = "h-16",
-  width = "w-full",
-  spacing = "space-y-2",
-  variant = "medium",
+  height = 'h-16',
+  width = 'w-full',
+  spacing = 'space-y-2',
+  variant = 'medium',
   className,
   style,
-  renderItem
+  renderItem,
 }: Readonly<SkeletonListProps>) {
   const skeletonIds = useMemo(() => {
     return Array.from({ length: count }).map(() => crypto.randomUUID());

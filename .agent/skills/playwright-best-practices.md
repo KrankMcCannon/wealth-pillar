@@ -34,19 +34,19 @@ Use locators that resemble how assistive technology (and users) perceive the pag
 
 ```ts
 // Prefer these (by order of priority)
-await page.getByRole("button", { name: "Submit" }).click();
-await page.getByLabel("Email Address").fill("user@example.com");
-await page.getByPlaceholder("Search...").fill("query");
-await page.getByText("Welcome back").isVisible();
-await page.getByTestId("custom-element"); // Only if absolutely necessary
+await page.getByRole('button', { name: 'Submit' }).click();
+await page.getByLabel('Email Address').fill('user@example.com');
+await page.getByPlaceholder('Search...').fill('query');
+await page.getByText('Welcome back').isVisible();
+await page.getByTestId('custom-element'); // Only if absolutely necessary
 ```
 
 ### ❌ Anti-Pattern (Implementation Details)
 
 ```ts
-await page.locator("div > button.btn-primary").click(); // Breaks if class changes
-await page.locator("#submit-btn").click(); // Breaks if ID changes
-await page.locator("xpath=//div[3]/span").click(); // Extremely brittle
+await page.locator('div > button.btn-primary').click(); // Breaks if class changes
+await page.locator('#submit-btn').click(); // Breaks if ID changes
+await page.locator('xpath=//div[3]/span').click(); // Extremely brittle
 ```
 
 ---
@@ -64,7 +64,7 @@ Every test must be able to run independently, in any order, and potentially in p
 ```ts
 test.beforeEach(async ({ page }) => {
   // Always start from a clean slate specific to this test suite
-  await page.goto("/dashboard");
+  await page.goto('/dashboard');
 });
 ```
 
@@ -85,10 +85,10 @@ Use `expect` assertions that retry automatically until the condition is met.
 
 ```ts
 // Auto-retries until the button is enabled
-await expect(page.getByRole("button")).toBeEnabled();
+await expect(page.getByRole('button')).toBeEnabled();
 
 // Auto-retries until the text appears
-await expect(page.getByText("Success")).toBeVisible();
+await expect(page.getByText('Success')).toBeVisible();
 
 // Auto-retries until URL changes
 await expect(page).toHaveURL(/.*dashboard/);
@@ -114,17 +114,17 @@ export class LoginPage {
   constructor(private page: Page) {}
 
   async login(email: string, pass: string) {
-    await this.page.getByLabel("Email").fill(email);
-    await this.page.getByLabel("Password").fill(pass);
-    await this.page.getByRole("button", { name: "Sign in" }).click();
+    await this.page.getByLabel('Email').fill(email);
+    await this.page.getByLabel('Password').fill(pass);
+    await this.page.getByRole('button', { name: 'Sign in' }).click();
   }
 }
 
 // tests/auth.spec.ts
-test("should login", async ({ page }) => {
+test('should login', async ({ page }) => {
   const loginPage = new LoginPage(page);
-  await loginPage.login("test@user.com", "123456");
-  await expect(page).toHaveURL("/dashboard");
+  await loginPage.login('test@user.com', '123456');
+  await expect(page).toHaveURL('/dashboard');
 });
 ```
 
@@ -138,7 +138,7 @@ test("should login", async ({ page }) => {
 
 ```ts
 // Using stored auth state to skip login screen in every test
-test.use({ storageState: "playwright/.auth/user.json" });
+test.use({ storageState: 'playwright/.auth/user.json' });
 ```
 
 ## 6. Verification

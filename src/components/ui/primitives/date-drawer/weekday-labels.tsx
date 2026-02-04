@@ -10,15 +10,15 @@
  * - Responsive typography
  */
 
-import { calendarDrawerStyles } from "@/lib/styles/calendar-drawer.styles";
-import { weekdayLabelVariants } from "@/lib/utils/date-drawer-variants";
-import { cn } from "@/lib/utils";
+import { calendarDrawerStyles } from '@/lib/styles/calendar-drawer.styles';
+import { weekdayLabelVariants } from '@/lib/utils/date-drawer-variants';
+import { cn } from '@/lib/utils';
 
 /**
  * Italian weekday abbreviations
  * Starts with Monday (Italian/European convention)
  */
-const ITALIAN_WEEKDAYS = ["Lu", "Ma", "Me", "Gi", "Ve", "Sa", "Do"] as const;
+const ITALIAN_WEEKDAYS = ['Lu', 'Ma', 'Me', 'Gi', 'Ve', 'Sa', 'Do'] as const;
 
 interface WeekdayLabelsProps {
   /**
@@ -56,10 +56,7 @@ export function WeekdayLabels({
         return (
           <th
             key={day}
-            className={cn(
-              calendarDrawerStyles.weekdays.label,
-              weekdayLabelVariants({ isWeekend })
-            )}
+            className={cn(calendarDrawerStyles.weekdays.label, weekdayLabelVariants({ isWeekend }))}
             aria-label={getFullWeekdayName(index)}
           >
             {day}
@@ -76,14 +73,6 @@ export function WeekdayLabels({
  * @returns Full Italian weekday name
  */
 function getFullWeekdayName(index: number): string {
-  const fullNames = [
-    "Lunedì",
-    "Martedì",
-    "Mercoledì",
-    "Giovedì",
-    "Venerdì",
-    "Sabato",
-    "Domenica",
-  ];
-  return fullNames[index] || "";
+  const fullNames = ['Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato', 'Domenica'];
+  return fullNames[index] || '';
 }

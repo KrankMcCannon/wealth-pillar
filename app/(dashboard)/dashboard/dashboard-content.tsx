@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 /**
  * Dashboard Content - Client Component
@@ -15,9 +15,9 @@
  * Business logic is extracted to useDashboardContent hook
  */
 
-import { Suspense } from "react";
-import { BottomNavigation, PageContainer, Header } from "@/components/layout";
-import { Button } from "@/components/ui";
+import { Suspense } from 'react';
+import { BottomNavigation, PageContainer, Header } from '@/components/layout';
+import { Button } from '@/components/ui';
 import {
   BalanceSectionSkeleton,
   BudgetSectionSkeleton,
@@ -26,13 +26,13 @@ import {
   UserSelectorSkeleton,
   dashboardStyles,
   useDashboardContent,
-} from "@/features/dashboard";
-import UserSelector from "@/components/shared/user-selector";
-import { BalanceSection } from "@/features/accounts";
-import { BudgetPeriodManager, BudgetSection } from "@/features/budgets";
-import { RecurringSeriesSection } from "@/features/recurring";
-import type { Account, Budget, BudgetPeriod, User, UserBudgetSummary } from "@/lib/types";
-import type { RecurringTransactionSeries } from "@/lib";
+} from '@/features/dashboard';
+import UserSelector from '@/components/shared/user-selector';
+import { BalanceSection } from '@/features/accounts';
+import { BudgetPeriodManager, BudgetSection } from '@/features/budgets';
+import { RecurringSeriesSection } from '@/features/recurring';
+import type { Account, Budget, BudgetPeriod, User, UserBudgetSummary } from '@/lib/types';
+import type { RecurringTransactionSeries } from '@/lib';
 
 /**
  * Dashboard Content Props
@@ -104,8 +104,7 @@ export default function DashboardContent({
     </Button>
   );
 
-  const recurringSeriesUserId =
-    selectedGroupFilter === "all" ? undefined : effectiveUserId;
+  const recurringSeriesUserId = selectedGroupFilter === 'all' ? undefined : effectiveUserId;
 
   return (
     <PageContainer className={dashboardStyles.page.container}>
@@ -121,11 +120,7 @@ export default function DashboardContent({
 
       {/* User Selector */}
       <Suspense fallback={<UserSelectorSkeleton />}>
-        <UserSelector
-          isLoading={false}
-          currentUser={currentUser}
-          users={groupUsers}
-        />
+        <UserSelector isLoading={false} currentUser={currentUser} users={groupUsers} />
       </Suspense>
 
       <main className={dashboardStyles.page.main}>
@@ -169,9 +164,7 @@ export default function DashboardContent({
         <Suspense fallback={<RecurringSeriesSkeleton />}>
           <RecurringSeriesSection
             series={recurringSeries}
-            selectedUserId={
-              isMember ? currentUser.id : recurringSeriesUserId
-            }
+            selectedUserId={isMember ? currentUser.id : recurringSeriesUserId}
             className={dashboardStyles.recurringSection.container}
             showStats={false}
             maxItems={5}

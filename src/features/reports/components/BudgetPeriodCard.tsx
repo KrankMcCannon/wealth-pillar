@@ -3,20 +3,16 @@
  * Individual budget period display with expandable chart
  */
 
-"use client";
+'use client';
 
-import * as React from "react";
-import { Card, Badge } from "@/components/ui";
-import {
-  ChevronDown,
-  ChevronUp,
-  Calendar,
-} from "lucide-react";
-import type { Transaction, Category } from "@/lib/types";
-import { formatDateShort } from "@/lib/utils";
-import { reportsStyles } from "@/styles/system";
-import { BudgetPeriodMetrics } from "./BudgetPeriodMetrics";
-import { BudgetPeriodTransactions } from "./BudgetPeriodTransactions";
+import * as React from 'react';
+import { Card, Badge } from '@/components/ui';
+import { ChevronDown, ChevronUp, Calendar } from 'lucide-react';
+import type { Transaction, Category } from '@/lib/types';
+import { formatDateShort } from '@/lib/utils';
+import { reportsStyles } from '@/styles/system';
+import { BudgetPeriodMetrics } from './BudgetPeriodMetrics';
+import { BudgetPeriodTransactions } from './BudgetPeriodTransactions';
 
 export interface BudgetPeriodCardProps {
   startDate: string | Date;
@@ -53,7 +49,7 @@ const BudgetPeriodCardComponent = ({
   periodTotalTransfers,
 }: Readonly<BudgetPeriodCardProps>) => {
   const periodStartFormatted = formatDateShort(startDate);
-  const periodEndFormatted = endDate ? formatDateShort(endDate) : "In corso";
+  const periodEndFormatted = endDate ? formatDateShort(endDate) : 'In corso';
 
   // Determine if we have transactions or just a count
   const totalCount = transactionCount ?? transactions?.length ?? 0;
@@ -101,9 +97,7 @@ const BudgetPeriodCardComponent = ({
 
         {/* Chevron with detail label */}
         <div className={styles.headerChevronContainer}>
-          <p className={styles.headerDetailLabel}>
-            {isExpanded ? "Nascondi" : "Mostra"}
-          </p>
+          <p className={styles.headerDetailLabel}>{isExpanded ? 'Nascondi' : 'Mostra'}</p>
           <div className={styles.headerChevron}>
             {isExpanded ? (
               <ChevronUp className={styles.headerChevronIcon} />

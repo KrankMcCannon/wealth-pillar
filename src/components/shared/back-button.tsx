@@ -1,23 +1,23 @@
-"use client";
+'use client';
 
-import { useRouter } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
-import { Button } from "@/components/ui";
-import { cn } from "@/lib";
-import { backButtonStyles } from "./theme/back-button-styles";
+import { useRouter } from 'next/navigation';
+import { ArrowLeft } from 'lucide-react';
+import { Button } from '@/components/ui';
+import { cn } from '@/lib';
+import { backButtonStyles } from './theme/back-button-styles';
 
 interface BackButtonProps {
   onClick?: () => void;
   className?: string;
-  variant?: "ghost" | "outline";
-  size?: "sm" | "default" | "lg" | "icon";
+  variant?: 'ghost' | 'outline';
+  size?: 'sm' | 'default' | 'lg' | 'icon';
 }
 
 export function BackButton({
   onClick,
   className,
-  variant = "ghost",
-  size = "sm"
+  variant = 'ghost',
+  size = 'sm',
 }: Readonly<BackButtonProps>) {
   const router = useRouter();
 
@@ -34,10 +34,7 @@ export function BackButton({
       variant={variant}
       size={size}
       onClick={handleClick}
-      className={cn(
-        backButtonStyles.base,
-        className
-      )}
+      className={cn(backButtonStyles.base, className)}
     >
       <ArrowLeft className={backButtonStyles.icon} />
     </Button>

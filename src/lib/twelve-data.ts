@@ -8,7 +8,7 @@ const BASE_URL = 'https://api.twelvedata.com';
 
 const logNotFound = (response: Response, context: string) => {
   if (response.status === 404) {
-    console.log(`[TwelveData] 404 not found for ${context}`);
+    console.warn(`[TwelveData] 404 not found for ${context}`);
     return true;
   }
   return false;
@@ -57,7 +57,7 @@ export const twelveData = {
 
     try {
       const response = await fetch(`${BASE_URL}/quote?symbol=${symbol}&apikey=${API_KEY}`, {
-        next: { revalidate: 60 } // Cache for 60 seconds
+        next: { revalidate: 60 }, // Cache for 60 seconds
       });
 
       if (logNotFound(response, `quote ${symbol}`)) {
@@ -66,7 +66,8 @@ export const twelveData = {
 
       const data = await response.json();
 
-      if (data.code) { // Error response from Twelve Data has a 'code'
+      if (data.code) {
+        // Error response from Twelve Data has a 'code'
         console.error('Twelve Data API Error:', data);
         return null;
       }
@@ -89,7 +90,7 @@ export const twelveData = {
 
     try {
       const response = await fetch(`${BASE_URL}/quote?symbol=${symbolString}&apikey=${API_KEY}`, {
-        next: { revalidate: 60 }
+        next: { revalidate: 60 },
       });
 
       if (logNotFound(response, `quote ${symbolString}`)) {
@@ -119,7 +120,11 @@ export const twelveData = {
   /**
    * Get time series data (e.g. for charts)
    */
-  async getTimeSeries(symbol: string, interval: string = '1day', outputsize: number = 30): Promise<TimeSeriesData[]> {
+  async getTimeSeries(
+    symbol: string,
+    interval: string = '1day',
+    outputsize: number = 30
+  ): Promise<TimeSeriesData[]> {
     if (!API_KEY) return [];
 
     try {
@@ -144,5 +149,5 @@ export const twelveData = {
       console.error('Error fetching time series:', error);
       return [];
     }
-  }
+  },
 };

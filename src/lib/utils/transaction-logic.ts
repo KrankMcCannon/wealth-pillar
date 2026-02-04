@@ -1,8 +1,5 @@
 import type { CategoryBreakdownItem, Transaction } from '@/lib/types';
-import {
-  formatDateSmart,
-  toDateTime,
-} from '@/lib/utils/date-utils';
+import { formatDateSmart, toDateTime } from '@/lib/utils/date-utils';
 import { FinanceLogicService } from '@/server/services/finance-logic.service';
 
 /**
@@ -34,13 +31,10 @@ export class TransactionLogic {
   /**
    * Calculate report metrics from transactions
    */
-  static calculateReportMetrics(
-    transactions: Transaction[],
-    userId?: string
-  ): ReportMetrics {
+  static calculateReportMetrics(transactions: Transaction[], userId?: string): ReportMetrics {
     const userIdFilter = userId || undefined;
     const breakdown = FinanceLogicService.calculateCategoryBreakdown(
-      transactions.filter(t => !userIdFilter || t.user_id === userIdFilter)
+      transactions.filter((t) => !userIdFilter || t.user_id === userIdFilter)
     );
 
     const income = breakdown
@@ -62,8 +56,8 @@ export class TransactionLogic {
       categories: breakdown.map((item: CategoryBreakdownItem) => ({
         name: item.category,
         amount: item.spent,
-        percentage: item.percentage
-      }))
+        percentage: item.percentage,
+      })),
     };
   }
 
@@ -74,22 +68,19 @@ export class TransactionLogic {
     transactions: Transaction[],
     locale: string = 'it-IT'
   ): Record<string, Transaction[]> {
-    return transactions.reduce(
-      (groups: Record<string, Transaction[]>, transaction) => {
-        const txDate = toDateTime(transaction.date);
-        if (!txDate) return groups;
+    return transactions.reduce((groups: Record<string, Transaction[]>, transaction) => {
+      const txDate = toDateTime(transaction.date);
+      if (!txDate) return groups;
 
-        const dateLabel = formatDateSmart(txDate, locale);
+      const dateLabel = formatDateSmart(txDate, locale);
 
-        if (!groups[dateLabel]) {
-          groups[dateLabel] = [];
-        }
+      if (!groups[dateLabel]) {
+        groups[dateLabel] = [];
+      }
 
-        groups[dateLabel].push(transaction);
-        return groups;
-      },
-      {}
-    );
+      groups[dateLabel].push(transaction);
+      return groups;
+    }, {});
   }
 
   /**

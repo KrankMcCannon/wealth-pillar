@@ -9,7 +9,5 @@
 import { PageLoader } from '@/components/shared';
 
 export default function SettingsLoading() {
-  return (
-    <PageLoader message="Caricamento impostazioni..." />
-  );
+  return <PageLoader message="Caricamento impostazioni..." />;
 }

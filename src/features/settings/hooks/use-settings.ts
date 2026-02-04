@@ -1,17 +1,17 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { useUser, useClerk } from "@clerk/nextjs";
-import { useRouter } from "next/navigation";
-import { useToast } from "@/hooks/use-toast";
+import { useState, useEffect } from 'react';
+import { useUser, useClerk } from '@clerk/nextjs';
+import { useRouter } from 'next/navigation';
+import { useToast } from '@/hooks/use-toast';
 import {
   getUserPreferencesAction,
   updateUserPreferencesAction,
   deleteUserAction,
   getGroupUsersAction,
-} from "../actions";
-import type { UserPreferences } from "@/server/services";
-import type { User, UserPreferencesUpdate } from "@/lib/types";
+} from '../actions';
+import type { UserPreferences } from '@/server/services';
+import type { User, UserPreferencesUpdate } from '@/lib/types';
 
 export function useSettings(initialUser: User | null = null) {
   const router = useRouter();
@@ -35,7 +35,7 @@ export function useSettings(initialUser: User | null = null) {
           setGroupUsers(users);
         }
       } catch (error) {
-        console.error("Error fetching group users:", error);
+        console.error('Error fetching group users:', error);
       }
     }
 
@@ -66,10 +66,14 @@ export function useSettings(initialUser: User | null = null) {
 
   // Derived state
   const userInitials = currentUser?.name
-    ? currentUser.name.split(" ").map((n: string) => n[0]).join("").toUpperCase()
-    : (clerkUser?.firstName?.charAt(0) || "U");
+    ? currentUser.name
+        .split(' ')
+        .map((n: string) => n[0])
+        .join('')
+        .toUpperCase()
+    : clerkUser?.firstName?.charAt(0) || 'U';
 
-  const isAdmin = currentUser?.role === "admin" || currentUser?.role === "superadmin";
+  const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'superadmin';
 
   // Fetch Preferences
   useEffect(() => {
@@ -84,10 +88,10 @@ export function useSettings(initialUser: User | null = null) {
         if (data) {
           setPreferences(data);
         } else if (error) {
-          console.error("Failed to load preferences:", error);
+          console.error('Failed to load preferences:', error);
         }
       } catch (err) {
-        console.error("Error fetching preferences:", err);
+        console.error('Error fetching preferences:', err);
       } finally {
         setIsLoadingPreferences(false);
       }
@@ -101,9 +105,9 @@ export function useSettings(initialUser: User | null = null) {
     try {
       setIsSigningOut(true);
       await signOut();
-      router.push("/");
+      router.push('/');
     } catch (error) {
-      console.error("Error signing out:", error);
+      console.error('Error signing out:', error);
       setIsSigningOut(false);
     }
   };
@@ -134,9 +138,9 @@ export function useSettings(initialUser: User | null = null) {
       }
 
       await signOut();
-      router.push("/");
+      router.push('/');
     } catch (error: unknown) {
-      setDeleteError((error as Error).message || "Si è verificato un errore imprevisto.");
+      setDeleteError((error as Error).message || 'Si è verificato un errore imprevisto.');
       setIsDeletingAccount(false);
     }
   };
@@ -170,9 +174,9 @@ export function useSettings(initialUser: User | null = null) {
           [key]: currentValue,
         });
         toast({
-          title: "Errore",
-          description: "Impossibile aggiornare le notifiche",
-          variant: "destructive",
+          title: 'Errore',
+          description: 'Impossibile aggiornare le notifiche',
+          variant: 'destructive',
         });
       }
     } catch {
@@ -182,9 +186,9 @@ export function useSettings(initialUser: User | null = null) {
         [key]: currentValue,
       });
       toast({
-        title: "Errore",
-        description: "Si è verificato un errore",
-        variant: "destructive",
+        title: 'Errore',
+        description: 'Si è verificato un errore',
+        variant: 'destructive',
       });
     }
   };
@@ -203,21 +207,21 @@ export function useSettings(initialUser: User | null = null) {
 
     try {
       const { error } = await updateUserPreferencesAction(currentUser.id, {
-        [key]: value
+        [key]: value,
       });
 
       if (error) {
         toast({
-          title: "Errore",
+          title: 'Errore',
           description: error,
-          variant: "destructive",
+          variant: 'destructive',
         });
         // We might want to refresh preferences here to revert
       } else {
         toast({
-          title: "Successo",
-          description: "Preferenze aggiornate",
-          variant: "success",
+          title: 'Successo',
+          description: 'Preferenze aggiornate',
+          variant: 'success',
         });
 
         // Close modals
@@ -227,9 +231,9 @@ export function useSettings(initialUser: User | null = null) {
       }
     } catch {
       toast({
-        title: "Errore",
-        description: "Si è verificato un errore",
-        variant: "destructive",
+        title: 'Errore',
+        description: 'Si è verificato un errore',
+        variant: 'destructive',
       });
     }
   };
@@ -246,13 +250,20 @@ export function useSettings(initialUser: User | null = null) {
     userInitials,
 
     // Modal controls
-    showEditProfileModal, setShowEditProfileModal,
-    showCurrencyModal, setShowCurrencyModal,
-    showLanguageModal, setShowLanguageModal,
-    showTimezoneModal, setShowTimezoneModal,
-    showInviteMemberModal, setShowInviteMemberModal,
-    showSubscriptionModal, setShowSubscriptionModal,
-    showDeleteModal, setShowDeleteModal,
+    showEditProfileModal,
+    setShowEditProfileModal,
+    showCurrencyModal,
+    setShowCurrencyModal,
+    showLanguageModal,
+    setShowLanguageModal,
+    showTimezoneModal,
+    setShowTimezoneModal,
+    showInviteMemberModal,
+    setShowInviteMemberModal,
+    showSubscriptionModal,
+    setShowSubscriptionModal,
+    showDeleteModal,
+    setShowDeleteModal,
 
     // Handlers
     handleSignOut,

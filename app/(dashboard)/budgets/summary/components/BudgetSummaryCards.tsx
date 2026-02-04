@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { Card } from "@/components/ui/card";
-import { Amount } from "@/components/ui/primitives";
-import { budgetStyles } from "@/styles/system";
-import { UserBudgetSummary } from "@/lib/types";
-import { TrendingUp, Wallet } from "lucide-react";
+import { Card } from '@/components/ui/card';
+import { Amount } from '@/components/ui/primitives';
+import { budgetStyles } from '@/styles/system';
+import { UserBudgetSummary } from '@/lib/types';
+import { TrendingUp, Wallet } from 'lucide-react';
 
 interface BudgetSummaryCardsProps {
   userSummary: UserBudgetSummary | null;
@@ -30,9 +30,7 @@ export function BudgetSummaryCards({ userSummary }: Readonly<BudgetSummaryCardsP
           <TrendingUp className={budgetStyles.summary.cardIcon.spent} />
           <span className={budgetStyles.summary.cardLabel.spent}>Speso</span>
         </div>
-        <Amount className={budgetStyles.summary.cardAmount.spent}>
-          {userSummary.totalSpent}
-        </Amount>
+        <Amount className={budgetStyles.summary.cardAmount.spent}>{userSummary.totalSpent}</Amount>
       </Card>
 
       <Card className={budgetStyles.summary.card.available}>

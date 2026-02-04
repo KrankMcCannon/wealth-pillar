@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import { MetricCard, MetricGrid } from "@/components/ui/layout";
-import { TrendingUp, TrendingDown, Wallet, PiggyBank } from "lucide-react";
-import { useInvestmentHistory } from "@/features/investments/hooks/use-investment-history";
-import { InvestmentHistoryChart } from "./investment-history-chart";
-import { BenchmarkChart } from "./benchmark-chart";
-import { InvestmentList } from "./investment-list";
-import { investmentsStyles } from "@/features/investments/theme/investments-styles";
+import { MetricCard, MetricGrid } from '@/components/ui/layout';
+import { TrendingUp, TrendingDown, Wallet, PiggyBank } from 'lucide-react';
+import { useInvestmentHistory } from '@/features/investments/hooks/use-investment-history';
+import { InvestmentHistoryChart } from './investment-history-chart';
+import { BenchmarkChart } from './benchmark-chart';
+import { InvestmentList } from './investment-list';
+import { investmentsStyles } from '@/features/investments/theme/investments-styles';
 
 export interface Investment {
   id: string;
@@ -41,7 +41,12 @@ interface PersonalInvestmentTabProps {
   currentIndex?: string;
 }
 
-export function PersonalInvestmentTab({ investments, summary, indexData, currentIndex = 'IVV' }: Readonly<PersonalInvestmentTabProps>) {
+export function PersonalInvestmentTab({
+  investments,
+  summary,
+  indexData,
+  currentIndex = 'IVV',
+}: Readonly<PersonalInvestmentTabProps>) {
   const benchmarkAnchorId = 'benchmark-chart';
 
   const handleBenchmarkChange = (symbol: string) => {
@@ -56,7 +61,7 @@ export function PersonalInvestmentTab({ investments, summary, indexData, current
     investments,
     indexData,
     summary,
-    currentIndex
+    currentIndex,
   });
 
   const isPositiveReturn = summary.totalReturn >= 0;
@@ -73,10 +78,11 @@ export function PersonalInvestmentTab({ investments, summary, indexData, current
           valueType="income"
           valueSize="xl"
           description={
-            <span className={isPositiveReturn ? "text-emerald-600" : "text-rose-600"}>
+            <span className={isPositiveReturn ? 'text-emerald-600' : 'text-rose-600'}>
               {isPositiveReturn ? '+' : ''}
-              {new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(summary.totalReturn)}
-              {' '}
+              {new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(
+                summary.totalReturn
+              )}{' '}
               ({summary.totalReturnPercent.toFixed(2)}%)
             </span>
           }

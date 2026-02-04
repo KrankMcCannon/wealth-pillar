@@ -12,7 +12,7 @@ export default async function ReportsPage() {
   // Execute in parallel
   const [groupUsers, reportsData] = await Promise.all([
     getGroupUsers(),
-    ReportsService.getReportsData()
+    ReportsService.getReportsData(),
   ]);
 
   const { transactions, accounts, periods, categories } = reportsData;
@@ -20,7 +20,10 @@ export default async function ReportsPage() {
   // Compute Metrics on Server
   const accountTypeSummary = ReportsService.calculateAccountTypeSummary(transactions, accounts);
   const periodSummaries = ReportsService.calculatePeriodSummaries(periods, transactions, accounts);
-  const { income: incomeStats, expense: expenseStats } = ReportsService.calculateCategoryStats(transactions, categories);
+  const { income: incomeStats, expense: expenseStats } = ReportsService.calculateCategoryStats(
+    transactions,
+    categories
+  );
 
   return (
     <Suspense fallback={<PageLoader message="Caricamento rapporti..." />}>

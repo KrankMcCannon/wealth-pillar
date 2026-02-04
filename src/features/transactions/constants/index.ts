@@ -1,1 +1,1 @@
-export { SAVINGS_GOAL_NUMBER } from "./savings-goal-number";
+export { SAVINGS_GOAL_NUMBER } from './savings-goal-number';

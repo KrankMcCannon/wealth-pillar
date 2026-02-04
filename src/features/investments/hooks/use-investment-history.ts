@@ -18,7 +18,12 @@ function getDateString(entry: TimeSeriesEntry): string {
   return String(raw).split('T')[0].split(' ')[0];
 }
 
-export function useInvestmentHistory({ investments, indexData, summary, currentIndex }: UseInvestmentHistoryProps) {
+export function useInvestmentHistory({
+  investments,
+  indexData,
+  summary,
+  currentIndex,
+}: UseInvestmentHistoryProps) {
   return useMemo(() => {
     if (!indexData || indexData.length === 0) return [];
 
@@ -28,36 +33,38 @@ export function useInvestmentHistory({ investments, indexData, summary, currentI
     );
 
     // 1. Generate Raw History Series
-    const rawHistory = sortedIndexData.map(point => {
-      const dateStr = getDateString(point);
-      const pointDate = new Date(dateStr);
-      let dailyTotalValue = 0;
+    const rawHistory = sortedIndexData
+      .map((point) => {
+        const dateStr = getDateString(point);
+        const pointDate = new Date(dateStr);
+        let dailyTotalValue = 0;
 
-      const pointPrice = Number.parseFloat(String(point.close));
-      if (Number.isNaN(pointPrice)) return null;
+        const pointPrice = Number.parseFloat(String(point.close));
+        if (Number.isNaN(pointPrice)) return null;
 
-      investments.forEach(inv => {
-        const createdDate = inv.created_at ? new Date(inv.created_at) : new Date(0);
+        investments.forEach((inv) => {
+          const createdDate = inv.created_at ? new Date(inv.created_at) : new Date(0);
 
-        // Ownership check
-        if (pointDate >= createdDate) {
-          if (inv.symbol === currentIndex) {
-            // Dynamic pricing for matching assets
-            const shares = Number(inv.shares_acquired || 0);
-            dailyTotalValue += shares * pointPrice;
-          } else {
-            // Static value fallback for non-matching assets (to ensure they are included in Total)
-            // Using initialValue (value at creation) ensures the magnitude is correct for history.
-            dailyTotalValue += Number(inv.initialValue || 0);
+          // Ownership check
+          if (pointDate >= createdDate) {
+            if (inv.symbol === currentIndex) {
+              // Dynamic pricing for matching assets
+              const shares = Number(inv.shares_acquired || 0);
+              dailyTotalValue += shares * pointPrice;
+            } else {
+              // Static value fallback for non-matching assets (to ensure they are included in Total)
+              // Using initialValue (value at creation) ensures the magnitude is correct for history.
+              dailyTotalValue += Number(inv.initialValue || 0);
+            }
           }
-        }
-      });
+        });
 
-      return {
-        date: dateStr,
-        value: dailyTotalValue
-      };
-    }).filter((p): p is { date: string; value: number } => p !== null && p.value > 0);
+        return {
+          date: dateStr,
+          value: dailyTotalValue,
+        };
+      })
+      .filter((p): p is { date: string; value: number } => p !== null && p.value > 0);
 
     // 2. Align Endpoint to Summary Card
     if (rawHistory.length === 0) return [];
@@ -72,9 +79,9 @@ export function useInvestmentHistory({ investments, indexData, summary, currentI
     }
 
     // Apply adjustment to valid history
-    return rawHistory.map(point => ({
+    return rawHistory.map((point) => ({
       ...point,
-      value: point.value * adjustmentRatio
+      value: point.value * adjustmentRatio,
     }));
   }, [investments, indexData, currentIndex, summary.totalCurrentValue]);
 }

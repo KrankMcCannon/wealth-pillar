@@ -58,9 +58,7 @@ export const AccountSlider = ({
           <div className={accountStyles.slider.addPlaceholder}>
             <div className={accountStyles.slider.addPlaceholderContent}>
               <CreditCard className={accountStyles.slider.addPromptIcon} />
-              <p className={accountStyles.slider.addPromptLabel}>
-                Aggiungi Account
-              </p>
+              <p className={accountStyles.slider.addPromptLabel}>Aggiungi Account</p>
             </div>
           </div>
         )}

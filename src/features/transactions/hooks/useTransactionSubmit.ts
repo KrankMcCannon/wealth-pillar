@@ -1,9 +1,9 @@
-import { useState } from "react";
-import { UseFormSetError } from "react-hook-form";
-import { Transaction, TransactionType } from "@/lib/types";
-import { CreateTransactionInput } from "@/server/services";
-import { getTempId } from "@/lib/utils";
-import { createTransactionAction, updateTransactionAction } from "@/features/transactions";
+import { useState } from 'react';
+import { UseFormSetError } from 'react-hook-form';
+import { Transaction, TransactionType } from '@/lib/types';
+import { CreateTransactionInput } from '@/server/services';
+import { getTempId } from '@/lib/utils';
+import { createTransactionAction, updateTransactionAction } from '@/features/transactions';
 
 interface UseTransactionSubmitProps {
   isEditMode: boolean;
@@ -43,11 +43,11 @@ export function useTransactionSubmit({
 
   const handleUpdate = async (transactionData: Partial<Transaction>) => {
     if (!editId) return;
-    
+
     // 1. Store original transaction for revert
     const originalTransaction = storeTransactions.find((t) => t.id === editId);
     if (!originalTransaction) {
-      setError("root", { message: "Transazione non trovata" });
+      setError('root', { message: 'Transazione non trovata' });
       return;
     }
 
@@ -63,7 +63,7 @@ export function useTransactionSubmit({
     if (result.error) {
       // 4. Revert on error
       updateTransaction(editId, originalTransaction);
-      setError("root", { message: result.error });
+      setError('root', { message: result.error });
       return;
     }
 
@@ -73,9 +73,11 @@ export function useTransactionSubmit({
     }
   };
 
-  const handleCreate = async (transactionData: Omit<Transaction, "id" | "created_at" | "updated_at">) => {
+  const handleCreate = async (
+    transactionData: Omit<Transaction, 'id' | 'created_at' | 'updated_at'>
+  ) => {
     // 1. Create temporary ID
-    const tempId = getTempId("temp-transaction");
+    const tempId = getTempId('temp-transaction');
     const now = new Date().toISOString();
     const optimisticTransaction: Transaction = {
       id: tempId,
@@ -99,7 +101,7 @@ export function useTransactionSubmit({
     if (result.error) {
       // 5. Remove optimistic transaction on error
       removeTransaction(tempId);
-      console.error("Failed to create transaction:", result.error);
+      console.error('Failed to create transaction:', result.error);
       return;
     }
 
@@ -122,7 +124,7 @@ export function useTransactionSubmit({
         date: data.date,
         user_id: data.user_id,
         account_id: data.account_id,
-        to_account_id: data.type === "transfer" ? data.to_account_id : null,
+        to_account_id: data.type === 'transfer' ? data.to_account_id : null,
         group_id: groupId,
       };
 
@@ -135,9 +137,9 @@ export function useTransactionSubmit({
       // Close modal on success (for update mode)
       if (isEditMode) onClose();
     } catch (error) {
-      console.error("Submission error:", error);
-      setError("root", {
-        message: error instanceof Error ? error.message : "Errore sconosciuto"
+      console.error('Submission error:', error);
+      setError('root', {
+        message: error instanceof Error ? error.message : 'Errore sconosciuto',
       });
     } finally {
       setIsSubmittingFromHook(false);

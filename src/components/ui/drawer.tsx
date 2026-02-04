@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import * as React from "react";
-import { Drawer as DrawerPrimitive } from "vaul";
-import { cn } from "@/lib/utils";
-import { drawerStyles } from "@/styles/system";
+import * as React from 'react';
+import { Drawer as DrawerPrimitive } from 'vaul';
+import { cn } from '@/lib/utils';
+import { drawerStyles } from '@/styles/system';
 
 const Drawer = ({
   shouldScaleBackground = true, // Enable background scaling for better mobile UX
@@ -11,7 +11,7 @@ const Drawer = ({
 }: React.ComponentProps<typeof DrawerPrimitive.Root>) => (
   <DrawerPrimitive.Root shouldScaleBackground={shouldScaleBackground} {...props} />
 );
-Drawer.displayName = "Drawer";
+Drawer.displayName = 'Drawer';
 
 const DrawerTrigger = DrawerPrimitive.Trigger;
 const DrawerPortal = DrawerPrimitive.Portal;
@@ -24,7 +24,7 @@ const DrawerOverlay = React.forwardRef<
   <DrawerPrimitive.Overlay
     ref={ref}
     data-slot="drawer-overlay"
-    className={cn("fixed inset-0 z-50 bg-black/60", className)}
+    className={cn('fixed inset-0 z-50 bg-black/60', className)}
     {...props}
   />
 ));
@@ -39,7 +39,11 @@ const DrawerContent = React.forwardRef<
     <DrawerPrimitive.Content
       ref={ref}
       data-slot="drawer-content"
-      className={cn(drawerStyles.content, "max-h-[96dvh] flex flex-col fixed bottom-0 left-0 right-0", className)}
+      className={cn(
+        drawerStyles.content,
+        'max-h-[96dvh] flex flex-col fixed bottom-0 left-0 right-0',
+        className
+      )}
       {...props}
     >
       {children}
@@ -53,20 +57,20 @@ const DrawerHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLD
     <div ref={ref} className={cn(drawerStyles.header, className)} {...props} />
   )
 );
-DrawerHeader.displayName = "DrawerHeader";
+DrawerHeader.displayName = 'DrawerHeader';
 
 const DrawerFooter = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
     <div ref={ref} className={cn(drawerStyles.footer, className)} {...props} />
   )
 );
-DrawerFooter.displayName = "DrawerFooter";
+DrawerFooter.displayName = 'DrawerFooter';
 
 const DrawerTitle = React.forwardRef<
   React.ElementRef<typeof DrawerPrimitive.Title>,
   React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Title>
 >(({ className, ...props }, ref) => (
-  <DrawerPrimitive.Title ref={ref} className={cn("text-lg font-semibold", className)} {...props} />
+  <DrawerPrimitive.Title ref={ref} className={cn('text-lg font-semibold', className)} {...props} />
 ));
 DrawerTitle.displayName = DrawerPrimitive.Title.displayName;
 
@@ -74,7 +78,11 @@ const DrawerDescription = React.forwardRef<
   React.ElementRef<typeof DrawerPrimitive.Description>,
   React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Description>
 >(({ className, ...props }, ref) => (
-  <DrawerPrimitive.Description ref={ref} className={cn("text-sm text-muted-foreground", className)} {...props} />
+  <DrawerPrimitive.Description
+    ref={ref}
+    className={cn('text-sm text-muted-foreground', className)}
+    {...props}
+  />
 ));
 DrawerDescription.displayName = DrawerPrimitive.Description.displayName;
 

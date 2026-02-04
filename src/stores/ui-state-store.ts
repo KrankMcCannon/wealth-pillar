@@ -165,8 +165,7 @@ export const useActiveTab = (page: string, defaultTab: string) =>
 /**
  * Get all active tabs
  */
-export const useActiveTabs = () =>
-  useUIStateStore((state) => state.activeTabs);
+export const useActiveTabs = () => useUIStateStore((state) => state.activeTabs);
 
 /**
  * Check if section is expanded
@@ -178,8 +177,7 @@ export const useIsSectionExpanded = (sectionId: string) =>
 /**
  * Get all expanded sections
  */
-export const useExpandedSections = () =>
-  useUIStateStore((state) => state.expandedSections);
+export const useExpandedSections = () => useUIStateStore((state) => state.expandedSections);
 
 /**
  * Check if action is pending

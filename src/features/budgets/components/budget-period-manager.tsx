@@ -1,16 +1,24 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useMemo } from "react";
-import { Clock, TrendingUp, TrendingDown, Activity, Users } from "lucide-react";
-import { BudgetPeriod, User } from "@/lib/types";
-import { startPeriodAction, closePeriodAction, getPeriodPreviewAction } from "@/features/budgets";
-import { FormActions } from "@/components/form";
-import { DateField, UserField } from "@/components/ui/fields";
-import { Alert, AlertDescription, Badge, ModalBody, ModalFooter, ModalSection, ModalWrapper } from "@/components/ui";
-import { usePermissions } from "@/hooks";
-import { toDateTime } from "@/lib/utils/date-utils";
-import { usePageDataStore } from "@/stores/page-data-store";
-import { budgetStyles } from "@/styles/system";
+import { useState, useEffect, useMemo } from 'react';
+import { Clock, TrendingUp, TrendingDown, Activity, Users } from 'lucide-react';
+import { BudgetPeriod, User } from '@/lib/types';
+import { startPeriodAction, closePeriodAction, getPeriodPreviewAction } from '@/features/budgets';
+import { FormActions } from '@/components/form';
+import { DateField, UserField } from '@/components/ui/fields';
+import {
+  Alert,
+  AlertDescription,
+  Badge,
+  ModalBody,
+  ModalFooter,
+  ModalSection,
+  ModalWrapper,
+} from '@/components/ui';
+import { usePermissions } from '@/hooks';
+import { toDateTime } from '@/lib/utils/date-utils';
+import { usePageDataStore } from '@/stores/page-data-store';
+import { budgetStyles } from '@/styles/system';
 
 interface BudgetPeriodManagerProps {
   selectedUserId?: string; // Initial user selection
@@ -33,9 +41,11 @@ export function BudgetPeriodManager({
 }: Readonly<BudgetPeriodManagerProps>) {
   const [isOpen, setIsOpen] = useState(false);
   const [isActionPending, setIsActionPending] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<string>("");
-  const [error, setError] = useState<string>("");
-  const [internalSelectedUserId, setInternalSelectedUserId] = useState<string>(selectedUserId || currentUser.id);
+  const [selectedDate, setSelectedDate] = useState<string>('');
+  const [error, setError] = useState<string>('');
+  const [internalSelectedUserId, setInternalSelectedUserId] = useState<string>(
+    selectedUserId || currentUser.id
+  );
 
   // Permission checks
   const { isAdmin, shouldDisableUserField } = usePermissions({ currentUser });
@@ -56,11 +66,11 @@ export function BudgetPeriodManager({
   useEffect(() => {
     if (isOpen) {
       // Pre-fill with current date for both start and close
-      setSelectedDate(new Date().toISOString().split("T")[0]);
+      setSelectedDate(new Date().toISOString().split('T')[0]);
     } else {
       setIsActionPending(false);
-      setSelectedDate("");
-      setError("");
+      setSelectedDate('');
+      setError('');
       setInternalSelectedUserId(selectedUserId || currentUser.id);
     }
   }, [isOpen, selectedUserId, currentUser.id]);
@@ -72,7 +82,7 @@ export function BudgetPeriodManager({
     totalSpent: 0,
     totalSaved: 0,
     totalBudget: 0,
-    categorySpending: {} as Record<string, number>
+    categorySpending: {} as Record<string, number>,
   });
 
   // Fetch metrics when date changes
@@ -82,7 +92,7 @@ export function BudgetPeriodManager({
     async function fetchMetrics() {
       // Determine dates
       const rawStart = currentPeriod?.start_date;
-      const endDate = selectedDate || new Date().toISOString().split("T")[0];
+      const endDate = selectedDate || new Date().toISOString().split('T')[0];
 
       if (!rawStart) return;
 
@@ -98,11 +108,11 @@ export function BudgetPeriodManager({
             totalSpent: result.data.totalSpent,
             totalSaved: result.data.totalSaved,
             totalBudget: result.data.totalBudget,
-            categorySpending: result.data.categorySpending
+            categorySpending: result.data.categorySpending,
           });
         }
       } catch (e) {
-        console.error("Failed to fetch metrics", e);
+        console.error('Failed to fetch metrics', e);
       }
     }
 
@@ -111,7 +121,9 @@ export function BudgetPeriodManager({
       fetchMetrics();
     }
 
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, [selectedDate, currentPeriod, targetUser.id]);
 
   // Use metrics state
@@ -120,15 +132,15 @@ export function BudgetPeriodManager({
   // Format date for display
   const formatDate = (dateString: string | Date) => {
     const dt = toDateTime(dateString);
-    if (!dt) return "Data non valida";
-    return dt.toFormat("d LLL yyyy", { locale: "it" });
+    if (!dt) return 'Data non valida';
+    return dt.toFormat('d LLL yyyy', { locale: 'it' });
   };
 
   // Format currency
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("it-IT", {
-      style: "currency",
-      currency: "EUR",
+    return new Intl.NumberFormat('it-IT', {
+      style: 'currency',
+      currency: 'EUR',
     }).format(amount);
   };
 
@@ -138,11 +150,11 @@ export function BudgetPeriodManager({
   // Handle submit (start new period or close current period)
   const handleSubmit = async () => {
     if (!selectedDate) {
-      setError("Seleziona una data");
+      setError('Seleziona una data');
       return;
     }
 
-    setError("");
+    setError('');
     setIsActionPending(true);
 
     try {
@@ -175,8 +187,8 @@ export function BudgetPeriodManager({
       onSuccess?.();
       setIsOpen(false);
     } catch (err) {
-      console.error("[BudgetPeriodManager] Submit error:", err);
-      setError(err instanceof Error ? err.message : "Errore sconosciuto");
+      console.error('[BudgetPeriodManager] Submit error:', err);
+      setError(err instanceof Error ? err.message : 'Errore sconosciuto');
     } finally {
       setIsActionPending(false);
     }
@@ -184,7 +196,9 @@ export function BudgetPeriodManager({
 
   return (
     <>
-      <div className="contents cursor-pointer" onClick={() => setIsOpen(true)}>{trigger}</div>
+      <div className="contents cursor-pointer" onClick={() => setIsOpen(true)}>
+        {trigger}
+      </div>
       <ModalWrapper
         isOpen={isOpen}
         onOpenChange={setIsOpen}
@@ -194,11 +208,7 @@ export function BudgetPeriodManager({
       >
         <ModalBody>
           {/* Error message */}
-          {error && (
-            <div className={budgetStyles.periodManager.error}>
-              {error}
-            </div>
-          )}
+          {error && <div className={budgetStyles.periodManager.error}>{error}</div>}
 
           <ModalSection>
             <div className={budgetStyles.periodManager.body}>
@@ -215,7 +225,7 @@ export function BudgetPeriodManager({
                   disabled={shouldDisableUserField}
                   helperText={
                     shouldDisableUserField
-                      ? "Puoi gestire solo i tuoi periodi"
+                      ? 'Puoi gestire solo i tuoi periodi'
                       : "Seleziona l'utente di cui gestire il periodo budget"
                   }
                 />
@@ -289,7 +299,8 @@ export function BudgetPeriodManager({
                     {/* Alert */}
                     <Alert>
                       <AlertDescription className={budgetStyles.periodManager.alertText}>
-                        Nessun periodo attivo. Inizia un nuovo periodo per tracciare le spese del budget.
+                        Nessun periodo attivo. Inizia un nuovo periodo per tracciare le spese del
+                        budget.
                       </AlertDescription>
                     </Alert>
 
@@ -307,7 +318,6 @@ export function BudgetPeriodManager({
               </div>
             </div>
           </ModalSection>
-
         </ModalBody>
         <ModalFooter>
           <FormActions
@@ -315,14 +325,14 @@ export function BudgetPeriodManager({
             onCancel={() => setIsOpen(false)}
             onSubmit={handleSubmit}
             isSubmitting={isActionPending}
-            submitLabel={isActivePeriod ? "Chiudi periodo" : "Inizia nuovo periodo"}
+            submitLabel={isActivePeriod ? 'Chiudi periodo' : 'Inizia nuovo periodo'}
             submitVariant="default"
           />
         </ModalFooter>
-      </ModalWrapper >
+      </ModalWrapper>
     </>
   );
 }
 
 // Export with displayName for debugging
-BudgetPeriodManager.displayName = "BudgetPeriodManager";
+BudgetPeriodManager.displayName = 'BudgetPeriodManager';

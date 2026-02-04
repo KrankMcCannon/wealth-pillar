@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import * as React from "react";
-import { Euro } from "lucide-react";
-import { Input } from "../ui";
-import { cn } from "@/lib";
-import { formStyles } from "./theme/form-styles";
+import * as React from 'react';
+import { Euro } from 'lucide-react';
+import { Input } from '../ui';
+import { cn } from '@/lib';
+import { formStyles } from './theme/form-styles';
 
 /**
  * Form Currency Input Component
@@ -54,7 +54,7 @@ export interface FormCurrencyInputProps {
 export function FormCurrencyInput({
   value,
   onChange,
-  placeholder = "0.00",
+  placeholder = '0.00',
   disabled = false,
   className,
   showSymbol = true,
@@ -63,20 +63,20 @@ export function FormCurrencyInput({
   decimals = 2,
 }: Readonly<FormCurrencyInputProps>) {
   // Convert value to string for input
-  const stringValue = typeof value === "number" ? value.toString() : value;
+  const stringValue = typeof value === 'number' ? value.toString() : value;
 
   // Handle input change
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const inputValue = e.target.value;
 
     // Allow empty string
-    if (inputValue === "") {
-      onChange("");
+    if (inputValue === '') {
+      onChange('');
       return;
     }
 
     // Allow only numbers and decimal point
-    const cleanedValue = inputValue.replaceAll(/[^\d.,]/g, "");
+    const cleanedValue = inputValue.replaceAll(/[^\d.,]/g, '');
 
     // Just pass the cleaned value, don't normalize yet
     onChange(cleanedValue);
@@ -84,24 +84,24 @@ export function FormCurrencyInput({
 
   // Handle blur - normalize and format the value
   const handleBlur = () => {
-    if (stringValue === "" || stringValue === "." || stringValue === ",") {
-      onChange("");
+    if (stringValue === '' || stringValue === '.' || stringValue === ',') {
+      onChange('');
       return;
     }
 
     // Normalize: replace commas with dots
-    const normalized = stringValue.replaceAll(',', ".");
+    const normalized = stringValue.replaceAll(',', '.');
 
     // Handle multiple dots - keep only first
-    const parts = normalized.split(".");
+    const parts = normalized.split('.');
     let finalValue = parts[0];
     if (parts.length > 1) {
-      finalValue += "." + parts.slice(1).join("");
+      finalValue += '.' + parts.slice(1).join('');
     }
 
     const numValue = Number.parseFloat(finalValue);
     if (Number.isNaN(numValue)) {
-      onChange("");
+      onChange('');
     } else {
       // Validate min/max on blur
       let validatedValue = numValue;
@@ -154,15 +154,15 @@ export function formatCurrency(
     locale?: string;
   }
 ): string {
-  const { showSymbol = true, decimals = 2, locale = "it-IT" } = options || {};
+  const { showSymbol = true, decimals = 2, locale = 'it-IT' } = options || {};
 
-  const numAmount = typeof amount === "string" ? Number.parseFloat(amount) : amount;
+  const numAmount = typeof amount === 'string' ? Number.parseFloat(amount) : amount;
 
-  if (Number.isNaN(numAmount)) return showSymbol ? "€ 0.00" : "0.00";
+  if (Number.isNaN(numAmount)) return showSymbol ? '€ 0.00' : '0.00';
 
   const formatted = new Intl.NumberFormat(locale, {
-    style: showSymbol ? "currency" : "decimal",
-    currency: "EUR",
+    style: showSymbol ? 'currency' : 'decimal',
+    currency: 'EUR',
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
   }).format(numAmount);
@@ -176,7 +176,7 @@ export function formatCurrency(
 export function parseCurrency(value: string): number {
   if (!value) return 0;
   // Remove currency symbols, spaces, and replace comma with dot
-  const cleaned = value.replaceAll(/[€$\s]/g, "").replaceAll(",", ".");
+  const cleaned = value.replaceAll(/[€$\s]/g, '').replaceAll(',', '.');
   const parsed = Number.parseFloat(cleaned);
   return Number.isNaN(parsed) ? 0 : parsed;
 }
@@ -184,7 +184,10 @@ export function parseCurrency(value: string): number {
 /**
  * Validates if string is valid currency amount
  */
-export function isValidCurrency(value: string, options?: { min?: number; max?: number; decimals?: number }): boolean {
+export function isValidCurrency(
+  value: string,
+  options?: { min?: number; max?: number; decimals?: number }
+): boolean {
   const { min, max, decimals = 2 } = options || {};
 
   if (!value) return false;
@@ -213,6 +216,6 @@ export function roundCurrency(amount: number, decimals: number = 2): number {
  * Converts form input to numeric amount
  */
 export function getNumericAmount(amount: string | number): number {
-  if (typeof amount === "number") return amount;
+  if (typeof amount === 'number') return amount;
   return parseCurrency(amount);
 }

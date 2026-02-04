@@ -11,9 +11,9 @@
  * - All dates are selectable without restrictions
  */
 
-"use client";
+'use client';
 
-import { useMemo } from "react";
+import { useMemo } from 'react';
 import {
   startOfMonth,
   endOfMonth,
@@ -24,11 +24,11 @@ import {
   isSameMonth,
   isWeekend as checkIsWeekend,
   format,
-} from "date-fns";
-import { it } from "date-fns/locale";
-import { calendarDrawerStyles } from "@/lib/styles/calendar-drawer.styles";
-import { cn } from "@/lib/utils";
-import { DayCell } from "./day-cell";
+} from 'date-fns';
+import { it } from 'date-fns/locale';
+import { calendarDrawerStyles } from '@/lib/styles/calendar-drawer.styles';
+import { cn } from '@/lib/utils';
+import { DayCell } from './day-cell';
 
 export interface MonthGridProps {
   /**
@@ -50,7 +50,7 @@ export interface MonthGridProps {
    * Size variant for day cells
    * @default "mobile"
    */
-  size?: "mobile" | "desktop";
+  size?: 'mobile' | 'desktop';
 
   /**
    * Additional CSS classes
@@ -77,7 +77,7 @@ export function MonthGrid({
   currentMonth,
   selectedDate,
   onDateSelect,
-  size = "mobile",
+  size = 'mobile',
   className,
 }: Readonly<MonthGridProps>) {
   // Calculate all dates to display (with padding)
@@ -98,7 +98,7 @@ export function MonthGrid({
 
         return (
           <DayCell
-            key={`${format(date, "yyyy-MM-dd")}-${index}`}
+            key={`${format(date, 'yyyy-MM-dd')}-${index}`}
             date={date}
             isSelected={isSelected}
             isToday={isToday}

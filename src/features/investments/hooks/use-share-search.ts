@@ -1,6 +1,11 @@
 import * as React from 'react';
 import { useDebouncedValue } from '@/hooks/use-debounced-value';
-import { ensureMarketDataAction, getShareAssetTypesAllAction, getShareBySymbolAction, searchSharesAction } from '@/features/investments/actions/share-actions';
+import {
+  ensureMarketDataAction,
+  getShareAssetTypesAllAction,
+  getShareBySymbolAction,
+  searchSharesAction,
+} from '@/features/investments/actions/share-actions';
 import type { Database } from '@/lib/types/database.types';
 
 export type AvailableShare = Database['public']['Tables']['available_shares']['Row'];
@@ -27,9 +32,7 @@ export function useShareSearch({ initialValue, onSelect }: UseShareSearchProps =
     let active = true;
     getShareAssetTypesAllAction().then((result) => {
       if (!active) return;
-      const types = (result.data || [])
-        .map((type) => String(type).toLowerCase())
-        .filter(Boolean);
+      const types = (result.data || []).map((type) => String(type).toLowerCase()).filter(Boolean);
       setAssetTypes(Array.from(new Set(types)));
     });
     return () => {
@@ -94,20 +97,22 @@ export function useShareSearch({ initialValue, onSelect }: UseShareSearchProps =
     };
   }, [initialValue, selectedShare?.symbol]);
 
-  const handleSelect = React.useCallback((symbol: string) => {
-    const match = results.find((share) => share.symbol === symbol);
-    if (match) {
-      setSelectedShare(match);
-    }
-    setIsEnsuring(true);
-    void ensureMarketDataAction(symbol)
-      .finally(() => {
+  const handleSelect = React.useCallback(
+    (symbol: string) => {
+      const match = results.find((share) => share.symbol === symbol);
+      if (match) {
+        setSelectedShare(match);
+      }
+      setIsEnsuring(true);
+      void ensureMarketDataAction(symbol).finally(() => {
         setIsEnsuring(false);
         if (onSelect) {
           onSelect(symbol);
         }
       });
-  }, [results, onSelect]);
+    },
+    [results, onSelect]
+  );
 
   const clearSearch = React.useCallback(() => {
     setSearchValue('');
@@ -128,6 +133,6 @@ export function useShareSearch({ initialValue, onSelect }: UseShareSearchProps =
     setSelectedAssetType,
     debouncedSearch,
     handleSelect,
-    clearSearch
+    clearSearch,
   };
 }

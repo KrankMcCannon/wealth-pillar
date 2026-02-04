@@ -42,19 +42,19 @@ interface UsePermissionsReturn {
  * Custom hook for permission checks
  * Provides memoized permission utilities for optimal performance
  * All permission logic is centralized in @/lib/utils/permissions
- * 
+ *
  * @example
  * ```tsx
  * const { isAdmin, isMember, effectiveUserId, shouldDisableUserField } = usePermissions({
  *   currentUser,
  *   selectedUserId,
  * });
- * 
+ *
  * // Use in filtering
- * const filteredData = data.filter(item => 
+ * const filteredData = data.filter(item =>
  *   isMember ? item.user_id === currentUser.id : true
  * );
- * 
+ *
  * // Use in forms
  * <UserField disabled={shouldDisableUserField} />
  * ```
@@ -69,13 +69,11 @@ export function usePermissions({
       isAdmin: isAdmin(currentUser),
       isMember: isMember(currentUser),
       isSuperAdmin: isSuperAdmin(currentUser),
-      hasRole: (...roles: ('admin' | 'member' | 'superadmin')[]) =>
-        hasRole(currentUser, ...roles),
+      hasRole: (...roles: ('admin' | 'member' | 'superadmin')[]) => hasRole(currentUser, ...roles),
 
       // Permission checks
       canManageOtherUsers: canManageOtherUsers(currentUser),
-      canAccessUser: (targetUserId: string) =>
-        canAccessUserData(currentUser, targetUserId),
+      canAccessUser: (targetUserId: string) => canAccessUserData(currentUser, targetUserId),
 
       // Effective values for data filtering
       effectiveUserId: getEffectiveUserId(currentUser, selectedUserId),

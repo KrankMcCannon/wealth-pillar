@@ -1,19 +1,19 @@
-"use client";
+'use client';
 
-import { memo } from "react";
-import { Building2, MoreVertical, Pencil, Trash2 } from "lucide-react";
-import { formatCurrency, truncateText, cn } from "@/lib/utils";
+import { memo } from 'react';
+import { Building2, MoreVertical, Pencil, Trash2 } from 'lucide-react';
+import { formatCurrency, truncateText, cn } from '@/lib/utils';
 import type { Account } from '@/lib/types';
 import { AccountTypeMap } from '@/lib/types';
-import { RowCard } from "@/components/ui/layout/row-card";
+import { RowCard } from '@/components/ui/layout/row-card';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  Button
-} from "@/components/ui";
-import { cardStyles } from "./theme/card-styles";
+  Button,
+} from '@/components/ui';
+import { cardStyles } from './theme/card-styles';
 
 interface AccountCardProps {
   account: Account;
@@ -41,33 +41,45 @@ export const AccountCard = memo(function AccountCard({
   const isNegative = accountBalance < 0;
 
   const primaryValue = formatCurrency(Math.abs(accountBalance));
-  const secondaryValue = isNegative ? "DEBITO" : undefined;
-  const amountVariant = isNegative ? "destructive" : "success";
+  const secondaryValue = isNegative ? 'DEBITO' : undefined;
+  const amountVariant = isNegative ? 'destructive' : 'success';
 
   // Actions dropdown menu
-  const actions = (onEdit || onDelete) ? (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className={cardStyles.account.actionsButton}>
-          <MoreVertical className={cardStyles.account.actionsIcon} />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        {onEdit && (
-          <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit(); }}>
-            <Pencil className={cardStyles.account.actionItemIcon} />
-            <span>Modifica</span>
-          </DropdownMenuItem>
-        )}
-        {onDelete && (
-          <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onDelete(); }} className={cardStyles.account.deleteItem}>
-            <Trash2 className={cardStyles.account.actionItemIcon} />
-            <span>Elimina</span>
-          </DropdownMenuItem>
-        )}
-      </DropdownMenuContent>
-    </DropdownMenu>
-  ) : undefined;
+  const actions =
+    onEdit || onDelete ? (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon" className={cardStyles.account.actionsButton}>
+            <MoreVertical className={cardStyles.account.actionsIcon} />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          {onEdit && (
+            <DropdownMenuItem
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit();
+              }}
+            >
+              <Pencil className={cardStyles.account.actionItemIcon} />
+              <span>Modifica</span>
+            </DropdownMenuItem>
+          )}
+          {onDelete && (
+            <DropdownMenuItem
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete();
+              }}
+              className={cardStyles.account.deleteItem}
+            >
+              <Trash2 className={cardStyles.account.actionItemIcon} />
+              <span>Elimina</span>
+            </DropdownMenuItem>
+          )}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    ) : undefined;
 
   return (
     <RowCard

@@ -42,7 +42,7 @@ function getData(input: any) {
 
 // Good
 function getData(input: unknown): string | null {
-  if (typeof input === "object" && input !== null && "value" in input) {
+  if (typeof input === 'object' && input !== null && 'value' in input) {
     return (input as { value: unknown }).value as string; // simplified for example
   }
   return null;
@@ -62,7 +62,7 @@ function getProperty<T extends object, K extends keyof T>(obj: T, key: K): T[K] 
 
 // satisfies
 const config = {
-  colors: { primary: "red", secondary: "blue" },
+  colors: { primary: 'red', secondary: 'blue' },
 } satisfies Record<string, Record<string, string>>;
 ```
 

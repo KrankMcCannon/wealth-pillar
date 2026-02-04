@@ -28,13 +28,13 @@ Create a new file in `e2e/` (or `tests/e2e/`) named `[feature].spec.ts`.
 **Structure**:
 
 ```ts
-import { test, expect } from "@playwright/test";
+import { test, expect } from '@playwright/test';
 
-test.describe("Feature Name", () => {
+test.describe('Feature Name', () => {
   // Setup: Login or navigate before each test
   test.beforeEach(async ({ page }) => {
     // ... authentication logic ...
-    await page.goto("/target-url");
+    await page.goto('/target-url');
   });
 
   // ... tests ...

@@ -1,14 +1,14 @@
-"use client";
+'use client';
 
-import { BottomNavigation, PageContainer, Header } from "@/components/layout";
-import { PageSection } from "@/components/ui";
-import { SummarySection, PeriodsSection, CategoriesSection } from "@/features/reports";
+import { BottomNavigation, PageContainer, Header } from '@/components/layout';
+import { PageSection } from '@/components/ui';
+import { SummarySection, PeriodsSection, CategoriesSection } from '@/features/reports';
 import type {
   AccountTypeSummary,
   ReportPeriodSummary,
-  CategoryStat
-} from "@/server/services/reports.service";
-import type { User } from "@/lib/types";
+  CategoryStat,
+} from '@/server/services/reports.service';
+import type { User } from '@/lib/types';
 
 interface ReportsContentProps {
   accountTypeSummary: AccountTypeSummary[];

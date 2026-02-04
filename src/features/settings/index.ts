@@ -4,25 +4,41 @@
 
 // Components
 export {
-  SettingsHeaderSkeleton, ProfileSectionSkeleton,
-  GroupManagementSectionSkeleton, PreferencesSectionSkeleton,
+  SettingsHeaderSkeleton,
+  ProfileSectionSkeleton,
+  GroupManagementSectionSkeleton,
+  PreferencesSectionSkeleton,
   SettingsPageSkeleton,
-  DeleteAccountModal, EditProfileModal,
-  PreferenceSelectModal, CURRENCY_OPTIONS, LANGUAGE_OPTIONS, TIMEZONE_OPTIONS,
-  InviteMemberModal, SubscriptionModal,
-  SettingsModalForm, SettingsModalField,
-  ProfileSection, GroupSection, PreferencesSection, NotificationsSection, SecuritySection, AccountSection
-} from "./components";
+  DeleteAccountModal,
+  EditProfileModal,
+  PreferenceSelectModal,
+  CURRENCY_OPTIONS,
+  LANGUAGE_OPTIONS,
+  TIMEZONE_OPTIONS,
+  InviteMemberModal,
+  SubscriptionModal,
+  SettingsModalForm,
+  SettingsModalField,
+  ProfileSection,
+  GroupSection,
+  PreferencesSection,
+  NotificationsSection,
+  SecuritySection,
+  AccountSection,
+} from './components';
 
 // Actions
 export {
-  deleteUserAction, updateUserProfileAction,
-  getUserPreferencesAction, updateUserPreferencesAction,
-  sendGroupInvitationAction, updateSubscriptionAction
-} from "./actions";
+  deleteUserAction,
+  updateUserProfileAction,
+  getUserPreferencesAction,
+  updateUserPreferencesAction,
+  sendGroupInvitationAction,
+  updateSubscriptionAction,
+} from './actions';
 
 // Hooks
-export * from "./hooks";
+export * from './hooks';
 
 // Theme
-export * from "./theme";
+export * from './theme';

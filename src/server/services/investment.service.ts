@@ -2,15 +2,8 @@ import { MarketDataService } from './market-data.service';
 import type { Database } from '@/lib/types/database.types';
 import { supabase } from '@/server/db/supabase';
 import { cache } from 'react';
-import type {
-  TimeSeriesEntry,
-  MarketDataBatchResult,
-} from '@/lib/types/market-data.types';
-import {
-  normalizeDateKey,
-  buildSeriesIndex,
-  getCloseForDate,
-} from '@/lib/types/market-data.types';
+import type { TimeSeriesEntry, MarketDataBatchResult } from '@/lib/types/market-data.types';
+import { normalizeDateKey, buildSeriesIndex, getCloseForDate } from '@/lib/types/market-data.types';
 
 type Investment = Database['public']['Tables']['investments']['Row'];
 type InvestmentInsert = Database['public']['Tables']['investments']['Insert'];
@@ -174,8 +167,8 @@ export class InvestmentService {
         totalCurrentValue,
         totalInitialValue,
         totalReturn,
-        totalReturnPercent
-      }
+        totalReturnPercent,
+      },
     };
   }
 
@@ -248,7 +241,7 @@ export class InvestmentService {
       if (totalValue > 0) {
         data.push({
           date: dateStr,
-          value: totalValue
+          value: totalValue,
         });
       }
     }

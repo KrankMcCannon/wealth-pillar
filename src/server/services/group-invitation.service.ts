@@ -26,7 +26,10 @@ export interface CreateInvitationInput {
 export class GroupInvitationService {
   // ================== DATABASE OPERATIONS (inlined from repository) ==================
 
-  private static async getPendingByEmailAndGroupDb(email: string, groupId: string): Promise<GroupInvitation | null> {
+  private static async getPendingByEmailAndGroupDb(
+    email: string,
+    groupId: string
+  ): Promise<GroupInvitation | null> {
     const { data, error } = await supabase
       .from('group_invitations')
       .select('*')
@@ -37,7 +40,7 @@ export class GroupInvitationService {
       .maybeSingle();
 
     if (error) throw new Error(error.message);
-    return (data as unknown) as GroupInvitation | null;
+    return data as unknown as GroupInvitation | null;
   }
 
   private static async createDb(data: GroupInvitationInsert): Promise<GroupInvitation> {
@@ -57,9 +60,7 @@ export class GroupInvitationService {
    * Creates a new group invitation
    * Validates email, checks for duplicates, generates secure token
    */
-  static async createInvitation(
-    input: CreateInvitationInput
-  ): Promise<GroupInvitation> {
+  static async createInvitation(input: CreateInvitationInput): Promise<GroupInvitation> {
     const { groupId, invitedByUserId, email } = input;
 
     // Input validation using shared utilities
@@ -75,10 +76,7 @@ export class GroupInvitationService {
     const emailLower = emailTrimmed.toLowerCase();
 
     // Check for existing pending invitation
-    const existingInvitation = await this.getPendingByEmailAndGroupDb(
-      emailLower,
-      groupId
-    );
+    const existingInvitation = await this.getPendingByEmailAndGroupDb(emailLower, groupId);
 
     if (existingInvitation) {
       throw new Error('An invitation has already been sent to this email');
@@ -108,7 +106,7 @@ export class GroupInvitationService {
       expires_at: expiresAt.toISOString(),
       status: 'pending',
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     };
 
     const newInvitation = await this.createDb(createData);

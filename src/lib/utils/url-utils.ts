@@ -14,7 +14,10 @@
  */
 export function getBaseUrl(): string {
   // Priority 1: Explicit environment variable
-  if (typeof process.env.NEXT_PUBLIC_APP_URL === 'string' && process.env.NEXT_PUBLIC_APP_URL.length > 0) {
+  if (
+    typeof process.env.NEXT_PUBLIC_APP_URL === 'string' &&
+    process.env.NEXT_PUBLIC_APP_URL.length > 0
+  ) {
     return process.env.NEXT_PUBLIC_APP_URL.replace(/\/$/, ''); // Remove trailing slash
   }
 

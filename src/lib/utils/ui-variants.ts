@@ -8,12 +8,12 @@
  * ============================================================================
  */
 
-import { cva, type VariantProps } from "class-variance-authority";
-import { clsx, type ClassValue } from "clsx";
-import { twMerge } from "tailwind-merge";
+import { cva, type VariantProps } from 'class-variance-authority';
+import { clsx, type ClassValue } from 'clsx';
+import { twMerge } from 'tailwind-merge';
 
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+  return twMerge(clsx(inputs));
 }
 
 // ============================================================================
@@ -32,27 +32,27 @@ export function cn(...inputs: ClassValue[]) {
  */
 export const cardVariants = cva(
   // Base styles - always applied
-  "bg-card text-primary flex flex-col rounded-xl border border-primary/20 shadow-sm",
+  'bg-card text-primary flex flex-col rounded-xl border border-primary/20 shadow-sm',
   {
     variants: {
       variant: {
-        default: "",
-        elevated: "shadow-xl border-primary/20",
-        flat: "shadow-none border-primary/10",
+        default: '',
+        elevated: 'shadow-xl border-primary/20',
+        flat: 'shadow-none border-primary/10',
         interactive:
-          "cursor-pointer transition-transform hover:shadow-md hover:border-primary/20 hover:scale-[1.01]",
-        glass: "liquid-glass",
+          'cursor-pointer transition-transform hover:shadow-md hover:border-primary/20 hover:scale-[1.01]',
+        glass: 'liquid-glass',
       },
       padding: {
-        none: "p-0",
-        sm: "p-3",
-        md: "p-4 sm:p-6",
-        lg: "p-6 sm:p-8",
+        none: 'p-0',
+        sm: 'p-3',
+        md: 'p-4 sm:p-6',
+        lg: 'p-6 sm:p-8',
       },
     },
     defaultVariants: {
-      variant: "default",
-      padding: "none",
+      variant: 'default',
+      padding: 'none',
     },
   }
 );
@@ -71,29 +71,29 @@ export const cardVariants = cva(
  * </p>
  * ```
  */
-export const textVariants = cva("", {
+export const textVariants = cva('', {
   variants: {
     variant: {
-      heading: "text-heading",
-      body: "text-body",
-      muted: "text-muted-foreground",
-      emphasis: "text-text-emphasis font-semibold",
-      subtle: "text-subtle",
-      primary: "text-primary font-medium",
+      heading: 'text-heading',
+      body: 'text-body',
+      muted: 'text-muted-foreground',
+      emphasis: 'text-text-emphasis font-semibold',
+      subtle: 'text-subtle',
+      primary: 'text-primary font-medium',
     },
     size: {
-      xs: "text-xs",
-      sm: "text-sm",
-      md: "text-base",
-      lg: "text-lg",
-      xl: "text-xl",
-      "2xl": "text-2xl",
-      "3xl": "text-3xl",
+      xs: 'text-xs',
+      sm: 'text-sm',
+      md: 'text-base',
+      lg: 'text-lg',
+      xl: 'text-xl',
+      '2xl': 'text-2xl',
+      '3xl': 'text-3xl',
     },
   },
   defaultVariants: {
-    variant: "body",
-    size: "md",
+    variant: 'body',
+    size: 'md',
   },
 });
 
@@ -113,27 +113,27 @@ export const textVariants = cva("", {
  */
 export const iconContainerVariants = cva(
   // Base: flex centering and rounded
-  "flex items-center justify-center rounded-2xl shadow-lg transition-all",
+  'flex items-center justify-center rounded-2xl shadow-lg transition-all',
   {
     variants: {
       size: {
-        sm: "size-8",
-        md: "size-11",
-        lg: "size-14",
-        xl: "size-16",
+        sm: 'size-8',
+        md: 'size-11',
+        lg: 'size-14',
+        xl: 'size-16',
       },
       color: {
-        primary: "bg-primary/10 text-primary",
-        warning: "bg-warning/10 text-warning",
-        destructive: "bg-destructive/10 text-destructive",
-        success: "bg-success/10 text-success",
-        muted: "bg-primary/12 text-primary",
-        accent: "bg-accent/10 text-primary",
+        primary: 'bg-primary/10 text-primary',
+        warning: 'bg-warning/10 text-warning',
+        destructive: 'bg-destructive/10 text-destructive',
+        success: 'bg-success/10 text-success',
+        muted: 'bg-primary/12 text-primary',
+        accent: 'bg-accent/10 text-primary',
       },
     },
     defaultVariants: {
-      size: "md",
-      color: "primary",
+      size: 'md',
+      color: 'primary',
     },
   }
 );
@@ -154,25 +154,25 @@ export const iconContainerVariants = cva(
  * ```
  */
 export const statusBadgeVariants = cva(
-  "inline-flex items-center gap-1.5 rounded-full font-bold transition-colors",
+  'inline-flex items-center gap-1.5 rounded-full font-bold transition-colors',
   {
     variants: {
       status: {
-        success: "bg-success/10 text-success border border-success/20",
-        warning: "bg-warning/10 text-warning border border-warning/20",
-        danger: "bg-destructive/10 text-destructive border border-destructive/20",
-        neutral: "bg-primary/10 text-primary border border-primary/20",
-        info: "bg-accent/10 text-primary border border-accent/20",
+        success: 'bg-success/10 text-success border border-success/20',
+        warning: 'bg-warning/10 text-warning border border-warning/20',
+        danger: 'bg-destructive/10 text-destructive border border-destructive/20',
+        neutral: 'bg-primary/10 text-primary border border-primary/20',
+        info: 'bg-accent/10 text-primary border border-accent/20',
       },
       size: {
-        sm: "px-1.5 py-0.5 text-xs",
-        md: "px-2 py-1 text-xs",
-        lg: "px-3 py-1.5 text-sm",
+        sm: 'px-1.5 py-0.5 text-xs',
+        md: 'px-2 py-1 text-xs',
+        lg: 'px-3 py-1.5 text-sm',
       },
     },
     defaultVariants: {
-      status: "neutral",
-      size: "md",
+      status: 'neutral',
+      size: 'md',
     },
   }
 );
@@ -192,24 +192,24 @@ export const statusBadgeVariants = cva(
  * ```
  */
 export const financialButtonVariants = cva(
-  "inline-flex items-center justify-center rounded-md font-medium transition-all disabled:opacity-50",
+  'inline-flex items-center justify-center rounded-md font-medium transition-all disabled:opacity-50',
   {
     variants: {
       intent: {
-        income: "bg-success text-success hover:bg-success/90 shadow-success/20",
-        expense: "bg-destructive text-destructive hover:bg-destructive/90",
-        transfer: "bg-secondary text-secondary hover:bg-secondary/90",
-        neutral: "bg-primary/10 text-primary hover:bg-primary/15",
+        income: 'bg-success text-success hover:bg-success/90 shadow-success/20',
+        expense: 'bg-destructive text-destructive hover:bg-destructive/90',
+        transfer: 'bg-secondary text-secondary hover:bg-secondary/90',
+        neutral: 'bg-primary/10 text-primary hover:bg-primary/15',
       },
       size: {
-        sm: "h-8 px-3 text-sm",
-        md: "h-9 px-4 text-sm",
-        lg: "h-10 px-6 text-base",
+        sm: 'h-8 px-3 text-sm',
+        md: 'h-9 px-4 text-sm',
+        lg: 'h-10 px-6 text-base',
       },
     },
     defaultVariants: {
-      intent: "neutral",
-      size: "md",
+      intent: 'neutral',
+      size: 'md',
     },
   }
 );
@@ -228,36 +228,33 @@ export const financialButtonVariants = cva(
  * </div>
  * ```
  */
-export const progressBarVariants = cva(
-  "w-full h-3 rounded-full shadow-inner overflow-hidden",
-  {
-    variants: {
-      status: {
-        success: "bg-primary/20",
-        warning: "bg-primary/20",
-        danger: "bg-primary/20",
-        neutral: "bg-primary/20",
-      },
+export const progressBarVariants = cva('w-full h-3 rounded-full shadow-inner overflow-hidden', {
+  variants: {
+    status: {
+      success: 'bg-primary/20',
+      warning: 'bg-primary/20',
+      danger: 'bg-primary/20',
+      neutral: 'bg-primary/20',
     },
-    defaultVariants: {
-      status: "neutral",
-    },
-  }
-);
+  },
+  defaultVariants: {
+    status: 'neutral',
+  },
+});
 
 export const progressFillVariants = cva(
-  "h-full rounded-full transition-all duration-1000 ease-out relative",
+  'h-full rounded-full transition-all duration-1000 ease-out relative',
   {
     variants: {
       status: {
-        success: "bg-success shadow-lg shadow-success/20",
-        warning: "bg-warning",
-        danger: "bg-destructive",
-        neutral: "bg-primary",
+        success: 'bg-success shadow-lg shadow-success/20',
+        warning: 'bg-warning',
+        danger: 'bg-destructive',
+        neutral: 'bg-primary',
       },
     },
     defaultVariants: {
-      status: "neutral",
+      status: 'neutral',
     },
   }
 );
@@ -276,35 +273,33 @@ export const progressFillVariants = cva(
  * </Card>
  * ```
  */
-export const transactionCardVariants = cva(
-  "py-0 backdrop-blur-sm transition-all duration-300",
-  {
-    variants: {
-      context: {
-        regular: "bg-card border border-primary/20 shadow-lg hover:shadow-xl",
-        recurring: "bg-gradient-to-r from-primary/10 via-card to-card border border-primary/20",
-        due: "", // Determined by urgency
-      },
-      urgency: {
-        none: "",
-        low: "bg-gradient-to-r from-primary/10 via-card to-card border-primary/20 hover:shadow-primary/20",
-        medium: "bg-gradient-to-r from-warning/10 via-warning/5 to-card border-warning/30 hover:shadow-warning/20",
-        high: "bg-gradient-to-r from-destructive/10 via-destructive/5 to-card border-destructive/30 hover:shadow-destructive/20",
-      },
+export const transactionCardVariants = cva('py-0 backdrop-blur-sm transition-all duration-300', {
+  variants: {
+    context: {
+      regular: 'bg-card border border-primary/20 shadow-lg hover:shadow-xl',
+      recurring: 'bg-gradient-to-r from-primary/10 via-card to-card border border-primary/20',
+      due: '', // Determined by urgency
     },
-    compoundVariants: [
-      {
-        context: "due",
-        urgency: "high",
-        className: "hover:shadow-xl",
-      },
-    ],
-    defaultVariants: {
-      context: "regular",
-      urgency: "none",
+    urgency: {
+      none: '',
+      low: 'bg-gradient-to-r from-primary/10 via-card to-card border-primary/20 hover:shadow-primary/20',
+      medium:
+        'bg-gradient-to-r from-warning/10 via-warning/5 to-card border-warning/30 hover:shadow-warning/20',
+      high: 'bg-gradient-to-r from-destructive/10 via-destructive/5 to-card border-destructive/30 hover:shadow-destructive/20',
     },
-  }
-);
+  },
+  compoundVariants: [
+    {
+      context: 'due',
+      urgency: 'high',
+      className: 'hover:shadow-xl',
+    },
+  ],
+  defaultVariants: {
+    context: 'regular',
+    urgency: 'none',
+  },
+});
 
 // ============================================================================
 // AMOUNT DISPLAY VARIANTS - Financial amount styling
@@ -320,32 +315,32 @@ export const transactionCardVariants = cva(
  * </span>
  * ```
  */
-export const amountVariants = cva("font-bold tabular-nums", {
+export const amountVariants = cva('font-bold tabular-nums', {
   variants: {
     type: {
-      income: "text-success",
-      expense: "text-destructive",
-      transfer: "text-secondary",
-      balance: "text-primary",
-      neutral: "text-muted-foreground",
+      income: 'text-success',
+      expense: 'text-destructive',
+      transfer: 'text-secondary',
+      balance: 'text-primary',
+      neutral: 'text-muted-foreground',
     },
     size: {
-      sm: "text-sm",
-      md: "text-base",
-      lg: "text-lg",
-      xl: "text-xl",
-      "2xl": "text-2xl",
+      sm: 'text-sm',
+      md: 'text-base',
+      lg: 'text-lg',
+      xl: 'text-xl',
+      '2xl': 'text-2xl',
     },
     emphasis: {
-      default: "",
-      strong: "font-bold tracking-tight",
-      subtle: "font-semibold",
+      default: '',
+      strong: 'font-bold tracking-tight',
+      subtle: 'font-semibold',
     },
   },
   defaultVariants: {
-    type: "balance",
-    size: "md",
-    emphasis: "default",
+    type: 'balance',
+    size: 'md',
+    emphasis: 'default',
   },
 });
 
@@ -361,28 +356,26 @@ export const amountVariants = cva("font-bold tabular-nums", {
  * <hr className={dividerVariants({ color: "primary" })} />
  * ```
  */
-export const dividerVariants = cva("border-0", {
+export const dividerVariants = cva('border-0', {
   variants: {
     color: {
-      default: "border-t border-border",
-      primary: "border-t border-primary/20",
-      muted: "border-t border-muted",
-      transparent: "border-t border-transparent",
+      default: 'border-t border-border',
+      primary: 'border-t border-primary/20',
+      muted: 'border-t border-muted',
+      transparent: 'border-t border-transparent',
     },
     spacing: {
-      none: "my-0",
-      sm: "my-2",
-      md: "my-4",
-      lg: "my-6",
+      none: 'my-0',
+      sm: 'my-2',
+      md: 'my-4',
+      lg: 'my-6',
     },
   },
   defaultVariants: {
-    color: "default",
-    spacing: "md",
+    color: 'default',
+    spacing: 'md',
   },
 });
-
-
 
 // ============================================================================
 // EXPORT TYPES - For TypeScript IntelliSense

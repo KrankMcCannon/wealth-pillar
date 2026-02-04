@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { useSyncExternalStore } from "react";
+import { useSyncExternalStore } from 'react';
 
 /**
  * Custom hook for responsive design using media queries
@@ -20,8 +20,8 @@ export function useMediaQuery(query: string): boolean {
     const mediaQuery = globalThis.window.matchMedia(query);
     const handleChange = () => callback();
 
-    mediaQuery.addEventListener("change", handleChange);
-    return () => mediaQuery.removeEventListener("change", handleChange);
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
   };
 
   return useSyncExternalStore(subscribe, getSnapshot, () => false);

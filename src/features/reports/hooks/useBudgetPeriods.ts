@@ -1,6 +1,6 @@
-import { useState, useMemo, useCallback } from "react";
-import { toDateTime } from "@/lib/utils";
-import type { EnrichedBudgetPeriod } from "@/server/services/report-period.service";
+import { useState, useMemo, useCallback } from 'react';
+import { toDateTime } from '@/lib/utils';
+import type { EnrichedBudgetPeriod } from '@/server/services/report-period.service';
 
 /**
  * Extended type including optional transaction count sometimes appended by server/parent
@@ -16,7 +16,7 @@ interface UseBudgetPeriodsOptions {
 export function useBudgetPeriods({
   periods,
   initialVisibleCount = 5,
-  incrementCount = 5
+  incrementCount = 5,
 }: UseBudgetPeriodsOptions) {
   const [expandedPeriods, setExpandedPeriods] = useState<Set<string>>(new Set());
   const [visibleCount, setVisibleCount] = useState(initialVisibleCount);
@@ -40,7 +40,7 @@ export function useBudgetPeriods({
 
   // Load more handler
   const handleLoadMore = useCallback(() => {
-    setVisibleCount(prev => prev + incrementCount);
+    setVisibleCount((prev) => prev + incrementCount);
   }, [incrementCount]);
 
   // Toggle period expansion
@@ -56,9 +56,12 @@ export function useBudgetPeriods({
     });
   }, []);
 
-  const isExpanded = useCallback((periodId: string) => {
-    return expandedPeriods.has(periodId);
-  }, [expandedPeriods]);
+  const isExpanded = useCallback(
+    (periodId: string) => {
+      return expandedPeriods.has(periodId);
+    },
+    [expandedPeriods]
+  );
 
   return {
     sortedPeriods,

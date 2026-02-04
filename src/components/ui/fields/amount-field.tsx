@@ -2,9 +2,9 @@
  * AmountField - Reusable currency input field
  */
 
-"use client";
+'use client';
 
-import { FormField, FormCurrencyInput } from "@/components/form";
+import { FormField, FormCurrencyInput } from '@/components/form';
 
 interface AmountFieldProps {
   value: string | number;
@@ -21,18 +21,13 @@ export function AmountField({
   onChange,
   error,
   required = true,
-  label = "Importo",
+  label = 'Importo',
   placeholder,
-  min = 0
+  min = 0,
 }: Readonly<AmountFieldProps>) {
   return (
     <FormField label={label} required={required} error={error}>
-      <FormCurrencyInput
-        value={value}
-        onChange={onChange}
-        min={min}
-        placeholder={placeholder}
-      />
+      <FormCurrencyInput value={value} onChange={onChange} min={min} placeholder={placeholder} />
     </FormField>
   );
 }

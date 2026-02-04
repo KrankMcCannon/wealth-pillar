@@ -6,10 +6,8 @@
  * Follows consistent design system and spacing patterns
  */
 
-import { transactionStyles } from "@/styles/system";
-import {
-  TransactionListSkeleton,
-} from '@/features/transactions/components/transaction-skeletons';
+import { transactionStyles } from '@/styles/system';
+import { TransactionListSkeleton } from '@/features/transactions/components/transaction-skeletons';
 
 export default function TransactionsLoading() {
   return (

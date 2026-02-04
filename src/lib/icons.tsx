@@ -64,59 +64,59 @@ export const designSystemColors = {
 // Modern icon mapping - Category-based line-art icons
 export const iconMapping: Record<string, React.ComponentType<React.SVGProps<SVGSVGElement>>> = {
   // Financial Operations
-  'trasferimento': ArrowUpRight,
-  'bonifico': Building2,
-  'contanti': Banknote,
-  'stipendio': DollarSign,
-  'investimenti': TrendingUp,
-  'risparmi': PiggyBank,
-  'rata_auto': CreditCard,
+  trasferimento: ArrowUpRight,
+  bonifico: Building2,
+  contanti: Banknote,
+  stipendio: DollarSign,
+  investimenti: TrendingUp,
+  risparmi: PiggyBank,
+  rata_auto: CreditCard,
 
   // Utilities & Bills
-  'abbonamenti_tv': Tv,
-  'ricarica_telefono': Smartphone,
-  'bolletta_tim': Phone,
-  'bolletta_luce': Zap,
-  'bolletta_gas': Flame,
-  'bolletta_acqua': Droplets,
-  'bolletta_tari': Trash2,
-  'abbonamenti_necessari': Wifi,
-  'bolletta_depuratore': Activity,
+  abbonamenti_tv: Tv,
+  ricarica_telefono: Smartphone,
+  bolletta_tim: Phone,
+  bolletta_luce: Zap,
+  bolletta_gas: Flame,
+  bolletta_acqua: Droplets,
+  bolletta_tari: Trash2,
+  abbonamenti_necessari: Wifi,
+  bolletta_depuratore: Activity,
 
   // Transportation
-  'bollo_auto': Car,
-  'benzina': Fuel,
-  'tagliando_auto': Wrench,
+  bollo_auto: Car,
+  benzina: Fuel,
+  tagliando_auto: Wrench,
 
   // Health & Wellness
-  'medicine': Pill,
-  'medicine_thor': Pill,
-  'visite_mediche': Stethoscope,
-  'analisi_mediche': Activity,
-  'veterinario': Heart,
-  'palestra': Dumbbell,
+  medicine: Pill,
+  medicine_thor: Pill,
+  visite_mediche: Stethoscope,
+  analisi_mediche: Activity,
+  veterinario: Heart,
+  palestra: Dumbbell,
 
   // Beauty & Personal Care
-  'parrucchiere': Scissors,
-  'estetista': Sparkles,
-  'skincare': Package,
-  'haircare': Package,
-  'taglio_thor': Scissors,
+  parrucchiere: Scissors,
+  estetista: Sparkles,
+  skincare: Package,
+  haircare: Package,
+  taglio_thor: Scissors,
 
   // Food & Dining
-  'spesa': ShoppingBasket,
-  'cibo_fuori': UtensilsCrossed,
-  'cibo_asporto': Coffee,
-  'cibo_thor': ChefHat,
+  spesa: ShoppingBasket,
+  cibo_fuori: UtensilsCrossed,
+  cibo_asporto: Coffee,
+  cibo_thor: ChefHat,
 
   // Shopping & Lifestyle
-  'vestiti': Shirt,
-  'regali': Gift,
-  'eventi': PartyPopper,
-  'yuup_thor': Heart,
+  vestiti: Shirt,
+  regali: Gift,
+  eventi: PartyPopper,
+  yuup_thor: Heart,
 
   // Default/Misc
-  'altro': FileText,
+  altro: FileText,
 };
 
 const categoryColors: Record<string, string> = {
@@ -207,7 +207,7 @@ interface CategoryIconProps {
 export const CategoryIcon: React.FC<CategoryIconProps> = ({
   categoryKey,
   size = 20,
-  className = ''
+  className = '',
 }) => (
   <Icon
     icon={categoryKey}

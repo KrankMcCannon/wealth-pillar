@@ -1,24 +1,24 @@
-"use client";
+'use client';
 
-import { Card } from "@/components/ui";
-import { Transaction, Category } from "@/lib";
-import { FinanceLogicService } from "@/server/services/finance-logic.service";
-import { formatCurrency, cn } from "@/lib/utils";
-import { TransactionRow } from "./transaction-row";
+import { Card } from '@/components/ui';
+import { Transaction, Category } from '@/lib';
+import { FinanceLogicService } from '@/server/services/finance-logic.service';
+import { formatCurrency, cn } from '@/lib/utils';
+import { TransactionRow } from './transaction-row';
 import {
   transactionStyles,
   getCardVariantStyles,
   getHeaderVariantStyles,
-  getTotalAmountColor
-} from "@/styles/system";
+  getTotalAmountColor,
+} from '@/styles/system';
 
 interface GroupedTransactionCardProps {
   transactions: Transaction[];
   accountNames: Record<string, string>;
-  variant?: "regular" | "recurrent";
+  variant?: 'regular' | 'recurrent';
   showHeader?: boolean;
   totalAmount?: number;
-  context?: "due" | "informative";
+  context?: 'due' | 'informative';
   categories?: Category[];
   onEditTransaction?: (transaction: Transaction) => void;
   onDeleteTransaction?: (transactionId: string) => void;
@@ -40,10 +40,10 @@ interface GroupedTransactionCardProps {
 export function GroupedTransactionCard({
   transactions,
   accountNames,
-  variant = "regular",
+  variant = 'regular',
   showHeader = false,
   totalAmount,
-  context = "informative",
+  context = 'informative',
   categories = [],
   onEditTransaction,
   onDeleteTransaction,
@@ -64,10 +64,10 @@ export function GroupedTransactionCard({
       {showHeader && totalAmount !== undefined && (
         <div className={getHeaderVariantStyles(variant)}>
           <div className={transactionStyles.groupedCard.headerContent}>
-            <span className={transactionStyles.groupedCard.headerLabel}>
-              Totale Periodo
-            </span>
-            <p className={`${transactionStyles.groupedCard.headerAmount} ${getTotalAmountColor(variant, totalAmount)}`}>
+            <span className={transactionStyles.groupedCard.headerLabel}>Totale Periodo</span>
+            <p
+              className={`${transactionStyles.groupedCard.headerAmount} ${getTotalAmountColor(variant, totalAmount)}`}
+            >
               {formatCurrency(totalAmount)}
             </p>
           </div>

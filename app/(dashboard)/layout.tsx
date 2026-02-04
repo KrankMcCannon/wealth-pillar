@@ -10,11 +10,7 @@ import { UserProvider } from '@/providers/user-provider';
 /**
  * Dashboard Layout with Zustand Store Initialization
  */
-export default async function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   // Step 1: Check Clerk authentication
   const { userId: clerkId } = await auth();
 
@@ -56,16 +52,17 @@ export default async function DashboardLayout({
 
   return (
     <NuqsAdapter>
-      <UserProvider currentUser={user as unknown as User} groupUsers={(groupUsers || []) as unknown as User[]}>
+      <UserProvider
+        currentUser={user as unknown as User}
+        groupUsers={(groupUsers || []) as unknown as User[]}
+      >
         <ReferenceDataInitializer
           data={{
             accounts,
             categories,
           }}
         >
-          <ModalProvider>
-            {children}
-          </ModalProvider>
+          <ModalProvider>{children}</ModalProvider>
         </ReferenceDataInitializer>
       </UserProvider>
     </NuqsAdapter>

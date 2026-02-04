@@ -12,8 +12,8 @@
  * - CRUD handlers
  */
 
-import { useState, useMemo, useEffect, useCallback } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
   useDeleteConfirmation,
   useIdNameMap,
@@ -21,10 +21,10 @@ import {
   useFilteredData,
   useBudgetsByUser,
   useUserFilter,
-} from "@/hooks";
-import { useModalState } from "@/lib/navigation/url-state";
-import { usePageDataStore } from "@/stores/page-data-store";
-import { deleteBudgetAction } from "@/features/budgets/actions/budget-actions";
+} from '@/hooks';
+import { useModalState } from '@/lib/navigation/url-state';
+import { usePageDataStore } from '@/stores/page-data-store';
+import { deleteBudgetAction } from '@/features/budgets/actions/budget-actions';
 import {
   toDateTime,
   toDateString,
@@ -32,8 +32,8 @@ import {
   formatDateSmart,
   formatDateShort,
   diffInDays,
-} from "@/lib/utils/date-utils";
-import { FinanceLogicService } from "@/server/services/finance-logic.service";
+} from '@/lib/utils/date-utils';
+import { FinanceLogicService } from '@/server/services/finance-logic.service';
 import type {
   Category,
   Budget,
@@ -42,9 +42,9 @@ import type {
   BudgetPeriod,
   User,
   UserBudgetSummary,
-} from "@/lib/types";
-import type { GroupedTransaction } from "@/features/transactions";
-import type { ChartDataPoint } from "../components/BudgetChart";
+} from '@/lib/types';
+import type { GroupedTransaction } from '@/features/transactions';
+import type { ChartDataPoint } from '../components/BudgetChart';
 
 // ============================================================================
 // Types
@@ -112,7 +112,7 @@ export interface UseBudgetsContentReturn {
   readonly deleteConfirm: ReturnType<typeof useDeleteConfirmation<Budget>>;
 
   // Modal
-  readonly openModal: ReturnType<typeof useModalState>["openModal"];
+  readonly openModal: ReturnType<typeof useModalState>['openModal'];
 }
 
 // ============================================================================
@@ -166,7 +166,7 @@ export function useBudgetsContent({
   // Budget Selection State
   // ========================================================================
 
-  const initialBudgetId = searchParams.get("budget");
+  const initialBudgetId = searchParams.get('budget');
 
   // Filter budgets by selected user
   const { filteredData: userBudgets } = useFilteredData({
@@ -283,9 +283,7 @@ export function useBudgetsContent({
     const periodStart = periodInfo.start ? toDateTime(periodInfo.start) : null;
     const periodEnd = periodInfo.end ? toDateTime(periodInfo.end) : null;
 
-    const userTransactions = transactions.filter(
-      (t) => t.user_id === selectedBudgetUser.id
-    );
+    const userTransactions = transactions.filter((t) => t.user_id === selectedBudgetUser.id);
 
     return FinanceLogicService.filterTransactionsForBudget(
       userTransactions,
@@ -301,13 +299,13 @@ export function useBudgetsContent({
       const startDt = toDateTime(periodInfo.start);
       const endDt = periodInfo.end ? toDateTime(periodInfo.end) : null;
 
-      const startFormatted = startDt ? formatDateShort(startDt) : "";
-      const endFormatted = endDt ? formatDateShort(endDt) : "Oggi";
+      const startFormatted = startDt ? formatDateShort(startDt) : '';
+      const endFormatted = endDt ? formatDateShort(endDt) : 'Oggi';
       return `${startFormatted} - ${endFormatted}`;
     }
 
     const count = selectedBudgetProgress?.transactionCount ?? 0;
-    return `${count} ${count === 1 ? "transazione" : "transazioni"}`;
+    return `${count} ${count === 1 ? 'transazione' : 'transazioni'}`;
   }, [periodInfo, selectedBudgetProgress]);
 
   // Group transactions by date
@@ -358,7 +356,7 @@ export function useBudgetsContent({
     const dailySpending: Record<string, number> = {};
     for (const t of budgetTransactions) {
       const dateKey = toDateString(t.date);
-      const amount = t.type === "income" ? -t.amount : t.amount;
+      const amount = t.type === 'income' ? -t.amount : t.amount;
       dailySpending[dateKey] = (dailySpending[dateKey] || 0) + amount;
     }
 
@@ -400,12 +398,12 @@ export function useBudgetsContent({
   }, []);
 
   const handleCreateBudget = useCallback(() => {
-    openModal("budget");
+    openModal('budget');
   }, [openModal]);
 
   const handleEditBudget = useCallback(() => {
     if (selectedBudget) {
-      openModal("budget", selectedBudget.id);
+      openModal('budget', selectedBudget.id);
     }
   }, [selectedBudget, openModal]);
 
@@ -426,7 +424,7 @@ export function useBudgetsContent({
 
         if (result.error) {
           addBudget(budget);
-          console.error("[useBudgetsContent] Delete error:", result.error);
+          console.error('[useBudgetsContent] Delete error:', result.error);
           throw new Error(result.error);
         }
 
@@ -436,7 +434,7 @@ export function useBudgetsContent({
         }
       } catch (error) {
         addBudget(budget);
-        console.error("[useBudgetsContent] Error deleting budget:", error);
+        console.error('[useBudgetsContent] Error deleting budget:', error);
         throw error;
       }
     });

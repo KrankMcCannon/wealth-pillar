@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 /**
  * RecurringSeriesForm - Form for creating/editing recurring transaction series
@@ -6,13 +6,16 @@
  * Handles form state management, validation, and submission for recurring series.
  */
 
-import { useState, useEffect, useMemo } from "react";
-import { RecurringTransactionSeries, User, Account, Category, TransactionFrequencyType } from "@/lib/types";
+import { useState, useEffect, useMemo } from 'react';
 import {
-  createRecurringSeriesAction,
-  updateRecurringSeriesAction,
-} from "@/features/recurring";
-import { FormActions, FormField, FormSelect, MultiUserSelect } from "@/components/form";
+  RecurringTransactionSeries,
+  User,
+  Account,
+  Category,
+  TransactionFrequencyType,
+} from '@/lib/types';
+import { createRecurringSeriesAction, updateRecurringSeriesAction } from '@/features/recurring';
+import { FormActions, FormField, FormSelect, MultiUserSelect } from '@/components/form';
 import {
   AccountField,
   AmountField,
@@ -23,11 +26,11 @@ import {
   ModalFooter,
   ModalSection,
   ModalWrapper,
-} from "@/components/ui";
-import { todayDateString, toDateString, toDateTime } from "@/lib/utils/date-utils";
-import { recurringStyles } from "../theme/recurring-styles";
+} from '@/components/ui';
+import { todayDateString, toDateString, toDateTime } from '@/lib/utils/date-utils';
+import { recurringStyles } from '../theme/recurring-styles';
 
-type Mode = "create" | "edit";
+type Mode = 'create' | 'edit';
 
 interface RecurringSeriesFormProps {
   readonly isOpen: boolean;
@@ -39,13 +42,13 @@ interface RecurringSeriesFormProps {
   readonly selectedUserId?: string;
   readonly series?: RecurringTransactionSeries;
   readonly mode?: Mode;
-  readonly onSuccess?: (series: RecurringTransactionSeries, action: "create" | "update") => void;
+  readonly onSuccess?: (series: RecurringTransactionSeries, action: 'create' | 'update') => void;
 }
 
 interface FormData {
   description: string;
   amount: string;
-  type: "income" | "expense";
+  type: 'income' | 'expense';
   category: string;
   frequency: TransactionFrequencyType;
   user_ids: string[]; // Array of user IDs who can access this series
@@ -78,27 +81,28 @@ export function RecurringSeriesForm({
   categories,
   selectedUserId,
   series,
-  mode = "create",
+  mode = 'create',
   onSuccess,
 }: RecurringSeriesFormProps) {
-  const title = mode === "edit" ? "Modifica Serie Ricorrente" : "Nuova Serie Ricorrente";
-  const description = mode === "edit" ? "Aggiorna la serie ricorrente" : "Configura una nuova serie ricorrente";
+  const title = mode === 'edit' ? 'Modifica Serie Ricorrente' : 'Nuova Serie Ricorrente';
+  const description =
+    mode === 'edit' ? 'Aggiorna la serie ricorrente' : 'Configura una nuova serie ricorrente';
 
   // Get today's date in YYYY-MM-DD format using Luxon
   const today = todayDateString();
 
   // Initialize form data
   const [formData, setFormData] = useState<FormData>({
-    description: "",
-    amount: "",
-    type: "expense",
-    category: "",
-    frequency: "monthly",
+    description: '',
+    amount: '',
+    type: 'expense',
+    category: '',
+    frequency: 'monthly',
     user_ids: selectedUserId ? [selectedUserId] : [currentUser.id],
-    account_id: "",
+    account_id: '',
     start_date: today,
-    end_date: "",
-    due_day: "1", // Default: primo del mese
+    end_date: '',
+    due_day: '1', // Default: primo del mese
   });
 
   const [errors, setErrors] = useState<FormErrors>({});
@@ -110,7 +114,9 @@ export function RecurringSeriesForm({
     if (!formData.user_ids || formData.user_ids.length === 0) return accounts;
 
     // Filter: accounts accessible by ALL selected users
-    const filtered = accounts.filter((acc) => formData.user_ids.every((userId) => acc.user_ids.includes(userId)));
+    const filtered = accounts.filter((acc) =>
+      formData.user_ids.every((userId) => acc.user_ids.includes(userId))
+    );
 
     // Sort: currentUser's accounts first
     return filtered.sort((a, b) => {
@@ -125,7 +131,7 @@ export function RecurringSeriesForm({
   // Calculate default account to prepopulate
   const defaultAccountId = useMemo(() => {
     if (!formData.user_ids || formData.user_ids.length === 0 || filteredAccounts.length === 0) {
-      return "";
+      return '';
     }
 
     // SOLO 1 UTENTE: Usa il default di quell'utente
@@ -133,7 +139,9 @@ export function RecurringSeriesForm({
       const selectedUser = groupUsers.find((u) => u.id === formData.user_ids[0]);
 
       if (selectedUser?.default_account_id) {
-        const defaultAcc = filteredAccounts.find((acc) => acc.id === selectedUser.default_account_id);
+        const defaultAcc = filteredAccounts.find(
+          (acc) => acc.id === selectedUser.default_account_id
+        );
         if (defaultAcc) {
           return defaultAcc.id;
         }
@@ -160,24 +168,24 @@ export function RecurringSeriesForm({
     }
 
     // Ultimo fallback: primo account disponibile
-    return accounts.length > 0 ? accounts[0].id : "";
+    return accounts.length > 0 ? accounts[0].id : '';
   }, [formData.user_ids, filteredAccounts, accounts, currentUser.id, groupUsers]);
 
   // Reset form when modal opens or mode/series changes
   useEffect(() => {
     if (isOpen) {
-      if (mode === "edit" && series) {
+      if (mode === 'edit' && series) {
         // Format dates to strings using Luxon
         const formatDateToString = (date: string | Date | undefined | null): string => {
-          if (!date) return "";
+          if (!date) return '';
           const dt = toDateTime(date);
-          return dt ? toDateString(dt) : "";
+          return dt ? toDateString(dt) : '';
         };
 
         setFormData({
           description: series.description,
           amount: series.amount.toString(),
-          type: series.type === "income" ? "income" : "expense",
+          type: series.type === 'income' ? 'income' : 'expense',
           category: series.category,
           frequency: series.frequency,
           user_ids: series.user_ids,
@@ -190,16 +198,16 @@ export function RecurringSeriesForm({
         // Create mode - reset form with defaults
         const userId = selectedUserId ?? currentUser.id;
         setFormData({
-          description: "",
-          amount: "",
-          type: "expense",
-          category: "",
-          frequency: "monthly",
+          description: '',
+          amount: '',
+          type: 'expense',
+          category: '',
+          frequency: 'monthly',
           user_ids: [userId],
-          account_id: "", // Will be set by prepopulate useEffect
+          account_id: '', // Will be set by prepopulate useEffect
           start_date: today,
-          end_date: "",
-          due_day: "1", // Default: primo del mese
+          end_date: '',
+          due_day: '1', // Default: primo del mese
         });
       }
       setErrors({});
@@ -226,7 +234,7 @@ export function RecurringSeriesForm({
     const newErrors: FormErrors = {};
 
     if (!formData.description.trim()) {
-      newErrors.description = "La descrizione è obbligatoria";
+      newErrors.description = 'La descrizione è obbligatoria';
     }
 
     const amount = Number.parseFloat(formData.amount);
@@ -235,34 +243,34 @@ export function RecurringSeriesForm({
     }
 
     if (!formData.category) {
-      newErrors.category = "La categoria è obbligatoria";
+      newErrors.category = 'La categoria è obbligatoria';
     }
 
     if (!formData.user_ids || formData.user_ids.length === 0) {
-      newErrors.user_ids = "Almeno un utente è obbligatorio";
+      newErrors.user_ids = 'Almeno un utente è obbligatorio';
     }
 
     if (!formData.account_id) {
-      newErrors.account_id = "Il conto è obbligatorio";
+      newErrors.account_id = 'Il conto è obbligatorio';
     }
 
     if (!formData.start_date) {
-      newErrors.start_date = "La data di inizio è obbligatoria";
+      newErrors.start_date = 'La data di inizio è obbligatoria';
     }
 
     if (formData.due_day) {
       const dueDay = Number.parseInt(formData.due_day, 10);
       if (Number.isNaN(dueDay) || dueDay < 1 || dueDay > 31) {
-        newErrors.due_day = "Il giorno deve essere tra 1 e 31";
+        newErrors.due_day = 'Il giorno deve essere tra 1 e 31';
       }
     } else {
-      newErrors.due_day = "Il giorno di addebito è obbligatorio";
+      newErrors.due_day = 'Il giorno di addebito è obbligatorio';
     }
 
     // Validate end_date if provided
     if (formData.end_date && formData.start_date) {
       if (new Date(formData.end_date) <= new Date(formData.start_date)) {
-        newErrors.end_date = "La data di fine deve essere successiva alla data di inizio";
+        newErrors.end_date = 'La data di fine deve essere successiva alla data di inizio';
       }
     }
 
@@ -282,7 +290,7 @@ export function RecurringSeriesForm({
   // Process submission result
   const processResult = (
     result: { data: RecurringTransactionSeries | null; error: string | null },
-    action: "create" | "update",
+    action: 'create' | 'update'
   ) => {
     if (result.error) {
       setErrors({ submit: result.error });
@@ -318,24 +326,24 @@ export function RecurringSeriesForm({
         due_day: dueDay,
       };
 
-      if (mode === "edit" && series) {
+      if (mode === 'edit' && series) {
         const result = await updateRecurringSeriesAction({
           id: series.id,
           user_ids: formData.user_ids,
           ...baseInput,
         });
-        processResult(result, "update");
+        processResult(result, 'update');
       } else {
         const result = await createRecurringSeriesAction({
           ...baseInput,
           user_ids: formData.user_ids,
         });
-        processResult(result, "create");
+        processResult(result, 'create');
       }
     } catch (error) {
-      console.error("[RecurringSeriesForm] Submit error:", error);
+      console.error('[RecurringSeriesForm] Submit error:', error);
       setErrors({
-        submit: error instanceof Error ? error.message : "Errore durante il salvataggio",
+        submit: error instanceof Error ? error.message : 'Errore durante il salvataggio',
       });
     } finally {
       setIsSubmitting(false);
@@ -350,7 +358,6 @@ export function RecurringSeriesForm({
         title={title}
         description={description}
         maxWidth="md"
-
       >
         <ModalBody>
           {/* Error message */}
@@ -366,10 +373,12 @@ export function RecurringSeriesForm({
               <FormField label="Tipo" required error={errors.type}>
                 <FormSelect
                   value={formData.type}
-                  onValueChange={(value) => handleFieldChange("type", value as "income" | "expense")}
+                  onValueChange={(value) =>
+                    handleFieldChange('type', value as 'income' | 'expense')
+                  }
                   options={[
-                    { value: "expense", label: "Uscita" },
-                    { value: "income", label: "Entrata" },
+                    { value: 'expense', label: 'Uscita' },
+                    { value: 'income', label: 'Entrata' },
                   ]}
                 />
               </FormField>
@@ -378,12 +387,14 @@ export function RecurringSeriesForm({
               <FormField label="Frequenza" required error={errors.frequency}>
                 <FormSelect
                   value={formData.frequency}
-                  onValueChange={(value) => handleFieldChange("frequency", value as TransactionFrequencyType)}
+                  onValueChange={(value) =>
+                    handleFieldChange('frequency', value as TransactionFrequencyType)
+                  }
                   options={[
-                    { value: "weekly", label: "Settimanale" },
-                    { value: "biweekly", label: "Quindicinale" },
-                    { value: "monthly", label: "Mensile" },
-                    { value: "yearly", label: "Annuale" },
+                    { value: 'weekly', label: 'Settimanale' },
+                    { value: 'biweekly', label: 'Quindicinale' },
+                    { value: 'monthly', label: 'Mensile' },
+                    { value: 'yearly', label: 'Annuale' },
                   ]}
                 />
               </FormField>
@@ -393,7 +404,7 @@ export function RecurringSeriesForm({
             <FormField label="Utenti" required error={errors.user_ids}>
               <MultiUserSelect
                 value={formData.user_ids}
-                onChange={(value) => handleFieldChange("user_ids", value)}
+                onChange={(value) => handleFieldChange('user_ids', value)}
                 users={groupUsers}
                 currentUserId={currentUser.id}
               />
@@ -403,7 +414,7 @@ export function RecurringSeriesForm({
               {/* Conto */}
               <AccountField
                 value={formData.account_id}
-                onChange={(value) => handleFieldChange("account_id", value)}
+                onChange={(value) => handleFieldChange('account_id', value)}
                 error={errors.account_id}
                 accounts={filteredAccounts}
                 required
@@ -412,7 +423,7 @@ export function RecurringSeriesForm({
               {/* Categoria */}
               <CategoryField
                 value={formData.category}
-                onChange={(value) => handleFieldChange("category", value)}
+                onChange={(value) => handleFieldChange('category', value)}
                 error={errors.category}
                 categories={categories}
                 required
@@ -421,7 +432,7 @@ export function RecurringSeriesForm({
               {/* Importo */}
               <AmountField
                 value={formData.amount}
-                onChange={(value) => handleFieldChange("amount", value)}
+                onChange={(value) => handleFieldChange('amount', value)}
                 error={errors.amount}
                 required
               />
@@ -433,7 +444,7 @@ export function RecurringSeriesForm({
                   min={1}
                   max={31}
                   value={formData.due_day}
-                  onChange={(e) => handleFieldChange("due_day", e.target.value)}
+                  onChange={(e) => handleFieldChange('due_day', e.target.value)}
                   placeholder="1-31"
                 />
               </FormField>
@@ -442,7 +453,7 @@ export function RecurringSeriesForm({
               <DateField
                 label="Data inizio"
                 value={formData.start_date}
-                onChange={(value) => handleFieldChange("start_date", value)}
+                onChange={(value) => handleFieldChange('start_date', value)}
                 error={errors.start_date}
                 required
               />
@@ -451,7 +462,7 @@ export function RecurringSeriesForm({
               <DateField
                 label="Data fine"
                 value={formData.end_date}
-                onChange={(value) => handleFieldChange("end_date", value)}
+                onChange={(value) => handleFieldChange('end_date', value)}
                 error={errors.end_date}
               />
             </div>
@@ -462,7 +473,7 @@ export function RecurringSeriesForm({
             <FormField label="Descrizione" required error={errors.description}>
               <Input
                 value={formData.description}
-                onChange={(e) => handleFieldChange("description", e.target.value)}
+                onChange={(e) => handleFieldChange('description', e.target.value)}
                 placeholder="Es. Abbonamento Netflix"
               />
             </FormField>
@@ -471,7 +482,7 @@ export function RecurringSeriesForm({
         <ModalFooter>
           <FormActions
             submitType="button"
-            submitLabel={mode === "edit" ? "Salva Modifiche" : "Crea Serie"}
+            submitLabel={mode === 'edit' ? 'Salva Modifiche' : 'Crea Serie'}
             onSubmit={handleSubmit}
             onCancel={() => onOpenChange(false)}
             isSubmitting={isSubmitting}

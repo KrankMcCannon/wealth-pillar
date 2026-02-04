@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { Badge } from "@/components/ui";
-import { BudgetPeriod } from "@/lib";
-import { Calendar, Clock } from "lucide-react";
-import { budgetStyles } from "@/styles/system";
+import { Badge } from '@/components/ui';
+import { BudgetPeriod } from '@/lib';
+import { Calendar, Clock } from 'lucide-react';
+import { budgetStyles } from '@/styles/system';
 
 interface BudgetPeriodInfoProps {
   period: BudgetPeriod | null;
@@ -16,7 +16,7 @@ interface BudgetPeriodInfoProps {
 
 export function BudgetPeriodInfo({
   period,
-  className = "",
+  className = '',
   showSpending = true,
   totalSpent,
   totalSaved,
@@ -39,17 +39,22 @@ export function BudgetPeriodInfo({
       <div className={budgetStyles.periodInfo.headerRow}>
         <div className={budgetStyles.periodInfo.headerLeft}>
           <Calendar className={budgetStyles.periodInfo.headerIcon} />
-          <span className={budgetStyles.periodInfo.headerText}>{endDate ? `- ${endDate}` : "- in corso"}</span>
+          <span className={budgetStyles.periodInfo.headerText}>
+            {endDate ? `- ${endDate}` : '- in corso'}
+          </span>
         </div>
 
-        <Badge variant={isCurrentPeriod ? "default" : "secondary"} className={budgetStyles.periodInfo.badge}>
+        <Badge
+          variant={isCurrentPeriod ? 'default' : 'secondary'}
+          className={budgetStyles.periodInfo.badge}
+        >
           {isCurrentPeriod ? (
             <>
               <Clock className={budgetStyles.periodInfo.badgeIcon} />
               Attivo
             </>
           ) : (
-            "Concluso"
+            'Concluso'
           )}
         </Badge>
       </div>
@@ -79,11 +84,13 @@ export function BudgetPeriodInfo({
           <p className={budgetStyles.periodInfo.topCategoriesTitle}>Principali Categorie</p>
           <div className={budgetStyles.periodInfo.topCategoriesList}>
             {Object.entries(categorySpending)
-              .sort(([, a], [, b]) => (b) - (a))
+              .sort(([, a], [, b]) => b - a)
               .slice(0, 3)
               .map(([category, amount]) => (
                 <div key={category} className={budgetStyles.periodInfo.topCategoryRow}>
-                  <span className={budgetStyles.periodInfo.topCategoryLabel}>{category.replaceAll('_', " ")}</span>
+                  <span className={budgetStyles.periodInfo.topCategoryLabel}>
+                    {category.replaceAll('_', ' ')}
+                  </span>
                   <span className={budgetStyles.periodInfo.topCategoryAmount}>{amount}</span>
                 </div>
               ))}

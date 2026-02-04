@@ -6,11 +6,7 @@ const BASE_URL = 'https://api.twelvedata.com';
 const DEFAULT_INTERVAL = '1day';
 const DEFAULT_OUTPUTSIZE = 365 * 2;
 
-const {
-  NEXT_PUBLIC_SUPABASE_URL,
-  SUPABASE_SERVICE_ROLE_KEY,
-  TWELVE_DATA_API_KEY,
-} = process.env;
+const { NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, TWELVE_DATA_API_KEY } = process.env;
 
 if (!NEXT_PUBLIC_SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
   throw new Error('Missing Supabase env: NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY');
@@ -38,7 +34,10 @@ const parseArgs = () => {
   args.forEach((arg) => {
     if (arg.startsWith('--symbols=')) {
       const raw = arg.split('=')[1] || '';
-      options.symbols = raw.split(',').map(s => s.trim()).filter(Boolean);
+      options.symbols = raw
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean);
     } else if (arg.startsWith('--from=')) {
       options.from = arg.split('=')[1] || options.from;
     } else if (arg.startsWith('--limit=')) {
@@ -76,13 +75,14 @@ const fetchTimeSeries = async (symbol, interval, outputsize) => {
 };
 
 const upsertCache = async (symbol, data) => {
-  const { error } = await supabase
-    .from('market_data_cache')
-    .upsert({
+  const { error } = await supabase.from('market_data_cache').upsert(
+    {
       symbol,
       data,
       last_updated: new Date().toISOString(),
-    }, { onConflict: 'symbol' });
+    },
+    { onConflict: 'symbol' }
+  );
   if (error) throw error;
 };
 
@@ -90,9 +90,10 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const main = async () => {
   const options = parseArgs();
-  const symbols = options.symbols.length > 0
-    ? Array.from(new Set(options.symbols.map((s) => s.toUpperCase())))
-    : await fetchSymbols(options.from, options.limit);
+  const symbols =
+    options.symbols.length > 0
+      ? Array.from(new Set(options.symbols.map((s) => s.toUpperCase())))
+      : await fetchSymbols(options.from, options.limit);
 
   if (symbols.length === 0) {
     process.stdout.write('No symbols found to update.\n');

@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import React, { createContext, useContext } from "react";
-import type { User } from "@/lib/types";
+import React, { createContext, useContext } from 'react';
+import type { User } from '@/lib/types';
 
 // ============================================================================
 // Types
@@ -35,21 +35,10 @@ const UserContext = createContext<UserContextValue | null>(null);
  * Using Context instead of Zustand for this data ensures it is available
  * immediately during the first render pass, preventing race conditions.
  */
-export function UserProvider({
-  children,
-  currentUser,
-  groupUsers,
-}: Readonly<UserProviderProps>) {
-  const value = React.useMemo(
-    () => ({ currentUser, groupUsers }),
-    [currentUser, groupUsers]
-  );
+export function UserProvider({ children, currentUser, groupUsers }: Readonly<UserProviderProps>) {
+  const value = React.useMemo(() => ({ currentUser, groupUsers }), [currentUser, groupUsers]);
 
-  return (
-    <UserContext.Provider value={value}>
-      {children}
-    </UserContext.Provider>
-  );
+  return <UserContext.Provider value={value}>{children}</UserContext.Provider>;
 }
 
 // ============================================================================
@@ -64,7 +53,7 @@ export function useUserContext(): UserContextValue {
   const context = useContext(UserContext);
 
   if (!context) {
-    throw new Error("useUserContext must be used within a UserProvider");
+    throw new Error('useUserContext must be used within a UserProvider');
   }
 
   return context;

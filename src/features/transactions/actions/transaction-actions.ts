@@ -79,7 +79,7 @@ export async function updateTransactionAction(
     if (!existingTransaction.user_id) {
       return {
         data: null,
-        error: 'La transazione non ha un utente assegnato'
+        error: 'La transazione non ha un utente assegnato',
       };
     }
 
@@ -121,9 +121,7 @@ export async function updateTransactionAction(
  * Wraps TransactionService.deleteTransaction for client component usage
  * Validates permissions: members can only delete their own transactions
  */
-export async function deleteTransactionAction(
-  id: string
-): Promise<ServiceResult<{ id: string }>> {
+export async function deleteTransactionAction(id: string): Promise<ServiceResult<{ id: string }>> {
   try {
     // Authentication check (cached per request)
     const currentUser = await getCurrentUser();
@@ -141,7 +139,7 @@ export async function deleteTransactionAction(
     if (!existingTransaction.user_id) {
       return {
         data: null,
-        error: 'La transazione non ha un utente assegnato'
+        error: 'La transazione non ha un utente assegnato',
       };
     }
 

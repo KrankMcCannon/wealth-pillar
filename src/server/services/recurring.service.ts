@@ -41,7 +41,7 @@ export class RecurringService {
     const row = data as RecurringRow & { accounts?: unknown };
     const result = {
       ...row,
-      accounts: Array.isArray(row.accounts) ? row.accounts[0] : row.accounts
+      accounts: Array.isArray(row.accounts) ? row.accounts[0] : row.accounts,
     };
     return result as RecurringRow;
   }
@@ -57,16 +57,18 @@ export class RecurringService {
     return (data || []) as RecurringRow[];
   });
 
-  private static readonly getByUserIdsDb = cache(async (userIds: string[]): Promise<RecurringRow[]> => {
-    const { data, error } = await supabase
-      .from('recurring_transactions')
-      .select('*')
-      .overlaps('user_ids', userIds)
-      .order('created_at', { ascending: false });
+  private static readonly getByUserIdsDb = cache(
+    async (userIds: string[]): Promise<RecurringRow[]> => {
+      const { data, error } = await supabase
+        .from('recurring_transactions')
+        .select('*')
+        .overlaps('user_ids', userIds)
+        .order('created_at', { ascending: false });
 
-    if (error) throw new Error(error.message);
-    return (data || []) as RecurringRow[];
-  });
+      if (error) throw new Error(error.message);
+      return (data || []) as RecurringRow[];
+    }
+  );
 
   private static async createDb(data: RecurringInsert): Promise<RecurringRow> {
     const { data: created, error } = await supabase
@@ -105,17 +107,15 @@ export class RecurringService {
 
   // ================== SERVICE LAYER ==================
   /**
-    * Get all recurring series for a specific user
-    *
-    * @param userId - The user's internal ID
-    * @returns Array of recurring series
-    *
-    * @example
-    * const series = await RecurringService.getSeriesByUser(userId);
-    */
-  static async getSeriesByUser(
-    userId: string
-  ): Promise<RecurringTransactionSeries[]> {
+   * Get all recurring series for a specific user
+   *
+   * @param userId - The user's internal ID
+   * @returns Array of recurring series
+   *
+   * @example
+   * const series = await RecurringService.getSeriesByUser(userId);
+   */
+  static async getSeriesByUser(userId: string): Promise<RecurringTransactionSeries[]> {
     if (!userId || userId.trim() === '') {
       throw new Error('User ID is required');
     }
@@ -143,9 +143,7 @@ export class RecurringService {
    * @example
    * const series = await RecurringService.getSeriesByGroup(groupId);
    */
-  static async getSeriesByGroup(
-    groupId: string
-  ): Promise<RecurringTransactionSeries[]> {
+  static async getSeriesByGroup(groupId: string): Promise<RecurringTransactionSeries[]> {
     if (!groupId || groupId.trim() === '') {
       throw new Error('Group ID is required');
     }
@@ -182,9 +180,7 @@ export class RecurringService {
    * @example
    * const series = await RecurringService.getSeriesById(seriesId);
    */
-  static async getSeriesById(
-    seriesId: string
-  ): Promise<RecurringTransactionSeries> {
+  static async getSeriesById(seriesId: string): Promise<RecurringTransactionSeries> {
     if (!seriesId || seriesId.trim() === '') {
       throw new Error('Series ID is required');
     }
@@ -213,9 +209,7 @@ export class RecurringService {
    * @param userId - The user's internal ID
    * @returns Array of active recurring series
    */
-  static async getActiveSeriesByUser(
-    userId: string
-  ): Promise<RecurringTransactionSeries[]> {
+  static async getActiveSeriesByUser(userId: string): Promise<RecurringTransactionSeries[]> {
     if (!userId || userId.trim() === '') {
       throw new Error('User ID is required');
     }
@@ -230,24 +224,27 @@ export class RecurringService {
    */
   static async createSeries(data: RecurringInsert): Promise<RecurringTransactionSeries> {
     const series = await this.createDb(data);
-    
+
     // Cache invalidation using shared utility
     invalidateRecurringCaches({
       userIds: data.user_ids && Array.isArray(data.user_ids) ? data.user_ids : undefined,
     });
-    
+
     return serialize(series) as unknown as RecurringTransactionSeries;
   }
 
   /**
    * Update a recurring series
    */
-  static async updateSeries(id: string, data: RecurringUpdate): Promise<RecurringTransactionSeries> {
+  static async updateSeries(
+    id: string,
+    data: RecurringUpdate
+  ): Promise<RecurringTransactionSeries> {
     const series = await this.updateDb(id, data);
-    
+
     // Cache invalidation using shared utility
     invalidateRecurringCaches({ seriesId: id });
-    
+
     return serialize(series) as unknown as RecurringTransactionSeries;
   }
 
@@ -257,13 +254,11 @@ export class RecurringService {
   static async deleteSeries(id: string): Promise<void> {
     const series = await this.getByIdDb(id);
     await this.deleteDb(id);
-    
+
     // Cache invalidation using shared utility
     invalidateRecurringCaches({
       seriesId: id,
-      userIds: series?.user_ids && Array.isArray(series.user_ids) 
-        ? series.user_ids
-        : undefined,
+      userIds: series?.user_ids && Array.isArray(series.user_ids) ? series.user_ids : undefined,
     });
   }
 }

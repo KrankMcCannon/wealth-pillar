@@ -5,18 +5,9 @@ config();
 const BASE_URL = 'https://api.twelvedata.com';
 const DEFAULT_BATCH_SIZE = 1000;
 const MAX_SYMBOL_LENGTH = 10;
-const US_COUNTRY_NAMES = new Set([
-  'united states',
-  'united states of america',
-  'usa',
-  'us',
-]);
+const US_COUNTRY_NAMES = new Set(['united states', 'united states of america', 'usa', 'us']);
 
-const {
-  NEXT_PUBLIC_SUPABASE_URL,
-  SUPABASE_SERVICE_ROLE_KEY,
-  TWELVE_DATA_API_KEY,
-} = process.env;
+const { NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, TWELVE_DATA_API_KEY } = process.env;
 
 if (!NEXT_PUBLIC_SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
   throw new Error('Missing Supabase env: NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY');
@@ -71,7 +62,10 @@ const parseArgs = () => {
   args.forEach((arg) => {
     if (arg.startsWith('--assets=')) {
       const raw = arg.split('=')[1] || '';
-      options.assets = raw.split(',').map(s => s.trim()).filter(Boolean);
+      options.assets = raw
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean);
     } else if (arg.startsWith('--batch-size=')) {
       options.batchSize = Number(arg.split('=')[1]) || DEFAULT_BATCH_SIZE;
     } else if (arg === '--dry-run') {
@@ -166,7 +160,10 @@ const TYPE_PRIORITY = {
   crypto: 4,
 };
 
-const normalizeSymbol = (value) => String(value || '').toUpperCase().trim();
+const normalizeSymbol = (value) =>
+  String(value || '')
+    .toUpperCase()
+    .trim();
 
 const chunk = (items, size) => {
   const batches = [];
@@ -304,7 +301,10 @@ const main = async () => {
   }
 
   if (counters.skippedTooLong > 0) {
-    log(`[SKIP] ${counters.skippedTooLong} rows skipped (symbol length > ${MAX_SYMBOL_LENGTH})`, options);
+    log(
+      `[SKIP] ${counters.skippedTooLong} rows skipped (symbol length > ${MAX_SYMBOL_LENGTH})`,
+      options
+    );
   }
 
   await upsertRows(deduped, options.batchSize, options);

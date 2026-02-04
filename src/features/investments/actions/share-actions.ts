@@ -133,7 +133,9 @@ export async function ensureMarketDataAction(symbol: string): Promise<ServiceRes
 /**
  * Get a single share by symbol
  */
-export async function getShareBySymbolAction(symbol: string): Promise<ServiceResult<AvailableShare | null>> {
+export async function getShareBySymbolAction(
+  symbol: string
+): Promise<ServiceResult<AvailableShare | null>> {
   try {
     const share = await AvailableSharesService.getShareBySymbol(symbol);
     return { data: share, error: null };
@@ -189,7 +191,7 @@ export async function fetchAndSaveNewShareAction(
     console.error('[ShareActions] Error fetching and saving share:', error);
     return {
       data: null,
-      error: error instanceof Error ? error.message : 'Failed to fetch share'
+      error: error instanceof Error ? error.message : 'Failed to fetch share',
     };
   }
 }

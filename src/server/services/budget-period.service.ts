@@ -25,10 +25,7 @@ export class BudgetPeriodService {
    * Convert BudgetPeriodJSON to BudgetPeriod
    * @private
    */
-  private static jsonToBudgetPeriod(
-    json: BudgetPeriodJSON,
-    userId: string
-  ): BudgetPeriod {
+  private static jsonToBudgetPeriod(json: BudgetPeriodJSON, userId: string): BudgetPeriod {
     return {
       id: json.id,
       user_id: userId,
@@ -55,16 +52,12 @@ export class BudgetPeriodService {
         const user = await UserService.getUserById(userId);
 
         if (!user) {
-          throw new Error("User not found");
+          throw new Error('User not found');
         }
 
-        const periods = (user.budget_periods as unknown as BudgetPeriodJSON[] || [])
+        const periods = ((user.budget_periods as unknown as BudgetPeriodJSON[]) || [])
           .map((p) => this.jsonToBudgetPeriod(p, userId))
-          .sort(
-            (a, b) =>
-              new Date(b.start_date).getTime() -
-              new Date(a.start_date).getTime()
-          );
+          .sort((a, b) => new Date(b.start_date).getTime() - new Date(a.start_date).getTime());
 
         return periods;
       },
@@ -73,7 +66,7 @@ export class BudgetPeriodService {
     );
 
     const periods = await getCachedPeriods();
-    return (periods || []);
+    return periods || [];
   }
 
   /**
@@ -90,7 +83,7 @@ export class BudgetPeriodService {
           return null;
         }
 
-        const periods = (user.budget_periods as unknown as BudgetPeriodJSON[] || []);
+        const periods = (user.budget_periods as unknown as BudgetPeriodJSON[]) || [];
         const activePeriod = periods.find((p) => p.is_active);
 
         return activePeriod ? this.jsonToBudgetPeriod(activePeriod, userId) : null;
@@ -107,7 +100,9 @@ export class BudgetPeriodService {
    * Get active budget periods for multiple users
    * returns map of userId -> activePeriod
    */
-  static async getActivePeriodForUsers(userIds: string[]): Promise<Record<string, BudgetPeriod | null>> {
+  static async getActivePeriodForUsers(
+    userIds: string[]
+  ): Promise<Record<string, BudgetPeriod | null>> {
     const results = await Promise.all(
       userIds.map(async (id) => {
         const period = await this.getActivePeriod(id);
@@ -115,10 +110,13 @@ export class BudgetPeriodService {
       })
     );
 
-    return results.reduce((acc, curr) => {
-      acc[curr.id] = curr.period;
-      return acc;
-    }, {} as Record<string, BudgetPeriod | null>);
+    return results.reduce(
+      (acc, curr) => {
+        acc[curr.id] = curr.period;
+        return acc;
+      },
+      {} as Record<string, BudgetPeriod | null>
+    );
   }
 
   /**
@@ -178,8 +176,7 @@ export class BudgetPeriodService {
       // Track category spending (only for expenses and transfers)
       budgetTransactions.forEach((t) => {
         if (t.type === 'expense' || t.type === 'transfer') {
-          category_spending[t.category] =
-            (category_spending[t.category] || 0) + t.amount;
+          category_spending[t.category] = (category_spending[t.category] || 0) + t.amount;
         }
       });
     });
@@ -197,10 +194,7 @@ export class BudgetPeriodService {
    * Create a new budget period (start period)
    * Automatically deactivates any existing active period for the user
    */
-  static async createPeriod(
-    userId: string,
-    startDate: string | Date
-  ): Promise<BudgetPeriod> {
+  static async createPeriod(userId: string, startDate: string | Date): Promise<BudgetPeriod> {
     // 1. Validation
     const startDt = this.validateNewPeriod(userId, startDate);
 
@@ -208,13 +202,13 @@ export class BudgetPeriodService {
     const user = await UserService.getUserById(userId);
     if (!user) throw new Error('User not found');
 
-    const periods = (user.budget_periods as unknown as BudgetPeriodJSON[] || []);
+    const periods = (user.budget_periods as unknown as BudgetPeriodJSON[]) || [];
     // 3. Prepare Period List (Deactivate old, add new)
     const { updatedPeriods, newPeriod } = this.prepareNewPeriodList(periods, startDt);
 
     // 4. Persist
     await UserService.update(userId, {
-      budget_periods: updatedPeriods as unknown as Json
+      budget_periods: updatedPeriods as unknown as Json,
     });
 
     // 5. Invalidate Cache
@@ -230,7 +224,7 @@ export class BudgetPeriodService {
   static async closePeriod(
     userId: string,
     periodId: string,
-    endDate: string | Date,
+    endDate: string | Date
   ): Promise<BudgetPeriod | null> {
     // 1. Validation
     const endDt = toDateTime(endDate);
@@ -241,7 +235,7 @@ export class BudgetPeriodService {
     const user = await UserService.getUserById(userId);
     if (!user) throw new Error('User not found');
 
-    const periods = (user.budget_periods as unknown as BudgetPeriodJSON[] || []);
+    const periods = (user.budget_periods as unknown as BudgetPeriodJSON[]) || [];
 
     // 3. Validate Period State
     this.validatePeriodClosure(periods, periodId, endDt);
@@ -251,7 +245,7 @@ export class BudgetPeriodService {
 
     // 5. Persist
     await UserService.update(userId, {
-      budget_periods: updatedPeriods as unknown as Json
+      budget_periods: updatedPeriods as unknown as Json,
     });
 
     // 6. Invalidate Cache
@@ -261,9 +255,7 @@ export class BudgetPeriodService {
     await this.autoCreateNextPeriod(userId, endDt);
 
     const closedPeriod = updatedPeriods.find((p) => p.id === periodId);
-    return closedPeriod
-      ? this.jsonToBudgetPeriod(closedPeriod, userId)
-      : null;
+    return closedPeriod ? this.jsonToBudgetPeriod(closedPeriod, userId) : null;
   }
 
   /**
@@ -276,7 +268,7 @@ export class BudgetPeriodService {
     const user = await UserService.getUserById(userId);
     if (!user) throw new Error('User not found');
 
-    const periods = (user.budget_periods as unknown as BudgetPeriodJSON[] || []);
+    const periods = (user.budget_periods as unknown as BudgetPeriodJSON[]) || [];
 
     // 2. Filter List
     const newPeriods = periods.filter((p) => p.id !== periodId);
@@ -292,7 +284,7 @@ export class BudgetPeriodService {
 
     // 3. Persist
     await UserService.update(user.id, {
-      budget_periods: newPeriods as unknown as Json
+      budget_periods: newPeriods as unknown as Json,
     });
 
     // 4. Invalidate Cache
@@ -318,7 +310,7 @@ export class BudgetPeriodService {
   private static prepareNewPeriodList(
     currentPeriods: BudgetPeriodJSON[],
     startDt: DateTime
-  ): { updatedPeriods: BudgetPeriodJSON[], newPeriod: BudgetPeriodJSON } {
+  ): { updatedPeriods: BudgetPeriodJSON[]; newPeriod: BudgetPeriodJSON } {
     const dayBeforeStart = startDt.minus({ days: 1 }).toISODate() as string;
 
     // Deactivate all existing periods and set end date for the active one if missing
@@ -326,7 +318,7 @@ export class BudgetPeriodService {
     const updatedPeriods = currentPeriods.map((p) => ({
       ...p,
       is_active: false,
-      end_date: (p.is_active && !p.end_date) ? dayBeforeStart : p.end_date
+      end_date: p.is_active && !p.end_date ? dayBeforeStart : p.end_date,
     }));
 
     // Create new period object
@@ -368,11 +360,11 @@ export class BudgetPeriodService {
     return periods.map((p) =>
       p.id === periodId
         ? {
-          ...p,
-          end_date: endDt.toISODate() as string,
-          is_active: false,
-          updated_at: todayDateString(),
-        }
+            ...p,
+            end_date: endDt.toISODate() as string,
+            is_active: false,
+            updated_at: todayDateString(),
+          }
         : p
     );
   }
@@ -392,10 +384,7 @@ export class BudgetPeriodService {
       try {
         await this.createPeriod(userId, nextStartDateStr);
       } catch (createError) {
-        console.error(
-          '[BudgetPeriodService] Failed to auto-create next period:',
-          createError
-        );
+        console.error('[BudgetPeriodService] Failed to auto-create next period:', createError);
         // We do not re-throw as this is a side-effect convenience
       }
     }

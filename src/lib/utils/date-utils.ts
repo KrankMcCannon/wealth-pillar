@@ -1,6 +1,6 @@
 /**
  * Date Utilities - Powered by Luxon
- * 
+ *
  * Centralized date handling for consistent formatting and manipulation
  * throughout the application. All date operations should use these utilities
  * instead of native Date object.
@@ -211,11 +211,7 @@ export function formatDateWithWeekday(date: DateInput, locale = 'it-IT'): string
 /**
  * Format date range for display
  */
-export function formatDateRange(
-  start: DateInput,
-  end: DateInput,
-  locale = 'it-IT'
-): string {
+export function formatDateRange(start: DateInput, end: DateInput, locale = 'it-IT'): string {
   const startDt = toDateTime(start);
   const endDt = toDateTime(end);
 
@@ -378,10 +374,7 @@ export function getDaysInMonth(year: number, month: number): number {
 /**
  * Get the next occurrence of a specific day in the current or next month
  */
-export function getNextOccurrenceOfDay(
-  dueDay: number,
-  referenceDate: DateInput = null
-): DateTime {
+export function getNextOccurrenceOfDay(dueDay: number, referenceDate: DateInput = null): DateTime {
   const ref = toDateTime(referenceDate) ?? DateTime.now();
   const currentDay = ref.day;
 

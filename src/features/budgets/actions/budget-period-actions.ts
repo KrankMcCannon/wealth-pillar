@@ -60,8 +60,7 @@ export async function startPeriodAction(
   } catch (error) {
     return {
       data: null,
-      error:
-        error instanceof Error ? error.message : 'Failed to start budget period',
+      error: error instanceof Error ? error.message : 'Failed to start budget period',
     };
   }
 }
@@ -76,7 +75,7 @@ export async function startPeriodAction(
 export async function closePeriodAction(
   userId: string,
   periodId: string,
-  endDate: string,
+  endDate: string
 ): Promise<ServiceResult<BudgetPeriod>> {
   try {
     // Authentication check (cached per request)
@@ -105,11 +104,7 @@ export async function closePeriodAction(
     }
 
     // Close period with calculations or pre-calculated totals
-    const result = await BudgetPeriodService.closePeriod(
-      userId,
-      periodId,
-      endDate,
-    );
+    const result = await BudgetPeriodService.closePeriod(userId, periodId, endDate);
 
     if (result) {
       // Revalidate pages that display budget periods
@@ -118,13 +113,11 @@ export async function closePeriodAction(
       return { data: result, error: null };
     }
 
-    return { data: null, error: "Failed to close period" };
-
+    return { data: null, error: 'Failed to close period' };
   } catch (error) {
     return {
       data: null,
-      error:
-        error instanceof Error ? error.message : 'Failed to close budget period',
+      error: error instanceof Error ? error.message : 'Failed to close budget period',
     };
   }
 }
@@ -174,14 +167,10 @@ export async function deletePeriodAction(
     revalidatePath('/reports');
 
     return { data: { id: periodId }, error: null };
-
   } catch (error) {
     return {
       data: null,
-      error:
-        error instanceof Error
-          ? error.message
-          : 'Failed to delete budget period',
+      error: error instanceof Error ? error.message : 'Failed to delete budget period',
     };
   }
 }
@@ -192,9 +181,7 @@ export async function deletePeriodAction(
  *
  * Permissions: members can only view their own periods
  */
-export async function getUserPeriodsAction(
-  userId: string
-): Promise<ServiceResult<BudgetPeriod[]>> {
+export async function getUserPeriodsAction(userId: string): Promise<ServiceResult<BudgetPeriod[]>> {
   try {
     // Authentication check (cached per request)
     const currentUser = await getCurrentUser();
@@ -227,10 +214,7 @@ export async function getUserPeriodsAction(
   } catch (error) {
     return {
       data: null,
-      error:
-        error instanceof Error
-          ? error.message
-          : 'Failed to fetch budget periods',
+      error: error instanceof Error ? error.message : 'Failed to fetch budget periods',
     };
   }
 }
@@ -258,8 +242,7 @@ export async function getActivePeriodAction(
     if (isMember(currentUser as unknown as User) && userId !== currentUser.id) {
       return {
         data: null,
-        error:
-          'Non hai i permessi per visualizzare il periodo attivo di altri utenti',
+        error: 'Non hai i permessi per visualizzare il periodo attivo di altri utenti',
       };
     }
 
@@ -275,12 +258,12 @@ export async function getActivePeriodAction(
 
     return {
       data: period,
-      error: null
+      error: null,
     };
   } catch (error) {
     return {
       data: null,
-      error: error instanceof Error ? error.message : 'Failed to fetch active period'
+      error: error instanceof Error ? error.message : 'Failed to fetch active period',
     };
   }
 }
@@ -294,12 +277,14 @@ export async function getPeriodPreviewAction(
   userId: string,
   startDate: string,
   endDate: string
-): Promise<ServiceResult<{
-  totalSpent: number;
-  totalSaved: number;
-  totalBudget: number;
-  categorySpending: Record<string, number>;
-}>> {
+): Promise<
+  ServiceResult<{
+    totalSpent: number;
+    totalSaved: number;
+    totalBudget: number;
+    categorySpending: Record<string, number>;
+  }>
+> {
   try {
     // Authentication check (cached per request)
     const currentUser = await getCurrentUser();
@@ -319,7 +304,7 @@ export async function getPeriodPreviewAction(
     // We fetch all transactions for the user to ensure accurate calculations
     const [transactions, budgets] = await Promise.all([
       TransactionService.getTransactionsByUser(userId),
-      BudgetService.getBudgetsByUser(userId)
+      BudgetService.getBudgetsByUser(userId),
     ]);
 
     // Instantiate a temporary period object for calculation
@@ -330,7 +315,7 @@ export async function getPeriodPreviewAction(
       end_date: endDate,
       is_active: true,
       created_at: '',
-      updated_at: ''
+      updated_at: '',
     };
 
     // Use BudgetPeriodService.calculatePeriodTotals
@@ -346,24 +331,21 @@ export async function getPeriodPreviewAction(
     );
 
     // Calculate total budget amount
-    const totalBudget = budgets
-      .filter(b => b.amount > 0)
-      .reduce((sum, b) => sum + b.amount, 0);
+    const totalBudget = budgets.filter((b) => b.amount > 0).reduce((sum, b) => sum + b.amount, 0);
 
     return {
       data: {
         totalSpent: totals.total_spent,
         totalSaved: totals.total_saved,
         totalBudget,
-        categorySpending: totals.category_spending
+        categorySpending: totals.category_spending,
       },
-      error: null
+      error: null,
     };
-
   } catch (error) {
     return {
       data: null,
-      error: error instanceof Error ? error.message : 'Failed to calculate preview'
+      error: error instanceof Error ? error.message : 'Failed to calculate preview',
     };
   }
 }

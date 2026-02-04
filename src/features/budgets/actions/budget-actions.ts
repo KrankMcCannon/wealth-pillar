@@ -16,9 +16,7 @@ type ServiceResult<T> = {
  * Server Action: Create Budget
  * Wrapper for BudgetService.createBudget with additional validation
  */
-export async function createBudgetAction(
-  input: CreateBudgetInput
-): Promise<ServiceResult<Budget>> {
+export async function createBudgetAction(input: CreateBudgetInput): Promise<ServiceResult<Budget>> {
   try {
     // Authentication check (cached per request)
     const currentUser = await getCurrentUser();
@@ -30,7 +28,7 @@ export async function createBudgetAction(
     if (isMember(currentUser as unknown as User) && input.user_id !== currentUser.id) {
       return {
         data: null,
-        error: 'Non hai i permessi per creare budget per altri utenti'
+        error: 'Non hai i permessi per creare budget per altri utenti',
       };
     }
 
@@ -38,7 +36,7 @@ export async function createBudgetAction(
     if (!input.user_id) {
       return {
         data: null,
-        error: 'L\'utente è obbligatorio'
+        error: "L'utente è obbligatorio",
       };
     }
 
@@ -46,7 +44,7 @@ export async function createBudgetAction(
     if (!canAccessUserData(currentUser as unknown as User, input.user_id)) {
       return {
         data: null,
-        error: 'Non hai i permessi per accedere ai dati di questo utente'
+        error: 'Non hai i permessi per accedere ai dati di questo utente',
       };
     }
 
@@ -97,7 +95,7 @@ export async function updateBudgetAction(
     if (!existingBudget.user_id) {
       return {
         data: null,
-        error: 'Il budget non ha un utente assegnato'
+        error: 'Il budget non ha un utente assegnato',
       };
     }
 
@@ -105,7 +103,7 @@ export async function updateBudgetAction(
     if (!canAccessUserData(currentUser as unknown as User, existingBudget.user_id)) {
       return {
         data: null,
-        error: 'Non hai i permessi per modificare questo budget'
+        error: 'Non hai i permessi per modificare questo budget',
       };
     }
 
@@ -114,14 +112,14 @@ export async function updateBudgetAction(
       if (isMember(currentUser as unknown as User)) {
         return {
           data: null,
-          error: 'Non puoi assegnare il budget a un altro utente'
+          error: 'Non puoi assegnare il budget a un altro utente',
         };
       }
 
       if (!canAccessUserData(currentUser as unknown as User, input.user_id)) {
         return {
           data: null,
-          error: 'Non hai i permessi per assegnare questo budget a questo utente'
+          error: 'Non hai i permessi per assegnare questo budget a questo utente',
         };
       }
     }
@@ -148,9 +146,7 @@ export async function updateBudgetAction(
 /**
  * Server Action: Delete Budget
  */
-export async function deleteBudgetAction(
-  id: string
-): Promise<ServiceResult<{ id: string }>> {
+export async function deleteBudgetAction(id: string): Promise<ServiceResult<{ id: string }>> {
   try {
     // Authentication check (cached per request)
     const currentUser = await getCurrentUser();
@@ -165,7 +161,7 @@ export async function deleteBudgetAction(
     if (!existingBudget.user_id) {
       return {
         data: null,
-        error: 'Il budget non ha un utente assegnato'
+        error: 'Il budget non ha un utente assegnato',
       };
     }
 
@@ -173,7 +169,7 @@ export async function deleteBudgetAction(
     if (!canAccessUserData(currentUser as unknown as User, existingBudget.user_id)) {
       return {
         data: null,
-        error: 'Non hai i permessi per eliminare questo budget'
+        error: 'Non hai i permessi per eliminare questo budget',
       };
     }
 

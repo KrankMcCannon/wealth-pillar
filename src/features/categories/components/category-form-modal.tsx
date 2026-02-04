@@ -1,36 +1,31 @@
-"use client";
+'use client';
 
-import { useEffect, useMemo } from "react";
-import { useForm, useWatch } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { Category, cn } from "@/lib";
-import { getTempId } from "@/lib/utils/temp-id";
-import { FinanceLogicService } from "@/server/services/finance-logic.service";
-import { categoryStyles, getCategoryColorStyle } from "../theme/category-styles";
-import { createCategoryAction, updateCategoryAction } from "@/features/categories";
-import { ModalWrapper, ModalBody, ModalFooter, ModalSection } from "@/components/ui/modal-wrapper";
-import { FormActions, FormField } from "@/components/form";
-import { IconPicker, Input } from "@/components/ui";
-import { useRequiredGroupId } from "@/hooks";
-import { useCategories, useReferenceDataStore } from "@/stores/reference-data-store";
+import { useEffect, useMemo } from 'react';
+import { useForm, useWatch } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { Category, cn } from '@/lib';
+import { getTempId } from '@/lib/utils/temp-id';
+import { FinanceLogicService } from '@/server/services/finance-logic.service';
+import { categoryStyles, getCategoryColorStyle } from '../theme/category-styles';
+import { createCategoryAction, updateCategoryAction } from '@/features/categories';
+import { ModalWrapper, ModalBody, ModalFooter, ModalSection } from '@/components/ui/modal-wrapper';
+import { FormActions, FormField } from '@/components/form';
+import { IconPicker, Input } from '@/components/ui';
+import { useRequiredGroupId } from '@/hooks';
+import { useCategories, useReferenceDataStore } from '@/stores/reference-data-store';
 
 // Zod schema for category validation
 const categorySchema = z.object({
-  label: z.string()
-    .min(1, "L'etichetta è obbligatoria")
-    .trim(),
-  key: z.string()
-    .min(1, "La chiave è obbligatoria")
-    .trim(),
-  icon: z.string()
-    .min(1, "L'icona è obbligatoria")
-    .trim(),
-  color: z.string()
-    .min(1, "Il colore è obbligatorio")
+  label: z.string().min(1, "L'etichetta è obbligatoria").trim(),
+  key: z.string().min(1, 'La chiave è obbligatoria').trim(),
+  icon: z.string().min(1, "L'icona è obbligatoria").trim(),
+  color: z
+    .string()
+    .min(1, 'Il colore è obbligatorio')
     .trim()
     .refine((val) => FinanceLogicService.isValidColor(val), {
-      message: "Formato colore non valido. Usa il formato esadecimale (es. #FF0000)"
+      message: 'Formato colore non valido. Usa il formato esadecimale (es. #FF0000)',
     }),
 });
 
@@ -42,11 +37,7 @@ interface CategoryFormModalProps {
   editId?: string | null;
 }
 
-function CategoryFormModal({
-  isOpen,
-  onClose,
-  editId,
-}: Readonly<CategoryFormModalProps>) {
+function CategoryFormModal({ isOpen, onClose, editId }: Readonly<CategoryFormModalProps>) {
   // Read from store instead of props
   const groupId = useRequiredGroupId();
 
@@ -57,8 +48,10 @@ function CategoryFormModal({
   const removeCategory = useReferenceDataStore((state) => state.removeCategory);
 
   const isEditMode = !!editId;
-  const title = isEditMode ? "Modifica Categoria" : "Nuova Categoria";
-  const description = isEditMode ? "Aggiorna i dettagli della categoria" : "Crea una nuova categoria";
+  const title = isEditMode ? 'Modifica Categoria' : 'Nuova Categoria';
+  const description = isEditMode
+    ? 'Aggiorna i dettagli della categoria'
+    : 'Crea una nuova categoria';
 
   // React Hook Form setup
   const {
@@ -68,20 +61,20 @@ function CategoryFormModal({
     setValue,
     reset,
     setError,
-    formState: { errors, isSubmitting }
+    formState: { errors, isSubmitting },
   } = useForm<CategoryFormData>({
     resolver: zodResolver(categorySchema),
     defaultValues: {
-      label: "",
-      key: "",
-      icon: "",
+      label: '',
+      key: '',
+      icon: '',
       color: FinanceLogicService.getDefaultColor(),
-    }
+    },
   });
 
-  const watchedLabel = useWatch({ control, name: "label" });
-  const watchedColor = useWatch({ control, name: "color" });
-  const watchedIcon = useWatch({ control, name: "icon" });
+  const watchedLabel = useWatch({ control, name: 'label' });
+  const watchedColor = useWatch({ control, name: 'color' });
+  const watchedIcon = useWatch({ control, name: 'icon' });
 
   // Get color palette from CategoryService
   const colorPalette = useMemo(() => FinanceLogicService.getColorPalette(), []);
@@ -103,9 +96,9 @@ function CategoryFormModal({
     } else if (isOpen && !isEditMode) {
       // Reset to defaults for create mode
       reset({
-        label: "",
-        key: "",
-        icon: "",
+        label: '',
+        key: '',
+        icon: '',
         color: FinanceLogicService.getDefaultColor(),
       });
     }
@@ -117,9 +110,9 @@ function CategoryFormModal({
       const generatedKey = watchedLabel
         .toLowerCase()
         .trim()
-        .replaceAll(/[^a-z0-9]+/g, "_")
-        .replaceAll(/(^_+)|(_+$)/g, "");
-      setValue("key", generatedKey);
+        .replaceAll(/[^a-z0-9]+/g, '_')
+        .replaceAll(/(^_+)|(_+$)/g, '');
+      setValue('key', generatedKey);
     }
   }, [watchedLabel, isEditMode, setValue]);
 
@@ -134,7 +127,7 @@ function CategoryFormModal({
     // 1. Store original category for revert
     const originalCategory = storeCategories.find((cat) => cat.id === id);
     if (!originalCategory) {
-      throw new Error("Categoria non trovata");
+      throw new Error('Categoria non trovata');
     }
 
     // 2. Update in store immediately (optimistic)
@@ -158,7 +151,7 @@ function CategoryFormModal({
   // Handle create category flow
   const handleCreate = async (data: CategoryFormData) => {
     // 1. Create temporary ID
-    const tempId = getTempId("temp-category");
+    const tempId = getTempId('temp-category');
     const now = new Date().toISOString();
     const optimisticCategory: Category = {
       id: tempId,
@@ -189,7 +182,7 @@ function CategoryFormModal({
     if (result.error) {
       // 5. Remove optimistic category on error
       removeCategory(tempId);
-      console.error("Failed to create category:", result.error);
+      console.error('Failed to create category:', result.error);
       return;
     }
 
@@ -211,8 +204,8 @@ function CategoryFormModal({
         // onClose is called inside handleCreate for immediate feedback
       }
     } catch (error) {
-      setError("root", {
-        message: error instanceof Error ? error.message : "Errore sconosciuto"
+      setError('root', {
+        message: error instanceof Error ? error.message : 'Errore sconosciuto',
       });
     }
   };
@@ -226,31 +219,25 @@ function CategoryFormModal({
       maxWidth="md"
       repositionInputs={false}
     >
-      <form onSubmit={handleSubmit(onSubmit)} className={cn(categoryStyles.formModal.form, "flex flex-col h-full")}>
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className={cn(categoryStyles.formModal.form, 'flex flex-col h-full')}
+      >
         <ModalBody>
           {/* Submit Error Display */}
           {errors.root && (
-            <div className={categoryStyles.formModal.error}>
-              {errors.root.message}
-            </div>
+            <div className={categoryStyles.formModal.error}>{errors.root.message}</div>
           )}
 
           <ModalSection>
             {/* Label */}
             <FormField label="Etichetta" required error={errors.label?.message}>
-              <Input
-                {...register("label")}
-                placeholder="es. Alimentari"
-                disabled={isSubmitting}
-              />
+              <Input {...register('label')} placeholder="es. Alimentari" disabled={isSubmitting} />
             </FormField>
 
             {/* Icon */}
             <FormField label="Icona" required error={errors.icon?.message}>
-              <IconPicker
-                value={watchedIcon}
-                onChange={(value) => setValue("icon", value)}
-              />
+              <IconPicker value={watchedIcon} onChange={(value) => setValue('icon', value)} />
             </FormField>
 
             {/* Color */}
@@ -262,7 +249,7 @@ function CategoryFormModal({
                     <button
                       key={color.value}
                       type="button"
-                      onClick={() => setValue("color", color.value)}
+                      onClick={() => setValue('color', color.value)}
                       disabled={isSubmitting}
                       className={cn(
                         categoryStyles.formModal.colorButton,
@@ -293,7 +280,7 @@ function CategoryFormModal({
 
                 {/* Custom color input */}
                 <Input
-                  {...register("color")}
+                  {...register('color')}
                   placeholder={FinanceLogicService.getDefaultColor()}
                   disabled={isSubmitting}
                 />
@@ -305,7 +292,7 @@ function CategoryFormModal({
         <ModalFooter>
           <FormActions
             submitType="submit"
-            submitLabel={isEditMode ? "Salva" : "Crea Categoria"}
+            submitLabel={isEditMode ? 'Salva' : 'Crea Categoria'}
             onCancel={onClose}
             isSubmitting={isSubmitting}
             className="w-full sm:w-auto"

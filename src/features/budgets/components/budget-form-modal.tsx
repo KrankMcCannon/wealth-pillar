@@ -1,35 +1,39 @@
-"use client";
-import { cn } from "@/lib/utils";
-import { useEffect, useMemo } from "react";
-import { useForm, useWatch } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import type { CheckedState } from "@radix-ui/react-checkbox";
-import { Budget, BudgetType } from "@/lib/types";
-import { getTempId } from "@/lib/utils/temp-id";
-import { createBudgetAction, updateBudgetAction } from "@/features/budgets";
-import { ModalWrapper, ModalBody, ModalFooter, ModalSection } from "@/components/ui/modal-wrapper";
-import { FormActions, FormField, FormSelect } from "@/components/form";
-import { AmountField, Checkbox, Input, UserField } from "@/components/ui";
-import { usePermissions, useRequiredCurrentUser, useRequiredGroupUsers, useRequiredGroupId } from "@/hooks";
-import { useCategories } from "@/stores/reference-data-store";
-import { useUserFilterStore } from "@/stores/user-filter-store";
-import { usePageDataStore } from "@/stores/page-data-store";
-import { budgetStyles, getBudgetCategoryColorStyle } from "@/styles/system";
+'use client';
+import { cn } from '@/lib/utils';
+import { useEffect, useMemo } from 'react';
+import { useForm, useWatch } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import type { CheckedState } from '@radix-ui/react-checkbox';
+import { Budget, BudgetType } from '@/lib/types';
+import { getTempId } from '@/lib/utils/temp-id';
+import { createBudgetAction, updateBudgetAction } from '@/features/budgets';
+import { ModalWrapper, ModalBody, ModalFooter, ModalSection } from '@/components/ui/modal-wrapper';
+import { FormActions, FormField, FormSelect } from '@/components/form';
+import { AmountField, Checkbox, Input, UserField } from '@/components/ui';
+import {
+  usePermissions,
+  useRequiredCurrentUser,
+  useRequiredGroupUsers,
+  useRequiredGroupId,
+} from '@/hooks';
+import { useCategories } from '@/stores/reference-data-store';
+import { useUserFilterStore } from '@/stores/user-filter-store';
+import { usePageDataStore } from '@/stores/page-data-store';
+import { budgetStyles, getBudgetCategoryColorStyle } from '@/styles/system';
 
 // Zod schema for budget validation
 const budgetSchema = z.object({
-  description: z.string()
-    .min(2, "La descrizione deve contenere almeno 2 caratteri")
-    .trim(),
-  amount: z.string()
+  description: z.string().min(2, 'La descrizione deve contenere almeno 2 caratteri').trim(),
+  amount: z
+    .string()
     .min(1, "L'importo è obbligatorio")
     .refine((val) => !Number.isNaN(Number.parseFloat(val)) && Number.parseFloat(val) > 0, {
-      message: "L'importo deve essere maggiore di zero"
+      message: "L'importo deve essere maggiore di zero",
     }),
-  type: z.enum(["monthly", "annually"]),
+  type: z.enum(['monthly', 'annually']),
   icon: z.string().nullable().optional(),
-  categories: z.array(z.string()).min(1, "Seleziona almeno una categoria"),
+  categories: z.array(z.string()).min(1, 'Seleziona almeno una categoria'),
   user_id: z.string().min(1, "L'utente è obbligatorio"),
   categorySearch: z.string().optional(),
 });
@@ -42,17 +46,13 @@ interface BudgetFormModalProps {
   editId?: string | null;
 }
 
-function BudgetFormModal({
-  isOpen,
-  onClose,
-  editId,
-}: Readonly<BudgetFormModalProps>) {
+function BudgetFormModal({ isOpen, onClose, editId }: Readonly<BudgetFormModalProps>) {
   // Read from stores instead of props
   const currentUser = useRequiredCurrentUser();
   const groupUsers = useRequiredGroupUsers();
   const categories = useCategories();
   const groupId = useRequiredGroupId();
-  const selectedUserId = useUserFilterStore(state => state.selectedUserId);
+  const selectedUserId = useUserFilterStore((state) => state.selectedUserId);
 
   // Page data store actions for optimistic updates
   const storeBudgets = usePageDataStore((state) => state.budgets);
@@ -61,8 +61,8 @@ function BudgetFormModal({
   const removeBudget = usePageDataStore((state) => state.removeBudget);
 
   const isEditMode = !!editId;
-  const title = isEditMode ? "Modifica Budget" : "Nuovo Budget";
-  const description = isEditMode ? "Aggiorna i dettagli del budget" : "Crea un nuovo budget";
+  const title = isEditMode ? 'Modifica Budget' : 'Nuovo Budget';
+  const description = isEditMode ? 'Aggiorna i dettagli del budget' : 'Crea un nuovo budget';
 
   // Permission checks
   const { shouldDisableUserField, defaultFormUserId, userFieldHelperText } = usePermissions({
@@ -78,25 +78,25 @@ function BudgetFormModal({
     setValue,
     reset,
     setError,
-    formState: { errors, isSubmitting }
+    formState: { errors, isSubmitting },
   } = useForm<BudgetFormData>({
     resolver: zodResolver(budgetSchema),
     defaultValues: {
-      description: "",
-      amount: "",
-      type: "monthly",
+      description: '',
+      amount: '',
+      type: 'monthly',
       icon: null,
       categories: [],
       user_id: defaultFormUserId,
-      categorySearch: "",
-    }
+      categorySearch: '',
+    },
   });
 
-  const watchedType = useWatch({ control, name: "type" });
-  const watchedCategories = useWatch({ control, name: "categories" });
-  const watchedUserId = useWatch({ control, name: "user_id" });
-  const watchedAmount = useWatch({ control, name: "amount" });
-  const categorySearch = useWatch({ control, name: "categorySearch" }) || "";
+  const watchedType = useWatch({ control, name: 'type' });
+  const watchedCategories = useWatch({ control, name: 'categories' });
+  const watchedUserId = useWatch({ control, name: 'user_id' });
+  const watchedAmount = useWatch({ control, name: 'amount' });
+  const categorySearch = useWatch({ control, name: 'categorySearch' }) || '';
 
   // Convert categories to checkbox options
   const categoryOptions = useMemo(() => {
@@ -130,43 +130,46 @@ function BudgetFormModal({
           icon: budget.icon,
           categories: budget.categories,
           user_id: budget.user_id,
-          categorySearch: "",
+          categorySearch: '',
         });
       }
     } else if (isOpen && !isEditMode) {
       // Reset to defaults for create mode
       reset({
-        description: "",
-        amount: "",
-        type: "monthly",
+        description: '',
+        amount: '',
+        type: 'monthly',
         icon: null,
         categories: [],
         user_id: defaultFormUserId,
-        categorySearch: "",
+        categorySearch: '',
       });
     }
   }, [isOpen, isEditMode, editId, defaultFormUserId, reset, storeBudgets]);
 
   // Handle category toggle
   const handleCategoryToggle = (categoryId: string, checked: CheckedState) => {
-    const isChecked = checked === true || checked === "indeterminate";
+    const isChecked = checked === true || checked === 'indeterminate';
     const currentCategories = watchedCategories || [];
     const updatedCategories = isChecked
       ? Array.from(new Set([...currentCategories, categoryId]))
       : currentCategories.filter((id) => id !== categoryId);
 
-    setValue("categories", updatedCategories);
+    setValue('categories', updatedCategories);
   };
 
   // Select all categories
   const handleSelectAllCategories = () => {
     if (!categoryOptions.length) return;
-    setValue("categories", categoryOptions.map((option) => option.value));
+    setValue(
+      'categories',
+      categoryOptions.map((option) => option.value)
+    );
   };
 
   // Clear all categories
   const handleClearCategories = () => {
-    setValue("categories", []);
+    setValue('categories', []);
   };
 
   // Handle update budget flow
@@ -185,7 +188,7 @@ function BudgetFormModal({
     // 1. Store original budget for revert
     const originalBudget = storeBudgets.find((b) => b.id === id);
     if (!originalBudget) {
-      throw new Error("Budget non trovato");
+      throw new Error('Budget non trovato');
     }
 
     // 2. Update in store immediately (optimistic)
@@ -220,7 +223,7 @@ function BudgetFormModal({
     };
 
     // 1. Create temporary ID
-    const tempId = getTempId("temp-budget");
+    const tempId = getTempId('temp-budget');
     const now = new Date().toISOString();
     const optimisticBudget: Budget = {
       id: tempId,
@@ -241,7 +244,7 @@ function BudgetFormModal({
     if (result.error) {
       // 5. Remove optimistic budget on error
       removeBudget(tempId);
-      console.error("Failed to create budget:", result.error);
+      console.error('Failed to create budget:', result.error);
       return;
     }
 
@@ -263,8 +266,8 @@ function BudgetFormModal({
         // onClose is called inside handleCreate for immediate feedback
       }
     } catch (error) {
-      setError("root", {
-        message: error instanceof Error ? error.message : "Errore sconosciuto"
+      setError('root', {
+        message: error instanceof Error ? error.message : 'Errore sconosciuto',
       });
     }
   };
@@ -278,21 +281,20 @@ function BudgetFormModal({
       maxWidth="md"
       repositionInputs={false}
     >
-      <form onSubmit={handleSubmit(onSubmit)} className={cn(budgetStyles.formModal.form, "flex flex-col h-full")}>
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className={cn(budgetStyles.formModal.form, 'flex flex-col h-full')}
+      >
         <ModalBody className={budgetStyles.formModal.content}>
           {/* Submit Error Display */}
-          {errors.root && (
-            <div className={budgetStyles.formModal.error}>
-              {errors.root.message}
-            </div>
-          )}
+          {errors.root && <div className={budgetStyles.formModal.error}>{errors.root.message}</div>}
 
           <ModalSection className={budgetStyles.formModal.section}>
             <div className={budgetStyles.formModal.grid}>
               {/* User */}
               <UserField
                 value={watchedUserId}
-                onChange={(value) => setValue("user_id", value)}
+                onChange={(value) => setValue('user_id', value)}
                 error={errors.user_id?.message}
                 users={groupUsers}
                 label="Utente"
@@ -306,18 +308,18 @@ function BudgetFormModal({
               <FormField label="Tipo budget" required error={errors.type?.message}>
                 <FormSelect
                   value={watchedType}
-                  onValueChange={(value) => setValue("type", value as BudgetType)}
+                  onValueChange={(value) => setValue('type', value as BudgetType)}
                   options={[
-                    { value: "monthly", label: "Mensile" },
-                    { value: "annually", label: "Annuale" },
+                    { value: 'monthly', label: 'Mensile' },
+                    { value: 'annually', label: 'Annuale' },
                   ]}
                 />
               </FormField>
 
               {/* Amount */}
               <AmountField
-                value={Number.parseFloat(watchedAmount || "0")}
-                onChange={(value) => setValue("amount", value.toString())}
+                value={Number.parseFloat(watchedAmount || '0')}
+                onChange={(value) => setValue('amount', value.toString())}
                 error={errors.amount?.message}
                 label="Importo"
                 placeholder="0,00"
@@ -330,7 +332,7 @@ function BudgetFormModal({
             {/* Description */}
             <FormField label="Descrizione" required error={errors.description?.message}>
               <Input
-                {...register("description")}
+                {...register('description')}
                 placeholder="es. Spese mensili"
                 disabled={isSubmitting}
               />
@@ -339,12 +341,17 @@ function BudgetFormModal({
 
           <ModalSection className={budgetStyles.formModal.sectionTight}>
             {/* Categories Selection */}
-            <FormField label="Seleziona categorie" required error={errors.categories?.message} className={budgetStyles.formModal.categoryField}>
+            <FormField
+              label="Seleziona categorie"
+              required
+              error={errors.categories?.message}
+              className={budgetStyles.formModal.categoryField}
+            >
               <div className={budgetStyles.formModal.categoryBox}>
                 <div className={budgetStyles.formModal.categoryHeader}>
                   <Input
                     value={categorySearch}
-                    onChange={(event) => setValue("categorySearch", event.target.value)}
+                    onChange={(event) => setValue('categorySearch', event.target.value)}
                     placeholder="Cerca categoria..."
                     className={budgetStyles.formModal.categorySelect}
                   />
@@ -373,13 +380,12 @@ function BudgetFormModal({
 
                 <div className={budgetStyles.formModal.categoryList}>
                   {filteredCategoryOptions.length === 0 ? (
-                    <p className={budgetStyles.formModal.categoryEmpty}>Nessuna categoria trovata</p>
+                    <p className={budgetStyles.formModal.categoryEmpty}>
+                      Nessuna categoria trovata
+                    </p>
                   ) : (
                     filteredCategoryOptions.map((option) => (
-                      <label
-                        key={option.value}
-                        className={budgetStyles.formModal.categoryItem}
-                      >
+                      <label key={option.value} className={budgetStyles.formModal.categoryItem}>
                         <Checkbox
                           checked={watchedCategories.includes(option.value)}
                           onCheckedChange={(checked) => handleCategoryToggle(option.value, checked)}
@@ -403,7 +409,7 @@ function BudgetFormModal({
         <ModalFooter>
           <FormActions
             submitType="submit"
-            submitLabel={isEditMode ? "Salva" : "Crea Budget"}
+            submitLabel={isEditMode ? 'Salva' : 'Crea Budget'}
             onCancel={onClose}
             isSubmitting={isSubmitting}
             className="w-full sm:w-auto"

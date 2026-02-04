@@ -2,10 +2,10 @@
  * AccountField - Reusable account selector field
  */
 
-"use client";
+'use client';
 
-import { FormField, FormSelect } from "@/components/form";
-import type { Account } from "@/lib/types";
+import { FormField, FormSelect } from '@/components/form';
+import type { Account } from '@/lib/types';
 
 interface AccountFieldProps {
   value: string;
@@ -23,10 +23,10 @@ export function AccountField({
   onChange,
   error,
   required = true,
-  label = "Conto",
-  placeholder = "Seleziona conto",
+  label = 'Conto',
+  placeholder = 'Seleziona conto',
   accounts = [],
-  userId
+  userId,
 }: Readonly<AccountFieldProps>) {
   // Filter accounts by user if userId is provided
   const filteredAccounts = userId

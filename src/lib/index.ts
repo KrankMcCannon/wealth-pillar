@@ -3,11 +3,11 @@
  */
 
 // Utils
-export * from "./utils";
+export * from './utils';
 
 // Types
-export * from "./types";
-export * from "./twelve-data";
+export * from './types';
+export * from './twelve-data';
 
 // Icons
-export { Icon, CategoryIcon, iconMapping, designSystemColors } from "./icons";
+export { Icon, CategoryIcon, iconMapping, designSystemColors } from './icons';

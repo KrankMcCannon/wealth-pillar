@@ -7,25 +7,25 @@
  * @module hooks/use-swipe-manager
  */
 
-"use client";
+'use client';
 
-import { useEffect, useRef, useState } from "react";
-import { useMotionValue, animate, type PanInfo, type MotionValue } from "framer-motion";
-import { useSwipeStateStore } from "@/stores/swipe-state-store";
-import { appleSwipeTokens } from "@/components/ui/interactions/theme/swipe-styles";
+import { useEffect, useRef, useState } from 'react';
+import { useMotionValue, animate, type PanInfo, type MotionValue } from 'framer-motion';
+import { useSwipeStateStore } from '@/stores/swipe-state-store';
+import { appleSwipeTokens } from '@/components/ui/interactions/theme/swipe-styles';
 
 // ============================================================================
 // Types
 // ============================================================================
 
-export type SwipeSide = "left" | "right" | null;
+export type SwipeSide = 'left' | 'right' | null;
 
 export interface UseSwipeManagerProps {
   /** Unique card ID for global state tracking */
   cardId: string;
 
   /** Which swipe directions are enabled */
-  directions: "left" | "right" | "both";
+  directions: 'left' | 'right' | 'both';
 
   /** Disable swipe interactions */
   disabled?: boolean;
@@ -92,8 +92,8 @@ export function useSwipeManager({
   // Calculate drag constraints based on enabled action sides
   // Right action = drag left (negative), Left action = drag right (positive)
   const dragConstraints = {
-    left: directions === "right" || directions === "both" ? -actionWidth : 0,
-    right: directions === "left" || directions === "both" ? actionWidth : 0,
+    left: directions === 'right' || directions === 'both' ? -actionWidth : 0,
+    right: directions === 'left' || directions === 'both' ? actionWidth : 0,
   };
 
   const updateSwipeSide = (nextSide: SwipeSide) => {
@@ -120,7 +120,7 @@ export function useSwipeManager({
 
     if (isOpen && swipeSideRef.current) {
       // Use the swipeSide that was set by drag handlers
-      if (swipeSideRef.current === "left") {
+      if (swipeSideRef.current === 'left') {
         targetX = actionWidth;
       } else {
         targetX = -actionWidth;
@@ -134,13 +134,21 @@ export function useSwipeManager({
     const currentX = x.get();
     if (Math.abs(currentX - targetX) > 0.5) {
       animate(x, targetX, {
-        type: "spring",
+        type: 'spring',
         stiffness: physics.spring.stiffness,
         damping: physics.spring.damping,
         mass: physics.spring.mass,
       });
     }
-  }, [isOpen, actionWidth, physics.spring.stiffness, physics.spring.damping, physics.spring.mass, disabled, x]);
+  }, [
+    isOpen,
+    actionWidth,
+    physics.spring.stiffness,
+    physics.spring.damping,
+    physics.spring.mass,
+    disabled,
+    x,
+  ]);
 
   useEffect(() => {
     if (!isOpen && swipeSideRef.current !== null) {
@@ -171,10 +179,7 @@ export function useSwipeManager({
    * - Hysteresis: Different thresholds for open vs. close
    * - Auto-close if dragging back toward center beyond 70%
    */
-  const handleDragEnd = (
-    _event: MouseEvent | TouchEvent | PointerEvent,
-    info: PanInfo
-  ) => {
+  const handleDragEnd = (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
     if (disabled) return;
 
     const currentX = x.get();
@@ -205,7 +210,7 @@ export function useSwipeManager({
 
   const handleDragEndOpen = (currentX: number, velocityX: number) => {
     const currentSide = swipeSideRef.current;
-    if (currentSide === "right") {
+    if (currentSide === 'right') {
       // Right swipe open (delete action)
       // Close if dragging right > 30% OR positive velocity > 10
       const shouldClose = currentX > -actionWidth * 0.7 || velocityX > 10;
@@ -213,7 +218,7 @@ export function useSwipeManager({
         updateSwipeSide(null);
         setOpenCard(null);
       }
-    } else if (currentSide === "left") {
+    } else if (currentSide === 'left') {
       // Left swipe open (pause/resume action)
       // Close if dragging left > 30% OR negative velocity < -10
       const shouldClose = currentX < actionWidth * 0.7 || velocityX < -10;
@@ -227,18 +232,18 @@ export function useSwipeManager({
   const handleDragEndClosed = (currentX: number, velocityX: number) => {
     // Check for right swipe (delete)
     if (
-      (directions === "right" || directions === "both") &&
+      (directions === 'right' || directions === 'both') &&
       (currentX < -thresholds.open || velocityX < thresholds.velocity)
     ) {
-      updateSwipeSide("right");
+      updateSwipeSide('right');
       setOpenCard(cardId);
     }
     // Check for left swipe (pause/resume)
     else if (
-      (directions === "left" || directions === "both") &&
+      (directions === 'left' || directions === 'both') &&
       (currentX > thresholds.open || velocityX > Math.abs(thresholds.velocity))
     ) {
-      updateSwipeSide("left");
+      updateSwipeSide('left');
       setOpenCard(cardId);
     }
     // Neither threshold met: snap back to closed

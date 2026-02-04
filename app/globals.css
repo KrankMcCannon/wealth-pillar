@@ -1,5 +1,5 @@
-@import "tailwindcss";
-@import "tw-animate-css";
+@import 'tailwindcss';
+@import 'tw-animate-css';
 
 /* ============================================================================
    MODERN CSS ARCHITECTURE - TAILWIND V4 + SHADCN/UI (2025)
@@ -282,7 +282,12 @@ body {
 }
 
 body {
-  font-family: var(--font-sans), var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+  font-family:
+    var(--font-sans),
+    var(--font-geist-sans),
+    system-ui,
+    -apple-system,
+    sans-serif;
   line-height: 1.6;
   background-color: oklch(var(--color-background));
   color: oklch(var(--color-foreground));
@@ -295,10 +300,10 @@ body {
    ============================================================================ */
 
 /* Hide Cloudflare CAPTCHA in development to avoid protocol mismatch errors */
-iframe[src*="challenges.cloudflare.com"],
-iframe[src*="cloudflare"],
-div[id*="captcha"],
-div[class*="captcha"],
+iframe[src*='challenges.cloudflare.com'],
+iframe[src*='cloudflare'],
+div[id*='captcha'],
+div[class*='captcha'],
 div[data-turnstile],
 .cl-internal-captcha,
 .cl-captcha {
@@ -380,7 +385,9 @@ html.dark .scrollbar-thin::-webkit-scrollbar-thumb:hover {
     background: oklch(var(--color-card) / 0.6);
     backdrop-filter: blur(20px) saturate(1.5);
     border: 1px solid oklch(var(--color-border) / 0.3);
-    box-shadow: 0 8px 32px oklch(var(--color-primary) / 0.15), inset 0 1px 0 oklch(1 0 0 / 0.2),
+    box-shadow:
+      0 8px 32px oklch(var(--color-primary) / 0.15),
+      inset 0 1px 0 oklch(1 0 0 / 0.2),
       inset 0 -1px 0 oklch(0 0 0 / 0.1);
   }
 
@@ -388,7 +395,9 @@ html.dark .scrollbar-thin::-webkit-scrollbar-thumb:hover {
     background: oklch(var(--color-card) / 0.8);
     backdrop-filter: blur(25px) saturate(1.8);
     border: 1px solid oklch(var(--color-border) / 0.4);
-    box-shadow: 0 12px 48px oklch(var(--color-primary) / 0.2), inset 0 1px 0 oklch(1 0 0 / 0.3),
+    box-shadow:
+      0 12px 48px oklch(var(--color-primary) / 0.2),
+      inset 0 1px 0 oklch(1 0 0 / 0.3),
       inset 0 -1px 0 oklch(0 0 0 / 0.15);
   }
 
@@ -396,7 +405,9 @@ html.dark .scrollbar-thin::-webkit-scrollbar-thumb:hover {
     background: oklch(var(--color-background) / 0.4);
     backdrop-filter: blur(15px) saturate(1.2);
     border: 1px solid oklch(var(--color-border) / 0.2);
-    box-shadow: 0 4px 24px oklch(var(--color-primary) / 0.1), inset 0 1px 0 oklch(1 0 0 / 0.15);
+    box-shadow:
+      0 4px 24px oklch(var(--color-primary) / 0.1),
+      inset 0 1px 0 oklch(1 0 0 / 0.15);
   }
 
   /* ========================================================================
@@ -409,15 +420,28 @@ html.dark .scrollbar-thin::-webkit-scrollbar-thumb:hover {
   }
 
   .gradient-success {
-    background: linear-gradient(135deg, oklch(var(--color-primary)), oklch(var(--color-primary) / 0.8));
+    background: linear-gradient(
+      135deg,
+      oklch(var(--color-primary)),
+      oklch(var(--color-primary) / 0.8)
+    );
   }
 
   .gradient-danger {
-    background: linear-gradient(135deg, oklch(var(--color-destructive)), oklch(var(--color-destructive) / 0.8));
+    background: linear-gradient(
+      135deg,
+      oklch(var(--color-destructive)),
+      oklch(var(--color-destructive) / 0.8)
+    );
   }
 
   .text-gradient {
-    background: linear-gradient(135deg, oklch(var(--color-primary)), oklch(var(--color-accent)), oklch(0.78 0.15 270));
+    background: linear-gradient(
+      135deg,
+      oklch(var(--color-primary)),
+      oklch(var(--color-accent)),
+      oklch(0.78 0.15 270)
+    );
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -481,11 +505,15 @@ html.dark .scrollbar-thin::-webkit-scrollbar-thumb:hover {
 
   .hover-lift:hover {
     transform: translateY(-4px) scale(1.02);
-    box-shadow: 0 20px 40px oklch(var(--color-primary) / 0.25), 0 8px 32px oklch(var(--color-primary) / 0.15);
+    box-shadow:
+      0 20px 40px oklch(var(--color-primary) / 0.25),
+      0 8px 32px oklch(var(--color-primary) / 0.15);
   }
 
   .hover-glow:hover {
-    box-shadow: 0 0 30px oklch(var(--color-primary) / 0.4), 0 0 60px oklch(var(--color-primary) / 0.2);
+    box-shadow:
+      0 0 30px oklch(var(--color-primary) / 0.4),
+      0 0 60px oklch(var(--color-primary) / 0.2);
     backdrop-filter: blur(25px) saturate(2);
   }
 
@@ -503,25 +531,41 @@ html.dark .scrollbar-thin::-webkit-scrollbar-thumb:hover {
      ======================================================================== */
 
   .bg-primary-glass {
-    background: linear-gradient(135deg, oklch(var(--color-primary) / 0.8), oklch(var(--color-primary) / 0.6));
+    background: linear-gradient(
+      135deg,
+      oklch(var(--color-primary) / 0.8),
+      oklch(var(--color-primary) / 0.6)
+    );
     backdrop-filter: blur(20px);
     border: 1px solid oklch(var(--color-primary) / 0.3);
   }
 
   .bg-accent-glass {
-    background: linear-gradient(135deg, oklch(var(--color-accent) / 0.8), oklch(var(--color-accent) / 0.6));
+    background: linear-gradient(
+      135deg,
+      oklch(var(--color-accent) / 0.8),
+      oklch(var(--color-accent) / 0.6)
+    );
     backdrop-filter: blur(20px);
     border: 1px solid oklch(var(--color-accent) / 0.3);
   }
 
   .bg-success-glass {
-    background: linear-gradient(135deg, oklch(var(--color-primary) / 0.7), oklch(var(--color-primary) / 0.5));
+    background: linear-gradient(
+      135deg,
+      oklch(var(--color-primary) / 0.7),
+      oklch(var(--color-primary) / 0.5)
+    );
     backdrop-filter: blur(20px);
     border: 1px solid oklch(var(--color-primary) / 0.3);
   }
 
   .bg-warning-glass {
-    background: linear-gradient(135deg, oklch(var(--color-warning) / 0.8), oklch(var(--color-warning) / 0.6));
+    background: linear-gradient(
+      135deg,
+      oklch(var(--color-warning) / 0.8),
+      oklch(var(--color-warning) / 0.6)
+    );
     backdrop-filter: blur(20px);
     border: 1px solid oklch(var(--color-warning) / 0.3);
   }
@@ -544,7 +588,7 @@ html.dark .scrollbar-thin::-webkit-scrollbar-thumb:hover {
   }
 
   .liquid-shimmer::before {
-    content: "";
+    content: '';
     position: absolute;
     top: 0;
     left: -100%;
@@ -562,7 +606,9 @@ html.dark .scrollbar-thin::-webkit-scrollbar-thumb:hover {
 
   .morph-card:hover {
     transform: translateY(-8px) rotateX(2deg);
-    box-shadow: 0 24px 48px oklch(var(--color-primary) / 0.3), 0 12px 24px oklch(var(--color-primary) / 0.2);
+    box-shadow:
+      0 24px 48px oklch(var(--color-primary) / 0.3),
+      0 12px 24px oklch(var(--color-primary) / 0.2);
     backdrop-filter: blur(30px) saturate(2.5);
   }
 }
@@ -616,7 +662,11 @@ html.dark .scrollbar-thin::-webkit-scrollbar-thumb:hover {
   justify-content: center;
   border-radius: 1rem;
   box-shadow: 0 4px 6px -1px oklch(0% 0 0 / 0.1);
-  background: linear-gradient(135deg, oklch(var(--color-primary) / 0.2), oklch(var(--color-primary) / 0.1));
+  background: linear-gradient(
+    135deg,
+    oklch(var(--color-primary) / 0.2),
+    oklch(var(--color-primary) / 0.1)
+  );
   color: oklch(var(--color-primary));
 }
 

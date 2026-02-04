@@ -2,7 +2,18 @@
  * Finance Logic Service
  */
 
-import type { Transaction, CategoryBreakdownItem, Budget, BudgetProgress, UserBudgetSummary, User, BudgetPeriod, Account, Category, RecurringTransactionSeries } from '@/lib/types';
+import type {
+  Transaction,
+  CategoryBreakdownItem,
+  Budget,
+  BudgetProgress,
+  UserBudgetSummary,
+  User,
+  BudgetPeriod,
+  Account,
+  Category,
+  RecurringTransactionSeries,
+} from '@/lib/types';
 import {
   toDateTime,
   now as luxonNow,
@@ -114,9 +125,7 @@ export class FinanceLogicService {
    * Calculate category breakdown with NET analysis
    * @complexity O(n + m log m)
    */
-  static calculateCategoryBreakdown(
-    transactions: Transaction[]
-  ): CategoryBreakdownItem[] {
+  static calculateCategoryBreakdown(transactions: Transaction[]): CategoryBreakdownItem[] {
     if (transactions.length === 0) return [];
     const categoryMap = new Map<string, { spent: number; received: number; count: number }>();
 
@@ -139,17 +148,16 @@ export class FinanceLogicService {
       received: data.received,
       net: data.spent - data.received,
       percentage: 0,
-      count: data.count
+      count: data.count,
     }));
 
     const totalNetSpending = breakdown
-      .filter(item => item.net > 0)
+      .filter((item) => item.net > 0)
       .reduce((sum, item) => sum + item.net, 0);
 
     for (const item of breakdown) {
-      item.percentage = (item.net > 0 && totalNetSpending > 0)
-        ? (item.net / totalNetSpending) * 100
-        : 0;
+      item.percentage =
+        item.net > 0 && totalNetSpending > 0 ? (item.net / totalNetSpending) * 100 : 0;
     }
 
     return breakdown.sort((a, b) => Math.abs(b.net) - Math.abs(a.net));
@@ -159,18 +167,15 @@ export class FinanceLogicService {
    * Filter transactions by categories
    * @complexity O(n)
    */
-  static filterByCategories(
-    transactions: Transaction[],
-    categories: string[]
-  ): Transaction[] {
+  static filterByCategories(transactions: Transaction[], categories: string[]): Transaction[] {
     const categorySet = new Set(categories);
-    return transactions.filter(t => categorySet.has(t.category));
+    return transactions.filter((t) => categorySet.has(t.category));
   }
 
   /**
    * Calculate historical balance for a specific account
    * Reverses transactions from current balance back to target date
-   * 
+   *
    * @complexity O(n)
    */
   static calculateHistoricalBalance(
@@ -188,7 +193,7 @@ export class FinanceLogicService {
     const accountSet = typeof accountIds === 'string' ? new Set([accountIds]) : accountIds;
 
     // Filter transactions that happened ON or AFTER the target date
-    const futureTransactions = allTransactions.filter(t => {
+    const futureTransactions = allTransactions.filter((t) => {
       const tDate = toDateTime(t.date);
       return tDate && tDate >= targetDt;
     });
@@ -225,7 +230,7 @@ export class FinanceLogicService {
 
   /**
    * Calculate total spent (expenses + outgoing transfers) for an account in a period
-   * 
+   *
    * @complexity O(n)
    */
   static calculatePeriodTotalSpent(
@@ -256,7 +261,7 @@ export class FinanceLogicService {
 
   /**
    * Calculate total income (income + incoming transfers) for an account in a period
-   * 
+   *
    * @complexity O(n)
    */
   static calculatePeriodTotalIncome(
@@ -285,7 +290,7 @@ export class FinanceLogicService {
 
   /**
    * Calculate total transfers (absolute sum of IN and OUT) for a specific account
-   * 
+   *
    * @complexity O(n)
    */
   static calculatePeriodTotalTransfers(
@@ -325,14 +330,13 @@ export class FinanceLogicService {
     }
 
     // Otherwise filter by specific year
-    const annualTransactions = allTransactions.filter(t => {
+    const annualTransactions = allTransactions.filter((t) => {
       const dt = toDateTime(t.date);
       return dt?.year === year;
     });
 
     return this.calculateCategoryBreakdown(annualTransactions);
   }
-
 
   // --- BUDGET LOGIC ---
 
@@ -361,10 +365,7 @@ export class FinanceLogicService {
   /**
    * Calculate progress for a single budget
    */
-  static calculateBudgetProgress(
-    budget: Budget,
-    transactions: Transaction[]
-  ): BudgetProgress {
+  static calculateBudgetProgress(budget: Budget, transactions: Transaction[]): BudgetProgress {
     // Calculate spent: expenses and transfers add to spent, income subtracts
     const spent = transactions.reduce((sum, t) => {
       if (t.type === 'income') {
@@ -494,7 +495,7 @@ export class FinanceLogicService {
     // Calculate progress for each valid budget
     const budgetProgress: BudgetProgress[] = budgets
       .filter((b) => b.amount > 0)
-      .map(budget => {
+      .map((budget) => {
         // Sum net spending for all categories in this budget
         let budgetSpent = 0;
         for (const cat of budget.categories) {
@@ -613,7 +614,8 @@ export class FinanceLogicService {
     const balance = transactions.reduce((balance, transaction) => {
       // Check if this transaction involves this account
       const isSourceAccount = accountSet.has(transaction.account_id);
-      const isDestinationAccount = transaction.to_account_id && accountSet.has(transaction.to_account_id);
+      const isDestinationAccount =
+        transaction.to_account_id && accountSet.has(transaction.to_account_id);
 
       // Skip if transaction doesn't involve this account
       if (!isSourceAccount && !isDestinationAccount) {
@@ -657,10 +659,7 @@ export class FinanceLogicService {
   /**
    * Finds a category by ID, key, or label
    */
-  static findCategory(
-    categories: Category[],
-    identifier: string
-  ): Category | undefined {
+  static findCategory(categories: Category[], identifier: string): Category | undefined {
     return categories.find(
       (c) =>
         c.id === identifier ||
@@ -672,10 +671,7 @@ export class FinanceLogicService {
   /**
    * Gets category color by identifier
    */
-  static getCategoryColor(
-    categories: Category[],
-    identifier: string
-  ): string {
+  static getCategoryColor(categories: Category[], identifier: string): string {
     const category = this.findCategory(categories, identifier);
     return category?.color || '#6B7280'; // Default gray color
   }
@@ -683,10 +679,7 @@ export class FinanceLogicService {
   /**
    * Gets category icon by identifier
    */
-  static getCategoryIcon(
-    categories: Category[],
-    identifier: string
-  ): string {
+  static getCategoryIcon(categories: Category[], identifier: string): string {
     const category = this.findCategory(categories, identifier);
     return category?.icon || 'default';
   }
@@ -694,10 +687,7 @@ export class FinanceLogicService {
   /**
    * Gets category label by identifier
    */
-  static getCategoryLabel(
-    categories: Category[],
-    identifier: string
-  ): string {
+  static getCategoryLabel(categories: Category[], identifier: string): string {
     const category = this.findCategory(categories, identifier);
     return category?.label || identifier;
   }
@@ -728,7 +718,7 @@ export class FinanceLogicService {
   /**
    * Calculate next week-based due date (weekly or biweekly)
    * @param today - Current date
-   * @param dueDay - Day of week (1=Monday, 7=Sunday)  
+   * @param dueDay - Day of week (1=Monday, 7=Sunday)
    * @param intervalDays - Days in the interval (7 for weekly, 14 for biweekly)
    */
   private static calculateWeekBasedNextDate(
@@ -763,7 +753,10 @@ export class FinanceLogicService {
   /**
    * Calculate next yearly due date
    */
-  private static calculateYearlyNextDate(today: DateTime, series: RecurringTransactionSeries): string {
+  private static calculateYearlyNextDate(
+    today: DateTime,
+    series: RecurringTransactionSeries
+  ): string {
     const startDate = toDateTime(series.start_date);
     if (!startDate) {
       return toDateString(today);
@@ -774,7 +767,10 @@ export class FinanceLogicService {
 
     // Check if this year's occurrence has passed
     const thisYearBase = today.set({ month: startMonth });
-    const dayToUseThisYear = Math.min(dueDay, getDaysInMonth(thisYearBase.year, thisYearBase.month));
+    const dayToUseThisYear = Math.min(
+      dueDay,
+      getDaysInMonth(thisYearBase.year, thisYearBase.month)
+    );
     const thisYearDate = thisYearBase.set({ day: dayToUseThisYear });
 
     if (thisYearDate > today) {
@@ -782,29 +778,31 @@ export class FinanceLogicService {
     }
 
     const nextYearBase = today.plus({ years: 1 }).set({ month: startMonth });
-    const dayToUseNextYear = Math.min(dueDay, getDaysInMonth(nextYearBase.year, nextYearBase.month));
+    const dayToUseNextYear = Math.min(
+      dueDay,
+      getDaysInMonth(nextYearBase.year, nextYearBase.month)
+    );
     return toDateString(nextYearBase.set({ day: dayToUseNextYear }));
   }
 
   /**
    * Calculate next date for one-time series
    */
-  private static calculateOnceNextDate(today: DateTime, series: RecurringTransactionSeries): string {
+  private static calculateOnceNextDate(
+    today: DateTime,
+    series: RecurringTransactionSeries
+  ): string {
     const startDate = toDateTime(series.start_date);
     if (!startDate) {
       return toDateString(today);
     }
-    return startDate > today
-      ? toDateString(startDate)
-      : toDateString(today);
+    return startDate > today ? toDateString(startDate) : toDateString(today);
   }
 
   /**
    * Calculate the next execution date for a series based on frequency and due_day
    */
-  static calculateNextExecutionDate(
-    series: RecurringTransactionSeries
-  ): string {
+  static calculateNextExecutionDate(series: RecurringTransactionSeries): string {
     const today = luxonToday();
 
     switch (series.frequency) {
@@ -848,9 +846,7 @@ export class FinanceLogicService {
   /**
    * Get frequency label in Italian
    */
-  static getFrequencyLabel(
-    frequency: RecurringTransactionSeries['frequency']
-  ): string {
+  static getFrequencyLabel(frequency: RecurringTransactionSeries['frequency']): string {
     const labels: Record<RecurringTransactionSeries['frequency'], string> = {
       once: 'Una tantum',
       weekly: 'Settimanale',
@@ -881,7 +877,10 @@ export class FinanceLogicService {
     series: RecurringTransactionSeries[],
     users: Array<{ id: string; name: string }>
   ): Record<string, { user: { id: string; name: string }; series: RecurringTransactionSeries[] }> {
-    const grouped: Record<string, { user: { id: string; name: string }; series: RecurringTransactionSeries[] }> = {};
+    const grouped: Record<
+      string,
+      { user: { id: string; name: string }; series: RecurringTransactionSeries[] }
+    > = {};
 
     for (const user of users) {
       const userSeries = series.filter((s) => s.user_ids.includes(user.id));
@@ -957,6 +956,6 @@ export class FinanceLogicService {
     series: RecurringTransactionSeries,
     allUsers: Array<{ id: string; name: string; theme_color?: string }>
   ): Array<{ id: string; name: string; theme_color?: string }> {
-    return allUsers.filter(user => series.user_ids.includes(user.id));
+    return allUsers.filter((user) => series.user_ids.includes(user.id));
   }
 }

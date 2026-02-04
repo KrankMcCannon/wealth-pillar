@@ -44,10 +44,10 @@ Create a file named `[original_filename].test.tsx` (or `.test.ts`) in the same d
 
 - **Setup**:
   ```tsx
-  import { render, screen } from "@testing-library/react";
-  import { userEvent } from "@testing-library/user-event";
-  import { describe, it, expect, vi } from "vitest"; // or jest
-  import { TargetComponent } from "./TargetComponent";
+  import { render, screen } from '@testing-library/react';
+  import { userEvent } from '@testing-library/user-event';
+  import { describe, it, expect, vi } from 'vitest'; // or jest
+  import { TargetComponent } from './TargetComponent';
   ```
 - **Mocks**:
   - Mock complex sub-components to keep unit tests focused.

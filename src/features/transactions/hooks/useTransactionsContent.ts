@@ -5,29 +5,29 @@
  * Manages filters, infinite scroll, delete handlers, pause modal, and grouped transactions.
  */
 
-import { useState, useMemo, useEffect, useCallback } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
   useUserFilter,
   useDeleteConfirmation,
   useIdNameMap,
   useFilteredData,
   useInfiniteScroll,
-} from "@/hooks";
-import { loadMoreTransactionsAction } from "@/features/transactions/actions/load-more-transactions";
-import { RecurringTransactionSeries } from "@/lib";
+} from '@/hooks';
+import { loadMoreTransactionsAction } from '@/features/transactions/actions/load-more-transactions';
+import { RecurringTransactionSeries } from '@/lib';
 import {
   defaultFiltersState,
   filterTransactions,
   type TransactionFiltersState,
   type GroupedTransaction,
-} from "@/features/transactions";
-import type { Transaction, Budget, User, Account, Category } from "@/lib/types";
-import { TransactionLogic } from "@/lib/utils/transaction-logic";
-import { deleteTransactionAction } from "@/features/transactions/actions/transaction-actions";
-import { deleteRecurringSeriesAction } from "@/features/recurring/actions/recurring-actions";
-import { useModalState, useTabState, type ModalType } from "@/lib/navigation/url-state";
-import { usePageDataStore } from "@/stores/page-data-store";
+} from '@/features/transactions';
+import type { Transaction, Budget, User, Account, Category } from '@/lib/types';
+import { TransactionLogic } from '@/lib/utils/transaction-logic';
+import { deleteTransactionAction } from '@/features/transactions/actions/transaction-actions';
+import { deleteRecurringSeriesAction } from '@/features/recurring/actions/recurring-actions';
+import { useModalState, useTabState, type ModalType } from '@/lib/navigation/url-state';
+import { usePageDataStore } from '@/stores/page-data-store';
 
 // ============================================================================
 // Types
@@ -122,11 +122,11 @@ export function useTransactionsContent({
   const { openModal } = useModalState();
 
   // Check if coming from budgets page
-  const fromBudgets = searchParams.get("from") === "budgets";
-  const budgetIdFromUrl = searchParams.get("budget");
-  const memberIdFromUrl = searchParams.get("member");
-  const startDateFromUrl = searchParams.get("startDate");
-  const endDateFromUrl = searchParams.get("endDate");
+  const fromBudgets = searchParams.get('from') === 'budgets';
+  const budgetIdFromUrl = searchParams.get('budget');
+  const memberIdFromUrl = searchParams.get('member');
+  const startDateFromUrl = searchParams.get('startDate');
+  const endDateFromUrl = searchParams.get('endDate');
 
   // Get selected budget for display
   const selectedBudget = useMemo(() => {
@@ -143,8 +143,8 @@ export function useTransactionsContent({
         ...defaultFiltersState,
         budgetId: selectedBudget.id,
         categoryKeys: selectedBudget.categories,
-        type: "expense",
-        dateRange: startDateFromUrl || endDateFromUrl ? "custom" : defaultFiltersState.dateRange,
+        type: 'expense',
+        dateRange: startDateFromUrl || endDateFromUrl ? 'custom' : defaultFiltersState.dateRange,
         startDate: startDateFromUrl ?? undefined,
         endDate: endDateFromUrl ?? undefined,
       };
@@ -153,14 +153,15 @@ export function useTransactionsContent({
   }, [fromBudgets, selectedBudget, startDateFromUrl, endDateFromUrl]);
 
   // Tab state - managed via URL params for shareable links
-  const { activeTab, setActiveTab } = useTabState("Transactions");
+  const { activeTab, setActiveTab } = useTabState('Transactions');
 
   // Modern filters state - initialized from URL or default
   const [filters, setFilters] = useState<TransactionFiltersState>(initialFilters);
 
   // Pause modal state
   const [showPauseModal, setShowPauseModal] = useState(false);
-  const [selectedSeriesForPause, setSelectedSeriesForPause] = useState<RecurringTransactionSeries | null>(null);
+  const [selectedSeriesForPause, setSelectedSeriesForPause] =
+    useState<RecurringTransactionSeries | null>(null);
 
   // Set user filter when coming from budgets
   useEffect(() => {
@@ -171,21 +172,21 @@ export function useTransactionsContent({
 
   // Scroll to top on page mount (navigation to transactions page)
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "instant" });
+    window.scrollTo({ top: 0, behavior: 'instant' });
   }, []);
 
   // Scroll to top when tab changes
   useEffect(() => {
     if (activeTab) {
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }, [activeTab]);
 
   // Handler to clear budget filter and reset URL
   const handleClearBudgetFilter = useCallback(() => {
     setFilters(defaultFiltersState);
-    setSelectedGroupFilter("all");
-    router.push("/transactions");
+    setSelectedGroupFilter('all');
+    router.push('/transactions');
   }, [router, setSelectedGroupFilter]);
 
   // Delete confirmation state using hook
@@ -261,16 +262,22 @@ export function useTransactionsContent({
   }, [filteredTransactions]);
 
   // Transaction handlers
-  const handleEditTransaction = useCallback((transaction: Transaction) => {
-    openModal("transaction", transaction.id);
-  }, [openModal]);
+  const handleEditTransaction = useCallback(
+    (transaction: Transaction) => {
+      openModal('transaction', transaction.id);
+    },
+    [openModal]
+  );
 
-  const handleDeleteClick = useCallback((transactionId: string) => {
-    const transaction = storeTransactions.find((t) => t.id === transactionId);
-    if (transaction) {
-      deleteConfirm.openDialog(transaction);
-    }
-  }, [storeTransactions, deleteConfirm]);
+  const handleDeleteClick = useCallback(
+    (transactionId: string) => {
+      const transaction = storeTransactions.find((t) => t.id === transactionId);
+      if (transaction) {
+        deleteConfirm.openDialog(transaction);
+      }
+    },
+    [storeTransactions, deleteConfirm]
+  );
 
   const handleDeleteConfirm = useCallback(async () => {
     await deleteConfirm.executeDelete(async (transaction) => {
@@ -281,27 +288,30 @@ export function useTransactionsContent({
 
         if (result.error) {
           addTransactionToStore(transaction);
-          console.error("Failed to delete transaction:", result.error);
+          console.error('Failed to delete transaction:', result.error);
           throw new Error(result.error);
         }
       } catch (error) {
         addTransactionToStore(transaction);
-        console.error("Error deleting transaction:", error);
+        console.error('Error deleting transaction:', error);
         throw error;
       }
     });
   }, [deleteConfirm, removeTransactionFromStore, addTransactionToStore]);
 
   // Recurring handlers
-  const handleRecurringDeleteClick = useCallback((series: RecurringTransactionSeries) => {
-    recurringDeleteConfirm.openDialog(series);
-  }, [recurringDeleteConfirm]);
+  const handleRecurringDeleteClick = useCallback(
+    (series: RecurringTransactionSeries) => {
+      recurringDeleteConfirm.openDialog(series);
+    },
+    [recurringDeleteConfirm]
+  );
 
   const handleRecurringDeleteConfirm = useCallback(async () => {
     await recurringDeleteConfirm.executeDelete(async (series) => {
       const result = await deleteRecurringSeriesAction(series.id);
       if (result.error) {
-        console.error("Failed to delete recurring series:", result.error);
+        console.error('Failed to delete recurring series:', result.error);
         throw new Error(result.error);
       }
     });

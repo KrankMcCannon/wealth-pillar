@@ -9,9 +9,9 @@
 
 import { getCurrentUser } from '@/lib/auth/cached-auth';
 import { revalidateTag } from 'next/cache';
-import { CACHE_TAGS } from "@/lib/cache/config";
+import { CACHE_TAGS } from '@/lib/cache/config';
 import { canAccessUserData, isMember } from '@/lib/utils/permissions';
-import type { RecurringTransactionSeries, User } from "@/lib/types";
+import type { RecurringTransactionSeries, User } from '@/lib/types';
 import { RecurringService } from '@/server/services';
 import { serialize } from '@/lib/utils/serializer';
 
@@ -21,9 +21,9 @@ import { serialize } from '@/lib/utils/serializer';
 export interface CreateRecurringSeriesInput {
   description: string;
   amount: number;
-  type: "income" | "expense";
+  type: 'income' | 'expense';
   category: string;
-  frequency: "once" | "weekly" | "biweekly" | "monthly" | "yearly";
+  frequency: 'once' | 'weekly' | 'biweekly' | 'monthly' | 'yearly';
   user_ids: string[]; // Array of user IDs who can access this series
   account_id: string;
   start_date: string;
@@ -38,9 +38,9 @@ export interface UpdateRecurringSeriesInput {
   id: string;
   description?: string;
   amount?: number;
-  type?: "income" | "expense";
+  type?: 'income' | 'expense';
   category?: string;
-  frequency?: "once" | "weekly" | "biweekly" | "monthly" | "yearly";
+  frequency?: 'once' | 'weekly' | 'biweekly' | 'monthly' | 'yearly';
   user_ids?: string[]; // Array of user IDs who can access this series
   account_id?: string;
   start_date?: string;
@@ -59,12 +59,13 @@ interface ActionResult<T = unknown> {
 
 // Helper: Validate input fields for creation
 function validateCreateInput(input: CreateRecurringSeriesInput): string | null {
-  if (!input.description || input.description.trim() === "") return "La descrizione è obbligatoria";
+  if (!input.description || input.description.trim() === '') return 'La descrizione è obbligatoria';
   if (input.amount <= 0) return "L'importo deve essere maggiore di zero";
-  if (!input.user_ids || input.user_ids.length === 0) return "Almeno un utente è obbligatorio";
-  if (!input.account_id) return "Il conto è obbligatorio";
-  if (!input.category) return "La categoria è obbligatoria";
-  if (!input.due_day || input.due_day < 1 || input.due_day > 31) return "Il giorno di addebito deve essere tra 1 e 31";
+  if (!input.user_ids || input.user_ids.length === 0) return 'Almeno un utente è obbligatorio';
+  if (!input.account_id) return 'Il conto è obbligatorio';
+  if (!input.category) return 'La categoria è obbligatoria';
+  if (!input.due_day || input.due_day < 1 || input.due_day > 31)
+    return 'Il giorno di addebito deve essere tra 1 e 31';
   return null;
 }
 
@@ -88,15 +89,15 @@ function validateCreatePermissions(currentUser: User, userIds: string[]): string
       return 'Non hai i permessi per accedere ai dati di uno o più utenti selezionati';
     }
   }
-  
+
   return null;
 }
 
 /**
  * Create a new recurring series
- * 
+ *
  * Validates permissions: members can only create series that include themselves
- * 
+ *
  * @param input - The series data to create
  * @returns The created series or error
  */
@@ -135,7 +136,7 @@ export async function createRecurringSeriesAction(
     });
 
     if (!data) {
-      return { data: null, error: "Failed to create recurring series" };
+      return { data: null, error: 'Failed to create recurring series' };
     }
 
     // Invalidate cache for all affected users
@@ -146,10 +147,10 @@ export async function createRecurringSeriesAction(
 
     return { data: serialize(data) as unknown as RecurringTransactionSeries, error: null };
   } catch (error) {
-    console.error("[createRecurringSeriesAction] Unexpected error:", error);
+    console.error('[createRecurringSeriesAction] Unexpected error:', error);
     return {
       data: null,
-      error: error instanceof Error ? error.message : "Errore durante la creazione della serie",
+      error: error instanceof Error ? error.message : 'Errore durante la creazione della serie',
     };
   }
 }
@@ -174,8 +175,8 @@ function validateNewUserAssignments(currentUser: User, newUserIds: string[]): st
 
 // Helper: Validate permissions for update
 function validateUpdatePermission(
-  currentUser: User, 
-  oldSeries: RecurringTransactionSeries, 
+  currentUser: User,
+  oldSeries: RecurringTransactionSeries,
   newUserIds?: string[]
 ): string | null {
   // 1. Verify access to existing series
@@ -192,15 +193,15 @@ function validateUpdatePermission(
   if (newUserIds) {
     return validateNewUserAssignments(user, newUserIds);
   }
-  
+
   return null;
 }
 
 /**
  * Update an existing recurring series
- * 
+ *
  * Validates permissions: members can only update series they own
- * 
+ *
  * @param input - The series data to update
  * @returns The updated series or error
  */
@@ -209,7 +210,7 @@ export async function updateRecurringSeriesAction(
 ): Promise<ActionResult<RecurringTransactionSeries>> {
   try {
     if (!input.id) {
-      return { data: null, error: "ID serie obbligatorio" };
+      return { data: null, error: 'ID serie obbligatorio' };
     }
 
     // Authentication check (cached per request)
@@ -221,40 +222,46 @@ export async function updateRecurringSeriesAction(
     // Get old user_ids to invalidate cache for previous users
     const oldSeries = await RecurringService.getSeriesById(input.id);
     if (!oldSeries) {
-      return { data: null, error: "Serie ricorrente non trovata" };
+      return { data: null, error: 'Serie ricorrente non trovata' };
     }
 
     // Permission validation
     const permError = validateUpdatePermission(
-      currentUser as unknown as User, 
-      oldSeries, 
+      currentUser as unknown as User,
+      oldSeries,
       input.user_ids
     );
     if (permError) return { data: null, error: permError };
 
-// Helper: Build update payload
-function buildUpdatePayload(input: UpdateRecurringSeriesInput): { payload: Partial<UpdateRecurringSeriesInput> & { updated_at?: string }, error?: string } {
-  const updatePayload: Partial<UpdateRecurringSeriesInput> & { updated_at?: string } = {};
-  
-  if (input.description !== undefined) updatePayload.description = input.description.trim();
-  if (input.amount !== undefined) {
-    if (input.amount <= 0) return { payload: {}, error: "L'importo deve essere maggiore di zero" };
-    updatePayload.amount = input.amount;
-  }
-  if (input.type !== undefined) updatePayload.type = input.type;
-  if (input.category !== undefined) updatePayload.category = input.category;
-  if (input.frequency !== undefined) updatePayload.frequency = input.frequency;
-  if (input.account_id !== undefined) updatePayload.account_id = input.account_id;
-  if (input.start_date !== undefined) updatePayload.start_date = new Date(input.start_date).toISOString();
-  if (input.end_date !== undefined) updatePayload.end_date = input.end_date ? new Date(input.end_date).toISOString() : null;
-  if (input.due_day !== undefined) updatePayload.due_day = input.due_day;
-  if (input.is_active !== undefined) updatePayload.is_active = input.is_active;
-  if (input.user_ids !== undefined) updatePayload.user_ids = input.user_ids;
+    // Helper: Build update payload
+    function buildUpdatePayload(input: UpdateRecurringSeriesInput): {
+      payload: Partial<UpdateRecurringSeriesInput> & { updated_at?: string };
+      error?: string;
+    } {
+      const updatePayload: Partial<UpdateRecurringSeriesInput> & { updated_at?: string } = {};
 
-  updatePayload.updated_at = new Date().toISOString();
-  
-  return { payload: updatePayload };
-}
+      if (input.description !== undefined) updatePayload.description = input.description.trim();
+      if (input.amount !== undefined) {
+        if (input.amount <= 0)
+          return { payload: {}, error: "L'importo deve essere maggiore di zero" };
+        updatePayload.amount = input.amount;
+      }
+      if (input.type !== undefined) updatePayload.type = input.type;
+      if (input.category !== undefined) updatePayload.category = input.category;
+      if (input.frequency !== undefined) updatePayload.frequency = input.frequency;
+      if (input.account_id !== undefined) updatePayload.account_id = input.account_id;
+      if (input.start_date !== undefined)
+        updatePayload.start_date = new Date(input.start_date).toISOString();
+      if (input.end_date !== undefined)
+        updatePayload.end_date = input.end_date ? new Date(input.end_date).toISOString() : null;
+      if (input.due_day !== undefined) updatePayload.due_day = input.due_day;
+      if (input.is_active !== undefined) updatePayload.is_active = input.is_active;
+      if (input.user_ids !== undefined) updatePayload.user_ids = input.user_ids;
+
+      updatePayload.updated_at = new Date().toISOString();
+
+      return { payload: updatePayload };
+    }
 
     // Build update data
     const { payload, error: payloadError } = buildUpdatePayload(input);
@@ -263,7 +270,7 @@ function buildUpdatePayload(input: UpdateRecurringSeriesInput): { payload: Parti
 
     const data = await RecurringService.updateSeries(input.id, updatePayload);
     if (!data) {
-      return { data: null, error: "Failed to update series" };
+      return { data: null, error: 'Failed to update series' };
     }
 
     // Invalidate cache for all affected users (old and new)
@@ -286,7 +293,7 @@ function buildUpdatePayload(input: UpdateRecurringSeriesInput): { payload: Parti
 
     return { data: serialize(data) as unknown as RecurringTransactionSeries, error: null };
   } catch (error) {
-    console.error("[updateRecurringSeriesAction] Unexpected error:", error);
+    console.error('[updateRecurringSeriesAction] Unexpected error:', error);
     return {
       data: null,
       error: error instanceof Error ? error.message : "Errore durante l'aggiornamento della serie",
@@ -296,9 +303,9 @@ function buildUpdatePayload(input: UpdateRecurringSeriesInput): { payload: Parti
 
 /**
  * Delete a recurring series
- * 
+ *
  * Validates permissions: members can only delete series they own
- * 
+ *
  * @param seriesId - The ID of the series to delete
  * @returns Success status or error
  */
@@ -307,7 +314,7 @@ export async function deleteRecurringSeriesAction(
 ): Promise<ActionResult<{ success: boolean }>> {
   try {
     if (!seriesId) {
-      return { data: null, error: "ID serie obbligatorio" };
+      return { data: null, error: 'ID serie obbligatorio' };
     }
 
     // Authentication check (cached per request)
@@ -320,18 +327,20 @@ export async function deleteRecurringSeriesAction(
     const series = await RecurringService.getSeriesById(seriesId);
 
     if (!series) {
-      return { data: null, error: "Serie non trovata" };
+      return { data: null, error: 'Serie non trovata' };
     }
 
     // Permission validation: verify access to series
     const hasAccess = isMember(currentUser as unknown as User)
       ? series.user_ids.includes(currentUser.id)
-      : series.user_ids.some((userId: string) => canAccessUserData(currentUser as unknown as User, userId));
+      : series.user_ids.some((userId: string) =>
+          canAccessUserData(currentUser as unknown as User, userId)
+        );
 
     if (!hasAccess) {
       return {
         data: null,
-        error: 'Non hai i permessi per eliminare questa serie ricorrente'
+        error: 'Non hai i permessi per eliminare questa serie ricorrente',
       };
     }
 
@@ -348,7 +357,7 @@ export async function deleteRecurringSeriesAction(
 
     return { data: { success: true }, error: null };
   } catch (error) {
-    console.error("[deleteRecurringSeriesAction] Unexpected error:", error);
+    console.error('[deleteRecurringSeriesAction] Unexpected error:', error);
     return {
       data: null,
       error: error instanceof Error ? error.message : "Errore durante l'eliminazione della serie",
@@ -358,7 +367,7 @@ export async function deleteRecurringSeriesAction(
 
 /**
  * Toggle the active status of a recurring series
- * 
+ *
  * @param seriesId - The ID of the series to toggle
  * @param isActive - The new active status
  * @returns The updated series or error
@@ -376,9 +385,15 @@ export async function toggleRecurringSeriesActiveAction(
  *
  * @returns The created transaction ID or error
  */
-export async function executeRecurringSeriesAction(seriesId: string): Promise<ActionResult<{ transactionId: string }>> {
-  console.warn("Series execution not implemented yet for series:", seriesId);
+export async function executeRecurringSeriesAction(
+  seriesId: string
+): Promise<ActionResult<{ transactionId: string }>> {
+  console.warn('Series execution not implemented yet for series:', seriesId);
   // const today = new Date();
   // Per ora ritorniamo un messaggio informativo
-  return { data: null, error: "Funzione temporaneamente disabilitata. La creazione automatica delle transazioni sarà abilitata in seguito." };
+  return {
+    data: null,
+    error:
+      'Funzione temporaneamente disabilitata. La creazione automatica delle transazioni sarà abilitata in seguito.',
+  };
 }

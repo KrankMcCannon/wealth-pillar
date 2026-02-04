@@ -11,20 +11,18 @@
  * ```
  */
 
-import * as React from "react";
-import { cn, textVariants, type TextVariants } from "@/lib/utils";
+import * as React from 'react';
+import { cn, textVariants, type TextVariants } from '@/lib/utils';
 
-export interface TextProps
-  extends React.HTMLAttributes<HTMLElement>,
-    TextVariants {
+export interface TextProps extends React.HTMLAttributes<HTMLElement>, TextVariants {
   /** HTML element to render */
-  as?: "p" | "span" | "div" | "h1" | "h2" | "h3" | "h4" | "h5" | "h6" | "label";
+  as?: 'p' | 'span' | 'div' | 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'label';
   /** Children content */
   children: React.ReactNode;
 }
 
 export function Text({
-  as: Component = "p",
+  as: Component = 'p',
   variant,
   size,
   className,
@@ -32,10 +30,7 @@ export function Text({
   ...props
 }: Readonly<TextProps>) {
   return (
-    <Component
-      className={cn(textVariants({ variant, size }), className)}
-      {...props}
-    >
+    <Component className={cn(textVariants({ variant, size }), className)} {...props}>
       {children}
     </Component>
   );

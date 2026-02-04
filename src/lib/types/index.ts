@@ -28,12 +28,12 @@ export interface UserContext {
  * Category breakdown item for transaction analysis with NET calculations
  */
 export interface CategoryBreakdownItem {
-  category: string;      // Category key
-  spent: number;         // Total expenses in this category
-  received: number;      // Total income in this category
-  net: number;           // Net position (spent - received, positive = net spending, negative = net income)
-  percentage: number;    // Percentage of total NET spending (for positive NETs only)
-  count: number;         // Number of transactions
+  category: string; // Category key
+  spent: number; // Total expenses in this category
+  received: number; // Total income in this category
+  net: number; // Net position (spent - received, positive = net spending, negative = net income)
+  percentage: number; // Percentage of total NET spending (for positive NETs only)
+  count: number; // Number of transactions
 }
 
 export interface AppError {
@@ -206,10 +206,10 @@ export interface FilterState {
 }
 
 export const AccountTypeMap: Record<AccountType, string> = {
-  'payroll': 'Conto Corrente',
-  'savings': 'Conto Risparmio',
-  'cash': 'Contanti',
-  'investments': 'Investimenti'
+  payroll: 'Conto Corrente',
+  savings: 'Conto Risparmio',
+  cash: 'Contanti',
+  investments: 'Investimenti',
 };
 
 /**

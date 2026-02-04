@@ -19,10 +19,7 @@ interface ReferenceDataState {
   isInitialized: boolean;
 
   // Initialization
-  initialize: (data: {
-    accounts: Account[];
-    categories: Category[];
-  }) => void;
+  initialize: (data: { accounts: Account[]; categories: Category[] }) => void;
   reset: () => void;
 
   // Account optimistic update actions
@@ -59,11 +56,15 @@ export const useReferenceDataStore = create<ReferenceDataState>()(
 
       // Initialize store with data from server
       initialize: (data) => {
-        set({
-          accounts: data.accounts,
-          categories: data.categories,
-          isInitialized: true,
-        }, false, 'reference-data/initialize');
+        set(
+          {
+            accounts: data.accounts,
+            categories: data.categories,
+            isInitialized: true,
+          },
+          false,
+          'reference-data/initialize'
+        );
       },
 
       // Reset store to initial state
@@ -73,23 +74,35 @@ export const useReferenceDataStore = create<ReferenceDataState>()(
 
       // Account actions
       addAccount: (account) => {
-        set((state) => ({
-          accounts: [...state.accounts, account],
-        }), false, 'reference-data/addAccount');
+        set(
+          (state) => ({
+            accounts: [...state.accounts, account],
+          }),
+          false,
+          'reference-data/addAccount'
+        );
       },
 
       updateAccount: (id, updates) => {
-        set((state) => ({
-          accounts: state.accounts.map((account) =>
-            account.id === id ? { ...account, ...updates } : account
-          ),
-        }), false, 'reference-data/updateAccount');
+        set(
+          (state) => ({
+            accounts: state.accounts.map((account) =>
+              account.id === id ? { ...account, ...updates } : account
+            ),
+          }),
+          false,
+          'reference-data/updateAccount'
+        );
       },
 
       removeAccount: (id) => {
-        set((state) => ({
-          accounts: state.accounts.filter((account) => account.id !== id),
-        }), false, 'reference-data/removeAccount');
+        set(
+          (state) => ({
+            accounts: state.accounts.filter((account) => account.id !== id),
+          }),
+          false,
+          'reference-data/removeAccount'
+        );
       },
 
       refreshAccounts: (accounts) => {
@@ -98,23 +111,35 @@ export const useReferenceDataStore = create<ReferenceDataState>()(
 
       // Category actions
       addCategory: (category) => {
-        set((state) => ({
-          categories: [...state.categories, category],
-        }), false, 'reference-data/addCategory');
+        set(
+          (state) => ({
+            categories: [...state.categories, category],
+          }),
+          false,
+          'reference-data/addCategory'
+        );
       },
 
       updateCategory: (id, updates) => {
-        set((state) => ({
-          categories: state.categories.map((category) =>
-            category.key === id ? { ...category, ...updates } : category
-          ),
-        }), false, 'reference-data/updateCategory');
+        set(
+          (state) => ({
+            categories: state.categories.map((category) =>
+              category.key === id ? { ...category, ...updates } : category
+            ),
+          }),
+          false,
+          'reference-data/updateCategory'
+        );
       },
 
       removeCategory: (id) => {
-        set((state) => ({
-          categories: state.categories.filter((category) => category.key !== id),
-        }), false, 'reference-data/removeCategory');
+        set(
+          (state) => ({
+            categories: state.categories.filter((category) => category.key !== id),
+          }),
+          false,
+          'reference-data/removeCategory'
+        );
       },
 
       refreshCategories: (categories) => {
@@ -133,22 +158,19 @@ export const useReferenceDataStore = create<ReferenceDataState>()(
  * Get accounts
  * Subscribes only to accounts changes
  */
-export const useAccounts = () =>
-  useReferenceDataStore((state) => state.accounts);
+export const useAccounts = () => useReferenceDataStore((state) => state.accounts);
 
 /**
  * Get categories
  * Subscribes only to categories changes
  */
-export const useCategories = () =>
-  useReferenceDataStore((state) => state.categories);
+export const useCategories = () => useReferenceDataStore((state) => state.categories);
 
 /**
  * Get initialization status
  * Subscribes only to isInitialized changes
  */
-export const useIsInitialized = () =>
-  useReferenceDataStore((state) => state.isInitialized);
+export const useIsInitialized = () => useReferenceDataStore((state) => state.isInitialized);
 
 /**
  * Get all reference data at once

@@ -1,5 +1,5 @@
-import { Account, User } from "@/lib/types";
-import { FinanceLogicService } from "@/server/services/finance-logic.service";
+import { Account, User } from '@/lib/types';
+import { FinanceLogicService } from '@/server/services/finance-logic.service';
 
 /**
  * Calculates which accounts should be displayed on the dashboard based on user permissions and selection.
@@ -7,23 +7,23 @@ import { FinanceLogicService } from "@/server/services/finance-logic.service";
 // Helper for member view logic
 function getMemberAccounts(accounts: Account[], currentUser: User): Account[] {
   const userFilteredAccounts = accounts.filter((acc) => acc.user_ids.includes(currentUser.id));
-  
+
   if (userFilteredAccounts.length === 1) {
     return userFilteredAccounts;
   }
-  
+
   if (userFilteredAccounts.length > 1 && currentUser.default_account_id) {
     const defaultAccount = accounts.find((a) => a.id === currentUser.default_account_id);
     return defaultAccount ? [defaultAccount] : userFilteredAccounts;
   }
-  
+
   return userFilteredAccounts;
 }
 
 // Helper for manager view logic
 function getManagerAccounts(
-  accounts: Account[], 
-  groupUsers: User[], 
+  accounts: Account[],
+  groupUsers: User[],
   selectedUserId: string | undefined
 ): Account[] {
   // Single account case
@@ -38,9 +38,9 @@ function getManagerAccounts(
       const defaultAccount = accounts.find((a) => a.id === user.default_account_id);
       return defaultAccount ? [defaultAccount] : [];
     }
-    // Fallback if no default account found for selected user? 
+    // Fallback if no default account found for selected user?
     // The original logic returned [] if defaultAccount was missing, preserving that behavior.
-    return []; 
+    return [];
   }
 
   // No specific user selected, use default logic

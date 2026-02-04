@@ -18,22 +18,13 @@ interface AccountSliderCardProps {
   onClick: () => void;
 }
 
-export const AccountSliderCard = ({
-  account,
-  balance,
-  index,
-  onClick,
-}: AccountSliderCardProps) => {
+export const AccountSliderCard = ({ account, balance, index, onClick }: AccountSliderCardProps) => {
   return (
     <div
       className={accountStyles.slider.cardWrapper}
       style={accountStyles.slider.cardDelayStyle(index)}
     >
-      <Suspense
-        fallback={
-          <div className={accountStyles.slider.skeletonCard} />
-        }
-      >
+      <Suspense fallback={<div className={accountStyles.slider.skeletonCard} />}>
         <AccountCard
           account={account}
           accountBalance={balance}

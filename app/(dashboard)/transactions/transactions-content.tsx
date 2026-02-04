@@ -1,26 +1,26 @@
-"use client";
+'use client';
 
 /**
  * Transactions Content - Client Component
  *
  * Handles interactive transactions UI with client-side state management
  * Data is passed from Server Component for optimal performance
- * 
+ *
  * Business logic extracted to useTransactionsContent hook for better
  * separation of concerns.
  */
 
-import { Suspense } from "react";
-import { useTransactionsContent, type UseTransactionsContentProps } from "@/features/transactions";
-import { BottomNavigation, PageContainer, Header } from "@/components/layout";
-import TabNavigation from "@/components/shared/tab-navigation";
-import UserSelector from "@/components/shared/user-selector";
-import { ConfirmationDialog } from "@/components/shared";
-import { RecurringSeriesSection, PauseSeriesModal } from "@/features/recurring";
-import { TransactionDayList, TransactionFilters } from "@/features/transactions";
-import { transactionStyles } from "@/styles/system";
-import { UserSelectorSkeleton } from "@/features/dashboard";
-import { RecurringSeriesSkeleton } from "@/features/transactions/components/transaction-skeletons";
+import { Suspense } from 'react';
+import { useTransactionsContent, type UseTransactionsContentProps } from '@/features/transactions';
+import { BottomNavigation, PageContainer, Header } from '@/components/layout';
+import TabNavigation from '@/components/shared/tab-navigation';
+import UserSelector from '@/components/shared/user-selector';
+import { ConfirmationDialog } from '@/components/shared';
+import { RecurringSeriesSection, PauseSeriesModal } from '@/features/recurring';
+import { TransactionDayList, TransactionFilters } from '@/features/transactions';
+import { transactionStyles } from '@/styles/system';
+import { UserSelectorSkeleton } from '@/features/dashboard';
+import { RecurringSeriesSkeleton } from '@/features/transactions/components/transaction-skeletons';
 
 /**
  * Transactions Content Props (re-export from hook)
@@ -32,12 +32,7 @@ type TransactionsContentProps = UseTransactionsContentProps;
  * Handles interactive transactions UI with state management
  */
 export default function TransactionsContent(props: TransactionsContentProps) {
-  const {
-    currentUser,
-    groupUsers,
-    recurringSeries,
-    categories,
-  } = props;
+  const { currentUser, groupUsers, recurringSeries, categories } = props;
 
   const {
     activeTab,
@@ -92,8 +87,8 @@ export default function TransactionsContent(props: TransactionsContentProps) {
       <div className={transactionStyles.tabNavigation.wrapper}>
         <TabNavigation
           tabs={[
-            { id: "Transactions", label: "Transazioni" },
-            { id: "Recurrent", label: "Ricorrenti" },
+            { id: 'Transactions', label: 'Transazioni' },
+            { id: 'Recurrent', label: 'Ricorrenti' },
           ]}
           activeTab={activeTab}
           onTabChange={setActiveTab}
@@ -104,7 +99,7 @@ export default function TransactionsContent(props: TransactionsContentProps) {
       {/* Main Content */}
       <main className={transactionStyles.page.main}>
         {/* Transaction Filters - Modern 2025 UX */}
-        {activeTab === "Transactions" && (
+        {activeTab === 'Transactions' && (
           <TransactionFilters
             filters={filters}
             onFiltersChange={setFilters}
@@ -115,7 +110,7 @@ export default function TransactionsContent(props: TransactionsContentProps) {
         )}
 
         {/* Transactions Tab Content */}
-        {activeTab === "Transactions" && (
+        {activeTab === 'Transactions' && (
           <>
             <TransactionDayList
               groupedTransactions={dayTotals}
@@ -124,8 +119,8 @@ export default function TransactionsContent(props: TransactionsContentProps) {
               emptyTitle="Nessuna Transazione"
               emptyDescription={
                 selectedUserId
-                  ? "Non ci sono transazioni per questo utente"
-                  : "Non ci sono ancora transazioni. Inizia aggiungendone una!"
+                  ? 'Non ci sono transazioni per questo utente'
+                  : 'Non ci sono ancora transazioni. Inizia aggiungendone una!'
               }
               onEditTransaction={handleEditTransaction}
               onDeleteTransaction={handleDeleteClick}
@@ -147,7 +142,7 @@ export default function TransactionsContent(props: TransactionsContentProps) {
         )}
 
         {/* Recurring Tab Content */}
-        {activeTab === "Recurrent" && (
+        {activeTab === 'Recurrent' && (
           <Suspense fallback={<RecurringSeriesSkeleton />}>
             <RecurringSeriesSection
               series={recurringSeries}
@@ -157,8 +152,8 @@ export default function TransactionsContent(props: TransactionsContentProps) {
               maxItems={10}
               showActions={true}
               showDelete={true}
-              onCreateRecurringSeries={() => openModal("recurring")}
-              onEditRecurringSeries={(series) => openModal("recurring", series.id)}
+              onCreateRecurringSeries={() => openModal('recurring')}
+              onEditRecurringSeries={(series) => openModal('recurring', series.id)}
               onDeleteRecurringSeries={handleRecurringDeleteClick}
               onPauseRecurringSeries={handleRecurringPauseClick}
               groupUsers={groupUsers}

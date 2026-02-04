@@ -92,8 +92,7 @@ export const transactionCacheKeys = {
    * Cache key for transactions by account
    * @param accountId - Account ID
    */
-  byAccount: (accountId: string) =>
-    ['transactions', 'account', accountId] as const,
+  byAccount: (accountId: string) => ['transactions', 'account', accountId] as const,
 
   /**
    * Cache key for transactions by group
@@ -206,8 +205,7 @@ export const budgetPeriodCacheKeys = {
    * Cache key for active budget period by user
    * @param userId - User ID
    */
-  activeByUser: (userId: string) =>
-    ['budget_period', 'user', userId, 'active'] as const,
+  activeByUser: (userId: string) => ['budget_period', 'user', userId, 'active'] as const,
 
   /**
    * Cache key for all budget periods

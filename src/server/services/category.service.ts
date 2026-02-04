@@ -63,11 +63,7 @@ export class CategoryService {
   });
 
   private static async getByIdDb(id: string): Promise<Category | null> {
-    const { data, error } = await supabase
-      .from('categories')
-      .select('*')
-      .eq('id', id)
-      .single();
+    const { data, error } = await supabase.from('categories').select('*').eq('id', id).single();
 
     if (error) {
       if (error.code === 'PGRST116') return null;
@@ -77,11 +73,7 @@ export class CategoryService {
   }
 
   private static readonly getByKeyDb = cache(async (key: string): Promise<Category | null> => {
-    const { data, error } = await supabase
-      .from('categories')
-      .select('*')
-      .eq('key', key)
-      .single();
+    const { data, error } = await supabase.from('categories').select('*').eq('key', key).single();
 
     if (error) {
       if (error.code === 'PGRST116') return null;
@@ -114,10 +106,7 @@ export class CategoryService {
   }
 
   private static async deleteDb(id: string): Promise<void> {
-    const { error } = await supabase
-      .from('categories')
-      .delete()
-      .eq('id', id);
+    const { error } = await supabase.from('categories').delete().eq('id', id);
 
     if (error) throw new Error(error.message);
   }
@@ -168,7 +157,6 @@ export class CategoryService {
     if (error) throw new Error(error.message);
     return (data || []) as Category[];
   }
-
 
   static async getAllCategories(): Promise<Category[]> {
     // Create cached query function

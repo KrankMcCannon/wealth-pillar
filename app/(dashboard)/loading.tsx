@@ -3,8 +3,8 @@
  * Shown while dashboard layout and pages are loading
  */
 
-import { SkeletonBox, SkeletonList } from "@/components/ui/primitives";
-import { dashboardStyles } from "@/features/dashboard/theme/dashboard-styles";
+import { SkeletonBox, SkeletonList } from '@/components/ui/primitives';
+import { dashboardStyles } from '@/features/dashboard/theme/dashboard-styles';
 
 export default function DashboardLoading() {
   return (

@@ -1,14 +1,14 @@
-import { formatCurrency } from "@/lib/utils";
-import type { CategoryStat } from "@/server/services/reports.service";
-import { reportsStyles } from "@/features/reports/theme/reports-styles";
-import { PieChart } from "lucide-react";
+import { formatCurrency } from '@/lib/utils';
+import type { CategoryStat } from '@/server/services/reports.service';
+import { reportsStyles } from '@/features/reports/theme/reports-styles';
+import { PieChart } from 'lucide-react';
 
 interface CategoriesSectionProps {
   incomeStats: CategoryStat[];
   expenseStats: CategoryStat[];
 }
 
-function CategoryList({ title, stats }: { title: string, stats: CategoryStat[] }) {
+function CategoryList({ title, stats }: { title: string; stats: CategoryStat[] }) {
   const total = stats.reduce((acc, s) => acc + s.total, 0);
 
   return (
@@ -21,18 +21,23 @@ function CategoryList({ title, stats }: { title: string, stats: CategoryStat[] }
       <div className={reportsStyles.categories.list}>
         {stats.length === 0 && <p className="text-sm text-primary/60 italic">No data available.</p>}
 
-        {stats.map(stat => {
+        {stats.map((stat) => {
           const percent = total > 0 ? (stat.total / total) * 100 : 0;
           return (
             <div key={stat.id} className={reportsStyles.categories.item}>
               <div className="w-full">
                 <div className="flex flex-col items-start gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-0 mb-1">
                   <div className={reportsStyles.categories.itemLeft}>
-                    <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: stat.color }} />
+                    <div
+                      className="w-2.5 h-2.5 rounded-full"
+                      style={{ backgroundColor: stat.color }}
+                    />
                     <span className={reportsStyles.categories.itemName}>{stat.name}</span>
                   </div>
                   <div className="w-full text-left sm:w-auto sm:text-right">
-                    <div className={reportsStyles.categories.itemAmount}>{formatCurrency(stat.total)}</div>
+                    <div className={reportsStyles.categories.itemAmount}>
+                      {formatCurrency(stat.total)}
+                    </div>
                   </div>
                 </div>
                 <div className={reportsStyles.categories.barContainer}>
@@ -40,7 +45,7 @@ function CategoryList({ title, stats }: { title: string, stats: CategoryStat[] }
                     className={reportsStyles.categories.barFill}
                     style={{
                       width: `${percent}%`,
-                      backgroundColor: stat.color
+                      backgroundColor: stat.color,
                     }}
                   />
                 </div>
@@ -50,7 +55,7 @@ function CategoryList({ title, stats }: { title: string, stats: CategoryStat[] }
         })}
       </div>
     </div>
-  )
+  );
 }
 
 export function CategoriesSection({ incomeStats, expenseStats }: CategoriesSectionProps) {

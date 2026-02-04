@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { AlertTriangle, Loader2 } from "lucide-react";
-import { Button, ModalBody, ModalFooter, ModalWrapper } from "@/components/ui";
-import { settingsStyles } from "@/features/settings/theme";
+import { AlertTriangle, Loader2 } from 'lucide-react';
+import { Button, ModalBody, ModalFooter, ModalWrapper } from '@/components/ui';
+import { settingsStyles } from '@/features/settings/theme';
 
 interface DeleteAccountModalProps {
   isOpen: boolean;
@@ -38,7 +38,6 @@ export function DeleteAccountModal({
       titleClassName={settingsStyles.modals.deleteAccount.title}
       descriptionClassName={settingsStyles.modals.description}
       disableOutsideClose={isDeleting}
-
     >
       <ModalBody>
         <div className={settingsStyles.modals.deleteAccount.body}>
@@ -100,7 +99,7 @@ export function DeleteAccountModal({
               Eliminazione...
             </>
           ) : (
-            "Elimina Account"
+            'Elimina Account'
           )}
         </Button>
       </ModalFooter>

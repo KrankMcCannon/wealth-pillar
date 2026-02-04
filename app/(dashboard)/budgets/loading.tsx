@@ -6,12 +6,9 @@
  * Follows consistent design system and spacing patterns
  */
 
-import { budgetStyles } from "@/styles/system";
-import {
-  BudgetSelectorSkeleton,
-  BudgetCardSkeleton,
-} from '@/features/budgets/components';
-import { SkeletonBox, SkeletonList } from "@/components/ui/primitives";
+import { budgetStyles } from '@/styles/system';
+import { BudgetSelectorSkeleton, BudgetCardSkeleton } from '@/features/budgets/components';
+import { SkeletonBox, SkeletonList } from '@/components/ui/primitives';
 
 export default function BudgetsLoading() {
   return (

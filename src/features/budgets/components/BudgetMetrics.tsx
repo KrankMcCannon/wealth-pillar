@@ -3,10 +3,10 @@
  * Displays financial metrics in 3-column layout (Available, Spent, Total)
  */
 
-"use client";
+'use client';
 
-import { budgetStyles } from "@/styles/system";
-import { formatCurrency } from "@/lib/utils/currency-formatter";
+import { budgetStyles } from '@/styles/system';
+import { formatCurrency } from '@/lib/utils/currency-formatter';
 
 export interface BudgetMetricsProps {
   viewModel: {
@@ -19,7 +19,7 @@ export interface BudgetMetricsProps {
 
 export function BudgetMetrics({ viewModel, budgetAmount }: Readonly<BudgetMetricsProps>) {
   if (viewModel) {
-    const remainingColorClass = viewModel.remaining < 0 ? "text-destructive" : "text-success";
+    const remainingColorClass = viewModel.remaining < 0 ? 'text-destructive' : 'text-success';
 
     return (
       <div className={budgetStyles.metrics.container}>
@@ -34,13 +34,17 @@ export function BudgetMetrics({ viewModel, budgetAmount }: Readonly<BudgetMetric
         {/* Spent Amount */}
         <div className={budgetStyles.metrics.item}>
           <p className={`${budgetStyles.metrics.label} text-destructive`}>Speso</p>
-          <p className={`${budgetStyles.metrics.value} text-destructive`}>{formatCurrency(viewModel.spent)}</p>
+          <p className={`${budgetStyles.metrics.value} text-destructive`}>
+            {formatCurrency(viewModel.spent)}
+          </p>
         </div>
 
         {/* Total Budget */}
         <div className={budgetStyles.metrics.item}>
           <p className={`${budgetStyles.metrics.label} text-primary`}>Totale</p>
-          <p className={`${budgetStyles.metrics.value} text-primary`}>{formatCurrency(budgetAmount)}</p>
+          <p className={`${budgetStyles.metrics.value} text-primary`}>
+            {formatCurrency(budgetAmount)}
+          </p>
         </div>
       </div>
     );
@@ -52,13 +56,17 @@ export function BudgetMetrics({ viewModel, budgetAmount }: Readonly<BudgetMetric
       {/* Available Amount */}
       <div className={budgetStyles.metrics.item}>
         <p className={`${budgetStyles.metrics.label} text-primary`}>Disponibile</p>
-        <p className={`${budgetStyles.metrics.value} text-primary`}>{formatCurrency(budgetAmount)}</p>
+        <p className={`${budgetStyles.metrics.value} text-primary`}>
+          {formatCurrency(budgetAmount)}
+        </p>
       </div>
 
       {/* Total Budget */}
       <div className={budgetStyles.metrics.item}>
         <p className={`${budgetStyles.metrics.label} text-primary`}>Totale</p>
-        <p className={`${budgetStyles.metrics.value} text-primary`}>{formatCurrency(budgetAmount)}</p>
+        <p className={`${budgetStyles.metrics.value} text-primary`}>
+          {formatCurrency(budgetAmount)}
+        </p>
       </div>
     </div>
   );
