@@ -60,12 +60,6 @@ export function toDateTime(date: DateInput): DateTime | null {
     // Try SQL format
     dt = DateTime.fromSQL(date);
     if (dt.isValid) return dt;
-
-    // Try common formats
-    dt = DateTime.fromFormat(date, 'yyyy-MM-dd', { zone: 'Europe/Rome' });
-    if (dt.isValid) return dt.startOf('day');
-
-    return null;
   }
 
   return null;
@@ -76,8 +70,8 @@ export function toDateTime(date: DateInput): DateTime | null {
  */
 export function toISOString(date: DateInput): string {
   const dt = toDateTime(date);
-  if (!dt) return DateTime.now().toISO() ?? '';
-  return dt.toISO() ?? '';
+  if (!dt) return DateTime.now().toISO();
+  return dt.toISO()!;
 }
 
 /**
@@ -85,8 +79,8 @@ export function toISOString(date: DateInput): string {
  */
 export function toDateString(date: DateInput): string {
   const dt = toDateTime(date);
-  if (!dt) return DateTime.now().toISODate() ?? '';
-  return dt.toISODate() ?? '';
+  if (!dt) return DateTime.now().toISODate();
+  return dt.toISODate()!;
 }
 
 /**
@@ -127,14 +121,14 @@ export function yesterday(): DateTime {
  * Get current timestamp as ISO string
  */
 export function nowISO(): string {
-  return DateTime.now().toISO() ?? '';
+  return DateTime.now().toISO();
 }
 
 /**
  * Get today's date as YYYY-MM-DD string
  */
 export function todayDateString(): string {
-  return DateTime.now().toISODate() ?? '';
+  return DateTime.now().toISODate();
 }
 
 // ============================================================================
@@ -368,7 +362,7 @@ export function endOf(date: DateInput, unit: 'day' | 'week' | 'month' | 'year'):
  * Get days in a specific month
  */
 export function getDaysInMonth(year: number, month: number): number {
-  return DateTime.local(year, month).daysInMonth ?? 30;
+  return DateTime.local(year, month).daysInMonth!;
 }
 
 /**
