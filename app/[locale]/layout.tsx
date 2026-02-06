@@ -4,7 +4,7 @@ import { Spline_Sans } from 'next/font/google';
 import { ClerkProvider } from '@clerk/nextjs';
 import { Toaster } from '@/components/ui';
 import { ThemeProvider } from '@/components/theme-provider';
-import { NextIntlClientProvider } from 'next-intl';
+import { hasLocale, NextIntlClientProvider } from 'next-intl';
 import { getMessages, setRequestLocale } from 'next-intl/server';
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import { notFound } from 'next/navigation';
@@ -41,6 +41,23 @@ export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
 }
 
+async function withTimeout<T>(promise: Promise<T>, timeoutMs: number, fallback: T): Promise<T> {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<T>((resolve) => {
+        timeoutId = setTimeout(() => resolve(fallback), timeoutMs);
+      }),
+    ]);
+  } catch {
+    return fallback;
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId);
+  }
+}
+
 /**
  * Locale Layout
  *
@@ -53,33 +70,32 @@ export default async function LocaleLayout({
   children: React.ReactNode;
   params: Promise<{ locale: string }>;
 }>): Promise<React.JSX.Element> {
-  // Ensure that the incoming `locale` is valid
-
   const { locale } = await params;
 
-  // Validate locale
-  if (!routing.locales.includes(locale as 'it' | 'en')) {
+  if (!hasLocale(routing.locales, locale)) {
     notFound();
   }
 
-  // Enable static rendering
   setRequestLocale(locale);
-
-  // Providing all messages to the client
-  // side is the easiest way to get started
   const messages = await getMessages();
-
-  // Restore dashboard provider chain required by global modals
   const currentUser = await getCurrentUser();
 
   let appContent: React.ReactNode = children;
 
   if (currentUser) {
     if (currentUser.group_id) {
+      type GroupUsers = Awaited<ReturnType<typeof getGroupUsers>>;
+      type GroupAccounts = Awaited<ReturnType<typeof AccountService.getAccountsByGroup>>;
+      type AllCategories = Awaited<ReturnType<typeof CategoryService.getAllCategories>>;
+
       const [groupUsers, accounts, categories] = await Promise.all([
-        getGroupUsers(),
-        AccountService.getAccountsByGroup(currentUser.group_id),
-        CategoryService.getAllCategories(),
+        withTimeout(getGroupUsers(), 1500, [currentUser] as GroupUsers),
+        withTimeout(
+          AccountService.getAccountsByGroup(currentUser.group_id),
+          1500,
+          [] as GroupAccounts
+        ),
+        withTimeout(CategoryService.getAllCategories(), 1200, [] as AllCategories),
       ]);
 
       appContent = (

@@ -11,9 +11,13 @@ import { PageDataService } from '@/server/services';
 import TransactionsContent from './transactions-content';
 import TransactionPageLoading from './loading';
 
-export default async function TransactionsPage() {
+export default async function TransactionsPage({
+  params,
+}: Readonly<{ params: Promise<{ locale: string }> }>) {
+  const { locale } = await params;
+
   const currentUser = await getCurrentUser();
-  if (!currentUser) redirect('/sign-in');
+  if (!currentUser) redirect(`/${locale}/sign-in`);
   const groupUsers = await getGroupUsers();
 
   // Fetch paginated transactions (first 50) with other page data

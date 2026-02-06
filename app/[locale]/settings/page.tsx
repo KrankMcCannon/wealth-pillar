@@ -44,9 +44,13 @@ async function withTimeout<T>(
   }
 }
 
-export default async function SettingsPage() {
+export default async function SettingsPage({
+  params,
+}: Readonly<{ params: Promise<{ locale: string }> }>) {
+  const { locale } = await params;
+
   const currentUser = await getCurrentUser();
-  if (!currentUser) redirect('/sign-in');
+  if (!currentUser) redirect(`/${locale}/sign-in`);
   const t = await getTranslations('SettingsPage');
   type GroupUsersResult = Awaited<ReturnType<typeof UserService.getUsersByGroup>>;
 

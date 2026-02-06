@@ -1,12 +1,13 @@
 'use client';
 
 import { useEffect, useMemo, useCallback } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { useLocale } from 'next-intl';
 import { usePageDataStore } from '@/stores/page-data-store';
 import { useUserFilter, useIdNameMap } from '@/hooks';
 import { toDateTime, toDateString, formatDateSmart } from '@/lib/utils/date-utils';
 import { Budget, Transaction, Category, User, UserBudgetSummary, Account } from '@/lib/types';
+import { useRouter } from '@/i18n/routing';
 
 interface UseBudgetSummaryContentProps {
   categories: Category[];

@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
 import { useAuth, useUser, useSignUp, useSignIn } from '@clerk/nextjs';
 import { getAllCategoriesAction } from '@/features/categories/actions/category-actions';
 import { completeOnboardingAction, checkUserExistsAction } from '@/features/onboarding/actions';
 import type { Category } from '@/lib/types';
 import type { OnboardingPayload } from '@/features/onboarding/types';
 import type { SignUpResource, SignInResource, SetActive } from '@clerk/types';
+import { useRouter } from '@/i18n/routing';
 
 // ============================================================================
 // TYPES

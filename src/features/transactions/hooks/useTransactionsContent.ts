@@ -6,7 +6,7 @@
  */
 
 import { useState, useMemo, useEffect, useCallback } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { useLocale } from 'next-intl';
 import {
   useUserFilter,
@@ -30,6 +30,7 @@ import { deleteTransactionAction } from '@/features/transactions/actions/transac
 import { deleteRecurringSeriesAction } from '@/features/recurring/actions/recurring-actions';
 import { useModalState, useTabState, type ModalType } from '@/lib/navigation/url-state';
 import { usePageDataStore } from '@/stores/page-data-store';
+import { useRouter } from '@/i18n/routing';
 
 // ============================================================================
 // Types

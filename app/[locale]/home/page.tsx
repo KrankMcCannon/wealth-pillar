@@ -12,12 +12,16 @@ import { PageDataService } from '@/server/services';
 import HomeContent from './home-content';
 import HomePageLoading from './loading';
 
-export default async function HomePage() {
+export default async function HomePage({
+  params,
+}: Readonly<{ params: Promise<{ locale: string }> }>) {
+  const { locale } = await params;
+
   // Use cached auth - same data as layout, no extra DB calls
   const currentUser = await getCurrentUser();
 
   if (!currentUser) {
-    redirect('/sign-in');
+    redirect(`/${locale}/sign-in`);
   }
 
   // Get group users (cached per request)

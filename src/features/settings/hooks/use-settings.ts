@@ -2,11 +2,11 @@
 
 import { useState, useOptimistic, startTransition } from 'react';
 import { useUser, useClerk } from '@clerk/nextjs';
-import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { updateUserPreferencesAction, deleteUserAction } from '../actions';
 import type { UserPreferences } from '@/server/services';
 import type { User, UserPreferencesUpdate } from '@/lib/types';
+import { useRouter } from '@/i18n/routing';
 
 export function useSettings(
   currentUser: User,

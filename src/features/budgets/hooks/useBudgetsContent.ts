@@ -13,7 +13,7 @@
  */
 
 import { useState, useMemo, useEffect, useCallback } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import {
   useDeleteConfirmation,
@@ -46,6 +46,7 @@ import type {
 } from '@/lib/types';
 import type { GroupedTransaction } from '@/features/transactions';
 import type { ChartDataPoint } from '../components/BudgetChart';
+import { useRouter } from '@/i18n/routing';
 
 // ============================================================================
 // Types

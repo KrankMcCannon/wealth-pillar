@@ -1,8 +1,8 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import { BottomNavigation, PageContainer, Header } from '@/components/layout';
+import { useRouter } from '@/i18n/routing';
 import {
   DeleteAccountModal,
   EditProfileModal,

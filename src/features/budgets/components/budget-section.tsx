@@ -1,7 +1,6 @@
 'use client';
 
 import { Suspense } from 'react';
-import { useRouter } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import type { Budget, BudgetPeriod, User } from '@/lib';
 import { progressBarVariants } from '@/lib';
@@ -16,6 +15,7 @@ import {
   getBudgetGroupCardStyle,
   getBudgetSectionProgressBarStyle,
 } from '@/styles/system';
+import { useRouter } from '@/i18n/routing';
 
 interface BudgetSectionProps {
   budgetsByUser: Record<

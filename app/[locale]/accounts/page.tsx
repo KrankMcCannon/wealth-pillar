@@ -9,9 +9,13 @@ import { PageDataService } from '@/server/services';
 import AccountsContent from './accounts-content';
 import { AccountHeaderSkeleton } from '@/features/accounts/components/account-skeletons';
 
-export default async function AccountsPage() {
+export default async function AccountsPage({
+  params,
+}: Readonly<{ params: Promise<{ locale: string }> }>) {
+  const { locale } = await params;
+
   const currentUser = await getCurrentUser();
-  if (!currentUser) redirect('/sign-in');
+  if (!currentUser) redirect(`/${locale}/sign-in`);
   const groupUsers = await getGroupUsers();
 
   // Fetch accounts page data and categories in parallel

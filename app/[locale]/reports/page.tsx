@@ -6,9 +6,13 @@ import { ReportsService } from '@/server/services/reports.service';
 import { PageLoader } from '@/components/shared';
 import ReportsContent from './reports-content';
 
-export default async function ReportsPage() {
+export default async function ReportsPage({
+  params,
+}: Readonly<{ params: Promise<{ locale: string }> }>) {
+  const { locale } = await params;
+
   const currentUser = await getCurrentUser();
-  if (!currentUser) redirect('/sign-in');
+  if (!currentUser) redirect(`/${locale}/sign-in`);
   const t = await getTranslations('ReportsPage');
 
   // Execute in parallel

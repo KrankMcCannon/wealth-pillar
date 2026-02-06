@@ -9,9 +9,13 @@ import { PageDataService } from '@/server/services';
 import BudgetSummaryContent from './budget-summary-content';
 import { BudgetSelectorSkeleton } from '@/features/budgets/components';
 
-export default async function BudgetSummaryPage() {
+export default async function BudgetSummaryPage({
+  params,
+}: Readonly<{ params: Promise<{ locale: string }> }>) {
+  const { locale } = await params;
+
   const currentUser = await getCurrentUser();
-  if (!currentUser) redirect('/sign-in');
+  if (!currentUser) redirect(`/${locale}/sign-in`);
   const groupUsers = await getGroupUsers();
 
   // Fetch all budget page data

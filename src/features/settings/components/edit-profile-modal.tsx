@@ -2,7 +2,6 @@
 
 import * as React from 'react';
 import { useForm } from 'react-hook-form';
-import { useRouter } from 'next/navigation';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useTranslations } from 'next-intl';
@@ -14,6 +13,7 @@ import { updateUserProfileAction } from '@/features/settings';
 import { settingsStyles } from '@/features/settings/theme';
 import { SettingsModalField } from './settings-modal-form';
 import { cn } from '@/lib/utils';
+import { useRouter } from '@/i18n/routing';
 
 // ============================================================================
 // VALIDATION SCHEMA

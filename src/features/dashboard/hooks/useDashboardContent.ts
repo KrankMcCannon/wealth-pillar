@@ -7,13 +7,13 @@
  * Handles state management, calculations, and event handlers
  */
 import { useEffect, useMemo, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
 import { useUserFilter, usePermissions, useFilteredAccounts } from '@/hooks';
 import { useModalState } from '@/lib/navigation/url-state';
 import { usePageDataStore, useBudgetPeriod } from '@/stores/page-data-store';
 import { calculateDisplayedAccounts } from './dashboard-helpers';
 import type { Account, Budget, BudgetPeriod, User, UserBudgetSummary } from '@/lib/types';
 import type { RecurringTransactionSeries } from '@/lib';
+import { useRouter } from '@/i18n/routing';
 
 /**
  * Input parameters for useDashboardContent hook

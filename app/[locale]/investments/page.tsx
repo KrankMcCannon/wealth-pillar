@@ -26,14 +26,16 @@ async function withTimeout<T>(promise: Promise<T>, timeoutMs: number, fallback: 
 }
 
 export default async function InvestmentsPage(props: {
+  params: Promise<{ locale: string }>;
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
+  const { locale } = await props.params;
   const t = await getTranslations('InvestmentsPage');
   const searchParams = await props.searchParams;
   const indexSymbol = typeof searchParams.index === 'string' ? searchParams.index : 'IVV';
 
   const currentUser = await getCurrentUser();
-  if (!currentUser) redirect('/sign-in');
+  if (!currentUser) redirect(`/${locale}/sign-in`);
   const groupUsers = await getGroupUsers();
 
   // Keep benchmark fetch non-blocking to avoid slow external API/cache misses delaying navigation.

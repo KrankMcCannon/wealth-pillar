@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.7.1] - 2026-02-06
+
+### Fixed
+
+- **i18n**: Fixed broken redirects by appending locale prefix to ensure language persistence.
+- **i18n**: Replaced raw `next/navigation` imports with type-safe localized wrappers to support routing configuration.
+- **i18n**: Improved request locale validation and type safety in `request.ts`.
+
 ## [0.7.0] - 2026-02-06
 
 ### Added
