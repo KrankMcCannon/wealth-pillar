@@ -1,6 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { getTranslations } from 'next-intl/server';
 
 import { getCurrentUser } from '@/lib/auth/cached-auth';
 import { CreateBudgetInput, BudgetService } from '@/server/services';
@@ -12,23 +13,35 @@ type ServiceResult<T> = {
   error: string | null;
 };
 
+async function getBudgetsActionTranslator(locale?: string) {
+  if (locale) {
+    return getTranslations({ locale, namespace: 'Budgets.Actions' });
+  }
+  return getTranslations('Budgets.Actions');
+}
+
 /**
  * Server Action: Create Budget
  * Wrapper for BudgetService.createBudget with additional validation
  */
-export async function createBudgetAction(input: CreateBudgetInput): Promise<ServiceResult<Budget>> {
+export async function createBudgetAction(
+  input: CreateBudgetInput,
+  locale?: string
+): Promise<ServiceResult<Budget>> {
+  let t: Awaited<ReturnType<typeof getTranslations>> | null = null;
   try {
+    t = await getBudgetsActionTranslator(locale);
     // Authentication check (cached per request)
     const currentUser = await getCurrentUser();
     if (!currentUser) {
-      return { data: null, error: 'Non autenticato. Effettua il login per continuare.' };
+      return { data: null, error: t('errors.unauthenticated') };
     }
 
     // Permission validation: members can only create for themselves
     if (isMember(currentUser as unknown as User) && input.user_id !== currentUser.id) {
       return {
         data: null,
-        error: 'Non hai i permessi per creare budget per altri utenti',
+        error: t('errors.noPermissionCreateOthers'),
       };
     }
 
@@ -36,7 +49,7 @@ export async function createBudgetAction(input: CreateBudgetInput): Promise<Serv
     if (!input.user_id) {
       return {
         data: null,
-        error: "L'utente è obbligatorio",
+        error: t('errors.userRequired'),
       };
     }
 
@@ -44,7 +57,7 @@ export async function createBudgetAction(input: CreateBudgetInput): Promise<Serv
     if (!canAccessUserData(currentUser as unknown as User, input.user_id)) {
       return {
         data: null,
-        error: 'Non hai i permessi per accedere ai dati di questo utente',
+        error: t('errors.noPermissionUserData'),
       };
     }
 
@@ -60,16 +73,17 @@ export async function createBudgetAction(input: CreateBudgetInput): Promise<Serv
     if (budget) {
       // Revalidate paths
       revalidatePath('/budgets');
-      revalidatePath('/dashboard');
+      revalidatePath('/home');
 
       return { data: budget, error: null };
     }
 
-    return { data: null, error: 'Failed to create budget' };
+    return { data: null, error: t('errors.createFailed') };
   } catch (error) {
     return {
       data: null,
-      error: error instanceof Error ? error.message : 'Failed to create budget',
+      error:
+        error instanceof Error ? error.message : (t?.('errors.createFailed') ?? 'Failed to create budget'),
     };
   }
 }
@@ -79,13 +93,16 @@ export async function createBudgetAction(input: CreateBudgetInput): Promise<Serv
  */
 export async function updateBudgetAction(
   id: string,
-  input: Partial<CreateBudgetInput>
+  input: Partial<CreateBudgetInput>,
+  locale?: string
 ): Promise<ServiceResult<Budget>> {
+  let t: Awaited<ReturnType<typeof getTranslations>> | null = null;
   try {
+    t = await getBudgetsActionTranslator(locale);
     // Authentication check (cached per request)
     const currentUser = await getCurrentUser();
     if (!currentUser) {
-      return { data: null, error: 'Non autenticato. Effettua il login per continuare.' };
+      return { data: null, error: t('errors.unauthenticated') };
     }
 
     // Get existing budget to verify ownership
@@ -95,7 +112,7 @@ export async function updateBudgetAction(
     if (!existingBudget.user_id) {
       return {
         data: null,
-        error: 'Il budget non ha un utente assegnato',
+        error: t('errors.userMissing'),
       };
     }
 
@@ -103,7 +120,7 @@ export async function updateBudgetAction(
     if (!canAccessUserData(currentUser as unknown as User, existingBudget.user_id)) {
       return {
         data: null,
-        error: 'Non hai i permessi per modificare questo budget',
+        error: t('errors.noPermissionUpdate'),
       };
     }
 
@@ -112,14 +129,14 @@ export async function updateBudgetAction(
       if (isMember(currentUser as unknown as User)) {
         return {
           data: null,
-          error: 'Non puoi assegnare il budget a un altro utente',
+          error: t('errors.cannotReassignAsMember'),
         };
       }
 
       if (!canAccessUserData(currentUser as unknown as User, input.user_id)) {
         return {
           data: null,
-          error: 'Non hai i permessi per assegnare questo budget a questo utente',
+          error: t('errors.noPermissionAssignUser'),
         };
       }
     }
@@ -129,16 +146,17 @@ export async function updateBudgetAction(
     if (budget) {
       // Revalidate paths
       revalidatePath('/budgets');
-      revalidatePath('/dashboard');
+      revalidatePath('/home');
 
       return { data: budget, error: null };
     }
 
-    return { data: null, error: 'Failed to update budget' };
+    return { data: null, error: t('errors.updateFailed') };
   } catch (error) {
     return {
       data: null,
-      error: error instanceof Error ? error.message : 'Failed to update budget',
+      error:
+        error instanceof Error ? error.message : (t?.('errors.updateFailed') ?? 'Failed to update budget'),
     };
   }
 }
@@ -146,12 +164,17 @@ export async function updateBudgetAction(
 /**
  * Server Action: Delete Budget
  */
-export async function deleteBudgetAction(id: string): Promise<ServiceResult<{ id: string }>> {
+export async function deleteBudgetAction(
+  id: string,
+  locale?: string
+): Promise<ServiceResult<{ id: string }>> {
+  let t: Awaited<ReturnType<typeof getTranslations>> | null = null;
   try {
+    t = await getBudgetsActionTranslator(locale);
     // Authentication check (cached per request)
     const currentUser = await getCurrentUser();
     if (!currentUser) {
-      return { data: null, error: 'Non autenticato. Effettua il login per continuare.' };
+      return { data: null, error: t('errors.unauthenticated') };
     }
 
     // Get existing budget to verify ownership
@@ -161,7 +184,7 @@ export async function deleteBudgetAction(id: string): Promise<ServiceResult<{ id
     if (!existingBudget.user_id) {
       return {
         data: null,
-        error: 'Il budget non ha un utente assegnato',
+        error: t('errors.userMissing'),
       };
     }
 
@@ -169,7 +192,7 @@ export async function deleteBudgetAction(id: string): Promise<ServiceResult<{ id
     if (!canAccessUserData(currentUser as unknown as User, existingBudget.user_id)) {
       return {
         data: null,
-        error: 'Non hai i permessi per eliminare questo budget',
+        error: t('errors.noPermissionDelete'),
       };
     }
 
@@ -178,16 +201,17 @@ export async function deleteBudgetAction(id: string): Promise<ServiceResult<{ id
     if (result) {
       // Revalidate paths
       revalidatePath('/budgets');
-      revalidatePath('/dashboard');
+      revalidatePath('/home');
 
       return { data: { id }, error: null };
     }
 
-    return { data: null, error: 'Failed to delete budget' };
+    return { data: null, error: t('errors.deleteFailed') };
   } catch (error) {
     return {
       data: null,
-      error: error instanceof Error ? error.message : 'Failed to delete budget',
+      error:
+        error instanceof Error ? error.message : (t?.('errors.deleteFailed') ?? 'Failed to delete budget'),
     };
   }
 }

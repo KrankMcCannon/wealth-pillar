@@ -2,6 +2,7 @@ import { formatCurrency } from '@/lib/utils';
 import type { CategoryStat } from '@/server/services/reports.service';
 import { reportsStyles } from '@/features/reports/theme/reports-styles';
 import { PieChart } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface CategoriesSectionProps {
   incomeStats: CategoryStat[];
@@ -10,6 +11,7 @@ interface CategoriesSectionProps {
 
 function CategoryList({ title, stats }: { title: string; stats: CategoryStat[] }) {
   const total = stats.reduce((acc, s) => acc + s.total, 0);
+  const t = useTranslations('Reports.CategoriesSection');
 
   return (
     <div className={reportsStyles.categories.col}>
@@ -19,7 +21,7 @@ function CategoryList({ title, stats }: { title: string; stats: CategoryStat[] }
       </div>
 
       <div className={reportsStyles.categories.list}>
-        {stats.length === 0 && <p className="text-sm text-primary/60 italic">No data available.</p>}
+        {stats.length === 0 && <p className="text-sm text-primary/60 italic">{t('empty')}</p>}
 
         {stats.map((stat) => {
           const percent = total > 0 ? (stat.total / total) * 100 : 0;
@@ -59,15 +61,17 @@ function CategoryList({ title, stats }: { title: string; stats: CategoryStat[] }
 }
 
 export function CategoriesSection({ incomeStats, expenseStats }: CategoriesSectionProps) {
+  const t = useTranslations('Reports.CategoriesSection');
+
   return (
     <div className="space-y-6">
       <h3 className={reportsStyles.periods.sectionTitle}>
         <PieChart className="w-5 h-5" />
-        Category Breakdown
+        {t('title')}
       </h3>
       <div className={reportsStyles.categories.grid}>
-        <CategoryList title="Income" stats={incomeStats} />
-        <CategoryList title="Expenses" stats={expenseStats} />
+        <CategoryList title={t('incomeTitle')} stats={incomeStats} />
+        <CategoryList title={t('expensesTitle')} stats={expenseStats} />
       </div>
     </div>
   );

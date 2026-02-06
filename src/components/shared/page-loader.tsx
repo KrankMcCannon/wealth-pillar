@@ -1,3 +1,6 @@
+'use client';
+
+import { useTranslations } from 'next-intl';
 import { pageLoaderStyles } from './theme/page-loader-styles';
 
 interface PageLoaderProps {
@@ -5,10 +8,11 @@ interface PageLoaderProps {
   submessage?: string;
 }
 
-export function PageLoader({
-  message = 'Caricamento...',
-  submessage = 'Attendere prego',
-}: Readonly<PageLoaderProps>) {
+export function PageLoader({ message, submessage }: Readonly<PageLoaderProps>) {
+  const t = useTranslations('Common.PageLoader');
+  const resolvedMessage = message ?? t('message');
+  const resolvedSubmessage = submessage ?? t('submessage');
+
   return (
     <div className={pageLoaderStyles.page}>
       <div className={pageLoaderStyles.container}>
@@ -28,8 +32,8 @@ export function PageLoader({
               />
             </svg>
           </div>
-          <p className={pageLoaderStyles.message}>{message}</p>
-          <p className={pageLoaderStyles.submessage}>{submessage}</p>
+          <p className={pageLoaderStyles.message}>{resolvedMessage}</p>
+          <p className={pageLoaderStyles.submessage}>{resolvedSubmessage}</p>
         </div>
       </div>
     </div>

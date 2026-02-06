@@ -2,6 +2,8 @@
 
 import * as React from 'react';
 import { Check, Loader2 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
+import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { ModalBody, ModalFooter, ModalWrapper } from '@/components/ui/modal-wrapper';
 import { toast } from '@/hooks/use-toast';
@@ -9,6 +11,8 @@ import { updateUserPreferencesAction } from '@/features/settings';
 import type { UserPreferencesUpdate } from '@/lib/types';
 import { cn } from '@/lib';
 import { settingsStyles } from '@/features/settings/theme';
+import { ITFlag, USFlag } from '@/components/ui/icons/flags';
+import { usePathname, useRouter } from '@/i18n/routing';
 
 // ============================================================================
 // TYPES & INTERFACES
@@ -18,6 +22,7 @@ export interface PreferenceOption {
   value: string;
   label: string;
   description: string;
+  icon?: React.ReactNode;
 }
 
 export interface PreferenceSelectModalProps {
@@ -73,8 +78,13 @@ export function PreferenceSelectModal({
   preferenceKey,
   onSuccess,
 }: Readonly<PreferenceSelectModalProps>) {
+  const t = useTranslations('SettingsModals.PreferenceSelect');
   const [selectedValue, setSelectedValue] = React.useState(currentValue);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   // Reset selected value when modal opens or currentValue changes
   React.useEffect(() => {
@@ -87,15 +97,13 @@ export function PreferenceSelectModal({
     // Check if value changed
     if (selectedValue === currentValue) {
       toast({
-        title: 'Nessuna modifica',
-        description: 'Il valore selezionato è già quello attuale',
+        title: t('toast.noChangesTitle'),
+        description: t('toast.noChangesDescription'),
         variant: 'info',
       });
       onOpenChange(false);
       return;
     }
-
-    setIsSubmitting(true);
 
     try {
       // Call server action with appropriate preference key
@@ -103,11 +111,59 @@ export function PreferenceSelectModal({
         [preferenceKey]: selectedValue,
       };
 
+      const selectedOption = options.find((opt) => opt.value === selectedValue);
+
+      // Language changes should feel immediate: switch locale first,
+      // then persist the preference asynchronously.
+      if (preferenceKey === 'language') {
+        const routingLocale = selectedValue.toLowerCase().startsWith('en') ? 'en' : 'it';
+        const queryString = searchParams.toString();
+        const href = queryString ? `${pathname}?${queryString}` : pathname;
+
+        toast({
+          title: t('toast.updatedTitle'),
+          description: t('toast.updatedDescription', {
+            title,
+            value: selectedOption?.label || selectedValue,
+          }),
+          variant: 'success',
+        });
+
+        if (onSuccess) {
+          onSuccess(selectedValue);
+        }
+
+        onOpenChange(false);
+        router.replace(href, { locale: routingLocale });
+
+        void updateUserPreferencesAction(userId, updates)
+          .then(({ error }) => {
+            if (error) {
+              toast({
+                title: t('toast.errorTitle'),
+                description: error,
+                variant: 'destructive',
+              });
+            }
+          })
+          .catch(() => {
+            toast({
+              title: t('toast.errorTitle'),
+              description: t('toast.updateErrorDescription'),
+              variant: 'destructive',
+            });
+          });
+
+        return;
+      }
+
+      setIsSubmitting(true);
+
       const { error } = await updateUserPreferencesAction(userId, updates);
 
       if (error) {
         toast({
-          title: 'Errore',
+          title: t('toast.errorTitle'),
           description: error,
           variant: 'destructive',
         });
@@ -116,10 +172,12 @@ export function PreferenceSelectModal({
       }
 
       // Show success toast
-      const selectedOption = options.find((opt) => opt.value === selectedValue);
       toast({
-        title: 'Preferenza aggiornata',
-        description: `${title} impostato su ${selectedOption?.label || selectedValue}`,
+        title: t('toast.updatedTitle'),
+        description: t('toast.updatedDescription', {
+          title,
+          value: selectedOption?.label || selectedValue,
+        }),
         variant: 'success',
       });
 
@@ -134,8 +192,8 @@ export function PreferenceSelectModal({
     } catch (error) {
       console.error('Error updating preference:', error);
       toast({
-        title: 'Errore',
-        description: "Si è verificato un errore durante l'aggiornamento",
+        title: t('toast.errorTitle'),
+        description: t('toast.updateErrorDescription'),
         variant: 'destructive',
       });
       setIsSubmitting(false);
@@ -183,6 +241,13 @@ export function PreferenceSelectModal({
                   {isSelected && <Check className={settingsStyles.modals.preference.radioIcon} />}
                 </div>
 
+                {/* Icon if present */}
+                {option.icon && (
+                  <div className="mr-3 w-8 h-8 rounded-full overflow-hidden shrink-0 border border-border">
+                    {option.icon}
+                  </div>
+                )}
+
                 {/* Content */}
                 <div className={settingsStyles.modals.preference.content}>
                   <div className={settingsStyles.modals.preference.titleRow}>
@@ -197,7 +262,9 @@ export function PreferenceSelectModal({
                       {option.label}
                     </span>
                     {isCurrent && (
-                      <span className={settingsStyles.modals.preference.currentBadge}>Attuale</span>
+                      <span className={settingsStyles.modals.preference.currentBadge}>
+                        {t('currentBadge')}
+                      </span>
                     )}
                   </div>
                   <p className={settingsStyles.modals.preference.description}>
@@ -216,7 +283,7 @@ export function PreferenceSelectModal({
           disabled={isSubmitting}
           className={settingsStyles.modals.actionsButton}
         >
-          Annulla
+          {t('cancelButton')}
         </Button>
         <Button
           onClick={handleSave}
@@ -226,10 +293,10 @@ export function PreferenceSelectModal({
           {isSubmitting ? (
             <>
               <Loader2 className={settingsStyles.modals.loadingIcon} />
-              Salvataggio...
+              {t('savingButton')}
             </>
           ) : (
-            'Salva'
+            t('saveButton')
           )}
         </Button>
       </ModalFooter>
@@ -241,110 +308,100 @@ export function PreferenceSelectModal({
 // PREDEFINED OPTIONS
 // ============================================================================
 
-/**
- * Currency options for PreferenceSelectModal
- */
-export const CURRENCY_OPTIONS: PreferenceOption[] = [
-  {
-    value: 'EUR',
-    label: 'Euro (€)',
-    description: "Valuta ufficiale dell'Unione Europea",
-  },
-  {
-    value: 'USD',
-    label: 'Dollaro Americano ($)',
-    description: 'Valuta ufficiale degli Stati Uniti',
-  },
-  {
-    value: 'GBP',
-    label: 'Sterlina Britannica (£)',
-    description: 'Valuta ufficiale del Regno Unito',
-  },
-  {
-    value: 'CHF',
-    label: 'Franco Svizzero (CHF)',
-    description: 'Valuta ufficiale della Svizzera',
-  },
-];
+interface PreferenceOptions {
+  currencyOptions: PreferenceOption[];
+  languageOptions: PreferenceOption[];
+  timezoneOptions: PreferenceOption[];
+}
 
 /**
- * Language options for PreferenceSelectModal
+ * Translation-aware preference options.
+ * Keeps labels/descriptions localized without hardcoded user-facing text.
  */
-export const LANGUAGE_OPTIONS: PreferenceOption[] = [
-  {
-    value: 'it-IT',
-    label: 'Italiano',
-    description: 'Lingua italiana',
-  },
-  {
-    value: 'en-US',
-    label: 'English (US)',
-    description: 'American English',
-  },
-  {
-    value: 'en-GB',
-    label: 'English (UK)',
-    description: 'British English',
-  },
-  {
-    value: 'fr-FR',
-    label: 'Français',
-    description: 'Langue française',
-  },
-  {
-    value: 'de-DE',
-    label: 'Deutsch',
-    description: 'Deutsche Sprache',
-  },
-  {
-    value: 'es-ES',
-    label: 'Español',
-    description: 'Idioma español',
-  },
-];
+export function usePreferenceOptions(): PreferenceOptions {
+  const t = useTranslations('SettingsOptions');
 
-/**
- * Timezone options for PreferenceSelectModal
- */
-export const TIMEZONE_OPTIONS: PreferenceOption[] = [
-  {
-    value: 'Europe/Rome',
-    label: 'Roma (GMT+1)',
-    description: "Fuso orario dell'Italia centrale",
-  },
-  {
-    value: 'Europe/London',
-    label: 'Londra (GMT+0)',
-    description: 'Fuso orario del Regno Unito',
-  },
-  {
-    value: 'Europe/Paris',
-    label: 'Parigi (GMT+1)',
-    description: 'Fuso orario della Francia',
-  },
-  {
-    value: 'Europe/Berlin',
-    label: 'Berlino (GMT+1)',
-    description: 'Fuso orario della Germania',
-  },
-  {
-    value: 'America/New_York',
-    label: 'New York (GMT-5)',
-    description: 'Fuso orario della costa est USA',
-  },
-  {
-    value: 'America/Los_Angeles',
-    label: 'Los Angeles (GMT-8)',
-    description: 'Fuso orario della costa ovest USA',
-  },
-  {
-    value: 'Asia/Tokyo',
-    label: 'Tokyo (GMT+9)',
-    description: 'Fuso orario del Giappone',
-  },
-  {
-    value: 'Australia/Sydney',
-    label: 'Sydney (GMT+10)',
-    description: "Fuso orario dell'Australia orientale",
-  },
-];
+  return React.useMemo(
+    () => ({
+      currencyOptions: [
+        {
+          value: 'EUR',
+          label: t('currency.EUR.label'),
+          description: t('currency.EUR.description'),
+        },
+        {
+          value: 'USD',
+          label: t('currency.USD.label'),
+          description: t('currency.USD.description'),
+        },
+        {
+          value: 'GBP',
+          label: t('currency.GBP.label'),
+          description: t('currency.GBP.description'),
+        },
+        {
+          value: 'CHF',
+          label: t('currency.CHF.label'),
+          description: t('currency.CHF.description'),
+        },
+      ],
+      languageOptions: [
+        {
+          value: 'it-IT',
+          label: t('language.it-IT.label'),
+          description: t('language.it-IT.description'),
+          icon: <ITFlag className="w-full h-full object-cover" />,
+        },
+        {
+          value: 'en-US',
+          label: t('language.en-US.label'),
+          description: t('language.en-US.description'),
+          icon: <USFlag className="w-full h-full object-cover" />,
+        },
+      ],
+      timezoneOptions: [
+        {
+          value: 'Europe/Rome',
+          label: t('timezone.Europe/Rome.label'),
+          description: t('timezone.Europe/Rome.description'),
+        },
+        {
+          value: 'Europe/London',
+          label: t('timezone.Europe/London.label'),
+          description: t('timezone.Europe/London.description'),
+        },
+        {
+          value: 'Europe/Paris',
+          label: t('timezone.Europe/Paris.label'),
+          description: t('timezone.Europe/Paris.description'),
+        },
+        {
+          value: 'Europe/Berlin',
+          label: t('timezone.Europe/Berlin.label'),
+          description: t('timezone.Europe/Berlin.description'),
+        },
+        {
+          value: 'America/New_York',
+          label: t('timezone.America/New_York.label'),
+          description: t('timezone.America/New_York.description'),
+        },
+        {
+          value: 'America/Los_Angeles',
+          label: t('timezone.America/Los_Angeles.label'),
+          description: t('timezone.America/Los_Angeles.description'),
+        },
+        {
+          value: 'Asia/Tokyo',
+          label: t('timezone.Asia/Tokyo.label'),
+          description: t('timezone.Asia/Tokyo.description'),
+        },
+        {
+          value: 'Australia/Sydney',
+          label: t('timezone.Australia/Sydney.label'),
+          description: t('timezone.Australia/Sydney.description'),
+        },
+      ],
+    }),
+    [t]
+  );
+}

@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useTranslations } from 'next-intl';
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ModalBody, ModalFooter, ModalWrapper } from '@/components/ui/modal-wrapper';
@@ -18,20 +19,21 @@ import { cn } from '@/lib/utils';
 // VALIDATION SCHEMA
 // ============================================================================
 
-const editProfileSchema = z.object({
-  name: z
-    .string()
-    .min(1, 'Il nome è obbligatorio')
-    .max(100, 'Il nome deve essere massimo 100 caratteri')
-    .trim(),
-  email: z
-    .string()
-    .min(1, "L'email è obbligatoria")
-    .regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Formato email non valido')
-    .toLowerCase(),
-});
+const createEditProfileSchema = (t: ReturnType<typeof useTranslations>) =>
+  z.object({
+    name: z
+      .string()
+      .min(1, t('validation.nameRequired'))
+      .max(100, t('validation.nameMax'))
+      .trim(),
+    email: z
+      .string()
+      .min(1, t('validation.emailRequired'))
+      .regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, t('validation.emailInvalid'))
+      .toLowerCase(),
+  });
 
-type EditProfileFormData = z.infer<typeof editProfileSchema>;
+type EditProfileFormData = z.infer<ReturnType<typeof createEditProfileSchema>>;
 
 // ============================================================================
 // COMPONENT PROPS
@@ -78,6 +80,8 @@ export function EditProfileModal({
   currentName,
   currentEmail,
 }: Readonly<EditProfileModalProps>) {
+  const t = useTranslations('SettingsModals.EditProfile');
+  const editProfileSchema = React.useMemo(() => createEditProfileSchema(t), [t]);
   const router = useRouter();
 
   const {
@@ -108,8 +112,8 @@ export function EditProfileModal({
       // Check if anything changed
       if (data.name === currentName && data.email === currentEmail) {
         toast({
-          title: 'Nessuna modifica',
-          description: 'Non hai apportato modifiche al profilo',
+          title: t('toast.noChangesTitle'),
+          description: t('toast.noChangesDescription'),
           variant: 'info',
         });
         onOpenChange(false);
@@ -124,7 +128,7 @@ export function EditProfileModal({
 
       if (error) {
         toast({
-          title: 'Errore',
+          title: t('toast.errorTitle'),
           description: error,
           variant: 'destructive',
         });
@@ -133,8 +137,8 @@ export function EditProfileModal({
 
       if (!updatedUser) {
         toast({
-          title: 'Errore',
-          description: 'Impossibile aggiornare il profilo',
+          title: t('toast.errorTitle'),
+          description: t('toast.updateFailedDescription'),
           variant: 'destructive',
         });
         return;
@@ -145,8 +149,8 @@ export function EditProfileModal({
 
       // Show success toast
       toast({
-        title: 'Profilo aggiornato',
-        description: 'Le modifiche sono state salvate con successo',
+        title: t('toast.updatedTitle'),
+        description: t('toast.updatedDescription'),
         variant: 'success',
       });
 
@@ -155,8 +159,8 @@ export function EditProfileModal({
     } catch (error) {
       console.error('Error updating profile:', error);
       toast({
-        title: 'Errore',
-        description: "Si è verificato un errore durante l'aggiornamento",
+        title: t('toast.errorTitle'),
+        description: t('toast.updateErrorDescription'),
         variant: 'destructive',
       });
     }
@@ -166,8 +170,8 @@ export function EditProfileModal({
     <ModalWrapper
       isOpen={isOpen}
       onOpenChange={onOpenChange}
-      title="Modifica Profilo"
-      description="Aggiorna il tuo nome e indirizzo email"
+      title={t('title')}
+      description={t('description')}
       titleClassName={settingsStyles.modals.title}
       descriptionClassName={settingsStyles.modals.description}
       disableOutsideClose={isSubmitting}
@@ -180,11 +184,11 @@ export function EditProfileModal({
         <ModalBody>
           <SettingsModalField
             id="name"
-            label="Nome completo"
+            label={t('nameLabel')}
             error={errors.name?.message}
             inputProps={{
               type: 'text',
-              placeholder: 'Mario Rossi',
+              placeholder: t('namePlaceholder'),
               disabled: isSubmitting,
               autoComplete: 'name',
               ...register('name'),
@@ -193,11 +197,11 @@ export function EditProfileModal({
 
           <SettingsModalField
             id="email"
-            label="Indirizzo email"
+            label={t('emailLabel')}
             error={errors.email?.message}
             inputProps={{
               type: 'email',
-              placeholder: 'mario.rossi@example.com',
+              placeholder: t('emailPlaceholder'),
               disabled: isSubmitting,
               autoComplete: 'email',
               ...register('email'),
@@ -213,7 +217,7 @@ export function EditProfileModal({
             className={settingsStyles.modals.actionsButton}
             type="button"
           >
-            Annulla
+            {t('cancelButton')}
           </Button>
           <Button
             type="submit"
@@ -223,10 +227,10 @@ export function EditProfileModal({
             {isSubmitting ? (
               <>
                 <Loader2 className={settingsStyles.modals.loadingIcon} />
-                Salvataggio...
+                {t('savingButton')}
               </>
             ) : (
-              'Salva Modifiche'
+              t('saveChangesButton')
             )}
           </Button>
         </ModalFooter>

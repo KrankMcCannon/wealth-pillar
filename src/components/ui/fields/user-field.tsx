@@ -4,6 +4,7 @@
 
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { FormField, FormSelect } from '@/components/form';
 import type { User } from '@/lib/types';
 
@@ -24,24 +25,28 @@ export function UserField({
   onChange,
   error,
   required = true,
-  label = 'Utente',
-  placeholder = 'Seleziona utente',
+  label,
+  placeholder,
   users = [],
   disabled = false,
   helperText,
 }: Readonly<UserFieldProps>) {
+  const t = useTranslations('Forms.Fields.User');
+  const resolvedLabel = label ?? t('label');
+  const resolvedPlaceholder = placeholder ?? t('placeholder');
+
   const options = users.map((user) => ({
     value: user.id,
     label: user.name,
   }));
 
   return (
-    <FormField label={label} required={required} error={error} helperText={helperText}>
+    <FormField label={resolvedLabel} required={required} error={error} helperText={helperText}>
       <FormSelect
         value={value}
         onValueChange={onChange}
         options={options}
-        placeholder={placeholder}
+        placeholder={resolvedPlaceholder}
         disabled={disabled}
       />
     </FormField>

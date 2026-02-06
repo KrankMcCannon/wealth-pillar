@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { useLocale, useTranslations } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -16,6 +17,8 @@ import {
 import { investmentsStyles } from '@/features/investments/theme/investments-styles';
 
 export function SandboxForecastTab() {
+  const t = useTranslations('Investments.SandboxTab');
+  const locale = useLocale();
   const [amount, setAmount] = useState<number>(1000);
   const [years, setYears] = useState<number>(10);
   const [rate, setRate] = useState<number>(7);
@@ -40,16 +43,16 @@ export function SandboxForecastTab() {
     <div className={investmentsStyles.container}>
       <Card className={investmentsStyles.card.root}>
         <CardHeader className={investmentsStyles.card.headerWithBorder}>
-          <CardTitle className={investmentsStyles.card.title}>Sandbox Previsionale</CardTitle>
+          <CardTitle className={investmentsStyles.card.title}>{t('title')}</CardTitle>
           <CardDescription className={investmentsStyles.card.description}>
-            Simula la crescita di un investimento nel tempo modificando i parametri qui sotto.
+            {t('description')}
           </CardDescription>
         </CardHeader>
         <CardContent className={investmentsStyles.card.contentNoPadding}>
           <div className={investmentsStyles.sandbox.grid}>
             <div className={investmentsStyles.sandbox.inputGroup}>
               <Label htmlFor="amount" className={investmentsStyles.sandbox.label}>
-                Importo Iniziale (€)
+                {t('fields.initialAmount')}
               </Label>
               <Input
                 id="amount"
@@ -61,7 +64,7 @@ export function SandboxForecastTab() {
             </div>
             <div className={investmentsStyles.sandbox.inputGroup}>
               <Label htmlFor="rate" className={investmentsStyles.sandbox.label}>
-                Rendimento Annuo (%)
+                {t('fields.annualReturn')}
               </Label>
               <Input
                 id="rate"
@@ -73,7 +76,7 @@ export function SandboxForecastTab() {
             </div>
             <div className={investmentsStyles.sandbox.inputGroup}>
               <Label htmlFor="years" className={investmentsStyles.sandbox.label}>
-                Durata (Anni)
+                {t('fields.durationYears')}
               </Label>
               <Input
                 id="years"
@@ -110,7 +113,10 @@ export function SandboxForecastTab() {
                     tickLine={false}
                     axisLine={false}
                     tickFormatter={(value) =>
-                      `${new Intl.NumberFormat('it-IT', { notation: 'compact', compactDisplay: 'short' }).format(value)}€`
+                      `${new Intl.NumberFormat(locale, {
+                        notation: 'compact',
+                        compactDisplay: 'short',
+                      }).format(value)}€`
                     }
                     width={60}
                   />
@@ -123,10 +129,10 @@ export function SandboxForecastTab() {
                     }}
                     itemStyle={{ color: '#0f172a' }}
                     formatter={(value: number | undefined) => [
-                      new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(
+                      new Intl.NumberFormat(locale, { style: 'currency', currency: 'EUR' }).format(
                         Number(value) || 0
                       ),
-                      'Valore',
+                      t('valueSeriesLabel'),
                     ]}
                   />
                   <Area

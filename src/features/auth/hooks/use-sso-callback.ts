@@ -149,7 +149,7 @@ export function useSSOCallback(): UseSSOCallbackReturn {
         // Logic branching: Existing User -> Dashboard | New User -> Onboarding
         if (result.data.exists) {
           setViewState({ type: 'redirecting' });
-          router.replace('/dashboard');
+          router.replace('/home');
         } else {
           const categoriesResult = await getAllCategoriesAction();
           if (mounted) {
@@ -179,9 +179,9 @@ export function useSSOCallback(): UseSSOCallbackReturn {
     if (viewState.type === 'error' || (!isLoaded && !isSignedIn)) {
       const timer = setTimeout(() => {
         if (viewState.type === 'error') {
-          router.replace(`/auth?error=${encodeURIComponent(viewState.message)}`);
+          router.replace(`/sign-in?error=${encodeURIComponent(viewState.message)}`);
         } else if (isLoaded && !isSignedIn) {
-          router.replace('/auth?error=timeout');
+          router.replace('/sign-in?error=timeout');
         }
       }, 5000);
       return () => clearTimeout(timer);
@@ -222,7 +222,7 @@ export function useSSOCallback(): UseSSOCallbackReturn {
           return;
         }
 
-        router.replace('/dashboard');
+        router.replace('/home');
       } catch (error) {
         console.error('Onboarding error:', error);
         setOnboardingError('Errore imprevisto. Riprova.');

@@ -15,6 +15,10 @@ interface UseTransactionSubmitProps {
   removeTransaction: (id: string) => void;
   onClose: () => void;
   setError: UseFormSetError<TransactionSubmitData>;
+  messages: {
+    notFound: string;
+    unknownError: string;
+  };
 }
 
 export interface TransactionSubmitData {
@@ -38,6 +42,7 @@ export function useTransactionSubmit({
   removeTransaction,
   onClose,
   setError,
+  messages,
 }: UseTransactionSubmitProps) {
   const [isSubmittingFromHook, setIsSubmittingFromHook] = useState(false);
 
@@ -47,7 +52,7 @@ export function useTransactionSubmit({
     // 1. Store original transaction for revert
     const originalTransaction = storeTransactions.find((t) => t.id === editId);
     if (!originalTransaction) {
-      setError('root', { message: 'Transazione non trovata' });
+      setError('root', { message: messages.notFound });
       return;
     }
 
@@ -139,7 +144,7 @@ export function useTransactionSubmit({
     } catch (error) {
       console.error('Submission error:', error);
       setError('root', {
-        message: error instanceof Error ? error.message : 'Errore sconosciuto',
+        message: error instanceof Error ? error.message : messages.unknownError,
       });
     } finally {
       setIsSubmittingFromHook(false);

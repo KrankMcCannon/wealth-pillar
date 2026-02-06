@@ -103,12 +103,15 @@ export function useShareSearch({ initialValue, onSelect }: UseShareSearchProps =
       if (match) {
         setSelectedShare(match);
       }
+
+      // Do not block user navigation on external market API latency.
+      if (onSelect) {
+        onSelect(symbol);
+      }
+
       setIsEnsuring(true);
       void ensureMarketDataAction(symbol).finally(() => {
         setIsEnsuring(false);
-        if (onSelect) {
-          onSelect(symbol);
-        }
       });
     },
     [results, onSelect]

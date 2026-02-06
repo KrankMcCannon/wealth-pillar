@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { cn } from '@/lib';
 import { Search } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui';
 import { formStyles } from './theme/form-styles';
 
@@ -60,12 +61,14 @@ export function FormSelect({
   value,
   onValueChange,
   options,
-  placeholder = 'Seleziona...',
+  placeholder,
   disabled = false,
   className,
   renderIcon,
 }: Readonly<FormSelectProps>) {
+  const t = useTranslations('Forms.Select');
   const [searchValue, setSearchValue] = React.useState('');
+  const resolvedPlaceholder = placeholder ?? t('placeholder');
 
   // Filter options based on search value
   const filteredOptions = React.useMemo(() => {
@@ -94,7 +97,7 @@ export function FormSelect({
       onOpenChange={handleOpenChange}
     >
       <SelectTrigger className={cn(formStyles.select.trigger, className)}>
-        <SelectValue placeholder={placeholder} />
+        <SelectValue placeholder={resolvedPlaceholder} />
       </SelectTrigger>
       <SelectContent className={formStyles.select.content}>
         {/* Search Input */}
@@ -103,7 +106,7 @@ export function FormSelect({
             <Search className={formStyles.select.searchIcon} />
             <input
               type="text"
-              placeholder="Cerca..."
+              placeholder={t('searchPlaceholder')}
               value={searchValue}
               onChange={(e) => setSearchValue(e.target.value)}
               onKeyDown={(e) => {
@@ -120,7 +123,7 @@ export function FormSelect({
         {/* Options List */}
         <div className={formStyles.select.optionsWrap}>
           {filteredOptions.length === 0 ? (
-            <div className={formStyles.select.empty}>Nessun risultato trovato</div>
+            <div className={formStyles.select.empty}>{t('empty')}</div>
           ) : (
             filteredOptions.map((option) => (
               <SelectItem key={option.value} value={option.value} disabled={option.disabled}>

@@ -144,7 +144,7 @@ function capitalize(str: string): string {
 
 /**
  * Format date for display with smart relative dates
- * Returns "Oggi", "Ieri", or compact format "Lun 15 Gen 2025"
+ * Returns localized "Today"/"Yesterday" labels, or compact format "Lun 15 Gen 2025"
  */
 export function formatDateSmart(date: DateInput, locale = 'it-IT'): string {
   const dt = toDateTime(date);
@@ -154,12 +154,14 @@ export function formatDateSmart(date: DateInput, locale = 'it-IT'): string {
   const yesterdayStart = yesterday();
   const dateStart = dt.startOf('day');
 
+  const relativeFormatter = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });
+
   if (dateStart.equals(todayStart)) {
-    return 'Oggi';
+    return capitalize(relativeFormatter.format(0, 'day'));
   }
 
   if (dateStart.equals(yesterdayStart)) {
-    return 'Ieri';
+    return capitalize(relativeFormatter.format(-1, 'day'));
   }
 
   // Compact format: "Lun 15 Gen 2025"
@@ -214,7 +216,8 @@ export function formatDateRange(start: DateInput, end: DateInput, locale = 'it-I
   const startStr = startDt.setLocale(locale).toFormat('d MMM');
 
   if (!endDt) {
-    return `${startStr} - Oggi`;
+    const relativeFormatter = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });
+    return `${startStr} - ${capitalize(relativeFormatter.format(0, 'day'))}`;
   }
 
   const endStr = endDt.setLocale(locale).toFormat('d MMM yyyy');

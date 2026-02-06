@@ -1,6 +1,7 @@
 'use server';
 
 import { revalidateTag } from 'next/cache';
+import { getTranslations } from 'next-intl/server';
 
 import { getCurrentUser } from '@/lib/auth/cached-auth';
 import {
@@ -16,17 +17,27 @@ type ServiceResult<T> = {
   error: string | null;
 };
 
+async function getCategoryActionTranslator(locale?: string) {
+  if (locale) {
+    return getTranslations({ locale, namespace: 'Categories.Actions' });
+  }
+  return getTranslations('Categories.Actions');
+}
+
 /**
  * Validates category input
  */
-function validateCategoryInput(input: CreateCategoryInput): string | null {
-  if (!input.label || input.label.trim() === '') return 'Label is required';
-  if (!input.key || input.key.trim() === '') return 'Key is required';
-  if (!input.icon || input.icon.trim() === '') return 'Icon is required';
-  if (!input.color || input.color.trim() === '') return 'Color is required';
+function validateCategoryInput(
+  input: CreateCategoryInput,
+  t: Awaited<ReturnType<typeof getTranslations>>
+): string | null {
+  if (!input.label || input.label.trim() === '') return t('errors.labelRequired');
+  if (!input.key || input.key.trim() === '') return t('errors.keyRequired');
+  if (!input.icon || input.icon.trim() === '') return t('errors.iconRequired');
+  if (!input.color || input.color.trim() === '') return t('errors.colorRequired');
 
   if (!FinanceLogicService.isValidColor(input.color)) {
-    return 'Invalid color format. Use hex format (e.g., #FF0000)';
+    return t('errors.colorInvalid');
   }
 
   return null;
@@ -35,13 +46,16 @@ function validateCategoryInput(input: CreateCategoryInput): string | null {
 /**
  * Validates category update input
  */
-function validateUpdateCategoryInput(input: UpdateCategoryInput): string | null {
-  if (input.label !== undefined && input.label.trim() === '') return 'Label cannot be empty';
-  if (input.icon !== undefined && input.icon.trim() === '') return 'Icon cannot be empty';
+function validateUpdateCategoryInput(
+  input: UpdateCategoryInput,
+  t: Awaited<ReturnType<typeof getTranslations>>
+): string | null {
+  if (input.label !== undefined && input.label.trim() === '') return t('errors.labelEmpty');
+  if (input.icon !== undefined && input.icon.trim() === '') return t('errors.iconEmpty');
 
   if (input.color !== undefined) {
-    if (input.color.trim() === '') return 'Color cannot be empty';
-    if (!FinanceLogicService.isValidColor(input.color)) return 'Invalid color format';
+    if (input.color.trim() === '') return t('errors.colorEmpty');
+    if (!FinanceLogicService.isValidColor(input.color)) return t('errors.colorInvalid');
   }
 
   return null;
@@ -76,25 +90,28 @@ export async function getAllCategoriesAction(): Promise<ServiceResult<Category[]
  * Server action to create a new category
  */
 export async function createCategoryAction(
-  input: CreateCategoryInput
+  input: CreateCategoryInput,
+  locale?: string
 ): Promise<ServiceResult<Category>> {
+  let t: Awaited<ReturnType<typeof getTranslations>> | null = null;
   try {
+    t = await getCategoryActionTranslator(locale);
     // Authentication check (cached per request)
     const currentUser = await getCurrentUser();
     if (!currentUser) {
-      return { data: null, error: 'Non autenticato' };
+      return { data: null, error: t('errors.unauthenticated') };
     }
 
     // Validation
-    if (!input.group_id) return { data: null, error: 'Group ID is required' };
+    if (!input.group_id) return { data: null, error: t('errors.groupRequired') };
 
     // Permission: User must belong to the group
     if (currentUser.group_id !== input.group_id) {
-      return { data: null, error: 'Permission denied' };
+      return { data: null, error: t('errors.permissionDenied') };
     }
 
     // Input Validation
-    const validationError = validateCategoryInput(input);
+    const validationError = validateCategoryInput(input, t);
     if (validationError) {
       return { data: null, error: validationError };
     }
@@ -111,11 +128,14 @@ export async function createCategoryAction(
       return { data: category, error: null };
     }
 
-    return { data: null, error: 'Failed to create category' };
+    return { data: null, error: t('errors.createFailed') };
   } catch (error) {
     return {
       data: null,
-      error: error instanceof Error ? error.message : 'Failed to create category',
+      error:
+        error instanceof Error
+          ? error.message
+          : (t?.('errors.createFailed') ?? 'Failed to create category'),
     };
   }
 }
@@ -125,25 +145,28 @@ export async function createCategoryAction(
  */
 export async function updateCategoryAction(
   id: string,
-  input: UpdateCategoryInput
+  input: UpdateCategoryInput,
+  locale?: string
 ): Promise<ServiceResult<Category>> {
+  let t: Awaited<ReturnType<typeof getTranslations>> | null = null;
   try {
+    t = await getCategoryActionTranslator(locale);
     // Authentication check (cached per request)
     const currentUser = await getCurrentUser();
     if (!currentUser) {
-      return { data: null, error: 'Non autenticato' };
+      return { data: null, error: t('errors.unauthenticated') };
     }
 
     const existingCategory = await CategoryService.getCategoryById(id);
-    if (!existingCategory) return { data: null, error: 'Category not found' };
+    if (!existingCategory) return { data: null, error: t('errors.notFound') };
 
     // Permission check
     if (currentUser.group_id !== existingCategory.group_id) {
-      return { data: null, error: 'Permission denied' };
+      return { data: null, error: t('errors.permissionDenied') };
     }
 
     // Validation
-    const validationError = validateUpdateCategoryInput(input);
+    const validationError = validateUpdateCategoryInput(input, t);
     if (validationError) {
       return { data: null, error: validationError };
     }
@@ -156,11 +179,14 @@ export async function updateCategoryAction(
       return { data: category, error: null };
     }
 
-    return { data: null, error: 'Failed to update category' };
+    return { data: null, error: t('errors.updateFailed') };
   } catch (error) {
     return {
       data: null,
-      error: error instanceof Error ? error.message : 'Failed to update category',
+      error:
+        error instanceof Error
+          ? error.message
+          : (t?.('errors.updateFailed') ?? 'Failed to update category'),
     };
   }
 }
@@ -168,20 +194,25 @@ export async function updateCategoryAction(
 /**
  * Server action to delete a category
  */
-export async function deleteCategoryAction(id: string): Promise<ServiceResult<{ id: string }>> {
+export async function deleteCategoryAction(
+  id: string,
+  locale?: string
+): Promise<ServiceResult<{ id: string }>> {
+  let t: Awaited<ReturnType<typeof getTranslations>> | null = null;
   try {
+    t = await getCategoryActionTranslator(locale);
     // Authentication check (cached per request)
     const currentUser = await getCurrentUser();
     if (!currentUser) {
-      return { data: null, error: 'Non autenticato' };
+      return { data: null, error: t('errors.unauthenticated') };
     }
 
     const existingCategory = await CategoryService.getCategoryById(id);
-    if (!existingCategory) return { data: null, error: 'Category not found' };
+    if (!existingCategory) return { data: null, error: t('errors.notFound') };
 
     // Permission check
     if (currentUser.group_id !== existingCategory.group_id) {
-      return { data: null, error: 'Permission denied' };
+      return { data: null, error: t('errors.permissionDenied') };
     }
 
     const result = await CategoryService.deleteCategory(id);
@@ -191,11 +222,14 @@ export async function deleteCategoryAction(id: string): Promise<ServiceResult<{ 
       return { data: result, error: null };
     }
 
-    return { data: null, error: 'Failed to delete category' };
+    return { data: null, error: t('errors.deleteFailed') };
   } catch (error) {
     return {
       data: null,
-      error: error instanceof Error ? error.message : 'Failed to delete category',
+      error:
+        error instanceof Error
+          ? error.message
+          : (t?.('errors.deleteFailed') ?? 'Failed to delete category'),
     };
   }
 }

@@ -8,6 +8,7 @@
  */
 
 import { useMemo } from 'react';
+import { useTranslations } from 'next-intl';
 import { RecurringTransactionSeries } from '@/lib';
 import { SeriesCard } from '@/components/cards';
 import { EmptyState } from '@/components/shared';
@@ -67,6 +68,8 @@ export function RecurringSeriesSection({
   groupUsers,
   onSeriesUpdate,
 }: RecurringSeriesSectionProps) {
+  const t = useTranslations('Recurring.Section');
+
   // Filter series by user if selected
   const filteredSeries = useMemo(() => {
     let result = series;
@@ -97,6 +100,12 @@ export function RecurringSeriesSection({
   const activeSeries = useMemo(() => {
     return filteredSeries.filter((s) => s.is_active);
   }, [filteredSeries]);
+  const visibleSeriesCount = useMemo(() => {
+    return selectedUserId
+      ? series.filter((s) => s.user_ids.includes(selectedUserId)).length
+      : series.length;
+  }, [selectedUserId, series]);
+  const pausedCount = filteredSeries.length - activeSeries.length;
 
   // Calculate monthly totals using service method
   const monthlyTotals = useMemo(() => {
@@ -109,17 +118,13 @@ export function RecurringSeriesSection({
       <div className={cn(recurringStyles.section.emptyWrap, className)}>
         <EmptyState
           icon={RefreshCw}
-          title="Nessuna serie ricorrente"
-          description={
-            selectedUserId
-              ? 'Non ci sono serie ricorrenti per questo utente'
-              : 'Le serie ricorrenti configurate appariranno qui'
-          }
+          title={t('empty.title')}
+          description={selectedUserId ? t('empty.forUser') : t('empty.defaultDescription')}
           action={
             onCreateRecurringSeries && (
               <Button onClick={onCreateRecurringSeries} variant="default" size="sm">
                 <Plus className={recurringStyles.section.emptyActionIcon} />
-                Aggiungi Serie
+                {t('empty.addButton')}
               </Button>
             )
           }
@@ -139,17 +144,14 @@ export function RecurringSeriesSection({
             </div>
             <div>
               <Text variant="primary" size="md" as="h3" className={recurringStyles.section.title}>
-                Transazioni Ricorrenti
+                {t('title')}
               </Text>
               <Text variant="primary" size="xs" className={recurringStyles.section.subtitle}>
-                {selectedUserId
-                  ? series.filter((s) => s.user_ids.includes(selectedUserId)).length
-                  : series.length}{' '}
-                {activeSeries.length === 1 ? 'serie attiva' : 'serie attive'}
-                {filteredSeries.length > activeSeries.length && (
+                {t('subtitle.seriesCount', { count: visibleSeriesCount })}
+                {pausedCount > 0 && (
                   <span className={recurringStyles.section.subtitle}>
                     {' '}
-                    • {filteredSeries.length - activeSeries.length} in pausa
+                    • {t('subtitle.pausedCount', { count: pausedCount })}
                   </span>
                 )}
               </Text>
@@ -165,7 +167,7 @@ export function RecurringSeriesSection({
                 <div className={recurringStyles.section.statIconWrapPositive}>
                   <TrendingUp className={recurringStyles.section.statIconPositive} />
                 </div>
-                <p className={recurringStyles.section.statLabel}>Entrate/mese</p>
+                <p className={recurringStyles.section.statLabel}>{t('stats.incomePerMonth')}</p>
               </div>
               <p className={recurringStyles.section.statValuePositive}>
                 +{formatCurrency(monthlyTotals.totalIncome)}
@@ -176,7 +178,7 @@ export function RecurringSeriesSection({
                 <div className={recurringStyles.section.statIconWrapNegative}>
                   <TrendingDown className={recurringStyles.section.statIconNegative} />
                 </div>
-                <p className={recurringStyles.section.statLabel}>Uscite/mese</p>
+                <p className={recurringStyles.section.statLabel}>{t('stats.expensesPerMonth')}</p>
               </div>
               <p className={recurringStyles.section.statValueNegative}>
                 -{formatCurrency(monthlyTotals.totalExpenses)}
@@ -220,11 +222,10 @@ export function RecurringSeriesSection({
           <div className={recurringStyles.section.listDivider} />
           <div className={recurringStyles.section.footer}>
             <p className={recurringStyles.section.footerText}>
-              Mostrando {filteredSeries.length} di{' '}
-              {selectedUserId
-                ? series.filter((s) => s.user_ids.includes(selectedUserId)).length
-                : series.length}{' '}
-              serie
+              {t('footer.showingOf', {
+                shown: filteredSeries.length,
+                total: visibleSeriesCount,
+              })}
             </p>
           </div>
         </div>

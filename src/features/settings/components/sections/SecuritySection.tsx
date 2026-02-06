@@ -1,6 +1,7 @@
 import { SectionHeader } from '@/components/layout';
 import { ListContainer, PageSection, SettingsItem } from '@/components/ui/layout';
 import { Loader2, LogOut, Shield } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface SecuritySectionProps {
   isSigningOut: boolean;
@@ -13,15 +14,17 @@ export function SecuritySection({
   onSignOut,
   onNavigateTo2FA,
 }: Readonly<SecuritySectionProps>) {
+  const t = useTranslations('SettingsSections.Security');
+
   return (
     <PageSection>
-      <SectionHeader title="Sicurezza" icon={Shield} iconClassName="text-primary" />
+      <SectionHeader title={t('title')} icon={Shield} iconClassName="text-primary" />
       <PageSection variant="card" padding="sm">
         <ListContainer divided className="space-y-0">
           <SettingsItem
             icon={<Shield className="h-4 w-4 text-primary" />}
-            label="Autenticazione a Due Fattori"
-            description="Aggiungi sicurezza extra"
+            label={t('twoFactorLabel')}
+            description={t('twoFactorDescription')}
             actionType="navigation"
             onPress={onNavigateTo2FA}
           />
@@ -34,8 +37,8 @@ export function SecuritySection({
                 <LogOut className="h-4 w-4 text-primary" />
               )
             }
-            label={isSigningOut ? 'Disconnessione in corso...' : "Esci dall'Account"}
-            description={isSigningOut ? 'Attendere prego' : 'Disconnetti dal tuo account'}
+            label={isSigningOut ? t('signingOutLabel') : t('signOutLabel')}
+            description={isSigningOut ? t('signingOutDescription') : t('signOutDescription')}
             actionType={isSigningOut ? 'custom' : 'navigation'}
             onPress={onSignOut}
             disabled={isSigningOut}

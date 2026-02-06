@@ -5,6 +5,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { cn } from '@/lib';
 import type { RecurringTransactionSeries } from '@/lib';
 import { FinanceLogicService } from '@/server/services/finance-logic.service';
@@ -35,23 +36,30 @@ interface SeriesCardProps {
 }
 
 // Helper function: Get frequency label
-function getFrequencyLabel(frequency: string): string {
-  const labels: Record<string, string> = {
-    weekly: 'Settimanale',
-    biweekly: 'Quindicinale',
-    monthly: 'Mensile',
-    yearly: 'Annuale',
-  };
-  return labels[frequency] || frequency;
+function getFrequencyLabel(
+  frequency: string,
+  t: ReturnType<typeof useTranslations>
+): string {
+  switch (frequency) {
+    case 'weekly':
+      return t('frequency.weekly');
+    case 'biweekly':
+      return t('frequency.biweekly');
+    case 'monthly':
+      return t('frequency.monthly');
+    case 'yearly':
+      return t('frequency.yearly');
+    default:
+      return frequency;
+  }
 }
 
 // Helper function: Get due date label
-function getDueDateLabel(days: number): string {
-  if (days === 0) return 'Oggi';
-  if (days === 1) return 'Domani';
-  if (days < 0) return `${Math.abs(days)} giorni fa`;
-  if (days <= 7) return `Tra ${days} giorni`;
-  return `Tra ${days} giorni`;
+function getDueDateLabel(days: number, t: ReturnType<typeof useTranslations>): string {
+  if (days === 0) return t('due.today');
+  if (days === 1) return t('due.tomorrow');
+  if (days < 0) return t('due.daysAgo', { count: Math.abs(days) });
+  return t('due.inDays', { count: days });
 }
 
 export function SeriesCard({
@@ -66,6 +74,7 @@ export function SeriesCard({
   onSeriesUpdate,
   groupUsers,
 }: SeriesCardProps) {
+  const t = useTranslations('Recurring.SeriesCard');
   const [isLoading, setIsLoading] = useState(false);
   const closeAllCards = useCloseAllCards();
   const categories = useCategories();
@@ -166,13 +175,13 @@ export function SeriesCard({
               </Text>
               {!series.is_active && (
                 <StatusBadge status="info" size="sm">
-                  Stop
+                  {t('status.stopped')}
                 </StatusBadge>
               )}
             </div>
             <div className={cardStyles.series.details}>
               <Text variant="body" size="xs" className={cardStyles.series.frequency}>
-                {getFrequencyLabel(series.frequency)}
+                {getFrequencyLabel(series.frequency, t)}
               </Text>
 
               {/* User badges - show if multiple users */}
@@ -205,7 +214,7 @@ export function SeriesCard({
             {series.type === 'income' ? series.amount : -series.amount}
           </Amount>
           <Text variant="body" size="xs" className={cardStyles.series.dueDate}>
-            Prossima: {getDueDateLabel(daysUntilDue)}
+            {t('nextLabel')}: {getDueDateLabel(daysUntilDue, t)}
           </Text>
 
           {showActions && (
@@ -241,7 +250,7 @@ export function SeriesCard({
         leftAction={
           canSwipePause
             ? {
-                label: series.is_active ? 'Pausa' : 'Riprendi',
+                label: series.is_active ? t('actions.pause') : t('actions.resume'),
                 variant: series.is_active ? 'pause' : 'resume',
                 onAction: handleSwipePause,
               }
@@ -250,7 +259,7 @@ export function SeriesCard({
         rightAction={
           canSwipeDelete
             ? {
-                label: 'Elimina',
+                label: t('actions.delete'),
                 variant: 'delete',
                 onAction: handleSwipeDelete,
               }

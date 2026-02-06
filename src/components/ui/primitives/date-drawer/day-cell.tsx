@@ -14,7 +14,7 @@
 'use client';
 
 import { format } from 'date-fns';
-import { it } from 'date-fns/locale';
+import { useLocale, useTranslations } from 'next-intl';
 import { motion } from 'framer-motion';
 import { dayButtonVariants, getDayState } from '@/lib/utils/date-drawer-variants';
 
@@ -90,6 +90,8 @@ export function DayCell({
   onClick,
   size = 'mobile',
 }: Readonly<DayCellProps>) {
+  const t = useTranslations('Forms.DateDrawer');
+  const locale = useLocale();
   // Determine which visual state to apply
   const state = getDayState({
     isSelected,
@@ -103,7 +105,11 @@ export function DayCell({
   const dayNumber = format(date, 'd');
 
   // Format full date for accessibility
-  const fullDate = format(date, 'd MMMM yyyy', { locale: it });
+  const fullDate = new Intl.DateTimeFormat(locale, {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  }).format(date);
 
   // Handle click
   const handleClick = () => {
@@ -127,7 +133,7 @@ export function DayCell({
       onClick={handleClick}
       onKeyDown={handleKeyDown}
       disabled={isDisabled}
-      aria-label={`Seleziona ${fullDate}`}
+      aria-label={t('dayCell.selectDate', { date: fullDate })}
       aria-pressed={isSelected}
       aria-disabled={isDisabled}
       aria-current={isToday ? 'date' : undefined}

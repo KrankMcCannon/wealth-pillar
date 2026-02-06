@@ -5,6 +5,7 @@
 
 'use client';
 
+import { useLocale, useTranslations } from 'next-intl';
 import {
   Button,
   CategoryBadge,
@@ -16,6 +17,7 @@ import {
 import { Budget, BudgetPeriod } from '@/lib';
 import { budgetStyles } from '@/styles/system';
 import { formatCurrency } from '@/lib/utils/currency-formatter';
+import { formatDateShort, toDateTime } from '@/lib/utils/date-utils';
 import { MoreVertical, Pencil, Trash2 } from 'lucide-react';
 import { useCategories } from '@/stores/reference-data-store';
 import { FinanceLogicService } from '@/server/services/finance-logic.service';
@@ -40,6 +42,8 @@ export function BudgetDisplayCard({
   onEdit,
   onDelete,
 }: Readonly<BudgetDisplayCardProps>) {
+  const t = useTranslations('Budgets.DisplayCard');
+  const locale = useLocale();
   const categories = useCategories();
   const categoryColor = FinanceLogicService.getCategoryColor(
     categories,
@@ -49,6 +53,11 @@ export function BudgetDisplayCard({
     budgetProgress && budgetProgress.remaining < 0 ? 'text-destructive' : 'text-success';
 
   if (!budget) return null;
+
+  const periodStart = period ? toDateTime(period.start_date) : null;
+  const periodEnd = period?.end_date ? toDateTime(period.end_date) : null;
+  const periodStartLabel = periodStart ? formatDateShort(periodStart, locale) : '';
+  const periodEndLabel = periodEnd ? formatDateShort(periodEnd, locale) : t('period.inProgress');
 
   return (
     <div className={budgetStyles.budgetDisplay.container}>
@@ -60,7 +69,7 @@ export function BudgetDisplayCard({
               variant="ghost"
               size="sm"
               className={budgetStyles.budgetDisplay.actionsButton}
-              title="Azioni Budget"
+              title={t('actions.title')}
             >
               <MoreVertical className={budgetStyles.budgetDisplay.actionIcon} />
             </Button>
@@ -73,7 +82,7 @@ export function BudgetDisplayCard({
               <Pencil
                 className={`${budgetStyles.budgetDisplay.actionIcon} ${budgetStyles.dropdownMenu.itemIcon}`}
               />
-              Modifica Budget
+              {t('actions.edit')}
             </DropdownMenuItem>
 
             <DropdownMenuItem
@@ -83,7 +92,7 @@ export function BudgetDisplayCard({
               <Trash2
                 className={`${budgetStyles.budgetDisplay.actionIcon} ${budgetStyles.dropdownMenu.itemIcon}`}
               />
-              Elimina Budget
+              {t('actions.delete')}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -102,26 +111,16 @@ export function BudgetDisplayCard({
           </div>
           <div className={budgetStyles.budgetDisplay.iconText}>
             <h3 className={budgetStyles.budgetDisplay.budgetName}>{budget.description}</h3>
-            <p className={budgetStyles.budgetDisplay.budgetStatus}>Budget attivo</p>
+            <p className={budgetStyles.budgetDisplay.budgetStatus}>{t('status.active')}</p>
           </div>
         </div>
 
         {/* Budget Period Date */}
         {period && (
           <div className={budgetStyles.budgetDisplay.periodContainer}>
-            <p className={budgetStyles.budgetDisplay.periodLabel}>Periodo</p>
+            <p className={budgetStyles.budgetDisplay.periodLabel}>{t('period.label')}</p>
             <p className={budgetStyles.budgetDisplay.periodValue}>
-              {new Date(period.start_date).toLocaleDateString('it-IT', {
-                day: 'numeric',
-                month: 'short',
-              })}{' '}
-              -{' '}
-              {period.end_date
-                ? new Date(period.end_date).toLocaleDateString('it-IT', {
-                    day: 'numeric',
-                    month: 'short',
-                  })
-                : 'In corso'}
+              {periodStartLabel} - {periodEndLabel}
             </p>
           </div>
         )}
@@ -132,7 +131,7 @@ export function BudgetDisplayCard({
         <div className={budgetStyles.metrics.container}>
           {/* Total Budget */}
           <div className={budgetStyles.metrics.item}>
-            <p className={`${budgetStyles.metrics.label} text-primary`}>Totale</p>
+            <p className={`${budgetStyles.metrics.label} text-primary`}>{t('metrics.total')}</p>
             <p className={`${budgetStyles.metrics.value} text-primary`}>
               {formatCurrency(budgetProgress.amount)}
             </p>
@@ -140,7 +139,7 @@ export function BudgetDisplayCard({
 
           {/* Spent Amount */}
           <div className={budgetStyles.metrics.item}>
-            <p className={`${budgetStyles.metrics.label} text-destructive`}>Speso</p>
+            <p className={`${budgetStyles.metrics.label} text-destructive`}>{t('metrics.spent')}</p>
             <p className={`${budgetStyles.metrics.value} ${budgetStyles.metrics.valueDanger}`}>
               {formatCurrency(budgetProgress.spent)}
             </p>
@@ -148,7 +147,9 @@ export function BudgetDisplayCard({
 
           {/* Available Amount */}
           <div className={budgetStyles.metrics.item}>
-            <p className={`${budgetStyles.metrics.label} ${remainingColorClass}`}>Disponibile</p>
+            <p className={`${budgetStyles.metrics.label} ${remainingColorClass}`}>
+              {t('metrics.available')}
+            </p>
             <p className={`${budgetStyles.metrics.value} ${remainingColorClass}`}>
               {formatCurrency(budgetProgress.remaining)}
             </p>

@@ -39,6 +39,7 @@ import { GroupedTransactionCard } from './grouped-transaction-card';
 import { transactionStyles } from '@/styles/system';
 import { formatCurrency, cn } from '@/lib/utils';
 import { FileText, type LucideIcon } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 /**
  * Grouped transaction structure
@@ -122,10 +123,10 @@ export function TransactionDayList({
   sectionSubtitle,
   sectionHeaderClassName,
   emptyIcon = FileText,
-  emptyTitle = 'Nessuna Transazione',
-  emptyDescription = 'Non ci sono transazioni da visualizzare',
+  emptyTitle,
+  emptyDescription,
   showViewAll = false,
-  viewAllLabel = 'Vedi tutte',
+  viewAllLabel,
   onViewAll,
   variant = 'regular',
   expensesOnly = false,
@@ -133,7 +134,11 @@ export function TransactionDayList({
   onEditTransaction,
   onDeleteTransaction,
 }: Readonly<TransactionDayListProps>) {
+  const t = useTranslations('Transactions.DayList');
   const hasTransactions = groupedTransactions.length > 0;
+  const resolvedEmptyTitle = emptyTitle ?? t('empty.title');
+  const resolvedEmptyDescription = emptyDescription ?? t('empty.description');
+  const resolvedViewAllLabel = viewAllLabel ?? t('viewAll');
 
   const headerClassName = cn(transactionStyles.dayList.sectionHeader, sectionHeaderClassName);
 
@@ -164,7 +169,9 @@ export function TransactionDayList({
                   </h2>
                   <div className={transactionStyles.dayGroup.stats}>
                     <div className={transactionStyles.dayGroup.statsTotal}>
-                      <span className={transactionStyles.dayGroup.statsTotalLabel}>Totale:</span>
+                      <span className={transactionStyles.dayGroup.statsTotalLabel}>
+                        {t('totalLabel')}
+                      </span>
                       <span
                         className={`${transactionStyles.dayGroup.statsTotalValue} ${
                           expensesOnly || total < 0
@@ -176,7 +183,7 @@ export function TransactionDayList({
                       </span>
                     </div>
                     <div className={transactionStyles.dayGroup.statsCount}>
-                      {count} {count === 1 ? 'transazione' : 'transazioni'}
+                      {t('count', { count })}
                     </div>
                   </div>
                 </div>
@@ -194,7 +201,11 @@ export function TransactionDayList({
             );
           })
         ) : (
-          <EmptyState icon={emptyIcon} title={emptyTitle} description={emptyDescription} />
+          <EmptyState
+            icon={emptyIcon}
+            title={resolvedEmptyTitle}
+            description={resolvedEmptyDescription}
+          />
         )}
       </div>
 
@@ -207,7 +218,7 @@ export function TransactionDayList({
             className={transactionStyles.dayList.viewAllButton}
             onClick={onViewAll}
           >
-            <span className={transactionStyles.dayList.viewAllLabel}>{viewAllLabel}</span>
+            <span className={transactionStyles.dayList.viewAllLabel}>{resolvedViewAllLabel}</span>
             <span className={transactionStyles.dayList.viewAllArrow}>→</span>
           </Button>
         </div>

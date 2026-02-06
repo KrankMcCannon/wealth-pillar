@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui';
 import { cn } from '@/lib/utils';
 import { roleBadgeStyles } from './theme/role-badge-styles';
 import { Crown, Shield, User } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface RoleBadgeProps {
   role?: 'member' | 'admin' | 'superadmin';
@@ -23,9 +24,14 @@ export const RoleBadge: React.FC<RoleBadgeProps> = ({
   showIcon = false,
   className,
 }) => {
+  const t = useTranslations('RoleBadge');
   // Display text for each role
   const displayRole =
-    role === 'superadmin' ? 'Sviluppatore' : role === 'admin' ? 'Admin' : 'Membro';
+    role === 'superadmin'
+      ? t('display.superadmin')
+      : role === 'admin'
+        ? t('display.admin')
+        : t('display.member');
 
   // Get configuration for each role
   const getRoleConfig = (roleType: string) => {
@@ -95,19 +101,20 @@ export const PermissionLevelIndicator: React.FC<PermissionLevelIndicatorProps> =
   size = 'md',
   showLabel = true,
 }) => {
+  const t = useTranslations('RoleBadge.permission');
   const configs = {
     low: {
-      label: 'Limitato',
+      label: t('low'),
       color: 'bg-primary/20',
       dots: 1,
     },
     medium: {
-      label: 'Standard',
+      label: t('medium'),
       color: 'bg-primary/40',
       dots: 2,
     },
     high: {
-      label: 'Completo',
+      label: t('high'),
       color: 'bg-primary/60',
       dots: 3,
     },

@@ -1,5 +1,6 @@
 'use client';
 
+import { useLocale, useTranslations } from 'next-intl';
 import { MetricCard, MetricGrid } from '@/components/ui/layout';
 import { TrendingUp, TrendingDown, Wallet, PiggyBank } from 'lucide-react';
 import { useInvestmentHistory } from '@/features/investments/hooks/use-investment-history';
@@ -47,6 +48,8 @@ export function PersonalInvestmentTab({
   indexData,
   currentIndex = 'IVV',
 }: Readonly<PersonalInvestmentTabProps>) {
+  const t = useTranslations('Investments.PersonalTab');
+  const locale = useLocale();
   const benchmarkAnchorId = 'benchmark-chart';
 
   const handleBenchmarkChange = (symbol: string) => {
@@ -70,7 +73,7 @@ export function PersonalInvestmentTab({
     <div className={investmentsStyles.container}>
       <MetricGrid columns={4}>
         <MetricCard
-          label="Valore Attuale"
+          label={t('currentValueLabel')}
           icon={<Wallet className="w-4 h-4" />}
           iconColor="accent"
           labelTone="variant"
@@ -80,7 +83,7 @@ export function PersonalInvestmentTab({
           description={
             <span className={isPositiveReturn ? 'text-emerald-600' : 'text-rose-600'}>
               {isPositiveReturn ? '+' : ''}
-              {new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(
+              {new Intl.NumberFormat(locale, { style: 'currency', currency: 'EUR' }).format(
                 summary.totalReturn
               )}{' '}
               ({summary.totalReturnPercent.toFixed(2)}%)
@@ -90,38 +93,38 @@ export function PersonalInvestmentTab({
         />
 
         <MetricCard
-          label="Investito"
+          label={t('investedLabel')}
           icon={<PiggyBank className="w-4 h-4" />}
           iconColor="accent"
           labelTone="variant"
           value={summary.totalInvested}
           valueType="neutral"
           valueSize="xl"
-          description="Costo quote"
+          description={t('investedDescription')}
           variant="default"
         />
 
         <MetricCard
-          label="Tasse Pagate"
+          label={t('taxesPaidLabel')}
           icon={<TrendingDown className="w-4 h-4" />}
           iconColor="destructive"
           labelTone="variant"
           value={summary.totalTaxPaid || 0}
           valueType="expense"
           valueSize="xl"
-          description="Bollo + commissioni"
+          description={t('taxesPaidDescription')}
           variant="danger"
         />
 
         <MetricCard
-          label="Totale Pagato"
+          label={t('totalPaidLabel')}
           icon={<TrendingUp className="w-4 h-4" />}
           iconColor="muted"
           labelTone="variant"
           value={summary.totalPaid ?? 0}
           valueType="neutral"
           valueSize="xl"
-          description="Investito + tasse"
+          description={t('totalPaidDescription')}
           variant="default"
         />
       </MetricGrid>

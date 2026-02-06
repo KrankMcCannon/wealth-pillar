@@ -4,6 +4,7 @@ import { useEffect, useMemo } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useLocale, useTranslations } from 'next-intl';
 import { Category, cn } from '@/lib';
 import { getTempId } from '@/lib/utils/temp-id';
 import { FinanceLogicService } from '@/server/services/finance-logic.service';
@@ -15,21 +16,12 @@ import { IconPicker, Input } from '@/components/ui';
 import { useRequiredGroupId } from '@/hooks';
 import { useCategories, useReferenceDataStore } from '@/stores/reference-data-store';
 
-// Zod schema for category validation
-const categorySchema = z.object({
-  label: z.string().min(1, "L'etichetta è obbligatoria").trim(),
-  key: z.string().min(1, 'La chiave è obbligatoria').trim(),
-  icon: z.string().min(1, "L'icona è obbligatoria").trim(),
-  color: z
-    .string()
-    .min(1, 'Il colore è obbligatorio')
-    .trim()
-    .refine((val) => FinanceLogicService.isValidColor(val), {
-      message: 'Formato colore non valido. Usa il formato esadecimale (es. #FF0000)',
-    }),
-});
-
-type CategoryFormData = z.infer<typeof categorySchema>;
+type CategoryFormData = {
+  label: string;
+  key: string;
+  icon: string;
+  color: string;
+};
 
 interface CategoryFormModalProps {
   isOpen: boolean;
@@ -38,6 +30,8 @@ interface CategoryFormModalProps {
 }
 
 function CategoryFormModal({ isOpen, onClose, editId }: Readonly<CategoryFormModalProps>) {
+  const t = useTranslations('Categories.FormModal');
+  const locale = useLocale();
   // Read from store instead of props
   const groupId = useRequiredGroupId();
 
@@ -48,10 +42,24 @@ function CategoryFormModal({ isOpen, onClose, editId }: Readonly<CategoryFormMod
   const removeCategory = useReferenceDataStore((state) => state.removeCategory);
 
   const isEditMode = !!editId;
-  const title = isEditMode ? 'Modifica Categoria' : 'Nuova Categoria';
-  const description = isEditMode
-    ? 'Aggiorna i dettagli della categoria'
-    : 'Crea una nuova categoria';
+  const title = isEditMode ? t('title.edit') : t('title.create');
+  const description = isEditMode ? t('description.edit') : t('description.create');
+  const categorySchema = useMemo(
+    () =>
+      z.object({
+        label: z.string().min(1, t('validation.labelRequired')).trim(),
+        key: z.string().min(1, t('validation.keyRequired')).trim(),
+        icon: z.string().min(1, t('validation.iconRequired')).trim(),
+        color: z
+          .string()
+          .min(1, t('validation.colorRequired'))
+          .trim()
+          .refine((val) => FinanceLogicService.isValidColor(val), {
+            message: t('validation.colorInvalid'),
+          }),
+      }),
+    [t]
+  );
 
   // React Hook Form setup
   const {
@@ -127,14 +135,14 @@ function CategoryFormModal({ isOpen, onClose, editId }: Readonly<CategoryFormMod
     // 1. Store original category for revert
     const originalCategory = storeCategories.find((cat) => cat.id === id);
     if (!originalCategory) {
-      throw new Error('Categoria non trovata');
+      throw new Error(t('errors.notFound'));
     }
 
     // 2. Update in store immediately (optimistic)
     updateCategory(id, updateData);
 
     // 3. Call server action
-    const result = await updateCategoryAction(id, updateData);
+    const result = await updateCategoryAction(id, updateData, locale);
 
     if (result.error) {
       // 4. Revert on error
@@ -171,13 +179,16 @@ function CategoryFormModal({ isOpen, onClose, editId }: Readonly<CategoryFormMod
     onClose();
 
     // 4. Call server action in background
-    const result = await createCategoryAction({
-      label: data.label.trim(),
-      key: data.key.trim(),
-      icon: data.icon.trim(),
-      color: data.color.trim().toUpperCase(),
-      group_id: groupId,
-    });
+    const result = await createCategoryAction(
+      {
+        label: data.label.trim(),
+        key: data.key.trim(),
+        icon: data.icon.trim(),
+        color: data.color.trim().toUpperCase(),
+        group_id: groupId,
+      },
+      locale
+    );
 
     if (result.error) {
       // 5. Remove optimistic category on error
@@ -205,7 +216,7 @@ function CategoryFormModal({ isOpen, onClose, editId }: Readonly<CategoryFormMod
       }
     } catch (error) {
       setError('root', {
-        message: error instanceof Error ? error.message : 'Errore sconosciuto',
+        message: error instanceof Error ? error.message : t('errors.unknown'),
       });
     }
   };
@@ -231,17 +242,21 @@ function CategoryFormModal({ isOpen, onClose, editId }: Readonly<CategoryFormMod
 
           <ModalSection>
             {/* Label */}
-            <FormField label="Etichetta" required error={errors.label?.message}>
-              <Input {...register('label')} placeholder="es. Alimentari" disabled={isSubmitting} />
+            <FormField label={t('fields.label.label')} required error={errors.label?.message}>
+              <Input
+                {...register('label')}
+                placeholder={t('fields.label.placeholder')}
+                disabled={isSubmitting}
+              />
             </FormField>
 
             {/* Icon */}
-            <FormField label="Icona" required error={errors.icon?.message}>
+            <FormField label={t('fields.icon.label')} required error={errors.icon?.message}>
               <IconPicker value={watchedIcon} onChange={(value) => setValue('icon', value)} />
             </FormField>
 
             {/* Color */}
-            <FormField label="Colore" required error={errors.color?.message}>
+            <FormField label={t('fields.color.label')} required error={errors.color?.message}>
               <div className={categoryStyles.formModal.colorSection}>
                 {/* Color palette */}
                 <div className={categoryStyles.formModal.palette}>
@@ -281,7 +296,7 @@ function CategoryFormModal({ isOpen, onClose, editId }: Readonly<CategoryFormMod
                 {/* Custom color input */}
                 <Input
                   {...register('color')}
-                  placeholder={FinanceLogicService.getDefaultColor()}
+                  placeholder={t('fields.color.placeholder')}
                   disabled={isSubmitting}
                 />
               </div>
@@ -292,7 +307,8 @@ function CategoryFormModal({ isOpen, onClose, editId }: Readonly<CategoryFormMod
         <ModalFooter>
           <FormActions
             submitType="submit"
-            submitLabel={isEditMode ? 'Salva' : 'Crea Categoria'}
+            submitLabel={isEditMode ? t('buttons.save') : t('buttons.create')}
+            cancelLabel={t('buttons.cancel')}
             onCancel={onClose}
             isSubmitting={isSubmitting}
             className="w-full sm:w-auto"

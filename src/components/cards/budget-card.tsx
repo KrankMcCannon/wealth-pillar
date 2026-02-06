@@ -5,6 +5,7 @@
 'use client';
 
 import { memo, useMemo } from 'react';
+import { useTranslations } from 'next-intl';
 import { CategoryBadge, StatusBadge, Text } from '@/components/ui';
 import type { Budget } from '@/lib';
 import { progressBarVariants, progressFillVariants } from '@/lib';
@@ -29,6 +30,7 @@ export const BudgetCard = memo(function BudgetCard({
   budgetInfo,
   onClick,
 }: BudgetCardProps) {
+  const t = useTranslations('Budgets.Card');
   const categories = useCategories();
   const categoryColor = useMemo(() => {
     return FinanceLogicService.getCategoryColor(categories, budget.categories?.[0] || 'altro');
@@ -84,11 +86,11 @@ export const BudgetCard = memo(function BudgetCard({
           </Text>
           <div className="flex flex-col items-end">
             <Text variant="subtle" size="xs">
-              su {formatCurrency(budget.amount)}
+              {t('ofPrefix')} {formatCurrency(budget.amount)}
             </Text>
             {budgetInfo && (
               <Text variant="subtle" size="xs" className="text-muted-foreground/70">
-                Spesi: {formatCurrency(budgetInfo.spent)}
+                {t('spentPrefix')} {formatCurrency(budgetInfo.spent)}
               </Text>
             )}
           </div>

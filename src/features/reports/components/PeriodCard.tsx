@@ -3,12 +3,14 @@ import type { ReportPeriodSummary } from '@/server/services/reports.service';
 import { reportsStyles } from '@/features/reports/theme/reports-styles';
 import { sortAccountMetrics } from '@/features/reports/utils';
 import { ArrowDownCircle, ArrowUpCircle } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface PeriodCardProps {
   period: ReportPeriodSummary;
 }
 
 export function PeriodCard({ period }: PeriodCardProps) {
+  const t = useTranslations('Reports.PeriodCard');
   const globalNet = period.totalEarned - period.totalSpent;
 
   return (
@@ -25,19 +27,19 @@ export function PeriodCard({ period }: PeriodCardProps) {
         {/* Global Metrics */}
         <div className={reportsStyles.periods.globalMetrics}>
           <div className={reportsStyles.periods.globalMetricIncome}>
-            <span className={reportsStyles.periods.globalLabel}>Income</span>
+            <span className={reportsStyles.periods.globalLabel}>{t('incomeLabel')}</span>
             <span className={reportsStyles.periods.globalValueIncome}>
               +{formatCurrency(period.totalEarned)}
             </span>
           </div>
           <div className={reportsStyles.periods.globalMetricExpense}>
-            <span className={reportsStyles.periods.globalLabel}>Expenses</span>
+            <span className={reportsStyles.periods.globalLabel}>{t('expensesLabel')}</span>
             <span className={reportsStyles.periods.globalValueExpense}>
               -{formatCurrency(period.totalSpent)}
             </span>
           </div>
           <div className={reportsStyles.periods.globalMetricNet}>
-            <span className={reportsStyles.periods.globalLabel}>Net Savings</span>
+            <span className={reportsStyles.periods.globalLabel}>{t('netSavingsLabel')}</span>
             <span className={reportsStyles.periods.globalValueNet}>
               {formatCurrency(globalNet)}
             </span>
@@ -46,7 +48,7 @@ export function PeriodCard({ period }: PeriodCardProps) {
 
         {/* Breakdown */}
         <div className={reportsStyles.periods.breakdownContainer}>
-          <h4 className={reportsStyles.periods.breakdownTitle}>By Account Type</h4>
+          <h4 className={reportsStyles.periods.breakdownTitle}>{t('byAccountTypeTitle')}</h4>
           <div className={reportsStyles.periods.breakdownList}>
             {sortAccountMetrics(Object.entries(period.metricsByAccountType)).map(
               ([type, metrics]) => {

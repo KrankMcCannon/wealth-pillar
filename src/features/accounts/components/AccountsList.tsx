@@ -7,6 +7,7 @@
 'use client';
 
 import { CreditCard } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import type { Account } from '@/lib';
 import { AccountCard } from '@/components/cards';
 import { EmptyState } from '@/components/shared';
@@ -53,6 +54,7 @@ export const AccountsList = ({
   onDeleteAccount,
   isLoading = false,
 }: Readonly<AccountsListProps>) => {
+  const t = useTranslations('Accounts.List');
   // Show skeleton only if actively loading AND no data received yet
   // With placeholderData, empty array exists immediately, so check both conditions
   const isInitialLoading = isLoading && (!accounts || accounts.length === 0);
@@ -60,7 +62,7 @@ export const AccountsList = ({
   if (isInitialLoading) {
     return (
       <div className={accountStyles.accountsList.container}>
-        <h2 className={accountStyles.accountsList.header}>Tutti gli Account</h2>
+        <h2 className={accountStyles.accountsList.header}>{t('header')}</h2>
         <div className={accountStyles.accountsList.items}>
           {['skeleton-1', 'skeleton-2', 'skeleton-3'].map((id) => (
             <div key={id} className={accountStyles.list.cardWrapper}>
@@ -76,11 +78,11 @@ export const AccountsList = ({
   if (accounts.length === 0) {
     return (
       <div className={accountStyles.accountsList.container}>
-        <h2 className={accountStyles.accountsList.header}>Tutti gli Account</h2>
+        <h2 className={accountStyles.accountsList.header}>{t('header')}</h2>
         <EmptyState
           icon={CreditCard}
-          title="Nessun account trovato"
-          description="Aggiungi il tuo primo bank account"
+          title={t('empty.title')}
+          description={t('empty.description')}
         />
       </div>
     );
@@ -89,7 +91,7 @@ export const AccountsList = ({
   // Show actual accounts
   return (
     <div className={accountStyles.accountsList.container}>
-      <h2 className={accountStyles.accountsList.header}>Tutti gli Account</h2>
+      <h2 className={accountStyles.accountsList.header}>{t('header')}</h2>
 
       <div className={accountStyles.accountsList.items}>
         <div className={accountStyles.accountsList.groupCard}>

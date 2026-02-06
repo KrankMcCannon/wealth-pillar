@@ -14,6 +14,7 @@
 
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useLocale, useTranslations } from 'next-intl';
 import {
   useDeleteConfirmation,
   useIdNameMap,
@@ -131,6 +132,8 @@ export function useBudgetsContent({
 }: UseBudgetsContentProps): UseBudgetsContentReturn {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const locale = useLocale();
+  const t = useTranslations('Budgets.Page');
 
   // ========================================================================
   // Store Initialization
@@ -299,14 +302,14 @@ export function useBudgetsContent({
       const startDt = toDateTime(periodInfo.start);
       const endDt = periodInfo.end ? toDateTime(periodInfo.end) : null;
 
-      const startFormatted = startDt ? formatDateShort(startDt) : '';
-      const endFormatted = endDt ? formatDateShort(endDt) : 'Oggi';
+      const startFormatted = startDt ? formatDateShort(startDt, locale) : '';
+      const endFormatted = endDt ? formatDateShort(endDt, locale) : t('today');
       return `${startFormatted} - ${endFormatted}`;
     }
 
     const count = selectedBudgetProgress?.transactionCount ?? 0;
-    return `${count} ${count === 1 ? 'transazione' : 'transazioni'}`;
-  }, [periodInfo, selectedBudgetProgress]);
+    return t('transactionCount', { count });
+  }, [periodInfo, selectedBudgetProgress, locale, t]);
 
   // Group transactions by date
   const groupedTransactions = useMemo((): GroupedTransaction[] => {
@@ -325,7 +328,7 @@ export function useBudgetsContent({
       .sort(([dateA], [dateB]) => dateB.localeCompare(dateA))
       .map(([date, txs]) => ({
         date,
-        formattedDate: formatDateSmart(date),
+        formattedDate: formatDateSmart(date, locale),
         transactions: txs.toSorted((a, b) => {
           const dtA = toDateTime(a.date);
           const dtB = toDateTime(b.date);
@@ -334,7 +337,7 @@ export function useBudgetsContent({
         }),
         total: txs.reduce((sum, t) => sum + t.amount, 0),
       }));
-  }, [budgetTransactions]);
+  }, [budgetTransactions, locale]);
 
   // ========================================================================
   // Chart Data Generation
@@ -420,7 +423,7 @@ export function useBudgetsContent({
       removeBudget(budget.id);
 
       try {
-        const result = await deleteBudgetAction(budget.id);
+        const result = await deleteBudgetAction(budget.id, locale);
 
         if (result.error) {
           addBudget(budget);
@@ -438,7 +441,7 @@ export function useBudgetsContent({
         throw error;
       }
     });
-  }, [deleteConfirm, removeBudget, addBudget, selectedBudgetId]);
+  }, [deleteConfirm, removeBudget, addBudget, selectedBudgetId, locale]);
 
   // ========================================================================
   // Return

@@ -19,6 +19,7 @@
 import { useState, useCallback } from 'react';
 import { format, addMonths, subMonths, isValid, startOfYear } from 'date-fns';
 import * as Dialog from '@radix-ui/react-dialog';
+import { useTranslations } from 'next-intl';
 import { calendarDrawerStyles } from '@/lib/styles/calendar-drawer.styles';
 import {
   DrawerHandle,
@@ -76,6 +77,7 @@ export function MobileCalendarDrawer({
   isOpen,
   onClose,
 }: Readonly<MobileCalendarDrawerProps>) {
+  const t = useTranslations('Forms.DateDrawer');
   // Parse current value to Date (or use today if empty)
   const selectedDate = value && isValid(new Date(value)) ? new Date(value) : undefined;
 
@@ -141,11 +143,11 @@ export function MobileCalendarDrawer({
         <Dialog.Content
           className={calendarDrawerStyles.drawer.content}
           onKeyDown={handleKeyDown}
-          aria-label="Selettore data"
+          aria-label={t('drawerAriaLabel')}
         >
           {/* Hidden title for accessibility */}
           <Dialog.Title className={calendarDrawerStyles.accessibility.srOnly}>
-            Seleziona una data
+            {t('drawerTitle')}
           </Dialog.Title>
 
           {/* Drag Handle */}

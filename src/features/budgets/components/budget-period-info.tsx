@@ -1,7 +1,9 @@
 'use client';
 
+import { useLocale, useTranslations } from 'next-intl';
 import { Badge } from '@/components/ui';
 import { BudgetPeriod } from '@/lib';
+import { toDateTime } from '@/lib/utils/date-utils';
 import { Calendar, Clock } from 'lucide-react';
 import { budgetStyles } from '@/styles/system';
 
@@ -22,16 +24,34 @@ export function BudgetPeriodInfo({
   totalSaved,
   categorySpending,
 }: Readonly<BudgetPeriodInfoProps>) {
+  const t = useTranslations('Budgets.PeriodInfo');
+  const locale = useLocale();
+
+  const formatDate = (date: string | Date | null) => {
+    if (!date) return '—';
+    const dt = toDateTime(date);
+    if (!dt) return t('invalidDate');
+    return dt.toFormat('d LLL yyyy', { locale: locale.split('-')[0] });
+  };
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat(locale, {
+      style: 'currency',
+      currency: 'EUR',
+    }).format(amount);
+  };
+
   if (!period) {
     return (
       <div className={`text-center py-2 ${className}`}>
-        <p className={budgetStyles.periodInfo.emptyText}>Nessun periodo attivo</p>
+        <p className={budgetStyles.periodInfo.emptyText}>{t('empty.noActivePeriod')}</p>
       </div>
     );
   }
 
   const isCurrentPeriod = period.is_active && !period.end_date;
-  const endDate = period.end_date ? period.end_date : null;
+  const startLabel = formatDate(period.start_date);
+  const endLabel = period.end_date ? formatDate(period.end_date) : t('inProgress');
 
   return (
     <div className={`space-y-2 ${className}`}>
@@ -40,7 +60,7 @@ export function BudgetPeriodInfo({
         <div className={budgetStyles.periodInfo.headerLeft}>
           <Calendar className={budgetStyles.periodInfo.headerIcon} />
           <span className={budgetStyles.periodInfo.headerText}>
-            {endDate ? `- ${endDate}` : '- in corso'}
+            {startLabel} - {endLabel}
           </span>
         </div>
 
@@ -51,10 +71,10 @@ export function BudgetPeriodInfo({
           {isCurrentPeriod ? (
             <>
               <Clock className={budgetStyles.periodInfo.badgeIcon} />
-              Attivo
+              {t('status.active')}
             </>
           ) : (
-            'Concluso'
+            t('status.completed')
           )}
         </Badge>
       </div>
@@ -64,15 +84,15 @@ export function BudgetPeriodInfo({
         <div className={budgetStyles.periodInfo.metricsGrid}>
           {totalSpent !== undefined && (
             <div className={budgetStyles.periodInfo.metricSpent}>
-              <p className={budgetStyles.periodInfo.metricLabelSpent}>Speso</p>
-              <p className={budgetStyles.periodInfo.metricValueSpent}>{totalSpent}</p>
+              <p className={budgetStyles.periodInfo.metricLabelSpent}>{t('metrics.spent')}</p>
+              <p className={budgetStyles.periodInfo.metricValueSpent}>{formatCurrency(totalSpent)}</p>
             </div>
           )}
 
           {totalSaved !== undefined && (
             <div className={budgetStyles.periodInfo.metricSaved}>
-              <p className={budgetStyles.periodInfo.metricLabelSaved}>Risparmiato</p>
-              <p className={budgetStyles.periodInfo.metricValueSaved}>{totalSaved}</p>
+              <p className={budgetStyles.periodInfo.metricLabelSaved}>{t('metrics.saved')}</p>
+              <p className={budgetStyles.periodInfo.metricValueSaved}>{formatCurrency(totalSaved)}</p>
             </div>
           )}
         </div>
@@ -81,7 +101,7 @@ export function BudgetPeriodInfo({
       {/* Category Breakdown (if available) */}
       {categorySpending && Object.keys(categorySpending).length > 0 && (
         <div className={budgetStyles.periodInfo.topCategories}>
-          <p className={budgetStyles.periodInfo.topCategoriesTitle}>Principali Categorie</p>
+          <p className={budgetStyles.periodInfo.topCategoriesTitle}>{t('topCategories')}</p>
           <div className={budgetStyles.periodInfo.topCategoriesList}>
             {Object.entries(categorySpending)
               .sort(([, a], [, b]) => b - a)
@@ -91,7 +111,9 @@ export function BudgetPeriodInfo({
                   <span className={budgetStyles.periodInfo.topCategoryLabel}>
                     {category.replaceAll('_', ' ')}
                   </span>
-                  <span className={budgetStyles.periodInfo.topCategoryAmount}>{amount}</span>
+                  <span className={budgetStyles.periodInfo.topCategoryAmount}>
+                    {formatCurrency(amount)}
+                  </span>
                 </div>
               ))}
           </div>

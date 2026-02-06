@@ -2,6 +2,7 @@ import { SectionHeader } from '@/components/layout';
 import { ListContainer, PageSection, RowCard } from '@/components/ui/layout';
 import { RoleBadge } from '@/features/permissions';
 import { ChevronRight, CreditCard, Plus, Users } from 'lucide-react';
+import { useLocale, useTranslations } from 'next-intl';
 import { User } from '@/lib/types';
 
 interface GroupSectionProps {
@@ -17,17 +18,20 @@ export function GroupSection({
   onInviteMember,
   onManageSubscription,
 }: Readonly<GroupSectionProps>) {
+  const t = useTranslations('SettingsSections.Group');
+  const locale = useLocale();
+
   if (!isAdmin) return null;
 
   return (
     <PageSection>
-      <SectionHeader title="Gestione Gruppo" icon={Users} iconClassName="text-primary" />
+      <SectionHeader title={t('title')} icon={Users} iconClassName="text-primary" />
 
       {/* Group Members List */}
       <PageSection variant="card" padding="sm">
         <SectionHeader
-          title="Membri del Gruppo"
-          subtitle={`${groupUsers.length} ${groupUsers.length === 1 ? 'membro visibile' : 'membri visibili'}`}
+          title={t('membersTitle')}
+          subtitle={t('membersSubtitle', { count: groupUsers.length })}
           titleClassName="text-sm font-semibold text-primary"
           subtitleClassName="text-xs text-primary/70"
         />
@@ -65,7 +69,7 @@ export function GroupSection({
                     />
                     <p className="text-xs text-primary/50 mt-0.5">
                       {member.created_at
-                        ? new Date(member.created_at).toLocaleDateString('it-IT')
+                        ? new Date(member.created_at).toLocaleDateString(locale)
                         : '-'}
                     </p>
                   </div>
@@ -80,8 +84,8 @@ export function GroupSection({
       <PageSection variant="card" padding="sm">
         <ListContainer divided className="divide-primary/20 space-y-0">
           <RowCard
-            title="Invita Membro"
-            subtitle="Invia invito per unirsi al gruppo"
+            title={t('inviteMemberTitle')}
+            subtitle={t('inviteMemberDescription')}
             icon={
               <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary shadow-sm">
                 <Plus className="h-4 w-4" />
@@ -92,8 +96,8 @@ export function GroupSection({
             variant="interactive"
           />
           <RowCard
-            title="Impostazioni Abbonamento"
-            subtitle="Gestisci fatturazione e abbonamento gruppo"
+            title={t('subscriptionTitle')}
+            subtitle={t('subscriptionDescription')}
             icon={
               <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary shadow-sm">
                 <CreditCard className="h-4 w-4" />

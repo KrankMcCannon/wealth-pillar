@@ -1,6 +1,7 @@
 'use client';
 
 import { AlertTriangle, Loader2 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { Button, ModalBody, ModalFooter, ModalWrapper } from '@/components/ui';
 import { settingsStyles } from '@/features/settings/theme';
 
@@ -23,6 +24,8 @@ export function DeleteAccountModal({
   onClose,
   onConfirm,
 }: Readonly<DeleteAccountModalProps>) {
+  const t = useTranslations('SettingsModals.DeleteAccount');
+
   const handleOpenChange = (open: boolean) => {
     if (!open) {
       onClose();
@@ -33,8 +36,8 @@ export function DeleteAccountModal({
     <ModalWrapper
       isOpen={isOpen}
       onOpenChange={handleOpenChange}
-      title="Elimina Account"
-      description="Questa azione è irreversibile"
+      title={t('title')}
+      description={t('description')}
       titleClassName={settingsStyles.modals.deleteAccount.title}
       descriptionClassName={settingsStyles.modals.description}
       disableOutsideClose={isDeleting}
@@ -42,29 +45,29 @@ export function DeleteAccountModal({
       <ModalBody>
         <div className={settingsStyles.modals.deleteAccount.body}>
           <p className={settingsStyles.modals.deleteAccount.bodyText}>
-            Sei sicuro di voler eliminare il tuo account?
+            {t('confirmPrompt')}
           </p>
 
           <div className={settingsStyles.modals.deleteAccount.warningBox}>
             <p className={settingsStyles.modals.deleteAccount.warningTitle}>
-              Verranno eliminati permanentemente:
+              {t('warningTitle')}
             </p>
             <ul className={settingsStyles.modals.deleteAccount.warningList}>
               <li className={settingsStyles.modals.deleteAccount.warningItem}>
                 <span className={settingsStyles.modals.deleteAccount.warningDot}>•</span>
-                <span>Il tuo account utente</span>
+                <span>{t('items.userAccount')}</span>
               </li>
               <li className={settingsStyles.modals.deleteAccount.warningItem}>
                 <span className={settingsStyles.modals.deleteAccount.warningDot}>•</span>
-                <span>Tutti i tuoi conti bancari</span>
+                <span>{t('items.bankAccounts')}</span>
               </li>
               <li className={settingsStyles.modals.deleteAccount.warningItem}>
                 <span className={settingsStyles.modals.deleteAccount.warningDot}>•</span>
-                <span>Tutte le tue transazioni</span>
+                <span>{t('items.transactions')}</span>
               </li>
               <li className={settingsStyles.modals.deleteAccount.warningItem}>
                 <span className={settingsStyles.modals.deleteAccount.warningDot}>•</span>
-                <span>Tutti i tuoi budget</span>
+                <span>{t('items.budgets')}</span>
               </li>
             </ul>
           </div>
@@ -85,7 +88,7 @@ export function DeleteAccountModal({
           variant="outline"
           className={settingsStyles.modals.deleteAccount.button}
         >
-          Annulla
+          {t('cancelButton')}
         </Button>
         <Button
           type="button"
@@ -96,10 +99,10 @@ export function DeleteAccountModal({
           {isDeleting ? (
             <>
               <Loader2 className={settingsStyles.modals.loadingIcon} />
-              Eliminazione...
+              {t('deletingButton')}
             </>
           ) : (
-            'Elimina Account'
+            t('deleteButton')
           )}
         </Button>
       </ModalFooter>

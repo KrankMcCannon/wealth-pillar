@@ -8,6 +8,7 @@
 
 import { CreditCard } from 'lucide-react';
 import { useRef } from 'react';
+import { useTranslations } from 'next-intl';
 import { Account } from '@/lib';
 import { AccountSliderCard } from './AccountSliderCard';
 import { accountStyles } from '../theme/account-styles';
@@ -23,6 +24,7 @@ export const AccountSlider = ({
   accountBalances,
   onAccountClick,
 }: AccountSliderProps) => {
+  const t = useTranslations('Accounts.Home');
   const sliderRef = useRef<HTMLDivElement | null>(null);
 
   const handleWheel = (event: React.WheelEvent<HTMLDivElement>) => {
@@ -58,7 +60,7 @@ export const AccountSlider = ({
           <div className={accountStyles.slider.addPlaceholder}>
             <div className={accountStyles.slider.addPlaceholderContent}>
               <CreditCard className={accountStyles.slider.addPromptIcon} />
-              <p className={accountStyles.slider.addPromptLabel}>Aggiungi Account</p>
+              <p className={accountStyles.slider.addPromptLabel}>{t('addAccount')}</p>
             </div>
           </div>
         )}

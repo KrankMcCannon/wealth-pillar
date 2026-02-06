@@ -4,6 +4,7 @@ import { useEffect, useMemo } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useLocale, useTranslations } from 'next-intl';
 import type { CheckedState } from '@radix-ui/react-checkbox';
 import { Budget, BudgetType } from '@/lib/types';
 import { getTempId } from '@/lib/utils/temp-id';
@@ -22,23 +23,15 @@ import { useUserFilterStore } from '@/stores/user-filter-store';
 import { usePageDataStore } from '@/stores/page-data-store';
 import { budgetStyles, getBudgetCategoryColorStyle } from '@/styles/system';
 
-// Zod schema for budget validation
-const budgetSchema = z.object({
-  description: z.string().min(2, 'La descrizione deve contenere almeno 2 caratteri').trim(),
-  amount: z
-    .string()
-    .min(1, "L'importo è obbligatorio")
-    .refine((val) => !Number.isNaN(Number.parseFloat(val)) && Number.parseFloat(val) > 0, {
-      message: "L'importo deve essere maggiore di zero",
-    }),
-  type: z.enum(['monthly', 'annually']),
-  icon: z.string().nullable().optional(),
-  categories: z.array(z.string()).min(1, 'Seleziona almeno una categoria'),
-  user_id: z.string().min(1, "L'utente è obbligatorio"),
-  categorySearch: z.string().optional(),
-});
-
-type BudgetFormData = z.infer<typeof budgetSchema>;
+type BudgetFormData = {
+  description: string;
+  amount: string;
+  type: BudgetType;
+  icon?: string | null;
+  categories: string[];
+  user_id: string;
+  categorySearch?: string;
+};
 
 interface BudgetFormModalProps {
   isOpen: boolean;
@@ -47,6 +40,8 @@ interface BudgetFormModalProps {
 }
 
 function BudgetFormModal({ isOpen, onClose, editId }: Readonly<BudgetFormModalProps>) {
+  const t = useTranslations('Budgets.FormModal');
+  const locale = useLocale();
   // Read from stores instead of props
   const currentUser = useRequiredCurrentUser();
   const groupUsers = useRequiredGroupUsers();
@@ -61,14 +56,32 @@ function BudgetFormModal({ isOpen, onClose, editId }: Readonly<BudgetFormModalPr
   const removeBudget = usePageDataStore((state) => state.removeBudget);
 
   const isEditMode = !!editId;
-  const title = isEditMode ? 'Modifica Budget' : 'Nuovo Budget';
-  const description = isEditMode ? 'Aggiorna i dettagli del budget' : 'Crea un nuovo budget';
+  const title = isEditMode ? t('title.edit') : t('title.create');
+  const description = isEditMode ? t('description.edit') : t('description.create');
 
   // Permission checks
   const { shouldDisableUserField, defaultFormUserId, userFieldHelperText } = usePermissions({
     currentUser,
     selectedUserId,
   });
+  const budgetSchema = useMemo(
+    () =>
+      z.object({
+        description: z.string().min(2, t('validation.descriptionMin')).trim(),
+        amount: z
+          .string()
+          .min(1, t('validation.amountRequired'))
+          .refine((val) => !Number.isNaN(Number.parseFloat(val)) && Number.parseFloat(val) > 0, {
+            message: t('validation.amountPositive'),
+          }),
+        type: z.enum(['monthly', 'annually']),
+        icon: z.string().nullable().optional(),
+        categories: z.array(z.string()).min(1, t('validation.categoriesRequired')),
+        user_id: z.string().min(1, t('validation.userRequired')),
+        categorySearch: z.string().optional(),
+      }),
+    [t]
+  );
 
   // React Hook Form setup
   const {
@@ -188,14 +201,14 @@ function BudgetFormModal({ isOpen, onClose, editId }: Readonly<BudgetFormModalPr
     // 1. Store original budget for revert
     const originalBudget = storeBudgets.find((b) => b.id === id);
     if (!originalBudget) {
-      throw new Error('Budget non trovato');
+      throw new Error(t('errors.notFound'));
     }
 
     // 2. Update in store immediately (optimistic)
     updateBudget(id, budgetData);
 
     // 3. Call server action
-    const result = await updateBudgetAction(id, budgetData);
+    const result = await updateBudgetAction(id, budgetData, locale);
 
     if (result.error) {
       // 4. Revert on error
@@ -239,7 +252,7 @@ function BudgetFormModal({ isOpen, onClose, editId }: Readonly<BudgetFormModalPr
     onClose();
 
     // 4. Call server action in background
-    const result = await createBudgetAction(budgetData);
+    const result = await createBudgetAction(budgetData, locale);
 
     if (result.error) {
       // 5. Remove optimistic budget on error
@@ -267,7 +280,7 @@ function BudgetFormModal({ isOpen, onClose, editId }: Readonly<BudgetFormModalPr
       }
     } catch (error) {
       setError('root', {
-        message: error instanceof Error ? error.message : 'Errore sconosciuto',
+        message: error instanceof Error ? error.message : t('errors.unknown'),
       });
     }
   };
@@ -297,21 +310,21 @@ function BudgetFormModal({ isOpen, onClose, editId }: Readonly<BudgetFormModalPr
                 onChange={(value) => setValue('user_id', value)}
                 error={errors.user_id?.message}
                 users={groupUsers}
-                label="Utente"
-                placeholder="Seleziona utente"
+                label={t('fields.user.label')}
+                placeholder={t('fields.user.placeholder')}
                 disabled={shouldDisableUserField}
                 helperText={userFieldHelperText}
                 required
               />
 
               {/* Type */}
-              <FormField label="Tipo budget" required error={errors.type?.message}>
+              <FormField label={t('fields.type.label')} required error={errors.type?.message}>
                 <FormSelect
                   value={watchedType}
                   onValueChange={(value) => setValue('type', value as BudgetType)}
                   options={[
-                    { value: 'monthly', label: 'Mensile' },
-                    { value: 'annually', label: 'Annuale' },
+                    { value: 'monthly', label: t('fields.type.options.monthly') },
+                    { value: 'annually', label: t('fields.type.options.annually') },
                   ]}
                 />
               </FormField>
@@ -321,8 +334,8 @@ function BudgetFormModal({ isOpen, onClose, editId }: Readonly<BudgetFormModalPr
                 value={Number.parseFloat(watchedAmount || '0')}
                 onChange={(value) => setValue('amount', value.toString())}
                 error={errors.amount?.message}
-                label="Importo"
-                placeholder="0,00"
+                label={t('fields.amount.label')}
+                placeholder={t('fields.amount.placeholder')}
                 required
               />
             </div>
@@ -330,10 +343,10 @@ function BudgetFormModal({ isOpen, onClose, editId }: Readonly<BudgetFormModalPr
 
           <ModalSection className={budgetStyles.formModal.section}>
             {/* Description */}
-            <FormField label="Descrizione" required error={errors.description?.message}>
+            <FormField label={t('fields.description.label')} required error={errors.description?.message}>
               <Input
                 {...register('description')}
-                placeholder="es. Spese mensili"
+                placeholder={t('fields.description.placeholder')}
                 disabled={isSubmitting}
               />
             </FormField>
@@ -342,7 +355,7 @@ function BudgetFormModal({ isOpen, onClose, editId }: Readonly<BudgetFormModalPr
           <ModalSection className={budgetStyles.formModal.sectionTight}>
             {/* Categories Selection */}
             <FormField
-              label="Seleziona categorie"
+              label={t('fields.categories.label')}
               required
               error={errors.categories?.message}
               className={budgetStyles.formModal.categoryField}
@@ -352,12 +365,15 @@ function BudgetFormModal({ isOpen, onClose, editId }: Readonly<BudgetFormModalPr
                   <Input
                     value={categorySearch}
                     onChange={(event) => setValue('categorySearch', event.target.value)}
-                    placeholder="Cerca categoria..."
+                    placeholder={t('fields.categories.searchPlaceholder')}
                     className={budgetStyles.formModal.categorySelect}
                   />
                   <div className={budgetStyles.formModal.categoryMeta}>
                     <span className={budgetStyles.formModal.categoryMetaStrong}>
-                      {watchedCategories.length}/{categoryOptions.length} selezionate
+                      {t('fields.categories.selectedCount', {
+                        selected: watchedCategories.length,
+                        total: categoryOptions.length,
+                      })}
                     </span>
                     <button
                       type="button"
@@ -365,7 +381,7 @@ function BudgetFormModal({ isOpen, onClose, editId }: Readonly<BudgetFormModalPr
                       onClick={handleSelectAllCategories}
                       disabled={!categoryOptions.length}
                     >
-                      Seleziona tutto
+                      {t('fields.categories.selectAll')}
                     </button>
                     <button
                       type="button"
@@ -373,16 +389,14 @@ function BudgetFormModal({ isOpen, onClose, editId }: Readonly<BudgetFormModalPr
                       onClick={handleClearCategories}
                       disabled={!watchedCategories.length}
                     >
-                      Pulisci
+                      {t('fields.categories.clear')}
                     </button>
                   </div>
                 </div>
 
                 <div className={budgetStyles.formModal.categoryList}>
                   {filteredCategoryOptions.length === 0 ? (
-                    <p className={budgetStyles.formModal.categoryEmpty}>
-                      Nessuna categoria trovata
-                    </p>
+                    <p className={budgetStyles.formModal.categoryEmpty}>{t('fields.categories.empty')}</p>
                   ) : (
                     filteredCategoryOptions.map((option) => (
                       <label key={option.value} className={budgetStyles.formModal.categoryItem}>
@@ -409,7 +423,8 @@ function BudgetFormModal({ isOpen, onClose, editId }: Readonly<BudgetFormModalPr
         <ModalFooter>
           <FormActions
             submitType="submit"
-            submitLabel={isEditMode ? 'Salva' : 'Crea Budget'}
+            submitLabel={isEditMode ? t('buttons.save') : t('buttons.create')}
+            cancelLabel={t('buttons.cancel')}
             onCancel={onClose}
             isSubmitting={isSubmitting}
             className="w-full sm:w-auto"

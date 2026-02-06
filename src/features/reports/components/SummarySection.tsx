@@ -2,6 +2,7 @@ import { CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatCurrency } from '@/lib/utils';
 import { AccountTypeSummary } from '@/server/services/reports.service';
 import { reportsStyles } from '@/features/reports/theme/reports-styles';
+import { useTranslations } from 'next-intl';
 import {
   Landmark,
   Wallet,
@@ -32,9 +33,11 @@ const getAccountIcon = (type: string) => {
 };
 
 export function SummarySection({ data }: SummarySectionProps) {
+  const t = useTranslations('Reports.SummarySection');
+
   return (
     <div className="space-y-4">
-      <h3 className={reportsStyles.periods.sectionTitle}>Summary</h3>
+      <h3 className={reportsStyles.periods.sectionTitle}>{t('title')}</h3>
       <div className={reportsStyles.summary.grid}>
         {data.map((item) => (
           <div key={item.type} className={reportsStyles.summary.card}>
@@ -56,7 +59,7 @@ export function SummarySection({ data }: SummarySectionProps) {
 
               <div className={reportsStyles.summary.metricsGrid}>
                 <div className={reportsStyles.summary.metricRow}>
-                  <span className={reportsStyles.summary.metricLabel}>Income</span>
+                  <span className={reportsStyles.summary.metricLabel}>{t('incomeLabel')}</span>
                   <div className="flex items-center gap-1">
                     <ArrowUpCircle className="w-3 h-3 text-emerald-500" />
                     <span className={reportsStyles.summary.metricValueIncome}>
@@ -65,7 +68,7 @@ export function SummarySection({ data }: SummarySectionProps) {
                   </div>
                 </div>
                 <div className={reportsStyles.summary.metricRow}>
-                  <span className={reportsStyles.summary.metricLabel}>Expenses</span>
+                  <span className={reportsStyles.summary.metricLabel}>{t('expensesLabel')}</span>
                   <div className="flex items-center gap-1">
                     <ArrowDownCircle className="w-3 h-3 text-red-500" />
                     <span className={reportsStyles.summary.metricValueExpense}>
@@ -79,7 +82,7 @@ export function SummarySection({ data }: SummarySectionProps) {
         ))}
         {data.length === 0 && (
           <p className="text-sm text-primary/60 col-span-full text-center py-8">
-            No summary data available.
+            {t('empty')}
           </p>
         )}
       </div>

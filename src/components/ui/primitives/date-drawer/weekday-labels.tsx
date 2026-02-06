@@ -10,15 +10,13 @@
  * - Responsive typography
  */
 
+'use client';
+
+import { useMemo } from 'react';
+import { useLocale } from 'next-intl';
 import { calendarDrawerStyles } from '@/lib/styles/calendar-drawer.styles';
 import { weekdayLabelVariants } from '@/lib/utils/date-drawer-variants';
 import { cn } from '@/lib/utils';
-
-/**
- * Italian weekday abbreviations
- * Starts with Monday (Italian/European convention)
- */
-const ITALIAN_WEEKDAYS = ['Lu', 'Ma', 'Me', 'Gi', 'Ve', 'Sa', 'Do'] as const;
 
 interface WeekdayLabelsProps {
   /**
@@ -47,32 +45,39 @@ export function WeekdayLabels({
   highlightWeekends = false,
   className,
 }: Readonly<WeekdayLabelsProps>) {
+  const locale = useLocale();
+  const weekdays = useMemo(() => {
+    // January 1, 2024 is a Monday; this keeps Monday-first ordering.
+    const monday = new Date(Date.UTC(2024, 0, 1));
+    const shortFormatter = new Intl.DateTimeFormat(locale, { weekday: 'short' });
+    const fullFormatter = new Intl.DateTimeFormat(locale, { weekday: 'long' });
+
+    return Array.from({ length: 7 }, (_, index) => {
+      const date = new Date(monday);
+      date.setUTCDate(monday.getUTCDate() + index);
+      return {
+        short: shortFormatter.format(date),
+        full: fullFormatter.format(date),
+      };
+    });
+  }, [locale]);
+
   return (
     <tr className={cn(calendarDrawerStyles.weekdays.container, className)}>
-      {ITALIAN_WEEKDAYS.map((day, index) => {
+      {weekdays.map((day, index) => {
         // Saturday (index 5) and Sunday (index 6) are weekends
         const isWeekend = highlightWeekends && (index === 5 || index === 6);
 
         return (
           <th
-            key={day}
+            key={day.full}
             className={cn(calendarDrawerStyles.weekdays.label, weekdayLabelVariants({ isWeekend }))}
-            aria-label={getFullWeekdayName(index)}
+            aria-label={day.full}
           >
-            {day}
+            {day.short}
           </th>
         );
       })}
     </tr>
   );
-}
-
-/**
- * Get full Italian weekday name for accessibility
- * @param index - Day index (0 = Monday, 6 = Sunday)
- * @returns Full Italian weekday name
- */
-function getFullWeekdayName(index: number): string {
-  const fullNames = ['Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato', 'Domenica'];
-  return fullNames[index] || '';
 }

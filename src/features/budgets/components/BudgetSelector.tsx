@@ -7,6 +7,7 @@
 'use client';
 
 import { useCallback, useMemo } from 'react';
+import { useTranslations } from 'next-intl';
 import {
   Select,
   SelectContent,
@@ -35,6 +36,7 @@ export function BudgetSelector({
   users,
   onBudgetSelect,
 }: Readonly<BudgetSelectorProps>) {
+  const t = useTranslations('Budgets.Selector');
   const { selectedUserId } = useUserFilter();
   const showUserChip = !selectedUserId;
   const userMap = useMemo(() => new Map(users.map((user) => [user.id, user.name])), [users]);
@@ -55,7 +57,7 @@ export function BudgetSelector({
   return (
     <PageSection variant="card" padding="sm" className={budgetStyles.selectionSection}>
       {/* Section Header */}
-      <SectionHeader title="Budget" subtitle="Seleziona per visualizzare i dettagli" />
+      <SectionHeader title={t('title')} subtitle={t('subtitle')} />
 
       {/* Budget Selector Dropdown */}
       <div>
@@ -83,7 +85,7 @@ export function BudgetSelector({
                 </div>
               </div>
             ) : (
-              <span className={budgetStyles.selector.placeholder}>Seleziona budget</span>
+              <span className={budgetStyles.selector.placeholder}>{t('placeholder')}</span>
             )}
           </SelectTrigger>
           <SelectContent className={budgetStyles.selector.content}>

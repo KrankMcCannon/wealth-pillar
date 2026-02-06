@@ -4,6 +4,7 @@ import * as React from 'react';
 import * as SelectPrimitive from '@radix-ui/react-select';
 import { Search, Clock, TrendingUp, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useLocale, useTranslations } from 'next-intl';
 import { cn } from '@/lib';
 import { Category } from '@/lib/types';
 import { CategoryIcon, getSemanticColor } from '@/lib/icons';
@@ -43,15 +44,18 @@ export const CategorySelect = React.memo<CategorySelectProps>(
     value,
     onValueChange,
     categories,
-    placeholder = 'Seleziona categoria',
+    placeholder,
     disabled = false,
     className,
     showRecentCategories = true,
     recentCategoriesLimit = 3,
   }) => {
+    const t = useTranslations('Forms.CategorySelect');
+    const locale = useLocale();
     const [searchValue, setSearchValue] = React.useState('');
     const [isOpen, setIsOpen] = React.useState(false);
     const [isHydrated, setIsHydrated] = React.useState(false);
+    const resolvedPlaceholder = placeholder ?? t('placeholder');
 
     // Debounce search for performance
     const debouncedSearch = useDebouncedValue(searchValue, 200);
@@ -78,8 +82,8 @@ export const CategorySelect = React.memo<CategorySelectProps>(
 
     // Sort categories alphabetically (memoized)
     const sortedCategories = React.useMemo(() => {
-      return [...categories].sort((a, b) => a.label.localeCompare(b.label, 'it'));
-    }, [categories]);
+      return [...categories].sort((a, b) => a.label.localeCompare(b.label, locale));
+    }, [categories, locale]);
 
     // Filter categories by search (using debounced value)
     const filteredCategories = React.useMemo(() => {
@@ -173,7 +177,7 @@ export const CategorySelect = React.memo<CategorySelectProps>(
         {/* Trigger */}
         <SelectPrimitive.Trigger
           className={cn(selectStyles.trigger, className)}
-          aria-label={placeholder}
+          aria-label={resolvedPlaceholder}
         >
           <div className={formStyles.categorySelect.triggerRow}>
             {selectedCategory ? (
@@ -188,7 +192,9 @@ export const CategorySelect = React.memo<CategorySelectProps>(
                 </span>
               </>
             ) : (
-              <span className={formStyles.categorySelect.triggerPlaceholder}>{placeholder}</span>
+              <span className={formStyles.categorySelect.triggerPlaceholder}>
+                {resolvedPlaceholder}
+              </span>
             )}
           </div>
           <ChevronDown className={selectStyles.icon} />
@@ -212,7 +218,7 @@ export const CategorySelect = React.memo<CategorySelectProps>(
                 <Search className={formStyles.categorySelect.searchIcon} />
                 <input
                   type="text"
-                  placeholder="Cerca categoria..."
+                  placeholder={t('searchPlaceholder')}
                   value={searchValue}
                   onChange={(e) => setSearchValue(e.target.value)}
                   onKeyDown={(e) => e.stopPropagation()}
@@ -235,7 +241,7 @@ export const CategorySelect = React.memo<CategorySelectProps>(
                   >
                     <div className={formStyles.categorySelect.recentHeader}>
                       <Clock className={formStyles.categorySelect.recentIcon} />
-                      <span className={formStyles.categorySelect.recentLabel}>Recenti</span>
+                      <span className={formStyles.categorySelect.recentLabel}>{t('recent')}</span>
                     </div>
                     <div className={formStyles.categorySelect.recentList}>
                       {recentCategories.map((category) => (
@@ -258,12 +264,12 @@ export const CategorySelect = React.memo<CategorySelectProps>(
                 {!debouncedSearch && (
                   <div className={formStyles.categorySelect.allHeader}>
                     <TrendingUp className={formStyles.categorySelect.allIcon} />
-                    <span className={formStyles.categorySelect.allLabel}>Tutte le categorie</span>
+                    <span className={formStyles.categorySelect.allLabel}>{t('allCategories')}</span>
                   </div>
                 )}
 
                 {filteredCategories.length === 0 ? (
-                  <div className={formStyles.categorySelect.empty}>Nessuna categoria trovata</div>
+                  <div className={formStyles.categorySelect.empty}>{t('empty')}</div>
                 ) : (
                   <div className={formStyles.categorySelect.list}>
                     {filteredCategories.map((category) => (

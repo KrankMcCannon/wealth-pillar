@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo } from 'react';
+import { useLocale } from 'next-intl';
 import { useFilteredAccounts, usePermissions, useUserFilter, useDeleteConfirmation } from '@/hooks';
 import { deleteAccountAction } from '@/features/accounts/actions/account-actions';
 import { useModalState } from '@/lib/navigation/url-state';
@@ -18,6 +19,7 @@ export function useAccountsContent({
   currentUser,
   accounts,
 }: UseAccountsContentProps) {
+  const locale = useLocale();
   // Reference data store actions for optimistic updates
   const removeAccount = useReferenceDataStore((state) => state.removeAccount);
   const addAccount = useReferenceDataStore((state) => state.addAccount);
@@ -101,7 +103,7 @@ export function useAccountsContent({
       removeAccount(account.id);
 
       try {
-        const result = await deleteAccountAction(account.id);
+        const result = await deleteAccountAction(account.id, locale);
 
         if (result.error) {
           // Revert on error - add back to store

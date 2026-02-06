@@ -13,8 +13,8 @@
 
 'use client';
 
-import { format, subDays, startOfWeek, startOfMonth, startOfYear, isSameDay } from 'date-fns';
-import { it } from 'date-fns/locale';
+import { subDays, startOfWeek, startOfMonth, startOfYear, isSameDay } from 'date-fns';
+import { useLocale, useTranslations } from 'next-intl';
 import { Zap } from 'lucide-react';
 import { calendarDrawerStyles } from '@/lib/styles/calendar-drawer.styles';
 import { presetButtonVariants } from '@/lib/utils/date-drawer-variants';
@@ -24,8 +24,15 @@ import { cn } from '@/lib/utils';
  * Preset configuration type
  */
 interface PresetConfig {
-  /** Display label (Italian) */
-  label: string;
+  /** Translation key for preset label */
+  labelKey:
+    | 'today'
+    | 'yesterday'
+    | 'daysAgo7'
+    | 'daysAgo30'
+    | 'weekStart'
+    | 'monthStart'
+    | 'yearStart';
   /** Function to calculate the date */
   getValue: () => Date;
   /** Unique identifier */
@@ -39,37 +46,37 @@ interface PresetConfig {
 const DATE_PRESETS: PresetConfig[] = [
   {
     id: 'today',
-    label: 'Oggi',
+    labelKey: 'today',
     getValue: () => new Date(),
   },
   {
     id: 'yesterday',
-    label: 'Ieri',
+    labelKey: 'yesterday',
     getValue: () => subDays(new Date(), 1),
   },
   {
     id: '7-days-ago',
-    label: '7 giorni fa',
+    labelKey: 'daysAgo7',
     getValue: () => subDays(new Date(), 7),
   },
   {
     id: '30-days-ago',
-    label: '30 giorni fa',
+    labelKey: 'daysAgo30',
     getValue: () => subDays(new Date(), 30),
   },
   {
     id: 'week-start',
-    label: 'Inizio settimana',
-    getValue: () => startOfWeek(new Date(), { weekStartsOn: 1, locale: it }),
+    labelKey: 'weekStart',
+    getValue: () => startOfWeek(new Date(), { weekStartsOn: 1 }),
   },
   {
     id: 'month-start',
-    label: 'Inizio mese',
+    labelKey: 'monthStart',
     getValue: () => startOfMonth(new Date()),
   },
   {
     id: 'year-start',
-    label: 'Inizio anno',
+    labelKey: 'yearStart',
     getValue: () => startOfYear(new Date()),
   },
 ];
@@ -106,15 +113,18 @@ export interface QuickPresetsProps {
  * ```
  */
 export function QuickPresets({ selectedDate, onSelect, className }: Readonly<QuickPresetsProps>) {
+  const t = useTranslations();
+  const locale = useLocale();
+
   return (
     <section
       className={cn(calendarDrawerStyles.presets.section, className)}
-      aria-label="Scorciatoie data"
+      aria-label={t('Forms.DateDrawer.presetsAria')}
     >
       {/* Section Title */}
       <h3 className={calendarDrawerStyles.presets.title}>
         <Zap className={calendarDrawerStyles.presets.icon} />
-        Scorciatoie
+        {t('Forms.DateDrawer.presetsTitle')}
       </h3>
 
       {/* Preset Buttons */}
@@ -122,9 +132,14 @@ export function QuickPresets({ selectedDate, onSelect, className }: Readonly<Qui
         {DATE_PRESETS.map((preset) => {
           const presetDate = preset.getValue();
           const isActive = selectedDate ? isSameDay(presetDate, selectedDate) : false;
+          const label = t(`Forms.DateDrawer.presets.${preset.labelKey}`);
 
           // Format date for aria-label
-          const formattedDate = format(presetDate, 'd MMMM yyyy', { locale: it });
+          const formattedDate = new Intl.DateTimeFormat(locale, {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric',
+          }).format(presetDate);
 
           return (
             <button
@@ -135,10 +150,10 @@ export function QuickPresets({ selectedDate, onSelect, className }: Readonly<Qui
                 calendarDrawerStyles.presets.button.base,
                 presetButtonVariants({ active: isActive })
               )}
-              aria-label={`${preset.label}: ${formattedDate}`}
+              aria-label={t('Forms.DateDrawer.presetAria', { label, date: formattedDate })}
               aria-pressed={isActive}
             >
-              {preset.label}
+              {label}
             </button>
           );
         })}

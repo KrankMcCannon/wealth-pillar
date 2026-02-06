@@ -5,6 +5,7 @@ import { useEffect, useMemo } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useTranslations } from 'next-intl';
 import { RecurringTransactionSeries, TransactionFrequencyType } from '@/lib/types';
 import { getTempId } from '@/lib/utils/temp-id';
 import { ModalWrapper, ModalBody, ModalFooter, ModalSection } from '@/components/ui/modal-wrapper';
@@ -76,51 +77,50 @@ interface AccountFieldProp {
   user_ids: string[];
 }
 
-// Zod schema for recurring series validation
-const recurringSchema = z
-  .object({
-    description: z.string().min(1, 'La descrizione è obbligatoria').trim(),
-    amount: z
-      .string()
-      .min(1, "L'importo è obbligatorio")
-      .refine((val) => !Number.isNaN(Number.parseFloat(val)) && Number.parseFloat(val) > 0, {
-        message: "L'importo deve essere maggiore di zero",
-      }),
-    type: z.enum(['income', 'expense']),
-    category: z.string().min(1, 'La categoria è obbligatoria'),
-    frequency: z.enum(['once', 'weekly', 'biweekly', 'monthly', 'yearly']),
-    user_ids: z.array(z.string()).min(1, 'Almeno un utente è obbligatorio'),
-    account_id: z.string().min(1, 'Il conto è obbligatorio'),
-    start_date: z.string().min(1, 'La data di inizio è obbligatoria'),
-    end_date: z.string().optional(),
-    due_day: z
-      .string()
-      .min(1, 'Il giorno di addebito è obbligatorio')
-      .refine(
-        (val) => {
-          const num = Number.parseInt(val, 10);
-          return !Number.isNaN(num) && num >= 1 && num <= 31;
-        },
-        {
-          message: 'Il giorno deve essere tra 1 e 31',
+const createRecurringSchema = (t: ReturnType<typeof useTranslations>) =>
+  z
+    .object({
+      description: z.string().min(1, t('validation.descriptionRequired')).trim(),
+      amount: z
+        .string()
+        .min(1, t('validation.amountRequired'))
+        .refine((val) => !Number.isNaN(Number.parseFloat(val)) && Number.parseFloat(val) > 0, {
+          message: t('validation.amountGreaterThanZero'),
+        }),
+      type: z.enum(['income', 'expense']),
+      category: z.string().min(1, t('validation.categoryRequired')),
+      frequency: z.enum(['once', 'weekly', 'biweekly', 'monthly', 'yearly']),
+      user_ids: z.array(z.string()).min(1, t('validation.userIdsRequired')),
+      account_id: z.string().min(1, t('validation.accountRequired')),
+      start_date: z.string().min(1, t('validation.startDateRequired')),
+      end_date: z.string().optional(),
+      due_day: z
+        .string()
+        .min(1, t('validation.dueDayRequired'))
+        .refine(
+          (val) => {
+            const num = Number.parseInt(val, 10);
+            return !Number.isNaN(num) && num >= 1 && num <= 31;
+          },
+          {
+            message: t('validation.dueDayRange'),
+          }
+        ),
+    })
+    .refine(
+      (data) => {
+        if (data.end_date && data.start_date) {
+          return new Date(data.end_date) > new Date(data.start_date);
         }
-      ),
-  })
-  .refine(
-    (data) => {
-      // Validate end_date if provided
-      if (data.end_date && data.start_date) {
-        return new Date(data.end_date) > new Date(data.start_date);
+        return true;
+      },
+      {
+        message: t('validation.endDateAfterStart'),
+        path: ['end_date'],
       }
-      return true;
-    },
-    {
-      message: 'La data di fine deve essere successiva alla data di inizio',
-      path: ['end_date'],
-    }
-  );
+    );
 
-type RecurringFormData = z.infer<typeof recurringSchema>;
+type RecurringFormData = z.infer<ReturnType<typeof createRecurringSchema>>;
 
 interface RecurringTransactionSeriesData {
   description: string;
@@ -143,6 +143,7 @@ interface RecurringFormModalProps {
 }
 
 function RecurringFormModal({ isOpen, onClose, editId }: Readonly<RecurringFormModalProps>) {
+  const t = useTranslations('Recurring.FormModal');
   // Read from stores instead of props
   const currentUser = useRequiredCurrentUser();
   const groupUsers = useRequiredGroupUsers();
@@ -158,10 +159,11 @@ function RecurringFormModal({ isOpen, onClose, editId }: Readonly<RecurringFormM
   const removeRecurringSeries = usePageDataStore((state) => state.removeRecurringSeries);
 
   const isEditMode = !!editId;
-  const title = isEditMode ? 'Modifica Serie Ricorrente' : 'Nuova Serie Ricorrente';
+  const title = isEditMode ? t('title.edit') : t('title.create');
   const description = isEditMode
-    ? 'Aggiorna la serie ricorrente'
-    : 'Configura una nuova serie ricorrente';
+    ? t('description.edit')
+    : t('description.create');
+  const recurringSchema = useMemo(() => createRecurringSchema(t), [t]);
 
   const today = todayDateString();
 
@@ -295,7 +297,7 @@ function RecurringFormModal({ isOpen, onClose, editId }: Readonly<RecurringFormM
 
     const originalSeries = storeRecurringSeries.find((s) => s.id === editId);
     if (!originalSeries) {
-      setError('root', { message: 'Serie ricorrente non trovata' });
+      setError('root', { message: t('errors.notFound') });
       return;
     }
 
@@ -379,7 +381,7 @@ function RecurringFormModal({ isOpen, onClose, editId }: Readonly<RecurringFormM
       }
     } catch (error) {
       setError('root', {
-        message: error instanceof Error ? error.message : 'Errore sconosciuto',
+        message: error instanceof Error ? error.message : t('errors.unknown'),
       });
     }
   };
@@ -406,29 +408,29 @@ function RecurringFormModal({ isOpen, onClose, editId }: Readonly<RecurringFormM
           <ModalSection className={recurringStyles.formModal.section}>
             <div className={recurringStyles.formModal.grid}>
               {/* Type */}
-              <FormField label="Tipo" required error={errors.type?.message}>
+              <FormField label={t('fields.type.label')} required error={errors.type?.message}>
                 <FormSelect
                   value={watchedType}
                   onValueChange={(value) => setValue('type', value as 'income' | 'expense')}
                   options={[
-                    { value: 'expense', label: 'Uscita' },
-                    { value: 'income', label: 'Entrata' },
+                    { value: 'expense', label: t('typeOptions.expense') },
+                    { value: 'income', label: t('typeOptions.income') },
                   ]}
                 />
               </FormField>
 
               {/* Frequency */}
-              <FormField label="Frequenza" required error={errors.frequency?.message}>
+              <FormField label={t('fields.frequency.label')} required error={errors.frequency?.message}>
                 <FormSelect
                   value={watchedFrequency}
                   onValueChange={(value) =>
                     setValue('frequency', value as TransactionFrequencyType)
                   }
                   options={[
-                    { value: 'weekly', label: 'Settimanale' },
-                    { value: 'biweekly', label: 'Quindicinale' },
-                    { value: 'monthly', label: 'Mensile' },
-                    { value: 'yearly', label: 'Annuale' },
+                    { value: 'weekly', label: t('frequencyOptions.weekly') },
+                    { value: 'biweekly', label: t('frequencyOptions.biweekly') },
+                    { value: 'monthly', label: t('frequencyOptions.monthly') },
+                    { value: 'yearly', label: t('frequencyOptions.yearly') },
                   ]}
                 />
               </FormField>
@@ -437,7 +439,7 @@ function RecurringFormModal({ isOpen, onClose, editId }: Readonly<RecurringFormM
 
           <ModalSection className={recurringStyles.formModal.section}>
             {/* Users - Multi-select (full width) */}
-            <FormField label="Utenti" required error={errors.user_ids?.message}>
+            <FormField label={t('fields.users.label')} required error={errors.user_ids?.message}>
               <MultiUserSelect
                 value={watchedUserIds}
                 onChange={(value) => setValue('user_ids', value)}
@@ -455,8 +457,8 @@ function RecurringFormModal({ isOpen, onClose, editId }: Readonly<RecurringFormM
                 onChange={(value) => setValue('account_id', value)}
                 error={errors.account_id?.message}
                 accounts={filteredAccounts}
-                label="Conto"
-                placeholder="Seleziona conto"
+                label={t('fields.account.label')}
+                placeholder={t('fields.account.placeholder')}
                 required
               />
 
@@ -466,8 +468,8 @@ function RecurringFormModal({ isOpen, onClose, editId }: Readonly<RecurringFormM
                 onChange={(value) => setValue('category', value)}
                 error={errors.category?.message}
                 categories={categories}
-                label="Categoria"
-                placeholder="Seleziona categoria"
+                label={t('fields.category.label')}
+                placeholder={t('fields.category.placeholder')}
                 required
               />
 
@@ -476,26 +478,26 @@ function RecurringFormModal({ isOpen, onClose, editId }: Readonly<RecurringFormM
                 value={watchedAmount}
                 onChange={(value) => setValue('amount', value)}
                 error={errors.amount?.message}
-                label="Importo"
-                placeholder="0,00"
+                label={t('fields.amount.label')}
+                placeholder={t('fields.amount.placeholder')}
                 required
               />
 
               {/* Due Day */}
-              <FormField label="Giorno addebito" required error={errors.due_day?.message}>
+              <FormField label={t('fields.dueDay.label')} required error={errors.due_day?.message}>
                 <Input
                   type="number"
                   min={1}
                   max={31}
                   {...register('due_day')}
-                  placeholder="1-31"
+                  placeholder={t('fields.dueDay.placeholder')}
                   disabled={isSubmitting}
                 />
               </FormField>
 
               {/* Start Date */}
               <DateField
-                label="Data inizio"
+                label={t('fields.startDate.label')}
                 value={watchedStartDate}
                 onChange={(value) => setValue('start_date', value)}
                 error={errors.start_date?.message}
@@ -504,7 +506,7 @@ function RecurringFormModal({ isOpen, onClose, editId }: Readonly<RecurringFormM
 
               {/* End Date (optional) */}
               <DateField
-                label="Data fine"
+                label={t('fields.endDate.label')}
                 value={watchedEndDate || ''}
                 onChange={(value) => setValue('end_date', value)}
                 error={errors.end_date?.message}
@@ -514,10 +516,10 @@ function RecurringFormModal({ isOpen, onClose, editId }: Readonly<RecurringFormM
 
           <ModalSection className={recurringStyles.formModal.section}>
             {/* Description */}
-            <FormField label="Descrizione" required error={errors.description?.message}>
+            <FormField label={t('fields.description.label')} required error={errors.description?.message}>
               <Input
                 {...register('description')}
-                placeholder="Es. Abbonamento Netflix"
+                placeholder={t('fields.description.placeholder')}
                 disabled={isSubmitting}
               />
             </FormField>
@@ -527,7 +529,8 @@ function RecurringFormModal({ isOpen, onClose, editId }: Readonly<RecurringFormM
         <ModalFooter>
           <FormActions
             submitType="submit"
-            submitLabel={isEditMode ? 'Salva Modifiche' : 'Crea Serie'}
+            submitLabel={isEditMode ? t('buttons.saveChanges') : t('buttons.createSeries')}
+            cancelLabel={t('buttons.cancel')}
             onCancel={onClose}
             isSubmitting={isSubmitting}
             className="w-full sm:w-auto"

@@ -1,6 +1,7 @@
 'use client';
 
 import { Card } from '@/components/ui';
+import { useTranslations } from 'next-intl';
 import { Transaction, Category } from '@/lib';
 import { FinanceLogicService } from '@/server/services/finance-logic.service';
 import { formatCurrency, cn } from '@/lib/utils';
@@ -48,6 +49,7 @@ export function GroupedTransactionCard({
   onEditTransaction,
   onDeleteTransaction,
 }: Readonly<GroupedTransactionCardProps>) {
+  const t = useTranslations('Transactions.GroupedCard');
   if (!transactions.length) return null;
 
   const getCategoryLabel = (categoryKey: string) => {
@@ -64,7 +66,7 @@ export function GroupedTransactionCard({
       {showHeader && totalAmount !== undefined && (
         <div className={getHeaderVariantStyles(variant)}>
           <div className={transactionStyles.groupedCard.headerContent}>
-            <span className={transactionStyles.groupedCard.headerLabel}>Totale Periodo</span>
+            <span className={transactionStyles.groupedCard.headerLabel}>{t('periodTotal')}</span>
             <p
               className={`${transactionStyles.groupedCard.headerAmount} ${getTotalAmountColor(variant, totalAmount)}`}
             >

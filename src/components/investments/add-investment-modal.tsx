@@ -1,8 +1,10 @@
 'use client';
 
+import * as React from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useTranslations } from 'next-intl';
 import { ModalWrapper, ModalBody, ModalFooter, ModalSection } from '@/components/ui/modal-wrapper';
 import { FormActions, FormField, FormSelect } from '@/components/form';
 import { DateField } from '@/components/ui/fields';
@@ -12,23 +14,27 @@ import { transactionStyles } from '@/styles/system';
 import { cn } from '@/lib/utils';
 
 // Schema definition
-const investmentSchema = z.object({
-  name: z.string().min(1, 'Il nome è obbligatorio'),
-  symbol: z.string().min(1, 'Il simbolo è obbligatorio'),
-  amount: z
-    .string()
-    .refine((val) => !Number.isNaN(Number(val)) && Number(val) > 0, 'Importo non valido'),
-  tax_paid: z
-    .string()
-    .refine((val) => !Number.isNaN(Number(val)) && Number(val) >= 0, 'Tasse non valide'),
-  shares: z
-    .string()
-    .refine((val) => !Number.isNaN(Number(val)) && Number(val) > 0, 'Quote non valide'),
-  created_at: z.string().min(1, 'Data obbligatoria'),
-  currency: z.enum(['EUR', 'USD']),
-});
+const createInvestmentSchema = (t: ReturnType<typeof useTranslations>) =>
+  z.object({
+    name: z.string().min(1, t('validation.nameRequired')),
+    symbol: z.string().min(1, t('validation.symbolRequired')),
+    amount: z
+      .string()
+      .refine((val) => !Number.isNaN(Number(val)) && Number(val) > 0, t('validation.amountInvalid')),
+    tax_paid: z
+      .string()
+      .refine(
+        (val) => !Number.isNaN(Number(val)) && Number(val) >= 0,
+        t('validation.taxInvalid')
+      ),
+    shares: z
+      .string()
+      .refine((val) => !Number.isNaN(Number(val)) && Number(val) > 0, t('validation.sharesInvalid')),
+    created_at: z.string().min(1, t('validation.dateRequired')),
+    currency: z.enum(['EUR', 'USD']),
+  });
 
-type InvestmentFormData = z.infer<typeof investmentSchema>;
+type InvestmentFormData = z.infer<ReturnType<typeof createInvestmentSchema>>;
 
 interface AddInvestmentModalProps {
   isOpen: boolean;
@@ -36,6 +42,9 @@ interface AddInvestmentModalProps {
 }
 
 export default function AddInvestmentModal({ isOpen, onClose }: Readonly<AddInvestmentModalProps>) {
+  const t = useTranslations('Investments.AddModal');
+  const investmentSchema = React.useMemo(() => createInvestmentSchema(t), [t]);
+
   const {
     register,
     handleSubmit,
@@ -95,8 +104,8 @@ export default function AddInvestmentModal({ isOpen, onClose }: Readonly<AddInve
     <ModalWrapper
       isOpen={isOpen}
       onOpenChange={onClose}
-      title="Aggiungi Investimento"
-      description="Inserisci i dettagli del nuovo investimento"
+      title={t('title')}
+      description={t('description')}
       maxWidth="md"
     >
       <form
@@ -106,35 +115,50 @@ export default function AddInvestmentModal({ isOpen, onClose }: Readonly<AddInve
         <ModalBody className={transactionStyles.modal.content}>
           <ModalSection>
             <div className={transactionStyles.form.grid}>
-              <FormField label="Nome" required error={errors.name?.message}>
-                <Input {...register('name')} placeholder="Es. Apple Inc." />
+              <FormField label={t('fields.name')} required error={errors.name?.message}>
+                <Input {...register('name')} placeholder={t('placeholders.name')} />
               </FormField>
 
-              <FormField label="Simbolo" required error={errors.symbol?.message}>
-                <Input {...register('symbol')} placeholder="Es. AAPL" />
+              <FormField label={t('fields.symbol')} required error={errors.symbol?.message}>
+                <Input {...register('symbol')} placeholder={t('placeholders.symbol')} />
               </FormField>
 
-              <FormField label="Importo Investito" required error={errors.amount?.message}>
-                <Input {...register('amount')} type="number" step="0.01" placeholder="1000.00" />
+              <FormField label={t('fields.investedAmount')} required error={errors.amount?.message}>
+                <Input
+                  {...register('amount')}
+                  type="number"
+                  step="0.01"
+                  placeholder={t('placeholders.amount')}
+                />
               </FormField>
 
-              <FormField label="Tasse Pagate" error={errors.tax_paid?.message}>
-                <Input {...register('tax_paid')} type="number" step="0.01" placeholder="0.00" />
+              <FormField label={t('fields.taxesPaid')} error={errors.tax_paid?.message}>
+                <Input
+                  {...register('tax_paid')}
+                  type="number"
+                  step="0.01"
+                  placeholder={t('placeholders.tax')}
+                />
               </FormField>
 
-              <FormField label="Quote Acquisite" required error={errors.shares?.message}>
-                <Input {...register('shares')} type="number" step="0.000001" placeholder="10" />
+              <FormField label={t('fields.sharesAcquired')} required error={errors.shares?.message}>
+                <Input
+                  {...register('shares')}
+                  type="number"
+                  step="0.000001"
+                  placeholder={t('placeholders.shares')}
+                />
               </FormField>
 
               <DateField
                 value={watchedDate}
                 onChange={(val) => setValue('created_at', val)}
                 error={errors.created_at?.message}
-                label="Data Acquisto"
+                label={t('fields.purchaseDate')}
                 required
               />
 
-              <FormField label="Valuta" required error={errors.currency?.message}>
+              <FormField label={t('fields.currency')} required error={errors.currency?.message}>
                 <FormSelect
                   value={watchedCurrency}
                   onValueChange={(val) => setValue('currency', val as 'EUR' | 'USD')}
@@ -148,7 +172,8 @@ export default function AddInvestmentModal({ isOpen, onClose }: Readonly<AddInve
         <ModalFooter>
           <FormActions
             submitType="submit"
-            submitLabel="Salva"
+            submitLabel={t('saveButton')}
+            cancelLabel={t('cancelButton')}
             onCancel={onClose}
             isSubmitting={isSubmitting}
             className="w-full sm:w-auto"

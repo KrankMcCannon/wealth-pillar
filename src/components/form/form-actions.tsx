@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { Loader2 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { cn } from '@/lib';
 import { Button } from '../ui';
 import { formStyles } from './theme/form-styles';
@@ -59,14 +60,17 @@ export function FormActions({
   onCancel,
   isSubmitting = false,
   disabled = false,
-  submitLabel = 'Salva',
-  cancelLabel = 'Annulla',
+  submitLabel,
+  cancelLabel,
   showCancel = true,
   className,
   submitVariant = 'default',
   submitType = 'button',
 }: Readonly<FormActionsProps>) {
+  const t = useTranslations('Forms.Actions');
   const isDisabled = disabled || isSubmitting;
+  const resolvedSubmitLabel = submitLabel ?? t('save');
+  const resolvedCancelLabel = cancelLabel ?? t('cancel');
 
   return (
     <div className={cn(formStyles.actions.container, className)}>
@@ -79,7 +83,7 @@ export function FormActions({
           disabled={isSubmitting}
           className={cn(formStyles.actions.buttonBase, formStyles.actions.cancel)}
         >
-          {cancelLabel}
+          {resolvedCancelLabel}
         </Button>
       )}
 
@@ -92,7 +96,7 @@ export function FormActions({
         className={cn(formStyles.actions.buttonBase)}
       >
         {isSubmitting && <Loader2 className={formStyles.actions.loadingIcon} />}
-        {submitLabel}
+        {resolvedSubmitLabel}
       </Button>
     </div>
   );
@@ -109,8 +113,8 @@ export function DestructiveFormActions({
   onConfirm,
   onCancel,
   isSubmitting = false,
-  confirmLabel = 'Elimina',
-  cancelLabel = 'Annulla',
+  confirmLabel,
+  cancelLabel,
   className,
 }: Readonly<{
   onConfirm?: () => void;
@@ -120,13 +124,14 @@ export function DestructiveFormActions({
   cancelLabel?: string;
   className?: string;
 }>) {
+  const t = useTranslations('Forms.Actions');
   return (
     <FormActions
       onSubmit={onConfirm}
       onCancel={onCancel}
       isSubmitting={isSubmitting}
-      submitLabel={confirmLabel}
-      cancelLabel={cancelLabel}
+      submitLabel={confirmLabel ?? t('delete')}
+      cancelLabel={cancelLabel ?? t('cancel')}
       submitVariant="destructive"
       className={className}
     />
@@ -150,7 +155,7 @@ export function SingleFormAction({
   onSubmit,
   isSubmitting = false,
   disabled = false,
-  label = 'Continua',
+  label,
   variant = 'default',
   className,
 }: Readonly<{
@@ -161,12 +166,13 @@ export function SingleFormAction({
   variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost';
   className?: string;
 }>) {
+  const t = useTranslations('Forms.Actions');
   return (
     <FormActions
       onSubmit={onSubmit}
       isSubmitting={isSubmitting}
       disabled={disabled}
-      submitLabel={label}
+      submitLabel={label ?? t('continue')}
       submitVariant={variant}
       showCancel={false}
       className={className}

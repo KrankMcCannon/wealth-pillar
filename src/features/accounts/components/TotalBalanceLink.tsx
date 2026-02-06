@@ -9,6 +9,7 @@
 
 import { CreditCard, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { accountStyles } from '../theme/account-styles';
 import { formatCurrency } from '@/lib/utils';
 
@@ -23,6 +24,7 @@ export const TotalBalanceLink = ({
   accountCount,
   selectedUserId,
 }: TotalBalanceLinkProps) => {
+  const t = useTranslations('Accounts.Home');
   const isPositive = totalBalance >= 0;
   const href = selectedUserId ? `/accounts?userId=${selectedUserId}` : '/accounts';
 
@@ -34,7 +36,7 @@ export const TotalBalanceLink = ({
           <CreditCard className={accountStyles.totalBalanceLink.iconSvg} />
         </div>
         <div>
-          <p className={accountStyles.totalBalanceLink.label}>Saldo Totale</p>
+          <p className={accountStyles.totalBalanceLink.label}>{t('totalBalanceLabel')}</p>
           <p
             className={
               isPositive
@@ -51,7 +53,7 @@ export const TotalBalanceLink = ({
       <div className={accountStyles.totalBalanceLink.rightSection}>
         <div className={accountStyles.totalBalanceLink.badge}>
           <span className={accountStyles.totalBalanceLink.badgeText}>
-            {accountCount} {accountCount === 1 ? 'Account' : 'Accounts'}
+            {t('accountCount', { count: accountCount })}
           </span>
         </div>
         <ArrowRight className={accountStyles.totalBalanceLink.arrow} />

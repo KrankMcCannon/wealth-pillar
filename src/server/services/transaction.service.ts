@@ -422,7 +422,7 @@ export class TransactionService {
       async () => {
         const { count, error } = await supabase
           .from('transactions')
-          .select('id', { count: 'exact', head: true })
+          .select('id', { count: 'planned', head: true })
           .eq('user_id', userId);
 
         if (error) throw new Error(error.message);

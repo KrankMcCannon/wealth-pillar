@@ -1,7 +1,6 @@
 'use client';
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { Link, usePathname } from '@/i18n/routing';
 import { Home, CreditCard, TrendingUp, BarChart3 } from 'lucide-react';
 import { bottomNavigationStyles } from './theme/bottom-navigation-styles';
 
@@ -10,7 +9,7 @@ export function BottomNavigation() {
 
   const navItems = [
     {
-      href: '/dashboard',
+      href: '/home',
       icon: Home,
       label: 'Home',
     },

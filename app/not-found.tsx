@@ -28,7 +28,7 @@ export default function NotFound(): React.JSX.Element {
         </p>
 
         <Button className="w-full gap-2" asChild>
-          <Link href="/dashboard">
+          <Link href="/home">
             <Home className="h-4 w-4" />
             Vai alla Dashboard
           </Link>

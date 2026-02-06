@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import {
   ArrowLeft,
   Settings,
@@ -68,40 +69,41 @@ function ActionMenu({
 }: Readonly<{
   extraMenuItems?: { label: string; icon: React.ElementType; onClick: () => void }[];
 }>) {
+  const t = useTranslations('Header.ActionMenu');
   const { openModal } = useModalState();
 
   const actionItems = [
+    ...extraMenuItems,
     {
-      label: 'Nuova Transazione',
-      icon: CreditCard,
-      onClick: () => openModal('transaction'),
-    },
-    {
-      label: 'Nuovo Budget',
+      label: t('newBudget'),
       icon: PieChart,
       onClick: () => openModal('budget'),
     },
     {
-      label: 'Nuova Categoria',
-      icon: Tag,
-      onClick: () => openModal('category'),
-    },
-    {
-      label: 'Ricorrente',
-      icon: RefreshCw,
-      onClick: () => openModal('recurring'),
-    },
-    {
-      label: 'Nuovo Account',
+      label: t('newAccount'),
       icon: CreditCard,
       onClick: () => openModal('account'),
     },
     {
-      label: 'Nuovo Investimento',
+      label: t('newCategory'),
+      icon: Tag,
+      onClick: () => openModal('category'),
+    },
+    {
+      label: t('newInvestment'),
       icon: TrendingUp,
       onClick: () => openModal('investment'),
     },
-    ...extraMenuItems,
+    {
+      label: t('recurring'),
+      icon: RefreshCw,
+      onClick: () => openModal('recurring'),
+    },
+    {
+      label: t('newTransaction'),
+      icon: CreditCard,
+      onClick: () => openModal('transaction'),
+    },
   ];
 
   return (
@@ -111,6 +113,7 @@ function ActionMenu({
           id="header-action-menu-trigger"
           variant="default"
           size="icon"
+          aria-label={t('openMenuAria')}
           className={headerStyles.actions.actionButton}
         >
           <Plus className={headerStyles.actions.actionIcon} />
@@ -141,6 +144,7 @@ export function Header({
   onBack,
 }: Readonly<HeaderProps>) {
   const router = useRouter();
+  const t = useTranslations('Header');
 
   // Navigation Handler
   const handleBack = () => {
@@ -166,7 +170,10 @@ export function Header({
                     {currentUser?.name?.substring(0, 2).toUpperCase()}
                   </div>
                   {currentUser?.role === 'admin' && (
-                    <div className={headerStyles.dashboard.crownWrap} title="Premium">
+                    <div
+                      className={headerStyles.dashboard.crownWrap}
+                      title={t('premiumBadgeTitle')}
+                    >
                       <Crown className={headerStyles.dashboard.crownIcon} />
                     </div>
                   )}
@@ -174,7 +181,7 @@ export function Header({
                 <div className={headerStyles.dashboard.userInfo}>
                   <p className={headerStyles.dashboard.userName}>{currentUser?.name}</p>
                   <p className={headerStyles.dashboard.userRole}>
-                    {currentUser?.role === 'admin' ? 'Premium Plan' : 'Standard Plan'}
+                    {currentUser?.role === 'admin' ? t('plans.premium') : t('plans.standard')}
                   </p>
                 </div>
               </div>
@@ -205,7 +212,7 @@ export function Header({
                 <Button
                   variant="ghost"
                   size="icon"
-                  aria-label="Torna indietro"
+                  aria-label={t('aria.back')}
                   className={headerStyles.subpage.backButton}
                   onClick={handleBack}
                 >
@@ -229,7 +236,7 @@ export function Header({
           <Button
             variant="ghost"
             size="icon"
-            aria-label="Notifiche"
+            aria-label={t('aria.notifications')}
             className={headerStyles.actions.iconButton}
           >
             <Bell className={headerStyles.actions.icon} />
@@ -239,7 +246,7 @@ export function Header({
           <Button
             variant="ghost"
             size="icon"
-            aria-label="Impostazioni"
+            aria-label={t('aria.settings')}
             className={headerStyles.actions.iconButton}
             onClick={() => router.push('/settings')}
           >

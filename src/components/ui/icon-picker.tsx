@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import * as Dialog from '@radix-ui/react-dialog';
+import { useTranslations } from 'next-intl';
 import { HelpCircle, Clock, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Popover, PopoverContent, PopoverTrigger } from './popover';
@@ -150,14 +151,6 @@ const styles = {
 // SHARED CONTENT COMPONENT
 // ============================================================================
 
-// Helper for result message
-function getResultCountMessage(count: number, hasQuery: boolean) {
-  if (hasQuery) {
-    return `${count} ${count === 1 ? 'risultato' : 'risultati'} trovati`;
-  }
-  return `${count} ${count === 1 ? 'icona' : 'icone'} disponibili`;
-}
-
 interface IconPickerContentProps {
   value: string;
   recent: string[];
@@ -171,6 +164,7 @@ function IconPickerContent({
   onSelect,
   isMobile,
 }: Readonly<IconPickerContentProps>) {
+  const t = useTranslations('Forms.IconPicker');
   const [searchQuery, setSearchQuery] = React.useState('');
   const [debouncedQuery, setDebouncedQuery] = React.useState('');
   const [selectedCategory, setSelectedCategory] = React.useState<IconCategory>('all');
@@ -233,6 +227,10 @@ function IconPickerContent({
     return filteredIcons[iconIndex];
   };
 
+  const resultCountMessage = debouncedQuery
+    ? t('results.found', { count: filteredIcons.length })
+    : t('results.available', { count: filteredIcons.length });
+
   return (
     <div className={styles.container}>
       {/* Header: Search + Favorites Toggle */}
@@ -242,17 +240,17 @@ function IconPickerContent({
         {/* Search Input */}
         <div className={styles.searchWrapper}>
           <Input
-            placeholder="Cerca icona..."
+            placeholder={t('searchPlaceholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className={styles.searchInput}
-            aria-label="Cerca icona per nome o parola chiave"
+            aria-label={t('searchAria')}
           />
           {searchQuery && (
             <button
               onClick={clearSearch}
               className={styles.searchClearButton}
-              aria-label="Cancella ricerca"
+              aria-label={t('clearSearchAria')}
               type="button"
             >
               <X className={styles.searchClearIcon} />
@@ -264,7 +262,7 @@ function IconPickerContent({
         {recent.length > 0 && (
           <div className={styles.recentContainer}>
             <Clock className={styles.recentIcon} />
-            <span className={styles.recentLabel}>Recenti:</span>
+            <span className={styles.recentLabel}>{t('recentLabel')}</span>
             <div className={styles.recentIconsWrapper}>
               {recent.slice(0, 3).map((iconName) => {
                 const iconMeta = getIconByName(iconName);
@@ -276,7 +274,7 @@ function IconPickerContent({
                     onClick={() => onSelect(iconName)}
                     className={styles.recentIconButton}
                     title={iconName}
-                    aria-label={`Icona recente: ${iconName}`}
+                    aria-label={t('recentIconAria', { iconName })}
                     type="button"
                   >
                     <IconComp className={styles.recentIconSize} />
@@ -295,13 +293,13 @@ function IconPickerContent({
         className="shrink-0"
       >
         <div className={styles.tabsContainer}>
-          <TabsList className={styles.tabsList} aria-label="Categorie icone">
+          <TabsList className={styles.tabsList} aria-label={t('categoriesAria')}>
             {CATEGORIES.map((cat) => (
               <TabsTrigger
                 key={cat.key}
                 value={cat.key}
                 className={styles.tabsTrigger}
-                aria-label={`Filtra per categoria: ${cat.label}`}
+                aria-label={t('filterByCategoryAria', { category: cat.label })}
                 title={cat.description}
               >
                 {cat.label}
@@ -319,17 +317,17 @@ function IconPickerContent({
         )}
         aria-live="polite"
       >
-        {getResultCountMessage(filteredIcons.length, !!debouncedQuery)}
+        {resultCountMessage}
       </div>
 
       {/* Virtualized Icon Grid */}
-      <div ref={parentRef} className={styles.gridContainer} aria-label="Lista icone">
+      <div ref={parentRef} className={styles.gridContainer} aria-label={t('iconListAria')}>
         {filteredIcons.length === 0 ? (
           <div className={styles.emptyState}>
-            <p className={styles.emptyStateText}>Nessuna icona trovata</p>
+            <p className={styles.emptyStateText}>{t('empty')}</p>
             {debouncedQuery && (
               <Button variant="ghost" size="sm" onClick={clearSearch}>
-                Cancella ricerca
+                {t('clearSearch')}
               </Button>
             )}
           </div>
@@ -387,7 +385,7 @@ function IconPickerContent({
                             height: `${iconSize}px`,
                           }}
                           title={icon.name}
-                          aria-label={`Seleziona icona ${icon.name}`}
+                          aria-label={t('selectIconAria', { iconName: icon.name })}
                           aria-pressed={isSelected}
                           type="button"
                           tabIndex={0}
@@ -414,6 +412,7 @@ function IconPickerContent({
 // ============================================================================
 
 export function IconPicker({ value, onChange, className }: Readonly<IconPickerProps>) {
+  const t = useTranslations('Forms.IconPicker');
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const [isOpen, setIsOpen] = React.useState(false);
 
@@ -447,12 +446,12 @@ export function IconPicker({ value, onChange, className }: Readonly<IconPickerPr
     <Button
       variant="outline"
       className={styles.triggerButton}
-      aria-label={value ? `Icona selezionata: ${value}. Clicca per cambiare` : "Seleziona un'icona"}
+      aria-label={value ? t('triggerSelectedAria', { iconName: value }) : t('triggerDefaultAria')}
       aria-haspopup="dialog"
       aria-expanded={isOpen}
     >
       <SelectedIcon className={styles.triggerIcon} aria-hidden="true" />
-      <span className={styles.triggerText}>{value || "Seleziona un'icona"}</span>
+      <span className={styles.triggerText}>{value || t('triggerDefaultText')}</span>
     </Button>
   );
 
@@ -468,7 +467,7 @@ export function IconPicker({ value, onChange, className }: Readonly<IconPickerPr
             align="start"
             side="bottom"
             sideOffset={5}
-            aria-label="Selettore icone"
+            aria-label={t('selectorAria')}
           >
             <IconPickerContent
               value={value}
@@ -487,10 +486,10 @@ export function IconPicker({ value, onChange, className }: Readonly<IconPickerPr
             <Dialog.Content
               className={styles.dialogContent}
               style={{ height: '500px', maxHeight: '70vh' }}
-              aria-label="Selettore icone"
+              aria-label={t('selectorAria')}
             >
               {/* Hidden title for accessibility */}
-              <Dialog.Title className="sr-only">Selettore Icone</Dialog.Title>
+              <Dialog.Title className="sr-only">{t('selectorTitle')}</Dialog.Title>
 
               {/* Drawer handle */}
               <div className={styles.dialogHandle} />

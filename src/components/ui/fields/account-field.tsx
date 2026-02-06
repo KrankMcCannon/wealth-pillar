@@ -4,6 +4,7 @@
 
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { FormField, FormSelect } from '@/components/form';
 import type { Account } from '@/lib/types';
 
@@ -23,11 +24,15 @@ export function AccountField({
   onChange,
   error,
   required = true,
-  label = 'Conto',
-  placeholder = 'Seleziona conto',
+  label,
+  placeholder,
   accounts = [],
   userId,
 }: Readonly<AccountFieldProps>) {
+  const t = useTranslations('Forms.Fields.Account');
+  const resolvedLabel = label ?? t('label');
+  const resolvedPlaceholder = placeholder ?? t('placeholder');
+
   // Filter accounts by user if userId is provided
   const filteredAccounts = userId
     ? accounts.filter((acc) => acc.user_ids.includes(userId))
@@ -39,12 +44,12 @@ export function AccountField({
   }));
 
   return (
-    <FormField label={label} required={required} error={error}>
+    <FormField label={resolvedLabel} required={required} error={error}>
       <FormSelect
         value={value}
         onValueChange={onChange}
         options={options}
-        placeholder={placeholder}
+        placeholder={resolvedPlaceholder}
       />
     </FormField>
   );

@@ -4,7 +4,6 @@ import { cached } from '@/lib/cache';
 import { CACHE_TAGS, cacheOptions } from '@/lib/cache/config';
 import { userPreferencesCacheKeys } from '@/lib/cache/keys';
 import { supabase } from '@/server/db/supabase';
-import { cache } from 'react';
 import type { Database } from '@/lib/types/database.types';
 import { validateId } from '@/lib/utils/validation-utils';
 
@@ -24,6 +23,20 @@ const DEFAULT_PREFERENCES = {
   notifications_budget_alerts: true,
 };
 
+function normalizeLanguageTag(language: string): string {
+  const normalized = language.trim().toLowerCase();
+
+  if (normalized === 'it' || normalized.startsWith('it-')) {
+    return 'it-IT';
+  }
+
+  if (normalized === 'en' || normalized.startsWith('en-')) {
+    return 'en-US';
+  }
+
+  return language;
+}
+
 /**
  * User Preferences Service
  * Handles all user preferences-related business logic
@@ -33,7 +46,7 @@ const DEFAULT_PREFERENCES = {
 export class UserPreferencesService {
   // ================== DATABASE OPERATIONS (inlined from repository) ==================
 
-  private static readonly getByUserIdDb = cache(async (userId: string) => {
+  private static async getByUserIdDb(userId: string) {
     const { data, error } = await supabase
       .from('user_preferences')
       .select('*')
@@ -45,7 +58,7 @@ export class UserPreferencesService {
       throw new Error(error.message);
     }
     return data as UserPreferences;
-  });
+  }
 
   private static async createDb(data: UserPreferencesInsert) {
     const { data: created, error } = await supabase
@@ -146,13 +159,18 @@ export class UserPreferencesService {
       throw new Error('At least one field must be provided for update');
     }
 
+    const normalizedUpdates: UserPreferencesUpdate = {
+      ...updates,
+      language: updates.language ? normalizeLanguageTag(updates.language) : updates.language,
+    };
+
     // Validate currency format (ISO 4217)
-    if (updates.currency && !/^[A-Z]{3}$/.test(updates.currency)) {
+    if (normalizedUpdates.currency && !/^[A-Z]{3}$/.test(normalizedUpdates.currency)) {
       throw new Error('Currency must be a valid ISO 4217 code (e.g., EUR, USD)');
     }
 
     // Validate language format (IETF language tag)
-    if (updates.language && !/^[a-z]{2}-[A-Z]{2}$/.test(updates.language)) {
+    if (normalizedUpdates.language && !/^[a-z]{2}-[A-Z]{2}$/.test(normalizedUpdates.language)) {
       throw new Error('Language must be a valid IETF language tag (e.g., it-IT, en-US)');
     }
 
@@ -164,7 +182,7 @@ export class UserPreferencesService {
 
     // Update preferences
     const updateData: UserPreferencesUpdate = {
-      ...updates,
+      ...normalizedUpdates,
       updated_at: new Date().toISOString(),
     };
 

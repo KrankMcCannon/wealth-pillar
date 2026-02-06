@@ -4,6 +4,7 @@ import { useEffect, useMemo, useCallback, useRef } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useTranslations } from 'next-intl';
 import { TransactionType } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { useTransactionSubmit } from '../hooks/useTransactionSubmit';
@@ -29,38 +30,38 @@ import { useUserFilterStore } from '@/stores/user-filter-store';
 import { usePageDataStore } from '@/stores/page-data-store';
 
 // Zod schema for transaction validation
-const transactionSchema = z
-  .object({
-    description: z.string().min(2, 'La descrizione deve contenere almeno 2 caratteri').trim(),
-    amount: z
-      .string()
-      .min(1, "L'importo è obbligatorio")
-      .refine((val) => !Number.isNaN(Number.parseFloat(val)) && Number.parseFloat(val) > 0, {
-        message: "L'importo deve essere maggiore di zero",
-      }),
-    type: z.enum(['income', 'expense', 'transfer']),
-    category: z.string().min(1, 'La categoria è obbligatoria'),
-    date: z.string().min(1, 'La data è obbligatoria'),
-    user_id: z.string().min(1, "L'utente è obbligatorio"),
-    account_id: z.string().min(1, 'Il conto è obbligatorio'),
-    to_account_id: z.string().optional(),
-  })
-  .refine(
-    (data) => {
-      // Transfer-specific validation
-      if (data.type === 'transfer') {
-        if (!data.to_account_id) return false;
-        if (data.to_account_id === data.account_id) return false;
+const createTransactionSchema = (t: ReturnType<typeof useTranslations>) =>
+  z
+    .object({
+      description: z.string().min(2, t('validation.descriptionMin')).trim(),
+      amount: z
+        .string()
+        .min(1, t('validation.amountRequired'))
+        .refine((val) => !Number.isNaN(Number.parseFloat(val)) && Number.parseFloat(val) > 0, {
+          message: t('validation.amountGreaterThanZero'),
+        }),
+      type: z.enum(['income', 'expense', 'transfer']),
+      category: z.string().min(1, t('validation.categoryRequired')),
+      date: z.string().min(1, t('validation.dateRequired')),
+      user_id: z.string().min(1, t('validation.userRequired')),
+      account_id: z.string().min(1, t('validation.accountRequired')),
+      to_account_id: z.string().optional(),
+    })
+    .refine(
+      (data) => {
+        if (data.type === 'transfer') {
+          if (!data.to_account_id) return false;
+          if (data.to_account_id === data.account_id) return false;
+        }
+        return true;
+      },
+      {
+        message: t('validation.destinationAccountInvalid'),
+        path: ['to_account_id'],
       }
-      return true;
-    },
-    {
-      message: 'Il conto di destinazione è obbligatorio e deve essere diverso dal conto di origine',
-      path: ['to_account_id'],
-    }
-  );
+    );
 
-type TransactionFormData = z.infer<typeof transactionSchema>;
+type TransactionFormData = z.infer<ReturnType<typeof createTransactionSchema>>;
 
 interface TransactionFormModalProps {
   isOpen: boolean;
@@ -69,6 +70,7 @@ interface TransactionFormModalProps {
 }
 
 function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionFormModalProps>) {
+  const t = useTranslations('Transactions.FormModal');
   // Read from stores instead of props
   const currentUser = useRequiredCurrentUser();
   const groupUsers = useRequiredGroupUsers();
@@ -84,16 +86,15 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
   const removeTransaction = usePageDataStore((state) => state.removeTransaction);
 
   const isEditMode = !!editId;
-  const title = isEditMode ? 'Modifica transazione' : 'Nuova transazione';
-  const description = isEditMode
-    ? 'Aggiorna i dettagli della transazione'
-    : 'Aggiungi una nuova transazione';
+  const title = isEditMode ? t('title.edit') : t('title.create');
+  const description = isEditMode ? t('description.edit') : t('description.create');
 
   // Permission checks
   const { shouldDisableUserField, defaultFormUserId, userFieldHelperText } = usePermissions({
     currentUser,
     selectedUserId,
   });
+  const transactionSchema = useMemo(() => createTransactionSchema(t), [t]);
 
   // React Hook Form setup
   const {
@@ -252,6 +253,10 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
     removeTransaction,
     onClose,
     setError,
+    messages: {
+      notFound: t('errors.notFound'),
+      unknownError: t('errors.unknown'),
+    },
   });
 
   const onSubmit = async (data: TransactionFormData) => {
@@ -260,9 +265,9 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
 
   // Type options
   const typeOptions = [
-    { value: 'income', label: 'Entrata' },
-    { value: 'expense', label: 'Uscita' },
-    { value: 'transfer', label: 'Trasferimento' },
+    { value: 'income', label: t('typeOptions.income') },
+    { value: 'expense', label: t('typeOptions.expense') },
+    { value: 'transfer', label: t('typeOptions.transfer') },
   ];
 
   // Filter available destination accounts (exclude source account and filter by user)
@@ -299,19 +304,21 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
                 onChange={(value) => setValue('user_id', value)}
                 error={errors.user_id?.message}
                 users={groupUsers}
-                label="Utente"
-                placeholder="Seleziona utente"
+                label={t('fields.user.label')}
+                placeholder={t('fields.user.placeholder')}
                 disabled={shouldDisableUserField}
-                helperText={userFieldHelperText}
+                helperText={
+                  shouldDisableUserField ? t('fields.user.memberHelper') : userFieldHelperText
+                }
               />
 
               {/* Type */}
-              <FormField label="Tipo" required error={errors.type?.message}>
+              <FormField label={t('fields.type.label')} required error={errors.type?.message}>
                 <FormSelect
                   value={watchedType}
                   onValueChange={(value) => setValue('type', value as TransactionType)}
                   options={typeOptions}
-                  placeholder="Seleziona tipo"
+                  placeholder={t('fields.type.placeholder')}
                 />
               </FormField>
 
@@ -321,8 +328,8 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
                 onChange={(value) => setValue('account_id', value)}
                 error={errors.account_id?.message}
                 accounts={filteredAccounts}
-                label="Conto origine"
-                placeholder="Seleziona conto"
+                label={t('fields.sourceAccount.label')}
+                placeholder={t('fields.sourceAccount.placeholder')}
                 required
               />
 
@@ -333,8 +340,8 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
                   onChange={(value) => setValue('to_account_id', value)}
                   error={errors.to_account_id?.message}
                   accounts={destinationAccounts}
-                  label="Conto destinazione"
-                  placeholder="Seleziona conto destinazione"
+                  label={t('fields.destinationAccount.label')}
+                  placeholder={t('fields.destinationAccount.placeholder')}
                   required
                 />
               )}
@@ -345,8 +352,8 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
                 onChange={(value) => setValue('category', value)}
                 error={errors.category?.message}
                 categories={categories}
-                label="Categoria"
-                placeholder="Seleziona categoria"
+                label={t('fields.category.label')}
+                placeholder={t('fields.category.placeholder')}
                 required
               />
 
@@ -355,8 +362,8 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
                 value={watchedAmount}
                 onChange={(value) => setValue('amount', value)}
                 error={errors.amount?.message}
-                label="Importo"
-                placeholder="0,00"
+                label={t('fields.amount.label')}
+                placeholder={t('fields.amount.placeholder')}
                 required
               />
 
@@ -365,7 +372,7 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
                 value={watchedDate}
                 onChange={(value) => setValue('date', value)}
                 error={errors.date?.message}
-                label="Data"
+                label={t('fields.date.label')}
                 required
               />
             </div>
@@ -373,10 +380,14 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
 
           <ModalSection>
             {/* Description */}
-            <FormField label="Descrizione" required error={errors.description?.message}>
+            <FormField
+              label={t('fields.description.label')}
+              required
+              error={errors.description?.message}
+            >
               <Input
                 {...register('description')}
-                placeholder="Es. Spesa supermercato"
+                placeholder={t('fields.description.placeholder')}
                 disabled={isSubmitting}
               />
             </FormField>
@@ -386,7 +397,8 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
         <ModalFooter>
           <FormActions
             submitType="submit"
-            submitLabel={isEditMode ? 'Aggiorna' : 'Crea'}
+            submitLabel={isEditMode ? t('buttons.update') : t('buttons.create')}
+            cancelLabel={t('buttons.cancel')}
             onCancel={onClose}
             isSubmitting={isSubmitting}
             className="w-full sm:w-auto"

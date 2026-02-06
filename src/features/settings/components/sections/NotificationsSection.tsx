@@ -1,6 +1,7 @@
 import { SectionHeader } from '@/components/layout';
 import { ListContainer, PageSection, SettingsItem } from '@/components/ui/layout';
 import { Bell, Mail } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { UserPreferences } from '@/server/services';
 
 interface NotificationsSectionProps {
@@ -14,15 +15,17 @@ export function NotificationsSection({
   isLoadingPreferences,
   onToggle,
 }: Readonly<NotificationsSectionProps>) {
+  const t = useTranslations('SettingsSections.Notifications');
+
   return (
     <PageSection>
-      <SectionHeader title="Notifiche" icon={Bell} iconClassName="text-primary" />
+      <SectionHeader title={t('title')} icon={Bell} iconClassName="text-primary" />
       <PageSection variant="card" padding="sm">
         <ListContainer divided className="divide-primary/20 space-y-0">
           <SettingsItem
             icon={<Bell className="h-4 w-4 text-primary" />}
-            label="Notifiche Push"
-            description="Ricevi notifiche sulle transazioni"
+            label={t('pushLabel')}
+            description={t('pushDescription')}
             actionType="toggle"
             checked={preferences?.notifications_push ?? true}
             onToggle={() => onToggle('notifications_push')}
@@ -31,8 +34,8 @@ export function NotificationsSection({
 
           <SettingsItem
             icon={<Mail className="h-4 w-4 text-primary" />}
-            label="Notifiche Email"
-            description="Ricevi rapporti settimanali"
+            label={t('emailLabel')}
+            description={t('emailDescription')}
             actionType="toggle"
             checked={preferences?.notifications_email ?? false}
             onToggle={() => onToggle('notifications_email')}
@@ -41,8 +44,8 @@ export function NotificationsSection({
 
           <SettingsItem
             icon={<Bell className="h-4 w-4 text-primary" />}
-            label="Avvisi Budget"
-            description="Avvisa quando superi il budget"
+            label={t('budgetAlertsLabel')}
+            description={t('budgetAlertsDescription')}
             actionType="toggle"
             checked={preferences?.notifications_budget_alerts ?? true}
             onToggle={() => onToggle('notifications_budget_alerts')}

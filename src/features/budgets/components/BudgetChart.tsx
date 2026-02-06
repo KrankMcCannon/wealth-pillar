@@ -6,6 +6,7 @@
 
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { Card } from '@/components/ui';
 import {
   budgetStyles,
@@ -34,6 +35,7 @@ export interface BudgetChartProps {
 }
 
 export function BudgetChart({ spent, chartData, periodInfo }: Readonly<BudgetChartProps>) {
+  const t = useTranslations('Budgets.Chart');
   // Generate path for chart line
   const generatePath = (points: ChartDataPoint[]): string => {
     if (points.length === 0) return '';
@@ -69,7 +71,7 @@ export function BudgetChart({ spent, chartData, periodInfo }: Readonly<BudgetCha
         {/* Header with amount and comparison */}
         <div className={budgetStyles.chart.header}>
           <div>
-            <p className={budgetStyles.chart.headerLabel}>Hai speso</p>
+            <p className={budgetStyles.chart.headerLabel}>{t('spentLabel')}</p>
             <p className={budgetStyles.chart.headerAmount}>{formatCurrency(spent)}</p>
           </div>
         </div>

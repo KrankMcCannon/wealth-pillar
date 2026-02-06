@@ -7,6 +7,7 @@
 
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useLocale } from 'next-intl';
 import {
   useUserFilter,
   useDeleteConfirmation,
@@ -24,6 +25,7 @@ import {
 } from '@/features/transactions';
 import type { Transaction, Budget, User, Account, Category } from '@/lib/types';
 import { TransactionLogic } from '@/lib/utils/transaction-logic';
+import { formatDateSmart, toDateTime } from '@/lib/utils/date-utils';
 import { deleteTransactionAction } from '@/features/transactions/actions/transaction-actions';
 import { deleteRecurringSeriesAction } from '@/features/recurring/actions/recurring-actions';
 import { useModalState, useTabState, type ModalType } from '@/lib/navigation/url-state';
@@ -114,6 +116,7 @@ export function useTransactionsContent({
 }: UseTransactionsContentProps): UseTransactionsContentReturn {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const locale = useLocale();
 
   // User filtering state management (global context)
   const { setSelectedGroupFilter, selectedUserId } = useUserFilter();
@@ -247,19 +250,33 @@ export function useTransactionsContent({
 
   // Group transactions by date and calculate daily totals using service layer
   const dayTotals = useMemo((): GroupedTransaction[] => {
-    const grouped = TransactionLogic.groupTransactionsByDate(filteredTransactions);
-    const dailyTotals = TransactionLogic.calculateDailyTotals(grouped);
+    const groupedByIsoDate = filteredTransactions.reduce(
+      (groups, transaction) => {
+        const txDate = toDateTime(transaction.date);
+        const isoDate = txDate?.toISODate();
+        if (!isoDate) return groups;
+        if (!groups[isoDate]) {
+          groups[isoDate] = [];
+        }
+        groups[isoDate].push(transaction);
+        return groups;
+      },
+      {} as Record<string, Transaction[]>
+    );
 
-    return Object.entries(grouped)
-      .map(([date, txs]) => ({
-        date,
+    const dailyTotals = TransactionLogic.calculateDailyTotals(groupedByIsoDate);
+
+    return Object.entries(groupedByIsoDate)
+      .map(([isoDate, txs]) => ({
+        date: isoDate,
+        formattedDate: formatDateSmart(isoDate, locale),
         transactions: txs,
-        income: dailyTotals[date]?.income ?? 0,
-        expense: dailyTotals[date]?.expense ?? 0,
-        total: (dailyTotals[date]?.income ?? 0) - (dailyTotals[date]?.expense ?? 0),
+        income: dailyTotals[isoDate]?.income ?? 0,
+        expense: dailyTotals[isoDate]?.expense ?? 0,
+        total: (dailyTotals[isoDate]?.income ?? 0) - (dailyTotals[isoDate]?.expense ?? 0),
       }))
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  }, [filteredTransactions]);
+  }, [filteredTransactions, locale]);
 
   // Transaction handlers
   const handleEditTransaction = useCallback(

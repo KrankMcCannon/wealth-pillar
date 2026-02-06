@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.7.0] - 2026-02-06
+
+### Added
+
+- **i18n**: Internationalization support using `next-intl` with English and Italian locales.
+- **settings**: Language preference customization in user profile.
+- **ui**: Localized date and currency formatting across the application.
+
 ## [0.6.1] - 2026-02-04
 
 ### Test

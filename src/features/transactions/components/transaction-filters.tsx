@@ -13,6 +13,7 @@
 
 import { useState, useMemo, useCallback } from 'react';
 import { Search, X, ChevronDown, Check } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { Category, cn } from '@/lib';
 import {
   toDateTime,
@@ -66,20 +67,8 @@ interface TransactionFiltersProps {
 // Constants
 // ============================================================================
 
-const TYPE_OPTIONS: { key: TransactionTypeFilter; label: string }[] = [
-  { key: 'all', label: 'Tutti' },
-  { key: 'income', label: 'Entrate' },
-  { key: 'expense', label: 'Uscite' },
-];
-
-const DATE_OPTIONS: { key: DateRangeFilter; label: string }[] = [
-  { key: 'all', label: 'Sempre' },
-  { key: 'today', label: 'Oggi' },
-  { key: 'week', label: 'Settimana' },
-  { key: 'month', label: 'Mese' },
-  { key: 'year', label: 'Anno' },
-  { key: 'custom', label: 'Personalizzato' },
-];
+const TYPE_OPTIONS: TransactionTypeFilter[] = ['all', 'income', 'expense'];
+const DATE_OPTIONS: DateRangeFilter[] = ['all', 'today', 'week', 'month', 'year', 'custom'];
 
 // ============================================================================
 // Helper Functions
@@ -96,30 +85,55 @@ function getActiveFiltersCount(filters: TransactionFiltersState): number {
   return count;
 }
 
-function getTypeLabel(type: TransactionTypeFilter): string {
-  return TYPE_OPTIONS.find((o) => o.key === type)?.label ?? 'Tutti';
+function getTypeLabel(type: TransactionTypeFilter, t: ReturnType<typeof useTranslations>): string {
+  switch (type) {
+    case 'income':
+      return t('typeOptions.income');
+    case 'expense':
+      return t('typeOptions.expense');
+    case 'all':
+    default:
+      return t('typeOptions.all');
+  }
 }
 
-function getDateLabel(dateRange: DateRangeFilter): string {
-  return DATE_OPTIONS.find((o) => o.key === dateRange)?.label ?? 'Sempre';
+function getDateLabel(dateRange: DateRangeFilter, t: ReturnType<typeof useTranslations>): string {
+  switch (dateRange) {
+    case 'today':
+      return t('dateOptions.today');
+    case 'week':
+      return t('dateOptions.week');
+    case 'month':
+      return t('dateOptions.month');
+    case 'year':
+      return t('dateOptions.year');
+    case 'custom':
+      return t('dateOptions.custom');
+    case 'all':
+    default:
+      return t('dateOptions.all');
+  }
 }
 
-function getDateChipLabel(filters: TransactionFiltersState): string {
-  if (filters.dateRange === 'all') return 'Periodo';
+function getDateChipLabel(
+  filters: TransactionFiltersState,
+  t: ReturnType<typeof useTranslations>
+): string {
+  if (filters.dateRange === 'all') return t('chips.period');
   if (filters.dateRange === 'custom') {
     // Format custom date range for display
     if (filters.startDate && filters.endDate) {
       return `${formatDateShort(filters.startDate)} - ${formatDateShort(filters.endDate)}`;
     }
     if (filters.startDate) {
-      return `Dal ${formatDateShort(filters.startDate)}`;
+      return t('customRange.from', { date: formatDateShort(filters.startDate) });
     }
     if (filters.endDate) {
-      return `Fino al ${formatDateShort(filters.endDate)}`;
+      return t('customRange.until', { date: formatDateShort(filters.endDate) });
     }
-    return 'Personalizzato';
+    return t('dateOptions.custom');
   }
-  return getDateLabel(filters.dateRange);
+  return getDateLabel(filters.dateRange, t);
 }
 
 // ============================================================================
@@ -132,9 +146,17 @@ interface FilterChipProps {
   readonly hasValue: boolean;
   readonly onClick: () => void;
   readonly onClear?: () => void;
+  readonly clearAriaLabel?: string;
 }
 
-function FilterChip({ label, isActive, hasValue, onClick, onClear }: FilterChipProps) {
+function FilterChip({
+  label,
+  isActive,
+  hasValue,
+  onClick,
+  onClear,
+  clearAriaLabel,
+}: FilterChipProps) {
   const handleClearClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
@@ -158,7 +180,7 @@ function FilterChip({ label, isActive, hasValue, onClick, onClear }: FilterChipP
           type="button"
           onClick={handleClearClick}
           className={transactionStyles.filters.chip.clearButton}
-          aria-label={`Rimuovi filtro ${label}`}
+          aria-label={clearAriaLabel ?? label}
         >
           <X className={transactionStyles.filters.chip.clearIcon} />
         </button>
@@ -210,6 +232,7 @@ function FilterDrawerContent({
   onClose,
   onDateRangeChange,
 }: FilterDrawerContentProps) {
+  const t = useTranslations('Transactions.Filters');
   const [categorySearch, setCategorySearch] = useState('');
   const [customStartDate, setCustomStartDate] = useState(filters.startDate || '');
   const [customEndDate, setCustomEndDate] = useState(filters.endDate || '');
@@ -225,21 +248,21 @@ function FilterDrawerContent({
     <div className={transactionStyles.filters.typeGrid}>
       {TYPE_OPTIONS.map((option) => (
         <button
-          key={option.key}
+          key={option}
           type="button"
           onClick={() => {
-            onSelect(option.key);
+            onSelect(option);
             onClose();
           }}
           className={cn(
             transactionStyles.filters.typeButton,
-            filters.type === option.key
+            filters.type === option
               ? transactionStyles.filters.typeButtonActive
               : transactionStyles.filters.typeButtonIdle
           )}
         >
-          {filters.type === option.key && <Check className={transactionStyles.filters.typeCheck} />}
-          <span>{option.label}</span>
+          {filters.type === option && <Check className={transactionStyles.filters.typeCheck} />}
+          <span>{getTypeLabel(option, t)}</span>
         </button>
       ))}
     </div>
@@ -257,51 +280,55 @@ function FilterDrawerContent({
       <div className={transactionStyles.filters.dateSection}>
         {/* Preset options */}
         <div className={transactionStyles.filters.dateGrid}>
-          {DATE_OPTIONS.filter((o) => o.key !== 'custom').map((option) => (
+          {DATE_OPTIONS.filter((option) => option !== 'custom').map((option) => (
             <button
-              key={option.key}
+              key={option}
               type="button"
               onClick={() => {
-                onSelect(option.key);
+                onSelect(option);
                 onClose();
               }}
               className={cn(
                 transactionStyles.filters.dateButton,
-                filters.dateRange === option.key
+                filters.dateRange === option
                   ? transactionStyles.filters.dateButtonActive
                   : transactionStyles.filters.dateButtonIdle
               )}
             >
-              {filters.dateRange === option.key && (
+              {filters.dateRange === option && (
                 <Check className={transactionStyles.filters.typeCheck} />
               )}
-              <span>{option.label}</span>
+              <span>{getDateLabel(option, t)}</span>
             </button>
           ))}
         </div>
 
         {/* Custom date range */}
         <div className={transactionStyles.filters.dateCustom}>
-          <p className={transactionStyles.filters.dateTitle}>Range personalizzato</p>
+          <p className={transactionStyles.filters.dateTitle}>{t('customRange.title')}</p>
           <div className={transactionStyles.filters.dateInputs}>
             <div className={transactionStyles.filters.dateField}>
-              <span className={transactionStyles.filters.dateLabel}>Da</span>
+              <span className={transactionStyles.filters.dateLabel}>
+                {t('customRange.fromLabel')}
+              </span>
               <Input
                 type="date"
                 value={customStartDate}
                 onChange={(e) => setCustomStartDate(e.target.value)}
                 className={transactionStyles.filters.dateInput}
-                aria-label="Data inizio"
+                aria-label={t('customRange.startDateAria')}
               />
             </div>
             <div className={transactionStyles.filters.dateField}>
-              <span className={transactionStyles.filters.dateLabel}>A</span>
+              <span className={transactionStyles.filters.dateLabel}>
+                {t('customRange.toLabel')}
+              </span>
               <Input
                 type="date"
                 value={customEndDate}
                 onChange={(e) => setCustomEndDate(e.target.value)}
                 className={transactionStyles.filters.dateInput}
-                aria-label="Data fine"
+                aria-label={t('customRange.endDateAria')}
               />
             </div>
           </div>
@@ -310,7 +337,7 @@ function FilterDrawerContent({
             disabled={!customStartDate && !customEndDate}
             className={transactionStyles.filters.dateApply}
           >
-            Applica range
+            {t('customRange.apply')}
           </Button>
         </div>
       </div>
@@ -323,7 +350,7 @@ function FilterDrawerContent({
       <div className={transactionStyles.filters.categorySearchWrap}>
         <Search className={transactionStyles.filters.categorySearchIcon} />
         <Input
-          placeholder="Cerca categoria..."
+          placeholder={t('category.searchPlaceholder')}
           value={categorySearch}
           onChange={(e) => setCategorySearch(e.target.value)}
           className={transactionStyles.filters.categorySearchInput}
@@ -349,7 +376,7 @@ function FilterDrawerContent({
           {filters.categoryKey === 'all' && (
             <Check className={transactionStyles.filters.categoryCheck} />
           )}
-          <span className={transactionStyles.filters.categoryLabel}>Tutte</span>
+          <span className={transactionStyles.filters.categoryLabel}>{t('category.all')}</span>
         </button>
 
         {filteredCategories.map((category) => (
@@ -378,10 +405,10 @@ function FilterDrawerContent({
     </div>
   );
 
-  const titles: Record<string, string> = {
-    type: 'Tipo transazione',
-    date: 'Periodo',
-    category: 'Categoria',
+  const titles: Record<'type' | 'date' | 'category', string> = {
+    type: t('drawer.titles.type'),
+    date: t('drawer.titles.date'),
+    category: t('drawer.titles.category'),
   };
 
   return (
@@ -389,7 +416,7 @@ function FilterDrawerContent({
       {/* Accessible title and description for screen readers */}
       <VisuallyHidden.Root>
         <DrawerTitle>{titles[filterType]}</DrawerTitle>
-        <DrawerDescription>Seleziona un opzione per filtrare le transazioni</DrawerDescription>
+        <DrawerDescription>{t('drawer.description')}</DrawerDescription>
       </VisuallyHidden.Root>
 
       {/* Header */}
@@ -401,7 +428,7 @@ function FilterDrawerContent({
           onClick={onClose}
           className={transactionStyles.filters.drawer.closeButton}
         >
-          Chiudi
+          {t('drawer.close')}
         </Button>
       </div>
 
@@ -425,6 +452,7 @@ export function TransactionFilters({
   budgetName,
   onClearBudgetFilter,
 }: TransactionFiltersProps) {
+  const t = useTranslations('Transactions.Filters');
   const [activeDrawer, setActiveDrawer] = useState<'type' | 'date' | 'category' | null>(null);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
 
@@ -433,10 +461,10 @@ export function TransactionFilters({
 
   // Get category label
   const categoryLabel = useMemo(() => {
-    if (filters.categoryKey === 'all') return 'Categoria';
+    if (filters.categoryKey === 'all') return t('chips.category');
     const cat = categories.find((c) => c.key === filters.categoryKey);
-    return cat?.label ?? 'Categoria';
-  }, [filters.categoryKey, categories]);
+    return cat?.label ?? t('chips.category');
+  }, [filters.categoryKey, categories, t]);
 
   // Handlers
   const handleSearchChange = useCallback(
@@ -515,12 +543,13 @@ export function TransactionFilters({
           <div className={transactionStyles.filters.budgetBannerLeft}>
             <div className={transactionStyles.filters.budgetBannerDot} />
             <span className={transactionStyles.filters.budgetBannerText}>
-              {budgetName ? `Budget: ${budgetName}` : 'Filtro Budget attivo'}
+              {budgetName
+                ? t('budget.bannerWithName', { name: budgetName })
+                : t('budget.bannerActive')}
             </span>
             {filters.categoryKeys && filters.categoryKeys.length > 0 && (
               <span className={transactionStyles.filters.budgetBannerCount}>
-                ({filters.categoryKeys.length}{' '}
-                {filters.categoryKeys.length === 1 ? 'categoria' : 'categorie'})
+                {t('budget.categoriesCount', { count: filters.categoryKeys.length })}
               </span>
             )}
           </div>
@@ -531,7 +560,7 @@ export function TransactionFilters({
               className={transactionStyles.filters.budgetBannerExit}
             >
               <X className={transactionStyles.filters.budgetBannerExitIcon} />
-              Esci
+              {t('budget.exit')}
             </button>
           )}
         </div>
@@ -549,7 +578,7 @@ export function TransactionFilters({
         />
         <Input
           type="text"
-          placeholder="Cerca transazioni..."
+          placeholder={t('searchPlaceholder')}
           value={filters.searchQuery}
           onChange={(e) => handleSearchChange(e.target.value)}
           onFocus={() => setIsSearchFocused(true)}
@@ -577,11 +606,14 @@ export function TransactionFilters({
           <DrawerTrigger asChild>
             <div>
               <FilterChip
-                label={filters.type === 'all' ? 'Tipo' : getTypeLabel(filters.type)}
+                label={filters.type === 'all' ? t('chips.type') : getTypeLabel(filters.type, t)}
                 isActive={activeDrawer === 'type'}
                 hasValue={filters.type !== 'all'}
                 onClick={() => setActiveDrawer('type')}
                 onClear={() => handleTypeChange('all')}
+                clearAriaLabel={t('clearFilterAria', {
+                  label: filters.type === 'all' ? t('chips.type') : getTypeLabel(filters.type, t),
+                })}
               />
             </div>
           </DrawerTrigger>
@@ -604,11 +636,14 @@ export function TransactionFilters({
           <DrawerTrigger asChild>
             <div>
               <FilterChip
-                label={getDateChipLabel(filters)}
+                label={getDateChipLabel(filters, t)}
                 isActive={activeDrawer === 'date'}
                 hasValue={filters.dateRange !== 'all'}
                 onClick={() => setActiveDrawer('date')}
                 onClear={() => handleDateChange('all')}
+                clearAriaLabel={t('clearFilterAria', {
+                  label: getDateChipLabel(filters, t),
+                })}
               />
             </div>
           </DrawerTrigger>
@@ -637,6 +672,7 @@ export function TransactionFilters({
                 hasValue={filters.categoryKey !== 'all'}
                 onClick={() => setActiveDrawer('category')}
                 onClear={() => handleCategoryChange('all')}
+                clearAriaLabel={t('clearFilterAria', { label: categoryLabel })}
               />
             </div>
           </DrawerTrigger>
@@ -659,7 +695,7 @@ export function TransactionFilters({
             className={transactionStyles.filters.clearAll}
           >
             <X className={transactionStyles.filters.clearAllIcon} />
-            <span>Cancella</span>
+            <span>{t('clearAll')}</span>
           </button>
         )}
       </div>

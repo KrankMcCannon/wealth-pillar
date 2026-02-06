@@ -25,7 +25,6 @@ import {
   isWeekend as checkIsWeekend,
   format,
 } from 'date-fns';
-import { it } from 'date-fns/locale';
 import { calendarDrawerStyles } from '@/lib/styles/calendar-drawer.styles';
 import { cn } from '@/lib/utils';
 import { DayCell } from './day-cell';
@@ -128,10 +127,10 @@ function calculateMonthDays(month: Date): Date[] {
 
   // Get the start of the week containing the first day of the month
   // Use Monday as the start of the week (European convention)
-  const calendarStart = startOfWeek(monthStart, { weekStartsOn: 1, locale: it });
+  const calendarStart = startOfWeek(monthStart, { weekStartsOn: 1 });
 
   // Get the end of the week containing the last day of the month
-  const calendarEnd = endOfWeek(monthEnd, { weekStartsOn: 1, locale: it });
+  const calendarEnd = endOfWeek(monthEnd, { weekStartsOn: 1 });
 
   // Generate all dates in the range
   const days = eachDayOfInterval({

@@ -5,6 +5,7 @@
 
 const API_KEY = process.env.TWELVE_DATA_API_KEY;
 const BASE_URL = 'https://api.twelvedata.com';
+const REQUEST_TIMEOUT_MS = 4000;
 
 const logNotFound = (response: Response, context: string) => {
   if (response.status === 404) {
@@ -12,6 +13,29 @@ const logNotFound = (response: Response, context: string) => {
     return true;
   }
   return false;
+};
+
+const fetchWithTimeout = async (
+  url: string,
+  revalidate: number,
+  context: string
+): Promise<Response> => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
+  try {
+    return await fetch(url, {
+      next: { revalidate },
+      signal: controller.signal,
+    });
+  } catch (error) {
+    if (error instanceof Error && error.name === 'AbortError') {
+      console.warn(`[TwelveData] Request timed out for ${context} after ${REQUEST_TIMEOUT_MS}ms`);
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
+  }
 };
 
 export interface StockQuote {
@@ -56,9 +80,11 @@ export const twelveData = {
     }
 
     try {
-      const response = await fetch(`${BASE_URL}/quote?symbol=${symbol}&apikey=${API_KEY}`, {
-        next: { revalidate: 60 }, // Cache for 60 seconds
-      });
+      const response = await fetchWithTimeout(
+        `${BASE_URL}/quote?symbol=${symbol}&apikey=${API_KEY}`,
+        60,
+        `quote ${symbol}`
+      );
 
       if (logNotFound(response, `quote ${symbol}`)) {
         return null;
@@ -89,9 +115,11 @@ export const twelveData = {
     const symbolString = uniqueSymbols.join(',');
 
     try {
-      const response = await fetch(`${BASE_URL}/quote?symbol=${symbolString}&apikey=${API_KEY}`, {
-        next: { revalidate: 60 },
-      });
+      const response = await fetchWithTimeout(
+        `${BASE_URL}/quote?symbol=${symbolString}&apikey=${API_KEY}`,
+        60,
+        `quote ${symbolString}`
+      );
 
       if (logNotFound(response, `quote ${symbolString}`)) {
         return {};
@@ -128,9 +156,10 @@ export const twelveData = {
     if (!API_KEY) return [];
 
     try {
-      const response = await fetch(
+      const response = await fetchWithTimeout(
         `${BASE_URL}/time_series?symbol=${symbol}&interval=${interval}&outputsize=${outputsize}&apikey=${API_KEY}`,
-        { next: { revalidate: 3600 } } // Cache history for 1 hour
+        3600,
+        `time_series ${symbol}`
       );
 
       if (logNotFound(response, `time_series ${symbol}`)) {

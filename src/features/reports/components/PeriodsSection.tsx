@@ -2,6 +2,7 @@ import React from 'react';
 import type { ReportPeriodSummary } from '@/server/services/reports.service';
 import { reportsStyles } from '@/features/reports/theme/reports-styles';
 import { CalendarDays } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { PeriodCard } from './PeriodCard';
 
 interface PeriodsSectionProps {
@@ -10,6 +11,8 @@ interface PeriodsSectionProps {
 }
 
 export function PeriodsSection({ data, users }: PeriodsSectionProps) {
+  const t = useTranslations('Reports.PeriodsSection');
+
   // Group periods by userId
   const periodsByUser = React.useMemo(() => {
     const grouped: Record<string, ReportPeriodSummary[]> = {};
@@ -30,12 +33,12 @@ export function PeriodsSection({ data, users }: PeriodsSectionProps) {
     <div className="space-y-4">
       <h3 className={reportsStyles.periods.sectionTitle}>
         <CalendarDays className="w-5 h-5" />
-        Report Periods
+        {t('title')}
       </h3>
 
       {data.length === 0 ? (
         <div className="text-center py-12 border border-dashed rounded-xl border-primary/20 bg-primary/5">
-          <p className="text-primary/60">No periods found for this range.</p>
+          <p className="text-primary/60">{t('empty')}</p>
         </div>
       ) : (
         <div className={`grid gap-6 grid-cols-${activeUsers.length}`}>

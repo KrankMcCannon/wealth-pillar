@@ -171,7 +171,7 @@ export class AccountService {
       async () => {
         const { count, error } = await supabase
           .from('accounts')
-          .select('id', { count: 'exact', head: true })
+          .select('id', { count: 'planned', head: true })
           .contains('user_ids', [userId]);
 
         if (error) throw new Error(error.message);

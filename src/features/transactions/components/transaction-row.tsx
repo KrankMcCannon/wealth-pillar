@@ -4,6 +4,7 @@ import { Badge, CategoryBadge } from '@/components/ui';
 import { Transaction } from '@/lib';
 import { formatCurrency } from '@/lib/utils';
 import { memo } from 'react';
+import { useTranslations } from 'next-intl';
 import { RowCard } from '@/components/ui/layout/row-card';
 import { transactionStyles, getTransactionBadgeColor } from '@/styles/system';
 import { useCloseAllCards } from '@/stores/swipe-state-store';
@@ -42,6 +43,7 @@ export const TransactionRow = memo(
     getCategoryLabel,
     getCategoryColor,
   }: TransactionRowProps) => {
+    const t = useTranslations('Transactions.Row');
     const closeAllCards = useCloseAllCards();
     // Calculate days until due for recurrent transactions
     const getDaysUntilDue = (): number => {
@@ -139,7 +141,7 @@ export const TransactionRow = memo(
             ? {
                 id: `transaction-${transaction.id}`,
                 deleteAction: {
-                  label: 'Elimina',
+                  label: t('delete'),
                   variant: 'delete',
                   onAction: handleDelete,
                 },

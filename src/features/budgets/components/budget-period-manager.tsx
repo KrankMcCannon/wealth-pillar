@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
+import { useLocale, useTranslations } from 'next-intl';
 import { Clock, TrendingUp, TrendingDown, Activity, Users } from 'lucide-react';
 import { BudgetPeriod, User } from '@/lib/types';
 import { startPeriodAction, closePeriodAction, getPeriodPreviewAction } from '@/features/budgets';
@@ -39,6 +40,8 @@ export function BudgetPeriodManager({
   currentUser,
   groupUsers,
 }: Readonly<BudgetPeriodManagerProps>) {
+  const t = useTranslations('Budgets.PeriodManager');
+  const locale = useLocale();
   const [isOpen, setIsOpen] = useState(false);
   const [isActionPending, setIsActionPending] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string>('');
@@ -101,7 +104,7 @@ export function BudgetPeriodManager({
 
       try {
         // Call Server Action
-        const result = await getPeriodPreviewAction(targetUser.id, startDate, endDate);
+        const result = await getPeriodPreviewAction(targetUser.id, startDate, endDate, locale);
 
         if (mounted && result.data) {
           setMetrics({
@@ -124,7 +127,7 @@ export function BudgetPeriodManager({
     return () => {
       mounted = false;
     };
-  }, [selectedDate, currentPeriod, targetUser.id]);
+  }, [selectedDate, currentPeriod, targetUser.id, locale]);
 
   // Use metrics state
   const periodMetrics = metrics;
@@ -132,13 +135,13 @@ export function BudgetPeriodManager({
   // Format date for display
   const formatDate = (dateString: string | Date) => {
     const dt = toDateTime(dateString);
-    if (!dt) return 'Data non valida';
-    return dt.toFormat('d LLL yyyy', { locale: 'it' });
+    if (!dt) return t('invalidDate');
+    return dt.toFormat('d LLL yyyy', { locale: locale.split('-')[0] });
   };
 
   // Format currency
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('it-IT', {
+    return new Intl.NumberFormat(locale, {
       style: 'currency',
       currency: 'EUR',
     }).format(amount);
@@ -150,7 +153,7 @@ export function BudgetPeriodManager({
   // Handle submit (start new period or close current period)
   const handleSubmit = async () => {
     if (!selectedDate) {
-      setError('Seleziona una data');
+      setError(t('errors.selectDate'));
       return;
     }
 
@@ -162,7 +165,7 @@ export function BudgetPeriodManager({
 
       if (isActivePeriod && currentPeriod) {
         // Close current period using period ID and pre-calculated metrics
-        result = await closePeriodAction(targetUser.id, currentPeriod.id, selectedDate);
+        result = await closePeriodAction(targetUser.id, currentPeriod.id, selectedDate, locale);
 
         // Optimistic UI update - mark period as closed
         if (!result.error && result.data) {
@@ -170,7 +173,7 @@ export function BudgetPeriodManager({
         }
       } else {
         // Start new period
-        result = await startPeriodAction(targetUser.id, selectedDate);
+        result = await startPeriodAction(targetUser.id, selectedDate, locale);
 
         // Optimistic UI update - set new active period
         if (!result.error && result.data) {
@@ -179,7 +182,7 @@ export function BudgetPeriodManager({
       }
 
       if (result.error || !result.data) {
-        setError(result.error || "Errore durante l'operazione");
+        setError(result.error || t('errors.operationFailed'));
         return;
       }
 
@@ -188,7 +191,7 @@ export function BudgetPeriodManager({
       setIsOpen(false);
     } catch (err) {
       console.error('[BudgetPeriodManager] Submit error:', err);
-      setError(err instanceof Error ? err.message : 'Errore sconosciuto');
+      setError(err instanceof Error ? err.message : t('errors.unknown'));
     } finally {
       setIsActionPending(false);
     }
@@ -202,8 +205,8 @@ export function BudgetPeriodManager({
       <ModalWrapper
         isOpen={isOpen}
         onOpenChange={setIsOpen}
-        title="Gestione Periodi Budget"
-        description="Gestisci i periodi di budget per tracciare le spese nel tempo"
+        title={t('title')}
+        description={t('description')}
         maxWidth="lg"
       >
         <ModalBody>
@@ -215,7 +218,7 @@ export function BudgetPeriodManager({
               {/* User Selection (Admin) or User Info (Member) */}
               {isAdmin ? (
                 <UserField
-                  label="Utente"
+                  label={t('fields.user.label')}
                   users={groupUsers}
                   value={internalSelectedUserId}
                   onChange={(userId) => {
@@ -225,8 +228,8 @@ export function BudgetPeriodManager({
                   disabled={shouldDisableUserField}
                   helperText={
                     shouldDisableUserField
-                      ? 'Puoi gestire solo i tuoi periodi'
-                      : "Seleziona l'utente di cui gestire il periodo budget"
+                      ? t('fields.user.memberHelper')
+                      : t('fields.user.adminHelper')
                   }
                 />
               ) : (
@@ -246,7 +249,7 @@ export function BudgetPeriodManager({
                   <div className={budgetStyles.periodManager.userIconWrap}>
                     <Clock className={budgetStyles.periodManager.userIcon} />
                   </div>
-                  <h3 className={budgetStyles.periodManager.periodTitle}>Periodo Corrente</h3>
+                  <h3 className={budgetStyles.periodManager.periodTitle}>{t('currentPeriodTitle')}</h3>
                 </div>
 
                 {isActivePeriod ? (
@@ -254,11 +257,11 @@ export function BudgetPeriodManager({
                     {/* Period Status Header */}
                     <div className={budgetStyles.periodManager.periodRow}>
                       <span className={budgetStyles.periodManager.periodDate}>
-                        Iniziato il {formatDate(currentPeriod.start_date)}
+                        {t('startedOn')} {formatDate(currentPeriod.start_date)}
                       </span>
                       <Badge className={budgetStyles.periodManager.periodBadge}>
                         <Activity className={budgetStyles.periodManager.periodBadgeIcon} />
-                        In corso
+                        {t('status.inProgress')}
                       </Badge>
                     </div>
 
@@ -267,7 +270,9 @@ export function BudgetPeriodManager({
                       <div className={budgetStyles.periodManager.metricCardSpent}>
                         <div className={budgetStyles.periodManager.metricRow}>
                           <TrendingDown className={budgetStyles.periodManager.metricIconSpent} />
-                          <p className={budgetStyles.periodManager.metricLabelSpent}>Speso</p>
+                          <p className={budgetStyles.periodManager.metricLabelSpent}>
+                            {t('metrics.spent')}
+                          </p>
                         </div>
                         <p className={budgetStyles.periodManager.metricValueSpent}>
                           {formatCurrency(periodMetrics.totalSpent)}
@@ -276,7 +281,9 @@ export function BudgetPeriodManager({
                       <div className={budgetStyles.periodManager.metricCardSaved}>
                         <div className={budgetStyles.periodManager.metricRow}>
                           <TrendingUp className={budgetStyles.periodManager.metricIconSaved} />
-                          <p className={budgetStyles.periodManager.metricLabelSaved}>Risparmiato</p>
+                          <p className={budgetStyles.periodManager.metricLabelSaved}>
+                            {t('metrics.saved')}
+                          </p>
                         </div>
                         <p className={budgetStyles.periodManager.metricValueSaved}>
                           {formatCurrency(periodMetrics.totalSaved)}
@@ -287,7 +294,7 @@ export function BudgetPeriodManager({
                     {/* End Date Selection */}
                     <div className={budgetStyles.periodManager.dateFieldWrap}>
                       <DateField
-                        label="Data di Fine Periodo"
+                        label={t('fields.endDate.label')}
                         value={selectedDate}
                         onChange={setSelectedDate}
                         required
@@ -299,15 +306,14 @@ export function BudgetPeriodManager({
                     {/* Alert */}
                     <Alert>
                       <AlertDescription className={budgetStyles.periodManager.alertText}>
-                        Nessun periodo attivo. Inizia un nuovo periodo per tracciare le spese del
-                        budget.
+                        {t('noActivePeriodAlert')}
                       </AlertDescription>
                     </Alert>
 
                     {/* Start Date Selection */}
                     <div className={budgetStyles.periodManager.dateFieldWrap}>
                       <DateField
-                        label="Data di Inizio Periodo"
+                        label={t('fields.startDate.label')}
                         value={selectedDate}
                         onChange={setSelectedDate}
                         required
@@ -325,7 +331,10 @@ export function BudgetPeriodManager({
             onCancel={() => setIsOpen(false)}
             onSubmit={handleSubmit}
             isSubmitting={isActionPending}
-            submitLabel={isActivePeriod ? 'Chiudi periodo' : 'Inizia nuovo periodo'}
+            submitLabel={
+              isActivePeriod ? t('buttons.closePeriod') : t('buttons.startNewPeriod')
+            }
+            cancelLabel={t('buttons.cancel')}
             submitVariant="default"
           />
         </ModalFooter>

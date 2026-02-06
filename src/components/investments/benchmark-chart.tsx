@@ -1,5 +1,6 @@
 'use client';
 
+import { useLocale, useTranslations } from 'next-intl';
 import {
   LineChart,
   Line,
@@ -26,6 +27,8 @@ export function BenchmarkChart({
   onBenchmarkChange,
   anchorId,
 }: Readonly<BenchmarkChartProps>) {
+  const t = useTranslations('Investments.BenchmarkChart');
+  const locale = useLocale();
   const hasData = indexData && indexData.length > 0;
   const sortedData = hasData ? [...indexData].reverse() : [];
 
@@ -34,9 +37,9 @@ export function BenchmarkChart({
       <CardHeader className="px-6 pt-6 flex flex-col gap-4">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <CardTitle className={investmentsStyles.card.title}>Benchmark</CardTitle>
+            <CardTitle className={investmentsStyles.card.title}>{t('title')}</CardTitle>
             <CardDescription className={investmentsStyles.card.description}>
-              Confronta con {currentIndex}
+              {t('description', { index: currentIndex })}
             </CardDescription>
           </div>
           <div className="w-full md:w-auto min-w-[200px]">
@@ -67,7 +70,7 @@ export function BenchmarkChart({
                   tickLine={false}
                   axisLine={false}
                   tickFormatter={(value) =>
-                    new Intl.NumberFormat('it-IT', {
+                    new Intl.NumberFormat(locale, {
                       notation: 'compact',
                       compactDisplay: 'short',
                     }).format(value)
@@ -83,7 +86,7 @@ export function BenchmarkChart({
                   }}
                   itemStyle={{ color: '#0f172a' }}
                   formatter={(value) =>
-                    new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(
+                    new Intl.NumberFormat(locale, { style: 'currency', currency: 'EUR' }).format(
                       Number(value) || 0
                     )
                   }
@@ -100,7 +103,7 @@ export function BenchmarkChart({
             </ResponsiveContainer>
           </div>
         ) : (
-          <div className={investmentsStyles.charts.fallback}>Dati non disponibili</div>
+          <div className={investmentsStyles.charts.fallback}>{t('fallback')}</div>
         )}
       </CardContent>
     </Card>

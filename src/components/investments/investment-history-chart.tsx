@@ -1,5 +1,6 @@
 'use client';
 
+import { useLocale, useTranslations } from 'next-intl';
 import {
   AreaChart,
   Area,
@@ -17,14 +18,16 @@ interface InvestmentHistoryChartProps {
 }
 
 export function InvestmentHistoryChart({ data }: Readonly<InvestmentHistoryChartProps>) {
+  const t = useTranslations('Investments.HistoryChart');
+  const locale = useLocale();
   const hasData = data && data.length > 0;
 
   return (
     <Card className={investmentsStyles.card.root}>
       <CardHeader className={investmentsStyles.card.header}>
-        <CardTitle className={investmentsStyles.card.title}>Andamento Storico</CardTitle>
+        <CardTitle className={investmentsStyles.card.title}>{t('title')}</CardTitle>
         <CardDescription className={investmentsStyles.card.description}>
-          Valore effettivo del portafoglio nel tempo
+          {t('description')}
         </CardDescription>
       </CardHeader>
       <CardContent className={investmentsStyles.card.content}>
@@ -55,7 +58,10 @@ export function InvestmentHistoryChart({ data }: Readonly<InvestmentHistoryChart
                   tickLine={false}
                   axisLine={false}
                   tickFormatter={(value) =>
-                    `${new Intl.NumberFormat('it-IT', { notation: 'compact', compactDisplay: 'short' }).format(value)}€`
+                    `${new Intl.NumberFormat(locale, {
+                      notation: 'compact',
+                      compactDisplay: 'short',
+                    }).format(value)}€`
                   }
                   width={60}
                 />
@@ -68,10 +74,10 @@ export function InvestmentHistoryChart({ data }: Readonly<InvestmentHistoryChart
                   }}
                   itemStyle={{ color: '#0f172a' }}
                   formatter={(value) => [
-                    new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(
+                    new Intl.NumberFormat(locale, { style: 'currency', currency: 'EUR' }).format(
                       Number(value) || 0
                     ),
-                    'Valore',
+                    t('valueSeriesLabel'),
                   ]}
                 />
                 <Area
@@ -87,7 +93,7 @@ export function InvestmentHistoryChart({ data }: Readonly<InvestmentHistoryChart
             </ResponsiveContainer>
           </div>
         ) : (
-          <div className={investmentsStyles.charts.fallback}>Dati storici non sufficienti</div>
+          <div className={investmentsStyles.charts.fallback}>{t('fallback')}</div>
         )}
       </CardContent>
     </Card>

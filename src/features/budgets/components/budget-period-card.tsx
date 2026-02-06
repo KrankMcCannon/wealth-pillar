@@ -1,5 +1,6 @@
 'use client';
 
+import { useLocale, useTranslations } from 'next-intl';
 import { Trash2 } from 'lucide-react';
 import type { BudgetPeriod } from '@/lib/types';
 import { Button, Badge } from '@/components/ui';
@@ -31,17 +32,20 @@ export function BudgetPeriodCard({
   totalSaved,
   categorySpending,
 }: Readonly<BudgetPeriodCardProps>) {
-  // Format date for display (Italian locale)
+  const t = useTranslations('Budgets.PeriodCard');
+  const locale = useLocale();
+
+  // Format date for display
   const formatDate = (date: string | Date | null) => {
     if (!date) return '—';
     const dt = toDateTime(date);
-    if (!dt) return 'Data non valida';
-    return dt.toFormat('d LLL yyyy', { locale: 'it' });
+    if (!dt) return t('invalidDate');
+    return dt.toFormat('d LLL yyyy', { locale: locale.split('-')[0] });
   };
 
   // Format currency (EUR)
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('it-IT', {
+    return new Intl.NumberFormat(locale, {
       style: 'currency',
       currency: 'EUR',
     }).format(amount);
@@ -77,7 +81,7 @@ export function BudgetPeriodCard({
               isActive ? budgetStyles.periodCard.badgeActive : budgetStyles.periodCard.badge
             }
           >
-            {isActive ? 'In corso' : 'Chiuso'}
+            {isActive ? t('status.inProgress') : t('status.closed')}
           </Badge>
         </div>
 
@@ -88,7 +92,7 @@ export function BudgetPeriodCard({
             size="sm"
             onClick={onDelete}
             className={budgetStyles.periodCard.deleteButton}
-            title="Elimina periodo"
+            title={t('deleteTitle')}
           >
             <Trash2 className={budgetStyles.periodCard.deleteIcon} />
           </Button>
@@ -101,7 +105,7 @@ export function BudgetPeriodCard({
           {/* Total Spent */}
           {totalSpent !== undefined && (
             <div className={budgetStyles.periodCard.metricSpent}>
-              <p className={budgetStyles.periodCard.metricLabelSpent}>Speso</p>
+              <p className={budgetStyles.periodCard.metricLabelSpent}>{t('metrics.spent')}</p>
               <p className={budgetStyles.periodCard.metricValueSpent}>
                 {formatCurrency(totalSpent)}
               </p>
@@ -111,7 +115,7 @@ export function BudgetPeriodCard({
           {/* Total Saved */}
           {totalSaved !== undefined && (
             <div className={budgetStyles.periodCard.metricSaved}>
-              <p className={budgetStyles.periodCard.metricLabelSaved}>Risparmiato</p>
+              <p className={budgetStyles.periodCard.metricLabelSaved}>{t('metrics.saved')}</p>
               <p className={budgetStyles.periodCard.metricValueSaved}>
                 {formatCurrency(totalSaved)}
               </p>
@@ -123,7 +127,7 @@ export function BudgetPeriodCard({
       {/* Top Categories */}
       {topCategories.length > 0 && (
         <div className={budgetStyles.periodCard.categorySection}>
-          <p className={budgetStyles.periodCard.categoryTitle}>Top Categorie</p>
+          <p className={budgetStyles.periodCard.categoryTitle}>{t('topCategories')}</p>
           <div className={budgetStyles.periodCard.categoryList}>
             {topCategories.map(([category, amount]) => (
               <div key={category} className={budgetStyles.periodCard.categoryRow}>

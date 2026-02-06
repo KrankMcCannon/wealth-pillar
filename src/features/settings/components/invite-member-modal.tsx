@@ -4,6 +4,7 @@ import * as React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useTranslations } from 'next-intl';
 import { Loader2, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ModalBody, ModalFooter, ModalWrapper } from '@/components/ui/modal-wrapper';
@@ -16,15 +17,16 @@ import { SettingsModalField, SettingsModalForm } from './settings-modal-form';
 // VALIDATION SCHEMA
 // ============================================================================
 
-const inviteMemberSchema = z.object({
-  email: z
-    .string()
-    .min(1, "L'email è obbligatoria")
-    .email('Formato email non valido')
-    .toLowerCase(),
-});
+const createInviteMemberSchema = (t: ReturnType<typeof useTranslations>) =>
+  z.object({
+    email: z
+      .string()
+      .min(1, t('validation.emailRequired'))
+      .email(t('validation.emailInvalid'))
+      .toLowerCase(),
+  });
 
-type InviteMemberFormData = z.infer<typeof inviteMemberSchema>;
+type InviteMemberFormData = z.infer<ReturnType<typeof createInviteMemberSchema>>;
 
 // ============================================================================
 // COMPONENT PROPS
@@ -71,6 +73,9 @@ export function InviteMemberModal({
   currentUserId,
   onSuccess,
 }: InviteMemberModalProps) {
+  const t = useTranslations('SettingsModals.InviteMember');
+  const inviteMemberSchema = React.useMemo(() => createInviteMemberSchema(t), [t]);
+
   const {
     register,
     handleSubmit,
@@ -97,7 +102,7 @@ export function InviteMemberModal({
 
       if (error) {
         toast({
-          title: "Errore nell'invio",
+          title: t('toast.sendErrorTitle'),
           description: error,
           variant: 'destructive',
         });
@@ -106,8 +111,8 @@ export function InviteMemberModal({
 
       // Show success toast
       toast({
-        title: 'Invito inviato',
-        description: `Un invito è stato inviato a ${data.email}`,
+        title: t('toast.successTitle'),
+        description: t('toast.successDescription', { email: data.email }),
         variant: 'success',
       });
 
@@ -121,8 +126,8 @@ export function InviteMemberModal({
     } catch (error) {
       console.error('Error sending invitation:', error);
       toast({
-        title: 'Errore',
-        description: "Si è verificato un errore durante l'invio dell'invito",
+        title: t('toast.errorTitle'),
+        description: t('toast.errorDescription'),
         variant: 'destructive',
       });
     }
@@ -132,8 +137,8 @@ export function InviteMemberModal({
     <ModalWrapper
       isOpen={isOpen}
       onOpenChange={onOpenChange}
-      title="Invita Membro"
-      description="Invia un invito per unirsi al gruppo"
+      title={t('title')}
+      description={t('description')}
       titleClassName={settingsStyles.modals.title}
       descriptionClassName={settingsStyles.modals.description}
       disableOutsideClose={isSubmitting}
@@ -143,11 +148,11 @@ export function InviteMemberModal({
         <ModalBody>
           <SettingsModalField
             id="email"
-            label="Indirizzo email del nuovo membro"
+            label={t('emailLabel')}
             error={errors.email?.message}
             inputProps={{
               type: 'email',
-              placeholder: 'nuovo.membro@example.com',
+              placeholder: t('emailPlaceholder'),
               disabled: isSubmitting,
               autoComplete: 'email',
               ...register('email'),
@@ -157,9 +162,8 @@ export function InviteMemberModal({
           {/* Info message */}
           <div className={settingsStyles.modals.invite.infoBox}>
             <p className={settingsStyles.modals.invite.infoText}>
-              <strong className={settingsStyles.modals.invite.infoStrong}>Nota:</strong> Il nuovo
-              membro riceverà un&apos;email con un link di invito valido per 7 giorni. Potrà
-              accettare l&apos;invito creando un account o accedendo con un account esistente.
+              <strong className={settingsStyles.modals.invite.infoStrong}>{t('noteLabel')}</strong>{' '}
+              {t('noteText')}
             </p>
           </div>
         </ModalBody>
@@ -172,7 +176,7 @@ export function InviteMemberModal({
             className={settingsStyles.modals.actionsButton}
             type="button"
           >
-            Annulla
+            {t('cancelButton')}
           </Button>
           <Button
             type="submit"
@@ -182,12 +186,12 @@ export function InviteMemberModal({
             {isSubmitting ? (
               <>
                 <Loader2 className={settingsStyles.modals.loadingIcon} />
-                Invio...
+                {t('sendingButton')}
               </>
             ) : (
               <>
                 <Mail className={settingsStyles.modals.iconSmall} />
-                Invia Invito
+                {t('sendButton')}
               </>
             )}
           </Button>

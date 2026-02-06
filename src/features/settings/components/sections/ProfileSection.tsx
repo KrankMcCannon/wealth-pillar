@@ -3,6 +3,7 @@ import { ListContainer, PageSection, SettingsItem } from '@/components/ui/layout
 import { settingsStyles } from '../../theme/settings-styles';
 import { Mail, Phone, User as UserIcon } from 'lucide-react';
 import { Button } from '@/components/ui';
+import { useTranslations } from 'next-intl';
 import { User } from '@/lib/types';
 
 interface ProfileSectionProps {
@@ -20,15 +21,17 @@ export function ProfileSection({
   userInitials,
   onEditProfile,
 }: Readonly<ProfileSectionProps>) {
+  const t = useTranslations('SettingsSections.Profile');
+
   const getRoleLabel = (role: string) => {
-    if (role === 'superadmin') return 'Sviluppatore';
-    if (role === 'admin') return 'Admin';
-    return 'Membro';
+    if (role === 'superadmin') return t('roles.developer');
+    if (role === 'admin') return t('roles.admin');
+    return t('roles.member');
   };
 
   return (
     <PageSection>
-      <SectionHeader title="Profilo" icon={UserIcon} iconClassName="text-primary" />
+      <SectionHeader title={t('title')} icon={UserIcon} iconClassName="text-primary" />
 
       <PageSection variant="card" padding="sm">
         {/* User Info Header */}
@@ -43,8 +46,12 @@ export function ProfileSection({
             <div className={settingsStyles.profile.info}>
               <h3 className={settingsStyles.profile.name}>{currentUser.name}</h3>
               <div className={settingsStyles.profile.badges}>
-                <div className={settingsStyles.profile.badge}>{accountCount} Account</div>
-                <div className={settingsStyles.profile.badge}>{transactionCount} Transazioni</div>
+                <div className={settingsStyles.profile.badge}>
+                  {t('accountCount', { count: accountCount })}
+                </div>
+                <div className={settingsStyles.profile.badge}>
+                  {t('transactionCount', { count: transactionCount })}
+                </div>
               </div>
             </div>
           </div>
@@ -54,7 +61,7 @@ export function ProfileSection({
             className={settingsStyles.profile.editButton}
             onClick={onEditProfile}
           >
-            Modifica
+            {t('editButton')}
           </Button>
         </div>
 
@@ -62,19 +69,19 @@ export function ProfileSection({
         <ListContainer divided className={`${settingsStyles.profileDetails.container} space-y-0`}>
           <SettingsItem
             icon={<Mail className="h-4 w-4 text-primary" />}
-            label="Email"
+            label={t('emailLabel')}
             value={currentUser.email}
           />
 
           <SettingsItem
             icon={<Phone className="h-4 w-4 text-primary" />}
-            label="Telefono"
-            value="Non specificato"
+            label={t('phoneLabel')}
+            value={t('phoneNotSpecified')}
           />
 
           <SettingsItem
             icon={<UserIcon className="h-4 w-4 text-primary" />}
-            label="Ruolo"
+            label={t('roleLabel')}
             value={getRoleLabel(currentUser.role || '')}
           />
         </ListContainer>

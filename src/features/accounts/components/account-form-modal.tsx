@@ -1,9 +1,10 @@
 'use client';
 import { cn } from '@/lib/utils';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useLocale, useTranslations } from 'next-intl';
 import { Account } from '@/lib/types';
 import { getTempId } from '@/lib/utils/temp-id';
 import { createAccountAction, updateAccountAction } from '@/features/accounts';
@@ -23,15 +24,12 @@ import { useAccounts, useReferenceDataStore } from '@/stores/reference-data-stor
 import { useUserFilterStore } from '@/stores/user-filter-store';
 import { accountStyles } from '../theme/account-styles';
 
-// Zod schema for account validation
-const accountSchema = z.object({
-  name: z.string().min(1, 'Il nome è obbligatorio').trim(),
-  type: z.enum(['payroll', 'cash', 'investments', 'savings']),
-  user_id: z.string().min(1, "L'utente è obbligatorio"),
-  isDefault: z.boolean().optional(),
-});
-
-type AccountFormData = z.infer<typeof accountSchema>;
+type AccountFormData = {
+  name: string;
+  type: 'payroll' | 'cash' | 'investments' | 'savings';
+  user_id: string;
+  isDefault?: boolean;
+};
 
 interface AccountFormModalProps {
   isOpen: boolean;
@@ -40,6 +38,8 @@ interface AccountFormModalProps {
 }
 
 function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModalProps>) {
+  const t = useTranslations('Accounts.FormModal');
+  const locale = useLocale();
   // Read from stores instead of props
   const currentUser = useRequiredCurrentUser();
   const groupUsers = useRequiredGroupUsers();
@@ -53,16 +53,24 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
   const removeAccount = useReferenceDataStore((state) => state.removeAccount);
 
   const isEditMode = !!editId;
-  const title = isEditMode ? 'Modifica account' : 'Nuovo account';
-  const description = isEditMode
-    ? "Aggiorna i dettagli dell'account"
-    : 'Aggiungi un nuovo account bancario o di cassa';
+  const title = isEditMode ? t('title.edit') : t('title.create');
+  const description = isEditMode ? t('description.edit') : t('description.create');
 
   // Permission checks
   const { shouldDisableUserField, defaultFormUserId } = usePermissions({
     currentUser,
     selectedUserId,
   });
+  const accountSchema = useMemo(
+    () =>
+      z.object({
+        name: z.string().min(1, t('validation.nameRequired')).trim(),
+        type: z.enum(['payroll', 'cash', 'investments', 'savings']),
+        user_id: z.string().min(1, t('validation.userRequired')),
+        isDefault: z.boolean().optional(),
+      }),
+    [t]
+  );
 
   // React Hook Form setup
   const {
@@ -126,14 +134,14 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
     // 1. Store original account for revert
     const originalAccount = storeAccounts.find((acc) => acc.id === id);
     if (!originalAccount) {
-      throw new Error('Account non trovato');
+      throw new Error(t('errors.notFound'));
     }
 
     // 2. Update in store immediately (optimistic)
     updateAccount(id, accountData);
 
     // 3. Call server action
-    const result = await updateAccountAction(id, accountData, data.isDefault || false);
+    const result = await updateAccountAction(id, accountData, data.isDefault || false, locale);
 
     if (result.error) {
       // 4. Revert on error
@@ -179,7 +187,8 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
         ...accountData,
         group_id: groupId,
       },
-      data.isDefault || false
+      data.isDefault || false,
+      locale
     );
 
     if (result.error) {
@@ -209,17 +218,17 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
       }
     } catch (error) {
       setError('root', {
-        message: error instanceof Error ? error.message : 'Errore sconosciuto',
+        message: error instanceof Error ? error.message : t('errors.unknown'),
       });
     }
   };
 
   // Account type options
   const accountTypes = [
-    { value: 'payroll', label: 'Conto Corrente' },
-    { value: 'cash', label: 'Contanti' },
-    { value: 'investments', label: 'Investimenti' },
-    { value: 'savings', label: 'Risparmio' },
+    { value: 'payroll', label: t('accountTypes.payroll') },
+    { value: 'cash', label: t('accountTypes.cash') },
+    { value: 'investments', label: t('accountTypes.investments') },
+    { value: 'savings', label: t('accountTypes.savings') },
   ];
 
   return (
@@ -245,21 +254,21 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
 
           <ModalSection>
             {/* Account Name */}
-            <FormField label="Nome Account" required error={errors.name?.message}>
+            <FormField label={t('fields.name.label')} required error={errors.name?.message}>
               <Input
                 {...register('name')}
-                placeholder="Es. Conto Principale"
+                placeholder={t('fields.name.placeholder')}
                 disabled={isSubmitting}
               />
             </FormField>
 
             {/* Account Type */}
-            <FormField label="Tipo Account" required error={errors.type?.message}>
+            <FormField label={t('fields.type.label')} required error={errors.type?.message}>
               <FormSelect
                 value={watchedType}
                 onValueChange={(val) => setValue('type', val as Account['type'])}
                 options={accountTypes}
-                placeholder="Seleziona tipo"
+                placeholder={t('fields.type.placeholder')}
               />
             </FormField>
 
@@ -269,9 +278,10 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
               onChange={(val) => setValue('user_id', val)}
               error={errors.user_id?.message}
               users={groupUsers}
-              label="Proprietario"
-              placeholder="Seleziona proprietario"
+              label={t('fields.owner.label')}
+              placeholder={t('fields.owner.placeholder')}
               disabled={shouldDisableUserField || isSubmitting}
+              helperText={shouldDisableUserField ? t('fields.owner.memberHelper') : undefined}
               required
             />
 
@@ -284,7 +294,7 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
                 disabled={isSubmitting}
               />
               <Label htmlFor="isDefault" className={accountStyles.formModal.checkboxLabel}>
-                Imposta come account predefinito per questo utente
+                {t('fields.isDefault')}
               </Label>
             </div>
           </ModalSection>
@@ -293,7 +303,8 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
         <ModalFooter>
           <FormActions
             submitType="submit"
-            submitLabel={isEditMode ? 'Aggiorna' : 'Crea'}
+            submitLabel={isEditMode ? t('buttons.update') : t('buttons.create')}
+            cancelLabel={t('buttons.cancel')}
             onCancel={onClose}
             isSubmitting={isSubmitting}
             className="w-full sm:w-auto"

@@ -9,6 +9,7 @@
  */
 
 import type { User } from '@/lib/types';
+import { useTranslations } from 'next-intl';
 import { Checkbox } from '@/components/ui';
 import { cn } from '@/lib/utils';
 import { formStyles, getMultiUserAvatarStyle } from './theme/form-styles';
@@ -60,6 +61,8 @@ export function MultiUserSelect({
   currentUserId,
   className,
 }: Readonly<MultiUserSelectProps>) {
+  const t = useTranslations('Forms.MultiUser');
+
   /**
    * Toggle user selection
    * Always maintains at least the current user selected
@@ -109,7 +112,7 @@ export function MultiUserSelect({
 
             {/* Current user indicator */}
             {user.id === currentUserId && (
-              <span className={formStyles.multiUser.current}>(Tu)</span>
+              <span className={formStyles.multiUser.current}>{t('currentUser')}</span>
             )}
           </div>
         </label>

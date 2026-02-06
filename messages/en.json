@@ -1,0 +1,1390 @@
+{
+  "Common": {
+    "language": "Language",
+    "switchLanguage": "Switch Language",
+    "settings": "Settings",
+    "dashboard": "Dashboard",
+    "profile": "Profile",
+    "PageLoader": {
+      "message": "Loading...",
+      "submessage": "Please wait"
+    }
+  },
+  "Settings": {
+    "title": "Settings",
+    "preferences": "Preferences",
+    "currency": "Currency",
+    "language": "Language",
+    "timezone": "Timezone"
+  },
+  "SettingsPage": {
+    "loading": "Loading settings..."
+  },
+  "SettingsContent": {
+    "headerTitle": "Settings",
+    "currencyModalTitle": "Select Currency",
+    "currencyModalDescription": "Choose the default currency for your transactions",
+    "languageModalTitle": "Select Language",
+    "languageModalDescription": "Choose the interface language",
+    "timezoneModalTitle": "Select Timezone",
+    "timezoneModalDescription": "Choose the timezone for dates and times"
+  },
+  "SettingsSections": {
+    "Profile": {
+      "title": "Profile",
+      "accountCount": "{count} {count, plural, one {Account} other {Accounts}}",
+      "transactionCount": "{count} {count, plural, one {Transaction} other {Transactions}}",
+      "editButton": "Edit",
+      "emailLabel": "Email",
+      "phoneLabel": "Phone",
+      "phoneNotSpecified": "Not specified",
+      "roleLabel": "Role",
+      "roles": {
+        "developer": "Developer",
+        "admin": "Admin",
+        "member": "Member"
+      }
+    },
+    "Group": {
+      "title": "Group Management",
+      "membersTitle": "Group Members",
+      "membersSubtitle": "{count} {count, plural, one {visible member} other {visible members}}",
+      "inviteMemberTitle": "Invite Member",
+      "inviteMemberDescription": "Send an invitation to join the group",
+      "subscriptionTitle": "Subscription Settings",
+      "subscriptionDescription": "Manage group billing and subscription"
+    },
+    "Preferences": {
+      "title": "Preferences",
+      "currencyLabel": "Currency",
+      "currencyFallback": "EUR - Euro",
+      "languageLabel": "Language",
+      "languageFallback": "Italiano",
+      "timezoneLabel": "Timezone",
+      "timezoneFallback": "Rome (GMT+1)",
+      "changeButton": "Change"
+    },
+    "Notifications": {
+      "title": "Notifications",
+      "pushLabel": "Push Notifications",
+      "pushDescription": "Receive notifications about transactions",
+      "emailLabel": "Email Notifications",
+      "emailDescription": "Receive weekly reports",
+      "budgetAlertsLabel": "Budget Alerts",
+      "budgetAlertsDescription": "Warn when you exceed your budget"
+    },
+    "Security": {
+      "title": "Security",
+      "twoFactorLabel": "Two-Factor Authentication",
+      "twoFactorDescription": "Add extra security",
+      "signOutLabel": "Sign Out",
+      "signingOutLabel": "Signing out...",
+      "signOutDescription": "Sign out of your account",
+      "signingOutDescription": "Please wait"
+    },
+    "Account": {
+      "title": "Account",
+      "deleteLabel": "Delete Account",
+      "deleteDescription": "Permanently delete your account"
+    }
+  },
+  "SettingsModals": {
+    "PreferenceSelect": {
+      "toast": {
+        "noChangesTitle": "No changes",
+        "noChangesDescription": "The selected value is already current",
+        "errorTitle": "Error",
+        "updatedTitle": "Preference updated",
+        "updatedDescription": "{title} set to {value}",
+        "updateErrorDescription": "An error occurred while updating"
+      },
+      "currentBadge": "Current",
+      "cancelButton": "Cancel",
+      "saveButton": "Save",
+      "savingButton": "Saving..."
+    },
+    "InviteMember": {
+      "validation": {
+        "emailRequired": "Email is required",
+        "emailInvalid": "Invalid email format"
+      },
+      "toast": {
+        "sendErrorTitle": "Sending error",
+        "successTitle": "Invitation sent",
+        "successDescription": "An invitation has been sent to {email}",
+        "errorTitle": "Error",
+        "errorDescription": "An error occurred while sending the invitation"
+      },
+      "title": "Invite Member",
+      "description": "Send an invitation to join the group",
+      "emailLabel": "New member email address",
+      "emailPlaceholder": "new.member@example.com",
+      "noteLabel": "Note:",
+      "noteText": "The new member will receive an email with an invitation link valid for 7 days. They can accept the invitation by creating an account or signing in with an existing account.",
+      "cancelButton": "Cancel",
+      "sendingButton": "Sending...",
+      "sendButton": "Send Invitation"
+    },
+    "EditProfile": {
+      "validation": {
+        "nameRequired": "Name is required",
+        "nameMax": "Name must be at most 100 characters",
+        "emailRequired": "Email is required",
+        "emailInvalid": "Invalid email format"
+      },
+      "toast": {
+        "noChangesTitle": "No changes",
+        "noChangesDescription": "You haven't made any profile changes",
+        "errorTitle": "Error",
+        "updateFailedDescription": "Unable to update profile",
+        "updatedTitle": "Profile updated",
+        "updatedDescription": "Changes were saved successfully",
+        "updateErrorDescription": "An error occurred while updating"
+      },
+      "title": "Edit Profile",
+      "description": "Update your name and email address",
+      "nameLabel": "Full name",
+      "namePlaceholder": "John Doe",
+      "emailLabel": "Email address",
+      "emailPlaceholder": "john.doe@example.com",
+      "cancelButton": "Cancel",
+      "savingButton": "Saving...",
+      "saveChangesButton": "Save Changes"
+    },
+    "DeleteAccount": {
+      "title": "Delete Account",
+      "description": "This action is irreversible",
+      "confirmPrompt": "Are you sure you want to delete your account?",
+      "warningTitle": "The following will be permanently deleted:",
+      "items": {
+        "userAccount": "Your user account",
+        "bankAccounts": "All your bank accounts",
+        "transactions": "All your transactions",
+        "budgets": "All your budgets"
+      },
+      "cancelButton": "Cancel",
+      "deletingButton": "Deleting...",
+      "deleteButton": "Delete Account"
+    },
+    "Subscription": {
+      "toast": {
+        "errorTitle": "Error",
+        "comingSoonTitle": "Coming soon",
+        "comingSoonDescription": "Stripe integration is coming soon",
+        "upgradeErrorDescription": "An error occurred during upgrade",
+        "cancelledTitle": "Subscription cancelled",
+        "cancelledDescription": "Your subscription has been cancelled",
+        "cancelErrorDescription": "An error occurred during cancellation"
+      },
+      "title": "Subscription Management",
+      "description": "Choose the plan that best fits your needs",
+      "perMonth": "/month",
+      "currentPlanBadge": "Current Plan",
+      "securePayment": "Secure payment via Stripe",
+      "closeButton": "Close",
+      "processingButton": "Processing...",
+      "cancelSubscriptionButton": "Cancel Subscription",
+      "upgradeButton": "Upgrade to Premium",
+      "free": {
+        "title": "Free Plan",
+        "features": {
+          "familyGroup": "1 family group",
+          "maxMembers": "Up to 5 members",
+          "unlimitedTransactions": "Unlimited transactions",
+          "basicMonthlyBudgets": "Basic monthly budgets",
+          "monthlyReports": "Monthly reports"
+        }
+      },
+      "premium": {
+        "badge": "Premium",
+        "title": "Premium Plan",
+        "features": {
+          "unlimitedFamilyGroups": "Unlimited family groups",
+          "unlimitedMembers": "Unlimited members",
+          "unlimitedTransactions": "Unlimited transactions",
+          "advancedBudgets": "Advanced budgets with custom categories",
+          "detailedReports": "Detailed reports and analytics",
+          "dataExport": "CSV/PDF data export",
+          "prioritySupport": "Priority support",
+          "advancedPushNotifications": "Advanced push notifications",
+          "multiDeviceSync": "Multi-device sync"
+        }
+      }
+    }
+  },
+  "SettingsOptions": {
+    "currency": {
+      "EUR": {
+        "label": "Euro (€)",
+        "description": "Official currency of the European Union"
+      },
+      "USD": {
+        "label": "US Dollar ($)",
+        "description": "Official currency of the United States"
+      },
+      "GBP": {
+        "label": "British Pound (£)",
+        "description": "Official currency of the United Kingdom"
+      },
+      "CHF": {
+        "label": "Swiss Franc (CHF)",
+        "description": "Official currency of Switzerland"
+      }
+    },
+    "language": {
+      "it-IT": {
+        "label": "Italiano",
+        "description": "Italian language"
+      },
+      "en-US": {
+        "label": "English (US)",
+        "description": "American English"
+      },
+      "en-GB": {
+        "label": "English (UK)",
+        "description": "British English"
+      },
+      "fr-FR": {
+        "label": "Français",
+        "description": "French language"
+      },
+      "de-DE": {
+        "label": "Deutsch",
+        "description": "German language"
+      },
+      "es-ES": {
+        "label": "Español",
+        "description": "Spanish language"
+      }
+    },
+    "timezone": {
+      "Europe/Rome": {
+        "label": "Rome (GMT+1)",
+        "description": "Central Italy timezone"
+      },
+      "Europe/London": {
+        "label": "London (GMT+0)",
+        "description": "United Kingdom timezone"
+      },
+      "Europe/Paris": {
+        "label": "Paris (GMT+1)",
+        "description": "France timezone"
+      },
+      "Europe/Berlin": {
+        "label": "Berlin (GMT+1)",
+        "description": "Germany timezone"
+      },
+      "America/New_York": {
+        "label": "New York (GMT-5)",
+        "description": "US East Coast timezone"
+      },
+      "America/Los_Angeles": {
+        "label": "Los Angeles (GMT-8)",
+        "description": "US West Coast timezone"
+      },
+      "Asia/Tokyo": {
+        "label": "Tokyo (GMT+9)",
+        "description": "Japan timezone"
+      },
+      "Australia/Sydney": {
+        "label": "Sydney (GMT+10)",
+        "description": "Eastern Australia timezone"
+      }
+    }
+  },
+  "RoleBadge": {
+    "display": {
+      "superadmin": "Developer",
+      "admin": "Admin",
+      "member": "Member"
+    },
+    "permission": {
+      "low": "Limited",
+      "medium": "Standard",
+      "high": "Full"
+    }
+  },
+  "ReportsPage": {
+    "loading": "Loading reports..."
+  },
+  "ReportsContent": {
+    "headerTitle": "Reports"
+  },
+  "Reports": {
+    "SummarySection": {
+      "title": "Summary",
+      "incomeLabel": "Income",
+      "expensesLabel": "Expenses",
+      "empty": "No summary data available."
+    },
+    "PeriodsSection": {
+      "title": "Report Periods",
+      "empty": "No periods found for this range."
+    },
+    "CategoriesSection": {
+      "title": "Category Breakdown",
+      "incomeTitle": "Income",
+      "expensesTitle": "Expenses",
+      "empty": "No data available."
+    },
+    "PeriodCard": {
+      "incomeLabel": "Income",
+      "expensesLabel": "Expenses",
+      "netSavingsLabel": "Net Savings",
+      "byAccountTypeTitle": "By Account Type"
+    }
+  },
+  "InvestmentsPage": {
+    "loading": "Loading investments..."
+  },
+  "InvestmentsContent": {
+    "headerTitle": "Investments",
+    "tabs": {
+      "personal": "Personal Investments",
+      "sandbox": "Forecast Sandbox"
+    }
+  },
+  "Investments": {
+    "PersonalTab": {
+      "currentValueLabel": "Current Value",
+      "investedLabel": "Invested",
+      "investedDescription": "Share cost",
+      "taxesPaidLabel": "Taxes Paid",
+      "taxesPaidDescription": "Stamp duty + fees",
+      "totalPaidLabel": "Total Paid",
+      "totalPaidDescription": "Invested + taxes"
+    },
+    "InvestmentList": {
+      "title": "Your Holdings",
+      "shares": "{count} {count, plural, one {share} other {shares}}",
+      "paidLabel": "Paid:",
+      "empty": "No active investments."
+    },
+    "HistoryChart": {
+      "title": "Historical Trend",
+      "description": "Actual portfolio value over time",
+      "valueSeriesLabel": "Value",
+      "fallback": "Not enough historical data"
+    },
+    "BenchmarkChart": {
+      "title": "Benchmark",
+      "description": "Compare with {index}",
+      "fallback": "Data not available"
+    },
+    "SandboxTab": {
+      "title": "Forecast Sandbox",
+      "description": "Simulate investment growth over time by changing the parameters below.",
+      "fields": {
+        "initialAmount": "Initial Amount (€)",
+        "annualReturn": "Annual Return (%)",
+        "durationYears": "Duration (Years)"
+      },
+      "valueSeriesLabel": "Value"
+    },
+    "ShareSelector": {
+      "assetTypes": {
+        "stock": "Stocks",
+        "etf": "ETF",
+        "forex": "Forex",
+        "crypto": "Crypto"
+      },
+      "ariaLabel": "Select benchmark",
+      "placeholder": "Select benchmark...",
+      "searchPlaceholder": "Search US ticker...",
+      "allAssetTypes": "All",
+      "searchHint": "Search a US ticker",
+      "minCharsHint": "Enter at least 3 characters",
+      "noResults": "No ticker found"
+    },
+    "AddModal": {
+      "validation": {
+        "nameRequired": "Name is required",
+        "symbolRequired": "Symbol is required",
+        "amountInvalid": "Invalid amount",
+        "taxInvalid": "Invalid taxes",
+        "sharesInvalid": "Invalid shares",
+        "dateRequired": "Date is required"
+      },
+      "title": "Add Investment",
+      "description": "Enter the details of the new investment",
+      "fields": {
+        "name": "Name",
+        "symbol": "Symbol",
+        "investedAmount": "Invested Amount",
+        "taxesPaid": "Taxes Paid",
+        "sharesAcquired": "Shares Acquired",
+        "purchaseDate": "Purchase Date",
+        "currency": "Currency"
+      },
+      "placeholders": {
+        "name": "e.g. Apple Inc.",
+        "symbol": "e.g. AAPL",
+        "amount": "1000.00",
+        "tax": "0.00",
+        "shares": "10"
+      },
+      "saveButton": "Save",
+      "cancelButton": "Cancel"
+    }
+  },
+  "TransactionsContent": {
+    "headerTitle": "Transactions",
+    "tabs": {
+      "transactions": "Transactions",
+      "recurrent": "Recurring"
+    },
+    "empty": {
+      "title": "No Transactions",
+      "forUser": "There are no transactions for this user",
+      "noTransactionsYet": "There are no transactions yet. Start by adding one."
+    },
+    "allLoaded": "All transactions loaded ({count})",
+    "dialogs": {
+      "confirm": "Delete",
+      "cancel": "Cancel",
+      "deleteTransaction": {
+        "title": "Delete transaction",
+        "message": "Are you sure you want to delete the transaction \"{description}\"? This action cannot be undone."
+      },
+      "deleteRecurring": {
+        "title": "Delete recurring series",
+        "message": "Are you sure you want to delete the series \"{description}\"? This action cannot be undone."
+      }
+    }
+  },
+  "Transactions": {
+    "Filters": {
+      "typeOptions": {
+        "all": "All",
+        "income": "Income",
+        "expense": "Expenses"
+      },
+      "dateOptions": {
+        "all": "Any time",
+        "today": "Today",
+        "week": "Week",
+        "month": "Month",
+        "year": "Year",
+        "custom": "Custom"
+      },
+      "chips": {
+        "period": "Period",
+        "type": "Type",
+        "category": "Category"
+      },
+      "customRange": {
+        "title": "Custom range",
+        "from": "From {date}",
+        "until": "Until {date}",
+        "fromLabel": "From",
+        "toLabel": "To",
+        "startDateAria": "Start date",
+        "endDateAria": "End date",
+        "apply": "Apply range"
+      },
+      "category": {
+        "searchPlaceholder": "Search category...",
+        "all": "All"
+      },
+      "drawer": {
+        "titles": {
+          "type": "Transaction type",
+          "date": "Period",
+          "category": "Category"
+        },
+        "description": "Select an option to filter transactions",
+        "close": "Close"
+      },
+      "budget": {
+        "bannerWithName": "Budget: {name}",
+        "bannerActive": "Budget filter active",
+        "categoriesCount": "({count} {count, plural, one {category} other {categories}})",
+        "exit": "Exit"
+      },
+      "searchPlaceholder": "Search transactions...",
+      "clearFilterAria": "Remove {label} filter",
+      "clearAll": "Clear"
+    },
+    "DayList": {
+      "empty": {
+        "title": "No Transactions",
+        "description": "There are no transactions to display"
+      },
+      "totalLabel": "Total:",
+      "count": "{count} {count, plural, one {transaction} other {transactions}}",
+      "viewAll": "View all"
+    },
+    "GroupedCard": {
+      "periodTotal": "Period Total"
+    },
+    "Row": {
+      "delete": "Delete"
+    },
+    "FormModal": {
+      "validation": {
+        "descriptionMin": "Description must contain at least 2 characters",
+        "amountRequired": "Amount is required",
+        "amountGreaterThanZero": "Amount must be greater than zero",
+        "categoryRequired": "Category is required",
+        "dateRequired": "Date is required",
+        "userRequired": "User is required",
+        "accountRequired": "Account is required",
+        "destinationAccountInvalid": "Destination account is required and must be different from source account"
+      },
+      "title": {
+        "create": "New transaction",
+        "edit": "Edit transaction"
+      },
+      "description": {
+        "create": "Add a new transaction",
+        "edit": "Update transaction details"
+      },
+      "typeOptions": {
+        "income": "Income",
+        "expense": "Expense",
+        "transfer": "Transfer"
+      },
+      "fields": {
+        "user": {
+          "label": "User",
+          "placeholder": "Select user",
+          "memberHelper": "Members can create and edit only their own data"
+        },
+        "type": {
+          "label": "Type",
+          "placeholder": "Select type"
+        },
+        "sourceAccount": {
+          "label": "Source account",
+          "placeholder": "Select account"
+        },
+        "destinationAccount": {
+          "label": "Destination account",
+          "placeholder": "Select destination account"
+        },
+        "category": {
+          "label": "Category",
+          "placeholder": "Select category"
+        },
+        "amount": {
+          "label": "Amount",
+          "placeholder": "0.00"
+        },
+        "date": {
+          "label": "Date"
+        },
+        "description": {
+          "label": "Description",
+          "placeholder": "e.g. Grocery expense"
+        }
+      },
+      "buttons": {
+        "create": "Create",
+        "update": "Update",
+        "cancel": "Cancel"
+      },
+      "errors": {
+        "notFound": "Transaction not found",
+        "unknown": "Unknown error"
+      }
+    }
+  },
+  "Recurring": {
+    "Section": {
+      "title": "Recurring Transactions",
+      "empty": {
+        "title": "No recurring series",
+        "forUser": "There are no recurring series for this user",
+        "defaultDescription": "Configured recurring series will appear here",
+        "addButton": "Add Series"
+      },
+      "subtitle": {
+        "seriesCount": "{count} {count, plural, one {series} other {series}} active",
+        "pausedCount": "{count} paused"
+      },
+      "stats": {
+        "incomePerMonth": "Income/month",
+        "expensesPerMonth": "Expenses/month"
+      },
+      "footer": {
+        "showingOf": "Showing {shown} of {total} series"
+      }
+    },
+    "PauseModal": {
+      "actions": {
+        "pause": "Pause",
+        "resume": "Resume",
+        "pausedLower": "paused",
+        "resumedLower": "resumed"
+      },
+      "title": "{action} recurring series",
+      "description": {
+        "pause": "The series will stop generating automatic transactions",
+        "resume": "The series will resume generating automatic transactions"
+      },
+      "body": {
+        "pauseMain": "The recurring series will be {action}. No automatic transactions will be generated until you reactivate it.",
+        "pauseSecondary": "Already created transactions will remain unchanged.",
+        "resumeMain": "The recurring series will be {action}. It will resume generating automatic transactions based on the configured frequency."
+      },
+      "buttons": {
+        "cancel": "Cancel"
+      }
+    },
+    "SeriesCard": {
+      "frequency": {
+        "weekly": "Weekly",
+        "biweekly": "Biweekly",
+        "monthly": "Monthly",
+        "yearly": "Yearly"
+      },
+      "due": {
+        "today": "Today",
+        "tomorrow": "Tomorrow",
+        "daysAgo": "{count} days ago",
+        "inDays": "In {count} days"
+      },
+      "status": {
+        "stopped": "Stopped"
+      },
+      "nextLabel": "Next",
+      "actions": {
+        "pause": "Pause",
+        "resume": "Resume",
+        "delete": "Delete"
+      }
+    },
+    "FormModal": {
+      "validation": {
+        "descriptionRequired": "Description is required",
+        "amountRequired": "Amount is required",
+        "amountGreaterThanZero": "Amount must be greater than zero",
+        "categoryRequired": "Category is required",
+        "userIdsRequired": "At least one user is required",
+        "accountRequired": "Account is required",
+        "startDateRequired": "Start date is required",
+        "dueDayRequired": "Billing day is required",
+        "dueDayRange": "Day must be between 1 and 31",
+        "endDateAfterStart": "End date must be after start date"
+      },
+      "title": {
+        "create": "New recurring series",
+        "edit": "Edit recurring series"
+      },
+      "description": {
+        "create": "Configure a new recurring series",
+        "edit": "Update recurring series"
+      },
+      "errors": {
+        "notFound": "Recurring series not found",
+        "unknown": "Unknown error"
+      },
+      "typeOptions": {
+        "expense": "Expense",
+        "income": "Income"
+      },
+      "frequencyOptions": {
+        "weekly": "Weekly",
+        "biweekly": "Biweekly",
+        "monthly": "Monthly",
+        "yearly": "Yearly"
+      },
+      "fields": {
+        "type": {
+          "label": "Type"
+        },
+        "frequency": {
+          "label": "Frequency"
+        },
+        "users": {
+          "label": "Users"
+        },
+        "account": {
+          "label": "Account",
+          "placeholder": "Select account"
+        },
+        "category": {
+          "label": "Category",
+          "placeholder": "Select category"
+        },
+        "amount": {
+          "label": "Amount",
+          "placeholder": "0.00"
+        },
+        "dueDay": {
+          "label": "Billing day",
+          "placeholder": "1-31"
+        },
+        "startDate": {
+          "label": "Start date"
+        },
+        "endDate": {
+          "label": "End date"
+        },
+        "description": {
+          "label": "Description",
+          "placeholder": "e.g. Netflix subscription"
+        }
+      },
+      "buttons": {
+        "saveChanges": "Save Changes",
+        "createSeries": "Create Series",
+        "cancel": "Cancel"
+      }
+    }
+  },
+  "Header": {
+    "premiumBadgeTitle": "Premium",
+    "plans": {
+      "premium": "Premium Plan",
+      "standard": "Standard Plan"
+    },
+    "aria": {
+      "back": "Go back",
+      "notifications": "Notifications",
+      "settings": "Settings"
+    },
+    "ActionMenu": {
+      "openMenuAria": "Open action menu",
+      "newTransaction": "New Transaction",
+      "newBudget": "New Budget",
+      "newCategory": "New Category",
+      "recurring": "Recurring",
+      "newAccount": "New Account",
+      "newInvestment": "New Investment"
+    }
+  },
+  "HomeContent": {
+    "closePeriodButton": "Close Period"
+  },
+  "UserSelector": {
+    "all": "All",
+    "selectUserAria": "Select {name}"
+  },
+  "Accounts": {
+    "Home": {
+      "addAccount": "Add Account",
+      "totalBalanceLabel": "Total Balance",
+      "accountCount": "{count} {count, plural, one {Account} other {Accounts}}"
+    },
+    "Content": {
+      "headerTitle": "Bank Accounts",
+      "headerSubtitle": "{count} {count, plural, one {account} other {accounts}}",
+      "totalBalanceLabel": "Total Balance",
+      "stats": {
+        "total": "Total",
+        "positive": "Positive",
+        "negative": "Negative"
+      },
+      "dialogs": {
+        "delete": {
+          "title": "Delete account",
+          "message": "Are you sure you want to delete the account \"{name}\"? This action cannot be undone.",
+          "confirm": "Delete",
+          "cancel": "Cancel"
+        }
+      }
+    },
+    "List": {
+      "header": "All Accounts",
+      "empty": {
+        "title": "No accounts found",
+        "description": "Add your first bank account"
+      }
+    },
+    "Card": {
+      "debt": "DEBT",
+      "edit": "Edit",
+      "delete": "Delete",
+      "accountTypes": {
+        "payroll": "Checking Account",
+        "savings": "Savings Account",
+        "cash": "Cash",
+        "investments": "Investments"
+      }
+    },
+    "FormModal": {
+      "validation": {
+        "nameRequired": "Name is required",
+        "userRequired": "User is required"
+      },
+      "title": {
+        "create": "New account",
+        "edit": "Edit account"
+      },
+      "description": {
+        "create": "Add a new bank or cash account",
+        "edit": "Update account details"
+      },
+      "accountTypes": {
+        "payroll": "Checking Account",
+        "savings": "Savings",
+        "cash": "Cash",
+        "investments": "Investments"
+      },
+      "fields": {
+        "name": {
+          "label": "Account Name",
+          "placeholder": "e.g. Main Account"
+        },
+        "type": {
+          "label": "Account Type",
+          "placeholder": "Select type"
+        },
+        "owner": {
+          "label": "Owner",
+          "placeholder": "Select owner",
+          "memberHelper": "Members can create and edit only their own data"
+        },
+        "isDefault": "Set as default account for this user"
+      },
+      "buttons": {
+        "create": "Create",
+        "update": "Update",
+        "cancel": "Cancel"
+      },
+      "errors": {
+        "notFound": "Account not found",
+        "unknown": "Unknown error"
+      }
+    },
+    "Actions": {
+      "errors": {
+        "unauthenticated": "Not authenticated. Please sign in to continue.",
+        "noPermissionCreate": "You do not have permission to create an account for this user.",
+        "nameRequired": "Account name is required.",
+        "typeRequired": "Account type is required.",
+        "groupRequired": "Group is required.",
+        "userRequired": "At least one user is required.",
+        "createFailed": "Failed to create account",
+        "noPermissionUpdate": "You do not have permission to update this account.",
+        "nameEmpty": "Account name cannot be empty.",
+        "updateFailed": "Failed to update account",
+        "noPermissionDelete": "You do not have permission to delete this account.",
+        "deleteFailed": "Failed to delete account"
+      }
+    }
+  },
+  "Budgets": {
+    "HomeSection": {
+      "title": "Budget",
+      "subtitle": "Track your expenses by category",
+      "multiUsersSubtitle": "{count} users with active budgets",
+      "periodOngoing": "Ongoing",
+      "spentPrefix": "Spent:",
+      "empty": {
+        "title": "No budgets configured",
+        "description": "Create budgets to track your expenses and keep family finances under control",
+        "createButton": "Create Budget"
+      }
+    },
+    "Card": {
+      "ofPrefix": "of",
+      "spentPrefix": "Spent:"
+    },
+    "PeriodManager": {
+      "title": "Budget Period Management",
+      "description": "Manage budget periods to track expenses over time",
+      "invalidDate": "Invalid date",
+      "errors": {
+        "selectDate": "Select a date",
+        "operationFailed": "Operation failed",
+        "unknown": "Unknown error"
+      },
+      "fields": {
+        "user": {
+          "label": "User",
+          "memberHelper": "You can only manage your own periods",
+          "adminHelper": "Select the user whose budget period you want to manage"
+        },
+        "startDate": {
+          "label": "Period Start Date"
+        },
+        "endDate": {
+          "label": "Period End Date"
+        }
+      },
+      "currentPeriodTitle": "Current Period",
+      "startedOn": "Started on",
+      "status": {
+        "inProgress": "In progress"
+      },
+      "metrics": {
+        "spent": "Spent",
+        "saved": "Saved"
+      },
+      "noActivePeriodAlert": "No active period. Start a new period to track budget spending.",
+      "buttons": {
+        "closePeriod": "Close period",
+        "startNewPeriod": "Start new period",
+        "cancel": "Cancel"
+      }
+    },
+    "Page": {
+      "title": "Budgets",
+      "today": "Today",
+      "transactionCount": "{count} {count, plural, one {transaction} other {transactions}}",
+      "transactions": {
+        "sectionTitle": "Budget Transactions",
+        "emptyTitle": "No transactions",
+        "emptyDescription": "No transactions found for this budget",
+        "viewAll": "View all"
+      },
+      "emptyState": {
+        "title": "No budget available",
+        "description": "Create your first budget to get started",
+        "createButton": "Create budget"
+      },
+      "deleteDialog": {
+        "title": "Delete Budget",
+        "message": "Are you sure you want to delete the budget \"{name}\"? This action cannot be undone.",
+        "confirm": "Delete",
+        "cancel": "Cancel"
+      }
+    },
+    "SummaryPage": {
+      "title": "Budget Summary",
+      "emptyState": "Select a user with active budgets to view the summary.",
+      "cards": {
+        "budget": "Budget",
+        "spent": "Spent",
+        "available": "Available"
+      },
+      "activeList": {
+        "title": "Active Budgets"
+      },
+      "transactions": {
+        "sectionTitle": "Related Transactions",
+        "emptyTitle": "No transactions",
+        "emptyDescription": "There are no transactions linked to these budgets in the current period."
+      }
+    },
+    "Selector": {
+      "title": "Budget",
+      "subtitle": "Select to view details",
+      "placeholder": "Select budget"
+    },
+    "DisplayCard": {
+      "actions": {
+        "title": "Budget actions",
+        "edit": "Edit Budget",
+        "delete": "Delete Budget"
+      },
+      "status": {
+        "active": "Active budget"
+      },
+      "period": {
+        "label": "Period",
+        "inProgress": "In progress"
+      },
+      "metrics": {
+        "total": "Total",
+        "spent": "Spent",
+        "available": "Available"
+      }
+    },
+    "Progress": {
+      "label": "Budget Progress",
+      "status": {
+        "safe": "Budget under control",
+        "warning": "Attention, almost exhausted",
+        "danger": "Budget exceeded"
+      }
+    },
+    "Chart": {
+      "spentLabel": "You spent"
+    },
+    "FormModal": {
+      "validation": {
+        "descriptionMin": "Description must contain at least 2 characters",
+        "amountRequired": "Amount is required",
+        "amountPositive": "Amount must be greater than zero",
+        "categoriesRequired": "Select at least one category",
+        "userRequired": "User is required"
+      },
+      "title": {
+        "create": "New Budget",
+        "edit": "Edit Budget"
+      },
+      "description": {
+        "create": "Create a new budget",
+        "edit": "Update budget details"
+      },
+      "fields": {
+        "user": {
+          "label": "User",
+          "placeholder": "Select user"
+        },
+        "type": {
+          "label": "Budget type",
+          "options": {
+            "monthly": "Monthly",
+            "annually": "Yearly"
+          }
+        },
+        "amount": {
+          "label": "Amount",
+          "placeholder": "0.00"
+        },
+        "description": {
+          "label": "Description",
+          "placeholder": "e.g. Monthly expenses"
+        },
+        "categories": {
+          "label": "Select categories",
+          "searchPlaceholder": "Search category...",
+          "selectedCount": "{selected}/{total} selected",
+          "selectAll": "Select all",
+          "clear": "Clear",
+          "empty": "No categories found"
+        }
+      },
+      "buttons": {
+        "save": "Save",
+        "create": "Create Budget",
+        "cancel": "Cancel"
+      },
+      "errors": {
+        "notFound": "Budget not found",
+        "unknown": "Unknown error"
+      }
+    },
+    "Actions": {
+      "errors": {
+        "unauthenticated": "Not authenticated. Please sign in to continue.",
+        "noPermissionCreateOthers": "You do not have permission to create budgets for other users.",
+        "userRequired": "User is required",
+        "noPermissionUserData": "You do not have permission to access this user's data.",
+        "createFailed": "Failed to create budget",
+        "userMissing": "The budget has no assigned user",
+        "noPermissionUpdate": "You do not have permission to update this budget.",
+        "cannotReassignAsMember": "You cannot assign the budget to another user.",
+        "noPermissionAssignUser": "You do not have permission to assign this budget to this user.",
+        "updateFailed": "Failed to update budget",
+        "noPermissionDelete": "You do not have permission to delete this budget.",
+        "deleteFailed": "Failed to delete budget"
+      }
+    },
+    "PeriodCard": {
+      "invalidDate": "Invalid date",
+      "status": {
+        "inProgress": "In progress",
+        "closed": "Closed"
+      },
+      "deleteTitle": "Delete period",
+      "metrics": {
+        "spent": "Spent",
+        "saved": "Saved"
+      },
+      "topCategories": "Top Categories"
+    },
+    "PeriodInfo": {
+      "invalidDate": "Invalid date",
+      "inProgress": "In progress",
+      "empty": {
+        "noActivePeriod": "No active period"
+      },
+      "status": {
+        "active": "Active",
+        "completed": "Completed"
+      },
+      "metrics": {
+        "spent": "Spent",
+        "saved": "Saved"
+      },
+      "topCategories": "Top Categories"
+    },
+    "PeriodsList": {
+      "sections": {
+        "active": "Active Period",
+        "history": "Period History"
+      },
+      "empty": {
+        "title": "No budget period found",
+        "description": "Budget periods let you track spending over time"
+      },
+      "deleting": "Deleting...",
+      "errors": {
+        "delete": "Delete failed: {error}"
+      }
+    },
+    "PeriodActions": {
+      "errors": {
+        "unauthenticated": "Not authenticated. Please sign in to continue.",
+        "unauthenticatedShort": "Not authenticated",
+        "noPermissionManageOthers": "You do not have permission to manage other users' periods.",
+        "noPermissionUserData": "You do not have permission to access this user's data.",
+        "startFailed": "Failed to start budget period",
+        "noPermissionClose": "You do not have permission to close this period.",
+        "closeFailed": "Failed to close budget period",
+        "noPermissionDelete": "You do not have permission to delete this period.",
+        "deleteFailed": "Failed to delete budget period",
+        "noPermissionViewOthers": "You do not have permission to view other users' periods.",
+        "fetchPeriodsFailed": "Failed to fetch budget periods",
+        "noPermissionViewActiveOthers": "You do not have permission to view other users' active period.",
+        "fetchActiveFailed": "Failed to fetch active period",
+        "permissionDenied": "Permission denied",
+        "previewFailed": "Failed to calculate preview"
+      }
+    }
+  },
+  "Categories": {
+    "FormModal": {
+      "validation": {
+        "labelRequired": "Name is required",
+        "keyRequired": "Key is required",
+        "iconRequired": "Icon is required",
+        "colorRequired": "Color is required",
+        "colorInvalid": "Invalid color format"
+      },
+      "title": {
+        "create": "New Category",
+        "edit": "Edit Category"
+      },
+      "description": {
+        "create": "Create a new custom category",
+        "edit": "Update category details"
+      },
+      "fields": {
+        "label": {
+          "label": "Name",
+          "placeholder": "e.g. Groceries"
+        },
+        "icon": {
+          "label": "Icon"
+        },
+        "color": {
+          "label": "Color",
+          "placeholder": "#10B981"
+        }
+      },
+      "buttons": {
+        "save": "Save",
+        "create": "Create Category",
+        "cancel": "Cancel"
+      },
+      "errors": {
+        "notFound": "Category not found",
+        "unknown": "Unknown error"
+      }
+    },
+    "Actions": {
+      "errors": {
+        "unauthenticated": "Not authenticated. Please sign in to continue.",
+        "groupRequired": "Group is required",
+        "permissionDenied": "You do not have permission to manage this category.",
+        "notFound": "Category not found",
+        "labelRequired": "Name is required",
+        "keyRequired": "Key is required",
+        "iconRequired": "Icon is required",
+        "colorRequired": "Color is required",
+        "colorInvalid": "Invalid color format",
+        "labelEmpty": "Name cannot be empty",
+        "iconEmpty": "Icon cannot be empty",
+        "colorEmpty": "Color cannot be empty",
+        "createFailed": "Failed to create category",
+        "updateFailed": "Failed to update category",
+        "deleteFailed": "Failed to delete category"
+      }
+    }
+  },
+  "OnboardingModal": {
+    "steps": {
+      "group": {
+        "title": "Create your group",
+        "description": "Give a name to your shared space"
+      },
+      "accounts": {
+        "title": "Set up accounts",
+        "description": "Add one or more bank accounts"
+      },
+      "budgets": {
+        "title": "Define budgets",
+        "description": "Set your spending goals"
+      }
+    },
+    "header": {
+      "stepOf": "Step {current} of {total}"
+    },
+    "accountTypes": {
+      "payroll": {
+        "label": "Current Account",
+        "description": "Primary account where salary or pension is received"
+      },
+      "savings": {
+        "label": "Savings Account",
+        "description": "Account dedicated to long-term savings"
+      },
+      "cash": {
+        "label": "Cash",
+        "description": "Physical cash or petty cash fund"
+      },
+      "investments": {
+        "label": "Investments",
+        "description": "Account for investments, trading and portfolio"
+      }
+    },
+    "budgetTypes": {
+      "monthly": "Monthly",
+      "annually": "Yearly"
+    },
+    "fallbackCategories": {
+      "expense": "Expense",
+      "utilities": "Utilities",
+      "other": "Other"
+    },
+    "fields": {
+      "group": {
+        "nameLabel": "Group name",
+        "namePlaceholder": "Example: Rossi Family",
+        "descriptionLabel": "Description (optional)",
+        "descriptionPlaceholder": "Who is part of this group?"
+      },
+      "accounts": {
+        "defaultTitle": "Default Account",
+        "defaultInfo": "Choose the account you want to use as default for transactions",
+        "cardTitle": "Account {index}",
+        "defaultAccountTitle": "Default account",
+        "setDefaultTitle": "Set as default",
+        "nameLabel": "Account name",
+        "namePlaceholder": "Main checking account",
+        "typeLabel": "Type",
+        "typePlaceholder": "Select account type"
+      },
+      "budgets": {
+        "skipTitle": "You can skip this step",
+        "skipInfo": "Not sure about budgets? You can set them later from the dashboard.",
+        "cardTitle": "Budget {index}",
+        "descriptionLabel": "Description",
+        "descriptionPlaceholder": "Monthly grocery spending",
+        "amountLabel": "Planned amount (€)",
+        "amountPlaceholder": "500",
+        "periodLabel": "Period",
+        "periodPlaceholder": "Select",
+        "categoryLabel": "Main category",
+        "categoryPlaceholder": "Choose a category",
+        "categoryUnavailable": "No category available",
+        "startDayLabel": "Budget start day",
+        "startDayPlaceholder": "Select day"
+      }
+    },
+    "categories": {
+      "loading": "Loading categories...",
+      "noneAvailable": "No category is currently available. Try refreshing the page after completing onboarding."
+    },
+    "draft": {
+      "title": "Resume from where you left off?",
+      "description": "We found a previously saved setup.",
+      "restore": "Restore",
+      "restart": "Start over"
+    },
+    "buttons": {
+      "back": "Back",
+      "next": "Next",
+      "confirm": "Confirm",
+      "saving": "Saving...",
+      "skip": "Skip",
+      "addAccount": "Add account",
+      "addBudget": "Add budget"
+    },
+    "errors": {
+      "completeRequiredFields": "Complete required fields to continue",
+      "verifyRequiredFields": "Check that all required fields are filled",
+      "saveFailed": "Error while saving. Please try again shortly."
+    }
+  },
+  "Forms": {
+    "Actions": {
+      "save": "Save",
+      "cancel": "Cancel",
+      "delete": "Delete",
+      "continue": "Continue"
+    },
+    "Select": {
+      "placeholder": "Select...",
+      "searchPlaceholder": "Search...",
+      "empty": "No results found"
+    },
+    "CategorySelect": {
+      "placeholder": "Select category",
+      "searchPlaceholder": "Search category...",
+      "recent": "Recent",
+      "allCategories": "All categories",
+      "empty": "No category found"
+    },
+    "MultiUser": {
+      "currentUser": "(You)"
+    },
+    "Fields": {
+      "User": {
+        "label": "User",
+        "placeholder": "Select user"
+      },
+      "Account": {
+        "label": "Account",
+        "placeholder": "Select account"
+      },
+      "Category": {
+        "label": "Category",
+        "placeholder": "Select category"
+      },
+      "Amount": {
+        "label": "Amount"
+      }
+    },
+    "DateField": {
+      "label": "Date",
+      "placeholder": "DD/MM/YYYY",
+      "clearDateAria": "Clear date",
+      "openCalendarSr": "Open calendar"
+    },
+    "DateDrawer": {
+      "drawerAriaLabel": "Date selector",
+      "drawerTitle": "Select a date",
+      "presetsAria": "Date shortcuts",
+      "presetsTitle": "Shortcuts",
+      "presetAria": "{label}: {date}",
+      "presets": {
+        "today": "Today",
+        "yesterday": "Yesterday",
+        "daysAgo7": "7 days ago",
+        "daysAgo30": "30 days ago",
+        "weekStart": "Start of week",
+        "monthStart": "Start of month",
+        "yearStart": "Start of year"
+      },
+      "monthHeader": {
+        "previousMonth": "Previous month",
+        "nextMonth": "Next month",
+        "closeSelectors": "Close selectors",
+        "close": "Close",
+        "selectMonthAndYear": "Select month and year"
+      },
+      "dayCell": {
+        "selectDate": "Select {date}"
+      }
+    },
+    "IconPicker": {
+      "searchPlaceholder": "Search icon...",
+      "searchAria": "Search icon by name or keyword",
+      "clearSearchAria": "Clear search",
+      "recentLabel": "Recent:",
+      "recentIconAria": "Recent icon: {iconName}",
+      "categoriesAria": "Icon categories",
+      "filterByCategoryAria": "Filter by category: {category}",
+      "results": {
+        "found": "{count, plural, one {{count} result found} other {{count} results found}}",
+        "available": "{count, plural, one {{count} icon available} other {{count} icons available}}"
+      },
+      "iconListAria": "Icon list",
+      "empty": "No icon found",
+      "clearSearch": "Clear search",
+      "selectIconAria": "Select icon {iconName}",
+      "triggerSelectedAria": "Selected icon: {iconName}. Click to change",
+      "triggerDefaultAria": "Select an icon",
+      "triggerDefaultText": "Select an icon",
+      "selectorAria": "Icon selector",
+      "selectorTitle": "Icon Selector"
+    }
+  }
+}

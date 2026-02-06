@@ -1,0 +1,1390 @@
+{
+  "Common": {
+    "language": "Lingua",
+    "switchLanguage": "Cambia Lingua",
+    "settings": "Impostazioni",
+    "dashboard": "Dashboard",
+    "profile": "Profilo",
+    "PageLoader": {
+      "message": "Caricamento...",
+      "submessage": "Attendere prego"
+    }
+  },
+  "Settings": {
+    "title": "Impostazioni",
+    "preferences": "Preferenze",
+    "currency": "Valuta",
+    "language": "Lingua",
+    "timezone": "Fuso Orario"
+  },
+  "SettingsPage": {
+    "loading": "Caricamento impostazioni..."
+  },
+  "SettingsContent": {
+    "headerTitle": "Impostazioni",
+    "currencyModalTitle": "Seleziona Valuta",
+    "currencyModalDescription": "Scegli la valuta predefinita per le tue transazioni",
+    "languageModalTitle": "Seleziona Lingua",
+    "languageModalDescription": "Scegli la lingua dell'interfaccia",
+    "timezoneModalTitle": "Seleziona Fuso Orario",
+    "timezoneModalDescription": "Scegli il fuso orario per le date e gli orari"
+  },
+  "SettingsSections": {
+    "Profile": {
+      "title": "Profilo",
+      "accountCount": "{count} {count, plural, one {Account} other {Account}}",
+      "transactionCount": "{count} {count, plural, one {Transazione} other {Transazioni}}",
+      "editButton": "Modifica",
+      "emailLabel": "Email",
+      "phoneLabel": "Telefono",
+      "phoneNotSpecified": "Non specificato",
+      "roleLabel": "Ruolo",
+      "roles": {
+        "developer": "Sviluppatore",
+        "admin": "Admin",
+        "member": "Membro"
+      }
+    },
+    "Group": {
+      "title": "Gestione Gruppo",
+      "membersTitle": "Membri del Gruppo",
+      "membersSubtitle": "{count} {count, plural, one {membro visibile} other {membri visibili}}",
+      "inviteMemberTitle": "Invita Membro",
+      "inviteMemberDescription": "Invia invito per unirsi al gruppo",
+      "subscriptionTitle": "Impostazioni Abbonamento",
+      "subscriptionDescription": "Gestisci fatturazione e abbonamento gruppo"
+    },
+    "Preferences": {
+      "title": "Preferenze",
+      "currencyLabel": "Valuta",
+      "currencyFallback": "EUR - Euro",
+      "languageLabel": "Lingua",
+      "languageFallback": "Italiano",
+      "timezoneLabel": "Fuso Orario",
+      "timezoneFallback": "Roma (GMT+1)",
+      "changeButton": "Cambia"
+    },
+    "Notifications": {
+      "title": "Notifiche",
+      "pushLabel": "Notifiche Push",
+      "pushDescription": "Ricevi notifiche sulle transazioni",
+      "emailLabel": "Notifiche Email",
+      "emailDescription": "Ricevi rapporti settimanali",
+      "budgetAlertsLabel": "Avvisi Budget",
+      "budgetAlertsDescription": "Avvisa quando superi il budget"
+    },
+    "Security": {
+      "title": "Sicurezza",
+      "twoFactorLabel": "Autenticazione a Due Fattori",
+      "twoFactorDescription": "Aggiungi sicurezza extra",
+      "signOutLabel": "Esci dall'Account",
+      "signingOutLabel": "Disconnessione in corso...",
+      "signOutDescription": "Disconnetti dal tuo account",
+      "signingOutDescription": "Attendere prego"
+    },
+    "Account": {
+      "title": "Account",
+      "deleteLabel": "Elimina Account",
+      "deleteDescription": "Elimina permanentemente il tuo account"
+    }
+  },
+  "SettingsModals": {
+    "PreferenceSelect": {
+      "toast": {
+        "noChangesTitle": "Nessuna modifica",
+        "noChangesDescription": "Il valore selezionato è già quello attuale",
+        "errorTitle": "Errore",
+        "updatedTitle": "Preferenza aggiornata",
+        "updatedDescription": "{title} impostato su {value}",
+        "updateErrorDescription": "Si è verificato un errore durante l'aggiornamento"
+      },
+      "currentBadge": "Attuale",
+      "cancelButton": "Annulla",
+      "saveButton": "Salva",
+      "savingButton": "Salvataggio..."
+    },
+    "InviteMember": {
+      "validation": {
+        "emailRequired": "L'email è obbligatoria",
+        "emailInvalid": "Formato email non valido"
+      },
+      "toast": {
+        "sendErrorTitle": "Errore nell'invio",
+        "successTitle": "Invito inviato",
+        "successDescription": "Un invito è stato inviato a {email}",
+        "errorTitle": "Errore",
+        "errorDescription": "Si è verificato un errore durante l'invio dell'invito"
+      },
+      "title": "Invita Membro",
+      "description": "Invia un invito per unirsi al gruppo",
+      "emailLabel": "Indirizzo email del nuovo membro",
+      "emailPlaceholder": "nuovo.membro@example.com",
+      "noteLabel": "Nota:",
+      "noteText": "Il nuovo membro riceverà un'email con un link di invito valido per 7 giorni. Potrà accettare l'invito creando un account o accedendo con un account esistente.",
+      "cancelButton": "Annulla",
+      "sendingButton": "Invio...",
+      "sendButton": "Invia Invito"
+    },
+    "EditProfile": {
+      "validation": {
+        "nameRequired": "Il nome è obbligatorio",
+        "nameMax": "Il nome deve essere massimo 100 caratteri",
+        "emailRequired": "L'email è obbligatoria",
+        "emailInvalid": "Formato email non valido"
+      },
+      "toast": {
+        "noChangesTitle": "Nessuna modifica",
+        "noChangesDescription": "Non hai apportato modifiche al profilo",
+        "errorTitle": "Errore",
+        "updateFailedDescription": "Impossibile aggiornare il profilo",
+        "updatedTitle": "Profilo aggiornato",
+        "updatedDescription": "Le modifiche sono state salvate con successo",
+        "updateErrorDescription": "Si è verificato un errore durante l'aggiornamento"
+      },
+      "title": "Modifica Profilo",
+      "description": "Aggiorna il tuo nome e indirizzo email",
+      "nameLabel": "Nome completo",
+      "namePlaceholder": "Mario Rossi",
+      "emailLabel": "Indirizzo email",
+      "emailPlaceholder": "mario.rossi@example.com",
+      "cancelButton": "Annulla",
+      "savingButton": "Salvataggio...",
+      "saveChangesButton": "Salva Modifiche"
+    },
+    "DeleteAccount": {
+      "title": "Elimina Account",
+      "description": "Questa azione è irreversibile",
+      "confirmPrompt": "Sei sicuro di voler eliminare il tuo account?",
+      "warningTitle": "Verranno eliminati permanentemente:",
+      "items": {
+        "userAccount": "Il tuo account utente",
+        "bankAccounts": "Tutti i tuoi conti bancari",
+        "transactions": "Tutte le tue transazioni",
+        "budgets": "Tutti i tuoi budget"
+      },
+      "cancelButton": "Annulla",
+      "deletingButton": "Eliminazione...",
+      "deleteButton": "Elimina Account"
+    },
+    "Subscription": {
+      "toast": {
+        "errorTitle": "Errore",
+        "comingSoonTitle": "Prossimamente",
+        "comingSoonDescription": "L'integrazione con Stripe è in arrivo",
+        "upgradeErrorDescription": "Si è verificato un errore durante l'aggiornamento",
+        "cancelledTitle": "Abbonamento cancellato",
+        "cancelledDescription": "Il tuo abbonamento è stato cancellato",
+        "cancelErrorDescription": "Si è verificato un errore durante la cancellazione"
+      },
+      "title": "Gestione Abbonamento",
+      "description": "Scegli il piano più adatto alle tue esigenze",
+      "perMonth": "/mese",
+      "currentPlanBadge": "Piano Attuale",
+      "securePayment": "Pagamento sicuro tramite Stripe",
+      "closeButton": "Chiudi",
+      "processingButton": "Elaborazione...",
+      "cancelSubscriptionButton": "Cancella Abbonamento",
+      "upgradeButton": "Passa a Premium",
+      "free": {
+        "title": "Piano Gratuito",
+        "features": {
+          "familyGroup": "1 gruppo familiare",
+          "maxMembers": "5 membri massimi",
+          "unlimitedTransactions": "Transazioni illimitate",
+          "basicMonthlyBudgets": "Budget mensili di base",
+          "monthlyReports": "Report mensili"
+        }
+      },
+      "premium": {
+        "badge": "Premium",
+        "title": "Piano Premium",
+        "features": {
+          "unlimitedFamilyGroups": "Gruppi familiari illimitati",
+          "unlimitedMembers": "Membri illimitati",
+          "unlimitedTransactions": "Transazioni illimitate",
+          "advancedBudgets": "Budget avanzati con categorie personalizzate",
+          "detailedReports": "Report dettagliati e analisi",
+          "dataExport": "Export dati in CSV/PDF",
+          "prioritySupport": "Supporto prioritario",
+          "advancedPushNotifications": "Notifiche push avanzate",
+          "multiDeviceSync": "Sincronizzazione multi-dispositivo"
+        }
+      }
+    }
+  },
+  "SettingsOptions": {
+    "currency": {
+      "EUR": {
+        "label": "Euro (€)",
+        "description": "Valuta ufficiale dell'Unione Europea"
+      },
+      "USD": {
+        "label": "Dollaro Americano ($)",
+        "description": "Valuta ufficiale degli Stati Uniti"
+      },
+      "GBP": {
+        "label": "Sterlina Britannica (£)",
+        "description": "Valuta ufficiale del Regno Unito"
+      },
+      "CHF": {
+        "label": "Franco Svizzero (CHF)",
+        "description": "Valuta ufficiale della Svizzera"
+      }
+    },
+    "language": {
+      "it-IT": {
+        "label": "Italiano",
+        "description": "Lingua italiana"
+      },
+      "en-US": {
+        "label": "English (US)",
+        "description": "American English"
+      },
+      "en-GB": {
+        "label": "English (UK)",
+        "description": "British English"
+      },
+      "fr-FR": {
+        "label": "Français",
+        "description": "Langue française"
+      },
+      "de-DE": {
+        "label": "Deutsch",
+        "description": "Deutsche Sprache"
+      },
+      "es-ES": {
+        "label": "Español",
+        "description": "Idioma español"
+      }
+    },
+    "timezone": {
+      "Europe/Rome": {
+        "label": "Roma (GMT+1)",
+        "description": "Fuso orario dell'Italia centrale"
+      },
+      "Europe/London": {
+        "label": "Londra (GMT+0)",
+        "description": "Fuso orario del Regno Unito"
+      },
+      "Europe/Paris": {
+        "label": "Parigi (GMT+1)",
+        "description": "Fuso orario della Francia"
+      },
+      "Europe/Berlin": {
+        "label": "Berlino (GMT+1)",
+        "description": "Fuso orario della Germania"
+      },
+      "America/New_York": {
+        "label": "New York (GMT-5)",
+        "description": "Fuso orario della costa est USA"
+      },
+      "America/Los_Angeles": {
+        "label": "Los Angeles (GMT-8)",
+        "description": "Fuso orario della costa ovest USA"
+      },
+      "Asia/Tokyo": {
+        "label": "Tokyo (GMT+9)",
+        "description": "Fuso orario del Giappone"
+      },
+      "Australia/Sydney": {
+        "label": "Sydney (GMT+10)",
+        "description": "Fuso orario dell'Australia orientale"
+      }
+    }
+  },
+  "RoleBadge": {
+    "display": {
+      "superadmin": "Sviluppatore",
+      "admin": "Admin",
+      "member": "Membro"
+    },
+    "permission": {
+      "low": "Limitato",
+      "medium": "Standard",
+      "high": "Completo"
+    }
+  },
+  "ReportsPage": {
+    "loading": "Caricamento rapporti..."
+  },
+  "ReportsContent": {
+    "headerTitle": "Rapporti"
+  },
+  "Reports": {
+    "SummarySection": {
+      "title": "Riepilogo",
+      "incomeLabel": "Entrate",
+      "expensesLabel": "Uscite",
+      "empty": "Nessun dato di riepilogo disponibile."
+    },
+    "PeriodsSection": {
+      "title": "Periodi Report",
+      "empty": "Nessun periodo trovato per questo intervallo."
+    },
+    "CategoriesSection": {
+      "title": "Ripartizione Categorie",
+      "incomeTitle": "Entrate",
+      "expensesTitle": "Uscite",
+      "empty": "Nessun dato disponibile."
+    },
+    "PeriodCard": {
+      "incomeLabel": "Entrate",
+      "expensesLabel": "Uscite",
+      "netSavingsLabel": "Risparmio Netto",
+      "byAccountTypeTitle": "Per Tipo di Conto"
+    }
+  },
+  "InvestmentsPage": {
+    "loading": "Caricamento investimenti..."
+  },
+  "InvestmentsContent": {
+    "headerTitle": "Investimenti",
+    "tabs": {
+      "personal": "Investimenti Personali",
+      "sandbox": "Sandbox Previsionale"
+    }
+  },
+  "Investments": {
+    "PersonalTab": {
+      "currentValueLabel": "Valore Attuale",
+      "investedLabel": "Investito",
+      "investedDescription": "Costo quote",
+      "taxesPaidLabel": "Tasse Pagate",
+      "taxesPaidDescription": "Bollo + commissioni",
+      "totalPaidLabel": "Totale Pagato",
+      "totalPaidDescription": "Investito + tasse"
+    },
+    "InvestmentList": {
+      "title": "Le Tue Partecipazioni",
+      "shares": "{count} {count, plural, one {quota} other {quote}}",
+      "paidLabel": "Pagato:",
+      "empty": "Nessun investimento attivo."
+    },
+    "HistoryChart": {
+      "title": "Andamento Storico",
+      "description": "Valore effettivo del portafoglio nel tempo",
+      "valueSeriesLabel": "Valore",
+      "fallback": "Dati storici non sufficienti"
+    },
+    "BenchmarkChart": {
+      "title": "Benchmark",
+      "description": "Confronta con {index}",
+      "fallback": "Dati non disponibili"
+    },
+    "SandboxTab": {
+      "title": "Sandbox Previsionale",
+      "description": "Simula la crescita di un investimento nel tempo modificando i parametri qui sotto.",
+      "fields": {
+        "initialAmount": "Importo Iniziale (€)",
+        "annualReturn": "Rendimento Annuo (%)",
+        "durationYears": "Durata (Anni)"
+      },
+      "valueSeriesLabel": "Valore"
+    },
+    "ShareSelector": {
+      "assetTypes": {
+        "stock": "Azioni",
+        "etf": "ETF",
+        "forex": "Forex",
+        "crypto": "Crypto"
+      },
+      "ariaLabel": "Seleziona benchmark",
+      "placeholder": "Seleziona benchmark...",
+      "searchPlaceholder": "Cerca titolo USA...",
+      "allAssetTypes": "Tutti",
+      "searchHint": "Cerca un titolo USA",
+      "minCharsHint": "Inserisci almeno 3 caratteri",
+      "noResults": "Nessun titolo trovato"
+    },
+    "AddModal": {
+      "validation": {
+        "nameRequired": "Il nome è obbligatorio",
+        "symbolRequired": "Il simbolo è obbligatorio",
+        "amountInvalid": "Importo non valido",
+        "taxInvalid": "Tasse non valide",
+        "sharesInvalid": "Quote non valide",
+        "dateRequired": "Data obbligatoria"
+      },
+      "title": "Aggiungi Investimento",
+      "description": "Inserisci i dettagli del nuovo investimento",
+      "fields": {
+        "name": "Nome",
+        "symbol": "Simbolo",
+        "investedAmount": "Importo Investito",
+        "taxesPaid": "Tasse Pagate",
+        "sharesAcquired": "Quote Acquisite",
+        "purchaseDate": "Data Acquisto",
+        "currency": "Valuta"
+      },
+      "placeholders": {
+        "name": "Es. Apple Inc.",
+        "symbol": "Es. AAPL",
+        "amount": "1000.00",
+        "tax": "0.00",
+        "shares": "10"
+      },
+      "saveButton": "Salva",
+      "cancelButton": "Annulla"
+    }
+  },
+  "TransactionsContent": {
+    "headerTitle": "Transazioni",
+    "tabs": {
+      "transactions": "Transazioni",
+      "recurrent": "Ricorrenti"
+    },
+    "empty": {
+      "title": "Nessuna Transazione",
+      "forUser": "Non ci sono transazioni per questo utente",
+      "noTransactionsYet": "Non ci sono ancora transazioni. Inizia aggiungendone una."
+    },
+    "allLoaded": "Tutte le transazioni caricate ({count})",
+    "dialogs": {
+      "confirm": "Elimina",
+      "cancel": "Annulla",
+      "deleteTransaction": {
+        "title": "Elimina transazione",
+        "message": "Sei sicuro di voler eliminare la transazione \"{description}\"? Questa azione non può essere annullata."
+      },
+      "deleteRecurring": {
+        "title": "Elimina serie ricorrente",
+        "message": "Sei sicuro di voler eliminare la serie \"{description}\"? Questa azione non può essere annullata."
+      }
+    }
+  },
+  "Transactions": {
+    "Filters": {
+      "typeOptions": {
+        "all": "Tutti",
+        "income": "Entrate",
+        "expense": "Uscite"
+      },
+      "dateOptions": {
+        "all": "Sempre",
+        "today": "Oggi",
+        "week": "Settimana",
+        "month": "Mese",
+        "year": "Anno",
+        "custom": "Personalizzato"
+      },
+      "chips": {
+        "period": "Periodo",
+        "type": "Tipo",
+        "category": "Categoria"
+      },
+      "customRange": {
+        "title": "Range personalizzato",
+        "from": "Dal {date}",
+        "until": "Fino al {date}",
+        "fromLabel": "Da",
+        "toLabel": "A",
+        "startDateAria": "Data inizio",
+        "endDateAria": "Data fine",
+        "apply": "Applica range"
+      },
+      "category": {
+        "searchPlaceholder": "Cerca categoria...",
+        "all": "Tutte"
+      },
+      "drawer": {
+        "titles": {
+          "type": "Tipo transazione",
+          "date": "Periodo",
+          "category": "Categoria"
+        },
+        "description": "Seleziona un'opzione per filtrare le transazioni",
+        "close": "Chiudi"
+      },
+      "budget": {
+        "bannerWithName": "Budget: {name}",
+        "bannerActive": "Filtro Budget attivo",
+        "categoriesCount": "({count} {count, plural, one {categoria} other {categorie}})",
+        "exit": "Esci"
+      },
+      "searchPlaceholder": "Cerca transazioni...",
+      "clearFilterAria": "Rimuovi filtro {label}",
+      "clearAll": "Cancella"
+    },
+    "DayList": {
+      "empty": {
+        "title": "Nessuna Transazione",
+        "description": "Non ci sono transazioni da visualizzare"
+      },
+      "totalLabel": "Totale:",
+      "count": "{count} {count, plural, one {transazione} other {transazioni}}",
+      "viewAll": "Vedi tutte"
+    },
+    "GroupedCard": {
+      "periodTotal": "Totale Periodo"
+    },
+    "Row": {
+      "delete": "Elimina"
+    },
+    "FormModal": {
+      "validation": {
+        "descriptionMin": "La descrizione deve contenere almeno 2 caratteri",
+        "amountRequired": "L'importo è obbligatorio",
+        "amountGreaterThanZero": "L'importo deve essere maggiore di zero",
+        "categoryRequired": "La categoria è obbligatoria",
+        "dateRequired": "La data è obbligatoria",
+        "userRequired": "L'utente è obbligatorio",
+        "accountRequired": "Il conto è obbligatorio",
+        "destinationAccountInvalid": "Il conto di destinazione è obbligatorio e deve essere diverso dal conto di origine"
+      },
+      "title": {
+        "create": "Nuova transazione",
+        "edit": "Modifica transazione"
+      },
+      "description": {
+        "create": "Aggiungi una nuova transazione",
+        "edit": "Aggiorna i dettagli della transazione"
+      },
+      "typeOptions": {
+        "income": "Entrata",
+        "expense": "Uscita",
+        "transfer": "Trasferimento"
+      },
+      "fields": {
+        "user": {
+          "label": "Utente",
+          "placeholder": "Seleziona utente",
+          "memberHelper": "I membri possono creare e modificare solo i propri dati"
+        },
+        "type": {
+          "label": "Tipo",
+          "placeholder": "Seleziona tipo"
+        },
+        "sourceAccount": {
+          "label": "Conto origine",
+          "placeholder": "Seleziona conto"
+        },
+        "destinationAccount": {
+          "label": "Conto destinazione",
+          "placeholder": "Seleziona conto destinazione"
+        },
+        "category": {
+          "label": "Categoria",
+          "placeholder": "Seleziona categoria"
+        },
+        "amount": {
+          "label": "Importo",
+          "placeholder": "0,00"
+        },
+        "date": {
+          "label": "Data"
+        },
+        "description": {
+          "label": "Descrizione",
+          "placeholder": "Es. Spesa supermercato"
+        }
+      },
+      "buttons": {
+        "create": "Crea",
+        "update": "Aggiorna",
+        "cancel": "Annulla"
+      },
+      "errors": {
+        "notFound": "Transazione non trovata",
+        "unknown": "Errore sconosciuto"
+      }
+    }
+  },
+  "Recurring": {
+    "Section": {
+      "title": "Transazioni Ricorrenti",
+      "empty": {
+        "title": "Nessuna serie ricorrente",
+        "forUser": "Non ci sono serie ricorrenti per questo utente",
+        "defaultDescription": "Le serie ricorrenti configurate appariranno qui",
+        "addButton": "Aggiungi Serie"
+      },
+      "subtitle": {
+        "seriesCount": "{count} {count, plural, one {serie} other {serie}} attive",
+        "pausedCount": "{count} in pausa"
+      },
+      "stats": {
+        "incomePerMonth": "Entrate/mese",
+        "expensesPerMonth": "Uscite/mese"
+      },
+      "footer": {
+        "showingOf": "Mostrando {shown} di {total} serie"
+      }
+    },
+    "PauseModal": {
+      "actions": {
+        "pause": "Mettere in pausa",
+        "resume": "Riprendere",
+        "pausedLower": "messa in pausa",
+        "resumedLower": "ripresa"
+      },
+      "title": "{action} serie ricorrente",
+      "description": {
+        "pause": "La serie non genererà più transazioni automatiche",
+        "resume": "La serie riprenderà a generare transazioni automatiche"
+      },
+      "body": {
+        "pauseMain": "La serie ricorrente verrà {action}. Non verranno più create transazioni automatiche finché non la riattiverai.",
+        "pauseSecondary": "Le transazioni già create rimarranno invariate.",
+        "resumeMain": "La serie ricorrente verrà {action}. Riprenderà a generare transazioni automatiche secondo la frequenza impostata."
+      },
+      "buttons": {
+        "cancel": "Annulla"
+      }
+    },
+    "SeriesCard": {
+      "frequency": {
+        "weekly": "Settimanale",
+        "biweekly": "Quindicinale",
+        "monthly": "Mensile",
+        "yearly": "Annuale"
+      },
+      "due": {
+        "today": "Oggi",
+        "tomorrow": "Domani",
+        "daysAgo": "{count} giorni fa",
+        "inDays": "Tra {count} giorni"
+      },
+      "status": {
+        "stopped": "Stop"
+      },
+      "nextLabel": "Prossima",
+      "actions": {
+        "pause": "Pausa",
+        "resume": "Riprendi",
+        "delete": "Elimina"
+      }
+    },
+    "FormModal": {
+      "validation": {
+        "descriptionRequired": "La descrizione è obbligatoria",
+        "amountRequired": "L'importo è obbligatorio",
+        "amountGreaterThanZero": "L'importo deve essere maggiore di zero",
+        "categoryRequired": "La categoria è obbligatoria",
+        "userIdsRequired": "Almeno un utente è obbligatorio",
+        "accountRequired": "Il conto è obbligatorio",
+        "startDateRequired": "La data di inizio è obbligatoria",
+        "dueDayRequired": "Il giorno di addebito è obbligatorio",
+        "dueDayRange": "Il giorno deve essere tra 1 e 31",
+        "endDateAfterStart": "La data di fine deve essere successiva alla data di inizio"
+      },
+      "title": {
+        "create": "Nuova Serie Ricorrente",
+        "edit": "Modifica Serie Ricorrente"
+      },
+      "description": {
+        "create": "Configura una nuova serie ricorrente",
+        "edit": "Aggiorna la serie ricorrente"
+      },
+      "errors": {
+        "notFound": "Serie ricorrente non trovata",
+        "unknown": "Errore sconosciuto"
+      },
+      "typeOptions": {
+        "expense": "Uscita",
+        "income": "Entrata"
+      },
+      "frequencyOptions": {
+        "weekly": "Settimanale",
+        "biweekly": "Quindicinale",
+        "monthly": "Mensile",
+        "yearly": "Annuale"
+      },
+      "fields": {
+        "type": {
+          "label": "Tipo"
+        },
+        "frequency": {
+          "label": "Frequenza"
+        },
+        "users": {
+          "label": "Utenti"
+        },
+        "account": {
+          "label": "Conto",
+          "placeholder": "Seleziona conto"
+        },
+        "category": {
+          "label": "Categoria",
+          "placeholder": "Seleziona categoria"
+        },
+        "amount": {
+          "label": "Importo",
+          "placeholder": "0,00"
+        },
+        "dueDay": {
+          "label": "Giorno addebito",
+          "placeholder": "1-31"
+        },
+        "startDate": {
+          "label": "Data inizio"
+        },
+        "endDate": {
+          "label": "Data fine"
+        },
+        "description": {
+          "label": "Descrizione",
+          "placeholder": "Es. Abbonamento Netflix"
+        }
+      },
+      "buttons": {
+        "saveChanges": "Salva Modifiche",
+        "createSeries": "Crea Serie",
+        "cancel": "Annulla"
+      }
+    }
+  },
+  "Header": {
+    "premiumBadgeTitle": "Premium",
+    "plans": {
+      "premium": "Piano Premium",
+      "standard": "Piano Standard"
+    },
+    "aria": {
+      "back": "Torna indietro",
+      "notifications": "Notifiche",
+      "settings": "Impostazioni"
+    },
+    "ActionMenu": {
+      "openMenuAria": "Apri menu azioni",
+      "newTransaction": "Nuova Transazione",
+      "newBudget": "Nuovo Budget",
+      "newCategory": "Nuova Categoria",
+      "recurring": "Ricorrente",
+      "newAccount": "Nuovo Account",
+      "newInvestment": "Nuovo Investimento"
+    }
+  },
+  "HomeContent": {
+    "closePeriodButton": "Chiudi Periodo"
+  },
+  "UserSelector": {
+    "all": "Tutti",
+    "selectUserAria": "Seleziona {name}"
+  },
+  "Accounts": {
+    "Home": {
+      "addAccount": "Aggiungi Account",
+      "totalBalanceLabel": "Saldo Totale",
+      "accountCount": "{count} {count, plural, one {Conto} other {Conti}}"
+    },
+    "Content": {
+      "headerTitle": "Conti Bancari",
+      "headerSubtitle": "{count} {count, plural, one {conto} other {conti}}",
+      "totalBalanceLabel": "Saldo Totale",
+      "stats": {
+        "total": "Totale",
+        "positive": "Positivi",
+        "negative": "Negativi"
+      },
+      "dialogs": {
+        "delete": {
+          "title": "Elimina Account",
+          "message": "Sei sicuro di voler eliminare l'account \"{name}\"? Questa azione non può essere annullata.",
+          "confirm": "Elimina",
+          "cancel": "Annulla"
+        }
+      }
+    },
+    "List": {
+      "header": "Tutti gli Account",
+      "empty": {
+        "title": "Nessun account trovato",
+        "description": "Aggiungi il tuo primo conto"
+      }
+    },
+    "Card": {
+      "debt": "DEBITO",
+      "edit": "Modifica",
+      "delete": "Elimina",
+      "accountTypes": {
+        "payroll": "Conto Corrente",
+        "savings": "Conto Risparmio",
+        "cash": "Contanti",
+        "investments": "Investimenti"
+      }
+    },
+    "FormModal": {
+      "validation": {
+        "nameRequired": "Il nome è obbligatorio",
+        "userRequired": "L'utente è obbligatorio"
+      },
+      "title": {
+        "create": "Nuovo account",
+        "edit": "Modifica account"
+      },
+      "description": {
+        "create": "Aggiungi un nuovo account bancario o di cassa",
+        "edit": "Aggiorna i dettagli dell'account"
+      },
+      "accountTypes": {
+        "payroll": "Conto Corrente",
+        "savings": "Risparmio",
+        "cash": "Contanti",
+        "investments": "Investimenti"
+      },
+      "fields": {
+        "name": {
+          "label": "Nome Account",
+          "placeholder": "Es. Conto Principale"
+        },
+        "type": {
+          "label": "Tipo Account",
+          "placeholder": "Seleziona tipo"
+        },
+        "owner": {
+          "label": "Proprietario",
+          "placeholder": "Seleziona proprietario",
+          "memberHelper": "I membri possono creare e modificare solo i propri dati"
+        },
+        "isDefault": "Imposta come account predefinito per questo utente"
+      },
+      "buttons": {
+        "create": "Crea",
+        "update": "Aggiorna",
+        "cancel": "Annulla"
+      },
+      "errors": {
+        "notFound": "Account non trovato",
+        "unknown": "Errore sconosciuto"
+      }
+    },
+    "Actions": {
+      "errors": {
+        "unauthenticated": "Non autenticato. Effettua il login per continuare.",
+        "noPermissionCreate": "Non hai i permessi per creare un account per questo utente.",
+        "nameRequired": "Il nome account è obbligatorio.",
+        "typeRequired": "Il tipo account è obbligatorio.",
+        "groupRequired": "Il gruppo è obbligatorio.",
+        "userRequired": "Almeno un utente è richiesto.",
+        "createFailed": "Impossibile creare l'account",
+        "noPermissionUpdate": "Non hai i permessi per modificare questo account.",
+        "nameEmpty": "Il nome account non può essere vuoto.",
+        "updateFailed": "Impossibile aggiornare l'account",
+        "noPermissionDelete": "Non hai i permessi per eliminare questo account.",
+        "deleteFailed": "Impossibile eliminare l'account"
+      }
+    }
+  },
+  "Budgets": {
+    "HomeSection": {
+      "title": "Budget",
+      "subtitle": "Monitora le tue spese per categoria",
+      "multiUsersSubtitle": "{count} utenti con budget attivi",
+      "periodOngoing": "In corso",
+      "spentPrefix": "Spesi:",
+      "empty": {
+        "title": "Nessun budget configurato",
+        "description": "Crea dei budget per monitorare le tue spese e tenere sotto controllo le finanze familiari",
+        "createButton": "Crea Budget"
+      }
+    },
+    "Card": {
+      "ofPrefix": "su",
+      "spentPrefix": "Spesi:"
+    },
+    "PeriodManager": {
+      "title": "Gestione Periodi Budget",
+      "description": "Gestisci i periodi di budget per tracciare le spese nel tempo",
+      "invalidDate": "Data non valida",
+      "errors": {
+        "selectDate": "Seleziona una data",
+        "operationFailed": "Errore durante l'operazione",
+        "unknown": "Errore sconosciuto"
+      },
+      "fields": {
+        "user": {
+          "label": "Utente",
+          "memberHelper": "Puoi gestire solo i tuoi periodi",
+          "adminHelper": "Seleziona l'utente di cui gestire il periodo budget"
+        },
+        "startDate": {
+          "label": "Data di Inizio Periodo"
+        },
+        "endDate": {
+          "label": "Data di Fine Periodo"
+        }
+      },
+      "currentPeriodTitle": "Periodo Corrente",
+      "startedOn": "Iniziato il",
+      "status": {
+        "inProgress": "In corso"
+      },
+      "metrics": {
+        "spent": "Speso",
+        "saved": "Risparmiato"
+      },
+      "noActivePeriodAlert": "Nessun periodo attivo. Inizia un nuovo periodo per tracciare le spese del budget.",
+      "buttons": {
+        "closePeriod": "Chiudi periodo",
+        "startNewPeriod": "Inizia nuovo periodo",
+        "cancel": "Annulla"
+      }
+    },
+    "Page": {
+      "title": "Budget",
+      "today": "Oggi",
+      "transactionCount": "{count} {count, plural, one {transazione} other {transazioni}}",
+      "transactions": {
+        "sectionTitle": "Transazioni Budget",
+        "emptyTitle": "Nessuna transazione",
+        "emptyDescription": "Nessuna transazione trovata per questo budget",
+        "viewAll": "Vedi tutte"
+      },
+      "emptyState": {
+        "title": "Nessun budget disponibile",
+        "description": "Crea il tuo primo budget per iniziare",
+        "createButton": "Crea budget"
+      },
+      "deleteDialog": {
+        "title": "Elimina Budget",
+        "message": "Sei sicuro di voler eliminare il budget \"{name}\"? Questa azione non può essere annullata.",
+        "confirm": "Elimina",
+        "cancel": "Annulla"
+      }
+    },
+    "SummaryPage": {
+      "title": "Riepilogo Budget",
+      "emptyState": "Seleziona un utente con budget attivi per visualizzare il riepilogo.",
+      "cards": {
+        "budget": "Budget",
+        "spent": "Speso",
+        "available": "Disponibile"
+      },
+      "activeList": {
+        "title": "Budget Attivi"
+      },
+      "transactions": {
+        "sectionTitle": "Transazioni Correlate",
+        "emptyTitle": "Nessuna transazione",
+        "emptyDescription": "Non ci sono transazioni collegate a questi budget nel periodo corrente."
+      }
+    },
+    "Selector": {
+      "title": "Budget",
+      "subtitle": "Seleziona per visualizzare i dettagli",
+      "placeholder": "Seleziona budget"
+    },
+    "DisplayCard": {
+      "actions": {
+        "title": "Azioni Budget",
+        "edit": "Modifica Budget",
+        "delete": "Elimina Budget"
+      },
+      "status": {
+        "active": "Budget attivo"
+      },
+      "period": {
+        "label": "Periodo",
+        "inProgress": "In corso"
+      },
+      "metrics": {
+        "total": "Totale",
+        "spent": "Speso",
+        "available": "Disponibile"
+      }
+    },
+    "Progress": {
+      "label": "Progresso Budget",
+      "status": {
+        "safe": "Budget sotto controllo",
+        "warning": "Attenzione, quasi esaurito",
+        "danger": "Budget superato"
+      }
+    },
+    "Chart": {
+      "spentLabel": "Hai speso"
+    },
+    "FormModal": {
+      "validation": {
+        "descriptionMin": "La descrizione deve contenere almeno 2 caratteri",
+        "amountRequired": "L'importo è obbligatorio",
+        "amountPositive": "L'importo deve essere maggiore di zero",
+        "categoriesRequired": "Seleziona almeno una categoria",
+        "userRequired": "L'utente è obbligatorio"
+      },
+      "title": {
+        "create": "Nuovo Budget",
+        "edit": "Modifica Budget"
+      },
+      "description": {
+        "create": "Crea un nuovo budget",
+        "edit": "Aggiorna i dettagli del budget"
+      },
+      "fields": {
+        "user": {
+          "label": "Utente",
+          "placeholder": "Seleziona utente"
+        },
+        "type": {
+          "label": "Tipo budget",
+          "options": {
+            "monthly": "Mensile",
+            "annually": "Annuale"
+          }
+        },
+        "amount": {
+          "label": "Importo",
+          "placeholder": "0,00"
+        },
+        "description": {
+          "label": "Descrizione",
+          "placeholder": "es. Spese mensili"
+        },
+        "categories": {
+          "label": "Seleziona categorie",
+          "searchPlaceholder": "Cerca categoria...",
+          "selectedCount": "{selected}/{total} selezionate",
+          "selectAll": "Seleziona tutto",
+          "clear": "Pulisci",
+          "empty": "Nessuna categoria trovata"
+        }
+      },
+      "buttons": {
+        "save": "Salva",
+        "create": "Crea Budget",
+        "cancel": "Annulla"
+      },
+      "errors": {
+        "notFound": "Budget non trovato",
+        "unknown": "Errore sconosciuto"
+      }
+    },
+    "Actions": {
+      "errors": {
+        "unauthenticated": "Non autenticato. Effettua il login per continuare.",
+        "noPermissionCreateOthers": "Non hai i permessi per creare budget per altri utenti.",
+        "userRequired": "L'utente è obbligatorio",
+        "noPermissionUserData": "Non hai i permessi per accedere ai dati di questo utente.",
+        "createFailed": "Impossibile creare il budget",
+        "userMissing": "Il budget non ha un utente assegnato",
+        "noPermissionUpdate": "Non hai i permessi per modificare questo budget.",
+        "cannotReassignAsMember": "Non puoi assegnare il budget a un altro utente.",
+        "noPermissionAssignUser": "Non hai i permessi per assegnare questo budget a questo utente.",
+        "updateFailed": "Impossibile aggiornare il budget",
+        "noPermissionDelete": "Non hai i permessi per eliminare questo budget.",
+        "deleteFailed": "Impossibile eliminare il budget"
+      }
+    },
+    "PeriodCard": {
+      "invalidDate": "Data non valida",
+      "status": {
+        "inProgress": "In corso",
+        "closed": "Chiuso"
+      },
+      "deleteTitle": "Elimina periodo",
+      "metrics": {
+        "spent": "Speso",
+        "saved": "Risparmiato"
+      },
+      "topCategories": "Top Categorie"
+    },
+    "PeriodInfo": {
+      "invalidDate": "Data non valida",
+      "inProgress": "In corso",
+      "empty": {
+        "noActivePeriod": "Nessun periodo attivo"
+      },
+      "status": {
+        "active": "Attivo",
+        "completed": "Concluso"
+      },
+      "metrics": {
+        "spent": "Speso",
+        "saved": "Risparmiato"
+      },
+      "topCategories": "Principali Categorie"
+    },
+    "PeriodsList": {
+      "sections": {
+        "active": "Periodo Attivo",
+        "history": "Storico Periodi"
+      },
+      "empty": {
+        "title": "Nessun periodo budget trovato",
+        "description": "I periodi budget ti permettono di tracciare le tue spese nel tempo"
+      },
+      "deleting": "Eliminazione in corso...",
+      "errors": {
+        "delete": "Errore durante l'eliminazione: {error}"
+      }
+    },
+    "PeriodActions": {
+      "errors": {
+        "unauthenticated": "Non autenticato. Effettua il login per continuare.",
+        "unauthenticatedShort": "Non autenticato",
+        "noPermissionManageOthers": "Non hai i permessi per gestire i periodi di altri utenti.",
+        "noPermissionUserData": "Non hai i permessi per accedere ai dati di questo utente.",
+        "startFailed": "Impossibile avviare il periodo budget",
+        "noPermissionClose": "Non hai i permessi per chiudere questo periodo.",
+        "closeFailed": "Impossibile chiudere il periodo budget",
+        "noPermissionDelete": "Non hai i permessi per eliminare questo periodo.",
+        "deleteFailed": "Impossibile eliminare il periodo budget",
+        "noPermissionViewOthers": "Non hai i permessi per visualizzare i periodi di altri utenti.",
+        "fetchPeriodsFailed": "Impossibile recuperare i periodi budget",
+        "noPermissionViewActiveOthers": "Non hai i permessi per visualizzare il periodo attivo di altri utenti.",
+        "fetchActiveFailed": "Impossibile recuperare il periodo attivo",
+        "permissionDenied": "Permesso negato",
+        "previewFailed": "Impossibile calcolare l'anteprima"
+      }
+    }
+  },
+  "Categories": {
+    "FormModal": {
+      "validation": {
+        "labelRequired": "Il nome è obbligatorio",
+        "keyRequired": "La chiave è obbligatoria",
+        "iconRequired": "L'icona è obbligatoria",
+        "colorRequired": "Il colore è obbligatorio",
+        "colorInvalid": "Formato colore non valido"
+      },
+      "title": {
+        "create": "Nuova Categoria",
+        "edit": "Modifica Categoria"
+      },
+      "description": {
+        "create": "Crea una nuova categoria personalizzata",
+        "edit": "Aggiorna i dettagli della categoria"
+      },
+      "fields": {
+        "label": {
+          "label": "Nome",
+          "placeholder": "es. Spesa"
+        },
+        "icon": {
+          "label": "Icona"
+        },
+        "color": {
+          "label": "Colore",
+          "placeholder": "#10B981"
+        }
+      },
+      "buttons": {
+        "save": "Salva",
+        "create": "Crea Categoria",
+        "cancel": "Annulla"
+      },
+      "errors": {
+        "notFound": "Categoria non trovata",
+        "unknown": "Errore sconosciuto"
+      }
+    },
+    "Actions": {
+      "errors": {
+        "unauthenticated": "Non autenticato. Effettua il login per continuare.",
+        "groupRequired": "Il gruppo è obbligatorio",
+        "permissionDenied": "Non hai i permessi per gestire questa categoria.",
+        "notFound": "Categoria non trovata",
+        "labelRequired": "Il nome è obbligatorio",
+        "keyRequired": "La chiave è obbligatoria",
+        "iconRequired": "L'icona è obbligatoria",
+        "colorRequired": "Il colore è obbligatorio",
+        "colorInvalid": "Formato colore non valido",
+        "labelEmpty": "Il nome non può essere vuoto",
+        "iconEmpty": "L'icona non può essere vuota",
+        "colorEmpty": "Il colore non può essere vuoto",
+        "createFailed": "Impossibile creare la categoria",
+        "updateFailed": "Impossibile aggiornare la categoria",
+        "deleteFailed": "Impossibile eliminare la categoria"
+      }
+    }
+  },
+  "OnboardingModal": {
+    "steps": {
+      "group": {
+        "title": "Crea il gruppo",
+        "description": "Dai un nome al tuo spazio condiviso"
+      },
+      "accounts": {
+        "title": "Configura i conti",
+        "description": "Aggiungi uno o più conti bancari"
+      },
+      "budgets": {
+        "title": "Definisci i budget",
+        "description": "Imposta gli obiettivi di spesa"
+      }
+    },
+    "header": {
+      "stepOf": "Step {current} di {total}"
+    },
+    "accountTypes": {
+      "payroll": {
+        "label": "Conto Corrente",
+        "description": "Conto principale dove ricevi stipendio o pensione"
+      },
+      "savings": {
+        "label": "Conto Risparmio",
+        "description": "Conto dedicato al risparmio a lungo termine"
+      },
+      "cash": {
+        "label": "Contanti",
+        "description": "Denaro contante fisico o fondo cassa"
+      },
+      "investments": {
+        "label": "Investimenti",
+        "description": "Conto per investimenti, trading e portafoglio"
+      }
+    },
+    "budgetTypes": {
+      "monthly": "Mensile",
+      "annually": "Annuale"
+    },
+    "fallbackCategories": {
+      "expense": "Spesa",
+      "utilities": "Bolletta",
+      "other": "Altro"
+    },
+    "fields": {
+      "group": {
+        "nameLabel": "Nome del gruppo",
+        "namePlaceholder": "Esempio: Famiglia Rossi",
+        "descriptionLabel": "Descrizione (opzionale)",
+        "descriptionPlaceholder": "Chi fa parte di questo gruppo?"
+      },
+      "accounts": {
+        "defaultTitle": "Conto Predefinito",
+        "defaultInfo": "Seleziona quale conto vuoi usare come predefinito per le transazioni",
+        "cardTitle": "Conto {index}",
+        "defaultAccountTitle": "Conto predefinito",
+        "setDefaultTitle": "Imposta come predefinito",
+        "nameLabel": "Nome del conto",
+        "namePlaceholder": "Conto corrente principale",
+        "typeLabel": "Tipologia",
+        "typePlaceholder": "Seleziona il tipo di conto"
+      },
+      "budgets": {
+        "skipTitle": "Puoi saltare questo passaggio",
+        "skipInfo": "Non sei sicuro dei budget? Puoi configurarli più tardi dal dashboard.",
+        "cardTitle": "Budget {index}",
+        "descriptionLabel": "Descrizione",
+        "descriptionPlaceholder": "Spesa mensile supermercato",
+        "amountLabel": "Importo previsto (€)",
+        "amountPlaceholder": "500",
+        "periodLabel": "Periodo",
+        "periodPlaceholder": "Seleziona",
+        "categoryLabel": "Categoria principale",
+        "categoryPlaceholder": "Scegli una categoria",
+        "categoryUnavailable": "Nessuna categoria disponibile",
+        "startDayLabel": "Giorno di inizio budget",
+        "startDayPlaceholder": "Seleziona il giorno"
+      }
+    },
+    "categories": {
+      "loading": "Caricamento categorie...",
+      "noneAvailable": "Nessuna categoria disponibile al momento. Prova ad aggiornare la pagina dopo aver completato l'onboarding."
+    },
+    "draft": {
+      "title": "Riprendere da dove hai lasciato?",
+      "description": "Abbiamo trovato una configurazione salvata in precedenza.",
+      "restore": "Ripristina",
+      "restart": "Ricomincia"
+    },
+    "buttons": {
+      "back": "Indietro",
+      "next": "Avanti",
+      "confirm": "Conferma",
+      "saving": "Salvataggio...",
+      "skip": "Salta",
+      "addAccount": "Aggiungi un conto",
+      "addBudget": "Aggiungi un budget"
+    },
+    "errors": {
+      "completeRequiredFields": "Completa i campi obbligatori per continuare",
+      "verifyRequiredFields": "Verifica di aver compilato tutti i campi obbligatori",
+      "saveFailed": "Errore durante il salvataggio. Riprova tra poco."
+    }
+  },
+  "Forms": {
+    "Actions": {
+      "save": "Salva",
+      "cancel": "Annulla",
+      "delete": "Elimina",
+      "continue": "Continua"
+    },
+    "Select": {
+      "placeholder": "Seleziona...",
+      "searchPlaceholder": "Cerca...",
+      "empty": "Nessun risultato trovato"
+    },
+    "CategorySelect": {
+      "placeholder": "Seleziona categoria",
+      "searchPlaceholder": "Cerca categoria...",
+      "recent": "Recenti",
+      "allCategories": "Tutte le categorie",
+      "empty": "Nessuna categoria trovata"
+    },
+    "MultiUser": {
+      "currentUser": "(Tu)"
+    },
+    "Fields": {
+      "User": {
+        "label": "Utente",
+        "placeholder": "Seleziona utente"
+      },
+      "Account": {
+        "label": "Conto",
+        "placeholder": "Seleziona conto"
+      },
+      "Category": {
+        "label": "Categoria",
+        "placeholder": "Seleziona categoria"
+      },
+      "Amount": {
+        "label": "Importo"
+      }
+    },
+    "DateField": {
+      "label": "Data",
+      "placeholder": "GG/MM/AAAA",
+      "clearDateAria": "Cancella data",
+      "openCalendarSr": "Apri calendario"
+    },
+    "DateDrawer": {
+      "drawerAriaLabel": "Selettore data",
+      "drawerTitle": "Seleziona una data",
+      "presetsAria": "Scorciatoie data",
+      "presetsTitle": "Scorciatoie",
+      "presetAria": "{label}: {date}",
+      "presets": {
+        "today": "Oggi",
+        "yesterday": "Ieri",
+        "daysAgo7": "7 giorni fa",
+        "daysAgo30": "30 giorni fa",
+        "weekStart": "Inizio settimana",
+        "monthStart": "Inizio mese",
+        "yearStart": "Inizio anno"
+      },
+      "monthHeader": {
+        "previousMonth": "Mese precedente",
+        "nextMonth": "Mese successivo",
+        "closeSelectors": "Chiudi selettori",
+        "close": "Chiudi",
+        "selectMonthAndYear": "Seleziona mese e anno"
+      },
+      "dayCell": {
+        "selectDate": "Seleziona {date}"
+      }
+    },
+    "IconPicker": {
+      "searchPlaceholder": "Cerca icona...",
+      "searchAria": "Cerca icona per nome o parola chiave",
+      "clearSearchAria": "Cancella ricerca",
+      "recentLabel": "Recenti:",
+      "recentIconAria": "Icona recente: {iconName}",
+      "categoriesAria": "Categorie icone",
+      "filterByCategoryAria": "Filtra per categoria: {category}",
+      "results": {
+        "found": "{count, plural, one {{count} risultato trovato} other {{count} risultati trovati}}",
+        "available": "{count, plural, one {{count} icona disponibile} other {{count} icone disponibili}}"
+      },
+      "iconListAria": "Lista icone",
+      "empty": "Nessuna icona trovata",
+      "clearSearch": "Cancella ricerca",
+      "selectIconAria": "Seleziona icona {iconName}",
+      "triggerSelectedAria": "Icona selezionata: {iconName}. Clicca per cambiare",
+      "triggerDefaultAria": "Seleziona un'icona",
+      "triggerDefaultText": "Seleziona un'icona",
+      "selectorAria": "Selettore icone",
+      "selectorTitle": "Selettore Icone"
+    }
+  }
+}

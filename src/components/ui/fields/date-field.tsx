@@ -18,6 +18,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import { format, parse, isValid } from 'date-fns';
 import { it } from 'date-fns/locale';
+import { useTranslations } from 'next-intl';
 import { Calendar as CalendarIcon, X } from 'lucide-react';
 import { FormField } from '@/components/form';
 import { Input, Button } from '@/components/ui';
@@ -63,8 +64,10 @@ export function DateField({
   onChange,
   error,
   required = false,
-  label = 'Data',
+  label,
 }: Readonly<DateFieldProps>) {
+  const t = useTranslations('Forms.DateField');
+  const resolvedLabel = label ?? t('label');
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const formattedValue = useMemo(() => {
     if (value && isValid(new Date(value))) {
@@ -117,7 +120,7 @@ export function DateField({
   );
 
   return (
-    <FormField label={label || 'Data'} required={required} error={error}>
+    <FormField label={resolvedLabel} required={required} error={error}>
       <div className={calendarDrawerStyles.input.group}>
         {/* Text Input with Clear Button */}
         <div className={calendarDrawerStyles.input.wrapper}>
@@ -129,7 +132,7 @@ export function DateField({
               setIsEditing(true);
               setDraftValue(formattedValue);
             }}
-            placeholder="GG/MM/AAAA"
+            placeholder={t('placeholder')}
             className={calendarDrawerStyles.input.field}
             autoComplete="off"
           />
@@ -138,7 +141,7 @@ export function DateField({
               type="button"
               onClick={handleClear}
               className={calendarDrawerStyles.input.clearButton}
-              aria-label="Cancella data"
+              aria-label={t('clearDateAria')}
             >
               <X className={calendarDrawerStyles.input.clearIcon} />
             </button>
@@ -154,7 +157,7 @@ export function DateField({
           className={calendarTriggerVariants({ active: isDrawerOpen })}
         >
           <CalendarIcon className={calendarDrawerStyles.input.triggerIcon} />
-          <span className="sr-only">Apri calendario</span>
+          <span className="sr-only">{t('openCalendarSr')}</span>
         </Button>
       </div>
 

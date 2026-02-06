@@ -1,6 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { getTranslations } from 'next-intl/server';
 import { getCurrentUser } from '@/lib/auth/cached-auth';
 import { TransactionService, BudgetService, BudgetPeriodService } from '@/server/services';
 import { canAccessUserData, isMember } from '@/lib/utils';
@@ -12,6 +13,13 @@ type ServiceResult<T> = {
   error: string | null;
 };
 
+async function getBudgetPeriodActionTranslator(locale?: string) {
+  if (locale) {
+    return getTranslations({ locale, namespace: 'Budgets.PeriodActions' });
+  }
+  return getTranslations('Budgets.PeriodActions');
+}
+
 /**
  * Server Action: Start Budget Period
  * Creates a new active budget period for a user
@@ -21,15 +29,18 @@ type ServiceResult<T> = {
  */
 export async function startPeriodAction(
   userId: string,
-  startDate: string
+  startDate: string,
+  locale?: string
 ): Promise<ServiceResult<BudgetPeriod>> {
+  let t: Awaited<ReturnType<typeof getTranslations>> | null = null;
   try {
+    t = await getBudgetPeriodActionTranslator(locale);
     // Authentication check (cached per request)
     const currentUser = await getCurrentUser();
     if (!currentUser) {
       return {
         data: null,
-        error: 'Non autenticato. Effettua il login per continuare.',
+        error: t('errors.unauthenticated'),
       };
     }
 
@@ -37,7 +48,7 @@ export async function startPeriodAction(
     if (isMember(currentUser as unknown as User) && userId !== currentUser.id) {
       return {
         data: null,
-        error: 'Non hai i permessi per gestire i periodi di altri utenti',
+        error: t('errors.noPermissionManageOthers'),
       };
     }
 
@@ -45,7 +56,7 @@ export async function startPeriodAction(
     if (!canAccessUserData(currentUser as unknown as User, userId)) {
       return {
         data: null,
-        error: 'Non hai i permessi per accedere ai dati di questo utente',
+        error: t('errors.noPermissionUserData'),
       };
     }
 
@@ -60,7 +71,10 @@ export async function startPeriodAction(
   } catch (error) {
     return {
       data: null,
-      error: error instanceof Error ? error.message : 'Failed to start budget period',
+      error:
+        error instanceof Error
+          ? error.message
+          : (t?.('errors.startFailed') ?? 'Failed to start budget period'),
     };
   }
 }
@@ -75,15 +89,18 @@ export async function startPeriodAction(
 export async function closePeriodAction(
   userId: string,
   periodId: string,
-  endDate: string
+  endDate: string,
+  locale?: string
 ): Promise<ServiceResult<BudgetPeriod>> {
+  let t: Awaited<ReturnType<typeof getTranslations>> | null = null;
   try {
+    t = await getBudgetPeriodActionTranslator(locale);
     // Authentication check (cached per request)
     const currentUser = await getCurrentUser();
     if (!currentUser) {
       return {
         data: null,
-        error: 'Non autenticato. Effettua il login per continuare.',
+        error: t('errors.unauthenticated'),
       };
     }
 
@@ -91,7 +108,7 @@ export async function closePeriodAction(
     if (isMember(currentUser as unknown as User) && userId !== currentUser.id) {
       return {
         data: null,
-        error: 'Non hai i permessi per chiudere questo periodo',
+        error: t('errors.noPermissionClose'),
       };
     }
 
@@ -99,7 +116,7 @@ export async function closePeriodAction(
     if (!canAccessUserData(currentUser as unknown as User, userId)) {
       return {
         data: null,
-        error: 'Non hai i permessi per accedere ai dati di questo utente',
+        error: t('errors.noPermissionUserData'),
       };
     }
 
@@ -113,11 +130,14 @@ export async function closePeriodAction(
       return { data: result, error: null };
     }
 
-    return { data: null, error: 'Failed to close period' };
+    return { data: null, error: t('errors.closeFailed') };
   } catch (error) {
     return {
       data: null,
-      error: error instanceof Error ? error.message : 'Failed to close budget period',
+      error:
+        error instanceof Error
+          ? error.message
+          : (t?.('errors.closeFailed') ?? 'Failed to close budget period'),
     };
   }
 }
@@ -131,15 +151,18 @@ export async function closePeriodAction(
  */
 export async function deletePeriodAction(
   userId: string,
-  periodId: string
+  periodId: string,
+  locale?: string
 ): Promise<ServiceResult<{ id: string }>> {
+  let t: Awaited<ReturnType<typeof getTranslations>> | null = null;
   try {
+    t = await getBudgetPeriodActionTranslator(locale);
     // Authentication check (cached per request)
     const currentUser = await getCurrentUser();
     if (!currentUser) {
       return {
         data: null,
-        error: 'Non autenticato. Effettua il login per continuare.',
+        error: t('errors.unauthenticated'),
       };
     }
 
@@ -147,7 +170,7 @@ export async function deletePeriodAction(
     if (isMember(currentUser as unknown as User) && userId !== currentUser.id) {
       return {
         data: null,
-        error: 'Non hai i permessi per eliminare questo periodo',
+        error: t('errors.noPermissionDelete'),
       };
     }
 
@@ -155,7 +178,7 @@ export async function deletePeriodAction(
     if (!canAccessUserData(currentUser as unknown as User, userId)) {
       return {
         data: null,
-        error: 'Non hai i permessi per accedere ai dati di questo utente',
+        error: t('errors.noPermissionUserData'),
       };
     }
 
@@ -170,7 +193,10 @@ export async function deletePeriodAction(
   } catch (error) {
     return {
       data: null,
-      error: error instanceof Error ? error.message : 'Failed to delete budget period',
+      error:
+        error instanceof Error
+          ? error.message
+          : (t?.('errors.deleteFailed') ?? 'Failed to delete budget period'),
     };
   }
 }
@@ -181,14 +207,19 @@ export async function deletePeriodAction(
  *
  * Permissions: members can only view their own periods
  */
-export async function getUserPeriodsAction(userId: string): Promise<ServiceResult<BudgetPeriod[]>> {
+export async function getUserPeriodsAction(
+  userId: string,
+  locale?: string
+): Promise<ServiceResult<BudgetPeriod[]>> {
+  let t: Awaited<ReturnType<typeof getTranslations>> | null = null;
   try {
+    t = await getBudgetPeriodActionTranslator(locale);
     // Authentication check (cached per request)
     const currentUser = await getCurrentUser();
     if (!currentUser) {
       return {
         data: null,
-        error: 'Non autenticato. Effettua il login per continuare.',
+        error: t('errors.unauthenticated'),
       };
     }
 
@@ -196,14 +227,14 @@ export async function getUserPeriodsAction(userId: string): Promise<ServiceResul
     if (isMember(currentUser as unknown as User) && userId !== currentUser.id) {
       return {
         data: null,
-        error: 'Non hai i permessi per visualizzare i periodi di altri utenti',
+        error: t('errors.noPermissionViewOthers'),
       };
     }
 
     if (!canAccessUserData(currentUser as unknown as User, userId)) {
       return {
         data: null,
-        error: 'Non hai i permessi per accedere ai dati di questo utente',
+        error: t('errors.noPermissionUserData'),
       };
     }
 
@@ -214,7 +245,10 @@ export async function getUserPeriodsAction(userId: string): Promise<ServiceResul
   } catch (error) {
     return {
       data: null,
-      error: error instanceof Error ? error.message : 'Failed to fetch budget periods',
+      error:
+        error instanceof Error
+          ? error.message
+          : (t?.('errors.fetchPeriodsFailed') ?? 'Failed to fetch budget periods'),
     };
   }
 }
@@ -226,15 +260,18 @@ export async function getUserPeriodsAction(userId: string): Promise<ServiceResul
  * Permissions: members can only view their own active period
  */
 export async function getActivePeriodAction(
-  userId: string
+  userId: string,
+  locale?: string
 ): Promise<ServiceResult<BudgetPeriod | null>> {
+  let t: Awaited<ReturnType<typeof getTranslations>> | null = null;
   try {
+    t = await getBudgetPeriodActionTranslator(locale);
     // Authentication check (cached per request)
     const currentUser = await getCurrentUser();
     if (!currentUser) {
       return {
         data: null,
-        error: 'Non autenticato. Effettua il login per continuare.',
+        error: t('errors.unauthenticated'),
       };
     }
 
@@ -242,14 +279,14 @@ export async function getActivePeriodAction(
     if (isMember(currentUser as unknown as User) && userId !== currentUser.id) {
       return {
         data: null,
-        error: 'Non hai i permessi per visualizzare il periodo attivo di altri utenti',
+        error: t('errors.noPermissionViewActiveOthers'),
       };
     }
 
     if (!canAccessUserData(currentUser as unknown as User, userId)) {
       return {
         data: null,
-        error: 'Non hai i permessi per accedere ai dati di questo utente',
+        error: t('errors.noPermissionUserData'),
       };
     }
 
@@ -263,7 +300,10 @@ export async function getActivePeriodAction(
   } catch (error) {
     return {
       data: null,
-      error: error instanceof Error ? error.message : 'Failed to fetch active period',
+      error:
+        error instanceof Error
+          ? error.message
+          : (t?.('errors.fetchActiveFailed') ?? 'Failed to fetch active period'),
     };
   }
 }
@@ -276,7 +316,8 @@ export async function getActivePeriodAction(
 export async function getPeriodPreviewAction(
   userId: string,
   startDate: string,
-  endDate: string
+  endDate: string,
+  locale?: string
 ): Promise<
   ServiceResult<{
     totalSpent: number;
@@ -285,19 +326,21 @@ export async function getPeriodPreviewAction(
     categorySpending: Record<string, number>;
   }>
 > {
+  let t: Awaited<ReturnType<typeof getTranslations>> | null = null;
   try {
+    t = await getBudgetPeriodActionTranslator(locale);
     // Authentication check (cached per request)
     const currentUser = await getCurrentUser();
     if (!currentUser) {
-      return { data: null, error: 'Non autenticato' };
+      return { data: null, error: t('errors.unauthenticatedShort') };
     }
 
     // Permission check
     if (isMember(currentUser as unknown as User) && userId !== currentUser.id) {
-      return { data: null, error: 'Permesso negato' };
+      return { data: null, error: t('errors.permissionDenied') };
     }
     if (!canAccessUserData(currentUser as unknown as User, userId)) {
-      return { data: null, error: 'Permesso negato' };
+      return { data: null, error: t('errors.permissionDenied') };
     }
 
     // Fetch necessary data on server
@@ -345,7 +388,10 @@ export async function getPeriodPreviewAction(
   } catch (error) {
     return {
       data: null,
-      error: error instanceof Error ? error.message : 'Failed to calculate preview',
+      error:
+        error instanceof Error
+          ? error.message
+          : (t?.('errors.previewFailed') ?? 'Failed to calculate preview'),
     };
   }
 }

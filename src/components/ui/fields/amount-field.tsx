@@ -4,6 +4,7 @@
 
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { FormField, FormCurrencyInput } from '@/components/form';
 
 interface AmountFieldProps {
@@ -21,12 +22,15 @@ export function AmountField({
   onChange,
   error,
   required = true,
-  label = 'Importo',
+  label,
   placeholder,
   min = 0,
 }: Readonly<AmountFieldProps>) {
+  const t = useTranslations('Forms.Fields.Amount');
+  const resolvedLabel = label ?? t('label');
+
   return (
-    <FormField label={label} required={required} error={error}>
+    <FormField label={resolvedLabel} required={required} error={error}>
       <FormCurrencyInput value={value} onChange={onChange} min={min} placeholder={placeholder} />
     </FormField>
   );

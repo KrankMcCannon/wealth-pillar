@@ -14,8 +14,8 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { format, setMonth, setYear, getYear, getMonth } from 'date-fns';
-import { it } from 'date-fns/locale';
+import { setMonth, setYear, getYear, getMonth } from 'date-fns';
+import { useLocale, useTranslations } from 'next-intl';
 import { ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react';
 import { calendarDrawerStyles } from '@/lib/styles/calendar-drawer.styles';
 import { monthNavButtonVariants } from '@/lib/utils/date-drawer-variants';
@@ -77,6 +77,8 @@ export function MonthHeader({
   onMonthChange,
   className,
 }: Readonly<MonthHeaderProps>) {
+  const t = useTranslations('Forms.DateDrawer');
+  const locale = useLocale();
   const [showDropdowns, setShowDropdowns] = useState(false);
 
   // Get current month and year
@@ -92,40 +94,34 @@ export function MonthHeader({
     return years;
   }, []);
 
-  // Italian month names
+  // Localized month names
   const monthNames = useMemo(
     () => [
-      'Gennaio',
-      'Febbraio',
-      'Marzo',
-      'Aprile',
-      'Maggio',
-      'Giugno',
-      'Luglio',
-      'Agosto',
-      'Settembre',
-      'Ottobre',
-      'Novembre',
-      'Dicembre',
+      ...Array.from({ length: 12 }, (_, index) =>
+        new Intl.DateTimeFormat(locale, { month: 'long' }).format(new Date(2024, index, 1))
+      ),
     ],
-    []
+    [locale]
   );
 
   // Format month and year for display
-  const monthYearText = format(currentMonth, 'MMMM yyyy', { locale: it });
-  // Capitalize first letter (Italian months start lowercase)
+  const monthYearText = new Intl.DateTimeFormat(locale, {
+    month: 'long',
+    year: 'numeric',
+  }).format(currentMonth);
+  // Keep first letter uppercase for consistency across locales.
   const capitalizedText = monthYearText.charAt(0).toUpperCase() + monthYearText.slice(1);
 
   // Handle month selection
   const handleMonthSelect = (monthIndex: string) => {
-    const newDate = setMonth(currentMonth, Number.parseInt(monthIndex));
+    const newDate = setMonth(currentMonth, Number.parseInt(monthIndex, 10));
     onMonthChange?.(newDate);
     // Don't close dropdowns - let user select year too
   };
 
   // Handle year selection
   const handleYearSelect = (year: string) => {
-    const newDate = setYear(currentMonth, Number.parseInt(year));
+    const newDate = setYear(currentMonth, Number.parseInt(year, 10));
     onMonthChange?.(newDate);
     // Don't close dropdowns - let user select year too
   };
@@ -137,7 +133,7 @@ export function MonthHeader({
         type="button"
         onClick={onPrevious}
         className={monthNavButtonVariants({ disabled: false })}
-        aria-label="Mese precedente"
+        aria-label={t('monthHeader.previousMonth')}
       >
         <ChevronLeft className={calendarDrawerStyles.header.navButton.icon} />
       </button>
@@ -195,22 +191,24 @@ export function MonthHeader({
 
             {/* Close dropdowns button */}
             <button
+              type="button"
               onClick={() => setShowDropdowns(false)}
               className={calendarDrawerStyles.header.closeButton}
-              aria-label="Chiudi selettori"
+              aria-label={t('monthHeader.closeSelectors')}
             >
-              Chiudi
+              {t('monthHeader.close')}
             </button>
           </div>
         ) : (
           // Display mode - clickable to show dropdowns
           <button
+            type="button"
             onClick={() => setShowDropdowns(true)}
             className={cn(
               calendarDrawerStyles.header.monthYear,
               calendarDrawerStyles.header.monthYearButton
             )}
-            aria-label="Seleziona mese e anno"
+            aria-label={t('monthHeader.selectMonthAndYear')}
           >
             <span>{capitalizedText}</span>
             <ChevronDown className={calendarDrawerStyles.header.chevronIcon} />
@@ -220,9 +218,10 @@ export function MonthHeader({
 
       {/* Next Month Button */}
       <button
+        type="button"
         onClick={onNext}
         className={monthNavButtonVariants({ disabled: false })}
-        aria-label="Mese successivo"
+        aria-label={t('monthHeader.nextMonth')}
       >
         <ChevronRight className={calendarDrawerStyles.header.navButton.icon} />
       </button>

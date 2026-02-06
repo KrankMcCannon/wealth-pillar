@@ -2,6 +2,7 @@
 
 import { Suspense } from 'react';
 import { useRouter } from 'next/navigation';
+import { useLocale, useTranslations } from 'next-intl';
 import type { Budget, BudgetPeriod, User } from '@/lib';
 import { progressBarVariants } from '@/lib';
 import { BudgetSectionSkeleton } from '@/features/dashboard';
@@ -58,6 +59,8 @@ export const BudgetSection = ({
   headerLeading,
 }: BudgetSectionProps) => {
   const router = useRouter();
+  const t = useTranslations('Budgets.HomeSection');
+  const locale = useLocale();
 
   // Show skeleton only if actively loading AND no data received yet
   // With placeholderData, empty object exists immediately, so check both conditions
@@ -78,24 +81,20 @@ export const BudgetSection = ({
   if (budgetEntries.length === 0) {
     return (
       <PageSection className={budgetStyles.section.container}>
-        <SectionHeader title="Budget" subtitle="Monitora le tue spese per categoria" />
-
+        <SectionHeader title={t('title')} subtitle={t('subtitle')} />
         <div className={budgetStyles.section.emptyContainer}>
           <div className={budgetStyles.section.emptyIconWrap}>
             <div className={budgetStyles.section.emptyIconInner}>
               <span className={budgetStyles.section.emptyIconText}>€</span>
             </div>
           </div>
-          <h3 className={budgetStyles.section.emptyTitle}>Nessun budget configurato</h3>
-          <p className={budgetStyles.section.emptyDescription}>
-            Crea dei budget per monitorare le tue spese e tenere sotto controllo le finanze
-            familiari
-          </p>
+          <h3 className={budgetStyles.section.emptyTitle}>{t('empty.title')}</h3>
+          <p className={budgetStyles.section.emptyDescription}>{t('empty.description')}</p>
           <button
             onClick={() => router.push('/budgets')}
             className={budgetStyles.section.emptyButton}
           >
-            Crea Budget
+            {t('empty.createButton')}
           </button>
         </div>
       </PageSection>
@@ -105,9 +104,11 @@ export const BudgetSection = ({
   return (
     <PageSection className={budgetStyles.section.container}>
       <SectionHeader
-        title="Budget"
+        title={t('title')}
         subtitle={
-          budgetEntries.length > 1 ? `${budgetEntries.length} utenti con budget attivi` : undefined
+          budgetEntries.length > 1
+            ? t('multiUsersSubtitle', { count: budgetEntries.length })
+            : undefined
         }
         leading={headerLeading}
       />
@@ -152,17 +153,17 @@ export const BudgetSection = ({
                     subtitle={
                       activePeriod && periodStart ? (
                         <span className={budgetStyles.section.periodText}>
-                          {new Date(periodStart).toLocaleDateString('it-IT', {
+                          {new Date(periodStart).toLocaleDateString(locale, {
                             day: 'numeric',
                             month: 'short',
                           })}{' '}
                           -{' '}
                           {periodEnd
-                            ? new Date(periodEnd).toLocaleDateString('it-IT', {
+                            ? new Date(periodEnd).toLocaleDateString(locale, {
                                 day: 'numeric',
                                 month: 'short',
                               })
-                            : 'In corso'}
+                            : t('periodOngoing')}
                         </span>
                       ) : undefined
                     }
@@ -178,7 +179,7 @@ export const BudgetSection = ({
                           <span>{formatCurrency(totalBudget)}</span>
                         </div>
                         <span className="text-xs text-muted-foreground">
-                          Spesi: {formatCurrency(totalSpent)}
+                          {t('spentPrefix')} {formatCurrency(totalSpent)}
                         </span>
                       </div>
                     }

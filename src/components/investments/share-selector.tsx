@@ -3,6 +3,7 @@
 import * as React from 'react';
 import * as SelectPrimitive from '@radix-ui/react-select';
 import { ChevronDown, Loader2, Search, TrendingUp } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { cn } from '@/lib';
 import { selectStyles } from '@/styles/system';
 import { formStyles, getCategorySelectWidthStyle } from '@/components/form/theme/form-styles';
@@ -14,12 +15,9 @@ interface ShareSelectorProps {
   className?: string;
 }
 
-const ASSET_TYPE_LABELS: Record<string, string> = {
-  stock: 'Azioni',
-  etf: 'ETF',
-  forex: 'Forex',
-  crypto: 'Crypto',
-};
+interface SearchResultLabels {
+  noResults: string;
+}
 
 // Helper to render search results
 function renderSearchResults(
@@ -27,7 +25,8 @@ function renderSearchResults(
   isEnsuring: boolean,
   results: AvailableShare[],
   hasSearched: boolean,
-  currentValue: string
+  currentValue: string,
+  labels: SearchResultLabels
 ) {
   if (isLoading || isEnsuring) {
     return (
@@ -38,7 +37,7 @@ function renderSearchResults(
   }
 
   if (results.length === 0 && hasSearched) {
-    return <div className={formStyles.categorySelect.empty}>Nessun titolo trovato</div>;
+    return <div className={formStyles.categorySelect.empty}>{labels.noResults}</div>;
   }
 
   if (results.length > 0) {
@@ -79,8 +78,16 @@ function renderSearchResults(
 }
 
 export function ShareSelector({ value, onChange, className }: Readonly<ShareSelectorProps>) {
+  const t = useTranslations('Investments.ShareSelector');
   const [isOpen, setIsOpen] = React.useState(false);
   const searchInputRef = React.useRef<HTMLInputElement | null>(null);
+
+  const ASSET_TYPE_LABELS: Record<string, string> = {
+    stock: t('assetTypes.stock'),
+    etf: t('assetTypes.etf'),
+    forex: t('assetTypes.forex'),
+    crypto: t('assetTypes.crypto'),
+  };
 
   const {
     searchValue,
@@ -153,14 +160,14 @@ export function ShareSelector({ value, onChange, className }: Readonly<ShareSele
     >
       <SelectPrimitive.Trigger
         className={cn(selectStyles.trigger, className)}
-        aria-label="Seleziona benchmark"
+        aria-label={t('ariaLabel')}
       >
         <div className={formStyles.categorySelect.triggerRow}>
           {value ? (
             <span className={formStyles.categorySelect.triggerLabel}>{selectedLabel}</span>
           ) : (
             <span className={formStyles.categorySelect.triggerPlaceholder}>
-              Seleziona benchmark...
+              {t('placeholder')}
             </span>
           )}
         </div>
@@ -184,7 +191,7 @@ export function ShareSelector({ value, onChange, className }: Readonly<ShareSele
               <input
                 ref={searchInputRef}
                 type="text"
-                placeholder="Cerca titolo USA..."
+                placeholder={t('searchPlaceholder')}
                 value={searchValue}
                 onChange={(event) => setSearchValue(event.target.value)}
                 onKeyDown={(event) => event.stopPropagation()}
@@ -206,7 +213,7 @@ export function ShareSelector({ value, onChange, className }: Readonly<ShareSele
                     : 'border-primary/20 text-primary/70 hover:border-primary/50'
                 )}
               >
-                Tutti
+                {t('allAssetTypes')}
               </button>
               {assetTypes.map((type) => (
                 <button
@@ -228,15 +235,17 @@ export function ShareSelector({ value, onChange, className }: Readonly<ShareSele
             {!debouncedSearch && (
               <div className={formStyles.categorySelect.allHeader}>
                 <TrendingUp className={formStyles.categorySelect.allIcon} />
-                <span className={formStyles.categorySelect.allLabel}>Cerca un titolo USA</span>
+                <span className={formStyles.categorySelect.allLabel}>{t('searchHint')}</span>
               </div>
             )}
 
             {debouncedSearch.trim().length > 0 && debouncedSearch.trim().length < 3 && (
-              <div className={formStyles.categorySelect.empty}>Inserisci almeno 3 caratteri</div>
+              <div className={formStyles.categorySelect.empty}>{t('minCharsHint')}</div>
             )}
 
-            {renderSearchResults(isLoading, isEnsuring, results, hasSearched, value)}
+            {renderSearchResults(isLoading, isEnsuring, results, hasSearched, value, {
+              noResults: t('noResults'),
+            })}
           </SelectPrimitive.Viewport>
         </SelectPrimitive.Content>
       </SelectPrimitive.Portal>

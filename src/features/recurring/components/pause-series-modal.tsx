@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Loader2, Pause, Play } from 'lucide-react';
 import { Button, ModalBody, ModalFooter, ModalWrapper, Amount } from '@/components/ui';
 import { RecurringTransactionSeries } from '@/lib/types';
@@ -20,13 +21,14 @@ export function PauseSeriesModal({
   series,
   onSuccess,
 }: Readonly<PauseSeriesModalProps>) {
+  const t = useTranslations('Recurring.PauseModal');
   const [isLoading, setIsLoading] = useState(false);
 
   if (!series) return null;
 
   const willPause = series.is_active;
-  const actionText = willPause ? 'Mettere in pausa' : 'Riprendere';
-  const actionTextLower = willPause ? 'messa in pausa' : 'ripresa';
+  const actionText = willPause ? t('actions.pause') : t('actions.resume');
+  const actionTextLower = willPause ? t('actions.pausedLower') : t('actions.resumedLower');
 
   const handleConfirm = async () => {
     setIsLoading(true);
@@ -49,12 +51,8 @@ export function PauseSeriesModal({
     <ModalWrapper
       isOpen={isOpen}
       onOpenChange={onOpenChange}
-      title={`${actionText} serie ricorrente`}
-      description={
-        willPause
-          ? 'La serie non genererà più transazioni automatiche'
-          : 'La serie riprenderà a generare transazioni'
-      }
+      title={t('title', { action: actionText })}
+      description={willPause ? t('description.pause') : t('description.resume')}
       showCloseButton={!isLoading}
       disableOutsideClose={isLoading}
     >
@@ -74,26 +72,20 @@ export function PauseSeriesModal({
           <div className={recurringStyles.pauseModal.description}>
             {willPause ? (
               <>
-                <p>
-                  La serie ricorrente verrà {actionTextLower}. Non verranno più create transazioni
-                  automatiche finché non la riattiverai.
-                </p>
+                <p>{t('body.pauseMain', { action: actionTextLower })}</p>
                 <p className={recurringStyles.pauseModal.descriptionStrong}>
-                  Le transazioni già create rimarranno invariate.
+                  {t('body.pauseSecondary')}
                 </p>
               </>
             ) : (
-              <p>
-                La serie ricorrente verrà {actionTextLower}. Riprenderà a generare transazioni
-                automatiche secondo la frequenza impostata.
-              </p>
+              <p>{t('body.resumeMain', { action: actionTextLower })}</p>
             )}
           </div>
         </div>
       </ModalBody>
       <ModalFooter>
         <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
-          Annulla
+          {t('buttons.cancel')}
         </Button>
         <Button onClick={handleConfirm} disabled={isLoading}>
           {isLoading ? (

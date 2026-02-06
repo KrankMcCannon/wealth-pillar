@@ -18,6 +18,10 @@ import { getLatestCloseFromSeries, normalizeSeriesValues } from '@/lib/types/mar
  * 5. Return data.
  */
 export class MarketDataService {
+  private static readonly refreshInFlight = new Map<string, Promise<void>>();
+  private static readonly lastRefreshAttemptAt = new Map<string, number>();
+  private static readonly REFRESH_COOLDOWN_MS = 60_000;
+
   static async getCachedSeriesBySymbols(symbols: string[]): Promise<MarketDataCacheRow[]> {
     const normalized = Array.from(new Set(symbols.map((s) => s.toUpperCase())));
     if (normalized.length === 0) return [];
@@ -76,22 +80,13 @@ export class MarketDataService {
       return Array.isArray(values) ? normalizeSeriesValues(values) : [];
     }
 
-    // Fallback: fetch fresh data, save to DB, then read from cache
-    await this.getMarketData(normalizedSymbol);
-
-    const { data: refreshed } = await supabase
-      .from('market_data_cache')
-      .select('data')
-      .eq('symbol', normalizedSymbol)
-      .single();
-
-    if (!refreshed) {
-      return [];
+    if (error && error.code !== 'PGRST116') {
+      console.error(`[MarketData] Error reading cache for ${normalizedSymbol}:`, error);
     }
 
-    const refreshedData = refreshed as { data?: TimeSeriesEntry[] };
-    const values = refreshedData.data;
-    return Array.isArray(values) ? normalizeSeriesValues(values) : [];
+    // Cache miss: do not block UI render on external API latency.
+    this.refreshMarketDataInBackground(normalizedSymbol);
+    return [];
   }
 
   private static readonly getBatchQuotesCached = cache(async (symbolsKey: string) => {
@@ -201,6 +196,29 @@ export class MarketDataService {
     } catch (dbError) {
       console.error(`[MarketData] Database save error for ${symbol}:`, dbError);
     }
+  }
+
+  private static refreshMarketDataInBackground(symbol: string): void {
+    if (this.refreshInFlight.has(symbol)) return;
+
+    const now = Date.now();
+    const lastAttempt = this.lastRefreshAttemptAt.get(symbol);
+    if (lastAttempt && now - lastAttempt < this.REFRESH_COOLDOWN_MS) {
+      return;
+    }
+
+    this.lastRefreshAttemptAt.set(symbol, now);
+
+    const refreshPromise: Promise<void> = this.getMarketData(symbol)
+      .then(() => undefined)
+      .catch((err) => {
+        console.error(`[MarketData] Background refresh failed for ${symbol}:`, err);
+      })
+      .finally(() => {
+        this.refreshInFlight.delete(symbol);
+      });
+
+    this.refreshInFlight.set(symbol, refreshPromise);
   }
 
   /**

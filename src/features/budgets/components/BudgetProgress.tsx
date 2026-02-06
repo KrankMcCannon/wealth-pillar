@@ -5,6 +5,7 @@
 
 'use client';
 
+import { useTranslations } from 'next-intl';
 import {
   budgetStyles,
   getProgressBarFillStyles,
@@ -21,6 +22,7 @@ export interface BudgetProgressProps {
 }
 
 export function BudgetProgress({ progressData }: Readonly<BudgetProgressProps>) {
+  const t = useTranslations('Budgets.Progress');
   if (!progressData) return null;
 
   const { percentage } = progressData;
@@ -35,9 +37,9 @@ export function BudgetProgress({ progressData }: Readonly<BudgetProgressProps>) 
   const status = getStatus(percentage);
 
   const statusMessages = {
-    safe: '✅ Budget sotto controllo',
-    warning: '⚠️ Attenzione, quasi esaurito',
-    danger: '⚠️ Budget superato',
+    safe: t('status.safe'),
+    warning: t('status.warning'),
+    danger: t('status.danger'),
   };
 
   const percentageColors = {
@@ -55,7 +57,7 @@ export function BudgetProgress({ progressData }: Readonly<BudgetProgressProps>) 
       <div className={budgetStyles.progress.header}>
         <div className={budgetStyles.progress.indicatorRow}>
           <div className={indicatorClass}></div>
-          <span className={budgetStyles.progress.label}>Progresso Budget</span>
+          <span className={budgetStyles.progress.label}>{t('label')}</span>
         </div>
         <span className={`${budgetStyles.progress.percentage} ${percentageColors[status]}`}>
           {Math.round(percentage)}%

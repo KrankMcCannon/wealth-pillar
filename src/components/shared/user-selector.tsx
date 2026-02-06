@@ -1,6 +1,7 @@
 'use client';
 
 import { memo, useCallback, useMemo } from 'react';
+import { useTranslations } from 'next-intl';
 import { Users, User as UserIcon, Crown, Star, Heart } from 'lucide-react';
 import { useUserFilter } from '@/hooks';
 import { User } from '@/lib/types';
@@ -35,6 +36,7 @@ const UserSelector = memo(
     onChange,
     showAllOption = true,
   }: UserSelectorProps) => {
+    const t = useTranslations('UserSelector');
     // Read from props instead of stores
     const { selectedGroupFilter, setSelectedGroupFilter } = useUserFilter();
 
@@ -59,12 +61,12 @@ const UserSelector = memo(
       if (showAllOption) {
         list.unshift({
           id: 'all',
-          name: 'Tutti',
+          name: t('all'),
           isSpecial: true,
         });
       }
       return list;
-    }, [users, showAllOption]);
+    }, [users, showAllOption, t]);
 
     // Memoized click handler
     const handleMemberClick = useCallback(
@@ -127,7 +129,7 @@ const UserSelector = memo(
                 }`}
                 disabled={isLoading}
                 aria-pressed={isSelected}
-                aria-label={`Seleziona ${member.name}`}
+                aria-label={t('selectUserAria', { name: member.name })}
               >
                 <div
                   className={`${userSelectorStyles.icon.containerBase} ${
