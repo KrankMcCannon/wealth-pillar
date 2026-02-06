@@ -36,24 +36,29 @@ export default function ReportsContent({
         title={t('headerTitle')}
         showBack={true}
         currentUser={{ name: currentUser.name, role: currentUser.role || 'member' }}
+        showActions={true}
       />
 
-      <div className="space-y-8 pt-4 pb-10 px-4">
-        {/* Summary by Account Type */}
-        <PageSection>
-          <SummarySection data={accountTypeSummary} />
-        </PageSection>
+      <main className="px-3 pb-24 pt-4 md:pb-8">
+        <div className="space-y-4 md:space-y-6">
+          {/* Summary by Account Type */}
+          <PageSection variant="card" padding="md">
+            <SummarySection data={accountTypeSummary} />
+          </PageSection>
 
-        {/* Report Periods */}
-        <PageSection>
-          <PeriodsSection data={periodSummaries} users={groupUsers} />
-        </PageSection>
+          <div className="space-y-4 md:grid md:grid-cols-12 md:items-start md:gap-6 md:space-y-0">
+            {/* Report Periods */}
+            <PageSection variant="card" padding="md" className="md:col-span-7">
+              <PeriodsSection data={periodSummaries} users={groupUsers} />
+            </PageSection>
 
-        {/* Categories */}
-        <PageSection>
-          <CategoriesSection incomeStats={incomeStats} expenseStats={expenseStats} />
-        </PageSection>
-      </div>
+            {/* Mobile view is intentionally simplified */}
+            <PageSection variant="card" padding="md" className="hidden md:col-span-5 md:block">
+              <CategoriesSection incomeStats={incomeStats} expenseStats={expenseStats} />
+            </PageSection>
+          </div>
+        </div>
+      </main>
 
       <BottomNavigation />
     </PageContainer>

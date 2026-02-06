@@ -6,8 +6,8 @@
 export const dashboardStyles = {
   // Page layout
   page: {
-    container: 'relative flex w-full min-h-[100svh] flex-col bg-card',
-    main: 'pb-14',
+    container: 'relative flex w-full min-h-[100svh] flex-col bg-card md:pl-64',
+    main: 'pb-20 md:pb-8',
   },
 
   // Header section
@@ -75,7 +75,7 @@ export const dashboardStyles = {
 
   // Budget section
   budgetSection: {
-    container: 'bg-card/30 backdrop-blur-md p-4 border-y border-primary/10',
+    container: 'bg-card/30 backdrop-blur-md border-y border-primary/10',
     header: 'mb-4',
     title: 'text-sm font-medium text-muted mb-3',
     grid: 'grid gap-4',
@@ -110,7 +110,7 @@ export const dashboardStyles = {
   // Recurring series section
   recurringSection: {
     container:
-      'bg-card/80 backdrop-blur-xl shadow-lg shadow-primary/10 rounded-xl border border-primary/20 m-4',
+      'bg-card/80 backdrop-blur-xl shadow-lg shadow-primary/10 rounded-xl border border-primary/20',
     header: 'mb-4',
     title: 'text-sm font-medium text-muted mb-3',
     grid: 'grid gap-3',

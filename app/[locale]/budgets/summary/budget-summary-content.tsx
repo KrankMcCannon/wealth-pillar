@@ -54,32 +54,36 @@ export default function BudgetSummaryContent(props: Readonly<BudgetSummaryConten
       />
 
       {userSummary ? (
-        <main className={budgetStyles.page.main}>
-          {/* Summary Info Cards */}
-          <BudgetSummaryCards userSummary={userSummary} />
+        <main className={`${budgetStyles.page.main} px-3 pb-24 pt-3 md:pb-8`}>
+          <div className="space-y-4 md:grid md:grid-cols-12 md:items-start md:gap-6 md:space-y-0">
+            <div className="space-y-4 md:col-span-5">
+              {/* Summary Info Cards */}
+              <BudgetSummaryCards userSummary={userSummary} />
 
-          {/* Related Budgets List (Grouped Style) */}
-          <div className={budgetStyles.summary.activeList.container}>
-            <BudgetSummaryActiveList
-              userSummary={userSummary}
-              budgets={budgets}
-              onBudgetClick={(id) => router.push(`/budgets?budget=${id}`)}
-            />
-          </div>
+              {/* Related Budgets List */}
+              <div className={budgetStyles.summary.activeList.container}>
+                <BudgetSummaryActiveList
+                  userSummary={userSummary}
+                  budgets={budgets}
+                  onBudgetClick={(id) => router.push(`/budgets?budget=${id}`)}
+                />
+              </div>
+            </div>
 
-          {/* Related Transactions */}
-          <div className="space-y-3">
-            <TransactionDayList
-              groupedTransactions={groupedTransactions}
-              accountNames={accountNamesMap}
-              categories={categories}
-              sectionTitle={t('transactions.sectionTitle')}
-              emptyTitle={t('transactions.emptyTitle')}
-              emptyDescription={t('transactions.emptyDescription')}
-              expensesOnly
-              onEditTransaction={() => {}}
-              onDeleteTransaction={() => {}}
-            />
+            {/* Desktop-only transactions to keep mobile flow focused */}
+            <div className="hidden space-y-3 md:col-span-7 md:block">
+              <TransactionDayList
+                groupedTransactions={groupedTransactions}
+                accountNames={accountNamesMap}
+                categories={categories}
+                sectionTitle={t('transactions.sectionTitle')}
+                emptyTitle={t('transactions.emptyTitle')}
+                emptyDescription={t('transactions.emptyDescription')}
+                expensesOnly
+                onEditTransaction={() => {}}
+                onDeleteTransaction={() => {}}
+              />
+            </div>
           </div>
         </main>
       ) : (

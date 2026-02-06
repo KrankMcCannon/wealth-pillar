@@ -2,9 +2,9 @@ export const investmentsStyles = {
   container: 'space-y-8',
   card: {
     root: 'border-none shadow-md overflow-hidden',
-    header: 'px-6 pt-6',
-    headerWithBorder: 'px-6 pt-6 border-b bg-primary/5',
-    content: 'p-6',
+    header: 'px-3 pt-3',
+    headerWithBorder: 'px-4 pt-4 border-b bg-primary/5',
+    content: 'p-3',
     contentNoPadding: 'p-0',
     title: 'text-xl text-primary',
     description: 'text-primary/70',

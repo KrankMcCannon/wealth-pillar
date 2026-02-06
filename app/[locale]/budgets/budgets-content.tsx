@@ -88,71 +88,74 @@ export default function BudgetsContent(props: BudgetsContentProps) {
       </Suspense>
 
       {/* Main content area with progressive loading */}
-      <main className={budgetStyles.page.main}>
+      <main className={`${budgetStyles.page.main} px-3 pb-24 pt-3 md:pb-8`}>
         {userBudgets.length > 0 && selectedBudget ? (
-          <>
-            {/* Budget selector with fallback skeleton */}
-            <Suspense fallback={<BudgetSelectorSkeleton />}>
-              <BudgetSelector
-                selectedBudget={selectedBudget}
-                availableBudgets={userBudgets}
-                users={groupUsers}
-                onBudgetSelect={handleBudgetSelect}
-              />
-            </Suspense>
+          <div className="space-y-4">
+            <div className="space-y-4 lg:col-span-5">
+              {/* Budget selector with fallback skeleton */}
+              <Suspense fallback={<BudgetSelectorSkeleton />}>
+                <BudgetSelector
+                  selectedBudget={selectedBudget}
+                  availableBudgets={userBudgets}
+                  users={groupUsers}
+                  onBudgetSelect={handleBudgetSelect}
+                />
+              </Suspense>
 
-            {/* Budget display card with period info and metrics */}
-            <Suspense fallback={<BudgetCardSkeleton />}>
-              <BudgetDisplayCard
-                budget={selectedBudget}
-                period={periodInfo?.activePeriod || null}
-                budgetProgress={
-                  selectedBudgetProgress
-                    ? {
+              {/* Budget display card with period info and metrics */}
+              <Suspense fallback={<BudgetCardSkeleton />}>
+                <BudgetDisplayCard
+                  budget={selectedBudget}
+                  period={periodInfo?.activePeriod || null}
+                  budgetProgress={
+                    selectedBudgetProgress
+                      ? {
+                          spent: selectedBudgetProgress.spent,
+                          remaining: selectedBudgetProgress.remaining,
+                          percentage: selectedBudgetProgress.percentage,
+                          amount: selectedBudgetProgress.amount,
+                        }
+                      : null
+                  }
+                  onEdit={handleEditBudget}
+                  onDelete={handleDeleteBudget}
+                />
+              </Suspense>
+
+              {/* Progressive sections loaded with budget progress */}
+              {selectedBudgetProgress && (
+                <>
+                  <Suspense fallback={<BudgetProgressSkeleton />}>
+                    <BudgetProgress
+                      progressData={{
+                        percentage: selectedBudgetProgress.percentage,
                         spent: selectedBudgetProgress.spent,
                         remaining: selectedBudgetProgress.remaining,
-                        percentage: selectedBudgetProgress.percentage,
                         amount: selectedBudgetProgress.amount,
+                      }}
+                    />
+                  </Suspense>
+
+                  <Suspense fallback={<BudgetChartSkeleton />}>
+                    <BudgetChart
+                      spent={selectedBudgetProgress.spent}
+                      chartData={chartData}
+                      periodInfo={
+                        periodInfo
+                          ? {
+                              startDate: periodInfo.start || '',
+                              endDate: periodInfo.end,
+                            }
+                          : null
                       }
-                    : null
-                }
-                onEdit={handleEditBudget}
-                onDelete={handleDeleteBudget}
-              />
-            </Suspense>
+                    />
+                  </Suspense>
+                </>
+              )}
+            </div>
 
-            {/* Progressive sections loaded with budget progress */}
             {selectedBudgetProgress && (
-              <>
-                {/* Progress indicator */}
-                <Suspense fallback={<BudgetProgressSkeleton />}>
-                  <BudgetProgress
-                    progressData={{
-                      percentage: selectedBudgetProgress.percentage,
-                      spent: selectedBudgetProgress.spent,
-                      remaining: selectedBudgetProgress.remaining,
-                      amount: selectedBudgetProgress.amount,
-                    }}
-                  />
-                </Suspense>
-
-                {/* Expense trend chart */}
-                <Suspense fallback={<BudgetChartSkeleton />}>
-                  <BudgetChart
-                    spent={selectedBudgetProgress.spent}
-                    chartData={chartData}
-                    periodInfo={
-                      periodInfo
-                        ? {
-                            startDate: periodInfo.start || '',
-                            endDate: periodInfo.end,
-                          }
-                        : null
-                    }
-                  />
-                </Suspense>
-
-                {/* Grouped transactions list */}
+              <div className="space-y-4 lg:col-span-7">
                 <Suspense fallback={<TransactionDayListSkeleton itemCount={3} showHeader />}>
                   <TransactionDayList
                     groupedTransactions={groupedTransactions}
@@ -187,9 +190,9 @@ export default function BudgetsContent(props: BudgetsContentProps) {
                     }}
                   />
                 </Suspense>
-              </>
+              </div>
             )}
-          </>
+          </div>
         ) : (
           <EmptyState
             icon={ShoppingCart}

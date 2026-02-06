@@ -328,8 +328,10 @@
       "empty": "No data available."
     },
     "PeriodCard": {
+      "balanceLabel": "Balance",
       "incomeLabel": "Income",
       "expensesLabel": "Expenses",
+      "netLabel": "Net",
       "netSavingsLabel": "Net Savings",
       "byAccountTypeTitle": "By Account Type"
     }

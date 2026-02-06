@@ -34,7 +34,7 @@ export function BenchmarkChart({
 
   return (
     <Card className={investmentsStyles.card.root} id={anchorId}>
-      <CardHeader className="px-6 pt-6 flex flex-col gap-4">
+      <CardHeader className="px-3 pt-3 flex flex-col gap-4">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <CardTitle className={investmentsStyles.card.title}>{t('title')}</CardTitle>

@@ -28,6 +28,10 @@ export function PeriodsSection({ data, users }: PeriodsSectionProps) {
 
   // Filter users who have periods
   const activeUsers = users.filter((user) => (periodsByUser[user.id]?.length || 0) > 0);
+  const userColumnCount = Math.max(activeUsers.length, 1);
+  const usersGridStyle = {
+    '--reports-user-columns': `repeat(${userColumnCount}, minmax(0, 1fr))`,
+  } as React.CSSProperties;
 
   return (
     <div className="space-y-4">
@@ -41,24 +45,22 @@ export function PeriodsSection({ data, users }: PeriodsSectionProps) {
           <p className="text-primary/60">{t('empty')}</p>
         </div>
       ) : (
-        <div className={`grid gap-6 grid-cols-${activeUsers.length}`}>
+        <div className={reportsStyles.periods.usersGrid} style={usersGridStyle}>
           {activeUsers.map((user) => (
-            <React.Fragment key={user.id}>
-              <div key={user.id} className="space-y-4">
-                <h4 className="text-lg font-semibold flex items-center gap-2 border-b border-primary/20 pb-2 text-primary">
-                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-sm font-bold">
-                    {user.name.charAt(0).toUpperCase()}
-                  </div>
-                  {user.name}
-                </h4>
-
-                <div className="space-y-4">
-                  {periodsByUser[user.id].map((period) => (
-                    <PeriodCard key={period.id} period={period} />
-                  ))}
+            <section key={user.id} className={reportsStyles.periods.userColumn}>
+              <header className={reportsStyles.periods.userHeader}>
+                <div className={reportsStyles.periods.userAvatar}>
+                  {user.name.charAt(0).toUpperCase()}
                 </div>
+                <h4 className={reportsStyles.periods.userName}>{user.name}</h4>
+              </header>
+
+              <div className={reportsStyles.periods.userPeriods}>
+                {periodsByUser[user.id].map((period) => (
+                  <PeriodCard key={period.id} period={period} />
+                ))}
               </div>
-            </React.Fragment>
+            </section>
           ))}
         </div>
       )}

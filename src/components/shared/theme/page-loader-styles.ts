@@ -4,7 +4,7 @@
  */
 
 export const pageLoaderStyles = {
-  page: 'relative flex w-full min-h-[100svh] flex-col bg-card',
+  page: 'relative flex w-full min-h-[100svh] flex-col bg-card md:pl-64',
   container: 'flex-1 flex items-center justify-center',
   content: 'text-center',
   iconWrap:

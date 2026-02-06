@@ -328,9 +328,11 @@
       "empty": "Nessun dato disponibile."
     },
     "PeriodCard": {
+      "balanceLabel": "Saldo",
       "incomeLabel": "Entrate",
       "expensesLabel": "Uscite",
-      "netSavingsLabel": "Risparmio Netto",
+      "netLabel": "Netto",
+      "netSavingsLabel": "Netto",
       "byAccountTypeTitle": "Per Tipo di Conto"
     }
   },

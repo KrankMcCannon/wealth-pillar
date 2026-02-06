@@ -214,7 +214,7 @@ export const accountStyles = {
   // Balance Section (Dashboard)
   // ====================================
   balanceSection: {
-    container: 'bg-card p-4 shadow-sm',
+    container: 'bg-card',
   },
 
   // ====================================

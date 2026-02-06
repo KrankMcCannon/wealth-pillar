@@ -39,58 +39,74 @@ export const reportsStyles = {
 
   // --- PERIODS SECTION ---
   periods: {
-    sectionTitle: 'text-lg font-semibold text-primary flex items-center gap-2',
-    grid: 'grid gap-4 md:grid-cols-2 xl:grid-cols-3',
-    card: `bg-card border border-primary/20 ${radiusStyles.lg} overflow-hidden hover:border-primary/40 hover:shadow-md transition-all duration-200 flex flex-col`,
-
-    // Header
-    cardHeader: 'p-4 bg-primary/5 border-b border-primary/20 flex items-start justify-between',
-    cardTitleDetails: 'flex flex-col',
-    cardTitle: 'font-semibold text-primary text-base',
-    cardHeaderMetrics: 'text-right flex flex-col items-end gap-1',
-    netLabel: 'text-[10px] uppercase font-bold text-primary/70',
-    netValue: 'text-sm font-bold bg-primary/10 px-2 py-0.5 rounded-full text-primary',
-
-    // Content
-    cardContent: 'p-4 sm:p-5 space-y-5 flex-1',
-
-    // Global Metrics (Income vs Expense)
-    globalMetrics: 'grid grid-cols-1 sm:grid-cols-3 gap-2 mb-5',
+    sectionTitle: 'text-base md:text-lg font-semibold text-primary flex items-center gap-2',
+    usersGrid: 'grid grid-cols-1 gap-5 md:grid-cols-[var(--reports-user-columns)]',
+    userColumn:
+      'space-y-4 rounded-2xl border border-primary/15 bg-card/40 p-3 backdrop-blur-sm shadow-sm',
+    userHeader: 'flex items-center gap-3 border-b border-primary/15 pb-3',
+    userAvatar:
+      'flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary',
+    userName: 'text-base font-semibold text-primary',
+    userPeriods: 'space-y-4',
+    card: `overflow-hidden rounded-2xl border border-primary/20 bg-card/80 ${shadowStyles.card} transition-all duration-200 hover:border-primary/35 hover:shadow-md`,
+    cardHeader:
+      'flex items-center justify-between gap-3 border-b border-primary/15 bg-primary/5 px-4 py-3',
+    cardTitleDetails: 'min-w-0',
+    cardTitle: 'truncate text-sm font-semibold text-primary md:text-base',
+    cardNet:
+      'inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold tabular-nums whitespace-nowrap',
+    cardNetPositive:
+      'border-emerald-500/25 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400',
+    cardNetNegative: 'border-red-500/25 bg-red-500/10 text-red-700 dark:text-red-400',
+    cardNetNeutral: 'border-primary/20 bg-primary/10 text-primary',
+    cardContent: 'space-y-4 p-3',
+    globalMetrics: 'space-y-2',
+    globalTotalsRow: 'grid grid-cols-1 gap-2',
     globalMetricIncome:
-      'flex flex-col gap-1.5 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20',
+      'rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3 flex items-center justify-between gap-3 min-w-0',
     globalMetricExpense:
-      'flex flex-col gap-1.5 p-3 rounded-xl bg-red-500/10 border border-red-500/20',
-    globalMetricNet: 'flex flex-col gap-1.5 p-3 rounded-xl bg-primary/10 border border-primary/20',
-    globalLabel: 'text-[11px] uppercase tracking-wider text-primary/70 font-semibold',
-    globalValueIncome: 'text-lg font-bold text-emerald-600 dark:text-emerald-400 tabular-nums',
-    globalValueExpense: 'text-lg font-bold text-red-600 dark:text-red-400 tabular-nums',
-    globalValueNet: 'text-lg font-bold text-primary tabular-nums',
-
-    // Account Types Breakdown
+      'rounded-xl border border-red-500/20 bg-red-500/10 p-3 flex items-center justify-between gap-3 min-w-0',
+    globalMetricNet:
+      'rounded-xl border border-primary/20 bg-primary/10 p-3 flex items-center justify-between gap-3 min-w-0',
+    globalNetRow: 'flex justify-end',
+    globalLabel: 'text-[10px] uppercase tracking-wider font-semibold whitespace-nowrap',
+    globalLabelIncome: 'text-emerald-700/85 dark:text-emerald-300/85',
+    globalLabelExpense: 'text-red-700/85 dark:text-red-300/85',
+    globalLabelNet: 'text-primary/80',
+    globalValueIncome:
+      'text-sm lg:text-base font-bold tabular-nums leading-tight text-emerald-600 dark:text-emerald-400 whitespace-nowrap text-right',
+    globalValueExpense:
+      'text-sm lg:text-base font-bold tabular-nums leading-tight text-red-600 dark:text-red-400 whitespace-nowrap text-right',
+    globalValueNet:
+      'text-sm lg:text-base font-bold tabular-nums leading-tight text-primary whitespace-nowrap text-right',
     breakdownContainer: 'space-y-3',
-    breakdownTitle: 'text-[10px] font-bold uppercase tracking-wider text-primary/60 mb-3 px-1',
-    breakdownList: 'space-y-3',
+    breakdownTitle: 'px-0.5 text-[11px] font-semibold uppercase tracking-wider text-primary/65',
+    breakdownList: 'space-y-2.5',
     breakdownItem:
-      'grid grid-cols-2 sm:grid-cols-12 items-center gap-3 sm:gap-4 p-3 rounded-lg bg-card border border-primary/10 hover:border-primary/30 hover:shadow-sm transition-all',
-    breakdownType:
-      'col-span-2 sm:col-span-3 flex items-center gap-2.5 font-medium text-sm text-primary',
-    breakdownDot: 'w-2.5 h-2.5 rounded-full ring-2 ring-background',
-    breakdownBalance:
-      'col-span-2 sm:col-span-2 flex flex-col items-center justify-center text-[11px] text-primary font-mono tabular-nums mt-1 sm:mt-0 whitespace-nowrap',
-
-    // Flows: Full width on mobile, wider on desktop
-    breakdownFlows:
-      'col-span-2 sm:col-span-4 flex flex-col items-center sm:items-end gap-1 text-primary/80 font-medium tabular-nums sm:pr-2',
-    breakdownIn: 'text-emerald-600/90 dark:text-emerald-400/90',
-    breakdownOut: 'text-red-600/90 dark:text-red-400/90',
-
-    // Net Badge: Full width on mobile, narrower on desktop
+      'rounded-xl border border-primary/15 bg-card/70 p-3 transition-colors hover:border-primary/30',
+    breakdownHeader: 'flex items-center gap-3',
+    breakdownType: 'flex items-center gap-2 text-sm font-semibold text-primary',
+    breakdownDot: 'h-2.5 w-2.5 rounded-full ring-2 ring-background',
+    breakdownStats: 'mt-2.5 grid grid-cols-1 gap-2',
+    breakdownStat:
+      'rounded-lg border border-primary/10 bg-primary/5 px-2.5 py-2 min-w-0 overflow-hidden',
+    breakdownStatRow: 'grid grid-cols-[1fr_auto] items-center gap-2',
+    breakdownMetricLabel: 'text-[10px] uppercase tracking-wide text-primary/60 whitespace-nowrap',
+    breakdownBalanceStack: 'flex flex-col items-center leading-tight gap-0.5',
+    breakdownAmount:
+      'text-[11px] lg:text-sm font-semibold tabular-nums leading-tight text-primary whitespace-nowrap',
+    breakdownBalanceArrow: 'text-[10px] text-primary/45',
+    breakdownIn:
+      'text-[11px] lg:text-sm font-semibold tabular-nums leading-tight text-emerald-600 dark:text-emerald-400 whitespace-nowrap text-right min-w-[6.75rem]',
+    breakdownOut:
+      'text-[11px] lg:text-sm font-semibold tabular-nums leading-tight text-red-600 dark:text-red-400 whitespace-nowrap text-right min-w-[6.75rem]',
     breakdownNetBadge:
-      'col-span-2 sm:col-span-3 justify-self-start sm:justify-self-end px-2.5 py-1 rounded-md text-[11px] font-bold tabular-nums min-w-[70px] text-center w-full sm:w-auto mt-2 sm:mt-0 whitespace-nowrap',
+      'mt-3 inline-flex max-w-full items-center rounded-md border px-2.5 py-1 text-xs font-semibold tabular-nums leading-tight',
+    breakdownNetRow: 'mt-2 flex justify-end',
     breakdownNetPositive:
-      'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20',
-    breakdownNetNegative: 'bg-red-500/10 text-red-700 dark:text-red-400 border border-red-500/20',
-    breakdownNetNeutral: 'bg-primary/10 text-primary border border-primary/20',
+      'border-emerald-500/25 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400',
+    breakdownNetNegative: 'border-red-500/25 bg-red-500/10 text-red-700 dark:text-red-400',
+    breakdownNetNeutral: 'border-primary/20 bg-primary/10 text-primary',
   },
 
   // --- CATEGORIES SECTION ---
@@ -102,7 +118,7 @@ export const reportsStyles = {
     colTotal: 'text-sm font-bold text-primary/80',
 
     list: 'space-y-3',
-    item: `flex items-center justify-between p-3 rounded-xl border border-transparent hover:bg-primary/5 hover:border-primary/20 transition-all duration-200 group`,
+    item: `flex items-center justify-between rounded-xl border border-transparent hover:bg-primary/5 hover:border-primary/20 transition-all duration-200 group`,
     itemLeft: 'flex items-center gap-3',
     iconBox:
       'w-9 h-9 rounded-full flex items-center justify-center text-lg shadow-sm border border-primary/10',

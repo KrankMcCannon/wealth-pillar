@@ -53,35 +53,48 @@ export default function InvestmentsContent({
 
         <UserSelector currentUser={currentUser} users={groupUsers} />
 
-        <div className={transactionStyles.tabNavigation.wrapper}>
-          <TabNavigation
-            tabs={[
-              { id: 'personal', label: t('tabs.personal') },
-              { id: 'sandbox', label: t('tabs.sandbox') },
-            ]}
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
-            variant="modern"
-          />
-        </div>
+        <main className="px-3 pb-24 md:pb-8">
+          {/* Mobile-first flow: only mandatory portfolio view */}
+          <div className="md:hidden">
+            <PersonalInvestmentTab
+              investments={investments}
+              summary={summary}
+              indexData={indexData}
+              currentIndex={currentIndex}
+            />
+          </div>
 
-        <div className="mt-8 space-y-6">
-          {activeTab === 'personal' && (
-            <main className={transactionStyles.page.main}>
-              <PersonalInvestmentTab
-                investments={investments}
-                summary={summary}
-                indexData={indexData}
-                currentIndex={currentIndex}
+          {/* Desktop flow: full investment workspace with tabs */}
+          <div className="hidden space-y-4 md:block">
+            <div className={transactionStyles.tabNavigation.wrapper}>
+              <TabNavigation
+                tabs={[
+                  { id: 'personal', label: t('tabs.personal') },
+                  { id: 'sandbox', label: t('tabs.sandbox') },
+                ]}
+                activeTab={activeTab}
+                onTabChange={setActiveTab}
+                variant="modern"
               />
-            </main>
-          )}
-          {activeTab === 'sandbox' && (
-            <main className={transactionStyles.page.main}>
-              <SandboxForecastTab />
-            </main>
-          )}
-        </div>
+            </div>
+
+            {activeTab === 'personal' && (
+              <div className={transactionStyles.page.main}>
+                <PersonalInvestmentTab
+                  investments={investments}
+                  summary={summary}
+                  indexData={indexData}
+                  currentIndex={currentIndex}
+                />
+              </div>
+            )}
+            {activeTab === 'sandbox' && (
+              <div className={transactionStyles.page.main}>
+                <SandboxForecastTab />
+              </div>
+            )}
+          </div>
+        </main>
       </div>
 
       <BottomNavigation />

@@ -116,9 +116,9 @@ export const layoutStyles = {
     },
     padding: {
       none: '',
-      sm: 'p-3',
-      md: 'p-4',
-      lg: 'p-6',
+      sm: 'p-2',
+      md: 'p-3',
+      lg: 'p-4',
     },
   },
   list: {
@@ -341,8 +341,8 @@ export type BudgetStatus = 'safe' | 'warning' | 'danger';
 
 export const budgetStyles = {
   page: {
-    container: 'relative flex w-full min-h-dvh flex-col bg-card',
-    main: `flex-1 ${spacingStyles.page.mobile} ${spacingStyles.page.tablet} space-y-4 sm:space-y-6 pb-14`,
+    container: 'relative flex w-full min-h-dvh flex-col bg-card md:pl-64',
+    main: `flex-1 ${spacingStyles.page.mobile} ${spacingStyles.page.tablet} space-y-4 sm:space-y-6 pb-20 md:pb-8`,
   },
   header: {
     container: budgetTokens.components.header.container,
@@ -1008,7 +1008,7 @@ export const transactionTokens = {
 
 export const transactionStyles = {
   page: {
-    container: 'relative flex w-full min-h-[100svh] flex-col bg-card',
+    container: 'relative flex w-full min-h-[100svh] flex-col bg-card md:pl-64',
     main: `flex-1 ${spacingStyles.page.mobile} space-y-4 sm:space-y-6 pb-14`,
     loadingContent: 'space-y-6',
   },
@@ -1376,11 +1376,11 @@ export const buttonStyles = {
 export const cardStyles = {
   container: `bg-card text-primary flex flex-col rounded-xl border border-primary/20 shadow-sm`,
   header:
-    '@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-1.5 px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6',
+    '@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-1.5 px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-4',
   title: 'leading-none font-semibold text-primary',
   description: 'text-primary/70 text-sm',
   content: 'px-6',
-  footer: 'flex items-center px-6 [.border-t]:pt-6',
+  footer: 'flex items-center px-6 [.border-t]:pt-3',
   action: 'col-start-2 row-span-2 row-start-1 self-start justify-self-end',
 };
 
@@ -1486,7 +1486,7 @@ export const alertStyles = {
 
 // Sticky header styles
 export const stickyHeaderStyles = {
-  base: 'fixed top-0 left-0 right-0 backdrop-blur-xl border-b border-primary/20 shadow-sm bg-card/80',
+  base: 'fixed top-0 left-0 right-0 md:left-64 backdrop-blur-xl border-b border-primary/20 shadow-sm bg-card/80',
   light: 'bg-card/80 border-primary/20',
 };
 

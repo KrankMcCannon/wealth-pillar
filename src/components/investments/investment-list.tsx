@@ -16,7 +16,7 @@ export function InvestmentList({ investments }: Readonly<InvestmentListProps>) {
 
   return (
     <Card className="border-none shadow-md overflow-hidden">
-      <CardHeader className="px-6 pt-6 border-b bg-primary/5">
+      <CardHeader className="px-4 pt-4 border-b bg-primary/5">
         <CardTitle className="text-xl text-primary">{t('title')}</CardTitle>
       </CardHeader>
       <CardContent className="p-0">

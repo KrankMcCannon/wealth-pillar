@@ -14,6 +14,7 @@ import { AccountService, CategoryService } from '@/server/services';
 import { ModalProvider } from '@/providers/modal-provider';
 import { ReferenceDataInitializer } from '@/providers/reference-data-initializer';
 import { UserProvider } from '@/providers/user-provider';
+import { DesktopSidebar } from '@/components/layout';
 import '../globals.css';
 
 const splineSans = Spline_Sans({
@@ -131,6 +132,7 @@ export default async function LocaleLayout({
                 enableSystem={false}
                 disableTransitionOnChange
               >
+                <DesktopSidebar />
                 {appContent}
                 <Toaster />
               </ThemeProvider>

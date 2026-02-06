@@ -125,57 +125,62 @@ export default function HomeContent({
         <UserSelector isLoading={false} currentUser={currentUser} users={groupUsers} />
       </Suspense>
 
-      <main className={dashboardStyles.page.main}>
-        {/* Balance Section - Shows default accounts based on selected user */}
-        <Suspense fallback={<BalanceSectionSkeleton />}>
-          <BalanceSection
-            accounts={displayedDefaultAccounts}
-            accountBalances={displayedAccountBalances}
-            totalBalance={totalBalance}
-            totalAccountsCount={totalAccountsCount}
-            selectedUserId={selectedUserId}
-            onAccountClick={handleAccountClick}
-            isLoading={false}
-          />
-        </Suspense>
+      <main className="px-3 pb-24 pt-3 md:pb-8">
+        <div className="space-y-4 md:grid md:grid-cols-12 md:items-start md:gap-6 md:space-y-0">
+          <div className="space-y-4 md:col-span-8">
+            {/* Balance Section - Keep core account info for both views */}
+            <Suspense fallback={<BalanceSectionSkeleton />}>
+              <BalanceSection
+                accounts={displayedDefaultAccounts}
+                accountBalances={displayedAccountBalances}
+                totalBalance={totalBalance}
+                totalAccountsCount={totalAccountsCount}
+                selectedUserId={selectedUserId}
+                onAccountClick={handleAccountClick}
+                isLoading={false}
+              />
+            </Suspense>
 
-        {/* Budget Section */}
-        <div className={dashboardStyles.budgetSection.container}>
-          <Suspense fallback={<BudgetSectionSkeleton />}>
-            <BudgetSection
-              budgetsByUser={budgetsByUser}
-              budgets={budgets}
-              selectedViewUserId={selectedUserId}
-              isLoading={false}
-              headerLeading={
-                <BudgetPeriodManager
-                  selectedUserId={periodManagerUserId || currentUser.id}
-                  currentPeriod={periodManagerData.period}
-                  onUserChange={handlePeriodManagerUserChange}
-                  onSuccess={handleRefresh}
-                  trigger={budgetPeriodTrigger}
-                  currentUser={currentUser}
-                  groupUsers={groupUsers}
+            {/* Budget Section - Core section for mobile and desktop */}
+            <div className={dashboardStyles.budgetSection.container}>
+              <Suspense fallback={<BudgetSectionSkeleton />}>
+                <BudgetSection
+                  budgetsByUser={budgetsByUser}
+                  budgets={budgets}
+                  selectedViewUserId={selectedUserId}
+                  isLoading={false}
+                  headerLeading={
+                    <BudgetPeriodManager
+                      selectedUserId={periodManagerUserId || currentUser.id}
+                      currentPeriod={periodManagerData.period}
+                      onUserChange={handlePeriodManagerUserChange}
+                      onSuccess={handleRefresh}
+                      trigger={budgetPeriodTrigger}
+                      currentUser={currentUser}
+                      groupUsers={groupUsers}
+                    />
+                  }
                 />
-              }
-            />
-          </Suspense>
-        </div>
+              </Suspense>
+            </div>
+          </div>
 
-        {/* Recurring Series Section */}
-        <Suspense fallback={<RecurringSeriesSkeleton />}>
-          <RecurringSeriesSection
-            series={recurringSeries}
-            selectedUserId={isMember ? currentUser.id : recurringSeriesUserId}
-            className={dashboardStyles.recurringSection.container}
-            showStats={false}
-            maxItems={5}
-            showActions={false}
-            onCreateRecurringSeries={handleCreateRecurringSeries}
-            onCardClick={handleSeriesCardClick}
-            onPauseRecurringSeries={handlePauseRecurringSeries}
-          />
-        </Suspense>
+          {/* Desktop-only secondary rail to keep mobile flow minimal */}
+          <div className="hidden md:col-span-4 md:block">
+            <Suspense fallback={<RecurringSeriesSkeleton />}>
+              <RecurringSeriesSection
+                series={recurringSeries}
+                selectedUserId={isMember ? currentUser.id : recurringSeriesUserId}
+                className={dashboardStyles.recurringSection.container}
+                showStats={false}
+                showActions={false}
+                onCreateRecurringSeries={handleCreateRecurringSeries}
+                onCardClick={handleSeriesCardClick}
+                onPauseRecurringSeries={handlePauseRecurringSeries}
+              />
+            </Suspense>
+          </div>
+        </div>
       </main>
 
       <BottomNavigation />

@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.8.0] - 2026-02-06
+
+### Added
+
+- **ui**: Implemented responsive layout with desktop sidebar and refined theme tokens.
+
 ## [0.7.1] - 2026-02-06
 
 ### Fixed

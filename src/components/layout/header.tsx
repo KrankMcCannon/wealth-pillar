@@ -2,33 +2,13 @@
 
 import { useRouter } from '@/i18n/routing';
 import { useTranslations } from 'next-intl';
-import {
-  ArrowLeft,
-  Settings,
-  Bell,
-  Plus,
-  CreditCard,
-  PieChart,
-  Tag,
-  RefreshCw,
-  Crown,
-  TrendingUp,
-} from 'lucide-react';
+import { ArrowLeft, Settings, Bell, Crown } from 'lucide-react';
 import { cn } from '@/lib';
 import { headerStyles } from './theme/header-styles';
+import { ActionMenu } from './action-menu';
 
 // UI Components
-import {
-  Button,
-  ThemeToggle,
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui';
-
-// New Modal State Management
-import { useModalState } from '@/lib/navigation/url-state';
+import { Button, ThemeToggle } from '@/components/ui';
 
 // Constants
 import { STICKY_HEADER_BASE } from '@/lib/utils/ui-constants';
@@ -61,74 +41,6 @@ interface HeaderProps {
 
   // Callbacks
   onBack?: () => void;
-}
-
-// Action Menu Component - Separate to avoid hook issues when NuqsAdapter isn't available
-function ActionMenu({
-  extraMenuItems = [],
-}: Readonly<{
-  extraMenuItems?: { label: string; icon: React.ElementType; onClick: () => void }[];
-}>) {
-  const t = useTranslations('Header.ActionMenu');
-  const { openModal } = useModalState();
-
-  const actionItems = [
-    ...extraMenuItems,
-    {
-      label: t('newBudget'),
-      icon: PieChart,
-      onClick: () => openModal('budget'),
-    },
-    {
-      label: t('newAccount'),
-      icon: CreditCard,
-      onClick: () => openModal('account'),
-    },
-    {
-      label: t('newCategory'),
-      icon: Tag,
-      onClick: () => openModal('category'),
-    },
-    {
-      label: t('newInvestment'),
-      icon: TrendingUp,
-      onClick: () => openModal('investment'),
-    },
-    {
-      label: t('recurring'),
-      icon: RefreshCw,
-      onClick: () => openModal('recurring'),
-    },
-    {
-      label: t('newTransaction'),
-      icon: CreditCard,
-      onClick: () => openModal('transaction'),
-    },
-  ];
-
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          id="header-action-menu-trigger"
-          variant="default"
-          size="icon"
-          aria-label={t('openMenuAria')}
-          className={headerStyles.actions.actionButton}
-        >
-          <Plus className={headerStyles.actions.actionIcon} />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className={headerStyles.actions.menu}>
-        {actionItems.map((item) => (
-          <DropdownMenuItem key={item.label} onClick={item.onClick}>
-            <item.icon className={headerStyles.actions.menuIcon} />
-            {item.label}
-          </DropdownMenuItem>
-        ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
 }
 
 export function Header({
@@ -230,7 +142,14 @@ export function Header({
         {/* RIGHT SECTION: Actions */}
         <div className={headerStyles.actions.wrapper}>
           {/* 1. Add Actions */}
-          {showActions && <ActionMenu extraMenuItems={extraMenuItems} />}
+          {showActions && (
+            <ActionMenu
+              extraMenuItems={extraMenuItems}
+              triggerClassName={cn(headerStyles.actions.actionButton, 'hidden md:inline-flex')}
+              triggerIconClassName={headerStyles.actions.actionIcon}
+              menuClassName={headerStyles.actions.menu}
+            />
+          )}
 
           {/* 2. Notifications */}
           <Button

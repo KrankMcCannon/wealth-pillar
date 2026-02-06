@@ -3,6 +3,7 @@
 import { Link, usePathname } from '@/i18n/routing';
 import { Home, CreditCard, TrendingUp, BarChart3 } from 'lucide-react';
 import { bottomNavigationStyles } from './theme/bottom-navigation-styles';
+import { ActionMenu } from './action-menu';
 
 export function BottomNavigation() {
   const pathname = usePathname();
@@ -32,8 +33,8 @@ export function BottomNavigation() {
 
   return (
     <div className={bottomNavigationStyles.container}>
-      <div className={bottomNavigationStyles.inner}>
-        {navItems.map((item) => {
+      <nav className={bottomNavigationStyles.inner} aria-label="Bottom Navigation">
+        {navItems.slice(0, 2).map((item) => {
           const isActive = pathname === item.href;
           const IconComponent = item.icon;
           return (
@@ -45,10 +46,35 @@ export function BottomNavigation() {
               }`}
             >
               <IconComponent className={bottomNavigationStyles.icon} />
+              <span className={bottomNavigationStyles.label}>{item.label}</span>
             </Link>
           );
         })}
-      </div>
+
+        <ActionMenu
+          align="center"
+          triggerClassName={bottomNavigationStyles.addButton}
+          triggerIconClassName={bottomNavigationStyles.addIcon}
+          menuClassName={bottomNavigationStyles.menu}
+        />
+
+        {navItems.slice(2).map((item) => {
+          const isActive = pathname === item.href;
+          const IconComponent = item.icon;
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`${bottomNavigationStyles.item} ${
+                isActive ? bottomNavigationStyles.itemActive : bottomNavigationStyles.itemInactive
+              }`}
+            >
+              <IconComponent className={bottomNavigationStyles.icon} />
+              <span className={bottomNavigationStyles.label}>{item.label}</span>
+            </Link>
+          );
+        })}
+      </nav>
     </div>
   );
 }
