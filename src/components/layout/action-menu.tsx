@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl';
 import { CreditCard, PieChart, Plus, RefreshCw, Tag, TrendingUp } from 'lucide-react';
 import { cn } from '@/lib';
 import { useModalState } from '@/lib/navigation/url-state';
+import { useMediaQuery } from '@/hooks/use-media-query';
 import {
   Button,
   DropdownMenu,
@@ -24,6 +25,7 @@ interface ActionMenuProps {
   triggerIconClassName?: string;
   menuClassName?: string;
   align?: 'start' | 'center' | 'end';
+  reverseMobileOrder?: boolean;
 }
 
 export function ActionMenu({
@@ -32,9 +34,11 @@ export function ActionMenu({
   triggerIconClassName,
   menuClassName,
   align = 'end',
+  reverseMobileOrder = false,
 }: Readonly<ActionMenuProps>) {
   const t = useTranslations('Header.ActionMenu');
   const { openModal } = useModalState();
+  const isMobile = useMediaQuery('(max-width: 767px)');
 
   const actionItems: MenuItem[] = [
     ...extraMenuItems,
@@ -45,6 +49,9 @@ export function ActionMenu({
     { label: t('recurring'), icon: RefreshCw, onClick: () => openModal('recurring') },
     { label: t('newTransaction'), icon: CreditCard, onClick: () => openModal('transaction') },
   ];
+
+  // Determine items based on viewport and requested reverse behavior
+  const displayItems = reverseMobileOrder && isMobile ? [...actionItems].reverse() : actionItems;
 
   return (
     <DropdownMenu>
@@ -60,7 +67,7 @@ export function ActionMenu({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align={align} className={menuClassName}>
-        {actionItems.map((item) => (
+        {displayItems.map((item) => (
           <DropdownMenuItem key={item.label} onClick={item.onClick}>
             <item.icon className="mr-2 h-4 w-4" />
             {item.label}

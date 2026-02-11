@@ -36,10 +36,7 @@ interface SeriesCardProps {
 }
 
 // Helper function: Get frequency label
-function getFrequencyLabel(
-  frequency: string,
-  t: ReturnType<typeof useTranslations>
-): string {
+function getFrequencyLabel(frequency: string, t: ReturnType<typeof useTranslations>): string {
   switch (frequency) {
     case 'weekly':
       return t('frequency.weekly');

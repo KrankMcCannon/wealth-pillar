@@ -166,9 +166,7 @@ export function ShareSelector({ value, onChange, className }: Readonly<ShareSele
           {value ? (
             <span className={formStyles.categorySelect.triggerLabel}>{selectedLabel}</span>
           ) : (
-            <span className={formStyles.categorySelect.triggerPlaceholder}>
-              {t('placeholder')}
-            </span>
+            <span className={formStyles.categorySelect.triggerPlaceholder}>{t('placeholder')}</span>
           )}
         </div>
         <ChevronDown className={selectStyles.icon} />

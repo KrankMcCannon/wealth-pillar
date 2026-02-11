@@ -75,7 +75,11 @@ export default function AccountsContent({
           size="sm"
           stats={[
             { label: t('stats.total'), value: accountStats.totalAccounts, variant: 'primary' },
-            { label: t('stats.positive'), value: accountStats.positiveAccounts, variant: 'success' },
+            {
+              label: t('stats.positive'),
+              value: accountStats.positiveAccounts,
+              variant: 'success',
+            },
             {
               label: t('stats.negative'),
               value: accountStats.negativeAccounts,

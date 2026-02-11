@@ -249,7 +249,9 @@ export function BudgetPeriodManager({
                   <div className={budgetStyles.periodManager.userIconWrap}>
                     <Clock className={budgetStyles.periodManager.userIcon} />
                   </div>
-                  <h3 className={budgetStyles.periodManager.periodTitle}>{t('currentPeriodTitle')}</h3>
+                  <h3 className={budgetStyles.periodManager.periodTitle}>
+                    {t('currentPeriodTitle')}
+                  </h3>
                 </div>
 
                 {isActivePeriod ? (
@@ -331,9 +333,7 @@ export function BudgetPeriodManager({
             onCancel={() => setIsOpen(false)}
             onSubmit={handleSubmit}
             isSubmitting={isActionPending}
-            submitLabel={
-              isActivePeriod ? t('buttons.closePeriod') : t('buttons.startNewPeriod')
-            }
+            submitLabel={isActivePeriod ? t('buttons.closePeriod') : t('buttons.startNewPeriod')}
             cancelLabel={t('buttons.cancel')}
             submitVariant="default"
           />

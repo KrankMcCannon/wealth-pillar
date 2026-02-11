@@ -160,9 +160,7 @@ function RecurringFormModal({ isOpen, onClose, editId }: Readonly<RecurringFormM
 
   const isEditMode = !!editId;
   const title = isEditMode ? t('title.edit') : t('title.create');
-  const description = isEditMode
-    ? t('description.edit')
-    : t('description.create');
+  const description = isEditMode ? t('description.edit') : t('description.create');
   const recurringSchema = useMemo(() => createRecurringSchema(t), [t]);
 
   const today = todayDateString();
@@ -420,7 +418,11 @@ function RecurringFormModal({ isOpen, onClose, editId }: Readonly<RecurringFormM
               </FormField>
 
               {/* Frequency */}
-              <FormField label={t('fields.frequency.label')} required error={errors.frequency?.message}>
+              <FormField
+                label={t('fields.frequency.label')}
+                required
+                error={errors.frequency?.message}
+              >
                 <FormSelect
                   value={watchedFrequency}
                   onValueChange={(value) =>
@@ -516,7 +518,11 @@ function RecurringFormModal({ isOpen, onClose, editId }: Readonly<RecurringFormM
 
           <ModalSection className={recurringStyles.formModal.section}>
             {/* Description */}
-            <FormField label={t('fields.description.label')} required error={errors.description?.message}>
+            <FormField
+              label={t('fields.description.label')}
+              required
+              error={errors.description?.message}
+            >
               <Input
                 {...register('description')}
                 placeholder={t('fields.description.placeholder')}

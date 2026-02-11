@@ -14,43 +14,44 @@ function CategoryList({ title, stats }: { title: string; stats: CategoryStat[] }
   const t = useTranslations('Reports.CategoriesSection');
 
   return (
-    <div className={reportsStyles.categories.col}>
-      <div className={reportsStyles.categories.colHeader}>
-        <h4 className={reportsStyles.categories.colTitle}>{title}</h4>
-        <span className={reportsStyles.categories.colTotal}>{formatCurrency(total)}</span>
+    <div className={reportsStyles.charts.container}>
+      <div className={reportsStyles.charts.header}>
+        <div>
+          <h4 className={reportsStyles.charts.title}>{title}</h4>
+          <p className={reportsStyles.charts.subtitle}>{formatCurrency(total)}</p>
+        </div>
       </div>
 
-      <div className={reportsStyles.categories.list}>
+      <div className={reportsStyles.categories.legendContainer}>
         {stats.length === 0 && <p className="text-sm text-primary/60 italic">{t('empty')}</p>}
 
         {stats.map((stat) => {
           const percent = total > 0 ? (stat.total / total) * 100 : 0;
           return (
             <div key={stat.id} className={reportsStyles.categories.item}>
-              <div className="w-full">
-                <div className="flex flex-col items-start gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-0 mb-1">
-                  <div className={reportsStyles.categories.itemLeft}>
+              <div className={reportsStyles.categories.itemLeft}>
+                <div
+                  className={reportsStyles.categories.iconBox}
+                  style={{ backgroundColor: `${stat.color}20`, color: stat.color }}
+                >
+                  <div className="h-3 w-3 rounded-full bg-current" />
+                </div>
+                <div className={reportsStyles.categories.details}>
+                  <span className={reportsStyles.categories.name}>{stat.name}</span>
+                  <div className={reportsStyles.categories.barBg}>
                     <div
-                      className="w-2.5 h-2.5 rounded-full"
-                      style={{ backgroundColor: stat.color }}
+                      className={reportsStyles.categories.barFill}
+                      style={{
+                        width: `${percent}%`,
+                        backgroundColor: stat.color,
+                      }}
                     />
-                    <span className={reportsStyles.categories.itemName}>{stat.name}</span>
-                  </div>
-                  <div className="w-full text-left sm:w-auto sm:text-right">
-                    <div className={reportsStyles.categories.itemAmount}>
-                      {formatCurrency(stat.total)}
-                    </div>
                   </div>
                 </div>
-                <div className={reportsStyles.categories.barContainer}>
-                  <div
-                    className={reportsStyles.categories.barFill}
-                    style={{
-                      width: `${percent}%`,
-                      backgroundColor: stat.color,
-                    }}
-                  />
-                </div>
+              </div>
+              <div className="text-right shrink-0 ml-2">
+                <div className={reportsStyles.categories.amount}>{formatCurrency(stat.total)}</div>
+                <div className={reportsStyles.categories.percent}>{percent.toFixed(1)}%</div>
               </div>
             </div>
           );
@@ -69,7 +70,7 @@ export function CategoriesSection({ incomeStats, expenseStats }: CategoriesSecti
         <PieChart className="w-5 h-5" />
         {t('title')}
       </h3>
-      <div className={reportsStyles.categories.grid}>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
         <CategoryList title={t('incomeTitle')} stats={incomeStats} />
         <CategoryList title={t('expensesTitle')} stats={expenseStats} />
       </div>

@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.9.0] - 2026-02-12
+
+### Features
+
+- **ui**: Overhauled reports with new visualizations, client-side flow calculation, and responsive filters.
+- **ui**: Redesigned investment list with modern aesthetics and gradient themes.
+- **ui**: Replaced all neutral gray/muted colors with purple-tinted primary gradients for a cohesive theme.
+- **ui**: Updated bottom navigation to icon-only design with larger touch targets and mobile-reversed action menu.
+
+### Fix
+
+- **ui**: Fixed mobile action menu toggle bug by refactoring to use `useMediaQuery`.
+
 ## [0.8.0] - 2026-02-06
 
 ### Added

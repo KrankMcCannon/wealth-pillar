@@ -52,9 +52,9 @@ describe('transaction-sorting', () => {
   describe('insertTransactionSorted', () => {
     it('should insert into empty array', () => {
       const newTx = createMockTransaction({ id: 'tx-new', date: '2024-01-15' });
-      
+
       const result = insertTransactionSorted([], newTx);
-      
+
       expect(result).toHaveLength(1);
       expect(result[0]).toBe(newTx);
     });
@@ -65,9 +65,9 @@ describe('transaction-sorting', () => {
         createMockTransaction({ id: 'tx-3', date: '2024-01-05' }),
       ];
       const newest = createMockTransaction({ id: 'tx-new', date: '2024-01-20' });
-      
+
       const result = insertTransactionSorted(existing, newest);
-      
+
       expect(result).toHaveLength(3);
       expect(result[0].id).toBe('tx-new');
       expect(result[1].id).toBe('tx-2');
@@ -80,9 +80,9 @@ describe('transaction-sorting', () => {
         createMockTransaction({ id: 'tx-2', date: '2024-01-15' }),
       ];
       const oldest = createMockTransaction({ id: 'tx-new', date: '2024-01-01' });
-      
+
       const result = insertTransactionSorted(existing, oldest);
-      
+
       expect(result).toHaveLength(3);
       expect(result[0].id).toBe('tx-1');
       expect(result[1].id).toBe('tx-2');
@@ -96,9 +96,9 @@ describe('transaction-sorting', () => {
         createMockTransaction({ id: 'tx-3', date: '2024-01-01' }),
       ];
       const middle = createMockTransaction({ id: 'tx-new', date: '2024-01-15' });
-      
+
       const result = insertTransactionSorted(existing, middle);
-      
+
       expect(result).toHaveLength(4);
       expect(result[0].id).toBe('tx-1');
       expect(result[1].id).toBe('tx-new');
@@ -109,10 +109,10 @@ describe('transaction-sorting', () => {
     it('should append to end when new transaction has invalid date', () => {
       const existing = [createMockTransaction({ id: 'tx-1', date: '2024-01-15' })];
       const invalidDate = createMockTransaction({ id: 'tx-new', date: 'invalid' });
-      
+
       const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
       const result = insertTransactionSorted(existing, invalidDate);
-      
+
       expect(result).toHaveLength(2);
       expect(result[1].id).toBe('tx-new');
       expect(consoleSpy).toHaveBeenCalledWith(
@@ -130,9 +130,9 @@ describe('transaction-sorting', () => {
         createMockTransaction({ id: 'tx-3', date: '2024-01-10' }),
       ];
       const newTx = createMockTransaction({ id: 'tx-new', date: '2024-01-15' });
-      
+
       const result = insertTransactionSorted(existing, newTx);
-      
+
       // Should still insert (corrupted data treated as oldest)
       expect(result).toHaveLength(4);
     });
@@ -141,9 +141,9 @@ describe('transaction-sorting', () => {
       const existing = [createMockTransaction({ id: 'tx-1', date: '2024-01-15' })];
       const original = [...existing];
       const newTx = createMockTransaction({ id: 'tx-new', date: '2024-01-20' });
-      
+
       insertTransactionSorted(existing, newTx);
-      
+
       expect(existing).toEqual(original);
     });
   });
@@ -160,9 +160,9 @@ describe('transaction-sorting', () => {
         date: '2024-01-15',
         description: 'Updated',
       });
-      
+
       const result = updateTransactionSorted(existing, updated);
-      
+
       expect(result).toHaveLength(3);
       expect(result[1].id).toBe('tx-2');
       expect(result[1].description).toBe('Updated');
@@ -175,9 +175,9 @@ describe('transaction-sorting', () => {
         createMockTransaction({ id: 'tx-3', date: '2024-01-10' }),
       ];
       const updated = createMockTransaction({ id: 'tx-3', date: '2024-01-25' });
-      
+
       const result = updateTransactionSorted(existing, updated);
-      
+
       expect(result).toHaveLength(3);
       expect(result[0].id).toBe('tx-3'); // Now first because newest
       expect(result[1].id).toBe('tx-1');
@@ -191,9 +191,9 @@ describe('transaction-sorting', () => {
         createMockTransaction({ id: 'tx-3', date: '2024-01-10' }),
       ];
       const updated = createMockTransaction({ id: 'tx-1', date: '2024-01-01' });
-      
+
       const result = updateTransactionSorted(existing, updated);
-      
+
       expect(result).toHaveLength(3);
       expect(result[0].id).toBe('tx-2');
       expect(result[1].id).toBe('tx-3');
@@ -201,13 +201,11 @@ describe('transaction-sorting', () => {
     });
 
     it('should handle updating non-existent transaction (insert behavior)', () => {
-      const existing = [
-        createMockTransaction({ id: 'tx-1', date: '2024-01-20' }),
-      ];
+      const existing = [createMockTransaction({ id: 'tx-1', date: '2024-01-20' })];
       const newTx = createMockTransaction({ id: 'tx-new', date: '2024-01-25' });
-      
+
       const result = updateTransactionSorted(existing, newTx);
-      
+
       expect(result).toHaveLength(2);
       expect(result[0].id).toBe('tx-new');
     });
@@ -220,9 +218,9 @@ describe('transaction-sorting', () => {
         createMockTransaction({ id: 'tx-2' }),
         createMockTransaction({ id: 'tx-3' }),
       ];
-      
+
       const result = removeTransaction(existing, 'tx-2');
-      
+
       expect(result).toHaveLength(2);
       expect(result.map((t) => t.id)).toEqual(['tx-1', 'tx-3']);
     });
@@ -232,23 +230,23 @@ describe('transaction-sorting', () => {
         createMockTransaction({ id: 'tx-1' }),
         createMockTransaction({ id: 'tx-2' }),
       ];
-      
+
       const result = removeTransaction(existing, 'tx-nonexistent');
-      
+
       expect(result).toHaveLength(2);
     });
 
     it('should return empty array when removing from single-item array', () => {
       const existing = [createMockTransaction({ id: 'tx-1' })];
-      
+
       const result = removeTransaction(existing, 'tx-1');
-      
+
       expect(result).toHaveLength(0);
     });
 
     it('should return empty array when removing from empty array', () => {
       const result = removeTransaction([], 'tx-1');
-      
+
       expect(result).toHaveLength(0);
     });
 
@@ -258,9 +256,9 @@ describe('transaction-sorting', () => {
         createMockTransaction({ id: 'tx-2' }),
       ];
       const original = [...existing];
-      
+
       removeTransaction(existing, 'tx-1');
-      
+
       expect(existing).toEqual(original);
     });
   });

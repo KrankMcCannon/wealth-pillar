@@ -83,7 +83,9 @@ export async function createBudgetAction(
     return {
       data: null,
       error:
-        error instanceof Error ? error.message : (t?.('errors.createFailed') ?? 'Failed to create budget'),
+        error instanceof Error
+          ? error.message
+          : (t?.('errors.createFailed') ?? 'Failed to create budget'),
     };
   }
 }
@@ -156,7 +158,9 @@ export async function updateBudgetAction(
     return {
       data: null,
       error:
-        error instanceof Error ? error.message : (t?.('errors.updateFailed') ?? 'Failed to update budget'),
+        error instanceof Error
+          ? error.message
+          : (t?.('errors.updateFailed') ?? 'Failed to update budget'),
     };
   }
 }
@@ -211,7 +215,9 @@ export async function deleteBudgetAction(
     return {
       data: null,
       error:
-        error instanceof Error ? error.message : (t?.('errors.deleteFailed') ?? 'Failed to delete budget'),
+        error instanceof Error
+          ? error.message
+          : (t?.('errors.deleteFailed') ?? 'Failed to delete budget'),
     };
   }
 }

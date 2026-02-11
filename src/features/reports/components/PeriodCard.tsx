@@ -2,7 +2,6 @@ import { formatCurrency } from '@/lib/utils';
 import type { ReportPeriodSummary } from '@/server/services/reports.service';
 import { reportsStyles } from '@/features/reports/theme/reports-styles';
 import { sortAccountMetrics } from '@/features/reports/utils';
-import { cn } from '@/lib/utils';
 import { useTranslations } from 'next-intl';
 
 interface PeriodCardProps {
@@ -10,162 +9,143 @@ interface PeriodCardProps {
 }
 
 export function PeriodCard({ period }: PeriodCardProps) {
-  const t = useTranslations('Reports');
-  const globalNet = period.totalEarned - period.totalSpent;
+  const t = useTranslations('Reports.PeriodCard');
+
+  const sortedEntries = sortAccountMetrics(Object.entries(period.metricsByAccountType));
+
+  const netSavings = period.totalEarned - period.totalSpent;
 
   return (
     <div className={reportsStyles.periods.card}>
+      {/* Header */}
       <div className={reportsStyles.periods.cardHeader}>
         <div className={reportsStyles.periods.cardTitleDetails}>
-          <div className={reportsStyles.periods.cardTitle}>{period.name}</div>
+          <h4 className={reportsStyles.periods.cardTitle}>{period.name}</h4>
         </div>
       </div>
 
+      {/* Content */}
       <div className={reportsStyles.periods.cardContent}>
-        {/* Global Metrics */}
+        {/* Global Metrics Row (Income / Expenses / Net) */}
         <div className={reportsStyles.periods.globalMetrics}>
           <div className={reportsStyles.periods.globalTotalsRow}>
             <div className={reportsStyles.periods.globalMetricIncome}>
               <span
-                className={cn(
-                  reportsStyles.periods.globalLabel,
-                  reportsStyles.periods.globalLabelIncome
-                )}
+                className={`${reportsStyles.periods.globalLabel} ${reportsStyles.periods.globalLabelIncome}`}
               >
-                {t('PeriodCard.incomeLabel')}
+                {t('incomeLabel')}
               </span>
               <span className={reportsStyles.periods.globalValueIncome}>
-                +{formatCurrency(period.totalEarned)}
+                {formatCurrency(period.totalEarned)}
               </span>
             </div>
             <div className={reportsStyles.periods.globalMetricExpense}>
               <span
-                className={cn(
-                  reportsStyles.periods.globalLabel,
-                  reportsStyles.periods.globalLabelExpense
-                )}
+                className={`${reportsStyles.periods.globalLabel} ${reportsStyles.periods.globalLabelExpense}`}
               >
-                {t('PeriodCard.expensesLabel')}
+                {t('expensesLabel')}
               </span>
               <span className={reportsStyles.periods.globalValueExpense}>
-                -{formatCurrency(period.totalSpent)}
+                {formatCurrency(period.totalSpent)}
               </span>
             </div>
             <div className={reportsStyles.periods.globalMetricNet}>
               <span
-                className={cn(
-                  reportsStyles.periods.globalLabel,
-                  reportsStyles.periods.globalLabelNet
-                )}
+                className={`${reportsStyles.periods.globalLabel} ${reportsStyles.periods.globalLabelNet}`}
               >
-                {t('PeriodCard.netSavingsLabel')}
+                {t('netSavingsLabel')}
               </span>
-              <span className={reportsStyles.periods.globalValueNet}>
-                {globalNet > 0 ? '+' : ''}
-                {formatCurrency(globalNet)}
+              <span
+                className={`${reportsStyles.periods.globalValueNet} ${netSavings >= 0 ? 'text-emerald-500' : 'text-red-500'}`}
+              >
+                {formatCurrency(netSavings)}
               </span>
             </div>
           </div>
         </div>
 
-        {/* Breakdown */}
-        <div className={reportsStyles.periods.breakdownContainer}>
-          <h4 className={reportsStyles.periods.breakdownTitle}>
-            {t('PeriodCard.byAccountTypeTitle')}
-          </h4>
-          <div className={reportsStyles.periods.breakdownList}>
-            {sortAccountMetrics(Object.entries(period.metricsByAccountType)).map(
-              ([type, metrics]) => {
-                const net = metrics.endBalance - metrics.startBalance;
-                const isPositive = net > 0;
-                const isNegative = net < 0;
-
+        {/* Account Type Breakdown */}
+        {sortedEntries.length > 0 && (
+          <div className={reportsStyles.periods.breakdownContainer}>
+            <h5 className={reportsStyles.periods.breakdownTitle}>{t('byAccountTypeTitle')}</h5>
+            <div className={reportsStyles.periods.breakdownList}>
+              {sortedEntries.map(([type, metrics]) => {
+                const net = metrics.earned - metrics.spent;
                 return (
-                  <article key={type} className={reportsStyles.periods.breakdownItem}>
+                  <div key={type} className={reportsStyles.periods.breakdownItem}>
                     <div className={reportsStyles.periods.breakdownHeader}>
                       <div className={reportsStyles.periods.breakdownType}>
-                        <div className={`${reportsStyles.periods.breakdownDot} bg-primary`}></div>
-                        <span className="capitalize">{type}</span>
+                        <div
+                          className={reportsStyles.periods.breakdownDot}
+                          style={{
+                            backgroundColor:
+                              type === 'payroll'
+                                ? '#10b981'
+                                : type === 'cash'
+                                  ? '#6366f1'
+                                  : type === 'savings'
+                                    ? '#f59e0b'
+                                    : '#94a3b8',
+                          }}
+                        />
+                        {type.charAt(0).toUpperCase() + type.slice(1)}
                       </div>
                     </div>
 
-                    <div className={reportsStyles.periods.breakdownStats}>
-                      <div className={cn(reportsStyles.periods.breakdownStat, 'min-h-13')}>
-                        <div className={reportsStyles.periods.breakdownStatRow}>
-                          <p className={reportsStyles.periods.breakdownMetricLabel}>
-                            {t('PeriodCard.balanceLabel')}
-                          </p>
-                          <div className={reportsStyles.periods.breakdownBalanceStack}>
-                            <span className={reportsStyles.periods.breakdownAmount}>
-                              {formatCurrency(metrics.startBalance)}
-                            </span>
-                            <span className={reportsStyles.periods.breakdownBalanceArrow}>↓</span>
-                            <span className={reportsStyles.periods.breakdownAmount}>
-                              {formatCurrency(metrics.endBalance)}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-
+                    {/* Stacked rows instead of cramped 3-col grid */}
+                    <div className="space-y-2">
+                      {/* Balance Row */}
                       <div className={reportsStyles.periods.breakdownStat}>
-                        <div className={reportsStyles.periods.breakdownStatRow}>
-                          <p className={reportsStyles.periods.breakdownMetricLabel}>
-                            {t('PeriodCard.incomeLabel')}
-                          </p>
-                          <span
-                            className={cn(
-                              reportsStyles.periods.breakdownIn,
-                              metrics.earned === 0 && 'opacity-50'
-                            )}
-                          >
-                            +{formatCurrency(metrics.earned)}
+                        <span className={reportsStyles.periods.breakdownMetricLabel}>
+                          {t('balanceLabel')}
+                        </span>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className={reportsStyles.periods.breakdownAmount}>
+                            {formatCurrency(metrics.startBalance)}
+                          </span>
+                          <span className={reportsStyles.periods.breakdownBalanceArrow}>→</span>
+                          <span className={reportsStyles.periods.breakdownAmount}>
+                            {formatCurrency(metrics.endBalance)}
                           </span>
                         </div>
                       </div>
 
-                      <div className={reportsStyles.periods.breakdownStat}>
-                        <div className={reportsStyles.periods.breakdownStatRow}>
-                          <p className={reportsStyles.periods.breakdownMetricLabel}>
-                            {t('PeriodCard.expensesLabel')}
-                          </p>
-                          <span
-                            className={cn(
-                              reportsStyles.periods.breakdownOut,
-                              metrics.spent === 0 && 'opacity-50'
-                            )}
-                          >
+                      {/* In / Out row */}
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className={reportsStyles.periods.breakdownStat}>
+                          <span className={reportsStyles.periods.breakdownMetricLabel}>In</span>
+                          <span className={reportsStyles.periods.breakdownIn}>
+                            +{formatCurrency(metrics.earned)}
+                          </span>
+                        </div>
+                        <div className={reportsStyles.periods.breakdownStat}>
+                          <span className={reportsStyles.periods.breakdownMetricLabel}>Out</span>
+                          <span className={reportsStyles.periods.breakdownOut}>
                             -{formatCurrency(metrics.spent)}
                           </span>
                         </div>
                       </div>
-                    </div>
 
-                    <div className={reportsStyles.periods.breakdownNetRow}>
-                      <div className={`${reportsStyles.periods.breakdownStat} w-full`}>
-                        <div className={reportsStyles.periods.breakdownStatRow}>
-                          <p className={reportsStyles.periods.breakdownMetricLabel}>
-                            {t('PeriodCard.netLabel')}
-                          </p>
-                          <span
-                            className={cn(
-                              reportsStyles.periods.breakdownAmount,
-                              isPositive && reportsStyles.periods.breakdownIn,
-                              isNegative && reportsStyles.periods.breakdownOut,
-                              net === 0 && 'opacity-50'
-                            )}
-                          >
-                            {net > 0 ? '+' : ''}
-                            {formatCurrency(net)}
-                          </span>
-                        </div>
+                      {/* Net row */}
+                      <div
+                        className={`${reportsStyles.periods.breakdownStat} ${reportsStyles.periods.breakdownNetRow}`}
+                      >
+                        <span className={reportsStyles.periods.breakdownMetricLabel}>
+                          {t('netLabel')}
+                        </span>
+                        <span
+                          className={`${reportsStyles.periods.breakdownAmount} ${net >= 0 ? 'text-emerald-500' : 'text-red-500'}`}
+                        >
+                          {formatCurrency(net)}
+                        </span>
                       </div>
                     </div>
-                  </article>
+                  </div>
                 );
-              }
-            )}
+              })}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

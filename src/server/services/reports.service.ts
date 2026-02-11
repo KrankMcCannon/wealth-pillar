@@ -23,6 +23,22 @@ export interface AccountMetrics {
   endBalance: number;
 }
 
+export interface UserAccountFlow {
+  accountType: string;
+  balance: number;
+  earned: number;
+  spent: number;
+  net: number;
+}
+
+export interface UserFlowSummary {
+  userId: string;
+  totalEarned: number;
+  totalSpent: number;
+  netFlow: number;
+  accounts: UserAccountFlow[];
+}
+
 export interface ReportPeriodSummary {
   id: string;
   name: string;
@@ -52,13 +68,17 @@ export class ReportsService {
   /**
    * Fetch all necessary data for reports in parallel
    */
-  static async getReportsData() {
+  static async getReportsData(groupUserIds?: string[]) {
     const supabase = supabaseServer;
 
-    // 1. Fetch Users & Periods FIRST
-    const { data: usersData, error: userError } = await supabase
-      .from('users')
-      .select('id, budget_periods, budget_start_date');
+    // 1. Fetch Users & Periods (filtered to group members for security)
+    let usersQuery = supabase.from('users').select('id, budget_periods, budget_start_date');
+
+    if (groupUserIds && groupUserIds.length > 0) {
+      usersQuery = usersQuery.in('id', groupUserIds);
+    }
+
+    const { data: usersData, error: userError } = await usersQuery;
 
     if (userError) throw new Error(`ReportsService: Users fetch failed: ${userError.message}`);
 
@@ -172,6 +192,102 @@ export class ReportsService {
     }
 
     return Array.from(summaryMap.values());
+  }
+
+  /**
+   * Calculate per-user money flow from actual transactions.
+   * Groups by user_id and then by account type.
+   */
+  static calculateUserFlowSummary(
+    transactions: Transaction[],
+    accounts: Account[],
+    userIds: string[]
+  ): UserFlowSummary[] {
+    const accountMap = new Map(accounts.map((a) => [a.id, a]));
+
+    // Initialize per-user, per-account-type buckets
+    const userFlows = new Map<
+      string,
+      Map<string, { earned: number; spent: number; balance: number }>
+    >();
+
+    for (const uid of userIds) {
+      userFlows.set(uid, new Map());
+    }
+
+    // Seed with account balances (each user gets their accounts' balances)
+    for (const account of accounts) {
+      const type = this.normalizeAccountType(account.type);
+      for (const uid of account.user_ids) {
+        if (!userFlows.has(uid)) continue;
+        const typeMap = userFlows.get(uid)!;
+        if (!typeMap.has(type)) {
+          typeMap.set(type, { earned: 0, spent: 0, balance: 0 });
+        }
+        typeMap.get(type)!.balance += account.balance || 0;
+      }
+    }
+
+    // Aggregate transactions by user and account type
+    for (const t of transactions) {
+      const uid = t.user_id;
+      if (!uid || !userFlows.has(uid)) continue;
+
+      const account = accountMap.get(t.account_id);
+      if (!account) continue;
+
+      const type = this.normalizeAccountType(account.type);
+      const typeMap = userFlows.get(uid)!;
+
+      const ensureBucket = (
+        m: Map<string, { earned: number; spent: number; balance: number }>,
+        key: string
+      ) => {
+        if (!m.has(key)) m.set(key, { earned: 0, spent: 0, balance: 0 });
+        return m.get(key)!;
+      };
+
+      if (t.type === 'income') {
+        ensureBucket(typeMap, type).earned += t.amount;
+      } else if (t.type === 'expense') {
+        ensureBucket(typeMap, type).spent += t.amount;
+      } else if (t.type === 'transfer' && t.to_account_id) {
+        const toAccount = accountMap.get(t.to_account_id);
+        if (!toAccount) continue;
+        const toType = this.normalizeAccountType(toAccount.type);
+
+        // OUT from source account type
+        ensureBucket(typeMap, type).spent += t.amount;
+
+        // IN to destination account type
+        ensureBucket(typeMap, toType).earned += t.amount;
+      }
+    }
+
+    // Build result
+    return userIds.map((uid) => {
+      const typeMap = userFlows.get(uid) || new Map();
+      const accountFlows: UserAccountFlow[] = Array.from(typeMap.entries()).map(
+        ([accountType, data]) => ({
+          accountType,
+          balance: data.balance,
+          earned: data.earned,
+          spent: data.spent,
+          net: data.earned - data.spent,
+        })
+      );
+
+      const totalEarned = accountFlows.reduce((s, a) => s + a.earned, 0);
+      const totalSpent = accountFlows.reduce((s, a) => s + a.spent, 0);
+
+      return {
+        userId: uid,
+        totalEarned,
+        totalSpent,
+        netFlow: totalEarned - totalSpent,
+        accounts: accountFlows.sort((a, b) => b.balance - a.balance),
+      };
+    });
   }
 
   /**
@@ -328,8 +444,11 @@ export class ReportsService {
           name: `${formatDateShort(period.start_date)} - ${period.end_date ? formatDateShort(period.end_date) : 'Present'}`,
           startDate: period.start_date as string,
           endDate: (period.end_date || new Date().toISOString().split('T')[0]) as string,
-          startBalance: 0, // Not implemented globally yet
-          endBalance: 0, // Not implemented globally yet
+          startBalance: Object.values(metricsByAccountType).reduce(
+            (sum, m) => sum + m.startBalance,
+            0
+          ),
+          endBalance: Object.values(metricsByAccountType).reduce((sum, m) => sum + m.endBalance, 0),
           totalEarned,
           totalSpent,
           metricsByAccountType,
@@ -378,5 +497,106 @@ export class ReportsService {
     const expense = allStats.filter((s) => s.type === 'expense').sort((a, b) => b.total - a.total);
 
     return { income, expense };
+  }
+
+  /**
+   * Calculate Time Trends (When I spent)
+   * Aggregates spending by Day/Week over the selected range
+   */
+  static calculateTimeTrends(transactions: Transaction[], range: { start: Date; end: Date }) {
+    const dailyMap = new Map<string, { date: string; income: number; expense: number }>();
+
+    transactions.forEach((t) => {
+      const date = toDateTime(t.date);
+      // Compare JS Dates for performance and safety
+      if (!date || date.toJSDate() < range.start || date.toJSDate() > range.end) return;
+      if (t.type === 'transfer') return;
+
+      // Use ISO date key (YYYY-MM-DD) for reliable client-side filtering
+      const key = date.toISODate() || formatDateShort(t.date);
+      if (!dailyMap.has(key)) {
+        dailyMap.set(key, { date: key, income: 0, expense: 0 });
+      }
+      const entry = dailyMap.get(key)!;
+
+      if (t.type === 'income') entry.income += t.amount;
+      if (t.type === 'expense') entry.expense += t.amount;
+    });
+
+    return Array.from(dailyMap.values()).sort(
+      // Sort chronologically ascending (Left to Right)
+      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+    );
+  }
+
+  /**
+   * Calculate Budget Flow
+   * Returns flow data for Sankey/Flow visualization
+   */
+  static calculateBudgetFlow(periodSummary: ReportPeriodSummary) {
+    // Nodes: Start Balance, Income Sources, Budget/Accounts, Expenses, End Balance
+    // This maps the 'metricsByAccountType' to a flow structure
+
+    // Simple version: Start -> Accounts -> End
+    // + Income -> Accounts
+    // Accounts -> Expense
+
+    const nodes = [
+      { id: 'start', label: 'Starting Money', value: periodSummary.startBalance },
+      { id: 'income', label: 'Income', value: periodSummary.totalEarned },
+      ...Object.keys(periodSummary.metricsByAccountType).map((type) => ({
+        id: `account-${type}`,
+        label: type.charAt(0).toUpperCase() + type.slice(1),
+        value: periodSummary.metricsByAccountType[type].endBalance,
+      })),
+      { id: 'expense', label: 'Expenses', value: periodSummary.totalSpent },
+      { id: 'end', label: 'Ending Money', value: periodSummary.endBalance },
+    ];
+
+    const links: { source: string; target: string; value: number }[] = [];
+
+    // Flows
+    Object.entries(periodSummary.metricsByAccountType).forEach(([type, metrics]) => {
+      // Start -> Account
+      if (metrics.startBalance > 0) {
+        links.push({ source: 'start', target: `account-${type}`, value: metrics.startBalance });
+      }
+      // Income -> Account
+      if (metrics.earned > 0) {
+        links.push({ source: 'income', target: `account-${type}`, value: metrics.earned });
+      }
+      // Account -> Expense
+      if (metrics.spent > 0) {
+        links.push({ source: `account-${type}`, target: 'expense', value: metrics.spent });
+      }
+      // Account -> End
+      if (metrics.endBalance > 0) {
+        links.push({ source: `account-${type}`, target: 'end', value: metrics.endBalance });
+      }
+    });
+
+    return { nodes, links };
+  }
+
+  /**
+   * Fetch spending trends for a specific user and range
+   */
+  static async getSpendingTrends(userId: string, start?: Date, end?: Date) {
+    const supabase = supabaseServer;
+    let query = supabase.from('transactions').select('*').eq('user_id', userId);
+
+    if (start) query = query.gte('date', start.toISOString());
+    if (end) query = query.lte('date', end.toISOString());
+
+    const { data, error } = await query;
+    if (error) throw new Error(`ReportsService: Spending trends fetch failed: ${error.message}`);
+
+    const rangeStart = start || new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+    const rangeEnd = end || new Date();
+
+    return this.calculateTimeTrends((data as Transaction[]) || [], {
+      start: rangeStart,
+      end: rangeEnd,
+    });
   }
 }

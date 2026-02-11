@@ -99,9 +99,9 @@ describe('transaction-actions', () => {
   describe('createTransactionAction', () => {
     it('should return error when user is not authenticated', async () => {
       vi.mocked(getCurrentUser).mockResolvedValue(null);
-      
+
       const result = await createTransactionAction(createMockInput());
-      
+
       expect(result).toEqual({ data: null, error: 'Non autenticato' });
       expect(TransactionService.createTransaction).not.toHaveBeenCalled();
     });
@@ -109,26 +109,26 @@ describe('transaction-actions', () => {
     it('should return error when member tries to create transaction for another user', async () => {
       vi.mocked(getCurrentUser).mockResolvedValue(createMockUser({ id: 'user-1' }));
       vi.mocked(isMember).mockReturnValue(true);
-      
+
       const result = await createTransactionAction(createMockInput({ user_id: 'user-2' }));
-      
+
       expect(result).toEqual({ data: null, error: 'Permesso negato' });
     });
 
     it('should return error when user_id is not provided', async () => {
       vi.mocked(getCurrentUser).mockResolvedValue(createMockUser());
-      
+
       const result = await createTransactionAction(createMockInput({ user_id: null }));
-      
+
       expect(result).toEqual({ data: null, error: 'User ID richiesto' });
     });
 
     it('should return error when user cannot access target user data', async () => {
       vi.mocked(getCurrentUser).mockResolvedValue(createMockUser());
       vi.mocked(canAccessUserData).mockReturnValue(false);
-      
+
       const result = await createTransactionAction(createMockInput({ user_id: 'user-2' }));
-      
+
       expect(result).toEqual({ data: null, error: 'Permesso negato' });
     });
 
@@ -136,12 +136,12 @@ describe('transaction-actions', () => {
       const mockUser = createMockUser();
       const mockTransaction = createMockTransaction();
       const input = createMockInput();
-      
+
       vi.mocked(getCurrentUser).mockResolvedValue(mockUser);
       vi.mocked(TransactionService.createTransaction).mockResolvedValue(mockTransaction);
-      
+
       const result = await createTransactionAction(input);
-      
+
       expect(result).toEqual({ data: mockTransaction, error: null });
       expect(TransactionService.createTransaction).toHaveBeenCalledWith(input);
       expect(revalidatePath).toHaveBeenCalledWith('/transactions');
@@ -150,10 +150,12 @@ describe('transaction-actions', () => {
 
     it('should not revalidate paths when service returns null', async () => {
       vi.mocked(getCurrentUser).mockResolvedValue(createMockUser());
-      vi.mocked(TransactionService.createTransaction).mockResolvedValue(null as unknown as Transaction);
-      
+      vi.mocked(TransactionService.createTransaction).mockResolvedValue(
+        null as unknown as Transaction
+      );
+
       const result = await createTransactionAction(createMockInput());
-      
+
       expect(result).toEqual({ data: null, error: null });
       expect(revalidatePath).not.toHaveBeenCalled();
     });
@@ -163,18 +165,18 @@ describe('transaction-actions', () => {
       vi.mocked(TransactionService.createTransaction).mockRejectedValue(
         new Error('Database error')
       );
-      
+
       const result = await createTransactionAction(createMockInput());
-      
+
       expect(result).toEqual({ data: null, error: 'Database error' });
     });
 
     it('should handle non-Error exceptions with fallback message', async () => {
       vi.mocked(getCurrentUser).mockResolvedValue(createMockUser());
       vi.mocked(TransactionService.createTransaction).mockRejectedValue('string error');
-      
+
       const result = await createTransactionAction(createMockInput());
-      
+
       expect(result).toEqual({ data: null, error: 'Failed to create transaction' });
     });
   });
@@ -182,9 +184,9 @@ describe('transaction-actions', () => {
   describe('updateTransactionAction', () => {
     it('should return error when user is not authenticated', async () => {
       vi.mocked(getCurrentUser).mockResolvedValue(null);
-      
+
       const result = await updateTransactionAction('tx-1', { description: 'Updated' });
-      
+
       expect(result).toEqual({
         data: null,
         error: 'Non autenticato. Effettua il login per continuare.',
@@ -193,10 +195,12 @@ describe('transaction-actions', () => {
 
     it('should return error when transaction is not found', async () => {
       vi.mocked(getCurrentUser).mockResolvedValue(createMockUser());
-      vi.mocked(TransactionService.getTransactionById).mockResolvedValue(null as unknown as Transaction);
-      
+      vi.mocked(TransactionService.getTransactionById).mockResolvedValue(
+        null as unknown as Transaction
+      );
+
       const result = await updateTransactionAction('tx-nonexistent', { description: 'Updated' });
-      
+
       expect(result).toEqual({ data: null, error: 'Transazione non trovata' });
     });
 
@@ -205,9 +209,9 @@ describe('transaction-actions', () => {
       vi.mocked(TransactionService.getTransactionById).mockResolvedValue(
         createMockTransaction({ user_id: null })
       );
-      
+
       const result = await updateTransactionAction('tx-1', { description: 'Updated' });
-      
+
       expect(result).toEqual({
         data: null,
         error: 'La transazione non ha un utente assegnato',
@@ -220,9 +224,9 @@ describe('transaction-actions', () => {
         createMockTransaction({ user_id: 'user-2' })
       );
       vi.mocked(canAccessUserData).mockReturnValue(false);
-      
+
       const result = await updateTransactionAction('tx-1', { description: 'Updated' });
-      
+
       expect(result).toEqual({ data: null, error: 'Permesso negato' });
     });
 
@@ -232,9 +236,9 @@ describe('transaction-actions', () => {
         createMockTransaction({ user_id: 'user-1' })
       );
       vi.mocked(isMember).mockReturnValue(true);
-      
+
       const result = await updateTransactionAction('tx-1', { user_id: 'user-2' });
-      
+
       expect(result).toEqual({
         data: null,
         error: 'Non puoi assegnare la transazione a un altro utente',
@@ -250,9 +254,9 @@ describe('transaction-actions', () => {
       vi.mocked(canAccessUserData)
         .mockReturnValueOnce(true) // Can access existing transaction
         .mockReturnValueOnce(false); // Cannot access new user
-      
+
       const result = await updateTransactionAction('tx-1', { user_id: 'user-restricted' });
-      
+
       expect(result).toEqual({ data: null, error: 'Permesso negato' });
     });
 
@@ -260,7 +264,7 @@ describe('transaction-actions', () => {
       const mockUser = createMockUser({ id: 'admin-1', role: 'admin' });
       const existingTx = createMockTransaction({ user_id: 'user-1' });
       const updatedTx = createMockTransaction({ user_id: 'user-2' });
-      
+
       vi.mocked(getCurrentUser).mockResolvedValue(mockUser);
       vi.mocked(TransactionService.getTransactionById).mockResolvedValue(existingTx);
       vi.mocked(TransactionService.updateTransaction).mockResolvedValue(updatedTx);
@@ -268,24 +272,26 @@ describe('transaction-actions', () => {
       vi.mocked(canAccessUserData)
         .mockReturnValueOnce(true) // Can access existing transaction
         .mockReturnValueOnce(true); // Can access new user
-      
+
       const result = await updateTransactionAction('tx-1', { user_id: 'user-2' });
-      
+
       expect(result).toEqual({ data: updatedTx, error: null });
-      expect(TransactionService.updateTransaction).toHaveBeenCalledWith('tx-1', { user_id: 'user-2' });
+      expect(TransactionService.updateTransaction).toHaveBeenCalledWith('tx-1', {
+        user_id: 'user-2',
+      });
     });
 
     it('should update transaction successfully and revalidate paths', async () => {
       const mockUser = createMockUser();
       const existingTx = createMockTransaction();
       const updatedTx = createMockTransaction({ description: 'Updated' });
-      
+
       vi.mocked(getCurrentUser).mockResolvedValue(mockUser);
       vi.mocked(TransactionService.getTransactionById).mockResolvedValue(existingTx);
       vi.mocked(TransactionService.updateTransaction).mockResolvedValue(updatedTx);
-      
+
       const result = await updateTransactionAction('tx-1', { description: 'Updated' });
-      
+
       expect(result).toEqual({ data: updatedTx, error: null });
       expect(TransactionService.updateTransaction).toHaveBeenCalledWith('tx-1', {
         description: 'Updated',
@@ -297,22 +303,22 @@ describe('transaction-actions', () => {
     it('should handle service errors gracefully', async () => {
       vi.mocked(getCurrentUser).mockResolvedValue(createMockUser());
       vi.mocked(TransactionService.getTransactionById).mockResolvedValue(createMockTransaction());
-      vi.mocked(TransactionService.updateTransaction).mockRejectedValue(
-        new Error('Update failed')
-      );
-      
+      vi.mocked(TransactionService.updateTransaction).mockRejectedValue(new Error('Update failed'));
+
       const result = await updateTransactionAction('tx-1', { description: 'Updated' });
-      
+
       expect(result).toEqual({ data: null, error: 'Update failed' });
     });
 
     it('should not revalidate paths when service returns null', async () => {
       vi.mocked(getCurrentUser).mockResolvedValue(createMockUser());
       vi.mocked(TransactionService.getTransactionById).mockResolvedValue(createMockTransaction());
-      vi.mocked(TransactionService.updateTransaction).mockResolvedValue(null as unknown as Transaction);
-      
+      vi.mocked(TransactionService.updateTransaction).mockResolvedValue(
+        null as unknown as Transaction
+      );
+
       const result = await updateTransactionAction('tx-1', { description: 'Updated' });
-      
+
       expect(result).toEqual({ data: null, error: null });
       expect(revalidatePath).not.toHaveBeenCalled();
     });
@@ -321,9 +327,9 @@ describe('transaction-actions', () => {
       vi.mocked(getCurrentUser).mockResolvedValue(createMockUser());
       vi.mocked(TransactionService.getTransactionById).mockResolvedValue(createMockTransaction());
       vi.mocked(TransactionService.updateTransaction).mockRejectedValue({ code: 'UNKNOWN' });
-      
+
       const result = await updateTransactionAction('tx-1', { description: 'Updated' });
-      
+
       expect(result).toEqual({ data: null, error: 'Failed to update transaction' });
     });
   });
@@ -331,9 +337,9 @@ describe('transaction-actions', () => {
   describe('deleteTransactionAction', () => {
     it('should return error when user is not authenticated', async () => {
       vi.mocked(getCurrentUser).mockResolvedValue(null);
-      
+
       const result = await deleteTransactionAction('tx-1');
-      
+
       expect(result).toEqual({
         data: null,
         error: 'Non autenticato. Effettua il login per continuare.',
@@ -342,10 +348,12 @@ describe('transaction-actions', () => {
 
     it('should return error when transaction is not found', async () => {
       vi.mocked(getCurrentUser).mockResolvedValue(createMockUser());
-      vi.mocked(TransactionService.getTransactionById).mockResolvedValue(null as unknown as Transaction);
-      
+      vi.mocked(TransactionService.getTransactionById).mockResolvedValue(
+        null as unknown as Transaction
+      );
+
       const result = await deleteTransactionAction('tx-nonexistent');
-      
+
       expect(result).toEqual({ data: null, error: 'Transazione non trovata' });
     });
 
@@ -354,9 +362,9 @@ describe('transaction-actions', () => {
       vi.mocked(TransactionService.getTransactionById).mockResolvedValue(
         createMockTransaction({ user_id: null })
       );
-      
+
       const result = await deleteTransactionAction('tx-1');
-      
+
       expect(result).toEqual({
         data: null,
         error: 'La transazione non ha un utente assegnato',
@@ -369,22 +377,22 @@ describe('transaction-actions', () => {
         createMockTransaction({ user_id: 'user-2' })
       );
       vi.mocked(canAccessUserData).mockReturnValue(false);
-      
+
       const result = await deleteTransactionAction('tx-1');
-      
+
       expect(result).toEqual({ data: null, error: 'Permesso negato' });
     });
 
     it('should delete transaction successfully and revalidate paths', async () => {
       const mockUser = createMockUser();
       const existingTx = createMockTransaction();
-      
+
       vi.mocked(getCurrentUser).mockResolvedValue(mockUser);
       vi.mocked(TransactionService.getTransactionById).mockResolvedValue(existingTx);
       vi.mocked(TransactionService.deleteTransaction).mockResolvedValue({ id: 'tx-1' });
-      
+
       const result = await deleteTransactionAction('tx-1');
-      
+
       expect(result).toEqual({ data: { id: 'tx-1' }, error: null });
       expect(TransactionService.deleteTransaction).toHaveBeenCalledWith('tx-1');
       expect(revalidatePath).toHaveBeenCalledWith('/transactions');
@@ -394,12 +402,10 @@ describe('transaction-actions', () => {
     it('should handle service errors gracefully', async () => {
       vi.mocked(getCurrentUser).mockResolvedValue(createMockUser());
       vi.mocked(TransactionService.getTransactionById).mockResolvedValue(createMockTransaction());
-      vi.mocked(TransactionService.deleteTransaction).mockRejectedValue(
-        new Error('Delete failed')
-      );
-      
+      vi.mocked(TransactionService.deleteTransaction).mockRejectedValue(new Error('Delete failed'));
+
       const result = await deleteTransactionAction('tx-1');
-      
+
       expect(result).toEqual({ data: null, error: 'Delete failed' });
     });
 
@@ -407,9 +413,9 @@ describe('transaction-actions', () => {
       vi.mocked(getCurrentUser).mockResolvedValue(createMockUser());
       vi.mocked(TransactionService.getTransactionById).mockResolvedValue(createMockTransaction());
       vi.mocked(TransactionService.deleteTransaction).mockRejectedValue(null);
-      
+
       const result = await deleteTransactionAction('tx-1');
-      
+
       expect(result).toEqual({ data: null, error: 'Failed to delete transaction' });
     });
   });

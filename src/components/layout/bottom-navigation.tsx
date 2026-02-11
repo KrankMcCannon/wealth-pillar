@@ -44,9 +44,9 @@ export function BottomNavigation() {
               className={`${bottomNavigationStyles.item} ${
                 isActive ? bottomNavigationStyles.itemActive : bottomNavigationStyles.itemInactive
               }`}
+              aria-label={item.label}
             >
               <IconComponent className={bottomNavigationStyles.icon} />
-              <span className={bottomNavigationStyles.label}>{item.label}</span>
             </Link>
           );
         })}
@@ -56,6 +56,7 @@ export function BottomNavigation() {
           triggerClassName={bottomNavigationStyles.addButton}
           triggerIconClassName={bottomNavigationStyles.addIcon}
           menuClassName={bottomNavigationStyles.menu}
+          reverseMobileOrder
         />
 
         {navItems.slice(2).map((item) => {
@@ -68,9 +69,9 @@ export function BottomNavigation() {
               className={`${bottomNavigationStyles.item} ${
                 isActive ? bottomNavigationStyles.itemActive : bottomNavigationStyles.itemInactive
               }`}
+              aria-label={item.label}
             >
               <IconComponent className={bottomNavigationStyles.icon} />
-              <span className={bottomNavigationStyles.label}>{item.label}</span>
             </Link>
           );
         })}

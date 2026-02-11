@@ -176,10 +176,7 @@ describe('permissions', () => {
   });
 
   describe('getVisibleUsers', () => {
-    const allUsers = [
-      createMockUser({ id: 'user-1' }),
-      createMockUser({ id: 'user-2' }),
-    ];
+    const allUsers = [createMockUser({ id: 'user-1' }), createMockUser({ id: 'user-2' })];
 
     it('should return empty array for null user', () => {
       expect(getVisibleUsers(null, allUsers)).toEqual([]);
@@ -197,10 +194,7 @@ describe('permissions', () => {
   });
 
   describe('getSelectableUsers', () => {
-    const allUsers = [
-      createMockUser({ id: 'user-1' }),
-      createMockUser({ id: 'user-2' }),
-    ];
+    const allUsers = [createMockUser({ id: 'user-1' }), createMockUser({ id: 'user-2' })];
 
     it('should return empty array for null user', () => {
       expect(getSelectableUsers(null, allUsers)).toEqual([]);
@@ -287,7 +281,7 @@ describe('permissions', () => {
       const member = createMockUser({ id: 'user-1', role: 'member' });
       const result = filterByUserPermissions(items, member);
       expect(result).toHaveLength(2);
-      expect(result.every(item => item.user_id === 'user-1')).toBe(true);
+      expect(result.every((item) => item.user_id === 'user-1')).toBe(true);
     });
 
     it('should return all items for admin with no selection', () => {

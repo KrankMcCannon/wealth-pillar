@@ -50,7 +50,7 @@ const authTokens = {
   button: {
     // Primary auth button (sign in, sign up, etc.)
     primary:
-      'w-full h-9 bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-200 active:scale-[.98] shadow-md text-sm font-medium',
+      'relative h-12 bg-card hover:bg-primary/5 border border-border hover:border-primary/30 text-primary transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 rounded-xl group',
   },
 
   // ============================================================================
@@ -94,14 +94,14 @@ export const authStyles = {
   loading: {
     container: 'flex flex-col items-center justify-center py-8 space-y-4',
     spinner: 'h-12 w-12 animate-spin text-primary',
-    spinnerRing: 'border-b-2 border-current rounded-full',
-    text: `${typographyStyles.sm} text-center text-muted-foreground`,
+    identityPreview: 'bg-primary/10 border-border rounded-xl p-3',
+    text: `${typographyStyles.sm} text-center text-primary/70`,
   },
   errorPage: {
     container: 'space-y-4',
-    description: `${typographyStyles.sm} text-center text-muted-foreground`,
+    description: `${typographyStyles.sm} text-center text-primary/70`,
     retryButton: `w-full px-4 py-2 bg-primary text-primary-foreground ${radiusStyles.sm} hover:opacity-90 transition-opacity`,
-    backLink: `${typographyStyles.sm} block text-center text-muted-foreground hover:text-foreground transition-colors`,
+    backLink: `${typographyStyles.sm} block text-center text-primary/60 hover:text-foreground transition-colors`,
   },
 
   // ============================================================================
@@ -163,7 +163,7 @@ export const authStyles = {
   divider: {
     container: authTokens.components.divider,
     line: 'h-px bg-primary/20 flex-1',
-    text: `${typographyStyles.xs} text-muted-foreground font-medium`,
+    text: `${typographyStyles.xs} text-primary/60 font-medium`,
   },
 
   // ============================================================================
@@ -173,7 +173,7 @@ export const authStyles = {
 
   toggle: {
     container: `text-center ${typographyStyles.xs} text-muted-foreground pt-1`,
-    text: `${typographyStyles.xs} text-muted-foreground`,
+    text: `${typographyStyles.xs} text-primary/60`,
     link: 'text-primary hover:text-primary/80 font-semibold',
   },
 

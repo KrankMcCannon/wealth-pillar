@@ -20,16 +20,19 @@ const createInvestmentSchema = (t: ReturnType<typeof useTranslations>) =>
     symbol: z.string().min(1, t('validation.symbolRequired')),
     amount: z
       .string()
-      .refine((val) => !Number.isNaN(Number(val)) && Number(val) > 0, t('validation.amountInvalid')),
+      .refine(
+        (val) => !Number.isNaN(Number(val)) && Number(val) > 0,
+        t('validation.amountInvalid')
+      ),
     tax_paid: z
       .string()
-      .refine(
-        (val) => !Number.isNaN(Number(val)) && Number(val) >= 0,
-        t('validation.taxInvalid')
-      ),
+      .refine((val) => !Number.isNaN(Number(val)) && Number(val) >= 0, t('validation.taxInvalid')),
     shares: z
       .string()
-      .refine((val) => !Number.isNaN(Number(val)) && Number(val) > 0, t('validation.sharesInvalid')),
+      .refine(
+        (val) => !Number.isNaN(Number(val)) && Number(val) > 0,
+        t('validation.sharesInvalid')
+      ),
     created_at: z.string().min(1, t('validation.dateRequired')),
     currency: z.enum(['EUR', 'USD']),
   });

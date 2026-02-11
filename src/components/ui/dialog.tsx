@@ -30,7 +30,7 @@ const DialogOverlay = React.forwardRef<
   <DialogPrimitive.Overlay
     ref={ref}
     data-slot="dialog-overlay"
-    className={cn(dialogComponentStyles.overlay, className)}
+    className={cn(dialogComponentStyles.overlay, 'z-150', className)}
     {...props}
   />
 ));
@@ -47,7 +47,7 @@ const DialogContent = React.forwardRef<
     <DialogPrimitive.Content
       ref={ref}
       data-slot="dialog-content"
-      className={cn(dialogComponentStyles.contentBase, modalStyles.content, className)}
+      className={cn(dialogComponentStyles.contentBase, modalStyles.content, 'z-150', className)}
       {...props}
     >
       {children}

@@ -109,9 +109,7 @@ export function BudgetPeriodsList({ userId, initialPeriods }: Readonly<BudgetPer
       {periods.length === 0 && (
         <div className={budgetStyles.periodsList.emptyContainer}>
           <p className={budgetStyles.periodsList.emptyTitle}>{t('empty.title')}</p>
-          <p className={budgetStyles.periodsList.emptySubtitle}>
-            {t('empty.description')}
-          </p>
+          <p className={budgetStyles.periodsList.emptySubtitle}>{t('empty.description')}</p>
         </div>
       )}
 

@@ -85,14 +85,18 @@ export function BudgetPeriodInfo({
           {totalSpent !== undefined && (
             <div className={budgetStyles.periodInfo.metricSpent}>
               <p className={budgetStyles.periodInfo.metricLabelSpent}>{t('metrics.spent')}</p>
-              <p className={budgetStyles.periodInfo.metricValueSpent}>{formatCurrency(totalSpent)}</p>
+              <p className={budgetStyles.periodInfo.metricValueSpent}>
+                {formatCurrency(totalSpent)}
+              </p>
             </div>
           )}
 
           {totalSaved !== undefined && (
             <div className={budgetStyles.periodInfo.metricSaved}>
               <p className={budgetStyles.periodInfo.metricLabelSaved}>{t('metrics.saved')}</p>
-              <p className={budgetStyles.periodInfo.metricValueSaved}>{formatCurrency(totalSaved)}</p>
+              <p className={budgetStyles.periodInfo.metricValueSaved}>
+                {formatCurrency(totalSaved)}
+              </p>
             </div>
           )}
         </div>

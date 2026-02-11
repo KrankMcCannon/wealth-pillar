@@ -1,91 +1,127 @@
-import { CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatCurrency } from '@/lib/utils';
 import { AccountTypeSummary } from '@/server/services/reports.service';
 import { reportsStyles } from '@/features/reports/theme/reports-styles';
 import { useTranslations } from 'next-intl';
 import {
-  Landmark,
   Wallet,
-  TrendingUp,
-  PiggyBank,
-  CreditCard,
   ArrowUpCircle,
   ArrowDownCircle,
+  Activity,
+  TrendingUp,
+  TrendingDown,
 } from 'lucide-react';
 
 interface SummarySectionProps {
-  data: AccountTypeSummary[];
+  accounts: AccountTypeSummary[];
+  /** When filtered, these are pre-computed from transactions in the selected range */
+  filteredIncome: number | null;
+  filteredExpenses: number | null;
+  isFiltered: boolean;
 }
 
-const getAccountIcon = (type: string) => {
-  switch (type.toLowerCase()) {
-    case 'payroll':
-      return <Landmark className={reportsStyles.summary.cardIcon} />;
-    case 'savings':
-      return <PiggyBank className={reportsStyles.summary.cardIcon} />;
-    case 'investments':
-      return <TrendingUp className={reportsStyles.summary.cardIcon} />;
-    case 'cash':
-      return <Wallet className={reportsStyles.summary.cardIcon} />;
-    default:
-      return <CreditCard className={reportsStyles.summary.cardIcon} />;
-  }
-};
-
-export function SummarySection({ data }: SummarySectionProps) {
+export function SummarySection({
+  accounts,
+  filteredIncome,
+  filteredExpenses,
+  isFiltered,
+}: SummarySectionProps) {
   const t = useTranslations('Reports.SummarySection');
 
-  return (
-    <div className="space-y-4">
-      <h3 className={reportsStyles.periods.sectionTitle}>{t('title')}</h3>
-      <div className={reportsStyles.summary.grid}>
-        {data.map((item) => (
-          <div key={item.type} className={reportsStyles.summary.card}>
-            <div
-              className={reportsStyles.summary.gradientBg}
-              style={{
-                background:
-                  'radial-gradient(circle, rgba(var(--primary-rgb), 0.15) 0%, transparent 70%)',
-              }}
-            ></div>
-            <CardHeader className={reportsStyles.summary.cardHeader}>
-              <CardTitle className={reportsStyles.summary.cardTitle}>{item.type}</CardTitle>
-              {getAccountIcon(item.type)}
-            </CardHeader>
-            <CardContent className={reportsStyles.summary.cardContent}>
-              <div className={reportsStyles.summary.balance}>
-                {formatCurrency(item.totalBalance)}
-              </div>
-
-              <div className={reportsStyles.summary.metricsGrid}>
-                <div className={reportsStyles.summary.metricRow}>
-                  <span className={reportsStyles.summary.metricLabel}>{t('incomeLabel')}</span>
-                  <div className="flex items-center gap-1">
-                    <ArrowUpCircle className="w-3 h-3 text-emerald-500" />
-                    <span className={reportsStyles.summary.metricValueIncome}>
-                      +{formatCurrency(item.totalEarned)}
-                    </span>
-                  </div>
-                </div>
-                <div className={reportsStyles.summary.metricRow}>
-                  <span className={reportsStyles.summary.metricLabel}>{t('expensesLabel')}</span>
-                  <div className="flex items-center gap-1">
-                    <ArrowDownCircle className="w-3 h-3 text-red-500" />
-                    <span className={reportsStyles.summary.metricValueExpense}>
-                      -{formatCurrency(item.totalSpent)}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </div>
-        ))}
-        {data.length === 0 && (
-          <p className="text-sm text-primary/60 col-span-full text-center py-8">
-            {t('empty')}
-          </p>
-        )}
+  if (accounts.length === 0) {
+    return (
+      <div className={reportsStyles.periods.emptyContainer}>
+        <p className={reportsStyles.periods.emptyText}>{t('empty')}</p>
       </div>
+    );
+  }
+
+  // Balance: always from account summaries (live state)
+  const totalBalance = accounts.reduce((sum, a) => sum + a.totalBalance, 0);
+
+  // Income/Expenses: from filtered transactions when time range is selected,
+  // from account summaries (all-time) otherwise
+  const totalIncome =
+    isFiltered && filteredIncome !== null
+      ? filteredIncome
+      : accounts.reduce((sum, a) => sum + a.totalEarned, 0);
+
+  const totalExpenses =
+    isFiltered && filteredExpenses !== null
+      ? filteredExpenses
+      : accounts.reduce((sum, a) => sum + a.totalSpent, 0);
+
+  const netFlow = totalIncome - totalExpenses;
+  const savingsRate = totalIncome > 0 ? ((netFlow / totalIncome) * 100).toFixed(1) : '0';
+
+  const cards = [
+    {
+      label: t('totalBalance'),
+      value: formatCurrency(totalBalance),
+      subtext: t('acrossAllAccounts'),
+      icon: Wallet,
+      positive: totalBalance >= 0,
+      isNetFlow: false,
+    },
+    {
+      label: t('income'),
+      value: formatCurrency(totalIncome),
+      subtext: isFiltered ? t('thisPeriod') : t('acrossAllAccounts'),
+      icon: ArrowUpCircle,
+      positive: true,
+      isNetFlow: false,
+    },
+    {
+      label: t('expenses'),
+      value: formatCurrency(totalExpenses),
+      subtext: isFiltered ? t('thisPeriod') : t('acrossAllAccounts'),
+      icon: ArrowDownCircle,
+      positive: false,
+      isNetFlow: false,
+    },
+    {
+      label: t('netFlow'),
+      value: formatCurrency(netFlow),
+      subtext: '',
+      icon: Activity,
+      positive: netFlow >= 0,
+      isNetFlow: true,
+    },
+  ];
+
+  return (
+    <div className={reportsStyles.summary.grid}>
+      {cards.map((card) => (
+        <div key={card.label} className={reportsStyles.summary.card}>
+          <div className={reportsStyles.summary.gradientOverlay} />
+          <div className={reportsStyles.summary.cardHeader}>
+            <span className={reportsStyles.summary.cardTitle}>{card.label}</span>
+            <card.icon className={reportsStyles.summary.cardIcon} />
+          </div>
+          <div className={reportsStyles.summary.cardContent}>
+            <p className="text-lg sm:text-2xl md:text-3xl font-bold tracking-tight text-foreground">
+              {card.value}
+            </p>
+            {card.isNetFlow ? (
+              <span
+                className={
+                  card.positive
+                    ? reportsStyles.summary.trendBadge
+                    : reportsStyles.summary.trendBadgeNegative
+                }
+              >
+                {card.positive ? (
+                  <TrendingUp className="w-3 h-3" />
+                ) : (
+                  <TrendingDown className="w-3 h-3" />
+                )}
+                {savingsRate}% {t('savingsRate')}
+              </span>
+            ) : (
+              <p className={reportsStyles.summary.subtext}>{card.subtext}</p>
+            )}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

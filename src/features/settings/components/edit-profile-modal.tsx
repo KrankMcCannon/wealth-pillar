@@ -21,11 +21,7 @@ import { useRouter } from '@/i18n/routing';
 
 const createEditProfileSchema = (t: ReturnType<typeof useTranslations>) =>
   z.object({
-    name: z
-      .string()
-      .min(1, t('validation.nameRequired'))
-      .max(100, t('validation.nameMax'))
-      .trim(),
+    name: z.string().min(1, t('validation.nameRequired')).max(100, t('validation.nameMax')).trim(),
     email: z
       .string()
       .min(1, t('validation.emailRequired'))

@@ -15,10 +15,18 @@ export default async function ReportsPage({
   if (!currentUser) redirect(`/${locale}/sign-in`);
   const t = await getTranslations('ReportsPage');
 
-  // Execute in parallel
-  const [groupUsers, reportsData] = await Promise.all([
-    getGroupUsers(),
-    ReportsService.getReportsData(),
+  // Fetch group users first (needed for secure data fetching)
+  const groupUsers = await getGroupUsers();
+  const groupUserIds = groupUsers.map((u) => u.id);
+
+  // Execute in parallel, passing group user IDs for security filtering
+  const [reportsData, spendingTrends] = await Promise.all([
+    ReportsService.getReportsData(groupUserIds),
+    ReportsService.getSpendingTrends(
+      currentUser.id,
+      new Date(new Date().getFullYear(), new Date().getMonth() - 11, 1),
+      new Date()
+    ),
   ]);
 
   const { transactions, accounts, periods, categories } = reportsData;
@@ -26,20 +34,44 @@ export default async function ReportsPage({
   // Compute Metrics on Server
   const accountTypeSummary = ReportsService.calculateAccountTypeSummary(transactions, accounts);
   const periodSummaries = ReportsService.calculatePeriodSummaries(periods, transactions, accounts);
-  const { income: incomeStats, expense: expenseStats } = ReportsService.calculateCategoryStats(
-    transactions,
-    categories
-  );
+
+  // Serialize transactions with fields needed for client-side filtering
+  const serializableTransactions = transactions.map((t) => ({
+    amount: t.amount,
+    type: t.type,
+    category: t.category,
+    date: typeof t.date === 'string' ? t.date : new Date(t.date).toISOString(),
+    user_id: t.user_id,
+    account_id: t.account_id,
+    to_account_id: t.to_account_id || null,
+  }));
+
+  const serializableCategories = categories.map((c) => ({
+    id: c.id,
+    label: c.label,
+    key: c.key,
+    color: c.color,
+  }));
+
+  // Serialize accounts for client-side flow computation
+  const serializableAccounts = accounts.map((a) => ({
+    id: a.id,
+    type: a.type,
+    balance: a.balance || 0,
+    user_ids: a.user_ids,
+  }));
 
   return (
     <Suspense fallback={<PageLoader message={t('loading')} />}>
       <ReportsContent
         accountTypeSummary={accountTypeSummary}
         periodSummaries={periodSummaries}
-        incomeStats={incomeStats}
-        expenseStats={expenseStats}
+        spendingTrends={spendingTrends}
         currentUser={currentUser}
         groupUsers={groupUsers}
+        transactions={serializableTransactions}
+        categories={serializableCategories}
+        accounts={serializableAccounts}
       />
     </Suspense>
   );

@@ -19,3 +19,4 @@ export { SummarySection } from './SummarySection';
 export { PeriodsSection } from './PeriodsSection';
 export { PeriodCard } from './PeriodCard';
 export { CategoriesSection } from './CategoriesSection';
+export { TimeRangeSelector, getTimeRangeStartDate, type TimeRange } from './TimeRangeSelector';

@@ -1,10 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import {
-  getBaseUrl,
-  getAbsoluteUrl,
-  isProduction,
-  isDevelopment,
-} from './url-utils';
+import { getBaseUrl, getAbsoluteUrl, isProduction, isDevelopment } from './url-utils';
 
 describe('url-utils', () => {
   const originalEnv = { ...process.env };
@@ -36,16 +31,16 @@ describe('url-utils', () => {
 
     it('should return localhost when env var is undefined and no window', () => {
       delete process.env.NEXT_PUBLIC_APP_URL;
-      
+
       // Save original window
       const originalWindow = globalThis.window;
-      
+
       // Remove window to simulate server-side
       // @ts-expect-error - intentionally removing window
       delete globalThis.window;
-      
+
       expect(getBaseUrl()).toBe('http://localhost:3000');
-      
+
       // Restore window
       Object.defineProperty(globalThis, 'window', {
         value: originalWindow,
@@ -57,20 +52,20 @@ describe('url-utils', () => {
     it('should use window.location.origin when available and no env var', () => {
       // Clear env var
       delete process.env.NEXT_PUBLIC_APP_URL;
-      
+
       // In jsdom, window is defined, so it should use location.origin
       // The default jsdom URL is http://localhost/ so we test for that
       // or we mock it explicitly
       const originalLocation = globalThis.location;
-      
+
       Object.defineProperty(globalThis, 'location', {
         value: { origin: 'https://browser.example.com' },
         writable: true,
         configurable: true,
       });
-      
+
       expect(getBaseUrl()).toBe('https://browser.example.com');
-      
+
       // Restore
       Object.defineProperty(globalThis, 'location', {
         value: originalLocation,
@@ -136,4 +131,3 @@ describe('url-utils', () => {
     });
   });
 });
-

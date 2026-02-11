@@ -313,6 +313,13 @@
   "Reports": {
     "SummarySection": {
       "title": "Summary",
+      "totalBalance": "Total Balance",
+      "acrossAllAccounts": "across all accounts",
+      "netFlow": "Net Flow",
+      "income": "Income",
+      "expenses": "Expenses",
+      "thisPeriod": "this period",
+      "savingsRate": "savings rate",
       "incomeLabel": "Income",
       "expensesLabel": "Expenses",
       "empty": "No summary data available."
@@ -326,6 +333,46 @@
       "incomeTitle": "Income",
       "expensesTitle": "Expenses",
       "empty": "No data available."
+    },
+    "Charts": {
+      "timeTrendsTitle": "Income & Expense Trends",
+      "timeTrendsSubtitle": "Track your financial flow over time",
+      "categoryDistributionTitle": "Spending by Category",
+      "categoryDistributionSubtitle": "Where your money goes",
+      "flowTitle": "Budget Flow",
+      "flowSubtitle": "How money moves through your accounts",
+      "income": "Income",
+      "expense": "Expenses",
+      "total": "Total"
+    },
+    "TimeRangeSelector": {
+      "label": "Time Range",
+      "allTime": "All Time",
+      "last7Days": "Last 7 Days",
+      "last30Days": "Last 30 Days",
+      "last3Months": "Last 3 Months",
+      "last6Months": "Last 6 Months",
+      "lastYear": "Last Year",
+      "customRange": "Custom Range",
+      "from": "From",
+      "to": "To",
+      "apply": "Apply"
+    },
+    "TimeTrendsChart": {
+      "title": "Spending Trends",
+      "income": "Income",
+      "expense": "Expenses"
+    },
+    "CategoryDistribution": {
+      "title": "Spending by Category",
+      "total": "Total Expenses"
+    },
+    "BudgetFlowVisualizer": {
+      "title": "Budget Flow",
+      "start": "Start",
+      "income": "Income",
+      "expense": "Expenses",
+      "end": "End"
     },
     "PeriodCard": {
       "balanceLabel": "Balance",

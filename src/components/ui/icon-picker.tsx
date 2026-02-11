@@ -75,7 +75,7 @@ const styles = {
   searchInput: 'h-10 bg-card pr-8',
   searchClearButton:
     'absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-md hover:bg-primary/10 transition-colors',
-  searchClearIcon: 'h-4 w-4 text-muted-foreground',
+  searchClearIcon: 'h-4 w-4 text-primary/60',
 
   // Recent icons container
   recentContainer:
@@ -104,7 +104,7 @@ const styles = {
 
   // Empty state
   emptyState: 'flex flex-col items-center justify-center h-full py-8 text-center',
-  emptyStateText: 'text-sm text-muted-foreground mb-2',
+  emptyStateText: 'text-sm text-primary/70 mb-2',
 
   // Icon grid
   iconGrid: {
@@ -133,7 +133,7 @@ const styles = {
   triggerButton:
     'w-full h-10 justify-start text-left font-normal rounded-lg border-primary/20 bg-card hover:bg-card',
   triggerIcon: 'mr-2 h-4 w-4 text-primary',
-  triggerText: 'text-muted-foreground',
+  triggerText: 'text-primary/60',
 
   // Desktop popover
   popoverContent: 'w-[450px] p-0 bg-card flex flex-col',

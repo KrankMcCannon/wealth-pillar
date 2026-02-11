@@ -13,55 +13,37 @@ interface PeriodsSectionProps {
 export function PeriodsSection({ data, users }: PeriodsSectionProps) {
   const t = useTranslations('Reports.PeriodsSection');
 
-  // Group periods by userId
-  const periodsByUser = React.useMemo(() => {
-    const grouped: Record<string, ReportPeriodSummary[]> = {};
-    users.forEach((u) => (grouped[u.id] = []));
-
-    data.forEach((period) => {
-      if (grouped[period.userId]) {
-        grouped[period.userId].push(period);
-      }
-    });
-    return grouped;
-  }, [data, users]);
-
-  // Filter users who have periods
-  const activeUsers = users.filter((user) => (periodsByUser[user.id]?.length || 0) > 0);
-  const userColumnCount = Math.max(activeUsers.length, 1);
-  const usersGridStyle = {
-    '--reports-user-columns': `repeat(${userColumnCount}, minmax(0, 1fr))`,
-  } as React.CSSProperties;
-
   return (
     <div className="space-y-4">
       <h3 className={reportsStyles.periods.sectionTitle}>
-        <CalendarDays className="w-5 h-5" />
+        <CalendarDays className="w-5 h-5 text-primary" />
         {t('title')}
       </h3>
 
       {data.length === 0 ? (
-        <div className="text-center py-12 border border-dashed rounded-xl border-primary/20 bg-primary/5">
-          <p className="text-primary/60">{t('empty')}</p>
+        <div className={reportsStyles.periods.emptyContainer}>
+          <p className={reportsStyles.periods.emptyText}>{t('empty')}</p>
         </div>
       ) : (
-        <div className={reportsStyles.periods.usersGrid} style={usersGridStyle}>
-          {activeUsers.map((user) => (
-            <section key={user.id} className={reportsStyles.periods.userColumn}>
-              <header className={reportsStyles.periods.userHeader}>
-                <div className={reportsStyles.periods.userAvatar}>
-                  {user.name.charAt(0).toUpperCase()}
-                </div>
-                <h4 className={reportsStyles.periods.userName}>{user.name}</h4>
-              </header>
+        <div className={reportsStyles.periods.grid}>
+          {users.map((user) => {
+            const userPeriods = data.filter((p) => p.userId === user.id);
+            if (userPeriods.length === 0) return null;
 
-              <div className={reportsStyles.periods.userPeriods}>
-                {periodsByUser[user.id].map((period) => (
-                  <PeriodCard key={period.id} period={period} />
+            return (
+              <React.Fragment key={user.id}>
+                {userPeriods.map((period) => (
+                  <div key={period.id} className="relative group">
+                    <div className="absolute -inset-0.5 bg-linear-to-r from-primary/20 to-secondary/20 rounded-2xl blur opacity-0 group-hover:opacity-30 transition duration-500"></div>
+                    <PeriodCard period={period} />
+                    {users.length > 1 && (
+                      <div className={reportsStyles.periods.userBadge}>{user.name}</div>
+                    )}
+                  </div>
                 ))}
-              </div>
-            </section>
-          ))}
+              </React.Fragment>
+            );
+          })}
         </div>
       )}
     </div>

@@ -17,7 +17,7 @@ export const formStyles = {
     required: 'ml-1 text-destructive',
     inputWrap: 'relative',
     error: 'text-sm text-destructive animate-in fade-in slide-in-from-top-1 duration-200',
-    helper: 'text-sm text-muted-foreground',
+    helper: 'text-sm text-primary/60',
   },
   actions: {
     container: 'flex flex-col-reverse gap-2 sm:flex-row sm:justify-end',
@@ -87,7 +87,7 @@ export const formStyles = {
     userRow: 'flex items-center gap-2 flex-1',
     avatar: 'w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium text-white',
     name: 'text-sm font-medium',
-    current: 'text-xs text-muted-foreground',
+    current: 'text-xs text-primary/60',
   },
 } as const;
 

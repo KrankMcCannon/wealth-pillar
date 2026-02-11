@@ -25,7 +25,7 @@ export const typographyStyles = {
   body: 'text-sm',
   bodySmall: 'text-xs',
   label: 'text-xs font-medium',
-  caption: 'text-xs text-muted-foreground',
+  caption: 'text-xs text-primary/60',
   amount: 'text-lg sm:text-xl font-bold tracking-tight',
   amountLarge: 'text-2xl sm:text-3xl font-bold tracking-tight',
 } as const;
@@ -80,9 +80,10 @@ export const zIndexStyles = {
     raised: 'z-10',
     dropdown: 'z-20',
     sticky: 'z-30',
-    modal: 'z-40',
-    popover: 'z-50',
-    tooltip: 'z-[60]',
+    bottomNav: 'z-40',
+    modal: 'z-[150]',
+    popover: 'z-[160]',
+    tooltip: 'z-[170]',
   },
 } as const;
 
@@ -94,6 +95,50 @@ export const animationStyles = {
     transition: 'transition-all duration-200',
     transitionFast: 'transition-all duration-150',
     transitionSlow: 'transition-all duration-300',
+  },
+} as const;
+
+// ============================================================================
+// 2026 DESIGN TOKENS (PREMIUM AESTHETICS)
+// ============================================================================
+
+export const glassmorphism = {
+  base: 'bg-white/70 dark:bg-black/40 backdrop-blur-xl border border-white/20 dark:border-white/10 shadow-lg',
+  heavy:
+    'bg-white/80 dark:bg-black/60 backdrop-blur-2xl border border-white/30 dark:border-white/10 shadow-xl',
+  light: 'bg-white/40 dark:bg-black/20 backdrop-blur-md border border-white/10 shadow-sm',
+  card: 'bg-card/60 backdrop-blur-xl border border-white/10 dark:border-white/5 shadow-2xl shadow-black/5',
+  interactive:
+    'hover:bg-white/80 dark:hover:bg-white/5 transition-all duration-300 hover:scale-[1.01] hover:shadow-lg hover:border-white/30',
+} as const;
+
+export const vibrantGradients = {
+  primary: 'bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500',
+  success: 'bg-gradient-to-br from-emerald-400 to-cyan-500',
+  warning: 'bg-gradient-to-br from-amber-400 to-orange-500',
+  danger: 'bg-gradient-to-br from-red-500 to-rose-600',
+  dark: 'bg-gradient-to-br from-slate-800 to-slate-950',
+  subtle: 'bg-gradient-to-br from-primary/5 to-primary/10',
+  glow: {
+    primary: 'shadow-[0_0_20px_rgba(168,85,247,0.4)]',
+    success: 'shadow-[0_0_20px_rgba(52,211,153,0.4)]',
+  },
+  text: {
+    primary:
+      'bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500',
+  },
+} as const;
+
+export const microAnimations = {
+  hover: {
+    scale: 'hover:scale-105 transition-transform duration-200 ease-out',
+    lift: 'hover:-translate-y-1 hover:shadow-lg transition-all duration-300 ease-out',
+    glow: 'hover:shadow-[0_0_15px_rgba(var(--primary-rgb),0.3)] transition-shadow duration-300',
+  },
+  entry: {
+    fade: 'animate-in fade-in duration-500 ease-out',
+    slideUp: 'animate-in slide-in-from-bottom-4 fade-in duration-500 ease-out fill-mode-backwards',
+    zoom: 'animate-in zoom-in-95 fade-in duration-300 ease-out',
   },
 } as const;
 
@@ -430,7 +475,7 @@ export const budgetStyles = {
       listBody: 'p-2 space-y-2',
       itemWrapper: 'pt-2 border-t border-border/50',
     },
-    emptyState: 'p-8 text-center text-muted-foreground bg-muted/30 rounded-lg border border-dashed',
+    emptyState: 'p-8 text-center text-primary/70 bg-primary/5 rounded-lg border border-dashed',
   },
   progress: {
     container: budgetTokens.components.progress.container,
@@ -591,7 +636,7 @@ export const budgetStyles = {
     emptyIconInner: 'w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center',
     emptyIconText: 'text-primary font-bold text-lg',
     emptyTitle: 'font-semibold text-primary mb-2',
-    emptyDescription: 'text-sm text-muted-foreground mb-4 max-w-sm mx-auto',
+    emptyDescription: 'text-sm text-primary/70 mb-4 max-w-sm mx-auto',
     emptyButton:
       'inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-xl font-medium text-sm hover:shadow-lg hover:shadow-primary/25 transition-all duration-300 hover:scale-105',
     groupCard: 'bg-card shadow-sm border border-primary/20 rounded-xl overflow-hidden',
@@ -747,11 +792,11 @@ export const budgetStyles = {
     categoryBox: 'space-y-3 rounded-2xl border border-primary/15 bg-card/70 p-3',
     categoryHeader: 'flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between',
     categorySelect: 'h-9 text-sm',
-    categoryMeta: 'flex items-center gap-3 text-xs text-muted-foreground',
+    categoryMeta: 'flex items-center gap-3 text-xs text-primary/60',
     categoryMetaStrong: 'font-medium',
     categoryLink: 'text-primary hover:underline disabled:opacity-40',
     categoryList: 'max-h-60 overflow-y-auto space-y-2 pr-1',
-    categoryEmpty: 'text-sm text-muted-foreground px-1 py-4',
+    categoryEmpty: 'text-sm text-primary/70 px-1 py-4',
     categoryItem:
       'flex items-center gap-3 rounded-xl border border-primary/10 bg-card/80 px-3 py-2 text-sm hover:border-primary/40 cursor-pointer',
     categoryItemRow: 'flex items-center gap-2',
@@ -980,7 +1025,7 @@ export const transactionTokens = {
       container: 'flex gap-2 border-b border-primary/20 px-3 sm:px-4 py-2',
       tab: `px-4 py-2 ${typographyStyles.sm} font-medium rounded-t-lg`,
       tabActive: 'text-primary border-b-2 border-primary',
-      tabInactive: 'text-muted-foreground hover:text-foreground',
+      tabInactive: 'text-primary/60 hover:text-foreground',
     },
     dayGroup: {
       header: 'flex items-center justify-between mb-2 px-1',

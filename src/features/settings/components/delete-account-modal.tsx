@@ -44,14 +44,10 @@ export function DeleteAccountModal({
     >
       <ModalBody>
         <div className={settingsStyles.modals.deleteAccount.body}>
-          <p className={settingsStyles.modals.deleteAccount.bodyText}>
-            {t('confirmPrompt')}
-          </p>
+          <p className={settingsStyles.modals.deleteAccount.bodyText}>{t('confirmPrompt')}</p>
 
           <div className={settingsStyles.modals.deleteAccount.warningBox}>
-            <p className={settingsStyles.modals.deleteAccount.warningTitle}>
-              {t('warningTitle')}
-            </p>
+            <p className={settingsStyles.modals.deleteAccount.warningTitle}>{t('warningTitle')}</p>
             <ul className={settingsStyles.modals.deleteAccount.warningList}>
               <li className={settingsStyles.modals.deleteAccount.warningItem}>
                 <span className={settingsStyles.modals.deleteAccount.warningDot}>•</span>

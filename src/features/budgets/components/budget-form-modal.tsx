@@ -343,7 +343,11 @@ function BudgetFormModal({ isOpen, onClose, editId }: Readonly<BudgetFormModalPr
 
           <ModalSection className={budgetStyles.formModal.section}>
             {/* Description */}
-            <FormField label={t('fields.description.label')} required error={errors.description?.message}>
+            <FormField
+              label={t('fields.description.label')}
+              required
+              error={errors.description?.message}
+            >
               <Input
                 {...register('description')}
                 placeholder={t('fields.description.placeholder')}
@@ -396,7 +400,9 @@ function BudgetFormModal({ isOpen, onClose, editId }: Readonly<BudgetFormModalPr
 
                 <div className={budgetStyles.formModal.categoryList}>
                   {filteredCategoryOptions.length === 0 ? (
-                    <p className={budgetStyles.formModal.categoryEmpty}>{t('fields.categories.empty')}</p>
+                    <p className={budgetStyles.formModal.categoryEmpty}>
+                      {t('fields.categories.empty')}
+                    </p>
                   ) : (
                     filteredCategoryOptions.map((option) => (
                       <label key={option.value} className={budgetStyles.formModal.categoryItem}>

@@ -313,6 +313,13 @@
   "Reports": {
     "SummarySection": {
       "title": "Riepilogo",
+      "totalBalance": "Saldo Totale",
+      "acrossAllAccounts": "su tutti i conti",
+      "netFlow": "Flusso Netto",
+      "income": "Entrate",
+      "expenses": "Uscite",
+      "thisPeriod": "questo periodo",
+      "savingsRate": "tasso di risparmio",
       "incomeLabel": "Entrate",
       "expensesLabel": "Uscite",
       "empty": "Nessun dato di riepilogo disponibile."
@@ -326,6 +333,46 @@
       "incomeTitle": "Entrate",
       "expensesTitle": "Uscite",
       "empty": "Nessun dato disponibile."
+    },
+    "Charts": {
+      "timeTrendsTitle": "Andamento Entrate e Uscite",
+      "timeTrendsSubtitle": "Monitora il flusso finanziario nel tempo",
+      "categoryDistributionTitle": "Spese per Categoria",
+      "categoryDistributionSubtitle": "Dove vanno i tuoi soldi",
+      "flowTitle": "Flusso del Budget",
+      "flowSubtitle": "Come si muove il denaro tra i tuoi conti",
+      "income": "Entrate",
+      "expense": "Uscite",
+      "total": "Totale"
+    },
+    "TimeRangeSelector": {
+      "label": "Periodo",
+      "allTime": "Tutto",
+      "last7Days": "Ultimi 7 Giorni",
+      "last30Days": "Ultimi 30 Giorni",
+      "last3Months": "Ultimi 3 Mesi",
+      "last6Months": "Ultimi 6 Mesi",
+      "lastYear": "Ultimo Anno",
+      "customRange": "Personalizzato",
+      "from": "Da",
+      "to": "A",
+      "apply": "Applica"
+    },
+    "TimeTrendsChart": {
+      "title": "Andamento Spese",
+      "income": "Entrate",
+      "expense": "Uscite"
+    },
+    "CategoryDistribution": {
+      "title": "Spese per Categoria",
+      "total": "Totale Uscite"
+    },
+    "BudgetFlowVisualizer": {
+      "title": "Flusso del Budget",
+      "start": "Inizio",
+      "income": "Entrate",
+      "expense": "Uscite",
+      "end": "Fine"
     },
     "PeriodCard": {
       "balanceLabel": "Saldo",
