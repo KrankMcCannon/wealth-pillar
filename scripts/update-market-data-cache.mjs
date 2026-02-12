@@ -1,6 +1,15 @@
 import { createClient } from '@supabase/supabase-js';
-import { config } from 'dotenv';
-config();
+
+// Try to load dotenv, but don't fail if it's missing (e.g. in CI/production)
+try {
+  const { config } = await import('dotenv');
+  config();
+} catch {
+  // dotenv is likely not installed or not needed in this environment
+  if (process.env.NODE_ENV !== 'production') {
+    console.warn('dotenv not found, relying on process.env');
+  }
+}
 
 const BASE_URL = 'https://api.twelvedata.com';
 const DEFAULT_INTERVAL = '1day';
@@ -9,11 +18,13 @@ const DEFAULT_OUTPUTSIZE = 365 * 2;
 const { NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, TWELVE_DATA_API_KEY } = process.env;
 
 if (!NEXT_PUBLIC_SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-  throw new Error('Missing Supabase env: NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY');
+  console.error('Missing Supabase env: NEXT_PUBLIC_SUPABASE_URL and/or SUPABASE_SERVICE_ROLE_KEY');
+  process.exit(1);
 }
 
 if (!TWELVE_DATA_API_KEY) {
-  throw new Error('Missing Twelve Data env: TWELVE_DATA_API_KEY');
+  console.error('Missing Twelve Data env: TWELVE_DATA_API_KEY');
+  process.exit(1);
 }
 
 const supabase = createClient(NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
