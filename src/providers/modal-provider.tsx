@@ -2,10 +2,13 @@
 
 import { lazy, Suspense } from 'react';
 import dynamic from 'next/dynamic';
-import { useModalState } from '@/lib/navigation/url-state';
+import { useModalState, type ModalType } from '@/lib/navigation/url-state';
 import { useRequiredCurrentUser, useRequiredGroupId } from '@/hooks/use-required-user';
 
-// Lazy load modals - only loaded when opened
+// ============================================================================
+// MODAL COMPONENTS (LAZY LOADED)
+// ============================================================================
+
 const TransactionFormModal = lazy(
   () => import('@/features/transactions/components/transaction-form-modal')
 );
@@ -19,9 +22,40 @@ const RecurringFormModal = lazy(
 const AccountFormModal = lazy(() => import('@/features/accounts/components/account-form-modal'));
 const AddInvestmentModal = lazy(() => import('@/components/investments/add-investment-modal'));
 
+// ============================================================================
+// TYPES & MAPPINGS
+// ============================================================================
+
+/**
+ * Standardized props for all feature modals.
+ * Allows for type-safe mapping of modal components.
+ */
+interface BaseModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  editId?: string | null;
+}
+
+/**
+ * Map of modal identifiers to their respective components.
+ * Cast to unknown then BaseModalProps to handle modals that don't need editId.
+ */
+const MODAL_MAPPING: Record<ModalType, React.ComponentType<BaseModalProps>> = {
+  transaction: TransactionFormModal,
+  budget: BudgetFormModal,
+  category: CategoryFormModal,
+  recurring: RecurringFormModal,
+  account: AccountFormModal,
+  investment: AddInvestmentModal as unknown as React.ComponentType<BaseModalProps>,
+};
+
 interface ModalProviderProps {
   children: React.ReactNode;
 }
+
+// ============================================================================
+// MODAL RENDERER
+// ============================================================================
 
 /**
  * Inner Modal Renderer (uses hooks that access search params and stores)
@@ -30,31 +64,17 @@ interface ModalProviderProps {
 function ModalRenderer() {
   const { modal, editId, closeModal } = useModalState();
 
-  // Read from context
+  // Read from context - these hooks ensure data is available
   useRequiredCurrentUser();
   useRequiredGroupId();
 
+  if (!modal) return null;
+
+  const ActiveModal = MODAL_MAPPING[modal];
+
   return (
     <Suspense fallback={null}>
-      {modal === 'transaction' && (
-        <TransactionFormModal isOpen={true} onClose={closeModal} editId={editId} />
-      )}
-
-      {modal === 'budget' && <BudgetFormModal isOpen={true} onClose={closeModal} editId={editId} />}
-
-      {modal === 'category' && (
-        <CategoryFormModal isOpen={true} onClose={closeModal} editId={editId} />
-      )}
-
-      {modal === 'recurring' && (
-        <RecurringFormModal isOpen={true} onClose={closeModal} editId={editId} />
-      )}
-
-      {modal === 'account' && (
-        <AccountFormModal isOpen={true} onClose={closeModal} editId={editId} />
-      )}
-
-      {modal === 'investment' && <AddInvestmentModal isOpen={true} onClose={closeModal} />}
+      <ActiveModal isOpen={true} onClose={closeModal} editId={editId} />
     </Suspense>
   );
 }

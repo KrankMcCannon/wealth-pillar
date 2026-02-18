@@ -1,6 +1,6 @@
 'use client';
 
-import { useQueryState, parseAsString } from 'nuqs';
+import { useQueryState, parseAsString, useQueryStates } from 'nuqs';
 
 export const MODAL_TYPES = [
   'transaction',
@@ -15,7 +15,9 @@ export type ModalType = (typeof MODAL_TYPES)[number];
 
 /**
  * Hook for managing modal state via URL params
- * Provides type-safe URL-based modal state management
+ * Provides type-safe URL-based modal state management with atomic updates.
+ *
+ * Uses shallow updates by default to prevent unnecessary server-side re-renders.
  *
  * @example
  * const { modal, openModal, closeModal } = useModalState();
@@ -30,20 +32,43 @@ export type ModalType = (typeof MODAL_TYPES)[number];
  * closeModal();
  */
 export function useModalState() {
-  const [modal, setModal] = useQueryState('modal', parseAsString);
-  const [editId, setEditId] = useQueryState('editId', parseAsString);
+  const [states, setStates] = useQueryStates(
+    {
+      modal: parseAsString,
+      editId: parseAsString,
+    },
+    {
+      shallow: true,
+      history: 'push',
+    }
+  );
+
+  const { modal, editId } = states;
 
   return {
     modal: modal as ModalType | null,
     editId,
+    /** Checks if a specific modal type is open */
     isOpen: (type: ModalType) => modal === type,
+    /**
+     * Opens a modal of the specified type, optionally with an edit ID.
+     * Both params are updated atomically in the URL.
+     */
     openModal: (type: ModalType, id?: string) => {
-      setModal(type);
-      if (id) setEditId(id);
+      void setStates({
+        modal: type,
+        editId: id ?? null,
+      });
     },
+    /**
+     * Closes the current modal and clears any edit ID.
+     * Both params are cleared atomically in the URL.
+     */
     closeModal: () => {
-      setModal(null);
-      setEditId(null);
+      void setStates({
+        modal: null,
+        editId: null,
+      });
     },
   };
 }
