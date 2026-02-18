@@ -137,6 +137,31 @@
   --category-food-green: oklch(0.6 0.14 140);
   --category-shopping-purple: oklch(0.6 0.18 285);
   --category-shopping-orange: oklch(0.68 0.15 60);
+
+  /* ============================================================================
+     WEALTH PILLAR SEMANTIC TOKENS
+     ============================================================================ */
+
+  /* Glassmorphism */
+  --color-glass-base: oklch(1 0 0 / 0.7);
+  --color-glass-heavy: oklch(1 0 0 / 0.8);
+  --color-glass-light: oklch(1 0 0 / 0.4);
+  --color-glass-border: oklch(1 0 0 / 0.2);
+
+  /* Semantic Opacity Shorthands */
+  --color-primary-subtle: color-mix(in oklch, var(--color-primary), transparent 90%);
+  --color-primary-muted: color-mix(in oklch, var(--color-primary), transparent 80%);
+  --color-primary-border: color-mix(in oklch, var(--color-primary), transparent 85%);
+  --color-bg-glass: color-mix(in oklch, var(--color-background), transparent 40%);
+
+  /* Gradient Color Points */
+  --color-gradient-primary-start: oklch(0.595 0.178 270);
+  --color-gradient-primary-via: oklch(0.6 0.2 300);
+  --color-gradient-primary-end: oklch(0.6 0.2 330);
+
+  /* Mappings */
+  --color-glass-card: color-mix(in oklch, var(--color-card), transparent 40%);
+  --color-border-subtle: color-mix(in oklch, var(--color-border), transparent 70%);
 }
 
 /* ============================================================================
@@ -258,6 +283,16 @@ html.dark {
   /* Overrides for purple/violet palette in dark mode */
   --color-purple-500: oklch(0.72 0.12 280);
   --color-violet-500: oklch(0.72 0.12 270);
+
+  /* ============================================================================
+     WEALTH PILLAR SEMANTIC TOKENS - DARK OVERRIDES
+     ============================================================================ */
+
+  /* Glassmorphism overrides for dark mode */
+  --color-glass-base: oklch(0 0 0 / 0.4);
+  --color-glass-heavy: oklch(0 0 0 / 0.6);
+  --color-glass-light: oklch(0 0 0 / 0.2);
+  --color-glass-border: oklch(1 0 0 / 0.1);
 }
 
 /* ============================================================================
@@ -706,4 +741,22 @@ html.dark .scrollbar-thin::-webkit-scrollbar-thumb:hover {
 @utility text-subtle {
   color: oklch(var(--color-text-subtle));
   font-size: 0.875rem;
+}
+
+@utility liquid-glass-base {
+  background: var(--color-glass-base);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--color-glass-border);
+}
+
+@utility liquid-glass-heavy {
+  background: var(--color-glass-heavy);
+  backdrop-filter: blur(25px);
+  border: 1px solid var(--color-glass-border);
+}
+
+@utility liquid-glass-light {
+  background: var(--color-glass-light);
+  backdrop-filter: blur(15px);
+  border: 1px solid var(--color-glass-border);
 }
