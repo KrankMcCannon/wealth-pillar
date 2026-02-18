@@ -112,19 +112,19 @@ export const glassmorphism = {
 } as const;
 
 export const vibrantGradients = {
-  primary: 'bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500',
-  success: 'bg-gradient-to-br from-emerald-400 to-cyan-500',
-  warning: 'bg-gradient-to-br from-amber-400 to-orange-500',
-  danger: 'bg-gradient-to-br from-red-500 to-rose-600',
-  dark: 'bg-gradient-to-br from-slate-800 to-slate-950',
-  subtle: 'bg-gradient-to-br from-primary/5 to-primary/10',
+  primary: 'bg-linear-to-br from-gradient-primary-start via-gradient-primary-via to-gradient-primary-end',
+  success: 'bg-linear-to-br from-emerald-400 to-cyan-500',
+  warning: 'bg-linear-to-br from-amber-400 to-orange-500',
+  danger: 'bg-linear-to-br from-red-500 to-rose-600',
+  dark: 'bg-linear-to-br from-slate-800 to-slate-950',
+  subtle: 'bg-linear-to-br from-primary-subtle to-primary-muted',
   glow: {
     primary: 'shadow-[0_0_20px_rgba(168,85,247,0.4)]',
     success: 'shadow-[0_0_20px_rgba(52,211,153,0.4)]',
   },
   text: {
     primary:
-      'bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500',
+      'bg-clip-text text-transparent bg-linear-to-r from-gradient-primary-start via-gradient-primary-via to-gradient-primary-end',
   },
 } as const;
 
