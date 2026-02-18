@@ -103,11 +103,10 @@ export const animationStyles = {
 // ============================================================================
 
 export const glassmorphism = {
-  base: 'bg-white/70 dark:bg-black/40 backdrop-blur-xl border border-white/20 dark:border-white/10 shadow-lg',
-  heavy:
-    'bg-white/80 dark:bg-black/60 backdrop-blur-2xl border border-white/30 dark:border-white/10 shadow-xl',
-  light: 'bg-white/40 dark:bg-black/20 backdrop-blur-md border border-white/10 shadow-sm',
-  card: 'bg-card/60 backdrop-blur-xl border border-white/10 dark:border-white/5 shadow-2xl shadow-black/5',
+  base: 'bg-glass-base backdrop-blur-xl border border-glass-border shadow-lg',
+  heavy: 'bg-glass-heavy backdrop-blur-2xl border border-glass-border shadow-xl',
+  light: 'bg-glass-light backdrop-blur-md border border-glass-border shadow-sm',
+  card: 'bg-glass-card backdrop-blur-xl border border-glass-border shadow-2xl shadow-black/5',
   interactive:
     'hover:bg-white/80 dark:hover:bg-white/5 transition-all duration-300 hover:scale-[1.01] hover:shadow-lg hover:border-white/30',
 } as const;
