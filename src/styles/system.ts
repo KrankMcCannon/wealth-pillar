@@ -112,7 +112,8 @@ export const glassmorphism = {
 } as const;
 
 export const vibrantGradients = {
-  primary: 'bg-linear-to-br from-gradient-primary-start via-gradient-primary-via to-gradient-primary-end',
+  primary:
+    'bg-linear-to-br from-gradient-primary-start via-gradient-primary-via to-gradient-primary-end',
   success: 'bg-linear-to-br from-emerald-400 to-cyan-500',
   warning: 'bg-linear-to-br from-amber-400 to-orange-500',
   danger: 'bg-linear-to-br from-red-500 to-rose-600',
@@ -155,7 +156,7 @@ export const layoutStyles = {
     actions: 'flex items-center gap-2',
     surface: {
       plain: 'bg-transparent',
-      card: 'bg-card border border-primary/15 rounded-2xl',
+      card: 'bg-card border border-primary-border rounded-2xl',
       muted: 'bg-card/40 border border-border/60 rounded-2xl backdrop-blur-sm',
     },
     padding: {
@@ -167,14 +168,14 @@ export const layoutStyles = {
   },
   list: {
     container: 'space-y-3',
-    divided: 'divide-y divide-primary/10',
+    divided: 'divide-y divide-primary-subtle',
     item: 'py-3 first:pt-0 last:pb-0',
   },
   footer: {
     base: 'w-full flex items-center justify-between gap-3',
     static: 'mt-auto px-4 py-3 pb-[calc(theme(spacing.3)+env(safe-area-inset-bottom))]',
     sticky:
-      'sticky bottom-0 bg-card/90 backdrop-blur border-t border-primary/15 px-4 py-3 pb-[calc(theme(spacing.3)+env(safe-area-inset-bottom))]',
+      'sticky bottom-0 bg-card/90 backdrop-blur border-t border-primary-border px-4 py-3 pb-[calc(theme(spacing.3)+env(safe-area-inset-bottom))]',
   },
 } as const;
 
@@ -193,21 +194,21 @@ export const reportsStyles = {
   },
   card: {
     container:
-      'gap-0 bg-card/95 backdrop-blur-sm shadow-xl shadow-primary/10 border border-primary/10 rounded-2xl overflow-hidden',
-    divider: 'divide-y divide-primary/10',
-    dividerLine: 'h-px bg-primary/10',
+      'gap-0 bg-card/95 backdrop-blur-sm shadow-xl shadow-primary-subtle border border-primary-subtle rounded-2xl overflow-hidden',
+    divider: 'divide-y divide-primary-subtle',
+    dividerLine: 'h-px bg-primary-subtle',
   },
   budgetPeriodCard: {
     container:
-      'overflow-hidden border border-primary/20 shadow-sm hover:shadow-md transition-shadow',
+      'overflow-hidden border border-primary-muted shadow-sm hover:shadow-md transition-shadow',
     header: 'w-full px-3 py-2.5 flex items-center gap-2 hover:bg-card/40 transition-colors',
     headerIcon:
-      'flex items-center justify-center h-9 w-9 rounded-xl bg-primary/10 text-primary shrink-0',
+      'flex items-center justify-center h-9 w-9 rounded-xl bg-primary-subtle text-primary shrink-0',
     headerIconSize: 'h-4 w-4',
     headerContent: 'flex-1 text-left min-w-0',
     headerTitleRow: 'flex items-center gap-1.5 flex-wrap',
     headerTitle: 'text-sm font-bold text-primary leading-tight',
-    headerBadge: 'text-xs border-primary/40 text-primary bg-primary/10',
+    headerBadge: 'text-xs border-primary/40 text-primary bg-primary-subtle',
     headerSubtitle: 'text-xs text-muted-primary',
     headerChevronContainer: 'flex items-center gap-1.5 shrink-0',
     headerChevron: 'shrink-0 self-center',
@@ -215,13 +216,13 @@ export const reportsStyles = {
     headerDetailLabel: 'text-[10px] text-primary hidden sm:block',
     metricsContainer: 'px-3 pb-3 space-y-1.5 sm:space-y-0 sm:grid sm:grid-cols-3 sm:gap-1.5',
     metricCard: 'p-2.5 rounded-lg border',
-    metricCardAccount: 'bg-card/40 border-primary/20',
-    metricCardBudget: 'bg-card/40 border-primary/20',
-    metricCardTransfer: 'bg-primary/10 border-primary/20',
+    metricCardAccount: 'bg-card/40 border-primary-muted',
+    metricCardBudget: 'bg-card/40 border-primary-muted',
+    metricCardTransfer: 'bg-primary-subtle border-primary-muted',
     metricHeader: 'flex items-center gap-1.5',
     metricIconBadge: 'p-1 rounded-md shadow-sm shrink-0',
     metricIconBadgeDefault: 'bg-card',
-    metricIconBadgeTransfer: 'bg-primary/15',
+    metricIconBadgeTransfer: 'bg-primary-border',
     metricIcon: 'h-3.5 w-3.5',
     metricIconDefault: 'text-primary',
     metricIconTransfer: 'text-secondary',
@@ -237,13 +238,13 @@ export const reportsStyles = {
     metricValueIncome: 'text-emerald-500',
     metricValueExpense: 'text-red-500',
     metricValueWarning: 'text-amber-500',
-    transactionsContainer: 'border-t border-primary/10',
+    transactionsContainer: 'border-t border-primary-subtle',
     transactionsBody: 'p-4 bg-card/50',
     transactionsTitle: 'text-xs font-semibold text-primary mb-3',
     transactionsEmpty: 'text-sm text-primary/50 text-center py-8',
-    transactionsList: 'divide-y divide-primary/10',
+    transactionsList: 'divide-y divide-primary-subtle',
     transactionRow:
-      'flex items-center gap-3 px-1.5 py-3 bg-card/60 transition-colors hover:bg-primary/5',
+      'flex items-center gap-3 px-1.5 py-3 bg-glass-card transition-colors hover:bg-primary/5',
     transactionIconWrap: 'flex items-center justify-center h-9 w-9 rounded-lg shrink-0',
     transactionIcon: 'h-4 w-4',
     transactionBody: 'flex-1 min-w-0',
@@ -255,10 +256,10 @@ export const reportsStyles = {
   },
   budgetPeriodsSection: {
     loadingContainer: 'space-y-3',
-    loadingCard: 'h-32 bg-card/50 rounded-2xl animate-pulse border border-primary/10',
+    loadingCard: 'h-32 bg-card/50 rounded-2xl animate-pulse border border-primary-subtle',
     emptyContainer: 'flex flex-col items-center justify-center py-12 px-4 text-center',
     emptyIconWrap:
-      'flex items-center justify-center h-16 w-16 rounded-full bg-primary/10 text-primary mb-4',
+      'flex items-center justify-center h-16 w-16 rounded-full bg-primary-subtle text-primary mb-4',
     emptyIcon: 'h-8 w-8',
     emptyTitle: 'text-lg font-semibold text-primary mb-2',
     emptyDescription: 'text-sm text-primary max-w-sm',
@@ -268,7 +269,7 @@ export const reportsStyles = {
     container: 'space-y-3',
     card: 'p-3',
     list: 'space-y-2',
-    item: 'pb-3 border-b border-primary/15 last:border-b-0',
+    item: 'pb-3 border-b border-primary-border last:border-b-0',
     row: 'flex items-center justify-between text-sm',
     rowLeft: 'flex items-center gap-2',
     iconWrap: 'p-1 rounded-xl shrink-0',
@@ -279,10 +280,10 @@ export const reportsStyles = {
     barFill: 'h-full rounded-full transition-all duration-500 ease-out',
   },
   skeleton: {
-    base: 'animate-pulse bg-primary/10 rounded',
-    text: 'h-4 bg-primary/10 rounded w-3/4',
-    card: 'h-24 bg-primary/10 rounded-xl',
-    line: 'h-2 bg-primary/10 rounded w-full',
+    base: 'animate-pulse bg-primary-subtle rounded',
+    text: 'h-4 bg-primary-subtle rounded w-3/4',
+    card: 'h-24 bg-primary-subtle rounded-xl',
+    line: 'h-2 bg-primary-subtle rounded w-full',
   },
   reportsOverviewCard: {
     icon: 'w-4 h-4',
@@ -336,31 +337,31 @@ export const budgetTokens = {
       button: `text-primary hover:bg-primary hover:text-primary-foreground ${radiusStyles.md} ${animationStyles.classes.transition} p-2 min-w-10 min-h-10 flex items-center justify-center`,
     },
     card: {
-      base: `bg-card/90 backdrop-blur-sm px-4 py-4 sm:px-6 sm:py-6 ${shadowStyles.lg} shadow-[0_12px_24px_oklch(var(--color-muted)/0.4)] ${radiusStyles.md} sm:${radiusStyles.lg} border border-primary/20`,
-      compact: `bg-card/60 ${radiusStyles.md}`,
+      base: `bg-card/90 backdrop-blur-sm px-4 py-4 sm:px-6 sm:py-6 ${shadowStyles.lg} shadow-[0_12px_24px_oklch(var(--color-muted)/0.4)] ${radiusStyles.md} sm:${radiusStyles.lg} border border-primary-muted`,
+      compact: `bg-glass-card ${radiusStyles.md}`,
     },
     metrics: {
       container: 'grid grid-cols-3 gap-2 sm:gap-3',
-      item: `text-left p-2.5 bg-card/60 ${radiusStyles.sm} flex flex-col items-start gap-1`,
+      item: `text-left p-2.5 bg-glass-card ${radiusStyles.sm} flex flex-col items-start gap-1`,
       label: `${typographyStyles.label}`,
       value: typographyStyles.amount,
     },
     progress: {
-      container: `bg-card/60 ${radiusStyles.md} space-y-3`,
-      bar: `w-full h-3 ${radiusStyles.full} bg-primary/10`,
+      container: `bg-glass-card ${radiusStyles.md} space-y-3`,
+      bar: `w-full h-3 ${radiusStyles.full} bg-primary-subtle`,
       fill: `h-3 ${radiusStyles.full} transition-all duration-700 ease-out`,
     },
     button: {
-      primary: `${typographyStyles.sm} font-semibold hover:bg-primary/10 ${radiusStyles.md} ${animationStyles.classes.transition} px-5 py-2.5 min-h-10 border border-primary/20 hover:border-primary/40 hover:${shadowStyles.sm}`,
+      primary: `${typographyStyles.sm} font-semibold hover:bg-primary-subtle ${radiusStyles.md} ${animationStyles.classes.transition} px-5 py-2.5 min-h-10 border border-primary-muted hover:border-primary/40 hover:${shadowStyles.sm}`,
     },
     dropdown: {
       content: `w-56 backdrop-blur-xl border border-border/50 ${shadowStyles.xl} ${radiusStyles.md} p-2 animate-in slide-in-from-top-2 duration-200`,
       item: `${typographyStyles.sm} font-medium text-primary hover:bg-primary hover:text-primary-foreground ${radiusStyles.sm} px-3 py-2.5 cursor-pointer transition-colors`,
     },
     select: {
-      trigger: `w-full h-12 sm:h-14 bg-card border border-primary/20 ${shadowStyles.sm} ${radiusStyles.md} px-3 sm:px-4 hover:border-primary/40 focus:border-primary/20 focus:ring-2 focus:ring-primary/20 transition-all ${typographyStyles.sm} font-medium`,
+      trigger: `w-full h-12 sm:h-14 bg-card border border-primary-muted ${shadowStyles.sm} ${radiusStyles.md} px-3 sm:px-4 hover:border-primary/40 focus:border-primary-muted focus:ring-2 focus:ring-primary-muted transition-all ${typographyStyles.sm} font-medium`,
       content: `bg-card/95 backdrop-blur-md border border-border/60 ${shadowStyles.xl} ${radiusStyles.md} min-w-[320px]`,
-      item: `hover:bg-primary/10 ${radiusStyles.sm} px-3 sm:px-4 cursor-pointer font-medium group`,
+      item: `hover:bg-primary-subtle ${radiusStyles.sm} px-3 sm:px-4 cursor-pointer font-medium group`,
     },
     transactionGroup: {
       header: 'flex items-center justify-between mb-2 px-1',
@@ -374,7 +375,7 @@ export const budgetTokens = {
     },
     emptyState: {
       container: 'text-center py-12',
-      icon: `w-16 h-16 bg-primary/10 ${radiusStyles.lg} flex items-center justify-center mb-4 mx-auto`,
+      icon: `w-16 h-16 bg-primary-subtle ${radiusStyles.lg} flex items-center justify-center mb-4 mx-auto`,
       title: `${typographyStyles.lg} font-semibold mb-2`,
       text: typographyStyles.sm,
     },
@@ -396,7 +397,7 @@ export const budgetStyles = {
   },
   userSelector: {
     container:
-      'sticky top-12 z-10 bg-card/80 backdrop-blur-sm border-b border-primary/20 px-4 py-2',
+      'sticky top-12 z-10 bg-card/80 backdrop-blur-sm border-b border-primary-muted px-4 py-2',
     className: 'bg-card border-border',
   },
   selectionSection: budgetTokens.components.card.base,
@@ -405,27 +406,27 @@ export const budgetStyles = {
     placeholder: 'text-primary/50',
     trigger: budgetTokens.components.select.trigger,
     content: budgetTokens.components.select.content,
-    item: `${budgetTokens.components.select.item} pl-7 data-[highlighted]:bg-primary/10 data-[highlighted]:text-primary data-[state=checked]:bg-primary/15 data-[state=checked]:border data-[state=checked]:border-primary/25 data-[state=checked]:text-primary`,
+    item: `${budgetTokens.components.select.item} pl-7 data-[highlighted]:bg-primary-subtle data-[highlighted]:text-primary data-[state=checked]:bg-primary-border data-[state=checked]:border data-[state=checked]:border-primary/25 data-[state=checked]:text-primary`,
     itemContent: 'flex items-center gap-2.5 w-full',
     itemIcon:
-      'flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10 shrink-0 group-hover:bg-primary/15 group-data-[state=checked]:bg-primary/20',
+      'flex items-center justify-center w-8 h-8 rounded-lg bg-primary-subtle shrink-0 group-hover:bg-primary-border group-data-[state=checked]:bg-primary-muted',
     itemIconContent:
       'text-primary group-hover:text-primary group-data-[state=checked]:text-primary',
     itemTextRow: 'flex items-center gap-1.5 min-w-0',
     itemText: 'text-sm sm:text-base font-semibold truncate group-hover:text-primary',
     itemChip:
-      'text-[10px] font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary whitespace-nowrap group-hover:bg-primary/15 group-hover:text-primary group-data-[state=checked]:bg-primary/20 group-data-[state=checked]:text-primary',
+      'text-[10px] font-semibold px-2 py-0.5 rounded-full bg-primary-subtle text-primary whitespace-nowrap group-hover:bg-primary-border group-hover:text-primary group-data-[state=checked]:bg-primary-muted group-data-[state=checked]:text-primary',
     itemSubtext: 'text-xs shrink-0 group-hover:text-primary',
   },
   budgetDisplay: {
-    container: 'bg-primary/10 rounded-xl p-3 sm:p-4 relative',
+    container: 'bg-primary-subtle rounded-xl p-3 sm:p-4 relative',
     actionsMenu: 'absolute top-2 right-2',
-    actionsButton: 'h-8 w-8 p-0 hover:bg-primary/20 rounded-lg transition-colors',
+    actionsButton: 'h-8 w-8 p-0 hover:bg-primary-muted rounded-lg transition-colors',
     actionIcon: 'h-4 w-4',
     headerRow: 'flex flex-col gap-3 mb-3 pr-10 sm:flex-row sm:items-center sm:justify-between',
     headerContent: 'flex items-center gap-3 flex-1 min-w-0',
     iconContainer:
-      'flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-primary/10 shadow-sm shrink-0',
+      'flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-primary-subtle shadow-sm shrink-0',
     iconText: 'flex-1 min-w-0',
     iconClass: 'text-primary h-4 w-4',
     budgetName: 'text-base text-primary sm:text-lg font-bold leading-tight truncate',
@@ -447,7 +448,7 @@ export const budgetStyles = {
   summary: {
     cardsGrid: 'grid grid-cols-3 gap-3',
     card: {
-      budget: 'p-4 bg-primary/5 border-primary/20',
+      budget: 'p-4 bg-primary/5 border-primary-muted',
       spent: 'p-4 bg-destructive/5 border-destructive/20',
       available: 'p-4 bg-emerald-500/5 border-emerald-500/20',
     },
@@ -470,7 +471,7 @@ export const budgetStyles = {
     activeList: {
       container: 'space-y-3',
       title: 'text-sm font-semibold text-primary px-1',
-      listContainer: 'bg-card shadow-sm border border-primary/20 rounded-xl overflow-hidden',
+      listContainer: 'bg-card shadow-sm border border-primary-muted rounded-xl overflow-hidden',
       listBody: 'p-2 space-y-2',
       itemWrapper: 'pt-2 border-t border-border/50',
     },
@@ -500,7 +501,7 @@ export const budgetStyles = {
     statusText: 'text-xs',
   },
   chart: {
-    card: 'p-0 bg-card shadow-sm rounded-2xl border border-primary/20 overflow-hidden',
+    card: 'p-0 bg-card shadow-sm rounded-2xl border border-primary-muted overflow-hidden',
     header: 'px-6 pt-5 pb-2 flex items-start justify-between',
     headerLabel: 'text-xs mb-1',
     headerAmount: 'text-2xl font-bold',
@@ -559,121 +560,121 @@ export const budgetStyles = {
   skeleton: {
     base: 'animate-pulse',
     card: 'bg-card rounded-xl p-4 sm:p-6',
-    line: 'h-4 bg-primary/15 rounded',
-    lineShort: 'w-1/3 h-4 bg-primary/15 rounded',
-    lineMedium: 'w-2/3 h-4 bg-primary/15 rounded',
+    line: 'h-4 bg-primary-border rounded',
+    lineShort: 'w-1/3 h-4 bg-primary-border rounded',
+    lineMedium: 'w-2/3 h-4 bg-primary-border rounded',
     circle: 'rounded-full bg-primary/12',
     rect: 'rounded bg-primary/12',
-    budgetCard: 'p-4 rounded-xl border border-primary/20 bg-card',
+    budgetCard: 'p-4 rounded-xl border border-primary-muted bg-card',
     budgetCardRow: 'flex items-center gap-3 mb-3',
-    budgetCardIcon: 'w-10 h-10 bg-primary/10 rounded-xl',
+    budgetCardIcon: 'w-10 h-10 bg-primary-subtle rounded-xl',
     budgetCardBody: 'flex-1',
-    budgetCardTitle: 'h-4 bg-primary/15 rounded w-2/3 mb-2',
+    budgetCardTitle: 'h-4 bg-primary-border rounded w-2/3 mb-2',
     budgetCardMetaRow: 'flex items-center gap-2',
     budgetCardDot: 'w-2 h-2 bg-primary/25 rounded-full',
-    budgetCardMeta: 'h-3 bg-primary/15 rounded w-8',
+    budgetCardMeta: 'h-3 bg-primary-border rounded w-8',
     budgetCardRight: 'text-right',
-    budgetCardAmount: 'h-4 bg-primary/15 rounded w-16 mb-1',
-    budgetCardSubAmount: 'h-3 bg-primary/15 rounded w-12',
+    budgetCardAmount: 'h-4 bg-primary-border rounded w-16 mb-1',
+    budgetCardSubAmount: 'h-3 bg-primary-border rounded w-12',
     budgetCardBar: 'w-full h-2 bg-primary/12 rounded-full',
-    detailsCard: 'p-6 rounded-xl border border-primary/20 bg-card space-y-4',
+    detailsCard: 'p-6 rounded-xl border border-primary-muted bg-card space-y-4',
     detailsHeader: 'flex items-center justify-between',
     detailsLeft: 'text-left',
-    detailsTitle: 'h-6 bg-primary/15 rounded w-32 mb-2',
-    detailsSubtitle: 'h-4 bg-primary/15 rounded w-24',
+    detailsTitle: 'h-6 bg-primary-border rounded w-32 mb-2',
+    detailsSubtitle: 'h-4 bg-primary-border rounded w-24',
     detailsRight: 'text-right',
-    detailsAmount: 'h-8 bg-primary/15 rounded w-20 mb-1',
-    detailsAmountSub: 'h-3 bg-primary/15 rounded w-16',
+    detailsAmount: 'h-8 bg-primary-border rounded w-20 mb-1',
+    detailsAmountSub: 'h-3 bg-primary-border rounded w-16',
     detailsBar: 'w-full h-3 bg-primary/12 rounded-full',
-    detailsStats: 'grid grid-cols-2 gap-4 pt-4 border-t border-primary/20',
-    detailsStatLabel: 'h-3 bg-primary/15 rounded w-16 mb-1',
-    detailsStatValue: 'h-5 bg-primary/15 rounded w-20',
-    txCard: 'p-3 rounded-lg border border-primary/20 bg-card',
+    detailsStats: 'grid grid-cols-2 gap-4 pt-4 border-t border-primary-muted',
+    detailsStatLabel: 'h-3 bg-primary-border rounded w-16 mb-1',
+    detailsStatValue: 'h-5 bg-primary-border rounded w-20',
+    txCard: 'p-3 rounded-lg border border-primary-muted bg-card',
     txRow: 'flex items-center gap-3',
-    txIcon: 'w-8 h-8 bg-primary/10 rounded-lg',
+    txIcon: 'w-8 h-8 bg-primary-subtle rounded-lg',
     txBody: 'flex-1',
-    txTitle: 'h-4 bg-primary/15 rounded w-3/4 mb-1',
-    txMeta: 'h-3 bg-primary/15 rounded w-1/2',
+    txTitle: 'h-4 bg-primary-border rounded w-3/4 mb-1',
+    txMeta: 'h-3 bg-primary-border rounded w-1/2',
     txRight: 'text-right',
-    txAmount: 'h-4 bg-primary/15 rounded w-16 mb-1',
-    txAmountSub: 'h-3 bg-primary/15 rounded w-12',
+    txAmount: 'h-4 bg-primary-border rounded w-16 mb-1',
+    txAmountSub: 'h-3 bg-primary-border rounded w-12',
     page: 'flex flex-col min-h-screen bg-card',
     pageHeader:
-      'sticky top-0 z-20 bg-card/80 backdrop-blur-xl border-b border-primary/20 px-4 py-3 shadow-sm',
+      'sticky top-0 z-20 bg-card/80 backdrop-blur-xl border-b border-primary-muted px-4 py-3 shadow-sm',
     pageHeaderRow: 'flex items-center justify-between',
     pageHeaderLeft: 'flex items-center gap-3',
     pageHeaderIcon: 'w-8 h-8 bg-primary/12 rounded-xl animate-pulse',
-    pageHeaderText: 'h-5 bg-primary/15 rounded w-16 mb-1 animate-pulse',
-    pageHeaderSubtext: 'h-3 bg-primary/15 rounded w-20 animate-pulse',
+    pageHeaderText: 'h-5 bg-primary-border rounded w-16 mb-1 animate-pulse',
+    pageHeaderSubtext: 'h-3 bg-primary-border rounded w-20 animate-pulse',
     pageHeaderAction: 'w-8 h-8 bg-primary/12 rounded-xl animate-pulse',
-    selectorSection: 'bg-card/80 backdrop-blur-xl py-3 border-b border-primary/20 shadow-sm',
+    selectorSection: 'bg-card/80 backdrop-blur-xl py-3 border-b border-primary-muted shadow-sm',
     selectorList: 'flex items-center gap-2 pl-4',
     selectorListStyle: { height: 44 },
     selectorItem:
-      'flex-shrink-0 flex items-center gap-2 px-3 py-2 rounded-2xl bg-primary/10 animate-pulse',
+      'flex-shrink-0 flex items-center gap-2 px-3 py-2 rounded-2xl bg-primary-subtle animate-pulse',
     selectorIcon: 'w-5 h-5 bg-primary/25 rounded-full',
-    selectorText: 'w-12 h-3 bg-primary/20 rounded',
+    selectorText: 'w-12 h-3 bg-primary-muted rounded',
     pageMain: 'flex-1 p-4 pb-20',
     pageMainBody: 'space-y-6',
-    pageSectionTitle: 'h-6 bg-primary/15 rounded w-32 mb-2 animate-pulse',
-    pageSectionSubtitle: 'h-4 bg-primary/15 rounded w-24 animate-pulse',
+    pageSectionTitle: 'h-6 bg-primary-border rounded w-32 mb-2 animate-pulse',
+    pageSectionSubtitle: 'h-4 bg-primary-border rounded w-24 animate-pulse',
     pageDetails: 'space-y-4',
     pageDetailsActions: 'flex gap-2',
     pageDetailsAction: 'h-10 bg-primary/12 rounded-lg flex-1 animate-pulse',
   },
   loading: {
     header: 'sticky top-0 z-10 bg-card/80 backdrop-blur-sm border-b border-border/50 px-4 py-3',
-    title: 'h-6 w-32 bg-card/60 rounded animate-pulse',
+    title: 'h-6 w-32 bg-glass-card rounded animate-pulse',
     content: 'space-y-6 px-4 py-6',
     details: 'space-y-4',
   },
   section: {
     container: 'bg-card',
-    emptyContainer: 'bg-card rounded-2xl p-8 text-center border border-primary/20 shadow-sm',
+    emptyContainer: 'bg-card rounded-2xl p-8 text-center border border-primary-muted shadow-sm',
     emptyIconWrap:
-      'flex size-16 items-center justify-center rounded-2xl bg-linear-to-br from-primary/10 to-primary/5 mx-auto mb-4 shadow-sm',
-    emptyIconInner: 'w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center',
+      'flex size-16 items-center justify-center rounded-2xl bg-linear-to-br from-primary-subtle to-primary/5 mx-auto mb-4 shadow-sm',
+    emptyIconInner: 'w-8 h-8 rounded-lg bg-primary-muted flex items-center justify-center',
     emptyIconText: 'text-primary font-bold text-lg',
     emptyTitle: 'font-semibold text-primary mb-2',
     emptyDescription: 'text-sm text-primary/70 mb-4 max-w-sm mx-auto',
     emptyButton:
       'inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-xl font-medium text-sm hover:shadow-lg hover:shadow-primary/25 transition-all duration-300 hover:scale-105',
-    groupCard: 'bg-card shadow-sm border border-primary/20 rounded-xl overflow-hidden',
-    groupHeader: 'bg-card p-3 border-b border-primary/20',
+    groupCard: 'bg-card shadow-sm border border-primary-muted rounded-xl overflow-hidden',
+    groupHeader: 'bg-card p-3 border-b border-primary-muted',
     groupRow: 'flex items-center justify-between mb-2',
     groupLeft: 'flex items-center gap-2',
     avatar:
-      'flex size-10 items-center justify-center rounded-lg bg-linear-to-br from-primary/10 to-primary/5 shadow-sm',
+      'flex size-10 items-center justify-center rounded-lg bg-linear-to-br from-primary-subtle to-primary/5 shadow-sm',
     avatarText: 'text-md font-bold text-primary',
     groupText: 'text-sm font-semibold',
     periodText: 'text-xs',
     amount: 'text-sm font-bold',
     amountDivider: 'text-primary/50 font-normal',
     progressRow: 'flex items-center gap-2',
-    progressBadge: 'flex items-center gap-1 px-2 py-1 rounded-full bg-primary/10',
+    progressBadge: 'flex items-center gap-1 px-2 py-1 rounded-full bg-primary-subtle',
     progressBadgeDot: 'w-1.5 h-1.5 rounded-full',
     progressBadgeText: 'text-xs font-bold',
-    cardsDivider: 'divide-y divide-primary/10',
+    cardsDivider: 'divide-y divide-primary-subtle',
     cardSkeleton: 'px-3 py-2 animate-pulse',
     cardSkeletonRow: 'flex items-center gap-3',
-    cardSkeletonIcon: 'w-11 h-11 bg-primary/10 rounded-2xl',
+    cardSkeletonIcon: 'w-11 h-11 bg-primary-subtle rounded-2xl',
     cardSkeletonBody: 'flex-1',
-    cardSkeletonTitle: 'h-4 bg-primary/15 rounded w-24 mb-1',
-    cardSkeletonSubtitle: 'h-3 bg-primary/15 rounded w-16',
+    cardSkeletonTitle: 'h-4 bg-primary-border rounded w-24 mb-1',
+    cardSkeletonSubtitle: 'h-3 bg-primary-border rounded w-16',
     cardSkeletonRight: 'text-right',
-    cardSkeletonAmount: 'h-4 bg-primary/15 rounded w-20 mb-1',
-    cardSkeletonSubAmount: 'h-3 bg-primary/15 rounded w-12',
+    cardSkeletonAmount: 'h-4 bg-primary-border rounded w-20 mb-1',
+    cardSkeletonSubAmount: 'h-3 bg-primary-border rounded w-12',
   },
   periodManager: {
     error:
       'px-3 py-2 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-md',
     body: 'space-y-4',
-    userCard: 'rounded-xl p-3 border border-primary/10 bg-card',
+    userCard: 'rounded-xl p-3 border border-primary-subtle bg-card',
     userRow: 'flex items-center gap-2',
-    userIconWrap: 'p-1.5 bg-primary/10 rounded-lg',
+    userIconWrap: 'p-1.5 bg-primary-subtle rounded-lg',
     userIcon: 'h-4 w-4 text-primary',
     userName: 'text-sm font-bold text-primary',
-    periodCard: 'bg-card rounded-xl p-4 border border-primary/10 shadow-sm',
+    periodCard: 'bg-card rounded-xl p-4 border border-primary-subtle shadow-sm',
     periodHeader: 'flex items-center gap-2 mb-3',
     periodTitle: 'text-base font-bold text-primary',
     periodContent: 'space-y-3',
@@ -683,7 +684,7 @@ export const budgetStyles = {
     periodBadgeIcon: 'h-3 w-3 mr-1',
     metricsGrid: 'grid grid-cols-1 sm:grid-cols-2 gap-3',
     metricCardSpent: 'rounded-lg p-3 border border-destructive/20 bg-destructive/5',
-    metricCardSaved: 'rounded-lg p-3 border border-primary/20 bg-primary/5',
+    metricCardSaved: 'rounded-lg p-3 border border-primary-muted bg-primary/5',
     metricRow: 'flex items-center gap-1.5 mb-1',
     metricIconSpent: 'h-3 w-3 text-destructive',
     metricIconSaved: 'h-3 w-3 text-primary',
@@ -696,7 +697,7 @@ export const budgetStyles = {
   },
   periodCard: {
     container:
-      'p-4 border border-primary/10 rounded-xl space-y-3 bg-card shadow-sm hover:shadow-md transition-shadow',
+      'p-4 border border-primary-subtle rounded-xl space-y-3 bg-card shadow-sm hover:shadow-md transition-shadow',
     header: 'flex justify-between items-start gap-3',
     headerContent: 'flex-1',
     title: 'text-sm font-medium text-primary',
@@ -707,12 +708,12 @@ export const budgetStyles = {
     deleteIcon: 'h-4 w-4',
     metricsGrid: 'grid grid-cols-2 gap-2',
     metricSpent: 'p-3 bg-destructive/5 rounded-lg border border-destructive/20',
-    metricSaved: 'p-3 bg-primary/5 rounded-lg border border-primary/20',
+    metricSaved: 'p-3 bg-primary/5 rounded-lg border border-primary-muted',
     metricLabelSpent: 'text-xs font-bold text-destructive uppercase tracking-wide mb-1',
     metricLabelSaved: 'text-xs font-bold text-primary uppercase tracking-wide mb-1',
     metricValueSpent: 'text-base font-bold text-destructive',
     metricValueSaved: 'text-base font-bold text-primary',
-    categorySection: 'pt-2 border-t border-primary/10',
+    categorySection: 'pt-2 border-t border-primary-subtle',
     categoryTitle: 'text-xs font-bold text-primary uppercase tracking-wide mb-2',
     categoryList: 'space-y-1.5',
     categoryRow: 'flex justify-between items-center text-sm',
@@ -728,13 +729,13 @@ export const budgetStyles = {
     badge: 'text-xs font-semibold',
     badgeIcon: 'h-3 w-3 mr-1',
     metricsGrid: 'grid grid-cols-2 gap-3',
-    metricSpent: 'bg-primary/5 rounded-lg px-3 py-2 border border-primary/10',
+    metricSpent: 'bg-primary/5 rounded-lg px-3 py-2 border border-primary-subtle',
     metricSaved: 'bg-success/5 rounded-lg px-3 py-2 border border-success/10',
     metricLabelSpent: 'text-xs font-semibold text-primary/70 uppercase tracking-wide mb-1',
     metricLabelSaved: 'text-xs font-semibold text-success/70 uppercase tracking-wide mb-1',
     metricValueSpent: 'text-sm font-bold text-destructive',
     metricValueSaved: 'text-sm font-bold text-success',
-    topCategories: 'pt-2 border-t border-primary/10',
+    topCategories: 'pt-2 border-t border-primary-subtle',
     topCategoriesTitle: 'text-xs font-semibold text-primary/70 uppercase tracking-wide mb-2',
     topCategoriesList: 'space-y-1',
     topCategoryRow: 'flex items-center justify-between',
@@ -775,7 +776,7 @@ export const budgetStyles = {
     progressValue: 'h-5',
     progressStatus: 'text-center',
     progressStatusLine: 'h-3 w-1/2 mx-auto',
-    chartCard: 'p-0 rounded-2xl border border-primary/20 overflow-hidden',
+    chartCard: 'p-0 rounded-2xl border border-primary-muted overflow-hidden',
     chartWrap: 'relative',
     chartArea: 'w-full h-32 rounded',
   },
@@ -788,7 +789,7 @@ export const budgetStyles = {
     sectionTight: 'gap-1 shrink-0',
     grid: 'grid grid-cols-1 sm:grid-cols-2 gap-3',
     categoryField: 'space-y-1',
-    categoryBox: 'space-y-3 rounded-2xl border border-primary/15 bg-card/70 p-3',
+    categoryBox: 'space-y-3 rounded-2xl border border-primary-border bg-card/70 p-3',
     categoryHeader: 'flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between',
     categorySelect: 'h-9 text-sm',
     categoryMeta: 'flex items-center gap-3 text-xs text-primary/60',
@@ -797,12 +798,12 @@ export const budgetStyles = {
     categoryList: 'max-h-60 overflow-y-auto space-y-2 pr-1',
     categoryEmpty: 'text-sm text-primary/70 px-1 py-4',
     categoryItem:
-      'flex items-center gap-3 rounded-xl border border-primary/10 bg-card/80 px-3 py-2 text-sm hover:border-primary/40 cursor-pointer',
+      'flex items-center gap-3 rounded-xl border border-primary-subtle bg-card/80 px-3 py-2 text-sm hover:border-primary/40 cursor-pointer',
     categoryItemRow: 'flex items-center gap-2',
     categoryDot: 'h-2.5 w-2.5 rounded-full',
   },
   statusBadge: {
-    safe: 'bg-primary/10 text-primary',
+    safe: 'bg-primary-subtle text-primary',
     warning: 'bg-warning/10 text-warning',
     danger: 'bg-destructive/10 text-destructive',
   },
@@ -962,7 +963,7 @@ export const transactionTokens = {
       contentGap: 'gap-1.5',
     },
     borders: {
-      rowDivider: 'divide-y divide-primary/20',
+      rowDivider: 'divide-y divide-primary-muted',
       lastRowNoBorder: 'last:border-0',
     },
     row: {
@@ -983,7 +984,7 @@ export const transactionTokens = {
       amountSecondary: 'text-[10px] mt-0.5 font-medium opacity-70',
     },
     badge: {
-      base: 'text-[10px] font-semibold px-1.5 py-0 border-primary/10',
+      base: 'text-[10px] font-semibold px-1.5 py-0 border-primary-subtle',
     },
     deleteButton: {
       base: 'h-full px-4 font-semibold text-destructive-foreground flex items-center justify-center bg-destructive',
@@ -997,19 +998,19 @@ export const transactionTokens = {
     },
     recurrent: {
       card: `py-0 bg-primary/5 ${shadowStyles.md} ${radiusStyles.lg} overflow-hidden`,
-      header: 'bg-primary/10 px-4 py-2.5',
+      header: 'bg-primary-subtle px-4 py-2.5',
     },
   },
   contextColors: {
     due: {
       urgent: 'bg-destructive/10 text-destructive',
       warning: 'bg-warning/10 text-warning',
-      normal: 'bg-primary/10 text-primary',
+      normal: 'bg-primary-subtle text-primary',
     },
     dueBadge: {
       urgent: 'border-destructive/30 text-destructive bg-destructive/10',
       warning: 'border-warning/30 text-warning bg-warning/10',
-      normal: 'border-primary/20 text-primary bg-primary/10',
+      normal: 'border-primary-muted text-primary bg-primary-subtle',
     },
   },
   components: {
@@ -1018,10 +1019,10 @@ export const transactionTokens = {
       button: `text-primary hover:bg-primary hover:text-primary-foreground ${radiusStyles.md} ${animationStyles.classes.transition} p-2 sm:p-3 min-w-[44px] min-h-[44px] flex items-center justify-center`,
     },
     userSelector: {
-      container: `sticky top-[60px] ${zIndexStyles.classes.raised} bg-card/80 backdrop-blur-sm border-b border-primary/20 px-3 sm:px-4 py-2`,
+      container: `sticky top-[60px] ${zIndexStyles.classes.raised} bg-card/80 backdrop-blur-sm border-b border-primary-muted px-3 sm:px-4 py-2`,
     },
     tabNavigation: {
-      container: 'flex gap-2 border-b border-primary/20 px-3 sm:px-4 py-2',
+      container: 'flex gap-2 border-b border-primary-muted px-3 sm:px-4 py-2',
       tab: `px-4 py-2 ${typographyStyles.sm} font-medium rounded-t-lg`,
       tabActive: 'text-primary border-b-2 border-primary',
       tabInactive: 'text-primary/60 hover:text-foreground',
@@ -1043,7 +1044,7 @@ export const transactionTokens = {
     },
     emptyState: {
       container: 'text-center py-12',
-      icon: `w-24 h-24 bg-primary/10 ${radiusStyles.full} flex items-center justify-center mb-4 mx-auto`,
+      icon: `w-24 h-24 bg-primary-subtle ${radiusStyles.full} flex items-center justify-center mb-4 mx-auto`,
       title: `${typographyStyles.lg} font-medium mb-2`,
       text: `${typographyStyles.sm} text-primary`,
     },
@@ -1106,53 +1107,53 @@ export const transactionStyles = {
   skeleton: {
     base: 'animate-pulse',
     card: 'bg-card rounded-lg p-3',
-    line: 'h-4 bg-primary/15 rounded',
-    lineShort: 'w-1/3 h-4 bg-primary/15 rounded',
-    lineMedium: 'w-2/3 h-4 bg-primary/15 rounded',
+    line: 'h-4 bg-primary-border rounded',
+    lineShort: 'w-1/3 h-4 bg-primary-border rounded',
+    lineMedium: 'w-2/3 h-4 bg-primary-border rounded',
     circle: 'w-10 h-10 rounded-lg bg-primary/12',
     rect: 'rounded bg-primary/12',
-    title: 'h-6 w-32 bg-card/60 rounded animate-pulse',
+    title: 'h-6 w-32 bg-glass-card rounded animate-pulse',
   },
   skeletons: {
     header:
-      'sticky top-0 z-20 bg-card/70 backdrop-blur-xl border-b border-primary/20 px-3 sm:px-4 py-2 sm:py-3 shadow-sm',
+      'sticky top-0 z-20 bg-card/70 backdrop-blur-xl border-b border-primary-muted px-3 sm:px-4 py-2 sm:py-3 shadow-sm',
     headerRow: 'flex items-center justify-between',
     headerIcon: 'w-10 h-10 bg-primary/12 rounded-xl',
-    headerTitle: 'h-6 bg-primary/15 rounded w-24',
+    headerTitle: 'h-6 bg-primary-border rounded w-24',
     userSelector:
-      'sticky top-[60px] z-10 bg-card/80 backdrop-blur-sm border-b border-primary/20 px-3 sm:px-4 py-2',
+      'sticky top-[60px] z-10 bg-card/80 backdrop-blur-sm border-b border-primary-muted px-3 sm:px-4 py-2',
     userSelectorListSpacing: 'flex items-center gap-2',
-    userSelectorChip: 'shrink-0 flex items-center gap-2 px-3 py-2 rounded-2xl bg-primary/10',
+    userSelectorChip: 'shrink-0 flex items-center gap-2 px-3 py-2 rounded-2xl bg-primary-subtle',
     userSelectorDot: 'w-5 h-5 bg-primary/25 rounded-full',
-    userSelectorText: 'w-12 h-3 bg-primary/20 rounded',
+    userSelectorText: 'w-12 h-3 bg-primary-muted rounded',
     userSelectorListStyle: { height: 44 } satisfies CSSProperties,
-    card: 'p-3 rounded-lg border border-primary/20 bg-card',
+    card: 'p-3 rounded-lg border border-primary-muted bg-card',
     cardRow: 'flex items-center gap-3',
-    cardIcon: 'w-10 h-10 bg-primary/10 rounded-lg shrink-0',
+    cardIcon: 'w-10 h-10 bg-primary-subtle rounded-lg shrink-0',
     cardBody: 'flex-1',
-    cardLinePrimary: 'h-4 bg-primary/15 rounded w-3/4 mb-1',
-    cardLineSecondary: 'h-3 bg-primary/15 rounded w-1/2',
+    cardLinePrimary: 'h-4 bg-primary-border rounded w-3/4 mb-1',
+    cardLineSecondary: 'h-3 bg-primary-border rounded w-1/2',
     cardAmount: 'text-right shrink-0',
-    cardAmountLine: 'h-4 bg-primary/15 rounded w-16 mb-1',
-    cardAmountSub: 'h-3 bg-primary/15 rounded w-12',
+    cardAmountLine: 'h-4 bg-primary-border rounded w-16 mb-1',
+    cardAmountSub: 'h-3 bg-primary-border rounded w-12',
     dayGroup: 'space-y-3',
     dayGroupHeader: 'flex items-center justify-between mb-2 px-1',
-    dayGroupTitle: 'h-5 bg-primary/15 rounded w-24',
+    dayGroupTitle: 'h-5 bg-primary-border rounded w-24',
     dayGroupTotal: 'text-right',
-    dayGroupTotalLine: 'h-4 bg-primary/15 rounded w-16 mb-1',
-    dayGroupTotalSub: 'h-3 bg-primary/15 rounded w-12',
-    tabNav: 'flex gap-2 border-b border-primary/20 px-3 py-2',
+    dayGroupTotalLine: 'h-4 bg-primary-border rounded w-16 mb-1',
+    dayGroupTotalSub: 'h-3 bg-primary-border rounded w-12',
+    tabNav: 'flex gap-2 border-b border-primary-muted px-3 py-2',
     tabListSpacing: 'flex gap-2 w-full',
     tabPill: 'bg-primary/12 rounded-lg',
     tabPillHeight: 'h-10',
     tabPillWidth: 'w-24',
-    recurring: 'p-4 rounded-lg border border-primary/20 bg-card space-y-4',
+    recurring: 'p-4 rounded-lg border border-primary-muted bg-card space-y-4',
     recurringListSpacing: 'space-y-4',
     recurringRow: 'flex items-center gap-3',
-    recurringIcon: 'w-10 h-10 bg-primary/10 rounded-lg shrink-0',
+    recurringIcon: 'w-10 h-10 bg-primary-subtle rounded-lg shrink-0',
     recurringBody: 'flex-1',
-    recurringLinePrimary: 'h-4 bg-primary/15 rounded w-3/4 mb-1',
-    recurringLineSecondary: 'h-3 bg-primary/15 rounded w-1/2',
+    recurringLinePrimary: 'h-4 bg-primary-border rounded w-3/4 mb-1',
+    recurringLineSecondary: 'h-3 bg-primary-border rounded w-1/2',
     recurringAction: 'w-8 h-8 bg-primary/12 rounded-lg shrink-0',
     fullPage: 'flex flex-col min-h-dvh bg-card',
     main: 'flex-1 p-3 space-y-6 pb-20',
@@ -1174,22 +1175,22 @@ export const transactionStyles = {
   filters: {
     container: 'space-y-3',
     budgetBanner:
-      'flex items-center justify-between gap-3 px-4 py-3 rounded-2xl bg-primary/10 border border-primary/20',
+      'flex items-center justify-between gap-3 px-4 py-3 rounded-2xl bg-primary-subtle border border-primary-muted',
     budgetBannerLeft: 'flex items-center gap-2',
     budgetBannerDot: 'w-2 h-2 rounded-full bg-primary animate-pulse',
     budgetBannerText: 'text-sm font-medium text-primary',
     budgetBannerCount: 'text-xs text-primary/70',
     budgetBannerExit:
-      'inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-primary/20 text-primary hover:bg-primary/30 transition-colors',
+      'inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-primary-muted text-primary hover:bg-primary/30 transition-colors',
     budgetBannerExitIcon: 'h-3 w-3',
     searchWrap: 'relative',
     searchIcon: 'absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 transition-colors duration-200',
     searchIconActive: 'text-primary',
     searchIconInactive: 'text-primary/50',
     searchInput:
-      'pl-12 pr-10 py-3 h-12 rounded-2xl bg-card border-primary/20 text-primary placeholder:text-primary/40 transition-all duration-200 focus:border-primary/20 focus:ring-2 focus:ring-primary/20 focus:shadow-lg',
+      'pl-12 pr-10 py-3 h-12 rounded-2xl bg-card border-primary-muted text-primary placeholder:text-primary/40 transition-all duration-200 focus:border-primary-muted focus:ring-2 focus:ring-primary-muted focus:shadow-lg',
     searchClear:
-      'absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-primary/10 hover:bg-primary/20 transition-colors',
+      'absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-primary-subtle hover:bg-primary-muted transition-colors',
     searchClearIcon: 'h-4 w-4 text-primary',
     chipsRow: 'flex items-center gap-2 overflow-x-auto pb-1 -mx-3 px-3 scrollbar-hide',
     clearAll:
@@ -1200,54 +1201,54 @@ export const transactionStyles = {
       buttonActive:
         'inline-flex items-center gap-2 pl-3 pr-8 py-2 rounded-full text-sm font-medium transition-all duration-200 whitespace-nowrap select-none bg-primary text-primary-foreground shadow-md hover:bg-primary/90 active:scale-[0.98]',
       clearButton:
-        'absolute right-1 top-1/2 -translate-y-1/2 flex items-center justify-center w-6 h-6 rounded-full bg-primary/20 hover:bg-primary/30 transition-colors',
+        'absolute right-1 top-1/2 -translate-y-1/2 flex items-center justify-center w-6 h-6 rounded-full bg-primary-muted hover:bg-primary/30 transition-colors',
       clearIcon: 'h-3 w-3 text-primary-foreground',
       buttonBase:
         'inline-flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-all duration-200 whitespace-nowrap select-none active:scale-[0.98]',
       buttonOpen: 'bg-primary text-primary-foreground shadow-md',
       buttonIdle:
-        'bg-card text-primary border border-primary/20 hover:border-primary/40 hover:bg-primary/5',
+        'bg-card text-primary border border-primary-muted hover:border-primary/40 hover:bg-primary/5',
       chevron: 'h-3.5 w-3.5 transition-transform duration-200',
       chevronOpen: 'rotate-180',
     },
     drawer: {
-      content: 'rounded-t-3xl bg-card border-t border-primary/20',
-      contentTall: 'rounded-t-3xl bg-card border-t border-primary/20 max-h-[70vh]',
+      content: 'rounded-t-3xl bg-card border-t border-primary-muted',
+      contentTall: 'rounded-t-3xl bg-card border-t border-primary-muted max-h-[70vh]',
       inner: 'p-4 space-y-4',
       header: 'flex items-center justify-between',
       title: 'text-lg font-bold text-primary',
-      closeButton: 'text-primary hover:bg-primary/10 rounded-xl',
+      closeButton: 'text-primary hover:bg-primary-subtle rounded-xl',
     },
     typeGrid: 'grid grid-cols-3 gap-2',
     typeButton:
       'flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 border active:scale-95',
-    typeButtonActive: 'bg-primary text-primary-foreground border-primary/20 shadow-md',
+    typeButtonActive: 'bg-primary text-primary-foreground border-primary-muted shadow-md',
     typeButtonIdle:
-      'bg-card text-primary border-primary/20 hover:bg-primary/10 hover:border-primary/40',
+      'bg-card text-primary border-primary-muted hover:bg-primary-subtle hover:border-primary/40',
     typeCheck: 'h-4 w-4',
     dateSection: 'space-y-4',
     dateGrid: 'grid grid-cols-2 gap-2',
     dateButton:
       'flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 border active:scale-95',
-    dateButtonActive: 'bg-primary text-primary-foreground border-primary/20 shadow-md',
+    dateButtonActive: 'bg-primary text-primary-foreground border-primary-muted shadow-md',
     dateButtonIdle:
-      'bg-card text-primary border-primary/20 hover:bg-primary/10 hover:border-primary/40',
-    dateCustom: 'space-y-3 pt-2 border-t border-primary/10',
+      'bg-card text-primary border-primary-muted hover:bg-primary-subtle hover:border-primary/40',
+    dateCustom: 'space-y-3 pt-2 border-t border-primary-subtle',
     dateTitle: 'text-sm font-medium text-primary',
     dateInputs: 'grid grid-cols-2 gap-3',
     dateField: 'space-y-1.5',
     dateLabel: 'text-xs text-primary/70',
-    dateInput: 'bg-card border-primary/20 rounded-xl text-sm',
+    dateInput: 'bg-card border-primary-muted rounded-xl text-sm',
     dateApply: 'w-full rounded-xl',
     categorySection: 'space-y-3',
     categorySearchWrap: 'relative',
     categorySearchIcon: 'absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary/50',
-    categorySearchInput: 'pl-10 bg-card border-primary/20 rounded-xl',
+    categorySearchInput: 'pl-10 bg-card border-primary-muted rounded-xl',
     categoryGrid: 'grid grid-cols-2 gap-2 max-h-64 overflow-y-auto pr-1',
     categoryButton:
       'flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 border active:scale-95',
-    categoryButtonActive: 'bg-primary text-primary-foreground border-primary/20 shadow-md',
-    categoryButtonIdle: 'bg-card text-primary border-primary/20 hover:bg-primary/10',
+    categoryButtonActive: 'bg-primary text-primary-foreground border-primary-muted shadow-md',
+    categoryButtonIdle: 'bg-card text-primary border-primary-muted hover:bg-primary-subtle',
     categoryLabel: 'truncate',
     categoryLabelLeft: 'truncate flex-1 text-left',
     categoryCheck: 'h-4 w-4 shrink-0',
@@ -1287,21 +1288,21 @@ export const transactionStyles = {
     skeleton: {
       container: 'space-y-6',
       header: 'mb-4',
-      headerTitle: 'h-5 w-40 bg-primary/15 rounded animate-pulse',
-      headerSubtitle: 'h-4 w-32 bg-primary/10 rounded animate-pulse mt-1',
+      headerTitle: 'h-5 w-40 bg-primary-border rounded animate-pulse',
+      headerSubtitle: 'h-4 w-32 bg-primary-subtle rounded animate-pulse mt-1',
       group: 'space-y-3',
       groupHeader: 'flex justify-between items-center',
-      groupTitle: 'h-4 w-24 bg-primary/15 rounded animate-pulse',
+      groupTitle: 'h-4 w-24 bg-primary-border rounded animate-pulse',
       groupTotal: 'text-right',
-      groupTotalLine: 'h-4 w-16 bg-primary/15 rounded animate-pulse',
-      groupTotalSub: 'h-3 w-20 bg-primary/10 rounded animate-pulse mt-1',
-      card: 'bg-card rounded-xl border border-primary/20 p-3 space-y-3',
+      groupTotalLine: 'h-4 w-16 bg-primary-border rounded animate-pulse',
+      groupTotalSub: 'h-3 w-20 bg-primary-subtle rounded animate-pulse mt-1',
+      card: 'bg-card rounded-xl border border-primary-muted p-3 space-y-3',
       row: 'flex items-center gap-3',
       rowIcon: 'w-10 h-10 rounded-lg bg-primary/12 animate-pulse',
       rowBody: 'flex-1 space-y-2',
-      rowTitle: 'h-4 w-32 bg-primary/15 rounded animate-pulse',
-      rowSubtitle: 'h-3 w-20 bg-primary/10 rounded animate-pulse',
-      rowAmount: 'h-5 w-16 bg-primary/15 rounded animate-pulse',
+      rowTitle: 'h-4 w-32 bg-primary-border rounded animate-pulse',
+      rowSubtitle: 'h-3 w-20 bg-primary-subtle rounded animate-pulse',
+      rowAmount: 'h-5 w-16 bg-primary-border rounded animate-pulse',
     },
   },
 } as const;
@@ -1376,7 +1377,7 @@ export function getTransactionIconColor(
     if (daysUntilDue <= 3) return transactionTokens.contextColors.due.warning;
     return transactionTokens.contextColors.due.normal;
   }
-  return 'bg-primary/10 text-primary';
+  return 'bg-primary-subtle text-primary';
 }
 
 export function getTransactionBadgeColor(
@@ -1401,12 +1402,12 @@ export function getTransactionBadgeColor(
 export const buttonStyles = {
   base: "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-semibold transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:border-primary",
   variants: {
-    default: `bg-primary text-primary-foreground border border-primary/20 hover:bg-primary/90`,
+    default: `bg-primary text-primary-foreground border border-primary-muted hover:bg-primary/90`,
     secondary: `bg-secondary text-secondary-foreground border border-secondary hover:bg-secondary/90`,
-    outline: `border border-primary/20 bg-card text-primary hover:bg-primary hover:text-primary-foreground`,
-    ghost: `hover:bg-primary/10 text-primary`,
+    outline: `border border-primary-muted bg-card text-primary hover:bg-primary hover:text-primary-foreground`,
+    ghost: `hover:bg-primary-subtle text-primary`,
     destructive: `bg-destructive text-destructive-foreground border border-destructive hover:bg-destructive/90`,
-    cancel: `bg-card text-primary border border-primary/20 hover:bg-primary hover:text-primary-foreground`,
+    cancel: `bg-card text-primary border border-primary-muted hover:bg-primary hover:text-primary-foreground`,
   },
   sizes: {
     default: 'h-9 px-4 py-2',
@@ -1418,7 +1419,7 @@ export const buttonStyles = {
 
 // Card styles
 export const cardStyles = {
-  container: `bg-card text-primary flex flex-col rounded-xl border border-primary/20 shadow-sm`,
+  container: `bg-card text-primary flex flex-col rounded-xl border border-primary-muted shadow-sm`,
   header:
     '@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-1.5 px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-4',
   title: 'leading-none font-semibold text-primary',
@@ -1430,30 +1431,30 @@ export const cardStyles = {
 
 // Input styles
 export const inputStyles = {
-  base: 'bg-card text-primary border border-primary/20 rounded-xl px-3 py-2 text-base transition-[color,box-shadow,background-color] outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/20 placeholder:text-primary/40 selection:bg-primary selection:text-primary-foreground',
+  base: 'bg-card text-primary border border-primary-muted rounded-xl px-3 py-2 text-base transition-[color,box-shadow,background-color] outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary-muted placeholder:text-primary/40 selection:bg-primary selection:text-primary-foreground',
 };
 
 // Skeleton styles
 export const skeletonStyles = {
   base: 'animate-pulse',
-  light: 'bg-primary/10',
-  medium: 'bg-primary/15',
-  dark: 'bg-primary/20',
+  light: 'bg-primary-subtle',
+  medium: 'bg-primary-border',
+  dark: 'bg-primary-muted',
   shimmer: `liquid-shimmer bg-primary/12`,
 };
 
 // Modal / dialog styles
 export const modalStyles = {
-  content: 'sm:max-w-[420px] border border-primary/15 bg-card shadow-xl',
+  content: 'sm:max-w-[420px] border border-primary-border bg-card shadow-xl',
   footer:
     'px-5 sm:px-6 pb-5 sm:pb-6 pt-4 sm:pt-5 border-t border-border/60 flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-end',
 };
 
 // Tabs styles
 export const tabStyles = {
-  list: 'inline-flex h-12 items-center justify-center rounded-2xl bg-primary/10 p-1',
+  list: 'inline-flex h-12 items-center justify-center rounded-2xl bg-primary-subtle p-1',
   trigger:
-    'inline-flex items-center justify-center whitespace-nowrap rounded-xl px-4 py-2.5 text-sm font-semibold transition-all data-[state=active]:bg-card data-[state=active]:text-primary data-[state=active]:shadow-md hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 disabled:pointer-events-none disabled:opacity-50',
+    'inline-flex items-center justify-center whitespace-nowrap rounded-xl px-4 py-2.5 text-sm font-semibold transition-all data-[state=active]:bg-card data-[state=active]:text-primary data-[state=active]:shadow-md hover:bg-primary-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 disabled:pointer-events-none disabled:opacity-50',
   content: 'mt-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30',
 };
 
@@ -1465,14 +1466,14 @@ export const badgeStyles = {
     secondary: 'border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/90',
     destructive:
       'border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/90',
-    outline: 'text-primary border-primary/20 hover:bg-primary/10',
+    outline: 'text-primary border-primary-muted hover:bg-primary-subtle',
   },
 };
 
 // Drawer styles
 export const drawerStyles = {
   content:
-    'fixed bottom-0 left-0 right-0 z-50 flex h-auto max-h-[85vh] flex-col rounded-t-3xl border-t border-primary/20 bg-card shadow-xl overflow-hidden',
+    'fixed bottom-0 left-0 right-0 z-50 flex h-auto max-h-[85vh] flex-col rounded-t-3xl border-t border-primary-muted bg-card shadow-xl overflow-hidden',
   header: 'grid gap-1.5 p-4 text-center sm:text-left',
   footer: 'mt-auto flex flex-col gap-2 p-4',
 };
@@ -1480,32 +1481,32 @@ export const drawerStyles = {
 // Select styles
 export const selectStyles = {
   trigger:
-    'flex h-10 w-full items-center justify-between rounded-xl border border-primary/20 bg-card px-3 py-2 text-sm text-primary placeholder:text-primary/40 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/20 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1',
+    'flex h-10 w-full items-center justify-between rounded-xl border border-primary-muted bg-card px-3 py-2 text-sm text-primary placeholder:text-primary/40 focus:outline-none focus:ring-2 focus:ring-primary-muted focus:border-primary-muted disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1',
   icon: 'h-4 w-4 text-primary/60',
   content:
-    'relative z-[10000] max-h-96 min-w-[8rem] overflow-hidden rounded-xl border border-primary/20 bg-card text-primary shadow-lg data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2',
+    'relative z-[10000] max-h-96 min-w-[8rem] overflow-hidden rounded-xl border border-primary-muted bg-card text-primary shadow-lg data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2',
   viewportBase: 'p-1',
   item: 'relative flex w-full cursor-default select-none items-center rounded-lg py-1.5 pl-8 pr-2 text-sm text-primary outline-none transition-colors focus:bg-primary focus:text-primary-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
   itemIndicator: 'absolute left-2 flex h-3.5 w-3.5 items-center justify-center',
-  separator: '-mx-1 my-1 h-px bg-primary/15',
+  separator: '-mx-1 my-1 h-px bg-primary-border',
   label: 'py-1.5 pl-8 pr-2 text-sm font-semibold text-primary',
 };
 
 // Dropdown styles
 export const dropdownStyles = {
   content:
-    'z-50 min-w-[8rem] overflow-hidden rounded-xl border border-primary/20 bg-card p-1 text-primary shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2',
-  item: 'relative flex cursor-default select-none items-center rounded-lg px-3 py-2 text-sm text-primary outline-none transition-colors focus:bg-primary/10 focus:text-primary data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
+    'z-50 min-w-[8rem] overflow-hidden rounded-xl border border-primary-muted bg-card p-1 text-primary shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2',
+  item: 'relative flex cursor-default select-none items-center rounded-lg px-3 py-2 text-sm text-primary outline-none transition-colors focus:bg-primary-subtle focus:text-primary data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
   subTrigger:
-    'flex cursor-default select-none items-center rounded-lg px-3 py-2 text-sm text-primary outline-none focus:bg-primary/10 data-[state=open]:bg-primary/10',
+    'flex cursor-default select-none items-center rounded-lg px-3 py-2 text-sm text-primary outline-none focus:bg-primary-subtle data-[state=open]:bg-primary-subtle',
   subContent:
-    'z-50 min-w-[8rem] overflow-hidden rounded-xl border border-primary/20 bg-card p-1 text-primary shadow-lg data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2',
+    'z-50 min-w-[8rem] overflow-hidden rounded-xl border border-primary-muted bg-card p-1 text-primary shadow-lg data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2',
   checkboxItem:
-    'relative flex cursor-default select-none items-center rounded-lg py-1.5 pl-8 pr-3 text-sm text-primary outline-none transition-colors focus:bg-primary/10 focus:text-primary data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
+    'relative flex cursor-default select-none items-center rounded-lg py-1.5 pl-8 pr-3 text-sm text-primary outline-none transition-colors focus:bg-primary-subtle focus:text-primary data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
   radioItem:
-    'relative flex cursor-default select-none items-center rounded-lg py-1.5 pl-8 pr-3 text-sm text-primary outline-none transition-colors focus:bg-primary/10 focus:text-primary data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
+    'relative flex cursor-default select-none items-center rounded-lg py-1.5 pl-8 pr-3 text-sm text-primary outline-none transition-colors focus:bg-primary-subtle focus:text-primary data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
   label: 'px-3 py-1.5 text-sm font-semibold text-primary',
-  separator: '-mx-1 my-1 h-px bg-primary/15',
+  separator: '-mx-1 my-1 h-px bg-primary-border',
   shortcut: 'ml-auto text-xs tracking-widest opacity-70',
   indicator: 'absolute left-2 flex h-3.5 w-3.5 items-center justify-center',
 };
@@ -1522,7 +1523,7 @@ export const emptyStateStyles = {
 
 // Alert styles
 export const alertStyles = {
-  base: 'rounded-xl border border-primary/20 bg-primary/10 text-primary px-4 py-3 flex items-start gap-3',
+  base: 'rounded-xl border border-primary-muted bg-primary-subtle text-primary px-4 py-3 flex items-start gap-3',
   icon: 'h-5 w-5 text-primary shrink-0',
   title: 'font-semibold text-primary',
   description: 'text-sm text-primary/80',
@@ -1530,8 +1531,8 @@ export const alertStyles = {
 
 // Sticky header styles
 export const stickyHeaderStyles = {
-  base: 'fixed top-0 left-0 right-0 md:left-64 backdrop-blur-xl border-b border-primary/20 shadow-sm bg-card/80',
-  light: 'bg-card/80 border-primary/20',
+  base: 'fixed top-0 left-0 right-0 md:left-64 backdrop-blur-xl border-b border-primary-muted shadow-sm bg-card/80',
+  light: 'bg-card/80 border-primary-muted',
 };
 
 // Utility to combine size + variant for buttons
