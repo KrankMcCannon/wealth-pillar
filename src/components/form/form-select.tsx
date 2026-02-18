@@ -2,16 +2,18 @@
 
 import * as React from 'react';
 import { cn } from '@/lib';
-import { Search } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui';
+import { ResponsiveSelect, type ResponsiveSelectOption } from '../ui/responsive-select';
 import { formStyles } from './theme/form-styles';
+import { selectStyles } from '@/styles/system';
 
 /**
  * Form Select Component
  *
  * Enhanced select component with optional icon support and sorting.
  * Designed for use in forms with consistent styling.
+ * Now uses ResponsiveSelect for a consistent experience across devices.
  *
  * @example
  * ```tsx
@@ -20,7 +22,6 @@ import { formStyles } from './theme/form-styles';
  *   onValueChange={(value) => handleChange('category', value)}
  *   options={categories}
  *   placeholder="Seleziona categoria"
- *   renderIcon={(option) => <CategoryIcon categoryKey={option.key} />}
  * />
  * ```
  */
@@ -29,12 +30,7 @@ import { formStyles } from './theme/form-styles';
 // TYPES & INTERFACES
 // ============================================================================
 
-export interface SelectOption {
-  value: string;
-  label: string;
-  icon?: React.ReactNode;
-  disabled?: boolean;
-}
+export type SelectOption = ResponsiveSelectOption;
 
 export interface FormSelectProps {
   /** Current selected value */
@@ -67,77 +63,47 @@ export function FormSelect({
   renderIcon,
 }: Readonly<FormSelectProps>) {
   const t = useTranslations('Forms.Select');
-  const [searchValue, setSearchValue] = React.useState('');
   const resolvedPlaceholder = placeholder ?? t('placeholder');
 
-  // Filter options based on search value
-  const filteredOptions = React.useMemo(() => {
-    if (!searchValue) return options;
-
-    const lowerSearch = searchValue.toLowerCase();
-    return options.filter(
-      (option) =>
-        option.label.toLowerCase().includes(lowerSearch) ||
-        option.value.toLowerCase().includes(lowerSearch)
-    );
-  }, [searchValue, options]);
-
-  // Reset search when dropdown closes
-  const handleOpenChange = (isOpen: boolean) => {
-    if (!isOpen) {
-      setSearchValue('');
-    }
-  };
+  // Find the selected option to display its label in the trigger
+  const selectedOption = options.find((opt) => opt.value === value);
 
   return (
-    <Select
+    <ResponsiveSelect
       value={value}
       onValueChange={onValueChange}
-      disabled={disabled}
-      onOpenChange={handleOpenChange}
-    >
-      <SelectTrigger className={cn(formStyles.select.trigger, className)}>
-        <SelectValue placeholder={resolvedPlaceholder} />
-      </SelectTrigger>
-      <SelectContent className={formStyles.select.content}>
-        {/* Search Input */}
-        <div className={formStyles.select.searchWrap}>
-          <div className={formStyles.select.searchFieldWrap}>
-            <Search className={formStyles.select.searchIcon} />
-            <input
-              type="text"
-              placeholder={t('searchPlaceholder')}
-              value={searchValue}
-              onChange={(e) => setSearchValue(e.target.value)}
-              onKeyDown={(e) => {
-                // Prevent Select's keyboard navigation
-                e.stopPropagation();
-              }}
-              onClick={(e) => e.stopPropagation()}
-              onMouseDown={(e) => e.stopPropagation()}
-              className={formStyles.select.searchInput}
-            />
+      options={options}
+      placeholder={t('searchPlaceholder')}
+      emptyMessage={t('empty')}
+      className={className}
+      trigger={
+        <button
+          type="button"
+          disabled={disabled}
+          className={cn(selectStyles.trigger, formStyles.select.trigger, className)}
+        >
+          <div className="flex items-center gap-2 truncate">
+            {selectedOption ? (
+              <>
+                {renderIcon?.(selectedOption)}
+                {selectedOption.icon && <span>{selectedOption.icon}</span>}
+                <span className="truncate text-foreground">{selectedOption.label}</span>
+              </>
+            ) : (
+              <span className="truncate text-muted-foreground">{resolvedPlaceholder}</span>
+            )}
           </div>
+          <ChevronDown className={selectStyles.icon} />
+        </button>
+      }
+      renderOption={(option) => (
+        <div className="flex items-center gap-2 overflow-hidden">
+          {renderIcon?.(option)}
+          {option.icon && <span className="shrink-0">{option.icon}</span>}
+          <span className="truncate">{option.label}</span>
         </div>
-
-        {/* Options List */}
-        <div className={formStyles.select.optionsWrap}>
-          {filteredOptions.length === 0 ? (
-            <div className={formStyles.select.empty}>{t('empty')}</div>
-          ) : (
-            filteredOptions.map((option) => (
-              <SelectItem key={option.value} value={option.value} disabled={option.disabled}>
-                <div className={formStyles.select.optionRow}>
-                  {renderIcon?.(option)}
-                  {option.icon && <span>{option.icon}</span>}
-                  <span>{option.label}</span>
-                </div>
-              </SelectItem>
-            ))
-          )}
-        </div>
-      </SelectContent>
-    </Select>
+      )}
+    />
   );
 }
 

@@ -1,21 +1,24 @@
 'use client';
 
 import * as React from 'react';
-import * as SelectPrimitive from '@radix-ui/react-select';
-import { Search, Clock, TrendingUp, ChevronDown } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Clock, TrendingUp, ChevronDown } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import { cn } from '@/lib';
 import { Category } from '@/lib/types';
 import { CategoryIcon, getSemanticColor } from '@/lib/icons';
-import { useDebouncedValue } from '@/hooks/use-debounced-value';
 import { useCategoryUsageStore } from '@/stores/category-usage-store';
 import { selectStyles } from '@/styles/system';
+import { ResponsivePicker } from '@/components/ui/responsive-picker';
 import {
-  formStyles,
-  getCategorySelectItemStyle,
-  getCategorySelectWidthStyle,
-} from './theme/form-styles';
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  CommandSeparator,
+} from '@/components/ui/command';
+import { formStyles, getCategorySelectItemStyle } from './theme/form-styles';
 
 export interface CategorySelectProps {
   value: string;
@@ -33,11 +36,10 @@ export interface CategorySelectProps {
  *
  * Features:
  * - Category icons and colors
- * - Debounced search for performance
+ * - Standardized ResponsivePicker pattern (Popover/Drawer)
+ * - Searchable lists via Command component
  * - Recent categories quick-select
  * - Alphabetically sorted categories
- * - Grid layout for better scanning
- * - Proper scrolling on mobile and desktop
  */
 export const CategorySelect = React.memo<CategorySelectProps>(
   ({
@@ -57,14 +59,11 @@ export const CategorySelect = React.memo<CategorySelectProps>(
     const [isHydrated, setIsHydrated] = React.useState(false);
     const resolvedPlaceholder = placeholder ?? t('placeholder');
 
-    // Debounce search for performance
-    const debouncedSearch = useDebouncedValue(searchValue, 200);
-
-    // Category usage tracking - subscribe to usageMap for reactivity
+    // Category usage tracking
     const usageMap = useCategoryUsageStore((state) => state.usageMap);
     const recordCategoryUsage = useCategoryUsageStore((state) => state.recordCategoryUsage);
 
-    // Compute recent categories from usageMap (reactive to store changes)
+    // Compute recent categories
     const recentCategoryKeys = React.useMemo(() => {
       if (!isHydrated) return [];
       return Object.values(usageMap)
@@ -73,40 +72,22 @@ export const CategorySelect = React.memo<CategorySelectProps>(
         .map((usage) => usage.categoryKey);
     }, [isHydrated, usageMap, recentCategoriesLimit]);
 
-    // Mark as hydrated after mount and rehydrate the store from localStorage
     React.useEffect(() => {
-      // Rehydrate the persisted store manually
       useCategoryUsageStore.persist.rehydrate();
       setIsHydrated(true);
     }, []);
 
-    // Sort categories alphabetically (memoized)
     const sortedCategories = React.useMemo(() => {
       return [...categories].sort((a, b) => a.label.localeCompare(b.label, locale));
     }, [categories, locale]);
 
-    // Filter categories by search (using debounced value)
-    const filteredCategories = React.useMemo(() => {
-      if (!debouncedSearch) return sortedCategories;
-
-      const lowerSearch = debouncedSearch.toLowerCase();
-      return sortedCategories.filter(
-        (cat) =>
-          cat.label.toLowerCase().includes(lowerSearch) ||
-          cat.key.toLowerCase().includes(lowerSearch)
-      );
-    }, [debouncedSearch, sortedCategories]);
-
-    // Get recent categories (filtered by availability)
     const recentCategories = React.useMemo(() => {
       if (!showRecentCategories || recentCategoryKeys.length === 0) return [];
-
       return recentCategoryKeys
         .map((key) => categories.find((cat) => cat.key === key))
         .filter((cat): cat is Category => cat !== undefined);
     }, [recentCategoryKeys, categories, showRecentCategories]);
 
-    // Handle value change with usage tracking
     const handleValueChange = React.useCallback(
       (newValue: string) => {
         onValueChange(newValue);
@@ -116,7 +97,6 @@ export const CategorySelect = React.memo<CategorySelectProps>(
       [onValueChange, recordCategoryUsage]
     );
 
-    // Reset search when dropdown closes
     const handleOpenChange = React.useCallback((open: boolean) => {
       setIsOpen(open);
       if (!open) {
@@ -124,27 +104,18 @@ export const CategorySelect = React.memo<CategorySelectProps>(
       }
     }, []);
 
-    // Get selected category for display
     const selectedCategory = categories.find((cat) => cat.key === value);
 
-    // Calculate optimal width based on longest category label
     const optimalWidth = React.useMemo(() => {
       if (categories.length === 0) return 280;
-
-      // Find longest label
       const longestLabel = categories.reduce(
         (longest, cat) => (cat.label.length > longest.length ? cat.label : longest),
         ''
       );
-
-      // Rough estimate: 8px per character + 60px for icon and padding
       const estimatedWidth = longestLabel.length * 8 + 60;
-
-      // Clamp between 240px and 400px
       return Math.min(Math.max(estimatedWidth, 240), 400);
     }, [categories]);
 
-    // Render category item
     const renderCategoryItem = (category: Category, isSelected: boolean) => {
       const color = getSemanticColor(category.key);
 
@@ -167,129 +138,102 @@ export const CategorySelect = React.memo<CategorySelectProps>(
     };
 
     return (
-      <SelectPrimitive.Root
-        value={value}
-        onValueChange={handleValueChange}
-        disabled={disabled}
+      <ResponsivePicker
         open={isOpen}
         onOpenChange={handleOpenChange}
-      >
-        {/* Trigger */}
-        <SelectPrimitive.Trigger
-          className={cn(selectStyles.trigger, className)}
-          aria-label={resolvedPlaceholder}
-        >
-          <div className={formStyles.categorySelect.triggerRow}>
-            {selectedCategory ? (
-              <>
-                <CategoryIcon
-                  categoryKey={selectedCategory.key}
-                  size={18}
-                  className={formStyles.categorySelect.triggerIcon}
-                />
-                <span className={formStyles.categorySelect.triggerLabel}>
-                  {selectedCategory.label}
-                </span>
-              </>
-            ) : (
-              <span className={formStyles.categorySelect.triggerPlaceholder}>
-                {resolvedPlaceholder}
-              </span>
-            )}
-          </div>
-          <ChevronDown className={selectStyles.icon} />
-        </SelectPrimitive.Trigger>
-
-        {/* Content */}
-        <SelectPrimitive.Portal>
-          <SelectPrimitive.Content
-            className={cn(formStyles.categorySelect.content, formStyles.categorySelect.contentAnim)}
-            style={getCategorySelectWidthStyle(optimalWidth)}
-            position="popper"
-            side="top"
-            align="start"
-            sideOffset={4}
-            avoidCollisions={true}
-            collisionPadding={8}
+        contentStyle={{ width: optimalWidth }}
+        contentClassName="p-0"
+        trigger={
+          <button
+            type="button"
+            disabled={disabled}
+            className={cn(selectStyles.trigger, className)}
+            aria-label={resolvedPlaceholder}
           >
-            {/* Search Input - Outside viewport for sticky behavior */}
-            <div className={formStyles.categorySelect.searchWrap}>
-              <div className={formStyles.categorySelect.searchFieldWrap}>
-                <Search className={formStyles.categorySelect.searchIcon} />
-                <input
-                  type="text"
-                  placeholder={t('searchPlaceholder')}
-                  value={searchValue}
-                  onChange={(e) => setSearchValue(e.target.value)}
-                  onKeyDown={(e) => e.stopPropagation()}
-                  onClick={(e) => e.stopPropagation()}
-                  className={formStyles.categorySelect.searchInput}
-                />
-              </div>
+            <div className={formStyles.categorySelect.triggerRow}>
+              {selectedCategory ? (
+                <>
+                  <CategoryIcon
+                    categoryKey={selectedCategory.key}
+                    size={18}
+                    className={formStyles.categorySelect.triggerIcon}
+                  />
+                  <span className={formStyles.categorySelect.triggerLabel}>
+                    {selectedCategory.label}
+                  </span>
+                </>
+              ) : (
+                <span className={formStyles.categorySelect.triggerPlaceholder}>
+                  {resolvedPlaceholder}
+                </span>
+              )}
             </div>
+            <ChevronDown className={selectStyles.icon} />
+          </button>
+        }
+      >
+        <Command className="h-full">
+          <CommandInput
+            placeholder={t('searchPlaceholder')}
+            value={searchValue}
+            onValueChange={setSearchValue}
+          />
+          <CommandList className={formStyles.categorySelect.viewport}>
+            <CommandEmpty>{t('empty')}</CommandEmpty>
 
-            {/* Scrollable Viewport */}
-            <SelectPrimitive.Viewport className={formStyles.categorySelect.viewport}>
-              {/* Recent Categories Section */}
-              <AnimatePresence>
-                {!debouncedSearch && recentCategories.length > 0 && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className={formStyles.categorySelect.recentWrap}
-                  >
+            {/* Recent Categories Section */}
+            {!searchValue && recentCategories.length > 0 && (
+              <>
+                <CommandGroup
+                  heading={
                     <div className={formStyles.categorySelect.recentHeader}>
                       <Clock className={formStyles.categorySelect.recentIcon} />
                       <span className={formStyles.categorySelect.recentLabel}>{t('recent')}</span>
                     </div>
-                    <div className={formStyles.categorySelect.recentList}>
-                      {recentCategories.map((category) => (
-                        <button
-                          key={`recent-${category.key}`}
-                          onClick={() => handleValueChange(category.key)}
-                          className={formStyles.categorySelect.recentItem}
-                        >
-                          {renderCategoryItem(category, false)}
-                        </button>
-                      ))}
-                    </div>
-                    <div className={formStyles.categorySelect.divider} />
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                  }
+                >
+                  <div className={formStyles.categorySelect.recentList}>
+                    {recentCategories.map((category) => (
+                      <CommandItem
+                        key={`recent-${category.key}`}
+                        value={`recent-${category.label}`}
+                        onSelect={() => handleValueChange(category.key)}
+                        className="cursor-pointer"
+                      >
+                        {renderCategoryItem(category, false)}
+                      </CommandItem>
+                    ))}
+                  </div>
+                </CommandGroup>
+                <CommandSeparator />
+              </>
+            )}
 
-              {/* All Categories Section */}
-              <div>
-                {!debouncedSearch && (
+            {/* All Categories Section */}
+            <CommandGroup
+              heading={
+                !searchValue ? (
                   <div className={formStyles.categorySelect.allHeader}>
                     <TrendingUp className={formStyles.categorySelect.allIcon} />
                     <span className={formStyles.categorySelect.allLabel}>{t('allCategories')}</span>
                   </div>
-                )}
-
-                {filteredCategories.length === 0 ? (
-                  <div className={formStyles.categorySelect.empty}>{t('empty')}</div>
-                ) : (
-                  <div className={formStyles.categorySelect.list}>
-                    {filteredCategories.map((category) => (
-                      <SelectPrimitive.Item
-                        key={`all-${category.key}`}
-                        value={category.key}
-                        className={formStyles.categorySelect.item}
-                      >
-                        <SelectPrimitive.ItemText>
-                          {renderCategoryItem(category, category.key === value)}
-                        </SelectPrimitive.ItemText>
-                      </SelectPrimitive.Item>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </SelectPrimitive.Viewport>
-          </SelectPrimitive.Content>
-        </SelectPrimitive.Portal>
-      </SelectPrimitive.Root>
+                ) : undefined
+              }
+            >
+              {sortedCategories.map((category) => (
+                <CommandItem
+                  key={`all-${category.key}`}
+                  value={category.label}
+                  onSelect={() => handleValueChange(category.key)}
+                  className="cursor-pointer"
+                >
+                  {renderCategoryItem(category, category.key === value)}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </ResponsivePicker>
     );
   }
 );

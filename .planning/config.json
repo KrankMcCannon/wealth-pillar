@@ -1,0 +1,21 @@
+{
+  "project_name": "Modal System Refactor",
+  "tech_stack": {
+    "framework": "Next.js 16 (React 19)",
+    "styling": "Tailwind CSS v4",
+    "ui_library": "shadcn/ui",
+    "state_management": "nuqs (URL State) & Zustand",
+    "internationalization": "next-intl"
+  },
+  "conventions": {
+    "naming": "kebab-case",
+    "styles": "Tailwind (Standard Utility)",
+    "linting": "eslint",
+    "formatting": "prettier"
+  },
+  "workflow": {
+    "prefer_atomic_commits": true,
+    "require_tests": true,
+    "test_runner": "Vitest / Playwright"
+  }
+}

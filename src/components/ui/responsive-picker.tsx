@@ -13,15 +13,16 @@ interface ResponsivePickerProps {
   onOpenChange?: (open: boolean) => void;
   className?: string;
   contentClassName?: string;
+  contentStyle?: React.CSSProperties;
   align?: 'start' | 'center' | 'end';
 }
 
 /**
  * ResponsivePicker Component
- * 
+ *
  * High-level component that renders a Popover on desktop (>= 768px)
  * and a Drawer on mobile (< 768px).
- * 
+ *
  * Ideal for date pickers, selects, and other input-related overlays.
  */
 export function ResponsivePicker({
@@ -29,8 +30,8 @@ export function ResponsivePicker({
   trigger,
   open,
   onOpenChange,
-  className,
   contentClassName,
+  contentStyle,
   align = 'start',
 }: ResponsivePickerProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
@@ -39,9 +40,10 @@ export function ResponsivePicker({
     return (
       <Popover open={open} onOpenChange={onOpenChange}>
         <PopoverTrigger asChild>{trigger}</PopoverTrigger>
-        <PopoverContent 
-          className={cn('w-auto p-0', contentClassName)} 
+        <PopoverContent
+          className={cn('w-auto p-0', contentClassName)}
           align={align}
+          style={contentStyle}
         >
           {children}
         </PopoverContent>
@@ -52,7 +54,7 @@ export function ResponsivePicker({
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
       <DrawerTrigger asChild>{trigger}</DrawerTrigger>
-      <DrawerContent className={cn('p-0', contentClassName)}>
+      <DrawerContent className={cn('p-0', contentClassName)} style={contentStyle}>
         <div className="mx-auto w-full max-w-sm flex flex-col items-center justify-center p-4">
           {children}
         </div>

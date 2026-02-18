@@ -21,8 +21,8 @@ import { it } from 'date-fns/locale';
 import { useTranslations } from 'next-intl';
 import { Calendar as CalendarIcon, X } from 'lucide-react';
 import { FormField } from '@/components/form';
-import { Input, Button } from '@/components/ui';
-import { MobileCalendarDrawer } from '../mobile-calendar-drawer';
+import { Input, Button, Calendar, ResponsivePicker } from '@/components/ui';
+import { cn } from '@/lib/utils';
 import { calendarDrawerStyles } from '@/lib/styles/calendar-drawer.styles';
 import { calendarTriggerVariants } from '@/lib/utils';
 
@@ -68,7 +68,7 @@ export function DateField({
 }: Readonly<DateFieldProps>) {
   const t = useTranslations('Forms.DateField');
   const resolvedLabel = label ?? t('label');
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isPickerOpen, setIsPickerOpen] = useState(false);
   const formattedValue = useMemo(() => {
     if (value && isValid(new Date(value))) {
       return format(new Date(value), 'dd/MM/yyyy', { locale: it });
@@ -119,6 +119,23 @@ export function DateField({
     [onChange]
   );
 
+  const handleSelect = useCallback(
+    (date: Date | undefined) => {
+      if (date) {
+        onChange(format(date, 'yyyy-MM-dd'));
+        setIsPickerOpen(false);
+      }
+    },
+    [onChange]
+  );
+
+  const selectedDate = useMemo(() => {
+    if (value && isValid(new Date(value))) {
+      return new Date(value);
+    }
+    return undefined;
+  }, [value]);
+
   return (
     <FormField label={resolvedLabel} required={required} error={error}>
       <div className={calendarDrawerStyles.input.group}>
@@ -133,7 +150,10 @@ export function DateField({
               setDraftValue(formattedValue);
             }}
             placeholder={t('placeholder')}
-            className={calendarDrawerStyles.input.field}
+            className={cn(
+              calendarDrawerStyles.input.field,
+              'glass-border bg-card/60 backdrop-blur-md focus:ring-primary-subtle'
+            )}
             autoComplete="off"
           />
           {value && (
@@ -148,26 +168,28 @@ export function DateField({
           )}
         </div>
 
-        {/* Calendar Trigger Button */}
-        <Button
-          type="button"
-          variant="outline"
-          size="icon"
-          onClick={() => setIsDrawerOpen(true)}
-          className={calendarTriggerVariants({ active: isDrawerOpen })}
+        {/* Calendar Trigger and Responsive Picker */}
+        <ResponsivePicker
+          open={isPickerOpen}
+          onOpenChange={setIsPickerOpen}
+          trigger={
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className={cn(
+                calendarTriggerVariants({ active: isPickerOpen }),
+                'glass-border bg-card/60 backdrop-blur-md'
+              )}
+            >
+              <CalendarIcon className={calendarDrawerStyles.input.triggerIcon} />
+              <span className="sr-only">{t('openCalendarSr')}</span>
+            </Button>
+          }
         >
-          <CalendarIcon className={calendarDrawerStyles.input.triggerIcon} />
-          <span className="sr-only">{t('openCalendarSr')}</span>
-        </Button>
+          <Calendar mode="single" selected={selectedDate} onSelect={handleSelect} initialFocus />
+        </ResponsivePicker>
       </div>
-
-      {/* Modern Calendar Drawer (All Devices) */}
-      <MobileCalendarDrawer
-        value={value}
-        onChange={onChange}
-        isOpen={isDrawerOpen}
-        onClose={() => setIsDrawerOpen(false)}
-      />
     </FormField>
   );
 }

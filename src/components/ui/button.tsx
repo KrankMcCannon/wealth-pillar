@@ -21,6 +21,21 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   }
 );
 
+/**
+ * Compatibility wrapper for components expecting cva-style buttonVariants
+ */
+export function buttonVariants({
+  variant = 'default',
+  size = 'default',
+  className,
+}: {
+  variant?: Variant;
+  size?: Size;
+  className?: string;
+} = {}) {
+  return getButtonClasses(variant, size, className);
+}
+
 Button.displayName = 'Button';
 
 export { Button };
