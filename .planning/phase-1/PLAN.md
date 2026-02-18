@@ -9,17 +9,17 @@ autonomous: true
 requirements: [NFR1]
 must_haves:
   truths:
-    - "Tailwind v4 theme contains semantic color tokens for glassmorphism and opacities"
-    - "CSS variables for theme tokens are correctly handled in light and dark mode"
+    - 'Tailwind v4 theme contains semantic color tokens for glassmorphism and opacities'
+    - 'CSS variables for theme tokens are correctly handled in light and dark mode'
   artifacts:
-    - path: "app/globals.css"
-      provides: "Semantic design tokens in Tailwind v4 theme"
-      contains: "@theme"
+    - path: 'app/globals.css'
+      provides: 'Semantic design tokens in Tailwind v4 theme'
+      contains: '@theme'
   key_links:
-    - from: "app/globals.css"
-      to: "Tailwind @theme"
-      via: "variable declaration"
-      pattern: "--color-glass-base|--color-primary-subtle"
+    - from: 'app/globals.css'
+      to: 'Tailwind @theme'
+      via: 'variable declaration'
+      pattern: '--color-glass-base|--color-primary-subtle'
 ---
 
 <objective>
@@ -67,6 +67,7 @@ Output: An updated 'app/globals.css' with new '@theme' declarations.
        - '--color-gradient-primary-end': oklch(0.6 0.2 330)
 
     Ensure they are defined within the '@theme' block and overrides are placed in 'html.dark' or as appropriate for Tailwind v4 + shadcn setup.
+
   </action>
   <verify>Check 'app/globals.css' contains the new '--color-*' declarations within '@theme'.</verify>
   <done>All requested CSS variables are defined in 'app/globals.css' and support dark mode.</done>

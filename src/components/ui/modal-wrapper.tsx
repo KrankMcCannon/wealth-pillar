@@ -92,7 +92,11 @@ export function ModalWrapper({
           tabIndex={-1}
           onOpenAutoFocus={handleOpenAutoFocus}
           showCloseButton={showCloseButton}
-          className={cn('max-h-[90vh] flex flex-col p-0 gap-0 overflow-hidden', maxWidth, className)}
+          className={cn(
+            'max-h-[90vh] flex flex-col p-0 gap-0 overflow-hidden',
+            maxWidth,
+            className
+          )}
         >
           <DialogHeader className="p-6 pb-2 shrink-0">
             <DialogTitle className={cn(modalWrapperStyles.dialogTitle, titleClassName)}>
