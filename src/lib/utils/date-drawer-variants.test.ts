@@ -109,7 +109,7 @@ describe('CVA Variants', () => {
 
     it('should handle desktop size', () => {
       const className = dayButtonVariants({ state: 'default', size: 'desktop' });
-      expect(className).toContain('h-12');
+      expect(className).toContain('h-9');
     });
   });
 

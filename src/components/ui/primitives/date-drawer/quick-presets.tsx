@@ -93,6 +93,12 @@ export interface QuickPresetsProps {
   onSelect: (date: Date) => void;
 
   /**
+   * Size variant
+   * @default "mobile"
+   */
+  size?: 'mobile' | 'desktop';
+
+  /**
    * Additional CSS classes
    */
   className?: string;
@@ -112,23 +118,42 @@ export interface QuickPresetsProps {
  * />
  * ```
  */
-export function QuickPresets({ selectedDate, onSelect, className }: Readonly<QuickPresetsProps>) {
+export function QuickPresets({
+  selectedDate,
+  onSelect,
+  size = 'mobile',
+  className,
+}: Readonly<QuickPresetsProps>) {
   const t = useTranslations();
   const locale = useLocale();
 
   return (
     <section
-      className={cn(calendarDrawerStyles.presets.section, className)}
+      className={cn(
+        calendarDrawerStyles.presets.section,
+        size === 'desktop' && calendarDrawerStyles.desktop.presets.section,
+        className
+      )}
       aria-label={t('Forms.DateDrawer.presetsAria')}
     >
       {/* Section Title */}
-      <h3 className={calendarDrawerStyles.presets.title}>
+      <h3
+        className={cn(
+          calendarDrawerStyles.presets.title,
+          size === 'desktop' && calendarDrawerStyles.desktop.presets.title
+        )}
+      >
         <Zap className={calendarDrawerStyles.presets.icon} />
         {t('Forms.DateDrawer.presetsTitle')}
       </h3>
 
       {/* Preset Buttons */}
-      <div className={calendarDrawerStyles.presets.container}>
+      <div
+        className={cn(
+          calendarDrawerStyles.presets.container,
+          size === 'desktop' && calendarDrawerStyles.desktop.presets.container
+        )}
+      >
         {DATE_PRESETS.map((preset) => {
           const presetDate = preset.getValue();
           const isActive = selectedDate ? isSameDay(presetDate, selectedDate) : false;
@@ -148,7 +173,7 @@ export function QuickPresets({ selectedDate, onSelect, className }: Readonly<Qui
               onClick={() => onSelect(presetDate)}
               className={cn(
                 calendarDrawerStyles.presets.button.base,
-                presetButtonVariants({ active: isActive })
+                presetButtonVariants({ size, active: isActive })
               )}
               aria-label={t('Forms.DateDrawer.presetAria', { label, date: formattedDate })}
               aria-pressed={isActive}

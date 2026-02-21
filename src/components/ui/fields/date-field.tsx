@@ -1,7 +1,7 @@
 /**
  * DateField - Modern Date Picker Field
  *
- * Universal date input with custom calendar drawer for all devices
+ * Universal date input with responsive calendar picker
  *
  * Features:
  * - Italian locale (DD/MM/YYYY display)
@@ -10,7 +10,7 @@
  * - Manual text input support
  * - Clear button
  * - Full accessibility
- * - Modern bottom drawer UI for all devices
+ * - Desktop popover + mobile bottom drawer UI
  */
 
 'use client';
@@ -22,7 +22,9 @@ import { useTranslations } from 'next-intl';
 import { Calendar as CalendarIcon, X } from 'lucide-react';
 import { FormField } from '@/components/form';
 import { Input, Button } from '@/components/ui';
+import { useMediaQuery } from '@/hooks/use-media-query';
 import { MobileCalendarDrawer } from '../mobile-calendar-drawer';
+import { DesktopCalendarPopover } from '../desktop-calendar-popover';
 import { calendarDrawerStyles } from '@/lib/styles/calendar-drawer.styles';
 import { calendarTriggerVariants } from '@/lib/utils';
 
@@ -40,11 +42,13 @@ export interface DateFieldProps {
 }
 
 /**
- * DateField - Universal date input field with modern calendar drawer
+ * DateField - Universal date input field with responsive calendar picker
  *
- * Uses custom calendar drawer for all devices with:
- * - Beautiful bottom drawer UI
- * - Touch-optimized interactions
+ * Uses:
+ * - Desktop anchored popover
+ * - Mobile bottom drawer
+ *
+ * Preserves:
  * - Manual text entry (DD/MM/YYYY)
  * - Quick preset shortcuts
  * - Full keyboard navigation
@@ -67,6 +71,7 @@ export function DateField({
   label,
 }: Readonly<DateFieldProps>) {
   const t = useTranslations('Forms.DateField');
+  const isDesktop = useMediaQuery('(min-width: 640px)');
   const resolvedLabel = label ?? t('label');
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const formattedValue = useMemo(() => {
@@ -148,26 +153,46 @@ export function DateField({
           )}
         </div>
 
-        {/* Calendar Trigger Button */}
-        <Button
-          type="button"
-          variant="outline"
-          size="icon"
-          onClick={() => setIsDrawerOpen(true)}
-          className={calendarTriggerVariants({ active: isDrawerOpen })}
-        >
-          <CalendarIcon className={calendarDrawerStyles.input.triggerIcon} />
-          <span className="sr-only">{t('openCalendarSr')}</span>
-        </Button>
+        {/* Calendar Trigger Button / Picker Wrapper */}
+        {isDesktop ? (
+          <DesktopCalendarPopover
+            value={value}
+            onChange={onChange}
+            isOpen={isDrawerOpen}
+            onOpenChange={setIsDrawerOpen}
+          >
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className={calendarTriggerVariants({ active: isDrawerOpen })}
+            >
+              <CalendarIcon className={calendarDrawerStyles.input.triggerIcon} />
+              <span className="sr-only">{t('openCalendarSr')}</span>
+            </Button>
+          </DesktopCalendarPopover>
+        ) : (
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            onClick={() => setIsDrawerOpen(true)}
+            className={calendarTriggerVariants({ active: isDrawerOpen })}
+          >
+            <CalendarIcon className={calendarDrawerStyles.input.triggerIcon} />
+            <span className="sr-only">{t('openCalendarSr')}</span>
+          </Button>
+        )}
       </div>
 
-      {/* Modern Calendar Drawer (All Devices) */}
-      <MobileCalendarDrawer
-        value={value}
-        onChange={onChange}
-        isOpen={isDrawerOpen}
-        onClose={() => setIsDrawerOpen(false)}
-      />
+      {!isDesktop && (
+        <MobileCalendarDrawer
+          value={value}
+          onChange={onChange}
+          isOpen={isDrawerOpen}
+          onClose={() => setIsDrawerOpen(false)}
+        />
+      )}
     </FormField>
   );
 }

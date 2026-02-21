@@ -16,18 +16,12 @@
 
 'use client';
 
-import { useState, useCallback } from 'react';
-import { format, addMonths, subMonths, isValid, startOfYear } from 'date-fns';
+import { useCallback } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import { useTranslations } from 'next-intl';
 import { calendarDrawerStyles } from '@/lib/styles/calendar-drawer.styles';
-import {
-  DrawerHandle,
-  WeekdayLabels,
-  MonthGrid,
-  MonthHeader,
-  QuickPresets,
-} from './primitives/date-drawer';
+import { DrawerHandle } from './primitives/date-drawer';
+import { CalendarPanel } from './calendar-panel';
 
 export interface MobileCalendarDrawerProps {
   /**
@@ -78,50 +72,6 @@ export function MobileCalendarDrawer({
   onClose,
 }: Readonly<MobileCalendarDrawerProps>) {
   const t = useTranslations('Forms.DateDrawer');
-  // Parse current value to Date (or use today if empty)
-  const selectedDate = value && isValid(new Date(value)) ? new Date(value) : undefined;
-
-  // Current month being viewed (start with selected month or start of current year)
-  const [currentMonth, setCurrentMonth] = useState(() => {
-    return selectedDate || startOfYear(new Date());
-  });
-
-  // Navigate to previous month
-  const handlePrevious = useCallback(() => {
-    setCurrentMonth((prev) => subMonths(prev, 1));
-  }, []);
-
-  // Navigate to next month
-  const handleNext = useCallback(() => {
-    setCurrentMonth((prev) => addMonths(prev, 1));
-  }, []);
-
-  // Handle direct month/year selection from dropdown
-  const handleMonthYearChange = useCallback((newDate: Date) => {
-    setCurrentMonth(newDate);
-  }, []);
-
-  // Handle date selection
-  const handleDateSelect = useCallback(
-    (date: Date) => {
-      // Convert to YYYY-MM-DD format for API compatibility
-      const formattedDate = format(date, 'yyyy-MM-dd');
-      onChange(formattedDate);
-      onClose();
-    },
-    [onChange, onClose]
-  );
-
-  // Handle preset selection
-  const handlePresetSelect = useCallback(
-    (date: Date) => {
-      // Update current month to show selected date
-      setCurrentMonth(date);
-      // Select the date
-      handleDateSelect(date);
-    },
-    [handleDateSelect]
-  );
 
   // Handle keyboard navigation
   const handleKeyDown = useCallback(
@@ -134,7 +84,7 @@ export function MobileCalendarDrawer({
   );
 
   return (
-    <Dialog.Root open={isOpen} onOpenChange={onClose}>
+    <Dialog.Root open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <Dialog.Portal>
         {/* Overlay */}
         <Dialog.Overlay className={calendarDrawerStyles.drawer.overlay} />
@@ -156,27 +106,7 @@ export function MobileCalendarDrawer({
           {/* Scrollable Content */}
           <div className={calendarDrawerStyles.drawer.wrapper}>
             <div className={calendarDrawerStyles.drawer.scrollArea}>
-              {/* Month Navigation Header */}
-              <MonthHeader
-                currentMonth={currentMonth}
-                onPrevious={handlePrevious}
-                onNext={handleNext}
-                onMonthChange={handleMonthYearChange}
-              />
-
-              {/* Weekday Labels */}
-              <WeekdayLabels highlightWeekends />
-
-              {/* Calendar Grid */}
-              <MonthGrid
-                currentMonth={currentMonth}
-                selectedDate={selectedDate}
-                onDateSelect={handleDateSelect}
-                size="mobile"
-              />
-
-              {/* Quick Presets */}
-              <QuickPresets selectedDate={selectedDate} onSelect={handlePresetSelect} />
+              <CalendarPanel value={value} onChange={onChange} onClose={onClose} size="mobile" />
             </div>
           </div>
 

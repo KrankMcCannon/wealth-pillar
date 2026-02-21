@@ -50,6 +50,12 @@ export interface MonthHeaderProps {
   onMonthChange?: (date: Date) => void;
 
   /**
+   * Size variant
+   * @default "mobile"
+   */
+  size?: 'mobile' | 'desktop';
+
+  /**
    * Additional CSS classes
    */
   className?: string;
@@ -75,6 +81,7 @@ export function MonthHeader({
   onPrevious,
   onNext,
   onMonthChange,
+  size = 'mobile',
   className,
 }: Readonly<MonthHeaderProps>) {
   const t = useTranslations('Forms.DateDrawer');
@@ -127,27 +134,44 @@ export function MonthHeader({
   };
 
   return (
-    <header className={cn(calendarDrawerStyles.header.container, className)}>
+    <header
+      className={cn(
+        calendarDrawerStyles.header.container,
+        size === 'desktop' && calendarDrawerStyles.desktop.header.container,
+        className
+      )}
+    >
       {/* Previous Month Button */}
       <button
         type="button"
         onClick={onPrevious}
-        className={monthNavButtonVariants({ disabled: false })}
+        className={monthNavButtonVariants({ size, disabled: false })}
         aria-label={t('monthHeader.previousMonth')}
       >
-        <ChevronLeft className={calendarDrawerStyles.header.navButton.icon} />
+        <ChevronLeft
+          className={cn(
+            calendarDrawerStyles.header.navButton.icon,
+            size === 'desktop' && calendarDrawerStyles.desktop.header.navIcon
+          )}
+        />
       </button>
 
       {/* Month and Year Display/Selector */}
       <div className={calendarDrawerStyles.header.center}>
         {showDropdowns ? (
           // Dropdown mode
-          <div className={calendarDrawerStyles.header.dropdowns}>
+          <div
+            className={cn(
+              calendarDrawerStyles.header.dropdowns,
+              size === 'desktop' && calendarDrawerStyles.desktop.header.dropdowns
+            )}
+          >
             {/* Month Dropdown */}
             <Select value={currentMonthNum.toString()} onValueChange={handleMonthSelect}>
               <SelectTrigger
                 className={cn(
                   calendarDrawerStyles.header.selectTrigger,
+                  size === 'desktop' && calendarDrawerStyles.desktop.header.selectTrigger,
                   calendarDrawerStyles.header.selectTriggerMonth
                 )}
               >
@@ -171,6 +195,7 @@ export function MonthHeader({
               <SelectTrigger
                 className={cn(
                   calendarDrawerStyles.header.selectTrigger,
+                  size === 'desktop' && calendarDrawerStyles.desktop.header.selectTrigger,
                   calendarDrawerStyles.header.selectTriggerYear
                 )}
               >
@@ -206,6 +231,7 @@ export function MonthHeader({
             onClick={() => setShowDropdowns(true)}
             className={cn(
               calendarDrawerStyles.header.monthYear,
+              size === 'desktop' && calendarDrawerStyles.desktop.header.monthYear,
               calendarDrawerStyles.header.monthYearButton
             )}
             aria-label={t('monthHeader.selectMonthAndYear')}
@@ -220,10 +246,15 @@ export function MonthHeader({
       <button
         type="button"
         onClick={onNext}
-        className={monthNavButtonVariants({ disabled: false })}
+        className={monthNavButtonVariants({ size, disabled: false })}
         aria-label={t('monthHeader.nextMonth')}
       >
-        <ChevronRight className={calendarDrawerStyles.header.navButton.icon} />
+        <ChevronRight
+          className={cn(
+            calendarDrawerStyles.header.navButton.icon,
+            size === 'desktop' && calendarDrawerStyles.desktop.header.navIcon
+          )}
+        />
       </button>
     </header>
   );
