@@ -276,34 +276,60 @@ export class TransactionService {
   }
 
   /**
-   * Update account balance (helper for transaction mutations)
+   * Update account balance atomically using database RPC.
+   * Uses a single UPDATE ... SET balance = balance + delta to prevent race conditions.
+   *
+   * Requires the `update_account_balance` RPC function in the database.
+   * See: supabase/migrations/001_atomic_balance_update.sql
+   *
+   * Falls back to read-then-write if the RPC function is not yet deployed.
    */
   private static async updateAccountBalance(accountId: string, delta: number): Promise<void> {
-    const { data: account, error: fetchError } = await supabase
-      .from('accounts')
-      .select('balance')
-      .eq('id', accountId)
-      .single();
+    // Try atomic RPC first
+    const rpcClient = supabase as unknown as {
+      rpc: (
+        fn: string,
+        params: Record<string, unknown>
+      ) => Promise<{ data: unknown; error: { message: string } | null }>;
+    };
+    const { error: rpcError } = await rpcClient.rpc('update_account_balance', {
+      p_account_id: accountId,
+      p_delta: delta,
+    });
 
-    if (fetchError) throw new Error(`Failed to fetch account: ${fetchError.message}`);
+    if (!rpcError) return;
 
-    const currentBalance = Number((account as { balance?: number })?.balance) || 0;
-    const newBalance = currentBalance + delta;
+    // Fallback: read-then-write (non-atomic, for backward compatibility)
+    // This path is used when the RPC function hasn't been deployed yet
+    if (rpcError.message.includes('function') || rpcError.message.includes('does not exist')) {
+      const { data: account, error: fetchError } = await supabase
+        .from('accounts')
+        .select('balance')
+        .eq('id', accountId)
+        .single();
 
-    // Use typed update helper to avoid type inference issues
-    const updateClient = supabase as unknown as {
-      from: (table: 'accounts') => {
-        update: (data: { balance: number }) => {
-          eq: (col: string, val: string) => Promise<{ error: { message: string } | null }>;
+      if (fetchError) throw new Error(`Failed to fetch account: ${fetchError.message}`);
+
+      const currentBalance = Number((account as { balance?: number })?.balance) || 0;
+      const newBalance = currentBalance + delta;
+
+      const updateClient = supabase as unknown as {
+        from: (table: 'accounts') => {
+          update: (data: { balance: number }) => {
+            eq: (col: string, val: string) => Promise<{ error: { message: string } | null }>;
+          };
         };
       };
-    };
-    const { error: updateError } = await updateClient
-      .from('accounts')
-      .update({ balance: newBalance })
-      .eq('id', accountId);
+      const { error: updateError } = await updateClient
+        .from('accounts')
+        .update({ balance: newBalance })
+        .eq('id', accountId);
 
-    if (updateError) throw new Error(`Failed to update balance: ${updateError.message}`);
+      if (updateError) throw new Error(`Failed to update balance: ${updateError.message}`);
+      return;
+    }
+
+    throw new Error(`Failed to update balance: ${rpcError.message}`);
   }
 
   // ================== RPC FUNCTIONS ==================

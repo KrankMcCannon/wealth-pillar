@@ -513,6 +513,13 @@ export interface Database {
           transaction_count: number;
         }>;
       };
+      update_account_balance: {
+        Args: {
+          p_account_id: string;
+          p_delta: number;
+        };
+        Returns: number;
+      };
     };
     Enums: {
       [_: string]: never;

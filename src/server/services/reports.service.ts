@@ -2,6 +2,7 @@ import { supabaseServer } from '@/server/db/server';
 import type { Transaction, Account, BudgetPeriod, Category, User } from '@/lib/types';
 import { toDateTime, formatDateShort } from '@/lib/utils';
 import { ReportPeriodService } from './report-period.service';
+import { aggregateTransactionsForPeriod, toAccountIdSet } from './calculation';
 
 export interface ReportParams {
   userId?: string;
@@ -256,11 +257,15 @@ export class ReportsService {
         if (!toAccount) continue;
         const toType = this.normalizeAccountType(toAccount.type);
 
-        // OUT from source account type
-        ensureBucket(typeMap, type).spent += t.amount;
+        // Only count cross-type transfers as earned/spent flows
+        // Same-type transfers (e.g., checking → checking) don't inflate metrics
+        if (type !== toType) {
+          // OUT from source account type
+          ensureBucket(typeMap, type).spent += t.amount;
 
-        // IN to destination account type
-        ensureBucket(typeMap, toType).earned += t.amount;
+          // IN to destination account type
+          ensureBucket(typeMap, toType).earned += t.amount;
+        }
       }
     }
 
@@ -344,18 +349,14 @@ export class ReportsService {
           return date && date >= pStart && date <= pEnd;
         });
 
-        // Metrics
-        let totalEarned = 0;
-        let totalSpent = 0;
-
-        // Account Type Metrics
+        // Per-account-type metrics (for balance rollback and flow visualization)
         const metricsByAccountType: Record<
           string,
           { earned: number; spent: number; startBalance: number; endBalance: number }
         > = {};
         const accountMap = new Map(accounts.map((a) => [a.id, a]));
 
-        // 3. Calculate Flows (Earned/Spent) for this period
+        // 3. Calculate per-account-type flows for this period
         for (const t of pTransactions) {
           const account = accountMap.get(t.account_id);
           if (!account) continue;
@@ -366,10 +367,8 @@ export class ReportsService {
           }
 
           if (t.type === 'income') {
-            totalEarned += t.amount;
             metricsByAccountType[type].earned += t.amount;
           } else if (t.type === 'expense') {
-            totalSpent += t.amount;
             metricsByAccountType[type].spent += t.amount;
           } else if (t.type === 'transfer' && t.to_account_id) {
             const toAccount = accountMap.get(t.to_account_id);
@@ -377,7 +376,6 @@ export class ReportsService {
 
             if (type !== toType) {
               metricsByAccountType[type].spent += t.amount;
-              totalSpent += t.amount;
 
               if (toType) {
                 if (!metricsByAccountType[toType]) {
@@ -430,14 +428,14 @@ export class ReportsService {
           userBalances.set(type, calculatedStartBalance);
         });
 
-        // Re-calculating global totals strictly (pure Income - Expense)
-        totalEarned = pTransactions
-          .filter((t) => t.type === 'income')
-          .reduce((sum, t) => sum + t.amount, 0);
-
-        totalSpent = pTransactions
-          .filter((t) => t.type === 'expense')
-          .reduce((sum, t) => sum + t.amount, 0);
+        // User-level totals via canonical calculator
+        // Properly distinguishes internal vs external transfers
+        const userAccountIds = toAccountIdSet(
+          accounts.filter((a) => a.user_ids.includes(period.user_id)).map((a) => a.id)
+        );
+        const agg = aggregateTransactionsForPeriod(pTransactions, userAccountIds);
+        const totalEarned = agg.totalIncome + agg.totalTransfersIn;
+        const totalSpent = agg.totalExpense + agg.totalTransfersOut;
 
         return {
           id: period.id,

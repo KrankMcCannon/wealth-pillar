@@ -8,6 +8,7 @@ import { DateTime } from 'luxon';
 import { UserService } from './user.service';
 import type { Json } from '@/lib/types/database.types';
 import { invalidateBudgetPeriodCaches } from '@/lib/utils/cache-utils';
+import { aggregateTransactionsForBudget } from './calculation';
 
 /**
  * Budget Period Service
@@ -153,32 +154,23 @@ export class BudgetPeriodService {
       (b) => b.user_id === period.user_id && b.amount > 0
     );
 
-    // Calculate totals by processing each budget individually (matches modal logic)
+    // Calculate totals using canonical calculator
+    // Uses simplified model (no account IDs): expenses count as spent,
+    // income offsets spent, transfers are excluded from budget impact
     validBudgets.forEach((budget) => {
       total_budget += budget.amount;
 
-      // Filter transactions for this specific budget's categories
-      const budgetTransactions = periodTransactions.filter((t) =>
-        budget.categories.includes(t.category)
-      );
+      const budgetAgg = aggregateTransactionsForBudget(periodTransactions, budget.categories);
 
-      // Calculate spent for this budget (income refills, expense/transfer consume)
-      const budgetSpent = budgetTransactions.reduce((sum, t) => {
-        if (t.type === 'income') {
-          return sum - t.amount;
-        }
-        return sum + t.amount;
-      }, 0);
+      // net = spent - income (positive means overspending)
+      total_spent += Math.max(0, budgetAgg.net);
 
-      // Add to total spent (ensuring non-negative per budget)
-      total_spent += Math.max(0, budgetSpent);
-
-      // Track category spending (only for expenses and transfers)
-      budgetTransactions.forEach((t) => {
-        if (t.type === 'expense' || t.type === 'transfer') {
+      // Track per-category spending (expenses only, consistent with calculator)
+      for (const t of periodTransactions) {
+        if (budget.categories.includes(t.category) && t.type === 'expense') {
           category_spending[t.category] = (category_spending[t.category] || 0) + t.amount;
         }
-      });
+      }
     });
 
     const total_saved = Math.max(0, total_budget - total_spent);

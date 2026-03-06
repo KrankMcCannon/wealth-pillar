@@ -1,5 +1,8 @@
 /**
  * Finance Logic Service
+ *
+ * Delegates core financial calculations to TransactionImpactCalculator.
+ * Keeps category, budget summary, and convenience wrappers.
  */
 
 import type {
@@ -14,111 +17,54 @@ import type {
   Category,
   RecurringTransactionSeries,
 } from '@/lib/types';
-import {
-  toDateTime,
-  now as luxonNow,
-  today as luxonToday,
-  diffInDays,
-  toDateString,
-  getDaysInMonth,
-  formatDaysUntil,
-  formatDateShort,
-} from '@/lib/utils';
+import { toDateTime } from '@/lib/utils';
 import { DateTime } from 'luxon';
 import type { DateInput } from '@/lib/utils/date-utils';
 import { CATEGORY_COLOR_PALETTE, DEFAULT_CATEGORY_COLOR } from '@/features/categories/constants';
+import {
+  filterTransactionsByDateRange,
+  aggregateTransactionsForPeriod,
+  aggregateTransactionsForBudget,
+  calculateBalanceFromTransactions,
+  calculateHistoricalBalance as calcHistoricalBalance,
+  calculateOverviewMetrics as calcOverviewMetrics,
+  toAccountIdSet,
+  // Recurring series (delegated to standalone module)
+  calculateNextExecutionDate as calcNextExecDate,
+  calculateDaysUntilDue as calcDaysUntilDue,
+  isSeriesDue as checkSeriesDue,
+  getFrequencyLabel as getFreqLabel,
+  formatDueDate as fmtDueDate,
+  groupSeriesByUser as grpSeriesByUser,
+  calculateMonthlyAmount as calcMonthlyAmt,
+  calculateRecurringTotals,
+  hasSeriesAccess,
+  getSeriesAssociatedUsers,
+} from './calculation';
 
-export interface OverviewMetrics {
-  totalEarned: number;
-  totalSpent: number;
-  totalTransferred: number;
-  totalBalance: number;
-}
+export type { OverviewMetrics } from './calculation';
 
 export class FinanceLogicService {
   /**
    * Filter transactions within a date range
-   * @complexity O(n)
    */
   static filterTransactionsByPeriod(
     transactions: Transaction[],
     startDate: DateInput,
     endDate: DateInput
   ): Transaction[] {
-    const periodStart = toDateTime(startDate);
-    if (!periodStart) return [];
-    const normalizedStart = periodStart.startOf('day');
-
-    const periodEnd = endDate ? toDateTime(endDate) : luxonNow();
-    if (!periodEnd) return [];
-    const normalizedEnd = periodEnd.endOf('day');
-
-    return transactions.filter((t) => {
-      const txDate = toDateTime(t.date);
-      if (!txDate) return false;
-      return txDate >= normalizedStart && txDate <= normalizedEnd;
-    });
+    return filterTransactionsByDateRange(transactions, startDate, endDate);
   }
 
   /**
    * Calculate overall metrics
-   * @complexity O(n)
    */
   static calculateOverviewMetrics(
     transactions: Transaction[],
     userAccountIds: string[],
     userId?: string
-  ): OverviewMetrics {
-    const accountSet = new Set(userAccountIds);
-    let totalEarned = 0;
-    let totalSpent = 0;
-    let totalTransferred = 0;
-
-    for (const t of transactions) {
-      if (userId && t.user_id !== userId) continue;
-
-      if (t.type === 'income' && accountSet.has(t.account_id)) {
-        totalEarned += t.amount;
-      } else if (t.type === 'expense' && accountSet.has(t.account_id)) {
-        totalSpent += t.amount;
-      } else if (t.type === 'transfer') {
-        const metrics = this.calculateTransferMetrics(t, accountSet);
-        totalEarned += metrics.earned;
-        totalSpent += metrics.spent;
-        totalTransferred += metrics.transferred;
-      }
-    }
-
-    return {
-      totalEarned,
-      totalSpent,
-      totalTransferred,
-      totalBalance: totalEarned - totalSpent,
-    };
-  }
-
-  // Helper to reduce cognitive complexity of calculateOverviewMetrics
-  private static calculateTransferMetrics(t: Transaction, accountSet: Set<string>) {
-    let earned = 0;
-    let spent = 0;
-    let transferred = 0;
-
-    const fromUserAccount = accountSet.has(t.account_id);
-    const toUserAccount = t.to_account_id && accountSet.has(t.to_account_id);
-
-    if (fromUserAccount) {
-      transferred += t.amount;
-    }
-
-    if (fromUserAccount && toUserAccount) {
-      // Internal transfer: no net change to total balance
-    } else if (fromUserAccount) {
-      spent += t.amount; // External OUT
-    } else if (toUserAccount) {
-      earned += t.amount; // External IN
-    }
-
-    return { earned, spent, transferred };
+  ): import('./calculation').OverviewMetrics {
+    return calcOverviewMetrics(transactions, new Set(userAccountIds), userId);
   }
 
   /**
@@ -175,8 +121,6 @@ export class FinanceLogicService {
   /**
    * Calculate historical balance for a specific account
    * Reverses transactions from current balance back to target date
-   *
-   * @complexity O(n)
    */
   static calculateHistoricalBalance(
     allTransactions: Transaction[],
@@ -184,132 +128,45 @@ export class FinanceLogicService {
     currentBalance: number,
     targetDate: DateInput
   ): number {
-    // We want the balance at the BEGINNING of the target date
-    // So we must reverse all transactions that happened ON or AFTER the target date
-    const targetDt = toDateTime(targetDate)?.startOf('day');
-    if (!targetDt) return currentBalance;
-
-    // Normalize accountIds to Set
-    const accountSet = typeof accountIds === 'string' ? new Set([accountIds]) : accountIds;
-
-    // Filter transactions that happened ON or AFTER the target date
-    const futureTransactions = allTransactions.filter((t) => {
-      const tDate = toDateTime(t.date);
-      return tDate && tDate >= targetDt;
-    });
-
-    let historicalBalance = currentBalance;
-
-    for (const t of futureTransactions) {
-      const isSource = accountSet.has(t.account_id);
-      const isDest = t.to_account_id && accountSet.has(t.to_account_id);
-
-      if (!isSource && !isDest) continue;
-
-      // REVERSE the effect of the transaction
-      if (t.type === 'expense' && isSource) {
-        historicalBalance += t.amount; // Add back spent money
-      } else if (t.type === 'income' && isSource) {
-        historicalBalance -= t.amount; // Remove received money
-      } else if (t.type === 'transfer') {
-        if (isSource && isDest) {
-          // Internal transfer within the monitored accounts: NO NET CHANGE
-          // So nothing to reverse for the aggregate balance
-        } else if (isSource) {
-          // Money left the set of accounts -> Add it back
-          historicalBalance += t.amount;
-        } else if (isDest) {
-          // Money entered the set of accounts -> Remove it
-          historicalBalance -= t.amount;
-        }
-      }
-    }
-
-    return historicalBalance;
+    return calcHistoricalBalance(
+      allTransactions,
+      toAccountIdSet(accountIds),
+      currentBalance,
+      targetDate
+    );
   }
 
   /**
    * Calculate total spent (expenses + outgoing transfers) for an account in a period
-   *
-   * @complexity O(n)
    */
   static calculatePeriodTotalSpent(
     periodTransactions: Transaction[],
     accountIds: string | Set<string>
   ): number {
-    const accountSet = typeof accountIds === 'string' ? new Set([accountIds]) : accountIds;
-
-    return periodTransactions.reduce((sum, t) => {
-      const isSource = accountSet.has(t.account_id);
-      if (!isSource) return sum;
-
-      if (t.type === 'expense') {
-        return sum + t.amount;
-      }
-
-      if (t.type === 'transfer') {
-        // Only count as spent if sending to an account OUTSIDE the set
-        const isDestInternal = t.to_account_id && accountSet.has(t.to_account_id);
-        if (!isDestInternal) {
-          return sum + t.amount;
-        }
-      }
-
-      return sum;
-    }, 0);
+    const agg = aggregateTransactionsForPeriod(periodTransactions, toAccountIdSet(accountIds));
+    return agg.totalExpense + agg.totalTransfersOut;
   }
 
   /**
    * Calculate total income (income + incoming transfers) for an account in a period
-   *
-   * @complexity O(n)
    */
   static calculatePeriodTotalIncome(
     periodTransactions: Transaction[],
     accountIds: string | Set<string>
   ): number {
-    const accountSet = typeof accountIds === 'string' ? new Set([accountIds]) : accountIds;
-
-    return periodTransactions.reduce((sum, t) => {
-      // Direct income to account
-      if (t.type === 'income' && accountSet.has(t.account_id)) {
-        return sum + t.amount;
-      }
-
-      // Transfer IN to account (from outside)
-      if (t.type === 'transfer' && t.to_account_id && accountSet.has(t.to_account_id)) {
-        const isSourceInternal = accountSet.has(t.account_id);
-        if (!isSourceInternal) {
-          return sum + t.amount;
-        }
-      }
-
-      return sum;
-    }, 0);
+    const agg = aggregateTransactionsForPeriod(periodTransactions, toAccountIdSet(accountIds));
+    return agg.totalIncome + agg.totalTransfersIn;
   }
 
   /**
    * Calculate total transfers (absolute sum of IN and OUT) for a specific account
-   *
-   * @complexity O(n)
    */
   static calculatePeriodTotalTransfers(
     periodTransactions: Transaction[],
     accountIds: string | Set<string>
   ): number {
-    const accountSet = typeof accountIds === 'string' ? new Set([accountIds]) : accountIds;
-
-    return periodTransactions.reduce((sum, t) => {
-      if (t.type !== 'transfer') return sum;
-
-      const isSource = accountSet.has(t.account_id);
-      const isDest = t.to_account_id && accountSet.has(t.to_account_id);
-
-      if (isSource || isDest) {
-        return sum + t.amount;
-      }
-      return sum;
-    }, 0);
+    const agg = aggregateTransactionsForPeriod(periodTransactions, toAccountIdSet(accountIds));
+    return agg.totalTransfersIn + agg.totalTransfersOut + agg.internalTransfers;
   }
 
   /**
@@ -366,15 +223,8 @@ export class FinanceLogicService {
    * Calculate progress for a single budget
    */
   static calculateBudgetProgress(budget: Budget, transactions: Transaction[]): BudgetProgress {
-    // Calculate spent: expenses and transfers add to spent, income subtracts
-    const spent = transactions.reduce((sum, t) => {
-      if (t.type === 'income') {
-        return sum - t.amount; // Income refills budget
-      }
-      return sum + t.amount; // Expense and transfer consume budget
-    }, 0);
-
-    const effectiveSpent = Math.max(0, spent);
+    const agg = aggregateTransactionsForBudget(transactions, budget.categories);
+    const effectiveSpent = Math.max(0, agg.net);
     const remaining = budget.amount - effectiveSpent;
     const percentage = budget.amount > 0 ? (effectiveSpent / budget.amount) * 100 : 0;
 
@@ -609,49 +459,7 @@ export class FinanceLogicService {
     accountIds: string | Set<string>,
     transactions: Transaction[]
   ): number {
-    const accountSet = typeof accountIds === 'string' ? new Set([accountIds]) : accountIds;
-
-    const balance = transactions.reduce((balance, transaction) => {
-      // Check if this transaction involves this account
-      const isSourceAccount = accountSet.has(transaction.account_id);
-      const isDestinationAccount =
-        transaction.to_account_id && accountSet.has(transaction.to_account_id);
-
-      // Skip if transaction doesn't involve this account
-      if (!isSourceAccount && !isDestinationAccount) {
-        return balance;
-      }
-
-      // Handle transfers (has to_account_id)
-      if (transaction.to_account_id) {
-        if (isSourceAccount && isDestinationAccount) {
-          // Internal transfer within the set: NO NET CHANGE
-          return balance;
-        } else if (isSourceAccount) {
-          // Money leaving this account set
-          return balance - transaction.amount;
-        } else if (isDestinationAccount) {
-          // Money entering this account set
-          return balance + transaction.amount;
-        }
-      }
-
-      // Handle regular transactions (no to_account_id or not transfer)
-      if (isSourceAccount) {
-        if (transaction.type === 'income') {
-          // Income adds to balance
-          return balance + transaction.amount;
-        } else if (transaction.type === 'expense') {
-          // Expense subtracts from balance
-          return balance - transaction.amount;
-        }
-      }
-
-      return balance;
-    }, 0);
-
-    // Round to 2 decimal places to avoid floating point precision issues
-    return Math.round(balance * 100) / 100;
+    return calculateBalanceFromTransactions(transactions, toAccountIdSet(accountIds));
   }
 
   // --- CATEGORY PURE LOGIC ---
@@ -713,249 +521,51 @@ export class FinanceLogicService {
     return DEFAULT_CATEGORY_COLOR;
   }
 
-  // --- RECURRING SERIES LOGIC ---
+  // --- RECURRING SERIES LOGIC (delegated to calculation/recurring-series.ts) ---
 
-  /**
-   * Calculate next week-based due date (weekly or biweekly)
-   * @param today - Current date
-   * @param dueDay - Day of week (1=Monday, 7=Sunday)
-   * @param intervalDays - Days in the interval (7 for weekly, 14 for biweekly)
-   */
-  private static calculateWeekBasedNextDate(
-    today: DateTime,
-    dueDay: number,
-    intervalDays: 7 | 14
-  ): string {
-    const currentDayOfWeek = today.weekday; // Luxon: 1=Monday, 7=Sunday
-    let daysUntilDue = dueDay - currentDayOfWeek;
-    if (daysUntilDue <= 0) daysUntilDue += intervalDays;
-    return toDateString(today.plus({ days: daysUntilDue }));
-  }
-
-  /**
-   * Calculate next monthly due date
-   */
-  private static calculateMonthlyNextDate(today: DateTime, dueDay: number): string {
-    const currentDay = today.day;
-
-    if (currentDay < dueDay) {
-      // Due date is still this month
-      const dayToUse = Math.min(dueDay, getDaysInMonth(today.year, today.month));
-      return toDateString(today.set({ day: dayToUse }));
-    }
-
-    // Due date is next month
-    const nextMonth = today.plus({ months: 1 });
-    const dayToUse = Math.min(dueDay, getDaysInMonth(nextMonth.year, nextMonth.month));
-    return toDateString(nextMonth.set({ day: dayToUse }));
-  }
-
-  /**
-   * Calculate next yearly due date
-   */
-  private static calculateYearlyNextDate(
-    today: DateTime,
-    series: RecurringTransactionSeries
-  ): string {
-    const startDate = toDateTime(series.start_date);
-    if (!startDate) {
-      return toDateString(today);
-    }
-
-    const startMonth = startDate.month;
-    const dueDay = series.due_day;
-
-    // Check if this year's occurrence has passed
-    const thisYearBase = today.set({ month: startMonth });
-    const dayToUseThisYear = Math.min(
-      dueDay,
-      getDaysInMonth(thisYearBase.year, thisYearBase.month)
-    );
-    const thisYearDate = thisYearBase.set({ day: dayToUseThisYear });
-
-    if (thisYearDate > today) {
-      return toDateString(thisYearDate);
-    }
-
-    const nextYearBase = today.plus({ years: 1 }).set({ month: startMonth });
-    const dayToUseNextYear = Math.min(
-      dueDay,
-      getDaysInMonth(nextYearBase.year, nextYearBase.month)
-    );
-    return toDateString(nextYearBase.set({ day: dayToUseNextYear }));
-  }
-
-  /**
-   * Calculate next date for one-time series
-   */
-  private static calculateOnceNextDate(
-    today: DateTime,
-    series: RecurringTransactionSeries
-  ): string {
-    const startDate = toDateTime(series.start_date);
-    if (!startDate) {
-      return toDateString(today);
-    }
-    return startDate > today ? toDateString(startDate) : toDateString(today);
-  }
-
-  /**
-   * Calculate the next execution date for a series based on frequency and due_day
-   */
   static calculateNextExecutionDate(series: RecurringTransactionSeries): string {
-    const today = luxonToday();
-
-    switch (series.frequency) {
-      case 'weekly':
-        return this.calculateWeekBasedNextDate(today, series.due_day, 7);
-      case 'biweekly':
-        return this.calculateWeekBasedNextDate(today, series.due_day, 14);
-      case 'monthly':
-        return this.calculateMonthlyNextDate(today, series.due_day);
-      case 'yearly':
-        return this.calculateYearlyNextDate(today, series);
-      default:
-        // 'once' - return the start_date or today if passed
-        return this.calculateOnceNextDate(today, series);
-    }
+    return calcNextExecDate(series);
   }
 
-  /**
-   * Calculate days until next due date
-   */
   static calculateDaysUntilDue(series: RecurringTransactionSeries): number {
-    const nextDate = toDateTime(this.calculateNextExecutionDate(series));
-    const today = luxonToday();
-    if (!nextDate) return 0;
-    return diffInDays(today, nextDate);
+    return calcDaysUntilDue(series);
   }
 
-  /**
-   * Check if a series is due for execution
-   */
   static isSeriesDue(series: RecurringTransactionSeries): boolean {
-    if (!series.is_active) return false;
-
-    const today = luxonToday();
-    const nextExecution = toDateTime(this.calculateNextExecutionDate(series));
-    if (!nextExecution) return false;
-
-    return nextExecution <= today;
+    return checkSeriesDue(series);
   }
 
-  /**
-   * Get frequency label in Italian
-   */
   static getFrequencyLabel(frequency: RecurringTransactionSeries['frequency']): string {
-    const labels: Record<RecurringTransactionSeries['frequency'], string> = {
-      once: 'Una tantum',
-      weekly: 'Settimanale',
-      biweekly: 'Quindicinale',
-      monthly: 'Mensile',
-      yearly: 'Annuale',
-    };
-    return labels[frequency] || frequency;
+    return getFreqLabel(frequency);
   }
 
-  /**
-   * Format due date with relative time
-   */
   static formatDueDate(series: RecurringTransactionSeries): string {
-    const daysUntil = this.calculateDaysUntilDue(series);
-
-    if (daysUntil <= 7) {
-      return formatDaysUntil(this.calculateNextExecutionDate(series));
-    }
-
-    return formatDateShort(this.calculateNextExecutionDate(series));
+    return fmtDueDate(series);
   }
 
-  /**
-   * Group series by user for display
-   */
   static groupSeriesByUser(
     series: RecurringTransactionSeries[],
     users: Array<{ id: string; name: string }>
-  ): Record<string, { user: { id: string; name: string }; series: RecurringTransactionSeries[] }> {
-    const grouped: Record<
-      string,
-      { user: { id: string; name: string }; series: RecurringTransactionSeries[] }
-    > = {};
-
-    for (const user of users) {
-      const userSeries = series.filter((s) => s.user_ids.includes(user.id));
-      if (userSeries.length > 0) {
-        grouped[user.id] = {
-          user,
-          series: userSeries,
-        };
-      }
-    }
-
-    return grouped;
+  ) {
+    return grpSeriesByUser(series, users);
   }
 
-  /**
-   * Calculate monthly cost/income for a series
-   */
   static calculateMonthlyAmount(series: RecurringTransactionSeries): number {
-    switch (series.frequency) {
-      case 'weekly':
-        return series.amount * 4.33; // Average weeks per month
-      case 'biweekly':
-        return series.amount * 2.17;
-      case 'monthly':
-        return series.amount;
-      case 'yearly':
-        return series.amount / 12;
-      default:
-        return series.amount;
-    }
+    return calcMonthlyAmt(series);
   }
 
-  /**
-   * Calculate totals for a set of series
-   */
-  static calculateTotals(series: RecurringTransactionSeries[]): {
-    totalIncome: number;
-    totalExpenses: number;
-    netMonthly: number;
-  } {
-    let totalIncome = 0;
-    let totalExpenses = 0;
-
-    for (const s of series) {
-      if (!s.is_active) continue;
-
-      const monthlyAmount = this.calculateMonthlyAmount(s);
-      if (s.type === 'income') {
-        totalIncome += monthlyAmount;
-      } else if (s.type === 'expense') {
-        totalExpenses += monthlyAmount;
-      }
-    }
-
-    return {
-      totalIncome,
-      totalExpenses,
-      netMonthly: totalIncome - totalExpenses,
-    };
+  static calculateTotals(series: RecurringTransactionSeries[]) {
+    return calculateRecurringTotals(series);
   }
 
-  /**
-   * Check if a user has access to a series
-   */
   static hasAccess(series: RecurringTransactionSeries, userId: string): boolean {
-    return series.user_ids.includes(userId);
+    return hasSeriesAccess(series, userId);
   }
 
-  /**
-   * Get all users associated with a series
-   */
   static getAssociatedUsers(
     series: RecurringTransactionSeries,
     allUsers: Array<{ id: string; name: string; theme_color?: string }>
-  ): Array<{ id: string; name: string; theme_color?: string }> {
-    return allUsers.filter((user) => series.user_ids.includes(user.id));
+  ) {
+    return getSeriesAssociatedUsers(series, allUsers);
   }
 }

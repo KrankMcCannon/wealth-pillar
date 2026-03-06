@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { TransactionService, CreateTransactionInput } from './transaction.service';
 import type { Transaction } from '@/lib/types';
+import { supabase } from '@/server/db/supabase';
+import { invalidateTransactionCaches } from '@/lib/utils/cache-utils';
 
 // Mock server-only (must be at top level)
 vi.mock('server-only', () => ({}));
@@ -77,9 +79,6 @@ vi.mock('@/lib/utils/cache-utils', () => ({
   invalidateTransactionCaches: vi.fn(),
   invalidateTransactionUpdateCaches: vi.fn(),
 }));
-
-import { supabase } from '@/server/db/supabase';
-import { invalidateTransactionCaches } from '@/lib/utils/cache-utils';
 
 // Factory helper for creating mock transactions
 function createMockTransaction(overrides: Partial<Transaction> = {}): Transaction {
@@ -165,6 +164,11 @@ describe('TransactionService', () => {
     mockSupabaseChain.insert.mockReturnThis();
     mockSupabaseChain.update.mockReturnThis();
     mockSupabaseChain.delete.mockReturnThis();
+    // Reset rpc mock - atomic balance update succeeds by default
+    vi.mocked(supabase as unknown as { rpc: ReturnType<typeof vi.fn> }).rpc.mockResolvedValue({
+      data: 0,
+      error: null,
+    });
   });
 
   describe('getTransactionsByGroup', () => {
@@ -1276,6 +1280,14 @@ describe('TransactionService', () => {
   });
 
   describe('updateAccountBalance error handling', () => {
+    beforeEach(() => {
+      // Force fallback to read-then-write path (simulates RPC function not deployed)
+      vi.mocked(supabase as unknown as { rpc: ReturnType<typeof vi.fn> }).rpc.mockResolvedValue({
+        data: null,
+        error: { message: 'function update_account_balance does not exist' },
+      });
+    });
+
     it('should throw error when fetching account balance fails', async () => {
       const mockTransaction = createMockTransaction({ type: 'income' });
       const input = createMockInput({ type: 'income' });
