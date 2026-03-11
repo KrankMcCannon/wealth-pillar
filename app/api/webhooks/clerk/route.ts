@@ -63,12 +63,29 @@ export async function POST(req: Request) {
     return new Response('Invalid signature', { status: 400 });
   }
 
-  // Handle the webhook
+  // Handle the webhook — always return 200 to avoid Clerk retries; log errors internally
   try {
     await handleClerkWebhook(evt);
-    return new Response('Webhook processed successfully', { status: 200 });
+    return new Response(JSON.stringify({ received: true }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
   } catch (error) {
-    console.error('Error processing webhook:', error);
-    return new Response('Webhook processing failed', { status: 500 });
+    const clerkId = evt?.data?.id ?? undefined;
+    const logPayload = {
+      eventType: evt?.type,
+      clerkId,
+      errorMessage: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      timestamp: new Date().toISOString(),
+    };
+    console.error(
+      '[Clerk Webhook] Processing failed (returning 200 to avoid retries):',
+      JSON.stringify(logPayload)
+    );
+    return new Response(JSON.stringify({ received: true }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 }

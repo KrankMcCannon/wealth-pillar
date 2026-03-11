@@ -1,4 +1,17 @@
 {
+  "Auth": {
+    "ssoCallback": {
+      "errorTitle": "Errore",
+      "errorSubtitle": "Si è verificato un problema",
+      "retry": "Riprova",
+      "backToLogin": "Torna al login",
+      "loadingTitle": "Verifica in corso",
+      "checking": "Verifica account in corso...",
+      "submitting": "Configurazione account...",
+      "redirecting": "Reindirizzamento...",
+      "verifying": "Completamento autenticazione"
+    }
+  },
   "Common": {
     "language": "Lingua",
     "switchLanguage": "Cambia Lingua",

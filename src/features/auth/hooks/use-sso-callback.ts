@@ -22,6 +22,7 @@ export interface UseSSOCallbackReturn {
   viewState: ViewState;
   onboardingError: string | null;
   handleOnboardingComplete: (payload: OnboardingPayload) => Promise<void>;
+  retry: () => void;
 }
 
 // ============================================================================
@@ -172,21 +173,23 @@ export function useSSOCallback(): UseSSOCallbackReturn {
   }, [isLoaded, isSignedIn, userId, router, viewState.type]);
 
   /**
-   * Error & Timeout Handling Effect.
-   * Redirects to auth page with error message after delay.
+   * Timeout handling: redirect to sign-in only when Clerk never loaded / user not signed in
+   * (no automatic redirect on error — user must use Riprova or Torna al login).
    */
   useEffect(() => {
-    if (viewState.type === 'error' || (!isLoaded && !isSignedIn)) {
+    if (viewState.type === 'error') return;
+    if (!isLoaded && !isSignedIn) {
       const timer = setTimeout(() => {
-        if (viewState.type === 'error') {
-          router.replace(`/sign-in?error=${encodeURIComponent(viewState.message)}`);
-        } else if (isLoaded && !isSignedIn) {
-          router.replace('/sign-in?error=timeout');
-        }
+        router.replace('/sign-in?error=timeout');
       }, 5000);
       return () => clearTimeout(timer);
     }
-  }, [viewState, isLoaded, isSignedIn, router]);
+  }, [viewState.type, isLoaded, isSignedIn, router]);
+
+  const retry = useCallback(() => {
+    processedUserRef.current = null;
+    setViewState({ type: 'checking' });
+  }, []);
 
   /**
    * Submits the onboarding form payload.
@@ -237,5 +240,6 @@ export function useSSOCallback(): UseSSOCallbackReturn {
     viewState,
     onboardingError,
     handleOnboardingComplete,
+    retry,
   };
 }

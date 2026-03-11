@@ -1,4 +1,17 @@
 {
+  "Auth": {
+    "ssoCallback": {
+      "errorTitle": "Error",
+      "errorSubtitle": "Something went wrong",
+      "retry": "Retry",
+      "backToLogin": "Back to login",
+      "loadingTitle": "Verifying",
+      "checking": "Verifying account...",
+      "submitting": "Setting up account...",
+      "redirecting": "Redirecting...",
+      "verifying": "Completing sign in"
+    }
+  },
   "Common": {
     "language": "Language",
     "switchLanguage": "Switch Language",

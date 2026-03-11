@@ -202,46 +202,88 @@ export async function deleteClerkUserAction(clerkUserId: string): Promise<Servic
   }
 }
 
+const CHECK_USER_RETRY_DELAYS_MS = [500, 1000, 2000];
+const MAX_CHECK_USER_ATTEMPTS = 3;
+
+function isNotFoundError(message: string): boolean {
+  return message.includes('User not found') || message.includes('not found');
+}
+
+function getErrorType(message: string): 'timeout' | 'not_found' | 'unknown' {
+  const lower = message.toLowerCase();
+  if (lower.includes('timeout') || lower.includes('timed out')) return 'timeout';
+  if (isNotFoundError(message)) return 'not_found';
+  return 'unknown';
+}
+
 /**
- * Checks if a user exists in DB by Clerk ID
- * This is a server action safe for use in client components
+ * Checks if a user exists in DB by Clerk ID.
+ * Uses retry with exponential backoff (500ms → 1s → 2s, max 3 attempts) for transient errors.
+ * "Not found" is not retried; after 3 failures returns differentiated error message.
  */
 export async function checkUserExistsAction(
   clerkId: string
 ): Promise<ServiceResult<{ exists: boolean; userId?: string }>> {
-  try {
-    if (!clerkId) {
-      return { data: null, error: 'Clerk ID mancante' };
-    }
+  if (!clerkId) {
+    return { data: null, error: 'Clerk ID mancante' };
+  }
 
-    const user = await UserService.getLoggedUserInfo(clerkId);
+  let lastErrorType: 'timeout' | 'not_found' | 'unknown' = 'unknown';
 
-    return {
-      data: {
-        exists: !!user,
-        userId: user ? user.id : undefined,
-      },
-      error: null,
-    };
-  } catch (error) {
-    // If the error indicates user not found, strictly return exists: false
-    // This allows the onboarding flow to start.
-    const message = error instanceof Error ? error.message : String(error);
-
-    if (message.includes('User not found') || message.includes('not found')) {
+  for (let attempt = 1; attempt <= MAX_CHECK_USER_ATTEMPTS; attempt++) {
+    try {
+      const user = await UserService.getLoggedUserInfo(clerkId);
       return {
         data: {
-          exists: false,
-          userId: undefined,
+          exists: !!user,
+          userId: user ? user.id : undefined,
         },
         error: null,
       };
-    }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      lastErrorType = getErrorType(message);
 
-    console.error('[checkUserExistsAction] Unexpected error:', error);
-    return {
-      data: null,
-      error: message,
-    };
+      // Not found: do not retry, allow onboarding
+      if (isNotFoundError(message)) {
+        return {
+          data: { exists: false, userId: undefined },
+          error: null,
+        };
+      }
+
+      const logPayload = {
+        userId: clerkId,
+        attemptNumber: attempt,
+        errorType: lastErrorType,
+        timestamp: new Date().toISOString(),
+        message,
+      };
+      console.error('[checkUserExistsAction] Attempt failed:', JSON.stringify(logPayload));
+
+      if (attempt < MAX_CHECK_USER_ATTEMPTS) {
+        const delayMs = CHECK_USER_RETRY_DELAYS_MS[attempt - 1] ?? 2000;
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
+      }
+    }
   }
+
+  // After 3 failures: differentiated message and final log
+  const finalLog = {
+    userId: clerkId,
+    attemptNumber: MAX_CHECK_USER_ATTEMPTS,
+    errorType: lastErrorType,
+    timestamp: new Date().toISOString(),
+  };
+  console.error('[checkUserExistsAction] All attempts failed:', JSON.stringify(finalLog));
+
+  const userFacingMessage =
+    lastErrorType === 'timeout'
+      ? 'Errore temporaneo. Riprova tra poco.'
+      : 'Errore di verifica account. Riprova o torna al login.';
+
+  return {
+    data: null,
+    error: userFacingMessage,
+  };
 }
