@@ -239,14 +239,14 @@ export const BudgetSection = ({
                           fallback={
                             <div className={budgetStyles.section.cardSkeleton}>
                               <div className={budgetStyles.section.cardSkeletonRow}>
-                                <div className={budgetStyles.section.cardSkeletonIcon}></div>
+                                <div className={budgetStyles.section.cardSkeletonIcon} />
                                 <div className={budgetStyles.section.cardSkeletonBody}>
-                                  <div className={budgetStyles.section.cardSkeletonTitle}></div>
-                                  <div className={budgetStyles.section.cardSkeletonSubtitle}></div>
+                                  <div className={budgetStyles.section.cardSkeletonTitle} />
+                                  <div className={budgetStyles.section.cardSkeletonSubtitle} />
                                 </div>
                                 <div className={budgetStyles.section.cardSkeletonRight}>
-                                  <div className={budgetStyles.section.cardSkeletonAmount}></div>
-                                  <div className={budgetStyles.section.cardSkeletonSubAmount}></div>
+                                  <div className={budgetStyles.section.cardSkeletonAmount} />
+                                  <div className={budgetStyles.section.cardSkeletonSubAmount} />
                                 </div>
                               </div>
                             </div>

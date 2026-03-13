@@ -183,11 +183,11 @@ export function TimeTrendsChart({ data }: TimeTrendsChartProps) {
 
       <div className={reportsStyles.charts.legend}>
         <div className={reportsStyles.charts.legendItem}>
-          <div className={`${reportsStyles.charts.legendDot} bg-emerald-500`}></div>
+          <div className={`${reportsStyles.charts.legendDot} bg-emerald-500`} />
           {t('income')}
         </div>
         <div className={reportsStyles.charts.legendItem}>
-          <div className={`${reportsStyles.charts.legendDot} bg-red-500`}></div>
+          <div className={`${reportsStyles.charts.legendDot} bg-red-500`} />
           {t('expense')}
         </div>
       </div>

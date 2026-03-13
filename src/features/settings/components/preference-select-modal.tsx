@@ -136,7 +136,7 @@ export function PreferenceSelectModal({
         onOpenChange(false);
         router.replace(href, { locale: routingLocale });
 
-        void updateUserPreferencesAction(userId, updates)
+        updateUserPreferencesAction(userId, updates)
           .then(({ error }) => {
             if (error) {
               toast({

@@ -39,7 +39,7 @@ export function DesktopCalendarPopover({
         side="bottom"
         sideOffset={6}
         collisionPadding={12}
-        avoidCollisions={true}
+        avoidCollisions
         sticky="always"
         className={calendarDrawerStyles.desktop.popoverContent}
         aria-label={t('drawerAriaLabel')}

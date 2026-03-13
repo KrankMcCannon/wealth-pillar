@@ -1,6 +1,6 @@
 import React from 'react';
 import type { Metadata, Viewport } from 'next';
-import { Spline_Sans } from 'next/font/google';
+import { Spline_Sans as SplineSans } from 'next/font/google';
 import { ClerkProvider } from '@clerk/nextjs';
 import { Toaster } from '@/components/ui';
 import { ThemeProvider } from '@/components/theme-provider';
@@ -17,7 +17,7 @@ import { UserProvider } from '@/providers/user-provider';
 import { DesktopSidebar } from '@/components/layout';
 import '../globals.css';
 
-const splineSans = Spline_Sans({
+const splineSans = SplineSans({
   variable: '--font-spline-sans',
   subsets: ['latin'],
   weight: ['400', '500', '700'],

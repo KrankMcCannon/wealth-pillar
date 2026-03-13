@@ -197,6 +197,9 @@ export const SwipeableCard = memo<SwipeableCardProps>(
       closeSwipe();
     };
 
+    const handleDragStart = dragHandlers.onDragStart;
+    const handleDragEnd = dragHandlers.onDragEnd;
+
     // ========================================================================
     // Helper Functions
     // ========================================================================
@@ -326,8 +329,8 @@ export const SwipeableCard = memo<SwipeableCardProps>(
             dragElastic={appleSwipeTokens.physics.drag.elastic}
             dragMomentum={false}
             style={getMotionStyle()}
-            onDragStart={dragHandlers.onDragStart}
-            onDragEnd={dragHandlers.onDragEnd}
+            onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
             onTap={handleCardTap}
             onClick={(e) => e.stopPropagation()}
             className={swipeStyles.cardContent.base}

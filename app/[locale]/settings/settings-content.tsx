@@ -91,7 +91,7 @@ export default function SettingsContent({
         {/* Header */}
         <Header
           title={t('headerTitle')}
-          showBack={true}
+          showBack
           onBack={() => router.push('/home')}
           currentUser={{
             name: currentUser.name,
@@ -100,7 +100,7 @@ export default function SettingsContent({
                 ? 'admin'
                 : ((currentUser.role || 'member') as 'admin' | 'member'),
           }}
-          showActions={true}
+          showActions
         />
 
         <main className={settingsStyles.main.container}>

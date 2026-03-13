@@ -131,9 +131,9 @@ export class BudgetPeriodService {
     endDt: DateTime | null,
     budgets: Budget[]
   ): {
-    total_spent: number;
-    total_saved: number;
-    category_spending: Record<string, number>;
+    totalSpent: number;
+    totalSaved: number;
+    categorySpending: Record<string, number>;
   } {
     // Filter transactions for this period and user
     const periodTransactions = transactions.filter((t) => {
@@ -145,9 +145,9 @@ export class BudgetPeriodService {
       return afterStart && beforeEnd;
     });
 
-    let total_spent = 0;
-    let total_budget = 0;
-    const category_spending: Record<string, number> = {};
+    let totalSpent = 0;
+    let totalBudget = 0;
+    const categorySpending: Record<string, number> = {};
 
     // Filter valid budgets (amount > 0) for the target user
     const validBudgets = (budgets || []).filter(
@@ -156,7 +156,7 @@ export class BudgetPeriodService {
 
     // Calculate totals by processing each budget individually (matches modal logic)
     validBudgets.forEach((budget) => {
-      total_budget += budget.amount;
+      totalBudget += budget.amount;
 
       // Filter transactions for this specific budget's categories
       const budgetTransactions = periodTransactions.filter((t) =>
@@ -172,19 +172,19 @@ export class BudgetPeriodService {
       }, 0);
 
       // Add to total spent (ensuring non-negative per budget)
-      total_spent += Math.max(0, budgetSpent);
+      totalSpent += Math.max(0, budgetSpent);
 
       // Track category spending (only for expenses and transfers)
       budgetTransactions.forEach((t) => {
         if (t.type === 'expense' || t.type === 'transfer') {
-          category_spending[t.category] = (category_spending[t.category] || 0) + t.amount;
+          categorySpending[t.category] = (categorySpending[t.category] || 0) + t.amount;
         }
       });
     });
 
-    const total_saved = Math.max(0, total_budget - total_spent);
+    const totalSaved = Math.max(0, totalBudget - totalSpent);
 
-    return { total_spent, total_saved, category_spending };
+    return { totalSpent, totalSaved, categorySpending };
   }
 
   // ============================================================================

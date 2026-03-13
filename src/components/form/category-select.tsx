@@ -209,7 +209,7 @@ export const CategorySelect = React.memo<CategorySelectProps>(
             side="top"
             align="start"
             sideOffset={4}
-            avoidCollisions={true}
+            avoidCollisions
             collisionPadding={8}
           >
             {/* Search Input - Outside viewport for sticky behavior */}

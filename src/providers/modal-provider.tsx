@@ -37,24 +37,18 @@ function ModalRenderer() {
   return (
     <Suspense fallback={null}>
       {modal === 'transaction' && (
-        <TransactionFormModal isOpen={true} onClose={closeModal} editId={editId} />
+        <TransactionFormModal isOpen onClose={closeModal} editId={editId} />
       )}
 
-      {modal === 'budget' && <BudgetFormModal isOpen={true} onClose={closeModal} editId={editId} />}
+      {modal === 'budget' && <BudgetFormModal isOpen onClose={closeModal} editId={editId} />}
 
-      {modal === 'category' && (
-        <CategoryFormModal isOpen={true} onClose={closeModal} editId={editId} />
-      )}
+      {modal === 'category' && <CategoryFormModal isOpen onClose={closeModal} editId={editId} />}
 
-      {modal === 'recurring' && (
-        <RecurringFormModal isOpen={true} onClose={closeModal} editId={editId} />
-      )}
+      {modal === 'recurring' && <RecurringFormModal isOpen onClose={closeModal} editId={editId} />}
 
-      {modal === 'account' && (
-        <AccountFormModal isOpen={true} onClose={closeModal} editId={editId} />
-      )}
+      {modal === 'account' && <AccountFormModal isOpen onClose={closeModal} editId={editId} />}
 
-      {modal === 'investment' && <AddInvestmentModal isOpen={true} onClose={closeModal} />}
+      {modal === 'investment' && <AddInvestmentModal isOpen onClose={closeModal} />}
     </Suspense>
   );
 }

@@ -122,6 +122,8 @@ export function useAccountsContent({
     });
   };
 
+  const handleCancelDelete = () => deleteConfirm.closeDialog();
+
   return {
     currentUser,
     accountStats,
@@ -131,5 +133,6 @@ export function useAccountsContent({
     handleDeleteAccount,
     deleteConfirm,
     handleDeleteConfirm,
+    handleCancelDelete,
   };
 }

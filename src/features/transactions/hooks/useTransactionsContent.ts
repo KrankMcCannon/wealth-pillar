@@ -84,7 +84,9 @@ export interface UseTransactionsContentReturn {
 
   // Delete confirmation state
   deleteConfirm: ReturnType<typeof useDeleteConfirmation<Transaction>>;
+  handleCancelDelete: () => void;
   recurringDeleteConfirm: ReturnType<typeof useDeleteConfirmation<RecurringTransactionSeries>>;
+  handleRecurringCancelDelete: () => void;
 
   // Recurring handlers
   handleRecurringDeleteClick: (series: RecurringTransactionSeries) => void;
@@ -372,7 +374,9 @@ export function useTransactionsContent({
     handleDeleteClick,
     handleDeleteConfirm,
     deleteConfirm,
+    handleCancelDelete: () => deleteConfirm.closeDialog(),
     recurringDeleteConfirm,
+    handleRecurringCancelDelete: () => recurringDeleteConfirm.closeDialog(),
     handleRecurringDeleteClick,
     handleRecurringDeleteConfirm,
     showPauseModal,

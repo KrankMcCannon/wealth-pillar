@@ -54,7 +54,9 @@ export default function TransactionsContent(props: TransactionsContentProps) {
     handleDeleteClick,
     handleDeleteConfirm,
     deleteConfirm,
+    handleCancelDelete,
     recurringDeleteConfirm,
+    handleRecurringCancelDelete,
     handleRecurringDeleteClick,
     handleRecurringDeleteConfirm,
     showPauseModal,
@@ -71,9 +73,9 @@ export default function TransactionsContent(props: TransactionsContentProps) {
       {/* Header */}
       <Header
         title={t('headerTitle')}
-        showBack={true}
+        showBack
         currentUser={{ name: currentUser.name, role: currentUser.role || 'member' }}
-        showActions={true}
+        showActions
       />
 
       {/* User Selector */}
@@ -146,10 +148,10 @@ export default function TransactionsContent(props: TransactionsContentProps) {
               series={recurringSeries}
               selectedUserId={selectedUserId ?? undefined}
               className={transactionStyles.recurringSection.container}
-              showStats={true}
+              showStats
               maxItems={10}
-              showActions={true}
-              showDelete={true}
+              showActions
+              showDelete
               onCreateRecurringSeries={() => openModal('recurring')}
               onEditRecurringSeries={(series) => openModal('recurring', series.id)}
               onDeleteRecurringSeries={handleRecurringDeleteClick}
@@ -167,7 +169,7 @@ export default function TransactionsContent(props: TransactionsContentProps) {
       <ConfirmationDialog
         isOpen={deleteConfirm.isOpen}
         onConfirm={handleDeleteConfirm}
-        onCancel={deleteConfirm.closeDialog}
+        onCancel={handleCancelDelete}
         title={t('dialogs.deleteTransaction.title')}
         message={t('dialogs.deleteTransaction.message', {
           description: deleteConfirm.itemToDelete?.description ?? '',
@@ -181,7 +183,7 @@ export default function TransactionsContent(props: TransactionsContentProps) {
       <ConfirmationDialog
         isOpen={recurringDeleteConfirm.isOpen}
         onConfirm={handleRecurringDeleteConfirm}
-        onCancel={recurringDeleteConfirm.closeDialog}
+        onCancel={handleRecurringCancelDelete}
         title={t('dialogs.deleteRecurring.title')}
         message={t('dialogs.deleteRecurring.message', {
           description: recurringDeleteConfirm.itemToDelete?.description ?? '',

@@ -128,7 +128,7 @@ export function SeriesCard({
   // Action handlers
   const handleExecute = (e: React.MouseEvent) => {
     e.stopPropagation();
-    void executeSeries();
+    executeSeries();
   };
 
   // Action handlers with swipe close-first pattern

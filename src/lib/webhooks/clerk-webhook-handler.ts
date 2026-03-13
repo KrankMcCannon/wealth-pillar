@@ -36,7 +36,9 @@ export async function handleClerkWebhook(evt: WebhookEvent) {
  * This webhook just logs the event for monitoring purposes.
  */
 async function handleUserCreated(evt: WebhookEvent) {
-  if (evt.type !== 'user.created') return;
+  if (evt.type === 'user.created') {
+    // User creation happens in onboarding; this webhook is for monitoring only
+  }
 }
 
 /**
@@ -46,7 +48,12 @@ async function handleUserCreated(evt: WebhookEvent) {
 async function handleUserUpdated(evt: WebhookEvent) {
   if (evt.type !== 'user.updated') return;
 
-  const { id: clerkId, email_addresses, first_name, last_name } = evt.data;
+  const {
+    id: clerkId,
+    email_addresses: emailAddresses,
+    first_name: firstName,
+    last_name: lastName,
+  } = evt.data;
 
   try {
     // Validate clerkId exists
@@ -63,9 +70,9 @@ async function handleUserUpdated(evt: WebhookEvent) {
     }
 
     // Get updated data
-    const primaryEmail = email_addresses.find((e) => e.id === evt.data.primary_email_address_id);
+    const primaryEmail = emailAddresses.find((e) => e.id === evt.data.primary_email_address_id);
     const email = primaryEmail?.email_address || user.email;
-    const name = `${first_name || ''} ${last_name || ''}`.trim() || user.name;
+    const name = `${firstName || ''} ${lastName || ''}`.trim() || user.name;
 
     // Update user profile
     await UserService.updateProfile(user.id, { name, email });

@@ -67,12 +67,15 @@ export function ActionMenu({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align={align} className={menuClassName}>
-        {displayItems.map((item) => (
-          <DropdownMenuItem key={item.label} onClick={item.onClick}>
-            <item.icon className="mr-2 h-4 w-4" />
-            {item.label}
-          </DropdownMenuItem>
-        ))}
+        {displayItems.map((item) => {
+          const handleItemClick = () => item.onClick();
+          return (
+            <DropdownMenuItem key={item.label} onClick={handleItemClick}>
+              <item.icon className="mr-2 h-4 w-4" />
+              {item.label}
+            </DropdownMenuItem>
+          );
+        })}
       </DropdownMenuContent>
     </DropdownMenu>
   );

@@ -17,11 +17,11 @@ export function SettingsHeaderSkeleton() {
       <div className={settingsStyles.header.inner}>
         <div
           className={`${settingsStyles.skeletons.headerIcon} ${settingsStyles.skeletons.shimmer}`}
-        ></div>
+        />
         <div
           className={`${settingsStyles.skeletons.headerTitle} ${settingsStyles.skeletons.shimmer}`}
-        ></div>
-        <div className={settingsStyles.header.spacer}></div>
+        />
+        <div className={settingsStyles.header.spacer} />
       </div>
     </header>
   );
@@ -33,14 +33,14 @@ export function SettingsHeaderSkeleton() {
 export function ProfileSectionSkeleton() {
   return (
     <section className={settingsStyles.skeletons.section}>
-      <div className={settingsStyles.skeletons.sectionTitle}></div>
+      <div className={settingsStyles.skeletons.sectionTitle} />
       <div className={settingsStyles.skeletons.card}>
         {/* Header */}
         <div className={settingsStyles.skeletons.cardHeader}>
-          <div className={settingsStyles.skeletons.avatar}></div>
+          <div className={settingsStyles.skeletons.avatar} />
           <div className={settingsStyles.skeletons.headerBody}>
-            <div className={settingsStyles.skeletons.headerLinePrimary}></div>
-            <div className={settingsStyles.skeletons.headerLineSecondary}></div>
+            <div className={settingsStyles.skeletons.headerLinePrimary} />
+            <div className={settingsStyles.skeletons.headerLineSecondary} />
           </div>
         </div>
 
@@ -50,10 +50,10 @@ export function ProfileSectionSkeleton() {
           spacing={settingsStyles.skeletons.dividerLight}
           renderItem={() => (
             <div className={settingsStyles.skeletons.listRow}>
-              <div className={settingsStyles.skeletons.listIcon}></div>
+              <div className={settingsStyles.skeletons.listIcon} />
               <div className={settingsStyles.skeletons.listBody}>
-                <div className={settingsStyles.skeletons.listLineShort}></div>
-                <div className={settingsStyles.skeletons.listLineMedium}></div>
+                <div className={settingsStyles.skeletons.listLineShort} />
+                <div className={settingsStyles.skeletons.listLineMedium} />
               </div>
             </div>
           )}
@@ -69,13 +69,13 @@ export function ProfileSectionSkeleton() {
 export function GroupManagementSectionSkeleton() {
   return (
     <section className={settingsStyles.skeletons.section}>
-      <div className={settingsStyles.skeletons.sectionTitle}></div>
+      <div className={settingsStyles.skeletons.sectionTitle} />
 
       {/* Members list */}
       <div className={`${settingsStyles.skeletons.card} ${settingsStyles.skeletons.cardMargin}`}>
         <div className={settingsStyles.skeletons.cardHeaderCompact}>
-          <div className={settingsStyles.skeletons.headerLineSmall}></div>
-          <div className={settingsStyles.skeletons.headerLineTiny}></div>
+          <div className={settingsStyles.skeletons.headerLineSmall} />
+          <div className={settingsStyles.skeletons.headerLineTiny} />
         </div>
         <SkeletonList
           count={3}
@@ -83,10 +83,10 @@ export function GroupManagementSectionSkeleton() {
           renderItem={() => (
             <div className={settingsStyles.skeletons.memberRow}>
               <div className={settingsStyles.skeletons.memberLeft}>
-                <div className={settingsStyles.skeletons.memberIcon}></div>
+                <div className={settingsStyles.skeletons.memberIcon} />
                 <div className={settingsStyles.skeletons.memberBody}>
-                  <div className={settingsStyles.skeletons.listLineShort}></div>
-                  <div className={settingsStyles.skeletons.listLineLong}></div>
+                  <div className={settingsStyles.skeletons.listLineShort} />
+                  <div className={settingsStyles.skeletons.listLineLong} />
                 </div>
               </div>
             </div>
@@ -101,10 +101,10 @@ export function GroupManagementSectionSkeleton() {
           spacing={settingsStyles.skeletons.dividerStrong}
           renderItem={() => (
             <div className={settingsStyles.skeletons.listRow}>
-              <div className={settingsStyles.skeletons.listIcon}></div>
+              <div className={settingsStyles.skeletons.listIcon} />
               <div className={settingsStyles.skeletons.listBody}>
-                <div className={settingsStyles.skeletons.listLineXL}></div>
-                <div className={settingsStyles.skeletons.listLineXLLong}></div>
+                <div className={settingsStyles.skeletons.listLineXL} />
+                <div className={settingsStyles.skeletons.listLineXLLong} />
               </div>
             </div>
           )}
@@ -120,7 +120,7 @@ export function GroupManagementSectionSkeleton() {
 export function PreferencesSectionSkeleton() {
   return (
     <section className={settingsStyles.skeletons.section}>
-      <div className={settingsStyles.skeletons.sectionTitle}></div>
+      <div className={settingsStyles.skeletons.sectionTitle} />
       <div className={settingsStyles.skeletons.card}>
         <SkeletonList
           count={3}
@@ -128,13 +128,13 @@ export function PreferencesSectionSkeleton() {
           renderItem={() => (
             <div className={settingsStyles.skeletons.listRowSpace}>
               <div className={settingsStyles.skeletons.memberLeft}>
-                <div className={settingsStyles.skeletons.listIcon}></div>
+                <div className={settingsStyles.skeletons.listIcon} />
                 <div className={settingsStyles.skeletons.listBody}>
-                  <div className={settingsStyles.skeletons.listLineXL}></div>
-                  <div className={settingsStyles.skeletons.listLineShort}></div>
+                  <div className={settingsStyles.skeletons.listLineXL} />
+                  <div className={settingsStyles.skeletons.listLineShort} />
                 </div>
               </div>
-              <div className={settingsStyles.skeletons.switchPill}></div>
+              <div className={settingsStyles.skeletons.switchPill} />
             </div>
           )}
         />

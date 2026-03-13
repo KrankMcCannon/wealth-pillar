@@ -499,7 +499,7 @@ export function IconPicker({ value, onChange, className }: Readonly<IconPickerPr
                   value={value}
                   recent={recent}
                   onSelect={handleIconSelect}
-                  isMobile={true}
+                  isMobile
                 />
               </div>
             </Dialog.Content>

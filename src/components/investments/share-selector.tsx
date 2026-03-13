@@ -180,7 +180,7 @@ export function ShareSelector({ value, onChange, className }: Readonly<ShareSele
           side="top"
           align="start"
           sideOffset={4}
-          avoidCollisions={true}
+          avoidCollisions
           collisionPadding={8}
         >
           <div className={formStyles.categorySelect.searchWrap}>

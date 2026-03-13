@@ -285,7 +285,7 @@ export default function OnboardingModal({
           type: budget.type,
           categories: [budget.categoryId],
         })),
-        budgetStartDay: budgetStartDay,
+        budgetStartDay,
       });
 
       // Clear draft on successful completion

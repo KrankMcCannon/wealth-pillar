@@ -98,7 +98,7 @@ export function BudgetPeriodsList({ userId, initialPeriods }: Readonly<BudgetPer
                 key={period.id}
                 period={period}
                 onDelete={() => handleDelete(period.id)}
-                showActions={true} // Allow deleting historical periods
+                showActions // Allow deleting historical periods
               />
             ))}
           </div>

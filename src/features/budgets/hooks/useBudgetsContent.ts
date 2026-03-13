@@ -112,6 +112,7 @@ export interface UseBudgetsContentReturn {
 
   // Delete confirmation state
   readonly deleteConfirm: ReturnType<typeof useDeleteConfirmation<Budget>>;
+  readonly handleCancelDelete: () => void;
 
   // Modal
   readonly openModal: ReturnType<typeof useModalState>['openModal'];
@@ -472,6 +473,7 @@ export function useBudgetsContent({
     handleDeleteBudget,
     confirmDeleteBudget,
     deleteConfirm,
+    handleCancelDelete: () => deleteConfirm.closeDialog(),
     openModal,
   };
 }

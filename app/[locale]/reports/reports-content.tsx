@@ -294,13 +294,13 @@ export default function ReportsContent({
       className={reportsStyles.page.container}
       style={reportsStyles.page.style as React.CSSProperties}
     >
-      <div className={reportsStyles.page.gradientBg}></div>
+      <div className={reportsStyles.page.gradientBg} />
       <PageContainer>
         <Header
           title={t('headerTitle')}
-          showBack={true}
+          showBack
           currentUser={{ name: currentUser.name, role: currentUser.role || 'member' }}
-          showActions={true}
+          showActions
         />
 
         <div className={reportsStyles.main.container}>

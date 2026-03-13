@@ -1,10 +1,17 @@
+import neostandard from 'neostandard';
 import nextCoreWebVitals from 'eslint-config-next/core-web-vitals';
 import nextTypescript from 'eslint-config-next/typescript';
 import prettier from 'eslint-config-prettier';
 import pluginPrettier from 'eslint-plugin-prettier';
 
 const eslintConfig = [
-  // Next.js presets (includes React, React Hooks, TypeScript)
+  // Neostandard baseline (ESLint 9 flat config, TypeScript, no style rules = Prettier)
+  ...neostandard({
+    ts: true,
+    noStyle: true,
+  }),
+
+  // Next.js presets (React, React Hooks, TypeScript)
   ...nextCoreWebVitals,
   ...nextTypescript,
 
@@ -45,7 +52,7 @@ const eslintConfig = [
       ],
       '@typescript-eslint/prefer-as-const': 'error',
 
-      // General Quality
+      // General quality
       'prefer-const': 'error',
       'no-var': 'error',
       'no-console': ['warn', { allow: ['warn', 'error'] }],

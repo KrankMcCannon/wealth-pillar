@@ -56,7 +56,7 @@ export function BudgetProgress({ progressData }: Readonly<BudgetProgressProps>) 
       {/* Header with indicator and label */}
       <div className={budgetStyles.progress.header}>
         <div className={budgetStyles.progress.indicatorRow}>
-          <div className={indicatorClass}></div>
+          <div className={indicatorClass} />
           <span className={budgetStyles.progress.label}>{t('label')}</span>
         </div>
         <span className={`${budgetStyles.progress.percentage} ${percentageColors[status]}`}>

@@ -104,8 +104,8 @@ const UserSelector = memo(
           <div className={userSelectorStyles.loading.list}>
             {[1, 2, 3].map((i) => (
               <div key={i} className={userSelectorStyles.loading.item}>
-                <div className={userSelectorStyles.loading.icon}></div>
-                <div className={userSelectorStyles.loading.text}></div>
+                <div className={userSelectorStyles.loading.icon} />
+                <div className={userSelectorStyles.loading.text} />
               </div>
             ))}
           </div>

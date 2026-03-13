@@ -1,7 +1,7 @@
 'use client';
 
 import { memo, useCallback, useMemo } from 'react';
-import { Calendar, Infinity } from 'lucide-react';
+import { Calendar, Infinity as InfinityIcon } from 'lucide-react';
 import { yearSelectorStyles } from './theme/year-selector-styles';
 
 interface YearSelectorProps {
@@ -34,7 +34,7 @@ const YearSelector = memo(
         {
           id: 'all' as const,
           label: 'Tutti i Tempi',
-          icon: Infinity,
+          icon: InfinityIcon,
           isSpecial: true,
         },
         ...sortedYears.map((year) => ({
@@ -68,8 +68,8 @@ const YearSelector = memo(
           <div className={yearSelectorStyles.loading.list}>
             {[1, 2, 3].map((i) => (
               <div key={i} className={yearSelectorStyles.loading.item}>
-                <div className={yearSelectorStyles.loading.icon}></div>
-                <div className={yearSelectorStyles.loading.text}></div>
+                <div className={yearSelectorStyles.loading.icon} />
+                <div className={yearSelectorStyles.loading.text} />
               </div>
             ))}
           </div>

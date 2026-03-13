@@ -113,9 +113,9 @@ export default function HomeContent({
       {/* Mobile-First Header */}
       <Suspense fallback={<DashboardHeaderSkeleton />}>
         <Header
-          isDashboard={true}
+          isDashboard
           currentUser={{ name: currentUser.name, role: currentUser.role || 'member' }}
-          showActions={true}
+          showActions
           investmentSummary={investmentSummary}
         />
       </Suspense>

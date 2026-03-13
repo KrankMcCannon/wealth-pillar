@@ -110,7 +110,7 @@ export function useShareSearch({ initialValue, onSelect }: UseShareSearchProps =
       }
 
       setIsEnsuring(true);
-      void ensureMarketDataAction(symbol).finally(() => {
+      ensureMarketDataAction(symbol).finally(() => {
         setIsEnsuring(false);
       });
     },

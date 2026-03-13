@@ -51,9 +51,9 @@ export default function InvestmentsContent({
       <div className="flex-1">
         <Header
           title={t('headerTitle')}
-          showBack={true}
+          showBack
           currentUser={{ name: currentUser.name, role: currentUser.role || 'member' }}
-          showActions={true}
+          showActions
         />
 
         <UserSelector currentUser={currentUser} users={groupUsers} />

@@ -175,7 +175,7 @@ export async function fetchAndSaveNewShareAction(
     const newShare = await AvailableSharesService.addShare({
       symbol: quote.symbol.toUpperCase(),
       name: quote.name || symbol.toUpperCase(),
-      region: region,
+      region,
       asset_type: assetType,
       exchange: quote.exchange || null,
       currency: quote.currency || 'USD',

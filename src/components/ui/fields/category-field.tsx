@@ -39,7 +39,7 @@ export function CategoryField({
         onValueChange={onChange}
         categories={categories}
         placeholder={resolvedPlaceholder}
-        showRecentCategories={true}
+        showRecentCategories
         recentCategoriesLimit={3}
       />
     </FormField>

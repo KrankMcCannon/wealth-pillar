@@ -1,4 +1,4 @@
-import { unstable_cache } from 'next/cache';
+import { unstable_cache as nextUnstableCache } from 'next/cache';
 
 /**
  * Cache Utilities
@@ -35,5 +35,5 @@ export function cached<T extends (...args: unknown[]) => Promise<unknown>>(
   keyParts: readonly string[],
   options?: CacheOptions
 ): T {
-  return unstable_cache(fn, [...keyParts], options);
+  return nextUnstableCache(fn, [...keyParts], options);
 }

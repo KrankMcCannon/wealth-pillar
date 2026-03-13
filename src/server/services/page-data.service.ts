@@ -449,11 +449,11 @@ export class PageDataService {
     });
 
     return {
-      budgets: budgets,
+      budgets,
       // Only return the subset of transactions to keep payload small
       transactions: transactionResult.data,
-      accounts: accounts,
-      categories: categories,
+      accounts,
+      categories,
       budgetPeriods,
       budgetsByUser, // Add the pre-calculated map
     };

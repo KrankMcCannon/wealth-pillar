@@ -360,16 +360,16 @@ export class TransactionService {
     transaction: Transaction,
     direction: 1 | -1
   ): Promise<void> {
-    const { amount, type, account_id, to_account_id } = transaction;
+    const { amount, type, account_id: accountId, to_account_id: toAccountId } = transaction;
 
     if (type === 'income') {
-      await this.updateAccountBalance(account_id, amount * direction);
+      await this.updateAccountBalance(accountId, amount * direction);
     } else if (type === 'expense') {
-      await this.updateAccountBalance(account_id, -amount * direction);
-    } else if (type === 'transfer' && to_account_id) {
+      await this.updateAccountBalance(accountId, -amount * direction);
+    } else if (type === 'transfer' && toAccountId) {
       await Promise.all([
-        this.updateAccountBalance(account_id, -amount * direction),
-        this.updateAccountBalance(to_account_id, amount * direction),
+        this.updateAccountBalance(accountId, -amount * direction),
+        this.updateAccountBalance(toAccountId, amount * direction),
       ]);
     }
   }

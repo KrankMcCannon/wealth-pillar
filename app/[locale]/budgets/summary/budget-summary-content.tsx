@@ -37,7 +37,7 @@ export default function BudgetSummaryContent(props: Readonly<BudgetSummaryConten
     <PageContainer className={budgetStyles.page.container}>
       <Header
         title={t('title')}
-        showBack={true}
+        showBack
         onBack={() => router.push('/home')}
         className={budgetStyles.header.container}
       />

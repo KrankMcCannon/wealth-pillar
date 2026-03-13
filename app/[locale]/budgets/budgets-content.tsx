@@ -64,6 +64,7 @@ export default function BudgetsContent(props: BudgetsContentProps) {
     handleDeleteBudget,
     confirmDeleteBudget,
     deleteConfirm,
+    handleCancelDelete,
     openModal,
   } = useBudgetsContent(props);
 
@@ -72,10 +73,10 @@ export default function BudgetsContent(props: BudgetsContentProps) {
       {/* Header with navigation and actions */}
       <Header
         title={t('title')}
-        showBack={true}
+        showBack
         className={budgetStyles.header.container}
         currentUser={{ name: currentUser.name, role: currentUser.role || 'member' }}
-        showActions={true}
+        showActions
       />
 
       {/* User Selector */}
@@ -212,7 +213,7 @@ export default function BudgetsContent(props: BudgetsContentProps) {
       {/* Delete Confirmation Dialog */}
       <ConfirmationDialog
         isOpen={deleteConfirm.isOpen}
-        onCancel={deleteConfirm.closeDialog}
+        onCancel={handleCancelDelete}
         title={t('deleteDialog.title')}
         message={
           deleteConfirm.itemToDelete

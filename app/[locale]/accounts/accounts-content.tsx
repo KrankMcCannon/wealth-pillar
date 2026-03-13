@@ -43,6 +43,7 @@ export default function AccountsContent({
     handleDeleteAccount,
     deleteConfirm,
     handleDeleteConfirm,
+    handleCancelDelete,
   } = useAccountsContent({
     accountBalances,
     currentUser,
@@ -55,9 +56,9 @@ export default function AccountsContent({
       <Header
         title={t('headerTitle')}
         subtitle={t('headerSubtitle', { count: accountStats.totalAccounts })}
-        showBack={true}
+        showBack
         currentUser={{ name: currentUser.name, role: currentUser.role || 'member' }}
-        showActions={true}
+        showActions
       />
 
       {/* User Selector */}
@@ -107,7 +108,7 @@ export default function AccountsContent({
       <ConfirmationDialog
         isOpen={deleteConfirm.isOpen}
         onConfirm={handleDeleteConfirm}
-        onCancel={deleteConfirm.closeDialog}
+        onCancel={handleCancelDelete}
         title={t('dialogs.delete.title')}
         message={
           deleteConfirm.itemToDelete

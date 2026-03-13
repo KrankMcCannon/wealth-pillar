@@ -217,20 +217,21 @@ export class InvestmentService {
       return d < min ? d : min;
     }, new Date());
 
-    const now = new Date();
+    const endDate = new Date();
     const data: HistoricalDataPoint[] = [];
+    let currentDate = new Date(earliestDate);
 
     // Generate daily points
-    for (let d = new Date(earliestDate); d <= now; d.setDate(d.getDate() + 1)) {
-      const dateStr = d.toISOString().split('T')[0] ?? '';
+    while (currentDate <= endDate) {
+      const dateStr = currentDate.toISOString().split('T')[0] ?? '';
       let totalValue = 0;
 
       investments.forEach((inv) => {
         const invDate = new Date(inv.created_at || new Date());
 
-        if (invDate <= d) {
+        if (invDate <= currentDate) {
           // Gap filling: look back up to 3 days using helper
-          const price = this.findPriceWithGapFilling(historyMap, inv.symbol, d);
+          const price = this.findPriceWithGapFilling(historyMap, inv.symbol, currentDate);
 
           if (price) {
             const currencyRate = Number(inv.currency_rate) || 1;
@@ -245,6 +246,10 @@ export class InvestmentService {
           value: totalValue,
         });
       }
+
+      const next = new Date(currentDate);
+      next.setDate(next.getDate() + 1);
+      currentDate = next;
     }
 
     return data;

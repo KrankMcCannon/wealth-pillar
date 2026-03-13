@@ -378,10 +378,10 @@ export async function getPeriodPreviewAction(
 
     return {
       data: {
-        totalSpent: totals.total_spent,
-        totalSaved: totals.total_saved,
+        totalSpent: totals.totalSpent,
+        totalSaved: totals.totalSaved,
         totalBudget,
-        categorySpending: totals.category_spending,
+        categorySpending: totals.categorySpending,
       },
       error: null,
     };

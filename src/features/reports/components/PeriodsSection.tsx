@@ -34,7 +34,7 @@ export function PeriodsSection({ data, users }: PeriodsSectionProps) {
               <React.Fragment key={user.id}>
                 {userPeriods.map((period) => (
                   <div key={period.id} className="relative group">
-                    <div className="absolute -inset-0.5 bg-linear-to-r from-primary/20 to-secondary/20 rounded-2xl blur opacity-0 group-hover:opacity-30 transition duration-500"></div>
+                    <div className="absolute -inset-0.5 bg-linear-to-r from-primary/20 to-secondary/20 rounded-2xl blur opacity-0 group-hover:opacity-30 transition duration-500" />
                     <PeriodCard period={period} />
                     {users.length > 1 && (
                       <div className={reportsStyles.periods.userBadge}>{user.name}</div>
