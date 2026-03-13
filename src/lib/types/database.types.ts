@@ -186,6 +186,23 @@ export interface Database {
           updated_at?: string | null;
         };
       };
+      orphan_users: {
+        Row: {
+          id: string;
+          clerk_id: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          clerk_id: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          clerk_id?: string;
+          created_at?: string;
+        };
+      };
       recurring_transactions: {
         Row: {
           id: string;

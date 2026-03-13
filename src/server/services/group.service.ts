@@ -63,11 +63,11 @@ export class GroupService {
   //   return updated as Group;
   // }
 
-  // private static async deleteDb(id: string): Promise<void> {
-  //   const { error } = await supabase.from('groups').delete().eq('id', id);
+  private static async deleteDb(id: string): Promise<void> {
+    const { error } = await supabase.from('groups').delete().eq('id', id);
 
-  //   if (error) throw new Error(error.message);
-  // }
+    if (error) throw new Error(error.message);
+  }
 
   // ================== SERVICE LAYER ==================
 
@@ -153,5 +153,19 @@ export class GroupService {
     revalidateTag(CACHE_TAGS.GROUP_USERS(createdGroup.id), 'max');
 
     return createdGroup;
+  }
+
+  /**
+   * Deletes a group by ID. Call only after all users in the group have been deleted.
+   * Used for onboarding rollback.
+   */
+  static async deleteGroup(groupId: string): Promise<void> {
+    if (!groupId || groupId.trim() === '') {
+      throw new Error('Group ID is required');
+    }
+    await this.deleteDb(groupId);
+    revalidateTag(CACHE_TAGS.GROUPS, 'max');
+    revalidateTag(CACHE_TAGS.GROUP(groupId), 'max');
+    revalidateTag(CACHE_TAGS.GROUP_USERS(groupId), 'max');
   }
 }

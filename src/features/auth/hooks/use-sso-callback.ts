@@ -1,7 +1,13 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useAuth, useUser, useSignUp, useSignIn } from '@clerk/nextjs';
+import { useTranslations } from 'next-intl';
 import { getAllCategoriesAction } from '@/features/categories/actions/category-actions';
-import { completeOnboardingAction, checkUserExistsAction } from '@/features/onboarding/actions';
+import {
+  completeOnboardingAction,
+  checkUserExistsAction,
+  deleteClerkUserAction,
+  registerOrphanUserAction,
+} from '@/features/onboarding/actions';
 import type { Category } from '@/lib/types';
 import type { OnboardingPayload } from '@/features/onboarding/types';
 import type { SignUpResource, SignInResource, SetActive } from '@clerk/types';
@@ -77,6 +83,7 @@ async function handleTransferFlow(
  */
 export function useSSOCallback(): UseSSOCallbackReturn {
   const router = useRouter();
+  const t = useTranslations('Auth.ssoCallback');
   const { isLoaded, isSignedIn, userId } = useAuth();
   const { user } = useUser();
   const { signUp, setActive } = useSignUp();
@@ -218,8 +225,18 @@ export function useSSOCallback(): UseSSOCallbackReturn {
         });
 
         if (result.error) {
+          const isAlreadyConfigured = result.error.includes('già configurato');
+          if (!isAlreadyConfigured) {
+            const deleteResult = await deleteClerkUserAction(userId);
+            if (deleteResult.error) {
+              await registerOrphanUserAction(userId);
+              setOnboardingError(t('orphanSupportMessage'));
+              const categoriesResult = await getAllCategoriesAction();
+              setViewState({ type: 'onboarding', categories: categoriesResult.data || [] });
+              return;
+            }
+          }
           setOnboardingError(`${result.error}. Riprova.`);
-          // Reload categories in case of retry needed state reset
           const categoriesResult = await getAllCategoriesAction();
           setViewState({ type: 'onboarding', categories: categoriesResult.data || [] });
           return;
@@ -228,12 +245,18 @@ export function useSSOCallback(): UseSSOCallbackReturn {
         router.replace('/home');
       } catch (error) {
         console.error('Onboarding error:', error);
-        setOnboardingError('Errore imprevisto. Riprova.');
+        const deleteResult = await deleteClerkUserAction(userId);
+        if (deleteResult.error) {
+          await registerOrphanUserAction(userId);
+          setOnboardingError(t('orphanSupportMessage'));
+        } else {
+          setOnboardingError('Errore imprevisto. Riprova.');
+        }
         const categoriesResult = await getAllCategoriesAction();
         setViewState({ type: 'onboarding', categories: categoriesResult.data || [] });
       }
     },
-    [userId, user, router]
+    [userId, user, router, t]
   );
 
   return {

@@ -9,7 +9,8 @@
       "checking": "Verifying account...",
       "submitting": "Setting up account...",
       "redirecting": "Redirecting...",
-      "verifying": "Completing sign in"
+      "verifying": "Completing sign in",
+      "orphanSupportMessage": "Something went wrong. Contact support@wealthpillar.com with your email address."
     }
   },
   "Common": {

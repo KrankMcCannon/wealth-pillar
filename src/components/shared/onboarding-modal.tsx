@@ -463,6 +463,9 @@ export default function OnboardingModal({
                 ))}
               </SelectContent>
             </Select>
+            <p className={onboardingStyles.accounts.typeDescription} aria-live="polite">
+              {accountTypeDescriptions[account.type]}
+            </p>
           </div>
         </div>
       ))}

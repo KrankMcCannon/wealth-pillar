@@ -56,6 +56,7 @@ export const onboardingStyles = {
       'invisible group-hover:visible absolute left-0 top-6 z-50 w-64 rounded-lg bg-primary text-white p-3 text-xs shadow-lg',
     helpTitle: 'font-semibold mb-1',
     helpBody: 'text-white/90',
+    typeDescription: 'text-xs text-primary/60 mt-1.5 min-h-[1.25rem]',
     addIcon: 'h-4 w-4 mr-2',
     deleteIcon: 'h-4 w-4',
     labelRow: 'flex items-center gap-2',

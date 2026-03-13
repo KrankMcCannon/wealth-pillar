@@ -33,12 +33,54 @@ function validateOnboardingInput(input: CompleteOnboardingInput): string | null 
   return null;
 }
 
+const ONBOARDING_ERROR_MESSAGE = 'Configurazione non completata, riprova.';
+
+type OnboardingPhase = 'group' | 'user' | 'accounts' | 'default_account' | 'budgets';
+
+function logOnboardingFailure(
+  phase: OnboardingPhase,
+  partial: { groupId?: string; userId?: string; accountIds?: string[] },
+  clerkId: string,
+  err: unknown
+) {
+  const message = err instanceof Error ? err.message : String(err);
+  console.error(
+    '[completeOnboardingAction] Failure:',
+    JSON.stringify({
+      phase,
+      groupId: partial.groupId,
+      userId: partial.userId,
+      accountIds: partial.accountIds,
+      clerkId,
+      error: message,
+      timestamp: new Date().toISOString(),
+    })
+  );
+}
+
+/**
+ * Rollback: delete user (cascades to budgets, accounts for that user) then group.
+ * Used when onboarding fails after group/user creation so no partial state persists.
+ */
+async function rollbackOnboarding(userId: string, groupId: string): Promise<void> {
+  try {
+    await UserService.deleteUser(userId);
+  } catch (rollbackErr) {
+    console.error('[completeOnboardingAction] Rollback deleteUser failed:', rollbackErr);
+  }
+  try {
+    await GroupService.deleteGroup(groupId);
+  } catch (rollbackErr) {
+    console.error('[completeOnboardingAction] Rollback deleteGroup failed:', rollbackErr);
+  }
+}
+
 // Helper: Create accounts
 async function createOnboardingAccounts(
   accounts: CompleteOnboardingInput['accounts'],
   userId: string,
   groupId: string
-): Promise<{ defaultAccountId: string | null; error: string | null }> {
+): Promise<{ defaultAccountId: string | null; createdAccountIds: string[]; error: string | null }> {
   let defaultAccountId: string | null = null;
   const createdAccountIds: string[] = [];
 
@@ -52,18 +94,18 @@ async function createOnboardingAccounts(
       group_id: groupId,
     });
 
-    if (!createdAccount) return { defaultAccountId: null, error: 'Failed to create account' };
+    if (!createdAccount)
+      return { defaultAccountId: null, createdAccountIds, error: 'Failed to create account' };
 
     createdAccountIds.push(accountId);
     if (accountInput.isDefault) defaultAccountId = accountId;
   }
 
-  // Fallback: if no default specified, use first account
   if (!defaultAccountId && createdAccountIds.length > 0) {
     defaultAccountId = createdAccountIds[0];
   }
 
-  return { defaultAccountId, error: null };
+  return { defaultAccountId, createdAccountIds, error: null };
 }
 
 // Helper: Create budgets
@@ -89,30 +131,29 @@ async function createOnboardingBudgets(
 
 /**
  * Completes the onboarding flow by creating the user, group, accounts and budgets.
+ * On any failure after group/user creation, rolls back so no partial state persists (atomic).
  */
 export async function completeOnboardingAction(
   input: CompleteOnboardingInput
 ): Promise<ServiceResult<{ userId: string; groupId: string }>> {
+  const { user, group, accounts, budgets, budgetStartDay } = input;
+
+  const validationError = validateOnboardingInput(input);
+  if (validationError) return { data: null, error: validationError };
+
+  const existingUser = await UserService.userExistsByClerkId(user.clerkId);
+  if (existingUser) {
+    return {
+      data: null,
+      error: "L'utente risulta già configurato. Aggiorna la pagina per accedere alla dashboard.",
+    };
+  }
+
+  const userId = randomUUID();
+  const groupId = randomUUID();
+
   try {
-    const { user, group, accounts, budgets, budgetStartDay } = input;
-
-    // 1. Validation
-    const validationError = validateOnboardingInput(input);
-    if (validationError) return { data: null, error: validationError };
-
-    // 2. Check existing user
-    const existingUser = await UserService.userExistsByClerkId(user.clerkId);
-    if (existingUser) {
-      return {
-        data: null,
-        error: "L'utente risulta già configurato. Aggiorna la pagina per accedere alla dashboard.",
-      };
-    }
-
-    const userId = randomUUID();
-    const groupId = randomUUID();
-
-    // 3. Create Group
+    // Phase 1: Group + User
     const createdGroup = await GroupService.createGroup({
       id: groupId,
       name: group.name.trim(),
@@ -122,9 +163,10 @@ export async function completeOnboardingAction(
       isActive: true,
     });
 
-    if (!createdGroup) return { data: null, error: 'Errore durante la creazione del gruppo' };
+    if (!createdGroup) {
+      return { data: null, error: ONBOARDING_ERROR_MESSAGE };
+    }
 
-    // 4. Create User
     const createdUser = await UserService.create({
       id: userId,
       name: user.name.trim(),
@@ -138,66 +180,146 @@ export async function completeOnboardingAction(
       budget_periods: [],
     });
 
-    if (!createdUser)
-      return { data: null, error: 'Errore durante la creazione del profilo utente' };
+    if (!createdUser) {
+      await rollbackOnboarding(userId, groupId);
+      return { data: null, error: ONBOARDING_ERROR_MESSAGE };
+    }
 
-    // 5. Invalidate caches
     revalidateTag(CACHE_TAGS.USERS, 'max');
     revalidateTag(CACHE_TAGS.USER(userId), 'max');
     revalidateTag(CACHE_TAGS.USER_BY_CLERK(user.clerkId), 'max');
 
-    // 6. Create Accounts
-    const { defaultAccountId, error: accountError } = await createOnboardingAccounts(
-      accounts,
-      userId,
-      groupId
-    );
-    if (accountError) return { data: null, error: accountError };
-
-    // 7. Set default account
-    if (defaultAccountId) {
-      await UserService.update(userId, { default_account_id: defaultAccountId } as {
-        default_account_id: string;
-      });
+    // Phase 2: Accounts
+    const {
+      defaultAccountId,
+      createdAccountIds,
+      error: accountError,
+    } = await createOnboardingAccounts(accounts, userId, groupId);
+    if (accountError) {
+      logOnboardingFailure(
+        'accounts',
+        { groupId, userId, accountIds: createdAccountIds },
+        user.clerkId,
+        accountError
+      );
+      await rollbackOnboarding(userId, groupId);
+      return { data: null, error: ONBOARDING_ERROR_MESSAGE };
     }
 
-    // 8. Create Budgets
+    // Phase 3: Default account
+    if (defaultAccountId) {
+      try {
+        await UserService.update(userId, { default_account_id: defaultAccountId } as {
+          default_account_id: string;
+        });
+      } catch (err) {
+        logOnboardingFailure(
+          'default_account',
+          { groupId, userId, accountIds: createdAccountIds },
+          user.clerkId,
+          err
+        );
+        await rollbackOnboarding(userId, groupId);
+        return { data: null, error: ONBOARDING_ERROR_MESSAGE };
+      }
+    }
+
+    // Phase 4: Budgets
     const budgetError = await createOnboardingBudgets(budgets, userId, groupId);
-    if (budgetError) return { data: null, error: budgetError };
+    if (budgetError) {
+      logOnboardingFailure(
+        'budgets',
+        { groupId, userId, accountIds: createdAccountIds },
+        user.clerkId,
+        budgetError
+      );
+      await rollbackOnboarding(userId, groupId);
+      return { data: null, error: ONBOARDING_ERROR_MESSAGE };
+    }
 
     return {
       data: { userId, groupId },
       error: null,
     };
   } catch (error) {
-    console.error('[completeOnboardingAction] Error:', error);
+    logOnboardingFailure('user', { groupId, userId }, user.clerkId, error);
+    try {
+      await rollbackOnboarding(userId, groupId);
+    } catch {
+      // already logged in rollbackOnboarding
+    }
     return {
       data: null,
-      error:
-        error instanceof Error ? error.message : "Errore durante il completamento dell'onboarding",
+      error: ONBOARDING_ERROR_MESSAGE,
     };
   }
 }
 
+const DELETE_CLERK_RETRY_DELAYS_MS = [500, 1000, 2000];
+const MAX_DELETE_CLERK_ATTEMPTS = 3;
+
 /**
- * Deletes a Clerk user - used for rollback when onboarding fails
+ * Deletes a Clerk user - used for rollback when onboarding fails.
+ * Retries up to 3 times with backoff (500ms, 1s, 2s).
  */
 export async function deleteClerkUserAction(clerkUserId: string): Promise<ServiceResult<void>> {
-  try {
-    if (!clerkUserId) {
-      return { data: null, error: 'ID utente Clerk mancante' };
+  if (!clerkUserId) {
+    return { data: null, error: 'ID utente Clerk mancante' };
+  }
+
+  let lastError: unknown = null;
+  for (let attempt = 1; attempt <= MAX_DELETE_CLERK_ATTEMPTS; attempt++) {
+    try {
+      const client = await clerkClient();
+      await client.users.deleteUser(clerkUserId);
+      return { data: undefined, error: null };
+    } catch (error) {
+      lastError = error;
+      console.error(
+        '[deleteClerkUserAction] Attempt failed:',
+        JSON.stringify({
+          clerkUserId,
+          attemptNumber: attempt,
+          timestamp: new Date().toISOString(),
+          message: error instanceof Error ? error.message : String(error),
+        })
+      );
+      if (attempt < MAX_DELETE_CLERK_ATTEMPTS) {
+        const delayMs = DELETE_CLERK_RETRY_DELAYS_MS[attempt - 1] ?? 2000;
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
+      }
     }
+  }
 
-    const client = await clerkClient();
-    await client.users.deleteUser(clerkUserId);
+  return {
+    data: null,
+    error:
+      lastError instanceof Error
+        ? lastError.message
+        : "Errore durante l'eliminazione dell'utente Clerk",
+  };
+}
 
+/**
+ * Registers an orphan Clerk user (Clerk account without Supabase profile) for manual remediation.
+ * Call when onboarding fails and deleteClerkUserAction has failed after retries.
+ */
+export async function registerOrphanUserAction(clerkId: string): Promise<ServiceResult<void>> {
+  try {
+    const { supabase } = await import('@/server/db/supabase');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- orphan_users table added via migration; types may lag
+    const { error } = await supabase.from('orphan_users').insert({ clerk_id: clerkId } as any);
+
+    if (error) {
+      console.error('[registerOrphanUserAction] Insert failed:', error);
+      return { data: null, error: error.message };
+    }
     return { data: undefined, error: null };
-  } catch (error) {
-    console.error('Error deleting Clerk user:', error);
+  } catch (err) {
+    console.error('[registerOrphanUserAction] Error:', err);
     return {
       data: null,
-      error:
-        error instanceof Error ? error.message : "Errore durante l'eliminazione dell'utente Clerk",
+      error: err instanceof Error ? err.message : 'Failed to register orphan user',
     };
   }
 }

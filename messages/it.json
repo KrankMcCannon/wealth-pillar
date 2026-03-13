@@ -9,7 +9,8 @@
       "checking": "Verifica account in corso...",
       "submitting": "Configurazione account...",
       "redirecting": "Reindirizzamento...",
-      "verifying": "Completamento autenticazione"
+      "verifying": "Completamento autenticazione",
+      "orphanSupportMessage": "Si è verificato un errore. Contatta support@wealthpillar.com con il tuo indirizzo email."
     }
   },
   "Common": {
