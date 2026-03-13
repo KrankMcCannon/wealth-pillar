@@ -21,6 +21,7 @@ import {
 import { useCategories } from '@/stores/reference-data-store';
 import { useUserFilterStore } from '@/stores/user-filter-store';
 import { usePageDataStore } from '@/stores/page-data-store';
+import { toast } from '@/hooks/use-toast';
 import { budgetStyles, getBudgetCategoryColorStyle } from '@/styles/system';
 
 type BudgetFormData = {
@@ -211,14 +212,14 @@ function BudgetFormModal({ isOpen, onClose, editId }: Readonly<BudgetFormModalPr
     const result = await updateBudgetAction(id, budgetData, locale);
 
     if (result.error) {
-      // 4. Revert on error
       updateBudget(id, originalBudget);
+      toast({ title: 'Errore', description: result.error, variant: 'destructive' });
       throw new Error(result.error);
     }
 
-    // 5. Success - update with real data from server
     if (result.data) {
       updateBudget(id, result.data);
+      toast({ title: 'Budget aggiornato', description: 'Modifiche salvate correttamente.', variant: 'success' });
     }
   };
 
@@ -255,16 +256,15 @@ function BudgetFormModal({ isOpen, onClose, editId }: Readonly<BudgetFormModalPr
     const result = await createBudgetAction(budgetData, locale);
 
     if (result.error) {
-      // 5. Remove optimistic budget on error
       removeBudget(tempId);
-      console.error('Failed to create budget:', result.error);
+      toast({ title: 'Errore', description: result.error, variant: 'destructive' });
       return;
     }
 
-    // 6. Replace temporary with real budget from server
     removeBudget(tempId);
     if (result.data) {
       addBudget(result.data);
+      toast({ title: 'Budget creato', description: 'Budget aggiunto correttamente.', variant: 'success' });
     }
   };
 
@@ -279,9 +279,9 @@ function BudgetFormModal({ isOpen, onClose, editId }: Readonly<BudgetFormModalPr
         // onClose is called inside handleCreate for immediate feedback
       }
     } catch (error) {
-      setError('root', {
-        message: error instanceof Error ? error.message : t('errors.unknown'),
-      });
+      const message = error instanceof Error ? error.message : t('errors.unknown');
+      setError('root', { message });
+      toast({ title: 'Errore', description: message, variant: 'destructive' });
     }
   };
 

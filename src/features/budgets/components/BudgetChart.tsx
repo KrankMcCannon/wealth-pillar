@@ -139,7 +139,7 @@ export function BudgetChart({ spent, chartData, periodInfo }: Readonly<BudgetCha
 
                   return (
                     <span
-                      key={`day-${dayOfMonth}`}
+                      key={`day-${index}-${currentDate.toISOString().slice(0, 10)}`}
                       className={`${budgetStyles.chart.dayLabel} ${budgetStyles.chart.dayLabelPosition} ${
                         showDay
                           ? budgetStyles.chart.dayLabelVisible

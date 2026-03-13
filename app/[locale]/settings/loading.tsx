@@ -1,15 +1,24 @@
 /**
  * Settings Page Loading State
- * Shown while settings data is being prefetched and hydrated
- *
- * Uses centralized skeleton components from features/settings
- * Follows consistent design system and spacing patterns
+ * Skeleton that mirrors settings layout (header, list sections)
+ * to reduce layout shift and align with other loading states.
  */
 
-import { PageLoader } from '@/components/shared';
-import { getTranslations } from 'next-intl/server';
+import { BottomNavigation, PageContainer } from '@/components/layout';
+import { SkeletonBox } from '@/components/ui/primitives/skeleton-box';
+import { SkeletonList } from '@/components/ui/primitives/skeleton-list';
 
-export default async function SettingsLoading() {
-  const t = await getTranslations('SettingsPage');
-  return <PageLoader message={t('loading')} />;
+export default function SettingsLoading() {
+  return (
+    <PageContainer>
+      <div className="px-3 sm:px-4 py-4 pb-24 space-y-6 max-w-7xl mx-auto">
+        <div className="flex items-center gap-3 mb-4">
+          <SkeletonBox height="h-10" width="w-10" variant="light" className="rounded-xl shrink-0" />
+          <SkeletonBox height="h-8" width="w-48" variant="medium" />
+        </div>
+        <SkeletonList count={6} height="h-14" spacing="space-y-2" variant="light" />
+      </div>
+      <BottomNavigation />
+    </PageContainer>
+  );
 }

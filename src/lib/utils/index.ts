@@ -121,3 +121,6 @@ export {
 
 // Temp ID
 export { getTempId } from './temp-id';
+
+// Promise timeout
+export { withTimeout } from './with-timeout';

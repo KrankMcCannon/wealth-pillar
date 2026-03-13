@@ -361,6 +361,7 @@
     },
     "TimeRangeSelector": {
       "label": "Time Range",
+      "ariaLabel": "Time range",
       "allTime": "All Time",
       "last7Days": "Last 7 Days",
       "last30Days": "Last 30 Days",
@@ -948,6 +949,7 @@
     "PeriodManager": {
       "title": "Budget Period Management",
       "description": "Manage budget periods to track expenses over time",
+      "openLabel": "Open budget period management",
       "invalidDate": "Invalid date",
       "errors": {
         "selectDate": "Select a date",

@@ -20,8 +20,13 @@ export default async function TransactionsPage({
   if (!currentUser) redirect(`/${locale}/sign-in`);
   const groupUsers = await getGroupUsers();
 
-  // Fetch paginated transactions (first 50) with other page data
-  const pageData = await PageDataService.getTransactionsPageData(currentUser.group_id || '');
+  let pageData: Awaited<ReturnType<typeof PageDataService.getTransactionsPageData>>;
+  try {
+    pageData = await PageDataService.getTransactionsPageData(currentUser.group_id || '');
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Errore nel caricamento delle transazioni';
+    throw new Error(message, { cause: err });
+  }
 
   const {
     transactions = [],

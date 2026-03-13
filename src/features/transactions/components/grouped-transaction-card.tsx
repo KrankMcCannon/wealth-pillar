@@ -1,5 +1,6 @@
 'use client';
 
+import { memo, useCallback } from 'react';
 import { Card } from '@/components/ui';
 import { useTranslations } from 'next-intl';
 import { Transaction, Category } from '@/lib';
@@ -38,7 +39,7 @@ interface GroupedTransactionCardProps {
  * - Context-aware styling (due vs informative)
  * - Apple-style interactions with unified swipe system
  */
-export function GroupedTransactionCard({
+function GroupedTransactionCardInner({
   transactions,
   accountNames,
   variant = 'regular',
@@ -50,15 +51,16 @@ export function GroupedTransactionCard({
   onDeleteTransaction,
 }: Readonly<GroupedTransactionCardProps>) {
   const t = useTranslations('Transactions.GroupedCard');
+  const getCategoryLabel = useCallback(
+    (categoryKey: string) => FinanceLogicService.getCategoryLabel(categories, categoryKey),
+    [categories]
+  );
+  const getCategoryColor = useCallback(
+    (categoryKey: string) => FinanceLogicService.getCategoryColor(categories, categoryKey),
+    [categories]
+  );
+
   if (!transactions.length) return null;
-
-  const getCategoryLabel = (categoryKey: string) => {
-    return FinanceLogicService.getCategoryLabel(categories, categoryKey);
-  };
-
-  const getCategoryColor = (categoryKey: string) => {
-    return FinanceLogicService.getCategoryColor(categories, categoryKey);
-  };
 
   return (
     <Card className={cn(getCardVariantStyles(variant))}>
@@ -80,7 +82,7 @@ export function GroupedTransactionCard({
       <div className={transactionStyles.groupedCard.rowContainer}>
         {transactions.map((transaction, index) => (
           <TransactionRow
-            key={transaction.id || index}
+            key={transaction.id ?? `temp-${transaction.date ?? 'unknown'}-${index}`}
             transaction={transaction}
             accountNames={accountNames}
             variant={variant}
@@ -95,3 +97,5 @@ export function GroupedTransactionCard({
     </Card>
   );
 }
+
+export const GroupedTransactionCard = memo(GroupedTransactionCardInner);

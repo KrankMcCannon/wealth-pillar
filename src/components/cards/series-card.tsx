@@ -4,7 +4,7 @@
 
 'use client';
 
-import { useMemo, useState } from 'react';
+import { memo, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { cn } from '@/lib';
 import type { RecurringTransactionSeries } from '@/lib';
@@ -59,7 +59,7 @@ function getDueDateLabel(days: number, t: ReturnType<typeof useTranslations>): s
   return t('due.inDays', { count: days });
 }
 
-export function SeriesCard({
+function SeriesCardInner({
   series,
   className,
   showActions = false,
@@ -272,4 +272,5 @@ export function SeriesCard({
   return cardContent;
 }
 
+export const SeriesCard = memo(SeriesCardInner);
 export default SeriesCard;

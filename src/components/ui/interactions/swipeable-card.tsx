@@ -242,14 +242,15 @@ export const SwipeableCard = memo<SwipeableCardProps>(
         <div className={cn(swipeStyles.wrapper, className)}>
           {/* Left Action Layer (Pause/Resume) */}
           {leftAction && (
-            <button
+            <div
+              role="button"
+              tabIndex={0}
               className={cn(swipeStyles.actionLayer.base, swipeStyles.actionLayer.left)}
               style={getActionLayerStyle(
                 swipeSide === 'left',
                 'left',
                 appleSwipeTokens.dimensions.actionWidthSingle
               )}
-              tabIndex={0}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                   e.stopPropagation();
@@ -264,6 +265,7 @@ export const SwipeableCard = memo<SwipeableCardProps>(
               }}
             >
               <button
+                type="button"
                 className={cn(
                   getActionButtonClasses(leftAction.variant),
                   'w-full justify-center text-center'
@@ -278,19 +280,20 @@ export const SwipeableCard = memo<SwipeableCardProps>(
                 {leftAction.icon}
                 {leftAction.label}
               </button>
-            </button>
+            </div>
           )}
 
           {/* Right Action Layer (Delete) */}
           {rightAction && (
-            <button
+            <div
+              role="button"
+              tabIndex={0}
               className={cn(swipeStyles.actionLayer.base, swipeStyles.actionLayer.right)}
               style={getActionLayerStyle(
                 swipeSide === 'right',
                 'right',
                 appleSwipeTokens.dimensions.actionWidthSingle
               )}
-              tabIndex={0}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                   e.stopPropagation();
@@ -305,6 +308,7 @@ export const SwipeableCard = memo<SwipeableCardProps>(
               }}
             >
               <button
+                type="button"
                 className={cn(
                   getActionButtonClasses(rightAction.variant),
                   'w-full justify-center text-center'
@@ -319,7 +323,7 @@ export const SwipeableCard = memo<SwipeableCardProps>(
                 {rightAction.icon}
                 {rightAction.label}
               </button>
-            </button>
+            </div>
           )}
 
           {/* Card Content (Foreground) */}

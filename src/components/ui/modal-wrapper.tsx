@@ -225,7 +225,7 @@ export function ModalSection({
   return (
     <div className={cn('flex flex-col gap-3', className)}>
       {title && (
-        <h4 className="text-xs font-semibold text-primary/60 uppercase tracking-wider">{title}</h4>
+        <h3 className="text-xs font-semibold text-primary/60 uppercase tracking-wider">{title}</h3>
       )}
       {children}
     </div>

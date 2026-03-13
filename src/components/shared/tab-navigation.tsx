@@ -1,5 +1,6 @@
 'use client';
 
+import { useRef, useCallback } from 'react';
 import { cn } from '@/lib';
 import { tabNavigationStyles } from './theme/tab-navigation-styles';
 
@@ -13,6 +14,8 @@ interface TabNavigationProps {
   onTabChange: (tabId: string) => void;
   variant?: 'underline' | 'pills' | 'modern';
   className?: string;
+  /** Optional id of the panel controlled by the tabs (for aria-controls) */
+  panelId?: string;
 }
 
 export default function TabNavigation({
@@ -21,7 +24,36 @@ export default function TabNavigation({
   onTabChange,
   variant = 'underline',
   className = '',
+  panelId,
 }: Readonly<TabNavigationProps>) {
+  const buttonRefs = useRef<(HTMLButtonElement | null)[]>([]);
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent, index: number) => {
+      let nextIndex = index;
+      if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        nextIndex = Math.min(index + 1, tabs.length - 1);
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        nextIndex = Math.max(index - 1, 0);
+      } else if (e.key === 'Home') {
+        e.preventDefault();
+        nextIndex = 0;
+      } else if (e.key === 'End') {
+        e.preventDefault();
+        nextIndex = tabs.length - 1;
+      } else {
+        return;
+      }
+      if (nextIndex !== index) {
+        onTabChange(tabs[nextIndex]!.id);
+        buttonRefs.current[nextIndex]?.focus();
+      }
+    },
+    [tabs, onTabChange]
+  );
+
   const getContainerStyles = () => {
     switch (variant) {
       case 'pills':
@@ -58,20 +90,36 @@ export default function TabNavigation({
   };
 
   return (
-    <div className={className}>
+    <div className={className} role="tablist" aria-label="Tab navigation">
       <div className={getContainerStyles()}>
-        {tabs.map((tab) => (
-          <button key={tab.id} onClick={() => onTabChange(tab.id)} className={getTabStyles(tab)}>
-            {tab.icon && variant !== 'underline' && (
-              <span className={tabNavigationStyles.icon}>{tab.icon}</span>
-            )}
-            <span
-              className={variant === 'underline' ? tabNavigationStyles.tab.underline.label : ''}
+        {tabs.map((tab, index) => {
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              ref={(el) => {
+                buttonRefs.current[index] = el;
+              }}
+              type="button"
+              role="tab"
+              aria-selected={isActive}
+              aria-controls={panelId ?? undefined}
+              tabIndex={isActive ? 0 : -1}
+              onClick={() => onTabChange(tab.id)}
+              onKeyDown={(e) => handleKeyDown(e, index)}
+              className={getTabStyles(tab)}
             >
-              {tab.label}
-            </span>
-          </button>
-        ))}
+              {tab.icon && variant !== 'underline' && (
+                <span className={tabNavigationStyles.icon}>{tab.icon}</span>
+              )}
+              <span
+                className={variant === 'underline' ? tabNavigationStyles.tab.underline.label : ''}
+              >
+                {tab.label}
+              </span>
+            </button>
+          );
+        })}
       </div>
     </div>
   );

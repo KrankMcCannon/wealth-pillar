@@ -22,6 +22,7 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui';
 import { useAccounts, useReferenceDataStore } from '@/stores/reference-data-store';
 import { useUserFilterStore } from '@/stores/user-filter-store';
+import { toast } from '@/hooks/use-toast';
 import { accountStyles } from '../theme/account-styles';
 
 type AccountFormData = {
@@ -144,14 +145,14 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
     const result = await updateAccountAction(id, accountData, data.isDefault || false, locale);
 
     if (result.error) {
-      // 4. Revert on error
       updateAccount(id, originalAccount);
+      toast({ title: 'Errore', description: result.error, variant: 'destructive' });
       throw new Error(result.error);
     }
 
-    // 5. Success - update with real data from server
     if (result.data) {
       updateAccount(id, result.data);
+      toast({ title: 'Account aggiornato', description: 'Modifiche salvate correttamente.', variant: 'success' });
     }
   };
 
@@ -192,17 +193,15 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
     );
 
     if (result.error) {
-      // 5. Remove optimistic account on error
       removeAccount(tempId);
-      console.error('Failed to create account:', result.error);
-      // We can't show error in form since modal is closed, but we log it
+      toast({ title: 'Errore', description: result.error, variant: 'destructive' });
       return;
     }
 
-    // 6. Replace temporary with real account from server
     removeAccount(tempId);
     if (result.data) {
       addAccount(result.data);
+      toast({ title: 'Account creato', description: 'Account aggiunto correttamente.', variant: 'success' });
     }
   };
 
@@ -217,9 +216,9 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
         // onClose is called inside handleCreate for immediate feedback
       }
     } catch (error) {
-      setError('root', {
-        message: error instanceof Error ? error.message : t('errors.unknown'),
-      });
+      const message = error instanceof Error ? error.message : t('errors.unknown');
+      setError('root', { message });
+      toast({ title: 'Errore', description: message, variant: 'destructive' });
     }
   };
 

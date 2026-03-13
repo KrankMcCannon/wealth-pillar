@@ -18,8 +18,13 @@ export default async function BudgetsPage({
   if (!currentUser) redirect(`/${locale}/sign-in`);
   const groupUsers = await getGroupUsers();
 
-  // Fetch all budget page data in parallel (optimized with Promise.all)
-  const pageData = await PageDataService.getBudgetsPageData(currentUser.group_id || '');
+  let pageData: Awaited<ReturnType<typeof PageDataService.getBudgetsPageData>>;
+  try {
+    pageData = await PageDataService.getBudgetsPageData(currentUser.group_id || '');
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Errore nel caricamento dei budget';
+    throw new Error(message, { cause: err });
+  }
 
   const {
     budgets = [],

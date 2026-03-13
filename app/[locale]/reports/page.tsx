@@ -15,19 +15,25 @@ export default async function ReportsPage({
   if (!currentUser) redirect(`/${locale}/sign-in`);
   const t = await getTranslations('ReportsPage');
 
-  // Fetch group users first (needed for secure data fetching)
   const groupUsers = await getGroupUsers();
   const groupUserIds = groupUsers.map((u) => u.id);
 
-  // Execute in parallel, passing group user IDs for security filtering
-  const [reportsData, spendingTrends] = await Promise.all([
-    ReportsService.getReportsData(groupUserIds),
-    ReportsService.getSpendingTrends(
-      currentUser.id,
-      new Date(new Date().getFullYear(), new Date().getMonth() - 11, 1),
-      new Date()
-    ),
-  ]);
+  let reportsData: Awaited<ReturnType<typeof ReportsService.getReportsData>>;
+  let spendingTrends: Awaited<ReturnType<typeof ReportsService.getSpendingTrends>>;
+
+  try {
+    [reportsData, spendingTrends] = await Promise.all([
+      ReportsService.getReportsData(groupUserIds),
+      ReportsService.getSpendingTrends(
+        currentUser.id,
+        new Date(new Date().getFullYear(), new Date().getMonth() - 11, 1),
+        new Date()
+      ),
+    ]);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Errore nel caricamento dei report';
+    throw new Error(message, { cause: err });
+  }
 
   const { transactions, accounts, periods, categories } = reportsData;
 

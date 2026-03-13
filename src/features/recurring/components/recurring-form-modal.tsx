@@ -17,6 +17,7 @@ import { useRequiredCurrentUser, useRequiredGroupUsers, useRequiredGroupId } fro
 import { useAccounts, useCategories } from '@/stores/reference-data-store';
 import { useUserFilterStore } from '@/stores/user-filter-store';
 import { usePageDataStore } from '@/stores/page-data-store';
+import { toast } from '@/hooks/use-toast';
 import { recurringStyles } from '../theme/recurring-styles';
 
 // Helper: Format date for input
@@ -309,11 +310,13 @@ function RecurringFormModal({ isOpen, onClose, editId }: Readonly<RecurringFormM
     if (result.error) {
       updateRecurringSeries(editId, originalSeries);
       setError('root', { message: result.error });
+      toast({ title: 'Errore', description: result.error, variant: 'destructive' });
       return;
     }
 
     if (result.data) {
       updateRecurringSeries(editId, result.data);
+      toast({ title: 'Serie aggiornata', description: 'Modifiche salvate correttamente.', variant: 'success' });
     }
   };
 
@@ -337,13 +340,14 @@ function RecurringFormModal({ isOpen, onClose, editId }: Readonly<RecurringFormM
 
     if (result.error) {
       removeRecurringSeries(tempId);
-      console.error('Failed to create recurring series:', result.error);
+      toast({ title: 'Errore', description: result.error, variant: 'destructive' });
       return;
     }
 
     removeRecurringSeries(tempId);
     if (result.data) {
       addRecurringSeries(result.data);
+      toast({ title: 'Serie creata', description: 'Serie ricorrente aggiunta correttamente.', variant: 'success' });
     }
   };
 
@@ -378,9 +382,9 @@ function RecurringFormModal({ isOpen, onClose, editId }: Readonly<RecurringFormM
         onClose();
       }
     } catch (error) {
-      setError('root', {
-        message: error instanceof Error ? error.message : t('errors.unknown'),
-      });
+      const message = error instanceof Error ? error.message : t('errors.unknown');
+      setError('root', { message });
+      toast({ title: 'Errore', description: message, variant: 'destructive' });
     }
   };
 

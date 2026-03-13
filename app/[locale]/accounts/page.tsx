@@ -18,8 +18,13 @@ export default async function AccountsPage({
   if (!currentUser) redirect(`/${locale}/sign-in`);
   const groupUsers = await getGroupUsers();
 
-  // Fetch accounts page data and categories in parallel
-  const pageData = await PageDataService.getAccountsPageData(currentUser.group_id || '');
+  let pageData: Awaited<ReturnType<typeof PageDataService.getAccountsPageData>>;
+  try {
+    pageData = await PageDataService.getAccountsPageData(currentUser.group_id || '');
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Errore nel caricamento degli account';
+    throw new Error(message, { cause: err });
+  }
 
   const { accountBalances = {}, accounts = [] } = pageData;
 

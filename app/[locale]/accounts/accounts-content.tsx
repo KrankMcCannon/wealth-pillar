@@ -7,7 +7,7 @@
  * Data is passed from Server Component for optimal performance
  */
 
-import { Suspense } from 'react';
+import { Suspense, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import { BottomNavigation, PageContainer, Header } from '@/components/layout';
 import { AccountsList, accountStyles, useAccountsContent } from '@/features/accounts';
@@ -50,6 +50,28 @@ export default function AccountsContent({
     accounts,
   });
 
+  const metricStats = useMemo(
+    () => [
+      { label: t('stats.total'), value: accountStats.totalAccounts, variant: 'primary' as const },
+      {
+        label: t('stats.positive'),
+        value: accountStats.positiveAccounts,
+        variant: 'success' as const,
+      },
+      {
+        label: t('stats.negative'),
+        value: accountStats.negativeAccounts,
+        variant: 'destructive' as const,
+      },
+    ],
+    [
+      t,
+      accountStats.totalAccounts,
+      accountStats.positiveAccounts,
+      accountStats.negativeAccounts,
+    ]
+  );
+
   return (
     <PageContainer className={accountStyles.page.container}>
       {/* Header Section */}
@@ -74,19 +96,7 @@ export default function AccountsContent({
           valueType={accountStats.totalBalance >= 0 ? 'income' : 'expense'}
           valueSize="lg"
           size="sm"
-          stats={[
-            { label: t('stats.total'), value: accountStats.totalAccounts, variant: 'primary' },
-            {
-              label: t('stats.positive'),
-              value: accountStats.positiveAccounts,
-              variant: 'success',
-            },
-            {
-              label: t('stats.negative'),
-              value: accountStats.negativeAccounts,
-              variant: 'destructive',
-            },
-          ]}
+          stats={metricStats}
           variant="highlighted"
           isLoading={false}
         />

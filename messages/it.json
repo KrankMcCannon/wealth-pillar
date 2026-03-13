@@ -361,6 +361,7 @@
     },
     "TimeRangeSelector": {
       "label": "Periodo",
+      "ariaLabel": "Periodo",
       "allTime": "Tutto",
       "last7Days": "Ultimi 7 Giorni",
       "last30Days": "Ultimi 30 Giorni",
@@ -948,6 +949,7 @@
     "PeriodManager": {
       "title": "Gestione Periodi Budget",
       "description": "Gestisci i periodi di budget per tracciare le spese nel tempo",
+      "openLabel": "Apri gestione periodi budget",
       "invalidDate": "Data non valida",
       "errors": {
         "selectDate": "Seleziona una data",

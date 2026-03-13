@@ -16,7 +16,7 @@ export const dashboardStyles = {
       'sticky top-0 z-20 bg-card/80 backdrop-blur-xl border-b border-primary/20 px-4 py-3 shadow-sm',
     inner: 'flex items-center justify-between',
     button:
-      'hover:bg-primary/8 text-primary rounded-xl transition-all duration-200 p-2 min-w-[40px] min-h-[40px] flex items-center justify-center group hover:scale-[1.02]',
+      'hover:bg-primary/8 text-primary rounded-xl transition-all duration-200 p-2 min-w-[44px] min-h-[44px] flex items-center justify-center group hover:scale-[1.02]',
     title: 'text-base font-semibold',
     section: {
       left: 'flex items-center gap-3',

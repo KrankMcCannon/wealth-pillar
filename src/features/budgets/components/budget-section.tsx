@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense } from 'react';
+import { Suspense, useCallback } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import type { Budget, BudgetPeriod, User } from '@/lib';
 import { progressBarVariants } from '@/lib';
@@ -62,6 +62,12 @@ export const BudgetSection = ({
   const t = useTranslations('Budgets.HomeSection');
   const locale = useLocale();
 
+  const goToBudgets = useCallback(() => router.push('/budgets'), [router]);
+  const goToBudgetSummary = useCallback(
+    (userId: string) => router.push(`/budgets/summary?userId=${userId}`),
+    [router]
+  );
+
   // Show skeleton only if actively loading AND no data received yet
   // With placeholderData, empty object exists immediately, so check both conditions
   const allBudgetEntries = Object.values(budgetsByUser);
@@ -91,7 +97,7 @@ export const BudgetSection = ({
           <h3 className={budgetStyles.section.emptyTitle}>{t('empty.title')}</h3>
           <p className={budgetStyles.section.emptyDescription}>{t('empty.description')}</p>
           <button
-            onClick={() => router.push('/budgets')}
+            onClick={goToBudgets}
             className={budgetStyles.section.emptyButton}
           >
             {t('empty.createButton')}
@@ -139,7 +145,7 @@ export const BudgetSection = ({
                 {/* Mobile-First Compact User Header */}
                 <button
                   className={`${budgetStyles.section.groupHeader} cursor-pointer hover:bg-primary/5 transition-colors w-full text-left`}
-                  onClick={() => router.push(`/budgets/summary?userId=${user.id}`)}
+                  onClick={() => goToBudgetSummary(user.id)}
                 >
                   {/* User Info Row */}
                   <RowCard

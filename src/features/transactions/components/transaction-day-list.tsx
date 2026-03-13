@@ -31,6 +31,8 @@
 
 'use client';
 
+import { useRef } from 'react';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import { SectionHeader } from '@/components/layout';
 import { EmptyState } from '@/components/shared';
 import { Button } from '@/components/ui';
@@ -40,6 +42,18 @@ import { transactionStyles } from '@/styles/system';
 import { formatCurrency, cn } from '@/lib/utils';
 import { FileText, type LucideIcon } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+
+/** When there are more than this many day groups, use virtualized list for performance */
+const VIRTUALIZE_THRESHOLD = 15;
+
+/** Approximate height (px): day header + card + transaction rows */
+function estimateGroupHeight(group: GroupedTransaction): number {
+  const header = 52;
+  const cardPadding = 16;
+  const rowHeight = 56;
+  const count = group.transactions?.length ?? 0;
+  return header + cardPadding + count * rowHeight;
+}
 
 /**
  * Grouped transaction structure
@@ -135,12 +149,62 @@ export function TransactionDayList({
   onDeleteTransaction,
 }: Readonly<TransactionDayListProps>) {
   const t = useTranslations('Transactions.DayList');
+  const parentRef = useRef<HTMLDivElement>(null);
   const hasTransactions = groupedTransactions.length > 0;
+  const useVirtual = hasTransactions && groupedTransactions.length > VIRTUALIZE_THRESHOLD;
   const resolvedEmptyTitle = emptyTitle ?? t('empty.title');
   const resolvedEmptyDescription = emptyDescription ?? t('empty.description');
   const resolvedViewAllLabel = viewAllLabel ?? t('viewAll');
 
+  const rowVirtualizer = useVirtualizer({
+    count: useVirtual ? groupedTransactions.length : 0,
+    getScrollElement: () => parentRef.current,
+    estimateSize: (index) => estimateGroupHeight(groupedTransactions[index]!),
+    overscan: 2,
+  });
+
   const headerClassName = cn(transactionStyles.dayList.sectionHeader, sectionHeaderClassName);
+
+  const renderGroup = (group: GroupedTransaction) => {
+    const count = group.count ?? group.transactions.length;
+    const total = group.total;
+    return (
+      <section key={group.date}>
+        <div className={transactionStyles.dayGroup.header}>
+          <h2 className={transactionStyles.dayGroup.title}>
+            {group.formattedDate ?? group.date}
+          </h2>
+          <div className={transactionStyles.dayGroup.stats}>
+            <div className={transactionStyles.dayGroup.statsTotal}>
+              <span className={transactionStyles.dayGroup.statsTotalLabel}>
+                {t('totalLabel')}
+              </span>
+              <span
+                className={`${transactionStyles.dayGroup.statsTotalValue} ${
+                  expensesOnly || total < 0
+                    ? transactionStyles.dayGroup.statsTotalValueNegative
+                    : transactionStyles.dayGroup.statsTotalValuePositive
+                }`}
+              >
+                {formatCurrency(Math.abs(total))}
+              </span>
+            </div>
+            <div className={transactionStyles.dayGroup.statsCount}>
+              {t('count', { count })}
+            </div>
+          </div>
+        </div>
+        <GroupedTransactionCard
+          transactions={group.transactions}
+          accountNames={accountNames}
+          categories={categories}
+          variant={variant}
+          onEditTransaction={onEditTransaction}
+          onDeleteTransaction={onDeleteTransaction}
+        />
+      </section>
+    );
+  };
 
   return (
     <section className={className}>
@@ -153,53 +217,46 @@ export function TransactionDayList({
         />
       )}
 
-      {/* Transactions List */}
-      <div className={transactionStyles.dayList.container}>
+      {/* Transactions List (virtualized when many groups) */}
+      <div
+        ref={useVirtual ? parentRef : undefined}
+        className={cn(
+          transactionStyles.dayList.container,
+          useVirtual && 'overflow-auto max-h-[65vh] min-h-[320px]'
+        )}
+      >
         {hasTransactions ? (
-          groupedTransactions.map((group) => {
-            const count = group.count ?? group.transactions.length;
-            const total = group.total;
-
-            return (
-              <section key={group.date}>
-                {/* Day Header */}
-                <div className={transactionStyles.dayGroup.header}>
-                  <h2 className={transactionStyles.dayGroup.title}>
-                    {group.formattedDate ?? group.date}
-                  </h2>
-                  <div className={transactionStyles.dayGroup.stats}>
-                    <div className={transactionStyles.dayGroup.statsTotal}>
-                      <span className={transactionStyles.dayGroup.statsTotalLabel}>
-                        {t('totalLabel')}
-                      </span>
-                      <span
-                        className={`${transactionStyles.dayGroup.statsTotalValue} ${
-                          expensesOnly || total < 0
-                            ? transactionStyles.dayGroup.statsTotalValueNegative
-                            : transactionStyles.dayGroup.statsTotalValuePositive
-                        }`}
-                      >
-                        {formatCurrency(Math.abs(total))}
-                      </span>
-                    </div>
-                    <div className={transactionStyles.dayGroup.statsCount}>
-                      {t('count', { count })}
-                    </div>
+          useVirtual ? (
+            <div
+              style={{
+                height: `${rowVirtualizer.getTotalSize()}px`,
+                width: '100%',
+                position: 'relative',
+              }}
+            >
+              {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+                const group = groupedTransactions[virtualRow.index];
+                if (!group) return null;
+                return (
+                  <div
+                    key={group.date}
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      width: '100%',
+                      transform: `translateY(${virtualRow.start}px)`,
+                    }}
+                    data-index={virtualRow.index}
+                  >
+                    {renderGroup(group)}
                   </div>
-                </div>
-
-                {/* Transaction Cards */}
-                <GroupedTransactionCard
-                  transactions={group.transactions}
-                  accountNames={accountNames}
-                  categories={categories}
-                  variant={variant}
-                  onEditTransaction={onEditTransaction}
-                  onDeleteTransaction={onDeleteTransaction}
-                />
-              </section>
-            );
-          })
+                );
+              })}
+            </div>
+          ) : (
+            groupedTransactions.map((group) => renderGroup(group))
+          )
         ) : (
           <EmptyState
             icon={emptyIcon}

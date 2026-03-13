@@ -28,12 +28,14 @@ export function TimeRangeSelector({ value, onChange }: TimeRangeSelectorProps) {
   );
 
   return (
-    <div className={reportsStyles.timeRange.container}>
-      <Calendar className={reportsStyles.timeRange.triggerIcon + ' text-primary/60'} />
+    <div className={reportsStyles.timeRange.container} role="group" aria-label={t('ariaLabel')}>
+      <Calendar className={reportsStyles.timeRange.triggerIcon + ' text-primary/60'} aria-hidden />
       <div className={reportsStyles.timeRange.chipGroup}>
         {options.map((opt) => (
           <button
             key={opt.value}
+            type="button"
+            aria-pressed={value === opt.value}
             className={
               value === opt.value
                 ? reportsStyles.timeRange.chipActive

@@ -135,8 +135,8 @@ const styles = {
   triggerIcon: 'mr-2 h-4 w-4 text-primary',
   triggerText: 'text-primary/60',
 
-  // Desktop popover
-  popoverContent: 'w-[450px] p-0 bg-card flex flex-col',
+  // Desktop popover (responsive: avoid horizontal scroll on narrow viewports)
+  popoverContent: 'w-[calc(100vw-40px)] max-w-[450px] p-0 bg-card flex flex-col',
 
   // Mobile dialog
   dialogOverlay:

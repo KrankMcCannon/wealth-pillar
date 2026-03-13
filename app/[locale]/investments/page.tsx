@@ -4,26 +4,8 @@ import { getTranslations } from 'next-intl/server';
 import InvestmentsContent from './investments-content';
 import { PageLoader } from '@/components/shared';
 import { getCurrentUser, getGroupUsers } from '@/lib/auth/cached-auth';
+import { withTimeout } from '@/lib/utils/with-timeout';
 import { InvestmentService, MarketDataService } from '@/server/services';
-
-async function withTimeout<T>(promise: Promise<T>, timeoutMs: number, fallback: T): Promise<T> {
-  let timeoutId: ReturnType<typeof setTimeout> | undefined;
-
-  try {
-    return await Promise.race([
-      promise,
-      new Promise<T>((resolve) => {
-        timeoutId = setTimeout(() => resolve(fallback), timeoutMs);
-      }),
-    ]);
-  } catch {
-    return fallback;
-  } finally {
-    if (timeoutId) {
-      clearTimeout(timeoutId);
-    }
-  }
-}
 
 export default async function InvestmentsPage(props: {
   params: Promise<{ locale: string }>;
@@ -38,15 +20,22 @@ export default async function InvestmentsPage(props: {
   if (!currentUser) redirect(`/${locale}/sign-in`);
   const groupUsers = await getGroupUsers();
 
-  // Keep benchmark fetch non-blocking to avoid slow external API/cache misses delaying navigation.
-  const [portfolioData, indexData] = await Promise.all([
-    InvestmentService.getPortfolio(currentUser.id),
-    withTimeout(
-      MarketDataService.getCachedMarketData(indexSymbol),
-      1500,
-      [] as Awaited<ReturnType<typeof MarketDataService.getCachedMarketData>>
-    ),
-  ]);
+  let portfolioData: Awaited<ReturnType<typeof InvestmentService.getPortfolio>>;
+  let indexData: Awaited<ReturnType<typeof MarketDataService.getCachedMarketData>>;
+
+  try {
+    [portfolioData, indexData] = await Promise.all([
+      InvestmentService.getPortfolio(currentUser.id),
+      withTimeout(
+        MarketDataService.getCachedMarketData(indexSymbol),
+        1500,
+        [] as Awaited<ReturnType<typeof MarketDataService.getCachedMarketData>>
+      ),
+    ]);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Errore nel caricamento del portafoglio';
+    throw new Error(message, { cause: err });
+  }
 
   return (
     <Suspense fallback={<PageLoader message={t('loading')} />}>

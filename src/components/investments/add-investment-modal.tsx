@@ -11,6 +11,7 @@ import { DateField } from '@/components/ui/fields';
 import { Input } from '@/components/ui/input';
 import { createInvestmentAction } from '@/features/investments/actions/investment-actions';
 import { transactionStyles } from '@/styles/system';
+import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 
 // Schema definition
@@ -87,19 +88,21 @@ export default function AddInvestmentModal({ isOpen, onClose }: Readonly<AddInve
         shares_acquired: Number(data.shares),
         currency: data.currency,
         created_at: new Date(data.created_at),
-        // Taxes paid for the purchase
         tax_paid: Number(data.tax_paid) || 0,
-        // Defaults
         currency_rate: 1,
         net_earn: 0,
       });
 
-      if (!res.error) {
-        reset();
-        onClose();
+      if (res.error) {
+        toast({ title: 'Errore', description: res.error, variant: 'destructive' });
+        return;
       }
+      toast({ title: 'Investimento aggiunto', description: 'Operazione completata correttamente.', variant: 'success' });
+      reset();
+      onClose();
     } catch (error) {
-      console.error(error);
+      const message = error instanceof Error ? error.message : 'Errore durante il salvataggio';
+      toast({ title: 'Errore', description: message, variant: 'destructive' });
     }
   };
 

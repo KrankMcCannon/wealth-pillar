@@ -78,8 +78,8 @@ export const reportsStyles = {
   // --- BUDGET FLOW VISUALIZER ---
   flow: {
     container: `${glassmorphism.card} ${radiusStyles.xl} p-4 sm:p-6 space-y-4 relative overflow-hidden`,
-    scrollContainer: 'w-full overflow-x-auto -mx-1 px-1',
-    svgWrapper: 'relative min-w-[600px]',
+    scrollContainer: 'w-full overflow-x-auto -mx-1 px-1 min-h-0',
+    svgWrapper: 'relative min-w-0 sm:min-w-[600px]',
     node: `${glassmorphism.light} ${radiusStyles.lg} p-2 sm:p-3 flex items-center justify-between border-l-4 transition-all hover:bg-white/5`,
     nodeLabel: 'font-medium text-xs sm:text-sm text-foreground',
     nodeValue: 'font-bold text-xs sm:text-sm text-foreground tabular-nums',

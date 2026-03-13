@@ -24,11 +24,15 @@ export default async function HomePage({
     redirect(`/${locale}/sign-in`);
   }
 
-  // Get group users (cached per request)
   const groupUsers = await getGroupUsers();
 
-  // Fetch page-specific data (accounts, transactions, budgets, etc.)
-  const dashboardData = await PageDataService.getDashboardData(currentUser.group_id || '');
+  let dashboardData: Awaited<ReturnType<typeof PageDataService.getDashboardData>>;
+  try {
+    dashboardData = await PageDataService.getDashboardData(currentUser.group_id || '');
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Errore nel caricamento della dashboard';
+    throw new Error(message, { cause: err });
+  }
 
   const {
     accounts = [],

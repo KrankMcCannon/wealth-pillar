@@ -4,6 +4,7 @@ import { Transaction, TransactionType } from '@/lib/types';
 import { CreateTransactionInput } from '@/server/services';
 import { getTempId } from '@/lib/utils';
 import { createTransactionAction, updateTransactionAction } from '@/features/transactions';
+import { toast } from '@/hooks/use-toast';
 
 interface UseTransactionSubmitProps {
   isEditMode: boolean;
@@ -66,15 +67,15 @@ export function useTransactionSubmit({
     } as Partial<CreateTransactionInput>);
 
     if (result.error) {
-      // 4. Revert on error
       updateTransaction(editId, originalTransaction);
       setError('root', { message: result.error });
+      toast({ title: 'Errore', description: result.error, variant: 'destructive' });
       return;
     }
 
-    // 5. Success - update with real data from server
     if (result.data) {
       updateTransaction(editId, result.data);
+      toast({ title: 'Transazione aggiornata', description: 'Modifiche salvate correttamente.', variant: 'success' });
     }
   };
 
@@ -104,16 +105,15 @@ export function useTransactionSubmit({
     } as CreateTransactionInput);
 
     if (result.error) {
-      // 5. Remove optimistic transaction on error
       removeTransaction(tempId);
-      console.error('Failed to create transaction:', result.error);
+      toast({ title: 'Errore', description: result.error, variant: 'destructive' });
       return;
     }
 
-    // 6. Replace temporary with real transaction from server
     removeTransaction(tempId);
     if (result.data) {
       addTransaction(result.data);
+      toast({ title: 'Transazione creata', description: 'Transazione aggiunta correttamente.', variant: 'success' });
     }
   };
 
@@ -142,10 +142,9 @@ export function useTransactionSubmit({
       // Close modal on success (for update mode)
       if (isEditMode) onClose();
     } catch (error) {
-      console.error('Submission error:', error);
-      setError('root', {
-        message: error instanceof Error ? error.message : messages.unknownError,
-      });
+      const message = error instanceof Error ? error.message : messages.unknownError;
+      setError('root', { message });
+      toast({ title: 'Errore', description: message, variant: 'destructive' });
     } finally {
       setIsSubmittingFromHook(false);
     }

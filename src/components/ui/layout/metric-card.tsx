@@ -175,7 +175,7 @@ export const MetricCard = memo(
           >
             {stats.map((stat, index) => (
               <div
-                key={index}
+                key={stat.label ?? `stat-${index}`}
                 className={cn(
                   metricCardStyles.stats.item,
                   metricCardStyles.stats.itemBase,

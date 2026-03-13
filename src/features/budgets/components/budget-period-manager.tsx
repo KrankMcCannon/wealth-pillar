@@ -199,9 +199,23 @@ export function BudgetPeriodManager({
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      setIsOpen(true);
+    }
+  };
+
   return (
     <>
-      <div className="contents cursor-pointer" onClick={() => setIsOpen(true)}>
+      <div
+        className="contents cursor-pointer"
+        role="button"
+        tabIndex={0}
+        onClick={() => setIsOpen(true)}
+        onKeyDown={handleKeyDown}
+        aria-label={t('openLabel')}
+      >
         {trigger}
       </div>
       <ModalWrapper

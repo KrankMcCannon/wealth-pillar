@@ -9,6 +9,7 @@ import { getMessages, setRequestLocale } from 'next-intl/server';
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import { notFound } from 'next/navigation';
 import { routing } from '@/i18n/routing';
+import { withTimeout } from '@/lib/utils/with-timeout';
 import { getCurrentUser, getGroupUsers } from '@/lib/auth/cached-auth';
 import { AccountService, CategoryService } from '@/server/services';
 import { ModalProvider } from '@/providers/modal-provider';
@@ -33,30 +34,13 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
+  maximumScale: 2,
+  userScalable: true,
   viewportFit: 'cover',
 };
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
-}
-
-async function withTimeout<T>(promise: Promise<T>, timeoutMs: number, fallback: T): Promise<T> {
-  let timeoutId: ReturnType<typeof setTimeout> | undefined;
-
-  try {
-    return await Promise.race([
-      promise,
-      new Promise<T>((resolve) => {
-        timeoutId = setTimeout(() => resolve(fallback), timeoutMs);
-      }),
-    ]);
-  } catch {
-    return fallback;
-  } finally {
-    if (timeoutId) clearTimeout(timeoutId);
-  }
 }
 
 /**

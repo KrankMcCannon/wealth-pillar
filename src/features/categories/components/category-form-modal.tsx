@@ -15,6 +15,7 @@ import { FormActions, FormField } from '@/components/form';
 import { IconPicker, Input } from '@/components/ui';
 import { useRequiredGroupId } from '@/hooks';
 import { useCategories, useReferenceDataStore } from '@/stores/reference-data-store';
+import { toast } from '@/hooks/use-toast';
 
 type CategoryFormData = {
   label: string;
@@ -145,14 +146,14 @@ function CategoryFormModal({ isOpen, onClose, editId }: Readonly<CategoryFormMod
     const result = await updateCategoryAction(id, updateData, locale);
 
     if (result.error) {
-      // 4. Revert on error
       updateCategory(id, originalCategory);
+      toast({ title: 'Errore', description: result.error, variant: 'destructive' });
       throw new Error(result.error);
     }
 
-    // 5. Success - update with real data from server
     if (result.data) {
       updateCategory(id, result.data);
+      toast({ title: 'Categoria aggiornata', description: 'Modifiche salvate correttamente.', variant: 'success' });
     }
   };
 
@@ -191,16 +192,15 @@ function CategoryFormModal({ isOpen, onClose, editId }: Readonly<CategoryFormMod
     );
 
     if (result.error) {
-      // 5. Remove optimistic category on error
       removeCategory(tempId);
-      console.error('Failed to create category:', result.error);
+      toast({ title: 'Errore', description: result.error, variant: 'destructive' });
       return;
     }
 
-    // 6. Replace temporary with real category from server
     removeCategory(tempId);
     if (result.data) {
       addCategory(result.data);
+      toast({ title: 'Categoria creata', description: 'Categoria aggiunta correttamente.', variant: 'success' });
     }
   };
 
@@ -215,9 +215,9 @@ function CategoryFormModal({ isOpen, onClose, editId }: Readonly<CategoryFormMod
         // onClose is called inside handleCreate for immediate feedback
       }
     } catch (error) {
-      setError('root', {
-        message: error instanceof Error ? error.message : t('errors.unknown'),
-      });
+      const message = error instanceof Error ? error.message : t('errors.unknown');
+      setError('root', { message });
+      toast({ title: 'Errore', description: message, variant: 'destructive' });
     }
   };
 

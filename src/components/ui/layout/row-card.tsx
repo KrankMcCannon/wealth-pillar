@@ -169,8 +169,26 @@ export const RowCard = memo(
     // Regular Card (No Swipe)
     // ========================================================================
 
+    const isClickable = Boolean(onClick) && !isDisabled;
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+      if (!isClickable || !onClick) return;
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        onClick();
+      }
+    };
+
     return (
-      <div className={cardClasses} onClick={isDisabled ? undefined : onClick} data-testid={testId}>
+      <div
+        className={cardClasses}
+        onClick={isClickable ? onClick : undefined}
+        {...(isClickable && {
+          role: 'button',
+          tabIndex: 0,
+          onKeyDown: handleKeyDown,
+        })}
+        data-testid={testId}
+      >
         {renderCardContent()}
       </div>
     );
