@@ -181,9 +181,9 @@ export const getSemanticColor = (categoryKey: string): string =>
 
 interface IconProps {
   icon: string;
-  className?: string;
-  size?: number;
-  color?: string;
+  className?: string | undefined;
+  size?: number | undefined;
+  color?: string | undefined;
 }
 
 export const Icon: React.FC<IconProps> = ({ icon, className = '', size = 20, color }) => {

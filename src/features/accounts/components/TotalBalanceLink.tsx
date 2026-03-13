@@ -16,7 +16,7 @@ import { formatCurrency } from '@/lib/utils';
 interface TotalBalanceLinkProps {
   totalBalance: number;
   accountCount: number;
-  selectedUserId?: string;
+  selectedUserId?: string | undefined;
 }
 
 export const TotalBalanceLink = ({

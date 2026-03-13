@@ -35,9 +35,12 @@ interface HeaderProps {
   extraMenuItems?: { label: string; icon: React.ElementType; onClick: () => void }[];
 
   // Investment data for header badge
-  investmentSummary?: {
-    totalReturnPercent: number;
-  } | null;
+  investmentSummary?:
+    | {
+        totalReturnPercent: number;
+      }
+    | null
+    | undefined;
 
   // Callbacks
   onBack?: () => void;

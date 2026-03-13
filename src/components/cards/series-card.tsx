@@ -20,19 +20,19 @@ import { useCloseAllCards } from '@/stores/swipe-state-store';
 
 interface SeriesCardProps {
   readonly series: RecurringTransactionSeries;
-  readonly className?: string;
-  readonly showActions?: boolean;
-  readonly showDelete?: boolean;
+  readonly className?: string | undefined;
+  readonly showActions?: boolean | undefined;
+  readonly showDelete?: boolean | undefined;
   /** Callback quando si clicca per modificare (modale) */
-  readonly onEdit?: (series: RecurringTransactionSeries) => void;
+  readonly onEdit?: ((series: RecurringTransactionSeries) => void) | undefined;
   /** Callback quando si clicca sulla card (navigazione o altro) - se definito, sovrascrive onEdit per il click */
-  readonly onCardClick?: (series: RecurringTransactionSeries) => void;
-  readonly onDelete?: (series: RecurringTransactionSeries) => void;
+  readonly onCardClick?: ((series: RecurringTransactionSeries) => void) | undefined;
+  readonly onDelete?: ((series: RecurringTransactionSeries) => void) | undefined;
   /** Callback quando si mette in pausa/riprende la serie */
-  readonly onPause?: (series: RecurringTransactionSeries) => void;
-  readonly onSeriesUpdate?: (series: RecurringTransactionSeries) => void;
+  readonly onPause?: ((series: RecurringTransactionSeries) => void) | undefined;
+  readonly onSeriesUpdate?: ((series: RecurringTransactionSeries) => void) | undefined;
   /** Group users for displaying user badges */
-  readonly groupUsers?: User[];
+  readonly groupUsers?: User[] | undefined;
 }
 
 // Helper function: Get frequency label

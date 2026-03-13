@@ -10,11 +10,11 @@ import { FormField, FormCurrencyInput } from '@/components/form';
 interface AmountFieldProps {
   value: string | number;
   onChange: (value: string) => void;
-  error?: string;
-  required?: boolean;
-  label?: string;
-  placeholder?: string;
-  min?: number;
+  error?: string | undefined;
+  required?: boolean | undefined;
+  label?: string | undefined;
+  placeholder?: string | undefined;
+  min?: number | undefined;
 }
 
 export function AmountField({

@@ -22,11 +22,11 @@ export interface TransactionFiltersState {
   searchQuery: string;
   type: TransactionTypeFilter;
   dateRange: DateRangeFilter;
-  categoryKey: string; // "all" or single category ID
-  categoryKeys?: string[]; // Multiple category IDs (for budget filtering)
-  budgetId?: string; // Budget ID when coming from budgets page
-  startDate?: string; // Custom date range start (ISO string)
-  endDate?: string; // Custom date range end (ISO string)
+  categoryKey: string;
+  categoryKeys?: string[] | undefined;
+  budgetId?: string | undefined;
+  startDate?: string | undefined;
+  endDate?: string | undefined;
 }
 
 interface TransactionFiltersStore extends TransactionFiltersState {

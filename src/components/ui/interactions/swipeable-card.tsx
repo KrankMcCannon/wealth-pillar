@@ -9,8 +9,8 @@
 
 'use client';
 
-import { memo, useEffect, useRef, type CSSProperties } from 'react';
-import { motion } from 'framer-motion';
+import { memo, useEffect, useRef } from 'react';
+import { motion, type MotionStyle } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useSwipeManager } from '@/hooks/use-swipe-manager';
 import {
@@ -48,13 +48,13 @@ export interface SwipeableCardProps {
   children: React.ReactNode;
 
   /** Left swipe action (e.g., pause/resume) */
-  leftAction?: SwipeAction;
+  leftAction?: SwipeAction | undefined;
 
   /** Right swipe action (e.g., delete) */
-  rightAction?: SwipeAction;
+  rightAction?: SwipeAction | undefined;
 
   /** Callback when card is clicked */
-  onCardClick?: () => void;
+  onCardClick?: (() => void) | undefined;
 
   /** Callback when swipe opens */
   onSwipeOpen?: (side: 'left' | 'right') => void;
@@ -205,8 +205,8 @@ export const SwipeableCard = memo<SwipeableCardProps>(
      * Generate motion style for Framer Motion
      * Workaround for React 19 type incompatibility
      */
-    const getMotionStyle = (): CSSProperties => {
-      return { x } as unknown as CSSProperties;
+    const getMotionStyle = (): MotionStyle => {
+      return { x } as unknown as MotionStyle;
     };
 
     // ========================================================================

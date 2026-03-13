@@ -89,7 +89,7 @@ const DropdownMenuCheckboxItem = React.forwardRef<
     ref={ref}
     data-slot="dropdown-checkbox-item"
     className={cn(dropdownStyles.checkboxItem, className)}
-    checked={checked}
+    {...(checked !== undefined && { checked })}
     {...props}
   >
     <span className={dropdownStyles.indicator}>

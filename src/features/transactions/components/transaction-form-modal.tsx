@@ -112,7 +112,7 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
       amount: '',
       type: 'expense',
       category: '',
-      date: new Date().toISOString().split('T')[0],
+      date: new Date().toISOString().split('T')[0] as string,
       user_id: defaultFormUserId,
       account_id: '',
       to_account_id: '',
@@ -176,7 +176,7 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
           amount: transaction.amount.toString(),
           type: transaction.type,
           category: transaction.category,
-          date: dateStr,
+          date: dateStr as string,
           user_id: transaction.user_id || '',
           account_id: transaction.account_id,
           to_account_id: transaction.to_account_id || '',
@@ -190,7 +190,7 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
         amount: '',
         type: 'expense',
         category: '',
-        date: new Date().toISOString().split('T')[0],
+        date: new Date().toISOString().split('T')[0] as string,
         user_id: defaultFormUserId,
         account_id: getDefaultAccountId(defaultFormUserId),
         to_account_id: '',
@@ -285,7 +285,7 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
       repositionInputs={false}
     >
       <form
-        onSubmit={handleSubmit(onSubmit)}
+        onSubmit={handleSubmit((data: TransactionFormData) => onSubmit(data))}
         className={cn(transactionStyles.form.container, 'flex flex-col h-full')}
       >
         <ModalBody className={transactionStyles.modal.content}>

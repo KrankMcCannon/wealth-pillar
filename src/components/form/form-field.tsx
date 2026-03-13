@@ -33,17 +33,17 @@ export interface FormFieldProps {
   /** Input element (Input, Select, etc.) */
   children: React.ReactNode;
   /** Error message to display */
-  error?: string | null;
+  error?: string | null | undefined;
   /** Mark field as required (shows asterisk) */
-  required?: boolean;
+  required?: boolean | undefined;
   /** Helper text shown below input */
-  helperText?: string;
+  helperText?: string | undefined;
   /** Unique ID for input (for label association) */
-  htmlFor?: string;
+  htmlFor?: string | undefined;
   /** Additional CSS classes for wrapper */
-  className?: string;
+  className?: string | undefined;
   /** Additional CSS classes for label */
-  labelClassName?: string;
+  labelClassName?: string | undefined;
 }
 
 // ============================================================================

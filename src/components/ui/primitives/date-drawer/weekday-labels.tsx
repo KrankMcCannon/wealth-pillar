@@ -23,11 +23,11 @@ interface WeekdayLabelsProps {
    * Apply different styling to weekend labels (Sa, Do)
    * @default false
    */
-  highlightWeekends?: boolean;
+  highlightWeekends?: boolean | undefined;
   /**
    * Additional CSS classes
    */
-  className?: string;
+  className?: string | undefined;
 }
 
 /**

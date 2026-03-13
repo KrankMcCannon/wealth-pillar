@@ -67,7 +67,7 @@ export async function deleteUserAction(
  */
 export async function updateUserProfileAction(
   userId: string,
-  updates: { name?: string; email?: string }
+  updates: { name?: string | undefined; email?: string | undefined }
 ): Promise<ServiceResult<{ id: string; name: string; email: string }>> {
   try {
     // Input validation

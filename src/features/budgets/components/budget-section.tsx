@@ -42,7 +42,7 @@ interface BudgetSectionProps {
     }
   >;
   budgets: Budget[];
-  selectedViewUserId?: string;
+  selectedViewUserId?: string | undefined;
   isLoading?: boolean;
   headerLeading?: React.ReactNode;
 }

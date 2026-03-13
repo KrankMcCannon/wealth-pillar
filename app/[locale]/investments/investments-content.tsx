@@ -26,7 +26,12 @@ interface InvestmentsContentProps {
     totalReturn: number;
     totalReturnPercent: number;
   };
-  indexData: Array<{ datetime?: string; time?: string; date?: string; close: string | number }>;
+  indexData: Array<{
+    datetime?: string | undefined;
+    time?: string | undefined;
+    date?: string | undefined;
+    close: string | number;
+  }>;
   currentIndex?: string;
 }
 

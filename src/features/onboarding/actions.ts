@@ -346,7 +346,7 @@ function getErrorType(message: string): 'timeout' | 'not_found' | 'unknown' {
  */
 export async function checkUserExistsAction(
   clerkId: string
-): Promise<ServiceResult<{ exists: boolean; userId?: string }>> {
+): Promise<ServiceResult<{ exists: boolean; userId?: string | undefined }>> {
   if (!clerkId) {
     return { data: null, error: 'Clerk ID mancante' };
   }

@@ -16,11 +16,11 @@ interface UseBudgetsByUserOptions {
   /** Current logged-in user */
   currentUser: User | null;
   /** Selected user ID for filtering (undefined = all for admins) */
-  selectedUserId?: string;
+  selectedUserId?: string | undefined;
   /** Optional budget periods map */
-  budgetPeriods?: Record<string, BudgetPeriod | null>;
+  budgetPeriods?: Record<string, BudgetPeriod | null> | undefined;
   /** Optional pre-calculated budget summaries (server-side optimization) */
-  precalculatedData?: Record<string, UserBudgetSummary>;
+  precalculatedData?: Record<string, UserBudgetSummary> | undefined;
 }
 
 /**

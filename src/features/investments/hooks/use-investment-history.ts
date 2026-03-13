@@ -1,15 +1,20 @@
 import { useMemo } from 'react';
 import type { Investment } from '@/components/investments/personal-investment-tab';
 
-type TimeSeriesEntry = { datetime?: string; time?: string; date?: string; close: string | number };
+type TimeSeriesEntry = {
+  datetime?: string | undefined;
+  time?: string | undefined;
+  date?: string | undefined;
+  close: string | number;
+};
 
 interface UseInvestmentHistoryProps {
   investments: Investment[];
-  indexData?: TimeSeriesEntry[];
+  indexData?: TimeSeriesEntry[] | undefined;
   summary: {
     totalCurrentValue: number;
   };
-  currentIndex?: string;
+  currentIndex?: string | undefined;
 }
 
 // Helper to get date string from various formats

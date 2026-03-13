@@ -11,12 +11,12 @@ import type { Account } from '@/lib/types';
 interface AccountFieldProps {
   value: string;
   onChange: (value: string) => void;
-  error?: string;
-  required?: boolean;
-  label?: string;
-  placeholder?: string;
-  accounts?: Account[];
-  userId?: string; // Optional user filter
+  error?: string | undefined;
+  required?: boolean | undefined;
+  label?: string | undefined;
+  placeholder?: string | undefined;
+  accounts?: Account[] | undefined;
+  userId?: string | undefined; // Optional user filter
 }
 
 export function AccountField({

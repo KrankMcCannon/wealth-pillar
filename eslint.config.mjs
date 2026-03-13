@@ -21,10 +21,23 @@ const eslintConfig = [
     ],
   },
 
+  // TypeScript type-aware linting (only for .ts/.tsx with project)
+  {
+    files: ['**/*.ts', '**/*.tsx'],
+    languageOptions: {
+      parserOptions: {
+        project: true,
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+    rules: {
+      '@typescript-eslint/no-unnecessary-type-assertion': 'error',
+    },
+  },
+
   // TypeScript and quality rules
   {
     rules: {
-      // Type Safety (no-unnecessary-type-assertion needs parserOptions.project / type-aware lint)
       '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/no-unused-vars': [
         'error',

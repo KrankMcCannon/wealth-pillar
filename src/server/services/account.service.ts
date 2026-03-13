@@ -228,7 +228,7 @@ export class AccountService {
     const now = new Date().toISOString();
 
     const account = await this.createDb({
-      id: data.id,
+      ...(data.id !== undefined && { id: data.id }),
       name,
       type: data.type,
       user_ids: data.user_ids,

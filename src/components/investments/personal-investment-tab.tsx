@@ -38,8 +38,15 @@ interface PersonalInvestmentTabProps {
     totalReturn: number;
     totalReturnPercent: number;
   };
-  indexData?: Array<{ datetime?: string; time?: string; date?: string; close: string | number }>;
-  currentIndex?: string;
+  indexData?:
+    | Array<{
+        datetime?: string | undefined;
+        time?: string | undefined;
+        date?: string | undefined;
+        close: string | number;
+      }>
+    | undefined;
+  currentIndex?: string | undefined;
 }
 
 export function PersonalInvestmentTab({

@@ -15,7 +15,7 @@ import {
 
 interface UsePermissionsProps {
   currentUser: User | null;
-  selectedUserId?: string;
+  selectedUserId?: string | undefined;
 }
 
 interface UsePermissionsReturn {

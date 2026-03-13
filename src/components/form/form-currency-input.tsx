@@ -32,17 +32,17 @@ export interface FormCurrencyInputProps {
   /** Callback when value changes (returns string) */
   onChange: (value: string) => void;
   /** Placeholder text */
-  placeholder?: string;
+  placeholder?: string | undefined;
   /** Disabled state */
-  disabled?: boolean;
+  disabled?: boolean | undefined;
   /** Additional CSS classes */
-  className?: string;
+  className?: string | undefined;
   /** Show currency symbol */
-  showSymbol?: boolean;
+  showSymbol?: boolean | undefined;
   /** Minimum allowed value */
-  min?: number;
+  min?: number | undefined;
   /** Maximum allowed value */
-  max?: number;
+  max?: number | undefined;
   /** Decimal places (default: 2) */
   decimals?: number;
 }

@@ -126,7 +126,11 @@ export function FormSelect({
             <div className={formStyles.select.empty}>{t('empty')}</div>
           ) : (
             filteredOptions.map((option) => (
-              <SelectItem key={option.value} value={option.value} disabled={option.disabled}>
+              <SelectItem
+                key={option.value}
+                value={option.value}
+                disabled={option.disabled ?? false}
+              >
                 <div className={formStyles.select.optionRow}>
                   {renderIcon?.(option)}
                   {option.icon && <span>{option.icon}</span>}

@@ -6,11 +6,11 @@ import { Amount } from '@/components/ui/primitives';
 import { reportsStyles } from '@/styles/system';
 
 interface BudgetPeriodMetricsProps {
-  defaultAccountStartBalance?: number | null;
-  defaultAccountEndBalance?: number | null;
-  periodTotalIncome?: number;
-  periodTotalSpent?: number;
-  periodTotalTransfers?: number;
+  defaultAccountStartBalance?: number | null | undefined;
+  defaultAccountEndBalance?: number | null | undefined;
+  periodTotalIncome?: number | undefined;
+  periodTotalSpent?: number | undefined;
+  periodTotalTransfers?: number | undefined;
 }
 
 export function BudgetPeriodMetrics({

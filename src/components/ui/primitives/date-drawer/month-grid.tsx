@@ -38,7 +38,7 @@ export interface MonthGridProps {
   /**
    * Currently selected date (if any)
    */
-  selectedDate?: Date;
+  selectedDate?: Date | undefined;
 
   /**
    * Callback when a date is selected
@@ -54,7 +54,7 @@ export interface MonthGridProps {
   /**
    * Additional CSS classes
    */
-  className?: string;
+  className?: string | undefined;
 }
 
 /**

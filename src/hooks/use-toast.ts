@@ -22,8 +22,8 @@ export type ToastProps = {
 type ActionType =
   | { type: 'ADD_TOAST'; toast: ToastProps }
   | { type: 'UPDATE_TOAST'; toast: Partial<ToastProps> }
-  | { type: 'DISMISS_TOAST'; toastId?: string }
-  | { type: 'REMOVE_TOAST'; toastId?: string };
+  | { type: 'DISMISS_TOAST'; toastId?: string | undefined }
+  | { type: 'REMOVE_TOAST'; toastId?: string | undefined };
 
 interface State {
   toasts: ToastProps[];

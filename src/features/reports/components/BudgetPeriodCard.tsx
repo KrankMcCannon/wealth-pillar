@@ -19,17 +19,17 @@ export interface BudgetPeriodCardProps {
   endDate: string | Date | null;
   userName: string;
   userId: string;
-  transactions?: Transaction[]; // Optional - Only transactions for this period and user
-  transactionCount?: number; // Count if transactions not provided
+  transactions?: Transaction[] | undefined;
+  transactionCount?: number | undefined;
   categories: Category[];
   isExpanded: boolean;
   onToggle: () => void;
-  showUserName?: boolean;
-  defaultAccountStartBalance?: number | null;
-  defaultAccountEndBalance?: number | null;
-  periodTotalSpent?: number;
-  periodTotalIncome?: number;
-  periodTotalTransfers?: number;
+  showUserName?: boolean | undefined;
+  defaultAccountStartBalance?: number | null | undefined;
+  defaultAccountEndBalance?: number | null | undefined;
+  periodTotalSpent?: number | undefined;
+  periodTotalIncome?: number | undefined;
+  periodTotalTransfers?: number | undefined;
 }
 
 const BudgetPeriodCardComponent = ({

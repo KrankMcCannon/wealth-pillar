@@ -954,8 +954,8 @@ export class FinanceLogicService {
    */
   static getAssociatedUsers(
     series: RecurringTransactionSeries,
-    allUsers: Array<{ id: string; name: string; theme_color?: string }>
-  ): Array<{ id: string; name: string; theme_color?: string }> {
+    allUsers: Array<{ id: string; name: string; theme_color?: string | undefined }>
+  ): Array<{ id: string; name: string; theme_color?: string | undefined }> {
     return allUsers.filter((user) => series.user_ids.includes(user.id));
   }
 }

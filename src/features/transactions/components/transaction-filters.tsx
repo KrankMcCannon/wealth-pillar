@@ -47,20 +47,20 @@ export interface TransactionFiltersState {
   searchQuery: string;
   type: TransactionTypeFilter;
   dateRange: DateRangeFilter;
-  categoryKey: string; // "all" or single category ID
-  categoryKeys?: string[]; // Multiple category IDs (for budget filtering)
-  budgetId?: string; // Budget ID when coming from budgets page
-  startDate?: string; // Custom date range start (ISO string)
-  endDate?: string; // Custom date range end (ISO string)
+  categoryKey: string;
+  categoryKeys?: string[] | undefined;
+  budgetId?: string | undefined;
+  startDate?: string | undefined;
+  endDate?: string | undefined;
 }
 
 interface TransactionFiltersProps {
   readonly categories: Category[];
   readonly filters: TransactionFiltersState;
   readonly onFiltersChange: (filters: TransactionFiltersState) => void;
-  readonly className?: string;
-  readonly budgetName?: string; // Show budget mode badge when set
-  readonly onClearBudgetFilter?: () => void; // Callback to clear budget filter and navigate back
+  readonly className?: string | undefined;
+  readonly budgetName?: string | undefined; // Show budget mode badge when set
+  readonly onClearBudgetFilter?: (() => void) | undefined; // Callback to clear budget filter and navigate back
 }
 
 // ============================================================================

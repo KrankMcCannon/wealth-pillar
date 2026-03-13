@@ -28,7 +28,7 @@ type AccountFormData = {
   name: string;
   type: 'payroll' | 'cash' | 'investments' | 'savings';
   user_id: string;
-  isDefault?: boolean;
+  isDefault?: boolean | undefined;
 };
 
 interface AccountFormModalProps {
@@ -289,7 +289,7 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
             <div className={accountStyles.formModal.checkboxRow}>
               <Checkbox
                 id="isDefault"
-                checked={watchedIsDefault}
+                checked={watchedIsDefault ?? false}
                 onCheckedChange={(checked) => setValue('isDefault', checked as boolean)}
                 disabled={isSubmitting}
               />

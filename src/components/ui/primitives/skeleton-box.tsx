@@ -3,9 +3,9 @@ import { skeletonStyles } from '@/styles/system';
 
 export interface SkeletonBoxProps {
   height: string;
-  width?: string;
+  width?: string | undefined;
   variant?: 'light' | 'medium' | 'dark';
-  className?: string;
+  className?: string | undefined;
 }
 
 export function SkeletonBox({

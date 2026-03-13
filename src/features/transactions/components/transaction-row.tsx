@@ -14,8 +14,8 @@ interface TransactionRowProps {
   accountNames: Record<string, string>;
   variant: 'regular' | 'recurrent';
   context: 'due' | 'informative';
-  onEditTransaction?: (transaction: Transaction) => void;
-  onDeleteTransaction?: (transactionId: string) => void;
+  onEditTransaction?: ((transaction: Transaction) => void) | undefined;
+  onDeleteTransaction?: ((transactionId: string) => void) | undefined;
   getCategoryLabel: (key: string) => string;
   getCategoryColor: (key: string) => string;
 }

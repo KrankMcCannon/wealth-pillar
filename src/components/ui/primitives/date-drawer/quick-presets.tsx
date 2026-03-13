@@ -85,7 +85,7 @@ export interface QuickPresetsProps {
   /**
    * Currently selected date (for highlighting active preset)
    */
-  selectedDate?: Date;
+  selectedDate?: Date | undefined;
 
   /**
    * Callback when preset is selected

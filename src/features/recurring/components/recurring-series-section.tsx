@@ -25,7 +25,7 @@ interface RecurringSeriesSectionProps {
   /** All recurring series data */
   readonly series: RecurringTransactionSeries[];
   /** Filter series by user ID (optional) */
-  readonly selectedUserId?: string;
+  readonly selectedUserId?: string | undefined;
   /** Additional CSS classes */
   readonly className?: string;
   /** Maximum number of items to display */

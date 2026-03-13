@@ -283,7 +283,7 @@ describe('TransactionService', () => {
     it('should throw error when transfer has no destination account', async () => {
       const input = createMockInput({
         type: 'transfer',
-        to_account_id: undefined,
+        to_account_id: null,
       });
 
       await expect(TransactionService.createTransaction(input)).rejects.toThrow();
@@ -1177,7 +1177,7 @@ describe('TransactionService', () => {
   describe('createTransaction with null user_id', () => {
     it('should handle undefined user_id', async () => {
       const mockTransaction = createMockTransaction({ user_id: null });
-      const input = createMockInput({ user_id: undefined });
+      const input = createMockInput({ user_id: null });
 
       vi.mocked(supabase.from).mockReturnValue({
         insert: vi.fn().mockReturnValue({

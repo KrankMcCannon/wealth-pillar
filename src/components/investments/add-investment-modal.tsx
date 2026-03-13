@@ -64,7 +64,7 @@ export default function AddInvestmentModal({ isOpen, onClose }: Readonly<AddInve
       tax_paid: '0',
       shares: '',
       currency: 'EUR',
-      created_at: new Date().toISOString().split('T')[0],
+      created_at: new Date().toISOString().split('T')[0] as string,
     },
   });
 
@@ -112,7 +112,7 @@ export default function AddInvestmentModal({ isOpen, onClose }: Readonly<AddInve
       maxWidth="md"
     >
       <form
-        onSubmit={handleSubmit(onSubmit)}
+        onSubmit={handleSubmit((data: InvestmentFormData) => onSubmit(data))}
         className={cn(transactionStyles.form.container, 'flex flex-col h-full')}
       >
         <ModalBody className={transactionStyles.modal.content}>

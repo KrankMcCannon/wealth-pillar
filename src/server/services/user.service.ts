@@ -326,7 +326,10 @@ export class UserService {
     return true;
   }
 
-  private static validateUpdateProfile(userId: string, updates: { name?: string; email?: string }) {
+  private static validateUpdateProfile(
+    userId: string,
+    updates: { name?: string | undefined; email?: string | undefined }
+  ) {
     if (!userId || userId.trim() === '') {
       throw new Error('User ID is required');
     }
@@ -351,7 +354,7 @@ export class UserService {
    */
   static async updateProfile(
     userId: string,
-    updates: { name?: string; email?: string }
+    updates: { name?: string | undefined; email?: string | undefined }
   ): Promise<User> {
     this.validateUpdateProfile(userId, updates);
 

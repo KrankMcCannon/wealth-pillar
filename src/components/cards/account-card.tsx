@@ -19,10 +19,10 @@ import { cardStyles } from './theme/card-styles';
 interface AccountCardProps {
   account: Account;
   accountBalance: number;
-  onClick?: () => void;
-  onEdit?: () => void;
-  onDelete?: () => void;
-  className?: string;
+  onClick?: (() => void) | undefined;
+  onEdit?: (() => void) | undefined;
+  onDelete?: (() => void) | undefined;
+  className?: string | undefined;
 }
 
 /**

@@ -161,7 +161,7 @@ export class UserPreferencesService {
 
     const normalizedUpdates: UserPreferencesUpdate = {
       ...updates,
-      language: updates.language ? normalizeLanguageTag(updates.language) : updates.language,
+      ...(updates.language != null ? { language: normalizeLanguageTag(updates.language) } : {}),
     };
 
     // Validate currency format (ISO 4217)

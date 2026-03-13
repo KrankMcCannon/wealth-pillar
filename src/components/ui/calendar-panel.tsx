@@ -11,7 +11,7 @@ export interface CalendarPanelProps {
   onChange: (date: string) => void;
   onClose: () => void;
   size?: 'mobile' | 'desktop';
-  className?: string;
+  className?: string | undefined;
 }
 
 /**

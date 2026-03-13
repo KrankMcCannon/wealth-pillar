@@ -9,14 +9,14 @@
  * Raw time series entry from Twelve Data API or market_data_cache
  */
 export interface TimeSeriesEntry {
-  datetime?: string;
-  time?: string;
-  date?: string;
-  open?: string | number;
-  high?: string | number;
-  low?: string | number;
+  datetime?: string | undefined;
+  time?: string | undefined;
+  date?: string | undefined;
+  open?: string | number | undefined;
+  high?: string | number | undefined;
+  low?: string | number | undefined;
   close: string | number;
-  volume?: string | number;
+  volume?: string | number | undefined;
 }
 
 /**

@@ -11,9 +11,9 @@ interface UseFilteredAccountsOptions {
   /** Current logged-in user */
   currentUser: User | null;
   /** Selected user ID for admin filtering (undefined = show all for admins) */
-  selectedUserId?: string;
+  selectedUserId?: string | undefined;
   /** Optional additional filter function for domain-specific filtering */
-  additionalFilter?: (account: Account) => boolean;
+  additionalFilter?: ((account: Account) => boolean) | undefined;
 }
 
 /**

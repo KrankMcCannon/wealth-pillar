@@ -78,13 +78,13 @@ export type UpdateTransactionInput = Partial<CreateTransactionInput>;
  * Transaction filter options - supports both date range and offset/limit pagination
  */
 export interface TransactionFilterOptions {
-  startDate?: Date;
-  endDate?: Date;
-  category?: string;
+  startDate?: Date | undefined;
+  endDate?: Date | undefined;
+  category?: string | undefined;
   type?: 'income' | 'expense' | 'transfer';
-  accountId?: string;
-  limit?: number;
-  offset?: number; // For backward compatibility with infinite scroll
+  accountId?: string | undefined;
+  limit?: number | undefined;
+  offset?: number | undefined;
 }
 
 /**
@@ -514,7 +514,7 @@ export class TransactionService {
       groupId: data.group_id,
       accountId: data.account_id,
       userId: data.user_id,
-      toAccountId: data.to_account_id,
+      toAccountId: data.to_account_id ?? null,
     });
 
     return serialize(transaction);

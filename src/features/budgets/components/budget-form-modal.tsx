@@ -27,10 +27,10 @@ type BudgetFormData = {
   description: string;
   amount: string;
   type: BudgetType;
-  icon?: string | null;
+  icon?: string | null | undefined;
   categories: string[];
   user_id: string;
-  categorySearch?: string;
+  categorySearch?: string | undefined;
 };
 
 interface BudgetFormModalProps {
@@ -191,7 +191,7 @@ function BudgetFormModal({ isOpen, onClose, editId }: Readonly<BudgetFormModalPr
     const budgetData = {
       description: data.description.trim(),
       amount,
-      type: data.type as BudgetType,
+      type: data.type,
       icon: data.icon ?? null,
       categories: data.categories,
       user_id: data.user_id,
@@ -228,7 +228,7 @@ function BudgetFormModal({ isOpen, onClose, editId }: Readonly<BudgetFormModalPr
     const budgetData = {
       description: data.description.trim(),
       amount,
-      type: data.type as BudgetType,
+      type: data.type,
       icon: data.icon ?? null,
       categories: data.categories,
       user_id: data.user_id,

@@ -16,17 +16,17 @@ import { CACHE_TAGS } from '@/lib/cache/config';
 export interface TransactionCacheInvalidationOptions {
   groupId: string;
   accountId: string;
-  userId?: string | null;
-  toAccountId?: string | null;
+  userId?: string | null | undefined;
+  toAccountId?: string | null | undefined;
 }
 
 /**
  * Options for budget cache invalidation
  */
 export interface BudgetCacheInvalidationOptions {
-  budgetId?: string;
+  budgetId?: string | undefined;
   userId: string;
-  groupId?: string;
+  groupId?: string | undefined;
 }
 
 /**
@@ -34,8 +34,8 @@ export interface BudgetCacheInvalidationOptions {
  */
 export interface AccountCacheInvalidationOptions {
   accountId: string;
-  groupId?: string;
-  userIds?: string[];
+  groupId?: string | undefined;
+  userIds?: string[] | undefined;
 }
 
 /**
@@ -119,7 +119,10 @@ export function invalidateUserCaches(opts: UserCacheInvalidationOptions): void {
  * Invalidates budget period related caches.
  * Used after creating, updating, or deleting budget periods.
  */
-export function invalidateBudgetPeriodCaches(opts: { userId: string; periodId?: string }): void {
+export function invalidateBudgetPeriodCaches(opts: {
+  userId: string;
+  periodId?: string | undefined;
+}): void {
   const tags: string[] = [
     CACHE_TAGS.BUDGET_PERIODS,
     `user:${opts.userId}:budget_periods`,
@@ -154,7 +157,10 @@ export function invalidateCategoryCaches(opts: { categoryId?: string }): void {
 /**
  * Invalidates recurring series caches.
  */
-export function invalidateRecurringCaches(opts: { seriesId?: string; userIds?: string[] }): void {
+export function invalidateRecurringCaches(opts: {
+  seriesId?: string | undefined;
+  userIds?: string[] | undefined;
+}): void {
   const tags: string[] = [CACHE_TAGS.RECURRING_SERIES];
 
   if (opts.seriesId) {
@@ -178,14 +184,14 @@ export function invalidateTransactionUpdateCaches(
   existing: {
     userId: string | null;
     accountId: string;
-    toAccountId?: string | null;
+    toAccountId?: string | null | undefined;
     groupId: string | null;
   },
   update: {
-    userId?: string | null;
-    accountId?: string;
-    toAccountId?: string | null;
-    groupId?: string;
+    userId?: string | null | undefined;
+    accountId?: string | undefined;
+    toAccountId?: string | null | undefined;
+    groupId?: string | undefined;
   }
 ): void {
   const tags: string[] = [CACHE_TAGS.TRANSACTIONS, CACHE_TAGS.ACCOUNTS];

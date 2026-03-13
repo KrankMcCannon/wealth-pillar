@@ -11,9 +11,9 @@ interface UseFilteredDataOptions<T extends { user_id: string | null }> {
   /** Current logged-in user */
   currentUser: User | null;
   /** Selected user ID for admin filtering (undefined = show all for admins) */
-  selectedUserId?: string;
+  selectedUserId?: string | undefined;
   /** Optional additional filter function for domain-specific filtering */
-  additionalFilter?: (item: T) => boolean;
+  additionalFilter?: ((item: T) => boolean) | undefined;
 }
 
 /**

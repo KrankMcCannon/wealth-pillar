@@ -12,10 +12,10 @@ interface BalanceSectionProps {
   accounts: Account[];
   accountBalances: Record<string, number>;
   totalBalance: number;
-  totalAccountsCount?: number;
-  selectedUserId?: string;
+  totalAccountsCount?: number | undefined;
+  selectedUserId?: string | undefined;
   onAccountClick: (id: string) => void;
-  isLoading?: boolean;
+  isLoading?: boolean | undefined;
 }
 
 /**

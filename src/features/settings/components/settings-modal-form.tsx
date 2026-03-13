@@ -13,8 +13,8 @@ export function SettingsModalForm({ className, ...props }: Readonly<SettingsModa
 export interface SettingsModalFieldProps {
   id: string;
   label: string;
-  error?: string;
-  inputProps?: React.InputHTMLAttributes<HTMLInputElement>;
+  error?: string | undefined;
+  inputProps?: React.InputHTMLAttributes<HTMLInputElement> | undefined;
 }
 
 export function SettingsModalField({

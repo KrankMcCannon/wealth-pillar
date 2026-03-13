@@ -139,9 +139,10 @@ export function DayCell({
       aria-current={isToday ? 'date' : undefined}
       role="button"
       tabIndex={isDisabled ? -1 : 0}
-      // Framer Motion animations
-      whileTap={isDisabled ? undefined : { scale: 0.95 }}
-      whileHover={isDisabled ? undefined : { scale: 1.05 }}
+      {...(!isDisabled && {
+        whileTap: { scale: 0.95 },
+        whileHover: { scale: 1.05 },
+      })}
       transition={{
         type: 'spring',
         stiffness: 400,

@@ -7,7 +7,7 @@ import { createTransactionAction, updateTransactionAction } from '@/features/tra
 
 interface UseTransactionSubmitProps {
   isEditMode: boolean;
-  editId?: string | null;
+  editId?: string | null | undefined;
   groupId: string;
   storeTransactions: Transaction[];
   updateTransaction: (id: string, data: Transaction) => void;
@@ -29,7 +29,7 @@ export interface TransactionSubmitData {
   date: string;
   user_id: string;
   account_id: string;
-  to_account_id?: string;
+  to_account_id?: string | undefined;
 }
 
 export function useTransactionSubmit({
@@ -129,7 +129,7 @@ export function useTransactionSubmit({
         date: data.date,
         user_id: data.user_id,
         account_id: data.account_id,
-        to_account_id: data.type === 'transfer' ? data.to_account_id : null,
+        to_account_id: data.type === 'transfer' ? (data.to_account_id ?? null) : null,
         group_id: groupId,
       };
 

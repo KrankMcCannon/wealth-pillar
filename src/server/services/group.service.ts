@@ -15,12 +15,12 @@ type GroupInsert = Database['public']['Tables']['groups']['Insert'];
 type User = Database['public']['Tables']['users']['Row'];
 
 export interface CreateGroupInput {
-  id?: string;
+  id?: string | undefined;
   name: string;
-  description?: string;
+  description?: string | undefined;
   userIds: string[];
-  plan?: Record<string, unknown>;
-  isActive?: boolean;
+  plan?: Record<string, unknown> | undefined;
+  isActive?: boolean | undefined;
 }
 
 /**
@@ -129,21 +129,24 @@ export class GroupService {
     const name = validateRequiredString(input.name, 'Group name');
     validateNonEmptyArray(input.userIds, 'user');
 
+    const plan = (input.plan ?? {
+      type: 'free',
+      name: 'Free Plan',
+    }) as Database['public']['Tables']['groups']['Insert']['plan'];
     const createData = {
-      id: input.id,
+      ...(input.id !== undefined && { id: input.id }),
       name,
       description: input.description?.trim() || '',
       user_ids: input.userIds,
-      plan: (input.plan ?? {
-        type: 'free',
-        name: 'Free Plan',
-      }) as Database['public']['Tables']['groups']['Insert']['plan'],
+      plan,
       is_active: input.isActive ?? true,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
 
-    const group = await this.createDb(createData);
+    const group = await this.createDb(
+      createData as Database['public']['Tables']['groups']['Insert']
+    );
     if (!group) throw new Error('Failed to create group');
 
     const createdGroup = group as unknown as Group;

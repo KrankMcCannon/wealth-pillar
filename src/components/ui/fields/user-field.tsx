@@ -11,13 +11,13 @@ import type { User } from '@/lib/types';
 interface UserFieldProps {
   value: string;
   onChange: (value: string) => void;
-  error?: string;
-  required?: boolean;
-  label?: string;
-  placeholder?: string;
-  users?: User[];
-  disabled?: boolean;
-  helperText?: string;
+  error?: string | undefined;
+  required?: boolean | undefined;
+  label?: string | undefined;
+  placeholder?: string | undefined;
+  users?: User[] | undefined;
+  disabled?: boolean | undefined;
+  helperText?: string | undefined;
 }
 
 export function UserField({

@@ -93,8 +93,7 @@ export default async function SettingsPage({
     ),
   ]);
 
-  // Apply the type assertion to the result of the promise, not within Promise.all's arguments
-  const groupUsers: User[] = groupUsersResult as User[];
+  const groupUsers: User[] = groupUsersResult;
 
   return (
     <Suspense fallback={<PageLoader message={t('loading')} />}>

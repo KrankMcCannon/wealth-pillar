@@ -23,10 +23,10 @@ export interface RowCardSwipeConfig {
   id: string;
 
   /** Delete action configuration */
-  deleteAction?: SwipeAction;
+  deleteAction?: SwipeAction | undefined;
 
   /** Optional callback when card is clicked */
-  onCardClick?: () => void;
+  onCardClick?: (() => void) | undefined;
 }
 
 export interface RowCardProps {
@@ -42,17 +42,17 @@ export interface RowCardProps {
 
   // Layout - Right Section
   primaryValue?: React.ReactNode; // Main value (Amount, Balance, etc.)
-  secondaryValue?: React.ReactNode; // Secondary text/badge
+  secondaryValue?: React.ReactNode | undefined; // Secondary text/badge
   actions?: React.ReactNode; // Action buttons/dropdowns
   amountVariant?: 'success' | 'destructive' | 'primary';
   rightLayout?: 'stack' | 'row';
 
   // Interaction
   variant?: 'regular' | 'interactive' | 'highlighted' | 'muted';
-  onClick?: () => void;
+  onClick?: (() => void) | undefined;
 
   // Swipe configuration (new unified system)
-  swipeConfig?: RowCardSwipeConfig;
+  swipeConfig?: RowCardSwipeConfig | undefined;
 
   // State
   isDisabled?: boolean;
@@ -150,11 +150,12 @@ export const RowCard = memo(
     // ========================================================================
 
     if (swipeConfig) {
+      const cardClick = swipeConfig.onCardClick ?? onClick;
       return (
         <SwipeableCard
           id={swipeConfig.id}
           rightAction={swipeConfig.deleteAction}
-          onCardClick={swipeConfig.onCardClick || onClick}
+          {...(cardClick !== undefined && { onCardClick: cardClick })}
           disabled={isDisabled}
         >
           <div className={cardClasses} data-testid={testId}>

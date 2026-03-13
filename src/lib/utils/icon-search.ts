@@ -75,7 +75,7 @@ function getFuseInstance(): Fuse<IconMetadata> {
 
 export interface IconSearchResult {
   icon: IconMetadata;
-  score?: number;
+  score?: number | undefined;
 }
 
 /**

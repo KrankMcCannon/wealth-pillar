@@ -8,7 +8,7 @@ import { FinanceLogicService } from '@/server/services/finance-logic.service';
 import { formatDateShort } from '@/lib/utils';
 
 interface BudgetPeriodTransactionsProps {
-  transactions?: Transaction[];
+  transactions?: Transaction[] | undefined;
   totalCount: number;
   startDate: string | Date;
   endDate: string | Date | null;

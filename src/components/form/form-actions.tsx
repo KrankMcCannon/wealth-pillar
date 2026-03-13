@@ -30,21 +30,21 @@ import { formStyles } from './theme/form-styles';
 
 export interface FormActionsProps {
   /** Submit button click handler */
-  onSubmit?: () => void;
+  onSubmit?: (() => void) | undefined;
   /** Cancel button click handler */
-  onCancel?: () => void;
+  onCancel?: (() => void) | undefined;
   /** Loading/submitting state */
-  isSubmitting?: boolean;
+  isSubmitting?: boolean | undefined;
   /** Disabled state */
-  disabled?: boolean;
+  disabled?: boolean | undefined;
   /** Submit button label */
-  submitLabel?: string;
+  submitLabel?: string | undefined;
   /** Cancel button label */
-  cancelLabel?: string;
+  cancelLabel?: string | undefined;
   /** Show cancel button */
-  showCancel?: boolean;
+  showCancel?: boolean | undefined;
   /** Additional CSS classes */
-  className?: string;
+  className?: string | undefined;
   /** Submit button variant */
   submitVariant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost';
   /** Submit button type (button or submit) */

@@ -34,11 +34,11 @@ export interface DateFieldProps {
   /** Callback when date changes (returns YYYY-MM-DD format) */
   onChange: (value: string) => void;
   /** Error message to display */
-  error?: string;
+  error?: string | undefined;
   /** Whether field is required */
-  required?: boolean;
+  required?: boolean | undefined;
   /** Field label */
-  label?: string;
+  label?: string | undefined;
 }
 
 /**

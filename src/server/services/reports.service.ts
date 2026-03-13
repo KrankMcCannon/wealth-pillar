@@ -482,7 +482,7 @@ export class ReportsService {
         statsMap.set(catKey, {
           id: catKey,
           name: category?.label || catId,
-          type: t.type as 'income' | 'expense',
+          type: t.type,
           total: 0,
           color: category?.color || '#cbd5e1',
         });

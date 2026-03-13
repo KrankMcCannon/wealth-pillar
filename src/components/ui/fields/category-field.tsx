@@ -12,11 +12,11 @@ import type { Category } from '@/lib/types';
 interface CategoryFieldProps {
   value: string;
   onChange: (value: string) => void;
-  error?: string;
-  required?: boolean;
-  label?: string;
-  placeholder?: string;
-  categories?: Category[];
+  error?: string | undefined;
+  required?: boolean | undefined;
+  label?: string | undefined;
+  placeholder?: string | undefined;
+  categories?: Category[] | undefined;
 }
 
 export function CategoryField({
