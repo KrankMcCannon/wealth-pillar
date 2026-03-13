@@ -148,12 +148,12 @@ export function RecurringSeriesForm({
       }
 
       // Fallback: primo account disponibile per quell'utente
-      return filteredAccounts[0].id;
+      return filteredAccounts[0]?.id ?? '';
     }
 
     // filteredAccounts contiene solo gli account accessibili da TUTTI gli utenti selezionati
     if (filteredAccounts.length > 0) {
-      return filteredAccounts[0].id;
+      return filteredAccounts[0]?.id ?? '';
     }
 
     // Fallback: se non ci sono account condivisi, usa il default del creatore
@@ -168,7 +168,7 @@ export function RecurringSeriesForm({
     }
 
     // Ultimo fallback: primo account disponibile
-    return accounts.length > 0 ? accounts[0].id : '';
+    return accounts.length > 0 ? (accounts[0]?.id ?? '') : '';
   }, [formData.user_ids, filteredAccounts, accounts, currentUser.id, groupUsers]);
 
   // Reset form when modal opens or mode/series changes

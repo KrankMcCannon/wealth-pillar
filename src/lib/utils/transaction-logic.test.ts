@@ -102,8 +102,10 @@ describe('TransactionLogic', () => {
         expect.arrayContaining([expect.objectContaining({ user_id: 'user-1' })])
       );
       // Should not include user-2
-      const callArg = vi.mocked(FinanceLogicService.calculateCategoryBreakdown).mock.calls[0][0];
-      expect(callArg.every((t) => t.user_id === 'user-1')).toBe(true);
+      const call = vi.mocked(FinanceLogicService.calculateCategoryBreakdown).mock.calls[0];
+      const callArg = call?.[0];
+      expect(callArg).toBeDefined();
+      expect(callArg!.every((t) => t.user_id === 'user-1')).toBe(true);
     });
 
     it('should return 0 savings rate when income is 0', () => {

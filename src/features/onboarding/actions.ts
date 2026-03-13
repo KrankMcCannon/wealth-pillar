@@ -18,9 +18,10 @@ type ServiceResult<T> = {
 function getInitials(name: string) {
   const parts = name.trim().split(' ').filter(Boolean);
   if (parts.length === 0) return 'WP';
-  if (parts.length === 1) return parts[0][0]?.toUpperCase() ?? 'W';
+  const first = parts[0];
+  if (parts.length === 1) return first?.[0]?.toUpperCase() ?? 'W';
   const lastPart = parts.at(-1);
-  return `${parts[0][0] ?? ''}${lastPart?.[0] ?? ''}`.toUpperCase();
+  return `${first?.[0] ?? ''}${lastPart?.[0] ?? ''}`.toUpperCase();
 }
 
 // Helper: Validate onboarding input
@@ -102,7 +103,7 @@ async function createOnboardingAccounts(
   }
 
   if (!defaultAccountId && createdAccountIds.length > 0) {
-    defaultAccountId = createdAccountIds[0];
+    defaultAccountId = createdAccountIds[0] ?? null;
   }
 
   return { defaultAccountId, createdAccountIds, error: null };
@@ -307,8 +308,8 @@ export async function deleteClerkUserAction(clerkUserId: string): Promise<Servic
 export async function registerOrphanUserAction(clerkId: string): Promise<ServiceResult<void>> {
   try {
     const { supabase } = await import('@/server/db/supabase');
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- orphan_users table added via migration; types may lag
-    const { error } = await supabase.from('orphan_users').insert({ clerk_id: clerkId } as any);
+    // Orphan_users Insert is in database.types.ts; Supabase client infers insert as never for this table
+    const { error } = await supabase.from('orphan_users').insert({ clerk_id: clerkId } as never);
 
     if (error) {
       console.error('[registerOrphanUserAction] Insert failed:', error);

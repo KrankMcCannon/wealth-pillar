@@ -134,7 +134,8 @@ export const twelveData = {
 
       // If single symbol, response is the object itself
       if (uniqueSymbols.length === 1) {
-        return { [uniqueSymbols[0]]: data };
+        const symbol = uniqueSymbols[0];
+        return symbol !== undefined ? { [symbol]: data } : {};
       }
 
       // If multiple, response is object keys by symbol

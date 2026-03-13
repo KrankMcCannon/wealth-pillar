@@ -10,13 +10,21 @@ const eslintConfig = [
 
   // Ignored paths
   {
-    ignores: ['node_modules/**', '.next/**', 'out/**', 'build/**', 'next-env.d.ts', '*.min.js'],
+    ignores: [
+      'node_modules/**',
+      '.next/**',
+      'out/**',
+      'build/**',
+      '.agents/**',
+      'next-env.d.ts',
+      '*.min.js',
+    ],
   },
 
   // TypeScript and quality rules
   {
     rules: {
-      // Type Safety
+      // Type Safety (no-unnecessary-type-assertion needs parserOptions.project / type-aware lint)
       '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/no-unused-vars': [
         'error',

@@ -22,8 +22,8 @@ import { recurringStyles } from '../theme/recurring-styles';
 // Helper: Format date for input
 const formatDateForInput = (date: string | Date | null | undefined): string => {
   if (!date) return '';
-  if (typeof date === 'string') return date.split('T')[0];
-  return date.toISOString().split('T')[0];
+  if (typeof date === 'string') return date.split('T')[0] ?? '';
+  return date.toISOString().split('T')[0] ?? '';
 };
 
 // Helper: Calculate default account
@@ -50,12 +50,12 @@ const calculateDefaultAccountId = (
     }
 
     // Fallback: first available account for that user
-    return filteredAccounts[0].id;
+    return filteredAccounts[0]?.id ?? '';
   }
 
   // Multiple users: first shared account
   if (filteredAccounts.length > 0) {
-    return filteredAccounts[0].id;
+    return filteredAccounts[0]?.id ?? '';
   }
 
   // Fallback: creator's default
@@ -68,7 +68,7 @@ const calculateDefaultAccountId = (
   }
 
   // Last fallback: first available account
-  return accounts.length > 0 ? accounts[0].id : '';
+  return accounts.length > 0 ? (accounts[0]?.id ?? '') : '';
 };
 
 // Helper interface

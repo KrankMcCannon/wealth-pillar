@@ -13,7 +13,7 @@ import type { User, RoleType } from '@/lib/types';
  */
 export function hasRole(user: User | null, ...roles: RoleType[]): boolean {
   if (!user?.role) return false;
-  return roles.includes(user.role);
+  return roles.includes(user.role as RoleType);
 }
 
 /**

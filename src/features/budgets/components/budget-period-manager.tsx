@@ -69,7 +69,7 @@ export function BudgetPeriodManager({
   useEffect(() => {
     if (isOpen) {
       // Pre-fill with current date for both start and close
-      setSelectedDate(new Date().toISOString().split('T')[0]);
+      setSelectedDate(new Date().toISOString().split('T')[0] ?? '');
     } else {
       setIsActionPending(false);
       setSelectedDate('');
@@ -95,7 +95,7 @@ export function BudgetPeriodManager({
     async function fetchMetrics() {
       // Determine dates
       const rawStart = currentPeriod?.start_date;
-      const endDate = selectedDate || new Date().toISOString().split('T')[0];
+      const endDate = selectedDate ?? new Date().toISOString().split('T')[0] ?? '';
 
       if (!rawStart) return;
 
@@ -104,7 +104,9 @@ export function BudgetPeriodManager({
 
       try {
         // Call Server Action
-        const result = await getPeriodPreviewAction(targetUser.id, startDate, endDate, locale);
+        const userId = targetUser?.id;
+        if (!userId) return;
+        const result = await getPeriodPreviewAction(userId, startDate, endDate, locale);
 
         if (mounted && result.data) {
           setMetrics({

@@ -3,6 +3,7 @@ import { cached } from '@/lib/cache';
 import { cacheOptions } from '@/lib/cache/config';
 import { budgetPeriodCacheKeys } from '@/lib/cache/keys';
 import type { BudgetPeriod, Budget, Transaction, BudgetPeriodJSON } from '@/lib/types';
+import { parseBudgetPeriodsFromJson } from '@/lib/utils/budget-period-json';
 import { toDateTime, todayDateString } from '@/lib/utils/date-utils';
 import { DateTime } from 'luxon';
 import { UserService } from './user.service';
@@ -55,7 +56,7 @@ export class BudgetPeriodService {
           throw new Error('User not found');
         }
 
-        const periods = ((user.budget_periods as unknown as BudgetPeriodJSON[]) || [])
+        const periods = parseBudgetPeriodsFromJson(user.budget_periods)
           .map((p) => this.jsonToBudgetPeriod(p, userId))
           .sort((a, b) => new Date(b.start_date).getTime() - new Date(a.start_date).getTime());
 
@@ -83,7 +84,7 @@ export class BudgetPeriodService {
           return null;
         }
 
-        const periods = (user.budget_periods as unknown as BudgetPeriodJSON[]) || [];
+        const periods = parseBudgetPeriodsFromJson(user.budget_periods);
         const activePeriod = periods.find((p) => p.is_active);
 
         return activePeriod ? this.jsonToBudgetPeriod(activePeriod, userId) : null;
@@ -202,7 +203,7 @@ export class BudgetPeriodService {
     const user = await UserService.getUserById(userId);
     if (!user) throw new Error('User not found');
 
-    const periods = (user.budget_periods as unknown as BudgetPeriodJSON[]) || [];
+    const periods = parseBudgetPeriodsFromJson(user.budget_periods);
     // 3. Prepare Period List (Deactivate old, add new)
     const { updatedPeriods, newPeriod } = this.prepareNewPeriodList(periods, startDt);
 
@@ -235,7 +236,7 @@ export class BudgetPeriodService {
     const user = await UserService.getUserById(userId);
     if (!user) throw new Error('User not found');
 
-    const periods = (user.budget_periods as unknown as BudgetPeriodJSON[]) || [];
+    const periods = parseBudgetPeriodsFromJson(user.budget_periods);
 
     // 3. Validate Period State
     this.validatePeriodClosure(periods, periodId, endDt);
@@ -268,7 +269,7 @@ export class BudgetPeriodService {
     const user = await UserService.getUserById(userId);
     if (!user) throw new Error('User not found');
 
-    const periods = (user.budget_periods as unknown as BudgetPeriodJSON[]) || [];
+    const periods = parseBudgetPeriodsFromJson(user.budget_periods);
 
     // 2. Filter List
     const newPeriods = periods.filter((p) => p.id !== periodId);

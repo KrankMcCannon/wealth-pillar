@@ -67,7 +67,8 @@ export interface MarketDataBatchResult {
 export function normalizeDateKey(value: string | Date | null | undefined): string {
   if (!value) return '';
   const raw = value instanceof Date ? value.toISOString() : String(value);
-  return raw.split(' ')[0].split('T')[0];
+  const part = raw.split(' ')[0];
+  return part?.split('T')[0] ?? '';
 }
 
 /**
@@ -75,7 +76,8 @@ export function normalizeDateKey(value: string | Date | null | undefined): strin
  */
 export function extractDateFromEntry(entry: TimeSeriesEntry): string {
   const raw = entry?.datetime ?? entry?.time ?? entry?.date ?? '';
-  return String(raw).split(' ')[0].split('T')[0];
+  const part = String(raw).split(' ')[0];
+  return part?.split('T')[0] ?? '';
 }
 
 /**
@@ -85,9 +87,11 @@ export function getLatestCloseFromSeries(data: unknown): number {
   if (!Array.isArray(data) || data.length === 0) return 0;
 
   const typedData = data as TimeSeriesEntry[];
+  const first = typedData[0];
+  if (!first) return 0;
   const latest = typedData.reduce((acc, current) => {
     return extractDateFromEntry(current) > extractDateFromEntry(acc) ? current : acc;
-  }, typedData[0]);
+  }, first);
 
   const closeValue = latest?.close;
   const parsed = Number.parseFloat(String(closeValue));

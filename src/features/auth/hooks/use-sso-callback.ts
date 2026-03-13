@@ -10,7 +10,7 @@ import {
 } from '@/features/onboarding/actions';
 import type { Category } from '@/lib/types';
 import type { OnboardingPayload } from '@/features/onboarding/types';
-import type { SignUpResource, SignInResource, SetActive } from '@clerk/types';
+import type { SignUpResource, SignInResource, SetActive } from '@clerk/shared/types';
 import { useRouter } from '@/i18n/routing';
 
 // ============================================================================

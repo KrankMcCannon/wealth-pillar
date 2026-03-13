@@ -23,9 +23,9 @@ describe('getTempId', () => {
       const id3 = getTempId('test');
 
       // Extract numbers and verify they're incrementing
-      const num1 = Number.parseInt(id1.split('-')[1], 10);
-      const num2 = Number.parseInt(id2.split('-')[1], 10);
-      const num3 = Number.parseInt(id3.split('-')[1], 10);
+      const num1 = Number.parseInt(id1.split('-')[1] ?? '', 10);
+      const num2 = Number.parseInt(id2.split('-')[1] ?? '', 10);
+      const num3 = Number.parseInt(id3.split('-')[1] ?? '', 10);
 
       expect(num2).toBe(num1 + 1);
       expect(num3).toBe(num2 + 1);

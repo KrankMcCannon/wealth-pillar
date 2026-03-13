@@ -1,4 +1,4 @@
-import { Theme } from '@clerk/types';
+import type { Theme } from '@clerk/shared/types';
 
 export const clerkAppearance: Theme = {
   layout: {

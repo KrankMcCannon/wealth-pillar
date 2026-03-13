@@ -204,7 +204,8 @@ export function useBudgetsContent({
   // Set first budget if no budget selected
   useEffect(() => {
     if (!selectedBudgetId && userBudgets.length > 0) {
-      setSelectedBudgetId(userBudgets[0].id);
+      const first = userBudgets[0];
+      if (first) setSelectedBudgetId(first.id);
     }
   }, [selectedBudgetId, userBudgets]);
 

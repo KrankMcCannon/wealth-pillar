@@ -41,7 +41,8 @@ export function insertTransactionSorted(
 
   while (left < right) {
     const mid = Math.floor((left + right) / 2);
-    const midDate = toDateTime(transactions[mid].date);
+    const midTx = transactions[mid];
+    const midDate = midTx ? toDateTime(midTx.date) : null;
 
     if (!midDate) {
       // Handle corrupted data - treat as oldest date

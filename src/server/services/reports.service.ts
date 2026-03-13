@@ -547,7 +547,7 @@ export class ReportsService {
       ...Object.keys(periodSummary.metricsByAccountType).map((type) => ({
         id: `account-${type}`,
         label: type.charAt(0).toUpperCase() + type.slice(1),
-        value: periodSummary.metricsByAccountType[type].endBalance,
+        value: periodSummary.metricsByAccountType[type]?.endBalance ?? 0,
       })),
       { id: 'expense', label: 'Expenses', value: periodSummary.totalSpent },
       { id: 'end', label: 'Ending Money', value: periodSummary.endBalance },

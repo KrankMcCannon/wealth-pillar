@@ -293,7 +293,8 @@ describe('permissions', () => {
       const admin = createMockUser({ role: 'admin' });
       const result = filterByUserPermissions(items, admin, 'user-2');
       expect(result).toHaveLength(1);
-      expect(result[0].user_id).toBe('user-2');
+      expect(result[0]).toBeDefined();
+      expect(result[0]!.user_id).toBe('user-2');
     });
 
     it('should return all items for admin with "all" selection', () => {

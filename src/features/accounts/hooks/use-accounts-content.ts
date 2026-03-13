@@ -49,8 +49,9 @@ export function useAccountsContent({
   const filteredBalances = useMemo(() => {
     return filteredAccounts.reduce(
       (acc, account) => {
-        if (accountBalances[account.id] !== undefined) {
-          acc[account.id] = accountBalances[account.id];
+        const balance = accountBalances[account.id];
+        if (balance !== undefined) {
+          acc[account.id] = balance;
         }
         return acc;
       },

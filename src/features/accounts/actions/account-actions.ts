@@ -54,7 +54,8 @@ export async function createAccountAction(
     const account = await AccountService.createAccount(input);
 
     if (isDefault && input.user_ids.length === 1) {
-      await UserService.setDefaultAccount(input.user_ids[0], account.id);
+      const uid = input.user_ids[0];
+      if (uid) await UserService.setDefaultAccount(uid, account.id);
     }
 
     revalidatePath('/accounts');
@@ -105,8 +106,8 @@ export async function updateAccountAction(
       input.user_ids?.length === 1 ||
       (!input.user_ids && existingAccount.user_ids.length === 1)
     ) {
-      const userId = input.user_ids ? input.user_ids[0] : existingAccount.user_ids[0];
-      if (isDefault) {
+      const userId = input.user_ids?.[0] ?? existingAccount.user_ids[0];
+      if (userId != null && isDefault) {
         await UserService.setDefaultAccount(userId, accountId);
       }
     }

@@ -46,7 +46,9 @@ export function CategoryDistribution({ data, total }: CategoryDistributionProps)
               <Tooltip
                 content={({ active, payload }) => {
                   if (active && payload && payload.length) {
-                    const data = payload[0].payload;
+                    const first = payload[0];
+                    if (!first) return null;
+                    const data = first.payload;
                     return (
                       <div className={reportsStyles.charts.tooltip}>
                         <div className="flex items-center gap-2 mb-1">

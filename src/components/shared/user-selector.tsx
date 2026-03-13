@@ -47,7 +47,7 @@ const UserSelector = memo(
     const getUserIcon = useCallback((userId: string, index: number) => {
       const userIcons = [UserIcon, Crown, Star, Heart];
       if (userId === 'all') return Users;
-      return userIcons[index % userIcons.length];
+      return userIcons[index % userIcons.length] ?? UserIcon;
     }, []);
 
     // Memoized user list with "All Members" option

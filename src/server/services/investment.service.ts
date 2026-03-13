@@ -199,13 +199,14 @@ export class InvestmentService {
     const historyMap: Record<string, Record<string, number>> = {};
 
     marketDataList.forEach((item) => {
-      if (item.data && Array.isArray(item.data)) {
-        historyMap[item.symbol] = {};
+      const symbol = item.symbol;
+      if (symbol && item.data && Array.isArray(item.data)) {
+        const symbolMap: Record<string, number> = (historyMap[symbol] = {});
         item.data.forEach((day: TimeSeriesEntry) => {
           const rawDate = day?.datetime ?? day?.time ?? day?.date;
           if (!rawDate) return;
-          const dateKey = String(rawDate).split(' ')[0];
-          historyMap[item.symbol][dateKey] = Number.parseFloat(String(day.close));
+          const dateKey = String(rawDate).split(' ')[0] ?? '';
+          symbolMap[dateKey] = Number.parseFloat(String(day.close));
         });
       }
     });
@@ -221,7 +222,7 @@ export class InvestmentService {
 
     // Generate daily points
     for (let d = new Date(earliestDate); d <= now; d.setDate(d.getDate() + 1)) {
-      const dateStr = d.toISOString().split('T')[0];
+      const dateStr = d.toISOString().split('T')[0] ?? '';
       let totalValue = 0;
 
       investments.forEach((inv) => {
@@ -257,7 +258,7 @@ export class InvestmentService {
     symbol: string,
     targetDate: Date
   ): number | undefined {
-    const dateStr = targetDate.toISOString().split('T')[0];
+    const dateStr = targetDate.toISOString().split('T')[0] ?? '';
     let price = historyMap[symbol]?.[dateStr];
 
     if (price) return price;
@@ -266,7 +267,7 @@ export class InvestmentService {
     for (let i = 1; i <= 3; i++) {
       const pastDate = new Date(targetDate);
       pastDate.setDate(targetDate.getDate() - i);
-      const pastDateStr = pastDate.toISOString().split('T')[0];
+      const pastDateStr = pastDate.toISOString().split('T')[0] ?? '';
       price = historyMap[symbol]?.[pastDateStr];
       if (price) return price;
     }

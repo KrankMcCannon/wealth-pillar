@@ -69,9 +69,9 @@ describe('transaction-sorting', () => {
       const result = insertTransactionSorted(existing, newest);
 
       expect(result).toHaveLength(3);
-      expect(result[0].id).toBe('tx-new');
-      expect(result[1].id).toBe('tx-2');
-      expect(result[2].id).toBe('tx-3');
+      expect(result[0]!.id).toBe('tx-new');
+      expect(result[1]!.id).toBe('tx-2');
+      expect(result[2]!.id).toBe('tx-3');
     });
 
     it('should insert at end for oldest transaction', () => {
@@ -84,9 +84,9 @@ describe('transaction-sorting', () => {
       const result = insertTransactionSorted(existing, oldest);
 
       expect(result).toHaveLength(3);
-      expect(result[0].id).toBe('tx-1');
-      expect(result[1].id).toBe('tx-2');
-      expect(result[2].id).toBe('tx-new');
+      expect(result[0]!.id).toBe('tx-1');
+      expect(result[1]!.id).toBe('tx-2');
+      expect(result[2]!.id).toBe('tx-new');
     });
 
     it('should insert in middle when date falls between existing transactions', () => {
@@ -100,10 +100,10 @@ describe('transaction-sorting', () => {
       const result = insertTransactionSorted(existing, middle);
 
       expect(result).toHaveLength(4);
-      expect(result[0].id).toBe('tx-1');
-      expect(result[1].id).toBe('tx-new');
-      expect(result[2].id).toBe('tx-2');
-      expect(result[3].id).toBe('tx-3');
+      expect(result[0]!.id).toBe('tx-1');
+      expect(result[1]!.id).toBe('tx-new');
+      expect(result[2]!.id).toBe('tx-2');
+      expect(result[3]!.id).toBe('tx-3');
     });
 
     it('should append to end when new transaction has invalid date', () => {
@@ -114,7 +114,7 @@ describe('transaction-sorting', () => {
       const result = insertTransactionSorted(existing, invalidDate);
 
       expect(result).toHaveLength(2);
-      expect(result[1].id).toBe('tx-new');
+      expect(result[1]!.id).toBe('tx-new');
       expect(consoleSpy).toHaveBeenCalledWith(
         'Invalid date for transaction, appending to end:',
         invalidDate
@@ -164,8 +164,8 @@ describe('transaction-sorting', () => {
       const result = updateTransactionSorted(existing, updated);
 
       expect(result).toHaveLength(3);
-      expect(result[1].id).toBe('tx-2');
-      expect(result[1].description).toBe('Updated');
+      expect(result[1]!.id).toBe('tx-2');
+      expect(result[1]!.description).toBe('Updated');
     });
 
     it('should re-sort when updated transaction date changes to newer', () => {
@@ -179,9 +179,9 @@ describe('transaction-sorting', () => {
       const result = updateTransactionSorted(existing, updated);
 
       expect(result).toHaveLength(3);
-      expect(result[0].id).toBe('tx-3'); // Now first because newest
-      expect(result[1].id).toBe('tx-1');
-      expect(result[2].id).toBe('tx-2');
+      expect(result[0]!.id).toBe('tx-3'); // Now first because newest
+      expect(result[1]!.id).toBe('tx-1');
+      expect(result[2]!.id).toBe('tx-2');
     });
 
     it('should re-sort when updated transaction date changes to older', () => {
@@ -195,9 +195,9 @@ describe('transaction-sorting', () => {
       const result = updateTransactionSorted(existing, updated);
 
       expect(result).toHaveLength(3);
-      expect(result[0].id).toBe('tx-2');
-      expect(result[1].id).toBe('tx-3');
-      expect(result[2].id).toBe('tx-1'); // Now last because oldest
+      expect(result[0]!.id).toBe('tx-2');
+      expect(result[1]!.id).toBe('tx-3');
+      expect(result[2]!.id).toBe('tx-1'); // Now last because oldest
     });
 
     it('should handle updating non-existent transaction (insert behavior)', () => {
@@ -207,7 +207,7 @@ describe('transaction-sorting', () => {
       const result = updateTransactionSorted(existing, newTx);
 
       expect(result).toHaveLength(2);
-      expect(result[0].id).toBe('tx-new');
+      expect(result[0]!.id).toBe('tx-new');
     });
   });
 

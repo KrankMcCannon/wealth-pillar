@@ -6,7 +6,8 @@
  * Note: This service now leverages FinanceLogicService for core calculations.
  */
 
-import type { Account, BudgetPeriod, Transaction, User, BudgetPeriodJSON } from '@/lib/types';
+import type { Account, BudgetPeriod, Transaction, User } from '@/lib/types';
+import { parseBudgetPeriodsFromJson } from '@/lib/utils/budget-period-json';
 import { FinanceLogicService } from './finance-logic.service';
 import { toDateTime } from '@/lib/utils'; // formatDateShort removed as unused
 
@@ -35,10 +36,10 @@ export class ReportPeriodService {
   static processUserPeriods(user: User): BudgetPeriod[] {
     let userPeriods: BudgetPeriod[] = [];
 
-    // 1. Parse existing periods
-    if (Array.isArray(user.budget_periods)) {
-      // Safely cast and map
-      userPeriods = (user.budget_periods as BudgetPeriodJSON[]).map((bp) => ({
+    // 1. Parse existing periods (type-safe parse from DB Json)
+    const rawPeriods = parseBudgetPeriodsFromJson(user.budget_periods);
+    if (rawPeriods.length > 0) {
+      userPeriods = rawPeriods.map((bp) => ({
         ...bp,
         user_id: user.id,
       })) as BudgetPeriod[];
@@ -102,7 +103,8 @@ export class ReportPeriodService {
     }
 
     // Only add if startDate is valid
-    if (startDateStr <= new Date().toISOString().split('T')[0]) {
+    const today = new Date().toISOString().split('T')[0];
+    if (startDateStr != null && today != null && startDateStr <= today) {
       const nowIso = new Date().toISOString();
       periods.push({
         id: `active-generated-${user.id}`,

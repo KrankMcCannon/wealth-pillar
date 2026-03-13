@@ -1,3 +1,5 @@
+import type { Database } from './database.types';
+
 export type RoleType = 'superadmin' | 'admin' | 'member';
 export type AccountType = 'payroll' | 'savings' | 'cash' | 'investments';
 export type TransactionType = 'income' | 'expense' | 'transfer';
@@ -59,21 +61,8 @@ export interface Group {
   updated_at: DateString;
 }
 
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  avatar: string | null;
-  theme_color: string | null;
-  budget_start_date: number | null;
-  group_id: string | null;
-  role: RoleType | null;
-  clerk_id: string | null; // Clerk user ID for authentication integration
-  default_account_id?: string | null; // Optional default bank account for prefilling forms
-  budget_periods?: BudgetPeriodJSON[] | null; // JSON field
-  created_at: DateString | null;
-  updated_at: DateString | null;
-}
+/** User row from database; single source of truth for app user shape */
+export type User = Database['public']['Tables']['users']['Row'];
 
 export interface Account {
   id: string;
@@ -241,7 +230,6 @@ export interface UserBudgetSummary {
   overallPercentage: number;
 }
 
-import type { Database } from './database.types';
 export type UserPreferences = Database['public']['Tables']['user_preferences']['Row'];
 
 export interface UserPreferencesUpdate {

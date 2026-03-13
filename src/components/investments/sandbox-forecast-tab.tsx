@@ -128,9 +128,9 @@ export function SandboxForecastTab() {
                       boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
                     }}
                     itemStyle={{ color: '#0f172a' }}
-                    formatter={(value: number | undefined) => [
+                    formatter={(value) => [
                       new Intl.NumberFormat(locale, { style: 'currency', currency: 'EUR' }).format(
-                        Number(value) || 0
+                        Number(value ?? 0) || 0
                       ),
                       t('valueSeriesLabel'),
                     ]}

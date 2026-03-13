@@ -361,8 +361,10 @@ export default function OnboardingModal({
       const updated = prev.filter((_, idx) => idx !== index);
 
       // If removed account was default, make first account default
-      if (prev[index].isDefault && updated.length > 0) {
-        updated[0].isDefault = true;
+      const removed = prev[index];
+      const firstUpdated = updated[0];
+      if (removed?.isDefault && updated.length > 0 && firstUpdated) {
+        firstUpdated.isDefault = true;
       }
 
       return updated;
@@ -655,7 +657,7 @@ export default function OnboardingModal({
     return renderBudgetsStep();
   };
 
-  const StepIcon = steps[currentStep].icon;
+  const StepIcon = steps[currentStep]?.icon ?? HelpCircle;
 
   const renderButtonContent = () => {
     if (currentStep === steps.length - 1) {
@@ -744,9 +746,9 @@ export default function OnboardingModal({
               <p className={onboardingStyles.header.meta}>
                 {t('header.stepOf', { current: currentStep + 1, total: steps.length })}
               </p>
-              <h2 className={onboardingStyles.header.title}>{steps[currentStep].title}</h2>
+              <h2 className={onboardingStyles.header.title}>{steps[currentStep]?.title}</h2>
               <p className={onboardingStyles.header.description}>
-                {steps[currentStep].description}
+                {steps[currentStep]?.description}
               </p>
             </div>
           </div>

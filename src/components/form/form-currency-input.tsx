@@ -94,7 +94,7 @@ export function FormCurrencyInput({
 
     // Handle multiple dots - keep only first
     const parts = normalized.split('.');
-    let finalValue = parts[0];
+    let finalValue = parts[0] ?? '';
     if (parts.length > 1) {
       finalValue += '.' + parts.slice(1).join('');
     }

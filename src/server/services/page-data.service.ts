@@ -132,7 +132,7 @@ export class PageDataService {
     let userIds: string[] = [];
     let groupUsers: User[] = [];
     try {
-      groupUsers = (await GroupService.getGroupUsers(groupId)) as unknown as User[];
+      groupUsers = await GroupService.getGroupUsers(groupId);
       userIds = groupUsers.map((u) => u.id);
     } catch (error) {
       console.error('[PageDataService] Failed to fetch group users:', error);
@@ -141,9 +141,9 @@ export class PageDataService {
     // 2. Parallel Fetch: Metadata + Paginated Transactions + Balances + Investments
     // We map users to promises for budget & investments
     const investmentPromises = groupUsers.map((u) =>
-      this.safeFetch(
+      this.safeFetch<PortfolioResult | null>(
         InvestmentService.getPortfolio(u.id),
-        null as unknown as PortfolioResult, // Correct type assertion
+        null,
         `Failed to fetch investments for user ${u.id}`
       )
     );
@@ -224,7 +224,9 @@ export class PageDataService {
     // Fetch aggregated spending for each user based on their specific period
     const aggregationResults = await Promise.all(
       userIds.map((userId) => {
-        const { start, end } = validPeriods[userId];
+        const period = validPeriods[userId];
+        if (!period) return Promise.resolve([]);
+        const { start, end } = period;
         return TransactionService.getGroupUserCategorySpending(groupId, start, end)
           .then((data) => data.filter((r) => r.user_id === userId)) // Filter strictly for safety
           .catch((e) => {
@@ -239,7 +241,7 @@ export class PageDataService {
 
     groupUsers.forEach((user, index) => {
       const userBudgets = budgets.filter((b) => b.user_id === user.id);
-      const spendingData = aggregationResults[index];
+      const spendingData = aggregationResults[index] ?? [];
       const activePeriod = budgetPeriods[user.id];
 
       budgetsByUser[user.id] = FinanceLogicService.calculateUserBudgetSummaryFromAggregation(
@@ -341,7 +343,7 @@ export class PageDataService {
     let userIds: string[] = [];
     let groupUsers: User[] = [];
     try {
-      groupUsers = (await GroupService.getGroupUsers(groupId)) as unknown as User[];
+      groupUsers = await GroupService.getGroupUsers(groupId);
       userIds = groupUsers.map((u) => u.id);
     } catch (error) {
       console.error(
@@ -410,7 +412,9 @@ export class PageDataService {
     // We fetch one aggregated result per user according to their period
     const aggregationResults = await Promise.all(
       userIds.map((userId) => {
-        const { start, end } = userPeriodRanges[userId];
+        const period = userPeriodRanges[userId];
+        if (!period) return Promise.resolve([]);
+        const { start, end } = period;
         return TransactionService.getGroupUserCategorySpending(groupId, start, end)
           .then((data) => data.filter((r) => r.user_id === userId))
           .catch((e) => {
@@ -424,12 +428,9 @@ export class PageDataService {
     const budgetsByUser: Record<string, UserBudgetSummary> = {};
     groupUsers.forEach((user, index) => {
       const userBudgets = budgets.filter((b) => b.user_id === user.id);
-      const spendingData = aggregationResults[index];
+      const spendingData = aggregationResults[index] ?? [];
       const activePeriod = budgetPeriods[user.id];
 
-      // Use the optimized builder that uses aggregated data
-      // We cast to any because TS might complain about private method or exact signature
-      // but we know available methods from FinanceLogicService
       budgetsByUser[user.id] = FinanceLogicService.calculateUserBudgetSummaryFromAggregation(
         user,
         userBudgets,
@@ -527,7 +528,7 @@ export class PageDataService {
         'Failed to fetch categories'
       ),
       this.safeFetch(
-        GroupService.getGroupUsers(groupId) as Promise<User[]>,
+        GroupService.getGroupUsers(groupId),
         [] as User[],
         'Failed to fetch group users'
       ),

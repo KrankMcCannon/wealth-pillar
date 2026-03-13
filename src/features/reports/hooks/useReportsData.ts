@@ -88,11 +88,12 @@ export function useReportsData({
   // Select Annual Data from Map
   const activeAnnualData = useMemo(() => {
     // Get year map for user
-    const userMap = annualSpending[activeGroupFilter] || annualSpending['all'];
+    const userMap = annualSpending[activeGroupFilter] ?? annualSpending['all'];
+    if (!userMap) return [];
     if (selectedYear === 'all') {
-      return userMap['all'] || [];
+      return userMap['all'] ?? [];
     }
-    return userMap[selectedYear.toString()] || [];
+    return userMap[selectedYear.toString()] ?? [];
   }, [annualSpending, activeGroupFilter, selectedYear]);
 
   // Prepare categories (static props derived)

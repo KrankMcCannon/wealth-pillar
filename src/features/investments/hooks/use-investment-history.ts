@@ -15,7 +15,8 @@ interface UseInvestmentHistoryProps {
 // Helper to get date string from various formats
 function getDateString(entry: TimeSeriesEntry): string {
   const raw = entry.datetime ?? entry.time ?? entry.date ?? '';
-  return String(raw).split('T')[0].split(' ')[0];
+  const part = String(raw).split('T')[0];
+  return part?.split(' ')[0] ?? '';
 }
 
 export function useInvestmentHistory({

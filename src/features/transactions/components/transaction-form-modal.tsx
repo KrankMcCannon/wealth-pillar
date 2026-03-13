@@ -138,7 +138,7 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
   // Get default account for selected user
   const getDefaultAccountId = useCallback(
     (userId: string): string => {
-      if (!userId) return accounts.length > 0 ? accounts[0].id : '';
+      if (!userId) return accounts.length > 0 ? (accounts[0]?.id ?? '') : '';
 
       // Find user and use their default account
       const user = groupUsers.find((u) => u.id === userId);
@@ -152,8 +152,8 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
 
       // Fall back to first account accessible to this user
       const userAccounts = accounts.filter((acc) => acc.user_ids.includes(userId));
-      if (userAccounts.length > 0) return userAccounts[0].id;
-      return accounts.length > 0 ? accounts[0].id : '';
+      if (userAccounts.length > 0) return userAccounts[0]?.id ?? '';
+      return accounts.length > 0 ? (accounts[0]?.id ?? '') : '';
     },
     [accounts, groupUsers]
   );

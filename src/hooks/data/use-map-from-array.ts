@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 
 /**
  * Custom hook to transform an array into a lookup map
- * Converts array of objects to Record<string, any> for O(1) lookups
+ * Converts array of objects to Record<string, V> for O(1) lookups
  *
  * @template T - Type of array items
  * @param array - Source array to transform
