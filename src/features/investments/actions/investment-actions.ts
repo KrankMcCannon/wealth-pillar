@@ -1,16 +1,12 @@
 'use server';
 
-import { revalidatePath } from 'next/cache';
+import { revalidateInvestmentRelatedPaths } from '@/lib/cache/revalidation-paths';
 import { getCurrentUser } from '@/lib/auth/cached-auth';
 import { InvestmentService } from '@/server/services';
 import type { Database } from '@/lib/types/database.types';
+import type { ServiceResult } from '@/lib/types/service-result';
 
 type InvestmentInsert = Database['public']['Tables']['investments']['Insert'];
-
-type ServiceResult<T> = {
-  data: T | null;
-  error: string | null;
-};
 
 export async function createInvestmentAction(
   input: Omit<InvestmentInsert, 'user_id' | 'id' | 'created_at' | 'updated_at'> & {
@@ -43,7 +39,7 @@ export async function createInvestmentAction(
 
     const data = await InvestmentService.addInvestment(investmentData as InvestmentInsert);
 
-    revalidatePath('/investments');
+    revalidateInvestmentRelatedPaths();
 
     return { data, error: null };
   } catch (error) {

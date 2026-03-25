@@ -1,9 +1,9 @@
-import 'server-only';
 import { cache } from 'react';
 import { cached } from '@/lib/cache';
 import { CACHE_TAGS, cacheOptions } from '@/lib/cache/config';
 import { transactionCacheKeys } from '@/lib/cache/keys';
 import { supabase } from '@/server/db/supabase';
+import { typedGroupRpc } from '@/server/db/rpc-helper';
 import type { Transaction, TransactionType } from '@/lib/types';
 import type { Database } from '@/lib/types/database.types';
 import { serialize } from '@/lib/utils/serializer';
@@ -32,25 +32,6 @@ type UserCategorySpendingResult = Array<{
   income: number;
   transaction_count: number;
 }>;
-
-// Typed RPC helper - uses unknown intermediary instead of any
-async function typedRpc<TResult>(
-  fnName:
-    | 'get_group_category_spending'
-    | 'get_group_monthly_spending'
-    | 'get_group_user_category_spending',
-  args: { p_group_id: string; p_start_date: string; p_end_date: string }
-): Promise<TResult> {
-  const client = supabase as unknown as {
-    rpc: (
-      fn: string,
-      params: Record<string, string>
-    ) => Promise<{ data: unknown; error: { message: string } | null }>;
-  };
-  const { data, error } = await client.rpc(fnName, args);
-  if (error) throw new Error(error.message);
-  return data as TResult;
-}
 
 /**
  * Input data for creating a new transaction
@@ -313,7 +294,7 @@ export class TransactionService {
    */
   static readonly getGroupCategorySpending = cache(
     async (groupId: string, startDate: Date, endDate: Date): Promise<CategorySpendingResult> => {
-      return typedRpc<CategorySpendingResult>('get_group_category_spending', {
+      return typedGroupRpc<CategorySpendingResult>('get_group_category_spending', {
         p_group_id: groupId,
         p_start_date: startDate.toISOString(),
         p_end_date: endDate.toISOString(),
@@ -326,7 +307,7 @@ export class TransactionService {
    */
   static readonly getGroupMonthlySpending = cache(
     async (groupId: string, startDate: Date, endDate: Date): Promise<MonthlySpendingResult> => {
-      return typedRpc<MonthlySpendingResult>('get_group_monthly_spending', {
+      return typedGroupRpc<MonthlySpendingResult>('get_group_monthly_spending', {
         p_group_id: groupId,
         p_start_date: startDate.toISOString(),
         p_end_date: endDate.toISOString(),
@@ -343,7 +324,7 @@ export class TransactionService {
       startDate: Date,
       endDate: Date
     ): Promise<UserCategorySpendingResult> => {
-      return typedRpc<UserCategorySpendingResult>('get_group_user_category_spending', {
+      return typedGroupRpc<UserCategorySpendingResult>('get_group_user_category_spending', {
         p_group_id: groupId,
         p_start_date: startDate.toISOString(),
         p_end_date: endDate.toISOString(),

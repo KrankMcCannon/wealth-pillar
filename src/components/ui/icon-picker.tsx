@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { useVirtualizer } from '@tanstack/react-virtual';
+import { useVirtualizer } from '@/lib/react-virtual';
 import * as Dialog from '@radix-ui/react-dialog';
 import { useTranslations } from 'next-intl';
 import { HelpCircle, Clock, X } from 'lucide-react';
@@ -198,8 +198,6 @@ function IconPickerContent({
   const iconSize = isMobile ? MOBILE_ICON_SIZE : DESKTOP_ICON_SIZE;
   const rows = Math.ceil(filteredIcons.length / cols);
 
-  // Virtualizer
-  // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Virtual returns functions that aren't compiler-memoizable
   const rowVirtualizer = useVirtualizer({
     count: rows,
     getScrollElement: () => parentRef.current,

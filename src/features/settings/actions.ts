@@ -4,11 +4,7 @@ import { clerkClient } from '@clerk/nextjs/server';
 import { UserService, UserPreferencesService, GroupInvitationService } from '@/server/services';
 import type { UserPreferences, GroupInvitation } from '@/server/services';
 import type { UserPreferencesUpdate, User } from '@/lib/types';
-
-type ServiceResult<T> = {
-  data: T | null;
-  error: string | null;
-};
+import type { ServiceResult } from '@/lib/types/service-result';
 
 /**
  * Deletes a user and all related data (accounts, transactions, budgets)

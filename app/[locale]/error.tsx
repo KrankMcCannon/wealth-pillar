@@ -34,7 +34,7 @@ export default function LocaleError({
     >
       <h1 className="text-xl font-semibold">Si è verificato un errore</h1>
       <p className="max-w-md text-center text-sm text-muted-foreground">
-        {error.message || "Errore imprevisto. Riprova o torna alla home."}
+        {error.message || 'Errore imprevisto. Riprova o torna alla home.'}
       </p>
       <div className="flex flex-col gap-3 sm:flex-row">
         <Button onClick={() => reset()} size="default">

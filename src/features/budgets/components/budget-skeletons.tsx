@@ -1,5 +1,3 @@
-'use client';
-
 /**
  * Modern skeleton components for budget pages
  * Uses project palette and smooth animations

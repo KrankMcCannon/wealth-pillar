@@ -32,7 +32,7 @@
 'use client';
 
 import { useRef } from 'react';
-import { useVirtualizer } from '@tanstack/react-virtual';
+import { useVirtualizer } from '@/lib/react-virtual';
 import { SectionHeader } from '@/components/layout';
 import { EmptyState } from '@/components/shared';
 import { Button } from '@/components/ui';
@@ -171,14 +171,10 @@ export function TransactionDayList({
     return (
       <section key={group.date}>
         <div className={transactionStyles.dayGroup.header}>
-          <h2 className={transactionStyles.dayGroup.title}>
-            {group.formattedDate ?? group.date}
-          </h2>
+          <h2 className={transactionStyles.dayGroup.title}>{group.formattedDate ?? group.date}</h2>
           <div className={transactionStyles.dayGroup.stats}>
             <div className={transactionStyles.dayGroup.statsTotal}>
-              <span className={transactionStyles.dayGroup.statsTotalLabel}>
-                {t('totalLabel')}
-              </span>
+              <span className={transactionStyles.dayGroup.statsTotalLabel}>{t('totalLabel')}</span>
               <span
                 className={`${transactionStyles.dayGroup.statsTotalValue} ${
                   expensesOnly || total < 0
@@ -189,9 +185,7 @@ export function TransactionDayList({
                 {formatCurrency(Math.abs(total))}
               </span>
             </div>
-            <div className={transactionStyles.dayGroup.statsCount}>
-              {t('count', { count })}
-            </div>
+            <div className={transactionStyles.dayGroup.statsCount}>{t('count', { count })}</div>
           </div>
         </div>
         <GroupedTransactionCard

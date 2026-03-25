@@ -1,4 +1,3 @@
-import 'server-only';
 import { CACHE_TAGS } from '@/lib/cache/config';
 import { supabase } from '@/server/db/supabase';
 import { UserService } from './user.service';

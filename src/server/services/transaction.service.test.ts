@@ -2,9 +2,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { TransactionService, CreateTransactionInput } from './transaction.service';
 import type { Transaction } from '@/lib/types';
 
-// Mock server-only (must be at top level)
-vi.mock('server-only', () => ({}));
-
 // Mock react cache
 vi.mock('react', () => ({
   cache: vi.fn((fn) => fn),
@@ -316,7 +313,7 @@ describe('TransactionService', () => {
         groupId: input.group_id,
         accountId: input.account_id,
         userId: input.user_id,
-        toAccountId: undefined,
+        toAccountId: null,
       });
     });
   });

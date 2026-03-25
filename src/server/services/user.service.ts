@@ -1,4 +1,3 @@
-import 'server-only';
 import { cache } from 'react';
 import { cached } from '@/lib/cache';
 import { CACHE_TAGS, cacheOptions } from '@/lib/cache/config';
@@ -22,6 +21,15 @@ type UserUpdate = Database['public']['Tables']['users']['Update'];
 export class UserService {
   // ================== DATABASE OPERATIONS (inlined from repository) ==================
 
+  private static normalizeUserPreferencesJoin(row: User & { user_preferences?: unknown }): User {
+    return {
+      ...row,
+      user_preferences: Array.isArray(row.user_preferences)
+        ? row.user_preferences[0]
+        : row.user_preferences,
+    } as User;
+  }
+
   private static readonly getByClerkIdDb = cache(async (clerkId: string): Promise<User | null> => {
     const { data, error } = await supabase
       .from('users')
@@ -34,16 +42,8 @@ export class UserService {
       throw new Error(error.message);
     }
 
-    // Normalize user_preferences join result (Supabase returns array for single join)
     const row = data as User & { user_preferences?: unknown };
-    const user = {
-      ...row,
-      user_preferences: Array.isArray(row.user_preferences)
-        ? row.user_preferences[0]
-        : row.user_preferences,
-    };
-
-    return user as User;
+    return this.normalizeUserPreferencesJoin(row);
   });
 
   private static readonly getByIdDb = cache(async (id: string): Promise<User | null> => {
@@ -58,16 +58,8 @@ export class UserService {
       throw new Error(error.message);
     }
 
-    // Normalize user_preferences join result
     const row = data as User & { user_preferences?: unknown };
-    const user = {
-      ...row,
-      user_preferences: Array.isArray(row.user_preferences)
-        ? row.user_preferences[0]
-        : row.user_preferences,
-    };
-
-    return user as User;
+    return this.normalizeUserPreferencesJoin(row);
   });
 
   private static readonly getByEmailDb = cache(async (email: string): Promise<User | null> => {
@@ -149,9 +141,6 @@ export class UserService {
     return this.getByGroupDb(groupId);
   }
 
-  /**
-   * Retrieves logged-in user information by Clerk ID
-   */
   /**
    * Retrieves logged-in user information by Clerk ID
    * Used for authentication flows where we have the Clerk user ID

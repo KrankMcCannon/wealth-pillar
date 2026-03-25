@@ -4,12 +4,9 @@ import { AvailableSharesService, MarketDataService } from '@/server/services';
 import { twelveData } from '@/lib/twelve-data';
 import type { Database } from '@/lib/types/database.types';
 
-type AvailableShare = Database['public']['Tables']['available_shares']['Row'];
+import type { ServiceResult } from '@/lib/types/service-result';
 
-type ServiceResult<T> = {
-  data: T | null;
-  error: string | null;
-};
+type AvailableShare = Database['public']['Tables']['available_shares']['Row'];
 
 /**
  * Get all available regions for the share selector

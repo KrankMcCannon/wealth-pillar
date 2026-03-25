@@ -1,21 +1,8 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import type { Metadata, Viewport } from 'next';
 import { Spline_Sans as SplineSans } from 'next/font/google';
-import { ClerkProvider } from '@clerk/nextjs';
-import { Toaster } from '@/components/ui';
-import { ThemeProvider } from '@/components/theme-provider';
-import { hasLocale, NextIntlClientProvider } from 'next-intl';
-import { getMessages, setRequestLocale } from 'next-intl/server';
-import { NuqsAdapter } from 'nuqs/adapters/next/app';
-import { notFound } from 'next/navigation';
 import { routing } from '@/i18n/routing';
-import { withTimeout } from '@/lib/utils/with-timeout';
-import { getCurrentUser, getGroupUsers } from '@/lib/auth/cached-auth';
-import { AccountService, CategoryService } from '@/server/services';
-import { ModalProvider } from '@/providers/modal-provider';
-import { ReferenceDataInitializer } from '@/providers/reference-data-initializer';
-import { UserProvider } from '@/providers/user-provider';
-import { DesktopSidebar } from '@/components/layout';
+import { LocaleLayoutBody, LocaleLayoutHtmlFallback } from './locale-layout-body';
 import '../globals.css';
 
 const splineSans = SplineSans({
@@ -46,84 +33,20 @@ export function generateStaticParams() {
 /**
  * Locale Layout
  *
- * Provides authentication context via Clerk and i18n context via next-intl.
+ * `await params` and dynamic data live inside `<Suspense>` (see LocaleLayoutBody) so auth routes can prerender.
  */
-export default async function LocaleLayout({
+export default function LocaleLayout({
   children,
   params,
 }: Readonly<{
   children: React.ReactNode;
   params: Promise<{ locale: string }>;
-}>): Promise<React.JSX.Element> {
-  const { locale } = await params;
-
-  if (!hasLocale(routing.locales, locale)) {
-    notFound();
-  }
-
-  setRequestLocale(locale);
-  const messages = await getMessages();
-  const currentUser = await getCurrentUser();
-
-  let appContent: React.ReactNode = children;
-
-  if (currentUser) {
-    if (currentUser.group_id) {
-      type GroupUsers = Awaited<ReturnType<typeof getGroupUsers>>;
-      type GroupAccounts = Awaited<ReturnType<typeof AccountService.getAccountsByGroup>>;
-      type AllCategories = Awaited<ReturnType<typeof CategoryService.getAllCategories>>;
-
-      const [groupUsers, accounts, categories] = await Promise.all([
-        withTimeout(getGroupUsers(), 1500, [currentUser] as GroupUsers),
-        withTimeout(
-          AccountService.getAccountsByGroup(currentUser.group_id),
-          1500,
-          [] as GroupAccounts
-        ),
-        withTimeout(CategoryService.getAllCategories(), 1200, [] as AllCategories),
-      ]);
-
-      appContent = (
-        <UserProvider currentUser={currentUser} groupUsers={groupUsers}>
-          <ReferenceDataInitializer
-            data={{
-              accounts: accounts || [],
-              categories: categories || [],
-            }}
-          >
-            <ModalProvider>{children}</ModalProvider>
-          </ReferenceDataInitializer>
-        </UserProvider>
-      );
-    } else {
-      appContent = (
-        <UserProvider currentUser={currentUser} groupUsers={[currentUser]}>
-          {children}
-        </UserProvider>
-      );
-    }
-  }
-
+}>): React.JSX.Element {
   return (
-    <ClerkProvider telemetry={false}>
-      <html lang={locale} data-scroll-behavior="smooth" suppressHydrationWarning>
-        <body className={`${splineSans.variable} antialiased min-h-screen bg-card text-primary`}>
-          <NextIntlClientProvider messages={messages}>
-            <NuqsAdapter>
-              <ThemeProvider
-                attribute="class"
-                defaultTheme="dark"
-                enableSystem={false}
-                disableTransitionOnChange
-              >
-                <DesktopSidebar />
-                {appContent}
-                <Toaster />
-              </ThemeProvider>
-            </NuqsAdapter>
-          </NextIntlClientProvider>
-        </body>
-      </html>
-    </ClerkProvider>
+    <Suspense fallback={<LocaleLayoutHtmlFallback className={splineSans.variable} />}>
+      <LocaleLayoutBody className={splineSans.variable} params={params}>
+        {children}
+      </LocaleLayoutBody>
+    </Suspense>
   );
 }

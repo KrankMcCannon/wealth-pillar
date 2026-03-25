@@ -1,48 +1,56 @@
 'use client';
 
-import { useState } from 'react';
+import dynamic from 'next/dynamic';
+import { use, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { PageContainer, Header, BottomNavigation } from '@/components/layout';
 import UserSelector from '@/components/shared/user-selector';
 import { User } from '@/lib';
 import TabNavigation from '@/components/shared/tab-navigation';
 import { transactionStyles } from '@/styles/system';
-import { SandboxForecastTab } from '@/components/investments/sandbox-forecast-tab';
-import {
-  Investment,
-  PersonalInvestmentTab,
-} from '@/components/investments/personal-investment-tab';
+import type { Investment } from '@/components/investments/personal-investment-tab';
+
+const PersonalInvestmentTab = dynamic(
+  () =>
+    import('@/components/investments/personal-investment-tab').then((m) => m.PersonalInvestmentTab),
+  { loading: () => <div className="min-h-[200px] animate-pulse rounded-xl bg-muted" /> }
+);
+
+const SandboxForecastTab = dynamic(
+  () => import('@/components/investments/sandbox-forecast-tab').then((m) => m.SandboxForecastTab),
+  { loading: () => <div className="min-h-[200px] animate-pulse rounded-xl bg-muted" /> }
+);
 
 interface InvestmentsContentProps {
   currentUser: User;
   groupUsers: User[];
-  investments: Investment[];
-  summary: {
-    totalInvested: number;
-    totalTaxPaid?: number;
-    totalPaid?: number;
-    totalCurrentValue: number;
-    totalInitialValue?: number;
-    totalReturn: number;
-    totalReturnPercent: number;
-  };
-  indexData: Array<{
-    datetime?: string | undefined;
-    time?: string | undefined;
-    date?: string | undefined;
-    close: string | number;
+  investmentsDataPromise: Promise<{
+    investments: Investment[];
+    summary: {
+      totalInvested: number;
+      totalTaxPaid?: number;
+      totalPaid?: number;
+      totalCurrentValue: number;
+      totalInitialValue?: number;
+      totalReturn: number;
+      totalReturnPercent: number;
+    };
+    indexData: Array<{
+      datetime?: string | undefined;
+      time?: string | undefined;
+      date?: string | undefined;
+      close: string | number;
+    }>;
+    currentIndex: string;
   }>;
-  currentIndex?: string;
 }
 
 export default function InvestmentsContent({
   currentUser,
   groupUsers,
-  investments,
-  summary,
-  indexData,
-  currentIndex,
+  investmentsDataPromise,
 }: InvestmentsContentProps) {
+  const { investments, summary, indexData, currentIndex } = use(investmentsDataPromise);
   const t = useTranslations('InvestmentsContent');
   const [activeTab, setActiveTab] = useState('personal');
 

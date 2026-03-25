@@ -7,13 +7,7 @@ import type { CompleteOnboardingInput } from './types';
 import { clerkClient } from '@clerk/nextjs/server';
 import { randomUUID } from 'node:crypto';
 
-/**
- * Service Result type
- */
-type ServiceResult<T> = {
-  data: T | null;
-  error: string | null;
-};
+import type { ServiceResult } from '@/lib/types/service-result';
 
 function getInitials(name: string) {
   const parts = name.trim().split(' ').filter(Boolean);

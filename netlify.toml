@@ -1,9 +1,10 @@
 [build]
-  command = "npm run build"
+  command = "pnpm run build"
   publish = ".next"
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
 
 [build.environment]
-  NODE_VERSION = "22"
+  # Allineato a package.json engines e .nvmrc (engine-strict in .npmrc)
+  NODE_VERSION = "22.12.0"

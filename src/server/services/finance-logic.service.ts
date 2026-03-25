@@ -164,6 +164,72 @@ export class FinanceLogicService {
   }
 
   /**
+   * Category spending for reports (same transaction set as overview; avoids duplicate DB RPC).
+   */
+  static aggregateGroupCategorySpendingForReports(
+    transactions: Transaction[],
+    rangeStart: Date,
+    rangeEnd: Date
+  ): Array<{ category: string; amount: number; count: number }> {
+    const periodStart = toDateTime(rangeStart)?.startOf('day');
+    const periodEnd = toDateTime(rangeEnd)?.endOf('day');
+    if (!periodStart || !periodEnd) return [];
+
+    const map = new Map<string, { amount: number; count: number }>();
+
+    for (const t of transactions) {
+      const d = toDateTime(t.date);
+      if (!d || d < periodStart || d > periodEnd) continue;
+      if (t.type !== 'expense') continue;
+
+      const cat = t.category;
+      const prev = map.get(cat) || { amount: 0, count: 0 };
+      prev.amount += t.amount;
+      prev.count += 1;
+      map.set(cat, prev);
+    }
+
+    return Array.from(map.entries()).map(([category, v]) => ({
+      category,
+      amount: v.amount,
+      count: v.count,
+    }));
+  }
+
+  /**
+   * Monthly income/expense buckets for reports (replaces get_group_monthly_spending RPC on same data).
+   */
+  static aggregateMonthlyIncomeExpenseForReports(
+    transactions: Transaction[],
+    rangeStart: Date,
+    rangeEnd: Date
+  ): Array<{ month: string; income: number; expense: number }> {
+    const periodStart = toDateTime(rangeStart)?.startOf('day');
+    const periodEnd = toDateTime(rangeEnd)?.endOf('day');
+    if (!periodStart || !periodEnd) return [];
+
+    const map = new Map<string, { month: string; income: number; expense: number }>();
+
+    for (const t of transactions) {
+      const d = toDateTime(t.date);
+      if (!d || d < periodStart || d > periodEnd) continue;
+      if (t.type === 'transfer') continue;
+
+      const monthKey = d.toFormat('yyyy-MM');
+      if (!map.has(monthKey)) {
+        map.set(monthKey, { month: monthKey, income: 0, expense: 0 });
+      }
+      const row = map.get(monthKey)!;
+      if (t.type === 'income') row.income += t.amount;
+      if (t.type === 'expense') row.expense += t.amount;
+    }
+
+    return Array.from(map.values()).sort(
+      (a, b) => new Date(`${a.month}-01`).getTime() - new Date(`${b.month}-01`).getTime()
+    );
+  }
+
+  /**
    * Filter transactions by categories
    * @complexity O(n)
    */

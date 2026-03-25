@@ -20,32 +20,31 @@ export default async function InvestmentsPage(props: {
   if (!currentUser) redirect(`/${locale}/sign-in`);
   const groupUsers = await getGroupUsers();
 
-  let portfolioData: Awaited<ReturnType<typeof InvestmentService.getPortfolio>>;
-  let indexData: Awaited<ReturnType<typeof MarketDataService.getCachedMarketData>>;
-
-  try {
-    [portfolioData, indexData] = await Promise.all([
-      InvestmentService.getPortfolio(currentUser.id),
-      withTimeout(
-        MarketDataService.getCachedMarketData(indexSymbol),
-        1500,
-        [] as Awaited<ReturnType<typeof MarketDataService.getCachedMarketData>>
-      ),
-    ]);
-  } catch (err) {
-    const message = err instanceof Error ? err.message : 'Errore nel caricamento del portafoglio';
-    throw new Error(message, { cause: err });
-  }
+  const investmentsDataPromise = Promise.all([
+    InvestmentService.getPortfolio(currentUser.id),
+    withTimeout(
+      MarketDataService.getCachedMarketData(indexSymbol),
+      1500,
+      [] as Awaited<ReturnType<typeof MarketDataService.getCachedMarketData>>
+    ),
+  ])
+    .then(([portfolioData, indexData]) => ({
+      investments: portfolioData.investments,
+      summary: portfolioData.summary,
+      indexData,
+      currentIndex: indexSymbol,
+    }))
+    .catch((err) => {
+      const message = err instanceof Error ? err.message : 'Errore nel caricamento del portafoglio';
+      throw new Error(message, { cause: err });
+    });
 
   return (
     <Suspense fallback={<PageLoader message={t('loading')} />}>
       <InvestmentsContent
         currentUser={currentUser}
         groupUsers={groupUsers}
-        investments={portfolioData.investments}
-        summary={portfolioData.summary}
-        indexData={indexData}
-        currentIndex={indexSymbol}
+        investmentsDataPromise={investmentsDataPromise}
       />
     </Suspense>
   );

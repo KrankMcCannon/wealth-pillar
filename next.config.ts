@@ -4,6 +4,19 @@ import type { NextConfig } from 'next';
 const withNextIntl = createNextIntlPlugin();
 
 const nextConfig: NextConfig = {
+  reactCompiler: true,
+  cacheComponents: true,
+  experimental: {
+    optimizePackageImports: [
+      'lucide-react',
+      'date-fns',
+      'framer-motion',
+      '@radix-ui/react-dialog',
+      '@radix-ui/react-dropdown-menu',
+      '@radix-ui/react-select',
+      '@radix-ui/react-tabs',
+    ],
+  },
   images: {
     // Configure allowed remote image sources
     remotePatterns: [

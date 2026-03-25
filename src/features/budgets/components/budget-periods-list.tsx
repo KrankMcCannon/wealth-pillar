@@ -32,7 +32,8 @@ export function BudgetPeriodsList({ userId, initialPeriods }: Readonly<BudgetPer
   const t = useTranslations('Budgets.PeriodsList');
   const locale = useLocale();
   const [isPending, startTransition] = useTransition();
-  const { setAllBudgetPeriods, removeBudgetPeriod } = useReportsDataStore();
+  const setAllBudgetPeriods = useReportsDataStore((s) => s.setAllBudgetPeriods);
+  const removeBudgetPeriod = useReportsDataStore((s) => s.removeBudgetPeriod);
 
   // Use optimized selectors
   const periods = useAllBudgetPeriods(userId);

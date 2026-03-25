@@ -1,4 +1,4 @@
-import { supabaseServer } from '@/server/db/server';
+import { supabase } from '@/server/db/supabase';
 import type { Transaction, Account, BudgetPeriod, Category, User } from '@/lib/types';
 import { toDateTime, formatDateShort } from '@/lib/utils';
 import { ReportPeriodService } from './report-period.service';
@@ -68,11 +68,16 @@ export class ReportsService {
   /**
    * Fetch all necessary data for reports in parallel
    */
-  static async getReportsData(groupUserIds?: string[]) {
-    const supabase = supabaseServer;
+  static async getReportsData(groupId: string, groupUserIds?: string[]) {
+    if (!groupId) {
+      throw new Error('ReportsService: groupId is required');
+    }
 
-    // 1. Fetch Users & Periods (filtered to group members for security)
-    let usersQuery = supabase.from('users').select('id, budget_periods, budget_start_date');
+    // 1. Fetch Users & Periods (scoped to group + optional member filter)
+    let usersQuery = supabase
+      .from('users')
+      .select('id, budget_periods, budget_start_date')
+      .eq('group_id', groupId);
 
     if (groupUserIds && groupUserIds.length > 0) {
       usersQuery = usersQuery.in('id', groupUserIds);
@@ -98,17 +103,21 @@ export class ReportsService {
       undefined
     );
 
-    // 3. Fetch Transactions & Data
-    const query = supabase.from('transactions').select('*').order('date', { ascending: false });
+    // 3. Fetch Transactions & Data (always scoped by group_id — service role bypasses RLS)
+    const txQuery = supabase
+      .from('transactions')
+      .select('*')
+      .eq('group_id', groupId)
+      .order('date', { ascending: false });
 
     const [
       { data: transactions, error: txError },
       { data: accounts, error: accError },
       { data: categories, error: catError },
     ] = await Promise.all([
-      query,
-      supabase.from('accounts').select('*'),
-      supabase.from('categories').select('*'),
+      txQuery,
+      supabase.from('accounts').select('*').eq('group_id', groupId),
+      supabase.from('categories').select('*').eq('group_id', groupId),
     ]);
 
     if (txError) throw new Error(`ReportsService: Transactions fetch failed: ${txError.message}`);
@@ -581,9 +590,12 @@ export class ReportsService {
   /**
    * Fetch spending trends for a specific user and range
    */
-  static async getSpendingTrends(userId: string, start?: Date, end?: Date) {
-    const supabase = supabaseServer;
+  static async getSpendingTrends(userId: string, start?: Date, end?: Date, groupId?: string) {
     let query = supabase.from('transactions').select('*').eq('user_id', userId);
+
+    if (groupId) {
+      query = query.eq('group_id', groupId);
+    }
 
     if (start) query = query.gte('date', start.toISOString());
     if (end) query = query.lte('date', end.toISOString());

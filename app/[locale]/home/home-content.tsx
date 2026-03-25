@@ -15,7 +15,7 @@
  * Business logic is extracted to useDashboardContent hook
  */
 
-import { Suspense } from 'react';
+import { Suspense, use } from 'react';
 import { useTranslations } from 'next-intl';
 import { BottomNavigation, PageContainer, Header } from '@/components/layout';
 import { Button } from '@/components/ui';
@@ -32,8 +32,8 @@ import UserSelector from '@/components/shared/user-selector';
 import { BalanceSection } from '@/features/accounts';
 import { BudgetPeriodManager, BudgetSection } from '@/features/budgets';
 import { RecurringSeriesSection } from '@/features/recurring';
-import type { Account, Budget, BudgetPeriod, User, UserBudgetSummary } from '@/lib/types';
-import type { RecurringTransactionSeries } from '@/lib';
+import type { User } from '@/lib/types';
+import type { DashboardPageData } from '@/server/services/page-data.service';
 
 /**
  * Home Content Props
@@ -41,15 +41,7 @@ import type { RecurringTransactionSeries } from '@/lib';
 interface HomeContentProps {
   currentUser: User;
   groupUsers: User[];
-  accounts: Account[];
-  accountBalances: Record<string, number>;
-  budgets: Budget[];
-  budgetPeriods: Record<string, BudgetPeriod | null>;
-  recurringSeries: RecurringTransactionSeries[];
-  budgetsByUser: Record<string, UserBudgetSummary>;
-  investmentSummary?: {
-    totalReturnPercent: number;
-  } | null;
+  dashboardDataPromise: Promise<DashboardPageData>;
 }
 
 /**
@@ -62,14 +54,21 @@ interface HomeContentProps {
 export default function HomeContent({
   currentUser,
   groupUsers,
-  accounts,
-  accountBalances,
-  budgets,
-  budgetPeriods,
-  recurringSeries,
-  budgetsByUser,
-  investmentSummary,
+  dashboardDataPromise,
 }: HomeContentProps) {
+  const dashboardData = use(dashboardDataPromise);
+  const {
+    accounts = [],
+    accountBalances = {},
+    budgets = [],
+    budgetPeriods = {},
+    recurringSeries = [],
+    budgetsByUser = {},
+    investments = {},
+  } = dashboardData;
+
+  const investmentSummary = investments[currentUser.id]?.summary ?? null;
+
   const t = useTranslations('HomeContent');
   // Extract all business logic to custom hook
   const {

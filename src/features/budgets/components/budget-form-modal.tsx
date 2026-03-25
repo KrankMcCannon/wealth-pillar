@@ -219,7 +219,11 @@ function BudgetFormModal({ isOpen, onClose, editId }: Readonly<BudgetFormModalPr
 
     if (result.data) {
       updateBudget(id, result.data);
-      toast({ title: 'Budget aggiornato', description: 'Modifiche salvate correttamente.', variant: 'success' });
+      toast({
+        title: 'Budget aggiornato',
+        description: 'Modifiche salvate correttamente.',
+        variant: 'success',
+      });
     }
   };
 
@@ -264,7 +268,11 @@ function BudgetFormModal({ isOpen, onClose, editId }: Readonly<BudgetFormModalPr
     removeBudget(tempId);
     if (result.data) {
       addBudget(result.data);
-      toast({ title: 'Budget creato', description: 'Budget aggiunto correttamente.', variant: 'success' });
+      toast({
+        title: 'Budget creato',
+        description: 'Budget aggiunto correttamente.',
+        variant: 'success',
+      });
     }
   };
 

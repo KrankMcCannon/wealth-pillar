@@ -1,6 +1,6 @@
 'use server';
 
-import { revalidatePath } from 'next/cache';
+import { revalidateBudgetRelatedPaths } from '@/lib/cache/revalidation-paths';
 import { getTranslations } from 'next-intl/server';
 
 import { getCurrentUser } from '@/lib/auth/cached-auth';
@@ -8,10 +8,7 @@ import { CreateBudgetInput, BudgetService } from '@/server/services';
 import { canAccessUserData, isMember } from '@/lib/utils';
 import type { Budget, User } from '@/lib/types';
 
-type ServiceResult<T> = {
-  data: T | null;
-  error: string | null;
-};
+import type { ServiceResult } from '@/lib/types/service-result';
 
 async function getBudgetsActionTranslator(locale?: string) {
   if (locale) {
@@ -71,9 +68,7 @@ export async function createBudgetAction(
     const budget = await BudgetService.createBudget(input);
 
     if (budget) {
-      // Revalidate paths
-      revalidatePath('/budgets');
-      revalidatePath('/home');
+      revalidateBudgetRelatedPaths();
 
       return { data: budget, error: null };
     }
@@ -146,9 +141,7 @@ export async function updateBudgetAction(
     const budget = await BudgetService.updateBudget(id, input);
 
     if (budget) {
-      // Revalidate paths
-      revalidatePath('/budgets');
-      revalidatePath('/home');
+      revalidateBudgetRelatedPaths();
 
       return { data: budget, error: null };
     }
@@ -203,9 +196,7 @@ export async function deleteBudgetAction(
     const result = await BudgetService.deleteBudget(id);
 
     if (result) {
-      // Revalidate paths
-      revalidatePath('/budgets');
-      revalidatePath('/home');
+      revalidateBudgetRelatedPaths();
 
       return { data: { id }, error: null };
     }

@@ -1,5 +1,3 @@
-'use client';
-
 import { cn } from '@/lib';
 import { pageContainerStyles } from './theme/page-container-styles';
 

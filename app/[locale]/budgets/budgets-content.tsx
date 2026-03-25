@@ -9,7 +9,7 @@
  * Data is passed from Server Component for optimal performance.
  */
 
-import { Suspense } from 'react';
+import { Suspense, use } from 'react';
 import { useTranslations } from 'next-intl';
 import { BottomNavigation, PageContainer, Header } from '@/components/layout';
 import UserSelector from '@/components/shared/user-selector';
@@ -28,14 +28,21 @@ import {
 } from '@/features/budgets/components';
 import { TransactionDayList, TransactionDayListSkeleton } from '@/features/transactions';
 import { useBudgetsContent, type UseBudgetsContentProps } from '@/features/budgets';
+import type { User, UserBudgetSummary } from '@/lib/types';
+import type { BudgetsPageData } from '@/server/services/page-data.service';
 import { budgetStyles } from '@/styles/system';
 import { ShoppingCart } from 'lucide-react';
 import { Button } from '@/components/ui';
 
-/**
- * Budgets Content Props
- */
-type BudgetsContentProps = UseBudgetsContentProps;
+type BudgetsPagePayload = BudgetsPageData & {
+  budgetsByUser: Record<string, UserBudgetSummary>;
+};
+
+interface BudgetsContentProps {
+  currentUser: User;
+  groupUsers: User[];
+  pageDataPromise: Promise<BudgetsPagePayload>;
+}
 
 /**
  * Budgets Content Component
@@ -43,12 +50,35 @@ type BudgetsContentProps = UseBudgetsContentProps;
  * Members can only view and manage their own budgets.
  * Receives user data from Server Component parent.
  */
-export default function BudgetsContent(props: BudgetsContentProps) {
+export default function BudgetsContent({
+  currentUser,
+  groupUsers,
+  pageDataPromise,
+}: BudgetsContentProps) {
+  const pageData = use(pageDataPromise);
+  const {
+    budgets = [],
+    transactions = [],
+    accounts = [],
+    categories = [],
+    budgetPeriods = {},
+    budgetsByUser = {},
+  } = pageData;
+
+  const props: UseBudgetsContentProps = {
+    categories: categories || [],
+    budgets: budgets || [],
+    transactions: transactions || [],
+    accounts: accounts || [],
+    budgetPeriods,
+    currentUser,
+    groupUsers,
+    precalculatedData: budgetsByUser,
+  };
+
   const t = useTranslations('Budgets.Page');
   const {
     router,
-    currentUser,
-    groupUsers,
     selectedBudget,
     selectedBudgetProgress,
     userBudgets,
@@ -57,7 +87,7 @@ export default function BudgetsContent(props: BudgetsContentProps) {
     chartData,
     transactionSectionSubtitle,
     accountNamesMap,
-    categories,
+    categories: hookCategories,
     handleBudgetSelect,
     handleCreateBudget,
     handleEditBudget,
@@ -161,7 +191,7 @@ export default function BudgetsContent(props: BudgetsContentProps) {
                   <TransactionDayList
                     groupedTransactions={groupedTransactions}
                     accountNames={accountNamesMap}
-                    categories={categories}
+                    categories={hookCategories}
                     sectionTitle={t('transactions.sectionTitle')}
                     sectionSubtitle={transactionSectionSubtitle}
                     emptyTitle={t('transactions.emptyTitle')}

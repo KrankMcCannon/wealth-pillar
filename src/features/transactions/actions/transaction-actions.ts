@@ -1,16 +1,12 @@
 'use server';
 
-import { revalidatePath } from 'next/cache';
-
 import { getCurrentUser } from '@/lib/auth/cached-auth';
+import { revalidateTransactionRelatedPaths } from '@/lib/cache/revalidation-paths';
+import type { ServiceResult } from '@/lib/types/service-result';
+import { assertCanActOnUser } from '@/features/permissions/assert-can-act-on-user';
 import { TransactionService, CreateTransactionInput } from '@/server/services';
 import { canAccessUserData, isMember } from '@/lib/utils';
 import type { User, Transaction } from '@/lib/types';
-
-type ServiceResult<T> = {
-  data: T | null;
-  error: string | null;
-};
 
 /**
  * Server Action: Create Transaction
@@ -21,27 +17,14 @@ export async function createTransactionAction(
   input: CreateTransactionInput
 ): Promise<ServiceResult<Transaction>> {
   try {
-    // Authentication check (cached per request)
     const currentUser = await getCurrentUser();
-    if (!currentUser) return { data: null, error: 'Non autenticato' };
+    const gate = assertCanActOnUser(currentUser as unknown as User, input.user_id ?? undefined);
+    if (!gate.ok) return { data: null, error: gate.error };
 
-    if (isMember(currentUser as unknown as User) && input.user_id !== currentUser.id) {
-      return { data: null, error: 'Permesso negato' };
-    }
-
-    if (!input.user_id) return { data: null, error: 'User ID richiesto' };
-
-    if (!canAccessUserData(currentUser as unknown as User, input.user_id)) {
-      return { data: null, error: 'Permesso negato' };
-    }
-
-    // Call service
     const data = await TransactionService.createTransaction(input);
 
     if (data) {
-      // Revalidate only directly affected paths
-      revalidatePath('/transactions');
-      revalidatePath('/accounts');
+      revalidateTransactionRelatedPaths();
     }
 
     return { data, error: null };
@@ -102,9 +85,7 @@ export async function updateTransactionAction(
     const data = await TransactionService.updateTransaction(id, input);
 
     if (data) {
-      // Revalidate only directly affected paths
-      revalidatePath('/transactions');
-      revalidatePath('/accounts');
+      revalidateTransactionRelatedPaths();
     }
 
     return { data, error: null };
@@ -151,9 +132,7 @@ export async function deleteTransactionAction(id: string): Promise<ServiceResult
     // Call service
     await TransactionService.deleteTransaction(id);
 
-    // Revalidate only directly affected paths
-    revalidatePath('/transactions');
-    revalidatePath('/accounts');
+    revalidateTransactionRelatedPaths();
 
     return { data: { id }, error: null };
   } catch (error) {

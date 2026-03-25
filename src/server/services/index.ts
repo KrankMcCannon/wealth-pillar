@@ -37,6 +37,7 @@ export {
 export { FinanceLogicService } from './finance-logic.service';
 export { ReportPeriodService, type EnrichedBudgetPeriod } from './report-period.service';
 export { PageDataService } from './page-data.service';
+export { ReportsService } from './reports.service';
 export { InvestmentService } from './investment.service';
 export { MarketDataService } from './market-data.service';
 export { AvailableSharesService } from './available-shares.service';

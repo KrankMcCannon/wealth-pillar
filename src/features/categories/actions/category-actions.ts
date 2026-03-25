@@ -11,11 +11,7 @@ import {
   FinanceLogicService,
 } from '@/server/services';
 import type { Category } from '@/lib/types';
-
-type ServiceResult<T> = {
-  data: T | null;
-  error: string | null;
-};
+import type { ServiceResult } from '@/lib/types/service-result';
 
 async function getCategoryActionTranslator(locale?: string) {
   if (locale) {

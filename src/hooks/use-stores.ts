@@ -20,11 +20,5 @@ export {
 // User Filter Hook (from hooks, wraps the store)
 export { useUserFilter } from '@/hooks/state/use-user-filter';
 
-// Transaction Filters Store
-export { useTransactionFiltersStore } from '@/stores/transaction-filters-store';
-
-// UI State Store
-export { useUIStateStore } from '@/stores/ui-state-store';
-
 // Form Draft Store
 export { useFormDraftStore } from '@/stores/form-draft-store';

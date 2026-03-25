@@ -1,11 +1,9 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import dynamic from 'next/dynamic';
+import { use, useMemo, useState } from 'react';
 import { BottomNavigation, PageContainer, Header } from '@/components/layout';
 import { SummarySection, PeriodsSection } from '@/features/reports';
-import { TimeTrendsChart } from '@/features/reports/components/TimeTrendsChart';
-import { CategoryDistribution } from '@/features/reports/components/CategoryDistribution';
-import { BudgetFlowVisualizer } from '@/features/reports/components/BudgetFlowVisualizer';
 import {
   TimeRangeSelector,
   getTimeRangeStartDate,
@@ -22,6 +20,27 @@ import type { User } from '@/lib/types';
 import { reportsStyles } from '@/features/reports/theme/reports-styles';
 import { motion } from 'framer-motion';
 import { User as UserIcon } from 'lucide-react';
+
+const TimeTrendsChart = dynamic(
+  () => import('@/features/reports/components/TimeTrendsChart').then((m) => m.TimeTrendsChart),
+  { loading: () => <div className="h-48 animate-pulse rounded-xl bg-muted" /> }
+);
+
+const CategoryDistribution = dynamic(
+  () =>
+    import('@/features/reports/components/CategoryDistribution').then(
+      (m) => m.CategoryDistribution
+    ),
+  { loading: () => <div className="h-64 animate-pulse rounded-xl bg-muted" /> }
+);
+
+const BudgetFlowVisualizer = dynamic(
+  () =>
+    import('@/features/reports/components/BudgetFlowVisualizer').then(
+      (m) => m.BudgetFlowVisualizer
+    ),
+  { loading: () => <div className="h-56 animate-pulse rounded-xl bg-muted" /> }
+);
 
 interface SerializedTransaction {
   amount: number;
@@ -48,14 +67,16 @@ interface SerializedAccount {
 }
 
 interface ReportsContentProps {
-  accountTypeSummary: AccountTypeSummary[];
-  periodSummaries: ReportPeriodSummary[];
-  spendingTrends: { date: string; income: number; expense: number }[];
   currentUser: User;
   groupUsers: User[];
-  transactions: SerializedTransaction[];
-  categories: SerializedCategory[];
-  accounts: SerializedAccount[];
+  reportsBundlePromise: Promise<{
+    accountTypeSummary: AccountTypeSummary[];
+    periodSummaries: ReportPeriodSummary[];
+    spendingTrends: { date: string; income: number; expense: number }[];
+    transactions: SerializedTransaction[];
+    categories: SerializedCategory[];
+    accounts: SerializedAccount[];
+  }>;
 }
 
 function normalizeAccountType(type: string): string {
@@ -209,15 +230,19 @@ function computeUserFlows(
 }
 
 export default function ReportsContent({
-  accountTypeSummary,
-  periodSummaries,
-  spendingTrends,
   currentUser,
   groupUsers,
-  transactions,
-  categories,
-  accounts,
+  reportsBundlePromise,
 }: ReportsContentProps) {
+  const {
+    accountTypeSummary,
+    periodSummaries,
+    spendingTrends,
+    transactions,
+    categories,
+    accounts,
+  } = use(reportsBundlePromise);
+
   const t = useTranslations('ReportsContent');
   const [timeRange, setTimeRange] = useState<TimeRange>('all');
   const [selectedUserId, setSelectedUserId] = useState<string>(currentUser.id);

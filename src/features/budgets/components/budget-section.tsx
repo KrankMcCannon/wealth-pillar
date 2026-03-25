@@ -96,10 +96,7 @@ export const BudgetSection = ({
           </div>
           <h3 className={budgetStyles.section.emptyTitle}>{t('empty.title')}</h3>
           <p className={budgetStyles.section.emptyDescription}>{t('empty.description')}</p>
-          <button
-            onClick={goToBudgets}
-            className={budgetStyles.section.emptyButton}
-          >
+          <button onClick={goToBudgets} className={budgetStyles.section.emptyButton}>
             {t('empty.createButton')}
           </button>
         </div>

@@ -4,8 +4,6 @@
  * Shows shimmer animations while data loads
  */
 
-'use client';
-
 import { budgetStyles } from '@/styles/system';
 
 /**

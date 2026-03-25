@@ -1,6 +1,6 @@
 'use server';
 
-import { revalidatePath } from 'next/cache';
+import { revalidateAccountRelatedPaths } from '@/lib/cache/revalidation-paths';
 import { getTranslations } from 'next-intl/server';
 import { getCurrentUser } from '@/lib/auth/cached-auth';
 import {
@@ -9,13 +9,11 @@ import {
   UserService,
   AccountService,
 } from '@/server/services';
+import type { ServiceResult } from '@/lib/types/service-result';
 import { Account, User } from '@/lib/types';
 import { canAccessUserData } from '@/lib/utils/permissions';
 
-export type ServiceResult<T> = {
-  data: T | null;
-  error: string | null;
-};
+export type { ServiceResult } from '@/lib/types/service-result';
 
 async function getAccountsActionTranslator(locale?: string) {
   if (locale) {
@@ -58,8 +56,7 @@ export async function createAccountAction(
       if (uid) await UserService.setDefaultAccount(uid, account.id);
     }
 
-    revalidatePath('/accounts');
-    revalidatePath('/home');
+    revalidateAccountRelatedPaths();
 
     return { data: account, error: null };
   } catch (error) {
@@ -112,8 +109,7 @@ export async function updateAccountAction(
       }
     }
 
-    revalidatePath('/accounts');
-    revalidatePath('/home');
+    revalidateAccountRelatedPaths();
 
     return { data: account, error: null };
   } catch (error) {
@@ -150,8 +146,7 @@ export async function deleteAccountAction(
 
     await AccountService.deleteAccount(accountId);
 
-    revalidatePath('/accounts');
-    revalidatePath('/home');
+    revalidateAccountRelatedPaths();
 
     return { data: true, error: null };
   } catch (error) {

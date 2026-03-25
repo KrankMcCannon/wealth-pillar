@@ -1,4 +1,3 @@
-import 'server-only';
 import { cache } from 'react';
 import { cached } from '@/lib/cache';
 import { cacheOptions } from '@/lib/cache/config';

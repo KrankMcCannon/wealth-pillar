@@ -10,9 +10,11 @@
  * separation of concerns.
  */
 
-import { Suspense } from 'react';
+import { Suspense, use } from 'react';
 import { useTranslations } from 'next-intl';
 import { useTransactionsContent, type UseTransactionsContentProps } from '@/features/transactions';
+import type { User } from '@/lib/types';
+import type { TransactionsPageData } from '@/server/services/page-data.service';
 import { BottomNavigation, PageContainer, Header } from '@/components/layout';
 import TabNavigation from '@/components/shared/tab-navigation';
 import UserSelector from '@/components/shared/user-selector';
@@ -23,17 +25,44 @@ import { transactionStyles } from '@/styles/system';
 import { UserSelectorSkeleton } from '@/features/dashboard';
 import { RecurringSeriesSkeleton } from '@/features/transactions/components/transaction-skeletons';
 
-/**
- * Transactions Content Props (re-export from hook)
- */
-type TransactionsContentProps = UseTransactionsContentProps;
+interface TransactionsContentProps {
+  currentUser: User;
+  groupUsers: User[];
+  pageDataPromise: Promise<TransactionsPageData>;
+}
 
 /**
  * Transactions Content Component
  * Handles interactive transactions UI with state management
  */
-export default function TransactionsContent(props: TransactionsContentProps) {
-  const { currentUser, groupUsers, recurringSeries, categories } = props;
+export default function TransactionsContent({
+  currentUser,
+  groupUsers,
+  pageDataPromise,
+}: TransactionsContentProps) {
+  const pageData = use(pageDataPromise);
+  const {
+    transactions = [],
+    total = 0,
+    hasMore = false,
+    recurringSeries = [],
+    budgets = [],
+    accounts = [],
+    categories = [],
+  } = pageData;
+
+  const props: UseTransactionsContentProps = {
+    currentUser,
+    groupUsers,
+    transactions,
+    totalTransactions: total,
+    hasMoreTransactions: hasMore,
+    recurringSeries,
+    budgets,
+    accounts,
+    categories,
+  };
+
   const t = useTranslations('TransactionsContent');
 
   const {

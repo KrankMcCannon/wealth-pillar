@@ -12,7 +12,8 @@
 
 import { cache } from 'react';
 import { auth } from '@clerk/nextjs/server';
-import { UserService, GroupService } from '@/server/services';
+import { UserService } from '@/server/services';
+import { getGroupUsersByGroupIdDeduped } from '@/server/request-cache/services';
 import type { User } from '@/lib/types';
 
 /**
@@ -97,6 +98,6 @@ export const getGroupUsers = cache(async (): Promise<User[]> => {
     return [];
   }
 
-  const groupUsers = await GroupService.getGroupUsers(user.group_id);
+  const groupUsers = await getGroupUsersByGroupIdDeduped(user.group_id);
   return (groupUsers || []) as unknown as User[];
 });

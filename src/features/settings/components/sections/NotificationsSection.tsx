@@ -6,13 +6,11 @@ import { UserPreferences } from '@/server/services';
 
 interface NotificationsSectionProps {
   preferences: UserPreferences | null;
-  isLoadingPreferences: boolean;
   onToggle: (key: keyof UserPreferences) => void;
 }
 
 export function NotificationsSection({
   preferences,
-  isLoadingPreferences,
   onToggle,
 }: Readonly<NotificationsSectionProps>) {
   const t = useTranslations('SettingsSections.Notifications');
@@ -29,7 +27,6 @@ export function NotificationsSection({
             actionType="toggle"
             checked={preferences?.notifications_push ?? true}
             onToggle={() => onToggle('notifications_push')}
-            disabled={isLoadingPreferences}
           />
 
           <SettingsItem
@@ -39,7 +36,6 @@ export function NotificationsSection({
             actionType="toggle"
             checked={preferences?.notifications_email ?? false}
             onToggle={() => onToggle('notifications_email')}
-            disabled={isLoadingPreferences}
           />
 
           <SettingsItem
@@ -49,7 +45,6 @@ export function NotificationsSection({
             actionType="toggle"
             checked={preferences?.notifications_budget_alerts ?? true}
             onToggle={() => onToggle('notifications_budget_alerts')}
-            disabled={isLoadingPreferences}
           />
         </ListContainer>
       </PageSection>

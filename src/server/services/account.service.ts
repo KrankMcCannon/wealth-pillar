@@ -1,5 +1,4 @@
 import { serialize } from '@/lib/utils/serializer';
-import 'server-only';
 import { cache } from 'react';
 import { cached } from '@/lib/cache';
 import { CACHE_TAGS, cacheOptions } from '@/lib/cache/config';

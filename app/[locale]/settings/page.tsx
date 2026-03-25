@@ -43,12 +43,7 @@ export default async function SettingsPage({
 
   // Fetch accounts, transactions, preferences, and group users
   const [accountCount, transactionCount, preferences, groupUsersResult] = await Promise.all([
-    withTimeout(
-      AccountService.getAccountCountByUser(currentUser.id),
-      2000,
-      0,
-      'accountCount'
-    ),
+    withTimeout(AccountService.getAccountCountByUser(currentUser.id), 2000, 0, 'accountCount'),
     withTimeout(
       TransactionService.getTransactionCountByUser(currentUser.id),
       2000,

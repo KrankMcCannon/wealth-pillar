@@ -152,7 +152,11 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
 
     if (result.data) {
       updateAccount(id, result.data);
-      toast({ title: 'Account aggiornato', description: 'Modifiche salvate correttamente.', variant: 'success' });
+      toast({
+        title: 'Account aggiornato',
+        description: 'Modifiche salvate correttamente.',
+        variant: 'success',
+      });
     }
   };
 
@@ -201,7 +205,11 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
     removeAccount(tempId);
     if (result.data) {
       addAccount(result.data);
-      toast({ title: 'Account creato', description: 'Account aggiunto correttamente.', variant: 'success' });
+      toast({
+        title: 'Account creato',
+        description: 'Account aggiunto correttamente.',
+        variant: 'success',
+      });
     }
   };
 

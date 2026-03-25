@@ -10,6 +10,18 @@ import type { Database } from '@/lib/types/database.types';
 
 export type AvailableShare = Database['public']['Tables']['available_shares']['Row'];
 
+let assetTypesCache: Promise<string[]> | null = null;
+
+function getAssetTypesCached(): Promise<string[]> {
+  if (!assetTypesCache) {
+    assetTypesCache = getShareAssetTypesAllAction().then((r) => {
+      const types = (r.data || []).map((type) => String(type).toLowerCase()).filter(Boolean);
+      return Array.from(new Set(types));
+    });
+  }
+  return assetTypesCache;
+}
+
 interface UseShareSearchProps {
   initialValue?: string;
   onSelect?: (symbol: string) => void;
@@ -30,10 +42,9 @@ export function useShareSearch({ initialValue, onSelect }: UseShareSearchProps =
   // Fetch Asset Types
   React.useEffect(() => {
     let active = true;
-    getShareAssetTypesAllAction().then((result) => {
+    getAssetTypesCached().then((types) => {
       if (!active) return;
-      const types = (result.data || []).map((type) => String(type).toLowerCase()).filter(Boolean);
-      setAssetTypes(Array.from(new Set(types)));
+      setAssetTypes(types);
     });
     return () => {
       active = false;

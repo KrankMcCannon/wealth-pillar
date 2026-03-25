@@ -8,8 +8,8 @@ import type { Transaction, User } from '@/lib/types';
 import type { CreateTransactionInput } from '@/server/services';
 
 // Mock dependencies
-vi.mock('next/cache', () => ({
-  revalidatePath: vi.fn(),
+vi.mock('@/lib/cache/revalidation-paths', () => ({
+  revalidateTransactionRelatedPaths: vi.fn(),
 }));
 
 vi.mock('@/lib/auth/cached-auth', () => ({
@@ -30,7 +30,7 @@ vi.mock('@/lib/utils', () => ({
   isMember: vi.fn(),
 }));
 
-import { revalidatePath } from 'next/cache';
+import { revalidateTransactionRelatedPaths } from '@/lib/cache/revalidation-paths';
 import { getCurrentUser } from '@/lib/auth/cached-auth';
 import { TransactionService } from '@/server/services';
 import { canAccessUserData, isMember } from '@/lib/utils';
@@ -144,8 +144,7 @@ describe('transaction-actions', () => {
 
       expect(result).toEqual({ data: mockTransaction, error: null });
       expect(TransactionService.createTransaction).toHaveBeenCalledWith(input);
-      expect(revalidatePath).toHaveBeenCalledWith('/transactions');
-      expect(revalidatePath).toHaveBeenCalledWith('/accounts');
+      expect(revalidateTransactionRelatedPaths).toHaveBeenCalledTimes(1);
     });
 
     it('should not revalidate paths when service returns null', async () => {
@@ -157,7 +156,7 @@ describe('transaction-actions', () => {
       const result = await createTransactionAction(createMockInput());
 
       expect(result).toEqual({ data: null, error: null });
-      expect(revalidatePath).not.toHaveBeenCalled();
+      expect(revalidateTransactionRelatedPaths).not.toHaveBeenCalled();
     });
 
     it('should handle service errors gracefully', async () => {
@@ -296,8 +295,7 @@ describe('transaction-actions', () => {
       expect(TransactionService.updateTransaction).toHaveBeenCalledWith('tx-1', {
         description: 'Updated',
       });
-      expect(revalidatePath).toHaveBeenCalledWith('/transactions');
-      expect(revalidatePath).toHaveBeenCalledWith('/accounts');
+      expect(revalidateTransactionRelatedPaths).toHaveBeenCalledTimes(1);
     });
 
     it('should handle service errors gracefully', async () => {
@@ -320,7 +318,7 @@ describe('transaction-actions', () => {
       const result = await updateTransactionAction('tx-1', { description: 'Updated' });
 
       expect(result).toEqual({ data: null, error: null });
-      expect(revalidatePath).not.toHaveBeenCalled();
+      expect(revalidateTransactionRelatedPaths).not.toHaveBeenCalled();
     });
 
     it('should handle non-Error exceptions with fallback message', async () => {
@@ -395,8 +393,7 @@ describe('transaction-actions', () => {
 
       expect(result).toEqual({ data: { id: 'tx-1' }, error: null });
       expect(TransactionService.deleteTransaction).toHaveBeenCalledWith('tx-1');
-      expect(revalidatePath).toHaveBeenCalledWith('/transactions');
-      expect(revalidatePath).toHaveBeenCalledWith('/accounts');
+      expect(revalidateTransactionRelatedPaths).toHaveBeenCalledTimes(1);
     });
 
     it('should handle service errors gracefully', async () => {

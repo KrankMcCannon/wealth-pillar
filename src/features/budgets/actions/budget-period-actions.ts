@@ -1,17 +1,13 @@
 'use server';
 
-import { revalidatePath } from 'next/cache';
+import { revalidateBudgetPeriodRelatedPaths } from '@/lib/cache/revalidation-paths';
 import { getTranslations } from 'next-intl/server';
 import { getCurrentUser } from '@/lib/auth/cached-auth';
 import { TransactionService, BudgetService, BudgetPeriodService } from '@/server/services';
 import { canAccessUserData, isMember } from '@/lib/utils';
 import type { BudgetPeriod, User } from '@/lib/types';
+import type { ServiceResult } from '@/lib/types/service-result';
 import { DateTime } from 'luxon';
-
-type ServiceResult<T> = {
-  data: T | null;
-  error: string | null;
-};
 
 async function getBudgetPeriodActionTranslator(locale?: string) {
   if (locale) {
@@ -63,9 +59,7 @@ export async function startPeriodAction(
     // Create new period
     const result = await BudgetPeriodService.createPeriod(userId, startDate);
 
-    // Revalidate pages that display budget periods
-    revalidatePath('/budgets');
-    revalidatePath('/reports');
+    revalidateBudgetPeriodRelatedPaths();
 
     return { data: result, error: null };
   } catch (error) {
@@ -124,9 +118,7 @@ export async function closePeriodAction(
     const result = await BudgetPeriodService.closePeriod(userId, periodId, endDate);
 
     if (result) {
-      // Revalidate pages that display budget periods
-      revalidatePath('/budgets');
-      revalidatePath('/reports');
+      revalidateBudgetPeriodRelatedPaths();
       return { data: result, error: null };
     }
 
@@ -185,9 +177,7 @@ export async function deletePeriodAction(
     // Delete period
     await BudgetPeriodService.deletePeriod(userId, periodId);
 
-    // Revalidate pages that display budget periods
-    revalidatePath('/budgets');
-    revalidatePath('/reports');
+    revalidateBudgetPeriodRelatedPaths();
 
     return { data: { id: periodId }, error: null };
   } catch (error) {

@@ -26,40 +26,19 @@ export default async function HomePage({
 
   const groupUsers = await getGroupUsers();
 
-  let dashboardData: Awaited<ReturnType<typeof PageDataService.getDashboardData>>;
-  try {
-    dashboardData = await PageDataService.getDashboardData(currentUser.group_id || '');
-  } catch (err) {
-    const message = err instanceof Error ? err.message : 'Errore nel caricamento della dashboard';
-    throw new Error(message, { cause: err });
-  }
-
-  const {
-    accounts = [],
-    accountBalances = {},
-    budgets = [],
-    budgetPeriods = {},
-    recurringSeries = [],
-    budgetsByUser = {},
-    investments = {},
-  } = dashboardData;
-
-  // Get current user's investment summary for header
-  const userInvestmentData = investments[currentUser.id];
-  const investmentSummary = userInvestmentData?.summary || null;
+  const dashboardDataPromise = PageDataService.getDashboardData(currentUser.group_id || '').catch(
+    (err) => {
+      const message = err instanceof Error ? err.message : 'Errore nel caricamento della dashboard';
+      throw new Error(message, { cause: err });
+    }
+  );
 
   return (
     <Suspense fallback={<HomePageLoading />}>
       <HomeContent
         currentUser={currentUser}
         groupUsers={groupUsers}
-        accounts={accounts}
-        accountBalances={accountBalances}
-        budgets={budgets}
-        budgetPeriods={budgetPeriods}
-        recurringSeries={recurringSeries}
-        budgetsByUser={budgetsByUser}
-        investmentSummary={investmentSummary}
+        dashboardDataPromise={dashboardDataPromise}
       />
     </Suspense>
   );

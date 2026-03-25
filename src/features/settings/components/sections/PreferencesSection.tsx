@@ -8,7 +8,6 @@ import { getLanguagePreferenceForLocale } from '@/features/settings/utils/langua
 
 interface PreferencesSectionProps {
   preferences: UserPreferences | null;
-  isLoadingPreferences: boolean;
   onOpenCurrency: () => void;
   onOpenLanguage: () => void;
   onOpenTimezone: () => void;
@@ -16,7 +15,6 @@ interface PreferencesSectionProps {
 
 export function PreferencesSection({
   preferences,
-  isLoadingPreferences,
   onOpenCurrency,
   onOpenLanguage,
   onOpenTimezone,
@@ -43,7 +41,6 @@ export function PreferencesSection({
             actionType="button"
             buttonLabel={t('changeButton')}
             onPress={onOpenCurrency}
-            disabled={isLoadingPreferences}
           />
 
           <SettingsItem
@@ -69,7 +66,6 @@ export function PreferencesSection({
             actionType="button"
             buttonLabel={t('changeButton')}
             onPress={onOpenLanguage}
-            disabled={isLoadingPreferences}
           />
 
           <SettingsItem
@@ -84,7 +80,6 @@ export function PreferencesSection({
             actionType="button"
             buttonLabel={t('changeButton')}
             onPress={onOpenTimezone}
-            disabled={isLoadingPreferences}
           />
         </ListContainer>
       </PageSection>

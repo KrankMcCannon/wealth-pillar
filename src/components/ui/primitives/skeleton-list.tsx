@@ -1,4 +1,4 @@
-import { Fragment, useMemo } from 'react';
+import { Fragment } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 
 import { SkeletonBox } from './skeleton-box';
@@ -24,18 +24,14 @@ export function SkeletonList({
   style,
   renderItem,
 }: Readonly<SkeletonListProps>) {
-  const skeletonIds = useMemo(() => {
-    return Array.from({ length: count }).map(() => crypto.randomUUID());
-  }, [count]);
-
   return (
     <div className={spacing} style={style}>
-      {skeletonIds.map((id, i) =>
+      {Array.from({ length: count }, (_, i) =>
         renderItem ? (
-          <Fragment key={`skeleton-item-${id}`}>{renderItem(i)}</Fragment>
+          <Fragment key={`skeleton-item-${i}`}>{renderItem(i)}</Fragment>
         ) : (
           <SkeletonBox
-            key={`skeleton-box-${id}`}
+            key={`skeleton-box-${i}`}
             height={height}
             width={width}
             variant={variant}

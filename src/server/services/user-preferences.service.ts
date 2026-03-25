@@ -1,4 +1,3 @@
-import 'server-only';
 import { revalidateTag } from 'next/cache';
 import { cached } from '@/lib/cache';
 import { CACHE_TAGS, cacheOptions } from '@/lib/cache/config';

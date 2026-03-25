@@ -1,4 +1,3 @@
-import 'server-only';
 import { supabase } from '@/server/db/supabase';
 import { cache } from 'react';
 import { cached } from '@/lib/cache';

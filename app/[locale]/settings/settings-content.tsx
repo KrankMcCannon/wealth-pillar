@@ -51,7 +51,6 @@ export default function SettingsContent({
     // Derived state
     isAdmin,
     userInitials,
-    isLoadingPreferences,
     isSigningOut,
     isDeletingAccount,
     deleteError,
@@ -121,17 +120,12 @@ export default function SettingsContent({
 
           <PreferencesSection
             preferences={preferences}
-            isLoadingPreferences={isLoadingPreferences}
             onOpenCurrency={() => setShowCurrencyModal(true)}
             onOpenLanguage={() => setShowLanguageModal(true)}
             onOpenTimezone={() => setShowTimezoneModal(true)}
           />
 
-          <NotificationsSection
-            preferences={preferences}
-            isLoadingPreferences={isLoadingPreferences}
-            onToggle={handleNotificationToggle}
-          />
+          <NotificationsSection preferences={preferences} onToggle={handleNotificationToggle} />
 
           <SecuritySection
             isSigningOut={isSigningOut}

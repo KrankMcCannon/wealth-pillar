@@ -14,6 +14,7 @@ import { canAccessUserData, isMember } from '@/lib/utils/permissions';
 import type { RecurringTransactionSeries, User } from '@/lib/types';
 import { RecurringService } from '@/server/services';
 import { serialize } from '@/lib/utils/serializer';
+import type { ServiceResult } from '@/lib/types/service-result';
 
 /**
  * Input type for creating a recurring series
@@ -47,14 +48,6 @@ export interface UpdateRecurringSeriesInput {
   end_date?: string | null;
   due_day?: number; // Giorno del mese per l'addebito (1-31)
   is_active?: boolean;
-}
-
-/**
- * Action result type
- */
-interface ActionResult<T = unknown> {
-  data: T | null;
-  error: string | null;
 }
 
 // Helper: Validate input fields for creation
@@ -103,7 +96,7 @@ function validateCreatePermissions(currentUser: User, userIds: string[]): string
  */
 export async function createRecurringSeriesAction(
   input: CreateRecurringSeriesInput
-): Promise<ActionResult<RecurringTransactionSeries>> {
+): Promise<ServiceResult<RecurringTransactionSeries>> {
   try {
     // Authentication check (cached per request)
     const currentUser = await getCurrentUser();
@@ -207,7 +200,7 @@ function validateUpdatePermission(
  */
 export async function updateRecurringSeriesAction(
   input: UpdateRecurringSeriesInput
-): Promise<ActionResult<RecurringTransactionSeries>> {
+): Promise<ServiceResult<RecurringTransactionSeries>> {
   try {
     if (!input.id) {
       return { data: null, error: 'ID serie obbligatorio' };
@@ -311,7 +304,7 @@ export async function updateRecurringSeriesAction(
  */
 export async function deleteRecurringSeriesAction(
   seriesId: string
-): Promise<ActionResult<{ success: boolean }>> {
+): Promise<ServiceResult<{ success: boolean }>> {
   try {
     if (!seriesId) {
       return { data: null, error: 'ID serie obbligatorio' };
@@ -375,7 +368,7 @@ export async function deleteRecurringSeriesAction(
 export async function toggleRecurringSeriesActiveAction(
   seriesId: string,
   isActive: boolean
-): Promise<ActionResult<RecurringTransactionSeries>> {
+): Promise<ServiceResult<RecurringTransactionSeries>> {
   return updateRecurringSeriesAction({ id: seriesId, is_active: isActive });
 }
 
@@ -387,7 +380,7 @@ export async function toggleRecurringSeriesActiveAction(
  */
 export async function executeRecurringSeriesAction(
   seriesId: string
-): Promise<ActionResult<{ transactionId: string }>> {
+): Promise<ServiceResult<{ transactionId: string }>> {
   console.warn('Series execution not implemented yet for series:', seriesId);
   // const today = new Date();
   // Per ora ritorniamo un messaggio informativo

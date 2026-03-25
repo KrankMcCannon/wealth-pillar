@@ -1,4 +1,3 @@
-import 'server-only';
 import { cached } from '@/lib/cache';
 import { cacheOptions } from '@/lib/cache/config';
 import { budgetPeriodCacheKeys } from '@/lib/cache/keys';
@@ -7,6 +6,7 @@ import { parseBudgetPeriodsFromJson } from '@/lib/utils/budget-period-json';
 import { toDateTime, todayDateString } from '@/lib/utils/date-utils';
 import { DateTime } from 'luxon';
 import { UserService } from './user.service';
+import { supabase } from '@/server/db/supabase';
 import type { Json } from '@/lib/types/database.types';
 import { invalidateBudgetPeriodCaches } from '@/lib/utils/cache-utils';
 
@@ -104,20 +104,31 @@ export class BudgetPeriodService {
   static async getActivePeriodForUsers(
     userIds: string[]
   ): Promise<Record<string, BudgetPeriod | null>> {
-    const results = await Promise.all(
-      userIds.map(async (id) => {
-        const period = await this.getActivePeriod(id);
-        return { id, period };
-      })
-    );
+    if (userIds.length === 0) return {};
 
-    return results.reduce(
-      (acc, curr) => {
-        acc[curr.id] = curr.period;
-        return acc;
-      },
-      {} as Record<string, BudgetPeriod | null>
-    );
+    const { data, error } = await supabase
+      .from('users')
+      .select('id, budget_periods')
+      .in('id', userIds);
+
+    if (error) throw new Error(error.message);
+
+    const out: Record<string, BudgetPeriod | null> = {};
+    for (const id of userIds) {
+      out[id] = null;
+    }
+
+    type UserPeriodRow = { id: string; budget_periods: Json | null };
+    const rows = (data ?? []) as UserPeriodRow[];
+
+    for (const row of rows) {
+      const userId = row.id;
+      const periods = parseBudgetPeriodsFromJson(row.budget_periods);
+      const activePeriod = periods.find((p) => p.is_active);
+      out[userId] = activePeriod ? this.jsonToBudgetPeriod(activePeriod, userId) : null;
+    }
+
+    return out;
   }
 
   /**
@@ -154,14 +165,18 @@ export class BudgetPeriodService {
       (b) => b.user_id === period.user_id && b.amount > 0
     );
 
+    const txsByCategory = new Map<string, Transaction[]>();
+    for (const t of periodTransactions) {
+      const list = txsByCategory.get(t.category) ?? [];
+      list.push(t);
+      txsByCategory.set(t.category, list);
+    }
+
     // Calculate totals by processing each budget individually (matches modal logic)
     validBudgets.forEach((budget) => {
       totalBudget += budget.amount;
 
-      // Filter transactions for this specific budget's categories
-      const budgetTransactions = periodTransactions.filter((t) =>
-        budget.categories.includes(t.category)
-      );
+      const budgetTransactions = budget.categories.flatMap((c) => txsByCategory.get(c) ?? []);
 
       // Calculate spent for this budget (income refills, expense/transfer consume)
       const budgetSpent = budgetTransactions.reduce((sum, t) => {

@@ -316,7 +316,11 @@ function RecurringFormModal({ isOpen, onClose, editId }: Readonly<RecurringFormM
 
     if (result.data) {
       updateRecurringSeries(editId, result.data);
-      toast({ title: 'Serie aggiornata', description: 'Modifiche salvate correttamente.', variant: 'success' });
+      toast({
+        title: 'Serie aggiornata',
+        description: 'Modifiche salvate correttamente.',
+        variant: 'success',
+      });
     }
   };
 
@@ -347,7 +351,11 @@ function RecurringFormModal({ isOpen, onClose, editId }: Readonly<RecurringFormM
     removeRecurringSeries(tempId);
     if (result.data) {
       addRecurringSeries(result.data);
-      toast({ title: 'Serie creata', description: 'Serie ricorrente aggiunta correttamente.', variant: 'success' });
+      toast({
+        title: 'Serie creata',
+        description: 'Serie ricorrente aggiunta correttamente.',
+        variant: 'success',
+      });
     }
   };
 

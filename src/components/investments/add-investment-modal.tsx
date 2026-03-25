@@ -97,7 +97,11 @@ export default function AddInvestmentModal({ isOpen, onClose }: Readonly<AddInve
         toast({ title: 'Errore', description: res.error, variant: 'destructive' });
         return;
       }
-      toast({ title: 'Investimento aggiunto', description: 'Operazione completata correttamente.', variant: 'success' });
+      toast({
+        title: 'Investimento aggiunto',
+        description: 'Operazione completata correttamente.',
+        variant: 'success',
+      });
       reset();
       onClose();
     } catch (error) {

@@ -75,7 +75,11 @@ export function useTransactionSubmit({
 
     if (result.data) {
       updateTransaction(editId, result.data);
-      toast({ title: 'Transazione aggiornata', description: 'Modifiche salvate correttamente.', variant: 'success' });
+      toast({
+        title: 'Transazione aggiornata',
+        description: 'Modifiche salvate correttamente.',
+        variant: 'success',
+      });
     }
   };
 
@@ -113,7 +117,11 @@ export function useTransactionSubmit({
     removeTransaction(tempId);
     if (result.data) {
       addTransaction(result.data);
-      toast({ title: 'Transazione creata', description: 'Transazione aggiunta correttamente.', variant: 'success' });
+      toast({
+        title: 'Transazione creata',
+        description: 'Transazione aggiunta correttamente.',
+        variant: 'success',
+      });
     }
   };
 

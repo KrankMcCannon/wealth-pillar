@@ -7,7 +7,7 @@
  * Data is passed from Server Component for optimal performance
  */
 
-import { Suspense, useMemo } from 'react';
+import { Suspense, use, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import { BottomNavigation, PageContainer, Header } from '@/components/layout';
 import { AccountsList, accountStyles, useAccountsContent } from '@/features/accounts';
@@ -15,13 +15,13 @@ import { MetricCard } from '@/components/ui/layout';
 import UserSelector from '@/components/shared/user-selector';
 import { UserSelectorSkeleton } from '@/features/dashboard';
 import { ConfirmationDialog } from '@/components/shared/confirmation-dialog';
-import type { Account, User } from '@/lib/types';
+import type { User } from '@/lib/types';
+import type { AccountsPageData } from '@/server/services/page-data.service';
 
 interface AccountsContentProps {
-  accountBalances: Record<string, number>;
   currentUser: User;
   groupUsers: User[];
-  accounts: Account[];
+  pageDataPromise: Promise<AccountsPageData>;
 }
 
 /**
@@ -29,11 +29,11 @@ interface AccountsContentProps {
  * Receives user data, accounts, and balances from Server Component parent
  */
 export default function AccountsContent({
-  accountBalances,
   currentUser,
   groupUsers,
-  accounts,
+  pageDataPromise,
 }: AccountsContentProps) {
+  const { accounts, accountBalances } = use(pageDataPromise);
   const t = useTranslations('Accounts.Content');
   const {
     accountStats,
@@ -64,12 +64,7 @@ export default function AccountsContent({
         variant: 'destructive' as const,
       },
     ],
-    [
-      t,
-      accountStats.totalAccounts,
-      accountStats.positiveAccounts,
-      accountStats.negativeAccounts,
-    ]
+    [t, accountStats.totalAccounts, accountStats.positiveAccounts, accountStats.negativeAccounts]
   );
 
   return (

@@ -153,7 +153,11 @@ function CategoryFormModal({ isOpen, onClose, editId }: Readonly<CategoryFormMod
 
     if (result.data) {
       updateCategory(id, result.data);
-      toast({ title: 'Categoria aggiornata', description: 'Modifiche salvate correttamente.', variant: 'success' });
+      toast({
+        title: 'Categoria aggiornata',
+        description: 'Modifiche salvate correttamente.',
+        variant: 'success',
+      });
     }
   };
 
@@ -200,7 +204,11 @@ function CategoryFormModal({ isOpen, onClose, editId }: Readonly<CategoryFormMod
     removeCategory(tempId);
     if (result.data) {
       addCategory(result.data);
-      toast({ title: 'Categoria creata', description: 'Categoria aggiunta correttamente.', variant: 'success' });
+      toast({
+        title: 'Categoria creata',
+        description: 'Categoria aggiunta correttamente.',
+        variant: 'success',
+      });
     }
   };
 

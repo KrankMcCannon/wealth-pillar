@@ -27,8 +27,6 @@ export function useSettings(
     })
   );
 
-  const [isLoadingPreferences] = useState(false); // Can be removed or used for transition state
-
   // Modal States
   const [showEditProfileModal, setShowEditProfileModal] = useState(false);
   const [showCurrencyModal, setShowCurrencyModal] = useState(false);
@@ -152,7 +150,6 @@ export function useSettings(
     groupUsers,
     isAdmin,
     preferences, // This is now optimistic
-    isLoadingPreferences,
     isSigningOut,
     isDeletingAccount,
     deleteError,

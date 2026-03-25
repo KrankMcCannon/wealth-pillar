@@ -1,4 +1,6 @@
-import React from 'react';
+'use client';
+
+import React, { useMemo } from 'react';
 import type { ReportPeriodSummary } from '@/server/services/reports.service';
 import { reportsStyles } from '@/features/reports/theme/reports-styles';
 import { CalendarDays } from 'lucide-react';
@@ -12,6 +14,16 @@ interface PeriodsSectionProps {
 
 export function PeriodsSection({ data, users }: PeriodsSectionProps) {
   const t = useTranslations('Reports.PeriodsSection');
+
+  const periodsByUserId = useMemo(() => {
+    const m = new Map<string, ReportPeriodSummary[]>();
+    for (const p of data) {
+      const list = m.get(p.userId) ?? [];
+      list.push(p);
+      m.set(p.userId, list);
+    }
+    return m;
+  }, [data]);
 
   return (
     <div className="space-y-4">
@@ -27,7 +39,7 @@ export function PeriodsSection({ data, users }: PeriodsSectionProps) {
       ) : (
         <div className={reportsStyles.periods.grid}>
           {users.map((user) => {
-            const userPeriods = data.filter((p) => p.userId === user.id);
+            const userPeriods = periodsByUserId.get(user.id) ?? [];
             if (userPeriods.length === 0) return null;
 
             return (

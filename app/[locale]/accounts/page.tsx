@@ -18,23 +18,19 @@ export default async function AccountsPage({
   if (!currentUser) redirect(`/${locale}/sign-in`);
   const groupUsers = await getGroupUsers();
 
-  let pageData: Awaited<ReturnType<typeof PageDataService.getAccountsPageData>>;
-  try {
-    pageData = await PageDataService.getAccountsPageData(currentUser.group_id || '');
-  } catch (err) {
-    const message = err instanceof Error ? err.message : 'Errore nel caricamento degli account';
-    throw new Error(message, { cause: err });
-  }
-
-  const { accountBalances = {}, accounts = [] } = pageData;
+  const pageDataPromise = PageDataService.getAccountsPageData(currentUser.group_id || '').catch(
+    (err) => {
+      const message = err instanceof Error ? err.message : 'Errore nel caricamento degli account';
+      throw new Error(message, { cause: err });
+    }
+  );
 
   return (
     <Suspense fallback={<AccountHeaderSkeleton />}>
       <AccountsContent
-        accountBalances={accountBalances}
         currentUser={currentUser}
         groupUsers={groupUsers}
-        accounts={accounts}
+        pageDataPromise={pageDataPromise}
       />
     </Suspense>
   );

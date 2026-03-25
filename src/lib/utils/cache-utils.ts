@@ -1,5 +1,3 @@
-import 'server-only';
-
 /**
  * Shared Cache Invalidation Utilities
  *
