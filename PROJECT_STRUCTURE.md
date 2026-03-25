@@ -10,7 +10,7 @@
 | -------------- | ------------------------------------------------ |
 | **Framework**  | Next.js 16.1.1 (App Router, RSC, Server Actions) |
 | **React**      | 19.2.3                                           |
-| **Node**       | >=22.12.0 (enforced in package.json)             |
+| **Node**       | >=22.13.0 (enforced in package.json)             |
 | **TypeScript** | Strict mode, `tsc --noEmit`                      |
 | **Database**   | Supabase (PostgreSQL)                            |
 | **Auth**       | Clerk (`@clerk/nextjs@^6.36.5`)                  |

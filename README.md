@@ -97,7 +97,7 @@ The platform provides a functional command center for:
 
 ### Prerequisites
 
-- **Node.js** ≥22.12.0 (see `.nvmrc`)
+- **Node.js** ≥22.13.0 (see `.nvmrc`)
 - **npm** 9+
 - **Supabase** account (database)
 - **Clerk** account (authentication)
