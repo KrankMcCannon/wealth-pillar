@@ -39,16 +39,17 @@ export const cardStyles = {
     dueDate: 'text-primary/60',
     userBadges: 'flex items-center gap-1 mt-1.5',
     userBadge:
-      'w-5 h-5 rounded-full border border-white/25 dark:border-border/40 flex items-center justify-center text-[10px] font-bold text-white',
+      'w-5 h-5 rounded-full border border-primary/20 flex items-center justify-center text-[10px] font-bold text-primary-foreground',
     userBadgeOverflow: 'text-[10px] text-muted-foreground font-medium',
     right: 'flex flex-col items-end shrink-0',
-    actions: 'flex items-center gap-0.5',
-    actionButton: 'h-6 w-6 p-0 rounded-md transition-all duration-200',
+    actions: 'flex items-center gap-2',
+    actionButton:
+      'h-11 w-11 min-h-11 min-w-11 p-0 rounded-md transition-all duration-200 touch-manipulation',
     actionPrimary: 'hover:bg-primary/8',
     actionWarning: 'hover:bg-warning/10',
     actionNeutral: 'hover:bg-primary/5',
     actionDestructive: 'hover:bg-destructive/10',
-    actionIcon: 'h-3 w-3',
+    actionIcon: 'h-4 w-4',
     actionIconAccent: 'text-accent',
     actionIconWarning: 'text-warning',
     actionIconPrimary: 'text-primary',
@@ -81,5 +82,5 @@ export function getSeriesCardClassName(params: {
 }
 
 export function getSeriesUserBadgeStyle(color: string | undefined): CSSProperties {
-  return { backgroundColor: color || '#6366f1' }; // Fallback to primary color
+  return { backgroundColor: color || 'oklch(var(--color-primary))' };
 }

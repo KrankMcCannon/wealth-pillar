@@ -150,6 +150,24 @@ export const SwipeableCard = memo<SwipeableCardProps>(
     const handleBackdropClick = () => {
       closeSwipe();
     };
+    const isCardClickable = Boolean(onCardClick) && !disabled;
+
+    const handleCardKeyDown = (e: React.KeyboardEvent) => {
+      if (!isCardClickable) return;
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      e.preventDefault();
+      e.stopPropagation();
+
+      // Match pointer behavior: if swipe is open, close first without opening details.
+      if (isOpen) {
+        closeSwipe();
+        return;
+      }
+      onCardClick?.();
+    };
+
+    const isLeftOpen = swipeSide === 'left';
+    const isRightOpen = swipeSide === 'right';
 
     const handleDragStart = dragHandlers.onDragStart;
     const handleDragEnd = dragHandlers.onDragEnd;
@@ -164,17 +182,12 @@ export const SwipeableCard = memo<SwipeableCardProps>(
         {/* Global Backdrop (rendered only by the open card) */}
         {isOpen && (
           <button
+            type="button"
             className={cn(swipeStyles.backdrop.base, swipeStyles.backdrop.visible)}
             style={{ zIndex: swipeStyles.backdrop.zIndex }}
             onClick={handleBackdropClick}
-            onTouchEnd={handleBackdropClick}
             tabIndex={-1}
             aria-label={t('closeAction')}
-            onKeyDown={(e) => {
-              if (e.key === 'Escape' || e.key === 'Enter' || e.key === ' ') {
-                handleBackdropClick();
-              }
-            }}
           />
         )}
 
@@ -186,26 +199,13 @@ export const SwipeableCard = memo<SwipeableCardProps>(
           {/* Left Action Layer (Pause/Resume) */}
           {leftAction && (
             <div
-              role="button"
-              tabIndex={0}
               className={cn(swipeStyles.actionLayer.base, swipeStyles.actionLayer.left)}
               style={getActionLayerStyle(
-                swipeSide === 'left',
+                isLeftOpen,
                 'left',
                 appleSwipeTokens.dimensions.actionWidthSingle
               )}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.stopPropagation();
-                  if (swipeSide === 'left') closeSwipe();
-                }
-              }}
-              onClick={(e) => {
-                e.stopPropagation();
-                if (swipeSide === 'left') {
-                  closeSwipe();
-                }
-              }}
+              aria-hidden={!isLeftOpen}
             >
               <button
                 type="button"
@@ -213,12 +213,15 @@ export const SwipeableCard = memo<SwipeableCardProps>(
                   getActionButtonClasses(leftAction.variant),
                   'w-full justify-center text-center'
                 )}
-                style={getActionButtonStyle(swipeSide === 'left')}
+                style={getActionButtonStyle(isLeftOpen)}
                 onClick={(e) => {
                   e.stopPropagation();
                   handleActionClick(leftAction);
                 }}
                 aria-label={leftAction.label}
+                aria-hidden={!isLeftOpen}
+                disabled={!isLeftOpen}
+                tabIndex={isLeftOpen ? 0 : -1}
               >
                 {leftAction.icon}
                 {leftAction.label}
@@ -229,26 +232,13 @@ export const SwipeableCard = memo<SwipeableCardProps>(
           {/* Right Action Layer (Delete) */}
           {rightAction && (
             <div
-              role="button"
-              tabIndex={0}
               className={cn(swipeStyles.actionLayer.base, swipeStyles.actionLayer.right)}
               style={getActionLayerStyle(
-                swipeSide === 'right',
+                isRightOpen,
                 'right',
                 appleSwipeTokens.dimensions.actionWidthSingle
               )}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.stopPropagation();
-                  if (swipeSide === 'right') closeSwipe();
-                }
-              }}
-              onClick={(e) => {
-                e.stopPropagation();
-                if (swipeSide === 'right') {
-                  closeSwipe();
-                }
-              }}
+              aria-hidden={!isRightOpen}
             >
               <button
                 type="button"
@@ -256,12 +246,15 @@ export const SwipeableCard = memo<SwipeableCardProps>(
                   getActionButtonClasses(rightAction.variant),
                   'w-full justify-center text-center'
                 )}
-                style={getActionButtonStyle(swipeSide === 'right')}
+                style={getActionButtonStyle(isRightOpen)}
                 onClick={(e) => {
                   e.stopPropagation();
                   handleActionClick(rightAction);
                 }}
                 aria-label={rightAction.label}
+                aria-hidden={!isRightOpen}
+                disabled={!isRightOpen}
+                tabIndex={isRightOpen ? 0 : -1}
               >
                 {rightAction.icon}
                 {rightAction.label}
@@ -281,6 +274,8 @@ export const SwipeableCard = memo<SwipeableCardProps>(
             onPointerDown={handlePointerDown}
             onPointerUp={handlePointerUp}
             onClick={(e) => e.stopPropagation()}
+            onKeyDown={handleCardKeyDown}
+            {...(isCardClickable && { role: 'button', tabIndex: 0 })}
             className={swipeStyles.cardContent.base}
           >
             {children}

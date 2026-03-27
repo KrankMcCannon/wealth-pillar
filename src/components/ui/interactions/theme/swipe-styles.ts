@@ -69,7 +69,7 @@ export const appleSwipeTokens = {
       slow: 350, // Deliberate animations (modal transitions)
     },
     easing: {
-      spring: 'cubic-bezier(0.68, -0.55, 0.27, 1.55)', // Bounce effect
+      spring: 'cubic-bezier(0.22, 1, 0.36, 1)', // Smooth deceleration without overshoot
       smooth: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)', // Ease-out
       sharp: 'cubic-bezier(0.4, 0.0, 0.2, 1)', // Deceleration
     },
@@ -107,7 +107,7 @@ export const swipeStyles = {
    * Action layers (left and right swipe actions)
    */
   actionLayer: {
-    base: 'absolute inset-y-0 z-0 flex items-center',
+    base: 'absolute inset-y-0 z-0 flex items-center will-change-transform',
     left: 'left-0 justify-start',
     right: 'right-0 justify-end',
   },
@@ -116,13 +116,13 @@ export const swipeStyles = {
    * Action buttons (delete, pause, resume)
    */
   actionButton: {
-    base: 'h-full font-medium flex items-center justify-center transition-all duration-200 ease-out px-6',
+    base: 'h-full font-medium flex items-center justify-center transition-all duration-200 ease-out px-6 disabled:opacity-60 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
 
     // Variants based on action type
     variants: {
       delete:
         'bg-destructive text-destructive-foreground hover:bg-destructive/90 active:bg-destructive/80',
-      pause: 'bg-warning text-white hover:bg-warning/90 active:bg-warning/80',
+      pause: 'bg-warning text-warning-foreground hover:bg-warning/90 active:bg-warning/80',
       resume: 'bg-primary text-primary-foreground hover:bg-primary/90 active:bg-primary/80',
       custom: 'bg-primary/10 text-primary hover:bg-primary/20 active:bg-primary/30',
     },
@@ -141,7 +141,7 @@ export const swipeStyles = {
    * - Hardware-accelerated transforms
    */
   cardContent: {
-    base: 'relative z-10 will-change-transform backface-hidden',
+    base: 'relative z-10 will-change-transform backface-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
 
     // Shadow elevation states
     shadow: {
@@ -171,16 +171,16 @@ export function getActionLayerStyle(
   actionWidth: number = appleSwipeTokens.dimensions.actionWidthSingle
 ): CSSProperties {
   return {
-    width: isOpen ? `${actionWidth}px` : '0px',
+    width: `${actionWidth}px`,
     opacity: isOpen ? 1 : 0,
-    // Slide in from offset position (Apple effect)
+    pointerEvents: isOpen ? 'auto' : 'none',
+    // Keep width stable and animate only compositor-friendly properties.
     transform: isOpen
       ? 'translateX(0)'
       : side === 'left'
-        ? 'translateX(-12px)'
-        : 'translateX(12px)',
-    transition: `width ${appleSwipeTokens.animations.duration.normal}ms ${appleSwipeTokens.animations.easing.smooth},
-                 opacity ${appleSwipeTokens.animations.duration.fast}ms ${appleSwipeTokens.animations.easing.smooth},
+        ? 'translateX(-100%)'
+        : 'translateX(100%)',
+    transition: `opacity ${appleSwipeTokens.animations.duration.fast}ms ${appleSwipeTokens.animations.easing.smooth},
                  transform ${appleSwipeTokens.animations.duration.normal}ms ${appleSwipeTokens.animations.easing.smooth}`,
   };
 }

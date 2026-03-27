@@ -10,8 +10,14 @@
 'use client';
 'use no memo';
 
-import { useEffect, useRef, useState } from 'react';
-import { useMotionValue, animate, type PanInfo, type MotionValue } from 'framer-motion';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import {
+  useMotionValue,
+  animate,
+  useReducedMotion,
+  type PanInfo,
+  type MotionValue,
+} from 'framer-motion';
 import { useSwipeStateStore } from '@/stores/swipe-state-store';
 import { appleSwipeTokens } from '@/components/ui/interactions/theme/swipe-styles';
 
@@ -83,6 +89,7 @@ export function useSwipeManager({
   directions,
   disabled = false,
 }: UseSwipeManagerProps): UseSwipeManagerReturn {
+  const reduceMotion = useReducedMotion();
   const setOpenCard = useSwipeStateStore((state) => state.setOpenCard);
   const isOpen = useSwipeStateStore((state) => state.openCardId === cardId);
 
@@ -97,10 +104,13 @@ export function useSwipeManager({
   const { physics, thresholds, dimensions } = appleSwipeTokens;
   const actionWidth = dimensions.actionWidthSingle;
 
-  const dragConstraints = {
-    left: directions === 'right' || directions === 'both' ? -actionWidth : 0,
-    right: directions === 'left' || directions === 'both' ? actionWidth : 0,
-  };
+  const dragConstraints = useMemo(
+    () => ({
+      left: directions === 'right' || directions === 'both' ? -actionWidth : 0,
+      right: directions === 'left' || directions === 'both' ? actionWidth : 0,
+    }),
+    [directions, actionWidth]
+  );
 
   // ============================================================================
   // Animation Sync
@@ -121,6 +131,10 @@ export function useSwipeManager({
 
     const currentX = x.get();
     if (Math.abs(currentX - targetX) > 0.5) {
+      if (reduceMotion) {
+        x.set(targetX);
+        return;
+      }
       animate(x, targetX, {
         type: 'spring',
         stiffness: physics.spring.stiffness,
@@ -136,6 +150,7 @@ export function useSwipeManager({
     physics.spring.damping,
     physics.spring.mass,
     disabled,
+    reduceMotion,
     x,
   ]);
 
