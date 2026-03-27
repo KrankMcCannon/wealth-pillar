@@ -40,17 +40,18 @@ app.decorate('db', databaseConnection);
 app.decorate('cache', cacheClient);
 
 // Request decorator - available on each request
-app.decorateRequest('user', null);           // Object property
-app.decorateRequest('startTime', 0);         // Primitive
-app.decorateRequest('getData', function() {  // Method
+app.decorateRequest('user', null); // Object property
+app.decorateRequest('startTime', 0); // Primitive
+app.decorateRequest('getData', function () {
+  // Method
   return this.body;
 });
 
 // Reply decorator - available on each reply
-app.decorateReply('sendError', function(code: number, message: string) {
+app.decorateReply('sendError', function (code: number, message: string) {
   return this.code(code).send({ error: message });
 });
-app.decorateReply('success', function(data: unknown) {
+app.decorateReply('success', function (data: unknown) {
   return this.send({ success: true, data });
 });
 ```
@@ -145,24 +146,28 @@ export default fp(async function databasePlugin(fastify, options) {
 });
 
 // User service plugin
-export default fp(async function userServicePlugin(fastify) {
-  // Depends on db decorator
-  if (!fastify.hasDecorator('db')) {
-    throw new Error('Database plugin must be registered first');
+export default fp(
+  async function userServicePlugin(fastify) {
+    // Depends on db decorator
+    if (!fastify.hasDecorator('db')) {
+      throw new Error('Database plugin must be registered first');
+    }
+
+    const userService = {
+      findById: (id: string) => fastify.db.query('SELECT * FROM users WHERE id = $1', [id]),
+      create: (data: CreateUserInput) =>
+        fastify.db.query('INSERT INTO users (name, email) VALUES ($1, $2) RETURNING *', [
+          data.name,
+          data.email,
+        ]),
+    };
+
+    fastify.decorate('userService', userService);
+  },
+  {
+    dependencies: ['database-plugin'],
   }
-
-  const userService = {
-    findById: (id: string) => fastify.db.query('SELECT * FROM users WHERE id = $1', [id]),
-    create: (data: CreateUserInput) => fastify.db.query(
-      'INSERT INTO users (name, email) VALUES ($1, $2) RETURNING *',
-      [data.name, data.email]
-    ),
-  };
-
-  fastify.decorate('userService', userService);
-}, {
-  dependencies: ['database-plugin'],
-});
+);
 
 // Use in routes
 app.get('/users/:id', async function (request) {

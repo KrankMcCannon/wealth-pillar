@@ -38,8 +38,8 @@ npm install --save-dev eslint @eslint/js typescript-eslint
 Basic `eslint.config.mjs` (JS + TS):
 
 ```js
-import js from '@eslint/js'
-import tseslint from 'typescript-eslint'
+import js from '@eslint/js';
+import tseslint from 'typescript-eslint';
 
 export default [
   js.configs.recommended,
@@ -48,14 +48,14 @@ export default [
     files: ['**/*.{js,mjs,cjs,ts,mts,cts}'],
     languageOptions: {
       ecmaVersion: 'latest',
-      sourceType: 'module'
+      sourceType: 'module',
     },
     rules: {
       'no-unused-vars': 'off',
-      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }]
-    }
-  }
-]
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+    },
+  },
+];
 ```
 
 ## Package scripts

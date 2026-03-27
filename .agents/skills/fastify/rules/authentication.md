@@ -34,40 +34,48 @@ app.decorate('authenticate', async function (request, reply) {
 });
 
 // Login route
-app.post('/login', {
-  schema: {
-    body: {
-      type: 'object',
-      properties: {
-        email: { type: 'string', format: 'email' },
-        password: { type: 'string' },
+app.post(
+  '/login',
+  {
+    schema: {
+      body: {
+        type: 'object',
+        properties: {
+          email: { type: 'string', format: 'email' },
+          password: { type: 'string' },
+        },
+        required: ['email', 'password'],
       },
-      required: ['email', 'password'],
     },
   },
-}, async (request, reply) => {
-  const { email, password } = request.body;
-  const user = await validateCredentials(email, password);
+  async (request, reply) => {
+    const { email, password } = request.body;
+    const user = await validateCredentials(email, password);
 
-  if (!user) {
-    return reply.code(401).send({ error: 'Invalid credentials' });
+    if (!user) {
+      return reply.code(401).send({ error: 'Invalid credentials' });
+    }
+
+    const token = app.jwt.sign({
+      id: user.id,
+      email: user.email,
+      role: user.role,
+    });
+
+    return { token };
   }
-
-  const token = app.jwt.sign({
-    id: user.id,
-    email: user.email,
-    role: user.role,
-  });
-
-  return { token };
-});
+);
 
 // Protected route
-app.get('/profile', {
-  onRequest: [app.authenticate],
-}, async (request) => {
-  return { user: request.user };
-});
+app.get(
+  '/profile',
+  {
+    onRequest: [app.authenticate],
+  },
+  async (request) => {
+    return { user: request.user };
+  }
+);
 ```
 
 ## Refresh Tokens
@@ -161,19 +169,27 @@ app.decorate('authorize', function (...allowedRoles: Role[]) {
 });
 
 // Admin only route
-app.get('/admin/users', {
-  onRequest: [app.authorize('admin')],
-}, async (request) => {
-  return db.users.findAll();
-});
+app.get(
+  '/admin/users',
+  {
+    onRequest: [app.authorize('admin')],
+  },
+  async (request) => {
+    return db.users.findAll();
+  }
+);
 
 // Admin or moderator
-app.delete('/posts/:id', {
-  onRequest: [app.authorize('admin', 'moderator')],
-}, async (request) => {
-  await db.posts.delete(request.params.id);
-  return { deleted: true };
-});
+app.delete(
+  '/posts/:id',
+  {
+    onRequest: [app.authorize('admin', 'moderator')],
+  },
+  async (request) => {
+    await db.posts.delete(request.params.id);
+    return { deleted: true };
+  }
+);
 ```
 
 ## Permission-Based Authorization
@@ -204,9 +220,7 @@ const rolePermissions: Record<string, Permission[]> = {
 function hasPermission(role: string, resource: string, action: string): boolean {
   const permissions = rolePermissions[role] || [];
   return permissions.some(
-    (p) =>
-      (p.resource === '*' || p.resource === resource) &&
-      p.action === action
+    (p) => (p.resource === '*' || p.resource === resource) && p.action === action
   );
 }
 
@@ -224,13 +238,21 @@ app.decorate('checkPermission', function (resource: string, action: string) {
 });
 
 // Usage
-app.post('/posts', {
-  onRequest: [app.checkPermission('posts', 'create')],
-}, createPostHandler);
+app.post(
+  '/posts',
+  {
+    onRequest: [app.checkPermission('posts', 'create')],
+  },
+  createPostHandler
+);
 
-app.delete('/posts/:id', {
-  onRequest: [app.checkPermission('posts', 'delete')],
-}, deletePostHandler);
+app.delete(
+  '/posts/:id',
+  {
+    onRequest: [app.checkPermission('posts', 'delete')],
+  },
+  deletePostHandler
+);
 ```
 
 ## API Key / Bearer Token Authentication
@@ -379,12 +401,16 @@ app.decorate('requireSession', async function (request, reply) {
   }
 });
 
-app.get('/profile', {
-  onRequest: [app.requireSession],
-}, async (request) => {
-  const user = await db.users.findById(request.session.userId);
-  return { user };
-});
+app.get(
+  '/profile',
+  {
+    onRequest: [app.requireSession],
+  },
+  async (request) => {
+    const user = await db.users.findById(request.session.userId);
+    return { user };
+  }
+);
 
 app.post('/logout', async (request, reply) => {
   await request.session.destroy();
@@ -411,32 +437,40 @@ app.decorate('checkOwnership', function (getResourceOwnerId: (request) => Promis
 });
 
 // Check post ownership
-app.put('/posts/:id', {
-  onRequest: [
-    app.authenticate,
-    app.checkOwnership(async (request) => {
-      const post = await db.posts.findById(request.params.id);
-      return post?.authorId;
-    }),
-  ],
-}, updatePostHandler);
+app.put(
+  '/posts/:id',
+  {
+    onRequest: [
+      app.authenticate,
+      app.checkOwnership(async (request) => {
+        const post = await db.posts.findById(request.params.id);
+        return post?.authorId;
+      }),
+    ],
+  },
+  updatePostHandler
+);
 
 // Alternative: inline check
-app.put('/posts/:id', {
-  onRequest: [app.authenticate],
-}, async (request, reply) => {
-  const post = await db.posts.findById(request.params.id);
+app.put(
+  '/posts/:id',
+  {
+    onRequest: [app.authenticate],
+  },
+  async (request, reply) => {
+    const post = await db.posts.findById(request.params.id);
 
-  if (!post) {
-    return reply.code(404).send({ error: 'Post not found' });
+    if (!post) {
+      return reply.code(404).send({ error: 'Post not found' });
+    }
+
+    if (post.authorId !== request.user.id && request.user.role !== 'admin') {
+      return reply.code(403).send({ error: 'Forbidden' });
+    }
+
+    return db.posts.update(post.id, request.body);
   }
-
-  if (post.authorId !== request.user.id && request.user.role !== 'admin') {
-    return reply.code(403).send({ error: 'Forbidden' });
-  }
-
-  return db.posts.update(post.id, request.body);
-});
+);
 ```
 
 ## Password Hashing
@@ -502,20 +536,23 @@ app.register(fastifyRateLimit, {
 });
 
 // Stricter limit for auth endpoints
-app.register(async function authRoutes(fastify) {
-  await fastify.register(fastifyRateLimit, {
-    max: 5,
-    timeWindow: '1 minute',
-    redis, // REQUIRED for production
-    keyGenerator: (request) => {
-      // Rate limit by IP + email combination
-      const email = request.body?.email || '';
-      return `${request.ip}:${email}`;
-    },
-  });
+app.register(
+  async function authRoutes(fastify) {
+    await fastify.register(fastifyRateLimit, {
+      max: 5,
+      timeWindow: '1 minute',
+      redis, // REQUIRED for production
+      keyGenerator: (request) => {
+        // Rate limit by IP + email combination
+        const email = request.body?.email || '';
+        return `${request.ip}:${email}`;
+      },
+    });
 
-  fastify.post('/login', loginHandler);
-  fastify.post('/register', registerHandler);
-  fastify.post('/forgot-password', forgotPasswordHandler);
-}, { prefix: '/auth' });
+    fastify.post('/login', loginHandler);
+    fastify.post('/register', registerHandler);
+    fastify.post('/forgot-password', forgotPasswordHandler);
+  },
+  { prefix: '/auth' }
+);
 ```

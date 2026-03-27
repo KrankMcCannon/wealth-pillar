@@ -107,12 +107,14 @@ const snapshot2 = takeSnapshot('after.heapsnapshot');
 ### Reading Heap Snapshots
 
 Key terms:
+
 - **Shallow Size**: Memory used by object itself
 - **Retained Size**: Memory that would be freed if object is GC'd
 - **Distance**: Shortest path from GC root
 - **Retainers**: Objects holding references
 
 Common patterns to look for:
+
 ```
 High Retained Size + Low Shallow Size = Holding references to large objects
 Growing Object Count = Likely leak
@@ -157,7 +159,7 @@ class MemoryMonitor {
     this.history.push({
       timestamp: Date.now(),
       used: current,
-      delta
+      delta,
     });
 
     // Keep last 100 measurements
@@ -168,9 +170,7 @@ class MemoryMonitor {
     // Check for consistent growth
     if (this.history.length >= 10) {
       const recent = this.history.slice(-10);
-      const allGrowing = recent.every((m, i) =>
-        i === 0 || m.used > recent[i - 1].used
-      );
+      const allGrowing = recent.every((m, i) => i === 0 || m.used > recent[i - 1].used);
 
       if (allGrowing && delta > this.thresholdMb) {
         console.warn(`[MEMORY WARNING] Heap grew by ${delta.toFixed(2)}MB`);
@@ -184,7 +184,7 @@ class MemoryMonitor {
     return {
       baseline: this.baseline,
       current: this.getHeapUsed(),
-      history: this.history
+      history: this.history,
     };
   }
 }
@@ -204,12 +204,12 @@ const hook = async_hooks.createHook({
       type,
       triggerAsyncId,
       stack,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
   },
   destroy(asyncId) {
     resources.delete(asyncId);
-  }
+  },
 });
 
 hook.enable();
@@ -220,7 +220,8 @@ setInterval(() => {
   const longLived = [];
 
   for (const [id, resource] of resources) {
-    if (now - resource.timestamp > 60000) {  // Older than 1 minute
+    if (now - resource.timestamp > 60000) {
+      // Older than 1 minute
       longLived.push({ id, ...resource });
     }
   }
@@ -256,7 +257,7 @@ function getData(key) {
 const LRU = require('lru-cache');
 const cache = new LRU({
   max: 500,
-  ttl: 1000 * 60 * 5  // 5 minutes
+  ttl: 1000 * 60 * 5, // 5 minutes
 });
 ```
 
@@ -293,7 +294,7 @@ function createProcessor(largeData) {
   const summary = processData(largeData);
 
   // This closure retains largeData even though it only needs summary
-  return function() {
+  return function () {
     return summary;
   };
 }
@@ -303,7 +304,7 @@ function createProcessor(largeData) {
   const summary = processData(largeData);
   // largeData can now be GC'd
 
-  return function() {
+  return function () {
     return summary;
   };
 }
@@ -316,7 +317,7 @@ function createProcessor(largeData) {
 class Service {
   start() {
     this.timer = setInterval(() => {
-      this.doWork();  // 'this' keeps Service alive
+      this.doWork(); // 'this' keeps Service alive
     }, 1000);
   }
 
@@ -358,7 +359,7 @@ function logMemory() {
     heapTotal: (usage.heapTotal / 1024 / 1024).toFixed(2) + ' MB',
     heapUsed: (usage.heapUsed / 1024 / 1024).toFixed(2) + ' MB',
     external: (usage.external / 1024 / 1024).toFixed(2) + ' MB',
-    arrayBuffers: (usage.arrayBuffers / 1024 / 1024).toFixed(2) + ' MB'
+    arrayBuffers: (usage.arrayBuffers / 1024 / 1024).toFixed(2) + ' MB',
   });
 }
 

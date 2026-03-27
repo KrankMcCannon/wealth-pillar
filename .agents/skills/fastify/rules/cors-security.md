@@ -44,11 +44,7 @@ app.register(cors, {
     }
 
     // Check against allowed origins
-    const allowedOrigins = [
-      'https://example.com',
-      'https://app.example.com',
-      /\.example\.com$/,
-    ];
+    const allowedOrigins = ['https://example.com', 'https://app.example.com', /\.example\.com$/];
 
     const isAllowed = allowedOrigins.some((allowed) => {
       if (allowed instanceof RegExp) {
@@ -177,21 +173,29 @@ app.register(rateLimit, {
 });
 
 // Per-route rate limit
-app.get('/expensive', {
-  config: {
-    rateLimit: {
-      max: 10,
-      timeWindow: '1 minute',
+app.get(
+  '/expensive',
+  {
+    config: {
+      rateLimit: {
+        max: 10,
+        timeWindow: '1 minute',
+      },
     },
   },
-}, handler);
+  handler
+);
 
 // Skip rate limit for certain routes
-app.get('/health', {
-  config: {
-    rateLimit: false,
+app.get(
+  '/health',
+  {
+    config: {
+      rateLimit: false,
+    },
   },
-}, () => ({ status: 'ok' }));
+  () => ({ status: 'ok' })
+);
 ```
 
 ## Redis-Based Rate Limiting
@@ -240,12 +244,16 @@ app.get('/csrf-token', async (request, reply) => {
 });
 
 // Protected route
-app.post('/transfer', {
-  preHandler: app.csrfProtection,
-}, async (request) => {
-  // CSRF token validated
-  return { success: true };
-});
+app.post(
+  '/transfer',
+  {
+    preHandler: app.csrfProtection,
+  },
+  async (request) => {
+    // CSRF token validated
+    return { success: true };
+  }
+);
 ```
 
 ## Custom Security Headers
@@ -322,28 +330,32 @@ Validate and sanitize input:
 
 ```typescript
 // Schema-based validation protects against injection
-app.post('/users', {
-  schema: {
-    body: {
-      type: 'object',
-      properties: {
-        email: {
-          type: 'string',
-          format: 'email',
-          maxLength: 254,
+app.post(
+  '/users',
+  {
+    schema: {
+      body: {
+        type: 'object',
+        properties: {
+          email: {
+            type: 'string',
+            format: 'email',
+            maxLength: 254,
+          },
+          name: {
+            type: 'string',
+            minLength: 1,
+            maxLength: 100,
+            pattern: '^[a-zA-Z\\s]+$', // Only letters and spaces
+          },
         },
-        name: {
-          type: 'string',
-          minLength: 1,
-          maxLength: 100,
-          pattern: '^[a-zA-Z\\s]+$', // Only letters and spaces
-        },
+        required: ['email', 'name'],
+        additionalProperties: false,
       },
-      required: ['email', 'name'],
-      additionalProperties: false,
     },
   },
-}, handler);
+  handler
+);
 ```
 
 ## IP Filtering
@@ -351,10 +363,7 @@ app.post('/users', {
 Restrict access by IP:
 
 ```typescript
-const allowedIps = new Set([
-  '192.168.1.0/24',
-  '10.0.0.0/8',
-]);
+const allowedIps = new Set(['192.168.1.0/24', '10.0.0.0/8']);
 
 app.addHook('onRequest', async (request, reply) => {
   if (request.url.startsWith('/admin')) {
@@ -404,10 +413,7 @@ Force HTTPS in production:
 
 ```typescript
 app.addHook('onRequest', async (request, reply) => {
-  if (
-    process.env.NODE_ENV === 'production' &&
-    request.headers['x-forwarded-proto'] !== 'https'
-  ) {
+  if (process.env.NODE_ENV === 'production' && request.headers['x-forwarded-proto'] !== 'https') {
     const httpsUrl = `https://${request.hostname}${request.url}`;
     reply.redirect(301, httpsUrl);
   }

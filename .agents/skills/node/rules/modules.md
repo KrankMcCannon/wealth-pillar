@@ -93,7 +93,7 @@ async function loadPlugin(name: string): Promise<Plugin> {
 const { default: heavy } = await import('./heavy-module.js');
 ```
 
-## __dirname and __filename in ESM
+## **dirname and **filename in ESM
 
 Use `import.meta.dirname` and `import.meta.filename` (Node.js 20.11+):
 

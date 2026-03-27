@@ -185,7 +185,7 @@ const fs = require('node:fs');
 
 // Open returns a file descriptor (integer)
 fs.open('/path/to/file', 'r', (err, fd) => {
-  console.log(fd);  // e.g., 3
+  console.log(fd); // e.g., 3
 
   // Use fd for operations
   const buffer = Buffer.alloc(1024);
@@ -233,10 +233,7 @@ console.log('Max open files:', rlimit('nofile'));
 
 // Check current count
 const handles = process._getActiveHandles();
-const files = handles.filter(h =>
-  h.constructor.name === 'FSReqCallback' ||
-  h.fd !== undefined
-);
+const files = handles.filter((h) => h.constructor.name === 'FSReqCallback' || h.fd !== undefined);
 console.log('Open file handles:', files.length);
 ```
 
@@ -323,7 +320,7 @@ fs.watchFile('/path/to/file', { interval: 1000 }, (curr, prev) => {
 
 ```javascript
 // 1. Use appropriate buffer size
-const OPTIMAL_BUFFER_SIZE = 64 * 1024;  // 64KB
+const OPTIMAL_BUFFER_SIZE = 64 * 1024; // 64KB
 const buffer = Buffer.allocUnsafe(OPTIMAL_BUFFER_SIZE);
 
 // 2. Reuse buffers
@@ -336,7 +333,7 @@ async function readChunk(fd, position) {
 
 // 3. Use streaming for sequential access
 const stream = fs.createReadStream(path, {
-  highWaterMark: 64 * 1024  // Buffer size
+  highWaterMark: 64 * 1024, // Buffer size
 });
 ```
 
@@ -381,18 +378,14 @@ for (const entry of entries) {
 
 ```javascript
 // BAD: Opening too many files at once
-const files = await getFiles();  // 10000 files
-const contents = await Promise.all(
-  files.map(f => fs.promises.readFile(f))
-);  // EMFILE!
+const files = await getFiles(); // 10000 files
+const contents = await Promise.all(files.map((f) => fs.promises.readFile(f))); // EMFILE!
 
 // GOOD: Limit concurrency
 import pLimit from 'p-limit';
 const limit = pLimit(100);
 
-const contents = await Promise.all(
-  files.map(f => limit(() => fs.promises.readFile(f)))
-);
+const contents = await Promise.all(files.map((f) => limit(() => fs.promises.readFile(f))));
 ```
 
 ### File Descriptor Leaks
@@ -400,7 +393,7 @@ const contents = await Promise.all(
 ```javascript
 // BAD: Leak on error
 const fd = await fs.promises.open(path, 'r');
-const data = await processFile(fd);  // If this throws, fd leaks!
+const data = await processFile(fd); // If this throws, fd leaks!
 await fd.close();
 
 // GOOD: Use finally
@@ -413,7 +406,7 @@ try {
 
 // BETTER: Use streams which handle cleanup
 const stream = fs.createReadStream(path);
-stream.on('error', () => {});  // Stream auto-closes on error
+stream.on('error', () => {}); // Stream auto-closes on error
 ```
 
 ### Race Conditions
@@ -421,7 +414,7 @@ stream.on('error', () => {});  // Stream auto-closes on error
 ```javascript
 // BAD: Check-then-use race
 if (await fs.promises.exists(path)) {
-  await fs.promises.readFile(path);  // May fail!
+  await fs.promises.readFile(path); // May fail!
 }
 
 // GOOD: Just try the operation
@@ -429,7 +422,7 @@ try {
   return await fs.promises.readFile(path);
 } catch (err) {
   if (err.code === 'ENOENT') {
-    return null;  // File doesn't exist
+    return null; // File doesn't exist
   }
   throw err;
 }
@@ -462,7 +455,7 @@ const hook = async_hooks.createHook({
     if (type === 'FSREQCALLBACK') {
       fsOps.set(asyncId, {
         start: Date.now(),
-        type
+        type,
       });
     }
   },
@@ -475,7 +468,7 @@ const hook = async_hooks.createHook({
       }
       fsOps.delete(asyncId);
     }
-  }
+  },
 });
 
 hook.enable();

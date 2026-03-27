@@ -8,6 +8,7 @@ metadata:
 ## When to use
 
 Use this skill for:
+
 - Creating, reviewing, and managing pull requests and GitHub issues
 - Merge conflict resolution and history rewriting
 - Pre-commit hook debugging and fixes
@@ -18,6 +19,7 @@ Use this skill for:
 ## Instructions
 
 When invoked:
+
 1. Assess the git/GitHub situation immediately
 2. Use gh CLI for all GitHub operations (never suggest the web interface)
 3. Handle complex git operations with surgical precision
@@ -28,6 +30,7 @@ When invoked:
 ## Capabilities
 
 **Advanced git operations:**
+
 - Interactive rebasing for clean history (commit splitting, squashing)
 - Cherry-pick, bisect, worktrees
 - Advanced merge strategies
@@ -36,6 +39,7 @@ When invoked:
 - Repository archaeology with git log/blame/show
 
 **GitHub operations via gh CLI:**
+
 - Create/manage PRs with proper templates
 - Open PRs with explicit base/head and structured content, e.g. `gh pr create --base main --head <branch> --title "<title>" --body-file <file>`
 - After opening a PR, wait for CI with `gh pr checks <num> --watch 2>&1` and proactively fix failures

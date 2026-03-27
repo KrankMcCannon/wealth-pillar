@@ -21,14 +21,17 @@ const schema = Type.Object({
   HOST: Type.String({ default: '0.0.0.0' }),
   DATABASE_URL: Type.String(),
   JWT_SECRET: Type.String({ minLength: 32 }),
-  LOG_LEVEL: Type.Union([
-    Type.Literal('trace'),
-    Type.Literal('debug'),
-    Type.Literal('info'),
-    Type.Literal('warn'),
-    Type.Literal('error'),
-    Type.Literal('fatal'),
-  ], { default: 'info' }),
+  LOG_LEVEL: Type.Union(
+    [
+      Type.Literal('trace'),
+      Type.Literal('debug'),
+      Type.Literal('info'),
+      Type.Literal('warn'),
+      Type.Literal('error'),
+      Type.Literal('fatal'),
+    ],
+    { default: 'info' }
+  ),
 });
 
 type Config = Static<typeof schema>;
@@ -78,16 +81,19 @@ declare module 'fastify' {
   }
 }
 
-export default fp(async function configPlugin(fastify) {
-  const config = envSchema<Config>({
-    schema,
-    dotenv: true,
-  });
+export default fp(
+  async function configPlugin(fastify) {
+    const config = envSchema<Config>({
+      schema,
+      dotenv: true,
+    });
 
-  fastify.decorate('config', config);
-}, {
-  name: 'config',
-});
+    fastify.decorate('config', config);
+  },
+  {
+    name: 'config',
+  }
+);
 ```
 
 ## Secrets Management
@@ -147,6 +153,7 @@ const config = await import(`./config/${env}.js`);
 ```
 
 Configuration files lead to:
+
 - Security risks (secrets in files)
 - Deployment complexity
 - Environment drift

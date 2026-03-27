@@ -112,31 +112,40 @@ const services = {
 app.register(replyFrom);
 
 // Route to user service
-app.register(async function (fastify) {
-  fastify.all('/*', async (request, reply) => {
-    return reply.from(request.url.replace('/users', ''), {
-      base: services.users,
+app.register(
+  async function (fastify) {
+    fastify.all('/*', async (request, reply) => {
+      return reply.from(request.url.replace('/users', ''), {
+        base: services.users,
+      });
     });
-  });
-}, { prefix: '/users' });
+  },
+  { prefix: '/users' }
+);
 
 // Route to orders service
-app.register(async function (fastify) {
-  fastify.all('/*', async (request, reply) => {
-    return reply.from(request.url.replace('/orders', ''), {
-      base: services.orders,
+app.register(
+  async function (fastify) {
+    fastify.all('/*', async (request, reply) => {
+      return reply.from(request.url.replace('/orders', ''), {
+        base: services.orders,
+      });
     });
-  });
-}, { prefix: '/orders' });
+  },
+  { prefix: '/orders' }
+);
 
 // Route to products service
-app.register(async function (fastify) {
-  fastify.all('/*', async (request, reply) => {
-    return reply.from(request.url.replace('/products', ''), {
-      base: services.products,
+app.register(
+  async function (fastify) {
+    fastify.all('/*', async (request, reply) => {
+      return reply.from(request.url.replace('/products', ''), {
+        base: services.products,
+      });
     });
-  });
-}, { prefix: '/products' });
+  },
+  { prefix: '/products' }
+);
 ```
 
 ## Request Body Handling

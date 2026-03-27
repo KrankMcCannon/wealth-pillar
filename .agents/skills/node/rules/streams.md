@@ -21,11 +21,7 @@ import { createReadStream, createWriteStream } from 'node:fs';
 import { createGzip } from 'node:zlib';
 
 async function compressFile(input: string, output: string): Promise<void> {
-  await pipeline(
-    createReadStream(input),
-    createGzip(),
-    createWriteStream(output)
-  );
+  await pipeline(createReadStream(input), createGzip(), createWriteStream(output));
 }
 ```
 
@@ -44,11 +40,7 @@ async function* toUpperCase(source: AsyncIterable<Buffer>): AsyncGenerator<strin
 }
 
 async function processFile(input: string, output: string): Promise<void> {
-  await pipeline(
-    createReadStream(input),
-    toUpperCase,
-    createWriteStream(output)
-  );
+  await pipeline(createReadStream(input), toUpperCase, createWriteStream(output));
 }
 ```
 
@@ -68,7 +60,9 @@ const cache = createCache({
 });
 
 cache.define('lookupPlan', async (planId: string) => {
-  return await fetch(`https://billing.internal/plans/${planId}`).then(async (res) => await res.json());
+  return await fetch(`https://billing.internal/plans/${planId}`).then(
+    async (res) => await res.json()
+  );
 });
 
 async function* enrichCsvRows(source: AsyncIterable<Buffer>): AsyncGenerator<string> {
@@ -182,10 +176,7 @@ Respect backpressure signals using `once` from events:
 import { Writable } from 'node:stream';
 import { once } from 'node:events';
 
-async function writeData(
-  writable: Writable,
-  data: string[]
-): Promise<void> {
+async function writeData(writable: Writable, data: string[]): Promise<void> {
   for (const chunk of data) {
     const canContinue = writable.write(chunk);
     if (!canContinue) {

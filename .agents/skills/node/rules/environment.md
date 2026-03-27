@@ -47,12 +47,10 @@ const schema = Type.Object({
   PORT: Type.Number({ default: 3000 }),
   DATABASE_URL: Type.String(),
   API_KEY: Type.String({ minLength: 1 }),
-  LOG_LEVEL: Type.Union([
-    Type.Literal('debug'),
-    Type.Literal('info'),
-    Type.Literal('warn'),
-    Type.Literal('error'),
-  ], { default: 'info' }),
+  LOG_LEVEL: Type.Union(
+    [Type.Literal('debug'), Type.Literal('info'), Type.Literal('warn'), Type.Literal('error')],
+    { default: 'info' }
+  ),
 });
 
 type Env = Static<typeof schema>;
@@ -105,9 +103,9 @@ This leads to problems:
 ```typescript
 // BAD - NODE_ENV conflates concerns
 if (process.env.NODE_ENV === 'development') {
-  enableDebugLogging();    // logging concern
-  disableRateLimiting();   // security concern
-  useMockDatabase();       // infrastructure concern
+  enableDebugLogging(); // logging concern
+  disableRateLimiting(); // security concern
+  useMockDatabase(); // infrastructure concern
 }
 ```
 
@@ -131,6 +129,7 @@ const config = {
 ```
 
 This approach:
+
 - Makes configuration explicit and discoverable
 - Allows fine-grained control per environment
 - Avoids hidden behavior changes
@@ -216,20 +215,24 @@ DATABASE_URL=postgresql://test:test@localhost:5432/myapp_test
 Never commit secrets to version control. Use a secrets management service appropriate for your infrastructure:
 
 **Cloud Provider Services:**
+
 - [AWS Secrets Manager](https://aws.amazon.com/secrets-manager/)
 - [Google Cloud Secret Manager](https://cloud.google.com/secret-manager)
 - [Azure Key Vault](https://azure.microsoft.com/en-us/products/key-vault)
 
 **Infrastructure Tools:**
+
 - [HashiCorp Vault](https://www.vaultproject.io/)
 - [Doppler](https://www.doppler.com/)
 - [Infisical](https://infisical.com/)
 
 **Container Orchestration:**
+
 - Kubernetes Secrets
 - Docker Swarm Secrets
 
 **CI/CD Platforms:**
+
 - GitHub Actions Secrets
 - GitLab CI/CD Variables
 - CircleCI Contexts

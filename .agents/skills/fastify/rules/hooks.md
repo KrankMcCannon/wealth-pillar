@@ -225,12 +225,15 @@ Execute after response is sent. Cannot modify response:
 app.addHook('onResponse', async (request, reply) => {
   // Log response time
   const responseTime = Date.now() - request.startTime;
-  request.log.info({
-    method: request.method,
-    url: request.url,
-    statusCode: reply.statusCode,
-    responseTime,
-  }, 'Request completed');
+  request.log.info(
+    {
+      method: request.method,
+      url: request.url,
+      statusCode: reply.statusCode,
+      responseTime,
+    },
+    'Request completed'
+  );
 
   // Track metrics
   metrics.histogram('http_request_duration', responseTime, {
@@ -248,12 +251,15 @@ Execute when an error is thrown:
 ```typescript
 app.addHook('onError', async (request, reply, error) => {
   // Log error details
-  request.log.error({
-    err: error,
-    url: request.url,
-    method: request.method,
-    body: request.body,
-  }, 'Request error');
+  request.log.error(
+    {
+      err: error,
+      url: request.url,
+      method: request.method,
+      body: request.body,
+    },
+    'Request error'
+  );
 
   // Track error metrics
   metrics.increment('http_errors', {
@@ -278,10 +284,13 @@ const app = Fastify({
 });
 
 app.addHook('onTimeout', async (request, reply) => {
-  request.log.warn({
-    url: request.url,
-    method: request.method,
-  }, 'Request timeout');
+  request.log.warn(
+    {
+      url: request.url,
+      method: request.method,
+    },
+    'Request timeout'
+  );
 
   // Cleanup
   if (request.abortController) {
@@ -366,18 +375,21 @@ app.addHook('onRequest', async (request) => {
   request.log.info('Global hook');
 });
 
-app.register(async function adminRoutes(fastify) {
-  // Only runs for routes in this plugin
-  fastify.addHook('onRequest', async (request, reply) => {
-    if (!request.user?.isAdmin) {
-      reply.code(403).send({ error: 'Admin only' });
-    }
-  });
+app.register(
+  async function adminRoutes(fastify) {
+    // Only runs for routes in this plugin
+    fastify.addHook('onRequest', async (request, reply) => {
+      if (!request.user?.isAdmin) {
+        reply.code(403).send({ error: 'Admin only' });
+      }
+    });
 
-  fastify.get('/admin/users', async () => {
-    return { users: [] };
-  });
-}, { prefix: '/admin' });
+    fastify.get('/admin/users', async () => {
+      return { users: [] };
+    });
+  },
+  { prefix: '/admin' }
+);
 ```
 
 ## Hook Execution Order

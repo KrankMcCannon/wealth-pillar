@@ -22,6 +22,9 @@
     "PageLoader": {
       "message": "Caricamento...",
       "submessage": "Attendere prego"
+    },
+    "Swipe": {
+      "closeAction": "Chiudi azione"
     }
   },
   "Settings": {

@@ -24,9 +24,9 @@ Protect your application from overload with `@fastify/under-pressure`:
 import underPressure from '@fastify/under-pressure';
 
 app.register(underPressure, {
-  maxEventLoopDelay: 1000,        // Max event loop delay in ms
-  maxHeapUsedBytes: 1000000000,   // Max heap used (~1GB)
-  maxRssBytes: 1500000000,        // Max RSS (~1.5GB)
+  maxEventLoopDelay: 1000, // Max event loop delay in ms
+  maxHeapUsedBytes: 1000000000, // Max heap used (~1GB)
+  maxRssBytes: 1500000000, // Max RSS (~1.5GB)
   maxEventLoopUtilization: 0.98, // Max event loop utilization
   pressureHandler: (request, reply, type, value) => {
     reply.code(503).send({
@@ -48,25 +48,29 @@ Response schemas enable fast-json-stringify, which is significantly faster than 
 
 ```typescript
 // FAST - uses fast-json-stringify
-app.get('/users', {
-  schema: {
-    response: {
-      200: {
-        type: 'array',
-        items: {
-          type: 'object',
-          properties: {
-            id: { type: 'string' },
-            name: { type: 'string' },
-            email: { type: 'string' },
+app.get(
+  '/users',
+  {
+    schema: {
+      response: {
+        200: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              id: { type: 'string' },
+              name: { type: 'string' },
+              email: { type: 'string' },
+            },
           },
         },
       },
     },
   },
-}, async () => {
-  return db.users.findAll();
-});
+  async () => {
+    return db.users.findAll();
+  }
+);
 
 // SLOW - uses JSON.stringify
 app.get('/users-slow', async () => {
@@ -292,9 +296,13 @@ const app = Fastify({
 });
 
 // Per-route limit for file uploads
-app.post('/upload', {
-  bodyLimit: 10485760, // 10MB for this route
-}, uploadHandler);
+app.post(
+  '/upload',
+  {
+    bodyLimit: 10485760, // 10MB for this route
+  },
+  uploadHandler
+);
 ```
 
 ## Compression
@@ -311,9 +319,13 @@ app.register(fastifyCompress, {
 });
 
 // Disable for specific route
-app.get('/already-compressed', {
-  compress: false,
-}, handler);
+app.get(
+  '/already-compressed',
+  {
+    compress: false,
+  },
+  handler
+);
 ```
 
 ## Connection Timeouts
@@ -325,17 +337,21 @@ import Fastify from 'fastify';
 
 const app = Fastify({
   connectionTimeout: 30000, // 30 seconds
-  keepAliveTimeout: 5000,   // 5 seconds
+  keepAliveTimeout: 5000, // 5 seconds
 });
 
 // Per-route timeout
-app.get('/long-operation', {
-  config: {
-    timeout: 60000, // 60 seconds
+app.get(
+  '/long-operation',
+  {
+    config: {
+      timeout: 60000, // 60 seconds
+    },
   },
-}, async (request) => {
-  return longOperation();
-});
+  async (request) => {
+    return longOperation();
+  }
+);
 ```
 
 ## Disable Unnecessary Features
@@ -347,8 +363,8 @@ import Fastify from 'fastify';
 
 const app = Fastify({
   disableRequestLogging: true, // If you don't need request logs
-  trustProxy: false,           // If not behind proxy
-  caseSensitive: true,         // Enable for slight performance gain
+  trustProxy: false, // If not behind proxy
+  caseSensitive: true, // Enable for slight performance gain
   ignoreDuplicateSlashes: false,
 });
 ```

@@ -53,12 +53,16 @@ cache.define('getUser', async (id: string) => {
   return await db.users.findById(id);
 });
 
-cache.define('getPost', {
-  ttl: 300,
-  stale: 30,
-}, async (id: string) => {
-  return await db.posts.findById(id);
-});
+cache.define(
+  'getPost',
+  {
+    ttl: 300,
+    stale: 30,
+  },
+  async (id: string) => {
+    return await db.posts.findById(id);
+  }
+);
 
 // Usage - concurrent calls are deduplicated
 const user = await cache.getUser('123');
@@ -91,7 +95,7 @@ cache.define('getPlan', async (planId: string) => {
   return await db.plans.findById(planId);
 });
 
-async function* enrichRows(source: AsyncIterable<{ userId: string, planId: string }>) {
+async function* enrichRows(source: AsyncIterable<{ userId: string; planId: string }>) {
   for await (const row of source) {
     const plan = await cache.getPlan(row.planId); // one in-flight call per planId
     yield { ...row, planName: plan.name };
@@ -126,7 +130,7 @@ Use [lru-cache](https://github.com/isaacs/node-lru-cache) for bounded in-memory 
 import { LRUCache } from 'lru-cache';
 
 const cache = new LRUCache<string, User>({
-  max: 500,           // Maximum items
+  max: 500, // Maximum items
   ttl: 1000 * 60 * 5, // 5 minutes
   updateAgeOnGet: true,
 });
@@ -141,8 +145,8 @@ const cached = cache.get('user:123');
 
 ```typescript
 const cache = createCache({
-  ttl: 60,    // Fresh for 60 seconds
-  stale: 30,  // Serve stale for 30 more seconds while revalidating
+  ttl: 60, // Fresh for 60 seconds
+  stale: 30, // Serve stale for 30 more seconds while revalidating
 });
 ```
 
@@ -167,17 +171,25 @@ const cache = createCache({
   storage: { type: 'memory' },
 });
 
-cache.define('getUser', {
-  references: (args, key, result) => [`user:${result.id}`],
-}, async (id: string) => {
-  return await db.users.findById(id);
-});
+cache.define(
+  'getUser',
+  {
+    references: (args, key, result) => [`user:${result.id}`],
+  },
+  async (id: string) => {
+    return await db.users.findById(id);
+  }
+);
 
-cache.define('getUserPosts', {
-  references: (args, key, result) => [`user:${args[0]}`],
-}, async (userId: string) => {
-  return await db.posts.findByUserId(userId);
-});
+cache.define(
+  'getUserPosts',
+  {
+    references: (args, key, result) => [`user:${args[0]}`],
+  },
+  async (userId: string) => {
+    return await db.posts.findByUserId(userId);
+  }
+);
 
 // Invalidate all cache entries referencing this user
 await cache.invalidateAll(`user:123`);

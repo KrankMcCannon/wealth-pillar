@@ -12,6 +12,7 @@ libuv uses a thread pool for operations that can't be performed asynchronously a
 ## Thread Pool Overview
 
 The thread pool handles:
+
 - **File system operations** (`fs.*` except FSWatcher)
 - **DNS** (`dns.lookup()`, not `dns.resolve*()`)
 - **Crypto** (some operations like `crypto.pbkdf2()`, `crypto.randomBytes()`)
@@ -80,13 +81,13 @@ async function handleRequest(hostname) {
     file2,
     file3,
     file4,
-    resolved  // This waits for a free thread!
+    resolved, // This waits for a free thread!
   ] = await Promise.all([
     fs.readFile('config1.json'),
     fs.readFile('config2.json'),
     fs.readFile('config3.json'),
     fs.readFile('config4.json'),
-    dns.lookup(hostname)  // Blocked until a thread is free
+    dns.lookup(hostname), // Blocked until a thread is free
   ]);
 }
 ```
@@ -130,7 +131,7 @@ const threadPoolTypes = new Set([
   'SCRYPTREQUEST',
   'SIGNREQUEST',
   'VERIFYREQUEST',
-  'ZLIB'
+  'ZLIB',
 ]);
 
 let activeThreadPoolOps = 0;
@@ -145,7 +146,7 @@ const hook = async_hooks.createHook({
   },
   destroy(asyncId, type) {
     // Note: type not available in destroy, need to track separately
-  }
+  },
 });
 
 hook.enable();
@@ -198,16 +199,12 @@ const dns = require('node:dns');
 
 // BAD: Thread pool bottleneck
 async function resolveMany(hostnames) {
-  return Promise.all(
-    hostnames.map(h => dns.promises.lookup(h))
-  );
+  return Promise.all(hostnames.map((h) => dns.promises.lookup(h)));
 }
 
 // GOOD: Uses c-ares, no thread pool
 async function resolveMany(hostnames) {
-  return Promise.all(
-    hostnames.map(h => dns.promises.resolve4(h))
-  );
+  return Promise.all(hostnames.map((h) => dns.promises.resolve4(h)));
 }
 ```
 

@@ -22,6 +22,9 @@
     "PageLoader": {
       "message": "Loading...",
       "submessage": "Please wait"
+    },
+    "Swipe": {
+      "closeAction": "Close action"
     }
   },
   "Settings": {

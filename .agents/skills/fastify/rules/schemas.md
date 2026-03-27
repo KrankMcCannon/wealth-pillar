@@ -38,19 +38,23 @@ type UserResponseType = Static<typeof UserResponse>;
 app.post<{
   Body: CreateUserBodyType;
   Reply: UserResponseType;
-}>('/users', {
-  schema: {
-    body: CreateUserBody,
-    response: {
-      201: UserResponse,
+}>(
+  '/users',
+  {
+    schema: {
+      body: CreateUserBody,
+      response: {
+        201: UserResponse,
+      },
     },
   },
-}, async (request, reply) => {
-  // request.body is fully typed as CreateUserBodyType
-  const user = await createUser(request.body);
-  reply.code(201);
-  return user;
-});
+  async (request, reply) => {
+    // request.body is fully typed as CreateUserBodyType
+    const user = await createUser(request.body);
+    reply.code(201);
+    return user;
+  }
+);
 ```
 
 ## TypeBox Common Patterns
@@ -114,14 +118,18 @@ app.addSchema(Type.Object({ $id: 'ErrorResponse', ...ErrorResponse }));
 app.addSchema(Type.Object({ $id: 'PaginationQuery', ...PaginationQuery }));
 
 // Reference in routes
-app.get('/items', {
-  schema: {
-    querystring: { $ref: 'PaginationQuery#' },
-    response: {
-      400: { $ref: 'ErrorResponse#' },
+app.get(
+  '/items',
+  {
+    schema: {
+      querystring: { $ref: 'PaginationQuery#' },
+      response: {
+        400: { $ref: 'ErrorResponse#' },
+      },
     },
   },
-}, handler);
+  handler
+);
 ```
 
 ## Plain JSON Schema (Alternative)
@@ -250,29 +258,37 @@ app.addSchema({
 });
 
 // Reference shared schemas
-app.post('/users', {
-  schema: {
-    body: { $ref: 'userCreate#' },
-    response: {
-      201: { $ref: 'user#' },
-      400: { $ref: 'error#' },
+app.post(
+  '/users',
+  {
+    schema: {
+      body: { $ref: 'userCreate#' },
+      response: {
+        201: { $ref: 'user#' },
+        400: { $ref: 'error#' },
+      },
     },
   },
-}, handler);
+  handler
+);
 
-app.get('/users/:id', {
-  schema: {
-    params: {
-      type: 'object',
-      properties: { id: { type: 'string', format: 'uuid' } },
-      required: ['id'],
-    },
-    response: {
-      200: { $ref: 'user#' },
-      404: { $ref: 'error#' },
+app.get(
+  '/users/:id',
+  {
+    schema: {
+      params: {
+        type: 'object',
+        properties: { id: { type: 'string', format: 'uuid' } },
+        required: ['id'],
+      },
+      response: {
+        200: { $ref: 'user#' },
+        404: { $ref: 'error#' },
+      },
     },
   },
-}, handler);
+  handler
+);
 ```
 
 ## Array Schemas
@@ -294,20 +310,24 @@ app.addSchema({
   },
 });
 
-app.get('/users', {
-  schema: {
-    querystring: {
-      type: 'object',
-      properties: {
-        page: { type: 'integer', minimum: 1, default: 1 },
-        pageSize: { type: 'integer', minimum: 1, maximum: 100, default: 20 },
+app.get(
+  '/users',
+  {
+    schema: {
+      querystring: {
+        type: 'object',
+        properties: {
+          page: { type: 'integer', minimum: 1, default: 1 },
+          pageSize: { type: 'integer', minimum: 1, maximum: 100, default: 20 },
+        },
+      },
+      response: {
+        200: { $ref: 'userList#' },
       },
     },
-    response: {
-      200: { $ref: 'userList#' },
-    },
   },
-}, handler);
+  handler
+);
 ```
 
 ## Custom Formats
@@ -322,7 +342,7 @@ const app = Fastify({
     customOptions: {
       formats: {
         'iso-country': /^[A-Z]{2}$/,
-        'phone': /^\+?[1-9]\d{1,14}$/,
+        phone: /^\+?[1-9]\d{1,14}$/,
       },
     },
   },
@@ -369,16 +389,20 @@ const app = Fastify({
 });
 
 // Use custom keyword
-app.post('/numbers', {
-  schema: {
-    body: {
-      type: 'object',
-      properties: {
-        value: { type: 'integer', isEven: true },
+app.post(
+  '/numbers',
+  {
+    schema: {
+      body: {
+        type: 'object',
+        properties: {
+          value: { type: 'integer', isEven: true },
+        },
       },
     },
   },
-}, handler);
+  handler
+);
 ```
 
 ## Coercion
@@ -389,21 +413,25 @@ Fastify coerces types by default for query strings and params:
 // Query string "?page=5&active=true" becomes:
 // { page: 5, active: true } (number and boolean, not strings)
 
-app.get('/items', {
-  schema: {
-    querystring: {
-      type: 'object',
-      properties: {
-        page: { type: 'integer' },      // "5" -> 5
-        active: { type: 'boolean' },    // "true" -> true
-        tags: {
-          type: 'array',
-          items: { type: 'string' },    // "a,b,c" -> ["a", "b", "c"]
+app.get(
+  '/items',
+  {
+    schema: {
+      querystring: {
+        type: 'object',
+        properties: {
+          page: { type: 'integer' }, // "5" -> 5
+          active: { type: 'boolean' }, // "true" -> true
+          tags: {
+            type: 'array',
+            items: { type: 'string' }, // "a,b,c" -> ["a", "b", "c"]
+          },
         },
       },
     },
   },
-}, handler);
+  handler
+);
 ```
 
 ## Validation Error Handling
@@ -443,13 +471,13 @@ import Fastify from 'fastify';
 const app = Fastify({
   ajv: {
     customOptions: {
-      removeAdditional: 'all',   // Remove extra properties
-      useDefaults: true,         // Apply default values
-      coerceTypes: true,         // Coerce types
-      allErrors: true,           // Report all errors, not just first
+      removeAdditional: 'all', // Remove extra properties
+      useDefaults: true, // Apply default values
+      coerceTypes: true, // Coerce types
+      allErrors: true, // Report all errors, not just first
     },
     plugins: [
-      require('ajv-formats'),    // Add format validators
+      require('ajv-formats'), // Add format validators
     ],
   },
 });
@@ -465,12 +493,9 @@ app.addSchema({
   type: 'object',
   properties: {
     name: { type: 'string' },
-    bio: { type: ['string', 'null'] },  // Can be string or null
+    bio: { type: ['string', 'null'] }, // Can be string or null
     avatar: {
-      oneOf: [
-        { type: 'string', format: 'uri' },
-        { type: 'null' },
-      ],
+      oneOf: [{ type: 'string', format: 'uri' }, { type: 'null' }],
     },
   },
 });
@@ -567,16 +592,20 @@ Response schemas enable fast-json-stringify for serialization:
 
 ```typescript
 // With response schema - uses fast-json-stringify (faster)
-app.get('/users', {
-  schema: {
-    response: {
-      200: {
-        type: 'array',
-        items: { $ref: 'user#' },
+app.get(
+  '/users',
+  {
+    schema: {
+      response: {
+        200: {
+          type: 'array',
+          items: { $ref: 'user#' },
+        },
       },
     },
   },
-}, handler);
+  handler
+);
 
 // Without response schema - uses JSON.stringify (slower)
 app.get('/users-slow', handler);

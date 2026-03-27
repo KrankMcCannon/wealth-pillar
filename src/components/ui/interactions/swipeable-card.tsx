@@ -8,9 +8,11 @@
  */
 
 'use client';
+'use no memo';
 
 import { memo, useEffect, useRef } from 'react';
-import { motion, type MotionStyle } from 'framer-motion';
+import { motion } from 'framer-motion';
+import { useTranslations } from 'next-intl';
 import { cn } from '@/lib/utils';
 import { useSwipeManager } from '@/hooks/use-swipe-manager';
 import {
@@ -73,39 +75,6 @@ export interface SwipeableCardProps {
 // Component
 // ============================================================================
 
-/**
- * SwipeableCard Component
- *
- * A reusable wrapper that adds swipe-to-action functionality to any card.
- *
- * Features:
- * - Global state coordination (only one card open at a time)
- * - Apple-style physics and animations
- * - Configurable left/right actions
- * - Auto-close on outside click
- * - Tap vs. drag distinction
- * - Smooth transitions and visual feedback
- *
- * Example Usage:
- * ```tsx
- * <SwipeableCard
- *   id="series-123"
- *   leftAction={{
- *     label: "Pausa",
- *     variant: "pause",
- *     onAction: handlePause
- *   }}
- *   rightAction={{
- *     label: "Elimina",
- *     variant: "delete",
- *     onAction: handleDelete
- *   }}
- *   onCardClick={handleEdit}
- * >
- *   <MyCardContent />
- * </SwipeableCard>
- * ```
- */
 export const SwipeableCard = memo<SwipeableCardProps>(
   ({
     id,
@@ -118,6 +87,8 @@ export const SwipeableCard = memo<SwipeableCardProps>(
     disabled = false,
     className,
   }) => {
+    const t = useTranslations('Common.Swipe');
+
     // Determine swipe directions based on available actions
     let directions: 'left' | 'right' | 'both';
     if (leftAction && rightAction) {
@@ -128,7 +99,6 @@ export const SwipeableCard = memo<SwipeableCardProps>(
       directions = 'right';
     }
 
-    // Get swipe state and handlers from hook
     const { x, isOpen, swipeSide, dragHandlers, closeSwipe, dragConstraints } = useSwipeManager({
       cardId: id,
       directions,
@@ -142,23 +112,15 @@ export const SwipeableCard = memo<SwipeableCardProps>(
     // Effect Callbacks
     // ========================================================================
 
-    /**
-     * Notify parent when swipe state changes
-     * Must be in useEffect to avoid calling callbacks during render
-     */
     useEffect(() => {
       const prev = prevStateRef.current;
 
-      // State changed: was closed, now open
       if (!prev.isOpen && isOpen && swipeSide) {
         onSwipeOpen?.(swipeSide);
-      }
-      // State changed: was open, now closed
-      else if (prev.isOpen && !isOpen) {
+      } else if (prev.isOpen && !isOpen) {
         onSwipeClose?.();
       }
 
-      // Update previous state
       prevStateRef.current = { isOpen, swipeSide };
     }, [isOpen, swipeSide, onSwipeOpen, onSwipeClose]);
 
@@ -167,50 +129,31 @@ export const SwipeableCard = memo<SwipeableCardProps>(
     // ========================================================================
 
     /**
-     * Handle action button click
-     * Closes swipe first, then executes action after animation
+     * Close swipe and execute action immediately.
+     * The close animation runs via swipe manager state sync while modal opens.
      */
     const handleActionClick = (action: SwipeAction) => {
-      closeSwipe(); // Close swipe immediately
-      // Execute action after swipe close animation (200ms)
-      setTimeout(() => {
-        action.onAction();
-      }, 200);
+      closeSwipe();
+      action.onAction();
     };
 
     /**
-     * Handle card tap
-     * If open, closes swipe then triggers callback
-     * If closed, triggers callback immediately
+     * Pointer-based tap detection.
+     * Replaces Framer Motion's onTap which is unreliable with drag.
      */
-    const handleCardTap = () => {
-      const shouldTriggerClick = dragHandlers.onTap();
+    const handlePointerUp = (e: React.PointerEvent) => {
+      const shouldTriggerClick = dragHandlers.onPointerUp(e);
       if (!shouldTriggerClick) return;
       onCardClick?.();
     };
 
-    /**
-     * Handle backdrop click
-     * Closes all open swipes
-     */
     const handleBackdropClick = () => {
       closeSwipe();
     };
 
     const handleDragStart = dragHandlers.onDragStart;
     const handleDragEnd = dragHandlers.onDragEnd;
-
-    // ========================================================================
-    // Helper Functions
-    // ========================================================================
-
-    /**
-     * Generate motion style for Framer Motion
-     * Workaround for React 19 type incompatibility
-     */
-    const getMotionStyle = (): MotionStyle => {
-      return { x } as unknown as MotionStyle;
-    };
+    const handlePointerDown = dragHandlers.onPointerDown;
 
     // ========================================================================
     // Render
@@ -221,15 +164,12 @@ export const SwipeableCard = memo<SwipeableCardProps>(
         {/* Global Backdrop (rendered only by the open card) */}
         {isOpen && (
           <button
-            className={cn(
-              swipeStyles.backdrop.base,
-              isOpen ? swipeStyles.backdrop.visible : swipeStyles.backdrop.hidden
-            )}
+            className={cn(swipeStyles.backdrop.base, swipeStyles.backdrop.visible)}
             style={{ zIndex: swipeStyles.backdrop.zIndex }}
             onClick={handleBackdropClick}
             onTouchEnd={handleBackdropClick}
             tabIndex={-1}
-            aria-label="Chiudi azione"
+            aria-label={t('closeAction')}
             onKeyDown={(e) => {
               if (e.key === 'Escape' || e.key === 'Enter' || e.key === ' ') {
                 handleBackdropClick();
@@ -239,7 +179,10 @@ export const SwipeableCard = memo<SwipeableCardProps>(
         )}
 
         {/* Swipe Container */}
-        <div className={cn(swipeStyles.wrapper, className)}>
+        <div
+          className={cn(swipeStyles.wrapper, className)}
+          style={isOpen ? { zIndex: swipeStyles.backdrop.zIndex + 1 } : undefined}
+        >
           {/* Left Action Layer (Pause/Resume) */}
           {leftAction && (
             <div
@@ -332,10 +275,11 @@ export const SwipeableCard = memo<SwipeableCardProps>(
             dragConstraints={dragConstraints}
             dragElastic={appleSwipeTokens.physics.drag.elastic}
             dragMomentum={false}
-            style={getMotionStyle()}
+            style={{ x }}
             onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
-            onTap={handleCardTap}
+            onPointerDown={handlePointerDown}
+            onPointerUp={handlePointerUp}
             onClick={(e) => e.stopPropagation()}
             className={swipeStyles.cardContent.base}
           >
@@ -343,15 +287,6 @@ export const SwipeableCard = memo<SwipeableCardProps>(
           </motion.div>
         </div>
       </>
-    );
-  },
-  // Custom comparison: only re-render if id or actions change
-  (prev, next) => {
-    return (
-      prev.id === next.id &&
-      prev.leftAction === next.leftAction &&
-      prev.rightAction === next.rightAction &&
-      prev.disabled === next.disabled
     );
   }
 );

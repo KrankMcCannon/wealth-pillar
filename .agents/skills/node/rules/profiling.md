@@ -26,6 +26,7 @@ npx @platformatic/flame --output markdown app.ts
 ```
 
 This enables a fully agentic workflow where you can:
+
 1. Profile your application
 2. Get markdown output describing hotspots
 3. Feed the report to an AI assistant for optimization suggestions
@@ -63,6 +64,7 @@ npx autocannon -m POST -H "Content-Type: application/json" -b '{"name":"test"}' 
 ```
 
 Options:
+
 - `-c` - Number of concurrent connections (default: 10)
 - `-d` - Duration in seconds (default: 10)
 - `-p` - Number of pipelined requests (default: 1)
@@ -97,6 +99,7 @@ wrk -t12 -c400 -d30s -s post.lua http://localhost:3000
 ```
 
 Options:
+
 - `-t` - Number of threads
 - `-c` - Number of connections
 - `-d` - Duration
@@ -175,9 +178,9 @@ node --report-on-fatalerror app.js
 
 ## Tool Comparison
 
-| Tool | Best For |
-|------|----------|
-| @platformatic/flame | CPU profiling, flame graphs, AI-assisted analysis |
-| autocannon | Quick HTTP benchmarks, Node.js native |
-| wrk | Maximum throughput testing |
-| k6 | Complex scenarios, CI/CD integration, scripted tests |
+| Tool                | Best For                                             |
+| ------------------- | ---------------------------------------------------- |
+| @platformatic/flame | CPU profiling, flame graphs, AI-assisted analysis    |
+| autocannon          | Quick HTTP benchmarks, Node.js native                |
+| wrk                 | Maximum throughput testing                           |
+| k6                  | Complex scenarios, CI/CD integration, scripted tests |

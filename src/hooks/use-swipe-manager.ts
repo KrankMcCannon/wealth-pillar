@@ -8,6 +8,7 @@
  */
 
 'use client';
+'use no memo';
 
 import { useEffect, useRef, useState } from 'react';
 import { useMotionValue, animate, type PanInfo, type MotionValue } from 'framer-motion';
@@ -19,6 +20,12 @@ import { appleSwipeTokens } from '@/components/ui/interactions/theme/swipe-style
 // ============================================================================
 
 export type SwipeSide = 'left' | 'right' | null;
+
+interface PointerStart {
+  x: number;
+  y: number;
+  time: number;
+}
 
 export interface UseSwipeManagerProps {
   /** Unique card ID for global state tracking */
@@ -32,26 +39,28 @@ export interface UseSwipeManagerProps {
 }
 
 export interface UseSwipeManagerReturn {
-  // Motion state
   x: MotionValue<number>;
-
-  // Swipe state
   isOpen: boolean;
   swipeSide: SwipeSide;
 
-  // Gesture handlers
   dragHandlers: {
     onDragStart: () => void;
     onDragEnd: (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => void;
-    onTap: () => boolean;
+    onPointerDown: (e: React.PointerEvent) => void;
+    onPointerUp: (e: React.PointerEvent) => boolean;
   };
 
-  // Control methods
   closeSwipe: () => void;
-
-  // Drag constraints
   dragConstraints: { left: number; right: number };
 }
+
+// ============================================================================
+// Constants
+// ============================================================================
+
+const TAP_MAX_DISTANCE = 10;
+const TAP_MAX_DURATION = 300;
+const DRAG_THRESHOLD = 10;
 
 // ============================================================================
 // Hook
@@ -66,39 +75,31 @@ export interface UseSwipeManagerReturn {
  * - Global coordination (auto-closes other cards)
  * - Velocity-based detection (fast swipe = instant trigger)
  * - Hysteresis thresholds (different for open vs. close)
- * - Tap vs. drag distinction (prevents accidental modal opens)
+ * - Pointer-based tap detection (reliable with drag)
  * - Spring animations with iOS-calibrated physics
- *
- * @param props - Configuration options
- * @returns Swipe state and handlers
  */
 export function useSwipeManager({
   cardId,
   directions,
   disabled = false,
 }: UseSwipeManagerProps): UseSwipeManagerReturn {
-  // Use direct store access with stable selector
   const setOpenCard = useSwipeStateStore((state) => state.setOpenCard);
   const isOpen = useSwipeStateStore((state) => state.openCardId === cardId);
 
   const hasDragged = useRef(false);
-  const swipeSideRef = useRef<SwipeSide>(null);
+  const pointerStartRef = useRef<PointerStart | null>(null);
+
+  // swipeSide is state (not a ref) so it is safe to read during render.
+  // It is only updated inside event handlers, never inside effects.
   const [swipeSide, setSwipeSide] = useState<SwipeSide>(null);
   const x = useMotionValue(0);
 
   const { physics, thresholds, dimensions } = appleSwipeTokens;
   const actionWidth = dimensions.actionWidthSingle;
 
-  // Calculate drag constraints based on enabled action sides
-  // Right action = drag left (negative), Left action = drag right (positive)
   const dragConstraints = {
     left: directions === 'right' || directions === 'both' ? -actionWidth : 0,
     right: directions === 'left' || directions === 'both' ? actionWidth : 0,
-  };
-
-  const updateSwipeSide = (nextSide: SwipeSide) => {
-    swipeSideRef.current = nextSide;
-    setSwipeSide(nextSide);
   };
 
   // ============================================================================
@@ -106,31 +107,18 @@ export function useSwipeManager({
   // ============================================================================
 
   /**
-   * Sync Framer Motion x value with global swipe state
-   * Uses spring animation for smooth, natural motion
-   *
-   * CRITICAL: We NEVER call setState here to prevent infinite loops.
-   * swipeSide state is only updated in drag handlers.
+   * Sync Framer Motion x value with global swipe state.
+   * swipeSide is a dependency so the effect re-runs when it changes.
+   * setState is never called here — only the external (Framer Motion) system is updated.
    */
   useEffect(() => {
     if (disabled) return;
 
-    // Determine target X position based on isOpen and current swipeSide
     let targetX = 0;
-
-    if (isOpen && swipeSideRef.current) {
-      // Use the swipeSide that was set by drag handlers
-      if (swipeSideRef.current === 'left') {
-        targetX = actionWidth;
-      } else {
-        targetX = -actionWidth;
-      }
-    } else if (!isOpen) {
-      // Card is closing: clear ref only; state is synced below
-      swipeSideRef.current = null;
+    if (isOpen && swipeSide) {
+      targetX = swipeSide === 'left' ? actionWidth : -actionWidth;
     }
 
-    // Animate to target position
     const currentX = x.get();
     if (Math.abs(currentX - targetX) > 0.5) {
       animate(x, targetX, {
@@ -142,6 +130,7 @@ export function useSwipeManager({
     }
   }, [
     isOpen,
+    swipeSide,
     actionWidth,
     physics.spring.stiffness,
     physics.spring.damping,
@@ -150,34 +139,18 @@ export function useSwipeManager({
     x,
   ]);
 
-  useEffect(() => {
-    if (!isOpen && swipeSideRef.current !== null) {
-      swipeSideRef.current = null;
-    }
-  }, [isOpen]);
-
   // ============================================================================
   // Gesture Handlers
   // ============================================================================
 
-  /**
-   * Handle drag start
-   * Initializes drag tracking to distinguish from taps
-   */
   const handleDragStart = () => {
     if (disabled) return;
     hasDragged.current = false;
   };
 
   /**
-   * Handle drag end
-   * Core swipe detection logic with velocity and distance thresholds
-   *
-   * Apple UX patterns:
-   * - Fast swipe (high velocity) = instant trigger
-   * - Slow drag requires crossing threshold
-   * - Hysteresis: Different thresholds for open vs. close
-   * - Auto-close if dragging back toward center beyond 70%
+   * Core swipe detection with velocity and distance thresholds.
+   * Apple UX: fast swipe = instant trigger, slow drag requires crossing threshold.
    */
   const handleDragEnd = (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
     if (disabled) return;
@@ -186,13 +159,7 @@ export function useSwipeManager({
     const velocityX = info.velocity.x;
     const dragDistance = Math.abs(info.offset.x);
 
-    // Mark as dragged if movement > 10px (not a tap)
-    if (dragDistance > 10) {
-      hasDragged.current = true;
-    }
-
-    // Mark as dragged if movement > 10px (not a tap)
-    if (dragDistance > 10) {
+    if (dragDistance > DRAG_THRESHOLD) {
       hasDragged.current = true;
     }
 
@@ -202,95 +169,89 @@ export function useSwipeManager({
       handleDragEndClosed(currentX, velocityX);
     }
 
-    // Reset drag flag after delay (allows handleTap to read it)
+    // Reset drag flag after delay (allows pointer up tap detection to read it)
     setTimeout(() => {
       hasDragged.current = false;
     }, 100);
   };
 
   const handleDragEndOpen = (currentX: number, velocityX: number) => {
-    const currentSide = swipeSideRef.current;
-    if (currentSide === 'right') {
-      // Right swipe open (delete action)
-      // Close if dragging right > 30% OR positive velocity > 10
+    if (swipeSide === 'right') {
       const shouldClose = currentX > -actionWidth * 0.7 || velocityX > 10;
       if (shouldClose) {
-        updateSwipeSide(null);
+        setSwipeSide(null);
         setOpenCard(null);
       }
-    } else if (currentSide === 'left') {
-      // Left swipe open (pause/resume action)
-      // Close if dragging left > 30% OR negative velocity < -10
+    } else if (swipeSide === 'left') {
       const shouldClose = currentX < actionWidth * 0.7 || velocityX < -10;
       if (shouldClose) {
-        updateSwipeSide(null);
+        setSwipeSide(null);
         setOpenCard(null);
       }
     }
   };
 
   const handleDragEndClosed = (currentX: number, velocityX: number) => {
-    // Check for right swipe (delete)
     if (
       (directions === 'right' || directions === 'both') &&
       (currentX < -thresholds.open || velocityX < thresholds.velocity)
     ) {
-      updateSwipeSide('right');
+      setSwipeSide('right');
       setOpenCard(cardId);
-    }
-    // Check for left swipe (pause/resume)
-    else if (
+    } else if (
       (directions === 'left' || directions === 'both') &&
       (currentX > thresholds.open || velocityX > Math.abs(thresholds.velocity))
     ) {
-      updateSwipeSide('left');
+      setSwipeSide('left');
       setOpenCard(cardId);
-    }
-    // Neither threshold met: snap back to closed
-    else {
-      updateSwipeSide(null);
+    } else {
+      setSwipeSide(null);
       setOpenCard(null);
     }
   };
 
+  // ============================================================================
+  // Pointer-Based Tap Detection
+  // ============================================================================
+
+  const handlePointerDown = (e: React.PointerEvent) => {
+    if (disabled) return;
+    pointerStartRef.current = { x: e.clientX, y: e.clientY, time: Date.now() };
+  };
+
   /**
-   * Handle tap
-   * Distinguishes intentional taps from accidental swipe releases
-   *
-   * Behavior:
-   * - If just dragged: Ignore (prevent modal open during swipe)
-   * - If card is open: Close swipe, then trigger callback after delay
-   * - If card is closed: Trigger callback immediately
+   * Detect taps via pointer events (more reliable than onTap with drag).
+   * A tap is a pointer down+up with < 10px movement and < 300ms duration.
    */
-  const handleTap = (): boolean => {
+  const handlePointerUp = (e: React.PointerEvent): boolean => {
     if (disabled) return false;
 
-    // Ignore tap if user just finished dragging
-    if (hasDragged.current) {
-      hasDragged.current = false;
-      return false;
-    }
+    const start = pointerStartRef.current;
+    pointerStartRef.current = null;
+
+    if (!start) return false;
+
+    const distance = Math.sqrt(Math.pow(e.clientX - start.x, 2) + Math.pow(e.clientY - start.y, 2));
+    const duration = Date.now() - start.time;
+    const isTap = distance < TAP_MAX_DISTANCE && duration < TAP_MAX_DURATION;
+
+    if (!isTap || hasDragged.current) return false;
 
     const currentX = x.get();
 
-    // If card is open or partially open
+    // If card is open or partially open, close it
     if (isOpen || Math.abs(currentX) > thresholds.tap) {
-      // Close the swipe
+      setSwipeSide(null);
       setOpenCard(null);
-      // Note: onCardClick callback handled by SwipeableCard component
       return false;
     }
 
-    // Card is closed: onCardClick handled by SwipeableCard
+    // Card is closed: signal that onCardClick should fire
     return true;
   };
 
-  /**
-   * Programmatically close swipe
-   * Useful for action handlers that need to close after execution
-   */
   const closeSwipe = () => {
-    updateSwipeSide(null);
+    setSwipeSide(null);
     setOpenCard(null);
   };
 
@@ -299,24 +260,19 @@ export function useSwipeManager({
   // ============================================================================
 
   return {
-    // Motion state
     x,
-
-    // Swipe state
     isOpen,
+    // Mask swipeSide when card is closed (handles external close via Zustand)
     swipeSide: isOpen ? swipeSide : null,
 
-    // Gesture handlers
     dragHandlers: {
       onDragStart: handleDragStart,
       onDragEnd: handleDragEnd,
-      onTap: handleTap,
+      onPointerDown: handlePointerDown,
+      onPointerUp: handlePointerUp,
     },
 
-    // Control methods
     closeSwipe,
-
-    // Drag constraints
     dragConstraints,
   };
 }

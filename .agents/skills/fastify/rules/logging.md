@@ -72,17 +72,23 @@ Always use structured logging with objects:
 
 ```typescript
 // GOOD - structured, searchable
-request.log.info({
-  action: 'user_created',
-  userId: user.id,
-  email: user.email,
-}, 'User created successfully');
+request.log.info(
+  {
+    action: 'user_created',
+    userId: user.id,
+    email: user.email,
+  },
+  'User created successfully'
+);
 
-request.log.error({
-  err: error,
-  userId: request.params.id,
-  operation: 'fetch_user',
-}, 'Failed to fetch user');
+request.log.error(
+  {
+    err: error,
+    userId: request.params.id,
+    operation: 'fetch_user',
+  },
+  'Failed to fetch user'
+);
 
 // BAD - unstructured, hard to parse
 request.log.info(`User ${user.id} created with email ${user.email}`);
@@ -226,18 +232,24 @@ const app = Fastify({
 
 // Custom request logging
 app.addHook('onRequest', async (request) => {
-  request.log.info({
-    method: request.method,
-    url: request.url,
-    query: request.query,
-  }, 'Request received');
+  request.log.info(
+    {
+      method: request.method,
+      url: request.url,
+      query: request.query,
+    },
+    'Request received'
+  );
 });
 
 app.addHook('onResponse', async (request, reply) => {
-  request.log.info({
-    statusCode: reply.statusCode,
-    responseTime: reply.elapsedTime,
-  }, 'Request completed');
+  request.log.info(
+    {
+      statusCode: reply.statusCode,
+      responseTime: reply.elapsedTime,
+    },
+    'Request completed'
+  );
 });
 ```
 
@@ -248,13 +260,16 @@ Properly log errors with stack traces:
 ```typescript
 app.setErrorHandler((error, request, reply) => {
   // Log error with full details
-  request.log.error({
-    err: error, // Pino serializes error objects properly
-    url: request.url,
-    method: request.method,
-    body: request.body,
-    query: request.query,
-  }, 'Request error');
+  request.log.error(
+    {
+      err: error, // Pino serializes error objects properly
+      url: request.url,
+      method: request.method,
+      body: request.body,
+      query: request.query,
+    },
+    'Request error'
+  );
 
   reply.code(error.statusCode || 500).send({
     error: error.message,
@@ -315,8 +330,8 @@ Or configure programmatically:
 import { createStream } from 'rotating-file-stream';
 
 const stream = createStream('app.log', {
-  size: '10M',     // Rotate every 10MB
-  interval: '1d',  // Rotate daily
+  size: '10M', // Rotate every 10MB
+  interval: '1d', // Rotate daily
   compress: 'gzip',
   path: './logs',
 });

@@ -88,23 +88,27 @@ app.get('/health/ready', async (request, reply) => {
 });
 
 // Detailed health for monitoring
-app.get('/health/details', {
-  preHandler: [app.authenticate, app.requireAdmin],
-}, async () => {
-  const memory = process.memoryUsage();
+app.get(
+  '/health/details',
+  {
+    preHandler: [app.authenticate, app.requireAdmin],
+  },
+  async () => {
+    const memory = process.memoryUsage();
 
-  return {
-    status: 'ok',
-    uptime: process.uptime(),
-    memory: {
-      heapUsed: Math.round(memory.heapUsed / 1024 / 1024),
-      heapTotal: Math.round(memory.heapTotal / 1024 / 1024),
-      rss: Math.round(memory.rss / 1024 / 1024),
-    },
-    version: process.env.APP_VERSION,
-    nodeVersion: process.version,
-  };
-});
+    return {
+      status: 'ok',
+      uptime: process.uptime(),
+      memory: {
+        heapUsed: Math.round(memory.heapUsed / 1024 / 1024),
+        heapTotal: Math.round(memory.heapTotal / 1024 / 1024),
+        rss: Math.round(memory.rss / 1024 / 1024),
+      },
+      version: process.env.APP_VERSION,
+      nodeVersion: process.version,
+    };
+  }
+);
 ```
 
 ## Docker Configuration
@@ -156,7 +160,7 @@ services:
   api:
     build: .
     ports:
-      - "3000:3000"
+      - '3000:3000'
     environment:
       - NODE_ENV=production
       - DATABASE_URL=postgres://user:pass@db:5432/app
@@ -175,7 +179,7 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U user -d app"]
+      test: ['CMD-SHELL', 'pg_isready -U user -d app']
       interval: 5s
       timeout: 5s
       retries: 5
@@ -211,7 +215,7 @@ spec:
             - containerPort: 3000
           env:
             - name: NODE_ENV
-              value: "production"
+              value: 'production'
             - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:
@@ -219,11 +223,11 @@ spec:
                   key: database-url
           resources:
             requests:
-              memory: "256Mi"
-              cpu: "100m"
+              memory: '256Mi'
+              cpu: '100m'
             limits:
-              memory: "512Mi"
-              cpu: "500m"
+              memory: '512Mi'
+              cpu: '500m'
           livenessProbe:
             httpGet:
               path: /health/live
@@ -239,7 +243,7 @@ spec:
           lifecycle:
             preStop:
               exec:
-                command: ["/bin/sh", "-c", "sleep 5"]
+                command: ['/bin/sh', '-c', 'sleep 5']
 ---
 apiVersion: v1
 kind: Service
@@ -296,18 +300,22 @@ Configure appropriate timeouts:
 
 ```typescript
 const app = Fastify({
-  connectionTimeout: 30000,     // 30s connection timeout
-  keepAliveTimeout: 72000,      // 72s keep-alive (longer than ALB 60s)
-  requestTimeout: 30000,        // 30s request timeout
-  bodyLimit: 1048576,           // 1MB body limit
+  connectionTimeout: 30000, // 30s connection timeout
+  keepAliveTimeout: 72000, // 72s keep-alive (longer than ALB 60s)
+  requestTimeout: 30000, // 30s request timeout
+  bodyLimit: 1048576, // 1MB body limit
 });
 
 // Per-route timeout
-app.get('/long-operation', {
-  config: {
-    timeout: 60000, // 60s for this route
+app.get(
+  '/long-operation',
+  {
+    config: {
+      timeout: 60000, // 60s for this route
+    },
   },
-}, longOperationHandler);
+  longOperationHandler
+);
 ```
 
 ## Trust Proxy Settings
@@ -422,4 +430,3 @@ closeWithGrace({ delay: 30000 }, async ({ signal }) => {
   app.log.info('Server closed');
 });
 ```
-

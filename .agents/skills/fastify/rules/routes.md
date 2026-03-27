@@ -235,7 +235,7 @@ import type { FastifyRequest, FastifyReply } from 'fastify';
 
 export async function createUser(
   request: FastifyRequest<{ Body: { name: string; email: string } }>,
-  reply: FastifyReply,
+  reply: FastifyReply
 ) {
   const { name, email } = request.body;
   const user = await request.server.db.users.create({ name, email });
@@ -294,10 +294,13 @@ Use prefixes to namespace routes:
 
 ```typescript
 // Using register
-app.register(async function (fastify) {
-  fastify.get('/list', async () => ({ users: [] }));
-  fastify.get('/:id', async (request) => ({ id: request.params.id }));
-}, { prefix: '/users' });
+app.register(
+  async function (fastify) {
+    fastify.get('/list', async () => ({ users: [] }));
+    fastify.get('/:id', async (request) => ({ id: request.params.id }));
+  },
+  { prefix: '/users' }
+);
 
 // Results in:
 // GET /users/list
@@ -323,21 +326,24 @@ app.route({
 Customize the not found handler:
 
 ```typescript
-app.setNotFoundHandler({
-  preValidation: async (request, reply) => {
-    // Optional pre-validation hook
+app.setNotFoundHandler(
+  {
+    preValidation: async (request, reply) => {
+      // Optional pre-validation hook
+    },
+    preHandler: async (request, reply) => {
+      // Optional pre-handler hook
+    },
   },
-  preHandler: async (request, reply) => {
-    // Optional pre-handler hook
-  },
-}, async (request, reply) => {
-  reply.code(404);
-  return {
-    error: 'Not Found',
-    message: `Route ${request.method} ${request.url} not found`,
-    statusCode: 404,
-  };
-});
+  async (request, reply) => {
+    reply.code(404);
+    return {
+      error: 'Not Found',
+      message: `Route ${request.method} ${request.url} not found`,
+      statusCode: 404,
+    };
+  }
+);
 ```
 
 ## Method Not Allowed
