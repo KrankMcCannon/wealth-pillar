@@ -16,9 +16,9 @@
  * - Fully accessible (aria-labels, roles, aria-live)
  */
 
-import { memo, useCallback } from 'react';
+import { memo, useCallback, useMemo, useRef, useEffect } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
-import { Trash2, FileText } from 'lucide-react';
+import { Trash2, Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatCurrency } from '@/lib/utils';
 import { formatDateSmart, toDateTime } from '@/lib/utils/date-utils';
@@ -54,6 +54,8 @@ interface TransactionTableProps {
   onPageSizeChange?: (size: PageSizeOption) => void;
   onEditTransaction: (transaction: Transaction) => void;
   onDeleteTransaction: (transactionId: string) => void;
+  onAddTransaction?: () => void;
+  onClearFilters?: () => void;
   emptyTitle?: string;
   emptyDescription?: string;
   className?: string;
@@ -108,6 +110,54 @@ function getAmountPrefix(tx: Transaction): string {
   if (tx.type === 'income') return '+';
   if (tx.type === 'expense') return '−';
   return '';
+}
+
+// ─── Shared empty state ─────────────────────────────────────────────────────────
+
+interface EmptyContentProps {
+  title: string;
+  description: string;
+  addLabel: string;
+  clearFiltersLabel: string;
+  onAdd?: () => void;
+  onClearFilters?: () => void;
+}
+
+function EmptyContent({
+  title,
+  description,
+  addLabel,
+  clearFiltersLabel,
+  onAdd,
+  onClearFilters,
+}: EmptyContentProps) {
+  const s = transactionStyles.transactionTable;
+  return (
+    <div role="status" aria-live="polite" aria-atomic="true">
+      <div className={s.emptyIcon}>
+        <svg viewBox="0 0 48 48" fill="none" aria-hidden className="h-12 w-12">
+          <rect x="9" y="3" width="30" height="42" rx="3" stroke="currentColor" strokeWidth="1.5" />
+          <path d="M9 6a3 3 0 0 1 3-3h24a3 3 0 0 1 3 3v7H9V6Z" fill="currentColor" opacity="0.1" />
+          <line x1="15" y1="22" x2="33" y2="22" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          <line x1="15" y1="28" x2="29" y2="28" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          <line x1="15" y1="34" x2="23" y2="34" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" opacity="0.3" />
+        </svg>
+      </div>
+      <p className={s.emptyTitle}>{title}</p>
+      <p className={s.emptyDescription}>{description}</p>
+      {onClearFilters && (
+        <button type="button" onClick={onClearFilters} className={s.emptyClearButton}>
+          {clearFiltersLabel}
+        </button>
+      )}
+      {!onClearFilters && onAdd && (
+        <button type="button" onClick={onAdd} className={s.emptyAddButton}>
+          <Plus className="h-4 w-4" aria-hidden />
+          {addLabel}
+        </button>
+      )}
+    </div>
+  );
 }
 
 // ─── Desktop skeleton ───────────────────────────────────────────────────────────
@@ -266,10 +316,14 @@ function DayGroupRows({
   return (
     <>
       {/* Day separator row */}
-      <TableRow className={s.dayRow} aria-label={group.formattedDate}>
+      <TableRow className={s.dayRow}>
         <TableCell colSpan={4} className={s.dayCell}>
-          <div className="flex items-center gap-2">
-            <span className={s.dayDate}>{group.formattedDate}</span>
+          {/* sr-only conveys the date to screen readers; visible label is in dayHeaderRow */}
+          <span className="sr-only">{group.formattedDate}</span>
+          <div className={s.dayHeaderRow}>
+            <span className={s.dayDate} aria-hidden>
+              {group.formattedDate}
+            </span>
             <span className={s.dayCount}>{t('dayCount', { count })}</span>
           </div>
         </TableCell>
@@ -324,7 +378,18 @@ const DesktopTransactionRow = memo(function DesktopTransactionRow({
   const accountName = tx.account_id ? accountNames[tx.account_id] : undefined;
 
   return (
-    <TableRow className={s.row} onClick={() => onEdit(tx)} aria-label={tx.description}>
+    <TableRow
+      className={s.row}
+      onClick={() => onEdit(tx)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onEdit(tx);
+        }
+      }}
+      tabIndex={0}
+      aria-label={tx.description}
+    >
       {/* Category icon */}
       <TableCell className={cn(s.cell, 'w-10 px-4')}>
         <CategoryBadge categoryKey={tx.category} color={getCategoryColor(tx.category)} size="sm" />
@@ -338,9 +403,7 @@ const DesktopTransactionRow = memo(function DesktopTransactionRow({
 
       {/* Category badge — hidden on mobile */}
       <TableCell className={cn(s.cell, 'hidden sm:table-cell')}>
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/15 bg-primary/6 px-2.5 py-0.5 text-[11px] font-medium text-primary/70 whitespace-nowrap">
-          {getCategoryLabel(tx.category)}
-        </span>
+        <span className={s.categoryPill}>{getCategoryLabel(tx.category)}</span>
       </TableCell>
 
       {/* Account — hidden on mobile + tablet */}
@@ -389,6 +452,8 @@ function TransactionTableInner({
   onPageSizeChange,
   onEditTransaction,
   onDeleteTransaction,
+  onAddTransaction,
+  onClearFilters,
   emptyTitle,
   emptyDescription,
   className,
@@ -407,24 +472,43 @@ function TransactionTableInner({
     [categories]
   );
 
-  const dayGroups = groupByDay(transactions, locale);
+  const dayGroups = useMemo(() => groupByDay(transactions, locale), [transactions, locale]);
   const isEmpty = transactions.length === 0 && !isChangingPage;
 
   const showPagination = totalPages > 1 || totalFilteredCount > 0;
 
+  // Scroll the table section into view (not the whole page) when page changes
+  const sectionRef = useRef<HTMLDivElement>(null);
+  const prevIsChangingPage = useRef(false);
+  useEffect(() => {
+    if (prevIsChangingPage.current && !isChangingPage) {
+      sectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    prevIsChangingPage.current = isChangingPage;
+  }, [isChangingPage]);
+
   return (
-    <div className={className}>
+    <div ref={sectionRef} className={className}>
       {/* ══ Mobile layout (< sm): Card list with swipe-to-delete ══════════════ */}
-      <div className={ms.wrapper}>
+      <div
+        className={cn(
+          ms.wrapper,
+          'transition-opacity duration-200',
+          isChangingPage && 'opacity-50'
+        )}
+      >
         {isChangingPage ? (
           <MobileCardSkeleton />
         ) : isEmpty ? (
           <div className={ms.emptyWrapper}>
-            <div className={s.emptyIcon}>
-              <FileText className="h-7 w-7" aria-hidden />
-            </div>
-            <p className={s.emptyTitle}>{emptyTitle ?? t('empty.title')}</p>
-            <p className={s.emptyDescription}>{emptyDescription ?? t('empty.description')}</p>
+            <EmptyContent
+              title={emptyTitle ?? t('empty.title')}
+              description={emptyDescription ?? t('empty.description')}
+              addLabel={t('empty.addCta')}
+              clearFiltersLabel={t('empty.clearFilters')}
+              {...(onAddTransaction && { onAdd: onAddTransaction })}
+              {...(onClearFilters && { onClearFilters })}
+            />
           </div>
         ) : (
           <div className={ms.contentStack}>
@@ -459,7 +543,13 @@ function TransactionTableInner({
       </div>
 
       {/* ══ Desktop layout (≥ sm): Paginated table ════════════════════════════ */}
-      <div className={cn('hidden sm:block', s.wrapper)}>
+      <div
+        className={cn(
+          'hidden sm:block transition-opacity duration-200',
+          s.wrapper,
+          isChangingPage && 'opacity-50'
+        )}
+      >
         <Table>
           {/* Column headers */}
           <TableHeader className={s.header}>
@@ -488,13 +578,14 @@ function TransactionTableInner({
               <TableRow>
                 <TableCell colSpan={6} className="py-0">
                   <div className={s.emptyWrapper}>
-                    <div className={s.emptyIcon}>
-                      <FileText className="h-7 w-7" aria-hidden />
-                    </div>
-                    <p className={s.emptyTitle}>{emptyTitle ?? t('empty.title')}</p>
-                    <p className={s.emptyDescription}>
-                      {emptyDescription ?? t('empty.description')}
-                    </p>
+                    <EmptyContent
+                      title={emptyTitle ?? t('empty.title')}
+                      description={emptyDescription ?? t('empty.description')}
+                      addLabel={t('empty.addCta')}
+                      clearFiltersLabel={t('empty.clearFilters')}
+                      {...(onAddTransaction && { onAdd: onAddTransaction })}
+                      {...(onClearFilters && { onClearFilters })}
+                    />
                   </div>
                 </TableCell>
               </TableRow>

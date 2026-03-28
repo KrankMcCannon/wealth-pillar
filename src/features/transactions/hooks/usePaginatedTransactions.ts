@@ -114,10 +114,6 @@ export function usePaginatedTransactions({
       }
 
       setCurrentPage(clamped);
-      // Smooth scroll to top of content
-      requestAnimationFrame(() => {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      });
     },
     [totalPages, pageSize, loadMore, onNewTransactions]
   );

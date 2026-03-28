@@ -10,9 +10,10 @@
  * separation of concerns.
  */
 
-import { Suspense, use, useSyncExternalStore } from 'react';
+import { Suspense, use, useCallback, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import { useTransactionsContent, type UseTransactionsContentProps } from '@/features/transactions';
+import { useOnboardingHint } from '@/features/transactions/hooks/useOnboardingHint';
 import type { User } from '@/lib/types';
 import type { TransactionsPageData } from '@/server/services/page-data.service';
 import { BottomNavigation, PageContainer, Header } from '@/components/layout';
@@ -40,8 +41,6 @@ export default function TransactionsContent({
   groupUsers,
   pageDataPromise,
 }: TransactionsContentProps) {
-  const ONBOARDING_DISMISS_KEY = 'onboarding-transactions-v1-dismissed';
-  const ONBOARDING_SYNC_EVENT = 'onboarding-transactions-sync';
   const pageData = use(pageDataPromise);
   const {
     transactions = [],
@@ -66,27 +65,8 @@ export default function TransactionsContent({
   };
 
   const t = useTranslations('TransactionsContent');
-  const isOnboardingDismissed = useSyncExternalStore(
-    (onStoreChange) => {
-      if (typeof window === 'undefined') return () => {};
-      const handleStorage = (e: StorageEvent) => {
-        if (e.key === ONBOARDING_DISMISS_KEY) onStoreChange();
-      };
-      const handleLocalSync = () => onStoreChange();
-      window.addEventListener('storage', handleStorage);
-      window.addEventListener(ONBOARDING_SYNC_EVENT, handleLocalSync);
-      return () => {
-        window.removeEventListener('storage', handleStorage);
-        window.removeEventListener(ONBOARDING_SYNC_EVENT, handleLocalSync);
-      };
-    },
-    () => {
-      if (typeof window === 'undefined') return false;
-      return window.localStorage.getItem(ONBOARDING_DISMISS_KEY) === 'true';
-    },
-    () => false
-  );
-  const showOnboardingHint = !isOnboardingDismissed;
+  const { showHint: showOnboardingHint, dismiss: handleDismissOnboardingHint } =
+    useOnboardingHint();
 
   const {
     activeTab,
@@ -123,10 +103,23 @@ export default function TransactionsContent({
     router,
   } = useTransactionsContent(props);
 
-  const handleDismissOnboardingHint = () => {
-    window.localStorage.setItem(ONBOARDING_DISMISS_KEY, 'true');
-    window.dispatchEvent(new Event(ONBOARDING_SYNC_EVENT));
-  };
+  const hasActiveFilters = useMemo(
+    () =>
+      Boolean(
+        filters.searchQuery ||
+          filters.type !== 'all' ||
+          filters.dateRange !== 'all' ||
+          filters.categoryKey !== 'all' ||
+          (filters.categoryKeys && filters.categoryKeys.length > 0) ||
+          filters.budgetId
+      ),
+    [filters]
+  );
+
+  const handleClearFilters = useCallback(() => {
+    setFilters({ searchQuery: '', type: 'all', dateRange: 'all', categoryKey: 'all' });
+    if (selectedBudget) handleClearBudgetFilter();
+  }, [setFilters, selectedBudget, handleClearBudgetFilter]);
 
   const deleteTransactionDescription =
     deleteConfirm.itemToDelete?.description?.trim() ||
@@ -174,40 +167,54 @@ export default function TransactionsContent({
       {/* Main Content */}
       <main className={transactionStyles.page.main}>
         <div className={transactionStyles.layout.contentStack}>
+          {/* Onboarding hint — standalone card, not nested inside filters */}
+          {activeTab === 'Transactions' && showOnboardingHint && (
+            <aside className={transactionStyles.layout.onboardingAside}>
+              <div className={transactionStyles.layout.onboardingRow}>
+                <div className={transactionStyles.layout.onboardingContent}>
+                  <p className={transactionStyles.layout.onboardingTitle}>
+                    {t('onboarding.title')}
+                  </p>
+                  <ul className={transactionStyles.layout.onboardingList}>
+                    <li>{t('onboarding.pointFilters')}</li>
+                    <li>
+                      {t('onboarding.pointSwipe')}
+                      {/* Visual swipe demo — mobile only */}
+                      <span
+                        className="sm:hidden ml-2 inline-flex items-center gap-1 align-middle"
+                        aria-hidden
+                      >
+                        <span className="relative inline-flex h-5 w-10 overflow-hidden rounded-sm bg-primary/10 align-middle">
+                          <span className="absolute inset-y-0 left-0 w-3 rounded-sm bg-primary/20" />
+                          <span className="animate-swipe-hint absolute top-1/2 -translate-y-1/2 text-[10px]">
+                            👆
+                          </span>
+                        </span>
+                      </span>
+                    </li>
+                  </ul>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleDismissOnboardingHint}
+                  className={transactionStyles.layout.onboardingDismissButton}
+                >
+                  {t('onboarding.dismiss')}
+                </button>
+              </div>
+            </aside>
+          )}
+
           {/* Transaction Filters */}
           {activeTab === 'Transactions' && (
             <section className={transactionStyles.layout.filtersBlock}>
-              <div className={transactionStyles.layout.filtersInnerStack}>
-                {showOnboardingHint && (
-                  <aside className={transactionStyles.layout.onboardingAside}>
-                    <div className={transactionStyles.layout.onboardingRow}>
-                      <div className={transactionStyles.layout.onboardingContent}>
-                        <p className={transactionStyles.layout.onboardingTitle}>
-                          {t('onboarding.title')}
-                        </p>
-                        <ul className={transactionStyles.layout.onboardingList}>
-                          <li>{t('onboarding.pointFilters')}</li>
-                          <li>{t('onboarding.pointSwipe')}</li>
-                        </ul>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={handleDismissOnboardingHint}
-                        className={transactionStyles.layout.onboardingDismissButton}
-                      >
-                        {t('onboarding.dismiss')}
-                      </button>
-                    </div>
-                  </aside>
-                )}
-                <TransactionFilters
-                  filters={filters}
-                  onFiltersChange={setFilters}
-                  categories={categories}
-                  budgetName={selectedBudget?.description}
-                  onClearBudgetFilter={selectedBudget ? handleClearBudgetFilter : undefined}
-                />
-              </div>
+              <TransactionFilters
+                filters={filters}
+                onFiltersChange={setFilters}
+                categories={categories}
+                budgetName={selectedBudget?.description}
+                onClearBudgetFilter={selectedBudget ? handleClearBudgetFilter : undefined}
+              />
             </section>
           )}
 
@@ -227,9 +234,15 @@ export default function TransactionsContent({
                 onPageSizeChange={setPageSize}
                 onEditTransaction={handleEditTransaction}
                 onDeleteTransaction={handleDeleteClick}
+                {...(!hasActiveFilters && { onAddTransaction: () => openModal('transaction') })}
+                {...(hasActiveFilters && { onClearFilters: handleClearFilters })}
                 emptyTitle={t('empty.title')}
                 emptyDescription={
-                  selectedUserId ? t('empty.forUser') : t('empty.noTransactionsYet')
+                  hasActiveFilters
+                    ? t('empty.noFilterResults')
+                    : selectedUserId
+                      ? t('empty.forUser')
+                      : t('empty.noTransactionsYet')
                 }
               />
             </section>

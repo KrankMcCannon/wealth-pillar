@@ -1053,18 +1053,18 @@ export const transactionTokens = {
 
 export const transactionStyles = {
   page: {
-    container: 'relative flex w-full min-h-[100svh] flex-col bg-card md:pl-64',
+    container: 'relative flex w-full min-h-[100svh] flex-col bg-background md:pl-64',
     main: `flex-1 ${spacingStyles.page.mobile} space-y-6 sm:space-y-8 pb-14`,
     loadingContent: 'space-y-6',
   },
   layout: {
-    controlsStack: 'px-3 pt-2 sm:px-4 sm:pt-3',
+    controlsStack: 'px-3 pt-2 pb-3 sm:px-4 sm:pt-3 sm:pb-3',
     controlsCard:
-      'rounded-2xl border border-border/60 bg-card/80 backdrop-blur-sm shadow-sm shadow-muted/20 space-y-3 p-2.5 sm:space-y-4 sm:p-3.5',
+      'rounded-2xl border border-border/60 bg-card/95 sm:bg-card/80 sm:backdrop-blur-sm shadow-sm shadow-muted/20 space-y-3 p-2.5 sm:space-y-4 sm:p-3.5',
     contentStack: 'space-y-4 sm:space-y-5',
-    filtersBlock: 'rounded-2xl border border-border/50 bg-card/60 p-3 sm:p-5',
+    filtersBlock: 'rounded-2xl border border-border/50 bg-card/60 p-3 sm:p-4',
     filtersInnerStack: 'flex flex-col gap-4',
-    listBlock: 'rounded-2xl border border-border/50 bg-card p-3 sm:p-4 shadow-sm shadow-muted/15',
+    listBlock: 'sm:rounded-2xl sm:border sm:border-border/50 sm:bg-card sm:p-4 sm:shadow-sm sm:shadow-muted/15',
     onboardingAside: 'rounded-2xl border border-primary/20 bg-primary/5 p-3.5 sm:p-4',
     onboardingRow: 'flex items-start justify-between gap-3',
     onboardingContent: 'space-y-1.5',
@@ -1179,7 +1179,7 @@ export const transactionStyles = {
     recurringLinePrimary: 'h-4 bg-primary/15 rounded w-3/4 mb-1',
     recurringLineSecondary: 'h-3 bg-primary/15 rounded w-1/2',
     recurringAction: 'w-8 h-8 bg-primary/12 rounded-lg shrink-0',
-    fullPage: 'flex flex-col min-h-dvh bg-card',
+    fullPage: 'flex flex-col min-h-dvh bg-background',
     main: 'flex-1 p-3 space-y-6 pb-20',
     dayGroupListSpacing: 'space-y-3',
     listSpacing: 'space-y-6',
@@ -1228,11 +1228,11 @@ export const transactionStyles = {
     advancedControlsRow:
       'flex flex-wrap items-start justify-between gap-2.5 sm:items-center sm:gap-3',
     advancedToggle:
-      'inline-flex min-h-11 items-center gap-2 rounded-full border border-primary/20 bg-card px-3 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35',
+      'inline-flex min-h-11 items-center gap-2 rounded-full border border-primary/20 bg-card px-3 py-2 text-sm font-medium text-primary transition-all duration-150 hover:bg-primary/5 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35 motion-reduce:transition-none motion-reduce:active:scale-100',
     advancedToggleChevron:
       'h-3.5 w-3.5 transition-transform duration-200 motion-reduce:transition-none',
     advancedToggleChevronOpen: 'rotate-180',
-    advancedCountBadge: 'rounded-full bg-primary/15 px-2 py-0.5 text-xs text-primary',
+    advancedCountBadge: 'rounded-full bg-primary/15 px-2 py-0.5 text-xs font-medium text-primary',
     advancedClearWrap: 'ml-auto flex items-center gap-2',
     clearAll:
       'inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium whitespace-nowrap bg-destructive/10 text-destructive transition-all duration-200 hover:bg-destructive/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive/30 active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100',
@@ -1240,12 +1240,12 @@ export const transactionStyles = {
     chip: {
       wrapper: 'relative inline-flex',
       buttonActive:
-        'inline-flex items-center gap-2 pl-3 pr-8 py-2 rounded-full text-sm font-medium transition-all duration-200 whitespace-nowrap select-none bg-primary text-primary-foreground shadow-md hover:bg-primary/90 active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100',
+        'inline-flex min-h-11 items-center gap-2 pl-3 pr-8 py-2 rounded-full text-sm font-medium transition-all duration-200 whitespace-nowrap select-none bg-primary text-primary-foreground shadow-md hover:bg-primary/90 active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100',
       clearButton:
         'absolute right-1 top-1/2 -translate-y-1/2 flex h-6 w-6 items-center justify-center rounded-full bg-primary/20 transition-colors hover:bg-primary/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-foreground/40',
       clearIcon: 'h-3 w-3 text-primary-foreground',
       buttonBase:
-        'inline-flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-all duration-200 whitespace-nowrap select-none active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100',
+        'inline-flex min-h-10 sm:min-h-11 items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-all duration-200 whitespace-nowrap select-none active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100',
       buttonOpen: 'bg-primary text-primary-foreground shadow-md',
       buttonIdle:
         'bg-card text-primary border border-primary/20 hover:border-primary/40 hover:bg-primary/5',
@@ -1262,7 +1262,7 @@ export const transactionStyles = {
     },
     typeGrid: 'grid grid-cols-3 gap-2',
     typeButton:
-      'flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 border active:scale-95 motion-reduce:transition-none motion-reduce:active:scale-100',
+      'flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 border active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100',
     typeButtonActive: 'bg-primary text-primary-foreground border-primary/20 shadow-md',
     typeButtonIdle:
       'bg-card text-primary border-primary/20 hover:bg-primary/10 hover:border-primary/40',
@@ -1270,7 +1270,7 @@ export const transactionStyles = {
     dateSection: 'space-y-4',
     dateGrid: 'grid grid-cols-2 gap-2',
     dateButton:
-      'flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 border active:scale-95 motion-reduce:transition-none motion-reduce:active:scale-100',
+      'flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 border active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100',
     dateButtonActive: 'bg-primary text-primary-foreground border-primary/20 shadow-md',
     dateButtonIdle:
       'bg-card text-primary border-primary/20 hover:bg-primary/10 hover:border-primary/40',
@@ -1287,7 +1287,7 @@ export const transactionStyles = {
     categorySearchInput: 'pl-10 bg-card border-primary/20 rounded-xl',
     categoryGrid: 'grid grid-cols-2 gap-2 max-h-64 overflow-y-auto pr-1',
     categoryButton:
-      'flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 border active:scale-95 motion-reduce:transition-none motion-reduce:active:scale-100',
+      'flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 border active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100',
     categoryButtonActive: 'bg-primary text-primary-foreground border-primary/20 shadow-md',
     categoryButtonIdle: 'bg-card text-primary border-primary/20 hover:bg-primary/10',
     categoryLabel: 'truncate',
@@ -1362,6 +1362,9 @@ export const transactionStyles = {
     dayTotalPositive: 'text-success text-xs font-bold tabular-nums',
     dayTotalNegative: 'text-destructive text-xs font-bold tabular-nums',
     dayTotalNeutral: 'text-primary text-xs font-bold tabular-nums',
+    dayHeaderRow: 'flex items-center gap-2',
+    categoryPill:
+      'inline-flex items-center gap-1.5 rounded-full border border-primary/15 bg-primary/6 px-2.5 py-0.5 text-[11px] font-medium text-primary/70 whitespace-nowrap',
     row: 'border-b border-primary/[0.06] hover:bg-primary/[0.03] cursor-pointer transition-colors duration-100 group',
     cell: 'px-4 py-3 align-middle',
     cellRight: 'text-right',
@@ -1376,12 +1379,15 @@ export const transactionStyles = {
     amountTransfer: 'text-primary',
     actionCell: 'w-10 px-2 py-3 align-middle',
     actionDeleteButton:
-      'inline-flex h-7 w-7 items-center justify-center rounded-lg text-destructive/30 hover:text-destructive hover:bg-destructive/10 transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive/30',
+      'inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-destructive/30 hover:text-destructive hover:bg-destructive/10 transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive/30',
     emptyWrapper: 'py-16 text-center',
-    emptyIcon:
-      'mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary',
+    emptyIcon: 'mx-auto mb-5 text-primary/35',
     emptyTitle: 'text-base font-semibold text-primary mb-1.5',
-    emptyDescription: 'text-sm text-primary/55 max-w-xs mx-auto',
+    emptyDescription: 'text-sm text-primary/55 max-w-xs mx-auto mb-5',
+    emptyAddButton:
+      'inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-all duration-150 hover:bg-primary/90 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 active:scale-[0.98]',
+    emptyClearButton:
+      'inline-flex items-center gap-2 rounded-xl border border-primary/25 bg-transparent px-4 py-2.5 text-sm font-medium text-primary/70 transition-all duration-150 hover:bg-primary/5 hover:text-primary hover:border-primary/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 active:scale-[0.98]',
     skeleton: {
       row: 'border-b border-primary/[0.06]',
       cell: 'px-4 py-3 align-middle',
@@ -1422,7 +1428,7 @@ export const transactionStyles = {
     },
     pagination: {
       wrapper:
-        'border-t border-primary/10 px-4 py-3.5 flex items-center justify-between gap-3 flex-wrap bg-primary/[0.015]',
+        'border-t border-primary/10 px-4 py-3.5 flex items-center justify-between gap-3 bg-primary/[0.015]',
       info: 'text-[11px] text-primary/50 tabular-nums font-medium',
       infoHighlight: 'text-primary/70 font-semibold',
       controls: 'flex items-center gap-1',

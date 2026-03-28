@@ -75,11 +75,11 @@ function TransactionPaginationInner({
       aria-label={t('page', { current: currentPage, total: totalPages })}
       className={cn(s.wrapper, className)}
     >
-      {/* Left side: per-page selector + info */}
-      <div className="flex items-center gap-3 flex-wrap">
-        {/* Per-page selector */}
+      {/* Left cluster: per-page selector (desktop only) + info */}
+      <div className="flex items-center gap-3">
+        {/* Per-page selector — hidden on mobile, visible on sm+ */}
         {onPageSizeChange && (
-          <div className={s.perPageWrapper}>
+          <div className={cn(s.perPageWrapper, 'hidden sm:flex')}>
             <label htmlFor="page-size-select" className={s.perPageLabel}>
               {t('perPageLabel')}
             </label>
@@ -127,13 +127,13 @@ function TransactionPaginationInner({
               <span className={s.infoHighlight}>
                 {from}–{to}
               </span>{' '}
-              di <span className={s.infoHighlight}>{totalItems}</span>
+              {t('of')} <span className={s.infoHighlight}>{totalItems}</span>
             </span>
           )}
         </p>
       </div>
 
-      {/* Controls */}
+      {/* Right cluster: navigation controls */}
       {totalPages > 1 && (
         <div className={s.controls} role="group">
           {/* First page */}
@@ -159,10 +159,10 @@ function TransactionPaginationInner({
           </button>
 
           {/* Page numbers — hidden on mobile, shown on sm+ */}
-          <div className="hidden sm:flex items-center gap-1" aria-hidden>
+          <div className="hidden sm:flex items-center gap-1">
             {pageRange.map((item, idx) =>
               item === '...' ? (
-                <span key={`ellipsis-${idx}`} className={s.ellipsis}>
+                <span key={`ellipsis-${idx}`} className={s.ellipsis} aria-hidden>
                   ···
                 </span>
               ) : (
@@ -171,7 +171,7 @@ function TransactionPaginationInner({
                   type="button"
                   onClick={() => onPageChange(item)}
                   disabled={isLoading}
-                  aria-label={`Pagina ${item}`}
+                  aria-label={t('goToPage', { page: item })}
                   aria-current={item === currentPage ? 'page' : undefined}
                   className={cn(s.button, item === currentPage && s.buttonActive)}
                 >

@@ -503,8 +503,9 @@
     },
     "empty": {
       "title": "No Transactions",
-      "forUser": "There are no transactions for this user",
-      "noTransactionsYet": "There are no transactions yet. Start by adding one."
+      "forUser": "No transactions for the selected user",
+      "noTransactionsYet": "There are no transactions yet. Start by adding one.",
+      "noFilterResults": "No transactions match your current filters."
     },
     "allLoaded": "All transactions loaded ({count})",
     "loadingMore": "Loading more transactions",
@@ -517,7 +518,7 @@
     "loadMoreError": "Could not load more transactions.",
     "retry": "Retry",
     "errors": {
-      "title": "Action failed",
+      "title": "Something went wrong",
       "deleteTransactionFailed": "We couldn't delete this transaction.",
       "deleteRecurringFailed": "We couldn't delete this recurring series.",
       "retryHint": "Please try again in a few seconds. If it keeps failing, refresh the page."
@@ -526,15 +527,15 @@
       "title": "Transaction deleted",
       "description": "You can undo this action for a few seconds.",
       "action": "Undo",
-      "pendingTitle": "Delete in progress",
-      "pendingDescription": "This transaction is queued for deletion. You can still undo from the toast."
+      "pendingTitle": "Deleting...",
+      "pendingDescription": "You can still undo this for a few seconds."
     },
     "undoDeleteRecurring": {
-      "title": "Series queued for deletion",
+      "title": "Series will be deleted shortly",
       "description": "Deletion will be confirmed in a few seconds. You can still undo.",
       "action": "Undo",
-      "pendingTitle": "Series deletion in progress",
-      "pendingDescription": "This series is already queued for deletion. You can still undo from the toast.",
+      "pendingTitle": "Deleting series...",
+      "pendingDescription": "You can still undo this for a few seconds.",
       "cancelledTitle": "Deletion cancelled",
       "cancelledDescription": "The recurring series is unchanged.",
       "committedTitle": "Series deleted",
@@ -545,13 +546,13 @@
       "cancel": "Cancel",
       "deleteTransaction": {
         "title": "Delete transaction",
-        "message": "Are you sure you want to delete the transaction \"{description}\"? This action cannot be undone.",
+        "message": "Delete \"{description}\"? This action cannot be undone.",
         "confirm": "Delete transaction",
         "fallbackDescription": "without description"
       },
       "deleteRecurring": {
         "title": "Delete recurring series",
-        "message": "Are you sure you want to delete the series \"{description}\"? This action cannot be undone.",
+        "message": "Delete the series \"{description}\"? This action cannot be undone.",
         "confirm": "Delete series",
         "fallbackDescription": "without description"
       }
@@ -577,7 +578,7 @@
         "all": "Any time",
         "today": "Today",
         "month": "Month",
-        "more": "Other period",
+        "more": "More dates",
         "moreAria": "Choose week, year, or custom range"
       },
       "chips": {
@@ -593,7 +594,7 @@
         "toLabel": "To",
         "startDateAria": "Start date",
         "endDateAria": "End date",
-        "apply": "Apply range"
+        "apply": "Apply"
       },
       "category": {
         "searchPlaceholder": "Search category...",
@@ -610,16 +611,16 @@
       },
       "budget": {
         "bannerWithName": "Budget: {name}",
-        "bannerActive": "Budget filter active",
+        "bannerActive": "Filtering by budget",
         "categoriesCount": "({count} {count, plural, one {category} other {categories}})",
         "exit": "Exit"
       },
       "searchPlaceholder": "Search transactions...",
       "clearSearchAria": "Clear search",
       "clearFilterAria": "Remove {label} filter",
-      "clearAll": "Clear",
+      "clearAll": "Clear all",
       "showAdvanced": "Advanced filters",
-      "hideAdvanced": "Hide filters"
+      "hideAdvanced": "Hide advanced"
     },
     "DayList": {
       "empty": {
@@ -648,7 +649,9 @@
       "dayCount": "{count} {count, plural, one {transaction} other {transactions}}",
       "empty": {
         "title": "No transactions",
-        "description": "No transactions match the current filters."
+        "description": "No transactions match the current filters.",
+        "addCta": "Add transaction",
+        "clearFilters": "Clear filters"
       },
       "actions": {
         "edit": "Edit transaction",
@@ -656,6 +659,7 @@
       },
       "pagination": {
         "info": "Showing {from}–{to} of {total}",
+        "of": "of",
         "page": "Page {current} of {total}",
         "first": "First page",
         "previous": "Previous page",
@@ -663,7 +667,8 @@
         "last": "Last page",
         "loading": "Loading...",
         "perPageLabel": "Per page",
-        "perPageAriaLabel": "Rows per page"
+        "perPageAriaLabel": "Rows per page",
+        "goToPage": "Go to page {page}"
       }
     },
     "FormModal": {
@@ -675,7 +680,7 @@
         "dateRequired": "Date is required",
         "userRequired": "User is required",
         "accountRequired": "Account is required",
-        "destinationAccountInvalid": "Destination account is required and must be different from source account"
+        "destinationAccountInvalid": "Destination account must be different from source account"
       },
       "title": {
         "create": "New transaction",
@@ -730,8 +735,8 @@
         "cancel": "Cancel"
       },
       "errors": {
-        "notFound": "Transaction not found",
-        "unknown": "Unknown error"
+        "notFound": "Transaction not found. Reload the page and try again.",
+        "unknown": "Something went wrong. Please try again."
       }
     }
   },

@@ -11,7 +11,7 @@
  * - Smooth animations and haptic feedback
  */
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, memo } from 'react';
 import { Search, X, ChevronDown, Check } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { Category, cn } from '@/lib';
@@ -35,6 +35,11 @@ import {
 } from '@/components/ui';
 import * as VisuallyHidden from '@radix-ui/react-visually-hidden';
 import { transactionStyles } from '@/styles/system';
+
+// Module-level variable persists advanced-filters visibility across tab switches
+// without needing sessionStorage or an effect. Resets only on full page refresh,
+// which is the expected behaviour (not a bookmark-worthy UI state).
+let advancedFiltersOpen = false;
 
 // ============================================================================
 // Types
@@ -216,39 +221,25 @@ function FilterChip({
 }
 
 // ============================================================================
-// FilterDrawerContent Component
+// DrawerPanel sub-components — each owns its own local state so keystrokes
+// and date-input changes don't trigger a re-render of the parent drawer.
 // ============================================================================
 
-interface FilterDrawerContentProps {
-  readonly filterType: 'type' | 'date' | 'category';
-  readonly filters: TransactionFiltersState;
-  readonly categories: Category[];
+// ─── TypeOptions ─────────────────────────────────────────────────────────────
+
+interface TypeOptionsProps {
+  readonly selectedType: TransactionTypeFilter;
   readonly onSelect: (value: string) => void;
   readonly onClose: () => void;
-  readonly onDateRangeChange?: (startDate: string, endDate: string) => void;
 }
 
-function FilterDrawerContent({
-  filterType,
-  filters,
-  categories,
+const TypeOptions = memo(function TypeOptions({
+  selectedType,
   onSelect,
   onClose,
-  onDateRangeChange,
-}: FilterDrawerContentProps) {
+}: TypeOptionsProps) {
   const t = useTranslations('Transactions.Filters');
-  const [categorySearch, setCategorySearch] = useState('');
-  const [customStartDate, setCustomStartDate] = useState(filters.startDate || '');
-  const [customEndDate, setCustomEndDate] = useState(filters.endDate || '');
-
-  const filteredCategories = useMemo(() => {
-    if (!categorySearch.trim()) return categories;
-    return categories.filter((cat) =>
-      cat.label.toLowerCase().includes(categorySearch.toLowerCase())
-    );
-  }, [categories, categorySearch]);
-
-  const renderTypeOptions = () => (
+  return (
     <div className={transactionStyles.filters.typeGrid}>
       {TYPE_OPTIONS.map((option) => (
         <button
@@ -260,95 +251,143 @@ function FilterDrawerContent({
           }}
           className={cn(
             transactionStyles.filters.typeButton,
-            filters.type === option
+            selectedType === option
               ? transactionStyles.filters.typeButtonActive
               : transactionStyles.filters.typeButtonIdle
           )}
         >
-          {filters.type === option && <Check className={transactionStyles.filters.typeCheck} />}
+          {selectedType === option && <Check className={transactionStyles.filters.typeCheck} />}
           <span>{getTypeLabel(option, t)}</span>
         </button>
       ))}
     </div>
   );
+});
 
-  const renderDateOptions = () => {
-    const handleApplyCustomRange = () => {
-      if (customStartDate || customEndDate) {
-        onDateRangeChange?.(customStartDate, customEndDate);
-        onClose();
-      }
-    };
+// ─── DateOptions ──────────────────────────────────────────────────────────────
 
-    return (
-      <div className={transactionStyles.filters.dateSection}>
-        {/* Preset options */}
-        <div className={transactionStyles.filters.dateGrid}>
-          {DATE_OPTIONS.filter((option) => option !== 'custom').map((option) => (
-            <button
-              key={option}
-              type="button"
-              onClick={() => {
-                onSelect(option);
-                onClose();
-              }}
-              className={cn(
-                transactionStyles.filters.dateButton,
-                filters.dateRange === option
-                  ? transactionStyles.filters.dateButtonActive
-                  : transactionStyles.filters.dateButtonIdle
-              )}
-            >
-              {filters.dateRange === option && (
-                <Check className={transactionStyles.filters.typeCheck} />
-              )}
-              <span>{getDateLabel(option, t)}</span>
-            </button>
-          ))}
-        </div>
+interface DateOptionsProps {
+  readonly selectedDateRange: DateRangeFilter;
+  readonly initialStartDate: string;
+  readonly initialEndDate: string;
+  readonly onSelect: (value: string) => void;
+  readonly onClose: () => void;
+  readonly onDateRangeChange?: (startDate: string, endDate: string) => void;
+}
 
-        {/* Custom date range */}
-        <div className={transactionStyles.filters.dateCustom}>
-          <p className={transactionStyles.filters.dateTitle}>{t('customRange.title')}</p>
-          <div className={transactionStyles.filters.dateInputs}>
-            <div className={transactionStyles.filters.dateField}>
-              <span className={transactionStyles.filters.dateLabel}>
-                {t('customRange.fromLabel')}
-              </span>
-              <Input
-                type="date"
-                value={customStartDate}
-                onChange={(e) => setCustomStartDate(e.target.value)}
-                className={transactionStyles.filters.dateInput}
-                aria-label={t('customRange.startDateAria')}
-              />
-            </div>
-            <div className={transactionStyles.filters.dateField}>
-              <span className={transactionStyles.filters.dateLabel}>
-                {t('customRange.toLabel')}
-              </span>
-              <Input
-                type="date"
-                value={customEndDate}
-                onChange={(e) => setCustomEndDate(e.target.value)}
-                className={transactionStyles.filters.dateInput}
-                aria-label={t('customRange.endDateAria')}
-              />
-            </div>
-          </div>
-          <Button
-            onClick={handleApplyCustomRange}
-            disabled={!customStartDate && !customEndDate}
-            className={transactionStyles.filters.dateApply}
+const DateOptions = memo(function DateOptions({
+  selectedDateRange,
+  initialStartDate,
+  initialEndDate,
+  onSelect,
+  onClose,
+  onDateRangeChange,
+}: DateOptionsProps) {
+  const t = useTranslations('Transactions.Filters');
+  const [customStartDate, setCustomStartDate] = useState(initialStartDate);
+  const [customEndDate, setCustomEndDate] = useState(initialEndDate);
+
+  const handleApplyCustomRange = useCallback(() => {
+    if (customStartDate || customEndDate) {
+      onDateRangeChange?.(customStartDate, customEndDate);
+      onClose();
+    }
+  }, [customStartDate, customEndDate, onDateRangeChange, onClose]);
+
+  return (
+    <div className={transactionStyles.filters.dateSection}>
+      {/* Preset options */}
+      <div className={transactionStyles.filters.dateGrid}>
+        {DATE_OPTIONS.filter((option) => option !== 'custom').map((option) => (
+          <button
+            key={option}
+            type="button"
+            onClick={() => {
+              onSelect(option);
+              onClose();
+            }}
+            className={cn(
+              transactionStyles.filters.dateButton,
+              selectedDateRange === option
+                ? transactionStyles.filters.dateButtonActive
+                : transactionStyles.filters.dateButtonIdle
+            )}
           >
-            {t('customRange.apply')}
-          </Button>
-        </div>
+            {selectedDateRange === option && (
+              <Check className={transactionStyles.filters.typeCheck} />
+            )}
+            <span>{getDateLabel(option, t)}</span>
+          </button>
+        ))}
       </div>
-    );
-  };
 
-  const renderCategoryOptions = () => (
+      {/* Custom date range */}
+      <div className={transactionStyles.filters.dateCustom}>
+        <p className={transactionStyles.filters.dateTitle}>{t('customRange.title')}</p>
+        <div className={transactionStyles.filters.dateInputs}>
+          <div className={transactionStyles.filters.dateField}>
+            <span className={transactionStyles.filters.dateLabel}>
+              {t('customRange.fromLabel')}
+            </span>
+            <Input
+              type="date"
+              value={customStartDate}
+              onChange={(e) => setCustomStartDate(e.target.value)}
+              className={transactionStyles.filters.dateInput}
+              aria-label={t('customRange.startDateAria')}
+            />
+          </div>
+          <div className={transactionStyles.filters.dateField}>
+            <span className={transactionStyles.filters.dateLabel}>{t('customRange.toLabel')}</span>
+            <Input
+              type="date"
+              value={customEndDate}
+              onChange={(e) => setCustomEndDate(e.target.value)}
+              className={transactionStyles.filters.dateInput}
+              aria-label={t('customRange.endDateAria')}
+            />
+          </div>
+        </div>
+        <Button
+          onClick={handleApplyCustomRange}
+          disabled={!customStartDate && !customEndDate}
+          className={transactionStyles.filters.dateApply}
+        >
+          {t('customRange.apply')}
+        </Button>
+      </div>
+    </div>
+  );
+});
+
+// ─── CategoryOptions ──────────────────────────────────────────────────────────
+// This panel benefits most from isolation: typing in the search field no longer
+// triggers any re-render outside this component.
+
+interface CategoryOptionsProps {
+  readonly selectedCategoryKey: string;
+  readonly categories: Category[];
+  readonly onSelect: (value: string) => void;
+  readonly onClose: () => void;
+}
+
+const CategoryOptions = memo(function CategoryOptions({
+  selectedCategoryKey,
+  categories,
+  onSelect,
+  onClose,
+}: CategoryOptionsProps) {
+  const t = useTranslations('Transactions.Filters');
+  const [categorySearch, setCategorySearch] = useState('');
+
+  const filteredCategories = useMemo(() => {
+    if (!categorySearch.trim()) return categories;
+    return categories.filter((cat) =>
+      cat.label.toLowerCase().includes(categorySearch.toLowerCase())
+    );
+  }, [categories, categorySearch]);
+
+  return (
     <div className={transactionStyles.filters.categorySection}>
       {/* Search */}
       <div className={transactionStyles.filters.categorySearchWrap}>
@@ -372,12 +411,12 @@ function FilterDrawerContent({
           }}
           className={cn(
             transactionStyles.filters.categoryButton,
-            filters.categoryKey === 'all'
+            selectedCategoryKey === 'all'
               ? transactionStyles.filters.categoryButtonActive
               : transactionStyles.filters.categoryButtonIdle
           )}
         >
-          {filters.categoryKey === 'all' && (
+          {selectedCategoryKey === 'all' && (
             <Check className={transactionStyles.filters.categoryCheck} />
           )}
           <span className={transactionStyles.filters.categoryLabel}>{t('category.all')}</span>
@@ -393,14 +432,14 @@ function FilterDrawerContent({
             }}
             className={cn(
               transactionStyles.filters.categoryButton,
-              filters.categoryKey === category.key
+              selectedCategoryKey === category.key
                 ? transactionStyles.filters.categoryButtonActive
                 : transactionStyles.filters.categoryButtonIdle
             )}
           >
             <CategoryBadge categoryKey={category.key} size="sm" />
             <span className={transactionStyles.filters.categoryLabelLeft}>{category.label}</span>
-            {filters.categoryKey === category.key && (
+            {selectedCategoryKey === category.key && (
               <Check className={transactionStyles.filters.categoryCheck} />
             )}
           </button>
@@ -408,6 +447,30 @@ function FilterDrawerContent({
       </div>
     </div>
   );
+});
+
+// ============================================================================
+// FilterDrawerContent — shell that selects the active panel
+// ============================================================================
+
+interface FilterDrawerContentProps {
+  readonly filterType: 'type' | 'date' | 'category';
+  readonly filters: TransactionFiltersState;
+  readonly categories: Category[];
+  readonly onSelect: (value: string) => void;
+  readonly onClose: () => void;
+  readonly onDateRangeChange?: (startDate: string, endDate: string) => void;
+}
+
+function FilterDrawerContent({
+  filterType,
+  filters,
+  categories,
+  onSelect,
+  onClose,
+  onDateRangeChange,
+}: FilterDrawerContentProps) {
+  const t = useTranslations('Transactions.Filters');
 
   const titles: Record<'type' | 'date' | 'category', string> = {
     type: t('drawer.titles.type'),
@@ -436,10 +499,28 @@ function FilterDrawerContent({
         </Button>
       </div>
 
-      {/* Content */}
-      {filterType === 'type' && renderTypeOptions()}
-      {filterType === 'date' && renderDateOptions()}
-      {filterType === 'category' && renderCategoryOptions()}
+      {/* Active panel — only one mounts at a time */}
+      {filterType === 'type' && (
+        <TypeOptions selectedType={filters.type} onSelect={onSelect} onClose={onClose} />
+      )}
+      {filterType === 'date' && (
+        <DateOptions
+          selectedDateRange={filters.dateRange}
+          initialStartDate={filters.startDate ?? ''}
+          initialEndDate={filters.endDate ?? ''}
+          onSelect={onSelect}
+          onClose={onClose}
+          {...(onDateRangeChange && { onDateRangeChange })}
+        />
+      )}
+      {filterType === 'category' && (
+        <CategoryOptions
+          selectedCategoryKey={filters.categoryKey}
+          categories={categories}
+          onSelect={onSelect}
+          onClose={onClose}
+        />
+      )}
     </div>
   );
 }
@@ -459,9 +540,11 @@ export function TransactionFilters({
   const t = useTranslations('Transactions.Filters');
   const [activeDrawer, setActiveDrawer] = useState<'type' | 'date' | 'category' | null>(null);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
-  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
 
-  const activeFiltersCount = getActiveFiltersCount(filters);
+  // Reads from the module-level variable so state survives tab switches.
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(advancedFiltersOpen);
+
+  const activeFiltersCount = useMemo(() => getActiveFiltersCount(filters), [filters]);
   const isBudgetMode = Boolean(filters.budgetId || budgetName);
 
   // Get category label
@@ -540,6 +623,9 @@ export function TransactionFilters({
     onFiltersChange({ ...filters, searchQuery: '' });
   }, [filters, onFiltersChange]);
 
+  const handleSearchFocus = useCallback(() => setIsSearchFocused(true), []);
+  const handleSearchBlur = useCallback(() => setIsSearchFocused(false), []);
+
   return (
     <div className={cn(transactionStyles.filters.container, className)}>
       {/* Budget Mode Banner */}
@@ -593,8 +679,8 @@ export function TransactionFilters({
             aria-label={t('searchPlaceholder')}
             value={filters.searchQuery}
             onChange={(e) => handleSearchChange(e.target.value)}
-            onFocus={() => setIsSearchFocused(true)}
-            onBlur={() => setIsSearchFocused(false)}
+            onFocus={handleSearchFocus}
+            onBlur={handleSearchBlur}
             className={transactionStyles.filters.searchInput}
           />
           {filters.searchQuery && (
@@ -639,6 +725,7 @@ export function TransactionFilters({
           <button
             type="button"
             onClick={() => {
+              advancedFiltersOpen = true;
               setShowAdvancedFilters(true);
               setActiveDrawer('date');
             }}
@@ -659,7 +746,10 @@ export function TransactionFilters({
         <div className={transactionStyles.filters.advancedControlsRow}>
           <button
             type="button"
-            onClick={() => setShowAdvancedFilters((prev) => !prev)}
+            onClick={() => {
+              advancedFiltersOpen = !showAdvancedFilters;
+              setShowAdvancedFilters((prev) => !prev);
+            }}
             aria-expanded={showAdvancedFilters}
             className={transactionStyles.filters.advancedToggle}
           >
