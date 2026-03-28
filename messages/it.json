@@ -326,7 +326,11 @@
     "loading": "Caricamento rapporti..."
   },
   "ReportsContent": {
-    "headerTitle": "Rapporti"
+    "headerTitle": "Rapporti",
+    "sectionTimeTrendsAriaLabel": "Andamento nel tempo",
+    "sectionCategoriesAriaLabel": "Distribuzione categorie",
+    "sectionBudgetFlowAriaLabel": "Flusso budget",
+    "sectionPeriodsAriaLabel": "Periodi di report"
   },
   "Reports": {
     "SummarySection": {
@@ -361,7 +365,32 @@
       "flowSubtitle": "Come si muove il denaro tra i tuoi conti",
       "income": "Entrate",
       "expense": "Uscite",
-      "total": "Totale"
+      "total": "Totale",
+      "noData": "Nessun dato disponibile",
+      "net": "Netto",
+      "in": "Entrate",
+      "out": "Uscite",
+      "accountTypes": {
+        "payroll": "Stipendio",
+        "cash": "Contante",
+        "savings": "Risparmio"
+      }
+    },
+    "BudgetPeriodMetrics": {
+      "startBalance": "Saldo Iniziale",
+      "totalIncome": "Entrate Totali",
+      "totalSpent": "Uscite Totali",
+      "endBalance": "Saldo Finale",
+      "totalTransfers": "Trasferimenti"
+    },
+    "BudgetPeriodTransactions": {
+      "title": "Transazioni ({count})",
+      "viewAll": "Vedi tutte",
+      "empty": "Nessuna transazione in questo periodo"
+    },
+    "BudgetPeriodsSection": {
+      "emptyTitle": "Nessun periodo configurato",
+      "emptyDescription": "I periodi vengono creati automaticamente quando imposti la data di inizio budget nelle impostazioni."
     },
     "TimeRangeSelector": {
       "label": "Periodo",
@@ -399,7 +428,9 @@
       "expensesLabel": "Uscite",
       "netLabel": "Netto",
       "netSavingsLabel": "Netto",
-      "byAccountTypeTitle": "Per Tipo di Conto"
+      "byAccountTypeTitle": "Per Tipo di Conto",
+      "inLabel": "Entr.",
+      "outLabel": "Usc."
     }
   },
   "InvestmentsPage": {

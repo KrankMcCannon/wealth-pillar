@@ -1,6 +1,5 @@
 import { formatCurrency } from '@/lib/utils';
 import type { ReportPeriodSummary } from '@/server/services/reports.service';
-import { reportsStyles } from '@/features/reports/theme/reports-styles';
 import { sortAccountMetrics } from '@/features/reports/utils';
 import { useTranslations } from 'next-intl';
 
@@ -8,136 +7,151 @@ interface PeriodCardProps {
   period: ReportPeriodSummary;
 }
 
+// Classi Tailwind per i tipi di conto — senza colori hardcoded
+const accountTypeClasses: Record<string, { dot: string }> = {
+  payroll: { dot: 'bg-success' },
+  cash: { dot: 'bg-primary' },
+  savings: { dot: 'bg-warning' },
+};
+
+const defaultAccountTypeClass = { dot: 'bg-muted-foreground' };
+
+const knownAccountTypes = ['payroll', 'cash', 'savings'] as const;
+type KnownAccountType = (typeof knownAccountTypes)[number];
+
 export function PeriodCard({ period }: PeriodCardProps) {
   const t = useTranslations('Reports.PeriodCard');
+  const tCharts = useTranslations('Reports.Charts');
+
+  const accountTypeLabels: Record<KnownAccountType, string> = {
+    payroll: tCharts('accountTypes.payroll'),
+    cash: tCharts('accountTypes.cash'),
+    savings: tCharts('accountTypes.savings'),
+  };
+
+  const getAccountLabel = (type: string): string =>
+    accountTypeLabels[type as KnownAccountType] ??
+    type.charAt(0).toUpperCase() + type.slice(1);
 
   const sortedEntries = sortAccountMetrics(Object.entries(period.metricsByAccountType));
-
   const netSavings = period.totalEarned - period.totalSpent;
 
   return (
-    <div className={reportsStyles.periods.card}>
+    <article className="bg-card border border-primary/15 rounded-xl overflow-hidden hover:border-primary/25 hover:bg-primary/2 transition-colors duration-200">
       {/* Header */}
-      <div className={reportsStyles.periods.cardHeader}>
-        <div className={reportsStyles.periods.cardTitleDetails}>
-          <h4 className={reportsStyles.periods.cardTitle}>{period.name}</h4>
+      <div className="p-3 sm:p-4 flex items-center justify-between border-b border-primary/10 bg-primary/2">
+        <div className="flex-1 min-w-0">
+          <h3 className="font-semibold text-sm sm:text-base text-primary truncate">
+            {period.name}
+          </h3>
         </div>
       </div>
 
-      {/* Content */}
-      <div className={reportsStyles.periods.cardContent}>
-        {/* Global Metrics Row (Income / Expenses / Net) */}
-        <div className={reportsStyles.periods.globalMetrics}>
-          <div className={reportsStyles.periods.globalTotalsRow}>
-            <div className={reportsStyles.periods.globalMetricIncome}>
-              <span
-                className={`${reportsStyles.periods.globalLabel} ${reportsStyles.periods.globalLabelIncome}`}
-              >
-                {t('incomeLabel')}
-              </span>
-              <span className={reportsStyles.periods.globalValueIncome}>
-                {formatCurrency(period.totalEarned)}
-              </span>
-            </div>
-            <div className={reportsStyles.periods.globalMetricExpense}>
-              <span
-                className={`${reportsStyles.periods.globalLabel} ${reportsStyles.periods.globalLabelExpense}`}
-              >
-                {t('expensesLabel')}
-              </span>
-              <span className={reportsStyles.periods.globalValueExpense}>
-                {formatCurrency(period.totalSpent)}
-              </span>
-            </div>
-            <div className={reportsStyles.periods.globalMetricNet}>
-              <span
-                className={`${reportsStyles.periods.globalLabel} ${reportsStyles.periods.globalLabelNet}`}
-              >
-                {t('netSavingsLabel')}
-              </span>
-              <span
-                className={`${reportsStyles.periods.globalValueNet} ${netSavings >= 0 ? 'text-emerald-500' : 'text-red-500'}`}
-              >
-                {formatCurrency(netSavings)}
-              </span>
-            </div>
+      {/* Contenuto */}
+      <div className="p-3 sm:p-4 space-y-3 sm:space-y-4">
+        {/* Totali globali: Entrate / Uscite / Netto */}
+        <div className="grid grid-cols-3 gap-2 sm:gap-3">
+          <div className="flex flex-col items-center p-2 sm:p-3 rounded-xl bg-success/5 border border-success/15">
+            <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-success/70">
+              {t('incomeLabel')}
+            </span>
+            <span className="text-sm sm:text-base font-bold text-success tabular-nums">
+              {formatCurrency(period.totalEarned)}
+            </span>
+          </div>
+          <div className="flex flex-col items-center p-2 sm:p-3 rounded-xl bg-destructive/5 border border-destructive/15">
+            <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-destructive/70">
+              {t('expensesLabel')}
+            </span>
+            <span className="text-sm sm:text-base font-bold text-destructive tabular-nums">
+              {formatCurrency(period.totalSpent)}
+            </span>
+          </div>
+          <div className="flex flex-col items-center p-2 sm:p-3 rounded-xl bg-primary/5 border border-primary/15">
+            <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-primary/70">
+              {t('netSavingsLabel')}
+            </span>
+            <span
+              className={`text-sm sm:text-base font-bold tabular-nums ${
+                netSavings >= 0 ? 'text-success' : 'text-destructive'
+              }`}
+            >
+              {formatCurrency(netSavings)}
+            </span>
           </div>
         </div>
 
-        {/* Account Type Breakdown */}
+        {/* Breakdown per tipo di conto */}
         {sortedEntries.length > 0 && (
-          <div className={reportsStyles.periods.breakdownContainer}>
-            <h5 className={reportsStyles.periods.breakdownTitle}>{t('byAccountTypeTitle')}</h5>
-            <div className={reportsStyles.periods.breakdownList}>
+          <div className="space-y-2 sm:space-y-3">
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              {t('byAccountTypeTitle')}
+            </h4>
+            <div className="space-y-2">
               {sortedEntries.map(([type, metrics]) => {
                 const net = metrics.earned - metrics.spent;
+                const colorClass = accountTypeClasses[type] ?? defaultAccountTypeClass;
                 return (
-                  <div key={type} className={reportsStyles.periods.breakdownItem}>
-                    <div className={reportsStyles.periods.breakdownHeader}>
-                      <div className={reportsStyles.periods.breakdownType}>
-                        <div
-                          className={reportsStyles.periods.breakdownDot}
-                          style={{
-                            backgroundColor:
-                              type === 'payroll'
-                                ? '#10b981'
-                                : type === 'cash'
-                                  ? '#6366f1'
-                                  : type === 'savings'
-                                    ? '#f59e0b'
-                                    : '#94a3b8',
-                          }}
-                        />
-                        {type.charAt(0).toUpperCase() + type.slice(1)}
+                  <div
+                    key={type}
+                    className="rounded-xl p-2 sm:p-3 border border-primary/8 bg-primary/2 space-y-2"
+                  >
+                    <div className="flex items-center gap-2">
+                      <div className={`w-2 h-2 rounded-full shrink-0 ${colorClass.dot}`} />
+                      <span className="text-xs sm:text-sm font-medium text-primary">
+                        {getAccountLabel(type)}
+                      </span>
+                    </div>
+
+                    {/* Saldo iniziale → finale */}
+                    <div className="p-2 sm:p-2.5 rounded-lg bg-primary/3">
+                      <span className="block text-[9px] sm:text-[10px] uppercase font-semibold text-muted-foreground tracking-wide leading-none">
+                        {t('balanceLabel')}
+                      </span>
+                      <div className="flex items-center gap-1.5 flex-wrap mt-1.5">
+                        <span className="text-xs sm:text-sm font-bold text-primary tabular-nums">
+                          {formatCurrency(metrics.startBalance)}
+                        </span>
+                        <span className="text-[10px] text-muted-foreground" aria-hidden>
+                          →
+                        </span>
+                        <span className="text-xs sm:text-sm font-bold text-primary tabular-nums">
+                          {formatCurrency(metrics.endBalance)}
+                        </span>
                       </div>
                     </div>
 
-                    {/* Stacked rows instead of cramped 3-col grid */}
-                    <div className="space-y-2">
-                      {/* Balance Row */}
-                      <div className={reportsStyles.periods.breakdownStat}>
-                        <span className={reportsStyles.periods.breakdownMetricLabel}>
-                          {t('balanceLabel')}
+                    {/* In / Out */}
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="p-2 sm:p-2.5 rounded-lg bg-primary/3">
+                        <span className="block text-[9px] sm:text-[10px] uppercase font-semibold text-muted-foreground tracking-wide leading-none">
+                          {t('inLabel')}
                         </span>
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className={reportsStyles.periods.breakdownAmount}>
-                            {formatCurrency(metrics.startBalance)}
-                          </span>
-                          <span className={reportsStyles.periods.breakdownBalanceArrow}>→</span>
-                          <span className={reportsStyles.periods.breakdownAmount}>
-                            {formatCurrency(metrics.endBalance)}
-                          </span>
+                        <div className="mt-1.5 text-xs sm:text-sm font-bold text-success tabular-nums">
+                          +{formatCurrency(metrics.earned)}
                         </div>
                       </div>
-
-                      {/* In / Out row */}
-                      <div className="grid grid-cols-2 gap-2">
-                        <div className={reportsStyles.periods.breakdownStat}>
-                          <span className={reportsStyles.periods.breakdownMetricLabel}>In</span>
-                          <span className={reportsStyles.periods.breakdownIn}>
-                            +{formatCurrency(metrics.earned)}
-                          </span>
-                        </div>
-                        <div className={reportsStyles.periods.breakdownStat}>
-                          <span className={reportsStyles.periods.breakdownMetricLabel}>Out</span>
-                          <span className={reportsStyles.periods.breakdownOut}>
-                            -{formatCurrency(metrics.spent)}
-                          </span>
+                      <div className="p-2 sm:p-2.5 rounded-lg bg-primary/3">
+                        <span className="block text-[9px] sm:text-[10px] uppercase font-semibold text-muted-foreground tracking-wide leading-none">
+                          {t('outLabel')}
+                        </span>
+                        <div className="mt-1.5 text-xs sm:text-sm font-bold text-destructive tabular-nums">
+                          -{formatCurrency(metrics.spent)}
                         </div>
                       </div>
+                    </div>
 
-                      {/* Net row */}
+                    {/* Netto */}
+                    <div className="p-2 sm:p-2.5 rounded-lg bg-primary/3 border-t border-primary/8">
+                      <span className="block text-[9px] sm:text-[10px] uppercase font-semibold text-muted-foreground tracking-wide leading-none">
+                        {t('netLabel')}
+                      </span>
                       <div
-                        className={`${reportsStyles.periods.breakdownStat} ${reportsStyles.periods.breakdownNetRow}`}
+                        className={`mt-1.5 text-xs sm:text-sm font-bold tabular-nums ${
+                          net >= 0 ? 'text-success' : 'text-destructive'
+                        }`}
                       >
-                        <span className={reportsStyles.periods.breakdownMetricLabel}>
-                          {t('netLabel')}
-                        </span>
-                        <span
-                          className={`${reportsStyles.periods.breakdownAmount} ${net >= 0 ? 'text-emerald-500' : 'text-red-500'}`}
-                        >
-                          {formatCurrency(net)}
-                        </span>
+                        {formatCurrency(net)}
                       </div>
                     </div>
                   </div>
@@ -147,6 +161,6 @@ export function PeriodCard({ period }: PeriodCardProps) {
           </div>
         )}
       </div>
-    </div>
+    </article>
   );
 }

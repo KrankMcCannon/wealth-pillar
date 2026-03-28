@@ -1,7 +1,6 @@
 'use client';
 
 import { formatCurrency } from '@/lib/utils';
-import { reportsStyles } from '@/features/reports/theme/reports-styles';
 import { useTranslations } from 'next-intl';
 import type { UserFlowSummary } from '@/server/services/reports.service';
 import {
@@ -12,7 +11,6 @@ import {
   Banknote,
   PiggyBank,
 } from 'lucide-react';
-import { motion } from 'framer-motion';
 
 interface BudgetFlowVisualizerProps {
   userFlow: UserFlowSummary;
@@ -24,176 +22,178 @@ const accountTypeIcons: Record<string, React.ReactNode> = {
   savings: <PiggyBank className="w-4 h-4" />,
 };
 
-const accountTypeColors: Record<string, string> = {
-  payroll: '#10b981',
-  cash: '#6366f1',
-  savings: '#f59e0b',
+// Colori semantici tramite classi Tailwind invece di hex hardcoded
+const accountTypeColorClasses: Record<string, { bg: string; text: string; border: string }> = {
+  payroll: { bg: 'bg-success/10', text: 'text-success', border: 'border-success/20' },
+  cash: { bg: 'bg-primary/10', text: 'text-primary', border: 'border-primary/20' },
+  savings: { bg: 'bg-warning/10', text: 'text-warning', border: 'border-warning/20' },
 };
+
+const defaultColorClass = {
+  bg: 'bg-muted/10',
+  text: 'text-muted-foreground',
+  border: 'border-border',
+};
+
+const knownAccountTypes = ['payroll', 'cash', 'savings'] as const;
+type KnownAccountType = (typeof knownAccountTypes)[number];
 
 export function BudgetFlowVisualizer({ userFlow }: BudgetFlowVisualizerProps) {
   const t = useTranslations('Reports.Charts');
 
-  const { totalEarned, totalSpent, netFlow, accounts } = userFlow;
+  const accountTypeLabels: Record<KnownAccountType, string> = {
+    payroll: t('accountTypes.payroll'),
+    cash: t('accountTypes.cash'),
+    savings: t('accountTypes.savings'),
+  };
 
-  // For bar scaling
+  const getAccountLabel = (type: string): string =>
+    accountTypeLabels[type as KnownAccountType] ??
+    type.charAt(0).toUpperCase() + type.slice(1);
+
+  const { totalEarned, totalSpent, netFlow, accounts } = userFlow;
   const maxFlow = Math.max(...accounts.flatMap((a) => [a.earned, a.spent, 1]));
 
   return (
-    <div className={reportsStyles.flow.container}>
+    <div className="bg-card border border-primary/15 rounded-xl p-4 sm:p-6 space-y-4">
       {/* Header */}
-      <div className="mb-4">
-        <h3 className={reportsStyles.charts.title}>{t('flowTitle')}</h3>
-        <p className={reportsStyles.charts.subtitle}>{t('flowSubtitle')}</p>
+      <div>
+        <h2 className="text-base sm:text-lg font-semibold text-primary">{t('flowTitle')}</h2>
+        <p className="text-xs sm:text-sm text-muted-foreground">{t('flowSubtitle')}</p>
       </div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.2 }}
-      >
-        {/* Summary bar: total IN / OUT / NET */}
-        <div className="grid grid-cols-3 gap-2 mb-5">
-          <div className="flex flex-col p-3 rounded-xl bg-emerald-500/5 border border-emerald-500/10">
-            <div className="flex items-center gap-1.5 mb-1">
-              <ArrowUpCircle className="w-3.5 h-3.5 text-emerald-500" />
-              <span className="text-[10px] uppercase font-semibold text-emerald-500/70 tracking-wide">
-                {t('income')}
-              </span>
-            </div>
-            <span className="text-sm sm:text-base font-bold text-emerald-500 tabular-nums">
-              +{formatCurrency(totalEarned)}
+      {/* Riepilogo totali */}
+      <div className="grid grid-cols-3 gap-2">
+        <div className="flex flex-col p-2 sm:p-3 rounded-xl bg-success/5 border border-success/15">
+          <div className="flex items-center gap-1 mb-1">
+            <ArrowUpCircle className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-success shrink-0" aria-hidden />
+            <span className="text-[9px] sm:text-[10px] uppercase font-semibold text-success/70 tracking-wide truncate">
+              {t('income')}
             </span>
           </div>
-          <div className="flex flex-col p-3 rounded-xl bg-red-500/5 border border-red-500/10">
-            <div className="flex items-center gap-1.5 mb-1">
-              <ArrowDownCircle className="w-3.5 h-3.5 text-red-500" />
-              <span className="text-[10px] uppercase font-semibold text-red-500/70 tracking-wide">
-                {t('expense')}
-              </span>
-            </div>
-            <span className="text-sm sm:text-base font-bold text-red-500 tabular-nums">
-              -{formatCurrency(totalSpent)}
-            </span>
-          </div>
-          <div
-            className={`flex flex-col p-3 rounded-xl border ${
-              netFlow >= 0
-                ? 'bg-emerald-500/5 border-emerald-500/10'
-                : 'bg-red-500/5 border-red-500/10'
-            }`}
-          >
-            <div className="flex items-center gap-1.5 mb-1">
-              <Wallet
-                className={`w-3.5 h-3.5 ${netFlow >= 0 ? 'text-emerald-500' : 'text-red-500'}`}
-              />
-              <span
-                className={`text-[10px] uppercase font-semibold tracking-wide ${
-                  netFlow >= 0 ? 'text-emerald-500/70' : 'text-red-500/70'
-                }`}
-              >
-                Net
-              </span>
-            </div>
-            <span
-              className={`text-sm sm:text-base font-bold tabular-nums ${
-                netFlow >= 0 ? 'text-emerald-500' : 'text-red-500'
-              }`}
-            >
-              {netFlow >= 0 ? '+' : ''}
-              {formatCurrency(netFlow)}
-            </span>
-          </div>
+          <span className="text-xs sm:text-sm font-bold text-success tabular-nums">
+            +{formatCurrency(totalEarned)}
+          </span>
         </div>
 
-        {/* Per-account cards */}
-        <div className="space-y-3">
-          {accounts.map((acct) => {
-            const color = accountTypeColors[acct.accountType] || '#94a3b8';
-            const icon = accountTypeIcons[acct.accountType] || <Wallet className="w-4 h-4" />;
+        <div className="flex flex-col p-2 sm:p-3 rounded-xl bg-destructive/5 border border-destructive/15">
+          <div className="flex items-center gap-1 mb-1">
+            <ArrowDownCircle className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-destructive shrink-0" aria-hidden />
+            <span className="text-[9px] sm:text-[10px] uppercase font-semibold text-destructive/70 tracking-wide truncate">
+              {t('expense')}
+            </span>
+          </div>
+          <span className="text-xs sm:text-sm font-bold text-destructive tabular-nums">
+            -{formatCurrency(totalSpent)}
+          </span>
+        </div>
 
-            // Compute start balance: currentBalance - earned + spent
-            const startBalance = acct.balance - acct.earned + acct.spent;
+        <div
+          className={`flex flex-col p-2 sm:p-3 rounded-xl border ${
+            netFlow >= 0
+              ? 'bg-success/5 border-success/15'
+              : 'bg-destructive/5 border-destructive/15'
+          }`}
+        >
+          <div className="flex items-center gap-1 mb-1">
+            <Wallet
+              className={`w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0 ${netFlow >= 0 ? 'text-success' : 'text-destructive'}`}
+              aria-hidden
+            />
+            <span
+              className={`text-[9px] sm:text-[10px] uppercase font-semibold tracking-wide truncate ${
+                netFlow >= 0 ? 'text-success/70' : 'text-destructive/70'
+              }`}
+            >
+              {t('net')}
+            </span>
+          </div>
+          <span
+            className={`text-xs sm:text-sm font-bold tabular-nums ${
+              netFlow >= 0 ? 'text-success' : 'text-destructive'
+            }`}
+          >
+            {netFlow >= 0 ? '+' : ''}
+            {formatCurrency(netFlow)}
+          </span>
+        </div>
+      </div>
 
-            // Include start balance in the IN calculation for display
-            const totalIn = acct.earned + startBalance;
+      {/* Card per tipo di conto */}
+      <div className="space-y-3">
+        {accounts.map((acct) => {
+          const colorClass = accountTypeColorClasses[acct.accountType] || defaultColorClass;
+          const icon = accountTypeIcons[acct.accountType] || <Wallet className="w-4 h-4" />;
+          const startBalance = acct.balance - acct.earned + acct.spent;
+          const totalIn = acct.earned + startBalance;
+          const inPct = maxFlow > 0 ? Math.min((totalIn / maxFlow) * 100, 100) : 0;
+          const outPct = maxFlow > 0 ? Math.min((acct.spent / maxFlow) * 100, 100) : 0;
 
-            return (
-              <div
-                key={acct.accountType}
-                className="p-3 sm:p-4 rounded-xl bg-white/2 border border-white/5"
-              >
-                {/* Account header: type name + current balance */}
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2.5">
+          return (
+            <div
+              key={acct.accountType}
+              className="p-3 sm:p-4 rounded-xl bg-card border border-primary/10"
+            >
+              {/* Intestazione conto */}
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2.5">
+                  <div className={`p-2 rounded-lg ${colorClass.bg} ${colorClass.text}`}>{icon}</div>
+                  <span className="font-semibold text-sm text-primary">
+                    {getAccountLabel(acct.accountType)}
+                  </span>
+                </div>
+                <span className="text-base font-bold tabular-nums text-primary">
+                  {formatCurrency(acct.balance)}
+                </span>
+              </div>
+
+              {/* Barre flusso */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-semibold text-success/80 w-10 shrink-0 uppercase">
+                    {t('in')}
+                  </span>
+                  <div className="flex-1 h-2 bg-primary/8 rounded-full overflow-hidden">
                     <div
-                      className="p-2 rounded-lg"
-                      style={{ backgroundColor: `${color}15`, color }}
-                    >
-                      {icon}
-                    </div>
-                    <span className="font-semibold text-sm text-foreground">
-                      {acct.accountType.charAt(0).toUpperCase() + acct.accountType.slice(1)}
-                    </span>
+                      className="h-full w-full bg-success/60 rounded-full origin-left transition-transform duration-500 ease-out"
+                      style={{ transform: `scaleX(${inPct / 100})` }}
+                    />
                   </div>
-                  <div className="text-right">
-                    <span className="text-base font-bold tabular-nums text-foreground block">
-                      {formatCurrency(acct.balance)}
-                    </span>
-                  </div>
+                  <span className="text-xs text-success tabular-nums font-medium shrink-0 w-20 text-right">
+                    +{formatCurrency(totalIn)}
+                  </span>
                 </div>
-
-                {/* Flow bars */}
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-medium text-emerald-500/80 w-7 shrink-0">
-                      In
-                    </span>
-                    <div className="flex-1 h-2.5 bg-white/5 rounded-full overflow-hidden">
-                      <motion.div
-                        className="h-full bg-emerald-500/60 rounded-full"
-                        initial={{ width: 0 }}
-                        animate={{ width: `${(totalIn / maxFlow) * 100}%` }}
-                        transition={{ duration: 0.6, delay: 0.1 }}
-                      />
-                    </div>
-                    <span className="text-xs text-emerald-500 tabular-nums font-medium shrink-0 w-24 text-right">
-                      +{formatCurrency(totalIn)}
-                    </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-semibold text-destructive/80 w-10 shrink-0 uppercase">
+                    {t('out')}
+                  </span>
+                  <div className="flex-1 h-2 bg-primary/8 rounded-full overflow-hidden">
+                    <div
+                      className="h-full w-full bg-destructive/60 rounded-full origin-left transition-transform duration-500 ease-out"
+                      style={{ transform: `scaleX(${outPct / 100})` }}
+                    />
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-medium text-red-500/80 w-7 shrink-0">
-                      Out
-                    </span>
-                    <div className="flex-1 h-2.5 bg-white/5 rounded-full overflow-hidden">
-                      <motion.div
-                        className="h-full bg-red-500/60 rounded-full"
-                        initial={{ width: 0 }}
-                        animate={{ width: `${(acct.spent / maxFlow) * 100}%` }}
-                        transition={{ duration: 0.6, delay: 0.2 }}
-                      />
-                    </div>
-                    <span className="text-xs text-red-500 tabular-nums font-medium shrink-0 w-24 text-right">
-                      -{formatCurrency(acct.spent)}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Net result */}
-                <div className="flex justify-end mt-2 pt-2 border-t border-white/5">
-                  <span
-                    className={`text-xs font-semibold tabular-nums ${
-                      acct.net >= 0 ? 'text-emerald-500' : 'text-red-500'
-                    }`}
-                  >
-                    Net: {acct.net >= 0 ? '+' : ''}
-                    {formatCurrency(acct.net)}
+                  <span className="text-xs text-destructive tabular-nums font-medium shrink-0 w-20 text-right">
+                    -{formatCurrency(acct.spent)}
                   </span>
                 </div>
               </div>
-            );
-          })}
-        </div>
-      </motion.div>
+
+              {/* Net */}
+              <div className="flex justify-end mt-2 pt-2 border-t border-primary/8">
+                <span
+                  className={`text-xs font-semibold tabular-nums ${
+                    acct.net >= 0 ? 'text-success' : 'text-destructive'
+                  }`}
+                >
+                  {t('net')}: {acct.net >= 0 ? '+' : ''}
+                  {formatCurrency(acct.net)}
+                </span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

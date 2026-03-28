@@ -1,9 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { Calendar } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { reportsStyles } from '@/features/reports/theme/reports-styles';
 
 export type TimeRange = 'all' | '7d' | '30d' | '3m' | '6m' | '1y';
 
@@ -28,33 +26,29 @@ export function TimeRangeSelector({ value, onChange }: TimeRangeSelectorProps) {
   );
 
   return (
-    <div className={reportsStyles.timeRange.container} role="group" aria-label={t('ariaLabel')}>
-      <Calendar className={reportsStyles.timeRange.triggerIcon + ' text-primary/60'} aria-hidden />
-      <div className={reportsStyles.timeRange.chipGroup}>
-        {options.map((opt) => (
+    <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label={t('ariaLabel')}>
+      {options.map((opt) => {
+        const isActive = value === opt.value;
+        return (
           <button
             key={opt.value}
             type="button"
-            aria-pressed={value === opt.value}
-            className={
-              value === opt.value
-                ? reportsStyles.timeRange.chipActive
-                : reportsStyles.timeRange.chip
-            }
+            aria-pressed={isActive}
             onClick={() => onChange(opt.value)}
+            className={`rounded-full px-3 py-1.5 min-h-9 text-xs font-semibold transition-colors duration-150 border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 flex items-center justify-center ${
+              isActive
+                ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                : 'bg-card text-primary/70 border-primary/20 hover:bg-primary/5 hover:text-primary hover:border-primary/30'
+            }`}
           >
             {opt.label}
           </button>
-        ))}
-      </div>
+        );
+      })}
     </div>
   );
 }
 
-/**
- * Get a Date representing the start of the selected time range.
- * Returns null for "all time" (no filtering).
- */
 export function getTimeRangeStartDate(range: TimeRange): Date | null {
   if (range === 'all') return null;
 

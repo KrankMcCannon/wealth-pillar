@@ -326,7 +326,11 @@
     "loading": "Loading reports..."
   },
   "ReportsContent": {
-    "headerTitle": "Reports"
+    "headerTitle": "Reports",
+    "sectionTimeTrendsAriaLabel": "Time trends",
+    "sectionCategoriesAriaLabel": "Category distribution",
+    "sectionBudgetFlowAriaLabel": "Budget flow",
+    "sectionPeriodsAriaLabel": "Report periods"
   },
   "Reports": {
     "SummarySection": {
@@ -361,7 +365,32 @@
       "flowSubtitle": "How money moves through your accounts",
       "income": "Income",
       "expense": "Expenses",
-      "total": "Total"
+      "total": "Total",
+      "noData": "No data available",
+      "net": "Net",
+      "in": "In",
+      "out": "Out",
+      "accountTypes": {
+        "payroll": "Payroll",
+        "cash": "Cash",
+        "savings": "Savings"
+      }
+    },
+    "BudgetPeriodMetrics": {
+      "startBalance": "Start Balance",
+      "totalIncome": "Total Income",
+      "totalSpent": "Total Spent",
+      "endBalance": "End Balance",
+      "totalTransfers": "Transfers"
+    },
+    "BudgetPeriodTransactions": {
+      "title": "Transactions ({count})",
+      "viewAll": "View all",
+      "empty": "No transactions in this period"
+    },
+    "BudgetPeriodsSection": {
+      "emptyTitle": "No periods configured",
+      "emptyDescription": "Periods are created automatically when you set your budget start date in settings."
     },
     "TimeRangeSelector": {
       "label": "Time Range",
@@ -399,7 +428,9 @@
       "expensesLabel": "Expenses",
       "netLabel": "Net",
       "netSavingsLabel": "Net Savings",
-      "byAccountTypeTitle": "By Account Type"
+      "byAccountTypeTitle": "By Account Type",
+      "inLabel": "In",
+      "outLabel": "Out"
     }
   },
   "InvestmentsPage": {

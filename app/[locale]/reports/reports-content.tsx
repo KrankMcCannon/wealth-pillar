@@ -17,13 +17,12 @@ import type {
   UserAccountFlow,
 } from '@/server/services/reports.service';
 import type { User } from '@/lib/types';
-import { reportsStyles } from '@/features/reports/theme/reports-styles';
-import { motion } from 'framer-motion';
-import { User as UserIcon } from 'lucide-react';
+import { reportsStyles } from '@/styles/system';
+import UserSelector from '@/components/shared/user-selector';
 
 const TimeTrendsChart = dynamic(
   () => import('@/features/reports/components/TimeTrendsChart').then((m) => m.TimeTrendsChart),
-  { loading: () => <div className="h-48 animate-pulse rounded-xl bg-muted" /> }
+  { loading: () => <div className="h-48 animate-pulse rounded-xl bg-primary/10" /> }
 );
 
 const CategoryDistribution = dynamic(
@@ -31,7 +30,7 @@ const CategoryDistribution = dynamic(
     import('@/features/reports/components/CategoryDistribution').then(
       (m) => m.CategoryDistribution
     ),
-  { loading: () => <div className="h-64 animate-pulse rounded-xl bg-muted" /> }
+  { loading: () => <div className="h-64 animate-pulse rounded-xl bg-primary/10" /> }
 );
 
 const BudgetFlowVisualizer = dynamic(
@@ -39,7 +38,7 @@ const BudgetFlowVisualizer = dynamic(
     import('@/features/reports/components/BudgetFlowVisualizer').then(
       (m) => m.BudgetFlowVisualizer
     ),
-  { loading: () => <div className="h-56 animate-pulse rounded-xl bg-muted" /> }
+  { loading: () => <div className="h-56 animate-pulse rounded-xl bg-primary/10" /> }
 );
 
 interface SerializedTransaction {
@@ -79,6 +78,12 @@ interface ReportsContentProps {
   }>;
 }
 
+function formatCategoryFallback(catId: string): string {
+  return catId
+    .replace(/[-_]/g, ' ')
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
 function normalizeAccountType(type: string): string {
   if (!type) return 'other';
   const lower = type.toLowerCase();
@@ -86,9 +91,6 @@ function normalizeAccountType(type: string): string {
   return lower;
 }
 
-/**
- * Client-side category stats computation.
- */
 function computeCategoryStats(
   transactions: SerializedTransaction[],
   categories: SerializedCategory[],
@@ -117,10 +119,10 @@ function computeCategoryStats(
     if (!statsMap.has(catKey)) {
       statsMap.set(catKey, {
         id: catKey,
-        name: category?.label || catId,
+        name: category?.label || formatCategoryFallback(catId),
         type: t.type,
         total: 0,
-        color: category?.color || '#cbd5e1',
+        color: category?.color || 'oklch(var(--color-muted-foreground))',
       });
     }
 
@@ -131,10 +133,6 @@ function computeCategoryStats(
   return allStats.filter((s) => s.type === 'expense').sort((a, b) => b.total - a.total);
 }
 
-/**
- * Client-side per-user flow computation with optional date filtering.
- * Correctly handles transfers between accounts.
- */
 function computeUserFlows(
   transactions: SerializedTransaction[],
   accounts: SerializedAccount[],
@@ -143,12 +141,10 @@ function computeUserFlows(
 ): UserFlowSummary[] {
   const accountMap = new Map(accounts.map((a) => [a.id, a]));
 
-  // Filter transactions by date if needed
   const filtered = startDate
     ? transactions.filter((t) => new Date(t.date).getTime() >= startDate.getTime())
     : transactions;
 
-  // Initialize per-user, per-account-type buckets
   const userFlows = new Map<
     string,
     Map<string, { earned: number; spent: number; balance: number }>
@@ -158,7 +154,6 @@ function computeUserFlows(
     userFlows.set(uid, new Map());
   }
 
-  // Seed with current account balances
   for (const account of accounts) {
     const type = normalizeAccountType(account.type);
     for (const uid of account.user_ids) {
@@ -171,7 +166,6 @@ function computeUserFlows(
     }
   }
 
-  // Aggregate flows
   for (const t of filtered) {
     const uid = t.user_id;
     if (!uid || !userFlows.has(uid)) continue;
@@ -203,7 +197,6 @@ function computeUserFlows(
     }
   }
 
-  // Build result
   return userIds.map((uid) => {
     const typeMap = userFlows.get(uid) || new Map();
     const accountFlows: UserAccountFlow[] = Array.from(typeMap.entries()).map(
@@ -250,7 +243,6 @@ export default function ReportsContent({
   const isFiltered = timeRange !== 'all';
   const rangeStartDate = useMemo(() => getTimeRangeStartDate(timeRange), [timeRange]);
 
-  // Filter periods by selected time range
   const filteredPeriods = useMemo(() => {
     if (!rangeStartDate) return periodSummaries;
     const startTime = rangeStartDate.getTime();
@@ -262,7 +254,6 @@ export default function ReportsContent({
     });
   }, [rangeStartDate, periodSummaries]);
 
-  // Filter spending trends by time range
   const filteredTrends = useMemo(() => {
     if (!rangeStartDate) return spendingTrends;
     return spendingTrends.filter((item) => {
@@ -271,18 +262,15 @@ export default function ReportsContent({
     });
   }, [rangeStartDate, spendingTrends]);
 
-  // Compute category stats filtered by time range
   const expenseStats = useMemo(() => {
     return computeCategoryStats(transactions, categories, rangeStartDate);
   }, [transactions, categories, rangeStartDate]);
 
-  // Compute user flow summaries filtered by time range
   const userFlowSummaries = useMemo(() => {
     const userIds = groupUsers.map((u) => u.id);
     return computeUserFlows(transactions, accounts, userIds, rangeStartDate);
   }, [transactions, accounts, groupUsers, rangeStartDate]);
 
-  // Compute summary income/expenses from transactions for the current user
   const filteredSummaryTotals = useMemo(() => {
     if (!isFiltered) return { income: null, expenses: null };
 
@@ -302,7 +290,6 @@ export default function ReportsContent({
     return { income, expenses };
   }, [transactions, currentUser.id, rangeStartDate, isFiltered]);
 
-  // Filter flow and periods by selected user
   const selectedUserFlow = useMemo(() => {
     return userFlowSummaries.find((f) => f.userId === selectedUserId);
   }, [userFlowSummaries, selectedUserId]);
@@ -312,131 +299,66 @@ export default function ReportsContent({
   }, [filteredPeriods, selectedUserId]);
 
   const totalExpenses = expenseStats.reduce((sum, stat) => sum + stat.total, 0);
-  const showUserSelector = groupUsers.length > 1;
 
   return (
-    <div
-      className={reportsStyles.page.container}
-      style={reportsStyles.page.style as React.CSSProperties}
-    >
-      <div className={reportsStyles.page.gradientBg} />
-      <PageContainer>
-        <Header
-          title={t('headerTitle')}
-          showBack
-          currentUser={{ name: currentUser.name, role: currentUser.role || 'member' }}
-          showActions
+    <PageContainer>
+      <Header
+        title={t('headerTitle')}
+        showBack
+        currentUser={{ name: currentUser.name, role: currentUser.role || 'member' }}
+        showActions
+      />
+
+      <main className={reportsStyles.main.container}>
+        {/* Time Range Selector */}
+        <TimeRangeSelector value={timeRange} onChange={setTimeRange} />
+
+        {/* Summary Section */}
+        <SummarySection
+          accounts={accountTypeSummary}
+          filteredIncome={filteredSummaryTotals.income}
+          filteredExpenses={filteredSummaryTotals.expenses}
+          isFiltered={isFiltered}
         />
 
-        <div className={reportsStyles.main.container}>
-          {/* Time Range Selector */}
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            <TimeRangeSelector value={timeRange} onChange={setTimeRange} />
-          </motion.div>
+        {/* Charts Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+          <section className="col-span-1 md:col-span-8" aria-label={t('sectionTimeTrendsAriaLabel')}>
+            <TimeTrendsChart data={filteredTrends} />
+          </section>
 
-          {/* Summary Section — time-range aware */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <SummarySection
-              accounts={accountTypeSummary}
-              filteredIncome={filteredSummaryTotals.income}
-              filteredExpenses={filteredSummaryTotals.expenses}
-              isFiltered={isFiltered}
+          <section className="col-span-1 md:col-span-4" aria-label={t('sectionCategoriesAriaLabel')}>
+            <CategoryDistribution
+              data={expenseStats.map((s) => ({ ...s, value: s.total }))}
+              total={totalExpenses}
             />
-          </motion.div>
-
-          {/* Charts Grid */}
-          <div className={reportsStyles.main.dashboardGrid}>
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              className="col-span-1 md:col-span-8"
-            >
-              <TimeTrendsChart data={filteredTrends} />
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              className="col-span-1 md:col-span-4"
-            >
-              <CategoryDistribution
-                data={expenseStats.map((s) => ({ ...s, value: s.total }))}
-                total={totalExpenses}
-              />
-            </motion.div>
-          </div>
-
-          {/* User Selector (only show when multiple users) */}
-          {showUserSelector && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.5 }}
-              className="mt-6 mb-4"
-            >
-              <div className="flex items-center gap-3 p-4 rounded-xl bg-white/2 border border-white/5">
-                <UserIcon className="w-4 h-4 text-muted-foreground shrink-0" />
-                <div className="flex gap-2 overflow-x-auto pb-1 flex-1">
-                  {groupUsers.map((user) => {
-                    const isActive = user.id === selectedUserId;
-                    return (
-                      <button
-                        key={user.id}
-                        onClick={() => setSelectedUserId(user.id)}
-                        className={`px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${
-                          isActive
-                            ? 'bg-primary text-primary-foreground shadow-lg'
-                            : 'bg-white/5 text-muted-foreground hover:bg-white/10 border border-white/10'
-                        }`}
-                      >
-                        {user.name}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            </motion.div>
-          )}
-
-          {/* Filtered Content Grid */}
-          <div className={reportsStyles.main.dashboardGrid}>
-            {selectedUserFlow && (
-              <motion.div
-                key={selectedUserId}
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.5, delay: 0.3 }}
-                className="col-span-1 md:col-span-12"
-              >
-                <BudgetFlowVisualizer userFlow={selectedUserFlow} />
-              </motion.div>
-            )}
-
-            {/* Periods List — filtered by selected user */}
-            <motion.div
-              key={`periods-${selectedUserId}`}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.4 }}
-              className="col-span-1 md:col-span-12"
-            >
-              <PeriodsSection data={selectedUserPeriods} users={groupUsers} />
-            </motion.div>
-          </div>
+          </section>
         </div>
 
-        <BottomNavigation />
-      </PageContainer>
-    </div>
+        {/* User Selector — solo con più utenti nel gruppo */}
+        <UserSelector
+          currentUser={currentUser}
+          users={groupUsers}
+          value={selectedUserId}
+          onChange={setSelectedUserId}
+          showAllOption={false}
+        />
+
+        {/* Dati per utente selezionato */}
+        <div className="space-y-4">
+          {selectedUserFlow && (
+            <section aria-label={t('sectionBudgetFlowAriaLabel')}>
+              <BudgetFlowVisualizer userFlow={selectedUserFlow} />
+            </section>
+          )}
+
+          <section aria-label={t('sectionPeriodsAriaLabel')}>
+            <PeriodsSection data={selectedUserPeriods} users={groupUsers} />
+          </section>
+        </div>
+      </main>
+
+      <BottomNavigation />
+    </PageContainer>
   );
 }

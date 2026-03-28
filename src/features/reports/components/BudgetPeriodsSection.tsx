@@ -13,17 +13,18 @@ import { CalendarOff, ChevronDown } from 'lucide-react';
 import { ListContainer, PageSection } from '@/components/ui';
 import { reportsStyles, layoutStyles } from '@/styles/system';
 import { Button } from '@/components/ui/button';
+import { useTranslations } from 'next-intl';
 
 const INITIAL_VISIBLE_COUNT = 5;
 const LOAD_MORE_COUNT = 5;
 
 export interface BudgetPeriodsSectionProps {
-  enrichedBudgetPeriods: (EnrichedBudgetPeriod & { transactionCount?: number })[]; // Use enriched with count
+  enrichedBudgetPeriods: (EnrichedBudgetPeriod & { transactionCount?: number })[];
   groupUsers: User[];
-  transactions: Transaction[]; // Should be optional/empty
+  transactions: Transaction[];
   accounts: Account[];
   categories: Category[];
-  selectedUserId: string; // "all" or specific user ID
+  selectedUserId: string;
   isLoading?: boolean;
 }
 
@@ -33,6 +34,7 @@ export function BudgetPeriodsSection({
   selectedUserId,
   isLoading = false,
 }: Readonly<BudgetPeriodsSectionProps>) {
+  const t = useTranslations('Reports.BudgetPeriodsSection');
   const {
     visiblePeriods,
     hasMore,
@@ -47,10 +49,8 @@ export function BudgetPeriodsSection({
     incrementCount: LOAD_MORE_COUNT,
   });
 
-  // Determine if showing all members (to display user names in cards)
   const showUserNames = selectedUserId === 'all';
 
-  // Loading state
   if (isLoading) {
     return (
       <PageSection className={reportsStyles.budgetPeriodsSection.loadingContainer}>
@@ -61,19 +61,15 @@ export function BudgetPeriodsSection({
     );
   }
 
-  // Empty state
   if (sortedPeriods.length === 0) {
     return (
       <PageSection className={reportsStyles.budgetPeriodsSection.emptyContainer}>
         <div className={reportsStyles.budgetPeriodsSection.emptyIconWrap}>
           <CalendarOff className={reportsStyles.budgetPeriodsSection.emptyIcon} />
         </div>
-        <h3 className={reportsStyles.budgetPeriodsSection.emptyTitle}>
-          Nessun periodo di budget configurato
-        </h3>
+        <h3 className={reportsStyles.budgetPeriodsSection.emptyTitle}>{t('emptyTitle')}</h3>
         <p className={reportsStyles.budgetPeriodsSection.emptyDescription}>
-          I periodi di budget vengono creati automaticamente quando imposti la tua data di inizio
-          budget nelle impostazioni.
+          {t('emptyDescription')}
         </p>
       </PageSection>
     );
@@ -110,7 +106,7 @@ export function BudgetPeriodsSection({
           onClick={handleLoadMore}
           className="mx-auto flex items-center gap-2"
         >
-          <ChevronDown className="h-4 w-4" />
+          <ChevronDown className="h-4 w-4" aria-hidden />
           Carica altri ({remainingCount} rimanenti)
         </Button>
       )}

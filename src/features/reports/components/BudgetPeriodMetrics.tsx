@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils';
 import { PiggyBank, Wallet, ArrowLeftRight } from 'lucide-react';
 import { Amount } from '@/components/ui/primitives';
 import { reportsStyles } from '@/styles/system';
+import { useTranslations } from 'next-intl';
 
 interface BudgetPeriodMetricsProps {
   defaultAccountStartBalance?: number | null | undefined;
@@ -20,18 +21,19 @@ export function BudgetPeriodMetrics({
   periodTotalSpent,
   periodTotalTransfers,
 }: Readonly<BudgetPeriodMetricsProps>) {
+  const t = useTranslations('Reports.BudgetPeriodMetrics');
   const styles = reportsStyles.budgetPeriodCard;
 
   return (
     <div className={styles.metricsContainer}>
-      {/* Start Balance */}
+      {/* Saldo Iniziale */}
       <div className={cn(styles.metricCard, styles.metricCardTransfer)}>
         <div className={styles.metricHeader}>
           <div className={cn(styles.metricIconBadge, styles.metricIconBadgeDefault)}>
             <PiggyBank className={cn(styles.metricIcon, styles.metricIconDefault)} />
           </div>
           <div className={styles.metricContent}>
-            <p className={cn(styles.metricLabel, styles.metricLabelDefault)}>Saldo Iniziale</p>
+            <p className={cn(styles.metricLabel, styles.metricLabelDefault)}>{t('startBalance')}</p>
             <Amount
               type="balance"
               size="xl"
@@ -44,14 +46,14 @@ export function BudgetPeriodMetrics({
         </div>
       </div>
 
-      {/* Total Income (Entrate Totali) */}
+      {/* Entrate Totali */}
       <div className={cn(styles.metricCard, styles.metricCardBudget)}>
         <div className={styles.metricHeader}>
           <div className={cn(styles.metricIconBadge, styles.metricIconBadgeDefault)}>
             <Wallet className={cn(styles.metricIcon, styles.metricIconDefault)} />
           </div>
           <div className={styles.metricContent}>
-            <p className={cn(styles.metricLabel, styles.metricLabelDefault)}>Entrate Totali</p>
+            <p className={cn(styles.metricLabel, styles.metricLabelDefault)}>{t('totalIncome')}</p>
             <Amount
               type="income"
               size="xl"
@@ -64,14 +66,14 @@ export function BudgetPeriodMetrics({
         </div>
       </div>
 
-      {/* Total Spent (Uscite Totali) */}
+      {/* Uscite Totali */}
       <div className={cn(styles.metricCard, styles.metricCardAccount)}>
         <div className={styles.metricHeader}>
           <div className={cn(styles.metricIconBadge, styles.metricIconBadgeTransfer)}>
             <ArrowLeftRight className={cn(styles.metricIcon, styles.metricIconTransfer)} />
           </div>
           <div className={styles.metricContent}>
-            <p className={cn(styles.metricLabel, styles.metricLabelTransfer)}>Uscite Totali</p>
+            <p className={cn(styles.metricLabel, styles.metricLabelTransfer)}>{t('totalSpent')}</p>
             <Amount
               type="expense"
               size="xl"
@@ -84,14 +86,14 @@ export function BudgetPeriodMetrics({
         </div>
       </div>
 
-      {/* End Balance */}
+      {/* Saldo Finale */}
       <div className={cn(styles.metricCard, styles.metricCardTransfer)}>
         <div className={styles.metricHeader}>
           <div className={cn(styles.metricIconBadge, styles.metricIconBadgeDefault)}>
             <PiggyBank className={cn(styles.metricIcon, styles.metricIconDefault)} />
           </div>
           <div className={styles.metricContent}>
-            <p className={cn(styles.metricLabel, styles.metricLabelDefault)}>Saldo Finale</p>
+            <p className={cn(styles.metricLabel, styles.metricLabelDefault)}>{t('endBalance')}</p>
             <Amount
               type="balance"
               size="xl"
@@ -104,7 +106,7 @@ export function BudgetPeriodMetrics({
         </div>
       </div>
 
-      {/* Total Transfers */}
+      {/* Totale Trasferimenti */}
       <div className={cn(styles.metricCard, styles.metricCardAccount)}>
         <div className={styles.metricHeader}>
           <div className={cn(styles.metricIconBadge, styles.metricIconBadgeTransfer)}>
@@ -112,7 +114,7 @@ export function BudgetPeriodMetrics({
           </div>
           <div className={styles.metricContent}>
             <p className={cn(styles.metricLabel, styles.metricLabelTransfer)}>
-              Totale Trasferimenti
+              {t('totalTransfers')}
             </p>
             <Amount
               type="balance"
