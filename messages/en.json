@@ -24,7 +24,8 @@
       "submessage": "Please wait"
     },
     "Swipe": {
-      "closeAction": "Close action"
+      "closeAction": "Close action",
+      "rowSwipeHint": "Swipe the row left to reveal quick actions."
     }
   },
   "Settings": {
@@ -506,16 +507,53 @@
       "noTransactionsYet": "There are no transactions yet. Start by adding one."
     },
     "allLoaded": "All transactions loaded ({count})",
+    "loadingMore": "Loading more transactions",
+    "onboarding": {
+      "title": "Quick tip",
+      "pointFilters": "Use Today or Month for a quick period, search for a keyword, then open advanced filters only for type or category.",
+      "pointSwipe": "Swipe a row sideways to reveal quick actions such as delete.",
+      "dismiss": "Got it"
+    },
+    "loadMoreError": "Could not load more transactions.",
+    "retry": "Retry",
+    "errors": {
+      "title": "Action failed",
+      "deleteTransactionFailed": "We couldn't delete this transaction.",
+      "deleteRecurringFailed": "We couldn't delete this recurring series.",
+      "retryHint": "Please try again in a few seconds. If it keeps failing, refresh the page."
+    },
+    "undoDelete": {
+      "title": "Transaction deleted",
+      "description": "You can undo this action for a few seconds.",
+      "action": "Undo",
+      "pendingTitle": "Delete in progress",
+      "pendingDescription": "This transaction is queued for deletion. You can still undo from the toast."
+    },
+    "undoDeleteRecurring": {
+      "title": "Series queued for deletion",
+      "description": "Deletion will be confirmed in a few seconds. You can still undo.",
+      "action": "Undo",
+      "pendingTitle": "Series deletion in progress",
+      "pendingDescription": "This series is already queued for deletion. You can still undo from the toast.",
+      "cancelledTitle": "Deletion cancelled",
+      "cancelledDescription": "The recurring series is unchanged.",
+      "committedTitle": "Series deleted",
+      "committedDescription": "The recurring series has been deleted."
+    },
     "dialogs": {
       "confirm": "Delete",
       "cancel": "Cancel",
       "deleteTransaction": {
         "title": "Delete transaction",
-        "message": "Are you sure you want to delete the transaction \"{description}\"? This action cannot be undone."
+        "message": "Are you sure you want to delete the transaction \"{description}\"? This action cannot be undone.",
+        "confirm": "Delete transaction",
+        "fallbackDescription": "without description"
       },
       "deleteRecurring": {
         "title": "Delete recurring series",
-        "message": "Are you sure you want to delete the series \"{description}\"? This action cannot be undone."
+        "message": "Are you sure you want to delete the series \"{description}\"? This action cannot be undone.",
+        "confirm": "Delete series",
+        "fallbackDescription": "without description"
       }
     }
   },
@@ -533,6 +571,14 @@
         "month": "Month",
         "year": "Year",
         "custom": "Custom"
+      },
+      "quickRange": {
+        "groupAria": "Quick period",
+        "all": "Any time",
+        "today": "Today",
+        "month": "Month",
+        "more": "Other period",
+        "moreAria": "Choose week, year, or custom range"
       },
       "chips": {
         "period": "Period",
@@ -569,8 +615,11 @@
         "exit": "Exit"
       },
       "searchPlaceholder": "Search transactions...",
+      "clearSearchAria": "Clear search",
       "clearFilterAria": "Remove {label} filter",
-      "clearAll": "Clear"
+      "clearAll": "Clear",
+      "showAdvanced": "Advanced filters",
+      "hideAdvanced": "Hide filters"
     },
     "DayList": {
       "empty": {
@@ -586,6 +635,36 @@
     },
     "Row": {
       "delete": "Delete"
+    },
+    "Table": {
+      "columns": {
+        "date": "Date",
+        "description": "Description",
+        "category": "Category",
+        "account": "Account",
+        "amount": "Amount",
+        "actions": ""
+      },
+      "dayCount": "{count} {count, plural, one {transaction} other {transactions}}",
+      "empty": {
+        "title": "No transactions",
+        "description": "No transactions match the current filters."
+      },
+      "actions": {
+        "edit": "Edit transaction",
+        "delete": "Delete transaction"
+      },
+      "pagination": {
+        "info": "Showing {from}–{to} of {total}",
+        "page": "Page {current} of {total}",
+        "first": "First page",
+        "previous": "Previous page",
+        "next": "Next page",
+        "last": "Last page",
+        "loading": "Loading...",
+        "perPageLabel": "Per page",
+        "perPageAriaLabel": "Rows per page"
+      }
     },
     "FormModal": {
       "validation": {

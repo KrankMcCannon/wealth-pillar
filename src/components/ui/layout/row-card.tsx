@@ -54,6 +54,9 @@ export interface RowCardProps {
   // Swipe configuration (new unified system)
   swipeConfig?: RowCardSwipeConfig | undefined;
 
+  /** Hint linked to the swipe surface for assistive technology */
+  swipeDragHint?: string | undefined;
+
   // State
   isDisabled?: boolean;
   className?: string;
@@ -82,6 +85,7 @@ export const RowCard = memo(
     variant = 'regular',
     onClick,
     swipeConfig,
+    swipeDragHint,
     isDisabled = false,
     iconStyle,
     iconClassName,
@@ -156,6 +160,7 @@ export const RowCard = memo(
           id={swipeConfig.id}
           rightAction={swipeConfig.deleteAction}
           {...(cardClick !== undefined && { onCardClick: cardClick })}
+          {...(swipeDragHint !== undefined && { dragHint: swipeDragHint })}
           disabled={isDisabled}
         >
           <div className={cardClasses} data-testid={testId}>

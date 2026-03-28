@@ -8,3 +8,9 @@ export {
   type UseTransactionsContentProps,
   type UseTransactionsContentReturn,
 } from './useTransactionsContent';
+
+export {
+  usePaginatedTransactions,
+  type UsePaginatedTransactionsOptions,
+  type UsePaginatedTransactionsReturn,
+} from './usePaginatedTransactions';

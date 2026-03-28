@@ -1054,8 +1054,32 @@ export const transactionTokens = {
 export const transactionStyles = {
   page: {
     container: 'relative flex w-full min-h-[100svh] flex-col bg-card md:pl-64',
-    main: `flex-1 ${spacingStyles.page.mobile} space-y-4 sm:space-y-6 pb-14`,
+    main: `flex-1 ${spacingStyles.page.mobile} space-y-6 sm:space-y-8 pb-14`,
     loadingContent: 'space-y-6',
+  },
+  layout: {
+    controlsStack: 'px-3 pt-2 sm:px-4 sm:pt-3',
+    controlsCard:
+      'rounded-2xl border border-border/60 bg-card/80 backdrop-blur-sm shadow-sm shadow-muted/20 space-y-3 p-2.5 sm:space-y-4 sm:p-3.5',
+    contentStack: 'space-y-4 sm:space-y-5',
+    filtersBlock: 'rounded-2xl border border-border/50 bg-card/60 p-3 sm:p-5',
+    filtersInnerStack: 'flex flex-col gap-4',
+    listBlock: 'rounded-2xl border border-border/50 bg-card p-3 sm:p-4 shadow-sm shadow-muted/15',
+    onboardingAside: 'rounded-2xl border border-primary/20 bg-primary/5 p-3.5 sm:p-4',
+    onboardingRow: 'flex items-start justify-between gap-3',
+    onboardingContent: 'space-y-1.5',
+    onboardingTitle: 'text-sm font-semibold text-primary',
+    onboardingList: 'list-disc space-y-1.5 pl-4 text-xs text-primary/80',
+    onboardingDismissButton:
+      'shrink-0 rounded-lg px-3 py-2 text-xs font-medium text-primary transition-colors hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 min-h-11',
+    onboardingCompactAside: 'rounded-xl border border-border/60 bg-card/70 p-2.5 sm:p-3',
+    onboardingCompactRow: 'flex flex-wrap items-center justify-between gap-2',
+    onboardingCompactText: 'text-xs text-primary/80',
+    onboardingCompactActions: 'flex items-center gap-1.5',
+    onboardingCompactReopenButton:
+      'rounded-lg px-2.5 py-2 text-xs font-medium text-primary transition-colors hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 min-h-11',
+    onboardingCompactDismissButton:
+      'rounded-lg px-2.5 py-2 text-xs text-primary/70 transition-colors hover:bg-primary/8 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 min-h-11',
   },
   header: {
     inner: 'flex items-center justify-between',
@@ -1071,7 +1095,7 @@ export const transactionStyles = {
     tab: transactionTokens.components.tabNavigation.tab,
     tabActive: transactionTokens.components.tabNavigation.tabActive,
     tabInactive: transactionTokens.components.tabNavigation.tabInactive,
-    wrapper: 'px-3',
+    wrapper: 'w-full',
   },
   recurringSection: {
     container: 'bg-card/80 backdrop-blur-sm border border-border/50 shadow-lg shadow-muted/30',
@@ -1173,38 +1197,55 @@ export const transactionStyles = {
     openState: 'relative z-20',
   },
   filters: {
-    container: 'space-y-3',
+    container: 'flex flex-col gap-4',
+    searchStack: 'min-w-0 shrink-0',
+    toolsCluster: 'flex min-w-0 flex-col gap-2.5 border-t border-border/50 pt-3',
+    chipsCluster: 'border-t border-border/40 pt-2.5',
     budgetBanner:
       'flex items-center justify-between gap-3 px-4 py-3 rounded-2xl bg-primary/10 border border-primary/20',
     budgetBannerLeft: 'flex items-center gap-2',
-    budgetBannerDot: 'w-2 h-2 rounded-full bg-primary animate-pulse',
+    budgetBannerDot: 'w-2 h-2 rounded-full bg-primary animate-pulse motion-reduce:animate-none',
     budgetBannerText: 'text-sm font-medium text-primary',
     budgetBannerCount: 'text-xs text-primary/70',
     budgetBannerExit:
-      'inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-primary/20 text-primary hover:bg-primary/30 transition-colors',
+      'inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-primary/20 text-primary hover:bg-primary/30 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35',
     budgetBannerExitIcon: 'h-3 w-3',
     searchWrap: 'relative',
     searchIcon: 'absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 transition-colors duration-200',
     searchIconActive: 'text-primary',
     searchIconInactive: 'text-primary/50',
     searchInput:
-      'pl-12 pr-10 py-3 h-12 rounded-2xl bg-card border-primary/20 text-primary placeholder:text-primary/40 transition-all duration-200 focus:border-primary/20 focus:ring-2 focus:ring-primary/20 focus:shadow-lg',
+      'min-h-12 w-full rounded-2xl border-primary/25 bg-card py-3 pl-12 pr-10 text-base font-medium text-primary shadow-sm placeholder:font-normal placeholder:text-primary/40 transition-all duration-200 focus-visible:border-primary/30 focus-visible:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 motion-reduce:transition-none',
+    quickPeriodRow: 'flex flex-wrap gap-1.5 sm:gap-2',
+    quickPeriodPill:
+      'inline-flex min-h-10 shrink-0 items-center rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35 sm:min-h-11 sm:text-sm',
+    quickPeriodPillIdle: 'border-primary/20 bg-card text-primary hover:bg-primary/5',
+    quickPeriodPillActive: 'border-primary bg-primary text-primary-foreground shadow-sm',
     searchClear:
-      'absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-primary/10 hover:bg-primary/20 transition-colors',
+      'absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-primary/10 hover:bg-primary/20 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35',
     searchClearIcon: 'h-4 w-4 text-primary',
-    chipsRow: 'flex items-center gap-2 overflow-x-auto pb-1 -mx-3 px-3 scrollbar-hide',
+    chipsRow: 'flex items-center gap-2 overflow-x-auto pb-0.5 pl-0.5 pr-1 scrollbar-hide sm:pl-0',
+    advancedControlsRow:
+      'flex flex-wrap items-start justify-between gap-2.5 sm:items-center sm:gap-3',
+    advancedToggle:
+      'inline-flex min-h-11 items-center gap-2 rounded-full border border-primary/20 bg-card px-3 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35',
+    advancedToggleChevron:
+      'h-3.5 w-3.5 transition-transform duration-200 motion-reduce:transition-none',
+    advancedToggleChevronOpen: 'rotate-180',
+    advancedCountBadge: 'rounded-full bg-primary/15 px-2 py-0.5 text-xs text-primary',
+    advancedClearWrap: 'ml-auto flex items-center gap-2',
     clearAll:
-      'inline-flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium bg-destructive/10 text-destructive hover:bg-destructive/20 transition-all duration-200 active:scale-[0.98] whitespace-nowrap',
+      'inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium whitespace-nowrap bg-destructive/10 text-destructive transition-all duration-200 hover:bg-destructive/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive/30 active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100',
     clearAllIcon: 'h-3.5 w-3.5',
     chip: {
       wrapper: 'relative inline-flex',
       buttonActive:
-        'inline-flex items-center gap-2 pl-3 pr-8 py-2 rounded-full text-sm font-medium transition-all duration-200 whitespace-nowrap select-none bg-primary text-primary-foreground shadow-md hover:bg-primary/90 active:scale-[0.98]',
+        'inline-flex items-center gap-2 pl-3 pr-8 py-2 rounded-full text-sm font-medium transition-all duration-200 whitespace-nowrap select-none bg-primary text-primary-foreground shadow-md hover:bg-primary/90 active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100',
       clearButton:
-        'absolute right-1 top-1/2 -translate-y-1/2 flex items-center justify-center w-6 h-6 rounded-full bg-primary/20 hover:bg-primary/30 transition-colors',
+        'absolute right-1 top-1/2 -translate-y-1/2 flex h-6 w-6 items-center justify-center rounded-full bg-primary/20 transition-colors hover:bg-primary/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-foreground/40',
       clearIcon: 'h-3 w-3 text-primary-foreground',
       buttonBase:
-        'inline-flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-all duration-200 whitespace-nowrap select-none active:scale-[0.98]',
+        'inline-flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-all duration-200 whitespace-nowrap select-none active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100',
       buttonOpen: 'bg-primary text-primary-foreground shadow-md',
       buttonIdle:
         'bg-card text-primary border border-primary/20 hover:border-primary/40 hover:bg-primary/5',
@@ -1221,7 +1262,7 @@ export const transactionStyles = {
     },
     typeGrid: 'grid grid-cols-3 gap-2',
     typeButton:
-      'flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 border active:scale-95',
+      'flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 border active:scale-95 motion-reduce:transition-none motion-reduce:active:scale-100',
     typeButtonActive: 'bg-primary text-primary-foreground border-primary/20 shadow-md',
     typeButtonIdle:
       'bg-card text-primary border-primary/20 hover:bg-primary/10 hover:border-primary/40',
@@ -1229,7 +1270,7 @@ export const transactionStyles = {
     dateSection: 'space-y-4',
     dateGrid: 'grid grid-cols-2 gap-2',
     dateButton:
-      'flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 border active:scale-95',
+      'flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 border active:scale-95 motion-reduce:transition-none motion-reduce:active:scale-100',
     dateButtonActive: 'bg-primary text-primary-foreground border-primary/20 shadow-md',
     dateButtonIdle:
       'bg-card text-primary border-primary/20 hover:bg-primary/10 hover:border-primary/40',
@@ -1246,7 +1287,7 @@ export const transactionStyles = {
     categorySearchInput: 'pl-10 bg-card border-primary/20 rounded-xl',
     categoryGrid: 'grid grid-cols-2 gap-2 max-h-64 overflow-y-auto pr-1',
     categoryButton:
-      'flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 border active:scale-95',
+      'flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 border active:scale-95 motion-reduce:transition-none motion-reduce:active:scale-100',
     categoryButtonActive: 'bg-primary text-primary-foreground border-primary/20 shadow-md',
     categoryButtonIdle: 'bg-card text-primary border-primary/20 hover:bg-primary/10',
     categoryLabel: 'truncate',
@@ -1303,6 +1344,101 @@ export const transactionStyles = {
       rowTitle: 'h-4 w-32 bg-primary/15 rounded animate-pulse',
       rowSubtitle: 'h-3 w-20 bg-primary/10 rounded animate-pulse',
       rowAmount: 'h-5 w-16 bg-primary/15 rounded animate-pulse',
+    },
+  },
+  transactionTable: {
+    wrapper:
+      'rounded-2xl border border-border/50 bg-card overflow-hidden shadow-sm shadow-muted/15',
+    header: 'border-b border-primary/10 bg-primary/[0.03]',
+    headerRow: '',
+    headerCell:
+      'h-9 px-4 text-left align-middle text-[10px] font-semibold uppercase tracking-widest text-primary/50 whitespace-nowrap select-none',
+    headerCellRight: 'text-right',
+    headerCellCenter: 'text-center',
+    dayRow: 'bg-primary/[0.04] border-b border-primary/10',
+    dayCell: 'px-4 py-2.5',
+    dayDate: 'text-xs font-semibold text-primary/80 tracking-wide uppercase',
+    dayCount: 'text-[10px] text-primary/40 font-medium',
+    dayTotalPositive: 'text-success text-xs font-bold tabular-nums',
+    dayTotalNegative: 'text-destructive text-xs font-bold tabular-nums',
+    dayTotalNeutral: 'text-primary text-xs font-bold tabular-nums',
+    row: 'border-b border-primary/[0.06] hover:bg-primary/[0.03] cursor-pointer transition-colors duration-100 group',
+    cell: 'px-4 py-3 align-middle',
+    cellRight: 'text-right',
+    cellCenter: 'text-center',
+    cellNarrow: 'px-2 py-3 align-middle',
+    descriptionText:
+      'text-sm font-medium text-primary/90 truncate max-w-[140px] sm:max-w-[200px] md:max-w-[260px]',
+    accountText: 'text-[11px] text-primary/45 font-medium truncate max-w-[80px]',
+    amount: 'text-sm font-bold tabular-nums tracking-tight',
+    amountIncome: 'text-success',
+    amountExpense: 'text-destructive',
+    amountTransfer: 'text-primary',
+    actionCell: 'w-10 px-2 py-3 align-middle',
+    actionDeleteButton:
+      'inline-flex h-7 w-7 items-center justify-center rounded-lg text-destructive/30 hover:text-destructive hover:bg-destructive/10 transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive/30',
+    emptyWrapper: 'py-16 text-center',
+    emptyIcon:
+      'mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary',
+    emptyTitle: 'text-base font-semibold text-primary mb-1.5',
+    emptyDescription: 'text-sm text-primary/55 max-w-xs mx-auto',
+    skeleton: {
+      row: 'border-b border-primary/[0.06]',
+      cell: 'px-4 py-3 align-middle',
+      icon: 'h-7 w-7 rounded-lg bg-primary/10 animate-pulse',
+      line: 'h-3.5 rounded-md bg-primary/10 animate-pulse',
+      lineShort: 'h-2.5 rounded-md bg-primary/8 animate-pulse mt-1',
+      amountLine: 'h-3.5 w-14 rounded-md bg-primary/10 animate-pulse ml-auto',
+      dayRow: 'border-b border-primary/10 bg-primary/[0.04]',
+      dayCell: 'px-4 py-2.5',
+      dayLine: 'h-3 w-20 rounded bg-primary/12 animate-pulse',
+    },
+    mobile: {
+      wrapper: 'sm:hidden',
+      contentStack: 'space-y-4',
+      dayHeader: 'flex items-center justify-between px-1 mb-2',
+      dayDate: 'text-xs font-semibold text-primary/70 tracking-wide uppercase',
+      dayMeta: 'flex items-center gap-2',
+      dayCount: 'text-[10px] text-primary/40 font-medium',
+      dayNetPositive: 'text-success text-xs font-bold tabular-nums',
+      dayNetNegative: 'text-destructive text-xs font-bold tabular-nums',
+      dayNetNeutral: 'text-primary text-xs font-bold tabular-nums',
+      cardGroup:
+        'rounded-2xl border border-border/50 bg-card overflow-hidden shadow-sm shadow-muted/15',
+      emptyWrapper: 'py-14 text-center rounded-2xl border border-border/50 bg-card',
+      skeleton: {
+        wrapper: 'space-y-4',
+        dayHeader: 'h-3.5 w-24 rounded bg-primary/12 animate-pulse mb-2 ml-1',
+        card: 'rounded-2xl border border-border/50 bg-card overflow-hidden',
+        row: 'flex items-center gap-3 px-4 py-3.5 border-b border-primary/[0.06] last:border-0',
+        icon: 'h-9 w-9 rounded-xl bg-primary/10 animate-pulse shrink-0',
+        body: 'flex-1 space-y-1.5',
+        line: 'h-3.5 rounded bg-primary/10 animate-pulse',
+        lineSub: 'h-2.5 w-1/2 rounded bg-primary/8 animate-pulse',
+        amount: 'h-4 w-14 rounded bg-primary/10 animate-pulse shrink-0',
+      },
+      pagination:
+        'mt-3 rounded-2xl border border-border/50 bg-card shadow-sm shadow-muted/15 !border-t-0',
+    },
+    pagination: {
+      wrapper:
+        'border-t border-primary/10 px-4 py-3.5 flex items-center justify-between gap-3 flex-wrap bg-primary/[0.015]',
+      info: 'text-[11px] text-primary/50 tabular-nums font-medium',
+      infoHighlight: 'text-primary/70 font-semibold',
+      controls: 'flex items-center gap-1',
+      button:
+        'inline-flex items-center justify-center h-8 min-w-[2rem] px-2.5 rounded-full text-[13px] font-medium transition-all duration-150 border border-primary/20 bg-card text-primary/70 hover:bg-primary/8 hover:text-primary hover:border-primary/35 disabled:opacity-35 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30',
+      buttonActive:
+        'bg-primary text-primary-foreground border-primary shadow-sm shadow-primary/30 hover:bg-primary/90 hover:text-primary-foreground hover:border-primary',
+      buttonIcon: 'h-3.5 w-3.5',
+      ellipsis:
+        'inline-flex items-center justify-center h-8 min-w-[2rem] text-xs text-primary/35 select-none',
+      loadingSpinner:
+        'h-3.5 w-3.5 animate-spin rounded-full border-2 border-primary border-t-transparent',
+      perPageWrapper: 'flex items-center gap-1.5 shrink-0',
+      perPageLabel: 'text-[11px] text-primary/45 font-medium hidden sm:block',
+      perPageSelect:
+        'h-8 rounded-full border border-primary/20 bg-card text-[13px] font-medium text-primary/70 px-2.5 pr-6 appearance-none cursor-pointer hover:border-primary/35 hover:bg-primary/5 focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all duration-150',
     },
   },
 } as const;

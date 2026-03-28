@@ -24,7 +24,8 @@
       "submessage": "Attendere prego"
     },
     "Swipe": {
-      "closeAction": "Chiudi azione"
+      "closeAction": "Chiudi azione",
+      "rowSwipeHint": "Scorri la riga verso sinistra per le azioni rapide."
     }
   },
   "Settings": {
@@ -501,21 +502,58 @@
       "recurrent": "Ricorrenti"
     },
     "empty": {
-      "title": "Nessuna Transazione",
+      "title": "Nessuna transazione",
       "forUser": "Non ci sono transazioni per questo utente",
       "noTransactionsYet": "Non ci sono ancora transazioni. Inizia aggiungendone una."
     },
     "allLoaded": "Tutte le transazioni caricate ({count})",
+    "loadingMore": "Caricamento altre transazioni",
+    "onboarding": {
+      "title": "Suggerimento rapido",
+      "pointFilters": "Usa Oggi o Mese per il periodo veloce, la ricerca per parole chiave, poi i filtri avanzati solo per tipo o categoria.",
+      "pointSwipe": "Su ogni riga, scorri in orizzontale per azioni rapide (ad esempio elimina).",
+      "dismiss": "Capito"
+    },
+    "loadMoreError": "Impossibile caricare altre transazioni.",
+    "retry": "Riprova",
+    "errors": {
+      "title": "Operazione non riuscita",
+      "deleteTransactionFailed": "Non siamo riusciti a eliminare questa transazione.",
+      "deleteRecurringFailed": "Non siamo riusciti a eliminare questa serie ricorrente.",
+      "retryHint": "Riprova tra qualche secondo. Se il problema continua, aggiorna la pagina."
+    },
+    "undoDelete": {
+      "title": "Transazione eliminata",
+      "description": "Puoi annullare questa azione per alcuni secondi.",
+      "action": "Annulla",
+      "pendingTitle": "Eliminazione in corso",
+      "pendingDescription": "Questa transazione è in coda per l'eliminazione. Puoi ancora annullarla dal toast."
+    },
+    "undoDeleteRecurring": {
+      "title": "Serie pronta per l'eliminazione",
+      "description": "Confermeremo l'eliminazione tra pochi secondi. Puoi ancora annullare.",
+      "action": "Annulla",
+      "pendingTitle": "Eliminazione serie in corso",
+      "pendingDescription": "Questa serie è già in coda per l'eliminazione. Puoi ancora annullare dal toast.",
+      "cancelledTitle": "Eliminazione annullata",
+      "cancelledDescription": "La serie ricorrente è rimasta invariata.",
+      "committedTitle": "Serie eliminata",
+      "committedDescription": "La serie ricorrente è stata eliminata."
+    },
     "dialogs": {
       "confirm": "Elimina",
       "cancel": "Annulla",
       "deleteTransaction": {
         "title": "Elimina transazione",
-        "message": "Sei sicuro di voler eliminare la transazione \"{description}\"? Questa azione non può essere annullata."
+        "message": "Sei sicuro di voler eliminare la transazione \"{description}\"? Questa azione non può essere annullata.",
+        "confirm": "Elimina transazione",
+        "fallbackDescription": "senza descrizione"
       },
       "deleteRecurring": {
         "title": "Elimina serie ricorrente",
-        "message": "Sei sicuro di voler eliminare la serie \"{description}\"? Questa azione non può essere annullata."
+        "message": "Sei sicuro di voler eliminare la serie \"{description}\"? Questa azione non può essere annullata.",
+        "confirm": "Elimina serie",
+        "fallbackDescription": "senza descrizione"
       }
     }
   },
@@ -533,6 +571,14 @@
         "month": "Mese",
         "year": "Anno",
         "custom": "Personalizzato"
+      },
+      "quickRange": {
+        "groupAria": "Periodo rapido",
+        "all": "Sempre",
+        "today": "Oggi",
+        "month": "Mese",
+        "more": "Altro periodo",
+        "moreAria": "Settimana, anno o intervallo personalizzato"
       },
       "chips": {
         "period": "Periodo",
@@ -569,12 +615,15 @@
         "exit": "Esci"
       },
       "searchPlaceholder": "Cerca transazioni...",
+      "clearSearchAria": "Cancella ricerca",
       "clearFilterAria": "Rimuovi filtro {label}",
-      "clearAll": "Cancella"
+      "clearAll": "Cancella",
+      "showAdvanced": "Filtri avanzati",
+      "hideAdvanced": "Nascondi filtri"
     },
     "DayList": {
       "empty": {
-        "title": "Nessuna Transazione",
+        "title": "Nessuna transazione",
         "description": "Non ci sono transazioni da visualizzare"
       },
       "totalLabel": "Totale:",
@@ -586,6 +635,36 @@
     },
     "Row": {
       "delete": "Elimina"
+    },
+    "Table": {
+      "columns": {
+        "date": "Data",
+        "description": "Descrizione",
+        "category": "Categoria",
+        "account": "Conto",
+        "amount": "Importo",
+        "actions": ""
+      },
+      "dayCount": "{count} {count, plural, one {transazione} other {transazioni}}",
+      "empty": {
+        "title": "Nessuna transazione",
+        "description": "Nessuna transazione corrisponde ai filtri attuali."
+      },
+      "actions": {
+        "edit": "Modifica transazione",
+        "delete": "Elimina transazione"
+      },
+      "pagination": {
+        "info": "{from}–{to} di {total}",
+        "page": "Pagina {current} di {total}",
+        "first": "Prima pagina",
+        "previous": "Pagina precedente",
+        "next": "Pagina successiva",
+        "last": "Ultima pagina",
+        "loading": "Caricamento...",
+        "perPageLabel": "Per pagina",
+        "perPageAriaLabel": "Righe per pagina"
+      }
     },
     "FormModal": {
       "validation": {
@@ -816,7 +895,7 @@
       "newTransaction": "Nuova Transazione",
       "newBudget": "Nuovo Budget",
       "newCategory": "Nuova Categoria",
-      "recurring": "Ricorrente",
+      "recurring": "Ricorrenti",
       "newAccount": "Nuovo Account",
       "newInvestment": "Nuovo Investimento"
     }

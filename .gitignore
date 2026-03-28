@@ -24,6 +24,7 @@
 # misc
 .DS_Store
 *.pem
+.vscode/
 
 # debug
 npm-debug.log*
@@ -46,6 +47,8 @@ next-env.d.ts
 CLAUDE_AGENTS.md
 CLAUDE.md
 .mcp.json
+.cursor/
+.agents/
 
 # Clerk
 /.clerk/

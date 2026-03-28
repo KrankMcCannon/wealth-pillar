@@ -9,5 +9,4 @@ export * from './use-permissions';
 export * from './use-required-user';
 export { useDebouncedValue } from './use-debounced-value';
 export { useToast } from './use-toast';
-export { useInfiniteScroll } from './use-infinite-scroll';
 export { useMounted } from './use-mounted';

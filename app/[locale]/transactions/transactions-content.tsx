@@ -3,14 +3,14 @@
 /**
  * Transactions Content - Client Component
  *
- * Handles interactive transactions UI with client-side state management
- * Data is passed from Server Component for optimal performance
+ * Handles interactive transactions UI with client-side state management.
+ * Data is passed from Server Component for optimal performance.
  *
  * Business logic extracted to useTransactionsContent hook for better
  * separation of concerns.
  */
 
-import { Suspense, use } from 'react';
+import { Suspense, use, useSyncExternalStore } from 'react';
 import { useTranslations } from 'next-intl';
 import { useTransactionsContent, type UseTransactionsContentProps } from '@/features/transactions';
 import type { User } from '@/lib/types';
@@ -20,7 +20,7 @@ import TabNavigation from '@/components/shared/tab-navigation';
 import UserSelector from '@/components/shared/user-selector';
 import { ConfirmationDialog } from '@/components/shared';
 import { RecurringSeriesSection, PauseSeriesModal } from '@/features/recurring';
-import { TransactionDayList, TransactionFilters } from '@/features/transactions';
+import { TransactionFilters, TransactionTable } from '@/features/transactions';
 import { transactionStyles } from '@/styles/system';
 import { UserSelectorSkeleton } from '@/features/dashboard';
 import { RecurringSeriesSkeleton } from '@/features/transactions/components/transaction-skeletons';
@@ -40,6 +40,8 @@ export default function TransactionsContent({
   groupUsers,
   pageDataPromise,
 }: TransactionsContentProps) {
+  const ONBOARDING_DISMISS_KEY = 'onboarding-transactions-v1-dismissed';
+  const ONBOARDING_SYNC_EVENT = 'onboarding-transactions-sync';
   const pageData = use(pageDataPromise);
   const {
     transactions = [],
@@ -64,6 +66,27 @@ export default function TransactionsContent({
   };
 
   const t = useTranslations('TransactionsContent');
+  const isOnboardingDismissed = useSyncExternalStore(
+    (onStoreChange) => {
+      if (typeof window === 'undefined') return () => {};
+      const handleStorage = (e: StorageEvent) => {
+        if (e.key === ONBOARDING_DISMISS_KEY) onStoreChange();
+      };
+      const handleLocalSync = () => onStoreChange();
+      window.addEventListener('storage', handleStorage);
+      window.addEventListener(ONBOARDING_SYNC_EVENT, handleLocalSync);
+      return () => {
+        window.removeEventListener('storage', handleStorage);
+        window.removeEventListener(ONBOARDING_SYNC_EVENT, handleLocalSync);
+      };
+    },
+    () => {
+      if (typeof window === 'undefined') return false;
+      return window.localStorage.getItem(ONBOARDING_DISMISS_KEY) === 'true';
+    },
+    () => false
+  );
+  const showOnboardingHint = !isOnboardingDismissed;
 
   const {
     activeTab,
@@ -73,11 +96,14 @@ export default function TransactionsContent({
     setFilters,
     selectedBudget,
     handleClearBudgetFilter,
-    isLoadingMore,
-    canLoadMore,
-    sentinelRef,
-    storeTransactions,
-    dayTotals,
+    currentPage,
+    totalPages,
+    pageSize,
+    setPageSize,
+    isChangingPage,
+    goToPage,
+    currentPageItems,
+    filteredCount,
     accountNames,
     handleEditTransaction,
     handleDeleteClick,
@@ -97,6 +123,18 @@ export default function TransactionsContent({
     router,
   } = useTransactionsContent(props);
 
+  const handleDismissOnboardingHint = () => {
+    window.localStorage.setItem(ONBOARDING_DISMISS_KEY, 'true');
+    window.dispatchEvent(new Event(ONBOARDING_SYNC_EVENT));
+  };
+
+  const deleteTransactionDescription =
+    deleteConfirm.itemToDelete?.description?.trim() ||
+    t('dialogs.deleteTransaction.fallbackDescription');
+  const deleteRecurringDescription =
+    recurringDeleteConfirm.itemToDelete?.description?.trim() ||
+    t('dialogs.deleteRecurring.fallbackDescription');
+
   return (
     <PageContainer className={transactionStyles.page.container}>
       {/* Header */}
@@ -107,68 +145,96 @@ export default function TransactionsContent({
         showActions
       />
 
-      {/* User Selector */}
-      <Suspense fallback={<UserSelectorSkeleton />}>
-        <UserSelector
-          className={transactionStyles.userSelector.className}
-          currentUser={currentUser}
-          users={groupUsers}
-        />
-      </Suspense>
+      <div className={transactionStyles.layout.controlsStack}>
+        <div className={transactionStyles.layout.controlsCard}>
+          {/* User Selector */}
+          <Suspense fallback={<UserSelectorSkeleton />}>
+            <UserSelector
+              className={transactionStyles.userSelector.className}
+              currentUser={currentUser}
+              users={groupUsers}
+            />
+          </Suspense>
 
-      {/* Tab Navigation */}
-      <div className={transactionStyles.tabNavigation.wrapper}>
-        <TabNavigation
-          tabs={[
-            { id: 'Transactions', label: t('tabs.transactions') },
-            { id: 'Recurrent', label: t('tabs.recurrent') },
-          ]}
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-          variant="modern"
-        />
+          {/* Tab Navigation */}
+          <div className={transactionStyles.tabNavigation.wrapper}>
+            <TabNavigation
+              tabs={[
+                { id: 'Transactions', label: t('tabs.transactions') },
+                { id: 'Recurrent', label: t('tabs.recurrent') },
+              ]}
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
+              variant="modern"
+            />
+          </div>
+        </div>
       </div>
 
       {/* Main Content */}
       <main className={transactionStyles.page.main}>
-        {/* Transaction Filters - Modern 2025 UX */}
-        {activeTab === 'Transactions' && (
-          <TransactionFilters
-            filters={filters}
-            onFiltersChange={setFilters}
-            categories={categories}
-            budgetName={selectedBudget?.description}
-            onClearBudgetFilter={selectedBudget ? handleClearBudgetFilter : undefined}
-          />
-        )}
-
-        {/* Transactions Tab Content */}
-        {activeTab === 'Transactions' && (
-          <>
-            <TransactionDayList
-              groupedTransactions={dayTotals}
-              accountNames={accountNames}
-              categories={categories}
-              emptyTitle={t('empty.title')}
-              emptyDescription={selectedUserId ? t('empty.forUser') : t('empty.noTransactionsYet')}
-              onEditTransaction={handleEditTransaction}
-              onDeleteTransaction={handleDeleteClick}
-            />
-            {/* Infinite scroll sentinel */}
-            {canLoadMore && (
-              <div ref={sentinelRef} className="flex justify-center py-4">
-                {isLoadingMore && (
-                  <div className="animate-spin rounded-full h-6 w-6 border-2 border-primary border-t-transparent" />
+        <div className={transactionStyles.layout.contentStack}>
+          {/* Transaction Filters */}
+          {activeTab === 'Transactions' && (
+            <section className={transactionStyles.layout.filtersBlock}>
+              <div className={transactionStyles.layout.filtersInnerStack}>
+                {showOnboardingHint && (
+                  <aside className={transactionStyles.layout.onboardingAside}>
+                    <div className={transactionStyles.layout.onboardingRow}>
+                      <div className={transactionStyles.layout.onboardingContent}>
+                        <p className={transactionStyles.layout.onboardingTitle}>
+                          {t('onboarding.title')}
+                        </p>
+                        <ul className={transactionStyles.layout.onboardingList}>
+                          <li>{t('onboarding.pointFilters')}</li>
+                          <li>{t('onboarding.pointSwipe')}</li>
+                        </ul>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleDismissOnboardingHint}
+                        className={transactionStyles.layout.onboardingDismissButton}
+                      >
+                        {t('onboarding.dismiss')}
+                      </button>
+                    </div>
+                  </aside>
                 )}
+                <TransactionFilters
+                  filters={filters}
+                  onFiltersChange={setFilters}
+                  categories={categories}
+                  budgetName={selectedBudget?.description}
+                  onClearBudgetFilter={selectedBudget ? handleClearBudgetFilter : undefined}
+                />
               </div>
-            )}
-            {!canLoadMore && storeTransactions.length > 0 && (
-              <p className="text-center text-muted-foreground py-4 text-sm">
-                {t('allLoaded', { count: storeTransactions.length })}
-              </p>
-            )}
-          </>
-        )}
+            </section>
+          )}
+
+          {/* Transactions Tab — paginated table */}
+          {activeTab === 'Transactions' && (
+            <section className={transactionStyles.layout.listBlock}>
+              <TransactionTable
+                transactions={currentPageItems}
+                totalFilteredCount={filteredCount}
+                accountNames={accountNames}
+                categories={categories}
+                currentPage={currentPage}
+                totalPages={totalPages}
+                pageSize={pageSize}
+                isChangingPage={isChangingPage}
+                onPageChange={goToPage}
+                onPageSizeChange={setPageSize}
+                onEditTransaction={handleEditTransaction}
+                onDeleteTransaction={handleDeleteClick}
+                emptyTitle={t('empty.title')}
+                emptyDescription={
+                  selectedUserId ? t('empty.forUser') : t('empty.noTransactionsYet')
+                }
+              />
+            </section>
+          )}
+        </div>
 
         {/* Recurring Tab Content */}
         {activeTab === 'Recurrent' && (
@@ -201,9 +267,9 @@ export default function TransactionsContent({
         onCancel={handleCancelDelete}
         title={t('dialogs.deleteTransaction.title')}
         message={t('dialogs.deleteTransaction.message', {
-          description: deleteConfirm.itemToDelete?.description ?? '',
+          description: deleteTransactionDescription,
         })}
-        confirmText={t('dialogs.confirm')}
+        confirmText={t('dialogs.deleteTransaction.confirm')}
         cancelText={t('dialogs.cancel')}
         variant="destructive"
         isLoading={deleteConfirm.isDeleting}
@@ -215,9 +281,9 @@ export default function TransactionsContent({
         onCancel={handleRecurringCancelDelete}
         title={t('dialogs.deleteRecurring.title')}
         message={t('dialogs.deleteRecurring.message', {
-          description: recurringDeleteConfirm.itemToDelete?.description ?? '',
+          description: deleteRecurringDescription,
         })}
-        confirmText={t('dialogs.confirm')}
+        confirmText={t('dialogs.deleteRecurring.confirm')}
         cancelText={t('dialogs.cancel')}
         variant="destructive"
         isLoading={recurringDeleteConfirm.isDeleting}

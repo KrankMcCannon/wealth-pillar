@@ -10,7 +10,7 @@
 'use client';
 'use no memo';
 
-import { memo, useEffect, useRef } from 'react';
+import { memo, useEffect, useId, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useTranslations } from 'next-intl';
 import { cn } from '@/lib/utils';
@@ -67,6 +67,9 @@ export interface SwipeableCardProps {
   /** Disable swipe interactions */
   disabled?: boolean;
 
+  /** Screen reader hint for the draggable row (e.g. swipe affordance onboarding) */
+  dragHint?: string | undefined;
+
   /** Additional CSS classes */
   className?: string;
 }
@@ -85,9 +88,11 @@ export const SwipeableCard = memo<SwipeableCardProps>(
     onSwipeOpen,
     onSwipeClose,
     disabled = false,
+    dragHint,
     className,
   }) => {
     const t = useTranslations('Common.Swipe');
+    const dragHintId = useId();
 
     // Determine swipe directions based on available actions
     let directions: 'left' | 'right' | 'both';
@@ -262,6 +267,12 @@ export const SwipeableCard = memo<SwipeableCardProps>(
             </div>
           )}
 
+          {dragHint ? (
+            <span id={dragHintId} className="sr-only">
+              {dragHint}
+            </span>
+          ) : null}
+
           {/* Card Content (Foreground) */}
           <motion.div
             drag="x"
@@ -276,6 +287,7 @@ export const SwipeableCard = memo<SwipeableCardProps>(
             onClick={(e) => e.stopPropagation()}
             onKeyDown={handleCardKeyDown}
             {...(isCardClickable && { role: 'button', tabIndex: 0 })}
+            {...(dragHint ? { 'aria-describedby': dragHintId } : {})}
             className={swipeStyles.cardContent.base}
           >
             {children}

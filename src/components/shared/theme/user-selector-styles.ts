@@ -11,7 +11,7 @@ export const userSelectorStyles = {
     icon: 'w-6 h-6 bg-primary/20 rounded-full',
     text: 'w-16 h-4 bg-primary/15 rounded',
   },
-  container: 'bg-card/80 backdrop-blur-xl py-3 border-b border-primary/20 shadow-sm',
+  container: 'bg-card/80 backdrop-blur-xl pb-3 border-b border-primary/20 shadow-sm',
   list: 'flex items-center gap-2 overflow-x-auto scrollbar-thin scrollbar-thumb-primary/30 scrollbar-track-transparent hover:scrollbar-thumb-primary/40 scrollbar-thumb-rounded-full pl-4',
   listStyle: {
     scrollbarWidth: 'thin',

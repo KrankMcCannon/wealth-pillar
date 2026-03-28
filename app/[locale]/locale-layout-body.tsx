@@ -21,7 +21,10 @@ import { UserProvider } from '@/providers/user-provider';
 export function LocaleLayoutHtmlFallback({ className }: { className: string }): React.JSX.Element {
   return (
     <html lang="it" data-scroll-behavior="smooth" suppressHydrationWarning>
-      <body className={`${className} antialiased min-h-screen bg-card text-primary`}>
+      <body
+        className={`${className} antialiased min-h-screen bg-card text-primary`}
+        suppressHydrationWarning
+      >
         <div className="min-h-screen bg-card" aria-hidden />
       </body>
     </html>
@@ -87,7 +90,10 @@ export async function LocaleLayoutBody({
 
   return (
     <html lang={locale} data-scroll-behavior="smooth" suppressHydrationWarning>
-      <body className={`${className} antialiased min-h-screen bg-card text-primary`}>
+      <body
+        className={`${className} antialiased min-h-screen bg-card text-primary`}
+        suppressHydrationWarning
+      >
         <ClerkProvider telemetry={false}>
           <NextIntlClientProvider messages={messages}>
             <NuqsAdapter>

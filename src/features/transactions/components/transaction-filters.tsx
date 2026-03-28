@@ -115,6 +115,10 @@ function getDateLabel(dateRange: DateRangeFilter, t: ReturnType<typeof useTransl
   }
 }
 
+function isQuickDateRange(dateRange: DateRangeFilter): dateRange is 'all' | 'today' | 'month' {
+  return dateRange === 'all' || dateRange === 'today' || dateRange === 'month';
+}
+
 function getDateChipLabel(
   filters: TransactionFiltersState,
   t: ReturnType<typeof useTranslations>
@@ -455,6 +459,7 @@ export function TransactionFilters({
   const t = useTranslations('Transactions.Filters');
   const [activeDrawer, setActiveDrawer] = useState<'type' | 'date' | 'category' | null>(null);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
 
   const activeFiltersCount = getActiveFiltersCount(filters);
   const isBudgetMode = Boolean(filters.budgetId || budgetName);
@@ -566,137 +571,224 @@ export function TransactionFilters({
         </div>
       )}
 
-      {/* Search Bar */}
-      <div className={transactionStyles.filters.searchWrap}>
-        <Search
-          className={cn(
-            transactionStyles.filters.searchIcon,
-            isSearchFocused
-              ? transactionStyles.filters.searchIconActive
-              : transactionStyles.filters.searchIconInactive
+      {/* Primary: search (full width, strongest hierarchy) */}
+      <div className={transactionStyles.filters.searchStack}>
+        <div className={transactionStyles.filters.searchWrap}>
+          <Search
+            aria-hidden
+            className={cn(
+              transactionStyles.filters.searchIcon,
+              isSearchFocused
+                ? transactionStyles.filters.searchIconActive
+                : transactionStyles.filters.searchIconInactive
+            )}
+          />
+          <Input
+            type="text"
+            enterKeyHint="search"
+            autoComplete="off"
+            autoCorrect="off"
+            spellCheck={false}
+            placeholder={t('searchPlaceholder')}
+            aria-label={t('searchPlaceholder')}
+            value={filters.searchQuery}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            onFocus={() => setIsSearchFocused(true)}
+            onBlur={() => setIsSearchFocused(false)}
+            className={transactionStyles.filters.searchInput}
+          />
+          {filters.searchQuery && (
+            <button
+              type="button"
+              onClick={handleClearSearch}
+              className={transactionStyles.filters.searchClear}
+              aria-label={t('clearSearchAria')}
+            >
+              <X className={transactionStyles.filters.searchClearIcon} aria-hidden />
+            </button>
           )}
-        />
-        <Input
-          type="text"
-          placeholder={t('searchPlaceholder')}
-          value={filters.searchQuery}
-          onChange={(e) => handleSearchChange(e.target.value)}
-          onFocus={() => setIsSearchFocused(true)}
-          onBlur={() => setIsSearchFocused(false)}
-          className={transactionStyles.filters.searchInput}
-        />
-        {filters.searchQuery && (
-          <button
-            type="button"
-            onClick={handleClearSearch}
-            className={transactionStyles.filters.searchClear}
-          >
-            <X className={transactionStyles.filters.searchClearIcon} />
-          </button>
-        )}
+        </div>
       </div>
 
-      {/* Filter Chips - Horizontal Scroll */}
-      <div className={transactionStyles.filters.chipsRow}>
-        {/* Type Filter */}
-        <Drawer
-          open={activeDrawer === 'type'}
-          onOpenChange={(open) => setActiveDrawer(open ? 'type' : null)}
+      {/* Secondary: period + advanced tools (grouped below divider) */}
+      <div className={transactionStyles.filters.toolsCluster}>
+        {/* Quick period presets — most-used path without opening drawers */}
+        <div
+          className={transactionStyles.filters.quickPeriodRow}
+          role="group"
+          aria-label={t('quickRange.groupAria')}
         >
-          <DrawerTrigger asChild>
-            <div>
-              <FilterChip
-                label={filters.type === 'all' ? t('chips.type') : getTypeLabel(filters.type, t)}
-                isActive={activeDrawer === 'type'}
-                hasValue={filters.type !== 'all'}
-                onClick={() => setActiveDrawer('type')}
-                onClear={() => handleTypeChange('all')}
-                clearAriaLabel={t('clearFilterAria', {
-                  label: filters.type === 'all' ? t('chips.type') : getTypeLabel(filters.type, t),
-                })}
-              />
-            </div>
-          </DrawerTrigger>
-          <DrawerContent className={transactionStyles.filters.drawer.content}>
-            <FilterDrawerContent
-              filterType="type"
-              filters={filters}
-              categories={categories}
-              onSelect={handleTypeChange}
-              onClose={() => setActiveDrawer(null)}
-            />
-          </DrawerContent>
-        </Drawer>
-
-        {/* Date Filter */}
-        <Drawer
-          open={activeDrawer === 'date'}
-          onOpenChange={(open) => setActiveDrawer(open ? 'date' : null)}
-        >
-          <DrawerTrigger asChild>
-            <div>
-              <FilterChip
-                label={getDateChipLabel(filters, t)}
-                isActive={activeDrawer === 'date'}
-                hasValue={filters.dateRange !== 'all'}
-                onClick={() => setActiveDrawer('date')}
-                onClear={() => handleDateChange('all')}
-                clearAriaLabel={t('clearFilterAria', {
-                  label: getDateChipLabel(filters, t),
-                })}
-              />
-            </div>
-          </DrawerTrigger>
-          <DrawerContent className={transactionStyles.filters.drawer.content}>
-            <FilterDrawerContent
-              filterType="date"
-              filters={filters}
-              categories={categories}
-              onSelect={handleDateChange}
-              onClose={() => setActiveDrawer(null)}
-              onDateRangeChange={handleCustomDateRange}
-            />
-          </DrawerContent>
-        </Drawer>
-
-        {/* Category Filter */}
-        <Drawer
-          open={activeDrawer === 'category'}
-          onOpenChange={(open) => setActiveDrawer(open ? 'category' : null)}
-        >
-          <DrawerTrigger asChild>
-            <div>
-              <FilterChip
-                label={categoryLabel}
-                isActive={activeDrawer === 'category'}
-                hasValue={filters.categoryKey !== 'all'}
-                onClick={() => setActiveDrawer('category')}
-                onClear={() => handleCategoryChange('all')}
-                clearAriaLabel={t('clearFilterAria', { label: categoryLabel })}
-              />
-            </div>
-          </DrawerTrigger>
-          <DrawerContent className={transactionStyles.filters.drawer.contentTall}>
-            <FilterDrawerContent
-              filterType="category"
-              filters={filters}
-              categories={categories}
-              onSelect={handleCategoryChange}
-              onClose={() => setActiveDrawer(null)}
-            />
-          </DrawerContent>
-        </Drawer>
-
-        {/* Clear All Button - Show only when filters are active */}
-        {activeFiltersCount > 0 && (
+          {(['all', 'today', 'month'] as const).map((value) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => handleDateChange(value)}
+              className={cn(
+                transactionStyles.filters.quickPeriodPill,
+                filters.dateRange === value
+                  ? transactionStyles.filters.quickPeriodPillActive
+                  : transactionStyles.filters.quickPeriodPillIdle
+              )}
+              aria-pressed={filters.dateRange === value}
+            >
+              {value === 'all' && t('quickRange.all')}
+              {value === 'today' && t('quickRange.today')}
+              {value === 'month' && t('quickRange.month')}
+            </button>
+          ))}
           <button
             type="button"
-            onClick={handleClearAll}
-            className={transactionStyles.filters.clearAll}
+            onClick={() => {
+              setShowAdvancedFilters(true);
+              setActiveDrawer('date');
+            }}
+            className={cn(
+              transactionStyles.filters.quickPeriodPill,
+              !isQuickDateRange(filters.dateRange)
+                ? transactionStyles.filters.quickPeriodPillActive
+                : transactionStyles.filters.quickPeriodPillIdle
+            )}
+            aria-pressed={!isQuickDateRange(filters.dateRange)}
+            aria-label={t('quickRange.moreAria')}
           >
-            <X className={transactionStyles.filters.clearAllIcon} />
-            <span>{t('clearAll')}</span>
+            {t('quickRange.more')}
           </button>
+        </div>
+
+        {/* Advanced entry + clear */}
+        <div className={transactionStyles.filters.advancedControlsRow}>
+          <button
+            type="button"
+            onClick={() => setShowAdvancedFilters((prev) => !prev)}
+            aria-expanded={showAdvancedFilters}
+            className={transactionStyles.filters.advancedToggle}
+          >
+            <ChevronDown
+              className={cn(
+                transactionStyles.filters.advancedToggleChevron,
+                showAdvancedFilters && transactionStyles.filters.advancedToggleChevronOpen
+              )}
+              aria-hidden
+            />
+            <span>{showAdvancedFilters ? t('hideAdvanced') : t('showAdvanced')}</span>
+            {activeFiltersCount > 0 && (
+              <span className={transactionStyles.filters.advancedCountBadge}>
+                {activeFiltersCount}
+              </span>
+            )}
+          </button>
+
+          {activeFiltersCount > 0 && (
+            <div className={transactionStyles.filters.advancedClearWrap}>
+              <button
+                type="button"
+                onClick={handleClearAll}
+                className={transactionStyles.filters.clearAll}
+              >
+                <X className={transactionStyles.filters.clearAllIcon} />
+                <span>{t('clearAll')}</span>
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Filter chips — tertiary, only when expanded */}
+        {showAdvancedFilters && (
+          <div className={transactionStyles.filters.chipsCluster}>
+            <div className={transactionStyles.filters.chipsRow}>
+              {/* Type Filter */}
+              <Drawer
+                open={activeDrawer === 'type'}
+                onOpenChange={(open) => setActiveDrawer(open ? 'type' : null)}
+              >
+                <DrawerTrigger asChild>
+                  <div>
+                    <FilterChip
+                      label={
+                        filters.type === 'all' ? t('chips.type') : getTypeLabel(filters.type, t)
+                      }
+                      isActive={activeDrawer === 'type'}
+                      hasValue={filters.type !== 'all'}
+                      onClick={() => setActiveDrawer('type')}
+                      onClear={() => handleTypeChange('all')}
+                      clearAriaLabel={t('clearFilterAria', {
+                        label:
+                          filters.type === 'all' ? t('chips.type') : getTypeLabel(filters.type, t),
+                      })}
+                    />
+                  </div>
+                </DrawerTrigger>
+                <DrawerContent className={transactionStyles.filters.drawer.content}>
+                  <FilterDrawerContent
+                    filterType="type"
+                    filters={filters}
+                    categories={categories}
+                    onSelect={handleTypeChange}
+                    onClose={() => setActiveDrawer(null)}
+                  />
+                </DrawerContent>
+              </Drawer>
+
+              {/* Date Filter */}
+              <Drawer
+                open={activeDrawer === 'date'}
+                onOpenChange={(open) => setActiveDrawer(open ? 'date' : null)}
+              >
+                <DrawerTrigger asChild>
+                  <div>
+                    <FilterChip
+                      label={getDateChipLabel(filters, t)}
+                      isActive={activeDrawer === 'date'}
+                      hasValue={filters.dateRange !== 'all'}
+                      onClick={() => setActiveDrawer('date')}
+                      onClear={() => handleDateChange('all')}
+                      clearAriaLabel={t('clearFilterAria', {
+                        label: getDateChipLabel(filters, t),
+                      })}
+                    />
+                  </div>
+                </DrawerTrigger>
+                <DrawerContent className={transactionStyles.filters.drawer.content}>
+                  <FilterDrawerContent
+                    filterType="date"
+                    filters={filters}
+                    categories={categories}
+                    onSelect={handleDateChange}
+                    onClose={() => setActiveDrawer(null)}
+                    onDateRangeChange={handleCustomDateRange}
+                  />
+                </DrawerContent>
+              </Drawer>
+
+              {/* Category Filter */}
+              <Drawer
+                open={activeDrawer === 'category'}
+                onOpenChange={(open) => setActiveDrawer(open ? 'category' : null)}
+              >
+                <DrawerTrigger asChild>
+                  <div>
+                    <FilterChip
+                      label={categoryLabel}
+                      isActive={activeDrawer === 'category'}
+                      hasValue={filters.categoryKey !== 'all'}
+                      onClick={() => setActiveDrawer('category')}
+                      onClear={() => handleCategoryChange('all')}
+                      clearAriaLabel={t('clearFilterAria', { label: categoryLabel })}
+                    />
+                  </div>
+                </DrawerTrigger>
+                <DrawerContent className={transactionStyles.filters.drawer.contentTall}>
+                  <FilterDrawerContent
+                    filterType="category"
+                    filters={filters}
+                    categories={categories}
+                    onSelect={handleCategoryChange}
+                    onClose={() => setActiveDrawer(null)}
+                  />
+                </DrawerContent>
+              </Drawer>
+            </div>
+          </div>
         )}
       </div>
 

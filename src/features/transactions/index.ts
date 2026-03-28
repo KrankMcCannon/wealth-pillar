@@ -15,6 +15,10 @@ export {
   type TransactionDayListProps,
 } from './components/transaction-day-list';
 
+// Paginated Table
+export { TransactionTable } from './components/transaction-table';
+export { TransactionPagination } from './components/transaction-pagination';
+
 // Filter Components
 export {
   defaultFiltersState,

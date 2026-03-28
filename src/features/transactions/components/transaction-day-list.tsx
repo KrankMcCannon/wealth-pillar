@@ -43,14 +43,20 @@ import { formatCurrency, cn } from '@/lib/utils';
 import { FileText, type LucideIcon } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
-/** When there are more than this many day groups, use virtualized list for performance */
-const VIRTUALIZE_THRESHOLD = 15;
+/**
+ * Minimum number of day groups before switching to the virtualised list.
+ * Raised to 30 so the non-virtualised path covers the typical first-page
+ * load (~50 transactions spread over a few weeks).  When the user scrolls
+ * past this threshold the virtualiser takes over without a visible jump
+ * because parentRef is always attached to the scroll container.
+ */
+const VIRTUALIZE_THRESHOLD = 30;
 
 /** Approximate height (px): day header + card + transaction rows */
 function estimateGroupHeight(group: GroupedTransaction): number {
   const header = 52;
   const cardPadding = 16;
-  const rowHeight = 56;
+  const rowHeight = 64;
   const count = group.transactions?.length ?? 0;
   return header + cardPadding + count * rowHeight;
 }
@@ -149,6 +155,7 @@ export function TransactionDayList({
   onDeleteTransaction,
 }: Readonly<TransactionDayListProps>) {
   const t = useTranslations('Transactions.DayList');
+  // parentRef is always attached so it is ready when useVirtual flips to true
   const parentRef = useRef<HTMLDivElement>(null);
   const hasTransactions = groupedTransactions.length > 0;
   const useVirtual = hasTransactions && groupedTransactions.length > VIRTUALIZE_THRESHOLD;
@@ -160,7 +167,9 @@ export function TransactionDayList({
     count: useVirtual ? groupedTransactions.length : 0,
     getScrollElement: () => parentRef.current,
     estimateSize: (index) => estimateGroupHeight(groupedTransactions[index]!),
-    overscan: 2,
+    overscan: 3,
+    // Dynamic measurement corrects imprecise estimates after items mount
+    measureElement: (el) => el?.getBoundingClientRect().height ?? 0,
   });
 
   const headerClassName = cn(transactionStyles.dayList.sectionHeader, sectionHeaderClassName);
@@ -211,9 +220,10 @@ export function TransactionDayList({
         />
       )}
 
-      {/* Transactions List (virtualized when many groups) */}
+      {/* Transactions List — parentRef is always set so the virtualiser has
+          correct dimensions the moment useVirtual becomes true. */}
       <div
-        ref={useVirtual ? parentRef : undefined}
+        ref={parentRef}
         className={cn(
           transactionStyles.dayList.container,
           useVirtual && 'overflow-auto max-h-[65vh] min-h-[320px]'
@@ -234,6 +244,8 @@ export function TransactionDayList({
                 return (
                   <div
                     key={group.date}
+                    ref={rowVirtualizer.measureElement}
+                    data-index={virtualRow.index}
                     style={{
                       position: 'absolute',
                       top: 0,
@@ -241,7 +253,6 @@ export function TransactionDayList({
                       width: '100%',
                       transform: `translateY(${virtualRow.start}px)`,
                     }}
-                    data-index={virtualRow.index}
                   >
                     {renderGroup(group)}
                   </div>

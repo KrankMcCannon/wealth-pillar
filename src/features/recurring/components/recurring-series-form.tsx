@@ -6,7 +6,8 @@
  * Handles form state management, validation, and submission for recurring series.
  */
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useTranslations } from 'next-intl';
 import {
   RecurringTransactionSeries,
   User,
@@ -84,9 +85,27 @@ export function RecurringSeriesForm({
   mode = 'create',
   onSuccess,
 }: RecurringSeriesFormProps) {
-  const title = mode === 'edit' ? 'Modifica Serie Ricorrente' : 'Nuova Serie Ricorrente';
-  const description =
-    mode === 'edit' ? 'Aggiorna la serie ricorrente' : 'Configura una nuova serie ricorrente';
+  const t = useTranslations('Recurring.FormModal');
+  const title = t(`title.${mode}`);
+  const description = t(`description.${mode}`);
+
+  const typeOptions = useMemo(
+    () => [
+      { value: 'expense' as const, label: t('typeOptions.expense') },
+      { value: 'income' as const, label: t('typeOptions.income') },
+    ],
+    [t]
+  );
+
+  const frequencyOptions = useMemo(
+    () => [
+      { value: 'weekly' as const, label: t('frequencyOptions.weekly') },
+      { value: 'biweekly' as const, label: t('frequencyOptions.biweekly') },
+      { value: 'monthly' as const, label: t('frequencyOptions.monthly') },
+      { value: 'yearly' as const, label: t('frequencyOptions.yearly') },
+    ],
+    [t]
+  );
 
   // Get today's date in YYYY-MM-DD format using Luxon
   const today = todayDateString();
@@ -230,53 +249,56 @@ export function RecurringSeriesForm({
   }, [isOpen, mode, formData.user_ids, defaultAccountId, formData.account_id]);
 
   // Validate form
-  const validateForm = (): boolean => {
+  const validateForm = useCallback((): boolean => {
     const newErrors: FormErrors = {};
 
     if (!formData.description.trim()) {
-      newErrors.description = 'La descrizione è obbligatoria';
+      newErrors.description = t('validation.descriptionRequired');
     }
 
-    const amount = Number.parseFloat(formData.amount);
-    if (Number.isNaN(amount) || amount <= 0) {
-      newErrors.amount = "L'importo deve essere maggiore di zero";
+    if (!formData.amount.trim()) {
+      newErrors.amount = t('validation.amountRequired');
+    } else {
+      const amount = Number.parseFloat(formData.amount);
+      if (Number.isNaN(amount) || amount <= 0) {
+        newErrors.amount = t('validation.amountGreaterThanZero');
+      }
     }
 
     if (!formData.category) {
-      newErrors.category = 'La categoria è obbligatoria';
+      newErrors.category = t('validation.categoryRequired');
     }
 
     if (!formData.user_ids || formData.user_ids.length === 0) {
-      newErrors.user_ids = 'Almeno un utente è obbligatorio';
+      newErrors.user_ids = t('validation.userIdsRequired');
     }
 
     if (!formData.account_id) {
-      newErrors.account_id = 'Il conto è obbligatorio';
+      newErrors.account_id = t('validation.accountRequired');
     }
 
     if (!formData.start_date) {
-      newErrors.start_date = 'La data di inizio è obbligatoria';
+      newErrors.start_date = t('validation.startDateRequired');
     }
 
     if (formData.due_day) {
       const dueDay = Number.parseInt(formData.due_day, 10);
       if (Number.isNaN(dueDay) || dueDay < 1 || dueDay > 31) {
-        newErrors.due_day = 'Il giorno deve essere tra 1 e 31';
+        newErrors.due_day = t('validation.dueDayRange');
       }
     } else {
-      newErrors.due_day = 'Il giorno di addebito è obbligatorio';
+      newErrors.due_day = t('validation.dueDayRequired');
     }
 
-    // Validate end_date if provided
     if (formData.end_date && formData.start_date) {
       if (new Date(formData.end_date) <= new Date(formData.start_date)) {
-        newErrors.end_date = 'La data di fine deve essere successiva alla data di inizio';
+        newErrors.end_date = t('validation.endDateAfterStart');
       }
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
+  }, [formData, t]);
 
   // Handle field changes
   const handleFieldChange = <K extends keyof FormData>(field: K, value: FormData[K]) => {
@@ -343,7 +365,7 @@ export function RecurringSeriesForm({
     } catch (error) {
       console.error('[RecurringSeriesForm] Submit error:', error);
       setErrors({
-        submit: error instanceof Error ? error.message : 'Errore durante il salvataggio',
+        submit: error instanceof Error ? error.message : t('errors.unknown'),
       });
     } finally {
       setIsSubmitting(false);
@@ -368,40 +390,41 @@ export function RecurringSeriesForm({
           )}
 
           <ModalSection>
+            {/* Descrizione — primo campo: identifica la serie */}
+            <FormField label={t('fields.description.label')} required error={errors.description}>
+              <Input
+                value={formData.description}
+                onChange={(e) => handleFieldChange('description', e.target.value)}
+                placeholder={t('fields.description.placeholder')}
+              />
+            </FormField>
+
             <div className={recurringStyles.form.grid}>
               {/* Tipo */}
-              <FormField label="Tipo" required error={errors.type}>
+              <FormField label={t('fields.type.label')} required error={errors.type}>
                 <FormSelect
                   value={formData.type}
                   onValueChange={(value) =>
                     handleFieldChange('type', value as 'income' | 'expense')
                   }
-                  options={[
-                    { value: 'expense', label: 'Uscita' },
-                    { value: 'income', label: 'Entrata' },
-                  ]}
+                  options={typeOptions}
                 />
               </FormField>
 
               {/* Frequenza */}
-              <FormField label="Frequenza" required error={errors.frequency}>
+              <FormField label={t('fields.frequency.label')} required error={errors.frequency}>
                 <FormSelect
                   value={formData.frequency}
                   onValueChange={(value) =>
                     handleFieldChange('frequency', value as TransactionFrequencyType)
                   }
-                  options={[
-                    { value: 'weekly', label: 'Settimanale' },
-                    { value: 'biweekly', label: 'Quindicinale' },
-                    { value: 'monthly', label: 'Mensile' },
-                    { value: 'yearly', label: 'Annuale' },
-                  ]}
+                  options={frequencyOptions}
                 />
               </FormField>
             </div>
 
             {/* Utenti - Multi-select (full width) */}
-            <FormField label="Utenti" required error={errors.user_ids}>
+            <FormField label={t('fields.users.label')} required error={errors.user_ids}>
               <MultiUserSelect
                 value={formData.user_ids}
                 onChange={(value) => handleFieldChange('user_ids', value)}
@@ -438,20 +461,20 @@ export function RecurringSeriesForm({
               />
 
               {/* Giorno addebito */}
-              <FormField label="Giorno addebito" required error={errors.due_day}>
+              <FormField label={t('fields.dueDay.label')} required error={errors.due_day}>
                 <Input
                   type="number"
                   min={1}
                   max={31}
                   value={formData.due_day}
                   onChange={(e) => handleFieldChange('due_day', e.target.value)}
-                  placeholder="1-31"
+                  placeholder={t('fields.dueDay.placeholder')}
                 />
               </FormField>
 
               {/* Data inizio */}
               <DateField
-                label="Data inizio"
+                label={t('fields.startDate.label')}
                 value={formData.start_date}
                 onChange={(value) => handleFieldChange('start_date', value)}
                 error={errors.start_date}
@@ -460,29 +483,19 @@ export function RecurringSeriesForm({
 
               {/* Data fine (opzionale) */}
               <DateField
-                label="Data fine"
+                label={t('fields.endDate.label')}
                 value={formData.end_date}
                 onChange={(value) => handleFieldChange('end_date', value)}
                 error={errors.end_date}
               />
             </div>
           </ModalSection>
-
-          <ModalSection>
-            {/* Descrizione */}
-            <FormField label="Descrizione" required error={errors.description}>
-              <Input
-                value={formData.description}
-                onChange={(e) => handleFieldChange('description', e.target.value)}
-                placeholder="Es. Abbonamento Netflix"
-              />
-            </FormField>
-          </ModalSection>
         </ModalBody>
         <ModalFooter>
           <FormActions
             submitType="button"
-            submitLabel={mode === 'edit' ? 'Salva Modifiche' : 'Crea Serie'}
+            submitLabel={mode === 'edit' ? t('buttons.saveChanges') : t('buttons.createSeries')}
+            cancelLabel={t('buttons.cancel')}
             onSubmit={handleSubmit}
             onCancel={() => onOpenChange(false)}
             isSubmitting={isSubmitting}

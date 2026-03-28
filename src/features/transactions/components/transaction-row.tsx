@@ -44,6 +44,7 @@ export const TransactionRow = memo(
     getCategoryColor,
   }: TransactionRowProps) => {
     const t = useTranslations('Transactions.Row');
+    const tSwipe = useTranslations('Common.Swipe');
     const closeAllCards = useCloseAllCards();
     // Calculate days until due for recurrent transactions
     const getDaysUntilDue = (): number => {
@@ -135,6 +136,7 @@ export const TransactionRow = memo(
         // Interaction
         variant={variant === 'regular' ? 'interactive' : 'highlighted'}
         onClick={() => onEditTransaction?.(transaction)}
+        swipeDragHint={onDeleteTransaction ? tSwipe('rowSwipeHint') : undefined}
         // Swipe configuration (new unified system)
         swipeConfig={
           onDeleteTransaction

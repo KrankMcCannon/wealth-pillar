@@ -2,18 +2,19 @@
  * useTransactionsContent Hook
  *
  * Extracts business logic from TransactionsContent component.
- * Manages filters, infinite scroll, delete handlers, pause modal, and grouped transactions.
+ * Manages filters, pagination, delete handlers, pause modal, and grouped transactions.
  */
 
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useMemo, useEffect, useCallback, useRef, createElement } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { useLocale } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import {
   useUserFilter,
   useDeleteConfirmation,
   useIdNameMap,
   useFilteredData,
-  useInfiniteScroll,
+  useToast,
+  useDebouncedValue,
 } from '@/hooks';
 import { loadMoreTransactionsAction } from '@/features/transactions/actions/load-more-transactions';
 import { RecurringTransactionSeries } from '@/lib';
@@ -21,16 +22,15 @@ import {
   defaultFiltersState,
   filterTransactions,
   type TransactionFiltersState,
-  type GroupedTransaction,
 } from '@/features/transactions';
 import type { Transaction, Budget, User, Account, Category } from '@/lib/types';
-import { TransactionLogic } from '@/lib/utils/transaction-logic';
-import { formatDateSmart, toDateTime } from '@/lib/utils/date-utils';
 import { deleteTransactionAction } from '@/features/transactions/actions/transaction-actions';
 import { deleteRecurringSeriesAction } from '@/features/recurring/actions/recurring-actions';
 import { useModalState, useTabState, type ModalType } from '@/lib/navigation/url-state';
 import { usePageDataStore } from '@/stores/page-data-store';
 import { useRouter } from '@/i18n/routing';
+import { ToastAction, type ToastActionElement } from '@/components/ui/toast';
+import { usePaginatedTransactions, type PageSizeOption } from './usePaginatedTransactions';
 
 // ============================================================================
 // Types
@@ -65,16 +65,27 @@ export interface UseTransactionsContentReturn {
   selectedBudget: Budget | null;
   handleClearBudgetFilter: () => void;
 
-  // Infinite scroll
-  isLoadingMore: boolean;
-  canLoadMore: boolean;
-  sentinelRef: (node: HTMLDivElement | null) => void;
+  // Pagination
+  currentPage: number;
+  totalPages: number;
+  pageSize: number;
+  setPageSize: (size: PageSizeOption) => void;
+  isChangingPage: boolean;
+  pageError: string | null;
+  goToPage: (page: number) => Promise<void>;
+  nextPage: () => Promise<void>;
+  prevPage: () => Promise<void>;
+
+  // Current page transactions (filtered + sliced)
+  currentPageItems: Transaction[];
+
+  // All filtered transactions count (for pagination info)
+  filteredCount: number;
 
   // Store data
   storeTransactions: Transaction[];
 
-  // Grouped transactions (computed)
-  dayTotals: GroupedTransaction[];
+  // Account names map
   accountNames: Record<string, string>;
 
   // Transaction handlers
@@ -107,6 +118,8 @@ export interface UseTransactionsContentReturn {
 // Hook Implementation
 // ============================================================================
 
+const DEFAULT_PAGE_SIZE: PageSizeOption = 30;
+
 export function useTransactionsContent({
   transactions,
   totalTransactions = 0,
@@ -117,9 +130,11 @@ export function useTransactionsContent({
   accounts,
   categories,
 }: UseTransactionsContentProps): UseTransactionsContentReturn {
+  const DELETE_UNDO_WINDOW_MS = 5000;
   const router = useRouter();
   const searchParams = useSearchParams();
-  const locale = useLocale();
+  const t = useTranslations('TransactionsContent');
+  const { toast } = useToast();
 
   // User filtering state management (global context)
   const { setSelectedGroupFilter, selectedUserId } = useUserFilter();
@@ -164,6 +179,12 @@ export function useTransactionsContent({
   // Modern filters state - initialized from URL or default
   const [filters, setFilters] = useState<TransactionFiltersState>(initialFilters);
 
+  // Page size state — user can change via selector
+  const [pageSize, setPageSizeRaw] = useState<PageSizeOption>(DEFAULT_PAGE_SIZE);
+
+  // Debounce search so typing does not re-run filter on every keystroke
+  const debouncedSearchQuery = useDebouncedValue(filters.searchQuery, 250);
+
   // Pause modal state
   const [showPauseModal, setShowPauseModal] = useState(false);
   const [selectedSeriesForPause, setSelectedSeriesForPause] =
@@ -176,7 +197,7 @@ export function useTransactionsContent({
     }
   }, [fromBudgets, memberIdFromUrl, setSelectedGroupFilter]);
 
-  // Scroll to top on page mount (navigation to transactions page)
+  // Scroll to top on page mount
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' });
   }, []);
@@ -205,41 +226,39 @@ export function useTransactionsContent({
   const setRecurringSeries = usePageDataStore((state) => state.setRecurringSeries);
   const removeTransactionFromStore = usePageDataStore((state) => state.removeTransaction);
   const addTransactionToStore = usePageDataStore((state) => state.addTransaction);
+  const pendingDeleteTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+  const pendingRecurringDeleteTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(
+    new Map()
+  );
 
-  // Infinite scroll - load more transactions callback
-  const loadMoreCallback = useCallback(async (offset: number, limit: number) => {
-    const result = await loadMoreTransactionsAction(offset, limit);
-    if (result.error) throw new Error(result.error);
-    return { data: result.data, hasMore: result.hasMore };
+  useEffect(() => {
+    const pendingDeleteTimers = pendingDeleteTimersRef.current;
+    const pendingRecurringDeleteTimers = pendingRecurringDeleteTimersRef.current;
+    return () => {
+      pendingDeleteTimers.forEach((timeoutId) => {
+        clearTimeout(timeoutId);
+      });
+      pendingDeleteTimers.clear();
+      pendingRecurringDeleteTimers.forEach((timeoutId) => {
+        clearTimeout(timeoutId);
+      });
+      pendingRecurringDeleteTimers.clear();
+    };
   }, []);
 
-  // Infinite scroll hook
-  const {
-    items: infiniteTransactions,
-    isLoading: isLoadingMore,
-    hasMore: canLoadMore,
-    sentinelRef,
-  } = useInfiniteScroll({
-    initialItems: transactions,
-    totalCount: totalTransactions,
-    hasMore: hasMoreTransactions,
-    pageSize: 50,
-    loadMore: loadMoreCallback,
-  });
-
-  // Initialize store with infinite scroll data
+  // Initialize store with initial server-loaded transactions
   useEffect(() => {
-    setTransactions(infiniteTransactions);
-  }, [infiniteTransactions, setTransactions]);
+    setTransactions(transactions);
+  }, [transactions, setTransactions]);
 
   useEffect(() => {
     setRecurringSeries(recurringSeries);
   }, [recurringSeries, setRecurringSeries]);
 
-  // Create account names map for display using hook
+  // Create account names map for display
   const accountNames = useIdNameMap(accounts);
 
-  // Filter transactions by selected user (centralized permission-based filtering)
+  // Filter by selected user (centralized permission-based filtering)
   const { filteredData: userFilteredTransactions } = useFilteredData({
     data: storeTransactions,
     currentUser,
@@ -248,38 +267,86 @@ export function useTransactionsContent({
 
   // Apply domain-specific filters (type, date, category, search)
   const filteredTransactions = useMemo(() => {
-    return filterTransactions(userFilteredTransactions, filters, categories);
-  }, [userFilteredTransactions, filters, categories]);
-
-  // Group transactions by date and calculate daily totals using service layer
-  const dayTotals = useMemo((): GroupedTransaction[] => {
-    const groupedByIsoDate = filteredTransactions.reduce(
-      (groups, transaction) => {
-        const txDate = toDateTime(transaction.date);
-        const isoDate = txDate?.toISODate();
-        if (!isoDate) return groups;
-        if (!groups[isoDate]) {
-          groups[isoDate] = [];
-        }
-        groups[isoDate].push(transaction);
-        return groups;
+    return filterTransactions(
+      userFilteredTransactions,
+      {
+        searchQuery: debouncedSearchQuery,
+        type: filters.type,
+        dateRange: filters.dateRange,
+        categoryKey: filters.categoryKey,
+        categoryKeys: filters.categoryKeys,
+        budgetId: filters.budgetId,
+        startDate: filters.startDate,
+        endDate: filters.endDate,
       },
-      {} as Record<string, Transaction[]>
+      categories
     );
+  }, [
+    userFilteredTransactions,
+    debouncedSearchQuery,
+    filters.type,
+    filters.dateRange,
+    filters.categoryKey,
+    filters.categoryKeys,
+    filters.budgetId,
+    filters.startDate,
+    filters.endDate,
+    categories,
+  ]);
 
-    const dailyTotals = TransactionLogic.calculateDailyTotals(groupedByIsoDate);
+  // Load-more callback for pagination
+  const loadMoreCallback = useCallback(async (offset: number, limit: number) => {
+    const result = await loadMoreTransactionsAction(offset, limit);
+    if (result.error) throw new Error(result.error);
+    return { data: result.data, hasMore: result.hasMore };
+  }, []);
 
-    return Object.entries(groupedByIsoDate)
-      .map(([isoDate, txs]) => ({
-        date: isoDate,
-        formattedDate: formatDateSmart(isoDate, locale),
-        transactions: txs,
-        income: dailyTotals[isoDate]?.income ?? 0,
-        expense: dailyTotals[isoDate]?.expense ?? 0,
-        total: (dailyTotals[isoDate]?.income ?? 0) - (dailyTotals[isoDate]?.expense ?? 0),
-      }))
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  }, [filteredTransactions, locale]);
+  // Handle newly loaded transactions from pagination hook
+  const handleNewTransactions = useCallback(
+    (newTxs: Transaction[]) => {
+      setTransactions([...storeTransactions, ...newTxs]);
+    },
+    [storeTransactions, setTransactions]
+  );
+
+  // Pagination hook
+  const {
+    currentPage,
+    totalPages,
+    currentPageItems,
+    isChangingPage,
+    pageError,
+    goToPage,
+    nextPage,
+    prevPage,
+    resetPage,
+  } = usePaginatedTransactions({
+    filteredTransactions,
+    allLoadedCount: storeTransactions.length,
+    totalServerCount: totalTransactions,
+    hasMoreFromServer: hasMoreTransactions,
+    pageSize,
+    loadMore: loadMoreCallback,
+    onNewTransactions: handleNewTransactions,
+  });
+
+  // Changing page size resets to page 1 in the same event — no effect needed
+  const setPageSize = useCallback(
+    (size: PageSizeOption) => {
+      setPageSizeRaw(size);
+      resetPage();
+    },
+    [resetPage]
+  );
+
+  // Reset pagination when filters change
+  const prevFiltersRef = useRef(filters);
+  useEffect(() => {
+    if (prevFiltersRef.current !== filters) {
+      prevFiltersRef.current = filters;
+      resetPage();
+    }
+  }, [filters, resetPage]);
 
   // Transaction handlers
   const handleEditTransaction = useCallback(
@@ -291,51 +358,180 @@ export function useTransactionsContent({
 
   const handleDeleteClick = useCallback(
     (transactionId: string) => {
-      const transaction = storeTransactions.find((t) => t.id === transactionId);
+      if (pendingDeleteTimersRef.current.has(transactionId)) {
+        toast({
+          title: t('undoDelete.pendingTitle'),
+          description: t('undoDelete.pendingDescription'),
+          variant: 'info',
+        });
+        return;
+      }
+
+      const transaction = storeTransactions.find((tx) => tx.id === transactionId);
       if (transaction) {
         deleteConfirm.openDialog(transaction);
       }
     },
-    [storeTransactions, deleteConfirm]
+    [storeTransactions, deleteConfirm, toast, t]
   );
 
   const handleDeleteConfirm = useCallback(async () => {
     await deleteConfirm.executeDelete(async (transaction) => {
-      removeTransactionFromStore(transaction.id);
-
-      try {
-        const result = await deleteTransactionAction(transaction.id);
-
-        if (result.error) {
-          addTransactionToStore(transaction);
-          console.error('Failed to delete transaction:', result.error);
-          throw new Error(result.error);
-        }
-      } catch (error) {
+      let rollbackDone = false;
+      const rollbackOptimisticDelete = () => {
+        if (rollbackDone) return;
         addTransactionToStore(transaction);
-        console.error('Error deleting transaction:', error);
-        throw error;
-      }
+        rollbackDone = true;
+      };
+
+      removeTransactionFromStore(transaction.id);
+      const pendingDeleteTimers = pendingDeleteTimersRef.current;
+
+      const commitDelete = async () => {
+        try {
+          const result = await deleteTransactionAction(transaction.id);
+          if (result.error) {
+            rollbackOptimisticDelete();
+            toast({
+              title: t('errors.title'),
+              description: `${t('errors.deleteTransactionFailed')} ${t('errors.retryHint')}`,
+              variant: 'destructive',
+            });
+          }
+        } catch {
+          rollbackOptimisticDelete();
+          toast({
+            title: t('errors.title'),
+            description: `${t('errors.deleteTransactionFailed')} ${t('errors.retryHint')}`,
+            variant: 'destructive',
+          });
+        } finally {
+          pendingDeleteTimers.delete(transaction.id);
+        }
+      };
+
+      const undoDelete = () => {
+        const timeoutId = pendingDeleteTimers.get(transaction.id);
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+          pendingDeleteTimers.delete(transaction.id);
+        }
+        rollbackOptimisticDelete();
+      };
+
+      const timeoutId = setTimeout(() => {
+        commitDelete();
+      }, DELETE_UNDO_WINDOW_MS);
+
+      pendingDeleteTimers.set(transaction.id, timeoutId);
+      const undoAction = createElement(
+        ToastAction,
+        {
+          altText: t('undoDelete.action'),
+          onClick: undoDelete,
+        },
+        t('undoDelete.action')
+      ) as unknown as ToastActionElement;
+
+      toast({
+        title: t('undoDelete.title'),
+        description: t('undoDelete.description'),
+        variant: 'info',
+        action: undoAction,
+      });
     });
-  }, [deleteConfirm, removeTransactionFromStore, addTransactionToStore]);
+  }, [deleteConfirm, removeTransactionFromStore, addTransactionToStore, toast, t]);
 
   // Recurring handlers
   const handleRecurringDeleteClick = useCallback(
     (series: RecurringTransactionSeries) => {
+      if (pendingRecurringDeleteTimersRef.current.has(series.id)) {
+        toast({
+          title: t('undoDeleteRecurring.pendingTitle'),
+          description: t('undoDeleteRecurring.pendingDescription'),
+          variant: 'info',
+        });
+        return;
+      }
       recurringDeleteConfirm.openDialog(series);
     },
-    [recurringDeleteConfirm]
+    [recurringDeleteConfirm, toast, t]
   );
 
   const handleRecurringDeleteConfirm = useCallback(async () => {
     await recurringDeleteConfirm.executeDelete(async (series) => {
-      const result = await deleteRecurringSeriesAction(series.id);
-      if (result.error) {
-        console.error('Failed to delete recurring series:', result.error);
-        throw new Error(result.error);
-      }
+      const pendingRecurringDeleteTimers = pendingRecurringDeleteTimersRef.current;
+      let wasCancelled = false;
+
+      const commitRecurringDelete = async () => {
+        if (wasCancelled) {
+          pendingRecurringDeleteTimers.delete(series.id);
+          return;
+        }
+
+        try {
+          const result = await deleteRecurringSeriesAction(series.id);
+          if (result.error) {
+            toast({
+              title: t('errors.title'),
+              description: `${t('errors.deleteRecurringFailed')} ${t('errors.retryHint')}`,
+              variant: 'destructive',
+            });
+          } else {
+            toast({
+              title: t('undoDeleteRecurring.committedTitle'),
+              description: t('undoDeleteRecurring.committedDescription'),
+              variant: 'success',
+            });
+            router.refresh();
+          }
+        } catch {
+          toast({
+            title: t('errors.title'),
+            description: `${t('errors.deleteRecurringFailed')} ${t('errors.retryHint')}`,
+            variant: 'destructive',
+          });
+        } finally {
+          pendingRecurringDeleteTimers.delete(series.id);
+        }
+      };
+
+      const undoRecurringDelete = () => {
+        const timeoutId = pendingRecurringDeleteTimers.get(series.id);
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+          pendingRecurringDeleteTimers.delete(series.id);
+        }
+        wasCancelled = true;
+        toast({
+          title: t('undoDeleteRecurring.cancelledTitle'),
+          description: t('undoDeleteRecurring.cancelledDescription'),
+          variant: 'info',
+        });
+      };
+
+      const timeoutId = setTimeout(() => {
+        commitRecurringDelete();
+      }, DELETE_UNDO_WINDOW_MS);
+
+      pendingRecurringDeleteTimers.set(series.id, timeoutId);
+      const undoAction = createElement(
+        ToastAction,
+        {
+          altText: t('undoDeleteRecurring.action'),
+          onClick: undoRecurringDelete,
+        },
+        t('undoDeleteRecurring.action')
+      ) as unknown as ToastActionElement;
+
+      toast({
+        title: t('undoDeleteRecurring.title'),
+        description: t('undoDeleteRecurring.description'),
+        variant: 'info',
+        action: undoAction,
+      });
     });
-  }, [recurringDeleteConfirm]);
+  }, [recurringDeleteConfirm, toast, t, router]);
 
   const handleRecurringPauseClick = useCallback((series: RecurringTransactionSeries) => {
     setSelectedSeriesForPause(series);
@@ -364,12 +560,22 @@ export function useTransactionsContent({
     setFilters,
     selectedBudget,
     handleClearBudgetFilter,
-    isLoadingMore,
-    canLoadMore,
-    sentinelRef,
+    // Pagination
+    currentPage,
+    totalPages,
+    pageSize,
+    setPageSize,
+    isChangingPage,
+    pageError,
+    goToPage,
+    nextPage,
+    prevPage,
+    currentPageItems,
+    filteredCount: filteredTransactions.length,
+    // Store
     storeTransactions,
-    dayTotals,
     accountNames,
+    // Handlers
     handleEditTransaction,
     handleDeleteClick,
     handleDeleteConfirm,
