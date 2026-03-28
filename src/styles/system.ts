@@ -1063,7 +1063,6 @@ export const transactionStyles = {
       'rounded-2xl border border-border/60 bg-card/95 sm:bg-card/80 sm:backdrop-blur-sm shadow-sm shadow-muted/20 space-y-3 p-2.5 sm:space-y-4 sm:p-3.5',
     contentStack: 'space-y-4 sm:space-y-5',
     filtersBlock: 'rounded-2xl border border-border/50 bg-card/60 p-3 sm:p-4',
-    filtersInnerStack: 'flex flex-col gap-4',
     listBlock: 'sm:rounded-2xl sm:border sm:border-border/50 sm:bg-card sm:p-4 sm:shadow-sm sm:shadow-muted/15',
     onboardingAside: 'rounded-2xl border border-primary/20 bg-primary/5 p-3.5 sm:p-4',
     onboardingRow: 'flex items-start justify-between gap-3',
@@ -1072,14 +1071,10 @@ export const transactionStyles = {
     onboardingList: 'list-disc space-y-1.5 pl-4 text-xs text-primary/80',
     onboardingDismissButton:
       'shrink-0 rounded-lg px-3 py-2 text-xs font-medium text-primary transition-colors hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 min-h-11',
-    onboardingCompactAside: 'rounded-xl border border-border/60 bg-card/70 p-2.5 sm:p-3',
-    onboardingCompactRow: 'flex flex-wrap items-center justify-between gap-2',
-    onboardingCompactText: 'text-xs text-primary/80',
-    onboardingCompactActions: 'flex items-center gap-1.5',
-    onboardingCompactReopenButton:
-      'rounded-lg px-2.5 py-2 text-xs font-medium text-primary transition-colors hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 min-h-11',
-    onboardingCompactDismissButton:
-      'rounded-lg px-2.5 py-2 text-xs text-primary/70 transition-colors hover:bg-primary/8 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 min-h-11',
+    pageErrorBanner:
+      'flex items-center justify-between gap-3 rounded-xl border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm text-destructive/80 mb-3',
+    pageErrorRetry:
+      'shrink-0 rounded-lg px-3 py-1.5 text-xs font-medium text-destructive transition-colors hover:bg-destructive/10 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive/30 motion-reduce:active:scale-100',
   },
   header: {
     inner: 'flex items-center justify-between',
@@ -1203,9 +1198,9 @@ export const transactionStyles = {
     chipsCluster: 'border-t border-border/40 pt-2.5',
     budgetBanner:
       'flex items-center justify-between gap-3 px-4 py-3 rounded-2xl bg-primary/10 border border-primary/20',
-    budgetBannerLeft: 'flex items-center gap-2',
-    budgetBannerDot: 'w-2 h-2 rounded-full bg-primary animate-pulse motion-reduce:animate-none',
-    budgetBannerText: 'text-sm font-medium text-primary',
+    budgetBannerLeft: 'flex min-w-0 items-center gap-2',
+    budgetBannerDot: 'w-2 h-2 shrink-0 rounded-full bg-primary animate-pulse motion-reduce:animate-none',
+    budgetBannerText: 'text-sm font-medium text-primary truncate',
     budgetBannerCount: 'text-xs text-primary/70',
     budgetBannerExit:
       'inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-primary/20 text-primary hover:bg-primary/30 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35',
@@ -1424,7 +1419,7 @@ export const transactionStyles = {
         amount: 'h-4 w-14 rounded bg-primary/10 animate-pulse shrink-0',
       },
       pagination:
-        'mt-3 rounded-2xl border border-border/50 bg-card shadow-sm shadow-muted/15 !border-t-0',
+        'mt-3 rounded-2xl border-x border-b border-border/50 bg-card shadow-sm shadow-muted/15',
     },
     pagination: {
       wrapper:

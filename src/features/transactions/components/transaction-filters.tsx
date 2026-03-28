@@ -28,7 +28,6 @@ import {
   Input,
   Drawer,
   DrawerContent,
-  DrawerTrigger,
   DrawerTitle,
   DrawerDescription,
   CategoryBadge,
@@ -180,6 +179,8 @@ function FilterChip({
         <button
           type="button"
           onClick={onClick}
+          aria-haspopup="dialog"
+          aria-expanded={false}
           className={transactionStyles.filters.chip.buttonActive}
         >
           <span>{label}</span>
@@ -202,6 +203,8 @@ function FilterChip({
     <button
       type="button"
       onClick={onClick}
+      aria-haspopup="dialog"
+      aria-expanded={isActive}
       className={cn(
         transactionStyles.filters.chip.buttonBase,
         isActive
@@ -791,23 +794,19 @@ export function TransactionFilters({
                 open={activeDrawer === 'type'}
                 onOpenChange={(open) => setActiveDrawer(open ? 'type' : null)}
               >
-                <DrawerTrigger asChild>
-                  <div>
-                    <FilterChip
-                      label={
-                        filters.type === 'all' ? t('chips.type') : getTypeLabel(filters.type, t)
-                      }
-                      isActive={activeDrawer === 'type'}
-                      hasValue={filters.type !== 'all'}
-                      onClick={() => setActiveDrawer('type')}
-                      onClear={() => handleTypeChange('all')}
-                      clearAriaLabel={t('clearFilterAria', {
-                        label:
-                          filters.type === 'all' ? t('chips.type') : getTypeLabel(filters.type, t),
-                      })}
-                    />
-                  </div>
-                </DrawerTrigger>
+                <FilterChip
+                  label={
+                    filters.type === 'all' ? t('chips.type') : getTypeLabel(filters.type, t)
+                  }
+                  isActive={activeDrawer === 'type'}
+                  hasValue={filters.type !== 'all'}
+                  onClick={() => setActiveDrawer('type')}
+                  onClear={() => handleTypeChange('all')}
+                  clearAriaLabel={t('clearFilterAria', {
+                    label:
+                      filters.type === 'all' ? t('chips.type') : getTypeLabel(filters.type, t),
+                  })}
+                />
                 <DrawerContent className={transactionStyles.filters.drawer.content}>
                   <FilterDrawerContent
                     filterType="type"
@@ -824,20 +823,16 @@ export function TransactionFilters({
                 open={activeDrawer === 'date'}
                 onOpenChange={(open) => setActiveDrawer(open ? 'date' : null)}
               >
-                <DrawerTrigger asChild>
-                  <div>
-                    <FilterChip
-                      label={getDateChipLabel(filters, t)}
-                      isActive={activeDrawer === 'date'}
-                      hasValue={filters.dateRange !== 'all'}
-                      onClick={() => setActiveDrawer('date')}
-                      onClear={() => handleDateChange('all')}
-                      clearAriaLabel={t('clearFilterAria', {
-                        label: getDateChipLabel(filters, t),
-                      })}
-                    />
-                  </div>
-                </DrawerTrigger>
+                <FilterChip
+                  label={getDateChipLabel(filters, t)}
+                  isActive={activeDrawer === 'date'}
+                  hasValue={filters.dateRange !== 'all'}
+                  onClick={() => setActiveDrawer('date')}
+                  onClear={() => handleDateChange('all')}
+                  clearAriaLabel={t('clearFilterAria', {
+                    label: getDateChipLabel(filters, t),
+                  })}
+                />
                 <DrawerContent className={transactionStyles.filters.drawer.content}>
                   <FilterDrawerContent
                     filterType="date"
@@ -855,18 +850,14 @@ export function TransactionFilters({
                 open={activeDrawer === 'category'}
                 onOpenChange={(open) => setActiveDrawer(open ? 'category' : null)}
               >
-                <DrawerTrigger asChild>
-                  <div>
-                    <FilterChip
-                      label={categoryLabel}
-                      isActive={activeDrawer === 'category'}
-                      hasValue={filters.categoryKey !== 'all'}
-                      onClick={() => setActiveDrawer('category')}
-                      onClear={() => handleCategoryChange('all')}
-                      clearAriaLabel={t('clearFilterAria', { label: categoryLabel })}
-                    />
-                  </div>
-                </DrawerTrigger>
+                <FilterChip
+                  label={categoryLabel}
+                  isActive={activeDrawer === 'category'}
+                  hasValue={filters.categoryKey !== 'all'}
+                  onClick={() => setActiveDrawer('category')}
+                  onClear={() => handleCategoryChange('all')}
+                  clearAriaLabel={t('clearFilterAria', { label: categoryLabel })}
+                />
                 <DrawerContent className={transactionStyles.filters.drawer.contentTall}>
                   <FilterDrawerContent
                     filterType="category"
@@ -882,8 +873,6 @@ export function TransactionFilters({
         )}
       </div>
 
-      {/* Active Filters Summary - Hidden on mobile for cleaner look */}
-      {/* The chips already show the active state, no need for extra badges */}
     </div>
   );
 }

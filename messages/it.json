@@ -507,6 +507,8 @@
       "noTransactionsYet": "Non ci sono ancora transazioni. Inizia aggiungendone una.",
       "noFilterResults": "Nessun risultato con i filtri applicati."
     },
+    "paginationError": "Impossibile caricare la pagina.",
+    "paginationRetry": "Riprova",
     "allLoaded": "Tutte le transazioni caricate ({count})",
     "loadingMore": "Caricamento altre transazioni",
     "onboarding": {

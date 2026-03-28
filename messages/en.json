@@ -507,6 +507,8 @@
       "noTransactionsYet": "There are no transactions yet. Start by adding one.",
       "noFilterResults": "No transactions match your current filters."
     },
+    "paginationError": "Could not load the page.",
+    "paginationRetry": "Retry",
     "allLoaded": "All transactions loaded ({count})",
     "loadingMore": "Loading more transactions",
     "onboarding": {

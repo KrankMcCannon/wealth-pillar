@@ -20,7 +20,7 @@ export default function TransactionsLoading() {
       </header>
 
       {/* Main Content Loading States */}
-      <main className={transactionStyles.page.main}>
+      <main className={transactionStyles.page.main} aria-busy="true" aria-label="Caricamento transazioni">
         <div className={transactionStyles.page.loadingContent}>
           {/* Transaction List Skeleton */}
           <TransactionListSkeleton />

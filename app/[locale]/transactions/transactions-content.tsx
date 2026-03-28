@@ -81,6 +81,7 @@ export default function TransactionsContent({
     pageSize,
     setPageSize,
     isChangingPage,
+    pageError,
     goToPage,
     currentPageItems,
     filteredCount,
@@ -221,6 +222,18 @@ export default function TransactionsContent({
           {/* Transactions Tab — paginated table */}
           {activeTab === 'Transactions' && (
             <section className={transactionStyles.layout.listBlock}>
+              {pageError && (
+                <div role="alert" className={transactionStyles.layout.pageErrorBanner}>
+                  <span>{t('paginationError')}</span>
+                  <button
+                    type="button"
+                    onClick={() => goToPage(currentPage)}
+                    className={transactionStyles.layout.pageErrorRetry}
+                  >
+                    {t('paginationRetry')}
+                  </button>
+                </div>
+              )}
               <TransactionTable
                 transactions={currentPageItems}
                 totalFilteredCount={filteredCount}
