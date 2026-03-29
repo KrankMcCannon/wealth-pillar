@@ -27,7 +27,7 @@ export const headerStyles = {
     actionButton:
       'h-11 w-11 bg-primary text-primary-foreground rounded-full shadow-sm hover:bg-primary/90',
     actionIcon: 'h-5.5 w-5.5',
-    menu: 'w-56',
+    menu: 'w-56 max-w-[calc(100vw-2rem)]',
     menuIcon: 'mr-2 h-4 w-4',
     iconButton:
       'h-10 w-10 rounded-full text-primary hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',

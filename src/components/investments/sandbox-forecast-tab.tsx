@@ -15,6 +15,11 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { investmentsStyles } from '@/features/investments/theme/investments-styles';
+import {
+  investmentChartColors,
+  rechartsTooltipContentStyle,
+  rechartsTooltipItemStyle,
+} from './investment-chart-theme';
 
 export function SandboxForecastTab() {
   const t = useTranslations('Investments.SandboxTab');
@@ -94,21 +99,33 @@ export function SandboxForecastTab() {
                 <AreaChart data={forecastData} margin={{ top: 20, right: 10, left: 0, bottom: 0 }}>
                   <defs>
                     <linearGradient id="colorForecast" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
+                      <stop
+                        offset="5%"
+                        stopColor={investmentChartColors.areaAccent}
+                        stopOpacity={0.3}
+                      />
+                      <stop
+                        offset="95%"
+                        stopColor={investmentChartColors.areaAccent}
+                        stopOpacity={0}
+                      />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e5e5" />
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    vertical={false}
+                    stroke={investmentChartColors.grid}
+                  />
                   <XAxis
                     dataKey="year"
-                    stroke="#7678E4"
+                    stroke={investmentChartColors.axis}
                     fontSize={12}
                     tickLine={false}
                     axisLine={false}
                     dy={10}
                   />
                   <YAxis
-                    stroke="#7678E4"
+                    stroke={investmentChartColors.axis}
                     fontSize={12}
                     tickLine={false}
                     axisLine={false}
@@ -121,13 +138,8 @@ export function SandboxForecastTab() {
                     width={60}
                   />
                   <Tooltip
-                    contentStyle={{
-                      backgroundColor: 'white',
-                      borderRadius: '12px',
-                      border: 'none',
-                      boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
-                    }}
-                    itemStyle={{ color: '#0f172a' }}
+                    contentStyle={rechartsTooltipContentStyle()}
+                    itemStyle={rechartsTooltipItemStyle}
                     formatter={(value) => [
                       new Intl.NumberFormat(locale, { style: 'currency', currency: 'EUR' }).format(
                         Number(value ?? 0) || 0
@@ -138,7 +150,7 @@ export function SandboxForecastTab() {
                   <Area
                     type="monotone"
                     dataKey="amount"
-                    stroke="#8b5cf6"
+                    stroke={investmentChartColors.areaAccent}
                     strokeWidth={3}
                     fillOpacity={1}
                     fill="url(#colorForecast)"

@@ -12,6 +12,11 @@ import {
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { investmentsStyles } from '@/features/investments/theme/investments-styles';
+import {
+  investmentChartColors,
+  rechartsTooltipContentStyle,
+  rechartsTooltipItemStyle,
+} from './investment-chart-theme';
 
 interface InvestmentHistoryChartProps {
   data: { date: string; value: number }[];
@@ -37,14 +42,26 @@ export function InvestmentHistoryChart({ data }: Readonly<InvestmentHistoryChart
               <AreaChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorHistory" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                    <stop
+                      offset="5%"
+                      stopColor={investmentChartColors.linePrimary}
+                      stopOpacity={0.3}
+                    />
+                    <stop
+                      offset="95%"
+                      stopColor={investmentChartColors.linePrimary}
+                      stopOpacity={0}
+                    />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e5e5" />
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  vertical={false}
+                  stroke={investmentChartColors.grid}
+                />
                 <XAxis
                   dataKey="date"
-                  stroke="#7678E4"
+                  stroke={investmentChartColors.axis}
                   fontSize={12}
                   tickLine={false}
                   axisLine={false}
@@ -53,7 +70,7 @@ export function InvestmentHistoryChart({ data }: Readonly<InvestmentHistoryChart
                   dy={10}
                 />
                 <YAxis
-                  stroke="#7678E4"
+                  stroke={investmentChartColors.axis}
                   fontSize={12}
                   tickLine={false}
                   axisLine={false}
@@ -66,13 +83,8 @@ export function InvestmentHistoryChart({ data }: Readonly<InvestmentHistoryChart
                   width={60}
                 />
                 <Tooltip
-                  contentStyle={{
-                    backgroundColor: 'white',
-                    borderRadius: '12px',
-                    border: 'none',
-                    boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
-                  }}
-                  itemStyle={{ color: '#0f172a' }}
+                  contentStyle={rechartsTooltipContentStyle()}
+                  itemStyle={rechartsTooltipItemStyle}
                   formatter={(value) => [
                     new Intl.NumberFormat(locale, { style: 'currency', currency: 'EUR' }).format(
                       Number(value) || 0
@@ -83,7 +95,7 @@ export function InvestmentHistoryChart({ data }: Readonly<InvestmentHistoryChart
                 <Area
                   type="monotone"
                   dataKey="value"
-                  stroke="#3b82f6"
+                  stroke={investmentChartColors.linePrimary}
                   strokeWidth={3}
                   fillOpacity={1}
                   fill="url(#colorHistory)"

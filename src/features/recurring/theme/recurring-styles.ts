@@ -22,9 +22,16 @@ export const recurringStyles = {
     statValuePositive: 'text-sm font-semibold text-success',
     statValueNegative: 'text-sm font-semibold text-destructive',
     list: 'px-2',
+    /** Home desktop: griglia al posto della lista verticale stretta. */
+    listLayoutHome: 'grid grid-cols-1 md:grid-cols-2 md:gap-4 md:divide-y-0 xl:grid-cols-3 py-2',
+    /** overflow-hidden: clip figli (SwipeableCard + Card rounded-none) al raggio del contenitore. */
+    cardCellHome:
+      'min-w-0 md:overflow-hidden md:rounded-xl md:border md:border-border/55 md:bg-card/60 md:shadow-sm',
     listDivider: 'border-t border-primary/20 mx-2',
     footer: 'px-4 py-1.5',
     footerText: 'text-xs text-primary text-center',
+    executeErrorBanner:
+      'mx-2 mt-2 shrink-0 motion-reduce:animate-none motion-reduce:opacity-100 animate-in fade-in slide-in-from-top-1 duration-200',
   },
   form: {
     form: 'space-y-4',

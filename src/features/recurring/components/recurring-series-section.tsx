@@ -7,12 +7,13 @@
  * Data is passed from parent component (Server Component pattern).
  */
 
-import { useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { RecurringTransactionSeries } from '@/lib';
 import { SeriesCard } from '@/components/cards';
 import { EmptyState } from '@/components/shared';
-import { RefreshCw, Plus, TrendingUp, TrendingDown } from 'lucide-react';
+import { CircleAlert, RefreshCw, Plus, TrendingUp, TrendingDown } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button, Text } from '@/components/ui';
 import { FinanceLogicService } from '@/server/services/finance-logic.service';
 import { formatCurrency, cn } from '@/lib/utils';
@@ -50,6 +51,8 @@ interface RecurringSeriesSectionProps {
   readonly groupUsers?: User[];
   /** Callback when series is updated (pause/resume) to refresh UI */
   readonly onSeriesUpdate?: (series: RecurringTransactionSeries) => void;
+  /** Home dashboard: card in griglia su md+ invece che colonna unica stretta. */
+  readonly homeDashboardListLayout?: boolean;
 }
 
 export function RecurringSeriesSection({
@@ -67,8 +70,14 @@ export function RecurringSeriesSection({
   onPauseRecurringSeries,
   groupUsers,
   onSeriesUpdate,
+  homeDashboardListLayout = false,
 }: RecurringSeriesSectionProps) {
   const t = useTranslations('Recurring.Section');
+  const [executeErrorMessage, setExecuteErrorMessage] = useState<string | null>(null);
+
+  const handleExecuteError = useCallback((message: string) => {
+    setExecuteErrorMessage(message);
+  }, []);
 
   // Filter series by user if selected
   const filteredSeries = useMemo(() => {
@@ -188,6 +197,30 @@ export function RecurringSeriesSection({
         )}
       </div>
 
+      {executeErrorMessage ? (
+        <Alert
+          variant="destructive"
+          className={recurringStyles.section.executeErrorBanner}
+          role="status"
+          aria-live="polite"
+        >
+          <CircleAlert className="size-4" aria-hidden />
+          <AlertTitle>{t('executeErrorBannerTitle')}</AlertTitle>
+          <AlertDescription className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <span className="min-w-0">{executeErrorMessage}</span>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="shrink-0 border-destructive/40 text-destructive hover:bg-destructive/10"
+              onClick={() => setExecuteErrorMessage(null)}
+            >
+              {t('executeErrorDismiss')}
+            </Button>
+          </AlertDescription>
+        </Alert>
+      ) : null}
+
       {/* Series List */}
       <div
         className={cn(
@@ -196,11 +229,23 @@ export function RecurringSeriesSection({
           'rounded-t-none border-0 shadow-none'
         )}
       >
-        <div className={transactionStyles.groupedCard.rowContainer}>
+        <div
+          className={cn(
+            transactionStyles.groupedCard.rowContainer,
+            homeDashboardListLayout && recurringStyles.section.listLayoutHome
+          )}
+        >
           {filteredSeries.map((item) => (
-            <div key={item.id} className={accountStyles.list.cardWrapper}>
+            <div
+              key={item.id}
+              className={cn(
+                accountStyles.list.cardWrapper,
+                homeDashboardListLayout && recurringStyles.section.cardCellHome
+              )}
+            >
               <SeriesCard
                 series={item}
+                embedded
                 showActions={showActions}
                 showDelete={showDelete}
                 onEdit={onEditRecurringSeries}
@@ -209,7 +254,7 @@ export function RecurringSeriesSection({
                 onPause={onPauseRecurringSeries}
                 groupUsers={groupUsers}
                 onSeriesUpdate={onSeriesUpdate}
-                className="rounded-none border-0 shadow-none"
+                onExecuteError={handleExecuteError}
               />
             </div>
           ))}

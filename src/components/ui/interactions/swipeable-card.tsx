@@ -11,7 +11,7 @@
 'use no memo';
 
 import { memo, useEffect, useId, useRef } from 'react';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { useTranslations } from 'next-intl';
 import { cn } from '@/lib/utils';
 import { useSwipeManager } from '@/hooks/use-swipe-manager';
@@ -93,6 +93,7 @@ export const SwipeableCard = memo<SwipeableCardProps>(
   }) => {
     const t = useTranslations('Common.Swipe');
     const dragHintId = useId();
+    const prefersReducedMotion = useReducedMotion();
 
     // Determine swipe directions based on available actions
     let directions: 'left' | 'right' | 'both';
@@ -156,6 +157,7 @@ export const SwipeableCard = memo<SwipeableCardProps>(
       closeSwipe();
     };
     const isCardClickable = Boolean(onCardClick) && !disabled;
+    const dragEnabled = !disabled && !prefersReducedMotion;
 
     const handleCardKeyDown = (e: React.KeyboardEvent) => {
       if (!isCardClickable) return;
@@ -275,9 +277,9 @@ export const SwipeableCard = memo<SwipeableCardProps>(
 
           {/* Card Content (Foreground) */}
           <motion.div
-            drag="x"
+            drag={dragEnabled ? 'x' : false}
             dragConstraints={dragConstraints}
-            dragElastic={appleSwipeTokens.physics.drag.elastic}
+            dragElastic={dragEnabled ? appleSwipeTokens.physics.drag.elastic : 0}
             dragMomentum={false}
             style={{ x }}
             onDragStart={handleDragStart}

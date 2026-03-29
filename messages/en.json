@@ -819,7 +819,11 @@
       },
       "footer": {
         "showingOf": "Showing {shown} of {total} series"
-      }
+      },
+      "executeErrorToastTitle": "Could not run this action",
+      "executeErrorBannerTitle": "We couldn't complete that operation",
+      "executeErrorDismiss": "Dismiss",
+      "executeErrorUnknown": "Something went wrong. Please try again."
     },
     "PauseModal": {
       "actions": {
@@ -862,7 +866,10 @@
       "actions": {
         "pause": "Pause",
         "resume": "Resume",
-        "delete": "Delete"
+        "delete": "Delete",
+        "pauseAria": "Pause recurring series",
+        "resumeAria": "Resume recurring series",
+        "deleteAria": "Delete recurring series"
       }
     },
     "FormModal": {
@@ -970,17 +977,19 @@
       "newCategory": "New Category",
       "recurring": "Recurring",
       "newAccount": "New Account",
-      "newInvestment": "New Investment"
+      "newInvestment": "New Investment",
+      "moreActions": "More actions",
+      "showLessActions": "Show less"
     }
   },
   "HomeContent": {
     "closePeriodButton": "Close period",
-    "closePeriodHint": "When the month or cycle ends: save the summary and start fresh dates.",
-    "checkFinancesHeading": "A quick check-in",
-    "checkFinancesLead": "Balances, budget, and what's about to leave the account — see at a glance if you're on track.",
-    "pageTitle": "A quick check-in",
-    "recurringAsideLabel": "Upcoming recurring charges",
-    "skipToContent": "Skip to balances and budget"
+    "closePeriodHint": "When the month or cycle ends, close the period: your summary is kept and you start with updated dates.",
+    "checkFinancesHeading": "Quick overview",
+    "checkFinancesLead": "Balances, budgets, and upcoming recurring payments in one place so you can see at a glance if you're on track.",
+    "pageTitle": "Quick overview",
+    "recurringAsideLabel": "Upcoming recurring payments",
+    "skipToContent": "Skip to balances, budgets, and recurring items"
   },
   "BottomNav": {
     "ariaNav": "Primary navigation",
@@ -1105,7 +1114,7 @@
   "Budgets": {
     "HomeSection": {
       "title": "Budget",
-      "subtitle": "Track your expenses by category",
+      "subtitle": "Category spending in the current period",
       "multiUsersSubtitle": "{count} users with active budgets",
       "periodOngoing": "Ongoing",
       "spentPrefix": "Spent:",

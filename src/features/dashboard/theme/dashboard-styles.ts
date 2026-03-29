@@ -107,6 +107,8 @@ export const dashboardStyles = {
   // Recurring series section
   recurringSection: {
     container: 'rounded-xl border border-border/60 bg-card shadow-md',
+    /** Skeleton allineato alla griglia home su desktop. */
+    skeletonListSpacing: 'space-y-3 md:grid md:grid-cols-2 md:gap-4 md:space-y-0 xl:grid-cols-3',
     header: 'mb-4',
     title: 'text-sm font-medium text-muted mb-3',
     grid: 'grid gap-3',

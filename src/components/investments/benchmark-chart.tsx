@@ -13,6 +13,11 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { ShareSelector } from './share-selector';
 import { investmentsStyles } from '@/features/investments/theme/investments-styles';
+import {
+  investmentChartColors,
+  rechartsTooltipContentStyle,
+  rechartsTooltipItemStyle,
+} from './investment-chart-theme';
 
 interface BenchmarkChartProps {
   indexData?:
@@ -59,12 +64,16 @@ export function BenchmarkChart({
           <div className={investmentsStyles.charts.container}>
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={sortedData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e5e5" />
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  vertical={false}
+                  stroke={investmentChartColors.grid}
+                />
                 <XAxis
                   dataKey="datetime"
                   minTickGap={40}
                   tickFormatter={(val) => val.split(' ')[0]}
-                  stroke="#7678E4"
+                  stroke={investmentChartColors.axis}
                   fontSize={12}
                   tickLine={false}
                   axisLine={false}
@@ -72,7 +81,7 @@ export function BenchmarkChart({
                 />
                 <YAxis
                   domain={['auto', 'auto']}
-                  stroke="#7678E4"
+                  stroke={investmentChartColors.axis}
                   fontSize={12}
                   tickLine={false}
                   axisLine={false}
@@ -85,13 +94,8 @@ export function BenchmarkChart({
                   width={60}
                 />
                 <Tooltip
-                  contentStyle={{
-                    backgroundColor: 'white',
-                    borderRadius: '12px',
-                    border: 'none',
-                    boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
-                  }}
-                  itemStyle={{ color: '#0f172a' }}
+                  contentStyle={rechartsTooltipContentStyle()}
+                  itemStyle={rechartsTooltipItemStyle}
                   formatter={(value) =>
                     new Intl.NumberFormat(locale, { style: 'currency', currency: 'EUR' }).format(
                       Number(value) || 0
@@ -101,7 +105,7 @@ export function BenchmarkChart({
                 <Line
                   type="monotone"
                   dataKey="close"
-                  stroke="#0ea5e9"
+                  stroke={investmentChartColors.lineSecondary}
                   dot={false}
                   strokeWidth={3}
                   activeDot={{ r: 6, strokeWidth: 0 }}

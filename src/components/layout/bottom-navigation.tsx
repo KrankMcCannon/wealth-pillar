@@ -41,14 +41,16 @@ export function BottomNavigation() {
         })}
 
         <div className={bottomNavigationStyles.addColumn}>
-          <ActionMenu
-            align="center"
-            triggerClassName={bottomNavigationStyles.addButton}
-            triggerIconClassName={bottomNavigationStyles.addIcon}
-            menuClassName={bottomNavigationStyles.menu}
-            reverseMobileOrder
-            triggerAriaLabel={t('add')}
-          />
+          <div className={bottomNavigationStyles.addButtonWrap}>
+            <ActionMenu
+              align="center"
+              groupedSecondary
+              triggerClassName={bottomNavigationStyles.addButton}
+              triggerIconClassName={bottomNavigationStyles.addIcon}
+              menuClassName={bottomNavigationStyles.menu}
+              triggerAriaLabel={t('add')}
+            />
+          </div>
           <span className={bottomNavigationStyles.addCaption}>{t('add')}</span>
         </div>
 

@@ -27,6 +27,8 @@ export const cardStyles = {
   },
   series: {
     base: 'p-2 bg-card rounded-xl transition-colors duration-200 group cursor-pointer',
+    /** Dentro lista raggruppata / griglia: niente bordo proprio (gestito dal contenitore). */
+    embedded: 'rounded-none border-0 shadow-none bg-transparent ring-0',
     inactive: 'border border-primary/20 opacity-60',
     overdue: 'border border-destructive/30 hover:border-destructive/40',
     dueToday: 'border border-warning/40 hover:border-warning/50',

@@ -36,12 +36,7 @@ interface UserSelectorProps {
   showAllOption?: boolean;
 }
 
-/**
- * Optimized UserSelector with memoization and modern UX
- * Prevents unnecessary re-renders and improves performance
- *
- * NOW STATELESS: Receives data via props
- */
+/** Filtro prospettiva gruppo (admin): stato da props o da `useUserFilter`. */
 const UserSelector = memo(
   ({
     className = '',
@@ -170,17 +165,17 @@ const UserSelector = memo(
           })}
         </div>
 
-        {/* Selection indicator dots (for visual feedback) */}
         {membersList.length > 3 && (
           <div className={userSelectorStyles.dots.container}>
-            {membersList.slice(0, Math.min(membersList.length, 5)).map((member, index) => (
+            {membersList.map((member) => (
               <div
                 key={`dot-${member.id}`}
                 className={`${userSelectorStyles.dots.base} ${
-                  index === membersList.findIndex((m) => m.id === currentSelection)
+                  member.id === currentSelection
                     ? userSelectorStyles.dots.active
                     : userSelectorStyles.dots.inactive
                 }`}
+                aria-hidden
               />
             ))}
           </div>

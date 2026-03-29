@@ -202,7 +202,11 @@ export function Header({
                       <MoreHorizontal className={headerStyles.actions.icon} />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuContent
+                    align="end"
+                    className={headerStyles.actions.menu}
+                    collisionPadding={16}
+                  >
                     <DropdownMenuItem
                       disabled
                       className="opacity-70"

@@ -11,15 +11,18 @@ import type { RecurringTransactionSeries } from '@/lib';
 import { FinanceLogicService } from '@/server/services/finance-logic.service';
 import type { User } from '@/lib/types';
 import { executeRecurringSeriesAction } from '@/features/recurring';
-import { Play } from 'lucide-react';
+import { Pause, Play, Trash2 } from 'lucide-react';
 import { Amount, Button, Card, CategoryBadge, StatusBadge, Text } from '@/components/ui';
 import { cardStyles, getSeriesCardClassName, getSeriesUserBadgeStyle } from './theme/card-styles';
 import { useCategories } from '@/stores/reference-data-store';
 import { SwipeableCard } from '@/components/ui/interactions/swipeable-card';
 import { useCloseAllCards } from '@/stores/swipe-state-store';
+import { toast } from '@/hooks/use-toast';
 
 interface SeriesCardProps {
   readonly series: RecurringTransactionSeries;
+  /** Superficie piatta dentro contenitore con bordo/raggio (liste e griglia ricorrenze). */
+  readonly embedded?: boolean | undefined;
   readonly className?: string | undefined;
   readonly showActions?: boolean | undefined;
   readonly showDelete?: boolean | undefined;
@@ -33,6 +36,8 @@ interface SeriesCardProps {
   readonly onSeriesUpdate?: ((series: RecurringTransactionSeries) => void) | undefined;
   /** Group users for displaying user badges */
   readonly groupUsers?: User[] | undefined;
+  /** Errore esecuzione manuale (toast + eventuale banner dal genitore). */
+  readonly onExecuteError?: ((message: string) => void) | undefined;
 }
 
 // Helper function: Get frequency label
@@ -61,6 +66,7 @@ function getDueDateLabel(days: number, t: ReturnType<typeof useTranslations>): s
 
 function SeriesCardInner({
   series,
+  embedded = false,
   className,
   showActions = false,
   showDelete = false,
@@ -70,8 +76,10 @@ function SeriesCardInner({
   onPause,
   onSeriesUpdate,
   groupUsers,
+  onExecuteError,
 }: SeriesCardProps) {
   const t = useTranslations('Recurring.SeriesCard');
+  const tSection = useTranslations('Recurring.Section');
   const [isLoading, setIsLoading] = useState(false);
   const closeAllCards = useCloseAllCards();
   const categories = useCategories();
@@ -114,12 +122,25 @@ function SeriesCardInner({
     try {
       const result = await executeRecurringSeriesAction(series.id);
       if (result.error) {
-        console.error('Failed to execute series:', result.error);
+        toast({
+          title: tSection('executeErrorToastTitle'),
+          description: result.error,
+          variant: 'destructive',
+        });
+        onExecuteError?.(result.error);
+        return;
       }
-      // Trigger refresh of series list
-      onSeriesUpdate?.(series);
+      if (!result.error && result.data) {
+        onSeriesUpdate?.(series);
+      }
     } catch (error) {
-      console.error('Failed to execute series:', error);
+      const message = error instanceof Error ? error.message : tSection('executeErrorUnknown');
+      toast({
+        title: tSection('executeErrorToastTitle'),
+        description: message,
+        variant: 'destructive',
+      });
+      onExecuteError?.(message);
     } finally {
       setIsLoading(false);
     }
@@ -142,6 +163,16 @@ function SeriesCardInner({
     onPause?.(series);
   };
 
+  const handleDesktopPause = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onPause?.(series);
+  };
+
+  const handleDesktopDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onDelete?.(series);
+  };
+
   const getAmountType = (): 'income' | 'expense' | 'neutral' => {
     if (!series.is_active) return 'neutral';
     return series.type === 'income' ? 'income' : 'expense';
@@ -151,6 +182,7 @@ function SeriesCardInner({
     <Card
       className={cn(
         getSeriesCardClassName({ isActive: series.is_active, isOverdue, isDueToday, isDueSoon }),
+        embedded && cardStyles.series.embedded,
         className
       )}
       onClick={canSwipeDelete || canSwipePause ? undefined : handleCardClick}
@@ -183,7 +215,7 @@ function SeriesCardInner({
 
               {/* User badges - show if multiple users */}
               {associatedUsers.length > 1 && (
-                <div className={cardStyles.series.userBadges}>
+                <div className={cardStyles.series.userBadges} aria-hidden="true">
                   {associatedUsers.slice(0, 3).map((user) => (
                     <div
                       key={user.id}
@@ -214,9 +246,9 @@ function SeriesCardInner({
             {t('nextLabel')}: {getDueDateLabel(daysUntilDue, t)}
           </Text>
 
-          {showActions && (
-            <div className={cardStyles.series.actions}>
-              {series.is_active ? (
+          {(showActions || canSwipePause || canSwipeDelete) && (
+            <div className={cn(cardStyles.series.actions, 'flex-wrap justify-end')}>
+              {showActions && series.is_active ? (
                 <>
                   {(isDueToday || isOverdue) && (
                     <Button
@@ -233,6 +265,45 @@ function SeriesCardInner({
                   )}
                 </>
               ) : null}
+              {(canSwipePause || canSwipeDelete) && (
+                <div
+                  className="flex shrink-0 items-center gap-1"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {canSwipePause ? (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className={`${cardStyles.series.actionButton} ${cardStyles.series.actionNeutral}`}
+                      onClick={handleDesktopPause}
+                      aria-label={
+                        series.is_active ? t('actions.pauseAria') : t('actions.resumeAria')
+                      }
+                      title={series.is_active ? t('actions.pause') : t('actions.resume')}
+                    >
+                      {series.is_active ? (
+                        <Pause className={cardStyles.series.actionIcon} />
+                      ) : (
+                        <Play className={cardStyles.series.actionIcon} />
+                      )}
+                    </Button>
+                  ) : null}
+                  {canSwipeDelete ? (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className={`${cardStyles.series.actionButton} ${cardStyles.series.actionDestructive}`}
+                      onClick={handleDesktopDelete}
+                      aria-label={t('actions.deleteAria')}
+                      title={t('actions.delete')}
+                    >
+                      <Trash2 className={cardStyles.series.actionIcon} />
+                    </Button>
+                  ) : null}
+                </div>
+              )}
             </div>
           )}
         </div>

@@ -819,7 +819,11 @@
       },
       "footer": {
         "showingOf": "Mostrando {shown} di {total} serie"
-      }
+      },
+      "executeErrorToastTitle": "Esecuzione non riuscita",
+      "executeErrorBannerTitle": "Non siamo riusciti a registrare l'operazione",
+      "executeErrorDismiss": "Chiudi",
+      "executeErrorUnknown": "Si è verificato un errore imprevisto. Riprova."
     },
     "PauseModal": {
       "actions": {
@@ -862,7 +866,10 @@
       "actions": {
         "pause": "Pausa",
         "resume": "Riprendi",
-        "delete": "Elimina"
+        "delete": "Elimina",
+        "pauseAria": "Metti in pausa la serie ricorrente",
+        "resumeAria": "Riprendi la serie ricorrente",
+        "deleteAria": "Elimina la serie ricorrente"
       }
     },
     "FormModal": {
@@ -970,17 +977,19 @@
       "newCategory": "Nuova Categoria",
       "recurring": "Ricorrenti",
       "newAccount": "Nuovo Account",
-      "newInvestment": "Nuovo Investimento"
+      "newInvestment": "Nuovo Investimento",
+      "moreActions": "Altre azioni",
+      "showLessActions": "Mostra meno"
     }
   },
   "HomeContent": {
     "closePeriodButton": "Chiudi periodo",
-    "closePeriodHint": "A fine mese o ciclo: salvate il riepilogo e ripartite con date nuove.",
-    "checkFinancesHeading": "Un attimo per fare il punto",
-    "checkFinancesLead": "Saldi, budget e cosa sta per uscire: da qui capite subito se le cose tornano.",
-    "pageTitle": "Un attimo per fare il punto",
-    "recurringAsideLabel": "Prossimi addebiti ricorrenti",
-    "skipToContent": "Salta a saldi e budget"
+    "closePeriodHint": "A fine mese o ciclo chiudi il periodo: il riepilogo resta e riparti con date aggiornate.",
+    "checkFinancesHeading": "Panoramica rapida",
+    "checkFinancesLead": "Saldi, budget e pagamenti ricorrenti in un colpo d'occhio, così vedete subito se siete in linea.",
+    "pageTitle": "Panoramica rapida",
+    "recurringAsideLabel": "Pagamenti ricorrenti in arrivo",
+    "skipToContent": "Vai a saldi, budget e ricorrenze"
   },
   "BottomNav": {
     "ariaNav": "Navigazione principale",
@@ -1105,7 +1114,7 @@
   "Budgets": {
     "HomeSection": {
       "title": "Budget",
-      "subtitle": "Monitora le tue spese per categoria",
+      "subtitle": "Quanto avete speso per categoria in questo periodo",
       "multiUsersSubtitle": "{count} utenti con budget attivi",
       "periodOngoing": "In corso",
       "spentPrefix": "Spesi:",

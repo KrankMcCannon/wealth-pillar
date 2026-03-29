@@ -6,21 +6,22 @@ import type { CSSProperties } from 'react';
 
 export const userSelectorStyles = {
   loading: {
-    container: 'border-b border-border/50 bg-card/70 px-4 pb-3 pt-3 backdrop-blur-sm sm:px-5',
+    container: 'border-b border-border/50 bg-card/70 px-3 pb-3 pt-3 backdrop-blur-sm sm:px-4',
     heading: 'mb-2 h-3 w-28 rounded bg-muted/50 animate-pulse',
     list: 'flex gap-2 overflow-x-auto pb-1 scrollbar-hide',
     item: 'flex min-h-[44px] min-w-[7.5rem] shrink-0 items-center gap-2 rounded-2xl border border-border/40 bg-muted/30 px-3 py-2 animate-pulse',
     avatar: 'size-8 shrink-0 rounded-full bg-muted/60',
     text: 'h-3.5 flex-1 rounded bg-muted/50',
   },
-  container: 'border-b border-border/50 bg-card/80 px-4 pb-3 pt-3 backdrop-blur-sm sm:px-5',
-  heading: 'mb-2 text-[0.65rem] font-semibold uppercase tracking-[0.12em] text-muted-foreground',
-  list: 'flex items-stretch gap-2 overflow-x-auto pb-0.5 scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent',
+  container: 'border-b border-border/50 bg-card/80 px-3 pb-3 pt-3 backdrop-blur-sm sm:px-4',
+  /** ≥12px per leggibilità e zoom; resta “etichetta di sezione”. */
+  heading: 'mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground',
+  list: 'flex touch-pan-x items-stretch gap-2 overflow-x-auto overscroll-x-contain scroll-pl-1 pb-0.5 [-webkit-overflow-scrolling:touch] scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent',
   listStyle: {
     scrollbarWidth: 'thin',
   } satisfies CSSProperties,
   item: {
-    base: 'group flex min-h-[44px] shrink-0 items-center gap-2.5 rounded-2xl border px-3 py-2 text-left text-sm font-medium outline-none transition-[background-color,border-color,box-shadow] duration-200 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-reduce:transition-none sm:px-3.5',
+    base: 'group flex min-h-11 min-w-[44px] shrink-0 items-center gap-2.5 rounded-2xl border px-3 py-2 text-left text-sm font-medium outline-none transition-[background-color,border-color,box-shadow] duration-200 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-reduce:transition-none sm:min-h-[48px] sm:px-3.5',
     active:
       'border-primary/35 bg-primary/[0.1] text-foreground shadow-sm ring-1 ring-inset ring-primary/15 dark:bg-primary/15',
     inactive:
@@ -35,7 +36,7 @@ export const userSelectorStyles = {
   initials: 'leading-none',
   label: 'max-w-[6.5rem] truncate sm:max-w-[7.5rem]',
   dots: {
-    container: 'mt-2 flex justify-center gap-1.5',
+    container: 'mt-2 flex max-w-full justify-center gap-1.5 overflow-x-auto pb-0.5 scrollbar-hide',
     base: 'h-1 rounded-full transition-all duration-300',
     active: 'w-4 bg-primary/70',
     inactive: 'w-1.5 bg-muted-foreground/25',

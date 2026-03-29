@@ -174,6 +174,7 @@ export default function HomeContent({
             <div className={dashboardStyles.recurringSection.container}>
               <RecurringSeriesSection
                 {...recurringProps}
+                homeDashboardListLayout
                 {...(typeof recurringMaxItems === 'number' ? { maxItems: recurringMaxItems } : {})}
               />
             </div>

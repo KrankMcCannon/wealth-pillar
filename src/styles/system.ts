@@ -120,8 +120,8 @@ export const vibrantGradients = {
   dark: 'bg-gradient-to-br from-slate-800 to-slate-950',
   subtle: 'bg-gradient-to-br from-primary/5 to-primary/10',
   glow: {
-    primary: 'shadow-[0_0_20px_rgba(168,85,247,0.4)]',
-    success: 'shadow-[0_0_20px_rgba(52,211,153,0.4)]',
+    primary: 'shadow-[0_0_16px_rgba(168,85,247,0.22)]',
+    success: 'shadow-[0_0_16px_rgba(52,211,153,0.22)]',
   },
   text: {
     primary:
@@ -133,7 +133,7 @@ export const microAnimations = {
   hover: {
     scale: 'hover:scale-105 transition-transform duration-200 ease-out',
     lift: 'hover:-translate-y-1 hover:shadow-lg transition-all duration-300 ease-out',
-    glow: 'hover:shadow-[0_0_15px_rgba(var(--primary-rgb),0.3)] transition-shadow duration-300',
+    glow: 'hover:shadow-[0_0_12px_rgba(var(--primary-rgb),0.18)] transition-shadow duration-300',
   },
   entry: {
     fade: 'animate-in fade-in duration-500 ease-out',

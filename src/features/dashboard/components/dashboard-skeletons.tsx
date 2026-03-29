@@ -92,14 +92,18 @@ export function BalanceSectionSkeleton() {
       </div>
 
       <div className={accountStyles.totalBalanceLink.embeddedContainer} aria-hidden>
-        <div className={`flex min-w-0 flex-1 items-center gap-3 sm:gap-4 ${skeletonClasses.shimmer}`}>
+        <div
+          className={`flex min-w-0 flex-1 items-center gap-3 sm:gap-4 ${skeletonClasses.shimmer}`}
+        >
           <div className="size-12 shrink-0 rounded-xl bg-muted/60 sm:size-14" />
           <div className="flex min-w-0 flex-1 flex-col gap-2">
             <div className="h-2.5 w-24 rounded bg-muted/50" />
             <div className="h-8 w-40 max-w-full rounded-md bg-muted/50 sm:h-9 sm:w-44" />
           </div>
         </div>
-        <div className={`h-10 w-28 shrink-0 rounded-full bg-muted/50 sm:h-11 ${skeletonClasses.shimmer}`} />
+        <div
+          className={`h-10 w-28 shrink-0 rounded-full bg-muted/50 sm:h-11 ${skeletonClasses.shimmer}`}
+        />
       </div>
     </section>
   );
@@ -166,7 +170,7 @@ export function RecurringSeriesSkeleton() {
 
       <SkeletonList
         count={3}
-        spacing={dashboardStyles.recurringSection.grid}
+        spacing={dashboardStyles.recurringSection.skeletonListSpacing}
         renderItem={() => (
           <div className={dashboardStyles.recurringSection.seriesCard.container}>
             <div className={dashboardStyles.skeletons.recurringRow}>
