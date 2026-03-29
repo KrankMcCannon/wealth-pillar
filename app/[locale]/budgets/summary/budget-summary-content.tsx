@@ -1,6 +1,5 @@
 'use client';
 
-import { use } from 'react';
 import { useTranslations } from 'next-intl';
 import { Header, PageContainer, BottomNavigation } from '@/components/layout';
 import { budgetStyles } from '@/styles/system';
@@ -19,17 +18,17 @@ type BudgetSummaryPagePayload = BudgetsPageData & {
 interface BudgetSummaryContentProps {
   currentUser: User;
   groupUsers: User[];
-  pageDataPromise: Promise<BudgetSummaryPagePayload>;
+  pageData: BudgetSummaryPagePayload;
 }
 
 export default function BudgetSummaryContent({
   currentUser,
   groupUsers,
-  pageDataPromise,
+  pageData,
 }: Readonly<BudgetSummaryContentProps>) {
   const t = useTranslations('Budgets.SummaryPage');
 
-  const { categories, budgets, transactions, accounts, budgetsByUser } = use(pageDataPromise);
+  const { categories, budgets, transactions, accounts, budgetsByUser } = pageData;
 
   const {
     userSummary,

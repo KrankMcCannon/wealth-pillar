@@ -1016,6 +1016,12 @@
     "Content": {
       "headerTitle": "Bank Accounts",
       "headerSubtitle": "{count} {count, plural, one {account} other {accounts}}",
+      "sectionContextTitle": "Member",
+      "sectionContextSubtitle": "Filter accounts by group member",
+      "sectionBalanceTitle": "Balances",
+      "sectionBalanceSubtitle": "Quick overview for the current selection",
+      "sectionListTitle": "Your accounts",
+      "sectionListSubtitle": "Tap an account to edit or manage it",
       "totalBalanceLabel": "Total Balance",
       "stats": {
         "total": "Total",
@@ -1169,6 +1175,10 @@
     },
     "Page": {
       "title": "Budgets",
+      "sectionContextTitle": "Member",
+      "sectionContextSubtitle": "Choose whose group budgets you are viewing",
+      "sectionDetailsTitle": "Budget and period",
+      "sectionDetailsSubtitle": "Progress, trend, and linked transactions",
       "today": "Today",
       "transactionCount": "{count} {count, plural, one {transaction} other {transactions}}",
       "transactions": {

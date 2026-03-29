@@ -50,6 +50,18 @@ export async function requirePageAuth(
 }
 
 /**
+ * Ensures the signed-in user belongs to a group before loading group-scoped data.
+ * Throws if missing so the route `error.tsx` can surface a clear recovery UI.
+ */
+export function requireGroupId(currentUser: User): string {
+  const id = currentUser.group_id?.trim();
+  if (!id) {
+    throw new Error('Group ID is required');
+  }
+  return id;
+}
+
+/**
  * Variant that only resolves auth without fetching group users.
  * Use on pages that don't need `groupUsers` (e.g. settings-only paths).
  */

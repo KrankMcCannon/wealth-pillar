@@ -108,11 +108,11 @@ export default function TransactionsContent({
     () =>
       Boolean(
         filters.searchQuery ||
-          filters.type !== 'all' ||
-          filters.dateRange !== 'all' ||
-          filters.categoryKey !== 'all' ||
-          (filters.categoryKeys && filters.categoryKeys.length > 0) ||
-          filters.budgetId
+        filters.type !== 'all' ||
+        filters.dateRange !== 'all' ||
+        filters.categoryKey !== 'all' ||
+        (filters.categoryKeys && filters.categoryKeys.length > 0) ||
+        filters.budgetId
       ),
     [filters]
   );

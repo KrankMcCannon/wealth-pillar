@@ -2,7 +2,8 @@
 
 import { Link, usePathname } from '@/i18n/routing';
 import { BarChart3, CreditCard, Home, PiggyBank, Settings, TrendingUp, Wallet } from 'lucide-react';
-import { Button } from '@/components/ui';
+import { cn } from '@/lib/utils';
+import { buttonStyles } from '@/styles/system';
 import { desktopSidebarStyles } from './theme/desktop-sidebar-styles';
 
 const navItems = [
@@ -46,38 +47,42 @@ export function DesktopSidebar() {
           const Icon = item.icon;
 
           return (
-            <Button
+            <Link
               key={item.href}
-              asChild
-              variant="ghost"
-              className={`${desktopSidebarStyles.navItem} ${
+              href={item.href}
+              prefetch
+              className={cn(
+                buttonStyles.base,
+                'justify-start no-underline',
+                desktopSidebarStyles.navItem,
                 isActive ? desktopSidebarStyles.navItemActive : desktopSidebarStyles.navItemInactive
-              }`}
+              )}
+              aria-current={isActive ? 'page' : undefined}
             >
-              <Link href={item.href}>
-                <Icon className={desktopSidebarStyles.navItemIcon} />
-                <span>{item.label}</span>
-              </Link>
-            </Button>
+              <Icon className={desktopSidebarStyles.navItemIcon} aria-hidden />
+              <span>{item.label}</span>
+            </Link>
           );
         })}
       </nav>
 
       <div className={desktopSidebarStyles.footer}>
-        <Button
-          asChild
-          variant="ghost"
-          className={`${desktopSidebarStyles.navItem} ${
+        <Link
+          href="/settings"
+          prefetch
+          className={cn(
+            buttonStyles.base,
+            'justify-start no-underline',
+            desktopSidebarStyles.navItem,
             isSettingsActive
               ? desktopSidebarStyles.navItemActive
               : desktopSidebarStyles.navItemInactive
-          }`}
+          )}
+          aria-current={isSettingsActive ? 'page' : undefined}
         >
-          <Link href="/settings">
-            <Settings className={desktopSidebarStyles.navItemIcon} />
-            <span>Settings</span>
-          </Link>
-        </Button>
+          <Settings className={desktopSidebarStyles.navItemIcon} aria-hidden />
+          <span>Settings</span>
+        </Link>
       </div>
     </aside>
   );

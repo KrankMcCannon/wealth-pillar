@@ -7,9 +7,10 @@
  * Data is passed from Server Component for optimal performance
  */
 
-import { Suspense, use, useMemo } from 'react';
+import { Suspense, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
-import { BottomNavigation, PageContainer, Header } from '@/components/layout';
+import { BottomNavigation, PageContainer, Header, SectionHeader } from '@/components/layout';
+import { PageSection } from '@/components/ui/layout';
 import { AccountsList, accountStyles, useAccountsContent } from '@/features/accounts';
 import { MetricCard } from '@/components/ui/layout';
 import UserSelector from '@/components/shared/user-selector';
@@ -17,11 +18,12 @@ import { UserSelectorSkeleton } from '@/features/dashboard';
 import { ConfirmationDialog } from '@/components/shared/confirmation-dialog';
 import type { User } from '@/lib/types';
 import type { AccountsPageData } from '@/server/services/page-data.service';
+import { reportsStyles } from '@/styles/system';
 
 interface AccountsContentProps {
   currentUser: User;
   groupUsers: User[];
-  pageDataPromise: Promise<AccountsPageData>;
+  pageData: AccountsPageData;
 }
 
 /**
@@ -31,9 +33,9 @@ interface AccountsContentProps {
 export default function AccountsContent({
   currentUser,
   groupUsers,
-  pageDataPromise,
+  pageData,
 }: AccountsContentProps) {
-  const { accounts, accountBalances } = use(pageDataPromise);
+  const { accounts, accountBalances } = pageData;
   const t = useTranslations('Accounts.Content');
   const {
     accountStats,
@@ -67,9 +69,11 @@ export default function AccountsContent({
     [t, accountStats.totalAccounts, accountStats.positiveAccounts, accountStats.negativeAccounts]
   );
 
+  const sectionSurface =
+    'rounded-2xl border border-primary/15 bg-card/90 shadow-sm ring-1 ring-black/4 dark:ring-white/6 p-3 sm:p-4 md:p-5';
+
   return (
-    <PageContainer className={accountStyles.page.container}>
-      {/* Header Section */}
+    <PageContainer>
       <Header
         title={t('headerTitle')}
         subtitle={t('headerSubtitle', { count: accountStats.totalAccounts })}
@@ -78,34 +82,66 @@ export default function AccountsContent({
         showActions
       />
 
-      {/* User Selector */}
-      <Suspense fallback={<UserSelectorSkeleton />}>
-        <UserSelector currentUser={currentUser} users={groupUsers} />
-      </Suspense>
+      <main className={reportsStyles.main.container}>
+        <section aria-labelledby="accounts-section-context" className={sectionSurface}>
+          <PageSection className="space-y-3 sm:space-y-4">
+            <SectionHeader
+              titleId="accounts-section-context"
+              title={t('sectionContextTitle')}
+              subtitle={t('sectionContextSubtitle')}
+            />
+            <Suspense fallback={<UserSelectorSkeleton />}>
+              <UserSelector currentUser={currentUser} users={groupUsers} />
+            </Suspense>
+          </PageSection>
+        </section>
 
-      {/* Total Balance Card Section */}
-      <div className={accountStyles.balanceCard.container}>
-        <MetricCard
-          label={t('totalBalanceLabel')}
-          value={accountStats.totalBalance}
-          valueType={accountStats.totalBalance >= 0 ? 'income' : 'expense'}
-          valueSize="lg"
-          size="sm"
-          stats={metricStats}
-          variant="highlighted"
-          isLoading={false}
-        />
-      </div>
+        <section
+          aria-labelledby="accounts-section-balance"
+          className={`mt-5 sm:mt-6 ${sectionSurface}`}
+        >
+          <PageSection className="space-y-3 sm:space-y-4">
+            <SectionHeader
+              titleId="accounts-section-balance"
+              title={t('sectionBalanceTitle')}
+              subtitle={t('sectionBalanceSubtitle')}
+            />
+            <div className={accountStyles.balanceCard.container}>
+              <MetricCard
+                label={t('totalBalanceLabel')}
+                value={accountStats.totalBalance}
+                valueType={accountStats.totalBalance >= 0 ? 'income' : 'expense'}
+                valueSize="lg"
+                size="sm"
+                stats={metricStats}
+                variant="default"
+                isLoading={false}
+              />
+            </div>
+          </PageSection>
+        </section>
 
-      {/* Accounts List Section */}
-      <AccountsList
-        accounts={sortedAccounts}
-        accountBalances={filteredBalances}
-        onAccountClick={handleEditAccount}
-        onEditAccount={handleEditAccount}
-        onDeleteAccount={handleDeleteAccount}
-        isLoading={false}
-      />
+        <section
+          aria-labelledby="accounts-section-list"
+          className={`mt-5 sm:mt-6 ${sectionSurface}`}
+        >
+          <PageSection className="space-y-3 sm:space-y-4">
+            <SectionHeader
+              titleId="accounts-section-list"
+              title={t('sectionListTitle')}
+              subtitle={t('sectionListSubtitle')}
+            />
+            <AccountsList
+              accounts={sortedAccounts}
+              accountBalances={filteredBalances}
+              onAccountClick={handleEditAccount}
+              onEditAccount={handleEditAccount}
+              onDeleteAccount={handleDeleteAccount}
+              isLoading={false}
+            />
+          </PageSection>
+        </section>
+      </main>
 
       <BottomNavigation />
 

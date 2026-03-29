@@ -1,32 +1,27 @@
 /**
  * Accounts Page - Server Component
+ *
+ * Await page data on the server so client navigations (e.g. desktop sidebar)
+ * always get resolved props instead of a cross-boundary Promise + use().
  */
 
-import { Suspense } from 'react';
-import { requirePageAuth } from '@/lib/auth/page-auth';
+import { requireGroupId, requirePageAuth } from '@/lib/auth/page-auth';
 import { PageDataService } from '@/server/services';
 import AccountsContent from './accounts-content';
-import { AccountHeaderSkeleton } from '@/features/accounts/components/account-skeletons';
 
 export default async function AccountsPage({
   params,
 }: Readonly<{ params: Promise<{ locale: string }> }>) {
   const { currentUser, groupUsers } = await requirePageAuth(params);
+  const groupId = requireGroupId(currentUser);
 
-  const pageDataPromise = PageDataService.getAccountsPageData(currentUser.group_id || '').catch(
-    (err) => {
-      const message = err instanceof Error ? err.message : 'Errore nel caricamento degli account';
-      throw new Error(message, { cause: err });
-    }
-  );
+  let pageData;
+  try {
+    pageData = await PageDataService.getAccountsPageData(groupId);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Errore nel caricamento degli account';
+    throw new Error(message, { cause: err });
+  }
 
-  return (
-    <Suspense fallback={<AccountHeaderSkeleton />}>
-      <AccountsContent
-        currentUser={currentUser}
-        groupUsers={groupUsers}
-        pageDataPromise={pageDataPromise}
-      />
-    </Suspense>
-  );
+  return <AccountsContent currentUser={currentUser} groupUsers={groupUsers} pageData={pageData} />;
 }

@@ -31,7 +31,7 @@ const accountTokens = {
 
     // Balance Card
     balanceCard: {
-      container: `bg-card ${radiusStyles.lg} p-3 border border-primary/20 ${shadowStyles.lg} relative overflow-hidden`,
+      container: `bg-card/80 ${radiusStyles.lg} p-3 border border-border/60 ${shadowStyles.sm} relative overflow-hidden`,
       mainRow: 'flex flex-col gap-2.5',
       balanceSection: 'w-full',
       header: 'flex flex-col items-start',

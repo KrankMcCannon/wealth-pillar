@@ -12,8 +12,8 @@
  * - CRUD handlers
  */
 
-import { useState, useMemo, useEffect, useCallback } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useState, useMemo, useEffect, useLayoutEffect, useCallback, useRef } from 'react';
+import { useSearchParams, useRouter as useNextRouter } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import {
   useDeleteConfirmation,
@@ -133,6 +133,7 @@ export function useBudgetsContent({
   precalculatedData,
 }: UseBudgetsContentProps): UseBudgetsContentReturn {
   const router = useRouter();
+  const nextRouter = useNextRouter();
   const searchParams = useSearchParams();
   const locale = useLocale();
   const t = useTranslations('Budgets.Page');
@@ -147,14 +148,22 @@ export function useBudgetsContent({
   const removeBudget = usePageDataStore((state) => state.removeBudget);
   const addBudget = usePageDataStore((state) => state.addBudget);
 
-  // Initialize store with server data on mount
-  useEffect(() => {
-    setBudgets(budgets);
-  }, [budgets, setBudgets]);
+  /** After optimistic budget mutations, prefer store even when empty so we do not flash stale server props */
+  const userMutatedBudgetsRef = useRef(false);
 
-  useEffect(() => {
+  // Sync server payload before paint; reset mutation flag when a new server payload arrives
+  useLayoutEffect(() => {
+    userMutatedBudgetsRef.current = false;
+    setBudgets(budgets);
     setBudgetPeriods(budgetPeriods);
-  }, [budgetPeriods, setBudgetPeriods]);
+  }, [budgets, budgetPeriods, setBudgets, setBudgetPeriods]);
+
+  const budgetsForLists =
+    storeBudgets.length > 0
+      ? storeBudgets
+      : budgets.length === 0 || userMutatedBudgetsRef.current
+        ? storeBudgets
+        : budgets;
 
   // ========================================================================
   // User Filtering & Permissions
@@ -175,7 +184,7 @@ export function useBudgetsContent({
 
   // Filter budgets by selected user
   const { filteredData: userBudgets } = useFilteredData({
-    data: storeBudgets,
+    data: budgetsForLists,
     currentUser,
     selectedUserId,
     additionalFilter: (budget) => budget.amount > 0,
@@ -184,7 +193,7 @@ export function useBudgetsContent({
   // Selected budget state - initialized from URL or first available budget
   const [selectedBudgetId, setSelectedBudgetId] = useState<string | null>(() => {
     if (initialBudgetId) {
-      const budget = storeBudgets.find((b) => b.id === initialBudgetId);
+      const budget = budgets.find((b) => b.id === initialBudgetId);
       if (budget && budget.amount > 0) {
         if (isAdmin) {
           const groupUserIds = groupUsers.map((u) => u.id);
@@ -239,7 +248,7 @@ export function useBudgetsContent({
   // Calculate budget summary for the selected budget's user
   const { budgetsByUser } = useBudgetsByUser({
     groupUsers: hookGroupUsers,
-    budgets: storeBudgets,
+    budgets: budgetsForLists,
     transactions,
     currentUser,
     selectedUserId: selectedBudgetUser.id,
@@ -422,6 +431,7 @@ export function useBudgetsContent({
 
   const confirmDeleteBudget = useCallback(async () => {
     await deleteConfirm.executeDelete(async (budget) => {
+      userMutatedBudgetsRef.current = true;
       // Optimistic UI update
       removeBudget(budget.id);
 
@@ -434,6 +444,8 @@ export function useBudgetsContent({
           throw new Error(result.error);
         }
 
+        nextRouter.refresh();
+
         // Clear selected budget if it was deleted
         if (selectedBudgetId === budget.id) {
           setSelectedBudgetId(null);
@@ -444,7 +456,7 @@ export function useBudgetsContent({
         throw error;
       }
     });
-  }, [deleteConfirm, removeBudget, addBudget, selectedBudgetId, locale]);
+  }, [deleteConfirm, removeBudget, addBudget, selectedBudgetId, locale, nextRouter]);
 
   // ========================================================================
   // Return

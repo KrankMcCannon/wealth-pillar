@@ -1,5 +1,5 @@
 import { Suspense } from 'react';
-import { requirePageAuth } from '@/lib/auth/page-auth';
+import { requireGroupId, requirePageAuth } from '@/lib/auth/page-auth';
 import { ReportsService } from '@/server/services';
 import ReportsLoading from './loading';
 import ReportsContent from './reports-content';
@@ -10,10 +10,7 @@ export default async function ReportsPage({
   const { currentUser, groupUsers } = await requirePageAuth(params);
 
   const groupUserIds = groupUsers.map((u) => u.id);
-  const groupId = currentUser.group_id;
-  if (!groupId) {
-    throw new Error('Reports require a group');
-  }
+  const groupId = requireGroupId(currentUser);
 
   const reportsBundlePromise = (async () => {
     const reportsData = await ReportsService.getReportsData(groupId, groupUserIds);

@@ -1016,6 +1016,12 @@
     "Content": {
       "headerTitle": "Conti Bancari",
       "headerSubtitle": "{count} {count, plural, one {conto} other {conti}}",
+      "sectionContextTitle": "Membro",
+      "sectionContextSubtitle": "Filtra i conti per membro del gruppo",
+      "sectionBalanceTitle": "Saldi",
+      "sectionBalanceSubtitle": "Panoramica rapida sui conti selezionati",
+      "sectionListTitle": "I tuoi conti",
+      "sectionListSubtitle": "Tocca un conto per modificarlo o gestirlo",
       "totalBalanceLabel": "Saldo Totale",
       "stats": {
         "total": "Totale",
@@ -1169,6 +1175,10 @@
     },
     "Page": {
       "title": "Budget",
+      "sectionContextTitle": "Membro",
+      "sectionContextSubtitle": "Scegli per chi visualizzare i budget del gruppo",
+      "sectionDetailsTitle": "Budget e periodo",
+      "sectionDetailsSubtitle": "Progressi, andamento e transazioni collegate",
       "today": "Oggi",
       "transactionCount": "{count} {count, plural, one {transazione} other {transazioni}}",
       "transactions": {

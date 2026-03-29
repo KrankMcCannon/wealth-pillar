@@ -231,7 +231,12 @@ body {
 }
 
 body {
-  font-family: var(--font-sans), var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+  font-family:
+    var(--font-sans),
+    var(--font-geist-sans),
+    system-ui,
+    -apple-system,
+    sans-serif;
   line-height: 1.6;
   background-color: var(--color-background);
   color: var(--color-foreground);

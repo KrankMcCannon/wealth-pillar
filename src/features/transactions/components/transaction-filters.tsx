@@ -795,16 +795,13 @@ export function TransactionFilters({
                 onOpenChange={(open) => setActiveDrawer(open ? 'type' : null)}
               >
                 <FilterChip
-                  label={
-                    filters.type === 'all' ? t('chips.type') : getTypeLabel(filters.type, t)
-                  }
+                  label={filters.type === 'all' ? t('chips.type') : getTypeLabel(filters.type, t)}
                   isActive={activeDrawer === 'type'}
                   hasValue={filters.type !== 'all'}
                   onClick={() => setActiveDrawer('type')}
                   onClear={() => handleTypeChange('all')}
                   clearAriaLabel={t('clearFilterAria', {
-                    label:
-                      filters.type === 'all' ? t('chips.type') : getTypeLabel(filters.type, t),
+                    label: filters.type === 'all' ? t('chips.type') : getTypeLabel(filters.type, t),
                   })}
                 />
                 <DrawerContent className={transactionStyles.filters.drawer.content}>
@@ -872,7 +869,6 @@ export function TransactionFilters({
           </div>
         )}
       </div>
-
     </div>
   );
 }

@@ -138,9 +138,34 @@ function EmptyContent({
         <svg viewBox="0 0 48 48" fill="none" aria-hidden className="h-12 w-12">
           <rect x="9" y="3" width="30" height="42" rx="3" stroke="currentColor" strokeWidth="1.5" />
           <path d="M9 6a3 3 0 0 1 3-3h24a3 3 0 0 1 3 3v7H9V6Z" fill="currentColor" opacity="0.1" />
-          <line x1="15" y1="22" x2="33" y2="22" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-          <line x1="15" y1="28" x2="29" y2="28" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-          <line x1="15" y1="34" x2="23" y2="34" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" opacity="0.3" />
+          <line
+            x1="15"
+            y1="22"
+            x2="33"
+            y2="22"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+          />
+          <line
+            x1="15"
+            y1="28"
+            x2="29"
+            y2="28"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+          />
+          <line
+            x1="15"
+            y1="34"
+            x2="23"
+            y2="34"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            opacity="0.3"
+          />
         </svg>
       </div>
       <p className={s.emptyTitle}>{title}</p>

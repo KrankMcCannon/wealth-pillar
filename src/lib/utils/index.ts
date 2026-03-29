@@ -2,11 +2,7 @@
  * React Utils Layer - Utility functions and helpers for React applications
  */
 // Currency
-export {
-  formatCurrency,
-  formatCurrencyLocale,
-  APP_CURRENCY_CODE,
-} from './currency-formatter';
+export { formatCurrency, formatCurrencyLocale, APP_CURRENCY_CODE } from './currency-formatter';
 
 // Date & Time
 export {

@@ -1,32 +1,27 @@
 /**
  * Budgets Page - Server Component
+ *
+ * Data is awaited here (not passed as a Promise to the client) so client-side
+ * navigation from the desktop sidebar reliably receives a serializable payload.
  */
 
-import { Suspense } from 'react';
-import { requirePageAuth } from '@/lib/auth/page-auth';
+import { requireGroupId, requirePageAuth } from '@/lib/auth/page-auth';
 import { PageDataService } from '@/server/services';
 import BudgetsContent from './budgets-content';
-import { BudgetSelectorSkeleton } from '@/features/budgets/components';
 
 export default async function BudgetsPage({
   params,
 }: Readonly<{ params: Promise<{ locale: string }> }>) {
   const { currentUser, groupUsers } = await requirePageAuth(params);
+  const groupId = requireGroupId(currentUser);
 
-  const pageDataPromise = PageDataService.getBudgetsPageData(currentUser.group_id || '').catch(
-    (err) => {
-      const message = err instanceof Error ? err.message : 'Errore nel caricamento dei budget';
-      throw new Error(message, { cause: err });
-    }
-  );
+  let pageData;
+  try {
+    pageData = await PageDataService.getBudgetsPageData(groupId);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Errore nel caricamento dei budget';
+    throw new Error(message, { cause: err });
+  }
 
-  return (
-    <Suspense fallback={<BudgetSelectorSkeleton />}>
-      <BudgetsContent
-        currentUser={currentUser}
-        groupUsers={groupUsers}
-        pageDataPromise={pageDataPromise}
-      />
-    </Suspense>
-  );
+  return <BudgetsContent currentUser={currentUser} groupUsers={groupUsers} pageData={pageData} />;
 }
