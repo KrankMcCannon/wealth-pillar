@@ -3,6 +3,7 @@
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
 import { formatCurrency } from '@/lib/utils';
 import { useTranslations } from 'next-intl';
+import { EmptyState } from '@/components/shared';
 
 interface CategoryDistributionProps {
   data: { id: string; name: string; value: number; color: string }[];
@@ -12,7 +13,23 @@ interface CategoryDistributionProps {
 export function CategoryDistribution({ data, total }: CategoryDistributionProps) {
   const t = useTranslations('Reports.Charts');
 
-  if (!data || data.length === 0) return null;
+  if (!data || data.length === 0) {
+    return (
+      <div className="bg-card border border-primary/15 rounded-xl p-4 sm:p-6 h-full flex flex-col">
+        <div className="mb-4">
+          <h2 className="text-base sm:text-lg font-semibold text-primary">
+            {t('categoryDistributionTitle')}
+          </h2>
+          <p className="text-xs sm:text-sm text-muted-foreground text-pretty line-clamp-3">
+            {t('categoryDistributionSubtitle')}
+          </p>
+        </div>
+        <div className="flex-1 flex items-center justify-center">
+          <EmptyState title={t('noData')} />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-card border border-primary/15 rounded-xl p-4 sm:p-6 h-full">
@@ -20,7 +37,7 @@ export function CategoryDistribution({ data, total }: CategoryDistributionProps)
         <h2 className="text-base sm:text-lg font-semibold text-primary">
           {t('categoryDistributionTitle')}
         </h2>
-        <p className="text-xs sm:text-sm text-muted-foreground">
+        <p className="text-xs sm:text-sm text-muted-foreground text-pretty line-clamp-3">
           {t('categoryDistributionSubtitle')}
         </p>
       </div>
@@ -102,41 +119,28 @@ export function CategoryDistribution({ data, total }: CategoryDistributionProps)
         </div>
 
         {/* Lista categorie */}
-        <div className="w-full space-y-2 max-h-[200px] overflow-y-auto pr-1">
+        <div className="w-full space-y-1">
           {data.map((item) => (
             <div
               key={item.id}
-              className="flex items-center justify-between rounded-lg p-2 hover:bg-primary/5 transition-colors"
+              className="flex items-center justify-between rounded-lg px-2 py-1.5 hover:bg-primary/5 transition-colors"
             >
-              <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+              <div className="flex items-center gap-2.5 flex-1 min-w-0">
                 <div
-                  className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center shrink-0"
-                  style={{ backgroundColor: `${item.color}20` }}
-                >
-                  <div className="h-3 w-3 rounded-full" style={{ backgroundColor: item.color }} />
-                </div>
-                <div className="flex flex-col flex-1 min-w-0">
-                  <span className="text-xs sm:text-sm font-medium text-primary truncate">
-                    {item.name}
-                  </span>
-                  <div className="h-1 sm:h-1.5 w-full bg-primary/8 rounded-full mt-1 overflow-hidden">
-                    <div
-                      className="h-full rounded-full"
-                      style={{
-                        width: `${(item.value / total) * 100}%`,
-                        backgroundColor: item.color,
-                      }}
-                    />
-                  </div>
-                </div>
+                  className="w-2.5 h-2.5 rounded-full shrink-0"
+                  style={{ backgroundColor: item.color }}
+                />
+                <span className="text-xs sm:text-sm font-medium text-primary truncate">
+                  {item.name}
+                </span>
               </div>
-              <div className="text-right shrink-0 ml-2">
-                <div className="text-xs sm:text-sm font-bold text-primary tabular-nums">
+              <div className="text-right shrink-0 ml-3">
+                <span className="text-xs sm:text-sm font-bold text-primary tabular-nums">
                   {formatCurrency(item.value)}
-                </div>
-                <div className="text-[10px] sm:text-xs text-muted-foreground">
-                  {((item.value / total) * 100).toFixed(1)}%
-                </div>
+                </span>
+                <span className="text-[10px] sm:text-xs text-muted-foreground ml-1.5">
+                  {((item.value / total) * 100).toFixed(0)}%
+                </span>
               </div>
             </div>
           ))}

@@ -8,6 +8,8 @@ import { layoutStyles } from '@/styles/system';
 
 export interface SectionHeaderProps {
   title: React.ReactNode;
+  /** Per aria-labelledby su sezioni contenitore */
+  titleId?: string;
   subtitle?: React.ReactNode;
   icon?: React.ElementType<{ className?: string }>;
   iconClassName?: string;
@@ -25,6 +27,7 @@ export interface SectionHeaderProps {
 
 export function SectionHeader({
   title,
+  titleId,
   subtitle,
   icon: Icon,
   iconClassName = 'text-primary',
@@ -39,7 +42,7 @@ export function SectionHeader({
   return (
     <div className={cn(layoutStyles.section.headerRow, className)}>
       <div className="flex flex-col gap-1">
-        <Text as="h2" className={cn(layoutStyles.section.title, titleClassName)}>
+        <Text as="h2" id={titleId} className={cn(layoutStyles.section.title, titleClassName)}>
           {title}
         </Text>
         {subtitle && (

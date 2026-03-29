@@ -3,14 +3,7 @@
 import { formatCurrency } from '@/lib/utils';
 import { useTranslations } from 'next-intl';
 import type { UserFlowSummary } from '@/server/services/reports.service';
-import {
-  ArrowUpCircle,
-  ArrowDownCircle,
-  Wallet,
-  Landmark,
-  Banknote,
-  PiggyBank,
-} from 'lucide-react';
+import { Wallet, Landmark, Banknote, PiggyBank } from 'lucide-react';
 
 interface BudgetFlowVisualizerProps {
   userFlow: UserFlowSummary;
@@ -35,8 +28,7 @@ const defaultColorClass = {
   border: 'border-border',
 };
 
-const knownAccountTypes = ['payroll', 'cash', 'savings'] as const;
-type KnownAccountType = (typeof knownAccountTypes)[number];
+type KnownAccountType = 'payroll' | 'cash' | 'savings';
 
 export function BudgetFlowVisualizer({ userFlow }: BudgetFlowVisualizerProps) {
   const t = useTranslations('Reports.Charts');
@@ -48,96 +40,28 @@ export function BudgetFlowVisualizer({ userFlow }: BudgetFlowVisualizerProps) {
   };
 
   const getAccountLabel = (type: string): string =>
-    accountTypeLabels[type as KnownAccountType] ??
-    type.charAt(0).toUpperCase() + type.slice(1);
+    accountTypeLabels[type as KnownAccountType] ?? type.charAt(0).toUpperCase() + type.slice(1);
 
-  const { totalEarned, totalSpent, netFlow, accounts } = userFlow;
+  const { accounts } = userFlow;
   const maxFlow = Math.max(...accounts.flatMap((a) => [a.earned, a.spent, 1]));
 
   return (
-    <div className="bg-card border border-primary/15 rounded-xl p-4 sm:p-6 space-y-4">
-      {/* Header */}
-      <div>
-        <h2 className="text-base sm:text-lg font-semibold text-primary">{t('flowTitle')}</h2>
-        <p className="text-xs sm:text-sm text-muted-foreground">{t('flowSubtitle')}</p>
-      </div>
-
-      {/* Riepilogo totali */}
-      <div className="grid grid-cols-3 gap-2">
-        <div className="flex flex-col p-2 sm:p-3 rounded-xl bg-success/5 border border-success/15">
-          <div className="flex items-center gap-1 mb-1">
-            <ArrowUpCircle className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-success shrink-0" aria-hidden />
-            <span className="text-[9px] sm:text-[10px] uppercase font-semibold text-success/70 tracking-wide truncate">
-              {t('income')}
-            </span>
-          </div>
-          <span className="text-xs sm:text-sm font-bold text-success tabular-nums">
-            +{formatCurrency(totalEarned)}
-          </span>
-        </div>
-
-        <div className="flex flex-col p-2 sm:p-3 rounded-xl bg-destructive/5 border border-destructive/15">
-          <div className="flex items-center gap-1 mb-1">
-            <ArrowDownCircle className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-destructive shrink-0" aria-hidden />
-            <span className="text-[9px] sm:text-[10px] uppercase font-semibold text-destructive/70 tracking-wide truncate">
-              {t('expense')}
-            </span>
-          </div>
-          <span className="text-xs sm:text-sm font-bold text-destructive tabular-nums">
-            -{formatCurrency(totalSpent)}
-          </span>
-        </div>
-
-        <div
-          className={`flex flex-col p-2 sm:p-3 rounded-xl border ${
-            netFlow >= 0
-              ? 'bg-success/5 border-success/15'
-              : 'bg-destructive/5 border-destructive/15'
-          }`}
-        >
-          <div className="flex items-center gap-1 mb-1">
-            <Wallet
-              className={`w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0 ${netFlow >= 0 ? 'text-success' : 'text-destructive'}`}
-              aria-hidden
-            />
-            <span
-              className={`text-[9px] sm:text-[10px] uppercase font-semibold tracking-wide truncate ${
-                netFlow >= 0 ? 'text-success/70' : 'text-destructive/70'
-              }`}
-            >
-              {t('net')}
-            </span>
-          </div>
-          <span
-            className={`text-xs sm:text-sm font-bold tabular-nums ${
-              netFlow >= 0 ? 'text-success' : 'text-destructive'
-            }`}
-          >
-            {netFlow >= 0 ? '+' : ''}
-            {formatCurrency(netFlow)}
-          </span>
-        </div>
-      </div>
-
-      {/* Card per tipo di conto */}
-      <div className="space-y-3">
+    <div className="bg-card border border-primary/15 rounded-xl p-4 sm:p-6">
+      <div className="divide-y divide-primary/8">
         {accounts.map((acct) => {
           const colorClass = accountTypeColorClasses[acct.accountType] || defaultColorClass;
           const icon = accountTypeIcons[acct.accountType] || <Wallet className="w-4 h-4" />;
-          const startBalance = acct.balance - acct.earned + acct.spent;
-          const totalIn = acct.earned + startBalance;
-          const inPct = maxFlow > 0 ? Math.min((totalIn / maxFlow) * 100, 100) : 0;
+          const inPct = maxFlow > 0 ? Math.min((acct.earned / maxFlow) * 100, 100) : 0;
           const outPct = maxFlow > 0 ? Math.min((acct.spent / maxFlow) * 100, 100) : 0;
 
           return (
-            <div
-              key={acct.accountType}
-              className="p-3 sm:p-4 rounded-xl bg-card border border-primary/10"
-            >
+            <div key={acct.accountType} className="py-3 first:pt-0 last:pb-0">
               {/* Intestazione conto */}
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2.5">
-                  <div className={`p-2 rounded-lg ${colorClass.bg} ${colorClass.text}`}>{icon}</div>
+                  <div className={`p-1.5 rounded-lg ${colorClass.bg} ${colorClass.text}`}>
+                    {icon}
+                  </div>
                   <span className="font-semibold text-sm text-primary">
                     {getAccountLabel(acct.accountType)}
                   </span>
@@ -153,21 +77,21 @@ export function BudgetFlowVisualizer({ userFlow }: BudgetFlowVisualizerProps) {
                   <span className="text-[10px] font-semibold text-success/80 w-10 shrink-0 uppercase">
                     {t('in')}
                   </span>
-                  <div className="flex-1 h-2 bg-primary/8 rounded-full overflow-hidden">
+                  <div className="flex-1 h-1.5 bg-primary/8 rounded-full overflow-hidden">
                     <div
                       className="h-full w-full bg-success/60 rounded-full origin-left transition-transform duration-500 ease-out"
                       style={{ transform: `scaleX(${inPct / 100})` }}
                     />
                   </div>
                   <span className="text-xs text-success tabular-nums font-medium shrink-0 w-20 text-right">
-                    +{formatCurrency(totalIn)}
+                    +{formatCurrency(acct.earned)}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] font-semibold text-destructive/80 w-10 shrink-0 uppercase">
                     {t('out')}
                   </span>
-                  <div className="flex-1 h-2 bg-primary/8 rounded-full overflow-hidden">
+                  <div className="flex-1 h-1.5 bg-primary/8 rounded-full overflow-hidden">
                     <div
                       className="h-full w-full bg-destructive/60 rounded-full origin-left transition-transform duration-500 ease-out"
                       style={{ transform: `scaleX(${outPct / 100})` }}
@@ -180,7 +104,7 @@ export function BudgetFlowVisualizer({ userFlow }: BudgetFlowVisualizerProps) {
               </div>
 
               {/* Net */}
-              <div className="flex justify-end mt-2 pt-2 border-t border-primary/8">
+              <div className="flex justify-end mt-2">
                 <span
                   className={`text-xs font-semibold tabular-nums ${
                     acct.net >= 0 ? 'text-success' : 'text-destructive'

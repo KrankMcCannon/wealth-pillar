@@ -327,28 +327,38 @@
   },
   "ReportsContent": {
     "headerTitle": "Reports",
-    "sectionTimeTrendsAriaLabel": "Time trends",
-    "sectionCategoriesAriaLabel": "Category distribution",
-    "sectionBudgetFlowAriaLabel": "Budget flow",
-    "sectionPeriodsAriaLabel": "Report periods"
+    "sectionGroupTitle": "Group overview",
+    "sectionGroupSubtitle": "Overall balance, trends, and spending split across the whole group.",
+    "sectionChartsTitle": "Trends and categories",
+    "sectionChartsSubtitle": "Aggregated from everyone’s transactions in the range selected above.",
+    "sectionMemberTitle": "Member detail",
+    "sectionMemberSubtitle": "Pick someone to see their linked accounts, cash flow, and period history.",
+    "sectionBudgetFlowAriaLabel": "Budget flow for the selected member",
+    "sectionPeriodsAriaLabel": "Period history"
   },
   "Reports": {
     "SummarySection": {
       "title": "Summary",
-      "totalBalance": "Total Balance",
-      "acrossAllAccounts": "across all accounts",
-      "netFlow": "Net Flow",
+      "totalBalance": "Total balance",
+      "groupBalanceFootnote": "All group accounts",
+      "memberBalanceFootnote": "Accounts linked to {name}",
+      "groupInPeriod": "Whole group · selected range",
+      "groupAllTime": "Whole group · all time",
+      "memberInPeriod": "{name} · selected range",
+      "memberAllTime": "{name} · all time",
+      "netFlow": "Net flow",
       "income": "Income",
       "expenses": "Expenses",
-      "thisPeriod": "this period",
       "savingsRate": "savings rate",
       "incomeLabel": "Income",
       "expensesLabel": "Expenses",
-      "empty": "No summary data available."
+      "empty": "No group accounts to show.",
+      "emptyDescription": "Add an account or log transactions to see balances and trends here.",
+      "emptyCta": "Go to transactions"
     },
     "PeriodsSection": {
-      "title": "Report Periods",
-      "empty": "No periods found for this range."
+      "title": "Period history",
+      "empty": "No periods in this range."
     },
     "CategoriesSection": {
       "title": "Category Breakdown",
@@ -358,15 +368,16 @@
     },
     "Charts": {
       "timeTrendsTitle": "Income & Expense Trends",
-      "timeTrendsSubtitle": "Track your financial flow over time",
-      "categoryDistributionTitle": "Spending by Category",
-      "categoryDistributionSubtitle": "Where your money goes",
+      "timeTrendsSubtitle": "Group-wide income and spending over time",
+      "categoryDistributionTitle": "Spending by category",
+      "categoryDistributionSubtitle": "How group spending splits across categories",
       "flowTitle": "Budget Flow",
-      "flowSubtitle": "How money moves through your accounts",
+      "flowSubtitle": "Movement across account types for this member",
       "income": "Income",
       "expense": "Expenses",
       "total": "Total",
-      "noData": "No data available",
+      "noData": "No data for this period.",
+      "chartLegendAriaLabel": "Legend: green bars income, red bars expenses",
       "net": "Net",
       "in": "In",
       "out": "Out",
@@ -427,10 +438,12 @@
       "incomeLabel": "Income",
       "expensesLabel": "Expenses",
       "netLabel": "Net",
-      "netSavingsLabel": "Net Savings",
-      "byAccountTypeTitle": "By Account Type",
-      "inLabel": "In",
-      "outLabel": "Out"
+      "netSavingsLabel": "Net",
+      "byAccountTypeTitle": "Account breakdown",
+      "inLabel": "Income",
+      "outLabel": "Expenses",
+      "showDetails": "Show breakdown",
+      "hideDetails": "Hide"
     }
   },
   "InvestmentsPage": {

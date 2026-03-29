@@ -4,15 +4,13 @@ import { useMemo } from 'react';
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { formatCurrency } from '@/lib/utils';
 import { useTranslations, useLocale } from 'next-intl';
+import { EmptyState } from '@/components/shared';
 
 interface TimeTrendsChartProps {
   data: { date: string; income: number; expense: number }[];
 }
 
-function smartAggregate(
-  data: { date: string; income: number; expense: number }[],
-  locale: string
-) {
+function smartAggregate(data: { date: string; income: number; expense: number }[], locale: string) {
   const monthAbbr = (date: Date) =>
     new Intl.DateTimeFormat(locale, { month: 'short' }).format(date);
 
@@ -62,35 +60,27 @@ export function TimeTrendsChart({ data }: TimeTrendsChartProps) {
     return smartAggregate(data, locale);
   }, [data, locale]);
 
+  const formatYAxisValue = useMemo(
+    () => (value: number) =>
+      new Intl.NumberFormat(locale, {
+        style: 'currency',
+        currency: 'EUR',
+        notation: 'compact',
+        maximumFractionDigits: 1,
+      }).format(value),
+    [locale]
+  );
+
   if (chartData.length === 0) {
     return (
       <div className="bg-card border border-primary/15 rounded-xl p-4 sm:p-6">
-        <div className="flex h-[250px] sm:h-[300px] items-center justify-center text-sm text-muted-foreground">
-          {t('noData')}
-        </div>
+        <EmptyState title={t('noData')} />
       </div>
     );
   }
 
-  const formatYAxisValue = (value: number) =>
-    new Intl.NumberFormat('it-IT', {
-      style: 'currency',
-      currency: 'EUR',
-      notation: 'compact',
-      maximumFractionDigits: 1,
-    }).format(value);
-
   return (
     <div className="bg-card border border-primary/15 rounded-xl p-4 sm:p-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4 sm:mb-6">
-        <div>
-          <h2 className="text-base sm:text-lg font-semibold text-primary">
-            {t('timeTrendsTitle')}
-          </h2>
-          <p className="text-xs sm:text-sm text-muted-foreground">{t('timeTrendsSubtitle')}</p>
-        </div>
-      </div>
-
       <div className="w-full h-[250px] sm:h-[300px] md:h-[350px]">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
@@ -99,11 +89,7 @@ export function TimeTrendsChart({ data }: TimeTrendsChartProps) {
             barCategoryGap="20%"
             barGap={4}
           >
-            <CartesianGrid
-              strokeDasharray="3 3"
-              stroke="var(--color-border)"
-              vertical={false}
-            />
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" vertical={false} />
             <XAxis
               dataKey="label"
               stroke="var(--color-muted-foreground)"
@@ -172,16 +158,19 @@ export function TimeTrendsChart({ data }: TimeTrendsChartProps) {
         </ResponsiveContainer>
       </div>
 
-      <div className="flex flex-wrap gap-3 sm:gap-4 mt-3 sm:mt-4 justify-center">
-        <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
-          <div className="w-2.5 h-2.5 rounded-full bg-success" />
-          {t('income')}
-        </div>
-        <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
-          <div className="w-2.5 h-2.5 rounded-full bg-destructive" />
-          {t('expense')}
-        </div>
-      </div>
+      <ul
+        className="mt-3 flex flex-wrap gap-x-5 gap-y-2 justify-center sm:justify-start list-none p-0 m-0"
+        aria-label={t('chartLegendAriaLabel')}
+      >
+        <li className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+          <span className="h-2.5 w-2.5 shrink-0 rounded-sm bg-success" aria-hidden />
+          <span>{t('income')}</span>
+        </li>
+        <li className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+          <span className="h-2.5 w-2.5 shrink-0 rounded-sm bg-destructive" aria-hidden />
+          <span>{t('expense')}</span>
+        </li>
+      </ul>
     </div>
   );
 }

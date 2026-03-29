@@ -327,28 +327,38 @@
   },
   "ReportsContent": {
     "headerTitle": "Rapporti",
-    "sectionTimeTrendsAriaLabel": "Andamento nel tempo",
-    "sectionCategoriesAriaLabel": "Distribuzione categorie",
-    "sectionBudgetFlowAriaLabel": "Flusso budget",
-    "sectionPeriodsAriaLabel": "Periodi di report"
+    "sectionGroupTitle": "Panoramica gruppo",
+    "sectionGroupSubtitle": "Saldo complessivo, andamento nel tempo e ripartizione spese per tutto il gruppo.",
+    "sectionChartsTitle": "Andamento e categorie",
+    "sectionChartsSubtitle": "Dati aggregati sulle transazioni di tutti i membri, nell’intervallo scelto sopra.",
+    "sectionMemberTitle": "Dettaglio membro",
+    "sectionMemberSubtitle": "Scegli una persona per vedere saldo sui suoi conti, flussi e storico periodi.",
+    "sectionBudgetFlowAriaLabel": "Flusso budget per il membro selezionato",
+    "sectionPeriodsAriaLabel": "Storico periodi"
   },
   "Reports": {
     "SummarySection": {
       "title": "Riepilogo",
-      "totalBalance": "Saldo Totale",
-      "acrossAllAccounts": "su tutti i conti",
-      "netFlow": "Flusso Netto",
+      "totalBalance": "Saldo totale",
+      "groupBalanceFootnote": "Tutti i conti del gruppo",
+      "memberBalanceFootnote": "Conti collegati a {name}",
+      "groupInPeriod": "Tutto il gruppo · periodo selezionato",
+      "groupAllTime": "Tutto il gruppo · tutti i periodi",
+      "memberInPeriod": "{name} · periodo selezionato",
+      "memberAllTime": "{name} · tutti i periodi",
+      "netFlow": "Flusso netto",
       "income": "Entrate",
       "expenses": "Uscite",
-      "thisPeriod": "questo periodo",
       "savingsRate": "tasso di risparmio",
       "incomeLabel": "Entrate",
       "expensesLabel": "Uscite",
-      "empty": "Nessun dato di riepilogo disponibile."
+      "empty": "Nessun conto da mostrare per il gruppo.",
+      "emptyDescription": "Aggiungi un conto o registra transazioni per vedere qui saldi e andamenti.",
+      "emptyCta": "Vai alle transazioni"
     },
     "PeriodsSection": {
-      "title": "Periodi Report",
-      "empty": "Nessun periodo trovato per questo intervallo."
+      "title": "Storico periodi",
+      "empty": "Nessun periodo in questo intervallo."
     },
     "CategoriesSection": {
       "title": "Ripartizione Categorie",
@@ -358,15 +368,16 @@
     },
     "Charts": {
       "timeTrendsTitle": "Andamento Entrate e Uscite",
-      "timeTrendsSubtitle": "Monitora il flusso finanziario nel tempo",
-      "categoryDistributionTitle": "Spese per Categoria",
-      "categoryDistributionSubtitle": "Dove vanno i tuoi soldi",
+      "timeTrendsSubtitle": "Andamento aggregato del gruppo nel tempo",
+      "categoryDistributionTitle": "Spese per categoria",
+      "categoryDistributionSubtitle": "Ripartizione delle spese di gruppo per categoria",
       "flowTitle": "Flusso del Budget",
-      "flowSubtitle": "Come si muove il denaro tra i tuoi conti",
+      "flowSubtitle": "Movimenti tra i tipi di conto collegati al membro",
       "income": "Entrate",
       "expense": "Uscite",
       "total": "Totale",
-      "noData": "Nessun dato disponibile",
+      "noData": "Nessun dato per questo periodo.",
+      "chartLegendAriaLabel": "Legenda: barre verdi entrate, barre rosse uscite",
       "net": "Netto",
       "in": "Entrate",
       "out": "Uscite",
@@ -428,9 +439,11 @@
       "expensesLabel": "Uscite",
       "netLabel": "Netto",
       "netSavingsLabel": "Netto",
-      "byAccountTypeTitle": "Per Tipo di Conto",
-      "inLabel": "Entr.",
-      "outLabel": "Usc."
+      "byAccountTypeTitle": "Dettaglio per conto",
+      "inLabel": "Entrate",
+      "outLabel": "Uscite",
+      "showDetails": "Mostra per conto",
+      "hideDetails": "Nascondi"
     }
   },
   "InvestmentsPage": {

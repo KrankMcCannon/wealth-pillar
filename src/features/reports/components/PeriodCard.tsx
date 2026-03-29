@@ -1,13 +1,16 @@
+'use client';
+
+import { useState } from 'react';
 import { formatCurrency } from '@/lib/utils';
 import type { ReportPeriodSummary } from '@/server/services/reports.service';
 import { sortAccountMetrics } from '@/features/reports/utils';
 import { useTranslations } from 'next-intl';
+import { ChevronDown } from 'lucide-react';
 
 interface PeriodCardProps {
   period: ReportPeriodSummary;
 }
 
-// Classi Tailwind per i tipi di conto — senza colori hardcoded
 const accountTypeClasses: Record<string, { dot: string }> = {
   payroll: { dot: 'bg-success' },
   cash: { dot: 'bg-primary' },
@@ -16,12 +19,12 @@ const accountTypeClasses: Record<string, { dot: string }> = {
 
 const defaultAccountTypeClass = { dot: 'bg-muted-foreground' };
 
-const knownAccountTypes = ['payroll', 'cash', 'savings'] as const;
-type KnownAccountType = (typeof knownAccountTypes)[number];
+type KnownAccountType = 'payroll' | 'cash' | 'savings';
 
 export function PeriodCard({ period }: PeriodCardProps) {
   const t = useTranslations('Reports.PeriodCard');
   const tCharts = useTranslations('Reports.Charts');
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const accountTypeLabels: Record<KnownAccountType, string> = {
     payroll: tCharts('accountTypes.payroll'),
@@ -30,137 +33,132 @@ export function PeriodCard({ period }: PeriodCardProps) {
   };
 
   const getAccountLabel = (type: string): string =>
-    accountTypeLabels[type as KnownAccountType] ??
-    type.charAt(0).toUpperCase() + type.slice(1);
+    accountTypeLabels[type as KnownAccountType] ?? type.charAt(0).toUpperCase() + type.slice(1);
 
   const sortedEntries = sortAccountMetrics(Object.entries(period.metricsByAccountType));
   const netSavings = period.totalEarned - period.totalSpent;
+  const hasBreakdown = sortedEntries.length > 0;
+  const breakdownPanelId = `period-breakdown-${period.id}`;
 
   return (
-    <article className="bg-card border border-primary/15 rounded-xl overflow-hidden hover:border-primary/25 hover:bg-primary/2 transition-colors duration-200">
+    <article className="bg-card border border-primary/15 rounded-xl overflow-hidden hover:border-primary/25 transition-colors duration-200">
       {/* Header */}
-      <div className="p-3 sm:p-4 flex items-center justify-between border-b border-primary/10 bg-primary/2">
-        <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-sm sm:text-base text-primary truncate">
-            {period.name}
-          </h3>
+      <div className="px-4 py-3 sm:px-5 sm:py-4 border-b border-primary/8 bg-primary/2">
+        <h3 className="font-semibold text-sm sm:text-base text-primary truncate">{period.name}</h3>
+      </div>
+
+      {/* Totali globali */}
+      <div className="grid grid-cols-3 divide-x divide-primary/8 border-b border-primary/8">
+        <div className="flex flex-col items-center px-3 py-3 sm:py-4">
+          <span className="text-[9px] sm:text-[10px] font-semibold uppercase tracking-widest text-success/70 mb-1.5">
+            {t('incomeLabel')}
+          </span>
+          <span className="text-sm sm:text-base font-bold text-success tabular-nums leading-none">
+            {formatCurrency(period.totalEarned)}
+          </span>
+        </div>
+        <div className="flex flex-col items-center px-3 py-3 sm:py-4">
+          <span className="text-[9px] sm:text-[10px] font-semibold uppercase tracking-widest text-destructive/70 mb-1.5">
+            {t('expensesLabel')}
+          </span>
+          <span className="text-sm sm:text-base font-bold text-destructive tabular-nums leading-none">
+            {formatCurrency(period.totalSpent)}
+          </span>
+        </div>
+        <div className="flex flex-col items-center px-3 py-3 sm:py-4">
+          <span className="text-[9px] sm:text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1.5">
+            {t('netSavingsLabel')}
+          </span>
+          <span
+            className={`text-sm sm:text-base font-bold tabular-nums leading-none ${
+              netSavings >= 0 ? 'text-success' : 'text-destructive'
+            }`}
+          >
+            {formatCurrency(netSavings)}
+          </span>
         </div>
       </div>
 
-      {/* Contenuto */}
-      <div className="p-3 sm:p-4 space-y-3 sm:space-y-4">
-        {/* Totali globali: Entrate / Uscite / Netto */}
-        <div className="grid grid-cols-3 gap-2 sm:gap-3">
-          <div className="flex flex-col items-center p-2 sm:p-3 rounded-xl bg-success/5 border border-success/15">
-            <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-success/70">
-              {t('incomeLabel')}
-            </span>
-            <span className="text-sm sm:text-base font-bold text-success tabular-nums">
-              {formatCurrency(period.totalEarned)}
-            </span>
-          </div>
-          <div className="flex flex-col items-center p-2 sm:p-3 rounded-xl bg-destructive/5 border border-destructive/15">
-            <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-destructive/70">
-              {t('expensesLabel')}
-            </span>
-            <span className="text-sm sm:text-base font-bold text-destructive tabular-nums">
-              {formatCurrency(period.totalSpent)}
-            </span>
-          </div>
-          <div className="flex flex-col items-center p-2 sm:p-3 rounded-xl bg-primary/5 border border-primary/15">
-            <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-primary/70">
-              {t('netSavingsLabel')}
-            </span>
-            <span
-              className={`text-sm sm:text-base font-bold tabular-nums ${
-                netSavings >= 0 ? 'text-success' : 'text-destructive'
-              }`}
+      {/* Toggle dettaglio per conto */}
+      {hasBreakdown && (
+        <>
+          <button
+            type="button"
+            onClick={() => setIsExpanded((v) => !v)}
+            className="w-full flex items-center justify-between px-4 py-2.5 sm:px-5 text-xs font-medium text-muted-foreground hover:text-primary hover:bg-primary/3 transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+            aria-expanded={isExpanded}
+            aria-controls={breakdownPanelId}
+          >
+            <span>{isExpanded ? t('hideDetails') : t('showDetails')}</span>
+            <ChevronDown
+              className={`w-3.5 h-3.5 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
+              aria-hidden
+            />
+          </button>
+
+          {isExpanded && (
+            <div
+              id={breakdownPanelId}
+              className="px-4 pb-4 sm:px-5 sm:pb-5 border-t border-primary/8 pt-3 sm:pt-4"
             >
-              {formatCurrency(netSavings)}
-            </span>
-          </div>
-        </div>
-
-        {/* Breakdown per tipo di conto */}
-        {sortedEntries.length > 0 && (
-          <div className="space-y-2 sm:space-y-3">
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              {t('byAccountTypeTitle')}
-            </h4>
-            <div className="space-y-2">
-              {sortedEntries.map(([type, metrics]) => {
-                const net = metrics.earned - metrics.spent;
-                const colorClass = accountTypeClasses[type] ?? defaultAccountTypeClass;
-                return (
-                  <div
-                    key={type}
-                    className="rounded-xl p-2 sm:p-3 border border-primary/8 bg-primary/2 space-y-2"
-                  >
-                    <div className="flex items-center gap-2">
-                      <div className={`w-2 h-2 rounded-full shrink-0 ${colorClass.dot}`} />
-                      <span className="text-xs sm:text-sm font-medium text-primary">
-                        {getAccountLabel(type)}
-                      </span>
-                    </div>
-
-                    {/* Saldo iniziale → finale */}
-                    <div className="p-2 sm:p-2.5 rounded-lg bg-primary/3">
-                      <span className="block text-[9px] sm:text-[10px] uppercase font-semibold text-muted-foreground tracking-wide leading-none">
-                        {t('balanceLabel')}
-                      </span>
-                      <div className="flex items-center gap-1.5 flex-wrap mt-1.5">
-                        <span className="text-xs sm:text-sm font-bold text-primary tabular-nums">
+              <h4 className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-3">
+                {t('byAccountTypeTitle')}
+              </h4>
+              <div className="divide-y divide-primary/8">
+                {sortedEntries.map(([type, metrics]) => {
+                  const net = metrics.earned - metrics.spent;
+                  const colorClass = accountTypeClasses[type] ?? defaultAccountTypeClass;
+                  return (
+                    <div key={type} className="py-3 first:pt-0 space-y-2">
+                      <div className="flex items-center gap-2">
+                        <div className={`w-2 h-2 rounded-full shrink-0 ${colorClass.dot}`} />
+                        <span className="text-xs sm:text-sm font-medium text-primary">
+                          {getAccountLabel(type)}
+                        </span>
+                      </div>
+                      <p className="text-xs text-primary">
+                        <span className="text-muted-foreground font-medium uppercase tracking-wide text-[9px] sm:text-[10px]">
+                          {t('balanceLabel')}
+                        </span>{' '}
+                        <span className="font-bold tabular-nums">
                           {formatCurrency(metrics.startBalance)}
                         </span>
-                        <span className="text-[10px] text-muted-foreground" aria-hidden>
+                        <span className="text-muted-foreground mx-1" aria-hidden>
                           →
                         </span>
-                        <span className="text-xs sm:text-sm font-bold text-primary tabular-nums">
+                        <span className="font-bold tabular-nums">
                           {formatCurrency(metrics.endBalance)}
                         </span>
-                      </div>
-                    </div>
-
-                    {/* In / Out */}
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="p-2 sm:p-2.5 rounded-lg bg-primary/3">
-                        <span className="block text-[9px] sm:text-[10px] uppercase font-semibold text-muted-foreground tracking-wide leading-none">
-                          {t('inLabel')}
+                      </p>
+                      <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs sm:text-sm">
+                        <span className="tabular-nums">
+                          <span className="text-muted-foreground">{t('inLabel')}:</span>{' '}
+                          <span className="font-bold text-success">
+                            +{formatCurrency(metrics.earned)}
+                          </span>
                         </span>
-                        <div className="mt-1.5 text-xs sm:text-sm font-bold text-success tabular-nums">
-                          +{formatCurrency(metrics.earned)}
-                        </div>
-                      </div>
-                      <div className="p-2 sm:p-2.5 rounded-lg bg-primary/3">
-                        <span className="block text-[9px] sm:text-[10px] uppercase font-semibold text-muted-foreground tracking-wide leading-none">
-                          {t('outLabel')}
+                        <span className="tabular-nums">
+                          <span className="text-muted-foreground">{t('outLabel')}:</span>{' '}
+                          <span className="font-bold text-destructive">
+                            -{formatCurrency(metrics.spent)}
+                          </span>
                         </span>
-                        <div className="mt-1.5 text-xs sm:text-sm font-bold text-destructive tabular-nums">
-                          -{formatCurrency(metrics.spent)}
-                        </div>
                       </div>
-                    </div>
-
-                    {/* Netto */}
-                    <div className="p-2 sm:p-2.5 rounded-lg bg-primary/3 border-t border-primary/8">
-                      <span className="block text-[9px] sm:text-[10px] uppercase font-semibold text-muted-foreground tracking-wide leading-none">
-                        {t('netLabel')}
-                      </span>
-                      <div
-                        className={`mt-1.5 text-xs sm:text-sm font-bold tabular-nums ${
+                      <p
+                        className={`text-xs sm:text-sm font-bold tabular-nums ${
                           net >= 0 ? 'text-success' : 'text-destructive'
                         }`}
                       >
-                        {formatCurrency(net)}
-                      </div>
+                        {t('netLabel')}: {formatCurrency(net)}
+                      </p>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
-          </div>
-        )}
-      </div>
+          )}
+        </>
+      )}
     </article>
   );
 }

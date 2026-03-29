@@ -1,9 +1,8 @@
 import { Suspense } from 'react';
 import { redirect } from 'next/navigation';
-import { getTranslations } from 'next-intl/server';
 import { getCurrentUser, getGroupUsers } from '@/lib/auth/cached-auth';
 import { ReportsService } from '@/server/services';
-import { PageLoader } from '@/components/shared';
+import ReportsLoading from './loading';
 import ReportsContent from './reports-content';
 
 export default async function ReportsPage({
@@ -13,7 +12,6 @@ export default async function ReportsPage({
 
   const currentUser = await getCurrentUser();
   if (!currentUser) redirect(`/${locale}/sign-in`);
-  const t = await getTranslations('ReportsPage');
 
   const groupUsers = await getGroupUsers();
   const groupUserIds = groupUsers.map((u) => u.id);
@@ -80,7 +78,7 @@ export default async function ReportsPage({
   });
 
   return (
-    <Suspense fallback={<PageLoader message={t('loading')} />}>
+    <Suspense fallback={<ReportsLoading />}>
       <ReportsContent
         currentUser={currentUser}
         groupUsers={groupUsers}

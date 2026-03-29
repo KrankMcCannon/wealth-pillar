@@ -2,7 +2,8 @@
 
 import dynamic from 'next/dynamic';
 import { use, useMemo, useState } from 'react';
-import { BottomNavigation, PageContainer, Header } from '@/components/layout';
+import { BottomNavigation, PageContainer, Header, SectionHeader } from '@/components/layout';
+import { PageSection } from '@/components/ui/layout';
 import { SummarySection, PeriodsSection } from '@/features/reports';
 import {
   TimeRangeSelector,
@@ -22,7 +23,7 @@ import UserSelector from '@/components/shared/user-selector';
 
 const TimeTrendsChart = dynamic(
   () => import('@/features/reports/components/TimeTrendsChart').then((m) => m.TimeTrendsChart),
-  { loading: () => <div className="h-48 animate-pulse rounded-xl bg-primary/10" /> }
+  { loading: () => <div className="h-[300px] animate-pulse rounded-xl bg-primary/10" /> }
 );
 
 const CategoryDistribution = dynamic(
@@ -30,7 +31,7 @@ const CategoryDistribution = dynamic(
     import('@/features/reports/components/CategoryDistribution').then(
       (m) => m.CategoryDistribution
     ),
-  { loading: () => <div className="h-64 animate-pulse rounded-xl bg-primary/10" /> }
+  { loading: () => <div className="h-[300px] animate-pulse rounded-xl bg-primary/10" /> }
 );
 
 const BudgetFlowVisualizer = dynamic(
@@ -38,7 +39,7 @@ const BudgetFlowVisualizer = dynamic(
     import('@/features/reports/components/BudgetFlowVisualizer').then(
       (m) => m.BudgetFlowVisualizer
     ),
-  { loading: () => <div className="h-56 animate-pulse rounded-xl bg-primary/10" /> }
+  { loading: () => <div className="h-[360px] animate-pulse rounded-xl bg-primary/10" /> }
 );
 
 interface SerializedTransaction {
@@ -79,9 +80,7 @@ interface ReportsContentProps {
 }
 
 function formatCategoryFallback(catId: string): string {
-  return catId
-    .replace(/[-_]/g, ' ')
-    .replace(/\b\w/g, (c) => c.toUpperCase());
+  return catId.replace(/[-_]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 function normalizeAccountType(type: string): string {
@@ -89,6 +88,25 @@ function normalizeAccountType(type: string): string {
   const lower = type.toLowerCase();
   if (lower === 'investment' || lower === 'investments') return 'investments';
   return lower;
+}
+
+/** Somma entrate/uscite (no transfer). Senza userId include tutte le transazioni del gruppo. */
+function sumIncomeExpenseInRange(
+  transactions: SerializedTransaction[],
+  startDate: Date | null,
+  userId?: string
+): { income: number; expenses: number } {
+  const filtered = startDate
+    ? transactions.filter((row) => new Date(row.date).getTime() >= startDate.getTime())
+    : transactions;
+  let income = 0;
+  let expenses = 0;
+  for (const row of filtered) {
+    if (userId !== undefined && row.user_id !== userId) continue;
+    if (row.type === 'income') income += row.amount;
+    else if (row.type === 'expense') expenses += row.amount;
+  }
+  return { income, expenses };
 }
 
 function computeCategoryStats(
@@ -271,24 +289,25 @@ export default function ReportsContent({
     return computeUserFlows(transactions, accounts, userIds, rangeStartDate);
   }, [transactions, accounts, groupUsers, rangeStartDate]);
 
-  const filteredSummaryTotals = useMemo(() => {
-    if (!isFiltered) return { income: null, expenses: null };
+  const groupPeriodTotals = useMemo(() => {
+    if (!isFiltered || !rangeStartDate) return null;
+    return sumIncomeExpenseInRange(transactions, rangeStartDate);
+  }, [transactions, rangeStartDate, isFiltered]);
 
-    const filtered = rangeStartDate
-      ? transactions.filter(
-          (t) =>
-            t.user_id === currentUser.id && new Date(t.date).getTime() >= rangeStartDate.getTime()
-        )
-      : transactions.filter((t) => t.user_id === currentUser.id);
+  const groupTotalBalance = useMemo(
+    () => accountTypeSummary.reduce((sum, a) => sum + a.totalBalance, 0),
+    [accountTypeSummary]
+  );
 
-    let income = 0;
-    let expenses = 0;
-    for (const t of filtered) {
-      if (t.type === 'income') income += t.amount;
-      else if (t.type === 'expense') expenses += t.amount;
-    }
-    return { income, expenses };
-  }, [transactions, currentUser.id, rangeStartDate, isFiltered]);
+  const groupIncome = useMemo(() => {
+    if (isFiltered && groupPeriodTotals) return groupPeriodTotals.income;
+    return accountTypeSummary.reduce((sum, a) => sum + a.totalEarned, 0);
+  }, [accountTypeSummary, groupPeriodTotals, isFiltered]);
+
+  const groupExpenses = useMemo(() => {
+    if (isFiltered && groupPeriodTotals) return groupPeriodTotals.expenses;
+    return accountTypeSummary.reduce((sum, a) => sum + a.totalSpent, 0);
+  }, [accountTypeSummary, groupPeriodTotals, isFiltered]);
 
   const selectedUserFlow = useMemo(() => {
     return userFlowSummaries.find((f) => f.userId === selectedUserId);
@@ -300,6 +319,16 @@ export default function ReportsContent({
 
   const totalExpenses = expenseStats.reduce((sum, stat) => sum + stat.total, 0);
 
+  const selectedMemberName = useMemo(
+    () => groupUsers.find((u) => u.id === selectedUserId)?.name ?? '',
+    [groupUsers, selectedUserId]
+  );
+
+  const memberTotalBalance = useMemo(() => {
+    if (!selectedUserFlow) return 0;
+    return selectedUserFlow.accounts.reduce((sum, a) => sum + a.balance, 0);
+  }, [selectedUserFlow]);
+
   return (
     <PageContainer>
       <Header
@@ -310,52 +339,82 @@ export default function ReportsContent({
       />
 
       <main className={reportsStyles.main.container}>
-        {/* Time Range Selector */}
         <TimeRangeSelector value={timeRange} onChange={setTimeRange} />
 
-        {/* Summary Section */}
-        <SummarySection
-          accounts={accountTypeSummary}
-          filteredIncome={filteredSummaryTotals.income}
-          filteredExpenses={filteredSummaryTotals.expenses}
-          isFiltered={isFiltered}
-        />
-
-        {/* Charts Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-          <section className="col-span-1 md:col-span-8" aria-label={t('sectionTimeTrendsAriaLabel')}>
-            <TimeTrendsChart data={filteredTrends} />
-          </section>
-
-          <section className="col-span-1 md:col-span-4" aria-label={t('sectionCategoriesAriaLabel')}>
-            <CategoryDistribution
-              data={expenseStats.map((s) => ({ ...s, value: s.total }))}
-              total={totalExpenses}
+        <section aria-labelledby="reports-section-group">
+          <PageSection className="space-y-3 sm:space-y-4">
+            <SectionHeader
+              titleId="reports-section-group"
+              title={t('sectionGroupTitle')}
+              subtitle={t('sectionGroupSubtitle')}
             />
-          </section>
-        </div>
+            <SummarySection
+              variant="group"
+              hasAccounts={accountTypeSummary.length > 0}
+              totalBalance={groupTotalBalance}
+              totalIncome={groupIncome}
+              totalExpenses={groupExpenses}
+              isFiltered={isFiltered}
+            />
+            <div className="space-y-3 pt-2">
+              <SectionHeader
+                title={t('sectionChartsTitle')}
+                subtitle={t('sectionChartsSubtitle')}
+              />
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+                <div className="col-span-1 md:col-span-8 min-w-0">
+                  <TimeTrendsChart data={filteredTrends} />
+                </div>
+                <div className="col-span-1 md:col-span-4 min-w-0">
+                  <CategoryDistribution
+                    data={expenseStats.map((s) => ({ ...s, value: s.total }))}
+                    total={totalExpenses}
+                  />
+                </div>
+              </div>
+            </div>
+          </PageSection>
+        </section>
 
-        {/* User Selector — solo con più utenti nel gruppo */}
-        <UserSelector
-          currentUser={currentUser}
-          users={groupUsers}
-          value={selectedUserId}
-          onChange={setSelectedUserId}
-          showAllOption={false}
-        />
-
-        {/* Dati per utente selezionato */}
-        <div className="space-y-4">
-          {selectedUserFlow && (
-            <section aria-label={t('sectionBudgetFlowAriaLabel')}>
-              <BudgetFlowVisualizer userFlow={selectedUserFlow} />
-            </section>
-          )}
-
-          <section aria-label={t('sectionPeriodsAriaLabel')}>
-            <PeriodsSection data={selectedUserPeriods} users={groupUsers} />
-          </section>
-        </div>
+        <section
+          aria-labelledby="reports-section-member"
+          className="border-t border-primary/10 pt-5 sm:pt-7"
+        >
+          <PageSection className="space-y-3 sm:space-y-4">
+            <SectionHeader
+              titleId="reports-section-member"
+              title={t('sectionMemberTitle')}
+              subtitle={t('sectionMemberSubtitle')}
+            />
+            <UserSelector
+              currentUser={currentUser}
+              users={groupUsers}
+              value={selectedUserId}
+              onChange={setSelectedUserId}
+              showAllOption={false}
+            />
+            {selectedUserFlow && (
+              <>
+                <SummarySection
+                  variant="member"
+                  hasAccounts
+                  totalBalance={memberTotalBalance}
+                  totalIncome={selectedUserFlow.totalEarned}
+                  totalExpenses={selectedUserFlow.totalSpent}
+                  isFiltered={isFiltered}
+                  memberName={selectedMemberName}
+                />
+                <section className="space-y-3" aria-label={t('sectionBudgetFlowAriaLabel')}>
+                  <BudgetFlowVisualizer userFlow={selectedUserFlow} />
+                </section>
+                <div className="space-y-3 pt-2">
+                  <SectionHeader title={t('sectionPeriodsAriaLabel')} />
+                  <PeriodsSection data={selectedUserPeriods} users={groupUsers} />
+                </div>
+              </>
+            )}
+          </PageSection>
+        </section>
       </main>
 
       <BottomNavigation />

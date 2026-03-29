@@ -2,9 +2,9 @@
 
 import React, { useMemo } from 'react';
 import type { ReportPeriodSummary } from '@/server/services/reports.service';
-import { CalendarDays } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { PeriodCard } from './PeriodCard';
+import { EmptyState } from '@/components/shared';
 
 interface PeriodsSectionProps {
   data: ReportPeriodSummary[];
@@ -26,15 +26,8 @@ export function PeriodsSection({ data, users }: PeriodsSectionProps) {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-lg sm:text-xl font-bold text-primary flex items-center gap-2">
-        <CalendarDays className="w-5 h-5 text-primary/70" aria-hidden />
-        {t('title')}
-      </h2>
-
       {data.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-primary/20 bg-primary/5 py-8 px-4 text-center">
-          <p className="text-sm text-primary/60">{t('empty')}</p>
-        </div>
+        <EmptyState title={t('empty')} />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
           {users.map((user) => {

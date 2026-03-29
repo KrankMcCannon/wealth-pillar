@@ -187,10 +187,9 @@ export const layoutStyles = {
 export const reportsStyles = {
   page: {
     container: 'relative flex w-full min-h-[100svh] flex-col bg-card',
-    style: { fontFamily: '"Inter", "SF Pro Display", system-ui, sans-serif' },
   },
   main: {
-    container: 'px-3 sm:px-4 py-4 pb-20 space-y-4 sm:space-y-6',
+    container: 'px-3 sm:px-4 py-4 pb-20 space-y-7 sm:space-y-10',
   },
   card: {
     container:
@@ -1063,7 +1062,8 @@ export const transactionStyles = {
       'rounded-2xl border border-border/60 bg-card/95 sm:bg-card/80 sm:backdrop-blur-sm shadow-sm shadow-muted/20 space-y-3 p-2.5 sm:space-y-4 sm:p-3.5',
     contentStack: 'space-y-4 sm:space-y-5',
     filtersBlock: 'rounded-2xl border border-border/50 bg-card/60 p-3 sm:p-4',
-    listBlock: 'sm:rounded-2xl sm:border sm:border-border/50 sm:bg-card sm:p-4 sm:shadow-sm sm:shadow-muted/15',
+    listBlock:
+      'sm:rounded-2xl sm:border sm:border-border/50 sm:bg-card sm:p-4 sm:shadow-sm sm:shadow-muted/15',
     onboardingAside: 'rounded-2xl border border-primary/20 bg-primary/5 p-3.5 sm:p-4',
     onboardingRow: 'flex items-start justify-between gap-3',
     onboardingContent: 'space-y-1.5',
@@ -1199,7 +1199,8 @@ export const transactionStyles = {
     budgetBanner:
       'flex items-center justify-between gap-3 px-4 py-3 rounded-2xl bg-primary/10 border border-primary/20',
     budgetBannerLeft: 'flex min-w-0 items-center gap-2',
-    budgetBannerDot: 'w-2 h-2 shrink-0 rounded-full bg-primary animate-pulse motion-reduce:animate-none',
+    budgetBannerDot:
+      'w-2 h-2 shrink-0 rounded-full bg-primary animate-pulse motion-reduce:animate-none',
     budgetBannerText: 'text-sm font-medium text-primary truncate',
     budgetBannerCount: 'text-xs text-primary/70',
     budgetBannerExit:
