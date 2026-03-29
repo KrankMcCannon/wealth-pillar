@@ -7,7 +7,7 @@ import {
   getAllCategoriesDeduped,
   getGroupUsersByGroupIdDeduped,
 } from '@/server/request-cache/services';
-import { FinanceLogicService, type OverviewMetrics } from './finance-logic.service';
+import { FinanceLogicService } from './finance-logic.service';
 import { InvestmentService } from './investment.service';
 import type { PortfolioResult } from './investment.service';
 import type {
@@ -19,11 +19,9 @@ import type {
   RecurringTransactionSeries,
   UserBudgetSummary,
   User,
-  CategoryBreakdownItem,
 } from '@/lib/types';
 import { toDateTime } from '@/lib/utils/date-utils';
 import { DateTime } from 'luxon';
-import { ReportPeriodService, type EnrichedBudgetPeriod } from './report-period.service';
 
 /**
  * Page Data Service
@@ -84,22 +82,6 @@ export interface AccountsPageData {
   accounts: Account[];
   transactions: Transaction[];
   accountBalances: Record<string, number>;
-}
-
-/**
- * Reports page data
- */
-export interface ReportsPageData {
-  accounts: Account[];
-  transactions?: Transaction[]; // Optional - ideally removed in optimized version
-  categories: Category[];
-  // Aggregated Data
-  // Aggregated Data - Keyed by 'all' | userId
-  overviewMetrics: Record<string, OverviewMetrics>;
-  monthlyTrends: Array<{ month: string; income: number; expense: number }>;
-  categorySpending: Array<{ category: string; amount: number; count: number }>;
-  enrichedBudgetPeriods: EnrichedBudgetPeriod[];
-  annualSpending: Record<string, Record<number, CategoryBreakdownItem[]>>; // userId -> year -> breakdown
 }
 
 /**
@@ -484,150 +466,6 @@ export class PageDataService {
       accounts,
       transactions: [],
       accountBalances,
-    };
-  }
-
-  /**
-   * Fetch data for reports page (OPTIMIZED)
-   *
-   * Fetches: accounts, categories, transactions filtered by date range
-   * No limit - reports need complete data within date range
-   *
-   * @param groupId - Group ID to fetch data for
-   * @returns Reports page data
-   */
-  static async getReportsPageData(groupId: string): Promise<ReportsPageData> {
-    // Calculate date range for last 24 months
-    const now = new Date();
-    const startDate = new Date(now.getFullYear() - 2, now.getMonth(), 1); // 2 years ago
-
-    // Fetch raw data needed for calculations (keeping it server-side)
-    const [accounts, transactionResult, categories, groupUsersResult] = await Promise.all([
-      this.safeFetch(
-        getAccountsByGroupDeduped(groupId),
-        [] as Account[],
-        'Failed to fetch accounts'
-      ),
-      this.safeFetch(
-        TransactionService.getTransactionsByGroup(groupId, { startDate, endDate: now }),
-        { data: [] as Transaction[], total: 0, hasMore: false },
-        'Failed to fetch transactions'
-      ),
-      this.safeFetch(getAllCategoriesDeduped(), [] as Category[], 'Failed to fetch categories'),
-      this.safeFetch(
-        getGroupUsersByGroupIdDeduped(groupId),
-        [] as User[],
-        'Failed to fetch group users'
-      ),
-    ]);
-
-    const txs = transactionResult.data;
-    const monthlyTrends = FinanceLogicService.aggregateMonthlyIncomeExpenseForReports(
-      txs,
-      startDate,
-      now
-    );
-    const categorySpending = FinanceLogicService.aggregateGroupCategorySpendingForReports(
-      txs,
-      startDate,
-      now
-    ).map((item) => ({
-      category: item.category,
-      amount: item.amount,
-      count: item.count,
-    }));
-
-    const txsByUserId = new Map<string, Transaction[]>();
-    for (const t of txs) {
-      const uid = t.user_id;
-      if (!uid) continue;
-      const list = txsByUserId.get(uid) ?? [];
-      list.push(t);
-      txsByUserId.set(uid, list);
-    }
-
-    // Helper to calculate metrics for a subset
-    const calcMetrics = (txs: Transaction[]) => {
-      const activeAccounts = accounts.filter((a) => a.type === 'payroll' || a.type === 'cash');
-
-      const activeAccountIds = activeAccounts.map((a) => a.id);
-
-      return FinanceLogicService.calculateOverviewMetrics(txs, activeAccountIds, undefined);
-    };
-
-    // 1. Calculate Overview Metrics (Global + Per User)
-    const overviewMetrics: Record<string, OverviewMetrics> = {};
-
-    // All
-    overviewMetrics['all'] = calcMetrics(txs);
-
-    // Per User (pre-indexed transactions per user — O(U + T) vs O(U × T))
-    groupUsersResult.forEach((u) => {
-      const userActiveAccounts = accounts.filter((a) => a.type === 'payroll' || a.type === 'cash');
-      const activeAccountIds = userActiveAccounts.map((a) => a.id);
-      const userTxs = txsByUserId.get(u.id) ?? [];
-      overviewMetrics[u.id] = FinanceLogicService.calculateOverviewMetrics(
-        userTxs,
-        activeAccountIds,
-        undefined
-      );
-    });
-
-    // 2. Fetch Budget Periods... (Same as before)
-    const allUserIds = groupUsersResult.map((u) => u.id);
-    const budgetPeriods: BudgetPeriod[] = [];
-    await Promise.all(
-      allUserIds.map(async (uid) => {
-        const periods = await BudgetPeriodService.getPeriodsByUser(uid);
-        if (periods) budgetPeriods.push(...periods);
-      })
-    );
-
-    // 3. Enrich Budget Periods (Server-Side)
-    const enrichedFull = ReportPeriodService.enrichBudgetPeriods(
-      budgetPeriods,
-      groupUsersResult,
-      txs,
-      accounts
-    );
-
-    // User requested to ALWAYS show transactions, so we do not strip them anymore.
-    // This may impact performance but is required behavior.
-    const enrichedFinal = enrichedFull.map((p) => ({
-      ...p,
-      // Ensure transactions are included
-      transactionCount: p.transactions.length,
-    }));
-
-    // 4. Calculate Annual Breakdown (Global + Per User)
-    const annualSpending: Record<string, Record<number, CategoryBreakdownItem[]>> = {};
-    const years = new Set(txs.map((t) => new Date(t.date).getFullYear()));
-    years.add(new Date().getFullYear());
-
-    // Helper for annual
-    const calcAnnual = (txs: Transaction[]) => {
-      const res: Record<number, CategoryBreakdownItem[]> = {};
-      years.forEach((year) => {
-        res[year] = FinanceLogicService.calculateAnnualCategorySpending(txs, year);
-      });
-      return res;
-    };
-
-    annualSpending['all'] = calcAnnual(txs);
-
-    groupUsersResult.forEach((u) => {
-      annualSpending[u.id] = calcAnnual(txsByUserId.get(u.id) ?? []);
-    });
-
-    return {
-      accounts,
-      transactions: [],
-      categories,
-      overviewMetrics,
-      monthlyTrends,
-      categorySpending,
-      enrichedBudgetPeriods: enrichedFinal,
-      annualSpending,
     };
   }
 }

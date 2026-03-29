@@ -5,8 +5,7 @@
  */
 
 import { Suspense } from 'react';
-import { redirect } from 'next/navigation';
-import { getCurrentUser, getGroupUsers } from '@/lib/auth/cached-auth';
+import { requirePageAuth } from '@/lib/auth/page-auth';
 import { PageDataService } from '@/server/services';
 import TransactionsContent from './transactions-content';
 import TransactionPageLoading from './loading';
@@ -14,11 +13,7 @@ import TransactionPageLoading from './loading';
 export default async function TransactionsPage({
   params,
 }: Readonly<{ params: Promise<{ locale: string }> }>) {
-  const { locale } = await params;
-
-  const currentUser = await getCurrentUser();
-  if (!currentUser) redirect(`/${locale}/sign-in`);
-  const groupUsers = await getGroupUsers();
+  const { currentUser, groupUsers } = await requirePageAuth(params);
 
   const pageDataPromise = PageDataService.getTransactionsPageData(currentUser.group_id || '').catch(
     (err) => {

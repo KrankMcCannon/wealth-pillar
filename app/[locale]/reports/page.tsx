@@ -1,6 +1,5 @@
 import { Suspense } from 'react';
-import { redirect } from 'next/navigation';
-import { getCurrentUser, getGroupUsers } from '@/lib/auth/cached-auth';
+import { requirePageAuth } from '@/lib/auth/page-auth';
 import { ReportsService } from '@/server/services';
 import ReportsLoading from './loading';
 import ReportsContent from './reports-content';
@@ -8,12 +7,8 @@ import ReportsContent from './reports-content';
 export default async function ReportsPage({
   params,
 }: Readonly<{ params: Promise<{ locale: string }> }>) {
-  const { locale } = await params;
+  const { currentUser, groupUsers } = await requirePageAuth(params);
 
-  const currentUser = await getCurrentUser();
-  if (!currentUser) redirect(`/${locale}/sign-in`);
-
-  const groupUsers = await getGroupUsers();
   const groupUserIds = groupUsers.map((u) => u.id);
   const groupId = currentUser.group_id;
   if (!groupId) {

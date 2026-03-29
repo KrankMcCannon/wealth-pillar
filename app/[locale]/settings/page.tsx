@@ -3,32 +3,24 @@
  */
 
 import { Suspense } from 'react';
-import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
-import { getCurrentUser } from '@/lib/auth/cached-auth';
-import type { User } from '@/lib/types';
-import {
-  AccountService,
-  TransactionService,
-  UserPreferencesService,
-  UserService,
-} from '@/server/services';
+import { requirePageAuth } from '@/lib/auth/page-auth';
+import { AccountService, TransactionService, UserPreferencesService } from '@/server/services';
 import SettingsContent from './settings-content';
 import { PageLoader } from '@/components/shared';
 import { withTimeout } from '@/lib/utils/with-timeout';
+import type { UserPreferences } from '@/server/services/user-preferences.service';
 
 export default async function SettingsPage({
   params,
 }: Readonly<{ params: Promise<{ locale: string }> }>) {
-  const { locale } = await params;
-
-  const currentUser = await getCurrentUser();
-  if (!currentUser) redirect(`/${locale}/sign-in`);
-  const t = await getTranslations('SettingsPage');
-  type GroupUsersResult = Awaited<ReturnType<typeof UserService.getUsersByGroup>>;
+  const [{ currentUser, groupUsers }, t] = await Promise.all([
+    requirePageAuth(params),
+    getTranslations('SettingsPage'),
+  ]);
 
   const now = new Date().toISOString();
-  const fallbackPreferences = {
+  const fallbackPreferences: UserPreferences = {
     id: `fallback-${currentUser.id}`,
     user_id: currentUser.id,
     currency: 'EUR',
@@ -41,8 +33,9 @@ export default async function SettingsPage({
     updated_at: now,
   };
 
-  // Fetch accounts, transactions, preferences, and group users
-  const [accountCount, transactionCount, preferences, groupUsersResult] = await Promise.all([
+  // Build a single streaming promise for the slower per-user counts and preferences.
+  // groupUsers is already resolved above (from cached getGroupUsers — no extra DB round-trip).
+  const settingsDataPromise = Promise.all([
     withTimeout(AccountService.getAccountCountByUser(currentUser.id), 2000, 0, 'accountCount'),
     withTimeout(
       TransactionService.getTransactionCountByUser(currentUser.id),
@@ -56,26 +49,18 @@ export default async function SettingsPage({
       fallbackPreferences,
       'userPreferences'
     ),
-    withTimeout(
-      currentUser.group_id
-        ? UserService.getUsersByGroup(currentUser.group_id)
-        : Promise.resolve([] as GroupUsersResult),
-      2000,
-      [] as GroupUsersResult,
-      'groupUsers'
-    ),
-  ]);
-
-  const groupUsers: User[] = groupUsersResult;
+  ]).then(([accountCount, transactionCount, preferences]) => ({
+    accountCount,
+    transactionCount,
+    preferences,
+  }));
 
   return (
     <Suspense fallback={<PageLoader message={t('loading')} />}>
       <SettingsContent
-        accountCount={accountCount}
-        transactionCount={transactionCount}
         currentUser={currentUser}
-        preferences={preferences}
         groupUsers={groupUsers}
+        settingsDataPromise={settingsDataPromise}
       />
     </Suspense>
   );

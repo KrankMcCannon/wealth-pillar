@@ -1,5 +1,6 @@
 'use client';
 
+import { use } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { BottomNavigation, PageContainer, Header } from '@/components/layout';
 import { useRouter } from '@/i18n/routing';
@@ -22,24 +23,28 @@ import {
 import { getLanguagePreferenceForLocale } from '@/features/settings/utils/language-preference';
 import type { User, UserPreferences } from '@/lib/types';
 
-/**
- * Settings Content Props
- */
-interface SettingsContentProps {
+interface SettingsData {
   accountCount: number;
   transactionCount: number;
-  currentUser: User;
   preferences: UserPreferences;
+}
+
+interface SettingsContentProps {
+  currentUser: User;
   groupUsers: User[];
+  settingsDataPromise: Promise<SettingsData>;
 }
 
 export default function SettingsContent({
-  accountCount,
-  transactionCount,
   currentUser,
-  preferences: initialPreferences,
   groupUsers,
+  settingsDataPromise,
 }: SettingsContentProps) {
+  const {
+    accountCount,
+    transactionCount,
+    preferences: initialPreferences,
+  } = use(settingsDataPromise);
   const t = useTranslations('SettingsContent');
   const locale = useLocale();
   const { currencyOptions, languageOptions, timezoneOptions } = usePreferenceOptions();

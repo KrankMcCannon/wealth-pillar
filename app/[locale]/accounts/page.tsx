@@ -3,8 +3,7 @@
  */
 
 import { Suspense } from 'react';
-import { redirect } from 'next/navigation';
-import { getCurrentUser, getGroupUsers } from '@/lib/auth/cached-auth';
+import { requirePageAuth } from '@/lib/auth/page-auth';
 import { PageDataService } from '@/server/services';
 import AccountsContent from './accounts-content';
 import { AccountHeaderSkeleton } from '@/features/accounts/components/account-skeletons';
@@ -12,11 +11,7 @@ import { AccountHeaderSkeleton } from '@/features/accounts/components/account-sk
 export default async function AccountsPage({
   params,
 }: Readonly<{ params: Promise<{ locale: string }> }>) {
-  const { locale } = await params;
-
-  const currentUser = await getCurrentUser();
-  if (!currentUser) redirect(`/${locale}/sign-in`);
-  const groupUsers = await getGroupUsers();
+  const { currentUser, groupUsers } = await requirePageAuth(params);
 
   const pageDataPromise = PageDataService.getAccountsPageData(currentUser.group_id || '').catch(
     (err) => {

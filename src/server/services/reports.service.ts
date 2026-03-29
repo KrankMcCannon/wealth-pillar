@@ -104,9 +104,10 @@ export class ReportsService {
     );
 
     // 3. Fetch Transactions & Data (always scoped by group_id — service role bypasses RLS)
+    // Only select the columns actually used by the static calculation methods.
     const txQuery = supabase
       .from('transactions')
-      .select('*')
+      .select('id, amount, type, category, date, user_id, account_id, to_account_id')
       .eq('group_id', groupId)
       .order('date', { ascending: false });
 
@@ -116,8 +117,8 @@ export class ReportsService {
       { data: categories, error: catError },
     ] = await Promise.all([
       txQuery,
-      supabase.from('accounts').select('*').eq('group_id', groupId),
-      supabase.from('categories').select('*').eq('group_id', groupId),
+      supabase.from('accounts').select('id, type, balance, user_ids').eq('group_id', groupId),
+      supabase.from('categories').select('id, label, key, color').eq('group_id', groupId),
     ]);
 
     if (txError) throw new Error(`ReportsService: Transactions fetch failed: ${txError.message}`);
@@ -593,7 +594,10 @@ export class ReportsService {
    * `calculateTimeTrends` on the full group transaction list instead.
    */
   static async getSpendingTrends(userId: string, start?: Date, end?: Date, groupId?: string) {
-    let query = supabase.from('transactions').select('*').eq('user_id', userId);
+    let query = supabase
+      .from('transactions')
+      .select('id, amount, type, date')
+      .eq('user_id', userId);
 
     if (groupId) {
       query = query.eq('group_id', groupId);

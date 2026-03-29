@@ -1,9 +1,8 @@
 import { Suspense } from 'react';
-import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import InvestmentsContent from './investments-content';
 import { PageLoader } from '@/components/shared';
-import { getCurrentUser, getGroupUsers } from '@/lib/auth/cached-auth';
+import { requirePageAuth } from '@/lib/auth/page-auth';
 import { withTimeout } from '@/lib/utils/with-timeout';
 import { InvestmentService, MarketDataService } from '@/server/services';
 
@@ -11,14 +10,13 @@ export default async function InvestmentsPage(props: {
   params: Promise<{ locale: string }>;
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const { locale } = await props.params;
-  const t = await getTranslations('InvestmentsPage');
-  const searchParams = await props.searchParams;
-  const indexSymbol = typeof searchParams.index === 'string' ? searchParams.index : 'IVV';
+  const [{ currentUser, groupUsers }, t, searchParams] = await Promise.all([
+    requirePageAuth(props.params),
+    getTranslations('InvestmentsPage'),
+    props.searchParams,
+  ]);
 
-  const currentUser = await getCurrentUser();
-  if (!currentUser) redirect(`/${locale}/sign-in`);
-  const groupUsers = await getGroupUsers();
+  const indexSymbol = typeof searchParams.index === 'string' ? searchParams.index : 'IVV';
 
   const investmentsDataPromise = Promise.all([
     InvestmentService.getPortfolio(currentUser.id),

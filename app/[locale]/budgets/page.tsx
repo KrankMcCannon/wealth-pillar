@@ -3,8 +3,7 @@
  */
 
 import { Suspense } from 'react';
-import { redirect } from 'next/navigation';
-import { getCurrentUser, getGroupUsers } from '@/lib/auth/cached-auth';
+import { requirePageAuth } from '@/lib/auth/page-auth';
 import { PageDataService } from '@/server/services';
 import BudgetsContent from './budgets-content';
 import { BudgetSelectorSkeleton } from '@/features/budgets/components';
@@ -12,11 +11,7 @@ import { BudgetSelectorSkeleton } from '@/features/budgets/components';
 export default async function BudgetsPage({
   params,
 }: Readonly<{ params: Promise<{ locale: string }> }>) {
-  const { locale } = await params;
-
-  const currentUser = await getCurrentUser();
-  if (!currentUser) redirect(`/${locale}/sign-in`);
-  const groupUsers = await getGroupUsers();
+  const { currentUser, groupUsers } = await requirePageAuth(params);
 
   const pageDataPromise = PageDataService.getBudgetsPageData(currentUser.group_id || '').catch(
     (err) => {

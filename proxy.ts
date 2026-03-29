@@ -19,6 +19,21 @@ const isPublicRoute = createRouteMatcher([
   '/',
 ]);
 
+/**
+ * Dashboard routes that require authentication.
+ * Clerk enforces this at the edge — pages still have a redirect fallback
+ * via requirePageAuth(), providing defence-in-depth.
+ */
+const isProtectedDashboardRoute = createRouteMatcher([
+  '/:locale/home(.*)',
+  '/:locale/accounts(.*)',
+  '/:locale/transactions(.*)',
+  '/:locale/budgets(.*)',
+  '/:locale/investments(.*)',
+  '/:locale/reports(.*)',
+  '/:locale/settings(.*)',
+]);
+
 const isServerActionRequest = (request: Request) =>
   request.method === 'POST' && Boolean(request.headers.get('next-action'));
 
@@ -32,9 +47,10 @@ export default clerkMiddleware(async (auth, request) => {
   const pathname = request.nextUrl.pathname;
   const isServerAction = isServerActionRequest(request);
 
-  const shouldProtectInMiddleware = !isPublicRoute(request) && isApiOrTrpcRequest(pathname);
+  const shouldProtect =
+    !isPublicRoute(request) && (isApiOrTrpcRequest(pathname) || isProtectedDashboardRoute(request));
 
-  if (shouldProtectInMiddleware) {
+  if (shouldProtect) {
     await auth.protect();
   }
 
