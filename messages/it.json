@@ -331,14 +331,36 @@
     "retry": "Riprova",
     "home": "Torna alla home"
   },
+  "Errors": {
+    "groupRequired": "Per usare questa sezione devi far parte di un gruppo. Chiedi a un amministratore di invitarti oppure completa la configurazione dell’account nelle impostazioni.",
+    "loadFailedBudgets": "Non siamo riusciti a caricare i budget. Controlla la connessione e riprova.",
+    "loadFailedAccounts": "Non siamo riusciti a caricare i conti. Controlla la connessione e riprova.",
+    "loadFailedReports": "Non siamo riusciti a caricare i rapporti. Controlla la connessione e riprova."
+  },
+  "BudgetsError": {
+    "title": "Non siamo riusciti a caricare i budget",
+    "description": "Controlla la connessione e riprova. Se il problema persiste, torna tra qualche minuto.",
+    "retry": "Riprova",
+    "home": "Torna alla home"
+  },
+  "AccountsError": {
+    "title": "Non siamo riusciti a caricare i conti",
+    "description": "Controlla la connessione e riprova. Se il problema persiste, torna tra qualche minuto.",
+    "retry": "Riprova",
+    "home": "Torna alla home"
+  },
   "ReportsContent": {
     "headerTitle": "Rapporti",
+    "flowHint": "Inizia dalla panoramica gruppo. Apri «Dettaglio membro» solo quando vuoi approfondire una persona.",
+    "flowHintDismissAria": "Non mostrare più questo suggerimento",
     "sectionGroupTitle": "Panoramica gruppo",
-    "sectionGroupSubtitle": "Saldo complessivo, andamento nel tempo e ripartizione spese per tutto il gruppo.",
+    "sectionGroupSubtitle": "Saldo, trend e spese per categoria nell’intervallo sopra.",
     "sectionChartsTitle": "Andamento e categorie",
-    "sectionChartsSubtitle": "Dati aggregati sulle transazioni di tutti i membri, nell’intervallo scelto sopra.",
+    "sectionChartsSubtitle": "Transazioni aggregate di tutti i membri nel periodo scelto.",
     "sectionMemberTitle": "Dettaglio membro",
-    "sectionMemberSubtitle": "Scegli una persona per vedere saldo sui suoi conti, flussi e storico periodi.",
+    "sectionMemberSubtitle": "Scegli chi approfondire: conti, flussi e periodi.",
+    "memberSectionExpand": "Apri dettaglio membro",
+    "memberSectionCollapse": "Chiudi dettaglio membro",
     "sectionBudgetFlowAriaLabel": "Flusso budget per il membro selezionato",
     "sectionPeriodsAriaLabel": "Storico periodi"
   },
@@ -1219,11 +1241,13 @@
     "Selector": {
       "title": "Budget",
       "subtitle": "Seleziona per visualizzare i dettagli",
-      "placeholder": "Seleziona budget"
+      "placeholder": "Seleziona budget",
+      "ariaLabel": "Seleziona quale budget visualizzare"
     },
     "DisplayCard": {
       "actions": {
         "title": "Azioni Budget",
+        "ariaLabel": "Apri il menu azioni per questo budget",
         "edit": "Modifica Budget",
         "delete": "Elimina Budget"
       },
@@ -1249,7 +1273,11 @@
       }
     },
     "Chart": {
-      "spentLabel": "Hai speso"
+      "spentLabel": "Hai speso",
+      "svgTitle": "Andamento cumulativo delle spese nel periodo",
+      "svgDescription": "Grafico a linee delle spese accumulate giorno per giorno rispetto al budget.",
+      "sectionAriaLabel": "Andamento delle spese nel periodo del budget",
+      "emptyState": "Non ci sono ancora spese registrate in questo periodo: il grafico comparirà quando ci saranno movimenti."
     },
     "FormModal": {
       "validation": {

@@ -68,10 +68,7 @@ export function TimeRangeSelector({ value, onChange }: TimeRangeSelectorProps) {
           />
         </div>
       </div>
-      <p
-        id={hintId}
-        className="text-[10px] sm:text-xs text-muted-foreground leading-snug sm:ps-6 max-w-prose"
-      >
+      <p id={hintId} className="text-xs text-muted-foreground leading-snug sm:ps-6 max-w-prose">
         {t('filterAppliesHint')}
       </p>
     </div>

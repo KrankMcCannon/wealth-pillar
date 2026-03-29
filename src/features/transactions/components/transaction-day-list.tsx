@@ -163,6 +163,8 @@ export function TransactionDayList({
   const resolvedEmptyDescription = emptyDescription ?? t('empty.description');
   const resolvedViewAllLabel = viewAllLabel ?? t('viewAll');
 
+  const DayHeadingTag = sectionTitle ? 'h4' : 'h3';
+
   const rowVirtualizer = useVirtualizer({
     count: useVirtual ? groupedTransactions.length : 0,
     getScrollElement: () => parentRef.current,
@@ -180,7 +182,9 @@ export function TransactionDayList({
     return (
       <section key={group.date}>
         <div className={transactionStyles.dayGroup.header}>
-          <h2 className={transactionStyles.dayGroup.title}>{group.formattedDate ?? group.date}</h2>
+          <DayHeadingTag className={transactionStyles.dayGroup.title}>
+            {group.formattedDate ?? group.date}
+          </DayHeadingTag>
           <div className={transactionStyles.dayGroup.stats}>
             <div className={transactionStyles.dayGroup.statsTotal}>
               <span className={transactionStyles.dayGroup.statsTotalLabel}>{t('totalLabel')}</span>
@@ -214,6 +218,7 @@ export function TransactionDayList({
       {/* Optional Section Header */}
       {sectionTitle && (
         <SectionHeader
+          titleAs="h3"
           title={sectionTitle}
           subtitle={sectionSubtitle}
           className={headerClassName}

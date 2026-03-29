@@ -8,17 +8,10 @@
 
 import { useCallback, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  CategoryBadge,
-  PageSection,
-  SectionHeader,
-} from '@/components/ui';
+import { Select, SelectContent, SelectItem, SelectTrigger, CategoryBadge } from '@/components/ui';
 import { Budget, User } from '@/lib';
-import { budgetStyles } from '@/styles/system';
+import { budgetStyles, layoutStyles } from '@/styles/system';
+import { cn } from '@/lib/utils';
 import { useUserFilter } from '@/hooks/state/use-user-filter';
 import { useCategories } from '@/stores/reference-data-store';
 import { FinanceLogicService } from '@/server/services/finance-logic.service';
@@ -55,14 +48,15 @@ export function BudgetSelector({
   );
 
   return (
-    <PageSection variant="card" padding="sm" className={budgetStyles.selectionSection}>
-      {/* Section Header */}
-      <SectionHeader title={t('title')} subtitle={t('subtitle')} />
+    <div className={cn(budgetStyles.selectionSection, 'space-y-2')}>
+      <div className="min-w-0 flex flex-col gap-1">
+        <p className={layoutStyles.section.title}>{t('title')}</p>
+        <p className={layoutStyles.section.subtitle}>{t('subtitle')}</p>
+      </div>
 
-      {/* Budget Selector Dropdown */}
-      <div>
+      <div className="min-w-0">
         <Select value={selectedBudget?.id || ''} onValueChange={onBudgetSelect}>
-          <SelectTrigger className={budgetStyles.selector.trigger}>
+          <SelectTrigger className={budgetStyles.selector.trigger} aria-label={t('ariaLabel')}>
             {selectedBudget ? (
               <div className={budgetStyles.selector.itemContent}>
                 <div className={budgetStyles.selector.itemIcon}>
@@ -114,6 +108,6 @@ export function BudgetSelector({
           </SelectContent>
         </Select>
       </div>
-    </PageSection>
+    </div>
   );
 }

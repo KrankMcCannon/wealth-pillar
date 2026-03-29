@@ -9,12 +9,10 @@
  * Data is passed from Server Component for optimal performance.
  */
 
-import { Suspense } from 'react';
 import { useTranslations } from 'next-intl';
 import { BottomNavigation, PageContainer, Header, SectionHeader } from '@/components/layout';
 import { PageSection } from '@/components/ui/layout';
 import UserSelector from '@/components/shared/user-selector';
-import { UserSelectorSkeleton } from '@/features/dashboard';
 import { ConfirmationDialog } from '@/components/shared/confirmation-dialog';
 import { EmptyState } from '@/components/shared';
 import {
@@ -22,12 +20,8 @@ import {
   BudgetDisplayCard,
   BudgetProgress,
   BudgetChart,
-  BudgetSelectorSkeleton,
-  BudgetCardSkeleton,
-  BudgetProgressSkeleton,
-  BudgetChartSkeleton,
 } from '@/features/budgets/components';
-import { TransactionDayList, TransactionDayListSkeleton } from '@/features/transactions';
+import { TransactionDayList } from '@/features/transactions';
 import { useBudgetsContent, type UseBudgetsContentProps } from '@/features/budgets';
 import type { User, UserBudgetSummary } from '@/lib/types';
 import type { BudgetsPageData } from '@/server/services/page-data.service';
@@ -94,9 +88,6 @@ export default function BudgetsContent({ currentUser, groupUsers, pageData }: Bu
     openModal,
   } = useBudgetsContent(props);
 
-  const sectionSurface =
-    'rounded-2xl border border-primary/15 bg-card/90 shadow-sm ring-1 ring-black/4 dark:ring-white/6 p-3 sm:p-4 md:p-5';
-
   return (
     <PageContainer>
       <Header
@@ -107,27 +98,29 @@ export default function BudgetsContent({ currentUser, groupUsers, pageData }: Bu
       />
 
       <main className={reportsStyles.main.container}>
-        <section aria-labelledby="budgets-section-context" className={sectionSurface}>
+        <section
+          aria-labelledby="budgets-section-context"
+          className={reportsStyles.section.surface}
+        >
           <PageSection className="space-y-3 sm:space-y-4">
             <SectionHeader
               titleId="budgets-section-context"
               title={t('sectionContextTitle')}
               subtitle={t('sectionContextSubtitle')}
             />
-            <Suspense fallback={<UserSelectorSkeleton />}>
-              <UserSelector
-                className={budgetStyles.userSelector.className}
-                currentUser={currentUser}
-                users={groupUsers}
-              />
-            </Suspense>
+            <UserSelector
+              hideTitle
+              className={budgetStyles.userSelector.className}
+              currentUser={currentUser}
+              users={groupUsers}
+            />
           </PageSection>
         </section>
 
         {userBudgets.length > 0 && selectedBudget ? (
           <section
             aria-labelledby="budgets-section-details"
-            className={`mt-5 sm:mt-6 ${sectionSurface}`}
+            className={`mt-5 sm:mt-6 ${reportsStyles.section.surface}`}
           >
             <PageSection className="space-y-4 sm:space-y-6">
               <SectionHeader
@@ -137,114 +130,105 @@ export default function BudgetsContent({ currentUser, groupUsers, pageData }: Bu
               />
               <div className="grid grid-cols-1 gap-4 lg:grid-cols-12 lg:gap-6">
                 <div className="space-y-4 lg:col-span-5">
-                  {/* Budget selector with fallback skeleton */}
-                  <Suspense fallback={<BudgetSelectorSkeleton />}>
-                    <BudgetSelector
-                      selectedBudget={selectedBudget}
-                      availableBudgets={userBudgets}
-                      users={groupUsers}
-                      onBudgetSelect={handleBudgetSelect}
-                    />
-                  </Suspense>
+                  <BudgetSelector
+                    selectedBudget={selectedBudget}
+                    availableBudgets={userBudgets}
+                    users={groupUsers}
+                    onBudgetSelect={handleBudgetSelect}
+                  />
 
-                  {/* Budget display card with period info and metrics */}
-                  <Suspense fallback={<BudgetCardSkeleton />}>
-                    <BudgetDisplayCard
-                      budget={selectedBudget}
-                      period={periodInfo?.activePeriod || null}
-                      budgetProgress={
-                        selectedBudgetProgress
-                          ? {
-                              spent: selectedBudgetProgress.spent,
-                              remaining: selectedBudgetProgress.remaining,
-                              percentage: selectedBudgetProgress.percentage,
-                              amount: selectedBudgetProgress.amount,
-                            }
-                          : null
-                      }
-                      onEdit={handleEditBudget}
-                      onDelete={handleDeleteBudget}
-                    />
-                  </Suspense>
-
-                  {/* Progressive sections loaded with budget progress */}
-                  {selectedBudgetProgress && (
-                    <>
-                      <Suspense fallback={<BudgetProgressSkeleton />}>
-                        <BudgetProgress
-                          progressData={{
-                            percentage: selectedBudgetProgress.percentage,
+                  <BudgetDisplayCard
+                    budget={selectedBudget}
+                    period={periodInfo?.activePeriod || null}
+                    budgetProgress={
+                      selectedBudgetProgress
+                        ? {
                             spent: selectedBudgetProgress.spent,
                             remaining: selectedBudgetProgress.remaining,
+                            percentage: selectedBudgetProgress.percentage,
                             amount: selectedBudgetProgress.amount,
-                          }}
-                        />
-                      </Suspense>
-
-                      <Suspense fallback={<BudgetChartSkeleton />}>
-                        <BudgetChart
-                          spent={selectedBudgetProgress.spent}
-                          chartData={chartData}
-                          periodInfo={
-                            periodInfo
-                              ? {
-                                  startDate: periodInfo.start || '',
-                                  endDate: periodInfo.end,
-                                }
-                              : null
                           }
-                        />
-                      </Suspense>
+                        : null
+                    }
+                    onEdit={handleEditBudget}
+                    onDelete={handleDeleteBudget}
+                  />
+
+                  {selectedBudgetProgress && (
+                    <>
+                      <BudgetProgress
+                        progressData={{
+                          percentage: selectedBudgetProgress.percentage,
+                          spent: selectedBudgetProgress.spent,
+                          remaining: selectedBudgetProgress.remaining,
+                          amount: selectedBudgetProgress.amount,
+                        }}
+                      />
+
+                      <BudgetChart
+                        spent={selectedBudgetProgress.spent}
+                        chartData={chartData}
+                        periodInfo={
+                          periodInfo
+                            ? {
+                                startDate: periodInfo.start || '',
+                                endDate: periodInfo.end,
+                              }
+                            : null
+                        }
+                      />
                     </>
                   )}
                 </div>
 
                 {selectedBudgetProgress && (
                   <div className="space-y-4 lg:col-span-7">
-                    <Suspense fallback={<TransactionDayListSkeleton itemCount={3} showHeader />}>
-                      <TransactionDayList
-                        groupedTransactions={groupedTransactions}
-                        accountNames={accountNamesMap}
-                        categories={hookCategories}
-                        sectionTitle={t('transactions.sectionTitle')}
-                        sectionSubtitle={transactionSectionSubtitle}
-                        emptyTitle={t('transactions.emptyTitle')}
-                        emptyDescription={t('transactions.emptyDescription')}
-                        expensesOnly
-                        showViewAll
-                        viewAllLabel={t('transactions.viewAll')}
-                        onViewAll={() => {
-                          const params = new URLSearchParams();
-                          params.set('from', 'budgets');
-                          params.set('member', currentUser.id);
-                          params.set('budget', selectedBudget.id);
-                          params.set('category', selectedBudget.description);
-                          if (periodInfo?.start) {
-                            params.set('startDate', periodInfo.start);
-                          }
-                          if (periodInfo?.end) {
-                            params.set('endDate', periodInfo.end);
-                          }
-                          router.push(`/transactions?${params.toString()}`);
-                        }}
-                        onEditTransaction={(transaction) => {
-                          openModal('transaction', transaction.id);
-                        }}
-                        onDeleteTransaction={() => {
-                          /* Handled via transaction form */
-                        }}
-                      />
-                    </Suspense>
+                    <TransactionDayList
+                      groupedTransactions={groupedTransactions}
+                      accountNames={accountNamesMap}
+                      categories={hookCategories}
+                      sectionTitle={t('transactions.sectionTitle')}
+                      sectionSubtitle={transactionSectionSubtitle}
+                      emptyTitle={t('transactions.emptyTitle')}
+                      emptyDescription={t('transactions.emptyDescription')}
+                      expensesOnly
+                      showViewAll
+                      viewAllLabel={t('transactions.viewAll')}
+                      onViewAll={() => {
+                        const params = new URLSearchParams();
+                        params.set('from', 'budgets');
+                        params.set('member', currentUser.id);
+                        params.set('budget', selectedBudget.id);
+                        params.set('category', selectedBudget.description);
+                        if (periodInfo?.start) {
+                          params.set('startDate', periodInfo.start);
+                        }
+                        if (periodInfo?.end) {
+                          params.set('endDate', periodInfo.end);
+                        }
+                        router.push(`/transactions?${params.toString()}`);
+                      }}
+                      onEditTransaction={(transaction) => {
+                        openModal('transaction', transaction.id);
+                      }}
+                      onDeleteTransaction={() => {
+                        /* Handled via transaction form */
+                      }}
+                    />
                   </div>
                 )}
               </div>
             </PageSection>
           </section>
         ) : (
-          <section className={`mt-5 sm:mt-6 ${sectionSurface}`}>
+          <section
+            aria-labelledby="budgets-section-empty-title"
+            className={`mt-5 sm:mt-6 ${reportsStyles.section.surface}`}
+          >
             <PageSection className="py-2">
               <EmptyState
                 icon={ShoppingCart}
+                titleId="budgets-section-empty-title"
                 title={t('emptyState.title')}
                 description={t('emptyState.description')}
                 action={

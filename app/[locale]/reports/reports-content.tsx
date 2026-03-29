@@ -1,15 +1,17 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { use, useMemo, useState } from 'react';
+import { use, useMemo, useState, useSyncExternalStore } from 'react';
 import { BottomNavigation, PageContainer, Header, SectionHeader } from '@/components/layout';
 import { PageSection } from '@/components/ui/layout';
+import { Button } from '@/components/ui';
 import { SummarySection, PeriodsSection } from '@/features/reports';
 import {
   TimeRangeSelector,
   getTimeRangeStartDate,
   type TimeRange,
 } from '@/features/reports/components/TimeRangeSelector';
+import { ReportsFlowHint } from '@/features/reports/components/ReportsFlowHint';
 import { useTranslations } from 'next-intl';
 import type {
   AccountTypeSummary,
@@ -18,7 +20,7 @@ import type {
   UserAccountFlow,
 } from '@/server/services/reports.service';
 import type { User } from '@/lib/types';
-import { reportsStyles } from '@/styles/system';
+import { layoutStyles, reportsStyles } from '@/styles/system';
 import UserSelector from '@/components/shared/user-selector';
 
 const TimeTrendsChart = dynamic(
@@ -81,6 +83,20 @@ interface ReportsContentProps {
 
 function formatCategoryFallback(catId: string): string {
   return catId.replace(/[-_]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function subscribeReportsDesktopMq(onStoreChange: () => void): () => void {
+  const mq = window.matchMedia('(min-width: 1024px)');
+  mq.addEventListener('change', onStoreChange);
+  return () => mq.removeEventListener('change', onStoreChange);
+}
+
+function getReportsDesktopSnapshot(): boolean {
+  return window.matchMedia('(min-width: 1024px)').matches;
+}
+
+function getReportsDesktopServerSnapshot(): boolean {
+  return false;
 }
 
 function normalizeAccountType(type: string): string {
@@ -257,6 +273,21 @@ export default function ReportsContent({
   const t = useTranslations('ReportsContent');
   const [timeRange, setTimeRange] = useState<TimeRange>('all');
   const [selectedUserId, setSelectedUserId] = useState<string>(currentUser.id);
+  const isDesktopLayout = useSyncExternalStore(
+    subscribeReportsDesktopMq,
+    getReportsDesktopSnapshot,
+    getReportsDesktopServerSnapshot
+  );
+  /** `undefined` = segui il breakpoint; altrimenti override esplicito dell’utente (toggle). */
+  const [memberDetailManual, setMemberDetailManual] = useState<boolean | undefined>(undefined);
+  const memberDetailOpen = memberDetailManual ?? isDesktopLayout;
+
+  const toggleMemberDetail = () => {
+    setMemberDetailManual((prev) => {
+      const resolved = prev ?? isDesktopLayout;
+      return !resolved;
+    });
+  };
 
   const isFiltered = timeRange !== 'all';
   const rangeStartDate = useMemo(() => getTimeRangeStartDate(timeRange), [timeRange]);
@@ -339,13 +370,16 @@ export default function ReportsContent({
       />
 
       <main className={reportsStyles.main.container}>
-        <TimeRangeSelector value={timeRange} onChange={setTimeRange} />
+        <div className={reportsStyles.section.stickyRange}>
+          <ReportsFlowHint className="mb-2" />
+          <TimeRangeSelector value={timeRange} onChange={setTimeRange} />
+        </div>
 
         <section
           aria-labelledby="reports-section-group"
-          className="mt-5 sm:mt-6 rounded-2xl border border-primary/15 bg-card/90 shadow-sm ring-1 ring-black/4 dark:ring-white/6 p-3 sm:p-4 md:p-5"
+          className={`scroll-mt-28 mt-4 sm:mt-5 ${reportsStyles.section.surface}`}
         >
-          <PageSection className="space-y-3 sm:space-y-4">
+          <PageSection className="space-y-4 sm:space-y-5">
             <SectionHeader
               titleId="reports-section-group"
               title={t('sectionGroupTitle')}
@@ -359,16 +393,19 @@ export default function ReportsContent({
               totalExpenses={groupExpenses}
               isFiltered={isFiltered}
             />
-            <div className="space-y-3 pt-2">
+            <div className="space-y-3 border-t border-border/40 pt-4">
               <SectionHeader
+                titleAs="h3"
                 title={t('sectionChartsTitle')}
                 subtitle={t('sectionChartsSubtitle')}
+                titleClassName={layoutStyles.section.subsectionTitle}
+                subtitleClassName={layoutStyles.section.subsectionSubtitle}
               />
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-                <div className="col-span-1 md:col-span-8 min-w-0">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-12 md:gap-5">
+                <div className="col-span-1 min-w-0 md:col-span-8">
                   <TimeTrendsChart data={filteredTrends} />
                 </div>
-                <div className="col-span-1 md:col-span-4 min-w-0">
+                <div className="col-span-1 min-w-0 md:col-span-4">
                   <CategoryDistribution
                     data={expenseStats.map((s) => ({ ...s, value: s.total }))}
                     total={totalExpenses}
@@ -381,41 +418,65 @@ export default function ReportsContent({
 
         <section
           aria-labelledby="reports-section-member"
-          className="mt-6 sm:mt-8 rounded-2xl border-2 border-primary/28 bg-primary/4.5 dark:bg-primary/9 shadow-md ring-1 ring-primary/10 p-3 sm:p-4 md:p-5"
+          className={`scroll-mt-28 mt-5 sm:mt-6 ${reportsStyles.section.surface}`}
         >
           <PageSection className="space-y-3 sm:space-y-4">
-            <SectionHeader
-              titleId="reports-section-member"
-              title={t('sectionMemberTitle')}
-              subtitle={t('sectionMemberSubtitle')}
-            />
-            <UserSelector
-              currentUser={currentUser}
-              users={groupUsers}
-              value={selectedUserId}
-              onChange={setSelectedUserId}
-              showAllOption={false}
-            />
-            {selectedUserFlow && (
-              <>
-                <SummarySection
-                  variant="member"
-                  hasAccounts
-                  totalBalance={memberTotalBalance}
-                  totalIncome={selectedUserFlow.totalEarned}
-                  totalExpenses={selectedUserFlow.totalSpent}
-                  isFiltered={isFiltered}
-                  memberName={selectedMemberName}
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+              <SectionHeader
+                titleId="reports-section-member"
+                className="min-w-0 flex-1 sm:pb-0"
+                title={t('sectionMemberTitle')}
+                subtitle={t('sectionMemberSubtitle')}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="shrink-0 self-stretch sm:self-auto"
+                aria-expanded={memberDetailOpen}
+                aria-controls="reports-member-panel"
+                onClick={toggleMemberDetail}
+              >
+                {memberDetailOpen ? t('memberSectionCollapse') : t('memberSectionExpand')}
+              </Button>
+            </div>
+
+            {memberDetailOpen ? (
+              <div id="reports-member-panel" className="space-y-3 sm:space-y-4">
+                <UserSelector
+                  hideTitle
+                  currentUser={currentUser}
+                  users={groupUsers}
+                  value={selectedUserId}
+                  onChange={setSelectedUserId}
+                  showAllOption={false}
                 />
-                <section className="space-y-3" aria-label={t('sectionBudgetFlowAriaLabel')}>
-                  <BudgetFlowVisualizer userFlow={selectedUserFlow} />
-                </section>
-                <div className="space-y-3 pt-2">
-                  <SectionHeader title={t('sectionPeriodsAriaLabel')} />
-                  <PeriodsSection data={selectedUserPeriods} users={groupUsers} />
-                </div>
-              </>
-            )}
+                {selectedUserFlow && (
+                  <>
+                    <SummarySection
+                      variant="member"
+                      hasAccounts
+                      totalBalance={memberTotalBalance}
+                      totalIncome={selectedUserFlow.totalEarned}
+                      totalExpenses={selectedUserFlow.totalSpent}
+                      isFiltered={isFiltered}
+                      memberName={selectedMemberName}
+                    />
+                    <section className="space-y-3" aria-label={t('sectionBudgetFlowAriaLabel')}>
+                      <BudgetFlowVisualizer userFlow={selectedUserFlow} />
+                    </section>
+                    <div className="space-y-3 border-t border-border/40 pt-4">
+                      <SectionHeader
+                        titleAs="h3"
+                        title={t('sectionPeriodsAriaLabel')}
+                        titleClassName={layoutStyles.section.subsectionTitle}
+                      />
+                      <PeriodsSection data={selectedUserPeriods} users={groupUsers} />
+                    </div>
+                  </>
+                )}
+              </div>
+            ) : null}
           </PageSection>
         </section>
       </main>

@@ -13,6 +13,8 @@ interface EmptyStateProps {
   icon?: LucideIcon;
   /** Title text */
   title: string;
+  /** id sull’heading per aria-labelledby della sezione contenitore */
+  titleId?: string;
   /** Optional description text */
   description?: string;
   /** Optional action button or element */
@@ -40,6 +42,7 @@ interface EmptyStateProps {
 export function EmptyState({
   icon: Icon,
   title,
+  titleId,
   description,
   action,
   className,
@@ -51,7 +54,9 @@ export function EmptyState({
           <Icon className={emptyStateStyles.icon} />
         </div>
       )}
-      <h3 className={emptyStateStyles.title}>{title}</h3>
+      <h3 id={titleId} className={emptyStateStyles.title}>
+        {title}
+      </h3>
       {description && <p className={emptyStateStyles.description}>{description}</p>}
       {action && <div className={emptyStateStyles.action}>{action}</div>}
     </div>

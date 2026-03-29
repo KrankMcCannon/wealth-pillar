@@ -21,12 +21,12 @@ export default function AccountsLoading() {
       <div className={accountStyles.loading.body}>
         <AccountHeaderSkeleton />
 
-        <main className={reportsStyles.main.container}>
+        <main className={reportsStyles.main.container} aria-busy="true">
           <div className="space-y-5 sm:space-y-6">
-            <div className="rounded-2xl border border-primary/15 bg-card/90 p-3 shadow-sm ring-1 ring-black/4 dark:ring-white/6 sm:p-4 md:p-5">
+            <div className={reportsStyles.section.surface}>
               <SkeletonBox height="h-32" variant="medium" />
             </div>
-            <div className="rounded-2xl border border-primary/15 bg-card/90 p-3 shadow-sm ring-1 ring-black/4 dark:ring-white/6 sm:p-4 md:p-5">
+            <div className={reportsStyles.section.surface}>
               <AccountListSkeleton />
             </div>
           </div>

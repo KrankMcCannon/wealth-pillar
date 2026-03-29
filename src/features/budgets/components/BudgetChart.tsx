@@ -6,15 +6,10 @@
 
 'use client';
 
+import { useId } from 'react';
 import { useTranslations } from 'next-intl';
 import { Card } from '@/components/ui';
-import {
-  budgetStyles,
-  getChartGradientStartStyle,
-  getChartGradientEndStyle,
-  getChartDayRowStyle,
-  getChartDayLabelStyle,
-} from '@/styles/system';
+import { budgetStyles, getChartDayRowStyle, getChartDayLabelStyle } from '@/styles/system';
 import { formatCurrency } from '@/lib/utils/currency-formatter';
 
 export interface ChartDataPoint {
@@ -36,6 +31,9 @@ export interface BudgetChartProps {
 
 export function BudgetChart({ spent, chartData, periodInfo }: Readonly<BudgetChartProps>) {
   const t = useTranslations('Budgets.Chart');
+  const titleId = useId().replace(/:/g, '');
+  const descId = useId().replace(/:/g, '');
+  const labelledBy = `${titleId} ${descId}`;
   // Generate path for chart line
   const generatePath = (points: ChartDataPoint[]): string => {
     if (points.length === 0) return '';
@@ -51,6 +49,7 @@ export function BudgetChart({ spent, chartData, periodInfo }: Readonly<BudgetCha
   const visiblePoints = chartData?.filter((p) => !p.isFuture) || [];
   const lastPoint = visiblePoints.at(-1);
   const path = chartData ? generatePath(chartData) : '';
+  const hasLine = Boolean(chartData && chartData.length > 0 && lastPoint);
 
   // Calculate period days for date labels
   const getPeriodDays = () => {
@@ -66,9 +65,8 @@ export function BudgetChart({ spent, chartData, periodInfo }: Readonly<BudgetCha
   const periodDays = getPeriodDays();
 
   return (
-    <section>
+    <section aria-label={t('sectionAriaLabel')}>
       <Card className={budgetStyles.chart.card}>
-        {/* Header with amount and comparison */}
         <div className={budgetStyles.chart.header}>
           <div>
             <p className={budgetStyles.chart.headerLabel}>{t('spentLabel')}</p>
@@ -76,10 +74,23 @@ export function BudgetChart({ spent, chartData, periodInfo }: Readonly<BudgetCha
           </div>
         </div>
 
-        {/* Revolut-style Line Chart */}
+        {!hasLine ? <p className={budgetStyles.chart.emptyHint}>{t('emptyState')}</p> : null}
+
         <div className={budgetStyles.chart.svgContainer}>
-          <svg className={budgetStyles.chart.svg} viewBox="0 0 350 180" preserveAspectRatio="none">
-            {/* Subtle horizontal grid lines */}
+          <svg
+            className={budgetStyles.chart.svg}
+            viewBox="0 0 350 180"
+            preserveAspectRatio="none"
+            role={hasLine ? 'img' : undefined}
+            aria-hidden={hasLine ? undefined : true}
+            aria-labelledby={hasLine ? labelledBy : undefined}
+          >
+            {hasLine ? (
+              <>
+                <title id={titleId}>{t('svgTitle')}</title>
+                <desc id={descId}>{t('svgDescription')}</desc>
+              </>
+            ) : null}
             {[25, 50, 75].map((percent) => (
               <line
                 key={percent}
@@ -92,19 +103,12 @@ export function BudgetChart({ spent, chartData, periodInfo }: Readonly<BudgetCha
               />
             ))}
 
-            {/* Line for cumulative amounts */}
-            {chartData && chartData.length > 0 && lastPoint && (
+            {hasLine && lastPoint ? (
               <>
-                {/* Subtle gradient fill under line */}
-                <defs>
-                  <linearGradient id="lineGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                    <stop offset="0%" style={getChartGradientStartStyle()} />
-                    <stop offset="100%" style={getChartGradientEndStyle()} />
-                  </linearGradient>
-                </defs>
-                <path d={`${path} L ${lastPoint.x} 180 L 0 180 Z`} fill="url(#lineGradient)" />
-
-                {/* Main smooth line */}
+                <path
+                  d={`${path} L ${lastPoint.x} 180 L 0 180 Z`}
+                  className="fill-primary/10 dark:fill-primary/15"
+                />
                 <path
                   d={path}
                   fill="none"
@@ -113,16 +117,13 @@ export function BudgetChart({ spent, chartData, periodInfo }: Readonly<BudgetCha
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 />
-
-                {/* Dot at the end of line */}
                 <circle cx={lastPoint.x} cy={lastPoint.y} r="4" fill={budgetStyles.chart.dotFill} />
               </>
-            )}
+            ) : null}
           </svg>
 
-          {/* Day numbers at bottom */}
-          {periodInfo && (
-            <div className={budgetStyles.chart.dayLabels}>
+          {periodInfo && hasLine ? (
+            <div className={budgetStyles.chart.dayLabels} aria-hidden="true">
               <div className={budgetStyles.chart.dayRow} style={getChartDayRowStyle()}>
                 {Array.from({ length: Math.min(periodDays, 30) }).map((_, index) => {
                   const startDate = new Date(periodInfo.startDate);
@@ -153,7 +154,7 @@ export function BudgetChart({ spent, chartData, periodInfo }: Readonly<BudgetCha
                 })}
               </div>
             </div>
-          )}
+          ) : null}
         </div>
       </Card>
     </section>

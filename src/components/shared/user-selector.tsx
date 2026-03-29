@@ -34,6 +34,8 @@ interface UserSelectorProps {
   onChange?: (userId: string) => void;
   /** Optional: Show "All Users" option (default: true) */
   showAllOption?: boolean;
+  /** Nasconde l’h2 interno quando la pagina espone già un SectionHeader con lo stesso titolo */
+  hideTitle?: boolean;
 }
 
 /** Filtro prospettiva gruppo (admin): stato da props o da `useUserFilter`. */
@@ -46,6 +48,7 @@ const UserSelector = memo(
     value,
     onChange,
     showAllOption = true,
+    hideTitle = false,
   }: UserSelectorProps) => {
     const headingId = useId();
     const t = useTranslations('UserSelector');
@@ -105,7 +108,11 @@ const UserSelector = memo(
     // Loading state
     if (isLoading) {
       return (
-        <section className={`${userSelectorStyles.loading.container} ${className}`}>
+        <section
+          className={`${userSelectorStyles.loading.container} ${className}`}
+          aria-label={t('contextLabel')}
+          aria-busy="true"
+        >
           <div className={userSelectorStyles.loading.heading} aria-hidden />
           <div className={userSelectorStyles.loading.list}>
             {[1, 2, 3].map((i) => (
@@ -122,11 +129,14 @@ const UserSelector = memo(
     return (
       <section
         className={`${userSelectorStyles.container} ${className}`}
-        aria-labelledby={headingId}
+        aria-label={hideTitle ? t('contextLabel') : undefined}
+        aria-labelledby={hideTitle ? undefined : headingId}
       >
-        <h2 id={headingId} className={userSelectorStyles.heading}>
-          {t('contextLabel')}
-        </h2>
+        {!hideTitle ? (
+          <h2 id={headingId} className={userSelectorStyles.heading}>
+            {t('contextLabel')}
+          </h2>
+        ) : null}
         <div className={userSelectorStyles.list} style={userSelectorStyles.listStyle}>
           {membersList.map((member) => {
             const isSelected = currentSelection === member.id;

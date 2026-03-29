@@ -13,7 +13,7 @@ export default function AccountsError({
   error: Error & { digest?: string };
   reset: () => void;
 }>): JSX.Element {
-  const t = useTranslations('ReportsError');
+  const t = useTranslations('AccountsError');
 
   useEffect(() => {
     console.error('[Accounts Error]', {
@@ -32,12 +32,9 @@ export default function AccountsError({
       role="alert"
     >
       <h1 className="text-center text-lg font-semibold text-primary">{t('title')}</h1>
-      <p className="max-w-md text-center text-sm text-muted-foreground">{t('description')}</p>
-      {error.message ? (
-        <p className="max-w-md text-center font-mono text-xs wrap-break-word text-muted-foreground/80">
-          {error.message}
-        </p>
-      ) : null}
+      <p className="max-w-md text-center text-sm leading-relaxed text-muted-foreground wrap-break-word">
+        {error.message || t('description')}
+      </p>
       <div className="flex flex-col gap-3 sm:flex-row">
         <Button onClick={() => reset()} size="default">
           {t('retry')}

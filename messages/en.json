@@ -331,14 +331,36 @@
     "retry": "Try again",
     "home": "Back to home"
   },
+  "Errors": {
+    "groupRequired": "You need to belong to a group to use this page. Ask an admin to invite you, or finish setting up your account in Settings.",
+    "loadFailedBudgets": "We couldn’t load budgets. Check your connection and try again.",
+    "loadFailedAccounts": "We couldn’t load accounts. Check your connection and try again.",
+    "loadFailedReports": "We couldn’t load reports. Check your connection and try again."
+  },
+  "BudgetsError": {
+    "title": "We couldn’t load budgets",
+    "description": "Check your connection and try again. If it keeps happening, wait a few minutes and retry.",
+    "retry": "Try again",
+    "home": "Back to home"
+  },
+  "AccountsError": {
+    "title": "We couldn’t load accounts",
+    "description": "Check your connection and try again. If it keeps happening, wait a few minutes and retry.",
+    "retry": "Try again",
+    "home": "Back to home"
+  },
   "ReportsContent": {
     "headerTitle": "Reports",
+    "flowHint": "Start with the group overview. Open “Member detail” when you want to drill into one person.",
+    "flowHintDismissAria": "Dismiss this tip",
     "sectionGroupTitle": "Group overview",
-    "sectionGroupSubtitle": "Overall balance, trends, and spending split across the whole group.",
+    "sectionGroupSubtitle": "Balance, trends, and category split for the range above.",
     "sectionChartsTitle": "Trends and categories",
-    "sectionChartsSubtitle": "Aggregated from everyone’s transactions in the range selected above.",
+    "sectionChartsSubtitle": "Everyone’s transactions combined for the selected period.",
     "sectionMemberTitle": "Member detail",
-    "sectionMemberSubtitle": "Pick someone to see their linked accounts, cash flow, and period history.",
+    "sectionMemberSubtitle": "Pick someone to see their accounts, cash flow, and period history.",
+    "memberSectionExpand": "Open member detail",
+    "memberSectionCollapse": "Close member detail",
     "sectionBudgetFlowAriaLabel": "Budget flow for the selected member",
     "sectionPeriodsAriaLabel": "Period history"
   },
@@ -1219,11 +1241,13 @@
     "Selector": {
       "title": "Budget",
       "subtitle": "Select to view details",
-      "placeholder": "Select budget"
+      "placeholder": "Select budget",
+      "ariaLabel": "Select which budget to view"
     },
     "DisplayCard": {
       "actions": {
         "title": "Budget actions",
+        "ariaLabel": "Open actions menu for this budget",
         "edit": "Edit Budget",
         "delete": "Delete Budget"
       },
@@ -1249,7 +1273,11 @@
       }
     },
     "Chart": {
-      "spentLabel": "You spent"
+      "spentLabel": "You spent",
+      "svgTitle": "Cumulative spending trend for the period",
+      "svgDescription": "Line chart of spending accumulated day by day against your budget.",
+      "sectionAriaLabel": "Budget spending trend for the period",
+      "emptyState": "No spending recorded in this period yet. The chart will appear once there are transactions."
     },
     "FormModal": {
       "validation": {

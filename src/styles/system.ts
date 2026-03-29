@@ -153,6 +153,9 @@ export const layoutStyles = {
     headerRow: 'flex items-center justify-between gap-3',
     title: 'text-lg font-semibold text-primary',
     subtitle: 'text-sm text-primary',
+    /** Sotto-sezioni (es. grafici sotto una panoramica) — peso inferiore al titolo sezione */
+    subsectionTitle: 'text-base font-semibold text-foreground',
+    subsectionSubtitle: 'text-xs text-muted-foreground leading-relaxed',
     actions: 'flex items-center gap-2',
     surface: {
       plain: 'bg-transparent',
@@ -190,6 +193,14 @@ export const reportsStyles = {
   },
   main: {
     container: 'px-3 sm:px-4 py-4 pb-20 space-y-7 sm:space-y-10',
+  },
+  /** Superficie sezione allineata tra budgets, accounts e reports (evita drift di classi) */
+  section: {
+    surface:
+      'rounded-2xl border border-primary/15 bg-card/90 shadow-sm ring-1 ring-black/4 dark:ring-white/6 p-3 sm:p-4 md:p-5',
+    /** Barra intervallo date sticky sotto l’header pagina (thumb-friendly, meno scroll per cambiare filtro) */
+    stickyRange:
+      'sticky top-0 z-30 -mx-3 mb-1 border-b border-border/50 bg-card/95 px-3 py-2.5 backdrop-blur-md supports-[backdrop-filter]:bg-card/85 sm:-mx-4 sm:px-4',
   },
   card: {
     container:
@@ -521,6 +532,7 @@ export const budgetStyles = {
     dayLabelVisible: 'text-primary/70',
     dayLabelHidden: 'text-transparent',
     dayLabelPosition: 'absolute',
+    emptyHint: 'px-6 pb-3 text-sm leading-relaxed text-muted-foreground',
   },
   transactions: {
     container: 'flex flex-col gap-4 sm:gap-5',

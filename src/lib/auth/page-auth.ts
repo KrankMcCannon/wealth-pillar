@@ -9,6 +9,7 @@
  */
 
 import { redirect } from 'next/navigation';
+import { getTranslations } from 'next-intl/server';
 import { getCurrentUser, getGroupUsers } from './cached-auth';
 import type { User } from '@/lib/types';
 
@@ -51,12 +52,13 @@ export async function requirePageAuth(
 
 /**
  * Ensures the signed-in user belongs to a group before loading group-scoped data.
- * Throws if missing so the route `error.tsx` can surface a clear recovery UI.
+ * Throws a localized message so route `error.tsx` can show human-readable copy.
  */
-export function requireGroupId(currentUser: User): string {
+export async function requireGroupId(currentUser: User): Promise<string> {
   const id = currentUser.group_id?.trim();
   if (!id) {
-    throw new Error('Group ID is required');
+    const t = await getTranslations('Errors');
+    throw new Error(t('groupRequired'));
   }
   return id;
 }

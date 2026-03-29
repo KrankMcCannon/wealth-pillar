@@ -31,13 +31,10 @@ export default function ReportsError({
       )}
       role="alert"
     >
-      <h1 className="text-lg font-semibold text-primary text-center">{t('title')}</h1>
-      <p className="max-w-md text-center text-sm text-muted-foreground">{t('description')}</p>
-      {error.message ? (
-        <p className="max-w-md text-center text-xs text-muted-foreground/80 font-mono wrap-break-word">
-          {error.message}
-        </p>
-      ) : null}
+      <h1 className="text-center text-lg font-semibold text-primary">{t('title')}</h1>
+      <p className="max-w-md text-center text-sm leading-relaxed text-muted-foreground wrap-break-word">
+        {error.message || t('description')}
+      </p>
       <div className="flex flex-col gap-3 sm:flex-row">
         <Button onClick={() => reset()} size="default">
           {t('retry')}

@@ -70,6 +70,7 @@ export function BudgetDisplayCard({
               size="sm"
               className={budgetStyles.budgetDisplay.actionsButton}
               title={t('actions.title')}
+              aria-label={t('actions.ariaLabel')}
             >
               <MoreVertical className={budgetStyles.budgetDisplay.actionIcon} />
             </Button>

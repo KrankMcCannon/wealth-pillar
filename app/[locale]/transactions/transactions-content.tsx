@@ -23,7 +23,6 @@ import { ConfirmationDialog } from '@/components/shared';
 import { RecurringSeriesSection, PauseSeriesModal } from '@/features/recurring';
 import { TransactionFilters, TransactionTable } from '@/features/transactions';
 import { transactionStyles } from '@/styles/system';
-import { UserSelectorSkeleton } from '@/features/dashboard';
 import { RecurringSeriesSkeleton } from '@/features/transactions/components/transaction-skeletons';
 
 interface TransactionsContentProps {
@@ -142,13 +141,11 @@ export default function TransactionsContent({
       <div className={transactionStyles.layout.controlsStack}>
         <div className={transactionStyles.layout.controlsCard}>
           {/* User Selector */}
-          <Suspense fallback={<UserSelectorSkeleton />}>
-            <UserSelector
-              className={transactionStyles.userSelector.className}
-              currentUser={currentUser}
-              users={groupUsers}
-            />
-          </Suspense>
+          <UserSelector
+            className={transactionStyles.userSelector.className}
+            currentUser={currentUser}
+            users={groupUsers}
+          />
 
           {/* Tab Navigation */}
           <div className={transactionStyles.tabNavigation.wrapper}>

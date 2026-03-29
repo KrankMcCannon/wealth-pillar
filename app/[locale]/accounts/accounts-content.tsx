@@ -7,14 +7,13 @@
  * Data is passed from Server Component for optimal performance
  */
 
-import { Suspense, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import { BottomNavigation, PageContainer, Header, SectionHeader } from '@/components/layout';
 import { PageSection } from '@/components/ui/layout';
 import { AccountsList, accountStyles, useAccountsContent } from '@/features/accounts';
 import { MetricCard } from '@/components/ui/layout';
 import UserSelector from '@/components/shared/user-selector';
-import { UserSelectorSkeleton } from '@/features/dashboard';
 import { ConfirmationDialog } from '@/components/shared/confirmation-dialog';
 import type { User } from '@/lib/types';
 import type { AccountsPageData } from '@/server/services/page-data.service';
@@ -69,9 +68,6 @@ export default function AccountsContent({
     [t, accountStats.totalAccounts, accountStats.positiveAccounts, accountStats.negativeAccounts]
   );
 
-  const sectionSurface =
-    'rounded-2xl border border-primary/15 bg-card/90 shadow-sm ring-1 ring-black/4 dark:ring-white/6 p-3 sm:p-4 md:p-5';
-
   return (
     <PageContainer>
       <Header
@@ -83,22 +79,23 @@ export default function AccountsContent({
       />
 
       <main className={reportsStyles.main.container}>
-        <section aria-labelledby="accounts-section-context" className={sectionSurface}>
+        <section
+          aria-labelledby="accounts-section-context"
+          className={reportsStyles.section.surface}
+        >
           <PageSection className="space-y-3 sm:space-y-4">
             <SectionHeader
               titleId="accounts-section-context"
               title={t('sectionContextTitle')}
               subtitle={t('sectionContextSubtitle')}
             />
-            <Suspense fallback={<UserSelectorSkeleton />}>
-              <UserSelector currentUser={currentUser} users={groupUsers} />
-            </Suspense>
+            <UserSelector hideTitle currentUser={currentUser} users={groupUsers} />
           </PageSection>
         </section>
 
         <section
           aria-labelledby="accounts-section-balance"
-          className={`mt-5 sm:mt-6 ${sectionSurface}`}
+          className={`mt-5 sm:mt-6 ${reportsStyles.section.surface}`}
         >
           <PageSection className="space-y-3 sm:space-y-4">
             <SectionHeader
@@ -123,7 +120,7 @@ export default function AccountsContent({
 
         <section
           aria-labelledby="accounts-section-list"
-          className={`mt-5 sm:mt-6 ${sectionSurface}`}
+          className={`mt-5 sm:mt-6 ${reportsStyles.section.surface}`}
         >
           <PageSection className="space-y-3 sm:space-y-4">
             <SectionHeader
