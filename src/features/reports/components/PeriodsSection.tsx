@@ -37,14 +37,11 @@ export function PeriodsSection({ data, users }: PeriodsSectionProps) {
             return (
               <React.Fragment key={user.id}>
                 {userPeriods.map((period) => (
-                  <div key={period.id} className="relative">
-                    <PeriodCard period={period} />
-                    {users.length > 1 && (
-                      <div className="absolute top-3 right-3 bg-card border border-primary/20 rounded-full px-2 py-0.5 text-[10px] sm:text-xs font-medium text-primary/70">
-                        {user.name}
-                      </div>
-                    )}
-                  </div>
+                  <PeriodCard
+                    key={period.id}
+                    period={period}
+                    {...(users.length > 1 ? { ownerName: user.name } : {})}
+                  />
                 ))}
               </React.Fragment>
             );

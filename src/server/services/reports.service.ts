@@ -588,7 +588,9 @@ export class ReportsService {
   }
 
   /**
-   * Fetch spending trends for a specific user and range
+   * Fetch spending trends for a single user (filtered by `user_id`).
+   * For **group** reports that must match `getReportsData` aggregates, prefer
+   * `calculateTimeTrends` on the full group transaction list instead.
    */
   static async getSpendingTrends(userId: string, start?: Date, end?: Date, groupId?: string) {
     let query = supabase.from('transactions').select('*').eq('user_id', userId);

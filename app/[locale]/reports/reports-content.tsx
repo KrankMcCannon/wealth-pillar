@@ -39,7 +39,7 @@ const BudgetFlowVisualizer = dynamic(
     import('@/features/reports/components/BudgetFlowVisualizer').then(
       (m) => m.BudgetFlowVisualizer
     ),
-  { loading: () => <div className="h-[360px] animate-pulse rounded-xl bg-primary/10" /> }
+  { loading: () => <div className="h-[280px] animate-pulse rounded-xl bg-primary/10" /> }
 );
 
 interface SerializedTransaction {
@@ -341,7 +341,10 @@ export default function ReportsContent({
       <main className={reportsStyles.main.container}>
         <TimeRangeSelector value={timeRange} onChange={setTimeRange} />
 
-        <section aria-labelledby="reports-section-group">
+        <section
+          aria-labelledby="reports-section-group"
+          className="mt-5 sm:mt-6 rounded-2xl border border-primary/15 bg-card/90 shadow-sm ring-1 ring-black/4 dark:ring-white/6 p-3 sm:p-4 md:p-5"
+        >
           <PageSection className="space-y-3 sm:space-y-4">
             <SectionHeader
               titleId="reports-section-group"
@@ -378,7 +381,7 @@ export default function ReportsContent({
 
         <section
           aria-labelledby="reports-section-member"
-          className="border-t border-primary/10 pt-5 sm:pt-7"
+          className="mt-6 sm:mt-8 rounded-2xl border-2 border-primary/28 bg-primary/4.5 dark:bg-primary/9 shadow-md ring-1 ring-primary/10 p-3 sm:p-4 md:p-5"
         >
           <PageSection className="space-y-3 sm:space-y-4">
             <SectionHeader

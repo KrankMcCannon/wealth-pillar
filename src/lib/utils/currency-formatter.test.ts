@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { formatCurrency } from './currency-formatter';
+import { formatCurrency, formatCurrencyLocale } from './currency-formatter';
 
 describe('formatCurrency', () => {
   describe('basic formatting', () => {
@@ -61,5 +61,22 @@ describe('formatCurrency', () => {
     it('should handle negative fractional values', () => {
       expect(formatCurrency(-0.5)).toBe('-0,50 €');
     });
+  });
+});
+
+describe('formatCurrencyLocale', () => {
+  it('formats with Italian locale', () => {
+    expect(formatCurrencyLocale(1234.5, 'it-IT')).toMatch(/1.*234/);
+    expect(formatCurrencyLocale(1234.5, 'it-IT')).toContain('€');
+  });
+
+  it('formats with English locale', () => {
+    const s = formatCurrencyLocale(1234.5, 'en-US');
+    expect(s).toContain('1');
+    expect(s).toContain('€');
+  });
+
+  it('handles NaN as zero', () => {
+    expect(formatCurrencyLocale(Number.NaN, 'it-IT')).toContain('0');
   });
 });

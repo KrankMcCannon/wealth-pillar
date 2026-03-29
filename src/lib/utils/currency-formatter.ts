@@ -1,3 +1,6 @@
+/** Default app currency — keep aligned with accounts and budgets. */
+export const APP_CURRENCY_CODE = 'EUR' as const;
+
 /**
  * Formats a number as currency in Italian Euro format.
  * Uses manual formatting to ensure consistency between server and client (prevents hydration errors).
@@ -25,3 +28,29 @@ export const formatCurrency = (value: number): string => {
 
   return formattedValue;
 };
+
+/**
+ * Locale-aware currency (EUR) for client UI — matches `Intl` + active locale (next-intl).
+ */
+export function formatCurrencyLocale(
+  value: number,
+  locale: string,
+  options?: Intl.NumberFormatOptions
+): string {
+  if (Number.isNaN(value)) {
+    return new Intl.NumberFormat(locale, {
+      style: 'currency',
+      currency: APP_CURRENCY_CODE,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(0);
+  }
+
+  return new Intl.NumberFormat(locale, {
+    style: 'currency',
+    currency: APP_CURRENCY_CODE,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+    ...options,
+  }).format(value);
+}

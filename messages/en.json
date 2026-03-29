@@ -325,6 +325,12 @@
   "ReportsPage": {
     "loading": "Loading reports..."
   },
+  "ReportsError": {
+    "title": "We couldn’t load reports",
+    "description": "Something went wrong while fetching your data. Check your connection and try again.",
+    "retry": "Try again",
+    "home": "Back to home"
+  },
   "ReportsContent": {
     "headerTitle": "Reports",
     "sectionGroupTitle": "Group overview",
@@ -368,7 +374,7 @@
     },
     "Charts": {
       "timeTrendsTitle": "Income & Expense Trends",
-      "timeTrendsSubtitle": "Group-wide income and spending over time",
+      "timeTrendsSubtitle": "Same data as the summary and category chart; period from the control above.",
       "categoryDistributionTitle": "Spending by category",
       "categoryDistributionSubtitle": "How group spending splits across categories",
       "flowTitle": "Budget Flow",
@@ -378,6 +384,8 @@
       "total": "Total",
       "noData": "No data for this period.",
       "chartLegendAriaLabel": "Legend: green bars income, red bars expenses",
+      "categoryListRegionAria": "Spending amounts by category",
+      "categoryListScrollHint": "Scroll the list to see all categories",
       "net": "Net",
       "in": "In",
       "out": "Out",
@@ -405,13 +413,17 @@
     },
     "TimeRangeSelector": {
       "label": "Time Range",
-      "ariaLabel": "Time range",
-      "allTime": "All Time",
-      "last7Days": "Last 7 Days",
-      "last30Days": "Last 30 Days",
-      "last3Months": "Last 3 Months",
-      "last6Months": "Last 6 Months",
-      "lastYear": "Last Year",
+      "ariaLabel": "Report time range",
+      "filterAppliesHint": "Applies to the whole report: group overview, charts, and member detail.",
+      "allTime": "All time",
+      "last7Days": "Last 7 days",
+      "last30Days": "Last 30 days",
+      "last3Months": "Last 3 months",
+      "last6Months": "Last 6 months",
+      "lastYear": "Last 12 months",
+      "moreRangesShow": "More ranges",
+      "moreRangesHide": "Fewer ranges",
+      "moreRangesAriaLabel": "Additional time ranges",
       "customRange": "Custom Range",
       "from": "From",
       "to": "To",
@@ -443,7 +455,9 @@
       "inLabel": "Income",
       "outLabel": "Expenses",
       "showDetails": "Show breakdown",
-      "hideDetails": "Hide"
+      "hideDetails": "Hide",
+      "showDetailsAriaLabel": "Show account breakdown for {period}",
+      "hideDetailsAriaLabel": "Hide account breakdown for {period}"
     }
   },
   "InvestmentsPage": {

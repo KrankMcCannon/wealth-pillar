@@ -325,6 +325,12 @@
   "ReportsPage": {
     "loading": "Caricamento rapporti..."
   },
+  "ReportsError": {
+    "title": "Non siamo riusciti a caricare i rapporti",
+    "description": "Si è verificato un problema nel recupero dei dati. Controlla la connessione e riprova.",
+    "retry": "Riprova",
+    "home": "Torna alla home"
+  },
   "ReportsContent": {
     "headerTitle": "Rapporti",
     "sectionGroupTitle": "Panoramica gruppo",
@@ -368,7 +374,7 @@
     },
     "Charts": {
       "timeTrendsTitle": "Andamento Entrate e Uscite",
-      "timeTrendsSubtitle": "Andamento aggregato del gruppo nel tempo",
+      "timeTrendsSubtitle": "Stessi dati di riepilogo e grafico categorie; periodo dal selettore sopra.",
       "categoryDistributionTitle": "Spese per categoria",
       "categoryDistributionSubtitle": "Ripartizione delle spese di gruppo per categoria",
       "flowTitle": "Flusso del Budget",
@@ -378,6 +384,8 @@
       "total": "Totale",
       "noData": "Nessun dato per questo periodo.",
       "chartLegendAriaLabel": "Legenda: barre verdi entrate, barre rosse uscite",
+      "categoryListRegionAria": "Importi di spesa per categoria",
+      "categoryListScrollHint": "Scorri l’elenco per vedere tutte le categorie",
       "net": "Netto",
       "in": "Entrate",
       "out": "Uscite",
@@ -405,13 +413,17 @@
     },
     "TimeRangeSelector": {
       "label": "Periodo",
-      "ariaLabel": "Periodo",
-      "allTime": "Tutto",
-      "last7Days": "Ultimi 7 Giorni",
-      "last30Days": "Ultimi 30 Giorni",
-      "last3Months": "Ultimi 3 Mesi",
-      "last6Months": "Ultimi 6 Mesi",
-      "lastYear": "Ultimo Anno",
+      "ariaLabel": "Intervallo del rapporto",
+      "filterAppliesHint": "Vale per tutto il rapporto: panoramica gruppo, grafici e dettaglio membro.",
+      "allTime": "Tutto il periodo",
+      "last7Days": "Ultimi 7 giorni",
+      "last30Days": "Ultimi 30 giorni",
+      "last3Months": "Ultimi 3 mesi",
+      "last6Months": "Ultimi 6 mesi",
+      "lastYear": "Ultimi 12 mesi",
+      "moreRangesShow": "Altri intervalli",
+      "moreRangesHide": "Meno intervalli",
+      "moreRangesAriaLabel": "Intervalli di tempo aggiuntivi",
       "customRange": "Personalizzato",
       "from": "Da",
       "to": "A",
@@ -443,7 +455,9 @@
       "inLabel": "Entrate",
       "outLabel": "Uscite",
       "showDetails": "Mostra per conto",
-      "hideDetails": "Nascondi"
+      "hideDetails": "Nascondi",
+      "showDetailsAriaLabel": "Mostra dettaglio per conto per il periodo {period}",
+      "hideDetailsAriaLabel": "Nascondi dettaglio per conto per il periodo {period}"
     }
   },
   "InvestmentsPage": {

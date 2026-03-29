@@ -21,17 +21,15 @@ export default async function ReportsPage({
   }
 
   const reportsBundlePromise = (async () => {
-    const [reportsData, spendingTrends] = await Promise.all([
-      ReportsService.getReportsData(groupId, groupUserIds),
-      ReportsService.getSpendingTrends(
-        currentUser.id,
-        new Date(new Date().getFullYear(), new Date().getMonth() - 11, 1),
-        new Date(),
-        groupId
-      ),
-    ]);
-
+    const reportsData = await ReportsService.getReportsData(groupId, groupUserIds);
     const { transactions, accounts, periods, categories } = reportsData;
+
+    const trendRangeStart = new Date(new Date().getFullYear(), new Date().getMonth() - 11, 1);
+    const trendRangeEnd = new Date();
+    const spendingTrends = ReportsService.calculateTimeTrends(transactions, {
+      start: trendRangeStart,
+      end: trendRangeEnd,
+    });
 
     const accountTypeSummary = ReportsService.calculateAccountTypeSummary(transactions, accounts);
     const periodSummaries = ReportsService.calculatePeriodSummaries(

@@ -1,7 +1,9 @@
-import { formatCurrency } from '@/lib/utils';
+'use client';
+
 import type { CategoryStat } from '@/server/services/reports.service';
 import { PieChart } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { useFormatCurrency } from '@/features/reports/hooks/use-format-currency';
 
 interface CategoriesSectionProps {
   incomeStats: CategoryStat[];
@@ -11,12 +13,13 @@ interface CategoriesSectionProps {
 function CategoryList({ title, stats }: { title: string; stats: CategoryStat[] }) {
   const total = stats.reduce((acc, s) => acc + s.total, 0);
   const t = useTranslations('Reports.CategoriesSection');
+  const { format: formatMoney } = useFormatCurrency();
 
   return (
     <div className="bg-card border border-primary/15 rounded-xl p-4 sm:p-6">
       <div className="mb-4">
         <h3 className="text-base font-semibold text-primary">{title}</h3>
-        <p className="text-xs text-muted-foreground tabular-nums">{formatCurrency(total)}</p>
+        <p className="text-xs text-muted-foreground tabular-nums">{formatMoney(total)}</p>
       </div>
 
       <div className="space-y-2 max-h-[250px] overflow-y-auto pr-1">
@@ -50,7 +53,7 @@ function CategoryList({ title, stats }: { title: string; stats: CategoryStat[] }
               </div>
               <div className="text-right shrink-0 ml-2">
                 <div className="text-xs sm:text-sm font-bold text-primary tabular-nums">
-                  {formatCurrency(stat.total)}
+                  {formatMoney(stat.total)}
                 </div>
                 <div className="text-[10px] sm:text-xs text-muted-foreground">
                   {percent.toFixed(1)}%

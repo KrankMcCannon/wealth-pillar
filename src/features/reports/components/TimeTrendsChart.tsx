@@ -1,9 +1,9 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useId } from 'react';
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { formatCurrency } from '@/lib/utils';
 import { useTranslations, useLocale } from 'next-intl';
+import { useReducedMotion } from 'framer-motion';
 import { EmptyState } from '@/components/shared';
 
 interface TimeTrendsChartProps {
@@ -54,6 +54,10 @@ function smartAggregate(data: { date: string; income: number; expense: number }[
 export function TimeTrendsChart({ data }: TimeTrendsChartProps) {
   const t = useTranslations('Reports.Charts');
   const locale = useLocale();
+  const reduceMotion = useReducedMotion();
+  const uid = useId();
+  const headingId = `${uid}-time-trends-heading`;
+  const barMotionMs = reduceMotion ? 0 : 420;
 
   const chartData = useMemo(() => {
     if (!data || data.length === 0) return [];
@@ -71,16 +75,49 @@ export function TimeTrendsChart({ data }: TimeTrendsChartProps) {
     [locale]
   );
 
+  const formatTooltipCurrency = useMemo(
+    () => (value: number) =>
+      new Intl.NumberFormat(locale, {
+        style: 'currency',
+        currency: 'EUR',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }).format(value),
+    [locale]
+  );
+
   if (chartData.length === 0) {
     return (
-      <div className="bg-card border border-primary/15 rounded-xl p-4 sm:p-6">
+      <section
+        className="bg-card border border-primary/15 rounded-xl p-4 sm:p-6"
+        aria-labelledby={headingId}
+      >
+        <div className="mb-4">
+          <h3 id={headingId} className="text-base sm:text-lg font-semibold text-primary">
+            {t('timeTrendsTitle')}
+          </h3>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1 line-clamp-3">
+            {t('timeTrendsSubtitle')}
+          </p>
+        </div>
         <EmptyState title={t('noData')} />
-      </div>
+      </section>
     );
   }
 
   return (
-    <div className="bg-card border border-primary/15 rounded-xl p-4 sm:p-6">
+    <section
+      className="bg-card border border-primary/15 rounded-xl p-4 sm:p-6"
+      aria-labelledby={headingId}
+    >
+      <div className="mb-4">
+        <h3 id={headingId} className="text-base sm:text-lg font-semibold text-primary">
+          {t('timeTrendsTitle')}
+        </h3>
+        <p className="text-xs sm:text-sm text-muted-foreground mt-1 line-clamp-3">
+          {t('timeTrendsSubtitle')}
+        </p>
+      </div>
       <div className="w-full h-[250px] sm:h-[300px] md:h-[350px]">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
@@ -130,7 +167,7 @@ export function TimeTrendsChart({ data }: TimeTrendsChartProps) {
                             {entry.name === 'income' ? t('income') : t('expense')}:
                           </span>
                           <span className="font-bold text-primary">
-                            {formatCurrency(entry.value as number)}
+                            {formatTooltipCurrency(entry.value as number)}
                           </span>
                         </div>
                       ))}
@@ -145,14 +182,16 @@ export function TimeTrendsChart({ data }: TimeTrendsChartProps) {
               fill="var(--color-success)"
               radius={[4, 4, 0, 0]}
               name="income"
-              animationDuration={600}
+              isAnimationActive={!reduceMotion}
+              animationDuration={barMotionMs}
             />
             <Bar
               dataKey="expense"
               fill="var(--color-destructive)"
               radius={[4, 4, 0, 0]}
               name="expense"
-              animationDuration={600}
+              isAnimationActive={!reduceMotion}
+              animationDuration={barMotionMs}
             />
           </BarChart>
         </ResponsiveContainer>
@@ -171,6 +210,6 @@ export function TimeTrendsChart({ data }: TimeTrendsChartProps) {
           <span>{t('expense')}</span>
         </li>
       </ul>
-    </div>
+    </section>
   );
 }

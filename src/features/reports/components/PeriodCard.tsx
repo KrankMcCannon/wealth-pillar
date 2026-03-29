@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { formatCurrency } from '@/lib/utils';
+import { cn } from '@/lib/utils';
+import { useFormatCurrency } from '@/features/reports/hooks/use-format-currency';
 import type { ReportPeriodSummary } from '@/server/services/reports.service';
 import { sortAccountMetrics } from '@/features/reports/utils';
 import { useTranslations } from 'next-intl';
@@ -9,6 +10,8 @@ import { ChevronDown } from 'lucide-react';
 
 interface PeriodCardProps {
   period: ReportPeriodSummary;
+  /** Nome membro (flusso documento), se più persone nel gruppo */
+  ownerName?: string;
 }
 
 const accountTypeClasses: Record<string, { dot: string }> = {
@@ -21,7 +24,8 @@ const defaultAccountTypeClass = { dot: 'bg-muted-foreground' };
 
 type KnownAccountType = 'payroll' | 'cash' | 'savings';
 
-export function PeriodCard({ period }: PeriodCardProps) {
+export function PeriodCard({ period, ownerName }: PeriodCardProps) {
+  const { format: formatMoney } = useFormatCurrency();
   const t = useTranslations('Reports.PeriodCard');
   const tCharts = useTranslations('Reports.Charts');
   const [isExpanded, setIsExpanded] = useState(false);
@@ -44,29 +48,43 @@ export function PeriodCard({ period }: PeriodCardProps) {
     <article className="bg-card border border-primary/15 rounded-xl overflow-hidden hover:border-primary/25 transition-colors duration-200">
       {/* Header */}
       <div className="px-4 py-3 sm:px-5 sm:py-4 border-b border-primary/8 bg-primary/2">
-        <h3 className="font-semibold text-sm sm:text-base text-primary truncate">{period.name}</h3>
+        <div className="flex items-start justify-between gap-2 min-w-0">
+          <h3 className="font-semibold text-sm sm:text-base text-primary wrap-break-word min-w-0 flex-1">
+            {period.name}
+          </h3>
+          {ownerName ? (
+            <span
+              className={cn(
+                'shrink-0 max-w-[45%] truncate rounded-full border border-primary/20',
+                'bg-card px-2 py-0.5 text-[10px] sm:text-xs font-medium text-primary/80'
+              )}
+            >
+              {ownerName}
+            </span>
+          ) : null}
+        </div>
       </div>
 
       {/* Totali globali */}
       <div className="grid grid-cols-3 divide-x divide-primary/8 border-b border-primary/8">
         <div className="flex flex-col items-center px-3 py-3 sm:py-4">
-          <span className="text-[9px] sm:text-[10px] font-semibold uppercase tracking-widest text-success/70 mb-1.5">
+          <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-widest text-success/70 mb-1.5">
             {t('incomeLabel')}
           </span>
           <span className="text-sm sm:text-base font-bold text-success tabular-nums leading-none">
-            {formatCurrency(period.totalEarned)}
+            {formatMoney(period.totalEarned)}
           </span>
         </div>
         <div className="flex flex-col items-center px-3 py-3 sm:py-4">
-          <span className="text-[9px] sm:text-[10px] font-semibold uppercase tracking-widest text-destructive/70 mb-1.5">
+          <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-widest text-destructive/70 mb-1.5">
             {t('expensesLabel')}
           </span>
           <span className="text-sm sm:text-base font-bold text-destructive tabular-nums leading-none">
-            {formatCurrency(period.totalSpent)}
+            {formatMoney(period.totalSpent)}
           </span>
         </div>
         <div className="flex flex-col items-center px-3 py-3 sm:py-4">
-          <span className="text-[9px] sm:text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1.5">
+          <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1.5">
             {t('netSavingsLabel')}
           </span>
           <span
@@ -74,7 +92,7 @@ export function PeriodCard({ period }: PeriodCardProps) {
               netSavings >= 0 ? 'text-success' : 'text-destructive'
             }`}
           >
-            {formatCurrency(netSavings)}
+            {formatMoney(netSavings)}
           </span>
         </div>
       </div>
@@ -85,13 +103,21 @@ export function PeriodCard({ period }: PeriodCardProps) {
           <button
             type="button"
             onClick={() => setIsExpanded((v) => !v)}
-            className="w-full flex items-center justify-between px-4 py-2.5 sm:px-5 text-xs font-medium text-muted-foreground hover:text-primary hover:bg-primary/3 transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+            className="w-full flex items-center justify-between px-4 py-2.5 sm:px-5 text-xs font-medium text-muted-foreground hover:text-primary hover:bg-primary/3 transition-colors duration-150 motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
             aria-expanded={isExpanded}
             aria-controls={breakdownPanelId}
+            aria-label={
+              isExpanded
+                ? t('hideDetailsAriaLabel', { period: period.name })
+                : t('showDetailsAriaLabel', { period: period.name })
+            }
           >
             <span>{isExpanded ? t('hideDetails') : t('showDetails')}</span>
             <ChevronDown
-              className={`w-3.5 h-3.5 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
+              className={cn(
+                'w-3.5 h-3.5 transition-transform duration-200 motion-reduce:transition-none',
+                isExpanded && 'rotate-180'
+              )}
               aria-hidden
             />
           </button>
@@ -121,26 +147,26 @@ export function PeriodCard({ period }: PeriodCardProps) {
                           {t('balanceLabel')}
                         </span>{' '}
                         <span className="font-bold tabular-nums">
-                          {formatCurrency(metrics.startBalance)}
+                          {formatMoney(metrics.startBalance)}
                         </span>
                         <span className="text-muted-foreground mx-1" aria-hidden>
                           →
                         </span>
                         <span className="font-bold tabular-nums">
-                          {formatCurrency(metrics.endBalance)}
+                          {formatMoney(metrics.endBalance)}
                         </span>
                       </p>
                       <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs sm:text-sm">
                         <span className="tabular-nums">
                           <span className="text-muted-foreground">{t('inLabel')}:</span>{' '}
                           <span className="font-bold text-success">
-                            +{formatCurrency(metrics.earned)}
+                            +{formatMoney(metrics.earned)}
                           </span>
                         </span>
                         <span className="tabular-nums">
                           <span className="text-muted-foreground">{t('outLabel')}:</span>{' '}
                           <span className="font-bold text-destructive">
-                            -{formatCurrency(metrics.spent)}
+                            -{formatMoney(metrics.spent)}
                           </span>
                         </span>
                       </div>
@@ -149,7 +175,7 @@ export function PeriodCard({ period }: PeriodCardProps) {
                           net >= 0 ? 'text-success' : 'text-destructive'
                         }`}
                       >
-                        {t('netLabel')}: {formatCurrency(net)}
+                        {t('netLabel')}: {formatMoney(net)}
                       </p>
                     </div>
                   );

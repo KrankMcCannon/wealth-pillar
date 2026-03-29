@@ -1,9 +1,11 @@
-import { cn, formatCurrency } from '@/lib/utils';
+'use client';
+
+import { cn, amountVariants } from '@/lib/utils';
 import { useTranslations } from 'next-intl';
 import { TrendingUp, TrendingDown } from 'lucide-react';
-import { Amount } from '@/components/ui/primitives';
 import { EmptyState } from '@/components/shared';
 import { Link } from '@/i18n/routing';
+import { useFormatCurrency } from '@/features/reports/hooks/use-format-currency';
 
 export type SummaryVariant = 'group' | 'member';
 
@@ -29,6 +31,7 @@ export function SummarySection({
   memberName,
 }: SummarySectionProps) {
   const t = useTranslations('Reports.SummarySection');
+  const { format: formatMoney } = useFormatCurrency();
 
   if (variant === 'group' && !hasAccounts) {
     return (
@@ -82,7 +85,7 @@ export function SummarySection({
               : 'px-5 pt-5 pb-4 sm:px-6 sm:pt-6'
           )}
         >
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1.5 sm:mb-2">
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1.5 sm:mb-2">
             {t('totalBalance')}
           </p>
           <p
@@ -92,7 +95,7 @@ export function SummarySection({
               totalBalance >= 0 ? 'text-primary' : 'text-destructive'
             )}
           >
-            {formatCurrency(totalBalance)}
+            {formatMoney(totalBalance)}
           </p>
           <p className="text-xs text-muted-foreground mt-1.5 sm:mt-2 wrap-break-word">
             {balanceFootnote}
@@ -109,21 +112,23 @@ export function SummarySection({
           <div
             className={cn('px-3 py-2.5 sm:px-4 sm:py-3 min-w-0', !isMember && 'sm:px-5 sm:py-4')}
           >
-            <p className="text-[9px] sm:text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1 sm:mb-1.5">
+            <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1 sm:mb-1.5">
               {t('income')}
             </p>
-            <Amount
-              type="income"
-              size="md"
-              emphasis="strong"
+            <span
               className={cn(
-                'leading-none tabular-nums',
+                amountVariants({
+                  type: 'income',
+                  size: 'md',
+                  emphasis: 'strong',
+                }),
+                'leading-none tabular-nums block',
                 isMember ? 'text-xs sm:text-sm' : 'text-sm sm:text-base'
               )}
             >
-              {totalIncome}
-            </Amount>
-            <p className="text-[9px] sm:text-[10px] text-muted-foreground mt-1 line-clamp-3 wrap-break-word">
+              {formatMoney(totalIncome)}
+            </span>
+            <p className="text-[10px] sm:text-xs text-muted-foreground mt-1 line-clamp-3 wrap-break-word">
               {stripNote}
             </p>
           </div>
@@ -131,21 +136,23 @@ export function SummarySection({
           <div
             className={cn('px-3 py-2.5 sm:px-4 sm:py-3 min-w-0', !isMember && 'sm:px-5 sm:py-4')}
           >
-            <p className="text-[9px] sm:text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1 sm:mb-1.5">
+            <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1 sm:mb-1.5">
               {t('expenses')}
             </p>
-            <Amount
-              type="expense"
-              size="md"
-              emphasis="strong"
+            <span
               className={cn(
-                'leading-none tabular-nums',
+                amountVariants({
+                  type: 'expense',
+                  size: 'md',
+                  emphasis: 'strong',
+                }),
+                'leading-none tabular-nums block',
                 isMember ? 'text-xs sm:text-sm' : 'text-sm sm:text-base'
               )}
             >
-              {totalExpenses}
-            </Amount>
-            <p className="text-[9px] sm:text-[10px] text-muted-foreground mt-1 line-clamp-3 wrap-break-word">
+              {formatMoney(totalExpenses)}
+            </span>
+            <p className="text-[10px] sm:text-xs text-muted-foreground mt-1 line-clamp-3 wrap-break-word">
               {stripNote}
             </p>
           </div>
@@ -153,7 +160,7 @@ export function SummarySection({
           <div
             className={cn('px-3 py-2.5 sm:px-4 sm:py-3 min-w-0', !isMember && 'sm:px-5 sm:py-4')}
           >
-            <p className="text-[9px] sm:text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1 sm:mb-1.5">
+            <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1 sm:mb-1.5">
               {t('netFlow')}
             </p>
             <p
@@ -163,11 +170,11 @@ export function SummarySection({
                 isPositiveNet ? 'text-success' : 'text-destructive'
               )}
             >
-              {formatCurrency(netFlow)}
+              {formatMoney(netFlow)}
             </p>
             <div
               className={cn(
-                'inline-flex items-start gap-1 text-[9px] sm:text-[10px] font-medium mt-1 max-w-full',
+                'inline-flex items-start gap-1 text-[10px] sm:text-xs font-medium mt-1 max-w-full',
                 isPositiveNet ? 'text-success/70' : 'text-destructive/70'
               )}
             >
