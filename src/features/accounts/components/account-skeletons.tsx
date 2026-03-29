@@ -4,6 +4,7 @@
  */
 
 import { SkeletonList } from '@/components/ui/primitives';
+import { cn } from '@/lib/utils';
 import { SHIMMER_BASE } from '@/lib/utils/ui-constants';
 import { accountStyles } from '../theme/account-styles';
 
@@ -99,14 +100,16 @@ export function AccountListSkeleton() {
  */
 export function BalanceSectionSliderSkeleton() {
   return (
-    <div className={accountStyles.skeleton.slider.container}>
-      <SkeletonList
-        count={3}
-        spacing="flex gap-3 pb-2"
-        height="h-24"
-        width="w-60"
-        className={accountStyles.skeleton.slider.item}
-      />
+    <div className={accountStyles.slider.container}>
+      <div className={accountStyles.slider.inner}>
+        {[1, 2, 3].map((i) => (
+          <div
+            key={i}
+            className={cn(accountStyles.slider.skeletonCard, SHIMMER_BASE)}
+            aria-hidden
+          />
+        ))}
+      </div>
     </div>
   );
 }

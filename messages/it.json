@@ -953,7 +953,15 @@
     "aria": {
       "back": "Torna indietro",
       "notifications": "Notifiche",
-      "settings": "Impostazioni"
+      "settings": "Impostazioni",
+      "moreMenu": "Altre azioni: notifiche, impostazioni e tema"
+    },
+    "theme": {
+      "switchToLight": "Passa a tema chiaro",
+      "switchToDark": "Passa a tema scuro"
+    },
+    "notifications": {
+      "disabledHint": "Le notifiche in app saranno disponibili a breve"
     },
     "ActionMenu": {
       "openMenuAria": "Apri menu azioni",
@@ -966,10 +974,28 @@
     }
   },
   "HomeContent": {
-    "closePeriodButton": "Chiudi Periodo"
+    "closePeriodButton": "Chiudi periodo",
+    "closePeriodHint": "A fine mese o ciclo: salvate il riepilogo e ripartite con date nuove.",
+    "checkFinancesHeading": "Un attimo per fare il punto",
+    "checkFinancesLead": "Saldi, budget e cosa sta per uscire: da qui capite subito se le cose tornano.",
+    "pageTitle": "Un attimo per fare il punto",
+    "recurringAsideLabel": "Prossimi addebiti ricorrenti",
+    "skipToContent": "Salta a saldi e budget"
+  },
+  "BottomNav": {
+    "ariaNav": "Navigazione principale",
+    "home": "Home",
+    "transactions": "Transazioni",
+    "investments": "Investimenti",
+    "reports": "Report",
+    "add": "Aggiungi"
+  },
+  "ThemeToggle": {
+    "aria": "Cambia tema chiaro o scuro"
   },
   "UserSelector": {
     "all": "Tutti",
+    "contextLabel": "Prospettiva",
     "selectUserAria": "Seleziona {name}"
   },
   "Accounts": {

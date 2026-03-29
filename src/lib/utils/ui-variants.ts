@@ -228,19 +228,22 @@ export const financialButtonVariants = cva(
  * </div>
  * ```
  */
-export const progressBarVariants = cva('w-full h-3 rounded-full shadow-inner overflow-hidden', {
-  variants: {
-    status: {
-      success: 'bg-primary/20',
-      warning: 'bg-primary/20',
-      danger: 'bg-primary/20',
-      neutral: 'bg-primary/20',
+export const progressBarVariants = cva(
+  'h-3 w-full overflow-hidden rounded-full bg-muted/55 shadow-inner ring-1 ring-inset ring-border/45 dark:bg-muted/30 dark:ring-border/50',
+  {
+    variants: {
+      status: {
+        success: '',
+        warning: '',
+        danger: '',
+        neutral: '',
+      },
     },
-  },
-  defaultVariants: {
-    status: 'neutral',
-  },
-});
+    defaultVariants: {
+      status: 'neutral',
+    },
+  }
+);
 
 export const progressFillVariants = cva(
   'h-full rounded-full transition-all duration-1000 ease-out relative',

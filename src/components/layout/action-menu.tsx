@@ -26,6 +26,8 @@ interface ActionMenuProps {
   menuClassName?: string;
   align?: 'start' | 'center' | 'end';
   reverseMobileOrder?: boolean;
+  /** Override default aria-label (e.g. shorter label under bottom nav FAB). */
+  triggerAriaLabel?: string;
 }
 
 export function ActionMenu({
@@ -35,6 +37,7 @@ export function ActionMenu({
   menuClassName,
   align = 'end',
   reverseMobileOrder = false,
+  triggerAriaLabel,
 }: Readonly<ActionMenuProps>) {
   const t = useTranslations('Header.ActionMenu');
   const { openModal } = useModalState();
@@ -60,7 +63,7 @@ export function ActionMenu({
           id="global-action-menu-trigger"
           variant="default"
           size="icon"
-          aria-label={t('openMenuAria')}
+          aria-label={triggerAriaLabel ?? t('openMenuAria')}
           className={triggerClassName}
         >
           <Plus className={cn('h-5 w-5', triggerIconClassName)} />

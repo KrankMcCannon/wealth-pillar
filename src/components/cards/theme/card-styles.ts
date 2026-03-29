@@ -3,20 +3,24 @@ import type { CSSProperties } from 'react';
 export const cardStyles = {
   account: {
     container: 'min-w-[180px] shrink-0 px-3',
+    /** Slider home: compatto; sovrascrive min-w lista (180px). */
+    /** Larghezza da contenuto (slider); limite solo a viewport in slider.card */
+    sliderTight: '!w-max !min-w-[8.75rem] py-0 sm:!min-w-[9rem]',
     negativeLabel: 'text-destructive/80 font-medium',
     actionsButton: 'h-8 w-8 text-primary hover:text-primary/80',
     actionsIcon: 'h-4 w-4 text-primary',
     actionItemIcon: 'mr-2 h-4 w-4',
     deleteItem: 'text-destructive focus:text-destructive',
     icon: 'h-5 w-5',
+    sliderIcon: 'h-3.5 w-3.5',
   },
   budget: {
     container:
       'p-3 hover:bg-accent/10 transition-colors duration-200 cursor-pointer w-full text-left text-primary',
-    row: 'flex items-center justify-between mb-2',
-    left: 'flex items-center gap-3 flex-1',
+    row: 'flex items-start justify-between gap-2 mb-2',
+    left: 'flex min-w-0 flex-1 items-start gap-3',
     content: 'flex-1',
-    title: 'truncate max-w-35 sm:max-w-40 mb-1',
+    title: 'mb-1 line-clamp-2 min-h-[2.25rem] max-w-[11rem] min-w-0 text-balance sm:max-w-[15rem]',
     statusBadge: 'w-fit',
     right: 'text-right shrink-0 ml-2',
     progress: 'relative',

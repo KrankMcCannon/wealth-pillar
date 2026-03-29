@@ -4,16 +4,14 @@
  */
 
 export const dashboardStyles = {
-  // Page layout
   page: {
-    container: 'relative flex w-full min-h-[100svh] flex-col bg-card md:pl-64',
     main: 'pb-20 md:pb-8',
   },
 
   // Header section
   header: {
     container:
-      'sticky top-0 z-20 bg-card/80 backdrop-blur-xl border-b border-primary/20 px-4 py-3 shadow-sm',
+      'sticky top-0 z-20 bg-card/90 backdrop-blur-md border-b border-border/60 px-4 py-3 shadow-sm',
     inner: 'flex items-center justify-between',
     button:
       'hover:bg-primary/8 text-primary rounded-xl transition-all duration-200 p-2 min-w-[44px] min-h-[44px] flex items-center justify-center group hover:scale-[1.02]',
@@ -43,13 +41,12 @@ export const dashboardStyles = {
 
   // Balance section
   balanceSection: {
-    container: 'p-4 bg-card/50 backdrop-blur-sm border-b border-primary/10',
+    container: 'rounded-xl border border-border/60 bg-card p-4 shadow-sm',
     header: 'mb-4',
     title: 'text-sm font-medium text-muted mb-3',
     grid: 'grid gap-3',
     totalBalance: {
-      container:
-        'bg-gradient-to-br from-primary/10 to-primary/5 rounded-xl p-4 border border-primary/20 backdrop-blur-sm',
+      container: 'rounded-xl border border-primary/20 bg-primary/5 p-4',
       label: 'text-xs text-muted mb-1',
       value: 'text-2xl font-bold text-primary',
       currency: 'text-lg',
@@ -75,14 +72,14 @@ export const dashboardStyles = {
 
   // Budget section
   budgetSection: {
-    container: 'bg-card/30 backdrop-blur-md border-y border-primary/10',
+    container: 'rounded-xl border border-border/60 bg-card/80 shadow-sm',
     header: 'mb-4',
     title: 'text-sm font-medium text-muted mb-3',
     grid: 'grid gap-4',
     emptyState: 'text-center py-4 text-muted',
     budgetCard: {
       container:
-        'bg-card border border-border/50 rounded-xl p-4 hover:border-primary/30 transition-colors backdrop-blur-sm',
+        'rounded-xl border border-border/50 bg-card p-4 transition-colors hover:border-primary/30',
       header: 'flex items-center gap-3 mb-3',
       icon: 'w-8 h-8 text-primary',
       titleSection: 'flex-1',
@@ -109,15 +106,14 @@ export const dashboardStyles = {
 
   // Recurring series section
   recurringSection: {
-    container:
-      'bg-card/80 backdrop-blur-xl shadow-lg shadow-primary/10 rounded-xl border border-primary/20',
+    container: 'rounded-xl border border-border/60 bg-card shadow-md',
     header: 'mb-4',
     title: 'text-sm font-medium text-muted mb-3',
     grid: 'grid gap-3',
     emptyState: 'text-center py-6 text-muted text-sm',
     seriesCard: {
       container:
-        'bg-card rounded-lg p-3 border border-border/50 hover:border-primary/30 transition-colors backdrop-blur-sm',
+        'rounded-lg border border-border/50 bg-card p-3 transition-colors hover:border-primary/30',
       header: 'flex items-center justify-between mb-2',
       title: 'font-medium text-sm',
       frequency: 'text-xs text-primary/80 bg-primary/10 px-2 py-1 rounded',
@@ -202,8 +198,8 @@ export function getAccountCardStyles(isExpanded: boolean): string {
  * Helper function to get balance color based on value
  */
 export function getBalanceTextStyle(balance: number): string {
-  if (balance >= 0) return 'text-primary'; // Green for positive
-  return 'text-destructive'; // Red for negative
+  if (balance >= 0) return 'text-primary';
+  return 'text-destructive';
 }
 
 /**

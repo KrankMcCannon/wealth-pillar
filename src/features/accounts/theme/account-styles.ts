@@ -55,8 +55,8 @@ const accountTokens = {
     // Slider
     slider: {
       container: 'overflow-x-auto scrollbar-hide flex items-center touch-pan-x touch-pan-y',
-      inner: 'flex gap-3',
-      cardWrapper: 'transform transition-all duration-300 hover:scale-[1.01]',
+      inner: 'flex items-center gap-2',
+      cardWrapper: 'flex h-[4.125rem] w-max shrink-0 flex-col justify-center',
       addPlaceholder: `flex-shrink-0 w-60 h-24 border-2 border-dashed border-primary/20 ${radiusStyles.sm} flex items-center justify-center bg-primary/5 hover:border-primary/40 hover:bg-primary/10 transition-all duration-300 cursor-pointer group`,
       addPromptIcon:
         'h-6 w-6 text-primary/70 group-hover:text-primary mx-auto mb-1 transition-colors',
@@ -65,16 +65,25 @@ const accountTokens = {
 
     // Total Balance Link
     totalBalanceLink: {
-      container: `flex items-center justify-between p-3 bg-primary/5 ${radiusStyles.sm} border border-primary/25 shadow-[0_10px_26px_oklch(var(--color-primary)/0.28)] cursor-pointer hover:bg-primary/10 hover:shadow-[0_14px_32px_oklch(var(--color-primary)/0.35)] transition-all duration-300 group`,
-      leftSection: 'flex items-center gap-3',
-      icon: `flex items-center justify-center w-10 h-10 ${radiusStyles.sm} bg-primary/15`,
-      label: `${typographyStyles.xs} mb-1 font-medium text-primary/75`,
-      valuePositive: `${typographyStyles.xl} font-bold text-primary transition-colors duration-300`,
-      valueNegative: `${typographyStyles.xl} font-bold text-primary transition-colors duration-300`,
-      rightSection: 'flex items-center gap-2',
-      badge: `flex items-center gap-1.5 px-3 py-1.5 bg-primary/20 ${radiusStyles.full} border border-primary/20`,
-      badgeText: `${typographyStyles.xs} font-bold text-primary/90`,
-      arrow: `h-5 w-5 text-primary/80 group-hover:translate-x-1 transition-transform duration-300`,
+      container: `flex items-center justify-between gap-3 p-3.5 sm:p-4 bg-primary/[0.07] ${radiusStyles.lg} border border-primary/30 shadow-[0_12px_32px_oklch(var(--color-primary)/0.22)] cursor-pointer hover:bg-primary/12 hover:border-primary/40 hover:shadow-[0_16px_36px_oklch(var(--color-primary)/0.28)] transition-all duration-300 group`,
+      leftSection: 'flex min-w-0 items-center gap-3',
+      icon: `flex shrink-0 items-center justify-center w-11 h-11 ${radiusStyles.lg} bg-primary/18 ring-1 ring-primary/15`,
+      label: `${typographyStyles.xs} mb-0.5 font-semibold uppercase tracking-wide text-primary/85`,
+      valuePositive: `text-2xl sm:text-[1.65rem] font-bold tabular-nums tracking-tight text-primary transition-colors duration-300`,
+      valueNegative: `text-2xl sm:text-[1.65rem] font-bold tabular-nums tracking-tight text-destructive transition-colors duration-300`,
+      rightSection: 'flex shrink-0 items-center gap-1.5 sm:gap-2',
+      badge: `flex min-h-10 items-center gap-1.5 px-3.5 py-2 bg-primary/18 ${radiusStyles.full} border border-primary/25`,
+      badgeText: `${typographyStyles.xs} font-bold text-primary`,
+      arrow: `h-5 w-5 shrink-0 text-primary/85 group-hover:translate-x-0.5 transition-transform duration-300`,
+      /** Dentro il riquadro saldi home: niente secondo bordo arrotondato, flush col contenitore. */
+      embeddedContainer: `group -mx-3 -mb-3 flex w-[calc(100%+1.5rem)] items-center justify-between gap-2.5 rounded-b-2xl border-t border-border/50 bg-primary/[0.08] px-2.5 py-3.5 transition-colors hover:bg-primary/[0.11] sm:-mx-3.5 sm:-mb-3.5 sm:w-[calc(100%+1.75rem)] sm:gap-4 sm:px-4 sm:py-4`,
+      embeddedIcon: `flex size-12 shrink-0 items-center justify-center ${radiusStyles.lg} bg-primary/18 ring-1 ring-primary/15 sm:size-14`,
+      embeddedBadge: `flex min-h-10 items-center gap-1.5 rounded-full border border-primary/25 bg-primary/15 px-3.5 py-2 sm:min-h-11 sm:px-4`,
+      embeddedValuePositive: `text-2xl font-bold tabular-nums tracking-tight text-primary sm:text-3xl`,
+      embeddedValueNegative: `text-2xl font-bold tabular-nums tracking-tight text-destructive sm:text-3xl`,
+      embeddedLabel: `${typographyStyles.xs} mb-1 font-semibold uppercase tracking-wide text-primary/80`,
+      embeddedIconSvg: 'h-6 w-6 text-primary sm:h-7 sm:w-7',
+      embeddedArrow: 'h-6 w-6 shrink-0 text-primary/90',
     },
   },
 
@@ -172,16 +181,16 @@ export const accountStyles = {
   // Account Slider (Dashboard)
   // ====================================
   slider: {
-    container: `${accountTokens.components.slider.container} mb-4`,
+    container: accountTokens.components.slider.container,
     inner: accountTokens.components.slider.inner,
     cardWrapper: accountTokens.components.slider.cardWrapper,
-    card: 'border border-primary/20 rounded-xl overflow-hidden',
+    card: 'flex h-[4.125rem] w-max min-w-[8.75rem] shrink-0 flex-col justify-center rounded-lg border border-border/55 bg-card/80 px-2.5 py-0 shadow-sm backdrop-blur-[2px] overflow-hidden sm:min-w-[9rem] sm:px-3',
     addPlaceholder: accountTokens.components.slider.addPlaceholder,
     addPromptIcon: accountTokens.components.slider.addPromptIcon,
     addPromptLabel: accountTokens.components.slider.addPromptLabel,
     addPlaceholderContent: 'text-center',
     skeletonCard:
-      'shrink-0 w-60 h-24 bg-primary/10 rounded-lg animate-pulse border border-primary/20',
+      'h-[4.125rem] w-[8.75rem] shrink-0 rounded-lg border border-border/50 bg-muted/40 animate-pulse sm:w-[9rem]',
     scrollStyle: {
       WebkitOverflowScrolling: 'touch',
     } satisfies CSSProperties,
@@ -209,12 +218,21 @@ export const accountStyles = {
     badge: accountTokens.components.totalBalanceLink.badge,
     badgeText: accountTokens.components.totalBalanceLink.badgeText,
     arrow: accountTokens.components.totalBalanceLink.arrow,
+    embeddedContainer: accountTokens.components.totalBalanceLink.embeddedContainer,
+    embeddedIcon: accountTokens.components.totalBalanceLink.embeddedIcon,
+    embeddedBadge: accountTokens.components.totalBalanceLink.embeddedBadge,
+    embeddedValuePositive: accountTokens.components.totalBalanceLink.embeddedValuePositive,
+    embeddedValueNegative: accountTokens.components.totalBalanceLink.embeddedValueNegative,
+    embeddedLabel: accountTokens.components.totalBalanceLink.embeddedLabel,
+    embeddedIconSvg: accountTokens.components.totalBalanceLink.embeddedIconSvg,
+    embeddedArrow: accountTokens.components.totalBalanceLink.embeddedArrow,
   },
   // ====================================
   // Balance Section (Dashboard)
   // ====================================
   balanceSection: {
-    container: 'bg-card',
+    container:
+      'flex flex-col gap-3 overflow-hidden rounded-2xl border border-border/55 bg-card p-3 shadow-sm sm:gap-3.5 sm:p-3.5',
   },
 
   // ====================================

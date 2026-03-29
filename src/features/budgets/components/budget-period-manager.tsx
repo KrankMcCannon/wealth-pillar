@@ -25,6 +25,8 @@ interface BudgetPeriodManagerProps {
   selectedUserId?: string; // Initial user selection
   currentPeriod: BudgetPeriod | null;
   trigger: React.ReactNode;
+  /** Collega testo di aiuto esterno (es. id di un paragrafo sotto il trigger). */
+  triggerAriaDescribedBy?: string;
   onSuccess?: () => void;
   onUserChange?: (userId: string) => void; // Callback when user selection changes
   currentUser: User;
@@ -35,6 +37,7 @@ export function BudgetPeriodManager({
   selectedUserId,
   currentPeriod,
   trigger,
+  triggerAriaDescribedBy,
   onSuccess,
   onUserChange,
   currentUser,
@@ -215,6 +218,7 @@ export function BudgetPeriodManager({
         onClick={() => setIsOpen(true)}
         onKeyDown={handleKeyDown}
         aria-label={t('openLabel')}
+        aria-describedby={triggerAriaDescribedBy || undefined}
       >
         {trigger}
       </div>

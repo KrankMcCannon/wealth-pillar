@@ -3,7 +3,7 @@ export const headerStyles = {
   inner: 'flex items-center justify-between w-full mx-auto',
   left: 'flex items-center gap-4',
   dashboard: {
-    wrapper: 'flex items-center gap-3',
+    wrapper: 'flex min-w-0 max-w-full items-center gap-3',
     avatarWrap: 'relative',
     avatar:
       'h-10 w-10 bg-primary/10 rounded-full flex items-center justify-center text-primary font-semibold text-base border-2 border-primary shadow-sm overflow-hidden',
@@ -29,7 +29,8 @@ export const headerStyles = {
     actionIcon: 'h-5.5 w-5.5',
     menu: 'w-56',
     menuIcon: 'mr-2 h-4 w-4',
-    iconButton: 'h-10 w-10 rounded-full text-primary hover:bg-primary/5',
+    iconButton:
+      'h-10 w-10 rounded-full text-primary hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
     icon: 'h-5.5 w-5.5',
     badge: 'flex items-center px-3 py-2 border rounded-full text-sm font-semibold',
   },

@@ -16,6 +16,7 @@ import {
   getBudgetSectionProgressBarStyle,
 } from '@/styles/system';
 import { useRouter } from '@/i18n/routing';
+import { cn } from '@/lib/utils';
 
 interface BudgetSectionProps {
   budgetsByUser: Record<
@@ -87,7 +88,11 @@ export const BudgetSection = ({
   if (budgetEntries.length === 0) {
     return (
       <PageSection className={budgetStyles.section.container}>
-        <SectionHeader title={t('title')} subtitle={t('subtitle')} />
+        <SectionHeader
+          title={t('title')}
+          subtitle={t('subtitle')}
+          className="mb-4 border-b border-border/40 pb-4 dark:border-border/35"
+        />
         <div className={budgetStyles.section.emptyContainer}>
           <div className={budgetStyles.section.emptyIconWrap}>
             <div className={budgetStyles.section.emptyIconInner}>
@@ -114,6 +119,10 @@ export const BudgetSection = ({
             : undefined
         }
         leading={headerLeading}
+        className={cn(
+          'mb-3 border-b border-border/40 pb-4 dark:border-border/35',
+          headerLeading && 'items-start'
+        )}
       />
 
       <div className={budgetStyles.transactions.container}>
@@ -181,7 +190,7 @@ export const BudgetSection = ({
                           <span className={budgetStyles.section.amountDivider}> / </span>
                           <span>{formatCurrency(totalBudget)}</span>
                         </div>
-                        <span className="text-xs text-muted-foreground">
+                        <span className="text-[11px] font-medium leading-snug text-muted-foreground sm:text-xs">
                           {t('spentPrefix')} {formatCurrency(totalSpent)}
                         </span>
                       </div>
@@ -200,11 +209,13 @@ export const BudgetSection = ({
                       }
 
                       return (
-                        <div className={progressBarVariants({ status })}>
-                          <div
-                            className={`${budgetStyles.progress.barFillBase} ${progressClasses.bar}`}
-                            style={getBudgetSectionProgressBarStyle(overallPercentage)}
-                          />
+                        <div className={budgetStyles.section.progressBarTrack}>
+                          <div className={cn(progressBarVariants({ status }), 'h-2.5 sm:h-3')}>
+                            <div
+                              className={`${budgetStyles.progress.barFillBase} ${progressClasses.bar}`}
+                              style={getBudgetSectionProgressBarStyle(overallPercentage)}
+                            />
+                          </div>
                         </div>
                       );
                     })()}

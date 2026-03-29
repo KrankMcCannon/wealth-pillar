@@ -523,7 +523,7 @@ export const budgetStyles = {
     dayLabelPosition: 'absolute',
   },
   transactions: {
-    container: 'space-y-6',
+    container: 'flex flex-col gap-4 sm:gap-5',
     dayGroup: undefined,
     dayHeader: budgetTokens.components.transactionGroup.header,
     dayTitle: budgetTokens.components.transactionGroup.title,
@@ -628,7 +628,8 @@ export const budgetStyles = {
     details: 'space-y-4',
   },
   section: {
-    container: 'bg-card',
+    container:
+      'rounded-2xl border border-border/55 bg-card p-4 shadow-sm sm:p-5 dark:border-border/40',
     emptyContainer: 'bg-card rounded-2xl p-8 text-center border border-primary/20 shadow-sm',
     emptyIconWrap:
       'flex size-16 items-center justify-center rounded-2xl bg-linear-to-br from-primary/10 to-primary/5 mx-auto mb-4 shadow-sm',
@@ -638,22 +639,25 @@ export const budgetStyles = {
     emptyDescription: 'text-sm text-primary/70 mb-4 max-w-sm mx-auto',
     emptyButton:
       'inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-xl font-medium text-sm hover:shadow-lg hover:shadow-primary/25 transition-all duration-300 hover:scale-105',
-    groupCard: 'bg-card shadow-sm border border-primary/20 rounded-xl overflow-hidden',
-    groupHeader: 'bg-card p-3 border-b border-primary/20',
+    groupCard:
+      'overflow-hidden rounded-xl border border-border/45 bg-muted/10 shadow-sm dark:border-border/40 dark:bg-muted/15',
+    groupHeader: 'border-b border-border/50 bg-card/95 px-4 py-4 dark:border-border/40',
     groupRow: 'flex items-center justify-between mb-2',
     groupLeft: 'flex items-center gap-2',
     avatar:
       'flex size-10 items-center justify-center rounded-lg bg-linear-to-br from-primary/10 to-primary/5 shadow-sm',
     avatarText: 'text-md font-bold text-primary',
     groupText: 'text-sm font-semibold',
-    periodText: 'text-xs',
+    periodText: 'text-xs text-primary/75',
     amount: 'text-sm font-bold',
     amountDivider: 'text-primary/50 font-normal',
-    progressRow: 'flex items-center gap-2',
-    progressBadge: 'flex items-center gap-1 px-2 py-1 rounded-full bg-primary/10',
+    progressRow: 'mt-1 flex min-w-0 items-center gap-2.5',
+    progressBarTrack: 'min-w-0 flex-1',
+    progressBadge: 'flex shrink-0 items-center gap-1 rounded-full bg-primary/12 px-2 py-1',
     progressBadgeDot: 'w-1.5 h-1.5 rounded-full',
     progressBadgeText: 'text-xs font-bold',
-    cardsDivider: 'divide-y divide-primary/10',
+    cardsDivider:
+      'divide-y divide-border/40 bg-card/50 px-2 py-1 sm:px-4 sm:py-2 dark:divide-border/35',
     cardSkeleton: 'px-3 py-2 animate-pulse',
     cardSkeletonRow: 'flex items-center gap-3',
     cardSkeletonIcon: 'w-11 h-11 bg-primary/10 rounded-2xl',

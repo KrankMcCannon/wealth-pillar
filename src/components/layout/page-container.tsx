@@ -8,11 +8,7 @@ interface PageContainerProps {
 
 export function PageContainer({ children, className }: Readonly<PageContainerProps>) {
   return (
-    <div
-      className={cn(pageContainerStyles.container, className)}
-      style={pageContainerStyles.style}
-      suppressHydrationWarning
-    >
+    <div className={cn(pageContainerStyles.container, className)} suppressHydrationWarning>
       {children}
     </div>
   );

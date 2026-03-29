@@ -1,42 +1,29 @@
 'use client';
 
 import { Link, usePathname } from '@/i18n/routing';
+import { useTranslations } from 'next-intl';
 import { Home, CreditCard, TrendingUp, BarChart3 } from 'lucide-react';
 import { bottomNavigationStyles } from './theme/bottom-navigation-styles';
 import { ActionMenu } from './action-menu';
 
 export function BottomNavigation() {
   const pathname = usePathname();
+  const t = useTranslations('BottomNav');
 
   const navItems = [
-    {
-      href: '/home',
-      icon: Home,
-      label: 'Home',
-    },
-    {
-      href: '/transactions',
-      icon: CreditCard,
-      label: 'Transactions',
-    },
-    {
-      href: '/investments',
-      icon: TrendingUp,
-      label: 'Investments',
-    },
-    {
-      href: '/reports',
-      icon: BarChart3,
-      label: 'Reports',
-    },
+    { href: '/home', icon: Home, labelKey: 'home' as const },
+    { href: '/transactions', icon: CreditCard, labelKey: 'transactions' as const },
+    { href: '/investments', icon: TrendingUp, labelKey: 'investments' as const },
+    { href: '/reports', icon: BarChart3, labelKey: 'reports' as const },
   ];
 
   return (
     <div className={bottomNavigationStyles.container}>
-      <nav className={bottomNavigationStyles.inner} aria-label="Bottom Navigation">
+      <nav className={bottomNavigationStyles.inner} aria-label={t('ariaNav')}>
         {navItems.slice(0, 2).map((item) => {
           const isActive = pathname === item.href;
           const IconComponent = item.icon;
+          const label = t(item.labelKey);
           return (
             <Link
               key={item.href}
@@ -44,24 +31,31 @@ export function BottomNavigation() {
               className={`${bottomNavigationStyles.item} ${
                 isActive ? bottomNavigationStyles.itemActive : bottomNavigationStyles.itemInactive
               }`}
-              aria-label={item.label}
+              aria-current={isActive ? 'page' : undefined}
+              title={label}
             >
-              <IconComponent className={bottomNavigationStyles.icon} />
+              <IconComponent className={bottomNavigationStyles.icon} aria-hidden />
+              <span className={bottomNavigationStyles.caption}>{label}</span>
             </Link>
           );
         })}
 
-        <ActionMenu
-          align="center"
-          triggerClassName={bottomNavigationStyles.addButton}
-          triggerIconClassName={bottomNavigationStyles.addIcon}
-          menuClassName={bottomNavigationStyles.menu}
-          reverseMobileOrder
-        />
+        <div className={bottomNavigationStyles.addColumn}>
+          <ActionMenu
+            align="center"
+            triggerClassName={bottomNavigationStyles.addButton}
+            triggerIconClassName={bottomNavigationStyles.addIcon}
+            menuClassName={bottomNavigationStyles.menu}
+            reverseMobileOrder
+            triggerAriaLabel={t('add')}
+          />
+          <span className={bottomNavigationStyles.addCaption}>{t('add')}</span>
+        </div>
 
         {navItems.slice(2).map((item) => {
           const isActive = pathname === item.href;
           const IconComponent = item.icon;
+          const label = t(item.labelKey);
           return (
             <Link
               key={item.href}
@@ -69,9 +63,11 @@ export function BottomNavigation() {
               className={`${bottomNavigationStyles.item} ${
                 isActive ? bottomNavigationStyles.itemActive : bottomNavigationStyles.itemInactive
               }`}
-              aria-label={item.label}
+              aria-current={isActive ? 'page' : undefined}
+              title={label}
             >
-              <IconComponent className={bottomNavigationStyles.icon} />
+              <IconComponent className={bottomNavigationStyles.icon} aria-hidden />
+              <span className={bottomNavigationStyles.caption}>{label}</span>
             </Link>
           );
         })}

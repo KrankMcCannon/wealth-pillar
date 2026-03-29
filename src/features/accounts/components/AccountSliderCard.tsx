@@ -30,6 +30,7 @@ export const AccountSliderCard = ({ account, balance, index, onClick }: AccountS
           accountBalance={balance}
           onClick={onClick}
           className={accountStyles.slider.card}
+          balancePresentation="dashboard"
         />
       </Suspense>
     </div>

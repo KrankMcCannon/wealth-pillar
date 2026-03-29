@@ -4,7 +4,10 @@
  * Prevents Cumulative Layout Shift (CLS) with accurate dimensions
  */
 
+import { PageContainer } from '@/components/layout';
 import { SkeletonList } from '@/components/ui/primitives';
+import { accountStyles } from '@/features/accounts';
+import { budgetStyles } from '@/styles/system';
 import { dashboardStyles } from '../theme/dashboard-styles';
 
 /**
@@ -50,12 +53,18 @@ export function DashboardHeaderSkeleton() {
  */
 export function UserSelectorSkeleton() {
   return (
-    <div className={dashboardStyles.userSelector.container}>
+    <div className="border-b border-border/50 bg-card/70 px-4 pb-3 pt-3 backdrop-blur-sm sm:px-5">
+      <div className="mb-2 h-3 w-28 rounded bg-muted/50 animate-pulse" aria-hidden />
       <SkeletonList
         count={3}
-        spacing={dashboardStyles.userSelector.inner}
+        spacing="flex gap-2 overflow-x-auto pb-1"
         renderItem={() => (
-          <div className={`${dashboardStyles.skeletons.userPill} ${skeletonClasses.shimmer}`} />
+          <div
+            className={`flex min-h-[44px] min-w-30 shrink-0 items-center gap-2 rounded-2xl border border-border/40 bg-muted/30 px-3 py-2 ${skeletonClasses.shimmer}`}
+          >
+            <div className="size-8 shrink-0 rounded-full bg-muted/60" />
+            <div className="h-3.5 flex-1 rounded bg-muted/50" />
+          </div>
         )}
       />
     </div>
@@ -68,35 +77,31 @@ export function UserSelectorSkeleton() {
  */
 export function BalanceSectionSkeleton() {
   return (
-    <div className={dashboardStyles.balanceSection.container}>
-      <div className={dashboardStyles.balanceSection.header}>
-        <div className={`h-4 w-32 rounded ${skeletonClasses.shimmer}`} />
+    <section className={accountStyles.balanceSection.container}>
+      <div className={accountStyles.slider.container}>
+        <div className={accountStyles.slider.inner}>
+          <div
+            className={`${accountStyles.slider.skeletonCard} ${skeletonClasses.shimmer}`}
+            aria-hidden
+          />
+          <div
+            className={`${accountStyles.slider.skeletonCard} ${skeletonClasses.shimmer}`}
+            aria-hidden
+          />
+        </div>
       </div>
 
-      {/* Total balance card */}
-      <div className={dashboardStyles.balanceSection.totalBalance.container}>
-        <div className={`h-3 w-24 rounded mb-2 ${skeletonClasses.shimmer}`} />
-        <div className={`h-8 w-32 rounded ${skeletonClasses.shimmer}`} />
-      </div>
-
-      {/* Account cards */}
-      <SkeletonList
-        count={2}
-        spacing={dashboardStyles.balanceSection.grid}
-        renderItem={() => (
-          <div className={dashboardStyles.balanceSection.accountCard.container}>
-            <div className={dashboardStyles.skeletons.accountRow}>
-              <div
-                className={`${dashboardStyles.skeletons.accountLinePrimary} ${skeletonClasses.shimmer}`}
-              />
-              <div
-                className={`${dashboardStyles.skeletons.accountLineSecondary} ${skeletonClasses.shimmer}`}
-              />
-            </div>
+      <div className={accountStyles.totalBalanceLink.embeddedContainer} aria-hidden>
+        <div className={`flex min-w-0 flex-1 items-center gap-3 sm:gap-4 ${skeletonClasses.shimmer}`}>
+          <div className="size-12 shrink-0 rounded-xl bg-muted/60 sm:size-14" />
+          <div className="flex min-w-0 flex-1 flex-col gap-2">
+            <div className="h-2.5 w-24 rounded bg-muted/50" />
+            <div className="h-8 w-40 max-w-full rounded-md bg-muted/50 sm:h-9 sm:w-44" />
           </div>
-        )}
-      />
-    </div>
+        </div>
+        <div className={`h-10 w-28 shrink-0 rounded-full bg-muted/50 sm:h-11 ${skeletonClasses.shimmer}`} />
+      </div>
+    </section>
   );
 }
 
@@ -106,14 +111,15 @@ export function BalanceSectionSkeleton() {
  */
 export function BudgetSectionSkeleton() {
   return (
-    <div className={dashboardStyles.budgetSection.container}>
-      <div className={dashboardStyles.budgetSection.header}>
-        <div className={`h-4 w-32 rounded ${skeletonClasses.shimmer}`} />
+    <div className={budgetStyles.section.container}>
+      <div className="mb-4 border-b border-border/40 pb-4 dark:border-border/35">
+        <div className={`h-5 w-36 rounded-md ${skeletonClasses.shimmer}`} />
+        <div className={`mt-2 h-3 w-48 rounded-md ${skeletonClasses.shimmer}`} />
       </div>
 
       <SkeletonList
         count={2}
-        spacing={dashboardStyles.budgetSection.grid}
+        spacing="flex flex-col gap-4 sm:gap-5"
         renderItem={() => (
           <div className={dashboardStyles.budgetSection.budgetCard.container}>
             <div className={dashboardStyles.skeletons.budgetRow}>
@@ -186,7 +192,7 @@ export function RecurringSeriesSkeleton() {
  */
 export function DashboardPageSkeleton() {
   return (
-    <div className={dashboardStyles.page.container}>
+    <PageContainer>
       <DashboardHeaderSkeleton />
       <UserSelectorSkeleton />
       <main className={dashboardStyles.page.main}>
@@ -195,6 +201,6 @@ export function DashboardPageSkeleton() {
         <BudgetSectionSkeleton />
         <RecurringSeriesSkeleton />
       </main>
-    </div>
+    </PageContainer>
   );
 }

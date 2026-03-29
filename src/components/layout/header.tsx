@@ -2,13 +2,21 @@
 
 import { useRouter } from '@/i18n/routing';
 import { useTranslations } from 'next-intl';
-import { ArrowLeft, Settings, Bell, Crown } from 'lucide-react';
+import { useTheme } from 'next-themes';
+import { ArrowLeft, Settings, Bell, Crown, MoreHorizontal, Moon, Sun } from 'lucide-react';
 import { cn } from '@/lib';
+import { useMounted } from '@/hooks';
 import { headerStyles } from './theme/header-styles';
 import { ActionMenu } from './action-menu';
 
-// UI Components
-import { Button, ThemeToggle } from '@/components/ui';
+import {
+  Button,
+  ThemeToggle,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui';
 
 // Constants
 import { STICKY_HEADER_BASE } from '@/lib/utils/ui-constants';
@@ -60,6 +68,8 @@ export function Header({
 }: Readonly<HeaderProps>) {
   const router = useRouter();
   const t = useTranslations('Header');
+  const { resolvedTheme, setTheme } = useTheme();
+  const mounted = useMounted();
 
   // Navigation Handler
   const handleBack = () => {
@@ -106,8 +116,8 @@ export function Header({
                   className={cn(
                     headerStyles.actions.badge,
                     investmentSummary.totalReturnPercent >= 0
-                      ? 'bg-green-500/10 border-green-500/20 text-green-600 dark:text-green-400'
-                      : 'bg-red-500/10 border-red-500/20 text-red-600 dark:text-red-400'
+                      ? 'border-success/30 bg-success/10 text-success'
+                      : 'border-destructive/30 bg-destructive/10 text-destructive'
                   )}
                 >
                   <span>
@@ -144,7 +154,6 @@ export function Header({
 
         {/* RIGHT SECTION: Actions */}
         <div className={headerStyles.actions.wrapper}>
-          {/* 1. Add Actions */}
           {showActions && (
             <ActionMenu
               extraMenuItems={extraMenuItems}
@@ -154,28 +163,101 @@ export function Header({
             />
           )}
 
-          {/* 2. Notifications */}
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label={t('aria.notifications')}
-            className={headerStyles.actions.iconButton}
-          >
-            <Bell className={headerStyles.actions.icon} />
-          </Button>
+          {isDashboard ? (
+            <>
+              <div className="hidden items-center gap-2 md:flex">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label={t('aria.notifications')}
+                  className={headerStyles.actions.iconButton}
+                  type="button"
+                >
+                  <Bell className={headerStyles.actions.icon} />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label={t('aria.settings')}
+                  className={headerStyles.actions.iconButton}
+                  type="button"
+                  onClick={() => router.push('/settings')}
+                >
+                  <Settings className={headerStyles.actions.icon} />
+                </Button>
+                <ThemeToggle />
+              </div>
 
-          {/* 3. Settings */}
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label={t('aria.settings')}
-            className={headerStyles.actions.iconButton}
-            onClick={() => router.push('/settings')}
-          >
-            <Settings className={headerStyles.actions.icon} />
-          </Button>
-
-          <ThemeToggle />
+              <div className="md:hidden">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      type="button"
+                      aria-label={t('aria.moreMenu')}
+                      aria-haspopup="menu"
+                      className={headerStyles.actions.iconButton}
+                    >
+                      <MoreHorizontal className={headerStyles.actions.icon} />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    <DropdownMenuItem
+                      disabled
+                      className="opacity-70"
+                      title={t('notifications.disabledHint')}
+                    >
+                      <Bell className="mr-2 h-4 w-4 shrink-0" aria-hidden />
+                      <span className="min-w-0">{t('aria.notifications')}</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => router.push('/settings')}>
+                      <Settings className="mr-2 h-4 w-4 shrink-0" aria-hidden />
+                      <span className="min-w-0">{t('aria.settings')}</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      disabled={!mounted}
+                      onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
+                    >
+                      {resolvedTheme === 'dark' ? (
+                        <Sun className="mr-2 h-4 w-4 shrink-0" aria-hidden />
+                      ) : (
+                        <Moon className="mr-2 h-4 w-4 shrink-0" aria-hidden />
+                      )}
+                      <span className="min-w-0">
+                        {resolvedTheme === 'dark'
+                          ? t('theme.switchToLight')
+                          : t('theme.switchToDark')}
+                      </span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </>
+          ) : (
+            <>
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label={t('aria.notifications')}
+                className={headerStyles.actions.iconButton}
+                type="button"
+              >
+                <Bell className={headerStyles.actions.icon} />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label={t('aria.settings')}
+                className={headerStyles.actions.iconButton}
+                type="button"
+                onClick={() => router.push('/settings')}
+              >
+                <Settings className={headerStyles.actions.icon} />
+              </Button>
+              <ThemeToggle />
+            </>
+          )}
         </div>
       </div>
     </header>

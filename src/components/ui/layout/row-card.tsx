@@ -32,7 +32,7 @@ export interface RowCardSwipeConfig {
 export interface RowCardProps {
   // Layout - Left Section
   icon?: React.ReactNode;
-  iconSize?: 'sm' | 'md' | 'lg';
+  iconSize?: 'xs' | 'sm' | 'md' | 'lg';
   iconColor?: 'primary' | 'warning' | 'destructive' | 'success' | 'muted' | 'accent' | 'none';
   iconStyle?: CSSProperties;
   iconClassName?: string;
@@ -61,6 +61,8 @@ export interface RowCardProps {
   isDisabled?: boolean;
   className?: string;
   testId?: string;
+  /** Layout compatto (slider conti): una riga per titolo e per sottotitolo, larghezza da contenuto. */
+  compact?: boolean;
 }
 
 /**
@@ -91,12 +93,14 @@ export const RowCard = memo(
     iconClassName,
     className,
     testId,
+    compact = false,
   }: RowCardProps) => {
     // Build class names
     const cardClasses = cn(
       rowCardStyles.base,
       rowCardStyles.variant[variant],
       isDisabled && 'opacity-50 cursor-not-allowed',
+      compact && 'max-w-[min(94vw,24rem)]',
       className
     );
 
@@ -112,9 +116,19 @@ export const RowCard = memo(
     // ========================================================================
 
     const renderCardContent = () => (
-      <div className="flex items-center justify-between w-full">
+      <div
+        className={cn(
+          'flex justify-between gap-2',
+          compact ? 'w-max min-w-0 items-center' : 'w-full items-center'
+        )}
+      >
         {/* Left Section */}
-        <div className={rowCardStyles.layout.left}>
+        <div
+          className={cn(
+            rowCardStyles.layout.left,
+            compact && 'w-auto flex-none min-w-0 items-center gap-1.5'
+          )}
+        >
           {/* Icon */}
           {icon && (
             <div className={iconContainerClasses} style={iconStyle}>
@@ -123,9 +137,27 @@ export const RowCard = memo(
           )}
 
           {/* Content */}
-          <div className={rowCardStyles.layout.content}>
-            <h4 className={rowCardStyles.title}>{title}</h4>
-            {subtitle && <p className={rowCardStyles.subtitle}>{subtitle}</p>}
+          <div className={cn(rowCardStyles.layout.content, compact && 'w-max min-w-0 flex-none')}>
+            <h4
+              className={cn(
+                rowCardStyles.title,
+                compact &&
+                  'overflow-hidden text-ellipsis whitespace-nowrap text-xs font-medium leading-tight'
+              )}
+            >
+              {title}
+            </h4>
+            {subtitle && (
+              <p
+                className={cn(
+                  rowCardStyles.subtitle,
+                  compact &&
+                    'mt-0.5 overflow-hidden text-ellipsis whitespace-nowrap text-[10px] leading-tight text-primary/70'
+                )}
+              >
+                {subtitle}
+              </p>
+            )}
             {metadata && <div className={rowCardStyles.metadata}>{metadata}</div>}
           </div>
         </div>
@@ -133,12 +165,21 @@ export const RowCard = memo(
         {/* Right Section */}
         {(primaryValue || secondaryValue || actions) && (
           <div
-            className={
-              rightLayout === 'row' ? rowCardStyles.layout.rightRow : rowCardStyles.layout.right
-            }
+            className={cn(
+              rightLayout === 'row' ? rowCardStyles.layout.rightRow : rowCardStyles.layout.right,
+              compact &&
+                rightLayout === 'row' &&
+                'ml-2 shrink-0 tabular-nums whitespace-nowrap sm:ml-2.5'
+            )}
           >
             {primaryValue && (
-              <div className={cn(rowCardStyles.value, rowCardStyles.valueVariant[amountVariant])}>
+              <div
+                className={cn(
+                  rowCardStyles.value,
+                  rowCardStyles.valueVariant[amountVariant],
+                  compact && 'text-sm font-semibold tabular-nums whitespace-nowrap'
+                )}
+              >
                 {primaryValue}
               </div>
             )}

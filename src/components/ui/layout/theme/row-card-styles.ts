@@ -32,6 +32,7 @@ export const rowCardStyles = {
   icon: {
     container: 'rounded-lg shrink-0 flex items-center justify-center',
     size: {
+      xs: 'size-7',
       sm: 'w-8 h-8',
       md: 'w-10 h-10',
       lg: 'w-12 h-12',
@@ -49,7 +50,7 @@ export const rowCardStyles = {
 
   // Text styles
   title: 'font-medium text-sm text-primary truncate',
-  subtitle: 'text-xs text-primary/60 truncate mt-0.5',
+  subtitle: 'mt-0.5 truncate text-xs text-primary/70 [text-wrap:balance]',
   metadata: 'flex items-center gap-2 mt-0.5 text-xs text-primary/60',
   value: 'text-md font-semibold text-primary',
   valueVariant: {

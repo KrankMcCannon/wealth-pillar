@@ -3,54 +3,39 @@
 /**
  * Home Content - Client Component
  *
- * Complete dashboard UI with all sections:
- * - Header with profile and settings
- * - User Selector for multi-user filtering
- * - Balance Section (accounts and total balance)
- * - Budget Section (budgets grouped by user)
- * - Recurring Series Section (upcoming recurring transactions)
- * - Recurring Series Form Modal
- *
- * Data is passed from Server Component for optimal performance
- * Business logic is extracted to useDashboardContent hook
+ * Dashboard: header, filtro utenti, saldi, budget, ricorrenze (un solo mount),
+ * bottom navigation. Dati dal Server Component; logica in useDashboardContent.
  */
 
-import { Suspense, use } from 'react';
+import { use } from 'react';
 import { useTranslations } from 'next-intl';
-import { BottomNavigation, PageContainer, Header } from '@/components/layout';
-import { Button } from '@/components/ui';
 import {
-  BalanceSectionSkeleton,
-  BudgetSectionSkeleton,
-  DashboardHeaderSkeleton,
-  RecurringSeriesSkeleton,
-  UserSelectorSkeleton,
-  dashboardStyles,
-  useDashboardContent,
-} from '@/features/dashboard';
+  BottomNavigation,
+  PageContainer,
+  Header,
+  HomeDashboardGrid,
+  HomeDashboardMain,
+  SkipToMainLink,
+} from '@/components/layout';
+import { homeDashboardLayoutStyles } from '@/components/layout/theme/home-dashboard-layout-styles';
+import { Button } from '@/components/ui';
+import { dashboardStyles, useDashboardContent } from '@/features/dashboard';
 import UserSelector from '@/components/shared/user-selector';
 import { BalanceSection } from '@/features/accounts';
 import { BudgetPeriodManager, BudgetSection } from '@/features/budgets';
 import { RecurringSeriesSection } from '@/features/recurring';
+import { useMediaQuery } from '@/hooks/use-media-query';
 import type { User } from '@/lib/types';
 import type { DashboardPageData } from '@/server/services/page-data.service';
 
-/**
- * Home Content Props
- */
+const RECURRING_MAX_MOBILE = 5;
+
 interface HomeContentProps {
   currentUser: User;
   groupUsers: User[];
   dashboardDataPromise: Promise<DashboardPageData>;
 }
 
-/**
- * Dashboard Content Component
- *
- * Handles full dashboard UI with four main sections
- * Receives data from Server Component parent
- * Uses useDashboardContent hook for business logic
- */
 export default function HomeContent({
   currentUser,
   groupUsers,
@@ -70,7 +55,9 @@ export default function HomeContent({
   const investmentSummary = investments[currentUser.id]?.summary ?? null;
 
   const t = useTranslations('HomeContent');
-  // Extract all business logic to custom hook
+  const isDesktop = useMediaQuery('(min-width: 768px)');
+  const recurringMaxItems = isDesktop ? undefined : RECURRING_MAX_MOBILE;
+
   const {
     isMember,
     selectedGroupFilter,
@@ -99,6 +86,8 @@ export default function HomeContent({
     budgetsByUser,
   });
 
+  const closePeriodHintId = 'home-close-period-hint';
+
   const budgetPeriodTrigger = (
     <Button variant="outline" size="sm">
       {t('closePeriodButton')}
@@ -106,29 +95,46 @@ export default function HomeContent({
   );
 
   const recurringSeriesUserId = selectedGroupFilter === 'all' ? undefined : effectiveUserId;
+  const recurringFilterUserId = isMember ? currentUser.id : recurringSeriesUserId;
+
+  const recurringProps = {
+    series: recurringSeries,
+    selectedUserId: recurringFilterUserId,
+    showStats: false as const,
+    showActions: false as const,
+    onCreateRecurringSeries: handleCreateRecurringSeries,
+    onCardClick: handleSeriesCardClick,
+    onPauseRecurringSeries: handlePauseRecurringSeries,
+  };
 
   return (
-    <PageContainer className={dashboardStyles.page.container}>
-      {/* Mobile-First Header */}
-      <Suspense fallback={<DashboardHeaderSkeleton />}>
-        <Header
-          isDashboard
-          currentUser={{ name: currentUser.name, role: currentUser.role || 'member' }}
-          showActions
-          investmentSummary={investmentSummary}
-        />
-      </Suspense>
+    <PageContainer>
+      <SkipToMainLink href="#main-dashboard">{t('skipToContent')}</SkipToMainLink>
 
-      {/* User Selector */}
-      <Suspense fallback={<UserSelectorSkeleton />}>
-        <UserSelector isLoading={false} currentUser={currentUser} users={groupUsers} />
-      </Suspense>
+      <Header
+        isDashboard
+        currentUser={{ name: currentUser.name, role: currentUser.role || 'member' }}
+        showActions
+        investmentSummary={investmentSummary}
+      />
 
-      <main className="px-3 pb-24 pt-3 md:pb-8">
-        <div className="space-y-4 md:grid md:grid-cols-12 md:items-start md:gap-6 md:space-y-0">
-          <div className="space-y-4 md:col-span-8">
-            {/* Balance Section - Keep core account info for both views */}
-            <Suspense fallback={<BalanceSectionSkeleton />}>
+      <UserSelector isLoading={false} currentUser={currentUser} users={groupUsers} />
+
+      <HomeDashboardMain>
+        <HomeDashboardGrid
+          asideAriaLabel={t('recurringAsideLabel')}
+          primary={
+            <>
+              <section
+                aria-labelledby="home-dashboard-heading"
+                className={homeDashboardLayoutStyles.heroSection}
+              >
+                <h1 id="home-dashboard-heading" className={homeDashboardLayoutStyles.heroTitle}>
+                  {t('checkFinancesHeading')}
+                </h1>
+                <p className={homeDashboardLayoutStyles.heroLead}>{t('checkFinancesLead')}</p>
+              </section>
+
               <BalanceSection
                 accounts={displayedDefaultAccounts}
                 accountBalances={displayedAccountBalances}
@@ -138,49 +144,42 @@ export default function HomeContent({
                 onAccountClick={handleAccountClick}
                 isLoading={false}
               />
-            </Suspense>
 
-            {/* Budget Section - Core section for mobile and desktop */}
-            <div className={dashboardStyles.budgetSection.container}>
-              <Suspense fallback={<BudgetSectionSkeleton />}>
-                <BudgetSection
-                  budgetsByUser={budgetsByUser}
-                  budgets={budgets}
-                  selectedViewUserId={selectedUserId}
-                  isLoading={false}
-                  headerLeading={
+              <BudgetSection
+                budgetsByUser={budgetsByUser}
+                budgets={budgets}
+                selectedViewUserId={selectedUserId}
+                isLoading={false}
+                headerLeading={
+                  <div className="flex min-w-0 flex-col items-stretch gap-1 sm:items-end">
                     <BudgetPeriodManager
                       selectedUserId={periodManagerUserId || currentUser.id}
                       currentPeriod={periodManagerData.period}
                       onUserChange={handlePeriodManagerUserChange}
                       onSuccess={handleRefresh}
                       trigger={budgetPeriodTrigger}
+                      triggerAriaDescribedBy={closePeriodHintId}
                       currentUser={currentUser}
                       groupUsers={groupUsers}
                     />
-                  }
-                />
-              </Suspense>
-            </div>
-          </div>
-
-          {/* Desktop-only secondary rail to keep mobile flow minimal */}
-          <div className="hidden md:col-span-4 md:block">
-            <Suspense fallback={<RecurringSeriesSkeleton />}>
-              <RecurringSeriesSection
-                series={recurringSeries}
-                selectedUserId={isMember ? currentUser.id : recurringSeriesUserId}
-                className={dashboardStyles.recurringSection.container}
-                showStats={false}
-                showActions={false}
-                onCreateRecurringSeries={handleCreateRecurringSeries}
-                onCardClick={handleSeriesCardClick}
-                onPauseRecurringSeries={handlePauseRecurringSeries}
+                    <p id={closePeriodHintId} className={homeDashboardLayoutStyles.periodCloseHint}>
+                      {t('closePeriodHint')}
+                    </p>
+                  </div>
+                }
               />
-            </Suspense>
-          </div>
-        </div>
-      </main>
+            </>
+          }
+          aside={
+            <div className={dashboardStyles.recurringSection.container}>
+              <RecurringSeriesSection
+                {...recurringProps}
+                {...(typeof recurringMaxItems === 'number' ? { maxItems: recurringMaxItems } : {})}
+              />
+            </div>
+          }
+        />
+      </HomeDashboardMain>
 
       <BottomNavigation />
     </PageContainer>

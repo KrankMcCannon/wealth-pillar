@@ -1,11 +1,27 @@
 'use client';
 
-import { memo, useCallback, useMemo } from 'react';
+import { memo, useCallback, useId, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
-import { Users, User as UserIcon, Crown, Star, Heart } from 'lucide-react';
+import { Users } from 'lucide-react';
 import { useUserFilter } from '@/hooks';
 import { User } from '@/lib/types';
 import { userSelectorStyles } from './theme/user-selector-styles';
+
+function getInitials(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return '?';
+  if (parts.length === 1) {
+    const w = parts[0] ?? '';
+    const slice = w.slice(0, 2);
+    return slice.length > 0 ? slice.toUpperCase() : '?';
+  }
+  const first = parts[0] ?? '';
+  const last = parts[parts.length - 1] ?? '';
+  const a = first.charAt(0);
+  const b = last.charAt(0);
+  if (!a && !b) return '?';
+  return `${a}${b}`.toUpperCase();
+}
 
 interface UserSelectorProps {
   className?: string;
@@ -36,19 +52,13 @@ const UserSelector = memo(
     onChange,
     showAllOption = true,
   }: UserSelectorProps) => {
+    const headingId = useId();
     const t = useTranslations('UserSelector');
     // Read from props instead of stores
     const { selectedGroupFilter, setSelectedGroupFilter } = useUserFilter();
 
     // Determine current selection: Controlled (value) > Uncontrolled (store)
     const currentSelection = value ?? selectedGroupFilter;
-
-    // Memoized icon selection
-    const getUserIcon = useCallback((userId: string, index: number) => {
-      const userIcons = [UserIcon, Crown, Star, Heart];
-      if (userId === 'all') return Users;
-      return userIcons[index % userIcons.length] ?? UserIcon;
-    }, []);
 
     // Memoized user list with "All Members" option
     const membersList = useMemo(() => {
@@ -101,10 +111,11 @@ const UserSelector = memo(
     if (isLoading) {
       return (
         <section className={`${userSelectorStyles.loading.container} ${className}`}>
+          <div className={userSelectorStyles.loading.heading} aria-hidden />
           <div className={userSelectorStyles.loading.list}>
             {[1, 2, 3].map((i) => (
               <div key={i} className={userSelectorStyles.loading.item}>
-                <div className={userSelectorStyles.loading.icon} />
+                <div className={userSelectorStyles.loading.avatar} />
                 <div className={userSelectorStyles.loading.text} />
               </div>
             ))}
@@ -114,15 +125,22 @@ const UserSelector = memo(
     }
 
     return (
-      <section className={`${userSelectorStyles.container} ${className}`}>
+      <section
+        className={`${userSelectorStyles.container} ${className}`}
+        aria-labelledby={headingId}
+      >
+        <h2 id={headingId} className={userSelectorStyles.heading}>
+          {t('contextLabel')}
+        </h2>
         <div className={userSelectorStyles.list} style={userSelectorStyles.listStyle}>
-          {membersList.map((member, index) => {
-            const IconComponent = getUserIcon(member.id, index);
+          {membersList.map((member) => {
             const isSelected = currentSelection === member.id;
+            const isAll = member.id === 'all';
 
             return (
               <button
                 key={member.id}
+                type="button"
                 onClick={() => handleMemberClick(member.id)}
                 className={`${userSelectorStyles.item.base} ${
                   isSelected ? userSelectorStyles.item.active : userSelectorStyles.item.inactive
@@ -132,25 +150,21 @@ const UserSelector = memo(
                 aria-label={t('selectUserAria', { name: member.name })}
               >
                 <div
-                  className={`${userSelectorStyles.icon.containerBase} ${
+                  className={`${userSelectorStyles.avatar.base} ${
                     isSelected
-                      ? userSelectorStyles.icon.containerActive
-                      : userSelectorStyles.icon.containerInactive
+                      ? userSelectorStyles.avatar.active
+                      : userSelectorStyles.avatar.inactive
                   }`}
+                  aria-hidden
                 >
-                  <IconComponent
-                    className={`${userSelectorStyles.icon.svgBase} ${
-                      isSelected
-                        ? userSelectorStyles.icon.svgActive
-                        : userSelectorStyles.icon.svgInactive
-                    }`}
-                  />
+                  {isAll ? (
+                    <Users className={userSelectorStyles.avatar.allIcon} strokeWidth={2} />
+                  ) : (
+                    <span className={userSelectorStyles.initials}>{getInitials(member.name)}</span>
+                  )}
                 </div>
 
                 <span className={userSelectorStyles.label}>{member.name}</span>
-
-                {/* Hover indicator only for non-selected */}
-                {!isSelected && <div className={userSelectorStyles.hoverIndicator} />}
               </button>
             );
           })}

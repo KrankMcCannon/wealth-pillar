@@ -23,6 +23,10 @@ interface AccountCardProps {
   onEdit?: (() => void) | undefined;
   onDelete?: (() => void) | undefined;
   className?: string | undefined;
+  /**
+   * `dashboard`: saldi positivi in tinta primary (home slider) così il verde non compete col totale.
+   */
+  balancePresentation?: 'default' | 'dashboard';
 }
 
 /**
@@ -38,13 +42,18 @@ export const AccountCard = memo(function AccountCard({
   onEdit,
   onDelete,
   className,
+  balancePresentation = 'default',
 }: Readonly<AccountCardProps>) {
   const t = useTranslations('Accounts.Card');
   const isNegative = accountBalance < 0;
 
   const primaryValue = formatCurrency(Math.abs(accountBalance));
   const secondaryValue = isNegative ? t('debt') : undefined;
-  const amountVariant = isNegative ? 'destructive' : 'success';
+  const amountVariant = isNegative
+    ? 'destructive'
+    : balancePresentation === 'dashboard'
+      ? 'primary'
+      : 'success';
   const accountTypeLabels: Partial<Record<keyof typeof AccountTypeMap, string>> = {
     payroll: t('accountTypes.payroll'),
     savings: t('accountTypes.savings'),
@@ -91,10 +100,18 @@ export const AccountCard = memo(function AccountCard({
 
   return (
     <RowCard
-      icon={<Building2 className={cardStyles.account.icon} />}
-      iconSize="md"
+      icon={
+        <Building2
+          className={
+            balancePresentation === 'dashboard'
+              ? cardStyles.account.sliderIcon
+              : cardStyles.account.icon
+          }
+        />
+      }
+      iconSize={balancePresentation === 'dashboard' ? 'xs' : 'md'}
       iconColor="primary"
-      title={truncateText(account.name, 20)}
+      title={balancePresentation === 'dashboard' ? account.name : truncateText(account.name, 20)}
       subtitle={accountTypeLabels[account.type] || AccountTypeMap[account.type] || account.type}
       primaryValue={primaryValue}
       secondaryValue={secondaryValue}
@@ -103,7 +120,12 @@ export const AccountCard = memo(function AccountCard({
       variant="interactive"
       rightLayout="row"
       onClick={onClick}
-      className={cn(cardStyles.account.container, className)}
+      compact={balancePresentation === 'dashboard'}
+      className={cn(
+        cardStyles.account.container,
+        balancePresentation === 'dashboard' && cardStyles.account.sliderTight,
+        className
+      )}
       testId={`account-card-${account.id}`}
     />
   );

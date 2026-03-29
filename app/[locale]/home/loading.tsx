@@ -1,9 +1,5 @@
 /**
- * Home Page Loading State
- * Shown while dashboard data is being prefetched and hydrated
- *
- * Uses centralized skeleton components from features/dashboard
- * Follows consistent design system and spacing patterns
+ * Home Page Loading — stessa shell e griglia della home caricata (un solo blocco ricorrenze).
  */
 
 import {
@@ -11,28 +7,52 @@ import {
   BalanceSectionSkeleton,
   BudgetSectionSkeleton,
   RecurringSeriesSkeleton,
+  UserSelectorSkeleton,
 } from '@/features/dashboard';
-import { dashboardStyles } from '@/features/dashboard/theme/dashboard-styles';
+import {
+  HomeDashboardGrid,
+  HomeDashboardMain,
+  PageContainer,
+  SkipToMainLink,
+} from '@/components/layout';
+import { homeDashboardLayoutStyles } from '@/components/layout/theme/home-dashboard-layout-styles';
+import { getTranslations } from 'next-intl/server';
 
-export default function HomePageLoading() {
+export default async function HomePageLoading() {
+  const t = await getTranslations('HomeContent');
+
   return (
-    <div className={dashboardStyles.page.container}>
-      {/* Header Loading State */}
+    <PageContainer>
+      <SkipToMainLink href="#main-dashboard">{t('skipToContent')}</SkipToMainLink>
+
       <DashboardHeaderSkeleton />
+      <UserSelectorSkeleton />
 
-      {/* Main Content Loading States */}
-      <main className={dashboardStyles.page.main}>
-        <div className={dashboardStyles.loading.content}>
-          {/* Balance Section Skeleton */}
-          <BalanceSectionSkeleton />
+      <HomeDashboardMain ariaBusy>
+        <HomeDashboardGrid
+          asideAriaLabel={t('recurringAsideLabel')}
+          primary={
+            <>
+              <section
+                aria-labelledby="home-dashboard-heading-loading"
+                className={homeDashboardLayoutStyles.heroSection}
+              >
+                <h1
+                  id="home-dashboard-heading-loading"
+                  className={homeDashboardLayoutStyles.heroTitle}
+                >
+                  {t('checkFinancesHeading')}
+                </h1>
+                <div className={homeDashboardLayoutStyles.heroSkeletonLead} aria-hidden />
+              </section>
 
-          {/* Budget Section Skeleton */}
-          <BudgetSectionSkeleton />
-
-          {/* Recurring Series Section Skeleton */}
-          <RecurringSeriesSkeleton />
-        </div>
-      </main>
-    </div>
+              <BalanceSectionSkeleton />
+              <BudgetSectionSkeleton />
+            </>
+          }
+          aside={<RecurringSeriesSkeleton />}
+        />
+      </HomeDashboardMain>
+    </PageContainer>
   );
 }

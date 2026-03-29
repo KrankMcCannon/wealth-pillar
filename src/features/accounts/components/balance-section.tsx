@@ -64,6 +64,7 @@ export const BalanceSection = ({
       {/* Total Balance Link Section - only show when there are multiple accounts */}
       {accountCount > 1 && (
         <TotalBalanceLink
+          embedded
           totalBalance={totalBalance}
           accountCount={accountCount}
           selectedUserId={selectedUserId}

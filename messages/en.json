@@ -953,7 +953,15 @@
     "aria": {
       "back": "Go back",
       "notifications": "Notifications",
-      "settings": "Settings"
+      "settings": "Settings",
+      "moreMenu": "More actions: notifications, settings, and theme"
+    },
+    "theme": {
+      "switchToLight": "Switch to light theme",
+      "switchToDark": "Switch to dark theme"
+    },
+    "notifications": {
+      "disabledHint": "In-app notifications are coming soon"
     },
     "ActionMenu": {
       "openMenuAria": "Open action menu",
@@ -966,10 +974,28 @@
     }
   },
   "HomeContent": {
-    "closePeriodButton": "Close Period"
+    "closePeriodButton": "Close period",
+    "closePeriodHint": "When the month or cycle ends: save the summary and start fresh dates.",
+    "checkFinancesHeading": "A quick check-in",
+    "checkFinancesLead": "Balances, budget, and what's about to leave the account — see at a glance if you're on track.",
+    "pageTitle": "A quick check-in",
+    "recurringAsideLabel": "Upcoming recurring charges",
+    "skipToContent": "Skip to balances and budget"
+  },
+  "BottomNav": {
+    "ariaNav": "Primary navigation",
+    "home": "Home",
+    "transactions": "Transactions",
+    "investments": "Investments",
+    "reports": "Reports",
+    "add": "Add"
+  },
+  "ThemeToggle": {
+    "aria": "Switch between light and dark theme"
   },
   "UserSelector": {
     "all": "All",
+    "contextLabel": "Current view",
     "selectUserAria": "Select {name}"
   },
   "Accounts": {
