@@ -42,6 +42,9 @@ interface HeaderProps {
   // Extra menu items (optional)
   extraMenuItems?: ActionMenuItem[];
 
+  /** Voci solo mobile (md:hidden) su sottopagine — es. Investimenti: portafoglio / sandbox */
+  subpageMobileMenuItems?: ActionMenuItem[];
+
   // Investment data for header badge
   investmentSummary?:
     | {
@@ -63,6 +66,7 @@ export function Header({
   currentUser,
   showActions = false,
   extraMenuItems = [],
+  subpageMobileMenuItems = [],
   investmentSummary,
   onBack,
 }: Readonly<HeaderProps>) {
@@ -240,6 +244,41 @@ export function Header({
             </>
           ) : (
             <>
+              {subpageMobileMenuItems.length > 0 ? (
+                <div className="md:hidden">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        type="button"
+                        aria-label={t('aria.pageToolsMenu')}
+                        aria-haspopup="menu"
+                        className={headerStyles.actions.iconButton}
+                      >
+                        <MoreHorizontal className={headerStyles.actions.icon} />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent
+                      align="end"
+                      className={headerStyles.actions.menu}
+                      collisionPadding={16}
+                    >
+                      {subpageMobileMenuItems.map((item) => (
+                        <DropdownMenuItem
+                          key={item.label}
+                          title={item.hint}
+                          className="min-h-11"
+                          onSelect={() => item.onClick()}
+                        >
+                          <item.icon className="mr-2 h-4 w-4 shrink-0" aria-hidden />
+                          <span className="min-w-0">{item.label}</span>
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              ) : null}
               <Button
                 variant="ghost"
                 size="icon"

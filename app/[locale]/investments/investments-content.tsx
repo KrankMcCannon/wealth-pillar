@@ -64,63 +64,52 @@ export default function InvestmentsContent({
 }: InvestmentsContentProps) {
   const { investments, summary, indexData, currentIndex } = use(investmentsDataPromise);
   const t = useTranslations('InvestmentsContent');
-  const [activeTab, setActiveTab] = useState('personal');
+  const [activeTab, setActiveTab] = useState<'personal' | 'sandbox'>('personal');
 
   return (
-    <PageContainer>
-      <div className="flex-1">
-        <Header
-          title={t('headerTitle')}
-          showBack
-          currentUser={{ name: currentUser.name, role: currentUser.role || 'member' }}
-          showActions
-        />
+    <PageContainer className={transactionStyles.page.container}>
+      <Header
+        title={t('headerTitle')}
+        showBack
+        currentUser={{ name: currentUser.name, role: currentUser.role || 'member' }}
+        showActions
+      />
 
-        <UserSelector currentUser={currentUser} users={groupUsers} />
+      <div className={transactionStyles.layout.controlsStack}>
+        <div className={transactionStyles.layout.controlsCard}>
+          <UserSelector
+            className={transactionStyles.userSelector.className}
+            currentUser={currentUser}
+            users={groupUsers}
+          />
 
-        <main className="px-3 pb-24 md:pb-8" aria-label={t('mainLandmark')}>
-          {/* Mobile-first flow: only mandatory portfolio view */}
-          <div className="md:hidden">
+          <div className={transactionStyles.tabNavigation.wrapper}>
+            <TabNavigation
+              tabs={[
+                { id: 'personal', label: t('tabs.personal') },
+                { id: 'sandbox', label: t('tabs.sandbox') },
+              ]}
+              activeTab={activeTab}
+              onTabChange={(id) => setActiveTab(id as 'personal' | 'sandbox')}
+              variant="modern"
+            />
+          </div>
+        </div>
+      </div>
+
+      <main className={transactionStyles.page.main} aria-label={t('mainLandmark')}>
+        <div className={transactionStyles.layout.contentStack}>
+          {activeTab === 'personal' && (
             <PersonalInvestmentTab
               investments={investments}
               summary={summary}
               indexData={indexData}
               currentIndex={currentIndex}
             />
-          </div>
-
-          {/* Desktop flow: full investment workspace with tabs */}
-          <div className="hidden space-y-4 md:block">
-            <div className={transactionStyles.tabNavigation.wrapper}>
-              <TabNavigation
-                tabs={[
-                  { id: 'personal', label: t('tabs.personal') },
-                  { id: 'sandbox', label: t('tabs.sandbox') },
-                ]}
-                activeTab={activeTab}
-                onTabChange={setActiveTab}
-                variant="modern"
-              />
-            </div>
-
-            {activeTab === 'personal' && (
-              <div className={transactionStyles.page.main}>
-                <PersonalInvestmentTab
-                  investments={investments}
-                  summary={summary}
-                  indexData={indexData}
-                  currentIndex={currentIndex}
-                />
-              </div>
-            )}
-            {activeTab === 'sandbox' && (
-              <div className={transactionStyles.page.main}>
-                <SandboxForecastTab />
-              </div>
-            )}
-          </div>
-        </main>
-      </div>
+          )}
+          {activeTab === 'sandbox' && <SandboxForecastTab />}
+        </div>
+      </main>
 
       <BottomNavigation />
     </PageContainer>

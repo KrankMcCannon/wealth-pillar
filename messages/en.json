@@ -498,6 +498,7 @@
   "Investments": {
     "PersonalTab": {
       "currentValueLabel": "Current Value",
+      "portfolioHeroHint": "Holdings value today",
       "investedLabel": "Invested",
       "investedDescription": "Share cost",
       "taxesPaidLabel": "Taxes Paid",
@@ -509,7 +510,27 @@
       "title": "Your Holdings",
       "shares": "{count} {count, plural, one {share} other {shares}}",
       "paidLabel": "Paid:",
-      "empty": "No active investments."
+      "empty": "No active investments.",
+      "columns": {
+        "instrument": "Instrument",
+        "shares": "Shares",
+        "paid": "Paid",
+        "value": "Value",
+        "gain": "P/L"
+      },
+      "pagination": {
+        "info": "{from}–{to} of {total}",
+        "of": "of",
+        "page": "Page {current} of {total}",
+        "first": "First page",
+        "previous": "Previous page",
+        "next": "Next page",
+        "last": "Last page",
+        "loading": "Loading...",
+        "perPageLabel": "Per page",
+        "perPageAriaLabel": "Investments per page",
+        "goToPage": "Go to page {page}"
+      }
     },
     "HistoryChart": {
       "title": "Historical Trend",
@@ -1029,7 +1050,8 @@
       "back": "Go back",
       "notifications": "Notifications",
       "settings": "Settings",
-      "moreMenu": "More actions: notifications, settings, and theme"
+      "moreMenu": "More actions: notifications, settings, and theme",
+      "pageToolsMenu": "Page tools: portfolio and forecast sandbox"
     },
     "theme": {
       "switchToLight": "Switch to light theme",

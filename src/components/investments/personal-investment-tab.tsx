@@ -1,9 +1,11 @@
 'use client';
 
 import { useLocale, useTranslations } from 'next-intl';
+import { useSearchParams } from 'next/navigation';
+import { usePathname, useRouter } from '@/i18n/routing';
 import { cn } from '@/lib/utils';
-import { MetricCard, MetricGrid } from '@/components/ui/layout';
-import { TrendingUp, TrendingDown, Wallet, PiggyBank } from 'lucide-react';
+import { MetricCard } from '@/components/ui/layout';
+import { Wallet } from 'lucide-react';
 import { useInvestmentHistory } from '@/features/investments/hooks/use-investment-history';
 import { InvestmentHistoryChart } from './investment-history-chart';
 import { BenchmarkChart } from './benchmark-chart';
@@ -59,13 +61,17 @@ export function PersonalInvestmentTab({
   const t = useTranslations('Investments.PersonalTab');
   const locale = useLocale();
   const benchmarkAnchorId = 'benchmark-chart';
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   const handleBenchmarkChange = (symbol: string) => {
-    if (symbol && symbol !== currentIndex) {
-      const nextSymbol = symbol.toUpperCase();
-      const url = `?index=${encodeURIComponent(nextSymbol)}#${benchmarkAnchorId}`;
-      globalThis.location.assign(url);
-    }
+    if (!symbol || symbol === currentIndex) return;
+    const nextSymbol = symbol.toUpperCase();
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('index', nextSymbol);
+    const qs = params.toString();
+    router.replace(`${pathname}?${qs}#${benchmarkAnchorId}`, { scroll: false });
   };
 
   const calculatedHistory = useInvestmentHistory({
@@ -76,68 +82,62 @@ export function PersonalInvestmentTab({
   });
 
   const isPositiveReturn = summary.totalReturn >= 0;
+  const formatEur = (value: number) =>
+    new Intl.NumberFormat(locale, { style: 'currency', currency: 'EUR' }).format(value);
 
   return (
     <div className={investmentsStyles.container}>
-      <MetricGrid columns={4}>
+      <section className="space-y-3 sm:space-y-4" aria-label={t('currentValueLabel')}>
         <MetricCard
+          className="border-primary/15 shadow-sm sm:shadow-md sm:p-5"
           label={t('currentValueLabel')}
-          icon={<Wallet className="w-4 h-4" />}
+          icon={<Wallet className="h-4 w-4" />}
           iconColor="accent"
           labelTone="variant"
           value={summary.totalCurrentValue}
-          valueType="income"
+          valueType="neutral"
           valueSize="xl"
+          size="lg"
           description={
-            <span className={cn(isPositiveReturn ? 'text-success' : 'text-destructive')}>
-              {isPositiveReturn ? '+' : ''}
-              {new Intl.NumberFormat(locale, { style: 'currency', currency: 'EUR' }).format(
-                summary.totalReturn
-              )}{' '}
-              ({summary.totalReturnPercent.toFixed(2)}%)
+            <span className="block space-y-1">
+              <span
+                className={cn(
+                  'block text-sm font-semibold',
+                  isPositiveReturn ? 'text-success' : 'text-destructive'
+                )}
+              >
+                {isPositiveReturn ? '+' : ''}
+                {formatEur(summary.totalReturn)} ({summary.totalReturnPercent.toFixed(2)}%)
+              </span>
+              <span className="block text-[11px] leading-snug text-primary/60">
+                {t('portfolioHeroHint')}
+              </span>
             </span>
           }
           variant="highlighted"
+          stats={[
+            {
+              label: t('investedLabel'),
+              value: formatEur(summary.totalInvested),
+              variant: 'muted',
+            },
+            {
+              label: t('taxesPaidLabel'),
+              value: formatEur(summary.totalTaxPaid || 0),
+              variant: 'destructive',
+            },
+            {
+              label: t('totalPaidLabel'),
+              value: formatEur(summary.totalPaid ?? 0),
+              variant: 'primary',
+            },
+          ]}
         />
+        <p className="px-0.5 text-[11px] leading-snug text-primary/55">
+          {t('investedDescription')} · {t('taxesPaidDescription')} · {t('totalPaidDescription')}
+        </p>
+      </section>
 
-        <MetricCard
-          label={t('investedLabel')}
-          icon={<PiggyBank className="w-4 h-4" />}
-          iconColor="accent"
-          labelTone="variant"
-          value={summary.totalInvested}
-          valueType="neutral"
-          valueSize="xl"
-          description={t('investedDescription')}
-          variant="default"
-        />
-
-        <MetricCard
-          label={t('taxesPaidLabel')}
-          icon={<TrendingDown className="w-4 h-4" />}
-          iconColor="destructive"
-          labelTone="variant"
-          value={summary.totalTaxPaid || 0}
-          valueType="expense"
-          valueSize="xl"
-          description={t('taxesPaidDescription')}
-          variant="danger"
-        />
-
-        <MetricCard
-          label={t('totalPaidLabel')}
-          icon={<TrendingUp className="w-4 h-4" />}
-          iconColor="muted"
-          labelTone="variant"
-          value={summary.totalPaid ?? 0}
-          valueType="neutral"
-          valueSize="xl"
-          description={t('totalPaidDescription')}
-          variant="default"
-        />
-      </MetricGrid>
-
-      {/* Charts Row */}
       <div className={investmentsStyles.charts.grid}>
         <InvestmentHistoryChart data={calculatedHistory} />
 

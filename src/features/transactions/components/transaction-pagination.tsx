@@ -1,6 +1,6 @@
 'use client';
 
-import { memo } from 'react';
+import { memo, useId } from 'react';
 import { useTranslations } from 'next-intl';
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -16,6 +16,8 @@ interface TransactionPaginationProps {
   onPageChange: (page: number) => void;
   onPageSizeChange?: (size: PageSizeOption) => void;
   className?: string;
+  /** Namespace messaggi (stesse chiavi di `Transactions.Table.pagination`) */
+  messagesNamespace?: string;
 }
 
 const s = transactionStyles.transactionTable.pagination;
@@ -59,8 +61,10 @@ function TransactionPaginationInner({
   onPageChange,
   onPageSizeChange,
   className,
+  messagesNamespace = 'Transactions.Table.pagination',
 }: TransactionPaginationProps) {
-  const t = useTranslations('Transactions.Table.pagination');
+  const t = useTranslations(messagesNamespace);
+  const pageSizeSelectId = useId();
 
   const from = Math.min((currentPage - 1) * pageSize + 1, totalItems);
   const to = Math.min(currentPage * pageSize, totalItems);
@@ -80,12 +84,12 @@ function TransactionPaginationInner({
         {/* Per-page selector — hidden on mobile, visible on sm+ */}
         {onPageSizeChange && (
           <div className={cn(s.perPageWrapper, 'hidden sm:flex')}>
-            <label htmlFor="page-size-select" className={s.perPageLabel}>
+            <label htmlFor={pageSizeSelectId} className={s.perPageLabel}>
               {t('perPageLabel')}
             </label>
             <div className="relative">
               <select
-                id="page-size-select"
+                id={pageSizeSelectId}
                 value={pageSize}
                 onChange={(e) => onPageSizeChange(Number(e.target.value) as PageSizeOption)}
                 disabled={isLoading}

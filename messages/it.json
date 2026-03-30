@@ -498,6 +498,7 @@
   "Investments": {
     "PersonalTab": {
       "currentValueLabel": "Valore Attuale",
+      "portfolioHeroHint": "Patrimonio titoli oggi",
       "investedLabel": "Investito",
       "investedDescription": "Costo quote",
       "taxesPaidLabel": "Tasse Pagate",
@@ -509,7 +510,27 @@
       "title": "Le Tue Partecipazioni",
       "shares": "{count} {count, plural, one {quota} other {quote}}",
       "paidLabel": "Pagato:",
-      "empty": "Nessun investimento attivo."
+      "empty": "Nessun investimento attivo.",
+      "columns": {
+        "instrument": "Titolo",
+        "shares": "Quote",
+        "paid": "Pagato",
+        "value": "Valore",
+        "gain": "Risultato"
+      },
+      "pagination": {
+        "info": "{from}–{to} di {total}",
+        "of": "di",
+        "page": "Pagina {current} di {total}",
+        "first": "Prima pagina",
+        "previous": "Pagina precedente",
+        "next": "Pagina successiva",
+        "last": "Ultima pagina",
+        "loading": "Caricamento...",
+        "perPageLabel": "Per pagina",
+        "perPageAriaLabel": "Investimenti per pagina",
+        "goToPage": "Vai alla pagina {page}"
+      }
     },
     "HistoryChart": {
       "title": "Andamento Storico",
@@ -1029,7 +1050,8 @@
       "back": "Torna indietro",
       "notifications": "Notifiche",
       "settings": "Impostazioni",
-      "moreMenu": "Altre azioni: notifiche, impostazioni e tema"
+      "moreMenu": "Altre azioni: notifiche, impostazioni e tema",
+      "pageToolsMenu": "Strumenti pagina: portafoglio e simulazione"
     },
     "theme": {
       "switchToLight": "Passa a tema chiaro",

@@ -1,5 +1,5 @@
 export const investmentsStyles = {
-  container: 'space-y-8',
+  container: 'space-y-8 sm:space-y-10',
   card: {
     root: 'border-none shadow-md overflow-hidden',
     header: 'px-3 pt-3',

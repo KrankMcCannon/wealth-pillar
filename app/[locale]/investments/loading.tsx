@@ -1,12 +1,13 @@
 /**
  * Investments Page Loading State
- * Shell allineata a Header + UserSelector + main (riduce CLS vs contenuto reale).
+ * Shell allineata a transazioni: Header + controlsCard (UserSelector + tab) + main.
  */
 
 import { BottomNavigation, PageContainer } from '@/components/layout';
 import { headerStyles } from '@/components/layout/theme/header-styles';
 import { SkeletonBox } from '@/components/ui/primitives/skeleton-box';
 import { UserSelectorSkeleton } from '@/features/dashboard';
+import { transactionStyles } from '@/styles/system';
 import { getTranslations } from 'next-intl/server';
 
 function InvestmentsHeaderSkeleton() {
@@ -37,32 +38,27 @@ export default async function InvestmentsLoading() {
   const t = await getTranslations('InvestmentsContent');
 
   return (
-    <PageContainer>
-      <div className="flex-1">
-        <InvestmentsHeaderSkeleton />
-        <UserSelectorSkeleton />
-        <main
-          className="px-3 pb-24 md:pb-8 space-y-6 max-w-7xl mx-auto pt-2"
-          aria-busy="true"
-          aria-label={t('mainLandmark')}
-        >
-          <div className="flex flex-col gap-4">
-            <SkeletonBox height="h-8" width="w-40" variant="medium" />
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {[1, 2, 3, 4].map((i) => (
-                <SkeletonBox key={i} height="h-20" variant="light" className="rounded-xl" />
-              ))}
-            </div>
+    <PageContainer className={transactionStyles.page.container}>
+      <InvestmentsHeaderSkeleton />
+      <div className={transactionStyles.layout.controlsStack}>
+        <div className={transactionStyles.layout.controlsCard}>
+          <UserSelectorSkeleton />
+          <div className={`${transactionStyles.tabNavigation.wrapper} flex gap-2`} aria-hidden>
+            <SkeletonBox height="h-10" width="w-[45%]" variant="medium" className="rounded-lg" />
+            <SkeletonBox height="h-10" width="w-[45%]" variant="light" className="rounded-lg" />
           </div>
-          <div className="rounded-xl overflow-hidden">
-            <SkeletonBox height="h-[300px]" variant="light" className="rounded-xl" />
-          </div>
+        </div>
+      </div>
+      <main className={transactionStyles.page.main} aria-busy="true" aria-label={t('mainLandmark')}>
+        <div className="flex flex-col gap-4">
+          <SkeletonBox height="h-36" width="w-full" variant="light" className="rounded-xl" />
+          <SkeletonBox height="h-[300px]" width="w-full" variant="light" className="rounded-xl" />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <SkeletonBox height="h-64" variant="light" className="rounded-xl" />
             <SkeletonBox height="h-64" variant="light" className="rounded-xl" />
           </div>
-        </main>
-      </div>
+        </div>
+      </main>
       <BottomNavigation />
     </PageContainer>
   );
