@@ -87,9 +87,9 @@ export function PersonalInvestmentTab({
 
   return (
     <div className={investmentsStyles.container}>
-      <section className="space-y-3 sm:space-y-4" aria-label={t('currentValueLabel')}>
+      <section className="space-y-2 sm:space-y-3" aria-label={t('currentValueLabel')}>
         <MetricCard
-          className="border-primary/15 shadow-sm sm:shadow-md sm:p-5"
+          className="border-primary/15 p-4 shadow-sm sm:p-5 sm:shadow-md"
           label={t('currentValueLabel')}
           icon={<Wallet className="h-4 w-4" />}
           iconColor="accent"
@@ -133,9 +133,6 @@ export function PersonalInvestmentTab({
             },
           ]}
         />
-        <p className="px-0.5 text-[11px] leading-snug text-primary/55">
-          {t('investedDescription')} · {t('taxesPaidDescription')} · {t('totalPaidDescription')}
-        </p>
       </section>
 
       <div className={investmentsStyles.charts.grid}>

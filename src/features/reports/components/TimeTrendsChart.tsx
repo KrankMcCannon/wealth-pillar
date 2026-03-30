@@ -5,6 +5,7 @@ import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxi
 import { useTranslations, useLocale } from 'next-intl';
 import { useReducedMotion } from 'framer-motion';
 import { EmptyState } from '@/components/shared';
+import { rechartsBarTrendsInitialDimension } from '@/lib/utils/recharts-responsive';
 
 interface TimeTrendsChartProps {
   data: { date: string; income: number; expense: number }[];
@@ -118,8 +119,13 @@ export function TimeTrendsChart({ data }: TimeTrendsChartProps) {
           {t('timeTrendsSubtitle')}
         </p>
       </div>
-      <div className="w-full h-[250px] sm:h-[300px] md:h-[350px]">
-        <ResponsiveContainer width="100%" height="100%">
+      <div className="h-[250px] min-h-[220px] w-full min-w-0 shrink-0 sm:h-[300px] md:h-[350px]">
+        <ResponsiveContainer
+          width="100%"
+          height="100%"
+          minWidth={0}
+          initialDimension={rechartsBarTrendsInitialDimension}
+        >
           <BarChart
             data={chartData}
             margin={{ top: 10, right: 8, left: 0, bottom: 0 }}

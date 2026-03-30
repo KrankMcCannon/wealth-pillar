@@ -3,6 +3,7 @@
 import { useState, useMemo, useCallback, useId } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -17,6 +18,7 @@ import {
 import { investmentsStyles } from '@/features/investments/theme/investments-styles';
 import {
   investmentChartColors,
+  rechartsSandboxInitialDimension,
   rechartsTooltipContentStyle,
   rechartsTooltipItemStyle,
 } from './investment-chart-theme';
@@ -105,7 +107,9 @@ export function SandboxForecastTab() {
           <CardTitle id={titleId} className={investmentsStyles.card.title}>
             {t('title')}
           </CardTitle>
-          <CardDescription className={investmentsStyles.card.description}>
+          <CardDescription
+            className={cn(investmentsStyles.card.description, 'hidden sm:block')}
+          >
             {t('description')}
           </CardDescription>
         </CardHeader>
@@ -168,7 +172,12 @@ export function SandboxForecastTab() {
               </p>
             ) : null}
             <div className={investmentsStyles.charts.sandboxContainer} aria-hidden>
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer
+                width="100%"
+                height="100%"
+                minWidth={0}
+                initialDimension={rechartsSandboxInitialDimension}
+              >
                 <AreaChart data={forecastData} margin={{ top: 20, right: 10, left: 0, bottom: 0 }}>
                   <defs>
                     <linearGradient id="colorForecast" x1="0" y1="0" x2="0" y2="1">

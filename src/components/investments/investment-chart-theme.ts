@@ -1,5 +1,10 @@
 import type { CSSProperties } from 'react';
 
+export {
+  rechartsInitialDimension,
+  rechartsSandboxInitialDimension,
+} from '@/lib/utils/recharts-responsive';
+
 /**
  * Colori e stili Recharts allineati ai token OKLCH in globals.css (dark mode incluso).
  */

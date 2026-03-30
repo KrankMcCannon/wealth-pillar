@@ -492,13 +492,13 @@
     "tabLoading": "Loading section…",
     "tabs": {
       "personal": "Personal Investments",
-      "sandbox": "Forecast Sandbox"
+      "sandbox": "Scenario simulation"
     }
   },
   "Investments": {
     "PersonalTab": {
       "currentValueLabel": "Current Value",
-      "portfolioHeroHint": "Holdings value today",
+      "portfolioHeroHint": "Total market value of your positions today",
       "investedLabel": "Invested",
       "investedDescription": "Share cost",
       "taxesPaidLabel": "Taxes Paid",
@@ -510,7 +510,8 @@
       "title": "Your Holdings",
       "shares": "{count} {count, plural, one {share} other {shares}}",
       "paidLabel": "Paid:",
-      "empty": "No active investments.",
+      "empty": "No holdings yet",
+      "emptyDescription": "Tap Add in the bottom bar, then New Investment. On a larger screen, use the + menu at the top right.",
       "columns": {
         "instrument": "Instrument",
         "shares": "Shares",
@@ -540,14 +541,14 @@
       "dataSummary": "Historical chart: {count, plural, one {# period} other {# periods}}, from {from} to {to}. Latest value {value}."
     },
     "BenchmarkChart": {
-      "title": "Benchmark",
-      "description": "Compare with {index}",
+      "title": "Market index",
+      "description": "Compare your portfolio with index {index}",
       "fallback": "Data not available",
       "dataSummary": "Benchmark chart: {count, plural, one {# trading day} other {# trading days}}, from {from} to {to}. Latest close {value}."
     },
     "SandboxTab": {
-      "title": "Forecast Sandbox",
-      "description": "Simulate investment growth over time by changing the parameters below.",
+      "title": "Scenario simulation",
+      "description": "Estimate how a lump sum could grow over time. Figures are illustrative, not advice.",
       "chartDataSummary": "Forecast from {startYear} to {endYear}. Projected final value {value}.",
       "fields": {
         "initialAmount": "Initial Amount (€)",
@@ -563,8 +564,8 @@
         "forex": "Forex",
         "crypto": "Crypto"
       },
-      "ariaLabel": "Select benchmark",
-      "placeholder": "Select benchmark...",
+      "ariaLabel": "Choose comparison index",
+      "placeholder": "Choose an index…",
       "searchPlaceholder": "Search US ticker...",
       "allAssetTypes": "All",
       "searchHint": "Search a US ticker",
@@ -1051,7 +1052,7 @@
       "notifications": "Notifications",
       "settings": "Settings",
       "moreMenu": "More actions: notifications, settings, and theme",
-      "pageToolsMenu": "Page tools: portfolio and forecast sandbox"
+      "pageToolsMenu": "Page tools: portfolio and scenario simulation"
     },
     "theme": {
       "switchToLight": "Switch to light theme",

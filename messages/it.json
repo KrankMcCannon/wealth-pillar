@@ -492,13 +492,13 @@
     "tabLoading": "Caricamento sezione…",
     "tabs": {
       "personal": "Investimenti Personali",
-      "sandbox": "Sandbox Previsionale"
+      "sandbox": "Simulazione scenari"
     }
   },
   "Investments": {
     "PersonalTab": {
       "currentValueLabel": "Valore Attuale",
-      "portfolioHeroHint": "Patrimonio titoli oggi",
+      "portfolioHeroHint": "Valore di mercato complessivo delle tue posizioni oggi",
       "investedLabel": "Investito",
       "investedDescription": "Costo quote",
       "taxesPaidLabel": "Tasse Pagate",
@@ -510,7 +510,8 @@
       "title": "Le Tue Partecipazioni",
       "shares": "{count} {count, plural, one {quota} other {quote}}",
       "paidLabel": "Pagato:",
-      "empty": "Nessun investimento attivo.",
+      "empty": "Ancora nessuna posizione",
+      "emptyDescription": "Tocca Aggiungi nella barra in basso, poi Nuovo investimento. Su schermi grandi usa il menu + in alto a destra.",
       "columns": {
         "instrument": "Titolo",
         "shares": "Quote",
@@ -540,14 +541,14 @@
       "dataSummary": "Grafico storico: {count, plural, one {# periodo} other {# periodi}}, da {from} a {to}. Ultimo valore {value}."
     },
     "BenchmarkChart": {
-      "title": "Benchmark",
-      "description": "Confronta con {index}",
+      "title": "Indice di riferimento",
+      "description": "Confronta il portafoglio con l'indice {index}",
       "fallback": "Dati non disponibili",
       "dataSummary": "Grafico benchmark: {count, plural, one {# giorno di negoziazione} other {# giorni di negoziazione}}, da {from} a {to}. Ultima chiusura {value}."
     },
     "SandboxTab": {
-      "title": "Sandbox Previsionale",
-      "description": "Simula la crescita di un investimento nel tempo modificando i parametri qui sotto.",
+      "title": "Simulazione scenari",
+      "description": "Stima come potrebbe crescere un capitale nel tempo. Solo a titolo illustrativo, non è un consiglio finanziario.",
       "chartDataSummary": "Previsione dal {startYear} al {endYear}. Valore finale stimato {value}.",
       "fields": {
         "initialAmount": "Importo Iniziale (€)",
@@ -563,8 +564,8 @@
         "forex": "Forex",
         "crypto": "Crypto"
       },
-      "ariaLabel": "Seleziona benchmark",
-      "placeholder": "Seleziona benchmark...",
+      "ariaLabel": "Scegli l'indice di confronto",
+      "placeholder": "Scegli un indice…",
       "searchPlaceholder": "Cerca titolo USA...",
       "allAssetTypes": "Tutti",
       "searchHint": "Cerca un titolo USA",
@@ -1051,7 +1052,7 @@
       "notifications": "Notifiche",
       "settings": "Impostazioni",
       "moreMenu": "Altre azioni: notifiche, impostazioni e tema",
-      "pageToolsMenu": "Strumenti pagina: portafoglio e simulazione"
+      "pageToolsMenu": "Strumenti pagina: portafoglio e simulazione scenari"
     },
     "theme": {
       "switchToLight": "Passa a tema chiaro",

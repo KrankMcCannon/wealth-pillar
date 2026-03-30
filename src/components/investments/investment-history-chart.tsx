@@ -12,9 +12,11 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 import { investmentsStyles } from '@/features/investments/theme/investments-styles';
 import {
   investmentChartColors,
+  rechartsInitialDimension,
   rechartsTooltipContentStyle,
   rechartsTooltipItemStyle,
 } from './investment-chart-theme';
@@ -55,7 +57,9 @@ export function InvestmentHistoryChart({ data }: Readonly<InvestmentHistoryChart
         <CardTitle id={titleId} className={investmentsStyles.card.title}>
           {t('title')}
         </CardTitle>
-        <CardDescription className={investmentsStyles.card.description}>
+        <CardDescription
+          className={cn(investmentsStyles.card.description, 'hidden sm:block')}
+        >
           {t('description')}
         </CardDescription>
       </CardHeader>
@@ -67,7 +71,12 @@ export function InvestmentHistoryChart({ data }: Readonly<InvestmentHistoryChart
         ) : null}
         {hasData ? (
           <div className={investmentsStyles.charts.container} aria-hidden>
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer
+              width="100%"
+              height="100%"
+              minWidth={0}
+              initialDimension={rechartsInitialDimension}
+            >
               <AreaChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorHistory" x1="0" y1="0" x2="0" y2="1">

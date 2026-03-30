@@ -12,10 +12,12 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 import { ShareSelector } from './share-selector';
 import { investmentsStyles } from '@/features/investments/theme/investments-styles';
 import {
   investmentChartColors,
+  rechartsInitialDimension,
   rechartsTooltipContentStyle,
   rechartsTooltipItemStyle,
 } from './investment-chart-theme';
@@ -77,17 +79,19 @@ export function BenchmarkChart({
       className={investmentsStyles.card.root}
       id={anchorId}
     >
-      <CardHeader className="px-3 pt-3 flex flex-col gap-4">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 min-w-0">
+      <CardHeader className="flex flex-col gap-2 px-3 pt-3 sm:gap-4">
+        <div className="flex min-w-0 flex-col justify-between gap-2 md:flex-row md:items-center md:gap-4">
           <div className="min-w-0">
             <CardTitle id={titleId} className={investmentsStyles.card.title}>
               {t('title')}
             </CardTitle>
-            <CardDescription className={investmentsStyles.card.description}>
+            <CardDescription
+              className={cn(investmentsStyles.card.description, 'hidden sm:block')}
+            >
               {t('description', { index: currentIndex })}
             </CardDescription>
           </div>
-          <div className="w-full md:w-auto min-w-[200px]">
+          <div className="w-full min-w-[200px] md:w-auto">
             <ShareSelector value={currentIndex} onChange={onBenchmarkChange} />
           </div>
         </div>
@@ -100,7 +104,12 @@ export function BenchmarkChart({
         ) : null}
         {hasData ? (
           <div className={investmentsStyles.charts.container} aria-hidden>
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer
+              width="100%"
+              height="100%"
+              minWidth={0}
+              initialDimension={rechartsInitialDimension}
+            >
               <LineChart data={sortedData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                 <CartesianGrid
                   strokeDasharray="3 3"

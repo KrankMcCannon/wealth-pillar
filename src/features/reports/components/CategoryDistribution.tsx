@@ -6,6 +6,7 @@ import { EmptyState } from '@/components/shared';
 import { useFormatCurrency } from '@/features/reports/hooks/use-format-currency';
 import { useId } from 'react';
 import { cn } from '@/lib/utils';
+import { rechartsPieChartInitialDimension } from '@/lib/utils/recharts-responsive';
 
 interface CategoryDistributionProps {
   data: { id: string; name: string; value: number; color: string }[];
@@ -59,8 +60,16 @@ export function CategoryDistribution({ data, total }: CategoryDistributionProps)
       </div>
 
       <div className="flex flex-col gap-4 sm:gap-6">
-        <div className="h-[180px] sm:h-[200px] w-full relative" aria-hidden>
-          <ResponsiveContainer width="100%" height="100%">
+        <div
+          className="relative h-[180px] min-h-[160px] w-full min-w-0 shrink-0 sm:h-[200px]"
+          aria-hidden
+        >
+          <ResponsiveContainer
+            width="100%"
+            height="100%"
+            minWidth={0}
+            initialDimension={rechartsPieChartInitialDimension}
+          >
             <PieChart>
               <Pie
                 data={data}

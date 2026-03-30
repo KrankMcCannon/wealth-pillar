@@ -15,7 +15,9 @@ import {
 } from '@/components/ui/table';
 import { TransactionPagination } from '@/features/transactions';
 import type { PageSizeOption } from '@/features/transactions/hooks/usePaginatedTransactions';
+import { useModalState } from '@/lib/navigation/url-state';
 import { transactionStyles } from '@/styles/system';
+import { Button } from '@/components/ui/button';
 import type { Investment } from './personal-investment-tab';
 
 interface InvestmentListProps {
@@ -30,6 +32,8 @@ function formatMoney(locale: string, currency: string, value: number) {
 
 export const InvestmentList = memo(function InvestmentList({ investments }: InvestmentListProps) {
   const t = useTranslations('Investments.InvestmentList');
+  const tActionMenu = useTranslations('Header.ActionMenu');
+  const { openModal } = useModalState();
   const locale = useLocale();
   const headingId = useId();
   const s = transactionStyles.transactionTable;
@@ -66,11 +70,17 @@ export const InvestmentList = memo(function InvestmentList({ investments }: Inve
   const showPagination = totalItems > 0;
 
   const emptyBlock = (
-    <div role="status" aria-live="polite" className={s.emptyWrapper}>
+    <div role="status" aria-live="polite" className={cn(s.emptyWrapper, 'py-10 sm:py-14')}>
       <div className={s.emptyIcon} aria-hidden>
-        <TrendingUp className="mx-auto h-12 w-12" strokeWidth={1.25} />
+        <TrendingUp className="mx-auto h-10 w-10 sm:h-12 sm:w-12" strokeWidth={1.25} />
       </div>
       <p className={s.emptyTitle}>{t('empty')}</p>
+      <p className="mx-auto mb-4 max-w-88 px-2 text-sm leading-snug text-primary/65">
+        {t('emptyDescription')}
+      </p>
+      <Button type="button" size="sm" className="mt-1" onClick={() => openModal('investment')}>
+        {tActionMenu('newInvestment')}
+      </Button>
     </div>
   );
 
@@ -80,7 +90,7 @@ export const InvestmentList = memo(function InvestmentList({ investments }: Inve
       className={transactionStyles.layout.listBlock}
       aria-labelledby={headingId}
     >
-      <h2 id={headingId} className="mb-3 text-base font-semibold text-primary sm:mb-4 sm:text-lg">
+      <h2 id={headingId} className="mb-2 text-base font-semibold text-primary sm:mb-3 sm:text-lg">
         {t('title')}
       </h2>
 
