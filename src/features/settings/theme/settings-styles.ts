@@ -1,7 +1,6 @@
 export const settingsStyles = {
   page: {
     container: 'relative flex w-full min-h-[100svh] flex-col bg-card',
-    style: { fontFamily: '"Inter", "SF Pro Display", system-ui, sans-serif' },
   },
   header: {
     container:
@@ -26,7 +25,7 @@ export const settingsStyles = {
     badge:
       'px-2 py-1 rounded-full text-[10px] font-semibold bg-primary/10 text-primary whitespace-nowrap border border-primary/20',
     editButton:
-      'hover:bg-primary hover:text-primary-foreground active:scale-95 transition-all duration-200 border border-primary/20 bg-primary/10 text-primary rounded-xl px-3 py-1.5 text-sm font-semibold shadow-sm hover:shadow-md whitespace-nowrap shrink-0',
+      'min-h-11 min-w-11 sm:min-h-0 sm:min-w-0 inline-flex items-center justify-center hover:bg-primary hover:text-primary-foreground active:scale-95 transition-all duration-200 border border-primary/20 bg-primary/10 text-primary rounded-xl px-3 py-2 sm:py-1.5 text-sm font-semibold shadow-sm hover:shadow-md whitespace-nowrap shrink-0',
   },
   profileDetails: {
     container: 'divide-y divide-primary/20',
@@ -37,7 +36,7 @@ export const settingsStyles = {
     headerTitle: 'w-24 h-6 rounded-lg',
     section: 'space-y-4',
     sectionTitle: 'h-6 rounded-lg bg-primary/15 animate-pulse',
-    card: 'bg-card/95 backdrop-blur-sm shadow-xl shadow-[#7678e4]/15 border-0 rounded-2xl overflow-hidden',
+    card: 'bg-card/95 backdrop-blur-sm shadow-xl shadow-primary/15 border-0 rounded-2xl overflow-hidden',
     cardHeader: 'flex items-center gap-4 px-2 py-4 bg-card',
     avatar: 'size-16 rounded-2xl bg-primary/12 shrink-0 animate-pulse',
     headerBody: 'flex-1 space-y-2',

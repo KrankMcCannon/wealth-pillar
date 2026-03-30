@@ -38,6 +38,9 @@
   "SettingsPage": {
     "loading": "Loading settings..."
   },
+  "SettingsItem": {
+    "change": "Change"
+  },
   "SettingsContent": {
     "headerTitle": "Settings",
     "currencyModalTitle": "Select Currency",
@@ -50,6 +53,7 @@
   "SettingsSections": {
     "Profile": {
       "title": "Profile",
+      "avatarAriaLabel": "Avatar for {name}",
       "accountCount": "{count} {count, plural, one {Account} other {Accounts}}",
       "transactionCount": "{count} {count, plural, one {Transaction} other {Transactions}}",
       "editButton": "Edit",
@@ -65,7 +69,9 @@
     },
     "Group": {
       "title": "Group Management",
+      "groupActionsTitle": "Invites & billing",
       "membersTitle": "Group Members",
+      "membersEmpty": "No other members visible in this group.",
       "membersSubtitle": "{count} {count, plural, one {visible member} other {visible members}}",
       "inviteMemberTitle": "Invite Member",
       "inviteMemberDescription": "Send an invitation to join the group",
@@ -94,7 +100,9 @@
     "Security": {
       "title": "Security",
       "twoFactorLabel": "Two-Factor Authentication",
-      "twoFactorDescription": "Add extra security",
+      "twoFactorDescription": "Add a second step at sign-in to protect your account.",
+      "twoFactorUnavailableDescription": "We’re working on this — you’ll be able to turn it on from here soon. For now, use a long, unique password.",
+      "twoFactorBadge": "Coming soon",
       "signOutLabel": "Sign Out",
       "signingOutLabel": "Signing out...",
       "signOutDescription": "Sign out of your account",

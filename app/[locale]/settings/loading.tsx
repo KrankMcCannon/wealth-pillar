@@ -7,12 +7,13 @@
 import { BottomNavigation, PageContainer } from '@/components/layout';
 import { SkeletonBox } from '@/components/ui/primitives/skeleton-box';
 import { SkeletonList } from '@/components/ui/primitives/skeleton-list';
+import { settingsStyles } from '@/features/settings/theme';
 
 export default function SettingsLoading() {
   return (
-    <PageContainer>
-      <div className="px-3 sm:px-4 py-4 pb-24 space-y-6 max-w-7xl mx-auto">
-        <div className="flex items-center gap-3 mb-4">
+    <PageContainer className={settingsStyles.page.container}>
+      <div className={settingsStyles.main.container}>
+        <div className="flex items-center gap-3 mb-1">
           <SkeletonBox height="h-10" width="w-10" variant="light" className="rounded-xl shrink-0" />
           <SkeletonBox height="h-8" width="w-48" variant="medium" />
         </div>

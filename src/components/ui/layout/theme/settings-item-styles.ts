@@ -8,9 +8,9 @@
 export const settingsItemStyles = {
   // Base container
   container:
-    'flex items-center justify-between py-3 first:pt-0 last:pb-0 w-full text-left transition-all duration-200 group hover:bg-card/60 active:bg-card/80',
+    'flex items-center justify-between py-3 first:pt-0 last:pb-0 w-full text-left transition-colors duration-200 group hover:bg-card/60 active:bg-card/80',
   containerWithDivider:
-    'flex items-center justify-between py-3 first:pt-0 last:pb-0 w-full text-left transition-all duration-200 group hover:bg-card/60 active:bg-card/80 border-b border-primary/20',
+    'flex items-center justify-between py-3 first:pt-0 last:pb-0 w-full text-left transition-colors duration-200 group hover:bg-card/60 active:bg-card/80 border-b border-primary/20',
   clickable: 'cursor-pointer',
 
   // Left section (icon + content)
@@ -18,10 +18,10 @@ export const settingsItemStyles = {
 
   // Icon container
   iconContainer:
-    'flex items-center justify-center w-10 h-10 rounded-xl flex-shrink-0 shadow-sm transition-all duration-200 group-hover:scale-105 group-active:scale-95 [&_svg]:!text-current',
+    'flex items-center justify-center w-10 h-10 rounded-xl flex-shrink-0 shadow-sm [&_svg]:!text-current',
   iconColor: {
-    default: 'bg-gradient-to-br from-primary/10 to-primary/5 text-primary',
-    destructive: 'bg-gradient-to-br from-destructive/10 to-destructive/5 text-destructive',
+    default: 'bg-primary/10 text-primary',
+    destructive: 'bg-destructive/10 text-destructive',
   },
   icon: 'w-5 h-5',
 

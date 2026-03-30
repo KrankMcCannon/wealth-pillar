@@ -13,7 +13,8 @@
  * Used for: Settings pages, preferences lists, configuration screens
  */
 
-import { memo } from 'react';
+import { memo, useId } from 'react';
+import { useTranslations } from 'next-intl';
 import { ChevronRight } from 'lucide-react';
 import { settingsItemStyles } from './theme/settings-item-styles';
 import { cn } from '@/lib/utils';
@@ -70,6 +71,12 @@ export const SettingsItem = memo(
     showDivider = false,
     className,
   }: SettingsItemProps) => {
+    const t = useTranslations('SettingsItem');
+    const a11yId = useId();
+    const labelTextId = `${a11yId}-setting-label`;
+    const descriptionTextId = `${a11yId}-setting-desc`;
+    const toggleInputId = `${a11yId}-toggle`;
+
     const isRowButton = actionType === 'button' && !!onPress;
     const isRowNavigation = actionType === 'navigation' && !!onPress;
     const isRowClickable = isRowButton || isRowNavigation;
@@ -101,7 +108,7 @@ export const SettingsItem = memo(
                   : settingsItemStyles.actions.button
               }
             >
-              {buttonLabel || 'Cambia'}
+              {buttonLabel || t('change')}
             </span>
           ) : (
             <button
@@ -113,24 +120,29 @@ export const SettingsItem = memo(
                   : settingsItemStyles.actions.button
               }
             >
-              {buttonLabel || 'Cambia'}
+              {buttonLabel || t('change')}
             </button>
           );
 
         case 'toggle':
           return (
-            <label className={settingsItemStyles.actions.toggle.wrapper}>
+            <div className={settingsItemStyles.actions.toggle.wrapper}>
               <input
+                id={toggleInputId}
                 type="checkbox"
                 className={settingsItemStyles.actions.toggle.input}
                 checked={checked}
                 onChange={(e) => onToggle?.(e.target.checked)}
                 disabled={disabled}
+                aria-labelledby={labelTextId}
+                {...(description ? { 'aria-describedby': descriptionTextId } : {})}
               />
-              <div className={settingsItemStyles.actions.toggle.track}>
-                <div className={settingsItemStyles.actions.toggle.thumb} />
-              </div>
-            </label>
+              <label htmlFor={toggleInputId} className="inline-flex cursor-pointer">
+                <div className={settingsItemStyles.actions.toggle.track} aria-hidden>
+                  <div className={settingsItemStyles.actions.toggle.thumb} />
+                </div>
+              </label>
+            </div>
           );
 
         case 'navigation':
@@ -176,6 +188,7 @@ export const SettingsItem = memo(
           {/* Content */}
           <div className={settingsItemStyles.content}>
             <div
+              id={labelTextId}
               className={cn(settingsItemStyles.label, settingsItemStyles.textColor[variant].label)}
             >
               {label}
@@ -192,6 +205,7 @@ export const SettingsItem = memo(
             )}
             {description && (
               <div
+                id={descriptionTextId}
                 className={cn(
                   settingsItemStyles.description,
                   settingsItemStyles.textColor[variant].description

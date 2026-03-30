@@ -42,8 +42,10 @@ export function ProfileSection({
               style={
                 currentUser.theme_color ? { backgroundColor: currentUser.theme_color } : undefined
               }
+              role="img"
+              aria-label={t('avatarAriaLabel', { name: currentUser.name })}
             >
-              {userInitials}
+              <span aria-hidden>{userInitials}</span>
             </div>
             <div className={settingsStyles.profile.info}>
               <h3 className={settingsStyles.profile.name}>{currentUser.name}</h3>

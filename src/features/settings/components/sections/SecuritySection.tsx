@@ -6,7 +6,8 @@ import { useTranslations } from 'next-intl';
 interface SecuritySectionProps {
   isSigningOut: boolean;
   onSignOut: () => void;
-  onNavigateTo2FA: () => void;
+  /** Se assente, la riga 2FA è informativa (nessuna azione) con copy “in arrivo”. */
+  onNavigateTo2FA?: () => void;
 }
 
 export function SecuritySection({
@@ -15,19 +16,34 @@ export function SecuritySection({
   onNavigateTo2FA,
 }: Readonly<SecuritySectionProps>) {
   const t = useTranslations('SettingsSections.Security');
+  const twoFactorReady = typeof onNavigateTo2FA === 'function';
 
   return (
     <PageSection>
       <SectionHeader title={t('title')} icon={Shield} iconClassName="text-primary" />
       <PageSection variant="card" padding="sm">
         <ListContainer divided className="space-y-0">
-          <SettingsItem
-            icon={<Shield className="h-4 w-4 text-primary" />}
-            label={t('twoFactorLabel')}
-            description={t('twoFactorDescription')}
-            actionType="navigation"
-            onPress={onNavigateTo2FA}
-          />
+          {twoFactorReady ? (
+            <SettingsItem
+              icon={<Shield className="h-4 w-4 text-primary" />}
+              label={t('twoFactorLabel')}
+              description={t('twoFactorDescription')}
+              actionType="navigation"
+              onPress={onNavigateTo2FA}
+            />
+          ) : (
+            <SettingsItem
+              icon={<Shield className="h-4 w-4 text-primary" />}
+              label={t('twoFactorLabel')}
+              description={t('twoFactorUnavailableDescription')}
+              actionType="custom"
+              action={
+                <span className="shrink-0 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary/80">
+                  {t('twoFactorBadge')}
+                </span>
+              }
+            />
+          )}
 
           <SettingsItem
             icon={

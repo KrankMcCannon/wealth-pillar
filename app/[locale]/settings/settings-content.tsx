@@ -132,13 +132,7 @@ export default function SettingsContent({
 
           <NotificationsSection preferences={preferences} onToggle={handleNotificationToggle} />
 
-          <SecuritySection
-            isSigningOut={isSigningOut}
-            onSignOut={handleSignOut}
-            onNavigateTo2FA={() => {
-              /* TODO: Navigate to 2FA settings */
-            }}
-          />
+          <SecuritySection isSigningOut={isSigningOut} onSignOut={handleSignOut} />
 
           <AccountSection onDeleteAccount={handleDeleteAccountClick} />
         </main>

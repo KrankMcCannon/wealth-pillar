@@ -1,6 +1,6 @@
 'use client';
 
-import { useRouter } from '@/i18n/routing';
+import { usePathname, useRouter } from '@/i18n/routing';
 import { useTranslations } from 'next-intl';
 import { useTheme } from 'next-themes';
 import { ArrowLeft, Settings, Bell, Crown, MoreHorizontal, Moon, Sun } from 'lucide-react';
@@ -71,6 +71,9 @@ export function Header({
   onBack,
 }: Readonly<HeaderProps>) {
   const router = useRouter();
+  const pathname = usePathname();
+  const pathSegments = pathname.split('/').filter(Boolean);
+  const hideSettingsShortcut = !isDashboard && pathSegments[pathSegments.length - 1] === 'settings';
   const t = useTranslations('Header');
   const { resolvedTheme, setTheme } = useTheme();
   const mounted = useMounted();
@@ -288,16 +291,18 @@ export function Header({
               >
                 <Bell className={headerStyles.actions.icon} />
               </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                aria-label={t('aria.settings')}
-                className={headerStyles.actions.iconButton}
-                type="button"
-                onClick={() => router.push('/settings')}
-              >
-                <Settings className={headerStyles.actions.icon} />
-              </Button>
+              {!hideSettingsShortcut && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label={t('aria.settings')}
+                  className={headerStyles.actions.iconButton}
+                  type="button"
+                  onClick={() => router.push('/settings')}
+                >
+                  <Settings className={headerStyles.actions.icon} />
+                </Button>
+              )}
               <ThemeToggle />
             </>
           )}

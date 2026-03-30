@@ -38,6 +38,9 @@
   "SettingsPage": {
     "loading": "Caricamento impostazioni..."
   },
+  "SettingsItem": {
+    "change": "Cambia"
+  },
   "SettingsContent": {
     "headerTitle": "Impostazioni",
     "currencyModalTitle": "Seleziona Valuta",
@@ -50,6 +53,7 @@
   "SettingsSections": {
     "Profile": {
       "title": "Profilo",
+      "avatarAriaLabel": "Avatar di {name}",
       "accountCount": "{count} {count, plural, one {Account} other {Account}}",
       "transactionCount": "{count} {count, plural, one {Transazione} other {Transazioni}}",
       "editButton": "Modifica",
@@ -65,7 +69,9 @@
     },
     "Group": {
       "title": "Gestione Gruppo",
+      "groupActionsTitle": "Inviti e abbonamento",
       "membersTitle": "Membri del Gruppo",
+      "membersEmpty": "Nessun altro membro visibile in questo gruppo.",
       "membersSubtitle": "{count} {count, plural, one {membro visibile} other {membri visibili}}",
       "inviteMemberTitle": "Invita Membro",
       "inviteMemberDescription": "Invia invito per unirsi al gruppo",
@@ -94,7 +100,9 @@
     "Security": {
       "title": "Sicurezza",
       "twoFactorLabel": "Autenticazione a Due Fattori",
-      "twoFactorDescription": "Aggiungi sicurezza extra",
+      "twoFactorDescription": "Aggiungi un secondo passaggio al login per proteggere l’account.",
+      "twoFactorUnavailableDescription": "Stiamo preparando questa funzione: potrai attivarla da qui a breve. Nel frattempo usa una password lunga e unica.",
+      "twoFactorBadge": "In arrivo",
       "signOutLabel": "Esci dall'Account",
       "signingOutLabel": "Disconnessione in corso...",
       "signOutDescription": "Disconnetti dal tuo account",

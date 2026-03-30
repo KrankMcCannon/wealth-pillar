@@ -148,7 +148,7 @@ export function PreferencesSectionSkeleton() {
  */
 export function SettingsPageSkeleton() {
   return (
-    <div className={settingsStyles.page.container} style={settingsStyles.page.style}>
+    <div className={settingsStyles.page.container}>
       <SettingsHeaderSkeleton />
       <main className={settingsStyles.main.container}>
         <ProfileSectionSkeleton />
