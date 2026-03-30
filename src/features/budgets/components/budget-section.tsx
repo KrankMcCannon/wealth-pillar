@@ -101,7 +101,7 @@ export const BudgetSection = ({
           </div>
           <h3 className={budgetStyles.section.emptyTitle}>{t('empty.title')}</h3>
           <p className={budgetStyles.section.emptyDescription}>{t('empty.description')}</p>
-          <button onClick={goToBudgets} className={budgetStyles.section.emptyButton}>
+          <button type="button" onClick={goToBudgets} className={budgetStyles.section.emptyButton}>
             {t('empty.createButton')}
           </button>
         </div>
@@ -120,14 +120,14 @@ export const BudgetSection = ({
         }
         leading={headerLeading}
         className={cn(
-          'mb-3 border-b border-border/40 pb-4 dark:border-border/35',
+          'border-b border-border/40 dark:border-border/35',
           headerLeading && 'items-start'
         )}
       />
 
       <div className={budgetStyles.transactions.container}>
-        {budgetEntries
-          .toSorted((a, b) => b.totalBudget - a.totalBudget)
+        {[...budgetEntries]
+          .sort((a, b) => b.totalBudget - a.totalBudget)
           .map((userBudgetGroup, index) => {
             const {
               user,
@@ -150,7 +150,8 @@ export const BudgetSection = ({
               >
                 {/* Mobile-First Compact User Header */}
                 <button
-                  className={`${budgetStyles.section.groupHeader} cursor-pointer hover:bg-primary/5 transition-colors w-full text-left`}
+                  type="button"
+                  className={`${budgetStyles.section.groupHeader} min-h-11 w-full cursor-pointer text-left transition-colors hover:bg-primary/5 motion-reduce:transition-none`}
                   onClick={() => goToBudgetSummary(user.id)}
                 >
                   {/* User Info Row */}
@@ -234,8 +235,8 @@ export const BudgetSection = ({
 
                 {/* User's Budget Cards */}
                 <div className={budgetStyles.section.cardsDivider}>
-                  {userBudgets
-                    .toSorted((a, b) => b.amount - a.amount)
+                  {[...userBudgets]
+                    .sort((a, b) => b.amount - a.amount)
                     .map((budgetInfo) => {
                       const budget = budgets.find((b: Budget) => b.id === budgetInfo.id);
                       if (!budget) return null;

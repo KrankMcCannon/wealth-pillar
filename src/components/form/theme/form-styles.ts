@@ -21,7 +21,7 @@ export const formStyles = {
   },
   actions: {
     container: 'flex flex-col-reverse gap-2 sm:flex-row sm:justify-end',
-    buttonBase: 'w-full sm:w-auto',
+    buttonBase: 'min-h-11 w-full sm:w-auto',
     cancel: 'bg-card text-primary border-primary/20 hover:bg-primary hover:text-primary-foreground',
     loadingIcon: 'mr-2 h-4 w-4 animate-spin',
   },
@@ -85,7 +85,8 @@ export const formStyles = {
     row: 'flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-colors hover:bg-card/50',
     rowActive: 'bg-primary/5',
     userRow: 'flex items-center gap-2 flex-1',
-    avatar: 'w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium text-white',
+    avatar:
+      'flex size-8 items-center justify-center rounded-full bg-primary text-sm font-medium text-primary-foreground',
     name: 'text-sm font-medium',
     current: 'text-xs text-primary/60',
   },
@@ -100,5 +101,6 @@ export function getCategorySelectWidthStyle(width: number): CSSProperties {
 }
 
 export function getMultiUserAvatarStyle(color: string | undefined): CSSProperties {
-  return { backgroundColor: color || '#6366f1' }; // Fallback to primary color
+  if (color) return { backgroundColor: color };
+  return {};
 }

@@ -63,21 +63,21 @@ export function WeekdayLabels({
   }, [locale]);
 
   return (
-    <tr className={cn(calendarDrawerStyles.weekdays.container, className)}>
+    <div className={cn(calendarDrawerStyles.weekdays.container, className)}>
       {weekdays.map((day, index) => {
         // Saturday (index 5) and Sunday (index 6) are weekends
         const isWeekend = highlightWeekends && (index === 5 || index === 6);
 
         return (
-          <th
+          <div
             key={day.full}
             className={cn(calendarDrawerStyles.weekdays.label, weekdayLabelVariants({ isWeekend }))}
             aria-label={day.full}
           >
             {day.short}
-          </th>
+          </div>
         );
       })}
-    </tr>
+    </div>
   );
 }

@@ -21,7 +21,7 @@ export const investmentsStyles = {
     itemTitle: 'font-semibold text-lg text-primary',
     badgeWrapper: 'flex items-center gap-2 mt-1',
     badge:
-      'inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10',
+      'inline-flex items-center rounded-md bg-primary/10 px-2 py-1 text-xs font-medium text-primary ring-1 ring-inset ring-primary/20',
     separator: 'text-sm text-primary/60',
     sharesText: 'text-sm text-primary/60',
     valueContainer:

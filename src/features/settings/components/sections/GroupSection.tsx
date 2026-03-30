@@ -4,6 +4,7 @@ import { RoleBadge } from '@/features/permissions';
 import { ChevronRight, CreditCard, Plus, Users } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import { User } from '@/lib/types';
+import { cn } from '@/lib/utils';
 
 interface GroupSectionProps {
   groupUsers: User[];
@@ -50,8 +51,15 @@ export function GroupSection({
                 subtitle={member.email}
                 icon={
                   <div
-                    className="size-10 rounded-xl flex items-center justify-center text-white text-sm font-semibold shadow-md"
-                    style={{ backgroundColor: member.theme_color || '#000000' }}
+                    className={cn(
+                      'flex size-10 items-center justify-center rounded-xl text-sm font-semibold shadow-md',
+                      member.theme_color
+                        ? 'text-white'
+                        : 'bg-primary text-primary-foreground'
+                    )}
+                    style={
+                      member.theme_color ? { backgroundColor: member.theme_color } : undefined
+                    }
                   >
                     {memberInitials}
                   </div>

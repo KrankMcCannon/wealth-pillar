@@ -116,7 +116,7 @@ export function ModalWrapper({
               <Loader2 className="h-10 w-10 animate-spin text-primary/60" />
             </div>
           ) : (
-            <div className="flex-1 overflow-y-auto px-6 py-2">{children}</div>
+            <div className="flex min-h-0 flex-1 flex-col overflow-hidden px-6 py-2">{children}</div>
           )}
         </DialogContent>
       </Dialog>
@@ -164,9 +164,7 @@ export function ModalWrapper({
             <Loader2 className="h-10 w-10 animate-spin text-primary/60" />
           </div>
         ) : (
-          <div className={cn(modalWrapperStyles.drawerContentBody, 'h-full flex flex-col')}>
-            {children}
-          </div>
+          <div className={cn(modalWrapperStyles.drawerContentBody, 'min-h-0')}>{children}</div>
         )}
       </DrawerContent>
     </Drawer>
@@ -185,7 +183,9 @@ export function ModalBody({
   children,
   className,
 }: Readonly<{ children: React.ReactNode; className?: string }>) {
-  return <div className={cn('flex-1 py-2 space-y-4', className)}>{children}</div>;
+  return (
+    <div className={cn('min-h-0 flex-1 overflow-y-auto py-2 space-y-4', className)}>{children}</div>
+  );
 }
 
 /**
@@ -201,7 +201,7 @@ export function ModalFooter({
   return (
     <div
       className={cn(
-        'mt-auto py-4 border-t border-border pt-4 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end sm:gap-2 pb-[env(safe-area-inset-bottom)] sm:pb-4',
+        'mt-auto shrink-0 border-t border-border bg-card/95 py-4 pt-4 backdrop-blur-sm supports-backdrop-filter:bg-card/90 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end sm:gap-2 pb-[max(env(safe-area-inset-bottom),0.75rem)] sm:pb-4',
         className
       )}
     >

@@ -10,15 +10,27 @@ import TabNavigation from '@/components/shared/tab-navigation';
 import { transactionStyles } from '@/styles/system';
 import type { Investment } from '@/components/investments/personal-investment-tab';
 
+function InvestmentsTabPanelSkeleton() {
+  const t = useTranslations('InvestmentsContent');
+  return (
+    <div
+      role="status"
+      aria-busy="true"
+      aria-label={t('tabLoading')}
+      className="min-h-[220px] w-full animate-pulse rounded-xl bg-muted"
+    />
+  );
+}
+
 const PersonalInvestmentTab = dynamic(
   () =>
     import('@/components/investments/personal-investment-tab').then((m) => m.PersonalInvestmentTab),
-  { loading: () => <div className="min-h-[200px] animate-pulse rounded-xl bg-muted" /> }
+  { loading: () => <InvestmentsTabPanelSkeleton /> }
 );
 
 const SandboxForecastTab = dynamic(
   () => import('@/components/investments/sandbox-forecast-tab').then((m) => m.SandboxForecastTab),
-  { loading: () => <div className="min-h-[200px] animate-pulse rounded-xl bg-muted" /> }
+  { loading: () => <InvestmentsTabPanelSkeleton /> }
 );
 
 interface InvestmentsContentProps {
@@ -66,7 +78,7 @@ export default function InvestmentsContent({
 
         <UserSelector currentUser={currentUser} users={groupUsers} />
 
-        <main className="px-3 pb-24 md:pb-8">
+        <main className="px-3 pb-24 md:pb-8" aria-label={t('mainLandmark')}>
           {/* Mobile-first flow: only mandatory portfolio view */}
           <div className="md:hidden">
             <PersonalInvestmentTab

@@ -33,7 +33,7 @@ export default async function InvestmentsPage(props: {
       currentIndex: indexSymbol,
     }))
     .catch((err) => {
-      const message = err instanceof Error ? err.message : 'Errore nel caricamento del portafoglio';
+      const message = err instanceof Error ? err.message : t('loadError');
       throw new Error(message, { cause: err });
     });
 

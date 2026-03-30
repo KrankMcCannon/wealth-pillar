@@ -15,23 +15,29 @@ import {
 import { cn } from '@/lib';
 import { useModalState } from '@/lib/navigation/url-state';
 import { useMediaQuery } from '@/hooks/use-media-query';
+import { useMounted } from '@/hooks/use-mounted';
 import {
   Button,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui';
 
-type MenuItem = {
+const FAB_INTRO_STORAGE_KEY = 'wp-fab-menu-intro-v1';
+
+export type ActionMenuItem = {
   label: string;
+  /** Testo tooltip / title nativo (opzionale per voci extra da header). */
+  hint?: string | undefined;
   icon: React.ElementType;
   onClick: () => void;
 };
 
 interface ActionMenuProps {
-  extraMenuItems?: MenuItem[];
+  extraMenuItems?: ActionMenuItem[];
   triggerClassName?: string;
   triggerIconClassName?: string;
   menuClassName?: string;
@@ -45,11 +51,16 @@ interface ActionMenuProps {
   groupedSecondary?: boolean;
 }
 
-function renderMenuItem(item: MenuItem) {
+function renderMenuItem(item: ActionMenuItem) {
   return (
-    <DropdownMenuItem key={item.label} onSelect={() => item.onClick()}>
-      <item.icon className="mr-2 h-4 w-4 shrink-0" />
-      {item.label}
+    <DropdownMenuItem
+      key={item.label}
+      title={item.hint}
+      onSelect={() => item.onClick()}
+      className="min-h-11"
+    >
+      <item.icon className="mr-2 h-4 w-4 shrink-0" aria-hidden />
+      <span className="min-w-0 flex-1 text-left">{item.label}</span>
     </DropdownMenuItem>
   );
 }
@@ -68,30 +79,122 @@ export function ActionMenu({
   const { openModal } = useModalState();
   const isMobile = useMediaQuery('(max-width: 767px)');
   const [secondaryOpen, setSecondaryOpen] = useState(false);
+  const mounted = useMounted();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [fabIntroDismissed, setFabIntroDismissed] = useState(false);
+  const [showFabIntro, setShowFabIntro] = useState(false);
+  const fabIntroEligible =
+    mounted &&
+    !fabIntroDismissed &&
+    (() => {
+      try {
+        return localStorage.getItem(FAB_INTRO_STORAGE_KEY) !== '1';
+      } catch {
+        return false;
+      }
+    })();
+
+  const handleOpenChange = (open: boolean) => {
+    setMenuOpen(open);
+    if (!open) {
+      setSecondaryOpen(false);
+      if (showFabIntro) {
+        try {
+          localStorage.setItem(FAB_INTRO_STORAGE_KEY, '1');
+        } catch {
+          /* private mode / quota */
+        }
+        setFabIntroDismissed(true);
+        setShowFabIntro(false);
+      }
+    } else if (groupedSecondary && fabIntroEligible) {
+      setShowFabIntro(true);
+    }
+  };
 
   /** Stesso ordine di priorità del menu raggruppato (allineato header ↔ bottom nav). */
-  const actionItems: MenuItem[] = [
+  const actionItems: ActionMenuItem[] = [
     ...extraMenuItems,
-    { label: t('newTransaction'), icon: CreditCard, onClick: () => openModal('transaction') },
-    { label: t('newBudget'), icon: PieChart, onClick: () => openModal('budget') },
-    { label: t('newAccount'), icon: Wallet, onClick: () => openModal('account') },
-    { label: t('newCategory'), icon: Tag, onClick: () => openModal('category') },
-    { label: t('newInvestment'), icon: TrendingUp, onClick: () => openModal('investment') },
-    { label: t('recurring'), icon: RefreshCw, onClick: () => openModal('recurring') },
+    {
+      label: t('newTransaction'),
+      hint: t('hints.newTransaction'),
+      icon: CreditCard,
+      onClick: () => openModal('transaction'),
+    },
+    {
+      label: t('newBudget'),
+      hint: t('hints.newBudget'),
+      icon: PieChart,
+      onClick: () => openModal('budget'),
+    },
+    {
+      label: t('newAccount'),
+      hint: t('hints.newAccount'),
+      icon: Wallet,
+      onClick: () => openModal('account'),
+    },
+    {
+      label: t('newCategory'),
+      hint: t('hints.newCategory'),
+      icon: Tag,
+      onClick: () => openModal('category'),
+    },
+    {
+      label: t('newInvestment'),
+      hint: t('hints.newInvestment'),
+      icon: TrendingUp,
+      onClick: () => openModal('investment'),
+    },
+    {
+      label: t('recurring'),
+      hint: t('hints.recurring'),
+      icon: RefreshCw,
+      onClick: () => openModal('recurring'),
+    },
   ];
 
   const displayItems = reverseMobileOrder && isMobile ? [...actionItems].reverse() : actionItems;
 
-  const primaryWhenGrouped: MenuItem[] = [
-    { label: t('newTransaction'), icon: CreditCard, onClick: () => openModal('transaction') },
-    { label: t('newBudget'), icon: PieChart, onClick: () => openModal('budget') },
-    { label: t('newAccount'), icon: Wallet, onClick: () => openModal('account') },
+  const primaryWhenGrouped: ActionMenuItem[] = [
+    {
+      label: t('newTransaction'),
+      hint: t('hints.newTransaction'),
+      icon: CreditCard,
+      onClick: () => openModal('transaction'),
+    },
+    {
+      label: t('newBudget'),
+      hint: t('hints.newBudget'),
+      icon: PieChart,
+      onClick: () => openModal('budget'),
+    },
+    {
+      label: t('newAccount'),
+      hint: t('hints.newAccount'),
+      icon: Wallet,
+      onClick: () => openModal('account'),
+    },
   ];
 
-  const secondaryWhenGrouped: MenuItem[] = [
-    { label: t('newCategory'), icon: Tag, onClick: () => openModal('category') },
-    { label: t('newInvestment'), icon: TrendingUp, onClick: () => openModal('investment') },
-    { label: t('recurring'), icon: RefreshCw, onClick: () => openModal('recurring') },
+  const secondaryWhenGrouped: ActionMenuItem[] = [
+    {
+      label: t('newCategory'),
+      hint: t('hints.newCategory'),
+      icon: Tag,
+      onClick: () => openModal('category'),
+    },
+    {
+      label: t('newInvestment'),
+      hint: t('hints.newInvestment'),
+      icon: TrendingUp,
+      onClick: () => openModal('investment'),
+    },
+    {
+      label: t('recurring'),
+      hint: t('hints.recurring'),
+      icon: RefreshCw,
+      onClick: () => openModal('recurring'),
+    },
   ];
 
   const contentPositionProps = groupedSecondary
@@ -99,11 +202,7 @@ export function ActionMenu({
     : { align, collisionPadding: 16, sideOffset: 4 };
 
   return (
-    <DropdownMenu
-      onOpenChange={(open) => {
-        if (!open) setSecondaryOpen(false);
-      }}
-    >
+    <DropdownMenu open={menuOpen} onOpenChange={handleOpenChange}>
       <DropdownMenuTrigger asChild>
         <Button
           id="global-action-menu-trigger"
@@ -118,13 +217,22 @@ export function ActionMenu({
       <DropdownMenuContent className={menuClassName} {...contentPositionProps}>
         {groupedSecondary ? (
           <>
+            {showFabIntro ? (
+              <>
+                <DropdownMenuLabel className="max-w-[min(100vw-2rem,20rem)] text-xs font-normal leading-snug text-muted-foreground">
+                  {t('fabIntro')}
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+              </>
+            ) : null}
             {extraMenuItems.map(renderMenuItem)}
             {extraMenuItems.length > 0 ? <DropdownMenuSeparator /> : null}
             {primaryWhenGrouped.map(renderMenuItem)}
             <DropdownMenuSeparator />
             <DropdownMenuItem
               aria-expanded={secondaryOpen}
-              className="text-muted-foreground focus:text-foreground"
+              title={t('hints.expandSecondary')}
+              className="min-h-11 text-muted-foreground focus:text-foreground"
               onSelect={(e) => {
                 e.preventDefault();
                 setSecondaryOpen((v) => !v);

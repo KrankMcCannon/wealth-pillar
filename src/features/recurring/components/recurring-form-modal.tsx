@@ -310,15 +310,15 @@ function RecurringFormModal({ isOpen, onClose, editId }: Readonly<RecurringFormM
     if (result.error) {
       updateRecurringSeries(editId, originalSeries);
       setError('root', { message: result.error });
-      toast({ title: 'Errore', description: result.error, variant: 'destructive' });
+      toast({ title: t('toast.errorTitle'), description: result.error, variant: 'destructive' });
       return;
     }
 
     if (result.data) {
       updateRecurringSeries(editId, result.data);
       toast({
-        title: 'Serie aggiornata',
-        description: 'Modifiche salvate correttamente.',
+        title: t('toast.updatedTitle'),
+        description: t('toast.updatedDescription'),
         variant: 'success',
       });
     }
@@ -344,7 +344,7 @@ function RecurringFormModal({ isOpen, onClose, editId }: Readonly<RecurringFormM
 
     if (result.error) {
       removeRecurringSeries(tempId);
-      toast({ title: 'Errore', description: result.error, variant: 'destructive' });
+      toast({ title: t('toast.errorTitle'), description: result.error, variant: 'destructive' });
       return;
     }
 
@@ -352,8 +352,8 @@ function RecurringFormModal({ isOpen, onClose, editId }: Readonly<RecurringFormM
     if (result.data) {
       addRecurringSeries(result.data);
       toast({
-        title: 'Serie creata',
-        description: 'Serie ricorrente aggiunta correttamente.',
+        title: t('toast.createdTitle'),
+        description: t('toast.createdDescription'),
         variant: 'success',
       });
     }
@@ -392,7 +392,7 @@ function RecurringFormModal({ isOpen, onClose, editId }: Readonly<RecurringFormM
     } catch (error) {
       const message = error instanceof Error ? error.message : t('errors.unknown');
       setError('root', { message });
-      toast({ title: 'Errore', description: message, variant: 'destructive' });
+      toast({ title: t('toast.errorTitle'), description: message, variant: 'destructive' });
     }
   };
 
@@ -407,17 +407,18 @@ function RecurringFormModal({ isOpen, onClose, editId }: Readonly<RecurringFormM
     >
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className={cn(recurringStyles.formModal.form, 'flex flex-col h-full')}
+        className={cn(recurringStyles.formModal.form, 'flex min-h-0 flex-1 flex-col')}
       >
         <ModalBody className={recurringStyles.formModal.content}>
           {/* Submit Error Display */}
           {errors.root && (
-            <div className={recurringStyles.formModal.error}>{errors.root.message}</div>
+            <div className={recurringStyles.formModal.error}>
+              <p className="text-sm font-medium text-destructive">{errors.root.message}</p>
+            </div>
           )}
 
-          <ModalSection className={recurringStyles.formModal.section}>
+          <ModalSection title={t('sections.basics')} className={recurringStyles.formModal.section}>
             <div className={recurringStyles.formModal.grid}>
-              {/* Type */}
               <FormField label={t('fields.type.label')} required error={errors.type?.message}>
                 <FormSelect
                   value={watchedType}
@@ -429,7 +430,6 @@ function RecurringFormModal({ isOpen, onClose, editId }: Readonly<RecurringFormM
                 />
               </FormField>
 
-              {/* Frequency */}
               <FormField
                 label={t('fields.frequency.label')}
                 required
@@ -441,6 +441,7 @@ function RecurringFormModal({ isOpen, onClose, editId }: Readonly<RecurringFormM
                     setValue('frequency', value as TransactionFrequencyType)
                   }
                   options={[
+                    { value: 'once', label: t('frequencyOptions.once') },
                     { value: 'weekly', label: t('frequencyOptions.weekly') },
                     { value: 'biweekly', label: t('frequencyOptions.biweekly') },
                     { value: 'monthly', label: t('frequencyOptions.monthly') },
@@ -452,84 +453,6 @@ function RecurringFormModal({ isOpen, onClose, editId }: Readonly<RecurringFormM
           </ModalSection>
 
           <ModalSection className={recurringStyles.formModal.section}>
-            {/* Users - Multi-select (full width) */}
-            <FormField label={t('fields.users.label')} required error={errors.user_ids?.message}>
-              <MultiUserSelect
-                value={watchedUserIds}
-                onChange={(value) => setValue('user_ids', value)}
-                users={groupUsers}
-                currentUserId={currentUser.id}
-              />
-            </FormField>
-          </ModalSection>
-
-          <ModalSection className={recurringStyles.formModal.section}>
-            <div className={recurringStyles.formModal.grid}>
-              {/* Account */}
-              <AccountField
-                value={watchedAccountId}
-                onChange={(value) => setValue('account_id', value)}
-                error={errors.account_id?.message}
-                accounts={filteredAccounts}
-                label={t('fields.account.label')}
-                placeholder={t('fields.account.placeholder')}
-                required
-              />
-
-              {/* Category */}
-              <CategoryField
-                value={watchedCategory}
-                onChange={(value) => setValue('category', value)}
-                error={errors.category?.message}
-                categories={categories}
-                label={t('fields.category.label')}
-                placeholder={t('fields.category.placeholder')}
-                required
-              />
-
-              {/* Amount */}
-              <AmountField
-                value={watchedAmount}
-                onChange={(value) => setValue('amount', value)}
-                error={errors.amount?.message}
-                label={t('fields.amount.label')}
-                placeholder={t('fields.amount.placeholder')}
-                required
-              />
-
-              {/* Due Day */}
-              <FormField label={t('fields.dueDay.label')} required error={errors.due_day?.message}>
-                <Input
-                  type="number"
-                  min={1}
-                  max={31}
-                  {...register('due_day')}
-                  placeholder={t('fields.dueDay.placeholder')}
-                  disabled={isSubmitting}
-                />
-              </FormField>
-
-              {/* Start Date */}
-              <DateField
-                label={t('fields.startDate.label')}
-                value={watchedStartDate}
-                onChange={(value) => setValue('start_date', value)}
-                error={errors.start_date?.message}
-                required
-              />
-
-              {/* End Date (optional) */}
-              <DateField
-                label={t('fields.endDate.label')}
-                value={watchedEndDate || ''}
-                onChange={(value) => setValue('end_date', value)}
-                error={errors.end_date?.message}
-              />
-            </div>
-          </ModalSection>
-
-          <ModalSection className={recurringStyles.formModal.section}>
-            {/* Description */}
             <FormField
               label={t('fields.description.label')}
               required
@@ -541,6 +464,91 @@ function RecurringFormModal({ isOpen, onClose, editId }: Readonly<RecurringFormM
                 disabled={isSubmitting}
               />
             </FormField>
+          </ModalSection>
+
+          <ModalSection
+            title={t('sections.participants')}
+            className={recurringStyles.formModal.section}
+          >
+            <FormField label={t('fields.users.label')} required error={errors.user_ids?.message}>
+              <MultiUserSelect
+                value={watchedUserIds}
+                onChange={(value) => setValue('user_ids', value)}
+                users={groupUsers}
+                currentUserId={currentUser.id}
+              />
+            </FormField>
+          </ModalSection>
+
+          <ModalSection title={t('sections.amounts')} className={recurringStyles.formModal.section}>
+            <div className={recurringStyles.formModal.grid}>
+              <AccountField
+                value={watchedAccountId}
+                onChange={(value) => setValue('account_id', value)}
+                error={errors.account_id?.message}
+                accounts={filteredAccounts}
+                label={t('fields.account.label')}
+                placeholder={t('fields.account.placeholder')}
+                required
+              />
+
+              <CategoryField
+                value={watchedCategory}
+                onChange={(value) => setValue('category', value)}
+                error={errors.category?.message}
+                categories={categories}
+                label={t('fields.category.label')}
+                placeholder={t('fields.category.placeholder')}
+                required
+              />
+
+              <AmountField
+                value={watchedAmount}
+                onChange={(value) => setValue('amount', value)}
+                error={errors.amount?.message}
+                label={t('fields.amount.label')}
+                placeholder={t('fields.amount.placeholder')}
+                required
+              />
+
+              <FormField
+                label={t('fields.dueDay.label')}
+                required
+                error={errors.due_day?.message}
+                helperText={t('fields.dueDay.helper')}
+              >
+                <Input
+                  type="number"
+                  min={1}
+                  max={31}
+                  {...register('due_day')}
+                  placeholder={t('fields.dueDay.placeholder')}
+                  disabled={isSubmitting}
+                />
+              </FormField>
+            </div>
+          </ModalSection>
+
+          <ModalSection
+            title={t('sections.schedule')}
+            className={recurringStyles.formModal.section}
+          >
+            <div className={recurringStyles.formModal.grid}>
+              <DateField
+                label={t('fields.startDate.label')}
+                value={watchedStartDate}
+                onChange={(value) => setValue('start_date', value)}
+                error={errors.start_date?.message}
+                required
+              />
+
+              <DateField
+                label={t('fields.endDate.label')}
+                value={watchedEndDate || ''}
+                onChange={(value) => setValue('end_date', value)}
+                error={errors.end_date?.message}
+              />
+            </div>
           </ModalSection>
         </ModalBody>
 

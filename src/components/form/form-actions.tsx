@@ -93,6 +93,7 @@ export function FormActions({
         variant={submitVariant}
         onClick={submitType === 'button' ? onSubmit : undefined}
         disabled={isDisabled}
+        aria-busy={isSubmitting}
         className={cn(formStyles.actions.buttonBase)}
       >
         {isSubmitting && <Loader2 className={formStyles.actions.loadingIcon} />}

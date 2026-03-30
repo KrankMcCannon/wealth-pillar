@@ -483,10 +483,13 @@
     }
   },
   "InvestmentsPage": {
-    "loading": "Loading investments..."
+    "loading": "Loading investments...",
+    "loadError": "Could not load portfolio"
   },
   "InvestmentsContent": {
     "headerTitle": "Investments",
+    "mainLandmark": "Investments workspace",
+    "tabLoading": "Loading section…",
     "tabs": {
       "personal": "Personal Investments",
       "sandbox": "Forecast Sandbox"
@@ -512,16 +515,19 @@
       "title": "Historical Trend",
       "description": "Actual portfolio value over time",
       "valueSeriesLabel": "Value",
-      "fallback": "Not enough historical data"
+      "fallback": "Not enough historical data",
+      "dataSummary": "Historical chart: {count, plural, one {# period} other {# periods}}, from {from} to {to}. Latest value {value}."
     },
     "BenchmarkChart": {
       "title": "Benchmark",
       "description": "Compare with {index}",
-      "fallback": "Data not available"
+      "fallback": "Data not available",
+      "dataSummary": "Benchmark chart: {count, plural, one {# trading day} other {# trading days}}, from {from} to {to}. Latest close {value}."
     },
     "SandboxTab": {
       "title": "Forecast Sandbox",
       "description": "Simulate investment growth over time by changing the parameters below.",
+      "chartDataSummary": "Forecast from {startYear} to {endYear}. Projected final value {value}.",
       "fields": {
         "initialAmount": "Initial Amount (€)",
         "annualReturn": "Annual Return (%)",
@@ -542,7 +548,9 @@
       "allAssetTypes": "All",
       "searchHint": "Search a US ticker",
       "minCharsHint": "Enter at least 3 characters",
-      "noResults": "No ticker found"
+      "noResults": "No ticker found",
+      "searchInputLabel": "Search tickers",
+      "searchLoading": "Searching tickers"
     },
     "AddModal": {
       "validation": {
@@ -553,15 +561,27 @@
         "sharesInvalid": "Invalid shares",
         "dateRequired": "Date is required"
       },
-      "title": "Add Investment",
-      "description": "Enter the details of the new investment",
+      "title": {
+        "create": "Add investment",
+        "edit": "Edit investment"
+      },
+      "description": {
+        "create": "Enter the details of the new investment",
+        "edit": "Update this position's details"
+      },
+      "sections": {
+        "identity": "Security",
+        "amounts": "Amounts and shares",
+        "when": "Date and currency"
+      },
       "fields": {
         "name": "Name",
         "symbol": "Symbol",
-        "investedAmount": "Invested Amount",
-        "taxesPaid": "Taxes Paid",
-        "sharesAcquired": "Shares Acquired",
-        "purchaseDate": "Purchase Date",
+        "symbolHelper": "Exchange ticker (e.g. AAPL). Used for market prices.",
+        "investedAmount": "Invested amount",
+        "taxesPaid": "Taxes paid",
+        "sharesAcquired": "Shares acquired",
+        "purchaseDate": "Purchase date",
         "currency": "Currency"
       },
       "placeholders": {
@@ -572,7 +592,18 @@
         "shares": "10"
       },
       "saveButton": "Save",
-      "cancelButton": "Cancel"
+      "cancelButton": "Cancel",
+      "retryLoad": "Try again",
+      "toast": {
+        "errorTitle": "Error",
+        "createdTitle": "Investment added",
+        "createdDescription": "Saved. Your home overview refreshes automatically.",
+        "updatedTitle": "Investment updated",
+        "updatedDescription": "Changes saved successfully.",
+        "saveError": "Something went wrong while saving",
+        "loadError": "Could not load investment",
+        "notFound": "Investment not found"
+      }
     }
   },
   "TransactionsContent": {
@@ -924,6 +955,7 @@
         "income": "Income"
       },
       "frequencyOptions": {
+        "once": "One-time",
         "weekly": "Weekly",
         "biweekly": "Biweekly",
         "monthly": "Monthly",
@@ -953,7 +985,8 @@
         },
         "dueDay": {
           "label": "Billing day",
-          "placeholder": "1-31"
+          "placeholder": "1-31",
+          "helper": "Day of the month when this entry is recorded (1 = first day, 31 = last possible day)."
         },
         "startDate": {
           "label": "Start date"
@@ -970,6 +1003,19 @@
         "saveChanges": "Save Changes",
         "createSeries": "Create Series",
         "cancel": "Cancel"
+      },
+      "toast": {
+        "errorTitle": "Error",
+        "updatedTitle": "Series updated",
+        "updatedDescription": "Changes saved successfully.",
+        "createdTitle": "Series created",
+        "createdDescription": "Recurring series added successfully."
+      },
+      "sections": {
+        "basics": "Type and frequency",
+        "participants": "Who it applies to",
+        "amounts": "Amount and account",
+        "schedule": "Dates"
       }
     }
   },
@@ -1000,15 +1046,26 @@
       "recurring": "Recurring",
       "newAccount": "New Account",
       "newInvestment": "New Investment",
-      "moreActions": "More actions",
-      "showLessActions": "Show less"
+      "moreActions": "Category, investment, recurring…",
+      "showLessActions": "Hide extra actions",
+      "fabIntro": "Your most common actions are below. Use the highlighted row to open category, investment, and recurring options.",
+      "hints": {
+        "newTransaction": "Record a movement on an account",
+        "newBudget": "Set a spending limit across categories",
+        "newAccount": "Add a bank, cash, or savings account",
+        "newCategory": "Create a label to classify transactions",
+        "newInvestment": "Log a stock or fund purchase",
+        "recurring": "Automate a payment that repeats",
+        "expandSecondary": "Show or hide more create actions"
+      }
     }
   },
   "HomeContent": {
     "closePeriodButton": "Close period",
+    "closePeriodSummary": "Why close the period?",
     "closePeriodHint": "When the month or cycle ends, close the period: your summary is kept and you start with updated dates.",
     "checkFinancesHeading": "Quick overview",
-    "checkFinancesLead": "Balances, budgets, and upcoming recurring payments in one place so you can see at a glance if you're on track.",
+    "checkFinancesLead": "Balances, budgets, and upcoming recurring items here; open Transactions, Investments, or Reports for detail.",
     "pageTitle": "Quick overview",
     "recurringAsideLabel": "Upcoming recurring payments",
     "skipToContent": "Skip to balances, budgets, and recurring items"
@@ -1116,6 +1173,15 @@
         "create": "Create",
         "update": "Update",
         "cancel": "Cancel"
+      },
+      "toast": {
+        "errorTitle": "Error",
+        "updatedTitle": "Account updated",
+        "updatedDescription": "Changes saved successfully.",
+        "createdTitle": "Account created",
+        "createdDescription": "Account added successfully.",
+        "revertedHint": "What you see has been restored to the previous state.",
+        "optimisticCreateFailedHint": "The draft entry was removed from the list."
       },
       "errors": {
         "notFound": "Account not found",
@@ -1329,6 +1395,16 @@
         "create": "Create Budget",
         "cancel": "Cancel"
       },
+      "toast": {
+        "errorTitle": "Error",
+        "updatedTitle": "Budget updated",
+        "updatedDescription": "Changes saved successfully.",
+        "createdTitle": "Budget created",
+        "createdDescription": "Budget added successfully.",
+        "saveErrorDescription": "Something went wrong while saving",
+        "revertedHint": "What you see has been restored to the previous state.",
+        "optimisticCreateFailedHint": "The draft entry was removed from the list."
+      },
       "errors": {
         "notFound": "Budget not found",
         "unknown": "Unknown error"
@@ -1433,7 +1509,8 @@
       "fields": {
         "label": {
           "label": "Name",
-          "placeholder": "e.g. Groceries"
+          "placeholder": "e.g. Groceries",
+          "helper": "An internal key is generated from the name automatically; it links transactions in the system."
         },
         "icon": {
           "label": "Icon"
@@ -1447,6 +1524,15 @@
         "save": "Save",
         "create": "Create Category",
         "cancel": "Cancel"
+      },
+      "toast": {
+        "errorTitle": "Error",
+        "updatedTitle": "Category updated",
+        "updatedDescription": "Changes saved successfully.",
+        "createdTitle": "Category created",
+        "createdDescription": "Category added successfully.",
+        "revertedHint": "What you see has been restored to the previous state.",
+        "optimisticCreateFailedHint": "The draft entry was removed from the list."
       },
       "errors": {
         "notFound": "Category not found",

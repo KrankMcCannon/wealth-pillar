@@ -1,3 +1,5 @@
+import { devWarn } from '@/lib/utils/dev-log';
+
 /**
  * Runs a promise with a timeout. If the promise does not resolve within timeoutMs,
  * returns fallback. On rejection, returns fallback. Optional label is used for logging.
@@ -16,7 +18,7 @@ export async function withTimeout<T>(
       new Promise<T>((resolve) => {
         timeoutId = setTimeout(() => {
           if (label) {
-            console.warn(`[withTimeout] Timeout after ${timeoutMs}ms: ${label}`);
+            devWarn(`[withTimeout] Timeout after ${timeoutMs}ms: ${label}`);
           }
           resolve(fallback);
         }, timeoutMs);

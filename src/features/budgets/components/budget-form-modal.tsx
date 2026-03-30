@@ -213,15 +213,19 @@ function BudgetFormModal({ isOpen, onClose, editId }: Readonly<BudgetFormModalPr
 
     if (result.error) {
       updateBudget(id, originalBudget);
-      toast({ title: 'Errore', description: result.error, variant: 'destructive' });
+      toast({
+        title: t('toast.errorTitle'),
+        description: `${result.error}\n\n${t('toast.revertedHint')}`,
+        variant: 'destructive',
+      });
       throw new Error(result.error);
     }
 
     if (result.data) {
       updateBudget(id, result.data);
       toast({
-        title: 'Budget aggiornato',
-        description: 'Modifiche salvate correttamente.',
+        title: t('toast.updatedTitle'),
+        description: t('toast.updatedDescription'),
         variant: 'success',
       });
     }
@@ -261,7 +265,11 @@ function BudgetFormModal({ isOpen, onClose, editId }: Readonly<BudgetFormModalPr
 
     if (result.error) {
       removeBudget(tempId);
-      toast({ title: 'Errore', description: result.error, variant: 'destructive' });
+      toast({
+        title: t('toast.errorTitle'),
+        description: `${result.error}\n\n${t('toast.optimisticCreateFailedHint')}`,
+        variant: 'destructive',
+      });
       return;
     }
 
@@ -269,8 +277,8 @@ function BudgetFormModal({ isOpen, onClose, editId }: Readonly<BudgetFormModalPr
     if (result.data) {
       addBudget(result.data);
       toast({
-        title: 'Budget creato',
-        description: 'Budget aggiunto correttamente.',
+        title: t('toast.createdTitle'),
+        description: t('toast.createdDescription'),
         variant: 'success',
       });
     }
@@ -289,7 +297,6 @@ function BudgetFormModal({ isOpen, onClose, editId }: Readonly<BudgetFormModalPr
     } catch (error) {
       const message = error instanceof Error ? error.message : t('errors.unknown');
       setError('root', { message });
-      toast({ title: 'Errore', description: message, variant: 'destructive' });
     }
   };
 
@@ -304,11 +311,15 @@ function BudgetFormModal({ isOpen, onClose, editId }: Readonly<BudgetFormModalPr
     >
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className={cn(budgetStyles.formModal.form, 'flex flex-col h-full')}
+        className={cn(budgetStyles.formModal.form, 'flex min-h-0 flex-1 flex-col')}
       >
         <ModalBody className={budgetStyles.formModal.content}>
           {/* Submit Error Display */}
-          {errors.root && <div className={budgetStyles.formModal.error}>{errors.root.message}</div>}
+          {errors.root && (
+            <div className={budgetStyles.formModal.error}>
+              <p className="text-sm font-medium text-destructive">{errors.root.message}</p>
+            </div>
+          )}
 
           <ModalSection className={budgetStyles.formModal.section}>
             <div className={budgetStyles.formModal.grid}>

@@ -1,5 +1,6 @@
 'use client';
 
+import { useId } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import {
   AreaChart,
@@ -17,6 +18,7 @@ import {
   rechartsTooltipContentStyle,
   rechartsTooltipItemStyle,
 } from './investment-chart-theme';
+import { formatHistoryAxisDate, formatLocaleMediumDate } from './chart-format-utils';
 
 interface InvestmentHistoryChartProps {
   data: { date: string; value: number }[];
@@ -25,19 +27,46 @@ interface InvestmentHistoryChartProps {
 export function InvestmentHistoryChart({ data }: Readonly<InvestmentHistoryChartProps>) {
   const t = useTranslations('Investments.HistoryChart');
   const locale = useLocale();
+  const titleId = useId();
+  const summaryId = useId();
   const hasData = data && data.length > 0;
+  const firstPoint = hasData ? data[0] : undefined;
+  const lastPoint = hasData ? data[data.length - 1] : undefined;
+  const srSummary =
+    hasData && firstPoint && lastPoint
+      ? t('dataSummary', {
+          count: data.length,
+          from: formatLocaleMediumDate(firstPoint.date, locale),
+          to: formatLocaleMediumDate(lastPoint.date, locale),
+          value: new Intl.NumberFormat(locale, { style: 'currency', currency: 'EUR' }).format(
+            lastPoint.value
+          ),
+        })
+      : null;
 
   return (
-    <Card className={investmentsStyles.card.root}>
+    <Card
+      role="region"
+      aria-labelledby={titleId}
+      aria-describedby={srSummary ? summaryId : undefined}
+      className={investmentsStyles.card.root}
+    >
       <CardHeader className={investmentsStyles.card.header}>
-        <CardTitle className={investmentsStyles.card.title}>{t('title')}</CardTitle>
+        <CardTitle id={titleId} className={investmentsStyles.card.title}>
+          {t('title')}
+        </CardTitle>
         <CardDescription className={investmentsStyles.card.description}>
           {t('description')}
         </CardDescription>
       </CardHeader>
       <CardContent className={investmentsStyles.card.content}>
+        {srSummary ? (
+          <p id={summaryId} className="sr-only">
+            {srSummary}
+          </p>
+        ) : null}
         {hasData ? (
-          <div className={investmentsStyles.charts.container}>
+          <div className={investmentsStyles.charts.container} aria-hidden>
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                 <defs>
@@ -65,7 +94,7 @@ export function InvestmentHistoryChart({ data }: Readonly<InvestmentHistoryChart
                   fontSize={12}
                   tickLine={false}
                   axisLine={false}
-                  tickFormatter={(val) => val.split('-').slice(1).join('/')}
+                  tickFormatter={(val) => formatHistoryAxisDate(val)}
                   minTickGap={30}
                   dy={10}
                 />
@@ -74,12 +103,14 @@ export function InvestmentHistoryChart({ data }: Readonly<InvestmentHistoryChart
                   fontSize={12}
                   tickLine={false}
                   axisLine={false}
-                  tickFormatter={(value) =>
-                    `${new Intl.NumberFormat(locale, {
+                  tickFormatter={(value) => {
+                    const n = Number(value);
+                    if (!Number.isFinite(n)) return '';
+                    return `${new Intl.NumberFormat(locale, {
                       notation: 'compact',
                       compactDisplay: 'short',
-                    }).format(value)}€`
-                  }
+                    }).format(n)}€`;
+                  }}
                   width={60}
                 />
                 <Tooltip

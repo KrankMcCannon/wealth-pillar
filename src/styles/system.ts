@@ -650,7 +650,7 @@ export const budgetStyles = {
     emptyTitle: 'font-semibold text-primary mb-2',
     emptyDescription: 'text-sm text-primary/70 mb-4 max-w-sm mx-auto',
     emptyButton:
-      'inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-xl font-medium text-sm hover:shadow-lg hover:shadow-primary/25 transition-all duration-300 hover:scale-105',
+      'inline-flex min-h-11 items-center justify-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-xl font-medium text-sm hover:shadow-lg hover:shadow-primary/25 transition-all duration-300 hover:scale-105 motion-reduce:transition-none motion-reduce:hover:scale-100',
     groupCard:
       'overflow-hidden rounded-xl border border-border/45 bg-muted/10 shadow-sm dark:border-border/40 dark:bg-muted/15',
     groupHeader: 'border-b border-border/50 bg-card/95 px-4 py-4 dark:border-border/40',
@@ -860,7 +860,7 @@ export function getProgressBarFillStyles(status: BudgetStatus, percentage: numbe
 }
 
 export function getBudgetCategoryColorStyle(color?: string) {
-  return { backgroundColor: color || '#CBD5F5' };
+  return { backgroundColor: color || 'var(--color-muted)' };
 }
 
 export function getBudgetSectionProgressStyles(percentage: number): {
@@ -902,11 +902,11 @@ export function getBudgetSectionProgressBarStyle(percentage: number) {
 }
 
 export function getChartGradientStartStyle() {
-  return { stopColor: '#7578EC', stopOpacity: 0.08 };
+  return { stopColor: 'var(--color-primary)', stopOpacity: 0.08 };
 }
 
 export function getChartGradientEndStyle() {
-  return { stopColor: '#7578EC', stopOpacity: 0 };
+  return { stopColor: 'var(--color-primary)', stopOpacity: 0 };
 }
 
 export function getChartDayRowStyle() {

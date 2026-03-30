@@ -1,5 +1,6 @@
 import type { Transaction } from '@/lib/types';
 import { toDateTime } from '@/lib/utils/date-utils';
+import { devWarn } from '@/lib/utils/dev-log';
 
 /**
  * Insert transaction in sorted order (by date descending - most recent first)
@@ -29,7 +30,7 @@ export function insertTransactionSorted(
   const newDate = toDateTime(newTransaction.date);
   if (!newDate) {
     // Invalid date - append to end as fallback
-    console.warn('Invalid date for transaction, appending to end:', newTransaction);
+    devWarn('Invalid date for transaction, appending to end:', newTransaction);
     return [...transactions, newTransaction];
   }
 

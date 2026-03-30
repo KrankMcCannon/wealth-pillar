@@ -341,7 +341,7 @@ export function useBudgetsContent({
       .map(([date, txs]) => ({
         date,
         formattedDate: formatDateSmart(date, locale),
-        transactions: txs.toSorted((a, b) => {
+        transactions: [...txs].sort((a, b) => {
           const dtA = toDateTime(a.date);
           const dtB = toDateTime(b.date);
           if (!dtA || !dtB) return 0;

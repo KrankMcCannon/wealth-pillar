@@ -1,5 +1,6 @@
 'use client';
 
+import { useId } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import {
   LineChart,
@@ -18,6 +19,15 @@ import {
   rechartsTooltipContentStyle,
   rechartsTooltipItemStyle,
 } from './investment-chart-theme';
+import { formatBenchmarkAxisHead, formatLocaleMediumDate } from './chart-format-utils';
+
+function rowDateKey(row: {
+  datetime?: string | undefined;
+  time?: string | undefined;
+  date?: string | undefined;
+}): string {
+  return row.datetime ?? row.date ?? row.time ?? '';
+}
 
 interface BenchmarkChartProps {
   indexData?:
@@ -41,15 +51,38 @@ export function BenchmarkChart({
 }: Readonly<BenchmarkChartProps>) {
   const t = useTranslations('Investments.BenchmarkChart');
   const locale = useLocale();
+  const titleId = useId();
+  const summaryId = useId();
   const hasData = indexData && indexData.length > 0;
   const sortedData = hasData ? [...indexData].reverse() : [];
+  const firstRow = sortedData[0];
+  const lastRow = sortedData[sortedData.length - 1];
+  const srSummary =
+    hasData && firstRow && lastRow
+      ? t('dataSummary', {
+          count: sortedData.length,
+          from: formatLocaleMediumDate(rowDateKey(firstRow), locale),
+          to: formatLocaleMediumDate(rowDateKey(lastRow), locale),
+          value: new Intl.NumberFormat(locale, { style: 'currency', currency: 'EUR' }).format(
+            Number(lastRow.close) || 0
+          ),
+        })
+      : null;
 
   return (
-    <Card className={investmentsStyles.card.root} id={anchorId}>
+    <Card
+      role="region"
+      aria-labelledby={titleId}
+      aria-describedby={srSummary ? summaryId : undefined}
+      className={investmentsStyles.card.root}
+      id={anchorId}
+    >
       <CardHeader className="px-3 pt-3 flex flex-col gap-4">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <CardTitle className={investmentsStyles.card.title}>{t('title')}</CardTitle>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 min-w-0">
+          <div className="min-w-0">
+            <CardTitle id={titleId} className={investmentsStyles.card.title}>
+              {t('title')}
+            </CardTitle>
             <CardDescription className={investmentsStyles.card.description}>
               {t('description', { index: currentIndex })}
             </CardDescription>
@@ -60,8 +93,13 @@ export function BenchmarkChart({
         </div>
       </CardHeader>
       <CardContent className={investmentsStyles.card.content}>
+        {srSummary ? (
+          <p id={summaryId} className="sr-only">
+            {srSummary}
+          </p>
+        ) : null}
         {hasData ? (
-          <div className={investmentsStyles.charts.container}>
+          <div className={investmentsStyles.charts.container} aria-hidden>
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={sortedData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                 <CartesianGrid
@@ -72,7 +110,7 @@ export function BenchmarkChart({
                 <XAxis
                   dataKey="datetime"
                   minTickGap={40}
-                  tickFormatter={(val) => val.split(' ')[0]}
+                  tickFormatter={(val) => formatBenchmarkAxisHead(val)}
                   stroke={investmentChartColors.axis}
                   fontSize={12}
                   tickLine={false}
@@ -85,12 +123,14 @@ export function BenchmarkChart({
                   fontSize={12}
                   tickLine={false}
                   axisLine={false}
-                  tickFormatter={(value) =>
-                    new Intl.NumberFormat(locale, {
+                  tickFormatter={(value) => {
+                    const n = Number(value);
+                    if (!Number.isFinite(n)) return '';
+                    return new Intl.NumberFormat(locale, {
                       notation: 'compact',
                       compactDisplay: 'short',
-                    }).format(value)
-                  }
+                    }).format(n);
+                  }}
                   width={60}
                 />
                 <Tooltip

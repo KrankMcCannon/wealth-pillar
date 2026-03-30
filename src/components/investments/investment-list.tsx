@@ -1,10 +1,12 @@
 'use client';
 
+import { useId } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { calculateInvestmentMetrics } from '@/lib/utils/investment-math';
 import { useLocale, useTranslations } from 'next-intl';
 import type { Investment } from './personal-investment-tab';
 import { TrendingUp, TrendingDown } from 'lucide-react';
+import { investmentsStyles } from '@/features/investments/theme/investments-styles';
 
 interface InvestmentListProps {
   investments: Investment[];
@@ -13,12 +15,19 @@ interface InvestmentListProps {
 export function InvestmentList({ investments }: Readonly<InvestmentListProps>) {
   const t = useTranslations('Investments.InvestmentList');
   const locale = useLocale();
+  const listTitleId = useId();
   const investmentMetrics = calculateInvestmentMetrics(investments);
 
   return (
-    <Card className="border-none shadow-lg overflow-hidden bg-card/50 backdrop-blur-sm">
-      <CardHeader className="px-5 py-4 border-b border-border/50 bg-linear-to-r from-primary/10 to-primary/5">
-        <CardTitle className="text-xl font-bold text-foreground">{t('title')}</CardTitle>
+    <Card
+      role="region"
+      aria-labelledby={listTitleId}
+      className={`${investmentsStyles.card.root} overflow-hidden shadow-md`}
+    >
+      <CardHeader className={`${investmentsStyles.card.headerWithBorder} px-5 py-4`}>
+        <CardTitle id={listTitleId} className={investmentsStyles.card.title}>
+          {t('title')}
+        </CardTitle>
       </CardHeader>
       <CardContent className="p-0">
         {investments.length > 0 ? (
@@ -28,12 +37,15 @@ export function InvestmentList({ investments }: Readonly<InvestmentListProps>) {
               return (
                 <div
                   key={inv.id}
-                  className="group px-5 py-4 hover:bg-primary/5 transition-all duration-200 cursor-pointer"
+                  className="group px-5 py-4 hover:bg-primary/5 transition-colors duration-200"
                 >
                   {/* Top row: Name and Current Value */}
-                  <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-start justify-between gap-3 mb-3 min-w-0">
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-bold text-lg text-foreground mb-1.5 truncate">
+                      <h3
+                        className="font-bold text-lg text-foreground mb-1.5 truncate"
+                        title={inv.name}
+                      >
                         {inv.name}
                       </h3>
                       <div className="flex items-center gap-2 flex-wrap">
@@ -46,8 +58,8 @@ export function InvestmentList({ investments }: Readonly<InvestmentListProps>) {
                         </span>
                       </div>
                     </div>
-                    <div className="text-right ml-4 shrink-0">
-                      <p className="font-bold text-xl text-foreground tabular-nums">
+                    <div className="text-right shrink-0 min-w-0 max-w-[45%] sm:max-w-none">
+                      <p className="font-bold text-xl text-foreground tabular-nums wrap-break-word">
                         {new Intl.NumberFormat(locale, {
                           style: 'currency',
                           currency: inv.currency,
@@ -57,8 +69,8 @@ export function InvestmentList({ investments }: Readonly<InvestmentListProps>) {
                   </div>
 
                   {/* Bottom row: Paid and Gain/Loss */}
-                  <div className="flex items-center justify-between pt-2 border-t border-border/20">
-                    <div className="flex items-center gap-1.5 text-xs text-primary/60">
+                  <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-border/20 min-w-0">
+                    <div className="flex min-w-0 items-center gap-1.5 text-xs text-primary/60">
                       <span className="font-medium">{t('paidLabel')}</span>
                       <span className="font-semibold tabular-nums">
                         {new Intl.NumberFormat(locale, {
@@ -70,8 +82,8 @@ export function InvestmentList({ investments }: Readonly<InvestmentListProps>) {
                     <div
                       className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-bold tabular-nums ${
                         isPositive
-                          ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
-                          : 'bg-red-500/10 text-red-600 dark:text-red-400'
+                          ? 'bg-success/10 text-success'
+                          : 'bg-destructive/10 text-destructive'
                       }`}
                     >
                       {isPositive ? (
@@ -94,8 +106,11 @@ export function InvestmentList({ investments }: Readonly<InvestmentListProps>) {
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center py-16 px-4">
-            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-              <TrendingUp className="w-8 h-8 text-primary/50" />
+            <div
+              className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4"
+              aria-hidden
+            >
+              <TrendingUp className="w-8 h-8 text-primary/50" aria-hidden />
             </div>
             <p className="text-primary/70 text-center">{t('empty')}</p>
           </div>

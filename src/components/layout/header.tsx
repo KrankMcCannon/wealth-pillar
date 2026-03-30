@@ -7,7 +7,7 @@ import { ArrowLeft, Settings, Bell, Crown, MoreHorizontal, Moon, Sun } from 'luc
 import { cn } from '@/lib';
 import { useMounted } from '@/hooks';
 import { headerStyles } from './theme/header-styles';
-import { ActionMenu } from './action-menu';
+import { ActionMenu, type ActionMenuItem } from './action-menu';
 
 import {
   Button,
@@ -40,7 +40,7 @@ interface HeaderProps {
   showActions?: boolean;
 
   // Extra menu items (optional)
-  extraMenuItems?: { label: string; icon: React.ElementType; onClick: () => void }[];
+  extraMenuItems?: ActionMenuItem[];
 
   // Investment data for header badge
   investmentSummary?:

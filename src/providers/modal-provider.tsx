@@ -48,7 +48,7 @@ function ModalRenderer() {
 
       {modal === 'account' && <AccountFormModal isOpen onClose={closeModal} editId={editId} />}
 
-      {modal === 'investment' && <AddInvestmentModal isOpen onClose={closeModal} />}
+      {modal === 'investment' && <AddInvestmentModal isOpen onClose={closeModal} editId={editId} />}
     </Suspense>
   );
 }

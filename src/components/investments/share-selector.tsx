@@ -17,6 +17,7 @@ interface ShareSelectorProps {
 
 interface SearchResultLabels {
   noResults: string;
+  searchLoading: string;
 }
 
 // Helper to render search results
@@ -30,8 +31,13 @@ function renderSearchResults(
 ) {
   if (isLoading || isEnsuring) {
     return (
-      <div className={formStyles.categorySelect.empty}>
-        <Loader2 className="h-4 w-4 animate-spin" />
+      <div
+        className={formStyles.categorySelect.empty}
+        role="status"
+        aria-live="polite"
+        aria-label={labels.searchLoading}
+      >
+        <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
       </div>
     );
   }
@@ -79,6 +85,7 @@ function renderSearchResults(
 
 export function ShareSelector({ value, onChange, className }: Readonly<ShareSelectorProps>) {
   const t = useTranslations('Investments.ShareSelector');
+  const searchFieldId = React.useId();
   const [isOpen, setIsOpen] = React.useState(false);
   const searchInputRef = React.useRef<HTMLInputElement | null>(null);
 
@@ -184,11 +191,18 @@ export function ShareSelector({ value, onChange, className }: Readonly<ShareSele
           collisionPadding={8}
         >
           <div className={formStyles.categorySelect.searchWrap}>
+            <label htmlFor={searchFieldId} className="sr-only">
+              {t('searchInputLabel')}
+            </label>
             <div className={formStyles.categorySelect.searchFieldWrap}>
-              <Search className={formStyles.categorySelect.searchIcon} />
+              <Search className={formStyles.categorySelect.searchIcon} aria-hidden />
               <input
+                id={searchFieldId}
                 ref={searchInputRef}
-                type="text"
+                type="search"
+                enterKeyHint="search"
+                maxLength={80}
+                autoComplete="off"
                 placeholder={t('searchPlaceholder')}
                 value={searchValue}
                 onChange={(event) => setSearchValue(event.target.value)}
@@ -205,7 +219,7 @@ export function ShareSelector({ value, onChange, className }: Readonly<ShareSele
                 type="button"
                 onClick={() => setSelectedAssetType('all')}
                 className={cn(
-                  'px-2.5 py-1 text-xs rounded-full border transition-colors',
+                  'min-h-11 px-3 py-2 text-xs rounded-full border transition-colors motion-reduce:transition-none',
                   selectedAssetType === 'all'
                     ? 'border-primary bg-primary/10 text-primary'
                     : 'border-primary/20 text-primary/70 hover:border-primary/50'
@@ -219,7 +233,7 @@ export function ShareSelector({ value, onChange, className }: Readonly<ShareSele
                   type="button"
                   onClick={() => setSelectedAssetType(type)}
                   className={cn(
-                    'px-2.5 py-1 text-xs rounded-full border transition-colors',
+                    'min-h-11 px-3 py-2 text-xs rounded-full border transition-colors motion-reduce:transition-none',
                     selectedAssetType === type
                       ? 'border-primary bg-primary/10 text-primary'
                       : 'border-primary/20 text-primary/70 hover:border-primary/50'
@@ -243,6 +257,7 @@ export function ShareSelector({ value, onChange, className }: Readonly<ShareSele
 
             {renderSearchResults(isLoading, isEnsuring, results, hasSearched, value, {
               noResults: t('noResults'),
+              searchLoading: t('searchLoading'),
             })}
           </SelectPrimitive.Viewport>
         </SelectPrimitive.Content>

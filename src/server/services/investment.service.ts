@@ -85,6 +85,52 @@ export class InvestmentService {
     return data as Investment;
   }
 
+  private static async updateDb(
+    id: string,
+    data: Database['public']['Tables']['investments']['Update']
+  ): Promise<Investment> {
+    const { data: updated, error } = await supabase
+      .from('investments')
+      .update({ ...data, updated_at: new Date().toISOString() } as never)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    return updated as Investment;
+  }
+
+  /**
+   * Get a single investment by id (must belong to user)
+   */
+  static async getInvestmentByIdForUser(id: string, userId: string): Promise<Investment | null> {
+    const { data, error } = await supabase
+      .from('investments')
+      .select('*')
+      .eq('id', id)
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    if (error) throw new Error(error.message);
+    if (!data) return null;
+    return data as Investment;
+  }
+
+  /**
+   * Update an investment (ownership enforced)
+   */
+  static async updateInvestmentForUser(
+    id: string,
+    userId: string,
+    updates: Omit<Database['public']['Tables']['investments']['Update'], 'id' | 'user_id'>
+  ): Promise<Investment> {
+    const existing = await this.getInvestmentByIdForUser(id, userId);
+    if (!existing) {
+      throw new Error('Investment not found');
+    }
+    return this.updateDb(id, updates);
+  }
+
   private static getUniqueSymbols(investments: Investment[]): string[] {
     return [...new Set(investments.map((inv) => inv.symbol).filter(Boolean))] as string[];
   }

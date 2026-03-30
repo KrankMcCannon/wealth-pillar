@@ -11,7 +11,7 @@ export const modalWrapperStyles = {
   drawerHeader: 'text-left bg-card px-4 py-3 border-b border-primary/10 shrink-0 gap-0',
   drawerTitle: 'text-lg font-semibold text-primary',
   drawerDescription: 'text-xs text-primary/70',
-  drawerContentBody: 'px-4 py-3 text-primary flex-1 overflow-y-auto',
+  drawerContentBody: 'px-4 py-3 text-primary flex min-h-0 flex-1 flex-col overflow-hidden',
   drawerFooter: 'pt-3 pb-4 px-4 border-t border-primary/10 bg-card shrink-0',
   modalSection: 'flex flex-col gap-4',
   modalSectionTitle: 'text-xs font-semibold text-primary/80 uppercase tracking-wide shrink-0 mb-2',

@@ -4,7 +4,7 @@
 export const homeDashboardLayoutStyles = {
   main: 'flex min-h-0 w-full flex-1 flex-col px-3 pb-24 pt-3 md:mx-auto md:max-w-6xl md:pb-8 md:px-4',
   grid: 'grid grid-cols-1 gap-4 md:gap-6',
-  primaryColumn: 'flex min-w-0 flex-col gap-5',
+  primaryColumn: 'flex min-w-0 flex-col gap-6',
   /** Intento principale: controllo rapido delle finanze (sopra saldi). */
   heroSection: 'space-y-1.5 md:space-y-2',
   heroTitle:
@@ -17,6 +17,15 @@ export const homeDashboardLayoutStyles = {
   /** Testo guida sotto «Chiudi periodo» (home). */
   periodCloseHint:
     'text-pretty text-xs leading-snug text-muted-foreground sm:max-w-[15rem] sm:text-end',
+  /** Wrapper `<details>`: bordo leggero aperti/hover per gerarchia senza rumore. */
+  periodCloseDetails:
+    'rounded-lg border border-transparent transition-[background-color,border-color] duration-150 hover:border-border/45 hover:bg-muted/20 open:border-border/35 open:bg-muted/10 motion-reduce:transition-none',
+  /** `<summary>`: target touch ~44px, focus ring tastiera, marker nascosti. */
+  periodCloseSummary:
+    'block min-h-11 w-full cursor-pointer list-none rounded-md px-1.5 py-2 text-pretty text-xs leading-snug text-muted-foreground outline-none marker:hidden sm:max-w-[17rem] sm:text-end [&::-webkit-details-marker]:hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-reduce:transition-none sm:min-h-0 sm:px-1 sm:py-1.5',
+  /** Link testuale dentro il summary. */
+  periodCloseSummaryLabel:
+    'underline decoration-muted-foreground/45 underline-offset-2 transition-colors group-open:no-underline group-open:text-foreground hover:text-foreground hover:decoration-foreground/35',
   /** Ricorrenze: stessa larghezza della colonna principale (non più strip laterale stretta). */
   asideColumn: 'min-w-0',
   /** Primo focus utile: salta header sticky (tastiera / screen reader). */

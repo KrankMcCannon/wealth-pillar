@@ -27,6 +27,7 @@ import { RecurringSeriesSection } from '@/features/recurring';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import type { User } from '@/lib/types';
 import type { DashboardPageData } from '@/server/services/page-data.service';
+import { cn } from '@/lib/utils';
 
 const RECURRING_MAX_MOBILE = 5;
 
@@ -162,9 +163,29 @@ export default function HomeContent({
                       currentUser={currentUser}
                       groupUsers={groupUsers}
                     />
-                    <p id={closePeriodHintId} className={homeDashboardLayoutStyles.periodCloseHint}>
-                      {t('closePeriodHint')}
-                    </p>
+                    <details
+                      className={cn(
+                        'group sm:max-w-68 sm:justify-self-end',
+                        homeDashboardLayoutStyles.periodCloseDetails
+                      )}
+                    >
+                      <summary
+                        id={closePeriodHintId}
+                        className={homeDashboardLayoutStyles.periodCloseSummary}
+                      >
+                        <span className={homeDashboardLayoutStyles.periodCloseSummaryLabel}>
+                          {t('closePeriodSummary')}
+                        </span>
+                      </summary>
+                      <p
+                        className={cn(
+                          homeDashboardLayoutStyles.periodCloseHint,
+                          'mt-0 border-t border-border/30 px-1.5 pb-2 pt-2 sm:px-1 sm:pb-1.5'
+                        )}
+                      >
+                        {t('closePeriodHint')}
+                      </p>
+                    </details>
                   </div>
                 }
               />

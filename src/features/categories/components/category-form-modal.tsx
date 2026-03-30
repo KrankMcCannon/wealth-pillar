@@ -147,15 +147,19 @@ function CategoryFormModal({ isOpen, onClose, editId }: Readonly<CategoryFormMod
 
     if (result.error) {
       updateCategory(id, originalCategory);
-      toast({ title: 'Errore', description: result.error, variant: 'destructive' });
+      toast({
+        title: t('toast.errorTitle'),
+        description: `${result.error}\n\n${t('toast.revertedHint')}`,
+        variant: 'destructive',
+      });
       throw new Error(result.error);
     }
 
     if (result.data) {
       updateCategory(id, result.data);
       toast({
-        title: 'Categoria aggiornata',
-        description: 'Modifiche salvate correttamente.',
+        title: t('toast.updatedTitle'),
+        description: t('toast.updatedDescription'),
         variant: 'success',
       });
     }
@@ -197,7 +201,11 @@ function CategoryFormModal({ isOpen, onClose, editId }: Readonly<CategoryFormMod
 
     if (result.error) {
       removeCategory(tempId);
-      toast({ title: 'Errore', description: result.error, variant: 'destructive' });
+      toast({
+        title: t('toast.errorTitle'),
+        description: `${result.error}\n\n${t('toast.optimisticCreateFailedHint')}`,
+        variant: 'destructive',
+      });
       return;
     }
 
@@ -205,8 +213,8 @@ function CategoryFormModal({ isOpen, onClose, editId }: Readonly<CategoryFormMod
     if (result.data) {
       addCategory(result.data);
       toast({
-        title: 'Categoria creata',
-        description: 'Categoria aggiunta correttamente.',
+        title: t('toast.createdTitle'),
+        description: t('toast.createdDescription'),
         variant: 'success',
       });
     }
@@ -225,7 +233,6 @@ function CategoryFormModal({ isOpen, onClose, editId }: Readonly<CategoryFormMod
     } catch (error) {
       const message = error instanceof Error ? error.message : t('errors.unknown');
       setError('root', { message });
-      toast({ title: 'Errore', description: message, variant: 'destructive' });
     }
   };
 
@@ -240,17 +247,24 @@ function CategoryFormModal({ isOpen, onClose, editId }: Readonly<CategoryFormMod
     >
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className={cn(categoryStyles.formModal.form, 'flex flex-col h-full')}
+        className={cn(categoryStyles.formModal.form, 'flex min-h-0 flex-1 flex-col')}
       >
         <ModalBody>
           {/* Submit Error Display */}
           {errors.root && (
-            <div className={categoryStyles.formModal.error}>{errors.root.message}</div>
+            <div className={categoryStyles.formModal.error}>
+              <p className="text-sm font-medium text-destructive">{errors.root.message}</p>
+            </div>
           )}
 
           <ModalSection>
             {/* Label */}
-            <FormField label={t('fields.label.label')} required error={errors.label?.message}>
+            <FormField
+              label={t('fields.label.label')}
+              required
+              error={errors.label?.message}
+              helperText={isEditMode ? undefined : t('fields.label.helper')}
+            >
               <Input
                 {...register('label')}
                 placeholder={t('fields.label.placeholder')}

@@ -101,7 +101,7 @@ export function MultiUserSelect({
           <div className={formStyles.multiUser.userRow}>
             {/* User avatar */}
             <div
-              className={formStyles.multiUser.avatar}
+              className={cn(formStyles.multiUser.avatar, user.theme_color && 'text-white')}
               style={getMultiUserAvatarStyle(user.theme_color || undefined)}
             >
               {user.name.charAt(0).toUpperCase()}

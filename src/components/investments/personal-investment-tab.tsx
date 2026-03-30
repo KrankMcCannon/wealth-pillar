@@ -1,6 +1,7 @@
 'use client';
 
 import { useLocale, useTranslations } from 'next-intl';
+import { cn } from '@/lib/utils';
 import { MetricCard, MetricGrid } from '@/components/ui/layout';
 import { TrendingUp, TrendingDown, Wallet, PiggyBank } from 'lucide-react';
 import { useInvestmentHistory } from '@/features/investments/hooks/use-investment-history';
@@ -88,7 +89,7 @@ export function PersonalInvestmentTab({
           valueType="income"
           valueSize="xl"
           description={
-            <span className={isPositiveReturn ? 'text-emerald-600' : 'text-rose-600'}>
+            <span className={cn(isPositiveReturn ? 'text-success' : 'text-destructive')}>
               {isPositiveReturn ? '+' : ''}
               {new Intl.NumberFormat(locale, { style: 'currency', currency: 'EUR' }).format(
                 summary.totalReturn

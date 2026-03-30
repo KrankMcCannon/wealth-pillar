@@ -146,15 +146,19 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
 
     if (result.error) {
       updateAccount(id, originalAccount);
-      toast({ title: 'Errore', description: result.error, variant: 'destructive' });
+      toast({
+        title: t('toast.errorTitle'),
+        description: `${result.error}\n\n${t('toast.revertedHint')}`,
+        variant: 'destructive',
+      });
       throw new Error(result.error);
     }
 
     if (result.data) {
       updateAccount(id, result.data);
       toast({
-        title: 'Account aggiornato',
-        description: 'Modifiche salvate correttamente.',
+        title: t('toast.updatedTitle'),
+        description: t('toast.updatedDescription'),
         variant: 'success',
       });
     }
@@ -198,7 +202,11 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
 
     if (result.error) {
       removeAccount(tempId);
-      toast({ title: 'Errore', description: result.error, variant: 'destructive' });
+      toast({
+        title: t('toast.errorTitle'),
+        description: `${result.error}\n\n${t('toast.optimisticCreateFailedHint')}`,
+        variant: 'destructive',
+      });
       return;
     }
 
@@ -206,8 +214,8 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
     if (result.data) {
       addAccount(result.data);
       toast({
-        title: 'Account creato',
-        description: 'Account aggiunto correttamente.',
+        title: t('toast.createdTitle'),
+        description: t('toast.createdDescription'),
         variant: 'success',
       });
     }
@@ -226,7 +234,6 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
     } catch (error) {
       const message = error instanceof Error ? error.message : t('errors.unknown');
       setError('root', { message });
-      toast({ title: 'Errore', description: message, variant: 'destructive' });
     }
   };
 
@@ -249,13 +256,13 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
     >
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className={cn(accountStyles.formModal.form, 'flex flex-col h-full')}
+        className={cn(accountStyles.formModal.form, 'flex min-h-0 flex-1 flex-col')}
       >
         <ModalBody className={accountStyles.formModal.content}>
           {/* Submit Error Display */}
           {errors.root && (
             <div className={accountStyles.formModal.error}>
-              <p className={accountStyles.formModal.errorText}>{errors.root.message}</p>
+              <p className="text-sm font-medium text-destructive">{errors.root.message}</p>
             </div>
           )}
 

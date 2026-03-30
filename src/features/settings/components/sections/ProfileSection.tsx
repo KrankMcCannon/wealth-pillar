@@ -39,7 +39,9 @@ export function ProfileSection({
           <div className={settingsStyles.profile.container}>
             <div
               className={settingsStyles.profile.avatar}
-              style={{ backgroundColor: currentUser.theme_color || '#000000' }}
+              style={
+                currentUser.theme_color ? { backgroundColor: currentUser.theme_color } : undefined
+              }
             >
               {userInitials}
             </div>

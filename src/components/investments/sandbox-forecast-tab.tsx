@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback, useId } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -21,9 +21,33 @@ import {
   rechartsTooltipItemStyle,
 } from './investment-chart-theme';
 
+const MAX_FORECAST_AMOUNT = 1e12;
+const MAX_FORECAST_YEARS = 80;
+const MIN_FORECAST_YEARS = 1;
+
+function clampAmount(raw: string, fallback: number): number {
+  const n = Number(raw);
+  if (!Number.isFinite(n)) return fallback;
+  return Math.min(MAX_FORECAST_AMOUNT, Math.max(0, n));
+}
+
+function clampYears(raw: string, fallback: number): number {
+  const n = Math.trunc(Number(raw));
+  if (!Number.isFinite(n)) return fallback;
+  return Math.min(MAX_FORECAST_YEARS, Math.max(MIN_FORECAST_YEARS, n));
+}
+
+function clampRate(raw: string, fallback: number): number {
+  const n = Number(raw);
+  if (!Number.isFinite(n)) return fallback;
+  return Math.min(50, Math.max(-50, n));
+}
+
 export function SandboxForecastTab() {
   const t = useTranslations('Investments.SandboxTab');
   const locale = useLocale();
+  const titleId = useId();
+  const chartSummaryId = useId();
   const [amount, setAmount] = useState<number>(1000);
   const [years, setYears] = useState<number>(10);
   const [rate, setRate] = useState<number>(7);
@@ -44,11 +68,43 @@ export function SandboxForecastTab() {
     return data;
   }, [amount, years, rate]);
 
+  const firstForecast = forecastData[0];
+  const lastForecast = forecastData[forecastData.length - 1];
+  const chartSrSummary =
+    firstForecast && lastForecast
+      ? t('chartDataSummary', {
+          startYear: firstForecast.year,
+          endYear: lastForecast.year,
+          value: new Intl.NumberFormat(locale, { style: 'currency', currency: 'EUR' }).format(
+            lastForecast.amount
+          ),
+        })
+      : null;
+
+  const onAmountChange = useCallback((raw: string) => {
+    setAmount((prev) => clampAmount(raw, prev));
+  }, []);
+
+  const onYearsChange = useCallback((raw: string) => {
+    setYears((prev) => clampYears(raw, prev));
+  }, []);
+
+  const onRateChange = useCallback((raw: string) => {
+    setRate((prev) => clampRate(raw, prev));
+  }, []);
+
   return (
     <div className={investmentsStyles.container}>
-      <Card className={investmentsStyles.card.root}>
+      <Card
+        role="region"
+        aria-labelledby={titleId}
+        aria-describedby={chartSrSummary ? chartSummaryId : undefined}
+        className={investmentsStyles.card.root}
+      >
         <CardHeader className={investmentsStyles.card.headerWithBorder}>
-          <CardTitle className={investmentsStyles.card.title}>{t('title')}</CardTitle>
+          <CardTitle id={titleId} className={investmentsStyles.card.title}>
+            {t('title')}
+          </CardTitle>
           <CardDescription className={investmentsStyles.card.description}>
             {t('description')}
           </CardDescription>
@@ -62,8 +118,12 @@ export function SandboxForecastTab() {
               <Input
                 id="amount"
                 type="number"
+                inputMode="decimal"
+                min={0}
+                max={MAX_FORECAST_AMOUNT}
+                step={1}
                 value={amount}
-                onChange={(e) => setAmount(Number(e.target.value))}
+                onChange={(e) => onAmountChange(e.target.value)}
                 className={investmentsStyles.sandbox.input}
               />
             </div>
@@ -74,8 +134,12 @@ export function SandboxForecastTab() {
               <Input
                 id="rate"
                 type="number"
+                inputMode="decimal"
+                min={-50}
+                max={50}
+                step={0.1}
                 value={rate}
-                onChange={(e) => setRate(Number(e.target.value))}
+                onChange={(e) => onRateChange(e.target.value)}
                 className={investmentsStyles.sandbox.input}
               />
             </div>
@@ -86,15 +150,24 @@ export function SandboxForecastTab() {
               <Input
                 id="years"
                 type="number"
+                inputMode="numeric"
+                min={MIN_FORECAST_YEARS}
+                max={MAX_FORECAST_YEARS}
+                step={1}
                 value={years}
-                onChange={(e) => setYears(Number(e.target.value))}
+                onChange={(e) => onYearsChange(e.target.value)}
                 className={investmentsStyles.sandbox.input}
               />
             </div>
           </div>
 
           <div className={investmentsStyles.sandbox.chartSection}>
-            <div className={investmentsStyles.charts.sandboxContainer}>
+            {chartSrSummary ? (
+              <p id={chartSummaryId} className="sr-only">
+                {chartSrSummary}
+              </p>
+            ) : null}
+            <div className={investmentsStyles.charts.sandboxContainer} aria-hidden>
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={forecastData} margin={{ top: 20, right: 10, left: 0, bottom: 0 }}>
                   <defs>
@@ -129,12 +202,14 @@ export function SandboxForecastTab() {
                     fontSize={12}
                     tickLine={false}
                     axisLine={false}
-                    tickFormatter={(value) =>
-                      `${new Intl.NumberFormat(locale, {
+                    tickFormatter={(value) => {
+                      const n = Number(value);
+                      if (!Number.isFinite(n)) return '';
+                      return `${new Intl.NumberFormat(locale, {
                         notation: 'compact',
                         compactDisplay: 'short',
-                      }).format(value)}€`
-                    }
+                      }).format(n)}€`;
+                    }}
                     width={60}
                   />
                   <Tooltip

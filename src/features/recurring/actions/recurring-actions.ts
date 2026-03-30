@@ -14,6 +14,7 @@ import { canAccessUserData, isMember } from '@/lib/utils/permissions';
 import type { RecurringTransactionSeries, User } from '@/lib/types';
 import { RecurringService } from '@/server/services';
 import { serialize } from '@/lib/utils/serializer';
+import { devWarn } from '@/lib/utils/dev-log';
 import type { ServiceResult } from '@/lib/types/service-result';
 
 /**
@@ -381,7 +382,7 @@ export async function toggleRecurringSeriesActiveAction(
 export async function executeRecurringSeriesAction(
   seriesId: string
 ): Promise<ServiceResult<{ transactionId: string }>> {
-  console.warn('Series execution not implemented yet for series:', seriesId);
+  devWarn('Series execution not implemented yet for series:', seriesId);
   // const today = new Date();
   // Per ora ritorniamo un messaggio informativo
   return {

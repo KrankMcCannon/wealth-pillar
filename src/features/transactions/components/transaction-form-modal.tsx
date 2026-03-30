@@ -286,7 +286,7 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
     >
       <form
         onSubmit={handleSubmit((data: TransactionFormData) => onSubmit(data))}
-        className={cn(transactionStyles.form.container, 'flex flex-col h-full')}
+        className={cn(transactionStyles.form.container, 'flex min-h-0 flex-1 flex-col')}
       >
         <ModalBody className={transactionStyles.modal.content}>
           {/* Submit Error Display */}
@@ -321,6 +321,20 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
                   placeholder={t('fields.type.placeholder')}
                 />
               </FormField>
+
+              <div className="sm:col-span-2">
+                <FormField
+                  label={t('fields.description.label')}
+                  required
+                  error={errors.description?.message}
+                >
+                  <Input
+                    {...register('description')}
+                    placeholder={t('fields.description.placeholder')}
+                    disabled={isSubmitting}
+                  />
+                </FormField>
+              </div>
 
               {/* Source Account */}
               <AccountField
@@ -376,21 +390,6 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
                 required
               />
             </div>
-          </ModalSection>
-
-          <ModalSection>
-            {/* Description */}
-            <FormField
-              label={t('fields.description.label')}
-              required
-              error={errors.description?.message}
-            >
-              <Input
-                {...register('description')}
-                placeholder={t('fields.description.placeholder')}
-                disabled={isSubmitting}
-              />
-            </FormField>
           </ModalSection>
         </ModalBody>
 

@@ -5,6 +5,7 @@
  */
 
 import { PageContainer } from '@/components/layout';
+import { userSelectorStyles } from '@/components/shared/theme/user-selector-styles';
 import { SkeletonList } from '@/components/ui/primitives';
 import { accountStyles } from '@/features/accounts';
 import { budgetStyles } from '@/styles/system';
@@ -53,7 +54,7 @@ export function DashboardHeaderSkeleton() {
  */
 export function UserSelectorSkeleton() {
   return (
-    <div className="border-b border-border/50 bg-card/70 px-4 pb-3 pt-3 backdrop-blur-sm sm:px-5">
+    <div className={userSelectorStyles.loading.container}>
       <div className="mb-2 h-3 w-28 rounded bg-muted/50 animate-pulse" aria-hidden />
       <SkeletonList
         count={3}

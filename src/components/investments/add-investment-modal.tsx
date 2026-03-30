@@ -1,20 +1,24 @@
 'use client';
 
-import * as React from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useTranslations } from 'next-intl';
+import { useRouter } from '@/i18n/routing';
 import { ModalWrapper, ModalBody, ModalFooter, ModalSection } from '@/components/ui/modal-wrapper';
 import { FormActions, FormField, FormSelect } from '@/components/form';
 import { DateField } from '@/components/ui/fields';
-import { Input } from '@/components/ui/input';
-import { createInvestmentAction } from '@/features/investments/actions/investment-actions';
+import { Button, Input } from '@/components/ui';
+import {
+  createInvestmentAction,
+  getInvestmentByIdAction,
+  updateInvestmentAction,
+} from '@/features/investments/actions/investment-actions';
 import { transactionStyles } from '@/styles/system';
 import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 
-// Schema definition
 const createInvestmentSchema = (t: ReturnType<typeof useTranslations>) =>
   z.object({
     name: z.string().min(1, t('validation.nameRequired')),
@@ -43,11 +47,21 @@ type InvestmentFormData = z.infer<ReturnType<typeof createInvestmentSchema>>;
 interface AddInvestmentModalProps {
   isOpen: boolean;
   onClose: () => void;
+  editId?: string | null;
 }
 
-export default function AddInvestmentModal({ isOpen, onClose }: Readonly<AddInvestmentModalProps>) {
+export default function AddInvestmentModal({
+  isOpen,
+  onClose,
+  editId,
+}: Readonly<AddInvestmentModalProps>) {
   const t = useTranslations('Investments.AddModal');
-  const investmentSchema = React.useMemo(() => createInvestmentSchema(t), [t]);
+  const router = useRouter();
+  const investmentSchema = useMemo(() => createInvestmentSchema(t), [t]);
+  const isEditMode = Boolean(editId);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [isLoadingRow, setIsLoadingRow] = useState(false);
+  const [loadRetryToken, setLoadRetryToken] = useState(0);
 
   const {
     register,
@@ -79,9 +93,121 @@ export default function AddInvestmentModal({ isOpen, onClose }: Readonly<AddInve
     { value: 'USD', label: 'USD' },
   ];
 
+  useEffect(() => {
+    if (!isOpen) return;
+
+    let cancelled = false;
+
+    const run = async () => {
+      await Promise.resolve();
+      if (cancelled) return;
+
+      setLoadError(null);
+
+      if (!editId) {
+        setIsLoadingRow(false);
+        reset({
+          name: '',
+          symbol: '',
+          amount: '',
+          tax_paid: '0',
+          shares: '',
+          currency: 'EUR',
+          created_at: new Date().toISOString().split('T')[0] as string,
+        });
+        return;
+      }
+
+      setIsLoadingRow(true);
+
+      try {
+        const res = await getInvestmentByIdAction(editId);
+        if (cancelled) return;
+        setIsLoadingRow(false);
+
+        if (res.error || !res.data) {
+          const msg =
+            res.error === 'NOT_FOUND'
+              ? t('toast.notFound')
+              : res.error === 'UNAUTHENTICATED'
+                ? t('toast.errorTitle')
+                : (res.error ?? t('toast.loadError'));
+          setLoadError(msg);
+          toast({ title: t('toast.errorTitle'), description: msg, variant: 'destructive' });
+          return;
+        }
+
+        const row = res.data;
+        const fallbackDay = new Date().toISOString().slice(0, 10);
+        const parsedDay =
+          typeof row.created_at === 'string'
+            ? row.created_at.split('T')[0]
+            : new Date(row.created_at ?? '').toISOString().split('T')[0];
+        const dateStr = parsedDay ?? fallbackDay;
+
+        const currency: 'EUR' | 'USD' = row.currency === 'USD' ? 'USD' : 'EUR';
+
+        reset({
+          name: row.name,
+          symbol: row.symbol,
+          amount: String(row.amount),
+          tax_paid: String(row.tax_paid ?? 0),
+          shares: String(row.shares_acquired),
+          currency,
+          created_at: dateStr,
+        });
+      } catch {
+        if (!cancelled) {
+          setIsLoadingRow(false);
+          setLoadError(t('toast.loadError'));
+        }
+      }
+    };
+
+    run().catch(() => {
+      /* Rejections are handled inside run; this only satisfies no-floating-promises */
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen, editId, reset, t, loadRetryToken]);
+
   const onSubmit = async (data: InvestmentFormData) => {
     try {
-      const res = await createInvestmentAction({
+      if (isEditMode && editId) {
+        const res = await updateInvestmentAction({
+          id: editId,
+          name: data.name,
+          symbol: data.symbol,
+          amount: Number(data.amount),
+          shares_acquired: Number(data.shares),
+          currency: data.currency,
+          created_at: new Date(data.created_at),
+          tax_paid: Number(data.tax_paid) || 0,
+          currency_rate: 1,
+          net_earn: 0,
+        });
+
+        if (res.error) {
+          toast({
+            title: t('toast.errorTitle'),
+            description: res.error,
+            variant: 'destructive',
+          });
+          return;
+        }
+        toast({
+          title: t('toast.updatedTitle'),
+          description: t('toast.updatedDescription'),
+          variant: 'success',
+        });
+        reset();
+        onClose();
+        return;
+      }
+
+      const payload = {
         name: data.name,
         symbol: data.symbol.toUpperCase(),
         amount: Number(data.amount),
@@ -91,48 +217,87 @@ export default function AddInvestmentModal({ isOpen, onClose }: Readonly<AddInve
         tax_paid: Number(data.tax_paid) || 0,
         currency_rate: 1,
         net_earn: 0,
-      });
-
-      if (res.error) {
-        toast({ title: 'Errore', description: res.error, variant: 'destructive' });
-        return;
-      }
-      toast({
-        title: 'Investimento aggiunto',
-        description: 'Operazione completata correttamente.',
-        variant: 'success',
-      });
+      };
       reset();
       onClose();
+
+      try {
+        const res = await createInvestmentAction(payload);
+        if (res.error) {
+          toast({ title: t('toast.errorTitle'), description: res.error, variant: 'destructive' });
+          return;
+        }
+        toast({
+          title: t('toast.createdTitle'),
+          description: t('toast.createdDescription'),
+          variant: 'success',
+        });
+        router.refresh();
+      } catch (createErr) {
+        const message = createErr instanceof Error ? createErr.message : t('toast.saveError');
+        toast({ title: t('toast.errorTitle'), description: message, variant: 'destructive' });
+      }
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Errore durante il salvataggio';
-      toast({ title: 'Errore', description: message, variant: 'destructive' });
+      const message = error instanceof Error ? error.message : t('toast.saveError');
+      toast({ title: t('toast.errorTitle'), description: message, variant: 'destructive' });
     }
   };
+
+  const title = isEditMode ? t('title.edit') : t('title.create');
+  const description = isEditMode ? t('description.edit') : t('description.create');
 
   return (
     <ModalWrapper
       isOpen={isOpen}
       onOpenChange={onClose}
-      title={t('title')}
-      description={t('description')}
+      title={title}
+      description={description}
       maxWidth="md"
+      repositionInputs={false}
+      isLoading={Boolean(editId) && isLoadingRow}
     >
       <form
         onSubmit={handleSubmit((data: InvestmentFormData) => onSubmit(data))}
-        className={cn(transactionStyles.form.container, 'flex flex-col h-full')}
+        className={cn(transactionStyles.form.container, 'flex min-h-0 flex-1 flex-col')}
       >
         <ModalBody className={transactionStyles.modal.content}>
-          <ModalSection>
+          {loadError && (
+            <div className={cn(transactionStyles.form.error, 'flex flex-col gap-3')}>
+              <p className={transactionStyles.form.errorText}>{loadError}</p>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="w-full min-h-11 sm:w-auto"
+                onClick={() => {
+                  setLoadError(null);
+                  setLoadRetryToken((n) => n + 1);
+                }}
+              >
+                {t('retryLoad')}
+              </Button>
+            </div>
+          )}
+
+          <ModalSection title={t('sections.identity')}>
             <div className={transactionStyles.form.grid}>
               <FormField label={t('fields.name')} required error={errors.name?.message}>
                 <Input {...register('name')} placeholder={t('placeholders.name')} />
               </FormField>
 
-              <FormField label={t('fields.symbol')} required error={errors.symbol?.message}>
+              <FormField
+                label={t('fields.symbol')}
+                required
+                error={errors.symbol?.message}
+                helperText={t('fields.symbolHelper')}
+              >
                 <Input {...register('symbol')} placeholder={t('placeholders.symbol')} />
               </FormField>
+            </div>
+          </ModalSection>
 
+          <ModalSection title={t('sections.amounts')}>
+            <div className={transactionStyles.form.grid}>
               <FormField label={t('fields.investedAmount')} required error={errors.amount?.message}>
                 <Input
                   {...register('amount')}
@@ -159,7 +324,11 @@ export default function AddInvestmentModal({ isOpen, onClose }: Readonly<AddInve
                   placeholder={t('placeholders.shares')}
                 />
               </FormField>
+            </div>
+          </ModalSection>
 
+          <ModalSection title={t('sections.when')}>
+            <div className={transactionStyles.form.grid}>
               <DateField
                 value={watchedDate}
                 onChange={(val) => setValue('created_at', val)}
@@ -186,6 +355,7 @@ export default function AddInvestmentModal({ isOpen, onClose }: Readonly<AddInve
             cancelLabel={t('cancelButton')}
             onCancel={onClose}
             isSubmitting={isSubmitting}
+            disabled={Boolean(loadError) || (Boolean(editId) && isLoadingRow)}
             className="w-full sm:w-auto"
           />
         </ModalFooter>

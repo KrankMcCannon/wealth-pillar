@@ -483,10 +483,13 @@
     }
   },
   "InvestmentsPage": {
-    "loading": "Caricamento investimenti..."
+    "loading": "Caricamento investimenti...",
+    "loadError": "Impossibile caricare il portafoglio"
   },
   "InvestmentsContent": {
     "headerTitle": "Investimenti",
+    "mainLandmark": "Area investimenti",
+    "tabLoading": "Caricamento sezione…",
     "tabs": {
       "personal": "Investimenti Personali",
       "sandbox": "Sandbox Previsionale"
@@ -512,16 +515,19 @@
       "title": "Andamento Storico",
       "description": "Valore effettivo del portafoglio nel tempo",
       "valueSeriesLabel": "Valore",
-      "fallback": "Dati storici non sufficienti"
+      "fallback": "Dati storici non sufficienti",
+      "dataSummary": "Grafico storico: {count, plural, one {# periodo} other {# periodi}}, da {from} a {to}. Ultimo valore {value}."
     },
     "BenchmarkChart": {
       "title": "Benchmark",
       "description": "Confronta con {index}",
-      "fallback": "Dati non disponibili"
+      "fallback": "Dati non disponibili",
+      "dataSummary": "Grafico benchmark: {count, plural, one {# giorno di negoziazione} other {# giorni di negoziazione}}, da {from} a {to}. Ultima chiusura {value}."
     },
     "SandboxTab": {
       "title": "Sandbox Previsionale",
       "description": "Simula la crescita di un investimento nel tempo modificando i parametri qui sotto.",
+      "chartDataSummary": "Previsione dal {startYear} al {endYear}. Valore finale stimato {value}.",
       "fields": {
         "initialAmount": "Importo Iniziale (€)",
         "annualReturn": "Rendimento Annuo (%)",
@@ -542,7 +548,9 @@
       "allAssetTypes": "Tutti",
       "searchHint": "Cerca un titolo USA",
       "minCharsHint": "Inserisci almeno 3 caratteri",
-      "noResults": "Nessun titolo trovato"
+      "noResults": "Nessun titolo trovato",
+      "searchInputLabel": "Cerca titoli",
+      "searchLoading": "Ricerca titoli in corso"
     },
     "AddModal": {
       "validation": {
@@ -553,15 +561,27 @@
         "sharesInvalid": "Quote non valide",
         "dateRequired": "Data obbligatoria"
       },
-      "title": "Aggiungi Investimento",
-      "description": "Inserisci i dettagli del nuovo investimento",
+      "title": {
+        "create": "Aggiungi investimento",
+        "edit": "Modifica investimento"
+      },
+      "description": {
+        "create": "Inserisci i dettagli del nuovo investimento",
+        "edit": "Aggiorna i dati di questa posizione"
+      },
+      "sections": {
+        "identity": "Titolo",
+        "amounts": "Importi e quote",
+        "when": "Data e valuta"
+      },
       "fields": {
         "name": "Nome",
         "symbol": "Simbolo",
-        "investedAmount": "Importo Investito",
-        "taxesPaid": "Tasse Pagate",
-        "sharesAcquired": "Quote Acquisite",
-        "purchaseDate": "Data Acquisto",
+        "symbolHelper": "Ticker di borsa (es. AAPL). Usato per i prezzi di mercato.",
+        "investedAmount": "Importo investito",
+        "taxesPaid": "Tasse pagate",
+        "sharesAcquired": "Quote acquisite",
+        "purchaseDate": "Data acquisto",
         "currency": "Valuta"
       },
       "placeholders": {
@@ -572,7 +592,18 @@
         "shares": "10"
       },
       "saveButton": "Salva",
-      "cancelButton": "Annulla"
+      "cancelButton": "Annulla",
+      "retryLoad": "Riprova",
+      "toast": {
+        "errorTitle": "Errore",
+        "createdTitle": "Investimento aggiunto",
+        "createdDescription": "Salvato. La panoramica in home si aggiorna automaticamente.",
+        "updatedTitle": "Investimento aggiornato",
+        "updatedDescription": "Modifiche salvate correttamente.",
+        "saveError": "Errore durante il salvataggio",
+        "loadError": "Impossibile caricare l'investimento",
+        "notFound": "Investimento non trovato"
+      }
     }
   },
   "TransactionsContent": {
@@ -924,6 +955,7 @@
         "income": "Entrata"
       },
       "frequencyOptions": {
+        "once": "Una tantum",
         "weekly": "Settimanale",
         "biweekly": "Quindicinale",
         "monthly": "Mensile",
@@ -953,7 +985,8 @@
         },
         "dueDay": {
           "label": "Giorno addebito",
-          "placeholder": "1-31"
+          "placeholder": "1-31",
+          "helper": "Giorno del mese in cui viene registrata l'operazione (1 = primo giorno, 31 = ultimo giorno possibile)."
         },
         "startDate": {
           "label": "Data inizio"
@@ -970,6 +1003,19 @@
         "saveChanges": "Salva Modifiche",
         "createSeries": "Crea Serie",
         "cancel": "Annulla"
+      },
+      "toast": {
+        "errorTitle": "Errore",
+        "updatedTitle": "Serie aggiornata",
+        "updatedDescription": "Modifiche salvate correttamente.",
+        "createdTitle": "Serie creata",
+        "createdDescription": "Serie ricorrente aggiunta correttamente."
+      },
+      "sections": {
+        "basics": "Tipo e frequenza",
+        "participants": "Chi coinvolge",
+        "amounts": "Importi e conto",
+        "schedule": "Date"
       }
     }
   },
@@ -1000,15 +1046,26 @@
       "recurring": "Ricorrenti",
       "newAccount": "Nuovo Account",
       "newInvestment": "Nuovo Investimento",
-      "moreActions": "Altre azioni",
-      "showLessActions": "Mostra meno"
+      "moreActions": "Categoria, investimento, ricorrente…",
+      "showLessActions": "Nascondi le altre azioni",
+      "fabIntro": "Sotto trovi le azioni più frequenti. Apri la riga evidenziata per categoria, investimento e pagamenti ricorrenti.",
+      "hints": {
+        "newTransaction": "Registra un movimento su un conto",
+        "newBudget": "Imposta un tetto di spesa per categorie",
+        "newAccount": "Aggiungi un conto o salvadanaio",
+        "newCategory": "Crea un’etichetta per classificare le transazioni",
+        "newInvestment": "Registra un acquisto titoli o fondi",
+        "recurring": "Automatizza un pagamento che si ripete",
+        "expandSecondary": "Mostra o nascondi le altre azioni di creazione"
+      }
     }
   },
   "HomeContent": {
     "closePeriodButton": "Chiudi periodo",
+    "closePeriodSummary": "Perché chiudere il periodo?",
     "closePeriodHint": "A fine mese o ciclo chiudi il periodo: il riepilogo resta e riparti con date aggiornate.",
     "checkFinancesHeading": "Panoramica rapida",
-    "checkFinancesLead": "Saldi, budget e pagamenti ricorrenti in un colpo d'occhio, così vedete subito se siete in linea.",
+    "checkFinancesLead": "Saldi, budget e prossime ricorrenze qui; per il dettaglio usa Transazioni, Investimenti e Report.",
     "pageTitle": "Panoramica rapida",
     "recurringAsideLabel": "Pagamenti ricorrenti in arrivo",
     "skipToContent": "Vai a saldi, budget e ricorrenze"
@@ -1116,6 +1173,15 @@
         "create": "Crea",
         "update": "Aggiorna",
         "cancel": "Annulla"
+      },
+      "toast": {
+        "errorTitle": "Errore",
+        "updatedTitle": "Account aggiornato",
+        "updatedDescription": "Modifiche salvate correttamente.",
+        "createdTitle": "Account creato",
+        "createdDescription": "Account aggiunto correttamente.",
+        "revertedHint": "I dati mostrati sono tornati allo stato precedente.",
+        "optimisticCreateFailedHint": "La bozza è stata rimossa dalla lista."
       },
       "errors": {
         "notFound": "Account non trovato",
@@ -1329,6 +1395,16 @@
         "create": "Crea Budget",
         "cancel": "Annulla"
       },
+      "toast": {
+        "errorTitle": "Errore",
+        "updatedTitle": "Budget aggiornato",
+        "updatedDescription": "Modifiche salvate correttamente.",
+        "createdTitle": "Budget creato",
+        "createdDescription": "Budget aggiunto correttamente.",
+        "saveErrorDescription": "Errore durante il salvataggio",
+        "revertedHint": "I dati mostrati sono tornati allo stato precedente.",
+        "optimisticCreateFailedHint": "La bozza è stata rimossa dalla lista."
+      },
       "errors": {
         "notFound": "Budget non trovato",
         "unknown": "Errore sconosciuto"
@@ -1433,7 +1509,8 @@
       "fields": {
         "label": {
           "label": "Nome",
-          "placeholder": "es. Spesa"
+          "placeholder": "es. Spesa",
+          "helper": "Il codice interno (chiave) viene generato automaticamente dal nome; serve al sistema per collegare le transazioni."
         },
         "icon": {
           "label": "Icona"
@@ -1447,6 +1524,15 @@
         "save": "Salva",
         "create": "Crea Categoria",
         "cancel": "Annulla"
+      },
+      "toast": {
+        "errorTitle": "Errore",
+        "updatedTitle": "Categoria aggiornata",
+        "updatedDescription": "Modifiche salvate correttamente.",
+        "createdTitle": "Categoria creata",
+        "createdDescription": "Categoria aggiunta correttamente.",
+        "revertedHint": "I dati mostrati sono tornati allo stato precedente.",
+        "optimisticCreateFailedHint": "La bozza è stata rimossa dalla lista."
       },
       "errors": {
         "notFound": "Categoria non trovata",
