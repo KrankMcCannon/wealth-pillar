@@ -100,7 +100,7 @@ export const settingsStyles = {
       titleActive: 'text-primary',
       titleIdle: 'text-primary',
       currentBadge: 'text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium',
-      description: 'text-sm text-primary/70 mt-0.5',
+      description: 'text-sm text-primary/70 mt-0.5 break-words',
     },
     subscription: {
       container: 'space-y-4',
@@ -116,12 +116,9 @@ export const settingsStyles = {
       listItem: 'flex items-start gap-2',
       listIcon: 'h-4 w-4 text-primary mt-0.5 shrink-0',
       listText: 'text-sm text-primary/70',
-      premiumBadgeWrap: 'absolute top-0 right-0 w-24 h-24 -mr-12 -mt-12',
-      premiumBadge:
-        'absolute transform rotate-45 bg-linear-to-r from-primary to-primary/80 text-primary-foreground text-xs font-bold py-1 w-32 text-center shadow-md',
-      premiumBadgeStyle: { top: '35px' },
-      premiumTitleRow: 'text-lg font-bold text-primary flex items-center gap-2',
-      premiumIcon: 'h-5 w-5 text-primary',
+      premiumLabelBadge:
+        'shrink-0 text-xs font-medium text-primary/80 px-2 py-0.5 rounded-md bg-primary/10 border border-primary/15',
+      premiumTitleRow: 'text-lg font-bold text-primary flex items-center gap-2 flex-wrap',
       secureRow: 'mt-4 pt-4 border-t border-primary/20',
       secureText: 'text-xs text-primary/60 text-center',
       secureIcon: 'inline h-3 w-3 mr-1',

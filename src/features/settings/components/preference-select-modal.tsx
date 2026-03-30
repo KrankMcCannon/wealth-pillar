@@ -79,6 +79,7 @@ export function PreferenceSelectModal({
   onSuccess,
 }: Readonly<PreferenceSelectModalProps>) {
   const t = useTranslations('SettingsModals.PreferenceSelect');
+  const radioGroupName = React.useId().replace(/:/g, '');
   const [selectedValue, setSelectedValue] = React.useState(currentValue);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
@@ -211,67 +212,78 @@ export function PreferenceSelectModal({
       disableOutsideClose={isSubmitting}
     >
       <ModalBody>
-        <div className={settingsStyles.modals.preference.list}>
+        <div role="radiogroup" aria-label={title} className={settingsStyles.modals.preference.list}>
           {options.map((option) => {
             const isSelected = selectedValue === option.value;
             const isCurrent = currentValue === option.value;
 
             return (
-              <button
+              <label
                 key={option.value}
-                type="button"
-                onClick={() => setSelectedValue(option.value)}
-                disabled={isSubmitting}
                 className={cn(
                   settingsStyles.modals.preference.itemBase,
+                  'block cursor-pointer min-w-0',
                   isSelected
                     ? settingsStyles.modals.preference.itemActive
-                    : settingsStyles.modals.preference.itemIdle
+                    : settingsStyles.modals.preference.itemIdle,
+                  isSubmitting && 'opacity-50 pointer-events-none cursor-not-allowed'
                 )}
               >
-                {/* Radio indicator */}
-                <div
-                  className={cn(
-                    settingsStyles.modals.preference.radioBase,
-                    isSelected
-                      ? settingsStyles.modals.preference.radioActive
-                      : settingsStyles.modals.preference.radioIdle
-                  )}
-                >
-                  {isSelected && <Check className={settingsStyles.modals.preference.radioIcon} />}
-                </div>
-
-                {/* Icon if present */}
-                {option.icon && (
-                  <div className="mr-3 w-8 h-8 rounded-full overflow-hidden shrink-0 border border-border">
-                    {option.icon}
-                  </div>
-                )}
-
-                {/* Content */}
-                <div className={settingsStyles.modals.preference.content}>
-                  <div className={settingsStyles.modals.preference.titleRow}>
-                    <span
-                      className={cn(
-                        settingsStyles.modals.preference.title,
-                        isSelected
-                          ? settingsStyles.modals.preference.titleActive
-                          : settingsStyles.modals.preference.titleIdle
-                      )}
-                    >
-                      {option.label}
-                    </span>
-                    {isCurrent && (
-                      <span className={settingsStyles.modals.preference.currentBadge}>
-                        {t('currentBadge')}
-                      </span>
+                <input
+                  type="radio"
+                  name={`settings-pref-${preferenceKey}-${radioGroupName}`}
+                  value={option.value}
+                  checked={isSelected}
+                  onChange={() => setSelectedValue(option.value)}
+                  disabled={isSubmitting}
+                  className="peer sr-only"
+                />
+                <span className="flex items-start gap-3 w-full min-w-0 rounded-[inherit] peer-focus-visible:ring-2 peer-focus-visible:ring-primary/20 peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-background">
+                  <div
+                    className={cn(
+                      settingsStyles.modals.preference.radioBase,
+                      isSelected
+                        ? settingsStyles.modals.preference.radioActive
+                        : settingsStyles.modals.preference.radioIdle
                     )}
+                    aria-hidden
+                  >
+                    {isSelected && <Check className={settingsStyles.modals.preference.radioIcon} />}
                   </div>
-                  <p className={settingsStyles.modals.preference.description}>
-                    {option.description}
-                  </p>
-                </div>
-              </button>
+
+                  {option.icon && (
+                    <div
+                      className="mr-3 w-8 h-8 rounded-full overflow-hidden shrink-0 border border-border"
+                      aria-hidden
+                    >
+                      {option.icon}
+                    </div>
+                  )}
+
+                  <div className={settingsStyles.modals.preference.content}>
+                    <div className={settingsStyles.modals.preference.titleRow}>
+                      <span
+                        className={cn(
+                          settingsStyles.modals.preference.title,
+                          isSelected
+                            ? settingsStyles.modals.preference.titleActive
+                            : settingsStyles.modals.preference.titleIdle
+                        )}
+                      >
+                        {option.label}
+                      </span>
+                      {isCurrent && (
+                        <span className={settingsStyles.modals.preference.currentBadge}>
+                          {t('currentBadge')}
+                        </span>
+                      )}
+                    </div>
+                    <p className={settingsStyles.modals.preference.description}>
+                      {option.description}
+                    </p>
+                  </div>
+                </span>
+              </label>
             );
           })}
         </div>

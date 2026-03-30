@@ -65,13 +65,6 @@ export function ModalWrapper({
   maxWidth,
 }: Readonly<ModalWrapperProps>) {
   const isDesktop = useMediaQuery('(min-width: 640px)');
-  const contentRef = React.useRef<HTMLDivElement | null>(null);
-
-  // Focus management
-  const handleOpenAutoFocus = React.useCallback((event: Event) => {
-    event.preventDefault();
-    contentRef.current?.focus();
-  }, []);
 
   // Prevent closing logic
   const handleOpenChange = React.useCallback(
@@ -88,9 +81,6 @@ export function ModalWrapper({
     return (
       <Dialog open={isOpen} onOpenChange={handleOpenChange}>
         <DialogContent
-          ref={contentRef}
-          tabIndex={-1}
-          onOpenAutoFocus={handleOpenAutoFocus}
           showCloseButton={showCloseButton}
           className={cn('max-h-[90vh] flex flex-col p-0 gap-0', maxWidth, className)}
         >
@@ -131,15 +121,11 @@ export function ModalWrapper({
       repositionInputs={repositionInputs} // Fix for keyboard issue
     >
       <DrawerContent
-        ref={contentRef}
-        tabIndex={-1}
-        onOpenAutoFocus={handleOpenAutoFocus}
         className={cn(
           modalWrapperStyles.drawerContent,
           'h-[96dvh] mt-24 rounded-t-[10px]',
           className
         )}
-        aria-describedby={undefined}
       >
         <div className="mx-auto mt-4 h-2 w-[100px] rounded-full bg-primary/10" />
         <DrawerHeader className={modalWrapperStyles.drawerHeader}>

@@ -1,8 +1,8 @@
 'use client';
 
 import * as React from 'react';
-import { Check, CreditCard, Loader2, Sparkles } from 'lucide-react';
-import { useTranslations } from 'next-intl';
+import { Check, CreditCard, Loader2 } from 'lucide-react';
+import { useLocale, useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { ModalBody, ModalFooter, ModalWrapper } from '@/components/ui/modal-wrapper';
 import { toast } from '@/hooks/use-toast';
@@ -19,6 +19,26 @@ export interface SubscriptionModalProps {
   onOpenChange: (open: boolean) => void;
   groupId: string;
   currentPlan: 'free' | 'premium';
+  /** ISO 4217 code for displaying plan prices (e.g. user preference currency). */
+  billingCurrency?: string;
+}
+
+function formatPlanPrice(locale: string, currency: string, amount: number): string {
+  try {
+    return new Intl.NumberFormat(locale, {
+      style: 'currency',
+      currency,
+      minimumFractionDigits: amount === 0 ? 0 : 2,
+      maximumFractionDigits: 2,
+    }).format(amount);
+  } catch {
+    return new Intl.NumberFormat(locale, {
+      style: 'currency',
+      currency: 'EUR',
+      minimumFractionDigits: amount === 0 ? 0 : 2,
+      maximumFractionDigits: 2,
+    }).format(amount);
+  }
 }
 
 // ============================================================================
@@ -28,32 +48,26 @@ export interface SubscriptionModalProps {
 /**
  * SubscriptionModal Component
  * Modal for managing group subscription (Free vs Premium)
- *
- * Features:
- * - Display Free and Premium plans
- * - Feature comparison
- * - Upgrade/Cancel subscription
- * - Current plan indicator
- * - Stripe integration placeholder
- *
- * @example
- * ```tsx
- * <SubscriptionModal
- *   isOpen={showModal}
- *   onOpenChange={setShowModal}
- *   groupId={currentUser.group_id}
- *   currentPlan="free"
- * />
- * ```
  */
 export function SubscriptionModal({
   isOpen,
   onOpenChange,
   groupId,
   currentPlan,
+  billingCurrency = 'EUR',
 }: Readonly<SubscriptionModalProps>) {
   const t = useTranslations('SettingsModals.Subscription');
+  const locale = useLocale();
   const [isProcessing, setIsProcessing] = React.useState(false);
+
+  const freePrice = React.useMemo(
+    () => formatPlanPrice(locale, billingCurrency, 0),
+    [locale, billingCurrency]
+  );
+  const premiumPrice = React.useMemo(
+    () => formatPlanPrice(locale, billingCurrency, 9.99),
+    [locale, billingCurrency]
+  );
 
   const handleUpgrade = async () => {
     setIsProcessing(true);
@@ -140,7 +154,6 @@ export function SubscriptionModal({
     >
       <ModalBody>
         <div className={settingsStyles.modals.subscription.container}>
-          {/* Free Plan */}
           <div
             className={cn(
               settingsStyles.modals.subscription.cardBase,
@@ -150,10 +163,10 @@ export function SubscriptionModal({
             )}
           >
             <div className={settingsStyles.modals.subscription.headerRow}>
-              <div>
+              <div className="min-w-0">
                 <h3 className={settingsStyles.modals.subscription.planTitle}>{t('free.title')}</h3>
                 <p className={settingsStyles.modals.subscription.planPrice}>
-                  €0{' '}
+                  {freePrice}{' '}
                   <span className={settingsStyles.modals.subscription.planPriceSuffix}>
                     {t('perMonth')}
                   </span>
@@ -176,39 +189,36 @@ export function SubscriptionModal({
               ].map((feature) => (
                 <li key={feature} className={settingsStyles.modals.subscription.listItem}>
                   <Check className={settingsStyles.modals.subscription.listIcon} />
-                  <span className={settingsStyles.modals.subscription.listText}>{feature}</span>
+                  <span
+                    className={cn(settingsStyles.modals.subscription.listText, 'wrap-break-word')}
+                  >
+                    {feature}
+                  </span>
                 </li>
               ))}
             </ul>
           </div>
 
-          {/* Premium Plan */}
           <div
             className={cn(
-              `${settingsStyles.modals.subscription.cardBase} relative overflow-hidden`,
+              settingsStyles.modals.subscription.cardBase,
               isPremium
                 ? settingsStyles.modals.subscription.cardActive
                 : settingsStyles.modals.subscription.cardIdle
             )}
           >
-            {/* Premium badge */}
-            <div className={settingsStyles.modals.subscription.premiumBadgeWrap}>
-              <div
-                className={settingsStyles.modals.subscription.premiumBadge}
-                style={settingsStyles.modals.subscription.premiumBadgeStyle}
-              >
-                {t('premium.badge')}
-              </div>
-            </div>
-
             <div className={settingsStyles.modals.subscription.headerRow}>
-              <div>
-                <h3 className={settingsStyles.modals.subscription.premiumTitleRow}>
-                  {t('premium.title')}
-                  <Sparkles className={settingsStyles.modals.subscription.premiumIcon} />
-                </h3>
+              <div className="min-w-0">
+                <div className={settingsStyles.modals.subscription.premiumTitleRow}>
+                  <h3 className={settingsStyles.modals.subscription.planTitle}>
+                    {t('premium.title')}
+                  </h3>
+                  <span className={settingsStyles.modals.subscription.premiumLabelBadge}>
+                    {t('premium.badge')}
+                  </span>
+                </div>
                 <p className={settingsStyles.modals.subscription.planPrice}>
-                  €9.99{' '}
+                  {premiumPrice}{' '}
                   <span className={settingsStyles.modals.subscription.planPriceSuffix}>
                     {t('perMonth')}
                   </span>
@@ -235,7 +245,11 @@ export function SubscriptionModal({
               ].map((feature) => (
                 <li key={feature} className={settingsStyles.modals.subscription.listItem}>
                   <Check className={settingsStyles.modals.subscription.listIcon} />
-                  <span className={settingsStyles.modals.subscription.listText}>{feature}</span>
+                  <span
+                    className={cn(settingsStyles.modals.subscription.listText, 'wrap-break-word')}
+                  >
+                    {feature}
+                  </span>
                 </li>
               ))}
             </ul>
@@ -292,10 +306,7 @@ export function SubscriptionModal({
                 {t('processingButton')}
               </>
             ) : (
-              <>
-                <Sparkles className={settingsStyles.modals.iconSmall} />
-                {t('upgradeButton')}
-              </>
+              t('upgradeButton')
             )}
           </Button>
         )}

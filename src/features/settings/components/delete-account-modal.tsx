@@ -69,7 +69,7 @@ export function DeleteAccountModal({
           </div>
 
           {error && (
-            <div className={settingsStyles.modals.deleteAccount.warningAlert}>
+            <div role="alert" className={settingsStyles.modals.deleteAccount.warningAlert}>
               <AlertTriangle className={settingsStyles.modals.deleteAccount.warningAlertIcon} />
               <span>{error}</span>
             </div>

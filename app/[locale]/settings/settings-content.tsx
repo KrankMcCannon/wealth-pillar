@@ -221,6 +221,7 @@ export default function SettingsContent({
           onOpenChange={setShowSubscriptionModal}
           groupId={currentUser.group_id || ''}
           currentPlan="free"
+          billingCurrency={preferences?.currency ?? 'EUR'}
         />
       )}
     </PageContainer>
