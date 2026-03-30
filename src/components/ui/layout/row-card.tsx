@@ -63,6 +63,13 @@ export interface RowCardProps {
   testId?: string;
   /** Layout compatto (slider conti): una riga per titolo e per sottotitolo, larghezza da contenuto. */
   compact?: boolean;
+  /** Nome accessibile quando la riga è cliccabile (`role="button"`) */
+  interactiveAriaLabel?: string | undefined;
+  /** Override tipografici (es. lista conti allineata a investimenti). */
+  titleClassName?: string | undefined;
+  subtitleClassName?: string | undefined;
+  valueClassName?: string | undefined;
+  secondaryValueClassName?: string | undefined;
 }
 
 /**
@@ -94,6 +101,11 @@ export const RowCard = memo(
     className,
     testId,
     compact = false,
+    interactiveAriaLabel,
+    titleClassName,
+    subtitleClassName,
+    valueClassName,
+    secondaryValueClassName,
   }: RowCardProps) => {
     // Build class names
     const cardClasses = cn(
@@ -142,7 +154,8 @@ export const RowCard = memo(
               className={cn(
                 rowCardStyles.title,
                 compact &&
-                  'overflow-hidden text-ellipsis whitespace-nowrap text-xs font-medium leading-tight'
+                  'overflow-hidden text-ellipsis whitespace-nowrap text-xs font-medium leading-tight',
+                !compact && titleClassName
               )}
             >
               {title}
@@ -152,7 +165,8 @@ export const RowCard = memo(
                 className={cn(
                   rowCardStyles.subtitle,
                   compact &&
-                    'mt-0.5 overflow-hidden text-ellipsis whitespace-nowrap text-[10px] leading-tight text-primary/70'
+                    'mt-0.5 overflow-hidden text-ellipsis whitespace-nowrap text-[10px] leading-tight text-primary/70',
+                  !compact && subtitleClassName
                 )}
               >
                 {subtitle}
@@ -177,13 +191,20 @@ export const RowCard = memo(
                 className={cn(
                   rowCardStyles.value,
                   rowCardStyles.valueVariant[amountVariant],
-                  compact && 'text-sm font-semibold tabular-nums whitespace-nowrap'
+                  compact && 'text-sm font-semibold tabular-nums whitespace-nowrap',
+                  !compact && valueClassName
                 )}
               >
                 {primaryValue}
               </div>
             )}
-            {secondaryValue && <div className={rowCardStyles.secondaryValue}>{secondaryValue}</div>}
+            {secondaryValue && (
+              <div
+                className={cn(rowCardStyles.secondaryValue, !compact && secondaryValueClassName)}
+              >
+                {secondaryValue}
+              </div>
+            )}
             {actions}
           </div>
         )}
@@ -232,6 +253,9 @@ export const RowCard = memo(
           role: 'button',
           tabIndex: 0,
           onKeyDown: handleKeyDown,
+          ...(interactiveAriaLabel !== undefined && interactiveAriaLabel !== ''
+            ? { 'aria-label': interactiveAriaLabel }
+            : {}),
         })}
         data-testid={testId}
       >

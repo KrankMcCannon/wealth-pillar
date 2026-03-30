@@ -12,8 +12,18 @@ import { reportsStyles } from '@/styles/system';
 import {
   AccountHeaderSkeleton,
   AccountListSkeleton,
+  BalanceCardSkeleton,
 } from '@/features/accounts/components/account-skeletons';
 import { SkeletonBox } from '@/components/ui/primitives';
+
+function SectionHeadingSkeleton() {
+  return (
+    <div className="space-y-2">
+      <SkeletonBox height="h-5" width="w-36" />
+      <SkeletonBox height="h-3.5" width="max-w-md" className="w-full" variant="light" />
+    </div>
+  );
+}
 
 export default function AccountsLoading() {
   return (
@@ -22,14 +32,26 @@ export default function AccountsLoading() {
         <AccountHeaderSkeleton />
 
         <main className={reportsStyles.main.container} aria-busy="true">
-          <div className="space-y-5 sm:space-y-6">
-            <div className={reportsStyles.section.surface}>
-              <SkeletonBox height="h-32" variant="medium" />
+          <section className={reportsStyles.section.surfaceQuiet}>
+            <div className="space-y-3 sm:space-y-4">
+              <SectionHeadingSkeleton />
+              <SkeletonBox height="h-32" variant="medium" className="w-full" />
             </div>
-            <div className={reportsStyles.section.surface}>
+          </section>
+          <section className={reportsStyles.section.surface}>
+            <div className="space-y-3 sm:space-y-4">
+              <SectionHeadingSkeleton />
+              <div className={accountStyles.balanceCard.container}>
+                <BalanceCardSkeleton />
+              </div>
+            </div>
+          </section>
+          <section className={reportsStyles.section.surfaceEmphasis}>
+            <div className="space-y-3 sm:space-y-4">
+              <SectionHeadingSkeleton />
               <AccountListSkeleton />
             </div>
-          </div>
+          </section>
         </main>
       </div>
 

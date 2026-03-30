@@ -153,7 +153,7 @@ export const accountStyles = {
   // Accounts List styles
   // ====================================
   accountsList: {
-    container: `${spacingStyles.page.mobile} pb-14`,
+    container: spacingStyles.page.mobile,
     header: accountTokens.components.accountsList.header,
     items: accountTokens.components.accountsList.container,
     addPrompt: accountTokens.components.accountsList.addPrompt,

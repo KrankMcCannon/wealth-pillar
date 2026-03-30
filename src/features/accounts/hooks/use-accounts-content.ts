@@ -126,6 +126,7 @@ export function useAccountsContent({
 
   return {
     currentUser,
+    isMember,
     accountStats,
     sortedAccounts,
     filteredBalances,

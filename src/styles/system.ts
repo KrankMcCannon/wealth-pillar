@@ -198,6 +198,12 @@ export const reportsStyles = {
   section: {
     surface:
       'rounded-2xl border border-primary/15 bg-card/90 shadow-sm ring-1 ring-black/4 dark:ring-white/6 p-3 sm:p-4 md:p-5',
+    /** Sezione secondaria: meno enfasi (filtri, contesto) */
+    surfaceQuiet:
+      'rounded-2xl border border-border/55 bg-muted/20 p-3 sm:p-4 md:p-5 shadow-none ring-0 dark:border-border/50 dark:bg-muted/15',
+    /** Sezione primaria contenuto: leggermente più enfasi rispetto a `surface` */
+    surfaceEmphasis:
+      'rounded-2xl border border-primary/25 bg-card/95 shadow-md ring-1 ring-primary/10 dark:ring-primary/15 p-3 sm:p-4 md:p-5',
     /** Barra intervallo date sticky sotto l’header pagina (thumb-friendly, meno scroll per cambiare filtro) */
     stickyRange:
       'sticky top-0 z-30 -mx-3 mb-1 border-b border-border/50 bg-card/95 px-3 py-2.5 backdrop-blur-md supports-[backdrop-filter]:bg-card/85 sm:-mx-4 sm:px-4',

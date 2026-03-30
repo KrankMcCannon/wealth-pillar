@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib';
 import { useModalState } from '@/lib/navigation/url-state';
+import { usePathname } from '@/i18n/routing';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { useMounted } from '@/hooks/use-mounted';
 import {
@@ -49,6 +50,8 @@ interface ActionMenuProps {
    * Bottom nav: 3 azioni principali; le altre dietro una riga espandibile (secondo tap).
    */
   groupedSecondary?: boolean;
+  /** Testo nativo `title` sul trigger (suggerimento al passaggio / lungo press). */
+  triggerTitle?: string | undefined;
 }
 
 function renderMenuItem(item: ActionMenuItem) {
@@ -74,8 +77,11 @@ export function ActionMenu({
   reverseMobileOrder = false,
   triggerAriaLabel,
   groupedSecondary = false,
+  triggerTitle,
 }: Readonly<ActionMenuProps>) {
   const t = useTranslations('Header.ActionMenu');
+  const pathname = usePathname();
+  const isAccountsRoute = pathname.includes('/accounts');
   const { openModal } = useModalState();
   const isMobile = useMediaQuery('(max-width: 767px)');
   const [secondaryOpen, setSecondaryOpen] = useState(false);
@@ -112,89 +118,74 @@ export function ActionMenu({
     }
   };
 
+  const newTransactionItem: ActionMenuItem = {
+    label: t('newTransaction'),
+    hint: t('hints.newTransaction'),
+    icon: CreditCard,
+    onClick: () => openModal('transaction'),
+  };
+  const newBudgetItem: ActionMenuItem = {
+    label: t('newBudget'),
+    hint: t('hints.newBudget'),
+    icon: PieChart,
+    onClick: () => openModal('budget'),
+  };
+  const newAccountItem: ActionMenuItem = {
+    label: t('newAccount'),
+    hint: t('hints.newAccount'),
+    icon: Wallet,
+    onClick: () => openModal('account'),
+  };
+  const newCategoryItem: ActionMenuItem = {
+    label: t('newCategory'),
+    hint: t('hints.newCategory'),
+    icon: Tag,
+    onClick: () => openModal('category'),
+  };
+  const newInvestmentItem: ActionMenuItem = {
+    label: t('newInvestment'),
+    hint: t('hints.newInvestment'),
+    icon: TrendingUp,
+    onClick: () => openModal('investment'),
+  };
+  const recurringItem: ActionMenuItem = {
+    label: t('recurring'),
+    hint: t('hints.recurring'),
+    icon: RefreshCw,
+    onClick: () => openModal('recurring'),
+  };
+
+  const orderedCreateItems: ActionMenuItem[] = isAccountsRoute
+    ? [
+        newAccountItem,
+        newTransactionItem,
+        newBudgetItem,
+        newCategoryItem,
+        newInvestmentItem,
+        recurringItem,
+      ]
+    : [
+        newTransactionItem,
+        newBudgetItem,
+        newAccountItem,
+        newCategoryItem,
+        newInvestmentItem,
+        recurringItem,
+      ];
+
   /** Stesso ordine di priorità del menu raggruppato (allineato header ↔ bottom nav). */
-  const actionItems: ActionMenuItem[] = [
-    ...extraMenuItems,
-    {
-      label: t('newTransaction'),
-      hint: t('hints.newTransaction'),
-      icon: CreditCard,
-      onClick: () => openModal('transaction'),
-    },
-    {
-      label: t('newBudget'),
-      hint: t('hints.newBudget'),
-      icon: PieChart,
-      onClick: () => openModal('budget'),
-    },
-    {
-      label: t('newAccount'),
-      hint: t('hints.newAccount'),
-      icon: Wallet,
-      onClick: () => openModal('account'),
-    },
-    {
-      label: t('newCategory'),
-      hint: t('hints.newCategory'),
-      icon: Tag,
-      onClick: () => openModal('category'),
-    },
-    {
-      label: t('newInvestment'),
-      hint: t('hints.newInvestment'),
-      icon: TrendingUp,
-      onClick: () => openModal('investment'),
-    },
-    {
-      label: t('recurring'),
-      hint: t('hints.recurring'),
-      icon: RefreshCw,
-      onClick: () => openModal('recurring'),
-    },
-  ];
+  const actionItems: ActionMenuItem[] = [...extraMenuItems, ...orderedCreateItems];
 
   const displayItems = reverseMobileOrder && isMobile ? [...actionItems].reverse() : actionItems;
 
-  const primaryWhenGrouped: ActionMenuItem[] = [
-    {
-      label: t('newTransaction'),
-      hint: t('hints.newTransaction'),
-      icon: CreditCard,
-      onClick: () => openModal('transaction'),
-    },
-    {
-      label: t('newBudget'),
-      hint: t('hints.newBudget'),
-      icon: PieChart,
-      onClick: () => openModal('budget'),
-    },
-    {
-      label: t('newAccount'),
-      hint: t('hints.newAccount'),
-      icon: Wallet,
-      onClick: () => openModal('account'),
-    },
-  ];
+  const primaryWhenGrouped: ActionMenuItem[] = isAccountsRoute
+    ? [newAccountItem, newTransactionItem, newBudgetItem]
+    : [newTransactionItem, newBudgetItem, newAccountItem];
 
   const secondaryWhenGrouped: ActionMenuItem[] = [
-    {
-      label: t('newCategory'),
-      hint: t('hints.newCategory'),
-      icon: Tag,
-      onClick: () => openModal('category'),
-    },
-    {
-      label: t('newInvestment'),
-      hint: t('hints.newInvestment'),
-      icon: TrendingUp,
-      onClick: () => openModal('investment'),
-    },
-    {
-      label: t('recurring'),
-      hint: t('hints.recurring'),
-      icon: RefreshCw,
-      onClick: () => openModal('recurring'),
-    },
+    newCategoryItem,
+    newInvestmentItem,
+    recurringItem,
   ];
 
   const contentPositionProps = groupedSecondary
@@ -209,6 +200,7 @@ export function ActionMenu({
           variant="default"
           size="icon"
           aria-label={triggerAriaLabel ?? t('openMenuAria')}
+          title={triggerTitle}
           className={triggerClassName}
         >
           <Plus className={cn('h-5 w-5', triggerIconClassName)} />
@@ -220,7 +212,7 @@ export function ActionMenu({
             {showFabIntro ? (
               <>
                 <DropdownMenuLabel className="max-w-[min(100vw-2rem,20rem)] text-xs font-normal leading-snug text-muted-foreground">
-                  {t('fabIntro')}
+                  {isAccountsRoute ? t('fabIntroAccounts') : t('fabIntro')}
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
               </>

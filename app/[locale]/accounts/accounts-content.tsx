@@ -8,6 +8,7 @@
  */
 
 import { useMemo } from 'react';
+import { Plus } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { BottomNavigation, PageContainer, Header, SectionHeader } from '@/components/layout';
 import { PageSection } from '@/components/ui/layout';
@@ -15,6 +16,8 @@ import { AccountsList, accountStyles, useAccountsContent } from '@/features/acco
 import { MetricCard } from '@/components/ui/layout';
 import UserSelector from '@/components/shared/user-selector';
 import { ConfirmationDialog } from '@/components/shared/confirmation-dialog';
+import { Button } from '@/components/ui';
+import { useModalState } from '@/lib/navigation/url-state';
 import type { User } from '@/lib/types';
 import type { AccountsPageData } from '@/server/services/page-data.service';
 import { reportsStyles } from '@/styles/system';
@@ -36,7 +39,9 @@ export default function AccountsContent({
 }: AccountsContentProps) {
   const { accounts, accountBalances } = pageData;
   const t = useTranslations('Accounts.Content');
+  const { openModal } = useModalState();
   const {
+    isMember,
     accountStats,
     sortedAccounts,
     filteredBalances,
@@ -68,6 +73,8 @@ export default function AccountsContent({
     [t, accountStats.totalAccounts, accountStats.positiveAccounts, accountStats.negativeAccounts]
   );
 
+  const showBalanceBreakdown = accountStats.totalAccounts > 1;
+
   return (
     <PageContainer>
       <Header
@@ -81,7 +88,7 @@ export default function AccountsContent({
       <main className={reportsStyles.main.container}>
         <section
           aria-labelledby="accounts-section-context"
-          className={reportsStyles.section.surface}
+          className={reportsStyles.section.surfaceQuiet}
         >
           <PageSection className="space-y-3 sm:space-y-4">
             <SectionHeader
@@ -89,13 +96,21 @@ export default function AccountsContent({
               title={t('sectionContextTitle')}
               subtitle={t('sectionContextSubtitle')}
             />
+            {isMember ? (
+              <p
+                className="rounded-lg border border-primary/15 bg-primary/5 px-3 py-2.5 text-sm leading-snug text-primary/90"
+                role="status"
+              >
+                {t('memberViewBanner')}
+              </p>
+            ) : null}
             <UserSelector hideTitle currentUser={currentUser} users={groupUsers} />
           </PageSection>
         </section>
 
         <section
           aria-labelledby="accounts-section-balance"
-          className={`mt-5 sm:mt-6 ${reportsStyles.section.surface}`}
+          className={reportsStyles.section.surface}
         >
           <PageSection className="space-y-3 sm:space-y-4">
             <SectionHeader
@@ -110,9 +125,8 @@ export default function AccountsContent({
                 valueType={accountStats.totalBalance >= 0 ? 'income' : 'expense'}
                 valueSize="lg"
                 size="sm"
-                stats={metricStats}
                 variant="default"
-                isLoading={false}
+                {...(showBalanceBreakdown ? { stats: metricStats } : {})}
               />
             </div>
           </PageSection>
@@ -120,21 +134,32 @@ export default function AccountsContent({
 
         <section
           aria-labelledby="accounts-section-list"
-          className={`mt-5 sm:mt-6 ${reportsStyles.section.surface}`}
+          className={reportsStyles.section.surfaceEmphasis}
         >
           <PageSection className="space-y-3 sm:space-y-4">
             <SectionHeader
               titleId="accounts-section-list"
               title={t('sectionListTitle')}
               subtitle={t('sectionListSubtitle')}
+              actions={
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="shrink-0 gap-1.5"
+                  onClick={() => openModal('account')}
+                >
+                  <Plus className="size-4 shrink-0" aria-hidden />
+                  {t('addAccountCta')}
+                </Button>
+              }
             />
             <AccountsList
               accounts={sortedAccounts}
               accountBalances={filteredBalances}
               onAccountClick={handleEditAccount}
-              onEditAccount={handleEditAccount}
               onDeleteAccount={handleDeleteAccount}
-              isLoading={false}
+              hideListHeading
             />
           </PageSection>
         </section>
@@ -151,7 +176,7 @@ export default function AccountsContent({
         message={
           deleteConfirm.itemToDelete
             ? t('dialogs.delete.message', { name: deleteConfirm.itemToDelete.name })
-            : ''
+            : t('dialogs.delete.messageFallback')
         }
         confirmText={t('dialogs.delete.confirm')}
         cancelText={t('dialogs.delete.cancel')}

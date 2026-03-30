@@ -33,7 +33,7 @@ export default function AccountsError({
     >
       <h1 className="text-center text-lg font-semibold text-primary">{t('title')}</h1>
       <p className="max-w-md text-center text-sm leading-relaxed text-muted-foreground wrap-break-word">
-        {error.message || t('description')}
+        {t('description')}
       </p>
       <div className="flex flex-col gap-3 sm:flex-row">
         <Button onClick={() => reset()} size="default">

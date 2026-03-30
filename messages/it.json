@@ -343,7 +343,7 @@
   "Errors": {
     "groupRequired": "Per usare questa sezione devi far parte di un gruppo. Chiedi a un amministratore di invitarti oppure completa la configurazione dell’account nelle impostazioni.",
     "loadFailedBudgets": "Non siamo riusciti a caricare i budget. Controlla la connessione e riprova.",
-    "loadFailedAccounts": "Non siamo riusciti a caricare i conti. Controlla la connessione e riprova.",
+    "loadFailedAccounts": "Non siamo riusciti a caricare i tuoi conti. Controlla la connessione e riprova: spesso è temporaneo.",
     "loadFailedReports": "Non siamo riusciti a caricare i rapporti. Controlla la connessione e riprova."
   },
   "BudgetsError": {
@@ -353,8 +353,8 @@
     "home": "Torna alla home"
   },
   "AccountsError": {
-    "title": "Non siamo riusciti a caricare i conti",
-    "description": "Controlla la connessione e riprova. Se il problema persiste, torna tra qualche minuto.",
+    "title": "Non siamo riusciti a caricare i tuoi conti",
+    "description": "Qualcosa ha interrotto il caricamento, di solito è temporaneo. Controlla la connessione e tocca Riprova. Se continua, attendi un minuto e riprova: i dati restano al sicuro lato server.",
     "retry": "Riprova",
     "home": "Torna alla home"
   },
@@ -1072,6 +1072,7 @@
     },
     "ActionMenu": {
       "openMenuAria": "Apri menu azioni",
+      "fabIntroAccounts": "Suggerimento: nella pagina Conti, «Nuovo conto» è in cima al menu per un accesso rapido. Apri la riga sotto per categoria, investimento e ricorrenti.",
       "newTransaction": "Nuova Transazione",
       "newBudget": "Nuovo Budget",
       "newCategory": "Nuova Categoria",
@@ -1108,7 +1109,8 @@
     "transactions": "Transazioni",
     "investments": "Investimenti",
     "reports": "Report",
-    "add": "Aggiungi"
+    "add": "Aggiungi",
+    "addFabTitleAccounts": "Aggiungi — in questa pagina «Nuovo conto» è la prima voce del menu"
   },
   "ThemeToggle": {
     "aria": "Cambia tema chiaro o scuro"
@@ -1127,12 +1129,14 @@
     "Content": {
       "headerTitle": "Conti Bancari",
       "headerSubtitle": "{count} {count, plural, one {conto} other {conti}}",
+      "memberViewBanner": "Stai vedendo solo i conti a te associati. Saldi ed elenco riflettono la tua prospettiva: gli amministratori possono cambiare membro con il filtro sopra.",
       "sectionContextTitle": "Membro",
-      "sectionContextSubtitle": "Filtra i conti per membro del gruppo",
+      "sectionContextSubtitle": "Scegli di quali saldi e conti vuoi la panoramica",
       "sectionBalanceTitle": "Saldi",
-      "sectionBalanceSubtitle": "Panoramica rapida sui conti selezionati",
+      "sectionBalanceSubtitle": "Totali riferiti alla selezione sopra",
       "sectionListTitle": "I tuoi conti",
-      "sectionListSubtitle": "Tocca un conto per modificarlo o gestirlo",
+      "sectionListSubtitle": "Tocca una riga per modificare. Scorri verso sinistra per eliminare — come nelle transazioni.",
+      "addAccountCta": "Aggiungi conto",
       "totalBalanceLabel": "Saldo Totale",
       "stats": {
         "total": "Totale",
@@ -1143,6 +1147,7 @@
         "delete": {
           "title": "Elimina Account",
           "message": "Sei sicuro di voler eliminare l'account \"{name}\"? Questa azione non può essere annullata.",
+          "messageFallback": "Eliminare questo conto? L'operazione non può essere annullata.",
           "confirm": "Elimina",
           "cancel": "Annulla"
         }
@@ -1156,8 +1161,8 @@
       }
     },
     "Card": {
+      "ariaOpenAccount": "Apri conto {name}, saldo {balance}",
       "debt": "DEBITO",
-      "edit": "Modifica",
       "delete": "Elimina",
       "accountTypes": {
         "payroll": "Conto Corrente",

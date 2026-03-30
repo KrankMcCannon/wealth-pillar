@@ -8,6 +8,7 @@ import { ActionMenu } from './action-menu';
 
 export function BottomNavigation() {
   const pathname = usePathname();
+  const isAccountsRoute = pathname.includes('/accounts');
   const t = useTranslations('BottomNav');
 
   const navItems = [
@@ -49,6 +50,7 @@ export function BottomNavigation() {
               triggerIconClassName={bottomNavigationStyles.addIcon}
               menuClassName={bottomNavigationStyles.menu}
               triggerAriaLabel={t('add')}
+              triggerTitle={isAccountsRoute ? t('addFabTitleAccounts') : undefined}
             />
           </div>
           <span className={bottomNavigationStyles.addCaption}>{t('add')}</span>

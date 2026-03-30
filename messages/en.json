@@ -343,7 +343,7 @@
   "Errors": {
     "groupRequired": "You need to belong to a group to use this page. Ask an admin to invite you, or finish setting up your account in Settings.",
     "loadFailedBudgets": "We couldn’t load budgets. Check your connection and try again.",
-    "loadFailedAccounts": "We couldn’t load accounts. Check your connection and try again.",
+    "loadFailedAccounts": "We couldn’t load your accounts. Check your connection and try again — it’s usually temporary.",
     "loadFailedReports": "We couldn’t load reports. Check your connection and try again."
   },
   "BudgetsError": {
@@ -353,8 +353,8 @@
     "home": "Back to home"
   },
   "AccountsError": {
-    "title": "We couldn’t load accounts",
-    "description": "Check your connection and try again. If it keeps happening, wait a few minutes and retry.",
+    "title": "We couldn’t load your accounts",
+    "description": "Something interrupted loading your accounts — it’s usually temporary. Check your internet connection, then tap Try again. If it keeps happening, wait a minute and retry; your data stays safe on our side.",
     "retry": "Try again",
     "home": "Back to home"
   },
@@ -1072,6 +1072,7 @@
     },
     "ActionMenu": {
       "openMenuAria": "Open action menu",
+      "fabIntroAccounts": "Tip: while you’re on Accounts, New Account is at the top of this menu for quick access. Expand the row below for category, investment, and recurring options.",
       "newTransaction": "New Transaction",
       "newBudget": "New Budget",
       "newCategory": "New Category",
@@ -1108,7 +1109,8 @@
     "transactions": "Transactions",
     "investments": "Investments",
     "reports": "Reports",
-    "add": "Add"
+    "add": "Add",
+    "addFabTitleAccounts": "Add — New Account is the first option in the menu on this page"
   },
   "ThemeToggle": {
     "aria": "Switch between light and dark theme"
@@ -1127,12 +1129,14 @@
     "Content": {
       "headerTitle": "Bank Accounts",
       "headerSubtitle": "{count} {count, plural, one {account} other {accounts}}",
+      "memberViewBanner": "You’re viewing only your accounts. Balances and the list reflect your member view — admins can switch perspective with the filter above.",
       "sectionContextTitle": "Member",
-      "sectionContextSubtitle": "Filter accounts by group member",
+      "sectionContextSubtitle": "Choose whose accounts and balances you want to see",
       "sectionBalanceTitle": "Balances",
-      "sectionBalanceSubtitle": "Quick overview for the current selection",
+      "sectionBalanceSubtitle": "Totals for the selection above",
       "sectionListTitle": "Your accounts",
-      "sectionListSubtitle": "Tap an account to edit or manage it",
+      "sectionListSubtitle": "Tap a row to edit. Swipe left to delete — same gesture as transactions.",
+      "addAccountCta": "Add account",
       "totalBalanceLabel": "Total Balance",
       "stats": {
         "total": "Total",
@@ -1143,6 +1147,7 @@
         "delete": {
           "title": "Delete account",
           "message": "Are you sure you want to delete the account \"{name}\"? This action cannot be undone.",
+          "messageFallback": "Delete this account? This can’t be undone.",
           "confirm": "Delete",
           "cancel": "Cancel"
         }
@@ -1156,8 +1161,8 @@
       }
     },
     "Card": {
+      "ariaOpenAccount": "Open account {name}, balance {balance}",
       "debt": "DEBT",
-      "edit": "Edit",
       "delete": "Delete",
       "accountTypes": {
         "payroll": "Checking Account",

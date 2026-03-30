@@ -6,6 +6,7 @@
 import { SkeletonList } from '@/components/ui/primitives';
 import { cn } from '@/lib/utils';
 import { SHIMMER_BASE } from '@/lib/utils/ui-constants';
+import { transactionStyles } from '@/styles/system';
 import { accountStyles } from '../theme/account-styles';
 
 /**
@@ -67,30 +68,20 @@ export function BalanceCardSkeleton() {
  * Account list skeleton
  */
 export function AccountListSkeleton() {
+  const ms = transactionStyles.transactionTable.mobile;
+  const cardGroup = cn(ms.cardGroup, 'divide-y divide-primary/[0.06]');
   return (
-    <div className={accountStyles.skeleton.list.container}>
-      <div className={accountStyles.skeleton.list.title} />
-      <SkeletonList
-        count={3}
-        spacing="space-y-3"
-        renderItem={() => (
-          <div className={`${accountStyles.skeleton.list.item} ${SHIMMER_BASE}`}>
-            <div className={accountStyles.skeleton.list.row}>
-              <div className={accountStyles.skeleton.list.left}>
-                <div className={accountStyles.skeleton.list.icon} />
-                <div className={accountStyles.skeleton.list.body}>
-                  <div className={accountStyles.skeleton.list.line} />
-                  <div className={accountStyles.skeleton.list.subline} />
-                </div>
-              </div>
-              <div className={accountStyles.skeleton.list.right}>
-                <div className={accountStyles.skeleton.list.amount} />
-                <div className={accountStyles.skeleton.list.amountSub} />
-              </div>
-            </div>
+    <div className={cardGroup}>
+      {['a', 'b', 'c'].map((key) => (
+        <div key={key} className={cn(ms.skeleton.row, SHIMMER_BASE)}>
+          <div className={ms.skeleton.icon} />
+          <div className={ms.skeleton.body}>
+            <div className={ms.skeleton.line} />
+            <div className={cn(ms.skeleton.lineSub, 'max-w-[40%]')} />
           </div>
-        )}
-      />
+          <div className={ms.skeleton.amount} />
+        </div>
+      ))}
     </div>
   );
 }
