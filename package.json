@@ -50,7 +50,7 @@
     "fuse.js": "^7.1.0",
     "lucide-react": "^0.542.0",
     "luxon": "^3.7.2",
-    "next": "^16.1.1",
+    "next": "^16.2.3",
     "next-intl": "^4.8.2",
     "next-themes": "^0.4.6",
     "nuqs": "^2.8.6",
