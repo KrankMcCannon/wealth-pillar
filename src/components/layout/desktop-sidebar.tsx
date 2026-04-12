@@ -23,6 +23,8 @@ export function DesktopSidebar() {
     pathname.startsWith('/sign-in/') ||
     pathname === '/sign-up' ||
     pathname.startsWith('/sign-up/') ||
+    pathname === '/onboarding' ||
+    pathname.startsWith('/onboarding/') ||
     pathname === '/error' ||
     pathname.startsWith('/error/') ||
     pathname === '/auth' ||

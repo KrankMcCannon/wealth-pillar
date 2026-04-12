@@ -1,28 +1,16 @@
 'use client';
 
+import React from 'react';
 import { Loader2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { AuthCard } from '@/features/auth';
 import { authStyles } from '@/features/auth/theme/auth-styles';
-import OnboardingModal from '@/components/shared/onboarding-modal';
 import { useSSOCallback } from '@/features/auth/hooks/use-sso-callback';
 import { Link } from '@/i18n/routing';
 
-export default function SSOCallback() {
+export default function SSOCallbackPage(): React.JSX.Element {
   const t = useTranslations('Auth.ssoCallback');
-  const { viewState, onboardingError, handleOnboardingComplete, retry } = useSSOCallback();
-
-  if (viewState.type === 'onboarding') {
-    return (
-      <OnboardingModal
-        categories={viewState.categories}
-        categoriesLoading={false}
-        loading={false}
-        error={onboardingError}
-        onComplete={handleOnboardingComplete}
-      />
-    );
-  }
+  const { viewState, retry } = useSSOCallback();
 
   if (viewState.type === 'error') {
     return (
@@ -44,20 +32,20 @@ export default function SSOCallback() {
     );
   }
 
+  const title = viewState.type === 'redirecting' ? t('titleRedirecting') : t('loadingTitle');
+  const subtitle = viewState.type === 'redirecting' ? t('subtitleRedirecting') : t('verifying');
   const loadingMessage =
     viewState.type === 'checking'
       ? t('checking')
-      : viewState.type === 'submitting'
-        ? t('submitting')
-        : viewState.type === 'redirecting'
-          ? t('redirecting')
-          : 'Caricamento...';
+      : viewState.type === 'redirecting'
+        ? t('redirecting')
+        : t('checking');
 
   return (
     <>
       <div className={authStyles.page.bgBlobTop} />
       <div className={authStyles.page.bgBlobBottom} />
-      <AuthCard title={t('loadingTitle')} subtitle={t('verifying')}>
+      <AuthCard title={title} subtitle={subtitle}>
         <div className={authStyles.loading.container}>
           <Loader2 className={authStyles.loading.spinner} />
           <p className={authStyles.loading.text}>{loadingMessage}</p>

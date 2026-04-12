@@ -1,50 +1,74 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
-import { useAuth, useUser, useSignUp, useSignIn } from '@clerk/nextjs';
-import { useTranslations } from 'next-intl';
-import { getAllCategoriesAction } from '@/features/categories/actions/category-actions';
-import {
-  completeOnboardingAction,
-  checkUserExistsAction,
-  deleteClerkUserAction,
-  registerOrphanUserAction,
-} from '@/features/onboarding/actions';
-import type { Category } from '@/lib/types';
-import type { OnboardingPayload } from '@/features/onboarding/types';
+import { useEffect, useReducer, useRef, useCallback } from 'react';
+import { useAuth, useSignUp, useSignIn } from '@clerk/nextjs';
+import { useLocale, useTranslations } from 'next-intl';
+import { checkUserExistsAction } from '@/features/onboarding/actions';
 import type { SignUpResource, SignInResource, SetActive } from '@clerk/shared/types';
+import type { AppLocale } from '@/i18n/routing';
 import { useRouter } from '@/i18n/routing';
 
 // ============================================================================
 // TYPES
 // ============================================================================
 
-export type ViewState =
+export type SSOCallbackViewState =
   | { type: 'checking' }
-  | { type: 'onboarding'; categories: Category[] }
-  | { type: 'submitting' }
   | { type: 'redirecting' }
   | { type: 'error'; message: string };
 
+type PhaseAction =
+  | { type: 'reset' }
+  | { type: 'set_redirecting' }
+  | { type: 'set_error'; message: string };
+
+function phaseReducer(_state: SSOCallbackViewState, action: PhaseAction): SSOCallbackViewState {
+  switch (action.type) {
+    case 'reset':
+      return { type: 'checking' };
+    case 'set_redirecting':
+      return { type: 'redirecting' };
+    case 'set_error':
+      return { type: 'error', message: action.message };
+    default:
+      return { type: 'checking' };
+  }
+}
+
 export interface UseSSOCallbackReturn {
-  viewState: ViewState;
-  onboardingError: string | null;
-  handleOnboardingComplete: (payload: OnboardingPayload) => Promise<void>;
+  viewState: SSOCallbackViewState;
   retry: () => void;
 }
 
 // ============================================================================
-// HELPER FUNCTIONS
+// HELPERS
 // ============================================================================
 
-/**
- * Handles the account transfer flow when a user tries to sign up with an email
- * that already exists in another account (e.g., merging accounts).
- */
+const CLERK_LOAD_TIMEOUT_MS = 5000;
+const SESSION_WAIT_TIMEOUT_MS = 12000;
+const CHECK_USER_EXISTS_TIMEOUT_MS = 45_000;
+
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const id = setTimeout(() => {
+      reject(new Error('timeout'));
+    }, ms);
+    promise.then(
+      (v) => {
+        clearTimeout(id);
+        resolve(v);
+      },
+      (e) => {
+        clearTimeout(id);
+        reject(e);
+      }
+    );
+  });
+}
+
 async function handleTransferFlow(
   signUp: SignUpResource | undefined | null,
   signIn: SignInResource | undefined | null,
   setActive: SetActive | undefined | null
 ): Promise<{ success: boolean; handled: boolean; error?: unknown }> {
-  // Check if there is an external account conflict that is transferable
   const isTransfer =
     signUp?.verifications?.externalAccount?.error?.code === 'external_account_exists';
   const transferStatus = signUp?.verifications?.externalAccount?.status === 'transferable';
@@ -70,61 +94,40 @@ async function handleTransferFlow(
 // ============================================================================
 
 /**
- * Custom hook to handle the SSO callback process.
+ * Post-OAuth: verifica sessione Clerk, utente in DB, poi redirect a home o `/onboarding`.
  *
- * Manages the state machine for:
- * 1. Verifying if the user exists in our database.
- * 2. Handling account transfers (merging).
- * 3. Redirecting existing users to dashboard.
- * 4. Initiating onboarding for new users.
- * 5. Handling errors and timeouts.
- *
- * @returns {UseSSOCallbackReturn} State and handlers for the SSO callback view.
+ * - `AbortController`: in React Strict Mode l’effetto viene smontato; la richiesta annullata
+ *   non deve navigare. Niente `processedUserRef` che può bloccare la seconda esecuzione.
+ * - Navigazione con `location.assign`: evita `router.replace` + `await refresh()` che in dev
+ *   possono non completare; full reload allinea RSC dopo login.
  */
 export function useSSOCallback(): UseSSOCallbackReturn {
   const router = useRouter();
+  const locale = useLocale() as AppLocale;
   const t = useTranslations('Auth.ssoCallback');
   const { isLoaded, isSignedIn, userId } = useAuth();
-  const { user } = useUser();
   const { signUp, setActive } = useSignUp();
   const { signIn } = useSignIn();
 
-  const [viewState, setViewState] = useState<ViewState>({ type: 'checking' });
-  const [onboardingError, setOnboardingError] = useState<string | null>(null);
+  const [viewState, dispatch] = useReducer(phaseReducer, { type: 'checking' });
 
-  // Refs to tracking processing state and external functions to avoid effect dependency loops
-  const processedUserRef = useRef<string | null>(null);
   const signUpRef = useRef(signUp);
   const signInRef = useRef(signIn);
   const setActiveRef = useRef(setActive);
 
-  // Sync refs with latest props
   useEffect(() => {
     signUpRef.current = signUp;
     signInRef.current = signIn;
     setActiveRef.current = setActive;
   }, [signUp, signIn, setActive]);
 
-  /**
-   * Main processing effect.
-   * Handles user verification and routing logic.
-   */
   useEffect(() => {
-    let mounted = true;
+    const ac = new AbortController();
+    const { signal } = ac;
 
     async function processCallback() {
       if (!isLoaded) return;
 
-      // Prevent redundant processing for the same user unless we are in an error state
-      if (
-        processedUserRef.current === userId &&
-        processedUserRef.current !== null &&
-        viewState.type !== 'error'
-      ) {
-        return;
-      }
-
-      // 1. Attempt Transfer Flow
       const transferResult = await handleTransferFlow(
         signUpRef.current,
         signInRef.current,
@@ -132,137 +135,85 @@ export function useSSOCallback(): UseSSOCallbackReturn {
       );
 
       if (transferResult.handled) {
-        if (!transferResult.success && mounted) {
-          setViewState({ type: 'error', message: 'Errore trasferimento account.' });
+        if (!transferResult.success && !signal.aborted) {
+          dispatch({ type: 'set_error', message: t('errorTransferFailed') });
         }
         return;
       }
 
-      // 2. Validate Authentication
       if (!isSignedIn || !userId) return;
 
-      processedUserRef.current = userId;
-
-      // 3. Check User Existence & Onboarding Status
       try {
-        const result = await checkUserExistsAction(userId);
-        if (!mounted) return;
+        let result: Awaited<ReturnType<typeof checkUserExistsAction>>;
+        try {
+          result = await withTimeout(
+            checkUserExistsAction(userId, locale),
+            CHECK_USER_EXISTS_TIMEOUT_MS
+          );
+        } catch (err) {
+          const isTimeout = err instanceof Error && err.message === 'timeout';
+          if (isTimeout) {
+            if (!signal.aborted) {
+              dispatch({ type: 'set_error', message: t('errorOperationTimeout') });
+            }
+            return;
+          }
+          throw err;
+        }
 
-        // Handle database errors
+        if (signal.aborted) return;
+
         if (result.error || !result.data) {
-          setViewState({ type: 'error', message: result.error || 'Errore verifica utente.' });
+          dispatch({
+            type: 'set_error',
+            message: result.error || t('errorVerifyUserFailed'),
+          });
           return;
         }
 
-        // Logic branching: Existing User -> Dashboard | New User -> Onboarding
         if (result.data.exists) {
-          setViewState({ type: 'redirecting' });
-          router.replace('/home');
-        } else {
-          const categoriesResult = await getAllCategoriesAction();
-          if (mounted) {
-            setViewState({ type: 'onboarding', categories: categoriesResult.data || [] });
-          }
+          dispatch({ type: 'set_redirecting' });
+          if (signal.aborted) return;
+          window.location.assign(`/${locale}/home`);
+          return;
         }
+
+        if (signal.aborted) return;
+        window.location.assign(`/${locale}/onboarding`);
       } catch (error) {
         console.error('[SSO] Error:', error);
-        if (mounted) {
-          setViewState({ type: 'error', message: 'Errore verifica.' });
+        if (!signal.aborted) {
+          dispatch({ type: 'set_error', message: t('errorVerifyGeneric') });
         }
       }
     }
 
-    processCallback();
+    processCallback().catch((err) => console.error('[SSO] processCallback:', err));
 
     return () => {
-      mounted = false;
+      ac.abort();
     };
-  }, [isLoaded, isSignedIn, userId, router, viewState.type]);
+  }, [isLoaded, isSignedIn, userId, locale, t]);
 
-  /**
-   * Timeout handling: redirect to sign-in only when Clerk never loaded / user not signed in
-   * (no automatic redirect on error — user must use Riprova or Torna al login).
-   */
+  /** Clerk non carica oppure sessione assente troppo a lungo → redirect login. */
   useEffect(() => {
     if (viewState.type === 'error') return;
-    if (!isLoaded && !isSignedIn) {
-      const timer = setTimeout(() => {
-        router.replace('/sign-in?error=timeout');
-      }, 5000);
-      return () => clearTimeout(timer);
-    }
+    if (isSignedIn && isLoaded) return;
+
+    const delay = !isLoaded ? CLERK_LOAD_TIMEOUT_MS : SESSION_WAIT_TIMEOUT_MS;
+    const timer = setTimeout(() => {
+      router.replace('/sign-in?error=timeout');
+    }, delay);
+
+    return () => clearTimeout(timer);
   }, [viewState.type, isLoaded, isSignedIn, router]);
 
   const retry = useCallback(() => {
-    processedUserRef.current = null;
-    setViewState({ type: 'checking' });
+    dispatch({ type: 'reset' });
   }, []);
-
-  /**
-   * Submits the onboarding form payload.
-   */
-  const handleOnboardingComplete = useCallback(
-    async (payload: OnboardingPayload): Promise<void> => {
-      if (!userId || !user) {
-        setOnboardingError("Impossibile identificare l'utente. Riprova.");
-        return;
-      }
-
-      setViewState({ type: 'submitting' });
-      setOnboardingError(null);
-
-      try {
-        const result = await completeOnboardingAction({
-          user: {
-            clerkId: userId,
-            email: user.primaryEmailAddress?.emailAddress || '',
-            name: user.fullName || user.firstName || user.primaryEmailAddress?.emailAddress || '',
-          },
-          group: payload.group,
-          accounts: payload.accounts,
-          budgets: payload.budgets,
-          budgetStartDay: payload.budgetStartDay,
-        });
-
-        if (result.error) {
-          const isAlreadyConfigured = result.error.includes('già configurato');
-          if (!isAlreadyConfigured) {
-            const deleteResult = await deleteClerkUserAction(userId);
-            if (deleteResult.error) {
-              await registerOrphanUserAction(userId);
-              setOnboardingError(t('orphanSupportMessage'));
-              const categoriesResult = await getAllCategoriesAction();
-              setViewState({ type: 'onboarding', categories: categoriesResult.data || [] });
-              return;
-            }
-          }
-          setOnboardingError(`${result.error}. Riprova.`);
-          const categoriesResult = await getAllCategoriesAction();
-          setViewState({ type: 'onboarding', categories: categoriesResult.data || [] });
-          return;
-        }
-
-        router.replace('/home');
-      } catch (error) {
-        console.error('Onboarding error:', error);
-        const deleteResult = await deleteClerkUserAction(userId);
-        if (deleteResult.error) {
-          await registerOrphanUserAction(userId);
-          setOnboardingError(t('orphanSupportMessage'));
-        } else {
-          setOnboardingError('Errore imprevisto. Riprova.');
-        }
-        const categoriesResult = await getAllCategoriesAction();
-        setViewState({ type: 'onboarding', categories: categoriesResult.data || [] });
-      }
-    },
-    [userId, user, router, t]
-  );
 
   return {
     viewState,
-    onboardingError,
-    handleOnboardingComplete,
     retry,
   };
 }

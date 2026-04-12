@@ -79,13 +79,16 @@ export const BudgetSection = ({
     ? allBudgetEntries.filter((entry) => entry.user.id === selectedViewUserId)
     : allBudgetEntries;
 
+  const totalBudgetRows = budgetEntries.reduce((sum, entry) => sum + entry.budgets.length, 0);
+
   const isInitialLoading = isLoading && budgetEntries.length === 0;
 
   if (isInitialLoading) {
     return <BudgetSectionSkeleton />;
   }
 
-  if (budgetEntries.length === 0) {
+  // Allinea alla pagina /budgets: senza budget configurati non mostrare la card di gruppo "a zero"
+  if (budgetEntries.length === 0 || totalBudgetRows === 0) {
     return (
       <PageSection className={budgetStyles.section.container}>
         <SectionHeader

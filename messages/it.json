@@ -6,11 +6,46 @@
       "retry": "Riprova",
       "backToLogin": "Torna al login",
       "loadingTitle": "Verifica in corso",
+      "titleRedirecting": "Reindirizzamento",
+      "subtitleRedirecting": "Stiamo portandoti alla dashboard",
       "checking": "Verifica account in corso...",
       "submitting": "Configurazione account...",
       "redirecting": "Reindirizzamento...",
       "verifying": "Completamento autenticazione",
-      "orphanSupportMessage": "Si è verificato un errore. Contatta support@wealthpillar.com con il tuo indirizzo email."
+      "orphanSupportMessage": "Si è verificato un errore. Contatta support@wealthpillar.com con il tuo indirizzo email.",
+      "errorUserNotIdentified": "Impossibile identificare l'utente. Riprova.",
+      "errorVerifyUserFailed": "Errore verifica utente.",
+      "errorVerifyGeneric": "Errore verifica.",
+      "errorOperationTimeout": "Operazione troppo lunga. Controlla la connessione e riprova.",
+      "errorUnexpected": "Errore imprevisto. Riprova.",
+      "errorWithRetry": "{error}. Riprova.",
+      "errorTransferFailed": "Errore trasferimento account."
+    }
+  },
+  "Onboarding": {
+    "Actions": {
+      "validation": {
+        "userMissing": "Dati utente mancanti per l'onboarding.",
+        "groupNameRequired": "Il nome del gruppo è obbligatorio.",
+        "accountsRequired": "Aggiungi almeno un conto bancario.",
+        "budgetsInvalid": "Dati budget non validi."
+      },
+      "genericConfigurationFailed": "Configurazione non completata. Riprova.",
+      "alreadyConfigured": "L'utente risulta già configurato. Aggiorna la pagina per accedere alla dashboard.",
+      "createAccountFailed": "Impossibile creare il conto.",
+      "createBudgetFailed": "Impossibile creare il budget.",
+      "deleteClerk": {
+        "missingId": "ID utente Clerk mancante.",
+        "failed": "Eliminazione account non riuscita. Riprova o contatta il supporto."
+      },
+      "registerOrphan": {
+        "failed": "Registrazione non riuscita. Contatta il supporto."
+      },
+      "checkUser": {
+        "missingClerkId": "ID Clerk mancante.",
+        "timeout": "Errore temporaneo. Riprova tra poco.",
+        "verificationFailed": "Errore di verifica account. Riprova o torna al login."
+      }
     }
   },
   "Common": {
@@ -1682,9 +1717,13 @@
     },
     "draft": {
       "title": "Riprendere da dove hai lasciato?",
-      "description": "Abbiamo trovato una configurazione salvata in precedenza.",
-      "restore": "Ripristina",
-      "restart": "Ricomincia"
+      "description": "Abbiamo salvato una bozza su questo dispositivo. Puoi ripristinarla o ricominciare da capo.",
+      "restore": "Ripristina bozza",
+      "restart": "Ricomincia da capo",
+      "toastRestoredTitle": "Bozza ripristinata",
+      "toastRestoredDescription": "Continua da dove avevi lasciato.",
+      "toastDismissedTitle": "Bozza eliminata",
+      "toastDismissedDescription": "Puoi ricominciare la configurazione da capo."
     },
     "buttons": {
       "back": "Indietro",

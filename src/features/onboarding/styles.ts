@@ -62,14 +62,16 @@ export const onboardingStyles = {
     labelRow: 'flex items-center gap-2',
   },
   budgets: {
-    infoBanner: 'bg-blue-50 border border-blue-200 rounded-lg p-3',
-    infoRow: 'flex items-start gap-2',
-    infoIcon: 'h-4 w-4 text-blue-600 mt-0.5 shrink-0',
-    infoBody: 'flex-1',
-    infoTitle: 'text-xs font-semibold text-blue-900',
-    infoText: 'text-xs text-blue-700 mt-1',
-    skipButton:
-      'text-xs px-3 py-1 h-auto bg-blue-100 text-blue-700 hover:bg-blue-200 border-blue-300',
+    infoBanner: 'mb-4 rounded-xl border border-primary/20 bg-primary/5 p-4 text-primary shadow-sm',
+    /** Colonna su mobile, riga su desktop: testo + CTA allineata */
+    infoRow: 'flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4',
+    infoContent: 'flex min-w-0 flex-1 gap-3',
+    infoIcon: 'mt-0.5 h-5 w-5 shrink-0 text-primary/80',
+    infoBody: 'min-w-0 flex-1',
+    infoTitle: 'text-sm font-semibold leading-snug text-primary',
+    infoText: 'mt-1 text-xs leading-relaxed text-primary/70',
+    /** Solo layout; variant/outline sul Button */
+    skipButton: 'w-full shrink-0 sm:w-auto sm:min-w-[7.5rem]',
     loadingIcon: 'h-4 w-4 animate-spin',
     deleteIcon: 'h-4 w-4',
     grid: 'grid grid-cols-1 sm:grid-cols-2 gap-3',
@@ -78,16 +80,19 @@ export const onboardingStyles = {
     addIcon: 'h-4 w-4 mr-2',
   },
   draftRestore: {
+    /** Sopra la card onboarding (stacking + pointer-events) */
     container:
-      'fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-white border border-primary/20 rounded-lg shadow-lg p-4 max-w-md',
+      'pointer-events-auto fixed top-4 left-1/2 z-[10001] w-[min(100%,24rem)] -translate-x-1/2 rounded-2xl border-2 border-primary/20 bg-card p-4 text-card-foreground shadow-2xl backdrop-blur-sm sm:p-5',
     body: 'flex items-start gap-3',
-    icon: 'h-5 w-5 text-primary mt-0.5 shrink-0',
-    content: 'flex-1',
+    icon: 'h-5 w-5 shrink-0 text-primary mt-0.5',
+    content: 'min-w-0 flex-1',
     title: 'text-sm font-semibold text-primary',
-    text: 'text-xs text-primary/70 mt-1',
-    actions: 'flex gap-2 mt-3',
-    primaryButton: 'flex-1 text-xs h-8 bg-primary text-white hover:bg-primary/90',
-    secondaryButton: 'flex-1 text-xs h-8 bg-gray-100 text-gray-700 hover:bg-gray-200',
+    text: 'mt-1 text-xs text-primary/70',
+    actions: 'mt-4 flex flex-col gap-2 sm:flex-row sm:gap-3',
+    primaryButton:
+      'h-9 flex-1 border-2 border-primary/20 bg-primary text-sm font-medium text-primary-foreground hover:bg-primary/90',
+    secondaryButton:
+      'h-9 flex-1 border-2 border-primary/20 bg-card text-sm font-medium text-primary hover:bg-primary/5',
   },
   steps: {
     icon: 'h-5 w-5',

@@ -34,6 +34,9 @@ const isProtectedDashboardRoute = createRouteMatcher([
   '/:locale/settings(.*)',
 ]);
 
+/** Onboarding richiede sessione Clerk ma non ancora il profilo DB. */
+const isOnboardingRoute = createRouteMatcher(['/:locale/onboarding(.*)', '/onboarding(.*)']);
+
 const isServerActionRequest = (request: Request) =>
   request.method === 'POST' && Boolean(request.headers.get('next-action'));
 
@@ -43,12 +46,15 @@ const isApiOrTrpcRequest = (pathname: string) =>
   pathname === '/trpc' ||
   pathname.startsWith('/trpc/');
 
-export default clerkMiddleware(async (auth, request) => {
+const clerkProxy = clerkMiddleware(async (auth, request) => {
   const pathname = request.nextUrl.pathname;
   const isServerAction = isServerActionRequest(request);
 
   const shouldProtect =
-    !isPublicRoute(request) && (isApiOrTrpcRequest(pathname) || isProtectedDashboardRoute(request));
+    !isPublicRoute(request) &&
+    (isApiOrTrpcRequest(pathname) ||
+      isProtectedDashboardRoute(request) ||
+      isOnboardingRoute(request));
 
   if (shouldProtect) {
     await auth.protect();
@@ -62,6 +68,11 @@ export default clerkMiddleware(async (auth, request) => {
 
   return handleI18nRouting(request);
 });
+
+export default clerkProxy;
+
+/** Alias esplicito per convenzione Next.js 16 (`proxy.ts` + export `proxy`). */
+export const proxy = clerkProxy;
 
 export const config = {
   matcher: [

@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { useTranslations } from 'next-intl';
 import {
@@ -30,8 +30,20 @@ import {
 import type { AccountType, Category, BudgetType } from '@/lib/types';
 import type { OnboardingPayload } from '@/features/onboarding/types';
 import { onboardingStyles, getOnboardingProgressStyle } from '@/features/onboarding/styles';
+import {
+  loadDraft,
+  saveDraft,
+  clearDraft,
+  flushDraft,
+  type OnboardingDraftShape,
+  type OnboardingDraftAccount,
+  type OnboardingDraftBudget,
+  type OnboardingDraftPersisted,
+} from '@/features/onboarding/onboarding-draft-storage';
+import { toast } from '@/hooks/use-toast';
 
 interface OnboardingModalProps {
+  userId: string | null;
   categories: Category[];
   onComplete: (data: OnboardingPayload) => Promise<void>;
   loading?: boolean;
@@ -39,61 +51,18 @@ interface OnboardingModalProps {
   categoriesLoading?: boolean;
 }
 
-interface AccountFormState {
-  id: string;
-  name: string;
-  type: AccountType;
-  isDefault?: boolean;
+function createInitialWizardState(): OnboardingDraftShape {
+  return {
+    currentStep: 0,
+    groupName: '',
+    groupDescription: '',
+    budgetStartDay: 1,
+    accounts: [{ id: crypto.randomUUID(), name: '', type: 'payroll', isDefault: true }],
+    budgets: [
+      { id: crypto.randomUUID(), description: '', amount: '', type: 'monthly', categoryId: '' },
+    ],
+  };
 }
-
-interface BudgetFormState {
-  id: string;
-  description: string;
-  amount: string;
-  type: BudgetType;
-  categoryId: string;
-}
-
-interface OnboardingDraft {
-  currentStep: number;
-  groupName: string;
-  groupDescription: string;
-  budgetStartDay: number;
-  accounts: AccountFormState[];
-  budgets: BudgetFormState[];
-}
-
-// LocalStorage key for draft
-const ONBOARDING_DRAFT_KEY = 'onboarding-draft';
-
-// Helper to save draft to localStorage
-const saveDraft = (draft: OnboardingDraft) => {
-  try {
-    localStorage.setItem(ONBOARDING_DRAFT_KEY, JSON.stringify(draft));
-  } catch (err) {
-    console.error('Failed to save onboarding draft:', err);
-  }
-};
-
-// Helper to load draft from localStorage
-const loadDraft = (): OnboardingDraft | null => {
-  try {
-    const saved = localStorage.getItem(ONBOARDING_DRAFT_KEY);
-    return saved ? JSON.parse(saved) : null;
-  } catch (err) {
-    console.error('Failed to load onboarding draft:', err);
-    return null;
-  }
-};
-
-// Helper to clear draft from localStorage
-const clearDraft = () => {
-  try {
-    localStorage.removeItem(ONBOARDING_DRAFT_KEY);
-  } catch (err) {
-    console.error('Failed to clear onboarding draft:', err);
-  }
-};
 
 // Helper for step dots
 function getStepDotClass(index: number, currentStep: number) {
@@ -103,6 +72,7 @@ function getStepDotClass(index: number, currentStep: number) {
 }
 
 export default function OnboardingModal({
+  userId,
   categories,
   onComplete,
   loading = false,
@@ -110,18 +80,124 @@ export default function OnboardingModal({
   categoriesLoading = false,
 }: Readonly<OnboardingModalProps>) {
   const t = useTranslations('OnboardingModal');
-  const [currentStep, setCurrentStep] = useState(0);
-  const [groupName, setGroupName] = useState('');
-  const [groupDescription, setGroupDescription] = useState('');
-  const [budgetStartDay, setBudgetStartDay] = useState<number>(1);
-  const [accounts, setAccounts] = useState<AccountFormState[]>([
-    { id: crypto.randomUUID(), name: '', type: 'payroll', isDefault: true },
-  ]);
-  const [budgets, setBudgets] = useState<BudgetFormState[]>([
-    { id: crypto.randomUUID(), description: '', amount: '', type: 'monthly', categoryId: '' },
-  ]);
+  const initial = useMemo(() => createInitialWizardState(), []);
+
+  const [currentStep, setCurrentStep] = useState(initial.currentStep);
+  const [groupName, setGroupName] = useState(initial.groupName);
+  const [groupDescription, setGroupDescription] = useState(initial.groupDescription);
+  const [budgetStartDay, setBudgetStartDay] = useState<number>(initial.budgetStartDay);
+  const [accounts, setAccounts] = useState<OnboardingDraftAccount[]>(initial.accounts);
+  const [budgets, setBudgets] = useState<OnboardingDraftBudget[]>(initial.budgets);
   const [localError, setLocalError] = useState<string | null>(null);
-  const [showDraftRestore, setShowDraftRestore] = useState(() => Boolean(loadDraft()));
+  const [showDraftRestore, setShowDraftRestore] = useState(false);
+
+  const draftRef = useRef<OnboardingDraftShape | null>(null);
+  const showDraftRestoreRef = useRef(false);
+  useEffect(() => {
+    showDraftRestoreRef.current = showDraftRestore;
+  }, [showDraftRestore]);
+
+  const applyDraftShape = useCallback((draft: OnboardingDraftShape | OnboardingDraftPersisted) => {
+    const shape: OnboardingDraftShape =
+      'v' in draft
+        ? {
+            currentStep: draft.currentStep,
+            groupName: draft.groupName,
+            groupDescription: draft.groupDescription,
+            budgetStartDay: draft.budgetStartDay,
+            accounts: draft.accounts,
+            budgets: draft.budgets,
+          }
+        : draft;
+    setCurrentStep(Math.min(Math.max(shape.currentStep, 0), 2));
+    setGroupName(shape.groupName);
+    setGroupDescription(shape.groupDescription);
+    setBudgetStartDay(shape.budgetStartDay);
+    setAccounts(
+      shape.accounts.length > 0
+        ? shape.accounts
+        : [{ id: crypto.randomUUID(), name: '', type: 'payroll', isDefault: true }]
+    );
+    setBudgets(
+      shape.budgets.length > 0
+        ? shape.budgets
+        : shape.currentStep === 2
+          ? []
+          : [
+              {
+                id: crypto.randomUUID(),
+                description: '',
+                amount: '',
+                type: 'monthly',
+                categoryId: '',
+              },
+            ]
+    );
+  }, []);
+
+  const resetWizardState = useCallback(() => {
+    const next = createInitialWizardState();
+    applyDraftShape(next);
+    setLocalError(null);
+  }, [applyDraftShape]);
+
+  useEffect(() => {
+    const id = window.setTimeout(() => {
+      if (!userId) {
+        setShowDraftRestore(false);
+        return;
+      }
+      setShowDraftRestore(Boolean(loadDraft(userId)));
+    }, 0);
+    return () => clearTimeout(id);
+  }, [userId]);
+
+  useEffect(() => {
+    draftRef.current = {
+      currentStep,
+      groupName,
+      groupDescription,
+      budgetStartDay,
+      accounts,
+      budgets,
+    };
+  }, [currentStep, groupName, groupDescription, budgetStartDay, accounts, budgets]);
+
+  useEffect(() => {
+    if (!userId) return;
+
+    const flush = () => {
+      if (showDraftRestoreRef.current) return;
+      const d = draftRef.current;
+      if (d) flushDraft(userId, d);
+    };
+
+    window.addEventListener('pagehide', flush);
+    const onVisibility = () => {
+      if (document.visibilityState === 'hidden') flush();
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      window.removeEventListener('pagehide', flush);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
+  }, [userId]);
+
+  useEffect(() => {
+    if (!userId) return;
+    const timeout = setTimeout(() => {
+      if (showDraftRestoreRef.current) return;
+      saveDraft(userId, {
+        currentStep,
+        groupName,
+        groupDescription,
+        budgetStartDay,
+        accounts,
+        budgets,
+      });
+    }, 1000);
+    return () => clearTimeout(timeout);
+  }, [userId, currentStep, groupName, groupDescription, budgetStartDay, accounts, budgets]);
 
   const steps = useMemo(
     () => [
@@ -183,40 +259,29 @@ export default function OnboardingModal({
     [t]
   );
 
-  // Auto-save draft whenever state changes (debounced)
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      saveDraft({
-        currentStep,
-        groupName,
-        groupDescription,
-        budgetStartDay,
-        accounts,
-        budgets,
-      });
-    }, 1000); // Debounce by 1 second
-
-    return () => clearTimeout(timeout);
-  }, [currentStep, groupName, groupDescription, budgetStartDay, accounts, budgets]);
-
-  // Restore draft
   const restoreDraft = () => {
-    const draft = loadDraft();
-    if (draft) {
-      setCurrentStep(draft.currentStep);
-      setGroupName(draft.groupName);
-      setGroupDescription(draft.groupDescription);
-      setBudgetStartDay(draft.budgetStartDay);
-      setAccounts(draft.accounts);
-      setBudgets(draft.budgets);
+    if (!userId) return;
+    const draft = loadDraft(userId);
+    if (!draft) {
       setShowDraftRestore(false);
+      return;
     }
+    applyDraftShape(draft);
+    setShowDraftRestore(false);
+    toast({
+      title: t('draft.toastRestoredTitle'),
+      description: t('draft.toastRestoredDescription'),
+    });
   };
 
-  // Dismiss draft restore prompt
   const dismissDraftRestore = () => {
-    clearDraft();
+    if (userId) clearDraft(userId);
+    resetWizardState();
     setShowDraftRestore(false);
+    toast({
+      title: t('draft.toastDismissedTitle'),
+      description: t('draft.toastDismissedDescription'),
+    });
   };
 
   const canProceed = useMemo(() => {
@@ -228,7 +293,6 @@ export default function OnboardingModal({
       return accounts.every((account) => account.name.trim() && account.type);
     }
 
-    // Budget step: Allow proceeding if at least one budget is valid OR if budgets array is empty (skipped)
     if (currentStep === 2) {
       return budgets.every((budget) => {
         const amount = Number.parseFloat(budget.amount);
@@ -262,6 +326,30 @@ export default function OnboardingModal({
     setCurrentStep((prev) => Math.max(prev - 1, 0));
   };
 
+  const buildOnboardingPayload = useCallback(
+    (options?: { emptyBudgets?: boolean }): OnboardingPayload => ({
+      group: {
+        name: groupName.trim(),
+        description: groupDescription.trim(),
+      },
+      accounts: accounts.map((account) => ({
+        name: account.name.trim(),
+        type: account.type,
+        isDefault: account.isDefault || false,
+      })),
+      budgets: options?.emptyBudgets
+        ? []
+        : budgets.map((budget) => ({
+            description: budget.description.trim(),
+            amount: Number.parseFloat(budget.amount),
+            type: budget.type,
+            categories: [budget.categoryId],
+          })),
+      budgetStartDay,
+    }),
+    [groupName, groupDescription, accounts, budgets, budgetStartDay]
+  );
+
   const handleSubmit = async () => {
     if (!canProceed) {
       setLocalError(t('errors.verifyRequiredFields'));
@@ -269,36 +357,78 @@ export default function OnboardingModal({
     }
 
     try {
-      await onComplete({
-        group: {
-          name: groupName.trim(),
-          description: groupDescription.trim(),
-        },
-        accounts: accounts.map((account) => ({
-          name: account.name.trim(),
-          type: account.type,
-          isDefault: account.isDefault || false,
-        })),
-        budgets: budgets.map((budget) => ({
-          description: budget.description.trim(),
-          amount: Number.parseFloat(budget.amount),
-          type: budget.type,
-          categories: [budget.categoryId],
-        })),
-        budgetStartDay,
-      });
+      await onComplete(buildOnboardingPayload());
 
-      // Clear draft on successful completion
-      clearDraft();
+      if (userId) clearDraft(userId);
     } catch (err) {
       setLocalError(err instanceof Error ? err.message : t('errors.saveFailed'));
     }
   };
 
-  // Skip budgets step
-  const handleSkipBudgets = () => {
-    setBudgets([]);
+  const handleSkipBudgets = async () => {
     setLocalError(null);
+    try {
+      await onComplete(buildOnboardingPayload({ emptyBudgets: true }));
+
+      if (userId) clearDraft(userId);
+    } catch (err) {
+      setLocalError(err instanceof Error ? err.message : t('errors.saveFailed'));
+    }
+  };
+
+  const updateAccountField = (
+    index: number,
+    field: keyof OnboardingDraftAccount,
+    value: string
+  ) => {
+    setAccounts((prev) =>
+      prev.map((account, idx) => (idx === index ? { ...account, [field]: value } : account))
+    );
+  };
+
+  const setAccountAsDefault = (index: number) => {
+    setAccounts((prev) =>
+      prev.map((account, idx) => ({
+        ...account,
+        isDefault: idx === index,
+      }))
+    );
+  };
+
+  const addAccount = () => {
+    setAccounts((prev) => [
+      ...prev,
+      { id: crypto.randomUUID(), name: '', type: 'payroll', isDefault: false },
+    ]);
+  };
+
+  const removeAccount = (index: number) => {
+    setAccounts((prev) => {
+      const updated = prev.filter((_, idx) => idx !== index);
+      const removed = prev[index];
+      const firstUpdated = updated[0];
+      if (removed?.isDefault && updated.length > 0 && firstUpdated) {
+        firstUpdated.isDefault = true;
+      }
+      return updated;
+    });
+  };
+
+  const updateBudgetField = (index: number, field: keyof OnboardingDraftBudget, value: string) => {
+    setBudgets((prev) =>
+      prev.map((budget, idx) => (idx === index ? { ...budget, [field]: value } : budget))
+    );
+  };
+
+  const addBudget = () => {
+    setBudgets((prev) => [
+      ...prev,
+      { id: crypto.randomUUID(), description: '', amount: '', type: 'monthly', categoryId: '' },
+    ]);
+  };
+
+  const removeBudget = (index: number) => {
+    setBudgets((prev) => prev.filter((_, idx) => idx !== index));
   };
 
   const renderGroupStep = () => (
@@ -334,46 +464,8 @@ export default function OnboardingModal({
     </div>
   );
 
-  const updateAccountField = (index: number, field: keyof AccountFormState, value: string) => {
-    setAccounts((prev) =>
-      prev.map((account, idx) => (idx === index ? { ...account, [field]: value } : account))
-    );
-  };
-
-  const setAccountAsDefault = (index: number) => {
-    setAccounts((prev) =>
-      prev.map((account, idx) => ({
-        ...account,
-        isDefault: idx === index,
-      }))
-    );
-  };
-
-  const addAccount = () => {
-    setAccounts((prev) => [
-      ...prev,
-      { id: crypto.randomUUID(), name: '', type: 'payroll', isDefault: false },
-    ]);
-  };
-
-  const removeAccount = (index: number) => {
-    setAccounts((prev) => {
-      const updated = prev.filter((_, idx) => idx !== index);
-
-      // If removed account was default, make first account default
-      const removed = prev[index];
-      const firstUpdated = updated[0];
-      if (removed?.isDefault && updated.length > 0 && firstUpdated) {
-        firstUpdated.isDefault = true;
-      }
-
-      return updated;
-    });
-  };
-
   const renderAccountsStep = () => (
     <div className={onboardingStyles.form.section}>
-      {/* Info banner - only if multiple accounts */}
       {accounts.length > 1 && (
         <div className={onboardingStyles.accounts.infoBanner}>
           <Label className={onboardingStyles.label}>{t('fields.accounts.defaultTitle')}</Label>
@@ -389,7 +481,6 @@ export default function OnboardingModal({
                 {t('fields.accounts.cardTitle', { index: index + 1 })}
               </p>
 
-              {/* Star icon for default selection - only if multiple accounts */}
               {accounts.length > 1 && (
                 <button
                   type="button"
@@ -482,36 +573,22 @@ export default function OnboardingModal({
     </div>
   );
 
-  const updateBudgetField = (index: number, field: keyof BudgetFormState, value: string) => {
-    setBudgets((prev) =>
-      prev.map((budget, idx) => (idx === index ? { ...budget, [field]: value } : budget))
-    );
-  };
-
-  const addBudget = () => {
-    setBudgets((prev) => [
-      ...prev,
-      { id: crypto.randomUUID(), description: '', amount: '', type: 'monthly', categoryId: '' },
-    ]);
-  };
-
-  const removeBudget = (index: number) => {
-    setBudgets((prev) => prev.filter((_, idx) => idx !== index));
-  };
-
   const renderBudgetsStep = () => (
     <div className={onboardingStyles.form.section}>
-      {/* Skip budget info */}
       <div className={onboardingStyles.budgets.infoBanner}>
         <div className={onboardingStyles.budgets.infoRow}>
-          <HelpCircle className={onboardingStyles.budgets.infoIcon} />
-          <div className={onboardingStyles.budgets.infoBody}>
-            <p className={onboardingStyles.budgets.infoTitle}>{t('fields.budgets.skipTitle')}</p>
-            <p className={onboardingStyles.budgets.infoText}>{t('fields.budgets.skipInfo')}</p>
+          <div className={onboardingStyles.budgets.infoContent}>
+            <HelpCircle className={onboardingStyles.budgets.infoIcon} aria-hidden />
+            <div className={onboardingStyles.budgets.infoBody}>
+              <p className={onboardingStyles.budgets.infoTitle}>{t('fields.budgets.skipTitle')}</p>
+              <p className={onboardingStyles.budgets.infoText}>{t('fields.budgets.skipInfo')}</p>
+            </div>
           </div>
           {budgets.length > 0 && (
             <Button
               type="button"
+              variant="outline"
+              size="sm"
               onClick={handleSkipBudgets}
               disabled={loading}
               className={onboardingStyles.budgets.skipButton}
@@ -686,60 +763,23 @@ export default function OnboardingModal({
 
   return (
     <div className={onboardingStyles.overlay}>
-      {/* Draft restore banner */}
-      {showDraftRestore && (
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className={onboardingStyles.draftRestore.container}
-        >
-          <div className={onboardingStyles.draftRestore.body}>
-            <HelpCircle className={onboardingStyles.draftRestore.icon} />
-            <div className={onboardingStyles.draftRestore.content}>
-              <p className={onboardingStyles.draftRestore.title}>{t('draft.title')}</p>
-              <p className={onboardingStyles.draftRestore.text}>{t('draft.description')}</p>
-            </div>
-          </div>
-          <div className={onboardingStyles.draftRestore.actions}>
-            <Button
-              type="button"
-              onClick={restoreDraft}
-              className={onboardingStyles.draftRestore.primaryButton}
-            >
-              {t('draft.restore')}
-            </Button>
-            <Button
-              type="button"
-              onClick={dismissDraftRestore}
-              className={onboardingStyles.draftRestore.secondaryButton}
-            >
-              {t('draft.restart')}
-            </Button>
-          </div>
-        </motion.div>
-      )}
-
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ type: 'spring', stiffness: 260, damping: 24 }}
-        className={onboardingStyles.modal}
+        className={`${onboardingStyles.modal} relative`}
       >
         <header className={onboardingStyles.header.container}>
           <div className={onboardingStyles.header.content}>
             <div className={onboardingStyles.header.icon}>
               <StepIcon className={onboardingStyles.steps.icon} />
             </div>
-            <div>
-              {/* Visual step progress indicator with dots */}
+            <div className="min-w-0 flex-1">
               <div className={onboardingStyles.steps.dots}>
                 {steps.map((step, index) => (
                   <div
                     key={step.id}
-                    className={`${onboardingStyles.steps.dot} ${getStepDotClass(
-                      index,
-                      currentStep
-                    )}`}
+                    className={`${onboardingStyles.steps.dot} ${getStepDotClass(index, currentStep)}`}
                   />
                 ))}
               </div>
@@ -795,6 +835,40 @@ export default function OnboardingModal({
           </Button>
         </div>
       </motion.div>
+
+      {showDraftRestore && (
+        <motion.div
+          initial={{ opacity: 0, y: -12 }}
+          animate={{ opacity: 1, y: 0 }}
+          className={onboardingStyles.draftRestore.container}
+        >
+          <div className={onboardingStyles.draftRestore.body}>
+            <HelpCircle className={onboardingStyles.draftRestore.icon} />
+            <div className={onboardingStyles.draftRestore.content}>
+              <p className={onboardingStyles.draftRestore.title}>{t('draft.title')}</p>
+              <p className={onboardingStyles.draftRestore.text}>{t('draft.description')}</p>
+            </div>
+          </div>
+          <div className={onboardingStyles.draftRestore.actions}>
+            <Button
+              type="button"
+              variant="default"
+              onClick={restoreDraft}
+              className="flex-1 sm:h-9"
+            >
+              {t('draft.restore')}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={dismissDraftRestore}
+              className="flex-1 sm:h-9"
+            >
+              {t('draft.restart')}
+            </Button>
+          </div>
+        </motion.div>
+      )}
     </div>
   );
 }

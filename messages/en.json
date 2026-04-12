@@ -6,11 +6,46 @@
       "retry": "Retry",
       "backToLogin": "Back to login",
       "loadingTitle": "Verifying",
+      "titleRedirecting": "Redirecting",
+      "subtitleRedirecting": "Taking you to your dashboard",
       "checking": "Verifying account...",
       "submitting": "Setting up account...",
       "redirecting": "Redirecting...",
       "verifying": "Completing sign in",
-      "orphanSupportMessage": "Something went wrong. Contact support@wealthpillar.com with your email address."
+      "orphanSupportMessage": "Something went wrong. Contact support@wealthpillar.com with your email address.",
+      "errorUserNotIdentified": "We couldn't identify your account. Please try again.",
+      "errorVerifyUserFailed": "Could not verify your account.",
+      "errorVerifyGeneric": "Verification failed.",
+      "errorOperationTimeout": "This is taking too long. Check your connection and try again.",
+      "errorUnexpected": "Something went wrong. Please try again.",
+      "errorWithRetry": "{error}. Please try again.",
+      "errorTransferFailed": "Account transfer failed."
+    }
+  },
+  "Onboarding": {
+    "Actions": {
+      "validation": {
+        "userMissing": "Missing user details for onboarding.",
+        "groupNameRequired": "Group name is required.",
+        "accountsRequired": "Add at least one bank account.",
+        "budgetsInvalid": "Invalid budget data."
+      },
+      "genericConfigurationFailed": "Setup could not be completed. Please try again.",
+      "alreadyConfigured": "Your account is already set up. Refresh the page to open the dashboard.",
+      "createAccountFailed": "Could not create the account.",
+      "createBudgetFailed": "Could not create the budget.",
+      "deleteClerk": {
+        "missingId": "Missing Clerk user ID.",
+        "failed": "Could not remove the account. Try again or contact support."
+      },
+      "registerOrphan": {
+        "failed": "Registration failed. Please contact support."
+      },
+      "checkUser": {
+        "missingClerkId": "Missing Clerk ID.",
+        "timeout": "Temporary error. Please try again in a moment.",
+        "verificationFailed": "Could not verify your account. Try again or return to login."
+      }
     }
   },
   "Common": {
@@ -1682,9 +1717,13 @@
     },
     "draft": {
       "title": "Resume from where you left off?",
-      "description": "We found a previously saved setup.",
-      "restore": "Restore",
-      "restart": "Start over"
+      "description": "We saved a draft on this device. You can restore it or start again from scratch.",
+      "restore": "Restore draft",
+      "restart": "Start over",
+      "toastRestoredTitle": "Draft restored",
+      "toastRestoredDescription": "Continue where you left off.",
+      "toastDismissedTitle": "Draft removed",
+      "toastDismissedDescription": "You can set up your space from scratch."
     },
     "buttons": {
       "back": "Back",

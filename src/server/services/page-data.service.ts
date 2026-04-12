@@ -24,6 +24,29 @@ import { toDateTime } from '@/lib/utils/date-utils';
 import { DateTime } from 'luxon';
 
 /**
+ * Next.js può abortire fetch server-side quando una navigazione sostituisce la richiesta RSC;
+ * Supabase propaga `AbortError` / messaggi "operation was aborted". Non è un fallimento da loggare.
+ */
+function isRequestAbortError(error: unknown): boolean {
+  if (error == null) return false;
+  const name =
+    typeof error === 'object' && error !== null && 'name' in error
+      ? String((error as { name?: string }).name)
+      : '';
+  const message =
+    typeof error === 'string'
+      ? error
+      : typeof error === 'object' && error !== null && 'message' in error
+        ? String((error as { message?: string }).message)
+        : '';
+  return (
+    name === 'AbortError' ||
+    message.includes('AbortError') ||
+    /this operation was aborted/i.test(message)
+  );
+}
+
+/**
  * Page Data Service
  *
  * Centralized service for fetching page-level data with optimal parallel loading.
@@ -97,7 +120,9 @@ export class PageDataService {
     try {
       return await promise;
     } catch (e) {
-      console.error(`[PageDataService] ${context}:`, e);
+      if (!isRequestAbortError(e)) {
+        console.error(`[PageDataService] ${context}:`, e);
+      }
       return fallback;
     }
   }
@@ -120,7 +145,9 @@ export class PageDataService {
       groupUsers = await getGroupUsersByGroupIdDeduped(groupId);
       userIds = groupUsers.map((u) => u.id);
     } catch (error) {
-      console.error('[PageDataService] Failed to fetch group users:', error);
+      if (!isRequestAbortError(error)) {
+        console.error('[PageDataService] Failed to fetch group users:', error);
+      }
     }
 
     // 2. Parallel Fetch: Metadata + Paginated Transactions + Balances + Investments
@@ -211,7 +238,9 @@ export class PageDataService {
         return TransactionService.getGroupUserCategorySpending(groupId, start, end)
           .then((data) => data.filter((r) => r.user_id === userId)) // Filter strictly for safety
           .catch((e) => {
-            console.error(`[PageDataService] Aggregation failed for user ${userId}:`, e);
+            if (!isRequestAbortError(e)) {
+              console.error(`[PageDataService] Aggregation failed for user ${userId}:`, e);
+            }
             return [];
           });
       })
@@ -323,10 +352,12 @@ export class PageDataService {
       groupUsers = await getGroupUsersByGroupIdDeduped(groupId);
       userIds = groupUsers.map((u) => u.id);
     } catch (error) {
-      console.error(
-        '[PageDataService] Failed to fetch group users:',
-        error instanceof Error ? error.message : error
-      );
+      if (!isRequestAbortError(error)) {
+        console.error(
+          '[PageDataService] Failed to fetch group users:',
+          error instanceof Error ? error.message : error
+        );
+      }
     }
 
     // 2. Fetch Metadata and active periods (batch load)
@@ -388,7 +419,9 @@ export class PageDataService {
         return TransactionService.getGroupUserCategorySpending(groupId, start, end)
           .then((data) => data.filter((r) => r.user_id === userId))
           .catch((e) => {
-            console.error(`[PageDataService] Aggregation failed for user ${userId}:`, e);
+            if (!isRequestAbortError(e)) {
+              console.error(`[PageDataService] Aggregation failed for user ${userId}:`, e);
+            }
             return [];
           });
       })
@@ -425,7 +458,9 @@ export class PageDataService {
       startDate: minDate ?? undefined,
       endDate: maxDate ?? undefined,
     }).catch((e) => {
-      console.error('[PageDataService] Failed to fetch transactions:', e);
+      if (!isRequestAbortError(e)) {
+        console.error('[PageDataService] Failed to fetch transactions:', e);
+      }
       return { data: [] as Transaction[], total: 0, hasMore: false };
     });
 
