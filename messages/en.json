@@ -1339,6 +1339,7 @@
         "saved": "Saved"
       },
       "noActivePeriodAlert": "No active period. Start a new period to track budget spending.",
+      "closePeriodSalaryHint": "Pick an end date on the day before your salary is credited: that keeps the budget period aligned with your cash flow so the next period can start on payday.",
       "buttons": {
         "closePeriod": "Close period",
         "startNewPeriod": "Start new period",

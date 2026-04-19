@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
-import { Clock, TrendingUp, TrendingDown, Activity, Users } from 'lucide-react';
+import { Clock, TrendingUp, TrendingDown, Activity, Users, Info } from 'lucide-react';
 import { BudgetPeriod, User } from '@/lib/types';
 import { startPeriodAction, closePeriodAction, getPeriodPreviewAction } from '@/features/budgets';
 import { FormActions } from '@/components/form';
@@ -312,6 +312,13 @@ export function BudgetPeriodManager({
                         </p>
                       </div>
                     </div>
+
+                    <Alert className={budgetStyles.periodManager.closeHintAlert}>
+                      <Info className="h-4 w-4" aria-hidden />
+                      <AlertDescription className={budgetStyles.periodManager.alertText}>
+                        {t('closePeriodSalaryHint')}
+                      </AlertDescription>
+                    </Alert>
 
                     {/* End Date Selection */}
                     <div className={budgetStyles.periodManager.dateFieldWrap}>

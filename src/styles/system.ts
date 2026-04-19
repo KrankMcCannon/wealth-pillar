@@ -715,6 +715,7 @@ export const budgetStyles = {
     metricValueSaved: 'text-base sm:text-lg font-bold text-primary',
     dateFieldWrap: 'space-y-2 overflow-hidden',
     alertText: 'text-primary font-medium',
+    closeHintAlert: 'border-primary/20 bg-primary/5 text-primary',
   },
   periodCard: {
     container:

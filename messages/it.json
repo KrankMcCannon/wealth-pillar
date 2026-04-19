@@ -1339,6 +1339,7 @@
         "saved": "Risparmiato"
       },
       "noActivePeriodAlert": "Nessun periodo attivo. Inizia un nuovo periodo per tracciare le spese del budget.",
+      "closePeriodSalaryHint": "Scegli come data di fine il giorno precedente all'accredito dello stipendio: così il periodo budget resta allineato al flusso di cassa e il nuovo periodo può iniziare dal giorno della busta paga.",
       "buttons": {
         "closePeriod": "Chiudi periodo",
         "startNewPeriod": "Inizia nuovo periodo",
