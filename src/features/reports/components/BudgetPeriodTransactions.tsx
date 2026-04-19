@@ -4,7 +4,7 @@ import { ArrowUpRight, ArrowDownRight, ArrowLeftRight } from 'lucide-react';
 import { Amount } from '@/components/ui/primitives';
 import { reportsStyles, getBudgetPeriodTransactionIconStyle } from '@/styles/system';
 import type { Transaction, Category } from '@/lib/types';
-import { FinanceLogicService } from '@/server/services/finance-logic.service';
+import { getCategoryLabel, getCategoryColor } from '@/server/use-cases/categories/category.logic';
 import { formatDateShort } from '@/lib/utils';
 import { useTranslations } from 'next-intl';
 
@@ -53,14 +53,8 @@ export function BudgetPeriodTransactions({
         ) : (
           <div className={styles.transactionsList}>
             {transactions?.map((transaction) => {
-              const categoryLabel = FinanceLogicService.getCategoryLabel(
-                categories,
-                transaction.category
-              );
-              const categoryColor = FinanceLogicService.getCategoryColor(
-                categories,
-                transaction.category
-              );
+              const categoryLabel = getCategoryLabel(categories, transaction.category);
+              const categoryColor = getCategoryColor(categories, transaction.category);
 
               const TransactionIcon =
                 transaction.type === 'income'

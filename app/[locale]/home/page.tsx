@@ -7,7 +7,7 @@
 
 import { Suspense } from 'react';
 import { requirePageAuth } from '@/lib/auth/page-auth';
-import { PageDataService } from '@/server/services';
+import { getDashboardPageData } from '@/server/use-cases';
 import HomeContent from './home-content';
 import HomePageLoading from './loading';
 
@@ -16,12 +16,10 @@ export default async function HomePage({
 }: Readonly<{ params: Promise<{ locale: string }> }>) {
   const { currentUser, groupUsers } = await requirePageAuth(params);
 
-  const dashboardDataPromise = PageDataService.getDashboardData(currentUser.group_id || '').catch(
-    (err) => {
-      const message = err instanceof Error ? err.message : 'Errore nel caricamento della dashboard';
-      throw new Error(message, { cause: err });
-    }
-  );
+  const dashboardDataPromise = getDashboardPageData(currentUser.group_id || '').catch((err) => {
+    const message = err instanceof Error ? err.message : 'Errore nel caricamento della dashboard';
+    throw new Error(message, { cause: err });
+  });
 
   return (
     <Suspense fallback={<HomePageLoading />}>

@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import type { User, Budget, Transaction, BudgetPeriod, UserBudgetSummary } from '@/lib/types';
-import { FinanceLogicService } from '@/server/services/finance-logic.service';
+import { buildBudgetsByUserPure } from '@/server/use-cases/budgets/budget.logic';
 import { isMember as checkIsMember } from '@/lib/utils';
 
 /**
@@ -80,12 +80,7 @@ export function useBudgetsByUser({
     }
 
     // Use pure logic service
-    return FinanceLogicService.buildBudgetsByUserPure(
-      usersToInclude,
-      budgets,
-      transactions,
-      budgetPeriods
-    );
+    return buildBudgetsByUserPure(usersToInclude, budgets, transactions, budgetPeriods);
   }, [usersToInclude, budgets, transactions, budgetPeriods, precalculatedData]);
 
   const userIds = useMemo(() => Object.keys(budgetsByUser), [budgetsByUser]);

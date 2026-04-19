@@ -1,11 +1,11 @@
 import { useState, useMemo, useCallback } from 'react';
 import { toDateTime } from '@/lib/utils';
-import type { EnrichedBudgetPeriod } from '@/server/services/report-period.service';
+import { BudgetPeriod } from '@/lib/types';
 
 /**
  * Extended type including optional transaction count sometimes appended by server/parent
  */
-export type ReportsBudgetPeriod = EnrichedBudgetPeriod & { transactionCount?: number };
+export type ReportsBudgetPeriod = BudgetPeriod & { transactionCount?: number };
 
 interface UseBudgetPeriodsOptions {
   periods: ReportsBudgetPeriod[];

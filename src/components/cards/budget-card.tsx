@@ -10,9 +10,10 @@ import { CategoryBadge, StatusBadge, Text } from '@/components/ui';
 import type { Budget } from '@/lib';
 import { progressBarVariants, progressFillVariants } from '@/lib';
 import { formatCurrency } from '@/lib/utils/currency-formatter';
+import { cn } from '@/lib/utils';
 import { cardStyles, getBudgetProgressStyle, getBudgetStatusTextClass } from './theme/card-styles';
 import { useCategories } from '@/stores/reference-data-store';
-import { FinanceLogicService } from '@/server/services/finance-logic.service';
+import { getCategoryColor } from '@/server/use-cases/categories/category.logic';
 
 interface BudgetCardProps {
   budget: Budget;
@@ -33,7 +34,7 @@ export const BudgetCard = memo(function BudgetCard({
   const t = useTranslations('Budgets.Card');
   const categories = useCategories();
   const categoryColor = useMemo(() => {
-    return FinanceLogicService.getCategoryColor(categories, budget.categories?.[0] || 'altro');
+    return getCategoryColor(categories, budget.categories?.[0] || 'altro');
   }, [categories, budget.categories]);
   // Status calculation (centralized logic)
   const getStatusVariant = (progress: number): 'success' | 'warning' | 'danger' => {
@@ -62,37 +63,58 @@ export const BudgetCard = memo(function BudgetCard({
           />
 
           <div className={cardStyles.budget.content}>
-            {/* Budget title */}
-            <Text variant="primary" size="sm" className={cardStyles.budget.title}>
+            {/* Budget title - Improved mobile visibility */}
+            <h4 className="font-bold text-[14px] sm:text-[16px] leading-snug text-primary/90 line-clamp-3 mb-1.5 wrap-break-word">
               {budget.description}
-            </Text>
+            </h4>
 
             {/* Progress badge */}
-            <StatusBadge
-              status={status}
-              size="sm"
-              showDot
-              className={cardStyles.budget.statusBadge}
-            >
-              {Math.round(progress)}%
-            </StatusBadge>
+            <div className="flex items-center gap-2">
+              <StatusBadge
+                status={status}
+                size="sm"
+                showDot
+                className={cardStyles.budget.statusBadge}
+              >
+                {Math.round(progress)}%
+              </StatusBadge>
+            </div>
           </div>
         </div>
 
         <div className={cardStyles.budget.right}>
           {/* Remaining amount */}
-          <Text variant="emphasis" size="sm" className={getBudgetStatusTextClass(status)}>
-            {formatCurrency(remaining)}
-          </Text>
-          <div className="flex flex-col items-end">
-            <Text variant="subtle" size="xs">
-              {t('ofPrefix')} {formatCurrency(budget.amount)}
+          <div className="flex flex-col items-end gap-0.5">
+            <Text
+              variant="subtle"
+              size="xs"
+              className="uppercase tracking-wider font-semibold leading-none text-muted-foreground"
+              style={{ fontSize: '9px' }}
+            >
+              {status === 'danger' ? t('exceededTitle') : t('remainingTitle')}
             </Text>
-            {budgetInfo && (
-              <Text variant="subtle" size="xs" className="text-muted-foreground/70">
-                {t('spentPrefix')} {formatCurrency(budgetInfo.spent)}
-              </Text>
-            )}
+            <Text
+              variant="emphasis"
+              size="sm"
+              className={cn(getBudgetStatusTextClass(status), 'leading-none font-black')}
+            >
+              {formatCurrency(Math.abs(remaining))}
+            </Text>
+          </div>
+
+          {/* Speso · Totale compact inline */}
+          <div className="flex items-center gap-1.5 mt-1">
+            <span className="text-[8px] uppercase tracking-tighter text-muted-foreground font-semibold">
+              {t('spentPrefix')}{' '}
+              <span className="text-primary/70 font-bold">
+                {formatCurrency(budgetInfo?.spent ?? 0)}
+              </span>
+            </span>
+            <span className="text-muted-foreground/40 text-[8px]">·</span>
+            <span className="text-[8px] uppercase tracking-tighter text-muted-foreground font-semibold">
+              {t('totalPrefix')}{' '}
+              <span className="text-primary/80 font-bold">{formatCurrency(budget.amount)}</span>
+            </span>
           </div>
         </div>
       </div>

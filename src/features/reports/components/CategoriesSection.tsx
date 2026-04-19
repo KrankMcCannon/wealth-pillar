@@ -1,6 +1,6 @@
 'use client';
 
-import type { CategoryStat } from '@/server/services/reports.service';
+import type { CategoryStat } from '@/server/use-cases/reports/reports.use-cases';
 import { PieChart } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useFormatCurrency } from '@/features/reports/hooks/use-format-currency';

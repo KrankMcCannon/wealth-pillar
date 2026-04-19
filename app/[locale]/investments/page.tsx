@@ -4,7 +4,8 @@ import InvestmentsContent from './investments-content';
 import { PageLoader } from '@/components/shared';
 import { requirePageAuth } from '@/lib/auth/page-auth';
 import { withTimeout } from '@/lib/utils/with-timeout';
-import { InvestmentService, MarketDataService } from '@/server/services';
+import { getPortfolioUseCase } from '@/server/use-cases/investments/investment.use-cases';
+import { getMarketDataUseCase } from '@/server/use-cases/market-data/market-data.use-cases';
 
 export default async function InvestmentsPage(props: {
   params: Promise<{ locale: string }>;
@@ -19,11 +20,11 @@ export default async function InvestmentsPage(props: {
   const indexSymbol = typeof searchParams.index === 'string' ? searchParams.index : 'IVV';
 
   const investmentsDataPromise = Promise.all([
-    InvestmentService.getPortfolio(currentUser.id),
+    getPortfolioUseCase(currentUser.id),
     withTimeout(
-      MarketDataService.getCachedMarketData(indexSymbol),
+      getMarketDataUseCase(indexSymbol),
       1500,
-      [] as Awaited<ReturnType<typeof MarketDataService.getCachedMarketData>>
+      [] as Awaited<ReturnType<typeof getMarketDataUseCase>>
     ),
   ])
     .then(([portfolioData, indexData]) => ({

@@ -1,8 +1,8 @@
 import { SectionHeader } from '@/components/layout';
-import { ListContainer, PageSection, SettingsItem } from '@/components/ui/layout';
+import { UserPreferences } from '@/lib/types';
 import { Bell, Mail } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { UserPreferences } from '@/server/services';
+import { ListContainer, PageSection, SettingsItem } from '@/components/ui/layout';
 
 interface NotificationsSectionProps {
   preferences: UserPreferences | null;

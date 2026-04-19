@@ -22,7 +22,10 @@ import { Trash2, Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatCurrency } from '@/lib/utils';
 import { formatDateSmart, toDateTime } from '@/lib/utils/date-utils';
-import { FinanceLogicService } from '@/server/services/finance-logic.service';
+import {
+  getCategoryLabel as getCategoryLabelLogic,
+  getCategoryColor as getCategoryColorLogic,
+} from '@/server/use-cases/categories/category.logic';
 import { CategoryBadge } from '@/components/ui/category-badge';
 import { TransactionLogic } from '@/lib/utils/transaction-logic';
 import {
@@ -489,11 +492,11 @@ function TransactionTableInner({
   const ms = s.mobile;
 
   const getCategoryLabel = useCallback(
-    (key: string) => FinanceLogicService.getCategoryLabel(categories, key),
+    (key: string) => getCategoryLabelLogic(categories, key),
     [categories]
   );
   const getCategoryColor = useCallback(
-    (key: string) => FinanceLogicService.getCategoryColor(categories, key),
+    (key: string) => getCategoryColorLogic(categories, key),
     [categories]
   );
 

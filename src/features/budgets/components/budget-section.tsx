@@ -184,19 +184,40 @@ export const BudgetSection = ({
                       ) : undefined
                     }
                     primaryValue={
-                      <div className="flex flex-col items-end">
-                        <div className={budgetStyles.section.amount}>
-                          <span
-                            className={`${totalRemaining >= 0 ? 'text-success' : 'text-destructive'}`}
-                          >
-                            {formatCurrency(totalRemaining)}
+                      <div className="flex flex-col items-end gap-1 pr-0.5">
+                        {/* Label + main amount */}
+                        <div className="flex flex-col items-end">
+                          <span className="text-[9px] font-bold tracking-widest uppercase text-muted-foreground leading-none mb-0.5">
+                            {totalRemaining >= 0
+                              ? t('availablePrefix', { defaultValue: 'DISPONIBILE' })
+                              : t('exceededPrefix', { defaultValue: 'SFORAMENTO' })}
                           </span>
-                          <span className={budgetStyles.section.amountDivider}> / </span>
-                          <span>{formatCurrency(totalBudget)}</span>
+                          <span
+                            className={cn(
+                              'text-base sm:text-lg font-black tracking-tight leading-none',
+                              totalRemaining >= 0 ? 'text-success' : 'text-destructive'
+                            )}
+                          >
+                            {formatCurrency(Math.abs(isNaN(totalRemaining) ? 0 : totalRemaining))}
+                          </span>
                         </div>
-                        <span className="text-[11px] font-medium leading-snug text-muted-foreground sm:text-xs">
-                          {t('spentPrefix')} {formatCurrency(totalSpent)}
-                        </span>
+
+                        {/* Speso / Totale compact inline */}
+                        <div className="flex items-center gap-2">
+                          <span className="text-[9px] text-muted-foreground font-semibold tracking-wide uppercase">
+                            {t('spentPrefix', { defaultValue: 'SPESO' })}{' '}
+                            <span className="text-primary/70 font-bold">
+                              {formatCurrency(isNaN(totalSpent) ? 0 : totalSpent)}
+                            </span>
+                          </span>
+                          <span className="text-muted-foreground/40 text-[9px]">·</span>
+                          <span className="text-[9px] text-muted-foreground font-semibold tracking-wide uppercase">
+                            {t('totalPrefix', { defaultValue: 'TOT' })}{' '}
+                            <span className="text-primary/80 font-bold">
+                              {formatCurrency(isNaN(totalBudget) ? 0 : totalBudget)}
+                            </span>
+                          </span>
+                        </div>
                       </div>
                     }
                     rightLayout="row"

@@ -26,7 +26,7 @@ import { BudgetPeriodManager, BudgetSection } from '@/features/budgets';
 import { RecurringSeriesSection } from '@/features/recurring';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import type { User } from '@/lib/types';
-import type { DashboardPageData } from '@/server/services/page-data.service';
+import type { DashboardPageData } from '@/server/use-cases/pages/dashboard.use-case';
 import { cn } from '@/lib/utils';
 
 const RECURRING_MAX_MOBILE = 5;

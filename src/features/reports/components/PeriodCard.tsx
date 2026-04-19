@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { useFormatCurrency } from '@/features/reports/hooks/use-format-currency';
-import type { ReportPeriodSummary } from '@/server/services/reports.service';
+import type { ReportPeriodSummary } from '@/server/use-cases/reports/reports.use-cases';
 import { sortAccountMetrics } from '@/features/reports/utils';
 import { useTranslations } from 'next-intl';
 import { ChevronDown } from 'lucide-react';

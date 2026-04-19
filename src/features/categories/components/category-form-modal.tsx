@@ -7,7 +7,11 @@ import { z } from 'zod';
 import { useLocale, useTranslations } from 'next-intl';
 import { Category, cn } from '@/lib';
 import { getTempId } from '@/lib/utils/temp-id';
-import { FinanceLogicService } from '@/server/services/finance-logic.service';
+import {
+  isValidColor,
+  getDefaultColor,
+  getColorPalette,
+} from '@/server/use-cases/categories/category.logic';
 import { categoryStyles, getCategoryColorStyle } from '../theme/category-styles';
 import { createCategoryAction, updateCategoryAction } from '@/features/categories';
 import { ModalWrapper, ModalBody, ModalFooter, ModalSection } from '@/components/ui/modal-wrapper';
@@ -55,7 +59,7 @@ function CategoryFormModal({ isOpen, onClose, editId }: Readonly<CategoryFormMod
           .string()
           .min(1, t('validation.colorRequired'))
           .trim()
-          .refine((val) => FinanceLogicService.isValidColor(val), {
+          .refine((val) => isValidColor(val), {
             message: t('validation.colorInvalid'),
           }),
       }),
@@ -77,7 +81,7 @@ function CategoryFormModal({ isOpen, onClose, editId }: Readonly<CategoryFormMod
       label: '',
       key: '',
       icon: '',
-      color: FinanceLogicService.getDefaultColor(),
+      color: getDefaultColor(),
     },
   });
 
@@ -86,7 +90,7 @@ function CategoryFormModal({ isOpen, onClose, editId }: Readonly<CategoryFormMod
   const watchedIcon = useWatch({ control, name: 'icon' });
 
   // Get color palette from CategoryService
-  const colorPalette = useMemo(() => FinanceLogicService.getColorPalette(), []);
+  const colorPalette = useMemo(() => getColorPalette(), []);
 
   // Load category data for edit mode
   useEffect(() => {
@@ -108,7 +112,7 @@ function CategoryFormModal({ isOpen, onClose, editId }: Readonly<CategoryFormMod
         label: '',
         key: '',
         icon: '',
-        color: FinanceLogicService.getDefaultColor(),
+        color: getDefaultColor(),
       });
     }
   }, [isOpen, isEditMode, editId, reset, storeCategories]);

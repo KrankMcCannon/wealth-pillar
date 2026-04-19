@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { ListContainer, PageSection, RowCard, SectionHeader, CategoryBadge } from '@/components/ui';
 import { Amount } from '@/components/ui/primitives';
-import { FinanceLogicService } from '@/server/services/finance-logic.service';
+import { getCategoryLabel, getCategoryColor } from '@/server/use-cases/categories/category.logic';
 import { reportsStyles, getAnnualCategoryBarStyle } from '@/styles/system';
 import { cn } from '@/lib/utils';
 import type { Category, CategoryBreakdownItem } from '@/lib/types';
@@ -51,8 +51,8 @@ export function AnnualCategorySection({
       >
         <ListContainer className={reportsStyles.annualCategory.list}>
           {spendingCategories.map((item) => {
-            const categoryLabel = FinanceLogicService.getCategoryLabel(categories, item.category);
-            const categoryColor = FinanceLogicService.getCategoryColor(categories, item.category);
+            const categoryLabel = getCategoryLabel(categories, item.category);
+            const categoryColor = getCategoryColor(categories, item.category);
 
             // Calculate width for relative bar based on net amount
             const barWidth = maxSpending > 0 ? Math.max((item.net / maxSpending) * 100, 2) : 0;

@@ -2,11 +2,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { TransactionLogic } from './transaction-logic';
 import type { Transaction, CategoryBreakdownItem } from '@/lib/types';
 
-// Mock FinanceLogicService
-vi.mock('@/server/services/finance-logic.service', () => ({
-  FinanceLogicService: {
-    calculateCategoryBreakdown: vi.fn(),
-  },
+// Mock transaction.logic
+vi.mock('@/server/use-cases/transactions/transaction.logic', () => ({
+  calculateCategoryBreakdown: vi.fn(),
 }));
 
 // Mock date-utils
@@ -30,7 +28,7 @@ vi.mock('@/lib/utils/date-utils', () => ({
   }),
 }));
 
-import { FinanceLogicService } from '@/server/services/finance-logic.service';
+import { calculateCategoryBreakdown } from '@/server/use-cases/transactions/transaction.logic';
 
 // Factory helper for creating mock transactions
 function createMockTransaction(overrides: Partial<Transaction> = {}): Transaction {
@@ -66,7 +64,7 @@ describe('TransactionLogic', () => {
         { category: 'transport', spent: 300, received: 0, net: 300, percentage: 30, count: 3 },
       ];
 
-      vi.mocked(FinanceLogicService.calculateCategoryBreakdown).mockReturnValue(mockBreakdown);
+      vi.mocked(calculateCategoryBreakdown).mockReturnValue(mockBreakdown);
 
       const transactions = [
         createMockTransaction({ id: 'tx-1', type: 'expense', amount: 500, category: 'food' }),
@@ -87,7 +85,7 @@ describe('TransactionLogic', () => {
       const mockBreakdown: CategoryBreakdownItem[] = [
         { category: 'food', spent: 200, received: 0, net: 200, percentage: 100, count: 2 },
       ];
-      vi.mocked(FinanceLogicService.calculateCategoryBreakdown).mockReturnValue(mockBreakdown);
+      vi.mocked(calculateCategoryBreakdown).mockReturnValue(mockBreakdown);
 
       const transactions = [
         createMockTransaction({ id: 'tx-1', user_id: 'user-1', amount: 100 }),
@@ -98,11 +96,11 @@ describe('TransactionLogic', () => {
       TransactionLogic.calculateReportMetrics(transactions, 'user-1');
 
       // Verify calculateCategoryBreakdown was called with filtered transactions
-      expect(FinanceLogicService.calculateCategoryBreakdown).toHaveBeenCalledWith(
+      expect(calculateCategoryBreakdown).toHaveBeenCalledWith(
         expect.arrayContaining([expect.objectContaining({ user_id: 'user-1' })])
       );
       // Should not include user-2
-      const call = vi.mocked(FinanceLogicService.calculateCategoryBreakdown).mock.calls[0];
+      const call = vi.mocked(calculateCategoryBreakdown).mock.calls[0];
       const callArg = call?.[0];
       expect(callArg).toBeDefined();
       expect(callArg!.every((t) => t.user_id === 'user-1')).toBe(true);
@@ -112,7 +110,7 @@ describe('TransactionLogic', () => {
       const mockBreakdown: CategoryBreakdownItem[] = [
         { category: 'food', spent: 500, received: 0, net: 500, percentage: 100, count: 5 },
       ];
-      vi.mocked(FinanceLogicService.calculateCategoryBreakdown).mockReturnValue(mockBreakdown);
+      vi.mocked(calculateCategoryBreakdown).mockReturnValue(mockBreakdown);
 
       const transactions = [createMockTransaction({ type: 'expense', amount: 500 })];
 
@@ -124,7 +122,7 @@ describe('TransactionLogic', () => {
     });
 
     it('should handle empty transactions array', () => {
-      vi.mocked(FinanceLogicService.calculateCategoryBreakdown).mockReturnValue([]);
+      vi.mocked(calculateCategoryBreakdown).mockReturnValue([]);
 
       const result = TransactionLogic.calculateReportMetrics([]);
 

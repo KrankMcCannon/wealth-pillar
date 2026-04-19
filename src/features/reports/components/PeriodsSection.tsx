@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useMemo } from 'react';
-import type { ReportPeriodSummary } from '@/server/services/reports.service';
+import type { ReportPeriodSummary } from '@/server/use-cases/reports/reports.use-cases';
 import { useTranslations } from 'next-intl';
 import { PeriodCard } from './PeriodCard';
 import { EmptyState } from '@/components/shared';

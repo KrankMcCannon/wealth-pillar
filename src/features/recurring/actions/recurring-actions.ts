@@ -8,11 +8,14 @@
  */
 
 import { getCurrentUser } from '@/lib/auth/cached-auth';
-import { revalidateTag } from 'next/cache';
-import { CACHE_TAGS } from '@/lib/cache/config';
 import { canAccessUserData, isMember } from '@/lib/utils/permissions';
-import type { RecurringTransactionSeries, User } from '@/lib/types';
-import { RecurringService } from '@/server/services';
+import { RecurringTransactionSeries, User } from '@/lib/types';
+import {
+  createSeriesUseCase,
+  deleteSeriesUseCase,
+  getSeriesByIdUseCase,
+  updateSeriesUseCase,
+} from '@/server/use-cases/recurring/recurring.use-cases';
 import { serialize } from '@/lib/utils/serializer';
 import { devWarn } from '@/lib/utils/dev-log';
 import type { ServiceResult } from '@/lib/types/service-result';
@@ -113,7 +116,7 @@ export async function createRecurringSeriesAction(
     const permError = validateCreatePermissions(currentUser as unknown as User, input.user_ids);
     if (permError) return { data: null, error: permError };
 
-    const data = await RecurringService.createSeries({
+    const data = await createSeriesUseCase({
       description: input.description.trim(),
       amount: input.amount,
       type: input.type,
@@ -126,17 +129,10 @@ export async function createRecurringSeriesAction(
       due_day: input.due_day,
       is_active: true,
       total_executions: 0,
-      transaction_ids: [],
     });
 
     if (!data) {
       return { data: null, error: 'Failed to create recurring series' };
-    }
-
-    // Invalidate cache for all affected users
-    revalidateTag(CACHE_TAGS.RECURRING_SERIES, 'max');
-    for (const userId of input.user_ids) {
-      revalidateTag(`user:${userId}:recurring`, 'max');
     }
 
     return { data: serialize(data) as unknown as RecurringTransactionSeries, error: null };
@@ -214,7 +210,7 @@ export async function updateRecurringSeriesAction(
     }
 
     // Get old user_ids to invalidate cache for previous users
-    const oldSeries = await RecurringService.getSeriesById(input.id);
+    const oldSeries = await getSeriesByIdUseCase(input.id);
     if (!oldSeries) {
       return { data: null, error: 'Serie ricorrente non trovata' };
     }
@@ -262,27 +258,12 @@ export async function updateRecurringSeriesAction(
     if (payloadError) return { data: null, error: payloadError };
     const updatePayload = payload;
 
-    const data = await RecurringService.updateSeries(input.id, updatePayload);
+    const data = await updateSeriesUseCase(
+      input.id,
+      updatePayload as Parameters<typeof updateSeriesUseCase>[1]
+    );
     if (!data) {
       return { data: null, error: 'Failed to update series' };
-    }
-
-    // Invalidate cache for all affected users (old and new)
-    revalidateTag(CACHE_TAGS.RECURRING_SERIES, 'max');
-    revalidateTag(CACHE_TAGS.RECURRING(input.id), 'max');
-
-    // Invalidate old users' caches
-    if (oldSeries.user_ids) {
-      for (const userId of oldSeries.user_ids) {
-        revalidateTag(`user:${userId}:recurring`, 'max');
-      }
-    }
-
-    // Invalidate new users' caches (if user_ids changed)
-    if (data.user_ids) {
-      for (const userId of data.user_ids) {
-        revalidateTag(`user:${userId}:recurring`, 'max');
-      }
     }
 
     return { data: serialize(data) as unknown as RecurringTransactionSeries, error: null };
@@ -318,36 +299,7 @@ export async function deleteRecurringSeriesAction(
     }
 
     // First get the series
-    const series = await RecurringService.getSeriesById(seriesId);
-
-    if (!series) {
-      return { data: null, error: 'Serie non trovata' };
-    }
-
-    // Permission validation: verify access to series
-    const hasAccess = isMember(currentUser as unknown as User)
-      ? series.user_ids.includes(currentUser.id)
-      : series.user_ids.some((userId: string) =>
-          canAccessUserData(currentUser as unknown as User, userId)
-        );
-
-    if (!hasAccess) {
-      return {
-        data: null,
-        error: 'Non hai i permessi per eliminare questa serie ricorrente',
-      };
-    }
-
-    await RecurringService.deleteSeries(seriesId);
-
-    // Invalidate cache for all affected users
-    revalidateTag(CACHE_TAGS.RECURRING_SERIES, 'max');
-    revalidateTag(CACHE_TAGS.RECURRING(seriesId), 'max');
-    if (series.user_ids) {
-      for (const userId of series.user_ids) {
-        revalidateTag(`user:${userId}:recurring`, 'max');
-      }
-    }
+    await deleteSeriesUseCase(seriesId);
 
     return { data: { success: true }, error: null };
   } catch (error) {

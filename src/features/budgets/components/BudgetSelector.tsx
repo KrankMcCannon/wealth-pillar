@@ -14,7 +14,7 @@ import { budgetStyles, layoutStyles } from '@/styles/system';
 import { cn } from '@/lib/utils';
 import { useUserFilter } from '@/hooks/state/use-user-filter';
 import { useCategories } from '@/stores/reference-data-store';
-import { FinanceLogicService } from '@/server/services/finance-logic.service';
+import { getCategoryColor as getCategoryColorLogic } from '@/server/use-cases/categories/category.logic';
 
 export interface BudgetSelectorProps {
   selectedBudget: Budget | null;
@@ -39,10 +39,7 @@ export function BudgetSelector({
   }, [categories]);
   const getCategoryColor = useCallback(
     (categoryKey: string) => {
-      return (
-        categoryColors.get(categoryKey) ||
-        FinanceLogicService.getCategoryColor(categories, categoryKey)
-      );
+      return categoryColors.get(categoryKey) || getCategoryColorLogic(categories, categoryKey);
     },
     [categories, categoryColors]
   );

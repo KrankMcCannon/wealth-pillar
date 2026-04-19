@@ -5,11 +5,13 @@
 import { Suspense } from 'react';
 import { getTranslations } from 'next-intl/server';
 import { requirePageAuth } from '@/lib/auth/page-auth';
-import { AccountService, TransactionService, UserPreferencesService } from '@/server/services';
+import { getAccountCountByUserUseCase } from '@/server/use-cases/accounts/account.use-cases';
+import { getTransactionCountByUserUseCase } from '@/server/use-cases/transactions/get-transactions.use-case';
+import { getUserPreferencesUseCase } from '@/server/use-cases/users/get-user-preferences.use-case';
 import SettingsContent from './settings-content';
 import { PageLoader } from '@/components/shared';
 import { withTimeout } from '@/lib/utils/with-timeout';
-import type { UserPreferences } from '@/server/services/user-preferences.service';
+import type { UserPreferences } from '@/lib/types';
 
 export default async function SettingsPage({
   params,
@@ -36,15 +38,10 @@ export default async function SettingsPage({
   // Build a single streaming promise for the slower per-user counts and preferences.
   // groupUsers is already resolved above (from cached getGroupUsers — no extra DB round-trip).
   const settingsDataPromise = Promise.all([
-    withTimeout(AccountService.getAccountCountByUser(currentUser.id), 2000, 0, 'accountCount'),
+    withTimeout(getAccountCountByUserUseCase(currentUser.id), 2000, 0, 'accountCount'),
+    withTimeout(getTransactionCountByUserUseCase(currentUser.id), 2000, 0, 'transactionCount'),
     withTimeout(
-      TransactionService.getTransactionCountByUser(currentUser.id),
-      2000,
-      0,
-      'transactionCount'
-    ),
-    withTimeout(
-      UserPreferencesService.getUserPreferences(currentUser.id),
+      getUserPreferencesUseCase(currentUser.id),
       2500,
       fallbackPreferences,
       'userPreferences'

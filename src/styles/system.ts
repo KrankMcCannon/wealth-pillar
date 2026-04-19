@@ -664,10 +664,10 @@ export const budgetStyles = {
     groupLeft: 'flex items-center gap-2',
     avatar:
       'flex size-10 items-center justify-center rounded-lg bg-linear-to-br from-primary/10 to-primary/5 shadow-sm',
-    avatarText: 'text-md font-bold text-primary',
-    groupText: 'text-sm font-semibold',
+    avatarText: 'text-lg font-bold text-primary',
+    groupText: 'text-base font-semibold',
     periodText: 'text-xs text-primary/75',
-    amount: 'text-sm font-bold',
+    amount: 'text-base font-bold',
     amountDivider: 'text-primary/50 font-normal',
     progressRow: 'mt-1 flex min-w-0 items-center gap-2.5',
     progressBarTrack: 'min-w-0 flex-1',

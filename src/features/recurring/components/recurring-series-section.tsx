@@ -15,7 +15,10 @@ import { EmptyState } from '@/components/shared';
 import { CircleAlert, RefreshCw, Plus, TrendingUp, TrendingDown } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button, Text } from '@/components/ui';
-import { FinanceLogicService } from '@/server/services/finance-logic.service';
+import {
+  calculateDaysUntilDue,
+  calculateRecurringTotals,
+} from '@/server/use-cases/recurring/recurring.logic';
 import { formatCurrency, cn } from '@/lib/utils';
 import { User } from '@/lib/types';
 import { recurringStyles } from '../theme/recurring-styles';
@@ -89,13 +92,7 @@ export function RecurringSeriesSection({
     }
 
     // Sort by days left (ascending)
-    result = result
-      .slice()
-      .sort(
-        (a, b) =>
-          FinanceLogicService.calculateDaysUntilDue(a) -
-          FinanceLogicService.calculateDaysUntilDue(b)
-      );
+    result = result.slice().sort((a, b) => calculateDaysUntilDue(a) - calculateDaysUntilDue(b));
 
     // Limit results if maxItems specified
     if (maxItems && maxItems > 0) {
@@ -118,7 +115,7 @@ export function RecurringSeriesSection({
 
   // Calculate monthly totals using service method
   const monthlyTotals = useMemo(() => {
-    return FinanceLogicService.calculateTotals(activeSeries);
+    return calculateRecurringTotals(activeSeries);
   }, [activeSeries]);
 
   // Empty state

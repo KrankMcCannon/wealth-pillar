@@ -1,6 +1,16 @@
 'use server';
 
-import { AvailableSharesService, MarketDataService } from '@/server/services';
+import {
+  getRegionsUseCase,
+  getAssetTypesUseCase,
+  getAssetTypesAllUseCase,
+  getSharesUseCase,
+  getPopularSharesUseCase,
+  searchSharesUseCase,
+  getShareBySymbolUseCase,
+  addShareUseCase,
+} from '@/server/use-cases/investments/available-shares.use-cases';
+import { getMarketDataUseCase } from '@/server/use-cases/market-data/market-data.use-cases';
 import { twelveData } from '@/lib/twelve-data';
 import type { Database } from '@/lib/types/database.types';
 
@@ -13,7 +23,7 @@ type AvailableShare = Database['public']['Tables']['available_shares']['Row'];
  */
 export async function getShareRegionsAction(): Promise<ServiceResult<string[]>> {
   try {
-    const regions = await AvailableSharesService.getRegions();
+    const regions = await getRegionsUseCase();
     return { data: regions, error: null };
   } catch (error) {
     console.error('[ShareActions] Error fetching regions:', error);
@@ -26,7 +36,7 @@ export async function getShareRegionsAction(): Promise<ServiceResult<string[]>> 
  */
 export async function getShareAssetTypesAction(region: string): Promise<ServiceResult<string[]>> {
   try {
-    const assetTypes = await AvailableSharesService.getAssetTypes(region);
+    const assetTypes = await getAssetTypesUseCase(region);
     return { data: assetTypes, error: null };
   } catch (error) {
     console.error('[ShareActions] Error fetching asset types:', error);
@@ -39,7 +49,7 @@ export async function getShareAssetTypesAction(region: string): Promise<ServiceR
  */
 export async function getShareAssetTypesAllAction(): Promise<ServiceResult<string[]>> {
   try {
-    const assetTypes = await AvailableSharesService.getAssetTypesAll();
+    const assetTypes = await getAssetTypesAllUseCase();
     return { data: assetTypes, error: null };
   } catch (error) {
     console.error('[ShareActions] Error fetching asset types:', error);
@@ -55,7 +65,7 @@ export async function getSharesAction(
   assetType: string
 ): Promise<ServiceResult<AvailableShare[]>> {
   try {
-    const shares = await AvailableSharesService.getShares(region, assetType);
+    const shares = await getSharesUseCase(region, assetType);
     return { data: shares, error: null };
   } catch (error) {
     console.error('[ShareActions] Error fetching shares:', error);
@@ -68,7 +78,7 @@ export async function getSharesAction(
  */
 export async function getPopularSharesAction(): Promise<ServiceResult<AvailableShare[]>> {
   try {
-    const shares = await AvailableSharesService.getPopularShares();
+    const shares = await getPopularSharesUseCase();
     return { data: shares, error: null };
   } catch (error) {
     console.error('[ShareActions] Error fetching popular shares:', error);
@@ -84,7 +94,7 @@ export async function searchSharesAction(
   assetType?: string
 ): Promise<ServiceResult<AvailableShare[]>> {
   try {
-    const shares = await AvailableSharesService.searchShares(query, assetType);
+    const shares = await searchSharesUseCase(query, assetType);
     const needle = query.toLowerCase().trim();
 
     const scoreShare = (share: AvailableShare): number => {
@@ -119,7 +129,7 @@ export async function searchSharesAction(
  */
 export async function ensureMarketDataAction(symbol: string): Promise<ServiceResult<boolean>> {
   try {
-    await MarketDataService.getMarketData(symbol.toUpperCase());
+    await getMarketDataUseCase(symbol.toUpperCase());
     return { data: true, error: null };
   } catch (error) {
     console.error('[ShareActions] Error ensuring market data:', error);
@@ -134,7 +144,7 @@ export async function getShareBySymbolAction(
   symbol: string
 ): Promise<ServiceResult<AvailableShare | null>> {
   try {
-    const share = await AvailableSharesService.getShareBySymbol(symbol);
+    const share = await getShareBySymbolUseCase(symbol);
     return { data: share, error: null };
   } catch (error) {
     console.error('[ShareActions] Error fetching share by symbol:', error);
@@ -153,7 +163,7 @@ export async function fetchAndSaveNewShareAction(
 ): Promise<ServiceResult<AvailableShare>> {
   try {
     // Check if share already exists
-    const existingShare = await AvailableSharesService.getShareBySymbol(symbol);
+    const existingShare = await getShareBySymbolUseCase(symbol);
     if (existingShare) {
       return { data: existingShare, error: null };
     }
@@ -166,10 +176,10 @@ export async function fetchAndSaveNewShareAction(
     }
 
     // Also fetch and cache the market data for this symbol
-    await MarketDataService.getMarketData(symbol.toUpperCase());
+    await getMarketDataUseCase(symbol.toUpperCase());
 
     // Add to our catalog
-    const newShare = await AvailableSharesService.addShare({
+    const newShare = await addShareUseCase({
       symbol: quote.symbol.toUpperCase(),
       name: quote.name || symbol.toUpperCase(),
       region,

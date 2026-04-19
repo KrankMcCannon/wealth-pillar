@@ -14,12 +14,11 @@ import {
 import { ReportsFlowHint } from '@/features/reports/components/ReportsFlowHint';
 import { useTranslations } from 'next-intl';
 import type {
-  AccountTypeSummary,
-  ReportPeriodSummary,
   UserFlowSummary,
   UserAccountFlow,
-} from '@/server/services/reports.service';
-import type { User } from '@/lib/types';
+} from '@/server/use-cases/reports/reports.use-cases';
+import type { ReportsPageData } from '@/server/use-cases/pages/reports-page.use-case';
+import type { Account, Category, Transaction, User } from '@/lib/types';
 import { layoutStyles, reportsStyles } from '@/styles/system';
 import UserSelector from '@/components/shared/user-selector';
 
@@ -44,41 +43,14 @@ const BudgetFlowVisualizer = dynamic(
   { loading: () => <div className="h-[280px] animate-pulse rounded-xl bg-primary/10" /> }
 );
 
-interface SerializedTransaction {
-  amount: number;
-  type: string;
-  category: string;
-  date: string;
-  user_id: string | null;
-  account_id: string;
-  to_account_id: string | null;
-}
-
-interface SerializedCategory {
-  id: string;
-  label: string;
-  key: string;
-  color: string;
-}
-
-interface SerializedAccount {
-  id: string;
-  type: string;
-  balance: number;
-  user_ids: string[];
-}
+type SerializedTransaction = Transaction & { date: string };
+type SerializedCategory = Category;
+type SerializedAccount = Account & { balance: number };
 
 interface ReportsContentProps {
   currentUser: User;
   groupUsers: User[];
-  reportsBundlePromise: Promise<{
-    accountTypeSummary: AccountTypeSummary[];
-    periodSummaries: ReportPeriodSummary[];
-    spendingTrends: { date: string; income: number; expense: number }[];
-    transactions: SerializedTransaction[];
-    categories: SerializedCategory[];
-    accounts: SerializedAccount[];
-  }>;
+  reportsBundlePromise: Promise<ReportsPageData>;
 }
 
 function formatCategoryFallback(catId: string): string {
@@ -268,7 +240,11 @@ export default function ReportsContent({
     transactions,
     categories,
     accounts,
-  } = use(reportsBundlePromise);
+  } = use(reportsBundlePromise) as unknown as ReportsPageData & {
+    transactions: SerializedTransaction[];
+    categories: SerializedCategory[];
+    accounts: SerializedAccount[];
+  };
 
   const t = useTranslations('ReportsContent');
   const [timeRange, setTimeRange] = useState<TimeRange>('all');

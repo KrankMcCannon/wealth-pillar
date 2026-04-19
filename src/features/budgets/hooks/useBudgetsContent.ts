@@ -34,7 +34,7 @@ import {
   formatDateShort,
   diffInDays,
 } from '@/lib/utils/date-utils';
-import { FinanceLogicService } from '@/server/services/finance-logic.service';
+import { filterTransactionsForBudget } from '@/server/use-cases/budgets/budget.logic';
 import type {
   Category,
   Budget,
@@ -300,12 +300,7 @@ export function useBudgetsContent({
 
     const userTransactions = transactions.filter((t) => t.user_id === selectedBudgetUser.id);
 
-    return FinanceLogicService.filterTransactionsForBudget(
-      userTransactions,
-      selectedBudget,
-      periodStart,
-      periodEnd
-    );
+    return filterTransactionsForBudget(userTransactions, selectedBudget, periodStart, periodEnd);
   }, [selectedBudget, selectedBudgetUser, transactions, periodInfo]);
 
   // Generate subtitle for transaction section

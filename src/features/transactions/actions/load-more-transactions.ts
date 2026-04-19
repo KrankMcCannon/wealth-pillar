@@ -1,7 +1,7 @@
 'use server';
 
 import { getCurrentUser } from '@/lib/auth/cached-auth';
-import { TransactionService } from '@/server/services';
+import { getTransactionsByGroupUseCase } from '@/server/use-cases/transactions/get-transactions.use-case';
 import type { Transaction } from '@/lib/types';
 
 /**
@@ -34,7 +34,7 @@ export async function loadMoreTransactionsAction(
       return { data: [], total: 0, hasMore: false, error: 'Non autenticato' };
     }
 
-    const result = await TransactionService.getTransactionsByGroup(currentUser.group_id || '', {
+    const result = await getTransactionsByGroupUseCase(currentUser.group_id || '', {
       limit,
       offset,
     });

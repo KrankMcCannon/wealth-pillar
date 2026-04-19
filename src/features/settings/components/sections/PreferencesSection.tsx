@@ -3,7 +3,7 @@ import { ListContainer, PageSection, SettingsItem } from '@/components/ui/layout
 import { usePreferenceOptions } from '../preference-select-modal';
 import { CreditCard, Globe, Settings } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
-import { UserPreferences } from '@/server/services';
+import { UserPreferences } from '@/lib/types';
 import { getLanguagePreferenceForLocale } from '@/features/settings/utils/language-preference';
 
 interface PreferencesSectionProps {

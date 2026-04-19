@@ -18,11 +18,11 @@ import {
 } from '@/hooks';
 import { loadMoreTransactionsAction } from '@/features/transactions/actions/load-more-transactions';
 import { RecurringTransactionSeries } from '@/lib';
+import { defaultFiltersState } from '../components/transaction-filters';
 import {
-  defaultFiltersState,
   filterTransactions,
   type TransactionFiltersState,
-} from '@/features/transactions';
+} from '@/server/use-cases/transactions/transaction.logic';
 import type { Transaction, Budget, User, Account, Category } from '@/lib/types';
 import { deleteTransactionAction } from '@/features/transactions/actions/transaction-actions';
 import { deleteRecurringSeriesAction } from '@/features/recurring/actions/recurring-actions';
@@ -148,6 +148,7 @@ export function useTransactionsContent({
   const memberIdFromUrl = searchParams.get('member');
   const startDateFromUrl = searchParams.get('startDate');
   const endDateFromUrl = searchParams.get('endDate');
+  const accountIdFromUrl = searchParams.get('account');
 
   // Get selected budget for display
   const selectedBudget = useMemo(() => {
@@ -168,10 +169,11 @@ export function useTransactionsContent({
         dateRange: startDateFromUrl || endDateFromUrl ? 'custom' : defaultFiltersState.dateRange,
         startDate: startDateFromUrl ?? undefined,
         endDate: endDateFromUrl ?? undefined,
+        accountId: accountIdFromUrl ?? undefined,
       };
     }
     return defaultFiltersState;
-  }, [fromBudgets, selectedBudget, startDateFromUrl, endDateFromUrl]);
+  }, [fromBudgets, selectedBudget, startDateFromUrl, endDateFromUrl, accountIdFromUrl]);
 
   // Tab state - managed via URL params for shareable links
   const { activeTab, setActiveTab } = useTabState('Transactions');
@@ -276,6 +278,7 @@ export function useTransactionsContent({
         categoryKey: filters.categoryKey,
         categoryKeys: filters.categoryKeys,
         budgetId: filters.budgetId,
+        accountId: filters.accountId,
         startDate: filters.startDate,
         endDate: filters.endDate,
       },
@@ -289,6 +292,7 @@ export function useTransactionsContent({
     filters.categoryKey,
     filters.categoryKeys,
     filters.budgetId,
+    filters.accountId,
     filters.startDate,
     filters.endDate,
     categories,

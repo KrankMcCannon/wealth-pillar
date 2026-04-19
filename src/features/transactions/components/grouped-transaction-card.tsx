@@ -4,7 +4,10 @@ import { memo, useCallback } from 'react';
 import { Card } from '@/components/ui';
 import { useTranslations } from 'next-intl';
 import { Transaction, Category } from '@/lib';
-import { FinanceLogicService } from '@/server/services/finance-logic.service';
+import {
+  getCategoryLabel as getCategoryLabelLogic,
+  getCategoryColor as getCategoryColorLogic,
+} from '@/server/use-cases/categories/category.logic';
 import { formatCurrency, cn } from '@/lib/utils';
 import { TransactionRow } from './transaction-row';
 import {
@@ -52,11 +55,11 @@ function GroupedTransactionCardInner({
 }: Readonly<GroupedTransactionCardProps>) {
   const t = useTranslations('Transactions.GroupedCard');
   const getCategoryLabel = useCallback(
-    (categoryKey: string) => FinanceLogicService.getCategoryLabel(categories, categoryKey),
+    (categoryKey: string) => getCategoryLabelLogic(categories, categoryKey),
     [categories]
   );
   const getCategoryColor = useCallback(
-    (categoryKey: string) => FinanceLogicService.getCategoryColor(categories, categoryKey),
+    (categoryKey: string) => getCategoryColorLogic(categories, categoryKey),
     [categories]
   );
 

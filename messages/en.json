@@ -763,7 +763,8 @@
       "chips": {
         "period": "Period",
         "type": "Type",
-        "category": "Category"
+        "category": "Category",
+        "account": "Account"
       },
       "customRange": {
         "title": "Custom range",
@@ -779,11 +780,16 @@
         "searchPlaceholder": "Search category...",
         "all": "All"
       },
+      "account": {
+        "searchPlaceholder": "Search account...",
+        "all": "All"
+      },
       "drawer": {
         "titles": {
           "type": "Transaction type",
           "date": "Period",
-          "category": "Category"
+          "category": "Category",
+          "account": "Account"
         },
         "description": "Select an option to filter transactions",
         "close": "Close"
@@ -1284,6 +1290,9 @@
       "multiUsersSubtitle": "{count} users with active budgets",
       "periodOngoing": "Ongoing",
       "spentPrefix": "Spent:",
+      "totalPrefix": "Total:",
+      "availablePrefix": "Available:",
+      "exceededPrefix": "Exceeded:",
       "empty": {
         "title": "No budgets configured",
         "description": "Create budgets to track your expenses and keep family finances under control",
@@ -1292,7 +1301,10 @@
     },
     "Card": {
       "ofPrefix": "of",
-      "spentPrefix": "Spent:"
+      "spentPrefix": "Spent:",
+      "totalPrefix": "Total:",
+      "remainingTitle": "AVAILABLE",
+      "exceededTitle": "EXCEEDED"
     },
     "PeriodManager": {
       "title": "Budget Period Management",

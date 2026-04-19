@@ -763,7 +763,8 @@
       "chips": {
         "period": "Periodo",
         "type": "Tipo",
-        "category": "Categoria"
+        "category": "Categoria",
+        "account": "Conto"
       },
       "customRange": {
         "title": "Intervallo personalizzato",
@@ -779,11 +780,16 @@
         "searchPlaceholder": "Cerca categoria...",
         "all": "Tutte"
       },
+      "account": {
+        "searchPlaceholder": "Cerca conto...",
+        "all": "Tutti"
+      },
       "drawer": {
         "titles": {
           "type": "Tipo transazione",
           "date": "Periodo",
-          "category": "Categoria"
+          "category": "Categoria",
+          "account": "Conto"
         },
         "description": "Seleziona un'opzione per filtrare le transazioni",
         "close": "Chiudi"
@@ -1283,7 +1289,10 @@
       "subtitle": "Quanto avete speso per categoria in questo periodo",
       "multiUsersSubtitle": "{count} utenti con budget attivi",
       "periodOngoing": "In corso",
-      "spentPrefix": "Spesi:",
+      "spentPrefix": "Speso:",
+      "totalPrefix": "Totale:",
+      "availablePrefix": "Disponibile:",
+      "exceededPrefix": "Sforamento:",
       "empty": {
         "title": "Nessun budget configurato",
         "description": "Crea dei budget per monitorare le tue spese e tenere sotto controllo le finanze familiari",
@@ -1292,7 +1301,10 @@
     },
     "Card": {
       "ofPrefix": "su",
-      "spentPrefix": "Spesi:"
+      "spentPrefix": "Speso:",
+      "totalPrefix": "Totale:",
+      "remainingTitle": "DISPONIBILE",
+      "exceededTitle": "SFORAMENTO"
     },
     "PeriodManager": {
       "title": "Gestione Periodi Budget",

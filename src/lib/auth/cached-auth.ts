@@ -12,7 +12,7 @@
 
 import { cache } from 'react';
 import { auth } from '@clerk/nextjs/server';
-import { UserService } from '@/server/services';
+import { getUserByClerkIdUseCase } from '@/server/use-cases';
 import { getGroupUsersByGroupIdDeduped } from '@/server/request-cache/services';
 import type { User } from '@/lib/types';
 
@@ -54,7 +54,7 @@ export const getCurrentUser = cache(async (): Promise<User | null> => {
     return null;
   }
 
-  const user = await UserService.getLoggedUserInfo(clerkId);
+  const user = await getUserByClerkIdUseCase(clerkId);
   return user as unknown as User | null;
 });
 

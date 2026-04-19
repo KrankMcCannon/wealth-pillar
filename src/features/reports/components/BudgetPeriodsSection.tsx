@@ -6,8 +6,7 @@
 'use client';
 
 import { BudgetPeriodCard } from './BudgetPeriodCard';
-import type { User, Transaction, Account, Category } from '@/lib/types';
-import type { EnrichedBudgetPeriod } from '@/server/services/report-period.service';
+import type { BudgetPeriod, User, Transaction, Account, Category } from '@/lib/types';
 import { useBudgetPeriods } from '../hooks/useBudgetPeriods';
 import { CalendarOff, ChevronDown } from 'lucide-react';
 import { ListContainer, PageSection } from '@/components/ui';
@@ -19,7 +18,16 @@ const INITIAL_VISIBLE_COUNT = 5;
 const LOAD_MORE_COUNT = 5;
 
 export interface BudgetPeriodsSectionProps {
-  enrichedBudgetPeriods: (EnrichedBudgetPeriod & { transactionCount?: number })[];
+  enrichedBudgetPeriods: (BudgetPeriod & {
+    transactionCount?: number;
+    userName?: string;
+    transactions?: Transaction[];
+    defaultAccountStartBalance?: number;
+    defaultAccountEndBalance?: number;
+    periodTotalSpent?: number;
+    periodTotalIncome?: number;
+    periodTotalTransfers?: number;
+  })[];
   groupUsers: User[];
   transactions: Transaction[];
   accounts: Account[];

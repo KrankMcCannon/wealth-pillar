@@ -3,7 +3,14 @@
 import { revalidateBudgetPeriodRelatedPaths } from '@/lib/cache/revalidation-paths';
 import { getTranslations } from 'next-intl/server';
 import { getCurrentUser } from '@/lib/auth/cached-auth';
-import { TransactionService, BudgetService, BudgetPeriodService } from '@/server/services';
+import { createBudgetPeriodUseCase } from '@/server/use-cases/budget-periods/create-budget-period.use-case';
+import { closeBudgetPeriodUseCase } from '@/server/use-cases/budget-periods/close-budget-period.use-case';
+import { deleteBudgetPeriodUseCase } from '@/server/use-cases/budget-periods/delete-budget-period.use-case';
+import { getBudgetsPeriodsByUserUseCase } from '@/server/use-cases/budget-periods/get-budget-periods-by-user.use-case';
+import { getActiveBudgetPeriodUseCase } from '@/server/use-cases/budget-periods/get-active-budget-period.use-case';
+import { calculatePeriodTotalsUseCase } from '@/server/use-cases/budget-periods/calculate-period-totals.use-case';
+import { getTransactionsByUserUseCase } from '@/server/use-cases/transactions/get-transactions.use-case';
+import { getBudgetsByUserUseCase } from '@/server/use-cases/budgets/get-budgets.use-case';
 import { canAccessUserData, isMember } from '@/lib/utils';
 import type { BudgetPeriod, User } from '@/lib/types';
 import type { ServiceResult } from '@/lib/types/service-result';
@@ -57,7 +64,7 @@ export async function startPeriodAction(
     }
 
     // Create new period
-    const result = await BudgetPeriodService.createPeriod(userId, startDate);
+    const result = await createBudgetPeriodUseCase(userId, startDate);
 
     revalidateBudgetPeriodRelatedPaths();
 
@@ -115,7 +122,7 @@ export async function closePeriodAction(
     }
 
     // Close period with calculations or pre-calculated totals
-    const result = await BudgetPeriodService.closePeriod(userId, periodId, endDate);
+    const result = await closeBudgetPeriodUseCase(userId, periodId, endDate);
 
     if (result) {
       revalidateBudgetPeriodRelatedPaths();
@@ -175,7 +182,7 @@ export async function deletePeriodAction(
     }
 
     // Delete period
-    await BudgetPeriodService.deletePeriod(userId, periodId);
+    await deleteBudgetPeriodUseCase(userId, periodId);
 
     revalidateBudgetPeriodRelatedPaths();
 
@@ -229,7 +236,7 @@ export async function getUserPeriodsAction(
     }
 
     // Fetch periods
-    const periods = await BudgetPeriodService.getPeriodsByUser(userId);
+    const periods = await getBudgetsPeriodsByUserUseCase(userId);
 
     return { data: periods, error: null };
   } catch (error) {
@@ -281,7 +288,7 @@ export async function getActivePeriodAction(
     }
 
     // Fetch active period
-    const period = await BudgetPeriodService.getActivePeriod(userId);
+    const period = await getActiveBudgetPeriodUseCase(userId);
 
     return {
       data: period,
@@ -336,8 +343,8 @@ export async function getPeriodPreviewAction(
     // Fetch necessary data on server
     // We fetch all transactions for the user to ensure accurate calculations
     const [transactions, budgets] = await Promise.all([
-      TransactionService.getTransactionsByUser(userId),
-      BudgetService.getBudgetsByUser(userId),
+      getTransactionsByUserUseCase(userId),
+      getBudgetsByUserUseCase(userId),
     ]);
 
     // Instantiate a temporary period object for calculation
@@ -355,13 +362,7 @@ export async function getPeriodPreviewAction(
     const startDt = DateTime.fromISO(startDate);
     const endDt = DateTime.fromISO(endDate);
 
-    const totals = BudgetPeriodService.calculatePeriodTotals(
-      transactions,
-      tempPeriod,
-      startDt,
-      endDt,
-      budgets
-    );
+    const totals = calculatePeriodTotalsUseCase(transactions, tempPeriod, startDt, endDt, budgets);
 
     // Calculate total budget amount
     const totalBudget = budgets.filter((b) => b.amount > 0).reduce((sum, b) => sum + b.amount, 0);

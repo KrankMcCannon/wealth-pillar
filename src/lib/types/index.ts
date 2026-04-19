@@ -231,6 +231,7 @@ export interface UserBudgetSummary {
 }
 
 export type UserPreferences = Database['public']['Tables']['user_preferences']['Row'];
+export type GroupInvitation = Database['public']['Tables']['group_invitations']['Row'];
 
 export interface UserPreferencesUpdate {
   currency?: string;

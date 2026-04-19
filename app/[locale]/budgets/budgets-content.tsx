@@ -24,7 +24,7 @@ import {
 import { TransactionDayList } from '@/features/transactions';
 import { useBudgetsContent, type UseBudgetsContentProps } from '@/features/budgets';
 import type { User, UserBudgetSummary } from '@/lib/types';
-import type { BudgetsPageData } from '@/server/services/page-data.service';
+import type { BudgetsPageData } from '@/server/use-cases/pages/budgets-page.use-case';
 import { budgetStyles, reportsStyles } from '@/styles/system';
 import { ShoppingCart } from 'lucide-react';
 import { Button } from '@/components/ui';

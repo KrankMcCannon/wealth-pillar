@@ -2,15 +2,18 @@
 
 import { useMemo, useState } from 'react';
 import { useUserFilter, useFilteredData, usePermissions } from '@/hooks';
-import { FinanceLogicService } from '@/server/services/finance-logic.service';
+import {
+  getCategoryLabel,
+  getCategoryColor,
+  getCategoryIcon,
+} from '@/server/use-cases/categories/category.logic';
 import { toDateTime } from '@/lib/utils/date-utils';
-import type { User, Account, Category, CategoryBreakdownItem } from '@/lib/types';
-import type { EnrichedBudgetPeriod } from '@/server/services/report-period.service';
+import type { User, Account, Category, CategoryBreakdownItem, BudgetPeriod } from '@/lib/types';
 
 export interface ReportsDataProps {
   accounts: Account[];
   categories: Category[];
-  enrichedBudgetPeriods: (EnrichedBudgetPeriod & { transactionCount?: number })[];
+  enrichedBudgetPeriods: (BudgetPeriod & { transactionCount?: number })[];
   overviewMetrics: Record<
     string,
     {
@@ -100,9 +103,9 @@ export function useReportsData({
   const enrichedCategories = useMemo(() => {
     return categories.map((category) => ({
       ...category,
-      label: FinanceLogicService.getCategoryLabel(categories, category.key),
-      color: FinanceLogicService.getCategoryColor(categories, category.key),
-      icon: FinanceLogicService.getCategoryIcon(categories, category.key),
+      label: getCategoryLabel(categories, category.key),
+      color: getCategoryColor(categories, category.key),
+      icon: getCategoryIcon(categories, category.key),
     }));
   }, [categories]);
 

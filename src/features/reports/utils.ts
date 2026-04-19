@@ -1,4 +1,4 @@
-import type { AccountMetrics } from '@/server/services/reports.service';
+import type { AccountMetrics } from '@/server/use-cases/reports/reports.use-cases';
 
 /**
  * Sorts account metrics by a predefined order: Payroll > Cash > Savings, then usage frequency or alphabetical.

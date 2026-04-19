@@ -2,7 +2,7 @@
 
 import { revalidateInvestmentRelatedPaths } from '@/lib/cache/revalidation-paths';
 import { getCurrentUser } from '@/lib/auth/cached-auth';
-import { InvestmentService } from '@/server/services';
+import * as useCases from '@/server/use-cases';
 import type { Database } from '@/lib/types/database.types';
 import type { ServiceResult } from '@/lib/types/service-result';
 
@@ -14,7 +14,7 @@ export async function getInvestmentByIdAction(id: string): Promise<ServiceResult
     const currentUser = await getCurrentUser();
     if (!currentUser) return { data: null, error: 'UNAUTHENTICATED' };
 
-    const data = await InvestmentService.getInvestmentByIdForUser(id, currentUser.id);
+    const data = await useCases.getInvestmentByIdForUserUseCase(id, currentUser.id);
     if (!data) return { data: null, error: 'NOT_FOUND' };
     return { data, error: null };
   } catch (error) {
@@ -42,7 +42,7 @@ export async function updateInvestmentAction(input: {
     const currentUser = await getCurrentUser();
     if (!currentUser) return { data: null, error: 'UNAUTHENTICATED' };
 
-    const updated = await InvestmentService.updateInvestmentForUser(input.id, currentUser.id, {
+    const updated = await useCases.updateInvestmentUseCase(input.id, currentUser.id, {
       name: input.name,
       symbol: input.symbol.toUpperCase(),
       amount: input.amount,
@@ -94,7 +94,7 @@ export async function createInvestmentAction(
       user_id: currentUser.id, // Force connect to current user for now
     };
 
-    const data = await InvestmentService.addInvestment(investmentData as InvestmentInsert);
+    const data = await useCases.addInvestmentUseCase(investmentData as InvestmentInsert);
 
     revalidateInvestmentRelatedPaths();
 

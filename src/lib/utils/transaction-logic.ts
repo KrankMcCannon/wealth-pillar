@@ -1,6 +1,6 @@
 import type { CategoryBreakdownItem, Transaction } from '@/lib/types';
 import { formatDateSmart, toDateTime } from '@/lib/utils/date-utils';
-import { FinanceLogicService } from '@/server/services/finance-logic.service';
+import { calculateCategoryBreakdown } from '@/server/use-cases/transactions/transaction.logic';
 
 /**
  * Report metrics calculated from transactions
@@ -33,7 +33,7 @@ export class TransactionLogic {
    */
   static calculateReportMetrics(transactions: Transaction[], userId?: string): ReportMetrics {
     const userIdFilter = userId || undefined;
-    const breakdown = FinanceLogicService.calculateCategoryBreakdown(
+    const breakdown = calculateCategoryBreakdown(
       transactions.filter((t) => !userIdFilter || t.user_id === userIdFilter)
     );
 

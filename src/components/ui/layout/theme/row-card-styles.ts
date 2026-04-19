@@ -49,7 +49,7 @@ export const rowCardStyles = {
   },
 
   // Text styles
-  title: 'font-medium text-sm text-primary truncate',
+  title: 'font-semibold text-[15px] text-primary line-clamp-1',
   subtitle: 'mt-0.5 truncate text-xs text-primary/70 [text-wrap:balance]',
   metadata: 'flex items-center gap-2 mt-0.5 text-xs text-primary/60',
   value: 'text-md font-semibold text-primary',

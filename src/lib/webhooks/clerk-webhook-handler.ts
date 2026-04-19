@@ -1,5 +1,9 @@
 import { WebhookEvent } from '@clerk/nextjs/server';
-import { UserService } from '@/server/services';
+import {
+  getUserByClerkIdUseCase,
+  updateUserProfileUseCase,
+  deleteUserUseCase,
+} from '@/server/use-cases';
 
 /**
  * Main Clerk webhook handler
@@ -63,7 +67,7 @@ async function handleUserUpdated(evt: WebhookEvent) {
     }
 
     // Get existing user
-    const user = await UserService.getLoggedUserInfo(clerkId);
+    const user = await getUserByClerkIdUseCase(clerkId);
 
     if (!user) {
       return;
@@ -75,7 +79,7 @@ async function handleUserUpdated(evt: WebhookEvent) {
     const name = `${firstName || ''} ${lastName || ''}`.trim() || user.name;
 
     // Update user profile
-    await UserService.updateProfile(user.id, { name, email });
+    await updateUserProfileUseCase(user.id, { name, email });
   } catch (error) {
     console.error('[Webhook] Error in handleUserUpdated:', {
       clerkId,
@@ -103,14 +107,14 @@ async function handleUserDeleted(evt: WebhookEvent) {
     }
 
     // Get existing user
-    const user = await UserService.getLoggedUserInfo(clerkId);
+    const user = await getUserByClerkIdUseCase(clerkId);
 
     if (!user) {
       return;
     }
 
     // Delete user (cascades to all related data)
-    await UserService.deleteUser(user.id);
+    await deleteUserUseCase(user.id);
   } catch (error) {
     console.error('[Webhook] Error in handleUserDeleted:', {
       clerkId,

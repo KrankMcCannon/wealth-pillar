@@ -20,15 +20,16 @@ export { TransactionTable } from './components/transaction-table';
 export { TransactionPagination } from './components/transaction-pagination';
 
 // Filter Components
+export { TransactionFilters } from './components/transaction-filters';
+export { defaultFiltersState, hasActiveFilters } from './components/transaction-filters';
+
+// Filter Logic & Types
 export {
-  defaultFiltersState,
   filterTransactions,
-  hasActiveFilters,
-  TransactionFilters,
   type DateRangeFilter,
   type TransactionFiltersState,
   type TransactionTypeFilter,
-} from './components/transaction-filters';
+} from '@/server/use-cases/transactions/transaction.logic';
 
 // Loading Skeletons
 export {

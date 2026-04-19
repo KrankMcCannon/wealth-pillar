@@ -57,9 +57,7 @@ export function InvestmentHistoryChart({ data }: Readonly<InvestmentHistoryChart
         <CardTitle id={titleId} className={investmentsStyles.card.title}>
           {t('title')}
         </CardTitle>
-        <CardDescription
-          className={cn(investmentsStyles.card.description, 'hidden sm:block')}
-        >
+        <CardDescription className={cn(investmentsStyles.card.description, 'hidden sm:block')}>
           {t('description')}
         </CardDescription>
       </CardHeader>

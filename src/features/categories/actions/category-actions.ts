@@ -5,11 +5,16 @@ import { getTranslations } from 'next-intl/server';
 
 import { getCurrentUser } from '@/lib/auth/cached-auth';
 import {
-  CreateCategoryInput,
-  UpdateCategoryInput,
-  CategoryService,
-  FinanceLogicService,
-} from '@/server/services';
+  getAllCategoriesUseCase,
+  getAvailableCategoriesUseCase,
+  getCategoryByIdUseCase,
+  createCategoryUseCase,
+  updateCategoryUseCase,
+  deleteCategoryUseCase,
+  type CreateCategoryInput,
+  type UpdateCategoryInput,
+} from '@/server/use-cases/categories/category.use-cases';
+import { isValidColor } from '@/server/use-cases/categories/category.logic';
 import type { Category } from '@/lib/types';
 import type { ServiceResult } from '@/lib/types/service-result';
 
@@ -32,7 +37,7 @@ function validateCategoryInput(
   if (!input.icon || input.icon.trim() === '') return t('errors.iconRequired');
   if (!input.color || input.color.trim() === '') return t('errors.colorRequired');
 
-  if (!FinanceLogicService.isValidColor(input.color)) {
+  if (!isValidColor(input.color)) {
     return t('errors.colorInvalid');
   }
 
@@ -51,7 +56,7 @@ function validateUpdateCategoryInput(
 
   if (input.color !== undefined) {
     if (input.color.trim() === '') return t('errors.colorEmpty');
-    if (!FinanceLogicService.isValidColor(input.color)) return t('errors.colorInvalid');
+    if (!isValidColor(input.color)) return t('errors.colorInvalid');
   }
 
   return null;
@@ -66,13 +71,13 @@ export async function getAllCategoriesAction(): Promise<ServiceResult<Category[]
     const currentUser = await getCurrentUser();
     if (!currentUser?.group_id) {
       // If no group (e.g. onboarding), return system default categories from DB
-      const result = await CategoryService.getSystemCategories();
+      const result = await getAllCategoriesUseCase();
       return { data: result, error: null };
     }
 
     // Fetch available categories (System + Group Custom) using Service
     // Note: CategoryService.getAvailableCategories handles strict isolation
-    const categories = await CategoryService.getAvailableCategories(currentUser.group_id);
+    const categories = await getAvailableCategoriesUseCase(currentUser.group_id);
     return { data: categories, error: null };
   } catch (error) {
     return {
@@ -112,7 +117,7 @@ export async function createCategoryAction(
       return { data: null, error: validationError };
     }
 
-    const category = await CategoryService.createCategory(input);
+    const category = await createCategoryUseCase(input);
 
     if (category) {
       // Invalidate caches
@@ -153,7 +158,7 @@ export async function updateCategoryAction(
       return { data: null, error: t('errors.unauthenticated') };
     }
 
-    const existingCategory = await CategoryService.getCategoryById(id);
+    const existingCategory = await getCategoryByIdUseCase(id);
     if (!existingCategory) return { data: null, error: t('errors.notFound') };
 
     // Permission check
@@ -167,7 +172,7 @@ export async function updateCategoryAction(
       return { data: null, error: validationError };
     }
 
-    const category = await CategoryService.updateCategory(id, input);
+    const category = await updateCategoryUseCase(id, input);
 
     if (category) {
       revalidateTag(`group:${existingCategory.group_id}:categories`, 'max');
@@ -203,7 +208,7 @@ export async function deleteCategoryAction(
       return { data: null, error: t('errors.unauthenticated') };
     }
 
-    const existingCategory = await CategoryService.getCategoryById(id);
+    const existingCategory = await getCategoryByIdUseCase(id);
     if (!existingCategory) return { data: null, error: t('errors.notFound') };
 
     // Permission check
@@ -211,7 +216,7 @@ export async function deleteCategoryAction(
       return { data: null, error: t('errors.permissionDenied') };
     }
 
-    const result = await CategoryService.deleteCategory(id);
+    const result = await deleteCategoryUseCase(id);
 
     if (result) {
       revalidateTag(`group:${existingCategory.group_id}:categories`, 'max');

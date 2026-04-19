@@ -4,7 +4,11 @@ import { getCurrentUser } from '@/lib/auth/cached-auth';
 import { revalidateTransactionRelatedPaths } from '@/lib/cache/revalidation-paths';
 import type { ServiceResult } from '@/lib/types/service-result';
 import { assertCanActOnUser } from '@/features/permissions/assert-can-act-on-user';
-import { TransactionService, CreateTransactionInput } from '@/server/services';
+import { createTransactionUseCase } from '@/server/use-cases/transactions/create-transaction.use-case';
+import { updateTransactionUseCase } from '@/server/use-cases/transactions/update-transaction.use-case';
+import { deleteTransactionUseCase } from '@/server/use-cases/transactions/delete-transaction.use-case';
+import { getTransactionByIdUseCase } from '@/server/use-cases/transactions/get-transactions.use-case';
+import type { CreateTransactionInput } from '@/server/use-cases/transactions/types';
 import { canAccessUserData, isMember } from '@/lib/utils';
 import type { User, Transaction } from '@/lib/types';
 
@@ -21,7 +25,7 @@ export async function createTransactionAction(
     const gate = assertCanActOnUser(currentUser as unknown as User, input.user_id ?? undefined);
     if (!gate.ok) return { data: null, error: gate.error };
 
-    const data = await TransactionService.createTransaction(input);
+    const data = await createTransactionUseCase(input);
 
     if (data) {
       revalidateTransactionRelatedPaths();
@@ -53,7 +57,7 @@ export async function updateTransactionAction(
     }
 
     // Get existing transaction to verify ownership
-    const existingTransaction = await TransactionService.getTransactionById(id);
+    const existingTransaction = await getTransactionByIdUseCase(id);
     if (!existingTransaction) {
       return { data: null, error: 'Transazione non trovata' };
     }
@@ -82,7 +86,7 @@ export async function updateTransactionAction(
     }
 
     // Call service
-    const data = await TransactionService.updateTransaction(id, input);
+    const data = await updateTransactionUseCase(id, input);
 
     if (data) {
       revalidateTransactionRelatedPaths();
@@ -111,7 +115,7 @@ export async function deleteTransactionAction(id: string): Promise<ServiceResult
     }
 
     // Get existing transaction to verify ownership
-    const existingTransaction = await TransactionService.getTransactionById(id);
+    const existingTransaction = await getTransactionByIdUseCase(id);
     if (!existingTransaction) {
       return { data: null, error: 'Transazione non trovata' };
     }
@@ -130,7 +134,7 @@ export async function deleteTransactionAction(id: string): Promise<ServiceResult
     }
 
     // Call service
-    await TransactionService.deleteTransaction(id);
+    await deleteTransactionUseCase(id);
 
     revalidateTransactionRelatedPaths();
 

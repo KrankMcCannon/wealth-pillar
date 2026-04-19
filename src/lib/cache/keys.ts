@@ -25,6 +25,12 @@ export const userCacheKeys = {
    * Cache key for all users (use with caution)
    */
   all: () => ['users'] as const,
+
+  /**
+   * Cache key for users by group
+   * @param groupId - Group ID
+   */
+  byGroup: (groupId: string) => ['users', 'group', groupId] as const,
 } as const;
 
 /**

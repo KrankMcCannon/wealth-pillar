@@ -4,9 +4,13 @@ import { revalidateBudgetRelatedPaths } from '@/lib/cache/revalidation-paths';
 import { getTranslations } from 'next-intl/server';
 
 import { getCurrentUser } from '@/lib/auth/cached-auth';
-import { CreateBudgetInput, BudgetService } from '@/server/services';
+import type { CreateBudgetInput } from '@/server/use-cases/budgets/types';
 import { canAccessUserData, isMember } from '@/lib/utils';
 import type { Budget, User } from '@/lib/types';
+import { createBudgetUseCase } from '@/server/use-cases/budgets/create-budget.use-case';
+import { updateBudgetUseCase } from '@/server/use-cases/budgets/update-budget.use-case';
+import { deleteBudgetUseCase } from '@/server/use-cases/budgets/delete-budget.use-case';
+import { getBudgetByIdUseCase } from '@/server/use-cases/budgets/get-budgets.use-case';
 
 import type { ServiceResult } from '@/lib/types/service-result';
 
@@ -62,10 +66,10 @@ export async function createBudgetAction(
     // BudgetService.createBudget handles permission/group resolution too, but we keep this action as a wrapper
     // Actually, let's delegate to service which now has robust validation
 
-    // We can just call BudgetService.createBudget - it handles validation.
+    // We can just call createBudgetUseCase - it handles validation.
     // However, the action is responsible for revalidating paths that might not be known to service (though service does tags)
 
-    const budget = await BudgetService.createBudget(input);
+    const budget = await createBudgetUseCase(input);
 
     if (budget) {
       revalidateBudgetRelatedPaths();
@@ -103,10 +107,10 @@ export async function updateBudgetAction(
     }
 
     // Get existing budget to verify ownership
-    const existingBudget = await BudgetService.getBudgetById(id);
+    const existingBudget = await getBudgetByIdUseCase(id);
 
     // Verify budget has a user_id
-    if (!existingBudget.user_id) {
+    if (!existingBudget || !existingBudget.user_id) {
       return {
         data: null,
         error: t('errors.userMissing'),
@@ -138,7 +142,7 @@ export async function updateBudgetAction(
       }
     }
 
-    const budget = await BudgetService.updateBudget(id, input);
+    const budget = await updateBudgetUseCase(id, input);
 
     if (budget) {
       revalidateBudgetRelatedPaths();
@@ -175,10 +179,10 @@ export async function deleteBudgetAction(
     }
 
     // Get existing budget to verify ownership
-    const existingBudget = await BudgetService.getBudgetById(id);
+    const existingBudget = await getBudgetByIdUseCase(id);
 
     // Verify budget has a user_id
-    if (!existingBudget.user_id) {
+    if (!existingBudget || !existingBudget.user_id) {
       return {
         data: null,
         error: t('errors.userMissing'),
@@ -193,7 +197,7 @@ export async function deleteBudgetAction(
       };
     }
 
-    const result = await BudgetService.deleteBudget(id);
+    const result = await deleteBudgetUseCase(id);
 
     if (result) {
       revalidateBudgetRelatedPaths();

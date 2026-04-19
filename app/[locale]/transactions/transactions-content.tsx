@@ -15,7 +15,7 @@ import { useTranslations } from 'next-intl';
 import { useTransactionsContent, type UseTransactionsContentProps } from '@/features/transactions';
 import { useOnboardingHint } from '@/features/transactions/hooks/useOnboardingHint';
 import type { User } from '@/lib/types';
-import type { TransactionsPageData } from '@/server/services/page-data.service';
+import type { TransactionsPageData } from '@/server/use-cases/pages/transactions-page.use-case';
 import { BottomNavigation, PageContainer, Header } from '@/components/layout';
 import TabNavigation from '@/components/shared/tab-navigation';
 import UserSelector from '@/components/shared/user-selector';
@@ -111,13 +111,20 @@ export default function TransactionsContent({
         filters.dateRange !== 'all' ||
         filters.categoryKey !== 'all' ||
         (filters.categoryKeys && filters.categoryKeys.length > 0) ||
-        filters.budgetId
+        filters.budgetId ||
+        filters.accountId !== 'all'
       ),
     [filters]
   );
 
   const handleClearFilters = useCallback(() => {
-    setFilters({ searchQuery: '', type: 'all', dateRange: 'all', categoryKey: 'all' });
+    setFilters({
+      searchQuery: '',
+      type: 'all',
+      dateRange: 'all',
+      categoryKey: 'all',
+      accountId: 'all',
+    });
     if (selectedBudget) handleClearBudgetFilter();
   }, [setFilters, selectedBudget, handleClearBudgetFilter]);
 
@@ -210,6 +217,7 @@ export default function TransactionsContent({
                 filters={filters}
                 onFiltersChange={setFilters}
                 categories={categories}
+                accounts={accounts}
                 budgetName={selectedBudget?.description}
                 onClearBudgetFilter={selectedBudget ? handleClearBudgetFilter : undefined}
               />

@@ -1,7 +1,15 @@
 'use server';
 
 import { CACHE_TAGS } from '@/lib/cache/config';
-import { AccountService, BudgetService, UserService, GroupService } from '@/server/services';
+import {
+  createUserUseCase,
+  updateUserUseCase,
+  deleteUserUseCase,
+  getUserByClerkIdUseCase,
+} from '@/server/use-cases/users/user.use-cases';
+import { createGroupUseCase, deleteGroupUseCase } from '@/server/use-cases/groups/groups.use-cases';
+import { createAccountUseCase } from '@/server/use-cases/accounts/account.use-cases';
+import { createBudgetUseCase } from '@/server/use-cases/budgets/create-budget.use-case';
 import { revalidatePath, revalidateTag } from 'next/cache';
 import { APP_ROUTE } from '@/lib/cache/revalidation-paths';
 import type { CompleteOnboardingInput } from './types';
@@ -65,12 +73,12 @@ function logOnboardingFailure(
  */
 async function rollbackOnboarding(userId: string, groupId: string): Promise<void> {
   try {
-    await UserService.deleteUser(userId);
+    await deleteUserUseCase(userId);
   } catch (rollbackErr) {
     console.error('[completeOnboardingAction] Rollback deleteUser failed:', rollbackErr);
   }
   try {
-    await GroupService.deleteGroup(groupId);
+    await deleteGroupUseCase(groupId);
   } catch (rollbackErr) {
     console.error('[completeOnboardingAction] Rollback deleteGroup failed:', rollbackErr);
   }
@@ -88,7 +96,7 @@ async function createOnboardingAccounts(
 
   for (const accountInput of accounts) {
     const accountId = randomUUID();
-    const createdAccount = await AccountService.createAccount({
+    const createdAccount = await createAccountUseCase({
       id: accountId,
       name: accountInput.name.trim(),
       type: accountInput.type,
@@ -118,7 +126,7 @@ async function createOnboardingBudgets(
   t: OnboardingActionTranslator
 ): Promise<string | null> {
   for (const budgetInput of budgets) {
-    const createdBudget = await BudgetService.createBudget({
+    const createdBudget = await createBudgetUseCase({
       description: budgetInput.description.trim(),
       amount: budgetInput.amount,
       type: budgetInput.type,
@@ -146,7 +154,7 @@ export async function completeOnboardingAction(
   const validationError = validateOnboardingInput(input, t);
   if (validationError) return { data: null, error: validationError };
 
-  const existingUser = await UserService.userExistsByClerkId(user.clerkId);
+  const existingUser = await getUserByClerkIdUseCase(user.clerkId);
   if (existingUser) {
     return {
       data: null,
@@ -160,10 +168,10 @@ export async function completeOnboardingAction(
 
   try {
     // Phase 1: Group + User
-    const createdGroup = await GroupService.createGroup({
+    const createdGroup = await createGroupUseCase({
       id: groupId,
       name: group.name.trim(),
-      description: group.description?.trim() || undefined,
+      description: group.description?.trim() || '',
       userIds: [userId],
       plan: { name: 'Piano Gratuito', type: 'free' },
       isActive: true,
@@ -173,7 +181,7 @@ export async function completeOnboardingAction(
       return { data: null, error: t('genericConfigurationFailed') };
     }
 
-    const createdUser = await UserService.create({
+    const createdUser = await createUserUseCase({
       id: userId,
       name: user.name.trim(),
       email: user.email.trim().toLowerCase(),
@@ -215,9 +223,7 @@ export async function completeOnboardingAction(
     // Phase 3: Default account
     if (defaultAccountId) {
       try {
-        await UserService.update(userId, { default_account_id: defaultAccountId } as {
-          default_account_id: string;
-        });
+        await updateUserUseCase(userId, { default_account_id: defaultAccountId });
       } catch (err) {
         logOnboardingFailure(
           'default_account',
@@ -371,7 +377,7 @@ export async function checkUserExistsAction(
 
   for (let attempt = 1; attempt <= MAX_CHECK_USER_ATTEMPTS; attempt++) {
     try {
-      const user = await UserService.getLoggedUserInfo(clerkId);
+      const user = await getUserByClerkIdUseCase(clerkId);
       return {
         data: {
           exists: !!user,

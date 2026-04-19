@@ -4,11 +4,14 @@ import { revalidateAccountRelatedPaths } from '@/lib/cache/revalidation-paths';
 import { getTranslations } from 'next-intl/server';
 import { getCurrentUser } from '@/lib/auth/cached-auth';
 import {
-  CreateAccountInput,
-  UpdateAccountInput,
-  UserService,
-  AccountService,
-} from '@/server/services';
+  createAccountUseCase,
+  updateAccountUseCase,
+  deleteAccountUseCase,
+  getAccountByIdUseCase,
+  type CreateAccountInput,
+  type UpdateAccountInput,
+} from '@/server/use-cases/accounts/account.use-cases';
+import { setUserDefaultAccountUseCase } from '@/server/use-cases/users/user.use-cases';
 import type { ServiceResult } from '@/lib/types/service-result';
 import { Account, User } from '@/lib/types';
 import { canAccessUserData } from '@/lib/utils/permissions';
@@ -49,11 +52,11 @@ export async function createAccountAction(
     if (!input.group_id) return { data: null, error: t('errors.groupRequired') };
     if (!input.user_ids?.length) return { data: null, error: t('errors.userRequired') };
 
-    const account = await AccountService.createAccount(input);
+    const account = await createAccountUseCase(input);
 
     if (isDefault && input.user_ids.length === 1) {
       const uid = input.user_ids[0];
-      if (uid) await UserService.setDefaultAccount(uid, account.id);
+      if (uid) await setUserDefaultAccountUseCase(uid, account.id);
     }
 
     revalidateAccountRelatedPaths();
@@ -87,7 +90,7 @@ export async function updateAccountAction(
       return { data: null, error: t('errors.unauthenticated') };
     }
 
-    const existingAccount = await AccountService.getAccountById(accountId);
+    const existingAccount = await getAccountByIdUseCase(accountId);
 
     if (currentUser.group_id !== existingAccount.group_id) {
       return { data: null, error: t('errors.noPermissionUpdate') };
@@ -97,7 +100,7 @@ export async function updateAccountAction(
       return { data: null, error: t('errors.nameEmpty') };
     if (input.user_ids?.length === 0) return { data: null, error: t('errors.userRequired') };
 
-    const account = await AccountService.updateAccount(accountId, input);
+    const account = await updateAccountUseCase(accountId, input);
 
     if (
       input.user_ids?.length === 1 ||
@@ -105,7 +108,7 @@ export async function updateAccountAction(
     ) {
       const userId = input.user_ids?.[0] ?? existingAccount.user_ids[0];
       if (userId != null && isDefault) {
-        await UserService.setDefaultAccount(userId, accountId);
+        await setUserDefaultAccountUseCase(userId, accountId);
       }
     }
 
@@ -138,13 +141,13 @@ export async function deleteAccountAction(
       return { data: null, error: t('errors.unauthenticated') };
     }
 
-    const existingAccount = await AccountService.getAccountById(accountId);
+    const existingAccount = await getAccountByIdUseCase(accountId);
 
     if (currentUser.group_id !== existingAccount.group_id) {
       return { data: null, error: t('errors.noPermissionDelete') };
     }
 
-    await AccountService.deleteAccount(accountId);
+    await deleteAccountUseCase(accountId);
 
     revalidateAccountRelatedPaths();
 

@@ -4,7 +4,7 @@
 
 import { getTranslations } from 'next-intl/server';
 import { requireGroupId, requirePageAuth } from '@/lib/auth/page-auth';
-import { PageDataService } from '@/server/services';
+import { getBudgetsPageData } from '@/server/use-cases';
 import BudgetSummaryContent from './budget-summary-content';
 
 export default async function BudgetSummaryPage({
@@ -15,7 +15,7 @@ export default async function BudgetSummaryPage({
 
   let pageData;
   try {
-    pageData = await PageDataService.getBudgetsPageData(groupId);
+    pageData = await getBudgetsPageData(groupId);
   } catch (err) {
     const t = await getTranslations('Errors');
     throw new Error(t('loadFailedBudgets'), { cause: err });

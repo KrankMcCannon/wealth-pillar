@@ -4,7 +4,7 @@ import { useTranslations } from 'next-intl';
 import { Header, PageContainer, BottomNavigation } from '@/components/layout';
 import { budgetStyles } from '@/styles/system';
 import type { User, UserBudgetSummary } from '@/lib/types';
-import type { BudgetsPageData } from '@/server/services/page-data.service';
+import type { BudgetsPageData } from '@/server/use-cases/pages/budgets-page.use-case';
 import { TransactionDayList } from '@/features/transactions/components';
 import UserSelector from '@/components/shared/user-selector';
 import { useBudgetSummaryContent } from './useBudgetSummaryContent';

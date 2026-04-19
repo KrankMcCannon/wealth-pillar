@@ -20,7 +20,7 @@ import { formatCurrency } from '@/lib/utils/currency-formatter';
 import { formatDateShort, toDateTime } from '@/lib/utils/date-utils';
 import { MoreVertical, Pencil, Trash2 } from 'lucide-react';
 import { useCategories } from '@/stores/reference-data-store';
-import { FinanceLogicService } from '@/server/services/finance-logic.service';
+import { getCategoryColor } from '@/server/use-cases/categories/category.logic';
 
 export interface BudgetDisplayCardProps {
   budget: Budget | null;
@@ -45,10 +45,7 @@ export function BudgetDisplayCard({
   const t = useTranslations('Budgets.DisplayCard');
   const locale = useLocale();
   const categories = useCategories();
-  const categoryColor = FinanceLogicService.getCategoryColor(
-    categories,
-    budget?.categories?.[0] || 'altro'
-  );
+  const categoryColor = getCategoryColor(categories, budget?.categories?.[0] || 'altro');
   const remainingColorClass =
     budgetProgress && budgetProgress.remaining < 0 ? 'text-destructive' : 'text-success';
 

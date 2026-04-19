@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import type { UserFlowSummary } from '@/server/services/reports.service';
+import type { UserFlowSummary } from '@/server/use-cases/reports/reports.use-cases';
 import { Wallet, Landmark, Banknote, PiggyBank } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useFormatCurrency } from '@/features/reports/hooks/use-format-currency';

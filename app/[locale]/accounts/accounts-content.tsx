@@ -19,7 +19,7 @@ import { ConfirmationDialog } from '@/components/shared/confirmation-dialog';
 import { Button } from '@/components/ui';
 import { useModalState } from '@/lib/navigation/url-state';
 import type { User } from '@/lib/types';
-import type { AccountsPageData } from '@/server/services/page-data.service';
+import type { AccountsPageData } from '@/server/use-cases/pages/accounts-page.use-case';
 import { reportsStyles } from '@/styles/system';
 
 interface AccountsContentProps {

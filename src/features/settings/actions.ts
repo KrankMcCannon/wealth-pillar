@@ -1,8 +1,17 @@
 'use server';
 
 import { clerkClient } from '@clerk/nextjs/server';
-import { UserService, UserPreferencesService, GroupInvitationService } from '@/server/services';
-import type { UserPreferences, GroupInvitation } from '@/server/services';
+import {
+  deleteUserUseCase,
+  getUsersByGroupUseCase,
+  updateUserProfileUseCase,
+} from '@/server/use-cases/users/user.use-cases';
+import {
+  getUserPreferencesUseCase,
+  updateUserPreferencesUseCase,
+} from '@/server/use-cases/users/get-user-preferences.use-case';
+import { createGroupInvitationUseCase } from '@/server/use-cases/groups/group-invitations.use-cases';
+import type { UserPreferences, GroupInvitation } from '@/lib/types';
 import type { UserPreferencesUpdate, User } from '@/lib/types';
 import type { ServiceResult } from '@/lib/types/service-result';
 
@@ -33,11 +42,12 @@ export async function deleteUserAction(
     }
 
     // Delete user and all related data from database
-    await UserService.deleteUser(userId);
+    await deleteUserUseCase(userId);
 
     // Delete Clerk user
     try {
-      await (await clerkClient()).users.deleteUser(clerkId);
+      const client = await clerkClient();
+      await client.users.deleteUser(clerkId);
     } catch (clerkError) {
       console.error('Failed to delete Clerk user:', clerkError);
       // Don't return error here - database deletion succeeded
@@ -81,15 +91,15 @@ export async function updateUserProfileAction(
       };
     }
 
-    // Update user profile via service
-    const data = await UserService.updateProfile(userId, updates);
+    // Update user profile via use case
+    const data = await updateUserProfileUseCase(userId, updates);
 
     // Return minimal user data (avoid sending sensitive fields)
     return {
       data: {
         id: data.id,
-        name: data.name,
-        email: data.email,
+        name: data.name ?? '',
+        email: data.email ?? '',
       },
       error: null,
     };
@@ -120,11 +130,11 @@ export async function getUserPreferencesAction(
       };
     }
 
-    // Get preferences via service (with lazy initialization)
-    const data = await UserPreferencesService.getUserPreferences(userId);
+    // Get preferences via use case (with lazy initialization)
+    const data = await getUserPreferencesUseCase(userId);
 
     return {
-      data,
+      data: data as unknown as UserPreferences,
       error: null,
     };
   } catch (error) {
@@ -163,11 +173,14 @@ export async function updateUserPreferencesAction(
       };
     }
 
-    // Update preferences via service
-    const data = await UserPreferencesService.updatePreferences(userId, updates);
+    // Update preferences via use case
+    const data = await updateUserPreferencesUseCase(
+      userId,
+      updates as Parameters<typeof updateUserPreferencesUseCase>[1]
+    );
 
     return {
-      data,
+      data: data as unknown as UserPreferences,
       error: null,
     };
   } catch (error) {
@@ -215,20 +228,15 @@ export async function sendGroupInvitationAction(
       };
     }
 
-    // Create invitation via service
-    const data = await GroupInvitationService.createInvitation({
+    // Create invitation via use case
+    const data = await createGroupInvitationUseCase({
       groupId,
       invitedByUserId,
       email: email.trim(),
     });
 
-    // TODO: Send actual email notification via Resend/SendGrid
-    // For now, just return the created invitation
-    // Example:
-    // await sendInvitationEmail(email, data.invitation_token);
-
     return {
-      data,
+      data: data as unknown as GroupInvitation,
       error: null,
     };
   } catch (error) {
@@ -252,7 +260,7 @@ export async function getGroupUsersAction(groupId: string): Promise<User[] | nul
       return null;
     }
 
-    const users = await UserService.getUsersByGroup(groupId);
+    const users = await getUsersByGroupUseCase(groupId);
     return users as unknown as User[];
   } catch (error) {
     console.error('Failed to get group users:', error);

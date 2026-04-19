@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { UseFormSetError } from 'react-hook-form';
 import { Transaction, TransactionType } from '@/lib/types';
-import { CreateTransactionInput } from '@/server/services';
+import type { CreateTransactionInput } from '@/server/use-cases/transactions/types';
 import { getTempId } from '@/lib/utils';
 import { createTransactionAction, updateTransactionAction } from '@/features/transactions';
 import { toast } from '@/hooks/use-toast';

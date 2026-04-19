@@ -8,7 +8,11 @@ import { memo, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { cn } from '@/lib';
 import type { RecurringTransactionSeries } from '@/lib';
-import { FinanceLogicService } from '@/server/services/finance-logic.service';
+import { getCategoryColor } from '@/server/use-cases/categories/category.logic';
+import {
+  calculateDaysUntilDue,
+  getAssociatedUsers,
+} from '@/server/use-cases/recurring/recurring.logic';
 import type { User } from '@/lib/types';
 import { executeRecurringSeriesAction } from '@/features/recurring';
 import { Pause, Play, Trash2 } from 'lucide-react';
@@ -84,13 +88,13 @@ function SeriesCardInner({
   const closeAllCards = useCloseAllCards();
   const categories = useCategories();
   const categoryColor = useMemo(() => {
-    return FinanceLogicService.getCategoryColor(categories, series.category);
+    return getCategoryColor(categories, series.category);
   }, [categories, series.category]);
   const canSwipeDelete = Boolean(onDelete) && showDelete;
   const canSwipePause = showActions;
 
-  // Calculate due date info using FinanceLogicService
-  const daysUntilDue = FinanceLogicService.calculateDaysUntilDue(series);
+  // Calculate due date info using decentralised logic
+  const daysUntilDue = calculateDaysUntilDue(series);
   const isOverdue = daysUntilDue < 0;
   const isDueToday = daysUntilDue === 0;
   const isDueSoon = daysUntilDue <= 3;
@@ -103,7 +107,7 @@ function SeriesCardInner({
       ...u,
       theme_color: u.theme_color || undefined,
     }));
-    return FinanceLogicService.getAssociatedUsers(series, sanitizedGroupUsers);
+    return getAssociatedUsers(series, sanitizedGroupUsers);
   }, [series, groupUsers]);
 
   // Handle card click - use onCardClick if defined, otherwise fall back to onEdit

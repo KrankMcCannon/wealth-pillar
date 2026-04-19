@@ -1,5 +1,5 @@
 import { Account, User } from '@/lib/types';
-import { FinanceLogicService } from '@/server/services/finance-logic.service';
+import { getDefaultAccounts } from '@/server/use-cases/accounts/account.logic';
 
 /**
  * Calculates which accounts should be displayed on the dashboard based on user permissions and selection.
@@ -44,7 +44,7 @@ function getManagerAccounts(
   }
 
   // No specific user selected, use default logic
-  return FinanceLogicService.getDefaultAccounts(accounts, groupUsers);
+  return getDefaultAccounts(accounts, groupUsers);
 }
 
 export function calculateDisplayedAccounts(
