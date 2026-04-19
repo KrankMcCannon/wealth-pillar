@@ -21,6 +21,7 @@ import { RecurringTransactionSeries } from '@/lib';
 import { defaultFiltersState } from '../components/transaction-filters';
 import {
   filterTransactions,
+  hasActiveTransactionFilters,
   type TransactionFiltersState,
 } from '@/server/use-cases/transactions/transaction.logic';
 import type { Transaction, Budget, User, Account, Category } from '@/lib/types';
@@ -71,6 +72,8 @@ export interface UseTransactionsContentReturn {
   pageSize: number;
   setPageSize: (size: PageSizeOption) => void;
   isChangingPage: boolean;
+  /** True while loading remaining pages so filters apply to the whole group */
+  isLoadingFullDatasetForFilters: boolean;
   pageError: string | null;
   goToPage: (page: number) => Promise<void>;
   nextPage: () => Promise<void>;
@@ -119,6 +122,21 @@ export interface UseTransactionsContentReturn {
 // ============================================================================
 
 const DEFAULT_PAGE_SIZE: PageSizeOption = 30;
+
+const FULL_DATASET_BATCH = 100;
+
+function mergeTransactionsUnique(existing: Transaction[], incoming: Transaction[]): Transaction[] {
+  if (incoming.length === 0) return existing;
+  const ids = new Set(existing.map((t) => t.id));
+  const merged = [...existing];
+  for (const t of incoming) {
+    if (!ids.has(t.id)) {
+      ids.add(t.id);
+      merged.push(t);
+    }
+  }
+  return merged;
+}
 
 export function useTransactionsContent({
   transactions,
@@ -186,6 +204,18 @@ export function useTransactionsContent({
 
   // Debounce search so typing does not re-run filter on every keystroke
   const debouncedSearchQuery = useDebouncedValue(filters.searchQuery, 250);
+
+  const filtersForFullDataset = useMemo(
+    (): TransactionFiltersState => ({ ...filters, searchQuery: debouncedSearchQuery }),
+    [filters, debouncedSearchQuery]
+  );
+
+  const needsFullDataset = useMemo(
+    () => hasActiveTransactionFilters(filtersForFullDataset),
+    [filtersForFullDataset]
+  );
+
+  const [isLoadingFullDatasetForFilters, setIsLoadingFullDatasetForFilters] = useState(false);
 
   // Pause modal state
   const [showPauseModal, setShowPauseModal] = useState(false);
@@ -308,10 +338,62 @@ export function useTransactionsContent({
   // Handle newly loaded transactions from pagination hook
   const handleNewTransactions = useCallback(
     (newTxs: Transaction[]) => {
-      setTransactions([...storeTransactions, ...newTxs]);
+      const prev = usePageDataStore.getState().transactions;
+      setTransactions(mergeTransactionsUnique(prev, newTxs));
     },
-    [storeTransactions, setTransactions]
+    [setTransactions]
   );
+
+  // When filters/search are active, client-side filtering must see the whole group — fetch any pages not loaded yet
+  useEffect(() => {
+    if (!needsFullDataset) {
+      setIsLoadingFullDatasetForFilters(false);
+      return;
+    }
+
+    const groupFullyLoaded =
+      !hasMoreTransactions ||
+      (totalTransactions > 0 && storeTransactions.length >= totalTransactions);
+
+    if (groupFullyLoaded) {
+      setIsLoadingFullDatasetForFilters(false);
+      return;
+    }
+
+    let cancelled = false;
+
+    (async () => {
+      setIsLoadingFullDatasetForFilters(true);
+      try {
+        let offset = storeTransactions.length;
+        while (!cancelled) {
+          const result = await loadMoreTransactionsAction(offset, FULL_DATASET_BATCH);
+          if (cancelled || result.error) break;
+          if (result.data.length === 0) break;
+
+          const merged = mergeTransactionsUnique(
+            usePageDataStore.getState().transactions,
+            result.data
+          );
+          setTransactions(merged);
+
+          if (!result.hasMore) break;
+          offset += result.data.length;
+        }
+      } finally {
+        if (!cancelled) setIsLoadingFullDatasetForFilters(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+    // Only re-run when filter activation changes — not on each batch merged into the store
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- see comment
+  }, [needsFullDataset, setTransactions]);
+
+  const effectiveHasMoreFromServer =
+    hasMoreTransactions && storeTransactions.length < totalTransactions;
 
   // Pagination hook
   const {
@@ -328,7 +410,7 @@ export function useTransactionsContent({
     filteredTransactions,
     allLoadedCount: storeTransactions.length,
     totalServerCount: totalTransactions,
-    hasMoreFromServer: hasMoreTransactions,
+    hasMoreFromServer: effectiveHasMoreFromServer,
     pageSize,
     loadMore: loadMoreCallback,
     onNewTransactions: handleNewTransactions,
@@ -570,6 +652,7 @@ export function useTransactionsContent({
     pageSize,
     setPageSize,
     isChangingPage,
+    isLoadingFullDatasetForFilters,
     pageError,
     goToPage,
     nextPage,

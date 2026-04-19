@@ -8,6 +8,7 @@ import {
   getDaysInMonth,
   formatDaysUntil,
   formatDateShort,
+  toFiniteMoney,
 } from '@/lib/utils';
 
 /**
@@ -174,17 +175,18 @@ export function groupSeriesByUser(
  * Calculate monthly cost/income for a series
  */
 export function calculateMonthlyAmount(series: RecurringTransactionSeries): number {
+  const amount = toFiniteMoney(series.amount);
   switch (series.frequency) {
     case 'weekly':
-      return series.amount * 4.33; // Average weeks per month
+      return amount * 4.33; // Average weeks per month
     case 'biweekly':
-      return series.amount * 2.17;
+      return amount * 2.17;
     case 'monthly':
-      return series.amount;
+      return amount;
     case 'yearly':
-      return series.amount / 12;
+      return amount / 12;
     default:
-      return series.amount;
+      return amount;
   }
 }
 

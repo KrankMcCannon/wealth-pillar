@@ -376,6 +376,20 @@ export interface TransactionFiltersState {
   endDate?: string | null;
 }
 
+/**
+ * True when any filter narrows the list (client-side filtering must consider the full group dataset).
+ */
+export function hasActiveTransactionFilters(filters: TransactionFiltersState): boolean {
+  if (filters.searchQuery?.trim()) return true;
+  if (filters.type !== 'all') return true;
+  if (filters.dateRange !== 'all') return true;
+  if (filters.categoryKey !== 'all') return true;
+  if (filters.accountId && filters.accountId !== 'all') return true;
+  if (filters.categoryKeys && filters.categoryKeys.length > 0) return true;
+  if (filters.budgetId) return true;
+  return false;
+}
+
 const matchesSearch = (
   t: { description: string; category: string },
   query: string,

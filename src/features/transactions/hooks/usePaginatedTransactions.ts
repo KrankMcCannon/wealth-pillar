@@ -16,7 +16,7 @@
  * - onNewTransactions: callback to persist newly loaded transactions in the store
  */
 
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useLayoutEffect, useRef } from 'react';
 import type { Transaction } from '@/lib/types';
 
 export const PAGE_SIZE_OPTIONS = [10, 20, 30, 50, 100] as const;
@@ -85,8 +85,17 @@ export function usePaginatedTransactions({
   );
   const totalPages = Math.max(1, Math.ceil(effectiveTotal / pageSize));
 
+  // When filters (or loaded data) shrink the list, totalPages can drop while currentPage is still
+  // high — slice would be empty until an effect resets the page. Clamp synchronously before paint.
+  useLayoutEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
+
   // Slice the current page from filtered transactions
-  const start = (currentPage - 1) * pageSize;
+  const safePage = Math.min(currentPage, totalPages);
+  const start = (safePage - 1) * pageSize;
   const end = start + pageSize;
   const currentPageItems = filteredTransactions.slice(start, end);
 
@@ -123,13 +132,13 @@ export function usePaginatedTransactions({
     setPageError(null);
   }, []);
 
-  const nextPage = useCallback(() => goToPage(currentPage + 1), [goToPage, currentPage]);
-  const prevPage = useCallback(() => goToPage(currentPage - 1), [goToPage, currentPage]);
+  const nextPage = useCallback(() => goToPage(safePage + 1), [goToPage, safePage]);
+  const prevPage = useCallback(() => goToPage(safePage - 1), [goToPage, safePage]);
   const firstPage = useCallback(() => goToPage(1), [goToPage]);
   const lastPage = useCallback(() => goToPage(totalPages), [goToPage, totalPages]);
 
   return {
-    currentPage,
+    currentPage: safePage,
     totalPages,
     currentPageItems,
     isChangingPage,

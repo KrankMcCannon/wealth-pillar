@@ -3,6 +3,7 @@
  */
 // Currency
 export { formatCurrency, formatCurrencyLocale, APP_CURRENCY_CODE } from './currency-formatter';
+export { toFiniteMoney } from './money-coerce';
 
 // Date & Time
 export {

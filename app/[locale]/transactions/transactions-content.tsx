@@ -80,6 +80,7 @@ export default function TransactionsContent({
     pageSize,
     setPageSize,
     isChangingPage,
+    isLoadingFullDatasetForFilters,
     pageError,
     goToPage,
     currentPageItems,
@@ -250,7 +251,7 @@ export default function TransactionsContent({
                 currentPage={currentPage}
                 totalPages={totalPages}
                 pageSize={pageSize}
-                isChangingPage={isChangingPage}
+                isChangingPage={isChangingPage || isLoadingFullDatasetForFilters}
                 onPageChange={goToPage}
                 onPageSizeChange={setPageSize}
                 onEditTransaction={handleEditTransaction}
