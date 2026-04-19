@@ -161,11 +161,11 @@ export const BudgetSection = ({
                   <RowCard
                     icon={
                       <span className={budgetStyles.section.avatarText}>
-                        {user.name.charAt(0).toUpperCase()}
+                        {(user.name ?? '?').charAt(0).toUpperCase()}
                       </span>
                     }
                     iconClassName={budgetStyles.section.avatar}
-                    title={user.name}
+                    title={user.name ?? ''}
                     subtitle={
                       activePeriod && periodStart ? (
                         <span className={budgetStyles.section.periodText}>

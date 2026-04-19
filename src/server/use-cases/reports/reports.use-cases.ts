@@ -3,10 +3,12 @@ import { AccountsRepository } from '@/server/repositories/accounts.repository';
 import { CategoriesRepository } from '@/server/repositories/categories.repository';
 import { UsersRepository } from '@/server/repositories/users.repository';
 import { ReportsRepository } from '@/server/repositories/reports.repository';
+import { transactions } from '@/server/db/schema';
 import { parseBudgetPeriodsFromJson } from '@/lib/utils/budget-period-json';
 import { toDateTime, formatDateShort } from '@/lib/utils';
 import { cached } from '@/lib/cache';
 import type { Transaction, Account, BudgetPeriod, Category, User } from '@/lib/types';
+import type { Json } from '@/lib/types/database.types';
 
 /**
  * Report Period Summary with calculated metrics
@@ -79,7 +81,7 @@ function normalizeAccountType(type: string | undefined): string {
 export function getProcessedUserPeriodsUseCase(user: User): BudgetPeriod[] {
   let userPeriods: BudgetPeriod[] = [];
 
-  const rawPeriods = parseBudgetPeriodsFromJson(user.budget_periods);
+  const rawPeriods = parseBudgetPeriodsFromJson(user.budget_periods as Json | null);
   if (rawPeriods.length > 0) {
     userPeriods = rawPeriods.map((bp) => ({
       ...bp,
@@ -157,12 +159,14 @@ export async function getReportsDataUseCase(groupId: string, groupUserIds?: stri
   ]);
 
   // Drizzle returns numeric() columns as strings from Postgres — coerce to numbers here
-  const normalizedTransactions: Transaction[] = (allTransactions || []).map((t) => ({
-    ...t,
-    amount: Number(t.amount),
-  })) as Transaction[];
+  const normalizedTransactions: Transaction[] = (allTransactions || []).map(
+    (t: typeof transactions.$inferSelect) => ({
+      ...t,
+      amount: Number(t.amount),
+    })
+  ) as Transaction[];
 
-  const normalizedAccounts: Account[] = (allAccounts || []).map((a) => ({
+  const normalizedAccounts: Account[] = (allAccounts || []).map((a: Account) => ({
     ...a,
     balance: Number(a.balance),
   })) as Account[];
@@ -546,7 +550,11 @@ export async function getGroupUserCategorySpendingUseCase(
 ) {
   return cached(
     async () => {
-      const data = await ReportsRepository.getGroupUserCategorySpending(groupId, startDate, endDate);
+      const data = await ReportsRepository.getGroupUserCategorySpending(
+        groupId,
+        startDate,
+        endDate
+      );
       return data.map((item) => ({
         ...item,
         spent: Number(item.spent),

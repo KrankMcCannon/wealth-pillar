@@ -21,7 +21,8 @@ interface GroupSectionProps {
 }
 
 function GroupMemberRow({ member, locale }: Readonly<{ member: User; locale: string }>) {
-  const memberInitials = member.name
+  const displayName = member.name ?? '';
+  const memberInitials = displayName
     .split(' ')
     .map((n: string) => n[0])
     .join('')
@@ -29,8 +30,8 @@ function GroupMemberRow({ member, locale }: Readonly<{ member: User; locale: str
 
   return (
     <RowCard
-      title={member.name}
-      subtitle={member.email}
+      title={displayName}
+      subtitle={member.email ?? ''}
       icon={
         <div
           className={cn(

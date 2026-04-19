@@ -104,11 +104,11 @@ export function MultiUserSelect({
               className={cn(formStyles.multiUser.avatar, user.theme_color && 'text-white')}
               style={getMultiUserAvatarStyle(user.theme_color || undefined)}
             >
-              {user.name.charAt(0).toUpperCase()}
+              {(user.name ?? '?').charAt(0).toUpperCase()}
             </div>
 
             {/* User name */}
-            <span className={formStyles.multiUser.name}>{user.name}</span>
+            <span className={formStyles.multiUser.name}>{user.name ?? ''}</span>
 
             {/* Current user indicator */}
             {user.id === currentUserId && (

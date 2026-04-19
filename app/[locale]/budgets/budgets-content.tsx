@@ -93,7 +93,10 @@ export default function BudgetsContent({ currentUser, groupUsers, pageData }: Bu
       <Header
         title={t('title')}
         showBack
-        currentUser={{ name: currentUser.name, role: currentUser.role || 'member' }}
+        currentUser={{
+          ...(currentUser.name != null ? { name: currentUser.name } : {}),
+          role: currentUser.role || 'member',
+        }}
         showActions
       />
 

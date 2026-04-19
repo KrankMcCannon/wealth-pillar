@@ -37,7 +37,7 @@ export function UserField({
 
   const options = users.map((user) => ({
     value: user.id,
-    label: user.name,
+    label: user.name ?? '',
   }));
 
   return (

@@ -62,7 +62,7 @@ const UserSelector = memo(
     const membersList = useMemo(() => {
       const list: Array<{ id: string; name: string; isSpecial: boolean }> = users.map((user) => ({
         id: user.id,
-        name: user.name,
+        name: user.name ?? '',
         isSpecial: false,
       }));
 

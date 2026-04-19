@@ -139,11 +139,10 @@ export default function AddInvestmentModal({
 
         const row = res.data;
         const fallbackDay = new Date().toISOString().slice(0, 10);
-        const parsedDay =
-          typeof row.created_at === 'string'
-            ? row.created_at.split('T')[0]
-            : new Date(row.created_at ?? '').toISOString().split('T')[0];
-        const dateStr = parsedDay ?? fallbackDay;
+        const dateStr =
+          row.created_at === null
+            ? fallbackDay
+            : (row.created_at.toISOString().split('T')[0] ?? fallbackDay);
 
         const currency: 'EUR' | 'USD' = row.currency === 'USD' ? 'USD' : 'EUR';
 

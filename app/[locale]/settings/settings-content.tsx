@@ -98,7 +98,7 @@ export default function SettingsContent({
           showBack
           onBack={() => router.push('/home')}
           currentUser={{
-            name: currentUser.name,
+            ...(currentUser.name != null ? { name: currentUser.name } : {}),
             role:
               currentUser.role === 'superadmin' || currentUser.role === 'admin'
                 ? 'admin'
@@ -155,8 +155,8 @@ export default function SettingsContent({
         isOpen={showEditProfileModal}
         onOpenChange={setShowEditProfileModal}
         userId={currentUser.id}
-        currentName={currentUser.name}
-        currentEmail={currentUser.email}
+        currentName={currentUser.name ?? ''}
+        currentEmail={currentUser.email ?? ''}
       />
 
       {/* Currency Selection Modal */}

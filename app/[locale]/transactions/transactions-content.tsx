@@ -141,7 +141,10 @@ export default function TransactionsContent({
       <Header
         title={t('headerTitle')}
         showBack
-        currentUser={{ name: currentUser.name, role: currentUser.role || 'member' }}
+        currentUser={{
+          ...(currentUser.name != null ? { name: currentUser.name } : {}),
+          role: currentUser.role || 'member',
+        }}
         showActions
       />
 

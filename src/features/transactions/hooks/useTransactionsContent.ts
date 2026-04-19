@@ -167,9 +167,9 @@ export function useTransactionsContent({
         categoryKeys: selectedBudget.categories,
         type: 'expense',
         dateRange: startDateFromUrl || endDateFromUrl ? 'custom' : defaultFiltersState.dateRange,
-        startDate: startDateFromUrl ?? undefined,
-        endDate: endDateFromUrl ?? undefined,
-        accountId: accountIdFromUrl ?? undefined,
+        ...(startDateFromUrl ? { startDate: startDateFromUrl } : {}),
+        ...(endDateFromUrl ? { endDate: endDateFromUrl } : {}),
+        ...(accountIdFromUrl ? { accountId: accountIdFromUrl } : {}),
       };
     }
     return defaultFiltersState;
@@ -276,11 +276,11 @@ export function useTransactionsContent({
         type: filters.type,
         dateRange: filters.dateRange,
         categoryKey: filters.categoryKey,
-        categoryKeys: filters.categoryKeys,
-        budgetId: filters.budgetId,
-        accountId: filters.accountId,
-        startDate: filters.startDate,
-        endDate: filters.endDate,
+        accountId: filters.accountId ?? 'all',
+        ...(filters.categoryKeys !== undefined ? { categoryKeys: filters.categoryKeys } : {}),
+        ...(filters.budgetId !== undefined ? { budgetId: filters.budgetId } : {}),
+        ...(filters.startDate !== undefined ? { startDate: filters.startDate } : {}),
+        ...(filters.endDate !== undefined ? { endDate: filters.endDate } : {}),
       },
       categories
     );

@@ -1,11 +1,20 @@
 import { useState, useMemo, useCallback } from 'react';
 import { toDateTime } from '@/lib/utils';
-import { BudgetPeriod } from '@/lib/types';
+import type { BudgetPeriod, Transaction } from '@/lib/types';
 
 /**
- * Extended type including optional transaction count sometimes appended by server/parent
+ * Extended type for reports UI (counts, user label, balances from enrichment)
  */
-export type ReportsBudgetPeriod = BudgetPeriod & { transactionCount?: number };
+export type ReportsBudgetPeriod = BudgetPeriod & {
+  transactionCount?: number;
+  userName?: string;
+  transactions?: Transaction[];
+  defaultAccountStartBalance?: number;
+  defaultAccountEndBalance?: number;
+  periodTotalSpent?: number;
+  periodTotalIncome?: number;
+  periodTotalTransfers?: number;
+};
 
 interface UseBudgetPeriodsOptions {
   periods: ReportsBudgetPeriod[];

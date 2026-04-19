@@ -1,4 +1,4 @@
-import type { Database } from './database.types';
+import type { Database, Json } from './database.types';
 
 export type RoleType = 'superadmin' | 'admin' | 'member';
 export type AccountType = 'payroll' | 'savings' | 'cash' | 'investments';
@@ -61,8 +61,17 @@ export interface Group {
   updated_at: DateString;
 }
 
-/** User row from database; single source of truth for app user shape */
-export type User = Database['public']['Tables']['users']['Row'];
+/** User row: Drizzle allows null name/email; timestamps may be Date or ISO string; jsonb may infer as unknown. */
+export type User = Omit<
+  Database['public']['Tables']['users']['Row'],
+  'name' | 'email' | 'created_at' | 'updated_at' | 'budget_periods'
+> & {
+  name: string | null;
+  email: string | null;
+  created_at: DateString | null;
+  updated_at: DateString | null;
+  budget_periods: Json | null | unknown;
+};
 
 export interface Account {
   id: string;
@@ -230,7 +239,14 @@ export interface UserBudgetSummary {
   overallPercentage: number;
 }
 
-export type UserPreferences = Database['public']['Tables']['user_preferences']['Row'];
+/** Row shape: Drizzle returns Date timestamps; Supabase types use string — accept both. */
+export type UserPreferences = Omit<
+  Database['public']['Tables']['user_preferences']['Row'],
+  'created_at' | 'updated_at'
+> & {
+  created_at: DateString;
+  updated_at: DateString;
+};
 export type GroupInvitation = Database['public']['Tables']['group_invitations']['Row'];
 
 export interface UserPreferencesUpdate {

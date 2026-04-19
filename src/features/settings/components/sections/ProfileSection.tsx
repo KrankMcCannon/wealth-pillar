@@ -43,12 +43,12 @@ export function ProfileSection({
                 currentUser.theme_color ? { backgroundColor: currentUser.theme_color } : undefined
               }
               role="img"
-              aria-label={t('avatarAriaLabel', { name: currentUser.name })}
+              aria-label={t('avatarAriaLabel', { name: currentUser.name ?? '' })}
             >
               <span aria-hidden>{userInitials}</span>
             </div>
             <div className={settingsStyles.profile.info}>
-              <h3 className={settingsStyles.profile.name}>{currentUser.name}</h3>
+              <h3 className={settingsStyles.profile.name}>{currentUser.name ?? ''}</h3>
               <div className={settingsStyles.profile.badges}>
                 <div className={settingsStyles.profile.badge}>
                   {t('accountCount', { count: accountCount })}

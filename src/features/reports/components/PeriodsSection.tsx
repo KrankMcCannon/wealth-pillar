@@ -8,7 +8,7 @@ import { EmptyState } from '@/components/shared';
 
 interface PeriodsSectionProps {
   data: ReportPeriodSummary[];
-  users: { id: string; name: string }[];
+  users: { id: string; name: string | null }[];
 }
 
 export function PeriodsSection({ data, users }: PeriodsSectionProps) {
@@ -40,7 +40,7 @@ export function PeriodsSection({ data, users }: PeriodsSectionProps) {
                   <PeriodCard
                     key={period.id}
                     period={period}
-                    {...(users.length > 1 ? { ownerName: user.name } : {})}
+                    {...(users.length > 1 ? { ownerName: user.name ?? '' } : {})}
                   />
                 ))}
               </React.Fragment>

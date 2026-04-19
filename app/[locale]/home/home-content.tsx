@@ -114,7 +114,10 @@ export default function HomeContent({
 
       <Header
         isDashboard
-        currentUser={{ name: currentUser.name, role: currentUser.role || 'member' }}
+        currentUser={{
+          ...(currentUser.name != null ? { name: currentUser.name } : {}),
+          role: currentUser.role || 'member',
+        }}
         showActions
         investmentSummary={investmentSummary}
       />

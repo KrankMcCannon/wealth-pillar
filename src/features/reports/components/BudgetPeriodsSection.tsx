@@ -91,7 +91,7 @@ export function BudgetPeriodsSection({
             key={period.id}
             startDate={period.start_date}
             endDate={period.end_date}
-            userName={period.userName}
+            userName={period.userName ?? ''}
             userId={period.user_id}
             transactions={period.transactions}
             transactionCount={period.transactionCount}

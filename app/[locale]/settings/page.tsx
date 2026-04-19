@@ -21,7 +21,7 @@ export default async function SettingsPage({
     getTranslations('SettingsPage'),
   ]);
 
-  const now = new Date().toISOString();
+  const now = new Date();
   const fallbackPreferences: UserPreferences = {
     id: `fallback-${currentUser.id}`,
     user_id: currentUser.id,

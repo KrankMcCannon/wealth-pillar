@@ -3,11 +3,12 @@
 import { revalidateInvestmentRelatedPaths } from '@/lib/cache/revalidation-paths';
 import { getCurrentUser } from '@/lib/auth/cached-auth';
 import * as useCases from '@/server/use-cases';
+import { investments } from '@/server/db/schema';
 import type { Database } from '@/lib/types/database.types';
 import type { ServiceResult } from '@/lib/types/service-result';
 
 type InvestmentInsert = Database['public']['Tables']['investments']['Insert'];
-type InvestmentRow = Database['public']['Tables']['investments']['Row'];
+type InvestmentRow = typeof investments.$inferSelect;
 
 export async function getInvestmentByIdAction(id: string): Promise<ServiceResult<InvestmentRow>> {
   try {
@@ -54,6 +55,8 @@ export async function updateInvestmentAction(input: {
       created_at: input.created_at.toISOString(),
     });
 
+    if (!updated) return { data: null, error: 'NOT_FOUND' };
+
     revalidateInvestmentRelatedPaths();
     return { data: updated, error: null };
   } catch (error) {
@@ -69,7 +72,7 @@ export async function createInvestmentAction(
   input: Omit<InvestmentInsert, 'user_id' | 'id' | 'created_at' | 'updated_at'> & {
     created_at?: Date | string;
   }
-): Promise<ServiceResult<Database['public']['Tables']['investments']['Row']>> {
+): Promise<ServiceResult<InvestmentRow>> {
   try {
     // Authentication check (cached per request)
     const currentUser = await getCurrentUser();
@@ -95,6 +98,8 @@ export async function createInvestmentAction(
     };
 
     const data = await useCases.addInvestmentUseCase(investmentData as InvestmentInsert);
+
+    if (!data) return { data: null, error: 'Failed to create investment' };
 
     revalidateInvestmentRelatedPaths();
 

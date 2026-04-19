@@ -104,7 +104,8 @@ function SeriesCardInner({
     if (!groupUsers) return [];
     // Ensure theme_color is compatible (string | undefined) vs (string | null)
     const sanitizedGroupUsers = groupUsers.map((u) => ({
-      ...u,
+      id: u.id,
+      name: u.name ?? '',
       theme_color: u.theme_color || undefined,
     }));
     return getAssociatedUsers(series, sanitizedGroupUsers);

@@ -81,7 +81,10 @@ export default function AccountsContent({
         title={t('headerTitle')}
         subtitle={t('headerSubtitle', { count: accountStats.totalAccounts })}
         showBack
-        currentUser={{ name: currentUser.name, role: currentUser.role || 'member' }}
+        currentUser={{
+          ...(currentUser.name != null ? { name: currentUser.name } : {}),
+          role: currentUser.role || 'member',
+        }}
         showActions
       />
 

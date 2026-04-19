@@ -2,9 +2,10 @@ import { AvailableSharesRepository } from '@/server/repositories/available-share
 import { cached } from '@/lib/cache';
 import { serialize } from '@/lib/utils/serializer';
 import type { Database } from '@/lib/types/database.types';
+import { availableShares } from '@/server/db/schema';
 
 type AvailableShare = Database['public']['Tables']['available_shares']['Row'];
-type AvailableShareInsert = Database['public']['Tables']['available_shares']['Insert'];
+type AvailableShareInsert = typeof availableShares.$inferInsert;
 
 export async function getRegionsUseCase(): Promise<string[]> {
   const getCachedRegions = cached(

@@ -10,7 +10,7 @@ import {
 import type { Database } from '@/lib/types/database.types';
 import { getMarketDataUseCase } from '../market-data/market-data.use-cases';
 
-type Investment = Database['public']['Tables']['investments']['Row'];
+type Investment = typeof investments.$inferSelect;
 type InvestmentInsert = Database['public']['Tables']['investments']['Insert'];
 
 export interface EnrichedInvestment extends Omit<
@@ -80,7 +80,7 @@ export async function getPortfolioUseCase(userId: string): Promise<PortfolioResu
     totalInitialValue += initialValue;
 
     return {
-      ...(inv as unknown as Investment),
+      ...inv,
       amount: Number(inv.amount),
       shares_acquired: Number(inv.shares_acquired),
       currency_rate: Number(inv.currency_rate),
