@@ -23,7 +23,7 @@
     "test:e2e:coverage": "E2E_COVERAGE=true npx playwright test"
   },
   "dependencies": {
-    "@clerk/nextjs": "^6.36.5",
+    "@clerk/nextjs": "^6.39.2",
     "@clerk/shared": "^3.47.4",
     "@headlessui/react": "^2.2.9",
     "@hookform/resolvers": "^5.2.2",
