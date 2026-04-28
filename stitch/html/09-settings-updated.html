@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Settings - Pristine Finance</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary": "#00211c",
+                        "inverse-primary": "#b8c3ff",
+                        "on-tertiary-fixed": "#00201c",
+                        "surface-variant": "#e4e1e8",
+                        "surface-container": "#efedf3",
+                        "outline": "#767681",
+                        "on-tertiary": "#ffffff",
+                        "surface-container-high": "#e9e7ee",
+                        "on-tertiary-fixed-variant": "#005047",
+                        "surface-bright": "#fbf8ff",
+                        "on-tertiary-container": "#00ac9a",
+                        "on-primary-fixed": "#001355",
+                        "on-background": "#1b1b20",
+                        "primary-container": "#1a2b6d",
+                        "secondary-fixed": "#d3e4fe",
+                        "outline-variant": "#c6c5d2",
+                        "inverse-surface": "#303035",
+                        "surface-tint": "#4b5a9e",
+                        "tertiary-fixed": "#62fae3",
+                        "on-error": "#ffffff",
+                        "on-secondary-fixed-variant": "#38485d",
+                        "surface-dim": "#dbd9df",
+                        "tertiary-fixed-dim": "#3cddc7",
+                        "on-surface": "#1b1b20",
+                        "primary-fixed": "#dde1ff",
+                        "inverse-on-surface": "#f2f0f6",
+                        "surface-container-low": "#f5f2f9",
+                        "on-secondary": "#ffffff",
+                        "surface-container-highest": "#e4e1e8",
+                        "background": "#fbf8ff",
+                        "on-primary": "#ffffff",
+                        "surface": "#fbf8ff",
+                        "on-primary-fixed-variant": "#324284",
+                        "on-primary-container": "#8695dd",
+                        "secondary": "#505f76",
+                        "on-surface-variant": "#454650",
+                        "on-secondary-fixed": "#0b1c30",
+                        "error": "#ba1a1a",
+                        "on-error-container": "#93000a",
+                        "tertiary-container": "#003831",
+                        "secondary-fixed-dim": "#b7c8e1",
+                        "error-container": "#ffdad6",
+                        "on-secondary-container": "#54647a",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary-container": "#d0e1fb",
+                        "primary-fixed-dim": "#b8c3ff",
+                        "primary": "#001456"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "unit": "4px",
+                        "lg": "24px",
+                        "container-margin": "24px",
+                        "sm": "8px",
+                        "gutter": "16px",
+                        "xl": "40px",
+                        "md": "16px",
+                        "xs": "4px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Spline Sans"],
+                        "headline-lg": ["Spline Sans"],
+                        "body-md": ["Spline Sans"],
+                        "label-sm": ["Spline Sans"],
+                        "body-lg": ["Spline Sans"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["24px", { "lineHeight": "1.3", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "headline-lg": ["32px", { "lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+                        "body-md": ["14px", { "lineHeight": "1.5", "letterSpacing": "0", "fontWeight": "400" }],
+                        "label-sm": ["12px", { "lineHeight": "1", "letterSpacing": "0.02em", "fontWeight": "500" }],
+                        "body-lg": ["16px", { "lineHeight": "1.5", "letterSpacing": "0", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .liquid-glass {
+            background-color: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+        .liquid-glass-dark {
+            background-color: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(30, 41, 59, 0.4);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-background text-on-background font-body-md antialiased pb-[100px]">
+<!-- TopAppBar (Modified for Settings Intent) -->
+<header class="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-white/40 dark:border-slate-800/40 shadow-none flex items-center justify-between px-6 h-16 w-full z-50 docked full-width top-0 sticky font-['Spline_Sans'] antialiased">
+<div class="flex items-center gap-4">
+<button class="text-indigo-900 dark:text-indigo-100 hover:opacity-80 transition-opacity active:scale-95 transition-transform duration-200">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<h1 class="text-xl font-bold tracking-tight text-indigo-900 dark:text-indigo-50">Settings</h1>
+</div>
+<div class="w-6"></div> <!-- Spacer to balance back button -->
+</header>
+<main class="max-w-3xl mx-auto px-container-margin py-lg space-y-lg">
+<!-- Profile Section -->
+<section class="liquid-glass rounded-xl p-lg flex flex-col md:flex-row items-center md:items-start gap-md">
+<div class="w-20 h-20 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center overflow-hidden shrink-0">
+<img alt="User Avatar" class="w-full h-full object-cover" data-alt="close up portrait of a smiling man with neat beard in professional setting with soft lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCd-SmkZ2Jto4-epbBq7yphYJIopjWLoylADKrleXxtd1JUI2TDyjT4-ThS2W2C9osOa8VTcKLj7QDuMTRgX8xwnRS5FU7zEakNOT3zMSP8hetxSz5ve_rjDkvFJw5q12QtxATn8sSbAI3Q4SVjUrcjNX7UO5xP4jDElVys_z-RUei6LkDgbQMQppUlq_fdGh8nlG6CEAQ7HXavJw2_2yNjzOHFXuZc694StPKrlvQClFmLcumkFdNXm1TN9iHijoKLX8bz4xpK-Tud"/>
+</div>
+<div class="flex-1 text-center md:text-left">
+<h2 class="font-headline-md text-headline-md text-primary">Alex Mercer</h2>
+<p class="font-body-md text-body-md text-secondary">alex.mercer@example.com</p>
+</div>
+<button class="mt-sm md:mt-0 px-md py-sm bg-primary text-on-primary rounded-lg font-label-sm text-label-sm hover:opacity-90 transition-opacity">
+                Edit Profile
+            </button>
+</section>
+<!-- Family & Groups Section -->
+<section class="space-y-sm">
+<h3 class="font-label-sm text-label-sm text-secondary uppercase tracking-wider px-sm">Family &amp; Groups</h3>
+<div class="liquid-glass rounded-xl overflow-hidden">
+<div class="flex items-center justify-between p-md border-b border-surface-variant/50 cursor-pointer hover:bg-surface-variant/20 transition-colors">
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined text-primary">groups</span>
+<span class="font-body-lg text-body-lg">Group Management</span>
+</div>
+<span class="material-symbols-outlined text-outline">chevron_right</span>
+</div>
+<div class="flex items-center justify-between p-md cursor-pointer hover:bg-surface-variant/20 transition-colors">
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined text-primary">person_add</span>
+<span class="font-body-lg text-body-lg">Invite to Group</span>
+</div>
+<span class="material-symbols-outlined text-outline">chevron_right</span>
+</div>
+</div>
+</section>
+<!-- Preferences Section -->
+<section class="space-y-sm">
+<h3 class="font-label-sm text-label-sm text-secondary uppercase tracking-wider px-sm">Preferences</h3>
+<div class="liquid-glass rounded-xl overflow-hidden">
+<div class="flex items-center justify-between p-md border-b border-surface-variant/50 cursor-pointer hover:bg-surface-variant/20 transition-colors">
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined text-primary">payments</span>
+<span class="font-body-lg text-body-lg">Currency</span>
+</div>
+<div class="flex items-center gap-sm">
+<span class="font-body-md text-body-md text-secondary">USD</span>
+<span class="material-symbols-outlined text-outline">chevron_right</span>
+</div>
+</div>
+<div class="flex items-center justify-between p-md border-b border-surface-variant/50 cursor-pointer hover:bg-surface-variant/20 transition-colors">
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined text-primary">notifications</span>
+<span class="font-body-lg text-body-lg">Notifications</span>
+</div>
+<span class="material-symbols-outlined text-outline">chevron_right</span>
+</div>
+<div class="flex items-center justify-between p-md cursor-pointer hover:bg-surface-variant/20 transition-colors">
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined text-primary">dark_mode</span>
+<span class="font-body-lg text-body-lg">Dark Mode</span>
+</div>
+<!-- Toggle Switch -->
+<div class="w-11 h-6 bg-surface-variant rounded-full p-1 flex items-center">
+<div class="w-4 h-4 bg-white rounded-full shadow-sm"></div>
+</div>
+</div>
+</div>
+</section>
+<!-- Support Section -->
+<section class="space-y-sm">
+<h3 class="font-label-sm text-label-sm text-secondary uppercase tracking-wider px-sm">Support</h3>
+<div class="liquid-glass rounded-xl overflow-hidden">
+<div class="flex items-center justify-between p-md border-b border-surface-variant/50 cursor-pointer hover:bg-surface-variant/20 transition-colors">
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined text-primary">help</span>
+<span class="font-body-lg text-body-lg">Help Center</span>
+</div>
+<span class="material-symbols-outlined text-outline">chevron_right</span>
+</div>
+<div class="flex items-center justify-between p-md cursor-pointer hover:bg-surface-variant/20 transition-colors">
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined text-primary">gavel</span>
+<span class="font-body-lg text-body-lg">Legal</span>
+</div>
+<span class="material-symbols-outlined text-outline">chevron_right</span>
+</div>
+</div>
+<button class="w-full mt-md p-md bg-error/10 text-error rounded-xl font-label-sm text-label-sm flex items-center justify-center gap-sm hover:bg-error/20 transition-colors">
+<span class="material-symbols-outlined">logout</span>
+                Logout
+            </button>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="md:hidden bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl font-['Spline_Sans'] text-[11px] font-medium fixed bottom-0 w-full rounded-t-lg border-t border-white/40 dark:border-slate-800/40 shadow-none fixed bottom-0 left-0 w-full z-50 flex justify-around items-center h-20 px-4 pb-safe">
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 hover:text-indigo-700 dark:hover:text-indigo-300 active:scale-90 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined mb-1">dashboard</span>
+<span>Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 hover:text-indigo-700 dark:hover:text-indigo-300 active:scale-90 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined mb-1">account_balance_wallet</span>
+<span>Investments</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 hover:text-indigo-700 dark:hover:text-indigo-300 active:scale-90 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined mb-1">monitoring</span>
+<span>Market</span>
+</a>
+<a class="flex flex-col items-center justify-center text-indigo-900 dark:text-indigo-50 scale-110 transition-all hover:text-indigo-700 dark:hover:text-indigo-300 active:scale-90 transition-transform duration-150" href="#">
+<span class="material-symbols-outlined mb-1" style="font-variation-settings: 'FILL' 1;">settings</span>
+<span>Settings</span>
+</a>
+</nav>
+</body></html>

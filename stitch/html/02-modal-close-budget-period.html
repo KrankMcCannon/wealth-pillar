@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Close Budget Period</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "outline": "#767681",
+                      "on-secondary": "#ffffff",
+                      "on-tertiary-fixed-variant": "#005047",
+                      "error": "#ba1a1a",
+                      "primary-container": "#1a2b6d",
+                      "on-surface-variant": "#454650",
+                      "on-primary": "#ffffff",
+                      "on-secondary-fixed-variant": "#38485d",
+                      "primary-fixed": "#dde1ff",
+                      "on-tertiary": "#ffffff",
+                      "on-error": "#ffffff",
+                      "on-tertiary-fixed": "#00201c",
+                      "on-error-container": "#93000a",
+                      "tertiary": "#00211c",
+                      "on-secondary-container": "#54647a",
+                      "error-container": "#ffdad6",
+                      "surface-bright": "#fbf8ff",
+                      "surface-container-low": "#f5f2f9",
+                      "on-surface": "#1b1b20",
+                      "background": "#fbf8ff",
+                      "surface-variant": "#e4e1e8",
+                      "surface-container-lowest": "#ffffff",
+                      "on-background": "#1b1b20",
+                      "surface-tint": "#4b5a9e",
+                      "inverse-surface": "#303035",
+                      "secondary-container": "#d0e1fb",
+                      "surface-container": "#efedf3",
+                      "on-secondary-fixed": "#0b1c30",
+                      "secondary-fixed-dim": "#b7c8e1",
+                      "secondary": "#505f76",
+                      "surface-container-highest": "#e4e1e8",
+                      "on-primary-fixed": "#001355",
+                      "surface-dim": "#dbd9df",
+                      "outline-variant": "#c6c5d2",
+                      "inverse-on-surface": "#f2f0f6",
+                      "primary-fixed-dim": "#b8c3ff",
+                      "inverse-primary": "#b8c3ff",
+                      "tertiary-container": "#003831",
+                      "primary": "#001456",
+                      "tertiary-fixed-dim": "#3cddc7",
+                      "secondary-fixed": "#d3e4fe",
+                      "on-tertiary-container": "#00ac9a",
+                      "tertiary-fixed": "#62fae3",
+                      "on-primary-container": "#8695dd",
+                      "surface-container-high": "#e9e7ee",
+                      "surface": "#fbf8ff",
+                      "on-primary-fixed-variant": "#324284"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "sm": "8px",
+                      "unit": "4px",
+                      "lg": "24px",
+                      "gutter": "16px",
+                      "xs": "4px",
+                      "md": "16px",
+                      "container-margin": "24px",
+                      "xl": "40px"
+              },
+              "fontFamily": {
+                      "headline-md": [
+                              "Spline Sans"
+                      ],
+                      "headline-lg": [
+                              "Spline Sans"
+                      ],
+                      "body-md": [
+                              "Spline Sans"
+                      ],
+                      "body-lg": [
+                              "Spline Sans"
+                      ],
+                      "label-sm": [
+                              "Spline Sans"
+                      ]
+              },
+              "fontSize": {
+                      "headline-md": [
+                              "24px",
+                              {
+                                      "lineHeight": "1.3",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "headline-lg": [
+                              "32px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "body-md": [
+                              "14px",
+                              {
+                                      "lineHeight": "1.5",
+                                      "letterSpacing": "0",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "body-lg": [
+                              "16px",
+                              {
+                                      "lineHeight": "1.5",
+                                      "letterSpacing": "0",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "label-sm": [
+                              "12px",
+                              {
+                                      "lineHeight": "1",
+                                      "letterSpacing": "0.02em",
+                                      "fontWeight": "500"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined.fill {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        
+        /* Liquid Glass Utility Classes */
+        .liquid-glass {
+            background-color: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.4);
+        }
+        
+        body {
+            background-color: #F8FAFC; /* Base layer as per guidance */
+            /* Adding a subtle background pattern to show off the glass effect */
+            background-image: radial-gradient(circle at 15% 50%, rgba(221, 225, 255, 0.3), transparent 25%),
+                              radial-gradient(circle at 85% 30%, rgba(0, 172, 154, 0.1), transparent 25%);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="min-h-screen flex items-center justify-center p-4">
+<!-- Modal Overlay Backdrop (Simplified for context) -->
+<div class="fixed inset-0 bg-secondary/20 backdrop-blur-sm z-40"></div>
+<!-- Modal Container -->
+<div class="liquid-glass rounded-xl w-full max-w-md z-50 relative overflow-hidden">
+<!-- Header -->
+<div class="px-lg pt-lg pb-md flex justify-between items-start border-b border-surface-variant/50">
+<div>
+<h2 class="font-headline-md text-headline-md text-on-surface">Close October Period</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mt-xs">Review your performance before finalizing.</p>
+</div>
+<button class="text-on-surface-variant hover:text-on-surface transition-colors p-sm rounded-full hover:bg-surface-variant/50">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<!-- Content -->
+<div class="p-lg space-y-lg">
+<!-- Summary Bento Card -->
+<div class="bg-surface-container-lowest/50 rounded-lg p-md border border-surface-variant/50">
+<div class="flex items-center gap-sm mb-md">
+<div class="w-8 h-8 rounded-full bg-primary-fixed flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[18px] fill">monitoring</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface uppercase tracking-wider">Period Summary</span>
+</div>
+<div class="grid grid-cols-2 gap-md">
+<div>
+<p class="font-label-sm text-label-sm text-on-surface-variant mb-xs">Total Budget</p>
+<p class="font-headline-md text-headline-md text-on-surface">$12,500</p>
+</div>
+<div>
+<p class="font-label-sm text-label-sm text-on-surface-variant mb-xs">Actual Spend</p>
+<p class="font-headline-md text-headline-md text-primary">$10,240</p>
+</div>
+</div>
+<div class="mt-md pt-md border-t border-surface-variant/50 flex justify-between items-center">
+<span class="font-body-md text-body-md text-on-surface-variant">Remaining Balance</span>
+<span class="font-body-lg text-body-lg text-on-tertiary-container font-semibold">+$2,260</span>
+</div>
+</div>
+<!-- Action Selection -->
+<div>
+<p class="font-label-sm text-label-sm text-on-surface-variant mb-sm uppercase tracking-wider">End of Period Action</p>
+<div class="space-y-sm">
+<!-- Option 1: Carry Over -->
+<label class="flex items-start gap-md p-md rounded-lg border border-primary bg-primary-fixed/20 cursor-pointer transition-colors relative">
+<div class="pt-xs">
+<input checked="" class="form-radio text-primary focus:ring-primary h-4 w-4 border-outline" name="close_action" type="radio"/>
+</div>
+<div class="flex-1">
+<span class="block font-body-md text-body-md text-on-surface font-semibold mb-xs">Carry Over Remaining Funds</span>
+<span class="block font-label-sm text-label-sm text-on-surface-variant leading-relaxed">Add $2,260 to the November budget automatically.</span>
+</div>
+</label>
+<!-- Option 2: Clear -->
+<label class="flex items-start gap-md p-md rounded-lg border border-surface-variant hover:bg-surface-container-lowest/50 cursor-pointer transition-colors">
+<div class="pt-xs">
+<input class="form-radio text-primary focus:ring-primary h-4 w-4 border-outline" name="close_action" type="radio"/>
+</div>
+<div class="flex-1">
+<span class="block font-body-md text-body-md text-on-surface font-semibold mb-xs">Clear Balances</span>
+<span class="block font-label-sm text-label-sm text-on-surface-variant leading-relaxed">Start November with a fresh, zeroed balance. Remaining funds are sent to savings.</span>
+</div>
+</label>
+</div>
+</div>
+</div>
+<!-- Footer Actions -->
+<div class="px-lg pb-lg pt-sm flex justify-end gap-sm">
+<button class="px-lg py-[10px] rounded-lg font-body-md text-body-md text-on-surface-variant bg-surface-container-lowest border border-outline-variant hover:bg-surface-variant/50 transition-colors">
+                Cancel
+            </button>
+<!-- Primary Action with ambient shadow for depth -->
+<button class="px-lg py-[10px] rounded-lg font-body-md text-body-md text-on-primary bg-primary shadow-[0_4px_12px_rgba(0,20,86,0.2)] hover:shadow-[0_6px_16px_rgba(0,20,86,0.3)] hover:-translate-y-[1px] transition-all">
+                Close Period
+            </button>
+</div>
+</div>
+</body></html>

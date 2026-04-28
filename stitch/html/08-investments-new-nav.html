@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Investment Portfolio</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-secondary-fixed": "#0b1c30",
+                        "on-secondary": "#ffffff",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary-fixed-variant": "#38485d",
+                        "inverse-on-surface": "#f2f0f6",
+                        "error-container": "#ffdad6",
+                        "primary": "#001456",
+                        "on-primary-fixed-variant": "#324284",
+                        "on-error-container": "#93000a",
+                        "secondary-fixed-dim": "#b7c8e1",
+                        "primary-fixed": "#dde1ff",
+                        "surface-dim": "#dbd9df",
+                        "on-primary": "#ffffff",
+                        "on-primary-container": "#8695dd",
+                        "background": "#fbf8ff",
+                        "surface-container-low": "#f5f2f9",
+                        "on-tertiary": "#ffffff",
+                        "on-surface": "#1b1b20",
+                        "inverse-primary": "#b8c3ff",
+                        "surface-variant": "#e4e1e8",
+                        "secondary-container": "#d0e1fb",
+                        "tertiary-container": "#003831",
+                        "surface-container-high": "#e9e7ee",
+                        "primary-container": "#1a2b6d",
+                        "on-error": "#ffffff",
+                        "outline-variant": "#c6c5d2",
+                        "tertiary-fixed": "#62fae3",
+                        "surface-tint": "#4b5a9e",
+                        "surface-bright": "#fbf8ff",
+                        "on-primary-fixed": "#001355",
+                        "on-tertiary-fixed": "#00201c",
+                        "on-secondary-container": "#54647a",
+                        "tertiary-fixed-dim": "#3cddc7",
+                        "tertiary": "#00211c",
+                        "on-tertiary-fixed-variant": "#005047",
+                        "surface": "#fbf8ff",
+                        "secondary": "#505f76",
+                        "error": "#ba1a1a",
+                        "on-tertiary-container": "#00ac9a",
+                        "on-surface-variant": "#454650",
+                        "surface-container-highest": "#e4e1e8",
+                        "surface-container": "#efedf3",
+                        "inverse-surface": "#303035",
+                        "on-background": "#1b1b20",
+                        "primary-fixed-dim": "#b8c3ff",
+                        "secondary-fixed": "#d3e4fe",
+                        "outline": "#767681"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "unit": "4px",
+                        "sm": "8px",
+                        "xl": "40px",
+                        "lg": "24px",
+                        "xs": "4px",
+                        "container-margin": "24px",
+                        "md": "16px",
+                        "gutter": "16px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Spline Sans"],
+                        "body-lg": ["Spline Sans"],
+                        "label-sm": ["Spline Sans"],
+                        "headline-lg": ["Spline Sans"],
+                        "body-md": ["Spline Sans"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["24px", { "lineHeight": "1.3", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "body-lg": ["16px", { "lineHeight": "1.5", "letterSpacing": "0", "fontWeight": "400" }],
+                        "label-sm": ["12px", { "lineHeight": "1", "letterSpacing": "0.02em", "fontWeight": "500" }],
+                        "headline-lg": ["32px", { "lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+                        "body-md": ["14px", { "lineHeight": "1.5", "letterSpacing": "0", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .liquid-glass {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+        .liquid-glass-dark {
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen pb-24 pt-20">
+<!-- TopAppBar -->
+<header class="fixed top-0 left-0 w-full z-50 flex items-center justify-between px-6 h-16 bg-slate-50/80 dark:bg-slate-950/80 backdrop-blur-xl border-b border-white/40 dark:border-slate-800/40">
+<div class="flex items-center">
+<img alt="User Profile Avatar" class="w-8 h-8 rounded-full border border-outline-variant" data-alt="Close up portrait of a professional woman with a soft background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDytniMxM7-xnb3HEQpJu-isiZKr6vCkr7hEbfuv64kI0dOGGXm0rYC0U-w0da3M_YKT-5XBFaaLIiqNO2qoCBgFs-ybuahcn_-p2fQrQxxDd2kxW69kLZSE9bx33nMKBjovy2wA1i85XWLxWu3hNofVqc10uwhXeQDxnpQ78znP6iaqa89YamZlR5L-9WtSDsJ4CPdnCy9bfKXqGQHIaLEQZemjZmdKTdc0RMUN02Q8aeOO1slgRW9-ozyEaquhu3X_uX9nRnMmTAI"/>
+</div>
+<div class="font-headline-md text-headline-md text-[#1A2B6D] dark:text-indigo-400 font-bold tracking-tight">
+            Investments
+        </div>
+<button class="p-2 text-primary hover:bg-white/40 dark:hover:bg-slate-800/40 rounded-full transition-all active:scale-95 duration-200">
+<span class="material-symbols-outlined text-[#1A2B6D] dark:text-indigo-400">settings</span>
+</button>
+</header>
+<main class="max-w-7xl mx-auto px-container-margin md:px-lg space-y-lg">
+<!-- Wealth Header -->
+<section class="liquid-glass rounded-xl p-lg flex flex-col items-center justify-center text-center mt-sm">
+<p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-sm">Total Portfolio Value</p>
+<h1 class="font-headline-lg text-headline-lg text-primary-container mb-xs">$1,245,890.00</h1>
+<div class="flex items-center gap-xs bg-tertiary-fixed-dim/20 px-3 py-1 rounded-full">
+<span class="material-symbols-outlined text-[16px] text-tertiary-fixed-dim">trending_up</span>
+<span class="font-label-sm text-label-sm text-tertiary-fixed-dim">+$12,450.00 (1.01%) Today</span>
+</div>
+</section>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-gutter">
+<!-- Asset Allocation -->
+<div class="md:col-span-8 liquid-glass rounded-xl p-lg flex flex-col">
+<div class="flex justify-between items-center mb-md">
+<h2 class="font-headline-md text-headline-md text-on-surface">Asset Allocation</h2>
+<button class="p-2 rounded-full hover:bg-surface-variant transition-colors">
+<span class="material-symbols-outlined text-outline">more_horiz</span>
+</button>
+</div>
+<div class="flex-grow flex items-center justify-center min-h-[250px] relative">
+<!-- Placeholder for Chart -->
+<div class="w-48 h-48 rounded-full border-[16px] border-surface-variant relative flex items-center justify-center">
+<div class="absolute inset-[-16px] rounded-full border-[16px] border-primary-container" style="clip-path: polygon(50% 50%, 100% 0, 100% 100%, 0 100%, 0 50%); transform: rotate(45deg);"></div>
+<div class="absolute inset-[-16px] rounded-full border-[16px] border-secondary-fixed" style="clip-path: polygon(50% 50%, 0 50%, 0 0, 100% 0); transform: rotate(45deg);"></div>
+<div class="absolute inset-[-16px] rounded-full border-[16px] border-tertiary-fixed-dim" style="clip-path: polygon(50% 50%, 100% 0, 100% 50%); transform: rotate(45deg);"></div>
+<div class="text-center bg-surface-container-lowest rounded-full w-32 h-32 flex flex-col items-center justify-center z-10 shadow-sm">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Equities</span>
+<span class="font-headline-md text-headline-md text-primary-container">65%</span>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-3 gap-sm mt-md">
+<div class="flex items-center gap-xs">
+<div class="w-3 h-3 rounded-full bg-primary-container"></div>
+<span class="font-body-md text-body-md text-on-surface-variant">Equities</span>
+</div>
+<div class="flex items-center gap-xs">
+<div class="w-3 h-3 rounded-full bg-secondary-fixed"></div>
+<span class="font-body-md text-body-md text-on-surface-variant">Bonds</span>
+</div>
+<div class="flex items-center gap-xs">
+<div class="w-3 h-3 rounded-full bg-tertiary-fixed-dim"></div>
+<span class="font-body-md text-body-md text-on-surface-variant">Cash</span>
+</div>
+</div>
+</div>
+<!-- Market Watchlist -->
+<div class="md:col-span-4 liquid-glass rounded-xl p-lg flex flex-col">
+<div class="flex justify-between items-center mb-md">
+<h2 class="font-headline-md text-headline-md text-on-surface">Watchlist</h2>
+<button class="p-2 rounded-full hover:bg-surface-variant transition-colors">
+<span class="material-symbols-outlined text-outline">add</span>
+</button>
+</div>
+<div class="space-y-sm flex-grow overflow-y-auto">
+<!-- Watchlist Item -->
+<div class="flex items-center justify-between p-sm rounded-lg hover:bg-surface-container transition-colors cursor-pointer border-b border-surface-variant last:border-0">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center font-label-sm text-label-sm text-primary">AAPL</div>
+<div>
+<p class="font-body-md text-body-md text-on-surface font-medium">Apple Inc.</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Technology</p>
+</div>
+</div>
+<div class="text-right">
+<p class="font-body-md text-body-md text-on-surface">$173.50</p>
+<p class="font-label-sm text-label-sm text-tertiary-fixed-dim">+1.2%</p>
+</div>
+</div>
+<!-- Watchlist Item -->
+<div class="flex items-center justify-between p-sm rounded-lg hover:bg-surface-container transition-colors cursor-pointer border-b border-surface-variant last:border-0">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center font-label-sm text-label-sm text-primary">MSFT</div>
+<div>
+<p class="font-body-md text-body-md text-on-surface font-medium">Microsoft</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Technology</p>
+</div>
+</div>
+<div class="text-right">
+<p class="font-body-md text-body-md text-on-surface">$378.85</p>
+<p class="font-label-sm text-label-sm text-tertiary-fixed-dim">+0.8%</p>
+</div>
+</div>
+<!-- Watchlist Item -->
+<div class="flex items-center justify-between p-sm rounded-lg hover:bg-surface-container transition-colors cursor-pointer border-b border-surface-variant last:border-0">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center font-label-sm text-label-sm text-primary">TSLA</div>
+<div>
+<p class="font-body-md text-body-md text-on-surface font-medium">Tesla Inc.</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Automotive</p>
+</div>
+</div>
+<div class="text-right">
+<p class="font-body-md text-body-md text-on-surface">$202.64</p>
+<p class="font-label-sm text-label-sm text-error">-2.4%</p>
+</div>
+</div>
+<!-- Watchlist Item -->
+<div class="flex items-center justify-between p-sm rounded-lg hover:bg-surface-container transition-colors cursor-pointer border-b border-surface-variant last:border-0">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center font-label-sm text-label-sm text-primary">VOO</div>
+<div>
+<p class="font-body-md text-body-md text-on-surface font-medium">Vanguard S&amp;P</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">ETF</p>
+</div>
+</div>
+<div class="text-right">
+<p class="font-body-md text-body-md text-on-surface">$465.12</p>
+<p class="font-label-sm text-label-sm text-tertiary-fixed-dim">+0.5%</p>
+</div>
+</div>
+</div>
+<button class="mt-md w-full py-2 border border-outline rounded-lg font-label-sm text-label-sm text-primary hover:bg-surface-variant transition-colors">
+                    View All
+                </button>
+</div>
+<!-- Recent Activity -->
+<div class="md:col-span-12 liquid-glass rounded-xl p-lg">
+<div class="flex justify-between items-center mb-md">
+<h2 class="font-headline-md text-headline-md text-on-surface">Recent Activity</h2>
+<button class="font-label-sm text-label-sm text-primary hover:underline">View All</button>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="border-b border-surface-variant">
+<th class="py-sm px-xs font-label-sm text-label-sm text-on-surface-variant font-medium">Asset</th>
+<th class="py-sm px-xs font-label-sm text-label-sm text-on-surface-variant font-medium">Type</th>
+<th class="py-sm px-xs font-label-sm text-label-sm text-on-surface-variant font-medium">Amount</th>
+<th class="py-sm px-xs font-label-sm text-label-sm text-on-surface-variant font-medium">Date</th>
+</tr>
+</thead>
+<tbody>
+<tr class="border-b border-surface-variant hover:bg-surface-container/50 transition-colors">
+<td class="py-md px-xs">
+<div class="flex items-center gap-sm">
+<div class="w-8 h-8 rounded-full bg-secondary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-sm text-on-secondary-container">call_made</span>
+</div>
+<span class="font-body-md text-body-md text-on-surface">Bought AAPL</span>
+</div>
+</td>
+<td class="py-md px-xs font-body-md text-body-md text-on-surface-variant">Buy</td>
+<td class="py-md px-xs font-body-md text-body-md text-on-surface">$4,500.00</td>
+<td class="py-md px-xs font-body-md text-body-md text-on-surface-variant">Oct 24, 2023</td>
+</tr>
+<tr class="border-b border-surface-variant hover:bg-surface-container/50 transition-colors">
+<td class="py-md px-xs">
+<div class="flex items-center gap-sm">
+<div class="w-8 h-8 rounded-full bg-tertiary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-sm text-on-tertiary-container">payments</span>
+</div>
+<span class="font-body-md text-body-md text-on-surface">Dividend VOO</span>
+</div>
+</td>
+<td class="py-md px-xs font-body-md text-body-md text-on-surface-variant">Dividend</td>
+<td class="py-md px-xs font-body-md text-body-md text-tertiary-fixed-dim">+$125.50</td>
+<td class="py-md px-xs font-body-md text-body-md text-on-surface-variant">Oct 20, 2023</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</main>
+<!-- FAB -->
+<button class="fixed bottom-24 right-6 md:right-12 z-40 bg-primary text-on-primary w-14 h-14 rounded-xl flex items-center justify-center shadow-[0_8px_16px_rgba(0,20,86,0.2)] hover:bg-on-primary-fixed-variant transition-colors active:scale-95">
+<span class="material-symbols-outlined">add</span>
+</button>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-3 pb-safe bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl rounded-t-2xl border-t border-white/20 md:hidden">
+<button class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 hover:text-[#1A2B6D] dark:hover:text-indigo-200 active:scale-90 transition-transform">
+<span class="material-symbols-outlined">home</span>
+<span class="font-['Spline_Sans'] text-[11px] font-semibold mt-1">Home</span>
+</button>
+<button class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 hover:text-[#1A2B6D] dark:hover:text-indigo-200 active:scale-90 transition-transform">
+<span class="material-symbols-outlined">receipt_long</span>
+<span class="font-['Spline_Sans'] text-[11px] font-semibold mt-1">Transactions</span>
+</button>
+<button class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 hover:text-[#1A2B6D] dark:hover:text-indigo-200 active:scale-90 transition-transform">
+<span class="material-symbols-outlined">analytics</span>
+<span class="font-['Spline_Sans'] text-[11px] font-semibold mt-1">Reports</span>
+</button>
+<button class="flex flex-col items-center justify-center text-[#1A2B6D] dark:text-indigo-300 bg-indigo-50/50 dark:bg-indigo-900/30 rounded-xl px-3 py-1 active:scale-90 transition-transform">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">account_balance_wallet</span>
+<span class="font-['Spline_Sans'] text-[11px] font-semibold mt-1">Investments</span>
+</button>
+</nav>
+<!-- Desktop Nav (Hidden on mobile) -->
+<nav class="hidden md:flex fixed top-0 left-1/2 -translate-x-1/2 z-50 h-16 items-center gap-8">
+<button class="text-on-surface-variant hover:text-primary font-body-md text-body-md transition-colors">Home</button>
+<button class="text-on-surface-variant hover:text-primary font-body-md text-body-md transition-colors">Transactions</button>
+<button class="text-on-surface-variant hover:text-primary font-body-md text-body-md transition-colors">Reports</button>
+<button class="text-primary font-body-md text-body-md font-semibold border-b-2 border-primary h-full px-2">Investments</button>
+</nav>
+</body></html>
