@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useLocale, useTranslations } from 'next-intl';
 import type { CheckedState } from '@radix-ui/react-checkbox';
+import { PieChart } from 'lucide-react';
 import { Budget, BudgetType } from '@/lib/types';
 import { getTempId } from '@/lib/utils/temp-id';
 import { createBudgetAction, updateBudgetAction } from '@/features/budgets';
@@ -337,7 +338,7 @@ function BudgetFormModal({ isOpen, onClose, editId }: Readonly<BudgetFormModalPr
               />
 
               {/* Type */}
-              <FormField label={t('fields.type.label')} required error={errors.type?.message}>
+              <div className="space-y-1">
                 <FormSelect
                   value={watchedType}
                   onValueChange={(value) => setValue('type', value as BudgetType)}
@@ -345,8 +346,13 @@ function BudgetFormModal({ isOpen, onClose, editId }: Readonly<BudgetFormModalPr
                     { value: 'monthly', label: t('fields.type.options.monthly') },
                     { value: 'annually', label: t('fields.type.options.annually') },
                   ]}
+                  captionLabel={t('fields.type.label')}
+                  leadingIcon={<PieChart className="h-5 w-5 text-[#b8c5ff]" aria-hidden />}
                 />
-              </FormField>
+                {errors.type?.message ? (
+                  <p className="text-sm text-destructive">{errors.type.message}</p>
+                ) : null}
+              </div>
 
               {/* Amount */}
               <AmountField

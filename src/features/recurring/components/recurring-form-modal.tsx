@@ -6,6 +6,7 @@ import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useTranslations } from 'next-intl';
+import { ArrowLeftRight, CalendarClock } from 'lucide-react';
 import { RecurringTransactionSeries, TransactionFrequencyType } from '@/lib/types';
 import { getTempId } from '@/lib/utils/temp-id';
 import { ModalWrapper, ModalBody, ModalFooter, ModalSection } from '@/components/ui/modal-wrapper';
@@ -419,7 +420,7 @@ function RecurringFormModal({ isOpen, onClose, editId }: Readonly<RecurringFormM
 
           <ModalSection title={t('sections.basics')} className={recurringStyles.formModal.section}>
             <div className={recurringStyles.formModal.grid}>
-              <FormField label={t('fields.type.label')} required error={errors.type?.message}>
+              <div className="space-y-1">
                 <FormSelect
                   value={watchedType}
                   onValueChange={(value) => setValue('type', value as 'income' | 'expense')}
@@ -427,14 +428,15 @@ function RecurringFormModal({ isOpen, onClose, editId }: Readonly<RecurringFormM
                     { value: 'expense', label: t('typeOptions.expense') },
                     { value: 'income', label: t('typeOptions.income') },
                   ]}
+                  captionLabel={t('fields.type.label')}
+                  leadingIcon={<ArrowLeftRight className="h-5 w-5 text-[#b8c5ff]" aria-hidden />}
                 />
-              </FormField>
+                {errors.type?.message ? (
+                  <p className="text-sm text-destructive">{errors.type.message}</p>
+                ) : null}
+              </div>
 
-              <FormField
-                label={t('fields.frequency.label')}
-                required
-                error={errors.frequency?.message}
-              >
+              <div className="space-y-1">
                 <FormSelect
                   value={watchedFrequency}
                   onValueChange={(value) =>
@@ -447,8 +449,13 @@ function RecurringFormModal({ isOpen, onClose, editId }: Readonly<RecurringFormM
                     { value: 'monthly', label: t('frequencyOptions.monthly') },
                     { value: 'yearly', label: t('frequencyOptions.yearly') },
                   ]}
+                  captionLabel={t('fields.frequency.label')}
+                  leadingIcon={<CalendarClock className="h-5 w-5 text-[#b8c5ff]" aria-hidden />}
                 />
-              </FormField>
+                {errors.frequency?.message ? (
+                  <p className="text-sm text-destructive">{errors.frequency.message}</p>
+                ) : null}
+              </div>
             </div>
           </ModalSection>
 
@@ -499,7 +506,6 @@ function RecurringFormModal({ isOpen, onClose, editId }: Readonly<RecurringFormM
                 categories={categories}
                 label={t('fields.category.label')}
                 placeholder={t('fields.category.placeholder')}
-                required
               />
 
               <AmountField

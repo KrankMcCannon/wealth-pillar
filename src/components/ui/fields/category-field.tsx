@@ -5,7 +5,6 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { FormField } from '@/components/form';
 import { CategorySelect } from '@/components/form/category-select';
 import type { Category } from '@/lib/types';
 
@@ -13,7 +12,6 @@ interface CategoryFieldProps {
   value: string;
   onChange: (value: string) => void;
   error?: string | undefined;
-  required?: boolean | undefined;
   label?: string | undefined;
   placeholder?: string | undefined;
   categories?: Category[] | undefined;
@@ -23,7 +21,6 @@ export function CategoryField({
   value,
   onChange,
   error,
-  required = true,
   label,
   placeholder,
   categories = [],
@@ -33,7 +30,7 @@ export function CategoryField({
   const resolvedPlaceholder = placeholder ?? t('placeholder');
 
   return (
-    <FormField label={resolvedLabel} required={required} error={error}>
+    <div className="space-y-1">
       <CategorySelect
         value={value}
         onValueChange={onChange}
@@ -41,7 +38,9 @@ export function CategoryField({
         placeholder={resolvedPlaceholder}
         showRecentCategories
         recentCategoriesLimit={3}
+        captionLabel={resolvedLabel}
       />
-    </FormField>
+      {error ? <p className="px-1 text-xs text-red-300">{error}</p> : null}
+    </div>
   );
 }

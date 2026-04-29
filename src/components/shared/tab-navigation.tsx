@@ -12,7 +12,7 @@ interface TabNavigationProps {
   }>;
   activeTab: string;
   onTabChange: (tabId: string) => void;
-  variant?: 'underline' | 'pills' | 'modern';
+  variant?: 'underline' | 'pills' | 'modern' | 'stitch';
   className?: string;
   /** Optional id of the panel controlled by the tabs (for aria-controls) */
   panelId?: string;
@@ -60,6 +60,8 @@ export default function TabNavigation({
         return tabNavigationStyles.container.pills;
       case 'modern':
         return tabNavigationStyles.container.modern;
+      case 'stitch':
+        return tabNavigationStyles.container.stitch;
       default:
         return tabNavigationStyles.container.underline;
     }
@@ -78,6 +80,11 @@ export default function TabNavigation({
         return cn(
           tabNavigationStyles.tab.modern.base,
           isActive ? tabNavigationStyles.tab.modern.active : tabNavigationStyles.tab.modern.inactive
+        );
+      case 'stitch':
+        return cn(
+          tabNavigationStyles.tab.stitch.base,
+          isActive ? tabNavigationStyles.tab.stitch.active : tabNavigationStyles.tab.stitch.inactive
         );
       default:
         return cn(
@@ -109,11 +116,13 @@ export default function TabNavigation({
               onKeyDown={(e) => handleKeyDown(e, index)}
               className={getTabStyles(tab)}
             >
-              {tab.icon && variant !== 'underline' && (
+              {tab.icon && variant !== 'underline' && variant !== 'stitch' && (
                 <span className={tabNavigationStyles.icon}>{tab.icon}</span>
               )}
               <span
-                className={variant === 'underline' ? tabNavigationStyles.tab.underline.label : ''}
+                className={
+                  variant === 'underline' ? tabNavigationStyles.tab.underline.label : undefined
+                }
               >
                 {tab.label}
               </span>

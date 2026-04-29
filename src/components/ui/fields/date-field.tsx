@@ -1,198 +1,109 @@
 /**
- * DateField - Modern Date Picker Field
- *
- * Universal date input with responsive calendar picker
- *
- * Features:
- * - Italian locale (DD/MM/YYYY display)
- * - API-compatible format (YYYY-MM-DD)
- * - Min/max date constraints
- * - Manual text input support
- * - Clear button
- * - Full accessibility
- * - Desktop popover + mobile bottom drawer UI
+ * DateField — row trigger opens calendar (desktop popover / mobile drawer).
  */
 
 'use client';
 
-import { useState, useMemo, useCallback } from 'react';
-import { format, parse, isValid } from 'date-fns';
+import { useState, useMemo } from 'react';
+import { format, isValid, isSameDay, startOfDay } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { useTranslations } from 'next-intl';
-import { Calendar as CalendarIcon, X } from 'lucide-react';
-import { FormField } from '@/components/form';
-import { Input, Button } from '@/components/ui';
+import { Calendar as CalendarIcon, ChevronRight } from 'lucide-react';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { MobileCalendarDrawer } from '../mobile-calendar-drawer';
 import { DesktopCalendarPopover } from '../desktop-calendar-popover';
-import { calendarDrawerStyles } from '@/lib/styles/calendar-drawer.styles';
-import { calendarTriggerVariants } from '@/lib/utils';
+import { stitchTransactionFormModal } from '@/styles/home-design-foundation';
 
 export interface DateFieldProps {
-  /** Current date value (YYYY-MM-DD format for API compatibility) */
   value: string;
-  /** Callback when date changes (returns YYYY-MM-DD format) */
   onChange: (value: string) => void;
-  /** Error message to display */
   error?: string | undefined;
-  /** Whether field is required */
   required?: boolean | undefined;
-  /** Field label */
   label?: string | undefined;
 }
 
-/**
- * DateField - Universal date input field with responsive calendar picker
- *
- * Uses:
- * - Desktop anchored popover
- * - Mobile bottom drawer
- *
- * Preserves:
- * - Manual text entry (DD/MM/YYYY)
- * - Quick preset shortcuts
- * - Full keyboard navigation
- *
- * @example
- * ```tsx
- * <DateField
- *   value={formData.date}
- *   onChange={(date) => setFormData({ ...formData, date })}
- *   label="Data transazione"
- *   required
- * />
- * ```
- */
 export function DateField({
   value,
   onChange,
   error,
-  required = false,
   label,
 }: Readonly<DateFieldProps>) {
   const t = useTranslations('Forms.DateField');
+  const tDrawer = useTranslations('Forms.DateDrawer');
   const isDesktop = useMediaQuery('(min-width: 640px)');
   const resolvedLabel = label ?? t('label');
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const formattedValue = useMemo(() => {
-    if (value && isValid(new Date(value))) {
-      return format(new Date(value), 'dd/MM/yyyy', { locale: it });
-    }
-    return '';
-  }, [value]);
-  const [isEditing, setIsEditing] = useState(false);
-  const [draftValue, setDraftValue] = useState(formattedValue);
 
-  // Handle manual text input
-  const handleInputChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const newValue = e.target.value;
-      setDraftValue(newValue);
+  const displayText = useMemo(() => {
+    if (!value) return '';
+    const d = new Date(value);
+    if (!isValid(d)) return '';
+    return isSameDay(startOfDay(d), startOfDay(new Date()))
+      ? tDrawer('presets.today')
+      : format(d, 'dd/MM/yyyy', { locale: it });
+  }, [value, tDrawer]);
 
-      // Try to parse DD/MM/YYYY format
-      if (newValue.length === 10) {
-        const parsed = parse(newValue, 'dd/MM/yyyy', new Date(), { locale: it });
-        if (isValid(parsed)) {
-          onChange(format(parsed, 'yyyy-MM-dd'));
-        }
-      } else if (newValue === '') {
-        onChange('');
-      }
-    },
-    [onChange]
-  );
-
-  // Handle input blur - reset to valid format if invalid
-  const handleInputBlur = useCallback(() => {
-    if (value && isValid(new Date(value))) {
-      const date = new Date(value);
-      setDraftValue(format(date, 'dd/MM/yyyy', { locale: it }));
-    } else if (!value) {
-      setDraftValue('');
-    }
-    setIsEditing(false);
-  }, [value]);
-
-  // Clear date
-  const handleClear = useCallback(
-    (e: React.MouseEvent) => {
-      e.stopPropagation();
-      onChange('');
-      setDraftValue('');
-      setIsEditing(false);
-    },
-    [onChange]
+  const triggerInner = (
+    <>
+      <div className="flex min-w-0 flex-1 items-center gap-3">
+        <div className={stitchTransactionFormModal.selectorIconWrap}>
+          <CalendarIcon className="h-5 w-5 text-[#b8c5ff]" aria-hidden />
+        </div>
+        <div className="min-w-0 flex-1 text-left">
+          <p className={stitchTransactionFormModal.selectorLabel}>{resolvedLabel}</p>
+          <span
+            className={
+              displayText
+                ? stitchTransactionFormModal.selectorValue
+                : stitchTransactionFormModal.selectorValueMuted
+            }
+          >
+            {displayText || t('placeholder')}
+          </span>
+        </div>
+      </div>
+      <ChevronRight className={stitchTransactionFormModal.selectorChevron} aria-hidden />
+    </>
   );
 
   return (
-    <FormField label={resolvedLabel} required={required} error={error}>
-      <div className={calendarDrawerStyles.input.group}>
-        {/* Text Input with Clear Button */}
-        <div className={calendarDrawerStyles.input.wrapper}>
-          <Input
-            value={isEditing ? draftValue : formattedValue}
-            onChange={handleInputChange}
-            onBlur={handleInputBlur}
-            onFocus={() => {
-              setIsEditing(true);
-              setDraftValue(formattedValue);
-            }}
-            placeholder={t('placeholder')}
-            className={calendarDrawerStyles.input.field}
-            autoComplete="off"
-          />
-          {value && (
-            <button
-              type="button"
-              onClick={handleClear}
-              className={calendarDrawerStyles.input.clearButton}
-              aria-label={t('clearDateAria')}
-            >
-              <X className={calendarDrawerStyles.input.clearIcon} />
-            </button>
-          )}
-        </div>
-
-        {/* Calendar Trigger Button / Picker Wrapper */}
-        {isDesktop ? (
-          <DesktopCalendarPopover
-            value={value}
-            onChange={onChange}
-            isOpen={isDrawerOpen}
-            onOpenChange={setIsDrawerOpen}
-          >
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              className={calendarTriggerVariants({ active: isDrawerOpen })}
-            >
-              <CalendarIcon className={calendarDrawerStyles.input.triggerIcon} />
-              <span className="sr-only">{t('openCalendarSr')}</span>
-            </Button>
-          </DesktopCalendarPopover>
-        ) : (
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            onClick={() => setIsDrawerOpen(true)}
-            className={calendarTriggerVariants({ active: isDrawerOpen })}
-          >
-            <CalendarIcon className={calendarDrawerStyles.input.triggerIcon} />
-            <span className="sr-only">{t('openCalendarSr')}</span>
-          </Button>
-        )}
-      </div>
-
-      {!isDesktop && (
-        <MobileCalendarDrawer
+    <div className="space-y-1">
+      {isDesktop ? (
+        <DesktopCalendarPopover
           value={value}
           onChange={onChange}
           isOpen={isDrawerOpen}
-          onClose={() => setIsDrawerOpen(false)}
-        />
+          onOpenChange={setIsDrawerOpen}
+        >
+          <button
+            type="button"
+            data-state={isDrawerOpen ? 'open' : 'closed'}
+            aria-expanded={isDrawerOpen}
+            className={stitchTransactionFormModal.selectorTrigger}
+          >
+            {triggerInner}
+          </button>
+        </DesktopCalendarPopover>
+      ) : (
+        <>
+          <button
+            type="button"
+            onClick={() => setIsDrawerOpen(true)}
+            data-state={isDrawerOpen ? 'open' : 'closed'}
+            aria-expanded={isDrawerOpen}
+            className={stitchTransactionFormModal.selectorTrigger}
+          >
+            {triggerInner}
+          </button>
+          <MobileCalendarDrawer
+            value={value}
+            onChange={onChange}
+            isOpen={isDrawerOpen}
+            onClose={() => setIsDrawerOpen(false)}
+          />
+        </>
       )}
-    </FormField>
+      {error ? <p className={stitchTransactionFormModal.fieldError}>{error}</p> : null}
+    </div>
   );
 }

@@ -14,9 +14,9 @@ export {
   type TransactionDayListProps,
 } from './transaction-day-list';
 
-// Paginated Table (replaces TransactionDayList on the Transactions page)
-export { TransactionTable } from './transaction-table';
 export { TransactionPagination } from './transaction-pagination';
+export { TransactionsScreenList } from './transactions-screen-list';
+export { TransactionFilterChips } from './transaction-filter-chips';
 
 // Loading Skeletons
 export {

@@ -674,6 +674,7 @@
   },
   "TransactionsContent": {
     "headerTitle": "Transazioni",
+    "skipToMain": "Vai al contenuto transazioni",
     "tabs": {
       "transactions": "Transazioni",
       "recurrent": "Ricorrenti"
@@ -688,12 +689,6 @@
     "paginationRetry": "Riprova",
     "allLoaded": "Tutte le transazioni caricate ({count})",
     "loadingMore": "Caricamento altre transazioni",
-    "onboarding": {
-      "title": "Suggerimento rapido",
-      "pointFilters": "Usa Oggi o Mese per il periodo veloce, la ricerca per parole chiave, poi i filtri avanzati solo per tipo o categoria.",
-      "pointSwipe": "Su ogni riga, scorri in orizzontale per azioni rapide (ad esempio elimina).",
-      "dismiss": "Capito"
-    },
     "loadMoreError": "Impossibile caricare altre transazioni.",
     "retry": "Riprova",
     "errors": {
@@ -765,6 +760,11 @@
         "type": "Tipo",
         "category": "Categoria",
         "account": "Conto"
+      },
+      "FilterChips": {
+        "toolbarAria": "Filtri transazioni",
+        "filters": "Filtri",
+        "drawerTitle": "Filtri avanzati"
       },
       "customRange": {
         "title": "Intervallo personalizzato",
@@ -917,7 +917,9 @@
       "buttons": {
         "create": "Crea",
         "update": "Aggiorna",
-        "cancel": "Annulla"
+        "cancel": "Annulla",
+        "delete": "Elimina transazione",
+        "saveTransaction": "Salva transazione"
       },
       "errors": {
         "notFound": "Transazione non trovata. Ricarica la pagina e riprova.",

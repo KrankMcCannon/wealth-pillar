@@ -8,6 +8,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
+import { ArrowLeftRight, CalendarClock } from 'lucide-react';
 import {
   RecurringTransactionSeries,
   User,
@@ -401,26 +402,33 @@ export function RecurringSeriesForm({
 
             <div className={recurringStyles.form.grid}>
               {/* Tipo */}
-              <FormField label={t('fields.type.label')} required error={errors.type}>
+              <div className="space-y-1">
                 <FormSelect
                   value={formData.type}
                   onValueChange={(value) =>
                     handleFieldChange('type', value as 'income' | 'expense')
                   }
                   options={typeOptions}
+                  captionLabel={t('fields.type.label')}
+                  leadingIcon={<ArrowLeftRight className="h-5 w-5 text-[#b8c5ff]" aria-hidden />}
                 />
-              </FormField>
+                {errors.type ? <p className="text-sm text-destructive">{errors.type}</p> : null}
+              </div>
 
-              {/* Frequenza */}
-              <FormField label={t('fields.frequency.label')} required error={errors.frequency}>
+              <div className="space-y-1">
                 <FormSelect
                   value={formData.frequency}
                   onValueChange={(value) =>
                     handleFieldChange('frequency', value as TransactionFrequencyType)
                   }
                   options={frequencyOptions}
+                  captionLabel={t('fields.frequency.label')}
+                  leadingIcon={<CalendarClock className="h-5 w-5 text-[#b8c5ff]" aria-hidden />}
                 />
-              </FormField>
+                {errors.frequency ? (
+                  <p className="text-sm text-destructive">{errors.frequency}</p>
+                ) : null}
+              </div>
             </div>
 
             {/* Utenti - Multi-select (full width) */}
@@ -449,7 +457,6 @@ export function RecurringSeriesForm({
                 onChange={(value) => handleFieldChange('category', value)}
                 error={errors.category}
                 categories={categories}
-                required
               />
 
               {/* Importo */}

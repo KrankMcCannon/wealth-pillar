@@ -494,8 +494,7 @@ div[data-turnstile],
 @media (prefers-reduced-motion: reduce) {
   .liquid-float,
   .liquid-pulse,
-  .liquid-shimmer::before,
-  .animate-swipe-hint {
+  .liquid-shimmer::before {
     animation: none !important;
   }
 
@@ -533,32 +532,6 @@ div[data-turnstile],
   50% {
     box-shadow: var(--shadow-md);
   }
-}
-
-@keyframes swipe-hint {
-  0% {
-    left: 75%;
-    opacity: 0;
-  }
-  15% {
-    opacity: 1;
-  }
-  70% {
-    opacity: 1;
-  }
-  90% {
-    left: 5%;
-    opacity: 0;
-  }
-  100% {
-    left: 5%;
-    opacity: 0;
-  }
-}
-
-.animate-swipe-hint {
-  animation: swipe-hint 2s ease-in-out infinite;
-  animation-delay: 0.5s;
 }
 
 /* @utility — atomi layout system */

@@ -674,6 +674,7 @@
   },
   "TransactionsContent": {
     "headerTitle": "Transactions",
+    "skipToMain": "Skip to transactions list",
     "tabs": {
       "transactions": "Transactions",
       "recurrent": "Recurring"
@@ -688,12 +689,6 @@
     "paginationRetry": "Retry",
     "allLoaded": "All transactions loaded ({count})",
     "loadingMore": "Loading more transactions",
-    "onboarding": {
-      "title": "Quick tip",
-      "pointFilters": "Use Today or Month for a quick period, search for a keyword, then open advanced filters only for type or category.",
-      "pointSwipe": "Swipe a row sideways to reveal quick actions such as delete.",
-      "dismiss": "Got it"
-    },
     "loadMoreError": "Could not load more transactions.",
     "retry": "Retry",
     "errors": {
@@ -765,6 +760,11 @@
         "type": "Type",
         "category": "Category",
         "account": "Account"
+      },
+      "FilterChips": {
+        "toolbarAria": "Transaction filters",
+        "filters": "Filters",
+        "drawerTitle": "Advanced filters"
       },
       "customRange": {
         "title": "Custom range",
@@ -917,7 +917,9 @@
       "buttons": {
         "create": "Create",
         "update": "Update",
-        "cancel": "Cancel"
+        "cancel": "Cancel",
+        "delete": "Delete transaction",
+        "saveTransaction": "Save transaction"
       },
       "errors": {
         "notFound": "Transaction not found. Reload the page and try again.",

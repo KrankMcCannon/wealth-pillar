@@ -5,7 +5,8 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { FormField, FormSelect } from '@/components/form';
+import { Landmark } from 'lucide-react';
+import { FormSelect } from '@/components/form';
 import type { Account } from '@/lib/types';
 
 interface AccountFieldProps {
@@ -16,14 +17,13 @@ interface AccountFieldProps {
   label?: string | undefined;
   placeholder?: string | undefined;
   accounts?: Account[] | undefined;
-  userId?: string | undefined; // Optional user filter
+  userId?: string | undefined;
 }
 
 export function AccountField({
   value,
   onChange,
   error,
-  required = true,
   label,
   placeholder,
   accounts = [],
@@ -33,7 +33,6 @@ export function AccountField({
   const resolvedLabel = label ?? t('label');
   const resolvedPlaceholder = placeholder ?? t('placeholder');
 
-  // Filter accounts by user if userId is provided
   const filteredAccounts = userId
     ? accounts.filter((acc) => acc.user_ids.includes(userId))
     : accounts;
@@ -44,13 +43,16 @@ export function AccountField({
   }));
 
   return (
-    <FormField label={resolvedLabel} required={required} error={error}>
+    <div className="space-y-1">
       <FormSelect
         value={value}
         onValueChange={onChange}
         options={options}
         placeholder={resolvedPlaceholder}
+        captionLabel={resolvedLabel}
+        leadingIcon={<Landmark className="h-5 w-5 text-[#b8c5ff]" aria-hidden />}
       />
-    </FormField>
+      {error ? <p className="px-1 text-xs text-red-300">{error}</p> : null}
+    </div>
   );
 }

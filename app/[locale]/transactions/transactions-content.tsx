@@ -1,29 +1,30 @@
 'use client';
 
-/**
- * Transactions Content - Client Component
- *
- * Handles interactive transactions UI with client-side state management.
- * Data is passed from Server Component for optimal performance.
- *
- * Business logic extracted to useTransactionsContent hook for better
- * separation of concerns.
- */
-
-import { Suspense, use, useCallback, useMemo } from 'react';
+import { Suspense, use, useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useTransactionsContent, type UseTransactionsContentProps } from '@/features/transactions';
-import { useOnboardingHint } from '@/features/transactions/hooks/useOnboardingHint';
 import type { User } from '@/lib/types';
 import type { TransactionsPageData } from '@/server/use-cases/pages/transactions-page.use-case';
-import { BottomNavigation, PageContainer, Header } from '@/components/layout';
+import {
+  BottomNavigation,
+  PageContainer,
+  Header,
+  HomeDashboardMain,
+  SkipToMainLink,
+} from '@/components/layout';
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui';
 import TabNavigation from '@/components/shared/tab-navigation';
 import UserSelector from '@/components/shared/user-selector';
 import { ConfirmationDialog } from '@/components/shared';
 import { RecurringSeriesSection, PauseSeriesModal } from '@/features/recurring';
-import { TransactionFilters, TransactionTable } from '@/features/transactions';
-import { transactionStyles } from '@/styles/system';
+import {
+  TransactionFilterChips,
+  TransactionsScreenList,
+  registerTransactionDeleteHandler,
+  unregisterTransactionDeleteHandler,
+} from '@/features/transactions';
 import { RecurringSeriesSkeleton } from '@/features/transactions/components/transaction-skeletons';
+import { stitchTransactions } from '@/styles/home-design-foundation';
 
 interface TransactionsContentProps {
   currentUser: User;
@@ -31,10 +32,6 @@ interface TransactionsContentProps {
   pageDataPromise: Promise<TransactionsPageData>;
 }
 
-/**
- * Transactions Content Component
- * Handles interactive transactions UI with state management
- */
 export default function TransactionsContent({
   currentUser,
   groupUsers,
@@ -64,8 +61,19 @@ export default function TransactionsContent({
   };
 
   const t = useTranslations('TransactionsContent');
-  const { showHint: showOnboardingHint, dismiss: handleDismissOnboardingHint } =
-    useOnboardingHint();
+  const tHome = useTranslations('HomeContent');
+  const [userPickerOpen, setUserPickerOpen] = useState(false);
+
+  const headerCurrentUser = useMemo(
+    () => ({
+      ...(currentUser.name != null ? { name: currentUser.name } : {}),
+      role: currentUser.role || 'member',
+    }),
+    [currentUser.name, currentUser.role]
+  );
+
+  const showUserPicker =
+    (currentUser.role === 'admin' || currentUser.role === 'superadmin') && groupUsers.length > 1;
 
   const {
     activeTab,
@@ -104,6 +112,11 @@ export default function TransactionsContent({
     router,
   } = useTransactionsContent(props);
 
+  useEffect(() => {
+    registerTransactionDeleteHandler(handleDeleteClick);
+    return () => unregisterTransactionDeleteHandler();
+  }, [handleDeleteClick]);
+
   const hasActiveFilters = useMemo(
     () =>
       Boolean(
@@ -137,165 +150,126 @@ export default function TransactionsContent({
     t('dialogs.deleteRecurring.fallbackDescription');
 
   return (
-    <PageContainer className={transactionStyles.page.container}>
-      {/* Header */}
+    <PageContainer>
+      <SkipToMainLink href="#main-transactions">{t('skipToMain')}</SkipToMainLink>
+
       <Header
         title={t('headerTitle')}
         showBack
-        currentUser={{
-          ...(currentUser.name != null ? { name: currentUser.name } : {}),
-          role: currentUser.role || 'member',
-        }}
+        currentUser={headerCurrentUser}
         showActions
+        {...(showUserPicker ? { onAvatarClick: () => setUserPickerOpen(true) } : {})}
       />
 
-      <div className={transactionStyles.layout.controlsStack}>
-        <div className={transactionStyles.layout.controlsCard}>
-          {/* User Selector */}
-          <UserSelector
-            className={transactionStyles.userSelector.className}
-            currentUser={currentUser}
-            users={groupUsers}
-          />
-
-          {/* Tab Navigation */}
-          <div className={transactionStyles.tabNavigation.wrapper}>
-            <TabNavigation
-              tabs={[
-                { id: 'Transactions', label: t('tabs.transactions') },
-                { id: 'Recurrent', label: t('tabs.recurrent') },
-              ]}
-              activeTab={activeTab}
-              onTabChange={setActiveTab}
-              variant="modern"
+      {showUserPicker && (
+        <Drawer open={userPickerOpen} onOpenChange={setUserPickerOpen}>
+          <DrawerContent>
+            <DrawerHeader>
+              <DrawerTitle>{tHome('userPickerTitle')}</DrawerTitle>
+            </DrawerHeader>
+            <UserSelector
+              currentUser={currentUser}
+              users={groupUsers}
+              hideTitle
+              isLoading={false}
             />
-          </div>
-        </div>
+          </DrawerContent>
+        </Drawer>
+      )}
+
+      <div className="px-3 pb-1 pt-1">
+        <TabNavigation
+          tabs={[
+            { id: 'Transactions', label: t('tabs.transactions') },
+            { id: 'Recurrent', label: t('tabs.recurrent') },
+          ]}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          variant="stitch"
+        />
       </div>
 
-      {/* Main Content */}
-      <main className={transactionStyles.page.main}>
-        <div className={transactionStyles.layout.contentStack}>
-          {/* Onboarding hint — standalone card, not nested inside filters */}
-          {activeTab === 'Transactions' && showOnboardingHint && (
-            <aside className={transactionStyles.layout.onboardingAside}>
-              <div className={transactionStyles.layout.onboardingRow}>
-                <div className={transactionStyles.layout.onboardingContent}>
-                  <p className={transactionStyles.layout.onboardingTitle}>
-                    {t('onboarding.title')}
-                  </p>
-                  <ul className={transactionStyles.layout.onboardingList}>
-                    <li>{t('onboarding.pointFilters')}</li>
-                    <li>
-                      {t('onboarding.pointSwipe')}
-                      {/* Visual swipe demo — mobile only */}
-                      <span
-                        className="sm:hidden ml-2 inline-flex items-center gap-1 align-middle"
-                        aria-hidden
-                      >
-                        <span className="relative inline-flex h-5 w-10 overflow-hidden rounded-sm bg-primary/10 align-middle">
-                          <span className="absolute inset-y-0 left-0 w-3 rounded-sm bg-primary/20" />
-                          <span className="animate-swipe-hint absolute top-1/2 -translate-y-1/2 text-[10px]">
-                            👆
-                          </span>
-                        </span>
-                      </span>
-                    </li>
-                  </ul>
-                </div>
+      <HomeDashboardMain id="main-transactions">
+        {activeTab === 'Transactions' && (
+          <div className={stitchTransactions.mainStack}>
+            <TransactionFilterChips
+              filters={filters}
+              onFiltersChange={setFilters}
+              categories={categories}
+              accounts={accounts}
+              {...(selectedBudget?.description !== undefined
+                ? { budgetName: selectedBudget.description }
+                : {})}
+              {...(selectedBudget ? { onClearBudgetFilter: handleClearBudgetFilter } : {})}
+            />
+
+            {pageError && (
+              <div
+                role="alert"
+                className="rounded-xl border border-amber-500/40 bg-amber-950/30 px-3 py-2 text-sm text-amber-100"
+              >
+                <span>{t('paginationError')}</span>
                 <button
                   type="button"
-                  onClick={handleDismissOnboardingHint}
-                  className={transactionStyles.layout.onboardingDismissButton}
+                  onClick={() => goToPage(currentPage)}
+                  className="ml-2 font-semibold underline"
                 >
-                  {t('onboarding.dismiss')}
+                  {t('paginationRetry')}
                 </button>
               </div>
-            </aside>
-          )}
+            )}
 
-          {/* Transaction Filters */}
-          {activeTab === 'Transactions' && (
-            <section className={transactionStyles.layout.filtersBlock}>
-              <TransactionFilters
-                filters={filters}
-                onFiltersChange={setFilters}
-                categories={categories}
-                accounts={accounts}
-                budgetName={selectedBudget?.description}
-                onClearBudgetFilter={selectedBudget ? handleClearBudgetFilter : undefined}
-              />
-            </section>
-          )}
+            <TransactionsScreenList
+              transactions={currentPageItems}
+              totalFilteredCount={filteredCount}
+              accountNames={accountNames}
+              categories={categories}
+              currentPage={currentPage}
+              totalPages={totalPages}
+              pageSize={pageSize}
+              isChangingPage={isChangingPage || isLoadingFullDatasetForFilters}
+              onPageChange={goToPage}
+              onPageSizeChange={setPageSize}
+              onEditTransaction={handleEditTransaction}
+              {...(!hasActiveFilters && { onAddTransaction: () => openModal('transaction') })}
+              {...(hasActiveFilters && { onClearFilters: handleClearFilters })}
+              emptyTitle={t('empty.title')}
+              emptyDescription={
+                hasActiveFilters
+                  ? t('empty.noFilterResults')
+                  : selectedUserId
+                    ? t('empty.forUser')
+                    : t('empty.noTransactionsYet')
+              }
+            />
+          </div>
+        )}
 
-          {/* Transactions Tab — paginated table */}
-          {activeTab === 'Transactions' && (
-            <section className={transactionStyles.layout.listBlock}>
-              {pageError && (
-                <div role="alert" className={transactionStyles.layout.pageErrorBanner}>
-                  <span>{t('paginationError')}</span>
-                  <button
-                    type="button"
-                    onClick={() => goToPage(currentPage)}
-                    className={transactionStyles.layout.pageErrorRetry}
-                  >
-                    {t('paginationRetry')}
-                  </button>
-                </div>
-              )}
-              <TransactionTable
-                transactions={currentPageItems}
-                totalFilteredCount={filteredCount}
-                accountNames={accountNames}
-                categories={categories}
-                currentPage={currentPage}
-                totalPages={totalPages}
-                pageSize={pageSize}
-                isChangingPage={isChangingPage || isLoadingFullDatasetForFilters}
-                onPageChange={goToPage}
-                onPageSizeChange={setPageSize}
-                onEditTransaction={handleEditTransaction}
-                onDeleteTransaction={handleDeleteClick}
-                {...(!hasActiveFilters && { onAddTransaction: () => openModal('transaction') })}
-                {...(hasActiveFilters && { onClearFilters: handleClearFilters })}
-                emptyTitle={t('empty.title')}
-                emptyDescription={
-                  hasActiveFilters
-                    ? t('empty.noFilterResults')
-                    : selectedUserId
-                      ? t('empty.forUser')
-                      : t('empty.noTransactionsYet')
-                }
-              />
-            </section>
-          )}
-        </div>
-
-        {/* Recurring Tab Content */}
         {activeTab === 'Recurrent' && (
           <Suspense fallback={<RecurringSeriesSkeleton />}>
-            <RecurringSeriesSection
-              series={recurringSeries}
-              selectedUserId={selectedUserId ?? undefined}
-              className={transactionStyles.recurringSection.container}
-              showStats
-              maxItems={10}
-              showActions
-              showDelete
-              onCreateRecurringSeries={() => openModal('recurring')}
-              onEditRecurringSeries={(series) => openModal('recurring', series.id)}
-              onDeleteRecurringSeries={handleRecurringDeleteClick}
-              onPauseRecurringSeries={handleRecurringPauseClick}
-              groupUsers={groupUsers}
-              onSeriesUpdate={() => router.refresh()}
-            />
+            <div className="px-3 pb-28 pt-2">
+              <RecurringSeriesSection
+                series={recurringSeries}
+                selectedUserId={selectedUserId ?? undefined}
+                className="space-y-4"
+                showStats
+                maxItems={10}
+                showActions
+                showDelete
+                onCreateRecurringSeries={() => openModal('recurring')}
+                onEditRecurringSeries={(series) => openModal('recurring', series.id)}
+                onDeleteRecurringSeries={handleRecurringDeleteClick}
+                onPauseRecurringSeries={handleRecurringPauseClick}
+                groupUsers={groupUsers}
+                onSeriesUpdate={() => router.refresh()}
+              />
+            </div>
           </Suspense>
         )}
-      </main>
+      </HomeDashboardMain>
 
       <BottomNavigation />
 
-      {/* Delete Confirmation Dialog */}
       <ConfirmationDialog
         isOpen={deleteConfirm.isOpen}
         onConfirm={handleDeleteConfirm}

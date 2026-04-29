@@ -1,14 +1,8 @@
 'use client';
 
 /**
- * TransactionFilters - Modern filter system for transactions
- *
- * Features:
- * - Inline search bar with live filtering
- * - Horizontal scrollable filter chips
- * - Bottom sheet for advanced filters
- * - Active filter badges with quick clear
- * - Smooth animations and haptic feedback
+ * TransactionFilters — pannello filtri nel drawer (periodo, conto, data, categoria). Il tipo è solo sulle chip in pagina.
+ * La ricerca testuale vive sulla pagina in `TransactionFilterChips`.
  */
 
 import { useState, useMemo, useCallback, memo } from 'react';
@@ -18,7 +12,6 @@ import type { Category, Account } from '@/lib/types';
 import { formatDateShort, cn } from '@/lib/utils';
 import {
   type TransactionFiltersState,
-  type TransactionTypeFilter,
   type DateRangeFilter,
 } from '@/server/use-cases/transactions/transaction.logic';
 import {
@@ -31,12 +24,8 @@ import {
   CategoryBadge,
 } from '@/components/ui';
 import * as VisuallyHidden from '@radix-ui/react-visually-hidden';
+import { stitchTransactionFilterTriggers } from '@/styles/home-design-foundation';
 import { transactionStyles } from '@/styles/system';
-
-// Module-level variable persists advanced-filters visibility across tab switches
-// without needing sessionStorage or an effect. Resets only on full page refresh,
-// which is the expected behaviour (not a bookmark-worthy UI state).
-let advancedFiltersOpen = false;
 
 // ============================================================================
 // Types
@@ -56,7 +45,6 @@ interface TransactionFiltersProps {
 // Constants
 // ============================================================================
 
-const TYPE_OPTIONS: TransactionTypeFilter[] = ['all', 'income', 'expense'];
 const DATE_OPTIONS: DateRangeFilter[] = ['all', 'today', 'week', 'month', 'year', 'custom'];
 
 // ============================================================================
@@ -73,18 +61,6 @@ function getActiveFiltersCount(filters: TransactionFiltersState): number {
   if (filters.categoryKeys && filters.categoryKeys.length > 0) count++;
   if (filters.budgetId) count++;
   return count;
-}
-
-function getTypeLabel(type: TransactionTypeFilter, t: ReturnType<typeof useTranslations>): string {
-  switch (type) {
-    case 'income':
-      return t('typeOptions.income');
-    case 'expense':
-      return t('typeOptions.expense');
-    case 'all':
-    default:
-      return t('typeOptions.all');
-  }
 }
 
 function getDateLabel(dateRange: DateRangeFilter, t: ReturnType<typeof useTranslations>): string {
@@ -157,34 +133,30 @@ function FilterChip({
     onClear?.();
   };
 
-  // Chip con valore attivo: mostra label + icona X per cancellare
   if (hasValue && !isActive) {
     return (
-      <div className={transactionStyles.filters.chip.wrapper}>
-        {/* Main button - opens drawer */}
+      <div className={stitchTransactionFilterTriggers.wrapper}>
         <button
           type="button"
           onClick={onClick}
           aria-haspopup="dialog"
           aria-expanded={false}
-          className={transactionStyles.filters.chip.buttonActive}
+          className={stitchTransactionFilterTriggers.buttonHasValue}
         >
           <span>{label}</span>
         </button>
-        {/* Clear button - positioned absolutely */}
         <button
           type="button"
           onClick={handleClearClick}
-          className={transactionStyles.filters.chip.clearButton}
+          className={stitchTransactionFilterTriggers.clearButton}
           aria-label={clearAriaLabel ?? label}
         >
-          <X className={transactionStyles.filters.chip.clearIcon} />
+          <X className={stitchTransactionFilterTriggers.clearIcon} />
         </button>
       </div>
     );
   }
 
-  // Chip normale (senza valore o drawer aperto)
   return (
     <button
       type="button"
@@ -192,17 +164,17 @@ function FilterChip({
       aria-haspopup="dialog"
       aria-expanded={isActive}
       className={cn(
-        transactionStyles.filters.chip.buttonBase,
+        stitchTransactionFilterTriggers.buttonBase,
         isActive
-          ? transactionStyles.filters.chip.buttonOpen
-          : transactionStyles.filters.chip.buttonIdle
+          ? stitchTransactionFilterTriggers.buttonOpen
+          : stitchTransactionFilterTriggers.buttonIdle
       )}
     >
       <span>{label}</span>
       <ChevronDown
         className={cn(
-          transactionStyles.filters.chip.chevron,
-          isActive && transactionStyles.filters.chip.chevronOpen
+          stitchTransactionFilterTriggers.chevron,
+          isActive && stitchTransactionFilterTriggers.chevronOpen
         )}
       />
     </button>
@@ -213,45 +185,6 @@ function FilterChip({
 // DrawerPanel sub-components — each owns its own local state so keystrokes
 // and date-input changes don't trigger a re-render of the parent drawer.
 // ============================================================================
-
-// ─── TypeOptions ─────────────────────────────────────────────────────────────
-
-interface TypeOptionsProps {
-  readonly selectedType: TransactionTypeFilter;
-  readonly onSelect: (value: string) => void;
-  readonly onClose: () => void;
-}
-
-const TypeOptions = memo(function TypeOptions({
-  selectedType,
-  onSelect,
-  onClose,
-}: TypeOptionsProps) {
-  const t = useTranslations('Transactions.Filters');
-  return (
-    <div className={transactionStyles.filters.typeGrid}>
-      {TYPE_OPTIONS.map((option) => (
-        <button
-          key={option}
-          type="button"
-          onClick={() => {
-            onSelect(option);
-            onClose();
-          }}
-          className={cn(
-            transactionStyles.filters.typeButton,
-            selectedType === option
-              ? transactionStyles.filters.typeButtonActive
-              : transactionStyles.filters.typeButtonIdle
-          )}
-        >
-          {selectedType === option && <Check className={transactionStyles.filters.typeCheck} />}
-          <span>{getTypeLabel(option, t)}</span>
-        </button>
-      ))}
-    </div>
-  );
-});
 
 // ─── DateOptions ──────────────────────────────────────────────────────────────
 
@@ -527,7 +460,7 @@ const AccountOptions = memo(function AccountOptions({
 // ============================================================================
 
 interface FilterDrawerContentProps {
-  readonly filterType: 'type' | 'date' | 'category' | 'account';
+  readonly filterType: 'date' | 'category' | 'account';
   readonly filters: TransactionFiltersState;
   readonly categories: Category[];
   readonly accounts?: Account[] | undefined;
@@ -547,8 +480,7 @@ function FilterDrawerContent({
 }: FilterDrawerContentProps) {
   const t = useTranslations('Transactions.Filters');
 
-  const titles: Record<'type' | 'date' | 'category' | 'account', string> = {
-    type: t('drawer.titles.type'),
+  const titles: Record<'date' | 'category' | 'account', string> = {
     date: t('drawer.titles.date'),
     category: t('drawer.titles.category'),
     account: t('drawer.titles.account'),
@@ -576,9 +508,6 @@ function FilterDrawerContent({
       </div>
 
       {/* Active panel — only one mounts at a time */}
-      {filterType === 'type' && (
-        <TypeOptions selectedType={filters.type} onSelect={onSelect} onClose={onClose} />
-      )}
       {filterType === 'date' && (
         <DateOptions
           selectedDateRange={filters.dateRange}
@@ -623,13 +552,7 @@ export function TransactionFilters({
   onClearBudgetFilter,
 }: TransactionFiltersProps) {
   const t = useTranslations('Transactions.Filters');
-  const [activeDrawer, setActiveDrawer] = useState<'type' | 'date' | 'category' | 'account' | null>(
-    null
-  );
-  const [isSearchFocused, setIsSearchFocused] = useState(false);
-
-  // Reads from the module-level variable so state survives tab switches.
-  const [showAdvancedFilters, setShowAdvancedFilters] = useState(advancedFiltersOpen);
+  const [activeDrawer, setActiveDrawer] = useState<'date' | 'category' | 'account' | null>(null);
 
   const activeFiltersCount = useMemo(() => getActiveFiltersCount(filters), [filters]);
   const isBudgetMode = Boolean(filters.budgetId || budgetName);
@@ -647,21 +570,6 @@ export function TransactionFilters({
     const acc = accounts?.find((a) => a.id === filters.accountId);
     return acc?.name ?? t('chips.account');
   }, [filters.accountId, accounts, t]);
-
-  // Handlers
-  const handleSearchChange = useCallback(
-    (value: string) => {
-      onFiltersChange({ ...filters, searchQuery: value });
-    },
-    [filters, onFiltersChange]
-  );
-
-  const handleTypeChange = useCallback(
-    (value: string) => {
-      onFiltersChange({ ...filters, type: value as TransactionTypeFilter });
-    },
-    [filters, onFiltersChange]
-  );
 
   const handleDateChange = useCallback(
     (value: string) => {
@@ -721,16 +629,87 @@ export function TransactionFilters({
     }
   }, [onFiltersChange, onClearBudgetFilter]);
 
-  const handleClearSearch = useCallback(() => {
-    onFiltersChange({ ...filters, searchQuery: '' });
-  }, [filters, onFiltersChange]);
+  const accountFilterDrawer = (
+    <Drawer
+      open={activeDrawer === 'account'}
+      onOpenChange={(open) => setActiveDrawer(open ? 'account' : null)}
+    >
+      <FilterChip
+        label={accountLabel}
+        isActive={activeDrawer === 'account'}
+        hasValue={filters.accountId !== 'all' && filters.accountId !== undefined}
+        onClick={() => setActiveDrawer('account')}
+        onClear={() => handleAccountChange('all')}
+        clearAriaLabel={t('clearFilterAria', { label: accountLabel })}
+      />
+      <DrawerContent className={transactionStyles.filters.drawer.contentTall}>
+        <FilterDrawerContent
+          filterType="account"
+          filters={filters}
+          categories={categories}
+          accounts={accounts}
+          onSelect={handleAccountChange}
+          onClose={() => setActiveDrawer(null)}
+        />
+      </DrawerContent>
+    </Drawer>
+  );
 
-  const handleSearchFocus = useCallback(() => setIsSearchFocused(true), []);
-  const handleSearchBlur = useCallback(() => setIsSearchFocused(false), []);
+  const tertiaryFilterDrawers = (
+    <>
+      <Drawer
+        open={activeDrawer === 'date'}
+        onOpenChange={(open) => setActiveDrawer(open ? 'date' : null)}
+      >
+        <FilterChip
+          label={getDateChipLabel(filters, t)}
+          isActive={activeDrawer === 'date'}
+          hasValue={filters.dateRange !== 'all'}
+          onClick={() => setActiveDrawer('date')}
+          onClear={() => handleDateChange('all')}
+          clearAriaLabel={t('clearFilterAria', {
+            label: getDateChipLabel(filters, t),
+          })}
+        />
+        <DrawerContent className={transactionStyles.filters.drawer.content}>
+          <FilterDrawerContent
+            filterType="date"
+            filters={filters}
+            categories={categories}
+            onSelect={handleDateChange}
+            onClose={() => setActiveDrawer(null)}
+            onDateRangeChange={handleCustomDateRange}
+          />
+        </DrawerContent>
+      </Drawer>
+
+      <Drawer
+        open={activeDrawer === 'category'}
+        onOpenChange={(open) => setActiveDrawer(open ? 'category' : null)}
+      >
+        <FilterChip
+          label={categoryLabel}
+          isActive={activeDrawer === 'category'}
+          hasValue={filters.categoryKey !== 'all'}
+          onClick={() => setActiveDrawer('category')}
+          onClear={() => handleCategoryChange('all')}
+          clearAriaLabel={t('clearFilterAria', { label: categoryLabel })}
+        />
+        <DrawerContent className={transactionStyles.filters.drawer.contentTall}>
+          <FilterDrawerContent
+            filterType="category"
+            filters={filters}
+            categories={categories}
+            onSelect={handleCategoryChange}
+            onClose={() => setActiveDrawer(null)}
+          />
+        </DrawerContent>
+      </Drawer>
+    </>
+  );
 
   return (
-    <div className={cn(transactionStyles.filters.container, className)}>
-      {/* Budget Mode Banner */}
+    <div className={cn(transactionStyles.filters.container, 'gap-2', className)}>
       {isBudgetMode && (
         <div className={transactionStyles.filters.budgetBanner}>
           <div className={transactionStyles.filters.budgetBannerLeft}>
@@ -759,48 +738,9 @@ export function TransactionFilters({
         </div>
       )}
 
-      {/* Primary: search (full width, strongest hierarchy) */}
-      <div className={transactionStyles.filters.searchStack}>
-        <div className={transactionStyles.filters.searchWrap}>
-          <Search
-            aria-hidden
-            className={cn(
-              transactionStyles.filters.searchIcon,
-              isSearchFocused
-                ? transactionStyles.filters.searchIconActive
-                : transactionStyles.filters.searchIconInactive
-            )}
-          />
-          <Input
-            type="text"
-            enterKeyHint="search"
-            autoComplete="off"
-            autoCorrect="off"
-            spellCheck={false}
-            placeholder={t('searchPlaceholder')}
-            aria-label={t('searchPlaceholder')}
-            value={filters.searchQuery}
-            onChange={(e) => handleSearchChange(e.target.value)}
-            onFocus={handleSearchFocus}
-            onBlur={handleSearchBlur}
-            className={transactionStyles.filters.searchInput}
-          />
-          {filters.searchQuery && (
-            <button
-              type="button"
-              onClick={handleClearSearch}
-              className={transactionStyles.filters.searchClear}
-              aria-label={t('clearSearchAria')}
-            >
-              <X className={transactionStyles.filters.searchClearIcon} aria-hidden />
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Secondary: period + advanced tools (grouped below divider) */}
-      <div className={transactionStyles.filters.toolsCluster}>
-        {/* Quick period presets — most-used path without opening drawers */}
+      <div
+        className={cn(transactionStyles.filters.toolsCluster, 'border-t-0 pt-0 gap-2')}
+      >
         <div
           className={transactionStyles.filters.quickPeriodRow}
           role="group"
@@ -812,10 +752,10 @@ export function TransactionFilters({
               type="button"
               onClick={() => handleDateChange(value)}
               className={cn(
-                transactionStyles.filters.quickPeriodPill,
+                stitchTransactionFilterTriggers.quickPill,
                 filters.dateRange === value
-                  ? transactionStyles.filters.quickPeriodPillActive
-                  : transactionStyles.filters.quickPeriodPillIdle
+                  ? stitchTransactionFilterTriggers.quickPillActive
+                  : stitchTransactionFilterTriggers.quickPillIdle
               )}
               aria-pressed={filters.dateRange === value}
             >
@@ -826,16 +766,12 @@ export function TransactionFilters({
           ))}
           <button
             type="button"
-            onClick={() => {
-              advancedFiltersOpen = true;
-              setShowAdvancedFilters(true);
-              setActiveDrawer('date');
-            }}
+            onClick={() => setActiveDrawer('date')}
             className={cn(
-              transactionStyles.filters.quickPeriodPill,
+              stitchTransactionFilterTriggers.quickPill,
               !isQuickDateRange(filters.dateRange)
-                ? transactionStyles.filters.quickPeriodPillActive
-                : transactionStyles.filters.quickPeriodPillIdle
+                ? stitchTransactionFilterTriggers.quickPillActive
+                : stitchTransactionFilterTriggers.quickPillIdle
             )}
             aria-pressed={!isQuickDateRange(filters.dateRange)}
             aria-label={t('quickRange.moreAria')}
@@ -844,164 +780,25 @@ export function TransactionFilters({
           </button>
         </div>
 
-        {/* Global Filters - Always visible chips */}
-        <div className="flex flex-wrap gap-2 items-center">
-          {/* Account Filter */}
-          <Drawer
-            open={activeDrawer === 'account'}
-            onOpenChange={(open) => setActiveDrawer(open ? 'account' : null)}
-          >
-            <FilterChip
-              label={accountLabel}
-              isActive={activeDrawer === 'account'}
-              hasValue={filters.accountId !== 'all' && filters.accountId !== undefined}
-              onClick={() => setActiveDrawer('account')}
-              onClear={() => handleAccountChange('all')}
-              clearAriaLabel={t('clearFilterAria', { label: accountLabel })}
-            />
-            <DrawerContent className={transactionStyles.filters.drawer.contentTall}>
-              <FilterDrawerContent
-                filterType="account"
-                filters={filters}
-                categories={categories}
-                accounts={accounts}
-                onSelect={handleAccountChange}
-                onClose={() => setActiveDrawer(null)}
-              />
-            </DrawerContent>
-          </Drawer>
+        <div className="flex flex-wrap items-center gap-2">
+          {accountFilterDrawer}
+          {tertiaryFilterDrawers}
         </div>
 
-        {/* Advanced entry + clear */}
-        <div className={transactionStyles.filters.advancedControlsRow}>
-          <button
-            type="button"
-            onClick={() => {
-              advancedFiltersOpen = !showAdvancedFilters;
-              setShowAdvancedFilters((prev) => !prev);
-            }}
-            aria-expanded={showAdvancedFilters}
-            className={transactionStyles.filters.advancedToggle}
-          >
-            <ChevronDown
-              className={cn(
-                transactionStyles.filters.advancedToggleChevron,
-                showAdvancedFilters && transactionStyles.filters.advancedToggleChevronOpen
-              )}
-              aria-hidden
-            />
-            <span>{showAdvancedFilters ? t('hideAdvanced') : t('showAdvanced')}</span>
-            {activeFiltersCount > 0 && (
-              <span className={transactionStyles.filters.advancedCountBadge}>
-                {activeFiltersCount}
-              </span>
-            )}
-          </button>
-
-          {activeFiltersCount > 0 && (
+        {activeFiltersCount > 0 ? (
+          <div className={transactionStyles.filters.advancedControlsRow}>
             <div className={transactionStyles.filters.advancedClearWrap}>
               <button
                 type="button"
                 onClick={handleClearAll}
-                className={transactionStyles.filters.clearAll}
+                className={stitchTransactionFilterTriggers.filterDrawerClearAll}
               >
                 <X className={transactionStyles.filters.clearAllIcon} />
                 <span>{t('clearAll')}</span>
               </button>
             </div>
-          )}
-        </div>
-
-        {/* Filter chips — tertiary, only when expanded */}
-        {showAdvancedFilters && (
-          <div className={transactionStyles.filters.chipsCluster}>
-            <div className={transactionStyles.filters.chipsRow}>
-              {/* Type Filter */}
-              <Drawer
-                open={activeDrawer === 'type'}
-                onOpenChange={(open) => setActiveDrawer(open ? 'type' : null)}
-              >
-                <FilterChip
-                  label={
-                    filters.type === 'all'
-                      ? t('chips.type')
-                      : getTypeLabel(filters.type as TransactionTypeFilter, t)
-                  }
-                  isActive={activeDrawer === 'type'}
-                  hasValue={filters.type !== 'all'}
-                  onClick={() => setActiveDrawer('type')}
-                  onClear={() => handleTypeChange('all')}
-                  clearAriaLabel={t('clearFilterAria', {
-                    label:
-                      filters.type === 'all'
-                        ? t('chips.type')
-                        : getTypeLabel(filters.type as TransactionTypeFilter, t),
-                  })}
-                />
-                <DrawerContent className={transactionStyles.filters.drawer.content}>
-                  <FilterDrawerContent
-                    filterType="type"
-                    filters={filters}
-                    categories={categories}
-                    onSelect={handleTypeChange}
-                    onClose={() => setActiveDrawer(null)}
-                  />
-                </DrawerContent>
-              </Drawer>
-
-              {/* Date Filter */}
-              <Drawer
-                open={activeDrawer === 'date'}
-                onOpenChange={(open) => setActiveDrawer(open ? 'date' : null)}
-              >
-                <FilterChip
-                  label={getDateChipLabel(filters, t)}
-                  isActive={activeDrawer === 'date'}
-                  hasValue={filters.dateRange !== 'all'}
-                  onClick={() => setActiveDrawer('date')}
-                  onClear={() => handleDateChange('all')}
-                  clearAriaLabel={t('clearFilterAria', {
-                    label: getDateChipLabel(filters, t),
-                  })}
-                />
-                <DrawerContent className={transactionStyles.filters.drawer.content}>
-                  <FilterDrawerContent
-                    filterType="date"
-                    filters={filters}
-                    categories={categories}
-                    onSelect={handleDateChange}
-                    onClose={() => setActiveDrawer(null)}
-                    onDateRangeChange={handleCustomDateRange}
-                  />
-                </DrawerContent>
-              </Drawer>
-
-              {/* Category Filter */}
-              <Drawer
-                open={activeDrawer === 'category'}
-                onOpenChange={(open) => setActiveDrawer(open ? 'category' : null)}
-              >
-                <FilterChip
-                  label={categoryLabel}
-                  isActive={activeDrawer === 'category'}
-                  hasValue={filters.categoryKey !== 'all'}
-                  onClick={() => setActiveDrawer('category')}
-                  onClear={() => handleCategoryChange('all')}
-                  clearAriaLabel={t('clearFilterAria', { label: categoryLabel })}
-                />
-                <DrawerContent className={transactionStyles.filters.drawer.contentTall}>
-                  <FilterDrawerContent
-                    filterType="category"
-                    filters={filters}
-                    categories={categories}
-                    onSelect={handleCategoryChange}
-                    onClose={() => setActiveDrawer(null)}
-                  />
-                </DrawerContent>
-              </Drawer>
-            </div>
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   );

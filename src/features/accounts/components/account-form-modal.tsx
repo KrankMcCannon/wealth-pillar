@@ -5,6 +5,7 @@ import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useLocale, useTranslations } from 'next-intl';
+import { Landmark } from 'lucide-react';
 import { Account } from '@/lib/types';
 import { getTempId } from '@/lib/utils/temp-id';
 import { createAccountAction, updateAccountAction } from '@/features/accounts';
@@ -277,14 +278,19 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
             </FormField>
 
             {/* Account Type */}
-            <FormField label={t('fields.type.label')} required error={errors.type?.message}>
+            <div className="space-y-1">
               <FormSelect
                 value={watchedType}
                 onValueChange={(val) => setValue('type', val as Account['type'])}
                 options={accountTypes}
                 placeholder={t('fields.type.placeholder')}
+                captionLabel={t('fields.type.label')}
+                leadingIcon={<Landmark className="h-5 w-5 text-[#b8c5ff]" aria-hidden />}
               />
-            </FormField>
+              {errors.type?.message ? (
+                <p className="text-sm text-destructive">{errors.type.message}</p>
+              ) : null}
+            </div>
 
             {/* User Selection */}
             <UserField

@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import * as SelectPrimitive from '@radix-ui/react-select';
-import { Search, Clock, TrendingUp, ChevronDown } from 'lucide-react';
+import { Search, Clock, TrendingUp, ChevronRight, LayoutGrid } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLocale, useTranslations } from 'next-intl';
 import { cn } from '@/lib';
@@ -10,12 +10,12 @@ import { Category } from '@/lib/types';
 import { CategoryIcon, getSemanticColor } from '@/lib/icons';
 import { useDebouncedValue } from '@/hooks/use-debounced-value';
 import { useCategoryUsageStore } from '@/stores/category-usage-store';
-import { selectStyles } from '@/styles/system';
 import {
   formStyles,
   getCategorySelectItemStyle,
   getCategorySelectWidthStyle,
 } from './theme/form-styles';
+import { stitchTransactionFormModal } from '@/styles/home-design-foundation';
 
 export interface CategorySelectProps {
   value: string;
@@ -26,6 +26,8 @@ export interface CategorySelectProps {
   className?: string;
   showRecentCategories?: boolean;
   recentCategoriesLimit?: number;
+  /** Small uppercase caption above the value (e.g. “Category”) */
+  captionLabel?: string;
 }
 
 /**
@@ -49,6 +51,7 @@ export const CategorySelect = React.memo<CategorySelectProps>(
     className,
     showRecentCategories = true,
     recentCategoriesLimit = 3,
+    captionLabel,
   }) => {
     const t = useTranslations('Forms.CategorySelect');
     const locale = useLocale();
@@ -176,28 +179,37 @@ export const CategorySelect = React.memo<CategorySelectProps>(
       >
         {/* Trigger */}
         <SelectPrimitive.Trigger
-          className={cn(selectStyles.trigger, className)}
+          className={cn(stitchTransactionFormModal.selectorTrigger, className)}
           aria-label={resolvedPlaceholder}
         >
-          <div className={formStyles.categorySelect.triggerRow}>
-            {selectedCategory ? (
-              <>
+          <div className="flex min-w-0 flex-1 items-center gap-3">
+            <div className={stitchTransactionFormModal.selectorIconWrap}>
+              {selectedCategory ? (
                 <CategoryIcon
                   categoryKey={selectedCategory.key}
-                  size={18}
-                  className={formStyles.categorySelect.triggerIcon}
+                  size={22}
+                  className="shrink-0"
                 />
-                <span className={formStyles.categorySelect.triggerLabel}>
-                  {selectedCategory.label}
-                </span>
-              </>
-            ) : (
-              <span className={formStyles.categorySelect.triggerPlaceholder}>
-                {resolvedPlaceholder}
-              </span>
-            )}
+              ) : (
+                <LayoutGrid className="h-5 w-5 text-[#b8c5ff]/80" aria-hidden />
+              )}
+            </div>
+            <div className="min-w-0 flex-1">
+              {captionLabel ? (
+                <p className={stitchTransactionFormModal.selectorLabel}>{captionLabel}</p>
+              ) : null}
+              <p
+                className={
+                  selectedCategory
+                    ? stitchTransactionFormModal.selectorValue
+                    : stitchTransactionFormModal.selectorValueMuted
+                }
+              >
+                {selectedCategory ? selectedCategory.label : resolvedPlaceholder}
+              </p>
+            </div>
           </div>
-          <ChevronDown className={selectStyles.icon} />
+          <ChevronRight className={stitchTransactionFormModal.selectorChevron} aria-hidden />
         </SelectPrimitive.Trigger>
 
         {/* Content */}

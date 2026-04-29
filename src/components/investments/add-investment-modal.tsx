@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useTranslations } from 'next-intl';
 import { useRouter } from '@/i18n/routing';
+import { Coins } from 'lucide-react';
 import { ModalWrapper, ModalBody, ModalFooter, ModalSection } from '@/components/ui/modal-wrapper';
 import { FormActions, FormField, FormSelect } from '@/components/form';
 import { DateField } from '@/components/ui/fields';
@@ -336,13 +337,18 @@ export default function AddInvestmentModal({
                 required
               />
 
-              <FormField label={t('fields.currency')} required error={errors.currency?.message}>
+              <div className="space-y-1">
                 <FormSelect
                   value={watchedCurrency}
                   onValueChange={(val) => setValue('currency', val as 'EUR' | 'USD')}
                   options={currencyOptions}
+                  captionLabel={t('fields.currency')}
+                  leadingIcon={<Coins className="h-5 w-5 text-[#b8c5ff]" aria-hidden />}
                 />
-              </FormField>
+                {errors.currency?.message ? (
+                  <p className="text-sm text-destructive">{errors.currency.message}</p>
+                ) : null}
+              </div>
             </div>
           </ModalSection>
         </ModalBody>

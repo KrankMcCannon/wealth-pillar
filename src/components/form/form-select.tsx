@@ -1,33 +1,13 @@
 'use client';
 
 import * as React from 'react';
+import * as SelectPrimitive from '@radix-ui/react-select';
 import { cn } from '@/lib';
-import { Search } from 'lucide-react';
+import { Layers, Search, ChevronRight } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui';
+import { Select, SelectContent, SelectItem, SelectValue } from '../ui';
 import { formStyles } from './theme/form-styles';
-
-/**
- * Form Select Component
- *
- * Enhanced select component with optional icon support and sorting.
- * Designed for use in forms with consistent styling.
- *
- * @example
- * ```tsx
- * <FormSelect
- *   value={formData.category}
- *   onValueChange={(value) => handleChange('category', value)}
- *   options={categories}
- *   placeholder="Seleziona categoria"
- *   renderIcon={(option) => <CategoryIcon categoryKey={option.key} />}
- * />
- * ```
- */
-
-// ============================================================================
-// TYPES & INTERFACES
-// ============================================================================
+import { stitchTransactionFormModal } from '@/styles/home-design-foundation';
 
 export interface SelectOption {
   value: string;
@@ -37,25 +17,18 @@ export interface SelectOption {
 }
 
 export interface FormSelectProps {
-  /** Current selected value */
   value: string;
-  /** Callback when value changes */
   onValueChange: (value: string) => void;
-  /** Array of options */
   options: SelectOption[];
-  /** Placeholder text */
   placeholder?: string;
-  /** Disabled state */
   disabled?: boolean;
-  /** Additional CSS classes */
   className?: string;
-  /** Function to render custom icon for option */
   renderIcon?: (option: SelectOption) => React.ReactNode;
+  /** Small uppercase caption above the selected value */
+  captionLabel?: string;
+  /** Leading icon inside the circular slot (defaults to a neutral glyph) */
+  leadingIcon?: React.ReactNode;
 }
-
-// ============================================================================
-// COMPONENT
-// ============================================================================
 
 export function FormSelect({
   value,
@@ -65,12 +38,14 @@ export function FormSelect({
   disabled = false,
   className,
   renderIcon,
+  captionLabel,
+  leadingIcon,
 }: Readonly<FormSelectProps>) {
   const t = useTranslations('Forms.Select');
   const [searchValue, setSearchValue] = React.useState('');
   const resolvedPlaceholder = placeholder ?? t('placeholder');
+  const selectedOption = options.find((o) => o.value === value);
 
-  // Filter options based on search value
   const filteredOptions = React.useMemo(() => {
     if (!searchValue) return options;
 
@@ -82,7 +57,6 @@ export function FormSelect({
     );
   }, [searchValue, options]);
 
-  // Reset search when dropdown closes
   const handleOpenChange = (isOpen: boolean) => {
     if (!isOpen) {
       setSearchValue('');
@@ -96,11 +70,37 @@ export function FormSelect({
       disabled={disabled}
       onOpenChange={handleOpenChange}
     >
-      <SelectTrigger className={cn(formStyles.select.trigger, className)}>
-        <SelectValue placeholder={resolvedPlaceholder} />
-      </SelectTrigger>
+      <SelectPrimitive.Trigger
+        type="button"
+        disabled={disabled}
+        className={cn(stitchTransactionFormModal.selectorTrigger, className)}
+      >
+        <div className="flex min-w-0 flex-1 items-center gap-3">
+          <div className={stitchTransactionFormModal.selectorIconWrap}>
+            {leadingIcon ?? <Layers className="h-5 w-5 text-[#b8c5ff]/80" aria-hidden />}
+          </div>
+          <div className="min-w-0 flex-1 text-left">
+            {captionLabel ? (
+              <p className={stitchTransactionFormModal.selectorLabel}>{captionLabel}</p>
+            ) : null}
+            <span
+              aria-hidden
+              className={
+                selectedOption
+                  ? stitchTransactionFormModal.selectorValue
+                  : stitchTransactionFormModal.selectorValueMuted
+              }
+            >
+              {selectedOption?.label ?? resolvedPlaceholder}
+            </span>
+            <span className="sr-only">
+              <SelectValue placeholder={resolvedPlaceholder} />
+            </span>
+          </div>
+        </div>
+        <ChevronRight className={stitchTransactionFormModal.selectorChevron} aria-hidden />
+      </SelectPrimitive.Trigger>
       <SelectContent className={formStyles.select.content}>
-        {/* Search Input */}
         <div className={formStyles.select.searchWrap}>
           <div className={formStyles.select.searchFieldWrap}>
             <Search className={formStyles.select.searchIcon} />
@@ -110,7 +110,6 @@ export function FormSelect({
               value={searchValue}
               onChange={(e) => setSearchValue(e.target.value)}
               onKeyDown={(e) => {
-                // Prevent Select's keyboard navigation
                 e.stopPropagation();
               }}
               onClick={(e) => e.stopPropagation()}
@@ -120,7 +119,6 @@ export function FormSelect({
           </div>
         </div>
 
-        {/* Options List */}
         <div className={formStyles.select.optionsWrap}>
           {filteredOptions.length === 0 ? (
             <div className={formStyles.select.empty}>{t('empty')}</div>
@@ -145,13 +143,6 @@ export function FormSelect({
   );
 }
 
-// ============================================================================
-// UTILITY FUNCTIONS
-// ============================================================================
-
-/**
- * Converts array of items to SelectOption format
- */
 export function toSelectOptions<
   T extends { id?: string; key?: string; label?: string; name?: string },
 >(
@@ -165,9 +156,6 @@ export function toSelectOptions<
   }));
 }
 
-/**
- * Sorts select options alphabetically by label
- */
 export function sortSelectOptions(options: SelectOption[], locale: string = 'it'): SelectOption[] {
   return [...options].sort((a, b) => a.label.localeCompare(b.label, locale));
 }

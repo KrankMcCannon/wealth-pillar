@@ -1061,14 +1061,6 @@ export const transactionTokens = {
     },
     modal: {
       content: 'bg-card',
-      title: `${typographyStyles.heading} text-primary`,
-      description: `${typographyStyles.sm} text-primary/70`,
-    },
-    emptyState: {
-      container: 'text-center py-12',
-      icon: `w-24 h-24 bg-primary/10 ${radiusStyles.full} flex items-center justify-center mb-4 mx-auto`,
-      title: `${typographyStyles.lg} font-medium mb-2`,
-      text: `${typographyStyles.sm} text-primary`,
     },
   },
 } as const;
@@ -1084,16 +1076,8 @@ export const transactionStyles = {
     controlsCard:
       'rounded-2xl border border-border/60 bg-card/95 sm:bg-card/80 sm:backdrop-blur-sm shadow-sm shadow-muted/20 space-y-3 p-2.5 sm:space-y-4 sm:p-3.5',
     contentStack: 'space-y-4 sm:space-y-5',
-    filtersBlock: 'rounded-2xl border border-border/50 bg-card/60 p-3 sm:p-4',
     listBlock:
       'sm:rounded-2xl sm:border sm:border-border/50 sm:bg-card sm:p-4 sm:shadow-sm sm:shadow-muted/15',
-    onboardingAside: 'rounded-2xl border border-primary/20 bg-primary/5 p-3.5 sm:p-4',
-    onboardingRow: 'flex items-start justify-between gap-3',
-    onboardingContent: 'space-y-1.5',
-    onboardingTitle: 'text-sm font-semibold text-primary',
-    onboardingList: 'list-disc space-y-1.5 pl-4 text-xs text-primary/80',
-    onboardingDismissButton:
-      'shrink-0 rounded-lg px-3 py-2 text-xs font-medium text-primary transition-colors hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 min-h-11',
     pageErrorBanner:
       'flex items-center justify-between gap-3 rounded-xl border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm text-destructive/80 mb-3',
     pageErrorRetry:
@@ -1115,9 +1099,6 @@ export const transactionStyles = {
     tabInactive: transactionTokens.components.tabNavigation.tabInactive,
     wrapper: 'w-full',
   },
-  recurringSection: {
-    container: 'bg-card/80 backdrop-blur-sm border border-border/50 shadow-lg shadow-muted/30',
-  },
   dayGroup: {
     header: transactionTokens.components.dayGroup.header,
     title: transactionTokens.components.dayGroup.title,
@@ -1129,16 +1110,8 @@ export const transactionStyles = {
     statsTotalValueNegative: transactionTokens.components.dayGroup.statsValueNegative,
     statsCount: transactionTokens.components.dayGroup.count,
   },
-  emptyState: {
-    container: transactionTokens.components.emptyState.container,
-    icon: transactionTokens.components.emptyState.icon,
-    title: transactionTokens.components.emptyState.title,
-    text: transactionTokens.components.emptyState.text,
-  },
   modal: {
     content: transactionTokens.components.modal.content,
-    title: transactionTokens.components.modal.title,
-    description: transactionTokens.components.modal.description,
   },
   form: {
     container: 'space-y-4',

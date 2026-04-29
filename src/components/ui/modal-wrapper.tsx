@@ -4,9 +4,17 @@ import { cn } from '@/lib/utils';
 import * as React from 'react';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './dialog';
-import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from './drawer';
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+} from './drawer';
 import { modalWrapperStyles } from './theme/modal-wrapper-styles';
-import { Loader2 } from 'lucide-react';
+import { Loader2, X } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 // ============================================================================
 // TYPES & INTERFACES
@@ -43,6 +51,12 @@ export interface ModalWrapperProps {
    * Default: `false` (Fixed behavior)
    */
   repositionInputs?: boolean;
+  /** Drag handle on mobile drawer (visual only) */
+  handleClassName?: string;
+  /** Extra classes on mobile `DrawerHeader` (e.g. Stitch chrome) */
+  drawerHeaderClassName?: string;
+  /** Extra classes on mobile `DrawerClose` button */
+  drawerCloseClassName?: string;
 }
 
 // ============================================================================
@@ -63,7 +77,11 @@ export function ModalWrapper({
   disableOutsideClose = false,
   repositionInputs = false,
   maxWidth,
+  handleClassName,
+  drawerHeaderClassName,
+  drawerCloseClassName,
 }: Readonly<ModalWrapperProps>) {
+  const tCommon = useTranslations('Common');
   const isDesktop = useMediaQuery('(min-width: 640px)');
   const dialogDescriptionId = React.useId();
 
@@ -129,18 +147,47 @@ export function ModalWrapper({
       <DrawerContent
         className={cn(
           modalWrapperStyles.drawerContent,
-          'h-[96dvh] mt-24 rounded-t-[10px]',
+          'mt-24 max-h-[96dvh] min-h-0 rounded-t-[32px]',
           className
         )}
       >
-        <div className="mx-auto mt-4 h-2 w-[100px] rounded-full bg-primary/10" />
-        <DrawerHeader className={modalWrapperStyles.drawerHeader}>
-          <DrawerTitle className={cn(modalWrapperStyles.drawerTitle, titleClassName)}>
-            {title}
-          </DrawerTitle>
+        <div
+          className={cn(
+            'mx-auto mt-3 h-1.5 w-12 shrink-0 rounded-full bg-primary/20',
+            handleClassName
+          )}
+          aria-hidden
+        />
+        <DrawerHeader
+          className={cn(
+            modalWrapperStyles.drawerHeader,
+            'flex flex-col gap-2 border-b border-primary/10 bg-card px-4 py-3',
+            drawerHeaderClassName
+          )}
+        >
+          <div className="flex w-full min-w-0 items-center justify-between gap-3">
+            <DrawerTitle className={cn(modalWrapperStyles.drawerTitle, titleClassName)}>
+              {title}
+            </DrawerTitle>
+            {showCloseButton ? (
+              <DrawerClose
+                className={cn(
+                  'flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-primary/15 bg-card text-primary transition-colors hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30',
+                  drawerCloseClassName
+                )}
+              >
+                <X className="h-5 w-5" aria-hidden />
+                <span className="sr-only">{tCommon('closeDialog')}</span>
+              </DrawerClose>
+            ) : null}
+          </div>
           {description ? (
             <DrawerDescription
-              className={cn(modalWrapperStyles.drawerDescription, descriptionClassName)}
+              className={cn(
+                modalWrapperStyles.drawerDescription,
+                descriptionClassName,
+                'text-left'
+              )}
             >
               {description}
             </DrawerDescription>
