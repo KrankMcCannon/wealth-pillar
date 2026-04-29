@@ -14,16 +14,17 @@ import { SeriesCard } from '@/components/cards';
 import { EmptyState } from '@/components/shared';
 import { CircleAlert, RefreshCw, Plus, TrendingUp, TrendingDown } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Button, Text } from '@/components/ui';
+import { Button, CategoryBadge, Text } from '@/components/ui';
+import { HomeSectionCard } from '@/components/home';
+import { SectionHeader } from '@/components/layout';
+import { stitchHome } from '@/styles/home-design-foundation';
 import {
   calculateDaysUntilDue,
   calculateRecurringTotals,
-} from '@/server/use-cases/recurring/recurring.logic';
+} from '@/lib/recurring/recurring-calculations';
 import { formatCurrency, cn } from '@/lib/utils';
 import { User } from '@/lib/types';
 import { recurringStyles } from '../theme/recurring-styles';
-import { accountStyles } from '@/features/accounts/theme/account-styles';
-import { transactionStyles } from '@/styles/system';
 
 interface RecurringSeriesSectionProps {
   /** All recurring series data */
@@ -76,11 +77,23 @@ export function RecurringSeriesSection({
   homeDashboardListLayout = false,
 }: RecurringSeriesSectionProps) {
   const t = useTranslations('Recurring.Section');
+  const tSeriesCard = useTranslations('Recurring.SeriesCard');
   const [executeErrorMessage, setExecuteErrorMessage] = useState<string | null>(null);
 
   const handleExecuteError = useCallback((message: string) => {
     setExecuteErrorMessage(message);
   }, []);
+
+  const getDueLabel = useCallback(
+    (seriesItem: RecurringTransactionSeries) => {
+      const days = calculateDaysUntilDue(seriesItem);
+      if (days === 0) return tSeriesCard('due.today');
+      if (days === 1) return tSeriesCard('due.tomorrow');
+      if (days < 0) return tSeriesCard('due.daysAgo', { count: Math.abs(days) });
+      return tSeriesCard('due.inDays', { count: days });
+    },
+    [tSeriesCard]
+  );
 
   // Filter series by user if selected
   const filteredSeries = useMemo(() => {
@@ -120,6 +133,32 @@ export function RecurringSeriesSection({
 
   // Empty state
   if (filteredSeries.length === 0) {
+    if (homeDashboardListLayout) {
+      return (
+        <HomeSectionCard className={className}>
+          <SectionHeader
+            title={t('title')}
+            subtitle={t('subtitle.seriesCount', { count: visibleSeriesCount })}
+            className="pb-1"
+            titleClassName={stitchHome.sectionHeaderTitle}
+            subtitleClassName={stitchHome.sectionHeaderSubtitle}
+          />
+          <EmptyState
+            icon={RefreshCw}
+            title={t('empty.title')}
+            description={selectedUserId ? t('empty.forUser') : t('empty.defaultDescription')}
+            action={
+              onCreateRecurringSeries && (
+                <Button onClick={onCreateRecurringSeries} variant="default" size="sm">
+                  <Plus className={recurringStyles.section.emptyActionIcon} />
+                  {t('empty.addButton')}
+                </Button>
+              )
+            }
+          />
+        </HomeSectionCard>
+      );
+    }
     return (
       <div className={cn(recurringStyles.section.emptyWrap, className)}>
         <EmptyState
@@ -136,6 +175,93 @@ export function RecurringSeriesSection({
           }
         />
       </div>
+    );
+  }
+
+  if (homeDashboardListLayout) {
+    return (
+      <HomeSectionCard className={className}>
+        <SectionHeader
+          title={t('title')}
+          subtitle={
+            <>
+              {t('subtitle.seriesCount', { count: visibleSeriesCount })}
+              {pausedCount > 0 && (
+                <>
+                  {' '}
+                  • {t('subtitle.pausedCount', { count: pausedCount })}
+                </>
+              )}
+            </>
+          }
+          className="pb-1"
+          titleClassName={stitchHome.sectionHeaderTitle}
+          subtitleClassName={stitchHome.sectionHeaderSubtitle}
+        />
+
+        {executeErrorMessage ? (
+          <Alert
+            variant="destructive"
+            className={recurringStyles.section.executeErrorBanner}
+            role="status"
+            aria-live="polite"
+          >
+            <CircleAlert className="size-4" aria-hidden />
+            <AlertTitle>{t('executeErrorBannerTitle')}</AlertTitle>
+            <AlertDescription className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <span className="min-w-0">{executeErrorMessage}</span>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="shrink-0 border-destructive/40 text-destructive hover:bg-destructive/10"
+                onClick={() => setExecuteErrorMessage(null)}
+              >
+                {t('executeErrorDismiss')}
+              </Button>
+            </AlertDescription>
+          </Alert>
+        ) : null}
+
+        <div className="flex flex-col gap-2">
+          {filteredSeries.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => (onCardClick ? onCardClick(item) : onEditRecurringSeries?.(item))}
+              className={stitchHome.listRow}
+            >
+              <div className="flex min-w-0 items-center gap-3">
+                <CategoryBadge categoryKey={item.category} size="md" />
+                <div className="min-w-0">
+                  <p className={stitchHome.rowTitle}>{item.description}</p>
+                  <p className={stitchHome.rowMeta}>{getDueLabel(item)}</p>
+                </div>
+              </div>
+              <p
+                className={cn(
+                  'shrink-0 text-sm font-semibold tabular-nums',
+                  item.type === 'income' ? stitchHome.amountIncome : stitchHome.amountExpense
+                )}
+              >
+                {item.type === 'income' ? '+' : '-'}
+                {formatCurrency(Math.abs(item.amount))}
+              </p>
+            </button>
+          ))}
+        </div>
+
+        {maxItems && series.length > maxItems ? (
+          <div className="px-1 py-1">
+            <p className={`text-center text-xs ${stitchHome.sectionHeaderSubtitle}`}>
+              {t('footer.showingOf', {
+                shown: filteredSeries.length,
+                total: visibleSeriesCount,
+              })}
+            </p>
+          </div>
+        ) : null}
+      </HomeSectionCard>
     );
   }
 
@@ -219,27 +345,10 @@ export function RecurringSeriesSection({
       ) : null}
 
       {/* Series List */}
-      <div
-        className={cn(
-          recurringStyles.section.list,
-          accountStyles.accountsList.groupCard,
-          'rounded-t-none border-0 shadow-none'
-        )}
-      >
-        <div
-          className={cn(
-            transactionStyles.groupedCard.rowContainer,
-            homeDashboardListLayout && recurringStyles.section.listLayoutHome
-          )}
-        >
+      <div className={cn(recurringStyles.section.list, 'rounded-t-none border-0 shadow-none')}>
+        <div className={recurringStyles.section.listLayoutHome}>
           {filteredSeries.map((item) => (
-            <div
-              key={item.id}
-              className={cn(
-                accountStyles.list.cardWrapper,
-                homeDashboardListLayout && recurringStyles.section.cardCellHome
-              )}
-            >
+            <div key={item.id} className={recurringStyles.section.cardCellHome}>
               <SeriesCard
                 series={item}
                 embedded

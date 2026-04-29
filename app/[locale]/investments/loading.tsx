@@ -14,14 +14,14 @@ function InvestmentsHeaderSkeleton() {
   return (
     <header className={headerStyles.container} aria-busy="true">
       <div className={headerStyles.inner}>
-        <div className={headerStyles.left}>
+        <div className={headerStyles.slotLeft}>
           <div
-            className={`${headerStyles.subpage.backButton} bg-muted/40 animate-pulse pointer-events-none`}
+            className={`${headerStyles.backButton} bg-muted/40 animate-pulse pointer-events-none`}
             aria-hidden
           />
           <SkeletonBox height="h-5" width="w-36" variant="medium" className="max-w-[55vw]" />
         </div>
-        <div className={headerStyles.actions.wrapper}>
+        <div className={headerStyles.slotRight}>
           <SkeletonBox
             height="h-10"
             width="w-10"

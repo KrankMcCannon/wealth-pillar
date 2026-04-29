@@ -3,6 +3,9 @@
  * Organized by component section for consistency and maintainability
  */
 
+import { STICKY_HEADER_BASE } from '@/lib/utils/ui-constants';
+import { headerStyles } from '@/components/layout/theme/header-styles';
+
 export const dashboardStyles = {
   page: {
     main: 'pb-20 md:pb-8',
@@ -10,9 +13,8 @@ export const dashboardStyles = {
 
   // Header section
   header: {
-    container:
-      'sticky top-0 z-20 bg-card/90 backdrop-blur-md border-b border-border/60 px-4 py-3 shadow-sm',
-    inner: 'flex items-center justify-between',
+    container: `${STICKY_HEADER_BASE} ${headerStyles.container}`,
+    inner: `flex h-11 items-center justify-between ${headerStyles.inner}`,
     button:
       'hover:bg-primary/8 text-primary rounded-xl transition-all duration-200 p-2 min-w-[44px] min-h-[44px] flex items-center justify-center group hover:scale-[1.02]',
     title: 'text-base font-semibold',

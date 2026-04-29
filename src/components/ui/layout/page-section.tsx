@@ -9,6 +9,8 @@ export interface PageSectionProps {
   variant?: 'plain' | 'card' | 'muted';
   padding?: 'none' | 'sm' | 'md' | 'lg';
   className?: string;
+  id?: string;
+  'aria-label'?: string;
 }
 
 export function PageSection({
@@ -16,9 +18,13 @@ export function PageSection({
   variant = 'plain',
   padding = 'none',
   className,
+  id,
+  'aria-label': ariaLabel,
 }: Readonly<PageSectionProps>) {
   return (
     <section
+      id={id}
+      aria-label={ariaLabel}
       className={cn(
         layoutStyles.section.container,
         layoutStyles.section.surface[variant],

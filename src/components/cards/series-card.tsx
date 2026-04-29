@@ -9,10 +9,8 @@ import { useTranslations } from 'next-intl';
 import { cn } from '@/lib';
 import type { RecurringTransactionSeries } from '@/lib';
 import { getCategoryColor } from '@/server/use-cases/categories/category.logic';
-import {
-  calculateDaysUntilDue,
-  getAssociatedUsers,
-} from '@/server/use-cases/recurring/recurring.logic';
+import { calculateDaysUntilDue } from '@/lib/recurring/recurring-calculations';
+import { getAssociatedUsers } from '@/server/use-cases/recurring/recurring.logic';
 import type { User } from '@/lib/types';
 import { executeRecurringSeriesAction } from '@/features/recurring';
 import { Pause, Play, Trash2 } from 'lucide-react';

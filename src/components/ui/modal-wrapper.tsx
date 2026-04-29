@@ -65,6 +65,7 @@ export function ModalWrapper({
   maxWidth,
 }: Readonly<ModalWrapperProps>) {
   const isDesktop = useMediaQuery('(min-width: 640px)');
+  const dialogDescriptionId = React.useId();
 
   // Prevent closing logic
   const handleOpenChange = React.useCallback(
@@ -82,6 +83,7 @@ export function ModalWrapper({
       <Dialog open={isOpen} onOpenChange={handleOpenChange}>
         <DialogContent
           showCloseButton={showCloseButton}
+          aria-describedby={dialogDescriptionId}
           className={cn('max-h-[90vh] flex flex-col p-0 gap-0', maxWidth, className)}
         >
           <DialogHeader className="p-6 pb-2">
@@ -90,12 +92,16 @@ export function ModalWrapper({
             </DialogTitle>
             {description ? (
               <DialogDescription
+                id={dialogDescriptionId}
                 className={cn(modalWrapperStyles.dialogDescription, descriptionClassName)}
               >
                 {description}
               </DialogDescription>
             ) : (
-              <DialogDescription className={modalWrapperStyles.dialogDescriptionHidden}>
+              <DialogDescription
+                id={dialogDescriptionId}
+                className={modalWrapperStyles.dialogDescriptionHidden}
+              >
                 {title}
               </DialogDescription>
             )}
@@ -177,7 +183,7 @@ export function ModalBody({
 /**
  * Footer actions container.
  * Automatically adapts to Dialog (right-aligned) vs Drawer (full-width stack) via CSS parent context or media query if needed.
- * But we'll standardise it here.
+ * But we'll standardize it here.
  */
 export function ModalFooter({
   children,

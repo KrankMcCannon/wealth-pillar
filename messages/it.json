@@ -1097,10 +1097,12 @@
       "premium": "Piano Premium",
       "standard": "Piano Standard"
     },
+    "appName": "Wealth Pillar",
     "aria": {
       "back": "Torna indietro",
       "notifications": "Notifiche",
       "settings": "Impostazioni",
+      "userPicker": "Cambia visualizzazione utente",
       "moreMenu": "Altre azioni: notifiche, impostazioni e tema",
       "pageToolsMenu": "Strumenti pagina: portafoglio e simulazione scenari"
     },
@@ -1135,14 +1137,13 @@
     }
   },
   "HomeContent": {
-    "closePeriodButton": "Chiudi periodo",
-    "closePeriodSummary": "Perché chiudere il periodo?",
-    "closePeriodHint": "A fine mese o ciclo chiudi il periodo: il riepilogo resta e riparti con date aggiornate.",
-    "checkFinancesHeading": "Panoramica rapida",
-    "checkFinancesLead": "Saldi, budget e prossime ricorrenze qui; per il dettaglio usa Transazioni, Investimenti e Report.",
-    "pageTitle": "Panoramica rapida",
     "recurringAsideLabel": "Pagamenti ricorrenti in arrivo",
-    "skipToContent": "Vai a saldi, budget e ricorrenze"
+    "skipToContent": "Vai a saldi, budget e ricorrenze",
+    "userPickerTitle": "Visualizza come",
+    "recentActivityTitle": "Attività recente",
+    "recentActivitySubtitle": "{count} ultime transazioni",
+    "recentActivityViewAll": "Vedi tutto",
+    "recentActivityEmpty": "Nessuna transazione recente"
   },
   "BottomNav": {
     "ariaNav": "Navigazione principale",
@@ -1286,6 +1287,7 @@
   "Budgets": {
     "HomeSection": {
       "title": "Budget",
+      "monthlyBudgetEyebrow": "Budget mensile",
       "subtitle": "Quanto avete speso per categoria in questo periodo",
       "multiUsersSubtitle": "{count} utenti con budget attivi",
       "periodOngoing": "In corso",

@@ -4,8 +4,4 @@
  */
 
 export { useDashboardContent } from './useDashboardContent';
-export type {
-  UseDashboardContentParams,
-  UseDashboardContentReturn,
-  PeriodManagerData,
-} from './useDashboardContent';
+export type { UseDashboardContentParams, UseDashboardContentReturn } from './useDashboardContent';

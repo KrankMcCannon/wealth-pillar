@@ -7,6 +7,7 @@
 // Components
 // ====================================
 // Display Components
+export { RecentActivitySection } from './components/recent-activity-section';
 export { GroupedTransactionCard } from './components/grouped-transaction-card';
 export {
   TransactionDayList,

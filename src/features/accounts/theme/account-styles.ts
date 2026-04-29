@@ -12,6 +12,7 @@
 
 import type { CSSProperties } from 'react';
 import { radiusStyles, shadowStyles, typographyStyles, spacingStyles } from '@/styles/system';
+import { stitchHome } from '@/styles/home-design-foundation';
 
 const accountTokens = {
   // ============================================================================
@@ -65,25 +66,26 @@ const accountTokens = {
 
     // Total Balance Link
     totalBalanceLink: {
-      container: `flex items-center justify-between gap-3 p-3.5 sm:p-4 bg-primary/[0.07] ${radiusStyles.lg} border border-primary/30 shadow-[0_12px_32px_oklch(var(--color-primary)/0.22)] cursor-pointer hover:bg-primary/12 hover:border-primary/40 hover:shadow-[0_16px_36px_oklch(var(--color-primary)/0.28)] transition-all duration-300 group`,
+      container:
+        'flex items-center justify-between gap-3 rounded-xl px-1 py-1 cursor-pointer transition-colors duration-300 group',
       leftSection: 'flex min-w-0 items-center gap-3',
-      icon: `flex shrink-0 items-center justify-center w-11 h-11 ${radiusStyles.lg} bg-primary/18 ring-1 ring-primary/15`,
-      label: `${typographyStyles.xs} mb-0.5 font-semibold uppercase tracking-wide text-primary/85`,
-      valuePositive: `text-2xl sm:text-[1.65rem] font-bold tabular-nums tracking-tight text-primary transition-colors duration-300`,
+      icon: `flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#2a447f] ring-1 ring-[#486bbd]/35`,
+      label: `${typographyStyles.xs} mb-1 font-semibold uppercase tracking-[0.12em] text-[#9fb9ff]`,
+      valuePositive: `text-3xl sm:text-[3.25rem] font-semibold tabular-nums tracking-tight text-white transition-colors duration-300`,
       valueNegative: `text-2xl sm:text-[1.65rem] font-bold tabular-nums tracking-tight text-destructive transition-colors duration-300`,
-      rightSection: 'flex shrink-0 items-center gap-1.5 sm:gap-2',
-      badge: `flex min-h-10 items-center gap-1.5 px-3.5 py-2 bg-primary/18 ${radiusStyles.full} border border-primary/25`,
-      badgeText: `${typographyStyles.xs} font-bold text-primary`,
-      arrow: `h-5 w-5 shrink-0 text-primary/85 group-hover:translate-x-0.5 transition-transform duration-300`,
+      rightSection: 'flex shrink-0 items-center gap-3',
+      badge: `flex min-h-12 items-center rounded-full border border-[#5e7fce]/55 bg-[#2a447f] px-5 py-2.5`,
+      badgeText: `${typographyStyles.lg} font-bold text-white`,
+      arrow: `h-10 w-10 shrink-0 text-[#e2ebff] group-hover:translate-x-0.5 transition-transform duration-300`,
       /** Dentro il riquadro saldi home: niente secondo bordo arrotondato, flush col contenitore. */
-      embeddedContainer: `group -mx-3 -mb-3 flex w-[calc(100%+1.5rem)] items-center justify-between gap-2.5 rounded-b-2xl border-t border-border/50 bg-primary/[0.08] px-2.5 py-3.5 transition-colors hover:bg-primary/[0.11] sm:-mx-3.5 sm:-mb-3.5 sm:w-[calc(100%+1.75rem)] sm:gap-4 sm:px-4 sm:py-4`,
-      embeddedIcon: `flex size-12 shrink-0 items-center justify-center ${radiusStyles.lg} bg-primary/18 ring-1 ring-primary/15 sm:size-14`,
-      embeddedBadge: `flex min-h-10 items-center gap-1.5 rounded-full border border-primary/25 bg-primary/15 px-3.5 py-2 sm:min-h-11 sm:px-4`,
-      embeddedValuePositive: `text-2xl font-bold tabular-nums tracking-tight text-primary sm:text-3xl`,
+      embeddedContainer: `group -mx-3 -mb-3 flex w-[calc(100%+1.5rem)] items-center justify-between gap-2.5 rounded-b-2xl border-t border-[#001456]/20 bg-[#f4f6ff] px-2.5 py-3.5 transition-colors hover:bg-[#e9edff] sm:-mx-3.5 sm:-mb-3.5 sm:w-[calc(100%+1.75rem)] sm:gap-4 sm:px-4 sm:py-4 dark:border-[#8ba3ff]/20 dark:bg-[#1a2b6d]/25`,
+      embeddedIcon: `flex size-12 shrink-0 items-center justify-center ${radiusStyles.lg} bg-[#001456]/12 ring-1 ring-[#001456]/15 sm:size-14 dark:bg-[#8ba3ff]/20`,
+      embeddedBadge: `flex min-h-10 items-center gap-1.5 rounded-full border border-[#001456]/25 bg-[#001456]/10 px-3.5 py-2 sm:min-h-11 sm:px-4 dark:border-[#8ba3ff]/35 dark:bg-[#8ba3ff]/20`,
+      embeddedValuePositive: `text-2xl font-bold tabular-nums tracking-tight text-[#001456] sm:text-3xl dark:text-[#eef1ff]`,
       embeddedValueNegative: `text-2xl font-bold tabular-nums tracking-tight text-destructive sm:text-3xl`,
-      embeddedLabel: `${typographyStyles.xs} mb-1 font-semibold uppercase tracking-wide text-primary/80`,
-      embeddedIconSvg: 'h-6 w-6 text-primary sm:h-7 sm:w-7',
-      embeddedArrow: 'h-6 w-6 shrink-0 text-primary/90',
+      embeddedLabel: `${typographyStyles.xs} mb-1 font-semibold uppercase tracking-wide text-[#001456]/80 dark:text-[#cbd5ff]`,
+      embeddedIconSvg: 'h-6 w-6 text-[#001456] sm:h-7 sm:w-7 dark:text-[#eef1ff]',
+      embeddedArrow: 'h-6 w-6 shrink-0 text-[#001456]/90 dark:text-[#d6deff]',
     },
   },
 
@@ -210,7 +212,7 @@ export const accountStyles = {
     container: accountTokens.components.totalBalanceLink.container,
     leftSection: accountTokens.components.totalBalanceLink.leftSection,
     icon: accountTokens.components.totalBalanceLink.icon,
-    iconSvg: 'h-5 w-5 text-primary',
+    iconSvg: 'h-7 w-7 text-[#8fb0ff]',
     label: accountTokens.components.totalBalanceLink.label,
     valuePositive: accountTokens.components.totalBalanceLink.valuePositive,
     valueNegative: accountTokens.components.totalBalanceLink.valueNegative,
@@ -231,8 +233,7 @@ export const accountStyles = {
   // Balance Section (Dashboard)
   // ====================================
   balanceSection: {
-    container:
-      'flex flex-col gap-3 overflow-hidden rounded-2xl border border-border/55 bg-card p-3 shadow-sm sm:gap-3.5 sm:p-3.5',
+    container: stitchHome.balanceSection,
   },
 
   // ====================================

@@ -131,46 +131,46 @@ const categoryColors: Record<string, string> = {
   // Utilities
   bolletta_luce: designSystemColors.warning,
   bolletta_gas: designSystemColors.error,
-  bolletta_acqua: 'hsl(var(--category-utilities-blue))',
-  bolletta_tim: 'hsl(var(--category-utilities-red))',
+  bolletta_acqua: 'oklch(var(--category-utilities-blue))',
+  bolletta_tim: 'oklch(var(--category-utilities-red))',
   bolletta_tari: 'var(--color-destructive)',
   ricarica_telefono: designSystemColors.info,
   abbonamenti_tv: designSystemColors.primary,
   abbonamenti_necessari: designSystemColors.secondary,
-  bolletta_depuratore: 'hsl(var(--category-utilities-blue))',
+  bolletta_depuratore: 'oklch(var(--category-utilities-blue))',
 
   // Transportation
-  bollo_auto: 'hsl(var(--category-transportation-purple))',
-  tagliando_auto: 'hsl(var(--category-transportation-purple))',
-  rata_auto: 'hsl(var(--category-transportation-purple))',
-  benzina: 'hsl(var(--category-transportation-orange))',
+  bollo_auto: 'oklch(var(--category-transportation-purple))',
+  tagliando_auto: 'oklch(var(--category-transportation-purple))',
+  rata_auto: 'oklch(var(--category-transportation-purple))',
+  benzina: 'oklch(var(--category-transportation-orange))',
 
   // Health
-  medicine: 'hsl(var(--category-health-cyan))',
-  medicine_thor: 'hsl(var(--category-health-cyan))',
-  visite_mediche: 'hsl(var(--category-health-cyan))',
-  analisi_mediche: 'hsl(var(--category-health-cyan))',
+  medicine: 'oklch(var(--category-health-cyan))',
+  medicine_thor: 'oklch(var(--category-health-cyan))',
+  visite_mediche: 'oklch(var(--category-health-cyan))',
+  analisi_mediche: 'oklch(var(--category-health-cyan))',
   veterinario: 'var(--color-secondary)',
-  palestra: 'hsl(var(--category-health-teal))',
+  palestra: 'oklch(var(--category-health-teal))',
 
   // Beauty & Lifestyle
-  parrucchiere: 'hsl(var(--category-beauty-pink))',
-  estetista: 'hsl(var(--category-beauty-pink))',
-  skincare: 'hsl(var(--category-beauty-pink))',
-  haircare: 'hsl(var(--category-beauty-pink))',
-  taglio_thor: 'hsl(var(--category-beauty-pink))',
+  parrucchiere: 'oklch(var(--category-beauty-pink))',
+  estetista: 'oklch(var(--category-beauty-pink))',
+  skincare: 'oklch(var(--category-beauty-pink))',
+  haircare: 'oklch(var(--category-beauty-pink))',
+  taglio_thor: 'oklch(var(--category-beauty-pink))',
 
   // Food
-  spesa: 'hsl(var(--category-food-green))',
-  cibo_fuori: 'hsl(var(--category-food-green))',
-  cibo_asporto: 'hsl(var(--category-food-green))',
-  cibo_thor: 'hsl(var(--category-food-green))',
+  spesa: 'oklch(var(--category-food-green))',
+  cibo_fuori: 'oklch(var(--category-food-green))',
+  cibo_asporto: 'oklch(var(--category-food-green))',
+  cibo_thor: 'oklch(var(--category-food-green))',
 
   // Shopping
   vestiti: designSystemColors.secondary,
-  regali: 'hsl(var(--category-shopping-purple))',
+  regali: 'oklch(var(--category-shopping-purple))',
   eventi: designSystemColors.warning,
-  yuup_thor: 'hsl(var(--category-shopping-orange))',
+  yuup_thor: 'oklch(var(--category-shopping-orange))',
 
   // Default
   altro: designSystemColors.neutral,

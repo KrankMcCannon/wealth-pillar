@@ -14,11 +14,7 @@ export {
 
 // Hooks
 export { useDashboardContent } from './hooks';
-export type {
-  UseDashboardContentParams,
-  UseDashboardContentReturn,
-  PeriodManagerData,
-} from './hooks';
+export type { UseDashboardContentParams, UseDashboardContentReturn } from './hooks';
 
 // Theme
 export {

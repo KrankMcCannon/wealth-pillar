@@ -1097,10 +1097,12 @@
       "premium": "Premium Plan",
       "standard": "Standard Plan"
     },
+    "appName": "Wealth Pillar",
     "aria": {
       "back": "Go back",
       "notifications": "Notifications",
       "settings": "Settings",
+      "userPicker": "Switch user view",
       "moreMenu": "More actions: notifications, settings, and theme",
       "pageToolsMenu": "Page tools: portfolio and scenario simulation"
     },
@@ -1135,14 +1137,13 @@
     }
   },
   "HomeContent": {
-    "closePeriodButton": "Close period",
-    "closePeriodSummary": "Why close the period?",
-    "closePeriodHint": "When the month or cycle ends, close the period: your summary is kept and you start with updated dates.",
-    "checkFinancesHeading": "Quick overview",
-    "checkFinancesLead": "Balances, budgets, and upcoming recurring items here; open Transactions, Investments, or Reports for detail.",
-    "pageTitle": "Quick overview",
     "recurringAsideLabel": "Upcoming recurring payments",
-    "skipToContent": "Skip to balances, budgets, and recurring items"
+    "skipToContent": "Skip to balances, budgets, and recurring items",
+    "userPickerTitle": "View as",
+    "recentActivityTitle": "Recent Activity",
+    "recentActivitySubtitle": "Last {count} transactions",
+    "recentActivityViewAll": "View All",
+    "recentActivityEmpty": "No recent transactions"
   },
   "BottomNav": {
     "ariaNav": "Primary navigation",
@@ -1286,6 +1287,7 @@
   "Budgets": {
     "HomeSection": {
       "title": "Budget",
+      "monthlyBudgetEyebrow": "Monthly budget",
       "subtitle": "Category spending in the current period",
       "multiUsersSubtitle": "{count} users with active budgets",
       "periodOngoing": "Ongoing",

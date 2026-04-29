@@ -59,10 +59,20 @@ export interface DashboardPageData {
   investments: Record<string, PortfolioResult | null>;
 }
 
+export interface GetDashboardPageDataOptions {
+  /** Home non usa il portfolio: evita N fetch investimenti. Default true per compatibilità futura. */
+  includeInvestments?: boolean;
+}
+
 /**
  * Fetch all data for the dashboard page
  */
-export async function getDashboardPageData(groupId: string): Promise<DashboardPageData> {
+export async function getDashboardPageData(
+  groupId: string,
+  options?: GetDashboardPageDataOptions
+): Promise<DashboardPageData> {
+  const includeInvestments = options?.includeInvestments ?? true;
+
   // 1. Get group users first
   let groupUsers: User[] = [];
   try {
@@ -74,7 +84,61 @@ export async function getDashboardPageData(groupId: string): Promise<DashboardPa
   }
   const userIds = groupUsers.map((u) => u.id);
 
-  // 2. Parallel Fetch
+  if (!includeInvestments) {
+    const [accounts, transactionResult, budgets, recurringSeries, categories, periodMap] =
+      await Promise.all([
+        safeFetch(getAccountsByGroupDeduped(groupId), [] as Account[], 'Failed to fetch accounts'),
+        safeFetch(
+          getTransactionsByGroupUseCase(groupId),
+          { data: [] as Transaction[], total: 0, hasMore: false },
+          'Failed to fetch transactions'
+        ),
+        safeFetch(getBudgetsByGroupUseCase(groupId), [] as Budget[], 'Failed to fetch budgets'),
+        safeFetch(
+          getSeriesByGroupUseCase(groupId),
+          [] as RecurringTransactionSeries[],
+          'Failed to fetch recurring series'
+        ),
+        safeFetch(getAllCategoriesDeduped(), [] as Category[], 'Failed to fetch categories'),
+        safeFetch(
+          getActiveBudgetPeriodsForUsersUseCase(userIds),
+          {} as Record<string, BudgetPeriod | null>,
+          'Failed to fetch budget periods'
+        ),
+      ]);
+
+    const budgetPeriods: Record<string, BudgetPeriod | null> = {};
+    const investments: Record<string, PortfolioResult | null> = {};
+    userIds.forEach((userId) => {
+      budgetPeriods[userId] = periodMap?.[userId] ?? null;
+      investments[userId] = null;
+    });
+
+    const budgetsByUser = buildBudgetsByUserPure(
+      groupUsers,
+      budgets,
+      transactionResult.data,
+      budgetPeriods
+    );
+
+    const accountBalances: Record<string, number> = {};
+    accounts.forEach((a) => {
+      accountBalances[a.id] = Number(a.balance) || 0;
+    });
+
+    return {
+      accounts,
+      transactions: transactionResult.data,
+      budgets,
+      budgetPeriods,
+      recurringSeries,
+      categories,
+      accountBalances,
+      budgetsByUser,
+      investments,
+    };
+  }
+
   const investmentPromises = groupUsers.map((u) =>
     safeFetch<PortfolioResult | null>(
       getPortfolioUseCase(u.id),
@@ -113,7 +177,6 @@ export async function getDashboardPageData(groupId: string): Promise<DashboardPa
     Promise.all(investmentPromises),
   ]);
 
-  // 3. Process budget periods and investments
   const budgetPeriods: Record<string, BudgetPeriod | null> = {};
   const investments: Record<string, PortfolioResult | null> = {};
 
@@ -123,7 +186,6 @@ export async function getDashboardPageData(groupId: string): Promise<DashboardPa
     investments[userId] = investmentResults?.[index] || null;
   });
 
-  // 4. Budget totals from the same transactions loaded for the dashboard (no RPC drift)
   const budgetsByUser = buildBudgetsByUserPure(
     groupUsers,
     budgets,
@@ -131,7 +193,6 @@ export async function getDashboardPageData(groupId: string): Promise<DashboardPa
     budgetPeriods
   );
 
-  // 5. Account Balances
   const accountBalances: Record<string, number> = {};
   accounts.forEach((a) => {
     accountBalances[a.id] = Number(a.balance) || 0;

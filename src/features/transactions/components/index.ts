@@ -2,6 +2,8 @@
  * Transaction Components Public API
  */
 
+export { RecentActivitySection } from './recent-activity-section';
+
 // Transaction Display Components
 export { GroupedTransactionCard } from './grouped-transaction-card';
 export { TransactionRow } from './transaction-row';

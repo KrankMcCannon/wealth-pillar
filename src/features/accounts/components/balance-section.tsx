@@ -1,20 +1,14 @@
 'use client';
 
-import { Suspense } from 'react';
 import { Account } from '@/lib';
 import { BalanceSectionSkeleton } from '@/features/dashboard';
-import { AccountSlider } from './AccountSlider';
 import { TotalBalanceLink } from './TotalBalanceLink';
-import { BalanceSectionSliderSkeleton } from './account-skeletons';
 import { accountStyles } from '../theme/account-styles';
 
 interface BalanceSectionProps {
   accounts: Account[];
-  accountBalances: Record<string, number>;
   totalBalance: number;
-  totalAccountsCount?: number | undefined;
   selectedUserId?: string | undefined;
-  onAccountClick: (id: string) => void;
   isLoading?: boolean | undefined;
 }
 
@@ -34,11 +28,8 @@ interface BalanceSectionProps {
  */
 export const BalanceSection = ({
   accounts,
-  accountBalances,
   totalBalance,
-  totalAccountsCount,
   selectedUserId,
-  onAccountClick,
   isLoading = false,
 }: BalanceSectionProps) => {
   const isInitialLoading = isLoading && (!accounts || accounts.length === 0);
@@ -47,29 +38,13 @@ export const BalanceSection = ({
     return <BalanceSectionSkeleton />;
   }
 
-  // Use provided totalAccountsCount or fall back to displayed accounts length
-  const accountCount = totalAccountsCount ?? accounts.length;
-
   return (
     <section className={accountStyles.balanceSection.container}>
-      {/* Account Slider Section */}
-      <Suspense fallback={<BalanceSectionSliderSkeleton />}>
-        <AccountSlider
-          accounts={accounts}
-          accountBalances={accountBalances}
-          onAccountClick={onAccountClick}
-        />
-      </Suspense>
-
-      {/* Total Balance Link Section - only show when there are multiple accounts */}
-      {accountCount > 1 && (
-        <TotalBalanceLink
-          embedded
-          totalBalance={totalBalance}
-          accountCount={accountCount}
-          selectedUserId={selectedUserId}
-        />
-      )}
+      <TotalBalanceLink
+        embedded={false}
+        totalBalance={totalBalance}
+        selectedUserId={selectedUserId}
+      />
     </section>
   );
 };

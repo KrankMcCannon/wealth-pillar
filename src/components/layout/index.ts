@@ -4,9 +4,8 @@
 
 export * from './bottom-navigation';
 export * from './action-menu';
-export * from './desktop-sidebar';
 export * from './dashboard-page-layout';
 export * from './page-container';
 export { SectionHeader } from '../ui/layout';
 export * from './header';
-export { HomeDashboardGrid, HomeDashboardMain, SkipToMainLink } from './home-dashboard-layout';
+export { HomeDashboardMain, SkipToMainLink } from './home-dashboard-layout';

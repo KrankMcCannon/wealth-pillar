@@ -15,7 +15,6 @@ import { cn, formatCurrency } from '@/lib/utils';
 
 interface TotalBalanceLinkProps {
   totalBalance: number;
-  accountCount: number;
   selectedUserId?: string | undefined;
   /** In cima al blocco saldi: un solo contenitore arrotondato, senza “doppia card”. */
   embedded?: boolean;
@@ -23,7 +22,6 @@ interface TotalBalanceLinkProps {
 
 export const TotalBalanceLink = ({
   totalBalance,
-  accountCount,
   selectedUserId,
   embedded = false,
 }: TotalBalanceLinkProps) => {
@@ -85,17 +83,6 @@ export const TotalBalanceLink = ({
 
       {/* Right Section - Account Count Badge */}
       <div className={accountStyles.totalBalanceLink.rightSection}>
-        <div
-          className={
-            embedded
-              ? accountStyles.totalBalanceLink.embeddedBadge
-              : accountStyles.totalBalanceLink.badge
-          }
-        >
-          <span className={accountStyles.totalBalanceLink.badgeText}>
-            {t('accountCount', { count: accountCount })}
-          </span>
-        </div>
         <ArrowRight
           className={
             embedded

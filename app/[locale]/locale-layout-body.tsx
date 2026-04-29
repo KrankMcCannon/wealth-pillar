@@ -6,7 +6,6 @@ import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import { notFound } from 'next/navigation';
 import { Toaster } from '@/components/ui';
 import { ThemeProvider } from '@/components/theme-provider';
-import { DesktopSidebar } from '@/components/layout';
 import { routing } from '@/i18n/routing';
 import { getCurrentUser, getGroupUsers } from '@/lib/auth/cached-auth';
 import { withTimeout } from '@/lib/utils/with-timeout';
@@ -103,7 +102,6 @@ export async function LocaleLayoutBody({
                 enableSystem={false}
                 disableTransitionOnChange
               >
-                <DesktopSidebar />
                 {appContent}
                 <Toaster />
               </ThemeProvider>

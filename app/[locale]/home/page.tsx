@@ -16,7 +16,9 @@ export default async function HomePage({
 }: Readonly<{ params: Promise<{ locale: string }> }>) {
   const { currentUser, groupUsers } = await requirePageAuth(params);
 
-  const dashboardDataPromise = getDashboardPageData(currentUser.group_id || '').catch((err) => {
+  const dashboardDataPromise = getDashboardPageData(currentUser.group_id || '', {
+    includeInvestments: false,
+  }).catch((err) => {
     const message = err instanceof Error ? err.message : 'Errore nel caricamento della dashboard';
     throw new Error(message, { cause: err });
   });

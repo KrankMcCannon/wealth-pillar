@@ -1,35 +1,26 @@
 'use client';
 
-/**
- * Home Content - Client Component
- *
- * Dashboard: header, filtro utenti, saldi, budget, ricorrenze (un solo mount),
- * bottom navigation. Dati dal Server Component; logica in useDashboardContent.
- */
-
-import { use } from 'react';
+import { use, useCallback, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import {
   BottomNavigation,
   PageContainer,
   Header,
-  HomeDashboardGrid,
   HomeDashboardMain,
   SkipToMainLink,
 } from '@/components/layout';
-import { homeDashboardLayoutStyles } from '@/components/layout/theme/home-dashboard-layout-styles';
-import { Button } from '@/components/ui';
-import { dashboardStyles, useDashboardContent } from '@/features/dashboard';
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui';
+import { useDashboardContent } from '@/features/dashboard';
 import UserSelector from '@/components/shared/user-selector';
 import { BalanceSection } from '@/features/accounts';
-import { BudgetPeriodManager, BudgetSection } from '@/features/budgets';
+import { BudgetSection } from '@/features/budgets';
 import { RecurringSeriesSection } from '@/features/recurring';
-import { useMediaQuery } from '@/hooks/use-media-query';
+import { RecentActivitySection } from '@/features/transactions';
 import type { User } from '@/lib/types';
 import type { DashboardPageData } from '@/server/use-cases/pages/dashboard.use-case';
-import { cn } from '@/lib/utils';
 
-const RECURRING_MAX_MOBILE = 5;
+const RECURRING_MAX_ITEMS = 5;
+const RECENT_ACTIVITY_MAX = 5;
 
 interface HomeContentProps {
   currentUser: User;
@@ -46,67 +37,65 @@ export default function HomeContent({
   const {
     accounts = [],
     accountBalances = {},
-    budgets = [],
     budgetPeriods = {},
     recurringSeries = [],
     budgetsByUser = {},
-    investments = {},
+    transactions = [],
+    categories = [],
   } = dashboardData;
 
-  const investmentSummary = investments[currentUser.id]?.summary ?? null;
-
   const t = useTranslations('HomeContent');
-  const isDesktop = useMediaQuery('(min-width: 768px)');
-  const recurringMaxItems = isDesktop ? undefined : RECURRING_MAX_MOBILE;
+  const [userPickerOpen, setUserPickerOpen] = useState(false);
+
+  const headerCurrentUser = useMemo(
+    () => ({
+      ...(currentUser.name != null ? { name: currentUser.name } : {}),
+      role: currentUser.role || 'member',
+    }),
+    [currentUser.name, currentUser.role]
+  );
+
+  const openUserPicker = useCallback(() => setUserPickerOpen(true), []);
 
   const {
     isMember,
     selectedGroupFilter,
     effectiveUserId,
     displayedDefaultAccounts,
-    displayedAccountBalances,
     totalBalance,
-    totalAccountsCount,
     selectedUserId,
-    periodManagerUserId,
-    periodManagerData,
-    handleAccountClick,
     handleCreateRecurringSeries,
     handleSeriesCardClick,
     handlePauseRecurringSeries,
-    handlePeriodManagerUserChange,
-    handleRefresh,
   } = useDashboardContent({
     currentUser,
     groupUsers,
     accounts,
     accountBalances,
-    budgets,
     budgetPeriods,
     recurringSeries,
-    budgetsByUser,
   });
 
-  const closePeriodHintId = 'home-close-period-hint';
-
-  const budgetPeriodTrigger = (
-    <Button variant="outline" size="sm">
-      {t('closePeriodButton')}
-    </Button>
-  );
+  const showUserPicker =
+    (currentUser.role === 'admin' || currentUser.role === 'superadmin') && groupUsers.length > 1;
 
   const recurringSeriesUserId = selectedGroupFilter === 'all' ? undefined : effectiveUserId;
   const recurringFilterUserId = isMember ? currentUser.id : recurringSeriesUserId;
 
-  const recurringProps = {
-    series: recurringSeries,
-    selectedUserId: recurringFilterUserId,
-    showStats: false as const,
-    showActions: false as const,
-    onCreateRecurringSeries: handleCreateRecurringSeries,
-    onCardClick: handleSeriesCardClick,
-    onPauseRecurringSeries: handlePauseRecurringSeries,
-  };
+  const recentActivityUserId = isMember
+    ? currentUser.id
+    : selectedGroupFilter === 'all'
+      ? undefined
+      : effectiveUserId;
+
+  const recentTransactions = useMemo(() => {
+    const filtered = recentActivityUserId
+      ? transactions.filter((tx) => tx.user_id === recentActivityUserId)
+      : transactions;
+    return [...filtered]
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      .slice(0, RECENT_ACTIVITY_MAX);
+  }, [transactions, recentActivityUserId]);
 
   return (
     <PageContainer>
@@ -114,96 +103,53 @@ export default function HomeContent({
 
       <Header
         isDashboard
-        currentUser={{
-          ...(currentUser.name != null ? { name: currentUser.name } : {}),
-          role: currentUser.role || 'member',
-        }}
-        showActions
-        investmentSummary={investmentSummary}
+        currentUser={headerCurrentUser}
+        {...(showUserPicker && { onAvatarClick: openUserPicker })}
       />
 
-      <UserSelector isLoading={false} currentUser={currentUser} users={groupUsers} />
+      {showUserPicker && (
+        <Drawer open={userPickerOpen} onOpenChange={setUserPickerOpen}>
+          <DrawerContent>
+            <DrawerHeader>
+              <DrawerTitle>{t('userPickerTitle')}</DrawerTitle>
+            </DrawerHeader>
+            <UserSelector
+              currentUser={currentUser}
+              users={groupUsers}
+              hideTitle
+              isLoading={false}
+            />
+          </DrawerContent>
+        </Drawer>
+      )}
 
       <HomeDashboardMain>
-        <HomeDashboardGrid
-          asideAriaLabel={t('recurringAsideLabel')}
-          primary={
-            <>
-              <section
-                aria-labelledby="home-dashboard-heading"
-                className={homeDashboardLayoutStyles.heroSection}
-              >
-                <h1 id="home-dashboard-heading" className={homeDashboardLayoutStyles.heroTitle}>
-                  {t('checkFinancesHeading')}
-                </h1>
-                <p className={homeDashboardLayoutStyles.heroLead}>{t('checkFinancesLead')}</p>
-              </section>
-
-              <BalanceSection
-                accounts={displayedDefaultAccounts}
-                accountBalances={displayedAccountBalances}
-                totalBalance={totalBalance}
-                totalAccountsCount={totalAccountsCount}
-                selectedUserId={selectedUserId}
-                onAccountClick={handleAccountClick}
-                isLoading={false}
-              />
-
-              <BudgetSection
-                budgetsByUser={budgetsByUser}
-                budgets={budgets}
-                selectedViewUserId={selectedUserId}
-                isLoading={false}
-                headerLeading={
-                  <div className="flex min-w-0 flex-col items-stretch gap-1 sm:items-end">
-                    <BudgetPeriodManager
-                      selectedUserId={periodManagerUserId || currentUser.id}
-                      currentPeriod={periodManagerData.period}
-                      onUserChange={handlePeriodManagerUserChange}
-                      onSuccess={handleRefresh}
-                      trigger={budgetPeriodTrigger}
-                      triggerAriaDescribedBy={closePeriodHintId}
-                      currentUser={currentUser}
-                      groupUsers={groupUsers}
-                    />
-                    <details
-                      className={cn(
-                        'group sm:max-w-68 sm:justify-self-end',
-                        homeDashboardLayoutStyles.periodCloseDetails
-                      )}
-                    >
-                      <summary
-                        id={closePeriodHintId}
-                        className={homeDashboardLayoutStyles.periodCloseSummary}
-                      >
-                        <span className={homeDashboardLayoutStyles.periodCloseSummaryLabel}>
-                          {t('closePeriodSummary')}
-                        </span>
-                      </summary>
-                      <p
-                        className={cn(
-                          homeDashboardLayoutStyles.periodCloseHint,
-                          'mt-0 border-t border-border/30 px-1.5 pb-2 pt-2 sm:px-1 sm:pb-1.5'
-                        )}
-                      >
-                        {t('closePeriodHint')}
-                      </p>
-                    </details>
-                  </div>
-                }
-              />
-            </>
-          }
-          aside={
-            <div className={dashboardStyles.recurringSection.container}>
-              <RecurringSeriesSection
-                {...recurringProps}
-                homeDashboardListLayout
-                {...(typeof recurringMaxItems === 'number' ? { maxItems: recurringMaxItems } : {})}
-              />
-            </div>
-          }
+        <BalanceSection
+          accounts={displayedDefaultAccounts}
+          totalBalance={totalBalance}
+          selectedUserId={selectedUserId}
+          isLoading={false}
         />
+
+        <BudgetSection
+          budgetsByUser={budgetsByUser}
+          selectedViewUserId={selectedUserId}
+          isLoading={false}
+        />
+
+        <RecurringSeriesSection
+          series={recurringSeries}
+          selectedUserId={recurringFilterUserId}
+          showStats={false}
+          showActions={false}
+          onCreateRecurringSeries={handleCreateRecurringSeries}
+          onCardClick={handleSeriesCardClick}
+          onPauseRecurringSeries={handlePauseRecurringSeries}
+          homeDashboardListLayout
+          maxItems={RECURRING_MAX_ITEMS}
+        />
+
+        <RecentActivitySection transactions={recentTransactions} categories={categories} />
       </HomeDashboardMain>
 
       <BottomNavigation />
