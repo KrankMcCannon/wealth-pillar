@@ -4,7 +4,7 @@ import dynamic from 'next/dynamic';
 import { useCallback, useState } from 'react';
 import { Search, SlidersHorizontal, X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import type { Category, Account } from '@/lib/types';
+import type { Category, Account, User } from '@/lib/types';
 import type {
   TransactionFiltersState,
   TransactionTypeFilter,
@@ -25,6 +25,10 @@ export interface TransactionFilterChipsProps {
   readonly accounts?: Account[];
   readonly budgetName?: string;
   readonly onClearBudgetFilter?: () => void;
+  readonly currentUser?: User | undefined;
+  readonly groupUsers?: User[] | undefined;
+  readonly selectedUserId?: string | undefined;
+  readonly onUserFilterChange?: ((userId: string) => void) | undefined;
   readonly className?: string;
 }
 
@@ -35,17 +39,17 @@ export function TransactionFilterChips({
   accounts,
   budgetName,
   onClearBudgetFilter,
+  currentUser,
+  groupUsers,
+  selectedUserId,
+  onUserFilterChange,
   className,
 }: TransactionFilterChipsProps) {
   const t = useTranslations('Transactions.Filters');
   const tChips = useTranslations('Transactions.Filters.FilterChips');
+  const tUsers = useTranslations('UserSelector');
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
-  const subscriptionsCategory = categories.find(
-    (category) =>
-      /(subscription|abbonament)/i.test(category.key) ||
-      /(subscription|abbonament)/i.test(category.label)
-  );
 
   const setType = useCallback(
     (type: TransactionTypeFilter) => {
@@ -70,11 +74,10 @@ export function TransactionFilterChips({
     { key: 'income', labelKey: 'income' },
     { key: 'expense', labelKey: 'expense' },
   ];
-
-  const subscriptionsActive =
-    subscriptionsCategory != null &&
-    (filters.categoryKey === subscriptionsCategory.key ||
-      filters.categoryKeys?.includes(subscriptionsCategory.key));
+  const showUserChips =
+    (currentUser?.role === 'admin' || currentUser?.role === 'superadmin') &&
+    (groupUsers?.length ?? 0) > 1 &&
+    typeof onUserFilterChange === 'function';
 
   return (
     <div className={cn('flex min-w-0 flex-col gap-2', className)}>
@@ -114,6 +117,47 @@ export function TransactionFilterChips({
         </div>
       </div>
 
+      {showUserChips ? (
+        <div className={cn(stitchTransactions.chipRowUserWrap, '-mx-4 px-4')}>
+          <div
+            className={stitchTransactions.chipRowUserScroll}
+            role="toolbar"
+            aria-label={tChips('userToolbarAria')}
+          >
+            <button
+              type="button"
+              onClick={() => onUserFilterChange?.('all')}
+              className={cn(
+                stitchTransactions.chipBase,
+                stitchTransactions.chipSnapItem,
+                (selectedUserId ?? 'all') === 'all'
+                  ? stitchTransactions.chipActive
+                  : stitchTransactions.chipInactive
+              )}
+            >
+              {tUsers('all')}
+            </button>
+            {groupUsers?.map((user) => (
+              <button
+                key={user.id}
+                type="button"
+                onClick={() => onUserFilterChange?.(user.id)}
+                className={cn(
+                  stitchTransactions.chipBase,
+                  stitchTransactions.chipSnapItem,
+                  selectedUserId === user.id
+                    ? stitchTransactions.chipActive
+                    : stitchTransactions.chipInactive
+                )}
+              >
+                {user.name ?? 'User'}
+              </button>
+            ))}
+          </div>
+          <p className={stitchTransactions.chipScrollHint}>{tChips('userChipsScrollHint')}</p>
+        </div>
+      ) : null}
+
       <div className={stitchTransactions.chipRow} role="toolbar" aria-label={tChips('toolbarAria')}>
         {types.map(({ key, labelKey }) => (
           <button
@@ -128,28 +172,6 @@ export function TransactionFilterChips({
             {t(`typeOptions.${labelKey}`)}
           </button>
         ))}
-        {subscriptionsCategory && (
-          <button
-            type="button"
-            onClick={() => {
-              if (subscriptionsActive) {
-                onFiltersChange({ ...filters, categoryKey: 'all' });
-                return;
-              }
-              const { categoryKeys: _ignoredCategoryKeys, ...restFilters } = filters;
-              onFiltersChange({
-                ...restFilters,
-                categoryKey: subscriptionsCategory.key,
-              });
-            }}
-            className={cn(
-              stitchTransactions.chipBase,
-              subscriptionsActive ? stitchTransactions.chipActive : stitchTransactions.chipInactive
-            )}
-          >
-            {subscriptionsCategory.label}
-          </button>
-        )}
         <button
           type="button"
           onClick={() => setAdvancedOpen(true)}

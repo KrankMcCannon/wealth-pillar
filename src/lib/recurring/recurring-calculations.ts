@@ -138,3 +138,12 @@ export function calculateRecurringTotals(series: RecurringTransactionSeries[]): 
     netMonthly: totalIncome - totalExpenses,
   };
 }
+
+export function calculateMonthlyTotalAbs(series: RecurringTransactionSeries[]): number {
+  let total = 0;
+  for (const s of series) {
+    if (!s.is_active) continue;
+    total += Math.abs(calculateMonthlyAmount(s));
+  }
+  return total;
+}

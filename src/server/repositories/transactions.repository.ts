@@ -1,15 +1,27 @@
 import { db } from '@/server/db/drizzle';
 import { transactions } from '@/server/db/schema';
-import { and, desc, eq, or, sql, count } from 'drizzle-orm';
+import { and, desc, eq, or, sql, count, inArray, ilike, lt } from 'drizzle-orm';
+
+/** Exclusive lower bound for keyset pagination (same ordering as list: date desc, created_at desc, id desc). */
+export interface TransactionCursorAfter {
+  date: string;
+  createdAt: Date;
+  id: string;
+}
 
 export interface TransactionFilterOptions {
   startDate?: Date;
   endDate?: Date;
   category?: string;
+  categoryKeys?: string[];
   type?: 'income' | 'expense' | 'transfer';
   accountId?: string;
+  userId?: string;
+  searchQuery?: string;
   limit?: number;
   offset?: number;
+  /** When set, fetches rows strictly after this cursor; do not pass offset together with this. */
+  cursorAfter?: TransactionCursorAfter;
 }
 
 export type InsertTransaction = typeof transactions.$inferInsert;
@@ -20,51 +32,79 @@ export class TransactionsRepository {
    * Get transactions by group with filtering
    */
   static async getByGroup(groupId: string, options?: TransactionFilterOptions) {
-    const conditions = [eq(transactions.group_id, groupId)];
+    const filterConditions = [eq(transactions.group_id, groupId)];
 
     if (options?.startDate) {
-      conditions.push(
+      filterConditions.push(
         sql`${transactions.date} >= ${options.startDate.toISOString().split('T')[0]}`
       );
     }
     if (options?.endDate) {
-      conditions.push(sql`${transactions.date} <= ${options.endDate.toISOString().split('T')[0]}`);
+      filterConditions.push(
+        sql`${transactions.date} <= ${options.endDate.toISOString().split('T')[0]}`
+      );
     }
     if (options?.category) {
-      conditions.push(eq(transactions.category, options.category));
+      filterConditions.push(eq(transactions.category, options.category));
+    }
+    if (options?.categoryKeys?.length) {
+      filterConditions.push(inArray(transactions.category, options.categoryKeys));
     }
     if (options?.type) {
-      conditions.push(eq(transactions.type, options.type));
+      filterConditions.push(eq(transactions.type, options.type));
     }
     if (options?.accountId) {
-      conditions.push(eq(transactions.account_id, options.accountId));
+      filterConditions.push(eq(transactions.account_id, options.accountId));
+    }
+    if (options?.userId) {
+      filterConditions.push(eq(transactions.user_id, options.userId));
+    }
+    if (options?.searchQuery) {
+      filterConditions.push(ilike(transactions.description, `%${options.searchQuery}%`));
     }
 
-    const baseQuery = db
-      .select()
-      .from(transactions)
-      .where(and(...conditions));
+    const dataConditions = [...filterConditions];
+    if (options?.cursorAfter) {
+      const cur = options.cursorAfter;
+      dataConditions.push(
+        or(
+          lt(transactions.date, cur.date),
+          and(eq(transactions.date, cur.date), lt(transactions.created_at, cur.createdAt)),
+          and(
+            eq(transactions.date, cur.date),
+            eq(transactions.created_at, cur.createdAt),
+            lt(transactions.id, cur.id)
+          )
+        )!
+      );
+    }
 
-    // Count query
+    const listWhere = and(...dataConditions);
+
+    // Count for full filter set (not narrowed by cursor)
     const countResult = await db
       .select({ total: count() })
       .from(transactions)
-      .where(and(...conditions));
+      .where(and(...filterConditions));
     const total = countResult[0]?.total ?? 0;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let query: any = baseQuery.orderBy(desc(transactions.date), desc(transactions.created_at));
+    let query: any = db
+      .select()
+      .from(transactions)
+      .where(listWhere)
+      .orderBy(desc(transactions.date), desc(transactions.created_at), desc(transactions.id));
 
     if (options?.limit) {
       query = query.limit(options.limit);
-      if (options.offset) {
+      if (options.offset && !options.cursorAfter) {
         query = query.offset(options.offset);
       }
     }
 
     const data = await query;
 
-    const offset = options?.offset || 0;
+    const offset = options?.offset ?? 0;
     const hasMore = options?.limit ? offset + data.length < total : false;
 
     return {

@@ -55,16 +55,14 @@ export function DashboardHeaderSkeleton() {
 export function UserSelectorSkeleton() {
   return (
     <div className={userSelectorStyles.loading.container}>
-      <div className="mb-2 h-3 w-28 rounded bg-muted/50 animate-pulse" aria-hidden />
+      <div className={userSelectorStyles.loading.heading} aria-hidden />
       <SkeletonList
         count={3}
-        spacing="flex gap-2 overflow-x-auto pb-1"
+        spacing={userSelectorStyles.loading.list}
         renderItem={() => (
-          <div
-            className={`flex min-h-[44px] min-w-30 shrink-0 items-center gap-2 rounded-2xl border border-border/40 bg-muted/30 px-3 py-2 ${skeletonClasses.shimmer}`}
-          >
-            <div className="size-8 shrink-0 rounded-full bg-muted/60" />
-            <div className="h-3.5 flex-1 rounded bg-muted/50" />
+          <div className={`${userSelectorStyles.loading.item} ${skeletonClasses.shimmer}`}>
+            <div className={userSelectorStyles.loading.avatar} />
+            <div className={userSelectorStyles.loading.text} />
           </div>
         )}
       />

@@ -1,44 +1,45 @@
 /**
- * User Selector — tono vicino al design context: calmo, token-based, meno “chip anonime”.
+ * User selector — palette Stitch (homepage / transazioni / drawer gruppo).
  */
 
 import type { CSSProperties } from 'react';
 
 export const userSelectorStyles = {
   loading: {
-    container: 'border-b border-border/50 bg-card/70 px-3 pb-3 pt-3 backdrop-blur-sm sm:px-4',
-    heading: 'mb-2 h-3 w-28 rounded bg-muted/50 animate-pulse',
+    container:
+      'rounded-2xl border border-[#3359c5]/20 bg-[#0b1f4f]/60 px-3 py-3 backdrop-blur-sm sm:px-4',
+    heading: 'mb-2 h-3 w-28 rounded bg-[#5c77cc]/25 animate-pulse',
     list: 'flex gap-2 overflow-x-auto pb-1 scrollbar-hide',
-    item: 'flex min-h-[44px] min-w-[7.5rem] shrink-0 items-center gap-2 rounded-2xl border border-border/40 bg-muted/30 px-3 py-2 animate-pulse',
-    avatar: 'size-8 shrink-0 rounded-full bg-muted/60',
-    text: 'h-3.5 flex-1 rounded bg-muted/50',
+    item: 'flex min-h-[44px] min-w-[7.5rem] shrink-0 items-center gap-2 rounded-2xl border border-[#3359c5]/25 bg-[#11295f]/50 px-3 py-2 animate-pulse',
+    avatar: 'size-8 shrink-0 rounded-full bg-[#2a447f]/60',
+    text: 'h-3.5 flex-1 rounded bg-[#5c77cc]/20',
   },
-  container: 'border-b border-border/50 bg-card/80 px-3 pb-3 pt-3 backdrop-blur-sm sm:px-4',
-  /** ≥12px per leggibilità e zoom; resta “etichetta di sezione”. */
-  heading: 'mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground',
-  list: 'flex touch-pan-x items-stretch gap-2 overflow-x-auto overscroll-x-contain scroll-pl-1 pb-0.5 [-webkit-overflow-scrolling:touch] scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent',
+  /** Trasparente quando il genitore è già una card Stitch (es. transazioni). */
+  container: 'border-0 bg-transparent px-0 pb-0 pt-0 backdrop-blur-none',
+  heading: 'mb-2.5 text-[11px] font-bold uppercase tracking-wide text-[#8fb0ff]',
+  list: 'flex touch-pan-x items-stretch gap-2 overflow-x-auto overscroll-x-contain scroll-pl-1 pb-0.5 [-webkit-overflow-scrolling:touch] scrollbar-thin scrollbar-thumb-[#5c77cc]/30 scrollbar-track-transparent',
   listStyle: {
     scrollbarWidth: 'thin',
   } satisfies CSSProperties,
   item: {
-    base: 'group flex min-h-11 min-w-[44px] shrink-0 items-center gap-2.5 rounded-2xl border px-3 py-2 text-left text-sm font-medium outline-none transition-[background-color,border-color,box-shadow] duration-200 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-reduce:transition-none sm:min-h-[48px] sm:px-3.5',
+    base: 'group flex min-h-11 min-w-[44px] shrink-0 items-center gap-2.5 rounded-full border px-3 py-2 text-left text-[12px] font-medium tracking-wide outline-none transition-[background-color,border-color,box-shadow] duration-200 focus-visible:ring-2 focus-visible:ring-[#6b9fff]/35 focus-visible:ring-offset-2 focus-visible:ring-offset-[#050818] motion-reduce:transition-none sm:min-h-[48px] sm:px-3.5',
     active:
-      'border-primary/35 bg-primary/[0.1] text-foreground shadow-sm ring-1 ring-inset ring-primary/15 dark:bg-primary/15',
+      'border-transparent bg-[#183166] text-[#e6ecff] shadow-[inset_0_0_0_1px_rgba(143,176,255,0.28)]',
     inactive:
-      'border-border/55 bg-muted/25 text-foreground/90 hover:border-primary/25 hover:bg-muted/40',
+      'border-[#3359c5]/35 bg-[#11295f]/80 text-[#9fb0d7] hover:bg-[#17336f] hover:text-[#e6ecff]',
   },
   avatar: {
     base: 'flex size-8 shrink-0 items-center justify-center rounded-full border text-[11px] font-bold tabular-nums transition-colors duration-200',
-    active: 'border-primary/30 bg-card text-primary',
-    inactive: 'border-border/60 bg-card/90 text-primary/90',
-    allIcon: 'size-4 text-primary',
+    active: 'border-[#5c77cc]/35 bg-[#2a447f] text-[#9eb6ff]',
+    inactive: 'border-[#3359c5]/35 bg-[#11295f] text-[#9fb0d7]',
+    allIcon: 'size-4 text-[#9eb6ff]',
   },
   initials: 'leading-none',
-  label: 'max-w-[6.5rem] truncate sm:max-w-[7.5rem]',
+  label: 'max-w-[6.5rem] truncate text-[#e6ecff] sm:max-w-[7.5rem]',
   dots: {
     container: 'mt-2 flex max-w-full justify-center gap-1.5 overflow-x-auto pb-0.5 scrollbar-hide',
     base: 'h-1 rounded-full transition-all duration-300',
-    active: 'w-4 bg-primary/70',
-    inactive: 'w-1.5 bg-muted-foreground/25',
+    active: 'w-4 bg-[#8fb0ff]/80',
+    inactive: 'w-1.5 bg-[#3359c5]/40',
   },
 } as const;

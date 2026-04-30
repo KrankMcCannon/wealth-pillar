@@ -2,11 +2,12 @@
 
 import { Badge, CategoryBadge } from '@/components/ui';
 import { Transaction } from '@/lib';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, cn } from '@/lib/utils';
 import { memo } from 'react';
 import { useTranslations } from 'next-intl';
 import { RowCard } from '@/components/ui/layout/row-card';
 import { transactionStyles, getTransactionBadgeColor } from '@/styles/system';
+import { stitchHome } from '@/styles/home-design-foundation';
 import { useCloseAllCards } from '@/stores/swipe-state-store';
 
 interface TransactionRowProps {
@@ -109,6 +110,12 @@ export const TransactionRow = memo(
     };
 
     const amountVariant = getAmountVariant();
+    const valueClassName =
+      transaction.type === 'income'
+        ? stitchHome.amountIncome
+        : transaction.type === 'expense'
+          ? stitchHome.amountExpense
+          : 'text-[#9fb0d7]';
 
     // Handle delete action with swipe close-first pattern
     const handleDelete = () => {
@@ -123,18 +130,22 @@ export const TransactionRow = memo(
           <CategoryBadge
             categoryKey={transaction.category}
             color={getCategoryColor(transaction.category)}
-            size="sm"
+            size="md"
           />
         }
         iconSize="sm"
         iconColor="none"
+        iconClassName="!rounded-full !bg-transparent !p-0 !shadow-none ring-0"
         title={transaction.description}
+        titleClassName={stitchHome.rowTitle}
         metadata={metadata}
         primaryValue={primaryValue}
         secondaryValue={secondaryValue}
         amountVariant={amountVariant}
-        // Interaction
-        variant={variant === 'regular' ? 'interactive' : 'highlighted'}
+        valueClassName={valueClassName}
+        secondaryValueClassName="text-[#8fa2dd]"
+        // Interaction — hover/pressed da `listRowInteractive` (Stitch home)
+        variant="regular"
         onClick={() => onEditTransaction?.(transaction)}
         swipeDragHint={onDeleteTransaction ? tSwipe('rowSwipeHint') : undefined}
         // Swipe configuration (new unified system)
@@ -151,8 +162,7 @@ export const TransactionRow = memo(
               }
             : undefined
         }
-        // Styling (maintain transaction-specific wrapper styles)
-        className={transactionStyles.transactionRow.content}
+        className={cn(stitchHome.listRowInteractive, 'w-full')}
         testId={`transaction-row-${transaction.id}`}
       />
     );

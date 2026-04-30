@@ -9,6 +9,7 @@ import {
   getCategoryColor as getCategoryColorLogic,
 } from '@/server/use-cases/categories/category.logic';
 import { formatCurrency, cn } from '@/lib/utils';
+import { stitchTransactions } from '@/styles/home-design-foundation';
 import { TransactionRow } from './transaction-row';
 import {
   transactionStyles,
@@ -65,38 +66,47 @@ function GroupedTransactionCardInner({
 
   if (!transactions.length) return null;
 
+  const header =
+    showHeader && totalAmount !== undefined ? (
+      <div className={getHeaderVariantStyles(variant)}>
+        <div className={transactionStyles.groupedCard.headerContent}>
+          <span className={transactionStyles.groupedCard.headerLabel}>{t('periodTotal')}</span>
+          <p
+            className={`${transactionStyles.groupedCard.headerAmount} ${getTotalAmountColor(variant, totalAmount)}`}
+          >
+            {formatCurrency(totalAmount)}
+          </p>
+        </div>
+      </div>
+    ) : null;
+
+  const rows = transactions.map((transaction, index) => (
+    <TransactionRow
+      key={transaction.id ?? `temp-${transaction.date ?? 'unknown'}-${index}`}
+      transaction={transaction}
+      accountNames={accountNames}
+      variant={variant}
+      context={context}
+      onEditTransaction={onEditTransaction}
+      onDeleteTransaction={onDeleteTransaction}
+      getCategoryLabel={getCategoryLabel}
+      getCategoryColor={getCategoryColor}
+    />
+  ));
+
+  if (variant === 'regular') {
+    return (
+      <div className={cn(stitchTransactions.dayCard, 'flex flex-col gap-2 p-1')}>
+        {header}
+        <div className="flex flex-col gap-2">{rows}</div>
+      </div>
+    );
+  }
+
   return (
     <Card className={cn(getCardVariantStyles(variant))}>
-      {/* Optional Header with Total */}
-      {showHeader && totalAmount !== undefined && (
-        <div className={getHeaderVariantStyles(variant)}>
-          <div className={transactionStyles.groupedCard.headerContent}>
-            <span className={transactionStyles.groupedCard.headerLabel}>{t('periodTotal')}</span>
-            <p
-              className={`${transactionStyles.groupedCard.headerAmount} ${getTotalAmountColor(variant, totalAmount)}`}
-            >
-              {formatCurrency(totalAmount)}
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* Transaction Rows */}
-      <div className={transactionStyles.groupedCard.rowContainer}>
-        {transactions.map((transaction, index) => (
-          <TransactionRow
-            key={transaction.id ?? `temp-${transaction.date ?? 'unknown'}-${index}`}
-            transaction={transaction}
-            accountNames={accountNames}
-            variant={variant}
-            context={context}
-            onEditTransaction={onEditTransaction}
-            onDeleteTransaction={onDeleteTransaction}
-            getCategoryLabel={getCategoryLabel}
-            getCategoryColor={getCategoryColor}
-          />
-        ))}
-      </div>
+      {header}
+      <div className={transactionStyles.groupedCard.rowContainer}>{rows}</div>
     </Card>
   );
 }

@@ -12,7 +12,7 @@ import { useTranslations } from 'next-intl';
 import { RecurringTransactionSeries } from '@/lib';
 import { SeriesCard } from '@/components/cards';
 import { EmptyState } from '@/components/shared';
-import { CircleAlert, RefreshCw, Plus, TrendingUp, TrendingDown } from 'lucide-react';
+import { Banknote, CircleAlert, Plus, RefreshCw, TrendingDown, TrendingUp } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button, CategoryBadge, Text } from '@/components/ui';
 import { HomeSectionCard } from '@/components/home';
@@ -20,6 +20,7 @@ import { SectionHeader } from '@/components/layout';
 import { stitchHome } from '@/styles/home-design-foundation';
 import {
   calculateDaysUntilDue,
+  calculateMonthlyTotalAbs,
   calculateRecurringTotals,
 } from '@/lib/recurring/recurring-calculations';
 import { formatCurrency, cn } from '@/lib/utils';
@@ -140,16 +141,8 @@ export function RecurringSeriesSection({
     [filteredSeries]
   );
   const totalMonthlyRecurring = useMemo(
-    () => activeSeries.reduce((sum, item) => sum + Math.abs(item.amount), 0),
+    () => calculateMonthlyTotalAbs(activeSeries),
     [activeSeries]
-  );
-  const upcomingTotal = useMemo(
-    () => upcomingSeries.reduce((sum, item) => sum + Math.abs(item.amount), 0),
-    [upcomingSeries]
-  );
-  const paidTotal = useMemo(
-    () => Math.max(totalMonthlyRecurring - upcomingTotal, 0),
-    [totalMonthlyRecurring, upcomingTotal]
   );
 
   const renderExecuteErrorBanner = () => {
@@ -288,34 +281,6 @@ export function RecurringSeriesSection({
 
   return (
     <div className={cn(recurringStyles.section.container, className)}>
-      <div className="rounded-2xl border border-[#3359c5]/25 bg-[#0b1f4f]/92 p-4 shadow-[0_8px_30px_rgba(0,20,86,0.2)]">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#9fb0d7]">
-              {t('summary.totalMonthlyLabel')}
-            </p>
-            <p className="text-3xl font-semibold tabular-nums text-[#e6ecff]">
-              {formatCurrency(totalMonthlyRecurring)}
-            </p>
-          </div>
-          <div className="grid grid-cols-2 gap-3 sm:gap-6">
-            <div>
-              <p className="text-xs text-[#9fb0d7]">{t('summary.paidLabel')}</p>
-              <p className="text-lg font-semibold tabular-nums text-[#8fe2b4]">
-                {formatCurrency(paidTotal)}
-              </p>
-            </div>
-            <div>
-              <p className="text-xs text-[#9fb0d7]">{t('summary.upcomingLabel')}</p>
-              <p className="text-lg font-semibold tabular-nums text-[#e6ecff]">
-                {formatCurrency(upcomingTotal)}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Header Section */}
       <div className={recurringStyles.section.header}>
         <div className={recurringStyles.section.headerRow}>
           <div className={recurringStyles.section.headerLeft}>
@@ -339,13 +304,25 @@ export function RecurringSeriesSection({
           </div>
         </div>
 
-        {/* Stats Section */}
-        {showStats && activeSeries.length > 0 && (
+        {showStats && filteredSeries.length > 0 ? (
           <div className={recurringStyles.section.stats}>
             <div className={recurringStyles.section.statRow}>
               <div className={recurringStyles.section.statLeft}>
+                <div className={recurringStyles.section.statIconWrapNeutral}>
+                  <Banknote className={recurringStyles.section.statIconNeutral} aria-hidden />
+                </div>
+                <p className={recurringStyles.section.statLabel}>
+                  {t('summary.totalMonthlyLabel')}
+                </p>
+              </div>
+              <p className={recurringStyles.section.statValueNeutral}>
+                {formatCurrency(totalMonthlyRecurring)}
+              </p>
+            </div>
+            <div className={recurringStyles.section.statRow}>
+              <div className={recurringStyles.section.statLeft}>
                 <div className={recurringStyles.section.statIconWrapPositive}>
-                  <TrendingUp className={recurringStyles.section.statIconPositive} />
+                  <TrendingUp className={recurringStyles.section.statIconPositive} aria-hidden />
                 </div>
                 <p className={recurringStyles.section.statLabel}>{t('stats.incomePerMonth')}</p>
               </div>
@@ -356,7 +333,7 @@ export function RecurringSeriesSection({
             <div className={recurringStyles.section.statRow}>
               <div className={recurringStyles.section.statLeft}>
                 <div className={recurringStyles.section.statIconWrapNegative}>
-                  <TrendingDown className={recurringStyles.section.statIconNegative} />
+                  <TrendingDown className={recurringStyles.section.statIconNegative} aria-hidden />
                 </div>
                 <p className={recurringStyles.section.statLabel}>{t('stats.expensesPerMonth')}</p>
               </div>
@@ -365,7 +342,7 @@ export function RecurringSeriesSection({
               </p>
             </div>
           </div>
-        )}
+        ) : null}
       </div>
 
       {renderExecuteErrorBanner()}
@@ -376,18 +353,15 @@ export function RecurringSeriesSection({
           <p className="px-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#9fb0d7]">
             {t('groups.upcoming')}
           </p>
-          <div
-            className={cn(recurringStyles.section.list, 'mt-2 rounded-t-none border-0 shadow-none')}
-          >
-            <div className={recurringStyles.section.listLayoutHome}>
+          <div className={cn(recurringStyles.section.list, 'mt-2')}>
+            <div className={recurringStyles.section.listLayoutPage}>
               {upcomingSeries.length === 0 ? (
                 <div className={stitchHome.emptyWell}>{t('groups.upcomingEmpty')}</div>
               ) : (
                 upcomingSeries.map((item) => (
-                  <div key={item.id} className={recurringStyles.section.cardCellHome}>
+                  <div key={item.id} className={recurringStyles.section.cardCellPage}>
                     <SeriesCard
                       series={item}
-                      embedded
                       showActions={showActions}
                       showDelete={showDelete}
                       onEdit={onEditRecurringSeries}
@@ -409,18 +383,15 @@ export function RecurringSeriesSection({
           <p className="px-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#9fb0d7]">
             {t('groups.paid')}
           </p>
-          <div
-            className={cn(recurringStyles.section.list, 'mt-2 rounded-t-none border-0 shadow-none')}
-          >
-            <div className={recurringStyles.section.listLayoutHome}>
+          <div className={cn(recurringStyles.section.list, 'mt-2')}>
+            <div className={recurringStyles.section.listLayoutPage}>
               {paidSeries.length === 0 ? (
                 <div className={stitchHome.emptyWell}>{t('groups.paidEmpty')}</div>
               ) : (
                 paidSeries.map((item) => (
-                  <div key={item.id} className={recurringStyles.section.cardCellHome}>
+                  <div key={item.id} className={recurringStyles.section.cardCellPage}>
                     <SeriesCard
                       series={item}
-                      embedded
                       showActions={showActions}
                       showDelete={showDelete}
                       onEdit={onEditRecurringSeries}

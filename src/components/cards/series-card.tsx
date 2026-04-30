@@ -15,6 +15,9 @@ import type { User } from '@/lib/types';
 import { executeRecurringSeriesAction } from '@/features/recurring';
 import { Pause, Play, Trash2 } from 'lucide-react';
 import { Amount, Button, Card, CategoryBadge, StatusBadge, Text } from '@/components/ui';
+import { HomeAmount } from '@/components/home';
+import { stitchHome } from '@/styles/home-design-foundation';
+import { formatCurrency } from '@/lib/utils';
 import { cardStyles, getSeriesCardClassName, getSeriesUserBadgeStyle } from './theme/card-styles';
 import { useCategories } from '@/stores/reference-data-store';
 import { SwipeableCard } from '@/components/ui/interactions/swipeable-card';
@@ -181,28 +184,50 @@ function SeriesCardInner({
     return series.type === 'income' ? 'income' : 'expense';
   };
 
+  const embeddedShellClass = cn(
+    stitchHome.listRowInteractive,
+    'w-full flex-wrap gap-y-2',
+    !series.is_active && 'opacity-60',
+    isOverdue && 'ring-1 ring-inset ring-red-400/35',
+    isDueToday && 'ring-1 ring-inset ring-amber-400/40',
+    isDueSoon && !isDueToday && !isOverdue && 'ring-1 ring-inset ring-[#5c77cc]/30'
+  );
+
   const cardContent = (
     <Card
       className={cn(
-        getSeriesCardClassName({ isActive: series.is_active, isOverdue, isDueToday, isDueSoon }),
-        embedded && cardStyles.series.embedded,
-        className
+        embedded
+          ? cn('border-0 bg-transparent shadow-none ring-0', className)
+          : cn(
+              getSeriesCardClassName({
+                isActive: series.is_active,
+                isOverdue,
+                isDueToday,
+                isDueSoon,
+              }),
+              className
+            )
       )}
       onClick={canSwipeDelete || canSwipePause ? undefined : handleCardClick}
     >
-      <div className={cardStyles.series.layout}>
+      <div className={embedded ? embeddedShellClass : cardStyles.series.layout}>
         {/* Left Section: Icon + Content */}
         <div className={cardStyles.series.left}>
           <CategoryBadge
             categoryKey={series.category}
             color={categoryColor}
             size="md"
-            className={cardStyles.series.icon}
+            className={embedded ? 'shrink-0' : cardStyles.series.icon}
           />
 
           <div className={cardStyles.series.content}>
             <div className={cardStyles.series.titleRow}>
-              <Text variant="primary" size="sm" as="h3" className={cardStyles.series.title}>
+              <Text
+                variant="primary"
+                size="sm"
+                as="h3"
+                className={embedded ? stitchHome.rowTitle : cardStyles.series.title}
+              >
                 {series.description}
               </Text>
               {!series.is_active && (
@@ -212,7 +237,11 @@ function SeriesCardInner({
               )}
             </div>
             <div className={cardStyles.series.details}>
-              <Text variant="body" size="xs" className={cardStyles.series.frequency}>
+              <Text
+                variant="body"
+                size="xs"
+                className={embedded ? stitchHome.rowMeta : cardStyles.series.frequency}
+              >
                 {getFrequencyLabel(series.frequency, t)}
               </Text>
 
@@ -222,7 +251,10 @@ function SeriesCardInner({
                   {associatedUsers.slice(0, 3).map((user) => (
                     <div
                       key={user.id}
-                      className={cardStyles.series.userBadge}
+                      className={cn(
+                        cardStyles.series.userBadge,
+                        embedded && 'border-[#3359c5]/35 text-[#e6ecff]'
+                      )}
                       style={getSeriesUserBadgeStyle(user.theme_color)}
                       title={user.name}
                     >
@@ -230,7 +262,12 @@ function SeriesCardInner({
                     </div>
                   ))}
                   {associatedUsers.length > 3 && (
-                    <span className={cardStyles.series.userBadgeOverflow}>
+                    <span
+                      className={cn(
+                        cardStyles.series.userBadgeOverflow,
+                        embedded && 'text-[#9fb0d7]'
+                      )}
+                    >
                       +{associatedUsers.length - 3}
                     </span>
                   )}
@@ -242,10 +279,27 @@ function SeriesCardInner({
 
         {/* Right Section: Amount + Actions */}
         <div className={cardStyles.series.right}>
-          <Amount type={getAmountType()} size="md" emphasis="strong">
-            {series.type === 'income' ? series.amount : -series.amount}
-          </Amount>
-          <Text variant="body" size="xs" className={cardStyles.series.dueDate}>
+          {embedded ? (
+            getAmountType() === 'neutral' ? (
+              <p className="shrink-0 text-sm font-semibold tabular-nums text-[#9fb0d7]">
+                {formatCurrency(Math.abs(Number(series.amount)))}
+              </p>
+            ) : (
+              <HomeAmount variant={series.type === 'income' ? 'income' : 'expense'}>
+                {series.type === 'income' ? '+' : '-'}
+                {formatCurrency(Math.abs(Number(series.amount)))}
+              </HomeAmount>
+            )
+          ) : (
+            <Amount type={getAmountType()} size="md" emphasis="strong">
+              {series.type === 'income' ? series.amount : -series.amount}
+            </Amount>
+          )}
+          <Text
+            variant="body"
+            size="xs"
+            className={embedded ? stitchHome.rowMeta : cardStyles.series.dueDate}
+          >
             {t('nextLabel')}: {getDueDateLabel(daysUntilDue, t)}
           </Text>
 

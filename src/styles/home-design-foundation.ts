@@ -79,9 +79,22 @@ export const stitchTransactions = {
   rowButton:
     'flex w-full items-center gap-3 rounded-lg p-3 text-left transition-colors hover:bg-[#11295f]/90',
   fab: 'fixed bottom-24 right-5 z-30 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#183166] text-white shadow-[0_8px_32px_rgba(0,20,86,0.45)] transition-transform hover:scale-105 active:scale-95',
-  mainStack: 'flex flex-col gap-3 px-3 pb-28 pt-1',
-  /** Toolbar tipo / filtri in pagina: meno aria vuota sopra/sotto la riga chip. */
-  chipRow: 'flex gap-2 overflow-x-auto pb-0.5 scrollbar-hide -mx-3 px-3',
+  /** Padding orizzontale da `HomeDashboardMain` (px-4); qui solo gap verticale. */
+  /** `pb` è solo su `HomeDashboardMain` (dashboardContentBottomPadding). */
+  mainStack: 'flex flex-col gap-3 pb-0 pt-1',
+  /** Toolbar tipo / filtri: bleed allineato al main dashboard (mx negativo = px-4). */
+  chipRow: 'flex gap-2 overflow-x-auto pb-0.5 scrollbar-hide -mx-4 px-4',
+  /** Riga membri: scroll orizzontale con snap su mobile; wrap da `sm` per evitare overflow. */
+  chipRowUserWrap: 'min-w-0 space-y-1',
+  chipRowUserScroll:
+    'flex min-h-[44px] min-w-0 gap-2 overflow-x-auto overscroll-x-contain scroll-smooth pb-1 pt-0.5 [-webkit-overflow-scrolling:touch] scrollbar-hide snap-x snap-mandatory motion-reduce:scroll-auto motion-reduce:snap-none sm:flex-wrap sm:overflow-visible sm:pb-0.5',
+  chipSnapItem: 'snap-start shrink-0',
+  chipScrollHint: 'px-1 text-[10px] font-medium leading-tight text-[#9fb0d7]/75 sm:hidden',
+  /** Tab Transazioni / Ricorrenti — stessa lingua cromatica di stitchHome.sectionCard. */
+  tabsList:
+    'grid h-12 w-full grid-cols-2 place-items-center gap-1 rounded-full border border-[#3359c5]/35 bg-[#0b1f4f]/95 p-1 shadow-[0_14px_30px_rgba(0,7,30,0.3)]',
+  tabsTrigger:
+    'inline-flex h-9 w-full items-center justify-center rounded-full px-2 text-[13px] font-semibold tracking-wide text-[#9fb0d7] shadow-none transition-all duration-200 hover:text-[#e6ecff] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6b9fff]/35 data-[state=active]:bg-[#183166] data-[state=active]:text-[#e6ecff] data-[state=active]:shadow-[inset_0_0_0_1px_rgba(143,176,255,0.28)] data-[state=active]:translate-y-0 motion-reduce:transition-none',
   listSkeleton: 'space-y-3',
 } as const;
 
