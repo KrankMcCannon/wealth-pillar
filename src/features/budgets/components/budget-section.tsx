@@ -44,10 +44,7 @@ export const BudgetSection = ({
     [router]
   );
 
-  const allBudgetEntries = useMemo(
-    () => Object.values(budgetsByUser),
-    [budgetsByUser]
-  );
+  const allBudgetEntries = useMemo(() => Object.values(budgetsByUser), [budgetsByUser]);
 
   const budgetEntries = useMemo(
     () =>

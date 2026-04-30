@@ -104,11 +104,7 @@ export function TransactionFilterChips({
         </div>
       </div>
 
-      <div
-        className={stitchTransactions.chipRow}
-        role="toolbar"
-        aria-label={tChips('toolbarAria')}
-      >
+      <div className={stitchTransactions.chipRow} role="toolbar" aria-label={tChips('toolbarAria')}>
         {types.map(({ key, labelKey }) => (
           <button
             key={key}

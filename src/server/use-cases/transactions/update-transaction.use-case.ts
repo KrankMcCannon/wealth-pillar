@@ -42,7 +42,15 @@ export async function updateTransactionUseCase(
   if (!updated) throw new Error('Failed to update transaction');
 
   // Re-adjust balances
-  async function adjustBalance(transaction: Transaction | any, multiplier: number) {
+  type BalanceAdjustableTransaction = {
+    amount: string | number | null;
+    type: string | null;
+    account_id: string | null;
+    to_account_id: string | null;
+  };
+
+  async function adjustBalance(transaction: BalanceAdjustableTransaction, multiplier: number) {
+    if (!transaction.account_id) return;
     const amt = Number(transaction.amount) * multiplier;
     if (transaction.type === 'income') {
       await TransactionsRepository.updateAccountBalance(transaction.account_id, amt);

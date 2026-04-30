@@ -131,6 +131,33 @@ export function RecurringSeriesSection({
     return calculateRecurringTotals(activeSeries);
   }, [activeSeries]);
 
+  const renderExecuteErrorBanner = () => {
+    if (!executeErrorMessage) return null;
+    return (
+      <Alert
+        variant="destructive"
+        className={recurringStyles.section.executeErrorBanner}
+        role="status"
+        aria-live="polite"
+      >
+        <CircleAlert className="size-4" aria-hidden />
+        <AlertTitle>{t('executeErrorBannerTitle')}</AlertTitle>
+        <AlertDescription className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <span className="min-w-0">{executeErrorMessage}</span>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="shrink-0 border-destructive/40 text-destructive hover:bg-destructive/10"
+            onClick={() => setExecuteErrorMessage(null)}
+          >
+            {t('executeErrorDismiss')}
+          </Button>
+        </AlertDescription>
+      </Alert>
+    );
+  };
+
   // Empty state
   if (filteredSeries.length === 0) {
     if (homeDashboardListLayout) {
@@ -186,12 +213,7 @@ export function RecurringSeriesSection({
           subtitle={
             <>
               {t('subtitle.seriesCount', { count: visibleSeriesCount })}
-              {pausedCount > 0 && (
-                <>
-                  {' '}
-                  • {t('subtitle.pausedCount', { count: pausedCount })}
-                </>
-              )}
+              {pausedCount > 0 && <> • {t('subtitle.pausedCount', { count: pausedCount })}</>}
             </>
           }
           className="pb-1"
@@ -199,29 +221,7 @@ export function RecurringSeriesSection({
           subtitleClassName={stitchHome.sectionHeaderSubtitle}
         />
 
-        {executeErrorMessage ? (
-          <Alert
-            variant="destructive"
-            className={recurringStyles.section.executeErrorBanner}
-            role="status"
-            aria-live="polite"
-          >
-            <CircleAlert className="size-4" aria-hidden />
-            <AlertTitle>{t('executeErrorBannerTitle')}</AlertTitle>
-            <AlertDescription className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <span className="min-w-0">{executeErrorMessage}</span>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="shrink-0 border-destructive/40 text-destructive hover:bg-destructive/10"
-                onClick={() => setExecuteErrorMessage(null)}
-              >
-                {t('executeErrorDismiss')}
-              </Button>
-            </AlertDescription>
-          </Alert>
-        ) : null}
+        {renderExecuteErrorBanner()}
 
         <div className="flex flex-col gap-2">
           {filteredSeries.map((item) => (
@@ -320,29 +320,7 @@ export function RecurringSeriesSection({
         )}
       </div>
 
-      {executeErrorMessage ? (
-        <Alert
-          variant="destructive"
-          className={recurringStyles.section.executeErrorBanner}
-          role="status"
-          aria-live="polite"
-        >
-          <CircleAlert className="size-4" aria-hidden />
-          <AlertTitle>{t('executeErrorBannerTitle')}</AlertTitle>
-          <AlertDescription className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <span className="min-w-0">{executeErrorMessage}</span>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="shrink-0 border-destructive/40 text-destructive hover:bg-destructive/10"
-              onClick={() => setExecuteErrorMessage(null)}
-            >
-              {t('executeErrorDismiss')}
-            </Button>
-          </AlertDescription>
-        </Alert>
-      ) : null}
+      {renderExecuteErrorBanner()}
 
       {/* Series List */}
       <div className={cn(recurringStyles.section.list, 'rounded-t-none border-0 shadow-none')}>

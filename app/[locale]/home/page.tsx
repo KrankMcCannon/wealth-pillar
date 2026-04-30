@@ -6,7 +6,7 @@
  */
 
 import { Suspense } from 'react';
-import { requirePageAuth } from '@/lib/auth/page-auth';
+import { requireGroupId, requirePageAuth } from '@/lib/auth/page-auth';
 import { getDashboardPageData } from '@/server/use-cases';
 import HomeContent from './home-content';
 import HomePageLoading from './loading';
@@ -15,8 +15,9 @@ export default async function HomePage({
   params,
 }: Readonly<{ params: Promise<{ locale: string }> }>) {
   const { currentUser, groupUsers } = await requirePageAuth(params);
+  const groupId = await requireGroupId(currentUser);
 
-  const dashboardDataPromise = getDashboardPageData(currentUser.group_id || '', {
+  const dashboardDataPromise = getDashboardPageData(groupId, {
     includeInvestments: false,
   }).catch((err) => {
     const message = err instanceof Error ? err.message : 'Errore nel caricamento della dashboard';

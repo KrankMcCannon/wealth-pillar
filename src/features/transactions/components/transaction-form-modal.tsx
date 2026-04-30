@@ -22,7 +22,7 @@ import {
 import { useAccounts, useCategories } from '@/stores/reference-data-store';
 import { useUserFilterStore } from '@/stores/user-filter-store';
 import { usePageDataStore } from '@/stores/page-data-store';
-import { requestTransactionDelete } from '../transaction-delete-bridge';
+import { useTransactionDeleteRequestStore } from '@/stores/transaction-delete-request-store';
 import { stitchTransactionFormModal } from '@/styles/home-design-foundation';
 
 const createTransactionSchema = (t: ReturnType<typeof useTranslations>) =>
@@ -77,6 +77,7 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
   const addTransaction = usePageDataStore((state) => state.addTransaction);
   const updateTransaction = usePageDataStore((state) => state.updateTransaction);
   const removeTransaction = usePageDataStore((state) => state.removeTransaction);
+  const requestDelete = useTransactionDeleteRequestStore((state) => state.requestDelete);
 
   const isEditMode = !!editId;
   const title = isEditMode ? t('title.edit') : t('title.create');
@@ -276,7 +277,10 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
             </div>
           ) : null}
 
-          <section className={cn(s.amountSection, 'group/amount')} aria-labelledby="tx-amount-label">
+          <section
+            className={cn(s.amountSection, 'group/amount')}
+            aria-labelledby="tx-amount-label"
+          >
             <p id="tx-amount-label" className={s.amountEyebrow}>
               {t('fields.amount.label')}
             </p>
@@ -396,7 +400,7 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
                 type="button"
                 data-testid="transaction-form-delete"
                 onClick={() => {
-                  requestTransactionDelete(editId);
+                  requestDelete(editId);
                   onClose();
                 }}
                 className={s.deleteButton}

@@ -1,5 +1,8 @@
 import type { RecurringTransactionSeries } from '@/lib/types';
-import { calculateNextExecutionDate, calculateDaysUntilDue } from '@/lib/recurring/recurring-calculations';
+import {
+  calculateNextExecutionDate,
+  calculateDaysUntilDue,
+} from '@/lib/recurring/recurring-calculations';
 import { formatDaysUntil, formatDateShort } from '@/lib/utils';
 
 export {

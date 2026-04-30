@@ -17,14 +17,10 @@ import TabNavigation from '@/components/shared/tab-navigation';
 import UserSelector from '@/components/shared/user-selector';
 import { ConfirmationDialog } from '@/components/shared';
 import { RecurringSeriesSection, PauseSeriesModal } from '@/features/recurring';
-import {
-  TransactionFilterChips,
-  TransactionsScreenList,
-  registerTransactionDeleteHandler,
-  unregisterTransactionDeleteHandler,
-} from '@/features/transactions';
+import { TransactionFilterChips, TransactionsScreenList } from '@/features/transactions';
 import { RecurringSeriesSkeleton } from '@/features/transactions/components/transaction-skeletons';
 import { stitchTransactions } from '@/styles/home-design-foundation';
+import { useTransactionDeleteRequestStore } from '@/stores/transaction-delete-request-store';
 
 interface TransactionsContentProps {
   currentUser: User;
@@ -63,6 +59,12 @@ export default function TransactionsContent({
   const t = useTranslations('TransactionsContent');
   const tHome = useTranslations('HomeContent');
   const [userPickerOpen, setUserPickerOpen] = useState(false);
+  const pendingTransactionDeleteId = useTransactionDeleteRequestStore(
+    (state) => state.pendingTransactionId
+  );
+  const consumePendingDelete = useTransactionDeleteRequestStore(
+    (state) => state.consumePendingDelete
+  );
 
   const headerCurrentUser = useMemo(
     () => ({
@@ -88,7 +90,6 @@ export default function TransactionsContent({
     pageSize,
     setPageSize,
     isChangingPage,
-    isLoadingFullDatasetForFilters,
     pageError,
     goToPage,
     currentPageItems,
@@ -113,9 +114,12 @@ export default function TransactionsContent({
   } = useTransactionsContent(props);
 
   useEffect(() => {
-    registerTransactionDeleteHandler(handleDeleteClick);
-    return () => unregisterTransactionDeleteHandler();
-  }, [handleDeleteClick]);
+    if (!pendingTransactionDeleteId) return;
+    const deleteId = consumePendingDelete();
+    if (deleteId) {
+      handleDeleteClick(deleteId);
+    }
+  }, [pendingTransactionDeleteId, consumePendingDelete, handleDeleteClick]);
 
   const hasActiveFilters = useMemo(
     () =>
@@ -227,10 +231,11 @@ export default function TransactionsContent({
               currentPage={currentPage}
               totalPages={totalPages}
               pageSize={pageSize}
-              isChangingPage={isChangingPage || isLoadingFullDatasetForFilters}
+              isChangingPage={isChangingPage}
               onPageChange={goToPage}
               onPageSizeChange={setPageSize}
               onEditTransaction={handleEditTransaction}
+              onDeleteTransaction={handleDeleteClick}
               {...(!hasActiveFilters && { onAddTransaction: () => openModal('transaction') })}
               {...(hasActiveFilters && { onClearFilters: handleClearFilters })}
               emptyTitle={t('empty.title')}

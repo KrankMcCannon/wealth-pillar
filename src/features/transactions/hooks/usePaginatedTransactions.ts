@@ -16,7 +16,7 @@
  * - onNewTransactions: callback to persist newly loaded transactions in the store
  */
 
-import { useState, useCallback, useEffect, useLayoutEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import type { Transaction } from '@/lib/types';
 
 export const PAGE_SIZE_OPTIONS = [10, 20, 30, 50, 100] as const;
@@ -84,14 +84,6 @@ export function usePaginatedTransactions({
     hasMoreFromServer ? totalServerCount : totalFiltered
   );
   const totalPages = Math.max(1, Math.ceil(effectiveTotal / pageSize));
-
-  // When filters (or loaded data) shrink the list, totalPages can drop while currentPage is still
-  // high — slice would be empty until an effect resets the page. Clamp synchronously before paint.
-  useLayoutEffect(() => {
-    if (currentPage > totalPages) {
-      setCurrentPage(totalPages);
-    }
-  }, [currentPage, totalPages]);
 
   // Slice the current page from filtered transactions
   const safePage = Math.min(currentPage, totalPages);

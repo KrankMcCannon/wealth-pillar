@@ -23,6 +23,11 @@ vi.mock('@/lib/utils/date-utils', () => ({
   }),
 }));
 
+const devWarnMock = vi.fn();
+vi.mock('@/lib/utils/dev-log', () => ({
+  devWarn: (...args: unknown[]) => devWarnMock(...args),
+}));
+
 // Factory helper for creating mock transactions
 function createMockTransaction(overrides: Partial<Transaction> = {}): Transaction {
   return {
@@ -47,6 +52,7 @@ function createMockTransaction(overrides: Partial<Transaction> = {}): Transactio
 describe('transaction-sorting', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    devWarnMock.mockClear();
   });
 
   describe('insertTransactionSorted', () => {
@@ -110,16 +116,14 @@ describe('transaction-sorting', () => {
       const existing = [createMockTransaction({ id: 'tx-1', date: '2024-01-15' })];
       const invalidDate = createMockTransaction({ id: 'tx-new', date: 'invalid' });
 
-      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
       const result = insertTransactionSorted(existing, invalidDate);
 
       expect(result).toHaveLength(2);
       expect(result[1]!.id).toBe('tx-new');
-      expect(consoleSpy).toHaveBeenCalledWith(
+      expect(devWarnMock).toHaveBeenCalledWith(
         'Invalid date for transaction, appending to end:',
         invalidDate
       );
-      consoleSpy.mockRestore();
     });
 
     it('should handle corrupted data in middle of array during binary search', () => {

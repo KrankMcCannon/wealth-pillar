@@ -738,9 +738,7 @@ export function TransactionFilters({
         </div>
       )}
 
-      <div
-        className={cn(transactionStyles.filters.toolsCluster, 'border-t-0 pt-0 gap-2')}
-      >
+      <div className={cn(transactionStyles.filters.toolsCluster, 'border-t-0 pt-0 gap-2')}>
         <div
           className={transactionStyles.filters.quickPeriodRow}
           role="group"

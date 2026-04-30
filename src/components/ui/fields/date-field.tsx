@@ -22,12 +22,7 @@ export interface DateFieldProps {
   label?: string | undefined;
 }
 
-export function DateField({
-  value,
-  onChange,
-  error,
-  label,
-}: Readonly<DateFieldProps>) {
+export function DateField({ value, onChange, error, label }: Readonly<DateFieldProps>) {
   const t = useTranslations('Forms.DateField');
   const tDrawer = useTranslations('Forms.DateDrawer');
   const isDesktop = useMediaQuery('(min-width: 640px)');

@@ -185,11 +185,7 @@ export const CategorySelect = React.memo<CategorySelectProps>(
           <div className="flex min-w-0 flex-1 items-center gap-3">
             <div className={stitchTransactionFormModal.selectorIconWrap}>
               {selectedCategory ? (
-                <CategoryIcon
-                  categoryKey={selectedCategory.key}
-                  size={22}
-                  className="shrink-0"
-                />
+                <CategoryIcon categoryKey={selectedCategory.key} size={22} className="shrink-0" />
               ) : (
                 <LayoutGrid className="h-5 w-5 text-[#b8c5ff]/80" aria-hidden />
               )}

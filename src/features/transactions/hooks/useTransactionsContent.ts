@@ -72,8 +72,6 @@ export interface UseTransactionsContentReturn {
   pageSize: number;
   setPageSize: (size: PageSizeOption) => void;
   isChangingPage: boolean;
-  /** True while loading remaining pages so filters apply to the whole group */
-  isLoadingFullDatasetForFilters: boolean;
   pageError: string | null;
   goToPage: (page: number) => Promise<void>;
   nextPage: () => Promise<void>;
@@ -122,8 +120,6 @@ export interface UseTransactionsContentReturn {
 // ============================================================================
 
 const DEFAULT_PAGE_SIZE: PageSizeOption = 30;
-
-const FULL_DATASET_BATCH = 100;
 
 function mergeTransactionsUnique(existing: Transaction[], incoming: Transaction[]): Transaction[] {
   if (incoming.length === 0) return existing;
@@ -210,12 +206,10 @@ export function useTransactionsContent({
     [filters, debouncedSearchQuery]
   );
 
-  const needsFullDataset = useMemo(
+  const hasActiveFilters = useMemo(
     () => hasActiveTransactionFilters(filtersForFullDataset),
     [filtersForFullDataset]
   );
-
-  const [isLoadingFullDatasetForFilters, setIsLoadingFullDatasetForFilters] = useState(false);
 
   // Pause modal state
   const [showPauseModal, setShowPauseModal] = useState(false);
@@ -344,56 +338,8 @@ export function useTransactionsContent({
     [setTransactions]
   );
 
-  // When filters/search are active, client-side filtering must see the whole group — fetch any pages not loaded yet
-  useEffect(() => {
-    if (!needsFullDataset) {
-      setIsLoadingFullDatasetForFilters(false);
-      return;
-    }
-
-    const groupFullyLoaded =
-      !hasMoreTransactions ||
-      (totalTransactions > 0 && storeTransactions.length >= totalTransactions);
-
-    if (groupFullyLoaded) {
-      setIsLoadingFullDatasetForFilters(false);
-      return;
-    }
-
-    let cancelled = false;
-
-    (async () => {
-      setIsLoadingFullDatasetForFilters(true);
-      try {
-        let offset = storeTransactions.length;
-        while (!cancelled) {
-          const result = await loadMoreTransactionsAction(offset, FULL_DATASET_BATCH);
-          if (cancelled || result.error) break;
-          if (result.data.length === 0) break;
-
-          const merged = mergeTransactionsUnique(
-            usePageDataStore.getState().transactions,
-            result.data
-          );
-          setTransactions(merged);
-
-          if (!result.hasMore) break;
-          offset += result.data.length;
-        }
-      } finally {
-        if (!cancelled) setIsLoadingFullDatasetForFilters(false);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-    // Only re-run when filter activation changes — not on each batch merged into the store
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- see comment
-  }, [needsFullDataset, setTransactions]);
-
   const effectiveHasMoreFromServer =
-    hasMoreTransactions && storeTransactions.length < totalTransactions;
+    !hasActiveFilters && hasMoreTransactions && storeTransactions.length < totalTransactions;
 
   // Pagination hook
   const {
@@ -652,7 +598,6 @@ export function useTransactionsContent({
     pageSize,
     setPageSize,
     isChangingPage,
-    isLoadingFullDatasetForFilters,
     pageError,
     goToPage,
     nextPage,

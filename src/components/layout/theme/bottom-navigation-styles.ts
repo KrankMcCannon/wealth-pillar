@@ -4,8 +4,7 @@ export const bottomNavigationStyles = {
   container: `${stitchDashboardShell.bottomBar} px-2 pt-1 pb-[calc(theme(spacing.1)+env(safe-area-inset-bottom))]`,
   inner:
     'mx-auto grid max-w-xl grid-cols-5 items-end gap-x-0.5 gap-y-0 overflow-visible px-0.5 pb-0.5 pt-0',
-  item:
-    'relative z-0 flex min-h-11 min-w-0 flex-col items-center justify-end gap-0 rounded-xl px-1 py-0.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-[#0c1738] motion-reduce:transition-none active:bg-primary/5',
+  item: 'relative z-0 flex min-h-11 min-w-0 flex-col items-center justify-end gap-0 rounded-xl px-1 py-0.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-[#0c1738] motion-reduce:transition-none active:bg-primary/5',
   itemActive:
     'bg-primary/[0.14] text-primary shadow-sm ring-1 ring-inset ring-primary/20 dark:bg-primary/20',
   itemInactive:

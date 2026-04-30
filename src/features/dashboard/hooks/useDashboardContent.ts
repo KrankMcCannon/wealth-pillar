@@ -30,8 +30,7 @@ export interface UseDashboardContentReturn {
   displayedDefaultAccounts: Account[];
   totalBalance: number;
   handleCreateRecurringSeries: () => void;
-  handleSeriesCardClick: () => void;
-  handlePauseRecurringSeries: () => void;
+  handleOpenRecurringTab: () => void;
 }
 
 export function useDashboardContent({
@@ -99,11 +98,7 @@ export function useDashboardContent({
     openModal('recurring');
   }, [openModal]);
 
-  const handleSeriesCardClick = useCallback(() => {
-    router.push('/transactions?tab=Recurrent');
-  }, [router]);
-
-  const handlePauseRecurringSeries = useCallback(() => {
+  const handleOpenRecurringTab = useCallback(() => {
     router.push('/transactions?tab=Recurrent');
   }, [router]);
 
@@ -115,7 +110,6 @@ export function useDashboardContent({
     displayedDefaultAccounts,
     totalBalance,
     handleCreateRecurringSeries,
-    handleSeriesCardClick,
-    handlePauseRecurringSeries,
+    handleOpenRecurringTab,
   };
 }

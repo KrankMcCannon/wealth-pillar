@@ -65,8 +65,7 @@ export default function HomeContent({
     totalBalance,
     selectedUserId,
     handleCreateRecurringSeries,
-    handleSeriesCardClick,
-    handlePauseRecurringSeries,
+    handleOpenRecurringTab,
   } = useDashboardContent({
     currentUser,
     groupUsers,
@@ -143,8 +142,8 @@ export default function HomeContent({
           showStats={false}
           showActions={false}
           onCreateRecurringSeries={handleCreateRecurringSeries}
-          onCardClick={handleSeriesCardClick}
-          onPauseRecurringSeries={handlePauseRecurringSeries}
+          onCardClick={handleOpenRecurringTab}
+          onPauseRecurringSeries={handleOpenRecurringTab}
           homeDashboardListLayout
           maxItems={RECURRING_MAX_ITEMS}
         />

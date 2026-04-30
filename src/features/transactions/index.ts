@@ -23,10 +23,6 @@ export { TransactionFilters } from './components/transaction-filters';
 export { defaultFiltersState, hasActiveFilters } from './components/transaction-filters';
 export { TransactionFilterChips } from './components/transaction-filter-chips';
 export { TransactionsScreenList } from './components/transactions-screen-list';
-export {
-  registerTransactionDeleteHandler,
-  unregisterTransactionDeleteHandler,
-} from './transaction-delete-bridge';
 
 // Filter Logic & Types
 export {

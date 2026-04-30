@@ -81,8 +81,7 @@ export const stitchTransactions = {
   fab: 'fixed bottom-24 right-5 z-30 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#183166] text-white shadow-[0_8px_32px_rgba(0,20,86,0.45)] transition-transform hover:scale-105 active:scale-95',
   mainStack: 'flex flex-col gap-3 px-3 pb-28 pt-1',
   /** Toolbar tipo / filtri in pagina: meno aria vuota sopra/sotto la riga chip. */
-  chipRow:
-    'flex gap-2 overflow-x-auto pb-0.5 scrollbar-hide -mx-3 px-3',
+  chipRow: 'flex gap-2 overflow-x-auto pb-0.5 scrollbar-hide -mx-3 px-3',
   listSkeleton: 'space-y-3',
 } as const;
 
@@ -108,10 +107,8 @@ export const stitchTransactionFilterTriggers = {
   wrapper: 'relative inline-flex',
   buttonBase:
     'inline-flex min-h-10 items-center gap-1.5 rounded-full px-3 py-2 text-[12px] font-medium tracking-wide whitespace-nowrap transition-colors active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6b9fff]/35',
-  buttonIdle:
-    'border border-[#3359c5]/35 bg-[#11295f]/80 text-[#9fb0d7] hover:bg-[#17336f]',
-  buttonOpen:
-    'bg-[#183166] text-[#e6ecff] shadow-[inset_0_0_0_1px_rgba(143,176,255,0.28)]',
+  buttonIdle: 'border border-[#3359c5]/35 bg-[#11295f]/80 text-[#9fb0d7] hover:bg-[#17336f]',
+  buttonOpen: 'bg-[#183166] text-[#e6ecff] shadow-[inset_0_0_0_1px_rgba(143,176,255,0.28)]',
   buttonHasValue:
     'inline-flex min-h-10 items-center rounded-full bg-[#183166] px-3 py-2 pr-8 text-[12px] font-medium tracking-wide text-[#e6ecff] shadow-[inset_0_0_0_1px_rgba(143,176,255,0.28)] transition-colors',
   clearButton:
@@ -123,8 +120,7 @@ export const stitchTransactionFilterTriggers = {
   /** Periodi rapidi nel drawer (All / Oggi / Mese / Altro) */
   quickPill:
     'inline-flex min-h-10 shrink-0 items-center rounded-full border px-3 py-2 text-[12px] font-semibold tracking-wide transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6b9fff]/35',
-  quickPillIdle:
-    'border-[#3359c5]/35 bg-[#11295f]/80 text-[#9fb0d7] hover:bg-[#17336f]',
+  quickPillIdle: 'border-[#3359c5]/35 bg-[#11295f]/80 text-[#9fb0d7] hover:bg-[#17336f]',
   quickPillActive:
     'border-transparent bg-[#183166] text-[#e6ecff] shadow-[inset_0_0_0_1px_rgba(143,176,255,0.28)]',
   filterDrawerClearAll:

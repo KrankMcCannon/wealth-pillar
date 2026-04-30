@@ -15,7 +15,12 @@ interface HomeSectionCardProps {
 /**
  * Contenitore sezione Home (card blu Stitch): bordo, fondo, ombra coerenti.
  */
-export function HomeSectionCard({ children, className, id, 'aria-label': ariaLabel }: HomeSectionCardProps) {
+export function HomeSectionCard({
+  children,
+  className,
+  id,
+  'aria-label': ariaLabel,
+}: HomeSectionCardProps) {
   return (
     <PageSection
       variant="plain"

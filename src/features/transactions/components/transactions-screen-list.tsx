@@ -1,30 +1,15 @@
 'use client';
 
-import { memo, useCallback, useMemo, useEffect, useRef } from 'react';
+import { memo, useMemo, useEffect, useRef } from 'react';
 import { Plus } from 'lucide-react';
 import { useTranslations, useLocale } from 'next-intl';
-import { DateTime } from 'luxon';
-import {
-  getCategoryLabel as getCategoryLabelLogic,
-  getCategoryColor as getCategoryColorLogic,
-} from '@/server/use-cases/categories/category.logic';
-import { CategoryBadge } from '@/components/ui/category-badge';
-import { HomeAmount } from '@/components/home/home-amount';
 import { cn } from '@/lib/utils';
-import { formatCurrency } from '@/lib/utils';
-import { toDateTime } from '@/lib/utils/date-utils';
 import type { Transaction, Category } from '@/lib/types';
 import { stitchTransactions } from '@/styles/home-design-foundation';
 import { groupByDay } from '../utils/group-by-day';
 import { TransactionPagination } from './transaction-pagination';
+import { TransactionDayList } from './transaction-day-list';
 import type { PageSizeOption } from '../hooks/usePaginatedTransactions';
-
-function formatTxTime(dateStr: string, locale: string): string | null {
-  if (!dateStr.includes('T')) return null;
-  const dt = toDateTime(dateStr);
-  if (!dt?.isValid) return null;
-  return dt.setLocale(locale).toLocaleString(DateTime.TIME_SIMPLE);
-}
 
 export interface TransactionsScreenListProps {
   transactions: Transaction[];
@@ -38,6 +23,7 @@ export interface TransactionsScreenListProps {
   onPageChange: (page: number) => void;
   onPageSizeChange?: (size: PageSizeOption) => void;
   onEditTransaction: (transaction: Transaction) => void;
+  onDeleteTransaction?: (transactionId: string) => void;
   onAddTransaction?: () => void;
   onClearFilters?: () => void;
   emptyTitle?: string;
@@ -81,6 +67,7 @@ function TransactionsScreenListInner({
   onPageChange,
   onPageSizeChange,
   onEditTransaction,
+  onDeleteTransaction,
   onAddTransaction,
   onClearFilters,
   emptyTitle,
@@ -89,15 +76,6 @@ function TransactionsScreenListInner({
 }: TransactionsScreenListProps) {
   const t = useTranslations('Transactions.Table');
   const locale = useLocale();
-
-  const getCategoryLabel = useCallback(
-    (key: string) => getCategoryLabelLogic(categories, key),
-    [categories]
-  );
-  const getCategoryColor = useCallback(
-    (key: string) => getCategoryColorLogic(categories, key),
-    [categories]
-  );
 
   const dayGroups = useMemo(() => groupByDay(transactions, locale), [transactions, locale]);
   const isEmpty = transactions.length === 0 && !isChangingPage;
@@ -147,40 +125,20 @@ function TransactionsScreenListInner({
             </div>
           </div>
         ) : (
-          <div className="space-y-5">
-            {dayGroups.map((group) => (
-              <section key={group.isoDate} className={stitchTransactions.daySectionOuter}>
-                <div className={stitchTransactions.dayHeaderRow}>
-                  <span className={stitchTransactions.dayTitle}>{group.formattedDate}</span>
-                  <span
-                    className={cn(
-                      stitchTransactions.dayNet,
-                      group.net > 0
-                        ? stitchTransactions.dayNetPositive
-                        : group.net < 0
-                          ? stitchTransactions.dayNetNegative
-                          : stitchTransactions.dayNetNeutral
-                    )}
-                  >
-                    {group.net > 0 ? '+' : group.net < 0 ? '−' : ''}
-                    {formatCurrency(Math.abs(group.net))}
-                  </span>
-                </div>
-                <div className={stitchTransactions.dayCard}>
-                  {group.transactions.map((tx) => (
-                    <TransactionRowButton
-                      key={tx.id}
-                      transaction={tx}
-                      getCategoryLabel={getCategoryLabel}
-                      getCategoryColor={getCategoryColor}
-                      locale={locale}
-                      onEdit={onEditTransaction}
-                    />
-                  ))}
-                </div>
-              </section>
-            ))}
-          </div>
+          <TransactionDayList
+            groupedTransactions={dayGroups.map((group) => ({
+              date: group.isoDate,
+              formattedDate: group.formattedDate,
+              transactions: group.transactions,
+              total: group.net,
+              count: group.transactions.length,
+            }))}
+            accountNames={_accountNames}
+            categories={categories}
+            className="space-y-5"
+            onEditTransaction={onEditTransaction}
+            onDeleteTransaction={onDeleteTransaction ?? (() => undefined)}
+          />
         )}
 
         {showPagination && (
@@ -211,56 +169,5 @@ function TransactionsScreenListInner({
     </div>
   );
 }
-
-interface RowProps {
-  transaction: Transaction;
-  getCategoryLabel: (key: string) => string;
-  getCategoryColor: (key: string) => string;
-  locale: string;
-  onEdit: (tx: Transaction) => void;
-}
-
-const TransactionRowButton = memo(function TransactionRowButton({
-  transaction: tx,
-  getCategoryLabel,
-  getCategoryColor,
-  locale,
-  onEdit,
-}: RowProps) {
-  const catLabel = getCategoryLabel(tx.category);
-  const timePart = formatTxTime(typeof tx.date === 'string' ? tx.date : '', locale);
-  const meta = timePart ? `${catLabel} • ${timePart}` : catLabel;
-
-  const amountPrefix = tx.type === 'income' ? '+' : tx.type === 'expense' ? '−' : '';
-  const amountBody = formatCurrency(Math.abs(tx.amount));
-
-  return (
-    <button
-      type="button"
-      data-testid="transaction-row"
-      onClick={() => onEdit(tx)}
-      className={stitchTransactions.rowButton}
-    >
-      <CategoryBadge categoryKey={tx.category} color={getCategoryColor(tx.category)} size="md" />
-      <div className="min-w-0 flex-1 text-left">
-        <p className={cn('truncate text-sm font-semibold text-[#e6ecff]')}>{tx.description}</p>
-        <p className="truncate text-xs text-[#9fb0d7]">{meta}</p>
-      </div>
-      <div className="shrink-0 text-right">
-        {tx.type === 'transfer' ? (
-          <p className="text-sm font-semibold tabular-nums text-[#9fb0d7]">
-            {amountPrefix}
-            {amountBody}
-          </p>
-        ) : (
-          <HomeAmount variant={tx.type === 'income' ? 'income' : 'expense'}>
-            {amountPrefix}
-            {amountBody}
-          </HomeAmount>
-        )}
-      </div>
-    </button>
-  );
-});
 
 export const TransactionsScreenList = memo(TransactionsScreenListInner);
