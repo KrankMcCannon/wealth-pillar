@@ -41,6 +41,11 @@ export function TransactionFilterChips({
   const tChips = useTranslations('Transactions.Filters.FilterChips');
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
+  const subscriptionsCategory = categories.find(
+    (category) =>
+      /(subscription|abbonament)/i.test(category.key) ||
+      /(subscription|abbonament)/i.test(category.label)
+  );
 
   const setType = useCallback(
     (type: TransactionTypeFilter) => {
@@ -65,6 +70,11 @@ export function TransactionFilterChips({
     { key: 'income', labelKey: 'income' },
     { key: 'expense', labelKey: 'expense' },
   ];
+
+  const subscriptionsActive =
+    subscriptionsCategory != null &&
+    (filters.categoryKey === subscriptionsCategory.key ||
+      filters.categoryKeys?.includes(subscriptionsCategory.key));
 
   return (
     <div className={cn('flex min-w-0 flex-col gap-2', className)}>
@@ -118,6 +128,28 @@ export function TransactionFilterChips({
             {t(`typeOptions.${labelKey}`)}
           </button>
         ))}
+        {subscriptionsCategory && (
+          <button
+            type="button"
+            onClick={() => {
+              if (subscriptionsActive) {
+                onFiltersChange({ ...filters, categoryKey: 'all' });
+                return;
+              }
+              const { categoryKeys: _ignoredCategoryKeys, ...restFilters } = filters;
+              onFiltersChange({
+                ...restFilters,
+                categoryKey: subscriptionsCategory.key,
+              });
+            }}
+            className={cn(
+              stitchTransactions.chipBase,
+              subscriptionsActive ? stitchTransactions.chipActive : stitchTransactions.chipInactive
+            )}
+          >
+            {subscriptionsCategory.label}
+          </button>
+        )}
         <button
           type="button"
           onClick={() => setAdvancedOpen(true)}

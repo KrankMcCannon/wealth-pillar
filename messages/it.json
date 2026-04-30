@@ -944,6 +944,17 @@
         "incomePerMonth": "Entrate/mese",
         "expensesPerMonth": "Uscite/mese"
       },
+      "summary": {
+        "totalMonthlyLabel": "Totale ricorrente mensile",
+        "paidLabel": "Pagato",
+        "upcomingLabel": "In arrivo"
+      },
+      "groups": {
+        "upcoming": "In arrivo",
+        "upcomingEmpty": "Nessuna voce ricorrente in arrivo.",
+        "paid": "Già pagato questo mese",
+        "paidEmpty": "Nessuna voce ricorrente pagata in questo periodo."
+      },
       "footer": {
         "showingOf": "Mostrando {shown} di {total} serie"
       },

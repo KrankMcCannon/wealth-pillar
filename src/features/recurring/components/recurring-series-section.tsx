@@ -131,6 +131,27 @@ export function RecurringSeriesSection({
     return calculateRecurringTotals(activeSeries);
   }, [activeSeries]);
 
+  const upcomingSeries = useMemo(
+    () => filteredSeries.filter((item) => item.is_active && calculateDaysUntilDue(item) >= 0),
+    [filteredSeries]
+  );
+  const paidSeries = useMemo(
+    () => filteredSeries.filter((item) => !item.is_active || calculateDaysUntilDue(item) < 0),
+    [filteredSeries]
+  );
+  const totalMonthlyRecurring = useMemo(
+    () => activeSeries.reduce((sum, item) => sum + Math.abs(item.amount), 0),
+    [activeSeries]
+  );
+  const upcomingTotal = useMemo(
+    () => upcomingSeries.reduce((sum, item) => sum + Math.abs(item.amount), 0),
+    [upcomingSeries]
+  );
+  const paidTotal = useMemo(
+    () => Math.max(totalMonthlyRecurring - upcomingTotal, 0),
+    [totalMonthlyRecurring, upcomingTotal]
+  );
+
   const renderExecuteErrorBanner = () => {
     if (!executeErrorMessage) return null;
     return (
@@ -267,6 +288,33 @@ export function RecurringSeriesSection({
 
   return (
     <div className={cn(recurringStyles.section.container, className)}>
+      <div className="rounded-2xl border border-[#3359c5]/25 bg-[#0b1f4f]/92 p-4 shadow-[0_8px_30px_rgba(0,20,86,0.2)]">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#9fb0d7]">
+              {t('summary.totalMonthlyLabel')}
+            </p>
+            <p className="text-3xl font-semibold tabular-nums text-[#e6ecff]">
+              {formatCurrency(totalMonthlyRecurring)}
+            </p>
+          </div>
+          <div className="grid grid-cols-2 gap-3 sm:gap-6">
+            <div>
+              <p className="text-xs text-[#9fb0d7]">{t('summary.paidLabel')}</p>
+              <p className="text-lg font-semibold tabular-nums text-[#8fe2b4]">
+                {formatCurrency(paidTotal)}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-[#9fb0d7]">{t('summary.upcomingLabel')}</p>
+              <p className="text-lg font-semibold tabular-nums text-[#e6ecff]">
+                {formatCurrency(upcomingTotal)}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Header Section */}
       <div className={recurringStyles.section.header}>
         <div className={recurringStyles.section.headerRow}>
@@ -323,25 +371,71 @@ export function RecurringSeriesSection({
       {renderExecuteErrorBanner()}
 
       {/* Series List */}
-      <div className={cn(recurringStyles.section.list, 'rounded-t-none border-0 shadow-none')}>
-        <div className={recurringStyles.section.listLayoutHome}>
-          {filteredSeries.map((item) => (
-            <div key={item.id} className={recurringStyles.section.cardCellHome}>
-              <SeriesCard
-                series={item}
-                embedded
-                showActions={showActions}
-                showDelete={showDelete}
-                onEdit={onEditRecurringSeries}
-                onCardClick={onCardClick}
-                onDelete={onDeleteRecurringSeries}
-                onPause={onPauseRecurringSeries}
-                groupUsers={groupUsers}
-                onSeriesUpdate={onSeriesUpdate}
-                onExecuteError={handleExecuteError}
-              />
+      <div className="space-y-4">
+        <div>
+          <p className="px-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#9fb0d7]">
+            {t('groups.upcoming')}
+          </p>
+          <div
+            className={cn(recurringStyles.section.list, 'mt-2 rounded-t-none border-0 shadow-none')}
+          >
+            <div className={recurringStyles.section.listLayoutHome}>
+              {upcomingSeries.length === 0 ? (
+                <div className={stitchHome.emptyWell}>{t('groups.upcomingEmpty')}</div>
+              ) : (
+                upcomingSeries.map((item) => (
+                  <div key={item.id} className={recurringStyles.section.cardCellHome}>
+                    <SeriesCard
+                      series={item}
+                      embedded
+                      showActions={showActions}
+                      showDelete={showDelete}
+                      onEdit={onEditRecurringSeries}
+                      onCardClick={onCardClick}
+                      onDelete={onDeleteRecurringSeries}
+                      onPause={onPauseRecurringSeries}
+                      groupUsers={groupUsers}
+                      onSeriesUpdate={onSeriesUpdate}
+                      onExecuteError={handleExecuteError}
+                    />
+                  </div>
+                ))
+              )}
             </div>
-          ))}
+          </div>
+        </div>
+
+        <div>
+          <p className="px-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#9fb0d7]">
+            {t('groups.paid')}
+          </p>
+          <div
+            className={cn(recurringStyles.section.list, 'mt-2 rounded-t-none border-0 shadow-none')}
+          >
+            <div className={recurringStyles.section.listLayoutHome}>
+              {paidSeries.length === 0 ? (
+                <div className={stitchHome.emptyWell}>{t('groups.paidEmpty')}</div>
+              ) : (
+                paidSeries.map((item) => (
+                  <div key={item.id} className={recurringStyles.section.cardCellHome}>
+                    <SeriesCard
+                      series={item}
+                      embedded
+                      showActions={showActions}
+                      showDelete={showDelete}
+                      onEdit={onEditRecurringSeries}
+                      onCardClick={onCardClick}
+                      onDelete={onDeleteRecurringSeries}
+                      onPause={onPauseRecurringSeries}
+                      groupUsers={groupUsers}
+                      onSeriesUpdate={onSeriesUpdate}
+                      onExecuteError={handleExecuteError}
+                    />
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
         </div>
       </div>
 

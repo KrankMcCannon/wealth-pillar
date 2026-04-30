@@ -944,6 +944,17 @@
         "incomePerMonth": "Income/month",
         "expensesPerMonth": "Expenses/month"
       },
+      "summary": {
+        "totalMonthlyLabel": "Total monthly recurring",
+        "paidLabel": "Paid",
+        "upcomingLabel": "Upcoming"
+      },
+      "groups": {
+        "upcoming": "Upcoming",
+        "upcomingEmpty": "No upcoming recurring entries.",
+        "paid": "Already paid this month",
+        "paidEmpty": "No paid recurring entries in this period."
+      },
       "footer": {
         "showingOf": "Showing {shown} of {total} series"
       },
