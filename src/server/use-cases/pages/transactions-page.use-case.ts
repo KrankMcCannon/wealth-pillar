@@ -24,6 +24,8 @@ export interface TransactionsPageQuery {
   endDate?: string;
   account?: string;
   category?: string;
+  /** Chiavi categoria separate da virgola (es. unione categorie di più budget). */
+  categories?: string;
   page?: string;
   pageSize?: string;
   /** Opaque keyset cursor (exclusive) for sequential forward pagination */
@@ -38,6 +40,7 @@ interface ResolvedTransactionsQuery {
   endDate?: Date;
   accountId?: string;
   category?: string;
+  categoryKeys?: string[];
   page: number;
   pageSize: number;
 }
@@ -60,6 +63,7 @@ export interface TransactionsPageData {
     endDate?: string;
     account?: string;
     category?: string;
+    categories?: string;
   };
   categories: Category[];
   accounts: Account[];
@@ -141,6 +145,13 @@ function resolveTransactionsQuery(
   const isMember = currentUser.role === 'member';
   const userId = isMember ? currentUser.id : query.user;
 
+  const parsedCategoryKeys = query.categories
+    ? query.categories
+        .split(',')
+        .map((k) => k.trim())
+        .filter(Boolean)
+    : [];
+
   return {
     ...(userId ? { userId } : {}),
     ...(query.q?.trim() ? { searchQuery: query.q.trim() } : {}),
@@ -148,7 +159,11 @@ function resolveTransactionsQuery(
     ...(resolvedDate.startDate ? { startDate: resolvedDate.startDate } : {}),
     ...(resolvedDate.endDate ? { endDate: resolvedDate.endDate } : {}),
     ...(query.account ? { accountId: query.account } : {}),
-    ...(query.category ? { category: query.category } : {}),
+    ...(parsedCategoryKeys.length > 0
+      ? { categoryKeys: parsedCategoryKeys }
+      : query.category
+        ? { category: query.category }
+        : {}),
     page,
     pageSize,
   };
@@ -168,6 +183,7 @@ function buildAppliedQuery(
     ...(query.endDate ? { endDate: query.endDate } : {}),
     ...(query.account ? { account: query.account } : {}),
     ...(query.category ? { category: query.category } : {}),
+    ...(query.categories ? { categories: query.categories } : {}),
   };
 }
 
@@ -208,6 +224,7 @@ export async function getTransactionsPageData(
         ...(resolvedQuery.startDate ? { startDate: resolvedQuery.startDate } : {}),
         ...(resolvedQuery.endDate ? { endDate: resolvedQuery.endDate } : {}),
         ...(resolvedQuery.accountId ? { accountId: resolvedQuery.accountId } : {}),
+        ...(resolvedQuery.categoryKeys?.length ? { categoryKeys: resolvedQuery.categoryKeys } : {}),
         ...(resolvedQuery.category ? { category: resolvedQuery.category } : {}),
       }),
       {

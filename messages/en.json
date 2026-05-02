@@ -1363,10 +1363,31 @@
     },
     "Page": {
       "title": "Budgets",
+      "pageSubtitle": "Track your monthly spending limits.",
+      "skipToMain": "Skip to budgets content",
       "sectionContextTitle": "Member",
       "sectionContextSubtitle": "Choose whose group budgets you are viewing",
       "sectionDetailsTitle": "Budget and period",
       "sectionDetailsSubtitle": "Progress, trend, and linked transactions",
+      "hero": {
+        "totalAvailable": "Total available to spend",
+        "totalBudgeted": "Total budgeted",
+        "totalSpent": "Total spent"
+      },
+      "closePeriod": "Close period",
+      "fabAddBudget": "Add budget",
+      "categoryCard": {
+        "ariaOpenEdit": "Edit budget: {name}",
+        "badgeOnTrack": "On track",
+        "badgeFixed": "Fixed",
+        "badgeOver": "Over budget",
+        "spentLabel": "spent",
+        "of": "of",
+        "footerPaidInFull": "Paid in full",
+        "footerPercentUsed": "{percent}% used",
+        "footerLeft": "{amount} left",
+        "footerOver": "{amount} over"
+      },
       "today": "Today",
       "transactionCount": "{count} {count, plural, one {transaction} other {transactions}}",
       "transactions": {
@@ -1379,12 +1400,6 @@
         "title": "No budget available",
         "description": "Create your first budget to get started",
         "createButton": "Create budget"
-      },
-      "deleteDialog": {
-        "title": "Delete Budget",
-        "message": "Are you sure you want to delete the budget \"{name}\"? This action cannot be undone.",
-        "confirm": "Delete",
-        "cancel": "Cancel"
       }
     },
     "SummaryPage": {
@@ -1441,8 +1456,8 @@
     "Chart": {
       "spentLabel": "You spent",
       "svgTitle": "Cumulative spending trend for the period",
-      "svgDescription": "Line chart of spending accumulated day by day against your budget.",
-      "sectionAriaLabel": "Budget spending trend for the period",
+      "svgDescription": "Line chart of spending accumulated day by day across all your budgets in this period.",
+      "sectionAriaLabel": "Spending trend for all budgets in this period",
       "emptyState": "No spending recorded in this period yet. The chart will appear once there are transactions."
     },
     "FormModal": {
@@ -1483,22 +1498,33 @@
         },
         "categories": {
           "label": "Select categories",
-          "searchPlaceholder": "Search category...",
-          "selectedCount": "{selected}/{total} selected",
+          "searchPlaceholder": "Search categories…",
           "selectAll": "Select all",
           "clear": "Clear",
-          "empty": "No categories found"
+          "empty": "No categories match your search",
+          "ariaRemoveChip": "Remove {label}",
+          "ariaToggleAdd": "Add {label}",
+          "ariaToggleRemove": "Remove {label}",
+          "selectedGroupLabel": "Selected categories",
+          "allGroupLabel": "All categories",
+          "quickActionsLabel": "Bulk actions"
         }
       },
       "buttons": {
         "save": "Save",
         "create": "Create Budget",
-        "cancel": "Cancel"
+        "cancel": "Cancel",
+        "confirmChanges": "Confirm",
+        "deleteBudget": "Delete"
       },
+      "deleteDialogTitle": "Delete budget?",
+      "deleteConfirm": "Delete this budget? This cannot be undone.",
       "toast": {
         "errorTitle": "Error",
         "updatedTitle": "Budget updated",
         "updatedDescription": "Changes saved successfully.",
+        "deletedTitle": "Budget deleted",
+        "deletedDescription": "The budget was removed.",
         "createdTitle": "Budget created",
         "createdDescription": "Budget added successfully.",
         "saveErrorDescription": "Something went wrong while saving",

@@ -802,28 +802,6 @@ export const budgetStyles = {
     chartWrap: 'relative',
     chartArea: 'w-full h-32 rounded',
   },
-  formModal: {
-    form: 'space-y-2',
-    content: 'gap-2',
-    error:
-      'px-3 py-2 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-md',
-    section: 'gap-2',
-    sectionTight: 'gap-1 shrink-0',
-    grid: 'grid grid-cols-1 sm:grid-cols-2 gap-3',
-    categoryField: 'space-y-1',
-    categoryBox: 'space-y-3 rounded-2xl border border-primary/15 bg-card/70 p-3',
-    categoryHeader: 'flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between',
-    categorySelect: 'h-9 text-sm',
-    categoryMeta: 'flex items-center gap-3 text-xs text-primary/60',
-    categoryMetaStrong: 'font-medium',
-    categoryLink: 'text-primary hover:underline disabled:opacity-40',
-    categoryList: 'max-h-60 overflow-y-auto space-y-2 pr-1',
-    categoryEmpty: 'text-sm text-primary/70 px-1 py-4',
-    categoryItem:
-      'flex items-center gap-3 rounded-xl border border-primary/10 bg-card/80 px-3 py-2 text-sm hover:border-primary/40 cursor-pointer',
-    categoryItemRow: 'flex items-center gap-2',
-    categoryDot: 'h-2.5 w-2.5 rounded-full',
-  },
   statusBadge: {
     safe: 'bg-primary/10 text-primary',
     warning: 'bg-warning/10 text-warning',
@@ -918,14 +896,6 @@ export function getChartGradientEndStyle() {
 
 export function getChartDayRowStyle() {
   return { width: '100%' };
-}
-
-export function getChartDayLabelStyle(position: number) {
-  return {
-    left: `${position}%`,
-    transform: 'translateX(-50%)',
-    fontVariantNumeric: 'tabular-nums',
-  };
 }
 
 export function getComparisonStyles(isHigher: boolean) {

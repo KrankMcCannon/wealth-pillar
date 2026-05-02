@@ -56,6 +56,9 @@ export default async function TransactionsPage({
     ...(typeof resolvedSearchParams.category === 'string'
       ? { category: resolvedSearchParams.category }
       : {}),
+    ...(typeof resolvedSearchParams.categories === 'string'
+      ? { categories: resolvedSearchParams.categories }
+      : {}),
     ...(typeof resolvedSearchParams.page === 'string' ? { page: resolvedSearchParams.page } : {}),
     ...(typeof resolvedSearchParams.pageSize === 'string'
       ? { pageSize: resolvedSearchParams.pageSize }

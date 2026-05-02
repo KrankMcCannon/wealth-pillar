@@ -43,6 +43,8 @@ export interface UseTransactionsContentProps {
     endDate?: string;
     account?: string;
     category?: string;
+    /** Chiavi categoria separate da virgola (stesso formato query server). */
+    categories?: string;
   };
 }
 
@@ -90,13 +92,21 @@ function toFiltersFromQuery(
   props: UseTransactionsContentProps['appliedQuery']
 ): TransactionFiltersState {
   const resolvedType = props.type === 'transfer' ? 'all' : props.type;
+  const keysFromCsv = props.categories
+    ? props.categories
+        .split(',')
+        .map((k) => k.trim())
+        .filter(Boolean)
+    : [];
+
   return {
     ...defaultFiltersState,
     searchQuery: props.q ?? '',
     type: resolvedType,
     dateRange: props.dateRange,
-    categoryKey: props.category ?? 'all',
+    categoryKey: keysFromCsv.length > 0 ? 'all' : props.category ?? 'all',
     accountId: props.account ?? 'all',
+    ...(keysFromCsv.length > 0 ? { categoryKeys: keysFromCsv } : {}),
     ...(props.startDate ? { startDate: props.startDate } : {}),
     ...(props.endDate ? { endDate: props.endDate } : {}),
   };
@@ -117,8 +127,11 @@ function buildQueryString(
   if (filters.startDate) params.set('startDate', filters.startDate);
   if (filters.endDate) params.set('endDate', filters.endDate);
   if (filters.accountId && filters.accountId !== 'all') params.set('account', filters.accountId);
-  if (filters.categoryKey && filters.categoryKey !== 'all')
+  if (filters.categoryKeys && filters.categoryKeys.length > 0) {
+    params.set('categories', filters.categoryKeys.join(','));
+  } else if (filters.categoryKey && filters.categoryKey !== 'all') {
     params.set('category', filters.categoryKey);
+  }
   params.set('page', String(page));
   params.set('pageSize', String(pageSize));
   if (page > 1 && cursor) params.set('cursor', cursor);

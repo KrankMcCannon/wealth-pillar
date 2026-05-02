@@ -30,21 +30,49 @@ export function filterTransactionsForBudget(
 }
 
 /**
+ * Transactions nel periodo che ricadono nell’unione delle categorie di più budget
+ * (ogni movimento conta una sola volta — utile per grafici “tutti i budget insieme”).
+ */
+export function filterTransactionsForBudgetsUnion(
+  transactions: Transaction[],
+  budgets: Budget[],
+  periodStart: DateInput | null,
+  periodEnd: DateInput | null
+): Transaction[] {
+  if (!periodStart || budgets.length === 0) return [];
+
+  const categoryKeys = new Set<string>();
+  for (const budget of budgets) {
+    for (const cat of budget.categories) {
+      categoryKeys.add(cat);
+    }
+  }
+
+  if (categoryKeys.size === 0) return [];
+
+  const periodTransactions = filterTransactionsByPeriod(transactions, periodStart, periodEnd);
+  return filterByCategories(periodTransactions, [...categoryKeys]);
+}
+
+/** Spesa effettiva da un elenco di transazioni (stessa regola dei singoli budget). */
+export function effectiveSpentFromTransactions(transactions: Transaction[]): number {
+  const spent = transactions.reduce((sum, t) => {
+    if (t.type === 'income') {
+      return sum - t.amount;
+    }
+    return sum + t.amount;
+  }, 0);
+  return Math.max(0, spent);
+}
+
+/**
  * Calculate progress for a single budget
  */
 export function calculateBudgetProgress(
   budget: Budget,
   transactions: Transaction[]
 ): BudgetProgress {
-  // Calculate spent: expenses and transfers add to spent, income subtracts
-  const spent = transactions.reduce((sum, t) => {
-    if (t.type === 'income') {
-      return sum - t.amount; // Income refills budget
-    }
-    return sum + t.amount; // Expense and transfer consume budget
-  }, 0);
-
-  const effectiveSpent = Math.max(0, spent);
+  const effectiveSpent = effectiveSpentFromTransactions(transactions);
   const remaining = budget.amount - effectiveSpent;
   const percentage = budget.amount > 0 ? (effectiveSpent / budget.amount) * 100 : 0;
 

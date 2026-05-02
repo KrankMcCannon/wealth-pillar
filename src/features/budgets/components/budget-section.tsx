@@ -39,8 +39,8 @@ export const BudgetSection = ({
   const locale = useLocale();
 
   const goToBudgets = useCallback(() => router.push('/budgets'), [router]);
-  const goToBudgetSummary = useCallback(
-    (userId: string) => router.push(`/budgets/summary?userId=${userId}`),
+  const goToMemberBudgets = useCallback(
+    (userId: string) => router.push(`/budgets?userId=${encodeURIComponent(userId)}`),
     [router]
   );
 
@@ -130,7 +130,7 @@ export const BudgetSection = ({
                 type="button"
                 className={stitchHome.budgetUserCard}
                 style={getBudgetGroupCardStyle(index)}
-                onClick={() => goToBudgetSummary(entry.user.id)}
+                onClick={() => goToMemberBudgets(entry.user.id)}
               >
                 <p className={stitchHome.budgetEyebrow}>{t('monthlyBudgetEyebrow')}</p>
 

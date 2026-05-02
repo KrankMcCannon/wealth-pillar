@@ -1,16 +1,13 @@
 /**
- * BudgetChart Component
- * Line chart showing expense trends over time
- * Includes comparison with previous period
+ * BudgetChart — andamento cumulativo delle spese nel periodo (tutti i budget; skin Stitch dark).
  */
 
 'use client';
 
-import { useId } from 'react';
-import { useTranslations } from 'next-intl';
-import { Card } from '@/components/ui';
-import { budgetStyles, getChartDayRowStyle, getChartDayLabelStyle } from '@/styles/system';
-import { formatCurrency } from '@/lib/utils/currency-formatter';
+import { useId, useMemo } from 'react';
+import { useLocale, useTranslations } from 'next-intl';
+import { stitchBudgets, stitchBudgetsChartSvg } from '@/styles/home-design-foundation';
+import { formatCurrencyLocale } from '@/lib/utils/currency-formatter';
 
 export interface ChartDataPoint {
   x: number;
@@ -31,10 +28,11 @@ export interface BudgetChartProps {
 
 export function BudgetChart({ spent, chartData, periodInfo }: Readonly<BudgetChartProps>) {
   const t = useTranslations('Budgets.Chart');
+  const locale = useLocale();
   const titleId = useId().replace(/:/g, '');
   const descId = useId().replace(/:/g, '');
   const labelledBy = `${titleId} ${descId}`;
-  // Generate path for chart line
+
   const generatePath = (points: ChartDataPoint[]): string => {
     if (points.length === 0) return '';
 
@@ -51,7 +49,6 @@ export function BudgetChart({ spent, chartData, periodInfo }: Readonly<BudgetCha
   const path = chartData ? generatePath(chartData) : '';
   const hasLine = Boolean(chartData && chartData.length > 0 && lastPoint);
 
-  // Calculate period days for date labels
   const getPeriodDays = () => {
     if (!periodInfo?.startDate) return 30;
 
@@ -64,23 +61,50 @@ export function BudgetChart({ spent, chartData, periodInfo }: Readonly<BudgetCha
 
   const periodDays = getPeriodDays();
 
+  const visibleDayLabels = useMemo(() => {
+    if (!periodInfo?.startDate || !hasLine) return [];
+
+    const totalDays = Math.min(periodDays, 30);
+    const slots: { index: number; dayOfMonth: number }[] = [];
+
+    for (let index = 0; index < totalDays; index++) {
+      const startDate = new Date(periodInfo.startDate);
+      startDate.setHours(0, 0, 0, 0);
+      const currentDate = new Date(startDate);
+      currentDate.setDate(startDate.getDate() + index);
+      const dayOfMonth = currentDate.getDate();
+      const showDay =
+        index === 0 ||
+        index === totalDays - 1 ||
+        (totalDays > 7 && index % Math.ceil(totalDays / 5) === 0);
+
+      if (showDay) {
+        slots.push({ index, dayOfMonth });
+      }
+    }
+
+    return slots;
+  }, [periodInfo, hasLine, periodDays]);
+
   return (
     <section aria-label={t('sectionAriaLabel')}>
-      <Card className={budgetStyles.chart.card}>
-        <div className={budgetStyles.chart.header}>
+      <div className={stitchBudgets.detailChartCard}>
+        <div className={stitchBudgets.detailChartHeader}>
           <div>
-            <p className={budgetStyles.chart.headerLabel}>{t('spentLabel')}</p>
-            <p className={budgetStyles.chart.headerAmount}>{formatCurrency(spent)}</p>
+            <p className={stitchBudgets.detailChartHeaderLabel}>{t('spentLabel')}</p>
+            <p className={stitchBudgets.detailChartHeaderAmount}>
+              {formatCurrencyLocale(spent, locale)}
+            </p>
           </div>
         </div>
 
-        {!hasLine ? <p className={budgetStyles.chart.emptyHint}>{t('emptyState')}</p> : null}
+        {!hasLine ? <p className={stitchBudgets.detailChartEmpty}>{t('emptyState')}</p> : null}
 
-        <div className={budgetStyles.chart.svgContainer}>
+        <div className={stitchBudgets.detailChartSvgWrap}>
           <svg
-            className={budgetStyles.chart.svg}
+            className={stitchBudgets.detailChartSvg}
             viewBox="0 0 350 180"
-            preserveAspectRatio="none"
+            preserveAspectRatio="xMidYMid meet"
             role={hasLine ? 'img' : undefined}
             aria-hidden={hasLine ? undefined : true}
             aria-labelledby={hasLine ? labelledBy : undefined}
@@ -91,6 +115,17 @@ export function BudgetChart({ spent, chartData, periodInfo }: Readonly<BudgetCha
                 <desc id={descId}>{t('svgDescription')}</desc>
               </>
             ) : null}
+
+            <line
+              x1="0"
+              y1="179.5"
+              x2="350"
+              y2="179.5"
+              stroke={stitchBudgetsChartSvg.gridLine}
+              strokeWidth="1"
+              strokeOpacity={0.85}
+            />
+
             {[25, 50, 75].map((percent) => (
               <line
                 key={percent}
@@ -98,7 +133,7 @@ export function BudgetChart({ spent, chartData, periodInfo }: Readonly<BudgetCha
                 y1={180 - percent * 1.8}
                 x2="350"
                 y2={180 - percent * 1.8}
-                stroke={budgetStyles.chart.gridLineColor}
+                stroke={stitchBudgetsChartSvg.gridLine}
                 strokeWidth="1"
               />
             ))}
@@ -107,56 +142,35 @@ export function BudgetChart({ spent, chartData, periodInfo }: Readonly<BudgetCha
               <>
                 <path
                   d={`${path} L ${lastPoint.x} 180 L 0 180 Z`}
-                  className="fill-primary/10 dark:fill-primary/15"
+                  className={stitchBudgetsChartSvg.areaFillClass}
                 />
                 <path
                   d={path}
                   fill="none"
-                  stroke={budgetStyles.chart.lineStroke}
+                  stroke={stitchBudgetsChartSvg.lineStroke}
                   strokeWidth="2.5"
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 />
-                <circle cx={lastPoint.x} cy={lastPoint.y} r="4" fill={budgetStyles.chart.dotFill} />
+                <circle
+                  cx={lastPoint.x}
+                  cy={lastPoint.y}
+                  r="4"
+                  fill={stitchBudgetsChartSvg.dotFill}
+                />
               </>
             ) : null}
           </svg>
 
-          {periodInfo && hasLine ? (
-            <div className={budgetStyles.chart.dayLabels} aria-hidden="true">
-              <div className={budgetStyles.chart.dayRow} style={getChartDayRowStyle()}>
-                {Array.from({ length: Math.min(periodDays, 30) }).map((_, index) => {
-                  const startDate = new Date(periodInfo.startDate);
-                  startDate.setHours(0, 0, 0, 0);
-                  const currentDate = new Date(startDate);
-                  currentDate.setDate(startDate.getDate() + index);
-                  const dayOfMonth = currentDate.getDate();
-                  const totalDays = Math.min(periodDays, 30);
-                  const showDay =
-                    index === 0 ||
-                    index === totalDays - 1 ||
-                    (totalDays > 7 && index % Math.ceil(totalDays / 5) === 0);
-                  const position = totalDays > 1 ? (index / (totalDays - 1)) * 100 : 50;
-
-                  return (
-                    <span
-                      key={`day-${index}-${currentDate.toISOString().slice(0, 10)}`}
-                      className={`${budgetStyles.chart.dayLabel} ${budgetStyles.chart.dayLabelPosition} ${
-                        showDay
-                          ? budgetStyles.chart.dayLabelVisible
-                          : budgetStyles.chart.dayLabelHidden
-                      }`}
-                      style={getChartDayLabelStyle(position)}
-                    >
-                      {dayOfMonth}
-                    </span>
-                  );
-                })}
-              </div>
+          {visibleDayLabels.length > 0 ? (
+            <div className={stitchBudgets.detailChartDayRow} aria-hidden="true">
+              {visibleDayLabels.map(({ index, dayOfMonth }) => (
+                <span key={`day-${index}`}>{dayOfMonth}</span>
+              ))}
             </div>
           ) : null}
         </div>
-      </Card>
+      </div>
     </section>
   );
 }

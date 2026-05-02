@@ -1363,10 +1363,31 @@
     },
     "Page": {
       "title": "Budget",
+      "pageSubtitle": "Tieni sotto controllo i limiti di spesa mensili.",
+      "skipToMain": "Vai al contenuto budget",
       "sectionContextTitle": "Membro",
       "sectionContextSubtitle": "Scegli per chi visualizzare i budget del gruppo",
       "sectionDetailsTitle": "Budget e periodo",
       "sectionDetailsSubtitle": "Progressi, andamento e transazioni collegate",
+      "hero": {
+        "totalAvailable": "Totale disponibile da spendere",
+        "totalBudgeted": "Totale in budget",
+        "totalSpent": "Totale speso"
+      },
+      "closePeriod": "Chiudi periodo",
+      "fabAddBudget": "Aggiungi budget",
+      "categoryCard": {
+        "ariaOpenEdit": "Modifica budget: {name}",
+        "badgeOnTrack": "In linea",
+        "badgeFixed": "Fisso",
+        "badgeOver": "Oltre il budget",
+        "spentLabel": "spesi",
+        "of": "di",
+        "footerPaidInFull": "Saldato",
+        "footerPercentUsed": "{percent}% usato",
+        "footerLeft": "{amount} rimanenti",
+        "footerOver": "{amount} oltre"
+      },
       "today": "Oggi",
       "transactionCount": "{count} {count, plural, one {transazione} other {transazioni}}",
       "transactions": {
@@ -1379,12 +1400,6 @@
         "title": "Nessun budget disponibile",
         "description": "Crea il tuo primo budget per iniziare",
         "createButton": "Crea budget"
-      },
-      "deleteDialog": {
-        "title": "Elimina Budget",
-        "message": "Sei sicuro di voler eliminare il budget \"{name}\"? Questa azione non può essere annullata.",
-        "confirm": "Elimina",
-        "cancel": "Annulla"
       }
     },
     "SummaryPage": {
@@ -1441,8 +1456,8 @@
     "Chart": {
       "spentLabel": "Hai speso",
       "svgTitle": "Andamento cumulativo delle spese nel periodo",
-      "svgDescription": "Grafico a linee delle spese accumulate giorno per giorno rispetto al budget.",
-      "sectionAriaLabel": "Andamento delle spese nel periodo del budget",
+      "svgDescription": "Grafico a linee delle spese accumulate giorno per giorno su tutti i budget di questo periodo.",
+      "sectionAriaLabel": "Andamento delle spese su tutti i budget nel periodo",
       "emptyState": "Non ci sono ancora spese registrate in questo periodo: il grafico comparirà quando ci saranno movimenti."
     },
     "FormModal": {
@@ -1483,22 +1498,33 @@
         },
         "categories": {
           "label": "Seleziona categorie",
-          "searchPlaceholder": "Cerca categoria...",
-          "selectedCount": "{selected}/{total} selezionate",
+          "searchPlaceholder": "Cerca categorie…",
           "selectAll": "Seleziona tutto",
           "clear": "Pulisci",
-          "empty": "Nessuna categoria trovata"
+          "empty": "Nessuna categoria corrisponde alla ricerca",
+          "ariaRemoveChip": "Rimuovi {label}",
+          "ariaToggleAdd": "Aggiungi {label}",
+          "ariaToggleRemove": "Rimuovi {label}",
+          "selectedGroupLabel": "Categorie selezionate",
+          "allGroupLabel": "Tutte le categorie",
+          "quickActionsLabel": "Azioni rapide"
         }
       },
       "buttons": {
         "save": "Salva",
         "create": "Crea Budget",
-        "cancel": "Annulla"
+        "cancel": "Annulla",
+        "confirmChanges": "Conferma",
+        "deleteBudget": "Elimina"
       },
+      "deleteDialogTitle": "Eliminare il budget?",
+      "deleteConfirm": "Eliminare questo budget? L'operazione non può essere annullata.",
       "toast": {
         "errorTitle": "Errore",
         "updatedTitle": "Budget aggiornato",
         "updatedDescription": "Modifiche salvate correttamente.",
+        "deletedTitle": "Budget eliminato",
+        "deletedDescription": "Il budget è stato rimosso.",
         "createdTitle": "Budget creato",
         "createdDescription": "Budget aggiunto correttamente.",
         "saveErrorDescription": "Errore durante il salvataggio",

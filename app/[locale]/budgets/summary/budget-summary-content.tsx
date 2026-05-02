@@ -37,6 +37,7 @@ export default function BudgetSummaryContent({
     currentActiveUserId,
     handleUserSelect,
     router,
+    targetUser,
   } = useBudgetSummaryContent({
     categories,
     budgets,
@@ -76,7 +77,9 @@ export default function BudgetSummaryContent({
                 <BudgetSummaryActiveList
                   userSummary={userSummary}
                   budgets={budgets}
-                  onBudgetClick={(id) => router.push(`/budgets?budget=${id}`)}
+                  onBudgetClick={() =>
+                    router.push(`/budgets?userId=${encodeURIComponent(targetUser.id)}`)
+                  }
                 />
               </div>
             </div>

@@ -1,31 +1,18 @@
 /**
  * useBudgetsContent Hook
  *
- * Extracts business logic from BudgetsContent component.
- * Handles:
- * - Store initialization for optimistic updates
- * - Budget selection with URL integration
- * - Budget filtering by user
- * - Period and summary calculations
- * - Transaction filtering and grouping
- * - Chart data generation
- * - CRUD handlers
+ * Budgets page: target member via `?userId=` (from home); no `?budget=` URL.
+ * Selected budget for detail/chart/transactions is client state only.
  */
 
 import { useState, useMemo, useEffect, useLayoutEffect, useCallback, useRef } from 'react';
-import { useSearchParams, useRouter as useNextRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
-import {
-  useDeleteConfirmation,
-  useIdNameMap,
-  usePermissions,
-  useFilteredData,
-  useBudgetsByUser,
-  useUserFilter,
-} from '@/hooks';
+import { useBudgetsByUser, useIdNameMap } from '@/hooks';
 import { useModalState } from '@/lib/navigation/url-state';
 import { usePageDataStore } from '@/stores/page-data-store';
-import { deleteBudgetAction } from '@/features/budgets/actions/budget-actions';
+import { useUserFilterStore } from '@/stores/user-filter-store';
+import { canAccessUserData, isAdmin as checkIsAdmin } from '@/lib/utils/permissions';
 import {
   toDateTime,
   toDateString,
@@ -34,7 +21,10 @@ import {
   formatDateShort,
   diffInDays,
 } from '@/lib/utils/date-utils';
-import { filterTransactionsForBudget } from '@/server/use-cases/budgets/budget.logic';
+import {
+  filterTransactionsForBudgetsUnion,
+  effectiveSpentFromTransactions,
+} from '@/server/use-cases/budgets/budget.logic';
 import type {
   Category,
   Budget,
@@ -79,42 +69,33 @@ interface BudgetProgressData {
 }
 
 export interface UseBudgetsContentReturn {
-  // Router
   readonly router: ReturnType<typeof useRouter>;
-
-  // User
   readonly currentUser: User;
   readonly groupUsers: User[];
-  readonly selectedUserId: string | undefined;
+  /** Member whose budgets are shown (from URL or current user). */
+  readonly budgetContextUserId: string;
   readonly isAdmin: boolean;
 
-  // Selection state
   readonly selectedBudget: Budget | null;
   readonly selectedBudgetId: string | null;
   readonly setSelectedBudgetId: (id: string | null) => void;
   readonly selectedBudgetProgress: BudgetProgressData | null;
   readonly userBudgets: Budget[];
+  readonly userBudgetSummary: UserBudgetSummary | null;
 
-  // Computed data
   readonly periodInfo: PeriodInfo | null;
   readonly groupedTransactions: GroupedTransaction[];
+  /** Spesa cumulativa nel periodo su tutti i budget (union categorie), allineata al grafico. */
+  readonly chartAggregateSpent: number;
   readonly chartData: ChartDataPoint[] | null;
   readonly transactionSectionSubtitle: string;
   readonly accountNamesMap: Record<string, string>;
   readonly categories: Category[];
 
-  // Handlers
   readonly handleBudgetSelect: (budgetId: string) => void;
   readonly handleCreateBudget: () => void;
-  readonly handleEditBudget: () => void;
-  readonly handleDeleteBudget: (budget: Budget) => void;
-  readonly confirmDeleteBudget: () => Promise<void>;
+  readonly handleEditBudgetById: (budgetId: string) => void;
 
-  // Delete confirmation state
-  readonly deleteConfirm: ReturnType<typeof useDeleteConfirmation<Budget>>;
-  readonly handleCancelDelete: () => void;
-
-  // Modal
   readonly openModal: ReturnType<typeof useModalState>['openModal'];
 }
 
@@ -133,25 +114,35 @@ export function useBudgetsContent({
   precalculatedData,
 }: UseBudgetsContentProps): UseBudgetsContentReturn {
   const router = useRouter();
-  const nextRouter = useNextRouter();
   const searchParams = useSearchParams();
   const locale = useLocale();
   const t = useTranslations('Budgets.Page');
 
-  // ========================================================================
-  // Store Initialization
-  // ========================================================================
+  const userIdFromUrl = searchParams.get('userId');
+  const setSelectedGroupFilter = useUserFilterStore((state) => state.setSelectedGroupFilter);
+
+  const budgetContextUserId = useMemo(() => {
+    if (!userIdFromUrl) return currentUser.id;
+    const inGroup = groupUsers.some((u) => u.id === userIdFromUrl);
+    if (!inGroup) return currentUser.id;
+    if (!canAccessUserData(currentUser, userIdFromUrl)) return currentUser.id;
+    return userIdFromUrl;
+  }, [userIdFromUrl, currentUser, groupUsers]);
+
+  useEffect(() => {
+    if (!userIdFromUrl) return;
+    const inGroup = groupUsers.some((u) => u.id === userIdFromUrl);
+    if (!inGroup || !canAccessUserData(currentUser, userIdFromUrl)) return;
+    setSelectedGroupFilter(userIdFromUrl);
+  }, [userIdFromUrl, groupUsers, currentUser, setSelectedGroupFilter]);
+
+  const isAdmin = checkIsAdmin(currentUser);
 
   const storeBudgets = usePageDataStore((state) => state.budgets);
   const setBudgets = usePageDataStore((state) => state.setBudgets);
   const setBudgetPeriods = usePageDataStore((state) => state.setBudgetPeriods);
-  const removeBudget = usePageDataStore((state) => state.removeBudget);
-  const addBudget = usePageDataStore((state) => state.addBudget);
-
-  /** After optimistic budget mutations, prefer store even when empty so we do not flash stale server props */
   const userMutatedBudgetsRef = useRef(false);
 
-  // Sync server payload before paint; reset mutation flag when a new server payload arrives
   useLayoutEffect(() => {
     userMutatedBudgetsRef.current = false;
     setBudgets(budgets);
@@ -165,53 +156,14 @@ export function useBudgetsContent({
         ? storeBudgets
         : budgets;
 
-  // ========================================================================
-  // User Filtering & Permissions
-  // ========================================================================
+  const userBudgets = useMemo(
+    () => budgetsForLists.filter((b) => b.user_id === budgetContextUserId && b.amount > 0),
+    [budgetsForLists, budgetContextUserId]
+  );
 
-  const { selectedUserId } = useUserFilter();
+  const [selectedBudgetId, setSelectedBudgetId] = useState<string | null>(null);
 
-  const { isAdmin } = usePermissions({
-    currentUser,
-    selectedUserId,
-  });
-
-  // ========================================================================
-  // Budget Selection State
-  // ========================================================================
-
-  const initialBudgetId = searchParams.get('budget');
-
-  // Filter budgets by selected user
-  const { filteredData: userBudgets } = useFilteredData({
-    data: budgetsForLists,
-    currentUser,
-    selectedUserId,
-    additionalFilter: (budget) => budget.amount > 0,
-  });
-
-  // Selected budget state - initialized from URL or first available budget
-  const [selectedBudgetId, setSelectedBudgetId] = useState<string | null>(() => {
-    if (initialBudgetId) {
-      const budget = budgets.find((b) => b.id === initialBudgetId);
-      if (budget && budget.amount > 0) {
-        if (isAdmin) {
-          const groupUserIds = groupUsers.map((u) => u.id);
-          if (groupUserIds.includes(budget.user_id)) return initialBudgetId;
-        }
-        if (budget.user_id === currentUser.id) return initialBudgetId;
-      }
-    }
-    return null;
-  });
-
-  // Modal state management (URL-based)
   const { openModal } = useModalState();
-
-  // Delete confirmation state
-  const deleteConfirm = useDeleteConfirmation<Budget>();
-
-  // Set first budget if no budget selected
   useEffect(() => {
     if (!selectedBudgetId && userBudgets.length > 0) {
       const first = userBudgets[0];
@@ -219,16 +171,11 @@ export function useBudgetsContent({
     }
   }, [selectedBudgetId, userBudgets]);
 
-  // Update selected budget when userBudgets changes
   useEffect(() => {
     if (selectedBudgetId && !userBudgets.some((b) => b.id === selectedBudgetId)) {
       setSelectedBudgetId(userBudgets[0]?.id || null);
     }
   }, [userBudgets, selectedBudgetId]);
-
-  // ========================================================================
-  // Computed Budget Data
-  // ========================================================================
 
   const selectedBudget = useMemo(() => {
     if (selectedBudgetId) {
@@ -237,27 +184,24 @@ export function useBudgetsContent({
     return userBudgets[0] || null;
   }, [selectedBudgetId, userBudgets]);
 
-  const selectedBudgetUser = useMemo(() => {
-    if (!selectedBudget) return currentUser;
-    return groupUsers.find((u) => u.id === selectedBudget.user_id) || currentUser;
-  }, [selectedBudget, groupUsers, currentUser]);
+  const budgetContextUser = useMemo(
+    () => groupUsers.find((u) => u.id === budgetContextUserId) || currentUser,
+    [groupUsers, budgetContextUserId, currentUser]
+  );
 
-  // Memoize users list for hook to prevent infinite loops
-  const hookGroupUsers = useMemo(() => [selectedBudgetUser], [selectedBudgetUser]);
+  const hookGroupUsers = useMemo(() => [budgetContextUser], [budgetContextUser]);
 
-  // Calculate budget summary for the selected budget's user
   const { budgetsByUser } = useBudgetsByUser({
     groupUsers: hookGroupUsers,
     budgets: budgetsForLists,
     transactions,
     currentUser,
-    selectedUserId: selectedBudgetUser.id,
+    selectedUserId: budgetContextUserId,
     budgetPeriods,
     precalculatedData,
   });
-  const userBudgetSummary = budgetsByUser[selectedBudgetUser.id] || null;
+  const userBudgetSummary = budgetsByUser[budgetContextUserId] ?? null;
 
-  // Get budget progress for selected budget
   const selectedBudgetProgress = useMemo((): BudgetProgressData | null => {
     if (!selectedBudget || !userBudgetSummary) return null;
     const progress = userBudgetSummary.budgets.find((b) => b.id === selectedBudget.id);
@@ -272,7 +216,6 @@ export function useBudgetsContent({
     };
   }, [selectedBudget, userBudgetSummary]);
 
-  // Get period info for current user
   const periodInfo = useMemo((): PeriodInfo | null => {
     if (!userBudgetSummary) return null;
     return {
@@ -282,28 +225,25 @@ export function useBudgetsContent({
     };
   }, [userBudgetSummary]);
 
-  // ========================================================================
-  // Account Names Map
-  // ========================================================================
-
   const accountNamesMap = useIdNameMap(accounts);
 
-  // ========================================================================
-  // Transaction Filtering & Grouping
-  // ========================================================================
-
-  const budgetTransactions = useMemo(() => {
-    if (!selectedBudget || !periodInfo) return [];
+  /** Transazioni del periodo per l’unione delle categorie di tutti i budget (grafico + lista). */
+  const allBudgetsPeriodTransactions = useMemo(() => {
+    if (!periodInfo?.start || userBudgets.length === 0) return [];
 
     const periodStart = periodInfo.start ? toDateTime(periodInfo.start) : null;
     const periodEnd = periodInfo.end ? toDateTime(periodInfo.end) : null;
 
-    const userTransactions = transactions.filter((t) => t.user_id === selectedBudgetUser.id);
+    const userTransactions = transactions.filter((t) => t.user_id === budgetContextUser.id);
 
-    return filterTransactionsForBudget(userTransactions, selectedBudget, periodStart, periodEnd);
-  }, [selectedBudget, selectedBudgetUser, transactions, periodInfo]);
+    return filterTransactionsForBudgetsUnion(userTransactions, userBudgets, periodStart, periodEnd);
+  }, [periodInfo, userBudgets, budgetContextUser, transactions]);
 
-  // Generate subtitle for transaction section
+  const chartAggregateSpent = useMemo(
+    () => effectiveSpentFromTransactions(allBudgetsPeriodTransactions),
+    [allBudgetsPeriodTransactions]
+  );
+
   const transactionSectionSubtitle = useMemo(() => {
     if (periodInfo?.start) {
       const startDt = toDateTime(periodInfo.start);
@@ -314,16 +254,15 @@ export function useBudgetsContent({
       return `${startFormatted} - ${endFormatted}`;
     }
 
-    const count = selectedBudgetProgress?.transactionCount ?? 0;
+    const count = allBudgetsPeriodTransactions.length;
     return t('transactionCount', { count });
-  }, [periodInfo, selectedBudgetProgress, locale, t]);
+  }, [periodInfo, allBudgetsPeriodTransactions.length, locale, t]);
 
-  // Group transactions by date
   const groupedTransactions = useMemo((): GroupedTransaction[] => {
-    if (budgetTransactions.length === 0) return [];
+    if (allBudgetsPeriodTransactions.length === 0) return [];
 
     const groupedMap: Record<string, Transaction[]> = {};
-    for (const transaction of budgetTransactions) {
+    for (const transaction of allBudgetsPeriodTransactions) {
       const dateKey = toDateString(transaction.date);
       if (!groupedMap[dateKey]) {
         groupedMap[dateKey] = [];
@@ -342,16 +281,12 @@ export function useBudgetsContent({
           if (!dtA || !dtB) return 0;
           return dtB.toMillis() - dtA.toMillis();
         }),
-        total: txs.reduce((sum, t) => sum + t.amount, 0),
+        total: txs.reduce((sum, tx) => sum + tx.amount, 0),
       }));
-  }, [budgetTransactions, locale]);
-
-  // ========================================================================
-  // Chart Data Generation
-  // ========================================================================
+  }, [allBudgetsPeriodTransactions, locale]);
 
   const chartData = useMemo((): ChartDataPoint[] | null => {
-    if (!periodInfo?.start || budgetTransactions.length === 0) return null;
+    if (!periodInfo?.start || allBudgetsPeriodTransactions.length === 0) return null;
 
     const startDate = toDateTime(periodInfo.start);
     const endDate = periodInfo.end ? toDateTime(periodInfo.end) : luxonToday();
@@ -362,18 +297,16 @@ export function useBudgetsContent({
     const totalDays = diffInDays(startDate, endDate);
     if (totalDays <= 0) return null;
 
-    // Group transactions by date and calculate cumulative spending
     const dailySpending: Record<string, number> = {};
-    for (const t of budgetTransactions) {
-      const dateKey = toDateString(t.date);
-      const amount = t.type === 'income' ? -t.amount : t.amount;
+    for (const tx of allBudgetsPeriodTransactions) {
+      const dateKey = toDateString(tx.date);
+      const amount = tx.type === 'income' ? -tx.amount : tx.amount;
       dailySpending[dateKey] = (dailySpending[dateKey] || 0) + amount;
     }
 
-    // Generate chart points
     const points: ChartDataPoint[] = [];
     let cumulative = 0;
-    const maxAmount = selectedBudgetProgress?.amount || 1;
+    const maxAmount = Math.max(1, userBudgetSummary?.totalBudget ?? 1);
     const daysDenominator = Math.max(1, totalDays - 1);
 
     for (let i = 0; i < totalDays; i++) {
@@ -383,7 +316,6 @@ export function useBudgetsContent({
       cumulative += dailySpending[dateKey] || 0;
       const isFuture = currentDate > today;
 
-      // Scale to SVG coordinates (350 width, 180 height)
       const x = (i / daysDenominator) * 350;
       const y = 180 - (cumulative / maxAmount) * 150;
 
@@ -397,11 +329,7 @@ export function useBudgetsContent({
     }
 
     return points;
-  }, [periodInfo, budgetTransactions, selectedBudgetProgress]);
-
-  // ========================================================================
-  // Handlers
-  // ========================================================================
+  }, [periodInfo, allBudgetsPeriodTransactions, userBudgetSummary?.totalBudget]);
 
   const handleBudgetSelect = useCallback((budgetId: string) => {
     setSelectedBudgetId(budgetId);
@@ -411,76 +339,35 @@ export function useBudgetsContent({
     openModal('budget');
   }, [openModal]);
 
-  const handleEditBudget = useCallback(() => {
-    if (selectedBudget) {
-      openModal('budget', selectedBudget.id);
-    }
-  }, [selectedBudget, openModal]);
-
-  const handleDeleteBudget = useCallback(
-    (budget: Budget) => {
-      deleteConfirm.openDialog(budget);
+  const handleEditBudgetById = useCallback(
+    (budgetId: string) => {
+      openModal('budget', budgetId);
     },
-    [deleteConfirm]
+    [openModal]
   );
-
-  const confirmDeleteBudget = useCallback(async () => {
-    await deleteConfirm.executeDelete(async (budget) => {
-      userMutatedBudgetsRef.current = true;
-      // Optimistic UI update
-      removeBudget(budget.id);
-
-      try {
-        const result = await deleteBudgetAction(budget.id, locale);
-
-        if (result.error) {
-          addBudget(budget);
-          console.error('[useBudgetsContent] Delete error:', result.error);
-          throw new Error(result.error);
-        }
-
-        nextRouter.refresh();
-
-        // Clear selected budget if it was deleted
-        if (selectedBudgetId === budget.id) {
-          setSelectedBudgetId(null);
-        }
-      } catch (error) {
-        addBudget(budget);
-        console.error('[useBudgetsContent] Error deleting budget:', error);
-        throw error;
-      }
-    });
-  }, [deleteConfirm, removeBudget, addBudget, selectedBudgetId, locale, nextRouter]);
-
-  // ========================================================================
-  // Return
-  // ========================================================================
 
   return {
     router,
     currentUser,
     groupUsers,
-    selectedUserId,
+    budgetContextUserId,
     isAdmin,
     selectedBudget,
     selectedBudgetId,
     setSelectedBudgetId,
     selectedBudgetProgress,
     userBudgets,
+    userBudgetSummary,
     periodInfo,
     groupedTransactions,
+    chartAggregateSpent,
     chartData,
     transactionSectionSubtitle,
     accountNamesMap,
     categories,
     handleBudgetSelect,
     handleCreateBudget,
-    handleEditBudget,
-    handleDeleteBudget,
-    confirmDeleteBudget,
-    deleteConfirm,
-    handleCancelDelete: () => deleteConfirm.closeDialog(),
+    handleEditBudgetById,
     openModal,
   };
 }
