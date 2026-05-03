@@ -14,11 +14,7 @@ import {
   SkipToMainLink,
 } from '@/components/layout';
 import { EmptyState } from '@/components/shared';
-import {
-  BudgetChart,
-  BudgetsSummaryHero,
-  BudgetCategoryCard,
-} from '@/features/budgets/components';
+import { BudgetChart, BudgetsSummaryHero, BudgetCategoryCard } from '@/features/budgets/components';
 import { TransactionDayList } from '@/features/transactions';
 import { useBudgetsContent, type UseBudgetsContentProps } from '@/features/budgets';
 import type { User, UserBudgetSummary } from '@/lib/types';

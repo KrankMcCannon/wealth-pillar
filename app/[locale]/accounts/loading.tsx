@@ -8,7 +8,6 @@
 
 import { PageContainer, BottomNavigation } from '@/components/layout';
 import { accountStyles } from '@/features/accounts';
-import { reportsStyles } from '@/styles/system';
 import {
   AccountHeaderSkeleton,
   AccountListSkeleton,
@@ -31,23 +30,23 @@ export default function AccountsLoading() {
       <div className={accountStyles.loading.body}>
         <AccountHeaderSkeleton />
 
-        <main className={reportsStyles.main.container} aria-busy="true">
-          <section className={reportsStyles.section.surfaceQuiet}>
-            <div className="space-y-3 sm:space-y-4">
+        <main className={accountStyles.pageLayout.main} aria-busy="true">
+          <section className={accountStyles.pageLayout.surfaceQuiet}>
+            <div className="space-y-3">
               <SectionHeadingSkeleton />
               <SkeletonBox height="h-32" variant="medium" className="w-full" />
             </div>
           </section>
-          <section className={reportsStyles.section.surface}>
-            <div className="space-y-3 sm:space-y-4">
+          <section className={accountStyles.pageLayout.surface}>
+            <div className="space-y-3">
               <SectionHeadingSkeleton />
               <div className={accountStyles.balanceCard.container}>
                 <BalanceCardSkeleton />
               </div>
             </div>
           </section>
-          <section className={reportsStyles.section.surfaceEmphasis}>
-            <div className="space-y-3 sm:space-y-4">
+          <section className={accountStyles.pageLayout.surfaceEmphasis}>
+            <div className="space-y-3">
               <SectionHeadingSkeleton />
               <AccountListSkeleton />
             </div>

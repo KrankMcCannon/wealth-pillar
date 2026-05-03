@@ -395,135 +395,59 @@
   },
   "ReportsContent": {
     "headerTitle": "Rapporti",
-    "flowHint": "Inizia dalla panoramica gruppo. Apri «Dettaglio membro» solo quando vuoi approfondire una persona.",
-    "flowHintDismissAria": "Non mostrare più questo suggerimento",
-    "sectionGroupTitle": "Panoramica gruppo",
-    "sectionGroupSubtitle": "Saldo, trend e spese per categoria nell’intervallo sopra.",
-    "sectionChartsTitle": "Andamento e categorie",
-    "sectionChartsSubtitle": "Transazioni aggregate di tutti i membri nel periodo scelto.",
+    "skipToMain": "Vai al contenuto dei rapporti",
     "sectionMemberTitle": "Dettaglio membro",
-    "sectionMemberSubtitle": "Scegli chi approfondire: conti, flussi e periodi.",
+    "sectionMemberSubtitle": "Scegli qualcuno per vedere lo stesso riepilogo sulle sue transazioni nell’intervallo sopra.",
     "memberSectionExpand": "Apri dettaglio membro",
-    "memberSectionCollapse": "Chiudi dettaglio membro",
-    "sectionBudgetFlowAriaLabel": "Flusso budget per il membro selezionato",
-    "sectionPeriodsAriaLabel": "Storico periodi"
+    "memberSectionCollapse": "Chiudi dettaglio membro"
   },
   "Reports": {
-    "SummarySection": {
-      "title": "Riepilogo",
-      "totalBalance": "Saldo totale",
-      "groupBalanceFootnote": "Tutti i conti del gruppo",
-      "memberBalanceFootnote": "Conti collegati a {name}",
-      "groupInPeriod": "Tutto il gruppo · periodo selezionato",
-      "groupAllTime": "Tutto il gruppo · tutti i periodi",
-      "memberInPeriod": "{name} · periodo selezionato",
-      "memberAllTime": "{name} · tutti i periodi",
-      "netFlow": "Flusso netto",
-      "income": "Entrate",
-      "expenses": "Uscite",
-      "savingsRate": "tasso di risparmio",
-      "incomeLabel": "Entrate",
-      "expensesLabel": "Uscite",
-      "empty": "Nessun conto da mostrare per il gruppo.",
-      "emptyDescription": "Aggiungi un conto o registra transazioni per vedere qui saldi e andamenti.",
-      "emptyCta": "Vai alle transazioni"
-    },
-    "PeriodsSection": {
-      "title": "Storico periodi",
-      "empty": "Nessun periodo in questo intervallo."
-    },
-    "CategoriesSection": {
-      "title": "Ripartizione Categorie",
-      "incomeTitle": "Entrate",
-      "expensesTitle": "Uscite",
-      "empty": "Nessun dato disponibile."
-    },
-    "Charts": {
-      "timeTrendsTitle": "Andamento Entrate e Uscite",
-      "timeTrendsSubtitle": "Stessi dati di riepilogo e grafico categorie; periodo dal selettore sopra.",
-      "categoryDistributionTitle": "Spese per categoria",
-      "categoryDistributionSubtitle": "Ripartizione delle spese di gruppo per categoria",
-      "flowTitle": "Flusso del Budget",
-      "flowSubtitle": "Movimenti tra i tipi di conto collegati al membro",
-      "income": "Entrate",
-      "expense": "Uscite",
-      "total": "Totale",
-      "noData": "Nessun dato per questo periodo.",
-      "chartLegendAriaLabel": "Legenda: barre verdi entrate, barre rosse uscite",
-      "categoryListRegionAria": "Importi di spesa per categoria",
-      "categoryListScrollHint": "Scorri l’elenco per vedere tutte le categorie",
-      "net": "Netto",
-      "in": "Entrate",
-      "out": "Uscite",
-      "accountTypes": {
-        "payroll": "Stipendio",
-        "cash": "Contante",
-        "savings": "Risparmio"
-      }
-    },
-    "BudgetPeriodMetrics": {
-      "startBalance": "Saldo Iniziale",
-      "totalIncome": "Entrate Totali",
-      "totalSpent": "Uscite Totali",
-      "endBalance": "Saldo Finale",
-      "totalTransfers": "Trasferimenti"
-    },
-    "BudgetPeriodTransactions": {
-      "title": "Transazioni ({count})",
-      "viewAll": "Vedi tutte",
-      "empty": "Nessuna transazione in questo periodo"
-    },
-    "BudgetPeriodsSection": {
-      "emptyTitle": "Nessun periodo configurato",
-      "emptyDescription": "I periodi vengono creati automaticamente quando imposti la data di inizio budget nelle impostazioni."
-    },
-    "TimeRangeSelector": {
-      "label": "Periodo",
-      "ariaLabel": "Intervallo del rapporto",
-      "filterAppliesHint": "Vale per tutto il rapporto: panoramica gruppo, grafici e dettaglio membro.",
-      "allTime": "Tutto il periodo",
-      "last7Days": "Ultimi 7 giorni",
-      "last30Days": "Ultimi 30 giorni",
-      "last3Months": "Ultimi 3 mesi",
-      "last6Months": "Ultimi 6 mesi",
-      "lastYear": "Ultimi 12 mesi",
-      "moreRangesShow": "Altri intervalli",
-      "moreRangesHide": "Meno intervalli",
-      "moreRangesAriaLabel": "Intervalli di tempo aggiuntivi",
-      "customRange": "Personalizzato",
+    "TimeFilter": {
+      "ariaLabel": "Periodo del rapporto",
+      "monthly": "Mensile",
+      "weekly": "Settimanale",
+      "yearly": "Annuale",
+      "custom": "Personalizzato",
+      "customTitle": "Intervallo personalizzato",
       "from": "Da",
       "to": "A",
       "apply": "Applica"
     },
-    "TimeTrendsChart": {
-      "title": "Andamento Spese",
-      "income": "Entrate",
-      "expense": "Uscite"
-    },
-    "CategoryDistribution": {
-      "title": "Spese per Categoria",
-      "total": "Totale Uscite"
-    },
-    "BudgetFlowVisualizer": {
-      "title": "Flusso del Budget",
-      "start": "Inizio",
+    "Hero": {
+      "srHeading": "Riepilogo finanziario",
+      "netFlow": "Flusso netto",
       "income": "Entrate",
       "expense": "Uscite",
-      "end": "Fine"
+      "noComparison": "Storico insufficiente per il confronto.",
+      "vsLastMonth": "rispetto al mese scorso",
+      "vsLastWeek": "rispetto alla settimana scorsa",
+      "vsLastYear": "rispetto all’anno scorso",
+      "vsPreviousRange": "rispetto al periodo precedente"
     },
-    "PeriodCard": {
-      "balanceLabel": "Saldo",
-      "incomeLabel": "Entrate",
-      "expensesLabel": "Uscite",
-      "netLabel": "Netto",
-      "netSavingsLabel": "Netto",
-      "byAccountTypeTitle": "Dettaglio per conto",
-      "inLabel": "Entrate",
-      "outLabel": "Uscite",
-      "showDetails": "Mostra per conto",
-      "hideDetails": "Nascondi",
-      "showDetailsAriaLabel": "Mostra dettaglio per conto per il periodo {period}",
-      "hideDetailsAriaLabel": "Nascondi dettaglio per conto per il periodo {period}"
+    "TopExpenses": {
+      "title": "Spese principali",
+      "empty": "Nessuna uscita in questo intervallo."
+    },
+    "AccountBreakdown": {
+      "title": "Ripartizione conti",
+      "empty": "Nessun conto da mostrare.",
+      "percentOfWealth": "{percent}% del patrimonio",
+      "types": {
+        "checking": "Conto corrente",
+        "savings": "Risparmio",
+        "payroll": "Stipendio",
+        "cash": "Contante",
+        "investments": "Investimenti",
+        "other": "Altro"
+      }
+    },
+    "HistoricalBudget": {
+      "title": "Budget storico",
+      "empty": "Nessun periodo budget si sovrappone a questo intervallo.",
+      "startingBalance": "Saldo iniziale",
+      "closingBalance": "Saldo finale",
+      "badgeOnTrack": "In linea",
+      "badgeOverBudget": "Fuori budget"
     }
   },
   "InvestmentsPage": {

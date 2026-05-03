@@ -309,4 +309,15 @@ export const accountStyles = {
     checkboxLabel:
       'text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70',
   },
+
+  /** Layout lista conti (prima condiviso con reportsStyles — mobile-only, single column). */
+  pageLayout: {
+    main: 'flex flex-col gap-7 px-4 py-4 pb-20',
+    surfaceQuiet:
+      'rounded-2xl border border-border/55 bg-muted/20 p-3 shadow-none ring-0 dark:border-border/50 dark:bg-muted/15',
+    surface:
+      'rounded-2xl border border-primary/15 bg-card/90 shadow-sm ring-1 ring-black/4 dark:ring-white/6 p-3',
+    surfaceEmphasis:
+      'rounded-2xl border border-primary/25 bg-card/95 shadow-md ring-1 ring-primary/10 dark:ring-primary/15 p-3',
+  },
 };

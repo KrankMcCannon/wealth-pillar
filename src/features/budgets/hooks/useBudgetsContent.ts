@@ -5,7 +5,7 @@
  * Selected budget for detail/chart/transactions is client state only.
  */
 
-import { useState, useMemo, useEffect, useLayoutEffect, useCallback, useRef } from 'react';
+import { useState, useMemo, useEffect, useLayoutEffect, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import { useBudgetsByUser, useIdNameMap } from '@/hooks';
@@ -141,41 +141,37 @@ export function useBudgetsContent({
   const storeBudgets = usePageDataStore((state) => state.budgets);
   const setBudgets = usePageDataStore((state) => state.setBudgets);
   const setBudgetPeriods = usePageDataStore((state) => state.setBudgetPeriods);
-  const userMutatedBudgetsRef = useRef(false);
 
   useLayoutEffect(() => {
-    userMutatedBudgetsRef.current = false;
     setBudgets(budgets);
     setBudgetPeriods(budgetPeriods);
   }, [budgets, budgetPeriods, setBudgets, setBudgetPeriods]);
 
+  /** Prefer store once hydrated; before that, use server `budgets` when non-empty. */
   const budgetsForLists =
-    storeBudgets.length > 0
-      ? storeBudgets
-      : budgets.length === 0 || userMutatedBudgetsRef.current
-        ? storeBudgets
-        : budgets;
+    storeBudgets.length > 0 ? storeBudgets : budgets.length === 0 ? storeBudgets : budgets;
 
   const userBudgets = useMemo(
     () => budgetsForLists.filter((b) => b.user_id === budgetContextUserId && b.amount > 0),
     [budgetsForLists, budgetContextUserId]
   );
 
-  const [selectedBudgetId, setSelectedBudgetId] = useState<string | null>(null);
+  /** Explicit tab/card selection; when null or stale, selection falls back to the first budget. */
+  const [userSelectedBudgetId, setUserSelectedBudgetId] = useState<string | null>(null);
+
+  const selectedBudgetId = useMemo(() => {
+    const firstId = userBudgets[0]?.id ?? null;
+    if (userSelectedBudgetId != null && userBudgets.some((b) => b.id === userSelectedBudgetId)) {
+      return userSelectedBudgetId;
+    }
+    return firstId;
+  }, [userBudgets, userSelectedBudgetId]);
+
+  const setSelectedBudgetId = useCallback((id: string | null) => {
+    setUserSelectedBudgetId(id);
+  }, []);
 
   const { openModal } = useModalState();
-  useEffect(() => {
-    if (!selectedBudgetId && userBudgets.length > 0) {
-      const first = userBudgets[0];
-      if (first) setSelectedBudgetId(first.id);
-    }
-  }, [selectedBudgetId, userBudgets]);
-
-  useEffect(() => {
-    if (selectedBudgetId && !userBudgets.some((b) => b.id === selectedBudgetId)) {
-      setSelectedBudgetId(userBudgets[0]?.id || null);
-    }
-  }, [userBudgets, selectedBudgetId]);
 
   const selectedBudget = useMemo(() => {
     if (selectedBudgetId) {
@@ -332,7 +328,7 @@ export function useBudgetsContent({
   }, [periodInfo, allBudgetsPeriodTransactions, userBudgetSummary?.totalBudget]);
 
   const handleBudgetSelect = useCallback((budgetId: string) => {
-    setSelectedBudgetId(budgetId);
+    setUserSelectedBudgetId(budgetId);
   }, []);
 
   const handleCreateBudget = useCallback(() => {

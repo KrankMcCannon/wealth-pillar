@@ -20,7 +20,6 @@ import { Button } from '@/components/ui';
 import { useModalState } from '@/lib/navigation/url-state';
 import type { User } from '@/lib/types';
 import type { AccountsPageData } from '@/server/use-cases/pages/accounts-page.use-case';
-import { reportsStyles } from '@/styles/system';
 
 interface AccountsContentProps {
   currentUser: User;
@@ -88,12 +87,12 @@ export default function AccountsContent({
         showActions
       />
 
-      <main className={reportsStyles.main.container}>
+      <main className={accountStyles.pageLayout.main}>
         <section
           aria-labelledby="accounts-section-context"
-          className={reportsStyles.section.surfaceQuiet}
+          className={accountStyles.pageLayout.surfaceQuiet}
         >
-          <PageSection className="space-y-3 sm:space-y-4">
+          <PageSection className="space-y-3">
             <SectionHeader
               titleId="accounts-section-context"
               title={t('sectionContextTitle')}
@@ -113,9 +112,9 @@ export default function AccountsContent({
 
         <section
           aria-labelledby="accounts-section-balance"
-          className={reportsStyles.section.surface}
+          className={accountStyles.pageLayout.surface}
         >
-          <PageSection className="space-y-3 sm:space-y-4">
+          <PageSection className="space-y-3">
             <SectionHeader
               titleId="accounts-section-balance"
               title={t('sectionBalanceTitle')}
@@ -137,9 +136,9 @@ export default function AccountsContent({
 
         <section
           aria-labelledby="accounts-section-list"
-          className={reportsStyles.section.surfaceEmphasis}
+          className={accountStyles.pageLayout.surfaceEmphasis}
         >
-          <PageSection className="space-y-3 sm:space-y-4">
+          <PageSection className="space-y-3">
             <SectionHeader
               titleId="accounts-section-list"
               title={t('sectionListTitle')}

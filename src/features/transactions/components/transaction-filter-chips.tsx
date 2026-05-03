@@ -9,7 +9,14 @@ import type {
   TransactionFiltersState,
   TransactionTypeFilter,
 } from '@/server/use-cases/transactions/transaction.logic';
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, Input } from '@/components/ui';
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+  Input,
+} from '@/components/ui';
 import { cn } from '@/lib/utils';
 import { stitchTransactionPageSearch, stitchTransactions } from '@/styles/home-design-foundation';
 
@@ -186,6 +193,7 @@ export function TransactionFilterChips({
         <DrawerContent className="max-h-[85vh] border-[#3359c5]/30 bg-[#0b1f4f]/95">
           <DrawerHeader>
             <DrawerTitle className="text-[#e6ecff]">{tChips('drawerTitle')}</DrawerTitle>
+            <DrawerDescription className="sr-only">{tChips('drawerTitle')}</DrawerDescription>
           </DrawerHeader>
           <div className="overflow-y-auto px-2 pb-4">
             <TransactionFiltersLazy

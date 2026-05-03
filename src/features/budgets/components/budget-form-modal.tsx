@@ -328,16 +328,7 @@ function BudgetFormModal({ isOpen, onClose, editId }: Readonly<BudgetFormModalPr
     } finally {
       setIsDeleting(false);
     }
-  }, [
-    editId,
-    storeBudgets,
-    removeBudget,
-    addBudget,
-    locale,
-    router,
-    onClose,
-    t,
-  ]);
+  }, [editId, storeBudgets, removeBudget, addBudget, locale, router, onClose, t]);
 
   const footerBusy = isSubmitting || isDeleting;
 

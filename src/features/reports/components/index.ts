@@ -1,23 +1,11 @@
 /**
  * Reports Components Index
- * Centralized exports for all report-related UI components
  */
 
-// Active Components
-export { BudgetPeriodCard } from './BudgetPeriodCard';
-export type { BudgetPeriodCardProps } from './BudgetPeriodCard';
-
-export { BudgetPeriodsSection } from './BudgetPeriodsSection';
-export type { BudgetPeriodsSectionProps } from './BudgetPeriodsSection';
-
-export { ReportsOverviewCard } from './ReportsOverviewCard';
-export type { ReportsOverviewCardProps } from './ReportsOverviewCard';
-
-export { AnnualCategorySection } from './AnnualCategorySection';
-
-export { SummarySection } from './SummarySection';
-export { PeriodsSection } from './PeriodsSection';
-export { PeriodCard } from './PeriodCard';
-export { CategoriesSection } from './CategoriesSection';
-export { TimeRangeSelector, getTimeRangeStartDate, type TimeRange } from './TimeRangeSelector';
-export { ReportsFlowHint } from './ReportsFlowHint';
+export { ReportsTimeFilter } from './ReportsTimeFilter';
+export { ReportsHero } from './ReportsHero';
+export { TopExpensesRanking } from './TopExpensesRanking';
+export type { TopExpenseRow } from './TopExpensesRanking';
+export { AccountBreakdownSection } from './AccountBreakdownSection';
+export { HistoricalBudgetSection } from './HistoricalBudgetSection';
+export { HistoricalBudgetCard, derivePeriodOnTrack } from './HistoricalBudgetCard';

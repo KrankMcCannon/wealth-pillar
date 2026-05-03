@@ -1,5 +1,6 @@
 'use client';
 
+import { createElement } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import {
   Baby,
@@ -159,5 +160,9 @@ export function BudgetCategoryLucideIcon({
   className,
 }: BudgetCategoryLucideIconProps) {
   const Icon = getBudgetCategoryLucideIcon(categoryIdentifier, categories);
-  return <Icon className={className} strokeWidth={2} aria-hidden />;
+  return createElement(Icon, {
+    className,
+    strokeWidth: 2,
+    'aria-hidden': true,
+  });
 }

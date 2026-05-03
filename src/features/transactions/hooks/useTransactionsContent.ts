@@ -104,7 +104,7 @@ function toFiltersFromQuery(
     searchQuery: props.q ?? '',
     type: resolvedType,
     dateRange: props.dateRange,
-    categoryKey: keysFromCsv.length > 0 ? 'all' : props.category ?? 'all',
+    categoryKey: keysFromCsv.length > 0 ? 'all' : (props.category ?? 'all'),
     accountId: props.account ?? 'all',
     ...(keysFromCsv.length > 0 ? { categoryKeys: keysFromCsv } : {}),
     ...(props.startDate ? { startDate: props.startDate } : {}),

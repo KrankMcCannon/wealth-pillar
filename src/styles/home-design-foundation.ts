@@ -52,10 +52,11 @@ export const stitchHome = {
 /** Shell dashboard mobile: sfondo pagina + chrome top/bottom (palette Stitch dark). */
 export const stitchDashboardShell = {
   pageBackground: 'bg-[#050818]',
+  /** z-[48]: sopra toolbar sticky (z-30) e contenuti, sotto overlay dialog desktop (z-50) e drawer (z-150). */
   stickyHeader:
-    'fixed top-0 left-0 right-0 z-40 backdrop-blur-xl border-b border-[#8ba3ff]/22 shadow-sm bg-[#0c1738]/88',
+    'fixed top-0 left-0 right-0 z-[48] backdrop-blur-xl border-b border-[#8ba3ff]/22 shadow-sm bg-[#0c1738]/88',
   bottomBar:
-    'fixed bottom-0 left-0 right-0 z-40 overflow-visible border-t border-[#8ba3ff]/22 bg-[#0c1738]/94 backdrop-blur-md',
+    'fixed bottom-0 left-0 right-0 z-[48] overflow-visible border-t border-[#8ba3ff]/22 bg-[#0c1738]/94 backdrop-blur-md',
 } as const;
 
 /**
@@ -194,6 +195,64 @@ export const stitchTransactions = {
   tabsTrigger:
     'inline-flex h-9 w-full items-center justify-center rounded-full px-2 text-[13px] font-semibold tracking-wide text-[#9fb0d7] shadow-none transition-all duration-200 hover:text-[#e6ecff] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6b9fff]/35 data-[state=active]:bg-[#183166] data-[state=active]:text-[#e6ecff] data-[state=active]:shadow-[inset_0_0_0_1px_rgba(143,176,255,0.28)] data-[state=active]:translate-y-0 motion-reduce:transition-none',
   listSkeleton: 'space-y-3',
+} as const;
+
+/**
+ * Pagina Reports — dark Stitch, mobile-only (single column, niente md/lg).
+ */
+export const stitchReports = {
+  /** No `-mx-4` bleed: negative margin can widen past the viewport, cause horizontal scroll on `body`, and break `fixed` header/bottom bar on iOS Safari. */
+  stickyFilterBar:
+    'sticky z-30 w-full border-b border-[#3359c5]/25 bg-[#050818]/90 px-4 py-2 backdrop-blur-sm',
+  chipRow: 'flex gap-2 overflow-x-auto pb-1 scrollbar-hide',
+  sectionStack: 'flex flex-col gap-5 pt-1',
+  sectionTitle: 'text-lg font-semibold tracking-tight text-[#e6ecff]',
+  /** Hero bento — card principale flusso netto */
+  heroNetCard:
+    'relative col-span-1 overflow-hidden rounded-xl border border-white/[0.08] bg-[#0b1f4f]/75 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] backdrop-blur-[24px]',
+  heroNetDecor:
+    'pointer-events-none absolute -right-10 -top-10 h-36 w-36 rounded-full bg-[#001456]/25 blur-2xl',
+  heroEyebrow: 'text-[11px] font-semibold uppercase tracking-wider text-[#9fb0d7]',
+  heroNetAmount:
+    'text-[30px] font-semibold tabular-nums leading-none tracking-[-0.02em] text-[#8fb0ff]',
+  heroSmallCard:
+    'rounded-xl border border-white/[0.08] bg-[#0b1f4f]/78 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] backdrop-blur-[20px]',
+  heroSmallAmount: 'text-xl font-semibold tabular-nums text-[#e6ecff]',
+  trendRow: 'mt-1 flex items-center gap-1 text-[12px] font-medium',
+  trendPositive: 'text-[#62fae3]',
+  trendNegative: 'text-[#ffb4ab]',
+  /** Top expenses — contenitore lista */
+  rankingCard:
+    'rounded-xl border border-white/[0.08] bg-[#0b1f4f]/78 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] backdrop-blur-[20px]',
+  rankingRow: 'relative space-y-1.5',
+  rankingRowHeader: 'flex items-end justify-between gap-2',
+  rankingIconWrap:
+    'flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#11295f]/90 text-[#9fb0d7]',
+  rankingLabel: 'text-sm font-medium text-[#e6ecff]',
+  rankingAmount: 'text-sm font-semibold tabular-nums text-[#e6ecff]',
+  progressTrack: 'h-1.5 w-full overflow-hidden rounded-full bg-[#1a2b5f]',
+  progressFillPrimary: 'h-full rounded-full bg-[#001456]',
+  progressFillSecondary: 'h-full rounded-full bg-[#505f76]',
+  progressFillMuted: 'h-full rounded-full bg-[#5c77cc]/50',
+  /** Account breakdown */
+  accountRow:
+    'flex items-center justify-between gap-3 rounded-xl border border-white/[0.08] bg-[#0b1f4f]/78 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] backdrop-blur-[20px]',
+  accountIconWrap:
+    'flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-[#8fb0ff]/25 bg-[#8fb0ff]/12 text-[#dde1ff]',
+  accountIconWrapMuted:
+    'flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-[#3359c5]/35 bg-[#11295f]/80 text-[#9fb0d7]',
+  accountMeta: 'text-[11px] text-[#9fb0d7]',
+  accountAmount: 'text-base font-semibold tabular-nums text-[#e6ecff]',
+  /** Historical budget card */
+  historyCard:
+    'flex flex-col gap-2 rounded-xl border border-white/[0.08] bg-[#0b1f4f]/78 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] backdrop-blur-[20px]',
+  historyHeaderRow: 'flex items-center justify-between gap-2 border-b border-[#3359c5]/25 pb-2',
+  historyMonthLabel: 'text-sm font-medium text-[#e6ecff]',
+  historyMetricsRow: 'flex items-start justify-between gap-3 pt-1',
+  historyMetricLabel: 'text-[11px] text-[#9fb0d7]',
+  historyMetricValue: 'text-base font-semibold tabular-nums text-[#e6ecff]',
+  emptyWell:
+    'rounded-xl bg-[#11295f]/60 px-4 py-6 text-center text-sm text-[#9fb0d7] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)]',
 } as const;
 
 /**

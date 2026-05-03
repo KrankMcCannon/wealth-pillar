@@ -1,152 +1,152 @@
 ---
 name: Wealth Pillar
 colors:
-  background: "oklch(0.94 0.008 90)"
-  foreground: "oklch(0.25 0.015 90)"
-  surface: "oklch(0.94 0.008 90)"
-  surface-card: "oklch(0.985 0.003 90)"
-  surface-popover: "oklch(0.985 0.003 90)"
-  surface-elevated: "oklch(0.985 0.003 90)"
-  surface-soft: "oklch(0.985 0.003 90)"
-  surface-subtle: "oklch(0.88 0.008 90)"
-  surface-sidebar: "oklch(0.96 0.008 90)"
-  surface-input: "oklch(0.98 0.004 90)"
-  on-surface: "oklch(0.25 0.015 90)"
-  on-surface-muted: "oklch(0.45 0.015 90)"
-  on-surface-subtle: "oklch(0.55 0.015 90)"
-  primary: "oklch(0.595 0.178 270)"
-  on-primary: "oklch(0.99 0.004 270)"
-  secondary: "oklch(0.68 0.08 235)"
-  on-secondary: "oklch(0.15 0.02 90)"
-  accent: "oklch(0.68 0.16 270)"
-  on-accent: "oklch(0.15 0.02 90)"
-  muted: "oklch(0.88 0.008 90)"
-  on-muted: "oklch(0.45 0.015 90)"
-  border: "oklch(0.85 0.01 90)"
-  ring: "oklch(0.595 0.178 270)"
-  destructive: "oklch(0.55 0.22 25)"
-  on-destructive: "oklch(0.99 0.004 25)"
-  warning: "oklch(0.75 0.15 85)"
-  on-warning: "oklch(0.15 0.02 90)"
-  success: "oklch(0.7 0.15 150)"
-  on-success: "oklch(0.99 0.004 150)"
-  success-light: "oklch(0.95 0.08 150)"
-  success-dark: "oklch(0.4 0.12 150)"
-  finance-positive: "oklch(0.595 0.178 270)"
-  finance-negative: "oklch(0.55 0.22 25)"
-  finance-warning: "oklch(0.75 0.15 85)"
-  finance-neutral: "oklch(0.68 0.08 235)"
-  chart-1: "oklch(0.595 0.178 270)"
-  chart-2: "oklch(0.68 0.16 270)"
-  chart-3: "oklch(0.78 0.15 270)"
-  chart-4: "oklch(0.55 0.16 270)"
-  chart-5: "oklch(0.5 0.18 270)"
-  category-utilities-blue: "oklch(0.6 0.15 240)"
-  category-utilities-red: "oklch(0.6 0.18 30)"
-  category-transportation-purple: "oklch(0.58 0.16 290)"
-  category-transportation-orange: "oklch(0.65 0.16 55)"
-  category-health-cyan: "oklch(0.65 0.12 210)"
-  category-health-teal: "oklch(0.6 0.12 190)"
-  category-beauty-pink: "oklch(0.65 0.15 330)"
-  category-food-green: "oklch(0.6 0.14 140)"
-  category-shopping-purple: "oklch(0.6 0.18 285)"
-  category-shopping-orange: "oklch(0.68 0.15 60)"
-  sidebar-primary: "oklch(0.595 0.178 270)"
-  sidebar-on-primary: "oklch(0.99 0.004 270)"
-  sidebar-accent: "oklch(0.92 0.008 90)"
-  sidebar-on-accent: "oklch(0.25 0.015 90)"
-  sidebar-border: "oklch(0.85 0.008 90)"
-  dark-background: "oklch(0.2 0.035 250)"
-  dark-foreground: "oklch(0.95 0.02 270)"
-  dark-surface-card: "oklch(0.25 0.03 250)"
-  dark-surface-popover: "oklch(0.25 0.03 250)"
-  dark-surface-input: "oklch(0.23 0.025 250)"
-  dark-surface-sidebar: "oklch(0.22 0.032 250)"
-  dark-primary: "oklch(0.72 0.12 270)"
-  dark-on-primary: "oklch(0.15 0.02 270)"
-  dark-secondary: "oklch(0.75 0.06 235)"
-  dark-accent: "oklch(0.78 0.1 270)"
-  dark-muted: "oklch(0.28 0.025 250)"
-  dark-on-muted: "oklch(0.74 0.03 260)"
-  dark-border: "oklch(0.32 0.02 250)"
-  dark-ring: "oklch(0.72 0.168 270)"
-  dark-destructive: "oklch(0.65 0.16 25)"
-  dark-warning: "oklch(0.78 0.1 85)"
-  dark-success: "oklch(0.75 0.1 150)"
+  background: 'oklch(0.94 0.008 90)'
+  foreground: 'oklch(0.25 0.015 90)'
+  surface: 'oklch(0.94 0.008 90)'
+  surface-card: 'oklch(0.985 0.003 90)'
+  surface-popover: 'oklch(0.985 0.003 90)'
+  surface-elevated: 'oklch(0.985 0.003 90)'
+  surface-soft: 'oklch(0.985 0.003 90)'
+  surface-subtle: 'oklch(0.88 0.008 90)'
+  surface-sidebar: 'oklch(0.96 0.008 90)'
+  surface-input: 'oklch(0.98 0.004 90)'
+  on-surface: 'oklch(0.25 0.015 90)'
+  on-surface-muted: 'oklch(0.45 0.015 90)'
+  on-surface-subtle: 'oklch(0.55 0.015 90)'
+  primary: 'oklch(0.595 0.178 270)'
+  on-primary: 'oklch(0.99 0.004 270)'
+  secondary: 'oklch(0.68 0.08 235)'
+  on-secondary: 'oklch(0.15 0.02 90)'
+  accent: 'oklch(0.68 0.16 270)'
+  on-accent: 'oklch(0.15 0.02 90)'
+  muted: 'oklch(0.88 0.008 90)'
+  on-muted: 'oklch(0.45 0.015 90)'
+  border: 'oklch(0.85 0.01 90)'
+  ring: 'oklch(0.595 0.178 270)'
+  destructive: 'oklch(0.55 0.22 25)'
+  on-destructive: 'oklch(0.99 0.004 25)'
+  warning: 'oklch(0.75 0.15 85)'
+  on-warning: 'oklch(0.15 0.02 90)'
+  success: 'oklch(0.7 0.15 150)'
+  on-success: 'oklch(0.99 0.004 150)'
+  success-light: 'oklch(0.95 0.08 150)'
+  success-dark: 'oklch(0.4 0.12 150)'
+  finance-positive: 'oklch(0.595 0.178 270)'
+  finance-negative: 'oklch(0.55 0.22 25)'
+  finance-warning: 'oklch(0.75 0.15 85)'
+  finance-neutral: 'oklch(0.68 0.08 235)'
+  chart-1: 'oklch(0.595 0.178 270)'
+  chart-2: 'oklch(0.68 0.16 270)'
+  chart-3: 'oklch(0.78 0.15 270)'
+  chart-4: 'oklch(0.55 0.16 270)'
+  chart-5: 'oklch(0.5 0.18 270)'
+  category-utilities-blue: 'oklch(0.6 0.15 240)'
+  category-utilities-red: 'oklch(0.6 0.18 30)'
+  category-transportation-purple: 'oklch(0.58 0.16 290)'
+  category-transportation-orange: 'oklch(0.65 0.16 55)'
+  category-health-cyan: 'oklch(0.65 0.12 210)'
+  category-health-teal: 'oklch(0.6 0.12 190)'
+  category-beauty-pink: 'oklch(0.65 0.15 330)'
+  category-food-green: 'oklch(0.6 0.14 140)'
+  category-shopping-purple: 'oklch(0.6 0.18 285)'
+  category-shopping-orange: 'oklch(0.68 0.15 60)'
+  sidebar-primary: 'oklch(0.595 0.178 270)'
+  sidebar-on-primary: 'oklch(0.99 0.004 270)'
+  sidebar-accent: 'oklch(0.92 0.008 90)'
+  sidebar-on-accent: 'oklch(0.25 0.015 90)'
+  sidebar-border: 'oklch(0.85 0.008 90)'
+  dark-background: 'oklch(0.2 0.035 250)'
+  dark-foreground: 'oklch(0.95 0.02 270)'
+  dark-surface-card: 'oklch(0.25 0.03 250)'
+  dark-surface-popover: 'oklch(0.25 0.03 250)'
+  dark-surface-input: 'oklch(0.23 0.025 250)'
+  dark-surface-sidebar: 'oklch(0.22 0.032 250)'
+  dark-primary: 'oklch(0.72 0.12 270)'
+  dark-on-primary: 'oklch(0.15 0.02 270)'
+  dark-secondary: 'oklch(0.75 0.06 235)'
+  dark-accent: 'oklch(0.78 0.1 270)'
+  dark-muted: 'oklch(0.28 0.025 250)'
+  dark-on-muted: 'oklch(0.74 0.03 260)'
+  dark-border: 'oklch(0.32 0.02 250)'
+  dark-ring: 'oklch(0.72 0.168 270)'
+  dark-destructive: 'oklch(0.65 0.16 25)'
+  dark-warning: 'oklch(0.78 0.1 85)'
+  dark-success: 'oklch(0.75 0.1 150)'
 
 typography:
   display-lg:
-    fontFamily: "Spline Sans"
+    fontFamily: 'Spline Sans'
     fontSize: 30px
-    fontWeight: "700"
+    fontWeight: '700'
     lineHeight: 36px
     letterSpacing: -0.025em
   display-md:
-    fontFamily: "Spline Sans"
+    fontFamily: 'Spline Sans'
     fontSize: 24px
-    fontWeight: "700"
+    fontWeight: '700'
     lineHeight: 32px
     letterSpacing: -0.025em
   heading-lg:
-    fontFamily: "Spline Sans"
+    fontFamily: 'Spline Sans'
     fontSize: 20px
-    fontWeight: "700"
+    fontWeight: '700'
     lineHeight: 28px
     letterSpacing: -0.025em
   heading-md:
-    fontFamily: "Spline Sans"
+    fontFamily: 'Spline Sans'
     fontSize: 18px
-    fontWeight: "700"
+    fontWeight: '700'
     lineHeight: 26px
     letterSpacing: -0.025em
   subheading:
-    fontFamily: "Spline Sans"
+    fontFamily: 'Spline Sans'
     fontSize: 16px
-    fontWeight: "600"
+    fontWeight: '600'
     lineHeight: 24px
   amount-lg:
-    fontFamily: "Spline Sans"
+    fontFamily: 'Spline Sans'
     fontSize: 30px
-    fontWeight: "700"
+    fontWeight: '700'
     lineHeight: 36px
     letterSpacing: -0.025em
   amount-md:
-    fontFamily: "Spline Sans"
+    fontFamily: 'Spline Sans'
     fontSize: 20px
-    fontWeight: "700"
+    fontWeight: '700'
     lineHeight: 28px
     letterSpacing: -0.025em
   body-lg:
-    fontFamily: "Spline Sans"
+    fontFamily: 'Spline Sans'
     fontSize: 16px
-    fontWeight: "400"
+    fontWeight: '400'
     lineHeight: 26px
   body-md:
-    fontFamily: "Spline Sans"
+    fontFamily: 'Spline Sans'
     fontSize: 14px
-    fontWeight: "400"
+    fontWeight: '400'
     lineHeight: 22px
   body-sm:
-    fontFamily: "Spline Sans"
+    fontFamily: 'Spline Sans'
     fontSize: 12px
-    fontWeight: "400"
+    fontWeight: '400'
     lineHeight: 18px
   label:
-    fontFamily: "Spline Sans"
+    fontFamily: 'Spline Sans'
     fontSize: 12px
-    fontWeight: "500"
+    fontWeight: '500'
     lineHeight: 16px
   label-uppercase:
-    fontFamily: "Spline Sans"
+    fontFamily: 'Spline Sans'
     fontSize: 10px
-    fontWeight: "500"
+    fontWeight: '500'
     lineHeight: 14px
     letterSpacing: 0.05em
     textTransform: uppercase
   brand-eyebrow:
-    fontFamily: "Spline Sans"
+    fontFamily: 'Spline Sans'
     fontSize: 12px
-    fontWeight: "600"
+    fontWeight: '600'
     lineHeight: 16px
     letterSpacing: 0.2em
     textTransform: uppercase
@@ -157,8 +157,8 @@ rounded:
   md: 0.75rem
   lg: 1rem
   xl: 1.5rem
-  "2xl": 1rem
-  "3xl": 1.5rem
+  '2xl': 1rem
+  '3xl': 1.5rem
   full: 9999px
 
 spacing:
@@ -178,12 +178,12 @@ spacing:
   safe-area-bottom: env(safe-area-inset-bottom)
 
 elevation:
-  shadow-xs: "0 1px 2px 0 oklch(0% 0 0 / 0.05)"
-  shadow-sm: "0 1px 3px 0 oklch(0% 0 0 / 0.08), 0 1px 2px 0 oklch(0% 0 0 / 0.05)"
-  shadow-md: "0 4px 6px -1px oklch(0% 0 0 / 0.08), 0 2px 4px -1px oklch(0% 0 0 / 0.05)"
-  shadow-lg: "0 10px 15px -3px oklch(0% 0 0 / 0.08), 0 4px 6px -2px oklch(0% 0 0 / 0.04)"
-  shadow-xl: "0 20px 25px -5px oklch(0% 0 0 / 0.08), 0 10px 10px -5px oklch(0% 0 0 / 0.03)"
-  shadow-2xl: "0 25px 50px -12px oklch(0% 0 0 / 0.2)"
+  shadow-xs: '0 1px 2px 0 oklch(0% 0 0 / 0.05)'
+  shadow-sm: '0 1px 3px 0 oklch(0% 0 0 / 0.08), 0 1px 2px 0 oklch(0% 0 0 / 0.05)'
+  shadow-md: '0 4px 6px -1px oklch(0% 0 0 / 0.08), 0 2px 4px -1px oklch(0% 0 0 / 0.05)'
+  shadow-lg: '0 10px 15px -3px oklch(0% 0 0 / 0.08), 0 4px 6px -2px oklch(0% 0 0 / 0.04)'
+  shadow-xl: '0 20px 25px -5px oklch(0% 0 0 / 0.08), 0 10px 10px -5px oklch(0% 0 0 / 0.03)'
+  shadow-2xl: '0 25px 50px -12px oklch(0% 0 0 / 0.2)'
   z-raised: 10
   z-dropdown: 20
   z-sticky: 30
@@ -211,225 +211,225 @@ motion:
 
 effects:
   liquid-glass:
-    background: "color-mix(in oklch, {colors.surface-card} 72%, transparent)"
-    backdropFilter: "blur(16px) saturate(1.2)"
-    border: "1px solid color-mix(in oklch, {colors.border} 45%, transparent)"
-    boxShadow: "{elevation.shadow-md}"
+    background: 'color-mix(in oklch, {colors.surface-card} 72%, transparent)'
+    backdropFilter: 'blur(16px) saturate(1.2)'
+    border: '1px solid color-mix(in oklch, {colors.border} 45%, transparent)'
+    boxShadow: '{elevation.shadow-md}'
   liquid-glass-strong:
-    background: "color-mix(in oklch, {colors.surface-card} 88%, transparent)"
-    backdropFilter: "blur(20px) saturate(1.25)"
-    border: "1px solid color-mix(in oklch, {colors.border} 55%, transparent)"
-    boxShadow: "{elevation.shadow-lg}"
+    background: 'color-mix(in oklch, {colors.surface-card} 88%, transparent)'
+    backdropFilter: 'blur(20px) saturate(1.25)'
+    border: '1px solid color-mix(in oklch, {colors.border} 55%, transparent)'
+    boxShadow: '{elevation.shadow-lg}'
   liquid-glass-subtle:
-    background: "color-mix(in oklch, {colors.background} 55%, transparent)"
-    backdropFilter: "blur(12px) saturate(1.1)"
-    border: "1px solid color-mix(in oklch, {colors.border} 35%, transparent)"
-    boxShadow: "{elevation.shadow-sm}"
+    background: 'color-mix(in oklch, {colors.background} 55%, transparent)'
+    backdropFilter: 'blur(12px) saturate(1.1)'
+    border: '1px solid color-mix(in oklch, {colors.border} 35%, transparent)'
+    boxShadow: '{elevation.shadow-sm}'
   primary-glass:
-    background: "color-mix(in oklch, {colors.primary} 18%, transparent)"
-    backdropFilter: "blur(12px)"
-    border: "1px solid color-mix(in oklch, {colors.primary} 28%, transparent)"
+    background: 'color-mix(in oklch, {colors.primary} 18%, transparent)'
+    backdropFilter: 'blur(12px)'
+    border: '1px solid color-mix(in oklch, {colors.primary} 28%, transparent)'
   success-glass:
-    background: "color-mix(in oklch, {colors.success} 16%, transparent)"
-    backdropFilter: "blur(12px)"
-    border: "1px solid color-mix(in oklch, {colors.success} 25%, transparent)"
+    background: 'color-mix(in oklch, {colors.success} 16%, transparent)'
+    backdropFilter: 'blur(12px)'
+    border: '1px solid color-mix(in oklch, {colors.success} 25%, transparent)'
   warning-glass:
-    background: "color-mix(in oklch, {colors.warning} 16%, transparent)"
-    backdropFilter: "blur(12px)"
-    border: "1px solid color-mix(in oklch, {colors.warning} 25%, transparent)"
+    background: 'color-mix(in oklch, {colors.warning} 16%, transparent)'
+    backdropFilter: 'blur(12px)'
+    border: '1px solid color-mix(in oklch, {colors.warning} 25%, transparent)'
   gradient-primary:
-    background: "linear-gradient(135deg, {colors.primary}, color-mix(in oklch, {colors.accent} 85%, {colors.primary}))"
+    background: 'linear-gradient(135deg, {colors.primary}, color-mix(in oklch, {colors.accent} 85%, {colors.primary}))'
   gradient-success:
-    background: "linear-gradient(135deg, {colors.success}, color-mix(in oklch, {colors.success} 75%, {colors.primary}))"
+    background: 'linear-gradient(135deg, {colors.success}, color-mix(in oklch, {colors.success} 75%, {colors.primary}))'
   gradient-danger:
-    background: "linear-gradient(135deg, {colors.destructive}, color-mix(in oklch, {colors.destructive} 80%, transparent))"
+    background: 'linear-gradient(135deg, {colors.destructive}, color-mix(in oklch, {colors.destructive} 80%, transparent))'
   ring-focus:
     outline: none
-    boxShadow: "0 0 0 2px color-mix(in oklch, {colors.ring} 30%, transparent)"
-    borderColor: "{colors.ring}"
+    boxShadow: '0 0 0 2px color-mix(in oklch, {colors.ring} 30%, transparent)'
+    borderColor: '{colors.ring}'
 
 components:
   card-soft:
-    backgroundColor: "{colors.surface-card}"
-    textColor: "{colors.on-surface}"
-    border: "1px solid {colors.border}"
-    rounded: "{rounded.lg}"
-    padding: "{spacing.card-padding-default}"
-    boxShadow: "{elevation.shadow-sm}"
-    backdropFilter: "blur(12px)"
+    backgroundColor: '{colors.surface-card}'
+    textColor: '{colors.on-surface}'
+    border: '1px solid {colors.border}'
+    rounded: '{rounded.lg}'
+    padding: '{spacing.card-padding-default}'
+    boxShadow: '{elevation.shadow-sm}'
+    backdropFilter: 'blur(12px)'
   card-elevated:
-    backgroundColor: "color-mix(in oklch, {colors.surface-card} 95%, transparent)"
-    textColor: "{colors.on-surface}"
-    border: "1px solid color-mix(in oklch, {colors.primary} 25%, transparent)"
-    rounded: "{rounded.lg}"
-    padding: "{spacing.card-padding-comfortable}"
-    boxShadow: "{elevation.shadow-md}"
+    backgroundColor: 'color-mix(in oklch, {colors.surface-card} 95%, transparent)'
+    textColor: '{colors.on-surface}'
+    border: '1px solid color-mix(in oklch, {colors.primary} 25%, transparent)'
+    rounded: '{rounded.lg}'
+    padding: '{spacing.card-padding-comfortable}'
+    boxShadow: '{elevation.shadow-md}'
   card-finance-summary:
-    backgroundColor: "color-mix(in oklch, {colors.surface-card} 90%, transparent)"
-    textColor: "{colors.on-surface}"
-    border: "1px solid color-mix(in oklch, {colors.primary} 20%, transparent)"
-    rounded: "{rounded.lg}"
-    padding: "{spacing.card-padding-default}"
-    boxShadow: "{elevation.shadow-lg}"
-    backdropFilter: "blur(8px)"
+    backgroundColor: 'color-mix(in oklch, {colors.surface-card} 90%, transparent)'
+    textColor: '{colors.on-surface}'
+    border: '1px solid color-mix(in oklch, {colors.primary} 20%, transparent)'
+    rounded: '{rounded.lg}'
+    padding: '{spacing.card-padding-default}'
+    boxShadow: '{elevation.shadow-lg}'
+    backdropFilter: 'blur(8px)'
   button-primary:
-    backgroundColor: "{colors.primary}"
-    textColor: "{colors.on-primary}"
-    typography: "{typography.label}"
-    rounded: "{rounded.md}"
+    backgroundColor: '{colors.primary}'
+    textColor: '{colors.on-primary}'
+    typography: '{typography.label}'
+    rounded: '{rounded.md}'
     height: 36px
-    padding: "0 16px"
-    border: "1px solid color-mix(in oklch, {colors.primary} 20%, transparent)"
-    fontWeight: "600"
+    padding: '0 16px'
+    border: '1px solid color-mix(in oklch, {colors.primary} 20%, transparent)'
+    fontWeight: '600'
   button-primary-hover:
-    backgroundColor: "color-mix(in oklch, {colors.primary} 90%, transparent)"
+    backgroundColor: 'color-mix(in oklch, {colors.primary} 90%, transparent)'
   button-secondary:
-    backgroundColor: "{colors.secondary}"
-    textColor: "{colors.on-secondary}"
-    typography: "{typography.label}"
-    rounded: "{rounded.md}"
+    backgroundColor: '{colors.secondary}'
+    textColor: '{colors.on-secondary}'
+    typography: '{typography.label}'
+    rounded: '{rounded.md}'
     height: 36px
-    padding: "0 16px"
+    padding: '0 16px'
   button-outline:
-    backgroundColor: "{colors.surface-card}"
-    textColor: "{colors.primary}"
-    border: "1px solid color-mix(in oklch, {colors.primary} 20%, transparent)"
-    rounded: "{rounded.md}"
+    backgroundColor: '{colors.surface-card}'
+    textColor: '{colors.primary}'
+    border: '1px solid color-mix(in oklch, {colors.primary} 20%, transparent)'
+    rounded: '{rounded.md}'
     height: 36px
-    padding: "0 16px"
+    padding: '0 16px'
   button-outline-hover:
-    backgroundColor: "{colors.primary}"
-    textColor: "{colors.on-primary}"
+    backgroundColor: '{colors.primary}'
+    textColor: '{colors.on-primary}'
   button-ghost:
     backgroundColor: transparent
-    textColor: "{colors.primary}"
-    rounded: "{rounded.md}"
+    textColor: '{colors.primary}'
+    rounded: '{rounded.md}'
     height: 36px
-    padding: "0 16px"
+    padding: '0 16px'
   button-ghost-hover:
-    backgroundColor: "color-mix(in oklch, {colors.primary} 10%, transparent)"
+    backgroundColor: 'color-mix(in oklch, {colors.primary} 10%, transparent)'
   button-destructive:
-    backgroundColor: "{colors.destructive}"
-    textColor: "{colors.on-destructive}"
-    rounded: "{rounded.md}"
+    backgroundColor: '{colors.destructive}'
+    textColor: '{colors.on-destructive}'
+    rounded: '{rounded.md}'
     height: 36px
-    padding: "0 16px"
+    padding: '0 16px'
   button-icon:
-    backgroundColor: "{colors.primary}"
-    textColor: "{colors.on-primary}"
-    rounded: "{rounded.full}"
+    backgroundColor: '{colors.primary}'
+    textColor: '{colors.on-primary}'
+    rounded: '{rounded.full}'
     size: 44px
-    boxShadow: "{elevation.shadow-sm}"
+    boxShadow: '{elevation.shadow-sm}'
   badge-default:
-    backgroundColor: "{colors.primary}"
-    textColor: "{colors.on-primary}"
-    typography: "{typography.body-sm}"
-    rounded: "{rounded.sm}"
-    padding: "2px 8px"
-    fontWeight: "500"
+    backgroundColor: '{colors.primary}'
+    textColor: '{colors.on-primary}'
+    typography: '{typography.body-sm}'
+    rounded: '{rounded.sm}'
+    padding: '2px 8px'
+    fontWeight: '500'
   badge-outline:
     backgroundColor: transparent
-    textColor: "{colors.primary}"
-    border: "1px solid color-mix(in oklch, {colors.primary} 20%, transparent)"
-    rounded: "{rounded.sm}"
-    padding: "2px 8px"
+    textColor: '{colors.primary}'
+    border: '1px solid color-mix(in oklch, {colors.primary} 20%, transparent)'
+    rounded: '{rounded.sm}'
+    padding: '2px 8px'
   badge-status-safe:
-    backgroundColor: "color-mix(in oklch, {colors.primary} 10%, transparent)"
-    textColor: "{colors.primary}"
+    backgroundColor: 'color-mix(in oklch, {colors.primary} 10%, transparent)'
+    textColor: '{colors.primary}'
   badge-status-warning:
-    backgroundColor: "color-mix(in oklch, {colors.warning} 14%, transparent)"
-    textColor: "{colors.warning}"
+    backgroundColor: 'color-mix(in oklch, {colors.warning} 14%, transparent)'
+    textColor: '{colors.warning}'
   badge-status-danger:
-    backgroundColor: "color-mix(in oklch, {colors.destructive} 14%, transparent)"
-    textColor: "{colors.destructive}"
+    backgroundColor: 'color-mix(in oklch, {colors.destructive} 14%, transparent)'
+    textColor: '{colors.destructive}'
   input-field:
-    backgroundColor: "{colors.surface-input}"
-    textColor: "{colors.on-surface}"
-    placeholderColor: "color-mix(in oklch, {colors.on-surface} 40%, transparent)"
-    border: "1px solid color-mix(in oklch, {colors.primary} 20%, transparent)"
-    rounded: "{rounded.md}"
-    typography: "{typography.body-md}"
-    padding: "8px 12px"
+    backgroundColor: '{colors.surface-input}'
+    textColor: '{colors.on-surface}'
+    placeholderColor: 'color-mix(in oklch, {colors.on-surface} 40%, transparent)'
+    border: '1px solid color-mix(in oklch, {colors.primary} 20%, transparent)'
+    rounded: '{rounded.md}'
+    typography: '{typography.body-md}'
+    padding: '8px 12px'
     height: 40px
   input-field-focus:
-    borderColor: "{colors.ring}"
-    boxShadow: "0 0 0 2px color-mix(in oklch, {colors.ring} 30%, transparent)"
+    borderColor: '{colors.ring}'
+    boxShadow: '0 0 0 2px color-mix(in oklch, {colors.ring} 30%, transparent)'
   select-trigger:
-    backgroundColor: "{colors.surface-card}"
-    textColor: "{colors.on-surface}"
-    border: "1px solid color-mix(in oklch, {colors.primary} 20%, transparent)"
-    rounded: "{rounded.md}"
+    backgroundColor: '{colors.surface-card}'
+    textColor: '{colors.on-surface}'
+    border: '1px solid color-mix(in oklch, {colors.primary} 20%, transparent)'
+    rounded: '{rounded.md}'
     height: 40px
-    padding: "0 12px"
+    padding: '0 12px'
   tabs-list:
-    backgroundColor: "color-mix(in oklch, {colors.primary} 10%, transparent)"
-    rounded: "{rounded.xl}"
+    backgroundColor: 'color-mix(in oklch, {colors.primary} 10%, transparent)'
+    rounded: '{rounded.xl}'
     padding: 4px
     height: 48px
   tab-trigger-active:
-    backgroundColor: "{colors.surface-card}"
-    textColor: "{colors.primary}"
-    typography: "{typography.label}"
-    rounded: "{rounded.md}"
-    boxShadow: "{elevation.shadow-md}"
-    fontWeight: "600"
+    backgroundColor: '{colors.surface-card}'
+    textColor: '{colors.primary}'
+    typography: '{typography.label}'
+    rounded: '{rounded.md}'
+    boxShadow: '{elevation.shadow-md}'
+    fontWeight: '600'
   tab-trigger-inactive:
     backgroundColor: transparent
-    textColor: "{colors.on-surface}"
-    typography: "{typography.label}"
+    textColor: '{colors.on-surface}'
+    typography: '{typography.label}'
   drawer-content:
-    backgroundColor: "{colors.surface-card}"
-    border: "1px solid color-mix(in oklch, {colors.primary} 20%, transparent)"
-    rounded: "1.5rem 1.5rem 0 0"
-    boxShadow: "{elevation.shadow-xl}"
+    backgroundColor: '{colors.surface-card}'
+    border: '1px solid color-mix(in oklch, {colors.primary} 20%, transparent)'
+    rounded: '1.5rem 1.5rem 0 0'
+    boxShadow: '{elevation.shadow-xl}'
     maxHeight: 85vh
   modal-content:
-    backgroundColor: "{colors.surface-card}"
-    border: "1px solid color-mix(in oklch, {colors.primary} 15%, transparent)"
-    rounded: "{rounded.lg}"
-    boxShadow: "{elevation.shadow-xl}"
+    backgroundColor: '{colors.surface-card}'
+    border: '1px solid color-mix(in oklch, {colors.primary} 15%, transparent)'
+    rounded: '{rounded.lg}'
+    boxShadow: '{elevation.shadow-xl}'
     maxWidth: 420px
   alert-default:
-    backgroundColor: "color-mix(in oklch, {colors.primary} 10%, transparent)"
-    textColor: "{colors.primary}"
-    border: "1px solid color-mix(in oklch, {colors.primary} 20%, transparent)"
-    rounded: "{rounded.md}"
-    padding: "12px 16px"
+    backgroundColor: 'color-mix(in oklch, {colors.primary} 10%, transparent)'
+    textColor: '{colors.primary}'
+    border: '1px solid color-mix(in oklch, {colors.primary} 20%, transparent)'
+    rounded: '{rounded.md}'
+    padding: '12px 16px'
   sticky-header:
-    backgroundColor: "color-mix(in oklch, {colors.surface-card} 80%, transparent)"
-    border: "0 0 1px 0 solid color-mix(in oklch, {colors.primary} 20%, transparent)"
-    backdropFilter: "blur(20px)"
-    boxShadow: "{elevation.shadow-sm}"
-    padding: "10px 12px"
+    backgroundColor: 'color-mix(in oklch, {colors.surface-card} 80%, transparent)'
+    border: '0 0 1px 0 solid color-mix(in oklch, {colors.primary} 20%, transparent)'
+    backdropFilter: 'blur(20px)'
+    boxShadow: '{elevation.shadow-sm}'
+    padding: '10px 12px'
     height: 56px
   bottom-nav:
-    backgroundColor: "color-mix(in oklch, {colors.surface-card} 90%, transparent)"
-    backdropFilter: "blur(20px)"
-    border: "1px 0 0 0 solid color-mix(in oklch, {colors.primary} 15%, transparent)"
-    paddingBottom: "env(safe-area-inset-bottom)"
-    boxShadow: "{elevation.shadow-lg}"
+    backgroundColor: 'color-mix(in oklch, {colors.surface-card} 90%, transparent)'
+    backdropFilter: 'blur(20px)'
+    border: '1px 0 0 0 solid color-mix(in oklch, {colors.primary} 15%, transparent)'
+    paddingBottom: 'env(safe-area-inset-bottom)'
+    boxShadow: '{elevation.shadow-lg}'
   desktop-sidebar:
-    backgroundColor: "color-mix(in oklch, {colors.surface-sidebar} 95%, transparent)"
-    backdropFilter: "blur(20px)"
-    border: "0 1px 0 0 solid {colors.sidebar-border}"
+    backgroundColor: 'color-mix(in oklch, {colors.surface-sidebar} 95%, transparent)'
+    backdropFilter: 'blur(20px)'
+    border: '0 1px 0 0 solid {colors.sidebar-border}'
     width: 256px
-    padding: "16px 12px"
+    padding: '16px 12px'
   sidebar-nav-item:
     backgroundColor: transparent
-    textColor: "color-mix(in oklch, {colors.on-surface} 75%, transparent)"
-    typography: "{typography.label}"
-    rounded: "{rounded.md}"
+    textColor: 'color-mix(in oklch, {colors.on-surface} 75%, transparent)'
+    typography: '{typography.label}'
+    rounded: '{rounded.md}'
     height: 44px
-    padding: "0 12px"
-    fontWeight: "600"
+    padding: '0 12px'
+    fontWeight: '600'
   sidebar-nav-item-active:
-    backgroundColor: "{colors.sidebar-primary}"
-    textColor: "{colors.sidebar-on-primary}"
+    backgroundColor: '{colors.sidebar-primary}'
+    textColor: '{colors.sidebar-on-primary}'
   icon-container:
-    background: "linear-gradient(135deg, color-mix(in oklch, {colors.primary} 22%, transparent), color-mix(in oklch, {colors.primary} 10%, transparent))"
-    textColor: "{colors.primary}"
-    rounded: "{rounded.lg}"
-    boxShadow: "{elevation.shadow-sm}"
+    background: 'linear-gradient(135deg, color-mix(in oklch, {colors.primary} 22%, transparent), color-mix(in oklch, {colors.primary} 10%, transparent))'
+    textColor: '{colors.primary}'
+    rounded: '{rounded.lg}'
+    boxShadow: '{elevation.shadow-sm}'
   icon-container-sm:
     size: 32px
   icon-container-md:
@@ -437,27 +437,27 @@ components:
   icon-container-lg:
     size: 56px
   progress-track:
-    backgroundColor: "color-mix(in oklch, {colors.primary} 10%, transparent)"
-    rounded: "{rounded.full}"
+    backgroundColor: 'color-mix(in oklch, {colors.primary} 10%, transparent)'
+    rounded: '{rounded.full}'
     height: 12px
   progress-fill-safe:
-    backgroundColor: "{colors.success}"
+    backgroundColor: '{colors.success}'
   progress-fill-warning:
-    backgroundColor: "{colors.warning}"
+    backgroundColor: '{colors.warning}'
   progress-fill-danger:
-    backgroundColor: "{colors.destructive}"
+    backgroundColor: '{colors.destructive}'
   amount-positive:
-    textColor: "{colors.primary}"
-    typography: "{typography.amount-md}"
+    textColor: '{colors.primary}'
+    typography: '{typography.amount-md}'
   amount-negative:
-    textColor: "{colors.destructive}"
-    typography: "{typography.amount-md}"
+    textColor: '{colors.destructive}'
+    typography: '{typography.amount-md}'
   amount-success:
-    textColor: "{colors.success}"
-    typography: "{typography.amount-md}"
+    textColor: '{colors.success}'
+    typography: '{typography.amount-md}'
   skeleton:
-    backgroundColor: "color-mix(in oklch, {colors.primary} 10%, transparent)"
-    rounded: "{rounded.sm}"
+    backgroundColor: 'color-mix(in oklch, {colors.primary} 10%, transparent)'
+    rounded: '{rounded.sm}'
     animation: pulse
 ---
 
@@ -473,7 +473,7 @@ The look is built on three convictions:
 2. **A single confident hue carries the brand.** A saturated violet-indigo (`oklch(0.595 0.178 270)`) does almost all the chromatic work — primary actions, navigation highlights, charts, focus rings, key totals. Secondary blue and accent lavender exist only to support; they never compete for attention.
 3. **Glass, not glow.** Surfaces lean on `color-mix` translucency and gentle backdrop blur ("liquid glass") rather than neon shadows or bright gradients. Motion is slow and breathy — float, pulse, shimmer — so the app feels considered, never noisy.
 
-The emotional target: *"my finances are under control, and the tool respects my attention."*
+The emotional target: _"my finances are under control, and the tool respects my attention."_
 
 ## Colors
 
@@ -530,7 +530,7 @@ Depth in Wealth Pillar is conveyed by **translucent layering** more than by drop
    - `liquid-glass-subtle` — the bottom navigation and sticky range bars.
    - `liquid-glass` — modals, popovers, drawers, dashboard cards.
    - `liquid-glass-strong` — focal hero cards and authentication surfaces.
-3. **Tinted glass.** Variants tinted with primary / success / warning at ~16% opacity provide *colorful* glass for status callouts (e.g., a "budget exceeded" banner) without resorting to flat fills.
+3. **Tinted glass.** Variants tinted with primary / success / warning at ~16% opacity provide _colorful_ glass for status callouts (e.g., a "budget exceeded" banner) without resorting to flat fills.
 
 Z-index is governed by a small token set: raised (10) → dropdown (20) → sticky (30) → bottom-nav (40) → sidebar (95) → modal (150) → popover (160) → tooltip (170). Nothing ad-hoc.
 
@@ -540,7 +540,7 @@ The shape language is **rounded-soft, never circular except for status dots and 
 
 - **Default radius is `1rem`** (16px). It governs cards, buttons larger than 36px, sticky bars, and primary surfaces.
 - **Buttons** use `0.75rem` (12px) — visibly tighter than the cards that contain them, which keeps the button from competing with the card's outline.
-- **Pills, drawers, and tab lists** use `1.5rem` to feel friendlier (the bottom drawer rounds *only the top corners* at 1.5rem to anchor it to the viewport edge).
+- **Pills, drawers, and tab lists** use `1.5rem` to feel friendlier (the bottom drawer rounds _only the top corners_ at 1.5rem to anchor it to the viewport edge).
 - **Inputs** match buttons at `0.75rem` for visual consistency along a form row.
 - **Icon containers** are square with `1rem` radius (filled with a subtle 135° gradient mixing 22% → 10% primary), giving them a tactile, "carved-from-the-card" feel.
 
@@ -588,7 +588,7 @@ A sticky page header sits above the content on every authenticated route, glassy
 ### Status & Indicators
 
 - **Budget status** is encoded with a 2px colored dot (safe = primary, warning = warning, danger = destructive) plus a percentage in matching color. The progress bar's fill follows the same color rule.
-- **Category badges** render the category icon over a tinted square (color at 15% opacity background, full color foreground). Categories are *never* differentiated by shape.
+- **Category badges** render the category icon over a tinted square (color at 15% opacity background, full color foreground). Categories are _never_ differentiated by shape.
 - **Toasts** appear top-right (desktop) or top-center (mobile) as glass cards with a leading colored bar (primary / success / warning / destructive).
 
 ### Charts

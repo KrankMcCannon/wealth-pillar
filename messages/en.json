@@ -395,135 +395,59 @@
   },
   "ReportsContent": {
     "headerTitle": "Reports",
-    "flowHint": "Start with the group overview. Open “Member detail” when you want to drill into one person.",
-    "flowHintDismissAria": "Dismiss this tip",
-    "sectionGroupTitle": "Group overview",
-    "sectionGroupSubtitle": "Balance, trends, and category split for the range above.",
-    "sectionChartsTitle": "Trends and categories",
-    "sectionChartsSubtitle": "Everyone’s transactions combined for the selected period.",
+    "skipToMain": "Skip to reports",
     "sectionMemberTitle": "Member detail",
-    "sectionMemberSubtitle": "Pick someone to see their accounts, cash flow, and period history.",
+    "sectionMemberSubtitle": "Choose someone to see the same breakdown for their activity in the range above.",
     "memberSectionExpand": "Open member detail",
-    "memberSectionCollapse": "Close member detail",
-    "sectionBudgetFlowAriaLabel": "Budget flow for the selected member",
-    "sectionPeriodsAriaLabel": "Period history"
+    "memberSectionCollapse": "Close member detail"
   },
   "Reports": {
-    "SummarySection": {
-      "title": "Summary",
-      "totalBalance": "Total balance",
-      "groupBalanceFootnote": "All group accounts",
-      "memberBalanceFootnote": "Accounts linked to {name}",
-      "groupInPeriod": "Whole group · selected range",
-      "groupAllTime": "Whole group · all time",
-      "memberInPeriod": "{name} · selected range",
-      "memberAllTime": "{name} · all time",
-      "netFlow": "Net flow",
-      "income": "Income",
-      "expenses": "Expenses",
-      "savingsRate": "savings rate",
-      "incomeLabel": "Income",
-      "expensesLabel": "Expenses",
-      "empty": "No group accounts to show.",
-      "emptyDescription": "Add an account or log transactions to see balances and trends here.",
-      "emptyCta": "Go to transactions"
-    },
-    "PeriodsSection": {
-      "title": "Period history",
-      "empty": "No periods in this range."
-    },
-    "CategoriesSection": {
-      "title": "Category Breakdown",
-      "incomeTitle": "Income",
-      "expensesTitle": "Expenses",
-      "empty": "No data available."
-    },
-    "Charts": {
-      "timeTrendsTitle": "Income & Expense Trends",
-      "timeTrendsSubtitle": "Same data as the summary and category chart; period from the control above.",
-      "categoryDistributionTitle": "Spending by category",
-      "categoryDistributionSubtitle": "How group spending splits across categories",
-      "flowTitle": "Budget Flow",
-      "flowSubtitle": "Movement across account types for this member",
-      "income": "Income",
-      "expense": "Expenses",
-      "total": "Total",
-      "noData": "No data for this period.",
-      "chartLegendAriaLabel": "Legend: green bars income, red bars expenses",
-      "categoryListRegionAria": "Spending amounts by category",
-      "categoryListScrollHint": "Scroll the list to see all categories",
-      "net": "Net",
-      "in": "In",
-      "out": "Out",
-      "accountTypes": {
-        "payroll": "Payroll",
-        "cash": "Cash",
-        "savings": "Savings"
-      }
-    },
-    "BudgetPeriodMetrics": {
-      "startBalance": "Start Balance",
-      "totalIncome": "Total Income",
-      "totalSpent": "Total Spent",
-      "endBalance": "End Balance",
-      "totalTransfers": "Transfers"
-    },
-    "BudgetPeriodTransactions": {
-      "title": "Transactions ({count})",
-      "viewAll": "View all",
-      "empty": "No transactions in this period"
-    },
-    "BudgetPeriodsSection": {
-      "emptyTitle": "No periods configured",
-      "emptyDescription": "Periods are created automatically when you set your budget start date in settings."
-    },
-    "TimeRangeSelector": {
-      "label": "Time Range",
-      "ariaLabel": "Report time range",
-      "filterAppliesHint": "Applies to the whole report: group overview, charts, and member detail.",
-      "allTime": "All time",
-      "last7Days": "Last 7 days",
-      "last30Days": "Last 30 days",
-      "last3Months": "Last 3 months",
-      "last6Months": "Last 6 months",
-      "lastYear": "Last 12 months",
-      "moreRangesShow": "More ranges",
-      "moreRangesHide": "Fewer ranges",
-      "moreRangesAriaLabel": "Additional time ranges",
-      "customRange": "Custom Range",
+    "TimeFilter": {
+      "ariaLabel": "Report period",
+      "monthly": "Monthly",
+      "weekly": "Weekly",
+      "yearly": "Yearly",
+      "custom": "Custom",
+      "customTitle": "Custom range",
       "from": "From",
       "to": "To",
       "apply": "Apply"
     },
-    "TimeTrendsChart": {
-      "title": "Spending Trends",
+    "Hero": {
+      "srHeading": "Financial summary",
+      "netFlow": "Net flow",
       "income": "Income",
-      "expense": "Expenses"
+      "expense": "Expense",
+      "noComparison": "Not enough history to compare.",
+      "vsLastMonth": "vs last month",
+      "vsLastWeek": "vs last week",
+      "vsLastYear": "vs last year",
+      "vsPreviousRange": "vs previous range"
     },
-    "CategoryDistribution": {
-      "title": "Spending by Category",
-      "total": "Total Expenses"
+    "TopExpenses": {
+      "title": "Top expenses",
+      "empty": "No expenses in this range."
     },
-    "BudgetFlowVisualizer": {
-      "title": "Budget Flow",
-      "start": "Start",
-      "income": "Income",
-      "expense": "Expenses",
-      "end": "End"
+    "AccountBreakdown": {
+      "title": "Account breakdown",
+      "empty": "No accounts to show.",
+      "percentOfWealth": "{percent}% of wealth",
+      "types": {
+        "checking": "Checking",
+        "savings": "Savings",
+        "payroll": "Payroll",
+        "cash": "Cash",
+        "investments": "Investments",
+        "other": "Other"
+      }
     },
-    "PeriodCard": {
-      "balanceLabel": "Balance",
-      "incomeLabel": "Income",
-      "expensesLabel": "Expenses",
-      "netLabel": "Net",
-      "netSavingsLabel": "Net",
-      "byAccountTypeTitle": "Account breakdown",
-      "inLabel": "Income",
-      "outLabel": "Expenses",
-      "showDetails": "Show breakdown",
-      "hideDetails": "Hide",
-      "showDetailsAriaLabel": "Show account breakdown for {period}",
-      "hideDetailsAriaLabel": "Hide account breakdown for {period}"
+    "HistoricalBudget": {
+      "title": "Historical budget",
+      "empty": "No budget periods overlap this range.",
+      "startingBalance": "Starting balance",
+      "closingBalance": "Closing balance",
+      "badgeOnTrack": "On track",
+      "badgeOverBudget": "Over budget"
     }
   },
   "InvestmentsPage": {

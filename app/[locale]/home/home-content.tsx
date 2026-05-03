@@ -9,7 +9,13 @@ import {
   HomeDashboardMain,
   SkipToMainLink,
 } from '@/components/layout';
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui';
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+} from '@/components/ui';
 import { useDashboardContent } from '@/features/dashboard';
 import UserSelector from '@/components/shared/user-selector';
 import { BalanceSection } from '@/features/accounts';
@@ -111,6 +117,7 @@ export default function HomeContent({
           <DrawerContent>
             <DrawerHeader>
               <DrawerTitle>{t('userPickerTitle')}</DrawerTitle>
+              <DrawerDescription className="sr-only">{t('userPickerTitle')}</DrawerDescription>
             </DrawerHeader>
             <UserSelector
               currentUser={currentUser}

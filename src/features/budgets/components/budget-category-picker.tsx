@@ -71,7 +71,11 @@ export function BudgetCategoryPicker({
             aria-label={t('fields.categories.searchPlaceholder')}
           />
         </div>
-        <div className={s.categoryQuickActions} role="group" aria-label={t('fields.categories.quickActionsLabel')}>
+        <div
+          className={s.categoryQuickActions}
+          role="group"
+          aria-label={t('fields.categories.quickActionsLabel')}
+        >
           <button
             type="button"
             className={s.categoryQuickBtn}
@@ -92,10 +96,7 @@ export function BudgetCategoryPicker({
       </div>
 
       {selectedChips.length > 0 ? (
-        <section
-          className={s.selectedSection}
-          aria-labelledby="budget-selected-categories-heading"
-        >
+        <section className={s.selectedSection} aria-labelledby="budget-selected-categories-heading">
           <h3 id="budget-selected-categories-heading" className={s.selectedSectionTitle}>
             {t('fields.categories.selectedGroupLabel')}
           </h3>

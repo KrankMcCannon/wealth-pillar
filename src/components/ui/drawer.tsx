@@ -6,7 +6,8 @@ import { cn } from '@/lib/utils';
 import { drawerStyles } from '@/styles/system';
 
 const Drawer = ({
-  shouldScaleBackground = true, // Enable background scaling for better mobile UX
+  /** When true, Vaul scales the page behind the drawer; that `transform` breaks `position: fixed` (header / bottom nav) until the drawer tree unmounts. Default off for stable chrome. */
+  shouldScaleBackground = false,
   ...props
 }: React.ComponentProps<typeof DrawerPrimitive.Root>) => (
   <DrawerPrimitive.Root shouldScaleBackground={shouldScaleBackground} {...props} />

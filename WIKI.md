@@ -15,16 +15,16 @@ Questo file è il **contratto** tra repository e vault Obsidian: descrive dove v
 
 ## Convenzioni nel vault
 
-| Elemento | Regola |
-|----------|--------|
-| **Lingua** | Italiano per le pagine wiki. |
-| **Indice** | `index.md` — catalogo con link `[[...]]` alle pagine principali. |
-| **Cronologia** | `log.md` — **append-only**. Ogni voce inizia con `## [YYYY-MM-DD] ingest \| …` o `## [YYYY-MM-DD] commit \| …`. |
-| **Concetti / architettura** | File `.md` nella radice del vault (`architecture.md`, `data-model.md`, …). |
-| **Entità dominio** | Cartella `domain/` — una pagina per entità (User, Budget, …). |
-| **Moduli feature** | Cartella `features/` — allineata a `src/features/<nome>`. |
-| **Flussi utente** | Cartella `flows/` — journey prodotto, linguaggio accessibile. |
-| **Link** | Preferire `[[wikilinks]]` Obsidian; path del codice come markdown `[path](path)` relativi al repo `wealth-pillar`. |
+| Elemento                    | Regola                                                                                                             |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| **Lingua**                  | Italiano per le pagine wiki.                                                                                       |
+| **Indice**                  | `index.md` — catalogo con link `[[...]]` alle pagine principali.                                                   |
+| **Cronologia**              | `log.md` — **append-only**. Ogni voce inizia con `## [YYYY-MM-DD] ingest \| …` o `## [YYYY-MM-DD] commit \| …`.    |
+| **Concetti / architettura** | File `.md` nella radice del vault (`architecture.md`, `data-model.md`, …).                                         |
+| **Entità dominio**          | Cartella `domain/` — una pagina per entità (User, Budget, …).                                                      |
+| **Moduli feature**          | Cartella `features/` — allineata a `src/features/<nome>`.                                                          |
+| **Flussi utente**           | Cartella `flows/` — journey prodotto, linguaggio accessibile.                                                      |
+| **Link**                    | Preferire `[[wikilinks]]` Obsidian; path del codice come markdown `[path](path)` relativi al repo `wealth-pillar`. |
 
 ## Allineamento al codice
 
