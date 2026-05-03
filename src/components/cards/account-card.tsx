@@ -7,7 +7,7 @@ import { formatCurrency, truncateText, cn } from '@/lib/utils';
 import type { Account } from '@/lib/types';
 import { AccountTypeMap } from '@/lib/types';
 import { RowCard } from '@/components/ui/layout/row-card';
-import { useCloseAllCards } from '@/stores/swipe-state-store';
+import { stitchAccounts, stitchHome } from '@/styles/home-design-foundation';
 import { cardStyles } from './theme/card-styles';
 
 interface AccountCardProps {
@@ -15,8 +15,6 @@ interface AccountCardProps {
   accountBalance: number;
   /** Tap / invio sulla riga: apre modifica (come le transazioni). */
   onClick?: (() => void) | undefined;
-  /** Swipe per eliminare; sul carosello home non viene passato. */
-  onDelete?: (() => void) | undefined;
   className?: string | undefined;
   /**
    * `dashboard`: saldi positivi in tinta primary (home slider) così il verde non compete col totale.
@@ -26,20 +24,16 @@ interface AccountCardProps {
 }
 
 /**
- * AccountCard — stessa logica delle transazioni: tap → modifica, swipe → elimina (se `onDelete`).
- * Niente menu ⋯ duplicato per “Modifica”.
+ * AccountCard — tap sulla riga → modifica (eliminazione dalla modale di modifica).
  */
 export const AccountCard = memo(function AccountCard({
   account,
   accountBalance,
   onClick,
-  onDelete,
   className,
   balancePresentation = 'default',
 }: Readonly<AccountCardProps>) {
   const t = useTranslations('Accounts.Card');
-  const tSwipe = useTranslations('Common.Swipe');
-  const closeAllCards = useCloseAllCards();
   const isNegative = accountBalance < 0;
 
   const primaryValue = formatCurrency(Math.abs(accountBalance));
@@ -55,13 +49,6 @@ export const AccountCard = memo(function AccountCard({
     cash: t('accountTypes.cash'),
     investments: t('accountTypes.investments'),
   };
-
-  const handleDelete = () => {
-    closeAllCards();
-    onDelete?.();
-  };
-
-  const useSwipeDelete = balancePresentation === 'default' && Boolean(onDelete);
 
   const interactiveAriaLabel =
     onClick !== undefined
@@ -80,7 +67,9 @@ export const AccountCard = memo(function AccountCard({
         />
       }
       iconSize={balancePresentation === 'dashboard' ? 'xs' : 'sm'}
-      {...(balancePresentation === 'default' ? { iconClassName: '!rounded-xl' } : {})}
+      {...(balancePresentation === 'default'
+        ? { iconClassName: stitchAccounts.accountListIconWrap }
+        : {})}
       iconColor="primary"
       title={balancePresentation === 'dashboard' ? account.name : truncateText(account.name, 20)}
       subtitle={accountTypeLabels[account.type] || AccountTypeMap[account.type] || account.type}
@@ -88,34 +77,25 @@ export const AccountCard = memo(function AccountCard({
       secondaryValue={secondaryValue}
       amountVariant={amountVariant}
       actions={undefined}
-      variant="interactive"
+      variant="regular"
       rightLayout="row"
-      onClick={useSwipeDelete ? undefined : onClick}
-      interactiveAriaLabel={useSwipeDelete ? undefined : interactiveAriaLabel}
-      swipeDragHint={useSwipeDelete ? tSwipe('rowSwipeHint') : undefined}
-      swipeConfig={
-        useSwipeDelete
-          ? {
-              id: `account-${account.id}`,
-              deleteAction: {
-                label: t('delete'),
-                variant: 'delete',
-                onAction: handleDelete,
-              },
-              onCardClick: onClick,
-            }
-          : undefined
-      }
+      onClick={onClick}
+      interactiveAriaLabel={interactiveAriaLabel}
       compact={balancePresentation === 'dashboard'}
       {...(balancePresentation === 'default'
         ? {
-            titleClassName: cardStyles.account.listTitle,
-            subtitleClassName: cardStyles.account.listSubtitle,
-            valueClassName: cardStyles.account.listAmount,
+            titleClassName: stitchAccounts.accountListTitle,
+            subtitleClassName: stitchAccounts.accountListSubtitle,
+            valueClassName:
+              amountVariant === 'success'
+                ? stitchAccounts.accountListAmountSuccess
+                : amountVariant === 'destructive'
+                  ? stitchAccounts.accountListAmountNegative
+                  : stitchAccounts.accountListAmountPrimary,
             ...(secondaryValue
               ? {
                   secondaryValueClassName: cn(
-                    cardStyles.account.listAmountSecondary,
+                    stitchAccounts.accountListAmountSecondary,
                     cardStyles.account.negativeLabel
                   ),
                 }
@@ -125,7 +105,7 @@ export const AccountCard = memo(function AccountCard({
       className={cn(
         balancePresentation === 'dashboard'
           ? cn(cardStyles.account.container, cardStyles.account.sliderTight)
-          : cardStyles.account.listRow,
+          : cn(stitchHome.listRowInteractive, 'w-full'),
         className
       )}
       testId={`account-card-${account.id}`}

@@ -4,11 +4,9 @@ import { Badge, CategoryBadge } from '@/components/ui';
 import { Transaction } from '@/lib';
 import { formatCurrency, cn } from '@/lib/utils';
 import { memo } from 'react';
-import { useTranslations } from 'next-intl';
 import { RowCard } from '@/components/ui/layout/row-card';
 import { transactionStyles, getTransactionBadgeColor } from '@/styles/system';
 import { stitchHome } from '@/styles/home-design-foundation';
-import { useCloseAllCards } from '@/stores/swipe-state-store';
 
 interface TransactionRowProps {
   transaction: Transaction;
@@ -16,22 +14,13 @@ interface TransactionRowProps {
   variant: 'regular' | 'recurrent';
   context: 'due' | 'informative';
   onEditTransaction?: ((transaction: Transaction) => void) | undefined;
-  onDeleteTransaction?: ((transactionId: string) => void) | undefined;
   getCategoryLabel: (key: string) => string;
   getCategoryColor: (key: string) => string;
 }
 
 /**
  * Individual Transaction Row Component
- * Now powered by the unified RowCard component with global swipe state.
- * This is a thin wrapper that maps transaction-specific props to RowCard's generic API.
- *
- * Features:
- * - Swipe-to-delete gesture (via unified SwipeableCard)
- * - Global swipe coordination (only one open at a time)
- * - Apple-style physics and animations
- * - Smart tap vs. drag detection
- * - Auto-close after action execution
+ * Thin wrapper that maps transaction-specific props to RowCard's generic API.
  */
 export const TransactionRow = memo(
   ({
@@ -40,13 +29,9 @@ export const TransactionRow = memo(
     variant,
     context,
     onEditTransaction,
-    onDeleteTransaction,
     getCategoryLabel,
     getCategoryColor,
   }: TransactionRowProps) => {
-    const t = useTranslations('Transactions.Row');
-    const tSwipe = useTranslations('Common.Swipe');
-    const closeAllCards = useCloseAllCards();
     // Calculate days until due for recurrent transactions
     const getDaysUntilDue = (): number => {
       if (!transaction.frequency || transaction.frequency === 'once') return Infinity;
@@ -117,12 +102,6 @@ export const TransactionRow = memo(
           ? stitchHome.amountExpense
           : 'text-[#9fb0d7]';
 
-    // Handle delete action with swipe close-first pattern
-    const handleDelete = () => {
-      closeAllCards();
-      onDeleteTransaction?.(transaction.id);
-    };
-
     return (
       <RowCard
         // Layout
@@ -147,21 +126,6 @@ export const TransactionRow = memo(
         // Interaction — hover/pressed da `listRowInteractive` (Stitch home)
         variant="regular"
         onClick={() => onEditTransaction?.(transaction)}
-        swipeDragHint={onDeleteTransaction ? tSwipe('rowSwipeHint') : undefined}
-        // Swipe configuration (new unified system)
-        swipeConfig={
-          onDeleteTransaction
-            ? {
-                id: `transaction-${transaction.id}`,
-                deleteAction: {
-                  label: t('delete'),
-                  variant: 'delete',
-                  onAction: handleDelete,
-                },
-                onCardClick: () => onEditTransaction?.(transaction),
-              }
-            : undefined
-        }
         className={cn(stitchHome.listRowInteractive, 'w-full')}
         testId={`transaction-row-${transaction.id}`}
       />

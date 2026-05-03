@@ -198,6 +198,65 @@ export const stitchTransactions = {
 } as const;
 
 /**
+ * Pagina Accounts (dark Stitch) — struttura come stitch/html/03-account-list, palette coerente con stitchHome.
+ */
+export const stitchAccounts = {
+  /** Stack sotto header fissato; padding bottom allineato a home dashboard / bottom nav. */
+  mainStack:
+    'flex flex-col gap-7 px-4 py-4 pb-[max(7rem,calc(5.5rem+env(safe-area-inset-bottom)))]',
+  /** Contesto / selettore utente. */
+  surfaceQuiet:
+    'rounded-2xl border border-[#3359c5]/20 bg-[#0b1f4f]/60 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]',
+  /** Lista conti (enfasi). */
+  surfaceEmphasis:
+    'rounded-2xl border border-[#5c77cc]/30 bg-[#0b1f4f]/95 p-3 shadow-[0_16px_36px_rgba(0,7,30,0.32)]',
+  /** Hero “Total net worth” — liquid glass dark (come stitchBudgets.heroSection). */
+  heroNetWorthCard:
+    'relative overflow-hidden rounded-xl border border-white/[0.08] bg-[#0b1f4f]/75 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] backdrop-blur-[24px]',
+  heroNetWorthDecor:
+    'pointer-events-none absolute -right-8 -top-8 h-28 w-28 rounded-full bg-[#001456]/22 blur-2xl',
+  sectionEyebrow: 'text-[11px] font-semibold uppercase tracking-wider text-[#9fb0d7]',
+  sectionTitle: 'text-base font-semibold tracking-tight text-[#e6ecff]',
+  sectionSubtitle: 'text-sm text-[#8fa2dd]',
+  /** Righe skeleton lista — allineate a stitchHome.listRow. */
+  listRowSkeleton:
+    'flex items-center justify-between gap-3 rounded-xl bg-[#11295f]/90 px-3 py-3 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)]',
+  listStack: 'flex flex-col gap-2',
+  /** Chip utente placeholder (scroll orizzontale). */
+  userChipRow: 'flex gap-2 overflow-hidden',
+  /** Banner vista membro (contesto). */
+  memberBanner:
+    'rounded-lg border border-[#3359c5]/30 bg-[#11295f]/60 px-3 py-2.5 text-sm leading-snug text-[#c5d4ff]',
+  /** Importo saldo totale (hero unico, senza card annidata). */
+  balanceAmount:
+    'text-[30px] font-semibold tabular-nums leading-none tracking-[-0.02em] text-[#8fb0ff]',
+  balanceAmountNegative:
+    'text-[30px] font-semibold tabular-nums leading-none tracking-[-0.02em] text-[#f0a6a6]',
+  /** Griglia statistiche sotto il saldo. */
+  statsGrid: 'mt-4 grid gap-2 border-t border-[#3359c5]/25 pt-4 grid-cols-3',
+  statItem:
+    'flex flex-col items-center justify-center gap-1 rounded-lg border px-2 py-2.5 text-center',
+  statItemPrimary: 'border-[#5c77cc]/35 bg-[#11295f]/70',
+  statItemSuccess: 'border-[#3cddc7]/28 bg-[#00211c]/45',
+  statItemDestructive: 'border-red-400/30 bg-[#5c1a1a]/35',
+  statLabel: 'text-[10px] font-semibold uppercase tracking-wide text-[#9fb0d7]',
+  statValue: 'text-sm font-bold tabular-nums text-[#e6ecff]',
+  statValueSuccess: 'text-sm font-bold tabular-nums text-[#8fe2b4]',
+  statValueDestructive: 'text-sm font-bold tabular-nums text-[#f0a6a6]',
+  accountListIconWrap: 'border border-[#3359c5]/35 bg-[#11295f]/85 !text-[#8fb0ff]',
+  accountListTitle: 'font-semibold text-[15px] leading-snug text-[#e6ecff]',
+  accountListSubtitle: 'mt-0.5 text-[11px] font-medium text-[#9fb0d7]',
+  accountListAmount: 'text-sm font-bold tabular-nums tracking-tight text-[#e6ecff]',
+  accountListAmountSuccess: 'text-sm font-bold tabular-nums tracking-tight text-[#8fe2b4]',
+  accountListAmountPrimary: 'text-sm font-bold tabular-nums tracking-tight text-[#8fb0ff]',
+  accountListAmountNegative: 'text-sm font-bold tabular-nums tracking-tight text-[#f0a6a6]',
+  accountListAmountSecondary: 'mt-0.5 text-[10px] font-semibold tabular-nums text-[#f0a6a6]',
+  /** CTA secondaria in testa lista (es. “Aggiungi conto”). */
+  outlineAction:
+    'border-[#3359c5]/40 bg-[#11295f]/50 text-[#e6ecff] hover:bg-[#17336f] hover:text-[#e6ecff]',
+} as const;
+
+/**
  * Pagina Reports — dark Stitch, mobile-only (single column, niente md/lg).
  */
 export const stitchReports = {

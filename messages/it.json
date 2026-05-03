@@ -1112,9 +1112,9 @@
       "sectionContextTitle": "Membro",
       "sectionContextSubtitle": "Scegli di quali saldi e conti vuoi la panoramica",
       "sectionBalanceTitle": "Saldi",
-      "sectionBalanceSubtitle": "Totali riferiti alla selezione sopra",
+      "sectionBalanceSubtitle": "Saldo complessivo dei conti in elenco",
       "sectionListTitle": "I tuoi conti",
-      "sectionListSubtitle": "Tocca una riga per modificare. Scorri verso sinistra per eliminare — come nelle transazioni.",
+      "sectionListSubtitle": "Tocca una riga per modificare. Puoi eliminare un conto dalla schermata di modifica.",
       "addAccountCta": "Aggiungi conto",
       "totalBalanceLabel": "Saldo Totale",
       "stats": {
@@ -1188,7 +1188,8 @@
       "buttons": {
         "create": "Crea",
         "update": "Aggiorna",
-        "cancel": "Annulla"
+        "cancel": "Annulla",
+        "delete": "Elimina conto"
       },
       "toast": {
         "errorTitle": "Errore",
@@ -1196,6 +1197,8 @@
         "updatedDescription": "Modifiche salvate correttamente.",
         "createdTitle": "Account creato",
         "createdDescription": "Account aggiunto correttamente.",
+        "deletedTitle": "Conto eliminato",
+        "deletedDescription": "Il conto è stato rimosso.",
         "revertedHint": "I dati mostrati sono tornati allo stato precedente.",
         "optimisticCreateFailedHint": "La bozza è stata rimossa dalla lista."
       },

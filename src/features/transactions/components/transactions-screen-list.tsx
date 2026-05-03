@@ -23,7 +23,6 @@ export interface TransactionsScreenListProps {
   onPageChange: (page: number) => void;
   onPageSizeChange?: (size: PageSizeOption) => void;
   onEditTransaction: (transaction: Transaction) => void;
-  onDeleteTransaction?: (transactionId: string) => void;
   onAddTransaction?: () => void;
   onClearFilters?: () => void;
   emptyTitle?: string;
@@ -67,7 +66,6 @@ function TransactionsScreenListInner({
   onPageChange,
   onPageSizeChange,
   onEditTransaction,
-  onDeleteTransaction,
   onAddTransaction,
   onClearFilters,
   emptyTitle,
@@ -137,7 +135,6 @@ function TransactionsScreenListInner({
             categories={categories}
             className="space-y-5"
             onEditTransaction={onEditTransaction}
-            onDeleteTransaction={onDeleteTransaction ?? (() => undefined)}
           />
         )}
 

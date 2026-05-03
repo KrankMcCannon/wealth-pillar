@@ -103,17 +103,6 @@ const accountTokens = {
 
 export const accountStyles = {
   // ====================================
-  // Page-level styles
-  // ====================================
-  page: {
-    container: `bg-card pb-32`, // Increased bottom padding to prevent overlap with bottom navigation
-  },
-  loading: {
-    body: 'flex-1',
-    main: 'space-y-6 px-4 py-6',
-  },
-
-  // ====================================
   // Header styles
   // ====================================
   header: {
@@ -237,87 +226,9 @@ export const accountStyles = {
   },
 
   // ====================================
-  // Skeletons
-  // ====================================
-  skeleton: {
-    header: {
-      container: 'sticky top-0 z-10 bg-card/95 backdrop-blur-sm border-b border-primary/20',
-      row: 'flex items-center justify-between px-4 py-4',
-      left: 'flex items-center gap-3 flex-1',
-      icon: 'w-9 h-9 bg-primary/10 rounded-lg animate-pulse',
-      title: 'h-5 w-32 bg-primary/15 rounded animate-pulse mb-2',
-      subtitle: 'h-3 w-16 bg-primary/15 rounded animate-pulse',
-      action: 'w-9 h-9 bg-primary/10 rounded-lg animate-pulse',
-    },
-    balance: {
-      container: 'px-4 py-6',
-      card: 'bg-card rounded-2xl p-6 border border-primary/20 shadow-xl space-y-4',
-      header: 'flex items-center justify-between mb-4',
-      label: 'h-3 w-20 bg-primary/15 rounded mb-2',
-      value: 'h-8 w-32 bg-primary/15 rounded',
-      avatar: 'w-14 h-14 bg-primary/10 rounded-full',
-      statsGrid: 'grid grid-cols-3 gap-3 mt-6',
-      statCard: 'bg-primary/5 rounded-lg p-3 border border-primary/10 space-y-2',
-      statRow: 'flex items-center gap-2 mb-1',
-      statIcon: 'w-4 h-4 bg-primary/15 rounded',
-      statLabel: 'h-2 w-12 bg-primary/15 rounded',
-      statValue: 'h-5 w-8 bg-primary/15 rounded',
-      inlineLabel: 'h-3 w-16 bg-primary/15 rounded',
-      inlineValue: 'h-6 w-24 bg-primary/15 rounded',
-      inlineStat: 'h-8 flex-1 bg-primary/10 rounded-lg animate-pulse',
-    },
-    list: {
-      container: 'px-4',
-      title: 'h-5 w-32 bg-primary/15 rounded animate-pulse mb-4',
-      item: 'p-4 rounded-lg border border-primary/20 bg-card',
-      row: 'flex items-center justify-between mb-3',
-      left: 'flex items-center gap-3 flex-1',
-      icon: 'w-10 h-10 bg-primary/10 rounded-lg',
-      body: 'flex-1',
-      line: 'h-4 w-24 bg-primary/15 rounded mb-2',
-      subline: 'h-3 w-16 bg-primary/15 rounded',
-      right: 'text-right',
-      amount: 'h-4 w-20 bg-primary/15 rounded mb-1',
-      amountSub: 'h-3 w-16 bg-primary/15 rounded',
-      itemWrapper: 'w-full',
-    },
-    slider: {
-      container: 'overflow-x-auto scrollbar-hide mb-4',
-      item: 'shrink-0 border border-primary/20 bg-primary/10',
-    },
-    page: {
-      container: 'min-h-screen bg-card pb-14',
-    },
-  },
-
-  // ====================================
   // Accounts List
   // ====================================
   list: {
     cardWrapper: 'w-full',
-  },
-
-  // ====================================
-  // Account Form Modal
-  // ====================================
-  formModal: {
-    form: 'space-y-4',
-    content: 'space-y-4',
-    error: 'bg-destructive/10 border border-destructive/20 rounded-lg p-3 mb-4',
-    errorText: 'text-sm text-destructive font-medium',
-    checkboxRow: 'flex items-center space-x-2 pt-2',
-    checkboxLabel:
-      'text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70',
-  },
-
-  /** Layout lista conti (prima condiviso con reportsStyles — mobile-only, single column). */
-  pageLayout: {
-    main: 'flex flex-col gap-7 px-4 py-4 pb-20',
-    surfaceQuiet:
-      'rounded-2xl border border-border/55 bg-muted/20 p-3 shadow-none ring-0 dark:border-border/50 dark:bg-muted/15',
-    surface:
-      'rounded-2xl border border-primary/15 bg-card/90 shadow-sm ring-1 ring-black/4 dark:ring-white/6 p-3',
-    surfaceEmphasis:
-      'rounded-2xl border border-primary/25 bg-card/95 shadow-md ring-1 ring-primary/10 dark:ring-primary/15 p-3',
   },
 };

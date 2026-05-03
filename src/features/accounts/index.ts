@@ -17,15 +17,6 @@ export { AccountSlider } from './components/AccountSlider';
 export { AccountSliderCard } from './components/AccountSliderCard';
 export { TotalBalanceLink } from './components/TotalBalanceLink';
 
-// Skeleton Components
-export {
-  AccountHeaderSkeleton,
-  BalanceCardSkeleton,
-  AccountListSkeleton,
-  BalanceSectionSliderSkeleton,
-  AccountsPageSkeleton,
-} from './components/account-skeletons';
-
 // Theme - Styles and Design Tokens
 export { accountStyles } from './theme';
 

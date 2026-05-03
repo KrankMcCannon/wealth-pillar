@@ -1,11 +1,8 @@
 'use client';
 
 import { useEffect, useMemo } from 'react';
-import { useLocale } from 'next-intl';
-import { useFilteredAccounts, usePermissions, useUserFilter, useDeleteConfirmation } from '@/hooks';
-import { deleteAccountAction } from '@/features/accounts/actions/account-actions';
+import { useFilteredAccounts, usePermissions, useUserFilter } from '@/hooks';
 import { useModalState } from '@/lib/navigation/url-state';
-import { useReferenceDataStore } from '@/stores/reference-data-store';
 import type { Account, User } from '@/lib/types';
 
 export interface UseAccountsContentProps {
@@ -19,20 +16,12 @@ export function useAccountsContent({
   currentUser,
   accounts,
 }: UseAccountsContentProps) {
-  const locale = useLocale();
-  // Reference data store actions for optimistic updates
-  const removeAccount = useReferenceDataStore((state) => state.removeAccount);
-  const addAccount = useReferenceDataStore((state) => state.addAccount);
-
   // User filtering state management (global context)
   const { setSelectedGroupFilter, selectedUserId } = useUserFilter();
   const { isMember } = usePermissions({ currentUser, selectedUserId });
 
   // Modal state management (URL-based)
   const { openModal } = useModalState();
-
-  // Delete confirmation state using hook
-  const deleteConfirm = useDeleteConfirmation<Account>();
 
   useEffect(() => {
     if (isMember) {
@@ -89,40 +78,9 @@ export function useAccountsContent({
     );
   }, [filteredAccounts.length, filteredBalances]);
 
-  // Action Handlers
   const handleEditAccount = (account: Account) => {
     openModal('account', account.id);
   };
-
-  const handleDeleteAccount = (account: Account) => {
-    deleteConfirm.openDialog(account);
-  };
-
-  const handleDeleteConfirm = async () => {
-    await deleteConfirm.executeDelete(async (account) => {
-      // Optimistic UI update - remove immediately from store
-      removeAccount(account.id);
-
-      try {
-        const result = await deleteAccountAction(account.id, locale);
-
-        if (result.error) {
-          // Revert on error - add back to store
-          addAccount(account);
-          console.error('[AccountsContent] Delete error:', result.error);
-          throw new Error(result.error);
-        }
-        // Success - no page refresh needed, store already updated!
-      } catch (error) {
-        // Revert on error
-        addAccount(account);
-        console.error('[AccountsContent] Error deleting account:', error);
-        throw error;
-      }
-    });
-  };
-
-  const handleCancelDelete = () => deleteConfirm.closeDialog();
 
   return {
     currentUser,
@@ -131,9 +89,5 @@ export function useAccountsContent({
     sortedAccounts,
     filteredBalances,
     handleEditAccount,
-    handleDeleteAccount,
-    deleteConfirm,
-    handleDeleteConfirm,
-    handleCancelDelete,
   };
 }

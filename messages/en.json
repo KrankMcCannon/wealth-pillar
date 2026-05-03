@@ -1112,9 +1112,9 @@
       "sectionContextTitle": "Member",
       "sectionContextSubtitle": "Choose whose accounts and balances you want to see",
       "sectionBalanceTitle": "Balances",
-      "sectionBalanceSubtitle": "Totals for the selection above",
+      "sectionBalanceSubtitle": "Combined balance of the accounts listed below",
       "sectionListTitle": "Your accounts",
-      "sectionListSubtitle": "Tap a row to edit. Swipe left to delete — same gesture as transactions.",
+      "sectionListSubtitle": "Tap a row to edit. You can delete an account from the edit screen.",
       "addAccountCta": "Add account",
       "totalBalanceLabel": "Total Balance",
       "stats": {
@@ -1188,7 +1188,8 @@
       "buttons": {
         "create": "Create",
         "update": "Update",
-        "cancel": "Cancel"
+        "cancel": "Cancel",
+        "delete": "Delete account"
       },
       "toast": {
         "errorTitle": "Error",
@@ -1196,6 +1197,8 @@
         "updatedDescription": "Changes saved successfully.",
         "createdTitle": "Account created",
         "createdDescription": "Account added successfully.",
+        "deletedTitle": "Account deleted",
+        "deletedDescription": "The account was removed.",
         "revertedHint": "What you see has been restored to the previous state.",
         "optimisticCreateFailedHint": "The draft entry was removed from the list."
       },

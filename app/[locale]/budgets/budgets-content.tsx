@@ -192,9 +192,6 @@ export default function BudgetsContent({ currentUser, groupUsers, pageData }: Bu
                     onEditTransaction={(transaction) => {
                       openModal('transaction', transaction.id);
                     }}
-                    onDeleteTransaction={() => {
-                      /* Handled via transaction form */
-                    }}
                   />
                 </>
               ) : null}

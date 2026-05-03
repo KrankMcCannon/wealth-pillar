@@ -15,7 +15,7 @@ export default function ReportsLoading() {
         <SkeletonBox height="h-9" width="w-9" variant="light" className="rounded-full" />
       </div>
 
-      <div className="sticky top-[64px] z-30 border-b border-[#3359c5]/25 bg-[#050818]/90 px-4 py-2 backdrop-blur-sm">
+      <div className="sticky z-30 border-b border-[#3359c5]/25 bg-[#050818]/90 px-4 py-2 backdrop-blur-sm">
         <div className="flex gap-2 overflow-hidden">
           {[1, 2, 3, 4].map((i) => (
             <SkeletonBox

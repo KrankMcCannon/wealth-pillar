@@ -1,16 +1,17 @@
 'use client';
+
 import { cn } from '@/lib/utils';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useCallback } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useLocale, useTranslations } from 'next-intl';
-import { Landmark } from 'lucide-react';
+import { Check, Landmark, Trash2 } from 'lucide-react';
 import { Account } from '@/lib/types';
 import { getTempId } from '@/lib/utils/temp-id';
-import { createAccountAction, updateAccountAction } from '@/features/accounts';
-import { ModalWrapper, ModalBody, ModalFooter, ModalSection } from '@/components/ui/modal-wrapper';
-import { FormActions, FormField, FormSelect } from '@/components/form';
+import { createAccountAction, updateAccountAction, deleteAccountAction } from '@/features/accounts';
+import { ModalWrapper } from '@/components/ui/modal-wrapper';
+import { FormSelect } from '@/components/form';
 import { UserField } from '@/components/ui/fields';
 import { Input } from '@/components/ui/input';
 import {
@@ -18,13 +19,15 @@ import {
   useRequiredCurrentUser,
   useRequiredGroupUsers,
   useRequiredGroupId,
+  useDeleteConfirmation,
 } from '@/hooks';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui';
 import { useAccounts, useReferenceDataStore } from '@/stores/reference-data-store';
 import { useUserFilterStore } from '@/stores/user-filter-store';
 import { toast } from '@/hooks/use-toast';
-import { accountStyles } from '../theme/account-styles';
+import { ConfirmationDialog } from '@/components/shared';
+import { stitchTransactionFormModal } from '@/styles/home-design-foundation';
 
 type AccountFormData = {
   name: string;
@@ -41,24 +44,24 @@ interface AccountFormModalProps {
 
 function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModalProps>) {
   const t = useTranslations('Accounts.FormModal');
+  const tContent = useTranslations('Accounts.Content');
   const locale = useLocale();
-  // Read from stores instead of props
   const currentUser = useRequiredCurrentUser();
   const groupUsers = useRequiredGroupUsers();
   const groupId = useRequiredGroupId();
   const selectedUserId = useUserFilterStore((state) => state.selectedUserId);
 
-  // Reference data store actions for optimistic updates
   const storeAccounts = useAccounts();
   const addAccount = useReferenceDataStore((state) => state.addAccount);
   const updateAccount = useReferenceDataStore((state) => state.updateAccount);
   const removeAccount = useReferenceDataStore((state) => state.removeAccount);
 
+  const deleteConfirm = useDeleteConfirmation<Account>();
+  const s = stitchTransactionFormModal;
+
   const isEditMode = !!editId;
   const title = isEditMode ? t('title.edit') : t('title.create');
-  const description = isEditMode ? t('description.edit') : t('description.create');
 
-  // Permission checks
   const { shouldDisableUserField, defaultFormUserId } = usePermissions({
     currentUser,
     selectedUserId,
@@ -74,7 +77,6 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
     [t]
   );
 
-  // React Hook Form setup
   const {
     register,
     handleSubmit,
@@ -97,14 +99,11 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
   const watchedIsDefault = useWatch({ control, name: 'isDefault' });
   const watchedType = useWatch({ control, name: 'type' });
 
-  // Load account data for edit mode
   useEffect(() => {
     if (isOpen && isEditMode && editId) {
-      // Find account in store
       const account = storeAccounts.find((acc) => acc.id === editId);
 
       if (account) {
-        // Check if this is the user's default account
         const isDefault = currentUser.default_account_id === account.id;
 
         reset({
@@ -115,7 +114,6 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
         });
       }
     } else if (isOpen && !isEditMode) {
-      // Reset to defaults for create mode
       reset({
         name: '',
         type: 'payroll',
@@ -125,7 +123,6 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
     }
   }, [isOpen, isEditMode, editId, defaultFormUserId, currentUser, reset, storeAccounts]);
 
-  // Handle update account flow
   const handleUpdate = async (data: AccountFormData, id: string) => {
     const accountData = {
       name: data.name.trim(),
@@ -133,16 +130,13 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
       user_ids: [data.user_id],
     };
 
-    // 1. Store original account for revert
     const originalAccount = storeAccounts.find((acc) => acc.id === id);
     if (!originalAccount) {
       throw new Error(t('errors.notFound'));
     }
 
-    // 2. Update in store immediately (optimistic)
     updateAccount(id, accountData);
 
-    // 3. Call server action
     const result = await updateAccountAction(id, accountData, data.isDefault || false, locale);
 
     if (result.error) {
@@ -165,7 +159,6 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
     }
   };
 
-  // Handle create account flow
   const handleCreate = async (data: AccountFormData) => {
     const accountData = {
       name: data.name.trim(),
@@ -173,7 +166,6 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
       user_ids: [data.user_id],
     };
 
-    // 1. Create temporary ID
     const tempId = getTempId('temp-account');
     const now = new Date().toISOString();
     const optimisticAccount: Account = {
@@ -184,13 +176,10 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
       group_id: groupId,
     };
 
-    // 2. Add to store immediately (optimistic)
     addAccount(optimisticAccount);
 
-    // 3. Close modal immediately for better UX
     onClose();
 
-    // 4. Call server action in background
     const result = await createAccountAction(
       {
         id: crypto.randomUUID(),
@@ -222,15 +211,55 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
     }
   };
 
-  // Handle form submission with optimistic updates
+  const openDeleteDialog = useCallback(() => {
+    if (!editId) return;
+    const account = storeAccounts.find((acc) => acc.id === editId);
+    if (account) deleteConfirm.openDialog(account);
+  }, [deleteConfirm, editId, storeAccounts]);
+
+  const handleDeleteConfirm = useCallback(async () => {
+    await deleteConfirm.executeDelete(async (account) => {
+      removeAccount(account.id);
+      let restored = false;
+      try {
+        const result = await deleteAccountAction(account.id, locale);
+        if (result.error) {
+          addAccount(account);
+          restored = true;
+          toast({
+            title: t('toast.errorTitle'),
+            description: result.error,
+            variant: 'destructive',
+          });
+          throw new Error(result.error);
+        }
+        toast({
+          title: t('toast.deletedTitle'),
+          description: t('toast.deletedDescription'),
+          variant: 'success',
+        });
+        onClose();
+      } catch {
+        if (!restored) {
+          addAccount(account);
+          toast({
+            title: t('toast.errorTitle'),
+            description: t('errors.unknown'),
+            variant: 'destructive',
+          });
+        }
+        throw new Error('delete failed');
+      }
+    });
+  }, [addAccount, deleteConfirm, locale, onClose, removeAccount, t]);
+
   const onSubmit = async (data: AccountFormData) => {
     try {
       if (isEditMode && editId) {
         await handleUpdate(data, editId);
-        onClose(); // Close on success for update
+        onClose();
       } else {
         await handleCreate(data);
-        // onClose is called inside handleCreate for immediate feedback
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : t('errors.unknown');
@@ -238,7 +267,6 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
     }
   };
 
-  // Account type options
   const accountTypes = [
     { value: 'payroll', label: t('accountTypes.payroll') },
     { value: 'cash', label: t('accountTypes.cash') },
@@ -247,93 +275,130 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
   ];
 
   return (
-    <ModalWrapper
-      isOpen={isOpen}
-      onOpenChange={onClose}
-      title={title}
-      description={description}
-      maxWidth="md"
-      repositionInputs={false}
-    >
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className={cn(accountStyles.formModal.form, 'flex min-h-0 flex-1 flex-col')}
+    <>
+      <ModalWrapper
+        isOpen={isOpen}
+        onOpenChange={onClose}
+        title={title}
+        titleClassName={s.headerTitle}
+        maxWidth="md"
+        repositionInputs={false}
+        handleClassName={s.handle}
+        drawerHeaderClassName={s.drawerHeaderShell}
+        drawerCloseClassName={s.headerClose}
+        showCloseButton
+        className={s.drawerSurface}
       >
-        <ModalBody className={accountStyles.formModal.content}>
-          {/* Submit Error Display */}
-          {errors.root && (
-            <div className={accountStyles.formModal.error}>
-              <p className="text-sm font-medium text-destructive">{errors.root.message}</p>
+        <form onSubmit={handleSubmit(onSubmit)} className={s.formColumn}>
+          <div className={s.scrollBody}>
+            {errors.root ? (
+              <div className={s.errorBanner} role="alert">
+                {errors.root.message}
+              </div>
+            ) : null}
+
+            <div className={s.fieldStack}>
+              <div className={s.noteShell}>
+                <label htmlFor="account-name" className={s.noteLabel}>
+                  {t('fields.name.label')}
+                </label>
+                <Input
+                  id="account-name"
+                  {...register('name')}
+                  placeholder={t('fields.name.placeholder')}
+                  disabled={isSubmitting}
+                  className={s.noteInput}
+                  autoComplete="off"
+                />
+                {errors.name ? (
+                  <p className={cn(s.fieldError, 'mt-2')}>{errors.name.message}</p>
+                ) : null}
+              </div>
+
+              <div className="space-y-1">
+                <FormSelect
+                  value={watchedType}
+                  onValueChange={(val) => setValue('type', val as Account['type'])}
+                  options={accountTypes}
+                  placeholder={t('fields.type.placeholder')}
+                  disabled={isSubmitting}
+                  captionLabel={t('fields.type.label')}
+                  leadingIcon={<Landmark className="h-5 w-5 text-[#b8c5ff]" aria-hidden />}
+                />
+                {errors.type?.message ? (
+                  <p className={s.fieldError}>{errors.type.message}</p>
+                ) : null}
+              </div>
+
+              <UserField
+                value={watchedUserId}
+                onChange={(val) => setValue('user_id', val)}
+                error={errors.user_id?.message}
+                users={groupUsers}
+                label={t('fields.owner.label')}
+                placeholder={t('fields.owner.placeholder')}
+                disabled={shouldDisableUserField || isSubmitting}
+                helperText={shouldDisableUserField ? t('fields.owner.memberHelper') : undefined}
+                required
+              />
+
+              <div className={cn(s.noteShell, 'flex flex-row items-center gap-3 py-3')}>
+                <Checkbox
+                  id="isDefault"
+                  checked={watchedIsDefault ?? false}
+                  onCheckedChange={(checked) => setValue('isDefault', checked as boolean)}
+                  disabled={isSubmitting}
+                />
+                <Label
+                  htmlFor="isDefault"
+                  className="text-sm font-medium leading-snug text-[#e6ecff]"
+                >
+                  {t('fields.isDefault')}
+                </Label>
+              </div>
             </div>
-          )}
+          </div>
 
-          <ModalSection>
-            {/* Account Name */}
-            <FormField label={t('fields.name.label')} required error={errors.name?.message}>
-              <Input
-                {...register('name')}
-                placeholder={t('fields.name.placeholder')}
-                disabled={isSubmitting}
-              />
-            </FormField>
-
-            {/* Account Type */}
-            <div className="space-y-1">
-              <FormSelect
-                value={watchedType}
-                onValueChange={(val) => setValue('type', val as Account['type'])}
-                options={accountTypes}
-                placeholder={t('fields.type.placeholder')}
-                captionLabel={t('fields.type.label')}
-                leadingIcon={<Landmark className="h-5 w-5 text-[#b8c5ff]" aria-hidden />}
-              />
-              {errors.type?.message ? (
-                <p className="text-sm text-destructive">{errors.type.message}</p>
+          <div className={s.stickyFooter}>
+            <div className={s.footerActionsStack}>
+              <button type="submit" disabled={isSubmitting} className={s.primaryCta}>
+                <Check className="h-5 w-5 shrink-0" aria-hidden />
+                {isEditMode ? t('buttons.update') : t('buttons.create')}
+              </button>
+              {isEditMode && editId ? (
+                <button
+                  type="button"
+                  data-testid="account-form-delete"
+                  onClick={openDeleteDialog}
+                  disabled={isSubmitting}
+                  className={s.deleteButton}
+                >
+                  <Trash2 className="h-5 w-5 shrink-0" aria-hidden />
+                  {t('buttons.delete')}
+                </button>
               ) : null}
             </div>
+          </div>
+        </form>
+      </ModalWrapper>
 
-            {/* User Selection */}
-            <UserField
-              value={watchedUserId}
-              onChange={(val) => setValue('user_id', val)}
-              error={errors.user_id?.message}
-              users={groupUsers}
-              label={t('fields.owner.label')}
-              placeholder={t('fields.owner.placeholder')}
-              disabled={shouldDisableUserField || isSubmitting}
-              helperText={shouldDisableUserField ? t('fields.owner.memberHelper') : undefined}
-              required
-            />
-
-            {/* Set as Default */}
-            <div className={accountStyles.formModal.checkboxRow}>
-              <Checkbox
-                id="isDefault"
-                checked={watchedIsDefault ?? false}
-                onCheckedChange={(checked) => setValue('isDefault', checked as boolean)}
-                disabled={isSubmitting}
-              />
-              <Label htmlFor="isDefault" className={accountStyles.formModal.checkboxLabel}>
-                {t('fields.isDefault')}
-              </Label>
-            </div>
-          </ModalSection>
-        </ModalBody>
-
-        <ModalFooter>
-          <FormActions
-            submitType="submit"
-            submitLabel={isEditMode ? t('buttons.update') : t('buttons.create')}
-            cancelLabel={t('buttons.cancel')}
-            onCancel={onClose}
-            isSubmitting={isSubmitting}
-            className="w-full sm:w-auto"
-          />
-        </ModalFooter>
-      </form>
-    </ModalWrapper>
+      <ConfirmationDialog
+        isOpen={deleteConfirm.isOpen}
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => deleteConfirm.closeDialog()}
+        title={tContent('dialogs.delete.title')}
+        message={
+          deleteConfirm.itemToDelete
+            ? tContent('dialogs.delete.message', { name: deleteConfirm.itemToDelete.name })
+            : tContent('dialogs.delete.messageFallback')
+        }
+        confirmText={tContent('dialogs.delete.confirm')}
+        cancelText={tContent('dialogs.delete.cancel')}
+        variant="destructive"
+        isLoading={deleteConfirm.isDeleting}
+      />
+    </>
   );
 }
 
-// Default export for lazy loading
 export default AccountFormModal;

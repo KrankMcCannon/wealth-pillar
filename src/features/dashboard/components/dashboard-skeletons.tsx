@@ -4,7 +4,6 @@
  * Prevents Cumulative Layout Shift (CLS) with accurate dimensions
  */
 
-import { PageContainer } from '@/components/layout';
 import { userSelectorStyles } from '@/components/shared/theme/user-selector-styles';
 import { SkeletonList } from '@/components/ui/primitives';
 import { accountStyles } from '@/features/accounts';
@@ -19,34 +18,6 @@ import { dashboardStyles } from '../theme/dashboard-styles';
 const skeletonClasses = {
   shimmer: dashboardStyles.skeletons.shimmer,
 };
-
-/**
- * Header skeleton loader
- * Matches exact dimensions of actual header to prevent CLS
- */
-export function DashboardHeaderSkeleton() {
-  return (
-    <header className={dashboardStyles.header.container}>
-      <div className={dashboardStyles.header.inner}>
-        <div className={dashboardStyles.header.section.left}>
-          <div className={`${dashboardStyles.skeletons.headerIcon} ${skeletonClasses.shimmer}`} />
-          <div className={dashboardStyles.skeletons.headerTextGroup}>
-            <div
-              className={`${dashboardStyles.skeletons.headerLinePrimary} ${skeletonClasses.shimmer}`}
-            />
-            <div
-              className={`${dashboardStyles.skeletons.headerLineSecondary} ${skeletonClasses.shimmer}`}
-            />
-          </div>
-        </div>
-        <div className={dashboardStyles.header.section.right}>
-          <div className={`${dashboardStyles.skeletons.headerIcon} ${skeletonClasses.shimmer}`} />
-          <div className={`${dashboardStyles.skeletons.headerIcon} ${skeletonClasses.shimmer}`} />
-        </div>
-      </div>
-    </header>
-  );
-}
 
 /**
  * User selector skeleton loader
@@ -187,23 +158,5 @@ export function RecurringSeriesSkeleton() {
         )}
       />
     </div>
-  );
-}
-
-/**
- * Page-level loading skeleton
- */
-export function DashboardPageSkeleton() {
-  return (
-    <PageContainer>
-      <DashboardHeaderSkeleton />
-      <UserSelectorSkeleton />
-      <main className={dashboardStyles.page.main}>
-        <BalanceSectionSkeleton />
-        <div className={dashboardStyles.divider} />
-        <BudgetSectionSkeleton />
-        <RecurringSeriesSkeleton />
-      </main>
-    </PageContainer>
   );
 }

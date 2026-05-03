@@ -18,12 +18,17 @@ import {
   useRequiredCurrentUser,
   useRequiredGroupUsers,
   useRequiredGroupId,
+  useDeleteConfirmation,
+  useToast,
 } from '@/hooks';
 import { useAccounts, useCategories } from '@/stores/reference-data-store';
 import { useUserFilterStore } from '@/stores/user-filter-store';
 import { usePageDataStore } from '@/stores/page-data-store';
-import { useTransactionDeleteRequestStore } from '@/stores/transaction-delete-request-store';
+import { ConfirmationDialog } from '@/components/shared';
+import { deleteTransactionAction } from '@/features/transactions/actions/transaction-actions';
+import { useRouter } from '@/i18n/routing';
 import { stitchTransactionFormModal } from '@/styles/home-design-foundation';
+import type { Transaction } from '@/lib/types';
 
 const createTransactionSchema = (t: ReturnType<typeof useTranslations>) =>
   z
@@ -66,6 +71,7 @@ interface TransactionFormModalProps {
 
 function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionFormModalProps>) {
   const t = useTranslations('Transactions.FormModal');
+  const tPage = useTranslations('TransactionsContent');
   const currentUser = useRequiredCurrentUser();
   const groupUsers = useRequiredGroupUsers();
   const accounts = useAccounts();
@@ -77,7 +83,9 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
   const addTransaction = usePageDataStore((state) => state.addTransaction);
   const updateTransaction = usePageDataStore((state) => state.updateTransaction);
   const removeTransaction = usePageDataStore((state) => state.removeTransaction);
-  const requestDelete = useTransactionDeleteRequestStore((state) => state.requestDelete);
+  const router = useRouter();
+  const { toast } = useToast();
+  const deleteConfirm = useDeleteConfirmation<Transaction>();
 
   const isEditMode = !!editId;
   const title = isEditMode ? t('title.edit') : t('title.create');
@@ -242,6 +250,48 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
     await submitHandler(data);
   };
 
+  const openDeleteDialog = useCallback(() => {
+    if (!editId) return;
+    const transaction = storeTransactions.find((tx) => tx.id === editId);
+    if (transaction) deleteConfirm.openDialog(transaction);
+  }, [deleteConfirm, editId, storeTransactions]);
+
+  const handleDeleteConfirm = useCallback(async () => {
+    await deleteConfirm.executeDelete(async (transaction) => {
+      removeTransaction(transaction.id);
+      let restored = false;
+      try {
+        const result = await deleteTransactionAction(transaction.id);
+        if (result.error) {
+          addTransaction(transaction);
+          restored = true;
+          toast({
+            title: tPage('errors.title'),
+            description: `${tPage('errors.deleteTransactionFailed')} ${tPage('errors.retryHint')}`,
+            variant: 'destructive',
+          });
+          throw new Error(result.error);
+        }
+        onClose();
+        router.refresh();
+      } catch {
+        if (!restored) {
+          addTransaction(transaction);
+          toast({
+            title: tPage('errors.title'),
+            description: `${tPage('errors.deleteTransactionFailed')} ${tPage('errors.retryHint')}`,
+            variant: 'destructive',
+          });
+        }
+        throw new Error('delete failed');
+      }
+    });
+  }, [addTransaction, deleteConfirm, onClose, removeTransaction, router, tPage, toast]);
+
+  const deleteDialogDescription =
+    deleteConfirm.itemToDelete?.description?.trim() ||
+    tPage('dialogs.deleteTransaction.fallbackDescription');
+
   const typeOptions = [
     { value: 'income', label: t('typeOptions.income') },
     { value: 'expense', label: t('typeOptions.expense') },
@@ -253,166 +303,179 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
   const s = stitchTransactionFormModal;
 
   return (
-    <ModalWrapper
-      isOpen={isOpen}
-      onOpenChange={onClose}
-      title={title}
-      titleClassName={s.headerTitle}
-      maxWidth="md"
-      repositionInputs={false}
-      handleClassName={s.handle}
-      drawerHeaderClassName={s.drawerHeaderShell}
-      drawerCloseClassName={s.headerClose}
-      showCloseButton
-      className={s.drawerSurface}
-    >
-      <form
-        onSubmit={handleSubmit((data: TransactionFormData) => onSubmit(data))}
-        className={s.formColumn}
+    <>
+      <ModalWrapper
+        isOpen={isOpen}
+        onOpenChange={onClose}
+        title={title}
+        titleClassName={s.headerTitle}
+        maxWidth="md"
+        repositionInputs={false}
+        handleClassName={s.handle}
+        drawerHeaderClassName={s.drawerHeaderShell}
+        drawerCloseClassName={s.headerClose}
+        showCloseButton
+        className={s.drawerSurface}
       >
-        <div className={s.scrollBody}>
-          {errors.root ? (
-            <div className={s.errorBanner} role="alert">
-              {errors.root.message}
-            </div>
-          ) : null}
-
-          <section
-            className={cn(s.amountSection, 'group/amount')}
-            aria-labelledby="tx-amount-label"
-          >
-            <p id="tx-amount-label" className={s.amountEyebrow}>
-              {t('fields.amount.label')}
-            </p>
-            <div className={s.amountRow}>
-              <span className={s.amountCurrency} aria-hidden>
-                €
-              </span>
-              <Controller
-                name="amount"
-                control={control}
-                render={({ field }) => (
-                  <FormCurrencyInput
-                    value={field.value}
-                    onChange={(v) => field.onChange(v)}
-                    placeholder={t('fields.amount.placeholder')}
-                    disabled={isSubmitting}
-                    className={s.amountInput}
-                    showSymbol={false}
-                  />
-                )}
-              />
-            </div>
-            <div className={s.amountTrack} aria-hidden>
-              <div className={s.amountTrackFill} />
-            </div>
-            {errors.amount ? <p className={s.fieldError}>{errors.amount.message}</p> : null}
-          </section>
-
-          <div className={s.fieldStack}>
-            <CategoryField
-              value={watchedCategory}
-              onChange={(value) => setValue('category', value)}
-              error={errors.category?.message}
-              categories={categories}
-              label={t('fields.category.label')}
-              placeholder={t('fields.category.placeholder')}
-            />
-            <AccountField
-              value={watchedAccountId}
-              onChange={(value) => setValue('account_id', value)}
-              error={errors.account_id?.message}
-              accounts={filteredAccounts}
-              label={t('fields.sourceAccount.label')}
-              placeholder={t('fields.sourceAccount.placeholder')}
-              required
-            />
-            <DateField
-              value={watchedDate}
-              onChange={(value) => setValue('date', value)}
-              error={errors.date?.message}
-              label={t('fields.date.label')}
-              required
-            />
-            <UserField
-              value={watchedUserId}
-              onChange={(value) => setValue('user_id', value)}
-              error={errors.user_id?.message}
-              users={groupUsers}
-              label={t('fields.user.label')}
-              placeholder={t('fields.user.placeholder')}
-              disabled={shouldDisableUserField}
-              helperText={
-                shouldDisableUserField ? t('fields.user.memberHelper') : userFieldHelperText
-              }
-            />
-            <div className="space-y-1">
-              <FormSelect
-                value={watchedType}
-                onValueChange={(value) => setValue('type', value as TransactionType)}
-                options={typeOptions}
-                placeholder={t('fields.type.placeholder')}
-                disabled={isSubmitting}
-                captionLabel={t('fields.type.label')}
-                leadingIcon={<ArrowLeftRight className="h-5 w-5 text-[#b8c5ff]" aria-hidden />}
-              />
-              {errors.type ? <p className={s.fieldError}>{errors.type.message}</p> : null}
-            </div>
-            {watchedType === 'transfer' ? (
-              <AccountField
-                value={watchedToAccountId || ''}
-                onChange={(value) => setValue('to_account_id', value)}
-                error={errors.to_account_id?.message}
-                accounts={destinationAccounts}
-                label={t('fields.destinationAccount.label')}
-                placeholder={t('fields.destinationAccount.placeholder')}
-                required
-              />
+        <form
+          onSubmit={handleSubmit((data: TransactionFormData) => onSubmit(data))}
+          className={s.formColumn}
+        >
+          <div className={s.scrollBody}>
+            {errors.root ? (
+              <div className={s.errorBanner} role="alert">
+                {errors.root.message}
+              </div>
             ) : null}
 
-            <div className={s.noteShell}>
-              <label htmlFor="tx-description" className={s.noteLabel}>
-                {t('fields.description.label')}
-              </label>
-              <Input
-                id="tx-description"
-                {...register('description')}
-                placeholder={t('fields.description.placeholder')}
-                disabled={isSubmitting}
-                className={s.noteInput}
-                autoComplete="off"
+            <section
+              className={cn(s.amountSection, 'group/amount')}
+              aria-labelledby="tx-amount-label"
+            >
+              <p id="tx-amount-label" className={s.amountEyebrow}>
+                {t('fields.amount.label')}
+              </p>
+              <div className={s.amountRow}>
+                <span className={s.amountCurrency} aria-hidden>
+                  €
+                </span>
+                <Controller
+                  name="amount"
+                  control={control}
+                  render={({ field }) => (
+                    <FormCurrencyInput
+                      value={field.value}
+                      onChange={(v) => field.onChange(v)}
+                      placeholder={t('fields.amount.placeholder')}
+                      disabled={isSubmitting}
+                      className={s.amountInput}
+                      showSymbol={false}
+                    />
+                  )}
+                />
+              </div>
+              <div className={s.amountTrack} aria-hidden>
+                <div className={s.amountTrackFill} />
+              </div>
+              {errors.amount ? <p className={s.fieldError}>{errors.amount.message}</p> : null}
+            </section>
+
+            <div className={s.fieldStack}>
+              <CategoryField
+                value={watchedCategory}
+                onChange={(value) => setValue('category', value)}
+                error={errors.category?.message}
+                categories={categories}
+                label={t('fields.category.label')}
+                placeholder={t('fields.category.placeholder')}
               />
-              {errors.description ? (
-                <p className={cn(s.fieldError, 'mt-2')}>{errors.description.message}</p>
+              <AccountField
+                value={watchedAccountId}
+                onChange={(value) => setValue('account_id', value)}
+                error={errors.account_id?.message}
+                accounts={filteredAccounts}
+                label={t('fields.sourceAccount.label')}
+                placeholder={t('fields.sourceAccount.placeholder')}
+                required
+              />
+              <DateField
+                value={watchedDate}
+                onChange={(value) => setValue('date', value)}
+                error={errors.date?.message}
+                label={t('fields.date.label')}
+                required
+              />
+              <UserField
+                value={watchedUserId}
+                onChange={(value) => setValue('user_id', value)}
+                error={errors.user_id?.message}
+                users={groupUsers}
+                label={t('fields.user.label')}
+                placeholder={t('fields.user.placeholder')}
+                disabled={shouldDisableUserField}
+                helperText={
+                  shouldDisableUserField ? t('fields.user.memberHelper') : userFieldHelperText
+                }
+              />
+              <div className="space-y-1">
+                <FormSelect
+                  value={watchedType}
+                  onValueChange={(value) => setValue('type', value as TransactionType)}
+                  options={typeOptions}
+                  placeholder={t('fields.type.placeholder')}
+                  disabled={isSubmitting}
+                  captionLabel={t('fields.type.label')}
+                  leadingIcon={<ArrowLeftRight className="h-5 w-5 text-[#b8c5ff]" aria-hidden />}
+                />
+                {errors.type ? <p className={s.fieldError}>{errors.type.message}</p> : null}
+              </div>
+              {watchedType === 'transfer' ? (
+                <AccountField
+                  value={watchedToAccountId || ''}
+                  onChange={(value) => setValue('to_account_id', value)}
+                  error={errors.to_account_id?.message}
+                  accounts={destinationAccounts}
+                  label={t('fields.destinationAccount.label')}
+                  placeholder={t('fields.destinationAccount.placeholder')}
+                  required
+                />
+              ) : null}
+
+              <div className={s.noteShell}>
+                <label htmlFor="tx-description" className={s.noteLabel}>
+                  {t('fields.description.label')}
+                </label>
+                <Input
+                  id="tx-description"
+                  {...register('description')}
+                  placeholder={t('fields.description.placeholder')}
+                  disabled={isSubmitting}
+                  className={s.noteInput}
+                  autoComplete="off"
+                />
+                {errors.description ? (
+                  <p className={cn(s.fieldError, 'mt-2')}>{errors.description.message}</p>
+                ) : null}
+              </div>
+            </div>
+          </div>
+
+          <div className={s.stickyFooter}>
+            <div className={s.footerActionsStack}>
+              <button type="submit" disabled={isSubmitting} className={s.primaryCta}>
+                <Check className="h-5 w-5 shrink-0" aria-hidden />
+                {isEditMode ? t('buttons.saveTransaction') : t('buttons.create')}
+              </button>
+              {isEditMode && editId ? (
+                <button
+                  type="button"
+                  data-testid="transaction-form-delete"
+                  onClick={openDeleteDialog}
+                  className={s.deleteButton}
+                >
+                  <Trash2 className="h-5 w-5 shrink-0" aria-hidden />
+                  {t('buttons.delete')}
+                </button>
               ) : null}
             </div>
           </div>
-        </div>
+        </form>
+      </ModalWrapper>
 
-        <div className={s.stickyFooter}>
-          <div className={s.footerActionsStack}>
-            <button type="submit" disabled={isSubmitting} className={s.primaryCta}>
-              <Check className="h-5 w-5 shrink-0" aria-hidden />
-              {isEditMode ? t('buttons.saveTransaction') : t('buttons.create')}
-            </button>
-            {isEditMode && editId ? (
-              <button
-                type="button"
-                data-testid="transaction-form-delete"
-                onClick={() => {
-                  requestDelete(editId);
-                  onClose();
-                }}
-                className={s.deleteButton}
-              >
-                <Trash2 className="h-5 w-5 shrink-0" aria-hidden />
-                {t('buttons.delete')}
-              </button>
-            ) : null}
-          </div>
-        </div>
-      </form>
-    </ModalWrapper>
+      <ConfirmationDialog
+        isOpen={deleteConfirm.isOpen}
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => deleteConfirm.closeDialog()}
+        title={tPage('dialogs.deleteTransaction.title')}
+        message={tPage('dialogs.deleteTransaction.message', {
+          description: deleteDialogDescription,
+        })}
+        confirmText={tPage('dialogs.deleteTransaction.confirm')}
+        cancelText={tPage('dialogs.cancel')}
+        variant="destructive"
+        isLoading={deleteConfirm.isDeleting}
+      />
+    </>
   );
 }
 

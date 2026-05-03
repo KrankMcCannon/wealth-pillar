@@ -1,12 +1,4 @@
-import {
-  useState,
-  useMemo,
-  useEffect,
-  useCallback,
-  useRef,
-  createElement,
-  useTransition,
-} from 'react';
+import { useState, useMemo, useEffect, useCallback, useTransition } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useDeleteConfirmation, useIdNameMap, useToast } from '@/hooks';
@@ -14,12 +6,10 @@ import { RecurringTransactionSeries } from '@/lib';
 import { defaultFiltersState } from '../components/transaction-filters';
 import type { TransactionFiltersState } from '@/server/use-cases/transactions/transaction.logic';
 import type { Transaction, Budget, Account } from '@/lib/types';
-import { deleteTransactionAction } from '@/features/transactions/actions/transaction-actions';
 import { deleteRecurringSeriesAction } from '@/features/recurring/actions/recurring-actions';
 import { useModalState, useTabState, type ModalType } from '@/lib/navigation/url-state';
 import { usePageDataStore } from '@/stores/page-data-store';
 import { useRouter } from '@/i18n/routing';
-import { ToastAction, type ToastActionElement } from '@/components/ui/toast';
 
 export type PageSizeOption = 10 | 20 | 30 | 50 | 100;
 
@@ -72,10 +62,6 @@ export interface UseTransactionsContentReturn {
   storeTransactions: Transaction[];
   accountNames: Record<string, string>;
   handleEditTransaction: (transaction: Transaction) => void;
-  handleDeleteClick: (transactionId: string) => void;
-  handleDeleteConfirm: () => Promise<void>;
-  deleteConfirm: ReturnType<typeof useDeleteConfirmation<Transaction>>;
-  handleCancelDelete: () => void;
   recurringDeleteConfirm: ReturnType<typeof useDeleteConfirmation<RecurringTransactionSeries>>;
   handleRecurringCancelDelete: () => void;
   handleRecurringDeleteClick: (series: RecurringTransactionSeries) => void;
@@ -150,7 +136,6 @@ export function useTransactionsContent({
   nextCursor,
   appliedQuery,
 }: UseTransactionsContentProps): UseTransactionsContentReturn {
-  const DELETE_UNDO_WINDOW_MS = 5000;
   const router = useRouter();
   const searchParams = useSearchParams();
   const t = useTranslations('TransactionsContent');
@@ -237,19 +222,12 @@ export function useTransactionsContent({
     pushQuery(nextFilters, 1, pageSize, selectedUserId);
   }, [pageSize, pushQuery, selectedUserId]);
 
-  const deleteConfirm = useDeleteConfirmation<Transaction>();
   const recurringDeleteConfirm = useDeleteConfirmation<RecurringTransactionSeries>();
 
   const storeTransactions = usePageDataStore((state) => state.transactions);
   const setTransactions = usePageDataStore((state) => state.setTransactions);
   const setRecurringSeries = usePageDataStore((state) => state.setRecurringSeries);
-  const removeTransactionFromStore = usePageDataStore((state) => state.removeTransaction);
-  const addTransactionToStore = usePageDataStore((state) => state.addTransaction);
   const accountNames = useIdNameMap(accounts);
-  const pendingDeleteTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
-  const pendingRecurringDeleteTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(
-    new Map()
-  );
 
   useEffect(() => {
     setTransactions(transactions);
@@ -259,103 +237,12 @@ export function useTransactionsContent({
     setRecurringSeries(recurringSeries);
   }, [recurringSeries, setRecurringSeries]);
 
-  useEffect(() => {
-    const pendingDeleteTimers = pendingDeleteTimersRef.current;
-    const pendingRecurringDeleteTimers = pendingRecurringDeleteTimersRef.current;
-    return () => {
-      pendingDeleteTimers.forEach((timeoutId) => clearTimeout(timeoutId));
-      pendingRecurringDeleteTimers.forEach((timeoutId) => clearTimeout(timeoutId));
-      pendingDeleteTimers.clear();
-      pendingRecurringDeleteTimers.clear();
-    };
-  }, []);
-
   const handleEditTransaction = useCallback(
     (transaction: Transaction) => {
       openModal('transaction', transaction.id);
     },
     [openModal]
   );
-
-  const handleDeleteClick = useCallback(
-    (transactionId: string) => {
-      if (pendingDeleteTimersRef.current.has(transactionId)) {
-        toast({
-          title: t('undoDelete.pendingTitle'),
-          description: t('undoDelete.pendingDescription'),
-          variant: 'info',
-        });
-        return;
-      }
-      const transaction = storeTransactions.find((tx) => tx.id === transactionId);
-      if (transaction) deleteConfirm.openDialog(transaction);
-    },
-    [deleteConfirm, storeTransactions, t, toast]
-  );
-
-  const handleDeleteConfirm = useCallback(async () => {
-    await deleteConfirm.executeDelete(async (transaction) => {
-      let rollbackDone = false;
-      const rollbackOptimisticDelete = () => {
-        if (rollbackDone) return;
-        addTransactionToStore(transaction);
-        rollbackDone = true;
-      };
-
-      removeTransactionFromStore(transaction.id);
-      const pendingDeleteTimers = pendingDeleteTimersRef.current;
-
-      const commitDelete = async () => {
-        try {
-          const result = await deleteTransactionAction(transaction.id);
-          if (result.error) {
-            rollbackOptimisticDelete();
-            toast({
-              title: t('errors.title'),
-              description: `${t('errors.deleteTransactionFailed')} ${t('errors.retryHint')}`,
-              variant: 'destructive',
-            });
-          } else {
-            router.refresh();
-          }
-        } catch {
-          rollbackOptimisticDelete();
-          toast({
-            title: t('errors.title'),
-            description: `${t('errors.deleteTransactionFailed')} ${t('errors.retryHint')}`,
-            variant: 'destructive',
-          });
-        } finally {
-          pendingDeleteTimers.delete(transaction.id);
-        }
-      };
-
-      const undoDelete = () => {
-        const timeoutId = pendingDeleteTimers.get(transaction.id);
-        if (timeoutId) {
-          clearTimeout(timeoutId);
-          pendingDeleteTimers.delete(transaction.id);
-        }
-        rollbackOptimisticDelete();
-      };
-
-      const timeoutId = setTimeout(() => {
-        commitDelete().catch(() => undefined);
-      }, DELETE_UNDO_WINDOW_MS);
-      pendingDeleteTimers.set(transaction.id, timeoutId);
-      const undoAction = createElement(
-        ToastAction,
-        { altText: t('undoDelete.action'), onClick: undoDelete },
-        t('undoDelete.action')
-      ) as unknown as ToastActionElement;
-      toast({
-        title: t('undoDelete.title'),
-        description: t('undoDelete.description'),
-        variant: 'info',
-        action: undoAction,
-      });
-    });
-  }, [addTransactionToStore, deleteConfirm, removeTransactionFromStore, router, t, toast]);
 
   const handleRecurringDeleteClick = useCallback(
     (series: RecurringTransactionSeries) => recurringDeleteConfirm.openDialog(series),
@@ -429,10 +316,6 @@ export function useTransactionsContent({
     storeTransactions,
     accountNames,
     handleEditTransaction,
-    handleDeleteClick,
-    handleDeleteConfirm,
-    deleteConfirm,
-    handleCancelDelete: () => deleteConfirm.closeDialog(),
     recurringDeleteConfirm,
     handleRecurringCancelDelete: () => recurringDeleteConfirm.closeDialog(),
     handleRecurringDeleteClick,

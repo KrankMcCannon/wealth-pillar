@@ -27,7 +27,6 @@ interface GroupedTransactionCardProps {
   context?: 'due' | 'informative';
   categories?: Category[];
   onEditTransaction?: (transaction: Transaction) => void;
-  onDeleteTransaction?: (transactionId: string) => void;
 }
 
 /**
@@ -35,13 +34,6 @@ interface GroupedTransactionCardProps {
  *
  * Displays a list of transactions in a card with optional header.
  * Supports both regular and recurrent transaction variants.
- *
- * Features:
- * - Swipe-to-delete on individual rows (global state coordination)
- * - Tap to edit with smooth animation delays
- * - Optional total header
- * - Context-aware styling (due vs informative)
- * - Apple-style interactions with unified swipe system
  */
 function GroupedTransactionCardInner({
   transactions,
@@ -52,7 +44,6 @@ function GroupedTransactionCardInner({
   context = 'informative',
   categories = [],
   onEditTransaction,
-  onDeleteTransaction,
 }: Readonly<GroupedTransactionCardProps>) {
   const t = useTranslations('Transactions.GroupedCard');
   const getCategoryLabel = useCallback(
@@ -88,7 +79,6 @@ function GroupedTransactionCardInner({
       variant={variant}
       context={context}
       onEditTransaction={onEditTransaction}
-      onDeleteTransaction={onDeleteTransaction}
       getCategoryLabel={getCategoryLabel}
       getCategoryColor={getCategoryColor}
     />

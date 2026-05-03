@@ -94,7 +94,6 @@ export default function BudgetSummaryContent({
                 emptyDescription={t('transactions.emptyDescription')}
                 expensesOnly
                 onEditTransaction={() => {}}
-                onDeleteTransaction={() => {}}
               />
             </div>
           </div>

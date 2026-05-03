@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, use, useCallback, useEffect, useMemo } from 'react';
+import { Suspense, use, useCallback, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import { useTransactionsContent, type UseTransactionsContentProps } from '@/features/transactions';
 import type { User } from '@/lib/types';
@@ -13,13 +13,10 @@ import {
   SkipToMainLink,
 } from '@/components/layout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui';
-import { ConfirmationDialog } from '@/components/shared';
 import { RecurringSeriesSection } from '@/features/recurring';
 import { TransactionFilterChips, TransactionsScreenList } from '@/features/transactions';
 import { RecurringSeriesSkeleton } from '@/features/transactions/components/transaction-skeletons';
 import { stitchTransactions } from '@/styles/home-design-foundation';
-import { useTransactionDeleteRequestStore } from '@/stores/transaction-delete-request-store';
-
 interface TransactionsContentProps {
   currentUser: User;
   groupUsers: User[];
@@ -60,12 +57,6 @@ export default function TransactionsContent({
   };
 
   const t = useTranslations('TransactionsContent');
-  const pendingTransactionDeleteId = useTransactionDeleteRequestStore(
-    (state) => state.pendingTransactionId
-  );
-  const consumePendingDelete = useTransactionDeleteRequestStore(
-    (state) => state.consumePendingDelete
-  );
 
   const headerCurrentUser = useMemo(
     () => ({
@@ -98,21 +89,9 @@ export default function TransactionsContent({
     filteredCount,
     accountNames,
     handleEditTransaction,
-    handleDeleteClick,
-    handleDeleteConfirm,
-    deleteConfirm,
-    handleCancelDelete,
     openModal,
     router,
   } = useTransactionsContent(props);
-
-  useEffect(() => {
-    if (!pendingTransactionDeleteId) return;
-    const deleteId = consumePendingDelete();
-    if (deleteId) {
-      handleDeleteClick(deleteId);
-    }
-  }, [pendingTransactionDeleteId, consumePendingDelete, handleDeleteClick]);
 
   const hasActiveFilters = useMemo(
     () =>
@@ -139,10 +118,6 @@ export default function TransactionsContent({
     if (selectedBudget) handleClearBudgetFilter();
   }, [setFilters, selectedBudget, handleClearBudgetFilter]);
 
-  const deleteTransactionDescription =
-    deleteConfirm.itemToDelete?.description?.trim() ||
-    t('dialogs.deleteTransaction.fallbackDescription');
-
   return (
     <PageContainer>
       <SkipToMainLink href="#main-transactions">{t('skipToMain')}</SkipToMainLink>
@@ -150,7 +125,7 @@ export default function TransactionsContent({
       <Header title={t('headerTitle')} showBack currentUser={headerCurrentUser} showActions />
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex min-h-0 flex-col">
-        <div className="sticky top-[64px] z-30 bg-[#050818]/85 pb-2 pt-1 backdrop-blur-sm">
+        <div className="sticky z-30 bg-[#050818]/85 pb-2 pt-1 backdrop-blur-sm">
           <TabsList className={stitchTransactions.tabsList}>
             <TabsTrigger className={stitchTransactions.tabsTrigger} value="Transactions">
               {t('tabs.transactions')}
@@ -210,7 +185,6 @@ export default function TransactionsContent({
                 onPageChange={goToPage}
                 onPageSizeChange={setPageSize}
                 onEditTransaction={handleEditTransaction}
-                onDeleteTransaction={handleDeleteClick}
                 {...(!hasActiveFilters && { onAddTransaction: () => openModal('transaction') })}
                 {...(hasActiveFilters && { onClearFilters: handleClearFilters })}
                 emptyTitle={t('empty.title')}
@@ -248,20 +222,6 @@ export default function TransactionsContent({
       </Tabs>
 
       <BottomNavigation />
-
-      <ConfirmationDialog
-        isOpen={deleteConfirm.isOpen}
-        onConfirm={handleDeleteConfirm}
-        onCancel={handleCancelDelete}
-        title={t('dialogs.deleteTransaction.title')}
-        message={t('dialogs.deleteTransaction.message', {
-          description: deleteTransactionDescription,
-        })}
-        confirmText={t('dialogs.deleteTransaction.confirm')}
-        cancelText={t('dialogs.cancel')}
-        variant="destructive"
-        isLoading={deleteConfirm.isDeleting}
-      />
     </PageContainer>
   );
 }

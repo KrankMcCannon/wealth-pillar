@@ -1,25 +1,22 @@
 'use client';
 
 /**
- * Accounts Content - Client Component
- *
- * Handles interactive accounts UI with client-side state management
- * Data is passed from Server Component for optimal performance
+ * Accounts Content — client UI (Stitch dark, una sola shell “card” per sezione).
  */
 
 import { useMemo } from 'react';
 import { Plus } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { BottomNavigation, PageContainer, Header, SectionHeader } from '@/components/layout';
-import { PageSection } from '@/components/ui/layout';
-import { AccountsList, accountStyles, useAccountsContent } from '@/features/accounts';
-import { MetricCard } from '@/components/ui/layout';
+import { AccountsList, useAccountsContent } from '@/features/accounts';
+import { Amount } from '@/components/ui/primitives';
 import UserSelector from '@/components/shared/user-selector';
-import { ConfirmationDialog } from '@/components/shared/confirmation-dialog';
 import { Button } from '@/components/ui';
 import { useModalState } from '@/lib/navigation/url-state';
+import { cn } from '@/lib/utils';
 import type { User } from '@/lib/types';
 import type { AccountsPageData } from '@/server/use-cases/pages/accounts-page.use-case';
+import { stitchAccounts } from '@/styles/home-design-foundation';
 
 interface AccountsContentProps {
   currentUser: User;
@@ -27,10 +24,6 @@ interface AccountsContentProps {
   pageData: AccountsPageData;
 }
 
-/**
- * Accounts Content Component
- * Receives user data, accounts, and balances from Server Component parent
- */
 export default function AccountsContent({
   currentUser,
   groupUsers,
@@ -39,21 +32,12 @@ export default function AccountsContent({
   const { accounts, accountBalances } = pageData;
   const t = useTranslations('Accounts.Content');
   const { openModal } = useModalState();
-  const {
-    isMember,
-    accountStats,
-    sortedAccounts,
-    filteredBalances,
-    handleEditAccount,
-    handleDeleteAccount,
-    deleteConfirm,
-    handleDeleteConfirm,
-    handleCancelDelete,
-  } = useAccountsContent({
-    accountBalances,
-    currentUser,
-    accounts,
-  });
+  const { isMember, accountStats, sortedAccounts, filteredBalances, handleEditAccount } =
+    useAccountsContent({
+      accountBalances,
+      currentUser,
+      accounts,
+    });
 
   const metricStats = useMemo(
     () => [
@@ -73,12 +57,12 @@ export default function AccountsContent({
   );
 
   const showBalanceBreakdown = accountStats.totalAccounts > 1;
+  const balancePositive = accountStats.totalBalance >= 0;
 
   return (
     <PageContainer>
       <Header
         title={t('headerTitle')}
-        subtitle={t('headerSubtitle', { count: accountStats.totalAccounts })}
         showBack
         currentUser={{
           ...(currentUser.name != null ? { name: currentUser.name } : {}),
@@ -87,68 +71,97 @@ export default function AccountsContent({
         showActions
       />
 
-      <main className={accountStyles.pageLayout.main}>
-        <section
-          aria-labelledby="accounts-section-context"
-          className={accountStyles.pageLayout.surfaceQuiet}
-        >
-          <PageSection className="space-y-3">
+      <main className={stitchAccounts.mainStack}>
+        <section aria-labelledby="accounts-section-context" className={stitchAccounts.surfaceQuiet}>
+          <div className="space-y-3">
             <SectionHeader
               titleId="accounts-section-context"
               title={t('sectionContextTitle')}
               subtitle={t('sectionContextSubtitle')}
+              titleClassName={stitchAccounts.sectionTitle}
+              subtitleClassName={stitchAccounts.sectionSubtitle}
             />
             {isMember ? (
-              <p
-                className="rounded-lg border border-primary/15 bg-primary/5 px-3 py-2.5 text-sm leading-snug text-primary/90"
-                role="status"
-              >
+              <p className={stitchAccounts.memberBanner} role="status">
                 {t('memberViewBanner')}
               </p>
             ) : null}
             <UserSelector hideTitle currentUser={currentUser} users={groupUsers} />
-          </PageSection>
+          </div>
         </section>
 
         <section
           aria-labelledby="accounts-section-balance"
-          className={accountStyles.pageLayout.surface}
+          className={cn('relative', stitchAccounts.heroNetWorthCard)}
         >
-          <PageSection className="space-y-3">
+          <div className={stitchAccounts.heroNetWorthDecor} aria-hidden />
+          <div className="relative z-1 space-y-3">
             <SectionHeader
               titleId="accounts-section-balance"
               title={t('sectionBalanceTitle')}
               subtitle={t('sectionBalanceSubtitle')}
+              titleClassName={stitchAccounts.sectionTitle}
+              subtitleClassName={stitchAccounts.sectionSubtitle}
             />
-            <div className={accountStyles.balanceCard.container}>
-              <MetricCard
-                label={t('totalBalanceLabel')}
-                value={accountStats.totalBalance}
-                valueType={accountStats.totalBalance >= 0 ? 'income' : 'expense'}
-                valueSize="lg"
-                size="sm"
-                variant="default"
-                {...(showBalanceBreakdown ? { stats: metricStats } : {})}
-              />
+            <div>
+              <p className={stitchAccounts.sectionEyebrow}>{t('totalBalanceLabel')}</p>
+              <Amount
+                type={balancePositive ? 'income' : 'expense'}
+                emphasis="strong"
+                currency
+                className={cn(
+                  balancePositive
+                    ? stitchAccounts.balanceAmount
+                    : stitchAccounts.balanceAmountNegative,
+                  'mt-1 block'
+                )}
+              >
+                {Math.abs(accountStats.totalBalance)}
+              </Amount>
             </div>
-          </PageSection>
+            {showBalanceBreakdown ? (
+              <div className={stitchAccounts.statsGrid}>
+                {metricStats.map((stat) => (
+                  <div
+                    key={stat.label}
+                    className={cn(
+                      stitchAccounts.statItem,
+                      stat.variant === 'primary' && stitchAccounts.statItemPrimary,
+                      stat.variant === 'success' && stitchAccounts.statItemSuccess,
+                      stat.variant === 'destructive' && stitchAccounts.statItemDestructive
+                    )}
+                  >
+                    <span className={stitchAccounts.statLabel}>{stat.label}</span>
+                    <span
+                      className={cn(
+                        stat.variant === 'success' && stitchAccounts.statValueSuccess,
+                        stat.variant === 'destructive' && stitchAccounts.statValueDestructive,
+                        stat.variant === 'primary' && stitchAccounts.statValue
+                      )}
+                    >
+                      {typeof stat.value === 'number' ? stat.value.toLocaleString() : stat.value}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+          </div>
         </section>
 
-        <section
-          aria-labelledby="accounts-section-list"
-          className={accountStyles.pageLayout.surfaceEmphasis}
-        >
-          <PageSection className="space-y-3">
+        <section aria-labelledby="accounts-section-list" className={stitchAccounts.surfaceEmphasis}>
+          <div className="space-y-3">
             <SectionHeader
               titleId="accounts-section-list"
               title={t('sectionListTitle')}
               subtitle={t('sectionListSubtitle')}
+              titleClassName={stitchAccounts.sectionTitle}
+              subtitleClassName={stitchAccounts.sectionSubtitle}
               actions={
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
-                  className="shrink-0 gap-1.5"
+                  className={cn('shrink-0 gap-1.5', stitchAccounts.outlineAction)}
                   onClick={() => openModal('account')}
                 >
                   <Plus className="size-4 shrink-0" aria-hidden />
@@ -160,31 +173,13 @@ export default function AccountsContent({
               accounts={sortedAccounts}
               accountBalances={filteredBalances}
               onAccountClick={handleEditAccount}
-              onDeleteAccount={handleDeleteAccount}
               hideListHeading
             />
-          </PageSection>
+          </div>
         </section>
       </main>
 
       <BottomNavigation />
-
-      {/* Delete Confirmation Dialog */}
-      <ConfirmationDialog
-        isOpen={deleteConfirm.isOpen}
-        onConfirm={handleDeleteConfirm}
-        onCancel={handleCancelDelete}
-        title={t('dialogs.delete.title')}
-        message={
-          deleteConfirm.itemToDelete
-            ? t('dialogs.delete.message', { name: deleteConfirm.itemToDelete.name })
-            : t('dialogs.delete.messageFallback')
-        }
-        confirmText={t('dialogs.delete.confirm')}
-        cancelText={t('dialogs.delete.cancel')}
-        variant="destructive"
-        isLoading={deleteConfirm.isDeleting}
-      />
     </PageContainer>
   );
 }

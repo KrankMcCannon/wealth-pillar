@@ -4,12 +4,10 @@
 
 // Components
 export {
-  DashboardHeaderSkeleton,
   UserSelectorSkeleton,
   BalanceSectionSkeleton,
   BudgetSectionSkeleton,
   RecurringSeriesSkeleton,
-  DashboardPageSkeleton,
 } from './components';
 
 // Hooks

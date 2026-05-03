@@ -11,7 +11,6 @@
  *   accountNames={accountNames}
  *   categories={categories}
  *   onEditTransaction={handleEdit}
- *   onDeleteTransaction={handleDelete}
  * />
  *
  * @example
@@ -25,7 +24,6 @@
  *   showViewAll
  *   onViewAll={() => router.push('/transactions')}
  *   onEditTransaction={handleEdit}
- *   onDeleteTransaction={handleDelete}
  * />
  */
 
@@ -131,8 +129,6 @@ export interface TransactionDayListProps {
   // Callbacks
   /** Callback when a transaction is clicked for editing */
   onEditTransaction: (transaction: Transaction) => void;
-  /** Callback when delete is clicked */
-  onDeleteTransaction: (transactionId: string) => void;
 }
 
 export function TransactionDayList({
@@ -152,7 +148,6 @@ export function TransactionDayList({
   expensesOnly = false,
   className,
   onEditTransaction,
-  onDeleteTransaction,
 }: Readonly<TransactionDayListProps>) {
   const t = useTranslations('Transactions.DayList');
   // parentRef is always attached so it is ready when useVirtual flips to true
@@ -207,7 +202,6 @@ export function TransactionDayList({
           categories={categories}
           variant={variant}
           onEditTransaction={onEditTransaction}
-          onDeleteTransaction={onDeleteTransaction}
         />
       </section>
     );
