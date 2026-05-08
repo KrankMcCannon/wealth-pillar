@@ -6,6 +6,7 @@ import { useTranslations, useLocale } from 'next-intl';
 import { cn } from '@/lib/utils';
 import type { Transaction, Category } from '@/lib/types';
 import { stitchTransactions } from '@/styles/home-design-foundation';
+import { transactionStyles } from '@/styles/system';
 import { groupByDay } from '../utils/group-by-day';
 import { TransactionPagination } from './transaction-pagination';
 import { TransactionDayList } from './transaction-day-list';
@@ -31,20 +32,21 @@ export interface TransactionsScreenListProps {
 }
 
 function ListSkeleton() {
+  const s = transactionStyles.skeletons;
   return (
     <div className={stitchTransactions.listSkeleton} aria-busy="true">
       {[1, 2].map((i) => (
         <div key={i} className={stitchTransactions.daySectionOuter}>
-          <div className="h-4 w-28 animate-pulse rounded bg-[#11295f]/80" />
+          <div className={s.dayGroupTitle} />
           <div className={cn(stitchTransactions.dayCard, 'space-y-2 p-2')}>
             {[1, 2].map((j) => (
-              <div key={j} className="flex animate-pulse gap-3 p-2">
-                <div className="h-10 w-10 shrink-0 rounded-full bg-[#11295f]" />
+              <div key={j} className={cn(s.cardRow, 'p-2 animate-pulse')}>
+                <div className={s.cardIcon} />
                 <div className="flex-1 space-y-2 pt-1">
-                  <div className="h-3 w-[55%] rounded bg-[#11295f]/90" />
-                  <div className="h-2.5 w-[40%] rounded bg-[#11295f]/70" />
+                  <div className={s.cardLinePrimary} />
+                  <div className={s.cardLineSecondary} />
                 </div>
-                <div className="h-4 w-16 rounded bg-[#11295f]/80" />
+                <div className={s.cardAmountLine} />
               </div>
             ))}
           </div>
@@ -147,7 +149,7 @@ function TransactionsScreenListInner({
             isLoading={isChangingPage}
             onPageChange={onPageChange}
             {...(onPageSizeChange !== undefined ? { onPageSizeChange } : {})}
-            className="mt-6 border-t border-[#3359c5]/25 pt-4"
+            className="mt-6 pt-2"
           />
         )}
       </div>

@@ -458,13 +458,21 @@
     "headerTitle": "Investments",
     "mainLandmark": "Investments workspace",
     "tabLoading": "Loading section…",
+    "newInvestment": "New Investment",
     "tabs": {
       "personal": "Personal Investments",
       "sandbox": "Scenario simulation"
     }
   },
   "Investments": {
+    "watchlist": "Watchlist",
+    "emptyWatchlist": "No assets in watchlist.",
     "PersonalTab": {
+      "totalPortfolioValue": "Total Portfolio Value",
+      "today": "Today",
+      "assetAllocation": "Asset Allocation",
+      "assetsLabel": "Assets",
+      "allocationLabel": "Allocation",
       "currentValueLabel": "Current Value",
       "portfolioHeroHint": "Total market value of your positions today",
       "investedLabel": "Invested",
@@ -472,12 +480,21 @@
       "taxesPaidLabel": "Taxes Paid",
       "taxesPaidDescription": "Stamp duty + fees",
       "totalPaidLabel": "Total Paid",
-      "totalPaidDescription": "Invested + taxes"
+      "totalPaidDescription": "Invested + taxes",
+      "fallback": {
+        "equities": "Equities",
+        "bonds": "Bonds",
+        "cash": "Cash",
+        "others": "Others"
+      }
     },
     "InvestmentList": {
       "title": "Your Holdings",
+      "recentActivity": "Recent Activity",
+      "viewAll": "View All",
       "shares": "{count} {count, plural, one {share} other {shares}}",
       "paidLabel": "Paid:",
+      "bought": "Bought {symbol}",
       "empty": "No holdings yet",
       "emptyDescription": "Tap Add in the bottom bar, then New Investment. On a larger screen, use the + menu at the top right.",
       "columns": {
@@ -488,7 +505,7 @@
         "gain": "P/L"
       },
       "pagination": {
-        "info": "{from}–{to} of {total}",
+        "info": "Showing <from>{fromVal}</from>–<to>{toVal}</to> of <total>{totalVal}</total>",
         "of": "of",
         "page": "Page {current} of {total}",
         "first": "First page",
@@ -769,7 +786,7 @@
         "delete": "Delete transaction"
       },
       "pagination": {
-        "info": "Showing {from}–{to} of {total}",
+        "info": "Showing <from>{fromVal}</from>–<to>{toVal}</to> of <total>{totalVal}</total>",
         "of": "of",
         "page": "Page {current} of {total}",
         "first": "First page",
@@ -1059,6 +1076,7 @@
       "recurring": "Recurring",
       "newAccount": "New Account",
       "newInvestment": "New Investment",
+      "goToBudgets": "Go to Budgets",
       "moreActions": "Category, investment, recurring…",
       "showLessActions": "Hide extra actions",
       "fabIntro": "Your most common actions are below. Use the highlighted row to open category, investment, and recurring options.",
@@ -1069,6 +1087,7 @@
         "newCategory": "Create a label to classify transactions",
         "newInvestment": "Log a stock or fund purchase",
         "recurring": "Automate a payment that repeats",
+        "goToBudgets": "Go to the budget dashboard to manage spending limits",
         "expandSecondary": "Show or hide more create actions"
       }
     }
@@ -1086,6 +1105,7 @@
     "ariaNav": "Primary navigation",
     "home": "Home",
     "transactions": "Transactions",
+    "budgets": "Budgets",
     "investments": "Investments",
     "reports": "Reports",
     "add": "Add",

@@ -1,9 +1,10 @@
 import type { CSSProperties } from 'react';
 
-export {
-  rechartsInitialDimension,
-  rechartsSandboxInitialDimension,
-} from '@/lib/utils/recharts-responsive';
+export const rechartsInitialDimension = { width: 400, height: 300 };
+export const rechartsPieChartInitialDimension = { width: 300, height: 250 };
+export const rechartsBarTrendsInitialDimension = { width: 300, height: 250 };
+export const rechartsBenchmarkInitialDimension = { width: 400, height: 300 };
+export const rechartsSandboxInitialDimension = { width: 600, height: 300 };
 
 /**
  * Colori e stili Recharts allineati ai token OKLCH in globals.css (dark mode incluso).

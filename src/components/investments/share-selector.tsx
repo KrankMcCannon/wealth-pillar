@@ -5,9 +5,9 @@ import * as SelectPrimitive from '@radix-ui/react-select';
 import { ChevronDown, Loader2, Search, TrendingUp } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { cn } from '@/lib';
-import { selectStyles } from '@/styles/system';
-import { formStyles, getCategorySelectWidthStyle } from '@/components/form/theme/form-styles';
+import { getCategorySelectWidthStyle } from '@/components/form/theme/form-styles';
 import { useShareSearch, type AvailableShare } from '@/features/investments/hooks/use-share-search';
+import { investmentsStyles } from '@/features/investments';
 
 interface ShareSelectorProps {
   value: string;
@@ -26,52 +26,39 @@ function renderSearchResults(
   isEnsuring: boolean,
   results: AvailableShare[],
   hasSearched: boolean,
-  currentValue: string,
-  labels: SearchResultLabels
+  labels: SearchResultLabels,
+  styles: typeof investmentsStyles.selector
 ) {
   if (isLoading || isEnsuring) {
     return (
       <div
-        className={formStyles.categorySelect.empty}
+        className={styles.empty}
         role="status"
         aria-live="polite"
         aria-label={labels.searchLoading}
       >
-        <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+        <Loader2 className="h-5 w-5 animate-spin mx-auto text-primary" aria-hidden />
       </div>
     );
   }
 
   if (results.length === 0 && hasSearched) {
-    return <div className={formStyles.categorySelect.empty}>{labels.noResults}</div>;
+    return <div className={styles.empty}>{labels.noResults}</div>;
   }
 
   if (results.length > 0) {
     return (
-      <div className={formStyles.categorySelect.list}>
+      <div className="space-y-1">
         {results.map((share) => (
-          <SelectPrimitive.Item
-            key={share.id}
-            value={share.symbol}
-            className={formStyles.categorySelect.item}
-          >
+          <SelectPrimitive.Item key={share.id} value={share.symbol} className={styles.item}>
             <SelectPrimitive.ItemText>
-              <div
-                className={cn(
-                  formStyles.categorySelect.itemRow,
-                  share.symbol === currentValue && formStyles.categorySelect.itemSelected
-                )}
-              >
-                <div className="flex min-w-0 flex-col">
-                  <span className={formStyles.categorySelect.itemLabel}>
-                    {share.name || share.symbol}
-                  </span>
-                  <span className="text-xs text-primary/60 truncate">
-                    {share.symbol}
-                    {share.exchange ? ` · ${share.exchange}` : ''}
-                    {share.currency ? ` · ${share.currency}` : ''}
-                  </span>
-                </div>
+              <div className="flex min-w-0 flex-col">
+                <span className={styles.itemLabel}>{share.name || share.symbol}</span>
+                <span className={styles.itemSublabel}>
+                  {share.symbol}
+                  {share.exchange ? ` · ${share.exchange}` : ''}
+                  {share.currency ? ` · ${share.currency}` : ''}
+                </span>
               </div>
             </SelectPrimitive.ItemText>
           </SelectPrimitive.Item>
@@ -158,6 +145,8 @@ export function ShareSelector({ value, onChange, className }: Readonly<ShareSele
     return Math.min(Math.max(estimatedWidth, 260), 440);
   }, [results, selectedShare]);
 
+  const styles = investmentsStyles.selector;
+
   return (
     <SelectPrimitive.Root
       value={value}
@@ -166,36 +155,33 @@ export function ShareSelector({ value, onChange, className }: Readonly<ShareSele
       onOpenChange={handleOpenChange}
     >
       <SelectPrimitive.Trigger
-        className={cn(selectStyles.trigger, className)}
+        className={cn(styles.trigger, className)}
         aria-label={t('ariaLabel')}
       >
-        <div className={formStyles.categorySelect.triggerRow}>
-          {value ? (
-            <span className={formStyles.categorySelect.triggerLabel}>{selectedLabel}</span>
-          ) : (
-            <span className={formStyles.categorySelect.triggerPlaceholder}>{t('placeholder')}</span>
-          )}
+        <div className="flex items-center gap-3 truncate">
+          <TrendingUp className={styles.triggerIcon} />
+          <span className={styles.triggerLabel}>{selectedLabel || t('placeholder')}</span>
         </div>
-        <ChevronDown className={selectStyles.icon} />
+        <ChevronDown className="h-4 w-4 text-[#8fb0ff]/60" />
       </SelectPrimitive.Trigger>
 
       <SelectPrimitive.Portal>
         <SelectPrimitive.Content
-          className={cn(formStyles.categorySelect.content, formStyles.categorySelect.contentAnim)}
+          className={styles.content}
           style={getCategorySelectWidthStyle(optimalWidth)}
           position="popper"
-          side="top"
-          align="start"
-          sideOffset={4}
+          side="bottom"
+          align="end"
+          sideOffset={8}
           avoidCollisions
-          collisionPadding={8}
+          collisionPadding={12}
         >
-          <div className={formStyles.categorySelect.searchWrap}>
+          <div className={styles.searchWrap}>
             <label htmlFor={searchFieldId} className="sr-only">
               {t('searchInputLabel')}
             </label>
-            <div className={formStyles.categorySelect.searchFieldWrap}>
-              <Search className={formStyles.categorySelect.searchIcon} aria-hidden />
+            <div className={styles.searchFieldWrap}>
+              <Search className={styles.searchIcon} aria-hidden />
               <input
                 id={searchFieldId}
                 ref={searchInputRef}
@@ -208,22 +194,17 @@ export function ShareSelector({ value, onChange, className }: Readonly<ShareSele
                 onChange={(event) => setSearchValue(event.target.value)}
                 onKeyDown={(event) => event.stopPropagation()}
                 onClick={(event) => event.stopPropagation()}
-                className={formStyles.categorySelect.searchInput}
+                className={styles.searchInput}
               />
             </div>
           </div>
 
-          <SelectPrimitive.Viewport className={formStyles.categorySelect.viewport}>
-            <div className="mb-3 flex flex-wrap gap-2">
+          <SelectPrimitive.Viewport className={styles.viewport}>
+            <div className="mb-4 flex flex-wrap gap-2 px-1">
               <button
                 type="button"
                 onClick={() => setSelectedAssetType('all')}
-                className={cn(
-                  'min-h-11 px-3 py-2 text-xs rounded-full border transition-colors motion-reduce:transition-none',
-                  selectedAssetType === 'all'
-                    ? 'border-primary bg-primary/10 text-primary'
-                    : 'border-primary/20 text-primary/70 hover:border-primary/50'
-                )}
+                className={styles.assetTypeButton(selectedAssetType === 'all')}
               >
                 {t('allAssetTypes')}
               </button>
@@ -232,12 +213,7 @@ export function ShareSelector({ value, onChange, className }: Readonly<ShareSele
                   key={type}
                   type="button"
                   onClick={() => setSelectedAssetType(type)}
-                  className={cn(
-                    'min-h-11 px-3 py-2 text-xs rounded-full border transition-colors motion-reduce:transition-none',
-                    selectedAssetType === type
-                      ? 'border-primary bg-primary/10 text-primary'
-                      : 'border-primary/20 text-primary/70 hover:border-primary/50'
-                  )}
+                  className={styles.assetTypeButton(selectedAssetType === type)}
                 >
                   {ASSET_TYPE_LABELS[type] || type.toUpperCase()}
                 </button>
@@ -245,20 +221,26 @@ export function ShareSelector({ value, onChange, className }: Readonly<ShareSele
             </div>
 
             {!debouncedSearch && (
-              <div className={formStyles.categorySelect.allHeader}>
-                <TrendingUp className={formStyles.categorySelect.allIcon} />
-                <span className={formStyles.categorySelect.allLabel}>{t('searchHint')}</span>
+              <div className={styles.groupHeader}>
+                <span className={styles.groupTitle}>{t('searchHint')}</span>
               </div>
             )}
 
             {debouncedSearch.trim().length > 0 && debouncedSearch.trim().length < 3 && (
-              <div className={formStyles.categorySelect.empty}>{t('minCharsHint')}</div>
+              <div className={styles.empty}>{t('minCharsHint')}</div>
             )}
 
-            {renderSearchResults(isLoading, isEnsuring, results, hasSearched, value, {
-              noResults: t('noResults'),
-              searchLoading: t('searchLoading'),
-            })}
+            {renderSearchResults(
+              isLoading,
+              isEnsuring,
+              results,
+              hasSearched,
+              {
+                noResults: t('noResults'),
+                searchLoading: t('searchLoading'),
+              },
+              styles
+            )}
           </SelectPrimitive.Viewport>
         </SelectPrimitive.Content>
       </SelectPrimitive.Portal>

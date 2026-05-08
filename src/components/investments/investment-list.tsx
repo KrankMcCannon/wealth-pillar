@@ -2,23 +2,13 @@
 
 import { useId, memo, useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
-import { TrendingUp } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { calculateInvestmentMetrics } from '@/lib/utils/investment-math';
-import {
-  Table,
-  TableHeader,
-  TableBody,
-  TableRow,
-  TableHead,
-  TableCell,
-} from '@/components/ui/table';
+import { TrendingUp, ArrowUpRight } from 'lucide-react';
 import { TransactionPagination } from '@/features/transactions';
 import type { PageSizeOption } from '@/features/transactions/hooks/usePaginatedTransactions';
 import { useModalState } from '@/lib/navigation/url-state';
-import { transactionStyles } from '@/styles/system';
 import { Button } from '@/components/ui/button';
 import type { Investment } from './personal-investment-tab';
+import { investmentsStyles } from '@/features/investments';
 
 interface InvestmentListProps {
   investments: Investment[];
@@ -31,27 +21,32 @@ function formatMoney(locale: string, currency: string, value: number) {
 }
 
 export const InvestmentList = memo(function InvestmentList({ investments }: InvestmentListProps) {
-  const t = useTranslations('Investments.InvestmentList');
-  const tActionMenu = useTranslations('Header.ActionMenu');
+  const tList = useTranslations('Investments.InvestmentList');
+  const tMenu = useTranslations('Header.ActionMenu');
   const { openModal } = useModalState();
   const locale = useLocale();
   const headingId = useId();
-  const s = transactionStyles.transactionTable;
-  const ms = s.mobile;
 
-  const [pageSize, setPageSize] = useState<PageSizeOption>(30);
+  const sortedInvestments = useMemo(() => {
+    return [...investments].sort((a, b) => {
+      const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
+      const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
+      return dateB - dateA;
+    });
+  }, [investments]);
+
+  const [pageSize, setPageSize] = useState<PageSizeOption>(10);
   const [currentPage, setCurrentPage] = useState(1);
 
-  const allRows = useMemo(() => calculateInvestmentMetrics(investments), [investments]);
-  const totalItems = allRows.length;
+  const totalItems = sortedInvestments.length;
   const isEmpty = totalItems === 0;
   const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
   const pageForDisplay = Math.min(Math.max(1, currentPage), totalPages);
 
   const paginatedRows = useMemo(() => {
     const start = (pageForDisplay - 1) * pageSize;
-    return allRows.slice(start, start + pageSize);
-  }, [allRows, pageForDisplay, pageSize]);
+    return sortedInvestments.slice(start, start + pageSize);
+  }, [sortedInvestments, pageForDisplay, pageSize]);
 
   const handlePageSizeChange = useCallback((size: PageSizeOption) => {
     setPageSize(size);
@@ -70,16 +65,20 @@ export const InvestmentList = memo(function InvestmentList({ investments }: Inve
   const showPagination = totalItems > 0;
 
   const emptyBlock = (
-    <div role="status" aria-live="polite" className={cn(s.emptyWrapper, 'py-10 sm:py-14')}>
-      <div className={s.emptyIcon} aria-hidden>
-        <TrendingUp className="mx-auto h-10 w-10 sm:h-12 sm:w-12" strokeWidth={1.25} />
+    <div
+      role="status"
+      aria-live="polite"
+      className="flex flex-col items-center justify-center py-10 sm:py-14 text-center"
+    >
+      <div className="bg-[#8fb0ff]/10 p-4 rounded-full mb-4 text-[#8fb0ff]" aria-hidden>
+        <TrendingUp className="h-10 w-10 sm:h-12 sm:w-12" strokeWidth={1.25} />
       </div>
-      <p className={s.emptyTitle}>{t('empty')}</p>
-      <p className="mx-auto mb-4 max-w-88 px-2 text-sm leading-snug text-primary/65">
-        {t('emptyDescription')}
+      <p className="text-lg font-semibold text-[#8fb0ff] mb-2">{tList('empty')}</p>
+      <p className="max-w-md px-2 text-sm leading-snug text-[#9fb0d7] mb-6">
+        {tList('emptyDescription')}
       </p>
-      <Button type="button" size="sm" className="mt-1" onClick={() => openModal('investment')}>
-        {tActionMenu('newInvestment')}
+      <Button type="button" size="sm" onClick={() => openModal('investment')}>
+        {tMenu('newInvestment')}
       </Button>
     </div>
   );
@@ -87,166 +86,95 @@ export const InvestmentList = memo(function InvestmentList({ investments }: Inve
   return (
     <section
       ref={sectionRef}
-      className={transactionStyles.layout.listBlock}
+      className={investmentsStyles.card.root + ' md:hidden'}
       aria-labelledby={headingId}
     >
-      <h2 id={headingId} className="mb-2 text-base font-semibold text-primary sm:mb-3 sm:text-lg">
-        {t('title')}
-      </h2>
-
-      {/* Mobile: card group come transazioni */}
-      <div className={ms.wrapper}>
-        {isEmpty ? (
-          <div className={ms.emptyWrapper}>{emptyBlock}</div>
-        ) : (
-          <>
-            <div className={ms.cardGroup}>
-              {paginatedRows.map((inv) => {
-                const isPositive = inv.totalGain >= 0;
-                const gainClass = isPositive ? s.amountIncome : s.amountExpense;
-                const sym = (inv.symbol?.toUpperCase() ?? '').trim() || '—';
-                const symShort = sym.length > 4 ? `${sym.slice(0, 3)}…` : sym;
-
-                return (
-                  <div
-                    key={inv.id}
-                    className="flex items-center gap-3 border-b border-primary/6 px-4 py-3.5 last:border-0"
-                  >
-                    <div
-                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-[10px] font-bold uppercase leading-tight text-primary"
-                      aria-hidden
-                    >
-                      {symShort}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium text-primary/90" title={inv.name}>
-                        {inv.name}
-                      </p>
-                      <p className="mt-0.5 text-[11px] font-medium text-primary/45">
-                        <span className={s.categoryPill}>{sym}</span>
-                        <span className="mx-1.5 text-primary/30" aria-hidden>
-                          ·
-                        </span>
-                        <span>{t('shares', { count: Number(inv.shares_acquired) })}</span>
-                      </p>
-                    </div>
-                    <div className="shrink-0 text-right">
-                      <p className="text-sm font-bold tabular-nums text-primary">
-                        {formatMoney(locale, inv.currency, inv.currentValue)}
-                      </p>
-                      <p className={cn('text-xs font-semibold tabular-nums', gainClass)}>
-                        {inv.totalGain >= 0 ? '+' : ''}
-                        {formatMoney(locale, inv.currency, inv.totalGain)}
-                      </p>
-                      <p className="mt-0.5 text-[10px] text-primary/40">
-                        {t('paidLabel')}{' '}
-                        <span className="font-medium tabular-nums text-primary/55">
-                          {formatMoney(locale, inv.currency, inv.totalPaid)}
-                        </span>
-                      </p>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-            {showPagination ? (
-              <TransactionPagination
-                currentPage={pageForDisplay}
-                totalPages={totalPages}
-                totalItems={totalItems}
-                pageSize={pageSize}
-                onPageChange={setCurrentPage}
-                onPageSizeChange={handlePageSizeChange}
-                className={ms.pagination}
-                messagesNamespace={PAGINATION_MESSAGES}
-              />
-            ) : null}
-          </>
+      <div className={investmentsStyles.card.header + ' flex justify-between items-center'}>
+        <h2 id={headingId} className={investmentsStyles.card.title}>
+          {tList('title')}
+        </h2>
+        {showPagination && (
+          <button className="text-sm font-medium text-[#8fb0ff] hover:underline">
+            {tList('viewAll')}
+          </button>
         )}
       </div>
 
-      {/* Desktop: tabella */}
-      <div className={cn('hidden sm:block', s.wrapper)}>
-        <Table>
-          <TableHeader className={s.header}>
-            <TableRow className={s.headerRow}>
-              <TableHead scope="col" className={s.headerCell}>
-                {t('columns.instrument')}
-              </TableHead>
-              <TableHead scope="col" className={cn(s.headerCell, 'hidden md:table-cell w-28')}>
-                {t('columns.shares')}
-              </TableHead>
-              <TableHead scope="col" className={cn(s.headerCell, 'w-30')}>
-                {t('columns.paid')}
-              </TableHead>
-              <TableHead scope="col" className={cn(s.headerCell, s.headerCellRight, 'w-30')}>
-                {t('columns.value')}
-              </TableHead>
-              <TableHead scope="col" className={cn(s.headerCell, s.headerCellRight, 'w-32')}>
-                {t('columns.gain')}
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
+      <div className={investmentsStyles.card.content + ' overflow-x-auto'}>
+        <table className="w-full text-left border-collapse">
+          <thead>
+            <tr className="border-b border-[#3359c5]/25">
+              <th className="py-3 px-2 text-[11px] font-semibold uppercase tracking-wider text-[#9fb0d7]">
+                {tList('columns.instrument')}
+              </th>
+              <th className="py-3 px-2 text-[11px] font-semibold uppercase tracking-wider text-[#9fb0d7] text-right">
+                {tList('columns.paid')}
+              </th>
+            </tr>
+          </thead>
+          <tbody>
             {isEmpty ? (
-              <TableRow>
-                <TableCell colSpan={5} className="py-0">
+              <tr>
+                <td colSpan={4} className="py-4">
                   {emptyBlock}
-                </TableCell>
-              </TableRow>
+                </td>
+              </tr>
             ) : (
               paginatedRows.map((inv) => {
-                const isPositive = inv.totalGain >= 0;
-                const gainClass = isPositive ? s.amountIncome : s.amountExpense;
-                const sym = (inv.symbol?.toUpperCase() ?? '').trim();
+                const sym = (inv.symbol?.toUpperCase() ?? '').trim() || '—';
+                const date = inv.created_at
+                  ? new Date(inv.created_at).toLocaleDateString(locale, {
+                      year: 'numeric',
+                      month: 'short',
+                      day: 'numeric',
+                    })
+                  : '—';
 
                 return (
-                  <TableRow key={inv.id} className={cn(s.row, 'cursor-default')}>
-                    <TableCell className={s.cell}>
-                      <p
-                        className={cn(
-                          s.descriptionText,
-                          'max-w-none sm:max-w-[200px] md:max-w-[280px]'
-                        )}
-                      >
-                        {inv.name}
-                      </p>
-                      <div className="mt-1 flex flex-wrap items-center gap-2">
-                        <span className={s.categoryPill}>{sym}</span>
-                        <span className="text-[11px] text-primary/45 md:hidden">
-                          {t('shares', { count: Number(inv.shares_acquired) })}
+                  <tr
+                    key={inv.id}
+                    className="border-b border-[#3359c5]/15 hover:bg-[#17336f]/40 transition-colors group cursor-default last:border-0"
+                  >
+                    <td className="p-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-[#1e3a8a]/40 flex items-center justify-center text-[#60a5fa] border border-[#3b82f6]/20 shadow-[0_0_15px_rgba(59,130,246,0.05)] group-hover:scale-105 transition-all duration-300 shrink-0">
+                          <ArrowUpRight className="w-5 h-5 opacity-80" />
+                        </div>
+                        <div className="flex flex-col min-w-0">
+                          <div className="flex items-center gap-2">
+                            <h3 className="text-[15px] font-bold text-white tracking-tight leading-none">
+                              {sym}
+                            </h3>
+                            <span className="px-1.5 py-0.5 rounded bg-[#3b82f6]/10 text-[#60a5fa] text-[9px] font-bold uppercase tracking-wider border border-[#3b82f6]/20">
+                              {tList('shares', { count: inv.shares_acquired })}
+                            </span>
+                          </div>
+                          <p className="text-[11px] font-medium text-[#94a3b8] truncate mt-1 opacity-90 leading-tight">
+                            {inv.name}
+                          </p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="p-3">
+                      <div className="flex flex-col items-end gap-2">
+                        <span className="text-sm font-bold text-white tabular-nums leading-none">
+                          {formatMoney(locale, inv.currency, inv.totalPaid || 0)}
+                        </span>
+                        <span className="text-[10px] font-bold text-[#64748b] tabular-nums">
+                          {date}
                         </span>
                       </div>
-                    </TableCell>
-                    <TableCell
-                      className={cn(
-                        s.cell,
-                        'hidden md:table-cell text-sm tabular-nums text-primary/80'
-                      )}
-                    >
-                      {t('shares', { count: Number(inv.shares_acquired) })}
-                    </TableCell>
-                    <TableCell className={cn(s.cell, 'text-sm tabular-nums text-primary/85')}>
-                      {formatMoney(locale, inv.currency, inv.totalPaid)}
-                    </TableCell>
-                    <TableCell className={cn(s.cell, s.cellRight)}>
-                      <span className={cn(s.amount, 'text-primary')}>
-                        {formatMoney(locale, inv.currency, inv.currentValue)}
-                      </span>
-                    </TableCell>
-                    <TableCell className={cn(s.cell, s.cellRight)}>
-                      <span className={cn(s.amount, gainClass)}>
-                        {inv.totalGain >= 0 ? '+' : ''}
-                        {formatMoney(locale, inv.currency, inv.totalGain)}
-                      </span>
-                    </TableCell>
-                  </TableRow>
+                    </td>
+                  </tr>
                 );
               })
             )}
-          </TableBody>
-        </Table>
-        {showPagination ? (
+          </tbody>
+        </table>
+      </div>
+
+      {showPagination && (
+        <div>
           <TransactionPagination
             currentPage={pageForDisplay}
             totalPages={totalPages}
@@ -255,9 +183,10 @@ export const InvestmentList = memo(function InvestmentList({ investments }: Inve
             onPageChange={setCurrentPage}
             onPageSizeChange={handlePageSizeChange}
             messagesNamespace={PAGINATION_MESSAGES}
+            customStyles={investmentsStyles.pagination}
           />
-        ) : null}
-      </div>
+        </div>
+      )}
     </section>
   );
 });

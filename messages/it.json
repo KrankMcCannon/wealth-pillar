@@ -458,13 +458,21 @@
     "headerTitle": "Investimenti",
     "mainLandmark": "Area investimenti",
     "tabLoading": "Caricamento sezione…",
+    "newInvestment": "Nuovo Investimento",
     "tabs": {
       "personal": "Investimenti Personali",
       "sandbox": "Simulazione scenari"
     }
   },
   "Investments": {
+    "watchlist": "Watchlist",
+    "emptyWatchlist": "Nessun titolo nella lista di controllo.",
     "PersonalTab": {
+      "totalPortfolioValue": "Valore Totale Portafoglio",
+      "today": "Oggi",
+      "assetAllocation": "Ripartizione Asset",
+      "assetsLabel": "Asset",
+      "allocationLabel": "Allocazione",
       "currentValueLabel": "Valore Attuale",
       "portfolioHeroHint": "Valore di mercato complessivo delle tue posizioni oggi",
       "investedLabel": "Investito",
@@ -472,12 +480,21 @@
       "taxesPaidLabel": "Tasse Pagate",
       "taxesPaidDescription": "Bollo + commissioni",
       "totalPaidLabel": "Totale Pagato",
-      "totalPaidDescription": "Investito + tasse"
+      "totalPaidDescription": "Investito + tasse",
+      "fallback": {
+        "equities": "Azioni",
+        "bonds": "Obbligazioni",
+        "cash": "Liquidità",
+        "others": "Altro"
+      }
     },
     "InvestmentList": {
       "title": "Le Tue Partecipazioni",
+      "recentActivity": "Attività Recente",
+      "viewAll": "Vedi Tutti",
       "shares": "{count} {count, plural, one {quota} other {quote}}",
       "paidLabel": "Pagato:",
+      "bought": "Acquisto {symbol}",
       "empty": "Ancora nessuna posizione",
       "emptyDescription": "Tocca Aggiungi nella barra in basso, poi Nuovo investimento. Su schermi grandi usa il menu + in alto a destra.",
       "columns": {
@@ -488,7 +505,7 @@
         "gain": "Risultato"
       },
       "pagination": {
-        "info": "{from}–{to} di {total}",
+        "info": "<f>{from}</f>–<t>{to}</t> di <tot>{total}</tot>",
         "of": "di",
         "page": "Pagina {current} di {total}",
         "first": "Prima pagina",
@@ -769,7 +786,7 @@
         "delete": "Elimina transazione"
       },
       "pagination": {
-        "info": "{from}–{to} di {total}",
+        "info": "<f>{from}</f>–<t>{to}</t> di <tot>{total}</tot>",
         "of": "di",
         "page": "Pagina {current} di {total}",
         "first": "Prima pagina",
@@ -1059,6 +1076,7 @@
       "recurring": "Ricorrenti",
       "newAccount": "Nuovo Account",
       "newInvestment": "Nuovo Investimento",
+      "goToBudgets": "Vai ai Budget",
       "moreActions": "Categoria, investimento, ricorrente…",
       "showLessActions": "Nascondi le altre azioni",
       "fabIntro": "Sotto trovi le azioni più frequenti. Apri la riga evidenziata per categoria, investimento e pagamenti ricorrenti.",
@@ -1069,6 +1087,7 @@
         "newCategory": "Crea un’etichetta per classificare le transazioni",
         "newInvestment": "Registra un acquisto titoli o fondi",
         "recurring": "Automatizza un pagamento che si ripete",
+        "goToBudgets": "Vai alla dashboard dei budget per gestire le soglie di spesa",
         "expandSecondary": "Mostra o nascondi le altre azioni di creazione"
       }
     }
@@ -1086,6 +1105,7 @@
     "ariaNav": "Navigazione principale",
     "home": "Home",
     "transactions": "Transazioni",
+    "budgets": "Budget",
     "investments": "Investimenti",
     "reports": "Report",
     "add": "Aggiungi",

@@ -343,7 +343,7 @@ export default function AddInvestmentModal({
                   onValueChange={(val) => setValue('currency', val as 'EUR' | 'USD')}
                   options={currencyOptions}
                   captionLabel={t('fields.currency')}
-                  leadingIcon={<Coins className="h-5 w-5 text-[#b8c5ff]" aria-hidden />}
+                  leadingIcon={<Coins className="h-5 w-5 text-[#8fb0ff]" aria-hidden />}
                 />
                 {errors.currency?.message ? (
                   <p className="text-sm text-destructive">{errors.currency.message}</p>

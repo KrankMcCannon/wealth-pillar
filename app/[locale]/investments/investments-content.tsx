@@ -3,34 +3,22 @@
 import dynamic from 'next/dynamic';
 import { use, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { PageContainer, Header, BottomNavigation } from '@/components/layout';
+import { PageContainer, Header, BottomNavigation, ActionMenu } from '@/components/layout';
 import UserSelector from '@/components/shared/user-selector';
 import { User } from '@/lib';
 import TabNavigation from '@/components/shared/tab-navigation';
 import { transactionStyles } from '@/styles/system';
 import type { Investment } from '@/components/investments/personal-investment-tab';
+import { stitchBudgets, stitchTransactions } from '@/styles/home-design-foundation';
+import { useRouter } from '@/i18n/routing';
+import { PieChart } from 'lucide-react';
 
-function InvestmentsTabPanelSkeleton() {
-  const t = useTranslations('InvestmentsContent');
-  return (
-    <div
-      role="status"
-      aria-busy="true"
-      aria-label={t('tabLoading')}
-      className="min-h-[220px] w-full animate-pulse rounded-xl bg-muted"
-    />
-  );
-}
-
-const PersonalInvestmentTab = dynamic(
-  () =>
-    import('@/components/investments/personal-investment-tab').then((m) => m.PersonalInvestmentTab),
-  { loading: () => <InvestmentsTabPanelSkeleton /> }
+const PersonalInvestmentTab = dynamic(() =>
+  import('@/components/investments/personal-investment-tab').then((m) => m.PersonalInvestmentTab)
 );
 
-const SandboxForecastTab = dynamic(
-  () => import('@/components/investments/sandbox-forecast-tab').then((m) => m.SandboxForecastTab),
-  { loading: () => <InvestmentsTabPanelSkeleton /> }
+const SandboxForecastTab = dynamic(() =>
+  import('@/components/investments/sandbox-forecast-tab').then((m) => m.SandboxForecastTab)
 );
 
 interface InvestmentsContentProps {
@@ -64,10 +52,25 @@ export default function InvestmentsContent({
 }: InvestmentsContentProps) {
   const { investments, summary, indexData, currentIndex } = use(investmentsDataPromise);
   const t = useTranslations('InvestmentsContent');
+  const tActionMenu = useTranslations('Header.ActionMenu');
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<'personal' | 'sandbox'>('personal');
 
+  const extraMenuItems = [
+    {
+      label: tActionMenu('goToBudgets'),
+      icon: PieChart,
+      onClick: () => router.push('/budgets'),
+    },
+  ];
+
   return (
-    <PageContainer className={transactionStyles.page.container}>
+    <PageContainer>
+      <div className={stitchBudgets.decorWrap}>
+        <div className={stitchBudgets.decorBlobTL} />
+        <div className={stitchBudgets.decorBlobBR} />
+      </div>
+
       <Header
         title={t('headerTitle')}
         showBack
@@ -78,25 +81,19 @@ export default function InvestmentsContent({
         showActions
       />
 
-      <div className={transactionStyles.layout.controlsStack}>
-        <div className={transactionStyles.layout.controlsCard}>
-          <UserSelector
-            className={transactionStyles.userSelector.className}
-            currentUser={currentUser}
-            users={groupUsers}
-          />
+      <div className="sticky z-30 bg-[#050818]/90 pb-3 pt-1 backdrop-blur-sm shadow-sm border-b border-[#3359c5]/15">
+        <div className="px-4 space-y-3">
+          <UserSelector hideTitle currentUser={currentUser} users={groupUsers} />
 
-          <div className={transactionStyles.tabNavigation.wrapper}>
-            <TabNavigation
-              tabs={[
-                { id: 'personal', label: t('tabs.personal') },
-                { id: 'sandbox', label: t('tabs.sandbox') },
-              ]}
-              activeTab={activeTab}
-              onTabChange={(id) => setActiveTab(id as 'personal' | 'sandbox')}
-              variant="modern"
-            />
-          </div>
+          <TabNavigation
+            tabs={[
+              { id: 'personal', label: t('tabs.personal') },
+              { id: 'sandbox', label: t('tabs.sandbox') },
+            ]}
+            activeTab={activeTab}
+            onTabChange={(id) => setActiveTab(id as 'personal' | 'sandbox')}
+            variant="stitch"
+          />
         </div>
       </div>
 
@@ -113,6 +110,14 @@ export default function InvestmentsContent({
           {activeTab === 'sandbox' && <SandboxForecastTab />}
         </div>
       </main>
+
+      <ActionMenu
+        triggerClassName={stitchTransactions.fab}
+        triggerIconClassName="h-6 w-6"
+        extraMenuItems={extraMenuItems}
+        groupedSecondary
+        align="end"
+      />
 
       <BottomNavigation />
     </PageContainer>

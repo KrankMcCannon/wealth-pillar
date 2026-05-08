@@ -18,9 +18,11 @@ interface TransactionPaginationProps {
   className?: string;
   /** Namespace messaggi (stesse chiavi di `Transactions.Table.pagination`) */
   messagesNamespace?: string;
+  /** Custom styles to override default transaction pagination styles */
+  customStyles?: Partial<Record<keyof typeof defaultStyles, string>>;
 }
 
-const s = transactionStyles.transactionTable.pagination;
+const defaultStyles = transactionStyles.transactionTable.pagination;
 
 /**
  * Generates the page range to display.
@@ -62,7 +64,9 @@ function TransactionPaginationInner({
   onPageSizeChange,
   className,
   messagesNamespace = 'Transactions.Table.pagination',
+  customStyles,
 }: TransactionPaginationProps) {
+  const s = customStyles ? { ...defaultStyles, ...customStyles } : defaultStyles;
   const t = useTranslations(messagesNamespace);
   const pageSizeSelectId = useId();
 
@@ -80,7 +84,7 @@ function TransactionPaginationInner({
       className={cn(s.wrapper, className)}
     >
       {/* Left cluster: per-page selector (desktop only) + info */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 flex-wrap">
         {/* Per-page selector — hidden on mobile, visible on sm+ */}
         {onPageSizeChange && (
           <div className={cn(s.perPageWrapper, 'hidden sm:flex')}>
@@ -103,7 +107,12 @@ function TransactionPaginationInner({
                 ))}
               </select>
               {/* Custom chevron overlay */}
-              <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-primary/50">
+              <span
+                className={cn(
+                  'pointer-events-none absolute right-2 top-1/2 -translate-y-1/2',
+                  s.perPageChevron
+                )}
+              >
                 <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor" aria-hidden>
                   <path
                     d="M1 3l4 4 4-4"
@@ -119,22 +128,28 @@ function TransactionPaginationInner({
           </div>
         )}
 
-        {/* Info text */}
-        <p className={s.info} aria-live="polite">
-          {isLoading ? (
-            <span className="flex items-center gap-1.5">
-              <Loader2 className={s.loadingSpinner} aria-hidden />
-              {t('loading')}
-            </span>
-          ) : (
-            <span>
-              <span className={s.infoHighlight}>
-                {from}–{to}
-              </span>{' '}
-              {t('of')} <span className={s.infoHighlight}>{totalItems}</span>
-            </span>
-          )}
-        </p>
+        {/* Info text - Always visible now */}
+        <div className="flex-1 min-w-[120px]">
+          <p className={s.info} aria-live="polite">
+            {isLoading ? (
+              <span className="flex items-center gap-1.5">
+                <Loader2 className={s.loadingSpinner} aria-hidden aria-label={t('loading')} />
+                {t('loading')}
+              </span>
+            ) : totalItems === 0 ? (
+              '0 transazioni'
+            ) : (
+              t.rich('info', {
+                f: (chunks) => <span className={s.infoHighlight}>{chunks}</span>,
+                t: (chunks) => <span className={s.infoHighlight}>{chunks}</span>,
+                tot: (chunks) => <span className={s.infoHighlight}>{chunks}</span>,
+                from,
+                to,
+                total: totalItems,
+              })
+            )}
+          </p>
+        </div>
       </div>
 
       {/* Right cluster: navigation controls */}
@@ -186,7 +201,7 @@ function TransactionPaginationInner({
           </div>
 
           {/* Mobile: current/total indicator */}
-          <span className="sm:hidden px-3 text-[13px] font-semibold text-primary tabular-nums">
+          <span className={s.mobileIndicator}>
             {currentPage} / {totalPages}
           </span>
 

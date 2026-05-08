@@ -2,7 +2,7 @@ import { Suspense } from 'react';
 import { getTranslations } from 'next-intl/server';
 import { requireGroupId, requirePageAuth } from '@/lib/auth/page-auth';
 import { getReportsPageDataUseCase } from '@/server/use-cases/pages/reports-page.use-case';
-import ReportsLoading from './loading';
+import { ReportsSkeleton } from '@/components/reports/reports-skeleton';
 import ReportsContent from './reports-content';
 
 export default async function ReportsPage({
@@ -23,7 +23,7 @@ export default async function ReportsPage({
   })();
 
   return (
-    <Suspense fallback={<ReportsLoading />}>
+    <Suspense fallback={<ReportsSkeleton />}>
       <ReportsContent
         currentUser={currentUser}
         groupUsers={groupUsers}

@@ -1,16 +1,15 @@
 'use client';
 
-import { useLocale, useTranslations } from 'next-intl';
 import { useSearchParams } from 'next/navigation';
 import { usePathname, useRouter } from '@/i18n/routing';
-import { cn } from '@/lib/utils';
-import { MetricCard } from '@/components/ui/layout';
-import { Wallet } from 'lucide-react';
 import { useInvestmentHistory } from '@/features/investments/hooks/use-investment-history';
 import { InvestmentHistoryChart } from './investment-history-chart';
 import { BenchmarkChart } from './benchmark-chart';
 import { InvestmentList } from './investment-list';
 import { investmentsStyles } from '@/features/investments/theme/investments-styles';
+import { WealthHeader } from './wealth-header';
+import { AssetAllocationCard } from './asset-allocation-card';
+import { useTranslations } from 'next-intl';
 
 export interface Investment {
   id: string;
@@ -58,12 +57,11 @@ export function PersonalInvestmentTab({
   indexData,
   currentIndex = 'IVV',
 }: Readonly<PersonalInvestmentTabProps>) {
-  const t = useTranslations('Investments.PersonalTab');
-  const locale = useLocale();
   const benchmarkAnchorId = 'benchmark-chart';
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const t = useTranslations('Investments');
 
   const handleBenchmarkChange = (symbol: string) => {
     if (!symbol || symbol === currentIndex) return;
@@ -81,60 +79,56 @@ export function PersonalInvestmentTab({
     currentIndex,
   });
 
-  const isPositiveReturn = summary.totalReturn >= 0;
-  const formatEur = (value: number) =>
-    new Intl.NumberFormat(locale, { style: 'currency', currency: 'EUR' }).format(value);
+  // Group by symbol to aggregate multiple holdings of the same asset
+  const groupedInvestments = investments.reduce(
+    (acc, inv) => {
+      const symbol = inv.symbol || 'OTHER';
+      if (!acc[symbol]) {
+        acc[symbol] = 0;
+      }
+      acc[symbol] += inv.currentValue || 0;
+      return acc;
+    },
+    {} as Record<string, number>
+  );
+
+  const sortedGroups = Object.entries(groupedInvestments)
+    .filter(([_, value]) => value > 0)
+    .map(([symbol, value]) => ({ name: symbol, value }))
+    .sort((a, b) => b.value - a.value);
+
+  const top4 = sortedGroups.slice(0, 4);
+  const others = sortedGroups.slice(4);
+  const othersTotal = others.reduce((sum, item) => sum + item.value, 0);
+
+  const allocationData = top4.map((item, index) => ({
+    ...item,
+    color: ['#8fb0ff', '#8fe2b4', '#9fb9ff', '#6b9fff'][index] as string,
+  }));
+
+  if (othersTotal > 0) {
+    allocationData.push({
+      name: t('fallback.others'),
+      value: othersTotal,
+      color: '#b8c5ff',
+    });
+  }
 
   return (
     <div className={investmentsStyles.container}>
-      <section className="space-y-2 sm:space-y-3" aria-label={t('currentValueLabel')}>
-        <MetricCard
-          className="border-primary/15 p-4 shadow-sm sm:p-5 sm:shadow-md"
-          label={t('currentValueLabel')}
-          icon={<Wallet className="h-4 w-4" />}
-          iconColor="accent"
-          labelTone="variant"
-          value={summary.totalCurrentValue}
-          valueType="neutral"
-          valueSize="xl"
-          size="lg"
-          description={
-            <span className="block space-y-1">
-              <span
-                className={cn(
-                  'block text-sm font-semibold',
-                  isPositiveReturn ? 'text-success' : 'text-destructive'
-                )}
-              >
-                {isPositiveReturn ? '+' : ''}
-                {formatEur(summary.totalReturn)} ({summary.totalReturnPercent.toFixed(2)}%)
-              </span>
-              <span className="block text-[11px] leading-snug text-primary/60">
-                {t('portfolioHeroHint')}
-              </span>
-            </span>
-          }
-          variant="highlighted"
-          stats={[
-            {
-              label: t('investedLabel'),
-              value: formatEur(summary.totalInvested),
-              variant: 'muted',
-            },
-            {
-              label: t('taxesPaidLabel'),
-              value: formatEur(summary.totalTaxPaid || 0),
-              variant: 'destructive',
-            },
-            {
-              label: t('totalPaidLabel'),
-              value: formatEur(summary.totalPaid ?? 0),
-              variant: 'primary',
-            },
-          ]}
-        />
-      </section>
+      <WealthHeader
+        totalValue={summary.totalCurrentValue}
+        trendAmount={summary.totalReturn}
+        trendPercentage={summary.totalReturnPercent}
+        currency="EUR"
+      />
 
+      {/* Bento Grid Layer 1 */}
+      <div className="grid grid-cols-1 gap-6">
+        <AssetAllocationCard data={allocationData} />
+      </div>
+
+      {/* Charts section */}
       <div className={investmentsStyles.charts.grid}>
         <InvestmentHistoryChart data={calculatedHistory} />
 

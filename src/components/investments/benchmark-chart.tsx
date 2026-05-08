@@ -17,7 +17,7 @@ import { ShareSelector } from './share-selector';
 import { investmentsStyles } from '@/features/investments/theme/investments-styles';
 import {
   investmentChartColors,
-  rechartsInitialDimension,
+  rechartsBenchmarkInitialDimension,
   rechartsTooltipContentStyle,
   rechartsTooltipItemStyle,
 } from './investment-chart-theme';
@@ -106,7 +106,7 @@ export function BenchmarkChart({
               width="100%"
               height="100%"
               minWidth={0}
-              initialDimension={rechartsInitialDimension}
+              initialDimension={rechartsBenchmarkInitialDimension}
             >
               <LineChart data={sortedData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                 <CartesianGrid
