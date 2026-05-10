@@ -103,30 +103,14 @@ export const animationStyles = {
 // ============================================================================
 
 export const glassmorphism = {
-  base: 'bg-white/70 dark:bg-black/40 backdrop-blur-xl border border-white/20 dark:border-white/10 shadow-lg',
+  base: 'bg-white/70 dark:bg-[oklch(12%_0.01_250)]/40 backdrop-blur-xl border border-white/20 dark:border-white/10 shadow-lg',
   heavy:
-    'bg-white/80 dark:bg-black/60 backdrop-blur-2xl border border-white/30 dark:border-white/10 shadow-xl',
-  light: 'bg-white/40 dark:bg-black/20 backdrop-blur-md border border-white/10 shadow-sm',
+    'bg-white/80 dark:bg-[oklch(12%_0.01_250)]/60 backdrop-blur-2xl border border-white/30 dark:border-white/10 shadow-xl',
+  light:
+    'bg-white/40 dark:bg-[oklch(12%_0.01_250)]/20 backdrop-blur-md border border-white/10 shadow-sm',
   card: 'bg-card/60 backdrop-blur-xl border border-white/10 dark:border-white/5 shadow-2xl shadow-black/5',
   interactive:
     'hover:bg-white/80 dark:hover:bg-white/5 transition-all duration-300 hover:scale-[1.01] hover:shadow-lg hover:border-white/30',
-} as const;
-
-export const vibrantGradients = {
-  primary: 'bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500',
-  success: 'bg-gradient-to-br from-emerald-400 to-cyan-500',
-  warning: 'bg-gradient-to-br from-amber-400 to-orange-500',
-  danger: 'bg-gradient-to-br from-red-500 to-rose-600',
-  dark: 'bg-gradient-to-br from-slate-800 to-slate-950',
-  subtle: 'bg-gradient-to-br from-primary/5 to-primary/10',
-  glow: {
-    primary: 'shadow-[0_0_16px_rgba(168,85,247,0.22)]',
-    success: 'shadow-[0_0_16px_rgba(52,211,153,0.22)]',
-  },
-  text: {
-    primary:
-      'bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500',
-  },
 } as const;
 
 export const microAnimations = {

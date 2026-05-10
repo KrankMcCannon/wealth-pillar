@@ -25,7 +25,7 @@ const DrawerOverlay = React.forwardRef<
   <DrawerPrimitive.Overlay
     ref={ref}
     data-slot="drawer-overlay"
-    className={cn('fixed inset-0 z-150 bg-black/60', className)}
+    className={cn('fixed inset-0 z-150 bg-[oklch(12%_0.01_250)]/60', className)}
     {...props}
   />
 ));

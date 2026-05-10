@@ -50,7 +50,6 @@ async function safeFetch<T>(promise: Promise<T>, fallback: T, context: string): 
 export interface DashboardPageData {
   accounts: Account[];
   transactions: Transaction[];
-  budgets: Budget[];
   budgetPeriods: Record<string, BudgetPeriod | null>;
   recurringSeries: RecurringTransactionSeries[];
   categories: Category[];
@@ -129,7 +128,6 @@ export async function getDashboardPageData(
     return {
       accounts,
       transactions: transactionResult.data,
-      budgets,
       budgetPeriods,
       recurringSeries,
       categories,
@@ -201,7 +199,6 @@ export async function getDashboardPageData(
   return {
     accounts,
     transactions: transactionResult.data,
-    budgets,
     budgetPeriods,
     recurringSeries,
     categories,

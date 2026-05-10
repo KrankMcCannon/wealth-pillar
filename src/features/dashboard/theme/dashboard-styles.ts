@@ -128,7 +128,7 @@ export const dashboardStyles = {
 
   // Form modal
   modal: {
-    overlay: 'fixed inset-0 bg-black/50 z-40',
+    overlay: 'fixed inset-0 bg-[oklch(12%_0.01_250)]/50 z-40',
     content: 'bg-card rounded-2xl shadow-xl max-h-[80vh] overflow-y-auto',
     header: 'flex items-center justify-between p-4 border-b border-border/50',
     title: 'font-semibold text-lg',

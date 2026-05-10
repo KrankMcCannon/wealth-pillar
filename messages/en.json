@@ -454,6 +454,9 @@
     "loading": "Loading investments...",
     "loadError": "Could not load portfolio"
   },
+  "HomePage": {
+    "loadError": "Could not load dashboard data"
+  },
   "InvestmentsContent": {
     "headerTitle": "Investments",
     "mainLandmark": "Investments workspace",
@@ -1096,6 +1099,7 @@
     "recurringAsideLabel": "Upcoming recurring payments",
     "skipToContent": "Skip to balances, budgets, and recurring items",
     "userPickerTitle": "View as",
+    "userPickerDescription": "Select a user to view their financial data",
     "recentActivityTitle": "Recent Activity",
     "recentActivitySubtitle": "Last {count} transactions",
     "recentActivityViewAll": "View All",

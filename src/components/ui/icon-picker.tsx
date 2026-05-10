@@ -90,7 +90,7 @@ const styles = {
   tabsContainer: 'border-b border-primary/20 bg-card/30 backdrop-blur-sm overflow-x-auto',
   tabsList: 'inline-flex h-10 w-full justify-start rounded-none bg-transparent p-0',
   tabsTrigger:
-    'rounded-none border-b-2 border-transparent data-[state=active]:border-primary/20 data-[state=active]:bg-transparent px-3 text-xs whitespace-nowrap',
+    'relative rounded-none border-b-2 border-transparent data-[state=active]:border-primary/60 data-[state=active]:font-semibold data-[state=active]:text-primary data-[state=active]:bg-transparent px-3 text-xs whitespace-nowrap',
 
   // Results count
   resultsCount: {
@@ -140,7 +140,7 @@ const styles = {
 
   // Mobile dialog
   dialogOverlay:
-    'fixed inset-0 z-50 bg-black/60 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
+    'fixed inset-0 z-50 bg-[oklch(12%_0.01_250)]/60 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
   dialogContent:
     'fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-card border border-border rounded-2xl shadow-2xl flex flex-col data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 duration-300 w-[calc(100vw-40px)] max-w-[500px]',
   dialogHandle: 'mx-auto mt-3 mb-2 h-1.5 w-16 rounded-full bg-primary/20 shrink-0',

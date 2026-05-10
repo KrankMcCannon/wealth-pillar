@@ -6,6 +6,7 @@
  */
 
 import { Suspense } from 'react';
+import { getTranslations } from 'next-intl/server';
 import { requireGroupId, requirePageAuth } from '@/lib/auth/page-auth';
 import { getDashboardPageData } from '@/server/use-cases';
 import HomeContent from './home-content';
@@ -14,13 +15,17 @@ import HomePageLoading from './loading';
 export default async function HomePage({
   params,
 }: Readonly<{ params: Promise<{ locale: string }> }>) {
-  const { currentUser, groupUsers } = await requirePageAuth(params);
+  const [{ currentUser, groupUsers }, t] = await Promise.all([
+    requirePageAuth(params),
+    getTranslations('HomePage'),
+  ]);
+  // requireGroupId needs currentUser so it runs after the parallel wave resolves.
   const groupId = await requireGroupId(currentUser);
 
   const dashboardDataPromise = getDashboardPageData(groupId, {
     includeInvestments: false,
   }).catch((err) => {
-    const message = err instanceof Error ? err.message : 'Errore nel caricamento della dashboard';
+    const message = err instanceof Error ? err.message : t('loadError');
     throw new Error(message, { cause: err });
   });
 

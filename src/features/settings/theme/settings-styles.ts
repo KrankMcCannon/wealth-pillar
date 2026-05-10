@@ -126,7 +126,7 @@ export const settingsStyles = {
     },
     deleteAccount: {
       overlay:
-        'fixed inset-0 z-9999 flex items-center justify-center bg-black/60 backdrop-blur-sm px-3 sm:px-4 py-6 sm:py-8',
+        'fixed inset-0 z-9999 flex items-center justify-center bg-[oklch(12%_0.01_250)]/60 backdrop-blur-sm px-3 sm:px-4 py-6 sm:py-8',
       card: 'w-full max-w-md rounded-2xl sm:rounded-3xl bg-card shadow-2xl p-6 sm:p-8 my-auto',
       header: 'mb-6 flex items-start justify-between',
       headerLeft: 'flex items-start gap-3 flex-1',

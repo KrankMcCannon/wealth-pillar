@@ -454,6 +454,9 @@
     "loading": "Caricamento investimenti...",
     "loadError": "Impossibile caricare il portafoglio"
   },
+  "HomePage": {
+    "loadError": "Impossibile caricare i dati della dashboard"
+  },
   "InvestmentsContent": {
     "headerTitle": "Investimenti",
     "mainLandmark": "Area investimenti",
@@ -1096,6 +1099,7 @@
     "recurringAsideLabel": "Pagamenti ricorrenti in arrivo",
     "skipToContent": "Vai a saldi, budget e ricorrenze",
     "userPickerTitle": "Visualizza come",
+    "userPickerDescription": "Seleziona un utente per visualizzare i suoi dati finanziari",
     "recentActivityTitle": "Attività recente",
     "recentActivitySubtitle": "{count} ultime transazioni",
     "recentActivityViewAll": "Vedi tutto",

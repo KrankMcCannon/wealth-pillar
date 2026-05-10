@@ -97,9 +97,7 @@ export default function HomeContent({
     const filtered = recentActivityUserId
       ? transactions.filter((tx) => tx.user_id === recentActivityUserId)
       : transactions;
-    return [...filtered]
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-      .slice(0, RECENT_ACTIVITY_MAX);
+    return filtered.slice(0, RECENT_ACTIVITY_MAX);
   }, [transactions, recentActivityUserId]);
 
   return (
@@ -117,7 +115,9 @@ export default function HomeContent({
           <DrawerContent>
             <DrawerHeader>
               <DrawerTitle>{t('userPickerTitle')}</DrawerTitle>
-              <DrawerDescription className="sr-only">{t('userPickerTitle')}</DrawerDescription>
+              <DrawerDescription className="sr-only">
+                {t('userPickerDescription')}
+              </DrawerDescription>
             </DrawerHeader>
             <UserSelector
               currentUser={currentUser}
@@ -134,14 +134,9 @@ export default function HomeContent({
           accounts={displayedDefaultAccounts}
           totalBalance={totalBalance}
           selectedUserId={selectedUserId}
-          isLoading={false}
         />
 
-        <BudgetSection
-          budgetsByUser={budgetsByUser}
-          selectedViewUserId={selectedUserId}
-          isLoading={false}
-        />
+        <BudgetSection budgetsByUser={budgetsByUser} selectedViewUserId={selectedUserId} />
 
         <RecurringSeriesSection
           series={recurringSeries}

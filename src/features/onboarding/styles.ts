@@ -1,6 +1,6 @@
 export const onboardingStyles = {
   overlay:
-    'fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm px-3 sm:px-4 py-6 sm:py-8 overflow-y-auto',
+    'fixed inset-0 z-[9999] flex items-center justify-center bg-[oklch(12%_0.01_250)]/60 backdrop-blur-sm px-3 sm:px-4 py-6 sm:py-8 overflow-y-auto',
   modal:
     'w-full max-w-md sm:max-w-lg md:max-w-2xl rounded-2xl sm:rounded-3xl bg-card shadow-2xl p-4 sm:p-6 md:p-8 my-auto max-h-[90vh] flex flex-col',
   header: {
@@ -47,7 +47,7 @@ export const onboardingStyles = {
     infoText: 'text-xs text-primary/70 mt-1',
     defaultToggle: 'ml-2 p-1 rounded transition-colors',
     defaultActive: 'text-yellow-500 bg-yellow-50',
-    defaultInactive: 'text-gray-400 hover:text-yellow-400 hover:bg-yellow-50',
+    defaultInactive: 'text-yellow-400/60 hover:text-yellow-400 hover:bg-yellow-50',
     defaultIcon: 'h-4 w-4',
     defaultIconFilled: 'fill-current',
     helpGroup: 'group relative',

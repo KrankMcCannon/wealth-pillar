@@ -9,7 +9,9 @@ import { SkeletonBox } from '@/components/ui/primitives/skeleton-box';
 import { cn } from '@/lib/utils';
 import { STICKY_HEADER_BASE } from '@/lib/utils/ui-constants';
 import { stitchHome } from '@/styles/home-design-foundation';
-import { getTranslations } from 'next-intl/server';
+
+// Static label — this skeleton renders before any locale context is available.
+const SKIP_LINK_LABEL = 'Skip to balances, budgets, and recurring items';
 
 function HomeHeaderSkeleton() {
   return (
@@ -145,12 +147,10 @@ function RecentActivityBlockSkeleton() {
   );
 }
 
-export default async function HomePageLoading() {
-  const t = await getTranslations('HomeContent');
-
+export default function HomePageLoading() {
   return (
     <PageContainer>
-      <SkipToMainLink href="#main-dashboard">{t('skipToContent')}</SkipToMainLink>
+      <SkipToMainLink href="#main-dashboard">{SKIP_LINK_LABEL}</SkipToMainLink>
       <HomeHeaderSkeleton />
       <HomeDashboardMain ariaBusy>
         <BalanceBlockSkeleton />
