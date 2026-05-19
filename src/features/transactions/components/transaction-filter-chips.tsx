@@ -9,14 +9,8 @@ import type {
   TransactionFiltersState,
   TransactionTypeFilter,
 } from '@/server/use-cases/transactions/transaction.logic';
-import {
-  Drawer,
-  DrawerContent,
-  DrawerDescription,
-  DrawerHeader,
-  DrawerTitle,
-  Input,
-} from '@/components/ui';
+import { Input } from '@/components/ui';
+import { FilterChip, FilterChipRow, FilterDrawer } from '@/components/ui/filters';
 import { cn } from '@/lib/utils';
 import { stitchTransactionPageSearch, stitchTransactions } from '@/styles/home-design-foundation';
 
@@ -131,53 +125,34 @@ export function TransactionFilterChips({
             role="toolbar"
             aria-label={tChips('userToolbarAria')}
           >
-            <button
-              type="button"
+            <FilterChip
+              label={tUsers('all')}
+              active={(selectedUserId ?? 'all') === 'all'}
               onClick={() => onUserFilterChange?.('all')}
-              className={cn(
-                stitchTransactions.chipBase,
-                stitchTransactions.chipSnapItem,
-                (selectedUserId ?? 'all') === 'all'
-                  ? stitchTransactions.chipActive
-                  : stitchTransactions.chipInactive
-              )}
-            >
-              {tUsers('all')}
-            </button>
+              className={stitchTransactions.chipSnapItem}
+            />
             {groupUsers?.map((user) => (
-              <button
+              <FilterChip
                 key={user.id}
-                type="button"
+                label={user.name ?? 'User'}
+                active={selectedUserId === user.id}
                 onClick={() => onUserFilterChange?.(user.id)}
-                className={cn(
-                  stitchTransactions.chipBase,
-                  stitchTransactions.chipSnapItem,
-                  selectedUserId === user.id
-                    ? stitchTransactions.chipActive
-                    : stitchTransactions.chipInactive
-                )}
-              >
-                {user.name ?? 'User'}
-              </button>
+                className={stitchTransactions.chipSnapItem}
+              />
             ))}
           </div>
           <p className={stitchTransactions.chipScrollHint}>{tChips('userChipsScrollHint')}</p>
         </div>
       ) : null}
 
-      <div className={stitchTransactions.chipRow} role="toolbar" aria-label={tChips('toolbarAria')}>
+      <FilterChipRow aria-label={tChips('toolbarAria')}>
         {types.map(({ key, labelKey }) => (
-          <button
+          <FilterChip
             key={key}
-            type="button"
+            label={t(`typeOptions.${labelKey}`)}
+            active={filters.type === key}
             onClick={() => setType(key)}
-            className={cn(
-              stitchTransactions.chipBase,
-              filters.type === key ? stitchTransactions.chipActive : stitchTransactions.chipInactive
-            )}
-          >
-            {t(`typeOptions.${labelKey}`)}
-          </button>
+          />
         ))}
         <button
           type="button"
@@ -187,26 +162,24 @@ export function TransactionFilterChips({
           <SlidersHorizontal className={stitchTransactions.filtersChipIcon} aria-hidden />
           {tChips('filters')}
         </button>
-      </div>
+      </FilterChipRow>
 
-      <Drawer open={advancedOpen} onOpenChange={setAdvancedOpen}>
-        <DrawerContent className="max-h-[85vh] border-[#3359c5]/30 bg-[#0b1f4f]/95">
-          <DrawerHeader>
-            <DrawerTitle className="text-[#e6ecff]">{tChips('drawerTitle')}</DrawerTitle>
-            <DrawerDescription className="sr-only">{tChips('drawerTitle')}</DrawerDescription>
-          </DrawerHeader>
-          <div className="overflow-y-auto px-2 pb-4">
-            <TransactionFiltersLazy
-              filters={filters}
-              onFiltersChange={onFiltersChange}
-              categories={categories}
-              {...(accounts !== undefined ? { accounts } : {})}
-              {...(budgetName !== undefined ? { budgetName } : {})}
-              {...(onClearBudgetFilter !== undefined ? { onClearBudgetFilter } : {})}
-            />
-          </div>
-        </DrawerContent>
-      </Drawer>
+      <FilterDrawer
+        open={advancedOpen}
+        onOpenChange={setAdvancedOpen}
+        title={tChips('drawerTitle')}
+      >
+        <div className="overflow-y-auto px-2 pb-4">
+          <TransactionFiltersLazy
+            filters={filters}
+            onFiltersChange={onFiltersChange}
+            categories={categories}
+            {...(accounts !== undefined ? { accounts } : {})}
+            {...(budgetName !== undefined ? { budgetName } : {})}
+            {...(onClearBudgetFilter !== undefined ? { onClearBudgetFilter } : {})}
+          />
+        </div>
+      </FilterDrawer>
     </div>
   );
 }

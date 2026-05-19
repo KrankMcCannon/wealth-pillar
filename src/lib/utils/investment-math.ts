@@ -1,4 +1,4 @@
-import type { Investment } from '@/components/investments/personal-investment-tab';
+import type { Investment } from '@/features/investments/components/personal-investment-tab';
 
 export function calculateInvestmentMetrics(investments: Investment[]) {
   return investments.map((inv) => {

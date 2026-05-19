@@ -7,7 +7,7 @@ import type { User, UserBudgetSummary } from '@/lib/types';
 import type { BudgetsPageData } from '@/server/use-cases/pages/budgets-page.use-case';
 import { TransactionDayList } from '@/features/transactions/components';
 import UserSelector from '@/components/shared/user-selector';
-import { useBudgetSummaryContent } from './useBudgetSummaryContent';
+import { useBudgetSummaryContent } from './use-budget-summary-content';
 import { BudgetSummaryCards } from './components/BudgetSummaryCards';
 import { BudgetSummaryActiveList } from './components/BudgetSummaryActiveList';
 

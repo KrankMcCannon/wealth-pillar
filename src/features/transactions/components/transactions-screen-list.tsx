@@ -10,7 +10,7 @@ import { transactionStyles } from '@/styles/system';
 import { groupByDay } from '../utils/group-by-day';
 import { TransactionPagination } from './transaction-pagination';
 import { TransactionDayList } from './transaction-day-list';
-import type { PageSizeOption } from '../hooks/usePaginatedTransactions';
+import type { PageSizeOption } from '../hooks/use-paginated-transactions';
 
 export interface TransactionsScreenListProps {
   transactions: Transaction[];

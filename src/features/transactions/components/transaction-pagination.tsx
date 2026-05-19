@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl';
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { transactionStyles } from '@/styles/system';
-import { PAGE_SIZE_OPTIONS, type PageSizeOption } from '../hooks/usePaginatedTransactions';
+import { PAGE_SIZE_OPTIONS, type PageSizeOption } from '../hooks/use-paginated-transactions';
 
 interface TransactionPaginationProps {
   currentPage: number;

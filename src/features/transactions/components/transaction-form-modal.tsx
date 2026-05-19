@@ -1,18 +1,15 @@
 'use client';
 
-import { useEffect, useMemo, useCallback, useRef } from 'react';
-import { useForm, useWatch, Controller } from 'react-hook-form';
-import { ArrowLeftRight, Check, Trash2 } from 'lucide-react';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { useEffect, useMemo, useCallback, useRef, useState } from 'react';
+import { useWatch, type UseFormReturn, type UseFormSetError } from 'react-hook-form';
 import { z } from 'zod';
 import { useTranslations } from 'next-intl';
-import { TransactionType } from '@/lib/types';
-import { cn } from '@/lib/utils';
-import { useTransactionSubmit } from '../hooks/useTransactionSubmit';
-import { ModalWrapper } from '@/components/ui/modal-wrapper';
-import { FormSelect, FormCurrencyInput } from '@/components/form';
-import { UserField, AccountField, CategoryField, DateField } from '@/components/ui/fields';
-import { Input } from '@/components/ui/input';
+import { useTransactionSubmit } from '../hooks/use-transaction-submit';
+import {
+  EntityFormModal,
+  EntityFormStitchFooter,
+  type EntityFormModalWrapperProps,
+} from '@/components/form';
 import {
   usePermissions,
   useRequiredCurrentUser,
@@ -22,13 +19,16 @@ import {
   useToast,
 } from '@/hooks';
 import { useAccounts, useCategories } from '@/stores/reference-data-store';
-import { useUserFilterStore } from '@/stores/user-filter-store';
-import { usePageDataStore } from '@/stores/page-data-store';
+import { useUserFilter } from '@/hooks/state/use-user-filter';
 import { ConfirmationDialog } from '@/components/shared';
-import { deleteTransactionAction } from '@/features/transactions/actions/transaction-actions';
+import {
+  deleteTransactionAction,
+  getTransactionByIdAction,
+} from '@/features/transactions/actions/transaction-actions';
 import { useRouter } from '@/i18n/routing';
 import { stitchTransactionFormModal } from '@/styles/home-design-foundation';
-import type { Transaction } from '@/lib/types';
+import type { Account, Category, Transaction, User } from '@/lib/types';
+import { TransactionFormFields, type TransactionFormData } from './transaction-form-fields';
 
 const createTransactionSchema = (t: ReturnType<typeof useTranslations>) =>
   z
@@ -61,74 +61,54 @@ const createTransactionSchema = (t: ReturnType<typeof useTranslations>) =>
       }
     );
 
-type TransactionFormData = z.infer<ReturnType<typeof createTransactionSchema>>;
-
 interface TransactionFormModalProps {
   isOpen: boolean;
   onClose: () => void;
   editId?: string | null;
 }
 
-function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionFormModalProps>) {
-  const t = useTranslations('Transactions.FormModal');
-  const tPage = useTranslations('TransactionsContent');
-  const currentUser = useRequiredCurrentUser();
-  const groupUsers = useRequiredGroupUsers();
-  const accounts = useAccounts();
-  const categories = useCategories();
-  const groupId = useRequiredGroupId();
-  const selectedUserId = useUserFilterStore((state) => state.selectedUserId);
+const s = stitchTransactionFormModal;
 
-  const storeTransactions = usePageDataStore((state) => state.transactions);
-  const addTransaction = usePageDataStore((state) => state.addTransaction);
-  const updateTransaction = usePageDataStore((state) => state.updateTransaction);
-  const removeTransaction = usePageDataStore((state) => state.removeTransaction);
-  const router = useRouter();
-  const { toast } = useToast();
-  const deleteConfirm = useDeleteConfirmation<Transaction>();
+const stitchWrapperProps: EntityFormModalWrapperProps = {
+  titleClassName: s.headerTitle,
+  handleClassName: s.handle,
+  drawerHeaderClassName: s.drawerHeaderShell,
+  drawerCloseClassName: s.headerClose,
+  showCloseButton: true,
+  className: s.drawerSurface,
+};
 
-  const isEditMode = !!editId;
-  const title = isEditMode ? t('title.edit') : t('title.create');
-
-  const { shouldDisableUserField, defaultFormUserId, userFieldHelperText } = usePermissions({
-    currentUser,
-    selectedUserId,
-  });
-  const transactionSchema = useMemo(() => createTransactionSchema(t), [t]);
-
-  const {
-    register,
-    handleSubmit,
-    control,
-    setValue,
-    reset,
-    setError,
-    formState: { errors, isSubmitting },
-  } = useForm<TransactionFormData>({
-    resolver: zodResolver(transactionSchema),
-    defaultValues: {
-      description: '',
-      amount: '',
-      type: 'expense',
-      category: '',
-      date: new Date().toISOString().split('T')[0] as string,
-      user_id: defaultFormUserId,
-      account_id: '',
-      to_account_id: '',
-    },
-  });
-
+function TransactionFormModalBody({
+  form,
+  isEditMode,
+  isOpen,
+  groupUsers,
+  categories,
+  accounts,
+  shouldDisableUserField,
+  userFieldHelperText,
+  isSubmitting,
+}: Readonly<{
+  form: UseFormReturn<TransactionFormData>;
+  isEditMode: boolean;
+  isOpen: boolean;
+  groupUsers: User[];
+  categories: Category[];
+  accounts: Account[];
+  shouldDisableUserField: boolean;
+  userFieldHelperText?: string | undefined;
+  isSubmitting: boolean;
+}>) {
+  const { control, setValue } = form;
   const watchedUserId = useWatch({ control, name: 'user_id' });
-  const watchedType = useWatch({ control, name: 'type' });
   const watchedAccountId = useWatch({ control, name: 'account_id' });
-  const watchedToAccountId = useWatch({ control, name: 'to_account_id' });
-  const watchedCategory = useWatch({ control, name: 'category' });
-  const watchedDate = useWatch({ control, name: 'date' });
 
   const filteredAccounts = useMemo(() => {
     if (!watchedUserId) return accounts;
     return accounts.filter((acc) => acc.user_ids.includes(watchedUserId));
   }, [accounts, watchedUserId]);
+
+  const destinationAccounts = filteredAccounts.filter((acc) => acc.id !== watchedAccountId);
 
   const previousUserIdRef = useRef<string | null>(null);
 
@@ -150,51 +130,6 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
     },
     [accounts, groupUsers]
   );
-
-  useEffect(() => {
-    if (isOpen && isEditMode && editId) {
-      const transaction = storeTransactions.find((tx) => tx.id === editId);
-
-      if (transaction) {
-        const dateStr =
-          typeof transaction.date === 'string'
-            ? transaction.date.split('T')[0]
-            : transaction.date.toISOString().split('T')[0];
-
-        reset({
-          description: transaction.description,
-          amount: transaction.amount.toString(),
-          type: transaction.type,
-          category: transaction.category,
-          date: dateStr as string,
-          user_id: transaction.user_id || '',
-          account_id: transaction.account_id,
-          to_account_id: transaction.to_account_id || '',
-        });
-        previousUserIdRef.current = transaction.user_id || '';
-      }
-    } else if (isOpen && !isEditMode) {
-      reset({
-        description: '',
-        amount: '',
-        type: 'expense',
-        category: '',
-        date: new Date().toISOString().split('T')[0] as string,
-        user_id: defaultFormUserId,
-        account_id: getDefaultAccountId(defaultFormUserId),
-        to_account_id: '',
-      });
-      previousUserIdRef.current = defaultFormUserId;
-    }
-  }, [
-    isOpen,
-    isEditMode,
-    editId,
-    defaultFormUserId,
-    reset,
-    getDefaultAccountId,
-    storeTransactions,
-  ]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -230,237 +165,226 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
     getDefaultAccountId,
   ]);
 
+  return (
+    <TransactionFormFields
+      form={form}
+      groupUsers={groupUsers}
+      categories={categories}
+      filteredAccounts={filteredAccounts}
+      destinationAccounts={destinationAccounts}
+      shouldDisableUserField={shouldDisableUserField}
+      userFieldHelperText={userFieldHelperText}
+      isSubmitting={isSubmitting}
+    />
+  );
+}
+
+function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionFormModalProps>) {
+  const t = useTranslations('Transactions.FormModal');
+  const tPage = useTranslations('TransactionsContent');
+  const currentUser = useRequiredCurrentUser();
+  const groupUsers = useRequiredGroupUsers();
+  const accounts = useAccounts();
+  const categories = useCategories();
+  const groupId = useRequiredGroupId();
+  const { selectedUserId } = useUserFilter();
+  const router = useRouter();
+  const { toast } = useToast();
+  const deleteConfirm = useDeleteConfirmation<Transaction>();
+
+  const [isLoadingRow, setIsLoadingRow] = useState(false);
+  const [resetValues, setResetValues] = useState<TransactionFormData | undefined>(undefined);
+  const previousUserIdRef = useRef<string | null>(null);
+
+  const isEditMode = !!editId;
+  const title = isEditMode ? t('title.edit') : t('title.create');
+
+  const { shouldDisableUserField, defaultFormUserId, userFieldHelperText } = usePermissions({
+    currentUser,
+    selectedUserId,
+  });
+
+  const transactionSchema = useMemo(() => createTransactionSchema(t), [t]);
+
+  const createDefaults = useMemo(
+    (): TransactionFormData => ({
+      description: '',
+      amount: '',
+      type: 'expense',
+      category: '',
+      date: new Date().toISOString().split('T')[0] as string,
+      user_id: defaultFormUserId,
+      account_id: '',
+      to_account_id: '',
+    }),
+    [defaultFormUserId]
+  );
+
+  const getDefaultAccountId = useCallback(
+    (userId: string): string => {
+      if (!userId) return accounts.length > 0 ? (accounts[0]?.id ?? '') : '';
+
+      const user = groupUsers.find((u) => u.id === userId);
+      if (user?.default_account_id) {
+        const defaultAccount = accounts.find(
+          (acc) => acc.id === user.default_account_id && acc.user_ids.includes(userId)
+        );
+        if (defaultAccount) return defaultAccount.id;
+      }
+
+      const userAccounts = accounts.filter((acc) => acc.user_ids.includes(userId));
+      if (userAccounts.length > 0) return userAccounts[0]?.id ?? '';
+      return accounts.length > 0 ? (accounts[0]?.id ?? '') : '';
+    },
+    [accounts, groupUsers]
+  );
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    let cancelled = false;
+
+    const run = async () => {
+      if (!editId) {
+        setIsLoadingRow(false);
+        const accountId = getDefaultAccountId(defaultFormUserId);
+        setResetValues({
+          ...createDefaults,
+          account_id: accountId,
+        });
+        previousUserIdRef.current = defaultFormUserId;
+        return;
+      }
+
+      setIsLoadingRow(true);
+      const result = await getTransactionByIdAction(editId);
+      if (cancelled) return;
+      setIsLoadingRow(false);
+
+      const transaction = result.data;
+      if (!transaction) return;
+
+      const dateStr =
+        typeof transaction.date === 'string'
+          ? transaction.date.split('T')[0]
+          : transaction.date.toISOString().split('T')[0];
+
+      setResetValues({
+        description: transaction.description,
+        amount: transaction.amount.toString(),
+        type: transaction.type,
+        category: transaction.category,
+        date: dateStr as string,
+        user_id: transaction.user_id || '',
+        account_id: transaction.account_id,
+        to_account_id: transaction.to_account_id || '',
+      });
+      previousUserIdRef.current = transaction.user_id || '';
+    };
+
+    run().catch(() => undefined);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen, editId, createDefaults, defaultFormUserId, getDefaultAccountId]);
+
+  const setErrorRef = useRef<UseFormSetError<TransactionFormData> | null>(null);
+
   const { handleSubmit: submitHandler } = useTransactionSubmit({
     isEditMode,
     editId,
     groupId,
-    storeTransactions,
-    updateTransaction,
-    addTransaction,
-    removeTransaction,
     onClose,
-    setError,
+    setError: (name, error) => {
+      setErrorRef.current?.(name, error);
+    },
     messages: {
       notFound: t('errors.notFound'),
       unknownError: t('errors.unknown'),
     },
   });
 
-  const onSubmit = async (data: TransactionFormData) => {
-    await submitHandler(data);
-  };
-
   const openDeleteDialog = useCallback(() => {
     if (!editId) return;
-    const transaction = storeTransactions.find((tx) => tx.id === editId);
-    if (transaction) deleteConfirm.openDialog(transaction);
-  }, [deleteConfirm, editId, storeTransactions]);
+    deleteConfirm.openDialog({ id: editId } as Transaction);
+  }, [deleteConfirm, editId]);
 
   const handleDeleteConfirm = useCallback(async () => {
     await deleteConfirm.executeDelete(async (transaction) => {
-      removeTransaction(transaction.id);
-      let restored = false;
-      try {
-        const result = await deleteTransactionAction(transaction.id);
-        if (result.error) {
-          addTransaction(transaction);
-          restored = true;
-          toast({
-            title: tPage('errors.title'),
-            description: `${tPage('errors.deleteTransactionFailed')} ${tPage('errors.retryHint')}`,
-            variant: 'destructive',
-          });
-          throw new Error(result.error);
-        }
-        onClose();
-        router.refresh();
-      } catch {
-        if (!restored) {
-          addTransaction(transaction);
-          toast({
-            title: tPage('errors.title'),
-            description: `${tPage('errors.deleteTransactionFailed')} ${tPage('errors.retryHint')}`,
-            variant: 'destructive',
-          });
-        }
-        throw new Error('delete failed');
+      const result = await deleteTransactionAction(transaction.id);
+      if (result.error) {
+        toast({
+          title: tPage('errors.title'),
+          description: `${tPage('errors.deleteTransactionFailed')} ${tPage('errors.retryHint')}`,
+          variant: 'destructive',
+        });
+        throw new Error(result.error);
       }
+      onClose();
+      router.refresh();
     });
-  }, [addTransaction, deleteConfirm, onClose, removeTransaction, router, tPage, toast]);
+  }, [deleteConfirm, onClose, router, tPage, toast]);
 
   const deleteDialogDescription =
     deleteConfirm.itemToDelete?.description?.trim() ||
     tPage('dialogs.deleteTransaction.fallbackDescription');
 
-  const typeOptions = [
-    { value: 'income', label: t('typeOptions.income') },
-    { value: 'expense', label: t('typeOptions.expense') },
-    { value: 'transfer', label: t('typeOptions.transfer') },
-  ];
-
-  const destinationAccounts = filteredAccounts.filter((acc) => acc.id !== watchedAccountId);
-
-  const s = stitchTransactionFormModal;
-
   return (
     <>
-      <ModalWrapper
+      <EntityFormModal<TransactionFormData>
         isOpen={isOpen}
-        onOpenChange={onClose}
+        onClose={onClose}
         title={title}
-        titleClassName={s.headerTitle}
+        schema={transactionSchema}
+        defaultValues={createDefaults}
+        resetValues={resetValues ?? createDefaults}
         maxWidth="md"
         repositionInputs={false}
-        handleClassName={s.handle}
-        drawerHeaderClassName={s.drawerHeaderShell}
-        drawerCloseClassName={s.headerClose}
-        showCloseButton
-        className={s.drawerSurface}
+        isLoading={Boolean(editId) && isLoadingRow}
+        formClassName={s.formColumn}
+        bodyClassName={s.scrollBody}
+        footerClassName={s.stickyFooter}
+        wrapperProps={stitchWrapperProps}
+        onSubmit={async (data) => {
+          await submitHandler(data);
+        }}
+        footer={(_, isSubmitting) => (
+          <EntityFormStitchFooter
+            isEditMode={isEditMode}
+            isSubmitting={isSubmitting}
+            submitLabel={isEditMode ? t('buttons.saveTransaction') : t('buttons.create')}
+            deleteLabel={t('buttons.delete')}
+            deleteTestId="transaction-form-delete"
+            onDelete={openDeleteDialog}
+          />
+        )}
       >
-        <form
-          onSubmit={handleSubmit((data: TransactionFormData) => onSubmit(data))}
-          className={s.formColumn}
-        >
-          <div className={s.scrollBody}>
-            {errors.root ? (
-              <div className={s.errorBanner} role="alert">
-                {errors.root.message}
-              </div>
-            ) : null}
+        {(form) => {
+          setErrorRef.current = form.setError;
 
-            <section
-              className={cn(s.amountSection, 'group/amount')}
-              aria-labelledby="tx-amount-label"
-            >
-              <p id="tx-amount-label" className={s.amountEyebrow}>
-                {t('fields.amount.label')}
-              </p>
-              <div className={s.amountRow}>
-                <span className={s.amountCurrency} aria-hidden>
-                  €
-                </span>
-                <Controller
-                  name="amount"
-                  control={control}
-                  render={({ field }) => (
-                    <FormCurrencyInput
-                      value={field.value}
-                      onChange={(v) => field.onChange(v)}
-                      placeholder={t('fields.amount.placeholder')}
-                      disabled={isSubmitting}
-                      className={s.amountInput}
-                      showSymbol={false}
-                    />
-                  )}
-                />
-              </div>
-              <div className={s.amountTrack} aria-hidden>
-                <div className={s.amountTrackFill} />
-              </div>
-              {errors.amount ? <p className={s.fieldError}>{errors.amount.message}</p> : null}
-            </section>
-
-            <div className={s.fieldStack}>
-              <CategoryField
-                value={watchedCategory}
-                onChange={(value) => setValue('category', value)}
-                error={errors.category?.message}
+          return (
+            <>
+              {form.formState.errors.root ? (
+                <div className={s.errorBanner} role="alert">
+                  {form.formState.errors.root.message}
+                </div>
+              ) : null}
+              <TransactionFormModalBody
+                form={form}
+                isEditMode={isEditMode}
+                isOpen={isOpen}
+                groupUsers={groupUsers}
                 categories={categories}
-                label={t('fields.category.label')}
-                placeholder={t('fields.category.placeholder')}
+                accounts={accounts}
+                shouldDisableUserField={shouldDisableUserField}
+                userFieldHelperText={userFieldHelperText}
+                isSubmitting={form.formState.isSubmitting}
               />
-              <AccountField
-                value={watchedAccountId}
-                onChange={(value) => setValue('account_id', value)}
-                error={errors.account_id?.message}
-                accounts={filteredAccounts}
-                label={t('fields.sourceAccount.label')}
-                placeholder={t('fields.sourceAccount.placeholder')}
-                required
-              />
-              <DateField
-                value={watchedDate}
-                onChange={(value) => setValue('date', value)}
-                error={errors.date?.message}
-                label={t('fields.date.label')}
-                required
-              />
-              <UserField
-                value={watchedUserId}
-                onChange={(value) => setValue('user_id', value)}
-                error={errors.user_id?.message}
-                users={groupUsers}
-                label={t('fields.user.label')}
-                placeholder={t('fields.user.placeholder')}
-                disabled={shouldDisableUserField}
-                helperText={
-                  shouldDisableUserField ? t('fields.user.memberHelper') : userFieldHelperText
-                }
-              />
-              <div className="space-y-1">
-                <FormSelect
-                  value={watchedType}
-                  onValueChange={(value) => setValue('type', value as TransactionType)}
-                  options={typeOptions}
-                  placeholder={t('fields.type.placeholder')}
-                  disabled={isSubmitting}
-                  captionLabel={t('fields.type.label')}
-                  leadingIcon={<ArrowLeftRight className="h-5 w-5 text-[#b8c5ff]" aria-hidden />}
-                />
-                {errors.type ? <p className={s.fieldError}>{errors.type.message}</p> : null}
-              </div>
-              {watchedType === 'transfer' ? (
-                <AccountField
-                  value={watchedToAccountId || ''}
-                  onChange={(value) => setValue('to_account_id', value)}
-                  error={errors.to_account_id?.message}
-                  accounts={destinationAccounts}
-                  label={t('fields.destinationAccount.label')}
-                  placeholder={t('fields.destinationAccount.placeholder')}
-                  required
-                />
-              ) : null}
-
-              <div className={s.noteShell}>
-                <label htmlFor="tx-description" className={s.noteLabel}>
-                  {t('fields.description.label')}
-                </label>
-                <Input
-                  id="tx-description"
-                  {...register('description')}
-                  placeholder={t('fields.description.placeholder')}
-                  disabled={isSubmitting}
-                  className={s.noteInput}
-                  autoComplete="off"
-                />
-                {errors.description ? (
-                  <p className={cn(s.fieldError, 'mt-2')}>{errors.description.message}</p>
-                ) : null}
-              </div>
-            </div>
-          </div>
-
-          <div className={s.stickyFooter}>
-            <div className={s.footerActionsStack}>
-              <button type="submit" disabled={isSubmitting} className={s.primaryCta}>
-                <Check className="h-5 w-5 shrink-0" aria-hidden />
-                {isEditMode ? t('buttons.saveTransaction') : t('buttons.create')}
-              </button>
-              {isEditMode && editId ? (
-                <button
-                  type="button"
-                  data-testid="transaction-form-delete"
-                  onClick={openDeleteDialog}
-                  className={s.deleteButton}
-                >
-                  <Trash2 className="h-5 w-5 shrink-0" aria-hidden />
-                  {t('buttons.delete')}
-                </button>
-              ) : null}
-            </div>
-          </div>
-        </form>
-      </ModalWrapper>
+            </>
+          );
+        }}
+      </EntityFormModal>
 
       <ConfirmationDialog
         isOpen={deleteConfirm.isOpen}

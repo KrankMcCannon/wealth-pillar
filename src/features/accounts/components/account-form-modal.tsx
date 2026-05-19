@@ -1,19 +1,15 @@
 'use client';
 
-import { cn } from '@/lib/utils';
 import { useEffect, useMemo, useCallback } from 'react';
-import { useForm, useWatch } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useLocale, useTranslations } from 'next-intl';
-import { Check, Landmark, Trash2 } from 'lucide-react';
+import { Check, Trash2 } from 'lucide-react';
 import { Account } from '@/lib/types';
 import { getTempId } from '@/lib/utils/temp-id';
 import { createAccountAction, updateAccountAction, deleteAccountAction } from '@/features/accounts';
 import { ModalWrapper } from '@/components/ui/modal-wrapper';
-import { FormSelect } from '@/components/form';
-import { UserField } from '@/components/ui/fields';
-import { Input } from '@/components/ui/input';
 import {
   usePermissions,
   useRequiredCurrentUser,
@@ -21,20 +17,13 @@ import {
   useRequiredGroupId,
   useDeleteConfirmation,
 } from '@/hooks';
-import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui';
 import { useAccounts, useReferenceDataStore } from '@/stores/reference-data-store';
-import { useUserFilterStore } from '@/stores/user-filter-store';
+import { useUserFilter } from '@/hooks/state/use-user-filter';
 import { toast } from '@/hooks/use-toast';
 import { ConfirmationDialog } from '@/components/shared';
+import { useRouter } from '@/i18n/routing';
 import { stitchTransactionFormModal } from '@/styles/home-design-foundation';
-
-type AccountFormData = {
-  name: string;
-  type: 'payroll' | 'cash' | 'investments' | 'savings';
-  user_id: string;
-  isDefault?: boolean | undefined;
-};
+import { AccountFormFields, type AccountFormData } from './account-form-fields';
 
 interface AccountFormModalProps {
   isOpen: boolean;
@@ -46,10 +35,11 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
   const t = useTranslations('Accounts.FormModal');
   const tContent = useTranslations('Accounts.Content');
   const locale = useLocale();
+  const router = useRouter();
   const currentUser = useRequiredCurrentUser();
   const groupUsers = useRequiredGroupUsers();
   const groupId = useRequiredGroupId();
-  const selectedUserId = useUserFilterStore((state) => state.selectedUserId);
+  const { selectedUserId } = useUserFilter();
 
   const storeAccounts = useAccounts();
   const addAccount = useReferenceDataStore((state) => state.addAccount);
@@ -77,15 +67,7 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
     [t]
   );
 
-  const {
-    register,
-    handleSubmit,
-    control,
-    setValue,
-    reset,
-    setError,
-    formState: { errors, isSubmitting },
-  } = useForm<AccountFormData>({
+  const form = useForm<AccountFormData>({
     resolver: zodResolver(accountSchema),
     defaultValues: {
       name: '',
@@ -95,9 +77,12 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
     },
   });
 
-  const watchedUserId = useWatch({ control, name: 'user_id' });
-  const watchedIsDefault = useWatch({ control, name: 'isDefault' });
-  const watchedType = useWatch({ control, name: 'type' });
+  const {
+    handleSubmit,
+    reset,
+    setError,
+    formState: { errors, isSubmitting },
+  } = form;
 
   useEffect(() => {
     if (isOpen && isEditMode && editId) {
@@ -156,6 +141,7 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
         description: t('toast.updatedDescription'),
         variant: 'success',
       });
+      router.refresh();
     }
   };
 
@@ -208,6 +194,7 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
         description: t('toast.createdDescription'),
         variant: 'success',
       });
+      router.refresh();
     }
   };
 
@@ -239,6 +226,7 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
           variant: 'success',
         });
         onClose();
+        router.refresh();
       } catch {
         if (!restored) {
           addAccount(account);
@@ -251,7 +239,7 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
         throw new Error('delete failed');
       }
     });
-  }, [addAccount, deleteConfirm, locale, onClose, removeAccount, t]);
+  }, [addAccount, deleteConfirm, locale, onClose, removeAccount, router, t]);
 
   const onSubmit = async (data: AccountFormData) => {
     try {
@@ -266,13 +254,6 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
       setError('root', { message });
     }
   };
-
-  const accountTypes = [
-    { value: 'payroll', label: t('accountTypes.payroll') },
-    { value: 'cash', label: t('accountTypes.cash') },
-    { value: 'investments', label: t('accountTypes.investments') },
-    { value: 'savings', label: t('accountTypes.savings') },
-  ];
 
   return (
     <>
@@ -297,66 +278,12 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
               </div>
             ) : null}
 
-            <div className={s.fieldStack}>
-              <div className={s.noteShell}>
-                <label htmlFor="account-name" className={s.noteLabel}>
-                  {t('fields.name.label')}
-                </label>
-                <Input
-                  id="account-name"
-                  {...register('name')}
-                  placeholder={t('fields.name.placeholder')}
-                  disabled={isSubmitting}
-                  className={s.noteInput}
-                  autoComplete="off"
-                />
-                {errors.name ? (
-                  <p className={cn(s.fieldError, 'mt-2')}>{errors.name.message}</p>
-                ) : null}
-              </div>
-
-              <div className="space-y-1">
-                <FormSelect
-                  value={watchedType}
-                  onValueChange={(val) => setValue('type', val as Account['type'])}
-                  options={accountTypes}
-                  placeholder={t('fields.type.placeholder')}
-                  disabled={isSubmitting}
-                  captionLabel={t('fields.type.label')}
-                  leadingIcon={<Landmark className="h-5 w-5 text-[#b8c5ff]" aria-hidden />}
-                />
-                {errors.type?.message ? (
-                  <p className={s.fieldError}>{errors.type.message}</p>
-                ) : null}
-              </div>
-
-              <UserField
-                value={watchedUserId}
-                onChange={(val) => setValue('user_id', val)}
-                error={errors.user_id?.message}
-                users={groupUsers}
-                label={t('fields.owner.label')}
-                placeholder={t('fields.owner.placeholder')}
-                disabled={shouldDisableUserField || isSubmitting}
-                helperText={shouldDisableUserField ? t('fields.owner.memberHelper') : undefined}
-                required
-              />
-
-              <div className={cn(s.noteShell, 'flex flex-row items-center gap-3 py-3')}>
-                <Checkbox
-                  id="isDefault"
-                  checked={watchedIsDefault ?? false}
-                  onCheckedChange={(checked) => setValue('isDefault', checked as boolean)}
-                  disabled={isSubmitting}
-                />
-                <Label
-                  htmlFor="isDefault"
-                  className="text-sm font-medium leading-snug text-[#e6ecff]"
-                >
-                  {t('fields.isDefault')}
-                </Label>
-              </div>
-            </div>
+            <AccountFormFields
+              form={form}
+              groupUsers={groupUsers}
+              shouldDisableUserField={shouldDisableUserField}
+              isSubmitting={isSubmitting}
+            />
           </div>
 
           <div className={s.stickyFooter}>

@@ -2,13 +2,18 @@
 
 import { cn } from '@/lib';
 import { LucideIcon } from 'lucide-react';
+import { stitchHome } from '@/styles/home-design-foundation';
+import { budgetStyles } from '@/styles/system';
 import { emptyStateStyles } from '@/styles/system';
 
 /**
  * Empty State Component
  * Displays a consistent empty state message with optional icon and action
  */
+export type EmptyStateVariant = 'default' | 'dashboard' | 'surface';
+
 interface EmptyStateProps {
+  variant?: EmptyStateVariant;
   /** Optional icon to display */
   icon?: LucideIcon;
   /** Title text */
@@ -39,7 +44,14 @@ interface EmptyStateProps {
  * />
  * ```
  */
+const variantClassName: Record<EmptyStateVariant, string> = {
+  default: emptyStateStyles.container,
+  dashboard: stitchHome.emptyWell,
+  surface: budgetStyles.section.emptyContainer,
+};
+
 export function EmptyState({
+  variant = 'default',
   icon: Icon,
   title,
   titleId,
@@ -47,8 +59,16 @@ export function EmptyState({
   action,
   className,
 }: Readonly<EmptyStateProps>) {
+  if (variant === 'dashboard' && !Icon && !action) {
+    return (
+      <p className={cn(stitchHome.emptyWell, className)} id={titleId}>
+        {description ? `${title} — ${description}` : title}
+      </p>
+    );
+  }
+
   return (
-    <div className={cn(emptyStateStyles.container, className)}>
+    <div className={cn(variantClassName[variant], className)}>
       {Icon && (
         <div className={emptyStateStyles.iconWrapper}>
           <Icon className={emptyStateStyles.icon} />

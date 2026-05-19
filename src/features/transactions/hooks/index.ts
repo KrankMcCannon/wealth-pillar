@@ -7,10 +7,10 @@ export {
   useTransactionsContent,
   type UseTransactionsContentProps,
   type UseTransactionsContentReturn,
-} from './useTransactionsContent';
+} from './use-transactions-content';
 
 export {
   usePaginatedTransactions,
   type UsePaginatedTransactionsOptions,
   type UsePaginatedTransactionsReturn,
-} from './usePaginatedTransactions';
+} from './use-paginated-transactions';

@@ -4,18 +4,18 @@
  */
 
 // Layout & Container Components
-export { BudgetSelector } from './BudgetSelector';
-export type { BudgetSelectorProps } from './BudgetSelector';
+export { BudgetSelector } from './budget-selector';
+export type { BudgetSelectorProps } from './budget-selector';
 
 // Display Components
-export { BudgetsSummaryHero } from './BudgetsSummaryHero';
-export type { BudgetsSummaryHeroProps } from './BudgetsSummaryHero';
-export { BudgetCategoryCard, getBudgetCategoryStatus } from './BudgetCategoryCard';
-export type { BudgetCategoryCardProps, BudgetCategoryStatus } from './BudgetCategoryCard';
+export { BudgetsSummaryHero } from './budgets-summary-hero';
+export type { BudgetsSummaryHeroProps } from './budgets-summary-hero';
+export { BudgetCategoryCard, getBudgetCategoryStatus } from './budget-category-card';
+export type { BudgetCategoryCardProps, BudgetCategoryStatus } from './budget-category-card';
 
-export { BudgetMetrics } from './BudgetMetrics';
-export type { BudgetMetricsProps } from './BudgetMetrics';
+export { BudgetMetrics } from './budget-metrics';
+export type { BudgetMetricsProps } from './budget-metrics';
 
 // Chart Component
-export { BudgetChart } from './BudgetChart';
-export type { BudgetChartProps } from './BudgetChart';
+export { BudgetChart } from './budget-chart';
+export type { BudgetChartProps } from './budget-chart';

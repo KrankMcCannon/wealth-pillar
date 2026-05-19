@@ -7,4 +7,4 @@ export {
   useBudgetsContent,
   type UseBudgetsContentProps,
   type UseBudgetsContentReturn,
-} from './useBudgetsContent';
+} from './use-budgets-content';

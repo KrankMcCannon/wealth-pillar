@@ -11,7 +11,8 @@ import { ModalBody, ModalFooter, ModalWrapper } from '@/components/ui/modal-wrap
 import { toast } from '@/hooks/use-toast';
 import { updateUserProfileAction } from '@/features/settings';
 import { settingsStyles } from '@/features/settings/theme';
-import { SettingsModalField } from './settings-modal-form';
+import { FormField } from '@/components/form';
+import { Input } from '@/components/ui';
 import { cn } from '@/lib/utils';
 import { useRouter } from '@/i18n/routing';
 
@@ -178,31 +179,29 @@ export function EditProfileModal({
         className={cn(settingsStyles.modals.form, 'flex flex-col h-full')}
       >
         <ModalBody>
-          <SettingsModalField
-            id="name"
-            label={t('nameLabel')}
-            error={errors.name?.message}
-            inputProps={{
-              type: 'text',
-              placeholder: t('namePlaceholder'),
-              disabled: isSubmitting,
-              autoComplete: 'name',
-              ...register('name'),
-            }}
-          />
+          <FormField label={t('nameLabel')} htmlFor="name" error={errors.name?.message}>
+            <Input
+              id="name"
+              type="text"
+              placeholder={t('namePlaceholder')}
+              disabled={isSubmitting}
+              autoComplete="name"
+              className={settingsStyles.modals.field.input}
+              {...register('name')}
+            />
+          </FormField>
 
-          <SettingsModalField
-            id="email"
-            label={t('emailLabel')}
-            error={errors.email?.message}
-            inputProps={{
-              type: 'email',
-              placeholder: t('emailPlaceholder'),
-              disabled: isSubmitting,
-              autoComplete: 'email',
-              ...register('email'),
-            }}
-          />
+          <FormField label={t('emailLabel')} htmlFor="email" error={errors.email?.message}>
+            <Input
+              id="email"
+              type="email"
+              placeholder={t('emailPlaceholder')}
+              disabled={isSubmitting}
+              autoComplete="email"
+              className={settingsStyles.modals.field.input}
+              {...register('email')}
+            />
+          </FormField>
         </ModalBody>
 
         <ModalFooter>

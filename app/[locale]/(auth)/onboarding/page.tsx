@@ -6,7 +6,7 @@ import { useAuth } from '@clerk/nextjs';
 import { useTranslations } from 'next-intl';
 import { AuthCard } from '@/features/auth';
 import { authStyles } from '@/features/auth/theme/auth-styles';
-import OnboardingModal from '@/components/shared/onboarding-modal';
+import OnboardingModal from '@/features/onboarding/components/onboarding-modal';
 import { useOnboardingPage } from '@/features/auth/hooks/use-onboarding-page';
 import { Link } from '@/i18n/routing';
 

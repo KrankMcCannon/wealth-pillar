@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import type { Investment } from '@/components/investments/personal-investment-tab';
+import type { Investment } from '@/features/investments/components/personal-investment-tab';
 
 type TimeSeriesEntry = {
   datetime?: string | undefined;

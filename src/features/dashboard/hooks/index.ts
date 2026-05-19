@@ -3,5 +3,5 @@
  * Custom hooks for dashboard feature business logic
  */
 
-export { useDashboardContent } from './useDashboardContent';
-export type { UseDashboardContentParams, UseDashboardContentReturn } from './useDashboardContent';
+export { useDashboardContent } from './use-dashboard-content';
+export type { UseDashboardContentParams, UseDashboardContentReturn } from './use-dashboard-content';

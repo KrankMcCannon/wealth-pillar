@@ -387,6 +387,12 @@
     "retry": "Riprova",
     "home": "Torna alla home"
   },
+  "LocaleError": {
+    "title": "Si è verificato un errore",
+    "description": "Si è verificato un errore imprevisto. Controlla la connessione e riprova.",
+    "retry": "Riprova",
+    "home": "Torna alla home"
+  },
   "AccountsError": {
     "title": "Non siamo riusciti a caricare i tuoi conti",
     "description": "Qualcosa ha interrotto il caricamento, di solito è temporaneo. Controlla la connessione e tocca Riprova. Se continua, attendi un minuto e riprova: i dati restano al sicuro lato server.",

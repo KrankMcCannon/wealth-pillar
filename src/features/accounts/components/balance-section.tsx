@@ -2,7 +2,7 @@
 
 import { Account } from '@/lib';
 import { BalanceSectionSkeleton } from '@/features/dashboard';
-import { TotalBalanceLink } from './TotalBalanceLink';
+import { TotalBalanceLink } from './total-balance-link';
 import { accountStyles } from '../theme/account-styles';
 
 interface BalanceSectionProps {

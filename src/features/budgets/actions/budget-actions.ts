@@ -162,6 +162,31 @@ export async function updateBudgetAction(
   }
 }
 
+export async function getBudgetByIdAction(id: string): Promise<ServiceResult<Budget>> {
+  try {
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+      return { data: null, error: 'Non autenticato' };
+    }
+
+    const budget = await getBudgetByIdUseCase(id);
+    if (!budget?.user_id) {
+      return { data: null, error: 'Budget non trovato' };
+    }
+
+    if (!canAccessUserData(currentUser as unknown as User, budget.user_id)) {
+      return { data: null, error: 'Permesso negato' };
+    }
+
+    return { data: budget, error: null };
+  } catch (error) {
+    return {
+      data: null,
+      error: error instanceof Error ? error.message : 'Failed to load budget',
+    };
+  }
+}
+
 /**
  * Server Action: Delete Budget
  */

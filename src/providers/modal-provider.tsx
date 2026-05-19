@@ -17,7 +17,9 @@ const RecurringFormModal = lazy(
   () => import('@/features/recurring/components/recurring-form-modal')
 );
 const AccountFormModal = lazy(() => import('@/features/accounts/components/account-form-modal'));
-const AddInvestmentModal = lazy(() => import('@/components/investments/add-investment-modal'));
+const AddInvestmentModal = lazy(
+  () => import('@/features/investments/components/add-investment-modal')
+);
 
 interface ModalProviderProps {
   children: React.ReactNode;

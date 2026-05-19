@@ -6,13 +6,7 @@
 
 import { useTranslations } from 'next-intl';
 import { Plus, CheckCircle2, ShoppingCart } from 'lucide-react';
-import {
-  BottomNavigation,
-  PageContainer,
-  Header,
-  HomeDashboardMain,
-  SkipToMainLink,
-} from '@/components/layout';
+import { AppPage } from '@/components/layout';
 import { EmptyState } from '@/components/shared';
 import { BudgetChart, BudgetsSummaryHero, BudgetCategoryCard } from '@/features/budgets/components';
 import { TransactionDayList } from '@/features/transactions';
@@ -74,156 +68,151 @@ export default function BudgetsContent({ currentUser, groupUsers, pageData }: Bu
     openModal,
   } = useBudgetsContent(props);
 
-  const closePeriodHref = `/budgets/summary?userId=${encodeURIComponent(budgetContextUserId)}`;
+  const closePeriodHref = `/budgets/summary?user=${encodeURIComponent(budgetContextUserId)}`;
 
   return (
-    <PageContainer>
-      <SkipToMainLink href="#main-budgets">{t('skipToMain')}</SkipToMainLink>
-
-      <Header
-        title={t('title')}
-        subtitle={t('pageSubtitle')}
-        showBack
-        currentUser={{
-          ...(currentUser.name != null ? { name: currentUser.name } : {}),
-          role: currentUser.role || 'member',
-        }}
-        showActions
-      />
-
-      <HomeDashboardMain id="main-budgets">
+    <AppPage
+      currentUser={currentUser}
+      title={t('title')}
+      subtitle={t('pageSubtitle')}
+      showBack
+      showActions
+      skipToMainHref="#main-budgets"
+      skipToMainLabel={t('skipToMain')}
+      dashboardMain
+      mainId="main-budgets"
+      decor={
         <div className={stitchBudgets.decorWrap} aria-hidden>
           <div className={stitchBudgets.decorBlobTL} />
           <div className={stitchBudgets.decorBlobBR} />
         </div>
-
-        <div className={stitchBudgets.mainStack}>
-          {userBudgetSummary && userBudgetSummary.budgets.length > 0 ? (
-            <>
-              <BudgetsSummaryHero
-                summary={userBudgetSummary}
-                labels={{
-                  totalAvailable: t('hero.totalAvailable'),
-                  totalBudgeted: t('hero.totalBudgeted'),
-                  totalSpent: t('hero.totalSpent'),
-                }}
-              />
-
-              <div className="flex justify-center">
-                <button
-                  type="button"
-                  className={stitchBudgets.closePeriodButton}
-                  onClick={() => router.push(closePeriodHref)}
-                >
-                  <CheckCircle2 className="h-5 w-5 shrink-0" aria-hidden />
-                  {t('closePeriod')}
-                </button>
-              </div>
-
-              <div className={stitchBudgets.listStack}>
-                {userBudgetSummary.budgets.map((bp) => (
-                  <BudgetCategoryCard
-                    key={bp.id}
-                    progress={bp}
-                    categories={hookCategories}
-                    isSelected={selectedBudget?.id === bp.id}
-                    onPress={() => {
-                      handleBudgetSelect(bp.id);
-                      handleEditBudgetById(bp.id);
-                    }}
-                  />
-                ))}
-              </div>
-            </>
-          ) : null}
-
-          {userBudgets.length > 0 && selectedBudget && userBudgetSummary ? (
-            <section
-              aria-labelledby="budgets-detail-heading"
-              className={stitchBudgets.detailsSection}
-            >
-              <h2 id="budgets-detail-heading" className="sr-only">
-                {t('sectionDetailsTitle')}
-              </h2>
-
-              {selectedBudgetProgress ? (
-                <>
-                  <BudgetChart
-                    spent={chartAggregateSpent}
-                    chartData={chartData}
-                    periodInfo={
-                      periodInfo
-                        ? {
-                            startDate: periodInfo.start || '',
-                            endDate: periodInfo.end,
-                          }
-                        : null
-                    }
-                  />
-
-                  <TransactionDayList
-                    groupedTransactions={groupedTransactions}
-                    accountNames={accountNamesMap}
-                    categories={hookCategories}
-                    sectionTitle={t('transactions.sectionTitle')}
-                    sectionSubtitle={transactionSectionSubtitle}
-                    emptyTitle={t('transactions.emptyTitle')}
-                    emptyDescription={t('transactions.emptyDescription')}
-                    expensesOnly
-                    showViewAll
-                    viewAllLabel={t('transactions.viewAll')}
-                    onViewAll={() => {
-                      const params = new URLSearchParams();
-                      params.set('from', 'budgets');
-                      params.set('user', budgetContextUserId);
-                      const unionKeys = [...new Set(userBudgets.flatMap((b) => b.categories))];
-                      if (unionKeys.length > 0) {
-                        params.set('categories', unionKeys.join(','));
-                      }
-                      params.set('dateRange', 'custom');
-                      if (periodInfo?.start) {
-                        params.set('startDate', periodInfo.start);
-                      }
-                      if (periodInfo?.end) {
-                        params.set('endDate', periodInfo.end);
-                      }
-                      router.push(`/transactions?${params.toString()}`);
-                    }}
-                    onEditTransaction={(transaction) => {
-                      openModal('transaction', transaction.id);
-                    }}
-                  />
-                </>
-              ) : null}
-            </section>
-          ) : null}
-
-          {userBudgets.length === 0 ? (
-            <EmptyState
-              icon={ShoppingCart}
-              titleId="budgets-section-empty-title"
-              title={t('emptyState.title')}
-              description={t('emptyState.description')}
-              action={
-                <Button onClick={handleCreateBudget} variant="default" size="sm">
-                  {t('emptyState.createButton')} →
-                </Button>
-              }
+      }
+      afterMain={
+        <button
+          type="button"
+          className={stitchBudgets.fab}
+          onClick={handleCreateBudget}
+          aria-label={t('fabAddBudget')}
+        >
+          <Plus className={stitchBudgets.fabIcon} strokeWidth={2.25} aria-hidden />
+        </button>
+      }
+    >
+      <div className={stitchBudgets.mainStack}>
+        {userBudgetSummary && userBudgetSummary.budgets.length > 0 ? (
+          <>
+            <BudgetsSummaryHero
+              summary={userBudgetSummary}
+              labels={{
+                totalAvailable: t('hero.totalAvailable'),
+                totalBudgeted: t('hero.totalBudgeted'),
+                totalSpent: t('hero.totalSpent'),
+              }}
             />
-          ) : null}
-        </div>
-      </HomeDashboardMain>
 
-      <button
-        type="button"
-        className={stitchBudgets.fab}
-        onClick={handleCreateBudget}
-        aria-label={t('fabAddBudget')}
-      >
-        <Plus className={stitchBudgets.fabIcon} strokeWidth={2.25} aria-hidden />
-      </button>
+            <div className="flex justify-center">
+              <button
+                type="button"
+                className={stitchBudgets.closePeriodButton}
+                onClick={() => router.push(closePeriodHref)}
+              >
+                <CheckCircle2 className="h-5 w-5 shrink-0" aria-hidden />
+                {t('closePeriod')}
+              </button>
+            </div>
 
-      <BottomNavigation />
-    </PageContainer>
+            <div className={stitchBudgets.listStack}>
+              {userBudgetSummary.budgets.map((bp) => (
+                <BudgetCategoryCard
+                  key={bp.id}
+                  progress={bp}
+                  categories={hookCategories}
+                  isSelected={selectedBudget?.id === bp.id}
+                  onPress={() => {
+                    handleBudgetSelect(bp.id);
+                    handleEditBudgetById(bp.id);
+                  }}
+                />
+              ))}
+            </div>
+          </>
+        ) : null}
+
+        {userBudgets.length > 0 && selectedBudget && userBudgetSummary ? (
+          <section
+            aria-labelledby="budgets-detail-heading"
+            className={stitchBudgets.detailsSection}
+          >
+            <h2 id="budgets-detail-heading" className="sr-only">
+              {t('sectionDetailsTitle')}
+            </h2>
+
+            {selectedBudgetProgress ? (
+              <>
+                <BudgetChart
+                  spent={chartAggregateSpent}
+                  chartData={chartData}
+                  periodInfo={
+                    periodInfo
+                      ? {
+                          startDate: periodInfo.start || '',
+                          endDate: periodInfo.end,
+                        }
+                      : null
+                  }
+                />
+
+                <TransactionDayList
+                  groupedTransactions={groupedTransactions}
+                  accountNames={accountNamesMap}
+                  categories={hookCategories}
+                  sectionTitle={t('transactions.sectionTitle')}
+                  sectionSubtitle={transactionSectionSubtitle}
+                  emptyTitle={t('transactions.emptyTitle')}
+                  emptyDescription={t('transactions.emptyDescription')}
+                  expensesOnly
+                  showViewAll
+                  viewAllLabel={t('transactions.viewAll')}
+                  onViewAll={() => {
+                    const params = new URLSearchParams();
+                    params.set('from', 'budgets');
+                    params.set('user', budgetContextUserId);
+                    const unionKeys = [...new Set(userBudgets.flatMap((b) => b.categories))];
+                    if (unionKeys.length > 0) {
+                      params.set('categories', unionKeys.join(','));
+                    }
+                    params.set('dateRange', 'custom');
+                    if (periodInfo?.start) {
+                      params.set('startDate', periodInfo.start);
+                    }
+                    if (periodInfo?.end) {
+                      params.set('endDate', periodInfo.end);
+                    }
+                    router.push(`/transactions?${params.toString()}`);
+                  }}
+                  onEditTransaction={(transaction) => {
+                    openModal('transaction', transaction.id);
+                  }}
+                />
+              </>
+            ) : null}
+          </section>
+        ) : null}
+
+        {userBudgets.length === 0 ? (
+          <EmptyState
+            icon={ShoppingCart}
+            titleId="budgets-section-empty-title"
+            title={t('emptyState.title')}
+            description={t('emptyState.description')}
+            action={
+              <Button onClick={handleCreateBudget} variant="default" size="sm">
+                {t('emptyState.createButton')} →
+              </Button>
+            }
+          />
+        ) : null}
+      </div>
+    </AppPage>
   );
 }

@@ -15,8 +15,6 @@ export {
   usePreferenceOptions,
   InviteMemberModal,
   SubscriptionModal,
-  SettingsModalForm,
-  SettingsModalField,
   ProfileSection,
   GroupSection,
   PreferencesSection,

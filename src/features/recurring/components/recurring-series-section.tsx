@@ -10,7 +10,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { RecurringTransactionSeries } from '@/lib';
-import { SeriesCard } from '@/components/cards';
+import { SeriesCard } from './series-card';
 import { EmptyState } from '@/components/shared';
 import { Banknote, CircleAlert, Plus, RefreshCw, TrendingDown, TrendingUp } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';

@@ -1,32 +1,19 @@
 'use client';
 
-import { useEffect, useMemo } from 'react';
-import { useForm, useWatch } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { useMemo } from 'react';
 import { z } from 'zod';
 import { useLocale, useTranslations } from 'next-intl';
-import { Category, cn } from '@/lib';
+import type { Category } from '@/lib';
 import { getTempId } from '@/lib/utils/temp-id';
-import {
-  isValidColor,
-  getDefaultColor,
-  getColorPalette,
-} from '@/server/use-cases/categories/category.logic';
-import { categoryStyles, getCategoryColorStyle } from '../theme/category-styles';
+import { getDefaultColor, isValidColor } from '@/server/use-cases/categories/category.logic';
+import { categoryStyles } from '../theme/category-styles';
 import { createCategoryAction, updateCategoryAction } from '@/features/categories';
-import { ModalWrapper, ModalBody, ModalFooter, ModalSection } from '@/components/ui/modal-wrapper';
-import { FormActions, FormField } from '@/components/form';
-import { IconPicker, Input } from '@/components/ui';
+import { EntityFormModal } from '@/components/form/entity-form-modal';
+import { FormActions } from '@/components/form';
 import { useRequiredGroupId } from '@/hooks';
 import { useCategories, useReferenceDataStore } from '@/stores/reference-data-store';
 import { toast } from '@/hooks/use-toast';
-
-type CategoryFormData = {
-  label: string;
-  key: string;
-  icon: string;
-  color: string;
-};
+import { CategoryFormFields, type CategoryFormData } from './category-form-fields';
 
 interface CategoryFormModalProps {
   isOpen: boolean;
@@ -37,10 +24,8 @@ interface CategoryFormModalProps {
 function CategoryFormModal({ isOpen, onClose, editId }: Readonly<CategoryFormModalProps>) {
   const t = useTranslations('Categories.FormModal');
   const locale = useLocale();
-  // Read from store instead of props
   const groupId = useRequiredGroupId();
 
-  // Reference data store actions for optimistic updates
   const storeCategories = useCategories();
   const addCategory = useReferenceDataStore((state) => state.addCategory);
   const updateCategory = useReferenceDataStore((state) => state.updateCategory);
@@ -49,6 +34,7 @@ function CategoryFormModal({ isOpen, onClose, editId }: Readonly<CategoryFormMod
   const isEditMode = !!editId;
   const title = isEditMode ? t('title.edit') : t('title.create');
   const description = isEditMode ? t('description.edit') : t('description.create');
+
   const categorySchema = useMemo(
     () =>
       z.object({
@@ -66,70 +52,31 @@ function CategoryFormModal({ isOpen, onClose, editId }: Readonly<CategoryFormMod
     [t]
   );
 
-  // React Hook Form setup
-  const {
-    register,
-    handleSubmit,
-    control,
-    setValue,
-    reset,
-    setError,
-    formState: { errors, isSubmitting },
-  } = useForm<CategoryFormData>({
-    resolver: zodResolver(categorySchema),
-    defaultValues: {
+  const createDefaults: CategoryFormData = useMemo(
+    () => ({
       label: '',
       key: '',
       icon: '',
       color: getDefaultColor(),
-    },
-  });
+    }),
+    []
+  );
 
-  const watchedLabel = useWatch({ control, name: 'label' });
-  const watchedColor = useWatch({ control, name: 'color' });
-  const watchedIcon = useWatch({ control, name: 'icon' });
-
-  // Get color palette from CategoryService
-  const colorPalette = useMemo(() => getColorPalette(), []);
-
-  // Load category data for edit mode
-  useEffect(() => {
-    if (isOpen && isEditMode && editId) {
-      // Find category in store
+  const resetValues = useMemo((): CategoryFormData => {
+    if (isEditMode && editId) {
       const category = storeCategories.find((cat) => cat.id === editId);
-
       if (category) {
-        reset({
+        return {
           label: category.label,
           key: category.key,
           icon: category.icon,
           color: category.color,
-        });
+        };
       }
-    } else if (isOpen && !isEditMode) {
-      // Reset to defaults for create mode
-      reset({
-        label: '',
-        key: '',
-        icon: '',
-        color: getDefaultColor(),
-      });
     }
-  }, [isOpen, isEditMode, editId, reset, storeCategories]);
+    return createDefaults;
+  }, [isEditMode, editId, storeCategories, createDefaults]);
 
-  // Auto-generate key from label (only in create mode)
-  useEffect(() => {
-    if (!isEditMode && watchedLabel) {
-      const generatedKey = watchedLabel
-        .toLowerCase()
-        .trim()
-        .replaceAll(/[^a-z0-9]+/g, '_')
-        .replaceAll(/(^_+)|(_+$)/g, '');
-      setValue('key', generatedKey);
-    }
-  }, [watchedLabel, isEditMode, setValue]);
-
-  // Handle update category flow
   const handleUpdate = async (data: CategoryFormData, id: string) => {
     const updateData = {
       label: data.label.trim(),
@@ -137,16 +84,13 @@ function CategoryFormModal({ isOpen, onClose, editId }: Readonly<CategoryFormMod
       color: data.color.trim().toUpperCase(),
     };
 
-    // 1. Store original category for revert
     const originalCategory = storeCategories.find((cat) => cat.id === id);
     if (!originalCategory) {
       throw new Error(t('errors.notFound'));
     }
 
-    // 2. Update in store immediately (optimistic)
     updateCategory(id, updateData);
 
-    // 3. Call server action
     const result = await updateCategoryAction(id, updateData, locale);
 
     if (result.error) {
@@ -169,9 +113,7 @@ function CategoryFormModal({ isOpen, onClose, editId }: Readonly<CategoryFormMod
     }
   };
 
-  // Handle create category flow
   const handleCreate = async (data: CategoryFormData) => {
-    // 1. Create temporary ID
     const tempId = getTempId('temp-category');
     const now = new Date().toISOString();
     const optimisticCategory: Category = {
@@ -185,13 +127,9 @@ function CategoryFormModal({ isOpen, onClose, editId }: Readonly<CategoryFormMod
       group_id: groupId,
     };
 
-    // 2. Add to store immediately (optimistic)
     addCategory(optimisticCategory);
-
-    // 3. Close modal immediately for better UX
     onClose();
 
-    // 4. Call server action in background
     const result = await createCategoryAction(
       {
         label: data.label.trim(),
@@ -224,126 +162,44 @@ function CategoryFormModal({ isOpen, onClose, editId }: Readonly<CategoryFormMod
     }
   };
 
-  // Handle form submission with optimistic updates
-  const onSubmit = async (data: CategoryFormData) => {
-    try {
-      if (isEditMode && editId) {
-        await handleUpdate(data, editId);
-        onClose(); // Close on success for update
-      } else {
-        await handleCreate(data);
-        // onClose is called inside handleCreate for immediate feedback
-      }
-    } catch (error) {
-      const message = error instanceof Error ? error.message : t('errors.unknown');
-      setError('root', { message });
-    }
-  };
-
   return (
-    <ModalWrapper
+    <EntityFormModal<CategoryFormData>
       isOpen={isOpen}
-      onOpenChange={onClose}
+      onClose={onClose}
       title={title}
       description={description}
-      maxWidth="md"
+      schema={categorySchema}
+      defaultValues={createDefaults}
+      resetValues={resetValues}
       repositionInputs={false}
+      formClassName={categoryStyles.formModal.form}
+      onSubmit={async (data, form) => {
+        try {
+          if (isEditMode && editId) {
+            await handleUpdate(data, editId);
+            onClose();
+          } else {
+            await handleCreate(data);
+          }
+        } catch (error) {
+          const message = error instanceof Error ? error.message : t('errors.unknown');
+          form.setError('root', { message });
+        }
+      }}
+      footer={(_, isSubmitting) => (
+        <FormActions
+          submitType="submit"
+          submitLabel={isEditMode ? t('buttons.save') : t('buttons.create')}
+          cancelLabel={t('buttons.cancel')}
+          onCancel={onClose}
+          isSubmitting={isSubmitting}
+          className="w-full sm:w-auto"
+        />
+      )}
     >
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className={cn(categoryStyles.formModal.form, 'flex min-h-0 flex-1 flex-col')}
-      >
-        <ModalBody>
-          {/* Submit Error Display */}
-          {errors.root && (
-            <div className={categoryStyles.formModal.error}>
-              <p className="text-sm font-medium text-destructive">{errors.root.message}</p>
-            </div>
-          )}
-
-          <ModalSection>
-            {/* Label */}
-            <FormField
-              label={t('fields.label.label')}
-              required
-              error={errors.label?.message}
-              helperText={isEditMode ? undefined : t('fields.label.helper')}
-            >
-              <Input
-                {...register('label')}
-                placeholder={t('fields.label.placeholder')}
-                disabled={isSubmitting}
-              />
-            </FormField>
-
-            {/* Icon */}
-            <FormField label={t('fields.icon.label')} required error={errors.icon?.message}>
-              <IconPicker value={watchedIcon} onChange={(value) => setValue('icon', value)} />
-            </FormField>
-
-            {/* Color */}
-            <FormField label={t('fields.color.label')} required error={errors.color?.message}>
-              <div className={categoryStyles.formModal.colorSection}>
-                {/* Color palette */}
-                <div className={categoryStyles.formModal.palette}>
-                  {colorPalette.map((color) => (
-                    <button
-                      key={color.value}
-                      type="button"
-                      onClick={() => setValue('color', color.value)}
-                      disabled={isSubmitting}
-                      className={cn(
-                        categoryStyles.formModal.colorButton,
-                        watchedColor.toUpperCase() === color.value.toUpperCase()
-                          ? categoryStyles.formModal.colorActive
-                          : categoryStyles.formModal.colorIdle,
-                        isSubmitting && categoryStyles.formModal.colorDisabled
-                      )}
-                      style={getCategoryColorStyle(color.value)}
-                      title={color.name}
-                    >
-                      {watchedColor.toUpperCase() === color.value.toUpperCase() && (
-                        <div className={categoryStyles.formModal.checkWrap}>
-                          <svg
-                            className={categoryStyles.formModal.checkIcon}
-                            fill="none"
-                            strokeWidth="3"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                          </svg>
-                        </div>
-                      )}
-                    </button>
-                  ))}
-                </div>
-
-                {/* Custom color input */}
-                <Input
-                  {...register('color')}
-                  placeholder={t('fields.color.placeholder')}
-                  disabled={isSubmitting}
-                />
-              </div>
-            </FormField>
-          </ModalSection>
-        </ModalBody>
-
-        <ModalFooter>
-          <FormActions
-            submitType="submit"
-            submitLabel={isEditMode ? t('buttons.save') : t('buttons.create')}
-            cancelLabel={t('buttons.cancel')}
-            onCancel={onClose}
-            isSubmitting={isSubmitting}
-            className="w-full sm:w-auto"
-          />
-        </ModalFooter>
-      </form>
-    </ModalWrapper>
+      {(form) => <CategoryFormFields form={form} isEditMode={isEditMode} />}
+    </EntityFormModal>
   );
 }
 
-// Default export for lazy loading
 export default CategoryFormModal;

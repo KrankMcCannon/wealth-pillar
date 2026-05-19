@@ -2,237 +2,38 @@
 
 import { use, useCallback, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import {
-  BottomNavigation,
-  PageContainer,
-  Header,
-  HomeDashboardMain,
-  SkipToMainLink,
-} from '@/components/layout';
+import { AppPage, HomeDashboardMain } from '@/components/layout';
 import { Button } from '@/components/ui';
 import type { ReportsPageData } from '@/server/use-cases/pages/reports-page.use-case';
-import type {
-  AccountTypeSummary,
-  ReportPeriodSummary,
-  UserAccountFlow,
-  UserFlowSummary,
-} from '@/server/use-cases/reports/reports.use-cases';
-import type { Account, Category, Transaction, User } from '@/lib/types';
+import type { User } from '@/lib/types';
 import { stitchReports } from '@/styles/home-design-foundation';
 import UserSelector from '@/components/shared/user-selector';
-import { ReportsTimeFilter } from '@/features/reports/components/ReportsTimeFilter';
-import { ReportsHero } from '@/features/reports/components/ReportsHero';
-import { TopExpensesRanking } from '@/features/reports/components/TopExpensesRanking';
-import { AccountBreakdownSection } from '@/features/reports/components/AccountBreakdownSection';
-import { HistoricalBudgetSection } from '@/features/reports/components/HistoricalBudgetSection';
-import type { DateWindow } from '@/features/reports/utils/reporting-window';
+import { ReportsTimeFilter } from '@/features/reports/components/reports-time-filter';
+import { ReportsHero } from '@/features/reports/components/reports-hero';
+import { TopExpensesRanking } from '@/features/reports/components/top-expenses-ranking';
+import { AccountBreakdownSection } from '@/features/reports/components/account-breakdown-section';
+import { HistoricalBudgetSection } from '@/features/reports/components/historical-budget-section';
+import {
+  computeCategoryStats,
+  computeUserFlows,
+  flowsToAccountTypeSummary,
+  netFlowDeltaPercent,
+  periodOverlapsWindow,
+  sumIncomeExpenseInWindow,
+  type SerializedAccount,
+  type SerializedCategory,
+  type SerializedTransaction,
+} from '@/features/reports/utils/aggregations';
 import {
   getComparisonReportingWindow,
   getCurrentReportingWindow,
   type ReportsTimePreset,
 } from '@/features/reports/utils/reporting-window';
 
-type SerializedTransaction = Transaction & { date: string };
-type SerializedCategory = Category;
-type SerializedAccount = Account & { balance: number };
-
 interface ReportsContentProps {
   currentUser: User;
   groupUsers: User[];
   reportsBundlePromise: Promise<ReportsPageData>;
-}
-
-function formatCategoryFallback(catId: string): string {
-  return catId.replace(/[-_]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
-}
-
-function normalizeAccountType(type: string): string {
-  if (!type) return 'other';
-  const lower = type.toLowerCase();
-  if (lower === 'investment' || lower === 'investments') return 'investments';
-  return lower;
-}
-
-function sumIncomeExpenseInWindow(
-  transactions: SerializedTransaction[],
-  window: DateWindow,
-  userId?: string
-): { income: number; expenses: number } {
-  const t0 = window.start.getTime();
-  const t1 = window.end.getTime();
-  let income = 0;
-  let expenses = 0;
-  for (const row of transactions) {
-    const d = new Date(row.date).getTime();
-    if (d < t0 || d > t1) continue;
-    if (userId !== undefined && row.user_id !== userId) continue;
-    if (row.type === 'income') income += row.amount;
-    else if (row.type === 'expense') expenses += row.amount;
-  }
-  return { income, expenses };
-}
-
-function computeCategoryStats(
-  transactions: SerializedTransaction[],
-  categories: SerializedCategory[],
-  window: DateWindow,
-  userId?: string
-) {
-  const t0 = window.start.getTime();
-  const t1 = window.end.getTime();
-  const filtered = transactions.filter((row) => {
-    const d = new Date(row.date).getTime();
-    if (d < t0 || d > t1) return false;
-    if (userId !== undefined && row.user_id !== userId) return false;
-    return true;
-  });
-
-  const categoryMap = new Map(categories.map((c) => [c.id, c]));
-  const statsMap = new Map<
-    string,
-    { id: string; name: string; type: string; total: number; color: string }
-  >();
-
-  for (const tx of filtered) {
-    if (tx.type === 'transfer') continue;
-
-    const catId = tx.category;
-    let catKey = catId;
-    const category =
-      categoryMap.get(catId) ||
-      Array.from(categoryMap.values()).find((c) => c.key.toLowerCase() === catId.toLowerCase());
-    if (category) catKey = category.id;
-
-    if (!statsMap.has(catKey)) {
-      statsMap.set(catKey, {
-        id: catKey,
-        name: category?.label || formatCategoryFallback(catId),
-        type: tx.type,
-        total: 0,
-        color: category?.color || 'oklch(var(--color-muted-foreground))',
-      });
-    }
-
-    statsMap.get(catKey)!.total += tx.amount;
-  }
-
-  const allStats = Array.from(statsMap.values());
-  return allStats.filter((s) => s.type === 'expense').sort((a, b) => b.total - a.total);
-}
-
-function computeUserFlows(
-  transactions: SerializedTransaction[],
-  accounts: SerializedAccount[],
-  userIds: string[],
-  window: DateWindow
-): UserFlowSummary[] {
-  const accountMap = new Map(accounts.map((a) => [a.id, a]));
-  const t0 = window.start.getTime();
-  const t1 = window.end.getTime();
-  const filtered = transactions.filter((row) => {
-    const d = new Date(row.date).getTime();
-    return d >= t0 && d <= t1;
-  });
-
-  const userFlows = new Map<
-    string,
-    Map<string, { earned: number; spent: number; balance: number }>
-  >();
-
-  for (const uid of userIds) {
-    userFlows.set(uid, new Map());
-  }
-
-  for (const account of accounts) {
-    const type = normalizeAccountType(account.type);
-    for (const uid of account.user_ids) {
-      if (!userFlows.has(uid)) continue;
-      const typeMap = userFlows.get(uid)!;
-      if (!typeMap.has(type)) {
-        typeMap.set(type, { earned: 0, spent: 0, balance: 0 });
-      }
-      typeMap.get(type)!.balance += account.balance;
-    }
-  }
-
-  for (const tx of filtered) {
-    const uid = tx.user_id;
-    if (!uid || !userFlows.has(uid)) continue;
-
-    const account = accountMap.get(tx.account_id);
-    if (!account) continue;
-
-    const type = normalizeAccountType(account.type);
-    const typeMap = userFlows.get(uid)!;
-
-    const ensureBucket = (
-      m: Map<string, { earned: number; spent: number; balance: number }>,
-      key: string
-    ) => {
-      if (!m.has(key)) m.set(key, { earned: 0, spent: 0, balance: 0 });
-      return m.get(key)!;
-    };
-
-    if (tx.type === 'income') {
-      ensureBucket(typeMap, type).earned += tx.amount;
-    } else if (tx.type === 'expense') {
-      ensureBucket(typeMap, type).spent += tx.amount;
-    } else if (tx.type === 'transfer' && tx.to_account_id) {
-      const toAccount = accountMap.get(tx.to_account_id);
-      if (!toAccount) continue;
-      const toType = normalizeAccountType(toAccount.type);
-      ensureBucket(typeMap, type).spent += tx.amount;
-      ensureBucket(typeMap, toType).earned += tx.amount;
-    }
-  }
-
-  return userIds.map((uid) => {
-    const typeMap = userFlows.get(uid) || new Map();
-    const accountFlows: UserAccountFlow[] = Array.from(typeMap.entries()).map(
-      ([accountType, data]) => ({
-        accountType,
-        balance: data.balance,
-        earned: data.earned,
-        spent: data.spent,
-        net: data.earned - data.spent,
-      })
-    );
-
-    const totalEarned = accountFlows.reduce((s, a) => s + a.earned, 0);
-    const totalSpent = accountFlows.reduce((s, a) => s + a.spent, 0);
-
-    return {
-      userId: uid,
-      totalEarned,
-      totalSpent,
-      netFlow: totalEarned - totalSpent,
-      accounts: accountFlows.sort((a, b) => b.balance - a.balance),
-    };
-  });
-}
-
-function periodOverlapsWindow(period: ReportPeriodSummary, w: DateWindow): boolean {
-  const ps = new Date(period.startDate).getTime();
-  const pe = new Date(period.endDate).getTime();
-  const ws = w.start.getTime();
-  const we = w.end.getTime();
-  return !(pe < ws || ps > we);
-}
-
-function flowsToAccountTypeSummary(flows: UserAccountFlow[]): AccountTypeSummary[] {
-  return flows.map((f) => ({
-    accountType: f.accountType,
-    totalBalance: f.balance,
-    totalEarned: f.earned,
-    totalSpent: f.spent,
-    transactionCount: 0,
-  }));
-}
-
-function netFlowDeltaPercent(currentNet: number, previousNet: number): number | null {
-  if (previousNet === 0 && currentNet === 0) return null;
-  if (previousNet === 0) return currentNet > 0 ? 100 : -100;
-  return ((currentNet - previousNet) / Math.abs(previousNet)) * 100;
 }
 
 export default function ReportsContent({
@@ -359,101 +160,93 @@ export default function ReportsContent({
     return filteredPeriodsAllUsers.filter((p) => p.userId === selectedUserId);
   }, [filteredPeriodsAllUsers, selectedUserId]);
 
-  const headerCurrentUser = useMemo(
-    () => ({
-      ...(currentUser.name != null ? { name: currentUser.name } : {}),
-      role: currentUser.role || 'member',
-    }),
-    [currentUser.name, currentUser.role]
-  );
-
   return (
-    <PageContainer>
-      <SkipToMainLink href="#main-reports">{t('skipToMain')}</SkipToMainLink>
+    <AppPage
+      currentUser={currentUser}
+      title={t('headerTitle')}
+      showBack
+      showActions
+      skipToMainHref="#main-reports"
+      skipToMainLabel={t('skipToMain')}
+      betweenHeaderAndMain={
+        <div className="flex min-h-0 w-full flex-col">
+          <ReportsTimeFilter
+            value={preset}
+            onChange={handlePresetChange}
+            customRange={customRange}
+            onCustomApply={(start, end) => setCustomRange({ start, end })}
+          />
 
-      <Header title={t('headerTitle')} showBack currentUser={headerCurrentUser} showActions />
+          <HomeDashboardMain id="main-reports">
+            <div className={stitchReports.sectionStack}>
+              <ReportsHero
+                netFlow={groupNet}
+                income={groupTotals.income}
+                expenses={groupTotals.expenses}
+                comparisonPercent={comparisonPercent}
+                comparisonLabel={comparisonLabel}
+              />
 
-      {/*
-        Stessa struttura della pagina Transazioni: `flex min-h-0 flex-col` raggruppa toolbar sticky + main
-        così stacking e scroll restano coerenti con il resto del dashboard.
-      */}
-      <div className="flex min-h-0 w-full flex-col">
-        <ReportsTimeFilter
-          value={preset}
-          onChange={handlePresetChange}
-          customRange={customRange}
-          onCustomApply={(start, end) => setCustomRange({ start, end })}
-        />
+              <TopExpensesRanking items={topThree} />
 
-        <HomeDashboardMain id="main-reports">
-          <div className={stitchReports.sectionStack}>
-            <ReportsHero
-              netFlow={groupNet}
-              income={groupTotals.income}
-              expenses={groupTotals.expenses}
-              comparisonPercent={comparisonPercent}
-              comparisonLabel={comparisonLabel}
-            />
+              <AccountBreakdownSection rows={accountTypeSummary} totalWealth={groupTotalWealth} />
 
-            <TopExpensesRanking items={topThree} />
-
-            <AccountBreakdownSection rows={accountTypeSummary} totalWealth={groupTotalWealth} />
-
-            <HistoricalBudgetSection periods={filteredPeriodsAllUsers} />
-          </div>
-
-          <div className="mt-6 border-t border-[#3359c5]/25 pt-4">
-            <div className="flex flex-col gap-3">
-              <div className="flex flex-col gap-2">
-                <h2 className={stitchReports.sectionTitle}>{t('sectionMemberTitle')}</h2>
-                <p className="text-sm leading-snug text-[#9fb0d7]">{t('sectionMemberSubtitle')}</p>
-              </div>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="w-full border-[#3359c5]/40 bg-[#11295f]/50 text-[#e6ecff] hover:bg-[#17336f]"
-                aria-expanded={memberOpen}
-                aria-controls="reports-member-panel"
-                onClick={() => setMemberOpen((o) => !o)}
-              >
-                {memberOpen ? t('memberSectionCollapse') : t('memberSectionExpand')}
-              </Button>
+              <HistoricalBudgetSection periods={filteredPeriodsAllUsers} />
             </div>
 
-            {memberOpen ? (
-              <div id="reports-member-panel" className="mt-4 flex flex-col gap-5">
-                <UserSelector
-                  hideTitle
-                  currentUser={currentUser}
-                  users={groupUsers}
-                  value={selectedUserId}
-                  onChange={setSelectedUserId}
-                  showAllOption={false}
-                />
-                {selectedUserFlow ? (
-                  <>
-                    <ReportsHero
-                      netFlow={memberTotals.income - memberTotals.expenses}
-                      income={memberTotals.income}
-                      expenses={memberTotals.expenses}
-                      omitComparison
-                    />
-                    <TopExpensesRanking items={memberTopThree} />
-                    <AccountBreakdownSection
-                      rows={memberAccountRows}
-                      totalWealth={memberTotalWealth}
-                    />
-                    <HistoricalBudgetSection periods={memberPeriods} />
-                  </>
-                ) : null}
+            <div className="mt-6 border-t border-[#3359c5]/25 pt-4">
+              <div className="flex flex-col gap-3">
+                <div className="flex flex-col gap-2">
+                  <h2 className={stitchReports.sectionTitle}>{t('sectionMemberTitle')}</h2>
+                  <p className="text-sm leading-snug text-[#9fb0d7]">
+                    {t('sectionMemberSubtitle')}
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="w-full border-[#3359c5]/40 bg-[#11295f]/50 text-[#e6ecff] hover:bg-[#17336f]"
+                  aria-expanded={memberOpen}
+                  aria-controls="reports-member-panel"
+                  onClick={() => setMemberOpen((o) => !o)}
+                >
+                  {memberOpen ? t('memberSectionCollapse') : t('memberSectionExpand')}
+                </Button>
               </div>
-            ) : null}
-          </div>
-        </HomeDashboardMain>
-      </div>
 
-      <BottomNavigation />
-    </PageContainer>
+              {memberOpen ? (
+                <div id="reports-member-panel" className="mt-4 flex flex-col gap-5">
+                  <UserSelector
+                    hideTitle
+                    currentUser={currentUser}
+                    users={groupUsers}
+                    value={selectedUserId}
+                    onChange={setSelectedUserId}
+                    showAllOption={false}
+                  />
+                  {selectedUserFlow ? (
+                    <>
+                      <ReportsHero
+                        netFlow={memberTotals.income - memberTotals.expenses}
+                        income={memberTotals.income}
+                        expenses={memberTotals.expenses}
+                        omitComparison
+                      />
+                      <TopExpensesRanking items={memberTopThree} />
+                      <AccountBreakdownSection
+                        rows={memberAccountRows}
+                        totalWealth={memberTotalWealth}
+                      />
+                      <HistoricalBudgetSection periods={memberPeriods} />
+                    </>
+                  ) : null}
+                </div>
+              ) : null}
+            </div>
+          </HomeDashboardMain>
+        </div>
+      }
+    />
   );
 }

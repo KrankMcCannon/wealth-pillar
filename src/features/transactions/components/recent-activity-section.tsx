@@ -5,8 +5,8 @@ import { Link } from '@/i18n/routing';
 import { useLocale, useTranslations } from 'next-intl';
 import { CategoryBadge } from '@/components/ui';
 import { SectionHeader } from '@/components/layout';
-import { HomeAmount, HomeSectionCard } from '@/components/home';
-import { formatCurrency } from '@/lib/utils';
+import { HomeSectionCard, MoneyText } from '@/components/home';
+import { EmptyState } from '@/components/shared';
 import { formatDateSmart, toDateTime } from '@/lib/utils/date-utils';
 import type { Transaction, Category } from '@/lib/types';
 import { stitchHome } from '@/styles/home-design-foundation';
@@ -48,7 +48,7 @@ export function RecentActivitySection({ transactions, categories }: RecentActivi
       />
 
       {transactions.length === 0 ? (
-        <p className={stitchHome.emptyWell}>{t('recentActivityEmpty')}</p>
+        <EmptyState variant="dashboard" title={t('recentActivityEmpty')} />
       ) : (
         <div className="flex flex-col gap-2">
           {transactions.map((tx) => {
@@ -70,10 +70,11 @@ export function RecentActivitySection({ transactions, categories }: RecentActivi
                     <p className={stitchHome.rowMeta}>{meta}</p>
                   </div>
                 </div>
-                <HomeAmount variant={tx.type === 'income' ? 'income' : 'expense'}>
-                  {tx.type === 'income' ? '+' : '-'}
-                  {formatCurrency(Math.abs(tx.amount))}
-                </HomeAmount>
+                <MoneyText
+                  value={tx.type === 'income' ? Math.abs(tx.amount) : -Math.abs(tx.amount)}
+                  variant={tx.type === 'income' ? 'home-income' : 'home-expense'}
+                  signed
+                />
               </Link>
             );
           })}

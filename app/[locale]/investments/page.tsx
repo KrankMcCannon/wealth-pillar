@@ -1,7 +1,7 @@
 import { Suspense } from 'react';
 import { getTranslations } from 'next-intl/server';
 import InvestmentsContent from './investments-content';
-import { InvestmentsSkeleton } from '@/components/investments/investments-skeleton';
+import { InvestmentsSkeleton } from '@/components/ui/primitives/skeletons';
 import { requirePageAuth } from '@/lib/auth/page-auth';
 import { withTimeout } from '@/lib/utils/with-timeout';
 import { getPortfolioUseCase } from '@/server/use-cases/investments/investment.use-cases';

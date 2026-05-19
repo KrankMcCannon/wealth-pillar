@@ -106,6 +106,34 @@ export async function updateTransactionAction(
  * Wraps TransactionService.deleteTransaction for client component usage
  * Validates permissions: members can only delete their own transactions
  */
+export async function getTransactionByIdAction(id: string): Promise<ServiceResult<Transaction>> {
+  try {
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+      return { data: null, error: 'Non autenticato. Effettua il login per continuare.' };
+    }
+
+    const transaction = await getTransactionByIdUseCase(id);
+    if (!transaction) {
+      return { data: null, error: 'Transazione non trovata' };
+    }
+
+    if (
+      transaction.user_id &&
+      !canAccessUserData(currentUser as unknown as User, transaction.user_id)
+    ) {
+      return { data: null, error: 'Permesso negato' };
+    }
+
+    return { data: transaction, error: null };
+  } catch (error) {
+    return {
+      data: null,
+      error: error instanceof Error ? error.message : 'Failed to load transaction',
+    };
+  }
+}
+
 export async function deleteTransactionAction(id: string): Promise<ServiceResult<{ id: string }>> {
   try {
     // Authentication check (cached per request)

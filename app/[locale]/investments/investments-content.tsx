@@ -3,22 +3,24 @@
 import dynamic from 'next/dynamic';
 import { use, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { PageContainer, Header, BottomNavigation, ActionMenu } from '@/components/layout';
+import { ActionMenu, AppPage } from '@/components/layout';
 import UserSelector from '@/components/shared/user-selector';
 import { User } from '@/lib';
 import TabNavigation from '@/components/shared/tab-navigation';
 import { transactionStyles } from '@/styles/system';
-import type { Investment } from '@/components/investments/personal-investment-tab';
+import type { Investment } from '@/features/investments/components/personal-investment-tab';
 import { stitchBudgets, stitchTransactions } from '@/styles/home-design-foundation';
 import { useRouter } from '@/i18n/routing';
 import { PieChart } from 'lucide-react';
 
 const PersonalInvestmentTab = dynamic(() =>
-  import('@/components/investments/personal-investment-tab').then((m) => m.PersonalInvestmentTab)
+  import('@/features/investments/components/personal-investment-tab').then(
+    (m) => m.PersonalInvestmentTab
+  )
 );
 
 const SandboxForecastTab = dynamic(() =>
-  import('@/components/investments/sandbox-forecast-tab').then((m) => m.SandboxForecastTab)
+  import('@/features/investments/components/sandbox-forecast-tab').then((m) => m.SandboxForecastTab)
 );
 
 interface InvestmentsContentProps {
@@ -65,61 +67,59 @@ export default function InvestmentsContent({
   ];
 
   return (
-    <PageContainer>
-      <div className={stitchBudgets.decorWrap}>
-        <div className={stitchBudgets.decorBlobTL} />
-        <div className={stitchBudgets.decorBlobBR} />
-      </div>
-
-      <Header
-        title={t('headerTitle')}
-        showBack
-        currentUser={{
-          ...(currentUser.name != null ? { name: currentUser.name } : {}),
-          role: currentUser.role || 'member',
-        }}
-        showActions
-      />
-
-      <div className="sticky z-30 bg-[#050818]/90 pb-3 pt-1 backdrop-blur-sm shadow-sm border-b border-[#3359c5]/15">
-        <div className="px-4 space-y-3">
-          <UserSelector hideTitle currentUser={currentUser} users={groupUsers} />
-
-          <TabNavigation
-            tabs={[
-              { id: 'personal', label: t('tabs.personal') },
-              { id: 'sandbox', label: t('tabs.sandbox') },
-            ]}
-            activeTab={activeTab}
-            onTabChange={(id) => setActiveTab(id as 'personal' | 'sandbox')}
-            variant="stitch"
-          />
+    <AppPage
+      currentUser={currentUser}
+      title={t('headerTitle')}
+      showBack
+      showActions
+      beforeHeader={
+        <div className={stitchBudgets.decorWrap}>
+          <div className={stitchBudgets.decorBlobTL} />
+          <div className={stitchBudgets.decorBlobBR} />
         </div>
-      </div>
+      }
+      betweenHeaderAndMain={
+        <>
+          <div className="sticky z-30 border-b border-[#3359c5]/15 bg-[#050818]/90 pt-1 pb-3 shadow-sm backdrop-blur-sm">
+            <div className="space-y-3 px-4">
+              <UserSelector hideTitle currentUser={currentUser} users={groupUsers} />
 
-      <main className={transactionStyles.page.main} aria-label={t('mainLandmark')}>
-        <div className={transactionStyles.layout.contentStack}>
-          {activeTab === 'personal' && (
-            <PersonalInvestmentTab
-              investments={investments}
-              summary={summary}
-              indexData={indexData}
-              currentIndex={currentIndex}
-            />
-          )}
-          {activeTab === 'sandbox' && <SandboxForecastTab />}
-        </div>
-      </main>
+              <TabNavigation
+                tabs={[
+                  { id: 'personal', label: t('tabs.personal') },
+                  { id: 'sandbox', label: t('tabs.sandbox') },
+                ]}
+                activeTab={activeTab}
+                onTabChange={(id) => setActiveTab(id as 'personal' | 'sandbox')}
+                variant="stitch"
+              />
+            </div>
+          </div>
 
-      <ActionMenu
-        triggerClassName={stitchTransactions.fab}
-        triggerIconClassName="h-6 w-6"
-        extraMenuItems={extraMenuItems}
-        groupedSecondary
-        align="end"
-      />
-
-      <BottomNavigation />
-    </PageContainer>
+          <main className={transactionStyles.page.main} aria-label={t('mainLandmark')}>
+            <div className={transactionStyles.layout.contentStack}>
+              {activeTab === 'personal' && (
+                <PersonalInvestmentTab
+                  investments={investments}
+                  summary={summary}
+                  indexData={indexData}
+                  currentIndex={currentIndex}
+                />
+              )}
+              {activeTab === 'sandbox' && <SandboxForecastTab />}
+            </div>
+          </main>
+        </>
+      }
+      afterMain={
+        <ActionMenu
+          triggerClassName={stitchTransactions.fab}
+          triggerIconClassName="h-6 w-6"
+          extraMenuItems={extraMenuItems}
+          groupedSecondary
+          align="end"
+        />
+      }
+    />
   );
 }

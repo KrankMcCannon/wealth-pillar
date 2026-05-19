@@ -1,147 +1,37 @@
 'use client';
 
-import { cn } from '@/lib/utils';
-import { useEffect, useMemo } from 'react';
-import { Controller, useForm, useWatch } from 'react-hook-form';
+import { useEffect, useMemo, useState } from 'react';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import { useTranslations } from 'next-intl';
-import { ArrowLeftRight, CalendarClock, Pause, Play, Trash2 } from 'lucide-react';
-import { RecurringTransactionSeries, TransactionFrequencyType } from '@/lib/types';
-import { getTempId } from '@/lib/utils/temp-id';
+import { Pause, Play, Trash2 } from 'lucide-react';
+
 import { ModalWrapper } from '@/components/ui/modal-wrapper';
-import { FormCurrencyInput, FormSelect, MultiUserSelect } from '@/components/form';
-import { AccountField, CategoryField, DateField, Input } from '@/components/ui';
+import { RecurringTransactionSeries, TransactionFrequencyType } from '@/lib/types';
 import {
   createRecurringSeriesAction,
   deleteRecurringSeriesAction,
+  getRecurringSeriesByIdAction,
   toggleRecurringSeriesActiveAction,
   updateRecurringSeriesAction,
 } from '@/features/recurring';
 import { todayDateString } from '@/lib/utils/date-utils';
 import { useRequiredCurrentUser, useRequiredGroupUsers, useRequiredGroupId } from '@/hooks';
 import { useAccounts, useCategories } from '@/stores/reference-data-store';
-import { useUserFilterStore } from '@/stores/user-filter-store';
-import { usePageDataStore } from '@/stores/page-data-store';
+import { useUserFilter } from '@/hooks/state/use-user-filter';
+import { useRouter } from '@/i18n/routing';
 import { toast } from '@/hooks/use-toast';
 import { stitchTransactionFormModal } from '@/styles/home-design-foundation';
 
-// Helper: Format date for input
-const formatDateForInput = (date: string | Date | null | undefined): string => {
-  if (!date) return '';
-  if (typeof date === 'string') return date.split('T')[0] ?? '';
-  return date.toISOString().split('T')[0] ?? '';
-};
-
-// Helper: Calculate default account
-const calculateDefaultAccountId = (
-  watchedUserIds: string[] | undefined,
-  filteredAccounts: AccountFieldProp[],
-  accounts: AccountFieldProp[],
-  currentUser: { id: string },
-  groupUsers: { id: string; default_account_id?: string | null }[]
-): string => {
-  if (!watchedUserIds || watchedUserIds.length === 0 || filteredAccounts.length === 0) {
-    return '';
-  }
-
-  // ONLY 1 USER: Use their default account
-  if (watchedUserIds.length === 1) {
-    const selectedUser = groupUsers.find((u) => u.id === watchedUserIds[0]);
-
-    if (selectedUser?.default_account_id) {
-      const defaultAcc = filteredAccounts.find((acc) => acc.id === selectedUser.default_account_id);
-      if (defaultAcc) {
-        return defaultAcc.id;
-      }
-    }
-
-    // Fallback: first available account for that user
-    return filteredAccounts[0]?.id ?? '';
-  }
-
-  // Multiple users: first shared account
-  if (filteredAccounts.length > 0) {
-    return filteredAccounts[0]?.id ?? '';
-  }
-
-  // Fallback: creator's default
-  const creator = groupUsers.find((u) => u.id === currentUser.id);
-  if (creator?.default_account_id) {
-    const creatorDefaultAcc = accounts.find((acc) => acc.id === creator.default_account_id);
-    if (creatorDefaultAcc) {
-      return creatorDefaultAcc.id;
-    }
-  }
-
-  // Last fallback: first available account
-  return accounts.length > 0 ? (accounts[0]?.id ?? '') : '';
-};
-
-// Helper interface
-interface AccountFieldProp {
-  id: string;
-  user_ids: string[];
-}
-
-const createRecurringSchema = (t: ReturnType<typeof useTranslations>) =>
-  z
-    .object({
-      description: z.string().min(1, t('validation.descriptionRequired')).trim(),
-      amount: z
-        .string()
-        .min(1, t('validation.amountRequired'))
-        .refine((val) => !Number.isNaN(Number.parseFloat(val)) && Number.parseFloat(val) > 0, {
-          message: t('validation.amountGreaterThanZero'),
-        }),
-      type: z.enum(['income', 'expense']),
-      category: z.string().min(1, t('validation.categoryRequired')),
-      frequency: z.enum(['once', 'weekly', 'biweekly', 'monthly', 'yearly']),
-      user_ids: z.array(z.string()).min(1, t('validation.userIdsRequired')),
-      account_id: z.string().min(1, t('validation.accountRequired')),
-      start_date: z.string().min(1, t('validation.startDateRequired')),
-      end_date: z.string().optional(),
-      due_day: z
-        .string()
-        .min(1, t('validation.dueDayRequired'))
-        .refine(
-          (val) => {
-            const num = Number.parseInt(val, 10);
-            return !Number.isNaN(num) && num >= 1 && num <= 31;
-          },
-          {
-            message: t('validation.dueDayRange'),
-          }
-        ),
-    })
-    .refine(
-      (data) => {
-        if (data.end_date && data.start_date) {
-          return new Date(data.end_date) > new Date(data.start_date);
-        }
-        return true;
-      },
-      {
-        message: t('validation.endDateAfterStart'),
-        path: ['end_date'],
-      }
-    );
-
-type RecurringFormData = z.infer<ReturnType<typeof createRecurringSchema>>;
-
-interface RecurringTransactionSeriesData {
-  description: string;
-  amount: number;
-  type: 'income' | 'expense';
-  category: string;
-  frequency: TransactionFrequencyType;
-  account_id: string;
-  start_date: string;
-  end_date: string | null;
-  due_day: number;
-  user_ids: string[];
-  group_id: string;
-}
+import { RecurrencePicker } from './recurrence-picker';
+import { calculateDefaultAccountId, formatDateForInput } from './recurring-form-helpers';
+import { RecurringDescriptionField, RecurringFormFields } from './recurring-form-fields';
+import {
+  createRecurringSchema,
+  type RecurringFormData,
+  type RecurringTransactionSeriesData,
+} from './recurring-form-schema';
+import { RecurringPreview } from './recurring-preview';
 
 interface RecurringFormModalProps {
   isOpen: boolean;
@@ -152,31 +42,40 @@ interface RecurringFormModalProps {
 function RecurringFormModal({ isOpen, onClose, editId }: Readonly<RecurringFormModalProps>) {
   const t = useTranslations('Recurring.FormModal');
   const tSeriesCard = useTranslations('Recurring.SeriesCard');
-  // Read from stores instead of props
   const currentUser = useRequiredCurrentUser();
   const groupUsers = useRequiredGroupUsers();
   const accounts = useAccounts();
   const categories = useCategories();
   const groupId = useRequiredGroupId();
-  const selectedUserId = useUserFilterStore((state) => state.selectedUserId);
-
-  // Page data store actions for optimistic updates
-  const storeRecurringSeries = usePageDataStore((state) => state.recurringSeries);
-  const addRecurringSeries = usePageDataStore((state) => state.addRecurringSeries);
-  const updateRecurringSeries = usePageDataStore((state) => state.updateRecurringSeries);
-  const removeRecurringSeries = usePageDataStore((state) => state.removeRecurringSeries);
+  const { selectedUserId } = useUserFilter();
+  const router = useRouter();
+  const [loadedSeries, setLoadedSeries] = useState<{
+    editId: string;
+    data: RecurringTransactionSeries | null;
+  } | null>(null);
 
   const isEditMode = !!editId;
+  const editingSeries =
+    isOpen && editId && loadedSeries?.editId === editId ? loadedSeries.data : null;
   const title = isEditMode ? t('title.edit') : t('title.create');
   const recurringSchema = useMemo(() => createRecurringSchema(t), [t]);
-  const editingSeries = useMemo(
-    () => (editId ? (storeRecurringSeries.find((s) => s.id === editId) ?? null) : null),
-    [editId, storeRecurringSeries]
-  );
+
+  useEffect(() => {
+    if (!isOpen || !editId) return;
+    let cancelled = false;
+    (async () => {
+      const result = await getRecurringSeriesByIdAction(editId);
+      if (!cancelled) {
+        setLoadedSeries({ editId, data: result.data ?? null });
+      }
+    })().catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen, editId]);
 
   const today = todayDateString();
 
-  // React Hook Form setup
   const {
     register,
     handleSubmit,
@@ -209,16 +108,13 @@ function RecurringFormModal({ isOpen, onClose, editId }: Readonly<RecurringFormM
   const watchedStartDate = useWatch({ control, name: 'start_date' });
   const watchedEndDate = useWatch({ control, name: 'end_date' });
 
-  // Filter accounts: show accounts accessible by ALL selected users (intersection)
   const filteredAccounts = useMemo(() => {
     if (!watchedUserIds || watchedUserIds.length === 0) return accounts;
 
-    // Filter: accounts accessible by ALL selected users
     const filtered = accounts.filter((acc) =>
-      watchedUserIds.every((userId) => acc.user_ids.includes(userId))
+      watchedUserIds.every((userId: string) => acc.user_ids.includes(userId))
     );
 
-    // Sort: currentUser's accounts first
     return filtered.sort((a, b) => {
       const aHasCurrentUser = a.user_ids.includes(currentUser.id);
       const bHasCurrentUser = b.user_ids.includes(currentUser.id);
@@ -228,7 +124,6 @@ function RecurringFormModal({ isOpen, onClose, editId }: Readonly<RecurringFormM
     });
   }, [accounts, watchedUserIds, currentUser.id]);
 
-  // Calculate default account to prepopulate
   const defaultAccountId = useMemo(() => {
     return calculateDefaultAccountId(
       watchedUserIds,
@@ -239,32 +134,24 @@ function RecurringFormModal({ isOpen, onClose, editId }: Readonly<RecurringFormM
     );
   }, [watchedUserIds, filteredAccounts, accounts, currentUser, groupUsers]);
 
-  // Load recurring series data for edit mode
   useEffect(() => {
-    if (isOpen && isEditMode && editId) {
-      // Find series in store
-      const series = storeRecurringSeries.find((s) => s.id === editId);
+    if (isOpen && isEditMode && editingSeries) {
+      const startDateStr = formatDateForInput(editingSeries.start_date);
+      const endDateStr = formatDateForInput(editingSeries.end_date);
 
-      if (series) {
-        // Handle date formatting
-        const startDateStr = formatDateForInput(series.start_date);
-        const endDateStr = formatDateForInput(series.end_date);
-
-        reset({
-          description: series.description,
-          amount: series.amount.toString(),
-          type: series.type === 'transfer' ? 'expense' : series.type,
-          category: series.category,
-          frequency: series.frequency,
-          user_ids: series.user_ids,
-          account_id: series.account_id,
-          start_date: startDateStr,
-          end_date: endDateStr,
-          due_day: series.due_day.toString(),
-        });
-      }
+      reset({
+        description: editingSeries.description,
+        amount: editingSeries.amount.toString(),
+        type: editingSeries.type === 'transfer' ? 'expense' : editingSeries.type,
+        category: editingSeries.category,
+        frequency: editingSeries.frequency,
+        user_ids: editingSeries.user_ids,
+        account_id: editingSeries.account_id,
+        start_date: startDateStr,
+        end_date: endDateStr,
+        due_day: editingSeries.due_day.toString(),
+      });
     } else if (isOpen && !isEditMode) {
-      // Reset to defaults for create mode
       reset({
         description: '',
         amount: '',
@@ -278,38 +165,18 @@ function RecurringFormModal({ isOpen, onClose, editId }: Readonly<RecurringFormM
         due_day: '1',
       });
     }
-  }, [
-    isOpen,
-    isEditMode,
-    editId,
-    selectedUserId,
-    currentUser.id,
-    reset,
-    today,
-    storeRecurringSeries,
-  ]);
+  }, [isOpen, isEditMode, editId, selectedUserId, currentUser.id, reset, today, editingSeries]);
 
-  // Prepopulate account when users change
   useEffect(() => {
     if (!isOpen || !defaultAccountId) return;
 
-    // Only update account in CREATE mode, not EDIT mode
     if (!isEditMode && defaultAccountId !== watchedAccountId) {
       setValue('account_id', defaultAccountId);
     }
   }, [isOpen, watchedUserIds, defaultAccountId, watchedAccountId, setValue, isEditMode]);
 
-  // Handle Update Logic
   const handleUpdate = async (seriesData: RecurringTransactionSeriesData) => {
     if (!editId) return;
-
-    const originalSeries = storeRecurringSeries.find((s) => s.id === editId);
-    if (!originalSeries) {
-      setError('root', { message: t('errors.notFound') });
-      return;
-    }
-
-    updateRecurringSeries(editId, seriesData);
 
     const result = await updateRecurringSeriesAction({
       id: editId,
@@ -317,58 +184,37 @@ function RecurringFormModal({ isOpen, onClose, editId }: Readonly<RecurringFormM
     });
 
     if (result.error) {
-      updateRecurringSeries(editId, originalSeries);
       setError('root', { message: result.error });
       toast({ title: t('toast.errorTitle'), description: result.error, variant: 'destructive' });
       return;
     }
 
-    if (result.data) {
-      updateRecurringSeries(editId, result.data);
-      toast({
-        title: t('toast.updatedTitle'),
-        description: t('toast.updatedDescription'),
-        variant: 'success',
-      });
-    }
+    toast({
+      title: t('toast.updatedTitle'),
+      description: t('toast.updatedDescription'),
+      variant: 'success',
+    });
+    router.refresh();
   };
 
-  // Handle Create Logic
   const handleCreate = async (seriesData: RecurringTransactionSeriesData) => {
-    const tempId = getTempId('temp-recurring');
-    const now = new Date().toISOString();
-    const optimisticSeries: RecurringTransactionSeries = {
-      id: tempId,
-      created_at: now,
-      updated_at: now,
-      is_active: true,
-      total_executions: 0,
-      ...seriesData,
-    };
-
-    addRecurringSeries(optimisticSeries);
     onClose();
 
     const result = await createRecurringSeriesAction(seriesData);
 
     if (result.error) {
-      removeRecurringSeries(tempId);
       toast({ title: t('toast.errorTitle'), description: result.error, variant: 'destructive' });
       return;
     }
 
-    removeRecurringSeries(tempId);
-    if (result.data) {
-      addRecurringSeries(result.data);
-      toast({
-        title: t('toast.createdTitle'),
-        description: t('toast.createdDescription'),
-        variant: 'success',
-      });
-    }
+    toast({
+      title: t('toast.createdTitle'),
+      description: t('toast.createdDescription'),
+      variant: 'success',
+    });
+    router.refresh();
   };
 
-  // Handle form submission with optimistic updates
   const onSubmit = async (data: RecurringFormData) => {
     try {
       const amount = Number.parseFloat(data.amount);
@@ -394,7 +240,6 @@ function RecurringFormModal({ isOpen, onClose, editId }: Readonly<RecurringFormM
         await handleCreate(seriesData);
       }
 
-      // Close modal on success (for update mode)
       if (isEditMode) {
         onClose();
       }
@@ -408,30 +253,24 @@ function RecurringFormModal({ isOpen, onClose, editId }: Readonly<RecurringFormM
   const handleToggleSeriesActive = async () => {
     if (!editId || !editingSeries) return;
     const nextActive = !editingSeries.is_active;
-    updateRecurringSeries(editId, { is_active: nextActive });
     const result = await toggleRecurringSeriesActiveAction(editId, nextActive);
     if (result.error) {
-      updateRecurringSeries(editId, { is_active: editingSeries.is_active });
       toast({ title: t('toast.errorTitle'), description: result.error, variant: 'destructive' });
       return;
     }
-    if (result.data) {
-      updateRecurringSeries(editId, result.data);
-      toast({
-        title: nextActive ? tSeriesCard('actions.resume') : tSeriesCard('actions.pause'),
-        description: t('toast.updatedDescription'),
-        variant: 'success',
-      });
-    }
+    toast({
+      title: nextActive ? tSeriesCard('actions.resume') : tSeriesCard('actions.pause'),
+      description: t('toast.updatedDescription'),
+      variant: 'success',
+    });
+    router.refresh();
   };
 
   const handleDeleteSeries = async () => {
-    if (!editId || !editingSeries) return;
-    removeRecurringSeries(editId);
+    if (!editId) return;
     onClose();
     const result = await deleteRecurringSeriesAction(editId);
     if (result.error) {
-      addRecurringSeries(editingSeries);
       toast({ title: t('toast.errorTitle'), description: result.error, variant: 'destructive' });
       return;
     }
@@ -440,6 +279,7 @@ function RecurringFormModal({ isOpen, onClose, editId }: Readonly<RecurringFormM
       description: t('toast.updatedDescription'),
       variant: 'success',
     });
+    router.refresh();
   };
   const s = stitchTransactionFormModal;
   const pauseResumeLabel =
@@ -469,164 +309,49 @@ function RecurringFormModal({ isOpen, onClose, editId }: Readonly<RecurringFormM
             </div>
           ) : null}
 
-          <section
-            className={cn(s.amountSection, 'group/amount')}
-            aria-labelledby="recurring-amount-label"
-          >
-            <p id="recurring-amount-label" className={s.amountEyebrow}>
-              {t('fields.amount.label')}
-            </p>
-            <div className={s.amountRow}>
-              <span className={s.amountCurrency} aria-hidden>
-                €
-              </span>
-              <Controller
-                name="amount"
-                control={control}
-                render={({ field }) => (
-                  <FormCurrencyInput
-                    value={field.value}
-                    onChange={(v) => field.onChange(v)}
-                    placeholder={t('fields.amount.placeholder')}
-                    disabled={isSubmitting}
-                    className={s.amountInput}
-                    showSymbol={false}
-                  />
-                )}
-              />
-            </div>
-            <div className={s.amountTrack} aria-hidden>
-              <div className={s.amountTrackFill} />
-            </div>
-            {errors.amount ? <p className={s.fieldError}>{errors.amount.message}</p> : null}
-          </section>
+          <RecurringPreview
+            control={control}
+            errors={errors}
+            t={t}
+            s={s}
+            isSubmitting={isSubmitting}
+          />
 
           <div className={s.fieldStack}>
-            <CategoryField
-              value={watchedCategory}
-              onChange={(value) => setValue('category', value)}
-              error={errors.category?.message}
+            <RecurringFormFields
+              watchedCategory={watchedCategory}
+              watchedAccountId={watchedAccountId}
+              watchedStartDate={watchedStartDate}
+              watchedEndDate={watchedEndDate}
+              watchedUserIds={watchedUserIds}
+              setValue={setValue}
+              errors={errors}
               categories={categories}
-              label={t('fields.category.label')}
-              placeholder={t('fields.category.placeholder')}
+              filteredAccounts={filteredAccounts}
+              groupUsers={groupUsers}
+              currentUserId={currentUser.id}
+              t={t}
+              s={s}
             />
 
-            <AccountField
-              value={watchedAccountId}
-              onChange={(value) => setValue('account_id', value)}
-              error={errors.account_id?.message}
-              accounts={filteredAccounts}
-              label={t('fields.account.label')}
-              placeholder={t('fields.account.placeholder')}
-              required
+            <RecurrencePicker
+              watchedType={watchedType}
+              watchedFrequency={watchedFrequency}
+              setValue={setValue}
+              register={register}
+              errors={errors}
+              t={t}
+              s={s}
+              isSubmitting={isSubmitting}
             />
 
-            <DateField
-              label={t('fields.startDate.label')}
-              value={watchedStartDate}
-              onChange={(value) => setValue('start_date', value)}
-              error={errors.start_date?.message}
-              required
+            <RecurringDescriptionField
+              register={register}
+              errors={errors}
+              t={t}
+              s={s}
+              isSubmitting={isSubmitting}
             />
-
-            <DateField
-              label={t('fields.endDate.label')}
-              value={watchedEndDate || ''}
-              onChange={(value) => setValue('end_date', value)}
-              error={errors.end_date?.message}
-            />
-
-            <div className="space-y-1">
-              <p className={s.noteLabel}>{t('fields.users.label')}</p>
-              <MultiUserSelect
-                value={watchedUserIds}
-                onChange={(value) => setValue('user_ids', value)}
-                users={groupUsers}
-                currentUserId={currentUser.id}
-              />
-              {errors.user_ids?.message ? (
-                <p className={s.fieldError}>{errors.user_ids.message}</p>
-              ) : null}
-            </div>
-
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-3">
-              <div className="space-y-1">
-                <FormSelect
-                  value={watchedType}
-                  onValueChange={(value) => setValue('type', value as 'income' | 'expense')}
-                  options={[
-                    { value: 'expense', label: t('typeOptions.expense') },
-                    { value: 'income', label: t('typeOptions.income') },
-                  ]}
-                  captionLabel={t('fields.type.label')}
-                  leadingIcon={<ArrowLeftRight className="h-5 w-5 text-[#b8c5ff]" aria-hidden />}
-                />
-                {errors.type?.message ? (
-                  <p className={s.fieldError}>{errors.type.message}</p>
-                ) : null}
-              </div>
-
-              <div className="space-y-1">
-                <FormSelect
-                  value={watchedFrequency}
-                  onValueChange={(value) =>
-                    setValue('frequency', value as TransactionFrequencyType)
-                  }
-                  options={[
-                    { value: 'once', label: t('frequencyOptions.once') },
-                    { value: 'weekly', label: t('frequencyOptions.weekly') },
-                    { value: 'biweekly', label: t('frequencyOptions.biweekly') },
-                    { value: 'monthly', label: t('frequencyOptions.monthly') },
-                    { value: 'yearly', label: t('frequencyOptions.yearly') },
-                  ]}
-                  captionLabel={t('fields.frequency.label')}
-                  leadingIcon={<CalendarClock className="h-5 w-5 text-[#b8c5ff]" aria-hidden />}
-                />
-                {errors.frequency?.message ? (
-                  <p className={s.fieldError}>{errors.frequency.message}</p>
-                ) : null}
-              </div>
-            </div>
-
-            <div className={s.noteShell}>
-              <label htmlFor="recurring-due-day" className={s.noteLabel}>
-                {t('fields.dueDay.label')}
-              </label>
-              <Input
-                id="recurring-due-day"
-                type="number"
-                min={1}
-                max={31}
-                {...register('due_day')}
-                placeholder={t('fields.dueDay.placeholder')}
-                disabled={isSubmitting}
-                className={s.noteInput}
-                autoComplete="off"
-              />
-              <p className="mt-2 px-0 text-[11px] leading-snug text-[#9fb0d7]/90">
-                {t('fields.dueDay.helper')}
-              </p>
-              {errors.due_day?.message ? (
-                <p className={cn(s.fieldError, 'mt-2')}>{errors.due_day.message}</p>
-              ) : null}
-            </div>
-
-            <div className={s.noteShell}>
-              <label htmlFor="recurring-description" className={s.noteLabel}>
-                {t('fields.description.label')}
-              </label>
-              <Input
-                id="recurring-description"
-                {...register('description')}
-                placeholder={t('fields.description.placeholder')}
-                disabled={isSubmitting}
-                className={s.noteInput}
-                autoComplete="off"
-              />
-              {errors.description?.message ? (
-                <p className={cn(s.fieldError, 'mt-2')}>{errors.description.message}</p>
-              ) : null}
-            </div>
           </div>
         </div>
 
@@ -668,5 +393,4 @@ function RecurringFormModal({ isOpen, onClose, editId }: Readonly<RecurringFormM
   );
 }
 
-// Default export for lazy loading
 export default RecurringFormModal;

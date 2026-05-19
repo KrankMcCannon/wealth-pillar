@@ -2,7 +2,7 @@
 
 import { use } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
-import { BottomNavigation, PageContainer, Header } from '@/components/layout';
+import { AppPage, toAppPageHeaderUser } from '@/components/layout';
 import { useRouter } from '@/i18n/routing';
 import {
   DeleteAccountModal,
@@ -50,17 +50,12 @@ export default function SettingsContent({
   const { currencyOptions, languageOptions, timezoneOptions } = usePreferenceOptions();
 
   const {
-    // Optimistic state
     preferences,
-
-    // Derived state
     isAdmin,
     userInitials,
     isSigningOut,
     isDeletingAccount,
     deleteError,
-
-    // Modal controls
     showEditProfileModal,
     setShowEditProfileModal,
     showCurrencyModal,
@@ -74,8 +69,6 @@ export default function SettingsContent({
     showSubscriptionModal,
     setShowSubscriptionModal,
     showDeleteModal,
-
-    // Handlers
     handleSignOut,
     handleDeleteAccountClick,
     handleDeleteAccountConfirm,
@@ -87,143 +80,135 @@ export default function SettingsContent({
   const router = useRouter();
   const currentLanguageValue = getLanguagePreferenceForLocale(locale, preferences?.language);
 
-  if (!currentUser) return null; // Should not happen given page.tsx protection, but handles type safety
+  if (!currentUser) return null;
+
+  const settingsHeaderUser = {
+    ...toAppPageHeaderUser(currentUser),
+    role:
+      currentUser.role === 'superadmin' || currentUser.role === 'admin'
+        ? 'admin'
+        : ((currentUser.role || 'member') as 'admin' | 'member'),
+  };
 
   return (
-    <PageContainer className={settingsStyles.page.container}>
-      <div>
-        {/* Header */}
-        <Header
-          title={t('headerTitle')}
-          showBack
-          onBack={() => router.push('/home')}
-          currentUser={{
-            ...(currentUser.name != null ? { name: currentUser.name } : {}),
-            role:
-              currentUser.role === 'superadmin' || currentUser.role === 'admin'
-                ? 'admin'
-                : ((currentUser.role || 'member') as 'admin' | 'member'),
-          }}
-          showActions
-        />
-
-        <main className={settingsStyles.main.container}>
-          <ProfileSection
-            currentUser={currentUser}
-            accountCount={accountCount}
-            transactionCount={transactionCount}
-            userInitials={userInitials}
-            onEditProfile={() => setShowEditProfileModal(true)}
+    <AppPage
+      currentUser={currentUser}
+      headerUser={settingsHeaderUser}
+      pageContainerClassName={settingsStyles.page.container}
+      title={t('headerTitle')}
+      showBack
+      onBack={() => router.push('/home')}
+      showActions
+      afterMain={
+        <>
+          <DeleteAccountModal
+            isOpen={showDeleteModal}
+            isDeleting={isDeletingAccount}
+            error={deleteError}
+            onClose={handleCloseDeleteModal}
+            onConfirm={handleDeleteAccountConfirm}
           />
 
-          <GroupSection
-            groupUsers={groupUsers}
-            isAdmin={isAdmin}
-            onInviteMember={() => setShowInviteMemberModal(true)}
-            onManageSubscription={() => setShowSubscriptionModal(true)}
+          <EditProfileModal
+            isOpen={showEditProfileModal}
+            onOpenChange={setShowEditProfileModal}
+            userId={currentUser.id}
+            currentName={currentUser.name ?? ''}
+            currentEmail={currentUser.email ?? ''}
           />
 
-          <PreferencesSection
-            preferences={preferences}
-            onOpenCurrency={() => setShowCurrencyModal(true)}
-            onOpenLanguage={() => setShowLanguageModal(true)}
-            onOpenTimezone={() => setShowTimezoneModal(true)}
-          />
+          {preferences ? (
+            <PreferenceSelectModal
+              isOpen={showCurrencyModal}
+              onOpenChange={setShowCurrencyModal}
+              userId={currentUser.id}
+              title={t('currencyModalTitle')}
+              description={t('currencyModalDescription')}
+              currentValue={preferences.currency}
+              options={currencyOptions}
+              preferenceKey="currency"
+              onSuccess={(value) => handlePreferenceUpdate('currency', value)}
+            />
+          ) : null}
 
-          <NotificationsSection preferences={preferences} onToggle={handleNotificationToggle} />
+          {preferences ? (
+            <PreferenceSelectModal
+              isOpen={showLanguageModal}
+              onOpenChange={setShowLanguageModal}
+              userId={currentUser.id}
+              title={t('languageModalTitle')}
+              description={t('languageModalDescription')}
+              currentValue={currentLanguageValue}
+              options={languageOptions}
+              preferenceKey="language"
+              onSuccess={(value) => handlePreferenceUpdate('language', value)}
+            />
+          ) : null}
 
-          <SecuritySection isSigningOut={isSigningOut} onSignOut={handleSignOut} />
+          {preferences ? (
+            <PreferenceSelectModal
+              isOpen={showTimezoneModal}
+              onOpenChange={setShowTimezoneModal}
+              userId={currentUser.id}
+              title={t('timezoneModalTitle')}
+              description={t('timezoneModalDescription')}
+              currentValue={preferences.timezone}
+              options={timezoneOptions}
+              preferenceKey="timezone"
+              onSuccess={(value) => handlePreferenceUpdate('timezone', value)}
+            />
+          ) : null}
 
-          <AccountSection onDeleteAccount={handleDeleteAccountClick} />
-        </main>
-      </div>
+          {isAdmin ? (
+            <InviteMemberModal
+              isOpen={showInviteMemberModal}
+              onOpenChange={setShowInviteMemberModal}
+              groupId={currentUser.group_id || ''}
+              currentUserId={currentUser.id}
+            />
+          ) : null}
 
-      {/* Bottom Navigation */}
-      <BottomNavigation />
-
-      {/* Delete Account Modal */}
-      <DeleteAccountModal
-        isOpen={showDeleteModal}
-        isDeleting={isDeletingAccount}
-        error={deleteError}
-        onClose={handleCloseDeleteModal}
-        onConfirm={handleDeleteAccountConfirm}
-      />
-
-      {/* Edit Profile Modal */}
-      <EditProfileModal
-        isOpen={showEditProfileModal}
-        onOpenChange={setShowEditProfileModal}
-        userId={currentUser.id}
-        currentName={currentUser.name ?? ''}
-        currentEmail={currentUser.email ?? ''}
-      />
-
-      {/* Currency Selection Modal */}
-      {preferences && (
-        <PreferenceSelectModal
-          isOpen={showCurrencyModal}
-          onOpenChange={setShowCurrencyModal}
-          userId={currentUser.id}
-          title={t('currencyModalTitle')}
-          description={t('currencyModalDescription')}
-          currentValue={preferences.currency}
-          options={currencyOptions}
-          preferenceKey="currency"
-          onSuccess={(value) => handlePreferenceUpdate('currency', value)}
+          {isAdmin ? (
+            <SubscriptionModal
+              isOpen={showSubscriptionModal}
+              onOpenChange={setShowSubscriptionModal}
+              groupId={currentUser.group_id || ''}
+              currentPlan="free"
+              billingCurrency={preferences?.currency ?? 'EUR'}
+            />
+          ) : null}
+        </>
+      }
+    >
+      <main className={settingsStyles.main.container}>
+        <ProfileSection
+          currentUser={currentUser}
+          accountCount={accountCount}
+          transactionCount={transactionCount}
+          userInitials={userInitials}
+          onEditProfile={() => setShowEditProfileModal(true)}
         />
-      )}
 
-      {/* Language Selection Modal */}
-      {preferences && (
-        <PreferenceSelectModal
-          isOpen={showLanguageModal}
-          onOpenChange={setShowLanguageModal}
-          userId={currentUser.id}
-          title={t('languageModalTitle')}
-          description={t('languageModalDescription')}
-          currentValue={currentLanguageValue}
-          options={languageOptions}
-          preferenceKey="language"
-          onSuccess={(value) => handlePreferenceUpdate('language', value)}
+        <GroupSection
+          groupUsers={groupUsers}
+          isAdmin={isAdmin}
+          onInviteMember={() => setShowInviteMemberModal(true)}
+          onManageSubscription={() => setShowSubscriptionModal(true)}
         />
-      )}
 
-      {/* Timezone Selection Modal */}
-      {preferences && (
-        <PreferenceSelectModal
-          isOpen={showTimezoneModal}
-          onOpenChange={setShowTimezoneModal}
-          userId={currentUser.id}
-          title={t('timezoneModalTitle')}
-          description={t('timezoneModalDescription')}
-          currentValue={preferences.timezone}
-          options={timezoneOptions}
-          preferenceKey="timezone"
-          onSuccess={(value) => handlePreferenceUpdate('timezone', value)}
+        <PreferencesSection
+          preferences={preferences}
+          onOpenCurrency={() => setShowCurrencyModal(true)}
+          onOpenLanguage={() => setShowLanguageModal(true)}
+          onOpenTimezone={() => setShowTimezoneModal(true)}
         />
-      )}
 
-      {/* Invite Member Modal */}
-      {isAdmin && (
-        <InviteMemberModal
-          isOpen={showInviteMemberModal}
-          onOpenChange={setShowInviteMemberModal}
-          groupId={currentUser.group_id || ''}
-          currentUserId={currentUser.id}
-        />
-      )}
+        <NotificationsSection preferences={preferences} onToggle={handleNotificationToggle} />
 
-      {/* Subscription Modal */}
-      {isAdmin && (
-        <SubscriptionModal
-          isOpen={showSubscriptionModal}
-          onOpenChange={setShowSubscriptionModal}
-          groupId={currentUser.group_id || ''}
-          currentPlan="free"
-          billingCurrency={preferences?.currency ?? 'EUR'}
-        />
-      )}
-    </PageContainer>
+        <SecuritySection isSigningOut={isSigningOut} onSignOut={handleSignOut} />
+
+        <AccountSection onDeleteAccount={handleDeleteAccountClick} />
+      </main>
+    </AppPage>
   );
 }

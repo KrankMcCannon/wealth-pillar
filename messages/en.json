@@ -387,6 +387,12 @@
     "retry": "Try again",
     "home": "Back to home"
   },
+  "LocaleError": {
+    "title": "Something went wrong",
+    "description": "An unexpected error occurred. Check your connection and try again.",
+    "retry": "Try again",
+    "home": "Back to home"
+  },
   "AccountsError": {
     "title": "We couldn’t load your accounts",
     "description": "Something interrupted loading your accounts — it’s usually temporary. Check your internet connection, then tap Try again. If it keeps happening, wait a minute and retry; your data stays safe on our side.",

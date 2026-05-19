@@ -10,4 +10,3 @@ export * from './permission-guard';
 export * from './tab-navigation';
 export * from './user-selector';
 export * from './year-selector';
-export * from './onboarding-modal';

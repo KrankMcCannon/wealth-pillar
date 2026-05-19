@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { BudgetCard } from '@/components/cards';
+import { BudgetCard } from '@/features/budgets';
 import { budgetStyles } from '@/styles/system';
 import { Budget, UserBudgetSummary } from '@/lib/types';
 

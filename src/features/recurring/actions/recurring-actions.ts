@@ -318,6 +318,36 @@ export async function deleteRecurringSeriesAction(
  * @param isActive - The new active status
  * @returns The updated series or error
  */
+export async function getRecurringSeriesByIdAction(
+  id: string
+): Promise<ServiceResult<RecurringTransactionSeries>> {
+  try {
+    const currentUser = await getCurrentUser();
+    if (!currentUser) {
+      return { data: null, error: 'Non autenticato' };
+    }
+
+    const series = await getSeriesByIdUseCase(id);
+    if (!series) {
+      return { data: null, error: 'Serie non trovata' };
+    }
+
+    const canAccess = series.user_ids.some((uid) =>
+      canAccessUserData(currentUser as unknown as User, uid)
+    );
+    if (!canAccess) {
+      return { data: null, error: 'Permesso negato' };
+    }
+
+    return { data: serialize(series), error: null };
+  } catch (error) {
+    return {
+      data: null,
+      error: error instanceof Error ? error.message : 'Failed to load series',
+    };
+  }
+}
+
 export async function toggleRecurringSeriesActiveAction(
   seriesId: string,
   isActive: boolean

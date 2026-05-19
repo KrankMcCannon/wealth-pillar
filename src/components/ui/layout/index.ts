@@ -16,4 +16,3 @@ export {
   type ListItemProps,
 } from './list-container';
 export { PageSection, type PageSectionProps } from './page-section';
-export { PageFooter, type PageFooterProps } from './page-footer';

@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import type { UserBudgetSummary } from '@/lib';
 import { BudgetSectionSkeleton } from '@/features/dashboard';
 import { HomeSectionCard } from '@/components/home';
+import { EmptyState } from '@/components/shared';
 import { SectionHeader } from '@/components/layout';
 import { PageSection } from '@/components/ui/layout';
 import { formatCurrency } from '@/lib/utils/currency-formatter';
@@ -78,18 +79,20 @@ export const BudgetSection = ({
           subtitle={t('subtitle')}
           className="mb-4 border-b border-border/40 pb-4 dark:border-border/35"
         />
-        <div className={budgetStyles.section.emptyContainer}>
-          <div className={budgetStyles.section.emptyIconWrap}>
-            <div className={budgetStyles.section.emptyIconInner}>
-              <span className={budgetStyles.section.emptyIconText}>€</span>
-            </div>
-          </div>
-          <h3 className={budgetStyles.section.emptyTitle}>{t('empty.title')}</h3>
-          <p className={budgetStyles.section.emptyDescription}>{t('empty.description')}</p>
-          <button type="button" onClick={goToBudgets} className={budgetStyles.section.emptyButton}>
-            {t('empty.createButton')}
-          </button>
-        </div>
+        <EmptyState
+          variant="surface"
+          title={t('empty.title')}
+          description={t('empty.description')}
+          action={
+            <button
+              type="button"
+              onClick={goToBudgets}
+              className={budgetStyles.section.emptyButton}
+            >
+              {t('empty.createButton')}
+            </button>
+          }
+        />
       </PageSection>
     );
   }

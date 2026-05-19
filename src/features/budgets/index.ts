@@ -3,12 +3,11 @@
  */
 
 // Components
-export { BudgetCard } from '@/components/cards';
+export { BudgetCard } from './components/budget-card';
 // Components
 export { BudgetPeriodInfo } from './components/budget-period-info';
 export { BudgetPeriodManager } from './components/budget-period-manager';
 export { BudgetPeriodCard } from './components/budget-period-card';
-export { BudgetPeriodsList } from './components/budget-periods-list';
 export { BudgetSection } from './components/budget-section';
 export {
   BudgetCardSkeleton,
@@ -32,6 +31,7 @@ export {
   createBudgetAction,
   updateBudgetAction,
   deleteBudgetAction,
+  getBudgetByIdAction,
 } from './actions/budget-actions';
 
 // ====================================

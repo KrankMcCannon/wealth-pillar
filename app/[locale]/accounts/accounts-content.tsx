@@ -7,7 +7,7 @@
 import { useMemo } from 'react';
 import { Plus } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { BottomNavigation, PageContainer, Header, SectionHeader } from '@/components/layout';
+import { AppPage, SectionHeader } from '@/components/layout';
 import { AccountsList, useAccountsContent } from '@/features/accounts';
 import { Amount } from '@/components/ui/primitives';
 import UserSelector from '@/components/shared/user-selector';
@@ -60,17 +60,7 @@ export default function AccountsContent({
   const balancePositive = accountStats.totalBalance >= 0;
 
   return (
-    <PageContainer>
-      <Header
-        title={t('headerTitle')}
-        showBack
-        currentUser={{
-          ...(currentUser.name != null ? { name: currentUser.name } : {}),
-          role: currentUser.role || 'member',
-        }}
-        showActions
-      />
-
+    <AppPage currentUser={currentUser} title={t('headerTitle')} showBack showActions>
       <main className={stitchAccounts.mainStack}>
         <section aria-labelledby="accounts-section-context" className={stitchAccounts.surfaceQuiet}>
           <div className="space-y-3">
@@ -178,8 +168,6 @@ export default function AccountsContent({
           </div>
         </section>
       </main>
-
-      <BottomNavigation />
-    </PageContainer>
+    </AppPage>
   );
 }

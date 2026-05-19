@@ -1,2 +1,2 @@
 export { HomeSectionCard } from './home-section-card';
-export { HomeAmount } from './home-amount';
+export { MoneyText } from '@/components/ui/primitives/money-text';

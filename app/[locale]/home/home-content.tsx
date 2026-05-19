@@ -2,13 +2,7 @@
 
 import { use, useCallback, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import {
-  BottomNavigation,
-  PageContainer,
-  Header,
-  HomeDashboardMain,
-  SkipToMainLink,
-} from '@/components/layout';
+import { AppPage } from '@/components/layout';
 import {
   Drawer,
   DrawerContent,
@@ -53,14 +47,6 @@ export default function HomeContent({
   const t = useTranslations('HomeContent');
   const [userPickerOpen, setUserPickerOpen] = useState(false);
 
-  const headerCurrentUser = useMemo(
-    () => ({
-      ...(currentUser.name != null ? { name: currentUser.name } : {}),
-      role: currentUser.role || 'member',
-    }),
-    [currentUser.name, currentUser.role]
-  );
-
   const openUserPicker = useCallback(() => setUserPickerOpen(true), []);
 
   const {
@@ -101,59 +87,55 @@ export default function HomeContent({
   }, [transactions, recentActivityUserId]);
 
   return (
-    <PageContainer>
-      <SkipToMainLink href="#main-dashboard">{t('skipToContent')}</SkipToMainLink>
-
-      <Header
-        isDashboard
-        currentUser={headerCurrentUser}
-        {...(showUserPicker && { onAvatarClick: openUserPicker })}
+    <AppPage
+      currentUser={currentUser}
+      isDashboard
+      skipToMainHref="#main-dashboard"
+      skipToMainLabel={t('skipToContent')}
+      {...(showUserPicker ? { onAvatarClick: openUserPicker } : {})}
+      dashboardMain
+      beforeMain={
+        showUserPicker ? (
+          <Drawer open={userPickerOpen} onOpenChange={setUserPickerOpen}>
+            <DrawerContent>
+              <DrawerHeader>
+                <DrawerTitle>{t('userPickerTitle')}</DrawerTitle>
+                <DrawerDescription className="sr-only">
+                  {t('userPickerDescription')}
+                </DrawerDescription>
+              </DrawerHeader>
+              <UserSelector
+                currentUser={currentUser}
+                users={groupUsers}
+                hideTitle
+                isLoading={false}
+              />
+            </DrawerContent>
+          </Drawer>
+        ) : undefined
+      }
+    >
+      <BalanceSection
+        accounts={displayedDefaultAccounts}
+        totalBalance={totalBalance}
+        selectedUserId={selectedUserId}
       />
 
-      {showUserPicker && (
-        <Drawer open={userPickerOpen} onOpenChange={setUserPickerOpen}>
-          <DrawerContent>
-            <DrawerHeader>
-              <DrawerTitle>{t('userPickerTitle')}</DrawerTitle>
-              <DrawerDescription className="sr-only">
-                {t('userPickerDescription')}
-              </DrawerDescription>
-            </DrawerHeader>
-            <UserSelector
-              currentUser={currentUser}
-              users={groupUsers}
-              hideTitle
-              isLoading={false}
-            />
-          </DrawerContent>
-        </Drawer>
-      )}
+      <BudgetSection budgetsByUser={budgetsByUser} selectedViewUserId={selectedUserId} />
 
-      <HomeDashboardMain>
-        <BalanceSection
-          accounts={displayedDefaultAccounts}
-          totalBalance={totalBalance}
-          selectedUserId={selectedUserId}
-        />
+      <RecurringSeriesSection
+        series={recurringSeries}
+        selectedUserId={recurringFilterUserId}
+        showStats={false}
+        showActions={false}
+        onCreateRecurringSeries={handleCreateRecurringSeries}
+        onCardClick={handleOpenRecurringTab}
+        onPauseRecurringSeries={handleOpenRecurringTab}
+        homeDashboardListLayout
+        maxItems={RECURRING_MAX_ITEMS}
+      />
 
-        <BudgetSection budgetsByUser={budgetsByUser} selectedViewUserId={selectedUserId} />
-
-        <RecurringSeriesSection
-          series={recurringSeries}
-          selectedUserId={recurringFilterUserId}
-          showStats={false}
-          showActions={false}
-          onCreateRecurringSeries={handleCreateRecurringSeries}
-          onCardClick={handleOpenRecurringTab}
-          onPauseRecurringSeries={handleOpenRecurringTab}
-          homeDashboardListLayout
-          maxItems={RECURRING_MAX_ITEMS}
-        />
-
-        <RecentActivitySection transactions={recentTransactions} categories={categories} />
-      </HomeDashboardMain>
-
-      <BottomNavigation />
-    </PageContainer>
+      <RecentActivitySection transactions={recentTransactions} categories={categories} />
+    </AppPage>
   );
 }

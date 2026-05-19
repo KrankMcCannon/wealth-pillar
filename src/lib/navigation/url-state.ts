@@ -65,3 +65,28 @@ export function useTabState(defaultTab: string) {
   const [tab, setTab] = useQueryState('tab', parseAsString.withDefault(defaultTab));
   return { activeTab: tab, setActiveTab: setTab };
 }
+
+/**
+ * Global user filter via URL `?user=all|{userId}` (shareable, single source of truth).
+ */
+export function useUserFilterQuery() {
+  const [user, setUser] = useQueryState('user', parseAsString.withDefault('all'));
+
+  const selectedGroupFilter = user ?? 'all';
+  const selectedUserId = selectedGroupFilter === 'all' ? undefined : selectedGroupFilter;
+
+  const setSelectedGroupFilter = (filter: string) => {
+    setUser(filter === 'all' ? null : filter).catch(() => undefined);
+  };
+
+  const reset = () => {
+    setUser(null).catch(() => undefined);
+  };
+
+  return {
+    selectedGroupFilter,
+    selectedUserId,
+    setSelectedGroupFilter,
+    reset,
+  };
+}

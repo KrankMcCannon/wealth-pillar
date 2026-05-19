@@ -5,13 +5,7 @@ import { useTranslations } from 'next-intl';
 import { useTransactionsContent, type UseTransactionsContentProps } from '@/features/transactions';
 import type { User } from '@/lib/types';
 import type { TransactionsPageData } from '@/server/use-cases/pages/transactions-page.use-case';
-import {
-  BottomNavigation,
-  PageContainer,
-  Header,
-  HomeDashboardMain,
-  SkipToMainLink,
-} from '@/components/layout';
+import { AppPage, HomeDashboardMain } from '@/components/layout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui';
 import { RecurringSeriesSection } from '@/features/recurring';
 import { TransactionFilterChips, TransactionsScreenList } from '@/features/transactions';
@@ -57,14 +51,6 @@ export default function TransactionsContent({
   };
 
   const t = useTranslations('TransactionsContent');
-
-  const headerCurrentUser = useMemo(
-    () => ({
-      ...(currentUser.name != null ? { name: currentUser.name } : {}),
-      role: currentUser.role || 'member',
-    }),
-    [currentUser.name, currentUser.role]
-  );
 
   const showUserPicker =
     (currentUser.role === 'admin' || currentUser.role === 'superadmin') && groupUsers.length > 1;
@@ -119,109 +105,111 @@ export default function TransactionsContent({
   }, [setFilters, selectedBudget, handleClearBudgetFilter]);
 
   return (
-    <PageContainer>
-      <SkipToMainLink href="#main-transactions">{t('skipToMain')}</SkipToMainLink>
+    <AppPage
+      currentUser={currentUser}
+      title={t('headerTitle')}
+      showBack
+      showActions
+      skipToMainHref="#main-transactions"
+      skipToMainLabel={t('skipToMain')}
+      betweenHeaderAndMain={
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex min-h-0 flex-col">
+          <div className="sticky z-30 bg-[#050818]/85 pb-2 pt-1 backdrop-blur-sm">
+            <TabsList className={stitchTransactions.tabsList}>
+              <TabsTrigger className={stitchTransactions.tabsTrigger} value="Transactions">
+                {t('tabs.transactions')}
+              </TabsTrigger>
+              <TabsTrigger className={stitchTransactions.tabsTrigger} value="Recurrent">
+                {t('tabs.recurrent')}
+              </TabsTrigger>
+            </TabsList>
+          </div>
+          <HomeDashboardMain id="main-transactions">
+            <TabsContent value="Transactions" className="mt-0">
+              <div className={stitchTransactions.mainStack}>
+                <TransactionFilterChips
+                  filters={filters}
+                  onFiltersChange={setFilters}
+                  categories={categories}
+                  accounts={accounts}
+                  {...(showUserPicker
+                    ? {
+                        currentUser,
+                        groupUsers,
+                        selectedUserId,
+                        onUserFilterChange: handleUserFilterChange,
+                      }
+                    : {})}
+                  {...(selectedBudget?.description !== undefined
+                    ? { budgetName: selectedBudget.description }
+                    : {})}
+                  {...(selectedBudget ? { onClearBudgetFilter: handleClearBudgetFilter } : {})}
+                />
 
-      <Header title={t('headerTitle')} showBack currentUser={headerCurrentUser} showActions />
-
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="flex min-h-0 flex-col">
-        <div className="sticky z-30 bg-[#050818]/85 pb-2 pt-1 backdrop-blur-sm">
-          <TabsList className={stitchTransactions.tabsList}>
-            <TabsTrigger className={stitchTransactions.tabsTrigger} value="Transactions">
-              {t('tabs.transactions')}
-            </TabsTrigger>
-            <TabsTrigger className={stitchTransactions.tabsTrigger} value="Recurrent">
-              {t('tabs.recurrent')}
-            </TabsTrigger>
-          </TabsList>
-        </div>
-        <HomeDashboardMain id="main-transactions">
-          <TabsContent value="Transactions" className="mt-0">
-            <div className={stitchTransactions.mainStack}>
-              <TransactionFilterChips
-                filters={filters}
-                onFiltersChange={setFilters}
-                categories={categories}
-                accounts={accounts}
-                {...(showUserPicker
-                  ? {
-                      currentUser,
-                      groupUsers,
-                      selectedUserId,
-                      onUserFilterChange: handleUserFilterChange,
-                    }
-                  : {})}
-                {...(selectedBudget?.description !== undefined
-                  ? { budgetName: selectedBudget.description }
-                  : {})}
-                {...(selectedBudget ? { onClearBudgetFilter: handleClearBudgetFilter } : {})}
-              />
-
-              {pageError && (
-                <div
-                  role="alert"
-                  className="rounded-xl border border-amber-500/40 bg-amber-950/30 px-3 py-2 text-sm text-amber-100"
-                >
-                  <span>{t('paginationError')}</span>
-                  <button
-                    type="button"
-                    onClick={() => goToPage(currentPage)}
-                    className="ml-2 font-semibold underline"
+                {pageError && (
+                  <div
+                    role="alert"
+                    className="rounded-xl border border-amber-500/40 bg-amber-950/30 px-3 py-2 text-sm text-amber-100"
                   >
-                    {t('paginationRetry')}
-                  </button>
-                </div>
-              )}
+                    <span>{t('paginationError')}</span>
+                    <button
+                      type="button"
+                      onClick={() => goToPage(currentPage)}
+                      className="ml-2 font-semibold underline"
+                    >
+                      {t('paginationRetry')}
+                    </button>
+                  </div>
+                )}
 
-              <TransactionsScreenList
-                transactions={currentPageItems}
-                totalFilteredCount={filteredCount}
-                accountNames={accountNames}
-                categories={categories}
-                currentPage={currentPage}
-                totalPages={totalPages}
-                pageSize={pageSize}
-                isChangingPage={isChangingPage}
-                onPageChange={goToPage}
-                onPageSizeChange={setPageSize}
-                onEditTransaction={handleEditTransaction}
-                {...(!hasActiveFilters && { onAddTransaction: () => openModal('transaction') })}
-                {...(hasActiveFilters && { onClearFilters: handleClearFilters })}
-                emptyTitle={t('empty.title')}
-                emptyDescription={
-                  hasActiveFilters
-                    ? t('empty.noFilterResults')
-                    : selectedUserId
-                      ? t('empty.forUser')
-                      : t('empty.noTransactionsYet')
-                }
-              />
-            </div>
-          </TabsContent>
-
-          <TabsContent value="Recurrent" className="mt-0">
-            <Suspense fallback={<RecurringSeriesSkeleton />}>
-              <div className="pt-1">
-                <RecurringSeriesSection
-                  series={recurringSeries}
-                  selectedUserId={selectedUserId ?? undefined}
-                  className="space-y-4"
-                  showStats
-                  maxItems={10}
-                  showActions={false}
-                  showDelete={false}
-                  onCreateRecurringSeries={() => openModal('recurring')}
-                  onEditRecurringSeries={(series) => openModal('recurring', series.id)}
-                  groupUsers={groupUsers}
-                  onSeriesUpdate={() => router.refresh()}
+                <TransactionsScreenList
+                  transactions={currentPageItems}
+                  totalFilteredCount={filteredCount}
+                  accountNames={accountNames}
+                  categories={categories}
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  pageSize={pageSize}
+                  isChangingPage={isChangingPage}
+                  onPageChange={goToPage}
+                  onPageSizeChange={setPageSize}
+                  onEditTransaction={handleEditTransaction}
+                  {...(!hasActiveFilters && { onAddTransaction: () => openModal('transaction') })}
+                  {...(hasActiveFilters && { onClearFilters: handleClearFilters })}
+                  emptyTitle={t('empty.title')}
+                  emptyDescription={
+                    hasActiveFilters
+                      ? t('empty.noFilterResults')
+                      : selectedUserId
+                        ? t('empty.forUser')
+                        : t('empty.noTransactionsYet')
+                  }
                 />
               </div>
-            </Suspense>
-          </TabsContent>
-        </HomeDashboardMain>
-      </Tabs>
+            </TabsContent>
 
-      <BottomNavigation />
-    </PageContainer>
+            <TabsContent value="Recurrent" className="mt-0">
+              <Suspense fallback={<RecurringSeriesSkeleton />}>
+                <div className="pt-1">
+                  <RecurringSeriesSection
+                    series={recurringSeries}
+                    selectedUserId={selectedUserId ?? undefined}
+                    className="space-y-4"
+                    showStats
+                    maxItems={10}
+                    showActions={false}
+                    showDelete={false}
+                    onCreateRecurringSeries={() => openModal('recurring')}
+                    onEditRecurringSeries={(series) => openModal('recurring', series.id)}
+                    groupUsers={groupUsers}
+                    onSeriesUpdate={() => router.refresh()}
+                  />
+                </div>
+              </Suspense>
+            </TabsContent>
+          </HomeDashboardMain>
+        </Tabs>
+      }
+    />
   );
 }

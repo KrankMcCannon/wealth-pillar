@@ -17,8 +17,8 @@ import {
   ModalWrapper,
 } from '@/components/ui';
 import { usePermissions } from '@/hooks';
+import { useRouter } from '@/i18n/routing';
 import { toDateTime } from '@/lib/utils/date-utils';
-import { usePageDataStore } from '@/stores/page-data-store';
 import { budgetStyles } from '@/styles/system';
 
 interface BudgetPeriodManagerProps {
@@ -45,6 +45,7 @@ export function BudgetPeriodManager({
 }: Readonly<BudgetPeriodManagerProps>) {
   const t = useTranslations('Budgets.PeriodManager');
   const locale = useLocale();
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [isActionPending, setIsActionPending] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string>('');
@@ -152,9 +153,6 @@ export function BudgetPeriodManager({
     }).format(amount);
   };
 
-  // Get store updater for optimistic UI
-  const updateBudgetPeriod = usePageDataStore((state) => state.updateBudgetPeriod);
-
   // Handle submit (start new period or close current period)
   const handleSubmit = async () => {
     if (!selectedDate) {
@@ -171,19 +169,8 @@ export function BudgetPeriodManager({
       if (isActivePeriod && currentPeriod) {
         // Close current period using period ID and pre-calculated metrics
         result = await closePeriodAction(targetUser.id, currentPeriod.id, selectedDate, locale);
-
-        // Optimistic UI update - mark period as closed
-        if (!result.error && result.data) {
-          updateBudgetPeriod(targetUser.id, result.data);
-        }
       } else {
-        // Start new period
         result = await startPeriodAction(targetUser.id, selectedDate, locale);
-
-        // Optimistic UI update - set new active period
-        if (!result.error && result.data) {
-          updateBudgetPeriod(targetUser.id, result.data);
-        }
       }
 
       if (result.error || !result.data) {
@@ -191,9 +178,9 @@ export function BudgetPeriodManager({
         return;
       }
 
-      // Success - call callback and close modal
       onSuccess?.();
       setIsOpen(false);
+      router.refresh();
     } catch (err) {
       console.error('[BudgetPeriodManager] Submit error:', err);
       setError(err instanceof Error ? err.message : t('errors.unknown'));

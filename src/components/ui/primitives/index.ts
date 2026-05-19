@@ -27,3 +27,5 @@ export type { SkeletonBoxProps } from './skeleton-box';
 
 export { SkeletonList } from './skeleton-list';
 export type { SkeletonListProps } from './skeleton-list';
+
+export * from './skeletons';
