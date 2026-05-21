@@ -10,12 +10,8 @@ import { Category } from '@/lib/types';
 import { CategoryIcon, getSemanticColor } from '@/lib/icons';
 import { useDebouncedValue } from '@/hooks/use-debounced-value';
 import { useCategoryUsageStore } from '@/stores/category-usage-store';
-import {
-  formStyles,
-  getCategorySelectItemStyle,
-  getCategorySelectWidthStyle,
-} from './theme/form-styles';
-import { stitchTransactionFormModal } from '@/styles/home-design-foundation';
+import { getCategorySelectItemStyle, getCategorySelectWidthStyle } from './theme/form-styles';
+import { formModalStyles as s } from './form-modal-styles';
 
 export interface CategorySelectProps {
   value: string;
@@ -153,18 +149,15 @@ export const CategorySelect = React.memo<CategorySelectProps>(
 
       return (
         <div
-          className={cn(
-            formStyles.categorySelect.itemRow,
-            isSelected && formStyles.categorySelect.itemSelected
-          )}
+          className={cn(s.categoryDropdown.itemRow, isSelected && s.categoryDropdown.itemSelected)}
           style={getCategorySelectItemStyle(color)}
         >
           <CategoryIcon
             categoryKey={category.key}
             size={18}
-            className={formStyles.categorySelect.itemIcon}
+            className={s.categoryDropdown.itemIcon}
           />
-          <span className={formStyles.categorySelect.itemLabel}>{category.label}</span>
+          <span className={s.categoryDropdown.itemLabel}>{category.label}</span>
         </div>
       );
     };
@@ -179,39 +172,35 @@ export const CategorySelect = React.memo<CategorySelectProps>(
       >
         {/* Trigger */}
         <SelectPrimitive.Trigger
-          className={cn(stitchTransactionFormModal.selectorTrigger, className)}
+          className={cn(s.selectorTrigger, className)}
           aria-label={resolvedPlaceholder}
         >
           <div className="flex min-w-0 flex-1 items-center gap-3">
-            <div className={stitchTransactionFormModal.selectorIconWrap}>
+            <div className={s.selectorIconWrap}>
               {selectedCategory ? (
                 <CategoryIcon categoryKey={selectedCategory.key} size={22} className="shrink-0" />
               ) : (
-                <LayoutGrid className="h-5 w-5 text-[#b8c5ff]/80" aria-hidden />
+                <LayoutGrid className={s.selectorIcon} aria-hidden />
               )}
             </div>
             <div className="min-w-0 flex-1">
-              {captionLabel ? (
-                <p className={stitchTransactionFormModal.selectorLabel}>{captionLabel}</p>
-              ) : null}
-              <p
-                className={
-                  selectedCategory
-                    ? stitchTransactionFormModal.selectorValue
-                    : stitchTransactionFormModal.selectorValueMuted
-                }
-              >
+              {captionLabel ? <p className={s.selectorLabel}>{captionLabel}</p> : null}
+              <p className={selectedCategory ? s.selectorValue : s.selectorValueMuted}>
                 {selectedCategory ? selectedCategory.label : resolvedPlaceholder}
               </p>
             </div>
           </div>
-          <ChevronRight className={stitchTransactionFormModal.selectorChevron} aria-hidden />
+          <ChevronRight className={s.selectorChevron} aria-hidden />
         </SelectPrimitive.Trigger>
 
         {/* Content */}
         <SelectPrimitive.Portal>
           <SelectPrimitive.Content
-            className={cn(formStyles.categorySelect.content, formStyles.categorySelect.contentAnim)}
+            className={cn(
+              'modal-chrome',
+              s.categoryDropdown.content,
+              s.categoryDropdown.contentAnim
+            )}
             style={getCategorySelectWidthStyle(optimalWidth)}
             position="popper"
             side="top"
@@ -221,9 +210,9 @@ export const CategorySelect = React.memo<CategorySelectProps>(
             collisionPadding={8}
           >
             {/* Search Input - Outside viewport for sticky behavior */}
-            <div className={formStyles.categorySelect.searchWrap}>
-              <div className={formStyles.categorySelect.searchFieldWrap}>
-                <Search className={formStyles.categorySelect.searchIcon} />
+            <div className={s.categoryDropdown.searchWrap}>
+              <div className={s.categoryDropdown.searchFieldWrap}>
+                <Search className={s.categoryDropdown.searchIcon} />
                 <input
                   type="text"
                   placeholder={t('searchPlaceholder')}
@@ -231,13 +220,13 @@ export const CategorySelect = React.memo<CategorySelectProps>(
                   onChange={(e) => setSearchValue(e.target.value)}
                   onKeyDown={(e) => e.stopPropagation()}
                   onClick={(e) => e.stopPropagation()}
-                  className={formStyles.categorySelect.searchInput}
+                  className={s.categorySearchInput}
                 />
               </div>
             </div>
 
             {/* Scrollable Viewport */}
-            <SelectPrimitive.Viewport className={formStyles.categorySelect.viewport}>
+            <SelectPrimitive.Viewport className={s.categoryDropdown.viewport}>
               {/* Recent Categories Section */}
               <AnimatePresence>
                 {!debouncedSearch && recentCategories.length > 0 && (
@@ -245,24 +234,24 @@ export const CategorySelect = React.memo<CategorySelectProps>(
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}
-                    className={formStyles.categorySelect.recentWrap}
+                    className={s.categoryDropdown.recentWrap}
                   >
-                    <div className={formStyles.categorySelect.recentHeader}>
-                      <Clock className={formStyles.categorySelect.recentIcon} />
-                      <span className={formStyles.categorySelect.recentLabel}>{t('recent')}</span>
+                    <div className={s.categoryDropdown.recentHeader}>
+                      <Clock className={s.categoryDropdown.recentIcon} />
+                      <span className={s.categoryDropdown.recentLabel}>{t('recent')}</span>
                     </div>
-                    <div className={formStyles.categorySelect.recentList}>
+                    <div className={s.categoryDropdown.recentList}>
                       {recentCategories.map((category) => (
                         <button
                           key={`recent-${category.key}`}
                           onClick={() => handleValueChange(category.key)}
-                          className={formStyles.categorySelect.recentItem}
+                          className={s.categoryDropdown.recentItem}
                         >
                           {renderCategoryItem(category, false)}
                         </button>
                       ))}
                     </div>
-                    <div className={formStyles.categorySelect.divider} />
+                    <div className={s.categoryDropdown.divider} />
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -270,21 +259,21 @@ export const CategorySelect = React.memo<CategorySelectProps>(
               {/* All Categories Section */}
               <div>
                 {!debouncedSearch && (
-                  <div className={formStyles.categorySelect.allHeader}>
-                    <TrendingUp className={formStyles.categorySelect.allIcon} />
-                    <span className={formStyles.categorySelect.allLabel}>{t('allCategories')}</span>
+                  <div className={s.categoryDropdown.allHeader}>
+                    <TrendingUp className={s.categoryDropdown.allIcon} />
+                    <span className={s.categoryDropdown.allLabel}>{t('allCategories')}</span>
                   </div>
                 )}
 
                 {filteredCategories.length === 0 ? (
-                  <div className={formStyles.categorySelect.empty}>{t('empty')}</div>
+                  <div className={s.categoryDropdown.empty}>{t('empty')}</div>
                 ) : (
-                  <div className={formStyles.categorySelect.list}>
+                  <div className={s.categoryDropdown.list}>
                     {filteredCategories.map((category) => (
                       <SelectPrimitive.Item
                         key={`all-${category.key}`}
                         value={category.key}
-                        className={formStyles.categorySelect.item}
+                        className={s.categoryDropdown.item}
                       >
                         <SelectPrimitive.ItemText>
                           {renderCategoryItem(category, category.key === value)}

@@ -6,11 +6,11 @@ import { useTranslations } from 'next-intl';
 import { Loader2, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { EntityFormModal } from '@/components/form';
+import { ModalTextField } from '@/components/form/modal-fields';
 import { toast } from '@/hooks/use-toast';
 import { sendGroupInvitationAction } from '@/features/settings';
 import { settingsStyles } from '@/features/settings/theme';
-import { FormField } from '@/components/form';
-import { Input } from '@/components/ui';
+import { formModalStyles as s } from '@/components/form/form-modal-styles';
 
 const createInviteMemberSchema = (t: ReturnType<typeof useTranslations>) =>
   z.object({
@@ -58,7 +58,6 @@ export function InviteMemberModal({
       defaultValues={defaultValues}
       resetValues={defaultValues}
       repositionInputs={false}
-      formClassName={settingsStyles.modals.form}
       footer={(form) => (
         <>
           <Button
@@ -82,7 +81,7 @@ export function InviteMemberModal({
               </>
             ) : (
               <>
-                <Mail className={settingsStyles.modals.iconSmall} />
+                <Mail className="h-4 w-4 shrink-0" aria-hidden />
                 {t('sendButton')}
               </>
             )}
@@ -113,26 +112,19 @@ export function InviteMemberModal({
     >
       {(form) => (
         <>
-          <FormField
+          <ModalTextField
+            control={form.control}
+            name="email"
             label={t('emailLabel')}
-            htmlFor="email"
-            error={form.formState.errors.email?.message}
-          >
-            <Input
-              id="email"
-              type="email"
-              placeholder={t('emailPlaceholder')}
-              disabled={form.formState.isSubmitting}
-              autoComplete="email"
-              className={settingsStyles.modals.field.input}
-              {...form.register('email')}
-            />
-          </FormField>
+            type="email"
+            placeholder={t('emailPlaceholder')}
+            autoComplete="email"
+            disabled={form.formState.isSubmitting}
+          />
 
-          <div className={settingsStyles.modals.invite.infoBox}>
-            <p className={settingsStyles.modals.invite.infoText}>
-              <strong className={settingsStyles.modals.invite.infoStrong}>{t('noteLabel')}</strong>{' '}
-              {t('noteText')}
+          <div className={s.noteShell}>
+            <p className={s.noteLabel}>
+              <strong>{t('noteLabel')}</strong> {t('noteText')}
             </p>
           </div>
         </>

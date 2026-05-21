@@ -8,9 +8,11 @@ import { useState, useMemo } from 'react';
 import { format, isValid, isSameDay, startOfDay } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { useTranslations } from 'next-intl';
-import { Calendar as CalendarIcon, ChevronRight } from 'lucide-react';
+import { Calendar as CalendarIcon } from 'lucide-react';
 import { MobileCalendarDrawer } from '../mobile-calendar-drawer';
-import { stitchTransactionFormModal } from '@/styles/home-design-foundation';
+import { ModalSelectorTrigger } from '@/components/form/modal-fields/modal-selector-trigger';
+import { ModalFieldError } from '@/components/form/modal-fields/modal-field-error';
+import { formModalStyles as s } from '@/components/form/form-modal-styles';
 
 export interface DateFieldProps {
   value: string;
@@ -35,47 +37,22 @@ export function DateField({ value, onChange, error, label }: Readonly<DateFieldP
       : format(d, 'dd/MM/yyyy', { locale: it });
   }, [value, tDrawer]);
 
-  const triggerInner = (
-    <>
-      <div className="flex min-w-0 flex-1 items-center gap-3">
-        <div className={stitchTransactionFormModal.selectorIconWrap}>
-          <CalendarIcon className="h-5 w-5 text-[#b8c5ff]" aria-hidden />
-        </div>
-        <div className="min-w-0 flex-1 text-left">
-          <p className={stitchTransactionFormModal.selectorLabel}>{resolvedLabel}</p>
-          <span
-            className={
-              displayText
-                ? stitchTransactionFormModal.selectorValue
-                : stitchTransactionFormModal.selectorValueMuted
-            }
-          >
-            {displayText || t('placeholder')}
-          </span>
-        </div>
-      </div>
-      <ChevronRight className={stitchTransactionFormModal.selectorChevron} aria-hidden />
-    </>
-  );
-
   return (
     <div className="space-y-1">
-      <button
-        type="button"
+      <ModalSelectorTrigger
+        label={resolvedLabel}
+        value={displayText || t('placeholder')}
+        valueMuted={!displayText}
+        icon={<CalendarIcon className={s.selectorIcon} aria-hidden />}
         onClick={() => setIsDrawerOpen(true)}
-        data-state={isDrawerOpen ? 'open' : 'closed'}
-        aria-expanded={isDrawerOpen}
-        className={stitchTransactionFormModal.selectorTrigger}
-      >
-        {triggerInner}
-      </button>
+      />
       <MobileCalendarDrawer
         value={value}
         onChange={onChange}
         isOpen={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}
       />
-      {error ? <p className={stitchTransactionFormModal.fieldError}>{error}</p> : null}
+      {error ? <ModalFieldError message={error} /> : null}
     </div>
   );
 }

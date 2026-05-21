@@ -12,7 +12,10 @@ export {
 
 export { DeleteAccountConfirmContent } from './delete-account-confirm-content';
 export { EditProfileModal } from './edit-profile-modal';
-export { usePreferenceOptions, type PreferenceOption } from './preference-select-modal';
+export {
+  usePreferenceOptions,
+  type PreferenceOption,
+} from '@/features/settings/utils/preference-options';
 export {
   CurrencyPreferenceModal,
   LanguagePreferenceModal,

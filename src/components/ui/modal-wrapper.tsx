@@ -65,6 +65,7 @@ export function ModalWrapper({
     <Drawer open={isOpen} onOpenChange={handleOpenChange} repositionInputs={repositionInputs}>
       <DrawerContent
         className={cn(
+          'modal-chrome',
           modalWrapperStyles.drawerContent,
           modalWrapperStyles.drawerSurface,
           'mt-24 min-h-0',

@@ -1,87 +1,73 @@
 export const iconPickerStyles = {
-  // Container styles
-  container: 'flex flex-col h-full min-h-0',
+  container: 'flex h-full min-h-0 flex-col',
 
-  // Header styles
   header: {
-    base: 'border-b border-primary/20 bg-card/50 backdrop-blur-sm shrink-0 space-y-2',
+    base: 'shrink-0 space-y-2 border-b border-modal-border/30 bg-modal-elevated/50 backdrop-blur-sm',
     mobile: 'p-2',
     desktop: 'p-3',
   },
 
-  // Search input wrapper
   searchWrapper: 'relative',
-  searchInput: 'h-10 bg-card pr-8',
+  searchInput: 'h-10 bg-transparent pr-8',
   searchClearButton:
-    'absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-md hover:bg-primary/10 transition-colors',
-  searchClearIcon: 'h-4 w-4 text-primary/60',
+    'absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 transition-colors hover:bg-modal-elevated-hover',
+  searchClearIcon: 'h-4 w-4 text-modal-fg-muted',
 
-  // Recent icons container
   recentContainer:
-    'flex-1 flex gap-1 items-center px-2 text-xs text-primary/80 bg-primary/10 rounded-md overflow-hidden',
+    'flex flex-1 items-center gap-1 overflow-hidden rounded-md bg-modal-ring/15 px-2 text-xs text-modal-fg-muted',
   recentIcon: 'h-3.5 w-3.5 shrink-0',
   recentLabel: 'shrink-0',
   recentIconsWrapper: 'flex gap-1 overflow-x-auto',
-  recentIconButton: 'p-0.5 rounded hover:bg-primary/10 transition-colors shrink-0',
-  recentIconSize: 'h-3.5 w-3.5 text-primary',
+  recentIconButton: 'shrink-0 rounded p-0.5 transition-colors hover:bg-modal-elevated-hover',
+  recentIconSize: 'h-3.5 w-3.5 text-modal-fg',
 
-  // Category tabs
-  tabsContainer: 'border-b border-primary/20 bg-card/30 backdrop-blur-sm overflow-x-auto',
+  tabsContainer:
+    'overflow-x-auto border-b border-modal-border/30 bg-modal-elevated/35 backdrop-blur-sm',
   tabsList: 'inline-flex h-10 w-full justify-start rounded-none bg-transparent p-0',
   tabsTrigger:
-    'relative rounded-none border-b-2 border-transparent data-[state=active]:border-primary/60 data-[state=active]:font-semibold data-[state=active]:text-primary data-[state=active]:bg-transparent px-3 text-xs whitespace-nowrap',
+    'relative whitespace-nowrap rounded-none border-b-2 border-transparent px-3 text-xs data-[state=active]:border-modal-ring/55 data-[state=active]:bg-transparent data-[state=active]:font-semibold data-[state=active]:text-modal-fg',
 
-  // Results count
   resultsCount: {
-    base: 'py-1.5 text-xs text-primary/80 bg-primary/10 shrink-0',
+    base: 'shrink-0 bg-modal-ring/12 py-1.5 text-xs text-modal-fg-muted',
     mobile: 'px-2',
     desktop: 'px-3',
   },
 
-  // Virtualized grid container
-  gridContainer: 'overflow-y-auto overflow-x-hidden flex-1 min-h-0',
+  gridContainer: 'min-h-0 flex-1 overflow-y-auto overflow-x-hidden',
 
-  // Empty state
-  emptyState: 'flex flex-col items-center justify-center h-full py-8 text-center',
-  emptyStateText: 'text-sm text-primary/70 mb-2',
+  emptyState: 'flex h-full flex-col items-center justify-center py-8 text-center',
+  emptyStateText: 'mb-2 text-sm text-modal-fg-muted',
 
-  // Icon grid
   iconGrid: {
     base: 'grid py-1',
-    mobile: 'px-3 gap-3',
-    desktop: 'px-3 gap-2',
+    mobile: 'gap-3 px-3',
+    desktop: 'gap-2 px-3',
   },
 
-  // Icon item wrapper
-  iconItemWrapper: 'relative group flex items-center justify-center',
+  iconItemWrapper: 'group relative flex items-center justify-center',
 
-  // Icon button
   iconButton: {
-    base: 'flex items-center justify-center rounded-lg transition-all duration-200 relative hover:bg-primary/10 hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
-    selected: 'bg-primary text-primary-foreground shadow-md scale-105',
-    unselected: 'text-primary hover:text-primary',
+    base: 'relative flex items-center justify-center rounded-lg transition-all duration-200 hover:scale-105 hover:bg-modal-elevated-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-modal-ring/45 focus-visible:ring-offset-2 focus-visible:ring-offset-modal-surface',
+    selected: 'scale-105 bg-modal-ring text-modal-fg shadow-md',
+    unselected: 'text-modal-fg hover:text-modal-fg',
   },
 
-  // Icon size
   iconSize: {
     mobile: 'h-6 w-6',
     desktop: 'h-5 w-5',
   },
 
-  // Trigger button
   triggerButton:
-    'w-full h-10 justify-start text-left font-normal rounded-lg border-primary/20 bg-card hover:bg-card',
-  triggerIcon: 'mr-2 h-4 w-4 text-primary',
-  triggerText: 'text-primary/60',
+    'h-10 w-full justify-start rounded-lg border border-modal-border/35 bg-modal-elevated/90 text-left font-normal text-modal-fg hover:bg-modal-elevated-hover',
+  triggerIcon: 'mr-2 h-4 w-4 text-modal-ring',
+  triggerText: 'text-modal-fg-muted',
 
-  // Desktop popover (responsive: avoid horizontal scroll on narrow viewports)
-  popoverContent: 'w-[calc(100vw-40px)] max-w-[450px] p-0 bg-card flex flex-col',
+  popoverContent: 'flex w-[calc(100vw-40px)] max-w-[450px] flex-col bg-modal-surface p-0',
 
-  // Mobile dialog
   dialogOverlay:
     'fixed inset-0 z-50 bg-[oklch(12%_0.01_250)]/60 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
   dialogContent:
-    'fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-card border border-border rounded-2xl shadow-2xl flex flex-col data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 duration-300 w-[calc(100vw-40px)] max-w-[500px]',
-  dialogHandle: 'mx-auto mt-3 mb-2 h-1.5 w-16 rounded-full bg-primary/20 shrink-0',
-  dialogWrapper: 'flex flex-col flex-1 min-h-0',
+    'modal-chrome fixed top-1/2 left-1/2 z-50 flex w-[calc(100vw-40px)] max-w-[500px] -translate-x-1/2 -translate-y-1/2 flex-col rounded-2xl border border-modal-border/40 bg-modal-surface shadow-2xl duration-300 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95',
+  dialogHandle: 'mx-auto mt-3 mb-2 h-1.5 w-16 shrink-0 rounded-full bg-modal-handle/35',
+  dialogWrapper: 'flex min-h-0 flex-1 flex-col',
 } as const;

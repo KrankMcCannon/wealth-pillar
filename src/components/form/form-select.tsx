@@ -6,8 +6,7 @@ import { cn } from '@/lib';
 import { Layers, Search, ChevronRight } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { Select, SelectContent, SelectItem, SelectValue } from '../ui';
-import { formStyles } from './theme/form-styles';
-import { stitchTransactionFormModal } from '@/styles/home-design-foundation';
+import { formModalStyles as s } from './form-modal-styles';
 
 export interface SelectOption {
   value: string;
@@ -73,24 +72,15 @@ export function FormSelect({
       <SelectPrimitive.Trigger
         type="button"
         disabled={disabled}
-        className={cn(stitchTransactionFormModal.selectorTrigger, className)}
+        className={cn(s.selectorTrigger, className)}
       >
         <div className="flex min-w-0 flex-1 items-center gap-3">
-          <div className={stitchTransactionFormModal.selectorIconWrap}>
-            {leadingIcon ?? <Layers className="h-5 w-5 text-[#b8c5ff]/80" aria-hidden />}
+          <div className={s.selectorIconWrap}>
+            {leadingIcon ?? <Layers className={s.selectorIcon} aria-hidden />}
           </div>
           <div className="min-w-0 flex-1 text-left">
-            {captionLabel ? (
-              <p className={stitchTransactionFormModal.selectorLabel}>{captionLabel}</p>
-            ) : null}
-            <span
-              aria-hidden
-              className={
-                selectedOption
-                  ? stitchTransactionFormModal.selectorValue
-                  : stitchTransactionFormModal.selectorValueMuted
-              }
-            >
+            {captionLabel ? <p className={s.selectorLabel}>{captionLabel}</p> : null}
+            <span aria-hidden className={selectedOption ? s.selectorValue : s.selectorValueMuted}>
               {selectedOption?.label ?? resolvedPlaceholder}
             </span>
             <span className="sr-only">
@@ -98,12 +88,12 @@ export function FormSelect({
             </span>
           </div>
         </div>
-        <ChevronRight className={stitchTransactionFormModal.selectorChevron} aria-hidden />
+        <ChevronRight className={s.selectorChevron} aria-hidden />
       </SelectPrimitive.Trigger>
-      <SelectContent className={formStyles.select.content}>
-        <div className={formStyles.select.searchWrap}>
-          <div className={formStyles.select.searchFieldWrap}>
-            <Search className={formStyles.select.searchIcon} />
+      <SelectContent className={cn('modal-chrome', s.select.content)}>
+        <div className={s.select.searchWrap}>
+          <div className={s.select.searchFieldWrap}>
+            <Search className={s.select.searchIcon} />
             <input
               type="text"
               placeholder={t('searchPlaceholder')}
@@ -114,22 +104,23 @@ export function FormSelect({
               }}
               onClick={(e) => e.stopPropagation()}
               onMouseDown={(e) => e.stopPropagation()}
-              className={formStyles.select.searchInput}
+              className={s.select.searchInput}
             />
           </div>
         </div>
 
-        <div className={formStyles.select.optionsWrap}>
+        <div className={s.select.optionsWrap}>
           {filteredOptions.length === 0 ? (
-            <div className={formStyles.select.empty}>{t('empty')}</div>
+            <div className={s.select.empty}>{t('empty')}</div>
           ) : (
             filteredOptions.map((option) => (
               <SelectItem
                 key={option.value}
                 value={option.value}
                 disabled={option.disabled ?? false}
+                className={s.select.item}
               >
-                <div className={formStyles.select.optionRow}>
+                <div className={s.select.optionRow}>
                   {renderIcon?.(option)}
                   {option.icon && <span>{option.icon}</span>}
                   <span>{option.label}</span>

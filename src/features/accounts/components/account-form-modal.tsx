@@ -6,7 +6,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { Account } from '@/lib/types';
 import { getTempId } from '@/lib/utils/temp-id';
 import { createAccountAction, updateAccountAction, deleteAccountAction } from '@/features/accounts';
-import { EntityFormModal, EntityFormFooter } from '@/components/form';
+import { EntityFormModal, EntityFormFooter, ModalRootError } from '@/components/form';
 import {
   usePermissions,
   useRequiredCurrentUser,
@@ -273,10 +273,8 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
     >
       {(form) => (
         <>
-          {form.formState.errors.root ? (
-            <div className={s.errorBanner} role="alert">
-              {form.formState.errors.root.message}
-            </div>
+          {form.formState.errors.root?.message ? (
+            <ModalRootError message={form.formState.errors.root.message} />
           ) : null}
           <AccountFormFields
             form={form}

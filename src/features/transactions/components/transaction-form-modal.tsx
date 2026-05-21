@@ -5,7 +5,7 @@ import { useWatch, type UseFormReturn, type UseFormSetError } from 'react-hook-f
 import { z } from 'zod';
 import { useTranslations } from 'next-intl';
 import { useTransactionSubmit } from '../hooks/use-transaction-submit';
-import { EntityFormModal, EntityFormFooter } from '@/components/form';
+import { EntityFormModal, EntityFormFooter, ModalRootError } from '@/components/form';
 import {
   usePermissions,
   useRequiredCurrentUser,
@@ -352,10 +352,8 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
 
         return (
           <>
-            {form.formState.errors.root ? (
-              <div className={s.errorBanner} role="alert">
-                {form.formState.errors.root.message}
-              </div>
+            {form.formState.errors.root?.message ? (
+              <ModalRootError message={form.formState.errors.root.message} />
             ) : null}
             <TransactionFormModalBody
               form={form}

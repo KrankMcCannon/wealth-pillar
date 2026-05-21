@@ -1,42 +1,41 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Check, Search, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui';
 import { getBudgetCategoryColorStyle } from '@/styles/system';
-import { stitchBudgetFormModal } from '@/styles/home-design-foundation';
+import { formModalStyles as s } from '@/components/form/form-modal-styles';
+import type { ModalSelectOption } from './modal-select-field';
 
-export type BudgetCategoryOption = {
-  value: string;
-  label: string;
-  color?: string | null;
-};
-
-export interface BudgetCategoryPickerProps {
-  options: BudgetCategoryOption[];
-  selectedIds: string[];
-  searchValue: string;
-  onSearchChange: (value: string) => void;
-  onToggleCategory: (categoryId: string) => void;
-  onSelectAll: () => void;
-  onClearSelection: () => void;
+export interface ModalMultiSelectChipsProps {
+  options: ModalSelectOption[];
+  value: string[];
+  onChange: (value: string[]) => void;
   disabled?: boolean;
+  searchPlaceholder?: string;
+  selectedGroupLabel?: string;
+  allGroupLabel?: string;
+  selectAllLabel?: string;
+  clearLabel?: string;
+  emptyLabel?: string;
 }
 
-export function BudgetCategoryPicker({
+export function ModalMultiSelectChips({
   options,
-  selectedIds,
-  searchValue,
-  onSearchChange,
-  onToggleCategory,
-  onSelectAll,
-  onClearSelection,
+  value,
+  onChange,
   disabled,
-}: Readonly<BudgetCategoryPickerProps>) {
+  searchPlaceholder,
+  selectedGroupLabel,
+  allGroupLabel,
+  selectAllLabel,
+  clearLabel,
+  emptyLabel,
+}: Readonly<ModalMultiSelectChipsProps>) {
   const t = useTranslations('Budgets.FormModal');
-  const s = stitchBudgetFormModal;
+  const [searchValue, setSearchValue] = useState('');
 
   const filteredOptions = useMemo(() => {
     const q = searchValue.trim().toLowerCase();
@@ -44,75 +43,77 @@ export function BudgetCategoryPicker({
     return options.filter((o) => o.label.toLowerCase().includes(q));
   }, [options, searchValue]);
 
-  const selectedSet = useMemo(() => new Set(selectedIds), [selectedIds]);
+  const selectedSet = useMemo(() => new Set(value), [value]);
 
   const selectedChips = useMemo(() => {
-    return selectedIds
+    return value
       .map((id) => options.find((o) => o.value === id))
-      .filter((o): o is BudgetCategoryOption => Boolean(o));
-  }, [selectedIds, options]);
+      .filter((o): o is ModalSelectOption => Boolean(o));
+  }, [value, options]);
 
-  const total = options.length;
-  const selectedCount = selectedIds.length;
+  const toggle = (id: string) => {
+    onChange(
+      selectedSet.has(id) ? value.filter((v) => v !== id) : Array.from(new Set([...value, id]))
+    );
+  };
+
+  const onSelectAll = () => onChange(options.map((o) => o.value));
+  const onClear = () => onChange([]);
 
   return (
-    <div className={cn(s.categoryShell, 'space-y-3')} data-testid="budget-category-picker">
+    <div className={cn(s.categoryShell, 'space-y-3')} data-testid="modal-multi-select-chips">
       <div className={s.categoryToolbar}>
         <div className={s.categorySearchWrap}>
           <Search className={s.categorySearchIcon} aria-hidden />
           <Input
-            id="budget-category-search"
             value={searchValue}
-            onChange={(e) => onSearchChange(e.target.value)}
-            placeholder={t('fields.categories.searchPlaceholder')}
+            onChange={(e) => setSearchValue(e.target.value)}
+            placeholder={searchPlaceholder ?? t('fields.categories.searchPlaceholder')}
             disabled={disabled}
             className={s.categorySearchInput}
             autoComplete="off"
-            aria-label={t('fields.categories.searchPlaceholder')}
           />
         </div>
-        <div
-          className={s.categoryQuickActions}
-          role="group"
-          aria-label={t('fields.categories.quickActionsLabel')}
-        >
+        <div className={s.categoryQuickActions} role="group">
           <button
             type="button"
             className={s.categoryQuickBtn}
             onClick={onSelectAll}
-            disabled={disabled || !total}
+            disabled={disabled || !options.length}
           >
-            {t('fields.categories.selectAll')}
+            {selectAllLabel ?? t('fields.categories.selectAll')}
           </button>
           <button
             type="button"
             className={s.categoryQuickBtn}
-            onClick={onClearSelection}
-            disabled={disabled || !selectedCount}
+            onClick={onClear}
+            disabled={disabled || !value.length}
           >
-            {t('fields.categories.clear')}
+            {clearLabel ?? t('fields.categories.clear')}
           </button>
         </div>
       </div>
 
       {selectedChips.length > 0 ? (
-        <section className={s.selectedSection} aria-labelledby="budget-selected-categories-heading">
-          <h3 id="budget-selected-categories-heading" className={s.selectedSectionTitle}>
-            {t('fields.categories.selectedGroupLabel')}
+        <section className={s.selectedSection}>
+          <h3 className={s.selectedSectionTitle}>
+            {selectedGroupLabel ?? t('fields.categories.selectedGroupLabel')}
           </h3>
           <ul className={s.selectedPillList}>
             {selectedChips.map((opt) => (
               <li key={opt.value} className={s.selectedPill}>
-                <span
-                  className={s.categoryColorDot}
-                  style={getBudgetCategoryColorStyle(opt.color ?? undefined)}
-                  aria-hidden
-                />
+                {'color' in opt && typeof opt.color === 'string' ? (
+                  <span
+                    className={s.categoryColorDot}
+                    style={getBudgetCategoryColorStyle(opt.color)}
+                    aria-hidden
+                  />
+                ) : null}
                 <span className={s.selectedPillLabel}>{opt.label}</span>
                 <button
                   type="button"
                   className={s.selectedPillRemove}
-                  onClick={() => onToggleCategory(opt.value)}
+                  onClick={() => toggle(opt.value)}
                   disabled={disabled}
                   aria-label={t('fields.categories.ariaRemoveChip', { label: opt.label })}
                 >
@@ -127,32 +128,31 @@ export function BudgetCategoryPicker({
       <div
         className={s.categoryChipGrid}
         role="group"
-        aria-label={t('fields.categories.allGroupLabel')}
+        aria-label={allGroupLabel ?? t('fields.categories.allGroupLabel')}
       >
         {filteredOptions.length === 0 ? (
-          <p className={s.categoryEmpty}>{t('fields.categories.empty')}</p>
+          <p className={s.categoryEmpty}>{emptyLabel ?? t('fields.categories.empty')}</p>
         ) : (
           filteredOptions.map((option) => {
             const selected = selectedSet.has(option.value);
+            const color =
+              'color' in option && typeof option.color === 'string' ? option.color : undefined;
             return (
               <button
                 key={option.value}
                 type="button"
                 disabled={disabled}
                 aria-pressed={selected}
-                aria-label={
-                  selected
-                    ? t('fields.categories.ariaToggleRemove', { label: option.label })
-                    : t('fields.categories.ariaToggleAdd', { label: option.label })
-                }
                 className={cn(s.categoryChip, selected && s.categoryChipSelected)}
-                onClick={() => onToggleCategory(option.value)}
+                onClick={() => toggle(option.value)}
               >
-                <span
-                  className={s.categoryColorDot}
-                  style={getBudgetCategoryColorStyle(option.color ?? undefined)}
-                  aria-hidden
-                />
+                {color ? (
+                  <span
+                    className={s.categoryColorDot}
+                    style={getBudgetCategoryColorStyle(color)}
+                    aria-hidden
+                  />
+                ) : null}
                 <span className={s.categoryChipLabel}>{option.label}</span>
                 {selected ? (
                   <Check className={s.categoryChipCheck} strokeWidth={2.5} aria-hidden />

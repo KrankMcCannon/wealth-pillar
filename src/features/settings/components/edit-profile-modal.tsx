@@ -6,11 +6,10 @@ import { useTranslations } from 'next-intl';
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { EntityFormModal } from '@/components/form';
+import { ModalTextField } from '@/components/form/modal-fields';
 import { toast } from '@/hooks/use-toast';
 import { updateUserProfileAction } from '@/features/settings';
 import { settingsStyles } from '@/features/settings/theme';
-import { FormField } from '@/components/form';
-import { Input } from '@/components/ui';
 import { useRouter } from '@/i18n/routing';
 
 const createEditProfileSchema = (t: ReturnType<typeof useTranslations>) =>
@@ -62,7 +61,6 @@ export function EditProfileModal({
       defaultValues={defaultValues}
       resetValues={defaultValues}
       repositionInputs={false}
-      formClassName={settingsStyles.modals.form}
       footer={(form) => (
         <>
           <Button
@@ -131,37 +129,23 @@ export function EditProfileModal({
     >
       {(form) => (
         <>
-          <FormField
+          <ModalTextField
+            control={form.control}
+            name="name"
             label={t('nameLabel')}
-            htmlFor="name"
-            error={form.formState.errors.name?.message}
-          >
-            <Input
-              id="name"
-              type="text"
-              placeholder={t('namePlaceholder')}
-              disabled={form.formState.isSubmitting}
-              autoComplete="name"
-              className={settingsStyles.modals.field.input}
-              {...form.register('name')}
-            />
-          </FormField>
-
-          <FormField
+            placeholder={t('namePlaceholder')}
+            autoComplete="name"
+            disabled={form.formState.isSubmitting}
+          />
+          <ModalTextField
+            control={form.control}
+            name="email"
             label={t('emailLabel')}
-            htmlFor="email"
-            error={form.formState.errors.email?.message}
-          >
-            <Input
-              id="email"
-              type="email"
-              placeholder={t('emailPlaceholder')}
-              disabled={form.formState.isSubmitting}
-              autoComplete="email"
-              className={settingsStyles.modals.field.input}
-              {...form.register('email')}
-            />
-          </FormField>
+            type="email"
+            placeholder={t('emailPlaceholder')}
+            autoComplete="email"
+            disabled={form.formState.isSubmitting}
+          />
         </>
       )}
     </EntityFormModal>

@@ -9,7 +9,6 @@ export { RecurrencePicker, type RecurrencePickerProps } from './recurrence-picke
 export {
   RecurringDescriptionField,
   RecurringFormFields,
-  type RecurringDescriptionFieldProps,
   type RecurringFormFieldsProps,
 } from './recurring-form-fields';
 export { RecurringPreview, type RecurringPreviewProps } from './recurring-preview';

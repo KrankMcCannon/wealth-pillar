@@ -13,7 +13,7 @@ import type { UserPreferencesUpdate } from '@/lib/types';
 import {
   usePreferenceOptions,
   type PreferenceOption,
-} from '@/features/settings/components/preference-select-modal';
+} from '@/features/settings/utils/preference-options';
 
 function usePreferenceModalSave(preferenceKey: keyof UserPreferencesUpdate) {
   const t = useTranslations('SettingsModals.PreferenceSelect');

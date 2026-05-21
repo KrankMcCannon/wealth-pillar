@@ -6,7 +6,7 @@ import { useTranslations } from 'next-intl';
 import { Clock, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from './button';
-import { Input } from './input';
+import { ModalSearchInput } from '@/components/form/modal-fields/modal-search-input';
 import { Tabs, TabsList, TabsTrigger } from './tabs';
 import { searchIcons } from '@/lib/utils/icon-search';
 import type { IconCategory } from '@/features/categories';
@@ -106,11 +106,10 @@ export function IconPickerContent({
       >
         {/* Search Input */}
         <div className={styles.searchWrapper}>
-          <Input
+          <ModalSearchInput
             placeholder={t('searchPlaceholder')}
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className={styles.searchInput}
+            onChange={setSearchQuery}
             aria-label={t('searchAria')}
           />
           {searchQuery && (

@@ -51,7 +51,3 @@ export function EntityFormFooter({
     </div>
   );
 }
-
-/** @deprecated Use EntityFormFooter */
-export const EntityFormStitchFooter = EntityFormFooter;
-export type EntityFormStitchFooterProps = EntityFormFooterProps;

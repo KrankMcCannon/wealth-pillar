@@ -12,7 +12,8 @@ import type { User } from '@/lib/types';
 import { useTranslations } from 'next-intl';
 import { Checkbox } from '@/components/ui';
 import { cn } from '@/lib/utils';
-import { formStyles, getMultiUserAvatarStyle } from './theme/form-styles';
+import { getMultiUserAvatarStyle } from './theme/form-styles';
+import { formModalStyles as s } from './form-modal-styles';
 
 interface MultiUserSelectProps {
   /**
@@ -85,34 +86,31 @@ export function MultiUserSelect({
   };
 
   return (
-    <div className={cn(formStyles.multiUser.container, className)}>
+    <div className={cn(s.multiUser.container, className)}>
       {users.map((user) => (
         <label
           key={user.id}
-          className={cn(
-            formStyles.multiUser.row,
-            value.includes(user.id) && formStyles.multiUser.rowActive
-          )}
+          className={cn(s.multiUser.row, value.includes(user.id) && s.multiUser.rowActive)}
         >
           <Checkbox
             checked={value.includes(user.id)}
             onCheckedChange={() => handleToggle(user.id)}
           />
-          <div className={formStyles.multiUser.userRow}>
+          <div className={s.multiUser.userRow}>
             {/* User avatar */}
             <div
-              className={cn(formStyles.multiUser.avatar, user.theme_color && 'text-white')}
+              className={cn(s.multiUser.avatar, user.theme_color && 'text-white')}
               style={getMultiUserAvatarStyle(user.theme_color || undefined)}
             >
               {(user.name ?? '?').charAt(0).toUpperCase()}
             </div>
 
             {/* User name */}
-            <span className={formStyles.multiUser.name}>{user.name ?? ''}</span>
+            <span className={s.multiUser.name}>{user.name ?? ''}</span>
 
             {/* Current user indicator */}
             {user.id === currentUserId && (
-              <span className={formStyles.multiUser.current}>{t('currentUser')}</span>
+              <span className={s.multiUser.current}>{t('currentUser')}</span>
             )}
           </div>
         </label>

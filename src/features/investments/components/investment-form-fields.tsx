@@ -4,11 +4,9 @@ import type { UseFormReturn } from 'react-hook-form';
 import { useTranslations } from 'next-intl';
 import { Coins } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { FormField, FormSelect } from '@/components/form';
-import { DateField } from '@/components/ui/fields';
-import { Input } from '@/components/ui';
+import { ModalDateField, ModalSelectField, ModalTextField } from '@/components/form/modal-fields';
 import { ModalSection } from '@/components/ui/modal-wrapper';
-import { transactionStyles } from '@/styles/system';
+import { formModalStyles as s } from '@/components/form/form-modal-styles';
 
 export type InvestmentFormData = {
   name: string;
@@ -28,28 +26,21 @@ interface InvestmentFormFieldsProps {
 
 export function InvestmentFormFields({ form, loadError, onRetryLoad }: InvestmentFormFieldsProps) {
   const t = useTranslations('Investments.AddModal');
-  const {
-    register,
-    setValue,
-    watch,
-    formState: { errors },
-  } = form;
+  const { control } = form;
 
-  const watchedDate = watch('created_at');
-  const watchedCurrency = watch('currency');
   const currencyOptions = [
     { value: 'EUR', label: 'EUR' },
     { value: 'USD', label: 'USD' },
-  ];
+  ] as const;
 
   return (
     <>
       {loadError ? (
-        <div className={cn(transactionStyles.form.error, 'flex flex-col gap-3')}>
-          <p className={transactionStyles.form.errorText}>{loadError}</p>
+        <div className={cn(s.errorBanner, 'flex flex-col gap-3')}>
+          <p>{loadError}</p>
           <button
             type="button"
-            className="w-full min-h-11 rounded-md border px-3 text-sm sm:w-auto"
+            className="w-full min-h-11 rounded-md border border-modal-border px-3 text-sm text-modal-fg"
             onClick={onRetryLoad}
           >
             {t('retryLoad')}
@@ -58,71 +49,64 @@ export function InvestmentFormFields({ form, loadError, onRetryLoad }: Investmen
       ) : null}
 
       <ModalSection title={t('sections.identity')}>
-        <div className={transactionStyles.form.grid}>
-          <FormField label={t('fields.name')} required error={errors.name?.message}>
-            <Input {...register('name')} placeholder={t('placeholders.name')} />
-          </FormField>
-          <FormField
+        <div className="grid grid-cols-1 gap-4">
+          <ModalTextField
+            control={control}
+            name="name"
+            label={t('fields.name')}
+            placeholder={t('placeholders.name')}
+          />
+          <ModalTextField
+            control={control}
+            name="symbol"
             label={t('fields.symbol')}
-            required
-            error={errors.symbol?.message}
-            helperText={t('fields.symbolHelper')}
-          >
-            <Input {...register('symbol')} placeholder={t('placeholders.symbol')} />
-          </FormField>
+            placeholder={t('placeholders.symbol')}
+            hint={t('fields.symbolHelper')}
+          />
         </div>
       </ModalSection>
 
       <ModalSection title={t('sections.amounts')}>
-        <div className={transactionStyles.form.grid}>
-          <FormField label={t('fields.investedAmount')} required error={errors.amount?.message}>
-            <Input
-              {...register('amount')}
-              type="number"
-              step="0.01"
-              placeholder={t('placeholders.amount')}
-            />
-          </FormField>
-          <FormField label={t('fields.taxesPaid')} error={errors.tax_paid?.message}>
-            <Input
-              {...register('tax_paid')}
-              type="number"
-              step="0.01"
-              placeholder={t('placeholders.tax')}
-            />
-          </FormField>
-          <FormField label={t('fields.sharesAcquired')} required error={errors.shares?.message}>
-            <Input
-              {...register('shares')}
-              type="number"
-              step="0.000001"
-              placeholder={t('placeholders.shares')}
-            />
-          </FormField>
+        <div className="grid grid-cols-1 gap-4">
+          <ModalTextField
+            control={control}
+            name="amount"
+            label={t('fields.investedAmount')}
+            type="number"
+            placeholder={t('placeholders.amount')}
+          />
+          <ModalTextField
+            control={control}
+            name="tax_paid"
+            label={t('fields.taxesPaid')}
+            type="number"
+            placeholder={t('placeholders.tax')}
+          />
+          <ModalTextField
+            control={control}
+            name="shares"
+            label={t('fields.sharesAcquired')}
+            type="number"
+            placeholder={t('placeholders.shares')}
+          />
         </div>
       </ModalSection>
 
       <ModalSection title={t('sections.when')}>
-        <div className={transactionStyles.form.grid}>
-          <DateField
-            value={watchedDate}
-            onChange={(val) => setValue('created_at', val)}
-            error={errors.created_at?.message}
+        <div className="grid grid-cols-1 gap-4">
+          <ModalDateField
+            control={control}
+            name="created_at"
             label={t('fields.purchaseDate')}
             required
           />
-          <div className="space-y-1">
-            <FormSelect
-              value={watchedCurrency}
-              onValueChange={(val) => setValue('currency', val as 'EUR' | 'USD')}
-              options={currencyOptions}
-              captionLabel={t('fields.currency')}
-              leadingIcon={<Coins className="h-5 w-5 text-[#8fb0ff]" aria-hidden />}
-            />
-            {errors.currency?.message ? (
-              <p className="text-sm text-destructive">{errors.currency.message}</p>
-            ) : null}
-          </div>
+          <ModalSelectField
+            control={control}
+            name="currency"
+            label={t('fields.currency')}
+            options={[...currencyOptions]}
+            leadingIcon={<Coins className="h-5 w-5 text-[#8fb0ff]" aria-hidden />}
+          />
         </div>
       </ModalSection>
     </>

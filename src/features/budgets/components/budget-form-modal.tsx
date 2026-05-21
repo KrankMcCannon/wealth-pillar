@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { cn } from '@/lib/utils';
-import { useWatch, type UseFormReturn } from 'react-hook-form';
+import type { UseFormReturn } from 'react-hook-form';
 import { z } from 'zod';
 import { useLocale, useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
@@ -12,7 +12,7 @@ import {
   getBudgetByIdAction,
   updateBudgetAction,
 } from '@/features/budgets';
-import { EntityFormModal, EntityFormFooter } from '@/components/form';
+import { EntityFormModal, EntityFormFooter, ModalRootError } from '@/components/form';
 import {
   usePermissions,
   useRequiredCurrentUser,
@@ -48,32 +48,6 @@ function BudgetFormModalBody({
   userFieldHelperText?: string | undefined;
   isSubmitting: boolean;
 }>) {
-  const { control, setValue } = form;
-  const watchedCategories = useWatch({ control, name: 'categories' });
-
-  const handleToggleCategory = useCallback(
-    (categoryId: string) => {
-      const current = watchedCategories;
-      const next = current.includes(categoryId)
-        ? current.filter((id) => id !== categoryId)
-        : Array.from(new Set([...current, categoryId]));
-      setValue('categories', next);
-    },
-    [setValue, watchedCategories]
-  );
-
-  const handleSelectAllCategories = useCallback(() => {
-    if (!categoryOptions.length) return;
-    setValue(
-      'categories',
-      categoryOptions.map((option) => option.value)
-    );
-  }, [categoryOptions, setValue]);
-
-  const handleClearCategories = useCallback(() => {
-    setValue('categories', []);
-  }, [setValue]);
-
   return (
     <BudgetFormFields
       form={form}
@@ -82,9 +56,6 @@ function BudgetFormModalBody({
       shouldDisableUserField={shouldDisableUserField}
       userFieldHelperText={userFieldHelperText}
       isSubmitting={isSubmitting}
-      onToggleCategory={handleToggleCategory}
-      onSelectAllCategories={handleSelectAllCategories}
-      onClearCategories={handleClearCategories}
     />
   );
 }
@@ -125,7 +96,6 @@ function BudgetFormModal({ isOpen, onClose, editId }: Readonly<BudgetFormModalPr
         icon: z.string().nullable().optional(),
         categories: z.array(z.string()).min(1, t('validation.categoriesRequired')),
         user_id: z.string().min(1, t('validation.userRequired')),
-        categorySearch: z.string().optional(),
       }),
     [t]
   );
@@ -138,7 +108,6 @@ function BudgetFormModal({ isOpen, onClose, editId }: Readonly<BudgetFormModalPr
       icon: null,
       categories: [],
       user_id: defaultFormUserId,
-      categorySearch: '',
     }),
     [defaultFormUserId]
   );
@@ -180,7 +149,6 @@ function BudgetFormModal({ isOpen, onClose, editId }: Readonly<BudgetFormModalPr
         icon: budget.icon,
         categories: budget.categories,
         user_id: budget.user_id,
-        categorySearch: '',
       });
     };
 
@@ -331,10 +299,8 @@ function BudgetFormModal({ isOpen, onClose, editId }: Readonly<BudgetFormModalPr
     >
       {(form) => (
         <>
-          {form.formState.errors.root ? (
-            <div className={s.errorBanner} role="alert">
-              {form.formState.errors.root.message}
-            </div>
+          {form.formState.errors.root?.message ? (
+            <ModalRootError message={form.formState.errors.root.message} />
           ) : null}
           <BudgetFormModalBody
             form={form}

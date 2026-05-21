@@ -5,7 +5,7 @@ import { useWatch, type UseFormReturn } from 'react-hook-form';
 import { useTranslations } from 'next-intl';
 import { Pause, Play, Trash2 } from 'lucide-react';
 
-import { EntityFormModal } from '@/components/form';
+import { EntityFormModal, ModalRootError } from '@/components/form';
 import { RecurringTransactionSeries, TransactionFrequencyType } from '@/lib/types';
 import {
   createRecurringSeriesAction,
@@ -58,21 +58,11 @@ function RecurringFormModalBody({
   t: ReturnType<typeof useTranslations>;
 }>) {
   const accounts = useAccounts();
-  const {
-    register,
-    control,
-    setValue,
-    formState: { errors, isSubmitting },
-  } = form;
+  const { control, setValue, formState } = form;
+  const { isSubmitting } = formState;
 
-  const watchedType = useWatch({ control, name: 'type' });
-  const watchedFrequency = useWatch({ control, name: 'frequency' });
   const watchedUserIds = useWatch({ control, name: 'user_ids' });
   const watchedAccountId = useWatch({ control, name: 'account_id' });
-  const watchedCategory = useWatch({ control, name: 'category' });
-  const watchedStartDate = useWatch({ control, name: 'start_date' });
-  const watchedEndDate = useWatch({ control, name: 'end_date' });
-
   const filteredAccounts = useMemo(() => {
     if (!watchedUserIds || watchedUserIds.length === 0) return accounts;
 
@@ -109,49 +99,26 @@ function RecurringFormModalBody({
 
   return (
     <>
-      {errors.root ? (
-        <div className={s.errorBanner} role="alert">
-          {errors.root.message}
-        </div>
+      {formState.errors.root?.message ? (
+        <ModalRootError message={formState.errors.root.message} />
       ) : null}
 
-      <RecurringPreview control={control} errors={errors} t={t} s={s} isSubmitting={isSubmitting} />
+      <RecurringPreview form={form} t={t} isSubmitting={isSubmitting} />
 
       <div className={s.fieldStack}>
         <RecurringFormFields
-          watchedCategory={watchedCategory}
-          watchedAccountId={watchedAccountId}
-          watchedStartDate={watchedStartDate}
-          watchedEndDate={watchedEndDate}
-          watchedUserIds={watchedUserIds}
-          setValue={setValue}
-          errors={errors}
+          form={form}
           categories={categories}
           filteredAccounts={filteredAccounts}
           groupUsers={groupUsers}
           currentUserId={currentUser.id}
           t={t}
-          s={s}
-        />
-
-        <RecurrencePicker
-          watchedType={watchedType}
-          watchedFrequency={watchedFrequency}
-          setValue={setValue}
-          register={register}
-          errors={errors}
-          t={t}
-          s={s}
           isSubmitting={isSubmitting}
         />
 
-        <RecurringDescriptionField
-          register={register}
-          errors={errors}
-          t={t}
-          s={s}
-          isSubmitting={isSubmitting}
-        />
+        <RecurrencePicker form={form} t={t} isSubmitting={isSubmitting} />
+
+        <RecurringDescriptionField form={form} t={t} isSubmitting={isSubmitting} />
       </div>
     </>
   );

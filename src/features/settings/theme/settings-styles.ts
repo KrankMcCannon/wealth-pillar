@@ -67,22 +67,6 @@ export const settingsStyles = {
   modals: {
     actionsButton: 'w-full sm:w-auto',
     loadingIcon: 'mr-2 h-4 w-4 animate-spin',
-    iconSmall: 'mr-2 h-4 w-4',
-    form: 'space-y-4',
-    field: {
-      label: 'block text-sm font-medium text-primary mb-1.5',
-      input:
-        'w-full px-3 py-2 text-sm rounded-lg border border-primary/20 bg-card text-primary placeholder:text-primary/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/20 disabled:opacity-50 disabled:cursor-not-allowed',
-      inputError: 'border-destructive focus:ring-destructive/20 focus:border-destructive',
-      errorText: 'mt-1.5 text-sm text-destructive',
-    },
-    title: 'text-lg font-semibold text-primary',
-    description: 'text-sm text-primary/70',
-    invite: {
-      infoBox: 'rounded-lg bg-primary/10 border border-primary/20 p-3',
-      infoText: 'text-sm text-primary',
-      infoStrong: 'font-semibold',
-    },
     preference: {
       list: 'space-y-2',
       itemBase:

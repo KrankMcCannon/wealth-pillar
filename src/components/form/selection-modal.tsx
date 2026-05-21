@@ -1,12 +1,13 @@
 'use client';
 
-import { useEffect, useId, useState, type ReactNode } from 'react';
+import { useId, useState, type ReactNode } from 'react';
 import { Check, Loader2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { ModalBody, ModalFooter, ModalWrapper } from '@/components/ui/modal-wrapper';
 import { cn } from '@/lib/utils';
 import { settingsStyles } from '@/features/settings/theme';
+import { formModalStyles as modalS } from './form-modal-styles';
 
 export interface SelectionOption<V extends string> {
   value: V;
@@ -27,26 +28,28 @@ export interface SelectionModalProps<V extends string> {
   radioGroupLabel?: string;
 }
 
-export function SelectionModal<V extends string>({
-  isOpen,
+interface SelectionModalContentProps<V extends string> {
+  onClose: () => void;
+  title: string;
+  value: V;
+  options: SelectionOption<V>[];
+  onSave: (value: V) => Promise<void>;
+  isSaving: boolean;
+  radioGroupLabel?: string;
+}
+
+function SelectionModalContent<V extends string>({
   onClose,
   title,
-  description,
   value,
   options,
   onSave,
   isSaving,
   radioGroupLabel,
-}: Readonly<SelectionModalProps<V>>) {
+}: Readonly<SelectionModalContentProps<V>>) {
   const t = useTranslations('SettingsModals.PreferenceSelect');
   const radioGroupName = useId().replace(/:/g, '');
-  const [selectedValue, setSelectedValue] = useState<V>(value);
-
-  useEffect(() => {
-    if (isOpen) {
-      setSelectedValue(value);
-    }
-  }, [isOpen, value]);
+  const [selectedValue, setSelectedValue] = useState(value);
 
   const handleSave = async () => {
     if (selectedValue === value) {
@@ -57,18 +60,12 @@ export function SelectionModal<V extends string>({
   };
 
   return (
-    <ModalWrapper
-      isOpen={isOpen}
-      onOpenChange={onClose}
-      title={title}
-      description={description}
-      disableOutsideClose={isSaving}
-    >
+    <>
       <ModalBody>
         <div
           role="radiogroup"
           aria-label={radioGroupLabel ?? title}
-          className={settingsStyles.modals.preference.list}
+          className={modalS.preference.list}
         >
           {options.map((option) => {
             const isSelected = selectedValue === option.value;
@@ -78,11 +75,9 @@ export function SelectionModal<V extends string>({
               <label
                 key={option.value}
                 className={cn(
-                  settingsStyles.modals.preference.itemBase,
+                  modalS.preference.itemBase,
                   'block min-w-0 cursor-pointer',
-                  isSelected
-                    ? settingsStyles.modals.preference.itemActive
-                    : settingsStyles.modals.preference.itemIdle,
+                  isSelected ? modalS.preference.itemActive : modalS.preference.itemIdle,
                   isSaving && 'pointer-events-none cursor-not-allowed opacity-50'
                 )}
               >
@@ -95,49 +90,41 @@ export function SelectionModal<V extends string>({
                   disabled={isSaving}
                   className="peer sr-only"
                 />
-                <span className="flex w-full min-w-0 items-start gap-3 rounded-[inherit] peer-focus-visible:ring-2 peer-focus-visible:ring-primary/20 peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-background">
+                <span className="flex w-full min-w-0 items-start gap-3 rounded-[inherit] peer-focus-visible:ring-2 peer-focus-visible:ring-modal-ring/25 peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-modal-surface">
                   <div
                     className={cn(
-                      settingsStyles.modals.preference.radioBase,
-                      isSelected
-                        ? settingsStyles.modals.preference.radioActive
-                        : settingsStyles.modals.preference.radioIdle
+                      modalS.preference.radioBase,
+                      isSelected ? modalS.preference.radioActive : modalS.preference.radioIdle
                     )}
                     aria-hidden
                   >
-                    {isSelected && <Check className={settingsStyles.modals.preference.radioIcon} />}
+                    {isSelected && <Check className={modalS.preference.radioIcon} />}
                   </div>
 
                   {option.icon ? (
                     <div
-                      className="mr-3 h-8 w-8 shrink-0 overflow-hidden rounded-full border border-border"
+                      className="mr-3 h-8 w-8 shrink-0 overflow-hidden rounded-full border border-modal-border/35"
                       aria-hidden
                     >
                       {option.icon}
                     </div>
                   ) : null}
 
-                  <div className={settingsStyles.modals.preference.content}>
-                    <div className={settingsStyles.modals.preference.titleRow}>
+                  <div className={modalS.preference.content}>
+                    <div className={modalS.preference.titleRow}>
                       <span
                         className={cn(
-                          settingsStyles.modals.preference.title,
-                          isSelected
-                            ? settingsStyles.modals.preference.titleActive
-                            : settingsStyles.modals.preference.titleIdle
+                          modalS.preference.title,
+                          isSelected ? modalS.preference.titleActive : modalS.preference.titleIdle
                         )}
                       >
                         {option.label}
                       </span>
                       {isCurrent ? (
-                        <span className={settingsStyles.modals.preference.currentBadge}>
-                          {t('currentBadge')}
-                        </span>
+                        <span className={modalS.preference.currentBadge}>{t('currentBadge')}</span>
                       ) : null}
                     </div>
-                    <p className={settingsStyles.modals.preference.description}>
-                      {option.description}
-                    </p>
+                    <p className={modalS.preference.description}>{option.description}</p>
                   </div>
                 </span>
               </label>
@@ -169,6 +156,41 @@ export function SelectionModal<V extends string>({
           )}
         </Button>
       </ModalFooter>
+    </>
+  );
+}
+
+export function SelectionModal<V extends string>({
+  isOpen,
+  onClose,
+  title,
+  description,
+  value,
+  options,
+  onSave,
+  isSaving,
+  radioGroupLabel,
+}: Readonly<SelectionModalProps<V>>) {
+  return (
+    <ModalWrapper
+      isOpen={isOpen}
+      onOpenChange={onClose}
+      title={title}
+      description={description}
+      disableOutsideClose={isSaving}
+    >
+      {isOpen ? (
+        <SelectionModalContent
+          key={value}
+          onClose={onClose}
+          title={title}
+          value={value}
+          options={options}
+          onSave={onSave}
+          isSaving={isSaving}
+          {...(radioGroupLabel !== undefined ? { radioGroupLabel } : {})}
+        />
+      ) : null}
     </ModalWrapper>
   );
 }

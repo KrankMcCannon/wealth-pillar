@@ -1,6 +1,6 @@
 import { SectionHeader } from '@/components/layout';
 import { ListContainer, PageSection, SettingsItem } from '@/components/ui/layout';
-import { usePreferenceOptions } from '../preference-select-modal';
+import { usePreferenceOptions } from '@/features/settings/utils/preference-options';
 import { CreditCard, Globe, Settings } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import { UserPreferences } from '@/lib/types';

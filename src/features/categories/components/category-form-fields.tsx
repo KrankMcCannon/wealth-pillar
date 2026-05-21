@@ -6,8 +6,14 @@ import { useTranslations } from 'next-intl';
 import { cn } from '@/lib';
 import { getColorPalette } from '@/server/use-cases/categories/category.logic';
 import { categoryStyles, getCategoryColorStyle } from '../theme/category-styles';
-import { FormField } from '@/components/form';
-import { IconPicker, Input } from '@/components/ui';
+import {
+  ModalIconField,
+  ModalRootError,
+  ModalTextField,
+  ModalFieldError,
+} from '@/components/form/modal-fields';
+import { formModalStyles as s } from '@/components/form/form-modal-styles';
+import { Input } from '@/components/ui/input';
 import { ModalSection } from '@/components/ui/modal-wrapper';
 
 export type CategoryFormData = {
@@ -24,16 +30,11 @@ interface CategoryFormFieldsProps {
 
 export function CategoryFormFields({ form, isEditMode }: CategoryFormFieldsProps) {
   const t = useTranslations('Categories.FormModal');
-  const {
-    register,
-    setValue,
-    watch,
-    formState: { errors, isSubmitting },
-  } = form;
+  const { control, register, setValue, watch, formState } = form;
+  const { errors, isSubmitting } = formState;
 
   const watchedLabel = watch('label');
   const watchedColor = watch('color');
-  const watchedIcon = watch('icon');
   const colorPalette = getColorPalette();
 
   useEffect(() => {
@@ -49,30 +50,26 @@ export function CategoryFormFields({ form, isEditMode }: CategoryFormFieldsProps
 
   return (
     <ModalSection>
-      {errors.root ? (
-        <div className={categoryStyles.formModal.error}>
-          <p className="text-sm font-medium text-destructive">{errors.root.message}</p>
-        </div>
-      ) : null}
+      {errors.root?.message ? <ModalRootError message={errors.root.message} /> : null}
 
-      <FormField
+      <ModalTextField
+        control={control}
+        name="label"
         label={t('fields.label.label')}
-        required
-        error={errors.label?.message}
-        helperText={isEditMode ? undefined : t('fields.label.helper')}
-      >
-        <Input
-          {...register('label')}
-          placeholder={t('fields.label.placeholder')}
-          disabled={isSubmitting}
-        />
-      </FormField>
+        placeholder={t('fields.label.placeholder')}
+        disabled={isSubmitting}
+        {...(!isEditMode ? { hint: t('fields.label.helper') } : {})}
+      />
 
-      <FormField label={t('fields.icon.label')} required error={errors.icon?.message}>
-        <IconPicker value={watchedIcon} onChange={(value) => setValue('icon', value)} />
-      </FormField>
+      <ModalIconField
+        control={control}
+        name="icon"
+        label={t('fields.icon.label')}
+        disabled={isSubmitting}
+      />
 
-      <FormField label={t('fields.color.label')} required error={errors.color?.message}>
+      <div className={s.noteShell}>
+        <p className={s.noteLabel}>{t('fields.color.label')}</p>
         <div className={categoryStyles.formModal.colorSection}>
           <div className={categoryStyles.formModal.palette}>
             {colorPalette.map((color) => (
@@ -111,9 +108,11 @@ export function CategoryFormFields({ form, isEditMode }: CategoryFormFieldsProps
             {...register('color')}
             placeholder={t('fields.color.placeholder')}
             disabled={isSubmitting}
+            className={s.noteInput}
           />
         </div>
-      </FormField>
+        {errors.color?.message ? <ModalFieldError message={errors.color.message} /> : null}
+      </div>
     </ModalSection>
   );
 }
