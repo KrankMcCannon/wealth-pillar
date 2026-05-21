@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, type ReactNode } from 'react';
+import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import {
   type DefaultValues,
   type FieldValues,
@@ -17,11 +17,25 @@ import {
   ModalFooter,
   type ModalWrapperProps,
 } from '@/components/ui/modal-wrapper';
+import { ConfirmationDialog } from '@/components/shared/confirmation-dialog';
 
 export type EntityFormModalWrapperProps = Omit<
   ModalWrapperProps,
   'isOpen' | 'onOpenChange' | 'title' | 'children' | 'isLoading'
 >;
+
+export interface EntityFormModalDeletionProps {
+  enabled: boolean;
+  title: string;
+  message: string;
+  confirmText?: string;
+  cancelText?: string;
+  onDelete: () => Promise<void>;
+}
+
+export interface EntityFormModalFooterActions {
+  openDeleteDialog?: () => void;
+}
 
 export interface EntityFormModalProps<T extends FieldValues> {
   isOpen: boolean;
@@ -30,12 +44,15 @@ export interface EntityFormModalProps<T extends FieldValues> {
   description?: string;
   schema: ZodType<T>;
   defaultValues: DefaultValues<T>;
-  /** When open, resets the form to these values (e.g. edit payload or create defaults). */
   resetValues?: DefaultValues<T>;
   onSubmit: (values: T, form: UseFormReturn<T>) => Promise<void>;
   children: (form: UseFormReturn<T>) => ReactNode;
-  footer?: (form: UseFormReturn<T>, isSubmitting: boolean) => ReactNode;
-  maxWidth?: 'sm' | 'md' | 'lg' | 'xl';
+  footer?: (
+    form: UseFormReturn<T>,
+    isSubmitting: boolean,
+    actions: EntityFormModalFooterActions
+  ) => ReactNode;
+  deletion?: EntityFormModalDeletionProps;
   disableOutsideClose?: boolean;
   repositionInputs?: boolean;
   formClassName?: string;
@@ -56,7 +73,7 @@ export function EntityFormModal<T extends FieldValues>({
   onSubmit,
   children,
   footer,
-  maxWidth = 'md',
+  deletion,
   disableOutsideClose = false,
   repositionInputs = false,
   formClassName,
@@ -65,8 +82,10 @@ export function EntityFormModal<T extends FieldValues>({
   wrapperProps,
   isLoading = false,
 }: EntityFormModalProps<T>) {
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   const form = useForm<T>({
-    // Zod v4 schema types do not align with @hookform/resolvers overloads under exactOptionalPropertyTypes.
     resolver: zodResolver(schema as never) as Resolver<T>,
     defaultValues,
   });
@@ -77,32 +96,67 @@ export function EntityFormModal<T extends FieldValues>({
     }
   }, [isOpen, resetValues, defaultValues, form]);
 
+  const openDeleteDialog = useCallback(() => {
+    if (deletion?.enabled) {
+      setDeleteOpen(true);
+    }
+  }, [deletion?.enabled]);
+
+  const handleDeleteConfirm = useCallback(async () => {
+    if (!deletion) return;
+    setIsDeleting(true);
+    try {
+      await deletion.onDelete();
+      setDeleteOpen(false);
+      onClose();
+    } catch {
+      setIsDeleting(false);
+    }
+  }, [deletion, onClose]);
+
   const handleSubmit = form.handleSubmit(async (values) => {
     await onSubmit(values, form);
   });
 
+  const footerActions: EntityFormModalFooterActions = deletion?.enabled ? { openDeleteDialog } : {};
+
   return (
-    <ModalWrapper
-      isOpen={isOpen}
-      onOpenChange={onClose}
-      title={title}
-      {...(description !== undefined ? { description } : {})}
-      maxWidth={maxWidth}
-      disableOutsideClose={disableOutsideClose}
-      repositionInputs={repositionInputs}
-      isLoading={isLoading}
-      {...wrapperProps}
-    >
-      <form onSubmit={handleSubmit} className={cn('flex min-h-0 flex-1 flex-col', formClassName)}>
-        <ModalBody {...(bodyClassName !== undefined ? { className: bodyClassName } : {})}>
-          {children(form)}
-        </ModalBody>
-        {footer ? (
-          <ModalFooter {...(footerClassName !== undefined ? { className: footerClassName } : {})}>
-            {footer(form, form.formState.isSubmitting)}
-          </ModalFooter>
-        ) : null}
-      </form>
-    </ModalWrapper>
+    <>
+      <ModalWrapper
+        isOpen={isOpen}
+        onOpenChange={onClose}
+        title={title}
+        {...(description !== undefined ? { description } : {})}
+        disableOutsideClose={disableOutsideClose || isDeleting}
+        repositionInputs={repositionInputs}
+        isLoading={isLoading}
+        {...wrapperProps}
+      >
+        <form onSubmit={handleSubmit} className={cn('flex min-h-0 flex-1 flex-col', formClassName)}>
+          <ModalBody {...(bodyClassName !== undefined ? { className: bodyClassName } : {})}>
+            {children(form)}
+          </ModalBody>
+          {footer ? (
+            <ModalFooter {...(footerClassName !== undefined ? { className: footerClassName } : {})}>
+              {footer(form, form.formState.isSubmitting, footerActions)}
+            </ModalFooter>
+          ) : null}
+        </form>
+      </ModalWrapper>
+
+      {deletion ? (
+        <ConfirmationDialog
+          isOpen={deleteOpen}
+          onConfirm={handleDeleteConfirm}
+          onCancel={() => setDeleteOpen(false)}
+          title={deletion.title}
+          message={deletion.message}
+          {...(deletion.confirmText !== undefined ? { confirmText: deletion.confirmText } : {})}
+          {...(deletion.cancelText !== undefined ? { cancelText: deletion.cancelText } : {})}
+          variant="destructive"
+          isLoading={isDeleting}
+        />
+      ) : null}
+    </>
   );
 }

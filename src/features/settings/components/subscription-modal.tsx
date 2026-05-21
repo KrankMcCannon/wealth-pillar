@@ -16,7 +16,7 @@ import { settingsStyles } from '@/features/settings/theme';
 
 export interface SubscriptionModalProps {
   isOpen: boolean;
-  onOpenChange: (open: boolean) => void;
+  onClose: () => void;
   groupId: string;
   currentPlan: 'free' | 'premium';
   /** ISO 4217 code for displaying plan prices (e.g. user preference currency). */
@@ -51,7 +51,7 @@ function formatPlanPrice(locale: string, currency: string, amount: number): stri
  */
 export function SubscriptionModal({
   isOpen,
-  onOpenChange,
+  onClose,
   groupId,
   currentPlan,
   billingCurrency = 'EUR',
@@ -126,7 +126,7 @@ export function SubscriptionModal({
         variant: 'success',
       });
 
-      onOpenChange(false);
+      onClose();
       setIsProcessing(false);
     } catch (error) {
       console.error('Error canceling subscription:', error);
@@ -144,11 +144,9 @@ export function SubscriptionModal({
   return (
     <ModalWrapper
       isOpen={isOpen}
-      onOpenChange={onOpenChange}
+      onOpenChange={onClose}
       title={t('title')}
       description={t('description')}
-      titleClassName={settingsStyles.modals.title}
-      descriptionClassName={settingsStyles.modals.description}
       disableOutsideClose={isProcessing}
       repositionInputs={false}
     >
@@ -269,7 +267,7 @@ export function SubscriptionModal({
       <ModalFooter>
         <Button
           variant="outline"
-          onClick={() => onOpenChange(false)}
+          onClick={onClose}
           disabled={isProcessing}
           className={settingsStyles.modals.actionsButton}
         >

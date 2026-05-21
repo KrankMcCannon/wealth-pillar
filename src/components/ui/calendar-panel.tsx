@@ -10,18 +10,13 @@ export interface CalendarPanelProps {
   value: string;
   onChange: (date: string) => void;
   onClose: () => void;
-  size?: 'mobile' | 'desktop';
   className?: string | undefined;
 }
 
-/**
- * Shared calendar panel used by both mobile drawer and desktop popover wrappers.
- */
 export function CalendarPanel({
   value,
   onChange,
   onClose,
-  size = 'mobile',
   className,
 }: Readonly<CalendarPanelProps>) {
   const selectedDate = useMemo(
@@ -66,20 +61,14 @@ export function CalendarPanel({
         onPrevious={handlePrevious}
         onNext={handleNext}
         onMonthChange={handleMonthYearChange}
-        size={size}
       />
-      <WeekdayLabels
-        highlightWeekends
-        className={size === 'desktop' ? calendarDrawerStyles.desktop.weekdays.container : undefined}
-      />
+      <WeekdayLabels highlightWeekends />
       <MonthGrid
         currentMonth={currentMonth}
         selectedDate={selectedDate}
         onDateSelect={handleDateSelect}
-        size={size}
-        className={size === 'desktop' ? calendarDrawerStyles.desktop.grid.container : undefined}
       />
-      <QuickPresets selectedDate={selectedDate} onSelect={handlePresetSelect} size={size} />
+      <QuickPresets selectedDate={selectedDate} onSelect={handlePresetSelect} />
     </div>
   );
 }

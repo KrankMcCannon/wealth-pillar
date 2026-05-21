@@ -17,9 +17,9 @@ import { cva, type VariantProps } from 'class-variance-authority';
  * Modern primary/white design with enhanced visual hierarchy
  */
 export const dayButtonVariants = cva(
-  // Base styles
   [
     'inline-flex items-center justify-center',
+    'h-12 w-12 min-h-12 min-w-12',
     'rounded-xl',
     'text-base font-semibold tabular-nums',
     'transition-all duration-200',
@@ -86,32 +86,21 @@ export const dayButtonVariants = cva(
           'border border-primary/15',
         ].join(' '),
       },
-
-      size: {
-        // Mobile/Universal: 48px touch target
-        mobile: 'h-12 w-12 min-h-12 min-w-12 text-base',
-        // Desktop: Compact to keep the full calendar visible in viewport
-        desktop: 'h-9 w-9 min-h-9 min-w-9 text-xs',
-      },
     },
 
-    // Compound variants
     compoundVariants: [
       {
         state: 'selected',
-        size: 'mobile',
         className: 'shadow-xl shadow-primary/40',
       },
       {
         state: 'today',
-        size: 'mobile',
         className: 'ring-[3px]',
       },
     ],
 
     defaultVariants: {
       state: 'default',
-      size: 'mobile',
     },
   }
 );
@@ -168,19 +157,14 @@ export const drawerContentVariants = cva(
  * Circular primary buttons with enhanced hover states
  */
 export const monthNavButtonVariants = cva(
-  // Base styles
   [
-    'shrink-0',
+    'shrink-0 h-11 w-11',
     'inline-flex items-center justify-center',
     'rounded-full',
     'transition-all duration-200',
   ].join(' '),
   {
     variants: {
-      size: {
-        mobile: 'h-11 w-11',
-        desktop: 'h-9 w-9',
-      },
       disabled: {
         true: [
           'opacity-30',
@@ -198,7 +182,6 @@ export const monthNavButtonVariants = cva(
       },
     },
     defaultVariants: {
-      size: 'mobile',
       disabled: false,
     },
   }
@@ -213,16 +196,11 @@ export const monthNavButtonVariants = cva(
  * Clean bordered design with primary color on hover/active
  */
 export const presetButtonVariants = cva(
-  // Base styles
-  ['w-full', 'px-4', 'rounded-xl', 'text-sm font-semibold', 'transition-all duration-200'].join(
+  ['w-full h-11 px-4', 'rounded-xl', 'text-sm font-semibold', 'transition-all duration-200'].join(
     ' '
   ),
   {
     variants: {
-      size: {
-        mobile: 'h-11',
-        desktop: 'h-9 text-xs px-2.5',
-      },
       active: {
         true: [
           'bg-primary text-white',
@@ -241,7 +219,6 @@ export const presetButtonVariants = cva(
       },
     },
     defaultVariants: {
-      size: 'mobile',
       active: false,
     },
   }

@@ -49,6 +49,8 @@
     }
   },
   "Common": {
+    "confirm": "Confirm",
+    "cancel": "Cancel",
     "closeDialog": "Close dialog",
     "language": "Language",
     "switchLanguage": "Switch Language",

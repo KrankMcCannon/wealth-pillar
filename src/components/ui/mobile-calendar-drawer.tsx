@@ -1,5 +1,5 @@
 /**
- * Mobile Calendar Drawer — uses ModalWrapper (drawer on mobile, dialog on desktop).
+ * Mobile Calendar Drawer — calendar picker in ModalWrapper drawer.
  */
 
 'use client';
@@ -29,10 +29,9 @@ export function MobileCalendarDrawer({
       onOpenChange={(open) => !open && onClose()}
       title={t('drawerTitle')}
       description={t('drawerAriaLabel')}
-      maxWidth="md"
       repositionInputs
     >
-      <CalendarPanel value={value} onChange={onChange} onClose={onClose} size="mobile" />
+      <CalendarPanel value={value} onChange={onChange} onClose={onClose} />
     </ModalWrapper>
   );
 }

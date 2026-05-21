@@ -76,13 +76,13 @@ describe('getDayState', () => {
 describe('CVA Variants', () => {
   describe('dayButtonVariants', () => {
     it('should return valid classes for default variant', () => {
-      const className = dayButtonVariants({ state: 'default', size: 'mobile' });
+      const className = dayButtonVariants({ state: 'default' });
       expect(className).toContain('rounded-xl');
       expect(className).toBeTruthy();
     });
 
     it('should return valid classes for selected variant', () => {
-      const className = dayButtonVariants({ state: 'selected', size: 'mobile' });
+      const className = dayButtonVariants({ state: 'selected' });
       expect(className).toContain('bg-primary');
       expect(className).toBeTruthy();
     });
@@ -105,11 +105,6 @@ describe('CVA Variants', () => {
     it('should return valid classes for otherMonth variant', () => {
       const className = dayButtonVariants({ state: 'otherMonth' });
       expect(className).toBeTruthy();
-    });
-
-    it('should handle desktop size', () => {
-      const className = dayButtonVariants({ state: 'default', size: 'desktop' });
-      expect(className).toContain('h-9');
     });
   });
 

@@ -70,45 +70,10 @@ export const calendarDrawerStyles = {
   },
 
   // ============================================================================
-  // SHARED PANEL LAYOUT (Used by mobile drawer and desktop popover)
+  // SHARED PANEL LAYOUT
   // ============================================================================
   panel: {
     container: 'space-y-0',
-  },
-
-  // ============================================================================
-  // DESKTOP POPOVER
-  // ============================================================================
-  desktop: {
-    popoverContent: [
-      'z-[180]',
-      'w-[min(92vw,350px)]',
-      'p-0',
-      'rounded-2xl',
-      'border border-primary/20',
-      'bg-card dark:bg-card',
-      'shadow-2xl shadow-primary/10',
-    ].join(' '),
-    wrapper: 'px-2 py-2',
-    header: {
-      container: 'px-1 py-1 mb-1 border-b border-primary/10',
-      monthYear: 'text-base',
-      navIcon: 'h-4 w-4',
-      dropdowns: 'max-w-[220px] gap-1',
-      selectTrigger: 'h-8 text-xs',
-    },
-    weekdays: {
-      container: 'pb-1 px-1',
-      label: 'py-1 text-[10px]',
-    },
-    grid: {
-      container: 'gap-1 pb-2 px-1',
-    },
-    presets: {
-      section: 'pt-2 pb-1 border-t border-primary/15',
-      title: 'text-xs mb-2 px-1',
-      container: 'grid-cols-3 gap-1 px-0',
-    },
   },
 
   // ============================================================================

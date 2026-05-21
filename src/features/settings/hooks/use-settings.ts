@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useOptimistic, startTransition } from 'react';
+import { useState, useOptimistic, startTransition, useCallback } from 'react';
 import { useUser, useClerk } from '@clerk/nextjs';
 import { useToast } from '@/hooks/use-toast';
 import { updateUserPreferencesAction, deleteUserAction } from '../actions';
 import type { User, UserPreferences, UserPreferencesUpdate } from '@/lib/types';
 import { useRouter } from '@/i18n/routing';
+import { useModalState, type SettingsModalKind } from '@/lib/navigation/url-state';
 
 export function useSettings(
   currentUser: User,
@@ -16,8 +17,8 @@ export function useSettings(
   const { toast } = useToast();
   const { user: clerkUser } = useUser();
   const { signOut } = useClerk();
+  const { openModal, closeModal } = useModalState();
 
-  // Optimistic Preferences
   const [preferences, setOptimisticPreferences] = useOptimistic(
     initialPreferences,
     (state: UserPreferences, newPreferences: Partial<UserPreferences>) => ({
@@ -26,20 +27,10 @@ export function useSettings(
     })
   );
 
-  // Modal States
-  const [showEditProfileModal, setShowEditProfileModal] = useState(false);
-  const [showCurrencyModal, setShowCurrencyModal] = useState(false);
-  const [showLanguageModal, setShowLanguageModal] = useState(false);
-  const [showTimezoneModal, setShowTimezoneModal] = useState(false);
-  const [showInviteMemberModal, setShowInviteMemberModal] = useState(false);
-  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
-  // Derived state
   const userInitials = currentUser?.name
     ? currentUser.name
         .split(' ')
@@ -50,7 +41,13 @@ export function useSettings(
 
   const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'superadmin';
 
-  // Handlers
+  const openSettingsModal = useCallback(
+    (kind: SettingsModalKind) => {
+      openModal(`settings:${kind}`);
+    },
+    [openModal]
+  );
+
   const handleSignOut = async () => {
     try {
       setIsSigningOut(true);
@@ -63,12 +60,11 @@ export function useSettings(
   };
 
   const handleDeleteAccountClick = () => {
-    setShowDeleteModal(true);
     setDeleteError(null);
+    openSettingsModal('delete-account');
   };
 
   const handleCloseDeleteModal = () => {
-    setShowDeleteModal(false);
     setDeleteError(null);
   };
 
@@ -137,40 +133,19 @@ export function useSettings(
     startTransition(() => {
       setOptimisticPreferences({ [key]: value } as Partial<UserPreferences>);
     });
-
-    if (key === 'currency') setShowCurrencyModal(false);
-    if (key === 'language') setShowLanguageModal(false);
-    if (key === 'timezone') setShowTimezoneModal(false);
   };
 
   return {
-    // Return props directly or optimistic values
     currentUser,
     groupUsers,
     isAdmin,
-    preferences, // This is now optimistic
+    preferences,
     isSigningOut,
     isDeletingAccount,
     deleteError,
     userInitials,
-
-    // Modal controls
-    showEditProfileModal,
-    setShowEditProfileModal,
-    showCurrencyModal,
-    setShowCurrencyModal,
-    showLanguageModal,
-    setShowLanguageModal,
-    showTimezoneModal,
-    setShowTimezoneModal,
-    showInviteMemberModal,
-    setShowInviteMemberModal,
-    showSubscriptionModal,
-    setShowSubscriptionModal,
-    showDeleteModal,
-    setShowDeleteModal,
-
-    // Handlers
+    openSettingsModal,
+    closeSettingsModal: closeModal,
     handleSignOut,
     handleDeleteAccountClick,
     handleDeleteAccountConfirm,

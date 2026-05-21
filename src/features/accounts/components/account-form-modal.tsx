@@ -1,26 +1,21 @@
 'use client';
 
-import { useEffect, useMemo, useCallback } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { useMemo, useCallback } from 'react';
 import { z } from 'zod';
 import { useLocale, useTranslations } from 'next-intl';
-import { Check, Trash2 } from 'lucide-react';
 import { Account } from '@/lib/types';
 import { getTempId } from '@/lib/utils/temp-id';
 import { createAccountAction, updateAccountAction, deleteAccountAction } from '@/features/accounts';
-import { ModalWrapper } from '@/components/ui/modal-wrapper';
+import { EntityFormModal, EntityFormFooter } from '@/components/form';
 import {
   usePermissions,
   useRequiredCurrentUser,
   useRequiredGroupUsers,
   useRequiredGroupId,
-  useDeleteConfirmation,
 } from '@/hooks';
 import { useAccounts, useReferenceDataStore } from '@/stores/reference-data-store';
 import { useUserFilter } from '@/hooks/state/use-user-filter';
 import { toast } from '@/hooks/use-toast';
-import { ConfirmationDialog } from '@/components/shared';
 import { useRouter } from '@/i18n/routing';
 import { stitchTransactionFormModal } from '@/styles/home-design-foundation';
 import { AccountFormFields, type AccountFormData } from './account-form-fields';
@@ -46,7 +41,6 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
   const updateAccount = useReferenceDataStore((state) => state.updateAccount);
   const removeAccount = useReferenceDataStore((state) => state.removeAccount);
 
-  const deleteConfirm = useDeleteConfirmation<Account>();
   const s = stitchTransactionFormModal;
 
   const isEditMode = !!editId;
@@ -67,46 +61,38 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
     [t]
   );
 
-  const form = useForm<AccountFormData>({
-    resolver: zodResolver(accountSchema),
-    defaultValues: {
+  const createDefaults = useMemo(
+    (): AccountFormData => ({
       name: '',
       type: 'payroll',
       user_id: defaultFormUserId || currentUser.id,
       isDefault: false,
-    },
-  });
+    }),
+    [defaultFormUserId, currentUser.id]
+  );
 
-  const {
-    handleSubmit,
-    reset,
-    setError,
-    formState: { errors, isSubmitting },
-  } = form;
-
-  useEffect(() => {
-    if (isOpen && isEditMode && editId) {
+  const resetValues = useMemo((): AccountFormData => {
+    if (isEditMode && editId) {
       const account = storeAccounts.find((acc) => acc.id === editId);
-
       if (account) {
-        const isDefault = currentUser.default_account_id === account.id;
-
-        reset({
+        return {
           name: account.name,
           type: account.type,
           user_id: account.user_ids[0] || currentUser.id,
-          isDefault,
-        });
+          isDefault: currentUser.default_account_id === account.id,
+        };
       }
-    } else if (isOpen && !isEditMode) {
-      reset({
-        name: '',
-        type: 'payroll',
-        user_id: defaultFormUserId || currentUser.id,
-        isDefault: false,
-      });
     }
-  }, [isOpen, isEditMode, editId, defaultFormUserId, currentUser, reset, storeAccounts]);
+    return createDefaults;
+  }, [isEditMode, editId, storeAccounts, currentUser, createDefaults]);
+
+  const deleteMessage = useMemo(() => {
+    if (!editId) return tContent('dialogs.delete.messageFallback');
+    const account = storeAccounts.find((acc) => acc.id === editId);
+    return account
+      ? tContent('dialogs.delete.message', { name: account.name })
+      : tContent('dialogs.delete.messageFallback');
+  }, [editId, storeAccounts, tContent]);
 
   const handleUpdate = async (data: AccountFormData, id: string) => {
     const accountData = {
@@ -198,133 +184,109 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
     }
   };
 
-  const openDeleteDialog = useCallback(() => {
+  const handleDelete = useCallback(async () => {
     if (!editId) return;
     const account = storeAccounts.find((acc) => acc.id === editId);
-    if (account) deleteConfirm.openDialog(account);
-  }, [deleteConfirm, editId, storeAccounts]);
+    if (!account) return;
 
-  const handleDeleteConfirm = useCallback(async () => {
-    await deleteConfirm.executeDelete(async (account) => {
-      removeAccount(account.id);
-      let restored = false;
-      try {
-        const result = await deleteAccountAction(account.id, locale);
-        if (result.error) {
-          addAccount(account);
-          restored = true;
-          toast({
-            title: t('toast.errorTitle'),
-            description: result.error,
-            variant: 'destructive',
-          });
-          throw new Error(result.error);
-        }
-        toast({
-          title: t('toast.deletedTitle'),
-          description: t('toast.deletedDescription'),
-          variant: 'success',
-        });
-        onClose();
-        router.refresh();
-      } catch {
-        if (!restored) {
-          addAccount(account);
-          toast({
-            title: t('toast.errorTitle'),
-            description: t('errors.unknown'),
-            variant: 'destructive',
-          });
-        }
-        throw new Error('delete failed');
-      }
-    });
-  }, [addAccount, deleteConfirm, locale, onClose, removeAccount, router, t]);
-
-  const onSubmit = async (data: AccountFormData) => {
+    removeAccount(account.id);
+    let restored = false;
     try {
-      if (isEditMode && editId) {
-        await handleUpdate(data, editId);
-        onClose();
-      } else {
-        await handleCreate(data);
+      const result = await deleteAccountAction(account.id, locale);
+      if (result.error) {
+        addAccount(account);
+        restored = true;
+        toast({
+          title: t('toast.errorTitle'),
+          description: result.error,
+          variant: 'destructive',
+        });
+        throw new Error(result.error);
       }
-    } catch (error) {
-      const message = error instanceof Error ? error.message : t('errors.unknown');
-      setError('root', { message });
+      toast({
+        title: t('toast.deletedTitle'),
+        description: t('toast.deletedDescription'),
+        variant: 'success',
+      });
+      onClose();
+      router.refresh();
+    } catch {
+      if (!restored) {
+        addAccount(account);
+        toast({
+          title: t('toast.errorTitle'),
+          description: t('errors.unknown'),
+          variant: 'destructive',
+        });
+      }
+      throw new Error('delete failed');
     }
-  };
+  }, [addAccount, editId, locale, onClose, removeAccount, router, storeAccounts, t]);
 
   return (
-    <>
-      <ModalWrapper
-        isOpen={isOpen}
-        onOpenChange={onClose}
-        title={title}
-        titleClassName={s.headerTitle}
-        maxWidth="md"
-        repositionInputs={false}
-        handleClassName={s.handle}
-        drawerHeaderClassName={s.drawerHeaderShell}
-        drawerCloseClassName={s.headerClose}
-        showCloseButton
-        className={s.drawerSurface}
-      >
-        <form onSubmit={handleSubmit(onSubmit)} className={s.formColumn}>
-          <div className={s.scrollBody}>
-            {errors.root ? (
-              <div className={s.errorBanner} role="alert">
-                {errors.root.message}
-              </div>
-            ) : null}
-
-            <AccountFormFields
-              form={form}
-              groupUsers={groupUsers}
-              shouldDisableUserField={shouldDisableUserField}
-              isSubmitting={isSubmitting}
-            />
-          </div>
-
-          <div className={s.stickyFooter}>
-            <div className={s.footerActionsStack}>
-              <button type="submit" disabled={isSubmitting} className={s.primaryCta}>
-                <Check className="h-5 w-5 shrink-0" aria-hidden />
-                {isEditMode ? t('buttons.update') : t('buttons.create')}
-              </button>
-              {isEditMode && editId ? (
-                <button
-                  type="button"
-                  data-testid="account-form-delete"
-                  onClick={openDeleteDialog}
-                  disabled={isSubmitting}
-                  className={s.deleteButton}
-                >
-                  <Trash2 className="h-5 w-5 shrink-0" aria-hidden />
-                  {t('buttons.delete')}
-                </button>
-              ) : null}
-            </div>
-          </div>
-        </form>
-      </ModalWrapper>
-
-      <ConfirmationDialog
-        isOpen={deleteConfirm.isOpen}
-        onConfirm={handleDeleteConfirm}
-        onCancel={() => deleteConfirm.closeDialog()}
-        title={tContent('dialogs.delete.title')}
-        message={
-          deleteConfirm.itemToDelete
-            ? tContent('dialogs.delete.message', { name: deleteConfirm.itemToDelete.name })
-            : tContent('dialogs.delete.messageFallback')
+    <EntityFormModal<AccountFormData>
+      isOpen={isOpen}
+      onClose={onClose}
+      title={title}
+      schema={accountSchema}
+      defaultValues={createDefaults}
+      resetValues={resetValues}
+      repositionInputs={false}
+      formClassName={s.formColumn}
+      bodyClassName={s.scrollBody}
+      footerClassName={s.stickyFooter}
+      {...(isEditMode && editId
+        ? {
+            deletion: {
+              enabled: true,
+              title: tContent('dialogs.delete.title'),
+              message: deleteMessage,
+              confirmText: tContent('dialogs.delete.confirm'),
+              cancelText: tContent('dialogs.delete.cancel'),
+              onDelete: handleDelete,
+            },
+          }
+        : {})}
+      onSubmit={async (data, form) => {
+        try {
+          if (isEditMode && editId) {
+            await handleUpdate(data, editId);
+            onClose();
+          } else {
+            await handleCreate(data);
+          }
+        } catch (error) {
+          const message = error instanceof Error ? error.message : t('errors.unknown');
+          form.setError('root', { message });
         }
-        confirmText={tContent('dialogs.delete.confirm')}
-        cancelText={tContent('dialogs.delete.cancel')}
-        variant="destructive"
-        isLoading={deleteConfirm.isDeleting}
-      />
-    </>
+      }}
+      footer={(_, isSubmitting, { openDeleteDialog }) => (
+        <EntityFormFooter
+          isEditMode={isEditMode}
+          isSubmitting={isSubmitting}
+          submitLabel={isEditMode ? t('buttons.update') : t('buttons.create')}
+          deleteLabel={t('buttons.delete')}
+          deleteTestId="account-form-delete"
+          {...(openDeleteDialog ? { onDelete: openDeleteDialog } : {})}
+        />
+      )}
+    >
+      {(form) => (
+        <>
+          {form.formState.errors.root ? (
+            <div className={s.errorBanner} role="alert">
+              {form.formState.errors.root.message}
+            </div>
+          ) : null}
+          <AccountFormFields
+            form={form}
+            groupUsers={groupUsers}
+            shouldDisableUserField={shouldDisableUserField}
+            isSubmitting={form.formState.isSubmitting}
+          />
+        </>
+      )}
+    </EntityFormModal>
   );
 }
 

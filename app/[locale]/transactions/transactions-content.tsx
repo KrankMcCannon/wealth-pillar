@@ -40,7 +40,6 @@ export default function TransactionsContent({
   const props: UseTransactionsContentProps = {
     transactions,
     totalTransactions: total,
-    recurringSeries,
     budgets,
     accounts,
     currentPage: initialCurrentPage,

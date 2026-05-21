@@ -1,24 +1,17 @@
 'use client';
 
-import * as React from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { useMemo } from 'react';
 import { z } from 'zod';
 import { useTranslations } from 'next-intl';
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { ModalBody, ModalFooter, ModalWrapper } from '@/components/ui/modal-wrapper';
+import { EntityFormModal } from '@/components/form';
 import { toast } from '@/hooks/use-toast';
 import { updateUserProfileAction } from '@/features/settings';
 import { settingsStyles } from '@/features/settings/theme';
 import { FormField } from '@/components/form';
 import { Input } from '@/components/ui';
-import { cn } from '@/lib/utils';
 import { useRouter } from '@/i18n/routing';
-
-// ============================================================================
-// VALIDATION SCHEMA
-// ============================================================================
 
 const createEditProfileSchema = (t: ReturnType<typeof useTranslations>) =>
   z.object({
@@ -32,183 +25,50 @@ const createEditProfileSchema = (t: ReturnType<typeof useTranslations>) =>
 
 type EditProfileFormData = z.infer<ReturnType<typeof createEditProfileSchema>>;
 
-// ============================================================================
-// COMPONENT PROPS
-// ============================================================================
-
 export interface EditProfileModalProps {
   isOpen: boolean;
-  onOpenChange: (open: boolean) => void;
+  onClose: () => void;
   userId: string;
   currentName: string;
   currentEmail: string;
 }
 
-// ============================================================================
-// COMPONENT
-// ============================================================================
-
-/**
- * EditProfileModal Component
- * Modal for editing user profile (name and email)
- *
- * Features:
- * - React Hook Form with Zod validation
- * - Optimistic updates to Zustand store
- * - Toast notifications for success/error
- * - Loading states
- * - Prevents close during submission
- *
- * @example
- * ```tsx
- * <EditProfileModal
- *   isOpen={showModal}
- *   onOpenChange={setShowModal}
- *   userId={currentUser.id}
- *   currentName={currentUser.name}
- *   currentEmail={currentUser.email}
- * />
- * ```
- */
 export function EditProfileModal({
   isOpen,
-  onOpenChange,
+  onClose,
   userId,
   currentName,
   currentEmail,
 }: Readonly<EditProfileModalProps>) {
   const t = useTranslations('SettingsModals.EditProfile');
-  const editProfileSchema = React.useMemo(() => createEditProfileSchema(t), [t]);
+  const editProfileSchema = useMemo(() => createEditProfileSchema(t), [t]);
   const router = useRouter();
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-    reset,
-  } = useForm<EditProfileFormData>({
-    resolver: zodResolver(editProfileSchema),
-    defaultValues: {
+  const defaultValues = useMemo(
+    (): EditProfileFormData => ({
       name: currentName,
       email: currentEmail,
-    },
-  });
-
-  // Reset form when modal opens with current values
-  React.useEffect(() => {
-    if (isOpen) {
-      reset({
-        name: currentName,
-        email: currentEmail,
-      });
-    }
-  }, [isOpen, currentName, currentEmail, reset]);
-
-  const onSubmit = async (data: EditProfileFormData) => {
-    try {
-      // Check if anything changed
-      if (data.name === currentName && data.email === currentEmail) {
-        toast({
-          title: t('toast.noChangesTitle'),
-          description: t('toast.noChangesDescription'),
-          variant: 'info',
-        });
-        onOpenChange(false);
-        return;
-      }
-
-      // Call server action
-      const { data: updatedUser, error } = await updateUserProfileAction(userId, {
-        name: data.name === currentName ? undefined : data.name,
-        email: data.email === currentEmail ? undefined : data.email,
-      });
-
-      if (error) {
-        toast({
-          title: t('toast.errorTitle'),
-          description: error,
-          variant: 'destructive',
-        });
-        return;
-      }
-
-      if (!updatedUser) {
-        toast({
-          title: t('toast.errorTitle'),
-          description: t('toast.updateFailedDescription'),
-          variant: 'destructive',
-        });
-        return;
-      }
-
-      // Optimistic update to Zustand store
-      router.refresh();
-
-      // Show success toast
-      toast({
-        title: t('toast.updatedTitle'),
-        description: t('toast.updatedDescription'),
-        variant: 'success',
-      });
-
-      // Close modal
-      onOpenChange(false);
-    } catch (error) {
-      console.error('Error updating profile:', error);
-      toast({
-        title: t('toast.errorTitle'),
-        description: t('toast.updateErrorDescription'),
-        variant: 'destructive',
-      });
-    }
-  };
+    }),
+    [currentName, currentEmail]
+  );
 
   return (
-    <ModalWrapper
+    <EntityFormModal<EditProfileFormData>
       isOpen={isOpen}
-      onOpenChange={onOpenChange}
+      onClose={onClose}
       title={t('title')}
       description={t('description')}
-      titleClassName={settingsStyles.modals.title}
-      descriptionClassName={settingsStyles.modals.description}
-      disableOutsideClose={isSubmitting}
+      schema={editProfileSchema}
+      defaultValues={defaultValues}
+      resetValues={defaultValues}
       repositionInputs={false}
-    >
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className={cn(settingsStyles.modals.form, 'flex flex-col h-full')}
-      >
-        <ModalBody>
-          <FormField label={t('nameLabel')} htmlFor="name" error={errors.name?.message}>
-            <Input
-              id="name"
-              type="text"
-              placeholder={t('namePlaceholder')}
-              disabled={isSubmitting}
-              autoComplete="name"
-              className={settingsStyles.modals.field.input}
-              {...register('name')}
-            />
-          </FormField>
-
-          <FormField label={t('emailLabel')} htmlFor="email" error={errors.email?.message}>
-            <Input
-              id="email"
-              type="email"
-              placeholder={t('emailPlaceholder')}
-              disabled={isSubmitting}
-              autoComplete="email"
-              className={settingsStyles.modals.field.input}
-              {...register('email')}
-            />
-          </FormField>
-        </ModalBody>
-
-        <ModalFooter>
+      formClassName={settingsStyles.modals.form}
+      footer={(form) => (
+        <>
           <Button
             variant="outline"
-            onClick={() => onOpenChange(false)}
-            disabled={isSubmitting}
+            onClick={onClose}
+            disabled={form.formState.isSubmitting}
             className={settingsStyles.modals.actionsButton}
             type="button"
           >
@@ -216,10 +76,10 @@ export function EditProfileModal({
           </Button>
           <Button
             type="submit"
-            disabled={isSubmitting}
+            disabled={form.formState.isSubmitting}
             className={settingsStyles.modals.actionsButton}
           >
-            {isSubmitting ? (
+            {form.formState.isSubmitting ? (
               <>
                 <Loader2 className={settingsStyles.modals.loadingIcon} />
                 {t('savingButton')}
@@ -228,8 +88,82 @@ export function EditProfileModal({
               t('saveChangesButton')
             )}
           </Button>
-        </ModalFooter>
-      </form>
-    </ModalWrapper>
+        </>
+      )}
+      onSubmit={async (data) => {
+        if (data.name === currentName && data.email === currentEmail) {
+          toast({
+            title: t('toast.noChangesTitle'),
+            description: t('toast.noChangesDescription'),
+            variant: 'info',
+          });
+          onClose();
+          return;
+        }
+
+        const { data: updatedUser, error } = await updateUserProfileAction(userId, {
+          name: data.name === currentName ? undefined : data.name,
+          email: data.email === currentEmail ? undefined : data.email,
+        });
+
+        if (error) {
+          toast({ title: t('toast.errorTitle'), description: error, variant: 'destructive' });
+          throw new Error(error);
+        }
+
+        if (!updatedUser) {
+          toast({
+            title: t('toast.errorTitle'),
+            description: t('toast.updateFailedDescription'),
+            variant: 'destructive',
+          });
+          throw new Error('update failed');
+        }
+
+        router.refresh();
+        toast({
+          title: t('toast.updatedTitle'),
+          description: t('toast.updatedDescription'),
+          variant: 'success',
+        });
+        onClose();
+      }}
+    >
+      {(form) => (
+        <>
+          <FormField
+            label={t('nameLabel')}
+            htmlFor="name"
+            error={form.formState.errors.name?.message}
+          >
+            <Input
+              id="name"
+              type="text"
+              placeholder={t('namePlaceholder')}
+              disabled={form.formState.isSubmitting}
+              autoComplete="name"
+              className={settingsStyles.modals.field.input}
+              {...form.register('name')}
+            />
+          </FormField>
+
+          <FormField
+            label={t('emailLabel')}
+            htmlFor="email"
+            error={form.formState.errors.email?.message}
+          >
+            <Input
+              id="email"
+              type="email"
+              placeholder={t('emailPlaceholder')}
+              disabled={form.formState.isSubmitting}
+              autoComplete="email"
+              className={settingsStyles.modals.field.input}
+              {...form.register('email')}
+            />
+          </FormField>
+        </>
+      )}
+    </EntityFormModal>
   );
 }

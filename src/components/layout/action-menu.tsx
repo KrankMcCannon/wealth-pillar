@@ -15,7 +15,6 @@ import {
 import { cn } from '@/lib';
 import { useModalState } from '@/lib/navigation/url-state';
 import { usePathname } from '@/i18n/routing';
-import { useMediaQuery } from '@/hooks/use-media-query';
 import { useMounted } from '@/hooks/use-mounted';
 import {
   Button,
@@ -83,7 +82,6 @@ export function ActionMenu({
   const pathname = usePathname();
   const isAccountsRoute = pathname.includes('/accounts');
   const { openModal } = useModalState();
-  const isMobile = useMediaQuery('(max-width: 767px)');
   const [secondaryOpen, setSecondaryOpen] = useState(false);
   const mounted = useMounted();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -176,7 +174,7 @@ export function ActionMenu({
   /** Stesso ordine di priorità del menu raggruppato (allineato header ↔ bottom nav). */
   const actionItems: ActionMenuItem[] = [...extraMenuItems, ...orderedCreateItems];
 
-  const displayItems = reverseMobileOrder && isMobile ? [...actionItems].reverse() : actionItems;
+  const displayItems = reverseMobileOrder ? [...actionItems].reverse() : actionItems;
 
   const primaryWhenGrouped: ActionMenuItem[] = isAccountsRoute
     ? [newAccountItem, newTransactionItem, newBudgetItem]

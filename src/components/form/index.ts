@@ -13,7 +13,7 @@ export {
   type EntityFormModalProps,
   type EntityFormModalWrapperProps,
 } from './entity-form-modal';
-export {
-  EntityFormStitchFooter,
-  type EntityFormStitchFooterProps,
-} from './entity-form-stitch-footer';
+export { EntityFormFooter, type EntityFormFooterProps } from './entity-form-footer';
+export { EntityFormStitchFooter, type EntityFormStitchFooterProps } from './entity-form-footer';
+export { formModalStyles, stitchTransactionFormModal } from './form-modal-styles';
+export { SelectionModal, type SelectionModalProps, type SelectionOption } from './selection-modal';

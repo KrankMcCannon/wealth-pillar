@@ -5,29 +5,23 @@ import { useWatch, type UseFormReturn, type UseFormSetError } from 'react-hook-f
 import { z } from 'zod';
 import { useTranslations } from 'next-intl';
 import { useTransactionSubmit } from '../hooks/use-transaction-submit';
-import {
-  EntityFormModal,
-  EntityFormStitchFooter,
-  type EntityFormModalWrapperProps,
-} from '@/components/form';
+import { EntityFormModal, EntityFormFooter } from '@/components/form';
 import {
   usePermissions,
   useRequiredCurrentUser,
   useRequiredGroupUsers,
   useRequiredGroupId,
-  useDeleteConfirmation,
   useToast,
 } from '@/hooks';
 import { useAccounts, useCategories } from '@/stores/reference-data-store';
 import { useUserFilter } from '@/hooks/state/use-user-filter';
-import { ConfirmationDialog } from '@/components/shared';
 import {
   deleteTransactionAction,
   getTransactionByIdAction,
 } from '@/features/transactions/actions/transaction-actions';
 import { useRouter } from '@/i18n/routing';
 import { stitchTransactionFormModal } from '@/styles/home-design-foundation';
-import type { Account, Category, Transaction, User } from '@/lib/types';
+import type { Account, Category, User } from '@/lib/types';
 import { TransactionFormFields, type TransactionFormData } from './transaction-form-fields';
 
 const createTransactionSchema = (t: ReturnType<typeof useTranslations>) =>
@@ -68,15 +62,6 @@ interface TransactionFormModalProps {
 }
 
 const s = stitchTransactionFormModal;
-
-const stitchWrapperProps: EntityFormModalWrapperProps = {
-  titleClassName: s.headerTitle,
-  handleClassName: s.handle,
-  drawerHeaderClassName: s.drawerHeaderShell,
-  drawerCloseClassName: s.headerClose,
-  showCloseButton: true,
-  className: s.drawerSurface,
-};
 
 function TransactionFormModalBody({
   form,
@@ -190,8 +175,6 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
   const { selectedUserId } = useUserFilter();
   const router = useRouter();
   const { toast } = useToast();
-  const deleteConfirm = useDeleteConfirmation<Transaction>();
-
   const [isLoadingRow, setIsLoadingRow] = useState(false);
   const [resetValues, setResetValues] = useState<TransactionFormData | undefined>(undefined);
   const previousUserIdRef = useRef<string | null>(null);
@@ -305,101 +288,90 @@ function TransactionFormModal({ isOpen, onClose, editId }: Readonly<TransactionF
     },
   });
 
-  const openDeleteDialog = useCallback(() => {
-    if (!editId) return;
-    deleteConfirm.openDialog({ id: editId } as Transaction);
-  }, [deleteConfirm, editId]);
-
-  const handleDeleteConfirm = useCallback(async () => {
-    await deleteConfirm.executeDelete(async (transaction) => {
-      const result = await deleteTransactionAction(transaction.id);
-      if (result.error) {
-        toast({
-          title: tPage('errors.title'),
-          description: `${tPage('errors.deleteTransactionFailed')} ${tPage('errors.retryHint')}`,
-          variant: 'destructive',
-        });
-        throw new Error(result.error);
-      }
-      onClose();
-      router.refresh();
-    });
-  }, [deleteConfirm, onClose, router, tPage, toast]);
-
   const deleteDialogDescription =
-    deleteConfirm.itemToDelete?.description?.trim() ||
-    tPage('dialogs.deleteTransaction.fallbackDescription');
+    resetValues?.description?.trim() || tPage('dialogs.deleteTransaction.fallbackDescription');
+
+  const handleDelete = useCallback(async () => {
+    if (!editId) return;
+    const result = await deleteTransactionAction(editId);
+    if (result.error) {
+      toast({
+        title: tPage('errors.title'),
+        description: `${tPage('errors.deleteTransactionFailed')} ${tPage('errors.retryHint')}`,
+        variant: 'destructive',
+      });
+      throw new Error(result.error);
+    }
+    onClose();
+    router.refresh();
+  }, [editId, onClose, router, tPage, toast]);
 
   return (
-    <>
-      <EntityFormModal<TransactionFormData>
-        isOpen={isOpen}
-        onClose={onClose}
-        title={title}
-        schema={transactionSchema}
-        defaultValues={createDefaults}
-        resetValues={resetValues ?? createDefaults}
-        maxWidth="md"
-        repositionInputs={false}
-        isLoading={Boolean(editId) && isLoadingRow}
-        formClassName={s.formColumn}
-        bodyClassName={s.scrollBody}
-        footerClassName={s.stickyFooter}
-        wrapperProps={stitchWrapperProps}
-        onSubmit={async (data) => {
-          await submitHandler(data);
-        }}
-        footer={(_, isSubmitting) => (
-          <EntityFormStitchFooter
-            isEditMode={isEditMode}
-            isSubmitting={isSubmitting}
-            submitLabel={isEditMode ? t('buttons.saveTransaction') : t('buttons.create')}
-            deleteLabel={t('buttons.delete')}
-            deleteTestId="transaction-form-delete"
-            onDelete={openDeleteDialog}
-          />
-        )}
-      >
-        {(form) => {
-          setErrorRef.current = form.setError;
+    <EntityFormModal<TransactionFormData>
+      isOpen={isOpen}
+      onClose={onClose}
+      title={title}
+      schema={transactionSchema}
+      defaultValues={createDefaults}
+      resetValues={resetValues ?? createDefaults}
+      repositionInputs={false}
+      isLoading={Boolean(editId) && isLoadingRow}
+      formClassName={s.formColumn}
+      bodyClassName={s.scrollBody}
+      footerClassName={s.stickyFooter}
+      {...(isEditMode && editId
+        ? {
+            deletion: {
+              enabled: true,
+              title: tPage('dialogs.deleteTransaction.title'),
+              message: tPage('dialogs.deleteTransaction.message', {
+                description: deleteDialogDescription,
+              }),
+              confirmText: tPage('dialogs.deleteTransaction.confirm'),
+              cancelText: tPage('dialogs.cancel'),
+              onDelete: handleDelete,
+            },
+          }
+        : {})}
+      onSubmit={async (data) => {
+        await submitHandler(data);
+      }}
+      footer={(_, isSubmitting, { openDeleteDialog }) => (
+        <EntityFormFooter
+          isEditMode={isEditMode}
+          isSubmitting={isSubmitting}
+          submitLabel={isEditMode ? t('buttons.saveTransaction') : t('buttons.create')}
+          deleteLabel={t('buttons.delete')}
+          deleteTestId="transaction-form-delete"
+          {...(openDeleteDialog ? { onDelete: openDeleteDialog } : {})}
+        />
+      )}
+    >
+      {(form) => {
+        setErrorRef.current = form.setError;
 
-          return (
-            <>
-              {form.formState.errors.root ? (
-                <div className={s.errorBanner} role="alert">
-                  {form.formState.errors.root.message}
-                </div>
-              ) : null}
-              <TransactionFormModalBody
-                form={form}
-                isEditMode={isEditMode}
-                isOpen={isOpen}
-                groupUsers={groupUsers}
-                categories={categories}
-                accounts={accounts}
-                shouldDisableUserField={shouldDisableUserField}
-                userFieldHelperText={userFieldHelperText}
-                isSubmitting={form.formState.isSubmitting}
-              />
-            </>
-          );
-        }}
-      </EntityFormModal>
-
-      <ConfirmationDialog
-        isOpen={deleteConfirm.isOpen}
-        onConfirm={handleDeleteConfirm}
-        onCancel={() => deleteConfirm.closeDialog()}
-        title={tPage('dialogs.deleteTransaction.title')}
-        message={tPage('dialogs.deleteTransaction.message', {
-          description: deleteDialogDescription,
-        })}
-        confirmText={tPage('dialogs.deleteTransaction.confirm')}
-        cancelText={tPage('dialogs.cancel')}
-        variant="destructive"
-        isLoading={deleteConfirm.isDeleting}
-      />
-    </>
+        return (
+          <>
+            {form.formState.errors.root ? (
+              <div className={s.errorBanner} role="alert">
+                {form.formState.errors.root.message}
+              </div>
+            ) : null}
+            <TransactionFormModalBody
+              form={form}
+              isEditMode={isEditMode}
+              isOpen={isOpen}
+              groupUsers={groupUsers}
+              categories={categories}
+              accounts={accounts}
+              shouldDisableUserField={shouldDisableUserField}
+              userFieldHelperText={userFieldHelperText}
+              isSubmitting={form.formState.isSubmitting}
+            />
+          </>
+        );
+      }}
+    </EntityFormModal>
   );
 }
 

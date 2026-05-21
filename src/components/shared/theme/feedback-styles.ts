@@ -9,21 +9,17 @@
 import { radiusStyles, shadowStyles, typographyStyles } from '@/styles/system';
 
 export const confirmationDialogStyles = {
-  content: `sm:max-w-[420px] border border-primary/15 bg-card ${shadowStyles.xl}`,
-  header: 'p-4',
   headerLayout: 'flex items-start gap-3',
   iconWrapper: `flex size-12 shrink-0 items-center justify-center ${radiusStyles.md} bg-destructive/10 border border-destructive/20 text-destructive`,
   icon: 'size-6',
   text: {
-    title: `${typographyStyles.lg} font-semibold text-primary`,
-    message: `${typographyStyles.sm} text-primary leading-relaxed`,
+    message: `${typographyStyles.sm} text-modal-fg leading-relaxed`,
   },
   body: 'flex-1 space-y-2',
-  footer: `p-4 border-t border-border/60 flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-end`,
   buttons: {
     cancel:
-      'w-full sm:w-auto font-semibold border border-primary/20 text-primary bg-card hover:bg-primary hover:text-primary-foreground',
-    confirm: 'w-full sm:w-auto font-semibold gap-2',
+      'w-full font-semibold border border-modal-border/30 text-modal-fg bg-modal-surface hover:bg-primary hover:text-primary-foreground',
+    confirm: 'w-full font-semibold gap-2',
   },
   loadingIcon: 'size-4 animate-spin',
 } as const;

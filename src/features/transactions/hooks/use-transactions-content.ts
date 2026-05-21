@@ -1,12 +1,9 @@
 import { useState, useMemo, useCallback, useTransition, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { useTranslations } from 'next-intl';
-import { useDeleteConfirmation, useIdNameMap, useToast } from '@/hooks';
-import { RecurringTransactionSeries } from '@/lib';
+import { useIdNameMap } from '@/hooks';
 import { defaultFiltersState } from '../components/transaction-filters';
 import type { TransactionFiltersState } from '@/server/use-cases/transactions/transaction.logic';
 import type { Transaction, Budget, Account } from '@/lib/types';
-import { deleteRecurringSeriesAction } from '@/features/recurring/actions/recurring-actions';
 import { useModalState, useTabState, type ModalType } from '@/lib/navigation/url-state';
 import { useRouter } from '@/i18n/routing';
 
@@ -15,7 +12,6 @@ export type PageSizeOption = 10 | 20 | 30 | 50 | 100;
 export interface UseTransactionsContentProps {
   transactions: Transaction[];
   totalTransactions?: number;
-  recurringSeries: RecurringTransactionSeries[];
   budgets: Budget[];
   accounts: Account[];
   currentPage: number;
@@ -61,15 +57,6 @@ export interface UseTransactionsContentReturn {
   storeTransactions: Transaction[];
   accountNames: Record<string, string>;
   handleEditTransaction: (transaction: Transaction) => void;
-  recurringDeleteConfirm: ReturnType<typeof useDeleteConfirmation<RecurringTransactionSeries>>;
-  handleRecurringCancelDelete: () => void;
-  handleRecurringDeleteClick: (series: RecurringTransactionSeries) => void;
-  handleRecurringDeleteConfirm: () => Promise<void>;
-  showPauseModal: boolean;
-  selectedSeriesForPause: RecurringTransactionSeries | null;
-  handleRecurringPauseClick: (series: RecurringTransactionSeries) => void;
-  handlePauseSuccess: () => void;
-  handlePauseModalChange: (open: boolean) => void;
   openModal: (type: ModalType, id?: string) => void;
 }
 
@@ -150,8 +137,6 @@ export function useTransactionsContent({
 }: UseTransactionsContentProps): UseTransactionsContentReturn {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const t = useTranslations('TransactionsContent');
-  const { toast } = useToast();
   const [isNavigating, startNavigation] = useTransition();
   const [pageError, setPageError] = useState<string | null>(null);
 
@@ -260,8 +245,6 @@ export function useTransactionsContent({
     pushQuery(nextFilters, 1, pageSize, selectedUserId);
   }, [pageSize, pushQuery, selectedUserId]);
 
-  const recurringDeleteConfirm = useDeleteConfirmation<RecurringTransactionSeries>();
-
   const accountNames = useIdNameMap(accounts);
 
   const handleEditTransaction = useCallback(
@@ -270,54 +253,6 @@ export function useTransactionsContent({
     },
     [openModal]
   );
-
-  const handleRecurringDeleteClick = useCallback(
-    (series: RecurringTransactionSeries) => recurringDeleteConfirm.openDialog(series),
-    [recurringDeleteConfirm]
-  );
-
-  const handleRecurringDeleteConfirm = useCallback(async () => {
-    await recurringDeleteConfirm.executeDelete(async (series) => {
-      try {
-        const result = await deleteRecurringSeriesAction(series.id);
-        if (result.error) {
-          toast({
-            title: t('errors.title'),
-            description: `${t('errors.deleteRecurringFailed')} ${t('errors.retryHint')}`,
-            variant: 'destructive',
-          });
-          return;
-        }
-        router.refresh();
-      } catch {
-        toast({
-          title: t('errors.title'),
-          description: `${t('errors.deleteRecurringFailed')} ${t('errors.retryHint')}`,
-          variant: 'destructive',
-        });
-      }
-    });
-  }, [recurringDeleteConfirm, router, t, toast]);
-
-  const [showPauseModal, setShowPauseModal] = useState(false);
-  const [selectedSeriesForPause, setSelectedSeriesForPause] =
-    useState<RecurringTransactionSeries | null>(null);
-
-  const handleRecurringPauseClick = useCallback((series: RecurringTransactionSeries) => {
-    setSelectedSeriesForPause(series);
-    setShowPauseModal(true);
-  }, []);
-
-  const handlePauseSuccess = useCallback(() => {
-    router.refresh();
-    setShowPauseModal(false);
-    setSelectedSeriesForPause(null);
-  }, [router]);
-
-  const handlePauseModalChange = useCallback((open: boolean) => {
-    setShowPauseModal(open);
-    if (!open) setSelectedSeriesForPause(null);
-  }, []);
 
   return {
     router,
@@ -343,15 +278,6 @@ export function useTransactionsContent({
     storeTransactions: transactions,
     accountNames,
     handleEditTransaction,
-    recurringDeleteConfirm,
-    handleRecurringCancelDelete: () => recurringDeleteConfirm.closeDialog(),
-    handleRecurringDeleteClick,
-    handleRecurringDeleteConfirm,
-    showPauseModal,
-    selectedSeriesForPause,
-    handleRecurringPauseClick,
-    handlePauseSuccess,
-    handlePauseModalChange,
     openModal,
   };
 }

@@ -10,9 +10,14 @@ export {
   SettingsPageSkeleton,
 } from './settings-skeletons';
 
-export { DeleteAccountModal } from './delete-account-modal';
+export { DeleteAccountConfirmContent } from './delete-account-confirm-content';
 export { EditProfileModal } from './edit-profile-modal';
-export { PreferenceSelectModal, usePreferenceOptions } from './preference-select-modal';
+export { usePreferenceOptions, type PreferenceOption } from './preference-select-modal';
+export {
+  CurrencyPreferenceModal,
+  LanguagePreferenceModal,
+  TimezonePreferenceModal,
+} from './settings-preference-modals';
 export { InviteMemberModal } from './invite-member-modal';
 export { SubscriptionModal } from './subscription-modal';
 

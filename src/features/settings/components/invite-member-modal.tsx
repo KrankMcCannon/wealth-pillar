@@ -1,23 +1,16 @@
 'use client';
 
-import * as React from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { useMemo } from 'react';
 import { z } from 'zod';
 import { useTranslations } from 'next-intl';
 import { Loader2, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { ModalBody, ModalFooter, ModalWrapper } from '@/components/ui/modal-wrapper';
+import { EntityFormModal } from '@/components/form';
 import { toast } from '@/hooks/use-toast';
 import { sendGroupInvitationAction } from '@/features/settings';
 import { settingsStyles } from '@/features/settings/theme';
 import { FormField } from '@/components/form';
 import { Input } from '@/components/ui';
-import { cn } from '@/lib/utils';
-
-// ============================================================================
-// VALIDATION SCHEMA
-// ============================================================================
 
 const createInviteMemberSchema = (t: ReturnType<typeof useTranslations>) =>
   z.object({
@@ -30,153 +23,48 @@ const createInviteMemberSchema = (t: ReturnType<typeof useTranslations>) =>
 
 type InviteMemberFormData = z.infer<ReturnType<typeof createInviteMemberSchema>>;
 
-// ============================================================================
-// COMPONENT PROPS
-// ============================================================================
-
 export interface InviteMemberModalProps {
   isOpen: boolean;
-  onOpenChange: (open: boolean) => void;
+  onClose: () => void;
   groupId: string;
   currentUserId: string;
   onSuccess?: () => void;
 }
 
-// ============================================================================
-// COMPONENT
-// ============================================================================
-
-/**
- * InviteMemberModal Component
- * Modal for inviting new members to the group via email
- *
- * Features:
- * - React Hook Form with Zod validation
- * - Email format validation
- * - Duplicate invitation checking (server-side)
- * - Toast notifications for success/error
- * - Loading states
- * - Clear feedback messages
- *
- * @example
- * ```tsx
- * <InviteMemberModal
- *   isOpen={showModal}
- *   onOpenChange={setShowModal}
- *   groupId={currentUser.group_id}
- *   currentUserId={currentUser.id}
- * />
- * ```
- */
 export function InviteMemberModal({
   isOpen,
-  onOpenChange,
+  onClose,
   groupId,
   currentUserId,
   onSuccess,
 }: InviteMemberModalProps) {
   const t = useTranslations('SettingsModals.InviteMember');
-  const inviteMemberSchema = React.useMemo(() => createInviteMemberSchema(t), [t]);
+  const inviteMemberSchema = useMemo(() => createInviteMemberSchema(t), [t]);
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-    reset,
-  } = useForm<InviteMemberFormData>({
-    resolver: zodResolver(inviteMemberSchema),
-    defaultValues: {
+  const defaultValues = useMemo(
+    (): InviteMemberFormData => ({
       email: '',
-    },
-  });
-
-  // Reset form when modal opens
-  React.useEffect(() => {
-    if (isOpen) {
-      reset({ email: '' });
-    }
-  }, [isOpen, reset]);
-
-  const onSubmit = async (data: InviteMemberFormData) => {
-    try {
-      // Call server action to send invitation
-      const { error } = await sendGroupInvitationAction(groupId, currentUserId, data.email);
-
-      if (error) {
-        toast({
-          title: t('toast.sendErrorTitle'),
-          description: error,
-          variant: 'destructive',
-        });
-        return;
-      }
-
-      // Show success toast
-      toast({
-        title: t('toast.successTitle'),
-        description: t('toast.successDescription', { email: data.email }),
-        variant: 'success',
-      });
-
-      // Call onSuccess callback if provided
-      if (onSuccess) {
-        onSuccess();
-      }
-
-      // Close modal
-      onOpenChange(false);
-    } catch (error) {
-      console.error('Error sending invitation:', error);
-      toast({
-        title: t('toast.errorTitle'),
-        description: t('toast.errorDescription'),
-        variant: 'destructive',
-      });
-    }
-  };
+    }),
+    []
+  );
 
   return (
-    <ModalWrapper
+    <EntityFormModal<InviteMemberFormData>
       isOpen={isOpen}
-      onOpenChange={onOpenChange}
+      onClose={onClose}
       title={t('title')}
       description={t('description')}
-      titleClassName={settingsStyles.modals.title}
-      descriptionClassName={settingsStyles.modals.description}
-      disableOutsideClose={isSubmitting}
+      schema={inviteMemberSchema}
+      defaultValues={defaultValues}
+      resetValues={defaultValues}
       repositionInputs={false}
-    >
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className={cn(settingsStyles.modals.form, 'flex flex-col h-full')}
-      >
-        <ModalBody>
-          <FormField label={t('emailLabel')} htmlFor="email" error={errors.email?.message}>
-            <Input
-              id="email"
-              type="email"
-              placeholder={t('emailPlaceholder')}
-              disabled={isSubmitting}
-              autoComplete="email"
-              className={settingsStyles.modals.field.input}
-              {...register('email')}
-            />
-          </FormField>
-
-          {/* Info message */}
-          <div className={settingsStyles.modals.invite.infoBox}>
-            <p className={settingsStyles.modals.invite.infoText}>
-              <strong className={settingsStyles.modals.invite.infoStrong}>{t('noteLabel')}</strong>{' '}
-              {t('noteText')}
-            </p>
-          </div>
-        </ModalBody>
-
-        <ModalFooter>
+      formClassName={settingsStyles.modals.form}
+      footer={(form) => (
+        <>
           <Button
             variant="outline"
-            onClick={() => onOpenChange(false)}
-            disabled={isSubmitting}
+            onClick={onClose}
+            disabled={form.formState.isSubmitting}
             className={settingsStyles.modals.actionsButton}
             type="button"
           >
@@ -184,10 +72,10 @@ export function InviteMemberModal({
           </Button>
           <Button
             type="submit"
-            disabled={isSubmitting}
+            disabled={form.formState.isSubmitting}
             className={settingsStyles.modals.actionsButton}
           >
-            {isSubmitting ? (
+            {form.formState.isSubmitting ? (
               <>
                 <Loader2 className={settingsStyles.modals.loadingIcon} />
                 {t('sendingButton')}
@@ -199,8 +87,56 @@ export function InviteMemberModal({
               </>
             )}
           </Button>
-        </ModalFooter>
-      </form>
-    </ModalWrapper>
+        </>
+      )}
+      onSubmit={async (data) => {
+        const { error } = await sendGroupInvitationAction(groupId, currentUserId, data.email);
+
+        if (error) {
+          toast({
+            title: t('toast.sendErrorTitle'),
+            description: error,
+            variant: 'destructive',
+          });
+          throw new Error(error);
+        }
+
+        toast({
+          title: t('toast.successTitle'),
+          description: t('toast.successDescription', { email: data.email }),
+          variant: 'success',
+        });
+
+        onSuccess?.();
+        onClose();
+      }}
+    >
+      {(form) => (
+        <>
+          <FormField
+            label={t('emailLabel')}
+            htmlFor="email"
+            error={form.formState.errors.email?.message}
+          >
+            <Input
+              id="email"
+              type="email"
+              placeholder={t('emailPlaceholder')}
+              disabled={form.formState.isSubmitting}
+              autoComplete="email"
+              className={settingsStyles.modals.field.input}
+              {...form.register('email')}
+            />
+          </FormField>
+
+          <div className={settingsStyles.modals.invite.infoBox}>
+            <p className={settingsStyles.modals.invite.infoText}>
+              <strong className={settingsStyles.modals.invite.infoStrong}>{t('noteLabel')}</strong>{' '}
+              {t('noteText')}
+            </p>
+          </div>
+        </>
+      )}
+    </EntityFormModal>
   );
 }

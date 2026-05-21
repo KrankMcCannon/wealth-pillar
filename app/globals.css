@@ -96,6 +96,21 @@
   --color-sidebar-border: oklch(0.85 0.008 90);
   --color-sidebar-ring: oklch(0.595 0.178 270);
 
+  /* Modal surfaces (light — aligned with card) */
+  --color-modal-surface: oklch(0.985 0.003 90);
+  --color-modal-elevated: oklch(0.96 0.008 250);
+  --color-modal-elevated-hover: oklch(0.92 0.01 250);
+  --color-modal-input-bg: oklch(0.98 0.004 90);
+  --color-modal-border: oklch(0.85 0.02 250);
+  --color-modal-ring: oklch(0.595 0.178 270);
+  --color-modal-handle: oklch(0.75 0.06 250);
+  --color-modal-fg: oklch(0.25 0.015 90);
+  --color-modal-fg-muted: oklch(0.45 0.015 90);
+  --color-modal-fg-subtle: oklch(0.55 0.015 90);
+  --color-modal-error-bg: oklch(0.97 0.01 25);
+  --color-modal-error-border: oklch(0.75 0.12 25);
+  --color-modal-error-fg: oklch(0.45 0.12 25);
+
   /* Categorie */
   --category-utilities-blue: oklch(0.6 0.15 240);
   --category-utilities-red: oklch(0.6 0.18 30);
@@ -199,6 +214,21 @@ html.dark {
   --color-yellow-500: oklch(0.82 0.1 90);
   --color-purple-500: oklch(0.72 0.12 280);
   --color-violet-500: oklch(0.72 0.12 270);
+
+  /* Modal surfaces (Stitch dark palette) */
+  --color-modal-surface: oklch(0.22 0.06 265);
+  --color-modal-elevated: oklch(0.28 0.05 265);
+  --color-modal-elevated-hover: oklch(0.32 0.055 265);
+  --color-modal-input-bg: oklch(0.26 0.05 265);
+  --color-modal-border: oklch(0.45 0.08 265);
+  --color-modal-ring: oklch(0.62 0.14 265);
+  --color-modal-handle: oklch(0.52 0.08 265);
+  --color-modal-fg: oklch(0.94 0.02 265);
+  --color-modal-fg-muted: oklch(0.72 0.04 265);
+  --color-modal-fg-subtle: oklch(0.62 0.04 265);
+  --color-modal-error-bg: oklch(0.22 0.06 25);
+  --color-modal-error-border: oklch(0.55 0.14 25);
+  --color-modal-error-fg: oklch(0.82 0.08 25);
 }
 
 /* -----------------------------------------------------------------------------

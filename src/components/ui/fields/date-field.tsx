@@ -1,5 +1,5 @@
 /**
- * DateField — row trigger opens calendar (desktop popover / mobile drawer).
+ * DateField — row trigger opens calendar drawer.
  */
 
 'use client';
@@ -9,9 +9,7 @@ import { format, isValid, isSameDay, startOfDay } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { useTranslations } from 'next-intl';
 import { Calendar as CalendarIcon, ChevronRight } from 'lucide-react';
-import { useMediaQuery } from '@/hooks/use-media-query';
 import { MobileCalendarDrawer } from '../mobile-calendar-drawer';
-import { DesktopCalendarPopover } from '../desktop-calendar-popover';
 import { stitchTransactionFormModal } from '@/styles/home-design-foundation';
 
 export interface DateFieldProps {
@@ -25,7 +23,6 @@ export interface DateFieldProps {
 export function DateField({ value, onChange, error, label }: Readonly<DateFieldProps>) {
   const t = useTranslations('Forms.DateField');
   const tDrawer = useTranslations('Forms.DateDrawer');
-  const isDesktop = useMediaQuery('(min-width: 640px)');
   const resolvedLabel = label ?? t('label');
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
@@ -63,41 +60,21 @@ export function DateField({ value, onChange, error, label }: Readonly<DateFieldP
 
   return (
     <div className="space-y-1">
-      {isDesktop ? (
-        <DesktopCalendarPopover
-          value={value}
-          onChange={onChange}
-          isOpen={isDrawerOpen}
-          onOpenChange={setIsDrawerOpen}
-        >
-          <button
-            type="button"
-            data-state={isDrawerOpen ? 'open' : 'closed'}
-            aria-expanded={isDrawerOpen}
-            className={stitchTransactionFormModal.selectorTrigger}
-          >
-            {triggerInner}
-          </button>
-        </DesktopCalendarPopover>
-      ) : (
-        <>
-          <button
-            type="button"
-            onClick={() => setIsDrawerOpen(true)}
-            data-state={isDrawerOpen ? 'open' : 'closed'}
-            aria-expanded={isDrawerOpen}
-            className={stitchTransactionFormModal.selectorTrigger}
-          >
-            {triggerInner}
-          </button>
-          <MobileCalendarDrawer
-            value={value}
-            onChange={onChange}
-            isOpen={isDrawerOpen}
-            onClose={() => setIsDrawerOpen(false)}
-          />
-        </>
-      )}
+      <button
+        type="button"
+        onClick={() => setIsDrawerOpen(true)}
+        data-state={isDrawerOpen ? 'open' : 'closed'}
+        aria-expanded={isDrawerOpen}
+        className={stitchTransactionFormModal.selectorTrigger}
+      >
+        {triggerInner}
+      </button>
+      <MobileCalendarDrawer
+        value={value}
+        onChange={onChange}
+        isOpen={isDrawerOpen}
+        onClose={() => setIsDrawerOpen(false)}
+      />
       {error ? <p className={stitchTransactionFormModal.fieldError}>{error}</p> : null}
     </div>
   );

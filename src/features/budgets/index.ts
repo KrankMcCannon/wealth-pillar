@@ -6,7 +6,6 @@
 export { BudgetCard } from './components/budget-card';
 // Components
 export { BudgetPeriodInfo } from './components/budget-period-info';
-export { BudgetPeriodManager } from './components/budget-period-manager';
 export { BudgetPeriodCard } from './components/budget-period-card';
 export { BudgetSection } from './components/budget-section';
 export {

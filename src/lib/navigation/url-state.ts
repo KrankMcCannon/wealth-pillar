@@ -9,9 +9,41 @@ export const MODAL_TYPES = [
   'recurring',
   'account',
   'investment',
+  'settings:profile',
+  'settings:currency',
+  'settings:language',
+  'settings:timezone',
+  'settings:invite',
+  'settings:subscription',
+  'settings:delete-account',
 ] as const;
 
 export type ModalType = (typeof MODAL_TYPES)[number];
+
+export const SETTINGS_MODAL_TYPES = [
+  'settings:profile',
+  'settings:currency',
+  'settings:language',
+  'settings:timezone',
+  'settings:invite',
+  'settings:subscription',
+  'settings:delete-account',
+] as const;
+
+export type SettingsModalKind =
+  | 'profile'
+  | 'currency'
+  | 'language'
+  | 'timezone'
+  | 'invite'
+  | 'subscription'
+  | 'delete-account';
+
+export function isSettingsModalType(
+  modal: string | null
+): modal is (typeof SETTINGS_MODAL_TYPES)[number] {
+  return SETTINGS_MODAL_TYPES.includes(modal as (typeof SETTINGS_MODAL_TYPES)[number]);
+}
 
 /**
  * Hook for managing modal state via URL params

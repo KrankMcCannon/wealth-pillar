@@ -1,5 +1,7 @@
 'use client';
 
+import type { ReactNode } from 'react';
+import { useTranslations } from 'next-intl';
 import { ModalWrapper, ModalBody, ModalFooter } from '@/components/ui/modal-wrapper';
 import { Button } from '@/components/ui/button';
 import { AlertTriangleIcon, Loader2Icon } from 'lucide-react';
@@ -11,6 +13,8 @@ interface ConfirmationDialogProps {
   onCancel: () => void;
   title: string;
   message: string;
+  description?: string;
+  children?: ReactNode;
   confirmText?: string;
   cancelText?: string;
   variant?: 'default' | 'destructive';
@@ -23,11 +27,17 @@ export function ConfirmationDialog({
   onCancel,
   title,
   message,
-  confirmText = 'Conferma',
-  cancelText = 'Annulla',
+  description,
+  children,
+  confirmText,
+  cancelText,
   variant = 'default',
   isLoading = false,
 }: Readonly<ConfirmationDialogProps>) {
+  const t = useTranslations('Common');
+  const resolvedConfirm = confirmText ?? t('confirm');
+  const resolvedCancel = cancelText ?? t('cancel');
+
   const handleConfirm = async () => {
     await onConfirm();
   };
@@ -37,6 +47,7 @@ export function ConfirmationDialog({
       isOpen={isOpen}
       onOpenChange={(open) => !open && onCancel()}
       title={title}
+      {...(description !== undefined ? { description } : {})}
       showCloseButton={!isLoading}
       disableOutsideClose={isLoading}
     >
@@ -48,7 +59,8 @@ export function ConfirmationDialog({
             </div>
           )}
           <div className={confirmationDialogStyles.body}>
-            <p className={confirmationDialogStyles.text.message}>{message}</p>
+            {children}
+            {message ? <p className={confirmationDialogStyles.text.message}>{message}</p> : null}
           </div>
         </div>
       </ModalBody>
@@ -59,7 +71,7 @@ export function ConfirmationDialog({
           disabled={isLoading}
           className={confirmationDialogStyles.buttons.cancel}
         >
-          {cancelText}
+          {resolvedCancel}
         </Button>
         <Button
           variant={variant}
@@ -68,7 +80,7 @@ export function ConfirmationDialog({
           className={confirmationDialogStyles.buttons.confirm}
         >
           {isLoading && <Loader2Icon className={confirmationDialogStyles.loadingIcon} />}
-          {confirmText}
+          {resolvedConfirm}
         </Button>
       </ModalFooter>
     </ModalWrapper>

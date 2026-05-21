@@ -356,62 +356,9 @@ export const stitchTransactionFilterTriggers = {
     'inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium whitespace-nowrap bg-red-500/15 text-red-200 transition-all duration-200 hover:bg-red-500/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/35 active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100',
 } as const;
 
-/**
- * Modale aggiunta/modifica transazione — struttura allineata a stitch/html/13-modal-add-transaction
- * (drawer “liquid glass”, importo hero, righe selettore, nota, CTA sticky). Palette dark coerente con stitchTransactions.
- */
-export const stitchTransactionFormModal = {
-  /** Shell passata a ModalWrapper (drawer / dialog) */
-  drawerSurface:
-    'flex max-h-[min(751px,92dvh)] flex-col overflow-hidden rounded-t-[32px] border border-[#3359c5]/25 bg-[#0b1f4f]/92 shadow-[0_-8px_40px_rgba(0,20,86,0.28)] ring-1 ring-inset ring-white/10 backdrop-blur-[24px] sm:max-w-lg sm:rounded-2xl',
-  handle: 'mx-auto mb-4 h-1.5 w-12 shrink-0 rounded-full bg-[#5c77cc]/35',
-  /** Header drawer transazioni: niente bg “card” chiaro, bordo sottile come Stitch */
-  drawerHeaderShell:
-    'border-0 border-b border-[#3359c5]/25 bg-transparent px-4 pb-4 pt-2 shadow-none',
-  headerRow: 'mb-6 flex shrink-0 items-center justify-between gap-3 px-1',
-  headerTitle:
-    'min-w-0 flex-1 text-left text-xl font-semibold leading-snug tracking-tight text-[#e6ecff]',
-  headerClose:
-    'flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#11295f]/90 text-[#e6ecff] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.1)] transition-colors hover:bg-[#17336f] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6b9fff]/45 active:scale-[0.97] motion-reduce:active:scale-100',
-  formColumn: 'flex min-h-0 flex-1 flex-col',
-  scrollBody:
-    'min-h-0 flex-1 space-y-6 overflow-y-auto px-1 pb-4 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
-  amountSection: 'flex flex-col items-center py-1',
-  amountEyebrow: 'mb-2 text-[11px] font-semibold uppercase tracking-wider text-[#9fb0d7]',
-  amountRow: 'group/amount flex w-full max-w-[220px] items-center justify-center',
-  amountCurrency:
-    'mr-1 text-3xl font-semibold tabular-nums text-[#9fb0d7]/45 transition-colors group-focus-within/amount:text-[#8fb0ff]',
-  amountInput:
-    'min-w-0 flex-1 border-0 bg-transparent p-0 text-center text-3xl font-semibold tabular-nums tracking-tight text-[#e6ecff] placeholder:text-[#9fb0d7]/35 focus:outline-none focus:ring-0',
-  amountTrack: 'mt-3 h-0.5 w-32 overflow-hidden rounded-full bg-[#3359c5]/35',
-  amountTrackFill:
-    'h-full w-0 rounded-full bg-[#6b9fff] transition-all duration-300 ease-out group-focus-within/amount:w-full',
-  fieldStack: 'space-y-3',
-  selectorTrigger:
-    'flex min-h-[72px] w-full items-center justify-between gap-3 rounded-xl border border-transparent bg-[#11295f]/90 px-4 py-3 text-left shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)] transition-colors hover:bg-[#17336f] focus:outline-none focus-visible:border-[#5c77cc]/55 focus-visible:ring-2 focus-visible:ring-[#5c77cc]/25 data-[state=open]:border-[#5c77cc]/45',
-  selectorIconWrap:
-    'flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#1a2b6d] text-[#b8c5ff] shadow-sm shadow-black/20',
-  selectorLabel: 'text-[11px] font-semibold uppercase tracking-wider text-[#9fb0d7]',
-  selectorValue: 'truncate text-base font-medium text-[#e6ecff]',
-  selectorValueMuted: 'truncate text-base font-medium text-[#9fb0d7]/55',
-  selectorChevron: 'h-5 w-5 shrink-0 text-[#9fb0d7]/70',
-  noteShell:
-    'rounded-xl border border-transparent bg-[#11295f]/85 p-4 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)] transition-all focus-within:border-[#5c77cc]/50 focus-within:ring-1 focus-within:ring-[#5c77cc]/35',
-  noteLabel: 'mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-[#9fb0d7]',
-  noteInput:
-    'w-full border-0 bg-transparent p-0 text-base font-medium text-[#e6ecff] placeholder:text-[#9fb0d7]/45 focus:outline-none focus:ring-0',
-  errorBanner: 'rounded-xl border border-red-500/35 bg-red-950/35 px-3 py-2 text-sm text-red-200',
-  fieldError: 'px-1 text-xs text-red-300',
-  deleteButton:
-    'flex min-h-[52px] w-full items-center justify-center gap-2.5 rounded-2xl border border-red-500/45 bg-red-950/25 px-5 py-4 text-sm font-semibold uppercase tracking-[0.18em] text-red-200 shadow-[inset_0_0_0_1px_rgba(248,113,113,0.12)] transition-colors hover:border-red-400/55 hover:bg-red-950/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/35 active:scale-[0.98] motion-reduce:active:scale-100',
-  /** Colonna azioni nel footer (CTA principale, poi Elimina in modifica) */
-  footerActionsStack: 'flex w-full flex-col gap-3',
-  stickyFooter:
-    'mt-auto shrink-0 border-t border-[#3359c5]/30 bg-[#080f28]/92 px-4 py-4 backdrop-blur-xl supports-backdrop-filter:bg-[#080f28]/88 pb-[max(env(safe-area-inset-bottom),1rem)] sm:pb-4 -mx-4',
-  /** CTA come Stitch 13: primario scuro, tracking largo, alone */
-  primaryCta:
-    'flex min-h-[52px] w-full items-center justify-center gap-2.5 rounded-2xl border border-[#4d6fd0]/35 bg-[#183166] px-5 py-4 text-sm font-semibold uppercase tracking-[0.22em] text-white shadow-[0_10px_32px_rgba(0,16,70,0.45)] ring-1 ring-inset ring-white/10 transition-all hover:border-[#6b8fff]/45 hover:bg-[#1f3d85] hover:shadow-[0_12px_36px_rgba(0,20,86,0.5)] active:scale-[0.98] disabled:pointer-events-none disabled:opacity-45 motion-reduce:transition-none motion-reduce:active:scale-100',
-} as const;
+import { stitchTransactionFormModal } from '@/components/form/form-modal-styles';
+
+export { stitchTransactionFormModal };
 
 /**
  * Modale creazione/modifica budget — stesso shell/footer/CTA di {@link stitchTransactionFormModal};

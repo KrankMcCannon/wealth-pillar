@@ -20,6 +20,9 @@ const AccountFormModal = lazy(() => import('@/features/accounts/components/accou
 const AddInvestmentModal = lazy(
   () => import('@/features/investments/components/add-investment-modal')
 );
+const SettingsModalRenderer = lazy(
+  () => import('@/features/settings/components/settings-modal-renderer')
+);
 
 interface ModalProviderProps {
   children: React.ReactNode;
@@ -51,6 +54,8 @@ function ModalRenderer() {
       {modal === 'account' && <AccountFormModal isOpen onClose={closeModal} editId={editId} />}
 
       {modal === 'investment' && <AddInvestmentModal isOpen onClose={closeModal} editId={editId} />}
+
+      {modal?.startsWith('settings:') ? <SettingsModalRenderer /> : null}
     </Suspense>
   );
 }

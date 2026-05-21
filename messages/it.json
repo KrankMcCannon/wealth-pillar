@@ -49,6 +49,8 @@
     }
   },
   "Common": {
+    "confirm": "Conferma",
+    "cancel": "Annulla",
     "closeDialog": "Chiudi finestra",
     "language": "Lingua",
     "switchLanguage": "Cambia Lingua",

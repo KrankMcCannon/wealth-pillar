@@ -1,11 +1,9 @@
 'use client';
 
 import { Check, Loader2, Trash2 } from 'lucide-react';
-import { stitchTransactionFormModal } from '@/styles/home-design-foundation';
+import { formModalStyles as s } from './form-modal-styles';
 
-const s = stitchTransactionFormModal;
-
-export interface EntityFormStitchFooterProps {
+export interface EntityFormFooterProps {
   isEditMode: boolean;
   isSubmitting: boolean;
   isDeleting?: boolean;
@@ -16,7 +14,7 @@ export interface EntityFormStitchFooterProps {
   showSubmitSpinner?: boolean;
 }
 
-export function EntityFormStitchFooter({
+export function EntityFormFooter({
   isEditMode,
   isSubmitting,
   isDeleting = false,
@@ -25,7 +23,7 @@ export function EntityFormStitchFooter({
   onDelete,
   deleteTestId,
   showSubmitSpinner = false,
-}: Readonly<EntityFormStitchFooterProps>) {
+}: Readonly<EntityFormFooterProps>) {
   const busy = isSubmitting || isDeleting;
 
   return (
@@ -53,3 +51,7 @@ export function EntityFormStitchFooter({
     </div>
   );
 }
+
+/** @deprecated Use EntityFormFooter */
+export const EntityFormStitchFooter = EntityFormFooter;
+export type EntityFormStitchFooterProps = EntityFormFooterProps;

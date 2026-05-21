@@ -12,12 +12,7 @@ import {
   getBudgetByIdAction,
   updateBudgetAction,
 } from '@/features/budgets';
-import {
-  EntityFormModal,
-  EntityFormStitchFooter,
-  type EntityFormModalWrapperProps,
-} from '@/components/form';
-import { ConfirmationDialog } from '@/components/shared/confirmation-dialog';
+import { EntityFormModal, EntityFormFooter } from '@/components/form';
 import {
   usePermissions,
   useRequiredCurrentUser,
@@ -37,16 +32,6 @@ interface BudgetFormModalProps {
 }
 
 const s = stitchBudgetFormModal;
-
-const stitchWrapperProps: EntityFormModalWrapperProps = {
-  titleClassName: s.headerTitle,
-  descriptionClassName: 'text-left text-[#9fb0d7]',
-  handleClassName: s.handle,
-  drawerHeaderClassName: s.drawerHeaderShell,
-  drawerCloseClassName: s.headerClose,
-  showCloseButton: true,
-  className: s.drawerSurface,
-};
 
 function BudgetFormModalBody({
   form,
@@ -108,8 +93,6 @@ function BudgetFormModal({ isOpen, onClose, editId }: Readonly<BudgetFormModalPr
   const t = useTranslations('Budgets.FormModal');
   const locale = useLocale();
   const router = useRouter();
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [isLoadingRow, setIsLoadingRow] = useState(false);
   const [resetValues, setResetValues] = useState<BudgetFormData | undefined>(undefined);
 
@@ -272,117 +255,98 @@ function BudgetFormModal({ isOpen, onClose, editId }: Readonly<BudgetFormModalPr
     router.refresh();
   };
 
-  const executeDelete = useCallback(async () => {
+  const handleDelete = useCallback(async () => {
     if (!editId) return;
 
-    setIsDeleting(true);
+    const result = await deleteBudgetAction(editId, locale);
 
-    try {
-      const result = await deleteBudgetAction(editId, locale);
-
-      if (result.error) {
-        toast({
-          title: t('toast.errorTitle'),
-          description: result.error,
-          variant: 'destructive',
-        });
-        return;
-      }
-
-      toast({
-        title: t('toast.deletedTitle'),
-        description: t('toast.deletedDescription'),
-        variant: 'success',
-      });
-      setDeleteDialogOpen(false);
-      onClose();
-      router.refresh();
-    } catch (error) {
-      const message = error instanceof Error ? error.message : t('errors.unknown');
+    if (result.error) {
       toast({
         title: t('toast.errorTitle'),
-        description: message,
+        description: result.error,
         variant: 'destructive',
       });
-    } finally {
-      setIsDeleting(false);
+      throw new Error(result.error);
     }
-  }, [editId, locale, router, onClose, t]);
+
+    toast({
+      title: t('toast.deletedTitle'),
+      description: t('toast.deletedDescription'),
+      variant: 'success',
+    });
+    onClose();
+    router.refresh();
+  }, [editId, locale, onClose, router, t]);
 
   return (
-    <>
-      <EntityFormModal<BudgetFormData>
-        isOpen={isOpen}
-        onClose={onClose}
-        title={title}
-        description={description}
-        schema={budgetSchema}
-        defaultValues={createDefaults}
-        resetValues={resetValues ?? createDefaults}
-        maxWidth="md"
-        repositionInputs={false}
-        isLoading={Boolean(editId) && isLoadingRow}
-        formClassName={s.formColumn}
-        bodyClassName={cn(s.scrollBody, 'overflow-x-hidden')}
-        footerClassName={s.stickyFooter}
-        wrapperProps={stitchWrapperProps}
-        onSubmit={async (data, form) => {
-          try {
-            if (isEditMode && editId) {
-              await handleUpdate(data, editId);
-              onClose();
-            } else {
-              await handleCreate(data);
-            }
-          } catch (error) {
-            const message = error instanceof Error ? error.message : t('errors.unknown');
-            form.setError('root', { message });
+    <EntityFormModal<BudgetFormData>
+      isOpen={isOpen}
+      onClose={onClose}
+      title={title}
+      description={description}
+      schema={budgetSchema}
+      defaultValues={createDefaults}
+      resetValues={resetValues ?? createDefaults}
+      repositionInputs={false}
+      isLoading={Boolean(editId) && isLoadingRow}
+      formClassName={s.formColumn}
+      bodyClassName={cn(s.scrollBody, 'overflow-x-hidden')}
+      footerClassName={s.stickyFooter}
+      {...(isEditMode && editId
+        ? {
+            deletion: {
+              enabled: true,
+              title: t('deleteDialogTitle'),
+              message: t('deleteConfirm'),
+              confirmText: t('buttons.deleteBudget'),
+              cancelText: t('buttons.cancel'),
+              onDelete: handleDelete,
+            },
           }
-        }}
-        footer={(_, isSubmitting) => (
-          <EntityFormStitchFooter
-            isEditMode={isEditMode}
-            isSubmitting={isSubmitting}
-            isDeleting={isDeleting}
-            submitLabel={isEditMode ? t('buttons.confirmChanges') : t('buttons.create')}
-            deleteLabel={t('buttons.deleteBudget')}
-            deleteTestId="budget-form-delete"
-            showSubmitSpinner
-            onDelete={() => setDeleteDialogOpen(true)}
+        : {})}
+      onSubmit={async (data, form) => {
+        try {
+          if (isEditMode && editId) {
+            await handleUpdate(data, editId);
+            onClose();
+          } else {
+            await handleCreate(data);
+          }
+        } catch (error) {
+          const message = error instanceof Error ? error.message : t('errors.unknown');
+          form.setError('root', { message });
+        }
+      }}
+      footer={(_, isSubmitting, { openDeleteDialog }) => (
+        <EntityFormFooter
+          isEditMode={isEditMode}
+          isSubmitting={isSubmitting}
+          submitLabel={isEditMode ? t('buttons.confirmChanges') : t('buttons.create')}
+          deleteLabel={t('buttons.deleteBudget')}
+          deleteTestId="budget-form-delete"
+          showSubmitSpinner
+          {...(openDeleteDialog ? { onDelete: openDeleteDialog } : {})}
+        />
+      )}
+    >
+      {(form) => (
+        <>
+          {form.formState.errors.root ? (
+            <div className={s.errorBanner} role="alert">
+              {form.formState.errors.root.message}
+            </div>
+          ) : null}
+          <BudgetFormModalBody
+            form={form}
+            groupUsers={groupUsers}
+            categoryOptions={categoryOptions}
+            shouldDisableUserField={shouldDisableUserField}
+            userFieldHelperText={userFieldHelperText}
+            isSubmitting={form.formState.isSubmitting}
           />
-        )}
-      >
-        {(form) => (
-          <>
-            {form.formState.errors.root ? (
-              <div className={s.errorBanner} role="alert">
-                {form.formState.errors.root.message}
-              </div>
-            ) : null}
-            <BudgetFormModalBody
-              form={form}
-              groupUsers={groupUsers}
-              categoryOptions={categoryOptions}
-              shouldDisableUserField={shouldDisableUserField}
-              userFieldHelperText={userFieldHelperText}
-              isSubmitting={form.formState.isSubmitting}
-            />
-          </>
-        )}
-      </EntityFormModal>
-
-      <ConfirmationDialog
-        isOpen={deleteDialogOpen}
-        onCancel={() => setDeleteDialogOpen(false)}
-        onConfirm={executeDelete}
-        title={t('deleteDialogTitle')}
-        message={t('deleteConfirm')}
-        confirmText={t('buttons.deleteBudget')}
-        cancelText={t('buttons.cancel')}
-        variant="destructive"
-        isLoading={isDeleting}
-      />
-    </>
+        </>
+      )}
+    </EntityFormModal>
   );
 }
 
