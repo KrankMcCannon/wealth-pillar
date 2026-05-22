@@ -229,7 +229,7 @@ export const financialButtonVariants = cva(
  * ```
  */
 export const progressBarVariants = cva(
-  'h-3 w-full overflow-hidden rounded-full bg-muted/55 shadow-inner ring-1 ring-inset ring-border/45 dark:bg-muted/30 dark:ring-border/50',
+  'h-3 w-full overflow-hidden rounded-full bg-muted/40 shadow-inner ring-1 ring-inset ring-border/45',
   {
     variants: {
       status: {

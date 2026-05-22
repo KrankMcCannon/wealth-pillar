@@ -2,7 +2,6 @@
 
 import { Badge } from '@/components/ui';
 import { cn } from '@/lib/utils';
-import { roleBadgeStyles } from './theme/role-badge-styles';
 import { Crown, Shield, User } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
@@ -121,29 +120,24 @@ export const PermissionLevelIndicator: React.FC<PermissionLevelIndicatorProps> =
   };
 
   const config = configs[level];
-  const dotSize = size === 'sm' ? roleBadgeStyles.dotSmall : roleBadgeStyles.dotLarge;
+  const dotSize = size === 'sm' ? 'size-1.5' : 'size-2';
 
   return (
-    <div className={roleBadgeStyles.container}>
-      <div className={roleBadgeStyles.dots}>
+    <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1">
         {Array.from({ length: 3 }).map((_, index) => (
           <div
             key={index}
             className={cn(
-              roleBadgeStyles.dotBase,
+              'rounded-full transition-colors',
               dotSize,
-              index < config.dots ? config.color : roleBadgeStyles.dotInactive
+              index < config.dots ? config.color : 'bg-primary/20'
             )}
           />
         ))}
       </div>
       {showLabel && (
-        <span
-          className={cn(
-            roleBadgeStyles.label,
-            size === 'sm' ? roleBadgeStyles.labelSmall : roleBadgeStyles.labelLarge
-          )}
-        >
+        <span className={cn('font-medium text-foreground', size === 'sm' ? 'text-xs' : 'text-sm')}>
           {config.label}
         </span>
       )}

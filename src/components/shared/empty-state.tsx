@@ -1,53 +1,33 @@
 'use client';
 
 import { cn } from '@/lib';
-import { LucideIcon } from 'lucide-react';
-import { stitchHome } from '@/styles/home-design-foundation';
-import { budgetStyles } from '@/features/budgets/theme/budget-styles';
-import { emptyStateStyles } from '@/components/shared/theme/empty-state-styles';
+import type { LucideIcon } from 'lucide-react';
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from '@/components/ui/empty';
 
-/**
- * Empty State Component
- * Displays a consistent empty state message with optional icon and action
- */
 export type EmptyStateVariant = 'default' | 'dashboard' | 'surface';
 
 interface EmptyStateProps {
   variant?: EmptyStateVariant;
-  /** Optional icon to display */
   icon?: LucideIcon;
-  /** Title text */
   title: string;
-  /** id sull’heading per aria-labelledby della sezione contenitore */
   titleId?: string;
-  /** Optional description text */
   description?: string;
-  /** Optional action button or element */
   action?: React.ReactNode;
-  /** Optional additional className */
   className?: string;
 }
 
-/**
- * EmptyState Component
- * Reusable component for displaying empty states across the app
- *
- * @example
- * ```tsx
- * import { FileText } from "lucide-react";
- * import { EmptyState } from "@/components/shared";
- *
- * <EmptyState
- *   icon={FileText}
- *   title="Nessuna Transazione"
- *   description="Non ci sono transazioni per il periodo selezionato"
- * />
- * ```
- */
 const variantClassName: Record<EmptyStateVariant, string> = {
-  default: emptyStateStyles.container,
-  dashboard: stitchHome.emptyWell,
-  surface: budgetStyles.section.emptyContainer,
+  default: 'rounded-2xl border border-dashed border-border bg-card p-8',
+  dashboard:
+    'rounded-xl border border-border/50 bg-muted/30 px-4 py-3 text-sm text-muted-foreground',
+  surface: 'rounded-2xl border border-border bg-card p-8 shadow-sm',
 };
 
 export function EmptyState({
@@ -61,24 +41,24 @@ export function EmptyState({
 }: Readonly<EmptyStateProps>) {
   if (variant === 'dashboard' && !Icon && !action) {
     return (
-      <p className={cn(stitchHome.emptyWell, className)} id={titleId}>
+      <p className={cn(variantClassName.dashboard, className)} id={titleId}>
         {description ? `${title} — ${description}` : title}
       </p>
     );
   }
 
   return (
-    <div className={cn(variantClassName[variant], className)}>
-      {Icon && (
-        <div className={emptyStateStyles.iconWrapper}>
-          <Icon className={emptyStateStyles.icon} />
-        </div>
-      )}
-      <h3 id={titleId} className={emptyStateStyles.title}>
-        {title}
-      </h3>
-      {description && <p className={emptyStateStyles.description}>{description}</p>}
-      {action && <div className={emptyStateStyles.action}>{action}</div>}
-    </div>
+    <Empty className={cn(variantClassName[variant], className)}>
+      <EmptyHeader>
+        {Icon ? (
+          <EmptyMedia variant="icon">
+            <Icon />
+          </EmptyMedia>
+        ) : null}
+        <EmptyTitle id={titleId}>{title}</EmptyTitle>
+        {description ? <EmptyDescription>{description}</EmptyDescription> : null}
+      </EmptyHeader>
+      {action ? <EmptyContent>{action}</EmptyContent> : null}
+    </Empty>
   );
 }

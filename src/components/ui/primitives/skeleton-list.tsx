@@ -1,14 +1,14 @@
 import { Fragment } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 
-import { SkeletonBox } from './skeleton-box';
+import { Skeleton } from '@/components/ui/skeleton';
+import { cn } from '@/lib/utils';
 
 export interface SkeletonListProps {
   count: number;
   height?: string;
   width?: string;
   spacing?: string;
-  variant?: 'light' | 'medium' | 'dark';
   className?: string;
   style?: CSSProperties;
   renderItem?: (index: number) => ReactNode;
@@ -18,8 +18,7 @@ export function SkeletonList({
   count,
   height = 'h-16',
   width = 'w-full',
-  spacing = 'space-y-2',
-  variant = 'medium',
+  spacing = 'flex flex-col gap-2',
   className,
   style,
   renderItem,
@@ -30,13 +29,7 @@ export function SkeletonList({
         renderItem ? (
           <Fragment key={`skeleton-item-${i}`}>{renderItem(i)}</Fragment>
         ) : (
-          <SkeletonBox
-            key={`skeleton-box-${i}`}
-            height={height}
-            width={width}
-            variant={variant}
-            className={className}
-          />
+          <Skeleton key={`skeleton-box-${i}`} className={cn(height, width, className)} />
         )
       )}
     </div>

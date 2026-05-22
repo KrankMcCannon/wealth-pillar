@@ -1,103 +1,94 @@
+import { Skeleton } from '@/components/ui/skeleton';
 import { BottomNavigation, PageContainer, HomeDashboardMain } from '@/components/layout';
-import { reportsStyles } from '@/features/reports/theme/reports-styles';
 import { cn } from '@/lib/utils';
 import { STICKY_HEADER_BASE } from '@/lib/utils/ui-constants';
 import { headerStyles } from '@/components/layout/theme/header-styles';
-import { stitchReports } from '@/styles/home-design-foundation';
 
 export function ReportsSkeleton() {
-  const { skeletons: s } = reportsStyles;
-
   return (
     <PageContainer>
-      {/* Premium Header Skeleton - Matches Header component structure */}
       <header className={cn(STICKY_HEADER_BASE, headerStyles.container)}>
         <div className={headerStyles.inner}>
           <div className={headerStyles.slotLeft}>
-            <div className="h-8 w-8 animate-pulse rounded-full bg-primary/10 border border-primary/20" />
+            <Skeleton className="size-8 rounded-full" />
           </div>
           <div className={headerStyles.slotCenter}>
-            <div className="h-5 w-32 animate-pulse rounded-lg bg-primary/20" />
+            <Skeleton className="h-5 w-32 rounded-lg" />
           </div>
           <div className={headerStyles.slotRight}>
-            <div className="h-8 w-8 animate-pulse rounded-full bg-primary/10 border border-primary/20" />
+            <Skeleton className="size-8 rounded-full" />
           </div>
         </div>
       </header>
 
-      {/* Sticky Filter Bar Skeleton - Matches ReportsTimeFilter structure */}
-      <div className={stitchReports.stickyFilterBar}>
-        <div className={stitchReports.chipRow}>
+      <div className="sticky top-0 z-20 border-b border-border bg-background/90 px-4 py-3 backdrop-blur-sm">
+        <div className="flex gap-2 overflow-x-auto">
           {[1, 2, 3, 4].map((i) => (
-            <div
-              key={i}
-              className="h-9 w-24 shrink-0 animate-pulse rounded-full border border-primary/20 bg-primary/10"
-            />
+            <Skeleton key={i} className="h-9 w-24 shrink-0 rounded-full" />
           ))}
         </div>
       </div>
 
       <HomeDashboardMain id="main-reports-skeleton">
-        <div className="flex flex-col gap-8 pt-4">
-          {/* Hero Section */}
-          <div className={s.hero}>
-            <div className={s.heroLine1} />
-            <div className={s.heroLine2} />
-            <div className={s.heroLine3} />
+        <div className="flex flex-col gap-8 px-4 pt-4">
+          <div className="flex flex-col gap-3">
+            <Skeleton className="h-8 w-48" />
+            <Skeleton className="h-5 w-64" />
+            <Skeleton className="h-4 w-40" />
           </div>
 
-          {/* Quick Stats Grid */}
-          <div className={s.grid}>
-            <div className={s.gridItem} />
-            <div className={s.gridItem} />
+          <div className="grid grid-cols-2 gap-4">
+            <Skeleton className="h-24 rounded-2xl" />
+            <Skeleton className="h-24 rounded-2xl" />
           </div>
 
-          {/* Top Expenses */}
-          <section className={s.section}>
-            <div className={s.sectionTitle} />
-            <div className={s.rankingCard}>
+          <section className="flex flex-col gap-3">
+            <Skeleton className="h-5 w-36" />
+            <div className="rounded-2xl border border-border bg-card p-4">
               {[1, 2, 3, 4].map((i) => (
-                <div key={i} className={s.rankingItem}>
-                  <div className={s.rankingItemHeader}>
-                    <div className={s.rankingItemLabel} />
-                    <div className={s.rankingItemAmount} />
+                <div
+                  key={i}
+                  className="flex flex-col gap-2 border-b border-border py-3 last:border-0"
+                >
+                  <div className="flex items-center justify-between">
+                    <Skeleton className="h-4 w-28" />
+                    <Skeleton className="h-4 w-16" />
                   </div>
-                  <div className={s.rankingItemBar} />
+                  <Skeleton className="h-2 w-full rounded-full" />
                 </div>
               ))}
             </div>
           </section>
 
-          {/* Account Breakdown */}
-          <section className={s.section}>
-            <div className={s.sectionTitle} />
-            <div className={s.accountList}>
+          <section className="flex flex-col gap-3">
+            <Skeleton className="h-5 w-40" />
+            <div className="flex flex-col gap-3">
               {[1, 2, 3].map((i) => (
-                <div key={i} className={s.accountItem}>
+                <div
+                  key={i}
+                  className="flex items-center justify-between rounded-xl border border-border bg-card p-3"
+                >
                   <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-lg bg-primary/20" />
-                    <div className="h-4 w-32 rounded bg-primary/20" />
+                    <Skeleton className="size-10 rounded-lg" />
+                    <Skeleton className="h-4 w-32" />
                   </div>
-                  <div className="h-4 w-20 rounded bg-primary/20" />
+                  <Skeleton className="h-4 w-20" />
                 </div>
               ))}
             </div>
           </section>
 
-          {/* Historical Budget */}
-          <section className={s.section}>
-            <div className={s.sectionTitle} />
-            <div className={s.budgetList}>
-              {[1, 2].map((i) => (
-                <div key={i} className={s.budgetItem} />
-              ))}
+          <section className="flex flex-col gap-3">
+            <Skeleton className="h-5 w-44" />
+            <div className="flex flex-col gap-3">
+              <Skeleton className="h-20 rounded-xl" />
+              <Skeleton className="h-20 rounded-xl" />
             </div>
           </section>
 
-          {/* Footer Actions */}
-          <div className={s.footer}>
-            <div className={s.footerTitle} />
-            <div className={s.footerAction} />
+          <div className="flex flex-col gap-3 pb-6">
+            <Skeleton className="h-4 w-32" />
+            <Skeleton className="h-11 w-full rounded-xl" />
           </div>
         </div>
       </HomeDashboardMain>

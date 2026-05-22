@@ -10,7 +10,7 @@ import type { Account } from '@/lib';
 import { AccountCard } from './account-card';
 import { EmptyState } from '@/components/shared';
 import { cn } from '@/lib/utils';
-import { SkeletonBox } from '@/components/ui/primitives/skeleton-box';
+import { Skeleton } from '@/components/ui/skeleton';
 import { stitchAccounts, stitchHome } from '@/styles/home-design-foundation';
 
 function AccountCardSkeletonRow() {
@@ -22,13 +22,13 @@ function AccountCardSkeletonRow() {
       )}
     >
       <div className="flex min-w-0 flex-1 items-center gap-3">
-        <SkeletonBox height="h-9" width="w-9" variant="light" className="shrink-0 rounded-xl" />
-        <div className="min-w-0 flex-1 space-y-1.5">
-          <SkeletonBox height="h-4" width="w-[55%]" variant="light" />
-          <SkeletonBox height="h-3" width="w-20" variant="light" />
+        <Skeleton className="size-9 shrink-0 rounded-xl" />
+        <div className="min-w-0 flex-1 flex flex-col gap-1.5">
+          <Skeleton className="h-4 w-[55%]" />
+          <Skeleton className="h-3 w-20" />
         </div>
       </div>
-      <SkeletonBox height="h-4" width="w-16" variant="medium" className="shrink-0" />
+      <Skeleton className="h-4 w-16 shrink-0" />
     </div>
   );
 }

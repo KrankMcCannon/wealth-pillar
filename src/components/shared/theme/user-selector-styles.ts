@@ -5,15 +5,6 @@
 import type { CSSProperties } from 'react';
 
 export const userSelectorStyles = {
-  loading: {
-    container:
-      'rounded-2xl border border-[#3359c5]/20 bg-[#0b1f4f]/60 px-3 py-3 backdrop-blur-sm sm:px-4',
-    heading: 'mb-2 h-3 w-28 rounded bg-[#5c77cc]/25 animate-pulse',
-    list: 'flex gap-2 overflow-x-auto pb-1 scrollbar-hide',
-    item: 'flex min-h-[44px] min-w-[7.5rem] shrink-0 items-center gap-2 rounded-2xl border border-[#3359c5]/25 bg-[#11295f]/50 px-3 py-2 animate-pulse',
-    avatar: 'size-8 shrink-0 rounded-full bg-[#2a447f]/60',
-    text: 'h-3.5 flex-1 rounded bg-[#5c77cc]/20',
-  },
   /** Trasparente quando il genitore è già una card Stitch (es. transazioni). */
   container: 'border-0 bg-transparent px-0 pb-0 pt-0 backdrop-blur-none',
   heading: 'mb-2.5 text-[11px] font-bold uppercase tracking-wide text-[#8fb0ff]',

@@ -8,7 +8,7 @@ import {
   SkipToMainLink,
 } from '@/components/layout';
 import { headerStyles } from '@/components/layout/theme/header-styles';
-import { SkeletonBox } from '@/components/ui/primitives/skeleton-box';
+import { Skeleton } from '@/components/ui/skeleton';
 import { TransactionListSkeleton } from '@/components/ui/primitives/skeletons';
 import { cn } from '@/lib/utils';
 import { STICKY_HEADER_BASE } from '@/lib/utils/ui-constants';
@@ -22,13 +22,13 @@ function HeaderSkeleton() {
     <header className={cn(STICKY_HEADER_BASE, headerStyles.container)}>
       <div className={headerStyles.inner}>
         <div className={headerStyles.slotLeft}>
-          <SkeletonBox height="h-9" width="w-9" variant="light" className="rounded-full" />
+          <Skeleton className="size-9 rounded-full" />
         </div>
         <div className={headerStyles.slotCenter}>
-          <SkeletonBox height="h-5" width="w-36" variant="medium" />
+          <Skeleton className="h-5 w-36" />
         </div>
         <div className={headerStyles.slotRight}>
-          <SkeletonBox height="h-9" width="w-9" variant="light" className="rounded-full" />
+          <Skeleton className="size-9 rounded-full" />
         </div>
       </div>
     </header>
@@ -39,18 +39,18 @@ function HomeListBlockSkeleton() {
   return (
     <section className={stitchHome.sectionCard} aria-hidden>
       <div className="mb-3 flex items-center justify-between">
-        <SkeletonBox height="h-5" width="w-36" variant="medium" />
-        <SkeletonBox height="h-4" width="w-14" variant="light" />
+        <Skeleton className="h-5 w-36" />
+        <Skeleton className="h-4 w-14" />
       </div>
       <div className="flex flex-col gap-2">
         {[1, 2, 3].map((i) => (
           <div key={i} className={stitchHome.listRow}>
-            <SkeletonBox height="h-8" width="w-8" variant="light" className="shrink-0 rounded-xl" />
-            <div className="min-w-0 flex-1 space-y-1.5">
-              <SkeletonBox height="h-4" width="w-[60%]" variant="light" />
-              <SkeletonBox height="h-3" width="w-20" variant="light" />
+            <Skeleton className="size-8 shrink-0 rounded-xl" />
+            <div className="min-w-0 flex-1 flex flex-col gap-1.5">
+              <Skeleton className="h-4 w-[60%]" />
+              <Skeleton className="h-3 w-20" />
             </div>
-            <SkeletonBox height="h-4" width="w-16" variant="medium" className="shrink-0" />
+            <Skeleton className="h-4 w-16 shrink-0" />
           </div>
         ))}
       </div>
@@ -65,7 +65,7 @@ function HomePageSkeleton() {
       <HeaderSkeleton />
       <HomeDashboardMain ariaBusy>
         <section className={stitchHome.balanceSection} aria-hidden>
-          <SkeletonBox height="h-24" width="w-full" variant="light" className="rounded-2xl" />
+          <Skeleton className="h-24 w-full rounded-2xl" />
         </section>
         <HomeListBlockSkeleton />
         <HomeListBlockSkeleton />

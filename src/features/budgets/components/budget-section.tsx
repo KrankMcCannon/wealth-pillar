@@ -77,7 +77,7 @@ export const BudgetSection = ({
         <SectionHeader
           title={t('title')}
           subtitle={t('subtitle')}
-          className="mb-4 border-b border-border/40 pb-4 dark:border-border/35"
+          className="mb-4 border-b border-border/40 pb-4"
         />
         <EmptyState
           variant="surface"

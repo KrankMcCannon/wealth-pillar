@@ -4,6 +4,7 @@ import type { UseFormReturn } from 'react-hook-form';
 import { useTranslations } from 'next-intl';
 import { Coins } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { FieldGroup } from '@/components/ui/field';
 import { ModalDateField, ModalSelectField, ModalTextField } from '@/components/form/modal-fields';
 import { ModalSection } from '@/components/ui/modal-wrapper';
 import { formModalStyles as s } from '@/components/form/form-modal-styles';
@@ -40,7 +41,7 @@ export function InvestmentFormFields({ form, loadError, onRetryLoad }: Investmen
           <p>{loadError}</p>
           <button
             type="button"
-            className="w-full min-h-11 rounded-md border border-modal-border px-3 text-sm text-modal-fg"
+            className="w-full min-h-11 rounded-md border border-border px-3 text-sm text-foreground"
             onClick={onRetryLoad}
           >
             {t('retryLoad')}
@@ -49,7 +50,7 @@ export function InvestmentFormFields({ form, loadError, onRetryLoad }: Investmen
       ) : null}
 
       <ModalSection title={t('sections.identity')}>
-        <div className="grid grid-cols-1 gap-4">
+        <FieldGroup className="gap-4">
           <ModalTextField
             control={control}
             name="name"
@@ -63,11 +64,11 @@ export function InvestmentFormFields({ form, loadError, onRetryLoad }: Investmen
             placeholder={t('placeholders.symbol')}
             hint={t('fields.symbolHelper')}
           />
-        </div>
+        </FieldGroup>
       </ModalSection>
 
       <ModalSection title={t('sections.amounts')}>
-        <div className="grid grid-cols-1 gap-4">
+        <FieldGroup className="gap-4">
           <ModalTextField
             control={control}
             name="amount"
@@ -89,11 +90,11 @@ export function InvestmentFormFields({ form, loadError, onRetryLoad }: Investmen
             type="number"
             placeholder={t('placeholders.shares')}
           />
-        </div>
+        </FieldGroup>
       </ModalSection>
 
       <ModalSection title={t('sections.when')}>
-        <div className="grid grid-cols-1 gap-4">
+        <FieldGroup className="gap-4">
           <ModalDateField
             control={control}
             name="created_at"
@@ -105,9 +106,9 @@ export function InvestmentFormFields({ form, loadError, onRetryLoad }: Investmen
             name="currency"
             label={t('fields.currency')}
             options={[...currencyOptions]}
-            leadingIcon={<Coins className="h-5 w-5 text-[#8fb0ff]" aria-hidden />}
+            leadingIcon={<Coins aria-hidden />}
           />
-        </div>
+        </FieldGroup>
       </ModalSection>
     </>
   );

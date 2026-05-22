@@ -10,7 +10,8 @@ import type {
   TransactionTypeFilter,
 } from '@/server/use-cases/transactions/transaction.logic';
 import { Input } from '@/components/ui';
-import { FilterChip, FilterChipRow, FilterDrawer } from '@/components/ui/filters';
+import { FilterChip, FilterDrawer } from '@/components/ui/filters';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { cn } from '@/lib/utils';
 import { stitchTransactionPageSearch, stitchTransactions } from '@/styles/home-design-foundation';
 
@@ -145,15 +146,25 @@ export function TransactionFilterChips({
         </div>
       ) : null}
 
-      <FilterChipRow aria-label={tChips('toolbarAria')}>
+      <ToggleGroup
+        type="single"
+        value={filters.type}
+        onValueChange={(value) => {
+          if (value) setType(value as TransactionTypeFilter);
+        }}
+        variant="outline"
+        size="sm"
+        className="flex-wrap"
+        aria-label={tChips('toolbarAria')}
+      >
         {types.map(({ key, labelKey }) => (
-          <FilterChip
-            key={key}
-            label={t(`typeOptions.${labelKey}`)}
-            active={filters.type === key}
-            onClick={() => setType(key)}
-          />
+          <ToggleGroupItem key={key} value={key} aria-label={t(`typeOptions.${labelKey}`)}>
+            {t(`typeOptions.${labelKey}`)}
+          </ToggleGroupItem>
         ))}
+      </ToggleGroup>
+
+      <div className="flex items-center gap-2">
         <button
           type="button"
           onClick={() => setAdvancedOpen(true)}
@@ -162,7 +173,7 @@ export function TransactionFilterChips({
           <SlidersHorizontal className={stitchTransactions.filtersChipIcon} aria-hidden />
           {tChips('filters')}
         </button>
-      </FilterChipRow>
+      </div>
 
       <FilterDrawer
         open={advancedOpen}

@@ -90,7 +90,7 @@ export function FormSelect({
         </div>
         <ChevronRight className={s.selectorChevron} aria-hidden />
       </SelectPrimitive.Trigger>
-      <SelectContent className={cn('modal-chrome', s.select.content)}>
+      <SelectContent className={cn('bg-popover text-popover-foreground', s.select.content)}>
         <div className={s.select.searchWrap}>
           <div className={s.select.searchFieldWrap}>
             <Search className={s.select.searchIcon} />

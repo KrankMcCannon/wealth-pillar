@@ -4,7 +4,7 @@ import { hasLocale, NextIntlClientProvider } from 'next-intl';
 import { getMessages, setRequestLocale } from 'next-intl/server';
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import { notFound } from 'next/navigation';
-import { Toaster } from '@/components/ui';
+import { Toaster } from '@/components/ui/sonner';
 import { ThemeProvider } from '@/components/theme-provider';
 import { routing } from '@/i18n/routing';
 import { getCurrentUser, getGroupUsers } from '@/lib/auth/cached-auth';
@@ -21,10 +21,10 @@ export function LocaleLayoutHtmlFallback({ className }: { className: string }): 
   return (
     <html lang="it" data-scroll-behavior="smooth" suppressHydrationWarning>
       <body
-        className={`${className} antialiased min-h-screen bg-card text-primary`}
+        className={`${className} antialiased min-h-screen bg-background text-foreground`}
         suppressHydrationWarning
       >
-        <div className="min-h-screen bg-card" aria-hidden />
+        <div className="min-h-screen bg-background" aria-hidden />
       </body>
     </html>
   );
@@ -90,7 +90,7 @@ export async function LocaleLayoutBody({
   return (
     <html lang={locale} data-scroll-behavior="smooth" suppressHydrationWarning>
       <body
-        className={`${className} antialiased min-h-screen bg-card text-primary`}
+        className={`${className} antialiased min-h-screen bg-background text-foreground`}
         suppressHydrationWarning
       >
         <ClerkProvider telemetry={false}>

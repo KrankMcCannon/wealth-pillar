@@ -197,7 +197,7 @@ export const CategorySelect = React.memo<CategorySelectProps>(
         <SelectPrimitive.Portal>
           <SelectPrimitive.Content
             className={cn(
-              'modal-chrome',
+              'bg-popover text-popover-foreground',
               s.categoryDropdown.content,
               s.categoryDropdown.contentAnim
             )}

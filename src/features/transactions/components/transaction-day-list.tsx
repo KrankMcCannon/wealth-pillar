@@ -37,6 +37,8 @@ import { Button } from '@/components/ui';
 import { Transaction, Category } from '@/lib';
 import { GroupedTransactionCard } from './grouped-transaction-card';
 import { transactionStyles } from '@/features/transactions/theme/transaction-styles';
+import { Skeleton } from '@/components/ui/skeleton';
+import { TransactionDayGroupSkeleton } from '@/components/ui/primitives/skeletons';
 import { formatCurrency, cn } from '@/lib/utils';
 import { FileText, type LucideIcon } from 'lucide-react';
 import { useTranslations } from 'next-intl';
@@ -293,57 +295,20 @@ interface TransactionDayListSkeletonProps {
   readonly showHeader?: boolean;
 }
 
-// Stable keys for skeleton items
-const SKELETON_GROUP_KEYS = [
-  'skeleton-group-a',
-  'skeleton-group-b',
-  'skeleton-group-c',
-  'skeleton-group-d',
-  'skeleton-group-e',
-];
-const SKELETON_TX_KEYS = ['skeleton-tx-1', 'skeleton-tx-2'];
-
-/**
- * Skeleton loader for TransactionDayList
- */
 export function TransactionDayListSkeleton({
   itemCount = 3,
   showHeader = false,
 }: TransactionDayListSkeletonProps) {
   return (
-    <section className={transactionStyles.dayList.skeleton.container}>
-      {showHeader && (
-        <div className={transactionStyles.dayList.skeleton.header}>
-          <div className={transactionStyles.dayList.skeleton.headerTitle} />
-          <div className={transactionStyles.dayList.skeleton.headerSubtitle} />
+    <section className="flex flex-col gap-6 px-4 py-2" aria-busy="true">
+      {showHeader ? (
+        <div className="flex flex-col gap-2">
+          <Skeleton className="h-5 w-40" />
+          <Skeleton className="h-3 w-56" />
         </div>
-      )}
-
-      {SKELETON_GROUP_KEYS.slice(0, itemCount).map((groupKey) => (
-        <div key={groupKey} className={transactionStyles.dayList.skeleton.group}>
-          {/* Day header skeleton */}
-          <div className={transactionStyles.dayList.skeleton.groupHeader}>
-            <div className={transactionStyles.dayList.skeleton.groupTitle} />
-            <div className={transactionStyles.dayList.skeleton.groupTotal}>
-              <div className={transactionStyles.dayList.skeleton.groupTotalLine} />
-              <div className={transactionStyles.dayList.skeleton.groupTotalSub} />
-            </div>
-          </div>
-
-          {/* Transaction cards skeleton */}
-          <div className={transactionStyles.dayList.skeleton.card}>
-            {SKELETON_TX_KEYS.map((txKey) => (
-              <div key={`${groupKey}-${txKey}`} className={transactionStyles.dayList.skeleton.row}>
-                <div className={transactionStyles.dayList.skeleton.rowIcon} />
-                <div className={transactionStyles.dayList.skeleton.rowBody}>
-                  <div className={transactionStyles.dayList.skeleton.rowTitle} />
-                  <div className={transactionStyles.dayList.skeleton.rowSubtitle} />
-                </div>
-                <div className={transactionStyles.dayList.skeleton.rowAmount} />
-              </div>
-            ))}
-          </div>
-        </div>
+      ) : null}
+      {Array.from({ length: itemCount }, (_, index) => (
+        <TransactionDayGroupSkeleton key={`day-group-skeleton-${index}`} />
       ))}
     </section>
   );

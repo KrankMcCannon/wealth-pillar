@@ -5,7 +5,6 @@ import * as SelectPrimitive from '@radix-ui/react-select';
 import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { selectStyles } from '@/components/ui/component-styles';
-import { selectComponentStyles } from './theme/select-component-styles';
 
 const Select = SelectPrimitive.Root;
 
@@ -38,10 +37,10 @@ const SelectScrollUpButton = React.forwardRef<
   <SelectPrimitive.ScrollUpButton
     ref={ref}
     data-slot="select-scroll-up-button"
-    className={cn(selectComponentStyles.scrollButton, className)}
+    className={cn('flex cursor-default items-center justify-center py-1', className)}
     {...props}
   >
-    <ChevronUpIcon className={selectComponentStyles.scrollIcon} />
+    <ChevronUpIcon className="size-4" />
   </SelectPrimitive.ScrollUpButton>
 ));
 SelectScrollUpButton.displayName = SelectPrimitive.ScrollUpButton.displayName;
@@ -53,10 +52,10 @@ const SelectScrollDownButton = React.forwardRef<
   <SelectPrimitive.ScrollDownButton
     ref={ref}
     data-slot="select-scroll-down-button"
-    className={cn(selectComponentStyles.scrollButton, className)}
+    className={cn('flex cursor-default items-center justify-center py-1', className)}
     {...props}
   >
-    <ChevronDownIcon className={selectComponentStyles.scrollIcon} />
+    <ChevronDownIcon className="size-4" />
   </SelectPrimitive.ScrollDownButton>
 ));
 SelectScrollDownButton.displayName = SelectPrimitive.ScrollDownButton.displayName;
@@ -71,7 +70,8 @@ const SelectContent = React.forwardRef<
       data-slot="select-content"
       className={cn(
         selectStyles.content,
-        position === 'popper' && selectComponentStyles.contentOffset,
+        position === 'popper' &&
+          'data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1',
         className
       )}
       position={position}
@@ -81,7 +81,8 @@ const SelectContent = React.forwardRef<
       <SelectPrimitive.Viewport
         className={cn(
           selectStyles.viewportBase,
-          position === 'popper' && selectComponentStyles.viewportPopper
+          position === 'popper' &&
+            'h-(--radix-select-trigger-height) w-full min-w-(--radix-select-trigger-width)'
         )}
       >
         {children}
@@ -117,7 +118,7 @@ const SelectItem = React.forwardRef<
   >
     <span className={selectStyles.itemIndicator}>
       <SelectPrimitive.ItemIndicator>
-        <CheckIcon className={selectComponentStyles.itemCheckIcon} />
+        <CheckIcon className="size-4" />
       </SelectPrimitive.ItemIndicator>
     </span>
 

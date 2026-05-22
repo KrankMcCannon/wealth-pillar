@@ -53,8 +53,7 @@ export const recurringStyles = {
   formModal: {
     form: 'space-y-2',
     content: 'gap-2',
-    error:
-      'px-3 py-2 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-md',
+    error: 'px-3 py-2 text-sm text-destructive bg-destructive/10 rounded-md',
     section: 'gap-2',
     grid: 'grid grid-cols-1 sm:grid-cols-2 gap-3',
   },

@@ -1,9 +1,13 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { cn } from '@/lib/utils';
-import { formModalStyles as s } from '@/components/form/form-modal-styles';
-import { ModalFieldError } from './modal-field-error';
+import {
+  Field,
+  FieldContent,
+  FieldDescription,
+  FieldError,
+  FieldLabel,
+} from '@/components/ui/field';
 
 export interface ModalFormFieldProps {
   label?: string;
@@ -26,40 +30,23 @@ export function ModalFormField({
 }: Readonly<ModalFormFieldProps>) {
   if (variant === 'hero') {
     return (
-      <div className={cn('space-y-1', className)}>
-        {children}
-        {error ? <ModalFieldError message={error} /> : null}
-      </div>
-    );
-  }
-
-  if (variant === 'inline') {
-    return (
-      <div className={cn('space-y-1', className)}>
-        {label && htmlFor ? (
-          <label htmlFor={htmlFor} className={s.noteLabel}>
-            {label}
-          </label>
-        ) : null}
-        {children}
-        {hint ? <p className="px-1 text-xs text-modal-fg-muted">{hint}</p> : null}
-        {error ? <ModalFieldError message={error} /> : null}
-      </div>
+      <Field className={className} data-invalid={error ? true : undefined}>
+        <FieldContent>{children}</FieldContent>
+        {error ? <FieldError>{error}</FieldError> : null}
+      </Field>
     );
   }
 
   return (
-    <div className={cn(s.noteShell, 'space-y-0', className)}>
+    <Field className={className} data-invalid={error ? true : undefined}>
       {label && htmlFor ? (
-        <label htmlFor={htmlFor} className={s.noteLabel}>
-          {label}
-        </label>
+        <FieldLabel htmlFor={htmlFor}>{label}</FieldLabel>
       ) : label ? (
-        <p className={s.noteLabel}>{label}</p>
+        <FieldLabel>{label}</FieldLabel>
       ) : null}
-      {children}
-      {hint ? <p className="mt-2 px-1 text-xs text-modal-fg-muted">{hint}</p> : null}
-      {error ? <ModalFieldError message={error} /> : null}
-    </div>
+      <FieldContent>{children}</FieldContent>
+      {hint ? <FieldDescription>{hint}</FieldDescription> : null}
+      {error ? <FieldError>{error}</FieldError> : null}
+    </Field>
   );
 }

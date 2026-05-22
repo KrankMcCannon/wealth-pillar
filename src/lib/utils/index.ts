@@ -108,7 +108,7 @@ export {
 } from './date-drawer-variants';
 
 // Constants
-export { SHIMMER_BASE, STICKY_HEADER_BASE } from './ui-constants';
+export { STICKY_HEADER_BASE } from './ui-constants';
 
 // URL
 export { getBaseUrl, getAbsoluteUrl, isProduction, isDevelopment } from './url-utils';

@@ -17,6 +17,7 @@ import {
   ModalFooter,
   type ModalWrapperProps,
 } from '@/components/ui/modal-wrapper';
+import { FieldGroup } from '@/components/ui/field';
 import { ConfirmationDialog } from '@/components/shared/confirmation-dialog';
 
 export type EntityFormModalWrapperProps = Omit<
@@ -134,7 +135,7 @@ export function EntityFormModal<T extends FieldValues>({
       >
         <form onSubmit={handleSubmit} className={cn('flex min-h-0 flex-1 flex-col', formClassName)}>
           <ModalBody {...(bodyClassName !== undefined ? { className: bodyClassName } : {})}>
-            {children(form)}
+            <FieldGroup>{children(form)}</FieldGroup>
           </ModalBody>
           {footer ? (
             <ModalFooter {...(footerClassName !== undefined ? { className: footerClassName } : {})}>

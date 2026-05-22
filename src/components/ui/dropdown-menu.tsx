@@ -5,7 +5,6 @@ import * as DropdownMenuPrimitive from '@radix-ui/react-dropdown-menu';
 import { CheckIcon, ChevronRightIcon, CircleIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { dropdownStyles } from '@/components/ui/component-styles';
-import { dropdownMenuComponentStyles } from './theme/dropdown-menu-component-styles';
 
 const DropdownMenu = DropdownMenuPrimitive.Root;
 
@@ -28,11 +27,11 @@ const DropdownMenuSubTrigger = React.forwardRef<
   <DropdownMenuPrimitive.SubTrigger
     ref={ref}
     data-slot="dropdown-sub-trigger"
-    className={cn(dropdownStyles.subTrigger, inset && dropdownMenuComponentStyles.inset, className)}
+    className={cn(dropdownStyles.subTrigger, inset && 'pl-8', className)}
     {...props}
   >
     {children}
-    <ChevronRightIcon className={dropdownMenuComponentStyles.subTriggerIcon} />
+    <ChevronRightIcon className="ml-auto size-4" />
   </DropdownMenuPrimitive.SubTrigger>
 ));
 DropdownMenuSubTrigger.displayName = DropdownMenuPrimitive.SubTrigger.displayName;
@@ -75,7 +74,7 @@ const DropdownMenuItem = React.forwardRef<
   <DropdownMenuPrimitive.Item
     ref={ref}
     data-slot="dropdown-item"
-    className={cn(dropdownStyles.item, inset && dropdownMenuComponentStyles.inset, className)}
+    className={cn(dropdownStyles.item, inset && 'pl-8', className)}
     {...props}
   />
 ));
@@ -94,7 +93,7 @@ const DropdownMenuCheckboxItem = React.forwardRef<
   >
     <span className={dropdownStyles.indicator}>
       <DropdownMenuPrimitive.ItemIndicator>
-        <CheckIcon className={dropdownMenuComponentStyles.checkIcon} />
+        <CheckIcon className="size-4" />
       </DropdownMenuPrimitive.ItemIndicator>
     </span>
     {children}
@@ -114,7 +113,7 @@ const DropdownMenuRadioItem = React.forwardRef<
   >
     <span className={dropdownStyles.indicator}>
       <DropdownMenuPrimitive.ItemIndicator>
-        <CircleIcon className={dropdownMenuComponentStyles.radioIcon} />
+        <CircleIcon className="size-2 fill-current" />
       </DropdownMenuPrimitive.ItemIndicator>
     </span>
     {children}
@@ -131,7 +130,7 @@ const DropdownMenuLabel = React.forwardRef<
   <DropdownMenuPrimitive.Label
     ref={ref}
     data-slot="dropdown-label"
-    className={cn(dropdownStyles.label, inset && dropdownMenuComponentStyles.inset, className)}
+    className={cn(dropdownStyles.label, inset && 'pl-8', className)}
     {...props}
   />
 ));

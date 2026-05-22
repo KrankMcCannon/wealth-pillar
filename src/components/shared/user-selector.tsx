@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { Users } from 'lucide-react';
 import { useUserFilter } from '@/hooks';
 import { User } from '@/lib/types';
+import { UserSelectorSkeleton } from '@/components/ui/primitives/skeletons/dashboard-skeletons';
 import { userSelectorStyles } from './theme/user-selector-styles';
 
 function getInitials(name: string): string {
@@ -108,20 +109,8 @@ const UserSelector = memo(
     // Loading state
     if (isLoading) {
       return (
-        <section
-          className={`${userSelectorStyles.loading.container} ${className}`}
-          aria-label={t('contextLabel')}
-          aria-busy="true"
-        >
-          <div className={userSelectorStyles.loading.heading} aria-hidden />
-          <div className={userSelectorStyles.loading.list}>
-            {[1, 2, 3].map((i) => (
-              <div key={i} className={userSelectorStyles.loading.item}>
-                <div className={userSelectorStyles.loading.avatar} />
-                <div className={userSelectorStyles.loading.text} />
-              </div>
-            ))}
-          </div>
+        <section className={className} aria-label={t('contextLabel')} aria-busy="true">
+          <UserSelectorSkeleton />
         </section>
       );
     }

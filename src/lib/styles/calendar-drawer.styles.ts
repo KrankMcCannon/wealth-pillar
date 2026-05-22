@@ -44,7 +44,7 @@ export const calendarDrawerStyles = {
       'fixed bottom-0 left-0 right-0 z-[180]',
       'max-h-[75vh]',
       'rounded-t-3xl',
-      'bg-card dark:bg-card',
+      'bg-card',
       'border-t-4 border-primary',
       'shadow-2xl shadow-primary/10',
       'data-[state=open]:animate-in data-[state=closed]:animate-out',
@@ -88,7 +88,7 @@ export const calendarDrawerStyles = {
     container: [
       'flex items-center justify-between',
       'px-2 py-2 mb-2',
-      'bg-card dark:bg-card',
+      'bg-card',
       'border-b-2 border-primary/10',
     ].join(' '),
 
@@ -202,12 +202,12 @@ export const calendarDrawerStyles = {
     states: {
       // Default state
       default: [
-        'text-primary dark:text-primary',
-        'bg-card dark:bg-card/90',
-        'hover:bg-primary hover:text-white',
+        'text-foreground',
+        'bg-card',
+        'hover:bg-primary hover:text-primary-foreground',
         'hover:scale-110 hover:shadow-md',
         'active:scale-95',
-        'border border-primary/15',
+        'border border-border',
       ].join(' '),
 
       // Selected date - Full primary color
@@ -222,40 +222,40 @@ export const calendarDrawerStyles = {
 
       // Today's date - Primary outline
       today: [
-        'bg-white dark:bg-gray-800',
+        'bg-card',
         'text-primary',
         'ring-2 ring-primary',
         'font-bold',
-        'hover:bg-primary hover:text-white hover:scale-110',
+        'hover:bg-primary hover:text-primary-foreground hover:scale-110',
         'border-0',
       ].join(' '),
 
       // Disabled date
       disabled: [
-        'text-gray-300 dark:text-gray-600',
-        'bg-primary/5 dark:bg-primary/10',
+        'text-muted-foreground/50',
+        'bg-muted/30',
         'cursor-not-allowed',
-        'hover:bg-primary/5 hover:scale-100',
+        'hover:bg-muted/30 hover:scale-100',
         'opacity-40',
-        'border border-primary/15',
+        'border border-border',
       ].join(' '),
 
       // Weekend date
       weekend: [
-        'text-primary dark:text-primary',
-        'bg-card dark:bg-card/90',
-        'hover:bg-primary hover:text-white',
+        'text-foreground',
+        'bg-card',
+        'hover:bg-primary hover:text-primary-foreground',
         'hover:scale-110',
-        'border border-primary/15',
+        'border border-border',
       ].join(' '),
 
       // Other month date
       otherMonth: [
-        'text-gray-300 dark:text-gray-600',
-        'bg-primary/5 dark:bg-primary/10',
-        'hover:bg-primary/10 hover:text-primary/60',
+        'text-muted-foreground/50',
+        'bg-muted/30',
+        'hover:bg-muted/50 hover:text-muted-foreground',
         'hover:scale-105',
-        'border border-primary/15',
+        'border border-border',
       ].join(' '),
     },
   },
@@ -269,7 +269,7 @@ export const calendarDrawerStyles = {
      * - White background with primary border
      * - Enhanced spacing and padding
      */
-    section: ['border-t-2 border-primary/20', 'pt-4 pb-2', 'bg-white dark:bg-gray-900'].join(' '),
+    section: ['border-t-2 border-border', 'pt-4 pb-2', 'bg-card'].join(' '),
 
     /**
      * Section title
@@ -301,10 +301,10 @@ export const calendarDrawerStyles = {
         'rounded-xl',
         'text-sm font-semibold',
         'transition-all duration-200',
-        'bg-card dark:bg-card/90',
-        'text-primary dark:text-primary',
-        'border-2 border-primary/20',
-        'hover:border-primary/20 hover:bg-primary hover:text-white',
+        'bg-card',
+        'text-foreground',
+        'border-2 border-border',
+        'hover:border-primary hover:bg-primary hover:text-primary-foreground',
         'hover:shadow-md hover:shadow-primary/20',
         'active:scale-95',
       ].join(' '),
@@ -341,10 +341,10 @@ export const calendarDrawerStyles = {
     field: [
       'w-full h-11',
       'pr-10',
-      'text-primary dark:text-primary',
+      'text-foreground',
       'rounded-xl',
-      'border-2 border-primary/20',
-      'bg-card dark:bg-card/90',
+      'border-2 border-border',
+      'bg-card',
       'px-4 py-2',
       'text-sm font-medium',
       'transition-all',
@@ -358,7 +358,7 @@ export const calendarDrawerStyles = {
      */
     clearButton: [
       'absolute right-3 top-1/2 -translate-y-1/2',
-      'text-gray-400 dark:text-gray-500',
+      'text-muted-foreground',
       'hover:text-primary hover:scale-110',
       'transition-all duration-200',
       'active:scale-95',
@@ -374,8 +374,8 @@ export const calendarDrawerStyles = {
       base: [
         'h-11 w-11 shrink-0',
         'rounded-xl',
-        'border-2 border-primary/20',
-        'bg-card dark:bg-card/90 text-primary',
+        'border-2 border-border',
+        'bg-card text-foreground',
         'hover:bg-primary hover:text-white hover:border-primary',
         'hover:scale-105 hover:shadow-md hover:shadow-primary/20',
         'transition-all duration-200',

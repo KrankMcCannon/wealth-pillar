@@ -1,7 +1,7 @@
 'use client';
 
 import { useController, type Control, type FieldPath, type FieldValues } from 'react-hook-form';
-import { formModalStyles as s } from '@/components/form/form-modal-styles';
+import { Input } from '@/components/ui/input';
 import { ModalFormField } from './modal-form-field';
 
 export interface ModalTextFieldProps<T extends FieldValues> {
@@ -38,13 +38,13 @@ export function ModalTextField<T extends FieldValues>({
       {...(error?.message !== undefined ? { error: error.message } : {})}
       {...(hint !== undefined ? { hint } : {})}
     >
-      <input
+      <Input
         id={fieldId}
         type={type}
         placeholder={placeholder}
         disabled={disabled}
         autoComplete={autoComplete}
-        className={s.noteInput}
+        aria-invalid={error ? true : undefined}
         {...field}
         value={field.value ?? ''}
       />

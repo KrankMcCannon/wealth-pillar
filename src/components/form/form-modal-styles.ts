@@ -1,7 +1,5 @@
-import { modalWrapperStyles } from '@/components/ui/theme/modal-wrapper-styles';
-
 /**
- * Shared form-modal layout tokens (Stitch dark surfaces via modal-* theme colors).
+ * Shared form-modal layout tokens.
  */
 export const formModalStyles = {
   headerTitle:
@@ -151,11 +149,12 @@ export const formModalStyles = {
 
 /** @deprecated Use formModalStyles — kept for incremental migration */
 export const stitchTransactionFormModal = {
-  drawerSurface: modalWrapperStyles.drawerSurface,
-  handle: modalWrapperStyles.handle,
-  drawerHeaderShell: modalWrapperStyles.drawerHeaderShell,
+  drawerSurface: 'bg-card text-foreground',
+  handle: 'mx-auto mb-2 h-1.5 w-12 shrink-0 rounded-full bg-muted-foreground/30',
+  drawerHeaderShell: 'border-b border-border',
   headerTitle: formModalStyles.headerTitle,
-  headerClose: modalWrapperStyles.headerClose,
+  headerClose:
+    'inline-flex size-9 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-accent hover:text-foreground',
   formColumn: formModalStyles.formColumn,
   scrollBody: formModalStyles.scrollBody,
   amountSection: formModalStyles.amountSection,

@@ -1,32 +1,25 @@
-/**
- * Modern skeleton components for transactions pages
- * Uses project palette and smooth animations
- */
-
+import { Skeleton } from '@/components/ui/skeleton';
 import { SkeletonList } from '@/components/ui/primitives';
-import { SHIMMER_BASE } from '@/lib/utils/ui-constants';
-import { transactionStyles } from '@/features/transactions/theme/transaction-styles';
 
 export const TransactionHeaderSkeleton = () => (
-  <header className={`${transactionStyles.skeletons.header} ${SHIMMER_BASE}`}>
-    <div className={transactionStyles.skeletons.headerRow}>
-      <div className={transactionStyles.skeletons.headerIcon} />
-      <div className={transactionStyles.skeletons.headerTitle} />
-      <div className={transactionStyles.skeletons.headerIcon} />
+  <header className="border-b border-border px-4 py-3">
+    <div className="flex items-center justify-between gap-3">
+      <Skeleton className="size-9 rounded-full" />
+      <Skeleton className="h-5 w-36" />
+      <Skeleton className="size-9 rounded-full" />
     </div>
   </header>
 );
 
 export const UserSelectorSkeleton = () => (
-  <section className={`${transactionStyles.skeletons.userSelector} ${SHIMMER_BASE}`}>
+  <section className="px-4 py-3">
     <SkeletonList
       count={3}
-      spacing={transactionStyles.skeletons.userSelectorListSpacing}
-      style={transactionStyles.skeletons.userSelectorListStyle}
+      spacing="flex gap-2 overflow-x-auto"
       renderItem={() => (
-        <div className={transactionStyles.skeletons.userSelectorChip}>
-          <div className={transactionStyles.skeletons.userSelectorDot} />
-          <div className={transactionStyles.skeletons.userSelectorText} />
+        <div className="flex shrink-0 items-center gap-2 rounded-full border border-border bg-card px-3 py-2">
+          <Skeleton className="size-2 rounded-full" />
+          <Skeleton className="h-3 w-16" />
         </div>
       )}
     />
@@ -34,36 +27,33 @@ export const UserSelectorSkeleton = () => (
 );
 
 export const TransactionCardSkeleton = () => (
-  <div className={`${transactionStyles.skeletons.card} ${SHIMMER_BASE}`}>
-    <div className={transactionStyles.skeletons.cardRow}>
-      <div className={transactionStyles.skeletons.cardIcon} />
-      <div className={transactionStyles.skeletons.cardBody}>
-        <div className={transactionStyles.skeletons.cardLinePrimary} />
-        <div className={transactionStyles.skeletons.cardLineSecondary} />
+  <div className="rounded-xl border border-border bg-card p-3">
+    <div className="flex items-center gap-3">
+      <Skeleton className="size-10 shrink-0 rounded-xl" />
+      <div className="min-w-0 flex-1 flex flex-col gap-2">
+        <Skeleton className="h-4 w-28" />
+        <Skeleton className="h-3 w-20" />
       </div>
-      <div className={transactionStyles.skeletons.cardAmount}>
-        <div className={transactionStyles.skeletons.cardAmountLine} />
-        <div className={transactionStyles.skeletons.cardAmountSub} />
+      <div className="flex flex-col items-end gap-1.5">
+        <Skeleton className="h-4 w-16" />
+        <Skeleton className="h-3 w-12" />
       </div>
     </div>
   </div>
 );
 
 export const TransactionDayGroupSkeleton = () => (
-  <div className={transactionStyles.skeletons.dayGroup}>
-    {/* Day header */}
-    <div className={transactionStyles.skeletons.dayGroupHeader}>
-      <div className={transactionStyles.skeletons.dayGroupTitle} />
-      <div className={transactionStyles.skeletons.dayGroupTotal}>
-        <div className={transactionStyles.skeletons.dayGroupTotalLine} />
-        <div className={transactionStyles.skeletons.dayGroupTotalSub} />
+  <div className="flex flex-col gap-3">
+    <div className="flex items-center justify-between px-1">
+      <Skeleton className="h-4 w-24" />
+      <div className="flex flex-col items-end gap-1">
+        <Skeleton className="h-4 w-16" />
+        <Skeleton className="h-3 w-12" />
       </div>
     </div>
-
-    {/* Transaction cards */}
     <SkeletonList
       count={3}
-      spacing={transactionStyles.skeletons.dayGroupListSpacing}
+      spacing="flex flex-col gap-2"
       renderItem={() => <TransactionCardSkeleton />}
     />
   </div>
@@ -72,36 +62,34 @@ export const TransactionDayGroupSkeleton = () => (
 export const TransactionListSkeleton = () => (
   <SkeletonList
     count={3}
-    spacing={transactionStyles.skeletons.listSpacing}
+    spacing="flex flex-col gap-6"
     renderItem={() => <TransactionDayGroupSkeleton />}
   />
 );
 
 export const TabNavigationSkeleton = () => (
-  <div className={`${transactionStyles.skeletons.tabNav} ${SHIMMER_BASE}`}>
+  <div className="px-4 py-2">
     <SkeletonList
       count={2}
-      spacing={transactionStyles.skeletons.tabListSpacing}
-      height={transactionStyles.skeletons.tabPillHeight}
-      width={transactionStyles.skeletons.tabPillWidth}
-      className={transactionStyles.skeletons.tabPill}
+      spacing="flex gap-2"
+      renderItem={() => <Skeleton className="h-10 w-28 rounded-xl" />}
     />
   </div>
 );
 
 export const RecurringSeriesSkeleton = () => (
-  <div className={`${transactionStyles.skeletons.recurring} ${SHIMMER_BASE}`}>
+  <div className="px-4">
     <SkeletonList
       count={3}
-      spacing={transactionStyles.skeletons.recurringListSpacing}
+      spacing="flex flex-col gap-3"
       renderItem={() => (
-        <div className={transactionStyles.skeletons.recurringRow}>
-          <div className={transactionStyles.skeletons.recurringIcon} />
-          <div className={transactionStyles.skeletons.recurringBody}>
-            <div className={transactionStyles.skeletons.recurringLinePrimary} />
-            <div className={transactionStyles.skeletons.recurringLineSecondary} />
+        <div className="flex items-center gap-3 rounded-xl border border-border bg-card p-3">
+          <Skeleton className="size-10 rounded-xl" />
+          <div className="flex flex-1 flex-col gap-2">
+            <Skeleton className="h-4 w-32" />
+            <Skeleton className="h-3 w-24" />
           </div>
-          <div className={transactionStyles.skeletons.recurringAction} />
+          <Skeleton className="size-8 rounded-lg" />
         </div>
       )}
     />
@@ -109,19 +97,11 @@ export const RecurringSeriesSkeleton = () => (
 );
 
 export const FullTransactionsPageSkeleton = () => (
-  <div className={transactionStyles.skeletons.fullPage}>
-    {/* Header skeleton */}
+  <div className="flex min-h-screen flex-col bg-background">
     <TransactionHeaderSkeleton />
-
-    {/* User selector skeleton */}
     <UserSelectorSkeleton />
-
-    {/* Tab navigation skeleton */}
     <TabNavigationSkeleton />
-
-    {/* Main content skeleton */}
-    <main className={transactionStyles.skeletons.main}>
-      {/* Transactions list */}
+    <main className="flex-1 px-4 pb-24">
       <TransactionListSkeleton />
     </main>
   </div>

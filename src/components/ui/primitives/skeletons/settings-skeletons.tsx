@@ -1,12 +1,4 @@
-/**
- * Settings Skeleton Screens — Stitch dark palette
- */
-
-import { stitchSettings as s } from '@/styles/home-design-foundation';
-
-function Shimmer({ className }: Readonly<{ className: string }>) {
-  return <div className={`${s.skeletonShimmer} ${className}`} />;
-}
+import { Skeleton } from '@/components/ui/skeleton';
 
 export function SettingsHeaderSkeleton() {
   return null;
@@ -14,31 +6,31 @@ export function SettingsHeaderSkeleton() {
 
 export function ProfileSectionSkeleton() {
   return (
-    <section className="space-y-2">
-      <Shimmer className={s.skeletonEyebrow} />
-      <Shimmer className={s.skeletonCard} />
+    <section className="flex flex-col gap-2">
+      <Skeleton className="h-3 w-20" />
+      <Skeleton className="h-24 w-full rounded-2xl" />
     </section>
   );
 }
 
 export function GroupManagementSectionSkeleton() {
   return (
-    <section className="space-y-2">
-      <Shimmer className={s.skeletonEyebrow} />
-      <Shimmer className={`${s.skeletonCard} h-32`} />
+    <section className="flex flex-col gap-2">
+      <Skeleton className="h-3 w-24" />
+      <Skeleton className="h-32 w-full rounded-2xl" />
     </section>
   );
 }
 
 export function PreferencesSectionSkeleton() {
   return (
-    <section className="space-y-2">
-      <Shimmer className={s.skeletonEyebrow} />
-      <div className="space-y-2">
-        <Shimmer className={s.skeletonRow} />
-        <Shimmer className={s.skeletonRow} />
-        <Shimmer className={s.skeletonRow} />
-        <Shimmer className={s.skeletonRow} />
+    <section className="flex flex-col gap-2">
+      <Skeleton className="h-3 w-24" />
+      <div className="flex flex-col gap-2">
+        <Skeleton className="h-14 w-full rounded-xl" />
+        <Skeleton className="h-14 w-full rounded-xl" />
+        <Skeleton className="h-14 w-full rounded-xl" />
+        <Skeleton className="h-14 w-full rounded-xl" />
       </div>
     </section>
   );
@@ -46,17 +38,17 @@ export function PreferencesSectionSkeleton() {
 
 export function SupportSectionSkeleton() {
   return (
-    <section className="space-y-2">
-      <Shimmer className={s.skeletonEyebrow} />
-      <Shimmer className={`${s.skeletonCard} h-28`} />
-      <Shimmer className="h-12 w-full rounded-xl" />
+    <section className="flex flex-col gap-2">
+      <Skeleton className="h-3 w-20" />
+      <Skeleton className="h-28 w-full rounded-2xl" />
+      <Skeleton className="h-12 w-full rounded-xl" />
     </section>
   );
 }
 
 export function SettingsPageSkeleton() {
   return (
-    <main className={s.pageMain}>
+    <main className="flex flex-col gap-6 px-4 py-6">
       <ProfileSectionSkeleton />
       <GroupManagementSectionSkeleton />
       <PreferencesSectionSkeleton />

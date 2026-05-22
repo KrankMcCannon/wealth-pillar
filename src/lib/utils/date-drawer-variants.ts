@@ -30,12 +30,12 @@ export const dayButtonVariants = cva(
       state: {
         // Default state - White with border
         default: [
-          'text-primary dark:text-primary',
-          'bg-card dark:bg-card/90',
-          'hover:bg-primary hover:text-white',
+          'text-foreground',
+          'bg-card',
+          'hover:bg-primary hover:text-primary-foreground',
           'hover:scale-110 hover:shadow-md',
           'active:scale-95',
-          'border border-primary/15',
+          'border border-border',
         ].join(' '),
 
         // Selected date - Full primary color
@@ -50,40 +50,40 @@ export const dayButtonVariants = cva(
 
         // Today's date - Primary outline
         today: [
-          'bg-card dark:bg-card/90',
+          'bg-card',
           'text-primary',
           'ring-2 ring-primary',
           'font-bold',
-          'hover:bg-primary hover:text-white hover:scale-110',
+          'hover:bg-primary hover:text-primary-foreground hover:scale-110',
           'border-0',
         ].join(' '),
 
         // Disabled date
         disabled: [
-          'text-gray-300 dark:text-gray-600',
-          'bg-primary/5 dark:bg-primary/10',
+          'text-muted-foreground/50',
+          'bg-muted/30',
           'cursor-not-allowed',
-          'hover:bg-primary/5 hover:scale-100',
+          'hover:bg-muted/30 hover:scale-100',
           'opacity-40',
-          'border border-primary/15',
+          'border border-border',
         ].join(' '),
 
         // Weekend date
         weekend: [
-          'text-primary dark:text-primary',
-          'bg-card dark:bg-card/90',
-          'hover:bg-primary hover:text-white',
+          'text-foreground',
+          'bg-card',
+          'hover:bg-primary hover:text-primary-foreground',
           'hover:scale-110',
-          'border border-primary/15',
+          'border border-border',
         ].join(' '),
 
         // Other month date
         otherMonth: [
-          'text-gray-300 dark:text-gray-600',
-          'bg-primary/5 dark:bg-primary/10',
-          'hover:bg-primary/10 hover:text-primary/60',
+          'text-muted-foreground/50',
+          'bg-muted/30',
+          'hover:bg-muted/50 hover:text-muted-foreground',
           'hover:scale-105',
-          'border border-primary/15',
+          'border border-border',
         ].join(' '),
       },
     },
@@ -111,7 +111,7 @@ export const dayButtonVariants = cva(
 
 export const drawerContentVariants = cva(
   // Base styles
-  ['fixed z-50', 'bg-card dark:bg-card', 'shadow-2xl'].join(' '),
+  ['fixed z-50', 'bg-card', 'shadow-2xl'].join(' '),
   {
     variants: {
       position: {
@@ -209,10 +209,10 @@ export const presetButtonVariants = cva(
           'ring-2 ring-primary/20',
         ].join(' '),
         false: [
-          'bg-card dark:bg-card/90',
-          'text-primary dark:text-primary',
-          'border-2 border-primary/20',
-          'hover:border-primary/20 hover:bg-primary hover:text-white',
+          'bg-card',
+          'text-foreground',
+          'border-2 border-border',
+          'hover:border-primary hover:bg-primary hover:text-primary-foreground',
           'hover:shadow-md hover:shadow-primary/20',
           'active:scale-95',
         ].join(' '),
@@ -242,9 +242,9 @@ export const calendarTriggerVariants = cva(
           ' '
         ),
         false: [
-          'border-2 border-primary/20',
-          'bg-card dark:bg-card/90 text-primary',
-          'hover:bg-primary hover:text-white hover:border-primary',
+          'border-2 border-border',
+          'bg-card text-foreground',
+          'hover:bg-primary hover:text-primary-foreground hover:border-primary',
           'hover:scale-105 hover:shadow-md hover:shadow-primary/20',
           'active:scale-95',
         ].join(' '),

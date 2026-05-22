@@ -1,61 +1,51 @@
-/**
- * Modern skeleton components for budget pages
- * Uses project palette and smooth animations
- */
-
+import { Skeleton } from '@/components/ui/skeleton';
 import { SkeletonList } from '@/components/ui/primitives';
-import { SHIMMER_BASE } from '@/lib/utils/ui-constants';
-import { budgetStyles } from '@/features/budgets/theme/budget-styles';
 
 export const BudgetCardSkeleton = () => (
-  <div className={`${budgetStyles.skeleton.budgetCard} ${SHIMMER_BASE}`}>
-    <div className={budgetStyles.skeleton.budgetCardRow}>
-      <div className={budgetStyles.skeleton.budgetCardIcon} />
-      <div className={budgetStyles.skeleton.budgetCardBody}>
-        <div className={budgetStyles.skeleton.budgetCardTitle} />
-        <div className={budgetStyles.skeleton.budgetCardMetaRow}>
-          <div className={budgetStyles.skeleton.budgetCardDot} />
-          <div className={budgetStyles.skeleton.budgetCardMeta} />
+  <div className="rounded-2xl border border-border bg-card p-4">
+    <div className="flex items-center gap-3">
+      <Skeleton className="size-11 shrink-0 rounded-2xl" />
+      <div className="min-w-0 flex-1 flex flex-col gap-2">
+        <Skeleton className="h-4 w-28" />
+        <div className="flex items-center gap-2">
+          <Skeleton className="size-2 rounded-full" />
+          <Skeleton className="h-3 w-20" />
         </div>
       </div>
-      <div className={budgetStyles.skeleton.budgetCardRight}>
-        <div className={budgetStyles.skeleton.budgetCardAmount} />
-        <div className={budgetStyles.skeleton.budgetCardSubAmount} />
+      <div className="flex flex-col items-end gap-1.5">
+        <Skeleton className="h-4 w-16" />
+        <Skeleton className="h-3 w-12" />
       </div>
     </div>
-    <div className={budgetStyles.skeleton.budgetCardBar} />
+    <Skeleton className="mt-4 h-2 w-full rounded-full" />
   </div>
 );
 
 export const BudgetListSkeleton = () => (
-  <SkeletonList count={3} spacing="space-y-3" renderItem={() => <BudgetCardSkeleton />} />
+  <SkeletonList count={3} spacing="flex flex-col gap-3" renderItem={() => <BudgetCardSkeleton />} />
 );
 
 export const BudgetDetailsSkeleton = () => (
-  <div className={`${budgetStyles.skeleton.detailsCard} ${SHIMMER_BASE}`}>
-    <div className={budgetStyles.skeleton.detailsHeader}>
-      <div className={budgetStyles.skeleton.detailsLeft}>
-        <div className={budgetStyles.skeleton.detailsTitle} />
-        <div className={budgetStyles.skeleton.detailsSubtitle} />
+  <div className="rounded-2xl border border-border bg-card p-4">
+    <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-col gap-2">
+        <Skeleton className="h-5 w-32" />
+        <Skeleton className="h-3 w-24" />
       </div>
-      <div className={budgetStyles.skeleton.detailsRight}>
-        <div className={budgetStyles.skeleton.detailsAmount} />
-        <div className={budgetStyles.skeleton.detailsAmountSub} />
+      <div className="flex flex-col items-end gap-1.5">
+        <Skeleton className="h-6 w-20" />
+        <Skeleton className="h-3 w-14" />
       </div>
     </div>
-
-    {/* Progress bar */}
-    <div className={budgetStyles.skeleton.detailsBar} />
-
-    {/* Stats */}
-    <div className={budgetStyles.skeleton.detailsStats}>
-      <div>
-        <div className={budgetStyles.skeleton.detailsStatLabel} />
-        <div className={budgetStyles.skeleton.detailsStatValue} />
+    <Skeleton className="mt-4 h-2 w-full rounded-full" />
+    <div className="mt-4 grid grid-cols-2 gap-4">
+      <div className="flex flex-col gap-1.5">
+        <Skeleton className="h-3 w-16" />
+        <Skeleton className="h-4 w-20" />
       </div>
-      <div>
-        <div className={budgetStyles.skeleton.detailsStatLabel} />
-        <div className={budgetStyles.skeleton.detailsStatValue} />
+      <div className="flex flex-col gap-1.5">
+        <Skeleton className="h-3 w-16" />
+        <Skeleton className="h-4 w-20" />
       </div>
     </div>
   </div>
@@ -64,18 +54,18 @@ export const BudgetDetailsSkeleton = () => (
 export const TransactionListSkeleton = () => (
   <SkeletonList
     count={4}
-    spacing="space-y-3"
+    spacing="flex flex-col gap-3"
     renderItem={() => (
-      <div className={`${budgetStyles.skeleton.txCard} ${SHIMMER_BASE}`}>
-        <div className={budgetStyles.skeleton.txRow}>
-          <div className={budgetStyles.skeleton.txIcon} />
-          <div className={budgetStyles.skeleton.txBody}>
-            <div className={budgetStyles.skeleton.txTitle} />
-            <div className={budgetStyles.skeleton.txMeta} />
+      <div className="rounded-xl border border-border bg-card p-3">
+        <div className="flex items-center gap-3">
+          <Skeleton className="size-10 shrink-0 rounded-xl" />
+          <div className="min-w-0 flex-1 flex flex-col gap-2">
+            <Skeleton className="h-4 w-28" />
+            <Skeleton className="h-3 w-20" />
           </div>
-          <div className={budgetStyles.skeleton.txRight}>
-            <div className={budgetStyles.skeleton.txAmount} />
-            <div className={budgetStyles.skeleton.txAmountSub} />
+          <div className="flex flex-col items-end gap-1.5">
+            <Skeleton className="h-4 w-16" />
+            <Skeleton className="h-3 w-12" />
           </div>
         </div>
       </div>
@@ -84,53 +74,39 @@ export const TransactionListSkeleton = () => (
 );
 
 export const BudgetPageSkeleton = () => (
-  <div className={budgetStyles.skeleton.page}>
-    {/* Header skeleton */}
-    <header className={budgetStyles.skeleton.pageHeader}>
-      <div className={budgetStyles.skeleton.pageHeaderRow}>
-        <div className={budgetStyles.skeleton.pageHeaderLeft}>
-          <div className={budgetStyles.skeleton.pageHeaderIcon} />
-          <div>
-            <div className={budgetStyles.skeleton.pageHeaderText} />
-            <div className={budgetStyles.skeleton.pageHeaderSubtext} />
+  <div className="flex min-h-screen flex-col bg-background">
+    <header className="border-b border-border px-4 py-3">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <Skeleton className="size-10 rounded-xl" />
+          <div className="flex flex-col gap-2">
+            <Skeleton className="h-5 w-32" />
+            <Skeleton className="h-3 w-24" />
           </div>
         </div>
-        <div className={budgetStyles.skeleton.pageHeaderAction} />
+        <Skeleton className="h-9 w-20 rounded-xl" />
       </div>
     </header>
 
-    {/* User selector skeleton */}
-    <section className={budgetStyles.skeleton.selectorSection}>
+    <section className="px-4 py-3">
       <SkeletonList
         count={3}
-        spacing={budgetStyles.skeleton.selectorList}
-        style={budgetStyles.skeleton.selectorListStyle}
-        renderItem={() => (
-          <div className={budgetStyles.skeleton.selectorItem}>
-            <div className={budgetStyles.skeleton.selectorIcon} />
-            <div className={budgetStyles.skeleton.selectorText} />
-          </div>
-        )}
+        spacing="flex gap-2 overflow-hidden"
+        renderItem={() => <Skeleton className="h-10 w-24 shrink-0 rounded-full" />}
       />
     </section>
 
-    {/* Main content skeleton */}
-    <main className={budgetStyles.skeleton.pageMain}>
-      <div className={budgetStyles.skeleton.pageMainBody}>
-        {/* Section header */}
-        <div>
-          <div className={budgetStyles.skeleton.pageSectionTitle} />
-          <div className={budgetStyles.skeleton.pageSectionSubtitle} />
+    <main className="flex-1 px-4 pb-6">
+      <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-2">
+          <Skeleton className="h-5 w-36" />
+          <Skeleton className="h-3 w-48" />
         </div>
-
-        {/* Budget list */}
         <BudgetListSkeleton />
-
-        {/* Details section */}
-        <div className={budgetStyles.skeleton.pageDetails}>
-          <div className={budgetStyles.skeleton.pageDetailsActions}>
-            <div className={budgetStyles.skeleton.pageDetailsAction} />
-            <div className={budgetStyles.skeleton.pageDetailsAction} />
+        <div className="flex flex-col gap-3">
+          <div className="flex gap-2">
+            <Skeleton className="h-9 w-24 rounded-xl" />
+            <Skeleton className="h-9 w-24 rounded-xl" />
           </div>
           <BudgetDetailsSkeleton />
         </div>

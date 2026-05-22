@@ -9,6 +9,7 @@
 import { Suspense } from 'react';
 import { Account } from '@/lib';
 import { AccountCard } from './account-card';
+import { Skeleton } from '@/components/ui/skeleton';
 import { accountStyles } from '../theme/account-styles';
 
 interface AccountSliderCardProps {
@@ -24,7 +25,7 @@ export const AccountSliderCard = ({ account, balance, index, onClick }: AccountS
       className={accountStyles.slider.cardWrapper}
       style={accountStyles.slider.cardDelayStyle(index)}
     >
-      <Suspense fallback={<div className={accountStyles.slider.skeletonCard} />}>
+      <Suspense fallback={<Skeleton className="h-28 w-56 shrink-0 rounded-2xl" />}>
         <AccountCard
           account={account}
           accountBalance={balance}

@@ -3,15 +3,15 @@
 import { cn } from '@/lib/utils';
 import * as React from 'react';
 import {
-  Drawer,
-  DrawerClose,
-  DrawerContent,
-  DrawerDescription,
-  DrawerHeader,
-  DrawerTitle,
-} from './drawer';
-import { modalWrapperStyles } from './theme/modal-wrapper-styles';
-import { Loader2, X } from 'lucide-react';
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from './sheet';
+import { Spinner } from './spinner';
+import { X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
 export interface ModalWrapperProps {
@@ -44,7 +44,7 @@ export function ModalWrapper({
   showCloseButton = true,
   isLoading = false,
   disableOutsideClose = false,
-  repositionInputs = false,
+  repositionInputs: _repositionInputs = false,
   handleClassName,
   drawerHeaderClassName,
   drawerCloseClassName,
@@ -62,62 +62,67 @@ export function ModalWrapper({
   );
 
   return (
-    <Drawer open={isOpen} onOpenChange={handleOpenChange} repositionInputs={repositionInputs}>
-      <DrawerContent
-        className={cn(
-          'modal-chrome',
-          modalWrapperStyles.drawerContent,
-          modalWrapperStyles.drawerSurface,
-          'mt-24 min-h-0',
-          className
-        )}
+    <Sheet open={isOpen} onOpenChange={handleOpenChange}>
+      <SheetContent
+        side="bottom"
+        showCloseButton={false}
+        className={cn('max-h-[85vh] gap-0 rounded-t-3xl border-border px-0 pb-0', className)}
+        {...(disableOutsideClose
+          ? {
+              onInteractOutside: (event) => event.preventDefault(),
+              onEscapeKeyDown: (event) => event.preventDefault(),
+            }
+          : {})}
       >
-        <div className={cn(modalWrapperStyles.handle, handleClassName)} aria-hidden />
-        <DrawerHeader
+        <div
           className={cn(
-            modalWrapperStyles.drawerHeader,
-            modalWrapperStyles.drawerHeaderShell,
-            'flex flex-col gap-2 px-4 py-3',
+            'mx-auto mt-3 mb-2 h-1.5 w-12 shrink-0 rounded-full bg-muted-foreground/30',
+            handleClassName
+          )}
+          aria-hidden
+        />
+        <SheetHeader
+          className={cn(
+            'flex flex-col gap-2 border-b border-border px-4 py-3 text-left',
             drawerHeaderClassName
           )}
         >
           <div className="flex w-full min-w-0 items-center justify-between gap-3">
-            <DrawerTitle className={cn(modalWrapperStyles.drawerTitle, titleClassName)}>
+            <SheetTitle className={cn('text-lg font-semibold text-foreground', titleClassName)}>
               {title}
-            </DrawerTitle>
+            </SheetTitle>
             {showCloseButton ? (
-              <DrawerClose className={cn(modalWrapperStyles.headerClose, drawerCloseClassName)}>
-                <X className="h-5 w-5" aria-hidden />
+              <SheetClose
+                className={cn(
+                  'inline-flex size-9 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-accent hover:text-foreground',
+                  drawerCloseClassName
+                )}
+              >
+                <X aria-hidden />
                 <span className="sr-only">{tCommon('closeDialog')}</span>
-              </DrawerClose>
+              </SheetClose>
             ) : null}
           </div>
           {description ? (
-            <DrawerDescription
-              className={cn(
-                modalWrapperStyles.drawerDescription,
-                descriptionClassName,
-                'text-left'
-              )}
+            <SheetDescription
+              className={cn('text-left text-muted-foreground', descriptionClassName)}
             >
               {description}
-            </DrawerDescription>
+            </SheetDescription>
           ) : (
-            <DrawerDescription className={modalWrapperStyles.dialogDescriptionHidden}>
-              {title}
-            </DrawerDescription>
+            <SheetDescription className="sr-only">{title}</SheetDescription>
           )}
-        </DrawerHeader>
+        </SheetHeader>
 
         {isLoading ? (
-          <div className={modalWrapperStyles.loadingWrap}>
-            <Loader2 className="h-10 w-10 animate-spin text-primary/60" />
+          <div className="flex min-h-40 items-center justify-center py-8">
+            <Spinner className="size-10 text-muted-foreground" />
           </div>
         ) : (
-          <div className={cn(modalWrapperStyles.drawerContentBody, 'min-h-0')}>{children}</div>
+          <div className="min-h-0 flex-1 overflow-y-auto px-4 py-2">{children}</div>
         )}
-      </DrawerContent>
-    </Drawer>
+      </SheetContent>
+    </Sheet>
   );
 }
 
@@ -126,7 +131,9 @@ export function ModalBody({
   className,
 }: Readonly<{ children: React.ReactNode; className?: string }>) {
   return (
-    <div className={cn('min-h-0 flex-1 overflow-y-auto py-2 space-y-4', className)}>{children}</div>
+    <div className={cn('flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto py-2', className)}>
+      {children}
+    </div>
   );
 }
 
@@ -137,7 +144,7 @@ export function ModalFooter({
   return (
     <div
       className={cn(
-        'mt-auto shrink-0 border-t border-border bg-card/95 py-4 pt-4 backdrop-blur-sm supports-backdrop-filter:bg-card/90 flex flex-col-reverse gap-3 pb-[max(env(safe-area-inset-bottom),0.75rem)]',
+        'mt-auto flex shrink-0 flex-col-reverse gap-3 border-t border-border bg-card/95 py-4 backdrop-blur-sm supports-backdrop-filter:bg-card/90 pb-[max(env(safe-area-inset-bottom),0.75rem)]',
         className
       )}
     >
@@ -157,9 +164,11 @@ export function ModalSection({
 }>) {
   return (
     <div className={cn('flex flex-col gap-3', className)}>
-      {title && (
-        <h3 className="text-xs font-semibold text-primary/60 uppercase tracking-wider">{title}</h3>
-      )}
+      {title ? (
+        <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          {title}
+        </h3>
+      ) : null}
       {children}
     </div>
   );

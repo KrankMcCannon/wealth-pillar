@@ -3,8 +3,7 @@ import type { CSSProperties } from 'react';
 export const categoryStyles = {
   formModal: {
     form: 'space-y-4',
-    error:
-      'px-3 py-2 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-md',
+    error: 'px-3 py-2 text-sm text-destructive bg-destructive/10 rounded-md',
     colorSection: 'space-y-3',
     palette: 'grid grid-cols-8 gap-2',
     colorButton: 'group relative aspect-square rounded-lg transition-all duration-200',
