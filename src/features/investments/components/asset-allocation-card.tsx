@@ -27,9 +27,9 @@ export function AssetAllocationCard({ data, className }: AssetAllocationCardProp
     data && data.length > 0
       ? data
       : [
-          { name: t('fallback.equities'), value: 65, color: '#8fb0ff' },
-          { name: t('fallback.bonds'), value: 25, color: '#8fe2b4' },
-          { name: t('fallback.cash'), value: 10, color: '#9fb9ff' },
+          { name: t('fallback.equities'), value: 65, color: 'var(--color-primary)' },
+          { name: t('fallback.bonds'), value: 25, color: 'var(--color-income)' },
+          { name: t('fallback.cash'), value: 10, color: 'var(--color-primary)' },
         ];
 
   const totalValue = displayData.reduce((sum, item) => sum + item.value, 0);
@@ -39,7 +39,7 @@ export function AssetAllocationCard({ data, className }: AssetAllocationCardProp
       {/* Header section with icon and title */}
       <div className="relative z-10 flex items-center justify-between mb-8">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#8fb0ff]/15 text-[#8fb0ff] shadow-inner">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/15 text-primary shadow-inner">
             <PieChartIcon className="h-5 w-5" />
           </div>
           <div>
@@ -90,11 +90,11 @@ export function AssetAllocationCard({ data, className }: AssetAllocationCardProp
                   if (active && payload && payload.length) {
                     const item = payload[0]?.payload;
                     return (
-                      <div className="rounded-xl border border-white/15 bg-[#081535]/95 p-4 shadow-2xl backdrop-blur-md">
-                        <p className="text-[11px] font-bold uppercase tracking-widest text-[#9fb0d7] mb-1">
+                      <div className="rounded-xl border border-white/15 bg-card/95 p-4 shadow-2xl backdrop-blur-md">
+                        <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-1">
                           {item.name}
                         </p>
-                        <p className="text-xl font-bold text-[#e6ecff]">
+                        <p className="text-xl font-bold text-foreground">
                           {new Intl.NumberFormat(locale, {
                             style: 'currency',
                             currency: 'EUR',
@@ -111,10 +111,10 @@ export function AssetAllocationCard({ data, className }: AssetAllocationCardProp
 
           {/* Center Summary Statistics */}
           <div className="absolute flex flex-col items-center justify-center text-center pointer-events-none">
-            <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#9fb0d7]/80">
+            <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground/80">
               {t('totalPaidLabel')}
             </span>
-            <span className="mt-1 text-3xl font-bold tracking-tighter text-[#e6ecff] tabular-nums">
+            <span className="mt-1 text-3xl font-bold tracking-tighter text-foreground tabular-nums">
               {new Intl.NumberFormat(locale, {
                 style: 'currency',
                 currency: 'EUR',
@@ -131,7 +131,7 @@ export function AssetAllocationCard({ data, className }: AssetAllocationCardProp
             return (
               <div
                 key={entry.name}
-                className="group flex items-center justify-between rounded-2xl bg-[#11295f]/50 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] transition-all hover:bg-[#17336f]/80 hover:translate-x-1"
+                className="group flex items-center justify-between rounded-2xl bg-muted/50 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] transition-all hover:bg-accent/80 hover:translate-x-1"
               >
                 <div className="flex items-center gap-4">
                   <div
@@ -139,24 +139,24 @@ export function AssetAllocationCard({ data, className }: AssetAllocationCardProp
                     style={{ backgroundColor: entry.color }}
                   />
                   <div className="flex flex-col">
-                    <span className="text-sm font-bold text-[#e6ecff] group-hover:text-[#8fb0ff] transition-colors">
+                    <span className="text-sm font-bold text-foreground group-hover:text-primary transition-colors">
                       {entry.name}
                     </span>
                     <div className="flex items-center gap-2">
-                      <div className="h-1 w-24 overflow-hidden rounded-full bg-[#1a2b5f]">
+                      <div className="h-1 w-24 overflow-hidden rounded-full bg-muted">
                         <div
                           className="h-full rounded-full bg-current transition-all duration-1000"
                           style={{ width: `${percentage}%`, color: entry.color }}
                         />
                       </div>
-                      <span className="text-[11px] font-bold text-[#9fb0d7]">
+                      <span className="text-[11px] font-bold text-muted-foreground">
                         {percentage.toFixed(1)}%
                       </span>
                     </div>
                   </div>
                 </div>
                 <div className="text-right">
-                  <span className="text-base font-bold text-[#e6ecff] tabular-nums">
+                  <span className="text-base font-bold text-foreground tabular-nums">
                     {new Intl.NumberFormat(locale, {
                       style: 'currency',
                       currency: 'EUR',
@@ -169,10 +169,6 @@ export function AssetAllocationCard({ data, className }: AssetAllocationCardProp
           })}
         </div>
       </div>
-
-      {/* Background Decor Blobs */}
-      <div className="pointer-events-none absolute -right-24 -top-24 h-80 w-80 rounded-full bg-[#3359c5]/15 blur-[100px]" />
-      <div className="pointer-events-none absolute -bottom-24 -left-24 h-80 w-80 rounded-full bg-[#11295f]/20 blur-[120px]" />
     </div>
   );
 }

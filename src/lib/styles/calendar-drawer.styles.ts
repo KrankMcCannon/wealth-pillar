@@ -4,7 +4,7 @@
  * Modern redesign with primary color and white theme
  *
  * Design Theme:
- * - Primary color (#8B5CF6 purple) for accents and highlights
+ * - Primary semantic token for accents and highlights
  * - White/light backgrounds for clean, modern look
  * - Improved borders and spacing
  * - Enhanced visual hierarchy

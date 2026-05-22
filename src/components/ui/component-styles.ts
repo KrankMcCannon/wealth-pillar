@@ -1,37 +1,5 @@
 /** Colocated Tailwind class strings for shadcn UI primitives (formerly in system.ts). */
 
-export const buttonStyles = {
-  base: "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-semibold transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:border-ring",
-  variants: {
-    default: `bg-primary text-primary-foreground border border-primary/20 hover:bg-primary/90`,
-    secondary: `bg-secondary text-secondary-foreground border border-secondary hover:bg-secondary/90`,
-    outline: `border border-border bg-card text-foreground hover:bg-accent hover:text-accent-foreground`,
-    ghost: `hover:bg-accent text-foreground`,
-    destructive: `bg-destructive text-destructive-foreground border border-destructive hover:bg-destructive/90`,
-    cancel: `bg-card text-foreground border border-border hover:bg-accent hover:text-accent-foreground`,
-  },
-  sizes: {
-    default: 'h-9 px-4 py-2',
-    sm: 'h-8 px-3',
-    lg: 'h-10 px-6',
-    icon: 'size-9',
-  },
-} as const;
-
-export function getButtonClasses(
-  variant: keyof typeof buttonStyles.variants,
-  size: keyof typeof buttonStyles.sizes = 'default',
-  extra?: string
-) {
-  return [buttonStyles.base, buttonStyles.variants[variant], buttonStyles.sizes[size], extra]
-    .filter(Boolean)
-    .join(' ');
-}
-
-export const inputStyles = {
-  base: 'bg-input text-foreground border border-border rounded-xl px-3 py-2 text-base transition-[color,box-shadow,background-color] outline-none focus:ring-2 focus:ring-ring focus:border-ring placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground',
-} as const;
-
 export const cardStyles = {
   container: `bg-card text-card-foreground flex flex-col rounded-xl border border-border shadow-sm`,
   header:

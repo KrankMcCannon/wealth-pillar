@@ -13,7 +13,16 @@ import { TransactionListSkeleton } from '@/components/ui/primitives/skeletons';
 import { cn } from '@/lib/utils';
 import { STICKY_HEADER_BASE } from '@/lib/utils/ui-constants';
 import { stitchHome } from '@/styles/home-design-foundation';
-import { pageLoaderStyles } from './theme/page-loader-styles';
+const pageLoaderStyles = {
+  page: 'relative flex w-full min-h-[100svh] flex-col bg-card md:pl-64',
+  container: 'flex-1 flex items-center justify-center',
+  content: 'text-center',
+  iconWrap:
+    'flex size-16 items-center justify-center rounded-2xl bg-primary/10 mx-auto mb-4 animate-pulse',
+  icon: 'w-8 h-8 text-primary animate-spin',
+  message: 'text-sm font-semibold text-primary',
+  submessage: 'text-xs text-primary/70 mt-1',
+} as const;
 
 const SKIP_LINK_LABEL = 'Skip to balances, budgets, and recurring items';
 

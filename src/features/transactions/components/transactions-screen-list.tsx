@@ -81,10 +81,10 @@ function TransactionsScreenListInner({
           <ListSkeleton />
         ) : isEmpty ? (
           <div className={cn(stitchTransactions.dayCard, 'p-6')} role="status" aria-live="polite">
-            <p className="text-center text-base font-medium text-[#e6ecff]">
+            <p className="text-center text-base font-medium text-foreground">
               {emptyTitle ?? t('empty.title')}
             </p>
-            <p className="mt-2 text-center text-sm text-[#9fb0d7]">
+            <p className="mt-2 text-center text-sm text-muted-foreground">
               {emptyDescription ?? t('empty.description')}
             </p>
             <div className="mt-6 flex flex-col gap-2">
@@ -92,7 +92,7 @@ function TransactionsScreenListInner({
                 <button
                   type="button"
                   onClick={onClearFilters}
-                  className="rounded-xl border border-[#3359c5]/40 bg-[#11295f]/80 px-4 py-3 text-sm font-medium text-[#e6ecff]"
+                  className="rounded-xl border border-border/40 bg-muted/80 px-4 py-3 text-sm font-medium text-foreground"
                 >
                   {t('empty.clearFilters')}
                 </button>
@@ -101,7 +101,7 @@ function TransactionsScreenListInner({
                 <button
                   type="button"
                   onClick={onAddTransaction}
-                  className="rounded-xl bg-[#183166] px-4 py-3 text-sm font-semibold text-white"
+                  className="rounded-xl bg-accent px-4 py-3 text-sm font-semibold text-white"
                 >
                   {t('empty.addCta')}
                 </button>

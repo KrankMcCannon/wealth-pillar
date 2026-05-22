@@ -17,7 +17,7 @@ import { useAccounts, useReferenceDataStore } from '@/stores/reference-data-stor
 import { useUserFilter } from '@/hooks/state/use-user-filter';
 import { toast } from '@/hooks/use-toast';
 import { useRouter } from '@/i18n/routing';
-import { stitchTransactionFormModal } from '@/styles/home-design-foundation';
+import { formModalStyles } from '@/components/form';
 import { AccountFormFields, type AccountFormData } from './account-form-fields';
 
 interface AccountFormModalProps {
@@ -41,7 +41,7 @@ function AccountFormModal({ isOpen, onClose, editId }: Readonly<AccountFormModal
   const updateAccount = useReferenceDataStore((state) => state.updateAccount);
   const removeAccount = useReferenceDataStore((state) => state.removeAccount);
 
-  const s = stitchTransactionFormModal;
+  const s = formModalStyles;
 
   const isEditMode = !!editId;
   const title = isEditMode ? t('title.edit') : t('title.create');

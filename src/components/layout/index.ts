@@ -10,4 +10,4 @@ export * from './page-container';
 export { SectionHeader } from '../ui/layout';
 export * from './header';
 export { HomeDashboardMain, SkipToMainLink } from './home-dashboard-layout';
-export { dashboardContentBottomPadding } from './theme/home-dashboard-layout-styles';
+export { dashboardContentBottomPadding } from './home-dashboard-layout';

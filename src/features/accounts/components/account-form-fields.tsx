@@ -63,7 +63,7 @@ export function AccountFormFields({
         options={[...accountTypes]}
         placeholder={t('fields.type.placeholder')}
         disabled={isSubmitting}
-        leadingIcon={<Landmark className="h-5 w-5 text-[#b8c5ff]" aria-hidden />}
+        leadingIcon={<Landmark className="h-5 w-5 text-primary" aria-hidden />}
       />
 
       <ModalSelectField

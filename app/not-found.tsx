@@ -8,10 +8,7 @@ import Link from 'next/link';
 export default function NotFound(): React.JSX.Element {
   return (
     <div className="h-full w-full flex items-center justify-center px-4 relative">
-      <div className="pointer-events-none absolute -top-24 -left-24 h-72 w-72 rounded-full blur-3xl opacity-15 bg-primary" />
-      <div className="pointer-events-none absolute -bottom-24 -right-24 h-72 w-72 rounded-full blur-3xl opacity-15 bg-secondary" />
-
-      <div className="w-full max-w-md rounded-2xl bg-card p-6 sm:p-8 shadow-xl border border-primary/20 space-y-6 text-center">
+      <div className="w-full max-w-md rounded-2xl border border-border/25 bg-card/90 p-6 sm:p-8 shadow-xl space-y-6 text-center">
         <div className="mx-auto flex size-20 items-center justify-center rounded-full bg-primary/10 shadow-lg">
           <Home className="h-10 w-10 text-primary" />
         </div>

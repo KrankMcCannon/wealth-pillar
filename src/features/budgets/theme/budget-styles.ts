@@ -90,19 +90,19 @@ export const budgetTokens = {
       indicator: 'bg-primary',
       text: 'text-primary',
       message: '✅ Budget sotto controllo',
-      color: 'from-green-400 to-green-500',
+      color: 'bg-success',
     },
     warning: {
       indicator: 'bg-warning',
       text: 'text-warning',
       message: '⚠️ Attenzione, quasi esaurito',
-      color: 'from-amber-400 to-amber-500',
+      color: 'bg-warning',
     },
     danger: {
-      indicator: 'bg-red-500',
-      text: 'text-destructive',
+      indicator: 'bg-expense',
+      text: 'text-expense',
       message: '⚠️ Budget superato',
-      color: 'from-red-500 to-red-600',
+      color: 'bg-expense',
     },
   },
   components: {
@@ -259,7 +259,7 @@ export const budgetStyles = {
     indicator: 'w-2 h-2 rounded-full',
     indicatorSafe: 'bg-primary',
     indicatorWarning: 'bg-warning',
-    indicatorDanger: 'bg-red-500',
+    indicatorDanger: 'bg-expense',
     label: 'text-sm text-primary font-semibold',
     percentage: 'text-xl font-bold',
     percentageSafe: 'text-primary',
@@ -408,7 +408,7 @@ export const budgetStyles = {
     container: 'rounded-2xl border border-border/55 bg-card p-4 shadow-sm sm:p-5',
     emptyContainer: 'bg-card rounded-2xl p-8 text-center border border-primary/20 shadow-sm',
     emptyIconWrap:
-      'flex size-16 items-center justify-center rounded-2xl bg-linear-to-br from-primary/10 to-primary/5 mx-auto mb-4 shadow-sm',
+      'flex size-16 items-center justify-center rounded-2xl bg-primary/10 mx-auto mb-4 shadow-sm',
     emptyIconInner: 'w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center',
     emptyIconText: 'text-primary font-bold text-lg',
     emptyTitle: 'font-semibold text-primary mb-2',
@@ -419,8 +419,7 @@ export const budgetStyles = {
     groupHeader: 'border-b border-border/50 bg-card/95 px-4 py-4',
     groupRow: 'flex items-center justify-between mb-2',
     groupLeft: 'flex items-center gap-2',
-    avatar:
-      'flex size-10 items-center justify-center rounded-lg bg-linear-to-br from-primary/10 to-primary/5 shadow-sm',
+    avatar: 'flex size-10 items-center justify-center rounded-lg bg-primary/10 shadow-sm',
     avatarText: 'text-lg font-bold text-primary',
     groupText: 'text-base font-semibold',
     periodText: 'text-xs text-primary/75',
@@ -611,10 +610,10 @@ export function getBudgetSectionProgressStyles(percentage: number): {
 } {
   if (percentage > 100) {
     return {
-      amount: 'text-destructive',
-      dot: 'bg-destructive',
-      text: 'text-destructive',
-      bar: 'bg-destructive',
+      amount: 'text-expense',
+      dot: 'bg-expense',
+      text: 'text-expense',
+      bar: 'bg-expense',
     };
   }
   if (percentage > 75) {

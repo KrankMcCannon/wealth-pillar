@@ -22,7 +22,7 @@ import {
 import { useCategories } from '@/stores/reference-data-store';
 import { useUserFilter } from '@/hooks/state/use-user-filter';
 import { toast } from '@/hooks/use-toast';
-import { stitchBudgetFormModal } from '@/styles/home-design-foundation';
+import { formModalStyles } from '@/components/form';
 import { BudgetFormFields, type BudgetFormData } from './budget-form-fields';
 
 interface BudgetFormModalProps {
@@ -31,7 +31,7 @@ interface BudgetFormModalProps {
   editId?: string | null;
 }
 
-const s = stitchBudgetFormModal;
+const s = formModalStyles;
 
 function BudgetFormModalBody({
   form,

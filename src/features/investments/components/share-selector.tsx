@@ -162,7 +162,7 @@ export function ShareSelector({ value, onChange, className }: Readonly<ShareSele
           <TrendingUp className={styles.triggerIcon} />
           <span className={styles.triggerLabel}>{selectedLabel || t('placeholder')}</span>
         </div>
-        <ChevronDown className="h-4 w-4 text-[#8fb0ff]/60" />
+        <ChevronDown className="h-4 w-4 text-primary/60" />
       </SelectPrimitive.Trigger>
 
       <SelectPrimitive.Portal>

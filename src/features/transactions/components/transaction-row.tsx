@@ -103,7 +103,7 @@ export const TransactionRow = memo(
         ? stitchHome.amountIncome
         : transaction.type === 'expense'
           ? stitchHome.amountExpense
-          : 'text-[#9fb0d7]';
+          : 'text-muted-foreground';
 
     return (
       <RowCard
@@ -125,7 +125,7 @@ export const TransactionRow = memo(
         secondaryValue={secondaryValue}
         amountVariant={amountVariant}
         valueClassName={valueClassName}
-        secondaryValueClassName="text-[#8fa2dd]"
+        secondaryValueClassName="text-muted-foreground"
         // Interaction — hover/pressed da `listRowInteractive` (Stitch home)
         variant="regular"
         onClick={() => onEditTransaction?.(transaction)}

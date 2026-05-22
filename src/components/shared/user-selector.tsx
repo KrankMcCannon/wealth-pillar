@@ -6,7 +6,37 @@ import { Users } from 'lucide-react';
 import { useUserFilter } from '@/hooks';
 import { User } from '@/lib/types';
 import { UserSelectorSkeleton } from '@/components/ui/primitives/skeletons/dashboard-skeletons';
-import { userSelectorStyles } from './theme/user-selector-styles';
+import type { CSSProperties } from 'react';
+
+const userSelectorStyles = {
+  container: 'border-0 bg-transparent px-0 pb-0 pt-0 backdrop-blur-none',
+  heading: 'mb-2.5 text-[11px] font-bold uppercase tracking-wide text-primary',
+  list: 'flex touch-pan-x items-stretch gap-2 overflow-x-auto overscroll-x-contain scroll-pl-1 pb-0.5 [-webkit-overflow-scrolling:touch] scrollbar-thin scrollbar-thumb-border/30 scrollbar-track-transparent',
+  listStyle: {
+    scrollbarWidth: 'thin',
+  } satisfies CSSProperties,
+  item: {
+    base: 'group flex min-h-11 min-w-[44px] shrink-0 items-center gap-2.5 rounded-full border px-3 py-2 text-left text-[12px] font-medium tracking-wide outline-none transition-[background-color,border-color,box-shadow] duration-200 focus-visible:ring-2 focus-visible:ring-ring/35 focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-reduce:transition-none sm:min-h-[48px] sm:px-3.5',
+    active:
+      'border-transparent bg-accent text-foreground shadow-[inset_0_0_0_1px_rgba(143,176,255,0.28)]',
+    inactive:
+      'border-border/35 bg-muted/80 text-muted-foreground hover:bg-accent hover:text-foreground',
+  },
+  avatar: {
+    base: 'flex size-8 shrink-0 items-center justify-center rounded-full border text-[11px] font-bold tabular-nums transition-colors duration-200',
+    active: 'border-border/35 bg-muted text-primary',
+    inactive: 'border-border/35 bg-muted text-muted-foreground',
+    allIcon: 'size-4 text-primary',
+  },
+  initials: 'leading-none',
+  label: 'max-w-[6.5rem] truncate text-foreground sm:max-w-[7.5rem]',
+  dots: {
+    container: 'mt-2 flex max-w-full justify-center gap-1.5 overflow-x-auto pb-0.5 scrollbar-hide',
+    base: 'h-1 rounded-full transition-all duration-300',
+    active: 'w-4 bg-primary/80',
+    inactive: 'w-1.5 bg-border/40',
+  },
+} as const;
 
 function getInitials(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean);

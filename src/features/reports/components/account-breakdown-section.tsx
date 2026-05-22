@@ -89,7 +89,7 @@ export function AccountBreakdownSection({ rows, totalWealth }: AccountBreakdownS
                   <Icon className="h-5 w-5" aria-hidden />
                 </div>
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-medium text-[#e6ecff]">{label}</p>
+                  <p className="truncate text-sm font-medium text-foreground">{label}</p>
                   <p className={stitchReports.accountMeta}>
                     {t('percentOfWealth', { percent: pct })}
                   </p>

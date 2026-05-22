@@ -1,3 +1,5 @@
+import { stitchSurface } from '@/styles/home-design-foundation';
+
 /**
  * Shared form-modal layout tokens.
  */
@@ -35,13 +37,10 @@ export const formModalStyles = {
   errorBanner:
     'rounded-xl border border-modal-error-border/35 bg-modal-error-bg/35 px-3 py-2 text-sm text-modal-error-fg',
   fieldError: 'px-1 text-xs text-modal-error-fg',
-  deleteButton:
-    'flex min-h-[52px] w-full items-center justify-center gap-2.5 rounded-2xl border border-red-500/45 bg-red-950/25 px-5 py-4 text-sm font-semibold uppercase tracking-[0.18em] text-red-200 shadow-[inset_0_0_0_1px_rgba(248,113,113,0.12)] transition-colors hover:border-red-400/55 hover:bg-red-950/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/35 active:scale-[0.98] motion-reduce:active:scale-100',
+  deleteButton: `flex min-h-[52px] w-full items-center justify-center gap-2.5 rounded-2xl px-5 py-4 text-sm font-semibold uppercase tracking-[0.18em] ${stitchSurface.dangerButton} active:scale-[0.98] motion-reduce:active:scale-100`,
   footerActionsStack: 'flex w-full flex-col gap-3',
-  stickyFooter:
-    'mt-auto shrink-0 border-t border-modal-border/30 bg-[oklch(0.12_0.04_265)]/92 px-4 py-4 backdrop-blur-xl supports-backdrop-filter:bg-[oklch(0.12_0.04_265)]/88 pb-[max(env(safe-area-inset-bottom),1rem)] -mx-4',
-  primaryCta:
-    'flex min-h-[52px] w-full items-center justify-center gap-2.5 rounded-2xl border border-primary/35 bg-modal-elevated px-5 py-4 text-sm font-semibold uppercase tracking-[0.22em] text-white shadow-[0_10px_32px_rgba(0,16,70,0.45)] ring-1 ring-inset ring-white/10 transition-all hover:border-modal-ring/45 hover:bg-modal-elevated-hover hover:shadow-[0_12px_36px_rgba(0,20,86,0.5)] active:scale-[0.98] disabled:pointer-events-none disabled:opacity-45 motion-reduce:transition-none motion-reduce:active:scale-100',
+  stickyFooter: `${stitchSurface.modalFooter} px-4 py-4 -mx-4`,
+  primaryCta: stitchSurface.primaryCta,
   categoryShell:
     'rounded-xl border border-transparent bg-modal-elevated/85 p-4 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)]',
   categoryToolbar: 'flex flex-col gap-3',
@@ -145,40 +144,4 @@ export const formModalStyles = {
       'rounded-full bg-modal-ring/20 px-2 py-0.5 text-xs font-medium text-modal-fg-muted',
     description: 'mt-0.5 break-words text-sm text-modal-fg-muted',
   },
-} as const;
-
-/** @deprecated Use formModalStyles — kept for incremental migration */
-export const stitchTransactionFormModal = {
-  drawerSurface: 'bg-card text-foreground',
-  handle: 'mx-auto mb-2 h-1.5 w-12 shrink-0 rounded-full bg-muted-foreground/30',
-  drawerHeaderShell: 'border-b border-border',
-  headerTitle: formModalStyles.headerTitle,
-  headerClose:
-    'inline-flex size-9 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-accent hover:text-foreground',
-  formColumn: formModalStyles.formColumn,
-  scrollBody: formModalStyles.scrollBody,
-  amountSection: formModalStyles.amountSection,
-  amountEyebrow: formModalStyles.amountEyebrow,
-  amountRow: formModalStyles.amountRow,
-  amountCurrency: formModalStyles.amountCurrency,
-  amountInput: formModalStyles.amountInput,
-  amountTrack: formModalStyles.amountTrack,
-  amountTrackFill: formModalStyles.amountTrackFill,
-  fieldStack: formModalStyles.fieldStack,
-  selectorTrigger: formModalStyles.selectorTrigger,
-  selectorIconWrap: formModalStyles.selectorIconWrap,
-  selectorLabel: formModalStyles.selectorLabel,
-  selectorValue: formModalStyles.selectorValue,
-  selectorValueMuted: formModalStyles.selectorValueMuted,
-  selectorChevron: formModalStyles.selectorChevron,
-  noteShell: formModalStyles.noteShell,
-  noteLabel: formModalStyles.noteLabel,
-  noteInput: formModalStyles.noteInput,
-  errorBanner: formModalStyles.errorBanner,
-  fieldError: formModalStyles.fieldError,
-  deleteButton: formModalStyles.deleteButton,
-  footerActionsStack: formModalStyles.footerActionsStack,
-  stickyFooter: formModalStyles.stickyFooter,
-  primaryCta: formModalStyles.primaryCta,
-  headerRow: 'mb-6 flex shrink-0 items-center justify-between gap-3 px-1',
 } as const;

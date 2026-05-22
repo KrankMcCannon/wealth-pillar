@@ -26,7 +26,7 @@ export function RecurrencePicker({ form, t, isSubmitting }: RecurrencePickerProp
             { value: 'expense', label: t('typeOptions.expense') },
             { value: 'income', label: t('typeOptions.income') },
           ]}
-          leadingIcon={<ArrowLeftRight className="h-5 w-5 text-[#b8c5ff]" aria-hidden />}
+          leadingIcon={<ArrowLeftRight className="h-5 w-5 text-primary" aria-hidden />}
           disabled={isSubmitting}
         />
 
@@ -41,7 +41,7 @@ export function RecurrencePicker({ form, t, isSubmitting }: RecurrencePickerProp
             { value: 'monthly', label: t('frequencyOptions.monthly') },
             { value: 'yearly', label: t('frequencyOptions.yearly') },
           ]}
-          leadingIcon={<CalendarClock className="h-5 w-5 text-[#b8c5ff]" aria-hidden />}
+          leadingIcon={<CalendarClock className="h-5 w-5 text-primary" aria-hidden />}
           disabled={isSubmitting}
         />
       </div>

@@ -20,7 +20,7 @@ import {
   getTransactionByIdAction,
 } from '@/features/transactions/actions/transaction-actions';
 import { useRouter } from '@/i18n/routing';
-import { stitchTransactionFormModal } from '@/styles/home-design-foundation';
+import { formModalStyles } from '@/components/form';
 import type { Account, Category, User } from '@/lib/types';
 import { TransactionFormFields, type TransactionFormData } from './transaction-form-fields';
 
@@ -61,7 +61,7 @@ interface TransactionFormModalProps {
   editId?: string | null;
 }
 
-const s = stitchTransactionFormModal;
+const s = formModalStyles;
 
 function TransactionFormModalBody({
   form,

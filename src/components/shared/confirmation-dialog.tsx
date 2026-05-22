@@ -5,7 +5,23 @@ import { useTranslations } from 'next-intl';
 import { ModalWrapper, ModalBody, ModalFooter } from '@/components/ui/modal-wrapper';
 import { Button } from '@/components/ui/button';
 import { AlertTriangleIcon, Loader2Icon } from 'lucide-react';
-import { confirmationDialogStyles } from './theme/feedback-styles';
+import { radiusStyles, typographyStyles } from '@/features/budgets/theme/budget-styles';
+
+const confirmationDialogStyles = {
+  headerLayout: 'flex items-start gap-3',
+  iconWrapper: `flex size-12 shrink-0 items-center justify-center ${radiusStyles.md} bg-destructive/10 border border-destructive/20 text-destructive`,
+  icon: 'size-6',
+  text: {
+    message: `${typographyStyles.sm} text-modal-fg leading-relaxed`,
+  },
+  body: 'flex-1 space-y-2',
+  buttons: {
+    cancel:
+      'w-full font-semibold border border-modal-border/30 text-modal-fg bg-modal-surface hover:bg-primary hover:text-primary-foreground',
+    confirm: 'w-full font-semibold gap-2',
+  },
+  loadingIcon: 'size-4 animate-spin',
+} as const;
 
 interface ConfirmationDialogProps {
   isOpen: boolean;

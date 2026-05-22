@@ -3,7 +3,11 @@
 import { PageContainer } from './page-container';
 import { BottomNavigation } from './bottom-navigation';
 import { cn } from '@/lib';
-import { dashboardPageLayoutStyles } from './theme/dashboard-page-layout-styles';
+
+const dashboardPageLayoutStyles = {
+  container: 'flex-1',
+  main: 'p-4 pb-20 md:p-6 md:pb-8',
+} as const;
 
 /**
  * Dashboard Page Layout Props

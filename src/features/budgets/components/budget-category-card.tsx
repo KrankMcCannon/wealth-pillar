@@ -96,7 +96,7 @@ export function BudgetCategoryCard({
       <div className={stitchBudgets.spentRow}>
         <div className={stitchBudgets.spentAmountRow}>
           <div className="flex items-baseline gap-1">
-            <span className={cn(stitchBudgets.spentStrong, status === 'over' && 'text-[#ffb4ab]')}>
+            <span className={cn(stitchBudgets.spentStrong, status === 'over' && 'text-expense')}>
               {spentFormatted}
             </span>
             <span className={stitchBudgets.spentLabel}>{t('categoryCard.spentLabel')}</span>
@@ -129,7 +129,7 @@ export function BudgetCategoryCard({
           <span
             className={cn(
               stitchBudgets.footerMuted,
-              status === 'over' && 'font-medium text-[#ffb4ab]'
+              status === 'over' && 'font-medium text-expense'
             )}
           >
             {status === 'fixed'

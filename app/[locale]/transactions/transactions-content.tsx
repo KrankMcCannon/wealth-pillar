@@ -113,7 +113,7 @@ export default function TransactionsContent({
       skipToMainLabel={t('skipToMain')}
       betweenHeaderAndMain={
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex min-h-0 flex-col">
-          <div className="sticky z-30 bg-[#050818]/85 pb-2 pt-1 backdrop-blur-sm">
+          <div className="sticky z-30 bg-background/85 pb-2 pt-1 backdrop-blur-sm">
             <TabsList className={stitchTransactions.tabsList}>
               <TabsTrigger className={stitchTransactions.tabsTrigger} value="Transactions">
                 {t('tabs.transactions')}

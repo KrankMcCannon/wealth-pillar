@@ -53,7 +53,7 @@ export const AccountsList = ({
 
   if (isInitialLoading) {
     return (
-      <div className="divide-y divide-[#3359c5]/25">
+      <div className="divide-y divide-border/25">
         {!hideListHeading ? (
           <h2 className={cn(stitchAccounts.sectionTitle, 'pb-3')}>{t('header')}</h2>
         ) : null}
@@ -77,7 +77,7 @@ export const AccountsList = ({
   }
 
   return (
-    <div className="divide-y divide-[#3359c5]/25">
+    <div className="divide-y divide-border/25">
       {!hideListHeading ? (
         <h2 className={cn(stitchAccounts.sectionTitle, 'pb-3')}>{t('header')}</h2>
       ) : null}

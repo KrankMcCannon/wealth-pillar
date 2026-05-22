@@ -13,7 +13,7 @@ export const clerkAppearance: Theme = {
   },
   elements: {
     // Card Container - Glassmorphism
-    card: 'backdrop-blur-2xl bg-card/70 shadow-[0_8px_32px_rgba(0,0,0,0.08)] ring-1 ring-border/50 rounded-3xl p-2 sm:p-4',
+    card: 'rounded-3xl border border-border/25 bg-card/90 p-2 shadow-[0_16px_36px_rgba(0,7,30,0.28)] sm:p-4',
     rootBox: 'w-full max-w-sm mx-auto',
 
     // Header -> Changed to text-primary
@@ -38,7 +38,7 @@ export const clerkAppearance: Theme = {
 
     // Primary Button
     formButtonPrimary:
-      'h-11 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-primary-foreground shadow-lg shadow-primary/25 hover:shadow-primary/40 active:scale-[0.98] transition-all duration-300 rounded-xl text-sm font-bold uppercase tracking-wide',
+      'h-11 bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/25 hover:shadow-primary/40 active:scale-[0.98] transition-all duration-300 rounded-xl text-sm font-bold uppercase tracking-wide',
 
     // Footer / Links
     footerAction: 'mt-4 text-center',

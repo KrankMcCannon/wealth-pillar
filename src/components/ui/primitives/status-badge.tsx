@@ -17,7 +17,9 @@
 
 import * as React from 'react';
 import { cn, statusBadgeVariants, type StatusBadgeVariants } from '@/lib/utils';
-import { statusBadgeStyles } from './theme/status-badge-styles';
+const statusBadgeStyles = {
+  dot: 'w-2 h-2 rounded-full bg-current shrink-0',
+};
 
 export interface StatusBadgeProps
   extends React.HTMLAttributes<HTMLDivElement>, StatusBadgeVariants {

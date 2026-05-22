@@ -1,6 +1,7 @@
 'use client';
 
 import { cn } from '@/lib/utils';
+import { stitchSurface } from '@/styles/home-design-foundation';
 import * as React from 'react';
 import {
   Sheet,
@@ -66,7 +67,10 @@ export function ModalWrapper({
       <SheetContent
         side="bottom"
         showCloseButton={false}
-        className={cn('max-h-[85vh] gap-0 rounded-t-3xl border-border px-0 pb-0', className)}
+        className={cn(
+          'max-h-[85vh] gap-0 rounded-t-3xl border-border bg-background px-0 pb-0',
+          className
+        )}
         {...(disableOutsideClose
           ? {
               onInteractOutside: (event) => event.preventDefault(),
@@ -119,7 +123,7 @@ export function ModalWrapper({
             <Spinner className="size-10 text-muted-foreground" />
           </div>
         ) : (
-          <div className="min-h-0 flex-1 overflow-y-auto px-4 py-2">{children}</div>
+          <div className="min-h-0 flex-1 overflow-y-auto bg-background px-4 py-2">{children}</div>
         )}
       </SheetContent>
     </Sheet>
@@ -144,7 +148,8 @@ export function ModalFooter({
   return (
     <div
       className={cn(
-        'mt-auto flex shrink-0 flex-col-reverse gap-3 border-t border-border bg-card/95 py-4 backdrop-blur-sm supports-backdrop-filter:bg-card/90 pb-[max(env(safe-area-inset-bottom),0.75rem)]',
+        stitchSurface.modalFooter,
+        'flex flex-col-reverse gap-3 px-4 py-4 pb-[max(env(safe-area-inset-bottom),0.75rem)]',
         className
       )}
     >

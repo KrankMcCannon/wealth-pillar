@@ -25,7 +25,75 @@ import {
 } from '@/lib/recurring/recurring-calculations';
 import { formatCurrency, cn } from '@/lib/utils';
 import { User } from '@/lib/types';
-import { recurringStyles } from '../theme/recurring-styles';
+const recurringStyles = {
+  section: {
+    container: 'rounded-xl',
+    emptyWrap: 'p-6',
+    emptyActionIcon: 'h-4 w-4 mr-2',
+    header:
+      'rounded-2xl border border-border/25 bg-card/85 p-3.5 shadow-[0_12px_28px_rgba(0,7,30,0.22)]',
+    headerRow: 'flex items-center justify-between',
+    headerLeft: 'flex items-center gap-2',
+    headerIconWrap:
+      'flex size-10 items-center justify-center rounded-full border border-border/35 bg-muted/85',
+    headerIcon: 'h-4 w-4 text-primary',
+    title: 'text-2xl font-bold tracking-tight text-primary',
+    subtitle: 'mt-1 text-sm text-muted-foreground',
+    subtitleMuted: 'text-muted-foreground',
+    stats: 'mt-3 grid grid-cols-1 gap-2 border-t border-border/20 pt-3 sm:grid-cols-3',
+    statRow:
+      'flex items-center justify-between gap-3 rounded-full border border-border/30 bg-muted/75 px-4 py-3 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.04)]',
+    statLeft: 'flex items-center gap-2 min-w-0',
+    statIconWrapNeutral:
+      'flex size-7 shrink-0 items-center justify-center rounded-full border border-border/35 bg-accent',
+    statIconNeutral: 'h-3.5 w-3.5 text-primary',
+    statValueNeutral: 'text-[1.85rem] font-semibold leading-none tabular-nums text-foreground',
+    statIconWrapPositive:
+      'flex size-7 items-center justify-center rounded-full border border-teal-accent/35 bg-teal-accent/15',
+    statIconPositive: 'h-3.5 w-3.5 text-income',
+    statIconWrapNegative:
+      'flex size-7 items-center justify-center rounded-full border border-destructive/35 bg-destructive/15',
+    statIconNegative: 'h-3.5 w-3.5 text-expense',
+    statLabel: 'text-sm text-muted-foreground',
+    statValuePositive: 'text-[1.85rem] font-semibold leading-none tabular-nums text-income',
+    statValueNegative: 'text-[1.85rem] font-semibold leading-none tabular-nums text-expense',
+    list: '',
+    /** Home desktop: griglia al posto della lista verticale stretta. */
+    listLayoutHome: 'grid grid-cols-1 md:grid-cols-2 md:gap-4 md:divide-y-0 xl:grid-cols-3 py-2',
+    listLayoutPage: 'space-y-2.5',
+    /** overflow-hidden: clip figli (SwipeableCard + Card rounded-none) al raggio del contenitore. */
+    cardCellHome:
+      'min-w-0 md:overflow-hidden md:rounded-xl md:border md:border-border/55 md:bg-card/60 md:shadow-sm',
+    cardCellPage: 'min-w-0',
+    listDivider: 'border-t border-primary/20 mx-2',
+    footer: 'px-4 py-1.5',
+    footerText: 'text-xs text-primary text-center',
+    executeErrorBanner:
+      'mx-2 mt-2 shrink-0 motion-reduce:animate-none motion-reduce:opacity-100 animate-in fade-in slide-in-from-top-1 duration-200',
+  },
+  form: {
+    form: 'space-y-4',
+    errorWrap: 'mb-4 p-3 rounded-lg bg-destructive/10 border border-destructive/20',
+    errorText: 'text-sm text-destructive',
+    grid: 'grid grid-cols-1 sm:grid-cols-2 gap-4',
+  },
+  formModal: {
+    form: 'space-y-2',
+    content: 'gap-2',
+    error: 'px-3 py-2 text-sm text-destructive bg-destructive/10 rounded-md',
+    section: 'gap-2',
+    grid: 'grid grid-cols-1 sm:grid-cols-2 gap-3',
+  },
+  pauseModal: {
+    container: 'space-y-4',
+    card: 'rounded-lg bg-card/10 p-4 border border-primary/10',
+    title: 'text-sm font-medium text-primary mb-2',
+    description: 'text-sm text-muted-foreground space-y-2',
+    descriptionStrong: 'font-medium',
+    buttonIcon: 'mr-2 h-4 w-4',
+    loadingIcon: 'mr-2 h-4 w-4 animate-spin',
+  },
+} as const;
 
 interface RecurringSeriesSectionProps {
   /** All recurring series data */
@@ -350,7 +418,7 @@ export function RecurringSeriesSection({
       {/* Series List */}
       <div className="space-y-4">
         <div>
-          <p className="px-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#9fb0d7]">
+          <p className="px-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
             {t('groups.upcoming')}
           </p>
           <div className={cn(recurringStyles.section.list, 'mt-2')}>
@@ -380,7 +448,7 @@ export function RecurringSeriesSection({
         </div>
 
         <div>
-          <p className="px-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#9fb0d7]">
+          <p className="px-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
             {t('groups.paid')}
           </p>
           <div className={cn(recurringStyles.section.list, 'mt-2')}>

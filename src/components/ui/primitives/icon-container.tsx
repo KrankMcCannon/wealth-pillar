@@ -1,7 +1,7 @@
 /**
  * IconContainer Primitive Component
  *
- * Centralized icon background with gradient
+ * Centralized icon background (solid token tints)
  * Replaces hardcoded icon container styles throughout the app
  *
  * @example

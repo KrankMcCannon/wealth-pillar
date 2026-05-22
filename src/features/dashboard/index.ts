@@ -13,11 +13,3 @@ export {
 // Hooks
 export { useDashboardContent } from './hooks';
 export type { UseDashboardContentParams, UseDashboardContentReturn } from './hooks';
-
-// Theme
-export {
-  dashboardStyles,
-  getAccountCardStyles,
-  getBalanceTextStyle,
-  getBudgetStatusStyle,
-} from './theme';

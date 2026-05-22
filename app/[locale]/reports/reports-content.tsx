@@ -194,11 +194,11 @@ export default function ReportsContent({
               <HistoricalBudgetSection periods={filteredPeriodsAllUsers} />
             </div>
 
-            <div className="mt-6 border-t border-[#3359c5]/25 pt-4">
+            <div className="mt-6 border-t border-border/25 pt-4">
               <div className="flex flex-col gap-3">
                 <div className="flex flex-col gap-2">
                   <h2 className={stitchReports.sectionTitle}>{t('sectionMemberTitle')}</h2>
-                  <p className="text-sm leading-snug text-[#9fb0d7]">
+                  <p className="text-sm leading-snug text-muted-foreground">
                     {t('sectionMemberSubtitle')}
                   </p>
                 </div>
@@ -206,7 +206,7 @@ export default function ReportsContent({
                   type="button"
                   variant="outline"
                   size="sm"
-                  className="w-full border-[#3359c5]/40 bg-[#11295f]/50 text-[#e6ecff] hover:bg-[#17336f]"
+                  className="w-full border-border/40 bg-muted/50 text-foreground hover:bg-accent"
                   aria-expanded={memberOpen}
                   aria-controls="reports-member-panel"
                   onClick={() => setMemberOpen((o) => !o)}

@@ -99,7 +99,7 @@ export function BudgetFormFields({
           label={t('fields.type.label')}
           options={typeOptions}
           disabled={isSubmitting}
-          leadingIcon={<PieChart className="h-5 w-5 text-[#b8c5ff]" aria-hidden />}
+          leadingIcon={<PieChart className="h-5 w-5 text-primary" aria-hidden />}
         />
       </div>
 

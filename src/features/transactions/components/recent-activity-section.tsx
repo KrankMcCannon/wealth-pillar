@@ -36,7 +36,7 @@ export function RecentActivitySection({ transactions, categories }: RecentActivi
           transactions.length > 0 ? (
             <Link
               href="/transactions"
-              className="text-xs font-semibold text-[#8fb0ff] hover:underline"
+              className="text-xs font-semibold text-primary hover:underline"
             >
               {t('recentActivityViewAll')}
             </Link>

@@ -53,18 +53,18 @@ export function WealthHeader({
         ' flex flex-col items-center justify-center text-center'
       }
     >
-      <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#9fb0d7] mb-2">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground mb-2">
         {t('totalPortfolioValue')}
       </p>
-      <h1 className="text-4xl md:text-5xl font-bold text-[#8fb0ff] mb-4 tabular-nums tracking-[-0.02em]">
+      <h1 className="text-4xl md:text-5xl font-bold text-primary mb-4 tabular-nums tracking-[-0.02em]">
         {formattedTotal}
       </h1>
 
       <div
         className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-bold ring-1 ring-inset ${
           isPositive
-            ? 'bg-[#8fe2b4]/10 text-[#8fe2b4] ring-[#8fe2b4]/20'
-            : 'bg-[#f0a6a6]/10 text-[#f0a6a6] ring-[#f0a6a6]/20'
+            ? 'bg-income/10 text-income ring-income/20'
+            : 'bg-expense/10 text-expense ring-expense/20'
         }`}
       >
         <TrendIcon className="w-3.5 h-3.5" />

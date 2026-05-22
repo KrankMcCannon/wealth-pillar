@@ -80,12 +80,12 @@ export function ReportsTimeFilter({
         open={customOpen}
         onOpenChange={setCustomOpen}
         title={t('customTitle')}
-        contentClassName="border-[#3359c5]/25 bg-[#0b1f4f]/95 text-[#e6ecff]"
+        contentClassName="border-border/25 bg-card/95 text-foreground"
       >
         <div className="flex flex-col gap-4 px-4 pb-6">
           <div className="grid grid-cols-1 gap-3">
             <div className="space-y-1.5">
-              <Label htmlFor="reports-custom-start" className="text-xs text-[#9fb0d7]">
+              <Label htmlFor="reports-custom-start" className="text-xs text-muted-foreground">
                 {t('from')}
               </Label>
               <Input
@@ -93,11 +93,11 @@ export function ReportsTimeFilter({
                 type="date"
                 value={draftStart}
                 onChange={(e) => setDraftStart(e.target.value)}
-                className="rounded-xl border-[#3359c5]/35 bg-[#11295f]/85 text-[#e6ecff]"
+                className="rounded-xl border-border/35 bg-muted/85 text-foreground"
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="reports-custom-end" className="text-xs text-[#9fb0d7]">
+              <Label htmlFor="reports-custom-end" className="text-xs text-muted-foreground">
                 {t('to')}
               </Label>
               <Input
@@ -105,13 +105,13 @@ export function ReportsTimeFilter({
                 type="date"
                 value={draftEnd}
                 onChange={(e) => setDraftEnd(e.target.value)}
-                className="rounded-xl border-[#3359c5]/35 bg-[#11295f]/85 text-[#e6ecff]"
+                className="rounded-xl border-border/35 bg-muted/85 text-foreground"
               />
             </div>
           </div>
           <Button
             type="button"
-            className="w-full rounded-xl bg-[#183166] font-semibold text-white"
+            className="w-full rounded-xl bg-accent font-semibold text-white"
             disabled={!draftStart || !draftEnd}
             onClick={applyCustom}
           >

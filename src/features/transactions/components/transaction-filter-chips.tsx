@@ -17,7 +17,10 @@ import { stitchTransactionPageSearch, stitchTransactions } from '@/styles/home-d
 
 const TransactionFiltersLazy = dynamic(
   () => import('./transaction-filters').then((mod) => mod.TransactionFilters),
-  { ssr: false, loading: () => <div className="p-6 text-center text-sm text-[#9fb0d7]">…</div> }
+  {
+    ssr: false,
+    loading: () => <div className="p-6 text-center text-sm text-muted-foreground">…</div>,
+  }
 );
 
 export interface TransactionFilterChipsProps {

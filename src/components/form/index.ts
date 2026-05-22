@@ -14,6 +14,6 @@ export {
   type EntityFormModalWrapperProps,
 } from './entity-form-modal';
 export { EntityFormFooter, type EntityFormFooterProps } from './entity-form-footer';
-export { formModalStyles, stitchTransactionFormModal } from './form-modal-styles';
+export { formModalStyles } from './form-modal-styles';
 export { SelectionModal, type SelectionModalProps, type SelectionOption } from './selection-modal';
 export * from './modal-fields';

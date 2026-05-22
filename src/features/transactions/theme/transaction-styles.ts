@@ -91,22 +91,22 @@ export const animationStyles = {
 export const transactionTokens = {
   type: {
     expense: {
-      icon: 'bg-red-100 text-red-600',
-      badge: 'bg-red-50 text-red-700',
+      icon: 'bg-expense/15 text-expense',
+      badge: 'bg-expense/12 text-expense',
       text: 'text-destructive',
-      color: 'from-red-500 to-red-600',
+      color: 'bg-expense',
     },
     income: {
       icon: 'bg-green-100 text-green-600',
       badge: 'bg-green-50 text-green-700',
       text: 'text-success',
-      color: 'from-green-400 to-green-500',
+      color: 'bg-success',
     },
     transfer: {
       icon: 'bg-amber-100 text-amber-600',
       badge: 'bg-amber-50 text-amber-700',
       text: 'text-warning',
-      color: 'from-amber-400 to-amber-500',
+      color: 'bg-warning',
     },
   },
   interaction: {
@@ -134,12 +134,12 @@ export const transactionTokens = {
       contentGap: 'gap-1.5',
     },
     borders: {
-      rowDivider: 'divide-y divide-[#3359c5]/25',
+      rowDivider: 'divide-y divide-border/25',
       lastRowNoBorder: 'last:border-0',
     },
     row: {
-      base: 'relative cursor-pointer rounded-lg bg-[#11295f]/90',
-      hover: 'hover:bg-[#17336f] active:bg-[#17336f]',
+      base: 'relative cursor-pointer rounded-lg bg-muted/90',
+      hover: 'hover:bg-accent active:bg-accent',
       deleteLayer: 'absolute right-0 top-0 bottom-0 flex items-center justify-end',
     },
     icon: {
@@ -147,12 +147,12 @@ export const transactionTokens = {
       hover: '',
     },
     text: {
-      title: 'font-semibold truncate text-[15px] text-[#e6ecff]',
-      metadata: `${typographyStyles.xs} text-[#9fb0d7] font-medium`,
-      metadataSecondary: `${typographyStyles.xs} text-[#8fa2dd]`,
-      separator: `${typographyStyles.xs} text-[#5c77cc]`,
+      title: 'font-semibold truncate text-[15px] text-foreground',
+      metadata: `${typographyStyles.xs} text-muted-foreground font-medium`,
+      metadataSecondary: `${typographyStyles.xs} text-muted-foreground`,
+      separator: `${typographyStyles.xs} text-border`,
       amount: 'text-[15px] font-bold tracking-tight',
-      amountSecondary: 'mt-0.5 text-[10px] font-medium text-[#8fa2dd]',
+      amountSecondary: 'mt-0.5 text-[10px] font-medium text-muted-foreground',
     },
     badge: {
       base: 'text-[10px] font-semibold px-1.5 py-0 border-primary/10',
@@ -200,13 +200,13 @@ export const transactionTokens = {
     },
     dayGroup: {
       header: 'mb-2 flex items-center justify-between px-1',
-      title: 'text-sm font-medium text-[#8fa2dd]',
+      title: 'text-sm font-medium text-muted-foreground',
       stats: 'text-right',
-      statsLabel: 'text-xs text-[#9fb0d7]',
+      statsLabel: 'text-xs text-muted-foreground',
       statsValue: 'text-xs font-bold tabular-nums',
-      statsValuePositive: 'text-[#8fe2b4]',
-      statsValueNegative: 'text-[#f0a6a6]',
-      count: 'mt-0.5 text-xs text-[#9fb0d7]',
+      statsValuePositive: 'text-income',
+      statsValueNegative: 'text-expense',
+      count: 'mt-0.5 text-xs text-muted-foreground',
     },
     modal: {
       content: 'bg-card',

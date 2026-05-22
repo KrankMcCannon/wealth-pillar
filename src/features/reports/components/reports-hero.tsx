@@ -63,7 +63,7 @@ export function ReportsHero({
             </div>
           ) : null}
           {!omitComparison && pct === null ? (
-            <p className="mt-1 text-[12px] text-[#9fb0d7]">{t('noComparison')}</p>
+            <p className="mt-1 text-[12px] text-muted-foreground">{t('noComparison')}</p>
           ) : null}
         </div>
       </div>

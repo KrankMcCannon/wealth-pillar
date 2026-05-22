@@ -20,7 +20,7 @@ import { useAccounts, useCategories } from '@/stores/reference-data-store';
 import { useUserFilter } from '@/hooks/state/use-user-filter';
 import { useRouter } from '@/i18n/routing';
 import { toast } from '@/hooks/use-toast';
-import { stitchTransactionFormModal } from '@/styles/home-design-foundation';
+import { formModalStyles } from '@/components/form';
 
 import { RecurrencePicker } from './recurrence-picker';
 import { calculateDefaultAccountId, formatDateForInput } from './recurring-form-helpers';
@@ -38,7 +38,7 @@ interface RecurringFormModalProps {
   editId?: string | null;
 }
 
-const s = stitchTransactionFormModal;
+const s = formModalStyles;
 
 function RecurringFormModalBody({
   form,
@@ -321,7 +321,7 @@ function RecurringFormModal({ isOpen, onClose, editId }: Readonly<RecurringFormM
               type="button"
               onClick={handleToggleSeriesActive}
               disabled={isSubmitting}
-              className="flex min-h-[52px] w-full items-center justify-center gap-2.5 rounded-2xl border border-[#4d6fd0]/35 bg-[#11295f]/85 px-5 py-4 text-sm font-semibold uppercase tracking-[0.18em] text-[#e6ecff] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)] transition-colors hover:bg-[#17336f] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6b9fff]/35 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-45 motion-reduce:active:scale-100"
+              className="flex min-h-[52px] w-full items-center justify-center gap-2.5 rounded-2xl border border-ring/35 bg-muted/85 px-5 py-4 text-sm font-semibold uppercase tracking-[0.18em] text-foreground shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)] transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/35 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-45 motion-reduce:active:scale-100"
             >
               {editingSeries?.is_active === false ? (
                 <Play className="h-5 w-5 shrink-0" aria-hidden />

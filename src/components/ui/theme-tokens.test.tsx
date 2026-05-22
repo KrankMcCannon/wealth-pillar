@@ -4,15 +4,12 @@ import { Button } from './button';
 import { Input } from './input';
 import { Card, CardTitle, CardDescription } from './card';
 import { Alert, AlertTitle } from './alert';
-import { inputStyles, cardStyles, buttonStyles } from './component-styles';
+import { cardStyles } from './component-styles';
 
 describe('theme semantic tokens', () => {
-  it('uses foreground tokens for body copy in component-styles', () => {
-    expect(inputStyles.base).toContain('text-foreground');
-    expect(inputStyles.base.replace(/selection:[^\s]+/g, '')).not.toMatch(/\btext-primary\b/);
+  it('uses foreground tokens for card copy in component-styles', () => {
     expect(cardStyles.title).toContain('text-foreground');
     expect(cardStyles.description).toContain('text-muted-foreground');
-    expect(buttonStyles.variants.outline).toContain('text-foreground');
   });
 
   it('renders Input with semantic foreground classes', () => {
@@ -20,6 +17,7 @@ describe('theme semantic tokens', () => {
     const input = screen.getByLabelText('Email');
     expect(input.className).toContain('text-foreground');
     expect(input.className.replace(/selection:[^\s]+/g, '')).not.toMatch(/\btext-primary\b/);
+    expect(input.className).toContain('border-input');
   });
 
   it('renders Card title and description with semantic tokens', () => {

@@ -102,7 +102,7 @@ export const textVariants = cva('', {
 // ============================================================================
 
 /**
- * Icon container with gradient backgrounds
+ * Icon container with solid token backgrounds
  *
  * Usage:
  * ```tsx
@@ -280,15 +280,14 @@ export const transactionCardVariants = cva('py-0 backdrop-blur-sm transition-all
   variants: {
     context: {
       regular: 'bg-card border border-primary/20 shadow-lg hover:shadow-xl',
-      recurring: 'bg-gradient-to-r from-primary/10 via-card to-card border border-primary/20',
+      recurring: 'bg-card/90 border border-border/25',
       due: '', // Determined by urgency
     },
     urgency: {
       none: '',
-      low: 'bg-gradient-to-r from-primary/10 via-card to-card border-primary/20 hover:shadow-primary/20',
-      medium:
-        'bg-gradient-to-r from-warning/10 via-warning/5 to-card border-warning/30 hover:shadow-warning/20',
-      high: 'bg-gradient-to-r from-destructive/10 via-destructive/5 to-card border-destructive/30 hover:shadow-destructive/20',
+      low: 'bg-card/90 border border-border/25 hover:shadow-md',
+      medium: 'bg-card/90 border border-warning/30 hover:shadow-md',
+      high: 'bg-card/90 border border-expense/35 hover:shadow-md',
     },
   },
   compoundVariants: [

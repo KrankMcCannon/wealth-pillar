@@ -79,7 +79,7 @@ export default function InvestmentsContent({
       }
       betweenHeaderAndMain={
         <>
-          <div className="sticky z-30 border-b border-[#3359c5]/15 bg-[#050818]/90 pt-1 pb-3 shadow-sm backdrop-blur-sm">
+          <div className="sticky z-30 border-b border-border/15 bg-background/90 pt-1 pb-3 shadow-sm backdrop-blur-sm">
             <div className="space-y-3 px-4">
               <UserSelector hideTitle currentUser={currentUser} users={groupUsers} />
 

@@ -192,9 +192,9 @@ function SeriesCardInner({
     stitchHome.listRowInteractive,
     'w-full flex-wrap gap-y-2',
     !series.is_active && 'opacity-60',
-    isOverdue && 'ring-1 ring-inset ring-red-400/35',
+    isOverdue && 'ring-1 ring-inset ring-expense/35',
     isDueToday && 'ring-1 ring-inset ring-amber-400/40',
-    isDueSoon && !isDueToday && !isOverdue && 'ring-1 ring-inset ring-[#5c77cc]/30'
+    isDueSoon && !isDueToday && !isOverdue && 'ring-1 ring-inset ring-border/30'
   );
 
   const cardContent = (
@@ -257,7 +257,7 @@ function SeriesCardInner({
                       key={user.id}
                       className={cn(
                         cardStyles.series.userBadge,
-                        embedded && 'border-[#3359c5]/35 text-[#e6ecff]'
+                        embedded && 'border-border/35 text-foreground'
                       )}
                       style={getSeriesUserBadgeStyle(user.theme_color)}
                       title={user.name}
@@ -269,7 +269,7 @@ function SeriesCardInner({
                     <span
                       className={cn(
                         cardStyles.series.userBadgeOverflow,
-                        embedded && 'text-[#9fb0d7]'
+                        embedded && 'text-muted-foreground'
                       )}
                     >
                       +{associatedUsers.length - 3}
@@ -285,7 +285,7 @@ function SeriesCardInner({
         <div className={cardStyles.series.right}>
           {embedded ? (
             getAmountType() === 'neutral' ? (
-              <p className="shrink-0 text-sm font-semibold tabular-nums text-[#9fb0d7]">
+              <p className="shrink-0 text-sm font-semibold tabular-nums text-muted-foreground">
                 {formatCurrency(Math.abs(Number(series.amount)))}
               </p>
             ) : (

@@ -103,14 +103,19 @@ export function PersonalInvestmentTab({
 
   const allocationData = top4.map((item, index) => ({
     ...item,
-    color: ['#8fb0ff', '#8fe2b4', '#9fb9ff', '#6b9fff'][index] as string,
+    color: [
+      'var(--color-primary)',
+      'var(--color-income)',
+      'var(--color-primary)',
+      'var(--color-ring)',
+    ][index] as string,
   }));
 
   if (othersTotal > 0) {
     allocationData.push({
       name: t('fallback.others'),
       value: othersTotal,
-      color: '#b8c5ff',
+      color: 'var(--color-primary)',
     });
   }
 
