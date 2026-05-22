@@ -14,8 +14,6 @@ export const MODAL_TYPES = [
   'settings:language',
   'settings:timezone',
   'settings:invite',
-  'settings:subscription',
-  'settings:delete-account',
 ] as const;
 
 export type ModalType = (typeof MODAL_TYPES)[number];
@@ -26,18 +24,9 @@ export const SETTINGS_MODAL_TYPES = [
   'settings:language',
   'settings:timezone',
   'settings:invite',
-  'settings:subscription',
-  'settings:delete-account',
 ] as const;
 
-export type SettingsModalKind =
-  | 'profile'
-  | 'currency'
-  | 'language'
-  | 'timezone'
-  | 'invite'
-  | 'subscription'
-  | 'delete-account';
+export type SettingsModalKind = 'profile' | 'currency' | 'language' | 'timezone' | 'invite';
 
 export function isSettingsModalType(
   modal: string | null

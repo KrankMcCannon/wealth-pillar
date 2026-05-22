@@ -9,7 +9,6 @@ import { EntityFormModal } from '@/components/form';
 import { ModalTextField } from '@/components/form/modal-fields';
 import { toast } from '@/hooks/use-toast';
 import { sendGroupInvitationAction } from '@/features/settings';
-import { settingsStyles } from '@/features/settings/theme';
 import { formModalStyles as s } from '@/components/form/form-modal-styles';
 
 const createInviteMemberSchema = (t: ReturnType<typeof useTranslations>) =>
@@ -64,19 +63,15 @@ export function InviteMemberModal({
             variant="outline"
             onClick={onClose}
             disabled={form.formState.isSubmitting}
-            className={settingsStyles.modals.actionsButton}
+            className="w-full sm:w-auto"
             type="button"
           >
             {t('cancelButton')}
           </Button>
-          <Button
-            type="submit"
-            disabled={form.formState.isSubmitting}
-            className={settingsStyles.modals.actionsButton}
-          >
+          <Button type="submit" disabled={form.formState.isSubmitting} className="w-full sm:w-auto">
             {form.formState.isSubmitting ? (
               <>
-                <Loader2 className={settingsStyles.modals.loadingIcon} />
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 {t('sendingButton')}
               </>
             ) : (

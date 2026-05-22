@@ -2,11 +2,15 @@
  * Shared Feedback Styles
  * Confirmation dialogs, error states, and empty states
  *
- * Uses centralized style registry from @/styles/system
+ * Uses shared Tailwind class tokens from budget-styles.
  * Centralizes styling to stay consistent with the mobile app UI
  */
 
-import { radiusStyles, shadowStyles, typographyStyles } from '@/styles/system';
+import {
+  radiusStyles,
+  shadowStyles,
+  typographyStyles,
+} from '@/features/budgets/theme/budget-styles';
 
 export const confirmationDialogStyles = {
   headerLayout: 'flex items-start gap-3',

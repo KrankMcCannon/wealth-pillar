@@ -12,7 +12,7 @@ import {
 import { EntityFormModal } from '@/components/form/entity-form-modal';
 import { FormActions } from '@/components/form';
 import { toast } from '@/hooks/use-toast';
-import { transactionStyles } from '@/styles/system';
+import { transactionStyles } from '@/features/transactions/theme/transaction-styles';
 import { InvestmentFormFields, type InvestmentFormData } from './investment-form-fields';
 
 const createInvestmentSchema = (t: ReturnType<typeof useTranslations>) =>

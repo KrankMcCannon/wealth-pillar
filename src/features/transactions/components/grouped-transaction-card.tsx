@@ -16,7 +16,7 @@ import {
   getCardVariantStyles,
   getHeaderVariantStyles,
   getTotalAmountColor,
-} from '@/styles/system';
+} from '@/features/transactions/theme/transaction-styles';
 
 interface GroupedTransactionCardProps {
   transactions: Transaction[];

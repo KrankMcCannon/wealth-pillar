@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl';
 import { Check, Search, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui';
-import { getBudgetCategoryColorStyle } from '@/styles/system';
+import { getBudgetCategoryColorStyle } from '@/features/budgets/theme/budget-styles';
 import { formModalStyles as s } from '@/components/form/form-modal-styles';
 import type { ModalSelectOption } from './modal-select-field';
 

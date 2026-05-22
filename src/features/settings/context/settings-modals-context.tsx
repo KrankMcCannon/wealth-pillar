@@ -8,14 +8,10 @@ export interface SettingsModalsContextValue {
   groupUsers: User[];
   preferences: UserPreferences | null;
   isAdmin: boolean;
-  isDeletingAccount: boolean;
-  deleteError: string | null;
   onPreferenceUpdate: <K extends keyof UserPreferencesUpdate>(
     key: K,
     value: UserPreferencesUpdate[K]
   ) => void;
-  onDeleteAccountConfirm: () => Promise<void>;
-  onCloseDeleteModal: () => void;
 }
 
 const SettingsModalsContext = createContext<SettingsModalsContextValue | null>(null);

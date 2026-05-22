@@ -1,10 +1,14 @@
 /**
  * Auth Style Utilities
  * Organized by component section for consistency and maintainability
- * Uses centralized style registry from @/styles/system
+ * Uses shared Tailwind class tokens from budget-styles.
  */
 
-import { radiusStyles, typographyStyles, spacingStyles } from '@/styles/system';
+import {
+  radiusStyles,
+  typographyStyles,
+  spacingStyles,
+} from '@/features/budgets/theme/budget-styles';
 
 const authTokens = {
   // ============================================================================

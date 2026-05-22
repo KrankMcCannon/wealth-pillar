@@ -3,7 +3,7 @@
 import { investmentsStyles } from '@/features/investments/theme/investments-styles';
 import { PageContainer, Header, BottomNavigation } from '@/components/layout';
 import TabNavigation from '@/components/shared/tab-navigation';
-import { transactionStyles } from '@/styles/system';
+import { transactionStyles } from '@/features/transactions/theme/transaction-styles';
 import { stitchBudgets } from '@/styles/home-design-foundation';
 import { useTranslations } from 'next-intl';
 

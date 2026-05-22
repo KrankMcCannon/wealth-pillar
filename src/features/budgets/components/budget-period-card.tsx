@@ -5,7 +5,7 @@ import { Trash2 } from 'lucide-react';
 import type { BudgetPeriod } from '@/lib/types';
 import { Button, Badge } from '@/components/ui';
 import { toDateTime } from '@/lib/utils/date-utils';
-import { budgetStyles } from '@/styles/system';
+import { budgetStyles } from '@/features/budgets/theme/budget-styles';
 
 interface BudgetPeriodCardProps {
   period: BudgetPeriod;

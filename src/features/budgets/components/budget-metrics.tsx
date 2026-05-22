@@ -5,7 +5,7 @@
 
 'use client';
 
-import { budgetStyles } from '@/styles/system';
+import { budgetStyles } from '@/features/budgets/theme/budget-styles';
 import { formatCurrency } from '@/lib/utils/currency-formatter';
 
 export interface BudgetMetricsProps {

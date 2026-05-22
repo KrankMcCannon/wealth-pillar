@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Slot } from '@radix-ui/react-slot';
 import { cn } from '@/lib/utils';
-import { badgeStyles } from '@/styles/system';
+import { badgeStyles } from '@/components/ui/component-styles';
 
 type Variant = keyof typeof badgeStyles.variants;
 

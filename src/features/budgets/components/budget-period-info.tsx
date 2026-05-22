@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui';
 import { BudgetPeriod } from '@/lib';
 import { toDateTime } from '@/lib/utils/date-utils';
 import { Calendar, Clock } from 'lucide-react';
-import { budgetStyles } from '@/styles/system';
+import { budgetStyles } from '@/features/budgets/theme/budget-styles';
 
 interface BudgetPeriodInfoProps {
   period: BudgetPeriod | null;

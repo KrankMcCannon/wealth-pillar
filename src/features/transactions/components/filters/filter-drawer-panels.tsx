@@ -11,7 +11,7 @@ import type {
 } from '@/server/use-cases/transactions/transaction.logic';
 import { Button, Input, DrawerTitle, DrawerDescription, CategoryBadge } from '@/components/ui';
 import * as VisuallyHidden from '@radix-ui/react-visually-hidden';
-import { transactionStyles } from '@/styles/system';
+import { transactionStyles } from '@/features/transactions/theme/transaction-styles';
 import { DATE_OPTIONS, getDateLabel } from './filter-helpers';
 
 // ─── DateOptions ──────────────────────────────────────────────────────────────

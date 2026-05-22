@@ -56,13 +56,7 @@ export {
 // ====================================
 // Theme
 // ====================================
-export {
-  getAmountStyles,
-  getDayTotalStyles,
-  getIconStyles,
-  getTransactionTypeStyles,
-  transactionStyles,
-} from '@/styles/system';
+export { transactionStyles } from './theme/transaction-styles';
 export {
   createTransactionAction,
   updateTransactionAction,

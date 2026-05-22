@@ -4,7 +4,7 @@ import * as React from 'react';
 import { cn } from '@/lib/utils';
 import { Text } from '@/components/ui/primitives';
 import { Badge } from '@/components/ui/badge';
-import { layoutStyles } from '@/styles/system';
+import { layoutStyles } from '@/components/ui/layout/layout-styles';
 
 export interface SectionHeaderProps {
   title: React.ReactNode;

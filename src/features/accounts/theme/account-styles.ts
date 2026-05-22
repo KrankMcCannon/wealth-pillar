@@ -11,7 +11,12 @@
  */
 
 import type { CSSProperties } from 'react';
-import { radiusStyles, shadowStyles, typographyStyles, spacingStyles } from '@/styles/system';
+import {
+  radiusStyles,
+  shadowStyles,
+  typographyStyles,
+  spacingStyles,
+} from '@/features/budgets/theme/budget-styles';
 import { stitchHome } from '@/styles/home-design-foundation';
 
 const accountTokens = {

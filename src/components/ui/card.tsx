@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { cn, cardVariants, type CardVariants } from '@/lib/utils';
-import { cardStyles } from '@/styles/system';
+import { cardStyles } from '@/components/ui/component-styles';
 
 type CardProps = React.HTMLAttributes<HTMLDivElement> & CardVariants;
 

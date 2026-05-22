@@ -6,7 +6,6 @@ import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { ModalBody, ModalFooter, ModalWrapper } from '@/components/ui/modal-wrapper';
 import { cn } from '@/lib/utils';
-import { settingsStyles } from '@/features/settings/theme';
 import { formModalStyles as modalS } from './form-modal-styles';
 
 export interface SelectionOption<V extends string> {
@@ -137,18 +136,18 @@ function SelectionModalContent<V extends string>({
           variant="outline"
           onClick={onClose}
           disabled={isSaving}
-          className={settingsStyles.modals.actionsButton}
+          className="w-full sm:w-auto"
         >
           {t('cancelButton')}
         </Button>
         <Button
           onClick={handleSave}
           disabled={isSaving || selectedValue === value}
-          className={settingsStyles.modals.actionsButton}
+          className="w-full sm:w-auto"
         >
           {isSaving ? (
             <>
-              <Loader2 className={settingsStyles.modals.loadingIcon} />
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               {t('savingButton')}
             </>
           ) : (

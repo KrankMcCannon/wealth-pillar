@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { BudgetCard } from '@/features/budgets';
-import { budgetStyles } from '@/styles/system';
+import { budgetStyles } from '@/features/budgets/theme/budget-styles';
 import { Budget, UserBudgetSummary } from '@/lib/types';
 
 interface BudgetSummaryActiveListProps {

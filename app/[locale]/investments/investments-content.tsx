@@ -7,7 +7,6 @@ import { ActionMenu, AppPage } from '@/components/layout';
 import UserSelector from '@/components/shared/user-selector';
 import { User } from '@/lib';
 import TabNavigation from '@/components/shared/tab-navigation';
-import { transactionStyles } from '@/styles/system';
 import type { Investment } from '@/features/investments/components/personal-investment-tab';
 import { stitchBudgets, stitchTransactions } from '@/styles/home-design-foundation';
 import { useRouter } from '@/i18n/routing';
@@ -96,8 +95,8 @@ export default function InvestmentsContent({
             </div>
           </div>
 
-          <main className={transactionStyles.page.main} aria-label={t('mainLandmark')}>
-            <div className={transactionStyles.layout.contentStack}>
+          <main className={stitchTransactions.mainStack} aria-label={t('mainLandmark')}>
+            <div className="flex flex-col gap-5">
               {activeTab === 'personal' && (
                 <PersonalInvestmentTab
                   investments={investments}

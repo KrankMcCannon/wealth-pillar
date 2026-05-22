@@ -14,7 +14,7 @@ import {
   getBudgetSectionProgressStyles,
   getBudgetGroupCardStyle,
   getBudgetSectionProgressBarStyle,
-} from '@/styles/system';
+} from '@/features/budgets/theme/budget-styles';
 import { useRouter } from '@/i18n/routing';
 import { cn } from '@/lib/utils';
 import { stitchHome } from '@/styles/home-design-foundation';

@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Slot } from '@radix-ui/react-slot';
 import { cn } from '@/lib/utils';
-import { buttonStyles, getButtonClasses } from '@/styles/system';
+import { buttonStyles, getButtonClasses } from '@/components/ui/component-styles';
 
 type Variant = keyof typeof buttonStyles.variants;
 type Size = keyof typeof buttonStyles.sizes;

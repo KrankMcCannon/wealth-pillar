@@ -2,8 +2,6 @@
 
 import { useState, useOptimistic, startTransition, useCallback } from 'react';
 import { useUser, useClerk } from '@clerk/nextjs';
-import { useToast } from '@/hooks/use-toast';
-import { updateUserPreferencesAction, deleteUserAction } from '../actions';
 import type { User, UserPreferences, UserPreferencesUpdate } from '@/lib/types';
 import { useRouter } from '@/i18n/routing';
 import { useModalState, type SettingsModalKind } from '@/lib/navigation/url-state';
@@ -14,7 +12,6 @@ export function useSettings(
   groupUsers: User[]
 ) {
   const router = useRouter();
-  const { toast } = useToast();
   const { user: clerkUser } = useUser();
   const { signOut } = useClerk();
   const { openModal, closeModal } = useModalState();
@@ -28,8 +25,6 @@ export function useSettings(
   );
 
   const [isSigningOut, setIsSigningOut] = useState(false);
-  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
-  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const userInitials = currentUser?.name
     ? currentUser.name
@@ -59,71 +54,6 @@ export function useSettings(
     }
   };
 
-  const handleDeleteAccountClick = () => {
-    setDeleteError(null);
-    openSettingsModal('delete-account');
-  };
-
-  const handleCloseDeleteModal = () => {
-    setDeleteError(null);
-  };
-
-  const handleDeleteAccountConfirm = async () => {
-    if (!currentUser?.id || !clerkUser?.id) return;
-
-    setIsDeletingAccount(true);
-    setDeleteError(null);
-
-    try {
-      const result = await deleteUserAction(currentUser.id, clerkUser.id);
-
-      if (result.error) {
-        setDeleteError(result.error);
-        setIsDeletingAccount(false);
-        return;
-      }
-
-      await signOut();
-      router.push('/');
-    } catch (error: unknown) {
-      setDeleteError((error as Error).message || 'Si è verificato un errore imprevisto.');
-      setIsDeletingAccount(false);
-    }
-  };
-
-  const handleNotificationToggle = async (key: keyof UserPreferences) => {
-    if (!preferences || !currentUser?.id) return;
-
-    const currentValue = preferences[key];
-    if (typeof currentValue !== 'boolean') return;
-
-    const newValue = !currentValue;
-
-    startTransition(() => {
-      setOptimisticPreferences({ [key]: newValue } as Partial<UserPreferences>);
-    });
-
-    try {
-      const { error } = await updateUserPreferencesAction(currentUser.id, {
-        [key]: newValue,
-      });
-
-      if (error) {
-        toast({
-          title: 'Errore',
-          description: 'Impossibile aggiornare le notifiche',
-          variant: 'destructive',
-        });
-      }
-    } catch {
-      toast({
-        title: 'Errore',
-        description: 'Si è verificato un errore',
-        variant: 'destructive',
-      });
-    }
-  };
-
   const handlePreferenceUpdate = <K extends keyof UserPreferencesUpdate>(
     key: K,
     value: UserPreferencesUpdate[K]
@@ -141,16 +71,10 @@ export function useSettings(
     isAdmin,
     preferences,
     isSigningOut,
-    isDeletingAccount,
-    deleteError,
     userInitials,
     openSettingsModal,
     closeSettingsModal: closeModal,
     handleSignOut,
-    handleDeleteAccountClick,
-    handleDeleteAccountConfirm,
-    handleCloseDeleteModal,
-    handleNotificationToggle,
     handlePreferenceUpdate,
   };
 }

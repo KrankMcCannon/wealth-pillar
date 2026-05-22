@@ -36,7 +36,7 @@ import { EmptyState } from '@/components/shared';
 import { Button } from '@/components/ui';
 import { Transaction, Category } from '@/lib';
 import { GroupedTransactionCard } from './grouped-transaction-card';
-import { transactionStyles } from '@/styles/system';
+import { transactionStyles } from '@/features/transactions/theme/transaction-styles';
 import { formatCurrency, cn } from '@/lib/utils';
 import { FileText, type LucideIcon } from 'lucide-react';
 import { useTranslations } from 'next-intl';

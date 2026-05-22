@@ -3,8 +3,8 @@
 import { cn } from '@/lib';
 import { LucideIcon } from 'lucide-react';
 import { stitchHome } from '@/styles/home-design-foundation';
-import { budgetStyles } from '@/styles/system';
-import { emptyStateStyles } from '@/styles/system';
+import { budgetStyles } from '@/features/budgets/theme/budget-styles';
+import { emptyStateStyles } from '@/components/shared/theme/empty-state-styles';
 
 /**
  * Empty State Component

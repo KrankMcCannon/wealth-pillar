@@ -7,10 +7,10 @@ export {
   ProfileSectionSkeleton,
   GroupManagementSectionSkeleton,
   PreferencesSectionSkeleton,
+  SupportSectionSkeleton,
   SettingsPageSkeleton,
 } from './settings-skeletons';
 
-export { DeleteAccountConfirmContent } from './delete-account-confirm-content';
 export { EditProfileModal } from './edit-profile-modal';
 export {
   usePreferenceOptions,
@@ -22,11 +22,8 @@ export {
   TimezonePreferenceModal,
 } from './settings-preference-modals';
 export { InviteMemberModal } from './invite-member-modal';
-export { SubscriptionModal } from './subscription-modal';
 
 export * from './sections/ProfileSection';
 export * from './sections/GroupSection';
 export * from './sections/PreferencesSection';
-export * from './sections/NotificationsSection';
-export * from './sections/SecuritySection';
-export * from './sections/AccountSection';
+export * from './sections/SupportSection';

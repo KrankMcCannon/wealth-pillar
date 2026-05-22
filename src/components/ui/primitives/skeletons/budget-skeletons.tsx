@@ -5,7 +5,7 @@
 
 import { SkeletonList } from '@/components/ui/primitives';
 import { SHIMMER_BASE } from '@/lib/utils/ui-constants';
-import { budgetStyles } from '@/styles/system';
+import { budgetStyles } from '@/features/budgets/theme/budget-styles';
 
 export const BudgetCardSkeleton = () => (
   <div className={`${budgetStyles.skeleton.budgetCard} ${SHIMMER_BASE}`}>

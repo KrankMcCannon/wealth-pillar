@@ -2,7 +2,7 @@
 
 import { Card } from '@/components/ui/card';
 import { Amount } from '@/components/ui/primitives';
-import { budgetStyles } from '@/styles/system';
+import { budgetStyles } from '@/features/budgets/theme/budget-styles';
 import { UserBudgetSummary } from '@/lib/types';
 import { useTranslations } from 'next-intl';
 import { TrendingUp, Wallet } from 'lucide-react';

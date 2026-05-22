@@ -92,29 +92,12 @@
     "Profile": {
       "title": "Profilo",
       "avatarAriaLabel": "Avatar di {name}",
-      "accountCount": "{count} {count, plural, one {Account} other {Account}}",
-      "transactionCount": "{count} {count, plural, one {Transazione} other {Transazioni}}",
-      "editButton": "Modifica",
-      "emailLabel": "Email",
-      "phoneLabel": "Telefono",
-      "phoneNotSpecified": "Non specificato",
-      "roleLabel": "Ruolo",
-      "roles": {
-        "developer": "Sviluppatore",
-        "admin": "Admin",
-        "member": "Membro"
-      }
+      "editButton": "Modifica profilo"
     },
     "Group": {
-      "title": "Gestione Gruppo",
-      "groupActionsTitle": "Inviti e abbonamento",
-      "membersTitle": "Membri del Gruppo",
-      "membersEmpty": "Nessun altro membro visibile in questo gruppo.",
-      "membersSubtitle": "{count} {count, plural, one {membro visibile} other {membri visibili}}",
-      "inviteMemberTitle": "Invita Membro",
-      "inviteMemberDescription": "Invia invito per unirsi al gruppo",
-      "subscriptionTitle": "Impostazioni Abbonamento",
-      "subscriptionDescription": "Gestisci fatturazione e abbonamento gruppo"
+      "title": "Famiglia e gruppi",
+      "manageGroupTitle": "Gestione gruppo",
+      "inviteMemberTitle": "Invita al gruppo"
     },
     "Preferences": {
       "title": "Preferenze",
@@ -122,34 +105,18 @@
       "currencyFallback": "EUR - Euro",
       "languageLabel": "Lingua",
       "languageFallback": "Italiano",
-      "timezoneLabel": "Fuso Orario",
+      "timezoneLabel": "Fuso orario",
       "timezoneFallback": "Roma (GMT+1)",
-      "changeButton": "Cambia"
+      "darkModeLabel": "Modalità scura"
     },
-    "Notifications": {
-      "title": "Notifiche",
-      "pushLabel": "Notifiche Push",
-      "pushDescription": "Ricevi notifiche sulle transazioni",
-      "emailLabel": "Notifiche Email",
-      "emailDescription": "Ricevi rapporti settimanali",
-      "budgetAlertsLabel": "Avvisi Budget",
-      "budgetAlertsDescription": "Avvisa quando superi il budget"
-    },
-    "Security": {
-      "title": "Sicurezza",
-      "twoFactorLabel": "Autenticazione a Due Fattori",
-      "twoFactorDescription": "Aggiungi un secondo passaggio al login per proteggere l’account.",
-      "twoFactorUnavailableDescription": "Stiamo preparando questa funzione: potrai attivarla da qui a breve. Nel frattempo usa una password lunga e unica.",
-      "twoFactorBadge": "In arrivo",
-      "signOutLabel": "Esci dall'Account",
-      "signingOutLabel": "Disconnessione in corso...",
-      "signOutDescription": "Disconnetti dal tuo account",
-      "signingOutDescription": "Attendere prego"
-    },
-    "Account": {
-      "title": "Account",
-      "deleteLabel": "Elimina Account",
-      "deleteDescription": "Elimina permanentemente il tuo account"
+    "Support": {
+      "title": "Supporto",
+      "helpCenterLabel": "Centro assistenza",
+      "helpCenterHref": "https://support.example.com",
+      "legalLabel": "Note legali",
+      "legalHref": "https://example.com/legal",
+      "logoutLabel": "Esci",
+      "signingOutLabel": "Disconnessione in corso..."
     }
   },
   "SettingsModals": {

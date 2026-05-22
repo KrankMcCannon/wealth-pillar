@@ -6,7 +6,7 @@ import { useTranslations, useLocale } from 'next-intl';
 import { cn } from '@/lib/utils';
 import type { Transaction, Category } from '@/lib/types';
 import { stitchTransactions } from '@/styles/home-design-foundation';
-import { transactionStyles } from '@/styles/system';
+import { transactionStyles } from '@/features/transactions/theme/transaction-styles';
 import { groupByDay } from '../utils/group-by-day';
 import { TransactionPagination } from './transaction-pagination';
 import { TransactionDayList } from './transaction-day-list';

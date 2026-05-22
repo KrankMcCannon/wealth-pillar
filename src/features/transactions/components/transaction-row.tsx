@@ -5,7 +5,10 @@ import { Transaction } from '@/lib';
 import { formatCurrency, cn } from '@/lib/utils';
 import { memo } from 'react';
 import { RowCard } from '@/components/ui/layout/row-card';
-import { transactionStyles, getTransactionBadgeColor } from '@/styles/system';
+import {
+  transactionStyles,
+  getTransactionBadgeColor,
+} from '@/features/transactions/theme/transaction-styles';
 import { stitchHome } from '@/styles/home-design-foundation';
 
 interface TransactionRowProps {

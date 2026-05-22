@@ -69,33 +69,6 @@
   --color-chart-4: oklch(0.55 0.16 270);
   --color-chart-5: oklch(0.5 0.18 270);
 
-  /* Semantica UI */
-  --color-text-primary: var(--color-primary);
-  --color-text-heading: var(--color-foreground);
-  --color-text-body: var(--color-foreground);
-  --color-text-muted: var(--color-muted-foreground);
-  --color-text-subtle: oklch(0.55 0.015 90);
-  --color-text-emphasis: var(--color-foreground);
-
-  --color-bg-soft: var(--color-card);
-  --color-bg-subtle: var(--color-muted);
-  --color-bg-hover: var(--color-accent);
-  --color-bg-elevated: var(--color-card);
-
-  --color-interactive-hover: var(--color-accent);
-  --color-interactive-active: var(--color-primary);
-  --color-interactive-disabled: var(--color-muted);
-
-  /* Sidebar */
-  --color-sidebar: oklch(0.96 0.008 90);
-  --color-sidebar-foreground: var(--color-foreground);
-  --color-sidebar-primary: oklch(0.595 0.178 270);
-  --color-sidebar-primary-foreground: oklch(0.99 0.004 270);
-  --color-sidebar-accent: oklch(0.92 0.008 90);
-  --color-sidebar-accent-foreground: var(--color-foreground);
-  --color-sidebar-border: oklch(0.85 0.008 90);
-  --color-sidebar-ring: oklch(0.595 0.178 270);
-
   /* Modal surfaces (light — aligned with card) */
   --color-modal-surface: oklch(0.985 0.003 90);
   --color-modal-elevated: oklch(0.96 0.008 250);
@@ -165,22 +138,6 @@ html.dark {
   --color-chart-3: oklch(0.82 0.13 270);
   --color-chart-4: oklch(0.65 0.16 270);
   --color-chart-5: oklch(0.6 0.17 270);
-
-  --color-text-primary: var(--color-primary);
-  --color-text-heading: var(--color-foreground);
-  --color-text-body: var(--color-foreground);
-  --color-text-muted: var(--color-muted-foreground);
-  --color-text-subtle: oklch(0.7 0.025 265);
-  --color-text-emphasis: var(--color-foreground);
-
-  --color-sidebar: oklch(0.22 0.032 250);
-  --color-sidebar-foreground: var(--color-foreground);
-  --color-sidebar-primary: oklch(0.72 0.168 270);
-  --color-sidebar-primary-foreground: oklch(0.15 0.02 270);
-  --color-sidebar-accent: oklch(0.27 0.028 250);
-  --color-sidebar-accent-foreground: var(--color-foreground);
-  --color-sidebar-border: oklch(0.32 0.02 250);
-  --color-sidebar-ring: oklch(0.72 0.168 270);
 
   --category-utilities-blue: oklch(0.68 0.15 240);
   --category-utilities-red: oklch(0.68 0.13 30);
@@ -349,161 +306,11 @@ div[data-turnstile],
    ----------------------------------------------------------------------------- */
 
 @layer utilities {
-  .safe-area-pb {
-    padding-bottom: env(safe-area-inset-bottom);
-  }
-
   .liquid-glass {
     background: color-mix(in oklch, var(--color-card) 72%, transparent);
     backdrop-filter: blur(16px) saturate(1.2);
     border: 1px solid color-mix(in oklch, var(--color-border) 45%, transparent);
     box-shadow: var(--shadow-md);
-  }
-
-  .liquid-glass-strong {
-    background: color-mix(in oklch, var(--color-card) 88%, transparent);
-    backdrop-filter: blur(20px) saturate(1.25);
-    border: 1px solid color-mix(in oklch, var(--color-border) 55%, transparent);
-    box-shadow: var(--shadow-lg);
-  }
-
-  .liquid-glass-subtle {
-    background: color-mix(in oklch, var(--color-background) 55%, transparent);
-    backdrop-filter: blur(12px) saturate(1.1);
-    border: 1px solid color-mix(in oklch, var(--color-border) 35%, transparent);
-    box-shadow: var(--shadow-sm);
-  }
-
-  .gradient-primary {
-    background: linear-gradient(
-      135deg,
-      var(--color-primary),
-      color-mix(in oklch, var(--color-accent) 85%, var(--color-primary))
-    );
-  }
-
-  .gradient-success {
-    background: linear-gradient(
-      135deg,
-      var(--color-success),
-      color-mix(in oklch, var(--color-success) 75%, var(--color-primary))
-    );
-  }
-
-  .gradient-danger {
-    background: linear-gradient(
-      135deg,
-      var(--color-destructive),
-      color-mix(in oklch, var(--color-destructive) 80%, transparent)
-    );
-  }
-
-  /* Evitato testo a gradiente su metriche; lasciato solo se usato in marketing raro */
-  .text-gradient {
-    background: linear-gradient(
-      135deg,
-      var(--color-primary),
-      var(--color-accent),
-      color-mix(in oklch, var(--color-primary) 60%, white)
-    );
-    background-clip: text;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-
-  .text-finance-positive {
-    color: var(--color-primary);
-  }
-
-  .text-finance-negative {
-    color: var(--color-destructive);
-  }
-
-  .text-finance-warning {
-    color: var(--color-warning);
-  }
-
-  .text-finance-neutral {
-    color: var(--color-secondary);
-  }
-
-  .bg-finance-positive {
-    background-color: var(--color-primary);
-  }
-
-  .bg-finance-negative {
-    background-color: var(--color-destructive);
-  }
-
-  .bg-finance-warning {
-    background-color: var(--color-warning);
-  }
-
-  .bg-finance-neutral {
-    background-color: var(--color-secondary);
-  }
-
-  .bg-finance-positive-subtle {
-    background-color: color-mix(in oklch, var(--color-primary) 14%, transparent);
-  }
-
-  .bg-finance-negative-subtle {
-    background-color: color-mix(in oklch, var(--color-destructive) 14%, transparent);
-  }
-
-  .bg-finance-warning-subtle {
-    background-color: color-mix(in oklch, var(--color-warning) 14%, transparent);
-  }
-
-  .hover-lift:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-lg);
-  }
-
-  .hover-glow:hover {
-    box-shadow: var(--shadow-md);
-  }
-
-  .hover-glass:hover {
-    background: color-mix(in oklch, var(--color-card) 92%, transparent);
-    border-color: color-mix(in oklch, var(--color-primary) 28%, transparent);
-    transform: translateY(-1px);
-    transition:
-      transform 0.2s cubic-bezier(0.33, 1, 0.68, 1),
-      background-color 0.2s ease,
-      border-color 0.2s ease;
-  }
-
-  .bg-primary-glass {
-    background: color-mix(in oklch, var(--color-primary) 18%, transparent);
-    backdrop-filter: blur(12px);
-    border: 1px solid color-mix(in oklch, var(--color-primary) 28%, transparent);
-  }
-
-  .bg-accent-glass {
-    background: color-mix(in oklch, var(--color-accent) 18%, transparent);
-    backdrop-filter: blur(12px);
-    border: 1px solid color-mix(in oklch, var(--color-accent) 28%, transparent);
-  }
-
-  .bg-success-glass {
-    background: color-mix(in oklch, var(--color-success) 16%, transparent);
-    backdrop-filter: blur(12px);
-    border: 1px solid color-mix(in oklch, var(--color-success) 25%, transparent);
-  }
-
-  .bg-warning-glass {
-    background: color-mix(in oklch, var(--color-warning) 16%, transparent);
-    backdrop-filter: blur(12px);
-    border: 1px solid color-mix(in oklch, var(--color-warning) 25%, transparent);
-  }
-
-  .liquid-float {
-    animation: liquid-float 7s ease-in-out infinite;
-  }
-
-  .liquid-pulse {
-    animation: liquid-pulse 5s ease-in-out infinite;
   }
 
   .liquid-shimmer {
@@ -526,30 +333,11 @@ div[data-turnstile],
     );
     animation: shimmer 2.8s ease-in-out infinite;
   }
-
-  .morph-card {
-    transition:
-      transform 0.25s cubic-bezier(0.33, 1, 0.68, 1),
-      box-shadow 0.25s ease;
-  }
-
-  .morph-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-xl);
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .liquid-float,
-  .liquid-pulse,
   .liquid-shimmer::before {
     animation: none !important;
-  }
-
-  .hover-lift:hover,
-  .hover-glass:hover,
-  .morph-card:hover {
-    transform: none;
   }
 }
 
@@ -612,25 +400,17 @@ div[data-turnstile],
   height: 3.5rem;
 }
 
-@utility card-soft {
-  background-color: var(--color-bg-soft);
-  border: 1px solid var(--color-border);
-  border-radius: 1rem;
-  box-shadow: var(--shadow-sm);
-  backdrop-filter: blur(12px);
-}
-
 @utility text-heading {
-  color: var(--color-text-heading);
+  color: var(--color-foreground);
   font-weight: 700;
   letter-spacing: -0.025em;
 }
 
 @utility text-body {
-  color: var(--color-text-body);
+  color: var(--color-foreground);
 }
 
 @utility text-subtle {
-  color: var(--color-text-subtle);
+  color: var(--color-muted-foreground);
   font-size: 0.875rem;
 }

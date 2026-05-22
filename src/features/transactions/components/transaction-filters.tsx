@@ -16,7 +16,7 @@ import {
 } from '@/server/use-cases/transactions/transaction.logic';
 import { Drawer, DrawerContent } from '@/components/ui';
 import { stitchTransactionFilterTriggers } from '@/styles/home-design-foundation';
-import { transactionStyles } from '@/styles/system';
+import { transactionStyles } from '@/features/transactions/theme/transaction-styles';
 import {
   defaultFiltersState,
   getActiveFiltersCount,

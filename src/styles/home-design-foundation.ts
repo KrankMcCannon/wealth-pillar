@@ -3,19 +3,6 @@
  * Reusable primitives to standardize the migration of dashboard-like pages.
  */
 
-/** Legacy light-mode card tokens (budget detail pages, mixed surfaces). */
-export const homeDesignFoundation = {
-  sectionCard:
-    'rounded-2xl border border-[#001456]/20 bg-[#f8f9ff] shadow-sm dark:border-[#8ba3ff]/30 dark:bg-[#1a2b6d]/20',
-  rowCard:
-    'rounded-xl border border-[#001456]/15 bg-white/80 dark:border-[#8ba3ff]/25 dark:bg-[#132050]/40',
-  actionButton:
-    'rounded-lg bg-[#001456] px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-[#1a2b6d]',
-  titleEyebrow:
-    'text-[11px] font-bold uppercase tracking-wide text-[#001456]/70 dark:text-[#b8c5ff]',
-  strongValue: 'text-sm font-semibold text-[#001456] dark:text-[#eef1ff]',
-} as const;
-
 /**
  * Dark “Stitch” home sections — use via `HomeSectionCard` / `stitchHome.*` class strings.
  * Centralizza hex ripetuti tra Balance, Budget, Recurring, Recent activity.
@@ -422,4 +409,43 @@ export const stitchBudgetFormModal = {
   categoryChipCheck: 'h-4 w-4 shrink-0 text-[#9ec0ff]',
   categoryColorDot: 'h-2.5 w-2.5 shrink-0 rounded-full',
   categoryEmpty: 'w-full py-8 text-center text-sm text-[#9fb0d7]',
+} as const;
+
+/**
+ * Settings page — dark Stitch (aligned with stitchHome / stitchDashboardShell).
+ */
+export const stitchSettings = {
+  pageMain: 'flex flex-col gap-5 px-4 pt-1 pb-20',
+  sectionEyebrow: 'px-2 text-[11px] font-semibold uppercase tracking-wider text-[#9fb0d7]',
+  sectionCard:
+    'overflow-hidden rounded-2xl border border-[#3359c5]/20 bg-[#0b1f4f]/90 shadow-[0_16px_36px_rgba(0,7,30,0.28)]',
+  row: 'flex w-full cursor-pointer items-center justify-between gap-3 p-4 text-left transition-colors hover:bg-[#11295f]/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6b9fff]/45',
+  rowDivider: 'border-b border-white/[0.06]',
+  rowLeft: 'flex min-w-0 flex-1 items-center gap-3',
+  rowIconWrap:
+    'flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[#8fb0ff]/35 bg-[#8fb0ff]/12 text-[#dde1ff]',
+  rowIcon: 'h-5 w-5 shrink-0 text-[#8fb0ff]',
+  rowLabel: 'truncate text-base font-medium text-[#e6ecff]',
+  rowValue: 'shrink-0 text-sm text-[#9fb0d7]',
+  rowChevron: 'h-5 w-5 shrink-0 text-[#6f8dd5]',
+  profileCard:
+    'flex flex-col items-center gap-4 rounded-2xl border border-[#3359c5]/20 bg-[#0b1f4f]/90 p-4 shadow-[0_16px_36px_rgba(0,7,30,0.28)] sm:flex-row sm:items-start sm:p-5',
+  profileAvatar:
+    'flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#2a447f] text-2xl font-bold text-[#9eb6ff]',
+  profileInfo: 'min-w-0 flex-1 text-center sm:text-left',
+  profileName: 'truncate text-xl font-semibold tracking-tight text-[#8fb0ff]',
+  profileEmail: 'mt-1 truncate text-sm text-[#9fb0d7]',
+  editButton:
+    'inline-flex min-h-11 shrink-0 items-center justify-center rounded-lg border border-[#3359c5]/35 bg-transparent px-4 py-2 text-xs font-semibold uppercase tracking-wide text-[#c5cfe8] transition-colors hover:border-[#5c77cc]/45 hover:bg-[#11295f]/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6b9fff]/35',
+  darkModeTrack:
+    'flex h-6 w-11 shrink-0 items-center rounded-full bg-[#11295f] p-0.5 transition-colors',
+  darkModeTrackOn: 'bg-[#1a3478]',
+  darkModeKnob: 'size-4 rounded-full bg-white shadow-sm transition-transform duration-200',
+  darkModeKnobOn: 'translate-x-5',
+  logoutButton:
+    'mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-red-400/30 bg-[#5c1a1a]/55 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-[#ffb4ab] transition-colors hover:border-red-400/45 hover:bg-[#5c1a1a]/75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/35 disabled:pointer-events-none disabled:opacity-50',
+  skeletonShimmer: 'animate-pulse bg-[#11295f]/80',
+  skeletonEyebrow: 'mx-2 h-3 w-24 rounded',
+  skeletonCard: 'h-28 rounded-2xl',
+  skeletonRow: 'h-14 rounded-xl',
 } as const;

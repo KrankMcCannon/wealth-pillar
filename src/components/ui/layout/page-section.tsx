@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { cn } from '@/lib/utils';
-import { layoutStyles } from '@/styles/system';
+import { layoutStyles } from '@/components/ui/layout/layout-styles';
 
 export interface PageSectionProps {
   children: React.ReactNode;

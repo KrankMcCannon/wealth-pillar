@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { Header, PageContainer, BottomNavigation } from '@/components/layout';
-import { budgetStyles } from '@/styles/system';
+import { budgetStyles } from '@/features/budgets/theme/budget-styles';
 import type { User, UserBudgetSummary } from '@/lib/types';
 import type { BudgetsPageData } from '@/server/use-cases/pages/budgets-page.use-case';
 import { TransactionDayList } from '@/features/transactions/components';

@@ -92,29 +92,12 @@
     "Profile": {
       "title": "Profile",
       "avatarAriaLabel": "Avatar for {name}",
-      "accountCount": "{count} {count, plural, one {Account} other {Accounts}}",
-      "transactionCount": "{count} {count, plural, one {Transaction} other {Transactions}}",
-      "editButton": "Edit",
-      "emailLabel": "Email",
-      "phoneLabel": "Phone",
-      "phoneNotSpecified": "Not specified",
-      "roleLabel": "Role",
-      "roles": {
-        "developer": "Developer",
-        "admin": "Admin",
-        "member": "Member"
-      }
+      "editButton": "Edit Profile"
     },
     "Group": {
-      "title": "Group Management",
-      "groupActionsTitle": "Invites & billing",
-      "membersTitle": "Group Members",
-      "membersEmpty": "No other members visible in this group.",
-      "membersSubtitle": "{count} {count, plural, one {visible member} other {visible members}}",
-      "inviteMemberTitle": "Invite Member",
-      "inviteMemberDescription": "Send an invitation to join the group",
-      "subscriptionTitle": "Subscription Settings",
-      "subscriptionDescription": "Manage group billing and subscription"
+      "title": "Family & Groups",
+      "manageGroupTitle": "Group Management",
+      "inviteMemberTitle": "Invite to Group"
     },
     "Preferences": {
       "title": "Preferences",
@@ -124,32 +107,16 @@
       "languageFallback": "Italiano",
       "timezoneLabel": "Timezone",
       "timezoneFallback": "Rome (GMT+1)",
-      "changeButton": "Change"
+      "darkModeLabel": "Dark Mode"
     },
-    "Notifications": {
-      "title": "Notifications",
-      "pushLabel": "Push Notifications",
-      "pushDescription": "Receive notifications about transactions",
-      "emailLabel": "Email Notifications",
-      "emailDescription": "Receive weekly reports",
-      "budgetAlertsLabel": "Budget Alerts",
-      "budgetAlertsDescription": "Warn when you exceed your budget"
-    },
-    "Security": {
-      "title": "Security",
-      "twoFactorLabel": "Two-Factor Authentication",
-      "twoFactorDescription": "Add a second step at sign-in to protect your account.",
-      "twoFactorUnavailableDescription": "We’re working on this — you’ll be able to turn it on from here soon. For now, use a long, unique password.",
-      "twoFactorBadge": "Coming soon",
-      "signOutLabel": "Sign Out",
-      "signingOutLabel": "Signing out...",
-      "signOutDescription": "Sign out of your account",
-      "signingOutDescription": "Please wait"
-    },
-    "Account": {
-      "title": "Account",
-      "deleteLabel": "Delete Account",
-      "deleteDescription": "Permanently delete your account"
+    "Support": {
+      "title": "Support",
+      "helpCenterLabel": "Help Center",
+      "helpCenterHref": "https://support.example.com",
+      "legalLabel": "Legal",
+      "legalHref": "https://example.com/legal",
+      "logoutLabel": "Logout",
+      "signingOutLabel": "Signing out..."
     }
   },
   "SettingsModals": {

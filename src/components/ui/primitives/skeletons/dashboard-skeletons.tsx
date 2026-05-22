@@ -7,7 +7,7 @@
 import { userSelectorStyles } from '@/components/shared/theme/user-selector-styles';
 import { SkeletonList } from '@/components/ui/primitives';
 import { accountStyles } from '@/features/accounts';
-import { budgetStyles } from '@/styles/system';
+import { budgetStyles } from '@/features/budgets/theme/budget-styles';
 import { dashboardStyles } from '@/features/dashboard/theme/dashboard-styles';
 
 /**

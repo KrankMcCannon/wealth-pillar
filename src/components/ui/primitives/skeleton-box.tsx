@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils';
-import { skeletonStyles } from '@/styles/system';
+import { skeletonStyles } from '@/components/ui/component-styles';
 
 export interface SkeletonBoxProps {
   height: string;

@@ -9,7 +9,6 @@ import { EntityFormModal } from '@/components/form';
 import { ModalTextField } from '@/components/form/modal-fields';
 import { toast } from '@/hooks/use-toast';
 import { updateUserProfileAction } from '@/features/settings';
-import { settingsStyles } from '@/features/settings/theme';
 import { useRouter } from '@/i18n/routing';
 
 const createEditProfileSchema = (t: ReturnType<typeof useTranslations>) =>
@@ -67,19 +66,15 @@ export function EditProfileModal({
             variant="outline"
             onClick={onClose}
             disabled={form.formState.isSubmitting}
-            className={settingsStyles.modals.actionsButton}
+            className="w-full sm:w-auto"
             type="button"
           >
             {t('cancelButton')}
           </Button>
-          <Button
-            type="submit"
-            disabled={form.formState.isSubmitting}
-            className={settingsStyles.modals.actionsButton}
-          >
+          <Button type="submit" disabled={form.formState.isSubmitting} className="w-full sm:w-auto">
             {form.formState.isSubmitting ? (
               <>
-                <Loader2 className={settingsStyles.modals.loadingIcon} />
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 {t('savingButton')}
               </>
             ) : (

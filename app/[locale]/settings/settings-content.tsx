@@ -4,17 +4,16 @@ import { use } from 'react';
 import { useTranslations } from 'next-intl';
 import { AppPage, toAppPageHeaderUser } from '@/components/layout';
 import { useRouter } from '@/i18n/routing';
+import { stitchSettings } from '@/styles/home-design-foundation';
 import {
   useSettings,
-  settingsStyles,
   ProfileSection,
   GroupSection,
   PreferencesSection,
-  NotificationsSection,
-  SecuritySection,
-  AccountSection,
+  SupportSection,
 } from '@/features/settings';
 import { SettingsModalsProvider } from '@/features/settings/context/settings-modals-context';
+import SettingsModalRenderer from '@/features/settings/components/settings-modal-renderer';
 import type { User, UserPreferences } from '@/lib/types';
 
 interface SettingsData {
@@ -34,11 +33,7 @@ export default function SettingsContent({
   groupUsers,
   settingsDataPromise,
 }: SettingsContentProps) {
-  const {
-    accountCount,
-    transactionCount,
-    preferences: initialPreferences,
-  } = use(settingsDataPromise);
+  const { preferences: initialPreferences } = use(settingsDataPromise);
   const t = useTranslations('SettingsContent');
 
   const {
@@ -46,14 +41,8 @@ export default function SettingsContent({
     isAdmin,
     userInitials,
     isSigningOut,
-    isDeletingAccount,
-    deleteError,
     openSettingsModal,
     handleSignOut,
-    handleDeleteAccountClick,
-    handleDeleteAccountConfirm,
-    handleCloseDeleteModal,
-    handleNotificationToggle,
     handlePreferenceUpdate,
   } = useSettings(currentUser, initialPreferences, groupUsers);
 
@@ -76,36 +65,28 @@ export default function SettingsContent({
         groupUsers,
         preferences: preferences ?? null,
         isAdmin,
-        isDeletingAccount,
-        deleteError,
         onPreferenceUpdate: handlePreferenceUpdate,
-        onDeleteAccountConfirm: handleDeleteAccountConfirm,
-        onCloseDeleteModal: handleCloseDeleteModal,
       }}
     >
       <AppPage
         currentUser={currentUser}
         headerUser={settingsHeaderUser}
-        pageContainerClassName={settingsStyles.page.container}
         title={t('headerTitle')}
         showBack
         onBack={() => router.push('/home')}
         showActions
       >
-        <main className={settingsStyles.main.container}>
+        <main className={stitchSettings.pageMain}>
           <ProfileSection
             currentUser={currentUser}
-            accountCount={accountCount}
-            transactionCount={transactionCount}
             userInitials={userInitials}
             onEditProfile={() => openSettingsModal('profile')}
           />
 
           <GroupSection
-            groupUsers={groupUsers}
             isAdmin={isAdmin}
             onInviteMember={() => openSettingsModal('invite')}
-            onManageSubscription={() => openSettingsModal('subscription')}
+            onManageGroup={() => openSettingsModal('invite')}
           />
 
           <PreferencesSection
@@ -115,13 +96,10 @@ export default function SettingsContent({
             onOpenTimezone={() => openSettingsModal('timezone')}
           />
 
-          <NotificationsSection preferences={preferences} onToggle={handleNotificationToggle} />
-
-          <SecuritySection isSigningOut={isSigningOut} onSignOut={handleSignOut} />
-
-          <AccountSection onDeleteAccount={handleDeleteAccountClick} />
+          <SupportSection isSigningOut={isSigningOut} onSignOut={handleSignOut} />
         </main>
       </AppPage>
+      <SettingsModalRenderer />
     </SettingsModalsProvider>
   );
 }

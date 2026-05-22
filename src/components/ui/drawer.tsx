@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { Drawer as DrawerPrimitive } from 'vaul';
 import { cn } from '@/lib/utils';
-import { drawerStyles } from '@/styles/system';
+import { drawerStyles } from '@/components/ui/component-styles';
 
 const Drawer = ({
   /** When true, Vaul scales the page behind the drawer; that `transform` breaks `position: fixed` (header / bottom nav) until the drawer tree unmounts. Default off for stable chrome. */
