@@ -4,13 +4,13 @@
 
 **Modern Family Financial Management**
 
-[![Next.js](https://img.shields.io/badge/Next.js-16.1-black?logo=next.js)](https://nextjs.org/)
+[![Next.js](https://img.shields.io/badge/Next.js-16.2-black?logo=next.js)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-19.2-61DAFB?logo=react)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript)](https://www.typescriptlang.org/)
 [![Tailwind](https://img.shields.io/badge/Tailwind-4.1-06B6D4?logo=tailwindcss)](https://tailwindcss.com/)
 [![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-3FCF8E?logo=supabase)](https://supabase.com/)
 
-[Features](#-features) • [Quick Start](#-quick-start) • [Architecture](#-architecture) • [Documentation](#-documentation)
+[Features](#-features) • [Quick Start](#-quick-start) • [Architecture](#-architecture) • [Scripts & Automation](#-scripts--automation)
 
 </div>
 
@@ -18,14 +18,14 @@
 
 ## 🏛️ Product Overview
 
-**Wealth Pillar** is a professional financial management platform designed for families and small groups to consolidate their financial operations. The system centralizes decentralized assets—ranging from payroll accounts to investment portfolios—into a single, unified source of truth.
+**Wealth Pillar** is a financial management platform for families and small groups. It consolidates bank accounts, budgets, transactions, and investment portfolios into one shared workspace with role-based access.
 
-The platform provides a functional command center for:
+The platform provides a command center for:
 
-- **Financial Consolidation**: Aggregating multiple bank accounts and investment holdings.
-- **Controlled Collaboration**: Managing shared group finances with role-based access.
-- **Budgeting & Analysis**: Executing multi-period budget plans with real-time tracking.
-- **Automated Series**: Handling recurring financial commitments and transaction reconciliation.
+- **Financial consolidation** — multiple accounts and investment holdings in one place
+- **Controlled collaboration** — shared group finances with permissions
+- **Budgeting & analysis** — multi-period budgets with real-time tracking
+- **Automated workflows** — recurring transactions and daily market-data cache updates
 
 ---
 
@@ -58,26 +58,26 @@ The platform provides a functional command center for:
 </td>
 <td width="50%">
 
-### 📈 Financial Insights
+### 📈 Investments & Market Data
 
-- Dashboard with key metrics
+- Portfolio tracking with allocation views
+- Benchmark charts and price history
+- Cached market data from [Twelve Data](https://twelvedata.com/)
+- Share search and watchlist support
+
+### 📉 Financial Insights
+
+- Home dashboard with key metrics
 - Category spending breakdown
 - Monthly income vs expense trends
 - Savings tracking
-
-### 🔄 Recurring Transactions
-
-- Flexible frequency options
-- Automatic execution tracking
-- Pause/resume functionality
-- Missed payment detection
 
 ### 👥 Family/Group Management
 
 - Multi-user with role-based access
 - Group-level financial overview
 - Per-user transaction filtering
-- Admin controls
+- Admin controls and invitations
 
 </td>
 </tr>
@@ -87,6 +87,7 @@ The platform provides a functional command center for:
 
 - **Mobile-first** responsive design
 - **Dark mode** with OKLCH color system
+- **Internationalization** — English and Italian (`next-intl`)
 - **Smooth animations** via Framer Motion
 - **Accessible** components (Radix UI primitives)
 - **Touch-friendly** swipe gestures
@@ -97,10 +98,11 @@ The platform provides a functional command center for:
 
 ### Prerequisites
 
-- **Node.js** ≥22.13.0 (see `.nvmrc`)
-- **npm** 9+
-- **Supabase** account (database)
+- **Node.js** ≥ 22.13.0 (see `.nvmrc`, currently 22.14.0)
+- **pnpm** 10.x (used in CI and Netlify)
+- **Supabase** account (PostgreSQL database)
 - **Clerk** account (authentication)
+- **Twelve Data** API key (investment price data)
 
 ### Installation
 
@@ -110,14 +112,13 @@ git clone <repository-url>
 cd wealth-pillar
 
 # Install dependencies
-npm install
+pnpm install
 
-# Configure environment
-cp .env.example .env
-# Edit .env with your Supabase and Clerk credentials
+# Configure environment (create .env from your secrets)
+# See Environment Variables below
 
 # Start development server
-npm run dev
+pnpm dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) to see the app.
@@ -135,8 +136,14 @@ CLERK_WEBHOOK_SECRET=whsec_...
 # Supabase Database
 NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
-SUPABASE_SERVICE_KEY=eyJ...
+SUPABASE_SERVICE_ROLE_KEY=eyJ...
 DATABASE_URL=postgresql://...
+
+# Market data (investments)
+TWELVE_DATA_API_KEY=...
+
+# Optional
+NEXT_PUBLIC_APP_URL=https://your-app.example.com
 ```
 
 ---
@@ -145,43 +152,49 @@ DATABASE_URL=postgresql://...
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    Next.js App Router                       │
-│                  /app (Routes, Layouts)                     │
+│              Next.js App Router (app/[locale]/)             │
 └─────────────────────────────┬───────────────────────────────┘
                               │
          ┌────────────────────┼────────────────────┐
          ▼                    ▼                    ▼
 ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐
 │ Server          │  │ Client          │  │ Features        │
-│ Components      │  │ Components      │  │ (Domain Logic)  │
+│ Components      │  │ Components      │  │ (Domain UI)     │
 └────────┬────────┘  └────────┬────────┘  └────────┬────────┘
          │                    │                    │
          └────────────────────┼────────────────────┘
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
-│              /src/features/{domain}/actions                 │
+│              src/features/{domain}/actions                  │
 │                    (Server Actions)                         │
 └─────────────────────────────┬───────────────────────────────┘
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                   /src/server/services                      │
-│             (Business Logic + Database Access)              │
+│                   src/server/use-cases                      │
+│                  (Application logic)                        │
 └─────────────────────────────┬───────────────────────────────┘
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                   Supabase (PostgreSQL)                     │
+│                 src/server/repositories                     │
+│              (Data access + domain rules)                   │
+└─────────────────────────────┬───────────────────────────────┘
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│     Supabase client + Drizzle ORM → PostgreSQL              │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 ### Key Patterns
 
-| Pattern               | Description                                    |
-| --------------------- | ---------------------------------------------- |
-| **Server Components** | Data fetching in `/app` pages, passed as props |
-| **Server Actions**    | Mutations in `/src/features/{domain}/actions`  |
-| **Service Layer**     | Business logic in `/src/server/services`       |
-| **Zustand Stores**    | Client-side cache and UI state                 |
-| **Feature Modules**   | Self-contained domain logic in `/src/features` |
+| Pattern               | Description                                         |
+| --------------------- | --------------------------------------------------- |
+| **Server Components** | Data fetching in `app/[locale]/` pages              |
+| **Server Actions**    | Mutations in `src/features/{domain}/actions`        |
+| **Use cases**         | Application logic in `src/server/use-cases`         |
+| **Repositories**      | Database access in `src/server/repositories`        |
+| **Zustand stores**    | Client-side cache and UI state                      |
+| **Feature modules**   | Self-contained domain UI in `src/features`          |
+| **i18n**              | Locale routing and messages via `next-intl`           |
 
 ---
 
@@ -189,50 +202,38 @@ DATABASE_URL=postgresql://...
 
 ```
 wealth-pillar/
-├── app/                      # Next.js App Router
-│   ├── (auth)/              # Public auth pages (Clerk)
-│   ├── (dashboard)/         # Protected dashboard pages
-│   │   ├── accounts/        # Bank accounts
-│   │   ├── budgets/         # Budget management
-│   │   ├── dashboard/       # Main overview
-│   │   ├── investments/     # Portfolio tracking
-│   │   ├── reports/         # Financial reports
-│   │   ├── settings/        # User settings
-│   │   └── transactions/    # Transaction list
-│   ├── api/webhooks/        # Clerk webhooks
-│   └── globals.css          # Design tokens (OKLCH)
+├── app/
+│   ├── [locale]/              # Localized routes (en, it)
+│   │   ├── (auth)/            # Sign-in, sign-up, onboarding
+│   │   ├── home/              # Dashboard / overview
+│   │   ├── accounts/
+│   │   ├── budgets/
+│   │   ├── transactions/
+│   │   ├── investments/
+│   │   ├── reports/
+│   │   └── settings/
+│   ├── api/webhooks/clerk/    # Clerk user sync webhook
+│   └── globals.css            # Design tokens (OKLCH)
 ├── src/
-│   ├── components/          # Reusable UI components
-│   │   ├── ui/              # Base primitives (Button, Input, etc.)
-│   │   ├── form/            # Form components
-│   │   ├── layout/          # Header, BottomNavigation
-│   │   └── shared/          # Shared utilities
-│   ├── features/            # Domain modules (12 features)
-│   │   ├── accounts/        # Account management
-│   │   ├── auth/            # Authentication
-│   │   ├── budgets/         # Budget tracking
-│   │   ├── categories/      # Transaction categories
-│   │   ├── dashboard/       # Dashboard widgets
-│   │   ├── investments/     # Portfolio management
-│   │   ├── onboarding/      # User onboarding flow
-│   │   ├── permissions/     # RBAC system
-│   │   ├── recurring/       # Recurring transactions
-│   │   ├── reports/         # Financial analytics
-│   │   ├── settings/        # Settings pages
-│   │   └── transactions/    # Transaction CRUD
-│   ├── hooks/               # Global React hooks
-│   ├── lib/                 # Utilities, types, cache
-│   ├── server/              # Server-side code
-│   │   ├── db/              # Supabase client
-│   │   └── services/        # Business logic (18 services)
-│   ├── stores/              # Zustand stores (9 stores)
-│   └── styles/              # Shared style objects
-├── tests/                   # Playwright E2E tests
-├── migrations/              # Supabase migrations
-└── PROJECT_STRUCTURE.md     # Detailed agent documentation
+│   ├── components/            # Shared UI (ui, form, layout)
+│   ├── features/              # Domain modules (12 features)
+│   ├── hooks/                 # Global React hooks
+│   ├── i18n/                  # Locale routing and config
+│   ├── lib/                   # Utilities, auth, Twelve Data client
+│   ├── server/
+│   │   ├── db/                # Supabase, Drizzle schema
+│   │   ├── domain/            # Domain types and rules
+│   │   ├── repositories/      # Data access layer
+│   │   └── use-cases/         # Application logic
+│   └── stores/                # Zustand stores
+├── scripts/
+│   ├── update-market-data-cache.mjs   # Refresh market_data_cache
+│   └── seed-available-shares.js         # Seed share catalog
+├── .github/workflows/
+│   └── update-market-data.yml           # Daily market data cron
+├── messages/                  # i18n translation files (en.json, it.json)
+└── tests/                     # Playwright E2E tests
 ```
-
-> 📖 See [PROJECT_STRUCTURE.md](./PROJECT_STRUCTURE.md) for comprehensive architecture documentation.
 
 ---
 
@@ -240,81 +241,119 @@ wealth-pillar/
 
 | Category         | Technology                                                                  |
 | ---------------- | --------------------------------------------------------------------------- |
-| **Framework**    | [Next.js 16.1](https://nextjs.org/) (App Router, RSC, Server Actions)       |
-| **React**        | [React 19.2](https://react.dev/)                                            |
+| **Framework**    | [Next.js 16](https://nextjs.org/) (App Router, RSC, Server Actions)         |
+| **React**        | [React 19](https://react.dev/)                                              |
 | **Language**     | [TypeScript 5](https://www.typescriptlang.org/) (strict mode)               |
 | **Database**     | [Supabase](https://supabase.com/) (PostgreSQL)                              |
+| **ORM**          | [Drizzle ORM](https://orm.drizzle.team/)                                    |
 | **Auth**         | [Clerk](https://clerk.com/)                                                 |
-| **Styling**      | [Tailwind CSS 4.1](https://tailwindcss.com/) (OKLCH tokens)                 |
+| **i18n**         | [next-intl](https://next-intl.dev/) (English, Italian)                      |
+| **Styling**      | [Tailwind CSS 4](https://tailwindcss.com/) (OKLCH tokens)                   |
 | **State**        | [Zustand 5](https://zustand-demo.pmnd.rs/)                                  |
 | **Forms**        | [React Hook Form](https://react-hook-form.com/) + [Zod 4](https://zod.dev/) |
-| **UI**           | [Radix UI](https://www.radix-ui.com/) primitives                            |
+| **UI**           | [Radix UI](https://www.radix-ui.com/) + [shadcn/ui](https://ui.shadcn.com/) |
 | **Animations**   | [Framer Motion](https://www.framer.com/motion/)                             |
 | **Charts**       | [Recharts](https://recharts.org/)                                           |
+| **Market data**  | [Twelve Data API](https://twelvedata.com/)                                  |
 | **E2E Testing**  | [Playwright](https://playwright.dev/)                                       |
 | **Unit Testing** | [Vitest](https://vitest.dev/)                                               |
+| **Package mgr**  | [pnpm](https://pnpm.io/) 10.x                                               |
 
 ---
 
-## � Available Scripts
+## 📜 Scripts & Automation
 
-| Script              | Description              |
-| ------------------- | ------------------------ |
-| `npm run dev`       | Start development server |
-| `npm run build`     | Production build         |
-| `npm run start`     | Start production server  |
-| `npm run lint`      | Run ESLint               |
-| `npm run typecheck` | Run TypeScript checks    |
+### Available Scripts
+
+| Script                    | Description                        |
+| ------------------------- | ---------------------------------- |
+| `pnpm dev`                | Start development server           |
+| `pnpm build`              | Production build                   |
+| `pnpm start`              | Start production server            |
+| `pnpm lint`               | Run ESLint                         |
+| `pnpm lint:fix`           | Run ESLint with auto-fix           |
+| `pnpm format`             | Format code with Prettier          |
+| `pnpm format:check`       | Check Prettier formatting          |
+| `pnpm typecheck`          | Run TypeScript checks              |
+| `pnpm test`               | Run unit tests (Vitest)            |
+| `pnpm test:coverage`      | Unit tests with coverage           |
+| `pnpm test:e2e`           | Run E2E tests (Playwright)         |
+| `pnpm test:e2e:ui`        | E2E tests with Playwright UI       |
+| `pnpm test:e2e:headed`    | E2E tests in headed browser        |
+| `pnpm test:e2e:coverage`  | E2E tests with coverage reporting  |
+
+### Market Data Cache
+
+Investment charts read from the `market_data_cache` table. A GitHub Actions workflow refreshes it daily at 05:00 UTC and can also be triggered manually.
+
+**Workflow:** `.github/workflows/update-market-data.yml`
+
+**Required GitHub secrets:**
+
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `TWELVE_DATA_API_KEY`
+
+**Run locally:**
+
+```bash
+# Update all symbols from the investments table
+node scripts/update-market-data-cache.mjs
+
+# Dry run for a single symbol
+node scripts/update-market-data-cache.mjs --symbols=AAPL --dry-run
+
+# Limit batch size or read from available_shares
+node scripts/update-market-data-cache.mjs --from=available_shares --limit=10
+```
+
+The script exits with code 1 if any symbol fails, so CI can detect partial failures.
+
+**Seed available shares** (one-time catalog setup):
+
+```bash
+node scripts/seed-available-shares.js
+```
 
 ---
 
 ## 🧪 Testing
 
 ```bash
-# Run E2E tests (Playwright)
-npx playwright test
+# Unit tests
+pnpm test
 
-# Run E2E with UI
-npx playwright test --ui
+# E2E tests
+pnpm test:e2e
 
-# Run unit tests (Vitest)
-npm run test
+# E2E with UI
+pnpm test:e2e:ui
 ```
-
----
-
-## 📚 Documentation
-
-| Document                                       | Purpose                                                   |
-| ---------------------------------------------- | --------------------------------------------------------- |
-| [PROJECT_STRUCTURE.md](./PROJECT_STRUCTURE.md) | Complete architecture reference for agents and developers |
-| [CHANGELOG.md](./CHANGELOG.md)                 | Version history and release notes                         |
 
 ---
 
 ## 🚢 Deployment
 
-### Netlify (Configured)
+### Netlify
 
-The project includes `netlify.toml` for automatic deployment:
+The project is configured for Netlify via `netlify.toml`:
 
 ```bash
-npm run build
+pnpm build
 ```
 
-### Environment Setup
+Netlify uses Node 22.14.0 and `pnpm run build`.
 
-Ensure all environment variables from `.env.example` are configured in your deployment platform.
+Ensure all environment variables listed above are set in your deployment platform.
 
 ---
 
 ## 🤝 Contributing
 
-1. **Read** [PROJECT_STRUCTURE.md](./PROJECT_STRUCTURE.md) for architecture context
-2. **Follow** the feature module pattern for new features
-3. **Use** Server Actions for mutations, Services for business logic
-4. **Apply** centralized styles from `globals.css`
-5. **Run** `npm run lint && npm run typecheck` before committing
+1. **Follow** the feature module pattern for new UI and actions
+2. **Use** Server Actions for mutations, use cases for application logic, repositories for data access
+3. **Apply** centralized styles from `globals.css`
+4. **Run** `pnpm lint && pnpm typecheck` before committing
 
 ### Git Commit Convention
 
@@ -322,7 +361,7 @@ Ensure all environment variables from `.env.example` are configured in your depl
 # Format: type(scope): description
 feat(transactions): add receipt image upload
 fix(budgets): correct period calculation
-docs: update PROJECT_STRUCTURE.md
+docs: update README
 refactor(auth): simplify onboarding flow
 ```
 
